@@ -167,6 +167,7 @@ function SubmitActionButtonContent() {
             submitReport({
                 getCurrencyDecimals,
                 expenseReport: iouReport,
+                expenseReportTransactions: transactions,
                 policy,
                 rules,
                 currentUserAccountIDParam: currentUserAccountID,

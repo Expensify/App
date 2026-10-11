@@ -304,6 +304,7 @@ function useLifecycleActions({reportID, startApprovedAnimation, startAnimation, 
             submitReport({
                 getCurrencyDecimals,
                 expenseReport: moneyRequestReport,
+                expenseReportTransactions: transactions,
                 policy,
                 currentUserAccountIDParam: accountID,
                 currentUserEmailParam: email ?? '',
