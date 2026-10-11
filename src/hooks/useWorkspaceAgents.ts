@@ -15,8 +15,8 @@ function useWorkspaceAgents(policy: OnyxEntry<Policy>) {
     const workspaceAccountID = useWorkspaceAccountID(policyID);
     const workspaceMembers = useWorkspaceMembers(policy);
 
-    const agentsData = useAgents();
-    agentsData.agents = agentsData.agents.flatMap((agent) => {
+    const {agents, ...rest} = useAgents();
+    const workspaceAgents = agents.flatMap((agent) => {
         const agentMembership = workspaceMembers.find((member) => member.accountID === agent.accountID);
         const isAgentOwnedByWorkspace = agent.ownerAccountID === workspaceAccountID;
         const isAgentMemberOfWorkspace = !!agentMembership;
@@ -29,7 +29,7 @@ function useWorkspaceAgents(policy: OnyxEntry<Policy>) {
 
     // The useAgents hook only includes agents that the user can manage
     // We need to include other agents in the workspace too
-    const manageableAgentAccountIDs = new Set(agentsData.agents.map(({accountID}) => accountID));
+    const manageableAgentAccountIDs = new Set(workspaceAgents.map(({accountID}) => accountID));
     for (const workspaceMember of workspaceMembers) {
         const {policyEmployee, accountID, details} = workspaceMember;
         if (!details.isCustomAgent) {
@@ -43,7 +43,7 @@ function useWorkspaceAgents(policy: OnyxEntry<Policy>) {
         if (!isOffline && isPendingDeletion) {
             continue;
         }
-        agentsData.agents.push({
+        workspaceAgents.push({
             keyForList: String(accountID),
             accountID,
             displayName: details.displayName ?? details.login ?? '',
@@ -60,7 +60,7 @@ function useWorkspaceAgents(policy: OnyxEntry<Policy>) {
         });
     }
 
-    return agentsData;
+    return {agents: workspaceAgents, ...rest};
 }
 
 export default useWorkspaceAgents;
