@@ -1694,19 +1694,6 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                           };
                       });
 
-            const onyxTransactionsByReportID = new Map<string, Transaction[]>();
-            for (const transaction of Object.values(allTransactions ?? {})) {
-                if (!transaction?.reportID) {
-                    continue;
-                }
-                const reportTransactions = onyxTransactionsByReportID.get(transaction.reportID);
-                if (reportTransactions) {
-                    reportTransactions.push(transaction);
-                } else {
-                    onyxTransactionsByReportID.set(transaction.reportID, [transaction]);
-                }
-            }
-
             let paidReportCount = 0;
             for (const item of itemsToPay) {
                 if (!item.reportID) {
@@ -1721,7 +1708,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 }
 
                 const isItemInvoice = isInvoiceReport(iouReport);
-                const iouReportTransactions = onyxTransactionsByReportID.get(item.reportID) ?? [];
+                const iouReportTransactions = Object.values(allReportsTransactionsAndViolations?.[item.reportID]?.transactions ?? {});
                 const fallbackChatReportID = item.chatReportID ?? iouReport.chatReportID ?? iouReport.parentReportID;
                 const fallbackPolicyID = iouReport.policyID ?? item.policyID;
                 const {chatReport, isFallbackChatReport} = getChatReportWithFallback(
@@ -1875,6 +1862,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             personalPolicyID,
             lastPaymentMethods,
             allTransactions,
+            allReportsTransactionsAndViolations,
             policyIDsWithVBBA,
             clearSelectedTransactions,
             accountID,
