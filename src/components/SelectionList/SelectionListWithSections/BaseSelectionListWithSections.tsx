@@ -60,6 +60,7 @@ function BaseSelectionListWithSectionsImpl({
     onDismissError,
     onScroll,
     onScrollBeginDrag,
+    keyboardShouldPersistTaps = 'always',
     onEndReached,
     onEndReachedThreshold,
     customListHeaderContent,
@@ -86,9 +87,7 @@ function BaseSelectionListWithSectionsImpl({
     shouldSingleExecuteRowSelect = false,
     shouldPreventDefaultFocusOnSelectRow = false,
     shouldPreventAutoScrollOnSelect = false,
-    isRowMultilineSupported = false,
     titleNumberOfLines,
-    shouldHighlightSelectedItem,
     shouldDisableHoverStyle,
     selectionButtonPosition,
     shouldFooterBeInsideList = false,
@@ -318,11 +317,7 @@ function BaseSelectionListWithSectionsImpl({
                         singleExecution={singleExecution}
                         shouldSyncFocus={!isTextInputFocusedRef.current && isKeyboardNavigating}
                         shouldIgnoreFocus={shouldIgnoreFocus}
-                        wrapperStyle={style?.listItemWrapperStyle}
-                        titleStyles={style?.listItemTitleStyles}
-                        isMultilineSupported={isRowMultilineSupported}
                         titleNumberOfLines={titleNumberOfLines}
-                        shouldHighlightSelectedItem={shouldHighlightSelectedItem}
                         shouldDisableHoverStyle={shouldDisableHoverStyle}
                         selectionButtonPosition={selectionButtonPosition}
                         shouldPreventEnterKeySubmit={!disableKeyboardShortcuts}
@@ -381,7 +376,7 @@ function BaseSelectionListWithSectionsImpl({
                     }}
                     indicatorStyle="white"
                     showsVerticalScrollIndicator
-                    keyboardShouldPersistTaps="always"
+                    keyboardShouldPersistTaps={keyboardShouldPersistTaps}
                     ListHeaderComponent={customListHeaderContent}
                     ListFooterComponent={
                         isFooterInsideList ? (

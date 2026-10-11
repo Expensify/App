@@ -1,6 +1,7 @@
 import type {ASTNode, QueryFilter, SearchFilterKey, SearchQueryJSON} from '@components/Search/types';
 
 import {generatePolicyID} from '@libs/actions/Policy/Policy';
+import {clearPreservedNavigatorStates, setPreservedNavigatorState} from '@libs/Navigation/AppNavigator/createSplitNavigator/usePreserveNavigatorState';
 
 import CONST from '@src/CONST';
 import DateUtils from '@src/libs/DateUtils';
@@ -35,8 +36,10 @@ import {
     getQueryWithUpdatedValues,
     getRangeBoundariesFromFormValue,
     getRoutes,
+    getSearchRootParamsFromRootState,
     getValidLastQuery,
     hasFiltersChangedFromDefault,
+    isSearchQuerySavable,
     isFilterNegated,
     isDefaultExpenseReportsQuery,
     isDefaultExpensesQuery,
@@ -60,6 +63,7 @@ import type {Connections} from '@src/types/onyx/Policy';
 
 /* eslint-disable @typescript-eslint/naming-convention */
 // we need "dirty" object key names in these tests
+import type {NavigationState} from '@react-navigation/native';
 import type {OnyxCollection} from 'react-native-onyx';
 
 import createMock from 'tests/utils/createMock';
@@ -68,6 +72,13 @@ import createRandomPolicy from '../../utils/collections/policies';
 import {formatPhoneNumber, localeCompare, translateLocal} from '../../utils/TestHelper';
 
 const mockGetRootState = jest.fn();
+
+jest.mock('@expensify/react-native-hybrid-app', () => ({
+    __esModule: true,
+    default: {
+        isHybridApp: jest.fn(() => false),
+    },
+}));
 
 jest.mock('@libs/Navigation/navigationRef', () => ({
     __esModule: true,
@@ -170,6 +181,157 @@ describe('SearchQueryUtils', () => {
             });
 
             expect(getCurrentSearchQueryJSON()?.type).toBe(CONST.SEARCH.DATA_TYPES.INVOICE);
+        });
+    });
+
+    // getSearchRootParamsFromRootState walks navigation states structurally with runtime type guards,
+    // so these fixtures only need the fields it actually reads.
+    describe('getSearchRootParamsFromRootState', () => {
+        const CHAT_QUERY = 'sortBy:date sortOrder:desc type:chat';
+
+        function searchRootRoute(q: string, rawQuery?: string) {
+            return {key: 'search-root-1', name: SCREENS.SEARCH.ROOT, params: rawQuery ? {q, rawQuery} : {q}};
+        }
+
+        function rhpRoute() {
+            return {
+                key: 'rhp-1',
+                name: NAVIGATORS.RIGHT_MODAL_NAVIGATOR,
+                state: {index: 0, routes: [{key: 'report-1', name: SCREENS.SEARCH.MONEY_REQUEST_REPORT, params: {reportID: '1'}}]},
+            };
+        }
+
+        afterEach(() => {
+            clearPreservedNavigatorStates();
+        });
+
+        it('returns the Search root query when an RHP is stacked above the Search tab', () => {
+            // This is the https://github.com/Expensify/App/issues/100605 case: the focused route is the RHP report,
+            // which carries no `q`, but the Search root route underneath it still does.
+            const rootState = {
+                index: 1,
+                routes: [
+                    {
+                        key: 'tab-1',
+                        name: NAVIGATORS.TAB_NAVIGATOR,
+                        state: {
+                            index: 0,
+                            routes: [{key: 'search-nav-1', name: NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR, state: {index: 0, routes: [searchRootRoute(CHAT_QUERY)]}}],
+                        },
+                    },
+                    rhpRoute(),
+                ],
+            };
+
+            expect(getSearchRootParamsFromRootState(rootState)?.q).toBe(CHAT_QUERY);
+        });
+
+        it('returns the Search root query from nested route params on a cold boot', () => {
+            // After a refresh the state is rebuilt from the path, so the Search tab exists as
+            // `params: {screen, params}` rather than as a mounted `state`.
+            const rootState = {
+                index: 1,
+                routes: [
+                    {
+                        key: 'tab-1',
+                        name: NAVIGATORS.TAB_NAVIGATOR,
+                        params: {screen: NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR, params: {screen: SCREENS.SEARCH.ROOT, params: {q: CHAT_QUERY}}},
+                    },
+                    rhpRoute(),
+                ],
+            };
+
+            expect(getSearchRootParamsFromRootState(rootState)?.q).toBe(CHAT_QUERY);
+        });
+
+        it('returns rawQuery alongside q when the Search root has one', () => {
+            const rootState = {
+                index: 0,
+                routes: [
+                    {
+                        key: 'tab-1',
+                        name: NAVIGATORS.TAB_NAVIGATOR,
+                        state: {
+                            index: 0,
+                            routes: [{key: 'search-nav-1', name: NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR, state: {index: 0, routes: [searchRootRoute(CHAT_QUERY, 'type:chat')]}}],
+                        },
+                    },
+                ],
+            };
+
+            expect(getSearchRootParamsFromRootState(rootState)?.rawQuery).toBe('type:chat');
+        });
+
+        it('falls back to the preserved navigator state when the Search tab is not focused', () => {
+            // A non-focused tab navigator has its nested state dropped from the live tree, so the query
+            // has to come from the preserved-state map instead.
+            const preservedSearchNavigatorState: NavigationState = {
+                key: 'search-nav-1',
+                index: 0,
+                routeNames: [SCREENS.SEARCH.ROOT],
+                routes: [searchRootRoute(CHAT_QUERY)],
+                type: 'stack',
+                stale: false,
+            };
+            setPreservedNavigatorState('search-nav-1', preservedSearchNavigatorState);
+
+            const rootState = {
+                index: 0,
+                routes: [
+                    {
+                        key: 'tab-1',
+                        name: NAVIGATORS.TAB_NAVIGATOR,
+                        state: {
+                            index: 1,
+                            routes: [
+                                {key: 'search-nav-1', name: NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR},
+                                {key: 'reports-nav-1', name: NAVIGATORS.REPORTS_SPLIT_NAVIGATOR},
+                            ],
+                        },
+                    },
+                ],
+            };
+
+            expect(getSearchRootParamsFromRootState(rootState)?.q).toBe(CHAT_QUERY);
+        });
+
+        it('falls back to the canned query when the Search tab has never been visited', () => {
+            const rootState = {
+                index: 0,
+                routes: [
+                    {
+                        key: 'tab-1',
+                        name: NAVIGATORS.TAB_NAVIGATOR,
+                        state: {index: 0, routes: [{key: 'reports-nav-1', name: NAVIGATORS.REPORTS_SPLIT_NAVIGATOR}]},
+                    },
+                ],
+            };
+
+            expect(getSearchRootParamsFromRootState(rootState)?.q).toBe(buildSearchQueryString());
+        });
+
+        it('falls back to the canned query when there is no tab navigator at all', () => {
+            expect(getSearchRootParamsFromRootState(undefined)?.q).toBe(buildSearchQueryString());
+        });
+
+        it('returns undefined when a mounted Search navigator has no usable Search root params', () => {
+            // The provider keeps its own `?? buildSearchQueryString()` fallback for this case; the resolver
+            // must not invent a query, so that `getCurrentSearchQueryJSON` callers still see `undefined`.
+            const rootState = {
+                index: 0,
+                routes: [
+                    {
+                        key: 'tab-1',
+                        name: NAVIGATORS.TAB_NAVIGATOR,
+                        state: {
+                            index: 0,
+                            routes: [{key: 'search-nav-1', name: NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR, state: {index: 0, routes: [{key: 'search-root-1', name: SCREENS.SEARCH.ROOT}]}}],
+                        },
+                    },
+                ],
+            };
+
+            expect(getSearchRootParamsFromRootState(rootState)).toBeUndefined();
         });
     });
 
@@ -884,6 +1046,104 @@ describe('SearchQueryUtils', () => {
 
                 const result = buildQueryStringFromFilterFormValues(filterValues, {sortBy: 'date', sortOrder: 'desc'});
                 expect(result).not.toContain('limit');
+            });
+        });
+
+        describe('compare option', () => {
+            test('includes valid compare mode in query string when provided in form values', () => {
+                // Given form values carrying a valid compare mode
+                const filterValues: Partial<SearchAdvancedFiltersForm> = {
+                    type: 'expense',
+                    compare: CONST.SEARCH.COMPARE.PREVIOUS_PERIOD,
+                };
+
+                // When building the query string
+                const result = buildQueryStringFromFilterFormValues(filterValues);
+
+                // Then the compare key is preserved
+                expect(result).toContain('compare:previousPeriod');
+            });
+
+            test('omits compare when not provided', () => {
+                // Given form values without a compare mode
+                const filterValues: Partial<SearchAdvancedFiltersForm> = {
+                    type: 'expense',
+                };
+
+                // When building the query string
+                const result = buildQueryStringFromFilterFormValues(filterValues);
+
+                // Then no compare key is emitted
+                expect(result).not.toContain('compare:');
+            });
+
+            test('discards invalid compare value', () => {
+                // Given form values with an unrecognized compare mode
+                const filterValues: Partial<SearchAdvancedFiltersForm> = {
+                    type: 'expense',
+                    compare: 'garbage',
+                };
+
+                // When building the query string
+                const result = buildQueryStringFromFilterFormValues(filterValues);
+
+                // Then the invalid compare key is dropped
+                expect(result).not.toContain('compare');
+            });
+
+            test('compare is preserved across a form round-trip so other filter changes do not drop it', () => {
+                // Given a query that carries a compare mode
+                const queryJSON = buildSearchQueryJSON('type:expense compare:average');
+
+                if (!queryJSON) {
+                    throw new Error('Failed to parse query string');
+                }
+
+                // When converting to form values and back to a query string
+                const filtersForm = buildFilterFormValuesFromQuery(queryJSON, {}, {}, {}, {}, {}, {});
+                const result = buildQueryStringFromFilterFormValues(filtersForm);
+
+                // Then the compare key survives the round-trip
+                expect(filtersForm.compare).toBe(CONST.SEARCH.COMPARE.AVERAGE);
+                expect(result).toContain('compare:average');
+            });
+
+            test('compare survives even when the type is changed during the round-trip', () => {
+                // Given a query that carries a compare mode
+                const queryJSON = buildSearchQueryJSON('type:expense compare:average');
+
+                if (!queryJSON) {
+                    throw new Error('Failed to parse query string');
+                }
+
+                // When converting to form values, switching the type, and rebuilding the query string
+                const filtersForm = buildFilterFormValuesFromQuery(queryJSON, {}, {}, {}, {}, {}, {});
+                const editedForm: Partial<SearchAdvancedFiltersForm> = {...filtersForm, type: CONST.SEARCH.DATA_TYPES.INVOICE};
+                const result = buildQueryStringFromFilterFormValues(editedForm);
+
+                // Then the compare key is not dropped by the type-strip step
+                expect(result).toContain('type:invoice');
+                expect(result).toContain('compare:average');
+            });
+
+            test('invalid compare value does not affect the primary hash', () => {
+                // Given one query with an invalid compare mode and one with no compare key
+                const withInvalid = buildSearchQueryJSON('type:expense compare:garbage');
+                const withNone = buildSearchQueryJSON('type:expense');
+
+                // Then the invalid compare value is normalized away and the hashes match
+                expect(withInvalid?.compare).toBeUndefined();
+                expect(withInvalid?.hash).toBe(withNone?.hash);
+            });
+
+            test('valid compare value does affect the primary hash', () => {
+                // Given one query with a valid compare mode and one with no compare key
+                const withCompare = buildSearchQueryJSON('type:expense compare:previousPeriod');
+                const withNone = buildSearchQueryJSON('type:expense');
+
+                // Then the valid compare value is kept and changes the hash
+                expect(withCompare?.compare).toBe(CONST.SEARCH.COMPARE.PREVIOUS_PERIOD);
+                expect(withCompare?.hash).not.toBe(withNone?.hash);
             });
         });
 
@@ -2141,6 +2401,45 @@ describe('SearchQueryUtils', () => {
                 expect(withDecimalLimit?.hash).toEqual(withoutLimit?.hash);
             });
         });
+
+        describe('compare hashing', () => {
+            it('should return different primaryHash for queries with different compare modes', () => {
+                // Given two queries that differ only by compare mode
+                const queryJSONa = buildSearchQueryJSON(`type:expense compare:${CONST.SEARCH.COMPARE.PREVIOUS_PERIOD}`);
+                const queryJSONb = buildSearchQueryJSON(`type:expense compare:${CONST.SEARCH.COMPARE.AVERAGE}`);
+
+                // Then compare affects the primary hash
+                expect(queryJSONa?.hash).not.toEqual(queryJSONb?.hash);
+            });
+
+            it('should return different primaryHash for a query with compare vs without', () => {
+                // Given a query with compare and the same query without it
+                const withoutCompare = buildSearchQueryJSON('type:expense');
+                const withCompare = buildSearchQueryJSON(`type:expense compare:${CONST.SEARCH.COMPARE.PREVIOUS_PERIOD}`);
+
+                // Then the primary hashes differ
+                expect(withoutCompare?.hash).not.toEqual(withCompare?.hash);
+            });
+
+            it('should return same primaryHash for the same compare mode queried twice', () => {
+                // Given the same compare query built twice
+                const queryJSONa = buildSearchQueryJSON(`type:expense compare:${CONST.SEARCH.COMPARE.AVERAGE}`);
+                const queryJSONb = buildSearchQueryJSON(`type:expense compare:${CONST.SEARCH.COMPARE.AVERAGE}`);
+
+                // Then the primary hash is stable
+                expect(queryJSONa?.hash).toEqual(queryJSONb?.hash);
+            });
+
+            it('should not include compare in the similar or recent search hashes', () => {
+                // Given two queries that differ only by compare mode
+                const queryJSONa = buildSearchQueryJSON(`type:expense compare:${CONST.SEARCH.COMPARE.PREVIOUS_PERIOD}`);
+                const queryJSONb = buildSearchQueryJSON(`type:expense compare:${CONST.SEARCH.COMPARE.AVERAGE}`);
+
+                // Then only the primary hash differs; similar and recent hashes ignore compare
+                expect(queryJSONa?.similarSearchHash).toEqual(queryJSONb?.similarSearchHash);
+                expect(queryJSONa?.recentSearchHash).toEqual(queryJSONb?.recentSearchHash);
+            });
+        });
     });
 
     describe('buildQueryStringWithResetFilters', () => {
@@ -2326,6 +2625,78 @@ describe('SearchQueryUtils', () => {
             }
 
             expect(hasFiltersChangedFromDefault(currentQueryJSON, defaultQueryJSON)).toBe(true);
+        });
+
+        it('returns true when the current query only differs by a filter that is no longer ignored', () => {
+            // Given a query that only adds a keyword to the default query
+            const defaultQueryJSON = buildSearchQueryJSON('type:expense category:travel');
+            const currentQueryJSON = buildSearchQueryJSON('type:expense category:travel hello');
+
+            if (!defaultQueryJSON || !currentQueryJSON) {
+                throw new Error('Failed to parse query string');
+            }
+
+            // When only the group currency is ignored, as when checking whether there's something to save
+            const onlyGroupCurrencyIgnored = new Set<SearchFilterKey>([CONST.SEARCH.SYNTAX_FILTER_KEYS.GROUP_CURRENCY]);
+
+            // Then the keyword counts as a change
+            expect(hasFiltersChangedFromDefault(currentQueryJSON, defaultQueryJSON, onlyGroupCurrencyIgnored)).toBe(true);
+        });
+
+        it('returns false when the current query only differs by the given ignored filters', () => {
+            // Given a query that only adds a group currency to the default query
+            const defaultQueryJSON = buildSearchQueryJSON('type:expense category:travel');
+            const currentQueryJSON = buildSearchQueryJSON('type:expense category:travel group-currency:USD');
+
+            if (!defaultQueryJSON || !currentQueryJSON) {
+                throw new Error('Failed to parse query string');
+            }
+
+            // When the group currency is ignored
+            const onlyGroupCurrencyIgnored = new Set<SearchFilterKey>([CONST.SEARCH.SYNTAX_FILTER_KEYS.GROUP_CURRENCY]);
+
+            // Then the group currency doesn't count as a change
+            expect(hasFiltersChangedFromDefault(currentQueryJSON, defaultQueryJSON, onlyGroupCurrencyIgnored)).toBe(false);
+        });
+    });
+
+    describe('isSearchQuerySavable', () => {
+        it('returns true when there is no default query, even without filters or a keyword', () => {
+            // Given a query that isn't bound to any suggested or saved search
+            const currentQueryJSON = buildSearchQueryJSON('type:trip');
+
+            // When checking whether it can be saved without a default query to compare against
+            // Then it's savable because nothing in the LHN already covers it
+            expect(isSearchQuerySavable(currentQueryJSON, undefined)).toBe(true);
+        });
+
+        it('returns false when there is no current query', () => {
+            // Given no current query
+            const defaultQueryJSON = buildSearchQueryJSON('type:expense');
+
+            // When checking whether it can be saved
+            // Then there is nothing to save
+            expect(isSearchQuerySavable(undefined, defaultQueryJSON)).toBe(false);
+        });
+
+        it('returns false when the query equals the default query', () => {
+            // Given a query that matches its default
+            const defaultQueryJSON = buildSearchQueryJSON('type:expense category:travel');
+            const currentQueryJSON = buildSearchQueryJSON('type:expense category:travel');
+
+            // When checking whether it can be saved
+            // Then there is nothing new to save
+            expect(isSearchQuerySavable(currentQueryJSON, defaultQueryJSON)).toBe(false);
+        });
+
+        it('returns true when only a keyword is added to the default query', () => {
+            // Given a query that only adds a keyword to its default
+            const defaultQueryJSON = buildSearchQueryJSON('type:expense category:travel');
+            const currentQueryJSON = buildSearchQueryJSON('type:expense category:travel hello');
+
+            // When checking whether it can be saved
+            // Then the keyword makes it a new search worth saving
+            expect(isSearchQuerySavable(currentQueryJSON, defaultQueryJSON)).toBe(true);
         });
     });
 
@@ -2675,6 +3046,37 @@ describe('SearchQueryUtils', () => {
 
             expect(result).toContain('view:pie');
             expect(result).toContain('merchant:Amazon');
+        });
+
+        test('serializes the compare root key', () => {
+            // Given a query JSON carrying a compare mode
+            const queryJSON = buildSearchQueryJSON(`type:expense compare:${CONST.SEARCH.COMPARE.PREVIOUS_PERIOD}`);
+
+            const result = buildSearchQueryString(queryJSON);
+
+            // Then compare round-trips into the query string
+            expect(result).toContain(`compare:${CONST.SEARCH.COMPARE.PREVIOUS_PERIOD}`);
+        });
+
+        test('serializes compare alongside other filters', () => {
+            // Given a query JSON with compare and a regular filter
+            const queryJSON = buildSearchQueryJSON(`type:expense compare:${CONST.SEARCH.COMPARE.AVERAGE} category:travel`);
+
+            const result = buildSearchQueryString(queryJSON);
+
+            // Then both the compare key and the filter are serialized
+            expect(result).toContain(`compare:${CONST.SEARCH.COMPARE.AVERAGE}`);
+            expect(result).toContain('category:travel');
+        });
+
+        test('omits compare when not present in the query', () => {
+            // Given a query JSON with no compare mode
+            const queryJSON = buildSearchQueryJSON('type:expense');
+
+            const result = buildSearchQueryString(queryJSON);
+
+            // Then no compare key is emitted
+            expect(result).not.toContain('compare:');
         });
 
         test('wraps keyword values in quotes so they are not re-interpreted as filter syntax', () => {
@@ -3787,7 +4189,7 @@ describe('SearchQueryUtils', () => {
                 throw new Error('Expected queryJSON to be defined');
             }
             const normalizedFilters = applyContainsOperatorToTextFields(queryJSON.filters);
-            expect(serializeQueryJSONForBackend(queryJSON)).toBe(JSON.stringify({...queryJSON, filters: normalizedFilters, status: ''}));
+            expect(serializeQueryJSONForBackend(queryJSON)).toBe(JSON.stringify({...queryJSON, filters: normalizedFilters}));
             const merchantNode = findNode(normalizedFilters, 'merchant');
             if (!merchantNode) {
                 throw new Error('Expected merchant node to be found in AST');
@@ -3798,7 +4200,7 @@ describe('SearchQueryUtils', () => {
         it('should apply contains to merchant in rawFilterList', () => {
             const rawFilterList = [{key: CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT, operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, value: 'coffee'}];
             const normalizedRawFilterList = rawFilterList.map((filter) => ({...filter, operator: CONST.SEARCH.SYNTAX_OPERATORS.CONTAINS}));
-            expect(serializeQueryJSONForBackend({filters: undefined, rawFilterList})).toBe(JSON.stringify({filters: undefined, rawFilterList: normalizedRawFilterList, status: ''}));
+            expect(serializeQueryJSONForBackend({filters: undefined, rawFilterList})).toBe(JSON.stringify({filters: undefined, rawFilterList: normalizedRawFilterList}));
         });
 
         it('should preserve exact merchant matches in AST filters', () => {
@@ -3807,7 +4209,7 @@ describe('SearchQueryUtils', () => {
                 throw new Error('Expected queryJSON to be defined');
             }
             const exactMatchFilterKeys = new Set<SearchFilterKey>([CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT]);
-            expect(serializeQueryJSONForBackend(queryJSON, exactMatchFilterKeys)).toBe(JSON.stringify({...queryJSON, status: ''}));
+            expect(serializeQueryJSONForBackend(queryJSON, exactMatchFilterKeys)).toBe(JSON.stringify(queryJSON));
             const merchantNode = findNode(queryJSON.filters, 'merchant');
             if (!merchantNode) {
                 throw new Error('Expected merchant node to be found in AST');
@@ -3818,7 +4220,7 @@ describe('SearchQueryUtils', () => {
         it('should preserve exact merchant matches in rawFilterList', () => {
             const rawFilterList = [{key: CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT, operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, value: 'coffee'}];
             const exactMatchFilterKeys = new Set<SearchFilterKey>([CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT]);
-            expect(serializeQueryJSONForBackend({filters: undefined, rawFilterList}, exactMatchFilterKeys)).toBe(JSON.stringify({filters: undefined, rawFilterList, status: ''}));
+            expect(serializeQueryJSONForBackend({filters: undefined, rawFilterList}, exactMatchFilterKeys)).toBe(JSON.stringify({filters: undefined, rawFilterList}));
         });
 
         it('should preserve multiple exact merchant matches while keeping description as contains', () => {
@@ -3828,7 +4230,7 @@ describe('SearchQueryUtils', () => {
             }
             const exactMatchFilterKeys = new Set<SearchFilterKey>([CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT]);
             const normalizedFilters = applyContainsOperatorToTextFields(queryJSON.filters, exactMatchFilterKeys);
-            expect(serializeQueryJSONForBackend(queryJSON, exactMatchFilterKeys)).toBe(JSON.stringify({...queryJSON, filters: normalizedFilters, status: ''}));
+            expect(serializeQueryJSONForBackend(queryJSON, exactMatchFilterKeys)).toBe(JSON.stringify({...queryJSON, filters: normalizedFilters}));
             const merchantNode = findNode(normalizedFilters, 'merchant');
             const descriptionNode = findNode(normalizedFilters, 'description');
             if (!merchantNode || !descriptionNode) {
@@ -3841,7 +4243,7 @@ describe('SearchQueryUtils', () => {
 
         it('should not affect non-text fields in rawFilterList', () => {
             const rawFilterList = [{key: CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY, operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, value: 'food'}];
-            expect(serializeQueryJSONForBackend({filters: undefined, rawFilterList})).toBe(JSON.stringify({filters: undefined, rawFilterList, status: ''}));
+            expect(serializeQueryJSONForBackend({filters: undefined, rawFilterList})).toBe(JSON.stringify({filters: undefined, rawFilterList}));
         });
     });
 
@@ -4417,6 +4819,34 @@ describe('SearchQueryUtils', () => {
             expect(result).toEqual([policy1]);
         });
 
+        test('resolves workspace names to policy IDs when filtering policies', () => {
+            const result = getAllPolicyValues({value: ['Workspace 1', 'Workspace 2'], isNegated: false}, ONYXKEYS.COLLECTION.POLICY, policyData);
+
+            expect(result).toEqual([policy1, policy2]);
+        });
+
+        test('resolves negated workspace names to policy IDs when filtering policies', () => {
+            const result = getAllPolicyValues({value: ['Workspace 1'], isNegated: true}, ONYXKEYS.COLLECTION.POLICY, policyData);
+
+            expect(result).toEqual([policy2, policy3]);
+        });
+
+        test('resolves workspace names using provided policies collection for other collections', () => {
+            const tagList1: OnyxTypes.PolicyTagLists = {
+                TagList: {name: 'TagList', required: false, orderWeight: 0, tags: {Tag1: {name: 'Tag1', enabled: true}}},
+            };
+            const tagList2: OnyxTypes.PolicyTagLists = {
+                TagList: {name: 'TagList', required: false, orderWeight: 0, tags: {Tag2: {name: 'Tag2', enabled: true}}},
+            };
+            const policyTagsData = {
+                [`${ONYXKEYS.COLLECTION.POLICY_TAGS}1`]: tagList1,
+                [`${ONYXKEYS.COLLECTION.POLICY_TAGS}2`]: tagList2,
+            };
+            const result = getAllPolicyValues({value: ['Workspace 1'], isNegated: false}, ONYXKEYS.COLLECTION.POLICY_TAGS, policyTagsData, policyData);
+
+            expect(result).toEqual([tagList1]);
+        });
+
         test('returns every policy value when the filter is undefined', () => {
             expect(getAllPolicyValues(undefined, ONYXKEYS.COLLECTION.POLICY, policyData)).toEqual([policy1, policy2, policy3]);
         });
@@ -4451,6 +4881,23 @@ describe('SearchQueryUtils', () => {
 
         test('returns every policy value except the excluded ones for a negated filter', () => {
             const result = getAllPolicyValuesMap({value: ['1'], isNegated: true}, ONYXKEYS.COLLECTION.POLICY, policyData);
+
+            expect(result).toEqual({
+                [`${ONYXKEYS.COLLECTION.POLICY}2`]: policy2,
+                [`${ONYXKEYS.COLLECTION.POLICY}3`]: policy3,
+            });
+        });
+
+        test('resolves workspace names to policy IDs when filtering policies', () => {
+            const result = getAllPolicyValuesMap({value: ['Workspace 1'], isNegated: false}, ONYXKEYS.COLLECTION.POLICY, policyData);
+
+            expect(result).toEqual({
+                [`${ONYXKEYS.COLLECTION.POLICY}1`]: policy1,
+            });
+        });
+
+        test('resolves negated workspace names to policy IDs when filtering policies', () => {
+            const result = getAllPolicyValuesMap({value: ['Workspace 1'], isNegated: true}, ONYXKEYS.COLLECTION.POLICY, policyData);
 
             expect(result).toEqual({
                 [`${ONYXKEYS.COLLECTION.POLICY}2`]: policy2,

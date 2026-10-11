@@ -10,12 +10,13 @@ import type {TabSelectorBaseItem} from '@components/TabSelector/types';
 
 import useDeleteSavedSearch from '@hooks/useDeleteSavedSearch';
 import useFeedKeysWithAssignedCards from '@hooks/useFeedKeysWithAssignedCards';
+import useLayoutSpacing from '@hooks/useLayoutSpacing';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useReportAttributes from '@hooks/useReportAttributes';
-import useSearchTypeMenuSections from '@hooks/useSearchTypeMenuSections';
+import {useSearchTypeMenuSectionsForNavigation} from '@hooks/useSearchTypeMenuSections';
 import useShareSavedSearch, {MENU_CLOSE_DELAY_MS} from '@hooks/useShareSavedSearch';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useTodoCounts from '@hooks/useTodoCounts';
@@ -61,6 +62,7 @@ type SearchTypeMenuNarrowContentProps = {
 
 function SearchTypeMenuNarrowContent({tabs, activeTabKey, onActiveTabPress, onTabPress: onTabPressContent, onLongTabPress, containerRef, children}: SearchTypeMenuNarrowContentProps) {
     const styles = useThemeStyles();
+    const {pageGutter} = useLayoutSpacing();
 
     return (
         <View
@@ -69,6 +71,7 @@ function SearchTypeMenuNarrowContent({tabs, activeTabKey, onActiveTabPress, onTa
         >
             <TabSelectorContextProvider activeTabKey={activeTabKey}>
                 <TabSelectorBase
+                    contentContainerStyles={pageGutter}
                     tabs={tabs}
                     activeTabKey={activeTabKey}
                     onActiveTabPress={onActiveTabPress}
@@ -87,7 +90,7 @@ function SearchTypeMenuNarrow({queryJSON, onTabPress}: SearchTypeMenuNarrowProps
     const {translate, localeCompare, formatPhoneNumber} = useLocalize();
     const styles = useThemeStyles();
     const isFocused = useIsFocused();
-    const typeMenuSections = useSearchTypeMenuSections(isFocused);
+    const typeMenuSections = useSearchTypeMenuSectionsForNavigation(isFocused);
     const personalDetails = usePersonalDetails();
     const feedKeysWithCards = useFeedKeysWithAssignedCards();
     const [restoreFocusType, setRestoreFocusType] = useState<BaseModalProps['restoreFocusType']>();

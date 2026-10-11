@@ -13,7 +13,8 @@ import {updateNetSuiteCustomLists, updateNetSuiteCustomSegments} from '@libs/act
 import {clearNetSuiteErrorField, clearNetSuitePendingField, removeNetSuiteCustomFieldByIndex} from '@libs/actions/Policy/Policy';
 import {getLatestErrorField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import {getNameFromNetSuiteCustomField, isNetSuiteCustomFieldPropertyEditable, isNetSuiteCustomSegmentRecord, settingsPendingAction} from '@libs/PolicyUtils';
+import {getNameFromNetSuiteCustomField, isNetSuiteCustomFieldPropertyEditable, isNetSuiteCustomSegmentRecord} from '@libs/NetSuiteUtils';
+import {settingsPendingAction} from '@libs/PolicyUtils';
 
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';

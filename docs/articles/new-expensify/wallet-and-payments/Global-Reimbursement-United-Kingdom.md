@@ -58,7 +58,7 @@ To comply with financial regulations, the following documents are needed:
 5. **Add Beneficial Owner Information**
    * Required for anyone owning 25% or more
    * Full name, birthdate, residential address, ownership %
-   * SSN only if based in the US
+   * Complete Social Security Number, entered in the **Full 9 digits of SSN** field, only if their country of citizenship is the United States
 6. **Add Director Information**
    * If any beneficial owner is also a director, their info is reused automatically.
    * Otherwise, manually enter the director’s personal info.

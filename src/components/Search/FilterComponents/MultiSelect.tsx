@@ -170,19 +170,20 @@ function MultiSelect<T extends string>({
         </View>
     );
 
-    const footerContent = (
-        <>
-            {!!isLoadingMore && (
-                <View style={[styles.alignItemsCenter, styles.pv4]}>
-                    <ActivityIndicator
-                        size={CONST.ACTIVITY_INDICATOR_SIZE.SMALL}
-                        color={theme.spinner}
-                    />
-                </View>
-            )}
-            {footer}
-        </>
-    );
+    const footerContent =
+        isLoadingMore || footer ? (
+            <>
+                {!!isLoadingMore && (
+                    <View style={[styles.alignItemsCenter, styles.pv4]}>
+                        <ActivityIndicator
+                            size={CONST.ACTIVITY_INDICATOR_SIZE.SMALL}
+                            color={theme.spinner}
+                        />
+                    </View>
+                )}
+                {footer}
+            </>
+        ) : undefined;
 
     return (
         <ListFilterView

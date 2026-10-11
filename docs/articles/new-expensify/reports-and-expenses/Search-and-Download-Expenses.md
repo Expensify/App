@@ -23,16 +23,15 @@ Expensify offers flexible options to search and export expenses and reports in v
 
 1. In the navigation tabs (on the left on web, and at the bottom on mobile) on the left, select **Spend** > **Reports**.
 2. Check the box next to the expenses or reports you want to export, or use the top checkbox to select all.
-3. Click **Selected** at the top.
-4. Select **Export** from the dropdown.
-5. Choose one of the following options:
+3. On the selection bar, choose **Export**.
+4. Choose one of the following options:
    - **Basic Export** – Simplified, essential fields (date, amount, merchant, category, receipt URL).
    - **All Data – Expense Level Export** – One row per expense with full data.
    - **All Data – Report Level Export** – One row per report with summary data.
    - **Current view** – A CSV that matches the columns currently shown on the page. Set the columns using **Display** > **Edit columns**. When a **Group by** filter is applied, the CSV keeps each group as its own section and uses those same columns.
    - **Custom Templates** – Any template created by you or your Workspace Admin (if available).
 
-**Basic Export** and **Current view** download immediately when exporting individual selected reports or when using **Select all on this page**. If you choose one of the **All Data** exports, a custom export template, or use **Select all** to match every report, then the export is prepared in the background. You can wait for the file to download automatically, or select **Send me the file when it's ready** to have Concierge deliver it instead. Selecting this option allows the export window to be closed while the file is generated. Once the export is ready, Expensify sends it through Concierge and by email. If the export cannot be generated, Expensify displays an error in the export window or sends the error through Concierge if **Send me the file when it’s ready** was selected.
+**Basic Export** and **Current view** download immediately when exporting individual selected reports or when using **Select all on this page**. If you choose one of the **All Data** exports, a custom export template, or use **Select all** to match every report, then the export is prepared in the background. You can wait for the file to download automatically, or select **Send me the file when it's ready** to have Concierge deliver it instead. Selecting this option allows the export window to be closed while the file is generated. Once the export is ready, Expensify sends it through Concierge and by email. If you keep the export window open until the export finishes, the window switches to **Your file is ready!** so you can select **Download file** right away. If the export cannot be generated, Expensify displays an error in the export window or sends the error through Concierge if **Send me the file when it’s ready** was selected.
 
 **Note:** Report-level templates only appear if you select full reports.
 
@@ -51,7 +50,7 @@ Expensify offers flexible options to search and export expenses and reports in v
 
 # Export your current filtered view
 
-To export exactly what you see on the Spend page, select **Export** from the bulk actions menu, then choose **Current view**. The resulting CSV reflects your active filters, column configuration, and ordering—no additional processing needed.
+To export exactly what you see on the Spend page, select the expenses or reports, choose **Export** on the selection bar, then choose **Current view**. The resulting CSV reflects your active filters, column configuration, and ordering—no additional processing needed.
 
 The exported file is named `Expensify_<current_view>_<unique id>.csv`.
 
@@ -65,7 +64,7 @@ When you group expenses on the **Spend** page, you can export the grouped result
 2. Click **Display**, then select **Group by** and choose how to group your expenses (for example, **Category**, **Merchant**, **Tag**, or **Card**).
 3. Click **Apply**.
 4. Check the box next to the groups you want to export, or use the top checkbox to select all.
-5. Click the selection button at the top (for example, **1 selected**).
+5. On the selection bar, choose **Export**.
 6. Select **Current view**.
 
 In the exported file:
@@ -92,8 +91,7 @@ You can download a single report or multiple reports as PDFs. Each PDF includes 
 
 1. In the navigation tabs (on the left on web, on the bottom on mobile), then select **Spend** > **Reports**.
 2. Check the box next to each report you want to download, or use the top checkbox to select all.
-3. Click **Selected**.
-4. Select **Download reports**.
+3. On the selection bar, choose **Download reports**.
 
 A status window appears while your files are prepared. When they're ready, the download starts automatically. If it doesn't, click **Download file**. You can also click **Send me the file when it's ready** to have **Concierge** send the files to you in a chat message instead.
 
@@ -107,15 +105,13 @@ You can download the receipt images from selected expenses or reports as a singl
 
 1. In the navigation tabs (on the left on web, on the bottom on mobile), select **Spend** > **Reports**.
 2. Check the box next to each report whose receipts you want to download, or use the top checkbox to select all.
-3. Click **Selected**.
-4. Select **Download receipts**.
+3. On the selection bar, choose **Download receipts**.
 
 ## Download receipts from the Expenses page
 
 1. In the navigation tabs (on the left on web, on the bottom on mobile), select **Spend** > **Expenses**.
 2. Check the box next to each expense whose receipts you want to download, or use the top checkbox to select all.
-3. Click **Selected**.
-4. Select **Download receipts**.
+3. On the selection bar, choose **Download receipts**.
 
 A status window appears while your receipts are gathered into a ZIP file. When it's ready, the download starts automatically. If it doesn't, click **Download file**. You can also click **Send me the file when it's ready** to have **Concierge** send the file to you in a chat message instead.
 
@@ -127,7 +123,7 @@ Yes, use the **All Data – Report Level Export** template. All other templates 
 
 ## Can I keep my groups when I export?
 
-Yes. Group your expenses using **Display** > **Group by**, select the groups, then choose **Current view**. The exported file keeps each group as its own section with the expenses listed below their group header, using the columns currently shown on the page.
+Yes. Group your expenses using **Display** > **Group by**, select the groups, then choose **Export** > **Current view**. The exported file keeps each group as its own section with the expenses listed below their group header, using the columns currently shown on the page.
 
 ## Can I export in PDF or XLS format?
 
@@ -140,7 +136,7 @@ No, PDF export is only available for full reports.
 
 ## Can I customize the columns in the CSV export?
 
-Yes. Select **Current view** to download a CSV that matches the columns currently shown on the page. Adjust which columns appear by selecting **Display** > **Edit columns**. The other export templates use a fixed set of columns.
+Yes. Select **Export** > **Current view** to download a CSV that matches the columns currently shown on the page. Adjust which columns appear by selecting **Display** > **Edit columns**. The other export templates use a fixed set of columns.
 
 ## How do I export to an accounting integration?
 
@@ -148,7 +144,7 @@ Ensure your workspace is connected to a supported accounting platform. [Click he
 
 ## How do I receive my export?
 
-**Basic Export** and **Current view** download directly to the device when exporting selected reports or using **Select all on this page**. Choosing **All Data**, a custom export template, or using **Select all** to match every report instead prepares the export in the background. Once ready, the file downloads automatically, or, if you selected **Send me the file when it's ready**, it's delivered through Concierge and by email instead.
+**Basic Export** and **Current view** download directly to the device when exporting selected reports or using **Select all on this page**. Choosing **All Data**, a custom export template, or using **Select all** to match every report instead prepares the export in the background. Once ready, the file downloads automatically, or, if you selected **Send me the file when it's ready**, it's delivered through Concierge and by email instead. If you keep the export window open until the export finishes, the window switches to **Your file is ready!** so you can select **Download file** without waiting for the chat message.
 
 ## What happens if I refresh the page while my file is preparing?
 
@@ -165,7 +161,7 @@ When you download multiple reports as PDFs, a message tells you how many of the 
 
 ## Can I download receipts in bulk?
 
-Yes. On the **Spend** page, select multiple expenses or reports, click **Selected**, then choose **Download receipts**. The receipts are packaged into a single ZIP file.
+Yes. On the **Spend** page, select multiple expenses or reports, then choose **Download receipts** on the selection bar. The receipts are packaged into a single ZIP file.
 
 ## Why do I see "No receipts to download"?
 

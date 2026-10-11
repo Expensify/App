@@ -22,6 +22,7 @@ import {
     shouldRestrictUserBillableActions,
     shouldShowDiscountBanner,
     shouldShowPreTrialBillingBanner,
+    shouldShowSubscriptionExpiringSoonUI,
     shouldShowTrialEndedUI,
     shouldUseSimplifiedCollectSubscriptionUI,
 } from '@libs/SubscriptionUtils';
@@ -30,12 +31,12 @@ import {getPrivatePromoDiscountInfo} from '@pages/settings/Subscription/utils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {BillingGraceEndPeriod, BillingStatus, FundList, IntroSelected, StripeCustomerID} from '@src/types/onyx';
+import type {BillingGraceEndPeriod, BillingStatus, FundList, IntroSelected, PrivateSubscription, StripeCustomerID} from '@src/types/onyx';
 import type PrivatePromoDiscount from '@src/types/onyx/PrivatePromoDiscount';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
-import {addDays, addMinutes, format as formatDate, getUnixTime, subDays, subSeconds} from 'date-fns';
+import {addDays, addMinutes, addMonths, format as formatDate, getUnixTime, subDays, subSeconds} from 'date-fns';
 import Onyx from 'react-native-onyx';
 
 import createRandomPolicy from '../utils/collections/policies';
@@ -1335,7 +1336,7 @@ describe('SubscriptionUtils', () => {
         });
 
         it('returns undefined when the user has no owned paid workspace', () => {
-            expect(getFreeTrialText(accountID, translate, {}, undefined, undefined, undefined)).toBeUndefined();
+            expect(getFreeTrialText(accountID, translate, {}, undefined, undefined, undefined, undefined)).toBeUndefined();
             expect(translateMock).not.toHaveBeenCalled();
         });
 
@@ -1346,7 +1347,7 @@ describe('SubscriptionUtils', () => {
                 choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
             };
 
-            expect(getFreeTrialText(accountID, translate, ownedPaidPolicies, introSelected, firstDayFreeTrial, lastDayFreeTrial)).toBe('preTrial');
+            expect(getFreeTrialText(accountID, translate, ownedPaidPolicies, introSelected, firstDayFreeTrial, lastDayFreeTrial, undefined)).toBe('preTrial');
             expect(translateMock).toHaveBeenCalledWith('subscription.billingBanner.preTrial.title');
         });
 
@@ -1358,7 +1359,7 @@ describe('SubscriptionUtils', () => {
             };
 
             const expectedRemainingDays = calculateRemainingFreeTrialDays(lastDayFreeTrial);
-            const result = getFreeTrialText(accountID, translate, ownedPaidPolicies, introSelected, firstDayFreeTrial, lastDayFreeTrial);
+            const result = getFreeTrialText(accountID, translate, ownedPaidPolicies, introSelected, firstDayFreeTrial, lastDayFreeTrial, undefined);
 
             expect(translateMock).toHaveBeenCalledWith('subscription.billingBanner.trialStarted.badgeTitle', {count: expectedRemainingDays});
             expect(result).toBe(`trialStarted:${expectedRemainingDays}`);
@@ -1368,7 +1369,31 @@ describe('SubscriptionUtils', () => {
             const firstDayFreeTrial = formatDate(subDays(new Date(), 20), CONST.DATE.FNS_DATE_TIME_FORMAT_STRING);
             const lastDayFreeTrial = formatDate(subDays(new Date(), 2), CONST.DATE.FNS_DATE_TIME_FORMAT_STRING);
 
-            expect(getFreeTrialText(accountID, translate, ownedPaidPolicies, undefined, firstDayFreeTrial, lastDayFreeTrial)).toBeUndefined();
+            expect(getFreeTrialText(accountID, translate, ownedPaidPolicies, undefined, firstDayFreeTrial, lastDayFreeTrial, undefined)).toBeUndefined();
+            expect(translateMock).not.toHaveBeenCalled();
+        });
+
+        it('returns undefined when the annual subscription is expiring soon, even during a free trial', () => {
+            // Given an owner on a free trial whose annual subscription ends within a month with auto-renew off
+            const firstDayFreeTrial = formatDate(subDays(new Date(), 1), CONST.DATE.FNS_DATE_TIME_FORMAT_STRING);
+            const lastDayFreeTrial = formatDate(addDays(new Date(), 30), CONST.DATE.FNS_DATE_TIME_FORMAT_STRING);
+            const introSelected: OnyxEntry<IntroSelected> = {
+                choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
+            };
+            const privateSubscription: OnyxEntry<PrivateSubscription> = {
+                addNewUsersAutomatically: false,
+                autoRenew: false,
+                autoRenewLastChangedDate: '',
+                endDate: formatDate(addDays(new Date(), 10), CONST.DATE.FNS_FORMAT_STRING),
+                startDate: formatDate(subDays(new Date(), 355), CONST.DATE.FNS_FORMAT_STRING),
+                type: CONST.SUBSCRIPTION.TYPE.ANNUAL,
+            };
+
+            // When the badge text is computed
+            const result = getFreeTrialText(accountID, translate, ownedPaidPolicies, introSelected, firstDayFreeTrial, lastDayFreeTrial, privateSubscription);
+
+            // Then no trial badge is shown, so it matches the expiring-soon banner on the Subscription page
+            expect(result).toBeUndefined();
             expect(translateMock).not.toHaveBeenCalled();
         });
     });
@@ -1603,6 +1628,109 @@ describe('SubscriptionUtils', () => {
 
         it('should return false if lastDayFreeTrial is undefined', () => {
             expect(shouldShowTrialEndedUI(ownerAccountID, undefined, undefined, policies, undefined, undefined, undefined)).toBeFalsy();
+        });
+    });
+
+    describe('shouldShowSubscriptionExpiringSoonUI', () => {
+        // `endDate` is the date-only string the backend writes to nvp_private_subscription
+        const toEndDate = (date: Date) => formatDate(date, CONST.DATE.FNS_FORMAT_STRING);
+
+        const expiringSubscription: PrivateSubscription = {
+            addNewUsersAutomatically: false,
+            autoRenew: false,
+            autoRenewLastChangedDate: '',
+            endDate: toEndDate(addDays(new Date(), 20)),
+            startDate: toEndDate(subDays(new Date(), 345)),
+            type: CONST.SUBSCRIPTION.TYPE.ANNUAL,
+        };
+
+        it('should return true for an annual subscription with auto-renew off ending inside one month', () => {
+            // Given an annual subscription ending in 20 days with auto-renew off, the exact state Expensify Classic warns about
+
+            // When the shared predicate gates the three expiring-soon surfaces
+            // Then it says yes, because the owner would otherwise roll onto the pay-per-use rate without ever being told
+            expect(shouldShowSubscriptionExpiringSoonUI(expiringSubscription)).toBeTruthy();
+        });
+
+        it('should return false when the end date is more than one month away', () => {
+            // Given the same subscription moved out to 40 days
+            const expiringLater = {...expiringSubscription, endDate: toEndDate(addDays(new Date(), 40))};
+
+            // When the shared predicate gates the three expiring-soon surfaces
+            // Then it says no, because warning this early would nag owners who still have plenty of time to act
+            expect(shouldShowSubscriptionExpiringSoonUI(expiringLater)).toBeFalsy();
+        });
+
+        it('should return false when the end date has already passed', () => {
+            // Given a lapsed subscription that billing has not yet converted to pay-per-use, so `type` still reads annual
+            const alreadyLapsed = {...expiringSubscription, endDate: toEndDate(subDays(new Date(), 1))};
+
+            // When the shared predicate gates the three expiring-soon surfaces
+            // Then it says no, because this is a pre-expiry warning and must never render a retroactive "your subscription expired on X"
+            expect(shouldShowSubscriptionExpiringSoonUI(alreadyLapsed)).toBeFalsy();
+        });
+
+        it('should return false when auto-renew is on', () => {
+            // Given the same end date but auto-renew left on
+            const autoRenewing = {...expiringSubscription, autoRenew: true};
+
+            // When the shared predicate gates the three expiring-soon surfaces
+            // Then it says no, because the subscription renews rather than ending and there is nothing to warn about
+            expect(shouldShowSubscriptionExpiringSoonUI(autoRenewing)).toBeFalsy();
+        });
+
+        it('should return false when auto-renew is missing', () => {
+            // Given a partially loaded NVP with no `autoRenew` key, which is how the API represents a normally renewing subscription
+            const withoutAutoRenew: PrivateSubscription = {...expiringSubscription};
+            delete (withoutAutoRenew as Partial<PrivateSubscription>).autoRenew;
+
+            // When the shared predicate gates the three expiring-soon surfaces
+            // Then it says no, because an absent value is treated as on and must not flash a warning at someone who is renewing
+            expect(shouldShowSubscriptionExpiringSoonUI(withoutAutoRenew)).toBeFalsy();
+        });
+
+        it('should return false for a pay-per-use subscription', () => {
+            // Given a pay-per-use subscription, the type an account lands on once it switches away from annual
+            const payPerUse = {...expiringSubscription, type: CONST.SUBSCRIPTION.TYPE.PAY_PER_USE};
+
+            // When the shared predicate gates the three expiring-soon surfaces
+            // Then it says no, because monthly accounts have no end date to lose and no annual pricing to keep
+            expect(shouldShowSubscriptionExpiringSoonUI(payPerUse)).toBeFalsy();
+        });
+
+        it('should return false for an invoiced subscription', () => {
+            // Given an invoiced subscription, which is billed against a separate contract end date
+            const invoiced = {...expiringSubscription, type: CONST.SUBSCRIPTION.TYPE.INVOICING};
+
+            // When the shared predicate gates the three expiring-soon surfaces
+            // Then it says no, because the Subscription settings page these surfaces link to is not available to invoiced customers
+            expect(shouldShowSubscriptionExpiringSoonUI(invoiced)).toBeFalsy();
+        });
+
+        it('should return false when there is no end date', () => {
+            // Given an annual subscription whose `endDate` is empty
+            const withoutEndDate = {...expiringSubscription, endDate: ''};
+
+            // When the shared predicate gates the three expiring-soon surfaces
+            // Then it says no, because there is no date to put in the copy and no way to know the warning window
+            expect(shouldShowSubscriptionExpiringSoonUI(withoutEndDate)).toBeFalsy();
+        });
+
+        it('should return false when there is no subscription', () => {
+            // Given an account whose nvp_private_subscription has not loaded yet
+
+            // When the shared predicate gates the three expiring-soon surfaces
+            // Then it says no, so the surfaces stay hidden rather than flashing on during app load
+            expect(shouldShowSubscriptionExpiringSoonUI(undefined)).toBeFalsy();
+        });
+
+        it('should return true on the one-month boundary', () => {
+            // Given an end date exactly one month out, the inclusive edge of the Classic trigger
+            const onTheBoundary = {...expiringSubscription, endDate: toEndDate(addMonths(new Date(), 1))};
+
+            // When the shared predicate gates the three expiring-soon surfaces
+            // Then it says yes, pinning the boundary as inclusive so NewDot and Classic start warning on the same day
+            expect(shouldShowSubscriptionExpiringSoonUI(onTheBoundary)).toBeTruthy();
         });
     });
 });

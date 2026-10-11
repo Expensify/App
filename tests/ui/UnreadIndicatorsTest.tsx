@@ -875,7 +875,6 @@ describe('Unread Indicators', () => {
             introSelected: undefined,
             quickAction: undefined,
             recentWaypoints,
-            betas: [CONST.BETAS.ALL],
             isSelfTourViewed: false,
             currentUserLocalCurrency: undefined,
             delegateAccountID: undefined,

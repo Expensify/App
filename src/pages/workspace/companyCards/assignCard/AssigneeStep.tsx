@@ -22,10 +22,11 @@ import {getCardAssignmentDateOption, getCardAssignmentStartDate, getDefaultCardN
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
-import {getSearchValueForPhoneOrEmail, sortAlphabetically} from '@libs/OptionsListUtils';
+import {getSearchValueForPhoneOrEmail} from '@libs/OptionsListUtils';
 import {getHeaderMessage} from '@libs/PersonalDetailOptionsListUtils';
 import {canMemberWrite, filterGuideAndAccountManager, getGuideAndAccountManagerInfo, getIneligibleInvitees, isDeletedPolicyEmployee} from '@libs/PolicyUtils';
 import moveInitialSelectionToTop from '@libs/SelectionListOrderUtils';
+import sortAlphabetically from '@libs/sortAlphabetically';
 import tokenizedSearch from '@libs/tokenizedSearch';
 
 import Navigation from '@navigation/Navigation';
@@ -110,7 +111,9 @@ function AssigneeStep({route}: AssigneeStepProps) {
 
     const submit = (assignee: ListItem) => {
         const personalDetail = employeePersonalDetails[assignee?.login ?? ''];
-        const memberName = personalDetail?.firstName ? personalDetail.firstName : Str.removeSMSDomain(personalDetail?.login ?? '');
+        const assigneeLogin = personalDetail?.login ?? '';
+        const formattedAssigneeLogin = Str.isSMSLogin(assigneeLogin) ? formatPhoneNumber(assigneeLogin) : assigneeLogin;
+        const memberName = personalDetail?.firstName ? personalDetail.firstName : formattedAssigneeLogin;
         const defaultCardName = getDefaultCardName(memberName);
         // Keep the name the user manually typed in CardNameStep. Otherwise always recompute it from the currently selected assignee.
         const customCardName = assignCard?.cardToAssign?.isCustomCardNameEdited ? (assignCard?.cardToAssign?.customCardName ?? defaultCardName) : defaultCardName;

@@ -6,12 +6,21 @@ import copyTagsToChildSpans from './copyTagsToChildSpans';
 import emailDomainFilter from './emailDomainFilter';
 import httpClientCancelledFilter from './httpClientCancelledFilter';
 import maxDurationFilter from './maxDurationFilter';
+import onyxDerivedComputeDurationFilter from './onyxDerivedComputeDurationFilter';
 import onyxLogFilter from './onyxLogFilter';
 
 type TelemetryBeforeSend = (event: TransactionEvent, hint: EventHint) => TransactionEvent | null | Promise<TransactionEvent | null>;
 type TelemetryBeforeSendLog = (log: Log) => Log | null;
 
-const middlewares: TelemetryBeforeSend[] = [emailDomainFilter, canceledTabNavigationFilter, maxDurationFilter, httpClientCancelledFilter, copyTagsToChildSpans, attachGlobalSpanAttributes];
+const middlewares: TelemetryBeforeSend[] = [
+    emailDomainFilter,
+    canceledTabNavigationFilter,
+    maxDurationFilter,
+    httpClientCancelledFilter,
+    onyxDerivedComputeDurationFilter,
+    copyTagsToChildSpans,
+    attachGlobalSpanAttributes,
+];
 const logMiddlewares: TelemetryBeforeSendLog[] = [onyxLogFilter];
 
 function processBeforeSendTransactions(event: TransactionEvent, hint: EventHint): Promise<TransactionEvent | null> {

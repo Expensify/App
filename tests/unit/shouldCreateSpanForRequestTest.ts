@@ -32,4 +32,27 @@ describe('shouldCreateSpanForRequest', () => {
     ])('drops the third-party Google Ads/Analytics request to %s', (_endpoint, url) => {
         expect(shouldCreateSpanForRequest(url)).toBe(false);
     });
+
+    it.each([
+        'https://www.expensify.com/api/fl',
+        'https://www.expensify.com/api/fl?u=123',
+        'https://www.expensify.com/api/fl/id.html',
+        '/api/fl?u=123',
+        '//www.expensify.com/api/fl?u=123',
+        'https://edge.fullstory.com/s/settings/o-1WN56P-na1/v1/web',
+        'https://rs.fullstory.com/rec/page',
+        '//edge.fullstory.com/s/settings/o-1WN56P-na1/v1/web',
+        'https://global.ketchcdn.com/web/v3/config/expensify/website_smart_tag/production/gdpr/en/config.json',
+        'https://global.ketchcdn.com/web/v3/ip',
+        'https://global.ketchcdn.com/web/v3/consent/expensify/get',
+        'https://global.ketchcdn.com/web/v3/consent/expensify/update',
+        'https://global.ketchcdn.com/web/v2/log',
+    ])('drops background SDK request spans for %s', (url) => {
+        // Given a fraud protection, session replay, or consent SDK endpoint
+        // When tracing decides whether to instrument the request
+        const shouldCreateSpan = shouldCreateSpanForRequest(url);
+
+        // Then the request does not contribute a performance span
+        expect(shouldCreateSpan).toBe(false);
+    });
 });

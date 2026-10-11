@@ -221,6 +221,8 @@ function QuickCreationActionsBar() {
                 size={CONST.BUTTON_SIZE.SMALL}
                 onPress={handleExpense}
                 style={styles.quickCreationActionsBarButton}
+                testID={CONST.TEST_ID.QUICK_CREATION_ACTIONS_BAR.EXPENSE}
+                accessibilityLabel={translate('common.expense')}
             >
                 <Button.Icon src={icons.ReceiptPlus} />
                 <Button.Text style={styles.quickCreationActionsBarButtonText}>{translate('common.expense')}</Button.Text>
@@ -229,6 +231,8 @@ function QuickCreationActionsBar() {
                 size={CONST.BUTTON_SIZE.SMALL}
                 onPress={handleReport}
                 style={styles.quickCreationActionsBarButton}
+                testID={CONST.TEST_ID.QUICK_CREATION_ACTIONS_BAR.REPORT}
+                accessibilityLabel={translate('common.report')}
             >
                 <Button.Icon src={icons.DocumentPlus} />
                 <Button.Text style={styles.quickCreationActionsBarButtonText}>{translate('common.report')}</Button.Text>
@@ -237,6 +241,8 @@ function QuickCreationActionsBar() {
                 size={CONST.BUTTON_SIZE.SMALL}
                 onPress={handleDistance}
                 style={styles.quickCreationActionsBarButton}
+                testID={CONST.TEST_ID.QUICK_CREATION_ACTIONS_BAR.DISTANCE}
+                accessibilityLabel={translate('common.distance')}
             >
                 <Button.Icon src={icons.LocationAdd} />
                 <Button.Text style={styles.quickCreationActionsBarButtonText}>{translate('common.distance')}</Button.Text>
@@ -246,6 +252,8 @@ function QuickCreationActionsBar() {
                     size={CONST.BUTTON_SIZE.SMALL}
                     onPress={handleBookTravel}
                     style={styles.quickCreationActionsBarButton}
+                    testID={CONST.TEST_ID.QUICK_CREATION_ACTIONS_BAR.BOOK_TRAVEL}
+                    accessibilityLabel={translate('workspace.common.travel')}
                 >
                     <Button.Icon src={icons.LuggageWithLinesPlus} />
                     <Button.Text style={styles.quickCreationActionsBarButtonText}>{translate('workspace.common.travel')}</Button.Text>

@@ -128,7 +128,6 @@ function DynamicIOURequestStepDistance({
     const [optimisticWaypoints, setOptimisticWaypoints] = useState<WaypointCollection | null>(null);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const {policyForMovingExpenses} = usePolicyForMovingExpenses();
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
     const [guidedSetupAndTourStatus] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: guidedSetupAndTourStatusSelector});
@@ -397,7 +396,6 @@ function DynamicIOURequestStepDistance({
         isEditingSplit,
         isDraft: shouldUseTransactionDraft(action),
         introSelected,
-        betas,
         conciergeChat,
         isSelfTourViewed: guidedSetupAndTourStatus?.isSelfTourViewed,
         hasCompletedGuidedSetupFlow: guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow,
@@ -476,7 +474,6 @@ function DynamicIOURequestStepDistance({
         translate,
         selfDMReport,
         policyForMovingExpenses,
-        betas,
         recentWaypoints,
         introSelected,
     });
@@ -531,7 +528,7 @@ function DynamicIOURequestStepDistance({
 
             Promise.all([
                 removeWaypoint(currentTransaction, emptyWaypointIndex.toString(), shouldUseTransactionDraft(action), shouldPassSplitDraft ? splitDraftTransaction : undefined),
-                updateWaypointsUtil(transactionID, newWaypoints, transactionState),
+                updateWaypointsUtil(transactionID, newWaypoints, transactionState, waypoints),
             ]).then(() => {
                 setOptimisticWaypoints(null);
             });

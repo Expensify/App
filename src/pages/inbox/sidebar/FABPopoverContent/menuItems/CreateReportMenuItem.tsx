@@ -10,7 +10,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import {createNewReport} from '@libs/actions/Report';
 import getCreateReportRoute, {getReportsRootRoute, navigateToCreateReportWorkspaceSelection} from '@libs/Navigation/helpers/getCreateReportRoute';
 import Navigation from '@libs/Navigation/Navigation';
-import {getGroupPoliciesWhereReportCanBeCreated} from '@libs/PolicyUtils';
+import {getDefaultChatEnabledPolicy, getGroupPoliciesWhereReportCanBeCreated} from '@libs/PolicyUtils';
 import {hasViolations as hasViolationsReportUtils} from '@libs/ReportUtils';
 
 import isOnSearchMoneyRequestReportPage from '@navigation/helpers/isOnSearchMoneyRequestReportPage';
@@ -24,20 +24,23 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import {sessionEmailAndAccountIDSelector} from '@src/selectors/Session';
 import type * as OnyxTypes from '@src/types/onyx';
 
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import type {OnyxCollection} from 'react-native-onyx';
 
 import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 import React from 'react';
 
 const ITEM_ID = CONST.FAB_MENU_ITEM_IDS.CREATE_REPORT;
 
+// Returns up to 2 matching policies
 const chatEnabledPaidGroupPoliciesSelector = (policies: OnyxCollection<OnyxTypes.Policy>, currentUserLogin: string | undefined) =>
-    getGroupPoliciesWhereReportCanBeCreated(policies, currentUserLogin);
+    getGroupPoliciesWhereReportCanBeCreated(policies, currentUserLogin).slice(0, 2);
 
 function CreateReportMenuItem() {
+    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const icons = useMemoizedLazyExpensifyIcons(['Document']);
+    const [activePolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`);
     const [session] = useOnyx(ONYXKEYS.SESSION, {selector: sessionEmailAndAccountIDSelector});
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
@@ -51,10 +54,12 @@ function CreateReportMenuItem() {
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
 
+    const defaultChatEnabledPolicy = getDefaultChatEnabledPolicy(groupPoliciesWithChatEnabled, activePolicy);
+
     const isReportInSearch = isOnSearchMoneyRequestReportPage();
 
-    const handleCreateWorkspaceReport = (policy: OnyxEntry<OnyxTypes.Policy>, shouldDismissEmptyReportsConfirmation?: boolean) => {
-        if (!policy?.id) {
+    const handleCreateWorkspaceReport = (shouldDismissEmptyReportsConfirmation?: boolean) => {
+        if (!defaultChatEnabledPolicy?.id) {
             return;
         }
 
@@ -66,7 +71,7 @@ function CreateReportMenuItem() {
             currentUserPersonalDetails,
             hasViolations,
             isASAPSubmitBetaEnabled,
-            policy,
+            defaultChatEnabledPolicy,
             isTrackIntentUser,
             getCurrencyDecimals,
             rules,

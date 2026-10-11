@@ -12,9 +12,9 @@ import type RenderHTML from '@components/RenderHTML';
 import Text from '@components/Text';
 import ThreeDotsMenu from '@components/ThreeDotsMenu';
 
+import useLayoutSpacing from '@hooks/useLayoutSpacing';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -43,6 +43,8 @@ import type {ValueOf} from 'type-fest';
 
 import React, {useMemo, useRef} from 'react';
 import {View} from 'react-native';
+
+import PendingDigitalWalletApprovalRow from './PendingDigitalWalletApprovalRow';
 
 type ConnectionStatusDetails = {
     statusText: string;
@@ -81,6 +83,12 @@ type PaymentMethodItem = PaymentMethod & {
     shouldShowErrorMessages?: boolean;
     /** Whether to show the "Add details" CTA row below a virtual Expensify Card when personal details are missing */
     shouldShowMissingPersonalDetailsAction?: boolean;
+
+    /** ID of the Expensify Card awaiting a wallet addition approval, which shows the "Review" CTA row */
+    digitalWalletApprovalCardID?: number;
+
+    /** Wallet the addition was requested from, used to name it in the "Review" CTA row */
+    digitalWalletProvider?: ValueOf<typeof CONST.EXPENSIFY_CARD.WALLET_PROVIDER>;
 } & BankIcon;
 
 type PaymentMethodListItemProps = {
@@ -140,12 +148,13 @@ function PaymentMethodListItem({item, shouldShowDefaultBadge, threeDotsMenuItems
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {cardPaddingHorizontal, cardPaddingLeft} = useLayoutSpacing();
 
     const threeDotsMenuRef = useRef<{hidePopoverMenu: () => void; isPopupMenuVisible: boolean; onThreeDotsPress: () => void}>(null);
     const isInLockedState = isBusinessBankAccountLocked(item);
     const showThreeDotsMenu = item.shouldShowThreeDotsMenu !== false && !!threeDotsMenuItems && !isInLockedState;
     const isNeedingAction = isAccountNeedingAction(item);
+    const digitalWalletApprovalCardID = item.digitalWalletApprovalCardID;
     const connectionStatus = item.connectionStatus;
 
     // Check if this is a Chase personal bank account connected via Plaid
@@ -313,7 +322,7 @@ function PaymentMethodListItem({item, shouldShowDefaultBadge, threeDotsMenuItems
                 menuItem
             )}
             {!!item.shouldShowMissingPersonalDetailsAction && !!item.cardID && (
-                <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, styles.pv3, shouldUseNarrowLayout ? styles.ph5 : styles.ph8]}>
+                <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, styles.pv3, cardPaddingHorizontal]}>
                     <View style={[styles.flexRow, styles.alignItemsCenter, styles.flex1, styles.mr2]}>
                         <Icon
                             src={icons.DotIndicator}
@@ -331,8 +340,15 @@ function PaymentMethodListItem({item, shouldShowDefaultBadge, threeDotsMenuItems
                     </Button>
                 </View>
             )}
+            {!!digitalWalletApprovalCardID && (
+                <PendingDigitalWalletApprovalRow
+                    cardID={digitalWalletApprovalCardID}
+                    walletProvider={item.digitalWalletProvider}
+                    style={[styles.pv3, cardPaddingHorizontal]}
+                />
+            )}
             {isChaseAccountConnectedViaPlaid && (
-                <View style={[styles.pb3, shouldUseNarrowLayout ? styles.pl5 : styles.pl8]}>
+                <View style={[styles.pb3, cardPaddingLeft]}>
                     <PressableWithFeedback
                         onPress={() => openExternalLink(CONST.CHASE_ACCOUNT_NUMBER_HELP_URL)}
                         style={[styles.flexRow, styles.alignItemsCenter, styles.alignSelfStart]}

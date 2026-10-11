@@ -47,7 +47,7 @@ type ExportAccountOption = {
     /** Text shown for this account */
     label: string;
 
-    /** Option key, which QBO and QBD key by label because they stored display names before they stored ids */
+    /** Option key. Always the id, because an integration can expose two accounts with the same display name */
     keyForList: string;
 };
 
@@ -77,6 +77,9 @@ type SingleAccountExport = {
 
     /** Whether a missed id match should be retried against the account labels */
     shouldFallBackToLabelMatch?: boolean;
+
+    /** Prefixes the resolved title */
+    exportsToLabel?: string;
 };
 
 /** One NVP resolved against a program account that each card feed can override. Used by Rillet and DualEntry. */
@@ -84,7 +87,10 @@ type ProgramAccountExport = {
     type: typeof CONST.COMPANY_CARDS.EXPORT_RESOLVER.PROGRAM_ACCOUNT;
 
     /** The card NVP holding this integration's export account */
-    nvpKey: typeof CONST.COMPANY_CARDS.EXPORT_CARD_TYPES.NVP_RILLET_EXPORT_ACCOUNT | typeof CONST.COMPANY_CARDS.EXPORT_CARD_TYPES.NVP_DUALENTRY_EXPORT_ACCOUNT;
+    nvpKey:
+        | typeof CONST.COMPANY_CARDS.EXPORT_CARD_TYPES.NVP_RILLET_EXPORT_ACCOUNT
+        | typeof CONST.COMPANY_CARDS.EXPORT_CARD_TYPES.NVP_DUALENTRY_EXPORT_ACCOUNT
+        | typeof CONST.COMPANY_CARDS.EXPORT_CARD_TYPES.NVP_CAMPFIRE_EXPORT_ACCOUNT;
 
     /** Every account, in connection order, because an account that is no longer offered can still be the resolved one */
     accounts: ProgramAccountOption[];
@@ -135,12 +141,9 @@ type CardExportAccountSelection = {
     programAccountID?: string;
 };
 
-/**
- * Puts an integration's accounts into the shared shape. QBO and QBD keyed their options by display name before ids
- * were stored, so those two pass `shouldKeyByLabel`.
- */
-function normalizeAccounts(accounts: Array<{id: string; name: string}> | undefined, shouldKeyByLabel = false): ExportAccountOption[] {
-    return (accounts ?? []).map(({id, name}) => ({id, label: name, keyForList: shouldKeyByLabel ? name : id}));
+/** Puts an integration's accounts into the shared shape. */
+function normalizeAccounts(accounts: Array<{id: string; name: string}> | undefined): ExportAccountOption[] {
+    return (accounts ?? []).map(({id, name}) => ({id, label: name, keyForList: id}));
 }
 
 /**
@@ -257,7 +260,7 @@ function getPolicyCardExportSettings(
                         accountSelection: {
                             type: CONST.COMPANY_CARDS.EXPORT_RESOLVER.SINGLE_ACCOUNT,
                             nvpKey: CONST.COMPANY_CARDS.EXPORT_CARD_TYPES.NVP_QUICKBOOKS_ONLINE_EXPORT_ACCOUNT,
-                            accounts: normalizeAccounts(creditCards, true),
+                            accounts: normalizeAccounts(creditCards),
                             defaultLabel,
                             workspaceDefaultAccountID,
                         },
@@ -271,7 +274,7 @@ function getPolicyCardExportSettings(
                         accountSelection: {
                             type: CONST.COMPANY_CARDS.EXPORT_RESOLVER.SINGLE_ACCOUNT,
                             nvpKey: CONST.COMPANY_CARDS.EXPORT_CARD_TYPES.NVP_QUICKBOOKS_ONLINE_EXPORT_ACCOUNT_DEBIT,
-                            accounts: normalizeAccounts(quickbooksOnlineBankAccounts, true),
+                            accounts: normalizeAccounts(quickbooksOnlineBankAccounts),
                             defaultLabel,
                             workspaceDefaultAccountID,
                         },
@@ -420,7 +423,7 @@ function getPolicyCardExportSettings(
                         accountSelection: {
                             type: CONST.COMPANY_CARDS.EXPORT_RESOLVER.SINGLE_ACCOUNT,
                             nvpKey: CONST.COMPANY_CARDS.EXPORT_CARD_TYPES.NVP_QUICKBOOKS_DESKTOP_EXPORT_ACCOUNT_CREDIT,
-                            accounts: normalizeAccounts(creditCardAccounts, true),
+                            accounts: normalizeAccounts(creditCardAccounts),
                             defaultLabel: getDefaultExportLabel(qbdConfig),
                             // Classic saved an account id in this NVP while NewDot used to save the display name, so a
                             // missed id match is retried against the labels.
@@ -502,6 +505,65 @@ function getPolicyCardExportSettings(
                     exportsToLabel: translate('common.exportsTo'),
                     defaultTitleSuffix: translate('common.default').toLocaleLowerCase(),
                     defaultOptionPrefix: translate('common.default'),
+                },
+            };
+        }
+        case CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE: {
+            const campfireConfig = policy?.connections?.campfire?.config;
+            const campfireData = policy?.connections?.campfire?.data;
+            const exportReimbursable = campfireConfig?.export?.reimbursable ?? CONST.CAMPFIRE_EXPORT_REIMBURSABLE.VENDOR_BILL;
+            const exportNonReimbursable = campfireConfig?.export?.nonReimbursable ?? CONST.CAMPFIRE_EXPORT_NON_REIMBURSABLE.JOURNAL_ENTRY;
+
+            return {
+                description: currentConnectionName
+                    ? translate('workspace.moreFeatures.companyCards.integrationExport', currentConnectionName, translate('workspace.campfire.cardAccount.label'))
+                    : undefined,
+                exportType: CONST.COMPANY_CARDS.EXPORT_CARD_TYPES.NVP_CAMPFIRE_EXPORT_ACCOUNT,
+                shouldHideMenuItemDescription: true,
+                shouldShowMenuItemIcon: true,
+                shouldShowMenuItem:
+                    campfireConfig?.export?.exportToMultipleAccounts &&
+                    exportReimbursable === CONST.CAMPFIRE_EXPORT_REIMBURSABLE.VENDOR_BILL &&
+                    exportNonReimbursable === CONST.CAMPFIRE_EXPORT_NON_REIMBURSABLE.JOURNAL_ENTRY,
+                accountSelection: {
+                    type: CONST.COMPANY_CARDS.EXPORT_RESOLVER.PROGRAM_ACCOUNT,
+                    nvpKey: CONST.COMPANY_CARDS.EXPORT_CARD_TYPES.NVP_CAMPFIRE_EXPORT_ACCOUNT,
+                    accounts: (campfireData?.accounts ?? []).map((account) => ({
+                        id: account.id,
+                        label: `${account.id} ${account.name}`,
+                        keyForList: account.id,
+                        configKey: account.id,
+                        isSelectable:
+                            account.isActive && (account.accountSubtype === CONST.CAMPFIRE_ACCOUNT_SUBTYPE.CREDIT_CARD || account.accountSubtype === CONST.CAMPFIRE_ACCOUNT_SUBTYPE.BANK),
+                    })),
+                    workspaceProgramAccountKey: campfireConfig?.export?.creditCardAccountID,
+                    programAccountKeysByFeed: campfireConfig?.export?.cardProgramAccounts,
+                    exportsToLabel: translate('common.exportsTo'),
+                    defaultTitleSuffix: translate('common.default').toLocaleLowerCase(),
+                    defaultOptionPrefix: translate('common.default'),
+                },
+            };
+        }
+        case CONST.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL: {
+            const businessCentralExport = policy?.connections?.businessCentral?.config?.export;
+            const type = translate(`workspace.businessCentral.exportDestination.${businessCentralExport?.nonReimbursable ?? CONST.BUSINESS_CENTRAL_EXPORT_DESTINATION.PURCHASE_INVOICE}`);
+            const description = currentConnectionName ? translate('workspace.moreFeatures.companyCards.integrationExport', currentConnectionName, type) : undefined;
+
+            // Card expenses export against a vendor for both destinations
+            return {
+                description,
+                shouldHideMenuItemDescription: true,
+                shouldShowMenuItemIcon: true,
+                shouldShowMenuItem: true,
+                exportType: CONST.COMPANY_CARDS.EXPORT_CARD_TYPES.NVP_BUSINESS_CENTRAL_EXPORT_VENDOR,
+                accountSelection: {
+                    type: CONST.COMPANY_CARDS.EXPORT_RESOLVER.SINGLE_ACCOUNT,
+                    nvpKey: CONST.COMPANY_CARDS.EXPORT_CARD_TYPES.NVP_BUSINESS_CENTRAL_EXPORT_VENDOR,
+                    // Business Central rejects documents with a vendor blocked for all transactions, so it can't be a card's vendor
+                    accounts: normalizeAccounts(policy?.connections?.businessCentral?.data?.vendors?.filter((vendor) => vendor.blocked !== CONST.BUSINESS_CENTRAL_VENDOR_BLOCKED.ALL)),
+                    defaultLabel: defaultVendor,
+                    workspaceDefaultAccountID: businessCentralExport?.defaultVendorID,
+                    exportsToLabel: translate('common.exportsTo'),
                 },
             };
         }
@@ -599,7 +661,7 @@ function getExportMenuItem(
 
     return {
         ...menuItem,
-        title: accountSelection?.type === CONST.COMPANY_CARDS.EXPORT_RESOLVER.PROGRAM_ACCOUNT ? `${accountSelection.exportsToLabel} ${selection.title ?? ''}` : selection.title,
+        title: accountSelection?.exportsToLabel ? `${accountSelection.exportsToLabel} ${selection.title ?? ''}` : selection.title,
         data: buildExportAccountOptions(accountSelection, selection, styles),
     };
 }

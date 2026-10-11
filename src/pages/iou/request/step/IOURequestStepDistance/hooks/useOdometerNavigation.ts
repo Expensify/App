@@ -17,7 +17,7 @@ import handleMoneyRequestStepDistanceNavigation from '@pages/iou/request/step/IO
 import type {IOUAction, IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Beta, IntroSelected, OdometerDraft, PersonalDetailsList, Policy, RecentWaypoint, Report, Transaction} from '@src/types/onyx';
+import type {IntroSelected, OdometerDraft, PersonalDetailsList, Policy, RecentWaypoint, Report, Transaction} from '@src/types/onyx';
 import type {ReportAttributesDerivedValue} from '@src/types/onyx/DerivedValues';
 import type {Unit} from '@src/types/onyx/Policy';
 
@@ -87,9 +87,6 @@ type UseOdometerNavigationParams = {
     /** Resolved policy from `usePolicyForMovingExpenses` — the workspace a new report should land in. */
     policyForMovingExpenses: OnyxEntry<Policy>;
 
-    /** Enabled betas — passed through to downstream API calls. */
-    betas: OnyxEntry<Beta[]>;
-
     /** Recently-used waypoints — passed through so the next screen can suggest them. */
     recentWaypoints: OnyxEntry<RecentWaypoint[]>;
 
@@ -138,7 +135,6 @@ function useOdometerNavigation({
     translate,
     selfDMReport,
     policyForMovingExpenses,
-    betas,
     recentWaypoints,
     introSelected,
     personalOutputCurrency,
@@ -218,7 +214,6 @@ function useOdometerNavigation({
             odometerEnd,
             odometerDistance,
             previousOdometerDraft,
-            betas,
             recentWaypoints,
             unit,
             personalOutputCurrency,
