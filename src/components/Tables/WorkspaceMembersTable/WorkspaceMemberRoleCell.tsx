@@ -24,7 +24,7 @@ type WorkspaceMemberRoleCellProps = {
 
 function WorkspaceMemberRoleCell({role, policy, memberLogin, canEdit, onSave}: WorkspaceMemberRoleCellProps) {
     const {translate} = useLocalize();
-    const roleLabel = translate('workspace.common.roleName', role);
+    const roleLabel = role ? translate('workspace.common.roleName', role) : undefined;
     const allowedRoles = getAllowedRolesForMember(policy, memberLogin);
     const {popoverHeight} = useWorkspaceMemberRolePickerPopover({policy, selectedRole: role, allowedRoles});
 
