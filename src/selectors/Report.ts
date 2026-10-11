@@ -1,3 +1,4 @@
+import type {ReportHierarchyInfo} from '@libs/actions/ClearReportActionErrors';
 import {getOriginalMessage, isClosedAction} from '@libs/ReportActionsUtils';
 import {
     canShowReportRecipientLocalTime,
@@ -13,6 +14,7 @@ import {
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {OutstandingReportsByPolicyIDDerivedValue, PersonalDetailsList, Report, ReportActions, ReportNameValuePairs, Transaction} from '@src/types/onyx';
+import mapOnyxCollectionItems from '@src/utils/mapOnyxCollectionItems';
 
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {TupleToUnion, ValueOf} from 'type-fest';
@@ -330,6 +332,7 @@ function getStableReportSelector(report: OnyxEntry<Report>) {
         // `undefined` keeps the projection stable through that reconciliation.
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         managerID: report.managerID || undefined,
+        supportTicketCalendarLink: report.supportTicketCalendarLink,
         ownerAccountID: report.ownerAccountID,
         participants: report.participants,
         total: report.total,
@@ -364,6 +367,18 @@ function isDraftReportSelector(draft: OnyxEntry<Report>): boolean {
     return !!draft;
 }
 
+function reportHierarchySelector(report: OnyxEntry<Report>): OnyxEntry<ReportHierarchyInfo> {
+    return (
+        report && {
+            parentReportID: report.parentReportID,
+            parentReportActionID: report.parentReportActionID,
+        }
+    );
+}
+
+function reportsParentHierarchySelector(reports: OnyxCollection<Report>): OnyxCollection<ReportHierarchyInfo> {
+    return mapOnyxCollectionItems(reports, reportHierarchySelector);
+}
 /**
  * Creates a selector returning only the reports for the given IDs, so a consumer that knows the exact
  * reports it needs doesn't re-render when any other report in the account changes.
@@ -397,6 +412,7 @@ export {
     openExpenseReportIDsSelector,
     getStableReportSelector,
     isDraftReportSelector,
+    reportsParentHierarchySelector,
     reportsByIDsSelector,
 };
 

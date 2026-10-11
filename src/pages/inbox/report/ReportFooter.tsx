@@ -4,8 +4,10 @@ import Banner from '@components/Banner';
 import BlockedReportFooter from '@components/BlockedReportFooter';
 import MerchantRuleSuggestionBanner from '@components/MerchantRuleSuggestionBanner';
 import OfflineIndicator from '@components/OfflineIndicator';
+import SupportTicketResolvedFooter from '@components/SupportTicketResolvedFooter';
 import SwipeableView from '@components/SwipeableView';
 
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {useIsReportLoadPending} from '@hooks/useInFlightRequests';
 import useIsAnonymousUser from '@hooks/useIsAnonymousUser';
 import useIsReportReadyToDisplay from '@hooks/useIsReportReadyToDisplay';
@@ -24,6 +26,8 @@ import {
     isAdminsOnlyPostingRoom as isAdminsOnlyPostingRoomUtil,
     isArchivedNonExpenseReport,
     isPublicRoom,
+    isResolvedSupportTicket,
+    isSupportTicket,
     isSystemChat as isSystemChatUtil,
 } from '@libs/ReportUtils';
 
@@ -73,6 +77,7 @@ function ReportFooter() {
     const {isCurrentReportLoadedFromOnyx} = useIsReportReadyToDisplay(report, reportIDFromRoute, isReportArchived);
 
     const isAnonymousUser = useIsAnonymousUser();
+    const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const [isBlockedFromChat] = useOnyx(ONYXKEYS.NVP_BLOCKED_FROM_CHAT, {
         selector: isBlockedFromChatSelector,
     });
@@ -80,6 +85,7 @@ function ReportFooter() {
         selector: policyRoleSelector,
     });
     const [isComposerFullSize = false] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_IS_COMPOSER_FULL_SIZE}${reportIDFromRoute}`);
+    const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportIDFromRoute}`);
     const isLoadingInitialReportActions = useIsReportLoadPending(reportIDFromRoute);
 
     const isUserPolicyAdmin = policyRole === CONST.POLICY.ROLE.ADMIN;
@@ -88,17 +94,30 @@ function ReportFooter() {
 
     const shouldShowComposerOptimistically = !isAnonymousUser && isPublicRoom(report) && !!isLoadingInitialReportActions;
     const canPerformWriteAction = canUserPerformWriteAction(report, isReportArchived) ?? shouldShowComposerOptimistically;
-    const shouldHideComposer = !canPerformWriteAction || isBlockedFromChat;
+    const shouldHideComposer = !canPerformWriteAction || (isBlockedFromChat ?? false) || (isOffline && isSupportTicket(report));
     const canWriteInReport = canWriteInReportUtil(report);
     const isSystemChat = isSystemChatUtil(report);
     const isAdminsOnlyPostingRoom = isAdminsOnlyPostingRoomUtil(report);
     const shouldShowComposerForActiveEditDraft = useShouldShowComposerForActiveEditDraft();
+    const shouldShowResolvedSupportTicketFooter = isResolvedSupportTicket(report) && report?.ownerAccountID === currentUserAccountID;
 
     if (!isCurrentReportLoadedFromOnyx || !report || !reportIDFromRoute) {
         return null;
     }
 
     const chatFooterStyles = {...styles.chatFooter, minHeight: !isOffline ? CONST.CHAT_FOOTER_MIN_HEIGHT : 0};
+
+    if (shouldShowResolvedSupportTicketFooter) {
+        return (
+            <View style={[styles.chatFooter, styles.mt4, styles.mb5]}>
+                <SupportTicketResolvedFooter
+                    reportID={reportIDFromRoute}
+                    isOffline={isOffline}
+                    shouldShowReopenButton={!reportNameValuePairs?.reopenedAsReportID}
+                />
+            </View>
+        );
+    }
 
     // Happy path — user can compose
     if (!shouldHideComposer) {
