@@ -13,6 +13,7 @@ import type {SearchResults} from '@src/types/onyx';
 import Onyx from 'react-native-onyx';
 
 import createRandomTransaction from '../../utils/collections/transaction';
+import {makeSettlementGroup} from '../../utils/ExpensifyCardStatementTestUtils';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
 const mockIsOffline = {current: false};
@@ -71,10 +72,11 @@ const mockAreAllMatchingItemsSelected = {current: false};
 // The loaded rows of each report, which is what tells a report excluded down to its last row from a part-excluded one.
 const mockTransactionsByReportID: {current: Map<string, Array<{transactionID: string}>>} = {current: new Map()};
 const mockShouldUseLiveData = {current: false};
+const mockCurrentSearchResults: {current: SearchResults | undefined} = {current: undefined};
 jest.mock('@components/Search/SearchContext', () => ({
     useSearchQueryContext: () => mockSearchQueryContext.current,
     useSearchResultsContext: () => ({
-        currentSearchResults: undefined,
+        currentSearchResults: mockCurrentSearchResults.current,
         currentSearchTransactionsByReportID: mockTransactionsByReportID.current,
         shouldUseLiveData: mockShouldUseLiveData.current,
     }),
@@ -212,6 +214,7 @@ describe('SearchSelectionFooter', () => {
         mockSelectedReports.current = [];
         mockAreAllMatchingItemsSelected.current = false;
         mockTransactionsByReportID.current = new Map();
+        mockCurrentSearchResults.current = undefined;
         mockCapturedFooterProps.current = undefined;
         // Clear here rather than in afterEach: Onyx.clear() there re-renders the previous test's still-mounted
         // component (testing-library only unmounts it afterwards), and those renders can record mock calls.
@@ -1242,6 +1245,124 @@ describe('SearchSelectionFooter', () => {
 
                 expect(mockSetParams).not.toHaveBeenCalled();
             });
+        });
+    });
+
+    describe('totals of a grouped search with a cash back row', () => {
+        const SETTLEMENT_A_KEY = `${CONST.SEARCH.GROUP_PREFIX}settlementA` as const;
+        const SETTLEMENT_B_KEY = `${CONST.SEARCH.GROUP_PREFIX}settlementB` as const;
+        const CASH_BACK_KEY = `${CONST.SEARCH.GROUP_PREFIX}cashBack` as const;
+
+        const renderWithSelection = async (selectedTransactions: SelectedTransactions, {serverTotal = 47500, hasMoreResults = false} = {}) => {
+            setSearchQuery(`type:expense group-by:${CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID}`);
+            // The server count only sums expenses (5) while its total nets the credit: 300 + 200 - 25.
+            const searchResults = buildSearchResults(CONST.CURRENCY.USD, 5, serverTotal, CONST.SEARCH.DATA_TYPES.EXPENSE, undefined, hasMoreResults);
+            mockCurrentSearchResults.current = {
+                ...searchResults,
+                data: {
+                    [SETTLEMENT_A_KEY]: makeSettlementGroup({entryID: 1, count: 3, total: 30000}),
+                    [SETTLEMENT_B_KEY]: makeSettlementGroup({entryID: 2, count: 2, total: 20000}),
+                    [CASH_BACK_KEY]: makeSettlementGroup({entryID: 3, count: 0, total: -2500, isCashBack: true}),
+                },
+            };
+            mockSelectedTransactions.current = selectedTransactions;
+
+            render(<SearchSelectionFooter searchResults={searchResults} />);
+            await waitForBatchedUpdates();
+        };
+
+        it('shows the selected settlements total instead of the grand total when the cash back row is left out', async () => {
+            // Given every settlement is selected but the cash back row is not
+            // When the footer renders
+            await renderWithSelection({
+                [SETTLEMENT_A_KEY]: buildSelectedTransaction(CONST.CURRENCY.USD, CONST.CURRENCY.USD, -30000),
+                [SETTLEMENT_B_KEY]: buildSelectedTransaction(CONST.CURRENCY.USD, CONST.CURRENCY.USD, -20000),
+            });
+
+            // Then the selection matches the server's expense count, but the server total also nets the unselected
+            // credit, so the footer must sum the selection rather than fall back to the grand total
+            expect(mockCapturedFooterProps.current).toEqual(expect.objectContaining({count: 5, total: 50000}));
+        });
+
+        it('shows the selected settlements total while another page could still hold a cash back row', async () => {
+            // Given every loaded row is selected and more pages remain to be loaded
+            // When the footer renders
+            await renderWithSelection(
+                {
+                    [SETTLEMENT_A_KEY]: buildSelectedTransaction(CONST.CURRENCY.USD, CONST.CURRENCY.USD, -30000),
+                    [SETTLEMENT_B_KEY]: buildSelectedTransaction(CONST.CURRENCY.USD, CONST.CURRENCY.USD, -20000),
+                    [CASH_BACK_KEY]: buildSelectedTransaction(CONST.CURRENCY.USD, CONST.CURRENCY.USD, 2500),
+                },
+                // The server total also nets a $10 credit on a page that has not loaded yet
+                {serverTotal: 46500, hasMoreResults: true},
+            );
+
+            // Then the expense counts match, but the footer sums the loaded selection rather than the server total,
+            // which includes the unloaded credit
+            expect(mockCapturedFooterProps.current).toEqual(expect.objectContaining({count: 5, total: 47500}));
+        });
+
+        it('still shows the grand total when the cash back row is selected along with every settlement', async () => {
+            // Given every row on the page is selected, including the cash back row
+            // When the footer renders
+            await renderWithSelection({
+                [SETTLEMENT_A_KEY]: buildSelectedTransaction(CONST.CURRENCY.USD, CONST.CURRENCY.USD, -30000),
+                [SETTLEMENT_B_KEY]: buildSelectedTransaction(CONST.CURRENCY.USD, CONST.CURRENCY.USD, -20000),
+                [CASH_BACK_KEY]: buildSelectedTransaction(CONST.CURRENCY.USD, CONST.CURRENCY.USD, 2500),
+            });
+
+            // Then the selection is the whole search, so the server's netted total is the right one to show
+            expect(mockCapturedFooterProps.current).toEqual(expect.objectContaining({count: 5, total: 47500}));
+        });
+    });
+
+    describe('stamping the loaded groups of a grouped search', () => {
+        const CASH_BACK_KEY = `${CONST.SEARCH.GROUP_PREFIX}cashBack` as const;
+        const SETTLEMENT_KEY = `${CONST.SEARCH.GROUP_PREFIX}settlement` as const;
+
+        const renderGroupedSearch = async () => {
+            setSearchQuery(`type:expense group-by:${CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID}`);
+            const searchResults = buildSearchResults(undefined, 2);
+            mockCurrentSearchResults.current = {
+                ...searchResults,
+                data: {
+                    [CASH_BACK_KEY]: makeSettlementGroup({total: -2500, isCashBack: true}),
+                    [SETTLEMENT_KEY]: makeSettlementGroup({total: 40000}),
+                },
+            };
+            // Only the settlement is selected, so the cash back row is stamped by the bulk path rather than from its entry.
+            mockSelectedTransactions.current = {[SETTLEMENT_KEY]: buildSelectedTransaction(SELECTED_EXPENSE_CURRENCY, 'INR', -40000)};
+
+            render(<SearchSelectionFooter searchResults={searchResults} />);
+            await waitForBatchedUpdates();
+
+            await act(async () => {
+                mockCapturedFooterProps.current?.onCurrencyChange?.(PAYMENT_CURRENCY);
+                await waitForBatchedUpdates();
+            });
+
+            return jest
+                .mocked(getFooterConvertedAmounts)
+                .mock.calls.map(([args]) => args)
+                .find((args) => !!args.sources?.groups)?.sources?.groups;
+        };
+
+        it('stamps an unselected cash back group with the positive figure its own entry would produce', async () => {
+            // Given a grouped search where only the settlement is selected and the cash back group is not
+            // When the footer requests converted amounts for every loaded group
+            const groups = await renderGroupedSearch();
+
+            // Then the credit's negative total is negated into a positive stamp, matching what its own entry would produce
+            expect(groups?.[CASH_BACK_KEY]).toEqual({[PAYMENT_CURRENCY]: 2500});
+        });
+
+        it('keeps stamping an unselected settlement group expense-negative', async () => {
+            // Given the same grouped search
+            // When the footer requests converted amounts for every loaded group
+            const groups = await renderGroupedSearch();
+
+            // Then the settlement keeps its usual expense-negative stamp
+            expect(groups?.[SETTLEMENT_KEY]).toEqual({[PAYMENT_CURRENCY]: -40000});
         });
     });
 });

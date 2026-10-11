@@ -368,7 +368,15 @@ function SearchSelectionFooter({searchResults}: SearchSelectionFooterProps) {
         [conversionSources, reportSourceByID],
     );
 
-    const areAllSelectedForFooter = areAllMatchingItemsSelected || (selectedTransactionsKeys.length > 0 && metadataCount !== undefined && selectedExpenseCount === metadataCount);
+    // A cash back row holds no expenses, so leaving it out still matches the server count while the server total nets it.
+    // An unloaded page can still hold one, and matching counts mean that page has no expenses left to select.
+    const hasUnselectedCashBackGroup =
+        !!metadata?.hasMoreResults ||
+        Object.entries(currentSearchResults?.data ?? {}).some(
+            ([key, group]) => isGroupEntry(key) && !!group && typeof group === 'object' && 'isCashBack' in group && !!group.isCashBack && !selectedTransactions[key],
+        );
+    const areAllSelectedForFooter =
+        areAllMatchingItemsSelected || (selectedTransactionsKeys.length > 0 && metadataCount !== undefined && selectedExpenseCount === metadataCount && !hasUnselectedCashBackGroup);
     const hasPartialSelection = selectedTransactionsKeys.length > 0 && !areAllSelectedForFooter;
 
     // Both selectors stay available for whatever the footer is describing. A hand-picked selection is counted and summed
