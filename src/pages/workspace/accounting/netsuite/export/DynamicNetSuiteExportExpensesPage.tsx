@@ -16,7 +16,9 @@ import {areSettingsInErrorFields, settingsPendingAction} from '@libs/PolicyUtils
 
 import {
     exportExpensesDestinationSettingName,
+    isNonReimbursableCreditCardChargeExport,
     shouldHideJournalPostingPreference,
+    shouldHideNonReimbursableCreditCardAccount,
     shouldHideNonReimbursableJournalPostingAccount,
     shouldHideReimbursableDefaultVendor,
     shouldHideReimbursableJournalPostingAccount,
@@ -49,8 +51,11 @@ function DynamicNetSuiteExportExpensesPage({policy}: WithPolicyConnectionsProps)
     const {vendors, payableList} = policy?.connections?.netsuite?.options?.data ?? {};
 
     const defaultVendor = useMemo(() => vendors?.find(({id}) => id === config?.defaultVendor), [vendors, config?.defaultVendor]);
+    const isDefaultVendorSet = !!defaultVendor?.name;
+    const isCreditCardChargeExport = isNonReimbursableCreditCardChargeExport(config);
 
     const selectedPayableAccount = useMemo(() => payableList?.find(({id}) => id === config?.payableAcct), [payableList, config?.payableAcct]);
+    const selectedCreditCardAccount = useMemo(() => payableList?.find(({id}) => id === config?.creditCardAccount), [payableList, config?.creditCardAccount]);
 
     const selectedReimbursablePayableAccount = useMemo(() => payableList?.find(({id}) => id === config?.reimbursablePayableAccount), [payableList, config?.reimbursablePayableAccount]);
 
@@ -96,6 +101,21 @@ function DynamicNetSuiteExportExpensesPage({policy}: WithPolicyConnectionsProps)
                             <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />
                         )}
                     </MenuItemField>
+                    {isCreditCardChargeExport && <MenuItem.HelpText message={translate('workspace.netsuite.creditCardChargeDefaultVendorHelperText', isDefaultVendorSet)} />}
+                </OfflineWithFeedback>
+            )}
+            {!shouldHideNonReimbursableCreditCardAccount(isReimbursable, config) && (
+                <OfflineWithFeedback pendingAction={settingsPendingAction([CONST.NETSUITE_CONFIG.CREDIT_CARD_ACCOUNT], config?.pendingFields)}>
+                    <MenuItemField
+                        name={translate('workspace.netsuite.creditCardAccount')}
+                        value={selectedCreditCardAccount?.name}
+                        onPress={() => navigateToStep(DYNAMIC_ROUTES.POLICY_ACCOUNTING_NETSUITE_EXPORT_EXPENSES_CREDIT_CARD_ACCOUNT_SELECT.path)}
+                    >
+                        {areSettingsInErrorFields([CONST.NETSUITE_CONFIG.CREDIT_CARD_ACCOUNT], config?.errorFields) && (
+                            <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />
+                        )}
+                    </MenuItemField>
+                    <MenuItem.HelpText message={translate('workspace.netsuite.creditCardAccountHelperText', !!selectedCreditCardAccount?.name)} />
                 </OfflineWithFeedback>
             )}
             {!shouldHideNonReimbursableJournalPostingAccount(isReimbursable, config) && (

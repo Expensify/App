@@ -341,6 +341,23 @@ function getPolicyCardExportSettings(
                             workspaceDefaultAccountID: config?.payableAcct,
                         },
                     };
+                case CONST.NETSUITE_EXPORT_DESTINATION.CREDIT_CARD_CHARGE: {
+                    const creditCardAccounts = (policy?.connections?.netsuite?.options.data.payableList ?? []).filter((account) => account.type === CONST.NETSUITE_ACCOUNT_TYPE.CREDIT_CARD);
+
+                    return {
+                        description,
+                        exportPageLink,
+                        shouldShowMenuItem: true,
+                        exportType: CONST.COMPANY_CARDS.EXPORT_CARD_TYPES.NVP_NETSUITE_EXPORT_ACCOUNT,
+                        accountSelection: {
+                            type: CONST.COMPANY_CARDS.EXPORT_RESOLVER.SINGLE_ACCOUNT,
+                            nvpKey: CONST.COMPANY_CARDS.EXPORT_CARD_TYPES.NVP_NETSUITE_EXPORT_ACCOUNT,
+                            accounts: normalizeAccounts(creditCardAccounts),
+                            defaultLabel: defaultAccount,
+                            workspaceDefaultAccountID: config?.creditCardAccount,
+                        },
+                    };
+                }
                 default:
                     return {description, exportPageLink, shouldShowMenuItem: false};
             }

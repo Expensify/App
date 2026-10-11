@@ -3627,6 +3627,7 @@ const CONST = {
         REIMBURSABLE_EXPENSES_EXPORT_DESTINATION: 'reimbursableExpensesExportDestination',
         NON_REIMBURSABLE_EXPENSES_EXPORT_DESTINATION: 'nonreimbursableExpensesExportDestination',
         DEFAULT_VENDOR: 'defaultVendor',
+        CREDIT_CARD_ACCOUNT: 'creditCardAccount',
         TRAVEL_BILLING_PAYABLE_ACCOUNT: 'travelInvoicingPayableAccountID',
         TRAVEL_BILLING_JOURNAL_POSTING_PREFERENCE: 'travelInvoicingJournalPostingPreference',
         REIMBURSABLE_PAYABLE_ACCOUNT: 'reimbursablePayableAccount',
@@ -3673,6 +3674,9 @@ const CONST = {
                 'enable-oauth': 'enableOAuth',
                 'enable-rest': 'enableRestWebServices',
             },
+        },
+        AUTH_TYPE: {
+            OAUTH2: 'oauth2',
         },
         IMPORT_CUSTOM_FIELDS: {
             CUSTOM_SEGMENTS: 'customSegments',
@@ -3758,12 +3762,14 @@ const CONST = {
     },
 
     NETSUITE_EXPORT_DESTINATION: {
+        CREDIT_CARD_CHARGE: 'CREDIT_CARD_CHARGE',
         EXPENSE_REPORT: 'EXPENSE_REPORT',
         VENDOR_BILL: 'VENDOR_BILL',
         JOURNAL_ENTRY: 'JOURNAL_ENTRY',
     },
 
     NETSUITE_MAP_EXPORT_DESTINATION: {
+        CREDIT_CARD_CHARGE: 'creditCardCharge',
         EXPENSE_REPORT: 'expenseReport',
         VENDOR_BILL: 'vendorBill',
         JOURNAL_ENTRY: 'journalEntry',
