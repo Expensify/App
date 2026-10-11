@@ -15381,7 +15381,6 @@ export {
     pushTransactionAutoSelectionsOnyxData,
     navigateOnDeleteExpense,
     canRejectReportAction,
-    isPayBlockedByArchivedState,
     isPayBlocked,
     hasReportBeenReopened,
     hasReportBeenRetracted,
