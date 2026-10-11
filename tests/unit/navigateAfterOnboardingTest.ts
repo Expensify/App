@@ -217,10 +217,12 @@ describe('navigateAfterOnboarding', () => {
         const openDeepLink = jest.fn(() => true);
         setDeepLinkToOpenAfterOnboarding(openDeepLink);
 
+        // When onboarding finishes
         navigateAfterOnboarding(true, true, REPORT_ID, {}, undefined, ONBOARDING_ADMINS_CHAT_REPORT_ID, false, {
             variantOverride: CONST.ONBOARDING_RHP_VARIANT.TRACK_EXPENSES_WITH_CONCIERGE,
         });
 
+        // Then the parked link is still opened, since the variant branch would otherwise skip it
         expect(openDeepLink).toHaveBeenCalledTimes(1);
         expect(navigate).not.toHaveBeenCalled();
     });
@@ -233,8 +235,10 @@ describe('navigateAfterOnboarding', () => {
         });
         setDeepLinkToOpenAfterOnboarding(openDeepLink);
 
+        // When onboarding finishes
         navigateAfterOnboarding(false, true, '', {}, undefined, ONBOARDING_ADMINS_CHAT_REPORT_ID);
 
+        // Then the user still lands somewhere instead of on an empty screen
         expect(openDeepLink).toHaveBeenCalledTimes(1);
         expect(navigate).toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute(ONBOARDING_ADMINS_CHAT_REPORT_ID), undefined);
     });
@@ -245,8 +249,10 @@ describe('navigateAfterOnboarding', () => {
         const openDeepLink = jest.fn(() => false);
         setDeepLinkToOpenAfterOnboarding(openDeepLink);
 
+        // When onboarding finishes
         navigateAfterOnboarding(false, true, '', {}, undefined, ONBOARDING_ADMINS_CHAT_REPORT_ID);
 
+        // Then the default destination is used, because nothing else was opened
         expect(openDeepLink).toHaveBeenCalledTimes(1);
         expect(navigate).toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute(ONBOARDING_ADMINS_CHAT_REPORT_ID), undefined);
     });
@@ -257,9 +263,11 @@ describe('navigateAfterOnboarding', () => {
         const openDeepLink = jest.fn(() => true);
         setDeepLinkToOpenAfterOnboarding(openDeepLink);
 
+        // When onboarding exits twice
         navigateAfterOnboarding(false, true, '', {}, undefined, ONBOARDING_ADMINS_CHAT_REPORT_ID);
         navigateAfterOnboarding(false, true, '', {}, undefined, ONBOARDING_ADMINS_CHAT_REPORT_ID);
 
+        // Then the link opens only the first time and the second exit uses the default destination
         expect(openDeepLink).toHaveBeenCalledTimes(1);
         expect(navigate).toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute(ONBOARDING_ADMINS_CHAT_REPORT_ID), undefined);
     });

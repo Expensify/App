@@ -141,6 +141,21 @@ describe('openReportFromDeepLink before onboarding', () => {
         expect(mockedNavigation.navigate).not.toHaveBeenCalled();
     });
 
+    it.each([`${ROUTES.CONCIERGE}/`, `${ROUTES.CONCIERGE}?referrer=email`])('opens a parked Concierge link written as %s in the chat as well', async (route) => {
+        // Given a Concierge link with a trailing slash or a query string, parked while onboarding was on screen
+        focusOn(SCREENS.ONBOARDING.PURPOSE);
+        await handleLinkCapturedBeforeOnboarding(route);
+
+        // When onboarding finishes and the data has loaded
+        await Onyx.set(ONYXKEYS.IS_LOADING_REPORT_DATA, false);
+        replayParkedLink();
+        await waitForBatchedUpdates();
+
+        // Then it still skips the Concierge page, which would slide in as a panel before redirecting
+        expect(mockedNavigateToConciergeChat).toHaveBeenCalledTimes(1);
+        expect(mockedNavigation.navigate).not.toHaveBeenCalled();
+    });
+
     it('also parks the link when onboarding is no longer the focused screen', async () => {
         // Given the onboarding screens already closed by the time the link is handled
         focusOn(NAVIGATORS.TAB_NAVIGATOR);

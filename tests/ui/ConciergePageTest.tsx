@@ -9,6 +9,7 @@ import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigati
 
 import ConciergePage from '@pages/ConciergePage';
 
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
 
@@ -110,6 +111,24 @@ describe('ConciergePage', () => {
         await waitForBatchedUpdatesWithAct();
 
         // Then the chat opens
+        expect(mockNavigateToConciergeChat).toHaveBeenCalledTimes(1);
+    });
+
+    it.each([
+        ['a workspace member', ONYXKEYS.HAS_NON_PERSONAL_POLICY, true],
+        ['an invited user', ONYXKEYS.NVP_INTRO_SELECTED, {inviteType: CONST.ONBOARDING_INVITE_TYPES.WORKSPACE}],
+    ] as const)('opens the Concierge chat for %s who never finished onboarding', async (_, key, value) => {
+        // Given an account the app never sends to onboarding, so its onboarding flag stays false for good
+        await act(async () => {
+            await seedSignedInAccount(false);
+            await Onyx.set(key, value);
+        });
+
+        // When the page mounts
+        renderPage();
+        await waitForBatchedUpdatesWithAct();
+
+        // Then it redirects instead of waiting for an onboarding that will never open
         expect(mockNavigateToConciergeChat).toHaveBeenCalledTimes(1);
     });
 });
