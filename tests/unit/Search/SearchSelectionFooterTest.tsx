@@ -378,6 +378,31 @@ describe('SearchSelectionFooter', () => {
         );
     });
 
+    it('subtracts only the matching part of a report excluded under a breakdown in another currency', async () => {
+        // Given a select-all on the Reports search, on the reimbursable breakdown in EUR, with its converted total fresh
+        setSearchQuery(`type:expense-report footerTotal:${CONST.SEARCH.FOOTER_TOTAL.REIMBURSABLE} footerCurrency:${CONST.CURRENCY.EUR}`);
+        mockSelectedTransactions.current = {};
+        mockAreAllMatchingItemsSelected.current = true;
+
+        // When a report holding $60 reimbursable and $40 non-reimbursable is unchecked, with its whole EUR total cached
+        mockExcludedTransactions.current = {
+            transaction1: {...buildFlaggedTransaction(-6000, {reimbursable: true}), reportID: 'report1'},
+            transaction2: {...buildFlaggedTransaction(-4000, {reimbursable: false}), reportID: 'report1'},
+        };
+        const searchHash = mockSearchQueryContext.current.currentSearchHash;
+        await Onyx.merge(ONYXKEYS.SEARCH_FOOTER_CONVERSION, {
+            searchTotals: {[searchHash]: {[CONST.CURRENCY.EUR]: {count: 10, total: 30000}}},
+            reports: {report1: {[CONST.CURRENCY.EUR]: -9000}},
+            sources: {searchTotals: {[searchHash]: {[CONST.CURRENCY.EUR]: 36000}}, reports: {report1: {[CONST.CURRENCY.EUR]: -10000}}},
+        });
+
+        render(<SearchSelectionFooter searchResults={buildSearchResults(CONST.CURRENCY.USD, 10, 36000, CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT, 87)} />);
+        await waitForBatchedUpdates();
+
+        // Then only its reimbursable $60 comes off, in the default currency, since the report's EUR total has no breakdown
+        expect(mockCapturedFooterProps.current).toEqual(expect.objectContaining({total: 30000, currency: CONST.CURRENCY.USD, isTotalLoading: false}));
+    });
+
     it('nets a selected credit against a selected expense instead of summing their magnitudes', async () => {
         mockSelectedTransactions.current = {
             transaction1: {...buildSelectedTransaction(CONST.CURRENCY.USD), displayAmount: 10000},

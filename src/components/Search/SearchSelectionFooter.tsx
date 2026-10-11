@@ -449,6 +449,9 @@ function SearchSelectionFooter({searchResults}: SearchSelectionFooterProps) {
 
     const hasExcludedExpenses = isExpenseType && excludedTransactionsKeys.length > 0;
     const hasExcludedReports = isReportsSearch && excludedReportIDs.length > 0;
+    // A report's converted total has no breakdown inside it, so excluding one under a breakdown falls to the default
+    // currency, where the exclusion is summed from the report's own matching expenses.
+    const canConvertExcludedReports = !hasExcludedReports || footerTotalBreakdown === CONST.SEARCH.FOOTER_TOTAL.TOTAL;
     const areAllExcludedConverted = useMemo(() => {
         if (!hasCustomFooterCurrency || !selectedCurrency || (!hasExcludedExpenses && !hasExcludedReports)) {
             return false;
@@ -470,6 +473,7 @@ function SearchSelectionFooter({searchResults}: SearchSelectionFooterProps) {
         !isOffline &&
         !hasConversionFailed &&
         hasCustomFooterCurrency &&
+        (shouldUseClientTotal || canConvertExcludedReports) &&
         (shouldUseClientTotal ? hasConvertibleSelection && !areAllSelectedConverted : !isSearchTotalFresh || ((hasExcludedExpenses || hasExcludedReports) && !areAllExcludedConverted));
     const shouldShowFooter = (!areAllMatchingItemsSelected && selectedTransactionsKeys.length > 0) || (shouldAllowFooterTotals && !!metadata?.count);
 
@@ -733,6 +737,7 @@ function SearchSelectionFooter({searchResults}: SearchSelectionFooterProps) {
         if (
             hasCustomFooterCurrency &&
             isSearchTotalFresh &&
+            canConvertExcludedReports &&
             ((!hasExcludedExpenses && !hasExcludedReports) || areAllExcludedConverted) &&
             !hasConversionFailed &&
             selectedCurrencyConvertedTotal
@@ -769,6 +774,7 @@ function SearchSelectionFooter({searchResults}: SearchSelectionFooterProps) {
     }, [
         areAllSelectedConverted,
         areAllExcludedConverted,
+        canConvertExcludedReports,
         convertedGroups,
         convertedReports,
         convertedTransactions,
