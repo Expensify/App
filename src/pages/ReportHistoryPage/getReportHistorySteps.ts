@@ -31,16 +31,24 @@ type GetReportHistoryStepsParams = {
     translate: LocalizedTranslate;
     dateFnsLocale: DateFnsLocale | undefined;
     currentUserEmail: string | undefined;
+
+    /** Shown as the creator when the created action has no actor */
+    reportOwnerAccountID: number | undefined;
     reportActions: OnyxEntry<ReportActions>;
     upcomingSteps: ReportUpcomingStep[];
     nextStep: ReportNextStep | undefined;
 };
 
-function getCompletedStep(translate: LocalizedTranslate, reportAction: ReportAction, currentUserEmail: string | undefined): ReportHistoryStep | undefined {
+function getCompletedStep(
+    translate: LocalizedTranslate,
+    reportAction: ReportAction,
+    currentUserEmail: string | undefined,
+    reportOwnerAccountID: number | undefined,
+): ReportHistoryStep | undefined {
     const step = {key: reportAction.reportActionID, accountID: reportAction.actorAccountID, created: reportAction.created, isUpcoming: false};
 
     if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.CREATED)) {
-        return {...step, icon: 'Receipt', label: translate('reportHistoryPage.created')};
+        return {...step, accountID: reportAction.actorAccountID ?? reportOwnerAccountID, icon: 'Receipt', label: translate('reportHistoryPage.created')};
     }
     if (isSubmittedAction(reportAction) || isSubmittedAndClosedAction(reportAction)) {
         return {...step, icon: 'Send', label: translate('reportHistoryPage.submitted')};
@@ -107,13 +115,13 @@ function getUpcomingStep(
     return {...step, icon: 'MoneyBag', label: translate('reportHistoryPage.toPay')};
 }
 
-function getReportHistorySteps({translate, dateFnsLocale, currentUserEmail, reportActions, upcomingSteps, nextStep}: GetReportHistoryStepsParams): ReportHistoryStep[] {
+function getReportHistorySteps({translate, dateFnsLocale, currentUserEmail, reportOwnerAccountID, reportActions, upcomingSteps, nextStep}: GetReportHistoryStepsParams): ReportHistoryStep[] {
     const completedSteps: ReportHistoryStep[] = [];
     for (const reportAction of Object.values(reportActions ?? {})) {
         if (reportAction.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
             continue;
         }
-        const step = getCompletedStep(translate, reportAction, currentUserEmail);
+        const step = getCompletedStep(translate, reportAction, currentUserEmail, reportOwnerAccountID);
         if (step) {
             completedSteps.push(step);
         }

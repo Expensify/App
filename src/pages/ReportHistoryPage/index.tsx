@@ -50,6 +50,7 @@ function ReportHistoryPage({report, policy}: ReportHistoryPageProps) {
         translate,
         dateFnsLocale,
         currentUserEmail: currentUserPersonalDetails.login,
+        reportOwnerAccountID: report.ownerAccountID,
         reportActions,
         upcomingSteps: reportUpcomingSteps?.steps ?? getMockUpcomingSteps({report, policy, rules, personalDetails}),
         nextStep: report.nextStep,
