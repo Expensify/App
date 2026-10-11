@@ -403,6 +403,39 @@ describe('SearchSelectionFooter', () => {
         expect(mockCapturedFooterProps.current).toEqual(expect.objectContaining({total: 30000, currency: CONST.CURRENCY.USD, isTotalLoading: false}));
     });
 
+    describe('a collapsed group unchecked under a select-all', () => {
+        const GROUP_KEY = `${CONST.SEARCH.GROUP_PREFIX}travel` as const;
+
+        const renderWithExcludedGroup = async (query: string) => {
+            // Given a select-all on a grouped search, with a collapsed group of three expenses unchecked as one entry
+            setSearchQuery(query);
+            mockSelectedTransactions.current = {};
+            mockAreAllMatchingItemsSelected.current = true;
+            mockExcludedTransactions.current = {[GROUP_KEY]: buildSelectedTransaction(CONST.CURRENCY.USD, CONST.CURRENCY.USD, -50000)};
+            const searchResults = buildSearchResults(CONST.CURRENCY.USD, 172, 80000, CONST.SEARCH.DATA_TYPES.EXPENSE, undefined, true);
+            mockCurrentSearchResults.current = {...searchResults, data: {[GROUP_KEY]: makeSettlementGroup({count: 3, total: 50000})}};
+
+            render(<SearchSelectionFooter searchResults={searchResults} />);
+            await waitForBatchedUpdates();
+        };
+
+        it('shows no total under a breakdown, since none of the group can be told apart by it', async () => {
+            // When the footer describes the reimbursable breakdown
+            await renderWithExcludedGroup(`type:expense group-by:category footerTotal:${CONST.SEARCH.FOOTER_TOTAL.REIMBURSABLE}`);
+
+            // Then the group still comes off the count, but no figure is shown that would still include it
+            expect(mockCapturedFooterProps.current).toEqual(expect.objectContaining({count: 169, total: undefined}));
+        });
+
+        it('still takes the group off the plain total', async () => {
+            // When the footer describes the plain total
+            await renderWithExcludedGroup('type:expense group-by:category');
+
+            // Then the group's whole amount comes off, as before
+            expect(mockCapturedFooterProps.current).toEqual(expect.objectContaining({count: 169, total: 30000}));
+        });
+    });
+
     it('nets a selected credit against a selected expense instead of summing their magnitudes', async () => {
         mockSelectedTransactions.current = {
             transaction1: {...buildSelectedTransaction(CONST.CURRENCY.USD), displayAmount: 10000},

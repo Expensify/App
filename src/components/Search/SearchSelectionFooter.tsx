@@ -452,6 +452,9 @@ function SearchSelectionFooter({searchResults}: SearchSelectionFooterProps) {
     // A report's converted total has no breakdown inside it, so excluding one under a breakdown falls to the default
     // currency, where the exclusion is summed from the report's own matching expenses.
     const canConvertExcludedReports = !hasExcludedReports || footerTotalBreakdown === CONST.SEARCH.FOOTER_TOTAL.TOTAL;
+    // A collapsed group is excluded as one entry with no expenses to classify, so nothing tells how much of it falls in
+    // the breakdown. No figure is shown rather than one that still counts the group.
+    const hasExcludedGroupUnderBreakdown = excludedGroupKeys.length > 0 && footerTotalBreakdown !== CONST.SEARCH.FOOTER_TOTAL.TOTAL;
     const areAllExcludedConverted = useMemo(() => {
         if (!hasCustomFooterCurrency || !selectedCurrency || (!hasExcludedExpenses && !hasExcludedReports)) {
             return false;
@@ -473,7 +476,7 @@ function SearchSelectionFooter({searchResults}: SearchSelectionFooterProps) {
         !isOffline &&
         !hasConversionFailed &&
         hasCustomFooterCurrency &&
-        (shouldUseClientTotal || canConvertExcludedReports) &&
+        (shouldUseClientTotal || (canConvertExcludedReports && !hasExcludedGroupUnderBreakdown)) &&
         (shouldUseClientTotal ? hasConvertibleSelection && !areAllSelectedConverted : !isSearchTotalFresh || ((hasExcludedExpenses || hasExcludedReports) && !areAllExcludedConverted));
     const shouldShowFooter = (!areAllMatchingItemsSelected && selectedTransactionsKeys.length > 0) || (shouldAllowFooterTotals && !!metadata?.count);
 
@@ -733,6 +736,14 @@ function SearchSelectionFooter({searchResults}: SearchSelectionFooterProps) {
             return {count: selectedExpenseCount, total, currency: shouldConvertSelectedTotal ? selectedCurrency : fallbackCurrency};
         }
 
+        if (hasExcludedGroupUnderBreakdown) {
+            return {
+                count: metadataCount === undefined ? undefined : Math.max(metadataCount - excludedExpenseCount, 0),
+                total: undefined,
+                currency: effectiveDefaultCurrency ?? metadataCurrency,
+            };
+        }
+
         const excludedKeysForTotal = excludedTransactionsKeys.filter((key) => doesTransactionMatchFooterTotal(excludedTransactions[key]?.transaction, footerTotalBreakdown));
         if (
             hasCustomFooterCurrency &&
@@ -786,6 +797,7 @@ function SearchSelectionFooter({searchResults}: SearchSelectionFooterProps) {
         hasConversionFailed,
         hasCustomFooterCurrency,
         hasExcludedExpenses,
+        hasExcludedGroupUnderBreakdown,
         hasExcludedReports,
         isReportsSearch,
         isSearchTotalFresh,
