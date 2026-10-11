@@ -604,7 +604,7 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
 
                 const result = await showConfirmModalAfterMoreMenuDismiss(showConfirmModal, {
                     title: translate('iou.deleteReport', {count: 1}),
-                    prompt: translate('iou.deleteReportConfirmation', {count: 1}),
+                    prompt: moneyRequestReport?.type === CONST.REPORT.TYPE.EXPENSE ? translate('iou.deleteExpenseReportConfirmation') : translate('iou.deleteReportConfirmation', {count: 1}),
                     confirmText: translate('common.delete'),
                     cancelText: translate('common.cancel'),
                     buttonVariant: CONST.BUTTON_VARIANT.DANGER,
