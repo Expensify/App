@@ -44,6 +44,7 @@ function TimeFooter({policy, policyTags, selectedParticipants, amountDisplay, re
                         policy={policy}
                         amountDisplay={amountDisplay}
                         isDescriptionRequired={requiredFlags.isDescriptionRequired}
+                        descriptionHint={requiredFlags.descriptionHint}
                         errorState={errorState}
                     />
                 </ConfirmationFieldList>

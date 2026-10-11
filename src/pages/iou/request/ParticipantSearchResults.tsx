@@ -291,6 +291,7 @@ function ParticipantSearchResults({
     const hasAvailableOptions = hasListOptions || !isEmptyObject(availableOptions.selfDMChat);
 
     const inputHelperText = getHeaderMessage(
+        translate,
         hasAvailableOptions,
         !!availableOptions?.userToInvite,
         debouncedSearchTerm.trim(),
