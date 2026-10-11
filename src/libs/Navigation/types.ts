@@ -281,23 +281,23 @@ type SettingsNavigatorParamList = {
         subPage?: string;
     };
     [SCREENS.SETTINGS.BANK_ACCOUNT_PURPOSE]: undefined;
-    [SCREENS.SETTINGS.AGENTS.NEW]: {
+    [SCREENS.SETTINGS.AGENTS.DYNAMIC_NEW]: {
         policyID?: string;
     };
-    [SCREENS.SETTINGS.AGENTS.ADD]: {
+    [SCREENS.SETTINGS.AGENTS.DYNAMIC_ADD]: {
         policyID?: string;
     };
-    [SCREENS.SETTINGS.AGENTS.ADD_AVATAR]: undefined;
-    [SCREENS.SETTINGS.AGENTS.EDIT]: {
+    [SCREENS.SETTINGS.AGENTS.DYNAMIC_ADD_AVATAR]: undefined;
+    [SCREENS.SETTINGS.AGENTS.DYNAMIC_EDIT]: {
         accountID: number;
     };
-    [SCREENS.SETTINGS.AGENTS.EDIT_NAME]: {
+    [SCREENS.SETTINGS.AGENTS.DYNAMIC_EDIT_NAME]: {
         accountID: number;
     };
-    [SCREENS.SETTINGS.AGENTS.EDIT_PROMPT]: {
+    [SCREENS.SETTINGS.AGENTS.DYNAMIC_EDIT_PROMPT]: {
         accountID: number;
     };
-    [SCREENS.SETTINGS.AGENTS.EDIT_AVATAR]: {
+    [SCREENS.SETTINGS.AGENTS.DYNAMIC_EDIT_AVATAR]: {
         accountID: number;
     };
     [SCREENS.SETTINGS.RULES.ADD]: undefined;
@@ -3299,6 +3299,9 @@ type WorkspaceSplitNavigatorParamList = {
         policyID: string;
     };
     [SCREENS.WORKSPACE.MEMBERS]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.AGENTS]: {
         policyID: string;
     };
     [SCREENS.WORKSPACE.ROOMS]: {

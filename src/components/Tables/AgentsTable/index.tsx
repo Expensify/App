@@ -12,22 +12,29 @@ import tokenizedSearch from '@libs/tokenizedSearch';
 
 import variables from '@styles/variables';
 
+import type CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {AgentOwnerType} from '@src/types/onyx/Agent';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 
 import type {ListRenderItemInfo} from '@shopify/flash-list';
+import type {ValueOf} from 'type-fest';
 
 import React from 'react';
 import {View} from 'react-native';
 
 import AgentsTableRow from './AgentsTableRow';
 
-type AgentsTableColumnKey = 'agent' | 'actions';
+type AgentsTableColumnKey = 'agent' | 'role' | 'actions';
 
 type AgentRowData = TableData & {
     accountID: number;
     displayName: string;
     login: string;
+    role?: ValueOf<typeof CONST.POLICY.ROLE>;
+    ownerAccountID?: number;
+    ownerType?: AgentOwnerType;
+    canManage: boolean;
     errors?: OnyxCommon.Errors;
     pendingAction?: OnyxCommon.PendingAction;
     action: () => void;
@@ -49,10 +56,13 @@ type AgentsTableProps = {
     /** Keys of the currently selected rows */
     selectedKeys: string[];
 
+    /** Whether to show the role column */
+    shouldShowRoleColumn?: boolean;
+
     onRowSelectionChange: (selectedRowKeys: string[]) => void;
 };
 
-export default function AgentsTable({ref, agents, headerComponent, canSelectAgents, selectedKeys, onRowSelectionChange}: AgentsTableProps) {
+export default function AgentsTable({ref, agents, headerComponent, canSelectAgents, selectedKeys, shouldShowRoleColumn, onRowSelectionChange}: AgentsTableProps) {
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
@@ -62,12 +72,22 @@ export default function AgentsTable({ref, agents, headerComponent, canSelectAgen
 
     const shouldUseNarrowTableLayout = shouldUseNarrowLayout || isMediumScreenWidth;
 
-    const agentsTableColumns: Array<TableColumn<AgentsTableColumnKey>> = [
+    const agentsTableColumns: Array<TableColumn<AgentsTableColumnKey, AgentRowData>> = [
         {
             key: 'agent',
             label: translate('agentsPage.title'),
             sortable: true,
         },
+        ...(shouldShowRoleColumn
+            ? [
+                  {
+                      key: 'role' as const,
+                      label: translate('common.role'),
+                      sortable: true,
+                      width: variables.workspaceMembersRoleColumnWidth,
+                  },
+              ]
+            : []),
         {
             key: 'actions',
             label: '',
@@ -91,6 +111,7 @@ export default function AgentsTable({ref, agents, headerComponent, canSelectAgen
             item={item}
             rowIndex={index}
             shouldUseNarrowTableLayout={shouldUseNarrowTableLayout}
+            shouldShowRoleColumn={shouldShowRoleColumn}
         />
     );
 

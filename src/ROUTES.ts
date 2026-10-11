@@ -684,8 +684,8 @@ const DYNAMIC_ROUTES = {
         path: 'avatar-crop',
         entryScreens: [
             SCREENS.SETTINGS.PROFILE.AVATAR,
-            SCREENS.SETTINGS.AGENTS.EDIT_AVATAR,
-            SCREENS.SETTINGS.AGENTS.ADD_AVATAR,
+            SCREENS.SETTINGS.AGENTS.DYNAMIC_EDIT_AVATAR,
+            SCREENS.SETTINGS.AGENTS.DYNAMIC_ADD_AVATAR,
             SCREENS.NEW_CHAT.NEW_CHAT_CONFIRM,
             SCREENS.WORKSPACE.PROFILE,
             SCREENS.WORKSPACE_CONFIRMATION.DYNAMIC_ROOT,
@@ -2099,6 +2099,55 @@ const DYNAMIC_ROUTES = {
         },
         queryParams: ['action', 'iouType', 'transactionID', 'reportID', 'upgradeBackTo', 'shouldSubmitExpense', 'upgradePath', 'shouldReturnToConfirmation'],
     },
+    AGENT_NEW: {
+        path: 'new-agent',
+        getRoute: ({policyID}: {policyID?: string} = {}) => {
+            const params = new URLSearchParams();
+            if (policyID) {
+                params.set('policyID', policyID);
+            }
+            const query = params.toString();
+            return `new-agent${query ? `?${query}` : ''}` as const;
+        },
+        entryScreens: [SCREENS.SETTINGS.AGENTS.ROOT, SCREENS.WORKSPACE.AGENTS],
+    },
+    AGENT_ADD: {
+        path: 'custom',
+        getRoute: ({policyID}: {policyID?: string} = {}) => {
+            const params = new URLSearchParams();
+            if (policyID) {
+                params.set('policyID', policyID);
+            }
+            const query = params.toString();
+            return `custom${query ? `?${query}` : ''}` as const;
+        },
+        entryScreens: [SCREENS.SETTINGS.AGENTS.DYNAMIC_NEW],
+    },
+    AGENT_ADD_AVATAR: {
+        path: 'custom-avatar',
+        getRoute: () => `custom-avatar` as const,
+        entryScreens: [SCREENS.SETTINGS.AGENTS.DYNAMIC_ADD],
+    },
+    AGENT_EDIT: {
+        path: ':accountID/edit',
+        getRoute: (accountID: number) => `${accountID}/edit` as const,
+        entryScreens: [SCREENS.SETTINGS.AGENTS.ROOT, SCREENS.WORKSPACE.AGENTS],
+    },
+    AGENT_EDIT_NAME: {
+        path: 'name',
+        getRoute: () => `name` as const,
+        entryScreens: [SCREENS.SETTINGS.AGENTS.DYNAMIC_EDIT],
+    },
+    AGENT_EDIT_PROMPT: {
+        path: 'prompt',
+        getRoute: () => `prompt` as const,
+        entryScreens: [SCREENS.SETTINGS.AGENTS.DYNAMIC_EDIT, SCREENS.DYNAMIC_PROFILE],
+    },
+    AGENT_EDIT_AVATAR: {
+        path: 'avatar',
+        getRoute: () => `avatar` as const,
+        entryScreens: [SCREENS.SETTINGS.AGENTS.DYNAMIC_EDIT],
+    },
 } as const satisfies DynamicRoutes;
 
 const ROUTES = {
@@ -2615,45 +2664,6 @@ const ROUTES = {
     SETTINGS_WALLET_TRAVEL_CVV: 'settings/wallet/travel-cvv',
     SETTINGS_WALLET_TRAVEL_CVV_VERIFY_ACCOUNT: `settings/wallet/travel-cvv/${VERIFY_ACCOUNT}`,
     SETTINGS_AGENTS: 'settings/agents',
-    SETTINGS_AGENTS_NEW: {
-        route: 'settings/agents/new',
-        getRoute: ({policyID}: {policyID?: string} = {}) => {
-            const params = new URLSearchParams();
-            if (policyID) {
-                params.set('policyID', policyID);
-            }
-            const query = params.toString();
-            return `settings/agents/new${query ? `?${query}` : ''}` as const;
-        },
-    },
-    SETTINGS_AGENTS_ADD: {
-        route: 'settings/agents/new/custom',
-        getRoute: ({policyID}: {policyID?: string} = {}) => {
-            const params = new URLSearchParams();
-            if (policyID) {
-                params.set('policyID', policyID);
-            }
-            const query = params.toString();
-            return `settings/agents/new/custom${query ? `?${query}` : ''}` as const;
-        },
-    },
-    SETTINGS_AGENTS_ADD_AVATAR: 'settings/agents/new/custom/avatar',
-    SETTINGS_AGENTS_EDIT: {
-        route: 'settings/agents/:accountID/edit',
-        getRoute: (accountID: number) => `settings/agents/${accountID}/edit` as const,
-    },
-    SETTINGS_AGENTS_EDIT_NAME: {
-        route: 'settings/agents/:accountID/edit/name',
-        getRoute: (accountID: number) => `settings/agents/${accountID}/edit/name` as const,
-    },
-    SETTINGS_AGENTS_EDIT_PROMPT: {
-        route: 'settings/agents/:accountID/edit/prompt',
-        getRoute: (accountID: number) => `settings/agents/${accountID}/edit/prompt` as const,
-    },
-    SETTINGS_AGENTS_EDIT_AVATAR: {
-        route: 'settings/agents/:accountID/edit/avatar',
-        getRoute: (accountID: number) => `settings/agents/${accountID}/edit/avatar` as const,
-    },
     AGENT_REPORT: {
         route: 'settings/agents/r/:reportID',
         getRoute: (reportID: string) => `settings/agents/r/${reportID}` as const,
@@ -3464,6 +3474,15 @@ const ROUTES = {
                 Log.warn('Invalid policyID is used to build the WORKSPACE_MEMBERS route');
             }
             return `workspaces/${policyID}/members` as const;
+        },
+    },
+    WORKSPACE_AGENTS: {
+        route: 'workspaces/:policyID/agents',
+        getRoute: (policyID: string | undefined) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the WORKSPACE_AGENTS route');
+            }
+            return `workspaces/${policyID}/agents` as const;
         },
     },
     WORKSPACE_ROOMS: {

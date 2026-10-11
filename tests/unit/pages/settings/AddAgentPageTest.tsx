@@ -4,14 +4,15 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useOnyx from '@hooks/useOnyx';
 
 import {AGENT_AVATARS} from '@libs/Avatars/AgentAvatarCatalog';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 
-import AddAgentPage from '@pages/settings/Agents/AddAgentPage';
+import AddAgentPage from '@pages/settings/Agents/DynamicAddAgentPage';
 
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 
 import type HybridAppModuleType from '@expensify/react-native-hybrid-app/src/types';
@@ -187,10 +188,10 @@ function getRevealAfterTransition(): () => void {
     return afterTransition;
 }
 
-type AddAgentRouteProp = PlatformStackRouteProp<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.AGENTS.ADD>;
+type AddAgentRouteProp = PlatformStackRouteProp<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.AGENTS.DYNAMIC_ADD>;
 
 function makeRoute(params: AddAgentRouteProp['params'] = {}): AddAgentRouteProp {
-    return createMock<AddAgentRouteProp>({name: SCREENS.SETTINGS.AGENTS.ADD, key: '', params});
+    return createMock<AddAgentRouteProp>({name: SCREENS.SETTINGS.AGENTS.DYNAMIC_ADD, key: '', params});
 }
 
 function renderAddAgentPage(routeParams: AddAgentRouteProp['params'] = {}) {
@@ -271,7 +272,7 @@ describe('AddAgentPage', () => {
         mockAvatarOnPress?.();
 
         expect(mockSetNewAgentAvatarPreset).not.toHaveBeenCalled();
-        expect(mockNavigate).toHaveBeenCalledWith(ROUTES.SETTINGS_AGENTS_ADD_AVATAR);
+        expect(mockNavigate).toHaveBeenCalledWith(createDynamicRoute(DYNAMIC_ROUTES.AGENT_ADD_AVATAR.getRoute()), {skipMatchingFullScreenRoute: true});
     });
 
     it('does not seed a default while the draft is still loading (avoids clobbering a saved avatar on refresh)', () => {

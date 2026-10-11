@@ -11,6 +11,7 @@ import ScrollView from '@components/ScrollView';
 
 import useChatWithAgent from '@hooks/useChatWithAgent';
 import useConfirmModal from '@hooks/useConfirmModal';
+import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -21,6 +22,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import {clearAgentAvatarUpdateError, clearAgentNameUpdateError, clearAgentPromptUpdateError, deleteAgent} from '@libs/actions/Agent';
 import {getRuleBotEnforcedPolicy} from '@libs/AgentRulesUtils';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
@@ -31,21 +33,21 @@ import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
 import {Str} from 'expensify-common';
 import React from 'react';
 import {View} from 'react-native';
 
-type EditAgentPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.AGENTS.EDIT>;
+type DynamicEditAgentPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.AGENTS.DYNAMIC_EDIT>;
 
-function EditAgentPage({route}: EditAgentPageProps) {
+function DynamicEditAgentPage({route}: DynamicEditAgentPageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const icons = useMemoizedLazyExpensifyIcons(['Trashcan', 'ChatBubble', 'MagnifyingGlass', 'Users']);
     const accountID = route.params.accountID;
-    const [agent, agentMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${accountID}`);
+    const [agent, agentMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.AGENT}${accountID}`);
     const [personalDetails, personalDetailsMetadata] = usePersonalDetail(accountID);
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const {showConfirmModal} = useConfirmModal();
@@ -55,12 +57,13 @@ function EditAgentPage({route}: EditAgentPageProps) {
     const isOnyxLoaded = agentMetadata.status === 'loaded' && personalDetailsMetadata.status === 'loaded';
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
     const shouldShowNotFoundPage = isLoadingApp === false && isOnyxLoaded && !agent && !personalDetails;
+    const backPath = useDynamicBackPath(DYNAMIC_ROUTES.AGENT_EDIT.path);
 
     const agentLogin = personalDetails?.login ?? '';
-    const handleBackPress = () => Navigation.goBack();
-    const handleEditAvatarPress = () => Navigation.navigate(ROUTES.SETTINGS_AGENTS_EDIT_AVATAR.getRoute(accountID));
-    const handleEditNamePress = () => Navigation.navigate(ROUTES.SETTINGS_AGENTS_EDIT_NAME.getRoute(accountID));
-    const handleEditPromptPress = () => Navigation.navigate(ROUTES.SETTINGS_AGENTS_EDIT_PROMPT.getRoute(accountID));
+    const handleBackPress = () => Navigation.goBack(backPath);
+    const handleEditAvatarPress = () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.AGENT_EDIT_AVATAR.getRoute()), {skipMatchingFullScreenRoute: true});
+    const handleEditNamePress = () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.AGENT_EDIT_NAME.getRoute()), {skipMatchingFullScreenRoute: true});
+    const handleEditPromptPress = () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.AGENT_EDIT_PROMPT.getRoute()), {skipMatchingFullScreenRoute: true});
     const handleDeletePress = async () => {
         const ruleBotEnforcedPolicy = getRuleBotEnforcedPolicy(accountID, allPolicies);
         if (ruleBotEnforcedPolicy) {
@@ -111,7 +114,7 @@ function EditAgentPage({route}: EditAgentPageProps) {
 
     return (
         <ScreenWrapper
-            testID={EditAgentPage.displayName}
+            testID={DynamicEditAgentPage.displayName}
             includeSafeAreaPaddingBottom
             offlineIndicatorStyle={styles.mtAuto}
         >
@@ -187,6 +190,6 @@ function EditAgentPage({route}: EditAgentPageProps) {
     );
 }
 
-EditAgentPage.displayName = 'EditAgentPage';
+DynamicEditAgentPage.displayName = 'DynamicEditAgentPage';
 
-export default EditAgentPage;
+export default DynamicEditAgentPage;

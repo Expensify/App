@@ -88,9 +88,9 @@ describe('ReplaceOptimisticAgentAccountID middleware', () => {
             data: {
                 firstName: 'Concierge',
                 optimisticAccountID: String(optimisticAccountID),
-                agentPromptKey: `${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${optimisticAccountID}`,
+                agentPromptKey: `${ONYXKEYS.COLLECTION.AGENT}${optimisticAccountID}`,
                 nvpUpdates: {
-                    [`${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${optimisticAccountID}`]: {prompt: 'Book my flights'},
+                    [`${ONYXKEYS.COLLECTION.AGENT}${optimisticAccountID}`]: {prompt: 'Book my flights'},
                 },
             },
             requestIndex,
@@ -102,9 +102,9 @@ describe('ReplaceOptimisticAgentAccountID middleware', () => {
 
         const persistedData = getAll().at(0)?.data;
         expect(persistedData?.optimisticAccountID).toBe(String(realAccountID));
-        expect(persistedData?.agentPromptKey).toBe(`${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${realAccountID}`);
+        expect(persistedData?.agentPromptKey).toBe(`${ONYXKEYS.COLLECTION.AGENT}${realAccountID}`);
         expect(persistedData?.nvpUpdates).toStrictEqual({
-            [`${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${realAccountID}`]: {prompt: 'Book my flights'},
+            [`${ONYXKEYS.COLLECTION.AGENT}${realAccountID}`]: {prompt: 'Book my flights'},
         });
         expect(persistedData?.firstName).toBe('Concierge');
     });
@@ -115,11 +115,11 @@ describe('ReplaceOptimisticAgentAccountID middleware', () => {
             command: 'UpdateAgentPrompt',
             data: {agentAccountID: optimisticAccountID, prompt: 'Book my flights', apiRequestType: 'write'},
             successData: [
-                {onyxMethod: 'merge', key: `${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${optimisticAccountID}`, value: {pendingAction: null, promptErrors: null}},
-                {onyxMethod: 'merge', key: `${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${otherAgentAccountID}`, value: {pendingAction: null}},
+                {onyxMethod: 'merge', key: `${ONYXKEYS.COLLECTION.AGENT}${optimisticAccountID}`, value: {pendingAction: null, promptErrors: null}},
+                {onyxMethod: 'merge', key: `${ONYXKEYS.COLLECTION.AGENT}${otherAgentAccountID}`, value: {pendingAction: null}},
             ],
             failureData: [
-                {onyxMethod: 'merge', key: `${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${optimisticAccountID}`, value: {prompt: 'Old prompt', pendingAction: null}},
+                {onyxMethod: 'merge', key: `${ONYXKEYS.COLLECTION.AGENT}${optimisticAccountID}`, value: {prompt: 'Old prompt', pendingAction: null}},
                 {onyxMethod: 'merge', key: ONYXKEYS.PERSONAL_DETAILS_LIST, value: {[optimisticAccountID]: {displayName: 'Concierge'}}},
             ],
             requestIndex,
@@ -132,11 +132,11 @@ describe('ReplaceOptimisticAgentAccountID middleware', () => {
         const persistedRequest = getAll().at(0);
         expect(persistedRequest?.data?.agentAccountID).toBe(realAccountID);
         expect(persistedRequest?.successData).toStrictEqual([
-            {onyxMethod: 'merge', key: `${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${realAccountID}`, value: {pendingAction: null, promptErrors: null}},
-            {onyxMethod: 'merge', key: `${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${otherAgentAccountID}`, value: {pendingAction: null}},
+            {onyxMethod: 'merge', key: `${ONYXKEYS.COLLECTION.AGENT}${realAccountID}`, value: {pendingAction: null, promptErrors: null}},
+            {onyxMethod: 'merge', key: `${ONYXKEYS.COLLECTION.AGENT}${otherAgentAccountID}`, value: {pendingAction: null}},
         ]);
         expect(persistedRequest?.failureData).toStrictEqual([
-            {onyxMethod: 'merge', key: `${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${realAccountID}`, value: {prompt: 'Old prompt', pendingAction: null}},
+            {onyxMethod: 'merge', key: `${ONYXKEYS.COLLECTION.AGENT}${realAccountID}`, value: {prompt: 'Old prompt', pendingAction: null}},
             {onyxMethod: 'merge', key: ONYXKEYS.PERSONAL_DETAILS_LIST, value: {[realAccountID]: {displayName: 'Concierge'}}},
         ]);
     });
@@ -247,10 +247,10 @@ describe('ReplaceOptimisticAgentAccountID middleware', () => {
                     page: 1,
                     offset: 0,
                     prompt: '',
-                    agentPromptKey: `${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${digitHeavyAccountID}`,
+                    agentPromptKey: `${ONYXKEYS.COLLECTION.AGENT}${digitHeavyAccountID}`,
                     apiRequestType: 'write',
                 },
-                successData: [{onyxMethod: 'merge', key: `${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${digitHeavyAccountID}`, value: {pendingAction: null, prompt: ''}}],
+                successData: [{onyxMethod: 'merge', key: `${ONYXKEYS.COLLECTION.AGENT}${digitHeavyAccountID}`, value: {pendingAction: null, prompt: ''}}],
                 requestIndex,
             };
         }

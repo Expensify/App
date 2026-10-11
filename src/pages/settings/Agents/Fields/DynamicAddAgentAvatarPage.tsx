@@ -1,5 +1,6 @@
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 
+import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useOnyx from '@hooks/useOnyx';
 
 import Log from '@libs/Log';
@@ -8,19 +9,19 @@ import Navigation from '@libs/Navigation/Navigation';
 import {setNewAgentAvatarPreset, setNewAgentUploadedAvatar} from '@userActions/Agent';
 
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import {useNavigation} from '@react-navigation/native';
 import React from 'react';
 
-import type {OnSaveParams} from './EditAgentAvatarPage';
+import type {OnSaveParams} from './DynamicEditAgentAvatarPage';
 
-import {EditAgentAvatarContent} from './EditAgentAvatarPage';
+import {EditAgentAvatarContent} from './DynamicEditAgentAvatarPage';
 
-function AddAgentAvatarPage() {
+function DynamicAddAgentAvatarPage() {
     const navigation = useNavigation();
-    const returnRoute = ROUTES.SETTINGS_AGENTS_ADD.getRoute();
+    const returnRoute = useDynamicBackPath(DYNAMIC_ROUTES.AGENT_ADD_AVATAR.path);
     const [avatarDraft, avatarDraftMetadata] = useOnyx(ONYXKEYS.AGENT_NEW_AVATAR_DRAFT);
     const initialPresetID = avatarDraft?.customExpensifyAvatarID;
 
@@ -55,4 +56,4 @@ function AddAgentAvatarPage() {
     );
 }
 
-export default AddAgentAvatarPage;
+export default DynamicAddAgentAvatarPage;

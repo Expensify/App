@@ -11,6 +11,7 @@ import Text from '@components/Text';
 
 import useAvatarCrop from '@hooks/useAvatarCrop';
 import useDiscardChangesConfirmation from '@hooks/useDiscardChangesConfirmation';
+import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import {usePersonalDetail} from '@hooks/usePersonalDetails';
@@ -30,7 +31,7 @@ import {updateAgentAvatar} from '@userActions/Agent';
 
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
-import ROUTES from '@src/ROUTES';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {FileObject} from '@src/types/utils/Attachment';
@@ -38,7 +39,7 @@ import type {FileObject} from '@src/types/utils/Attachment';
 import React, {useMemo, useState} from 'react';
 import {View} from 'react-native';
 
-type EditAgentAvatarPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.AGENTS.EDIT_AVATAR>;
+type DynamicEditAgentAvatarPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.AGENTS.DYNAMIC_EDIT_AVATAR>;
 
 type ImageData = {
     uri: string;
@@ -231,18 +232,19 @@ function EditAgentAvatarContent({accountID, fallbackRoute, onSave, initialPreset
 
 EditAgentAvatarContent.displayName = 'EditAgentAvatarContent';
 
-function EditAgentAvatarPage({route}: EditAgentAvatarPageProps) {
+function DynamicEditAgentAvatarPage({route}: DynamicEditAgentAvatarPageProps) {
     const {accountID} = route.params;
+    const backPath = useDynamicBackPath(DYNAMIC_ROUTES.AGENT_EDIT_AVATAR.path);
     return (
         <EditAgentAvatarContent
             accountID={accountID}
-            fallbackRoute={ROUTES.SETTINGS_AGENTS_EDIT.getRoute(accountID)}
+            fallbackRoute={backPath}
         />
     );
 }
 
-EditAgentAvatarPage.displayName = 'EditAgentAvatarPage';
+DynamicEditAgentAvatarPage.displayName = 'DynamicEditAgentAvatarPage';
 
 export type {OnSaveParams};
 export {EditAgentAvatarContent};
-export default EditAgentAvatarPage;
+export default DynamicEditAgentAvatarPage;
