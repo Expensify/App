@@ -2,6 +2,7 @@ import CONST from '@src/CONST';
 import type {Policy} from '@src/types/onyx';
 
 import type {OnyxEntry} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
 
 import useAgents from './useAgents';
 import useNetwork from './useNetwork';
@@ -13,17 +14,17 @@ function useWorkspaceAgents(policy: OnyxEntry<Policy>) {
     const policyID = policy?.id;
     const workspaceAccountID = useWorkspaceAccountID(policyID);
     const workspaceMembers = useWorkspaceMembers(policy);
-    const workspaceMemberAccountIDs = new Set(workspaceMembers.map(({accountID}) => accountID));
 
     const agentsData = useAgents();
-    agentsData.agents = agentsData.agents.filter((agent) => {
-        if (agent.ownerAccountID === workspaceAccountID) {
-            return true;
+    agentsData.agents = agentsData.agents.flatMap((agent) => {
+        const agentMembership = workspaceMembers.find((member) => member.accountID === agent.accountID);
+        const isAgentOwnedByWorkspace = agent.ownerAccountID === workspaceAccountID;
+        const isAgentMemberOfWorkspace = !!agentMembership;
+        if (!isAgentOwnedByWorkspace && !isAgentMemberOfWorkspace) {
+            return [];
         }
-        if (workspaceMemberAccountIDs.has(agent.accountID)) {
-            return true;
-        }
-        return false;
+        agent.role = agentMembership?.policyEmployee.role as ValueOf<typeof CONST.POLICY.ROLE>;
+        return [agent];
     });
 
     // The useAgents hook only includes agents that the user can manage
@@ -37,7 +38,8 @@ function useWorkspaceAgents(policy: OnyxEntry<Policy>) {
         if (manageableAgentAccountIDs.has(accountID)) {
             continue;
         }
-        const isPendingDeletion = policyEmployee.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
+        const pendingAction = policyEmployee.pendingAction;
+        const isPendingDeletion = pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
         if (!isOffline && isPendingDeletion) {
             continue;
         }
@@ -46,6 +48,8 @@ function useWorkspaceAgents(policy: OnyxEntry<Policy>) {
             accountID,
             displayName: details.displayName ?? details.login ?? '',
             login: details.login ?? '',
+            role: policyEmployee.role as ValueOf<typeof CONST.POLICY.ROLE>,
+            pendingAction,
             disabled: isPendingDeletion,
             isSelectionDisabled: true,
             action: () => null,

@@ -14,11 +14,16 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
+import type {Policy} from '@src/types/onyx';
+
+import type {OnyxEntry} from 'react-native-onyx';
 
 import React from 'react';
 import {View} from 'react-native';
 
 import type {AgentRowData} from '.';
+
+import WorkspaceMemberRoleCell from '../WorkspaceMembersTable/WorkspaceMemberRoleCell';
 
 type AgentsTableRowProps = {
     /** Data about the agent (wrapped by the table, so it also carries row state such as `selected`) */
@@ -26,9 +31,15 @@ type AgentsTableRowProps = {
 
     rowIndex: number;
     shouldUseNarrowTableLayout: boolean;
+
+    /** Whether to show the role column */
+    shouldShowRoleColumn?: boolean;
+
+    /** The policy to resolve the agent role against. Needed when shouldShowRoleColumn=true  */
+    policy?: OnyxEntry<Policy>;
 };
 
-export default function AgentsTableRow({item, rowIndex, shouldUseNarrowTableLayout}: AgentsTableRowProps) {
+export default function AgentsTableRow({item, rowIndex, shouldUseNarrowTableLayout, shouldShowRoleColumn, policy}: AgentsTableRowProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -82,6 +93,19 @@ export default function AgentsTableRow({item, rowIndex, shouldUseNarrowTableLayo
                             />
                         </View>
                     </View>
+
+                    {!shouldUseNarrowTableLayout && shouldShowRoleColumn && (
+                        <View
+                            style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.editableCellColumn]}
+                            {...getCellAccessibilityProps(isTableSemanticsEnabled)}
+                        >
+                            <WorkspaceMemberRoleCell
+                                role={item.role}
+                                policy={policy}
+                                memberLogin={item.login}
+                            />
+                        </View>
+                    )}
 
                     <View
                         style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentEnd, styles.gap2]}

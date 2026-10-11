@@ -115,7 +115,7 @@ function WorkspaceAgentsPage({route}: WorkspaceAgentsPageProps) {
     return (
         <AccessOrNotFoundWrapper
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.PAID]}
-            policyID={route.params.policyID}
+            policyID={policyID}
             policyFeature={CONST.POLICY.POLICY_FEATURE.AGENTS}
             shouldBeBlocked={!isCompanyAgentsBetaEnabled}
         >
@@ -136,6 +136,8 @@ function WorkspaceAgentsPage({route}: WorkspaceAgentsPageProps) {
                     canSelectAgents
                     selectedKeys={selectedAgentKeys}
                     onRowSelectionChange={setSelectedAgents}
+                    policy={policy}
+                    shouldShowRoleColumn
                 />
             </WorkspacePageWithSections>
         </AccessOrNotFoundWrapper>
