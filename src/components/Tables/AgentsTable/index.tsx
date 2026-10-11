@@ -83,6 +83,7 @@ export default function AgentsTable({ref, agents, headerComponent, canSelectAgen
                       key: 'role' as const,
                       label: translate('common.role'),
                       sortable: true,
+                      width: variables.workspaceMembersRoleColumnWidth,
                   },
               ]
             : []),
