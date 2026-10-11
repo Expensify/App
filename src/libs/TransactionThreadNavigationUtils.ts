@@ -3,7 +3,7 @@ import type {IntroSelected, PersonalDetailsList, Report, ReportAction, Transacti
 import type {OnyxEntry} from 'react-native-onyx';
 
 import {createTransactionThreadReport, setOptimisticTransactionThread} from './actions/Report';
-import {getAllReportActions, getExpenseCreationIOUActionForTransactionID} from './ReportActionsUtils';
+import {getAllReportActions, getExpenseCreationIOUActionForTransactionID, isSentMoneyReportAction} from './ReportActionsUtils';
 import {findSelfDMReportID, getReportOrDraftReport} from './ReportUtils';
 import {isExpenseUnreported} from './TransactionUtils';
 
@@ -60,6 +60,13 @@ function getExpenseCreationIOUActionForReportID(reportID: string | undefined, tr
 function getReportIDToOpenForExpense(expense: TransactionThreadNavigationDescriptor, context: ResolveReportContext): string {
     const {transaction, reportID} = expense;
     const isUnreported = isExpenseUnreported(transaction);
+
+    // A sent-money (pay) action's childReportID is the "marked as paid" system message thread, not the expense.
+    // Opening the paid expense should land on its report, so send these to the parent report rather than the
+    // pay action's thread. Mirrors how the Search page navigates single-transaction reports to the report itself.
+    if (isSentMoneyReportAction(expense.reportAction)) {
+        return reportID;
+    }
 
     // Prefer the transaction thread resolved from the Search snapshot. The main reportActions_ collection
     // may be empty (e.g. right after clearing Onyx) so the local lookup can fail and incorrectly

@@ -2,7 +2,7 @@ import calculateMaxSidePanelRHPShrink from '@libs/Navigation/helpers/calculateMa
 import calculateSuperWideRHPWidth from '@libs/Navigation/helpers/calculateSuperWideRHPWidth';
 import calculateWideRHPWidth from '@libs/Navigation/helpers/calculateWideRHPWidth';
 
-// jest-expo resolves bare specifiers to index.native.ts (defaultPlatform 'ios'), so the web index.ts is loaded explicitly, same pattern as dismissOnboardingModalBeforeExitTest.
+// jest-expo resolves bare specifiers to index.native.ts (defaultPlatform 'ios'), so the web index.ts is loaded explicitly, same pattern as resetOnboardingStackToRootTest.
 // requireActual hands back an untyped module, which is what each no-unsafe-return below is silencing.
 jest.mock('@libs/Navigation/helpers/calculateSuperWideRHPWidth', () =>
     // eslint-disable-next-line @typescript-eslint/no-unsafe-return
