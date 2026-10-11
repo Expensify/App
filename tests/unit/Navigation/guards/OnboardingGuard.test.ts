@@ -87,6 +87,25 @@ describe('OnboardingGuard', () => {
             // Then navigation should be allowed because null onboarding data is treated as "completed" to avoid forcing legacy users through onboarding
             expect(result.type).toBe('ALLOW');
         });
+
+        it('should allow resetting into onboarding before onboarding data loads', () => {
+            const resetToOnboardingAction: NavigationAction = {
+                type: CONST.NAVIGATION_ACTIONS.RESET,
+                payload: {
+                    key: 'root',
+                    index: 1,
+                    routeNames: [SCREENS.HOME, NAVIGATORS.ONBOARDING_MODAL_NAVIGATOR],
+                    routes: [
+                        {key: 'home', name: SCREENS.HOME},
+                        {key: 'onboarding', name: NAVIGATORS.ONBOARDING_MODAL_NAVIGATOR},
+                    ],
+                    stale: false,
+                    type: 'root',
+                },
+            };
+
+            expect(OnboardingGuard.evaluate(mockState, resetToOnboardingAction, authenticatedContext).type).toBe('ALLOW');
+        });
     });
 
     describe('early exit conditions', () => {

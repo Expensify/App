@@ -246,7 +246,7 @@ const OnboardingGuard: NavigationGuard = {
 
         // Redirect completed users who try to navigate to onboarding routes (e.g. via deep link), since onboarding
         // is not something they should be able to re-enter once it is done.
-        if (isOnboardingCompleted && isNavigatingToOnboardingFlow(action) && !isNavigatingToJoinWorkspaceTaskRoute) {
+        if (onboarding && isOnboardingCompleted && isNavigatingToOnboardingFlow(action) && !isNavigatingToJoinWorkspaceTaskRoute) {
             Log.info('[OnboardingGuard] Redirecting user away from onboarding route to home');
             return {type: 'REDIRECT', route: ROUTES.HOME};
         }
