@@ -1,4 +1,4 @@
-import type {BankAccount, PersonalDetailsList} from '@src/types/onyx';
+import type {BankAccount} from '@src/types/onyx';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
@@ -29,14 +29,14 @@ type GetBankAccountLastFourDigitsParams = {
      */
     payerAccountID?: number;
 
-    /** The caller’s subscribed personal details, used to identify the designated payer. */
-    personalDetails?: OnyxEntry<PersonalDetailsList>;
+    /** The designated payer’s account ID selected from the caller’s subscribed personal details. */
+    reimburserAccountID?: number;
 };
 
 /**
  * Get the last 4 digits of a bank account used for payment.
  */
-function getBankAccountLastFourDigits({bankAccountID, bankAccountList, policy, accountNumber, payerAccountID, personalDetails}: GetBankAccountLastFourDigitsParams): string {
+function getBankAccountLastFourDigits({bankAccountID, bankAccountList, policy, accountNumber, payerAccountID, reimburserAccountID}: GetBankAccountLastFourDigitsParams): string {
     if (accountNumber) {
         return accountNumber.slice(-4);
     }
@@ -54,7 +54,7 @@ function getBankAccountLastFourDigits({bankAccountID, bankAccountList, policy, a
 
     // The action doesn't say which account was used, so only fall back to the workspace account when the designated
     // payer made the payment.
-    if (!wasPaidWithPolicyBankAccount(policy, payerAccountID, personalDetails)) {
+    if (!wasPaidWithPolicyBankAccount(policy, payerAccountID, reimburserAccountID)) {
         return '';
     }
 

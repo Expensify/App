@@ -31,19 +31,41 @@ function canAccessPolicyBankAccount(policy: OnyxEntry<PolicyPaymentAttribution>,
     return !!getAccessiblePolicyBankAccount(policy, bankAccountList);
 }
 
+// Share the login index across rows using the same immutable Onyx snapshot, so each row avoids scanning the list.
+const accountIDsByLoginCache = new WeakMap<PersonalDetailsList, Map<string, number>>();
+
+function getPolicyReimburserAccountID(policy: OnyxEntry<PolicyPaymentAttribution>, personalDetails: OnyxEntry<PersonalDetailsList>): number | undefined {
+    const reimburserEmail = policy?.reimburser ?? policy?.achAccount?.reimburser;
+    if (!reimburserEmail || !personalDetails) {
+        return undefined;
+    }
+
+    let accountIDsByLogin = accountIDsByLoginCache.get(personalDetails);
+    if (!accountIDsByLogin) {
+        accountIDsByLogin = new Map();
+        for (const details of Object.values(personalDetails)) {
+            if (!details?.login) {
+                continue;
+            }
+            accountIDsByLogin.set(details.login, details.accountID);
+        }
+        accountIDsByLoginCache.set(personalDetails, accountIDsByLogin);
+    }
+
+    return accountIDsByLogin.get(reimburserEmail);
+}
+
 /**
  * Whether a payment made by `payerAccountID` can be assumed to have been funded by the workspace's connected bank
  * account.
  */
-function wasPaidWithPolicyBankAccount(policy: OnyxEntry<PolicyPaymentAttribution>, payerAccountID: number | undefined, personalDetails: OnyxEntry<PersonalDetailsList>): boolean {
+function wasPaidWithPolicyBankAccount(policy: OnyxEntry<PolicyPaymentAttribution>, payerAccountID: number | undefined, reimburserAccountID: number | undefined): boolean {
     const reimburserEmail = policy?.reimburser ?? policy?.achAccount?.reimburser;
 
     // Without a designated payer, any admin pays from the workspace account, so it is the right guess.
     if (!reimburserEmail) {
         return true;
     }
-
-    const reimburserAccountID = Object.values(personalDetails ?? {}).find((details) => details?.login === reimburserEmail)?.accountID;
 
     // The viewer may not have the payer's personal details loaded. We can't rule the payer out, so keep the workspace
     // account instead of hiding it for everyone who hasn't interacted with the payer.
@@ -54,6 +76,6 @@ function wasPaidWithPolicyBankAccount(policy: OnyxEntry<PolicyPaymentAttribution
     return !!payerAccountID && reimburserAccountID === payerAccountID;
 }
 
-export {canAccessPolicyBankAccount, getAccessiblePolicyBankAccount, wasPaidWithPolicyBankAccount};
+export {getPolicyReimburserAccountID, canAccessPolicyBankAccount, getAccessiblePolicyBankAccount, wasPaidWithPolicyBankAccount};
 
 export type {PolicyPaymentAttribution};

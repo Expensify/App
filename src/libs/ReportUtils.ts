@@ -139,6 +139,7 @@ import Parser from './Parser';
 import {getParsedMessageWithShortMentions} from './ParsingUtils';
 import {getAllPersonalDetailLogins, getAllPersonalDetails, getPersonalDetail} from './PersonalDetailsStore';
 import {buildPersonalDetailsUpdate, getAccountIDsByLogins, getLoginByAccountID, getPersonalDetailByEmail, temporaryGetDisplayNameOrDefault} from './PersonalDetailsUtils';
+import {getPolicyReimburserAccountID} from './PolicyPaymentUtils';
 import {
     arePaymentsEnabled,
     canMemberWrite as canMemberWritePolicyUtils,
@@ -6645,7 +6646,7 @@ function getReportPreviewMessage(
                 policy: policy ?? undefined,
                 accountNumber: originalMessage?.accountNumber,
                 payerAccountID,
-                personalDetails,
+                reimburserAccountID: getPolicyReimburserAccountID(policy ?? undefined, personalDetails),
             });
             const crossBorderMessage = originalMessage ? getCrossBorderReimbursedMessage(translate, originalMessage, convertToDisplayString, last4Digits) : undefined;
             if (crossBorderMessage) {
@@ -6895,7 +6896,7 @@ function getReportPreviewReportActionMessage(
                 policy: reportPolicy,
                 accountNumber: originalMessage?.accountNumber,
                 payerAccountID,
-                personalDetails,
+                reimburserAccountID: getPolicyReimburserAccountID(reportPolicy, personalDetails),
             });
 
             // This variant returns raw English to match the surrounding non-localized preview strings.
@@ -12134,7 +12135,7 @@ function getIOUReportActionDisplayMessage(
     policy: OnyxEntry<PolicyPaymentAttribution>,
     transaction?: OnyxEntry<Transaction>,
     bankAccountList?: OnyxEntry<BankAccountList>,
-    personalDetails?: OnyxEntry<PersonalDetailsList>,
+    reimburserAccountID?: number,
 ): string {
     if (!isMoneyRequestAction(reportAction)) {
         return '';
@@ -12153,7 +12154,7 @@ function getIOUReportActionDisplayMessage(
             policy,
             accountNumber: originalMessage?.accountNumber,
             payerAccountID: reportAction?.actorAccountID,
-            personalDetails,
+            reimburserAccountID,
         });
         const crossBorderMessage = getCrossBorderReimbursedMessage(translate, originalMessage, convertToDisplayString, last4Digits);
 

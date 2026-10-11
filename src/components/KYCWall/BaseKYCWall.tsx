@@ -257,15 +257,19 @@ function KYCWall({
                         return;
                     }
 
+                    const currency = expenseReportPolicy.outputCurrency ?? iouReport?.currency ?? CONST.CURRENCY.USD;
                     const partialBusinessBankAccount = Object.values(bankAccountList).find(
-                        (bankAccount) => bankAccount.accountData?.type === CONST.BANK_ACCOUNT.TYPE.BUSINESS && isBankAccountPartiallySetup(bankAccount.accountData?.state),
+                        (bankAccount) =>
+                            bankAccount.accountData?.type === CONST.BANK_ACCOUNT.TYPE.BUSINESS &&
+                            isBankAccountPartiallySetup(bankAccount.accountData?.state) &&
+                            !bankAccount.accountData?.policyIDs?.length &&
+                            bankAccount.bankCurrency === currency,
                     );
                     if (partialBusinessBankAccount?.accountData?.bankAccountID) {
                         navigateToBankAccountRoute({bankAccountID: partialBusinessBankAccount.accountData.bankAccountID, backTo: Navigation.getActiveRoute()});
                         return;
                     }
 
-                    const currency = expenseReportPolicy.outputCurrency ?? iouReport?.currency ?? CONST.CURRENCY.USD;
                     prepareStandaloneBankAccountSetup(currency);
                     navigateToBankAccountRoute({backTo: Navigation.getActiveRoute()});
                     return;

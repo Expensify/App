@@ -1,4 +1,4 @@
-import {canAccessPolicyBankAccount, getAccessiblePolicyBankAccount, wasPaidWithPolicyBankAccount} from '@libs/PolicyPaymentUtils';
+import {getPolicyReimburserAccountID, canAccessPolicyBankAccount, getAccessiblePolicyBankAccount, wasPaidWithPolicyBankAccount} from '@libs/PolicyPaymentUtils';
 
 import CONST from '@src/CONST';
 import type {Policy} from '@src/types/onyx';
@@ -147,14 +147,14 @@ describe('wasPaidWithPolicyBankAccount', () => {
         // Given a workspace with a designated payer.
         // When the payment is attributed to that payer.
         // Then the workspace account remains a valid fallback.
-        expect(wasPaidWithPolicyBankAccount(policyWithDesignatedPayer, PAYER_ACCOUNT_ID, personalDetails)).toBe(true);
+        expect(wasPaidWithPolicyBankAccount(policyWithDesignatedPayer, PAYER_ACCOUNT_ID, getPolicyReimburserAccountID(policyWithDesignatedPayer, personalDetails))).toBe(true);
     });
 
     it('returns false when an admin who is not the designated payer made the payment', () => {
         // Given an admin payment made by someone other than the designated payer.
         // When the funding account is inferred without an account ID on the action.
         // Then the workspace account is rejected to avoid attributing another admin’s payment to it.
-        expect(wasPaidWithPolicyBankAccount(policyWithDesignatedPayer, NON_PAYER_ADMIN_ACCOUNT_ID, personalDetails)).toBe(false);
+        expect(wasPaidWithPolicyBankAccount(policyWithDesignatedPayer, NON_PAYER_ADMIN_ACCOUNT_ID, getPolicyReimburserAccountID(policyWithDesignatedPayer, personalDetails))).toBe(false);
     });
 
     it('falls back to the reimburser stored on the bank account when the workspace has no reimburser', () => {
@@ -174,15 +174,21 @@ describe('wasPaidWithPolicyBankAccount', () => {
             },
         };
 
-        expect(wasPaidWithPolicyBankAccount(policy, PAYER_ACCOUNT_ID, personalDetails)).toBe(true);
-        expect(wasPaidWithPolicyBankAccount(policy, NON_PAYER_ADMIN_ACCOUNT_ID, personalDetails)).toBe(false);
+        expect(wasPaidWithPolicyBankAccount(policy, PAYER_ACCOUNT_ID, getPolicyReimburserAccountID(policy, personalDetails))).toBe(true);
+        expect(wasPaidWithPolicyBankAccount(policy, NON_PAYER_ADMIN_ACCOUNT_ID, getPolicyReimburserAccountID(policy, personalDetails))).toBe(false);
     });
 
     it('returns true for any payer when the workspace has no designated payer', () => {
         // Given a workspace without a designated payer.
         // When another admin’s payment is attributed.
         // Then the workspace account remains the default fallback.
-        expect(wasPaidWithPolicyBankAccount({...policyWithDesignatedPayer, reimburser: undefined}, NON_PAYER_ADMIN_ACCOUNT_ID, personalDetails)).toBe(true);
+        expect(
+            wasPaidWithPolicyBankAccount(
+                {...policyWithDesignatedPayer, reimburser: undefined},
+                NON_PAYER_ADMIN_ACCOUNT_ID,
+                getPolicyReimburserAccountID(policyWithDesignatedPayer, personalDetails),
+            ),
+        ).toBe(true);
     });
     it('updates attribution when the caller supplies newly loaded payer details', () => {
         // Given the payer’s details have not loaded and a different admin made the payment.
@@ -190,9 +196,52 @@ describe('wasPaidWithPolicyBankAccount', () => {
         expect(wasPaidWithPolicyBankAccount(policy, NON_PAYER_ADMIN_ACCOUNT_ID, undefined)).toBe(true);
 
         // When the subscribed details arrive, the same payment can be compared with the designated payer.
-        const result = wasPaidWithPolicyBankAccount(policy, NON_PAYER_ADMIN_ACCOUNT_ID, personalDetails);
+        const result = wasPaidWithPolicyBankAccount(policy, NON_PAYER_ADMIN_ACCOUNT_ID, getPolicyReimburserAccountID(policy, personalDetails));
 
         // Then the workspace account is no longer used as a fallback for this admin’s payment.
         expect(result).toBe(false);
+    });
+});
+
+describe('getPolicyReimburserAccountID', () => {
+    const PAYER_ACCOUNT_ID = 101;
+    const ADMIN_ACCOUNT_ID = 102;
+
+    it('keeps the selected payer unchanged when unrelated personal details change', () => {
+        // Given payment rows only need the designated payer’s account ID.
+        const policy = {reimburser: 'payer@test.com'};
+        const personalDetails = {
+            [PAYER_ACCOUNT_ID]: {accountID: 101, login: 'payer@test.com'},
+            [ADMIN_ACCOUNT_ID]: {accountID: 102, login: 'admin@test.com'},
+        };
+        const before = getPolicyReimburserAccountID(policy, personalDetails);
+
+        // When another person’s display name changes in the subscribed snapshot.
+        const after = getPolicyReimburserAccountID(policy, {
+            ...personalDetails,
+            [ADMIN_ACCOUNT_ID]: {...personalDetails[ADMIN_ACCOUNT_ID], displayName: 'Updated admin'},
+        });
+
+        // Then the selector result stays equal, so payment rows do not re-render for this update.
+        expect(before).toBe(101);
+        expect(after).toBe(before);
+    });
+
+    it('resolves the payer when their details arrive in a new snapshot', () => {
+        // Given the viewer has not loaded the designated payer’s details.
+        const policy = {reimburser: 'payer@test.com'};
+        const personalDetails = {
+            [ADMIN_ACCOUNT_ID]: {accountID: 102, login: 'admin@test.com'},
+        };
+        expect(getPolicyReimburserAccountID(policy, personalDetails)).toBeUndefined();
+
+        // When Onyx provides a new snapshot containing the payer.
+        const result = getPolicyReimburserAccountID(policy, {
+            ...personalDetails,
+            [PAYER_ACCOUNT_ID]: {accountID: 101, login: 'payer@test.com'},
+        });
+
+        // Then the selected ID changes so payment attribution updates.
+        expect(result).toBe(101);
     });
 });

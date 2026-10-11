@@ -155,6 +155,7 @@ describe('getSecondaryAction', () => {
         ];
         expect(
             getSecondaryReportActions({
+                personalDetails: undefined,
                 currentUserLogin: EMPLOYEE_EMAIL,
                 currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
                 submitterLogin: '',
@@ -180,6 +181,7 @@ describe('getSecondaryAction', () => {
         const transactionWithoutReceipt = createMock<Transaction>({});
 
         const result = getSecondaryReportActions({
+            personalDetails: undefined,
             currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
             submitterLogin: '',
@@ -202,6 +204,7 @@ describe('getSecondaryAction', () => {
         const policy = createMock<Policy>({});
 
         const result = getSecondaryReportActions({
+            personalDetails: undefined,
             currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
             submitterLogin: '',
@@ -224,6 +227,7 @@ describe('getSecondaryAction', () => {
         const policy = createMock<Policy>({});
 
         const result = getSecondaryReportActions({
+            personalDetails: undefined,
             currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
             submitterLogin: '',
@@ -275,6 +279,7 @@ describe('getSecondaryAction', () => {
         });
 
         const result = getSecondaryReportActions({
+            personalDetails: undefined,
             currentUserLogin: ADMIN_EMAIL,
             currentUserAccountID: ADMIN_ACCOUNT_ID,
             submitterLogin: EMPLOYEE_EMAIL,
@@ -333,6 +338,7 @@ describe('getSecondaryAction', () => {
         await waitForBatchedUpdates();
 
         const result = getSecondaryReportActions({
+            personalDetails: undefined,
             currentUserLogin: ADMIN_EMAIL,
             currentUserAccountID: ADMIN_ACCOUNT_ID,
             submitterLogin: EMPLOYEE_EMAIL,
@@ -394,6 +400,7 @@ describe('getSecondaryAction', () => {
         await waitForBatchedUpdates();
 
         const result = getSecondaryReportActions({
+            personalDetails: undefined,
             currentUserLogin: paymentsAdminEmail,
             currentUserAccountID: paymentsAdminAccountID,
             submitterLogin: EMPLOYEE_EMAIL,
@@ -448,6 +455,7 @@ describe('getSecondaryAction', () => {
         await waitForBatchedUpdates();
 
         const result = getSecondaryReportActions({
+            personalDetails: undefined,
             currentUserLogin: memberEmail,
             currentUserAccountID: memberAccountID,
             submitterLogin: EMPLOYEE_EMAIL,
@@ -503,6 +511,7 @@ describe('getSecondaryAction', () => {
         await waitForBatchedUpdates();
 
         const result = getSecondaryReportActions({
+            personalDetails: undefined,
             currentUserLogin: managerEmail,
             currentUserAccountID: managerAccountID,
             submitterLogin: EMPLOYEE_EMAIL,
@@ -577,6 +586,7 @@ describe('getSecondaryAction', () => {
             await waitForBatchedUpdates();
 
             return getSecondaryReportActions({
+                personalDetails: undefined,
                 currentUserLogin: ADMIN_EMAIL,
                 currentUserAccountID: ADMIN_ACCOUNT_ID,
                 submitterLogin: EMPLOYEE_EMAIL,
@@ -684,6 +694,7 @@ describe('getSecondaryAction', () => {
         await waitForBatchedUpdates();
 
         const result = getSecondaryReportActions({
+            personalDetails: undefined,
             currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
             submitterLogin: '',
@@ -712,6 +723,7 @@ describe('getSecondaryAction', () => {
         const policy = createMock<Policy>({});
 
         const result = getSecondaryReportActions({
+            personalDetails: undefined,
             currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
             submitterLogin: '',
@@ -746,6 +758,7 @@ describe('getSecondaryAction', () => {
         const policy = createMock<Policy>({});
 
         const result = getSecondaryReportActions({
+            personalDetails: undefined,
             currentUserLogin: APPROVER_EMAIL,
             currentUserAccountID: APPROVER_ACCOUNT_ID,
             submitterLogin: EMPLOYEE_EMAIL,
@@ -774,6 +787,7 @@ describe('getSecondaryAction', () => {
         const policy = createMock<Policy>({});
 
         const result = getSecondaryReportActions({
+            personalDetails: undefined,
             currentUserLogin: APPROVER_EMAIL,
             currentUserAccountID: APPROVER_ACCOUNT_ID,
             submitterLogin: EMPLOYEE_EMAIL,
@@ -802,6 +816,7 @@ describe('getSecondaryAction', () => {
         const policy = createMock<Policy>({});
 
         const result = getSecondaryReportActions({
+            personalDetails: undefined,
             currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
             submitterLogin: '',
@@ -842,6 +857,7 @@ describe('getSecondaryAction', () => {
         });
 
         const result = getSecondaryReportActions({
+            personalDetails: undefined,
             currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
             submitterLogin: '',
@@ -877,6 +893,7 @@ describe('getSecondaryAction', () => {
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
 
         const result = getSecondaryReportActions({
+            personalDetails: undefined,
             currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
             submitterLogin: '',
@@ -913,6 +930,7 @@ describe('getSecondaryAction', () => {
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
 
         const result = getSecondaryReportActions({
+            personalDetails: undefined,
             currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
             submitterLogin: '',
@@ -953,6 +971,7 @@ describe('getSecondaryAction', () => {
         });
 
         const result = getSecondaryReportActions({
+            personalDetails: undefined,
             currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
             submitterLogin: '',
@@ -997,6 +1016,7 @@ describe('getSecondaryAction', () => {
         });
 
         const result = getSecondaryReportActions({
+            personalDetails: undefined,
             currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
             submitterLogin: '',
@@ -1043,6 +1063,7 @@ describe('getSecondaryAction', () => {
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
 
         const result = getSecondaryReportActions({
+            personalDetails: undefined,
             currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
             submitterLogin: SUBMITTER_EMAIL,
@@ -1087,6 +1108,7 @@ describe('getSecondaryAction', () => {
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
 
         const result = getSecondaryReportActions({
+            personalDetails: undefined,
             currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
             submitterLogin: SUBMITTER_EMAIL,
@@ -1141,6 +1163,7 @@ describe('getSecondaryAction', () => {
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
 
         const result = getSecondaryReportActions({
+            personalDetails: undefined,
             currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
             submitterLogin: SUBMITTER_EMAIL,
@@ -1182,6 +1205,7 @@ describe('getSecondaryAction', () => {
         });
 
         const result = getSecondaryReportActions({
+            personalDetails: undefined,
             currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
             submitterLogin: '',
@@ -1220,6 +1244,7 @@ describe('getSecondaryAction', () => {
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
 
         const result = getSecondaryReportActions({
+            personalDetails: undefined,
             currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
             submitterLogin: '',
@@ -1258,6 +1283,7 @@ describe('getSecondaryAction', () => {
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
 
         const result = getSecondaryReportActions({
+            personalDetails: undefined,
             currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
             submitterLogin: '',
@@ -1293,6 +1319,7 @@ describe('getSecondaryAction', () => {
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
 
         const result = getSecondaryReportActions({
+            personalDetails: undefined,
             currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
             submitterLogin: '',
@@ -1335,6 +1362,7 @@ describe('getSecondaryAction', () => {
         });
 
         const result = getSecondaryReportActions({
+            personalDetails: undefined,
             currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
             submitterLogin: '',
@@ -1384,6 +1412,7 @@ describe('getSecondaryAction', () => {
         });
 
         const result = getSecondaryReportActions({
+            personalDetails: undefined,
             currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
             submitterLogin: '',
@@ -1418,6 +1447,7 @@ describe('getSecondaryAction', () => {
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
 
         const result = getSecondaryReportActions({
+            personalDetails: undefined,
             currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
             submitterLogin: '',
@@ -1468,6 +1498,7 @@ describe('getSecondaryAction', () => {
         jest.spyOn(ReportUtils, 'isHoldCreator').mockReturnValue(true);
 
         const result = getSecondaryReportActions({
+            personalDetails: undefined,
             currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
             submitterLogin: '',
@@ -1505,6 +1536,7 @@ describe('getSecondaryAction', () => {
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
 
         const result = getSecondaryReportActions({
+            personalDetails: undefined,
             currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
             submitterLogin: '',
@@ -1547,6 +1579,7 @@ describe('getSecondaryAction', () => {
         });
 
         const result = getSecondaryReportActions({
+            personalDetails: undefined,
             currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
             submitterLogin: '',
@@ -1595,6 +1628,7 @@ describe('getSecondaryAction', () => {
         });
 
         const result = getSecondaryReportActions({
+            personalDetails: undefined,
             currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
             submitterLogin: '',
@@ -1638,6 +1672,7 @@ describe('getSecondaryAction', () => {
         });
 
         const result = getSecondaryReportActions({
+            personalDetails: undefined,
             currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
             submitterLogin: '',
@@ -1680,6 +1715,7 @@ describe('getSecondaryAction', () => {
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
 
         const result = getSecondaryReportActions({
+            personalDetails: undefined,
             currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
             submitterLogin: '',
@@ -1721,6 +1757,7 @@ describe('getSecondaryAction', () => {
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
 
         const result = getSecondaryReportActions({
+            personalDetails: undefined,
             currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
             submitterLogin: '',
@@ -1766,6 +1803,7 @@ describe('getSecondaryAction', () => {
 
         // When getting secondary report actions
         const result = getSecondaryReportActions({
+            personalDetails: undefined,
             currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
             submitterLogin: '',
@@ -1813,6 +1851,7 @@ describe('getSecondaryAction', () => {
 
         // When getting secondary report actions while DEW approval is pending
         const result = getSecondaryReportActions({
+            personalDetails: undefined,
             currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
             submitterLogin: '',
@@ -1860,6 +1899,7 @@ describe('getSecondaryAction', () => {
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
 
         const result = getSecondaryReportActions({
+            personalDetails: undefined,
             currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
             submitterLogin: EMPLOYEE_EMAIL,
@@ -1905,6 +1945,7 @@ describe('getSecondaryAction', () => {
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
 
         const result = getSecondaryReportActions({
+            personalDetails: undefined,
             currentUserLogin: APPROVER_EMAIL,
             currentUserAccountID: APPROVER_ACCOUNT_ID,
             submitterLogin: EMPLOYEE_EMAIL,
@@ -1949,6 +1990,7 @@ describe('getSecondaryAction', () => {
         });
 
         const result = getSecondaryReportActions({
+            personalDetails: undefined,
             currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
             submitterLogin: '',
@@ -1992,6 +2034,7 @@ describe('getSecondaryAction', () => {
         });
 
         const result = getSecondaryReportActions({
+            personalDetails: undefined,
             currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
             submitterLogin: '',
@@ -2032,6 +2075,7 @@ describe('getSecondaryAction', () => {
         });
 
         const result = getSecondaryReportActions({
+            personalDetails: undefined,
             currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
             submitterLogin: '',
@@ -2072,6 +2116,7 @@ describe('getSecondaryAction', () => {
         });
 
         const result = getSecondaryReportActions({
+            personalDetails: undefined,
             currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
             submitterLogin: '',
@@ -2109,6 +2154,7 @@ describe('getSecondaryAction', () => {
         });
 
         const result = getSecondaryReportActions({
+            personalDetails: undefined,
             currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
             submitterLogin: '',
@@ -2137,6 +2183,7 @@ describe('getSecondaryAction', () => {
         const policy = createMock<Policy>({approver: EMPLOYEE_EMAIL});
 
         const result = getSecondaryReportActions({
+            personalDetails: undefined,
             currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
             submitterLogin: '',
@@ -2168,6 +2215,7 @@ describe('getSecondaryAction', () => {
         });
 
         const result = getSecondaryReportActions({
+            personalDetails: undefined,
             currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
             submitterLogin: '',
@@ -2198,6 +2246,7 @@ describe('getSecondaryAction', () => {
         });
 
         const result = getSecondaryReportActions({
+            personalDetails: undefined,
             currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
             submitterLogin: '',
@@ -2228,6 +2277,7 @@ describe('getSecondaryAction', () => {
         });
 
         const result = getSecondaryReportActions({
+            personalDetails: undefined,
             currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
             submitterLogin: '',
@@ -2259,6 +2309,7 @@ describe('getSecondaryAction', () => {
         });
 
         const result = getSecondaryReportActions({
+            personalDetails: undefined,
             currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
             submitterLogin: '',
@@ -2290,6 +2341,7 @@ describe('getSecondaryAction', () => {
         });
 
         const result = getSecondaryReportActions({
+            personalDetails: undefined,
             currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
             submitterLogin: '',
@@ -2322,6 +2374,7 @@ describe('getSecondaryAction', () => {
         });
 
         const result = getSecondaryReportActions({
+            personalDetails: undefined,
             currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
             submitterLogin: '',
@@ -2355,6 +2408,7 @@ describe('getSecondaryAction', () => {
 
         // When getting secondary report actions
         const result = getSecondaryReportActions({
+            personalDetails: undefined,
             currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
             submitterLogin: '',
@@ -2391,6 +2445,7 @@ describe('getSecondaryAction', () => {
 
         // When getting secondary report actions
         const result = getSecondaryReportActions({
+            personalDetails: undefined,
             currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
             submitterLogin: '',
@@ -2425,6 +2480,7 @@ describe('getSecondaryAction', () => {
         });
 
         const result = getSecondaryReportActions({
+            personalDetails: undefined,
             currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
             submitterLogin: '',
@@ -2507,6 +2563,7 @@ describe('getSecondaryAction', () => {
         };
 
         const resultWithoutArchive = getSecondaryReportActions({
+            personalDetails: undefined,
             ...baseArgs,
             policy: createMock<Policy>(policyData),
             rules: undefined,
@@ -2515,6 +2572,7 @@ describe('getSecondaryAction', () => {
         expect(resultWithoutArchive.includes(action)).toBe(true);
 
         const resultWithArchive = getSecondaryReportActions({
+            personalDetails: undefined,
             ...baseArgs,
             policy: createMock<Policy>({...policyData, archivedDate: '2026-08-01 00:00:00'}),
             rules: undefined,
@@ -2549,6 +2607,7 @@ describe('getSecondaryAction', () => {
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
 
         const result = getSecondaryReportActions({
+            personalDetails: undefined,
             currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
             submitterLogin: '',
@@ -2604,6 +2663,7 @@ describe('getSecondaryAction', () => {
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`, {[ACTION_ID]: reportAction});
 
         const result = getSecondaryReportActions({
+            personalDetails: undefined,
             currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
             submitterLogin: '',
@@ -2659,6 +2719,7 @@ describe('getSecondaryAction', () => {
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`, {[ACTION_ID]: reportAction});
 
         const result = getSecondaryReportActions({
+            personalDetails: undefined,
             currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
             submitterLogin: '',
@@ -2713,6 +2774,7 @@ describe('getSecondaryAction', () => {
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`, {[ACTION_ID]: reportAction});
 
         const result = getSecondaryReportActions({
+            personalDetails: undefined,
             currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
             submitterLogin: '',
@@ -2767,6 +2829,7 @@ describe('getSecondaryAction', () => {
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`, {[ACTION_ID]: reportAction});
 
         const result = getSecondaryReportActions({
+            personalDetails: undefined,
             currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
             submitterLogin: '',
@@ -2814,6 +2877,7 @@ describe('getSecondaryAction', () => {
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`, {[ACTION_ID]: reportAction});
 
         const result = getSecondaryReportActions({
+            personalDetails: undefined,
             currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
             submitterLogin: '',
@@ -2864,6 +2928,7 @@ describe('getSecondaryAction', () => {
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`, {[ACTION_ID]: reportAction});
 
         const result = getSecondaryReportActions({
+            personalDetails: undefined,
             currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
             submitterLogin: '',
@@ -2918,6 +2983,7 @@ describe('getSecondaryAction', () => {
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`, {[ACTION_ID]: reportAction});
 
         const result = getSecondaryReportActions({
+            personalDetails: undefined,
             currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
             submitterLogin: '',
@@ -2970,6 +3036,7 @@ describe('getSecondaryAction', () => {
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`, {[ACTION_ID]: reportAction});
 
         const result = getSecondaryReportActions({
+            personalDetails: undefined,
             currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
             submitterLogin: '',
@@ -3014,6 +3081,7 @@ describe('getSecondaryAction', () => {
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`, {[ACTION_ID]: reportAction});
 
         const result = getSecondaryReportActions({
+            personalDetails: undefined,
             currentUserLogin: SENDER_EMAIL,
             currentUserAccountID: SENDER_ACCOUNT_ID,
             submitterLogin: '',
@@ -3054,6 +3122,7 @@ describe('getSecondaryAction', () => {
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`, {[ACTION_ID]: reportAction});
 
         const result = getSecondaryReportActions({
+            personalDetails: undefined,
             currentUserLogin: RECEIVER_EMAIL,
             currentUserAccountID: RECEIVER_ACCOUNT_ID,
             submitterLogin: '',
@@ -3094,6 +3163,7 @@ describe('getSecondaryAction', () => {
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`, {[ACTION_ID]: reportAction});
 
         const result = getSecondaryReportActions({
+            personalDetails: undefined,
             currentUserLogin: SENDER_EMAIL,
             currentUserAccountID: SENDER_ACCOUNT_ID,
             submitterLogin: '',
@@ -3134,6 +3204,7 @@ describe('getSecondaryAction', () => {
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`, {[ACTION_ID]: reportAction});
 
         const result = getSecondaryReportActions({
+            personalDetails: undefined,
             currentUserLogin: SENDER_EMAIL,
             currentUserAccountID: SENDER_ACCOUNT_ID,
             submitterLogin: '',
@@ -3165,6 +3236,7 @@ describe('getSecondaryAction', () => {
         });
 
         const result = getSecondaryReportActions({
+            personalDetails: undefined,
             currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
             submitterLogin: undefined,
@@ -3197,6 +3269,7 @@ describe('getSecondaryAction', () => {
         });
 
         const result = getSecondaryReportActions({
+            personalDetails: undefined,
             currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
             submitterLogin: undefined,
@@ -3229,6 +3302,7 @@ describe('getSecondaryAction', () => {
         });
 
         const result = getSecondaryReportActions({
+            personalDetails: undefined,
             currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
             submitterLogin: undefined,
@@ -3262,6 +3336,7 @@ describe('getSecondaryAction', () => {
         });
 
         const result = getSecondaryReportActions({
+            personalDetails: undefined,
             currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
             submitterLogin: undefined,
@@ -3301,6 +3376,7 @@ describe('getSecondaryAction', () => {
         });
 
         const result = getSecondaryReportActions({
+            personalDetails: undefined,
             currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
             submitterLogin: undefined,
@@ -3338,6 +3414,7 @@ describe('getSecondaryAction', () => {
         });
 
         const result = getSecondaryReportActions({
+            personalDetails: undefined,
             currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
             submitterLogin: undefined,
@@ -3377,6 +3454,7 @@ describe('getSecondaryAction', () => {
         });
 
         const result = getSecondaryReportActions({
+            personalDetails: undefined,
             currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
             submitterLogin: undefined,
@@ -3410,6 +3488,7 @@ describe('getSecondaryAction', () => {
         });
 
         const result = getSecondaryReportActions({
+            personalDetails: undefined,
             currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
             submitterLogin: EMPLOYEE_EMAIL,
@@ -3443,6 +3522,7 @@ describe('getSecondaryAction', () => {
         });
 
         const result = getSecondaryReportActions({
+            personalDetails: undefined,
             currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
             submitterLogin: EMPLOYEE_EMAIL,
@@ -3477,6 +3557,7 @@ describe('getSecondaryAction', () => {
         });
 
         const result = getSecondaryReportActions({
+            personalDetails: undefined,
             currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
             submitterLogin: EMPLOYEE_EMAIL,
@@ -3514,6 +3595,7 @@ describe('getSecondaryAction', () => {
         });
 
         const result = getSecondaryReportActions({
+            personalDetails: undefined,
             currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
             submitterLogin: EMPLOYEE_EMAIL,
@@ -3547,6 +3629,7 @@ describe('getSecondaryAction', () => {
         });
 
         const result = getSecondaryReportActions({
+            personalDetails: undefined,
             currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
             submitterLogin: EMPLOYEE_EMAIL,
@@ -3583,6 +3666,7 @@ describe('getSecondaryAction', () => {
         jest.spyOn(ReportUtils, 'isAwaitingFirstLevelApproval').mockReturnValueOnce(true);
         jest.spyOn(ReportActionsUtils, 'getOneTransactionThreadReportID').mockReturnValueOnce(originalMessageR14932.IOUTransactionID);
         const result = getSecondaryReportActions({
+            personalDetails: undefined,
             currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
             submitterLogin: '',
@@ -3618,6 +3702,7 @@ describe('getSecondaryAction', () => {
         jest.spyOn(ReportUtils, 'canHoldUnholdReportAction').mockReturnValueOnce({canHoldRequest: false, canUnholdRequest: false});
         jest.spyOn(ReportActionsUtils, 'getOneTransactionThreadReportID').mockReturnValueOnce(originalMessageR14932.IOUTransactionID);
         const result = getSecondaryReportActions({
+            personalDetails: undefined,
             currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
             submitterLogin: '',
@@ -3656,6 +3741,7 @@ describe('getSecondaryAction', () => {
         jest.spyOn(ReportUtils, 'isActionCreator').mockReturnValue(true);
         jest.spyOn(ReportActionsUtils, 'getOneTransactionThreadReportID').mockReturnValueOnce(originalMessageR14932.IOUTransactionID);
         const result = getSecondaryReportActions({
+            personalDetails: undefined,
             currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
             submitterLogin: undefined,
@@ -3702,6 +3788,7 @@ describe('getSecondaryAction', () => {
         await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetails);
 
         const result = getSecondaryReportActions({
+            personalDetails: undefined,
             currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
             submitterLogin: '',
@@ -3749,6 +3836,7 @@ describe('getSecondaryAction', () => {
         await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetails);
 
         const result = getSecondaryReportActions({
+            personalDetails: undefined,
             currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
             submitterLogin: EMPLOYEE_EMAIL,
@@ -3811,6 +3899,7 @@ describe('getSecondaryAction', () => {
         await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetails);
 
         const result = getSecondaryReportActions({
+            personalDetails: undefined,
             currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
             submitterLogin: EMPLOYEE_EMAIL,
@@ -3873,6 +3962,7 @@ describe('getSecondaryAction', () => {
         await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetails);
 
         const result = getSecondaryReportActions({
+            personalDetails: undefined,
             currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
             submitterLogin: EMPLOYEE_EMAIL,
@@ -3935,6 +4025,7 @@ describe('getSecondaryAction', () => {
         await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetails);
 
         const result = getSecondaryReportActions({
+            personalDetails: undefined,
             currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
             submitterLogin: EMPLOYEE_EMAIL,
@@ -3964,6 +4055,7 @@ describe('getSecondaryAction', () => {
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
 
         const result = getSecondaryReportActions({
+            personalDetails: undefined,
             currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
             submitterLogin: '',
@@ -4027,6 +4119,7 @@ describe('getSecondaryAction', () => {
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
 
         const result = getSecondaryReportActions({
+            personalDetails: undefined,
             currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
             submitterLogin: undefined,
@@ -4094,6 +4187,7 @@ describe('getSecondaryAction', () => {
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
 
         const result = getSecondaryReportActions({
+            personalDetails: undefined,
             currentUserLogin: ADMIN_EMAIL,
             currentUserAccountID: ADMIN_ACCOUNT_ID,
             submitterLogin: EMPLOYEE_EMAIL,
@@ -4174,6 +4268,7 @@ describe('getSecondaryAction', () => {
         const policy = createMock<Policy>({});
 
         const result = getSecondaryReportActions({
+            personalDetails: undefined,
             currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
             submitterLogin: '',
@@ -4222,6 +4317,7 @@ describe('getSecondaryAction', () => {
         const policy = createMock<Policy>({});
 
         const result = getSecondaryReportActions({
+            personalDetails: undefined,
             currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
             submitterLogin: '',
@@ -4285,6 +4381,7 @@ describe('getSecondaryAction', () => {
         const policy = createMock<Policy>({});
 
         const result = getSecondaryReportActions({
+            personalDetails: undefined,
             currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
             submitterLogin: '',
@@ -4333,6 +4430,7 @@ describe('getSecondaryAction', () => {
         await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, policy);
 
         const result = getSecondaryReportActions({
+            personalDetails: undefined,
             currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
             submitterLogin: '',
@@ -4386,6 +4484,7 @@ describe('getSecondaryAction', () => {
         await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, policy);
 
         const result = getSecondaryReportActions({
+            personalDetails: undefined,
             currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
             submitterLogin: '',
@@ -4430,6 +4529,7 @@ describe('getSecondaryAction', () => {
         await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, policy);
 
         const result = getSecondaryReportActions({
+            personalDetails: undefined,
             currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
             submitterLogin: '',
@@ -4470,6 +4570,7 @@ describe('getSecondaryAction', () => {
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
 
         const result = getSecondaryReportActions({
+            personalDetails: undefined,
             currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
             submitterLogin: '',
@@ -4525,6 +4626,7 @@ describe('getSecondaryAction', () => {
 
         // Then it should return false since the unreported card expense is imported with deleting disabled
         const result = getSecondaryReportActions({
+            personalDetails: undefined,
             currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
             submitterLogin: '',
@@ -4571,6 +4673,7 @@ describe('getSecondaryAction', () => {
         await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, policy);
 
         const result = getSecondaryReportActions({
+            personalDetails: undefined,
             currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
             submitterLogin: '',
@@ -4604,6 +4707,7 @@ describe('getSecondaryAction', () => {
         jest.spyOn(ReportUtils, 'isHoldCreator').mockReturnValue(false);
 
         const result = getSecondaryReportActions({
+            personalDetails: undefined,
             currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
             submitterLogin: '',
@@ -4641,6 +4745,7 @@ describe('getSecondaryAction', () => {
         jest.spyOn(ReportUtils, 'isHoldCreator').mockReturnValue(false);
 
         const result = getSecondaryReportActions({
+            personalDetails: undefined,
             currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
             submitterLogin: '',
@@ -4688,6 +4793,7 @@ describe('getSecondaryAction', () => {
         const policy = createMock<Policy>({});
 
         const result = getSecondaryReportActions({
+            personalDetails: undefined,
             currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
             submitterLogin: '',
@@ -4722,6 +4828,7 @@ describe('getSecondaryAction', () => {
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
 
         const result = getSecondaryReportActions({
+            personalDetails: undefined,
             currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
             submitterLogin: '',
@@ -4784,6 +4891,7 @@ describe('getSecondaryAction', () => {
         const policy = createMock<Policy>({});
 
         const result = getSecondaryReportActions({
+            personalDetails: undefined,
             currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
             submitterLogin: '',
@@ -4828,6 +4936,7 @@ describe('getSecondaryAction', () => {
         await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, policy);
 
         const result = getSecondaryReportActions({
+            personalDetails: undefined,
             currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
             submitterLogin: '',
@@ -4875,6 +4984,7 @@ describe('getSecondaryAction', () => {
         const policy = createMock<Policy>({});
 
         const result = getSecondaryReportActions({
+            personalDetails: undefined,
             currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
             submitterLogin: '',
@@ -4914,6 +5024,7 @@ describe('getSecondaryAction', () => {
         jest.spyOn(ReportUtils, 'canUserPerformWriteAction').mockReturnValue(true);
 
         const result = getSecondaryReportActions({
+            personalDetails: undefined,
             currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
             submitterLogin: '',
@@ -4955,6 +5066,7 @@ describe('getSecondaryAction', () => {
         jest.spyOn(ReportUtils, 'canUserPerformWriteAction').mockReturnValue(true);
 
         const result = getSecondaryReportActions({
+            personalDetails: undefined,
             currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
             submitterLogin: '',
@@ -5384,6 +5496,7 @@ describe('getReportAccountingExportActions', () => {
         jest.spyOn(ReportUtils, 'isHoldCreator').mockReturnValue(false);
 
         const result = getSecondaryReportActions({
+            personalDetails: undefined,
             currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
             submitterLogin: '',
@@ -5641,6 +5754,7 @@ describe('getSecondaryTransactionThreadActions', () => {
         await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetails);
 
         const result = getSecondaryReportActions({
+            personalDetails: undefined,
             currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
             submitterLogin: '',
@@ -6197,6 +6311,7 @@ describe('getSecondaryTransactionThreadActions', () => {
             jest.spyOn(ReportUtils, 'isMoneyRequestReportEligibleForMerge').mockReturnValue(true);
 
             const result = getSecondaryReportActions({
+                personalDetails: undefined,
                 currentUserLogin: EMPLOYEE_EMAIL,
                 currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
                 submitterLogin: '',
@@ -6254,6 +6369,7 @@ describe('getSecondaryTransactionThreadActions', () => {
             jest.spyOn(ReportUtils, 'isMoneyRequestReportEligibleForMerge').mockReturnValue(true);
 
             const result = getSecondaryReportActions({
+                personalDetails: undefined,
                 currentUserLogin: EMPLOYEE_EMAIL,
                 currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
                 submitterLogin: '',

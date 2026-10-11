@@ -761,11 +761,9 @@ describe('ReportUtils', () => {
             const nonPayerAdminAction = {...reportAction, actorAccountID: reimburserAccountID + 1};
 
             // Then the message does not guess the workspace account, since the admin paid from an account of their own
-            expect(
-                getIOUReportActionDisplayMessage(translateLocal, nonPayerAdminAction, convertToDisplayString, policyWithBank, undefined, undefined, {
-                    [reimburserAccountID]: {accountID: reimburserAccountID, login: reimburserEmail},
-                }),
-            ).toBe(translate(CONST.LOCALES.EN, 'iou.businessBankAccount', '', ''));
+            expect(getIOUReportActionDisplayMessage(translateLocal, nonPayerAdminAction, convertToDisplayString, policyWithBank, undefined, undefined, reimburserAccountID)).toBe(
+                translate(CONST.LOCALES.EN, 'iou.businessBankAccount', '', ''),
+            );
         });
 
         it('should keep the workspace bank account when the reimburser is not in personal details', () => {

@@ -19,7 +19,7 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 
 import {areTransactionsEligibleForMerge} from './MergeTransactionUtils';
-import {wasPaidWithPolicyBankAccount} from './PolicyPaymentUtils';
+import {getPolicyReimburserAccountID, wasPaidWithPolicyBankAccount} from './PolicyPaymentUtils';
 import {
     arePaymentsEnabled as arePaymentsEnabledUtils,
     canAdminPayReport,
@@ -461,7 +461,7 @@ function getPayActionBankAccountID(action: ReportAction | undefined, policy: Ony
     }
 
     // Only assume the workspace account for a payment the designated payer made, same rule as the paid-with messages.
-    return wasPaidWithPolicyBankAccount(policy, action?.actorAccountID, personalDetails) ? policy?.achAccount?.bankAccountID : undefined;
+    return wasPaidWithPolicyBankAccount(policy, action?.actorAccountID, getPolicyReimburserAccountID(policy, personalDetails)) ? policy?.achAccount?.bankAccountID : undefined;
 }
 
 function isCancelPaymentAction(
@@ -1059,7 +1059,7 @@ function getSecondaryReportActions({
     isOffline?: boolean;
     rules: OnyxCollection<Rule>;
     cardList: OnyxEntry<CardList>;
-    personalDetails?: OnyxEntry<PersonalDetailsList>;
+    personalDetails: OnyxEntry<PersonalDetailsList>;
 }): Array<ValueOf<typeof CONST.REPORT.SECONDARY_ACTIONS>> {
     const options: Array<ValueOf<typeof CONST.REPORT.SECONDARY_ACTIONS>> = [];
     const reportNameValuePairs = moveExpenseReportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`];

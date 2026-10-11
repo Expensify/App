@@ -243,6 +243,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
                         return waitForBatchedUpdates();
                     }
                     payMoneyRequest({
+                        bankAccountList: undefined,
                         isASAPSubmitBetaEnabled: false,
                         conciergeChat: undefined,
                         paymentType: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
@@ -468,6 +469,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
                         return waitForBatchedUpdates();
                     }
                     payMoneyRequest({
+                        bankAccountList: undefined,
                         isASAPSubmitBetaEnabled: false,
                         conciergeChat: undefined,
                         paymentType: CONST.IOU.PAYMENT_TYPE.VBBA,
@@ -649,6 +651,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
                         return waitForBatchedUpdates();
                     }
                     payMoneyRequest({
+                        bankAccountList: undefined,
                         isASAPSubmitBetaEnabled: false,
                         conciergeChat: undefined,
                         paymentType: 'ACH',
@@ -707,6 +710,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
             // When paying the IOU report
             const chatReportPolicy = chatReportPolicyFromChat(chatReport);
             payMoneyRequest({
+                bankAccountList: undefined,
                 isASAPSubmitBetaEnabled: false,
                 conciergeChat: undefined,
                 paymentType: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
@@ -795,6 +799,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
                 mockFetch?.pause?.();
 
                 payMoneyRequest({
+                    bankAccountList: undefined,
                     isASAPSubmitBetaEnabled: false,
                     conciergeChat: undefined,
                     paymentType: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
@@ -967,6 +972,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
                         policyID: CONST.POLICY.ID_FAKE,
                     };
                     payMoneyRequest({
+                        bankAccountList: undefined,
                         isASAPSubmitBetaEnabled: false,
                         conciergeChat: undefined,
                         paymentType: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
@@ -1067,6 +1073,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`, chatReport);
 
             const newExpenseReportID = payMoneyRequest({
+                bankAccountList: undefined,
                 isASAPSubmitBetaEnabled: false,
                 conciergeChat: undefined,
                 paymentType: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
@@ -1176,6 +1183,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
 
             const pay = (expenseReport: Report) =>
                 payMoneyRequest({
+                    bankAccountList: undefined,
                     paymentType: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
                     chatReport,
                     iouReport: expenseReport,
@@ -1264,6 +1272,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
 
             const chatReportPolicyTrueTour = chatReportPolicyFromChat(chatReport);
             payMoneyRequest({
+                bankAccountList: undefined,
                 isASAPSubmitBetaEnabled: false,
                 conciergeChat: undefined,
                 paymentType: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
@@ -1319,6 +1328,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
 
             const chatReportPolicyFalseTour = chatReportPolicyFromChat(chatReport);
             payMoneyRequest({
+                bankAccountList: undefined,
                 isASAPSubmitBetaEnabled: false,
                 conciergeChat: undefined,
                 paymentType: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
@@ -1494,6 +1504,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
             jest.mocked(Navigation.navigate).mockClear();
 
             payMoneyRequest({
+                bankAccountList: undefined,
                 isASAPSubmitBetaEnabled: false,
                 conciergeChat: undefined,
                 paymentType: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
@@ -1568,6 +1579,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
             jest.mocked(Navigation.navigate).mockClear();
 
             payMoneyRequest({
+                bankAccountList: undefined,
                 isASAPSubmitBetaEnabled: false,
                 conciergeChat: undefined,
                 paymentType: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
@@ -1632,6 +1644,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
             jest.mocked(Navigation.navigate).mockClear();
 
             payMoneyRequest({
+                bankAccountList: undefined,
                 isASAPSubmitBetaEnabled: false,
                 conciergeChat: undefined,
                 paymentType: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
@@ -1675,6 +1688,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
 
             const chatReportPolicyAmountZero = chatReportPolicyFromChat(chatReport);
             payMoneyRequest({
+                bankAccountList: undefined,
                 isASAPSubmitBetaEnabled: false,
                 conciergeChat: undefined,
                 paymentType: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
@@ -2114,6 +2128,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
                         return waitForBatchedUpdates();
                     }
                     payMoneyRequest({
+                        bankAccountList: undefined,
                         isASAPSubmitBetaEnabled: false,
                         conciergeChat: undefined,
                         paymentType: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
@@ -2625,6 +2640,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
             if (chatReport && expenseReport) {
                 mockFetch?.pause?.();
                 payMoneyRequest({
+                    bankAccountList: undefined,
                     isASAPSubmitBetaEnabled: false,
                     conciergeChat: undefined,
                     paymentType: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,

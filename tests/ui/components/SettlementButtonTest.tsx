@@ -650,6 +650,38 @@ describe('SettlementButton', () => {
             await getOnyxData({key: ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT, callback: (draft) => expect(draft?.accountNumber).toBe('5678')});
             expect(navigateToBankAccountRoute).toHaveBeenCalledWith({bankAccountID: BANK_ACCOUNT_ID, backTo: ''});
             expect(Navigation.navigate).not.toHaveBeenCalledWith(ROUTES.BANK_ACCOUNT_CONNECT_EXISTING_BUSINESS_BANK_ACCOUNT.getRoute(POLICY_ID));
+            await getOnyxData({
+                key: `${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`,
+                callback: (workspace) => expect(workspace?.achAccount).toEqual(workspaceBankAccount),
+            });
+        });
+
+        it.each([
+            {bankCurrency: CONST.CURRENCY.USD, policyIDs: ['another-workspace']},
+            {bankCurrency: CONST.CURRENCY.GBP, policyIDs: []},
+        ])('starts fresh instead of resuming a partial account with currency $bankCurrency and policies $policyIDs', async ({bankCurrency, policyIDs}) => {
+            // Given a partial business account that belongs to another workspace or uses a different currency.
+            const policy = createTestPolicy({achAccount: workspaceBankAccount});
+            const bankAccountList = createBankAccountList();
+            bankAccountList[BANK_ACCOUNT_ID].bankCurrency = bankCurrency;
+            bankAccountList[BANK_ACCOUNT_ID].accountData = {
+                ...bankAccountList[BANK_ACCOUNT_ID].accountData,
+                state: CONST.BANK_ACCOUNT.STATE.SETUP,
+                policyIDs,
+            };
+            await Onyx.set(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT, {
+                accountNumber: '5678',
+            });
+
+            // When the admin adds a funding source for this USD report.
+            await selectExpensePaymentOption(policy, translateLocal('iou.settleBusiness', ''), bankAccountList);
+
+            // Then a fresh standalone setup avoids resuming an unsuitable account and preserves the workspace account.
+            expect(navigateToBankAccountRoute).toHaveBeenCalledWith({backTo: ''});
+            await getOnyxData({
+                key: ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT,
+                callback: (draft) => expect(draft?.accountNumber).toBeFalsy(),
+            });
             await getOnyxData({key: `${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, callback: (workspace) => expect(workspace?.achAccount).toEqual(workspaceBankAccount)});
         });
 
