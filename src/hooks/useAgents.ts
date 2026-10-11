@@ -1,6 +1,6 @@
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
-import {TableHandle} from '@components/Table';
+import type {TableHandle} from '@components/Table';
 import type {AgentRowData, AgentsTableColumnKey} from '@components/Tables/AgentsTable';
 
 import {clearAgentDeleteError, clearAgentError, clearAgentUpdateError, deleteAgent, openAgentsPage} from '@libs/actions/Agent';

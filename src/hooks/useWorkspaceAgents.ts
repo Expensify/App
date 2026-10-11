@@ -2,7 +2,6 @@ import CONST from '@src/CONST';
 import type {Policy} from '@src/types/onyx';
 
 import type {OnyxEntry} from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
 
 import useAgents from './useAgents';
 import useNetwork from './useNetwork';
@@ -24,7 +23,7 @@ function useWorkspaceAgents(policy: OnyxEntry<Policy>) {
         if (!isAgentOwnedByWorkspace && !isAgentMemberOfWorkspace) {
             return [];
         }
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
+        // eslint-disable-next-line no-param-reassign
         agent.role = policyRoles.find((policyRole) => policyRole === agentMembership?.policyEmployee.role);
         return [agent];
     });
