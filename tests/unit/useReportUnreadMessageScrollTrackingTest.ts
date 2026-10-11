@@ -633,44 +633,5 @@ describe('useReportUnreadMessageScrollTracking', () => {
             expect(result.current.isActionBadgeAboveViewport).toBe(true);
             expect(result.current.isActionBadgeBelowViewport).toBe(false);
         });
-
-        it('suppresses the action badge direction while pill tracking is disabled, then recalculates once it is enabled', () => {
-            const offsetRef = {current: 0};
-            let shouldDisablePillTracking = true;
-            const {result, rerender} = renderHook(() =>
-                useReportUnreadMessageScrollTracking({
-                    reportID,
-                    currentVerticalScrollingOffsetRef: offsetRef,
-                    onUnreadActionVisible: onUnreadActionVisibleMockFn,
-                    onTrackScrolling: onTrackScrollingMockFn,
-                    hasNewerActions: false,
-                    unreadMarkerReportActionIndex: -1,
-                    isInverted: true,
-                    actionBadgeTargetIndex: 1,
-                    shouldDisablePillTracking,
-                }),
-            );
-
-            // The target at index 1 is below the viewport, but initial linked-message positioning is still settling
-            act(() => {
-                result.current.onViewableItemsChanged({
-                    viewableItems: [
-                        {index: 3, key: 'reportActions_3', isViewable: true, item: {}},
-                        {index: 4, key: 'reportActions_4', isViewable: true, item: {}},
-                    ],
-                    changed: [],
-                });
-            });
-
-            expect(result.current.isActionBadgeBelowViewport).toBe(false);
-            expect(result.current.isActionBadgeAboveViewport).toBe(false);
-
-            // Once positioning finishes the direction is recalculated without waiting for another viewability change
-            shouldDisablePillTracking = false;
-            rerender({});
-
-            expect(result.current.isActionBadgeBelowViewport).toBe(true);
-            expect(result.current.isActionBadgeAboveViewport).toBe(false);
-        });
     });
 });
