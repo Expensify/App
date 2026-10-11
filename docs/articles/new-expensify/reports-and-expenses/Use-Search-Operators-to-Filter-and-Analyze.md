@@ -1,7 +1,7 @@
 ---
 title: Use Search Operators to Filter and Analyze
 description: Learn how to use search operators, filters, and grouping to find, organize, and analyze expenses, chats, reports, and tasks in Expensify.
-keywords: [New Expensify, search operators, advanced filters, search rules, expense search, report search, chat filters, advanced search, group-by, view, chart, search syntax, bank account filter, custom field, international reimbursement IDs, transaction status filter, pending card expenses, posted card expenses, paid by filter, paid-by]
+keywords: [New Expensify, search operators, advanced filters, search rules, expense search, report search, chat filters, advanced search, group-by, view, chart, search syntax, bank account filter, custom field, international reimbursement IDs, transaction status filter, pending card expenses, posted card expenses, paid by filter, paid-by, vendor filter]
 internalScope: Audience is all Expensify members. Covers search operator syntax for filtering, grouping, and chart views. Does not cover saved search management or Search page UI navigation.
 ---
 
@@ -70,6 +70,7 @@ You can use the following operators to filter expenses:
 | `merchant:` | Filter by expense merchant name | `merchant:"Delta Air Lines"` |
 | `category:` | Filter by expense category label | `category:"Travel"` |
 | `tag:` | Filter by one or multiple tags | `tag:"Client A"` |
+| `vendor:` | Filter by the vendor assigned to an expense. Available only when one of your workspaces uses vendor matching. | `vendor:"Starbucks"` |
 | `amount:` / `purchase-amount:` | Filter by amount using `=`, `>`, `<`, `>=`, or `<=` | `amount:>100` |
 | `status:` | Filter by expense status (`unreported`, `draft`, `outstanding`, `approved`, `paid`, `done`) | `status:approved` |
 | `date:` | Filter by expense date using relative dates or comparison operators for a date range | `date:this-month` |
