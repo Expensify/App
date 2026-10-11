@@ -70,5 +70,9 @@ function agentZeroProcessingAgentIDsSelector(reportNameValuePairs: OnyxEntry<Rep
         .sort((a, b) => a - b);
 }
 
-export {getAgentZeroProcessingLabel, agentZeroProcessingAgentIDsSelector, reportNameValuePairsArchivedSelector};
+function getConciergeFeedbackForReportActionID(reportNameValuePairs: OnyxEntry<ReportNameValuePairs>): string | undefined {
+    return reportNameValuePairs?.conciergeFeedbackForReportActionID;
+}
+
+export {getAgentZeroProcessingLabel, agentZeroProcessingAgentIDsSelector, getConciergeFeedbackForReportActionID, reportNameValuePairsArchivedSelector};
 export type {ReportNameValuePairsArchivedState};

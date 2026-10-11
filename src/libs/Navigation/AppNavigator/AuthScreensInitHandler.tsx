@@ -36,6 +36,7 @@ import {getSearchParamFromUrl} from '@libs/Url';
 import * as App from '@userActions/App';
 import * as Download from '@userActions/Download';
 import {clearStaleExportDownloads} from '@userActions/Export';
+import {setUpPoliciesAndNavigate} from '@userActions/Policy/CreateWorkspaceFlow';
 import * as Report from '@userActions/Report';
 import * as Session from '@userActions/Session';
 import * as User from '@userActions/User';
@@ -168,8 +169,10 @@ function AuthScreensInitHandler() {
         const isLoggingInAsNewUser = !!session?.email && SessionUtils.isLoggingInAsNewUser(currentUrl, session.email);
         // Sign out the current user if we're transitioning with a different user
         const isTransitioning = currentUrl.includes(ROUTES.TRANSITION_BETWEEN_APPS);
-        const isSupportalTransition = currentUrl.includes('authTokenType=support');
-        if (isLoggingInAsNewUser && isTransitioning) {
+        const isSupportalTransition = getSearchParamFromUrl(currentUrl, 'authTokenType') === CONST.AUTH_TOKEN_TYPES.SUPPORT;
+
+        // A non-supportal account switch waits for the user to confirm in LogOutPreviousUserPage instead of signing out here.
+        if (isLoggingInAsNewUser && isTransitioning && isSupportalTransition) {
             Log.info('[AuthScreensInitHandler] Signing out for a transition to another user', false, {
                 isLinkNamingDelegator: SessionUtils.isLoggingInAsDelegate(currentUrl),
                 isDelegateSession: Session.isDelegateSession(session),
@@ -225,7 +228,7 @@ function AuthScreensInitHandler() {
             App.reconnectApp(initialLastUpdateIDAppliedToClient);
         }
 
-        App.setUpPoliciesAndNavigate({
+        setUpPoliciesAndNavigate({
             session,
             introSelected,
             currency: currentUserPersonalDetails.localCurrencyCode ?? CONST.CURRENCY.USD,

@@ -17,6 +17,8 @@ import CONST from '@src/CONST';
 import {useFocusEffect} from '@react-navigation/native';
 import React, {useCallback} from 'react';
 
+import PaymentHistoryTable from './PaymentHistoryTable';
+
 function PaymentHistoryPage() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
@@ -45,7 +47,8 @@ function PaymentHistoryPage() {
             <DelegateNoAccessWrapper accessDeniedVariants={[CONST.DELEGATE.DENIED_ACCESS_VARIANTS.DELEGATE]}>
                 <HeaderWithBackButtonAndTitle title={translate('subscription.paymentHistory.title')} />
                 <ScrollView>
-                    <Text style={[styles.textNormal, styles.textSupporting, styles.mh5, styles.mb5]}>{translate('subscription.paymentHistory.subtitle')}</Text>
+                    <Text style={[styles.textNormal, styles.textSupporting, styles.mh5, styles.mb5, styles.userSelectText]}>{translate('subscription.paymentHistory.subtitle')}</Text>
+                    <PaymentHistoryTable />
                 </ScrollView>
             </DelegateNoAccessWrapper>
         </ScreenWrapper>
