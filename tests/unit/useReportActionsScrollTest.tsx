@@ -136,6 +136,7 @@ jest.mock('@libs/ReportActionsUtils', () => ({
     isTransactionThread: () => mockIsTransactionThread,
     isSentMoneyReportAction: () => mockIsSentMoneyReportAction,
     isReportPreviewAction: () => mockIsReportPreviewAction,
+    getVisibleReportActionErrors: (reportAction: ReportAction | undefined) => reportAction?.errors ?? {},
 }));
 
 // --- ReportUtils ---
@@ -403,7 +404,7 @@ describe('useReportActionsScroll', () => {
                 result.current.scrollToActionBadgeTarget();
             });
 
-            expect(mockScrollToIndex).toHaveBeenCalledWith(5, {viewPosition: 1, viewOffset: CONST.REPORT.ACTIONS.LINKED_MESSAGE_OFFSET});
+            expect(mockScrollToIndex).toHaveBeenCalledWith(5, {animated: true, viewPosition: 1, viewOffset: CONST.REPORT.ACTIONS.LINKED_MESSAGE_OFFSET});
         });
     });
 

@@ -288,6 +288,8 @@ exports[`getOptionData alternateText parity snapshots special-action chain branc
 
 exports[`getOptionData alternateText parity snapshots special-action chain branches (policy room) TASKCOMPLETED 1`] = `"marked as complete"`;
 
+exports[`getOptionData alternateText parity snapshots special-action chain branches (policy room) UNDELETEDTRANSACTION 1`] = `"undeleted this expense"`;
+
 exports[`getOptionData alternateText parity snapshots special-action chain branches (policy room) UNREPORTEDTRANSACTION 1`] = `"moved this expense from another report"`;
 
 exports[`getOptionData alternateText parity snapshots special-action chain branches (policy room) UPDATEROOMAVATAR 1`] = `"removed the room avatar"`;

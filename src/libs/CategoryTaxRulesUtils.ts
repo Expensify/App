@@ -198,6 +198,7 @@ export {
     getCategoryTaxRulesTableData,
     getCategoryTaxRuleTaxID,
     getRuleCategoryName,
+    getRuleDeletionPendingAction,
     getTaxRateDisplayName,
     hasSelectableCategoryTaxRate,
     hasUsableTaxRates,

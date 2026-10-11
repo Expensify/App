@@ -66,6 +66,9 @@ type ToggleSettingOptionRowProps = {
     titleAccessibilityRole?: typeof CONST.ROLE.HEADER;
 
     subtitleStyle?: StyleProp<TextStyle>;
+
+    /** Style for the container of a parsed (HTML) subtitle. Use it to match the spacing `subtitleStyle` gives a plain-text subtitle. */
+    parsedSubtitleContainerStyle?: StyleProp<ViewStyle>;
     accordionStyle?: StyleProp<ViewStyle>;
     isActive: boolean;
 
@@ -107,6 +110,7 @@ function ToggleSettingOptionRow({
     customTitle,
     subtitle,
     subtitleStyle,
+    parsedSubtitleContainerStyle,
     accordionStyle,
     switchAccessibilityLabel,
     shouldPlaceSubtitleBelowSwitch,
@@ -170,7 +174,7 @@ function ToggleSettingOptionRow({
         if (typeof subtitle === 'string') {
             if (!!subtitle && shouldParseSubtitle) {
                 return (
-                    <View style={[styles.flexRow, styles.renderHTML, styles.textAlignLeft, subtitleSpacingStyle]}>
+                    <View style={[styles.flexRow, styles.renderHTML, styles.textAlignLeft, subtitleSpacingStyle, parsedSubtitleContainerStyle]}>
                         <RenderHTML html={processedSubtitle} />
                     </View>
                 );
@@ -200,6 +204,7 @@ function ToggleSettingOptionRow({
         styles.textAlignLeft,
         subtitleSpacingStyle,
         subtitleStyle,
+        parsedSubtitleContainerStyle,
         processedSubtitle,
         areSubtitleAndSwitchAccessibilityLabelEqual,
     ]);
@@ -217,7 +222,7 @@ function ToggleSettingOptionRow({
             {customTitle ?? (
                 <View style={[styles.flexColumn, styles.flex1, styles.mr6]}>
                     <Text
-                        style={[styles.textNormal, styles.lh20, titleStyle]}
+                        style={[styles.textNormal, styles.lh20, styles.textAlignVerticalCenter, titleStyle]}
                         accessibilityRole={titleAccessibilityRole}
                     >
                         {title}

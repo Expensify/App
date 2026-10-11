@@ -23,6 +23,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {dismissRejectUseExplanation} from '@libs/actions/IOU/RejectMoneyRequest';
 import {queueExportSearchWithTemplate} from '@libs/actions/Search';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
+import {isEveryReportTransactionSelected, isSelectableReportTransaction} from '@libs/MoneyRequestReportUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {ReportsSplitNavigatorParamList, RightModalNavigatorParamList} from '@libs/Navigation/types';
@@ -96,6 +97,8 @@ function SelectionToolbar({reportID, transactions, reportActions}: SelectionTool
     const [rejectModalAction, setRejectModalAction] = useState<ValueOf<typeof CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.REJECT_BULK> | null>(null);
 
     const transactionsWithoutPendingDelete = transactions.filter((t) => !isTransactionPendingDelete(t));
+    // Select All skips rejected expenses as well as ones being deleted, since their checkboxes are disabled. The list header and group headers use the same filter.
+    const selectableTransactions = transactions.filter(isSelectableReportTransaction);
 
     const beginExportWithTemplate = (templateName: string, templateType: string, transactionIDList: string[], exportName: string) => {
         if (isOffline) {
@@ -244,7 +247,8 @@ function SelectionToolbar({reportID, transactions, reportActions}: SelectionTool
     };
 
     const {reportPendingAction} = getReportOfflinePendingActionAndErrors(report);
-    const isSelectAllChecked = selectedTransactionIDs.length > 0 && selectedTransactionIDs.length === transactionsWithoutPendingDelete.length;
+    // Same check that decides whether Submit, Approve and Pay are offered, so the checkbox reads fully checked exactly when they are.
+    const isSelectAllChecked = isEveryReportTransactionSelected(transactions, selectedTransactionIDs);
 
     return (
         <>
@@ -281,9 +285,9 @@ function SelectionToolbar({reportID, transactions, reportActions}: SelectionTool
 
                         <SelectAllCheckbox
                             isSelectAllChecked={isSelectAllChecked}
-                            isIndeterminate={selectedTransactionIDs.length > 0 && selectedTransactionIDs.length !== transactionsWithoutPendingDelete.length}
+                            isIndeterminate={selectedTransactionIDs.length > 0 && !isSelectAllChecked}
                             hasAnySelected={selectedTransactionIDs.length > 0}
-                            onSelectAll={() => setSelectedTransactions(transactionsWithoutPendingDelete.map((t) => t.transactionID))}
+                            onSelectAll={() => setSelectedTransactions(selectableTransactions.map((t) => t.transactionID))}
                             onClearAll={() => clearSelectedTransactions(true)}
                         />
                     </View>
