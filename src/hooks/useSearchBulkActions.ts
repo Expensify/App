@@ -1694,6 +1694,19 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                           };
                       });
 
+            const onyxTransactionsByReportID = new Map<string, Transaction[]>();
+            for (const transaction of Object.values(allTransactions ?? {})) {
+                if (!transaction?.reportID) {
+                    continue;
+                }
+                const reportTransactions = onyxTransactionsByReportID.get(transaction.reportID);
+                if (reportTransactions) {
+                    reportTransactions.push(transaction);
+                } else {
+                    onyxTransactionsByReportID.set(transaction.reportID, [transaction]);
+                }
+            }
+
             let paidReportCount = 0;
             for (const item of itemsToPay) {
                 if (!item.reportID) {
@@ -1708,6 +1721,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 }
 
                 const isItemInvoice = isInvoiceReport(iouReport);
+                const iouReportTransactions = onyxTransactionsByReportID.get(item.reportID) ?? [];
                 const fallbackChatReportID = item.chatReportID ?? iouReport.chatReportID ?? iouReport.parentReportID;
                 const fallbackPolicyID = iouReport.policyID ?? item.policyID;
                 const {chatReport, isFallbackChatReport} = getChatReportWithFallback(
@@ -1774,6 +1788,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                         paymentMethodType: paymentItem.paymentType as PaymentMethodType,
                         chatReport,
                         invoiceReport: iouReport,
+                        invoiceReportTransactions: iouReportTransactions,
                         introSelected,
                         currentUserAccountIDParam: accountID,
                         currentUserEmailParam: email ?? '',
@@ -1803,6 +1818,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                     paymentType: paymentItem.paymentType as PaymentMethodType,
                     chatReport,
                     iouReport,
+                    iouReportTransactions,
                     introSelected,
                     currentUserAccountID: accountID,
                     currentUserLogin: currentUserLogin ?? '',
