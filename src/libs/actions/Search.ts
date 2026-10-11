@@ -623,7 +623,6 @@ type GetPayActionCallbackParams = {
     conciergeChat: OnyxEntry<Report>;
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
     rules: OnyxCollection<Rule>;
-    /** Expenses on the report being paid, as shown in the search results. */
     iouReportTransactions: Transaction[];
 };
 

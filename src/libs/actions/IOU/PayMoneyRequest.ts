@@ -62,7 +62,6 @@ type PayInvoiceArgs = {
     paymentMethodType: PaymentMethodType;
     chatReport: OnyxTypes.Report;
     invoiceReport: OnyxEntry<OnyxTypes.Report>;
-    /** Expenses currently on invoiceReport, used to decide the amount to pay and to unhold them. */
     invoiceReportTransactions: OnyxTypes.Transaction[];
     introSelected: OnyxEntry<OnyxTypes.IntroSelected>;
     currentUserAccountIDParam: number;
@@ -103,7 +102,6 @@ type PayMoneyRequestFunctionParams = {
     paymentType: PaymentMethodType;
     chatReport: OnyxTypes.Report;
     iouReport: OnyxEntry<OnyxTypes.Report>;
-    /** Expenses currently on iouReport, used to decide the amount to pay and to unhold them. */
     iouReportTransactions: OnyxTypes.Transaction[];
     introSelected: OnyxEntry<OnyxTypes.IntroSelected>;
     currentUserAccountID: number;
