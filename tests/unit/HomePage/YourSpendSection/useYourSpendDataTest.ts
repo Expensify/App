@@ -174,6 +174,8 @@ function makeSearchResultsWithCount(count: number): SearchResults {
             hasResults: count > 0,
             isLoading: false,
             count,
+            // Every Search response is stamped with the breakdown its total answers once it lands.
+            footerTotal: CONST.SEARCH.FOOTER_TOTAL.TOTAL,
         },
         data: {},
     };
@@ -1067,6 +1069,68 @@ describe('useYourSpendData — drops the approval cache when no outstanding repo
 
         // Then the row loads until Home's own search answers the plain total
         expect(result.current.approvalRowState).toBe(YOUR_SPEND_ROW_STATE.LOADING);
+    });
+
+    it('keeps the plain approval total through a response that lands before its stamp', () => {
+        // Given Home showing the plain awaiting-approval total
+        setupReports([makeReport()]);
+        const plainSnapshot = makeSearchResultsWithCount(1);
+        plainSnapshot.search.total = 900;
+        setupApprovalSnapshot(plainSnapshot);
+        const {result, rerender} = renderHook(() => useYourSpendData());
+        expect(result.current.approvalTotals.total).toBe(900);
+
+        // When a breakdown response replaces the snapshot's search info, wiping the stamp until its success data lands
+        const unstampedSnapshot = makeSearchResultsWithCount(1);
+        unstampedSnapshot.search.total = 0;
+        unstampedSnapshot.search.footerTotal = undefined;
+        setupApprovalSnapshot(unstampedSnapshot);
+        rerender(undefined);
+
+        // Then Home neither shows nor caches that figure, so the stamp arriving later leaves it on its own total
+        expect(result.current.approvalTotals.total).toBe(900);
+        const breakdownSnapshot = makeSearchResultsWithCount(1);
+        breakdownSnapshot.search.total = 0;
+        breakdownSnapshot.search.footerTotal = CONST.SEARCH.FOOTER_TOTAL.NON_REIMBURSABLE;
+        setupApprovalSnapshot(breakdownSnapshot);
+        rerender(undefined);
+        expect(result.current.approvalTotals.total).toBe(900);
+        mockedUseNetwork.mockReturnValue(networkState(true));
+        rerender(undefined);
+        expect(result.current.approvalTotals.total).toBe(900);
+    });
+
+    it('takes a new plain total once it is stamped as one', () => {
+        // Given Home showing the plain awaiting-approval total
+        setupReports([makeReport()]);
+        const plainSnapshot = makeSearchResultsWithCount(1);
+        plainSnapshot.search.total = 900;
+        setupApprovalSnapshot(plainSnapshot);
+        const {result, rerender} = renderHook(() => useYourSpendData());
+
+        // When Home's own search answers a new plain total
+        const nextPlainSnapshot = makeSearchResultsWithCount(2);
+        nextPlainSnapshot.search.total = 1500;
+        setupApprovalSnapshot(nextPlainSnapshot);
+        rerender(undefined);
+
+        // Then the row shows it
+        expect(result.current.approvalTotals.total).toBe(1500);
+    });
+
+    it('hides the row offline rather than loading forever when no plain total is confirmed', () => {
+        // Given Home first seeing, offline, a snapshot whose total answers a breakdown
+        mockedUseNetwork.mockReturnValue(networkState(true));
+        setupReports([makeReport()]);
+        const breakdownSnapshot = makeSearchResultsWithCount(1);
+        breakdownSnapshot.search.total = 0;
+        breakdownSnapshot.search.footerTotal = CONST.SEARCH.FOOTER_TOTAL.NON_REIMBURSABLE;
+        setupApprovalSnapshot(breakdownSnapshot);
+
+        const {result} = renderHook(() => useYourSpendData());
+
+        // Then the row hides, as with no snapshot at all, since nothing can confirm a total until back online
+        expect(result.current.approvalRowState).toBe(YOUR_SPEND_ROW_STATE.HIDDEN_EMPTY);
     });
 });
 

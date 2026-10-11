@@ -358,10 +358,10 @@ function getCardTotalsByCardID(snapshot: OnyxEntry<SearchResults>): Record<numbe
     return totalsByCardID;
 }
 
-// The Search footer can answer a breakdown (e.g. non-reimbursable) on this same snapshot. That total is not the row's.
-function isBreakdownTotal(searchResults: OnyxEntry<SearchResults>): boolean {
-    const footerTotal = searchResults?.search.footerTotal;
-    return !!footerTotal && footerTotal !== CONST.SEARCH.FOOTER_TOTAL.TOTAL;
+// The Search footer can answer a breakdown (e.g. non-reimbursable) on this same snapshot, and a response lands before
+// its stamp does, so only a total stamped as the plain one is the row's.
+function isUnconfirmedTotal(searchResults: OnyxEntry<SearchResults>): boolean {
+    return !!searchResults && searchResults.search?.footerTotal !== CONST.SEARCH.FOOTER_TOTAL.TOTAL;
 }
 
 function getYourSpendRowState({isApplicable, isOffline, searchResults}: GetYourSpendRowStateParams): YourSpendRowState {
@@ -380,11 +380,15 @@ function getYourSpendRowState({isApplicable, isOffline, searchResults}: GetYourS
     return YOUR_SPEND_ROW_STATE.READY;
 }
 
-function getLiveRowState(rawState: YourSpendRowState, shouldUseCached: boolean, isBreakdown: boolean): YourSpendRowState {
+function getLiveRowState(rawState: YourSpendRowState, shouldUseCached: boolean, isUnconfirmed: boolean, isOffline: boolean): YourSpendRowState {
     if (shouldUseCached) {
         return YOUR_SPEND_ROW_STATE.READY;
     }
-    return isBreakdown && rawState === YOUR_SPEND_ROW_STATE.READY ? YOUR_SPEND_ROW_STATE.LOADING : rawState;
+    if (!isUnconfirmed || rawState !== YOUR_SPEND_ROW_STATE.READY) {
+        return rawState;
+    }
+    // Online, Home's own search confirms a total soon. Offline nothing will, so the row hides as with no snapshot.
+    return isOffline ? YOUR_SPEND_ROW_STATE.HIDDEN_EMPTY : YOUR_SPEND_ROW_STATE.LOADING;
 }
 
 function useYourSpendData(): UseYourSpendDataReturn {
@@ -515,19 +519,19 @@ function useYourSpendData(): UseYourSpendDataReturn {
         setCachedApprovalHash(approvalHash);
     }
 
-    const isApprovalBreakdownTotal = isBreakdownTotal(approvalSearchResults);
-    const isPaymentBreakdownTotal = isBreakdownTotal(paymentSearchResults);
+    const isApprovalTotalUnconfirmed = isUnconfirmedTotal(approvalSearchResults);
+    const isPaymentTotalUnconfirmed = isUnconfirmedTotal(paymentSearchResults);
 
     if (
         approvalRowStateRaw === YOUR_SPEND_ROW_STATE.READY &&
-        !isApprovalBreakdownTotal &&
+        !isApprovalTotalUnconfirmed &&
         (!cachedApprovalReady || cachedApprovalReady.total !== approvalTotalsRaw.total || cachedApprovalReady.currency !== approvalTotalsRaw.currency)
     ) {
         setCachedApprovalReady({total: approvalTotalsRaw.total, currency: approvalTotalsRaw.currency});
     }
     if (
         paymentRowStateRaw === YOUR_SPEND_ROW_STATE.READY &&
-        !isPaymentBreakdownTotal &&
+        !isPaymentTotalUnconfirmed &&
         (!cachedPaymentReady || cachedPaymentReady.total !== paymentTotalsRaw.total || cachedPaymentReady.currency !== paymentTotalsRaw.currency)
     ) {
         setCachedPaymentReady({total: paymentTotalsRaw.total, currency: paymentTotalsRaw.currency});
@@ -542,18 +546,20 @@ function useYourSpendData(): UseYourSpendDataReturn {
     // OUTSTANDING report. An empty signature means nothing is awaiting approval, so the row
     // must hide immediately after approving the last expense. A zero-result search returns
     // no count, which would otherwise keep the stale cached total on screen.
-    // A breakdown total is bridged the same way, and waits on Home's own refetch when nothing is cached.
+    // An unconfirmed total is bridged the same way, and waits on Home's own refetch when nothing is cached.
     const shouldUseCachedApproval =
-        ((approvalRowStateRaw === YOUR_SPEND_ROW_STATE.HIDDEN_EMPTY && approvalCountIsMissing) || isApprovalBreakdownTotal) &&
+        ((approvalRowStateRaw === YOUR_SPEND_ROW_STATE.HIDDEN_EMPTY && approvalCountIsMissing) || isApprovalTotalUnconfirmed) &&
         approvalSearchResults !== undefined &&
         cachedApprovalReady !== null &&
         cachedApprovalHash === approvalHash &&
         outstandingReportsSignature !== '';
     const shouldUseCachedPayment =
-        ((paymentRowStateRaw === YOUR_SPEND_ROW_STATE.HIDDEN_EMPTY && paymentCountIsMissing) || isPaymentBreakdownTotal) && paymentSearchResults !== undefined && cachedPaymentReady !== null;
+        ((paymentRowStateRaw === YOUR_SPEND_ROW_STATE.HIDDEN_EMPTY && paymentCountIsMissing) || isPaymentTotalUnconfirmed) &&
+        paymentSearchResults !== undefined &&
+        cachedPaymentReady !== null;
 
-    const approvalRowStateLive = getLiveRowState(approvalRowStateRaw, shouldUseCachedApproval, isApprovalBreakdownTotal);
-    const paymentRowStateLive = getLiveRowState(paymentRowStateRaw, shouldUseCachedPayment, isPaymentBreakdownTotal);
+    const approvalRowStateLive = getLiveRowState(approvalRowStateRaw, shouldUseCachedApproval, isApprovalTotalUnconfirmed, isOffline);
+    const paymentRowStateLive = getLiveRowState(paymentRowStateRaw, shouldUseCachedPayment, isPaymentTotalUnconfirmed, isOffline);
     const approvalTotalsLive: YourSpendRowTotals = shouldUseCachedApproval && cachedApprovalReady ? cachedApprovalReady : approvalTotalsRaw;
     const paymentTotalsLive: YourSpendRowTotals = shouldUseCachedPayment && cachedPaymentReady ? cachedPaymentReady : paymentTotalsRaw;
 
