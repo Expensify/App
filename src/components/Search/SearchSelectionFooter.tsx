@@ -7,7 +7,7 @@ import useSearchShouldCalculateTotals from '@hooks/useSearchShouldCalculateTotal
 import {close} from '@libs/actions/Modal';
 import {getFooterConvertedAmounts, search} from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
-import {buildSearchQueryJSON, getFooterSelectionFromQuery, getQueryWithFooterSelection} from '@libs/SearchQueryUtils';
+import {buildSearchQueryJSON, getDefaultFooterCount, getFooterSelectionFromQuery, getQueryWithFooterSelection} from '@libs/SearchQueryUtils';
 import {doesTransactionMatchFooterTotal, isGroupEntry} from '@libs/SearchUIUtils';
 
 import CONST from '@src/CONST';
@@ -382,7 +382,7 @@ function SearchSelectionFooter({searchResults}: SearchSelectionFooterProps) {
     // Both selectors stay available for whatever the footer is describing. A hand-picked selection is counted and summed
     // from the selected rows themselves. Everything else (nothing selected, or a select-all with or without exclusions)
     // is the server's figures, since a select-all covers rows that were never loaded and so cannot be counted here.
-    const defaultFooterCountType = isReportsSearch ? CONST.SEARCH.FOOTER_COUNT.REPORTS : CONST.SEARCH.FOOTER_COUNT.EXPENSES;
+    const defaultFooterCountType = getDefaultFooterCount(currentSearchQueryJSON?.type);
 
     // A group row selected as a whole is out of scope for now, pending the backend returning breakdowns per group. It
     // reaches the selection one of two ways: as a single group entry when its expenses are not loaded, or as those

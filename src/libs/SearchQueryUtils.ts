@@ -725,6 +725,11 @@ function hasFooterSelections(queryJSON: SearchQueryJSON | Readonly<SearchQueryJS
  * The query the Spend footer's selections produce, built from the query the footer is showing. Only `footerTotal`
  * changes what the backend returns. The other two ride along so the selection is restored with the search.
  */
+/** The count a footer with no selection shows: reports on the Reports search, expenses everywhere else. */
+function getDefaultFooterCount(type: SearchDataTypes | undefined): SearchFooterCount {
+    return type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT ? CONST.SEARCH.FOOTER_COUNT.REPORTS : CONST.SEARCH.FOOTER_COUNT.EXPENSES;
+}
+
 function getQueryWithFooterSelection(
     queryJSON: SearchQueryJSON | Readonly<SearchQueryJSON>,
     selection: {footerCount?: SearchFooterCount; footerTotal?: SearchFooterTotal; footerCurrency?: string},
@@ -737,10 +742,13 @@ function getQueryWithFooterSelection(
         [CONST.SEARCH.SYNTAX_FILTER_KEYS.FOOTER_TOTAL, nextSelection.footerTotal],
         [CONST.SEARCH.SYNTAX_FILTER_KEYS.FOOTER_CURRENCY, nextSelection.footerCurrency],
     ] as const) {
-        // The plain total is what a query with no selection already shows, so it is left out rather than spelled out:
-        // going back to it returns the query to what it was before the footer was touched, in the URL and in a saved
-        // search alike.
-        if (!value || (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.FOOTER_TOTAL && value === CONST.SEARCH.FOOTER_TOTAL.TOTAL)) {
+        // The plain total and the type's own count are what a query with no selection already shows, so they are left
+        // out rather than spelled out: going back to them returns the query to what it was before the footer was
+        // touched, in the URL and in a saved search alike.
+        const isDefaultSelection =
+            (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.FOOTER_TOTAL && value === CONST.SEARCH.FOOTER_TOTAL.TOTAL) ||
+            (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.FOOTER_COUNT && value === getDefaultFooterCount(queryJSON.type));
+        if (!value || isDefaultSelection) {
             continue;
         }
         flatFilters.push({key, filters: [{operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, value}]});
@@ -3103,6 +3111,7 @@ export {
     getRangeQueryValue,
     getQueryHashWithoutFilters,
     getQueryHashes,
+    getDefaultFooterCount,
     getFooterSelectionFromQuery,
     getQueryWithFooterSelection,
     getQueryWithoutFooterSelections,

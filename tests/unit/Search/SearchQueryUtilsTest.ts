@@ -2609,6 +2609,37 @@ describe('SearchQueryUtils', () => {
             expect(backToPlainTotal).toContain('footerCurrency:EUR');
         });
 
+        it("leaves the type's own count out of the query, so resetting it returns the query to what it was", () => {
+            // Given an Expenses and a Reports search each switched to the other count
+            const expensesQueryJSON = buildSearchQueryJSON('type:expense footerCount:reports');
+            const reportsQueryJSON = buildSearchQueryJSON('type:expense-report footerCount:expenses');
+            if (!expensesQueryJSON || !reportsQueryJSON) {
+                throw new Error('Failed to parse query string');
+            }
+
+            // When each is reset to the count its type shows by default
+            const expensesReset = getQueryWithFooterSelection(expensesQueryJSON, {footerCount: CONST.SEARCH.FOOTER_COUNT.EXPENSES});
+            const reportsReset = getQueryWithFooterSelection(reportsQueryJSON, {footerCount: CONST.SEARCH.FOOTER_COUNT.REPORTS});
+
+            // Then neither spells the default out
+            expect(expensesReset).not.toContain('footerCount');
+            expect(reportsReset).not.toContain('footerCount');
+        });
+
+        it('still writes the count that is not the type default', () => {
+            // Given an Expenses search with no count selection
+            const queryJSON = buildSearchQueryJSON('type:expense');
+            if (!queryJSON) {
+                throw new Error('Failed to parse query string');
+            }
+
+            // When the footer switches it to reports
+            const result = getQueryWithFooterSelection(queryJSON, {footerCount: CONST.SEARCH.FOOTER_COUNT.REPORTS});
+
+            // Then the choice is kept in the query
+            expect(result).toContain('footerCount:reports');
+        });
+
         it('leaves every hash alone for the footer total, so one search keeps one snapshot', () => {
             const noSelection = buildSearchQueryJSON('type:expense');
             const reimbursable = buildSearchQueryJSON('type:expense footerTotal:reimbursable');
