@@ -304,6 +304,7 @@ key "key"
       / createdBy
       / reimbursable
       / billable
+      / declined
       / action
       / has
       / is

@@ -595,6 +595,34 @@ describe('SearchQueryUtils', () => {
             expect(result).toEqual('type:expense -transactionStatus:pending');
         });
 
+        test('declined filter value', () => {
+            // Given the Rejected filter set to yes on an expense report search
+            const filterValues: Partial<SearchAdvancedFiltersForm> = {
+                type: 'expense-report',
+                declined: 'yes',
+            };
+
+            // When the query string is built from the form
+            const result = buildQueryStringFromFilterFormValues(filterValues);
+
+            // Then the filter is written with the declined key used by the backend
+            expect(result).toEqual('type:expense-report declined:yes');
+        });
+
+        test('negated declined filter value', () => {
+            // Given the Rejected filter negated on an expense search
+            const filterValues: Partial<SearchAdvancedFiltersForm> = {
+                type: 'expense',
+                declinedNot: 'no',
+            };
+
+            // When the query string is built from the form
+            const result = buildQueryStringFromFilterFormValues(filterValues);
+
+            // Then the declined key gets the "-" prefix
+            expect(result).toEqual('type:expense -declined:no');
+        });
+
         test('negated receipt type filter value', () => {
             const filterValues: Partial<SearchAdvancedFiltersForm> = {
                 type: 'expense',
@@ -2060,6 +2088,52 @@ describe('SearchQueryUtils', () => {
 
             expect(result.transactionStatusNot).toEqual('pending');
             expect(result.transactionStatus).toBeUndefined();
+        });
+
+        test('declined filter populates the form with a yes or no value', () => {
+            // Given a query that filters expenses on whether they were rejected
+            const queryJSON = buildSearchQueryJSON('sortBy:date sortOrder:desc type:expense declined:yes');
+
+            if (!queryJSON) {
+                throw new Error('Failed to parse query string');
+            }
+
+            // When the form values are built from the query
+            const result = buildFilterFormValuesFromQuery(queryJSON, {}, {}, {}, {}, {}, {});
+
+            // Then the Rejected filter holds the yes value
+            expect(result.declined).toEqual('yes');
+        });
+
+        test('declined filter ignores values other than yes and no', () => {
+            // Given a hand-typed query with a value the boolean filter does not accept
+            const queryJSON = buildSearchQueryJSON('sortBy:date sortOrder:desc type:expense declined:maybe');
+
+            if (!queryJSON) {
+                throw new Error('Failed to parse query string');
+            }
+
+            // When the form values are built from the query
+            const result = buildFilterFormValuesFromQuery(queryJSON, {}, {}, {}, {}, {}, {});
+
+            // Then the invalid value is dropped instead of being shown as a selection
+            expect(result.declined).toBeUndefined();
+        });
+
+        test('negated declined filter populates declinedNot', () => {
+            // Given a query that excludes rejected expense reports with the "-" prefix
+            const queryJSON = buildSearchQueryJSON('sortBy:date sortOrder:desc type:expense-report -declined:yes');
+
+            if (!queryJSON) {
+                throw new Error('Failed to parse query string');
+            }
+
+            // When the form values are built from the query
+            const result = buildFilterFormValuesFromQuery(queryJSON, {}, {}, {}, {}, {}, {});
+
+            // Then the value lands in the negated form key only
+            expect(result.declinedNot).toEqual('yes');
+            expect(result.declined).toBeUndefined();
         });
 
         test('negated receipt type filter populates receiptTypeNot', () => {

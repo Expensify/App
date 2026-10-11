@@ -9925,6 +9925,7 @@ ${reportName}`,
             posted: 'Contabilización',
             withdrawn: 'Retirada',
             billable: 'Facturable',
+            rejected: 'Rechazado',
             reimbursable: 'Reembolsable',
             purchaseCurrency: 'Moneda de compra',
             sortOrder: {
