@@ -67,4 +67,3 @@ function PillSelector<TKey extends string>({options, selectedKey, onSelect, styl
 }
 
 export default PillSelector;
-export type {PillSelectorOption};

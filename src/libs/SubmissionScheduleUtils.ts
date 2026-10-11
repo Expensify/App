@@ -232,4 +232,4 @@ export {
     parseAutoReportingOffset,
     sortSemiMonthlyOffsets,
 };
-export type {AutoReportingFrequency, AutoReportingOffsets};
+export type {AutoReportingFrequency};
