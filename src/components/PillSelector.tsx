@@ -39,7 +39,7 @@ function PillSelector<TKey extends string>({options, selectedKey, onSelect, styl
 
     return (
         <View
-            style={[styles.flexRow, styles.flexWrap, styles.gap2, style]}
+            style={[styles.flexRow, styles.flexWrap, styles.rowGap1, style]}
             role={CONST.ROLE.RADIOGROUP}
         >
             {options.map((option) => {

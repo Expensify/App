@@ -871,6 +871,10 @@ export default {
         gap: 32,
     },
 
+    rowGap1: {
+        rowGap: 4,
+    },
+
     rowGap4: {
         rowGap: 16,
     },

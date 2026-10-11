@@ -139,7 +139,7 @@ function WorkspaceAutoReportingFrequencyPage({policy, route}: WorkspaceAutoRepor
         </OfflineWithFeedback>
     );
 
-    const renderSectionHeader = (title: string) => <Text style={[styles.textStrong, styles.ph5, styles.mt6, styles.mb2]}>{title}</Text>;
+    const renderSectionHeader = (title: string) => <Text style={[styles.textStrong, styles.ph5, styles.pv1Half, styles.mt6]}>{title}</Text>;
 
     const renderSubmitOnRows = () => {
         switch (selectedFrequency) {
@@ -211,12 +211,12 @@ function WorkspaceAutoReportingFrequencyPage({policy, route}: WorkspaceAutoRepor
                             onClose={() => clearPolicyErrorField(policyID, CONST.POLICY.COLLECTION_KEYS.AUTOREPORTING_FREQUENCY)}
                             errorRowStyles={[styles.ph5]}
                         >
-                            <Text style={[styles.textStrong, styles.ph5, styles.mb3]}>{translate('workflowsPage.submitFrequency')}</Text>
+                            <Text style={[styles.textStrong, styles.ph5, styles.pv1Half]}>{translate('workflowsPage.submitFrequency')}</Text>
                             <PillSelector
                                 options={frequencyOptions}
                                 selectedKey={selectedFrequency}
                                 onSelect={onSelectFrequency}
-                                style={styles.ph5}
+                                style={[styles.ph5, styles.pv1]}
                             />
                         </OfflineWithFeedback>
                         {renderSubmitOnRows()}
@@ -226,14 +226,13 @@ function WorkspaceAutoReportingFrequencyPage({policy, route}: WorkspaceAutoRepor
                         addBottomSafeAreaPadding
                     >
                         {!!selectedFrequency && (
-                            <View style={[styles.flexRow, styles.alignItemsCenter, styles.mb4]}>
+                            <View style={[styles.flexRow, styles.alignItemsCenter, styles.mb5]}>
                                 <Icon
                                     src={expensifyIcons.Clock}
                                     fill={theme.icon}
-                                    additionalStyles={styles.popoverMenuIcon}
                                 />
                                 <View style={[styles.flex1, styles.ml3]}>
-                                    <RenderHTML html={`<muted-text>${getSubmissionFrequencyHelperText(selectedFrequency, timezoneLink, translate)}</muted-text>`} />
+                                    <RenderHTML html={`<muted-text-label>${getSubmissionFrequencyHelperText(selectedFrequency, timezoneLink, translate)}</muted-text-label>`} />
                                 </View>
                             </View>
                         )}
