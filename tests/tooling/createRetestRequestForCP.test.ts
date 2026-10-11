@@ -1,10 +1,21 @@
 // cspell:ignore Julesssss jasperhuangg GYJH
+// Slack API fields use snake case.
+/* eslint-disable @typescript-eslint/naming-convention */
 import {describe, expect, it} from 'bun:test';
 
 import CONST from '@github/libs/CONST';
 
-import {buildRetestPayload, getCherryPicks, getLinkedIssueNumbers, getRetestMarker, getSlackAuthor} from '@scripts/createRetestRequestForCP';
-import type {RetestHit} from '@scripts/createRetestRequestForCP';
+import {
+    buildRetestLinkReply,
+    buildRetestPayload,
+    getCherryPicks,
+    getLinkedIssueNumbers,
+    getRetestMarker,
+    getRetestRequestReference,
+    getSlackAuthor,
+    isCherryPickRequest,
+} from '@scripts/createRetestRequestForCP';
+import type {RetestHit, SlackMessage} from '@scripts/createRetestRequestForCP';
 
 describe('createRetestRequestForCP', () => {
     describe('getCherryPicks', () => {
@@ -68,6 +79,7 @@ describe('createRetestRequestForCP', () => {
     });
 
     describe('buildRetestPayload', () => {
+        const deployTag = '9.1.2-3-staging';
         const hit: RetestHit = {
             prNumber: 123,
             prURL: `${CONST.APP_REPO_URL}/pull/123`,
@@ -78,10 +90,10 @@ describe('createRetestRequestForCP', () => {
         };
 
         it('maps a hit to the exact Slack workflow variables', () => {
-            expect(buildRetestPayload(hit)).toEqual({
+            expect(buildRetestPayload(hit, deployTag)).toEqual({
                 isDb: 'dbTrue',
                 whereToRetest: 'Staging',
-                notes: 'Auto-filed after cherry-pick to staging: "Fix crash on staging"',
+                notes: 'Auto-filed after cherry-pick to staging: "Fix crash on staging"\n\nRetest ID: 9.1.2-3-staging / App PR #123',
                 ghIssueLink: `${CONST.APP_REPO_URL}/issues/42`,
                 adhocLink: 'N/A',
                 requesterName: 'octocat',
@@ -93,11 +105,74 @@ describe('createRetestRequestForCP', () => {
 
         it('puts every blocker a PR fixes into one request, space-separated (Slack field rejects newlines)', () => {
             const multi = {...hit, blockerIssueURLs: [`${CONST.APP_REPO_URL}/issues/42`, `${CONST.APP_REPO_URL}/issues/99`]};
-            expect(buildRetestPayload(multi).ghIssueLink).toBe(`${CONST.APP_REPO_URL}/issues/42 ${CONST.APP_REPO_URL}/issues/99`);
+            expect(buildRetestPayload(multi, deployTag).ghIssueLink).toBe(`${CONST.APP_REPO_URL}/issues/42 ${CONST.APP_REPO_URL}/issues/99`);
         });
 
         it('sends N/A for a missing requester so Slack does not reject an empty value', () => {
-            expect(buildRetestPayload({...hit, prAuthor: ''}).requesterName).toBe('N/A');
+            expect(buildRetestPayload({...hit, prAuthor: ''}, deployTag).requesterName).toBe('N/A');
+        });
+    });
+
+    describe('Cherry Pick Request links', () => {
+        const hit: RetestHit = {
+            prNumber: 123,
+            prURL: `${CONST.APP_REPO_URL}/pull/123`,
+            prAuthor: 'octocat',
+            blockerIssueURLs: [`${CONST.APP_REPO_URL}/issues/42`],
+            prTitle: 'Fix crash on staging',
+            author: 'U01N2A6GYJH',
+        };
+
+        it('finds the staging Cherry Pick Request regardless of who ran the cherry-pick', () => {
+            // Given a Cherry Pick Request for the deployed PR from a different person
+            const request: SlackMessage = {
+                ts: '1790800323.327539',
+                thread_ts: '1790800323.327539',
+                text: `:cherries: *Cherry Pick Request* :cherries: from <@U99OTHER|rory>\n\nLink to PR: <${hit.prURL}>\n\n*Where:* staging`,
+            };
+
+            // When the retest workflow looks for the originating request
+            const result = isCherryPickRequest(request, hit);
+
+            // Then it selects that request's parent message
+            expect(result).toBe(true);
+        });
+
+        it('does not link a production request or a reply in an unrelated thread', () => {
+            // Given request-shaped messages that do not identify the staging parent
+            const messages: SlackMessage[] = [
+                {
+                    ts: '1790800323.327539',
+                    text: `*Cherry Pick Request* from <@U01N2A6GYJH|jasper>\nLink to PR: <${hit.prURL}>\n*Where:* production`,
+                },
+                {
+                    ts: '1790800333.919019',
+                    thread_ts: '1790800323.327539',
+                    text: `*Cherry Pick Request* from <@U01N2A6GYJH|jasper>\nLink to PR: <${hit.prURL}>\n*Where:* staging`,
+                },
+            ];
+
+            // When the retest workflow evaluates them
+            const results = messages.map((message) => isCherryPickRequest(message, hit));
+
+            // Then neither can receive the retest reply
+            expect(results).toEqual([false, false]);
+        });
+
+        it('adds a stable reference and a readable threaded reply', () => {
+            // Given the staging deploy tag and its retest permalink
+            const reference = getRetestRequestReference(hit, '9.1.2-3-staging');
+            const retestPermalink = 'https://expensify.slack.com/archives/C09V78U42D8/p1790718982451049';
+
+            // When the retest is located and linked to its Cherry Pick Request
+            const reply = buildRetestLinkReply('1790800323.327539', retestPermalink);
+
+            // Then Slack receives a uniquely searchable retest reference and a threaded link
+            expect(reference).toBe('Retest ID: 9.1.2-3-staging / App PR #123');
+            expect(reply).toEqual({
+                thread_ts: '1790800323.327539',
+                text: `🔁 Automated retest request: <${retestPermalink}|Open retest request>.`,
+            });
         });
     });
 
