@@ -10,9 +10,12 @@ import type {NavigationAwareCameraNativeProps} from './types';
 const IS_VIDEO_REQUIRED_FOR_SNAPSHOT = Platform.OS === 'ios';
 
 // Wraps a camera that will only be active when the tab is focused or as soon as it starts to become focused.
-function Camera({cameraTabIndex, ref, forceInactive = false, ...props}: NavigationAwareCameraNativeProps) {
+function Camera({cameraTabIndex, ref, forceInactive = false, shouldStayActiveWhenBlurred = false, ...props}: NavigationAwareCameraNativeProps) {
     const isFocused = useIsFocused();
-    const isCameraActive = isFocused && !forceInactive;
+
+    // The scan screen blurs as soon as a capture navigates away, and closing the session would cancel a
+    // capture that is still running.
+    const isCameraActive = (isFocused || shouldStayActiveWhenBlurred) && !forceInactive;
 
     return (
         <VisionCamera
