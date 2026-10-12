@@ -1,7 +1,7 @@
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useFilterBankAccountValue from '@components/Search/hooks/useFilterBankAccountValue';
@@ -200,7 +200,7 @@ function SearchSavePage() {
             testID="SearchSavePage"
             includeSafeAreaPaddingBottom
         >
-            <HeaderWithBackButton title={translate('search.saveView')} />
+            <HeaderWithBackButtonAndTitle title={translate('search.saveView')} />
             <FormProvider
                 formID={ONYXKEYS.FORMS.SEARCH_SAVE_FORM}
                 submitButtonText={translate('search.saveView')}

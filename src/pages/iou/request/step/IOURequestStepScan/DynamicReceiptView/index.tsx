@@ -3,7 +3,7 @@ import useCarouselArrows from '@components/Attachments/AttachmentCarousel/useCar
 import useAttachmentErrors from '@components/Attachments/AttachmentView/useAttachmentErrors';
 import type {Attachment} from '@components/Attachments/types';
 import Button from '@components/Button';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import ScreenWrapper from '@components/ScreenWrapper';
 
@@ -102,9 +102,8 @@ function DynamicReceiptView({route}: DynamicReceiptViewProps) {
             testID="ReceiptView"
             enableEdgeToEdgeBottomSafeAreaPadding
         >
-            <HeaderWithBackButton
+            <HeaderWithBackButtonAndTitle
                 title={translate('common.receipt')}
-                shouldDisplayHelpButton={false}
                 onBackButtonPress={handleGoBack}
             >
                 <Button
@@ -115,7 +114,7 @@ function DynamicReceiptView({route}: DynamicReceiptViewProps) {
                 >
                     <Button.Icon src={expensifyIcons.Trashcan} />
                 </Button>
-            </HeaderWithBackButton>
+            </HeaderWithBackButtonAndTitle>
             <AttachmentCarouselView
                 attachments={receipts as Attachment[]}
                 source={currentReceipt?.source ?? ''}
