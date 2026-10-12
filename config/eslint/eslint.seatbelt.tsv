@@ -1186,7 +1186,7 @@
 "../../src/pages/settings/AboutPage/AboutPage.tsx"	"no-restricted-imports"	1
 "../../src/pages/settings/AboutPage/AboutPage.tsx"	"react-hooks/refs"	1
 "../../src/pages/settings/Agents/DynamicAddAgentPage.tsx"	"no-restricted-imports"	1
-"../../src/pages/settings/Agents/DynamicAgentsPage.tsx"	"no-restricted-imports"	1
+"../../src/pages/settings/Agents/AgentsPage.tsx"	"no-restricted-imports"	1
 "../../src/pages/settings/Agents/DynamicEditAgentPage.tsx"	"no-restricted-imports"	1
 "../../src/pages/settings/Agents/Fields/DynamicEditAgentAvatarPage.tsx"	"no-restricted-imports"	1
 "../../src/pages/settings/Agents/Fields/DynamicEditNamePage.tsx"	"no-restricted-imports"	1
