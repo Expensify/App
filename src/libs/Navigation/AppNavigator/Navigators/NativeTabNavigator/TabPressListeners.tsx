@@ -11,6 +11,7 @@ import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import navigationRef from '@libs/Navigation/navigationRef';
 import {navigateToSpendTab} from '@libs/SearchNavigationUtils';
 import type {SpendTabSearchKey} from '@libs/SearchNavigationUtils';
+import {startNavigateToReportsTabSpans} from '@libs/telemetry/startTabNavigationSpans';
 
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
@@ -58,12 +59,16 @@ function TabPressListeners({state, descriptors}: Pick<NativeTabLayoutProps, 'sta
         navigationRef.dispatch({...CommonActions.setParams({q: storedQuery, searchKey: storedSearchKey}), source: spendRootRouteKey, target: spendNavigatorKey});
     }, [hasSpendBeenShown, spendNavigatorKey, spendRootRouteKey, spendRootQuery, storedQuery, storedSearchKey]);
 
-    const openSpendTab = (searchKey: SpendTabSearchKey) => {
+    // Spend's own item starts the Spend spans in tabScreenListeners, so only taps on the item-only tabs start them here.
+    const openSpendTab = (searchKey: SpendTabSearchKey, shouldStartSpans: boolean) => {
         if (focusedRouteName === NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR && spendSearchKey === searchKey) {
             return;
         }
         clearSelectedText();
         interceptAnonymousUser(() => {
+            if (shouldStartSpans) {
+                startNavigateToReportsTabSpans();
+            }
             navigateToSpendTab(searchKey, searchKey === CONST.SEARCH.SEARCH_KEYS.REPORTS ? lastReportsSearchQuery : lastExpensesSearchQuery, clearSelectedTransactions);
         });
     };
@@ -75,23 +80,20 @@ function TabPressListeners({state, descriptors}: Pick<NativeTabLayoutProps, 'sta
 
     const onSpendPress = () => {
         const spendItem = tabBarItems[NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR];
-        if (spendItem?.kind === NATIVE_TAB_ITEM_KINDS.MORE) {
-            if (focusedRouteName === NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR) {
-                openMoreTab({isInMoreDestination: true, isOnMorePage: false});
-            }
+        if (!spendItem || spendItem.isNativeSelectionEnabled) {
             return;
         }
-        // The bar switches to Spend itself when it already shows the search its item stands for.
-        if (spendItem?.isNativeSelectionEnabled || !spendItem) {
+        if (spendItem.kind === NATIVE_TAB_ITEM_KINDS.MORE) {
+            onMoreSlotPress(NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR);
             return;
         }
-        openSpendTab(spendItem.kind === NATIVE_TAB_ITEM_KINDS.REPORTS ? CONST.SEARCH.SEARCH_KEYS.REPORTS : CONST.SEARCH.SEARCH_KEYS.EXPENSES);
+        openSpendTab(spendItem.kind === NATIVE_TAB_ITEM_KINDS.REPORTS ? CONST.SEARCH.SEARCH_KEYS.REPORTS : CONST.SEARCH.SEARCH_KEYS.EXPENSES, false);
     };
 
     const pressHandlers: Record<string, () => void> = {
-        [SCREENS.NATIVE_TAB_ITEM.EXPENSES]: () => openSpendTab(CONST.SEARCH.SEARCH_KEYS.EXPENSES),
-        [SCREENS.NATIVE_TAB_ITEM.REPORTS_BEFORE_SPEND]: () => openSpendTab(CONST.SEARCH.SEARCH_KEYS.REPORTS),
-        [SCREENS.NATIVE_TAB_ITEM.REPORTS_AFTER_SPEND]: () => openSpendTab(CONST.SEARCH.SEARCH_KEYS.REPORTS),
+        [SCREENS.NATIVE_TAB_ITEM.EXPENSES]: () => openSpendTab(CONST.SEARCH.SEARCH_KEYS.EXPENSES, true),
+        [SCREENS.NATIVE_TAB_ITEM.REPORTS_BEFORE_SPEND]: () => openSpendTab(CONST.SEARCH.SEARCH_KEYS.REPORTS, true),
+        [SCREENS.NATIVE_TAB_ITEM.REPORTS_AFTER_SPEND]: () => openSpendTab(CONST.SEARCH.SEARCH_KEYS.REPORTS, true),
         [NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR]: onSpendPress,
         [SCREENS.MORE]: () => onMoreSlotPress(SCREENS.MORE),
         [SCREENS.INSIGHTS]: () => onMoreSlotPress(SCREENS.INSIGHTS),

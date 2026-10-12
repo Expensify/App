@@ -54,13 +54,33 @@ describe('getNativeTabBarItems', () => {
     });
 
     it('puts Spend in the Reports slot while it shows a Reports search', () => {
-        // Given Spend shows the Approve search, which belongs to the Reports group
+        // Given Spend shows the Reports search
+        const items = getNativeTabBarItems(SCREENS.HOME, CONST.SEARCH.SEARCH_KEYS.REPORTS);
+
+        // When the bar is drawn
+
+        // Then Spend itself is the Reports item, and the bar may switch to it because it already shows that search
+        expect(items[NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR]).toEqual({kind: NATIVE_TAB_ITEM_KINDS.REPORTS, isNativeSelectionEnabled: true});
+    });
+
+    it('lets JS open Reports when Spend shows another search of the Reports group', () => {
+        // Given Spend shows the Approve search, which sits in the Reports slot but is not what the Reports tab opens
         const items = getNativeTabBarItems(NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR, CONST.SEARCH.SEARCH_KEYS.APPROVE);
 
         // When the bar is drawn
 
-        // Then Spend itself is the Reports item, so the bar's own selection lights Reports
-        expect(items[NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR]).toEqual({kind: NATIVE_TAB_ITEM_KINDS.REPORTS, isNativeSelectionEnabled: true});
+        // Then a tap on Reports is left to JS, which opens Reports the same way the JS tab bar does, instead of being a no-op repeat tap
+        expect(items[NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR]).toEqual({kind: NATIVE_TAB_ITEM_KINDS.REPORTS, isNativeSelectionEnabled: false});
+    });
+
+    it('lets JS decide what the More slot opens when Spend fills it', () => {
+        // Given Spend last showed an Accounting search while Home is open
+        const items = getNativeTabBarItems(SCREENS.HOME, CONST.SEARCH.SEARCH_KEYS.EXPORT);
+
+        // When the bar is drawn
+
+        // Then Spend fills the More slot but a tap goes through JS, so it opens what the JS More tab would
+        expect(items[NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR]).toEqual({kind: NATIVE_TAB_ITEM_KINDS.MORE, isNativeSelectionEnabled: false});
     });
 
     it('lets JS open Expenses when Spend fills the Expenses slot but still shows an Accounting search', () => {

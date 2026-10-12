@@ -53,11 +53,11 @@ function SearchPage({route}: SearchPageProps) {
 
     const [lastNonEmptySearchResults, setLastNonEmptySearchResults] = useState<SearchResults | undefined>(undefined);
 
-    // Until Spend is first shown, it neither requests a search nor saves its default query over the latest search that the
-    // Spend tab reopens.
+    // Until Spend is first shown, it neither requests a search, nor saves its default query over the latest search that the
+    // Spend tab reopens, nor seeds the default saved search.
     const hasSpendBeenShown = useHasTabBeenShown(NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR);
     useSearchPageSetup(hasSpendBeenShown ? currentSearchQueryJSON : undefined);
-    useSeedMyExpensesSearch();
+    useSeedMyExpensesSearch(hasSpendBeenShown);
     useReleaseOptionListCaches();
 
     // Adjust state during rendering rather than in a useEffect: the value is consumed in the same

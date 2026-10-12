@@ -1,3 +1,4 @@
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -25,6 +26,7 @@ const TAB_ICON_LAYOUT: TabIconLayout = {
 
 function useNativeTabBarOptions({shouldShowNativeTabBar, dotColors, tabLabels}: NativeTabBarOptionsParams) {
     const theme = useTheme();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const styles = useThemeStyles();
 
     // The tint only reaches the labels, since the icons arrive already recolored (react-native-screens patch 003).
@@ -38,15 +40,19 @@ function useNativeTabBarOptions({shouldShowNativeTabBar, dotColors, tabLabels}: 
         tabBarStyle: {display: shouldShowNativeTabBar ? 'flex' : 'none', backgroundColor: theme.appBG},
     };
 
-    const getTabOptions = (name: NativeTabItemKind): NativeBottomTabNavigationOptions => ({
-        tabBarLabel: tabLabels[name],
-        // The active indicator pill marks the selected tab, so the avatar is the same image in both selection states.
-        tabBarIcon: getTabBarIcon(TAB_ICON_LAYOUT, (isSelected) => ({
-            name,
-            color: isSelected ? theme.iconMenu : theme.icon,
-            dotColor: dotColors[name],
-        })),
-    });
+    // Wide layouts use the JS side bar and never show the native one, so its icons are not drawn there.
+    const getTabOptions = (name: NativeTabItemKind): NativeBottomTabNavigationOptions =>
+        !shouldUseNarrowLayout
+            ? {}
+            : {
+                  tabBarLabel: tabLabels[name],
+                  // The active indicator pill marks the selected tab, so the avatar is the same image in both selection states.
+                  tabBarIcon: getTabBarIcon(TAB_ICON_LAYOUT, (isSelected) => ({
+                      name,
+                      color: isSelected ? theme.iconMenu : theme.icon,
+                      dotColor: dotColors[name],
+                  })),
+              };
 
     return {screenOptions, getTabOptions};
 }

@@ -9,6 +9,7 @@ import ScrollView from '@components/ScrollView';
 import {useSearchSelectionActions} from '@components/Search/SearchContext';
 
 import useDocumentTitle from '@hooks/useDocumentTitle';
+import useHasTabBeenShown from '@hooks/useHasTabBeenShown';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -32,20 +33,18 @@ import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import SCREENS from '@src/SCREENS';
 
 import {useIsFocused} from '@react-navigation/native';
 import React from 'react';
 import {View} from 'react-native';
 
 /**
- * Destinations that don't fit across the narrow tab bar's five slots. Rendered as a page rather than a menu so the
- * rows match the left navigation's rows on wide layouts.
- *
- * Each row records itself, and resolves where inside that destination the user last was, when it is pressed. The
+ * The More page's rows. Each row records itself, and resolves where inside that destination the user last was, when it is pressed. The
  * history is plain module state, so a value read during render would be memoized on the first render and never see
  * later visits.
  */
-function MorePage() {
+function MoreMenu() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -63,8 +62,6 @@ function MorePage() {
               iconHeight: variables.iconSizeExtraLarge,
           }
         : {};
-
-    useDocumentTitle(translate('common.more'));
 
     // Native tabs stay mounted in the background, so the approval watch behind the item list only runs while this is shown.
     const isFocused = useIsFocused();
@@ -179,6 +176,28 @@ function MorePage() {
     }
 
     return (
+        <MenuItemList
+            menuItems={menuItems}
+            wrapperStyle={shouldUseNarrowLayout ? styles.moreMenuCard : styles.sectionMenuItem(shouldUseNarrowLayout)}
+            shouldUseSingleExecution
+        />
+    );
+}
+
+/**
+ * Destinations that don't fit across the narrow tab bar's five slots. Rendered as a page rather than a menu so the
+ * rows match the left navigation's rows on wide layouts.
+ */
+function MorePage() {
+    const styles = useThemeStyles();
+    const {translate} = useLocalize();
+    // Native tabs mount at startup. The menu works out which destinations a user has from policies and reports, so it
+    // waits until the tab is first opened, while the page around it is already there for the native bar to show.
+    const hasMoreBeenShown = useHasTabBeenShown(SCREENS.MORE);
+
+    useDocumentTitle(translate('common.more'));
+
+    return (
         <ScreenWrapper
             shouldShowOfflineIndicatorInWideScreen
             enableEdgeToEdgeBottomSafeAreaPadding={false}
@@ -192,13 +211,7 @@ function MorePage() {
             <ScrollView addBottomSafeAreaPadding>
                 {/* The horizontal inset belongs to the list, not the rows: on the row it shifts them right without
                     narrowing them, so they run past the screen edge. This matches the Workspace and Account menus. */}
-                <View style={[styles.mh3, styles.mt3, styles.pb4]}>
-                    <MenuItemList
-                        menuItems={menuItems}
-                        wrapperStyle={shouldUseNarrowLayout ? styles.moreMenuCard : styles.sectionMenuItem(shouldUseNarrowLayout)}
-                        shouldUseSingleExecution
-                    />
-                </View>
+                <View style={[styles.mh3, styles.mt3, styles.pb4]}>{hasMoreBeenShown && <MoreMenu />}</View>
             </ScrollView>
         </ScreenWrapper>
     );

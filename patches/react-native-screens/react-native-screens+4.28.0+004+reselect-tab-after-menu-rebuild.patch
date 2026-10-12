@@ -1,0 +1,15 @@
+diff --git a/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/container/TabsContainer.kt b/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/container/TabsContainer.kt
+--- a/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/container/TabsContainer.kt
++++ b/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/container/TabsContainer.kt
+@@ -544,6 +544,11 @@
+         tabsModel.forEach { fragment ->
+             menu.getOrCreateMenuItemForFragment(fragment)
+         }
++        // Rebuilding the menu makes Material check its first item. When the selected tab survives the rebuild there is no
++        // pending selection to re-check it, so check it here. Checking the item doesn't notify the selection listener.
++        if (navState.isNotEmpty()) {
++            menu.findItem(selectedTab.menuItemId)?.isChecked = true
++        }
+     }
+ 
+     private fun updateBottomNavigationViewAppearance() {

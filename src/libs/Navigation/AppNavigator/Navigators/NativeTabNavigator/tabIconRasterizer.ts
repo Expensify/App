@@ -8,9 +8,11 @@ import {BlendMode, ClipOp, FillType, FilterMode, FontWeight, ImageFormat, Mipmap
 import {PixelRatio} from 'react-native';
 
 import type {NativeTabGlyph, NativeTabItemKind} from './NATIVE_TAB_GLYPHS';
-import type {TabAvatarImage} from './useTabAvatarImage';
 
 import NATIVE_TAB_GLYPHS from './NATIVE_TAB_GLYPHS';
+
+/** A decoded avatar drawn in place of a glyph, keyed by its URI. */
+type TabAvatarImage = {uri: string; image: SkImage};
 
 type TabIconLayout = {
     /** Side of a glyph's box. */
@@ -196,7 +198,10 @@ function getTabIcon(layout: TabIconLayout, params: TabIconParams): NativeBottomT
         iconCache.clear();
     }
     const icon = drawTabIcon(layout, params);
-    iconCache.set(key, icon);
+    // A failed draw, such as a surface refused under memory pressure, is retried on the next render rather than cached.
+    if (icon) {
+        iconCache.set(key, icon);
+    }
     return icon;
 }
 

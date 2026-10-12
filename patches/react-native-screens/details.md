@@ -22,3 +22,10 @@
 - Upstream PR/issue: not reported, because dropping the tint for every icon fits only a bar whose icons all arrive pre-colored, as the App's do. The disabled and focused icon colors go with it, which the App does not use.
 - E/App issue: [#101169](https://github.com/Expensify/App/issues/101169)
 - PR introducing patch: [#101339](https://github.com/Expensify/App/pull/101339)
+
+### [react-native-screens+4.28.0+004+reselect-tab-after-menu-rebuild.patch](react-native-screens+4.28.0+004+reselect-tab-after-menu-rebuild.patch)
+
+- Reason: The native tab bar keeps five items while the Spend route moves between the Expenses, Reports and More slots, so the set of tab screens changes while Spend stays selected. On Android, `TabsContainer.updateNavigationMenuStructure` rebuilds the menu with `menu.clear()`, and Material's menu view then checks its first item. The selected screen key did not change, so no navigation state request follows to check the right item again, and Home stays highlighted over the Spend content. The patch checks the selected tab's menu item again after the rebuild. Checking an item updates the menu view without calling the item selection listener, so no tab switch or `tabSelected` event follows.
+- Upstream PR/issue: not reported yet. Upstream only rebuilds the menu when the set of tabs changes, which React Navigation does not do on its own, so it only shows with the App's item-only tabs.
+- E/App issue: [#101169](https://github.com/Expensify/App/issues/101169)
+- PR introducing patch: N/A

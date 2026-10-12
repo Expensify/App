@@ -95,9 +95,8 @@ function useNativeTabNavigator() {
         setPreservedNavigatorState(route.key, tabState);
     }, [tabState, route.key]);
 
-    // Without the beta, Insights has no bar item and its page is not found, so a restored or deep-linked Insights tab
-    // would be a full screen with no way out. Home replaces it, so going back does not return to it. Betas that are
-    // still loading are not a missing beta.
+    // Without the beta, the Insights page is not found, so a restored or deep-linked Insights tab would land on a dead
+    // end. Home replaces it, so going back does not return to it. Betas that are still loading are not a missing beta.
     const isInsightsTabFocusedWithoutBeta = isBetaEnabledOrUnknown(CONST.BETAS.INSIGHTS_PAGE) === false && activeTabRoute?.name === SCREENS.INSIGHTS;
     useEffect(() => {
         if (!isInsightsTabFocusedWithoutBeta) {

@@ -1,6 +1,7 @@
 import {searchKeyToSavedSearchID} from '@libs/SearchKeyUtils';
 import {ACCOUNTING_KEYS, INSIGHTS_KEYS, REPORTS_KEYS} from '@libs/SpendNavigationGroups';
 
+import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';
 
@@ -60,6 +61,11 @@ function getNativeTabBarItems(focusedRouteName: string | undefined, spendSearchK
         moreSlotRoute = undefined;
     }
 
+    // The bar may only switch to Spend itself when it already shows the exact search its item opens. Any other search in
+    // that slot, and every search in the More slot, goes through JS so the tap lands where the JS tab bar would.
+    const isSpendShowingItsSlot =
+        (spendSlot === NATIVE_TAB_ITEM_KINDS.EXPENSES && spendSearchKey === CONST.SEARCH.SEARCH_KEYS.EXPENSES) ||
+        (spendSlot === NATIVE_TAB_ITEM_KINDS.REPORTS && spendSearchKey === CONST.SEARCH.SEARCH_KEYS.REPORTS);
     const itemOnly = (kind: NativeTabItemKind, isShown: boolean) => (isShown ? {kind, isNativeSelectionEnabled: false} : undefined);
     const moreDestination = (routeName: string) => (moreSlotRoute === routeName ? {kind: NATIVE_TAB_ITEM_KINDS.MORE, isNativeSelectionEnabled: false} : undefined);
 
@@ -68,7 +74,7 @@ function getNativeTabBarItems(focusedRouteName: string | undefined, spendSearchK
         [NAVIGATORS.REPORTS_SPLIT_NAVIGATOR]: {kind: NATIVE_TAB_ITEM_KINDS.INBOX, isNativeSelectionEnabled: true},
         [SCREENS.NATIVE_TAB_ITEM.EXPENSES]: itemOnly(NATIVE_TAB_ITEM_KINDS.EXPENSES, spendSlot !== NATIVE_TAB_ITEM_KINDS.EXPENSES),
         [SCREENS.NATIVE_TAB_ITEM.REPORTS_BEFORE_SPEND]: itemOnly(NATIVE_TAB_ITEM_KINDS.REPORTS, spendSlot === NATIVE_TAB_ITEM_KINDS.MORE),
-        [NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR]: {kind: spendSlot, isNativeSelectionEnabled: spendSlot === spendContentSlot},
+        [NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR]: {kind: spendSlot, isNativeSelectionEnabled: isSpendShowingItsSlot},
         [SCREENS.NATIVE_TAB_ITEM.REPORTS_AFTER_SPEND]: itemOnly(NATIVE_TAB_ITEM_KINDS.REPORTS, spendSlot === NATIVE_TAB_ITEM_KINDS.EXPENSES),
         [SCREENS.MORE]: moreDestination(SCREENS.MORE),
         [SCREENS.INSIGHTS]: moreDestination(SCREENS.INSIGHTS),

@@ -1,7 +1,7 @@
 /**
  * Ordered list of screen names registered inside TabNavigator.
- * This must match the Tab.Screen order in TabNavigator.tsx and TabNavigator.native.tsx, where it is also the order
- * the native tab bar draws its items in.
+ * This must match the Tab.Screen order in TabNavigator.tsx. TabNavigator.native.tsx keeps the same relative order and
+ * adds item-only routes for its tab bar, which state built from this list picks up on rehydration.
  * Used by getAdaptedStateFromPath to build complete tab navigator state for deep-links.
  */
 import NAVIGATORS from '@src/NAVIGATORS';

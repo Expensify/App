@@ -1,3 +1,4 @@
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 
@@ -27,9 +28,11 @@ const TAB_ICON_LAYOUT: TabIconLayout = {
  */
 function useNativeTabBarOptions({shouldShowNativeTabBar, dotColors, tabLabels}: NativeTabBarOptionsParams) {
     const theme = useTheme();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {windowWidth} = useWindowDimensions();
     const barItemCount = Object.keys(tabLabels).length;
-    const labelMaxWidth = (windowWidth - 2 * variables.iosNativeTabBarHorizontalInset) / barItemCount - variables.iosNativeTabBarLabelInset;
+    // Whole points, so a resize that barely changes the slot reuses the drawn icons.
+    const labelMaxWidth = Math.floor((windowWidth - 2 * variables.iosNativeTabBarHorizontalInset) / barItemCount - variables.iosNativeTabBarLabelInset);
 
     const screenOptions: NativeBottomTabNavigationOptions = {
         // The labels are drawn into the icons.
@@ -44,23 +47,27 @@ function useNativeTabBarOptions({shouldShowNativeTabBar, dotColors, tabLabels}: 
         tabBarMinimizeBehavior: 'none',
     };
 
-    const getTabOptions = (name: NativeTabItemKind): NativeBottomTabNavigationOptions => ({
-        tabBarIcon: getTabBarIcon(TAB_ICON_LAYOUT, (isSelected) => ({
-            name,
-            color: isSelected ? theme.iconMenu : theme.icon,
-            dotColor: dotColors[name],
-            label: {
-                text: tabLabels[name],
-                color: isSelected ? theme.text : theme.textSupporting,
-                isBold: isSelected,
-                fontSize: fontScale.micro,
-                gap: variables.nativeTabIconLabelGap,
-                maxWidth: labelMaxWidth,
-            },
-        })),
-        // The label is drawn into the icon, so VoiceOver reads it from here.
-        tabBarAccessibilityLabel: tabLabels[name],
-    });
+    // Wide layouts use the JS side bar and never show the native one, so its icons are not drawn there.
+    const getTabOptions = (name: NativeTabItemKind): NativeBottomTabNavigationOptions =>
+        !shouldUseNarrowLayout
+            ? {}
+            : {
+                  tabBarIcon: getTabBarIcon(TAB_ICON_LAYOUT, (isSelected) => ({
+                      name,
+                      color: isSelected ? theme.iconMenu : theme.icon,
+                      dotColor: dotColors[name],
+                      label: {
+                          text: tabLabels[name],
+                          color: isSelected ? theme.text : theme.textSupporting,
+                          isBold: isSelected,
+                          fontSize: fontScale.micro,
+                          gap: variables.nativeTabIconLabelGap,
+                          maxWidth: labelMaxWidth,
+                      },
+                  })),
+                  // The label is drawn into the icon, so VoiceOver reads it from here.
+                  tabBarAccessibilityLabel: tabLabels[name],
+              };
 
     return {screenOptions, getTabOptions};
 }

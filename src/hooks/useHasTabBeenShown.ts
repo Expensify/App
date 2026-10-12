@@ -1,15 +1,13 @@
 import {getTabNavigatorState} from '@libs/Navigation/helpers/tabNavigatorUtils';
-
-import type NAVIGATORS from '@src/NAVIGATORS';
+import type {TabNavigatorParamList} from '@libs/Navigation/types';
 
 import type {NavigationState} from '@react-navigation/native';
-import type {ValueOf} from 'type-fest';
 
 import {useState} from 'react';
 
 import useRootNavigationState from './useRootNavigationState';
 
-type TabNavigatorName = ValueOf<typeof NAVIGATORS>;
+type TabNavigatorName = keyof TabNavigatorParamList;
 
 /** Whether the tab is shown or under a screen drawn over it, rather than a background tab of the tab navigator. */
 function isTabShown(rootState: NavigationState | undefined, tabName: TabNavigatorName) {
