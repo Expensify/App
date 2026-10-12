@@ -1,6 +1,6 @@
 #!/usr/bin/env bun
 
-// cspell:ignore profdata xcconfig fprofile unprofiled CPLUSPLUSFLAGS
+// cspell:ignore Xfrontend profdata xcconfig fprofile unprofiled CPLUSPLUSFLAGS
 
 import {createHash} from 'node:crypto';
 import {copyFileSync, existsSync, readFileSync, statSync, writeFileSync} from 'node:fs';
@@ -52,8 +52,7 @@ function prepare(platform: PlatformName, batchID: string): void {
     requireNonemptyFile(sourceProfile);
     const summary = capture(adapter.llvmTool('llvm-profdata'), ['show', sourceProfile]);
     const functionCount = /Total functions:\s*([0-9]+)/.exec(summary)?.[1];
-    const totalCount = /Total count:\s*([0-9]+)/.exec(summary)?.[1];
-    if (!functionCount || Number(functionCount) === 0 || !totalCount || BigInt(totalCount) === 0n) {
+    if (!hasExecutedFunctions(summary)) {
         fail('The merged LLVM profile has no executed functions.');
     }
     if (adapter.profileFormat) {
@@ -62,16 +61,20 @@ function prepare(platform: PlatformName, batchID: string): void {
         if (readFileSync(formatPath, 'utf8').trim() !== adapter.profileFormat) {
             fail('The iOS profile format does not match the current instrumentation.');
         }
+        const functions = capture(adapter.llvmTool('llvm-profdata'), ['show', '--all-functions', '--counts', sourceProfile]);
+        if (!hasExecutedSwiftFunctions(functions)) {
+            fail('The merged iOS profile has no executed Swift functions. Rebuild with Swift IR instrumentation and collect fresh profiles.');
+        }
         copyFileSync(formatPath, `${adapter.mergedProfilePath}.format`);
     }
     copyFileSync(sourceProfile, adapter.mergedProfilePath);
     const profileSha256 = sha256(adapter.mergedProfilePath);
     if (platform === 'ios') {
         const profilePath = adapter.mergedProfilePath;
-        const flags = `-fprofile-instr-use=${profilePath} -Wno-error=profile-instr-unprofiled`;
+        const flags = `-fprofile-use=${profilePath} -Wno-error=profile-instr-unprofiled`;
         writeFileSync(
             join(adapter.profileDirectory, 'release.xcconfig'),
-            `CLANG_USE_OPTIMIZATION_PROFILE = NO\nOTHER_CFLAGS = $(inherited) ${flags}\nOTHER_CPLUSPLUSFLAGS = $(inherited) ${flags}\nOTHER_SWIFT_FLAGS = $(inherited) -ir-profile-use=${profilePath}\n`,
+            `CLANG_USE_OPTIMIZATION_PROFILE = NO\nOTHER_CFLAGS = $(inherited) ${flags}\nOTHER_CPLUSPLUSFLAGS = $(inherited) ${flags}\nOTHER_SWIFT_FLAGS = $(inherited) -Xfrontend -ir-profile-use=${profilePath}\n`,
         );
     }
     writeFileSync(join(adapter.profileDirectory, 'ci-profile.json'), `${JSON.stringify({...revisions, profileSha256}, null, 2)}\n`);
@@ -139,8 +142,8 @@ function isPgoProof(input: unknown, platform: PlatformName, appVersion: string):
         input.schema === 1 &&
         input.platform === platform &&
         input.appVersion === appVersion &&
-        isSha256(input.sourceRevision) &&
-        isSha256(input.mobileRevision) &&
+        isGitRevision(input.sourceRevision) &&
+        isGitRevision(input.mobileRevision) &&
         isSha256(input.profileSha256) &&
         isSha256(input.binarySha256) &&
         typeof input.binaryName === 'string' &&
@@ -170,6 +173,23 @@ function requireNonemptyFile(path: string): void {
 function sha256(path: string): string {
     requireNonemptyFile(path);
     return createHash('sha256').update(readFileSync(path)).digest('hex');
+}
+
+/** LLVM versions expose either an aggregate count or their maximum function count. */
+function hasExecutedFunctions(summary: string): boolean {
+    const functions = Number(/Total functions:\s*([0-9]+)/.exec(summary)?.[1]);
+    const count = /Total count:\s*([0-9]+)/.exec(summary)?.[1] ?? /Maximum function count:\s*([0-9]+)/.exec(summary)?.[1];
+    return Number.isSafeInteger(functions) && functions > 0 && count !== undefined && BigInt(count) > 0n;
+}
+
+/** Require Swift counters so Clang-only profiles cannot silently pass the iOS gate. */
+function hasExecutedSwiftFunctions(report: string): boolean {
+    const functions = report.matchAll(/^ {2}(\S[^\n]*):\r?\n((?: {4}[^\n]*\r?\n)*)/gm);
+    return Array.from(functions).some((entry) => /(?:^|:)\$s/.test(entry[1] ?? '') && /(?:Function count:\s*|Block counts:\s*\[[^\]\n]*)[1-9][0-9]*/.test(entry[2] ?? ''));
+}
+
+function isGitRevision(value: unknown): boolean {
+    return typeof value === 'string' && /^(?:[a-f0-9]{40}|[a-f0-9]{64})$/.test(value);
 }
 
 function isSha256(value: unknown): value is string {
@@ -217,4 +237,4 @@ if (import.meta.main) {
     }
 }
 
-export {isJourneyResult, isPgoProof};
+export {hasExecutedFunctions, hasExecutedSwiftFunctions, isJourneyResult, isPgoProof};
