@@ -1,8 +1,8 @@
 diff --git a/node_modules/react-native-tab-view/lib/module/TabView.js b/node_modules/react-native-tab-view/lib/module/TabView.js
-index 0000004..0000005 100644
+index 079ee72..2153b63 100644
 --- a/node_modules/react-native-tab-view/lib/module/TabView.js
 +++ b/node_modules/react-native-tab-view/lib/module/TabView.js
-@@ -41,6 +41,27 @@
+@@ -41,6 +41,27 @@ export function TabView({
      height: 0,
      ...initialLayout
    });
@@ -30,7 +30,7 @@ index 0000004..0000005 100644
    const jumpToIndex = index => {
      if (index !== navigationState.index) {
        onIndexChange(index);
-@@ -66,6 +87,7 @@
+@@ -66,6 +87,7 @@ export function TabView({
      ...sceneOptions?.[route.key]
    }]));
    return /*#__PURE__*/_jsx(View, {

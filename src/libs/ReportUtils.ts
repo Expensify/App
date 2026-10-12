@@ -210,8 +210,6 @@ import {
     isCurrentActionUnread,
     isDeletedAction,
     isDeletedParentAction,
-    isDeletedReportPreviewWithError,
-    getVisibleReportActionErrors,
     isDynamicExternalWorkflowApproveFailedAction,
     isDynamicExternalWorkflowSubmitFailedAction,
     isExportIntegrationAction,
@@ -10799,15 +10797,13 @@ function getAllReportActionsErrorsAndReportActionThatRequiresAttention(
     isReportArchived = false,
     reports?: OnyxCollection<Report>,
 ): ReportErrorsAndReportActionThatRequiresAttention {
-    // Keep a preview errored because its report was deleted. It still has to mark the chat as needing attention.
-    const reportActionsArray = Object.values(reportActions ?? {}).filter((action) => !isDeletedAction(action) || isDeletedReportPreviewWithError(action));
+    const reportActionsArray = Object.values(reportActions ?? {}).filter((action) => !isDeletedAction(action));
     const reportActionErrors: ErrorFields = {};
     let reportAction: OnyxEntry<ReportAction>;
 
     for (const action of reportActionsArray) {
-        const actionErrors = getVisibleReportActionErrors(action);
-        if (action && !isEmptyValueObject(actionErrors)) {
-            Object.assign(reportActionErrors, actionErrors);
+        if (action && !isEmptyValueObject(action.errors)) {
+            Object.assign(reportActionErrors, action.errors);
 
             if (!reportAction) {
                 reportAction = action;
