@@ -15,11 +15,13 @@ import React from 'react';
 import createRandomPolicy from '../utils/collections/policies';
 
 const NOT_FOUND = 'Not found';
+const LOADING = 'Loading';
 const POLICY_ID = 'policy-1';
 
 let mockIsUnifiedConnectionsBetaEnabled = true;
 let mockConnectedIntegration: string | undefined;
 let mockIsUberConnected = false;
+let mockHasConnectionsDataBeenFetched: boolean | undefined;
 
 // The gates under test are the props each panel passes here, so the wrapper only shows whether the panel is blocked
 jest.mock('@pages/workspace/AccessOrNotFoundWrapper', () => {
@@ -30,11 +32,15 @@ jest.mock('@pages/workspace/AccessOrNotFoundWrapper', () => {
     };
 });
 jest.mock('@components/ScreenWrapper', () => ({__esModule: true, default: () => null}));
-jest.mock('@components/FullscreenLoadingIndicator', () => ({__esModule: true, default: () => null}));
+jest.mock('@components/FullscreenLoadingIndicator', () => {
+    const {default: MockText} = jest.requireActual<{default: typeof TextComponent}>('@components/Text');
+    return {__esModule: true, default: () => <MockText>Loading</MockText>};
+});
 jest.mock('@hooks/useIsUnifiedConnectionsBetaEnabled', () => () => mockIsUnifiedConnectionsBetaEnabled);
 jest.mock('@hooks/useWorkspaceDocumentTitle', () => () => {});
 jest.mock('@hooks/useScreenBoundDynamicRoute', () => () => jest.fn());
 jest.mock('@hooks/useLocalize', () => () => ({translate: (key: string) => key}));
+jest.mock('@hooks/useOnyx', () => () => [mockHasConnectionsDataBeenFetched]);
 jest.mock('@hooks/useNetwork', () => () => ({isOffline: false}));
 jest.mock('@hooks/usePolicy', () => () => undefined);
 jest.mock('@hooks/usePolicyFeatureWriteAccess', () => () => ({canWrite: true, showReadOnlyModal: jest.fn()}));
@@ -82,6 +88,7 @@ describe('Connections panel gates', () => {
         mockIsUnifiedConnectionsBetaEnabled = true;
         mockConnectedIntegration = undefined;
         mockIsUberConnected = false;
+        mockHasConnectionsDataBeenFetched = true;
     });
 
     describe('ConnectionsAccountingPage', () => {
@@ -130,6 +137,24 @@ describe('Connections panel gates', () => {
 
             // Then the panel shows Not Found
             expect(screen.getByText(NOT_FOUND)).toBeOnTheScreen();
+        });
+
+        it('should show a loading screen until the connections are fetched', () => {
+            // Given a beta user deep linking to a workspace whose connections haven't loaded yet
+            mockHasConnectionsDataBeenFetched = undefined;
+
+            // When the panel opens before any provider shows as connected
+            render(
+                <ConnectionsMergePageBase
+                    policyID={POLICY_ID}
+                    category={CONST.POLICY.CONNECTIONS.CATEGORY.HR}
+                    cards={[buildHRCard(false)]}
+                />,
+            );
+
+            // Then it waits instead of showing Not Found, since only the active workspace has its connections at app start
+            expect(screen.getByText(LOADING)).toBeOnTheScreen();
+            expect(screen.queryByText(NOT_FOUND)).not.toBeOnTheScreen();
         });
 
         it('should open the panel once a provider is connected', () => {
