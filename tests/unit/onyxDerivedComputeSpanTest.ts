@@ -17,6 +17,7 @@ import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 jest.mock('@sentry/react-native', () => {
     const startInactiveSpanCalls: unknown[] = [];
     return {
+        setUser: jest.fn(),
         startInactiveSpan: (options: {op?: string}) => {
             startInactiveSpanCalls.push(options);
             return {

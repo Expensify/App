@@ -71,12 +71,15 @@ describe('actions/TransactionEdit', () => {
             });
 
             it('should handle null transaction gracefully', async () => {
+                // Given no transaction to back up
+                // When a backup is requested
                 createBackupTransaction(undefined, false);
                 await waitForBatchedUpdates();
 
                 const backups = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION_BACKUP}`);
 
-                expect(backups).toBeUndefined();
+                // Then no backup transaction is created
+                expect(backups).toEqual({});
             });
         });
 
@@ -131,12 +134,15 @@ describe('actions/TransactionEdit', () => {
             });
 
             it('should handle null transactionID gracefully', async () => {
+                // Given no transaction ID to restore
+                // When a restore is requested
                 restoreOriginalTransactionFromBackup(undefined, false);
                 await waitForBatchedUpdates();
 
                 const transactions = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}`);
 
-                expect(transactions).toBeUndefined();
+                // Then no transaction is created
+                expect(transactions).toEqual({});
             });
         });
 
