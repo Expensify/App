@@ -117,6 +117,7 @@ function InsightsChartWidget({chart, queryJSON, snapshot, filters, onRetry, onGr
                         data={data}
                         isLoading={isLoading}
                         chartContainerStyle={cardPaddingHorizontal}
+                        shouldShowSinglePointAsBar
                         shouldShowGroupLabels={false}
                         renderDetails={
                             shouldShowTable
