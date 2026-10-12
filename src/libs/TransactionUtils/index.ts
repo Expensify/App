@@ -267,7 +267,8 @@ function getDisplayTransactionWithoutInvalidCommuterExclusion({
 
     const fullDistanceAmount = DistanceRequestUtils.getDistanceRequestAmount(fullDistanceInMeters, unit, rate);
     const isManuallyModified = Math.abs(storedAmount) !== reducedAmount;
-    const normalizedAmount = isManuallyModified ? storedAmount : storedAmount < 0 ? -fullDistanceAmount : fullDistanceAmount;
+    const calculatedAmount = storedAmount < 0 ? -fullDistanceAmount : fullDistanceAmount;
+    const normalizedAmount = isManuallyModified ? storedAmount : calculatedAmount;
     const merchantCurrencySymbol = storedReducedMerchant === merchantAtCurrentRate ? getDisplayCurrencySymbol : getEnglishCurrencySymbol;
     const normalizedMerchant = getDistanceMerchantForTransaction({
         transaction,
