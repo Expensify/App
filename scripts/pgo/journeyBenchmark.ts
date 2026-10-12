@@ -1,3 +1,5 @@
+// cspell:ignore cooldown Cooldown
+
 /** Runs separate read-only signed-in navigation and heavy-report benchmarks. */
 
 // cspell:ignore gfxinfo
@@ -19,7 +21,7 @@ import createAndroidJourneyBenchmarkReader from './journeyBenchmarkAndroid';
 import createIOSJourneyBenchmarkReader from './journeyBenchmarkIOS';
 import {createJourneyDevice} from './journeyDevice';
 import {openReport, scrollFastBothWays, selectSpendSection, showTab, verifyJourneyAccount, waitForTab} from './journeyWorkload';
-import {HEAVY_JOURNEY_SPAN_NAMES, JOURNEY_SPAN_NAMES} from './shared';
+import {benchmarkCooldownSeconds, cooldownBeforeBenchmark, HEAVY_JOURNEY_SPAN_NAMES, JOURNEY_SPAN_NAMES} from './shared';
 
 type JourneyBenchmarkReader = {
     begin: (spanNames: readonly string[]) => void;
@@ -27,7 +29,8 @@ type JourneyBenchmarkReader = {
 };
 
 type FrameHealth = {totalFrames: number; droppedFrames: number; droppedPercent: number; sampleWindowMs: number};
-type JourneyMeasurement = {events: BenchmarkLogEvent[]; frameHealth?: FrameHealth};
+type FrameHealthResult = {status: 'available'; metrics: FrameHealth; raw: unknown} | {status: 'unavailable'; reason: string; raw: unknown};
+type JourneyMeasurement = {events: BenchmarkLogEvent[]; frameTelemetry?: FrameHealthResult};
 type BenchmarkOrder = 'release-first' | 'optimized-first';
 
 type JourneyScenario = {
@@ -61,6 +64,7 @@ async function benchmarkJourneyBuild(
 ): Promise<void> {
     console.log(`Installing ${kind} artifact: ${adapter.artifactPaths[kind]}`);
     adapter.install(kind);
+    await cooldownBeforeBenchmark();
 
     const device = createJourneyDevice({platform: adapter.name, device: deviceID, appID: adapter.appID(), session: `pgo-${scenario.directory}-${adapter.name}-${kind}-${Date.now()}`});
     const reader: JourneyBenchmarkReader =
@@ -73,23 +77,35 @@ async function benchmarkJourneyBuild(
         await scenario.measure(device, reader, fixture, timeoutSeconds);
 
         const recorder = createBenchmarkRecorder({spanNames: [...scenario.spanNames], runs, outputPath});
-        const frameRows: string[] = [];
+        const frameSamples: Array<FrameHealthResult & {run: number}> = [];
         for (let runNumber = 1; runNumber <= runs; runNumber += 1) {
             const measurement = await scenario.measure(device, reader, fixture, timeoutSeconds);
             console.log(`${kind} ${scenario.directory} ${runNumber}/${runs}: ${recorder.record(measurement.events, runNumber).join(', ')}`);
-            if (measurement.frameHealth) {
-                const {totalFrames, droppedFrames, droppedPercent, sampleWindowMs} = measurement.frameHealth;
-                frameRows.push(`${runNumber},${totalFrames},${droppedFrames},${droppedPercent},${sampleWindowMs}`);
-                console.log(`Android scroll frames: ${droppedFrames}/${totalFrames} missed deadlines (${droppedPercent.toFixed(1)}%).`);
+            if (measurement.frameTelemetry) {
+                frameSamples.push({run: runNumber, ...measurement.frameTelemetry});
+                if (measurement.frameTelemetry.status === 'available') {
+                    const {totalFrames, droppedFrames, droppedPercent} = measurement.frameTelemetry.metrics;
+                    console.log(`Android frame window: ${droppedFrames}/${totalFrames} native janky frames (${droppedPercent.toFixed(1)}%).`);
+                } else {
+                    console.log(`Android frame telemetry unavailable for run ${runNumber}: ${measurement.frameTelemetry.reason}`);
+                }
             }
         }
         await verifyJourneyAccount(device, fixture);
         await recorder.complete(`${kind} ${scenario.directory} metrics`);
-        if (frameRows.length > 0) {
-            if (frameRows.length !== runs) {
-                fail(`Only ${frameRows.length}/${runs} Android scroll frame samples were recorded.`);
-            }
-            writeFileSync(outputPath.replace(/\.csv$/, '-frames.csv'), `run,totalFrames,droppedFrames,droppedPercent,sampleWindowMs\n${frameRows.join('\n')}\n`);
+        if (frameSamples.length > 0) {
+            writeFileSync(
+                outputPath.replace(/\.csv$/, '-frames.json'),
+                `${JSON.stringify({schema: 1, requestedRuns: runs, samples: frameSamples, resetVerified: false, isolatedScrollWindowVerified: false}, null, 2)}\n`,
+            );
+            const rows = frameSamples.flatMap((sample) => {
+                if (sample.status !== 'available') {
+                    return [];
+                }
+                const {totalFrames, droppedFrames, droppedPercent, sampleWindowMs} = sample.metrics;
+                return [`${sample.run},${totalFrames},${droppedFrames},${droppedPercent},${sampleWindowMs}`];
+            });
+            writeFileSync(outputPath.replace(/\.csv$/, '-frames.csv'), `run,totalFrames,droppedFrames,droppedPercent,sampleWindowMs\n${rows.join('\n')}\n`);
         }
     } finally {
         try {
@@ -137,23 +153,44 @@ async function measureHeavyJourney(
     await waitForTab(device, 'Account');
     await openReport(device, fixture.report, false, () => reader.begin(HEAVY_JOURNEY_SPAN_NAMES));
     const events = await reader.collect(HEAVY_JOURNEY_SPAN_NAMES, timeoutSeconds);
-    if (device.platform === 'android') {
-        // Android gfxinfo resets after each read. Exclude search and report opening from this frame window.
-        readAndroidFrameHealth(device, false);
-    }
+    // The sampler requests a reset after reading; actual reset success is not verified.
+    const beforeFrames = device.platform === 'android' ? readAndroidFrameHealth(device, false) : undefined;
     scrollFastBothWays(device, Math.min(fixture.scrolls, 4));
-    const frameHealth = device.platform === 'android' ? readAndroidFrameHealth(device, true) : undefined;
+    const afterFrames = device.platform === 'android' ? readAndroidFrameHealth(device, true) : undefined;
+    const frameTelemetry = beforeFrames && afterFrames ? frameWindowResult(beforeFrames, afterFrames) : undefined;
     await showTab(device, 'Inbox');
-    return {events, frameHealth};
+    return {events, frameTelemetry};
 }
 
-function readAndroidFrameHealth(device: ReturnType<typeof createJourneyDevice>, requireFrames: boolean): FrameHealth | undefined {
-    const result = device.command('perf', 'frames');
-    if (!isRecord(result) || !isRecord(result.metrics) || !isRecord(result.metrics.fps) || !isRecord(result.sampling) || !isRecord(result.sampling.fps)) {
-        throw new Error('Android frame sampler returned an unexpected result.');
+/** Ancillary frame telemetry cannot erase otherwise complete native timing samples. */
+function readAndroidFrameHealth(device: ReturnType<typeof createJourneyDevice>, requireFrames: boolean): FrameHealthResult {
+    try {
+        return parseAndroidFrameHealth(device.command('perf', 'frames'), requireFrames);
+    } catch (error) {
+        const reason = error instanceof Error ? error.message : String(error);
+        return {status: 'unavailable', reason, raw: {commandError: reason}};
     }
-    if (result.sampling.fps.resetsAfterRead !== true || result.metrics.fps.available !== true) {
-        throw new Error('Android frame sampler is unavailable or did not reset its counter.');
+}
+
+function frameWindowResult(before: FrameHealthResult, after: FrameHealthResult): FrameHealthResult {
+    const raw = {before: before.raw, after: after.raw};
+    if (before.status === 'unavailable') {
+        return {status: 'unavailable', reason: `Pre-scroll sampler unavailable; window boundary unverified: ${before.reason}`, raw};
+    }
+    return {...after, raw};
+}
+
+function parseAndroidFrameHealth(result: unknown, requireFrames: boolean): FrameHealthResult {
+    const unavailable = (reason: string): FrameHealthResult => ({status: 'unavailable', reason, raw: result});
+    if (!isRecord(result) || !isRecord(result.metrics) || !isRecord(result.metrics.fps) || !isRecord(result.sampling) || !isRecord(result.sampling.fps)) {
+        return unavailable('Android frame sampler returned an unexpected result.');
+    }
+    if (result.sampling.fps.resetsAfterRead !== true) {
+        return unavailable('Android frame sampler does not declare reset-after-read support; reset success is not verified.');
+    }
+    if (result.metrics.fps.available !== true) {
+        const reason = typeof result.metrics.fps.reason === 'string' ? result.metrics.fps.reason : 'No sampler reason provided.';
+        return unavailable(`Android frame sampler unavailable: ${reason}`);
     }
     const {totalFrameCount, droppedFrameCount, droppedFramePercent, sampleWindowMs} = result.metrics.fps;
     if (
@@ -161,14 +198,22 @@ function readAndroidFrameHealth(device: ReturnType<typeof createJourneyDevice>, 
         typeof droppedFrameCount !== 'number' ||
         typeof droppedFramePercent !== 'number' ||
         typeof sampleWindowMs !== 'number' ||
-        ![totalFrameCount, droppedFrameCount, droppedFramePercent, sampleWindowMs].every(Number.isFinite)
+        ![totalFrameCount, droppedFrameCount, droppedFramePercent, sampleWindowMs].every(Number.isFinite) ||
+        !Number.isInteger(totalFrameCount) ||
+        !Number.isInteger(droppedFrameCount) ||
+        totalFrameCount < 0 ||
+        droppedFrameCount < 0 ||
+        droppedFrameCount > totalFrameCount ||
+        droppedFramePercent < 0 ||
+        droppedFramePercent > 100 ||
+        sampleWindowMs < 0
     ) {
-        throw new Error('Android frame sampler did not return finite frame counts.');
+        return unavailable('Android frame sampler returned invalid frame counts or window.');
     }
-    if (requireFrames && totalFrameCount === 0) {
-        throw new Error('The Android scroll produced no measured frames. Discard this run.');
+    if (requireFrames && (totalFrameCount === 0 || sampleWindowMs === 0)) {
+        return unavailable('No frames or positive frame window were available for this scroll sample.');
     }
-    return {totalFrames: totalFrameCount, droppedFrames: droppedFrameCount, droppedPercent: droppedFramePercent, sampleWindowMs};
+    return {status: 'available', metrics: {totalFrames: totalFrameCount, droppedFrames: droppedFrameCount, droppedPercent: droppedFramePercent, sampleWindowMs}, raw: result};
 }
 
 async function benchmarkJourneyAll(
@@ -220,6 +265,9 @@ async function benchmarkJourneyScenario(
                 runs,
                 timeoutSeconds,
                 order,
+                warmUpRunsPerBinary: 1,
+                cooldownSecondsPerBinary: benchmarkCooldownSeconds(),
+                thermalStateVerified: false,
                 scenario: scenario.directory,
                 spans: scenario.spanNames,
                 ...(scenario === HEAVY_JOURNEY
@@ -227,7 +275,8 @@ async function benchmarkJourneyScenario(
                           scrollsPerDirection: Math.min(fixture.scrolls, 4),
                           scrollDurationMs: 120,
                           scrollTimeMeasured: false,
-                          androidScrollFrameHealthMeasured: true,
+                          androidScrollFrameHealthMeasured: false,
+                          androidFrameTelemetry: 'optional; per-sample availability recorded; reset and isolated window unverified',
                           iosScrollFrameHealthMeasured: false,
                       }
                     : {}),
@@ -271,35 +320,30 @@ async function compareJourneyBenchmarks(paths: Record<BenchmarkKind, string>, ru
         console.log(`${span}: release ${baseline.average.toFixed(2)} ms, PGO ${pgo.average.toFixed(2)} ms, ${improvement.toFixed(2)}% (${baseline.runs}/${pgo.runs} runs)`);
     }
     if (scenario === HEAVY_JOURNEY && platform === 'android') {
-        const releaseFrames = readAndroidFrameSamples(paths.release.replace(/\.csv$/, '-frames.csv'), runs);
-        const optimizedFrames = readAndroidFrameSamples(paths.optimized.replace(/\.csv$/, '-frames.csv'), runs);
-        console.log(`Android scroll missed-frame share: release ${releaseFrames.toFixed(2)}%, PGO ${optimizedFrames.toFixed(2)}% (lower is better; separate from report-open latency).`);
+        const releaseFrames = readAndroidFrameSamples(paths.release.replace(/\.csv$/, '-frames.json'), runs);
+        const optimizedFrames = readAndroidFrameSamples(paths.optimized.replace(/\.csv$/, '-frames.json'), runs);
+        console.log(
+            `Android frame telemetry availability: release ${releaseFrames.available}/${runs}, PGO ${optimizedFrames.available}/${runs}. Reset and isolated scroll window are unverified; no scrolling gain is inferred.`,
+        );
     }
     console.log(`Raw journey samples: ${paths.release} and ${paths.optimized}`);
 }
 
-function readAndroidFrameSamples(path: string, runs: number): number {
-    if (!existsSync(path)) {
-        fail(`Missing Android scroll frame samples: ${path}`);
+function readAndroidFrameSamples(path: string, runs: number): {available: number} {
+    const evidence: unknown = JSON.parse(readFileSync(path, 'utf8'));
+    if (!isRecord(evidence) || !Array.isArray(evidence.samples) || evidence.samples.length !== runs) {
+        fail(`Expected ${runs} Android frame telemetry statuses in ${path}.`);
     }
-    const rows = readFileSync(path, 'utf8').trim().split('\n');
-    if (rows.shift() !== 'run,totalFrames,droppedFrames,droppedPercent,sampleWindowMs' || rows.length !== runs) {
-        fail(`Expected ${runs} Android scroll frame samples in ${path}.`);
-    }
-    let totalFrames = 0;
-    let droppedFrames = 0;
-    for (const [index, row] of rows.entries()) {
-        const values = row.split(',').map(Number);
-        const runNumber = values.at(0) ?? NaN;
-        const frames = values.at(1) ?? NaN;
-        const dropped = values.at(2) ?? NaN;
-        if (values.length !== 5 || values.some((value) => !Number.isFinite(value)) || runNumber !== index + 1 || frames <= 0 || dropped < 0 || dropped > frames) {
-            fail(`Invalid Android scroll frame sample ${index + 1} in ${path}.`);
+    let available = 0;
+    for (const [index, sample] of evidence.samples.entries()) {
+        if (!isRecord(sample) || sample.run !== index + 1 || !['available', 'unavailable'].includes(String(sample.status))) {
+            fail(`Invalid Android frame telemetry status ${index + 1} in ${path}.`);
         }
-        totalFrames += frames;
-        droppedFrames += dropped;
+        if (sample.status === 'available') {
+            available += 1;
+        }
     }
-    return (droppedFrames / totalFrames) * 100;
+    return {available};
 }
 
 async function sha256Artifact(path: string): Promise<string> {
@@ -344,5 +388,5 @@ async function sha256Directory(directory: string): Promise<string> {
     return hash.digest('hex');
 }
 
-export {benchmarkHeavyJourneyAll, benchmarkJourneyAll, journeyBenchmarkPaths, sha256Artifact};
+export {benchmarkHeavyJourneyAll, benchmarkJourneyAll, journeyBenchmarkPaths, sha256Artifact, parseAndroidFrameHealth, frameWindowResult};
 export type {BenchmarkOrder};

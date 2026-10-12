@@ -10,20 +10,22 @@ import process from 'node:process';
 import type {BenchmarkKind, BuildArtifactPaths, BuildKind, PlatformAdapter} from './shared';
 
 import {capture, captureBinary, fail, findFiles, rootDirectory, run, sleep} from '../lib/scriptUtils';
+import {androidBuildEnvironment} from './proof';
 import {BENCHMARK_SPANS_ENVIRONMENT} from './shared';
 
 const ANDROID_JAVA_NAMESPACE = 'org.me.mobiexpensifyg';
 const PROFILE_BROADCAST_ACTION = 'com.expensify.chat.action.WRITE_PGO_PROFILES';
 
 function createAndroidPgoAdapter(configuredAppID?: string, configuredDeviceIdentifier?: string): PlatformAdapter {
+    const releasePipeline = androidReleasePipeline(process.env.PGO_ANDROID_RELEASE_PIPELINE, process.env.PGO_ANDROID_SHRINK);
     const ndkVersion = '27.1.12297006';
     const profileDirectory = join(rootDirectory, '.pgo/android/arm64-v8a');
     const rawProfileDirectory = join(profileDirectory, 'raw');
-    const apkDirectory = join(profileDirectory, 'apk');
+    const apkDirectory = join(profileDirectory, releasePipeline.artifactDirectory);
     const benchmarkDirectory = join(rootDirectory, '.pgo/android/benchmarks');
     const androidDirectory = join(rootDirectory, 'Mobile-Expensify/Android');
     const buildGradlePath = join(androidDirectory, 'build.gradle');
-    const gradleReleaseApkPath = join(androidDirectory, 'build/intermediates/apk/release/packageRelease/Expensify-release.apk');
+    const gradleReleaseApkPath = join(androidDirectory, `build/intermediates/apk/release/${releasePipeline.apkTask}/Expensify-release.apk`);
     const profileDumpTimeoutSeconds = 5;
 
     const artifactPaths: BuildArtifactPaths = {
@@ -78,6 +80,7 @@ function createAndroidPgoAdapter(configuredAppID?: string, configuredDeviceIdent
     }
 
     function build(kind: BuildKind, profileOverride?: string): void {
+        const buildEnvironment = androidBuildEnvironment();
         const profilePath = profileOverride ?? join(profileDirectory, 'newdot.profdata');
         if (kind === 'optimized' && !existsSync(profilePath)) {
             fail(`Missing ${profilePath}. Run merge first or pass --profile.`);
@@ -85,19 +88,45 @@ function createAndroidPgoAdapter(configuredAppID?: string, configuredDeviceIdent
 
         const pgoModes: Record<BuildKind, string> = {release: 'off', instrumented: 'generate', optimized: 'use'};
         const gradleArguments = [
-            ':packageRelease',
+            releasePipeline.task,
             '-PpatchedArtifacts.forceBuildFromSource=true',
             '-PreactNativeArchitectures=arm64-v8a',
             `-PpgoMode=${pgoModes[kind]}`,
-            '-x',
-            'fullstoryRelease',
+            ...releasePipeline.arguments,
         ];
+        if (releasePipeline.enabled) {
+            console.log(
+                'Android release pipeline rehearsal enables shrinking and FullStory processing, including external asset uploads. The existing local app ID and signing configuration still apply.',
+            );
+        } else if (releasePipeline.shrinking) {
+            console.log('Android shrinking rehearsal enables release ProGuard rules and disables FullStory tasks. The existing local app ID and signing configuration still apply.');
+        }
         if (kind === 'optimized') {
             gradleArguments.push(`-PpgoProfile=${profilePath}`);
         }
 
-        run('/usr/bin/env', [BENCHMARK_SPANS_ENVIRONMENT, 'SENTRY_DISABLE_AUTO_UPLOAD=true', './gradlew', ...gradleArguments], androidDirectory);
+        run(
+            '/usr/bin/env',
+            [
+                BENCHMARK_SPANS_ENVIRONMENT,
+                'SENTRY_DISABLE_AUTO_UPLOAD=true',
+                'IS_HYBRID_APP=true',
+                'BUNDLER=metro',
+                `PATH=${join(rootDirectory, 'node_modules/.bin')}:${process.env.PATH ?? ''}`,
+                'node',
+                join(rootDirectory, 'node_modules/rock/dist/src/bin.js'),
+                ...androidRockBuildArguments(releasePipeline.task, gradleArguments.slice(1)),
+            ],
+            join(rootDirectory, 'Mobile-Expensify'),
+        );
+        if (JSON.stringify(androidBuildEnvironment()) !== JSON.stringify(buildEnvironment)) {
+            fail('Build environment changed during the Android build. Restore the selected environment file and rebuild.');
+        }
         archiveReleaseApk(artifactPaths[kind]);
+        writeFileSync(
+            `${artifactPaths[kind]}.build-settings.json`,
+            `${JSON.stringify({kind, releasePipeline: releasePipeline.enabled, appID: appID(), sourceBuiltRuntime: true, shrinking: releasePipeline.shrinking, fullStory: releasePipeline.enabled, signing: 'existing-project-configuration', storeEquivalent: false, gradleArguments, buildEnvironment}, null, 2)}\n`,
+        );
     }
 
     function install(kind: BuildKind): void {
@@ -206,6 +235,55 @@ function createAndroidPgoAdapter(configuredAppID?: string, configuredDeviceIdent
     };
 }
 
+/** Keep release processing separate from bootstrap artifacts without rewriting local signing or identifiers. */
+function androidReleasePipeline(value?: string, shrinkValue?: string): {enabled: boolean; shrinking: boolean; artifactDirectory: string; task: string; apkTask: string; arguments: string[]} {
+    if (value && value !== 'true' && value !== 'false') {
+        fail('PGO_ANDROID_RELEASE_PIPELINE must be true or false.');
+    }
+    if (shrinkValue && shrinkValue !== 'true' && shrinkValue !== 'false') {
+        fail('PGO_ANDROID_SHRINK must be true or false.');
+    }
+    if (value === 'true' && shrinkValue === 'true') {
+        fail('Choose PGO_ANDROID_RELEASE_PIPELINE or PGO_ANDROID_SHRINK, not both.');
+    }
+    if (shrinkValue === 'true') {
+        return {
+            enabled: false,
+            shrinking: true,
+            artifactDirectory: 'apk-shrunk',
+            task: ':packageRelease',
+            apkTask: 'packageRelease',
+            arguments: ['-x', 'fullstoryRelease', '-PpgoSkipFullStory=true', '--init-script', join(rootDirectory, 'scripts/pgo/androidRelease.init.gradle')],
+        };
+    }
+    if (value !== 'true') {
+        return {enabled: false, shrinking: false, artifactDirectory: 'apk', task: ':packageRelease', apkTask: 'packageRelease', arguments: ['-x', 'fullstoryRelease']};
+    }
+    return {
+        enabled: true,
+        shrinking: true,
+        artifactDirectory: 'apk-release-pipeline',
+        task: ':fullstoryRelease',
+        apkTask: 'fullstoryRelease',
+        arguments: ['--init-script', join(rootDirectory, 'scripts/pgo/androidRelease.init.gradle')],
+    };
+}
+
+/** Rock prefixes the application module and parses the extra Gradle arguments as one quoted argument list. */
+function androidRockBuildArguments(task: string, gradleArguments: string[]): string[] {
+    return [
+        'build:android',
+        '--local',
+        '--verbose',
+        '--variant',
+        'release',
+        '--tasks',
+        task.replace(/^:/, ''),
+        '--extra-params',
+        gradleArguments.map((argument) => JSON.stringify(argument)).join(' '),
+    ];
+}
+
 function androidApplicationID(buildGradle: string, configuredAppID?: string): string {
     if (configuredAppID) {
         return configuredAppID;
@@ -222,4 +300,4 @@ function androidProfileReceiverComponent(appID: string): string {
 }
 
 export default createAndroidPgoAdapter;
-export {PROFILE_BROADCAST_ACTION, androidApplicationID, androidProfileReceiverComponent};
+export {PROFILE_BROADCAST_ACTION, androidApplicationID, androidProfileReceiverComponent, androidReleasePipeline, androidRockBuildArguments};

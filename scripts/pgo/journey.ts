@@ -15,6 +15,7 @@ import createIOSPgoAdapter from './ios';
 import {parseJourneyFixture} from './journeyConfig';
 import {createJourneyDevice} from './journeyDevice';
 import {prepareJourney, runJourneyWorkload, verifyJourneyAccount} from './journeyWorkload';
+import {sourceIdentity, toolchainIdentity} from './proof';
 
 /** Run the same UI workload on a selected Android or iOS device; never automate authentication. */
 async function main(): Promise<void> {
@@ -59,6 +60,9 @@ async function main(): Promise<void> {
         fixture,
         sourceRevision: capture('git', ['rev-parse', 'HEAD']).trim(),
         mobileRevision: capture('git', ['-C', 'Mobile-Expensify', 'rev-parse', 'HEAD']).trim(),
+        sourceIdentity: sourceIdentity(),
+        toolchain: toolchainIdentity(adapter),
+        instrumentedBinarySha256: process.env.PGO_INSTRUMENTED_BINARY_SHA256,
         automationVersion: capture('agent-device', ['--version']).trim(),
         requestedRuns: runs,
         collectProfiles: cli.flags.collect,

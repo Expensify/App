@@ -1,0 +1,22 @@
+// Apply release processing without changing the owner's local application ID or signing configuration.
+gradle.beforeProject { application ->
+    def skipFullStory = application.providers.gradleProperty('pgoSkipFullStory').getOrElse('false') == 'true'
+    if (skipFullStory) {
+        application.tasks.configureEach { task ->
+            if (task.name.toLowerCase().startsWith('fullstory')) {
+                task.enabled = false
+            }
+        }
+    }
+    application.plugins.withId('com.android.application') {
+        application.extensions.getByName('androidComponents').finalizeDsl { android ->
+            def release = android.buildTypes.findByName('release')
+            if (release == null) {
+                throw new GradleException('The PGO release pipeline requires a release build type.')
+            }
+            release.minifyEnabled = true
+            release.proguardFiles android.getDefaultProguardFile('proguard-android-optimize.txt'), application.file('proguard-rules.pro')
+            application.logger.lifecycle("PGO shrinking enabled; FullStory tasks ${skipFullStory ? 'disabled' : 'enabled'}; existing signing and application ID preserved.")
+        }
+    }
+}

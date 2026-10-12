@@ -1,12 +1,14 @@
 #!/usr/bin/env bun
 
+// cspell:ignore cooldown Cooldown
+
 // cspell:ignore profraw Profdata profdata
 
 import type {TupleToUnion} from 'type-fest';
 
 import CLI from 'expensify-common/CLI';
-import {existsSync, mkdirSync, readFileSync, writeFileSync} from 'node:fs';
-import {resolve} from 'node:path';
+import {copyFileSync, existsSync, mkdirSync, readFileSync, writeFileSync} from 'node:fs';
+import {join, resolve} from 'node:path';
 
 import type {BenchmarkStats} from '../lib/benchmarkStatistics';
 import type {NativeAppBenchmarkAdapter, PlatformName} from '../lib/nativeAppBenchmark';
@@ -21,7 +23,8 @@ import createAndroidPgoAdapter from './android';
 import createIOSPgoAdapter from './ios';
 import {benchmarkHeavyJourneyAll, benchmarkJourneyAll} from './journeyBenchmark';
 import {parseJourneyFixture} from './journeyConfig';
-import {STARTUP_SPAN_NAME} from './shared';
+import {androidBuildEnvironment, fileHash, sourceIdentity, toolchainIdentity} from './proof';
+import {benchmarkCooldownSeconds, cooldownBeforeBenchmark, STARTUP_SPAN_NAME} from './shared';
 
 const DEFAULT_STARTUP_RUNS = 10;
 const DEFAULT_STARTUP_WAIT_SECONDS = 30;
@@ -162,7 +165,7 @@ async function runWorkflow(
             await benchmarkBuild(adapter, await createBenchmarkAdapter(adapter, deviceIdentifier), 'optimized', runs, timeoutSeconds);
             return;
         case 'benchmark':
-            await benchmarkAll(adapter, await createBenchmarkAdapter(adapter, deviceIdentifier), runs, timeoutSeconds);
+            await benchmarkAll(adapter, await createBenchmarkAdapter(adapter, deviceIdentifier), runs, timeoutSeconds, readBenchmarkOrder(benchmarkOrder));
             return;
         case 'compare-benchmarks':
             await compareBenchmarks(adapter);
@@ -251,6 +254,7 @@ async function recordStartups(adapter: PlatformAdapter, benchmarkAdapter: Native
 
 async function benchmarkBuild(adapter: PlatformAdapter, benchmarkAdapter: NativeAppBenchmarkAdapter, kind: BenchmarkKind, runs: number, waitTimeSeconds: number): Promise<void> {
     mkdirSync(adapter.benchmarkDirectory, {recursive: true});
+    await cooldownBeforeBenchmark();
     await runBenchmarkStartups(benchmarkAdapter, {
         mode: 'process',
         spanNames: [STARTUP_SPAN_NAME],
@@ -261,17 +265,39 @@ async function benchmarkBuild(adapter: PlatformAdapter, benchmarkAdapter: Native
     });
 }
 
-async function benchmarkAll(adapter: PlatformAdapter, benchmarkAdapter: NativeAppBenchmarkAdapter, runs: number, waitTimeSeconds: number): Promise<void> {
-    console.log('=== Benchmark phase 1/2: Release ===');
-    console.log(`Installing release artifact: ${adapter.artifactPaths.release}`);
-    adapter.install('release');
-    await benchmarkBuild(adapter, benchmarkAdapter, 'release', runs, waitTimeSeconds);
-
-    console.log('=== Benchmark phase 2/2: PGO optimized ===');
-    await benchmarkAdapter.prepareStartup('process');
-    console.log(`Installing PGO optimized artifact: ${adapter.artifactPaths.optimized}`);
-    adapter.install('optimized');
-    await benchmarkBuild(adapter, benchmarkAdapter, 'optimized', runs, waitTimeSeconds);
+async function benchmarkAll(adapter: PlatformAdapter, benchmarkAdapter: NativeAppBenchmarkAdapter, runs: number, waitTimeSeconds: number, order: BenchmarkOrder): Promise<void> {
+    const batch = join(adapter.benchmarkDirectory, 'startup', new Date().toISOString().replaceAll(/[:.]/g, '-'));
+    mkdirSync(batch, {recursive: true});
+    writeFileSync(
+        join(batch, 'run.json'),
+        `${JSON.stringify(
+            {
+                platform: adapter.name,
+                deviceID: benchmarkAdapter.deviceIdentifier,
+                appID: adapter.appID(),
+                order,
+                runs,
+                warmUpRunsPerBinary: 1,
+                cooldownSecondsPerBinary: benchmarkCooldownSeconds(),
+                thermalStateVerified: false,
+                measurementDriverIdentity: sourceIdentity(),
+                toolchain: toolchainIdentity(adapter),
+                buildEnvironment: adapter.name === 'android' ? androidBuildEnvironment() : null,
+                artifacts: {release: adapter.artifactPaths.release, optimized: adapter.artifactPaths.optimized},
+                artifactSHA256: {release: fileHash(adapter.artifactPaths.release), optimized: fileHash(adapter.artifactPaths.optimized)},
+            },
+            null,
+            2,
+        )}\n`,
+    );
+    const phases: BenchmarkKind[] = order === 'release-first' ? ['release', 'optimized'] : ['optimized', 'release'];
+    for (const kind of phases) {
+        await benchmarkAdapter.prepareStartup('process');
+        console.log(`Installing ${kind} artifact: ${adapter.artifactPaths[kind]}`);
+        adapter.install(kind);
+        await benchmarkBuild(adapter, benchmarkAdapter, kind, runs, waitTimeSeconds);
+        copyFileSync(adapter.benchmarkPaths[kind], join(batch, `${kind}.csv`));
+    }
 
     console.log('=== Benchmark comparison ===');
     await compareBenchmarks(adapter);

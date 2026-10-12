@@ -1,6 +1,6 @@
 import {describe, expect, it} from 'bun:test';
 
-import {journeyBenchmarkPaths, sha256Artifact} from '@scripts/pgo/journeyBenchmark';
+import {frameWindowResult, journeyBenchmarkPaths, parseAndroidFrameHealth, sha256Artifact} from '@scripts/pgo/journeyBenchmark';
 import {parseJourneyFixture} from '@scripts/pgo/journeyConfig';
 import {assertSignedIn, normalizeLabel, parseJourneySnapshot} from '@scripts/pgo/journeyDevice';
 import {
@@ -30,7 +30,46 @@ const fixture = {
 };
 
 describe('PGO journey safeguards', () => {
-    it('logs the held-out navigation spans in both PGO builds without replacing startup samples', () => {
+    it('retains unavailable ancillary telemetry without inventing a zero frame sample', () => {
+        // Given native telemetry is unavailable while workload timing remains independently recorded.
+        const raw = {sampling: {fps: {resetsAfterRead: true}}, metrics: {fps: {available: false, reason: 'No graphics counters'}}};
+        // When the response is classified.
+        const result = parseAndroidFrameHealth(raw, true);
+        // Then the raw reason survives and no numeric frame sample is fabricated.
+        expect(result).toEqual({status: 'unavailable', reason: 'Android frame sampler unavailable: No graphics counters', raw});
+        expect('metrics' in result).toBe(false);
+    });
+
+    it('requires declared reset support and valid positive post-scroll counters', () => {
+        // Given a sampler response with valid counters and a declared reset capability.
+        const raw = {sampling: {fps: {resetsAfterRead: true}}, metrics: {fps: {available: true, totalFrameCount: 10, droppedFrameCount: 2, droppedFramePercent: 20, sampleWindowMs: 500}}};
+        // When valid, malformed, unsupported and empty windows are classified.
+        expect(parseAndroidFrameHealth(raw, true).status).toBe('available');
+        expect(parseAndroidFrameHealth({...raw, sampling: {fps: {resetsAfterRead: false}}}, true).status).toBe('unavailable');
+        expect(parseAndroidFrameHealth({metrics: null}, true).status).toBe('unavailable');
+        for (const invalid of [{totalFrameCount: -1}, {droppedFrameCount: 11}, {sampleWindowMs: Number.NaN}, {totalFrameCount: 0, droppedFrameCount: 0, sampleWindowMs: 0}]) {
+            // Then invalid telemetry is unavailable rather than a zero-valued observation.
+            expect(parseAndroidFrameHealth({...raw, metrics: {fps: {...raw.metrics.fps, ...invalid}}}, true).status).toBe('unavailable');
+        }
+        expect(parseAndroidFrameHealth({...raw, metrics: {fps: {...raw.metrics.fps, totalFrameCount: 0, droppedFrameCount: 0, sampleWindowMs: 0}}}, false).status).toBe('available');
+    });
+
+    it('preserves both responses when the pre-scroll boundary is unavailable', () => {
+        // Given an unavailable boundary and otherwise valid post-scroll counters.
+        const before = parseAndroidFrameHealth({unavailable: true}, false);
+        const after = parseAndroidFrameHealth(
+            {sampling: {fps: {resetsAfterRead: true}}, metrics: {fps: {available: true, totalFrameCount: 10, droppedFrameCount: 1, droppedFramePercent: 10, sampleWindowMs: 500}}},
+            true,
+        );
+        // When the window is assembled without another destructive sampler read.
+        const result = frameWindowResult(before, after);
+        // Then the window remains unavailable with its complete evidence.
+        expect(result.status).toBe('unavailable');
+        expect(result.raw).toEqual({before: before.raw, after: after.raw});
+        expect('metrics' in result).toBe(false);
+    });
+
+    it('logs the separate navigation spans in both PGO builds without replacing startup samples', () => {
         // Given release and optimized artifacts share one build-time benchmark allowlist.
         const enabledSpans = BENCHMARK_SPANS_ENVIRONMENT.split('=').at(1)?.split(',');
         // When / Then the startup span and every short-journey span remain available.
@@ -268,6 +307,43 @@ describe('PGO journey safeguards', () => {
             ['press', '55', '197', '--settle'],
             ['press', '324', '2061', '--settle'],
         ]);
+    });
+
+    it.each([true, false])('checks a slow Back result before enforcing the tab deadline (tab appears: %j)', async (tabAppears) => {
+        // Given a successful Back command that completes after the navigation deadline.
+        const screen = {type: 'Application', rect: {x: 0, y: 0, width: 1080, height: 2280}};
+        const back = {type: 'android.widget.Button', label: 'Back', rect: {x: 21, y: 144, width: 67, height: 105}};
+        const inbox = {type: 'android.view.View', label: 'Inbox', rect: {x: 216, y: 1968, width: 216, height: 186}};
+        let elapsed = 0;
+        let reads = 0;
+        const commands: string[][] = [];
+        const device: Parameters<typeof showTab>[0] = {
+            platform: 'android',
+            snapshot: () => parseJourneySnapshot({appBundleId: 'test.app', nodes: [screen, reads++ > 0 && tabAppears ? inbox : back]}, 'test.app'),
+            command: (...args: string[]) => {
+                commands.push(args);
+                elapsed = 31_000;
+            },
+            wait: () => {},
+            press: () => {},
+            hasLabel: () => false,
+            pressLabel: () => {},
+            waitLabel: () => {},
+            fill: () => {},
+            back: () => {},
+            open: () => {},
+        };
+        // When the loop checks the completed Back's result.
+        const navigation = showTab(device, 'Inbox', () => elapsed);
+        // Then a mounted tab succeeds, while an unchanged screen fails without another Back.
+        if (tabAppears) {
+            await expect(navigation).resolves.toBeUndefined();
+            expect(commands).toHaveLength(2);
+        } else {
+            await expect(navigation).rejects.toThrow('Cannot return to the Inbox tab.');
+            expect(commands).toHaveLength(1);
+        }
+        expect(reads).toBe(2);
     });
 
     it('accepts a duplicated Android navigation subtree but rejects distinct tab targets', () => {

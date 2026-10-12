@@ -1,6 +1,10 @@
+// cspell:ignore cooldown Cooldown
+
 /** Shared PGO workflow types and constants. */
 
 import type {PlatformName} from '../lib/nativeAppBenchmark';
+
+import {fail, sleep} from '../lib/scriptUtils';
 
 const STARTUP_SPAN_NAME = 'ManualAppStartup';
 const JOURNEY_SPAN_NAMES = ['ManualNavigateToReportsFirstPaint', 'ManualNavigateToReportsContentLoad', 'ManualNavigateToInboxTab'] as const;
@@ -31,5 +35,19 @@ type PlatformAdapter = {
     llvmTool: (name: string) => string;
 };
 
-export {BENCHMARK_SPANS_ENVIRONMENT, HEAVY_JOURNEY_SPAN_NAMES, JOURNEY_SPAN_NAMES, STARTUP_SPAN_NAME};
+function benchmarkCooldownSeconds(): number {
+    const seconds = Number(process.env.PGO_BENCHMARK_COOLDOWN_SECONDS ?? 0);
+    if (!Number.isSafeInteger(seconds) || seconds < 0 || seconds > 60) {
+        fail('Benchmark cooldown seconds must be an integer between 0 and 60.');
+    }
+    return seconds;
+}
+
+async function cooldownBeforeBenchmark(): Promise<void> {
+    const seconds = benchmarkCooldownSeconds();
+    console.log(`Waiting ${seconds}s before the discarded warm-up. This delay does not verify thermal state.`);
+    await sleep(seconds * 1000);
+}
+
+export {benchmarkCooldownSeconds, cooldownBeforeBenchmark, BENCHMARK_SPANS_ENVIRONMENT, HEAVY_JOURNEY_SPAN_NAMES, JOURNEY_SPAN_NAMES, STARTUP_SPAN_NAME};
 export type {BenchmarkKind, BuildArtifactPaths, BuildKind, PgoMode, PlatformAdapter};

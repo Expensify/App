@@ -132,15 +132,19 @@ async function openReport(device: JourneyDevice, report: JourneyReport, isPerson
     }
 }
 
-async function showTab(device: JourneyDevice, tab: string): Promise<void> {
-    const deadline = Date.now() + 30_000;
+async function showTab(device: JourneyDevice, tab: string, now = Date.now): Promise<void> {
+    const deadline = now() + 30_000;
     let backPresses = 0;
-    while (Date.now() < deadline) {
+    for (;;) {
         const nodes = device.snapshot();
         const tabNode = findTabNode(nodes, tab);
         if (tabNode) {
             device.command('press', String(Math.round(tabNode.x + tabNode.width / 2)), String(Math.round(tabNode.y + tabNode.height / 2)), '--settle');
             return;
+        }
+        // A completed Back may use the remaining budget. Inspect its result before timing out.
+        if (now() >= deadline) {
+            throw new Error(`Cannot return to the ${tab} tab.`);
         }
         // A relaunch can expose a loading view before tabs mount. Only navigate back from a real nested page.
         if (backPresses < 5 && inAppBackTapPoint(nodes)) {
@@ -149,7 +153,6 @@ async function showTab(device: JourneyDevice, tab: string): Promise<void> {
         }
         await sleep(500);
     }
-    throw new Error(`Cannot return to the ${tab} tab.`);
 }
 
 /** Wait for a mounted bottom tab without navigating away from a partially loaded screen. */

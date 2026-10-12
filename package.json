@@ -84,6 +84,7 @@
     "server:vcr:dev": "npm run dev -w @expensify/victory-chart-renderer --",
     "server:vcr:test": "npm run test -w @expensify/victory-chart-renderer --",
     "test:bun": "TZ=utc bun test --parallel --preload ./scripts/stubReactNative.js --preload ./tests/tooling/setup.ts ./server ./tests/tooling",
+    "test:pgo-ci": "TZ=utc bun test --preload ./scripts/stubReactNative.js --preload ./tests/tooling/setup.ts ./tests/tooling/pgoCandidate.test.ts ./tests/tooling/pgoEvaluationReport.test.ts ./tests/tooling/pgoEvaluationRun.test.ts ./tests/tooling/pgoAndroidRelease.test.ts ./tests/tooling/pgoIOSRock.test.ts ./tests/tooling/pgoJourney.test.ts",
     "eval:proposal-police": "bun test --path-ignore-patterns='**/__never__/**' ./evals/proposalPolice/",
     "server:vcr:build:linux": "npm run build:linux -w @expensify/victory-chart-renderer --",
     "server:vcr:build:linux-arm": "npm run build:linux-arm -w @expensify/victory-chart-renderer --",

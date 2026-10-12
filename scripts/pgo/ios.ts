@@ -230,28 +230,30 @@ function createIOSPgoAdapter(configuredAppID?: string, cliDeviceIdentifier?: str
                   ...(developmentTeam ? [`DEVELOPMENT_TEAM=${developmentTeam}`] : []),
               ]
             : ['CODE_SIGNING_ALLOWED=NO', 'CODE_SIGNING_REQUIRED=NO'];
-        const xcodeArguments = [
-            'xcodebuild',
-            '-workspace',
-            'Expensify.xcworkspace',
-            '-scheme',
-            'Expensify',
-            '-configuration',
-            'Release',
-            '-destination',
-            'generic/platform=iOS',
-            '-derivedDataPath',
-            derivedDataDirectory,
-            ...(codeSigningAllowed ? ['-allowProvisioningUpdates'] : []),
-            '-quiet',
+        const rockArguments = iosRockBuildArguments(derivedDataDirectory, [
             'build',
             'ARCHS=arm64',
             'ONLY_ACTIVE_ARCH=YES',
             'COMPILER_INDEX_STORE_ENABLE=NO',
+            ...(codeSigningAllowed ? ['-allowProvisioningUpdates'] : []),
             ...signingSettings,
             ...pgoBuildSettings(kind, profilePath),
-        ];
-        withLocalUploadPhasesDisabled(() => run('/usr/bin/env', [...sourceBuildEnvironment(mode, profilePath), ...xcodeArguments], iosDirectory));
+        ]);
+        withLocalUploadPhasesDisabled(() =>
+            run(
+                '/usr/bin/env',
+                [
+                    ...sourceBuildEnvironment(mode, profilePath),
+                    'IS_HYBRID_APP=true',
+                    'BUNDLER=metro',
+                    `PATH=${join(rootDirectory, 'node_modules/.bin')}:${process.env.PATH ?? ''}`,
+                    'node',
+                    join(rootDirectory, 'node_modules/rock/dist/src/bin.js'),
+                    ...rockArguments,
+                ],
+                join(rootDirectory, 'Mobile-Expensify'),
+            ),
+        );
         if (!existsSync(builtAppPath)) {
             fail(`Missing built iOS app at ${builtAppPath}.`);
         }
@@ -472,4 +474,25 @@ function replaceOnce(content: string, previous: string, next: string): string {
     return `${content.slice(0, offset)}${next}${content.slice(offset + previous.length)}`;
 }
 
+/** Preserve each Xcode setting as one argument through Rock's string argument parser. */
+function iosRockBuildArguments(derivedDataDirectory: string, settings: string[]): string[] {
+    return [
+        'build:ios',
+        '--local',
+        '--verbose',
+        '--configuration',
+        'Release',
+        '--scheme',
+        'Expensify',
+        '--destination',
+        'generic/platform=iOS',
+        '--build-folder',
+        derivedDataDirectory,
+        '--no-install-pods',
+        '--extra-params',
+        settings.map((argument) => JSON.stringify(argument)).join(' '),
+    ];
+}
+
+export {iosRockBuildArguments};
 export default createIOSPgoAdapter;
