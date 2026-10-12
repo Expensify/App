@@ -2403,7 +2403,6 @@ const translations: TranslationDeepObject<typeof en> = {
             useProfiling: 'Χρησιμοποιήστε προφίλωση',
             profileTrace: 'Ίχνος προφίλ',
             results: 'Αποτελέσματα',
-            releaseOptions: 'Επιλογές έκδοσης',
             testingPreferences: 'Προτιμήσεις δοκιμών',
             server: 'Διακομιστής',
             servers: {

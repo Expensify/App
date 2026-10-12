@@ -2266,7 +2266,6 @@ const translations: TranslationDeepObject<typeof en> = {
             useProfiling: '使用分析工具',
             profileTrace: '性能追踪',
             results: '结果',
-            releaseOptions: '发布选项',
             testingPreferences: '测试偏好',
             server: '服务器',
             servers: {

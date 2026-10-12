@@ -2328,7 +2328,6 @@ const translations: TranslationDeepObject<typeof en> = {
             useProfiling: 'プロファイリングを使用',
             profileTrace: 'プロファイルトレース',
             results: '結果',
-            releaseOptions: 'リリースオプション',
             testingPreferences: 'テスト設定',
             server: 'サーバー',
             servers: {
