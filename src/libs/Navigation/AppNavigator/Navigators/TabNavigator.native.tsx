@@ -12,10 +12,8 @@ import SCREENS from '@src/SCREENS';
 import {createNativeBottomTabNavigator} from '@react-navigation/bottom-tabs/unstable';
 import React from 'react';
 
-import type {NativeTabName} from './NativeTabNavigator/NATIVE_TAB_GLYPHS';
 import type {NativeTabLayoutProps} from './NativeTabNavigator/NativeTabLayout';
 
-import NATIVE_TAB_GLYPHS from './NativeTabNavigator/NATIVE_TAB_GLYPHS';
 import NativeTabLayout from './NativeTabNavigator/NativeTabLayout';
 import tabScreenListeners from './NativeTabNavigator/tabScreenListeners';
 import useNativeTabBarOptions from './NativeTabNavigator/useNativeTabBarOptions';
@@ -34,22 +32,28 @@ const Tab = createNativeBottomTabNavigator<TabNavigatorParamList>();
 
 const HIDDEN_TAB_OPTIONS = {tabBarItemHidden: true};
 
-const isNativeTabName = (name: string): name is NativeTabName => name in NATIVE_TAB_GLYPHS;
+/** Item-only tabs have nothing to show: a tap on them is handled in JS and never focuses them. */
+function NativeTabItemPlaceholder() {
+    return null;
+}
 
 const renderNativeTabLayout = (props: NativeTabLayoutProps) => <NativeTabLayout {...props} />;
 
 function TabNavigator() {
-    const {shouldShowNativeTabBar, isAccountAvatarShown, dotColors, tabLabels, tabWithoutBarItem, tabRouterOverride, isTabSelectionEnabled} = useNativeTabNavigator();
-    const {screenOptions, getTabOptions} = useNativeTabBarOptions({shouldShowNativeTabBar, isAccountAvatarShown, dotColors, tabLabels});
-    // A tab with no bar item draws no icon. More has no glyph of its own yet, so it gets no item either.
-    const getScreenOptions = ({route}: {route: {name: keyof TabNavigatorParamList}}) =>
-        !isNativeTabName(route.name) || route.name === tabWithoutBarItem
-            ? {...screenOptions, ...HIDDEN_TAB_OPTIONS}
-            : {
-                  ...screenOptions,
-                  ...getTabOptions(route.name),
-                  tabBarSelectionEnabled: isTabSelectionEnabled(route.name),
-              };
+    const {shouldShowNativeTabBar, dotColors, tabLabels, tabBarItems, tabRouterOverride, isTabSelectionEnabled} = useNativeTabNavigator();
+    const {screenOptions, getTabOptions} = useNativeTabBarOptions({shouldShowNativeTabBar, dotColors, tabLabels});
+    // A tab with no bar item draws no icon.
+    const getScreenOptions = ({route}: {route: {name: keyof TabNavigatorParamList}}) => {
+        const item = tabBarItems[route.name];
+        if (!item) {
+            return {...screenOptions, ...HIDDEN_TAB_OPTIONS};
+        }
+        return {
+            ...screenOptions,
+            ...getTabOptions(item.kind),
+            tabBarSelectionEnabled: isTabSelectionEnabled(route.name),
+        };
+    };
 
     return (
         <Tab.Navigator
@@ -69,8 +73,20 @@ function TabNavigator() {
                 component={ReportsSplitNavigator}
             />
             <Tab.Screen
+                name={SCREENS.NATIVE_TAB_ITEM.EXPENSES}
+                component={NativeTabItemPlaceholder}
+            />
+            <Tab.Screen
+                name={SCREENS.NATIVE_TAB_ITEM.REPORTS_BEFORE_SPEND}
+                component={NativeTabItemPlaceholder}
+            />
+            <Tab.Screen
                 name={NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR}
                 component={SearchFullscreenNavigator}
+            />
+            <Tab.Screen
+                name={SCREENS.NATIVE_TAB_ITEM.REPORTS_AFTER_SPEND}
+                component={NativeTabItemPlaceholder}
             />
             <Tab.Screen
                 name={SCREENS.INSIGHTS}

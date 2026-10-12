@@ -3479,6 +3479,9 @@ type TabNavigatorParamList = {
     [NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR]: NavigatorScreenParams<SettingsSplitNavigatorParamList>;
     [NAVIGATORS.WORKSPACE_NAVIGATOR]: NavigatorScreenParams<WorkspaceNavigatorParamList>;
     [SCREENS.MORE]: undefined;
+    [SCREENS.NATIVE_TAB_ITEM.EXPENSES]: undefined;
+    [SCREENS.NATIVE_TAB_ITEM.REPORTS_BEFORE_SPEND]: undefined;
+    [SCREENS.NATIVE_TAB_ITEM.REPORTS_AFTER_SPEND]: undefined;
     [SCREENS.INSIGHTS]:
         | {
               dashboardID: string;

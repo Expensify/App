@@ -7,7 +7,7 @@ import type {SkCanvas, SkImage, SkParagraph, SkPath} from '@shopify/react-native
 import {BlendMode, ClipOp, FillType, FilterMode, FontWeight, ImageFormat, MipmapMode, Skia, TextAlign} from '@shopify/react-native-skia';
 import {PixelRatio} from 'react-native';
 
-import type {NativeTabGlyph, NativeTabName} from './NATIVE_TAB_GLYPHS';
+import type {NativeTabGlyph, NativeTabItemKind} from './NATIVE_TAB_GLYPHS';
 import type {TabAvatarImage} from './useTabAvatarImage';
 
 import NATIVE_TAB_GLYPHS from './NATIVE_TAB_GLYPHS';
@@ -32,7 +32,7 @@ type TabIconLabel = {
 
 type TabIconParams = {
     /** The glyph drawn unless an avatar is given. */
-    name: NativeTabName;
+    name: NativeTabItemKind;
     color: string;
     avatar?: TabAvatarImage;
     dotColor?: string;
@@ -43,9 +43,9 @@ type TabIconParams = {
 const MAX_CACHED_ICONS = 64;
 
 const iconCache = new Map<string, NativeBottomTabIcon | undefined>();
-const glyphPathCache = new Map<NativeTabName, SkPath[]>();
+const glyphPathCache = new Map<NativeTabItemKind, SkPath[]>();
 
-function getGlyphPaths(name: NativeTabName): SkPath[] {
+function getGlyphPaths(name: NativeTabItemKind): SkPath[] {
     const cachedPaths = glyphPathCache.get(name);
     if (cachedPaths) {
         return cachedPaths;
@@ -81,7 +81,7 @@ function makeLabelParagraph({text, color, isBold, fontSize, maxWidth}: TabIconLa
     return paragraph;
 }
 
-function drawGlyph(canvas: SkCanvas, name: NativeTabName, left: number, top: number, size: number, color: string) {
+function drawGlyph(canvas: SkCanvas, name: NativeTabItemKind, left: number, top: number, size: number, color: string) {
     const paint = Skia.Paint();
     paint.setColor(Skia.Color(color));
     paint.setAntiAlias(true);

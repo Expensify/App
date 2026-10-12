@@ -1,9 +1,10 @@
+import type {NativeTabItemKind} from '@libs/Navigation/AppNavigator/Navigators/NativeTabNavigator/NATIVE_TAB_GLYPHS';
+
 type NativeTabBarOptionsParams = {
     shouldShowNativeTabBar: boolean;
-    /** Whether the account tab has an item in a narrow layout's bar, so its avatar is drawn. */
-    isAccountAvatarShown: boolean;
-    dotColors: Record<string, string | undefined>;
-    tabLabels: Record<string, string>;
+    dotColors: Partial<Record<NativeTabItemKind, string>>;
+    /** One label per kind of item, which is also how many items the bar shows. */
+    tabLabels: Record<NativeTabItemKind, string>;
 };
 
 export default NativeTabBarOptionsParams;

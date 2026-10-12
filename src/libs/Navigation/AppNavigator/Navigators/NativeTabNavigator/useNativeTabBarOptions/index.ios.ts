@@ -1,15 +1,12 @@
 import useTheme from '@hooks/useTheme';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 
-import type {NativeTabName} from '@libs/Navigation/AppNavigator/Navigators/NativeTabNavigator/NATIVE_TAB_GLYPHS';
+import type {NativeTabItemKind} from '@libs/Navigation/AppNavigator/Navigators/NativeTabNavigator/NATIVE_TAB_GLYPHS';
 import getTabBarIcon from '@libs/Navigation/AppNavigator/Navigators/NativeTabNavigator/tabIconRasterizer';
 import type {TabIconLayout} from '@libs/Navigation/AppNavigator/Navigators/NativeTabNavigator/tabIconRasterizer';
-import useTabAvatarImage from '@libs/Navigation/AppNavigator/Navigators/NativeTabNavigator/useTabAvatarImage';
 
 import {fontScale} from '@styles/typography';
 import variables from '@styles/variables';
-
-import NAVIGATORS from '@src/NAVIGATORS';
 
 import type {NativeBottomTabNavigationOptions} from '@react-navigation/bottom-tabs/unstable';
 
@@ -20,7 +17,6 @@ const getFloatingButtonsBottom = (bottomInset: number) => variables.iosNativeTab
 
 const TAB_ICON_LAYOUT: TabIconLayout = {
     glyphSize: variables.iconNativeTabBarIOS,
-    // A circle reads smaller than a glyph of the same box, so the avatar is drawn a little larger than the glyphs.
     avatarSize: variables.avatarNativeTabBarIOS,
 };
 
@@ -29,12 +25,10 @@ const TAB_ICON_LAYOUT: TabIconLayout = {
  * in the color of the selected tab, so each icon is drawn with its own colors, its status dot and its label. Both
  * selection states are images, because RNScreens rejects a tab whose icon and selectedIcon differ in type.
  */
-function useNativeTabBarOptions({shouldShowNativeTabBar, isAccountAvatarShown, dotColors, tabLabels}: NativeTabBarOptionsParams) {
+function useNativeTabBarOptions({shouldShowNativeTabBar, dotColors, tabLabels}: NativeTabBarOptionsParams) {
     const theme = useTheme();
-    const avatar = useTabAvatarImage(isAccountAvatarShown);
     const {windowWidth} = useWindowDimensions();
-    // One of the tabs never has a bar item, so the bar splits its width between the others.
-    const barItemCount = Object.keys(tabLabels).length - 1;
+    const barItemCount = Object.keys(tabLabels).length;
     const labelMaxWidth = (windowWidth - 2 * variables.iosNativeTabBarHorizontalInset) / barItemCount - variables.iosNativeTabBarLabelInset;
 
     const screenOptions: NativeBottomTabNavigationOptions = {
@@ -50,11 +44,10 @@ function useNativeTabBarOptions({shouldShowNativeTabBar, isAccountAvatarShown, d
         tabBarMinimizeBehavior: 'none',
     };
 
-    const getTabOptions = (name: NativeTabName): NativeBottomTabNavigationOptions => ({
+    const getTabOptions = (name: NativeTabItemKind): NativeBottomTabNavigationOptions => ({
         tabBarIcon: getTabBarIcon(TAB_ICON_LAYOUT, (isSelected) => ({
             name,
             color: isSelected ? theme.iconMenu : theme.icon,
-            avatar: name === NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR ? avatar : undefined,
             dotColor: dotColors[name],
             label: {
                 text: tabLabels[name],

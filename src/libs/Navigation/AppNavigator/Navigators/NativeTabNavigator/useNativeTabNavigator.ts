@@ -1,6 +1,6 @@
 import {useFullScreenBlockingViewState} from '@components/FullScreenBlockingViewContextProvider';
+import getStringParam from '@components/Navigation/NavigationTabBar/getStringParam';
 
-import useAccountTabIndicatorStatus from '@hooks/useAccountTabIndicatorStatus';
 import useInboxTabIndicatorStatus from '@hooks/useInboxTabIndicatorStatus';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -25,16 +25,18 @@ import {findFocusedRoute, useNavigation, useNavigationState, useRoute} from '@re
 import {isAnonymousSessionSelector} from '@selectors/Session';
 import {useEffect} from 'react';
 
-import getTabWithoutBarItem from './getTabWithoutBarItem';
+import type {NativeTabItemKind} from './NATIVE_TAB_GLYPHS';
+
+import getNativeTabBarItems from './getNativeTabBarItems';
+import {NATIVE_TAB_ITEM_KINDS} from './NATIVE_TAB_GLYPHS';
 import {isInboxTabAtChatList, isNativeTabSelectionEnabled} from './tabScreenListeners';
-import useIsWorkspacesTabRestored from './useIsWorkspacesTabRestored';
 
 /**
  * Root-level tab screens where the swipe-back gesture should be disabled.
  * Swiping from these screens would pop the entire TAB_NAVIGATOR, which feels wrong.
  * WORKSPACE.INITIAL is intentionally excluded, since swiping back from it returns to the workspace list.
  */
-const TAB_ROOT_SCREENS_WITHOUT_GESTURE = new Set<string>([SCREENS.HOME, SCREENS.INBOX, SCREENS.SEARCH.ROOT, SCREENS.INSIGHTS, SCREENS.SETTINGS.ROOT]);
+const TAB_ROOT_SCREENS_WITHOUT_GESTURE = new Set<string>([SCREENS.HOME, SCREENS.INBOX, SCREENS.SEARCH.ROOT, SCREENS.INSIGHTS, SCREENS.MORE, SCREENS.SETTINGS.ROOT]);
 
 /** stale === false distinguishes a fully realized NavigationState from a PartialState. */
 function isRealizedNavigationState(state: NavigationState | PartialState<NavigationState> | undefined): state is NavigationState {
@@ -44,14 +46,11 @@ function isRealizedNavigationState(state: NavigationState | PartialState<Navigat
 function useNativeTabNavigator() {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {isBlockingViewVisible} = useFullScreenBlockingViewState();
-    const {isBetaEnabled, isBetaEnabledOrUnknown} = usePermissions();
+    const {isBetaEnabledOrUnknown} = usePermissions();
     const {translate} = useLocalize();
     const [isAnonymousUser = false] = useOnyx(ONYXKEYS.SESSION, {selector: isAnonymousSessionSelector});
-    const isInsightsTabVisible = isBetaEnabled(CONST.BETAS.INSIGHTS_PAGE);
-    const tabWithoutBarItem = getTabWithoutBarItem(isInsightsTabVisible);
     const {indicatorColor: inboxDotColor} = useInboxTabIndicatorStatus();
     const {indicatorColor: workspacesIndicatorColor, status: workspacesIndicatorStatus} = useWorkspacesTabIndicatorStatus();
-    const {indicatorColor: accountIndicatorColor, status: accountIndicatorStatus} = useAccountTabIndicatorStatus();
     const navigation = useNavigation();
     const parentNavigation = navigation.getParent();
     const isFocusedRouteTabRoot = useNavigationState((state) => TAB_ROOT_SCREENS_WITHOUT_GESTURE.has(findFocusedRoute(state)?.name ?? ''));
@@ -61,25 +60,25 @@ function useNativeTabNavigator() {
     // mounts, so the nearest navigation listener context is still the parent stack's.
     const tabState = useNavigationState((parentState) => parentState.routes.find((parentRoute) => parentRoute.key === route.key)?.state);
     const activeTabRoute = isRealizedNavigationState(tabState) ? tabState.routes[tabState.index] : undefined;
-    // A tab with no item in the bar is drawn over the other tabs as a full screen, so the bar hides while it is focused.
-    const isActiveTabWithoutBarItem = activeTabRoute?.name === tabWithoutBarItem;
-    const shouldShowNativeTabBar = shouldUseNarrowLayout && isTabRouteAtRoot(activeTabRoute) && !isBlockingViewVisible && !isActiveTabWithoutBarItem;
     const getTabRoute = (tabName: string) => (isRealizedNavigationState(tabState) ? tabState.routes.find((tabRoute) => tabRoute.name === tabName) : undefined);
+    const spendSearchKey = getStringParam(getTabRoute(NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR)?.state?.routes.at(0)?.params, 'searchKey');
+    const tabBarItems = getNativeTabBarItems(activeTabRoute?.name, spendSearchKey);
+    // A tab with no item in the bar is drawn over the other tabs as a full screen, so the bar hides while it is focused.
+    const isActiveTabWithoutBarItem = !!activeTabRoute && !tabBarItems[activeTabRoute.name];
+    const shouldShowNativeTabBar = shouldUseNarrowLayout && isTabRouteAtRoot(activeTabRoute) && !isBlockingViewVisible && !isActiveTabWithoutBarItem;
     const isInboxAtChatList = isInboxTabAtChatList(getTabRoute(NAVIGATORS.REPORTS_SPLIT_NAVIGATOR));
-    const isWorkspacesTabRestored = useIsWorkspacesTabRestored(getTabRoute(NAVIGATORS.WORKSPACE_NAVIGATOR));
 
-    const dotColors: Record<string, string | undefined> = {
-        [NAVIGATORS.REPORTS_SPLIT_NAVIGATOR]: inboxDotColor,
-        [NAVIGATORS.WORKSPACE_NAVIGATOR]: workspacesIndicatorStatus ? workspacesIndicatorColor : undefined,
-        [NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR]: accountIndicatorStatus ? accountIndicatorColor : undefined,
+    const dotColors: Partial<Record<NativeTabItemKind, string>> = {
+        [NATIVE_TAB_ITEM_KINDS.INBOX]: inboxDotColor,
+        // Workspaces lives behind More, so its attention dot has to surface there.
+        [NATIVE_TAB_ITEM_KINDS.MORE]: workspacesIndicatorStatus ? workspacesIndicatorColor : undefined,
     };
-    const tabLabels: Record<string, string> = {
-        [SCREENS.HOME]: translate('common.home'),
-        [NAVIGATORS.REPORTS_SPLIT_NAVIGATOR]: translate('common.inbox'),
-        [NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR]: translate('common.spend'),
-        [SCREENS.INSIGHTS]: translate('common.insights'),
-        [NAVIGATORS.WORKSPACE_NAVIGATOR]: translate('common.workspacesTabTitle'),
-        [NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR]: translate('initialSettingsPage.account'),
+    const tabLabels: Record<NativeTabItemKind, string> = {
+        [NATIVE_TAB_ITEM_KINDS.HOME]: translate('common.home'),
+        [NATIVE_TAB_ITEM_KINDS.INBOX]: translate('common.inbox'),
+        [NATIVE_TAB_ITEM_KINDS.EXPENSES]: translate('search.tabs.expenses'),
+        [NATIVE_TAB_ITEM_KINDS.REPORTS]: translate('common.reports'),
+        [NATIVE_TAB_ITEM_KINDS.MORE]: translate('common.more'),
     };
 
     useEffect(() => {
@@ -120,11 +119,9 @@ function useNativeTabNavigator() {
         },
     });
 
-    const isAccountAvatarShown = shouldUseNarrowLayout && tabWithoutBarItem !== NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR;
+    const isTabSelectionEnabled = (routeName: string) => !!tabBarItems[routeName]?.isNativeSelectionEnabled && isNativeTabSelectionEnabled(routeName, {isAnonymousUser, isInboxAtChatList});
 
-    const isTabSelectionEnabled = (routeName: string) => isNativeTabSelectionEnabled(routeName, {isAnonymousUser, isInboxAtChatList, isWorkspacesTabRestored});
-
-    return {shouldShowNativeTabBar, isAccountAvatarShown, dotColors, tabLabels, tabWithoutBarItem, tabRouterOverride, isTabSelectionEnabled};
+    return {shouldShowNativeTabBar, dotColors, tabLabels, tabBarItems, tabRouterOverride, isTabSelectionEnabled};
 }
 
 export default useNativeTabNavigator;

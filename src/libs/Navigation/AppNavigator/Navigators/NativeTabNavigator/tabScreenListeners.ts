@@ -28,20 +28,17 @@ function isInboxTabAtChatList(inboxRoute: TabRoute | undefined) {
 
 /**
  * What a tap on the native bar does on top of the tab switch, mirroring the JS tab buttons the native bar replaces.
- * Workspaces is handled by TabPressListeners, which needs Onyx data.
+ * The Expenses, Reports and More slots are handled by TabPressListeners, which needs Onyx data.
  */
 const NAVIGATION_TAB_PRESS_HANDLERS: Partial<Record<NavigationTab, (route: TabRoute) => void>> = {
     [NAVIGATION_TABS.INBOX]: (route) => (isInboxTabAtChatList(route) ? startNavigateToInboxTabSpan({isWideLayout: false}) : navigateToInboxTab()),
     [NAVIGATION_TABS.SEARCH]: () => interceptAnonymousUser(startNavigateToReportsTabSpans),
-    [NAVIGATION_TABS.INSIGHTS]: () => interceptAnonymousUser(() => {}),
     [NAVIGATION_TABS.SETTINGS]: () => interceptAnonymousUser(() => {}),
 };
 
 type NativeTabSelectionParams = {
     isAnonymousUser: boolean;
     isInboxAtChatList: boolean;
-    /** Whether Workspaces shows what its JS tab button restores, see useIsWorkspacesTabRestored. */
-    isWorkspacesTabRestored: boolean;
 };
 
 /**
@@ -49,16 +46,13 @@ type NativeTabSelectionParams = {
  * is kept whenever the tab already shows what its JS tab button opens, because a prevented selection makes the iOS bar
  * slide back to the current tab before JS moves it to the new one.
  */
-function isNativeTabSelectionEnabled(routeName: string, {isAnonymousUser, isInboxAtChatList, isWorkspacesTabRestored}: NativeTabSelectionParams) {
+function isNativeTabSelectionEnabled(routeName: string, {isAnonymousUser, isInboxAtChatList}: NativeTabSelectionParams) {
     const tab = ROUTE_TO_NAVIGATION_TAB[routeName];
     if (isAnonymousUser && ANONYMOUS_GATED_TABS.has(tab)) {
         return false;
     }
     if (tab === NAVIGATION_TABS.INBOX) {
         return isInboxAtChatList;
-    }
-    if (tab === NAVIGATION_TABS.WORKSPACES) {
-        return isWorkspacesTabRestored;
     }
     return true;
 }

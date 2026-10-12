@@ -8,16 +8,14 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import clearSelectedText from '@libs/clearSelectedText/clearSelectedText';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import type {SearchKey} from '@libs/SearchKeyUtils';
-import navigateToCannedSpendSearch from '@libs/SearchNavigationUtils';
-import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
-import {getLastSearchQuery} from '@libs/SearchUIUtils';
+import {navigateToSpendTab} from '@libs/SearchNavigationUtils';
+import type {SpendTabSearchKey} from '@libs/SearchNavigationUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {SearchFilters} from '@src/types/onyx';
+import {lastExpensesSearchQuerySelector, lastReportsSearchQuerySelector} from '@src/selectors/SearchFilters';
 import type IconAsset from '@src/types/utils/IconAsset';
 
-import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 
 import React from 'react';
@@ -25,18 +23,16 @@ import React from 'react';
 import NAVIGATION_TABS from './NAVIGATION_TABS';
 import TabBarItem from './TabBarItem';
 
-type CannedSearchTabKey = typeof CONST.SEARCH.SEARCH_KEYS.EXPENSES | typeof CONST.SEARCH.SEARCH_KEYS.REPORTS;
-
-const LAST_SEARCH_QUERY_SELECTORS: Record<CannedSearchTabKey, (searchFilters: OnyxEntry<SearchFilters>) => string | undefined> = {
-    [CONST.SEARCH.SEARCH_KEYS.EXPENSES]: (searchFilters) => getLastSearchQuery(searchFilters, CONST.SEARCH.SEARCH_KEYS.EXPENSES),
-    [CONST.SEARCH.SEARCH_KEYS.REPORTS]: (searchFilters) => getLastSearchQuery(searchFilters, CONST.SEARCH.SEARCH_KEYS.REPORTS),
-};
+const LAST_SEARCH_QUERY_SELECTORS = {
+    [CONST.SEARCH.SEARCH_KEYS.EXPENSES]: lastExpensesSearchQuerySelector,
+    [CONST.SEARCH.SEARCH_KEYS.REPORTS]: lastReportsSearchQuerySelector,
+} satisfies Record<SpendTabSearchKey, unknown>;
 
 type CannedSearchTabButtonProps = {
     selectedTab: ValueOf<typeof NAVIGATION_TABS>;
 
     /** The search this tab opens. It is one every user has, so the tab needs none of the rules deciding visibility. */
-    searchKey: CannedSearchTabKey;
+    searchKey: SpendTabSearchKey;
 
     label: string;
 
@@ -64,8 +60,7 @@ function CannedSearchTabButton({selectedTab, searchKey, label, icon, searchKeys,
         }
         clearSelectedText();
         interceptAnonymousUser(() => {
-            const searchQuery = buildCannedSearchQuery(searchKey === CONST.SEARCH.SEARCH_KEYS.REPORTS ? {type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT} : undefined);
-            navigateToCannedSpendSearch(searchKey, searchQuery, lastSearchQuery, clearSelectedTransactions);
+            navigateToSpendTab(searchKey, lastSearchQuery, clearSelectedTransactions);
         });
     });
 
