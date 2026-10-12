@@ -9,11 +9,12 @@ function getCustomSplitNavigatorState({state, shouldUseNarrowLayout}: Pick<Custo
         return state;
     }
 
-    const centralScreenRoutes = state.routes.slice(1);
     if (shouldUseNarrowLayout) {
         const routesToRender = state.routes.slice(-2);
         return {...state, routes: routesToRender, index: routesToRender.length - 1};
     }
+
+    const centralScreenRoutes = state.routes.slice(1);
 
     // A hidden wide submit pre-mount does not take one of the two central slots, so the screens rendered before it stay mounted.
     const keptCentralRouteKeys = new Set(

@@ -1,10 +1,11 @@
 import Text from '@components/Text';
 
+import {IsHiddenWideTabPreMountContext} from '@hooks/useIsHiddenWideTabPreMount';
+
 import {setLiveWideTabPreMountRouteKey} from '@libs/Navigation/helpers/wideTabPreMountRouteKey';
 import type NonTopScreenWrapperProps from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigatorComponent/nonTopScreenWrapperTypes';
 import ScreenActivityWrapper from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigatorComponent/ScreenActivityWrapper';
 import ScreenFreezeWrapper from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigatorComponent/ScreenFreezeWrapper';
-import WideTabPreMountPreloadedBoundary from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigatorComponent/WideTabPreMountPreloadedBoundary';
 import wrapDescriptorsWithNonTopScreensBehavior from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigatorComponent/wrapDescriptorsWithNonTopScreensBehavior';
 import type {NonTopScreenBehavior, PlatformStackNavigationState} from '@libs/Navigation/PlatformStackNavigation/types';
 
@@ -43,14 +44,18 @@ function renderWrapped(descriptor: {render: () => React.JSX.Element}): ReactElem
     return descriptor.render();
 }
 
-type BoundaryProps = {isHiddenPreMount: boolean; children: ReactElement};
+type BoundaryProps = {value: boolean; children: ReactElement};
 
 function getBoundary(wrapped: ReactElement<NonTopScreenWrapperProps>): ReactElement<BoundaryProps> | undefined {
     const child = wrapped.props.children;
-    return React.isValidElement<BoundaryProps>(child) && child.type === WideTabPreMountPreloadedBoundary ? child : undefined;
+    return React.isValidElement<BoundaryProps>(child) && child.type === IsHiddenWideTabPreMountContext.Provider ? child : undefined;
 }
 
 describe('wrapDescriptorsWithNonTopScreensBehavior', () => {
+    afterEach(() => {
+        setLiveWideTabPreMountRouteKey(undefined);
+    });
+
     it('leaves a screen that picked no behavior untouched', () => {
         // Given descriptors of screens that picked no non-top behavior
         const descriptors = {[COVERED_KEY]: buildDescriptor('Covered'), [TOP_KEY]: buildDescriptor('Top')};
@@ -99,7 +104,6 @@ describe('wrapDescriptorsWithNonTopScreensBehavior', () => {
 
         // When they are wrapped
         const result = wrapDescriptorsWithNonTopScreensBehavior(descriptors, buildState());
-        setLiveWideTabPreMountRouteKey(undefined);
 
         // Then the pre-mount keeps its wrapper, so the reveal does not remount it, but it is not frozen while covered
         const covered = renderWrapped(result[COVERED_KEY]);
@@ -107,8 +111,8 @@ describe('wrapDescriptorsWithNonTopScreensBehavior', () => {
         expect(covered.props.isScreenBlurred).toBe(false);
         // And it is marked as a hidden pre-mount, so it holds work like marking the report read until the user sees it
         expect(getBoundary(covered)).toBeDefined();
-        expect(getBoundary(covered)?.props.isHiddenPreMount).toBe(true);
-        expect(getBoundary(renderWrapped(result[TOP_KEY]))?.props.isHiddenPreMount).toBe(false);
+        expect(getBoundary(covered)?.props.value).toBe(true);
+        expect(getBoundary(renderWrapped(result[TOP_KEY]))?.props.value).toBe(false);
     });
 
     it('stops marking a wide submit pre-mount as hidden once it is the top screen, keeping the same tree', () => {
@@ -118,13 +122,12 @@ describe('wrapDescriptorsWithNonTopScreensBehavior', () => {
 
         // When they are wrapped
         const result = wrapDescriptorsWithNonTopScreensBehavior(descriptors, buildState());
-        setLiveWideTabPreMountRouteKey(undefined);
 
         // Then it renders the same wrapper and boundary as before, so it is not remounted, but it is no longer marked hidden
         const top = renderWrapped(result[TOP_KEY]);
         expect(top.type).toBe(ScreenFreezeWrapper);
         expect(getBoundary(top)).toBeDefined();
-        expect(getBoundary(top)?.props.isHiddenPreMount).toBe(false);
+        expect(getBoundary(top)?.props.value).toBe(false);
     });
 
     it.each([
