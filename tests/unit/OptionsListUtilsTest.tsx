@@ -5760,7 +5760,7 @@ describe('OptionsListUtils', () => {
                 },
                 translate: translateLocal,
                 rules: undefined,
-                activePolicyID: undefined,
+                activePolicyID,
             });
 
             // Then the self DM should be returned so the current user can find their own chat
