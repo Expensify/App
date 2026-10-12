@@ -3538,6 +3538,7 @@ function getDaySections(
             ...dayGroup,
             formattedDay: DateUtils.formatToReadableString(dayGroup.day, dateFnsLocale),
             shortFormattedDay: DateUtils.getShortFormattedDayForSearch(dayGroup.day, dateFnsLocale, shouldShowShortLabelYear),
+            compactFormattedDay: DateUtils.getCompactFormattedDateForSearch(dayGroup.day, dateFnsLocale),
             keyForList: key,
         };
     }
@@ -3627,6 +3628,7 @@ function getWeekSections(
             ...weekGroup,
             formattedWeek,
             shortFormattedWeek,
+            compactFormattedWeek: DateUtils.getCompactFormattedDateForSearch(weekStart, dateFnsLocale),
             keyForList: key,
         };
     }

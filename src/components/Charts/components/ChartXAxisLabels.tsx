@@ -33,6 +33,9 @@ type ChartXAxisLabelsProps = {
     /** Show every Nth label (1 = all, 2 = every other, etc.). */
     labelSkipInterval: number;
 
+    /** Per-label horizontal shift (px) applied to horizontal labels */
+    labelXOffsets?: number[];
+
     /** Font size used for rendering labels. */
     fontSize: number;
 
@@ -58,6 +61,7 @@ function ChartXAxisLabels({
     ellipsisWidth,
     labelRotation,
     labelSkipInterval,
+    labelXOffsets,
     fontSize,
     fontManager,
     labelColor,
@@ -104,7 +108,7 @@ function ChartXAxisLabels({
                 <Paragraph
                     key={`x-label-${label}-${tickX}`}
                     paragraph={paraData.para}
-                    x={tickX - renderWidth / 2}
+                    x={tickX - renderWidth / 2 + (labelXOffsets?.at(i) ?? 0)}
                     y={labelY - ascent}
                     width={renderWidth + GLYPH_PADDING}
                 />

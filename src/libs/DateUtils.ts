@@ -1186,6 +1186,12 @@ function getShortFormattedDayForSearch(day: string, dateFnsLocale: DateFnsLocale
     return format(parse(day, 'yyyy-MM-dd', new Date()), shouldShowYear ? 'MMM d, ’yy' : 'MMM d', {locale: dateFnsLocale});
 }
 
+/** Returns a compact date label that adds the year only outside the current year, e.g. "Sep 15" or "Dec 28, ’25". */
+function getCompactFormattedDateForSearch(date: string, dateFnsLocale: DateFnsLocale | undefined): string {
+    const parsedDate = parse(date, 'yyyy-MM-dd', new Date());
+    return format(parsedDate, isThisYear(parsedDate) ? 'MMM d' : 'MMM d, ’yy', {locale: dateFnsLocale});
+}
+
 /** Returns a month label, e.g. "September 2025". */
 function getFormattedMonthForSearch(year: number, month: number, dateFnsLocale: DateFnsLocale | undefined): string {
     return format(new Date(year, month - 1, 1), 'LLLL yyyy', {locale: dateFnsLocale});
@@ -1355,6 +1361,7 @@ const DateUtils = {
     getWeekDateRange,
     isDateStringInMonth,
     getShortFormattedDayForSearch,
+    getCompactFormattedDateForSearch,
     getFormattedMonthForSearch,
     getShortFormattedMonthForSearch,
     getFormattedDateRangeForSearch,
