@@ -6,6 +6,7 @@ import {
     clearBusinessCentralErrorField,
     connectToBusinessCentral,
     updateBusinessCentralCompany,
+    updateBusinessCentralCustomerMapping,
     updateBusinessCentralDefaultVendor,
     updateBusinessCentralEnableNewCategories,
     updateBusinessCentralExportDate,
@@ -408,6 +409,37 @@ describe('actions/connections/BusinessCentral', () => {
                                         coding: {fieldMappings: {[DIMENSION_CODE]: CONST.BUSINESS_CENTRAL_MAPPING_VALUE.NONE}},
                                         pendingFields: {[FEEDBACK_KEY]: null},
                                         errorFields: {[FEEDBACK_KEY]: ANY_VALUE},
+                                    },
+                                },
+                            },
+                        },
+                    },
+                ],
+            });
+        });
+
+        it.each([
+            [CONST.BUSINESS_CENTRAL_FIELD_MAPPING.CUSTOMERS, WRITE_COMMANDS.UPDATE_BUSINESS_CENTRAL_CUSTOMERS_MAPPING],
+            [CONST.BUSINESS_CENTRAL_FIELD_MAPPING.PROJECTS, WRITE_COMMANDS.UPDATE_BUSINESS_CENTRAL_PROJECTS_MAPPING],
+        ])('updates the %s mapping through its dedicated command', (mappingName, command) => {
+            // Given a Customer or Project mapping that is not imported as a tag
+            // When the admin enables it
+            updateBusinessCentralCustomerMapping(MOCK_POLICY_ID, mappingName, CONST.BUSINESS_CENTRAL_MAPPING_VALUE.TAG, CONST.BUSINESS_CENTRAL_MAPPING_VALUE.NONE);
+
+            // Then the dedicated command updates the separate customerMappings object without touching real dimensions
+            expect(writeSpy).toHaveBeenCalledWith(command, expect.objectContaining({policyID: MOCK_POLICY_ID, mapping: CONST.BUSINESS_CENTRAL_MAPPING_VALUE.TAG}), expect.anything());
+            expect(getFirstWriteOnyxData()).toMatchObject({
+                optimisticData: [
+                    {
+                        key: POLICY_KEY,
+                        value: {
+                            connections: {
+                                businessCentral: {
+                                    config: {
+                                        coding: {customerMappings: {[mappingName]: CONST.BUSINESS_CENTRAL_MAPPING_VALUE.TAG}},
+                                        pendingFields: {
+                                            [mappingName]: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                                        },
                                     },
                                 },
                             },

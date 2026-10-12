@@ -50,7 +50,7 @@ function selectReusableRoute(transactionID: string, route: ReusableDistanceRoute
         Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {
             iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MAP,
             isReusedRoute: true,
-            comment: {customUnit: {quantity: route.distance}},
+            comment: {customUnit: {quantity: route.distance, routeDistanceMeters: route.routeDistanceMeters}},
         }),
     );
 }

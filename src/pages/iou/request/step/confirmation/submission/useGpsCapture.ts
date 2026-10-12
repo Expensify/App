@@ -1,8 +1,7 @@
 import useOnyx from '@hooks/useOnyx';
 
 import type {WriteReadyBarrier} from '@libs/API';
-import getCurrentPosition from '@libs/getCurrentPosition';
-import Log from '@libs/Log';
+import getCurrentPositionWithinCap from '@libs/getCurrentPosition/getCurrentPositionWithinCap';
 import {endSpan, getSpan, startSpan} from '@libs/telemetry/activeSpans';
 import markSubmitExpenseEnd from '@libs/telemetry/markSubmitExpenseEnd';
 
@@ -13,6 +12,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 
 function getCurrentPositionWithGeolocationSpan(onPosition: (gpsCoords?: {lat: number; long: number}) => void) {
     const parentSpan = getSpan(CONST.TELEMETRY.SPAN_SUBMIT_EXPENSE);
+    parentSpan?.setAttribute(CONST.TELEMETRY.ATTRIBUTE_LOCATION_SOURCE, CONST.TELEMETRY.SUBMIT_EXPENSE_LOCATION_SOURCE.WAITED);
     markSubmitExpenseEnd();
 
     startSpan(CONST.TELEMETRY.SPAN_GEOLOCATION_WAIT, {
@@ -21,17 +21,11 @@ function getCurrentPositionWithGeolocationSpan(onPosition: (gpsCoords?: {lat: nu
         parentSpan,
     });
 
-    getCurrentPosition(
-        (successData) => {
-            onPosition({lat: successData.coords.latitude, long: successData.coords.longitude});
-            endSpan(CONST.TELEMETRY.SPAN_GEOLOCATION_WAIT);
-        },
-        (errorData) => {
-            Log.info('[useGpsCapture] getCurrentPosition failed', false, errorData);
-            onPosition();
-            endSpan(CONST.TELEMETRY.SPAN_GEOLOCATION_WAIT);
-        },
-    );
+    getCurrentPositionWithinCap((gpsCoords, source) => {
+        getSpan(CONST.TELEMETRY.SPAN_GEOLOCATION_WAIT)?.setAttribute(CONST.TELEMETRY.ATTRIBUTE_LOCATION_SOURCE, source);
+        onPosition(gpsCoords);
+        endSpan(CONST.TELEMETRY.SPAN_GEOLOCATION_WAIT);
+    });
 }
 
 type SubmitWithGpsPointParams = {
@@ -53,6 +47,7 @@ function useGpsCapture() {
         }
 
         if (userLocation) {
+            getSpan(CONST.TELEMETRY.SPAN_SUBMIT_EXPENSE)?.setAttribute(CONST.TELEMETRY.ATTRIBUTE_LOCATION_SOURCE, CONST.TELEMETRY.SUBMIT_EXPENSE_LOCATION_SOURCE.CACHED);
             write(shouldHandleNavigation, {lat: userLocation.latitude, long: userLocation.longitude}, writeBarrier);
             markSubmitExpenseEnd();
             return false;

@@ -39,6 +39,28 @@ describe('useChartLabelFormats', () => {
         expect(result.current.formatValue(1000)).toBe('1.000€');
     });
 
+    it('puts a leading unit after the minus sign', () => {
+        // Given a currency unit on the left
+        const {result} = renderHook(() => useChartLabelFormats({data: SAMPLE_DATA, unit: {value: '$', fallback: 'USD'}, unitPosition: 'left'}));
+
+        // When formatting negative values
+        const formatted = [result.current.formatValue(-1000), result.current.formatCompactValue(-50000)];
+
+        // Then the sign comes first, the way negative amounts are written, rather than sitting between the unit and the number
+        expect(formatted).toEqual(['-$1,000', '-$50k']);
+    });
+
+    it('keeps the minus sign in front of the number when the unit trails it', () => {
+        // Given a currency unit on the right
+        const {result} = renderHook(() => useChartLabelFormats({data: SAMPLE_DATA, unit: {value: '€', fallback: 'EUR'}, unitPosition: 'right'}));
+
+        // When formatting a negative value
+        const formatted = result.current.formatValue(-1000);
+
+        // Then nothing moves, since the sign already leads
+        expect(formatted).toBe('-1,000€');
+    });
+
     it('abbreviates axis values while keeping the unit', () => {
         // Given a currency unit on the left
         const {result} = renderHook(() => useChartLabelFormats({data: SAMPLE_DATA, unit: {value: 'zł', fallback: 'PLN'}, unitPosition: 'left'}));

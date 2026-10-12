@@ -1,3 +1,4 @@
+import CONST from '@src/CONST';
 import type {Route} from '@src/ROUTES';
 
 import type {ReactNode} from 'react';
@@ -7,6 +8,7 @@ import {Linking} from 'react-native';
 
 type InitialUrlStateContextType = {
     initialURL: Route | null;
+    isLoadingInitialURL: boolean;
     isAuthenticatedAtStartup: boolean;
 };
 
@@ -23,6 +25,7 @@ const defaultInitialURLActionsContext: InitialUrlActionsContextType = {
 /** Initial url that will be opened when NewDot is embedded into Hybrid App. */
 const InitialURLStateContext = createContext<InitialUrlStateContextType>({
     initialURL: null,
+    isLoadingInitialURL: true,
     isAuthenticatedAtStartup: false,
 });
 
@@ -35,21 +38,37 @@ type InitialURLContextProviderProps = {
 
 function InitialURLContextProvider({children}: InitialURLContextProviderProps) {
     const [initialURL, setInitialURL] = useState<Route | null>(null);
+    const [isLoadingInitialURL, setIsLoadingInitialURL] = useState<boolean>(true);
     const [isAuthenticatedAtStartup, setIsAuthenticatedAtStartup] = useState<boolean>(false);
 
     useEffect(() => {
-        Linking.getInitialURL().then((initURL) => {
-            if (!initURL) {
-                return;
-            }
-            setInitialURL(initURL as Route);
-        });
+        let timeoutId: ReturnType<typeof setTimeout>;
+
+        // Race against a timeout so isLoadingInitialURL doesn't stay stuck if getInitialURL() never resolves
+        Promise.race([
+            Linking.getInitialURL(),
+            new Promise<null>((resolve) => {
+                timeoutId = setTimeout(() => {
+                    resolve(null);
+                }, CONST.TIMING.GET_INITIAL_URL_TIMEOUT);
+            }),
+        ])
+            .then((initURL) => {
+                if (!initURL) {
+                    return;
+                }
+                setInitialURL(initURL as Route);
+            })
+            .finally(() => setIsLoadingInitialURL(false));
+
+        return () => clearTimeout(timeoutId);
     }, []);
 
     // Because of the React Compiler we don't need to memoize it manually
     // eslint-disable-next-line react/jsx-no-constructed-context-values
     const stateContextValue = {
         initialURL,
+        isLoadingInitialURL,
         isAuthenticatedAtStartup,
     };
 
