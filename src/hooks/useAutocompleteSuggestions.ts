@@ -7,7 +7,7 @@ import {getBankAccountSearchLabel, isFilterableBankAccount} from '@libs/BankAcco
 import {getCardFeedsForDisplay} from '@libs/CardFeedUtils';
 import {getCardDescription, isCard, isCardHiddenFromSearch} from '@libs/CardUtils';
 import {getDecodedCategoryName} from '@libs/CategoryUtils';
-import type {OptionList} from '@libs/OptionsListUtils';
+import type {GetOptionsConfig, OptionList} from '@libs/OptionsListUtils';
 import {getSearchOptions} from '@libs/OptionsListUtils';
 import {getAllTaxRates, getCleanedTagName, getExpensifyTeamExclusions, shouldShowPolicy} from '@libs/PolicyUtils';
 import {
@@ -25,7 +25,7 @@ import {getDatePresets, getHasOptions} from '@libs/SearchUIUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {CardFeeds, CardList, PersonalDetailsList, Policy} from '@src/types/onyx';
-import type {VisibleReportActionsDerivedValue} from '@src/types/onyx/DerivedValues';
+import type {ReportAttributesDerivedValue, VisibleReportActionsDerivedValue} from '@src/types/onyx/DerivedValues';
 import type {Icon} from '@src/types/onyx/OnyxCommon';
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
 import getEmptyArray from '@src/types/utils/getEmptyArray';
@@ -57,12 +57,15 @@ type UseAutocompleteSuggestionsParams = {
     allCards: CardList | undefined;
     allFeeds: Record<string, CardFeeds | undefined> | undefined;
     options: OptionList;
+    /** Resolves a report from the same snapshot `options` was built from @see useFilteredOptions */
+    getReportByID: GetOptionsConfig['getReportByID'];
     draftComments: OnyxCollection<string>;
     isDefaultRoomsBetaEnabled: boolean;
     countryCode: OnyxEntry<number>;
     loginList: OnyxEntry<Record<string, unknown>>;
     policies: NonNullable<OnyxCollection<Policy>>;
     visibleReportActionsData?: VisibleReportActionsDerivedValue;
+    reportAttributesDerived?: ReportAttributesDerivedValue['reports'];
     currentUserAccountID: number;
     currentUserEmail: string;
     personalDetails: OnyxEntry<PersonalDetailsList>;
@@ -108,12 +111,14 @@ function useAutocompleteSuggestions({
     allCards = CONST.EMPTY_OBJECT,
     allFeeds,
     options,
+    getReportByID,
     draftComments,
     isDefaultRoomsBetaEnabled,
     countryCode,
     loginList,
     policies,
     visibleReportActionsData,
+    reportAttributesDerived,
     currentUserAccountID,
     currentUserEmail,
     personalDetails,
@@ -121,8 +126,8 @@ function useAutocompleteSuggestions({
     translate,
     autocompleteSubstitutions,
 }: UseAutocompleteSuggestionsParams): AutocompleteItemData[] {
-    const {localeCompare, dateFnsLocale} = useLocalize();
-    const {convertToDisplayString} = useCurrencyListActions();
+    const {localeCompare, dateFnsLocale, formatPhoneNumber} = useLocalize();
+    const {convertToDisplayString, convertToDisplayStringWithoutCurrency} = useCurrencyListActions();
     const [allPolicyCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES);
     const [allRecentCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES);
     const [recentCurrencyAutocompleteList] = useOnyx(ONYXKEYS.RECENTLY_USED_CURRENCIES);
@@ -133,6 +138,8 @@ function useAutocompleteSuggestions({
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const sortedReportActionsData = useSortedReportActionsData();
     const sortedActions = sortedReportActionsData?.sortedActions;
+    const transactionThreadIDs = sortedReportActionsData?.transactionThreadIDs;
+    const lastActions = sortedReportActionsData?.lastActions;
     const {currencyList} = useCurrencyListState();
     const {exportedToFilterOptions} = useExportedToFilterOptions();
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
@@ -253,6 +260,7 @@ function useAutocompleteSuggestions({
             const participants = getSearchOptions({
                 dateFnsLocale,
                 convertToDisplayString,
+                convertToDisplayStringWithoutCurrency,
                 options,
                 draftComments,
                 isDefaultRoomsBetaEnabled,
@@ -271,11 +279,19 @@ function useAutocompleteSuggestions({
                 currentUserAccountID,
                 currentUserEmail,
                 personalDetails,
+                reportAttributesDerived,
+                currentUserLogin: currentUserEmail,
                 sortedActions,
+                transactionThreadIDs,
+                lastActions,
+                localeCompare,
+                formatPhoneNumber,
                 conciergeReportID,
                 excludeFromSuggestionsOnly: memberExclusions,
+                allPolicyTags: allPoliciesTags,
                 isTrackIntentUser,
                 translate,
+                getReportByID,
                 rules,
             }).options.personalDetails.filter((participant) => participant.text && !alreadyAutocompletedKeys.has(participant.text.toLowerCase()));
 
@@ -296,6 +312,7 @@ function useAutocompleteSuggestions({
             const filteredReports = getSearchOptions({
                 dateFnsLocale,
                 convertToDisplayString,
+                convertToDisplayStringWithoutCurrency,
                 options,
                 draftComments,
                 isDefaultRoomsBetaEnabled,
@@ -314,10 +331,18 @@ function useAutocompleteSuggestions({
                 currentUserAccountID,
                 currentUserEmail,
                 personalDetails,
+                reportAttributesDerived,
+                currentUserLogin: currentUserEmail,
                 sortedActions,
+                transactionThreadIDs,
+                lastActions,
+                localeCompare,
+                formatPhoneNumber,
                 conciergeReportID,
+                allPolicyTags: allPoliciesTags,
                 isTrackIntentUser,
                 translate,
+                getReportByID,
                 rules,
             }).options.recentReports.filter((chat) => {
                 if (!chat.text) {

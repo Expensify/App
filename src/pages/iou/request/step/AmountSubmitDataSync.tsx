@@ -3,6 +3,7 @@ import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useDuplicateTransactionsAndViolations from '@hooks/useDuplicateTransactionsAndViolations';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
+import {useAllPersonalDetails} from '@hooks/usePersonalDetails';
 import usePersonalPolicy from '@hooks/usePersonalPolicy';
 import useSelfDMReport from '@hooks/useSelfDMReport';
 
@@ -80,7 +81,7 @@ function AmountSubmitDataSync({report, transaction, transactionID, policyID, isE
     const selfDMReport = useSelfDMReport();
     const defaultExpensePolicy = useDefaultExpensePolicy();
     const personalPolicy = usePersonalPolicy();
-    const [allPersonalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
+    const [allPersonalDetails] = useAllPersonalDetails();
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const [allReportDrafts] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT);
     const [allReportNVPs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);

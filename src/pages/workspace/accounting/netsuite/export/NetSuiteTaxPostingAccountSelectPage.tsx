@@ -11,7 +11,8 @@ import {updateNetSuiteTaxPostingAccount} from '@libs/actions/connections/NetSuit
 import {getLatestErrorField} from '@libs/ErrorUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
-import {canUseTaxNetSuite, getNetSuiteTaxAccountOptions, settingsPendingAction} from '@libs/PolicyUtils';
+import {canUseTaxNetSuite, getNetSuiteTaxAccountOptions} from '@libs/NetSuiteUtils';
+import {settingsPendingAction} from '@libs/PolicyUtils';
 
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
