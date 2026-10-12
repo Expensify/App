@@ -5697,10 +5697,10 @@ function canEditMoneyRequest(
     reportAction: OnyxInputOrEntry<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>>,
     linkedTransaction: OnyxEntry<Transaction>,
     rules: OnyxCollection<Rule>,
-    isChatReportArchived = false,
-    report?: OnyxInputOrEntry<Report>,
-    policy?: OnyxEntry<Policy>,
-    reportActions?: OnyxEntry<ReportActions> | ReportAction[],
+    isChatReportArchived: boolean,
+    report: OnyxInputOrEntry<Report>,
+    policy: OnyxEntry<Policy>,
+    reportActions: OnyxEntry<ReportActions> | ReportAction[],
 ): boolean {
     const isDeleted = isDeletedAction(reportAction);
 
@@ -6002,7 +6002,7 @@ function canEditFieldOfMoneyRequest({
     report?: OnyxInputOrEntry<Report>;
     policy?: OnyxEntry<Policy>;
     reportNameValuePairs: OnyxCollection<ReportNameValuePairs>;
-    // Temporarily optional while callers are migrated in smaller PRs. Once every caller passes it, the module-level fallback in hasReportBeenForwardedSinceLastSubmit is removed as part of https://github.com/Expensify/App/issues/66419.
+    // Temporarily optional until getSecondaryTransactionThreadActions and the Search selection builders pass it. Once every caller passes it, the module-level fallback in hasReportBeenForwardedSinceLastSubmit is removed as part of https://github.com/Expensify/App/issues/66419.
     reportActions?: OnyxEntry<ReportActions> | ReportAction[];
     rules: OnyxCollection<Rule>;
 }): boolean {

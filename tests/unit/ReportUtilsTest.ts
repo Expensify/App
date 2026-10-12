@@ -6447,7 +6447,7 @@ describe('ReportUtils', () => {
             };
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${invoiceReport.reportID}`, invoiceReport);
 
-            const canEditRequest = canEditMoneyRequest(moneyRequestAction, transaction, undefined, true, invoiceReport);
+            const canEditRequest = canEditMoneyRequest(moneyRequestAction, transaction, undefined, true, invoiceReport, undefined, undefined);
 
             expect(canEditRequest).toEqual(false);
         });
@@ -6503,10 +6503,10 @@ describe('ReportUtils', () => {
             });
             await waitForBatchedUpdates();
 
-            expect(canEditMoneyRequest(trackExpenseAction, transaction, undefined, false, selfDMReport, viewerOwnPolicy)).toBe(false);
+            expect(canEditMoneyRequest(trackExpenseAction, transaction, undefined, false, selfDMReport, viewerOwnPolicy, undefined)).toBe(false);
 
             // The person who tracked the expense keeps their own edit rights
-            expect(canEditMoneyRequest({...trackExpenseAction, actorAccountID: currentUserAccountID}, transaction, undefined, false, selfDMReport, viewerOwnPolicy)).toBe(true);
+            expect(canEditMoneyRequest({...trackExpenseAction, actorAccountID: currentUserAccountID}, transaction, undefined, false, selfDMReport, viewerOwnPolicy, undefined)).toBe(true);
         });
 
         it('should still let a policy admin edit an expense on an unapproved invoice report', async () => {
@@ -6559,7 +6559,7 @@ describe('ReportUtils', () => {
             });
             await waitForBatchedUpdates();
 
-            expect(canEditMoneyRequest(invoiceAction, transaction, undefined, false, invoiceReport, invoicePolicy)).toBe(true);
+            expect(canEditMoneyRequest(invoiceAction, transaction, undefined, false, invoiceReport, invoicePolicy, undefined)).toBe(true);
         });
 
         it('should use the passed reportActions to determine whether the report was forwarded since the last submit', async () => {
@@ -6690,7 +6690,7 @@ describe('ReportUtils', () => {
             };
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`, expenseReport);
 
-            const canEditRequest = canEditMoneyRequest(moneyRequestAction, transaction, undefined, true, expenseReport);
+            const canEditRequest = canEditMoneyRequest(moneyRequestAction, transaction, undefined, true, expenseReport, undefined, undefined);
 
             expect(canEditRequest).toEqual(true);
         });
@@ -6721,7 +6721,7 @@ describe('ReportUtils', () => {
                 created: '2025-03-05 16:34:27',
             };
 
-            const canEditRequest = canEditMoneyRequest(moneyRequestAction, undefined, undefined);
+            const canEditRequest = canEditMoneyRequest(moneyRequestAction, undefined, undefined, false, undefined, undefined, undefined);
 
             expect(canEditRequest).toEqual(false);
         });
@@ -6751,7 +6751,7 @@ describe('ReportUtils', () => {
                 created: '2025-03-05 16:34:27',
             };
 
-            const canEditRequest = canEditMoneyRequest(moneyRequestAction, transaction, undefined);
+            const canEditRequest = canEditMoneyRequest(moneyRequestAction, transaction, undefined, false, undefined, undefined, undefined);
 
             expect(canEditRequest).toEqual(false);
         });
@@ -6783,7 +6783,7 @@ describe('ReportUtils', () => {
                 created: '2025-03-05 16:34:27',
             };
 
-            const canEditRequest = canEditMoneyRequest(moneyRequestAction, transaction, undefined);
+            const canEditRequest = canEditMoneyRequest(moneyRequestAction, transaction, undefined, false, undefined, undefined, undefined);
 
             expect(canEditRequest).toEqual(false);
         });
@@ -6819,7 +6819,7 @@ describe('ReportUtils', () => {
                 created: '2025-03-05 16:34:27',
             };
 
-            const canEditRequest = canEditMoneyRequest(moneyRequestAction, transaction, undefined);
+            const canEditRequest = canEditMoneyRequest(moneyRequestAction, transaction, undefined, false, undefined, undefined, undefined);
 
             expect(canEditRequest).toEqual(false);
         });
@@ -6910,7 +6910,7 @@ describe('ReportUtils', () => {
             await waitForBatchedUpdates();
 
             expect(canEditReportPolicy(expenseReport, reportPolicy)).toBe(false);
-            expect(canEditMoneyRequest(moneyRequestAction, transaction, undefined, false, expenseReport, reportPolicy)).toBe(false);
+            expect(canEditMoneyRequest(moneyRequestAction, transaction, undefined, false, expenseReport, reportPolicy, undefined)).toBe(false);
         });
     });
 
@@ -7731,7 +7731,7 @@ describe('ReportUtils', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
             await waitForBatchedUpdates();
 
-            expect(canEditMoneyRequest(moneyRequestAction, transaction, undefined, false, openExpenseReport, policyWithWorkflow)).toBe(true);
+            expect(canEditMoneyRequest(moneyRequestAction, transaction, undefined, false, openExpenseReport, policyWithWorkflow, undefined)).toBe(true);
             expect(
                 canEditFieldOfMoneyRequest({
                     rules: undefined,
@@ -7871,7 +7871,7 @@ describe('ReportUtils', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
             await waitForBatchedUpdates();
 
-            expect(canEditMoneyRequest(moneyRequestAction, transaction, undefined, false, submittedExpenseReport, policyWithWorkflow)).toBe(false);
+            expect(canEditMoneyRequest(moneyRequestAction, transaction, undefined, false, submittedExpenseReport, policyWithWorkflow, undefined)).toBe(false);
         });
 
         it('should allow workflow approver to edit when managerID already matches (happy path)', async () => {
@@ -7914,7 +7914,7 @@ describe('ReportUtils', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
             await waitForBatchedUpdates();
 
-            expect(canEditMoneyRequest(moneyRequestAction, transaction, undefined, false, openExpenseReport, policyWithWorkflow)).toBe(true);
+            expect(canEditMoneyRequest(moneyRequestAction, transaction, undefined, false, openExpenseReport, policyWithWorkflow, undefined)).toBe(true);
             expect(
                 canEditFieldOfMoneyRequest({
                     rules: undefined,
@@ -7978,7 +7978,7 @@ describe('ReportUtils', () => {
 
             // Current user is policy.approver, so getManagerAccountID would resolve to them — but Submit & Close has
             // no real approval flow, so the approver-edit grant must NOT apply.
-            expect(canEditMoneyRequest(moneyRequestAction, transaction, undefined, false, openExpenseReport, submitAndClosePolicy)).toBe(false);
+            expect(canEditMoneyRequest(moneyRequestAction, transaction, undefined, false, openExpenseReport, submitAndClosePolicy, undefined)).toBe(false);
             expect(
                 canEditFieldOfMoneyRequest({
                     rules: undefined,
@@ -8058,7 +8058,7 @@ describe('ReportUtils', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
             await waitForBatchedUpdates();
 
-            expect(canEditMoneyRequest(moneyRequestAction, transaction, undefined, false, openExpenseReport, ruleOnlyPolicy)).toBe(false);
+            expect(canEditMoneyRequest(moneyRequestAction, transaction, undefined, false, openExpenseReport, ruleOnlyPolicy, undefined)).toBe(false);
             expect(
                 canEditFieldOfMoneyRequest({
                     rules: undefined,
@@ -8117,7 +8117,7 @@ describe('ReportUtils', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
             await waitForBatchedUpdates();
 
-            expect(canEditMoneyRequest(moneyRequestAction, transaction, undefined, false, openExpenseReport, policyWithWorkflow)).toBe(false);
+            expect(canEditMoneyRequest(moneyRequestAction, transaction, undefined, false, openExpenseReport, policyWithWorkflow, undefined)).toBe(false);
             expect(
                 canEditFieldOfMoneyRequest({
                     rules: undefined,
@@ -8190,7 +8190,7 @@ describe('ReportUtils', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
             await waitForBatchedUpdates();
 
-            expect(canEditMoneyRequest(moneyRequestAction, transaction, undefined, false, openExpenseReport, failClosedPolicy)).toBe(false);
+            expect(canEditMoneyRequest(moneyRequestAction, transaction, undefined, false, openExpenseReport, failClosedPolicy, undefined)).toBe(false);
             expect(
                 canEditFieldOfMoneyRequest({
                     rules: undefined,

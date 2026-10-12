@@ -18,6 +18,7 @@ function useShouldAddOrReplaceReceipt(reportID: string) {
     const isReportArchived = useReportIsArchived(report?.reportID);
     const allReportTransactions = useReportTransactionsCollection(reportID);
     const [rawReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.reportID}`);
+    const [parentReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(report?.parentReportID)}`);
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
 
     const isTransactionThreadView = isReportTransactionThread(report);
@@ -37,7 +38,15 @@ function useShouldAddOrReplaceReceipt(reportID: string) {
     const canUserPerformWriteAction = !!canUserPerformWriteActionReportUtils(report, isReportArchived);
     const canEditReceipt =
         canUserPerformWriteAction &&
-        canEditFieldOfMoneyRequest({reportAction: effectiveParentReportAction, fieldToEdit: CONST.EDIT_REQUEST_FIELD.RECEIPT, transaction, rules, reportNameValuePairs: undefined}) &&
+        canEditFieldOfMoneyRequest({
+            reportAction: effectiveParentReportAction,
+            fieldToEdit: CONST.EDIT_REQUEST_FIELD.RECEIPT,
+            transaction,
+            rules,
+            reportNameValuePairs: undefined,
+            // The IOU action belongs to this report in the single-transaction view and to the parent report in the thread view
+            reportActions: isSingleTransactionView ? rawReportActions : parentReportActions,
+        }) &&
         !transaction?.receipt?.isTestDriveReceipt;
     const shouldAddOrReplaceReceipt = (isTransactionThreadView || isSingleTransactionView) && canEditReceipt;
 

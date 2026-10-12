@@ -85,6 +85,7 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
     const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
     const [guidedSetupAndTourStatus] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: guidedSetupAndTourStatusSelector});
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
+    const [parentReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(report?.parentReportID)}`);
     const policy = usePolicy(report?.policyID);
     const delegateAccountID = useDelegateAccountID();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
@@ -175,7 +176,14 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
     const [sourceUri, setSourceUri] = useState<ReceiptSource>('');
 
     const parentReportAction = getReportAction(report?.parentReportID, report?.parentReportActionID);
-    const canEditReceipt = canEditFieldOfMoneyRequest({reportAction: parentReportAction, fieldToEdit: CONST.EDIT_REQUEST_FIELD.RECEIPT, transaction, rules, reportNameValuePairs: undefined});
+    const canEditReceipt = canEditFieldOfMoneyRequest({
+        reportAction: parentReportAction,
+        fieldToEdit: CONST.EDIT_REQUEST_FIELD.RECEIPT,
+        transaction,
+        rules,
+        reportNameValuePairs: undefined,
+        reportActions: parentReportActions,
+    });
     const canDeleteReceipt = canEditFieldOfMoneyRequest({
         reportAction: parentReportAction,
         fieldToEdit: CONST.EDIT_REQUEST_FIELD.RECEIPT,
@@ -183,6 +191,7 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
         transaction,
         rules,
         reportNameValuePairs: undefined,
+        reportActions: parentReportActions,
     });
 
     const receiptFilename = transaction?.receipt?.filename;
