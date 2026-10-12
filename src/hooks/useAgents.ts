@@ -37,6 +37,9 @@ function handleErrorClose(pendingAction: PendingAction | null | undefined, accou
     }
 }
 
+/**
+ * Hook that derives the current user's manageable agent rows from Onyx and exposes selection and bulk-delete helpers for the Agents table.
+ */
 function useAgents() {
     useEffect(() => {
         openAgentsPage();
