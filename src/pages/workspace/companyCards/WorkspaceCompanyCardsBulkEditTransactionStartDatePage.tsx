@@ -44,7 +44,9 @@ type WorkspaceCompanyCardsBulkEditTransactionStartDatePageProps = PlatformStackS
 
 function WorkspaceCompanyCardsBulkEditTransactionStartDatePage({route, navigation}: WorkspaceCompanyCardsBulkEditTransactionStartDatePageProps) {
     const {policyID} = route.params;
-    const feedName: CompanyCardFeedWithDomainID = route.params.feed;
+    // The linking layer can provide the path parameter with the feed separator still encoded.
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- decoding preserves the company-feed shape guaranteed by this route
+    const feedName = decodeURIComponent(route.params.feed) as CompanyCardFeedWithDomainID;
     const cardIDs = (route.params.cardIDs ?? '').split(',').filter(Boolean);
     const singleCardID = cardIDs.length === 1 ? cardIDs.at(0) : undefined;
     const bank = getCompanyCardFeed(feedName);

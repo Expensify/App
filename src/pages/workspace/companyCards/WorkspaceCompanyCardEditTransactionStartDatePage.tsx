@@ -25,6 +25,7 @@ import {updateCardTransactionStartDate} from '@userActions/CompanyCards';
 
 import CONST from '@src/CONST';
 import type SCREENS from '@src/SCREENS';
+import type {CompanyCardFeedWithDomainID} from '@src/types/onyx';
 
 import type {ValueOf} from 'type-fest';
 
@@ -39,7 +40,9 @@ type WorkspaceCompanyCardEditTransactionStartDatePageProps = PlatformStackScreen
 
 function WorkspaceCompanyCardEditTransactionStartDatePage({route, navigation}: WorkspaceCompanyCardEditTransactionStartDatePageProps) {
     const {policyID, cardID} = route.params;
-    const feedName = route.params.feed;
+    // The linking layer can provide the path parameter with the feed separator still encoded.
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- decoding preserves the company-feed shape guaranteed by this route
+    const feedName = decodeURIComponent(route.params.feed) as CompanyCardFeedWithDomainID;
     const bank = getCompanyCardFeed(feedName);
 
     const {translate} = useLocalize();
