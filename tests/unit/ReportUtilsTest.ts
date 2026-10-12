@@ -26670,7 +26670,7 @@ describe('ReportUtils', () => {
         });
 
         // The user must be able to write to each report
-        it('returns false when the current user is not able to write to each report', async () => {
+        it('returns false when the current user is not able to write to each report', () => {
             const r1 = makeOpenReport({permissions: [CONST.REPORT.PERMISSIONS.READ]});
             const r2 = makeOpenReport();
             expect(canMergeReports([r1, r2], USER_ID, undefined, adminPolicy)).toBe(false);
@@ -26721,10 +26721,18 @@ describe('ReportUtils', () => {
             expect(asMember).toBe(false);
         });
 
-        it('returns true when the current user is the approver on Processing reports', async () => {
+        it('returns true when the current user is the approver on Processing reports', () => {
+            // Given two submitted reports owned by someone else and waiting on MANAGER_ID to approve them
             const r1 = makeProcessingReport({ownerAccountID: 999, managerID: MANAGER_ID});
             const r2 = makeProcessingReport({ownerAccountID: 999, managerID: MANAGER_ID});
-            expect(canMergeReports([r1, r2], MANAGER_ID, undefined, adminPolicy)).toBe(true);
+
+            // When the approver merges them while holding only a member role, so eligibility can be granted
+            // by the approver branch alone. An admin policy would short-circuit before the manager is checked
+            // and the test would still pass even if that check regressed.
+            const result = canMergeReports([r1, r2], MANAGER_ID, undefined, memberPolicy);
+
+            // Then the merge is allowed, because the approver owns the decision on reports sitting in their queue
+            expect(result).toBe(true);
         });
 
         it('returns true for three or more valid Open reports', () => {
