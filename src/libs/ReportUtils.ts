@@ -210,8 +210,6 @@ import {
     isCurrentActionUnread,
     isDeletedAction,
     isDeletedParentAction,
-    isDeletedReportPreviewWithError,
-    getVisibleReportActionErrors,
     isDynamicExternalWorkflowApproveFailedAction,
     isDynamicExternalWorkflowSubmitFailedAction,
     isExportIntegrationAction,
@@ -252,7 +250,6 @@ import {
     getCardName,
     getCategory,
     getConvertedAmount,
-    getConvertedTaxAmount,
     getCurrency,
     getDescription,
     getDisplayTransactionWithoutInvalidCommuterExclusion,
@@ -845,7 +842,6 @@ type TransactionDetails = {
     odometerStart?: number;
     odometerEnd?: number;
     convertedAmount: number;
-    convertedTaxAmount?: number;
     gpsCoordinates?: string;
 };
 
@@ -5665,7 +5661,6 @@ function getTransactionDetails(
         originalAmount: getOriginalAmount(transaction),
         originalCurrency: getOriginalCurrency(transaction),
         convertedAmount: getConvertedAmount(transaction, isFromExpenseReport, transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID, allowNegativeAmount, disableOppositeConversion),
-        convertedTaxAmount: getConvertedTaxAmount(transaction, isFromExpenseReport),
         postedDate: getFormattedPostedDate(transaction),
         transactionID: transaction.transactionID,
         ...(isDistanceRequest(transaction) && {distance: transaction.comment?.customUnit?.quantity ?? undefined}),
@@ -7198,6 +7193,7 @@ function getParentNavigationSubtitle(
     policy: OnyxEntry<Policy>,
     conciergeReportID: string | undefined,
     translate: LocalizedTranslate,
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
     parentReportName: string | undefined,
     isParentReportArchived = false,
 ): ParentNavigationSummaryParams {
@@ -7241,7 +7237,7 @@ function getParentNavigationSubtitle(
         const invoiceReceiverPolicy = invoiceReceiverPolicyID ? allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${invoiceReceiverPolicyID}`] : undefined;
         const isCurrentUserReceiver = isCurrentUserInvoiceReceiver(parentReport);
         const invoiceReceiverPersonalDetail = getInvoiceReceiverPersonalDetail(parentReport, getAllPersonalDetails());
-        const invoicePayerName = getInvoicePayerName(parentReport, translate, invoiceReceiverPersonalDetail, invoiceReceiverPolicy);
+        const invoicePayerName = getInvoicePayerName(parentReport, translate, formatPhoneNumber, invoiceReceiverPersonalDetail, invoiceReceiverPolicy);
 
         let reportName = senderWorkspaceName;
         if (!isCurrentUserReceiver && invoicePayerName) {
@@ -8236,6 +8232,18 @@ function getPolicyChangeMessage(translate: LocalizedTranslate, action: ReportAct
     const fromPolicyName = fromPolicyID ? (allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${fromPolicyID}`]?.name ?? '') : undefined;
     const message = translate('report.actions.type.changeReportPolicy', toPolicyName, fromPolicyName);
     return message;
+}
+
+function getUpdateEmployeeDisplayNameMessage(translate: LocalizedTranslate, action: ReportAction) {
+    if (!isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_EMPLOYEE_DISPLAY_NAME)) {
+        return '';
+    }
+    const {oldValue, newValue} = getOriginalMessage(action) ?? {};
+
+    // Both names are set by an admin and are interpolated into HTML, so markup in them must not be parsed as HTML.
+    const oldName = Str.htmlEncode(typeof oldValue === 'string' ? oldValue : '');
+    const newName = Str.htmlEncode(typeof newValue === 'string' ? newValue : '');
+    return translate('workspaceActions.updatedMemberDisplayName', newName, oldName, `${environmentURL}/${ROUTES.SETTINGS_DISPLAY_NAME}`);
 }
 
 function getPolicyChangeLogCopyMessage(translate: LocalizedTranslate, action: ReportAction) {
@@ -10799,15 +10807,13 @@ function getAllReportActionsErrorsAndReportActionThatRequiresAttention(
     isReportArchived = false,
     reports?: OnyxCollection<Report>,
 ): ReportErrorsAndReportActionThatRequiresAttention {
-    // Keep a preview errored because its report was deleted. It still has to mark the chat as needing attention.
-    const reportActionsArray = Object.values(reportActions ?? {}).filter((action) => !isDeletedAction(action) || isDeletedReportPreviewWithError(action));
+    const reportActionsArray = Object.values(reportActions ?? {}).filter((action) => !isDeletedAction(action));
     const reportActionErrors: ErrorFields = {};
     let reportAction: OnyxEntry<ReportAction>;
 
     for (const action of reportActionsArray) {
-        const actionErrors = getVisibleReportActionErrors(action);
-        if (action && !isEmptyValueObject(actionErrors)) {
-            Object.assign(reportActionErrors, actionErrors);
+        if (action && !isEmptyValueObject(action.errors)) {
+            Object.assign(reportActionErrors, action.errors);
 
             if (!reportAction) {
                 reportAction = action;
@@ -14150,17 +14156,18 @@ function getChatListItemReportName(
     parentReport: OnyxEntry<Report>,
     conciergeReportID: string | undefined,
     linkedTransactions: Transaction[],
-    translate: LocalizedTranslate,
+    Localize: {translate: LocalizedTranslate; formatPhoneNumber: LocaleContextProps['formatPhoneNumber']},
     convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'],
     personalDetailsList: OnyxEntry<PersonalDetailsList>,
     derivedReportName: string | undefined,
 ): string {
+    const {translate, formatPhoneNumber} = Localize;
     const reportForHeader = getReportForHeader(report, parentReport);
     if (reportForHeader && isInvoiceReport(reportForHeader)) {
         // Search snapshots of invoice reports may only carry `parentReportID` as the invoice room ID, so fall back to it
         // when `chatReportID` is missing (without mutating the Onyx report) so `getInvoiceReportName` resolves the NewDot title.
         const invoiceReport = reportForHeader.chatReportID ? reportForHeader : {...reportForHeader, chatReportID: reportForHeader.parentReportID};
-        return getInvoiceReportName(invoiceReport, linkedTransactions, translate, convertToDisplayString, personalDetailsList);
+        return getInvoiceReportName(invoiceReport, linkedTransactions, translate, formatPhoneNumber, convertToDisplayString, personalDetailsList);
     }
 
     if (action?.reportName) {
@@ -15350,6 +15357,7 @@ export {
     computeOptimisticReportName,
     computeOptimisticReportNameWithMetadata,
     getPolicyChangeMessage,
+    getUpdateEmployeeDisplayNameMessage,
     getPolicyChangeLogCopyMessage,
     getMovedTransactionMessage,
     getUnreportedTransactionMessage,
