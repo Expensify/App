@@ -8,7 +8,11 @@ const mockGetCurrentRoute = jest.fn<{name: string; params?: unknown} | undefined
 
 jest.mock('@libs/Navigation/Navigation', () => ({
     __esModule: true,
-    default: {setParams: (...args: unknown[]) => mockSetParams(...args)},
+    default: {
+        setParams: (...args: unknown[]) => {
+            mockSetParams(...args);
+        },
+    },
     navigationRef: {
         isReady: () => mockIsReady(),
         getCurrentRoute: () => mockGetCurrentRoute(),
