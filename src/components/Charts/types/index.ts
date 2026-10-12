@@ -22,14 +22,14 @@ type ChartDataPoint = {
     /** The point's signed share of total spend, in percentage points */
     percentOfTotal?: number;
 
+    /** Color of the point's bar or slice. Left out, the chart's default color. */
+    color?: string;
+
     /** Number of expenses in this point */
     count?: number;
 
     /** Marks a time-based point whose period hasn't ended yet, so its total is still changing. Only a line chart's last point is drawn differently. */
     isInProgress?: boolean;
-
-    /** Query string for navigation when data point is clicked (optional) */
-    onClickQuery?: string;
 };
 
 /**

@@ -366,18 +366,21 @@ describe('processDataIntoSlices', () => {
         }
     });
 
-    it('assigns distinct colors from the chart palette', () => {
+    it('draws each slice in the color of its point', () => {
+        // Given points that each carry the color their slice is drawn in
         const data: ChartDataPoint[] = [
-            {label: 'A', values: {[CHART_SERIES_KEY.PRIMARY]: 40}},
-            {label: 'B', values: {[CHART_SERIES_KEY.PRIMARY]: 30}},
-            {label: 'C', values: {[CHART_SERIES_KEY.PRIMARY]: 20}},
-            {label: 'D', values: {[CHART_SERIES_KEY.PRIMARY]: 10}},
+            {label: 'A', values: {[CHART_SERIES_KEY.PRIMARY]: 10}, color: '#111'},
+            {label: 'B', values: {[CHART_SERIES_KEY.PRIMARY]: 30}, color: '#222'},
         ];
-        const slices = processDataIntoSlices(data, CHART_SERIES_KEY.PRIMARY, {centerX: 0, centerY: 0, radius: 0, innerRadius: 0});
-        const colors = slices.map((s) => s.color);
-        const uniqueColors = new Set(colors);
 
-        expect(uniqueColors.size).toBe(4);
+        // When the data is turned into slices
+        const slices = processDataIntoSlices(data, CHART_SERIES_KEY.PRIMARY, {centerX: 0, centerY: 0, radius: 0, innerRadius: 0});
+
+        // Then each slice keeps its point's color, even after the slices are sorted by size
+        expect(slices.map((slice) => [slice.label, slice.color])).toEqual([
+            ['B', '#222'],
+            ['A', '#111'],
+        ]);
     });
 
     it('places tooltipPosition at the ring midpoint along each slice mid-angle', () => {

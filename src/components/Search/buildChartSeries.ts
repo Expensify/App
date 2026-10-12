@@ -94,7 +94,7 @@ function buildChartSeries({data, view, getLabel, getShortLabel, getCurrencyDecim
                 color = VictoryTheme.colors.getColor(index);
             }
 
-            return {...row, color};
+            return {...row, point: {...row.point, color}};
         }),
     };
 }

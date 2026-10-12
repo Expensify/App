@@ -216,7 +216,7 @@ function processDataIntoSlices(
     startAngle: number = VictoryTheme.pie.startAngle,
 ): PieSlice[] {
     const visibleSlices = data
-        .map((point, index) => ({label: point.label, absTotal: Math.abs(point.values[primarySeriesKey]), originalIndex: index, percentOfTotal: point.percentOfTotal}))
+        .map((point, index) => ({label: point.label, color: point.color, absTotal: Math.abs(point.values[primarySeriesKey]), originalIndex: index, percentOfTotal: point.percentOfTotal}))
         .filter((slice) => isShareWorthDrawing(slice.percentOfTotal))
         .sort((a, b) => b.absTotal - a.absTotal);
 
@@ -239,7 +239,7 @@ function processDataIntoSlices(
             acc.slices.push({
                 label: slice.label,
                 value: slice.absTotal,
-                color: VictoryTheme.colors.getColor(index),
+                color: slice.color ?? VictoryTheme.colors.default,
                 percentage: fraction * 100,
                 startAngle: acc.angle,
                 endAngle: acc.angle + sweepAngle,

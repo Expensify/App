@@ -1,5 +1,4 @@
 import type {ChartDataPoint} from '@components/Charts/types';
-import {processDataIntoSlices} from '@components/Charts/utils';
 import VictoryTheme from '@components/Charts/VictoryTheme';
 import {buildChartSeries, CHART_SERIES_KEY, getSliceColorsByDataIndex} from '@components/Search/buildChartSeries';
 import type {TransactionMerchantGroupListItemType, TransactionQuarterGroupListItemType} from '@components/Search/SearchList/ListItem/types';
@@ -114,19 +113,18 @@ describe('buildChartSeries', () => {
 
         // Then no row carries a color, because a line chart draws one continuous stroke and the inline table
         // must not show color swatches that nothing on the canvas corresponds to
-        expect(rows.every((row) => row.color === undefined)).toBe(true);
+        expect(rows.every((row) => row.point.color === undefined)).toBe(true);
     });
 
-    it('colors bars by their position, the way the bar canvas does', () => {
+    it('colors bars by their position', () => {
         // Given groups that are not sorted by total
         const data = [merchantGroup('Person', 190000), merchantGroup('Target', 480000)];
 
         // When the series is built for a bar chart
         const {rows} = buildChartSeries({data, view: CONST.SEARCH.VIEW.BAR, getLabel, getCurrencyDecimals});
 
-        // Then colors follow the array order rather than the totals, because that is how the bar canvas assigns
-        // them and the inline table swatches have to match what is drawn
-        expect(rows.map((row) => row.color)).toEqual([VictoryTheme.colors.getColor(0), VictoryTheme.colors.getColor(1)]);
+        // Then colors follow the array order rather than the totals, so each bar keeps its color when the totals change
+        expect(rows.map((row) => row.point.color)).toEqual([VictoryTheme.colors.getColor(0), VictoryTheme.colors.getColor(1)]);
     });
 
     it('colors pie rows by slice rank, not array order, when the data is unsorted', () => {
@@ -136,11 +134,10 @@ describe('buildChartSeries', () => {
         // When the series is built for a pie chart
         const {rows} = buildChartSeries({data, view: CONST.SEARCH.VIEW.PIE, getLabel, getCurrencyDecimals});
 
-        // Then each row takes the palette color of its slice, because the pie canvas sorts slices by size before
-        // coloring them, so `Large` gets the first color regardless of sitting second in the array
-        expect(rows.at(1)?.color).toBe(VictoryTheme.colors.getColor(0));
-        expect(rows.at(2)?.color).toBe(VictoryTheme.colors.getColor(1));
-        expect(rows.at(0)?.color).toBe(VictoryTheme.colors.getColor(2));
+        // Then the palette follows the slices by size, so `Large` gets the first color regardless of sitting second in the array
+        expect(rows.at(1)?.point.color).toBe(VictoryTheme.colors.getColor(0));
+        expect(rows.at(2)?.point.color).toBe(VictoryTheme.colors.getColor(1));
+        expect(rows.at(0)?.point.color).toBe(VictoryTheme.colors.getColor(2));
     });
 
     it('ranks pie colors by magnitude, so a large refund is not treated as the smallest slice', () => {
@@ -152,8 +149,8 @@ describe('buildChartSeries', () => {
 
         // Then the refund is ranked first, because the pie draws slices sized by absolute value and ranking on the
         // signed total would push the biggest slice to the end of the palette
-        expect(rows.at(0)?.color).toBe(VictoryTheme.colors.getColor(0));
-        expect(rows.at(1)?.color).toBe(VictoryTheme.colors.getColor(1));
+        expect(rows.at(0)?.point.color).toBe(VictoryTheme.colors.getColor(0));
+        expect(rows.at(1)?.point.color).toBe(VictoryTheme.colors.getColor(1));
     });
 
     it('carries the share the search reported onto the plotted point', () => {
@@ -215,21 +212,6 @@ describe('buildChartSeries', () => {
 });
 
 describe('getSliceColorsByDataIndex', () => {
-    it('agrees with the colors the pie canvas draws for the same data', () => {
-        // Given points whose totals are out of order, so slice rank and array index differ
-        const points: ChartDataPoint[] = [point('Small', 100), point('Large', 9000), point('Medium', 500)];
-
-        // When the colors are resolved back to the order the data came in
-        const colors = getSliceColorsByDataIndex(points);
-
-        // Then every color matches the slice the canvas actually draws for that point, because the inline table and
-        // the pie are colored by two separate code paths and a mismatch would silently mislabel the legend
-        const slices = processDataIntoSlices(points, CHART_SERIES_KEY.PRIMARY, {centerX: 100, centerY: 100, radius: 100, innerRadius: 60});
-        for (const slice of slices) {
-            expect(colors.at(slice.originalIndex)).toBe(slice.color);
-        }
-    });
-
     it('leaves a group the donut does not draw without a color', () => {
         // Given a group whose share the table prints as ~0%, so the donut leaves its slice out
         const points: ChartDataPoint[] = [point('Large', 10000, 99.99), point('Sliver', 1, 0.01)];
@@ -251,13 +233,8 @@ describe('getSliceColorsByDataIndex', () => {
         // When the colors are resolved back to the order the data came in
         const colors = getSliceColorsByDataIndex(points);
 
-        // Then the two drawn groups take the first two palette entries, matching what the canvas colors them,
-        // because `processDataIntoSlices` colors by position among the slices it actually draws
-        const slices = processDataIntoSlices(points, CHART_SERIES_KEY.PRIMARY, {centerX: 100, centerY: 100, radius: 100, innerRadius: 60});
-        for (const slice of slices) {
-            expect(colors.at(slice.originalIndex)).toBe(slice.color);
-        }
-        expect(colors.at(1)).toBeUndefined();
+        // Then the two drawn groups take the first two palette entries, so no color is spent on a slice that isn't drawn
+        expect(colors).toEqual([VictoryTheme.colors.getColor(0), undefined, VictoryTheme.colors.getColor(1)]);
     });
 
     it('returns nothing for an empty data set', () => {

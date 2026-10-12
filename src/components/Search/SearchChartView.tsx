@@ -1,5 +1,4 @@
 import {BarChart, LineChart, PieChart} from '@components/Charts';
-import VictoryTheme from '@components/Charts/VictoryTheme';
 
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
@@ -131,7 +130,6 @@ function SearchChartView({
                     onBarPress={(dataPoint, index) => handleItemPress(index)}
                     yAxisUnit={unit}
                     yAxisUnitPosition={unitPosition}
-                    color={VictoryTheme.colors.default}
                 />
             ) : (
                 <LineChart
