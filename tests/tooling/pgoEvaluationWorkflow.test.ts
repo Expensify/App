@@ -2,7 +2,6 @@ import {describe, expect, it} from 'bun:test';
 
 import {isRecord} from '@scripts/pgo/evaluationSchema';
 
-import {load} from 'js-yaml';
 import {readFileSync} from 'node:fs';
 import {runInNewContext} from 'node:vm';
 
@@ -87,7 +86,7 @@ describe('PGO evaluation workflow contract', () => {
 });
 
 function workflowJob(path: string, name: string): Record<string, unknown> {
-    const input: unknown = load(readFileSync(path, 'utf8'));
+    const input: unknown = Bun.YAML.parse(readFileSync(path, 'utf8'));
     if (!isRecord(input) || !isRecord(input.jobs) || !isRecord(input.jobs[name])) {
         throw new Error('Missing workflow job.');
     }
