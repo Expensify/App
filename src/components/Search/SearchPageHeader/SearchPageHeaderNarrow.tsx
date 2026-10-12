@@ -1,11 +1,10 @@
-import TopBar from '@components/Navigation/TopBar';
 import type {SearchQueryJSON} from '@components/Search/types';
-
-import useLocalize from '@hooks/useLocalize';
 
 import SearchSelectedNarrow from '@pages/Search/SearchSelectedNarrow';
 
 import React from 'react';
+
+import SearchPageHeaderCommon from './SearchPageHeaderCommon';
 
 type SearchPageHeaderNarrowProps = {
     queryJSON: SearchQueryJSON;
@@ -14,19 +13,17 @@ type SearchPageHeaderNarrowProps = {
 };
 
 function SearchPageHeaderNarrow({queryJSON, shouldShowLoadingBar = false, isMobileSelectionModeEnabled}: SearchPageHeaderNarrowProps) {
-    const {translate} = useLocalize();
-
     if (isMobileSelectionModeEnabled) {
         return <SearchSelectedNarrow queryJSON={queryJSON} />;
     }
 
-    // The narrow header is the top-level page title, so it stays a static "Spend". The tab selector rendered directly
-    // below it already names the current view, and repeating that name here would show the same label twice.
+    // Spend's groups are reached through More on narrow layouts, so the header names the group the user is inside
+    // rather than "Spend", and it holds still while they tab within that group.
     return (
-        <TopBar
+        <SearchPageHeaderCommon
+            shouldUseGroupTitle
+            queryJSONType={queryJSON.type}
             shouldShowLoadingBar={shouldShowLoadingBar}
-            breadcrumbLabel={translate('common.spend')}
-            shouldDisplayHelpButton
         />
     );
 }

@@ -12,8 +12,10 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 
 import type {SearchKey} from '@libs/SearchKeyUtils';
+import {searchKeyToSavedSearchID} from '@libs/SearchKeyUtils';
 import type {SearchTypeMenuItem} from '@libs/SearchUIUtils';
 import {getSavedSearchIconName, getSuggestedSearches, SAVED_SEARCH_ICON_NAMES} from '@libs/SearchUIUtils';
+import {getGroupedSearchTranslationPath, getSpendGroupKeys, shouldHideSpendTabRow} from '@libs/SpendNavigationGroups';
 
 import {SearchTypeMenuNarrowContent} from '@pages/Search/SearchTypeMenuNarrow';
 
@@ -48,7 +50,7 @@ function StaticSearchTypeMenu({queryJSON}: {queryJSON: SearchQueryJSON}) {
     const submitSearch = suggestedSearches[CONST.SEARCH.SEARCH_KEYS.SUBMIT];
 
     const tabs: Array<TabSelectorBaseItem<SearchKey>> = [
-        {key: reportsSearch.key, icon: expensifyIcons.Document, title: translate(reportsSearch.translationPath)},
+        {key: reportsSearch.key, icon: expensifyIcons.Document, title: translate(getGroupedSearchTranslationPath(reportsSearch.key, reportsSearch.translationPath))},
         {key: expensesSearch.key, icon: expensifyIcons.Receipt, title: translate(expensesSearch.translationPath)},
     ];
 
@@ -62,9 +64,22 @@ function StaticSearchTypeMenu({queryJSON}: {queryJSON: SearchQueryJSON}) {
 
     const activeKey = activeSavedSearch ? currentSearchKey : getActiveKey(queryJSON.similarSearchHash, hasGroupPolicy, suggestedSearches);
 
+    // Mirror the interactive menu: show only the active group, and no row at all when that group holds one search.
+    const activeGroupKeys = getSpendGroupKeys(activeKey);
+    let visibleTabs = tabs;
+    if (searchKeyToSavedSearchID(activeKey)) {
+        visibleTabs = tabs.filter((tab) => !!searchKeyToSavedSearchID(tab.key));
+    } else if (activeGroupKeys) {
+        visibleTabs = tabs.filter((tab) => activeGroupKeys.some((key) => key === tab.key));
+    }
+
+    if (shouldHideSpendTabRow(activeKey)) {
+        return null;
+    }
+
     return (
         <SearchTypeMenuNarrowContent
-            tabs={tabs}
+            tabs={visibleTabs}
             activeTabKey={activeKey}
         />
     );

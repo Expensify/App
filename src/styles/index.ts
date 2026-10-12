@@ -5301,6 +5301,17 @@ const staticStyles = (theme: ThemeColors) =>
             marginBottom: 8,
         },
 
+        // Mirrors rulesNewMenuItem, the workspace "New rule" card, with this page's own corner radius.
+        moreMenuCard: {
+            backgroundColor: theme.cardBG,
+            borderRadius: 12,
+            paddingHorizontal: 12,
+            paddingVertical: 16,
+            alignItems: 'center',
+            marginBottom: 8,
+            minHeight: variables.rulesNewMenuItemMinHeight,
+        },
+
         rulesNewMenuItem: {
             backgroundColor: theme.cardBG,
             borderRadius: 8,
@@ -7587,8 +7598,8 @@ const dynamicStyles = (theme: ThemeColors) =>
 
         getEmptyStateCompanyCardsIllustration: (shouldUseNarrowLayout: boolean) => (shouldUseNarrowLayout ? {width: 680, height: 220} : {width: '100%', height: '100%'}),
 
-        searchListContentContainerStyles: (hasFilterBars: boolean) => ({
-            paddingTop: hasFilterBars ? variables.searchListContentWithFiltersMarginTop : variables.searchListContentMarginTop,
+        searchListContentContainerStyles: (hasFilterBars: boolean, isTabRowHidden = false) => ({
+            paddingTop: (hasFilterBars ? variables.searchListContentWithFiltersMarginTop : variables.searchListContentMarginTop) - (isTabRowHidden ? variables.searchHiddenTabRowOffset : 0),
         }),
 
         sectionMenuItem: (shouldUseNarrowLayout: boolean) => ({

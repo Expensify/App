@@ -31,6 +31,7 @@ function TabSelectorBase<K extends string = string>({
     position,
     shouldShowLabelWhenInactive = true,
     equalWidth = false,
+    shouldHugContent = false,
     contentContainerStyles,
 }: TabSelectorBaseProps<K>) {
     const theme = useTheme();
@@ -135,6 +136,7 @@ function TabSelectorBase<K extends string = string>({
                         sentryLabel={tab.sentryLabel}
                         shouldShowLabelWhenInactive={shouldShowLabelWhenInactive}
                         equalWidth={equalWidth}
+                        shouldHugContent={shouldHugContent}
                         badgeText={tab.badgeText}
                         isBadgeCondensed={tab.isBadgeCondensed}
                         badgeStyles={tab.badgeStyles}

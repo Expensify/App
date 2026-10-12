@@ -41,7 +41,9 @@ const GROUPS: Array<{keys: SearchKey[]; translationPath: TranslationPaths}> = [
  * Labels a search as it reads inside its own group. "Reports" is the group's name, so its broadest search spells out
  * that it holds all of them rather than repeating the group's label.
  */
-const GROUPED_TRANSLATION_PATH_OVERRIDES: Partial<Record<SearchKey, TranslationPaths>> = {};
+const GROUPED_TRANSLATION_PATH_OVERRIDES: Partial<Record<SearchKey, TranslationPaths>> = {
+    [CONST.SEARCH.SEARCH_KEYS.REPORTS]: 'search.tabs.allReports',
+};
 
 /** The searches that sit alongside `searchKey` in navigation, or undefined when it doesn't belong to a group. */
 function getSpendGroupKeys(searchKey: SearchKey | undefined): SearchKey[] | undefined {

@@ -2155,6 +2155,8 @@ const ROUTES = {
         },
     },
 
+    MORE: 'more',
+
     INSIGHTS: {
         route: 'insights/:dashboardID',
         getRoute: (dashboardID: ValueOf<typeof CONST.INSIGHTS.DASHBOARD>) => `insights/${dashboardID}` as const,

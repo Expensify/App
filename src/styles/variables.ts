@@ -11,6 +11,18 @@ function getValueUsingPixelRatio(defaultValue: number, maxValue: number): number
     return PixelRatio.getFontScale() * defaultValue > maxValue ? maxValue : defaultValue * PixelRatio.getFontScale();
 }
 
+/**
+ * Height the narrow Spend tab row occupies: its wrapper's 4px top padding, the tab buttons, and tabSelector's 12px
+ * bottom padding. The search list's top offset subtracts this when the row is hidden.
+ */
+const searchTabRowHeight = 4 + 40 + 12;
+
+/**
+ * How much the narrow Spend header shrinks when the tab row is hidden: the row itself, plus the 4px the search input
+ * gains back by sitting 4px below the header instead of 8px.
+ */
+const searchHiddenTabRowOffset = searchTabRowHeight + 4;
+
 /** Rendered width of the Expensify wordmark in the flat navigation bar's header. */
 const flatNavigationBarLogoWidth = 92;
 
@@ -273,6 +285,8 @@ export default {
     signInLogoWidthLargeScreen: 144,
     signInLogoHeightLargeScreen: 108,
     signInLogoWidthPill: 132,
+    searchTabRowHeight,
+    searchHiddenTabRowOffset,
     tabSelectorButtonHeight: 40,
     tabSelectorButtonPadding: 12,
     tabSelectorScrollMarginInline: 20,
