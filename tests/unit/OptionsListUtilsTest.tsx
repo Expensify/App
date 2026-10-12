@@ -6273,7 +6273,7 @@ describe('OptionsListUtils', () => {
             await waitForBatchedUpdates();
 
             const option: OptionData = {reportID, keyForList: '', isMoneyRequestReport: true};
-            return getAlternateText(option, {showChatPreviewLine: true}, buildConfig(reimbursed, reportID, {currentUserAccountID}));
+            return getAlternateText(option, {showChatPreviewLine: true}, buildConfig({currentUserAccountID}));
         };
 
         it('should address the current user directly when they own the reimbursed report', async () => {
