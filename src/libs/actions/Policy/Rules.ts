@@ -446,6 +446,7 @@ function generateRule(policyID: string, prompt: string, ruleType?: GeneratedRule
     return generationID;
 }
 
+/** Stops the loading state of the prompt form and shows the translated error on it */
 function setNewRulePromptErrorMessage(translationKey: TranslationPaths) {
     Onyx.merge(ONYXKEYS.FORMS.NEW_RULE_PROMPT_FORM, {
         isLoading: false,

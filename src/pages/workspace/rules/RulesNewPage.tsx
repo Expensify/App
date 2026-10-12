@@ -99,8 +99,8 @@ function RulesNewPage({route}: RulesNewPageProps) {
     const [isDescribeRuleModalVisible, setIsDescribeRuleModalVisible] = useState(false);
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
 
-    // The describe modal keeps a generated category only when the policy categories contain it. Therefore load the
-    // categories before Concierge answers.
+    // A generated category stays in the draft only when the policy categories contain it. Therefore this page loads
+    // the categories before the answer arrives.
     const fetchPolicyCategories = () => {
         if (!policy?.areCategoriesEnabled || policyCategories) {
             return;
