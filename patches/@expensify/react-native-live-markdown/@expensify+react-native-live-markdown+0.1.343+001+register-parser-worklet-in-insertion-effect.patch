@@ -1,5 +1,5 @@
 diff --git a/node_modules/@expensify/react-native-live-markdown/android/src/main/cpp/MarkdownParser.cpp b/node_modules/@expensify/react-native-live-markdown/android/src/main/cpp/MarkdownParser.cpp
-index 4edd28e..c98baa7 100644
+index 534e20c..007eb55 100644
 --- a/node_modules/@expensify/react-native-live-markdown/android/src/main/cpp/MarkdownParser.cpp
 +++ b/node_modules/@expensify/react-native-live-markdown/android/src/main/cpp/MarkdownParser.cpp
 @@ -11,11 +11,15 @@ namespace livemarkdown {
@@ -18,10 +18,10 @@ index 4edd28e..c98baa7 100644
 -    const auto markdownWorklet = expensify::livemarkdown::getMarkdownWorklet(parserId);
 -
      const auto input = jsi::String::createFromUtf8(rt, text->toStdString());
-     const auto output = markdownRuntime->runGuarded(markdownWorklet, input);
+     const auto output = markdownRuntime->runSync(markdownWorklet, input);
  
 diff --git a/node_modules/@expensify/react-native-live-markdown/android/src/main/java/com/expensify/livemarkdown/MarkdownParser.java b/node_modules/@expensify/react-native-live-markdown/android/src/main/java/com/expensify/livemarkdown/MarkdownParser.java
-index 3e108db..260925b 100644
+index d38fd02..1f56d0e 100644
 --- a/node_modules/@expensify/react-native-live-markdown/android/src/main/java/com/expensify/livemarkdown/MarkdownParser.java
 +++ b/node_modules/@expensify/react-native-live-markdown/android/src/main/java/com/expensify/livemarkdown/MarkdownParser.java
 @@ -1,6 +1,7 @@
@@ -72,7 +72,7 @@ index 1d73622..f506f5f 100644
                   withParserId:(nonnull NSNumber *)parserId
                     completion:(nullable void (^)(void))completion;
 diff --git a/node_modules/@expensify/react-native-live-markdown/apple/MarkdownParser.mm b/node_modules/@expensify/react-native-live-markdown/apple/MarkdownParser.mm
-index 89bb209..3c438f7 100644
+index 28d8ea0..7b14ced 100644
 --- a/node_modules/@expensify/react-native-live-markdown/apple/MarkdownParser.mm
 +++ b/node_modules/@expensify/react-native-live-markdown/apple/MarkdownParser.mm
 @@ -171,13 +171,13 @@ - (void)drainPendingWarmups
