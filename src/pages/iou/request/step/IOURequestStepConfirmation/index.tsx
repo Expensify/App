@@ -38,7 +38,6 @@ import {
     getSelectedWorkspacePolicyID,
     isMovingTransactionFromTrackExpense as isMovingTransactionFromTrackExpenseIOUUtils,
     isSelfDMSoleDestination,
-    isLookingAroundSearchRoutingActive,
     navigateToStartMoneyRequestStep,
     pickReportForPolicy,
     resolveOptimisticChatReportID,
@@ -67,6 +66,7 @@ import DraftWorkspaceOpener from '@pages/iou/request/step/confirmation/DraftWork
 import ExpenseDefaultsSetter from '@pages/iou/request/step/confirmation/ExpenseDefaultsSetter';
 import MoneyRequestInitializer from '@pages/iou/request/step/confirmation/MoneyRequestInitializer';
 import ReceiptFileValidator from '@pages/iou/request/step/confirmation/ReceiptFileValidator';
+import useSubmissionOnboardingIntent from '@pages/iou/request/step/confirmation/submission/useSubmissionOnboardingIntent';
 import useSubmitLock from '@pages/iou/request/step/confirmation/submission/useSubmitLock';
 import SubmitExpenseOrchestrator from '@pages/iou/request/step/confirmation/SubmitExpenseOrchestrator';
 import TelemetrySpanManager from '@pages/iou/request/step/confirmation/TelemetrySpanManager';
@@ -215,8 +215,7 @@ function IOURequestStepConfirmationContent({
         isOdometerDistanceRequest,
     });
     const isTimeRequest = requestType === CONST.IOU.REQUEST_TYPE.TIME;
-    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
-    const isLookingAroundUser = isLookingAroundSearchRoutingActive(introSelected?.choice === CONST.ONBOARDING_CHOICES.LOOKING_AROUND, isOffline);
+    const {isLookingAroundUser} = useSubmissionOnboardingIntent();
     const privateIsArchivedMap = usePrivateIsArchivedMap();
 
     const receiptFilename = transaction?.receipt?.filename;
