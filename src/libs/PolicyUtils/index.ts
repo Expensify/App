@@ -1285,13 +1285,14 @@ function canDisableOrDeleteTaxRate(policy: Policy, taxID: string): boolean {
  *
  * A locked field (`disabledFields.reimbursable`) normally hides the toggle, but an expense that already
  * disagrees with the policy default has to stay correctable - otherwise it is silently stuck on the wrong value.
- * An absent `defaultReimbursable` means "reimbursable", matching the expense creation path.
+ * An absent `defaultReimbursable` or `isReimbursable` means "reimbursable", matching the expense creation path
+ * and `getReimbursable`.
  */
 function canShowReimbursableToggleForPolicy(policy: OnyxEntry<Policy>, isReimbursable: boolean | undefined): boolean {
     if (!policy?.disabledFields?.reimbursable) {
         return true;
     }
-    return !!isReimbursable !== (policy.defaultReimbursable ?? true);
+    return (isReimbursable ?? true) !== (policy.defaultReimbursable ?? true);
 }
 
 function arePolicyRulesEnabled(policy: OnyxEntry<Policy>, policyCategories?: PolicyCategories | null): boolean {

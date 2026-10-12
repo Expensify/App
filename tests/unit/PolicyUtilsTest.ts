@@ -6599,6 +6599,26 @@ describe('canShowReimbursableToggleForPolicy', () => {
         expect(canShowReimbursableToggleForPolicy(policy, true)).toBe(false);
         expect(canShowReimbursableToggleForPolicy(policy, false)).toBe(true);
     });
+
+    it('treats an absent expense reimbursable value as reimbursable when the field is locked', () => {
+        // Given a locked workspace whose default is reimbursable, stored or implied
+        const policyWithDefault = {...teamBase, defaultReimbursable: true, disabledFields: {reimbursable: true}};
+        const policyWithoutDefault = {...teamBase, defaultReimbursable: undefined, disabledFields: {reimbursable: true}};
+
+        // When checking an expense with no stored reimbursable value
+        // Then the toggle is hidden, because the expense defaults to reimbursable and already matches the policy
+        expect(canShowReimbursableToggleForPolicy(policyWithDefault, undefined)).toBe(false);
+        expect(canShowReimbursableToggleForPolicy(policyWithoutDefault, undefined)).toBe(false);
+    });
+
+    it('shows the toggle for an expense with no reimbursable value on a locked non-reimbursable workspace', () => {
+        // Given a workspace locked to "cash expenses are always non-reimbursable"
+        const policy = {...teamBase, defaultReimbursable: false, disabledFields: {reimbursable: true}};
+
+        // When checking an expense with no stored reimbursable value, which defaults to reimbursable
+        // Then the toggle is shown, because the expense disagrees with the policy default
+        expect(canShowReimbursableToggleForPolicy(policy, undefined)).toBe(true);
+    });
 });
 
 describe('getDefaultChatEnabledPolicy', () => {
