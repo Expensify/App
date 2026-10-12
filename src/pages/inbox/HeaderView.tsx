@@ -91,12 +91,12 @@ import {callFunctionIfActionIsAllowed} from '@userActions/Session';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
-import {getStableReportSelector} from '@src/selectors/Report';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import {useRoute} from '@react-navigation/native';
 import {accountGuideDetailsSelector} from '@selectors/Account';
 import {accountIDSelector, isPersonalDetailOptimistic} from '@selectors/PersonalDetails';
+import {getStableReportSelector} from '@selectors/Report';
 import {pendingChatMembersSelector} from '@selectors/ReportMetaData';
 import {latestCalendlyCallSelector} from '@selectors/ReportNameValuePairs';
 import {isPast} from 'date-fns';

@@ -13,13 +13,13 @@ import {getParticipantsPersonalDetails} from '@libs/PersonalDetailsUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {getStableReportSelector} from '@src/selectors/Report';
 import type {Report, ReportAction} from '@src/types/onyx';
 
 import type {GestureResponderEvent} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 
 import {hasSeenTourSelector} from '@selectors/Onboarding';
+import {getStableReportSelector} from '@selectors/Report';
 import React from 'react';
 import {View} from 'react-native';
 
