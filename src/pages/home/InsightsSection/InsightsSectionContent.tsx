@@ -72,7 +72,7 @@ function InsightsSectionContent() {
                 />
             }
             titleRightContent={
-                isInsightsPageEnabled || state === INSIGHTS_CHART_STATE.READY || state === INSIGHTS_CHART_STATE.EMPTY || state === INSIGHTS_CHART_STATE.ERROR ? (
+                state === INSIGHTS_CHART_STATE.READY || state === INSIGHTS_CHART_STATE.EMPTY || state === INSIGHTS_CHART_STATE.ERROR ? (
                     <WidgetHeaderMenu
                         testID="insightsOverflowMenu"
                         sentryLabel="InsightsOverflowMenu"
