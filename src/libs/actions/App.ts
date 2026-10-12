@@ -153,6 +153,7 @@ const KEYS_TO_PRESERVE: OnyxKey[] = [
     ONYXKEYS.STASHED_SESSION,
     ONYXKEYS.STASHED_CREDENTIALS,
     ONYXKEYS.NVP_LAST_DISMISSED_MARKETING_WINDOW,
+    ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING,
     // Preserve IS_USING_IMPORTED_STATE so that when the app restarts (especially in HybridApp mode),
     // we know if we're in imported state mode and should skip API calls that would cause infinite loading
     ONYXKEYS.IS_USING_IMPORTED_STATE,
@@ -617,6 +618,8 @@ function setPreservedAccount(account: OnyxTypes.Account) {
 function clearOnyxAndResetApp(shouldNavigateToHomepage?: boolean) {
     // The value of isUsingImportedState will be lost once Onyx is cleared, so we need to store it
     const isStateImported = isUsingImportedState;
+    // Discard imported training before restoring the original account below.
+    const keysToPreserve = isStateImported ? KEYS_TO_PRESERVE.filter((key) => key !== ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING) : KEYS_TO_PRESERVE;
     rollbackOngoingRequest();
     const sequentialQueue = getAll();
 
@@ -625,7 +628,7 @@ function clearOnyxAndResetApp(shouldNavigateToHomepage?: boolean) {
     // post-clear state and subscribeToFullReconnect doesn't fire a duplicate ReconnectApp once the
     // openApp() below lands NVP_RECONNECT_APP_IF_FULL_RECONNECT_BEFORE.
     const resetPromise = clearWorkboxRecoveryCaches().then(() =>
-        clearOnyxAndSeedFullReconnect(KEYS_TO_PRESERVE)
+        clearOnyxAndSeedFullReconnect(keysToPreserve)
             .then(() => {
                 // Network key is preserved, so when exiting imported state, we should:
                 // 1. Stop forcing offline mode so the app can reconnect

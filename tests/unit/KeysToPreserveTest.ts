@@ -62,3 +62,26 @@ describe('the lists that survive a sign-out', () => {
         });
     });
 });
+
+describe('product-training dismissals across account changes', () => {
+    describe.each([
+        ['KEYS_TO_PRESERVE_DELEGATE_ACCESS', KEYS_TO_PRESERVE_DELEGATE_ACCESS],
+        ['KEYS_TO_PRESERVE_SUPPORTAL', KEYS_TO_PRESERVE_SUPPORTAL],
+        ['KEYS_TO_PRESERVE_ON_SIGN_OUT', KEYS_TO_PRESERVE_ON_SIGN_OUT],
+    ])('%s', (_name, list) => {
+        it('clears dismissals so they cannot suppress training for another account', async () => {
+            // Given the current account has already dismissed the AI promo.
+            await Onyx.set(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING, {
+                [CONST.AI_FEATURES_PROMO_MODAL]: {timestamp: '2026-10-01 12:00:00', dismissedMethod: 'x'},
+            });
+            await waitForBatchedUpdates();
+
+            // When sign-out or an account transition clears the current account's data.
+            await Onyx.clear(list);
+            await waitForBatchedUpdates();
+
+            // Then the previous account's dismissal is unavailable to the next account.
+            await expect(getOnyxValue(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING)).resolves.toBeUndefined();
+        });
+    });
+});
