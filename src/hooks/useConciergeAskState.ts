@@ -63,15 +63,15 @@ function useConciergeAskState(reportID: string | undefined): ConciergeAskState {
     });
 
     // `View chat history` only appears once the user has messaged Concierge, so earlier messages without one stay on screen.
-    const hasUnhideableHistorySelector = (actions: OnyxEntry<ReportActions>) => {
+    const hasHistoryWithoutUserMessageSelector = (actions: OnyxEntry<ReportActions>) => {
         if (!actions || !sessionStartTime) {
             return false;
         }
         const previousActions = Object.values(actions).filter((action) => !isCreatedAction(action) && action.created < sessionStartTime);
         return previousActions.length > 0 && !previousActions.some((action) => action.actorAccountID === currentUserAccountID);
     };
-    const [hasUnhideableHistory] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
-        selector: hasUnhideableHistorySelector,
+    const [hasHistoryWithoutUserMessage] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
+        selector: hasHistoryWithoutUserMessageSelector,
     });
 
     const isAskConciergeChat = !!reportID && reportID === conciergeReportID && !isInSidePanel && isBetaEnabled(CONST.BETAS.CONCIERGE_RESPOND_IN_THREAD);
@@ -81,7 +81,7 @@ function useConciergeAskState(reportID: string | undefined): ConciergeAskState {
     // A linked action opens the report at that message, so the earlier conversation is on screen either way.
     const isHistoryExpanded = showFullHistory || !!route.params?.reportActionID;
 
-    const shouldShowWelcome = hasSessionBoundary && !isHistoryExpanded && !hasSessionActivity && !hasUnhideableHistory;
+    const shouldShowWelcome = hasSessionBoundary && !isHistoryExpanded && !hasSessionActivity && !hasHistoryWithoutUserMessage;
 
     return {
         isAskConciergeChat,
