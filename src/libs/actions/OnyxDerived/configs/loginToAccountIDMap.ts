@@ -3,6 +3,8 @@ import createOnyxDerivedValueConfig from '@userActions/OnyxDerived/createOnyxDer
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {LoginToAccountIDMapDerivedValue} from '@src/types/onyx';
 
+import {shallowEqual} from 'fast-equals';
+
 /**
  * Derives a map of login (lowercased) -> accountID from the personal details list.
  *
@@ -13,7 +15,7 @@ import type {LoginToAccountIDMapDerivedValue} from '@src/types/onyx';
 export default createOnyxDerivedValueConfig({
     key: ONYXKEYS.DERIVED.LOGIN_TO_ACCOUNT_ID_MAP,
     dependencies: [ONYXKEYS.PERSONAL_DETAILS_LIST],
-    compute: ([personalDetailsList]) => {
+    compute: ([personalDetailsList], {currentValue}) => {
         if (!personalDetailsList) {
             return {};
         }
@@ -30,6 +32,6 @@ export default createOnyxDerivedValueConfig({
                 loginToAccountIDMap[login] = personalDetails.accountID;
             }
         }
-        return loginToAccountIDMap;
+        return currentValue && shallowEqual(currentValue, loginToAccountIDMap) ? currentValue : loginToAccountIDMap;
     },
 });
