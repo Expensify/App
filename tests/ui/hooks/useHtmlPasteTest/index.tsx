@@ -2,8 +2,6 @@ import {act, renderHook} from '@testing-library/react-native';
 
 import useHtmlPaste from '@hooks/useHtmlPaste';
 
-import type * as Browser from '@libs/Browser';
-
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report} from '@src/types/onyx';
 
@@ -20,12 +18,6 @@ type UseHtmlPasteReturn = {
 
 jest.mock('@src/hooks/useHtmlPaste', (): typeof useHtmlPaste => {
     return jest.requireActual('@hooks/useHtmlPaste/index.ts');
-});
-
-let mockIsMobileSafari = false;
-jest.mock('@libs/Browser', () => {
-    const browser = jest.requireActual<typeof Browser>('@libs/Browser');
-    return {...browser, isMobileSafari: () => mockIsMobileSafari};
 });
 
 describe('useHtmlPaste - handlePastePlainText', () => {
@@ -68,7 +60,6 @@ describe('useHtmlPaste - handlePastePlainText', () => {
 
     beforeEach(() => {
         jest.clearAllMocks();
-        mockIsMobileSafari = false;
 
         textInputElement = document.createElement('div');
         textInputElement.setAttribute('contenteditable', 'true');
@@ -198,6 +189,24 @@ describe('useHtmlPaste - handlePastePlainText', () => {
         expect(textInputRef.current?.textContent).toBe('Normal Text. :tada: *Bold*');
     });
 
+    it('preserves multiple Slack emoji shortcodes, spacing, and surrounding formatting', async () => {
+        // Given Slack HTML mixes supported and custom emoji images with formatting, so removing the Safari fallback must preserve the desktop paste behavior.
+        const html =
+            '<p><img data-stringify-emoji=":tada:" alt=":tada:" src="https://a.slack-edge.com/tada.png"> <img data-stringify-emoji=":thankyou_pink:" alt=":thankyou_pink:" src="https://a.slack-edge.com/custom.png"><img data-stringify-emoji=":smile:" alt=":smile:" src="https://a.slack-edge.com/smile.png"> <strong>Bold</strong> <em>Italic</em> <a href="https://example.com">Link</a> <code>:smile:</code></p><pre>:tada:</pre>';
+        const event = createMockClipboardEvent(':tada: :thankyou_pink::smile: Bold Italic Link :smile:\n:tada:', html);
+        mockWindowSelection('');
+
+        // @ts-expect-error -- this web test intentionally passes a contenteditable DOM ref to the shared hybrid hook.
+        renderHook(() => useHtmlPaste(textInputRef, undefined, true));
+        await waitForBatchedUpdatesWithAct();
+
+        // When the complete Slack message is pasted into the active composer.
+        act(() => document.dispatchEvent(event));
+
+        // Then every emoji image becomes its exact shortcode and the existing spacing and Markdown survive for the Composer pipeline to process.
+        expect(textInputRef.current?.textContent).toBe(':tada: :thankyou_pink::smile: *Bold* _Italic_ [Link](https://example.com) `:smile:`\n```\n:tada:\n```');
+    });
+
     it('preserves the original Safari formatting HTML when there are no emoji images', async () => {
         // Given Safari HTML has nested formatting and non-breaking spaces but no emoji images, so the emoji handling must leave it alone.
         const html =
@@ -268,9 +277,8 @@ describe('useHtmlPaste - handlePastePlainText', () => {
         expect(textInputRef.current?.textContent).toBe('Normal Text. :tada: *Bold*');
     });
 
-    it('replaces an iOS Safari emoji image with its matched shortcode', async () => {
-        // Given iOS Safari has removed Slack's metadata but kept a blob URL, emoji filename, and matching plain-text shortcode.
-        mockIsMobileSafari = true;
+    it('does not replace blob images without Slack emoji metadata', async () => {
+        // Given a blob image has an emoji-shaped filename but no Slack metadata, so its filename must not classify it as an emoji.
         const html = '<p>Normal Text. <img src="blob:https://new.expensify.com/123" alt="1f389@2x.png"> Bold</p>';
         const event = createMockClipboardEvent('Normal Text. :tada: Bold', html);
         mockWindowSelection('');
@@ -279,191 +287,11 @@ describe('useHtmlPaste - handlePastePlainText', () => {
         renderHook(() => useHtmlPaste(textInputRef, undefined, true));
         await waitForBatchedUpdatesWithAct();
 
-        // When the Safari clipboard payload is pasted into the active composer.
+        // When the blob image is pasted into the active composer.
         act(() => document.dispatchEvent(event));
 
-        // Then the image becomes its matched shortcode because Safari's altered HTML must still paste as an emoji.
-        expect(textInputRef.current?.textContent).toBe('Normal Text. :tada: Bold');
-    });
-
-    it('preserves matched iOS Safari shortcodes including skin tones', async () => {
-        // Given Safari has several emoji images, including a skin-toned emoji, so each image must keep the exact matching Slack shortcode.
-        mockIsMobileSafari = true;
-        const html =
-            '<p>Start <img src="blob:https://new.expensify.com/1" alt="1f389@2x.png"> <img src="blob:https://new.expensify.com/2" alt="1f44d-1f3fd@2x.png"> <img src="blob:https://new.expensify.com/3" alt="2764-fe0f@2x.png"> <strong>Bold</strong></p>';
-        const event = createMockClipboardEvent('Start :tada: :+1::skin-tone-4: :heart: Bold', html);
-        mockWindowSelection('');
-
-        // @ts-expect-error -- this web test intentionally passes a contenteditable DOM ref to the shared hybrid hook.
-        renderHook(() => useHtmlPaste(textInputRef, undefined, true));
-        await waitForBatchedUpdatesWithAct();
-
-        // When the multi-emoji Safari payload is pasted into the active composer.
-        act(() => document.dispatchEvent(event));
-
-        // Then every matching shortcode is restored because one image must not be matched with another image's clipboard text.
-        expect(textInputRef.current?.textContent).toBe('Start :tada: :+1::skin-tone-4: :heart: *Bold*');
-    });
-
-    it('validates an iOS Safari emoji against a supported Slack shortcode alias', async () => {
-        // Given Safari's image filename represents a thumbs-up and plain text uses Slack's supported thumbs_up alias.
-        mockIsMobileSafari = true;
-        const html = '<p>Normal Text. <img src="blob:https://new.expensify.com/123" alt="1f44d-1f3fd@2x.png"> Bold</p>';
-        const event = createMockClipboardEvent('Normal Text. :thumbs_up::skin-tone-4: Bold', html);
-        mockWindowSelection('');
-
-        // @ts-expect-error -- this web test intentionally passes a contenteditable DOM ref to the shared hybrid hook.
-        renderHook(() => useHtmlPaste(textInputRef, undefined, true));
-        await waitForBatchedUpdatesWithAct();
-
-        // When the alias-based Safari payload is pasted into the active composer.
-        act(() => document.dispatchEvent(event));
-
-        // Then the alias is preserved because a valid Slack alias should pass the same Unicode identity check as a canonical name.
-        expect(textInputRef.current?.textContent).toBe('Normal Text. :thumbs_up::skin-tone-4: Bold');
-    });
-
-    it('replaces a valid iOS Safari emoji when a normal image appears first', async () => {
-        // Given a normal photo appears before a valid Safari emoji image, so positional matching must account for both images.
-        mockIsMobileSafari = true;
-        const html = '<p>Start <img src="https://example.com/photo.png" alt="Photo"> <img src="blob:https://new.expensify.com/1" alt="1f389@2x.png"> End</p>';
-        const event = createMockClipboardEvent('Start Photo :tada: End', html);
-        mockWindowSelection('');
-
-        // @ts-expect-error -- this web test intentionally passes a contenteditable DOM ref to the shared hybrid hook.
-        renderHook(() => useHtmlPaste(textInputRef, undefined, true));
-        await waitForBatchedUpdatesWithAct();
-
-        // When the mixed image Safari payload is pasted into the active composer.
-        act(() => document.dispatchEvent(event));
-
-        // Then the photo stays an image and the later emoji becomes a shortcode because normal images must not block valid emoji conversion.
-        expect(textInputRef.current?.textContent).toBe('Start ![Photo](https://example.com/photo.png) :tada: End');
-    });
-
-    it('replaces valid iOS Safari emojis beside an unsupported custom emoji', async () => {
-        // Given an unsupported Slack custom emoji is next to a supported emoji, so failing the custom one must not reject the supported one.
-        mockIsMobileSafari = true;
-        const html = '<p>Start <img src="blob:https://new.expensify.com/custom" alt="thankyou_pink@2x.png"> <img src="blob:https://new.expensify.com/1" alt="1f389@2x.png"> End</p>';
-        const event = createMockClipboardEvent('Start :thankyou_pink: :tada: End', html);
-        mockWindowSelection('');
-
-        // @ts-expect-error -- this web test intentionally passes a contenteditable DOM ref to the shared hybrid hook.
-        renderHook(() => useHtmlPaste(textInputRef, undefined, true));
-        await waitForBatchedUpdatesWithAct();
-
-        // When the Safari payload is pasted into the active composer.
-        act(() => document.dispatchEvent(event));
-
-        // Then the unsupported image remains an image while the supported emoji becomes a shortcode.
-        expect(textInputRef.current?.textContent).toBe('Start ![thankyou_pink@2x.png](blob:https://new.expensify.com/custom) :tada: End');
-    });
-
-    it('does not trust an unknown shortcode from a normal iOS Safari image', async () => {
-        // Given a normal blob image sits beside a valid Safari emoji and plain text contains an unsupported shortcode, so plain text alone cannot identify an emoji image.
-        mockIsMobileSafari = true;
-        const html = '<p>Start <img src="blob:https://example.com/photo" alt=":thankyou_pink:"> <img src="blob:https://new.expensify.com/1" alt="1f389@2x.png"> End</p>';
-        const event = createMockClipboardEvent('Start :thankyou_pink: :tada: End', html);
-        mockWindowSelection('');
-
-        // @ts-expect-error -- this web test intentionally passes a contenteditable DOM ref to the shared hybrid hook.
-        renderHook(() => useHtmlPaste(textInputRef, undefined, true));
-        await waitForBatchedUpdatesWithAct();
-
-        // When the Safari payload is pasted into the active composer.
-        act(() => document.dispatchEvent(event));
-
-        // Then the normal image remains an image because an unknown shortcode must not turn arbitrary pasted content into an emoji.
-        expect(textInputRef.current?.textContent).toBe('Start ![:thankyou_pink:](blob:https://example.com/photo) :tada: End');
-    });
-
-    it('does not convert an iOS Safari image when the shortcode at its position represents another emoji', async () => {
-        // Given the Safari image filename represents party popper but its matching plain-text position says smile, so the two clipboard forms disagree.
-        mockIsMobileSafari = true;
-        const html = '<p>Normal Text. <img src="blob:https://new.expensify.com/123" alt="1f389@2x.png"> Bold</p>';
-        const event = createMockClipboardEvent('Normal Text. :smile: Bold', html);
-        mockWindowSelection('');
-
-        // @ts-expect-error -- this web test intentionally passes a contenteditable DOM ref to the shared hybrid hook.
-        renderHook(() => useHtmlPaste(textInputRef, undefined, true));
-        await waitForBatchedUpdatesWithAct();
-
-        // When the conflicting Safari payload is pasted into the active composer.
-        act(() => document.dispatchEvent(event));
-
-        // Then the image remains unchanged because position alone is not enough to prove it is the same emoji.
+        // Then it remains an image because neither the blob URL nor the emoji-shaped alt proves it is a Slack emoji.
         expect(textInputRef.current?.textContent).toBe('Normal Text. ![1f389@2x.png](blob:https://new.expensify.com/123) Bold');
-    });
-
-    it('does not use a shortcode elsewhere in iOS Safari plain text to validate an image', async () => {
-        // Given the only matching shortcode is inside an inline code range, not at the image's position, so code text must not validate the image.
-        mockIsMobileSafari = true;
-        const html = '<p>Normal Text. <img src="blob:https://new.expensify.com/123" alt="1f389@2x.png"> Code: <code>:tada:</code></p>';
-        const event = createMockClipboardEvent('Normal Text. 1f389@2x.png Code: :tada:', html);
-        mockWindowSelection('');
-
-        // @ts-expect-error -- this web test intentionally passes a contenteditable DOM ref to the shared hybrid hook.
-        renderHook(() => useHtmlPaste(textInputRef, undefined, true));
-        await waitForBatchedUpdatesWithAct();
-
-        // When the Safari payload is pasted into the active composer.
-        act(() => document.dispatchEvent(event));
-
-        // Then the image remains unchanged and the code range survives because an unrelated shortcode must not trigger emoji conversion.
-        expect(textInputRef.current?.textContent).toBe('Normal Text. ![1f389@2x.png](blob:https://new.expensify.com/123) Code: `:tada:`');
-    });
-
-    it('does not convert non-emoji codepoint image filenames to Unicode text', async () => {
-        // Given a Safari blob image has a codepoint-shaped filename that is not an emoji, so the filename pattern alone cannot approve conversion.
-        mockIsMobileSafari = true;
-        const html = '<p>Normal Text. <img src="blob:https://new.expensify.com/456" alt="0200.png"> Bold</p>';
-        const event = createMockClipboardEvent('Normal Text. 0200.png Bold', html);
-        mockWindowSelection('');
-
-        // @ts-expect-error -- this web test intentionally passes a contenteditable DOM ref to the shared hybrid hook.
-        renderHook(() => useHtmlPaste(textInputRef, undefined, true));
-        await waitForBatchedUpdatesWithAct();
-
-        // When the non-emoji image is pasted into the active composer.
-        act(() => document.dispatchEvent(event));
-
-        // Then it stays an image because converting arbitrary codepoints would corrupt normal pasted images.
-        expect(textInputRef.current?.textContent).toBe('Normal Text. ![0200.png](blob:https://new.expensify.com/456) Bold');
-    });
-
-    it('does not use the iOS Safari fallback in another browser', async () => {
-        // Given another browser provides a blob image with a Safari-looking emoji filename, so the Safari fallback must stay platform-specific.
-        const html = '<p>Normal Text. <img src="blob:https://new.expensify.com/123" alt="1f389@2x.png"> Bold</p>';
-        const event = createMockClipboardEvent('Normal Text. :tada: Bold', html);
-        mockWindowSelection('');
-
-        // @ts-expect-error -- this web test intentionally passes a contenteditable DOM ref to the shared hybrid hook.
-        renderHook(() => useHtmlPaste(textInputRef, undefined, true));
-        await waitForBatchedUpdatesWithAct();
-
-        // When the non-Safari payload is pasted into the active composer.
-        act(() => document.dispatchEvent(event));
-
-        // Then it remains an image because other browsers do not prove that Safari removed Slack's metadata.
-        expect(textInputRef.current?.textContent).toBe('Normal Text. ![1f389@2x.png](blob:https://new.expensify.com/123) Bold');
-    });
-
-    it('does not replace a normal iOS Safari blob image whose filename resembles an emoji', async () => {
-        // Given a normal Safari blob image uses an emoji-shaped filename, so a real photo cannot be mistaken for an emoji just from its alt text.
-        mockIsMobileSafari = true;
-        const html = '<p>Long-press the image below and tap Copy:</p><img src="blob:https://example.com/normal-image" alt="1f4c4.png">';
-        const event = createMockClipboardEvent('Long-press the image below and tap Copy:\n\n1f4c4.png', html);
-        mockWindowSelection('');
-
-        // @ts-expect-error -- this web test intentionally passes a contenteditable DOM ref to the shared hybrid hook.
-        renderHook(() => useHtmlPaste(textInputRef, undefined, true));
-        await waitForBatchedUpdatesWithAct();
-
-        // When the normal image is pasted into the active composer.
-        act(() => document.dispatchEvent(event));
-
-        // Then it stays an image because its plain text does not provide a matching supported Slack shortcode.
-        expect(textInputRef.current?.textContent).toBe('Long-press the image below and tap Copy:\n![1f4c4.png](blob:https://example.com/normal-image)');
     });
 
     it('does not replace normal images whose alt text is an emoji shortcode', async () => {
