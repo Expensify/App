@@ -2932,7 +2932,6 @@ function isOneTransactionThread(
         return false;
     }
 
-    // TODO: Remove this fallback once every caller passes `parentReportActions`. See https://github.com/Expensify/App/issues/66419
     const resolvedParentReportActions = parentReportActions ?? allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReport.reportID}`];
 
     const chatReport = deprecatedAllReports?.[`${ONYXKEYS.COLLECTION.REPORT}${parentReport?.chatReportID}`];
