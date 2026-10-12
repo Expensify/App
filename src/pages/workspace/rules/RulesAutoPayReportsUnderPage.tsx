@@ -2,7 +2,7 @@ import AmountForm from '@components/AmountForm';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 
@@ -10,6 +10,7 @@ import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
 import usePolicy from '@hooks/usePolicy';
+import useReviewWorkspaceSettingsTaskCompletion from '@hooks/useReviewWorkspaceSettingsTaskCompletion';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {convertToBackendAmount, convertToFrontendAmountAsString} from '@libs/CurrencyUtils';
@@ -38,6 +39,7 @@ function RulesAutoPayReportsUnderPage({route}: RulesAutoPayReportsUnderPageProps
 
     const {inputCallbackRef} = useAutoFocusInput();
     const {translate} = useLocalize();
+    const getReviewWorkspaceSettingsTaskCompletion = useReviewWorkspaceSettingsTaskCompletion();
     const {getCurrencySymbol, getCurrencyDecimals} = useCurrencyListActions();
     const styles = useThemeStyles();
 
@@ -72,16 +74,18 @@ function RulesAutoPayReportsUnderPage({route}: RulesAutoPayReportsUnderPageProps
                 shouldEnableMaxHeight
                 testID="RulesAutoPayReportsUnderPage"
             >
-                <HeaderWithBackButton
-                    title={translate('workspace.rules.expenseReportRules.autoPayReportsUnderTitle')}
-                    onBackButtonPress={() => Navigation.goBack()}
-                />
+                <HeaderWithBackButtonAndTitle title={translate('workspace.rules.expenseReportRules.autoPayReportsUnderTitle')} />
                 <FormProvider
                     style={[styles.flexGrow1, styles.mh5]}
                     formID={ONYXKEYS.FORMS.RULES_AUTO_PAY_REPORTS_UNDER_MODAL_FORM}
                     validate={validateLimit}
                     onSubmit={({maxExpenseAutoPayAmount}) => {
-                        setPolicyAutoReimbursementLimit(policyID, maxExpenseAutoPayAmount, policy?.autoReimbursement?.limit ?? policy?.autoReimbursementLimit);
+                        setPolicyAutoReimbursementLimit(
+                            policyID,
+                            maxExpenseAutoPayAmount,
+                            policy?.autoReimbursement?.limit ?? policy?.autoReimbursementLimit,
+                            getReviewWorkspaceSettingsTaskCompletion(),
+                        );
                         Navigation.setNavigationActionToMicrotaskQueue(Navigation.goBack);
                     }}
                     submitButtonText={translate('common.save')}

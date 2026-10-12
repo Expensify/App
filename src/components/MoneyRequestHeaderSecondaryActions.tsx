@@ -33,6 +33,7 @@ import useThrottledButtonState from '@hooks/useThrottledButtonState';
 import useTransactionViolations from '@hooks/useTransactionViolations';
 
 import {duplicateExpenseTransaction as duplicateTransactionAction} from '@libs/actions/IOU/Duplicate';
+import {changeMoneyRequestHoldStatus} from '@libs/actions/IOU/Hold';
 import {deleteTrackExpense} from '@libs/actions/IOU/TrackExpense';
 import {setupMergeTransactionDataAndNavigate} from '@libs/actions/MergeTransaction';
 import {generateDefaultWorkspaceName} from '@libs/actions/Policy/Policy';
@@ -50,7 +51,6 @@ import {getOriginalMessage, getTrackExpenseActionableWhisper, isMoneyRequestActi
 import {getTransactionThreadPrimaryAction} from '@libs/ReportPrimaryActionUtils';
 import {getSecondaryTransactionThreadActions} from '@libs/ReportSecondaryActionUtils';
 import {
-    changeMoneyRequestHoldStatus,
     generateReportID,
     getPolicyExpenseChat,
     isCurrentUserSubmitter,
@@ -167,6 +167,7 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
     const [transactionDrafts] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftsSelector});
     const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
+    const [cardList] = useOnyx(ONYXKEYS.CARD_LIST);
 
     // NVP subscriptions
     const [policyRecentlyUsedCurrencies] = useOnyx(ONYXKEYS.RECENTLY_USED_CURRENCIES);
@@ -319,6 +320,7 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
             changeMoneyRequestHoldStatus(
                 parentReportAction,
                 transaction,
+                policy,
                 isOffline,
                 currentUserLogin ?? '',
                 accountID,
@@ -337,6 +339,7 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
                 changeMoneyRequestHoldStatus(
                     parentReportAction,
                     transaction,
+                    policy,
                     isOffline,
                     currentUserLogin ?? '',
                     accountID,
@@ -364,6 +367,7 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
             currentUserLogin: currentUserLogin ?? '',
             currentUserAccountID: accountID,
             parentReport,
+            parentReportOwnerLogin: parentOwnerLogin,
             reportTransaction: transaction,
             reportAction: parentReportAction,
             originalTransaction,
@@ -374,7 +378,9 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
             isChatReportArchived: isChatIOUReportArchived,
             grandParentReport,
             hasWorkspaceToSubmitTo,
+            isRestrictedToPreferredPolicy,
             rules,
+            cardList,
         });
     })();
 
@@ -424,6 +430,7 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
                     changeMoneyRequestHoldStatus(
                         parentReportAction,
                         transaction,
+                        policy,
                         isOffline,
                         currentUserLogin ?? '',
                         accountID,
@@ -456,6 +463,7 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
                 changeMoneyRequestHoldStatus(
                     parentReportAction,
                     transaction,
+                    policy,
                     isOffline,
                     currentUserLogin ?? '',
                     accountID,
