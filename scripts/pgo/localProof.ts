@@ -11,7 +11,7 @@ import type {PlatformName} from '../lib/nativeAppBenchmark';
 import {capture, fail, findFiles, run, valueAt} from '../lib/scriptUtils';
 import createAndroidPgoAdapter from './android';
 import createIOSPgoAdapter from './ios';
-import {fileHash, isRecord, profileCounts, sourceIdentity, toolchainIdentity, validateJourney} from './proof';
+import {fileHash, hasExecutedSwiftFunctions, isRecord, profileCounts, sourceIdentity, toolchainIdentity, validateJourney} from './proof';
 
 /** Validate the immutable collected profile before optimization. */
 function validateTraining(platform: PlatformName, batch: string) {
@@ -26,6 +26,9 @@ function validateTraining(platform: PlatformName, batch: string) {
     }
     const profile = join(batch, 'journey.profdata');
     const counts = profileCounts(capture(adapter.llvmTool('llvm-profdata'), ['show', profile]));
+    if (platform === 'ios' && !hasExecutedSwiftFunctions(capture(adapter.llvmTool('llvm-profdata'), ['show', '--all-functions', '--counts', profile]))) {
+        fail('The merged iOS profile has no executed Swift functions. Rebuild with Swift IR instrumentation and collect fresh profiles.');
+    }
     const runs = [1, 2, 3].map((runNumber) => {
         const paths = findFiles(join(batch, `run-${runNumber}`, 'raw'), '.profraw').sort();
         if (paths.length === 0) {

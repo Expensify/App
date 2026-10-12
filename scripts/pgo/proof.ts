@@ -68,11 +68,17 @@ function validateJourney(input: unknown, platform: PlatformName, identity: strin
 
 function profileCounts(summary: string): {functions: number; count: string} {
     const functions = Number(/Total functions:\s*([0-9]+)/.exec(summary)?.[1]);
-    const count = /(?:Total count|Maximum function count):\s*([0-9]+)/.exec(summary)?.[1];
+    const count = /Total count:\s*([0-9]+)/.exec(summary)?.[1] ?? /Maximum function count:\s*([0-9]+)/.exec(summary)?.[1];
     if (!Number.isSafeInteger(functions) || functions <= 0 || !count || BigInt(count) <= 0n) {
         fail('The LLVM profile has no executed functions.');
     }
     return {functions, count};
+}
+
+/** Require Swift execution without borrowing counters from a neighboring Clang function. */
+function hasExecutedSwiftFunctions(report: string): boolean {
+    const functions = report.matchAll(/^ {2}(\S[^\n]*):\r?\n((?: {4}[^\n]*\r?\n)*)/gm);
+    return Array.from(functions).some((entry) => /(?:^|:)\$s/.test(entry[1] ?? '') && /(?:Function count:\s*|Block counts:\s*\[[^\]\n]*)[1-9][0-9]*/.test(entry[2] ?? ''));
 }
 
 function fileHash(path: string, allowEmpty = false): string {
@@ -96,4 +102,4 @@ function isRecord(value: unknown): value is Record<string, unknown> {
     return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
 
-export {androidBuildEnvironment, fileHash, isRecord, profileCounts, sourceIdentity, toolchainIdentity, validateJourney};
+export {androidBuildEnvironment, fileHash, hasExecutedSwiftFunctions, isRecord, profileCounts, sourceIdentity, toolchainIdentity, validateJourney};

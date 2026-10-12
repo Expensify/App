@@ -1,4 +1,4 @@
-// cspell:ignore hermesv profdata devicectl libdav intops libwebp fprofile CPLUSPLUSFLAGS ARCHS profraw cnts hermesvm unprofiled
+// cspell:ignore Xfrontend hermesv profdata devicectl libdav intops libwebp fprofile CPLUSPLUSFLAGS ARCHS profraw cnts hermesvm unprofiled
 
 /** iOS-specific release builds, signing, native profile persistence, retrieval, and instrumentation checks. */
 
@@ -14,7 +14,7 @@ import {capture, environmentString, fail, findFiles, rootDirectory, run, runAllo
 import {BENCHMARK_SPANS_ENVIRONMENT} from './shared';
 
 function createIOSPgoAdapter(configuredAppID?: string, cliDeviceIdentifier?: string): PlatformAdapter {
-    const profileFormat = 'ios-clang-frontend-swift-ir-v1';
+    const profileFormat = 'ios-clang-swift-ir-v3';
     const profileDirectory = join(rootDirectory, '.pgo/ios/arm64');
     const rawProfileDirectory = join(profileDirectory, 'raw');
     const appDirectory = join(profileDirectory, 'app');
@@ -181,19 +181,19 @@ function createIOSPgoAdapter(configuredAppID?: string, cliDeviceIdentifier?: str
             return [
                 ...baseSettings,
                 'GCC_PREPROCESSOR_DEFINITIONS=$(inherited) EXPENSIFY_PGO_GENERATE=1',
-                'OTHER_CFLAGS=$(inherited) -fprofile-instr-generate',
-                'OTHER_CPLUSPLUSFLAGS=$(inherited) -fprofile-instr-generate',
-                'OTHER_SWIFT_FLAGS=$(inherited) -ir-profile-generate',
-                'OTHER_LDFLAGS=$(inherited) -fprofile-instr-generate',
+                'OTHER_CFLAGS=$(inherited) -fprofile-generate',
+                'OTHER_CPLUSPLUSFLAGS=$(inherited) -fprofile-generate',
+                'OTHER_SWIFT_FLAGS=$(inherited) -Xfrontend -ir-profile-generate',
+                'OTHER_LDFLAGS=$(inherited) -fprofile-generate',
             ];
         }
         if (kind === 'optimized') {
-            const clangProfileFlags = `-fprofile-instr-use=${profilePath} -Wno-error=profile-instr-unprofiled`;
+            const clangProfileFlags = `-fprofile-use=${profilePath} -Wno-error=profile-instr-unprofiled`;
             return [
                 ...baseSettings,
                 `OTHER_CFLAGS=$(inherited) ${clangProfileFlags}`,
                 `OTHER_CPLUSPLUSFLAGS=$(inherited) ${clangProfileFlags}`,
-                `OTHER_SWIFT_FLAGS=$(inherited) -ir-profile-use=${profilePath}`,
+                `OTHER_SWIFT_FLAGS=$(inherited) -Xfrontend -ir-profile-use=${profilePath}`,
             ];
         }
         return baseSettings;
@@ -208,7 +208,7 @@ function createIOSPgoAdapter(configuredAppID?: string, cliDeviceIdentifier?: str
             const profileFormatPath = `${profilePath}.format`;
             const recordedFormat = existsSync(profileFormatPath) ? readFileSync(profileFormatPath, 'utf8').trim() : undefined;
             if (recordedFormat !== profileFormat) {
-                fail('The merged iOS profile predates the current Swift IR instrumentation. Install the latest instrumented app and run record-startups again.');
+                fail('The merged iOS profile does not match the current Clang and Swift IR instrumentation. Install the latest instrumented app and run record-startups again.');
             }
         }
 
