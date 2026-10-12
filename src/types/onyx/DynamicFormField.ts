@@ -172,20 +172,15 @@ type DynamicFormFieldType = DynamicFormField['type'];
 
 export type {
     DynamicFormAddressField,
-    DynamicFormAmountField,
-    DynamicFormBooleanField,
     DynamicFormChoiceField,
     DynamicFormContentItem,
     DynamicFormCountryField,
-    DynamicFormDateField,
     DynamicFormField,
     DynamicFormFieldOption,
     DynamicFormFieldType,
-    DynamicFormFileField,
     DynamicFormHeading,
     DynamicFormMultiChoiceField,
     DynamicFormNumberField,
-    DynamicFormPlainField,
     DynamicFormSchemaField,
     DynamicFormTextField,
 };
