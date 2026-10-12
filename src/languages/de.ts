@@ -629,15 +629,6 @@ const translations: TranslationDeepObject<typeof en> = {
         launching: 'Expensify wird gestartet',
         expired: 'Ihre Sitzung ist abgelaufen.',
         signIn: 'Bitte melde dich erneut an.',
-        notValid: 'Ungültiger Link.',
-        sessionMismatch: 'Der Link, den Sie angeklickt haben, ist für Ihre aktuelle Sitzung nicht gültig.',
-        switchAccount: {
-            title: 'Konten wechseln?',
-            prompt: ({newEmail, currentEmail}: {newEmail: string; currentEmail: string}) =>
-                `Sie sind als ${currentEmail} angemeldet. Diese Aktion meldet Sie stattdessen als ${newEmail} an.`,
-            confirm: 'Konten wechseln',
-            staySignedIn: 'Nicht das Konto wechseln',
-        },
     },
     multifactorAuthentication: {
         reviewTransaction: {
@@ -2354,7 +2345,6 @@ const translations: TranslationDeepObject<typeof en> = {
             useProfiling: 'Profiling verwenden',
             profileTrace: 'Profil-Trace',
             results: 'Ergebnisse',
-            releaseOptions: 'Release-Optionen',
             testingPreferences: 'Testeinstellungen',
             server: 'Server',
             servers: {

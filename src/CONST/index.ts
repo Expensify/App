@@ -1158,6 +1158,7 @@ const CONST = {
         MULTIPLE_APPROVERS: 'multipleApprovers',
         GLOBAL_REIMBURSEMENTS: 'globalReimbursements',
         GLOBAL_REIMBURSEMENT_FX: 'globalReimbursementFX',
+        WISE_REIMBURSEMENTS: 'wiseReimbursements',
         DEFAULT_LETTER_AVATARS: 'defaultLetterAvatars',
         TRAVEL_CODING_SYNC: 'travelCodingSync',
         CONCIERGE_RESPOND_IN_THREAD: 'conciergeRespondInThread',
@@ -2841,7 +2842,6 @@ const CONST = {
     },
     ERROR_TYPE: {
         SOCKET: 'Expensify\\Auth\\Error\\Socket',
-        SESSION_MISMATCH: 'Expensify\\Error\\Auth\\AccountMismatch',
     },
     ERROR_TITLE: {
         SOCKET: 'Issue connecting to database',
@@ -7401,6 +7401,12 @@ const CONST = {
 
     REPORT_FIELD_TITLE_FIELD_ID: 'text_title',
 
+    /** How many report fields are shown side by side in the report view on a wide layout */
+    REPORT_FIELDS_PER_ROW: 3,
+
+    /** Below this many options, a report field list is short enough to scan without a search input */
+    REPORT_FIELD_LIST_SEARCH_THRESHOLD: 8,
+
     MOBILE_PAGINATION_SIZE: 15,
     WEB_PAGINATION_SIZE: 30,
 
@@ -9708,6 +9714,7 @@ const CONST = {
             MODERATION_BUTTON: 'Report-ModerationButton',
             MONEY_REQUEST_REPORT_ACTIONS_LIST_SELECT_ALL: 'MoneyRequestReportActionsList-SelectAll',
             MONEY_REQUEST_REPORT_TRANSACTION_ITEM: 'MoneyRequestReportTransactionItem',
+            REPORT_FIELD_DELETE_BUTTON: 'Report-ReportFieldDeleteButton',
             REPORT_ACTION_AVATAR: 'Report-ReportActionAvatar',
             PARTICIPANTS_ROW: 'Report-ParticipantsRow',
             ROOM_MEMBERS_ROW: 'Report-RoomMembersRow',
@@ -9908,6 +9915,9 @@ const CONST = {
         },
         MAP_VIEW: {
             COMPASS: 'compass',
+        },
+        NEW_CHAT: {
+            IMPORT_CONTACTS_ITEM: 'NewChat-ImportContacts',
         },
         MONEY_REQUEST: {
             AMOUNT_NEXT_BUTTON: 'MoneyRequest-AmountNextButton',
