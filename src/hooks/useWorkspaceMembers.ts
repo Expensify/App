@@ -58,13 +58,8 @@ function useWorkspaceMembers(policy: OnyxEntry<Policy>) {
 
         // Render a fallback identity (email as display name) when personal details are missing so the member
         // is still shown instead of being dropped from the list.
-        const details =
-            personalDetails?.[accountID] ??
-            ({
-                accountID,
-                login: email,
-                displayName: formatPhoneNumber(email),
-            } as PersonalDetails);
+        const fallbackDetails: PersonalDetails = {accountID, login: email, displayName: formatPhoneNumber(email)};
+        const details = personalDetails?.[accountID] ?? fallbackDetails;
 
         // If this policy is owned by Expensify then show all support (expensify.com or team.expensify.com) emails
         // We don't want to show guides as policy members unless the user is a guide. Some customers get confused when they
