@@ -5,8 +5,10 @@ import WorkspaceMemberRoleList from '@components/WorkspaceMemberRoleList';
 import type {ListItemType} from '@components/WorkspaceMemberRoleList';
 
 import useApproveOnlyRoleBlockedModal from '@hooks/useApproveOnlyRoleBlockedModal';
+import useConfirmModal from '@hooks/useConfirmModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import useRedirectSubmitWorkspaceFeatureUpgrade from '@hooks/useRedirectSubmitWorkspaceFeatureUpgrade';
 import useRuleBotGuardModal from '@hooks/useRuleBotGuardModal';
 
@@ -30,7 +32,7 @@ import type {PersonalDetailsList} from '@src/types/onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 
-import React, {useState} from 'react';
+import React, {useCallback, useState} from 'react';
 
 type WorkspaceMemberDetailsRolePageProps = Omit<WithPolicyAndFullscreenLoadingProps, 'route'> &
     PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.MEMBER_DETAILS_ROLE> & {
@@ -57,6 +59,18 @@ function WorkspaceMemberDetailsRolePage({policy, personalDetails, route}: Worksp
     });
 
     const {showApproveOnlyBlockedModal, showRoleUpdateErrorModal} = useApproveOnlyRoleBlockedModal();
+    const {isOffline} = useNetwork();
+    const {showConfirmModal} = useConfirmModal();
+
+    const showRequiresInternetModal = useCallback(() => {
+        showConfirmModal({
+            title: translate('common.youAppearToBeOffline'),
+            prompt: translate('common.thisFeatureRequiresInternet'),
+            confirmText: translate('common.buttonConfirm'),
+            shouldShowCancelButton: false,
+            shouldHandleNavigationBack: true,
+        });
+    }, [showConfirmModal, translate]);
 
     const saveRole = () => {
         // The save button stays disabled until a different role is picked, so selectedRole is always set here.
@@ -76,6 +90,11 @@ function WorkspaceMemberDetailsRolePage({policy, personalDetails, route}: Worksp
             return;
         }
         if (value === CONST.POLICY.ROLE.APPROVE_ONLY) {
+            // Blocked reasons are only on the response, which is not available offline, so the change cannot be evaluated.
+            if (isOffline) {
+                showRequiresInternetModal();
+                return;
+            }
             updateWorkspaceMembersRole(policy, [memberLogin], [accountID], value)
                 .then((response) => {
                     const blockedReasons = response?.data?.blockedReasons ?? [];

@@ -591,6 +591,16 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
 
     const hasSelectedRuleBot = selectedEmployees.some((email) => isRuleBotEnforcingRules(policyMemberEmailsToAccountIDs[email], policy));
 
+    const showRequiresInternetModal = useCallback(() => {
+        showConfirmModal({
+            title: translate('common.youAppearToBeOffline'),
+            prompt: translate('common.thisFeatureRequiresInternet'),
+            confirmText: translate('common.buttonConfirm'),
+            shouldShowCancelButton: false,
+            shouldHandleNavigationBack: true,
+        });
+    }, [showConfirmModal, translate]);
+
     const changeUserRole = (role: ValueOf<typeof CONST.POLICY.ROLE>) => {
         if (role !== CONST.POLICY.ROLE.ADMIN && hasSelectedRuleBot) {
             showRuleBotGuardModal('changeRole', policyID);
@@ -604,6 +614,11 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
 
         setSelectedEmployees([]);
         if (role === CONST.POLICY.ROLE.APPROVE_ONLY) {
+            // Blocked reasons are only on the response, which is not available offline, so the change cannot be evaluated.
+            if (isOffline) {
+                showRequiresInternetModal();
+                return;
+            }
             updateWorkspaceMembersRole(policy, loginsToUpdate, accountIDsToUpdate, role)
                 .then((response) => {
                     const blockedReasons = response?.data?.blockedReasons ?? [];
@@ -767,16 +782,6 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
 
         return options;
     };
-
-    const showRequiresInternetModal = useCallback(() => {
-        showConfirmModal({
-            title: translate('common.youAppearToBeOffline'),
-            prompt: translate('common.thisFeatureRequiresInternet'),
-            confirmText: translate('common.buttonConfirm'),
-            shouldShowCancelButton: false,
-            shouldHandleNavigationBack: true,
-        });
-    }, [showConfirmModal, translate]);
 
     const secondaryActions = useMemo(() => {
         if (!canWriteMembers) {
