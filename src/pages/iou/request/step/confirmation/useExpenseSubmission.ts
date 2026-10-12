@@ -1,14 +1,11 @@
 import useBlockDistanceRequest from '@hooks/useBlockDistanceRequest';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
-import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useParticipantsPolicyTags from '@hooks/useParticipantsPolicyTags';
 import useReportTransactions from '@hooks/useReportTransactions';
 
-import {isLookingAroundSearchRoutingActive, isSelfDMSoleDestination} from '@libs/IOUUtils';
-import {isTrackOnboardingChoice} from '@libs/OnboardingUtils';
+import {isSelfDMSoleDestination} from '@libs/IOUUtils';
 import {findSelfDMReportID} from '@libs/ReportUtils';
-import {getSpan} from '@libs/telemetry/activeSpans';
 import {isGPSDistanceRequest as isGPSDistanceRequestTransactionUtils} from '@libs/TransactionUtils';
 
 import CONST from '@src/CONST';
@@ -37,10 +34,12 @@ import usePerDiemSubmission from './submission/usePerDiemSubmission';
 import useRequestMoneySubmission from './submission/useRequestMoneySubmission';
 import useSendMoneySubmission from './submission/useSendMoneySubmission';
 import useSplitSubmission from './submission/useSplitSubmission';
+import useSubmissionOnboardingIntent from './submission/useSubmissionOnboardingIntent';
 import useSubmissionRecentlyUsedData from './submission/useSubmissionRecentlyUsedData';
 import useSubmissionViolations from './submission/useSubmissionViolations';
 import useTrackExpenseSubmission from './submission/useTrackExpenseSubmission';
 import getTransactionTaxValues from './submission/utils/getTransactionTaxValues';
+import guardSubmission from './submission/utils/guardSubmission';
 import {resolveSubmissionPath, SUBMISSION_PATH} from './submission/utils/resolveSubmissionPath';
 
 type UseExpenseSubmissionParams = {
@@ -134,15 +133,12 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
         onExpenseWriteWillStart,
         submitLock,
     } = params;
-    const {setIsConfirmed, unlockSubmission, lockSubmission} = submitLock;
+    const {setIsConfirmed, unlockSubmission} = submitLock;
 
     const isSelfDMDestination = isSelfDMSoleDestination(participants, iouType, currentUserPersonalDetails.accountID);
     const selectedParticipants = participants.filter((participant) => participant.selected);
 
-    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
-    const isTrackIntentUser = isTrackOnboardingChoice(introSelected?.choice);
-    const {isOffline} = useNetwork();
-    const isLookingAroundUser = isLookingAroundSearchRoutingActive(introSelected?.choice === CONST.ONBOARDING_CHOICES.LOOKING_AROUND, isOffline);
+    const {introSelected, isTrackIntentUser, isLookingAroundUser} = useSubmissionOnboardingIntent();
 
     const isTrackExpense = iouType === CONST.IOU.TYPE.TRACK;
     const isGPSDistanceRequest = isGPSDistanceRequestTransactionUtils(transaction);
@@ -410,20 +406,12 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
         [SUBMISSION_PATH.REQUEST_MONEY]: requestMoneySubmission.createTransaction,
     };
 
-    function createTransaction({locationPermissionGranted = false, shouldHandleNavigation = true, writeBarrier}: CreateTransactionParams): boolean {
-        getSpan(CONST.TELEMETRY.SPAN_SUBMIT_EXPENSE)?.setAttribute(CONST.TELEMETRY.ATTRIBUTE_LOCATION_SOURCE, CONST.TELEMETRY.SUBMIT_EXPENSE_LOCATION_SOURCE.NONE);
-        if (blockDistanceRequestIfNeeded()) {
-            return false;
-        }
-
-        if (!lockSubmission()) {
-            return false;
-        }
-
-        // Telemetry spans (SPAN_SUBMIT_EXPENSE, SPAN_SUBMIT_TO_DESTINATION_VISIBLE)
-        // are started by SubmitExpenseOrchestrator before calling createTransaction.
-        return submitByPath[submissionPath]({locationPermissionGranted, shouldHandleNavigation, writeBarrier});
-    }
+    const createTransaction = guardSubmission(
+        submitLock,
+        ({locationPermissionGranted = false, shouldHandleNavigation = true, writeBarrier}: CreateTransactionParams) =>
+            submitByPath[submissionPath]({locationPermissionGranted, shouldHandleNavigation, writeBarrier}),
+        blockDistanceRequestIfNeeded,
+    );
 
     return {createTransaction, sendMoney};
 }
