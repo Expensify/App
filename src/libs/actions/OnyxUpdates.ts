@@ -1,13 +1,12 @@
 import {SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import Log from '@libs/Log';
-import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
+import redirectReplacedReport from '@libs/Navigation/helpers/redirectReplacedReport';
 import {isRecord} from '@libs/ObjectUtils';
 import PusherUtils from '@libs/PusherUtils';
 import {trackExpenseApiError} from '@libs/telemetry/trackExpenseCreationError';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import SCREENS from '@src/SCREENS';
 import type {AnyOnyxUpdatesFromServer, OnyxUpdateEvent, OnyxUpdatesFromServer, Request} from '@src/types/onyx';
 import type {AnyOnyxUpdate} from '@src/types/onyx/Request';
 import type Response from '@src/types/onyx/Response';
@@ -66,7 +65,7 @@ let pusherEventsPromise = Promise.resolve();
 
 let airshipEventsPromise = Promise.resolve();
 
-function shouldApplyScanResponseImmediately<TKey extends OnyxKey>(request: Request<TKey>, response: Response<TKey>): boolean {
+function isImmediateScanResponse<TKey extends OnyxKey>(request: Request<TKey>, response: Response<TKey>): boolean {
     return request.command === WRITE_COMMANDS.REQUEST_MONEY && request.shouldApplyScanResponseImmediately === true && response.jsonCode === CONST.JSON_CODE.SUCCESS;
 }
 
@@ -108,22 +107,14 @@ function applyScanResponse<TKey extends OnyxKey>(request: Request<TKey>, respons
             {onyxMethod: Onyx.METHOD.MERGE, key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`, value: null},
             {onyxMethod: Onyx.METHOD.MERGE, key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`, value: null},
         );
-        // The focused route may belong to a nested navigator (including Report), not just the root param list.
-        const route: {name: string; params?: unknown} | undefined = navigationRef.isReady() ? navigationRef.getCurrentRoute() : undefined;
-        if (
-            (route?.name === SCREENS.REPORT || route?.name === SCREENS.RIGHT_MODAL.EXPENSE_REPORT || route?.name === SCREENS.RIGHT_MODAL.SEARCH_REPORT) &&
-            isRecord(route.params) &&
-            route.params.reportID === reportID
-        ) {
-            Navigation.setParams({reportID: actualReportID});
-        }
+        redirectReplacedReport(reportID, actualReportID);
     }
     return Onyx.update(updates).then(() => response);
 }
 
 function applyHTTPSOnyxUpdates<TKey extends OnyxKey>(request: Request<TKey>, response: Response<TKey>, lastUpdateID: number, scanReplacement?: ReturnType<typeof getScanReportReplacement>) {
     Log.info('[OnyxUpdateManager] Applying https update', false, {lastUpdateID});
-    if (shouldApplyScanResponseImmediately(request, response)) {
+    if (isImmediateScanResponse(request, response)) {
         return applyScanResponse(request, response, scanReplacement);
     }
     // For most requests we can immediately update Onyx. For write requests we queue the updates and apply them after the sequential queue has flushed to prevent a replay effect in
@@ -246,14 +237,13 @@ function apply<TKey extends OnyxKey>({lastUpdateID, previousUpdateID, type, requ
 
         // In this case, we're already received the OnyxUpdate included in the response, so we don't need to apply it again.
         // However, we do need to apply the successData and failureData from the request
+        const scanReplacement =
+            type === CONST.ONYX_UPDATE_TYPES.HTTPS && request && response && isImmediateScanResponse(request, response) ? getScanReportReplacement(request, response) : undefined;
         if (
             type === CONST.ONYX_UPDATE_TYPES.HTTPS &&
             request &&
             response &&
-            (!isEmptyObject(request.successData) ||
-                !isEmptyObject(request.failureData) ||
-                !isEmptyObject(request.finallyData) ||
-                (shouldApplyScanResponseImmediately(request, response) && !!getScanReportReplacement(request, response)))
+            (!isEmptyObject(request.successData) || !isEmptyObject(request.failureData) || !isEmptyObject(request.finallyData) || !!scanReplacement)
         ) {
             Log.info('[OnyxUpdateManager] Applying success or failure data from request without onyxData from response');
 
@@ -261,8 +251,7 @@ function apply<TKey extends OnyxKey>({lastUpdateID, previousUpdateID, type, requ
             const {onyxData, ...responseWithoutOnyxData} = response;
             // A newer live update may already contain this scan. Preserve only the immutable report-replacement
             // signal from the old response; never replay its receipt state, amounts, or report totals.
-            const replacement = shouldApplyScanResponseImmediately(request, response) ? getScanReportReplacement(request, response) : undefined;
-            return applyHTTPSOnyxUpdates(request, responseWithoutOnyxData, Number(lastUpdateID), replacement);
+            return applyHTTPSOnyxUpdates(request, responseWithoutOnyxData, Number(lastUpdateID), scanReplacement);
         }
 
         return Promise.resolve(response);
@@ -342,7 +331,7 @@ function apply<TKey extends OnyxKey>({lastUpdateID, previousUpdateID, type, requ
         // WRITE requests only stage their updates in memory here — the real Onyx write happens later in
         // QueuedOnyxUpdates.flushQueue(). Gate the watermark on that flush, but detached from the returned promise:
         // SequentialQueue only flushes after this promise settles, so awaiting the flush here would deadlock.
-        if (request.data?.apiRequestType === CONST.API_REQUEST_TYPE.WRITE && !shouldApplyScanResponseImmediately(request, response)) {
+        if (request.data?.apiRequestType === CONST.API_REQUEST_TYPE.WRITE && !isImmediateScanResponse(request, response)) {
             if (shouldAdvanceLastUpdateID) {
                 lastUpdateIDPendingWriteFlush = Math.max(lastUpdateIDPendingWriteFlush, Number(lastUpdateID));
             }

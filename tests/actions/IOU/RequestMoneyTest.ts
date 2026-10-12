@@ -189,6 +189,72 @@ describe('actions/IOU', () => {
     });
 
     describe('requestMoney', () => {
+        it.each([
+            {scenario: 'ASAP scan without a target report', isASAPSubmitBetaEnabled: true, isScan: true, hasTargetReport: false, expected: true},
+            {scenario: 'manual expense', isASAPSubmitBetaEnabled: true, isScan: false, hasTargetReport: false, expected: false},
+            {scenario: 'scan with ASAP disabled', isASAPSubmitBetaEnabled: false, isScan: true, hasTargetReport: false, expected: false},
+            {scenario: 'scan into an explicit expense report', isASAPSubmitBetaEnabled: true, isScan: true, hasTargetReport: true, expected: false},
+        ])('sets immediate-response metadata correctly for $scenario', ({isASAPSubmitBetaEnabled, isScan, hasTargetReport, expected}) => {
+            // Given a scan/manual draft and either a new-report flow or an explicit expense-report target
+            const draft: Transaction = {
+                transactionID: 'draft-transaction',
+                reportID: '1',
+                amount: 0,
+                currency: CONST.CURRENCY.USD,
+                created: '2026-10-01',
+                merchant: 'Test merchant',
+                iouRequestType: isScan ? CONST.IOU.REQUEST_TYPE.SCAN : CONST.IOU.REQUEST_TYPE.MANUAL,
+            };
+            const writeSink = jest.fn();
+            const writeSpy = spyOnApiWrite('writeWhenReady', writeSink);
+            const report: Report = hasTargetReport ? {reportID: 'target-expense-report', type: CONST.REPORT.TYPE.IOU, chatReportID: 'target-chat'} : {reportID: ''};
+
+            try {
+                // When the action constructs its RequestMoney write, rather than setting the flag by hand
+                requestMoney({
+                    isVendorMatchingBetaEnabled: false,
+                    getCurrencyDecimals: getCurrencyDecimalsLocal,
+                    conciergeChat: undefined,
+                    action: CONST.IOU.ACTION.CREATE,
+                    report,
+                    participantParams: {
+                        payeeEmail: RORY_EMAIL,
+                        payeeAccountID: RORY_ACCOUNT_ID,
+                        participant: {login: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID},
+                    },
+                    transactionParams: {amount: 1000, currency: CONST.CURRENCY.USD, created: '2026-10-01', merchant: 'Test merchant', comment: ''},
+                    existingTransaction: draft,
+                    shouldGenerateTransactionThreadReport: false,
+                    isASAPSubmitBetaEnabled,
+                    transactionViolations: {},
+                    currentUserAccountIDParam: RORY_ACCOUNT_ID,
+                    currentUserEmailParam: RORY_EMAIL,
+                    policyRecentlyUsedCurrencies: [],
+                    existingTransactionDraft: undefined,
+                    draftTransactionIDs: [],
+                    isSelfTourViewed: false,
+                    quickAction: undefined,
+                    personalDetails: {},
+                    delegateAccountID: undefined,
+                    isTrackIntentUser: false,
+                    formatPhoneNumber,
+                    rules: undefined,
+                });
+
+                // Then the opt-in belongs to client metadata, not parameters sent to the server
+                expect(writeSink).toHaveBeenCalledTimes(1);
+                expect(writeSink).toHaveBeenCalledWith(
+                    WRITE_COMMANDS.REQUEST_MONEY,
+                    expect.not.objectContaining({shouldApplyScanResponseImmediately: expect.anything()}),
+                    expect.objectContaining({shouldApplyScanResponseImmediately: expected}),
+                    expect.anything(),
+                    expect.anything(),
+                );
+            } finally {
+                writeSpy.mockRestore();
+            }
+        });
+
         it('creates new chat if needed', () => {
             const amount = 10000;
             const comment = 'Giv money plz';
