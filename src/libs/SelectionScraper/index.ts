@@ -22,20 +22,7 @@ const COPYABLE_ROW_DATA_SET = {[CONST.COPYABLE_ROW_ELEMENT]: true} as const;
 const copyableRowContinuationAttribute = `data-${CONST.COPYABLE_ROW_CONTINUATION_ELEMENT}`;
 const COPYABLE_ROW_CONTINUATION_DATA_SET = {...COPYABLE_ROW_DATA_SET, [CONST.COPYABLE_ROW_CONTINUATION_ELEMENT]: true} as const;
 
-function normalizeCopyableText(text: string): string {
-    return text.trim().replaceAll(/[\t\n\r ]+/g, ' ');
-}
-
-function isTextValueElement(element: globalThis.Element): element is HTMLInputElement | HTMLTextAreaElement {
-    return element instanceof globalThis.HTMLInputElement || element instanceof globalThis.HTMLTextAreaElement;
-}
-
 function getCopyableElementText(element: globalThis.Element, selection: Selection): string {
-    // Form control values are properties rather than text nodes, so Range#toString cannot read them.
-    if (isTextValueElement(element)) {
-        return normalizeCopyableText(element.value);
-    }
-
     const elementRange = document.createRange();
     elementRange.selectNodeContents(element);
     const selectedText: string[] = [];
@@ -55,7 +42,10 @@ function getCopyableElementText(element: globalThis.Element, selection: Selectio
         selectedText.push(intersectionRange.toString());
     }
 
-    return normalizeCopyableText(selectedText.join(' '));
+    return selectedText
+        .join(' ')
+        .trim()
+        .replaceAll(/[\t\n\r ]+/g, ' ');
 }
 
 function replaceElementContentWithLines(element: globalThis.Element, lines: Array<{row: globalThis.Element; text: string}>) {
@@ -174,8 +164,8 @@ function getHTMLOfSelectedCopyableRows(selection: Selection): string {
         }
     }
 
-    const selectedCopyableElements = Array.from(selectedCopyableElementsByRow.values()).flatMap((copyableElements) => Array.from(copyableElements));
-    if (selectedCopyableElements.length <= 1 && !selectedCopyableElements.some(isTextValueElement)) {
+    const selectedCopyableElementCount = Array.from(selectedCopyableElementsByRow.values()).reduce((count, copyableElements) => count + copyableElements.size, 0);
+    if (selectedCopyableElementCount <= 1) {
         // Single-cell selections should preserve the browser's exact selected text instead of forcing full-cell output.
         return '';
     }

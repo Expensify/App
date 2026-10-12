@@ -4,9 +4,6 @@ import ComposeProviders from '@components/ComposeProviders';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import MoneyReportView from '@components/ReportActionItem/MoneyReportView';
 
-import getPlatform from '@libs/getPlatform';
-import {COPYABLE_ROW_CONTINUATION_DATA_SET, COPYABLE_TEXT_DATA_SET} from '@libs/SelectionScraper';
-
 import initOnyxDerivedValues from '@userActions/OnyxDerived';
 
 import CONST from '@src/CONST';
@@ -51,8 +48,6 @@ jest.mock('@hooks/useScreenWrapperTransitionStatus', () => ({
     }),
 }));
 
-jest.mock('@libs/getPlatform', () => jest.fn());
-
 jest.mock('@react-navigation/native', () => ({
     ...((): typeof NativeNavigation => jest.requireActual('@react-navigation/native'))(),
     useNavigation: jest.fn(() => ({navigate: jest.fn(), addListener: jest.fn(() => jest.fn())})),
@@ -66,8 +61,6 @@ jest.mock('@pages/inbox/report/AnimatedEmptyStateBackground', () => {
 });
 
 TestHelper.setupGlobalFetchMock();
-
-const mockedGetPlatform = jest.mocked(getPlatform);
 
 const policyID = 'policy_mrv_breakdown';
 const reportID = 'report_mrv_breakdown';
@@ -324,7 +317,7 @@ describe('MoneyReportView report fields visibility', () => {
         orderWeight: 2,
         deletable: true,
         defaultValue: '',
-        value: 'Copyable field value',
+        value: '1',
         values: [],
         keys: [],
         externalIDs: [],
@@ -356,20 +349,15 @@ describe('MoneyReportView report fields visibility', () => {
         initOnyxDerivedValues();
     });
 
-    beforeEach(() => {
-        mockedGetPlatform.mockReturnValue(CONST.PLATFORM.MOBILE_WEB);
-    });
-
     afterEach(async () => {
         await act(async () => {
             await Onyx.clear();
         });
     });
 
-    it('keeps a custom report field visible and copyable for a non-admin submitter after approval (single-expense combined view)', async () => {
+    it('keeps a custom report field visible for a non-admin submitter after the report is approved (single-expense combined view)', async () => {
         // Given an approved report with a custom field, viewed by its non-admin submitter, who cannot edit a field
         // once the report has been approved
-        mockedGetPlatform.mockReturnValue(CONST.PLATFORM.WEB);
         const fieldList = {
             [CONST.REPORT_FIELD_TITLE_FIELD_ID]: buildTitleField(),
             [customFieldKey]: buildCustomTextField(),
@@ -382,17 +370,15 @@ describe('MoneyReportView report fields visibility', () => {
         });
         await seedReportFieldsPolicy(policy, approvedReport);
 
-        // When the report is rendered in the single-expense combined view
+        // When the combined view is rendered
         renderMoneyReportView(approvedReport, policy, true);
         await waitForBatchedUpdatesWithAct();
 
-        // Then the read-only inline field stays visible and its value is marked for desktop-web selection scraping
+        // Then the field is still on the screen, because a submitter who can no longer change a value still needs to
+        // read it. It is looked up by its label since it is a read-only inline input now rather than a row that opens
+        // the report field editor
         await waitFor(() => {
-            const fieldInput = screen.getByLabelText('Test');
-            expect(fieldInput).toBeOnTheScreen();
-            expect(fieldInput).toHaveProp('value', 'Copyable field value');
-            expect(fieldInput).toHaveProp('dataSet', expect.objectContaining(COPYABLE_TEXT_DATA_SET));
-            expect(screen.UNSAFE_getAllByProps({dataSet: COPYABLE_ROW_CONTINUATION_DATA_SET}).length).toBeGreaterThan(0);
+            expect(screen.getByLabelText('Test')).toBeOnTheScreen();
         });
     });
 

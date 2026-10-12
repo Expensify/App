@@ -22,7 +22,6 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 
 import {hasCircularReferences} from '@libs/Formula';
 import type {FieldList} from '@libs/Formula';
-import {COPYABLE_TEXT_DATA_SET} from '@libs/SelectionScraper';
 import StringUtils from '@libs/StringUtils';
 
 import EditReportFieldDropdown from '@pages/EditReportFieldDropdown';
@@ -48,9 +47,6 @@ type ReportFieldInlineInputProps = {
     /** Whether the current user is allowed to change the value */
     isDisabled: boolean;
 
-    /** Whether the displayed value should be included when scraping a browser selection */
-    isCopyable?: boolean;
-
     /** Message shown under the input, for example a field violation */
     errorText?: string;
 
@@ -66,7 +62,7 @@ type ReportFieldInlineInputProps = {
     onDelete?: () => void;
 };
 
-function ReportFieldInlineInput({reportField, fieldKey, value, isDisabled, isCopyable, errorText, fieldList, onSaveValue, onDelete}: ReportFieldInlineInputProps) {
+function ReportFieldInlineInput({reportField, fieldKey, value, isDisabled, errorText, fieldList, onSaveValue, onDelete}: ReportFieldInlineInputProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -179,7 +175,6 @@ function ReportFieldInlineInput({reportField, fieldKey, value, isDisabled, isCop
                 label={label}
                 accessibilityLabel={label}
                 value={value}
-                dataSet={isCopyable ? COPYABLE_TEXT_DATA_SET : undefined}
                 errorText={errorText}
                 minDate={CONST.CALENDAR_PICKER.MIN_DATE}
                 maxDate={CONST.CALENDAR_PICKER.MAX_DATE}
@@ -266,7 +261,6 @@ function ReportFieldInlineInput({reportField, fieldKey, value, isDisabled, isCop
                                 role={CONST.ROLE.COMBOBOX}
                                 accessibilityState={{expanded: isExpanded}}
                                 value={value}
-                                dataSet={isCopyable ? COPYABLE_TEXT_DATA_SET : undefined}
                                 errorText={errorText}
                                 inputStyle={styles.pointerEventsNone}
                                 icon={icons.DownArrow}
@@ -296,7 +290,6 @@ function ReportFieldInlineInput({reportField, fieldKey, value, isDisabled, isCop
             accessibilityLabel={label}
             role={CONST.ROLE.PRESENTATION}
             value={isReadOnly ? value : draftValue}
-            dataSet={isCopyable ? COPYABLE_TEXT_DATA_SET : undefined}
             errorText={validationError || errorText}
             disabled={isReadOnly}
             onChangeText={setDraftValue}

@@ -13,7 +13,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {clearReportFieldKeyErrors, deleteReportField} from '@libs/actions/Report';
 import {resolveReportFieldValue} from '@libs/Formula';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
-import getPlatform from '@libs/getPlatform';
 import {
     getFieldViolation,
     getFieldViolationTranslation,
@@ -24,7 +23,6 @@ import {
     shouldDisplayReportFields as shouldDisplayReportFieldsUtils,
     shouldHideSingleReportField,
 } from '@libs/ReportUtils';
-import {COPYABLE_ROW_CONTINUATION_DATA_SET} from '@libs/SelectionScraper';
 
 import type {ThemeStyles} from '@styles/index';
 
@@ -79,7 +77,6 @@ function ReportFieldView(
     styles: ThemeStyles,
     onSaveValue: (reportField: PolicyReportField, value: string) => void,
     onDelete: (reportField: EnrichedPolicyReportField) => Promise<void>,
-    shouldMarkValueAsCopyable: boolean,
     pendingAction?: PendingAction,
 ) {
     return (
@@ -101,7 +98,6 @@ function ReportFieldView(
                     value={reportField.fieldValue}
                     isDisabled={reportField.isFieldDisabled}
                     errorText={reportField.violationTranslation}
-                    isCopyable={shouldMarkValueAsCopyable && !!reportField.fieldValue}
                     fieldList={policy?.fieldList}
                     onSaveValue={(value) => onSaveValue(reportField, value)}
                     onDelete={
@@ -125,7 +121,6 @@ function MoneyRequestViewReportFields({report, policy, pendingAction, style, sho
     const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${getNonEmptyStringOnyxID(report?.reportID)}`);
     const {getCurrencyDecimals} = useCurrencyListActions();
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
-    const shouldUseCopyableRowContinuation = getPlatform(true) === CONST.PLATFORM.WEB;
     const {translate} = useLocalize();
     const {showConfirmModal} = useConfirmModal();
 
@@ -195,10 +190,7 @@ function MoneyRequestViewReportFields({report, policy, pendingAction, style, sho
     }
 
     return (
-        <View
-            style={[styles.ph5, styles.mb3, styles.gap3, style]}
-            dataSet={shouldUseCopyableRowContinuation ? COPYABLE_ROW_CONTINUATION_DATA_SET : undefined}
-        >
+        <View style={[styles.ph5, styles.mb3, styles.gap3, style]}>
             {fieldRows.map((fieldRow) => {
                 const rowKey = `reportFieldRow-${fieldRow.at(0)?.fieldKey}`;
 
@@ -210,7 +202,7 @@ function MoneyRequestViewReportFields({report, policy, pendingAction, style, sho
                         // message grows downwards instead of stretching the cells beside it and shifting their inputs.
                         style={[styles.flexRow, styles.gap3, styles.alignItemsStart]}
                     >
-                        {fieldRow.map((reportField) => ReportFieldView(reportField, report, policy, styles, saveReportField, deleteField, shouldUseCopyableRowContinuation, pendingAction))}
+                        {fieldRow.map((reportField) => ReportFieldView(reportField, report, policy, styles, saveReportField, deleteField, pendingAction))}
                         {/* A partly filled last row is padded out so its fields stay the same width as the rows above it. */}
                         {Array.from({length: columnCount - fieldRow.length}, (_unused, index) => (
                             <View

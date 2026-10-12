@@ -56,7 +56,6 @@ function DatePicker({
     shouldHideCalendarIcon = false,
     shouldEnableMonthYearBackdropInNarrowPane = false,
     textInputContainerStyles,
-    dataSet,
 }: DateInputWithPickerProps) {
     const icons = useMemoizedLazyExpensifyIcons(['Calendar']);
     const styles = useThemeStyles();
@@ -248,7 +247,6 @@ function DatePicker({
                     role={CONST.ROLE.COMBOBOX}
                     accessibilityState={{expanded: isModalVisible}}
                     value={selectedDate}
-                    dataSet={dataSet}
                     placeholder={placeholder ?? translate('common.dateFormat')}
                     errorText={errorText}
                     inputStyle={styles.pointerEventsNone}
