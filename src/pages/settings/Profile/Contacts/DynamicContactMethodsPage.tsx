@@ -9,6 +9,7 @@ import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 
+import useAndroidBackButtonHandler from '@hooks/useAndroidBackButtonHandler';
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -82,6 +83,12 @@ function DynamicContactMethodsPage() {
         ? getPathWithoutDynamicSuffix(repeatedContactMethodsSuffix.pathUsedForMatching, repeatedContactMethodsSuffix.actualSuffix, repeatedContactMethodsSuffix.pattern) || ROUTES.HOME
         : backPath;
 
+    const goBack = () => Navigation.goBack(getCardFeedSelectorInStack(navigationRef.getRootState()) ?? backTo);
+    useAndroidBackButtonHandler(() => {
+        goBack();
+        return true;
+    });
+
     const options = useMemo(() => getContactMethodsOptions(translate, formatPhoneNumber, loginList, session?.email), [translate, formatPhoneNumber, loginList, session?.email]);
 
     const addNewContactMethod = useCallback(() => {
@@ -108,7 +115,7 @@ function DynamicContactMethodsPage() {
         >
             <HeaderWithBackButton
                 title={translate('contacts.contactMethods')}
-                onBackButtonPress={() => Navigation.goBack(getCardFeedSelectorInStack(navigationRef.getRootState()) ?? backTo)}
+                onBackButtonPress={goBack}
             />
             <ScrollView contentContainerStyle={styles.flexGrow1}>
                 <View style={[styles.ph5, styles.mv3, styles.flexRow, styles.flexWrap]}>
