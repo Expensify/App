@@ -21,6 +21,7 @@ import {
     isPolicyAdmin,
     isPolicyExpenseChat,
     isProcessingReport,
+    isSupportTicket,
     getPendingDeleteMemberAccountIDs,
     isValidReport,
 } from '@libs/ReportUtils';
@@ -690,7 +691,7 @@ export default createOnyxDerivedValueConfig({
 
                 // if report has errors or violations, show red dot
                 // Also skip setting ERROR when we'll show the green Submit badge — let the user submit without fix.
-                if (reasonAndReportAction && !willShowGreenSubmit) {
+                if (!isSupportTicket(report) && reasonAndReportAction && !willShowGreenSubmit) {
                     needsParentChatErrorPropagation = true;
 
                     // RBR/Fix mirrors GBR's access rule: only show on the child when the user can't already

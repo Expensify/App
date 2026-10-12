@@ -12,6 +12,7 @@ import type {OnyxCollection} from 'react-native-onyx';
 import {Str} from 'expensify-common';
 
 import StringUtils from './StringUtils';
+import {containsHtmlTag} from './ValidationUtils';
 
 function formatDefaultTaxRateText(translate: LocaleContextProps['translate'], taxID: string, taxRate: TaxRate, policyTaxRates?: TaxRatesWithDefault) {
     const taxRateText = `${taxRate.name} ${CONST.DOT_SEPARATOR} ${taxRate.value}`;
@@ -128,6 +129,13 @@ function isCategoryDescriptionRequired(policyCategories: PolicyCategories | unde
     return !!policyCategories[category]?.areCommentsRequired;
 }
 
+function getCategoryDescriptionHint(policyCategories: PolicyCategories | undefined, category: string | undefined, areRulesEnabled: boolean | undefined): string {
+    if (!policyCategories || !category || !areRulesEnabled) {
+        return '';
+    }
+    return policyCategories[category]?.commentHint ?? '';
+}
+
 function getCategoryGLCode(policyCategories: PolicyCategories | undefined, category: string | undefined): string {
     if (!policyCategories || !category) {
         return '';
@@ -148,7 +156,7 @@ type CategoryNameError =
     | typeof CONST.INPUT_VALIDATION_ERRORS.TOO_LONG;
 
 /**
- * Validates a category name against every rule (required, unique, reserved, length). This is the single
+ * Validates a category name against every rule (required, HTML-like characters, unique, reserved, length). This is the single
  * source of truth shared by the create form, the RHP edit form, and inline table editing. Pass
  * `currentName` (the decoded display name) when editing so renaming a category to its own name isn't flagged
  * as a duplicate. Uniqueness also matches HTML-encoded stored names such as `Food &amp; Drink` vs `Food & Drink`.
@@ -159,6 +167,11 @@ function getCategoryNameError(policyCategories: PolicyCategories | undefined, ne
 
     if (StringUtils.isEmptyString(sanitized)) {
         return CONST.INPUT_VALIDATION_ERRORS.REQUIRED;
+    }
+
+    // The Name page rejects these in FormProvider. Inline rename only calls this helper, so `</>` would otherwise save from the table.
+    if (containsHtmlTag(sanitized)) {
+        return CONST.INPUT_VALIDATION_ERRORS.INVALID;
     }
 
     // Category keys may be HTML-encoded, so uniqueness compares decoded names. currentName is already decoded by the caller.
@@ -287,6 +300,7 @@ export {
     getEnabledCategoriesCount,
     isCategoryMissing,
     isCategoryDescriptionRequired,
+    getCategoryDescriptionHint,
     getCategoryGLCode,
     getDecodedCategoryName,
     getDecodedLeafCategoryName,
