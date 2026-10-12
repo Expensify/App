@@ -38,7 +38,7 @@ function ReimbursedContent({action, reportOwnerAccountID, originalReport}: Reimb
     if (hasReasoning(action)) {
         return (
             <ReportActionItemMessageWithExplain
-                message={message}
+                message={message.replace(/\.\s*$/, '')}
                 action={action}
                 childReport={childReport}
                 originalReport={originalReport}
