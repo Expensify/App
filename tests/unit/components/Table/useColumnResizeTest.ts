@@ -317,7 +317,7 @@ describe('useColumnResize', () => {
         expect(readGripHover()).toBe('1');
     });
 
-        it('keeps a dragged width above its floor', () => {
+    it('keeps a dragged width above its floor', () => {
         // Given a 200px column that may not shrink below 180px
         const {handleElement, getHandleProps, readWidth} = renderColumnResize({dragMinWidths: {[NAME_COLUMN_KEY]: 180}});
 
