@@ -1,9 +1,10 @@
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import DelegateNoAccessWrapper from '@components/DelegateNoAccessWrapper';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import ScreenWrapper from '@components/ScreenWrapper';
 
+import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 
 import {quitAndNavigateBack} from '@libs/actions/TwoFactorAuthActions';
@@ -67,6 +68,7 @@ function TwoFactorAuthWrapper({stepName, title, stepCounter, onBackButtonPress, 
     const route = useRoute();
     const backTo = (route.params as {backTo?: Route} | undefined)?.backTo;
     const defaultGoBack = () => quitAndNavigateBack(backTo ?? ROUTES.SETTINGS_SECURITY);
+    const {translate} = useLocalize();
 
     return (
         <ScreenWrapper
@@ -81,9 +83,9 @@ function TwoFactorAuthWrapper({stepName, title, stepCounter, onBackButtonPress, 
                     linkTranslationKey="securityPage.goToSecurity"
                     onLinkPress={defaultGoBack}
                 >
-                    <HeaderWithBackButton
+                    <HeaderWithBackButtonAndTitle
                         title={title}
-                        stepCounter={stepCounter}
+                        subtitle={stepCounter ? translate('stepCounter', stepCounter.step, stepCounter.total, stepCounter.text) : undefined}
                         onBackButtonPress={onBackButtonPress ?? defaultGoBack}
                     />
                     <FullPageOfflineBlockingView>{children}</FullPageOfflineBlockingView>
