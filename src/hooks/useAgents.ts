@@ -90,7 +90,6 @@ function useAgents() {
                 login: details.login ?? '',
                 ownerAccountID: agent.ownerAccountID,
                 ownerDisplayName: ownerDetails?.displayName ?? ownerDetails?.login ?? '',
-                ownerLogin: ownerDetails?.login ?? '',
                 ownerType: agent.ownerType,
                 pendingAction,
                 errors: Object.keys(rowErrors).length > 0 ? rowErrors : undefined,
