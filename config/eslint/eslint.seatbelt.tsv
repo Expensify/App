@@ -835,6 +835,8 @@
 "../../src/libs/Navigation/linkingConfig/RELATIONS/index.ts"	"@typescript-eslint/no-unsafe-type-assertion"	3
 "../../src/libs/Navigation/Navigation.ts"	"@typescript-eslint/no-unsafe-type-assertion"	10
 "../../src/libs/Navigation/OnyxTabNavigator.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	3
+"../../src/libs/Navigation/PlatformStackNavigation/createPlatformStackNavigatorComponent/index.native.tsx"	"@typescript-eslint/no-deprecated/NavigationContent"	1
+"../../src/libs/Navigation/PlatformStackNavigation/createPlatformStackNavigatorComponent/index.tsx"	"@typescript-eslint/no-deprecated/NavigationContent"	1
 "../../src/libs/Navigation/PlatformStackNavigation/navigationOptions/animation/withAnimation.ts"	"@typescript-eslint/no-unsafe-type-assertion"	6
 "../../src/libs/Navigation/PlatformStackNavigation/ScreenLayout.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/libs/NetSuiteUtils.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
@@ -964,7 +966,6 @@
 "../../src/pages/DynamicNewReportWorkspaceSelectionPage.tsx"	"no-restricted-imports"	1
 "../../src/pages/DynamicReportChangeApproverPage.tsx"	"no-restricted-imports"	1
 "../../src/pages/DynamicReportChangeWorkspacePage.tsx"	"no-restricted-imports"	1
-"../../src/pages/DynamicReportDetailsPage/index.tsx"	"no-restricted-imports"	1
 "../../src/pages/DynamicReportParticipantDetailsPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/DynamicReportParticipantDetailsPage.tsx"	"no-restricted-imports"	1
 "../../src/pages/DynamicReportParticipantRoleSelectionPage.tsx"	"no-restricted-imports"	1
@@ -1633,7 +1634,7 @@
 "../../src/pages/workspace/members/WorkspaceInviteMessageComponent.tsx"	"no-restricted-imports"	1
 "../../src/pages/workspace/members/WorkspaceInviteMessageComponent.tsx"	"react-hooks/set-state-in-effect"	1
 "../../src/pages/workspace/members/WorkspaceMemberCustomFieldPage.tsx"	"no-restricted-imports"	1
-"../../src/pages/workspace/members/WorkspaceMemberDetailsPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	4
+"../../src/pages/workspace/members/WorkspaceMemberDetailsPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	3
 "../../src/pages/workspace/members/WorkspaceMemberDetailsPage.tsx"	"no-restricted-imports"	1
 "../../src/pages/workspace/members/WorkspaceOwnerChangeCheck.tsx"	"react-hooks/set-state-in-effect"	1
 "../../src/pages/workspace/members/WorkspaceOwnerPaymentCardForm.tsx"	"react-hooks/set-state-in-effect"	2
@@ -1710,7 +1711,6 @@
 "../../src/pages/workspace/WorkspaceConfirmationOwnerSelectorPage.tsx"	"no-restricted-imports"	1
 "../../src/pages/workspace/WorkspaceConfirmationSuccessPage.tsx"	"no-restricted-imports"	1
 "../../src/pages/workspace/WorkspaceInitialPage.tsx"	"no-restricted-imports"	1
-"../../src/pages/workspace/WorkspaceMembersPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/workspace/WorkspaceMembersPage.tsx"	"no-restricted-imports"	1
 "../../src/pages/workspace/WorkspaceMoreFeaturesPage/index.tsx"	"no-restricted-imports"	1
 "../../src/pages/workspace/WorkspaceNamePage.tsx"	"no-restricted-imports"	1
@@ -1860,7 +1860,6 @@
 "../../tests/unit/SearchAutocompleteListTest.tsx"	"@typescript-eslint/no-restricted-imports"	1
 "../../tests/unit/SidebarUtilsTest.ts"	"no-restricted-imports"	1
 "../../tests/unit/TransactionTest.ts"	"@typescript-eslint/no-restricted-imports"	1
-"../../tests/unit/useMarkAsReadTest.ts"	"no-restricted-imports"	1
 "../../tests/unit/WorkspacesSettingsUtilsTest.ts"	"@typescript-eslint/no-restricted-imports"	1
 "../../tests/utils/createMock.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../rsbuild/CustomVersionFilePlugin.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1

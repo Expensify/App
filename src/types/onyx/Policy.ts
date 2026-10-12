@@ -336,6 +336,9 @@ type MergeConnectionLastSync = ConnectionLastSync & {
 
     /** Timestamps of the last few manual ("Sync now") syncs, used for blocking manual syncs client-side once the daily limit is reached */
     manualSyncTimestamps?: string[];
+
+    /** If the connection's last sync failed because of its own settings, so the admin fixes the settings rather than reconnecting */
+    isConfigurationError?: boolean;
 };
 
 /**
@@ -2157,6 +2160,9 @@ type DualEntrySync = {
     /** Account code used for bill payment transactions. */
     billPaymentAccountID: string;
 
+    /** Expense account the company-paid currency conversion cost is booked to. Unset means the cost is not exported. */
+    fxExpenseAccountID?: string;
+
     /** Whether Expensify Card settlement transactions should be synchronized. */
     syncExpensifyCardSettlements: boolean;
 
@@ -2785,8 +2791,8 @@ type ZohoBooksSync = {
  */
 type ZohoBooksConnectionsConfig = OnyxCommon.OnyxValueWithOfflineFeedback<
     {
-        /** The internalID of the selected organization in Zoho Books */
-        organizationID: string;
+        /** Selected Zoho Books organization. The backend stores this as subsidiaryID, matching the other connectors. */
+        subsidiaryID: string;
 
         /** Whether the connection has been configured */
         isConfigured: boolean;
@@ -3125,6 +3131,9 @@ type MergeHRGroup = {
 type MergeHRConnectionData = {
     /** Groups available to import employees from. Distinct from `config.groups`, which is the admin's selection. */
     groups?: MergeHRGroup[];
+
+    /** IDs of every group the HR system has, including ones missing a name/type and so absent from `groups`. Used to tell a deleted group apart from one that just can't render. */
+    allGroupIDs?: string[];
 };
 
 /** Merge HR connection config */

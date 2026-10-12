@@ -29,6 +29,7 @@ import {
     getReportActionsFromSearchSnapshot,
     getReportFromSearchSnapshot,
     getReportType,
+    setSearchMergeReportIDs,
     getChatReportWithFallback,
     getSearchApproveOnyxData,
     getSearchPayOnyxData,
@@ -1430,9 +1431,12 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
     const deleteModalTitle = isDeletingOnlyExpenses
         ? getDeleteExpenseTitle(translate, expenseCount === 1 ? firstTransaction : undefined, expenseCount)
         : translate('iou.deleteReport', {count: deleteCount});
-    const deleteModalPrompt = isDeletingOnlyExpenses
-        ? getDeleteConfirmationPrompt(translate, expenseCount === 1 ? firstTransaction : undefined, expenseCount, hasSomePendingExpenses)
-        : translate('iou.deleteReportConfirmation', {count: deleteCount});
+    let deleteModalPrompt = translate('iou.deleteReportConfirmation', {count: deleteCount});
+    if (isDeletingOnlyExpenses) {
+        deleteModalPrompt = getDeleteConfirmationPrompt(translate, expenseCount === 1 ? firstTransaction : undefined, expenseCount, hasSomePendingExpenses);
+    } else if (isExpenseReportType && deleteCount === 1) {
+        deleteModalPrompt = translate('iou.deleteExpenseReportConfirmation');
+    }
 
     const handleDeleteSelectedTransactions = useCallback(async () => {
         if (!hash) {
@@ -2937,7 +2941,11 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 text: translate('search.mergeReports.title'),
                 value: CONST.SEARCH.BULK_ACTION_TYPES.MERGE_REPORTS,
                 shouldCloseModalOnSelect: true,
-                onSelected: () => Navigation.navigate(ROUTES.MERGE_REPORTS_SEARCH_RHP.getRoute()),
+                onSelected: () => {
+                    setSearchMergeReportIDs(selectedReportIDs).then(() => {
+                        Navigation.navigate(ROUTES.MERGE_REPORTS_SEARCH_RHP.getRoute(Navigation.getActiveRoute()));
+                    });
+                },
             });
         }
 
@@ -3046,7 +3054,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             });
         }
 
-        const shouldShowUnholdOption = !isOffline && selectedTransactionsKeys.every((id) => selectedTransactions[id].canUnhold);
+        const shouldShowUnholdOption = selectedTransactionsKeys.every((id) => selectedTransactions[id].canUnhold);
 
         if (shouldShowUnholdOption) {
             options.push({
@@ -3055,11 +3063,6 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 value: CONST.SEARCH.BULK_ACTION_TYPES.UNHOLD,
                 shouldCloseModalOnSelect: true,
                 onSelected: () => {
-                    if (isOffline) {
-                        setIsOfflineModalVisible(true);
-                        return;
-                    }
-
                     if (isDelegateAccessRestricted) {
                         showDelegateNoAccessModal();
                         return;

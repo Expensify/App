@@ -251,6 +251,40 @@ function shouldDisplayReportInLHN({
     return {shouldDisplay};
 }
 
+/** The LHN set produced by the most recent build, read on report open to detect unread chats the LHN did not surface. */
+let lastReportsToDisplayInLHN: ReportsToDisplayInLHN | undefined;
+
+/** Used to detect when the focused report changes, so its LHN state is captured before the rebuild that opening triggers. */
+let lastBuildCurrentReportId: string | undefined;
+
+/** The LHN state of the report that just became focused, captured before the rebuild that force-includes it. */
+let lhnUnreadStateBeforeFocus: {reportID: string; state: LHNUnreadState} | undefined;
+
+type LHNUnreadState = 'unread' | 'notBold' | 'notListed';
+
+function readLHNUnreadState(reportID: string): LHNUnreadState {
+    const displayedReport = lastReportsToDisplayInLHN?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
+    if (!displayedReport) {
+        return 'notListed';
+    }
+    return displayedReport.isUnreadReport ? 'unread' : 'notBold';
+}
+
+function rememberLHNUnreadStateBeforeFocus(currentReportId: string | undefined) {
+    if (currentReportId === lastBuildCurrentReportId) {
+        return;
+    }
+    lastBuildCurrentReportId = currentReportId;
+    lhnUnreadStateBeforeFocus = currentReportId && lastReportsToDisplayInLHN ? {reportID: currentReportId, state: readLHNUnreadState(currentReportId)} : undefined;
+}
+
+function getLHNUnreadState(reportID: string): LHNUnreadState {
+    if (lhnUnreadStateBeforeFocus?.reportID === reportID) {
+        return lhnUnreadStateBeforeFocus.state;
+    }
+    return readLHNUnreadState(reportID);
+}
+
 function getReportsToDisplayInLHN({
     currentReportId,
     reports,
@@ -282,6 +316,8 @@ function getReportsToDisplayInLHN({
     guideAccountIDs?: GuideAccountIDsDerivedValue;
     conciergeReportID: string | undefined;
 }) {
+    rememberLHNUnreadStateBeforeFocus(currentReportId);
+
     const isInFocusMode = priorityMode === CONST.PRIORITY_MODE.GSD;
     const allReportsDictValues = reports ?? {};
     const reportsToDisplay: ReportsToDisplayInLHN = {};
@@ -320,6 +356,7 @@ function getReportsToDisplayInLHN({
         }
     }
 
+    lastReportsToDisplayInLHN = reportsToDisplay;
     return reportsToDisplay;
 }
 
@@ -360,6 +397,8 @@ function updateReportsToDisplayInLHN({
     conciergeReportID,
     guideAccountIDs,
 }: UpdateReportsToDisplayInLHNProps) {
+    rememberLHNUnreadStateBeforeFocus(currentReportId);
+
     // Use a lazy copy to avoid creating a new object reference when no entries actually change.
     let displayedReportsCopy: ReportsToDisplayInLHN | undefined;
     const getMutableCopy = (): ReportsToDisplayInLHN => {
@@ -425,7 +464,8 @@ function updateReportsToDisplayInLHN({
         }
     }
 
-    return displayedReportsCopy ?? displayedReports;
+    lastReportsToDisplayInLHN = displayedReportsCopy ?? displayedReports;
+    return lastReportsToDisplayInLHN;
 }
 /**
  * Categorizes reports into their respective LHN groups
@@ -1064,6 +1104,8 @@ function getInboxTabSummary(
         hasStaleUnreadReport,
     };
 }
+
+export {getLHNUnreadState};
 
 // Exported for unit testing only. Do not use directly in production code.
 export {

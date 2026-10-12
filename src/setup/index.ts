@@ -3,6 +3,7 @@ import finishCloudflareSignInFromURL from '@libs/CloudflareAccess/finishSignInFr
 import intlPolyfill from '@libs/IntlPolyfill';
 import registerMiddlewares from '@libs/Middleware/register';
 import {startMainQueue} from '@libs/Network';
+import ReceiptStorage from '@libs/ReceiptStorage';
 import registerReportActionsPagination from '@libs/registerReportActionsPagination';
 
 import {setDeviceID} from '@userActions/Device';
@@ -109,6 +110,8 @@ export default function () {
     });
 
     cleanupPreMountedDraftReports();
+
+    ReceiptStorage.sweepLeftovers();
 
     // The carousel's sibling list belongs to the screen that seeded it, and that ownership lives in module state
     // which dies with the JS runtime. A list that survives in storage is therefore orphaned the moment the app
