@@ -1,4 +1,7 @@
-import {getPaymentDetailsBadge, getPaymentHistoryRow, getPaymentHistoryRows} from '@libs/PaymentHistoryUtils';
+import type {LocaleContextProps} from '@components/LocaleContextProvider';
+
+import {convertAmountToDisplayString} from '@libs/CurrencyUtils';
+import {formatDate, getBadgeText, getPaymentDetailsBadge, getPaymentHistoryRow, getPaymentHistoryRows} from '@libs/PaymentHistoryUtils';
 
 import CONST from '@src/CONST';
 import type {Purchase} from '@src/types/onyx/PurchaseList';
@@ -226,5 +229,52 @@ describe('getPaymentDetailsBadge', () => {
 
         // Then it falls back to the default badge
         expect(badge).toEqual({variant: 'default'});
+    });
+});
+
+describe('getBadgeText', () => {
+    // Returns the translation key plus any values the label interpolates, so the test can assert the key without a real locale.
+    const translate: LocaleContextProps['translate'] = (key, ...parameters) => {
+        const params = parameters.at(0);
+        return JSON.stringify({key, ...(params && typeof params === 'object' ? params : {})});
+    };
+
+    it('falls back to the plain state label when the badge has no extra detail', () => {
+        // Given a bill whose badge carries nothing beyond its paid state
+        const badge = {variant: 'default' as const};
+
+        // When the details badge label is resolved
+        const text = getBadgeText(badge, CONST.PAYMENT_HISTORY.STATE.PAID, translate, undefined);
+
+        // Then the label is the plain paid state, with no extra detail
+        expect(text).toBe(JSON.stringify({key: 'subscription.paymentHistory.state.paid'}));
+    });
+
+    it('includes the account email on a balance transfer', () => {
+        // Given a balance that moved to another account
+        const badge = {variant: 'balanceTransferTo' as const, email: 'owner@example.com'};
+
+        // When the details badge label is resolved
+        const text = getBadgeText(badge, CONST.PAYMENT_HISTORY.STATE.BALANCE_TRANSFER, translate, undefined);
+
+        // Then the label names the account that received the balance
+        expect(text).toBe(JSON.stringify({key: 'subscription.paymentHistory.badge.balanceTransferTo', email: 'owner@example.com'}));
+    });
+
+    it('includes the formatted date and amount on a partial refund', () => {
+        // Given a partial refund of $5.00 on March 1, 2026
+        const badge = {variant: 'refundedPartial' as const, created: '2026-03-01', amount: 500, currency: CONST.CURRENCY.USD};
+
+        // When the details badge label is resolved
+        const text = getBadgeText(badge, CONST.PAYMENT_HISTORY.STATE.REFUNDED, translate, undefined);
+
+        // Then the label carries the displayed amount and the same date format as the details page
+        expect(text).toBe(
+            JSON.stringify({
+                key: 'subscription.paymentHistory.badge.refundedAmountOn',
+                amount: convertAmountToDisplayString(500, CONST.CURRENCY.USD),
+                date: formatDate('2026-03-01', undefined),
+            }),
+        );
     });
 });

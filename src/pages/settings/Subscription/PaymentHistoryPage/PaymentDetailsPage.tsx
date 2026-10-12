@@ -1,7 +1,6 @@
 import Badge from '@components/Badge';
 import DelegateNoAccessWrapper from '@components/DelegateNoAccessWrapper';
 import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
-import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
@@ -12,11 +11,9 @@ import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {convertAmountToDisplayString} from '@libs/CurrencyUtils';
-import DateUtils from '@libs/DateUtils';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
-import type {PaymentDetailsBadge, PaymentHistoryRow} from '@libs/PaymentHistoryUtils';
-import {getBadgeAppearance, getPaymentDetailsBadge, getPaymentHistoryRow, getStateTranslationKey} from '@libs/PaymentHistoryUtils';
+import {formatDate, getBadgeAppearance, getBadgeText, getPaymentDetailsBadge, getPaymentHistoryRow} from '@libs/PaymentHistoryUtils';
 
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 
@@ -24,45 +21,10 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 
-import type {Locale as DateFnsLocale} from 'date-fns';
-
 import React from 'react';
 import {View} from 'react-native';
 
 type PaymentDetailsPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.SUBSCRIPTION.PAYMENT_DETAILS>;
-
-type TranslateFn = LocaleContextProps['translate'];
-
-function formatDate(date: string, locale: DateFnsLocale | undefined): string {
-    return DateUtils.formatWithUTCTimeZone(date, CONST.DATE.MONTH_DAY_YEAR_FORMAT, locale) || date;
-}
-
-/** Resolves the dynamic badge label shown only on the details page, falling back to the plain state label. */
-function getBadgeText(badge: PaymentDetailsBadge, state: PaymentHistoryRow['state'], translate: TranslateFn, locale: DateFnsLocale | undefined): string {
-    switch (badge.variant) {
-        case 'balanceTransferTo':
-            return translate('subscription.paymentHistory.badge.balanceTransferTo', {email: badge.email});
-        case 'balanceTransferFrom':
-            return translate('subscription.paymentHistory.badge.balanceTransferFrom', {email: badge.email});
-        case 'disputed':
-            if (badge.status === 'refunded') {
-                return translate('subscription.paymentHistory.badge.disputedRefunded', {date: formatDate(badge.created, locale)});
-            }
-            if (badge.status === 'closed') {
-                return translate('subscription.paymentHistory.badge.disputedClosed', {date: formatDate(badge.created, locale)});
-            }
-            return translate('subscription.paymentHistory.badge.disputedPending', {date: formatDate(badge.created, locale)});
-        case 'refunded':
-            return translate('subscription.paymentHistory.badge.refundedOn', {date: formatDate(badge.created, locale)});
-        case 'refundedPartial':
-            return translate('subscription.paymentHistory.badge.refundedAmountOn', {
-                amount: convertAmountToDisplayString(badge.amount, badge.currency),
-                date: formatDate(badge.created, locale),
-            });
-        default:
-            return translate(getStateTranslationKey(state));
-    }
-}
 
 function PaymentDetailsPage({route}: PaymentDetailsPageProps) {
     const {translate, dateFnsLocale} = useLocalize();

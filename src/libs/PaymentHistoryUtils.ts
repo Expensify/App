@@ -2,10 +2,16 @@
  * Builds the payment history table rows from the Onyx purchases collection, folding refunds, disputes,
  * balance transfers, and cleared payments onto the bill they modify.
  */
+import type {LocaleContextProps} from '@components/LocaleContextProvider';
+
 import CONST from '@src/CONST';
 import type {Purchase, Purchases} from '@src/types/onyx/PurchaseList';
 
+import type {Locale as DateFnsLocale} from 'date-fns';
 import type {ValueOf} from 'type-fest';
+
+import {convertAmountToDisplayString} from './CurrencyUtils';
+import DateUtils from './DateUtils';
 
 type PaymentHistoryState = ValueOf<typeof CONST.PAYMENT_HISTORY.STATE>;
 
@@ -50,10 +56,6 @@ const TRANSFER_BILLING_TYPES: ReadonlySet<string> = new Set([
 ]);
 
 /**
- * Builds one table row per bill, newest first.
- * Refunds, disputes, balance transfers, and cleared payments are separate purchases that point at the bill they change, so they are folded onto that bill instead of listed on their own.
- */
-/**
  * Maps each bill's purchaseID to the latest modifier purchase (refund, dispute, balance transfer, or clear) folded onto it.
  * The modifier carries the dynamic badge detail the details page renders.
  */
@@ -80,6 +82,10 @@ function getFoldedModifiers(purchaseList: Purchase[], purchaseIDs: Set<number>):
     return foldedState;
 }
 
+/**
+ * Builds one table row per bill, newest first.
+ * Refunds, disputes, balance transfers, and cleared payments are separate purchases that point at the bill they change, so they are folded onto that bill instead of listed on their own.
+ */
 function getPaymentHistoryRows(purchases: Purchases | null | undefined): PaymentHistoryRow[] {
     const purchaseList = Object.values(purchases ?? {});
     if (!purchaseList.length) {
@@ -278,5 +284,36 @@ function getPaymentDetailsBadge(purchases: Purchases | null | undefined, purchas
     return {variant: 'default'};
 }
 
-export {getBadgeAppearance, getPaymentDetailsBadge, getPaymentHistoryRow, getPaymentHistoryRows, getStateTranslationKey};
+function formatDate(date: string, locale: DateFnsLocale | undefined): string {
+    return DateUtils.formatWithUTCTimeZone(date, CONST.DATE.MONTH_DAY_YEAR_FORMAT, locale) || date;
+}
+
+/** Resolves the dynamic badge label shown only on the details page, falling back to the plain state label. */
+function getBadgeText(badge: PaymentDetailsBadge, state: PaymentHistoryState, translate: LocaleContextProps['translate'], locale: DateFnsLocale | undefined): string {
+    switch (badge.variant) {
+        case 'balanceTransferTo':
+            return translate('subscription.paymentHistory.badge.balanceTransferTo', {email: badge.email});
+        case 'balanceTransferFrom':
+            return translate('subscription.paymentHistory.badge.balanceTransferFrom', {email: badge.email});
+        case 'disputed':
+            if (badge.status === 'refunded') {
+                return translate('subscription.paymentHistory.badge.disputedRefunded', {date: formatDate(badge.created, locale)});
+            }
+            if (badge.status === 'closed') {
+                return translate('subscription.paymentHistory.badge.disputedClosed', {date: formatDate(badge.created, locale)});
+            }
+            return translate('subscription.paymentHistory.badge.disputedPending', {date: formatDate(badge.created, locale)});
+        case 'refunded':
+            return translate('subscription.paymentHistory.badge.refundedOn', {date: formatDate(badge.created, locale)});
+        case 'refundedPartial':
+            return translate('subscription.paymentHistory.badge.refundedAmountOn', {
+                amount: convertAmountToDisplayString(badge.amount, badge.currency),
+                date: formatDate(badge.created, locale),
+            });
+        default:
+            return translate(getStateTranslationKey(state));
+    }
+}
+
+export {formatDate, getBadgeAppearance, getBadgeText, getPaymentDetailsBadge, getPaymentHistoryRow, getPaymentHistoryRows, getStateTranslationKey};
 export type {PaymentDetailsBadge, PaymentHistoryRow};
