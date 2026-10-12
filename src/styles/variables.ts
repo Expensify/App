@@ -125,6 +125,7 @@ export default {
     centeredContentMaxWidth: 1200,
     insightsEmptyStateIllustrationSize: 136,
     minScanTooltipWidth: 320,
+    chartTooltipMinWidth: 200,
     uploadViewMargin: 20,
     chooseFilesViewMargin: 8,
     sideBarWithLHBWidth: 260,
