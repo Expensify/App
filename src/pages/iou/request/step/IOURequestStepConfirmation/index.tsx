@@ -5,7 +5,6 @@ import DropZoneUI from '@components/DropZone/DropZoneUI';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import LoadingIndicator from '@components/LoadingIndicator';
-import {ModalActions} from '@components/Modal/Global/ModalContext';
 import MoneyRequestConfirmationList from '@components/MoneyRequestConfirmationList';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import ParticipantPicker from '@components/ParticipantPicker';
@@ -13,7 +12,6 @@ import PrevNextButtons from '@components/PrevNextButtons';
 import ScreenWrapper from '@components/ScreenWrapper';
 
 import useBlockDistanceRequest from '@hooks/useBlockDistanceRequest';
-import useConfirmModal from '@hooks/useConfirmModal';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDefaultParticipants from '@hooks/useDefaultParticipants';
@@ -24,13 +22,11 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOdometerReceiptStitcher from '@hooks/useOdometerReceiptStitcher';
 import useOnyx from '@hooks/useOnyx';
-import useOptimisticDraftTransactions from '@hooks/useOptimisticDraftTransactions';
 import useParticipantsPolicies from '@hooks/useParticipantsPolicies';
 import usePersonalPolicy from '@hooks/usePersonalPolicy';
 import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import usePolicyForTransaction from '@hooks/usePolicyForTransaction';
 import usePreMountDestination from '@hooks/usePreMountDestination';
-import usePreviousDefined from '@hooks/usePreviousDefined';
 import usePrivateIsArchivedMap from '@hooks/usePrivateIsArchivedMap';
 import useReportAttributes from '@hooks/useReportAttributes';
 import useReportOrReportDraft from '@hooks/useReportOrReportDraft';
@@ -99,7 +95,6 @@ import {
     setMoneyRequestTag,
 } from '@userActions/IOU/MoneyRequest';
 import {setMoneyRequestReceipt} from '@userActions/IOU/Receipt';
-import {removeDraftTransaction, replaceDefaultDraftTransaction} from '@userActions/TransactionEdit';
 
 import CONST from '@src/CONST';
 import type {IOUType} from '@src/CONST';
@@ -111,7 +106,6 @@ import type {Participant} from '@src/types/onyx/IOU';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import type {Receipt} from '@src/types/onyx/Transaction';
 import type {FileObject} from '@src/types/utils/Attachment';
-import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
@@ -120,6 +114,8 @@ import React, {startTransition, useCallback, useEffect, useMemo, useRef, useStat
 import {View} from 'react-native';
 
 import type {IOURequestStepConfirmationProps, StepConfirmationParams} from './types';
+
+import useConfirmationTransactionPager from './useConfirmationTransactionPager';
 
 function IOURequestStepConfirmationContent({
     report: reportReal,
@@ -140,30 +136,23 @@ function IOURequestStepConfirmationContent({
     const selfDMReport = useSelfDMReport();
     const personalDetails = usePersonalDetails();
 
-    const [transactions] = useOptimisticDraftTransactions(initialTransaction);
+    const {
+        transactions,
+        transaction,
+        existingTransaction,
+        currentTransactionID,
+        currentTransactionIndex,
+        setCurrentTransactionID,
+        showNextTransaction,
+        showPreviousTransaction,
+        confirmRemoveCurrentTransaction,
+    } = useConfirmationTransactionPager(initialTransaction, initialTransactionID);
     const [participantReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${initialTransaction?.participants?.at(0)?.reportID}`);
     const hasMultipleTransactions = transactions.length > 1;
 
     // Depend on transactions.length to avoid updating transactionIDs when only the transaction details change
     // eslint-disable-next-line react-hooks/exhaustive-deps
     const transactionIDs = useMemo(() => transactions?.map((transaction) => transaction.transactionID), [transactions.length]);
-    // We will use setCurrentTransactionID later to switch between transactions
-
-    const [currentTransactionID, setCurrentTransactionID] = useState<string>(initialTransactionID);
-    const currentTransactionIndex = useMemo(() => transactions.findIndex((transaction) => transaction.transactionID === currentTransactionID), [transactions, currentTransactionID]);
-    const [existingTransaction, existingTransactionResult] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(currentTransactionID)}`);
-    const [optimisticTransaction, optimisticTransactionResult] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${getNonEmptyStringOnyxID(currentTransactionID)}`);
-    const isLoadingCurrentTransaction = isLoadingOnyxValue(existingTransactionResult, optimisticTransactionResult);
-    const currentTransaction = useMemo(
-        () => (!isLoadingCurrentTransaction ? (optimisticTransaction ?? existingTransaction) : undefined),
-        [existingTransaction, optimisticTransaction, isLoadingCurrentTransaction],
-    );
-    // `useOnyx` drops back to a loading state whenever its key changes, so switching between transactions leaves
-    // `currentTransaction` undefined for a render. Hold the previous one across that gap: `MoneyRequestConfirmationList`
-    // picks its variant from the request type, so an undefined transaction falls to the manual variant and remounts the
-    // whole list, losing the state the scan variant holds.
-    const lastDefinedTransaction = usePreviousDefined(currentTransaction);
-    const transaction = isLoadingCurrentTransaction ? lastDefinedTransaction : currentTransaction;
     const requestType = getRequestType(transaction);
     const isPerDiemRequest = requestType === CONST.IOU.REQUEST_TYPE.PER_DIEM;
     const isUnreported = transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
@@ -234,7 +223,6 @@ function IOURequestStepConfirmationContent({
     const theme = useTheme();
     const {translate, dateFnsLocale} = useLocalize();
     const {isOffline} = useNetwork();
-    const {showConfirmModal} = useConfirmModal();
     // isConfirming, selectedParticipantList, and startLocationPermissionFlow state
     // moved to SubmitExpenseOrchestrator.
 
@@ -1006,45 +994,6 @@ function IOURequestStepConfirmationContent({
             <FullScreenLoadingIndicator onGoBack={navigateBack} />
         );
     }
-
-    const showNextTransaction = () => {
-        const nextTransaction = transactions.at(currentTransactionIndex + 1);
-        if (nextTransaction) {
-            setCurrentTransactionID(nextTransaction.transactionID);
-        }
-    };
-
-    const showPreviousTransaction = () => {
-        const previousTransaction = transactions.at(currentTransactionIndex - 1);
-        if (previousTransaction) {
-            setCurrentTransactionID(previousTransaction.transactionID);
-        }
-    };
-
-    const removeCurrentTransaction = () => {
-        if (currentTransactionID === CONST.IOU.OPTIMISTIC_TRANSACTION_ID) {
-            const nextTransaction = transactions.at(currentTransactionIndex + 1);
-            replaceDefaultDraftTransaction(nextTransaction);
-            return;
-        }
-
-        removeDraftTransaction(currentTransactionID);
-        showPreviousTransaction();
-    };
-
-    const confirmRemoveCurrentTransaction = async () => {
-        const result = await showConfirmModal({
-            title: translate('iou.removeExpense'),
-            prompt: translate('iou.removeExpenseConfirmation'),
-            confirmText: translate('common.remove'),
-            cancelText: translate('common.cancel'),
-            buttonVariant: CONST.BUTTON_VARIANT.DANGER,
-        });
-        if (result.action !== ModalActions.CONFIRM) {
-            return;
-        }
-        removeCurrentTransaction();
-    };
 
     const showReceiptEmptyState = shouldShowReceiptEmptyState(iouType, action, policy, isPerDiemRequest);
 
