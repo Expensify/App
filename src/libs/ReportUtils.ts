@@ -2919,8 +2919,6 @@ function isPayAtEndExpenseReport(report: OnyxEntry<Report>, transactions: Transa
 
 /**
  * Checks if a report is a transaction thread associated with a report that has only one transaction
- *
- * @param parentReportActions - The actions of `parentReport`, read by the caller via `useOnyx`
  */
 // TODO: isOffline will be required eventually. Refactor issue: https://github.com/Expensify/App/issues/66407
 function isOneTransactionThread(
