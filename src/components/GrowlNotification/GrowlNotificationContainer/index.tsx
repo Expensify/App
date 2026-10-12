@@ -14,11 +14,21 @@ function GrowlNotificationContainer({children, progress, inactiveY, useBottomPos
     const animatedStyles = useAnimatedStyle(() => ({transform: [{translateY: inactiveY * (1 - progress.get())}]}), [inactiveY]);
 
     if (useBottomPosition) {
-        return <Animated.View style={[styles.growlNotificationContainerBottomRight, animatedStyles]}>{children}</Animated.View>;
+        return <Animated.View style={[styles.growlNotificationContainerBottomRight, shouldUseNarrowLayout && styles.pAbsolute, animatedStyles]}>{children}</Animated.View>;
     }
 
     return (
-        <Animated.View style={[styles.growlNotificationContainer, styles.growlNotificationDesktopContainer, animatedStyles, shouldUseNarrowLayout && styles.mwn]}>{children}</Animated.View>
+        <Animated.View
+            style={[
+                styles.growlNotificationContainer,
+                styles.growlNotificationDesktopContainer,
+                shouldUseNarrowLayout && styles.pAbsolute,
+                animatedStyles,
+                shouldUseNarrowLayout && styles.mwn,
+            ]}
+        >
+            {children}
+        </Animated.View>
     );
 }
 
