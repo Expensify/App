@@ -693,37 +693,6 @@ const CONST = {
         RIGHT: 'right',
     },
 
-    // HTML elements whose boundaries can represent whitespace when reconstructing pasted text.
-    HTML_BLOCK_ELEMENT_NAMES: new Set([
-        'ADDRESS',
-        'ARTICLE',
-        'ASIDE',
-        'BLOCKQUOTE',
-        'DIV',
-        'FOOTER',
-        'H1',
-        'H2',
-        'H3',
-        'H4',
-        'H5',
-        'H6',
-        'HEADER',
-        'LI',
-        'MAIN',
-        'NAV',
-        'OL',
-        'P',
-        'PRE',
-        'SECTION',
-        'TABLE',
-        'TR',
-        'UL',
-    ]),
-    // Private-use character inserted around each candidate image while matching HTML with plain text.
-    EMOJI_IMAGE_MARKER_PREFIX: '\uE000',
-    // Private-use character that closes an image marker during HTML and plain-text matching.
-    EMOJI_IMAGE_MARKER_SUFFIX: '\uE001',
-
     ASSIGN_CARD_BUTTON_TEST_ID: 'assignCardButtonTestID',
     ASSIGN_CARD_CARDHOLDER_ROW_TEST_ID: 'assignCardCardholderRowTestID',
     // Sizes needed for report empty state background image handling

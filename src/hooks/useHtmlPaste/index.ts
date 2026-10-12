@@ -17,6 +17,37 @@ import {useCallback, useEffect, useRef} from 'react';
 
 import type UseHtmlPaste from './types';
 
+// HTML elements whose boundaries can represent whitespace when reconstructing pasted text.
+const HTML_BLOCK_ELEMENT_NAMES = new Set([
+    'ADDRESS',
+    'ARTICLE',
+    'ASIDE',
+    'BLOCKQUOTE',
+    'DIV',
+    'FOOTER',
+    'H1',
+    'H2',
+    'H3',
+    'H4',
+    'H5',
+    'H6',
+    'HEADER',
+    'LI',
+    'MAIN',
+    'NAV',
+    'OL',
+    'P',
+    'PRE',
+    'SECTION',
+    'TABLE',
+    'TR',
+    'UL',
+]);
+// Private-use character inserted around each candidate image while matching HTML with plain text.
+const EMOJI_IMAGE_MARKER_PREFIX = '\uE000';
+// Private-use character that closes an image marker during HTML and plain-text matching.
+const EMOJI_IMAGE_MARKER_SUFFIX = '\uE001';
+
 const insertAtCaret = (target: HTMLElement, insertedText: string, maxLength: number) => {
     const currentText = target.textContent ?? '';
 
@@ -132,7 +163,7 @@ function getTextWithImageMarkers(node: Node, imageMarkers: Map<Node, string>): s
         .map((childNode) => getTextWithImageMarkers(childNode, imageMarkers))
         .join('');
 
-    return CONST.HTML_BLOCK_ELEMENT_NAMES.has(node.nodeName) ? ` ${text} ` : text;
+    return HTML_BLOCK_ELEMENT_NAMES.has(node.nodeName) ? ` ${text} ` : text;
 }
 
 /**
@@ -161,7 +192,7 @@ function getIOSSafariEmojiShortcodes(htmlDocument: Document, plainText: string):
 
     const imageMarkers = new Map<Node, string>();
     for (const [index, image] of images.entries()) {
-        imageMarkers.set(image, `${CONST.EMOJI_IMAGE_MARKER_PREFIX}${index}${CONST.EMOJI_IMAGE_MARKER_SUFFIX}`);
+        imageMarkers.set(image, `${EMOJI_IMAGE_MARKER_PREFIX}${index}${EMOJI_IMAGE_MARKER_SUFFIX}`);
     }
 
     const htmlText = normalizeClipboardText(getTextWithImageMarkers(htmlDocument.body, imageMarkers));
