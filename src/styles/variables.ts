@@ -11,6 +11,12 @@ function getValueUsingPixelRatio(defaultValue: number, maxValue: number): number
     return PixelRatio.getFontScale() * defaultValue > maxValue ? maxValue : defaultValue * PixelRatio.getFontScale();
 }
 
+/** Rendered width of the Expensify wordmark in the flat navigation bar's header. */
+const flatNavigationBarLogoWidth = 92;
+
+/** expensify-wordmark.svg has a 78x19 viewBox, so deriving the height keeps the wordmark exactly that wide. */
+const flatNavigationBarLogoHeight = (flatNavigationBarLogoWidth * 19) / 78;
+
 const avatarSizes = {
     avatarSizeXxxxSmall: 12,
     avatarSizeXxxSmall: 16,
@@ -138,6 +144,23 @@ export default {
     searchSidebarExpandedWidth: 260,
     searchSidebarCollapsedWidth: 76,
     navigationTabBarSize: 72,
+    flatNavigationBarWidth: 232,
+    // Collapsed, a row shows only its icon: the row's own margin and padding on each side, around a 20px icon.
+    flatNavigationBarCollapsedWidth: 60,
+    flatNavigationBarItemHeight: 40,
+    flatNavigationBarSubItemMarkerHeight: 20,
+    // Horizontal inset every row's background sits at, inside the bar's own width.
+    flatNavigationBarRowInset: 8,
+    // Fixed so the header keeps its height whether or not the wordmark is showing.
+    flatNavigationBarHeaderHeight: 72,
+    flatNavigationBarHeaderMarginBottom: 0,
+    flatNavigationBarCreateRowMarginHorizontal: 14,
+    // Shorter than a standard medium button; collapsed, the same value makes it a square.
+    flatNavigationBarCreateButtonHeight: 32,
+    flatNavigationBarAccountItemHeight: 56,
+    flatNavigationBarHeaderPaddingRight: 20,
+    flatNavigationBarLogoWidth,
+    flatNavigationBarLogoHeight,
     popoverMargin: 18,
     pdfPageMaxWidth: 992,
     tooltipZIndex: 10050,
