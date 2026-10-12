@@ -1,6 +1,7 @@
 import RenderHTML from '@components/RenderHTML';
 import type {CompareItemsCallback, IsItemInSearchCallback, TableColumn, TableData, TableHandle} from '@components/Table';
 import Table, {composeTableListHeader} from '@components/Table';
+import compareOptionalValues from '@components/Table/compareOptionalValues';
 
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -98,7 +99,14 @@ export default function AgentsTable({ref, agents, headerComponent, canSelectAgen
 
     const compareTableItems: CompareItemsCallback<AgentRowData> = (item1, item2, activeSorting) => {
         const orderMultiplier = activeSorting.order === 'asc' ? 1 : -1;
-        return localeCompare(item1.displayName, item2.displayName) * orderMultiplier;
+        const displayNameComparison = localeCompare(item1.displayName, item2.displayName) * orderMultiplier;
+
+        if (activeSorting.columnKey === 'role') {
+            const compareRoleNames = (role1: string, role2: string) => localeCompare(translate('workspace.common.roleName', role1), translate('workspace.common.roleName', role2));
+            return compareOptionalValues(item1.role, item2.role, compareRoleNames, orderMultiplier, displayNameComparison);
+        }
+
+        return displayNameComparison;
     };
 
     const isTableItemInSearch: IsItemInSearchCallback<AgentRowData> = (item, searchValue) => {
