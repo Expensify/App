@@ -22,6 +22,12 @@ const EXPENSIFY_TEAM_MEMBER = 'guide@team.expensify.com';
 let mockIssueNewCard: {data?: Partial<IssueNewCardData>; isEditing?: boolean} | undefined;
 let mockPolicy: Policy | undefined;
 let mockPersonalDetails: Record<string, {displayName: string; accountID: number; avatar: string}>;
+let mockAvailableOptions: {selectedOptions: unknown[]; recentOptions: unknown[]; personalDetails: unknown[]; userToInvite: unknown} = {
+    selectedOptions: [],
+    recentOptions: [],
+    personalDetails: [],
+    userToInvite: undefined,
+};
 
 function buildPersonalDetails(count: number) {
     const details: Record<string, {displayName: string; accountID: number; avatar: string}> = {};
@@ -96,7 +102,7 @@ jest.mock('@hooks/usePersonalDetailSearchSelector', () =>
             searchTerm,
             setSearchTerm,
             debouncedSearchTerm: searchTerm,
-            availableOptions: {selectedOptions: [], recentOptions: [], personalDetails: [], userToInvite: undefined},
+            availableOptions: mockAvailableOptions,
             areOptionsInitialized: true,
         };
     }),
@@ -134,7 +140,7 @@ jest.mock('@userActions/Card', () => ({
 }));
 
 type MockSelectionListProps = {
-    data: Array<{value?: string; keyForList?: string; isSelected?: boolean; text?: string}>;
+    data: Array<{value?: string; login?: string | null; keyForList?: string; isSelected?: boolean; text?: string}>;
     initiallyFocusedItemKey?: string;
     shouldUpdateFocusedIndex?: boolean;
     textInputOptions?: {onChangeText?: (value: string) => void};
@@ -161,6 +167,7 @@ describe('IssueNewCard AssigneeStep', () => {
         mockPolicy = buildPolicy(CONST.STANDARD_LIST_ITEM_LIMIT + 2);
         // "user07" sorts to the middle, so seeing it first proves pinning (not the sort) put it there.
         mockIssueNewCard = {data: {assigneeEmail: 'user07@example.com'}, isEditing: false};
+        mockAvailableOptions = {selectedOptions: [], recentOptions: [], personalDetails: [], userToInvite: undefined};
     });
 
     it('pins the initially selected assignee to the top on open', () => {
@@ -222,5 +229,33 @@ describe('IssueNewCard AssigneeStep', () => {
         renderStep();
 
         expect(getSelectionListProps()?.data.some((item) => item.value === EXPENSIFY_TEAM_MEMBER)).toBe(true);
+    });
+
+    it('hides Expensify team accounts that come back from search results', () => {
+        // Given an admin who can invite members, so search also offers non-members, and search results that include
+        // Expensify team accounts alongside an ordinary user
+        mockAvailableOptions = {
+            selectedOptions: [],
+            recentOptions: [{login: 'support@expensify.com', keyForList: 'support@expensify.com'}],
+            personalDetails: [
+                {login: EXPENSIFY_TEAM_MEMBER, keyForList: EXPENSIFY_TEAM_MEMBER},
+                {login: 'outside@example.com', keyForList: 'outside@example.com'},
+            ],
+            userToInvite: {login: 'new@team.expensify.com', keyForList: 'new@team.expensify.com'},
+        };
+        renderStep();
+
+        // When the admin searches
+        act(() => {
+            getSelectionListProps()?.textInputOptions?.onChangeText?.('e');
+        });
+
+        // Then only the ordinary user is offered, because the member-list filter would be pointless if search could
+        // bring the same Expensify team accounts back
+        const logins = getSelectionListProps()?.data.map((item) => item.login);
+        expect(logins).toContain('outside@example.com');
+        expect(logins).not.toContain(EXPENSIFY_TEAM_MEMBER);
+        expect(logins).not.toContain('support@expensify.com');
+        expect(logins).not.toContain('new@team.expensify.com');
     });
 });
