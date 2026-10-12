@@ -16,10 +16,12 @@ import useConfirmModal from '@hooks/useConfirmModal';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useHoldMenuModal from '@hooks/useHoldMenuModal';
+import useLayoutSpacing from '@hooks/useLayoutSpacing';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import {useReportPaymentContext} from '@hooks/usePaymentContext';
+import {useGetPersonalDetailsByLogin} from '@hooks/usePersonalDetailByLogin';
 import {useAllPersonalDetailsWithoutSnapshots} from '@hooks/usePersonalDetails';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -98,6 +100,7 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
 }: ExpenseReportListItemProps<TItem>) {
     const reportItem = item as unknown as ExpenseReportListItemType;
     const styles = useThemeStyles();
+    const {pageGutterMargin} = useLayoutSpacing();
     const StyleUtils = useStyleUtils();
     const theme = useTheme();
     /*
@@ -116,6 +119,7 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
     const currentUserDetails = useCurrentUserPersonalDetails();
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
+    const getPersonalDetailsByLogin = useGetPersonalDetailsByLogin();
 
     // Fetch live policy categories from Onyx to sync violations at render time
     const [parentPolicy] = useOnyxWithoutSnapshots(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(reportItem.policyID)}`);
@@ -251,7 +255,6 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
         delegateEmail,
         delegateAccountID,
         conciergeChat,
-        bankAccountList,
     } = useReportPaymentContext({
         chatReportPolicyID: chatReport?.policyID,
     });
@@ -322,8 +325,8 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
             // every row on unrelated violation changes.
             allViolations: liveViolationsForSnapshotTransactions,
             rules,
+            personalDetailsByLogins: getPersonalDetailsByLogin(),
             conciergeChat,
-            bankAccountList,
         });
     }, [
         currentSearchHash,
@@ -367,8 +370,8 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
         isTrackIntentUser,
         liveViolationsForSnapshotTransactions,
         rules,
+        getPersonalDetailsByLogin,
         conciergeChat,
-        bankAccountList,
         shouldShowMarkAsDoneCopy,
     ]);
 
@@ -488,7 +491,7 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
             shouldSyncFocus={shouldSyncFocus}
             hoverStyle={isSelected && styles.activeComponentBG}
             pressableWrapperStyle={[
-                styles.mh5,
+                pageGutterMargin,
                 StyleUtils.getSearchRowBackgroundStyle(isSelected),
                 !isLargeScreenWidth && styles.br0,
                 isPendingDelete && styles.cursorDisabled,

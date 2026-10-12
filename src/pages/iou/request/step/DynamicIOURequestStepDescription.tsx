@@ -20,11 +20,13 @@ import useRestartOnReceiptFailure from '@hooks/useRestartOnReceiptFailure';
 import useShowNotFoundPageInIOUStep from '@hooks/useShowNotFoundPageInIOUStep';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import {getCategoryDescriptionHint} from '@libs/CategoryUtils';
 import {addErrorMessage} from '@libs/ErrorUtils';
 import focusComposerWithDelay from '@libs/focusComposerWithDelay';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {shouldUseTransactionDraft} from '@libs/IOUUtils';
 import Parser from '@libs/Parser';
+import {arePolicyRulesEnabled} from '@libs/PolicyUtils';
 import shouldForceKeyboardIfAlreadyFocused from '@libs/shouldForceKeyboardIfAlreadyFocused';
 import {hasReceipt} from '@libs/TransactionUtils';
 
@@ -187,7 +189,7 @@ function DynamicIOURequestStepDescription({
     const shouldShowNotFoundPage = useShowNotFoundPageInIOUStep(action, iouType, reportActionID, report, transaction);
 
     const isReportInGroupPolicy = !!report?.policyID && report.policyID !== CONST.POLICY.ID_FAKE && personalPolicyID !== report.policyID;
-    const descriptionHint = transaction?.category && policyCategories ? (policyCategories[transaction?.category]?.commentHint ?? '') : '';
+    const descriptionHint = getCategoryDescriptionHint(policyCategories, transaction?.category, arePolicyRulesEnabled(policy, policyCategories));
 
     useDiscardChangesConfirmation({
         onCancel: () => {
