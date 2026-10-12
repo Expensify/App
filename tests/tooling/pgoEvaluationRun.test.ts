@@ -1,10 +1,10 @@
-// cspell:ignore cooldown
+// cspell:ignore cooldown probey
 
 import {describe, expect, it} from 'bun:test';
 
 import createAndroidPgoAdapter from '@scripts/pgo/android';
 import {benchmarkStagePlan, configureSafeEvaluationOptions, readCohort, readPublicFrames, readSamples, runGuardedStage} from '@scripts/pgo/evaluationRun';
-import {profileCounts, validateJourney} from '@scripts/pgo/proof';
+import {hasExecutedSwiftFunctions, profileCounts, validateJourney} from '@scripts/pgo/proof';
 
 import {mkdtempSync, rmSync, writeFileSync} from 'node:fs';
 import {tmpdir} from 'node:os';
@@ -85,6 +85,31 @@ describe('PGO evaluation cohort acceptance', () => {
         expect(counts.count).toBe('4294967297');
         expect(() => profileCounts('Total functions: 2\nMaximum function count: 0\n')).toThrow();
     });
+    it('prefers an explicit aggregate LLVM count over a positive maximum', () => {
+        // Given frontend and IR summaries with different supported execution-count fields.
+        const frontend = 'Total functions: 2\nMaximum function count: 42\nTotal count: 100';
+        const ir = 'Total functions: 2\nMaximum function count: 42';
+        // When both summaries are parsed, or an explicit aggregate count is zero.
+        expect(profileCounts(frontend).count).toBe('100');
+        expect(profileCounts(ir).count).toBe('42');
+        // Then an executed maximum cannot override a reported zero aggregate count.
+        expect(() => profileCounts(frontend.replace('Total count: 100', 'Total count: 0'))).toThrow('no executed functions');
+    });
+
+    it('requires executed Swift counters without borrowing a neighboring function count', () => {
+        // Given a zero-count Swift function followed by an executed Clang function.
+        const report = 'Counters:\n  $s5Probe5probeyS2iF:\n    Hash: 0x0\n    Counters: 1\n    Function count: 0\n    Block counts: []\n  clangFunction:\n    Function count: 42\n';
+        // When the iOS execution guard reads frontend or IR function counter reports.
+        expect(hasExecutedSwiftFunctions(report)).toBe(false);
+        expect(hasExecutedSwiftFunctions(report.replace('Function count: 0', 'Function count: 3'))).toBe(true);
+        expect(hasExecutedSwiftFunctions(report.replace('$s5Probe5probeyS2iF', 'anotherClangFunction'))).toBe(false);
+        expect(hasExecutedSwiftFunctions('Total count: 42')).toBe(false);
+        // Then only Swift functions with their own positive execution counters pass.
+        expect(hasExecutedSwiftFunctions('Counters:\n  $s5Probe5probeyS2iF:\n    Hash: 0x12\n    Counters: 3\n    Block counts: [0, 102, 1]\n')).toBe(true);
+        expect(hasExecutedSwiftFunctions('Counters:\n  $s5Probe5probeyS2iF:\n    Block counts: [0, 0, 0]\n')).toBe(false);
+        expect(hasExecutedSwiftFunctions(report.replace('$s5Probe5probeyS2iF', '/tmp/Probe.swift:$s5Probe5probeyS2iF').replace('Function count: 0', 'Function count: 3'))).toBe(true);
+    });
+
     it('executes fresh paired workloads in both orders using supported CLI actions', () => {
         // Given the evaluation stage plan used by the physical runner.
         const stages = benchmarkStagePlan();
