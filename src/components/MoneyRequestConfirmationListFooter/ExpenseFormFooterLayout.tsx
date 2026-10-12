@@ -1,17 +1,19 @@
 import ExpenseFormLayoutContext from '@components/MoneyRequestConfirmationList/sections/ExpenseFormLayoutContext';
-import type {ReceiptOptions} from '@components/MoneyRequestConfirmationListFooter/fieldGroupTypes';
-import useAddReceiptLayout from '@components/MoneyRequestConfirmationListFooter/hooks/useAddReceiptLayout';
-import ReceiptSection from '@components/MoneyRequestConfirmationListFooter/sections/ReceiptSection';
 
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import type * as OnyxTypes from '@src/types/onyx';
 
+import type {ReactNode} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 
-import type {ReactNode} from 'react';
 import React from 'react';
 import {View} from 'react-native';
+
+import type {ReceiptOptions} from './fieldGroupTypes';
+
+import useAddReceiptLayout from './hooks/useAddReceiptLayout';
+import ReceiptSection from './sections/ReceiptSection';
 
 type ExpenseFormFooterLayoutProps = {
     /** The policy the expense is being created on */
