@@ -34,7 +34,6 @@ jest.mock('@react-navigation/native', () => {
 });
 
 jest.mock('@components/FormHelpMessage', () => jest.fn(() => null));
-jest.mock('@components/HeaderWithBackButton', () => jest.fn(() => null));
 jest.mock('@components/ScreenWrapper', () => jest.fn(({children}: {children: React.ReactNode}) => children));
 jest.mock('@components/SelectionList', () => jest.fn(() => null));
 jest.mock('@components/SelectionList/ListItem/SingleSelectListItem', () => jest.fn(() => null));

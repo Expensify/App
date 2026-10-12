@@ -22,7 +22,6 @@ jest.mock('@libs/actions/ImportSpreadsheet', () => ({
     applyCompanyCardColumnMappings: jest.fn(),
 }));
 
-jest.mock('@components/HeaderWithBackButton', () => () => null);
 jest.mock('@components/ImportSpreadsheetColumns', () => () => null);
 jest.mock(
     '@components/ScreenWrapper',
