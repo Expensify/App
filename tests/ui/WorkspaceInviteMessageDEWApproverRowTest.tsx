@@ -206,4 +206,12 @@ describe('WorkspaceInviteMessageComponent - Approver row on Dynamic External Wor
         // Then there is no per-member approver to set, so the row stays hidden
         expect(queryApproverRow()).not.toBeOnTheScreen();
     });
+
+    it('keeps the Approver row hidden on a DEW workspace that is not on the Control plan', async () => {
+        // Given a Collect (Team) workspace that still has a Dynamic External Workflow approval mode
+        await renderPage(buildPolicy({type: CONST.POLICY.TYPE.TEAM, approvalMode: CONST.POLICY.APPROVAL_MODE.DYNAMICEXTERNAL}));
+
+        // Then the row stays hidden, because per-member approvers are a Control-only feature
+        expect(queryApproverRow()).not.toBeOnTheScreen();
+    });
 });
