@@ -1643,7 +1643,6 @@ const translations: TranslationDeepObject<typeof en> = {
             invalidSplitYourself: 'Veuillez saisir un montant non nul pour votre répartition',
             noParticipantSelected: 'Veuillez sélectionner un participant',
             other: 'Erreur inattendue. Veuillez réessayer plus tard.',
-            payFailedExpenseDeleted: 'Le paiement a échoué car la note de frais a été supprimée.',
             genericCreateFailureMessage: 'Erreur inattendue lors de la soumission de cette dépense. Veuillez réessayer plus tard.',
             genericCreateInvoiceFailureMessage: 'Erreur inattendue lors de l’envoi de cette facture. Veuillez réessayer plus tard.',
             genericHoldExpenseFailureMessage: 'Erreur inattendue lors de la mise en attente de cette dépense. Veuillez réessayer ultérieurement.',
@@ -6197,6 +6196,11 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
             syncReimbursedReports: 'Synchroniser les notes de frais remboursées',
             syncReimbursedReportsDescription: 'Lorsqu’une note de frais est payée par ACH, un paiement de facture sera généré dans ce compte.',
             billPaymentAccount: {label: 'Compte de paiement des factures', description: 'Choisissez d’où payer les factures et nous créerons le paiement dans DualEntry.'},
+            fxExpenseAccount: {
+                label: 'Compte de frais de conversion de devise DualEntry',
+                description:
+                    'Lorsque votre entreprise prend en charge les frais de conversion de devise sur un paiement effectué à l’étranger, nous comptabiliserons ces frais sur ce compte dans DualEntry sous forme d’écriture de journal.',
+            },
             syncExpensifyCardSettlements: 'Synchroniser les règlements de Carte Expensify',
             settlementAccount: {label: 'Compte de règlement de la Carte Expensify', description: 'Choisissez votre compte de règlement et nous créerons le paiement dans DualEntry.'},
             syncTravelInvoicingSettlements: 'Synchroniser les règlements de facturation de voyages',
