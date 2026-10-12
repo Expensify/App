@@ -1,6 +1,6 @@
 import Button from '@components/Button';
 import DatePicker from '@components/DatePicker';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import Header from '@components/Header';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
@@ -115,10 +115,10 @@ function WorkspaceCompanyCardsBulkEditTransactionStartDatePage({route}: Workspac
                 testID="WorkspaceCompanyCardsBulkEditTransactionStartDatePage"
                 enableEdgeToEdgeBottomSafeAreaPadding
             >
-                <HeaderWithBackButton
-                    title={translate('workspace.moreFeatures.companyCards.transactionStartDate')}
-                    onBackButtonPress={goBackToCompanyCards}
-                />
+                <Header>
+                    <Header.BackButton onPress={goBackToCompanyCards} />
+                    <Header.Title title={translate('workspace.moreFeatures.companyCards.transactionStartDate')} />
+                </Header>
                 <Text style={[styles.textSupporting, styles.ph5, styles.mv3]}>{translate('workspace.companyCards.bulkEditStartDateDescription')}</Text>
                 <View style={styles.flex1}>
                     <SelectionList

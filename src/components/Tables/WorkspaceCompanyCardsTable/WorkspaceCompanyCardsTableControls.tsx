@@ -161,10 +161,16 @@ function WorkspaceCompanyCardsTableControls({
             .map((card) => card.assignedCard?.cardID)
             .filter((cardID): cardID is number => cardID !== undefined)
             .map(String);
-        if (selectedCardIDs.length === 0) {
+        const [selectedCardID] = selectedCardIDs;
+        if (!selectedCardID) {
             return;
         }
-        Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_BULK_EDIT_TRANSACTION_START_DATE.getRoute(policyID, feedName, selectedCardIDs));
+
+        if (selectedCardIDs.length === 1) {
+            Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARD_EDIT_TRANSACTION_START_DATE.getRoute(policyID, selectedCardID, feedName));
+        } else {
+            Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_BULK_EDIT_TRANSACTION_START_DATE.getRoute(policyID, feedName, selectedCardIDs));
+        }
         clearCardSelection();
     };
 
