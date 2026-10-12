@@ -145,7 +145,7 @@ index af0cd61..fb06350 100644
          pendingPopStateDelta ?? 0);
 +
 +        // The historyDelta and historyDeltaByKeys may differ if the new state has an entry that didn't exist in previous state
-+        const historyDeltaByKeys = getHistoryDeltaByKeys(focusedState, previousFocusedState);
++        const historyDeltaByKeys = getHistoryDeltaByKeys(focusedState, previousFocusedState) - (pendingPopStateDelta ?? 0);
          if (historyDelta > 0) {
            // If history length is increased, we should pushState
            // Note that path might not actually change here, for example, drawer open should pushState
@@ -179,7 +179,7 @@ index af0cd61..fb06350 100644
              }
  
              // Store the updated state as well as fix the path if incorrect
-@@ -448,10 +501,22 @@ export function useLinking(ref, {
+@@ -448,10 +501,26 @@ export function useLinking(ref, {
            }
          } else {
            // If history length is unchanged, we want to replaceState
@@ -197,11 +197,15 @@ index af0cd61..fb06350 100644
 +              state
 +            });
 +          } else {
-+            await history.go(-staleHistoryDiff);
-+            history.push({
-+              path,
-+              state
-+            });
++            try {
++              await history.go(-staleHistoryDiff);
++              history.push({
++                path,
++                state
++              });
++            } catch (e) {
++              // The navigation was interrupted
++            }
 +          }
          }
        } else {
