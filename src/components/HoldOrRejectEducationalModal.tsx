@@ -1,4 +1,3 @@
-import useBeforeRemove from '@hooks/useBeforeRemove';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -36,8 +35,6 @@ function HoldOrRejectEducationalModal({onClose, onConfirm}: HoldOrRejectEducatio
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const illustrations = useMemoizedLazyIllustrations(['Stopwatch', 'Rules', 'RealtimeReport', 'ThumbsDown', 'ModalHoldOrReject']);
-
-    useBeforeRemove(onClose);
 
     const menuSections: SectionMenuItem[] = [
         {

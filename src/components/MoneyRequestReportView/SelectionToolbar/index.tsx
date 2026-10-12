@@ -1,6 +1,5 @@
 import DecisionModal from '@components/DecisionModal';
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
-import HoldOrRejectEducationalModal from '@components/HoldOrRejectEducationalModal';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import useShouldShowReportBulkActionBar from '@components/MoneyRequestReportView/useShouldShowReportBulkActionBar';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -11,6 +10,7 @@ import {useSearchSelectionActions, useSearchSelectionContext} from '@components/
 
 import useConfirmModal from '@hooks/useConfirmModal';
 import useFilterSelectedTransactions from '@hooks/useFilterSelectedTransactions';
+import useHoldRejectEducationalModal from '@hooks/useHoldRejectEducationalModal';
 import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useNetworkWithOfflineStatus from '@hooks/useNetworkWithOfflineStatus';
@@ -37,8 +37,6 @@ import ROUTES from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
-
-import type {ValueOf} from 'type-fest';
 
 import {useFocusEffect, useRoute} from '@react-navigation/native';
 import React, {useState} from 'react';
@@ -94,7 +92,6 @@ function SelectionToolbar({reportID, transactions, reportActions}: SelectionTool
 
     const [offlineModalVisible, setOfflineModalVisible] = useState(false);
     const [isDownloadErrorModalVisible, setIsDownloadErrorModalVisible] = useState(false);
-    const [rejectModalAction, setRejectModalAction] = useState<ValueOf<typeof CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.REJECT_BULK> | null>(null);
 
     const transactionsWithoutPendingDelete = transactions.filter((t) => !isTransactionPendingDelete(t));
     // Select All skips rejected expenses as well as ones being deleted, since their checkboxes are disabled. The list header and group headers use the same filter.
@@ -202,6 +199,19 @@ function SelectionToolbar({reportID, transactions, reportActions}: SelectionTool
         selectedTransactionIDs,
     });
 
+    const dismissRejectModalAndOpenBulkReject = () => {
+        dismissRejectUseExplanation();
+        if (report?.reportID) {
+            Navigation.navigate(
+                ROUTES.SEARCH_MONEY_REQUEST_REPORT_REJECT_TRANSACTIONS.getRoute({
+                    reportID: report.reportID,
+                }),
+            );
+        }
+    };
+
+    const {showHoldOrRejectEducationalModal} = useHoldRejectEducationalModal({onHoldOrRejectModalDismiss: dismissRejectModalAndOpenBulkReject});
+
     const selectedTransactionsOptions = (() => {
         const mappedOptions = originalSelectedTransactionsOptions.map((option) => {
             if (option.value === CONST.REPORT.SECONDARY_ACTIONS.REJECT) {
@@ -216,7 +226,7 @@ function SelectionToolbar({reportID, transactions, reportActions}: SelectionTool
                         if (dismissedRejectUseExplanation) {
                             option.onSelected?.();
                         } else {
-                            setRejectModalAction(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.REJECT_BULK);
+                            showHoldOrRejectEducationalModal(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.REJECT_BULK);
                         }
                     },
                 };
@@ -231,20 +241,6 @@ function SelectionToolbar({reportID, transactions, reportActions}: SelectionTool
     })();
 
     const popoverUseScrollView = shouldPopoverUseScrollView(selectedTransactionsOptions);
-
-    const dismissRejectModalBasedOnAction = () => {
-        if (rejectModalAction === CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.REJECT_BULK) {
-            dismissRejectUseExplanation();
-            if (report?.reportID) {
-                Navigation.navigate(
-                    ROUTES.SEARCH_MONEY_REQUEST_REPORT_REJECT_TRANSACTIONS.getRoute({
-                        reportID: report.reportID,
-                    }),
-                );
-            }
-        }
-        setRejectModalAction(null);
-    };
 
     const {reportPendingAction} = getReportOfflinePendingActionAndErrors(report);
     // Same check that decides whether Submit, Approve and Pay are offered, so the checkbox reads fully checked exactly when they are.
@@ -324,12 +320,6 @@ function SelectionToolbar({reportID, transactions, reportActions}: SelectionTool
                 isVisible={offlineModalVisible}
                 onClose={() => setOfflineModalVisible(false)}
             />
-            {!!rejectModalAction && (
-                <HoldOrRejectEducationalModal
-                    onClose={dismissRejectModalBasedOnAction}
-                    onConfirm={dismissRejectModalBasedOnAction}
-                />
-            )}
             {isHoldMenuVisible && requestType !== undefined && (
                 <ProcessMoneyReportHoldMenu
                     nonHeldAmount={!hasOnlyHeldExpenses && hasValidNonHeldAmount ? nonHeldAmount : undefined}
