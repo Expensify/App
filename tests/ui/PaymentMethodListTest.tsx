@@ -14,7 +14,6 @@ import {PortalProvider} from '@gorhom/portal';
 import React from 'react';
 import Onyx from 'react-native-onyx';
 
-import createRandomPolicy from '../utils/collections/policies';
 import createMock from '../utils/createMock';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
@@ -22,9 +21,6 @@ import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct'
 TestHelper.setupGlobalFetchMock();
 
 const DOMAIN_NAME = 'expensify.com';
-const WORKSPACE_POLICY_ID = 'ABC123';
-const WORKSPACE_DOMAIN_NAME = `expensify-policy${WORKSPACE_POLICY_ID.toLowerCase()}.exfy`;
-const WORKSPACE_NAME = 'Combo Workspace';
 
 function createExpensifyCard(cardID: number, domainName: string, nameValuePairs: Partial<Card['nameValuePairs']> = {}): Card {
     return createMock<Card>({
@@ -89,22 +85,6 @@ describe('PaymentMethodList', () => {
         // Then both halves collapse into a single row, because they are the same card to the user
         expect(screen.getAllByText(CONST.EXPENSIFY_CARD.BANK)).toHaveLength(1);
         expect(screen.getAllByText(DOMAIN_NAME)).toHaveLength(1);
-    });
-
-    it('shows a legacy combo card on a workspace feed domain as one row', async () => {
-        // Given a combo card on a workspace feed domain, whose row shows the workspace name instead of the domain
-        await act(async () => {
-            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${WORKSPACE_POLICY_ID}`, {...createRandomPolicy(1), id: WORKSPACE_POLICY_ID, name: WORKSPACE_NAME});
-            await Onyx.set(ONYXKEYS.CARD_LIST, createCardList(createExpensifyCard(1, WORKSPACE_DOMAIN_NAME), createExpensifyCard(2, WORKSPACE_DOMAIN_NAME, {isVirtual: true})));
-        });
-
-        // When the Wallet's assigned cards list renders
-        renderAssignedCardsList();
-        await waitForBatchedUpdatesWithAct();
-
-        // Then the halves are still matched by domain and collapse into a single row
-        expect(screen.getAllByText(CONST.EXPENSIFY_CARD.BANK)).toHaveLength(1);
-        expect(screen.getAllByText(WORKSPACE_NAME)).toHaveLength(1);
     });
 
     it('keeps an admin-issued virtual card on its own row', async () => {

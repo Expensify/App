@@ -63,9 +63,6 @@ type PaymentMethodItem = PaymentMethod & {
     description: string;
     onPress?: (e: GestureResponderEvent | KeyboardEvent | undefined) => void;
     isGroupedCardDomain?: boolean;
-
-    /** Domain of the grouped Expensify Card row, used to merge the other half of a combo card into it */
-    domainName?: string;
     canDismissError?: boolean;
     disabled?: boolean;
     shouldShowRightIcon?: boolean;

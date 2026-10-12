@@ -449,9 +449,8 @@ function PaymentMethodList({
                     continue;
                 }
 
-                // Match on the domain rather than the rendered description, which shows the workspace name for workspace feed domains
-                if (assignedCardsGrouped.some((item) => item.isGroupedCardDomain && item.domainName === card.domainName) && !isAdminIssuedVirtualCard) {
-                    const domainGroupIndex = assignedCardsGrouped.findIndex((item) => item.isGroupedCardDomain && item.domainName === card.domainName);
+                if (assignedCardsGrouped.some((item) => item.isGroupedCardDomain && item.description === card.domainName) && !isAdminIssuedVirtualCard) {
+                    const domainGroupIndex = assignedCardsGrouped.findIndex((item) => item.isGroupedCardDomain && item.description === card.domainName);
                     const assignedCardsGroupedItem = assignedCardsGrouped.at(domainGroupIndex);
                     if (domainGroupIndex >= 0 && assignedCardsGroupedItem) {
                         assignedCardsGroupedItem.errors = {
@@ -508,7 +507,6 @@ function PaymentMethodList({
                         }),
                     cardID: card.cardID,
                     isGroupedCardDomain: !isAdminIssuedVirtualCard,
-                    domainName: card.domainName,
                     shouldShowRightIcon: true,
                     interactive: !isDisabled,
                     disabled: isDisabled,
