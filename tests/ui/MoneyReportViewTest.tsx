@@ -22,6 +22,20 @@ import * as LHNTestUtils from '../utils/LHNTestUtils';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
+// Pinned to a wide layout so the column-count assertion below exercises the `shouldUseSingleColumn` prop rather than
+// the narrow-layout fallback, which would collapse the fields to one per row on its own.
+jest.mock('@hooks/useResponsiveLayoutOnWideRHP', () => ({
+    __esModule: true,
+    default: () => ({
+        shouldUseNarrowLayout: false,
+        shouldUseNarrowLayoutIgnoringWideRHP: false,
+        isSmallScreenWidth: false,
+        isInNarrowPaneModal: false,
+        isWideRHPDisplayedOnWideLayout: true,
+        isSuperWideRHPDisplayedOnWideLayout: false,
+    }),
+}));
+
 jest.mock('@hooks/useLocalize', () =>
     jest.fn(() => ({
         translate: jest.fn((key: string) => key),
@@ -352,8 +366,9 @@ describe('MoneyReportView report fields visibility', () => {
         });
     });
 
-    it('keeps a custom report field visible and copyable for a non-admin submitter after the report is approved', async () => {
-        // Given an approved report with a custom field that is read-only for the submitter
+    it('keeps a custom report field visible and copyable for a non-admin submitter after approval (single-expense combined view)', async () => {
+        // Given an approved report with a custom field, viewed by its non-admin submitter, who cannot edit a field
+        // once the report has been approved
         mockedGetPlatform.mockReturnValue(CONST.PLATFORM.WEB);
         const fieldList = {
             [CONST.REPORT_FIELD_TITLE_FIELD_ID]: buildTitleField(),
@@ -371,12 +386,41 @@ describe('MoneyReportView report fields visibility', () => {
         renderMoneyReportView(approvedReport, policy, true);
         await waitForBatchedUpdatesWithAct();
 
-        // Then only the custom field value is marked as copyable
+        // Then the read-only inline field stays visible and its value is marked for desktop-web selection scraping
         await waitFor(() => {
-            const [copyableReportFields] = screen.UNSAFE_getAllByProps({dataSet: COPYABLE_ROW_CONTINUATION_DATA_SET});
-            expect(copyableReportFields.props.style).toEqual(expect.objectContaining({display: 'contents'}));
-            expect(screen.getByText('Copyable field value')).toHaveProp('dataSet', expect.objectContaining(COPYABLE_TEXT_DATA_SET));
-            expect(screen.getByText('Test')).toHaveProp('dataSet', {[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true});
+            const fieldInput = screen.getByLabelText('Test');
+            expect(fieldInput).toBeOnTheScreen();
+            expect(fieldInput).toHaveProp('value', 'Copyable field value');
+            expect(fieldInput).toHaveProp('dataSet', expect.objectContaining(COPYABLE_TEXT_DATA_SET));
+            expect(screen.UNSAFE_getAllByProps({dataSet: COPYABLE_ROW_CONTINUATION_DATA_SET}).length).toBeGreaterThan(0);
+        });
+    });
+
+    it('stacks the report fields one per row on a wide layout, because this is the one-expense report view', async () => {
+        // Given a one-expense report with 4 custom fields on a wide layout
+        const customFields = Array.from({length: 4}, (_unused, index) => ({
+            ...buildCustomTextField(),
+            fieldID: `field_test${index}`,
+            name: `Test${index}`,
+            orderWeight: index + 2,
+        }));
+        const fieldList: Record<string, OnyxTypes.PolicyReportField> = {[CONST.REPORT_FIELD_TITLE_FIELD_ID]: buildTitleField()};
+        for (const field of customFields) {
+            fieldList[`expensify_${field.fieldID}`] = field;
+        }
+        const policy = buildReportFieldsPolicy(fieldList);
+        const report = buildExpenseReport({fieldList});
+        await seedReportFieldsPolicy(policy, report);
+
+        // When this view renders them
+        renderMoneyReportView(report, policy);
+        await waitForBatchedUpdatesWithAct();
+
+        // Then each field gets its own row. Four fields would fill two rows of three if the grid were in use, so four
+        // rows proves this view asks for a single column: it renders inside a container too narrow for three fields
+        // side by side even though the window itself is wide
+        await waitFor(() => {
+            expect(screen.getAllByTestId('reportFieldsRow')).toHaveLength(4);
         });
     });
 

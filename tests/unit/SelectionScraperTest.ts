@@ -117,6 +117,53 @@ describe('SelectionScraper', () => {
         expect(SelectionScraper.getCurrentSelection()).toBe('123');
     });
 
+    it('copies the current values of selected form controls', () => {
+        // Given marked inputs whose values are properties rather than DOM text nodes
+        const fixture = createFixture(`
+            <div ${copyableRowAttribute}="true">
+                <input id="text-field" ${copyableTextAttribute}="true">
+                <textarea id="multiline-field" ${copyableTextAttribute}="true"></textarea>
+            </div>
+        `);
+        const textField = fixture.querySelector<HTMLInputElement>('#text-field');
+        const multilineField = fixture.querySelector<HTMLTextAreaElement>('#multiline-field');
+        if (!textField || !multilineField) {
+            throw new Error('Missing form controls');
+        }
+        textField.value = 'Copyable field value';
+        multilineField.value = 'Second\n field value';
+
+        // When the selection includes both controls
+        const range = document.createRange();
+        range.selectNodeContents(fixture);
+        const selection = window.getSelection();
+        selection?.removeAllRanges();
+        selection?.addRange(range);
+
+        // Then the scraper uses their current values and normalizes whitespace
+        expect(SelectionScraper.getCurrentSelection()).toBe('Copyable field value Second field value');
+    });
+
+    it('copies a single selected form control value', () => {
+        // Given one marked input with no text node
+        const fixture = createFixture(`<div ${copyableRowAttribute}="true"><input id="single-field" ${copyableTextAttribute}="true"></div>`);
+        const input = fixture.querySelector<HTMLInputElement>('#single-field');
+        if (!input) {
+            throw new Error('Missing form control');
+        }
+        input.value = 'Only field value';
+
+        // When the input itself is selected as part of a page selection
+        const range = document.createRange();
+        range.selectNode(input);
+        const selection = window.getSelection();
+        selection?.removeAllRanges();
+        selection?.addRange(range);
+
+        // Then it does not fall back to generic scraping, which cannot read input values
+        expect(SelectionScraper.getCurrentSelection()).toBe('Only field value');
+    });
+
     it.each([
         {startOffset: 0, endOffset: 11, expectedText: 'Ann Manager'},
         {startOffset: 0, endOffset: 3, expectedText: 'Ann'},
