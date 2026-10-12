@@ -336,6 +336,9 @@ type MergeConnectionLastSync = ConnectionLastSync & {
 
     /** Timestamps of the last few manual ("Sync now") syncs, used for blocking manual syncs client-side once the daily limit is reached */
     manualSyncTimestamps?: string[];
+
+    /** If the connection's last sync failed because of its own settings, so the admin fixes the settings rather than reconnecting */
+    isConfigurationError?: boolean;
 };
 
 /**
@@ -3125,6 +3128,9 @@ type MergeHRGroup = {
 type MergeHRConnectionData = {
     /** Groups available to import employees from. Distinct from `config.groups`, which is the admin's selection. */
     groups?: MergeHRGroup[];
+
+    /** IDs of every group the HR system has, including ones missing a name/type and so absent from `groups`. Used to tell a deleted group apart from one that just can't render. */
+    allGroupIDs?: string[];
 };
 
 /** Merge HR connection config */
@@ -4073,6 +4079,9 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
 
         /** Whether Expensify automatically copies newly published government distance rates onto this policy */
         shouldAutoUpdateGovernmentDistanceRates?: boolean;
+
+        /** ISO country code an EUR workspace auto-updates government distance rates for, since the currency is shared by several supported countries */
+        autoUpdateGovernmentRateCountry?: string;
 
         /** Whether distance expenses on this policy must come from a mapped route or a GPS track, which rules out the manual and odometer flows */
         requireMapOrGPS?: boolean;

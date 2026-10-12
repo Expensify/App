@@ -1,10 +1,12 @@
 /** Decides whether a failed receipt upload can be retried and rebuilds its `RequestMoney` call from Onyx. */
 import {isLocalFile} from '@libs/fileDownload/FileUtils';
+import {getAllReportActions, isCreatedAction} from '@libs/ReportActionsUtils';
 import {getTransactionDetails} from '@libs/ReportUtils';
 import {getIsFromGlobalCreate, isDistanceRequest, isPerDiemRequest, isTimeRequest} from '@libs/TransactionUtils';
 
 import {getAllPersonalDetails, getAllReports, getAllTransactionViolations, getCurrentUserAccountIDFromSession, getCurrentUserPersonalDetails} from '@userActions/IOU';
 import {getMoneyRequestParticipantsFromReport} from '@userActions/IOU/MoneyRequest';
+import {getReportPreviewReportAction} from '@userActions/IOU/MoneyRequestBuilder';
 import type {RequestMoneyInformation} from '@userActions/IOU/MoneyRequestBuilder';
 
 import CONST from '@src/CONST';
@@ -135,6 +137,8 @@ function buildRetryPayload(context: ReceiptRetryContext, receiptFile: FileObject
         optimisticTransactionID: transaction.transactionID,
         optimisticIOUReportID: iouReport.reportID,
         optimisticChatReportID: iouReport.chatReportID,
+        optimisticReportPreviewActionID: getReportPreviewReportAction(iouReport.chatReportID, iouReport.reportID)?.reportActionID ?? iouReport.parentReportActionID,
+        optimisticIOUCreatedReportActionID: Object.values(getAllReportActions(iouReport.reportID)).find((action) => isCreatedAction(action))?.reportActionID,
         // Without these two, the retry creates a second IOU action and thread for the same transaction.
         currentReportActionID: iouActionID,
         existingTransactionThreadReportID: transactionThreadReportID,
