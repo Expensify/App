@@ -44,7 +44,7 @@ type AgentRowData = TableData & {
     ownerType?: AgentOwnerType;
 
     /** The policy ID of the agent owner, only set if ownerType=workspace */
-    ownerPolicyAccountID?: string;
+    ownerPolicyID?: string;
 
     canManage: boolean;
     errors?: OnyxCommon.Errors;
