@@ -21,10 +21,9 @@ import Navigation from '@navigation/Navigation';
 
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 
-import {bulkUpdateCardTransactionStartDate, updateCardTransactionStartDate} from '@userActions/CompanyCards';
+import {updateCardTransactionStartDate} from '@userActions/CompanyCards';
 
 import CONST from '@src/CONST';
-import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
 import type {ValueOf} from 'type-fest';
@@ -40,7 +39,6 @@ type WorkspaceCompanyCardEditTransactionStartDatePageProps = PlatformStackScreen
 
 function WorkspaceCompanyCardEditTransactionStartDatePage({route, navigation}: WorkspaceCompanyCardEditTransactionStartDatePageProps) {
     const {policyID, cardID} = route.params;
-    const isBulkAction = route.params.isBulkAction === 'true';
     const feedName = route.params.feed;
     const bank = getCompanyCardFeed(feedName);
 
@@ -52,8 +50,7 @@ function WorkspaceCompanyCardEditTransactionStartDatePage({route, navigation}: W
     const [cardFeeds] = useCardFeeds(policyID);
     const companyFeeds = getCompanyFeeds(cardFeeds);
     const domainOrWorkspaceAccountID = getDomainOrWorkspaceAccountID(workspaceAccountID, companyFeeds[feedName]);
-    const goBack = () =>
-        Navigation.goBack(isBulkAction ? ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID) : getCompanyCardDetailsBackPath(policyID, feedName, cardID, navigation.getState()));
+    const goBackToCardDetails = () => Navigation.goBack(getCompanyCardDetailsBackPath(policyID, feedName, cardID, navigation.getState()));
 
     const [allBankCards] = useCardsList(feedName);
     const card = allBankCards?.[cardID];
@@ -92,12 +89,8 @@ function WorkspaceCompanyCardEditTransactionStartDatePage({route, navigation}: W
 
         const newStartDate = dateOptionSelected === CONST.COMPANY_CARD.TRANSACTION_START_DATE_OPTIONS.FROM_BEGINNING ? '' : startDate;
 
-        if (isBulkAction) {
-            bulkUpdateCardTransactionStartDate(domainOrWorkspaceAccountID, bank, [{cardID, oldStartDate: currentStartDate}], newStartDate);
-        } else {
-            updateCardTransactionStartDate(domainOrWorkspaceAccountID, cardID, newStartDate, bank, currentStartDate);
-        }
-        goBack();
+        updateCardTransactionStartDate(domainOrWorkspaceAccountID, cardID, newStartDate, bank, currentStartDate);
+        goBackToCardDetails();
     };
 
     const dateOptions = [
@@ -127,7 +120,7 @@ function WorkspaceCompanyCardEditTransactionStartDatePage({route, navigation}: W
                 enableEdgeToEdgeBottomSafeAreaPadding
             >
                 <Header>
-                    <Header.BackButton onPress={goBack} />
+                    <Header.BackButton onPress={goBackToCardDetails} />
                     <Header.Title title={translate('workspace.moreFeatures.companyCards.transactionStartDate')} />
                 </Header>
                 <Text style={[styles.textSupporting, styles.ph5, styles.mv3]}>{translate('workspace.companyCards.editStartDateDescription')}</Text>

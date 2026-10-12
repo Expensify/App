@@ -26,13 +26,14 @@ import {bulkUpdateCardTransactionStartDate} from '@userActions/CompanyCards';
 
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
-import type SCREENS from '@src/SCREENS';
+import SCREENS from '@src/SCREENS';
 import type {CompanyCardFeedWithDomainID} from '@src/types/onyx';
 
 import type {ValueOf} from 'type-fest';
 
+import {StackActions} from '@react-navigation/native';
 import {format} from 'date-fns';
-import React, {useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
 
 type DateOption = ValueOf<typeof CONST.COMPANY_CARD.TRANSACTION_START_DATE_OPTIONS>;
@@ -41,10 +42,11 @@ type WorkspaceCompanyCardsBulkEditTransactionStartDatePageProps = PlatformStackS
     typeof SCREENS.WORKSPACE.COMPANY_CARDS_BULK_EDIT_TRANSACTION_START_DATE
 >;
 
-function WorkspaceCompanyCardsBulkEditTransactionStartDatePage({route}: WorkspaceCompanyCardsBulkEditTransactionStartDatePageProps) {
+function WorkspaceCompanyCardsBulkEditTransactionStartDatePage({route, navigation}: WorkspaceCompanyCardsBulkEditTransactionStartDatePageProps) {
     const {policyID} = route.params;
     const feedName: CompanyCardFeedWithDomainID = route.params.feed;
     const cardIDs = (route.params.cardIDs ?? '').split(',').filter(Boolean);
+    const singleCardID = cardIDs.length === 1 ? cardIDs.at(0) : undefined;
     const bank = getCompanyCardFeed(feedName);
 
     const {translate} = useLocalize();
@@ -60,6 +62,20 @@ function WorkspaceCompanyCardsBulkEditTransactionStartDatePage({route}: Workspac
     const [dateOptionSelected, setDateOptionSelected] = useState<DateOption>(CONST.COMPANY_CARD.TRANSACTION_START_DATE_OPTIONS.CUSTOM);
     const [startDate, setStartDate] = useState(() => format(new Date(), CONST.DATE.FNS_FORMAT_STRING));
     const [errorText, setErrorText] = useState('');
+
+    useEffect(() => {
+        if (!singleCardID) {
+            return;
+        }
+
+        navigation.dispatch(
+            StackActions.replace(SCREENS.WORKSPACE.COMPANY_CARD_EDIT_TRANSACTION_START_DATE, {
+                policyID,
+                cardID: singleCardID,
+                feed: feedName,
+            }),
+        );
+    }, [feedName, navigation, policyID, singleCardID]);
 
     const goBackToCompanyCards = () => Navigation.goBack(ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID));
 
@@ -103,6 +119,10 @@ function WorkspaceCompanyCardsBulkEditTransactionStartDatePage({route}: Workspac
             isSelected: dateOptionSelected === CONST.COMPANY_CARD.TRANSACTION_START_DATE_OPTIONS.CUSTOM,
         },
     ];
+
+    if (singleCardID) {
+        return null;
+    }
 
     return (
         <AccessOrNotFoundWrapper

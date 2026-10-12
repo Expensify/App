@@ -1662,7 +1662,6 @@ type SettingsNavigatorParamList = {
         policyID: string;
         feed: CompanyCardFeedWithDomainID;
         cardID: string;
-        isBulkAction?: string;
     };
     [SCREENS.WORKSPACE.COMPANY_CARDS_BULK_EDIT_TRANSACTION_START_DATE]: {
         policyID: string;
