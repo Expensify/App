@@ -19,7 +19,7 @@ function useAgentPromptInputStyles(): StyleProp<ViewStyle> {
     if (isInLandscapeMode && isKeyboardActive) {
         return StyleUtils.getHeight(PROMPT_MAX_HEIGHT_ON_KEYBOARD_OPEN_LANDSCAPE_MODE);
     }
-    return [styles.flex1, shouldUseExpandedRevampFormLayout && [styles.mnh0, styles.agentRulePromptInput]];
+    return [styles.flex1, shouldUseExpandedRevampFormLayout && styles.mnh0];
 }
 
 export default useAgentPromptInputStyles;
