@@ -128,7 +128,7 @@ import {
     getParticipantsList,
     getPayeeName,
     getPendingChatMembers,
-    getMemberDisplayNameUpdatedMessage,
+    getUpdateEmployeeDisplayNameMessage,
     getPendingDeleteMemberAccountIDs,
     getPolicyChangeLogCopyMessage,
     getPolicyExpenseChat,
@@ -9890,7 +9890,7 @@ describe('ReportUtils', () => {
         });
     });
 
-    describe('getMemberDisplayNameUpdatedMessage', () => {
+    describe('getUpdateEmployeeDisplayNameMessage', () => {
         function buildDisplayNameAction(originalMessage: {oldValue?: string; newValue?: string}): ReportAction {
             return createMock<ReportAction>({
                 actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_EMPLOYEE_DISPLAY_NAME,
@@ -9906,7 +9906,7 @@ describe('ReportUtils', () => {
             const environmentURL = await getEnvironmentURL();
             const action = buildDisplayNameAction({oldValue: 'cathy@boulderdev.com', newValue: 'Cathy Miller'});
 
-            expect(getMemberDisplayNameUpdatedMessage(translateLocal, action)).toBe(
+            expect(getUpdateEmployeeDisplayNameMessage(translateLocal, action)).toBe(
                 `updated your display name to Cathy Miller (Previously "cathy@boulderdev.com"). <a href="${environmentURL}/${ROUTES.SETTINGS_DISPLAY_NAME}">Edit in your profile</a>`,
             );
         });
@@ -9915,7 +9915,7 @@ describe('ReportUtils', () => {
             const environmentURL = await getEnvironmentURL();
             const action = buildDisplayNameAction({oldValue: 'cathy@boulderdev.com', newValue: '<b>Cathy</b>'});
 
-            expect(getMemberDisplayNameUpdatedMessage(translateLocal, action)).toBe(
+            expect(getUpdateEmployeeDisplayNameMessage(translateLocal, action)).toBe(
                 `updated your display name to &lt;b&gt;Cathy&lt;/b&gt; (Previously "cathy@boulderdev.com"). <a href="${environmentURL}/${ROUTES.SETTINGS_DISPLAY_NAME}">Edit in your profile</a>`,
             );
         });
@@ -9930,7 +9930,7 @@ describe('ReportUtils', () => {
                 originalMessage: {oldValue: 'user', newValue: 'admin'},
             });
 
-            expect(getMemberDisplayNameUpdatedMessage(translateLocal, action)).toBe('');
+            expect(getUpdateEmployeeDisplayNameMessage(translateLocal, action)).toBe('');
         });
     });
 
