@@ -227,6 +227,10 @@ function hasPartiallySetupBankAccount(bankAccountList: OnyxEntry<OnyxTypes.BankA
     return Object.values(bankAccountList ?? {}).some((bankAccount) => isBankAccountPartiallySetup(bankAccount?.accountData?.state));
 }
 
+function hasBrokenPlaidConnectionBankAccount(bankAccountList: OnyxEntry<OnyxTypes.BankAccountList>): boolean {
+    return Object.values(bankAccountList ?? {}).some((bankAccount) => hasBrokenPlaidConnection(bankAccount?.accountData));
+}
+
 const PERSONAL_INFO_STEP = {
     NAME: 1,
     ADDRESS: 2,
@@ -386,6 +390,7 @@ export {
     getRequiredKYBDocuments,
     getLastFourDigits,
     hasPartiallySetupBankAccount,
+    hasBrokenPlaidConnectionBankAccount,
     hasPersonalBankAccountMissingInfo,
     isBankAccountPartiallySetup,
     isUserAddressVerificationRequired,
