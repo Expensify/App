@@ -58,4 +58,14 @@ const createMockReport = (overrides: Partial<Report> = {}): Report =>
         ...overrides,
     }) as Report;
 
-export {getFakeReportAction, getMockedSortedReportActions, createMockReport};
+/** Minimal deterministic audit action; callers override the actor, timestamp, or action-specific payload. */
+const buildSystemAction = (reportActionID: string, overrides: Partial<ReportAction> = {}): ReportAction => ({
+    reportActionID,
+    actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
+    actorAccountID: 1,
+    created: `2026-07-30 00:00:0${reportActionID}.000`,
+    message: [{type: 'TEXT', html: reportActionID, text: reportActionID}],
+    ...overrides,
+});
+
+export {getFakeReportAction, getMockedSortedReportActions, createMockReport, buildSystemAction};

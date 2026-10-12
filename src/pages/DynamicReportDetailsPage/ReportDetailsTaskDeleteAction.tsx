@@ -12,7 +12,7 @@ import useReportIsArchived from '@hooks/useReportIsArchived';
 import Navigation from '@libs/Navigation/Navigation';
 import {canWriteInReport, findLastAccessedReport, isCanceledTaskReport as isCanceledTaskReportUtil, isClosedReport, isTaskReport as isTaskReportUtil} from '@libs/ReportUtils';
 
-import {canActionTask, canModifyTask} from '@userActions/Task';
+import {canActionTask, canDeleteTaskAsPolicyAdmin, canModifyTask} from '@userActions/Task';
 import {deleteTask} from '@userActions/TaskDeletion';
 
 import CONST from '@src/CONST';
@@ -87,6 +87,8 @@ function ReportDetailsTaskDeleteActionContent({report, parentReport, parentRepor
 function ReportDetailsTaskDeleteAction({reportID, caseID}: ReportDetailsTaskDeleteActionProps) {
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`);
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`);
+    const [guideAccountIDs] = useOnyx(ONYXKEYS.DERIVED.GUIDE_ACCOUNT_IDS);
     const parentReportAction = useParentReportAction(report);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const currentUserAccountID = currentUserPersonalDetails?.accountID;
@@ -98,8 +100,8 @@ function ReportDetailsTaskDeleteAction({reportID, caseID}: ReportDetailsTaskDele
         canWriteInReport(report) &&
         report?.stateNum !== CONST.REPORT.STATE_NUM.APPROVED &&
         !isClosedReport(report) &&
-        canModifyTask(report, currentUserAccountID, isParentReportArchived) &&
-        canActionTask(report, parentReportAction, currentUserAccountID, parentReport, isParentReportArchived);
+        ((canModifyTask(report, currentUserAccountID, isParentReportArchived) && canActionTask(report, parentReportAction, currentUserAccountID, parentReport, isParentReportArchived)) ||
+            canDeleteTaskAsPolicyAdmin(report, parentReport, policy, guideAccountIDs, isParentReportArchived));
 
     if (!report?.reportID || !shouldShowTaskDeleteButton) {
         return null;

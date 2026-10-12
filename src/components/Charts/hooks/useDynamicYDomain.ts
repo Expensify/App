@@ -2,12 +2,12 @@ import type {ChartDataPoint} from '@components/Charts/types';
 
 import {useMemo} from 'react';
 
-/**
- * Anchor Y-axis at zero so the baseline is always visible.
- * When negative values are present, let victory-native auto-calculate the domain to avoid clipping.
- */
-function useDynamicYDomain(data: ChartDataPoint[]): [number] | undefined {
-    return useMemo((): [number] | undefined => (data.some((point) => point.total < 0) ? undefined : [0]), [data]);
+/** Keep zero inside the Y-axis domain so bars always grow from a visible baseline, also when all values are negative */
+function useDynamicYDomain(data: ChartDataPoint[]): [number, number] {
+    return useMemo((): [number, number] => {
+        const totals = data.map((point) => point.total);
+        return [Math.min(0, ...totals), Math.max(0, ...totals)];
+    }, [data]);
 }
 
 export default useDynamicYDomain;
