@@ -8,6 +8,7 @@ import QuickEmojiReactions from '@components/Reactions/QuickEmojiReactions';
 import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
 import type useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 
+import {changeMoneyRequestHoldStatus} from '@libs/actions/IOU/Hold';
 import addEncryptedAuthTokenToURL from '@libs/addEncryptedAuthTokenToURL';
 import {getAddAgentRuleMessage, getDeleteAgentRuleMessage, getUpdateAgentRuleMessage} from '@libs/AgentRuleChangeLogUtils';
 import {isMobileSafari} from '@libs/Browser';
@@ -153,6 +154,7 @@ import {
     isCardIssuedAction,
     isCategoryModificationAction,
     isCreatedAction,
+    isCreatedSupportTicketReportAction,
     isCreatedTaskReportAction,
     isDeletedAction as isDeletedActionReportActionsUtils,
     isDynamicExternalWorkflowApproveFailedAction,
@@ -185,7 +187,6 @@ import {
     canEditReportAction,
     canFlagReportAction,
     canHoldUnholdReportAction,
-    changeMoneyRequestHoldStatus,
     getChildReportNotificationPreference as getChildReportNotificationPreferenceReportUtils,
     getDeletedTransactionMessage,
     getIOUReportActionDisplayMessage,
@@ -202,6 +203,7 @@ import {
     getWorkspaceNameUpdatedMessage,
     isExpenseReport,
     isSelfDM,
+    isSupportTicket,
     shouldDisableThread,
     shouldDisplayThreadReplies as shouldDisplayThreadRepliesReportUtils,
     shouldShowMarkAsDone,
@@ -211,7 +213,7 @@ import {getTaskCreatedMessage, getTaskReportActionMessage} from '@libs/TaskUtils
 import {isExpenseSplit, isPerDiemRequest} from '@libs/TransactionUtils';
 
 import {setDownload} from '@userActions/Download';
-import {toggleEmojiReaction} from '@userActions/EmojiReactions';
+import toggleEmojiReaction from '@userActions/EmojiReactions';
 import {openOldDotLink} from '@userActions/Link';
 import {
     explain,
@@ -307,6 +309,7 @@ type ShouldShow = (args: {
     menuTarget: RefObject<ContextMenuAnchor> | undefined;
     isChronosReport: boolean;
     reportID?: string;
+    report: OnyxEntry<ReportType>;
     isPinnedChat: boolean;
     isUnreadChat: boolean;
     isThreadReportParentAction: boolean;
@@ -351,6 +354,7 @@ type ContextMenuActionPayload = {
     setIsEmojiPickerActive?: (state: boolean) => void;
     anchorRef?: RefObject<ComponentRef<typeof View> | null>;
     moneyRequestAction: ReportAction | undefined;
+    moneyRequestPolicy?: OnyxEntry<Policy>;
     card?: Card;
     originalReport: OnyxEntry<ReportType>;
     isHarvestReport?: boolean;
@@ -457,9 +461,16 @@ type ContextMenuAction = (ContextMenuActionWithContent | ContextMenuActionWithIc
 const ContextMenuActions: ContextMenuAction[] = [
     {
         isAnonymousAction: false,
-        shouldShow: ({type, reportAction}) => {
+        shouldShow: ({type, reportAction, report}) => {
             const isDynamicWorkflowRoutedAction = isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.DYNAMIC_EXTERNAL_WORKFLOW_ROUTED);
-            return type === CONST.CONTEXT_MENU_TYPES.REPORT_ACTION && !!reportAction && 'message' in reportAction && !isMessageDeleted(reportAction) && !isDynamicWorkflowRoutedAction;
+            return (
+                type === CONST.CONTEXT_MENU_TYPES.REPORT_ACTION &&
+                !!reportAction &&
+                'message' in reportAction &&
+                !isMessageDeleted(reportAction) &&
+                !isDynamicWorkflowRoutedAction &&
+                !isSupportTicket(report)
+            );
         },
         renderContent: (closePopover, {reportID, reportActions, reportAction, currentUserAccountID, close: closeManually, openContextMenu, setIsEmojiPickerActive, isOffline}) => {
             const isMini = !closePopover;
@@ -516,11 +527,11 @@ const ContextMenuActions: ContextMenuAction[] = [
         isAnonymousAction: false,
         textTranslateKey: 'reportActionContextMenu.replyInThread',
         icon: 'ChatBubbleReply',
-        shouldShow: ({type, reportAction, reportID, isThreadReportParentAction, isArchivedRoom}) => {
+        shouldShow: ({type, reportAction, report, reportID, isThreadReportParentAction, isArchivedRoom}) => {
             if (type !== CONST.CONTEXT_MENU_TYPES.REPORT_ACTION || !reportID) {
                 return false;
             }
-            return !shouldDisableThread(reportAction, isThreadReportParentAction, isArchivedRoom);
+            return !isSupportTicket(report) && !isCreatedSupportTicketReportAction(reportAction) && !shouldDisableThread(reportAction, isThreadReportParentAction, isArchivedRoom);
         },
         onPress: (closePopover, {reportAction, childReport, originalReport, currentUserAccountID, introSelected, isSelfTourViewed, personalDetails, conciergeChat}) => {
             const participantsPersonalDetails = getParticipantsPersonalDetails([currentUserAccountID, Number(reportAction.actorAccountID)], personalDetails);
@@ -716,6 +727,7 @@ const ContextMenuActions: ContextMenuAction[] = [
             {
                 moneyRequestAction,
                 iouTransaction,
+                moneyRequestPolicy,
                 iouTransactionViolations,
                 isDelegateAccessRestricted,
                 showDelegateNoAccessModal,
@@ -736,6 +748,7 @@ const ContextMenuActions: ContextMenuAction[] = [
                     changeMoneyRequestHoldStatus(
                         moneyRequestAction,
                         iouTransaction,
+                        moneyRequestPolicy,
                         isOffline,
                         currentUserPersonalDetails?.login ?? '',
                         currentUserPersonalDetails.accountID,
@@ -752,6 +765,7 @@ const ContextMenuActions: ContextMenuAction[] = [
             changeMoneyRequestHoldStatus(
                 moneyRequestAction,
                 iouTransaction,
+                moneyRequestPolicy,
                 isOffline,
                 currentUserPersonalDetails?.login ?? '',
                 currentUserPersonalDetails.accountID,
@@ -780,6 +794,7 @@ const ContextMenuActions: ContextMenuAction[] = [
             {
                 moneyRequestAction,
                 iouTransaction,
+                moneyRequestPolicy,
                 iouTransactionViolations,
                 isDelegateAccessRestricted,
                 showDelegateNoAccessModal,
@@ -800,6 +815,7 @@ const ContextMenuActions: ContextMenuAction[] = [
                     changeMoneyRequestHoldStatus(
                         moneyRequestAction,
                         iouTransaction,
+                        moneyRequestPolicy,
                         isOffline,
                         currentUserPersonalDetails?.login ?? '',
                         currentUserPersonalDetails.accountID,
@@ -816,6 +832,7 @@ const ContextMenuActions: ContextMenuAction[] = [
             changeMoneyRequestHoldStatus(
                 moneyRequestAction,
                 iouTransaction,
+                moneyRequestPolicy,
                 isOffline,
                 currentUserPersonalDetails?.login ?? '',
                 currentUserPersonalDetails.accountID,
@@ -832,7 +849,10 @@ const ContextMenuActions: ContextMenuAction[] = [
         isAnonymousAction: false,
         textTranslateKey: 'reportActionContextMenu.joinThread',
         icon: 'Bell',
-        shouldShow: ({reportAction, isArchivedRoom, isThreadReportParentAction, isHarvestReport}) => {
+        shouldShow: ({report, reportAction, isArchivedRoom, isThreadReportParentAction, isHarvestReport}) => {
+            if (isSupportTicket(report)) {
+                return false;
+            }
             const childReportNotificationPreference = getChildReportNotificationPreferenceReportUtils(reportAction);
             const isDeletedAction = isDeletedActionReportActionsUtils(reportAction);
             const shouldDisplayThreadReplies = shouldDisplayThreadRepliesReportUtils(reportAction, isThreadReportParentAction);
@@ -840,12 +860,14 @@ const ContextMenuActions: ContextMenuAction[] = [
             const isWhisperAction = isWhisperActionReportActionsUtils(reportAction) || isActionableTrackExpense(reportAction);
             const isExpenseReportAction = isMoneyRequestAction(reportAction) || isReportPreviewActionReportActionsUtils(reportAction);
             const isTaskAction = isCreatedTaskReportAction(reportAction);
+            const isSupportTicketAction = isCreatedSupportTicketReportAction(reportAction);
             const isHarvestCreatedExpenseReportAction = isHarvestReport && isCreatedAction(reportAction);
             const shouldDisableJoinThread = shouldDisableThread(reportAction, isThreadReportParentAction, isArchivedRoom);
             return (
                 !subscribed &&
                 !isWhisperAction &&
                 !isTaskAction &&
+                !isSupportTicketAction &&
                 !isExpenseReportAction &&
                 !isThreadReportParentAction &&
                 !isHarvestCreatedExpenseReportAction &&
@@ -900,7 +922,10 @@ const ContextMenuActions: ContextMenuAction[] = [
         isAnonymousAction: false,
         textTranslateKey: 'reportActionContextMenu.leaveThread',
         icon: 'Exit',
-        shouldShow: ({reportAction, isArchivedRoom, isThreadReportParentAction, isHarvestReport}) => {
+        shouldShow: ({report, reportAction, isArchivedRoom, isThreadReportParentAction, isHarvestReport}) => {
+            if (isSupportTicket(report)) {
+                return false;
+            }
             const childReportNotificationPreference = getChildReportNotificationPreferenceReportUtils(reportAction);
             const isDeletedAction = isDeletedActionReportActionsUtils(reportAction);
             const shouldDisplayThreadReplies = shouldDisplayThreadRepliesReportUtils(reportAction, isThreadReportParentAction);
@@ -908,11 +933,13 @@ const ContextMenuActions: ContextMenuAction[] = [
             const isWhisperAction = isWhisperActionReportActionsUtils(reportAction) || isActionableTrackExpense(reportAction);
             const isExpenseReportAction = isMoneyRequestAction(reportAction) || isReportPreviewActionReportActionsUtils(reportAction);
             const isTaskAction = isCreatedTaskReportAction(reportAction);
+            const isSupportTicketAction = isCreatedSupportTicketReportAction(reportAction);
             const isHarvestCreatedExpenseReportAction = isHarvestReport && isCreatedAction(reportAction);
             return (
                 subscribed &&
                 !isWhisperAction &&
                 !isTaskAction &&
+                !isSupportTicketAction &&
                 !isExpenseReportAction &&
                 !isThreadReportParentAction &&
                 !isHarvestCreatedExpenseReportAction &&
@@ -1011,7 +1038,11 @@ const ContextMenuActions: ContextMenuAction[] = [
         successTextTranslateKey: 'reportActionContextMenu.copied',
         successIcon: 'Checkmark',
         shouldShow: ({type, reportAction}) =>
-            type === CONST.CONTEXT_MENU_TYPES.REPORT_ACTION && !isReportActionAttachment(reportAction) && !isMessageDeleted(reportAction) && !isTripPreview(reportAction),
+            type === CONST.CONTEXT_MENU_TYPES.REPORT_ACTION &&
+            !isReportActionAttachment(reportAction) &&
+            !isMessageDeleted(reportAction) &&
+            !isTripPreview(reportAction) &&
+            !isCreatedSupportTicketReportAction(reportAction),
 
         // If return value is true, we switch the `text` and `icon` on
         // `ContextMenuItem` with `successText` and `successIcon` which will fall back to

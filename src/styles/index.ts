@@ -39,6 +39,7 @@ import editedLabelStyles from './utils/editedLabelStyles';
 import emojiDefaultStyles from './utils/emojiDefaultStyles';
 import flex from './utils/flex';
 import FontUtils from './utils/FontUtils';
+import tooltipPlatformStyle from './utils/generators/TooltipStyleUtils/tooltipPlatformStyles';
 import objectFit from './utils/objectFit';
 import optionAlternateTextPlatformStyles from './utils/optionAlternateTextPlatformStyles';
 import overflow from './utils/overflow';
@@ -1320,26 +1321,18 @@ const staticStyles = (theme: ThemeColors) =>
          * visually aligned with their editable cells.
          */
         editableCellHeader: {
-            borderWidth: 1,
+            borderWidth: variables.editableCellBorderWidth,
             borderRadius: variables.componentBorderRadius,
             borderColor: 'transparent',
-            paddingHorizontal: 4,
-        },
-
-        /**
-         * Cancels editableCell's horizontal chrome so the value lines up with a
-         * sibling that has no edit padding, such as a card title under a cardholder name.
-         */
-        editableCellFlushWithSibling: {
-            marginHorizontal: -(variables.editableCellChromeWidth / 2),
+            paddingHorizontal: variables.editableCellPadding,
         },
 
         editableCell: {
             width: '100%',
-            borderWidth: 1,
+            borderWidth: variables.editableCellBorderWidth,
             borderRadius: variables.componentBorderRadius,
             borderColor: 'transparent',
-            padding: 4,
+            padding: variables.editableCellPadding,
             height: 'auto',
             minHeight: variables.editableCellHeight,
             overflow: 'hidden',
@@ -1359,16 +1352,16 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         editableCellEditButtonContainerLeft: {
-            left: 4,
+            left: variables.editableCellPadding,
         },
 
         editableCellEditButtonContainerRight: {
-            right: 4,
+            right: variables.editableCellPadding,
         },
 
         editableCellEditButton: {
-            width: 28,
-            height: 28,
+            width: variables.editableCellEditButtonSize,
+            height: variables.editableCellEditButtonSize,
             borderRadius: variables.componentBorderRadiusCircle,
             backgroundColor: theme.buttonDefaultBG,
             justifyContent: 'center',
@@ -2798,6 +2791,10 @@ const staticStyles = (theme: ThemeColors) =>
             borderColor: 'transparent',
         },
 
+        tableColumnResizeIndicator: {
+            backgroundColor: theme.iconMenu,
+        },
+
         tableRowHeightCompact: {
             minHeight: variables.tableRowHeightCompact,
         },
@@ -3710,6 +3707,7 @@ const staticStyles = (theme: ThemeColors) =>
         // "View" action rendered as a Medium Link Button on the growl's inverse-colored surface.
         growlNotificationActionText: {
             color: theme.linkReversed,
+            textDecorationLine: theme.isHighContrast ? 'underline' : 'none',
         },
 
         growlNotificationActionHovered: {
@@ -6872,26 +6870,31 @@ const staticStyles = (theme: ThemeColors) =>
             ...textVariants.textStrong,
             color: theme.text,
         },
-        chartTooltipWrapper: {
-            alignItems: 'center',
-        },
         chartTooltipBox: {
-            backgroundColor: theme.heading,
-            borderRadius: variables.componentBorderRadiusSmall,
-            paddingVertical: 4,
-            paddingHorizontal: 8,
+            backgroundColor: theme.appBG,
+            borderColor: theme.border,
+            borderWidth: 1,
+            borderRadius: variables.componentBorderRadiusNormal,
+            boxShadow: theme.shadow,
+            padding: 12,
+            rowGap: 8,
+        },
+        chartTooltipLayer: {
+            ...tooltipPlatformStyle,
+            zIndex: variables.tooltipZIndex,
+        },
+        chartTooltipOrigin: {
+            position: 'absolute',
+            top: 0,
+            left: 0,
+        },
+        chartTooltipTitle: {
+            ...textVariants.labelStrong,
+            color: theme.text,
         },
         chartTooltipText: {
-            color: theme.textReversed,
-            fontSize: variables.fontSizeSmall,
-            lineHeight: variables.lineHeightSmall,
-            whiteSpace: 'nowrap',
-        },
-        chartTooltipPointer: {
-            width: 0,
-            height: 0,
-            backgroundColor: theme.transparent,
-            borderStyle: 'solid',
+            ...textVariants.label,
+            color: theme.text,
         },
         chartContainer: {
             borderRadius: variables.componentBorderRadiusLarge,

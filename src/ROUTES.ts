@@ -228,6 +228,12 @@ const DYNAMIC_ROUTES = {
     BANK_ACCOUNT_VERIFY_ACCOUNT: {
         path: 'verify-bank-account',
         entryScreens: [SCREENS.REIMBURSEMENT_ACCOUNT],
+        getRoute: (setupType: ValueOf<typeof CONST.BANK_ACCOUNT.SETUP_TYPE>, isNonUSDSetup?: boolean) =>
+            getUrlWithParams('verify-bank-account', {
+                setupType,
+                isNonUSDSetup: isNonUSDSetup ? 'true' : undefined,
+            }),
+        queryParams: ['setupType', 'isNonUSDSetup'],
     },
     OWNER_SELECTOR: {
         path: 'owner-selector',
@@ -235,7 +241,7 @@ const DYNAMIC_ROUTES = {
     },
     WORKSPACE_CONFIRMATION: {
         path: 'workspace/confirmation',
-        entryScreens: [SCREENS.HOME, SCREENS.INBOX, SCREENS.REPORT, SCREENS.SEARCH.ROOT, SCREENS.WORKSPACES_LIST, SCREENS.SETTINGS.ROOT],
+        entryScreens: ['*'],
     },
     WORKSPACE_CONFIRMATION_CURRENCY: {
         path: 'currency',
@@ -1381,6 +1387,10 @@ const DYNAMIC_ROUTES = {
         path: 'travel-select-feed',
         entryScreens: [SCREENS.WORKSPACE.TRAVEL],
     },
+    WORKSPACE_ACCOUNTING_RECONCILIATION_SELECT_FEED: {
+        path: 'reconciliation-select-feed',
+        entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.CARD_RECONCILIATION],
+    },
     WORKSPACE_COMPANY_CARDS_ADD_NEW: {
         path: 'add-card-feed',
         entryScreens: [SCREENS.WORKSPACE.COMPANY_CARDS, SCREENS.WORKSPACE.COMPANY_CARDS_SELECT_FEED],
@@ -2065,8 +2075,17 @@ const DYNAMIC_ROUTES = {
     MONEY_REQUEST_UPGRADE: {
         path: 'money-request-upgrade',
         entryScreens: ['*'],
-        getRoute: (params: {action: IOUAction; iouType: IOUType; transactionID: string; reportID: string; upgradeBackTo?: string; shouldSubmitExpense?: boolean; upgradePath?: string}) => {
-            const {action, iouType, transactionID, reportID, upgradeBackTo, shouldSubmitExpense, upgradePath} = params;
+        getRoute: (params: {
+            action: IOUAction;
+            iouType: IOUType;
+            transactionID: string;
+            reportID: string;
+            upgradeBackTo?: string;
+            shouldSubmitExpense?: boolean;
+            upgradePath?: string;
+            shouldReturnToConfirmation?: boolean;
+        }) => {
+            const {action, iouType, transactionID, reportID, upgradeBackTo, shouldSubmitExpense, upgradePath, shouldReturnToConfirmation} = params;
             return getUrlWithParams('money-request-upgrade', {
                 action,
                 iouType,
@@ -2075,9 +2094,10 @@ const DYNAMIC_ROUTES = {
                 upgradeBackTo,
                 shouldSubmitExpense: shouldSubmitExpense ? 'true' : undefined,
                 upgradePath,
+                shouldReturnToConfirmation: shouldReturnToConfirmation ? 'true' : undefined,
             });
         },
-        queryParams: ['action', 'iouType', 'transactionID', 'reportID', 'upgradeBackTo', 'shouldSubmitExpense', 'upgradePath'],
+        queryParams: ['action', 'iouType', 'transactionID', 'reportID', 'upgradeBackTo', 'shouldSubmitExpense', 'upgradePath', 'shouldReturnToConfirmation'],
     },
 } as const satisfies DynamicRoutes;
 
@@ -2521,6 +2541,10 @@ const ROUTES = {
     SETTINGS_WALLET_SHARE_BANK_ACCOUNT: {
         route: 'settings/wallet/:bankAccountID/share-bank-account',
         getRoute: (bankAccountID: number | undefined) => `settings/wallet/${bankAccountID}/share-bank-account` as const,
+    },
+    SETTINGS_WALLET_EDIT_BANK_ACCOUNT_NICKNAME: {
+        route: 'settings/wallet/:bankAccountID/edit-nickname',
+        getRoute: (bankAccountID: number | undefined) => `settings/wallet/${bankAccountID}/edit-nickname` as const,
     },
     SETTINGS_WALLET_PERSONAL_CARD_ADD_NEW: 'settings/wallet/add-personal-card',
     SETTINGS_WALLET_PERSONAL_CARD_FIX_CONNECTION: {
@@ -3092,6 +3116,24 @@ const ROUTES = {
             }
             const query = params.toString();
             return `workspaces/${policyID}/overview/currency${query ? `?${query}` : ''}` as const;
+        },
+    },
+    WORKSPACE_OVERVIEW_CURRENCY_GOVERNMENT_RATE_COUNTRY: {
+        route: 'workspaces/:policyID/overview/currency/government-rate-country/:currencyCode',
+        getRoute: (
+            policyID: string,
+            currencyCode: string,
+            {isForcedToChangeCurrency, shouldStartExpensifyCardEnrollment}: {isForcedToChangeCurrency?: boolean; shouldStartExpensifyCardEnrollment?: boolean} = {},
+        ) => {
+            const params = new URLSearchParams();
+            if (isForcedToChangeCurrency) {
+                params.set('isForcedToChangeCurrency', 'true');
+            }
+            if (shouldStartExpensifyCardEnrollment) {
+                params.set('shouldStartExpensifyCardEnrollment', 'true');
+            }
+            const query = params.toString();
+            return `workspaces/${policyID}/overview/currency/government-rate-country/${currencyCode}${query ? `?${query}` : ''}` as const;
         },
     },
     POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_EXPORT: {
@@ -3945,6 +3987,10 @@ const ROUTES = {
     WORKSPACE_DISTANCE_RATES_UNIT: {
         route: 'workspaces/:policyID/distance-rates/settings/unit',
         getRoute: (policyID: string) => `workspaces/${policyID}/distance-rates/settings/unit` as const,
+    },
+    WORKSPACE_DISTANCE_RATES_GOVERNMENT_RATE_COUNTRY: {
+        route: 'workspaces/:policyID/distance-rates/settings/government-rate-country',
+        getRoute: (policyID: string) => `workspaces/${policyID}/distance-rates/settings/government-rate-country` as const,
     },
     WORKSPACE_DISTANCE_RATES_COMMUTER_EXCLUSIONS: {
         route: 'workspaces/:policyID/distance-rates/settings/commuter-exclusions',
@@ -5113,6 +5159,10 @@ const ROUTES = {
     POLICY_ACCOUNTING_DUALENTRY_BILL_PAYMENT_ACCOUNT: {
         route: 'workspaces/:policyID/accounting/dualentry/advanced/bill-payment-account',
         getRoute: (policyID: string) => `workspaces/${policyID}/accounting/dualentry/advanced/bill-payment-account` as const,
+    },
+    POLICY_ACCOUNTING_DUALENTRY_FX_EXPENSE_ACCOUNT: {
+        route: 'workspaces/:policyID/accounting/dualentry/advanced/fx-expense-account',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/dualentry/advanced/fx-expense-account` as const,
     },
     POLICY_ACCOUNTING_DUALENTRY_EXPENSIFY_CARD_SETTLEMENT_ACCOUNT: {
         route: 'workspaces/:policyID/accounting/dualentry/advanced/expensify-card-settlement-account',

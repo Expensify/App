@@ -82,3 +82,35 @@ describe.each(hooks)('$name', ({renderPicker, getIsLoading, mockRead}) => {
         expect(getIsLoading(result.current)).toBe(true);
     });
 });
+
+describe('useLoadPolicyTags hasLoadedPolicyTags', () => {
+    beforeAll(() => {
+        Onyx.init({keys: ONYXKEYS});
+    });
+
+    beforeEach(async () => {
+        mockOpenPolicyTagsPage.mockClear();
+        await Onyx.clear();
+    });
+
+    it('stays false until the tags read completes, then becomes true', async () => {
+        // Given a policy whose tags were never read in this session, so any cached collection may be partial
+        const {result} = renderHook(() => useLoadPolicyTags(POLICY_ID));
+
+        // When the read is dispatched but has not completed
+        await waitFor(() => {
+            expect(mockOpenPolicyTagsPage).toHaveBeenCalledWith(POLICY_ID);
+        });
+
+        // Then the hook does not claim the tags are loaded, so callers do not trust the tag list count yet
+        expect(result.current.hasLoadedPolicyTags).toBe(false);
+
+        // When the read completes
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.RAM_ONLY_POLICY_TAGS_LOADING_STATE}${POLICY_ID}`, {isLoading: false, hasOnceLoaded: true});
+
+        // Then the hook reports the tags as loaded, since a completed read holds every tag list
+        await waitFor(() => {
+            expect(result.current.hasLoadedPolicyTags).toBe(true);
+        });
+    });
+});
