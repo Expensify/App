@@ -9,7 +9,8 @@ import initOnyxDerivedValues from '@libs/actions/OnyxDerived';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Report} from '@src/types/onyx';
+import {getStableReportSelector} from '@src/selectors/Report';
+import type {Report, ReportAction, Transaction} from '@src/types/onyx';
 import {toCollectionDataSet} from '@src/types/utils/CollectionDataSet';
 
 import React from 'react';
@@ -199,5 +200,74 @@ describe('useReportPreviewSenderID', () => {
         );
         await waitForBatchedUpdatesWithAct();
         expect(result.current).toBe(CURRENT_USER_ACCOUNT_ID);
+    });
+
+    it('reads the chat last actor by ID when the chat report is a projection without the last* fields', async () => {
+        // Given a DM where the manager just scanned a receipt: one request from the owner, one scan still pending with no
+        // amount yet, and the chat's last actor being the manager
+        const OWNER_ACCOUNT_ID = 200;
+        const MANAGER_ACCOUNT_ID = 300;
+        const dmChat: Report = {
+            reportID: '9001',
+            type: CONST.REPORT.TYPE.CHAT,
+            lastActorAccountID: MANAGER_ACCOUNT_ID,
+            participants: {
+                [OWNER_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                [MANAGER_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+            },
+        };
+        const iouReport: Report = {
+            reportID: '9002',
+            chatReportID: dmChat.reportID,
+            type: CONST.REPORT.TYPE.IOU,
+            transactionCount: 2,
+            ownerAccountID: OWNER_ACCOUNT_ID,
+            managerID: MANAGER_ACCOUNT_ID,
+        };
+        const ownerRequest: Transaction = {...transactionR14932, transactionID: '9101', reportID: iouReport.reportID, amount: 1200};
+        const pendingScan: Transaction = {
+            ...transactionR14932,
+            transactionID: '9102',
+            reportID: iouReport.reportID,
+            amount: 0,
+            receipt: {source: 'receipt.jpg', state: CONST.IOU.RECEIPT_STATE.SCANNING},
+        };
+        const ownerRequestAction = {
+            ...actionR14932,
+            reportActionID: '9201',
+            actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+            actorAccountID: OWNER_ACCOUNT_ID,
+            originalMessage: {type: CONST.IOU.REPORT_ACTION_TYPE.CREATE, IOUTransactionID: ownerRequest.transactionID, amount: 1200, currency: 'USD'},
+        } as ReportAction;
+        await act(async () => {
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${dmChat.reportID}`, dmChat);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport.reportID}`, {[ownerRequestAction.reportActionID]: ownerRequestAction});
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${ownerRequest.transactionID}`, ownerRequest);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${pendingScan.transactionID}`, pendingScan);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${iouReport.reportID}`, {hasOnceLoadedReportActions: true});
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        // When the avatars get the chat report as the stable projection, which drops `lastActorAccountID`
+        const {result} = renderHook(
+            () =>
+                useReportPreviewSenderID({
+                    action: {
+                        ...validAction,
+                        childReportID: iouReport.reportID,
+                        childMoneyRequestCount: 2,
+                        childOwnerAccountID: OWNER_ACCOUNT_ID,
+                        childManagerAccountID: MANAGER_ACCOUNT_ID,
+                        childLastActorAccountID: OWNER_ACCOUNT_ID,
+                    },
+                    iouReport,
+                    chatReport: getStableReportSelector(dmChat),
+                }),
+            {wrapper},
+        );
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the pending scan is still attributed to the manager, so the preview keeps both avatars instead of collapsing to the owner
+        expect(result.current).toBeUndefined();
     });
 });

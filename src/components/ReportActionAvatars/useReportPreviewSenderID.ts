@@ -13,6 +13,7 @@ import {isDM, isIOUReport} from '@libs/ReportUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import {getReportLastActorAccountID} from '@src/selectors/Report';
 import {hasOnceLoadedReportActionsSelector, isLoadingInitialReportActionsSelector} from '@src/selectors/ReportMetaData';
 import type {OriginalMessageIOU, Policy, Report, ReportAction, ReportActions, Transaction} from '@src/types/onyx';
 
@@ -76,12 +77,17 @@ function hasPendingScanStateAndUnknownDirection(transaction: Transaction): boole
     return true;
 }
 
-function getPendingScanActorAccountID(transaction: Transaction, action: OnyxEntry<ReportAction>, iouReport: OnyxEntry<Report>, chatReport: OnyxEntry<Report>): number | undefined {
+function getPendingScanActorAccountID(
+    transaction: Transaction,
+    action: OnyxEntry<ReportAction>,
+    iouReport: OnyxEntry<Report>,
+    chatReportLastActorAccountID: number | undefined,
+): number | undefined {
     if (!hasPendingScanStateAndUnknownDirection(transaction)) {
         return undefined;
     }
 
-    const chatLastActorAccountID = Number(chatReport?.lastActorAccountID);
+    const chatLastActorAccountID = Number(chatReportLastActorAccountID);
     const validPendingScanActorAccountIDs = new Set([action?.childOwnerAccountID, action?.childManagerAccountID, iouReport?.ownerAccountID, iouReport?.managerID].filter(Boolean));
 
     if (
@@ -138,6 +144,9 @@ type GetReportPreviewSenderIDParams = {
     iouReport: OnyxEntry<Report>;
     action: OnyxEntry<ReportAction>;
     chatReport: OnyxEntry<Report>;
+
+    /** Last actor of the chat report, passed on its own because `chatReport` can be a projection without the `last*` fields */
+    chatReportLastActorAccountID?: number;
     iouActions: ReportAction[] | undefined;
     transactions: Transaction[] | undefined;
     attendeesPersonalDetails: PersonalDetailsByLogin;
@@ -151,6 +160,7 @@ function getReportPreviewSenderID({
     iouReport,
     action,
     chatReport,
+    chatReportLastActorAccountID,
     iouActions,
     transactions,
     attendeesPersonalDetails,
@@ -192,7 +202,10 @@ function getReportPreviewSenderID({
     }
 
     const transactionActorAccountIDs = transactions?.map((transaction) => {
-        return getIOUActionForTransactionID(activeIOUActions, transaction.transactionID)?.actorAccountID ?? getPendingScanActorAccountID(transaction, action, iouReport, chatReport);
+        return (
+            getIOUActionForTransactionID(activeIOUActions, transaction.transactionID)?.actorAccountID ??
+            getPendingScanActorAccountID(transaction, action, iouReport, chatReportLastActorAccountID)
+        );
     });
     const transactionSigns = transactions?.map((transaction) => getTransactionDirectionSign(transaction)) ?? [];
 
@@ -315,6 +328,12 @@ function useReportPreviewSenderID({iouReport, action, chatReport}: {action: Onyx
         return filteredTransactions;
     }, [reportTransactions, iouActions, shouldFetchData, iouReport?.transactionCount, action?.childMoneyRequestCount]);
 
+    // Read by ID rather than from `chatReport`, which can be a projection without the `last*` fields. This re-renders only
+    // when the last actor changes, not on every message.
+    const [chatReportLastActorAccountID] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(shouldFetchData ? chatReport?.reportID : undefined)}`, {
+        selector: getReportLastActorAccountID,
+    });
+
     const [splits] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(shouldFetchData ? chatReport?.reportID : undefined)}`, {
         selector: getSplitsSelector,
     });
@@ -328,6 +347,7 @@ function useReportPreviewSenderID({iouReport, action, chatReport}: {action: Onyx
         iouReport,
         action,
         chatReport,
+        chatReportLastActorAccountID,
         iouActions,
         transactions,
         attendeesPersonalDetails,
