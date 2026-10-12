@@ -22,6 +22,9 @@ const REPORTS_KEYS: SearchKey[] = [
     CONST.SEARCH.SEARCH_KEYS.PAY,
 ];
 
+/** Keys under "Bills", in the order navigation renders them. */
+const BILLS_KEYS: SearchKey[] = [CONST.SEARCH.SEARCH_KEYS.BILLS, CONST.SEARCH.SEARCH_KEYS.BILLS_APPROVE, CONST.SEARCH.SEARCH_KEYS.BILLS_PAY];
+
 /** Keys under "Accounting", in the order navigation renders them. */
 const ACCOUNTING_KEYS: SearchKey[] = [
     CONST.SEARCH.SEARCH_KEYS.EXPORT,
@@ -40,6 +43,7 @@ const ACCOUNTING_GROUP_ID: TranslationPaths = 'search.tabs.accounting';
 const GROUPS: Array<{keys: SearchKey[]; translationPath: TranslationPaths}> = [
     {keys: EXPENSES_KEYS, translationPath: 'search.tabs.expenses'},
     {keys: REPORTS_KEYS, translationPath: 'common.reports'},
+    {keys: BILLS_KEYS, translationPath: 'billPay.bills'},
     {keys: ACCOUNTING_KEYS, translationPath: 'search.tabs.accounting'},
 ];
 
@@ -50,6 +54,7 @@ const GROUPS: Array<{keys: SearchKey[]; translationPath: TranslationPaths}> = [
 const GROUPED_TRANSLATION_PATH_OVERRIDES: Partial<Record<SearchKey, TranslationPaths>> = {
     [CONST.SEARCH.SEARCH_KEYS.EXPENSES]: 'search.tabs.allExpenses',
     [CONST.SEARCH.SEARCH_KEYS.REPORTS]: 'search.tabs.allReports',
+    [CONST.SEARCH.SEARCH_KEYS.BILLS]: 'search.tabs.allBills',
 };
 
 /** The searches that sit alongside `searchKey` in navigation, or undefined when it doesn't belong to a group. */
@@ -91,6 +96,7 @@ function getSpendGroupTranslationPath(searchKey: SearchKey | undefined): Transla
 export {
     ACCOUNTING_GROUP_ID,
     ACCOUNTING_KEYS,
+    BILLS_KEYS,
     EXPENSES_KEYS,
     getGroupedSearchTranslationPath,
     getSpendGroupID,

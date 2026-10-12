@@ -2,7 +2,7 @@ import useSearchTypeMenuSections from '@hooks/useSearchTypeMenuSections';
 
 import type {SearchKey} from '@libs/SearchKeyUtils';
 import type {SearchTypeMenuItem} from '@libs/SearchUIUtils';
-import {ACCOUNTING_KEYS, EXPENSES_KEYS, REPORTS_KEYS} from '@libs/SpendNavigationGroups';
+import {ACCOUNTING_KEYS, BILLS_KEYS, EXPENSES_KEYS, REPORTS_KEYS} from '@libs/SpendNavigationGroups';
 
 import {useMemo} from 'react';
 
@@ -12,6 +12,9 @@ type FlatNavSpendItems = {
 
     /** Children of the "Reports" row */
     reports: SearchTypeMenuItem[];
+
+    /** Children of the "Bills" row */
+    bills: SearchTypeMenuItem[];
 
     /** Children of the "Accounting" row */
     accounting: SearchTypeMenuItem[];
@@ -38,6 +41,7 @@ function useFlatNavSpendItems(): FlatNavSpendItems {
         return {
             expenses: collect(EXPENSES_KEYS),
             reports: collect(REPORTS_KEYS),
+            bills: collect(BILLS_KEYS),
             accounting: collect(ACCOUNTING_KEYS),
         };
     }, [typeMenuSections]);
