@@ -6,6 +6,7 @@ import getTabBarIcon from '@libs/Navigation/AppNavigator/Navigators/NativeTabNav
 import type {TabIconLayout} from '@libs/Navigation/AppNavigator/Navigators/NativeTabNavigator/tabIconRasterizer';
 import useTabAvatarImage from '@libs/Navigation/AppNavigator/Navigators/NativeTabNavigator/useTabAvatarImage';
 
+import {fontScale} from '@styles/typography';
 import variables from '@styles/variables';
 
 import NAVIGATORS from '@src/NAVIGATORS';
@@ -59,7 +60,7 @@ function useNativeTabBarOptions({shouldShowNativeTabBar, isAccountAvatarShown, d
                 text: tabLabels[name],
                 color: isSelected ? theme.text : theme.textSupporting,
                 isBold: isSelected,
-                fontSize: variables.fontSizeSmall,
+                fontSize: fontScale.micro,
                 gap: variables.nativeTabIconLabelGap,
                 maxWidth: labelMaxWidth,
             },
