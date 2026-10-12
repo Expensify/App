@@ -257,8 +257,7 @@ function ReportActionItem({
     // IOUDetails only exists when we are sending money
     const isSendingMoney = isMoneyRequestAction(action) && getOriginalMessage(action)?.type === CONST.IOU.REPORT_ACTION_TYPE.PAY && getOriginalMessage(action)?.IOUDetails;
 
-    // Keyed only for the send-money dismiss case so ordinary action items don't subscribe to the parent chat's actions.
-    const [sendMoneyChatReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(isSendingMoney ? report?.chatReportID : undefined)}`);
+    const [sendMoneyChatReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(report?.chatReportID)}`);
 
     const updateHiddenState = (isHiddenValue: boolean) => {
         setIsHidden(isHiddenValue);
