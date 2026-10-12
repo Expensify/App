@@ -2074,6 +2074,7 @@ const CONST = {
         TYPE: {
             CHAT: 'chat',
             EXPENSE: 'expense',
+            BILL: 'bill',
             IOU: 'iou',
             TASK: 'task',
             SUPPORT_TICKET: 'supportTicket',
@@ -2081,7 +2082,6 @@ const CONST = {
         },
         UNSUPPORTED_TYPE: {
             PAYCHECK: 'paycheck',
-            BILL: 'bill',
         },
         CHAT_TYPE: chatTypes,
         WORKSPACE_CHAT_ROOMS: {
@@ -2299,6 +2299,7 @@ const CONST = {
         RHP_ENTER_OFFSET_PX_WEB: 60,
     },
     FAB_MENU_ITEM_IDS: {
+        CREATE_BILL: 'create-bill',
         QUICK_ACTION: 'quick-action',
         EXPENSE: 'expense',
         TRACK_DISTANCE: 'track-distance',
@@ -7568,6 +7569,7 @@ const CONST = {
         DATA_TYPES: {
             EXPENSE: 'expense',
             EXPENSE_REPORT: 'expense-report',
+            BILL: 'bill',
             INVOICE: 'invoice',
             TASK: 'task',
             TRIP: 'trip',
@@ -8465,7 +8467,12 @@ const CONST = {
         SNAPSHOT_ONYX_KEYS: CONST_RUNTIME.SEARCH_SNAPSHOT_ONYX_KEYS,
         SEARCH_KEYS: {
             EXPENSES: 'expenses',
+            MY_EXPENSES: 'myExpenses',
             REPORTS: 'reports',
+            MY_REPORTS: 'myReports',
+            BILLS: 'bills',
+            BILLS_APPROVE: 'billsApprove',
+            BILLS_PAY: 'billsPay',
             SUBMIT: 'submit',
             APPROVE: 'approve',
             PAY: 'pay',
@@ -9512,6 +9519,9 @@ const CONST = {
             WORKSPACES: 'NavigationTabBar-Workspaces',
             ACCOUNT: 'NavigationTabBar-Account',
             HOME: 'NavigationTabBar-Home',
+            EXPENSES: 'NavigationTabBar-Expenses',
+            MORE: 'NavigationTabBar-More',
+            COLLAPSE: 'NavigationTabBar-Collapse',
             FLOATING_ACTION_BUTTON: 'NavigationTabBar-FloatingActionButton',
             FLOATING_RECEIPT_BUTTON: 'NavigationTabBar-FloatingReceiptButton',
             FLOATING_GPS_BUTTON: 'NavigationTabBar-FloatingGpsButton',
@@ -9574,6 +9584,7 @@ const CONST = {
         TOP_BAR: {
             CANCEL_BUTTON: 'TopBar-CancelButton',
             ACCOUNT_BUTTON: 'TopBar-AccountButton',
+            BACK_BUTTON: 'TopBar-BackButton',
         },
         COLLAPSIBLE_SECTION: {
             TOGGLE: 'CollapsibleSection-Toggle',

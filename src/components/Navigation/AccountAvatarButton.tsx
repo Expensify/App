@@ -7,7 +7,6 @@ import EducationalTooltip from '@components/Tooltip/EducationalTooltip';
 import useAccountTabIndicatorStatus from '@hooks/useAccountTabIndicatorStatus';
 import useIsAnonymousUser from '@hooks/useIsAnonymousUser';
 import useLocalize from '@hooks/useLocalize';
-import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -28,10 +27,10 @@ import React from 'react';
  * the Account tab is not part of the navigation tab bar.
  */
 function AccountAvatarButton() {
-    const {isBetaEnabled} = usePermissions();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
-    if (!shouldUseNarrowLayout || !isBetaEnabled(CONST.BETAS.INSIGHTS_PAGE)) {
+    // The narrow tab bar has no Account slot at all now, so this is the only way into Account on small screens.
+    if (!shouldUseNarrowLayout) {
         return null;
     }
 

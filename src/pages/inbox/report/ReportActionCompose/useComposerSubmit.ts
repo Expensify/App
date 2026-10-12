@@ -1,6 +1,7 @@
 import useAncestors from '@hooks/useAncestors';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
+import useIsInAskConcierge, {useAskConciergeActions} from '@hooks/useIsInAskConcierge';
 import useIsInSidePanel from '@hooks/useIsInSidePanel';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
@@ -33,6 +34,8 @@ import useSidePanelContext from './useSidePanelContext';
 function useComposerSubmit(reportID: string) {
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const isInSidePanel = useIsInSidePanel();
+    const isInAskConcierge = useIsInAskConcierge();
+    const {openConciergeThread} = useAskConciergeActions();
     const sidePanelContext = useSidePanelContext(reportID);
     const {openSidePanel} = useSidePanelActions();
     const route = useRoute();
@@ -100,10 +103,13 @@ function useComposerSubmit(reportID: string) {
                 sidePanelContext,
                 conciergeReportID,
                 conciergeThreadReportID,
-                shouldNavigateToConciergeThread: !isInSidePanel,
+                shouldNavigateToConciergeThread: !isInSidePanel && !isInAskConcierge,
             });
             if (conciergeThreadReportID && isInSidePanel) {
                 openSidePanel({reportID: conciergeThreadReportID});
+            }
+            if (conciergeThreadReportID && isInAskConcierge) {
+                openConciergeThread?.(conciergeThreadReportID);
             }
             attachmentFileRef.current = null;
             return;
@@ -145,10 +151,13 @@ function useComposerSubmit(reportID: string) {
             delegateAccountID,
             conciergeReportID,
             conciergeThreadReportID,
-            shouldNavigateToConciergeThread: !isInSidePanel,
+            shouldNavigateToConciergeThread: !isInSidePanel && !isInAskConcierge,
         });
         if (conciergeThreadReportID && isInSidePanel) {
             openSidePanel({reportID: conciergeThreadReportID});
+        }
+        if (conciergeThreadReportID && isInAskConcierge) {
+            openConciergeThread?.(conciergeThreadReportID);
         }
     };
 

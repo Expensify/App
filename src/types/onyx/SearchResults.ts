@@ -32,7 +32,7 @@ type ListItemDataType<C extends SearchDataTypes, G extends SearchGroupBy | undef
     ? ReportActionListItemType[]
     : C extends typeof CONST.SEARCH.DATA_TYPES.TASK
       ? TaskListItemType[]
-      : C extends typeof CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT
+      : C extends typeof CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT | typeof CONST.SEARCH.DATA_TYPES.BILL
         ? TransactionReportGroupListItemType[]
         : G extends SearchGroupBy
           ? TransactionGroupListItemType[]

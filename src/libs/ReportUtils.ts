@@ -111,6 +111,7 @@ import hasCreditBankAccount from './actions/ReimbursementAccount/hasCreditBankAc
 import {isAnonymousUser as isAnonymousUserSession} from './actions/Session';
 import {getOnboardingMessages} from './actions/Welcome/OnboardingFlow';
 import {convertAttendeesToArray, normalizeAttendees} from './AttendeeUtils';
+import {canPayBill, isBillReport} from './BillPayUtils';
 import {isCardWithPotentialFraud} from './CardUtils';
 import {getCategoryGLCode} from './CategoryUtils';
 import {convertToDisplayStringEnLocale} from './CurrencyUtils';
@@ -1493,7 +1494,7 @@ function isReportIDApproved(reportID: string | undefined) {
  */
 function isExpenseReport(reportOrID: OnyxInputOrEntry<Report> | string): boolean {
     const report = typeof reportOrID === 'string' ? (getReport(reportOrID, deprecatedAllReports) ?? null) : reportOrID;
-    return report?.type === CONST.REPORT.TYPE.EXPENSE;
+    return report?.type === CONST.REPORT.TYPE.EXPENSE || report?.type === CONST.REPORT.TYPE.BILL;
 }
 
 /**
@@ -2877,7 +2878,7 @@ function isMoneyRequestReport(reportOrID: OnyxInputOrEntry<Report> | string, rep
  */
 function shouldReportAlignToTop(report: OnyxEntry<Report>, parentReportAction: OnyxEntry<ReportAction>): boolean {
     const isTransactionThreadReport = isTransactionThread(parentReportAction) && !isSentMoneyReportAction(parentReportAction);
-    return isTransactionThreadReport || isMoneyRequestReport(report) || isInvoiceReport(report);
+    return isTransactionThreadReport || isChatThread(report) || isMoneyRequestReport(report) || isInvoiceReport(report);
 }
 
 /**
@@ -3299,8 +3300,12 @@ function canIOUBePaid(
 ) {
     const iouSettled = isSettled(iouReport);
 
-    if (isEmptyObject(iouReport)) {
+    if (isEmptyObject(iouReport) || iouReport.isHiddenForBillReceiver) {
         return false;
+    }
+
+    if (isBillReport(iouReport) || iouReport?.isBillPayReport) {
+        return !isChatReportArchived && canPayBill(iouReport, policy, currentUserAccountID, currentUserLogin);
     }
 
     if (getReimbursementChoice(policy) === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO) {
@@ -4746,6 +4751,30 @@ function getDeletedParentActionMessageForChatReport(reportAction: OnyxEntry<Repo
 /**
  * Returns the preview message for `REIMBURSEMENT_QUEUED` action
  */
+/**
+ * Returns the account that must add a bank account before a queued payment can finish. A bill pays the vendor who sent
+ * its invoice, so the vendor adds the bank account, not the bill's owner.
+ */
+function getQueuedPaymentPayeeAccountID(report: OnyxEntry<Report>): number | undefined {
+    if (report?.type === CONST.REPORT.TYPE.BILL) {
+        return report.billSenderAccountID ?? report.ownerAccountID;
+    }
+    return report?.ownerAccountID;
+}
+
+/**
+ * Returns the message for a queued payment. A bill's vendor needs a business deposit account, so its message doesn't ask for a personal bank account.
+ */
+function getReimbursementQueuedMessageKey(
+    report: OnyxEntry<Report>,
+    paymentType: string | undefined,
+): 'iou.waitingOnEnabledWallet' | 'iou.waitingOnVendorBankAccount' | 'iou.waitingOnBankAccount' {
+    if (paymentType === CONST.IOU.PAYMENT_TYPE.EXPENSIFY) {
+        return 'iou.waitingOnEnabledWallet';
+    }
+    return report?.type === CONST.REPORT.TYPE.BILL ? 'iou.waitingOnVendorBankAccount' : 'iou.waitingOnBankAccount';
+}
+
 function getReimbursementQueuedActionMessage({
     reportAction,
     report,
@@ -4761,22 +4790,15 @@ function getReimbursementQueuedActionMessage({
     shouldUseShortDisplayName?: boolean;
     personalDetails?: Partial<PersonalDetailsList>;
 }): string {
-    const submitterDisplayName =
+    const payeeDisplayName =
         getDisplayNameForParticipant({
-            accountID: report?.ownerAccountID,
+            accountID: getQueuedPaymentPayeeAccountID(report),
             shouldUseShortForm: shouldUseShortDisplayName,
             personalDetailsData: personalDetails,
             formatPhoneNumber,
             hiddenTranslation: translate('common.hidden'),
         }) ?? '';
-    const originalMessage = getOriginalMessage(reportAction);
-    let messageKey: TranslationPaths;
-    if (originalMessage?.paymentType === CONST.IOU.PAYMENT_TYPE.EXPENSIFY) {
-        messageKey = 'iou.waitingOnEnabledWallet';
-    } else {
-        messageKey = 'iou.waitingOnBankAccount';
-    }
-    return translate(messageKey, submitterDisplayName);
+    return translate(getReimbursementQueuedMessageKey(report, getOriginalMessage(reportAction)?.paymentType), payeeDisplayName);
 }
 
 /**
@@ -5069,6 +5091,14 @@ function getReasonAndReportActionThatRequiresAttention({
                 reportAction: fraudAlertAction,
             };
         }
+    }
+
+    const billPolicy = (policiesParam ?? allPolicies)?.[`${ONYXKEYS.COLLECTION.POLICY}${optionOrReport.policyID}`];
+    if (canPayBill(optionOrReport, billPolicy, currentUserAccountID, currentUserLogin)) {
+        return {
+            reason: CONST.REQUIRES_ATTENTION_REASONS.IS_WAITING_FOR_ASSIGNEE_TO_COMPLETE_ACTION,
+            actionBadge: CONST.REPORT.ACTION_BADGE.PAY,
+        };
     }
 
     if (isJoinRequestInAdminRoom(optionOrReport, currentUserLogin)) {
@@ -10991,6 +11021,10 @@ function reasonForReportToBeInOptionList({
     derivedIsEmptyReport,
     hasGuidesEmails,
 }: ShouldReportBeInOptionListParams): ValueOf<typeof CONST.REPORT_IN_LHN_REASONS> | null {
+    if (report?.isHiddenForBillReceiver) {
+        return null;
+    }
+
     const isInDefaultMode = !isInFocusMode;
 
     // Include the currently viewed report. If we excluded the currently viewed report, then there
@@ -12652,7 +12686,14 @@ function getIndicatedMissingPaymentMethod(
     reportAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_QUEUED>,
     bankAccountList: OnyxEntry<BankAccountList>,
 ): MissingPaymentMethod | undefined {
-    const isSubmitterOfUnsettledReport = !!reportId && isCurrentUserSubmitter(getReport(reportId, deprecatedAllReports)) && !isSettled(reportId);
+    const report = reportId ? getReport(reportId, deprecatedAllReports) : undefined;
+
+    // The bill's owner pays the vendor, so the owner has no bank account to add.
+    if (report?.type === CONST.REPORT.TYPE.BILL) {
+        return undefined;
+    }
+
+    const isSubmitterOfUnsettledReport = !!reportId && isCurrentUserSubmitter(report) && !isSettled(reportId);
     if (!isSubmitterOfUnsettledReport) {
         return undefined;
     }
@@ -14322,6 +14363,11 @@ function canRejectReportAction(report: Report, currentUserAccountID: number | un
         return false; // Disable invoice
     }
 
+    // RejectExpenseReport returns "400 Bills are not supported", so the approver sends a bill back with Unapprove instead.
+    if (report?.type === CONST.REPORT.TYPE.BILL) {
+        return false;
+    }
+
     if (isReportBeingProcessed) {
         return true; // non-IOU reports can be rejected while processing
     }
@@ -15136,6 +15182,8 @@ export {
     getPolicyName,
     getReimbursementDeQueuedOrCanceledActionMessage,
     getReimbursementQueuedActionMessage,
+    getQueuedPaymentPayeeAccountID,
+    getReimbursementQueuedMessageKey,
     getReportDescription,
     getReportFieldKey,
     getReportFieldMaps,

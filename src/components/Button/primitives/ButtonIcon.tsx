@@ -25,9 +25,13 @@ type ButtonIconProps = {
 
     /** Accessibility label applied to this icon. When set, the icon is exposed to assistive tech with this label. */
     accessibilityLabel?: string;
+
+    /** Overrides the size the button would otherwise give the icon */
+    width?: number;
+    height?: number;
 };
 
-function ButtonIcon({src, style, hoverFill, fill, accessibilityLabel}: ButtonIconProps) {
+function ButtonIcon({src, style, hoverFill, fill, accessibilityLabel, width, height}: ButtonIconProps) {
     const theme = useTheme();
     const {isHovered, variant, size} = useButtonContext();
 
@@ -43,7 +47,10 @@ function ButtonIcon({src, style, hoverFill, fill, accessibilityLabel}: ButtonIco
             <Icon
                 src={src}
                 fill={propsFill ?? defaultFill}
-                size={size}
+                // The button's own size maps to an icon size, which an explicit one replaces.
+                size={width === undefined && height === undefined ? size : undefined}
+                width={width}
+                height={height}
                 isButtonIcon
                 accessibilityLabel={accessibilityLabel}
             />

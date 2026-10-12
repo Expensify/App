@@ -204,7 +204,7 @@ function TransactionItemRowNarrow({
             {!!shouldShowBottomBorder && (
                 <View style={bgActiveStyles}>
                     <View style={styles.ph3}>
-                        <View style={[StyleUtils.getSelectedBorderBottomStyle(isSelected)]} />
+                        <View style={[StyleUtils.getSelectedBorderBottomStyle(isSelected, true)]} />
                     </View>
                 </View>
             )}
