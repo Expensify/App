@@ -28,7 +28,7 @@ import type {Errors} from '@src/types/onyx/OnyxCommon';
 
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
-import React, {useCallback, useEffect} from 'react';
+import React, {useEffect} from 'react';
 import {View} from 'react-native';
 
 import type {MergeTransactionListItemType} from './MergeTransactionItem';
@@ -52,6 +52,7 @@ const reportsSelector = (reports: OnyxCollection<Report>): OnyxCollection<Report
                 managerID: report.managerID,
                 stateNum: report.stateNum,
                 statusNum: report.statusNum,
+                total: report.total,
             },
         ]),
     ) as OnyxCollection<Report>;
@@ -67,20 +68,28 @@ function MergeTransactionsListContent({transactionID, mergeTransaction}: MergeTr
     const currentUserLogin = session?.email;
     const [transactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
-    const policiesSelector = useCallback(
-        (policies: OnyxCollection<Policy>): OnyxCollection<Policy> =>
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- only the fields used by the admin check are kept
-            Object.fromEntries(
-                Object.entries(policies ?? {}).map(([key, policy]) => {
-                    const login = currentUserLogin ?? '';
-                    const employee = policy?.employeeList?.[login] ?? policy?.employeeList?.[login.toLowerCase()];
-                    return [key, policy && {id: policy.id, role: policy.role, employeeList: employee ? {[login]: employee} : undefined}];
-                }),
-            ) as OnyxCollection<Policy>,
-        [currentUserLogin],
-    );
-    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: policiesSelector});
-    const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: reportsSelector});
+    const policiesSelector = (policies: OnyxCollection<Policy>): OnyxCollection<Policy> =>
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- only the fields used by the admin check are kept
+        Object.fromEntries(
+            Object.entries(policies ?? {}).map(([key, policy]) => {
+                const login = currentUserLogin ?? '';
+                const employee = policy?.employeeList?.[login] ?? policy?.employeeList?.[login.toLowerCase()];
+                return [
+                    key,
+                    policy && {
+                        id: policy.id,
+                        role: policy.role,
+                        employeeList: employee ? {[login]: employee} : undefined,
+                    },
+                ];
+            }),
+        ) as OnyxCollection<Policy>;
+    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {
+        selector: policiesSelector,
+    });
+    const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {
+        selector: reportsSelector,
+    });
     const {isOffline} = useNetwork();
     const {convertToDisplayString, getCurrencyDecimals, getCurrencySymbol} = useCurrencyListActions();
 
