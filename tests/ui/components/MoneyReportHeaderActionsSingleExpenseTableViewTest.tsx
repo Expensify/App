@@ -16,9 +16,7 @@ jest.mock('@hooks/useOnyx', () => jest.fn(() => [undefined, {status: 'loaded'}])
 jest.mock('@hooks/useExportAgainModal', () => jest.fn(() => ({triggerExportOrConfirm: jest.fn()})));
 jest.mock('@hooks/useLayoutSpacing', () => jest.fn(() => ({pageGutter: {}})));
 jest.mock('@hooks/useResponsiveLayout', () => jest.fn(() => ({shouldUseNarrowLayout: false, isMediumScreenWidth: false, isInLandscapeMode: false})));
-jest.mock('@hooks/useResponsiveLayoutOnWideRHP', () =>
-    jest.fn(() => ({isWideRHPDisplayedOnWideLayout: false, isSuperWideRHPDisplayedOnWideLayout: false, shouldUseNarrowLayout: false})),
-);
+jest.mock('@hooks/useResponsiveLayoutOnWideRHP', () => jest.fn(() => ({isWideRHPDisplayedOnWideLayout: false, isSuperWideRHPDisplayedOnWideLayout: false, shouldUseNarrowLayout: false})));
 jest.mock('@hooks/useSingleExpenseReportView', () => jest.fn());
 
 // useThemeStyles throws without a <ThemeStylesProvider>; return a proxy that yields an empty style object for any key.
