@@ -59,9 +59,12 @@ function getFittingGroupBy(groupBy: InsightsGroupBy, options: InsightsGroupBy[])
     return options.reduce((nearest, option) => (getDistanceFromSelection(option) < getDistanceFromSelection(nearest) ? option : nearest));
 }
 
-/** Returns the Group by the charts are queried with. A single date has no options to pick from, so its one point is grouped by day. */
+/** Returns the Group by the charts are queried with, fitted to the date range. A single date has no options to pick from, so its one point is grouped by day. */
 function getQueryGroupBy(filters: InsightsFilters): InsightsGroupBy {
-    return 'on' in filters.date ? CONST.SEARCH.GROUP_BY.DAY : filters.groupBy;
+    if ('on' in filters.date) {
+        return CONST.SEARCH.GROUP_BY.DAY;
+    }
+    return getFittingGroupBy(filters.groupBy, getInsightsGroupByOptions(filters.date));
 }
 
 export {getFittingGroupBy, getInsightsGroupByOptions, getQueryGroupBy};

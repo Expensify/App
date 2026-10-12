@@ -95,8 +95,9 @@ type InsightsQuery = {
 
 /** Builds one request for the whole dashboard, naming each graph's snapshots by its chart's query hashes, and returns those chart queries to read the snapshots back with. */
 function buildInsightsJsonQuery(dashboard: InsightsDashboardID, filters: InsightsFilters, shouldIncludeComparisons: boolean): InsightsQuery | undefined {
-    const inputQuery = buildInsightsQueryString({...filters, groupBy: getQueryGroupBy(filters), compare: undefined});
-    const queryJSON = buildSearchQueryJSON(inputQuery);
+    // The backend saves inputQuery as the dashboard's filters, so it keeps the Group by the user picked, not the one fitted to the date range
+    const inputQuery = buildInsightsQueryString({...filters, compare: undefined});
+    const queryJSON = buildSearchQueryJSON(buildInsightsQueryString({...filters, groupBy: getQueryGroupBy(filters), compare: undefined}));
     if (!queryJSON) {
         return undefined;
     }

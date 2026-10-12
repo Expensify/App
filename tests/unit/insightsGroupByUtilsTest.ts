@@ -1,5 +1,5 @@
 import type {InsightsFilters} from '@pages/Insights/insightsFilters';
-import {getFittingGroupBy, getInsightsGroupByOptions} from '@pages/Insights/insightsGroupByUtils';
+import {getFittingGroupBy, getInsightsGroupByOptions, getQueryGroupBy} from '@pages/Insights/insightsGroupByUtils';
 
 import CONST from '@src/CONST';
 
@@ -91,6 +91,30 @@ describe('insightsGroupByUtils', () => {
 
             // Then the saved selection is left alone, so it comes back when a range is picked again
             expect(groupBy).toBe(QUARTER);
+        });
+    });
+
+    describe('getQueryGroupBy', () => {
+        it('queries the nearest offered option when the date range rules the selection out', () => {
+            // Given a quarterly dashboard moved to this month, which only offers Day and Week
+            const filters: InsightsFilters = {date: {preset: THIS_MONTH}, policyIDs: [], groupBy: QUARTER, groupCurrency: 'USD'};
+
+            // When the Group by to query with is picked
+            const groupBy = getQueryGroupBy(filters);
+
+            // Then Week is queried, the closest grouping to Quarter that the month offers
+            expect(groupBy).toBe(WEEK);
+        });
+
+        it('queries a single date by day, whatever grouping is selected', () => {
+            // Given a quarterly dashboard moved to a single date
+            const filters: InsightsFilters = {date: {on: '2026-03-04'}, policyIDs: [], groupBy: QUARTER, groupCurrency: 'USD'};
+
+            // When the Group by to query with is picked
+            const groupBy = getQueryGroupBy(filters);
+
+            // Then its one point is grouped by day
+            expect(groupBy).toBe(DAY);
         });
     });
 });
