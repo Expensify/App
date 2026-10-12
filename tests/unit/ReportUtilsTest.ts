@@ -27835,6 +27835,21 @@ describe('buildOptimisticModifiedExpenseReportAction sets delegateAccountID', ()
     });
 });
 
+describe('buildOptimisticModifiedExpenseReportAction tax amount', () => {
+    it('stores the tax amounts with the stored expense report sign', () => {
+        // Given a negative expense on an expense report, whose -$4.76 tax amount is stored as 476
+        const oldTransaction = {...createRandomTransaction(1), taxAmount: 476};
+
+        // When the user changes the tax amount to $2.00
+        const reportAction = buildOptimisticModifiedExpenseReportAction(undefined, oldTransaction, {taxAmount: 200}, true, undefined, undefined);
+
+        // Then both tax amounts keep the stored sign, like the server sends them, so the system message shows the same values before and after the server response
+        const originalMessage = getOriginalMessage(reportAction as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE>);
+        expect(originalMessage?.oldTaxAmount).toBe(476);
+        expect(originalMessage?.taxAmount).toBe(-200);
+    });
+});
+
 describe('getInvoiceReceiverPersonalDetail', () => {
     it('returns the personal detail of the receiver account when the receiver is an individual', () => {
         const report = {reportID: '1', invoiceReceiver: {type: CONST.REPORT.INVOICE_RECEIVER_TYPE.INDIVIDUAL, accountID: 1}} as Report;

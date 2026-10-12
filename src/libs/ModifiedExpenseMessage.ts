@@ -35,7 +35,7 @@ import {isModifiedExpenseAction} from './ReportActionTypeGuards';
 // eslint-disable-next-line import/no-cycle
 import {buildReportNameFromParticipantNames, getPolicyExpenseChatName, getReportName} from './ReportNameUtils';
 import {getPolicyName, getRootParentReport, isPolicyExpenseChat, isSelfDM} from './ReportUtils';
-import {getFormattedAttendees, getTagArrayFromName} from './TransactionUtils';
+import {getFormattedAttendees, getTagArrayFromName, getTaxAmount} from './TransactionUtils';
 import {isInvalidMerchantValue} from './ValidationUtils';
 
 let environmentURL: string;
@@ -469,8 +469,9 @@ function getForReportAction({
     if (hasModifiedTaxAmount) {
         const currency = reportActionOriginalMessage?.currency;
 
-        const taxAmount = convertToDisplayString(reportActionOriginalMessage?.taxAmount ?? 0, currency);
-        const oldTaxAmount = convertToDisplayString(reportActionOriginalMessage?.oldTaxAmount ?? 0, currency);
+        // Tax is only available on expense reports, so we can always convert the stored tax amounts as expense report amounts
+        const taxAmount = convertToDisplayString(getTaxAmount({taxAmount: reportActionOriginalMessage?.taxAmount}, true), currency);
+        const oldTaxAmount = convertToDisplayString(getTaxAmount({taxAmount: reportActionOriginalMessage?.oldTaxAmount}, true), currency);
         buildMessageFragmentForValue(translate, taxAmount, oldTaxAmount, translate('iou.taxAmount'), false, setFragments, removalFragments, changeFragments);
     }
 

@@ -377,13 +377,14 @@ describe('ModifiedExpenseMessage', () => {
 
         describe('when the tax amount of a negative expense is changed', () => {
             it('keeps the sign of the previous tax amount', () => {
-                // Given a tax amount change where the previous tax amount was negative, like on a negative expense
+                // Given a tax amount change where the previous tax amount was negative, like on a negative expense.
+                // The tax amounts are stored with the inverted expense report sign, as the server sends them.
                 const reportAction = {
                     ...createRandomReportAction(1),
                     actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
                     originalMessage: {
-                        taxAmount: 100,
-                        oldTaxAmount: -95,
+                        taxAmount: -100,
+                        oldTaxAmount: 95,
                         currency: CONST.CURRENCY.USD,
                     },
                 };
