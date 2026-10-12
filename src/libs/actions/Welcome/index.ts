@@ -101,6 +101,10 @@ function updateOnboardingValuesAndNavigation(onboardingValues: Onboarding | unde
     });
 }
 
+function setOnboardingShouldValidate(shouldValidate: boolean) {
+    Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {shouldValidate});
+}
+
 function setOnboardingMergeAccountStepValue(value: boolean, skipped = false) {
     Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {isMergeAccountStepCompleted: value, isMergeAccountStepSkipped: skipped});
 }
@@ -227,6 +231,7 @@ export {
     setOnboardingCompanySize,
     setSelfTourViewed,
     setOnboardingMergeAccountStepValue,
+    setOnboardingShouldValidate,
     updateOnboardingValuesAndNavigation,
     setOnboardingUserReportedIntegration,
     setOnboardingAccountingEnabled,
