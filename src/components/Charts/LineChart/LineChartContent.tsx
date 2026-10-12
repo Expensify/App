@@ -168,8 +168,8 @@ function LineChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPosition = '
         return isInPlotArea(args) && isCursorOverLabel(args, activeIndex);
     };
 
-    const {customGestures, setPointPositions, matchedIndex, isTooltipActive, isCursorOverClickable, initialTooltipPosition, activePointPosition} = useChartInteractions({
-        handlePress: handlePointPress,
+    const {customGestures, setPointPositions, matchedIndex, isTooltipActive, isCursorOverClickable, initialTooltipPosition, activePointPosition, onChartMoved} = useChartInteractions({
+        handlePress: onPointPress ? handlePointPress : undefined,
         checkIsOver: checkIsOverBand,
         isCursorOverLabel: checkIsOverLabelInPlotArea,
         resolveLabelTouchX: findLabelCursorX,
@@ -292,7 +292,7 @@ function LineChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPosition = '
             touchAction="pan-y"
         >
             <Animated.View
-                style={[styles.chartContent, dynamicChartStyle, cursorStyle]}
+                style={[styles.chartContent, dynamicChartStyle, !!onPointPress && cursorStyle]}
                 onLayout={handleLayout}
             >
                 {chartWidth > 0 && (
@@ -340,6 +340,7 @@ function LineChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPosition = '
                     formatValue={formatValue}
                     chartWidth={chartWidth}
                     initialTooltipPosition={initialTooltipPosition}
+                    onChartMoved={onChartMoved}
                 />
             </Animated.View>
         </GestureDetector>

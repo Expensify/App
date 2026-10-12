@@ -32,7 +32,7 @@ import type {NavigationState} from '@react-navigation/native';
 import {findFocusedRoute, NavigationContainer} from '@react-navigation/native';
 import {hasCompletedGuidedSetupFlowSelector} from '@selectors/Onboarding';
 import * as Sentry from '@sentry/react-native';
-import React, {useCallback, useContext, useEffect, useMemo, useRef} from 'react';
+import React, {useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
 
 import AppNavigator from './AppNavigator';
 import {cleanPreservedNavigatorStates, clearPreservedNavigatorStates} from './AppNavigator/createSplitNavigator/usePreserveNavigatorState';
@@ -150,7 +150,7 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady}: N
 
     const previousAuthenticated = usePrevious(authenticated);
 
-    const initialState = useMemo(() => {
+    const [initialState] = useState(() => {
         const path = initialUrl ? getPathFromURL(initialUrl) : null;
         if (path?.includes(DYNAMIC_ROUTES.MIGRATED_USER_WELCOME.path) && shouldOpenLastVisitedPath(lastVisitedPath) && isOnboardingCompleted && authenticated) {
             Navigation.isNavigationReady().then(() => {
@@ -186,10 +186,7 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady}: N
 
         // Default behavior - let React Navigation handle the initial state
         return undefined;
-
-        // The initialState value is relevant only on the first render.
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
+    });
 
     // https://reactnavigation.org/docs/themes
     const navigationTheme = useMemo(() => {

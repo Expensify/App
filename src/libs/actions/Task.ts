@@ -15,6 +15,7 @@ import {getDBTimeWithSkew} from '@libs/NetworkState';
 import {addDomainToShortMention} from '@libs/ParsingUtils';
 import {getAllPersonalDetailLogins, getPersonalDetailByLogin} from '@libs/PersonalDetailsStore';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
+import {isPolicyAdmin} from '@libs/PolicyUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import {getReportName} from '@libs/ReportNameUtils';
 import * as ReportUtils from '@libs/ReportUtils';
@@ -1440,6 +1441,34 @@ function canActionTask(
     return false;
 }
 
+/**
+ * Check if a workspace admin can delete a task in a workspace room, even when they don't own it
+ */
+function canDeleteTaskAsPolicyAdmin(
+    taskReport: OnyxEntry<OnyxTypes.Report>,
+    parentReport: OnyxEntry<OnyxTypes.Report>,
+    policy: OnyxEntry<OnyxTypes.Policy>,
+    guideAccountIDs: OnyxEntry<number[]>,
+    isParentReportArchived = false,
+): boolean {
+    if (!isPolicyAdmin(policy) || policy?.type === CONST.POLICY.TYPE.PERSONAL) {
+        return false;
+    }
+
+    if (!ReportUtils.isUserCreatedPolicyRoom(parentReport) && !ReportUtils.isDefaultRoom(parentReport)) {
+        return false;
+    }
+
+    if (isParentReportArchived) {
+        return false;
+    }
+
+    // Guide/Concierge setup tasks in #admins are completed by the onboarding flow, so admins should not delete them
+    const isTaskOwnedByGuideOrConcierge =
+        taskReport?.ownerAccountID === CONST.ACCOUNT_ID.CONCIERGE || (!!taskReport?.ownerAccountID && !!guideAccountIDs?.includes(taskReport.ownerAccountID));
+    return !(ReportUtils.isAdminRoom(parentReport) && isTaskOwnedByGuideOrConcierge);
+}
+
 /** Onboarding task info resolved by the `useOnboardingTaskInformation` hook. */
 type OnboardingTaskInformation = {
     taskReport: OnyxEntry<OnyxTypes.Report>;
@@ -1554,6 +1583,7 @@ export {
     getTaskAssigneeAccountID,
     canModifyTask,
     canActionTask,
+    canDeleteTaskAsPolicyAdmin,
     getFinishOnboardingTaskOnyxData,
     completeTestDriveTask,
 };
