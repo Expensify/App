@@ -117,7 +117,7 @@ function SearchColumnsPage() {
     };
 
     if (isSeedPending) {
-        return <FullScreenLoadingIndicator shouldUseGoBackButton />;
+        return <FullScreenLoadingIndicator />;
     }
 
     return (

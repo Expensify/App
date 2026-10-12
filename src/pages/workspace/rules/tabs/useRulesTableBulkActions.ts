@@ -19,7 +19,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {deleteExpensifyCardRule} from '@libs/actions/Card';
 import {deletePolicyCategoryTaxes, openPolicyCategoriesPage} from '@libs/actions/Policy/Category';
 import {openPolicyExpensifyCardsPage} from '@libs/actions/Policy/Policy';
-import {deleteRule} from '@libs/actions/Policy/Rules';
+import {deleteMerchantRule} from '@libs/actions/Policy/Rules';
 import {getCategoryNameFromTaxRuleKey, isCategoryTaxRuleKey} from '@libs/CategoryTaxRulesUtils';
 import {deleteFlagForReviewRule, getFlagForReviewTableData} from '@libs/FlagForReviewRulesUtils';
 import {getExpenseDefaultsTableData, isMerchantTypeRuleKey} from '@libs/MerchantTypeRulesUtils';
@@ -71,6 +71,7 @@ function useRulesTableBulkActions({policyID, activeTab, selectedRuleKeysByTab, c
     const [expensifyCardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${defaultFundID}`);
     const {cardRules} = useExpensifyCardRules(policyID);
     const [policyCategoriesOnyx] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
+    const [policyTagsOnyx] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`);
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
     const arePolicyCategoriesLoading = !!policy?.areCategoriesEnabled && policyCategoriesOnyx === undefined;
     const areCardsEnabled = !!policy?.areExpensifyCardsEnabled;
@@ -159,6 +160,7 @@ function useRulesTableBulkActions({policyID, activeTab, selectedRuleKeysByTab, c
         rules,
         // Unlike the tables below, the raw value: a category pending deletion is exactly what marks its rule deleting.
         policyCategories: policyCategoriesOnyx,
+        policyTags: policyTagsOnyx,
         translate,
         isOffline,
         onNavigate: Navigation.navigate,
@@ -266,7 +268,7 @@ function useRulesTableBulkActions({policyID, activeTab, selectedRuleKeysByTab, c
                 continue;
             }
 
-            deleteRule(ruleID, rules?.[`${ONYXKEYS.COLLECTION.RULE}${ruleID}`]);
+            deleteMerchantRule(policyID, ruleID, rules?.[`${ONYXKEYS.COLLECTION.RULE}${ruleID}`]);
         }
 
         if (selectedCategoryNames.length > 0) {
