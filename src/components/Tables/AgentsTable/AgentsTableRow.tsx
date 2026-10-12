@@ -96,7 +96,7 @@ export default function AgentsTableRow({item, rowIndex, shouldUseNarrowTableLayo
 
                     {!shouldUseNarrowTableLayout && shouldShowRoleColumn && (
                         <View
-                            style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.editableCellColumn]}
+                            style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}
                             {...getCellAccessibilityProps(isTableSemanticsEnabled)}
                         >
                             <WorkspaceMemberRoleCell
@@ -106,17 +106,27 @@ export default function AgentsTableRow({item, rowIndex, shouldUseNarrowTableLayo
                         </View>
                     )}
 
-                    {!shouldUseNarrowTableLayout && shouldShowOwnerColumn && (
+                    {!shouldUseNarrowTableLayout && shouldShowOwnerColumn && !!item.ownerAccountID && (
                         <View
-                            style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.editableCellColumn]}
+                            style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}
                             {...getCellAccessibilityProps(isTableSemanticsEnabled)}
                         >
-                            <UserInfoCell
+                            <AccountAvatar
+                                size={CONST.AVATAR_SIZE.XXX_SMALL}
                                 accountID={item.ownerAccountID}
-                                isLargeScreenWidth
+                                fallbackDisplayName={item.ownerDisplayName}
+                                containerStyle={[styles.pr2, styles.alignSelfCenter]}
                             />
+                            {!!item.ownerDisplayName && (
+                                <TextWithTooltip
+                                    shouldShowTooltip
+                                    text={item.ownerDisplayName}
+                                    style={[styles.optionDisplayName, styles.pre]}
+                                />
+                            )}
                         </View>
                     )}
+
                     <View
                         style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentEnd, styles.gap2]}
                         {...getCellAccessibilityProps(isTableSemanticsEnabled)}
