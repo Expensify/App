@@ -151,6 +151,7 @@ describe('getDynamicFieldErrors', () => {
         const addressKeys = getAddressInputKeys(homeAddress.key);
         const values = {
             homeAddress: '1 High Street',
+            [addressKeys.city]: 'London',
             [addressKeys.zipCode]: '10001',
             [addressKeys.country]: 'GB',
         };
@@ -201,6 +202,18 @@ describe('getDynamicFieldErrors', () => {
             type: 'signature',
             key: 'signature',
         });
+    });
+
+    it('drops a field without a key instead of storing its answer under an empty draft key', () => {
+        // Given a required address whose key is empty, as a broken server schema could send
+        const homeAddress: DynamicFormSchemaField = {key: '', type: 'address', required: true};
+
+        // When the form is validated
+        const errors = getDynamicFieldErrors([homeAddress], {}, translateLocal);
+
+        // Then it has no error, and the missing key is logged so the schema can be fixed
+        expect(errors).toEqual({});
+        expect(warnSpy).toHaveBeenCalledWith('[DynamicForm] Field without a key', {type: 'address'});
     });
 
     it('accepts any answer when the schema regex is broken', () => {
@@ -277,6 +290,23 @@ describe('getDynamicFieldErrors', () => {
         // Then city, state, zip and country are each flagged, so every empty input shows its own error
         const required = translateLocal('common.error.fieldRequired');
         expect(errors).toEqual({[addressKeys.city]: required, [addressKeys.state]: required, [addressKeys.zipCode]: required, [addressKeys.country]: required});
+    });
+
+    it('checks an optional address like a required one once the user starts filling it in', () => {
+        // Given an optional address
+        const homeAddress: DynamicFormField = {key: 'homeAddress', type: 'address', required: false};
+        const addressKeys = getAddressInputKeys(homeAddress.key);
+
+        // When it is validated untouched, with only the street filled in, and with only the city filled in
+        const untouchedErrors = getDynamicFieldErrors([homeAddress], {}, translateLocal);
+        const streetOnlyErrors = getDynamicFieldErrors([homeAddress], {homeAddress: '1 High Street'}, translateLocal);
+        const cityOnlyErrors = getDynamicFieldErrors([homeAddress], {[addressKeys.city]: 'London'}, translateLocal);
+
+        // Then skipping it is fine, but a started address flags every missing part, the street included, so it is never submitted in part
+        const required = translateLocal('common.error.fieldRequired');
+        expect(untouchedErrors).toEqual({});
+        expect(streetOnlyErrors).toEqual({[addressKeys.city]: required, [addressKeys.state]: required, [addressKeys.zipCode]: required, [addressKeys.country]: required});
+        expect(cityOnlyErrors).toEqual({homeAddress: required, [addressKeys.state]: required, [addressKeys.zipCode]: required, [addressKeys.country]: required});
     });
 
     it('asks for a zip only where the country zip format needs one', () => {

@@ -4,10 +4,12 @@ import TabSelectorBase from '@components/TabSelector/TabSelectorBase';
 
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
+
 import React from 'react';
 import {View} from 'react-native';
 
-type TabsAdapterProps = {
+type TabsAdapterProps = ForwardedFSClassProps & {
     /** Options, one tab each */
     items: Choice[];
 
@@ -22,11 +24,14 @@ type TabsAdapterProps = {
 };
 
 /** A choice drawn as a segmented tab row, for the few-option switch that decides which fields follow */
-function TabsAdapter({items, value, onInputChange = () => {}, errorText}: TabsAdapterProps) {
+function TabsAdapter({items, value, onInputChange = () => {}, errorText, forwardedFSClass}: TabsAdapterProps) {
     const styles = useThemeStyles();
 
     return (
-        <View style={styles.mb3}>
+        <View
+            style={styles.mb3}
+            fsClass={forwardedFSClass}
+        >
             <TabSelectorBase
                 tabs={items.map((item) => ({key: item.value, title: item.label}))}
                 activeTabKey={value === '' ? undefined : value}

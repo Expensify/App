@@ -34,20 +34,13 @@ function renderInlineChoice(label: string, choices: Choice[], inputProps: Dynami
     const listProps = {items: choices, isSearchable, searchInputLabel: label};
     return {
         isMenuRow: true,
-        input: canSelectMultiple ? (
+        input: (
             <InputWrapper
                 InputComponent={InlineSelectionListAdapter}
                 {...inputProps}
                 {...listProps}
-                valueType="stringList"
-                canSelectMultiple
-            />
-        ) : (
-            <InputWrapper
-                InputComponent={InlineSelectionListAdapter}
-                {...inputProps}
-                {...listProps}
-                valueType="string"
+                valueType={canSelectMultiple ? 'stringList' : 'string'}
+                canSelectMultiple={canSelectMultiple}
             />
         ),
     };

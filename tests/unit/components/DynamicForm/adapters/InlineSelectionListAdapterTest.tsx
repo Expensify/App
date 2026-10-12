@@ -1,7 +1,9 @@
-import {render} from '@testing-library/react-native';
+import {render, screen} from '@testing-library/react-native';
 
 import InlineSelectionListAdapter from '@components/DynamicForm/adapters/InlineSelectionListAdapter';
 import SelectionList from '@components/SelectionList';
+
+import CONST from '@src/CONST';
 
 import React from 'react';
 
@@ -82,5 +84,21 @@ describe('InlineSelectionListAdapter', () => {
 
         // Then the answer is that key alone
         expect(onInputChange).toHaveBeenCalledWith('SERVICES');
+    });
+
+    it('masks the options in session recordings', () => {
+        // Given a list whose picked option must stay out of session recordings
+        const forwardedFSClass = CONST.FULLSTORY.CLASS.MASK;
+
+        // When it renders
+        render(
+            <InlineSelectionListAdapter
+                items={items}
+                forwardedFSClass={forwardedFSClass}
+            />,
+        );
+
+        // Then the view around the list carries the mask, since SelectionList takes no FullStory class itself
+        expect(screen.toJSON()).toMatchObject({props: {fsClass: forwardedFSClass}});
     });
 });

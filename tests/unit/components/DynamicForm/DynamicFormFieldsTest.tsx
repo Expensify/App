@@ -41,6 +41,7 @@ type CapturedInputProps = {
     isSearchable?: boolean;
     valueType?: string;
     fileLimit?: number;
+    maxFileSize?: number;
     currency?: string;
     defaultValue?: string;
     onValueChange?: (value: string, key: string) => void;
@@ -325,8 +326,13 @@ describe('DynamicFormFields', () => {
         const isLabelShown = screen.queryByText('Source of funds document') !== null;
         const severalFiles = renderFields([idDocument]);
 
-        // Then the first takes a single file and the second up to its limit, and the label stays visible as a heading
-        expect(rendered.get('proofOfFunds')).toMatchObject({valueType: 'files', fileLimit: 1, buttonText: 'common.chooseFile'});
+        // Then the first takes a single file and the second up to its limit, each capped in size, and the label stays visible as a heading
+        expect(rendered.get('proofOfFunds')).toMatchObject({
+            valueType: 'files',
+            fileLimit: 1,
+            maxFileSize: CONST.DYNAMIC_FORM_DOCUMENT.MAX_FILE_SIZE,
+            buttonText: 'common.chooseFile',
+        });
         expect(severalFiles.get('idDocument')).toMatchObject({fileLimit: 3, buttonText: 'common.chooseFiles'});
         expect(isLabelShown).toBe(true);
     });
@@ -411,13 +417,19 @@ describe('DynamicFormFields', () => {
         // Given a readonly, prefilled address
         const officeAddress: DynamicFormField = {key: 'office', type: 'address', required: true, readonly: true};
         const addressKeys = getAddressInputKeys(officeAddress.key);
-        const values = {office: '224 Main Street', [addressKeys.city]: 'San Francisco', [addressKeys.state]: 'CA', [addressKeys.zipCode]: '94123'};
+        const values = {
+            office: '224 Main Street',
+            [addressKeys.city]: 'San Francisco',
+            [addressKeys.state]: 'CA',
+            [addressKeys.zipCode]: '94123',
+            [addressKeys.country]: CONST.COUNTRY.US,
+        };
 
         // When it renders
         renderFields([officeAddress], values);
 
-        // Then the row reads like a postal address
-        expect(screen.getByText('224 Main Street, San Francisco, CA 94123')).toBeOnTheScreen();
+        // Then the row reads like a postal address, ending with the country, since the same street and city can exist in several countries
+        expect(screen.getByText('224 Main Street, San Francisco, CA 94123, allCountries.US')).toBeOnTheScreen();
     });
 
     it('shows readonly multiselect, file and percent answers as text', () => {

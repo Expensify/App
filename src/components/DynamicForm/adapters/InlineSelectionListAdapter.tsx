@@ -8,6 +8,7 @@ import type {ListItem} from '@components/SelectionList/ListItem/types';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
 import searchOptions from '@libs/searchOptions';
 import StringUtils from '@libs/StringUtils';
 import toggleArrayItem from '@libs/toggleArrayItem';
@@ -15,7 +16,7 @@ import toggleArrayItem from '@libs/toggleArrayItem';
 import React from 'react';
 import {View} from 'react-native';
 
-type InlineSelectionListAdapterBaseProps = {
+type InlineSelectionListAdapterBaseProps = ForwardedFSClassProps & {
     /** Options, one row each */
     items: Choice[];
 
@@ -55,7 +56,7 @@ type InlineSelectionListAdapterProps = InlineSelectionListAdapterBaseProps & (In
 
 /** A choice list shown as the page itself, for a choice field that is alone on its page */
 function InlineSelectionListAdapter(props: InlineSelectionListAdapterProps) {
-    const {items, errorText = '', isSearchable = false, searchInputLabel} = props;
+    const {items, errorText = '', isSearchable = false, searchInputLabel, forwardedFSClass} = props;
     const styles = useThemeStyles();
     const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
 
@@ -89,7 +90,7 @@ function InlineSelectionListAdapter(props: InlineSelectionListAdapterProps) {
     };
 
     return (
-        <>
+        <View fsClass={forwardedFSClass}>
             <SelectionList
                 data={data}
                 canSelectMultiple={!!props.canSelectMultiple}
@@ -105,7 +106,7 @@ function InlineSelectionListAdapter(props: InlineSelectionListAdapterProps) {
                     <FormHelpMessage message={errorText} />
                 </View>
             )}
-        </>
+        </View>
     );
 }
 

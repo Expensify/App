@@ -155,6 +155,12 @@ const VALIDATORS: {[TType in DynamicFormFieldType]: FieldValidator<TType>} = {
     },
 };
 
+/** An optional address the user has started filling in is checked like a required one, so it is never submitted in part */
+function isAddressRequired(field: DynamicFormAddressField, values: DynamicFormValues): boolean {
+    const {street, city, state, zipCode} = getAddressInputKeys(field.key);
+    return field.required || [street, city, state, zipCode].some((partKey) => isAnswered(values[partKey]));
+}
+
 /** Each address part has its own input, so its errors go under its own draft key */
 function getAddressPartErrors(field: DynamicFormAddressField, values: DynamicFormValues, translate: LocalizedTranslate): Array<[inputID: string, message: string]> {
     const addressKeys = getAddressInputKeys(field.key);
@@ -162,7 +168,7 @@ function getAddressPartErrors(field: DynamicFormAddressField, values: DynamicFor
     // A country whose zip format accepts an empty zip does not require one
     const isZipAsked = !country || !isValidZipCodeForCountry('', country);
     const partErrors: Array<[string, string]> = [];
-    if (field.required) {
+    if (isAddressRequired(field, values)) {
         const requiredPartKeys = [addressKeys.city, addressKeys.country, ...(isZipAsked ? [addressKeys.zipCode] : []), ...(isStateAsked(country) ? [addressKeys.state] : [])];
         for (const partKey of requiredPartKeys) {
             if (!isAnswered(values[partKey])) {
@@ -200,7 +206,7 @@ function getDynamicFieldErrors(fields: DynamicFormSchemaField[], values: Dynamic
             }
         }
         if (!isAnswered(values[field.key], field.type === 'boolean' && field === loneField)) {
-            if (field.required) {
+            if (field.type === 'address' ? isAddressRequired(field, values) : field.required) {
                 addErrorMessage(errors, field.key, translate('common.error.fieldRequired'));
             }
             continue;

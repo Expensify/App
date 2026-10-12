@@ -4,10 +4,12 @@ import FormHelpMessage from '@components/FormHelpMessage';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
+
 import React from 'react';
 import {View} from 'react-native';
 
-type CurrencyInlineListAdapterProps = {
+type CurrencyInlineListAdapterProps = ForwardedFSClassProps & {
     /** Currency code */
     value?: string;
 
@@ -19,12 +21,12 @@ type CurrencyInlineListAdapterProps = {
 };
 
 /** The searchable currency list shown as the page itself, for a currency field that is alone on its page */
-function CurrencyInlineListAdapter({value, onInputChange = () => {}, errorText = ''}: CurrencyInlineListAdapterProps) {
+function CurrencyInlineListAdapter({value, onInputChange = () => {}, errorText = '', forwardedFSClass}: CurrencyInlineListAdapterProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
     return (
-        <>
+        <View fsClass={forwardedFSClass}>
             <CurrencySelectionList
                 searchInputLabel={translate('common.currency')}
                 initiallySelectedCurrencyCode={value === '' ? undefined : value}
@@ -35,7 +37,7 @@ function CurrencyInlineListAdapter({value, onInputChange = () => {}, errorText =
                     <FormHelpMessage message={errorText} />
                 </View>
             )}
-        </>
+        </View>
     );
 }
 
