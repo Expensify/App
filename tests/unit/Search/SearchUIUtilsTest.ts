@@ -19,6 +19,7 @@ import type {
 import {GROUP_ITEM_TYPES} from '@components/Search/SearchList/ListItem/types';
 import {getExpenseHeaders} from '@components/Search/SearchTableHeader';
 import type {SearchColumnType, SearchFilterKey, SelectedTransactionInfo, SortOrder} from '@components/Search/types';
+import type {ListItem} from '@components/SelectionList/types';
 
 import Navigation from '@navigation/Navigation';
 
@@ -861,11 +862,11 @@ const reportActionListItems = createMock<ReportActionListItemType[]>([
 
 const transactionsListItems = createMock<TransactionListItemType[]>([
     {
-        action: 'submit',
-        allActions: ['submit'],
+        action: 'view',
+        allActions: ['view'],
         canPay: false,
         canApprove: false,
-        canSubmit: true,
+        canSubmit: false,
         canChangeApprover: false,
         amount: -5000,
         report: report1,
@@ -926,12 +927,12 @@ const transactionsListItems = createMock<TransactionListItemType[]>([
         groupCurrency: 'USD',
     },
     {
-        action: 'approve',
-        allActions: ['approve', 'changeApprover'],
+        action: 'view',
+        allActions: ['view'],
         canPay: false,
-        canApprove: true,
+        canApprove: false,
         canSubmit: false,
-        canChangeApprover: true,
+        canChangeApprover: false,
         amount: -5000,
         report: report2,
         policy,
@@ -1216,11 +1217,11 @@ const transactionReportGroupListItems = createMock<Array<TransactionReportGroupL
         transactionCount: 1,
         transactions: [
             {
-                action: 'submit',
-                allActions: ['submit'],
+                action: 'view',
+                allActions: ['view'],
                 canPay: false,
                 canApprove: false,
-                canSubmit: true,
+                canSubmit: false,
                 canChangeApprover: false,
                 report: report1,
                 policy,
@@ -1353,12 +1354,12 @@ const transactionReportGroupListItems = createMock<Array<TransactionReportGroupL
         transactionCount: 1,
         transactions: [
             {
-                action: 'approve',
-                allActions: ['approve', 'changeApprover'],
+                action: 'view',
+                allActions: ['view'],
                 canPay: false,
-                canApprove: true,
+                canApprove: false,
                 canSubmit: false,
-                canChangeApprover: true,
+                canChangeApprover: false,
                 report: report2,
                 policy,
                 reportAction: reportAction2,
@@ -1870,6 +1871,7 @@ const transactionWithdrawalIDGroupListItems: TransactionWithdrawalIDGroupListIte
         state: 8,
         groupedBy: 'withdrawal-id',
         formattedWithdrawalID: '5',
+        settlementStatusRank: 8,
         transactions: [],
         transactionsQueryJSON: undefined,
         keyForList: 'group_5',
@@ -1886,6 +1888,7 @@ const transactionWithdrawalIDGroupListItems: TransactionWithdrawalIDGroupListIte
         state: 8,
         groupedBy: 'withdrawal-id',
         formattedWithdrawalID: '6',
+        settlementStatusRank: 8,
         transactions: [],
         transactionsQueryJSON: undefined,
         keyForList: 'group_30303030',
@@ -1905,6 +1908,7 @@ const transactionWithdrawalIDGroupListItemsSorted: TransactionWithdrawalIDGroupL
         state: 8,
         groupedBy: 'withdrawal-id',
         formattedWithdrawalID: '5',
+        settlementStatusRank: 8,
         transactions: [],
         transactionsQueryJSON: undefined,
         keyForList: 'group_5',
@@ -1921,6 +1925,7 @@ const transactionWithdrawalIDGroupListItemsSorted: TransactionWithdrawalIDGroupL
         total: 20,
         groupedBy: 'withdrawal-id',
         formattedWithdrawalID: '6',
+        settlementStatusRank: 8,
         transactions: [],
         transactionsQueryJSON: undefined,
         keyForList: 'group_30303030',
@@ -2290,12 +2295,137 @@ describe('SearchUIUtils', () => {
             expect(action).toStrictEqual(CONST.SEARCH.ACTION_TYPES.VIEW);
         });
 
-        test('Should return `Submit` action for transaction on policy with delayed submission and no violations', () => {
-            let action = SearchUIUtils.getActions(searchResults.data, {}, `report_${reportID}`, CONST.SEARCH.SEARCH_KEYS.EXPENSES, '', adminAccountID, {}, {}, undefined).at(0);
+        test('Should return `Submit` action for report on policy with delayed submission and no violations', () => {
+            const action = SearchUIUtils.getActions(searchResults.data, {}, `report_${reportID}`, CONST.SEARCH.SEARCH_KEYS.EXPENSES, '', adminAccountID, {}, {}, undefined).at(0);
             expect(action).toStrictEqual(CONST.SEARCH.ACTION_TYPES.SUBMIT);
+        });
 
-            action = SearchUIUtils.getActions(searchResults.data, {}, `transactions_${transactionID}`, CONST.SEARCH.SEARCH_KEYS.EXPENSES, '', adminAccountID, {}, {}, undefined).at(0);
-            expect(action).toStrictEqual(CONST.SEARCH.ACTION_TYPES.SUBMIT);
+        test('Should return only `View` action for the expense of a single-expense report that can be submitted', () => {
+            // Given report1 holds a single expense and the report itself can be submitted
+            const reportActions = SearchUIUtils.getActions(searchResults.data, {}, `report_${reportID}`, CONST.SEARCH.SEARCH_KEYS.EXPENSES, '', adminAccountID, {}, {}, undefined);
+            expect(reportActions).toContain(CONST.SEARCH.ACTION_TYPES.SUBMIT);
+
+            // When the actions are computed for its expense row
+            const transactionActions = SearchUIUtils.getActions(
+                searchResults.data,
+                {},
+                `transactions_${transactionID}`,
+                CONST.SEARCH.SEARCH_KEYS.EXPENSES,
+                '',
+                adminAccountID,
+                {},
+                {},
+                undefined,
+            );
+
+            // Then Submit is a report level action, so the expense row only offers View
+            expect(transactionActions).toStrictEqual([CONST.SEARCH.ACTION_TYPES.VIEW]);
+        });
+
+        test('Should return only `View` action for the expense of a single-expense report that can be paid', async () => {
+            // Given report3 is ready to be paid and holds a single expense
+            Onyx.merge(ONYXKEYS.SESSION, {accountID: adminAccountID});
+            await waitForBatchedUpdates();
+            const localSearchResults = {
+                ...searchResults.data,
+                [`report_${reportID3}`]: {...searchResults.data[`report_${reportID3}`], transactionCount: 1},
+            };
+            const reportActions = SearchUIUtils.getActions(localSearchResults, {}, `report_${reportID3}`, CONST.SEARCH.SEARCH_KEYS.EXPENSES, '', adminAccountID, {}, {}, undefined);
+            expect(reportActions).toContain(CONST.SEARCH.ACTION_TYPES.PAY);
+
+            // When the actions are computed for its expense row
+            const transactionActions = SearchUIUtils.getActions(
+                localSearchResults,
+                {},
+                `transactions_${transactionID3}`,
+                CONST.SEARCH.SEARCH_KEYS.EXPENSES,
+                '',
+                adminAccountID,
+                {},
+                {},
+                undefined,
+            );
+
+            // Then Pay is a report level action, so the expense row only offers View
+            expect(transactionActions).toStrictEqual([CONST.SEARCH.ACTION_TYPES.VIEW]);
+        });
+
+        test('Should keep `Pay` action for the expense of a single-line invoice the current user can pay', () => {
+            // Given a submitted single-line invoice sent to the current user
+            const invoiceReportID = 'invoice-report-pay';
+            const invoiceChatReportID = 'invoice-chat-pay';
+            const invoiceTransactionID = 'invoice-transaction-pay';
+            const localSearchResults = {
+                ...searchResults.data,
+                [`report_${invoiceReportID}`]: {
+                    ...searchResults.data[`report_${reportID3}`],
+                    reportID: invoiceReportID,
+                    chatReportID: invoiceChatReportID,
+                    policyID: 'invoice-sender-policy',
+                    type: CONST.REPORT.TYPE.INVOICE,
+                    stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                    statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+                    transactionCount: 1,
+                },
+                [`report_${invoiceChatReportID}`]: {
+                    ...searchResults.data[`report_${reportID4}`],
+                    reportID: invoiceChatReportID,
+                    chatType: CONST.REPORT.CHAT_TYPE.INVOICE,
+                    invoiceReceiver: {type: CONST.REPORT.INVOICE_RECEIVER_TYPE.INDIVIDUAL, accountID: adminAccountID},
+                },
+                [`transactions_${invoiceTransactionID}`]: {
+                    ...searchResults.data[`transactions_${transactionID3}`],
+                    transactionID: invoiceTransactionID,
+                    reportID: invoiceReportID,
+                },
+            };
+
+            // When the actions are computed for its invoice row
+            const action = SearchUIUtils.getActions(
+                localSearchResults,
+                {},
+                `transactions_${invoiceTransactionID}`,
+                CONST.SEARCH.SEARCH_KEYS.EXPENSES,
+                '',
+                adminAccountID,
+                {},
+                {},
+                undefined,
+            ).at(0);
+
+            // Then invoice rows still offer Pay since only expense rows drop report level actions
+            expect(action).toStrictEqual(CONST.SEARCH.ACTION_TYPES.PAY);
+        });
+
+        test('Should show `View` and no Pay capability on the Expenses tab for a non-reimbursable single-expense report', async () => {
+            // Given report3 is ready to be paid and holds a single non-reimbursable expense
+            await Onyx.merge(ONYXKEYS.SESSION, {accountID: adminAccountID});
+            const localSearchResults = {
+                ...searchResults.data,
+                [`report_${reportID3}`]: {...searchResults.data[`report_${reportID3}`], transactionCount: 1},
+                [`transactions_${transactionID3}`]: {...searchResults.data[`transactions_${transactionID3}`], reimbursable: false},
+            };
+
+            // When the Expenses tab sections are built
+            const [sections] = SearchUIUtils.getSections({
+                dateFnsLocale: undefined,
+                type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                data: localSearchResults,
+                currentAccountID: adminAccountID,
+                currentUserEmail: adminEmail,
+                translate: translateLocal,
+                formatPhoneNumber,
+                bankAccountList: {},
+                rules: undefined,
+                conciergeReportID: undefined,
+                convertToDisplayString,
+                reportAttributesDerivedValue: undefined,
+            });
+            const transaction = sections.filter(SearchUIUtils.isTransactionListItemType).find((item) => item.transactionID === transactionID3);
+
+            // Then the row shows View like the Reports tab, instead of a Pay button that does nothing
+            expect(transaction?.action).toStrictEqual(CONST.SEARCH.ACTION_TYPES.VIEW);
+            expect(transaction?.canPay).toBe(false);
         });
 
         test('Should return `Submit` action for open expense report on Submit workspace when default submit-to is the owner', () => {
@@ -2589,7 +2719,7 @@ describe('SearchUIUtils', () => {
             const action = SearchUIUtils.getActions(
                 localSearchResults,
                 {},
-                `transactions_${dewTransactionID}`,
+                `report_${dewReportID}`,
                 CONST.SEARCH.SEARCH_KEYS.EXPENSES,
                 '',
                 adminAccountID,
@@ -2637,7 +2767,7 @@ describe('SearchUIUtils', () => {
             const action = SearchUIUtils.getActions(
                 localSearchResults,
                 {},
-                `transactions_${dewTransactionID}`,
+                `report_${dewReportID}`,
                 CONST.SEARCH.SEARCH_KEYS.EXPENSES,
                 '',
                 adminAccountID,
@@ -2687,7 +2817,7 @@ describe('SearchUIUtils', () => {
             const action = SearchUIUtils.getActions(
                 localSearchResults,
                 {},
-                `transactions_${nonDewTransactionID}`,
+                `report_${nonDewReportID}`,
                 CONST.SEARCH.SEARCH_KEYS.EXPENSES,
                 '',
                 adminAccountID,
@@ -2745,7 +2875,7 @@ describe('SearchUIUtils', () => {
             // report1 has ownerAccountID: adminAccountID, so adminAccountID is the owner
             const [sections] = SearchUIUtils.getSections({
                 dateFnsLocale: undefined,
-                type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
                 data: searchResults.data,
                 currentAccountID: adminAccountID,
                 currentUserEmail: adminEmail,
@@ -2757,8 +2887,8 @@ describe('SearchUIUtils', () => {
                 convertToDisplayString,
                 reportAttributesDerivedValue: undefined,
             });
-            const transaction = sections.filter(SearchUIUtils.isTransactionListItemType).find((item) => item.transactionID === transactionID);
-            expect(transaction?.action).toStrictEqual(CONST.SEARCH.ACTION_TYPES.SUBMIT);
+            const reportSection = sections.filter(SearchUIUtils.isTransactionReportGroupListItemType).find((item) => item.reportID === reportID);
+            expect(reportSection?.action).toStrictEqual(CONST.SEARCH.ACTION_TYPES.SUBMIT);
         });
     });
 
@@ -3758,7 +3888,7 @@ describe('SearchUIUtils', () => {
                     total: 250,
                     groupedBy: CONST.SEARCH.GROUP_BY.DAY,
                     formattedDay: 'September 15, 2026',
-                    shortFormattedDay: 'Sep 15, ’26',
+                    shortFormattedDay: 'Sep 15',
                     transactions: [],
                     keyForList: 'group_2026-09-15',
                 }),
@@ -3989,6 +4119,108 @@ describe('SearchUIUtils', () => {
             expect(result).toHaveLength(2);
             expect(result.some((item) => item.formattedMonth === 'January 2026')).toBe(true);
             expect(result.some((item) => item.formattedMonth === 'June 2026')).toBe(true);
+        });
+
+        it('should leave the year out of short labels when every month falls in the same year', () => {
+            // Given months that all fall in 2026, so a year on every chart axis label would repeat the same information
+            const dataInOneYear: OnyxTypes.SearchResults['data'] = {
+                personalDetailsList: {},
+                [`${CONST.SEARCH.GROUP_PREFIX}2026_1` as const]: {year: 2026, month: 1, count: 2, currency: 'USD', total: 50},
+                [`${CONST.SEARCH.GROUP_PREFIX}2026_6` as const]: {year: 2026, month: 6, count: 1, currency: 'USD', total: 25},
+            };
+
+            // When the month sections are built
+            const [result] = getSectionsByType(
+                SearchUIUtils.getSections({
+                    dateFnsLocale: undefined,
+                    type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                    data: dataInOneYear,
+                    currentAccountID: 2074551,
+                    currentUserEmail: '',
+                    translate: translateLocal,
+                    formatPhoneNumber,
+                    bankAccountList: {},
+                    rules: undefined,
+                    groupBy: CONST.SEARCH.GROUP_BY.MONTH,
+                    conciergeReportID: undefined,
+                    convertToDisplayString,
+                    reportAttributesDerivedValue: {},
+                }),
+                SearchUIUtils.isTransactionMonthGroupListItemType,
+            );
+
+            // Then the short labels drop the year while the full labels, used by the tooltip, keep it
+            expect(result.map((item) => item.shortFormattedMonth)).toEqual(['Jan', 'Jun']);
+            expect(result.map((item) => item.formattedMonth)).toEqual(['January 2026', 'June 2026']);
+        });
+
+        it('should leave the year out of short week labels when every week falls in the same year', () => {
+            // Given weeks that all fall in 2026
+            const dataInOneYear: OnyxTypes.SearchResults['data'] = {
+                personalDetailsList: {},
+                [`${CONST.SEARCH.GROUP_PREFIX}2026-01-25` as const]: {week: '2026-01-25', count: 5, currency: 'USD', total: 250},
+                [`${CONST.SEARCH.GROUP_PREFIX}2026-02-01` as const]: {week: '2026-02-01', count: 3, currency: 'USD', total: 75},
+            };
+
+            // When the week sections are built
+            const [result] = getSectionsByType(
+                SearchUIUtils.getSections({
+                    dateFnsLocale: undefined,
+                    type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                    data: dataInOneYear,
+                    currentAccountID: 2074551,
+                    currentUserEmail: '',
+                    translate: translateLocal,
+                    formatPhoneNumber,
+                    bankAccountList: {},
+                    rules: undefined,
+                    groupBy: CONST.SEARCH.GROUP_BY.WEEK,
+                    conciergeReportID: undefined,
+                    convertToDisplayString,
+                    reportAttributesDerivedValue: {},
+                }),
+                SearchUIUtils.isTransactionWeekGroupListItemType,
+            );
+
+            // Then the short labels show only the date range, without the year
+            expect(result.map((item) => item.shortFormattedWeek)).toEqual(['Jan 25 - 31', 'Feb 1 - 7']);
+        });
+
+        it('should leave the year out of short week labels when the date filter trims the first week to the new year', () => {
+            // Given a search starting Jan 1, whose first week starts in December but only shows its 2026 days
+            const parsedQuery = buildSearchQueryJSON('type:expense group-by:week date>=2026-01-01');
+            if (!parsedQuery) {
+                throw new Error('Expected a parsed query');
+            }
+            const data: OnyxTypes.SearchResults['data'] = {
+                personalDetailsList: {},
+                [`${CONST.SEARCH.GROUP_PREFIX}2025-12-28` as const]: {week: '2025-12-28', count: 5, currency: 'USD', total: 250},
+                [`${CONST.SEARCH.GROUP_PREFIX}2026-01-04` as const]: {week: '2026-01-04', count: 3, currency: 'USD', total: 75},
+            };
+
+            // When the week sections are built
+            const [result] = getSectionsByType(
+                SearchUIUtils.getSections({
+                    dateFnsLocale: undefined,
+                    type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                    data,
+                    currentAccountID: 2074551,
+                    currentUserEmail: '',
+                    translate: translateLocal,
+                    formatPhoneNumber,
+                    bankAccountList: {},
+                    rules: undefined,
+                    groupBy: CONST.SEARCH.GROUP_BY.WEEK,
+                    conciergeReportID: undefined,
+                    convertToDisplayString,
+                    reportAttributesDerivedValue: {},
+                    queryJSON: parsedQuery,
+                }),
+                SearchUIUtils.isTransactionWeekGroupListItemType,
+            );
+
+            // Then the December days don't count, so no label shows the year
+            expect(result.map((item) => item.shortFormattedWeek)).toEqual(['Jan 1 - 3', 'Jan 4 - 10']);
         });
 
         it('should calculate sortKey correctly for month groups', () => {
@@ -8298,6 +8530,65 @@ describe('SearchUIUtils', () => {
             expect(sortGroups(CONST.SEARCH.TABLE_COLUMNS.GROUP_AMOUNT_REIMBURSED, CONST.SEARCH.SORT_ORDER.DESC)).toStrictEqual(['group_large', 'group_small', 'group_domestic']);
         });
 
+        it('should keep cash back rows out of the settlement states when sorting by withdrawal status', () => {
+            const statusGroup = (state: number, isCashBack = false) => ({
+                bankName: CONST.BANK_NAMES.CHASE,
+                entryID,
+                accountNumber,
+                debitPosted: '2025-08-12 17:11:22',
+                count: isCashBack ? 0 : 4,
+                currency: 'USD',
+                total: isCashBack ? -2500 : 40,
+                state,
+                ...(isCashBack ? {isCashBack} : {}),
+            });
+            // Given two cash back rows carrying state 8, the same state a cleared settlement carries, among settlements in every state
+            const data: OnyxTypes.SearchResults['data'] = {
+                personalDetailsList: {},
+                [`${CONST.SEARCH.GROUP_PREFIX}cashBackA` as const]: statusGroup(8, true),
+                [`${CONST.SEARCH.GROUP_PREFIX}cleared8` as const]: statusGroup(8),
+                [`${CONST.SEARCH.GROUP_PREFIX}cashBackB` as const]: statusGroup(8, true),
+                [`${CONST.SEARCH.GROUP_PREFIX}cleared9` as const]: statusGroup(9),
+                [`${CONST.SEARCH.GROUP_PREFIX}failed` as const]: statusGroup(5),
+                [`${CONST.SEARCH.GROUP_PREFIX}pending` as const]: statusGroup(1),
+            };
+
+            // When the rows are built and sorted by withdrawal status in each direction
+            const [sections] = getSectionsByType(
+                SearchUIUtils.getSections({
+                    dateFnsLocale: undefined,
+                    type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                    data,
+                    currentAccountID: 2074551,
+                    currentUserEmail: '',
+                    translate: translateLocal,
+                    formatPhoneNumber,
+                    bankAccountList: {},
+                    groupBy: CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID,
+                    conciergeReportID: undefined,
+                    convertToDisplayString,
+                    reportAttributesDerivedValue: {},
+                    rules: undefined,
+                }),
+                SearchUIUtils.isTransactionGroupListItemType,
+            );
+
+            const sortGroups = (sortOrder: SortOrder) =>
+                SearchUIUtils.getSortedSections(
+                    CONST.SEARCH.DATA_TYPES.EXPENSE,
+                    [...sections],
+                    localeCompare,
+                    translateLocal,
+                    CONST.SEARCH.TABLE_COLUMNS.GROUP_WITHDRAWAL_STATUS,
+                    sortOrder,
+                    CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID,
+                ).map((group) => group.keyForList);
+
+            // Then cash back sorts past every settlement state instead of sitting between the cleared settlements
+            expect(sortGroups(CONST.SEARCH.SORT_ORDER.ASC)).toStrictEqual(['group_pending', 'group_failed', 'group_cleared8', 'group_cleared9', 'group_cashBackA', 'group_cashBackB']);
+            expect(sortGroups(CONST.SEARCH.SORT_ORDER.DESC)).toStrictEqual(['group_cashBackA', 'group_cashBackB', 'group_cleared9', 'group_cleared8', 'group_failed', 'group_pending']);
+        });
+
         it('should sort expense reports by each conversion amount, leaving the reports that did not convert at the empty end', () => {
             const withConversion = (keyForList: string, debitedAmount?: number, creditedAmount?: number) =>
                 createMock<TransactionReportGroupListItemType>({
@@ -9343,6 +9634,52 @@ describe('SearchUIUtils', () => {
             expect(allMenuItemKeys).not.toContain(CONST.SEARCH.SEARCH_KEYS.PAY);
             expect(allMenuItemKeys).not.toContain(CONST.SEARCH.SEARCH_KEYS.EXPORT);
             expect(allMenuItemKeys).not.toContain(CONST.SEARCH.SEARCH_KEYS.STATEMENTS);
+        });
+
+        it('should hide Violations by submitter from Spend menus once the Insights page replaces those entries', () => {
+            // Given a Control admin who still gets Violations by submitter from the Spend Insights section
+            const mockPolicies = {
+                policy1: {
+                    id: policyID,
+                    name: 'Control Workspace',
+                    owner: adminEmail,
+                    outputCurrency: 'USD',
+                    role: CONST.POLICY.ROLE.ADMIN,
+                    type: CONST.POLICY.TYPE.CORPORATE,
+                    areRulesEnabled: true,
+                    areCategoriesEnabled: true,
+                    employeeList: {
+                        'employee1@policy.com': {email: 'employee1@policy.com'},
+                        'employee2@policy.com': {email: 'employee2@policy.com'},
+                    },
+                },
+            };
+
+            const sections = SearchUIUtils.createTypeMenuSections({
+                currentUserEmail: adminEmail,
+                currentUserAccountID: adminAccountID,
+                cardFeedsByPolicy: {},
+                defaultCardFeed: undefined,
+                policies: mockPolicies,
+                savedSearches: {},
+                isOffline: false,
+                defaultExpensifyCard: undefined,
+                draftTransactionIDs: [],
+                isTrackIntentUser: false,
+            });
+
+            const menuKeysBeforeInsightsPage = sections.flatMap((section) => section.menuItems.map((item) => item.key));
+            expect(menuKeysBeforeInsightsPage).toContain(CONST.SEARCH.SEARCH_KEYS.VIOLATIONS_BY_SUBMITTER);
+
+            // When Spend menus hide the entries the Insights page takes over
+            const menuSections = SearchUIUtils.omitInsightsPageMenuItems(sections);
+            const menuKeys = menuSections.flatMap((section) => section.menuItems.map((item) => item.key));
+
+            // Then Violations by submitter leaves the Spend menu, while the suggested search definition remains
+            expect(menuKeys).not.toContain(CONST.SEARCH.SEARCH_KEYS.VIOLATIONS_BY_SUBMITTER);
+            expect(menuKeys).toContain(CONST.SEARCH.SEARCH_KEYS.EXPENSES);
+            expect(menuSections.find((section) => section.translationPath === 'search.tabs.insights')).toBeUndefined();
+            expect(SearchUIUtils.getSuggestedSearches(adminAccountID)[CONST.SEARCH.SEARCH_KEYS.VIOLATIONS_BY_SUBMITTER].key).toBe(CONST.SEARCH.SEARCH_KEYS.VIOLATIONS_BY_SUBMITTER);
         });
 
         it('should not show Needs approval for a Submit workspace member who is not an approver', () => {
@@ -14699,6 +15036,56 @@ describe('getWithdrawalStatusDisplayText', () => {
                 translateLocal,
             ),
         ).toBe('Pending, Cleared, Failed');
+    });
+});
+
+describe('isCashBackWithdrawalGroup', () => {
+    const withdrawalGroup = (overrides: Partial<TransactionWithdrawalIDGroupListItemType> = {}): TransactionWithdrawalIDGroupListItemType => ({
+        groupedBy: CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID,
+        transactions: [],
+        entryID: 88002,
+        count: 0,
+        total: -2500,
+        currency: 'USD',
+        accountNumber: '4321',
+        bankName: CONST.BANK_NAMES.AMERICAN_EXPRESS,
+        debitPosted: '2025-07-20',
+        state: 8,
+        keyForList: 'group_88002',
+        ...overrides,
+    });
+
+    it('returns true for a withdrawal group flagged as cash back', () => {
+        // Given a withdrawal group the backend flags as cash back
+        // When it is checked
+        // Then it is a cash back row
+        expect(SearchUIUtils.isCashBackWithdrawalGroup(withdrawalGroup({isCashBack: true}))).toBe(true);
+    });
+
+    it('returns false for a normal settlement withdrawal group', () => {
+        // Given withdrawal groups without the flag or with it set to false
+        // When they are checked
+        // Then neither is a cash back row
+        expect(SearchUIUtils.isCashBackWithdrawalGroup(withdrawalGroup())).toBe(false);
+        expect(SearchUIUtils.isCashBackWithdrawalGroup(withdrawalGroup({isCashBack: false}))).toBe(false);
+    });
+
+    it('stays false for a group of another type that happens to carry the flag', () => {
+        // Given a card group that carries the flag
+        const cardGroup = {...withdrawalGroup({isCashBack: true}), groupedBy: CONST.SEARCH.GROUP_BY.CARD};
+
+        // When it is checked
+        // Then it is not a cash back row, since only withdrawal groups can be
+        expect(SearchUIUtils.isCashBackWithdrawalGroup(cardGroup)).toBe(false);
+    });
+
+    it('stays false for a row that is not a transaction group at all', () => {
+        // Given a plain list row
+        const plainRow: ListItem = {keyForList: 'not-a-group'};
+
+        // When it is checked
+        // Then it is not a cash back row
+        expect(SearchUIUtils.isCashBackWithdrawalGroup(plainRow)).toBe(false);
     });
 });
 

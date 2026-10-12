@@ -13,13 +13,17 @@ function createPurchase(purchaseID: number, created: string, message: Purchase['
     };
 }
 
+function toPurchases(purchaseList: Purchase[]): Record<string, Purchase> {
+    return Object.fromEntries(purchaseList.map((purchase) => [String(purchase.purchaseID), purchase]));
+}
+
 describe('getPaymentHistoryRows', () => {
     it('lists one row per bill, newest first', () => {
         // Given bills from three different months, listed oldest first
         const purchaseList = [createPurchase(1, '2026-02-01'), createPurchase(2, '2026-08-01'), createPurchase(3, '2026-03-01', {billingType: CONST.BILLING.TYPE_CLEAR})];
 
         // When the table rows are built
-        const rows = getPaymentHistoryRows(purchaseList);
+        const rows = getPaymentHistoryRows(toPurchases(purchaseList));
 
         // Then each bill is kept and the newest month is first
         expect(rows.map((row) => row.purchaseID)).toEqual([2, 3, 1]);
@@ -39,7 +43,7 @@ describe('getPaymentHistoryRows', () => {
         ];
 
         // When the table rows are built
-        const rows = getPaymentHistoryRows(purchaseList);
+        const rows = getPaymentHistoryRows(toPurchases(purchaseList));
 
         // Then the modifier purchases are not their own rows, and the bill carries that state
         expect(rows.map((row) => row.purchaseID)).toEqual([12, 11, 10]);
@@ -54,7 +58,7 @@ describe('getPaymentHistoryRows', () => {
         ];
 
         // When the table rows are built
-        const rows = getPaymentHistoryRows(purchaseList);
+        const rows = getPaymentHistoryRows(toPurchases(purchaseList));
 
         // Then the clear is not its own row, and the original bill shows as cleared for the amount that was due
         expect(rows).toHaveLength(1);
@@ -72,7 +76,7 @@ describe('getPaymentHistoryRows', () => {
         ];
 
         // When the table rows are built
-        const rows = getPaymentHistoryRows(purchaseList);
+        const rows = getPaymentHistoryRows(toPurchases(purchaseList));
 
         // Then the refund replaces the dispute, because it happened later
         expect(rows).toHaveLength(1);
@@ -88,7 +92,7 @@ describe('getPaymentHistoryRows', () => {
         ];
 
         // When the table rows are built
-        const rows = getPaymentHistoryRows(purchaseList);
+        const rows = getPaymentHistoryRows(toPurchases(purchaseList));
 
         // Then the failed bill uses the amount that was due, and tax is hidden for the exempt account
         const failed = rows.find((row) => row.purchaseID === 1);
@@ -113,7 +117,7 @@ describe('getPaymentHistoryRows', () => {
         ];
 
         // When the table rows are built
-        const rows = getPaymentHistoryRows(purchaseList);
+        const rows = getPaymentHistoryRows(toPurchases(purchaseList));
 
         // Then the repeated person is counted once
         expect(rows.at(0)?.activeUserCount).toBe(2);

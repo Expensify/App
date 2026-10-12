@@ -9,11 +9,11 @@ import CONST from '@src/CONST';
 import type {CombinedCardFeeds} from '@src/hooks/useCardFeeds';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Card, CardFeeds, CardList, Domain, ExpensifyCardSettings, PersonalDetailsList, Policy, WorkspaceCardsList} from '@src/types/onyx';
-import type {CardFeedData, CardFeedsStatus, CardFeedsStatusByDomainID, CardFeedWithDomainID, CardFeedWithNumber, CombinedCardFeed} from '@src/types/onyx/CardFeeds';
+import type {CardFeedData, CardFeedsStatus, CardFeedsStatusByDomainID, CardFeedWithDomainID, CardFeedWithNumber, CombinedCardFeed, CustomCardFeedData} from '@src/types/onyx/CardFeeds';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
-import type {OnyxCollection} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 
 import {isAdminSelector} from '@selectors/Domain';
@@ -26,6 +26,7 @@ import {
     feedHasCards,
     getCardFeedIcon,
     getCardFeedWithDomainID,
+    getCompanyCardFeed,
     getCustomOrFormattedFeedName,
     getDomainByFundID,
     getOriginalCompanyFeeds,
@@ -39,7 +40,10 @@ import {
     isPersonalCard,
 } from './CardUtils';
 import {getExpensifyCardFeedDescription} from './ExpensifyCardFeedSelectorUtils';
-import {isPolicyAdmin} from './PolicyUtils';
+import {canMemberWrite, getPolicyForAssignedCard, isPolicyAdmin} from './PolicyUtils';
+
+/** The fields of an assigned card needed to resolve the workspace behind its feed */
+type AssignedCardForFeedAccess = Pick<Card, 'bank' | 'domainName' | 'fundID'>;
 
 type CardFilterItem = Partial<OptionData> & AdditionalCardProps & {isCardFeed?: boolean; correspondingCards?: string[]; cardFeedKey: string; plaidUrl?: string; keyForList: string};
 type CardFeedForDisplay = {
@@ -265,6 +269,86 @@ function getCardFeedsForDisplay(
     Object.assign(cardFeedsForDisplay, getExpensifyCardFeedsForDisplay(allCards, translate, policies, domains, expensifyCardSettings));
 
     return cardFeedsForDisplay;
+}
+
+/**
+ * The settings of the company card feed an assigned card belongs to.
+ *
+ * Both direct and custom feeds keep their settings, including the workspaces they are linked to, in `companyCards`.
+ * `oAuthAccountDetails` only holds a direct feed's credentials. The card's `bank` can carry the `#domainID` suffix,
+ * which is not part of the settings key.
+ */
+function getFeedSettingsForCard(card: AssignedCardForFeedAccess, allCardFeeds: OnyxCollection<CardFeeds>): CustomCardFeedData | undefined {
+    if (!card.fundID) {
+        return undefined;
+    }
+
+    return allCardFeeds?.[`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${card.fundID}`]?.settings?.companyCards?.[getCompanyCardFeed(card.bank)];
+}
+
+/**
+ * The workspaces the given cards' feeds name, so a consumer can make sure those policies are loaded before it
+ * resolves a card to its workspace. A feed names them with `linkedPolicyIDs`, or with a single `preferredPolicy`.
+ */
+function getPolicyIDsNamedByCardFeeds(cards: AssignedCardForFeedAccess[], allCardFeeds: OnyxCollection<CardFeeds>): string[] {
+    const policyIDs = new Set<string>();
+
+    for (const card of cards) {
+        const feedSettings = getFeedSettingsForCard(card, allCardFeeds);
+        for (const linkedPolicyID of feedSettings?.linkedPolicyIDs ?? []) {
+            if (linkedPolicyID) {
+                policyIDs.add(linkedPolicyID);
+            }
+        }
+        if (feedSettings?.preferredPolicy) {
+            policyIDs.add(feedSettings.preferredPolicy);
+        }
+    }
+
+    return [...policyIDs];
+}
+
+/**
+ * The workspace an assigned company card sends its holder to, and whether they are allowed to fix its feed.
+ *
+ * The wallet offers a link to the Company cards page, so it has to agree with what that page already shows. The
+ * workspace comes from the feed's own `linkedPolicyIDs`, then its `preferredPolicy`, and only a feed naming neither
+ * falls back to the fund, as in `getCardFeedsForDisplayPerPolicy`. A domain feed's `fundID` is the domain's account
+ * ID rather than a workspace's, so that fallback cannot find the workspace for one on its own.
+ *
+ * Whether the link is offered is the Company cards page's own write permission rather than the workspace role, so a
+ * card admin who can fix the feed is offered it, while a member or an auditor who would land on Not Found or a
+ * read-only page is told to ask an admin instead.
+ */
+function getAssignedCardFeedAccess(
+    card: AssignedCardForFeedAccess,
+    allCardFeeds: OnyxCollection<CardFeeds>,
+    policies: OnyxCollection<Policy>,
+    currentUserLogin: string | undefined,
+): {policyID: string | undefined; isAdmin: boolean} {
+    const fundID = Number(card.fundID);
+    if (!fundID) {
+        return {policyID: undefined, isAdmin: false};
+    }
+
+    const feedSettings = getFeedSettingsForCard(card, allCardFeeds);
+    const linkedPolicyIDs = feedSettings?.linkedPolicyIDs?.filter(Boolean) ?? [];
+    const namedPolicyIDs = linkedPolicyIDs.length ? linkedPolicyIDs : [feedSettings?.preferredPolicy].filter((policyID): policyID is string => !!policyID);
+    // A feed spells its policy IDs however the back end sent them, while the Onyx key is upper case, so the ID is
+    // normalized here as it is wherever else a feed's workspace is looked up.
+    const namedPolicies = namedPolicyIDs.map((policyID) => policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID.toUpperCase()}`]).filter((policy) => !!policy);
+
+    // The link goes to a workspace's Company cards page, which checks this same permission before it renders
+    // anything, so asking it here is what decides whether the link can do what it offers. A missing login falls back
+    // to the role the policy itself carries rather than hiding the link, because the personal details that hold the
+    // login load separately from the policy.
+    const canFixFeedOn = (policy: OnyxEntry<Policy>) => canMemberWrite(policy, currentUserLogin ?? '', CONST.POLICY.POLICY_FEATURE.COMPANY_CARDS);
+
+    // A feed can name more than one workspace. Prefer one the cardholder can fix the feed on, so the link lands
+    // somewhere they can act rather than on a workspace that would only show them the same problem again.
+    const policyForCard = namedPolicies.find(canFixFeedOn) ?? namedPolicies.at(0) ?? getPolicyForAssignedCard(card, policies);
+
+    return {policyID: policyForCard?.id, isAdmin: canFixFeedOn(policyForCard)};
 }
 
 /**
@@ -616,6 +700,8 @@ export {
     getCardFeedsForDisplay,
     getExpensifyCardFeedsForDisplay,
     getCardFeedsForDisplayPerPolicy,
+    getPolicyIDsNamedByCardFeeds,
+    getAssignedCardFeedAccess,
     getVisibleCompanyCardFeedsForSelector,
     getCombinedCardFeedsFromAllFeeds,
     getWorkspaceCardFeedsStatus,
