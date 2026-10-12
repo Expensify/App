@@ -149,7 +149,6 @@ const actionableIgnoredScrapeStatuses: number[] = [434];
 const cardHiddenFromSearchStates: number[] = [2, 4];
 
 const selectableOnboardingChoices = {
-    JOIN_WORKSPACE: 'newDotJoinWorkspace',
     MANAGE_TEAM: 'newDotManageTeam',
     EMPLOYER: 'newDotEmployer',
     TRACK_BUSINESS: 'newDotTrackWorkspace',
@@ -1170,6 +1169,7 @@ const CONST = {
         PAYMENT_HISTORY: 'paymentHistory',
         SUPPORT_TICKET: 'supportTicket',
         ANCHORED_FIELD_DROPDOWNS: 'anchoredFieldDropdowns',
+        RESIZABLE_TABLE_COLUMNS: 'resizableTableColumns',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
@@ -2030,6 +2030,7 @@ const CONST = {
             AUTOSCROLL_TO_TOP_THRESHOLD: 250,
             LINKED_MESSAGE_OFFSET: 40,
             MAX_GROUPING_TIME: 300000,
+            MAX_SYSTEM_MESSAGE_COLLAPSE_TIME: 24 * 60 * 60 * 1000,
         },
         CANCEL_PAYMENT_REASONS: {
             ADMIN: 'CANCEL_REASON_ADMIN',
@@ -2369,6 +2370,8 @@ const CONST = {
             MFA_SCENARIO: 'mfa_scenario',
             MFA_ERROR_REASON: 'mfa_error_reason',
             BUILD_TYPE: 'build_type',
+            /** Written by Sentry's `thirdPartyErrorFilterIntegration` on events whose every frame is foreign to our bundle, read by the noise filters. */
+            THIRD_PARTY_CODE: 'third_party_code',
         },
         EXPENSE_ERROR_TYPE: {
             REPORT_CREATION_FAILED: 'report_creation_failed',
@@ -3941,6 +3944,7 @@ const CONST = {
         AUTO_SYNC: 'autoSync',
         SYNC_REIMBURSED_REPORTS: 'syncReimbursedReports',
         BILL_PAYMENT_ACCOUNT_ID: 'billPaymentAccountID',
+        FX_EXPENSE_ACCOUNT_ID: 'fxExpenseAccountID',
         SYNC_EXPENSIFY_CARD_SETTLEMENTS: 'syncExpensifyCardSettlements',
         SETTLEMENTS_BANK_ACCOUNT_ID: 'settlementsBankAccountID',
         SYNC_TRAVEL_BILLING_SETTLEMENTS: 'syncTravelInvoicingSettlements',
@@ -4046,7 +4050,7 @@ const CONST = {
     },
 
     ZOHO_BOOKS_CONFIG: {
-        ORGANIZATION_ID: 'organizationID',
+        SUBSIDIARY_ID: 'subsidiaryID',
         ENABLE_NEW_CATEGORIES: 'enableNewCategories',
         SYNC_TAX_RATES: 'syncTaxRates',
         EXPORTER: 'exporter',
@@ -6090,7 +6094,7 @@ const CONST = {
     MAX_MARKUP_LENGTH: 10000,
 
     // WebKit renders only the ellipsis when a single-line text with text-overflow: ellipsis is longer than 10,240 characters (https://bugs.webkit.org/show_bug.cgi?id=267226).
-    // One line never shows this many characters, so we cut single-line texts to this length on mobile WebKit.
+    // One line never shows this many characters, so we cut single-line texts to this length on WebKit browsers.
     MAX_SINGLE_LINE_TEXT_LENGTH: 1000,
 
     MAX_THREAD_REPLIES_PREVIEW: 99,
@@ -7397,6 +7401,12 @@ const CONST = {
 
     REPORT_FIELD_TITLE_FIELD_ID: 'text_title',
 
+    /** How many report fields are shown side by side in the report view on a wide layout */
+    REPORT_FIELDS_PER_ROW: 3,
+
+    /** Below this many options, a report field list is short enough to scan without a search input */
+    REPORT_FIELD_LIST_SEARCH_THRESHOLD: 8,
+
     MOBILE_PAGINATION_SIZE: 15,
     WEB_PAGINATION_SIZE: 30,
 
@@ -7416,9 +7426,6 @@ const CONST = {
 
     // Returned when a user tries to add a work email that is a domain-controlled login for an existing account, so we can show a specific error message instead of the generic blocking screen subtitle
     WORK_DOMAIN_CONTROLLED_ERROR: '401 work domain is controlled',
-
-    // Returned when an already validated public-domain account tries to add a work email, so we can show a takeover-protection error message instead of the generic blocking screen subtitle
-    WORK_EMAIL_VALIDATED_PUBLIC_DOMAIN_ERROR: '403 Forbidden',
     REIMBURSEMENT_ACCOUNT: {
         DEFAULT_DATA: {
             achData: {
@@ -9407,9 +9414,6 @@ const CONST = {
         REVIEW_WORKSPACE_SETTINGS: 'reviewWorkspaceSettings',
         INVITE_ACCOUNTANT: 'inviteAccountant',
         ADD_EXPENSE_APPROVALS: 'addExpenseApprovals',
-        ADD_WORK_EMAIL: 'addWorkEmail',
-        VALIDATE_EMAIL: 'validateEmail',
-        JOIN_WORKSPACE: 'joinWorkspace',
     },
 
     MODAL_EVENTS: {
@@ -9458,6 +9462,25 @@ const CONST = {
 
             /** How wide a free-text column may be sized for its content once the table scrolls, so one unusually long value doesn't push every column after it out of view. A table that still fits its columns caps nothing: the spare room is there to be used. */
             MAX_FREE_TEXT_COLUMN_WIDTH: 180,
+        },
+
+        /** Stored-width keys, one per column set rather than per screen, so tables with the same columns share widths. */
+        COLUMN_RESIZING_IDS: {
+            WORKSPACE_MEMBERS: 'workspaceMembers',
+            WORKSPACE_TAXES: 'workspaceTaxes',
+            WORKSPACE_EXPENSIFY_CARDS: 'workspaceExpensifyCards',
+            WORKSPACE_COMPANY_CARDS: 'workspaceCompanyCards',
+        },
+
+        COLUMN_RESIZE: {
+            /** Narrowest drag width. Low enough to hide most content, but wide enough to keep the column's edge reachable. */
+            MIN_WIDTH: 48,
+
+            /** Width of the invisible drag strip centred on a column's edge. */
+            HANDLE_HIT_WIDTH: 12,
+
+            /** Width of the line shown while a column's edge is dragged. */
+            INDICATOR_WIDTH: 2,
         },
     },
 
@@ -9687,9 +9710,11 @@ const CONST = {
             REPORT_ACTION_ITEM_THREAD: 'Report-ReportActionItemThread',
             THREAD_DIVIDER: 'Report-ThreadDivider',
             REPORT_ACTION_ITEM: 'Report-ReportActionItem',
+            COLLAPSED_SYSTEM_MESSAGES: 'Report-CollapsedSystemMessages',
             MODERATION_BUTTON: 'Report-ModerationButton',
             MONEY_REQUEST_REPORT_ACTIONS_LIST_SELECT_ALL: 'MoneyRequestReportActionsList-SelectAll',
             MONEY_REQUEST_REPORT_TRANSACTION_ITEM: 'MoneyRequestReportTransactionItem',
+            REPORT_FIELD_DELETE_BUTTON: 'Report-ReportFieldDeleteButton',
             REPORT_ACTION_AVATAR: 'Report-ReportActionAvatar',
             PARTICIPANTS_ROW: 'Report-ParticipantsRow',
             ROOM_MEMBERS_ROW: 'Report-RoomMembersRow',
@@ -9891,6 +9916,9 @@ const CONST = {
         },
         MAP_VIEW: {
             COMPASS: 'compass',
+        },
+        NEW_CHAT: {
+            IMPORT_CONTACTS_ITEM: 'NewChat-ImportContacts',
         },
         MONEY_REQUEST: {
             AMOUNT_NEXT_BUTTON: 'MoneyRequest-AmountNextButton',
