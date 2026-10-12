@@ -31,9 +31,6 @@ function RangeDatePicker({fromValue, toValue, onFromSelected, onToSelected, forc
     const shouldStack = forceVertical || isSmallScreenWidth;
     const fromDate = DateUtils.parseCalendarDate(fromValue);
     const toDate = DateUtils.parseCalendarDate(toValue);
-    // A calendar reads defaultMonth only when it mounts, so an empty end remounts when the other end changes and opens on the new defaultMonth.
-    const fromCalendarKey = fromDate ? 'from' : `from-${toValue ?? ''}`;
-    const toCalendarKey = toDate ? 'to' : `to-${fromValue ?? ''}`;
 
     return (
         <View style={[!shouldStack && styles.flexRow, !shouldStack && styles.alignItemsStretch, styles.mh5, isSmallScreenWidth && styles.mt3]}>
@@ -41,7 +38,6 @@ function RangeDatePicker({fromValue, toValue, onFromSelected, onToSelected, forc
                 <View style={[styles.borderedContentCard, !shouldStack && styles.flex1]}>
                     <Text style={[styles.textLabelSupporting, styles.mb2, styles.ph4, styles.pt4]}>{translate('common.from')}</Text>
                     <CalendarPicker
-                        key={fromCalendarKey}
                         value={fromDate}
                         defaultMonth={toDate && min([new Date(), toDate])}
                         onSelected={(date) => onFromSelected(format(date, CONST.DATE.FNS_FORMAT_STRING))}
@@ -55,7 +51,6 @@ function RangeDatePicker({fromValue, toValue, onFromSelected, onToSelected, forc
                 <View style={[styles.borderedContentCard, !shouldStack && styles.flex1]}>
                     <Text style={[styles.textLabelSupporting, styles.mb2, styles.ph4, styles.pt4]}>{translate('common.to')}</Text>
                     <CalendarPicker
-                        key={toCalendarKey}
                         value={toDate}
                         defaultMonth={fromDate && max([new Date(), fromDate])}
                         onSelected={(date) => onToSelected(format(date, CONST.DATE.FNS_FORMAT_STRING))}

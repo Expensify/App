@@ -39,8 +39,8 @@ describe('DatePicker', () => {
         expect(screen.getByLabelText(DateUtils.formatToLongDateWithWeekday(new Date(), undefined))).not.toBeSelected();
     });
 
-    it('opens on the default month without selecting it when the field was cleared', () => {
-        // Given a field the user cleared, whose form default is March 10, 2020
+    it('opens an empty field on the month of its defaultValue without selecting it', () => {
+        // Given an empty field with a defaultValue of March 10, 2020, as a caller that renders DatePicker directly can pass
         render(
             <DatePicker
                 inputID="date"

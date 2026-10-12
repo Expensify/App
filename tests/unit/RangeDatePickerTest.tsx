@@ -226,6 +226,82 @@ describe('RangeDatePicker', () => {
         expect(screen.getAllByTestId('currentYearText').at(TO_CALENDAR_INDEX)).toHaveTextContent(fromDate.getFullYear().toString());
     });
 
+    test('keeps the From calendar mounted when its first date is picked', () => {
+        // Given an open range picker with both ends empty
+        const {rerender} = render(
+            <RangeDatePicker
+                onFromSelected={jest.fn()}
+                onToSelected={jest.fn()}
+            />,
+        );
+        const fifthLabel = toDayLabel(dayOfThisMonth(5));
+        const pressedDay = screen.getAllByLabelText(fifthLabel).at(FROM_CALENDAR_INDEX);
+
+        // When the user picks the 5th in the From calendar and the range saves it
+        pressDay(fifthLabel, FROM_CALENDAR_INDEX);
+        rerender(
+            <RangeDatePicker
+                fromValue={toStoredDate(dayOfThisMonth(5))}
+                onFromSelected={jest.fn()}
+                onToSelected={jest.fn()}
+            />,
+        );
+
+        // Then the pressed day is still the same element, because rebuilding the calendar under the press would drop keyboard and screen reader focus
+        expect(screen.getAllByLabelText(fifthLabel).at(FROM_CALENDAR_INDEX) === pressedDay).toBe(true);
+    });
+
+    test('keeps the To calendar mounted when its first date is picked', () => {
+        // Given an open range picker with both ends empty
+        const {rerender} = render(
+            <RangeDatePicker
+                onFromSelected={jest.fn()}
+                onToSelected={jest.fn()}
+            />,
+        );
+        const tenthLabel = toDayLabel(dayOfThisMonth(10));
+        const pressedDay = screen.getAllByLabelText(tenthLabel).at(TO_CALENDAR_INDEX);
+
+        // When the user picks the 10th in the To calendar and the range saves it
+        pressDay(tenthLabel, TO_CALENDAR_INDEX);
+        rerender(
+            <RangeDatePicker
+                toValue={toStoredDate(dayOfThisMonth(10))}
+                onFromSelected={jest.fn()}
+                onToSelected={jest.fn()}
+            />,
+        );
+
+        // Then the pressed day is still the same element, because rebuilding the calendar under the press would drop keyboard and screen reader focus
+        expect(screen.getAllByLabelText(tenthLabel).at(TO_CALENDAR_INDEX) === pressedDay).toBe(true);
+    });
+
+    test('keeps the From calendar on the month the user moved to when To is picked', () => {
+        // Given a From date of January 5, 2024, with the From calendar moved by the user to February 2024
+        const {rerender} = render(
+            <RangeDatePicker
+                fromValue="2024-01-05"
+                onFromSelected={jest.fn()}
+                onToSelected={jest.fn()}
+            />,
+        );
+        pressArrow('next-month-arrow', FROM_CALENDAR_INDEX);
+
+        // When the user picks March 20, 2024 as the To date
+        rerender(
+            <RangeDatePicker
+                fromValue="2024-01-05"
+                toValue="2024-03-20"
+                onFromSelected={jest.fn()}
+                onToSelected={jest.fn()}
+            />,
+        );
+
+        // Then the From calendar stays on February 2024, because it already has a date and picking To shouldn't undo the user's navigation
+        expect(screen.getAllByTestId('currentMonthText').at(FROM_CALENDAR_INDEX)).toHaveTextContent('February');
+        expect(screen.getAllByTestId('currentYearText').at(FROM_CALENDAR_INDEX)).toHaveTextContent('2024');
+    });
+
     test('keeps the calendars free to move past CONST.CALENDAR_PICKER.MAX_DATE while blocking the days after it', () => {
         // Given a range whose From date is MAX_DATE, the last day Search accepts
         const onFromSelected = jest.fn();

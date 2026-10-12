@@ -29,7 +29,7 @@ type CalendarPickerProps = {
     /** The selected date. Without it, no day is selected and the calendar opens on defaultMonth, or on today. When the date it opens on is outside minDate and maxDate, it opens on the nearest one. */
     value?: Date;
 
-    /** The month the calendar opens on when there is no value. Without it, the calendar opens on today. */
+    /** The month the calendar shows when there is no value. When it moves to another month, the calendar moves with it. Without it, the calendar opens on today. */
     defaultMonth?: Date;
 
     /** A minimum date (oldest) allowed to select. The calendar can't move to a month before it. Without a valid one, it is today's date in CONST.CALENDAR_PICKER.MIN_YEAR. */
@@ -84,6 +84,16 @@ function CalendarPicker({
     const minDate = getBound(minDateProp, CONST.CALENDAR_PICKER.MIN_YEAR);
     const maxDate = getBound(maxDateProp, CONST.CALENDAR_PICKER.MAX_YEAR);
     const [dateView, setDateView] = useState(value ?? defaultMonth ?? new Date());
+    // defaultMonth can be a new Date on every render, such as today, so the view follows it only when it moves to another month and nothing is selected.
+    const validDefaultMonth = defaultMonth && isValid(defaultMonth) ? defaultMonth : undefined;
+    const defaultMonthTime = validDefaultMonth && startOfMonth(validDefaultMonth).getTime();
+    const [prevDefaultMonthTime, setPrevDefaultMonthTime] = useState(defaultMonthTime);
+    if (defaultMonthTime !== prevDefaultMonthTime) {
+        setPrevDefaultMonthTime(defaultMonthTime);
+        if (!value) {
+            setDateView(validDefaultMonth ?? new Date());
+        }
+    }
     const currentDateView = clamp(dateView, {start: minDate, end: maxDate});
     const [isYearPickerVisible, setIsYearPickerVisible] = useState(false);
     const [isMonthPickerVisible, setIsMonthPickerVisible] = useState(false);

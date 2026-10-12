@@ -1046,3 +1046,54 @@ describe('CalendarPicker isDateSelectable', () => {
         expect(screen.getByLabelText('Tuesday, February 11, 2003')).toBeDisabled();
     });
 });
+
+describe('CalendarPicker defaultMonth', () => {
+    test('moves to a new defaultMonth while no day is selected', () => {
+        // Given a calendar with no value, open on its defaultMonth of January 2020
+        const {rerender} = render(<CalendarPicker defaultMonth={new Date(2020, 0, 15)} />);
+
+        // When defaultMonth moves to June 2022 while the calendar stays mounted, as when the other end of a range is picked
+        rerender(<CalendarPicker defaultMonth={new Date(2022, 5, 10)} />);
+
+        // Then the calendar shows June 2022, so it doesn't stay on a month the caller no longer points to
+        expect(within(screen.getByTestId('currentMonthText')).getByText(monthNames.at(5) ?? '')).toBeTruthy();
+        expect(within(screen.getByTestId('currentYearText')).getByText('2022')).toBeTruthy();
+    });
+
+    test('keeps the shown month when defaultMonth moves while a day is selected', () => {
+        // Given a calendar with a value in January 2020, moved by the user to February 2020
+        const value = new Date(2020, 0, 5);
+        const {rerender} = render(
+            <CalendarPicker
+                value={value}
+                defaultMonth={new Date(2021, 0, 1)}
+            />,
+        );
+        fireEvent.press(screen.getByTestId('next-month-arrow'));
+
+        // When defaultMonth moves to June 2022
+        rerender(
+            <CalendarPicker
+                value={value}
+                defaultMonth={new Date(2022, 5, 10)}
+            />,
+        );
+
+        // Then the calendar stays on February 2020, because defaultMonth only matters when there is no value
+        expect(within(screen.getByTestId('currentMonthText')).getByText(monthNames.at(1) ?? '')).toBeTruthy();
+        expect(within(screen.getByTestId('currentYearText')).getByText('2020')).toBeTruthy();
+    });
+
+    test('keeps the shown month when defaultMonth is a new date in the same month', () => {
+        // Given a calendar with no value, open on its defaultMonth of January 2020 and moved by the user to February 2020
+        const {rerender} = render(<CalendarPicker defaultMonth={new Date(2020, 0, 15)} />);
+        fireEvent.press(screen.getByTestId('next-month-arrow'));
+
+        // When the caller re-renders with a new Date in the same month, as a defaultMonth of today is on every render
+        rerender(<CalendarPicker defaultMonth={new Date(2020, 0, 20)} />);
+
+        // Then the calendar stays on February 2020, because only a move to another month moves the view
+        expect(within(screen.getByTestId('currentMonthText')).getByText(monthNames.at(1) ?? '')).toBeTruthy();
+        expect(within(screen.getByTestId('currentYearText')).getByText('2020')).toBeTruthy();
+    });
+});
