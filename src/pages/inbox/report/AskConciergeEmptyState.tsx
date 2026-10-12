@@ -19,15 +19,25 @@ function AskConciergeEmptyState() {
     return (
         <View
             testID="AskConciergeEmptyState"
-            style={styles.askConciergeEmptyStateContainer}
+            style={[styles.alignItemsCenter, styles.gap3, styles.ph5]}
         >
             <ImageSVG
                 src={illustrations.ConciergeBot}
                 width={ILLUSTRATION_SIZE}
                 height={ILLUSTRATION_SIZE}
             />
-            <Text style={styles.askConciergeEmptyStateTitle}>{translate('reportActionsView.askMeAnything')}</Text>
-            <Text style={styles.askConciergeEmptyStateDescription}>{translate('common.concierge.welcomeDescription')}</Text>
+            <Text
+                variant="h1"
+                textAlign="center"
+            >
+                {translate('reportActionsView.askMeAnything')}
+            </Text>
+            <Text
+                textAlign="center"
+                style={[styles.textSupporting, styles.ph5]}
+            >
+                {translate('common.concierge.welcomeDescription')}
+            </Text>
         </View>
     );
 }

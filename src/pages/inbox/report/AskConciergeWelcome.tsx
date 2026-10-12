@@ -1,6 +1,6 @@
 import ScrollView from '@components/ScrollView';
 
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useConciergeAskState from '@hooks/useConciergeAskState';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import React from 'react';
@@ -21,11 +21,11 @@ type AskConciergeWelcomeProps = {
 
 function AskConciergeWelcome({reportID, hasPreviousMessages, onShowPreviousMessages}: AskConciergeWelcomeProps) {
     const styles = useThemeStyles();
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {shouldCenterWelcomeWithComposer} = useConciergeAskState(reportID);
 
     return (
         <ScrollView
-            style={[!shouldUseNarrowLayout && styles.flexGrow0, styles.conciergeAskColumn]}
+            style={[shouldCenterWelcomeWithComposer && styles.flexGrow0, styles.conciergeAskColumn]}
             // Without previous messages the toggle is hidden, so its padding no longer keeps the description off the composer.
             contentContainerStyle={[styles.flexGrow1, styles.justifyContentCenter, !hasPreviousMessages && styles.pb5]}
             keyboardShouldPersistTaps="handled"

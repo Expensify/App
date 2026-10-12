@@ -497,6 +497,7 @@ const translations: TranslationDeepObject<typeof en> = {
         quarter: 'Trimestre',
         concierge: {
             greeting: 'Hola, ¿en qué puedo ayudarte?',
+            showHistory: 'Mostrar historial',
             subtitle: 'Tu asistente de IA personal',
             welcomeDescription: 'Concierge puede responder preguntas, actualizar gastos y mucho más.',
             viewChatHistory: 'Ver historial del chat',

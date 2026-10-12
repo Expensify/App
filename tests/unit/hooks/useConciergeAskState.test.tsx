@@ -46,12 +46,41 @@ describe('useConciergeAskState', () => {
         mockRouteParams = {};
     });
 
-    it('shows the empty state when the session has no activity', () => {
+    it('shows the empty state when the session has no activity', async () => {
         const {result} = renderHook(() => useConciergeAskState(CONCIERGE_REPORT_ID), {wrapper});
 
         expect(result.current.isAskConciergeChat).toBe(true);
         expect(result.current.isHistoryExpanded).toBe(false);
         expect(result.current.shouldShowWelcome).toBe(true);
+
+        // Given earlier Concierge messages that the user never replied to, such as the onboarding messages on a new account
+        const conciergeMessage = {
+            reportActionID: '5',
+            actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+            actorAccountID: CONST.ACCOUNT_ID.CONCIERGE,
+            created: '2024-06-01 11:00:00.000',
+        };
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${CONCIERGE_REPORT_ID}`, {[conciergeMessage.reportActionID]: conciergeMessage});
+        await waitForBatchedUpdates();
+
+        // Then the conversation stays on screen, because `View chat history` can't bring it back
+        expect(result.current.shouldShowWelcome).toBe(false);
+
+        // When the user has messaged Concierge before this session
+        const userMessage = {
+            reportActionID: '6',
+            actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+            actorAccountID: 100,
+            created: '2024-06-01 11:05:00.000',
+        };
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${CONCIERGE_REPORT_ID}`, {[userMessage.reportActionID]: userMessage});
+        await waitForBatchedUpdates();
+
+        // Then the empty state hides the earlier conversation behind `View chat history`
+        expect(result.current.shouldShowWelcome).toBe(true);
+
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${CONCIERGE_REPORT_ID}`, null);
+        await waitForBatchedUpdates();
     });
 
     it('keeps the empty state for a question that opens its own thread, while sending and once sent', async () => {

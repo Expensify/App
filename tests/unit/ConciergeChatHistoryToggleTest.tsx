@@ -24,11 +24,11 @@ jest.mock('@hooks/useLazyAsset', () => ({
     useMemoizedLazyExpensifyIcons: () => ({UpArrow: 'UpArrow', DownArrow: 'DownArrow'}),
 }));
 
-const mockResetSession = jest.fn();
+const mockSetShowFullHistory = jest.fn();
 
 jest.mock('@pages/inbox/ConciergeSessionContext', () => ({
     useConciergeSessionState: () => ({sessionStartTime: '2024-06-01 12:00:00.000', showFullHistory: false, hadMessagesAtSessionStart: false}),
-    useConciergeSessionActions: () => ({resetSession: mockResetSession}),
+    useConciergeSessionActions: () => ({setShowFullHistory: mockSetShowFullHistory}),
 }));
 
 jest.mock('@react-navigation/native', () => ({
@@ -79,12 +79,12 @@ describe('ConciergeChatHistoryToggle', () => {
         expect(onShowPreviousMessages).toHaveBeenCalledTimes(1);
     });
 
-    it('returns to the empty state when history is shown', () => {
+    it('collapses the earlier conversation when history is shown', () => {
         const {onShowPreviousMessages} = renderToggle({shouldShowFullHistory: true});
 
         expect(screen.getByText('Hide chat history')).toBeTruthy();
         fireEvent.press(screen.getByRole('button'));
-        expect(mockResetSession).toHaveBeenCalledTimes(1);
+        expect(mockSetShowFullHistory).toHaveBeenCalledWith(false);
         expect(Navigation.setParams).toHaveBeenCalledWith({reportActionID: undefined}, 'Report-test', 'ReportsSplitNavigator-test');
         expect(onShowPreviousMessages).not.toHaveBeenCalled();
     });

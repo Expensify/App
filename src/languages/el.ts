@@ -506,6 +506,7 @@ const translations: TranslationDeepObject<typeof en> = {
         tagGLCode: 'Ετικέτα κωδικού GL',
         concierge: {
             greeting: 'Γεια σας, πώς μπορώ να σας βοηθήσω;',
+            showHistory: 'Εμφάνιση ιστορικού',
             subtitle: 'Ο προσωπικός σας βοηθός AI',
             welcomeDescription: 'Ο Concierge μπορεί να απαντήσει σε ερωτήσεις, να ενημερώσει δαπάνες και άλλα.',
             viewChatHistory: 'Προβολή ιστορικού συνομιλιών',

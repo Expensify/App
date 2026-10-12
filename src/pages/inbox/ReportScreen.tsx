@@ -76,8 +76,8 @@ function ReportScreenEditMessageProvider({reportID, children}: ReportScreenEditM
 function ReportScreen({route, navigation, shouldDeferReportActions = false}: ReportScreenProps) {
     const styles = useThemeStyles();
     const reportIDFromRoute = getNonEmptyStringOnyxID(route.params?.reportID);
-    const {shouldShowWelcome: shouldShowConciergeWelcome} = useConciergeAskState(reportIDFromRoute);
-    const {isInNarrowPaneModal, shouldUseNarrowLayout} = useResponsiveLayout();
+    const {shouldCenterWelcomeWithComposer} = useConciergeAskState(reportIDFromRoute);
+    const {isInNarrowPaneModal} = useResponsiveLayout();
     const {currentReportID: currentReportIDValue} = useCurrentReportIDState();
     const viewportOffsetTop = useViewportOffsetTop();
     const isTopMostReportId = currentReportIDValue === reportIDFromRoute;
@@ -150,7 +150,7 @@ function ReportScreen({route, navigation, shouldDeferReportActions = false}: Rep
                                                         <View
                                                             style={[
                                                                 styles.flex1,
-                                                                shouldShowConciergeWelcome && !shouldUseNarrowLayout ? styles.justifyContentCenter : styles.justifyContentEnd,
+                                                                shouldCenterWelcomeWithComposer ? styles.justifyContentCenter : styles.justifyContentEnd,
                                                                 styles.overflowHidden,
                                                             ]}
                                                             testID="report-actions-view-wrapper"

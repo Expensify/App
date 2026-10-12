@@ -65,7 +65,7 @@ function ShowPreviousMessagesButton({reportID, actionType, hasPreviousMessages, 
                     size={CONST.BUTTON_SIZE.SMALL}
                     onPress={onPress}
                 >
-                    <Button.Text>{translate('common.concierge.viewChatHistory')}</Button.Text>
+                    <Button.Text>{translate('common.concierge.showHistory')}</Button.Text>
                     <Button.Icon src={expensifyIcons.UpArrow} />
                 </Button>
             </View>

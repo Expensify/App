@@ -505,6 +505,7 @@ const translations: TranslationDeepObject<typeof en> = {
         expensifyLogo: 'Expensify-Logo',
         concierge: {
             greeting: 'Hallo, wie kann ich helfen?',
+            showHistory: 'Verlauf anzeigen',
             subtitle: 'Dein persönlicher KI-Assistent',
             welcomeDescription: 'Concierge kann Fragen beantworten, Ausgaben aktualisieren und mehr.',
             viewChatHistory: 'Chatverlauf anzeigen',

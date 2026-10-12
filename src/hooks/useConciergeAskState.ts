@@ -17,6 +17,7 @@ import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useIsInSidePanel from './useIsInSidePanel';
 import useOnyx from './useOnyx';
 import usePermissions from './usePermissions';
+import useResponsiveLayout from './useResponsiveLayout';
 
 type ConciergeAskState = {
     /** Whether this is the Concierge chat in the Inbox and the beta is on */
@@ -28,6 +29,9 @@ type ConciergeAskState = {
     /** Whether to show the `Ask me anything!` welcome screen in place of the messages */
     shouldShowWelcome: boolean;
 
+    /** Whether the welcome screen and the composer are centered together on the screen */
+    shouldCenterWelcomeWithComposer: boolean;
+
     /** Whether to show `Ask a new question` above the composer */
     shouldLabelComposerAsNewQuestion: boolean;
 };
@@ -35,6 +39,7 @@ type ConciergeAskState = {
 function useConciergeAskState(reportID: string | undefined): ConciergeAskState {
     const {isBetaEnabled} = usePermissions();
     const isInSidePanel = useIsInSidePanel();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const route = useRoute<PlatformStackRouteProp<ReportsSplitNavigatorParamList, typeof SCREENS.REPORT>>();
     const {sessionStartTime, showFullHistory} = useConciergeSessionState();
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
@@ -57,17 +62,32 @@ function useConciergeAskState(reportID: string | undefined): ConciergeAskState {
         selector: hasSessionActivitySelector,
     });
 
+    // `View chat history` only appears once the user has messaged Concierge, so earlier messages without one stay on screen.
+    const hasUnhideableHistorySelector = (actions: OnyxEntry<ReportActions>) => {
+        if (!actions || !sessionStartTime) {
+            return false;
+        }
+        const previousActions = Object.values(actions).filter((action) => !isCreatedAction(action) && action.created < sessionStartTime);
+        return previousActions.length > 0 && !previousActions.some((action) => action.actorAccountID === currentUserAccountID);
+    };
+    const [hasUnhideableHistory] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
+        selector: hasUnhideableHistorySelector,
+    });
+
     const isAskConciergeChat = !!reportID && reportID === conciergeReportID && !isInSidePanel && isBetaEnabled(CONST.BETAS.CONCIERGE_RESPOND_IN_THREAD);
 
     const hasSessionBoundary = isAskConciergeChat && !!sessionStartTime;
 
     // A linked action opens the report at that message, so the earlier conversation is on screen either way.
-    const isHistoryExpanded = showFullHistory || !!route?.params?.reportActionID;
+    const isHistoryExpanded = showFullHistory || !!route.params?.reportActionID;
+
+    const shouldShowWelcome = hasSessionBoundary && !isHistoryExpanded && !hasSessionActivity && !hasUnhideableHistory;
 
     return {
         isAskConciergeChat,
         isHistoryExpanded,
-        shouldShowWelcome: hasSessionBoundary && !isHistoryExpanded && !hasSessionActivity,
+        shouldShowWelcome,
+        shouldCenterWelcomeWithComposer: shouldShowWelcome && !shouldUseNarrowLayout,
         shouldLabelComposerAsNewQuestion: hasSessionBoundary && showFullHistory && !hasSessionActivity,
     };
 }

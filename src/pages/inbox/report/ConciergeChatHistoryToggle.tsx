@@ -39,12 +39,12 @@ function ConciergeChatHistoryToggle({reportID, hasPreviousMessages, shouldShowFu
     const {translate} = useLocalize();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['UpArrow', 'DownArrow']);
     const {isAskConciergeChat} = useConciergeAskState(reportID);
-    const {resetSession} = useConciergeSessionActions();
+    const {setShowFullHistory} = useConciergeSessionActions();
     const route = useRoute();
     const navigation = useNavigation();
 
     const hideChatHistory = () => {
-        resetSession();
+        setShowFullHistory(false);
         // Arriving from a thread opens the report at the parent message, which keeps the earlier conversation on screen.
         Navigation.setParams({reportActionID: undefined}, route.key, navigation.getState()?.key);
     };
