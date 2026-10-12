@@ -11,9 +11,9 @@ import React from 'react';
 import {View} from 'react-native';
 
 import AddressSearch from './AddressSearch';
-import CountrySelector from './CountrySelector';
+import CountryPicker from './CountryPicker';
 import InputWrapper from './Form/InputWrapper';
-import StateSelector from './StateSelector';
+import StatePicker from './StatePicker';
 import TextInput from './TextInput';
 
 type AddressFieldsProps = {
@@ -74,7 +74,7 @@ function AddressFields({street1, street2, city, state, zip, defaultCountry, coun
             <View style={styles.formSpaceVertical} />
             <View style={styles.mhn5}>
                 <InputWrapper
-                    InputComponent={CountrySelector}
+                    InputComponent={CountryPicker}
                     inputID={INPUT_IDS.COUNTRY}
                     defaultValue={defaultCountry}
                 />
@@ -83,7 +83,7 @@ function AddressFields({street1, street2, city, state, zip, defaultCountry, coun
             {country === CONST.COUNTRY.US ? (
                 <View style={styles.mhn5}>
                     <InputWrapper
-                        InputComponent={StateSelector}
+                        InputComponent={StatePicker}
                         inputID={INPUT_IDS.STATE}
                         defaultValue={state}
                     />
