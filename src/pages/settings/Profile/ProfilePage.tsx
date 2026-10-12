@@ -111,8 +111,6 @@ function ProfilePage() {
     const vacationDelegateName = hasVacationDelegate
         ? getVacationDelegateDisplayName(vacationDelegatePersonalDetails?.login ?? activeVacationDelegate, vacationDelegatePersonalDetails?.displayName, formatPhoneNumber)
         : '';
-    // With no delegate there is nothing to show on the form yet, so go straight to picking one.
-    const vacationDelegateRoute = hasVacationDelegate ? ROUTES.SETTINGS_VACATION_DELEGATE : ROUTES.SETTINGS_VACATION_DELEGATE_SELECT;
     const vacationDelegateClearDate = hasVacationDelegate
         ? formatVacationDelegateClearDateTime(getVacationDelegateClearDateTime(vacationDelegate?.clearAfter, currentUserPersonalDetails?.timezone?.selected), dateFnsLocale)
         : '';
@@ -178,10 +176,10 @@ function ProfilePage() {
                 />
             ) : undefined,
             accessibilityLabel: hasVacationDelegate ? [translate('common.vacationDelegate'), vacationDelegateName, vacationDelegateUntilText].filter(Boolean).join(', ') : undefined,
-            pageRoute: vacationDelegateRoute,
+            pageRoute: ROUTES.SETTINGS_VACATION_DELEGATE,
             onPress: () => {
                 clearDraftValues(ONYXKEYS.FORMS.VACATION_DELEGATE_FORM);
-                Navigation.navigate(vacationDelegateRoute);
+                Navigation.navigate(ROUTES.SETTINGS_VACATION_DELEGATE);
             },
             brickRoadIndicator: vacationDelegateBrickRoadIndicator,
             pendingAction: vacationDelegate?.pendingAction ?? undefined,

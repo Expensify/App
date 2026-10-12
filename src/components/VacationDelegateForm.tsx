@@ -163,7 +163,7 @@ function VacationDelegateForm({
                 shouldHideOnDelete={false}
             >
                 <View style={styles.ph5}>
-                    {/* The date can only be changed through the picker, so it keeps its icon and has no clear button, as in the mockups.
+                    {/* Shows the calendar icon while empty and the clear button once a date is picked, so the delegate can go back to never clearing.
                         The earliest day is today in the form's timezone, so it matches the validation even when the device is in another timezone. */}
                     <InputWrapper
                         InputComponent={DatePicker}
@@ -172,8 +172,6 @@ function VacationDelegateForm({
                         defaultValue={savedClearDate}
                         minDate={getLocalDateFromDatetime(undefined, timezone)}
                         icon={icons.CalendarSolid}
-                        shouldKeepCalendarIconWhenSelected
-                        shouldHideClearButton
                         shouldSaveDraft
                     />
                 </View>

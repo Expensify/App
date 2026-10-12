@@ -325,7 +325,7 @@ describe('ProfilePage - agent account', () => {
         expect(screen.getByText('Private')).toBeDefined();
     });
 
-    it('opens the member picker from the vacation delegate row when no delegate is set', async () => {
+    it('opens the vacation delegate form from the row when no delegate is set', async () => {
         // Given a user with no vacation delegate
         await setupUser('user@expensify.com');
 
@@ -337,8 +337,9 @@ describe('ProfilePage - agent account', () => {
         fireEvent.press(screen.getByTestId('vacation-delegate-menu-item'), {nativeEvent: {}});
         await waitForBatchedUpdatesWithAct();
 
-        // Then the member picker opens directly, since the form has nothing to show until a member is picked
-        expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.SETTINGS_VACATION_DELEGATE_SELECT);
+        // Then the form opens with Choose delegate unselected, so the member and the clear after date are picked on one screen
+        expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.SETTINGS_VACATION_DELEGATE);
+        expect(Navigation.navigate).not.toHaveBeenCalledWith(ROUTES.SETTINGS_VACATION_DELEGATE_SELECT);
     });
 
     it('shows the vacation delegate and when it clears, and opens the form from the row', async () => {

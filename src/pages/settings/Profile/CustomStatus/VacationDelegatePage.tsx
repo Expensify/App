@@ -6,6 +6,7 @@ import useOnyx from '@hooks/useOnyx';
 
 import {setDraftValues} from '@libs/actions/FormActions';
 import Navigation from '@libs/Navigation/Navigation';
+import {getActiveVacationDelegate} from '@libs/VacationDelegateUtils';
 
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -52,7 +53,8 @@ function VacationDelegatePage() {
             shouldShowOfflineIndicator={false}
         >
             <BaseVacationDelegateSelectionComponent
-                vacationDelegate={draftDelegate ? {...vacationDelegate, delegate: draftDelegate} : vacationDelegate}
+                // An expired delegate reads as no delegate everywhere else, so it must not show up preselected here either
+                vacationDelegate={{...vacationDelegate, delegate: draftDelegate ?? getActiveVacationDelegate(vacationDelegate)}}
                 onSelectRow={onSelectRow}
                 headerTitle={translate('statusPage.vacationDelegate.chooseDelegate')}
                 onBackButtonPress={() => Navigation.goBack()}

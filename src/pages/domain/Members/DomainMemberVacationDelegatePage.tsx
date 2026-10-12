@@ -8,6 +8,7 @@ import {usePersonalDetail} from '@hooks/usePersonalDetails';
 
 import {setDraftValues} from '@libs/actions/FormActions';
 import Navigation from '@libs/Navigation/Navigation';
+import {getActiveVacationDelegate} from '@libs/VacationDelegateUtils';
 
 import type {PlatformStackScreenProps} from '@navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@navigation/types';
@@ -71,7 +72,8 @@ function DomainMemberVacationDelegatePage({route}: DomainMemberVacationDelegateP
                 testID="DomainMemberVacationDelegate"
             >
                 <BaseVacationDelegateSelectionComponent
-                    vacationDelegate={draftDelegate ? {...vacationDelegate, delegate: draftDelegate} : vacationDelegate}
+                    // An expired delegate reads as no delegate everywhere else, so it must not show up preselected here either
+                    vacationDelegate={{...vacationDelegate, delegate: draftDelegate ?? getActiveVacationDelegate(vacationDelegate)}}
                     headerTitle={translate('statusPage.vacationDelegate.chooseDelegate')}
                     onSelectRow={onSelectRow}
                     onBackButtonPress={() => Navigation.goBack()}
