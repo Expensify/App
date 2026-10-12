@@ -27,6 +27,8 @@ const ADMIN_EMAIL = 'admin@example.com';
 const ADMIN_ACCOUNT_ID = 1;
 const INVITEE_EMAIL = 'invitee@example.com';
 const INVITEE_ACCOUNT_ID = 2;
+const SUBMITTER_EMAIL = 'submitter@example.com';
+const APPROVER_EMAIL = 'approver@example.com';
 const MEMBERS_ROUTE = `workspaces/${POLICY_ID}/members` as Route;
 
 jest.mock('@react-navigation/native', () => {
@@ -179,8 +181,19 @@ describe('WorkspaceInviteMessageComponent - Approver row on Dynamic External Wor
     });
 
     it('still shows the Approver row on an Advanced workspace with a stale "Hide People Table Columns" flag', async () => {
-        // Given a workspace that moved off its DEW to Advanced approvals but kept the old flag
-        await renderPage(buildPolicy({approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED, dynamicExternalWorkflowHidePeople: true}));
+        // Given a workspace that moved off its DEW to a custom Advanced workflow but kept the old flag.
+        // The row is derived from the real workflows, so one member submits to a non-default approver.
+        await renderPage(
+            buildPolicy({
+                approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
+                dynamicExternalWorkflowHidePeople: true,
+                employeeList: {
+                    [ADMIN_EMAIL]: {email: ADMIN_EMAIL, submitsTo: ADMIN_EMAIL, role: CONST.POLICY.ROLE.ADMIN},
+                    [SUBMITTER_EMAIL]: {email: SUBMITTER_EMAIL, submitsTo: APPROVER_EMAIL, role: CONST.POLICY.ROLE.USER},
+                    [APPROVER_EMAIL]: {email: APPROVER_EMAIL, submitsTo: ADMIN_EMAIL, role: CONST.POLICY.ROLE.USER},
+                },
+            }),
+        );
 
         // Then the flag is ignored because it only applies to DEW workspaces
         expect(queryApproverRow()).toBeOnTheScreen();

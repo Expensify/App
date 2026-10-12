@@ -1,4 +1,6 @@
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
+import CollapsibleHeaderOnKeyboardGroup from '@components/CollapsibleHeaderOnKeyboard/Group';
+import CollapsibleHeaderOnKeyboardGroupMember from '@components/CollapsibleHeaderOnKeyboard/GroupMember';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import NAVIGATION_TABS from '@components/Navigation/NavigationTabBar/NAVIGATION_TABS';
 import TabBarBottomContent from '@components/Navigation/TabBarBottomContent';
@@ -17,6 +19,7 @@ import type {SearchParams, SearchQueryJSON} from '@components/Search/types';
 import useAndroidBackButtonHandler from '@hooks/useAndroidBackButtonHandler';
 import useEndSubmitNavigationSpans from '@hooks/useEndSubmitNavigationSpans';
 import {useLoadingBarVisibility} from '@hooks/useInFlightRequests';
+import useLayoutSpacing from '@hooks/useLayoutSpacing';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import usePrevious from '@hooks/usePrevious';
@@ -99,6 +102,7 @@ function SearchPageNarrow({
     const {translate} = useLocalize();
     const {windowHeight} = useWindowDimensions();
     const styles = useThemeStyles();
+    const {pageGutterMargin} = useLayoutSpacing();
     const StyleUtils = useStyleUtils();
     const {clearSelectedTransactions} = useSearchSelectionActions();
     const {shouldUseLiveData} = useSearchResultsContext();
@@ -270,44 +274,48 @@ function SearchPageNarrow({
                     <View style={[styles.flex1, styles.overflowHidden]}>
                         {!isMobileSelectionModeEnabled ? (
                             <View style={[StyleUtils.getSearchPageNarrowHeaderStyles(), styles.mh100]}>
-                                <View style={[styles.zIndex10, styles.appBG]}>
-                                    <SearchPageHeaderNarrow
-                                        queryJSON={queryJSON}
-                                        shouldShowLoadingBar={shouldShowLoadingState || shouldShowLoadingBarForReports}
-                                        isMobileSelectionModeEnabled={false}
-                                    />
-                                </View>
-                                <View style={styles.flex1}>
-                                    <Animated.View style={[topBarAnimatedStyle, styles.narrowSearchRouterInactiveStyle, styles.flex1, styles.appBG, styles.searchTopBarZIndexStyle]}>
-                                        <PulsingView
-                                            shouldPulse={!isHeaderInteractive}
-                                            style={styles.flex1}
-                                            wrapperStyle={[styles.flex1, styles.appBG]}
-                                        >
-                                            <SearchTypeMenuSwitch
-                                                showStatic={!isHeaderInteractive}
-                                                queryJSON={queryJSON}
-                                            />
-                                            <View style={[styles.flex1, styles.flexRow, styles.pt2, styles.mh5, styles.mb3, styles.gap3]}>
-                                                <SearchPageInputSwitch
+                                <CollapsibleHeaderOnKeyboardGroup>
+                                    <View style={[styles.zIndex10, styles.appBG]}>
+                                        <SearchPageHeaderNarrow
+                                            queryJSON={queryJSON}
+                                            shouldShowLoadingBar={shouldShowLoadingState || shouldShowLoadingBarForReports}
+                                            isMobileSelectionModeEnabled={false}
+                                        />
+                                    </View>
+                                    <View style={styles.flex1}>
+                                        <Animated.View style={[topBarAnimatedStyle, styles.narrowSearchRouterInactiveStyle, styles.flex1, styles.appBG, styles.searchTopBarZIndexStyle]}>
+                                            <PulsingView
+                                                shouldPulse={!isHeaderInteractive}
+                                                style={styles.flex1}
+                                                wrapperStyle={[styles.flex1, styles.appBG]}
+                                            >
+                                                <CollapsibleHeaderOnKeyboardGroupMember>
+                                                    <SearchTypeMenuSwitch
+                                                        showStatic={!isHeaderInteractive}
+                                                        queryJSON={queryJSON}
+                                                    />
+                                                </CollapsibleHeaderOnKeyboardGroupMember>
+                                                <View style={[styles.flex1, styles.flexRow, styles.pt2, pageGutterMargin, styles.mb3, styles.gap3]}>
+                                                    <SearchPageInputSwitch
+                                                        showStatic={!isHeaderInteractive}
+                                                        queryJSON={queryJSON}
+                                                        onFocus={() => topBarOffset.set(StyleUtils.searchHeaderDefaultOffset)}
+                                                    />
+                                                    <SearchActionsBarSwitch
+                                                        showStatic={!isHeaderInteractive}
+                                                        queryJSON={queryJSON}
+                                                        searchResults={searchResults}
+                                                        onSort={onSortPressedCallback}
+                                                    />
+                                                </View>
+                                                <SearchFiltersBarSwitch
                                                     showStatic={!isHeaderInteractive}
                                                     queryJSON={queryJSON}
-                                                    onFocus={() => topBarOffset.set(StyleUtils.searchHeaderDefaultOffset)}
                                                 />
-                                                <SearchActionsBarSwitch
-                                                    showStatic={!isHeaderInteractive}
-                                                    queryJSON={queryJSON}
-                                                    searchResults={searchResults}
-                                                    onSort={onSortPressedCallback}
-                                                />
-                                            </View>
-                                            <SearchFiltersBarSwitch
-                                                showStatic={!isHeaderInteractive}
-                                                queryJSON={queryJSON}
-                                            />
-                                        </PulsingView>
-                                    </Animated.View>
-                                </View>
+                                            </PulsingView>
+                                        </Animated.View>
+                                    </View>
+                                </CollapsibleHeaderOnKeyboardGroup>
                             </View>
                         ) : (
                             <>

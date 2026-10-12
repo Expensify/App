@@ -53,6 +53,9 @@ type UpdatedTransactionTagParams = {
     policyTags: OnyxEntry<PolicyTagLists>;
     hasDependentTags: boolean;
     hasMultipleTagLists: boolean;
+
+    /** The policy's number of tag lists. Only pass it once every tag list has loaded, since values beyond it are dropped. */
+    tagListCount?: number;
 };
 
 /**
@@ -357,7 +360,16 @@ function hasMatchingTag(policyTagLists: OnyxEntry<PolicyTagLists>, transactionTa
     });
 }
 
-function getUpdatedTransactionTag({transactionTag, selectedTagName, currentTag, tagListIndex, policyTags, hasDependentTags, hasMultipleTagLists}: UpdatedTransactionTagParams): string {
+function getUpdatedTransactionTag({
+    transactionTag,
+    selectedTagName,
+    currentTag,
+    tagListIndex,
+    policyTags,
+    hasDependentTags,
+    hasMultipleTagLists,
+    tagListCount,
+}: UpdatedTransactionTagParams): string {
     const isSelectedTag = selectedTagName === currentTag;
 
     if (hasDependentTags) {
@@ -391,7 +403,7 @@ function getUpdatedTransactionTag({transactionTag, selectedTagName, currentTag, 
     }
 
     // Independent tags (fallback): use comma-separated list.
-    return insertTagIntoTransactionTagsString(transactionTag, isSelectedTag ? '' : selectedTagName, tagListIndex, hasMultipleTagLists);
+    return insertTagIntoTransactionTagsString(transactionTag, isSelectedTag ? '' : selectedTagName, tagListIndex, hasMultipleTagLists, tagListCount);
 }
 
 /**

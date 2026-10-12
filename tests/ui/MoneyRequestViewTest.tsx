@@ -9,7 +9,7 @@ import initOnyxDerivedValues from '@userActions/OnyxDerived';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy} from '@src/types/onyx';
+import type {Policy, Transaction} from '@src/types/onyx';
 
 import type * as NativeNavigation from '@react-navigation/native';
 import type {PartialDeep} from 'type-fest';
@@ -108,7 +108,7 @@ const transactionID = 'txn_mrv_test';
 
 const SCREEN_WRAPPER_STATUS = {didScreenTransitionEnd: true, shouldUseNarrowLayoutOnWideRHP: false, isSafeAreaTopPaddingApplied: true, isSafeAreaBottomPaddingApplied: true};
 
-const renderMoneyRequestView = (threadReport: ReturnType<typeof LHNTestUtils.getFakeReport>, policy?: PartialDeep<Policy>) =>
+const renderMoneyRequestView = (threadReport: ReturnType<typeof LHNTestUtils.getFakeReport>, policy?: PartialDeep<Policy>, readonly = false) =>
     render(
         <ComposeProviders components={[OnyxListItemProvider]}>
             <ScreenWrapperStatusContext.Provider value={SCREEN_WRAPPER_STATUS}>
@@ -125,6 +125,7 @@ const renderMoneyRequestView = (threadReport: ReturnType<typeof LHNTestUtils.get
                         ...policy,
                     })}
                     shouldShowAnimatedBackground={false}
+                    readonly={readonly}
                 />
             </ScreenWrapperStatusContext.Provider>
         </ComposeProviders>,
@@ -607,6 +608,77 @@ describe('MoneyRequestView edit fields', () => {
         });
     });
 
+    it('shows a negative tax amount for a negative expense on an expense report', async () => {
+        // Given a negative expense on an expense report. Expense reports store amounts with the opposite sign,
+        // so a -$9.50 expense with -$0.95 tax is stored as amount 950 and taxAmount 95.
+        const threadReport = {
+            ...LHNTestUtils.getFakeReport(),
+            parentReportID: expenseReportID,
+            parentReportActionID,
+        };
+
+        await setupTestData();
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {
+                amount: 950,
+                taxCode: 'TAX_10',
+                taxAmount: 95,
+            });
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        // When the expense details are rendered
+        renderMoneyRequestView(threadReport, {tax: {trackingEnabled: true}});
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the tax amount keeps the negative sign instead of being shown as an absolute value
+        await waitFor(() => {
+            expect(screen.getByLabelText('iou.taxAmount, USD-95')).toBeOnTheScreen();
+        });
+    });
+
+    it('shows a negative tax amount on the merge confirmation page for a negative merged expense', async () => {
+        // Given a merged expense preview on an expense report. The merge flow keeps amounts with the sign they are
+        // displayed with, so a -$9.50 expense with -$0.95 tax is kept as amount -950 and taxAmount -95.
+        await setupTestData();
+        const mergedTransaction = createMock<Transaction>({
+            transactionID,
+            reportID: expenseReportID,
+            amount: -950,
+            modifiedAmount: -950,
+            currency: CONST.CURRENCY.USD,
+            created: '2025-06-01',
+            merchant: 'Coffee Shop',
+            comment: {},
+            taxCode: 'TAX_10',
+            taxName: 'Tax 10%',
+            taxValue: '10%',
+            taxAmount: -95,
+        });
+
+        // When the merge confirmation page renders the merged expense
+        render(
+            <ComposeProviders components={[OnyxListItemProvider]}>
+                <ScreenWrapperStatusContext.Provider value={SCREEN_WRAPPER_STATUS}>
+                    <MoneyRequestView
+                        parentReportID={expenseReportID}
+                        expensePolicy={createMock<Policy>({id: policyID, type: CONST.POLICY.TYPE.TEAM, outputCurrency: CONST.CURRENCY.USD, tax: {trackingEnabled: true}})}
+                        shouldShowAnimatedBackground={false}
+                        readonly
+                        updatedTransaction={mergedTransaction}
+                        mergeTransactionID={transactionID}
+                    />
+                </ScreenWrapperStatusContext.Provider>
+            </ComposeProviders>,
+        );
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the tax amount keeps the negative sign instead of being flipped again for the expense report
+        await waitFor(() => {
+            expect(screen.getByLabelText('iou.taxAmount, USD-95')).toBeOnTheScreen();
+        });
+    });
+
     it('does NOT append "Converted" to the Tax amount description when the converted tax is zero (tax exempt)', async () => {
         const threadReport = {
             ...LHNTestUtils.getFakeReport(),
@@ -761,6 +833,57 @@ describe('MoneyRequestView edit fields', () => {
             expect(screen.getByLabelText(fieldLabel('common.supplier'))).toHaveTextContent(/Acme Xero/);
         });
         expect(screen.queryByTestId('menu-item-common.vendor')).not.toBeOnTheScreen();
+    });
+
+    it.each([
+        {isBetaEnabled: false, reimbursable: false, reportType: CONST.REPORT.TYPE.EXPENSE, readonly: false, shouldShowVendor: true},
+        {isBetaEnabled: true, reimbursable: false, reportType: CONST.REPORT.TYPE.EXPENSE, readonly: false, shouldShowVendor: true},
+        {isBetaEnabled: false, reimbursable: true, reportType: CONST.REPORT.TYPE.EXPENSE, readonly: false, shouldShowVendor: false},
+        {isBetaEnabled: false, reimbursable: false, reportType: CONST.REPORT.TYPE.INVOICE, readonly: false, shouldShowVendor: false},
+        {isBetaEnabled: false, reimbursable: false, reportType: CONST.REPORT.TYPE.EXPENSE, readonly: true, shouldShowVendor: true},
+    ])('preserves Campfire vendor field eligibility for %j', async ({isBetaEnabled, reimbursable, reportType, readonly, shouldShowVendor}) => {
+        // Given an expense with a synced Campfire vendor and the selected expense and access restrictions
+        const threadReport = {
+            ...LHNTestUtils.getFakeReport(),
+            parentReportID: expenseReportID,
+            parentReportActionID,
+        };
+        await setupTestData();
+        await act(async () => {
+            await Onyx.set(ONYXKEYS.BETAS, isBetaEnabled ? [CONST.BETAS.VENDOR_MATCHING] : []);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${expenseReportID}`, {type: reportType});
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {
+                reimbursable,
+                comment: {vendor: {externalID: 'campfire-vendor', wasManuallySet: false}},
+            });
+        });
+
+        // When the expense renders on a configured Campfire workspace
+        renderMoneyRequestView(
+            threadReport,
+            {
+                connections: {
+                    [CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE]: {
+                        config: {isConfigured: true},
+                        data: {vendors: [{id: 'campfire-vendor', name: 'Campfire Supplies', isActive: true, vendorType: CONST.CAMPFIRE_VENDOR_TYPE.VENDOR}]},
+                    },
+                },
+            },
+            readonly,
+        );
+        await waitForBatchedUpdatesWithAct();
+
+        // Then beta enrollment does not bypass the expense eligibility or editing restrictions
+        if (!shouldShowVendor) {
+            expect(screen.queryByLabelText(fieldLabel('common.vendor'))).not.toBeOnTheScreen();
+            return;
+        }
+        expect(screen.getByLabelText(fieldLabel('common.vendor'))).toHaveTextContent(/Campfire Supplies/);
+        if (readonly) {
+            expect(screen.queryByRole(CONST.ROLE.BUTTON, {name: fieldLabel('common.vendor')})).not.toBeOnTheScreen();
+        } else {
+            expect(screen.getByRole(CONST.ROLE.BUTTON, {name: fieldLabel('common.vendor')})).toBeOnTheScreen();
+        }
     });
 
     it('hides the vendor row on Business Central without the vendorMatching beta because Business Central is still beta-gated', async () => {
