@@ -6149,6 +6149,11 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
             syncReimbursedReports: 'Sincronizza i report rimborsati',
             syncReimbursedReportsDescription: 'Quando un report viene pagato tramite ACH, in questo conto verrà generato un pagamento di una fattura.',
             billPaymentAccount: {label: 'Conto per il pagamento delle fatture', description: 'Scegli da dove pagare le fatture e creeremo il pagamento in DualEntry.'},
+            fxExpenseAccount: {
+                label: 'Conto commissioni conversione valuta DualEntry',
+                description:
+                    'Quando la tua azienda copre il costo di conversione valutaria su un pagamento effettuato all’estero, registreremo tale costo su questo conto in DualEntry come registrazione contabile.',
+            },
             syncExpensifyCardSettlements: 'Sincronizza le liquidazioni della Carta Expensify',
             settlementAccount: {label: 'Conto di regolamento Carta Expensify', description: 'Scegli il tuo conto di regolamento e creeremo il pagamento in DualEntry.'},
             syncTravelInvoicingSettlements: 'Sincronizza le liquidazioni di fatturazione viaggi',

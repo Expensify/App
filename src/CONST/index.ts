@@ -3942,6 +3942,7 @@ const CONST = {
         AUTO_SYNC: 'autoSync',
         SYNC_REIMBURSED_REPORTS: 'syncReimbursedReports',
         BILL_PAYMENT_ACCOUNT_ID: 'billPaymentAccountID',
+        FX_EXPENSE_ACCOUNT_ID: 'fxExpenseAccountID',
         SYNC_EXPENSIFY_CARD_SETTLEMENTS: 'syncExpensifyCardSettlements',
         SETTLEMENTS_BANK_ACCOUNT_ID: 'settlementsBankAccountID',
         SYNC_TRAVEL_BILLING_SETTLEMENTS: 'syncTravelInvoicingSettlements',
@@ -4047,7 +4048,7 @@ const CONST = {
     },
 
     ZOHO_BOOKS_CONFIG: {
-        ORGANIZATION_ID: 'organizationID',
+        SUBSIDIARY_ID: 'subsidiaryID',
         ENABLE_NEW_CATEGORIES: 'enableNewCategories',
         SYNC_TAX_RATES: 'syncTaxRates',
         EXPORTER: 'exporter',
