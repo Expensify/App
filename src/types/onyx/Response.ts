@@ -36,8 +36,10 @@ type Response<TKey extends OnyxKey> = {
 
     reportID?: string;
 
-    /** Transaction thread and action returned when a money request is edited */
+    /** Authoritative transaction thread for an edit; 0 means Auth has no thread for the expense. */
     transactionThreadReportID?: number | string;
+
+    /** Null means no action is included in this response; an action saved by an earlier retry may still exist. */
     modifiedExpenseReportAction?: Record<string, unknown> | null;
 
     /**
