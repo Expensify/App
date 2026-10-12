@@ -2,10 +2,12 @@ import BulkActionBar from '@components/BulkActionBar';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import KYCWall from '@components/KYCWall';
 import type {KYCWallRef} from '@components/KYCWall/types';
+import {useReportSubmitToPopoverAnchorRef} from '@components/ReportSubmitToPopoverAnchor';
 
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import mergeRefs from '@libs/mergeRefs';
 import type {KYCFlowEvent, TriggerKYCFlow} from '@libs/PaymentUtils';
 import {isSecondaryActionAPaymentOption, isSecondaryActionAWorkspacePolicyOption} from '@libs/PaymentUtils';
 
@@ -59,6 +61,9 @@ function SelectionBulkActionBar({
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
 
+    // Bulk Submit on a Submit workspace opens the submit-to popover, which should open against the bar like the KYC wall does.
+    const submitToAnchorRef = useReportSubmitToPopoverAnchorRef();
+
     return (
         <KYCWall
             ref={kycWallRef}
@@ -74,7 +79,7 @@ function SelectionBulkActionBar({
                     selectedCount={selectedTransactionIDs.length}
                     options={selectedTransactionsOptions}
                     onClearSelection={onClearSelection}
-                    barRef={buttonRef}
+                    barRef={mergeRefs(buttonRef, submitToAnchorRef)}
                     style={styles.zIndex10}
                     onSubItemSelected={(item, _index, event) => {
                         if (isSecondaryActionAWorkspacePolicyOption(item)) {
