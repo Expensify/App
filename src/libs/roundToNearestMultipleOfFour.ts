@@ -6,6 +6,8 @@
  * Round number to the nearest multiple of 4
  */
 function roundToNearestMultipleOfFour(n: number): number {
+    'worklet';
+
     if (n > 0) {
         return Math.ceil(n / 4.0) * 4;
     }

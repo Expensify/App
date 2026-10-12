@@ -13,7 +13,7 @@ import {setDisableDismissOnEscape} from './actions/Modal';
 import SidePanelActions from './actions/SidePanel';
 import {setOnboardingRHPVariant} from './actions/Welcome';
 import isReportTopmostSplitNavigator from './Navigation/helpers/isReportTopmostSplitNavigator';
-import dismissOnboardingModalBeforeExit from './Navigation/helpers/OnboardingNavigationUtils';
+import {dismissOnboardingModalBeforeExit} from './Navigation/helpers/OnboardingNavigationUtils';
 import shouldOpenOnAdminRoom from './Navigation/helpers/shouldOpenOnAdminRoom';
 import Navigation from './Navigation/Navigation';
 import {findLastAccessedReport} from './ReportUtils';
@@ -140,19 +140,18 @@ function navigateAfterOnboardingWithMicrotaskQueue(
     shouldPreventOpenAdminRoom = false,
     options?: NavigateAfterOnboardingOptions,
 ) {
-    dismissOnboardingModalBeforeExit(() => {
-        Navigation.setNavigationActionToMicrotaskQueue(() => {
-            navigateAfterOnboarding(
-                isSmallScreenWidth,
-                canUseDefaultRooms,
-                conciergeReportID,
-                reportNameValuePairs,
-                onboardingPolicyID,
-                onboardingAdminsChatReportID,
-                shouldPreventOpenAdminRoom,
-                options,
-            );
-        });
+    dismissOnboardingModalBeforeExit();
+    Navigation.setNavigationActionToMicrotaskQueue(() => {
+        navigateAfterOnboarding(
+            isSmallScreenWidth,
+            canUseDefaultRooms,
+            conciergeReportID,
+            reportNameValuePairs,
+            onboardingPolicyID,
+            onboardingAdminsChatReportID,
+            shouldPreventOpenAdminRoom,
+            options,
+        );
     });
 }
 
@@ -174,10 +173,9 @@ function navigateToSubmitWorkspaceAfterOnboarding(policyID?: string, shouldUseNa
 }
 
 function navigateToSubmitWorkspaceAfterOnboardingWithMicrotaskQueue(policyID?: string, shouldUseNarrowLayout = false) {
-    dismissOnboardingModalBeforeExit(() => {
-        Navigation.setNavigationActionToMicrotaskQueue(() => {
-            navigateToSubmitWorkspaceAfterOnboarding(policyID, shouldUseNarrowLayout);
-        });
+    dismissOnboardingModalBeforeExit();
+    Navigation.setNavigationActionToMicrotaskQueue(() => {
+        navigateToSubmitWorkspaceAfterOnboarding(policyID, shouldUseNarrowLayout);
     });
 }
 
