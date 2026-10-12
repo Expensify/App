@@ -58,10 +58,13 @@ type WorkspaceExpensifyCardLimitTypePickerModalProps = {
     selectedLimitType?: CardLimitType;
 
     onSelected?: (limitType: CardLimitType) => void;
+
+    /** Height of the picker. Defaults to the height its limit types need, pass a smaller value to fit it into limited space. */
+    popoverHeight?: number;
 } & Omit<PopoverWithMeasuredContentProps, 'anchorRef' | 'children' | 'onClose'>;
 
 /**
- * Inversion has to use the options this card can actually show. A fixed four-row height flips the menu when a shorter list still fits below the cell.
+ * Picking the side to open on has to use the options this card can actually show. A fixed four-row height flips the menu when a shorter list still fits below the cell.
  */
 function useWorkspaceExpensifyCardLimitTypePickerPopover({card, policy}: Pick<WorkspaceExpensifyCardLimitTypePickerModalProps, 'card' | 'policy'>) {
     const styles = useThemeStyles();
@@ -95,6 +98,7 @@ function WorkspaceExpensifyCardLimitTypePickerModal({
     onSelected,
     anchorAlignment = DEFAULT_ANCHOR_ALIGNMENT,
     shouldMeasureAnchorPositionFromTop = false,
+    popoverHeight,
 }: WorkspaceExpensifyCardLimitTypePickerModalProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -104,7 +108,8 @@ function WorkspaceExpensifyCardLimitTypePickerModal({
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Lock']);
     const [currentUserLogin] = useOnyx(ONYXKEYS.SESSION, {selector: emailSelector});
     const anchorRef = useRef<View>(null);
-    const {popoverHeight} = useWorkspaceExpensifyCardLimitTypePickerPopover({card, policy});
+    const {popoverHeight: contentHeight} = useWorkspaceExpensifyCardLimitTypePickerPopover({card, policy});
+    const resolvedHeight = popoverHeight ?? contentHeight;
 
     const areApprovalsConfigured = getApprovalWorkflow(policy) !== CONST.POLICY.APPROVAL_MODE.OPTIONAL;
     const canReadWorkflows = canMemberRead(policy, currentUserLogin ?? '', CONST.POLICY.POLICY_FEATURE.WORKFLOWS);
@@ -174,7 +179,7 @@ function WorkspaceExpensifyCardLimitTypePickerModal({
             anchorPosition={anchorPosition}
             popoverDimensions={{
                 width: CONST.POPOVER_DROPDOWN_WIDTH,
-                height: popoverHeight,
+                height: resolvedHeight,
             }}
             anchorAlignment={anchorAlignment}
             innerContainerStyle={StyleUtils.getWidthStyle(CONST.POPOVER_DROPDOWN_WIDTH)}
@@ -186,7 +191,7 @@ function WorkspaceExpensifyCardLimitTypePickerModal({
             shouldDisplayBelowModals
             enableEdgeToEdgeBottomSafeAreaPadding
         >
-            <View style={[StyleUtils.getHeight(popoverHeight), styles.flexColumn, styles.pv4]}>
+            <View style={[StyleUtils.getHeight(resolvedHeight), styles.flexColumn, styles.pv4]}>
                 <SelectionList
                     data={availableLimitTypeItems}
                     ListItem={SingleSelectListItem}

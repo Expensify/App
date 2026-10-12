@@ -44,10 +44,13 @@ type WorkspaceMemberRolePickerModalProps = {
     allowedRoles?: Array<ValueOf<typeof CONST.POLICY.ROLE>>;
 
     onSelected?: (role: ValueOf<typeof CONST.POLICY.ROLE>) => void;
+
+    /** Height of the picker. Defaults to the height its roles need, pass a smaller value to fit it into limited space. */
+    popoverHeight?: number;
 } & Omit<PopoverWithMeasuredContentProps, 'anchorRef' | 'children' | 'onClose'>;
 
 /**
- * Authorized Payer rows only show two roles, so inversion has to use that shorter height instead of the full dropdown max.
+ * Authorized Payer rows only show two roles, so picking the side to open on has to use that shorter height instead of the full dropdown max.
  */
 function useWorkspaceMemberRolePickerPopover({policy, selectedRole, allowedRoles}: Pick<WorkspaceMemberRolePickerModalProps, 'policy' | 'selectedRole' | 'allowedRoles'>) {
     const styles = useThemeStyles();
@@ -80,12 +83,14 @@ function WorkspaceMemberRolePickerModal({
     onSelected,
     anchorAlignment = DEFAULT_ANCHOR_ALIGNMENT,
     shouldMeasureAnchorPositionFromTop = false,
+    popoverHeight,
 }: WorkspaceMemberRolePickerModalProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const anchorRef = useRef<View>(null);
 
-    const {availableRoleItems, popoverHeight} = useWorkspaceMemberRolePickerPopover({policy, selectedRole, allowedRoles});
+    const {availableRoleItems, popoverHeight: contentHeight} = useWorkspaceMemberRolePickerPopover({policy, selectedRole, allowedRoles});
+    const resolvedHeight = popoverHeight ?? contentHeight;
 
     const handleRoleSelected = (item: ListItemType) => {
         onSelected?.(item.value);
@@ -100,7 +105,7 @@ function WorkspaceMemberRolePickerModal({
             anchorPosition={anchorPosition}
             popoverDimensions={{
                 width: CONST.POPOVER_DROPDOWN_WIDTH,
-                height: popoverHeight,
+                height: resolvedHeight,
             }}
             anchorAlignment={anchorAlignment}
             innerContainerStyle={StyleUtils.getWidthStyle(CONST.POPOVER_DROPDOWN_WIDTH)}
@@ -112,7 +117,7 @@ function WorkspaceMemberRolePickerModal({
             shouldDisplayBelowModals
             enableEdgeToEdgeBottomSafeAreaPadding
         >
-            <View style={[StyleUtils.getHeight(popoverHeight), styles.flexColumn, styles.pv4]}>
+            <View style={[StyleUtils.getHeight(resolvedHeight), styles.flexColumn, styles.pv4]}>
                 <SelectionList
                     data={availableRoleItems}
                     ListItem={SingleSelectListItem}

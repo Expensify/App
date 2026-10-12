@@ -74,7 +74,9 @@ function usePopoverEditStateImpl({
             const availableSpace = shouldOpenPopoverAbove ? spaceAbove : spaceBelow;
 
             setShouldOpenAbove(shouldOpenPopoverAbove);
-            setPopoverHeight(Math.max(Math.min(preferredPopoverHeight, availableSpace), CONST.POPOVER_DROPDOWN_MIN_USABLE_HEIGHT));
+            // Shrink to the available space, but not below the minimum usable height. Never grow past the preferred height,
+            // so a short list (for example, two member roles) keeps its own height.
+            setPopoverHeight(Math.min(preferredPopoverHeight, Math.max(availableSpace, CONST.POPOVER_DROPDOWN_MIN_USABLE_HEIGHT)));
             setPopoverPosition({
                 horizontal: anchorEdge === CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT ? x : x + width,
                 // When opening above, this is the popover's bottom edge (see `anchorAlignment` below), so the popover

@@ -570,6 +570,19 @@ describe('usePopoverEditState', () => {
             expect(result.current.popoverHeight).toBe(CONST.POPOVER_DATE_MAX_HEIGHT);
         });
 
+        it('keeps a preferred height below the minimum usable height instead of growing it', () => {
+            // Given a short picker, like the two-role member picker, whose content is shorter than the minimum usable height
+            const shortListHeight = MIN_HEIGHT - 40;
+            mockWindowHeight = 300;
+            const anchor = {...CELL, y: 150};
+
+            // When it opens on a window too short to fit even the minimum usable height
+            const result = openPopoverForAnchor(anchor, {popoverHeight: shortListHeight});
+
+            // Then it keeps its own height, because the minimum only limits how far a taller picker shrinks
+            expect(result.current.popoverHeight).toBe(shortListHeight);
+        });
+
         it('anchors to the right edge of the cell when anchorEdge is RIGHT', () => {
             mockWindowHeight = 900;
             const anchor = {...CELL, y: 100};
