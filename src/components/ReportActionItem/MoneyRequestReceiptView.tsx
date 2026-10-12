@@ -158,7 +158,7 @@ function MoneyRequestReceiptView({
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(parentReportID)}`);
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(parentReport?.parentReportID)}`);
     const [parentReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`);
-    const [allReportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS, {selector: reportActionsErrorFieldsSelector});
+    const [reportActionsErrorFields] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS, {selector: reportActionsErrorFieldsSelector});
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
@@ -577,7 +577,7 @@ function MoneyRequestReceiptView({
                 originalReportID,
                 isOffline,
                 reports: reportsParentHierarchy,
-                reportActions: allReportActions,
+                reportActions: reportActionsErrorFields,
             });
             return;
         }
@@ -592,7 +592,7 @@ function MoneyRequestReceiptView({
                 originalReportID,
                 isOffline,
                 reports: reportsParentHierarchy,
-                reportActions: allReportActions,
+                reportActions: reportActionsErrorFields,
             });
         }
         if (!isEmptyObject(reportCreationError)) {
