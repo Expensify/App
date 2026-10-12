@@ -1168,6 +1168,39 @@ describe('useYourSpendData — drops the approval cache when no outstanding repo
             expect(result.current.approvalTotals.total).toBe(900);
         });
     });
+
+    describe('an unstamped snapshot whose search is still loading', () => {
+        function makeLoadingUnstampedSnapshot(total: number): SearchResults {
+            const snapshot = makeSearchResultsWithCount(1);
+            snapshot.search.total = total;
+            snapshot.search.footerTotal = undefined;
+            snapshot.search.state = CONST.SEARCH.SNAPSHOT_STATE.LOADING;
+            return snapshot;
+        }
+
+        it('does not take its total online, since the breakdown it answers is not known yet', () => {
+            // Given a snapshot with no stamp whose search has not settled, so its total could be any breakdown
+            setupReports([makeReport()]);
+            setupApprovalSnapshot(makeLoadingUnstampedSnapshot(0));
+
+            const {result} = renderHook(() => useYourSpendData());
+
+            // Then the row loads until Home's own search confirms a plain total
+            expect(result.current.approvalRowState).toBe(YOUR_SPEND_ROW_STATE.LOADING);
+        });
+
+        it('hides the row offline with nothing cached', () => {
+            // Given the same snapshot, opened offline with nothing cached in memory
+            mockedUseNetwork.mockReturnValue(networkState(true));
+            setupReports([makeReport()]);
+            setupApprovalSnapshot(makeLoadingUnstampedSnapshot(0));
+
+            const {result} = renderHook(() => useYourSpendData());
+
+            // Then the row hides rather than show a total that may be another breakdown's
+            expect(result.current.approvalRowState).toBe(YOUR_SPEND_ROW_STATE.HIDDEN_EMPTY);
+        });
+    });
 });
 
 // isApprovalStale / isPaymentStale — grey only the total a queued change would move
