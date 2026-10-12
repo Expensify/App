@@ -438,7 +438,10 @@ function useReportActionsScroll({
             // Wait one frame so the initial positioning can settle, then disable it.
             requestAnimationFrame(() => {
                 setShouldDisablePillTracking(false);
-                updatePillVisibility();
+                // The list is hidden behind the expanded composer, so its offset must not show the Latest messages pill
+                if (!isComposerFullSize) {
+                    updatePillVisibility();
+                }
             });
         }
         if (!shouldFocusToTopOnMount) {

@@ -461,6 +461,8 @@ describe('useReportActionsScroll', () => {
     describe('pill tracking', () => {
         it('keeps scroll-based pill tracking enabled when the composer is not expanded', async () => {
             // Given the composer at its normal size and no linked message to position
+
+            // When the hook renders
             await renderScroll();
 
             // Then scroll-based pill tracking stays enabled so the Latest messages pill follows scrolling
