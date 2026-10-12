@@ -26,6 +26,8 @@ import {getFileName} from '@libs/fileDownload/FileUtils';
 import getPhotoSource from '@libs/fileDownload/getPhotoSource';
 import getVideoResolutionFormatFilter from '@libs/getVideoResolutionFormatFilter';
 import isInLandscapeMode from '@libs/isInLandscapeMode';
+import Log from '@libs/Log';
+import ReceiptStorage from '@libs/ReceiptStorage';
 import {logCameraCaptureFailed, logCameraRuntimeError} from '@libs/telemetry/ReceiptObservability';
 
 import CameraPermission from '@pages/iou/request/step/IOURequestStepScan/CameraPermission';
@@ -65,6 +67,13 @@ type AttachmentCameraProps = {
     /** Callback fired once the modal has finished its hide animation */
     onModalHide: () => void;
 };
+
+/** Deletes a photo the user did not use, so rejected full-resolution captures do not pile up in the cache */
+function discardPhoto(uriOrPath: string) {
+    ReceiptStorage.discard(uriOrPath).catch((error: unknown) => {
+        Log.warn('[AttachmentCamera] could not delete the discarded photo', {error: error instanceof Error ? error.message : String(error)});
+    });
+}
 
 function AttachmentCamera({isVisible, onCapture, onClose, onModalHide}: AttachmentCameraProps) {
     const theme = useTheme();
@@ -180,6 +189,7 @@ function AttachmentCamera({isVisible, onCapture, onClose, onModalHide}: Attachme
             .then((photo: PhotoFile) => {
                 // Discard capture if the camera was closed while takePhoto was in-flight
                 if (!isActiveRef.current) {
+                    discardPhoto(photo.path);
                     return;
                 }
                 const uri = getPhotoSource(photo.path);
@@ -214,6 +224,9 @@ function AttachmentCamera({isVisible, onCapture, onClose, onModalHide}: Attachme
     };
 
     const retakePhoto = () => {
+        if (capturedPhoto) {
+            discardPhoto(capturedPhoto.uri);
+        }
         setCapturedPhoto(null);
     };
 
@@ -229,6 +242,9 @@ function AttachmentCamera({isVisible, onCapture, onClose, onModalHide}: Attachme
     const handleClose = () => {
         isActiveRef.current = false;
         isCapturing.current = false;
+        if (capturedPhoto) {
+            discardPhoto(capturedPhoto.uri);
+        }
         setCapturedPhoto(null);
         setFlash(false);
         setCameraPosition('back');
@@ -238,8 +254,7 @@ function AttachmentCamera({isVisible, onCapture, onClose, onModalHide}: Attachme
     return (
         <Modal
             isVisible={isVisible}
-            // On Android, the back button during review returns to the viewfinder like "Retake"
-            onClose={capturedPhoto ? retakePhoto : handleClose}
+            onClose={handleClose}
             onModalHide={onModalHide}
             type={CONST.MODAL.MODAL_TYPE.FULLSCREEN}
             style={styles.appBG}

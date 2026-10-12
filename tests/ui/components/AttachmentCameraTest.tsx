@@ -7,6 +7,7 @@ import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import useAccessibilityAnnouncement from '@hooks/useAccessibilityAnnouncement';
 
 import isInLandscapeMode from '@libs/isInLandscapeMode';
+import ReceiptStorage from '@libs/ReceiptStorage';
 
 import type {CameraDevice} from 'react-native-vision-camera';
 
@@ -23,6 +24,7 @@ let mockPermissionStatus = 'granted';
 
 jest.mock('@libs/isInLandscapeMode');
 jest.mock('@hooks/useAccessibilityAnnouncement');
+jest.mock('@libs/ReceiptStorage', () => ({__esModule: true, default: {discard: jest.fn(() => Promise.resolve())}}));
 jest.mock('@expensify/react-native-hybrid-app', () => ({
     __esModule: true,
     default: {isHybridApp: jest.fn(() => false)},
@@ -85,6 +87,7 @@ const mockedUseCameraDevice = jest.mocked(useCameraDevice);
 const mockedUseCameraDevices = jest.mocked(useCameraDevices);
 const mockedIsInLandscapeMode = jest.mocked(isInLandscapeMode);
 const mockedUseAccessibilityAnnouncement = jest.mocked(useAccessibilityAnnouncement);
+const mockedDiscard = jest.mocked(ReceiptStorage.discard);
 
 function renderCamera(props: Partial<React.ComponentProps<typeof AttachmentCamera>> = {}) {
     const onCapture = jest.fn();
@@ -200,8 +203,9 @@ describe('AttachmentCamera', () => {
         fireEvent.press(screen.getByLabelText(translateLocal('attachmentPicker.usePhoto')));
         await waitForBatchedUpdatesWithAct();
 
-        // Then the photo is handed to the picker
+        // Then the photo is handed to the picker, and its file is kept for upload
         expect(onCapture).toHaveBeenCalledTimes(1);
+        expect(mockedDiscard).not.toHaveBeenCalled();
         expect(onCapture).toHaveBeenCalledWith([
             expect.objectContaining({
                 fileName: 'shot.jpg',
@@ -240,8 +244,9 @@ describe('AttachmentCamera', () => {
         fireEvent.press(screen.getByLabelText(translateLocal('attachmentPicker.retake')));
         await waitForBatchedUpdatesWithAct();
 
-        // Then the shutter is back, nothing was sent, and a new photo can be taken
+        // Then the shutter is back, nothing was sent, the rejected file is deleted, and a new photo can be taken
         expect(onCapture).not.toHaveBeenCalled();
+        expect(mockedDiscard).toHaveBeenCalledWith(expect.stringContaining('shot.jpg'));
         expect(screen.queryByLabelText(translateLocal('attachmentPicker.usePhoto'))).not.toBeOnTheScreen();
         expect(screen.queryByLabelText(translateLocal('attachmentPicker.capturedPhotoPreview'))).not.toBeOnTheScreen();
         fireEvent.press(screen.getByLabelText(translateLocal('receipt.shutter')));
@@ -249,21 +254,21 @@ describe('AttachmentCamera', () => {
         expect(mockTakePhoto).toHaveBeenCalledTimes(2);
     });
 
-    it('returns to the viewfinder instead of closing when Android back is pressed during review', async () => {
+    it('closes the camera when a close request arrives during review', async () => {
         // Given a captured photo under review
         const {onCapture, onClose} = renderCamera();
         await waitForBatchedUpdatesWithAct();
         fireEvent.press(screen.getByLabelText(translateLocal('receipt.shutter')));
         await waitForBatchedUpdatesWithAct();
 
-        // When the modal receives a close request, which is how Android's back button reaches it
+        // When the modal receives a close request, which is how Android back and app-wide Modal.close() reach it
         fireEvent(screen.getByTestId('AttachmentCameraModal'), 'close');
         await waitForBatchedUpdatesWithAct();
 
-        // Then back acts like "Retake": the camera stays open on the viewfinder and nothing is sent
-        expect(onClose).not.toHaveBeenCalled();
+        // Then the camera really closes, so callers waiting for the modal to hide (e.g. push notification navigation) are not stuck
+        expect(onClose).toHaveBeenCalledTimes(1);
         expect(onCapture).not.toHaveBeenCalled();
-        expect(screen.getByLabelText(translateLocal('receipt.shutter'))).toBeOnTheScreen();
+        expect(mockedDiscard).toHaveBeenCalledWith(expect.stringContaining('shot.jpg'));
     });
 
     it('discards the photo under review when the close button is pressed', async () => {
@@ -277,9 +282,35 @@ describe('AttachmentCamera', () => {
         fireEvent.press(screen.getByLabelText(translateLocal('common.close')));
         await waitForBatchedUpdatesWithAct();
 
-        // Then the camera closes without sending the photo
+        // Then the camera closes without sending the photo, and the rejected file is deleted
         expect(onClose).toHaveBeenCalledTimes(1);
         expect(onCapture).not.toHaveBeenCalled();
+        expect(mockedDiscard).toHaveBeenCalledWith(expect.stringContaining('shot.jpg'));
+    });
+
+    it('deletes a photo that finishes capturing after the camera was closed', async () => {
+        // Given a capture that is still in flight
+        let resolveTakePhoto: (photo: {path: string; width: number; height: number}) => void = () => {};
+        mockTakePhoto.mockImplementationOnce(
+            () =>
+                new Promise((resolve) => {
+                    resolveTakePhoto = resolve;
+                }),
+        );
+        const {onCapture} = renderCamera();
+        await waitForBatchedUpdatesWithAct();
+        fireEvent.press(screen.getByLabelText(translateLocal('receipt.shutter')));
+
+        // When the user closes the camera before the capture resolves
+        fireEvent.press(screen.getByLabelText(translateLocal('common.close')));
+        await act(async () => {
+            resolveTakePhoto({path: '/tmp/photos/late.jpg', width: 3024, height: 4032});
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the late photo is neither shown nor sent, and its file is deleted
+        expect(onCapture).not.toHaveBeenCalled();
+        expect(mockedDiscard).toHaveBeenCalledWith('/tmp/photos/late.jpg');
     });
 
     it('does not capture twice while a capture is already in flight', async () => {
