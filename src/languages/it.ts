@@ -628,15 +628,6 @@ const translations: TranslationDeepObject<typeof en> = {
         launching: 'Avvio di Expensify',
         expired: 'La tua sessione è scaduta.',
         signIn: 'Accedi di nuovo.',
-        notValid: 'Link non valido.',
-        sessionMismatch: 'Il link che hai cliccato non è valido per la tua sessione attuale.',
-        switchAccount: {
-            title: 'Passare ad un altro account?',
-            prompt: ({newEmail, currentEmail}: {newEmail: string; currentEmail: string}) =>
-                `Hai eseguito l’accesso come ${currentEmail}. Questa azione ti farà accedere come ${newEmail} invece.`,
-            confirm: 'Cambia account',
-            staySignedIn: 'Non cambiare account',
-        },
     },
     multifactorAuthentication: {
         reviewTransaction: {
@@ -1634,7 +1625,6 @@ const translations: TranslationDeepObject<typeof en> = {
             invalidSplitYourself: 'Inserisci un importo diverso da zero per la tua suddivisione',
             noParticipantSelected: 'Seleziona un partecipante',
             other: 'Errore imprevisto. Riprova più tardi.',
-            payFailedExpenseDeleted: 'Il pagamento non è riuscito perché la nota spese è stata eliminata.',
             genericCreateFailureMessage: 'Errore imprevisto durante l’invio di questa nota spese. Riprova più tardi.',
             genericCreateInvoiceFailureMessage: 'Errore imprevisto nell’invio di questa fattura. Riprova più tardi.',
             genericHoldExpenseFailureMessage: 'Errore imprevisto durante il blocco di questa spesa. Riprova più tardi.',
@@ -2302,6 +2292,7 @@ const translations: TranslationDeepObject<typeof en> = {
     displayNamePage: {
         headerTitle: 'Nome visualizzato',
         isShownOnProfile: 'Il tuo nome visualizzato viene mostrato sul tuo profilo.',
+        isShownOnMemberProfile: 'Il nome visualizzato apparirà sul profilo del membro. Una volta salvato, solo il membro potrà modificarlo.',
     },
     timezonePage: {
         timezone: 'Fuso orario',
@@ -2348,7 +2339,6 @@ const translations: TranslationDeepObject<typeof en> = {
             useProfiling: 'Usa il profiling',
             profileTrace: 'Traccia profilo',
             results: 'Risultati',
-            releaseOptions: 'Opzioni di rilascio',
             testingPreferences: 'Preferenze di test',
             server: 'Server',
             servers: {
@@ -6154,6 +6144,11 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
             syncReimbursedReports: 'Sincronizza i report rimborsati',
             syncReimbursedReportsDescription: 'Quando un report viene pagato tramite ACH, in questo conto verrà generato un pagamento di una fattura.',
             billPaymentAccount: {label: 'Conto per il pagamento delle fatture', description: 'Scegli da dove pagare le fatture e creeremo il pagamento in DualEntry.'},
+            fxExpenseAccount: {
+                label: 'Conto commissioni conversione valuta DualEntry',
+                description:
+                    'Quando la tua azienda copre il costo di conversione valutaria su un pagamento effettuato all’estero, registreremo tale costo su questo conto in DualEntry come registrazione contabile.',
+            },
             syncExpensifyCardSettlements: 'Sincronizza le liquidazioni della Carta Expensify',
             settlementAccount: {label: 'Conto di regolamento Carta Expensify', description: 'Scegli il tuo conto di regolamento e creeremo il pagamento in DualEntry.'},
             syncTravelInvoicingSettlements: 'Sincronizza le liquidazioni di fatturazione viaggi',
@@ -8321,6 +8316,8 @@ Richiedi dettagli sulle spese come ricevute e descrizioni, imposta limiti e valo
                 applyUpdates: 'Applica questi aggiornamenti:',
                 saveRule: 'Salva regola',
                 previewMatches: 'Anteprima corrispondenze',
+                previewMatchesDescription: 'Guarda come questa regola si applica alle tue spese',
+                preview: 'Anteprima',
                 confirmError: 'Inserisci l’esercente e applica almeno un aggiornamento',
                 confirmErrorMerchant: 'Inserisci l’esercente',
                 confirmErrorUpdate: 'Applica almeno un aggiornamento',
@@ -8657,6 +8654,14 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
                 requireFieldsDescription: 'Richiedi campi specifici per le spese oppure rinuncia a renderli obbligatori.',
                 createAgentRule: 'Descrivi regola agente',
                 createAgentRuleDescription: 'Crea regole flessibili che vengono eseguite quando ne hai bisogno.',
+                describe: 'Descrivi',
+                describeRule: 'Descrivi la tua regola con parole semplici e Concierge la creerà per te',
+                describeRuleInputLabel: 'Descrivi la regola',
+                promptErrors: {
+                    unsupported: 'Questa regola non è ancora supportata: ci stiamo lavorando. Per ora prova una regola diversa.',
+                    unintelligible: 'Prova a formulare la regola così: se le spese superano i 100 $, richiedi una ricevuta.',
+                    multipleRules: 'Una regola alla volta, per favore: prova a descrivere una singola regola, ad esempio bloccare gli acquisti al dettaglio su tutte le carte.',
+                },
             },
             expenseDefaultsTable: {
                 tableColumnType: 'Tipo',
@@ -9762,6 +9767,8 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
             return `ha modificato i partecipanti della categoria "${categoryName}" in ${newValue ? 'obbligatorio' : 'non obbligatorio'} (in precedenza ${newValue ? 'non obbligatorio' : 'obbligatorio'})`;
         },
         updatedAutoHarvesting: (enabled: boolean) => `invii ${enabled ? 'abilitato' : 'disattivato'}`,
+        updatedMemberDisplayName: (newName: string, oldName: string, editProfileURL: string) =>
+            `ha aggiornato il tuo nome visualizzato in ${newName} (precedentemente “${oldName}”). <a href="${editProfileURL}">Modifica nel tuo profilo</a>`,
         changedOverLimitForwardsTo: ({
             member,
             approver,
@@ -10211,12 +10218,7 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
         },
     },
     settlement: {
-        status: {
-            pending: 'In sospeso',
-            cleared: 'Compensato',
-            failed: 'Non riuscito',
-            never: 'Mai',
-        },
+        status: {pending: 'In sospeso', cleared: 'Compensato', failed: 'Non riuscito', never: 'Mai', cashBack: 'Cashback'},
         failedError: ({link}: {link: string}) => `Riproveremo a effettuare questa liquidazione quando <a href="${link}">sblocchi il tuo conto</a>.`,
         withdrawalInfo: ({date, withdrawalID}: {date: string; withdrawalID: number}) => `${date} • ID prelievo: ${withdrawalID}`,
     },
@@ -10249,6 +10251,10 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
         genericUpdateReportFieldFailureMessage: "Errore imprevisto durante l'aggiornamento del campo. Riprova più tardi.",
         genericUpdateReportNameEditFailureMessage: 'Errore imprevisto durante la rinomina del report. Riprova più tardi.',
         noActivityYet: 'Ancuna nessuna attività',
+        collapsedSystemMessages: () => ({
+            one: 'mostra 1 aggiornamento',
+            other: (count: number) => `mostra ${count} aggiornamenti`,
+        }),
         connectionSettings: 'Impostazioni di connessione',
         actions: {
             type: {

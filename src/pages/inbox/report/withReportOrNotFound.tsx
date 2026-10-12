@@ -117,7 +117,7 @@ export default function (shouldRequireReportID = true): <TProps extends WithRepo
             }
 
             if (decision === 'loading') {
-                return <FullscreenLoadingIndicator shouldUseGoBackButton />;
+                return <FullscreenLoadingIndicator />;
             }
 
             if (decision === 'notFound') {

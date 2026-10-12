@@ -11,6 +11,7 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import {useGetPersonalDetailsByLogin} from '@hooks/usePersonalDetailByLogin';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {clearDraftValues} from '@libs/actions/FormActions';
@@ -46,6 +47,7 @@ function VacationDelegateMissingWorkspacesPage() {
     const styles = useThemeStyles();
     const {translate, formatPhoneNumber} = useLocalize();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const getPersonalDetailsByLogin = useGetPersonalDetailsByLogin();
 
     const [vacationDelegate, vacationDelegateMetadata] = useOnyx(ONYXKEYS.NVP_PRIVATE_VACATION_DELEGATE);
 
@@ -102,7 +104,7 @@ function VacationDelegateMissingWorkspacesPage() {
     });
 
     if (!submittedInput && isLoadingOnyxValue(vacationDelegateMetadata)) {
-        return <FullScreenLoadingIndicator shouldUseGoBackButton />;
+        return <FullScreenLoadingIndicator onGoBack={() => Navigation.goBack(ROUTES.SETTINGS_VACATION_DELEGATE)} />;
     }
 
     if (!policyDiff) {
@@ -126,6 +128,7 @@ function VacationDelegateMissingWorkspacesPage() {
                     email: currentUserPersonalDetails.email,
                     avatar: currentUserPersonalDetails.avatar,
                 },
+                personalDetailsByLogins: getPersonalDetailsByLogin(),
                 translate,
                 formatPhoneNumber,
             });
