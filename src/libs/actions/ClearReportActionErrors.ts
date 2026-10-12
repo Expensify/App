@@ -1,4 +1,4 @@
-import {getLinkedTransactionID, getReportAction, getReportActionMessage, isCreatedTaskReportAction, isRejectedAction} from '@libs/ReportActionsUtils';
+import {getLinkedTransactionID, getReportActionMessage, isCreatedTaskReportAction, isRejectedAction} from '@libs/ReportActionsUtils';
 import {getOriginalReportID} from '@libs/ReportUtils';
 import {buildOptimisticSnapshotData} from '@libs/SearchQueryUtils';
 
@@ -19,6 +19,7 @@ type IgnoreDirection = 'parent' | 'child';
 /** The subset of report data needed to walk the parent hierarchy when clearing related errors */
 type ReportHierarchyInfo = Pick<OnyxTypes.Report, 'parentReportID' | 'parentReportActionID'>;
 
+// TODO: Remove this transitional fallback once all callers pass the `reportActions` param (https://github.com/Expensify/App/issues/96139)
 let allReportActions: OnyxCollection<OnyxTypes.ReportActions>;
 Onyx.connectWithoutView({
     key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
@@ -33,7 +34,7 @@ Onyx.connectWithoutView({
     },
 });
 
-function clearReportActionErrors(reportAction: ReportAction, originalReportID: string | undefined, keys?: string[]) {
+function clearReportActionErrors(reportAction: ReportAction, originalReportID: string | undefined, keys?: string[], reportActions?: OnyxCollection<OnyxTypes.ReportActions>) {
     if (!reportAction?.reportActionID) {
         return;
     }
@@ -52,7 +53,7 @@ function clearReportActionErrors(reportAction: ReportAction, originalReportID: s
         // Also clean up any orphaned optimistic reject actions (REJECTED/REJECTED_TO_SUBMITTER)
         // from the same report. When a rejection fails, the comment action gets the error but the
         // corresponding reject action remains with pendingAction ADD and no errors.
-        const siblingActions = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${originalReportID}`];
+        const siblingActions = (reportActions ?? allReportActions)?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${originalReportID}`];
         if (siblingActions) {
             for (const [actionID, siblingAction] of Object.entries(siblingActions)) {
                 if (
@@ -125,21 +126,23 @@ type ClearAllRelatedReportActionErrorsParams = {
     ignore?: IgnoreDirection;
     keys?: string[];
     reports?: OnyxCollection<ReportHierarchyInfo>;
+    /** Report actions data used for the orphaned-reject-sibling cleanup and the parent/child walks, keyed by `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}` */
+    reportActions?: OnyxCollection<OnyxTypes.ReportActions>;
 };
 
-function clearAllRelatedReportActionErrors({reportID, reportAction, originalReportID, isOffline, ignore, keys, reports}: ClearAllRelatedReportActionErrorsParams) {
+function clearAllRelatedReportActionErrors({reportID, reportAction, originalReportID, isOffline, ignore, keys, reports, reportActions}: ClearAllRelatedReportActionErrorsParams) {
     const errorKeys = keys ?? Object.keys(reportAction?.errors ?? {});
     if (!reportAction || errorKeys.length === 0 || !reportID) {
         return;
     }
 
-    clearReportActionErrors(reportAction, originalReportID, keys);
+    clearReportActionErrors(reportAction, originalReportID, keys, reportActions);
 
     const report = (reports ?? allReports)?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
     if (report?.parentReportID && report?.parentReportActionID && ignore !== 'parent') {
-        const parentReportAction = getReportAction(report.parentReportID, report.parentReportActionID);
+        const parentReportActions = (reportActions ?? allReportActions)?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`] ?? {};
+        const parentReportAction = parentReportActions[report.parentReportActionID];
         const parentErrorKeys = Object.keys(parentReportAction?.errors ?? {}).filter((err) => errorKeys.includes(err));
-        const parentReportActions = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`] ?? {};
         const parentOriginalReportID = getOriginalReportID(report.parentReportID, parentReportAction, parentReportActions, isOffline);
 
         clearAllRelatedReportActionErrors({
@@ -150,11 +153,12 @@ function clearAllRelatedReportActionErrors({reportID, reportAction, originalRepo
             ignore: 'child',
             keys: parentErrorKeys,
             reports,
+            reportActions,
         });
     }
 
     if (reportAction.childReportID && ignore !== 'child') {
-        const childActions = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportAction.childReportID}`] ?? {};
+        const childActions = (reportActions ?? allReportActions)?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportAction.childReportID}`] ?? {};
         for (const action of Object.values(childActions)) {
             const childErrorKeys = Object.keys(action.errors ?? {}).filter((err) => errorKeys.includes(err));
             const childOriginalReportID = getOriginalReportID(reportAction.childReportID, action, childActions, isOffline);
@@ -166,6 +170,7 @@ function clearAllRelatedReportActionErrors({reportID, reportAction, originalRepo
                 ignore: 'parent',
                 keys: childErrorKeys,
                 reports,
+                reportActions,
             });
         }
     }
