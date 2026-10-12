@@ -1,13 +1,10 @@
 import {getTransactionThreadReport} from '@libs/ReportActionsUtils';
 
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
-
-import Onyx from 'react-native-onyx';
+import type {ReportAction} from '@src/types/onyx';
 
 import {createRandomReport} from '../utils/collections/reports';
 import createRandomTransaction from '../utils/collections/transaction';
-import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 const PARENT_REPORT_ID = 'selfDMReport';
 const THREAD_REPORT_ID = 'selfDMTransactionThread';
@@ -22,44 +19,41 @@ const selfDMThread = {
     parentReportActionID: ACTION_ID,
 };
 
-describe('getTransactionThreadReport', () => {
-    afterEach(async () => {
-        await Onyx.clear();
-        await waitForBatchedUpdates();
-    });
+function buildIOUAction(IOUTransactionID: string): ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> {
+    return {
+        reportActionID: ACTION_ID,
+        created: '2024-01-01 00:00:00',
+        actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+        originalMessage: {
+            IOUTransactionID,
+            amount: 100,
+            currency: CONST.CURRENCY.USD,
+            type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+        },
+    };
+}
 
+describe('getTransactionThreadReport', () => {
     it('keeps the thread found from the expense report', () => {
         const expenseThread = {...createRandomReport(2), reportID: 'expenseThread'};
 
         // When the expense report already points at a thread, that thread is the one to audit on
-        expect(getTransactionThreadReport(transaction, expenseThread, selfDMThread)).toBe(expenseThread);
+        expect(getTransactionThreadReport(transaction, expenseThread, selfDMThread, buildIOUAction(TRANSACTION_ID))).toBe(expenseThread);
     });
 
-    it('uses the open report when a self DM expense is unreported', async () => {
-        // Given a self DM expense with no thread stored on the expense itself
-        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${PARENT_REPORT_ID}`, {
-            [ACTION_ID]: {
-                reportActionID: ACTION_ID,
-                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
-                originalMessage: {IOUTransactionID: TRANSACTION_ID},
-            },
-        });
-        await waitForBatchedUpdates();
+    it('uses the open report when a self DM expense is unreported', () => {
+        // Given a self DM expense with no thread stored on the expense itself, whose open report's parent action is the expense's IOU action
+        const parentReportAction = buildIOUAction(TRANSACTION_ID);
 
         // Then the report the expense is open in is its thread
-        expect(getTransactionThreadReport(transaction, undefined, selfDMThread)?.reportID).toBe(THREAD_REPORT_ID);
+        expect(getTransactionThreadReport(transaction, undefined, selfDMThread, parentReportAction)?.reportID).toBe(THREAD_REPORT_ID);
     });
 
-    it('does not treat an unrelated report as the thread', async () => {
-        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${PARENT_REPORT_ID}`, {
-            [ACTION_ID]: {
-                reportActionID: ACTION_ID,
-                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
-                originalMessage: {IOUTransactionID: 'someOtherTransaction'},
-            },
-        });
-        await waitForBatchedUpdates();
+    it('does not treat an unrelated report as the thread', () => {
+        // Given an open report whose parent action belongs to a different expense
+        const parentReportAction = buildIOUAction('someOtherTransaction');
 
-        expect(getTransactionThreadReport(transaction, undefined, selfDMThread)).toBeUndefined();
+        // Then the open report is not used as the thread
+        expect(getTransactionThreadReport(transaction, undefined, selfDMThread, parentReportAction)).toBeUndefined();
     });
 });

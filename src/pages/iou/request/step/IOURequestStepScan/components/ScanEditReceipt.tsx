@@ -5,6 +5,7 @@ import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useFilesValidation from '@hooks/useFilesValidation';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import useParentReportAction from '@hooks/useParentReportAction';
 import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
 
@@ -59,6 +60,7 @@ function ScanEditReceipt({report, transactionID, backTo, isEditing}: ScanEditRec
         selector: transactionThreadReportIDSelector(transaction?.transactionID),
     });
     const [transactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(transactionThreadReportID)}`);
+    const parentReportAction = useParentReportAction(report);
     const delegateAccountID = useDelegateAccountID();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
 
@@ -94,7 +96,7 @@ function ScanEditReceipt({report, transactionID, backTo, isEditing}: ScanEditRec
                 transactionReport,
                 delegateAccountID,
                 currentUserPersonalDetails,
-                transactionThreadReport: getTransactionThreadReport(transaction, transactionThreadReport, report),
+                transactionThreadReport: getTransactionThreadReport(transaction, transactionThreadReport, report, parentReportAction),
             });
         } else {
             setMoneyRequestReceipt(transactionID, source, file.name ?? '', true, file.type);

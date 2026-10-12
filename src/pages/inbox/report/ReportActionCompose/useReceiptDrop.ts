@@ -2,6 +2,7 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useFilesValidation from '@hooks/useFilesValidation';
 import useOnyx from '@hooks/useOnyx';
+import useParentReportAction from '@hooks/useParentReportAction';
 import usePermissions from '@hooks/usePermissions';
 import usePersonalPolicy from '@hooks/usePersonalPolicy';
 
@@ -58,6 +59,7 @@ function useReceiptDrop({reportID, report, shouldAddOrReplaceReceipt, transactio
         selector: transactionThreadReportIDSelector(transaction?.transactionID),
     });
     const [transactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(transactionThreadReportID)}`);
+    const parentReportAction = useParentReportAction(report);
     const delegateAccountID = useDelegateAccountID();
 
     const onFilesValidated = (files: FileObject[]) => {
@@ -79,7 +81,7 @@ function useReceiptDrop({reportID, report, shouldAddOrReplaceReceipt, transactio
                 transactionReport,
                 delegateAccountID,
                 currentUserPersonalDetails,
-                transactionThreadReport: getTransactionThreadReport(transaction, transactionThreadReport, report),
+                transactionThreadReport: getTransactionThreadReport(transaction, transactionThreadReport, report, parentReportAction),
             });
             return;
         }

@@ -191,7 +191,7 @@ function MoneyRequestReceiptView({
         selector: transactionThreadReportIDSelector(transaction?.transactionID),
     });
     const [transactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(transactionThreadReportID)}`);
-    const resolvedTransactionThreadReport = getTransactionThreadReport(transaction, transactionThreadReport, report);
+    const resolvedTransactionThreadReport = getTransactionThreadReport(transaction, transactionThreadReport, report, parentReportAction);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${moneyRequestReport?.policyID}`);
     const [policyVendors] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_VENDORS}${moneyRequestReport?.policyID}`);
     const [cardList] = useOnyx(ONYXKEYS.CARD_LIST);
