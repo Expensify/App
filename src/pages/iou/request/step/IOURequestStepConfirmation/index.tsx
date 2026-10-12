@@ -63,7 +63,6 @@ import {
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import {submitWithDismissFirst} from '@libs/Navigation/helpers/submitWithDismissFirst';
 import Navigation from '@libs/Navigation/Navigation';
-import type {MoneyRequestNavigatorParamList} from '@libs/Navigation/types';
 import {getParticipantsOption, getReportOption} from '@libs/OptionsListUtils';
 import {getDistanceRateCustomUnit} from '@libs/PolicyUtils';
 import {findSelfDMReportID, generateReportID, getParticipantsChatKey, getReportOrDraftReport, isMoneyRequestReport, isPolicyExpenseChat as isPolicyExpenseChatUtils} from '@libs/ReportUtils';
@@ -77,6 +76,18 @@ import {
     isPartiallyEnteredScanExpense,
     isScanRequest,
 } from '@libs/TransactionUtils';
+
+import CategoryDefaultsSetter from '@pages/iou/request/step/confirmation/CategoryDefaultsSetter';
+import DraftWorkspaceOpener from '@pages/iou/request/step/confirmation/DraftWorkspaceOpener';
+import ExpenseDefaultsSetter from '@pages/iou/request/step/confirmation/ExpenseDefaultsSetter';
+import getSubmitExpensePreMountDestinationRoute from '@pages/iou/request/step/confirmation/getSubmitExpensePreMountDestinationRoute';
+import MoneyRequestInitializer from '@pages/iou/request/step/confirmation/MoneyRequestInitializer';
+import ReceiptFileValidator from '@pages/iou/request/step/confirmation/ReceiptFileValidator';
+import SubmitExpenseOrchestrator from '@pages/iou/request/step/confirmation/SubmitExpenseOrchestrator';
+import TelemetrySpanManager from '@pages/iou/request/step/confirmation/TelemetrySpanManager';
+import useExpenseSubmission from '@pages/iou/request/step/confirmation/useExpenseSubmission';
+import withFullTransactionOrNotFound from '@pages/iou/request/step/withFullTransactionOrNotFound';
+import withWritableReportOrNotFound from '@pages/iou/request/step/withWritableReportOrNotFound';
 
 import {
     getIOURequestPolicyID,
@@ -107,29 +118,7 @@ import {validTransactionDraftIDsSelector} from '@selectors/TransactionDraft';
 import React, {startTransition, useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 
-import type {WithFullTransactionOrNotFoundProps} from './withFullTransactionOrNotFound';
-import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotFound';
-
-import CategoryDefaultsSetter from './confirmation/CategoryDefaultsSetter';
-import DraftWorkspaceOpener from './confirmation/DraftWorkspaceOpener';
-import ExpenseDefaultsSetter from './confirmation/ExpenseDefaultsSetter';
-import getSubmitExpensePreMountDestinationRoute from './confirmation/getSubmitExpensePreMountDestinationRoute';
-import MoneyRequestInitializer from './confirmation/MoneyRequestInitializer';
-import ReceiptFileValidator from './confirmation/ReceiptFileValidator';
-import SubmitExpenseOrchestrator from './confirmation/SubmitExpenseOrchestrator';
-import TelemetrySpanManager from './confirmation/TelemetrySpanManager';
-import useExpenseSubmission from './confirmation/useExpenseSubmission';
-import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
-import withWritableReportOrNotFound from './withWritableReportOrNotFound';
-
-type IOURequestStepConfirmationIncomingRouteName = typeof SCREENS.MONEY_REQUEST.STEP_CONFIRMATION | typeof SCREENS.MONEY_REQUEST.CREATE;
-
-type StepConfirmationParams = MoneyRequestNavigatorParamList[typeof SCREENS.MONEY_REQUEST.STEP_CONFIRMATION];
-
-type IOURequestStepConfirmationProps = WithWritableReportOrNotFoundProps<IOURequestStepConfirmationIncomingRouteName> &
-    WithFullTransactionOrNotFoundProps<IOURequestStepConfirmationIncomingRouteName> & {
-        shouldHideHeader?: boolean;
-    };
+import type {IOURequestStepConfirmationProps, StepConfirmationParams} from './types';
 
 function IOURequestStepConfirmationContent({
     report: reportReal,
