@@ -37,7 +37,7 @@ function DelegateAccessHandler() {
             return;
         }
         // If the delegate was never on the list then do nothing.
-        // This is the case for company-owned agents where maangers have implicit delegate access without being in the delegates list.
+        // This is the case for company-owned agents where managers have implicit delegate access without being in the delegates list.
         if (!wasDelegateInDelegatesList) {
             return;
         }
