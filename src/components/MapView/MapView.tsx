@@ -59,7 +59,7 @@ function MapView({
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const theme = useTheme();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Crosshair', 'MapCurrentLocation']);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Crosshair', 'Expand', 'MapCurrentLocation']);
     const cameraRef = useRef<Mapbox.Camera>(null);
     const [isIdle, setIsIdle] = useState(false);
     const initialLocation = useMemo(() => initialState && {longitude: initialState.location[0], latitude: initialState.location[1]}, [initialState]);
@@ -67,6 +67,7 @@ function MapView({
     const currentPositionLongitude = currentPosition?.longitude;
     const currentPositionLatitude = currentPosition?.latitude;
     const [userInteractedWithMap, setUserInteractedWithMap] = useState(false);
+    const [isWaypointsNextCenterTarget, setIsWaypointsNextCenterTarget] = useState(false);
     const shouldInitializeCurrentPosition = useRef(true);
     const isAccessTokenReady = useAccessToken({accessToken});
 
@@ -224,8 +225,28 @@ function MapView({
 
     const centerMap = useCallback(() => {
         const waypointCoordinates = waypoints?.map((waypoint) => waypoint.coordinate) ?? [];
-        if (waypointCoordinates.length > 1 || (allDirectionCoordinates ?? []).length > 1) {
-            const {southWest, northEast} = utils.getBounds(waypoints?.map((waypoint) => waypoint.coordinate) ?? [], allDirectionCoordinates);
+        const hasRoute = waypointCoordinates.length > 1 || (allDirectionCoordinates ?? []).length > 1;
+
+        // With a single waypoint there is no route to fit yet, so that lone waypoint is what the button alternates with.
+        const singleWaypointCoordinate = !hasRoute ? waypointCoordinates.at(0) : undefined;
+        const hasWaypointsTarget = hasRoute || !!singleWaypointCoordinate;
+        const canCenterOnCurrentPosition = currentPositionLongitude !== undefined && currentPositionLatitude !== undefined;
+
+        const shouldCenterOnWaypoints = hasWaypointsTarget && (isWaypointsNextCenterTarget || !canCenterOnCurrentPosition);
+        setIsWaypointsNextCenterTarget(!shouldCenterOnWaypoints && hasWaypointsTarget && canCenterOnCurrentPosition);
+
+        if (shouldCenterOnWaypoints) {
+            if (singleWaypointCoordinate) {
+                cameraRef.current?.setCamera({
+                    heading: 0,
+                    centerCoordinate: singleWaypointCoordinate,
+                    zoomLevel: CONST.MAPBOX.SINGLE_MARKER_ZOOM,
+                    animationDuration: CONST.MAPBOX.ANIMATION_DURATION_DEFAULT,
+                    animationMode: CONST.MAPBOX.CAMERA_ANIMATION_MODE,
+                });
+                return;
+            }
+            const {southWest, northEast} = utils.getBounds(waypointCoordinates, allDirectionCoordinates);
             cameraRef.current?.setCamera({
                 bounds: {ne: northEast, sw: southWest},
                 padding: utils.getCameraPadding(mapPadding),
@@ -236,12 +257,12 @@ function MapView({
         }
         cameraRef?.current?.setCamera({
             heading: 0,
-            centerCoordinate: [currentPosition?.longitude ?? 0, currentPosition?.latitude ?? 0],
+            centerCoordinate: [currentPositionLongitude ?? 0, currentPositionLatitude ?? 0],
             animationDuration: CONST.MAPBOX.ANIMATION_DURATION_DEFAULT,
             animationMode: CONST.MAPBOX.CAMERA_ANIMATION_MODE,
             zoomLevel: CONST.MAPBOX.SINGLE_MARKER_ZOOM,
         });
-    }, [allDirectionCoordinates, currentPosition?.longitude, currentPosition?.latitude, mapPadding, waypoints]);
+    }, [allDirectionCoordinates, currentPositionLongitude, currentPositionLatitude, isWaypointsNextCenterTarget, mapPadding, waypoints]);
 
     const centerCoordinate = useMemo(() => (currentPosition ? [currentPosition.longitude, currentPosition.latitude] : initialState?.location), [currentPosition, initialState?.location]);
 
@@ -284,7 +305,10 @@ function MapView({
                 styleURL={styleURL}
                 onMapIdle={setMapIdle}
                 onCameraChanged={onCameraChanged}
-                onTouchStart={() => setUserInteractedWithMap(true)}
+                onTouchStart={() => {
+                    setUserInteractedWithMap(true);
+                    setIsWaypointsNextCenterTarget(false);
+                }}
                 pitchEnabled={pitchEnabled}
                 attributionPosition={{...styles.r2, ...styles.b2}}
                 scaleBarEnabled={false}
@@ -360,7 +384,7 @@ function MapView({
                         accessibilityLabel={translate('common.center')}
                     >
                         <Button.Icon
-                            src={expensifyIcons.Crosshair}
+                            src={isWaypointsNextCenterTarget ? expensifyIcons.Expand : expensifyIcons.Crosshair}
                             fill={theme.icon}
                             hoverFill={theme.icon}
                         />

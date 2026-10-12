@@ -69,13 +69,14 @@ function MapViewImpl({
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Crosshair', 'MapCurrentLocation']);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Crosshair', 'Expand', 'MapCurrentLocation']);
 
     const [mapRef, setMapRef] = useState<MapRef | null>(null);
     const initialLocation = useMemo(() => ({longitude: initialState.location[0], latitude: initialState.location[1]}), [initialState]);
     const currentPosition = userLocation ?? initialLocation;
     const prevUserPosition = usePrevious(currentPosition);
     const [userInteractedWithMap, setUserInteractedWithMap] = useState(false);
+    const [isWaypointsNextCenterTarget, setIsWaypointsNextCenterTarget] = useState(false);
     const [isHoveringDirection, setIsHoveringDirection] = useState(false);
     // Mapbox corrupts its camera state when the map container is resized to zero (e.g. while a page
     // transition collapses it), and every camera update throws afterwards. The map therefore mounts
@@ -238,8 +239,27 @@ function MapViewImpl({
             return;
         }
         const waypointCoordinates = waypoints?.map((waypoint) => waypoint.coordinate) ?? [];
-        if (waypointCoordinates.length > 1 || (allDirectionCoordinates ?? []).length > 1) {
-            const {northEast, southWest} = utils.getBounds(waypoints?.map((waypoint) => waypoint.coordinate) ?? [], allDirectionCoordinates);
+        const hasRoute = waypointCoordinates.length > 1 || (allDirectionCoordinates ?? []).length > 1;
+
+        // With a single waypoint there is no route to fit yet, so that lone waypoint is what the button alternates with.
+        const singleWaypointCoordinate = !hasRoute ? waypointCoordinates.at(0) : undefined;
+        const hasWaypointsTarget = hasRoute || !!singleWaypointCoordinate;
+        const canCenterOnCurrentPosition = currentPosition?.longitude !== undefined && currentPosition?.latitude !== undefined;
+
+        const shouldCenterOnWaypoints = hasWaypointsTarget && (isWaypointsNextCenterTarget || !canCenterOnCurrentPosition);
+        setIsWaypointsNextCenterTarget(!shouldCenterOnWaypoints && hasWaypointsTarget && canCenterOnCurrentPosition);
+
+        if (shouldCenterOnWaypoints) {
+            if (singleWaypointCoordinate) {
+                mapRef.flyTo({
+                    center: singleWaypointCoordinate,
+                    zoom: CONST.MAPBOX.SINGLE_MARKER_ZOOM,
+                    bearing: 0,
+                    speed: CONST.MAPBOX.FLY_TO_SPEED,
+                });
+                return;
+            }
+            const {northEast, southWest} = utils.getBounds(waypointCoordinates, allDirectionCoordinates);
             const map = mapRef?.getMap();
             map?.fitBounds([southWest, northEast], {padding: mapPadding, speed: CONST.MAPBOX.FLY_TO_SPEED});
             return;
@@ -251,7 +271,7 @@ function MapViewImpl({
             bearing: 0,
             speed: CONST.MAPBOX.FLY_TO_SPEED,
         });
-    }, [allDirectionCoordinates, currentPosition?.longitude, currentPosition?.latitude, mapRef, waypoints, mapPadding]);
+    }, [allDirectionCoordinates, currentPosition?.longitude, currentPosition?.latitude, isWaypointsNextCenterTarget, mapRef, waypoints, mapPadding]);
 
     const saveViewState = (event: ViewStateChangeEvent) => {
         setLastViewState(event.viewState);
@@ -292,6 +312,7 @@ function MapViewImpl({
         setUserInteractedWithMap(true);
         // Dragging must keep the grabbing cursor even when it starts on top of a route.
         setIsHoveringDirection(false);
+        setIsWaypointsNextCenterTarget(false);
     }, []);
 
     const selectClickedDirection = useCallback(
@@ -380,7 +401,7 @@ function MapViewImpl({
                         accessibilityLabel={translate('common.center')}
                     >
                         <Button.Icon
-                            src={expensifyIcons.Crosshair}
+                            src={isWaypointsNextCenterTarget ? expensifyIcons.Expand : expensifyIcons.Crosshair}
                             fill={theme.icon}
                             hoverFill={theme.icon}
                         />
