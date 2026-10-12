@@ -24,7 +24,7 @@ import {getOriginalMessage, getReportActionMessage, isActionOfType, isDeletedAct
 import playSound, {SOUNDS} from '@libs/Sound';
 import {appendParam} from '@libs/Url';
 
-import {toggleEmojiReaction} from '@userActions/EmojiReactions';
+import toggleEmojiReaction from '@userActions/EmojiReactions';
 
 import CONST from '@src/CONST';
 import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
@@ -6202,6 +6202,70 @@ describe('actions/Report', () => {
         });
     });
 
+    describe('openReport with shouldKeepManualUnreadMarker', () => {
+        async function givenAManualUnreadMark(reportID: string) {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {reportID, manuallyMarkedUnreadReportActionID: 'marked-action-id'});
+            await waitForBatchedUpdates();
+        }
+
+        async function getManualUnreadMark(reportID: string) {
+            const report = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
+            return report?.manuallyMarkedUnreadReportActionID;
+        }
+
+        function openReportFor(reportID: string, shouldKeepManualUnreadMarker: boolean) {
+            Report.openReport({
+                conciergeChat: undefined,
+                reportID,
+                introSelected: undefined,
+                hasReportActions: true,
+                currentUserAccountID: 1,
+                hasOnceLoadedReportActions: true,
+                shouldKeepManualUnreadMarker,
+            });
+        }
+
+        it('keeps the manual unread mark of a report the user left, and still treats the next real open as a return trip', async () => {
+            global.fetch = TestHelper.createGlobalFetchMock();
+            const REPORT_ID = 'unreadMarkHiddenPreMount';
+            // Given a report the user marked as unread and then navigated away from
+            await givenAManualUnreadMark(REPORT_ID);
+            Report.flagReportNavigatedAway(REPORT_ID);
+
+            // When it is loaded for a screen the user does not see yet (a hidden wide submit pre-mount)
+            openReportFor(REPORT_ID, true);
+            await waitForBatchedUpdates();
+
+            // Then the mark stays, so the user still sees the New line when they open the report
+            expect(await getManualUnreadMark(REPORT_ID)).toBe('marked-action-id');
+
+            // When the user really opens it later
+            openReportFor(REPORT_ID, false);
+            await waitForBatchedUpdates();
+
+            // Then it counts as a return trip and the mark is cleared, like on any return to a report
+            expect(await getManualUnreadMark(REPORT_ID)).toBeFalsy();
+        });
+
+        it('keeps the manual unread mark through the visit that starts on the reveal', async () => {
+            global.fetch = TestHelper.createGlobalFetchMock();
+            const REPORT_ID = 'unreadMarkRevealedPreMount';
+            // Given a report the user left with a manual unread mark, loaded by a hidden pre-mount
+            await givenAManualUnreadMark(REPORT_ID);
+            Report.flagReportNavigatedAway(REPORT_ID);
+            openReportFor(REPORT_ID, true);
+            await waitForBatchedUpdates();
+
+            // When the pre-mount is revealed and another fetch runs during that visit
+            Report.clearReportNavigatedAway(REPORT_ID);
+            openReportFor(REPORT_ID, false);
+            await waitForBatchedUpdates();
+
+            // Then the reveal already ended the return trip, so the mark stays while the user is in the report
+            expect(await getManualUnreadMark(REPORT_ID)).toBe('marked-action-id');
+        });
+    });
+
     describe('openReport with participants', () => {
         it('should send passed participants as emailList/accountIDList so the server can resolve a stale optimistic reportID', async () => {
             global.fetch = TestHelper.createGlobalFetchMock();
@@ -10631,6 +10695,115 @@ describe('actions/Report', () => {
                 reportID: result.reportID,
                 emailList: `${TEST_USER_LOGIN},passed@test.com`,
             });
+        });
+
+        it('should remove the optimistic thread instead of keeping a createChat error when OpenReport fails', async () => {
+            // Given an IOU report with an expense action that the user has no thread for yet
+            const mockFetch = TestHelper.createGlobalFetchMock();
+            global.fetch = mockFetch;
+
+            const parentReport: OnyxTypes.Report = {
+                ...createRandomReport(700, undefined),
+                reportID: '700',
+                type: CONST.REPORT.TYPE.IOU,
+            };
+            const reportAction: OnyxTypes.ReportAction = {
+                ...createRandomReportAction(7),
+                reportActionID: 'action-700',
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+            };
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${parentReport.reportID}`, parentReport);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReport.reportID}`, {[reportAction.reportActionID]: reportAction});
+            await waitForBatchedUpdates();
+
+            // When the thread is created while the OpenReport request is still in flight
+            mockFetch.pause();
+            const result = Report.createTransactionThreadReport({
+                introSelected: TEST_INTRO_SELECTED,
+                conciergeChat: undefined,
+                currentUserLogin: TEST_USER_LOGIN,
+                currentUserAccountID: TEST_USER_ACCOUNT_ID,
+                personalDetails: undefined,
+                iouReport: parentReport,
+                iouReportAction: reportAction,
+            });
+            await waitForBatchedUpdates();
+
+            if (!result) {
+                throw new Error('Expected a transaction thread report to be created');
+            }
+
+            // Then the thread exists optimistically and the parent action points at it
+            expect(await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${result.reportID}` as const)).toBeTruthy();
+            expect((await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReport.reportID}` as const))?.[reportAction.reportActionID]?.childReportID).toBe(result.reportID);
+
+            // When OpenReport then fails, e.g. because the expense was deleted while the request sat in the offline queue
+            mockFetch.fail();
+            await mockFetch.resume();
+            await waitForNetworkPromises();
+            await waitForBatchedUpdates();
+
+            // Then the thread is rolled back rather than left in Onyx with a createChat error the user cannot dismiss,
+            // which is what force-displayed it in the LHN as an empty row with a "Fix" badge
+            expect(await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${result.reportID}` as const)).toBeFalsy();
+            // The optimistic CREATED action goes, but the key is merged rather than nulled so anything the user
+            // queued in the thread, e.g. an offline comment, is not destroyed with it.
+            expect(await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${result.reportID}` as const)).toEqual({});
+            expect(await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${result.reportID}` as const)).toBeFalsy();
+
+            // And the parent action no longer links to a report that does not exist
+            const parentActions = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReport.reportID}` as const);
+            expect(parentActions?.[reportAction.reportActionID]?.childReportID).toBeUndefined();
+
+            mockFetch.succeed();
+        });
+    });
+
+    describe('openReport', () => {
+        const TEST_USER_ACCOUNT_ID = 1;
+        const TEST_USER_LOGIN = 'test@test.com';
+
+        beforeEach(async () => {
+            global.fetch = TestHelper.createGlobalFetchMock();
+            await TestHelper.signInWithTestUser(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN);
+            await waitForBatchedUpdates();
+        });
+
+        it('should keep a user-initiated new chat with a createChat error when OpenReport fails', async () => {
+            // Given a chat the user themselves asked to create, so the error is actionable and must be kept
+            const mockFetch = TestHelper.createGlobalFetchMock();
+            global.fetch = mockFetch;
+
+            const REPORT_ID = '710';
+            const newReportObject: OnyxTypes.Report = {
+                ...createRandomReport(710, undefined),
+                reportID: REPORT_ID,
+                parentReportID: undefined,
+                parentReportActionID: undefined,
+            };
+
+            // When OpenReport fails for that create
+            mockFetch.fail();
+            Report.openReport({
+                reportID: REPORT_ID,
+                introSelected: TEST_INTRO_SELECTED,
+                conciergeChat: undefined,
+                participants: [{login: 'other@test.com', accountID: 2}],
+                newReportObject,
+                currentUserLogin: TEST_USER_LOGIN,
+                currentUserAccountID: TEST_USER_ACCOUNT_ID,
+                hasReportActions: false,
+            });
+            await waitForNetworkPromises();
+            await waitForBatchedUpdates();
+
+            // Then the report is still there and shows the retryable error, unchanged from before this fix
+            const report = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}` as const);
+            expect(report).toBeTruthy();
+            expect(report?.errorFields?.createChat).toBeTruthy();
+
+            mockFetch.succeed();
         });
     });
 

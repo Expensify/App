@@ -41,6 +41,7 @@ jest.mock('@libs/actions/Search', () => ({
     getReportType: jest.fn(),
     getTotalFormattedAmount: jest.fn(() => ''),
     isCurrencySupportWalletBulkPay: jest.fn(() => false),
+    openSearchCardFiltersPage: jest.fn(),
     payMoneyRequestOnSearch: jest.fn(),
     submitMoneyRequestOnSearch: jest.fn(),
     unholdMoneyRequestOnSearch: jest.fn(),
@@ -219,6 +220,13 @@ const expenseReportQueryJSON: SearchQueryJSON = {
     filters: {operator: CONST.SEARCH.SYNTAX_OPERATORS.AND, left: 'type', right: 'expense-report'},
 };
 
+const invoiceQueryJSON: SearchQueryJSON = {
+    ...baseQueryJSON,
+    inputQuery: 'type:invoice status:all',
+    type: CONST.SEARCH.DATA_TYPES.INVOICE,
+    filters: {operator: CONST.SEARCH.SYNTAX_OPERATORS.AND, left: 'type', right: 'invoice'},
+};
+
 const groupedExpenseQueryJSON: SearchQueryJSON = {
     ...baseQueryJSON,
     inputQuery: 'type:expense sortBy:groupMerchant sortOrder:asc groupBy:merchant',
@@ -283,6 +291,33 @@ describe('useSearchBulkActions - CSV export flow', () => {
 
     afterEach(async () => {
         await Onyx.clear();
+    });
+
+    it('uses the unreported-expenses warning for a single expense report', async () => {
+        // Given a single selected expense report
+        mockSelectedTransactions = {report1: makeSelectedTransaction()};
+
+        // When the bulk actions are created for an expense-report search
+        renderHook(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON}), {wrapper: OnyxListItemProvider});
+
+        // Then the report deletion prompt explains that its expenses become unreported
+        await waitFor(() => {
+            expect(mockTranslate).toHaveBeenCalledWith('iou.deleteExpenseReportConfirmation');
+        });
+    });
+
+    it('uses the generic report confirmation for a single invoice', async () => {
+        // Given a single selected invoice
+        mockSelectedTransactions = {report1: makeSelectedTransaction()};
+
+        // When the bulk actions are created for an invoice search
+        renderHook(() => useSearchBulkActions({queryJSON: invoiceQueryJSON}), {wrapper: OnyxListItemProvider});
+
+        // Then the report deletion prompt does not claim that expenses become unreported
+        await waitFor(() => {
+            expect(mockTranslate).toHaveBeenCalledWith('iou.deleteReportConfirmation', {count: 1});
+        });
+        expect(mockTranslate).not.toHaveBeenCalledWith('iou.deleteExpenseReportConfirmation');
     });
 
     it('handleBasicExport with select-all tracks the export', async () => {
