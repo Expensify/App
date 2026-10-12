@@ -58,7 +58,8 @@ function DelegatorConnectGuard({children}: {children: React.ReactNode}) {
     }
 
     return (
-        <Suspense fallback={<FullScreenLoadingIndicator />}>
+        // No "Go Back" button: this fallback replaces the whole AuthScreens navigator while connect() clears Onyx, so there is no screen to go back to.
+        <Suspense fallback={<FullScreenLoadingIndicator shouldUseGoBackButton={false} />}>
             <DelegatorConnectGate delegatorEmail={delegatorEmail}>{children}</DelegatorConnectGate>
         </Suspense>
     );
