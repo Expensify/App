@@ -15,9 +15,11 @@ import Onyx from 'react-native-onyx';
  * response.onyxData before successData, so without the seed the timestamp would
  * still be empty when the comparison runs and trigger a duplicate reconnect.
  *
- * Pass `extraSeeds` to seed additional keys atomically with the timestamp (e.g.
- * IS_LOADING_APP=true for delegate transitions). Seeded keys are appended to the
- * preserve list automatically so they survive the clear.
+ * The reset marks the app as loading so consumers cannot evaluate transient
+ * post-clear state before the next OpenApp hydrates it. Pass `extraSeeds` to
+ * override that default or seed additional keys atomically with the timestamp.
+ * Seeded keys are appended to the preserve list automatically so they survive
+ * the clear.
  */
 async function clearOnyxAndSeedFullReconnect(keysToPreserve: OnyxKey[], extraSeeds?: OnyxMultiSetInput): Promise<void> {
     // Any Onyx reset can preserve or replace SESSION/CREDENTIALS while dropping account-scoped data.
@@ -25,6 +27,7 @@ async function clearOnyxAndSeedFullReconnect(keysToPreserve: OnyxKey[], extraSee
     await clearPrefetchOnAppStart();
 
     const seeds: OnyxMultiSetInput = {
+        [ONYXKEYS.IS_LOADING_APP]: true,
         ...extraSeeds,
         [ONYXKEYS.LAST_FULL_RECONNECT_TIME]: DateUtils.getDBTime(),
     };
