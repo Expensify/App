@@ -518,6 +518,12 @@ function IOURequestStartPage({
                                     onTabSelected={(newIOUType) => {
                                         setIsSignDirty(false);
                                         lastFocusedInputRef.current = null;
+                                        lastFocusedInputCandidateRef.current = null;
+                                        focusToRestoreAfterDiscardRef.current = null;
+                                        if (focusTimeoutRef.current) {
+                                            clearTimeout(focusTimeoutRef.current);
+                                            focusTimeoutRef.current = null;
+                                        }
                                         resetIOUTypeIfChanged(newIOUType);
                                     }}
                                     onTabSelect={onTabSelectFocusHandler}
