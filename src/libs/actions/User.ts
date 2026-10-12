@@ -877,6 +877,23 @@ function subscribeToUserEvents(
 
     PusherUtils.onPrivateUserChannelResubscribe(currentUserAccountID.toString());
 
+    // Temporary labels bypass the reliable update stream, but wait for the current API response so an older snapshot cannot overwrite them.
+    PusherUtils.subscribeToPrivateUserChannelEvent(Pusher.TYPE.AGENT_ZERO_PROCESSING_STATUS, currentUserAccountID.toString(), (pushJSON) => {
+        SequentialQueue.getCurrentRequest()
+            .then(() => {
+                if (sessionAccountID !== currentUserAccountID || !ActiveClientManager.isClientTheLeader()) {
+                    return;
+                }
+
+                return Onyx.update(pushJSON.updates);
+            })
+            .catch((error: unknown) => {
+                Log.alert('[subscribeToUserEvents] Applying Agent Zero processing status failed', {
+                    error: error instanceof Error ? error.message : String(error),
+                });
+            });
+    });
+
     // Handles the mega multipleEvents from Pusher which contains an array of single events.
     // Each single event is passed to PusherUtils in order to trigger the callbacks for that event
     PusherUtils.subscribeToPrivateUserChannelEvent(Pusher.TYPE.MULTIPLE_EVENTS, currentUserAccountID.toString(), (pushJSON) => {
