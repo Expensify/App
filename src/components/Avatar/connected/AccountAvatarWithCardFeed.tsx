@@ -1,7 +1,7 @@
 import SubscriptCardFeedAvatar from '@components/Avatar/layouts/SubscriptCardFeedAvatar';
 
 import CONST from '@src/CONST';
-import type {CardFeed} from '@src/types/onyx/CardFeeds';
+import type {CardFeedWithNumber} from '@src/types/onyx/CardFeeds';
 
 import type {ColorValue, StyleProp, ViewStyle} from 'react-native';
 import type {ValueOf} from 'type-fest';
@@ -15,7 +15,7 @@ type AccountAvatarWithCardFeedProps = {
     accountID: number;
 
     /** Card feed to display as the subscript */
-    cardFeed: CardFeed;
+    cardFeed: CardFeedWithNumber;
 
     /** Size of the subscript card feed icon */
     cardFeedIconSize?: {width: number; height: number};
