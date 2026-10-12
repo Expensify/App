@@ -35,7 +35,7 @@ import type {BarChartContentProps} from './types';
 
 type VerticalBarChartCanvasProps = Omit<BarChartProps, 'isLoading'> & CartesianCanvasInputs;
 
-function VerticalBarChartCanvas({data, yAxisUnit, yAxisUnitPosition = 'left', onBarPress, shouldShowLabels = true, chartWidth, fontManager}: VerticalBarChartCanvasProps) {
+function VerticalBarChartCanvas({data, yAxisUnit, yAxisUnitPosition = 'left', onBarPress, shouldShowLabels = true, color, chartWidth, fontManager}: VerticalBarChartCanvasProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -152,7 +152,7 @@ function VerticalBarChartCanvas({data, yAxisUnit, yAxisUnitPosition = 'left', on
                 key={`bar-${dataPoint?.label}`}
                 points={[point]}
                 chartBounds={chartBounds}
-                color={VictoryTheme.colors.getColor(dataIndex)}
+                color={color ?? VictoryTheme.colors.getColor(dataIndex)}
                 barWidth={barLayout.barWidth}
                 barCount={data.length}
                 roundedCorners={{topLeft: BAR_CORNER_RADIUS, topRight: BAR_CORNER_RADIUS, bottomLeft: BAR_CORNER_RADIUS, bottomRight: BAR_CORNER_RADIUS}}
