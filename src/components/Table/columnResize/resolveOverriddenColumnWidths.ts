@@ -54,7 +54,7 @@ function getAbsorbedDelta(delta: number, overflowWidth: number): number {
  * or user-sized) down to their fit width. A drag resolves through here too, so columns don't jump on release.
  */
 function resolveOverriddenColumnWidths({columns, baseColumnWidths, columnWidthOverrides, availableColumnsWidth}: ResolveOverriddenColumnWidthsParams): Record<string, number> {
-    const canColumnAbsorb = (column: OverridableColumn) => !!column.label && !column.hasDeclaredWidth && columnWidthOverrides?.[column.key] === undefined;
+    const canColumnAbsorb = (column: OverridableColumn) => !!column.label && !column.hasDeclaredWidth;
     const columnWidths = {...baseColumnWidths};
 
     for (const [index, column] of columns.entries()) {

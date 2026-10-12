@@ -95,6 +95,19 @@ describe('resolveOverriddenColumnWidths', () => {
         expect(columnWidths).toEqual(paintedWidths);
     });
 
+    it("doesn't move the columns before a later column when its edge is grabbed", () => {
+        // Given four columns in a row that fits, with the first stored wider, so the other three share the difference
+        const columns = [contentColumn('a'), contentColumn('b'), contentColumn('c'), contentColumn('d')];
+        const baseColumnWidths = {a: 200, b: 200, c: 200, d: 200};
+        const paintedWidths = resolveOverriddenColumnWidths({columns, baseColumnWidths, columnWidthOverrides: {a: 260}, availableColumnsWidth: 800});
+
+        // When the third column is stored at its painted width, which is what grabbing its edge without moving resolves to
+        const columnWidths = resolveOverriddenColumnWidths({columns, baseColumnWidths, columnWidthOverrides: {a: 260, c: paintedWidths.c ?? 0}, availableColumnsWidth: 800});
+
+        // Then every column stays put, so the grabbed edge stays under the pointer instead of jumping when the drag starts
+        expect(columnWidths).toEqual(paintedWidths);
+    });
+
     it('rounds a stored width to whole px', () => {
         // Given a stored width with a fraction, in a row with room to spare
         const columns = [contentColumn('name')];

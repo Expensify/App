@@ -13,7 +13,7 @@ type ColumnAbsorber = {
 
 /**
  * Splits a resize delta equally among the absorbers. An absorber that runs out of room above its minimum stops
- * absorbing and its share moves to the rest; whatever none of them can absorb overflows and scrolls. Shares are whole px
+ * absorbing and its share moves to the rest. Whatever none of them can absorb overflows and scrolls. Shares are whole px
  * and sum exactly. Absorbers without a start width are skipped. Returns each absorber's new width by column key.
  */
 function getAbsorbedColumnWidths(absorbers: ColumnAbsorber[], startWidths: Record<string, number>, delta: number): Record<string, number> {
