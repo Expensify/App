@@ -3969,6 +3969,10 @@ ${amount} para ${merchant} - ${date}`,
     },
     dynamicForm: {
         exampleHint: ({example}: {example: string}) => `Exemplo: ${example}`,
+        fileCount: ({count}: {count: number}) => ({
+            one: `${count} arquivo`,
+            other: `${count} arquivos`,
+        }),
         error: {
             tooShort: ({minLength}: {minLength: number}) => `Deve ter pelo menos ${minLength} caracteres`,
             invalidFormat: ({example}: {example?: string}) => (example ? `Formato inválido. Exemplo: ${example}` : 'Formato inválido'),

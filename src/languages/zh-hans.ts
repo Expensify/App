@@ -3857,6 +3857,10 @@ ${amount}，商户：${merchant} - 日期：${date}`,
     },
     dynamicForm: {
         exampleHint: ({example}: {example: string}) => `示例：${example}`,
+        fileCount: ({count}: {count: number}) => ({
+            one: `${count} 个文件`,
+            other: `${count} 个文件`,
+        }),
         error: {
             tooShort: ({minLength}: {minLength: number}) => `至少需要 ${minLength} 个字符`,
             invalidFormat: ({example}: {example?: string}) => (example ? `格式无效。示例：${example}` : '格式无效'),

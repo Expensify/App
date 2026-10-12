@@ -9,7 +9,7 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import CONST from '@src/CONST';
-import type {DynamicFormField} from '@src/types/onyx';
+import type {DynamicFormField, DynamicFormFieldType} from '@src/types/onyx';
 
 import React from 'react';
 import {View} from 'react-native';
@@ -25,9 +25,7 @@ type DynamicFormFieldRowProps = Pick<DynamicFormFieldsProps, 'values' | 'onRefre
     };
 
 /** Typed answers change on every keystroke, so they ask for new requirements when the user leaves the input instead */
-function isTypedField(field: DynamicFormField): boolean {
-    return field.type === 'text' || field.type === 'number';
-}
+const TYPED_FIELD_TYPES = new Set<DynamicFormFieldType>(['text', 'number', 'amount', 'percent']);
 
 /** One field of a schema-driven form: its input, or its value when the field is readonly */
 function DynamicFormFieldRow({field, values, currency, isLoneField, onRefreshRequirements}: DynamicFormFieldRowProps) {
@@ -54,8 +52,9 @@ function DynamicFormFieldRow({field, values, currency, isLoneField, onRefreshReq
         }
     };
 
-    const shouldRefreshOnBlur = !!field.refreshOnChange && isTypedField(field);
-    const shouldRefreshOnChange = !!field.refreshOnChange && !isTypedField(field);
+    const isTypedField = TYPED_FIELD_TYPES.has(field.type);
+    const shouldRefreshOnBlur = !!field.refreshOnChange && isTypedField;
+    const shouldRefreshOnChange = !!field.refreshOnChange && !isTypedField;
     const {input, isMenuRow, labelAbove, showsDescription} = renderDynamicField(
         field,
         {values, translate, styles, currency, isLoneField},

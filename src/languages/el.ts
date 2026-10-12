@@ -4050,6 +4050,10 @@ ${amount} για ${merchant} - ${date}`,
     },
     dynamicForm: {
         exampleHint: ({example}: {example: string}) => `Παράδειγμα: ${example}`,
+        fileCount: ({count}: {count: number}) => ({
+            one: '1 αρχείο',
+            other: `${count} αρχεία`,
+        }),
         error: {
             tooShort: ({minLength}: {minLength: number}) => `Πρέπει να έχει τουλάχιστον ${minLength} χαρακτήρες`,
             invalidFormat: ({example}: {example?: string}) => (example ? `Μη έγκυρη μορφή. Παράδειγμα: ${example}` : 'Μη έγκυρη μορφή'),

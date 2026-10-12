@@ -4160,6 +4160,10 @@ const translations = {
     },
     dynamicForm: {
         exampleHint: ({example}: {example: string}) => `Example: ${example}`,
+        fileCount: ({count}: {count: number}) => ({
+            one: '1 file',
+            other: `${count} files`,
+        }),
         error: {
             tooShort: ({minLength}: {minLength: number}) => `Must be at least ${minLength} characters`,
             invalidFormat: ({example}: {example?: string}) => (example ? `Invalid format. Example: ${example}` : 'Invalid format'),
