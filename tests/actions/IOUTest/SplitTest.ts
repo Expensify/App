@@ -9739,6 +9739,9 @@ describe('updateSplitExpenseAmountField', () => {
             transactionID: originalTransactionID,
             amount: 0,
             currency: 'USD',
+            merchant: '',
+            created: DateUtils.getDBTime(),
+            reportID: '456',
             iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MAP,
             comment: {
                 type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT,
