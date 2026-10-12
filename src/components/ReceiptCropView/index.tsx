@@ -325,102 +325,96 @@ function ReceiptCropView({imageUri, onCropChange, initialCrop, isAuthTokenRequir
     /**
      * Resize the crop area when an edge handle is dragged
      */
-    const updateEdge = useCallback(
-        (edge: EdgePosition, event: PanGestureActiveEvent) => {
-            const currentX = cropX.get();
-            const currentY = cropY.get();
-            const currentWidth = cropWidth.get();
-            const currentHeight = cropHeight.get();
+    const updateEdge = (edge: EdgePosition, event: PanGestureActiveEvent) => {
+        const currentX = cropX.get();
+        const currentY = cropY.get();
+        const currentWidth = cropWidth.get();
+        const currentHeight = cropHeight.get();
 
-            let newX = currentX;
-            let newY = currentY;
-            let newWidth = currentWidth;
-            let newHeight = currentHeight;
+        let newX = currentX;
+        let newY = currentY;
+        let newWidth = currentWidth;
+        let newHeight = currentHeight;
 
-            const minSize = variables.cornerHandleSize * 2;
-            const imgDisplayWidth = displayWidthSV.get();
-            const imgDisplayHeight = displayHeightSV.get();
-            const imageLeft = imageOffsetXSV.get();
-            const imageRight = imageLeft + imgDisplayWidth;
-            const imageTop = imageOffsetYSV.get();
-            const imageBottom = imageTop + imgDisplayHeight;
+        const minSize = variables.cornerHandleSize * 2;
+        const imgDisplayWidth = displayWidthSV.get();
+        const imgDisplayHeight = displayHeightSV.get();
+        const imageLeft = imageOffsetXSV.get();
+        const imageRight = imageLeft + imgDisplayWidth;
+        const imageTop = imageOffsetYSV.get();
+        const imageBottom = imageTop + imgDisplayHeight;
 
-            switch (edge) {
-                case 'top':
-                    newY = clamp(currentY + event.changeY, imageTop, currentY + currentHeight - minSize);
-                    newHeight = currentHeight - (newY - currentY);
-                    break;
-                case 'bottom':
-                    newHeight = clamp(currentHeight + event.changeY, minSize, imageBottom - currentY);
-                    break;
-                case 'left':
-                    newX = clamp(currentX + event.changeX, imageLeft, currentX + currentWidth - minSize);
-                    newWidth = currentWidth - (newX - currentX);
-                    break;
-                case 'right':
-                    newWidth = clamp(currentWidth + event.changeX, minSize, imageRight - currentX);
-                    break;
-                default:
-                    break;
-            }
+        switch (edge) {
+            case 'top':
+                newY = clamp(currentY + event.changeY, imageTop, currentY + currentHeight - minSize);
+                newHeight = currentHeight - (newY - currentY);
+                break;
+            case 'bottom':
+                newHeight = clamp(currentHeight + event.changeY, minSize, imageBottom - currentY);
+                break;
+            case 'left':
+                newX = clamp(currentX + event.changeX, imageLeft, currentX + currentWidth - minSize);
+                newWidth = currentWidth - (newX - currentX);
+                break;
+            case 'right':
+                newWidth = clamp(currentWidth + event.changeX, minSize, imageRight - currentX);
+                break;
+            default:
+                break;
+        }
 
-            applyCropBoundsAndNotify(newX, newY, newWidth, newHeight, imageLeft, imageRight, imageTop, imageBottom);
-        },
-        [cropX, cropY, cropWidth, cropHeight, displayWidthSV, displayHeightSV, imageOffsetXSV, imageOffsetYSV, applyCropBoundsAndNotify, clamp],
-    );
+        applyCropBoundsAndNotify(newX, newY, newWidth, newHeight, imageLeft, imageRight, imageTop, imageBottom);
+    };
 
     /**
      * Resize the crop area when a corner handle is dragged
      */
-    const updateCorner = useCallback(
-        (corner: CornerPosition, event: PanGestureActiveEvent) => {
-            const currentX = cropX.get();
-            const currentY = cropY.get();
-            const currentWidth = cropWidth.get();
-            const currentHeight = cropHeight.get();
+    const updateCorner = (corner: CornerPosition, event: PanGestureActiveEvent) => {
+        const currentX = cropX.get();
+        const currentY = cropY.get();
+        const currentWidth = cropWidth.get();
+        const currentHeight = cropHeight.get();
 
-            let newX = currentX;
-            let newY = currentY;
-            let newWidth = currentWidth;
-            let newHeight = currentHeight;
+        let newX = currentX;
+        let newY = currentY;
+        let newWidth = currentWidth;
+        let newHeight = currentHeight;
 
-            const minSize = variables.cornerHandleSize * 2;
-            const imgDisplayWidth = displayWidthSV.get();
-            const imgDisplayHeight = displayHeightSV.get();
-            const imageLeft = imageOffsetXSV.get();
-            const imageRight = imageLeft + imgDisplayWidth;
-            const imageTop = imageOffsetYSV.get();
-            const imageBottom = imageTop + imgDisplayHeight;
+        const minSize = variables.cornerHandleSize * 2;
+        const imgDisplayWidth = displayWidthSV.get();
+        const imgDisplayHeight = displayHeightSV.get();
+        const imageLeft = imageOffsetXSV.get();
+        const imageRight = imageLeft + imgDisplayWidth;
+        const imageTop = imageOffsetYSV.get();
+        const imageBottom = imageTop + imgDisplayHeight;
 
-            switch (corner) {
-                case 'topLeft':
-                    newX = clamp(currentX + event.changeX, imageLeft, currentX + currentWidth - minSize);
-                    newY = clamp(currentY + event.changeY, imageTop, currentY + currentHeight - minSize);
-                    newWidth = currentWidth - (newX - currentX);
-                    newHeight = currentHeight - (newY - currentY);
-                    break;
-                case 'topRight':
-                    newY = clamp(currentY + event.changeY, imageTop, currentY + currentHeight - minSize);
-                    newWidth = clamp(currentWidth + event.changeX, minSize, imageRight - currentX);
-                    newHeight = currentHeight - (newY - currentY);
-                    break;
-                case 'bottomLeft':
-                    newX = clamp(currentX + event.changeX, imageLeft, currentX + currentWidth - minSize);
-                    newWidth = currentWidth - (newX - currentX);
-                    newHeight = clamp(currentHeight + event.changeY, minSize, imageBottom - currentY);
-                    break;
-                case 'bottomRight':
-                    newWidth = clamp(currentWidth + event.changeX, minSize, imageRight - currentX);
-                    newHeight = clamp(currentHeight + event.changeY, minSize, imageBottom - currentY);
-                    break;
-                default:
-                    break;
-            }
+        switch (corner) {
+            case 'topLeft':
+                newX = clamp(currentX + event.changeX, imageLeft, currentX + currentWidth - minSize);
+                newY = clamp(currentY + event.changeY, imageTop, currentY + currentHeight - minSize);
+                newWidth = currentWidth - (newX - currentX);
+                newHeight = currentHeight - (newY - currentY);
+                break;
+            case 'topRight':
+                newY = clamp(currentY + event.changeY, imageTop, currentY + currentHeight - minSize);
+                newWidth = clamp(currentWidth + event.changeX, minSize, imageRight - currentX);
+                newHeight = currentHeight - (newY - currentY);
+                break;
+            case 'bottomLeft':
+                newX = clamp(currentX + event.changeX, imageLeft, currentX + currentWidth - minSize);
+                newWidth = currentWidth - (newX - currentX);
+                newHeight = clamp(currentHeight + event.changeY, minSize, imageBottom - currentY);
+                break;
+            case 'bottomRight':
+                newWidth = clamp(currentWidth + event.changeX, minSize, imageRight - currentX);
+                newHeight = clamp(currentHeight + event.changeY, minSize, imageBottom - currentY);
+                break;
+            default:
+                break;
+        }
 
-            applyCropBoundsAndNotify(newX, newY, newWidth, newHeight, imageLeft, imageRight, imageTop, imageBottom);
-        },
-        [cropX, cropY, cropWidth, cropHeight, displayWidthSV, displayHeightSV, imageOffsetXSV, imageOffsetYSV, applyCropBoundsAndNotify, clamp],
-    );
+        applyCropBoundsAndNotify(newX, newY, newWidth, newHeight, imageLeft, imageRight, imageTop, imageBottom);
+    };
 
     // One gesture per handle, since a gesture can only be attached to a single GestureDetector.
     // The callbacks run on the JS thread because they report the new crop through onCropChange.
