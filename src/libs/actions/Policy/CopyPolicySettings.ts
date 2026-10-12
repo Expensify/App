@@ -369,6 +369,7 @@ function buildCopyPolicySettingsData(
     allPolicyCategories: OnyxCollection<PolicyCategories>,
     allPolicyTags: OnyxCollection<PolicyTagLists>,
     allRules: OnyxCollection<Rule>,
+    isOffline = false,
 ): {
     optimisticData: Array<OnyxUpdate<CopyPolicySettingsOnyxKeys>>;
     successData: Array<OnyxUpdate<CopyPolicySettingsOnyxKeys>>;
@@ -550,10 +551,11 @@ function buildCopyPolicySettingsData(
     // Step 4: drive currentStep on the COPY_POLICY_SETTINGS key itself.
     // Success intentionally omits this key — the backend transitions the bulk policy
     // copy NVP state to complete, which the UI uses to show the completion modal.
+    // Offline, the copy is only queued, so skip the spinner and go straight to the Concierge notification step.
     optimisticData.push({
         onyxMethod: Onyx.METHOD.MERGE,
         key: ONYXKEYS.COPY_POLICY_SETTINGS,
-        value: {currentStep: CONST.POLICY.COPY_SETTINGS_MODAL_STEP.LOADING},
+        value: {currentStep: isOffline ? CONST.POLICY.COPY_SETTINGS_MODAL_STEP.COMPLETE : CONST.POLICY.COPY_SETTINGS_MODAL_STEP.LOADING},
     });
 
     // Optimistically set NVP state to 'in-progress' to avoid stale state flash
@@ -580,8 +582,9 @@ function copyPolicySettings(
     allPolicyCategories: OnyxCollection<PolicyCategories>,
     allPolicyTags: OnyxCollection<PolicyTagLists>,
     allRules: OnyxCollection<Rule>,
+    isOffline: boolean,
 ): void {
-    const {optimisticData, successData, failureData} = buildCopyPolicySettingsData(sourcePolicy, targetPolicies, parts, allPolicyCategories, allPolicyTags, allRules);
+    const {optimisticData, successData, failureData} = buildCopyPolicySettingsData(sourcePolicy, targetPolicies, parts, allPolicyCategories, allPolicyTags, allRules, isOffline);
 
     const params: CopyPolicySettingsParams = {
         policyID: sourcePolicy.id,
@@ -590,6 +593,11 @@ function copyPolicySettings(
     };
 
     write(WRITE_COMMANDS.COPY_POLICY_SETTINGS, params, {optimisticData, successData, failureData});
+
+    // Same as choosing "Let me know when it's done". The queue sends this after the copy request once back online.
+    if (isOffline) {
+        requestCopyPolicySettingsNotification();
+    }
 }
 
 export {setCopyPolicySettingsData, clearCopyPolicySettings, requestCopyPolicySettingsNotification, buildCopyPolicySettingsData, copyPolicySettings, PART_TO_POLICY_FEATURE};
