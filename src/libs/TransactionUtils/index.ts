@@ -533,32 +533,17 @@ function getAmount(transaction: OnyxInputOrEntry<Transaction>, isFromExpenseRepo
 }
 
 /**
- * Convert a stored tax amount to the sign we display.
- */
-function normalizeTaxAmountSign(rawAmount: number | undefined, isFromExpenseReport: boolean): number {
-    // IOU requests cannot have negative values but they can be stored as negative values, let's return absolute value
-    if (!isFromExpenseReport) {
-        return Math.abs(rawAmount ?? 0);
-    }
-
-    // To avoid -0 being shown, lets only change the sign if the value is other than 0.
-    const amount = rawAmount ?? 0;
-    return amount ? -amount : 0;
-}
-
-/**
  * Return the tax amount field from the transaction.
  */
 function getTaxAmount(transaction: OnyxInputOrEntry<Transaction>, isFromExpenseReport: boolean): number {
-    return normalizeTaxAmountSign(transaction?.taxAmount, isFromExpenseReport);
-}
+    // IOU requests cannot have negative values but they can be stored as negative values, let's return absolute value
+    if (!isFromExpenseReport) {
+        return Math.abs(transaction?.taxAmount ?? 0);
+    }
 
-/**
- * Return the converted tax amount field from the transaction.
- * It follows the same sign convention as `getTaxAmount`.
- */
-function getConvertedTaxAmount(transaction: OnyxInputOrEntry<Transaction>, isFromExpenseReport: boolean): number {
-    return normalizeTaxAmountSign(transaction?.convertedTaxAmount, isFromExpenseReport);
+    // To avoid -0 being shown, lets only change the sign if the value is other than 0.
+    const amount = transaction?.taxAmount ?? 0;
+    return amount ? -amount : 0;
 }
 
 /**
@@ -1992,7 +1977,6 @@ export {
     getMCCForDisplay,
     hasDisplayableMCC,
     getConvertedAmount,
-    getConvertedTaxAmount,
     isTimeRequest,
     getExpenseTypeTranslationKey,
     getDetailedExpenseTypeTranslationKey,
