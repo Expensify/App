@@ -70,7 +70,7 @@ function InsightsChartWidget({chart, queryJSON, snapshot, filters, onRetry, onGr
     const groupByControl =
         onGroupByChange && groupByOptions.length > 0 ? (
             <InsightsGroupByDropdown
-                groupBy={getQueryGroupBy(filters)}
+                groupBy={filters.groupBy}
                 options={groupByOptions}
                 onChange={onGroupByChange}
             />
