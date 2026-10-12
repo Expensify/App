@@ -26,7 +26,6 @@ type LogInWithShortLivedAuthTokenPageProps = PlatformStackScreenProps<PublicScre
 function LogInWithShortLivedAuthTokenPage({route}: LogInWithShortLivedAuthTokenPageProps) {
     const {shortLivedAuthToken = '', shortLivedToken = '', authTokenType, exitTo, error, isSAML = false} = route?.params ?? {};
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
-    const [session] = useOnyx(ONYXKEYS.SESSION);
     const [credentials, credentialsMetadata] = useOnyx(ONYXKEYS.CREDENTIALS);
     const [lastVisitedPath, lastVisitedPathMetadata] = useOnyx(ONYXKEYS.LAST_VISITED_PATH);
     const isLoadingSignInData = isLoadingOnyxValue(lastVisitedPathMetadata, ...(isSAML ? [credentialsMetadata] : []));
@@ -60,10 +59,7 @@ function LogInWithShortLivedAuthTokenPage({route}: LogInWithShortLivedAuthTokenP
         // A forced SAML re-auth leaves account.isLoading true until this sign-in, so it must not block a SAML token.
         if (token && (isSAML || !account?.isLoading)) {
             Log.info('LogInWithShortLivedAuthTokenPage - Successfully received shortLivedAuthToken. Signing in...');
-            // This screen only mounts via PublicScreens, where SESSION is always cleared, so session?.authToken is normally undefined. Read it live instead of hardcoding undefined, so this keeps working correctly
-            signInWithShortLivedAuthToken(token, session?.authToken, isSAML, isSAML ? lastVisitedPath : undefined, credentials?.login).catch((signInError) => {
-                Log.warn('Unable to sign in with shortLivedAuthToken', {error: signInError});
-            });
+            signInWithShortLivedAuthToken(token, isSAML, isSAML ? lastVisitedPath : undefined, credentials?.login);
             // For SAML sign-ins, navigate to HOME explicitly since the SAML flow
             // doesn't use exitTo deep link routing. For non-SAML flows, let the
             // navigation system handle exitTo routing naturally via setUpPoliciesAndNavigate.
