@@ -21,14 +21,20 @@ export default function useChartLabelFormats({data, unit, unitPosition = 'left',
 
     const displayUnit = typeof unit === 'string' ? unit : unit?.value;
     const unitToDisplay = fontManager && !canFontRenderText(displayUnit, fontManager) ? (unit as UnitWithFallback)?.fallback : displayUnit;
-    const formatValue = (value: number) => {
-        const formatted = numberFormat(value);
+    const withUnit = (formatted: string) => {
         if (!unitToDisplay) {
             return formatted;
         }
         const separator = unitToDisplay.length > 1 ? ' ' : '';
-        return unitPosition === 'left' ? `${unitToDisplay}${separator}${formatted}` : `${formatted}${separator}${unitToDisplay}`;
+        if (unitPosition === 'right') {
+            return `${formatted}${separator}${unitToDisplay}`;
+        }
+        // A leading unit goes after the minus sign, so negatives read -$50k rather than $-50k.
+        const sign = /^[-\u2212]/.exec(formatted)?.[0] ?? '';
+        return `${sign}${unitToDisplay}${separator}${formatted.slice(sign.length)}`;
     };
+    const formatValue = (value: number) => withUnit(numberFormat(value));
+    const formatCompactValue = (value: number) => withUnit(numberFormat(value, {notation: 'compact'}).replace('K', 'k'));
 
     const formatLabel = (value: number) => {
         const index = Math.round(value);
@@ -45,5 +51,6 @@ export default function useChartLabelFormats({data, unit, unitPosition = 'left',
     return {
         formatLabel,
         formatValue,
+        formatCompactValue,
     };
 }

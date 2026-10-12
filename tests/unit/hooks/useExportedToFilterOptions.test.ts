@@ -14,21 +14,15 @@ import Onyx from 'react-native-onyx';
 import createMock from '../../utils/createMock';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
-const mockGetExportTemplates = jest.fn();
+const mockGetExportTemplates = jest.fn<unknown, unknown[]>();
 
 jest.mock('@libs/actions/Search', () => ({
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     getExportTemplates: (...args: unknown[]) => mockGetExportTemplates(...args),
 }));
 
 /** Builds a policy with a verified connection so getConnectedIntegrationNamesForPolicies detects it. */
 function buildPolicyWithConnection(policyID: string, connectionName: ConnectionName) {
     return {id: policyID, connections: {[connectionName]: {lastSync: {isConnected: true}}}} as const;
-}
-
-/** Narrows the policy argument recorded by the getExportTemplates mock, whose arguments are typed as unknown. */
-function isPolicy(value: unknown): value is Policy {
-    return typeof value === 'object' && value !== null && 'id' in value;
 }
 
 describe('useExportedToFilterOptions', () => {
@@ -50,7 +44,6 @@ describe('useExportedToFilterOptions', () => {
         const {result} = renderHook(() => useExportedToFilterOptions());
 
         expect(result.current.exportedToFilterOptions).toEqual([]);
-        expect(result.current.combinedUniqueExportTemplates).toEqual([]);
         expect(result.current.connectedIntegrationNames).toEqual(new Set());
     });
 
@@ -58,7 +51,6 @@ describe('useExportedToFilterOptions', () => {
         const {result} = renderHook(() => useExportedToFilterOptions());
 
         expect(result.current.exportedToFilterOptions).toEqual([]);
-        expect(result.current.combinedUniqueExportTemplates).toEqual([]);
         expect(result.current.connectedIntegrationNames).toEqual(new Set());
     });
 
@@ -83,16 +75,35 @@ describe('useExportedToFilterOptions', () => {
         expect(result.current.exportedToFilterOptions).toContain(customName);
     });
 
-    it('excludes in-app custom templates from options', () => {
-        const templateName = 'Custom Export Format from OD';
-        mockGetExportTemplates.mockReturnValue({
-            customTemplates: [createMock<ExportTemplate>({templateName, name: templateName, type: CONST.EXPORT_TEMPLATE_TYPES.IN_APP})],
-            defaultTemplates: [],
+    it('builds templates once without in-app layouts, regardless of how many policies exist', async () => {
+        // Given several policies with in-app export layouts, which can't be identified in the exported-to filter
+        const exportLayouts = {layout: {name: 'Custom Export Format from OD'}};
+        await Onyx.mergeCollection(ONYXKEYS.COLLECTION.POLICY, {
+            [`${ONYXKEYS.COLLECTION.POLICY}1`]: {id: '1', exportLayouts},
+            [`${ONYXKEYS.COLLECTION.POLICY}2`]: {id: '2', exportLayouts},
         });
 
-        const {result} = renderHook(() => useExportedToFilterOptions());
+        // When the hook builds the filter options
+        renderHook(() => useExportedToFilterOptions());
 
-        expect(result.current.exportedToFilterOptions).not.toContain(templateName);
+        // Then getExportTemplates is called once with no account layouts and no policy, so no in-app templates are normalized
+        expect(mockGetExportTemplates).toHaveBeenCalledTimes(1);
+        expect(mockGetExportTemplates.mock.calls.at(0)?.at(1)).toEqual({});
+        expect(mockGetExportTemplates.mock.calls.at(0)?.at(4)).toBeUndefined();
+    });
+
+    it('includes the multiple tax export when any policy outputs in CAD', async () => {
+        // Given one USD and one CAD policy
+        await Onyx.mergeCollection(ONYXKEYS.COLLECTION.POLICY, {
+            [`${ONYXKEYS.COLLECTION.POLICY}1`]: {id: '1', outputCurrency: CONST.CURRENCY.USD},
+            [`${ONYXKEYS.COLLECTION.POLICY}2`]: {id: '2', outputCurrency: CONST.CURRENCY.CAD},
+        });
+
+        // When the hook builds the filter options
+        renderHook(() => useExportedToFilterOptions());
+
+        // Then the multiple tax export flag is on, matching the union of the per-policy templates
+        expect(mockGetExportTemplates.mock.calls.at(0)?.at(7)).toBe(true);
     });
 
     it('excludes templates whose templateName matches integration connection key', () => {
@@ -119,18 +130,6 @@ describe('useExportedToFilterOptions', () => {
         expect(result.current.exportedToFilterOptions).toContain(expenseLevelLabel);
     });
 
-    it('returns one template per templateName in combinedUniqueExportTemplates', async () => {
-        const sameName = 'SharedTemplate';
-        const template = createMock<ExportTemplate>({templateName: sameName, name: sameName});
-        await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}1`, {});
-        mockGetExportTemplates.mockReturnValueOnce({customTemplates: [template], defaultTemplates: []}).mockReturnValueOnce({customTemplates: [template], defaultTemplates: []});
-
-        const {result} = renderHook(() => useExportedToFilterOptions());
-
-        expect(result.current.combinedUniqueExportTemplates).toHaveLength(1);
-        expect(result.current.combinedUniqueExportTemplates.at(0)?.templateName).toBe(sameName);
-    });
-
     it('returns connectedIntegrationNames from getConnectedIntegrationNamesForPolicies', async () => {
         await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}1`, buildPolicyWithConnection('1', CONST.POLICY.CONNECTIONS.NAME.XERO));
 
@@ -147,17 +146,14 @@ describe('useExportedToFilterOptions', () => {
         expect(isAdminOfCardEnabledPolicy(trimmedPolicy)).toBe(true);
     });
 
-    it('passes a card enabled admin policy to getExportTemplates with its card product flags intact', async () => {
+    it('includes the reconciliation template when the user is a card admin of a card enabled policy', async () => {
+        // Given a card enabled policy where the user is a card admin
         await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}1`, {id: '1', role: CONST.POLICY.ROLE.CARD_ADMIN, areExpensifyCardsEnabled: true});
 
+        // When the hook builds the filter options
         renderHook(() => useExportedToFilterOptions());
 
-        const policiesPassedToGetExportTemplates = mockGetExportTemplates.mock.calls.flatMap((call: unknown[]) => {
-            const policy = call.at(4);
-            return isPolicy(policy) ? [policy] : [];
-        });
-
-        expect(policiesPassedToGetExportTemplates).toHaveLength(1);
-        expect(isAdminOfCardEnabledPolicy(policiesPassedToGetExportTemplates.at(0))).toBe(true);
+        // Then the reconciliation flag is on, since the selector keeps the role and card product fields
+        expect(mockGetExportTemplates.mock.calls.at(0)?.at(8)).toBe(true);
     });
 });
