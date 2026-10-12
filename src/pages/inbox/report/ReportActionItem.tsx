@@ -51,8 +51,6 @@ import {
     isActionOfType,
     isCreatedTaskReportAction,
     isDeletedParentAction as isDeletedParentActionUtils,
-    isDeletedReportPreviewWithError,
-    getVisibleReportActionErrors,
     isMessageDeleted,
     isMoneyRequestAction,
     isPendingRemove,
@@ -414,24 +412,12 @@ function ReportActionItem({
 
     const disabledActions = !canWriteInReport(report) ? RestrictedReadOnlyContextMenuActions : [];
 
-    // An error the payer cannot see must not disable the action, or the preview loses its context menu for no visible reason.
-    const visibleActionErrors = getVisibleReportActionErrors(action);
-
-    const hasActionErrors = !isEmptyValueObject(visibleActionErrors);
+    const hasActionErrors = !isEmptyValueObject(action.errors);
 
     // Receipt upload errors should still allow the context menu so the user can access "Delete expense"
-    const hasOnlyReceiptErrors = hasActionErrors && Object.values(visibleActionErrors ?? {}).every((error) => error === null || isReceiptError(error));
+    const hasOnlyReceiptErrors = hasActionErrors && Object.values(action.errors ?? {}).every((error) => error === null || isReceiptError(error));
 
     const isContextMenuDisabled = hasDraft || (hasActionErrors && !hasOnlyReceiptErrors) || !shouldDisplayContextMenuValue;
-
-    const latestActionErrors = getLatestErrorMessageField({...action, errors: visibleActionErrors} as OnyxDataWithErrors);
-
-    // Once the report is deleted there is nothing to retry, so say what happened instead of "try again later".
-    let displayedActionErrors = latestActionErrors;
-    if (isDeletedReportPreviewWithError(action)) {
-        const payFailedMessage = translate('iou.error.payFailedExpenseDeleted');
-        displayedActionErrors = mapValues(latestActionErrors, () => payFailedMessage);
-    }
 
     /**
      * Show the ReportActionContextMenu modal popover.
@@ -633,7 +619,7 @@ function ReportActionItem({
                                                     hasDraft ? undefined : (action.pendingAction ?? (action.isOptimisticAction ? CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD : undefined))
                                                 }
                                                 shouldHideOnDelete={!isDeletedParentAction}
-                                                errors={(linkedTransactionRouteError ?? !isOnSearch) ? displayedActionErrors : {}}
+                                                errors={(linkedTransactionRouteError ?? !isOnSearch) ? getLatestErrorMessageField(action as OnyxDataWithErrors) : {}}
                                                 errorRowStyles={[styles.ml10, styles.mr2]}
                                                 needsOffscreenAlphaCompositing={isMoneyRequestAction(action)}
                                                 shouldDisableStrikeThrough
