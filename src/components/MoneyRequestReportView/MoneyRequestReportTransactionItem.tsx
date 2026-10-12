@@ -5,7 +5,7 @@ import {PressableWithFeedback} from '@components/Pressable';
 import type {SearchColumnType, TableColumnSize} from '@components/Search/types';
 import TransactionItemRow from '@components/TransactionItemRow';
 
-import useCopyableTextRowPress from '@hooks/useCopyableTextRowPress';
+import useCopyableTextRowPress, {isPressStartOnCopyableText} from '@hooks/useCopyableTextRowPress';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useResponsiveLayoutOnWideRHP from '@hooks/useResponsiveLayoutOnWideRHP';
@@ -101,14 +101,6 @@ type MoneyRequestReportTransactionItemBodyProps = Omit<MoneyRequestReportTransac
     shouldSkipDeferRBR?: boolean;
 };
 
-function getPressEventTarget(target: unknown): EventTarget | null {
-    if (typeof EventTarget === 'undefined' || !(target instanceof EventTarget)) {
-        return null;
-    }
-
-    return target;
-}
-
 function MoneyRequestReportTransactionItemBody({
     transaction,
     violations,
@@ -179,8 +171,8 @@ function MoneyRequestReportTransactionItemBody({
     // Keep this ref local so React Compiler can prove the after-render event mutations are safe.
     const wasEditingOnMouseDownRef = useRef(false);
     const wasEditingOnPressInRef = useRef(false);
-    const wasPressInOnCopyableTextRef = useRef(false);
-    const {markMouseDownOnCopyableText, shouldSuppressCopyableTextRowPress} = useCopyableTextRowPress();
+    const wasTouchStartOnCopyableTextRef = useRef(false);
+    const {markMouseDownOnCopyableText, markTouchStartOnCopyableText, shouldSuppressCopyableTextRowPress} = useCopyableTextRowPress();
 
     useEffect(() => {
         if (!wasRecentlyEditingCell) {
@@ -220,18 +212,20 @@ function MoneyRequestReportTransactionItemBody({
         handleOnPress(transaction.transactionID);
     };
 
-    const handlePressIn: React.ComponentProps<typeof PressableWithFeedback>['onPressIn'] = (event) => {
+    const handleTouchStart: React.ComponentProps<typeof PressableWithFeedback>['onTouchStart'] = (event) => {
+        const isCopyableTextTouchStart = isPressStartOnCopyableText(event);
+        wasTouchStartOnCopyableTextRef.current = markTouchStartOnCopyableText(event, isCopyableTextTouchStart);
+    };
+
+    const handlePressIn: React.ComponentProps<typeof PressableWithFeedback>['onPressIn'] = () => {
         wasEditingOnPressInRef.current = isEditingCell;
-        wasPressInOnCopyableTextRef.current = false;
         // Selection only needs to be blocked for touch interactions; desktop mouse selection is handled by onMouseDown.
         if (!canUseTouchScreen()) {
             return;
         }
 
         // Let copyable values use native long-press/drag selection instead of applying the global selection blocker.
-        const isCopyableTarget = markMouseDownOnCopyableText(getPressEventTarget(event?.target));
-        wasPressInOnCopyableTextRef.current = isCopyableTarget;
-        if (isCopyableTarget) {
+        if (wasTouchStartOnCopyableTextRef.current) {
             return;
         }
 
@@ -241,14 +235,14 @@ function MoneyRequestReportTransactionItemBody({
 
     const handlePressableLongPress = () => {
         // Let touch-web long presses on copyable values complete native text selection without opening row actions.
-        if (wasPressInOnCopyableTextRef.current) {
+        if (wasTouchStartOnCopyableTextRef.current) {
             return;
         }
         handleLongPress(transaction.transactionID);
     };
 
     const handlePressOut = () => {
-        wasPressInOnCopyableTextRef.current = false;
+        wasTouchStartOnCopyableTextRef.current = false;
         ControlSelection.unblock();
     };
 
@@ -281,6 +275,7 @@ function MoneyRequestReportTransactionItemBody({
                 hoverStyle={[isSelectable && !shouldDisableHoverStyle && styles.hoveredComponentBG, isSelected && styles.activeComponentBG]}
                 dataSet={COPYABLE_ROW_DATA_SET}
                 onMouseDown={handleMouseDown}
+                onTouchStart={handleTouchStart}
                 onHoverIn={handleHoverIn}
                 onPressIn={handlePressIn}
                 onPressOut={handlePressOut}

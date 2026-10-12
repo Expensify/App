@@ -1,8 +1,13 @@
 import {renderHook} from '@testing-library/react-native';
 
 import type useCopyableTextRowPressModule from '../../../src/hooks/useCopyableTextRowPress/index';
+import type {isPressStartOnCopyableText as isPressStartOnCopyableTextModule} from '../../../src/hooks/useCopyableTextRowPress/index';
 
-const useCopyableTextRowPress = jest.requireActual<{default: typeof useCopyableTextRowPressModule}>('../../../src/hooks/useCopyableTextRowPress/index.ts').default;
+const copyableTextRowPressModule = jest.requireActual<{
+    default: typeof useCopyableTextRowPressModule;
+    isPressStartOnCopyableText: typeof isPressStartOnCopyableTextModule;
+}>('../../../src/hooks/useCopyableTextRowPress/index.ts');
+const {default: useCopyableTextRowPress, isPressStartOnCopyableText} = copyableTextRowPressModule;
 const originalGetClientRectsDescriptor = Object.getOwnPropertyDescriptor(Range.prototype, 'getClientRects');
 
 function getCopyableTextElement(): HTMLElement {
@@ -102,5 +107,32 @@ describe('useCopyableTextRowPress', () => {
         expect(result.current.isPressStartOnCopyableText(pressEvent)).toBe(true);
         expect(result.current.isPressStartOnCopyableText(pressEvent)).toBe(true);
         expect(getClientRectsMock).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not treat blank space inside a copyable element as copyable text', () => {
+        // Given a copyable element whose layout extends beyond its rendered text
+        const copyableTextElement = getCopyableTextElement();
+        Object.defineProperty(Range.prototype, 'getClientRects', {
+            configurable: true,
+            value: () => [
+                {
+                    bottom: 20,
+                    height: 20,
+                    left: 0,
+                    right: 100,
+                    top: 0,
+                    width: 100,
+                    x: 0,
+                    y: 0,
+                    toJSON: () => ({}),
+                },
+            ],
+        });
+
+        // When the touch starts within the element but outside the text glyph bounds
+        const isCopyableText = isPressStartOnCopyableText({clientX: 150, clientY: 10, target: copyableTextElement});
+
+        // Then the blank area remains available for the row long-press action
+        expect(isCopyableText).toBe(false);
     });
 });
