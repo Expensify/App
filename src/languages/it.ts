@@ -6150,6 +6150,11 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
             syncReimbursedReports: 'Sincronizza i report rimborsati',
             syncReimbursedReportsDescription: 'Quando un report viene pagato tramite ACH, in questo conto verrà generato un pagamento di una fattura.',
             billPaymentAccount: {label: 'Conto per il pagamento delle fatture', description: 'Scegli da dove pagare le fatture e creeremo il pagamento in DualEntry.'},
+            fxExpenseAccount: {
+                label: 'Conto commissioni conversione valuta DualEntry',
+                description:
+                    'Quando la tua azienda copre il costo di conversione valutaria su un pagamento effettuato all’estero, registreremo tale costo su questo conto in DualEntry come registrazione contabile.',
+            },
             syncExpensifyCardSettlements: 'Sincronizza le liquidazioni della Carta Expensify',
             settlementAccount: {label: 'Conto di regolamento Carta Expensify', description: 'Scegli il tuo conto di regolamento e creeremo il pagamento in DualEntry.'},
             syncTravelInvoicingSettlements: 'Sincronizza le liquidazioni di fatturazione viaggi',
@@ -10209,12 +10214,7 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
         },
     },
     settlement: {
-        status: {
-            pending: 'In sospeso',
-            cleared: 'Compensato',
-            failed: 'Non riuscito',
-            never: 'Mai',
-        },
+        status: {pending: 'In sospeso', cleared: 'Compensato', failed: 'Non riuscito', never: 'Mai', cashBack: 'Cashback'},
         failedError: ({link}: {link: string}) => `Riproveremo a effettuare questa liquidazione quando <a href="${link}">sblocchi il tuo conto</a>.`,
         withdrawalInfo: ({date, withdrawalID}: {date: string; withdrawalID: number}) => `${date} • ID prelievo: ${withdrawalID}`,
     },
@@ -10247,6 +10247,10 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
         genericUpdateReportFieldFailureMessage: "Errore imprevisto durante l'aggiornamento del campo. Riprova più tardi.",
         genericUpdateReportNameEditFailureMessage: 'Errore imprevisto durante la rinomina del report. Riprova più tardi.',
         noActivityYet: 'Ancuna nessuna attività',
+        collapsedSystemMessages: () => ({
+            one: 'mostra 1 aggiornamento',
+            other: (count: number) => `mostra ${count} aggiornamenti`,
+        }),
         connectionSettings: 'Impostazioni di connessione',
         actions: {
             type: {

@@ -6146,6 +6146,11 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
             syncReimbursedReports: 'Terugbetaalde rapporten synchroniseren',
             syncReimbursedReportsDescription: 'Wanneer een rapport via ACH wordt betaald, wordt er een rekeningbetaling in deze rekening gegenereerd.',
             billPaymentAccount: {label: 'Rekening voor rekeningbetalingen', description: 'Kies vanwaar je rekeningen wilt betalen en wij maken de betaling aan in DualEntry.'},
+            fxExpenseAccount: {
+                label: 'DualEntry-valutaconversiekostenrekening',
+                description:
+                    'Wanneer je bedrijf de kosten voor valutaomrekening dekt voor een betaling in het buitenland, boeken we die kosten in DualEntry op deze rekening als een journaalpost.',
+            },
             syncExpensifyCardSettlements: 'Expensify Kaart-afrekeningen synchroniseren',
             settlementAccount: {label: 'Rekening voor afwikkeling van Expensify Kaart', description: 'Kies je afwikkelingsrekening en wij maken de betaling aan in DualEntry.'},
             syncTravelInvoicingSettlements: 'Reisfacturatie-afrekeningen synchroniseren',
@@ -10176,12 +10181,7 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
         },
     },
     settlement: {
-        status: {
-            pending: 'In behandeling',
-            cleared: 'Verrekend',
-            failed: 'Mislukt',
-            never: 'Nooit',
-        },
+        status: {pending: 'In behandeling', cleared: 'Verrekend', failed: 'Mislukt', never: 'Nooit', cashBack: 'Cashback'},
         failedError: ({link}: {link: string}) => `We proberen deze afrekening opnieuw zodra je <a href="${link}">je account ontgrendelt</a>.`,
         withdrawalInfo: ({date, withdrawalID}: {date: string; withdrawalID: number}) => `${date} • Opname-ID: ${withdrawalID}`,
     },
@@ -10214,6 +10214,10 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
         genericUpdateReportFieldFailureMessage: 'Onverwachte fout bij het bijwerken van het veld. Probeer het later opnieuw.',
         genericUpdateReportNameEditFailureMessage: 'Onverwachte fout bij het hernoemen van het rapport. Probeer het later opnieuw.',
         noActivityYet: 'Nog geen activiteit',
+        collapsedSystemMessages: () => ({
+            one: '1 update tonen',
+            other: (count: number) => `${count} updates tonen`,
+        }),
         connectionSettings: 'Verbindingsinstellingen',
         actions: {
             type: {

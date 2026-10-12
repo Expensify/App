@@ -6085,6 +6085,10 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
             syncReimbursedReports: '精算済みレポートを同期',
             syncReimbursedReportsDescription: 'レポートが ACH 経由で支払われると、この勘定科目で支払伝票が作成されます。',
             billPaymentAccount: {label: '請求支払口座', description: '請求書の支払元を選択すると、DualEntry 内に支払いを作成します。'},
+            fxExpenseAccount: {
+                label: 'DualEntry 通貨換算手数料勘定',
+                description: '海外で行われた支払いについて、会社が為替換算コストを負担する場合、そのコストは仕訳として DualEntry のこの勘定科目に計上します。',
+            },
             syncExpensifyCardSettlements: 'Expensify カードの清算を同期',
             settlementAccount: {label: 'Expensify カードの決済口座', description: '精算口座を選択すると、DualEntry で支払いを作成します。'},
             syncTravelInvoicingSettlements: '出張請求の精算を同期する',
@@ -10059,12 +10063,7 @@ ${reportName}`,
         },
     },
     settlement: {
-        status: {
-            pending: '保留中',
-            cleared: '支払済み',
-            failed: '失敗しました',
-            never: 'なし',
-        },
+        status: {pending: '保留中', cleared: '支払済み', failed: '失敗しました', never: 'なし', cashBack: 'キャッシュバック'},
         failedError: ({link}: {link: string}) => `<a href="${link}">アカウントのロックを解除</a>すると、この精算を再試行します。`,
         withdrawalInfo: ({date, withdrawalID}: {date: string; withdrawalID: number}) => `${date}・出金 ID：${withdrawalID}`,
     },
@@ -10096,6 +10095,10 @@ ${reportName}`,
         genericUpdateReportFieldFailureMessage: 'フィールドの更新中に予期しないエラーが発生しました。しばらくしてからもう一度お試しください。',
         genericUpdateReportNameEditFailureMessage: 'レポート名の変更中に予期しないエラーが発生しました。しばらくしてからもう一度お試しください。',
         noActivityYet: 'まだアクティビティがありません',
+        collapsedSystemMessages: () => ({
+            one: '1件の更新を表示',
+            other: (count: number) => `${count}件の更新を表示`,
+        }),
         connectionSettings: '接続設定',
         actions: {
             type: {

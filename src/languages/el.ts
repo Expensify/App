@@ -6294,6 +6294,11 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
             syncReimbursedReports: 'Συγχρονισμός εξοφλημένων αναφορών',
             syncReimbursedReportsDescription: 'Όταν μια αναφορά πληρώνεται μέσω ACH, θα δημιουργηθεί πληρωμή λογαριασμού σε αυτόν τον λογαριασμό.',
             billPaymentAccount: {label: 'Λογαριασμός πληρωμής λογαριασμών', description: 'Επιλέξτε από πού θα πληρώνετε λογαριασμούς και θα δημιουργήσουμε την πληρωμή στο DualEntry.'},
+            fxExpenseAccount: {
+                label: 'Λογαριασμός προμήθειας μετατροπής νομίσματος DualEntry',
+                description:
+                    'Όταν η εταιρεία σας καλύπτει το κόστος μετατροπής νομίσματος για μια πληρωμή στο εξωτερικό, θα καταχωρούμε αυτό το κόστος σε αυτόν τον λογαριασμό στο DualEntry ως λογιστική εγγραφή.',
+            },
             syncExpensifyCardSettlements: 'Συγχρονισμός διακανονισμών κάρτας Expensify',
             settlementAccount: {label: 'λογαριασμός διακανονισμού κάρτας Expensify', description: 'Επιλέξτε τον λογαριασμό εκκαθάρισης και θα δημιουργήσουμε την πληρωμή στο DualEntry.'},
             syncTravelInvoicingSettlements: 'Συγχρονισμός διακανονισμών τιμολόγησης ταξιδιών',
@@ -10450,12 +10455,7 @@ ${reportName}`,
         },
     },
     settlement: {
-        status: {
-            pending: 'Σε εκκρεμότητα',
-            cleared: 'Εκκαθαρισμένο',
-            failed: 'Απέτυχε',
-            never: 'Ποτέ',
-        },
+        status: {pending: 'Σε εκκρεμότητα', cleared: 'Εκκαθαρισμένο', failed: 'Απέτυχε', never: 'Ποτέ', cashBack: 'Επιστροφή μετρητών'},
         failedError: ({link}: {link: string}) => `Θα προσπαθήσουμε ξανά για αυτόν τον διακανονισμό όταν <a href="${link}">ξεκλειδώσετε τον λογαριασμό σας</a>.`,
         withdrawalInfo: ({date, withdrawalID}: {date: string; withdrawalID: number}) => `${date} • Αναγνωριστικό ανάληψης: ${withdrawalID}`,
     },
@@ -10492,6 +10492,10 @@ ${reportName}`,
         genericUpdateReportFieldFailureMessage: 'Προέκυψε απρόσμενο σφάλμα κατά την ενημέρωση του πεδίου. Προσπαθήστε ξανά αργότερα.',
         genericUpdateReportNameEditFailureMessage: 'Παρουσιάστηκε απρόσμενο σφάλμα κατά τη μετονομασία της αναφοράς. Παρακαλούμε δοκιμάστε ξανά αργότερα.',
         noActivityYet: 'Καμία δραστηριότητα ακόμα',
+        collapsedSystemMessages: () => ({
+            one: 'εμφάνιση 1 ενημέρωσης',
+            other: (count: number) => `εμφάνιση ${count} ενημερώσεων`,
+        }),
         connectionSettings: 'Ρυθμίσεις σύνδεσης',
         actions: {
             type: {

@@ -5942,6 +5942,7 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
             syncReimbursedReports: '同步已报销报表',
             syncReimbursedReportsDescription: '当报表通过 ACH 支付时，将在此账户中生成一笔账单付款。',
             billPaymentAccount: {label: '账单付款账户', description: '选择从哪里支付账单，我们会在 DualEntry 中创建该付款。'},
+            fxExpenseAccount: {label: 'DualEntry 货币转换手续费科目', description: '当您的公司承担一笔境外付款的货币兑换成本时，我们会在 DualEntry 中将该成本作为一条日记账分录记入此科目。'},
             syncExpensifyCardSettlements: '同步 Expensify 卡结算',
             settlementAccount: {label: 'Expensify 卡结算账户', description: '选择您的结算账户，我们会在 DualEntry 中创建这笔付款。'},
             syncTravelInvoicingSettlements: '同步旅行开票结算',
@@ -9785,12 +9786,7 @@ ${reportName}`,
         },
     },
     settlement: {
-        status: {
-            pending: '待处理',
-            cleared: '已入账',
-            failed: '失败',
-            never: '从不',
-        },
+        status: {pending: '待处理', cleared: '已入账', failed: '失败', never: '从不', cashBack: '返现'},
         failedError: ({link}: {link: string}) => `当你<a href="${link}">解锁你的账户</a>后，我们会重试此结算。`,
         withdrawalInfo: ({date, withdrawalID}: {date: string; withdrawalID: number}) => `${date} • 提现 ID：${withdrawalID}`,
     },
@@ -9822,6 +9818,10 @@ ${reportName}`,
         genericUpdateReportFieldFailureMessage: '更新该字段时发生未知错误。请稍后重试。',
         genericUpdateReportNameEditFailureMessage: '重命名报表时发生意外错误。请稍后重试。',
         noActivityYet: '暂无活动',
+        collapsedSystemMessages: () => ({
+            one: '显示 1 条更新',
+            other: (count: number) => `显示 ${count} 条更新`,
+        }),
         connectionSettings: '连接设置',
         actions: {
             type: {
