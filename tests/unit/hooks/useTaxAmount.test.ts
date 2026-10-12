@@ -21,11 +21,14 @@ jest.mock('@libs/DistanceRequestUtils', () => ({
     },
 }));
 
+let mockCategoryTaxDetails: {categoryTaxCode: string | undefined; categoryTaxAmount: number | undefined; categoryTaxValue: string | undefined};
+
 jest.mock('@libs/TransactionUtils', () => ({
     calculateTaxAmount: (taxPercentage: string, taxableAmount: number) => {
         const pct = Number.parseFloat(String(taxPercentage).replace('%', '')) || 0;
         return (taxableAmount * pct) / 100;
     },
+    getCategoryTaxDetails: () => mockCategoryTaxDetails,
     getDefaultTaxCode: () => 'tax_default',
     getTaxValue: () => '10%',
     hasTaxRateWithMatchingValue: () => false,
@@ -63,6 +66,7 @@ describe('useTaxAmount', () => {
         mockConvertToDistanceInMeters.mockImplementation((distance: number) => distance);
         mockGetCommuterExclusionDisplayData.mockReturnValue(null);
         mockGetTaxableAmount.mockReturnValue(100);
+        mockCategoryTaxDetails = {categoryTaxCode: undefined, categoryTaxAmount: undefined, categoryTaxValue: undefined};
     });
 
     it('returns the default tax code and value from policy resolution', () => {
@@ -154,5 +158,16 @@ describe('useTaxAmount', () => {
     it('shouldKeepCurrentTaxSelection is false when policy has no matching tax rate', () => {
         const {result} = renderHook(() => useTaxAmount(baseParams));
         expect(result.current.shouldKeepCurrentTaxSelection).toBe(false);
+    });
+
+    it('prefers the tax rate from the category rule over the workspace default', () => {
+        // Given a category whose tax rule resolves to a tax code of its own
+        mockCategoryTaxDetails = {categoryTaxCode: 'tax_category', categoryTaxAmount: 100, categoryTaxValue: '5%'};
+
+        // When the hook resolves the default tax code
+        const {result} = renderHook(() => useTaxAmount(baseParams));
+
+        // Then the category rule outranks the workspace default, so the confirmation page opens on the rule's rate
+        expect(result.current.defaultTaxCode).toBe('tax_category');
     });
 });
