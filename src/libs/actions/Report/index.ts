@@ -3371,22 +3371,34 @@ function broadcastUserIsLeavingRoom(reportID: string, currentUserAccountID: numb
     Pusher.sendEvent(privateReportChannelName, Pusher.TYPE.USER_IS_LEAVING_ROOM, leavingStatus);
 }
 
+type DeleteReportCommentParams = {
+    report: OnyxEntry<Report>;
+    reportAction: ReportAction;
+    originalReportActions: OnyxEntry<ReportActions>;
+    reportActions: OnyxEntry<ReportActions>;
+    ancestors: Ancestor[];
+    isReportArchived: boolean | undefined;
+    isOriginalReportArchived: boolean | undefined;
+    currentEmail: string;
+    isOffline: boolean;
+    currentUserAccountID: number;
+    visibleReportActionsData?: VisibleReportActionsDerivedValue;
+};
+
 /** Deletes a comment from the report, basically sets it as empty string */
-// TODO: Convert these positional params into a single object param, like the sibling actions in this file already use. That also removes the need for the suppression below. Refactor issue: https://github.com/Expensify/App/issues/66408
-// eslint-disable-next-line @typescript-eslint/max-params
-function deleteReportComment(
-    report: OnyxEntry<Report>,
-    reportAction: ReportAction,
-    originalReportActions: OnyxEntry<ReportActions>,
-    reportActions: OnyxEntry<ReportActions>,
-    ancestors: Ancestor[],
-    isReportArchived: boolean | undefined,
-    isOriginalReportArchived: boolean | undefined,
-    currentEmail: string,
-    isOffline: boolean,
-    currentUserAccountID: number,
-    visibleReportActionsDataParam?: VisibleReportActionsDerivedValue,
-) {
+function deleteReportComment({
+    report,
+    reportAction,
+    originalReportActions,
+    reportActions,
+    ancestors,
+    isReportArchived,
+    isOriginalReportArchived,
+    currentEmail,
+    isOffline,
+    currentUserAccountID,
+    visibleReportActionsData,
+}: DeleteReportCommentParams) {
     const reportID = report?.reportID;
     const originalReportID = getOriginalReportID(reportID, reportAction, reportActions, isOffline);
     const reportActionID = reportAction.reportActionID;
@@ -3506,7 +3518,7 @@ function deleteReportComment(
             (action) =>
                 action.reportActionID !== reportAction.reportActionID &&
                 ReportActionsUtils.didMessageMentionCurrentUser(action, currentEmail) &&
-                ReportActionsUtils.isReportActionVisible(action, reportID, undefined, visibleReportActionsDataParam),
+                ReportActionsUtils.isReportActionVisible(action, reportID, undefined, visibleReportActionsData),
         );
         optimisticReport.lastMentionedTime = latestMentionedReportAction?.created ?? null;
     }
