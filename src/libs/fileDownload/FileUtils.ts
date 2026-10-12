@@ -160,6 +160,23 @@ const splitExtensionFromFileName: SplitExtensionFromFileName = (fullFileName) =>
 };
 
 /**
+ * Returns the file name, reading it from the URI when the picker returns none, as the iOS document picker can.
+ * Falls back to `defaultFileName` only when the URI has no extension either, as with Android's `content://` URIs.
+ */
+function getFileNameWithFallback(fileName: string | null | undefined, uri: string, defaultFileName: string): string {
+    if (fileName) {
+        return fileName;
+    }
+
+    const fileNameFromURI = getFileName(uri);
+    if (!splitExtensionFromFileName(fileNameFromURI).fileExtension) {
+        return defaultFileName;
+    }
+
+    return fileNameFromURI;
+}
+
+/**
  * Returns the MIME type for a given file extension.
  * Falls back to 'application/octet-stream' for unrecognized extensions.
  */
@@ -664,10 +681,13 @@ const createFile = (file: File): FileObject => {
             type: file.type,
         };
     }
-    return new File([file], file.name, {
+    const clonedFile = new File([file], file.name, {
         type: file.type,
         lastModified: file.lastModified,
     });
+    // `uri` is a custom property that the File constructor doesn't copy, and attachment previews need it
+    clonedFile.uri = file.uri;
+    return clonedFile;
 };
 
 const resizeImageIfNeeded = (file: FileObject) => {
@@ -946,6 +966,7 @@ export {
     splitExtensionFromFileName,
     getMimeType,
     getFileName,
+    getFileNameWithFallback,
     getFileType,
     cleanFileName,
     getExportFileName,

@@ -1,7 +1,6 @@
-import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetailsList} from '@src/types/onyx';
 
-import useOnyx from './useOnyx';
+import {useAllPersonalDetails} from './usePersonalDetails';
 
 /**
  * Subscribes to all personal details and remaps them by email (login) instead of account ID.
@@ -10,7 +9,7 @@ import useOnyx from './useOnyx';
  * shallowEqual on raw personal detail references, then remaps inline.
  */
 function usePersonalDetailsByEmail() {
-    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
+    const [personalDetails] = useAllPersonalDetails();
     if (!personalDetails) {
         return undefined;
     }

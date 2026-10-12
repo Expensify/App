@@ -18,7 +18,7 @@ import {isCycleIdle, Priorities, resetCycle, tryClaim} from '@libs/ScreenFocusAr
 import CONST from '@src/CONST';
 
 import type {NavigationState} from '@react-navigation/native';
-import type {RefObject} from 'react';
+import type {ComponentRef, RefObject} from 'react';
 import type {View} from 'react-native';
 
 import setFifoEntry from './fifoMap';
@@ -169,13 +169,18 @@ function skipNextFocusRestore(): void {
     skipNextRestore = true;
 }
 
+/** Undo `skipNextFocusRestore` when its goBack never happened. */
+function cancelSkipNextFocusRestore(): void {
+    skipNextRestore = false;
+}
+
 /** Native-only. Web captures via `focusin` so this stub exists only to keep the import cross-platform. */
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-function notifyPressedTrigger(_ref: RefObject<View | null> | null, _identifier?: string): void {}
+function notifyPressedTrigger(_ref: RefObject<ComponentRef<typeof View> | null> | null, _identifier?: string): void {}
 
 /** Native-only registry. Cross-platform stub. */
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-function registerPressable(_routeKey: string, _identifier: string, _ref: RefObject<View | null>): () => void {
+function registerPressable(_routeKey: string, _identifier: string, _ref: RefObject<ComponentRef<typeof View> | null>): () => void {
     return () => {};
 }
 
@@ -690,6 +695,7 @@ export {
     notifyPushParamsBackward,
     cancelPendingFocusRestore,
     skipNextFocusRestore,
+    cancelSkipNextFocusRestore,
     notifyPressedTrigger,
     registerPressable,
     isFocusRestoreInProgress,

@@ -9,9 +9,12 @@ import VictoryChartPolar from './VictoryChartPolar';
 type VictoryChartContentProps = {
     explicitSize?: {width: number; height: number};
     headless?: boolean;
+
+    /** Render into a static bitmap canvas instead of a live WebGL canvas (web) */
+    shouldUseStaticCanvas?: boolean;
 };
 
-function VictoryChartContent({explicitSize, headless}: VictoryChartContentProps) {
+function VictoryChartContent({explicitSize, headless, shouldUseStaticCanvas}: VictoryChartContentProps) {
     const {type} = useVictoryChartContext();
     switch (type) {
         case CHART_TYPE.CARTESIAN:
@@ -19,6 +22,7 @@ function VictoryChartContent({explicitSize, headless}: VictoryChartContentProps)
                 <VictoryChartCartesian
                     explicitSize={explicitSize}
                     headless={headless}
+                    shouldUseStaticCanvas={shouldUseStaticCanvas}
                 />
             );
         case CHART_TYPE.POLAR:
@@ -26,6 +30,7 @@ function VictoryChartContent({explicitSize, headless}: VictoryChartContentProps)
                 <VictoryChartPolar
                     explicitSize={explicitSize}
                     headless={headless}
+                    shouldUseStaticCanvas={shouldUseStaticCanvas}
                 />
             );
         default:

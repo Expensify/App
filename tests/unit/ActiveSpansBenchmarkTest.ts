@@ -57,7 +57,7 @@ describe('activeSpans benchmark logging', () => {
         startSpan('ManualAppStartup', {name: 'ManualAppStartup'});
         endSpan('ManualAppStartup');
 
-        expect(mockStartInactiveSpan).toHaveBeenCalledWith({name: 'ManualAppStartup'});
+        expect(mockStartInactiveSpan).toHaveBeenCalledWith({name: 'ManualAppStartup', forceTransaction: true});
         expect(mockLogBenchmarkSpanEnd).toHaveBeenCalledWith('ManualAppStartup', expect.any(Number));
     });
 

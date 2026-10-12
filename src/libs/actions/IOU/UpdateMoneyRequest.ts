@@ -98,6 +98,7 @@ type UpdateMoneyRequestDateParams = {
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
     getCurrencySymbol: CurrencyListActionsContextType['getCurrencySymbol'];
     rules: OnyxCollection<OnyxTypes.Rule>;
+    isVendorMatchingBetaEnabled: boolean | undefined;
 };
 
 type SearchSnapshotOnyxData = {
@@ -250,6 +251,7 @@ function updateMoneyRequestDate({
     getCurrencyDecimals,
     getCurrencySymbol,
     rules,
+    isVendorMatchingBetaEnabled,
 }: UpdateMoneyRequestDateParams) {
     const transaction = transactionParam ?? getAllTransactions()[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
     const isTrackExpense = isTrackExpenseReport(transactionThreadReport) && isSelfDM(parentReport);
@@ -272,6 +274,7 @@ function updateMoneyRequestDate({
                 : undefined;
 
         updateMoneyRequestDistanceRate({
+            isVendorMatchingBetaEnabled,
             transaction,
             transactionThreadReport,
             parentReport,
@@ -324,6 +327,7 @@ function updateMoneyRequestDate({
         });
     } else {
         data = getUpdateMoneyRequestParams({
+            isVendorMatchingBetaEnabled,
             transactionID,
             transaction,
             transactionThreadReport,
@@ -391,7 +395,9 @@ function updateMoneyRequestBillable({
     getCurrencyDecimals,
     getCurrencySymbol,
     rules,
+    isVendorMatchingBetaEnabled,
 }: {
+    isVendorMatchingBetaEnabled: boolean | undefined;
     transactionID: string | undefined;
     transaction?: OnyxEntry<OnyxTypes.Transaction>;
     transactionThreadReport: OnyxEntry<OnyxTypes.Report>;
@@ -419,6 +425,7 @@ function updateMoneyRequestBillable({
         billable: value,
     };
     const {params, onyxData} = getUpdateMoneyRequestParams({
+        isVendorMatchingBetaEnabled,
         transactionID,
         transactionThreadReport,
         iouReport: parentReport,
@@ -472,7 +479,9 @@ function updateMoneyRequestReimbursable({
     getCurrencyDecimals,
     getCurrencySymbol,
     rules,
+    isVendorMatchingBetaEnabled,
 }: {
+    isVendorMatchingBetaEnabled: boolean | undefined;
     transactionID: string | undefined;
     transaction?: OnyxEntry<OnyxTypes.Transaction>;
     transactionThreadReport: OnyxEntry<OnyxTypes.Report>;
@@ -501,6 +510,7 @@ function updateMoneyRequestReimbursable({
         reimbursable: value,
     };
     const {params, onyxData} = getUpdateMoneyRequestParams({
+        isVendorMatchingBetaEnabled,
         transactionID,
         transactionThreadReport,
         iouReport: parentReport,
@@ -557,7 +567,9 @@ function updateMoneyRequestMerchant({
     getCurrencyDecimals,
     getCurrencySymbol,
     rules,
+    isVendorMatchingBetaEnabled,
 }: {
+    isVendorMatchingBetaEnabled: boolean | undefined;
     transactionID: string;
     transaction?: OnyxEntry<OnyxTypes.Transaction>;
     transactionThreadReport: OnyxEntry<OnyxTypes.Report>;
@@ -598,6 +610,7 @@ function updateMoneyRequestMerchant({
         });
     } else {
         data = getUpdateMoneyRequestParams({
+            isVendorMatchingBetaEnabled,
             transactionID,
             transaction,
             transactionThreadReport,
@@ -646,7 +659,9 @@ function updateMoneyRequestAttendees({
     getCurrencyDecimals,
     getCurrencySymbol,
     rules,
+    isVendorMatchingBetaEnabled,
 }: {
+    isVendorMatchingBetaEnabled: boolean | undefined;
     transactionID: string;
     transactionThreadReport: OnyxEntry<OnyxTypes.Report>;
     parentReport: OnyxEntry<OnyxTypes.Report>;
@@ -671,6 +686,7 @@ function updateMoneyRequestAttendees({
         attendees,
     };
     const data = getUpdateMoneyRequestParams({
+        isVendorMatchingBetaEnabled,
         transactionID,
         transactionThreadReport,
         iouReport: parentReport,
@@ -907,6 +923,7 @@ type UpdateMoneyRequestTagParams = {
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
     getCurrencySymbol: CurrencyListActionsContextType['getCurrencySymbol'];
     rules: OnyxCollection<OnyxTypes.Rule>;
+    isVendorMatchingBetaEnabled: boolean | undefined;
 };
 
 /** Updates the tag of an expense */
@@ -935,11 +952,13 @@ function updateMoneyRequestTag({
     getCurrencyDecimals,
     getCurrencySymbol,
     rules,
+    isVendorMatchingBetaEnabled,
 }: UpdateMoneyRequestTagParams) {
     const transactionChanges: TransactionChanges = {
         tag,
     };
     const {params, onyxData} = getUpdateMoneyRequestParams({
+        isVendorMatchingBetaEnabled,
         transactionID,
         transaction,
         transactionThreadReport,
@@ -1006,7 +1025,9 @@ function updateMoneyRequestTaxAmount({
     getCurrencyDecimals,
     getCurrencySymbol,
     rules,
+    isVendorMatchingBetaEnabled,
 }: {
+    isVendorMatchingBetaEnabled: boolean | undefined;
     transactionID: string;
     transactionThreadReport: OnyxEntry<OnyxTypes.Report>;
     parentReport: OnyxEntry<OnyxTypes.Report>;
@@ -1029,6 +1050,7 @@ function updateMoneyRequestTaxAmount({
         taxAmount,
     };
     const {params, onyxData} = getUpdateMoneyRequestParams({
+        isVendorMatchingBetaEnabled,
         transactionID,
         transactionThreadReport,
         iouReport: parentReport,
@@ -1072,6 +1094,7 @@ type UpdateMoneyRequestTaxRateParams = {
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
     getCurrencySymbol: CurrencyListActionsContextType['getCurrencySymbol'];
     rules: OnyxCollection<OnyxTypes.Rule>;
+    isVendorMatchingBetaEnabled: boolean | undefined;
 };
 
 /** Updates the created tax rate of an expense */
@@ -1097,6 +1120,7 @@ function updateMoneyRequestTaxRate({
     getCurrencyDecimals,
     getCurrencySymbol,
     rules,
+    isVendorMatchingBetaEnabled,
 }: UpdateMoneyRequestTaxRateParams) {
     const transactionChanges = {
         taxCode,
@@ -1104,6 +1128,7 @@ function updateMoneyRequestTaxRate({
         taxValue,
     };
     const {params, onyxData} = getUpdateMoneyRequestParams({
+        isVendorMatchingBetaEnabled,
         transactionID,
         transactionThreadReport,
         iouReport: parentReport,
@@ -1165,6 +1190,7 @@ type UpdateMoneyRequestDistanceParams = {
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
     getCurrencySymbol: CurrencyListActionsContextType['getCurrencySymbol'];
     rules: OnyxCollection<OnyxTypes.Rule>;
+    isVendorMatchingBetaEnabled: boolean | undefined;
 };
 
 /** Updates the waypoints of a distance expense */
@@ -1196,6 +1222,7 @@ function updateMoneyRequestDistance({
     getCurrencyDecimals,
     getCurrencySymbol,
     rules,
+    isVendorMatchingBetaEnabled,
 }: UpdateMoneyRequestDistanceParams) {
     const transactionChanges: TransactionChanges = {
         // Don't sanitize waypoints here - keep all fields for Onyx optimistic data (e.g., keyForList)
@@ -1225,6 +1252,7 @@ function updateMoneyRequestDistance({
         });
     } else {
         data = getUpdateMoneyRequestParams({
+            isVendorMatchingBetaEnabled,
             transactionID: transaction?.transactionID,
             transactionThreadReport,
             iouReport: parentReport,
@@ -1301,6 +1329,9 @@ function updateMoneyRequestDistance({
                 },
                 modifiedWaypoints: onyxModifiedWaypoints,
                 ...(shouldClearRoutes && {routes: null}),
+
+                // The restored waypoints are the trip this was decided for, so bring it back alongside them
+                commuterExclusionPreview: transactionBackup?.commuterExclusionPreview ?? null,
             },
         });
     }
@@ -1332,7 +1363,9 @@ function updateMoneyRequestCategory({
     getCurrencyDecimals,
     getCurrencySymbol,
     rules,
+    isVendorMatchingBetaEnabled,
 }: {
+    isVendorMatchingBetaEnabled: boolean | undefined;
     transactionID: string;
     transaction?: OnyxEntry<OnyxTypes.Transaction>;
     transactionThreadReport: OnyxEntry<OnyxTypes.Report>;
@@ -1362,6 +1395,7 @@ function updateMoneyRequestCategory({
     };
 
     const {params, onyxData} = getUpdateMoneyRequestParams({
+        isVendorMatchingBetaEnabled,
         transactionID,
         transaction,
         transactionThreadReport,
@@ -1421,7 +1455,9 @@ function updateMoneyRequestDescription({
     getCurrencyDecimals,
     getCurrencySymbol,
     rules,
+    isVendorMatchingBetaEnabled,
 }: {
+    isVendorMatchingBetaEnabled: boolean | undefined;
     transactionID: string;
     transaction?: OnyxEntry<OnyxTypes.Transaction>;
     transactionThreadReport: OnyxEntry<OnyxTypes.Report>;
@@ -1464,6 +1500,7 @@ function updateMoneyRequestDescription({
         });
     } else {
         data = getUpdateMoneyRequestParams({
+            isVendorMatchingBetaEnabled,
             transactionID,
             transaction,
             transactionThreadReport,
@@ -1533,7 +1570,9 @@ function updateMoneyRequestDistanceRate({
     getCurrencyDecimals,
     getCurrencySymbol,
     rules,
+    isVendorMatchingBetaEnabled,
 }: {
+    isVendorMatchingBetaEnabled: boolean | undefined;
     transaction: OnyxEntry<OnyxTypes.Transaction>;
     transactionThreadReport: OnyxEntry<OnyxTypes.Report>;
     parentReport: OnyxEntry<OnyxTypes.Report>;
@@ -1606,6 +1645,7 @@ function updateMoneyRequestDistanceRate({
         });
     } else {
         data = getUpdateMoneyRequestParams({
+            isVendorMatchingBetaEnabled,
             transactionID: transaction?.transactionID,
             transactionThreadReport,
             iouReport: parentReport,
@@ -1669,6 +1709,7 @@ type UpdateMoneyRequestAmountAndCurrencyParams = {
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
     getCurrencySymbol: CurrencyListActionsContextType['getCurrencySymbol'];
     rules: OnyxCollection<OnyxTypes.Rule>;
+    isVendorMatchingBetaEnabled: boolean | undefined;
 };
 
 /** Updates the amount and currency fields of an expense */
@@ -1700,6 +1741,7 @@ function updateMoneyRequestAmountAndCurrency({
     getCurrencyDecimals,
     getCurrencySymbol,
     rules,
+    isVendorMatchingBetaEnabled,
 }: UpdateMoneyRequestAmountAndCurrencyParams) {
     const transactionChanges = {
         amount,
@@ -1724,6 +1766,7 @@ function updateMoneyRequestAmountAndCurrency({
         });
     } else {
         data = getUpdateMoneyRequestParams({
+            isVendorMatchingBetaEnabled,
             transactionID,
             transaction,
             transactionThreadReport,
@@ -1786,6 +1829,7 @@ type GetUpdateMoneyRequestParamsType = {
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
     getCurrencySymbol: CurrencyListActionsContextType['getCurrencySymbol'];
     rules: OnyxCollection<OnyxTypes.Rule>;
+    isVendorMatchingBetaEnabled: boolean | undefined;
 };
 
 type UpdateMoneyRequestDataKeys =
@@ -1838,6 +1882,7 @@ function getUpdateMoneyRequestParams(params: GetUpdateMoneyRequestParamsType): U
         getCurrencyDecimals,
         getCurrencySymbol,
         rules,
+        isVendorMatchingBetaEnabled,
     } = params;
     const optimisticData: Array<
         OnyxUpdate<
@@ -2195,7 +2240,7 @@ function getUpdateMoneyRequestParams(params: GetUpdateMoneyRequestParamsType): U
 
     // Update recently used currencies if the currency is changed
     if ('currency' in transactionChanges) {
-        const optimisticRecentlyUsedCurrencies = mergePolicyRecentlyUsedCurrencies(transactionChanges.currency, policyRecentlyUsedCurrencies ?? []);
+        const optimisticRecentlyUsedCurrencies = mergePolicyRecentlyUsedCurrencies(transactionChanges.currency, policyRecentlyUsedCurrencies);
         if (optimisticRecentlyUsedCurrencies.length) {
             optimisticData.push({
                 onyxMethod: Onyx.METHOD.SET,
@@ -2361,6 +2406,7 @@ function getUpdateMoneyRequestParams(params: GetUpdateMoneyRequestParamsType): U
             ownerLogin: iouReportOwnerLogin,
             isFromExpenseReport,
             distanceOriginalPolicy,
+            isVendorMatchingBetaEnabled,
         });
         optimisticData.push(violationsOnyxData);
         failureData.push({

@@ -1,12 +1,12 @@
 import useOnyx from '@hooks/useOnyx';
 import useOriginalReportID from '@hooks/useOriginalReportID';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
 
 import canFocusInputOnScreenFocus from '@libs/canFocusInputOnScreenFocus';
 import Log from '@libs/Log';
 import {chatIncludesConcierge} from '@libs/ReportUtils';
 
 import {useReportActionActiveEdit} from '@pages/inbox/report/ReportActionEditMessageContext';
+import useShouldEditInComposer from '@pages/inbox/report/useShouldEditInComposer';
 
 import {isBlockedFromConcierge as isBlockedFromConciergeUserAction} from '@userActions/User';
 
@@ -14,6 +14,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {FileObject} from '@src/types/utils/Attachment';
 
+import type {ComponentRef} from 'react';
 import type {View} from 'react-native';
 
 import React, {useRef, useState} from 'react';
@@ -43,7 +44,7 @@ type ComposerProviderProps = {
 };
 
 function ComposerProvider({children, reportID}: ComposerProviderProps) {
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const shouldEditInComposer = useShouldEditInComposer();
 
     const [blockedFromConcierge] = useOnyx(ONYXKEYS.NVP_BLOCKED_FROM_CONCIERGE);
     const [initialModalState] = useOnyx(ONYXKEYS.MODAL);
@@ -71,17 +72,17 @@ function ComposerProvider({children, reportID}: ComposerProviderProps) {
         textRef.current = v;
     };
 
-    const containerRef = useRef<View>(null);
+    const containerRef = useRef<ComponentRef<typeof View>>(null);
     const suggestionsRef = useRef<SuggestionsRef>(null);
     const composerRef = useRef<ComposerWithSuggestionsRef | null>(null);
-    const actionButtonRef = useRef<View | HTMLDivElement | null>(null);
+    const actionButtonRef = useRef<ComponentRef<typeof View> | HTMLDivElement | null>(null);
     const attachmentFileRef = useRef<FileObject | FileObject[] | null>(null);
 
     const {editingState, editingReportID, editingReportActionID, editingReportAction, editingMessage, currentEditMessageSelection} = useReportActionActiveEdit();
 
     const [didResetComposerHeightWhileEditing, setDidResetComposerHeightWhileEditing] = useState(false);
 
-    const isEditingInComposer = shouldUseNarrowLayout && editingState !== 'off' && !didResetComposerHeightWhileEditing;
+    const isEditingInComposer = shouldEditInComposer && editingState !== 'off' && !didResetComposerHeightWhileEditing;
     const effectiveDraft = isEditingInComposer ? editingMessage : draftComment;
 
     const {debouncedCommentMaxLengthValidation, exceededMaxLength, isExceedingMaxLength, isTaskTitle} = useDebouncedCommentMaxLengthValidation({

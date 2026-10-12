@@ -308,6 +308,7 @@ function applyRequireFieldsReceiptSettings(
     category: PolicyCategory | undefined,
     effectiveForm: RequireFieldsRuleForm,
     initialForm: Partial<RequireFieldsRuleForm>,
+    isVendorMatchingBetaEnabled: boolean | undefined,
     touchedFields?: Set<RequireFieldsRuleSettingFieldKey>,
     clearedFields?: Set<RequireFieldsRuleSettingFieldKey>,
 ) {
@@ -334,22 +335,23 @@ function applyRequireFieldsReceiptSettings(
     }
 
     if (isReceiptOverrideValue(receiptTarget) && isReceiptOverrideValue(itemizedTarget)) {
-        setPolicyCategoryReceiptsAndItemizedReceiptRequired(policyData, categoryName, receiptTarget, itemizedTarget);
+        setPolicyCategoryReceiptsAndItemizedReceiptRequired(policyData, categoryName, receiptTarget, itemizedTarget, isVendorMatchingBetaEnabled);
         return;
     }
 
     if (isReceiptOverrideValue(receiptTarget)) {
-        setPolicyCategoryReceiptsRequired(policyData, categoryName, receiptTarget);
+        setPolicyCategoryReceiptsRequired(policyData, categoryName, receiptTarget, isVendorMatchingBetaEnabled);
     }
 
     if (isReceiptOverrideValue(itemizedTarget)) {
-        setPolicyCategoryItemizedReceiptsRequired(policyData, categoryName, itemizedTarget);
+        setPolicyCategoryItemizedReceiptsRequired(policyData, categoryName, itemizedTarget, isVendorMatchingBetaEnabled);
     }
 }
 
 function saveRequireFieldsRule(
     policyData: PolicyData,
     form: RequireFieldsRuleForm,
+    isVendorMatchingBetaEnabled: boolean | undefined,
     touchedFields?: Set<RequireFieldsRuleSettingFieldKey>,
     clearedFields?: Set<RequireFieldsRuleSettingFieldKey>,
 ) {
@@ -381,19 +383,19 @@ function saveRequireFieldsRule(
     }
 
     if (hasClearedRequireFieldsSetting(category, INPUT_IDS.RECEIPT_SETTING, clearedFields)) {
-        removePolicyCategoryReceiptsRequired(policyData, categoryName);
+        removePolicyCategoryReceiptsRequired(policyData, categoryName, isVendorMatchingBetaEnabled);
     }
 
     if (hasClearedRequireFieldsSetting(category, INPUT_IDS.ITEMIZED_RECEIPT_SETTING, clearedFields)) {
-        removePolicyCategoryItemizedReceiptsRequired(policyData, categoryName);
+        removePolicyCategoryItemizedReceiptsRequired(policyData, categoryName, isVendorMatchingBetaEnabled);
     }
 
     if (hasReceiptSettingsChanged(category, effectiveForm, initialForm, touchedFields, clearedFields)) {
-        applyRequireFieldsReceiptSettings(policyData, categoryName, category, effectiveForm, initialForm, touchedFields, clearedFields);
+        applyRequireFieldsReceiptSettings(policyData, categoryName, category, effectiveForm, initialForm, isVendorMatchingBetaEnabled, touchedFields, clearedFields);
     }
 }
 
-function deleteRequireFieldsRule(policyData: PolicyData, ruleKey: string) {
+function deleteRequireFieldsRule(policyData: PolicyData, ruleKey: string, isVendorMatchingBetaEnabled: boolean | undefined) {
     const {categoryName} = parseRequireFieldsRuleKey(ruleKey);
     if (!categoryName || !policyData.policy?.id) {
         return;
@@ -416,11 +418,11 @@ function deleteRequireFieldsRule(policyData: PolicyData, ruleKey: string) {
     }
 
     if (isReceiptRequireOverrideForCategory(category) || isReceiptWaivedForCategory(category)) {
-        removePolicyCategoryReceiptsRequired(policyData, categoryName);
+        removePolicyCategoryReceiptsRequired(policyData, categoryName, isVendorMatchingBetaEnabled);
     }
 
     if (isItemizedReceiptRequireOverrideForCategory(category) || isItemizedReceiptWaivedForCategory(category)) {
-        removePolicyCategoryItemizedReceiptsRequired(policyData, categoryName);
+        removePolicyCategoryItemizedReceiptsRequired(policyData, categoryName, isVendorMatchingBetaEnabled);
     }
 }
 

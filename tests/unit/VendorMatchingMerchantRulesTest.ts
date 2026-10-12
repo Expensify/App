@@ -1,12 +1,14 @@
-import {mapFormFieldsToRuleForAPI, mapFormFieldsToRuleForOnyx} from '@libs/actions/Policy/Rules';
-import {getMerchantCodingRulesTableData} from '@libs/MerchantTypeRulesUtils';
+import {buildMerchantRule} from '@libs/ExpenseDefaultRuleUtils';
+import {getMerchantRulesTableData} from '@libs/MerchantTypeRulesUtils';
 import {hasVendorFeature} from '@libs/PolicyUtils';
+import {toIndexMap} from '@libs/RuleUtils';
 
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type {MerchantRuleForm} from '@src/types/form/MerchantRuleForm';
-import type {Policy} from '@src/types/onyx';
-import type {CodingRule, Connections} from '@src/types/onyx/Policy';
+import type {Policy, Rule} from '@src/types/onyx';
+import type {Connections} from '@src/types/onyx/Policy';
 
 import createRandomPolicy from '../utils/collections/policies';
 import createMock from '../utils/createMock';
@@ -61,6 +63,18 @@ const buildQBOWithVendorBillExportPolicy = (vendors: Array<{id: string; name: st
         }),
     });
 
+/** Sage Intacct policy whose Credit Card Charge export scopes vendor matching to Intacct. */
+const buildIntacctPolicy = (vendors: Array<{id: string; name: string; value: string}>): Policy =>
+    createMock<Policy>({
+        ...createRandomPolicy(0),
+        connections: createMock<Connections>({
+            [CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT]: {
+                config: {export: {nonReimbursable: CONST.SAGE_INTACCT_NON_REIMBURSABLE_EXPENSE_TYPE.CREDIT_CARD_CHARGE}},
+                data: {vendors},
+            },
+        }),
+    });
+
 /** Xero policy whose supplier list scopes vendor matching to Xero (label flips vendor -> supplier). */
 const buildXeroPolicy = (contacts: Record<string, {id: string; name: string; email: string}> | undefined): Policy =>
     createMock<Policy>({
@@ -92,68 +106,61 @@ const buildQBOWithStaleXeroPolicy = (qboVendors: Array<{id: string; name: string
         }),
     });
 
-const withCodingRules = (policy: Policy, codingRules: Record<string, CodingRule>): Policy => ({...policy, rules: {...policy.rules, codingRules}});
-
-const buildVendorRule = (vendorID: string): CodingRule => ({
-    filters: {left: 'merchant', operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, right: 'Coffee Shop'},
-    vendorID,
+const buildVendorRule = (policy: Policy, vendorID: string): Rule => ({
+    ...buildMerchantRule({merchantToMatch: 'Coffee Shop', matchType: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, vendorID}, policy),
+    scope: CONST.RULES.SCOPE.POLICY,
+    scopeID: policy.id,
+    triggers: toIndexMap([CONST.RULES.TRIGGERS.CREATE_TRANSACTION]),
+    filters: {left: CONST.RULES.EXPENSE_DEFAULT.FIELD.MERCHANT, operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, right: 'Coffee Shop'},
+    actions: toIndexMap([{name: CONST.RULES.ACTIONS.SET, field: CONST.RULES.EXPENSE_DEFAULT.FIELD.VENDOR_ID, value: vendorID}]),
 });
 
+const withVendorRule = (policy: Policy, vendorID: string) => ({[`${ONYXKEYS.COLLECTION.RULE}rule1`]: buildVendorRule(policy, vendorID)});
+
 describe('Vendor matching on merchant rules', () => {
-    describe('mapFormFieldsToRuleForOnyx', () => {
-        it('serializes a set vendorID', () => {
-            expect(mapFormFieldsToRuleForOnyx(buildForm({vendorID: 'v-1'}), undefined).vendorID).toBe('v-1');
+    describe('buildMerchantRule vendor action', () => {
+        it('writes a Set action for a vendorID', () => {
+            const actions = Object.values(buildMerchantRule(buildForm({vendorID: 'v-1'}), undefined)?.actions ?? {});
+            expect(actions).toContainEqual({name: CONST.RULES.ACTIONS.SET, field: CONST.RULES.EXPENSE_DEFAULT.FIELD.VENDOR_ID, value: 'v-1'});
         });
 
-        it('serializes an unset vendorID to null so Onyx merge clears it', () => {
-            expect(mapFormFieldsToRuleForOnyx(buildForm({vendorID: ''}), undefined).vendorID).toBeNull();
-        });
-    });
-
-    describe('mapFormFieldsToRuleForAPI', () => {
-        it('includes vendorID when set', () => {
-            expect(mapFormFieldsToRuleForAPI(buildForm({vendorID: 'v-1'}), undefined).vendorID).toBe('v-1');
-        });
-
-        it('omits vendorID entirely when unset (never sends null)', () => {
-            const rule = mapFormFieldsToRuleForAPI(buildForm({vendorID: ''}), undefined);
-            expect('vendorID' in rule).toBe(false);
+        it('writes no vendor action when the vendorID is unset, so the rule stops setting it', () => {
+            const actions = Object.values(buildMerchantRule(buildForm({vendorID: '', category: 'Coffee'}), undefined)?.actions ?? {});
+            expect(actions.some((action) => action.field === CONST.RULES.EXPENSE_DEFAULT.FIELD.VENDOR_ID)).toBe(false);
         });
     });
 
-    describe('getMerchantCodingRulesTableData vendor summary', () => {
+    describe('getMerchantRulesTableData vendor summary', () => {
         beforeEach(() => {
             IntlStore.load(CONST.LOCALES.EN);
             return waitForBatchedUpdates();
         });
 
-        const buildTableData = (policy: Policy) =>
-            getMerchantCodingRulesTableData({
+        const buildTableData = (policy: Policy, vendorID: string) =>
+            getMerchantRulesTableData({
                 policy,
                 policyID: policy.id,
+                rules: withVendorRule(policy, vendorID),
                 translate: translateLocal,
                 isOffline: false,
                 onNavigate: () => {},
             });
 
         it('resolves the vendor name when the vendor is in the loaded list', () => {
-            const policy = withCodingRules(buildQBOPolicy([{id: 'v-1', name: 'Acme Co', currency: 'USD'}]), {rule1: buildVendorRule('v-1')});
-            expect(buildTableData(policy).at(0)?.ruleDescription).toContain('Update vendor to "Acme Co"');
+            const policy = buildQBOPolicy([{id: 'v-1', name: 'Acme Co', currency: 'USD'}]);
+            expect(buildTableData(policy, 'v-1').at(0)?.ruleDescription).toContain('Update vendor to "Acme Co"');
         });
 
         it('shows "Vendor unavailable" when the list is loaded but the vendor is missing', () => {
-            const policy = withCodingRules(buildQBOPolicy([]), {rule1: buildVendorRule('v-1')});
-            expect(buildTableData(policy).at(0)?.ruleDescription).toContain('Update vendor to "Vendor unavailable"');
+            expect(buildTableData(buildQBOPolicy([]), 'v-1').at(0)?.ruleDescription).toContain('Update vendor to "Vendor unavailable"');
         });
 
         it('preserves the raw external ID while the active vendor list is not hydrated', () => {
-            const policy = withCodingRules(buildQBOPolicy(undefined), {rule1: buildVendorRule('v-1')});
-            expect(buildTableData(policy).at(0)?.ruleDescription).toContain('Update vendor to "v-1"');
+            expect(buildTableData(buildQBOPolicy(undefined), 'v-1').at(0)?.ruleDescription).toContain('Update vendor to "v-1"');
         });
 
         it('renders "Vendor unavailable" when no matching integration remains', () => {
-            const policy = withCodingRules(createRandomPolicy(0), {rule1: buildVendorRule('v-1')});
-            const description = buildTableData(policy).at(0)?.ruleDescription;
+            const description = buildTableData(createRandomPolicy(0), 'v-1').at(0)?.ruleDescription;
             expect(description).toContain('Update vendor to "Vendor unavailable"');
             expect(description).not.toContain('"v-1"');
         });
@@ -162,10 +169,8 @@ describe('Vendor matching on merchant rules', () => {
             // Active source is QBO (empty vendor list, so loaded). The rule's vendorID matches only the stale Xero
             // connection, which the active picker and violation logic ignore. The summary must not render the Xero
             // name as if the vendor were valid — it should surface the active-scoped "unavailable" copy instead.
-            const policy = withCodingRules(buildQBOWithStaleXeroPolicy([], {xeroVendor: {id: 'xeroVendor', name: 'Stale Xero Vendor', email: 'stale@example.com'}}), {
-                rule1: buildVendorRule('xeroVendor'),
-            });
-            const description = buildTableData(policy).at(0)?.ruleDescription;
+            const policy = buildQBOWithStaleXeroPolicy([], {xeroVendor: {id: 'xeroVendor', name: 'Stale Xero Vendor', email: 'stale@example.com'}});
+            const description = buildTableData(policy, 'xeroVendor').at(0)?.ruleDescription;
             expect(description).toContain('Update vendor to "Vendor unavailable"');
             expect(description).not.toContain('Stale Xero Vendor');
         });
@@ -175,19 +180,17 @@ describe('Vendor matching on merchant rules', () => {
             // (vendor-matching active). Admin later switches to Vendor Bill, so QBO is no longer the active vendor-matching
             // source. The rule summary must still render the vendor's name — not the raw external ID — because the vendor
             // list is still known via the connection data.
-            const policy = withCodingRules(buildQBOWithVendorBillExportPolicy([{id: 'v-1', name: 'Acme Co', currency: 'USD'}]), {rule1: buildVendorRule('v-1')});
-            expect(buildTableData(policy).at(0)?.ruleDescription).toContain('Update vendor to "Acme Co"');
+            const policy = buildQBOWithVendorBillExportPolicy([{id: 'v-1', name: 'Acme Co', currency: 'USD'}]);
+            expect(buildTableData(policy, 'v-1').at(0)?.ruleDescription).toContain('Update vendor to "Acme Co"');
         });
 
         it('uses "supplier" wording and "Supplier unavailable" on Xero workspaces', () => {
-            const resolved = withCodingRules(buildXeroPolicy({xc1: {id: 'xc1', name: 'Acme Xero', email: 'acme@example.com'}}), {rule1: buildVendorRule('xc1')});
-            expect(buildTableData(resolved).at(0)?.ruleDescription).toContain('Update supplier to "Acme Xero"');
+            const resolved = buildXeroPolicy({xc1: {id: 'xc1', name: 'Acme Xero', email: 'acme@example.com'}});
+            expect(buildTableData(resolved, 'xc1').at(0)?.ruleDescription).toContain('Update supplier to "Acme Xero"');
 
-            const missing = withCodingRules(buildXeroPolicy({}), {rule1: buildVendorRule('xc1')});
-            expect(buildTableData(missing).at(0)?.ruleDescription).toContain('Update supplier to "Supplier unavailable"');
+            expect(buildTableData(buildXeroPolicy({}), 'xc1').at(0)?.ruleDescription).toContain('Update supplier to "Supplier unavailable"');
 
-            const pendingHydration = withCodingRules(buildXeroPolicy(undefined), {rule1: buildVendorRule('xc1')});
-            expect(buildTableData(pendingHydration).at(0)?.ruleDescription).toContain('Update supplier to "xc1"');
+            expect(buildTableData(buildXeroPolicy(undefined), 'xc1').at(0)?.ruleDescription).toContain('Update supplier to "xc1"');
         });
     });
 
@@ -200,8 +203,19 @@ describe('Vendor matching on merchant rules', () => {
             expect(hasVendorFeature(buildQBOPolicy([{id: 'v-1', name: 'Acme Co', currency: 'USD'}]), false)).toBe(true);
         });
 
-        it('is hidden on Xero when the beta is off because Xero (R3) is still pre-GA', () => {
-            expect(hasVendorFeature(buildXeroPolicy({xc1: {id: 'xc1', name: 'Acme Xero', email: 'acme@example.com'}}), false)).toBe(false);
+        it('is visible on Sage Intacct when the beta is off because Intacct (R2) is generally available', () => {
+            expect(hasVendorFeature(buildIntacctPolicy([{id: 'iv-1', name: 'V001', value: 'Acme Intacct'}]), false)).toBe(true);
+        });
+
+        it('is visible on Xero when the beta is off because Xero (R3) is generally available', () => {
+            // Given a configured Xero workspace with synced contacts
+            const policy = buildXeroPolicy({xc1: {id: 'xc1', name: 'Acme Xero', email: 'acme@example.com'}});
+
+            // When the vendor feature is checked without the vendorMatching beta
+            const isVendorFeatureAvailable = hasVendorFeature(policy, false);
+
+            // Then the row is visible because Xero does not depend on the beta
+            expect(isVendorFeatureAvailable).toBe(true);
         });
 
         it('is hidden when no vendor integration is connected', () => {

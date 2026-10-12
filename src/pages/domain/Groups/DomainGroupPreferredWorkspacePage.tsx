@@ -38,6 +38,7 @@ function DomainGroupPreferredWorkspacePage({route}: DomainGroupPreferredWorkspac
                 onBackButtonPress: () => Navigation.goBack(ROUTES.DOMAIN_GROUPS.getRoute(domainAccountID)),
             }}
             onBackButtonPress={() => Navigation.goBack(ROUTES.DOMAIN_GROUP_DETAILS.getRoute(domainAccountID, groupID))}
+            shouldConfirmSelection
             onSelectWorkspace={(policyID: string) => {
                 if (!group) {
                     return;

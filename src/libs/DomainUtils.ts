@@ -1,11 +1,12 @@
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type {Domain} from '@src/types/onyx';
 import type DomainErrors from '@src/types/onyx/DomainErrors';
 import type {DomainMemberErrors, DomainSecurityGroupErrors} from '@src/types/onyx/DomainErrors';
 import type DomainPendingAction from '@src/types/onyx/DomainPendingActions';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
-import type {OnyxEntry} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
 import {adminshipRequesterPendingActionSelector, isAdminSelector, pendingAdminRequesterAccountIDsSelector} from '@selectors/Domain';
 
@@ -108,6 +109,13 @@ function getDomainBrickRoadIndicator(hasErrors: boolean, hasPendingAdminRequests
     }
 }
 
+/** Returns the domain error entries for domains that currently have errors. */
+function getDomainsWithErrors(allDomainErrors: OnyxCollection<DomainErrors>, allDomains: OnyxCollection<Domain>): Array<[string, OnyxEntry<DomainErrors>]> {
+    return Object.entries(allDomainErrors ?? {}).filter(([key, domainErrors]) =>
+        hasDomainErrors(domainErrors, allDomains?.[key.replace(ONYXKEYS.COLLECTION.DOMAIN_ERRORS, ONYXKEYS.COLLECTION.DOMAIN)]),
+    );
+}
+
 /**
  * Checks if domain has any admin settings errors (technical contact email or billing card errors).
  */
@@ -181,4 +189,5 @@ export {
     hasDomainGroupDetailsErrors,
     getMemberCustomRowProps,
     getDomainBrickRoadIndicator,
+    getDomainsWithErrors,
 };

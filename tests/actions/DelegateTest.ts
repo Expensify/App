@@ -107,6 +107,35 @@ describe('actions/Delegate', () => {
                 });
             });
         });
+
+        it('should update the role of an existing delegate entry left over from a failed add', async () => {
+            // Given a delegate that is still pending because a previous add attempt failed
+            const delegatedAccess: DelegatedAccess = {
+                delegates: [
+                    {
+                        email: 'test@test.com',
+                        role: CONST.DELEGATE_ROLE.ALL,
+                        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                        pendingFields: {
+                            email: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                            role: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                        },
+                    },
+                ],
+            };
+
+            await Onyx.merge(ONYXKEYS.ACCOUNT, {delegatedAccess});
+            await waitForBatchedUpdates();
+
+            // When the user retries the add with a different role
+            addDelegate({email: 'test@test.com', role: CONST.DELEGATE_ROLE.SUBMITTER, validateCode: '123456', delegatedAccess});
+            await waitForBatchedUpdates();
+
+            // Then the leftover entry shows the newly selected role instead of the stale one
+            const account = await getOnyxValue(ONYXKEYS.ACCOUNT);
+            expect(account?.delegatedAccess?.delegates?.length).toBe(1);
+            expect(account?.delegatedAccess?.delegates?.at(0)?.role).toBe(CONST.DELEGATE_ROLE.SUBMITTER);
+        });
     });
     describe('removeDelegate', () => {
         it('should remove a delegate', async () => {

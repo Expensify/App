@@ -64,6 +64,9 @@ const mockSearchActionsContext = {
     setLastSearchType: jest.fn(),
     setCurrentSelectedTransactionReportID: jest.fn(),
     setSelectedTransactions: jest.fn(),
+    getSelectedTransactions: jest.fn(() => ({})),
+    getExcludedTransactions: () => ({}),
+    getAreAllMatchingItemsSelected: () => false,
     applySelection: jest.fn(),
     setSelectedReports: jest.fn(),
     setShouldShowFiltersBarLoading: jest.fn(),
@@ -71,8 +74,7 @@ const mockSearchActionsContext = {
     setShouldResetSearchQuery: jest.fn(),
     removeTransaction: jest.fn(),
     setSortedReportIDs: jest.fn(),
-    setCurrentSearchKey: jest.fn(),
-    resetSearchKey: jest.fn(),
+    getSearchKeyForQuery: jest.fn(),
 } satisfies SearchActionsContextValue;
 
 const mockPersonalDetails: Record<string, PersonalDetails> = {

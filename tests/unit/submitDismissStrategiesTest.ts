@@ -1,4 +1,3 @@
-import {flushDeferredWrite} from '@libs/deferredLayoutWrite';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
@@ -16,10 +15,8 @@ const mockGetTopmostReportParams = jest.fn<{reportID: string} | undefined, [unkn
 const mockGetReportOrDraftReport = jest.fn();
 const mockIsMoneyRequestReport = jest.fn<boolean, [unknown]>();
 const mockIsSearchTopmostFullScreenRoute = jest.fn<boolean, []>();
+const mockGetSearchKeyForDataType = jest.fn<string | undefined, [SearchDataTypes | undefined]>();
 
-jest.mock('@libs/deferredLayoutWrite', () => ({
-    flushDeferredWrite: jest.fn(),
-}));
 jest.mock('@libs/getIsNarrowLayout', () => () => mockGetIsNarrowLayout());
 jest.mock('@libs/Navigation/helpers/getTopmostReportParams', () => (state: unknown) => mockGetTopmostReportParams(state));
 jest.mock('@libs/Navigation/helpers/isSearchTopmostFullScreenRoute', () => () => mockIsSearchTopmostFullScreenRoute());
@@ -44,6 +41,9 @@ jest.mock('@libs/ReportUtils', () => ({
 jest.mock('@libs/SearchQueryUtils', () => ({
     buildCannedSearchQuery: jest.fn(() => 'type:expense'),
 }));
+jest.mock('@libs/SearchKeyUtils', () => ({
+    getSearchKeyForDataType: (type: SearchDataTypes | undefined) => mockGetSearchKeyForDataType(type),
+}));
 jest.mock('@libs/telemetry/submitFollowUpAction', () => ({
     setPendingSubmitFollowUpAction: jest.fn(),
     endSubmitFollowUpActionSpan: jest.fn(),
@@ -59,6 +59,7 @@ describe('submitDismissStrategies', () => {
         mockGetReportOrDraftReport.mockReturnValue(undefined);
         mockIsMoneyRequestReport.mockReturnValue(false);
         mockIsSearchTopmostFullScreenRoute.mockReturnValue(false);
+        mockGetSearchKeyForDataType.mockReturnValue(CONST.SEARCH.SEARCH_KEYS.EXPENSES);
     });
 
     describe('dismissOnly', () => {
@@ -70,7 +71,7 @@ describe('submitDismissStrategies', () => {
             expect(Navigation.dismissModal).toHaveBeenCalledWith(expect.objectContaining({afterTransition: expect.any(Function)}));
         });
 
-        it('ends span, flushes deferred write, and runs callback in afterTransition', () => {
+        it('ends span and runs callback in afterTransition', () => {
             dismissOnly(runAfterDismiss);
 
             const opts = jest.mocked(Navigation.dismissModal).mock.calls.at(0)?.at(0);
@@ -83,7 +84,6 @@ describe('submitDismissStrategies', () => {
             opts.afterTransition();
 
             expect(endSubmitFollowUpActionSpan).toHaveBeenCalledWith(CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_ONLY);
-            expect(flushDeferredWrite).toHaveBeenCalledWith(CONST.DEFERRED_LAYOUT_WRITE_KEYS.DISMISS_MODAL);
             expect(runAfterDismiss).toHaveBeenCalled();
         });
     });
@@ -113,7 +113,7 @@ describe('submitDismissStrategies', () => {
                 }),
             );
 
-            dismissRHPToReport('report-1', runAfterDismiss);
+            dismissRHPToReport('report-1', runAfterDismiss, {});
 
             expect(setPendingSubmitFollowUpAction).toHaveBeenCalledWith(CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_ONLY, 'report-1');
             expect(Navigation.pop).toHaveBeenCalledWith('rhp-key');
@@ -125,7 +125,7 @@ describe('submitDismissStrategies', () => {
             mockIsMoneyRequestReport.mockReturnValue(true);
             mockGetIsNarrowLayout.mockReturnValue(true);
 
-            dismissRHPToReport('report-1', runAfterDismiss);
+            dismissRHPToReport('report-1', runAfterDismiss, {});
 
             expect(setPendingSubmitFollowUpAction).toHaveBeenCalledWith(CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_AND_OPEN_REPORT, 'report-1');
             expect(Navigation.dismissModal).toHaveBeenCalled();
@@ -137,7 +137,7 @@ describe('submitDismissStrategies', () => {
             mockIsMoneyRequestReport.mockReturnValue(true);
             mockGetIsNarrowLayout.mockReturnValue(false);
 
-            dismissRHPToReport('report-1', runAfterDismiss);
+            dismissRHPToReport('report-1', runAfterDismiss, {});
 
             expect(setPendingSubmitFollowUpAction).toHaveBeenCalledWith(CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_AND_OPEN_REPORT, 'report-1');
             expect(Navigation.dismissToPreviousRHP).toHaveBeenCalled();
@@ -153,7 +153,7 @@ describe('submitDismissStrategies', () => {
                 }),
             );
 
-            dismissRHPToReport('report-1', runAfterDismiss);
+            dismissRHPToReport('report-1', runAfterDismiss, {});
 
             expect(setPendingSubmitFollowUpAction).toHaveBeenCalledWith(CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_ONLY, 'report-1');
             expect(Navigation.pop).toHaveBeenCalledWith('rhp-key-2');
@@ -165,6 +165,7 @@ describe('submitDismissStrategies', () => {
             dismissWideToNewSearchType('expense' as SearchDataTypes, runAfterDismiss);
 
             expect(buildCannedSearchQuery).toHaveBeenCalledWith({type: 'expense'});
+            expect(mockGetSearchKeyForDataType).toHaveBeenCalledWith('expense');
             expect(Navigation.revealRouteBeforeDismissingModal).toHaveBeenCalledWith(expect.any(String), expect.objectContaining({afterTransition: runAfterDismiss}));
         });
     });
@@ -211,7 +212,7 @@ describe('submitDismissStrategies', () => {
             expect(Navigation.dismissModal).toHaveBeenCalledWith(expect.objectContaining({afterTransition: expect.any(Function)}));
         });
 
-        it('flushes deferred write and runs callback for dismissWideToSameReport afterTransition', () => {
+        it('runs callback for dismissWideToSameReport afterTransition', () => {
             mockGetIsNarrowLayout.mockReturnValue(false);
             mockGetTopmostReportParams.mockReturnValue({reportID: 'report-1'});
 
@@ -227,7 +228,6 @@ describe('submitDismissStrategies', () => {
             opts.afterTransition();
 
             expect(endSubmitFollowUpActionSpan).toHaveBeenCalledWith(CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_ONLY, 'report-1');
-            expect(flushDeferredWrite).toHaveBeenCalledWith(CONST.DEFERRED_LAYOUT_WRITE_KEYS.DISMISS_MODAL);
             expect(runAfterDismiss).toHaveBeenCalled();
         });
 
@@ -251,7 +251,7 @@ describe('submitDismissStrategies', () => {
             expect(Navigation.revealRouteBeforeDismissingModal).toHaveBeenCalled();
         });
 
-        it('flushes deferred write and runs callback for dismissWideToNewReport afterTransition', () => {
+        it('runs callback for dismissWideToNewReport afterTransition', () => {
             mockGetIsNarrowLayout.mockReturnValue(false);
             mockGetTopmostReportParams.mockReturnValue(undefined);
 
@@ -266,7 +266,6 @@ describe('submitDismissStrategies', () => {
             }
             opts.afterTransition();
 
-            expect(flushDeferredWrite).toHaveBeenCalledWith(CONST.DEFERRED_LAYOUT_WRITE_KEYS.DISMISS_MODAL);
             expect(runAfterDismiss).toHaveBeenCalled();
         });
 

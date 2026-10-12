@@ -1,6 +1,7 @@
 import {render} from '@testing-library/react-native';
 
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
+import PersonalDetailsByLoginProvider from '@components/PersonalDetailsByLoginProvider';
 
 import {getDisplayNameForParticipant} from '@libs/ReportUtils';
 
@@ -80,18 +81,20 @@ describe('ReportAddApproverPage', () => {
         await waitForBatchedUpdates();
         render(
             <OnyxListItemProvider>
-                <ReportAddApproverPage
-                    // @ts-expect-error — the withReportOrNotFound HOC prop intersection collapses the route type; only params.reportID is read at runtime
-                    route={{params: {reportID: report.reportID}}}
-                    report={report}
-                    policy={policy}
-                    isLoadingReportData={false}
-                />
+                <PersonalDetailsByLoginProvider>
+                    <ReportAddApproverPage
+                        // @ts-expect-error — the withReportOrNotFound HOC prop intersection collapses the route type; only params.reportID is read at runtime
+                        route={{params: {reportID: report.reportID}}}
+                        report={report}
+                        policy={policy}
+                        isLoadingReportData={false}
+                    />
+                </PersonalDetailsByLoginProvider>
             </OnyxListItemProvider>,
         );
         await waitForBatchedUpdates();
 
         // Each candidate approver's name resolves via getDisplayNameForParticipant, which must receive the translate from useLocalize.
-        expect(mockGetDisplayNameForParticipant).toHaveBeenCalledWith(expect.objectContaining({accountID: APPROVER_ACCOUNT_ID, translate: mockTranslate}));
+        expect(mockGetDisplayNameForParticipant).toHaveBeenCalledWith(expect.objectContaining({accountID: APPROVER_ACCOUNT_ID, hiddenTranslation: 'common.hidden'}));
     });
 });

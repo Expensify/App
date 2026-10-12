@@ -21,8 +21,11 @@ type UseUnreadMarkerParams = {
     /** The report whose unread marker is being computed */
     reportID: string;
 
-    /** The visible actions (FlatList `data` domain, newest-first) that the marker scan runs over */
+    /** The visible actions (FlatList `data` domain) that the marker scan runs over. Newest-first, or oldest-first when `isReversed`. */
     sortedVisibleReportActions: OnyxTypes.ReportAction[];
+
+    /** Whether `sortedVisibleReportActions` is oldest-first (non-inverted list, e.g. the money-request report view) */
+    isReversed?: boolean;
 
     /** All sorted actions (the full chain); used to find the earliest-received-while-offline message index */
     sortedReportActions: OnyxTypes.ReportAction[];
@@ -50,10 +53,12 @@ type UseUnreadMarkerResult = {
 };
 
 const lastReadTimeSelector = (report: OnyxTypes.Report | undefined) => report?.lastReadTime ?? '';
+const manuallyMarkedUnreadReportActionIDSelector = (report: OnyxTypes.Report | undefined) => report?.manuallyMarkedUnreadReportActionID ?? null;
 
 function useUnreadMarker({
     reportID,
     sortedVisibleReportActions,
+    isReversed = false,
     sortedReportActions,
     oldestUnreadReportActionID,
     isScrolledOverThreshold,
@@ -69,6 +74,10 @@ function useUnreadMarker({
         selector: lastReadTimeSelector,
     });
     const reportLastReadTime = reportLastReadTimeValue ?? '';
+
+    const [manuallyMarkedUnreadReportActionID] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
+        selector: manuallyMarkedUnreadReportActionIDSelector,
+    });
 
     const [unreadMarkerTime, setUnreadMarkerTime] = useState(reportLastReadTime);
 
@@ -99,8 +108,12 @@ function useUnreadMarker({
     const [prevUnreadMarkerReportActionID, setPrevUnreadMarkerReportActionID] = useState<string | null>(null);
 
     let earliestReceivedOfflineMessageIndex: number | undefined;
-    for (let i = sortedReportActions.length - 1; i >= 0; i--) {
-        const message = sortedReportActions.at(i);
+    // The money-report list is oldest-first and excludes hidden rows. Its offline boundary must use that same visible index domain.
+    const offlineBoundaryActions = isReversed ? sortedVisibleReportActions : sortedReportActions;
+    const offlineScanStartIndex = isReversed ? 0 : offlineBoundaryActions.length - 1;
+    const offlineScanStep = isReversed ? 1 : -1;
+    for (let i = offlineScanStartIndex; i >= 0 && i < offlineBoundaryActions.length; i += offlineScanStep) {
+        const message = offlineBoundaryActions.at(i);
         if (message && wasMessageReceivedWhileOffline(message, isOffline, lastOfflineAt.current, lastOnlineAt.current, getLocalDateFromDatetime, currentUserAccountID)) {
             earliestReceivedOfflineMessageIndex = i;
             break;
@@ -124,9 +137,10 @@ function useUnreadMarker({
         unreadMarkerTime,
         isScrolledOverThreshold,
         isOffline,
-        isReversed: false,
+        isReversed,
         isAnonymousUser,
         prevUnreadMarkerReportActionID,
+        manuallyMarkedUnreadReportActionID,
         hasWindowFocus: Visibility.hasFocus(),
         newMessageBoundaryTime,
     });
@@ -145,9 +159,10 @@ function useUnreadMarker({
     // would move the watermark past the unread message and permanently hide the New divider. The
     // synthetic greeting is not a valid push target either, because its `created` tracks
     // report.lastReadTime and would drag the watermark to "now".
-    const newestVisibleReportActionCreated = sortedVisibleReportActions.at(0)?.created ?? '';
+    const isRealAction = (action: OnyxTypes.ReportAction) => action.reportActionID !== CONST.CONCIERGE_GREETING_ACTION_ID;
+    const newestVisibleReportActionCreated = sortedVisibleReportActions.at(isReversed ? -1 : 0)?.created ?? '';
     const prevNewestVisibleReportActionCreated = usePrevious(newestVisibleReportActionCreated);
-    const mostRecentReportActionCreated = sortedVisibleReportActions.find((action) => action.reportActionID !== CONST.CONCIERGE_GREETING_ACTION_ID)?.created ?? '';
+    const mostRecentReportActionCreated = (isReversed ? sortedVisibleReportActions.findLast(isRealAction) : sortedVisibleReportActions.find(isRealAction))?.created ?? '';
     if (!isAnonymousUser && !unreadMarkerReportActionID && mostRecentReportActionCreated > unreadMarkerTime && newestVisibleReportActionCreated > prevNewestVisibleReportActionCreated) {
         setUnreadMarkerTime(mostRecentReportActionCreated);
     }

@@ -22,6 +22,7 @@ import useParentReportAction from '@hooks/useParentReportAction';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTaskCheckboxAccessibility from '@hooks/useTaskCheckboxAccessibility';
+import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import getButtonState from '@libs/getButtonState';
@@ -33,7 +34,8 @@ import StringUtils from '@libs/StringUtils';
 import {isActiveTaskEditRoute} from '@libs/TaskUtils';
 
 import {callFunctionIfActionIsAllowed} from '@userActions/Session';
-import {canActionTask, canModifyTask, clearTaskErrors, completeTask, reopenTask, setTaskReport} from '@userActions/Task';
+import {canActionTask, canModifyTask, completeTask, reopenTask, setTaskReport} from '@userActions/Task';
+import {clearTaskErrors} from '@userActions/TaskDeletion';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -57,12 +59,12 @@ function TaskView({report, parentReport, action}: TaskViewProps) {
     const icons = useMemoizedLazyExpensifyIcons(['ArrowRight']);
     const {translate, formatPhoneNumber} = useLocalize();
     const styles = useThemeStyles();
+    const theme = useTheme();
     const StyleUtils = useStyleUtils();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const personalDetails = usePersonalDetails();
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
     const [delegateEmail] = useOnyx(ONYXKEYS.ACCOUNT, {selector: delegateEmailSelector});
 
@@ -86,7 +88,7 @@ function TaskView({report, parentReport, action}: TaskViewProps) {
     } = useTaskCheckboxAccessibility(isCompletedFromOnyx, taskTitlePlainText);
 
     const assigneePersonalDetails = report?.managerID ? personalDetails?.[report.managerID] : undefined;
-    const assigneeDisplayName = report?.managerID ? getDisplayNameForParticipant({accountID: report.managerID, formatPhoneNumber, translate}) : '';
+    const assigneeDisplayName = report?.managerID ? getDisplayNameForParticipant({accountID: report.managerID, formatPhoneNumber, hiddenTranslation: translate('common.hidden')}) : '';
 
     const isOpen = isOpenTaskReport(report);
 
@@ -134,7 +136,6 @@ function TaskView({report, parentReport, action}: TaskViewProps) {
                                 conciergeReportID,
                                 accountID,
                                 introSelected,
-                                betas,
                                 isSelfTourViewed,
                                 report?.ownerAccountID ? (personalDetails?.[report.ownerAccountID] ?? undefined) : undefined,
                                 currentUserPersonalDetails,
@@ -170,76 +171,75 @@ function TaskView({report, parentReport, action}: TaskViewProps) {
                                     disabled={isDisableInteractive}
                                     sentryLabel={CONST.SENTRY_LABEL.TASK.VIEW_TITLE}
                                 >
-                                    {({pressed}) => {
+                                    {() => {
                                         const titleContent = (
-                                            <>
-                                                <View style={[styles.flexRow, styles.flex1, styles.textAlignLeft]}>
-                                                    <RenderHTML html={taskTitle} />
-                                                </View>
-                                                {!isDisableInteractive && (
-                                                    <View style={styles.taskRightIconContainer}>
-                                                        <Icon
-                                                            additionalStyles={[styles.alignItemsCenter]}
-                                                            src={icons.ArrowRight}
-                                                            fill={StyleUtils.getIconFillColor({
-                                                                buttonState: getButtonState({isActive: hovered, isPressed: pressed, isDisabled: disableState}),
-                                                            })}
-                                                        />
-                                                    </View>
-                                                )}
-                                            </>
+                                            <View style={[styles.flexRow, styles.flex1, styles.textAlignLeft]}>
+                                                <RenderHTML html={taskTitle} />
+                                            </View>
                                         );
 
                                         return (
                                             <OfflineWithFeedback pendingAction={report?.pendingFields?.reportName}>
-                                                <Text style={styles.taskTitleDescription}>{translate('task.title')}</Text>
-                                                <View style={[styles.flexRow, styles.flex1]}>
-                                                    <Checkbox
-                                                        shouldSelectOnPressEnter
-                                                        onPress={callFunctionIfActionIsAllowed(() => {
-                                                            // If we're already navigating to these task editing pages, early return not to mark as completed, otherwise we would have not found page.
-                                                            if (isActiveTaskEditRoute(report?.reportID)) {
-                                                                return;
-                                                            }
-                                                            updateTaskCheckboxStateForAccessibility(isCompleted);
-                                                            if (isCompleted) {
-                                                                reopenTask(report, parentReport, currentUserPersonalDetails.accountID, delegateEmail);
-                                                            } else {
-                                                                completeTask(
-                                                                    report,
-                                                                    parentReport?.hasOutstandingChildTask ?? false,
-                                                                    hasOutstandingChildTask,
-                                                                    parentReportAction,
-                                                                    delegateEmail,
-                                                                );
-                                                            }
-                                                        })}
-                                                        isChecked={isCompleted}
-                                                        style={styles.taskMenuItemCheckbox}
-                                                        containerSize={24}
-                                                        containerBorderRadius={8}
-                                                        caretSize={16}
-                                                        accessibilityLabel={taskCheckboxAccessibilityLabel}
-                                                        accessibilityHint={taskCheckboxAccessibilityHint}
-                                                        disabled={!isTaskActionable}
-                                                        sentryLabel={CONST.SENTRY_LABEL.TASK.VIEW_CHECKBOX}
-                                                    />
-                                                    {shouldSplitTaskAccessibilityTargets ? (
-                                                        <PressableWithoutFeedback
-                                                            accessible
-                                                            accessibilityRole={CONST.ROLE.BUTTON}
-                                                            accessibilityLabel={taskAccessibilityLabel}
-                                                            accessibilityHint={titlePressableAccessibilityHint}
-                                                            accessibilityState={{disabled: isDisableInteractive}}
-                                                            disabled={isDisableInteractive}
-                                                            onPress={callFunctionIfActionIsAllowed(() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.TASK_TITLE.path)))}
-                                                            style={[styles.flexRow, styles.flex1]}
-                                                            sentryLabel={CONST.SENTRY_LABEL.TASK.VIEW_TITLE}
-                                                        >
-                                                            {titleContent}
-                                                        </PressableWithoutFeedback>
-                                                    ) : (
-                                                        titleContent
+                                                <View style={styles.flexRow}>
+                                                    <View style={styles.flex1}>
+                                                        <Text style={styles.taskTitleDescription}>{translate('task.title')}</Text>
+                                                        <View style={[styles.flexRow, styles.flex1]}>
+                                                            <Checkbox
+                                                                shouldSelectOnPressEnter
+                                                                onPress={callFunctionIfActionIsAllowed(() => {
+                                                                    // If we're already navigating to these task editing pages, early return not to mark as completed, otherwise we would have not found page.
+                                                                    if (isActiveTaskEditRoute(report?.reportID)) {
+                                                                        return;
+                                                                    }
+                                                                    updateTaskCheckboxStateForAccessibility(isCompleted);
+                                                                    if (isCompleted) {
+                                                                        reopenTask(report, parentReport, currentUserPersonalDetails.accountID, delegateEmail);
+                                                                    } else {
+                                                                        completeTask(
+                                                                            report,
+                                                                            parentReport?.hasOutstandingChildTask ?? false,
+                                                                            hasOutstandingChildTask,
+                                                                            parentReportAction,
+                                                                            delegateEmail,
+                                                                        );
+                                                                    }
+                                                                })}
+                                                                isChecked={isCompleted}
+                                                                style={styles.taskMenuItemCheckbox}
+                                                                containerSize={24}
+                                                                containerBorderRadius={8}
+                                                                caretSize={16}
+                                                                accessibilityLabel={taskCheckboxAccessibilityLabel}
+                                                                accessibilityHint={taskCheckboxAccessibilityHint}
+                                                                disabled={!isTaskActionable}
+                                                                sentryLabel={CONST.SENTRY_LABEL.TASK.VIEW_CHECKBOX}
+                                                            />
+                                                            {shouldSplitTaskAccessibilityTargets ? (
+                                                                <PressableWithoutFeedback
+                                                                    accessible
+                                                                    accessibilityRole={CONST.ROLE.BUTTON}
+                                                                    accessibilityLabel={taskAccessibilityLabel}
+                                                                    accessibilityHint={titlePressableAccessibilityHint}
+                                                                    accessibilityState={{disabled: isDisableInteractive}}
+                                                                    disabled={isDisableInteractive}
+                                                                    onPress={callFunctionIfActionIsAllowed(() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.TASK_TITLE.path)))}
+                                                                    style={[styles.flexRow, styles.flex1]}
+                                                                    sentryLabel={CONST.SENTRY_LABEL.TASK.VIEW_TITLE}
+                                                                >
+                                                                    {titleContent}
+                                                                </PressableWithoutFeedback>
+                                                            ) : (
+                                                                titleContent
+                                                            )}
+                                                        </View>
+                                                    </View>
+                                                    {!isDisableInteractive && (
+                                                        <View style={[styles.taskRightIconContainer, !hovered && styles.opacitySemiTransparent]}>
+                                                            <Icon
+                                                                src={icons.ArrowRight}
+                                                                fill={theme.icon}
+                                                            />
+                                                        </View>
                                                     )}
                                                 </View>
                                             </OfflineWithFeedback>

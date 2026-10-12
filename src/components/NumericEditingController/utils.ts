@@ -65,4 +65,12 @@ function clampSelection(selection: NumericEditingSelection, maxLength: number): 
     };
 }
 
-export {clampSelection, collapseSelection, getSelectionAfterEdit, getSelectionAtOffset, isForwardDeleteKeyPress, normalizeNumericInput};
+function toDisplayTextDefault(canonicalValue: string): string {
+    return canonicalValue;
+}
+
+function toCanonicalValueDefault(displayText: string): string {
+    return displayText;
+}
+
+export {clampSelection, collapseSelection, getSelectionAfterEdit, getSelectionAtOffset, isForwardDeleteKeyPress, normalizeNumericInput, toCanonicalValueDefault, toDisplayTextDefault};

@@ -8,6 +8,7 @@ import type {FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 
+import useContentHeaderHeight from '@hooks/useContentHeaderHeight';
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
 import useLocationBias from '@hooks/useLocationBias';
@@ -21,8 +22,6 @@ import {shouldUseTransactionDraft} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {isValidAddress} from '@libs/ValidationUtils';
 
-import variables from '@styles/variables';
-
 import {removeWaypoint, saveWaypoint} from '@userActions/Transaction';
 
 import CONST from '@src/CONST';
@@ -34,6 +33,7 @@ import type {RecentWaypoint, Transaction} from '@src/types/onyx';
 import type {Waypoint} from '@src/types/onyx/Transaction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
+import type {ComponentRef} from 'react';
 import type {TextInput} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 
@@ -78,12 +78,13 @@ function DynamicIOURequestStepWaypoint({
     transaction,
 }: DynamicIOURequestStepWaypointProps) {
     const styles = useThemeStyles();
+    const {contentHeaderHeight} = useContentHeaderHeight();
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.MONEY_REQUEST_STEP_WAYPOINT.path);
     const navigation = useNavigation();
     const isFocused = navigation.isFocused();
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
-    const textInput = useRef<TextInput | null>(null);
+    const textInput = useRef<ComponentRef<typeof TextInput> | null>(null);
     const parsedWaypointIndex = parseInt(pageIndex, 10);
 
     const [splitDraftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`);
@@ -198,13 +199,13 @@ function DynamicIOURequestStepWaypoint({
             return;
         }
         textInput.current?.measureInWindow((x, y) => {
-            if (y < variables.contentHeaderHeight) {
+            if (y < contentHeaderHeight) {
                 setCaretHidden(true);
             } else {
                 setCaretHidden(false);
             }
         });
-    }, []);
+    }, [contentHeaderHeight]);
 
     const resetCaretHiddenValue = useCallback(() => {
         setCaretHidden(false);
@@ -259,7 +260,7 @@ function DynamicIOURequestStepWaypoint({
                             canUseCurrentLocation
                             inputID={`waypoint${pageIndex}`}
                             ref={(e: HTMLElement | null) => {
-                                textInput.current = e as unknown as TextInput;
+                                textInput.current = e as unknown as ComponentRef<typeof TextInput>;
                             }}
                             hint={!isOffline ? translate('distance.error.selectSuggestedAddress') : ''}
                             containerStyles={[styles.mt4]}

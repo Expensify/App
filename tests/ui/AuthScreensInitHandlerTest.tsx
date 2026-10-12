@@ -71,6 +71,7 @@ jest.mock('@libs/Navigation/currentUrl', () => ({
 
 jest.mock('@libs/SessionUtils', () => ({
     isLoggingInAsNewUser: jest.fn(() => false),
+    isLoggingInAsDelegate: jest.fn(() => false),
     didUserLogInDuringSession: jest.fn(() => false),
 }));
 
@@ -83,8 +84,11 @@ jest.mock('@libs/ActiveClientManager', () => ({
 jest.mock('@userActions/App', () => ({
     openApp: jest.fn(),
     reconnectApp: jest.fn(),
-    setUpPoliciesAndNavigate: jest.fn(),
     setLocale: jest.fn(),
+}));
+
+jest.mock('@userActions/Policy/CreateWorkspaceFlow', () => ({
+    setUpPoliciesAndNavigate: jest.fn(),
 }));
 
 jest.mock('@userActions/Download', () => ({
@@ -98,6 +102,7 @@ jest.mock('@userActions/Report', () => ({
 jest.mock('@userActions/Session', () => ({
     signOutAndRedirectToSignIn: jest.fn(),
     cleanupSession: jest.fn(),
+    isDelegateSession: jest.fn(() => false),
 }));
 
 jest.mock('@userActions/User', () => ({
@@ -173,7 +178,7 @@ describe('AuthScreensInitHandler', () => {
         await waitForBatchedUpdatesWithAct();
 
         expect(mockedPusherInit).toHaveBeenCalled();
-        expect(subscribeToUserEvents).toHaveBeenCalledWith(TEST_ACCOUNT_ID, 'test@test.com', expect.any(Function), expect.any(Function));
+        expect(subscribeToUserEvents).toHaveBeenCalledWith(TEST_ACCOUNT_ID, 'test@test.com', expect.any(Function), expect.any(Function), expect.any(Function));
     });
 
     it('calls subscribeToUserEvents from sign-in modal effect when SIGN_IN_MODAL is active', async () => {
@@ -187,7 +192,7 @@ describe('AuthScreensInitHandler', () => {
 
         // Both mount effect AND sign-in modal effect fire → 2 calls
         expect(subscribeToUserEvents).toHaveBeenCalledTimes(2);
-        expect(subscribeToUserEvents).toHaveBeenCalledWith(TEST_ACCOUNT_ID, 'test@test.com', expect.any(Function), expect.any(Function));
+        expect(subscribeToUserEvents).toHaveBeenCalledWith(TEST_ACCOUNT_ID, 'test@test.com', expect.any(Function), expect.any(Function), expect.any(Function));
     });
 
     it('getter passed to subscribeToUserEvents returns report attributes when available', async () => {
@@ -204,7 +209,7 @@ describe('AuthScreensInitHandler', () => {
         if (!firstCallArgs) {
             throw new Error('Expected subscribeToUserEvents to be called');
         }
-        const getter = firstCallArgs[3];
+        const getter = firstCallArgs[4];
         if (!getter) {
             throw new Error('Expected report attributes getter to be provided');
         }
@@ -223,7 +228,7 @@ describe('AuthScreensInitHandler', () => {
         if (!firstCallArgs) {
             throw new Error('Expected subscribeToUserEvents to be called');
         }
-        const getter = firstCallArgs[3];
+        const getter = firstCallArgs[4];
         if (!getter) {
             throw new Error('Expected report attributes getter to be provided');
         }
@@ -261,7 +266,20 @@ describe('AuthScreensInitHandler', () => {
         expect(mockedSubscribeToUserEvents).not.toHaveBeenCalled();
     });
 
-    it('signs out when logging in as new user during transition', async () => {
+    it('signs out when logging in as a new user via a supportal transition', async () => {
+        mockedGetCurrentUrl.mockReturnValue(`https://new.expensify.com/${ROUTES.TRANSITION_BETWEEN_APPS}?authTokenType=${CONST.AUTH_TOKEN_TYPES.SUPPORT}`);
+        mockedIsLoggingInAsNewUser.mockReturnValue(true);
+
+        await Onyx.merge(ONYXKEYS.SESSION, {accountID: TEST_ACCOUNT_ID, email: 'test@test.com'});
+        await waitForBatchedUpdates();
+
+        renderAuthScreensInitHandler();
+        await waitForBatchedUpdatesWithAct();
+
+        expect(signOutAndRedirectToSignIn).toHaveBeenCalledWith(false, true, true, undefined, CONST.SIGN_OUT_REASON.LOGIN_AS_NEW_USER);
+    });
+
+    it('does not sign out for a non-supportal transition', async () => {
         mockedGetCurrentUrl.mockReturnValue(`https://new.expensify.com/${ROUTES.TRANSITION_BETWEEN_APPS}`);
         mockedIsLoggingInAsNewUser.mockReturnValue(true);
 
@@ -271,7 +289,8 @@ describe('AuthScreensInitHandler', () => {
         renderAuthScreensInitHandler();
         await waitForBatchedUpdatesWithAct();
 
-        expect(signOutAndRedirectToSignIn).toHaveBeenCalledWith(false, false, true, undefined, CONST.SIGN_OUT_REASON.LOGIN_AS_NEW_USER);
+        // LogOutPreviousUserPage owns this case, gated behind its own confirm modal.
+        expect(signOutAndRedirectToSignIn).not.toHaveBeenCalled();
     });
 
     it('calls openApp when didUserLogInDuringSession returns true', async () => {

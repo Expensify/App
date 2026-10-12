@@ -45,12 +45,14 @@ type DynamicIOURequestStepParticipantsProps = WithWritableReportOrNotFoundProps<
 
 function DynamicIOURequestStepParticipants({
     route: {
-        params: {iouType, reportID, transactionID: initialTransactionID, action, isWorkspacesOnly: isWorkspacesOnlyParam},
+        params: {iouType, reportID, transactionID: initialTransactionID, action, isWorkspacesOnly: isWorkspacesOnlyParam, shouldExcludeWorkspaces: shouldExcludeWorkspacesParam},
     },
     transaction: initialTransaction,
 }: DynamicIOURequestStepParticipantsProps) {
     // "Submit to my employer" with multiple submit-enabled workspaces passes isWorkspacesOnly=true to limit the picker to workspaces.
     const isWorkspacesOnlyFromRoute = isWorkspacesOnlyParam === 'true';
+    // Submitting to a person offers recipients only, so the owned workspace chats are left out of the picker.
+    const shouldExcludeWorkspaces = shouldExcludeWorkspacesParam === 'true';
     const participants = initialTransaction?.participants;
     const {translate} = useLocalize();
     const styles = useThemeStyles();
@@ -96,6 +98,7 @@ function DynamicIOURequestStepParticipants({
         isMovingTransactionFromTrackExpense,
         isFocused,
         isWorkspacesOnly,
+        shouldExcludeWorkspaces,
     });
     const blockDistanceRequestIfNeeded = useBlockDistanceRequest({
         isManualDistanceRequest: isManualDistanceRequest(initialTransaction),
@@ -170,6 +173,7 @@ function DynamicIOURequestStepParticipants({
                 isPerDiemRequest={isPerDiem}
                 isTimeRequest={isTime}
                 isWorkspacesOnly={isWorkspacesOnly}
+                shouldExcludeWorkspaces={shouldExcludeWorkspaces}
                 isTransactionFromCreditCardImport={isTransactionFromCreditCardImport}
                 shouldExcludeP2P={(initialTransaction?.amount ?? 0) < 0}
                 initiallySelectedReportID={selectedParticipant?.reportID}

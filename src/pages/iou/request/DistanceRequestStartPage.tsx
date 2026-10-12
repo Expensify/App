@@ -60,7 +60,7 @@ function DistanceRequestStartPage({
     const [selectedTab, selectedTabResult] = useOnyx(`${ONYXKEYS.COLLECTION.SELECTED_TAB}${CONST.TAB.DISTANCE_REQUEST_TYPE}`);
     const [lastDistanceExpenseType] = useOnyx(ONYXKEYS.NVP_LAST_DISTANCE_EXPENSE_TYPE);
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
-    const {participants} = useDefaultParticipants({sourceReport: report, transaction, iouType});
+    const {participants, isLoading: isLoadingDefaultParticipants} = useDefaultParticipants({sourceReport: report, transaction, iouType});
     const isLoadingSelectedTab = isLoadingOnyxValue(selectedTabResult);
     const isTrackDistanceExpense = iouType === CONST.IOU.TYPE.TRACK;
     const activeGroupPolicies = getActivePolicies(policies ?? null, currentUserLogin).filter(isGroupPolicy);
@@ -79,9 +79,9 @@ function DistanceRequestStartPage({
     const isSelfDMTarget = isSelfDM(report) || participants.some((participant) => participant.isSelfDM);
     const isReportScopedTarget = isPolicyExpenseChat(report) || isExpenseReport(report);
     const isEveryActiveWorkspaceRestricted = activeGroupPolicies.length > 1 && activeGroupPolicies.every(isMapOrGPSRequired);
-    const shouldHideManualAndOdometerTabs = isReportScopedTarget
-        ? isMapOrGPSRequired(reportPolicy)
-        : !isSelfDMTarget && (isMapOrGPSRequired(targetPolicy) || isEveryActiveWorkspaceRestricted);
+    const shouldHideManualAndOdometerTabs =
+        !isLoadingDefaultParticipants &&
+        (isReportScopedTarget ? isMapOrGPSRequired(reportPolicy) : !isSelfDMTarget && (isMapOrGPSRequired(targetPolicy) || isEveryActiveWorkspaceRestricted));
 
     const tabTitles = {
         [CONST.IOU.TYPE.REQUEST]: translate('iou.trackDistance'),

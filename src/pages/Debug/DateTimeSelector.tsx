@@ -1,12 +1,15 @@
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import MenuItem from '@components/MenuItem';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 
+import {callFunctionIfActionIsAllowed} from '@userActions/Session';
+
 import CONST from '@src/CONST';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 
-import type {ForwardedRef} from 'react';
+import type {ComponentRef, ForwardedRef} from 'react';
 import type {View} from 'react-native';
 
 import {useRoute} from '@react-navigation/native';
@@ -29,7 +32,7 @@ type DateTimeSelectorProps = {
     inputID: string;
 
     /** The ref is required by InputWrapper, even though it's not used in this component yet */
-    ref?: ForwardedRef<View>;
+    ref?: ForwardedRef<ComponentRef<typeof View>>;
 };
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -53,16 +56,25 @@ function DateTimeSelector({errorText = '', name, value, onInputChange, ref}: Dat
     }, [fieldValue, name, onInputChange]);
 
     return (
-        <MenuItemWithTopDescription
-            title={value}
-            description={name}
-            brickRoadIndicator={errorText ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-            errorText={errorText}
-            onPress={() => {
+        <MenuItem.Root
+            onPress={callFunctionIfActionIsAllowed(() => {
                 Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.DETAILS_DATE_TIME_PICKER.getRoute(name, value)));
-            }}
-            shouldShowRightIcon
-        />
+            })}
+        >
+            <MenuItemField.Row
+                name={name}
+                value={value}
+            >
+                {!!errorText && <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />}
+                <MenuItem.Chevron />
+            </MenuItemField.Row>
+            {!!errorText && (
+                <MenuItem.HelpText
+                    isError
+                    message={errorText}
+                />
+            )}
+        </MenuItem.Root>
     );
 }
 

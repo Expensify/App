@@ -19,10 +19,12 @@ To learn more about the Workspace owner role and what permissions they have, see
 
 ## How to delete a workspace
 
-1. In the navigation tabs (on the left on web, on the bottom on mobile), go to **Workspaces > [workspace name]**.
-2. Select the three dots **(⋮)** next to the workspace you want to delete. 
+1. In the navigation tabs (on the left on web, on the bottom on mobile), select **Workspaces**.
+2. Select the three dots **(⋮)** next to the workspace you want to delete.
 3. Choose **Delete workspace**.
-4. Confirm that you want to delete the Workspace.
+4. In the **Delete [workspace name]?** window, click **Delete**.
+
+You can also delete a workspace from inside it. Open the workspace, select **More**, then choose **Delete**. The same **Delete [workspace name]?** window appears.
 
 ## What happens after you delete a workspace
 

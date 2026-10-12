@@ -17,7 +17,7 @@ import Accessibility from '@libs/Accessibility';
 
 import variables from '@styles/variables';
 
-import {updateApp} from '@userActions/AppUpdate';
+import updateApp from '@userActions/AppUpdate/updateApp';
 
 import CONST from '@src/CONST';
 
