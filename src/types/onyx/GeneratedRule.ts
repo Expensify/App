@@ -20,6 +20,9 @@ type GeneratedRule = {
     /** The outcome of the generation attempt */
     state: GeneratedRuleState;
 
+    /** The rule type the description was mapped to */
+    ruleType?: GeneratedRuleType;
+
     /** The form values to seed the rule draft with */
     rule?: GeneratedRuleValues;
 };

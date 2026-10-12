@@ -71,6 +71,7 @@ function DescribeRuleModal({isVisible, onClose, policyID, ruleType, onRuleGenera
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
     const generatedRuleID = generatedRule?.generationID;
     const generatedRuleState = generatedRule?.state;
+    const generatedRuleType = generatedRule?.ruleType;
     const generatedRuleValues = generatedRule?.rule;
     const inputLabel = translate('workspace.rules.newRule.describeRuleInputLabel');
 
@@ -89,9 +90,15 @@ function DescribeRuleModal({isVisible, onClose, policyID, ruleType, onRuleGenera
             clearGeneratedRule();
             return;
         }
+        // Concierge picks the rule type itself. It can answer with a rule type other than the one this editor asked for.
+        if (generatedRuleType !== ruleType) {
+            setNewRulePromptError(CONST.GENERATED_RULE.STATE.UNSUPPORTED);
+            clearGeneratedRule();
+            return;
+        }
         onRuleGenerated(withPolicyCategory(generatedRuleValues ?? {}, policyCategories));
         close();
-    }, [close, generatedRuleID, generatedRuleState, generatedRuleValues, onRuleGenerated, policyCategories]);
+    }, [close, generatedRuleID, generatedRuleState, generatedRuleType, generatedRuleValues, onRuleGenerated, policyCategories, ruleType]);
 
     useEffect(() => {
         if (!isVisible || !newRulePromptForm?.isLoading || pendingGenerationIDRef.current) {
