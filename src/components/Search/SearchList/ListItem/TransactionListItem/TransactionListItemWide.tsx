@@ -1,12 +1,12 @@
+import {useEditingCellState} from '@components/EditableCell';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import type {TransactionListItemType} from '@components/Search/SearchList/ListItem/types';
 import {useRowSelection} from '@components/Search/SearchSelectionProvider';
 import type {ListItem} from '@components/SelectionList/types';
 import TransactionItemRow from '@components/TransactionItemRow';
-import {useEditingCellState} from '@components/TransactionItemRow/EditableCell';
 
-import useRowHighlightAnimation from '@hooks/useRowHighlightAnimation';
+import useLayoutSpacing from '@hooks/useLayoutSpacing';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useSyncFocus from '@hooks/useSyncFocus';
 import useTheme from '@hooks/useTheme';
@@ -52,6 +52,7 @@ function TransactionListItemWide<TItem extends ListItem>({
     chatReport,
 }: TransactionListItemWideProps<TItem>) {
     const styles = useThemeStyles();
+    const {pageGutterMargin} = useLayoutSpacing();
     const theme = useTheme();
     const StyleUtils = useStyleUtils();
     const pressableRef = useRef<ComponentRef<typeof View>>(null);
@@ -144,13 +145,6 @@ function TransactionListItemWide<TItem extends ListItem>({
         },
     ];
 
-    const animatedHighlightStyle = useRowHighlightAnimation({
-        shouldHighlight: item?.shouldAnimateInHighlight ?? false,
-        isSelected,
-        borderRadius: 0,
-        shouldApplyOtherStyles: false,
-    });
-
     return (
         <OfflineWithFeedback pendingAction={item.pendingAction}>
             <PressableWithFeedback
@@ -173,7 +167,13 @@ function TransactionListItemWide<TItem extends ListItem>({
                     isDeletedTransaction && styles.cursorDefault,
                 ]}
                 onFocus={onFocus}
-                wrapperStyle={[styles.mh5, styles.flex1, animatedHighlightStyle, styles.userSelectNone, isLastItem && [styles.tableBottomRadius, styles.overflowHidden]]}
+                wrapperStyle={[
+                    pageGutterMargin,
+                    styles.flex1,
+                    StyleUtils.getSearchRowBackgroundStyle(isSelected),
+                    styles.userSelectNone,
+                    isLastItem && [styles.tableBottomRadius, styles.overflowHidden],
+                ]}
             >
                 {({hovered}) => (
                     <TransactionItemRow
@@ -185,7 +185,7 @@ function TransactionListItemWide<TItem extends ListItem>({
                         policyTagLists={policyTagLists}
                         shouldShowTooltip={showTooltip}
                         onButtonPress={handleActionButtonPress}
-                        onCheckboxPress={() => onCheckboxPress?.(item)}
+                        onCheckboxPress={(_transactionID, shiftKey) => onCheckboxPress?.(item, undefined, shiftKey)}
                         shouldUseNarrowLayout={false}
                         shouldUseFullHeightEditableCellHoverTarget
                         shouldSkipDeferRBR

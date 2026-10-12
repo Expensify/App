@@ -11,7 +11,8 @@ import {updateNetSuiteReceivableAccount} from '@libs/actions/connections/NetSuit
 import {clearNetSuiteErrorField} from '@libs/actions/Policy/Policy';
 import {getLatestErrorField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import {getNetSuiteReceivableAccountOptions, settingsPendingAction} from '@libs/PolicyUtils';
+import {getNetSuiteReceivableAccountOptions} from '@libs/NetSuiteUtils';
+import {settingsPendingAction} from '@libs/PolicyUtils';
 
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';

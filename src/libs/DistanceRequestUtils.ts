@@ -136,6 +136,16 @@ function convertDistanceUnit(distanceInMeters: number, unit: Unit): number {
 }
 
 /**
+ * Converts a distance into the given unit at the two decimal places the backend stores distances with. The
+ * commuter exclusion arithmetic has to use this: the backend rounds both the trip and the commute before
+ * subtracting, so an amount derived from unrounded values lands a cent away from the one the backend calculates
+ * and is then mistaken for an amount the member typed themselves.
+ */
+function convertRoundedDistanceUnit(distanceInMeters: number, unit: Unit): number {
+    return Number(convertDistanceUnit(distanceInMeters, unit).toFixed(CONST.DISTANCE_DECIMAL_PLACES));
+}
+
+/**
  * @param distanceInMeters Distance traveled
  * @param unit Unit that should be used to display the distance
  * @returns The distance in requested units, rounded to 2 decimals
@@ -370,7 +380,7 @@ function getPolicyCommuterExclusionForDistance(policy: OnyxEntry<Policy>, distan
 
     const fixedDistanceUnit: Unit =
         commuterExclusions.fixedDistanceUnit === CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS ? CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS : CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES;
-    const fixedDistanceInRequestUnit = convertDistanceUnit(convertToDistanceInMeters(commuterExclusions.fixedDistance ?? 0, fixedDistanceUnit), distanceUnit);
+    const fixedDistanceInRequestUnit = convertRoundedDistanceUnit(convertToDistanceInMeters(commuterExclusions.fixedDistance ?? 0, fixedDistanceUnit), distanceUnit);
 
     return Math.max(0, Math.min(fixedDistanceInRequestUnit, distance));
 }
@@ -418,7 +428,7 @@ function getTransactionCommuterExclusionData({
     if (typeof existingCustomUnit?.quantity === 'number') {
         routeDistance = existingCustomUnit.quantity;
     } else if (routeDistanceInMeters !== undefined) {
-        routeDistance = convertDistanceUnit(routeDistanceInMeters, requestDistanceUnit);
+        routeDistance = convertRoundedDistanceUnit(routeDistanceInMeters, requestDistanceUnit);
     }
     if (routeDistance === undefined) {
         return;
@@ -437,7 +447,7 @@ function getTransactionCommuterExclusionData({
     let commuterExclusion: number;
     let commuterExclusionMethod: NonNullable<TransactionCustomUnit['commuterExclusionMethod']>;
     if (shouldReuseStoredExclusion) {
-        const storedExclusionInRequestUnit = convertDistanceUnit(
+        const storedExclusionInRequestUnit = convertRoundedDistanceUnit(
             convertToDistanceInMeters(storedCommuterExclusion, storedCustomUnit?.distanceUnit ?? requestDistanceUnit),
             requestDistanceUnit,
         );
@@ -454,7 +464,7 @@ function getTransactionCommuterExclusionData({
             // still comes out at nothing reimbursable when the member picked a different alternate route.
             commuterExclusion = routeDistance;
         } else {
-            commuterExclusion = Math.min(routeDistance, convertDistanceUnit(commuterExclusionPreview.commuteDistanceMeters, requestDistanceUnit));
+            commuterExclusion = Math.min(routeDistance, convertRoundedDistanceUnit(commuterExclusionPreview.commuteDistanceMeters, requestDistanceUnit));
         }
         commuterExclusionMethod = CONST.POLICY.COMMUTER_EXCLUSION_METHOD.HOME_AND_OFFICE;
     } else {
@@ -773,6 +783,61 @@ function getCustomUnitRateID({
 }
 
 /**
+ * Returns the workspace rate to auto-select for a tracked expense moved onto that workspace:
+ * 1. A workspace rate with the same value and unit as the one the expense already uses
+ * 2. Best eligible rate for the expense date
+ * 3. Default rate fallback
+ * Returns undefined when the workspace has no rate to offer, so the caller can keep the current one.
+ */
+function getRateIDForMovedTrackExpense({
+    transaction,
+    policy,
+    policyForMovingExpenses,
+    policies,
+    expenseDate,
+    personalPolicyOutputCurrency,
+}: {
+    transaction: OnyxEntry<Transaction>;
+    policy: OnyxEntry<Policy>;
+    policyForMovingExpenses: OnyxEntry<Policy>;
+    policies: OnyxCollection<Policy>;
+    expenseDate: string | undefined;
+    personalPolicyOutputCurrency: string | undefined;
+}): string | undefined {
+    const mileageRates = getMileageRates(policy);
+    if (isEmptyObject(mileageRates)) {
+        return undefined;
+    }
+
+    // Read the expense's current rate through getRate, the same call the confirmation page uses, so the value is compared against the rate the user sees.
+    const currentRate = getRate({
+        transaction,
+        policy,
+        ...(policyForMovingExpenses && {policyForMovingExpenses}),
+        isMovingTransactionFromTrackExpense: true,
+        useTransactionDistanceUnit: false,
+        personalPolicyOutputCurrency,
+    });
+
+    // getRate only resolves a rate owned by the destination or the moving policy, so a rate left over from any other workspace is looked up by ID.
+    const resolvedRate = currentRate.rate !== undefined ? currentRate : getRateByCustomUnitRateIDAcrossPolicies({customUnitRateID: getRateID(transaction), policies});
+
+    if (resolvedRate?.rate !== undefined) {
+        const currentUnit = getDistanceUnit(transaction, resolvedRate);
+        const matchingRateID = Object.values(mileageRates).find((rate) => rate.rate === resolvedRate.rate && rate.unit === currentUnit)?.customUnitRateID;
+        if (matchingRateID) {
+            return matchingRateID;
+        }
+    }
+
+    if (!expenseDate) {
+        return getDefaultMileageRate(policy)?.customUnitRateID;
+    }
+
+    return getBestEligibleRateOrPolicyDefault(mileageRates, expenseDate, policy)?.customUnitRateID;
+}
+
+/**
  * Get taxable amount from a specific distance rate, taking into consideration the tax claimable amount configured for the distance rate
  */
 function getTaxableAmount(policy: OnyxEntry<Policy>, customUnitRateID: string, distance: number) {
@@ -997,6 +1062,7 @@ export default {
     getRoundedDistanceInUnits,
     getRateForP2P,
     getCustomUnitRateID,
+    getRateIDForMovedTrackExpense,
     convertToDistanceInMeters,
     getTaxableAmount,
     getDistanceUnit,

@@ -1,8 +1,8 @@
 ---
 title: Attach and edit receipts on expenses
 description: Learn how to properly attach, verify, and troubleshoot receipts on expenses in New Expensify for audits and accounting.
-keywords: [New Expensify, attach receipt, verify receipt, missing receipt, expense attachments, audit trail, receipt not showing, crop receipt, rotate receipt, trim receipt, receipt upload failed, receipt upload error, save receipt, delete expense, ereceipt, ereceipts, e-receipt, electronic receipt, digital receipt, auto-generated receipt, add additional receipt, who can add a receipt, add additional receipt icon missing, expand receipt, receipt on approved report, add receipt after approval, admin add receipt approved expense]
-internalScope: Audience is Expensify members and Workspace Admins. Covers attaching, replacing, and cropping receipts on expenses, who is allowed to add a receipt versus only view one, and the Workspace Admin exception that allows attaching or replacing a receipt on an Approved report. Does not cover SmartScan configuration or receipt forwarding via email.
+keywords: [New Expensify, attach receipt, verify receipt, missing receipt, expense attachments, audit trail, receipt not showing, crop receipt, rotate receipt, trim receipt, receipt upload failed, receipt upload error, save receipt, delete expense, ereceipt, ereceipts, e-receipt, electronic receipt, digital receipt, auto-generated receipt, add additional receipt, who can add a receipt, add additional receipt icon missing, expand receipt, receipt on approved report, add receipt after approval, admin add receipt approved expense, added a receipt, receipt system message, receipt history, who added a receipt]
+internalScope: Audience is Expensify members and Workspace Admins. Covers attaching, replacing, and cropping receipts on expenses, the system message posted when a receipt is added, who is allowed to add a receipt versus only view one, and the Workspace Admin exception that allows attaching or replacing a receipt on an Approved report. Does not cover SmartScan configuration or receipt forwarding via email.
 ---
 
 Make sure your receipts are attached correctly to individual expenses for audit and accounting compliance. This guide explains how to attach, verify, and troubleshoot receipts in New Expensify — and when to use report comments for additional documentation.
@@ -66,6 +66,14 @@ You can rotate a receipt to correct its orientation. Rotation is available for u
 1. Open the expense and click on the receipt image or PDF.
 2. Click **Rotate**.
 3. Each click rotates the receipt 90° counter-clockwise.
+
+---
+
+## What system message appears when you add a receipt to an expense
+
+When you attach a receipt to an existing expense, or click **Replace** to swap in a different receipt, Expensify posts an "added a receipt" system message in the expense. The message shows who added the receipt, so the expense keeps an audit trail of receipt changes. Removing a receipt also posts a system message in the expense.
+
+Cropping or rotating a receipt doesn't post a system message. An expense created with a receipt, such as a SmartScan expense, doesn't get an "added a receipt" message either.
 
 ---
 
@@ -146,6 +154,9 @@ Apart from a Workspace Admin attaching or replacing a receipt, Approved and Paid
 
 ## Why isn’t my receipt showing on the expense?
 It was likely uploaded in the report comments. Receipts must be attached directly to the expense to appear properly.
+
+## Can I see who added a receipt to an expense?
+Yes. When someone attaches or replaces a receipt on an existing expense, Expensify posts an "added a receipt" system message in the expense showing who made the change. Cropping or rotating a receipt doesn't post a message.
 
 ## Can I attach one receipt to multiple expenses?
 No. Each expense must have its own receipt. You can upload the same file more than once if needed.

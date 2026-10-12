@@ -35,8 +35,6 @@ const personalDetailsDisplayNameSelector =
             formatPhoneNumber,
         });
 
-const conciergePersonalDetailSelector = personalDetailsSelector(CONST.ACCOUNT_ID.CONCIERGE);
-
 type DisplayDetails = Pick<PersonalDetails, 'accountID' | 'displayName' | 'login' | 'avatar'>;
 
 /**
@@ -82,15 +80,6 @@ function isPersonalDetailOptimistic(personalDetail: PersonalDetails | null | und
     return isEmptyObject(personalDetail) || !!personalDetail?.isOptimisticPersonalDetail;
 }
 
-const isOptimisticPersonalDetailSelector =
-    (accountID: number) =>
-    (personalDetailsList: OnyxEntry<PersonalDetailsList>): boolean => {
-        if (!personalDetailsList) {
-            return true;
-        }
-        return isPersonalDetailOptimistic(personalDetailsList[accountID]);
-    };
-
 /**
  * Returns only the personal details that were created optimistically. The optimistic set is tiny compared to the whole
  * personal details list, so subscribers using it don't re-render every time an unrelated (server-backed) detail changes.
@@ -119,6 +108,11 @@ const avatarStyleColorSelector = (personalDetails: PersonalDetails | undefined) 
 
 const doesPersonalDetailExist = (personalDetails: PersonalDetails | undefined) => !!personalDetails;
 
+const firstNameSelector = (personalDetails: PersonalDetails | undefined) => (personalDetails?.firstName?.trim() ? personalDetails.firstName : undefined);
+
+const displayNameOrDefaultSelector = (translate: LocalizedTranslate, formatPhoneNumber: LocaleContextProps['formatPhoneNumber']) => (personalDetails: PersonalDetails | undefined) =>
+    temporaryGetDisplayNameOrDefault({passedPersonalDetails: personalDetails, translate, formatPhoneNumber});
+
 export {
     avatarStyleColorSelector,
     personalDetailsSelector,
@@ -127,16 +121,16 @@ export {
     personalDetailsDisplayNameSelector,
     personalDetailsLoginSelector,
     personalDetailsLoginsSelector,
-    conciergePersonalDetailSelector,
     doesPersonalDetailExistSelector,
     accountIDToLoginSelector,
-    isOptimisticPersonalDetailSelector,
+    isPersonalDetailOptimistic,
     optimisticPersonalDetailsSelector,
     createDisplayDetailsByAccountIDsSelector,
     newAccountIDsAndLoginsSelector,
     displayNameSelector,
     accountIDSelector,
     loginSelector,
+    firstNameSelector,
+    displayNameOrDefaultSelector,
     doesPersonalDetailExist,
-    isPersonalDetailOptimistic,
 };

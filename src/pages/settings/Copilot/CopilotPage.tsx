@@ -33,7 +33,7 @@ import {clearDelegateErrorsByField, openSecuritySettingsPage, removeDelegate, re
 import {getLatestError} from '@libs/ErrorUtils';
 import getClickedTargetLocation from '@libs/getClickedTargetLocation';
 import Navigation from '@libs/Navigation/Navigation';
-import {sortAlphabetically} from '@libs/OptionsListUtils';
+import sortAlphabetically from '@libs/sortAlphabetically';
 import tokenizedSearch from '@libs/tokenizedSearch';
 import {getDefaultAvatarURL} from '@libs/UserAvatarUtils';
 

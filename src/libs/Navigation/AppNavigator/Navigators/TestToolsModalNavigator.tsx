@@ -2,6 +2,7 @@ import NoDropZone from '@components/DragAndDrop/NoDropZone';
 import FocusTrapForScreens from '@components/FocusTrap/FocusTrapForScreen';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import TestToolsModalPage from '@components/TestToolsModalPage';
+import TestToolsServerPage from '@components/TestToolsServerPage';
 
 import useIsAuthenticated from '@hooks/useIsAuthenticated';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
@@ -65,6 +66,10 @@ function TestToolsModalNavigator() {
                             <Stack.Screen
                                 name={SCREENS.TEST_TOOLS_MODAL.ROOT}
                                 component={TestToolsModalPage}
+                            />
+                            <Stack.Screen
+                                name={SCREENS.TEST_TOOLS_MODAL.SERVER}
+                                component={TestToolsServerPage}
                             />
                         </Stack.Navigator>
                     </View>
