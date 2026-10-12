@@ -1,6 +1,8 @@
 import {useHeaderContext} from '@components/Header/context/HeaderContext';
 import HeaderTitleComponent from '@components/HeaderTitle';
 
+import useThemeStyles from '@hooks/useThemeStyles';
+
 import type {StyleProp, TextStyle} from 'react-native';
 
 type HeaderTitleProps = {
@@ -12,11 +14,13 @@ type HeaderTitleProps = {
 
 function HeaderTitle({title, subtitle, titleStyles, subtitleLink}: HeaderTitleProps) {
     const {shouldSkipFocusAfterTransition} = useHeaderContext();
+    const styles = useThemeStyles();
 
     return (
         <HeaderTitleComponent
             dialogLabel={title}
             shouldSkipFocusAfterTransition={shouldSkipFocusAfterTransition}
+            style={styles.pr2}
         >
             {!!title && (
                 <HeaderTitleComponent.Text
