@@ -41,7 +41,7 @@ import {
     updateSplitExpenseField,
 } from '@userActions/IOU/SplitExpenseItems';
 import type {UpdateSplitTransactionsParams} from '@userActions/IOU/SplitTransactionUpdate';
-import {updateSplitTransactions} from '@userActions/IOU/SplitTransactionUpdate';
+import {updateSplitTransactions, willSplitUpdateEmptyExpenseReport} from '@userActions/IOU/SplitTransactionUpdate';
 
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
@@ -11799,5 +11799,249 @@ describe('resolveOptimisticSplitChatReportID', () => {
 
         const splitChatReport = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${optimisticSplitChatReportID}`);
         expect(splitChatReport?.reportID).toBe(optimisticSplitChatReportID);
+    });
+});
+
+describe('willSplitUpdateEmptyExpenseReport', () => {
+    const expenseReportID = 'empty-check-expense-report';
+    const otherReportID = 'empty-check-other-report';
+    const originalTransactionID = 'empty-check-original';
+
+    const buildTransaction = (transactionID: string, reportID: string, overrides: Partial<Transaction> = {}): Transaction => ({
+        transactionID,
+        reportID,
+        amount: -5000,
+        currency: 'USD',
+        created: '2026-10-12',
+        merchant: 'Merchant',
+        comment: {originalTransactionID, source: CONST.IOU.TYPE.SPLIT},
+        ...overrides,
+    });
+
+    const toCollection = (transactions: Transaction[]): OnyxCollection<Transaction> =>
+        Object.fromEntries(transactions.map((transaction) => [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction]));
+
+    it('returns true when every split in the expense report is removed and the rest go to other reports', () => {
+        // Given an expense report holding one split of the expense, and a sibling split on another report
+        const allTransactions = toCollection([buildTransaction('removed-split', expenseReportID), buildTransaction('kept-split', otherReportID)]);
+
+        // When only the sibling split on the other report is saved
+        const result = willSplitUpdateEmptyExpenseReport(
+            expenseReportID,
+            originalTransactionID,
+            [{transactionID: 'kept-split', amount: 5000, created: '2026-10-12', reportID: otherReportID}],
+            allTransactions,
+        );
+
+        // Then the expense report is left without transactions, so it has to be removed
+        expect(result).toBe(true);
+    });
+
+    it('returns false when a saved split stays in the expense report', () => {
+        // Given an expense report holding one split of the expense
+        const allTransactions = toCollection([buildTransaction('kept-split', expenseReportID), buildTransaction('removed-split', otherReportID)]);
+
+        // When the split that lives in the expense report is kept
+        const result = willSplitUpdateEmptyExpenseReport(
+            expenseReportID,
+            originalTransactionID,
+            [{transactionID: 'kept-split', amount: 5000, created: '2026-10-12', reportID: expenseReportID}],
+            allTransactions,
+        );
+
+        // Then the expense report still has a transaction and must not be removed
+        expect(result).toBe(false);
+    });
+
+    it('returns false when a saved split has no known destination report', () => {
+        // Given an expense report holding one split, and a saved split with neither a reportID nor a live transaction
+        const allTransactions = toCollection([buildTransaction('removed-split', expenseReportID)]);
+
+        // When that split is saved - a split without a destination ends up in the expense report
+        const result = willSplitUpdateEmptyExpenseReport(expenseReportID, originalTransactionID, [{transactionID: 'new-split', amount: 5000, created: '2026-10-12'}], allTransactions);
+
+        // Then the report is treated as kept alive, so it is never removed by mistake
+        expect(result).toBe(false);
+    });
+
+    it('returns false when the expense report holds an unrelated active expense', () => {
+        // Given an expense report holding a split of this expense and an unrelated expense
+        const allTransactions = toCollection([
+            buildTransaction('removed-split', expenseReportID),
+            buildTransaction('unrelated-expense', expenseReportID, {comment: {}}),
+            buildTransaction('kept-split', otherReportID),
+        ]);
+
+        // When the split in the expense report is removed
+        const result = willSplitUpdateEmptyExpenseReport(
+            expenseReportID,
+            originalTransactionID,
+            [{transactionID: 'kept-split', amount: 5000, created: '2026-10-12', reportID: otherReportID}],
+            allTransactions,
+        );
+
+        // Then the unrelated expense keeps the report alive
+        expect(result).toBe(false);
+    });
+
+    it('returns true when the only other expense in the report is already pending deletion', () => {
+        // Given an expense report holding a split of this expense and an unrelated expense that was deleted offline
+        const allTransactions = toCollection([
+            buildTransaction('removed-split', expenseReportID),
+            buildTransaction('unrelated-expense', expenseReportID, {comment: {}, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}),
+            buildTransaction('kept-split', otherReportID),
+        ]);
+
+        // When the split in the expense report is removed
+        const result = willSplitUpdateEmptyExpenseReport(
+            expenseReportID,
+            originalTransactionID,
+            [{transactionID: 'kept-split', amount: 5000, created: '2026-10-12', reportID: otherReportID}],
+            allTransactions,
+        );
+
+        // Then the pending-delete expense doesn't keep the report alive, so navigation and the report removal agree on it
+        expect(result).toBe(true);
+    });
+});
+
+describe('updateSplitTransactions - emptied expense report', () => {
+    it('optimistically removes the expense report and its preview when its last split is removed and the remaining split lives on an approved report', async () => {
+        // Given an expense split across an approved report and a draft report, each holding one split with a transaction thread
+        const chatReportID = 'emptied-report-chat';
+        const approvedReportID = 'emptied-report-approved';
+        const draftReportID = 'emptied-report-draft';
+        const originalTransactionID = 'emptied-report-original';
+        const policyID = 'emptied-report-policy';
+        const draftReportPreviewActionID = 'emptied-report-draft-preview';
+        const buildIOUAction = (reportActionID: string, transactionID: string, reportID: string) =>
+            ({
+                reportActionID,
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                reportID,
+                actorAccountID: RORY_ACCOUNT_ID,
+                created: DateUtils.getDBTime(),
+                childReportID: `${reportActionID}-thread`,
+                message: [{type: 'COMMENT', html: '', text: ''}],
+                originalMessage: {IOUTransactionID: transactionID, IOUReportID: reportID, amount: 5000, currency: 'USD', type: CONST.IOU.REPORT_ACTION_TYPE.CREATE},
+            }) as ReportAction;
+        const draftReport: Report = {
+            reportID: draftReportID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            policyID,
+            chatReportID,
+            parentReportID: chatReportID,
+            parentReportActionID: draftReportPreviewActionID,
+            ownerAccountID: RORY_ACCOUNT_ID,
+            stateNum: CONST.REPORT.STATE_NUM.OPEN,
+            statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+            total: -5000,
+            currency: 'USD',
+        };
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {...createRandomPolicy(1), id: policyID, type: CONST.POLICY.TYPE.TEAM});
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`, {
+            reportID: chatReportID,
+            type: CONST.REPORT.TYPE.CHAT,
+            chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+            policyID,
+        });
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${approvedReportID}`, {
+            reportID: approvedReportID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            policyID,
+            chatReportID,
+            parentReportID: chatReportID,
+            ownerAccountID: RORY_ACCOUNT_ID,
+            stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+            statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
+            total: -5000,
+            currency: 'USD',
+        });
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${draftReportID}`, draftReport);
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${approvedReportID}`, {approvedIOU: buildIOUAction('approvedIOU', 'approved-split', approvedReportID)});
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${draftReportID}`, {draftIOU: buildIOUAction('draftIOU', 'draft-split', draftReportID)});
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReportID}`, {
+            [draftReportPreviewActionID]: {
+                reportActionID: draftReportPreviewActionID,
+                actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
+                childReportID: draftReportID,
+                created: DateUtils.getDBTime(),
+                message: [{type: 'COMMENT', html: '', text: ''}],
+                originalMessage: {linkedReportID: draftReportID},
+            } as ReportAction,
+        });
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransactionID}`, {
+            transactionID: originalTransactionID,
+            amount: -10000,
+            currency: 'USD',
+            merchant: 'Merchant',
+            created: '2026-10-12',
+            reportID: CONST.REPORT.SPLIT_REPORT_ID,
+            comment: {},
+        });
+        for (const [transactionID, reportID] of [
+            ['approved-split', approvedReportID],
+            ['draft-split', draftReportID],
+        ]) {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {
+                transactionID,
+                amount: -5000,
+                currency: 'USD',
+                merchant: 'Merchant',
+                created: '2026-10-12',
+                reportID,
+                comment: {originalTransactionID, source: CONST.IOU.TYPE.SPLIT},
+            });
+        }
+        // Hold the request so only the optimistic data is applied, as it is while offline
+        mockFetch?.pause?.();
+        await waitForBatchedUpdates();
+
+        // When the draft split is removed offline and only the frozen approved split is saved
+        updateSplitTransactions({
+            isVendorMatchingBetaEnabled: false,
+            rules: undefined,
+            getCurrencyDecimals: getCurrencyDecimalsLocal,
+            getCurrencySymbol: getCurrencySymbolLocal,
+            allTransactionsList: await getOnyxValue(ONYXKEYS.COLLECTION.TRANSACTION),
+            allReportsList: await getOnyxValue(ONYXKEYS.COLLECTION.REPORT),
+            allReportActionsList: await getOnyxValue(ONYXKEYS.COLLECTION.REPORT_ACTIONS),
+            allReportNameValuePairsList: {},
+            transactionData: {
+                reportID: draftReportID,
+                originalTransactionID,
+                splitExpenses: [{transactionID: 'approved-split', amount: 5000, created: '2026-10-12', reportID: approvedReportID, isManuallyEdited: true}],
+                splitExpensesTotal: 5000,
+            },
+            policyCategories: undefined,
+            policy: undefined,
+            policyRecentlyUsedCategories: [],
+            iouReport: draftReport,
+            firstIOU: undefined,
+            isASAPSubmitBetaEnabled: false,
+            currentUserPersonalDetails,
+            transactionViolations: {},
+            policyRecentlyUsedCurrencies: [],
+            quickAction: undefined,
+            allPolicyTags: {},
+            personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
+            transactionReport: draftReport,
+            expenseReport: draftReport,
+            isOffline: true,
+            delegateAccountID: undefined,
+            isTrackIntentUser: false,
+            formatPhoneNumber,
+        });
+        await waitForBatchedUpdates();
+
+        // Then the draft report is removed and its preview is pending deletion, so it can't be opened into a Not Found page
+        const draftReportAfter = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${draftReportID}`);
+        expect(draftReportAfter?.reportID).toBeFalsy();
+        const chatReportActions = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReportID}`);
+        expect(chatReportActions?.[draftReportPreviewActionID]?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
+
+        // And the approved report the remaining split lives on stays untouched
+        const approvedReportAfter = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${approvedReportID}`);
+        expect(approvedReportAfter?.reportID).toBe(approvedReportID);
     });
 });

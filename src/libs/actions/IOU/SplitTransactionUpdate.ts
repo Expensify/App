@@ -185,6 +185,36 @@ function hasEditableSplitExpenseLeft(
     });
 }
 
+/**
+ * Whether saving the split leaves the expense report the split flow was opened from without any transactions: every
+ * transaction still active in it is a split of this expense, and none of the saved splits stays in it. Transactions
+ * already pending deletion don't keep the report alive.
+ */
+function willSplitUpdateEmptyExpenseReport(
+    expenseReportID: string | undefined,
+    originalTransactionID: string,
+    splitExpenses: SplitExpense[],
+    allTransactionsList: OnyxCollection<OnyxTypes.Transaction>,
+): boolean {
+    if (!expenseReportID) {
+        return false;
+    }
+    const activeExpenseReportTransactions = Object.values(allTransactionsList ?? {}).filter(
+        (itemTransaction) => itemTransaction?.reportID === expenseReportID && itemTransaction?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+    );
+    if (activeExpenseReportTransactions.length === 0) {
+        return false;
+    }
+    if (!activeExpenseReportTransactions.every((itemTransaction) => itemTransaction?.comment?.originalTransactionID === originalTransactionID)) {
+        return false;
+    }
+    return !splitExpenses.some((splitExpense) => {
+        // A split with no known destination stays in the expense report, so treat it as keeping the report alive.
+        const splitDestinationReportID = splitExpense.reportID ?? allTransactionsList?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${splitExpense.transactionID}`]?.reportID;
+        return !splitDestinationReportID || splitDestinationReportID === expenseReportID;
+    });
+}
+
 function updateSplitTransactions({
     allTransactionsList,
     allReportsList,
@@ -1695,18 +1725,7 @@ function updateSplitTransactions({
     if (!isReverseSplitOperation) {
         // Removing every split that lived in the expense report empties it. Without this the report and its preview
         // stay behind holding only pending-delete splits, and opening it shows the Not Found page.
-        const expenseReportTransactions = Object.values(allTransactionsList ?? {}).filter(
-            (itemTransaction) => itemTransaction?.reportID === expenseReportID && itemTransaction?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
-        );
-        const willExpenseReportBecomeEmpty =
-            !isCreationOfSplits &&
-            expenseReportTransactions.length > 0 &&
-            expenseReportTransactions.every((itemTransaction) => itemTransaction?.comment?.originalTransactionID === originalTransactionID) &&
-            !splitExpenses.some((splitExpense) => {
-                // A split with no known destination stays in the expense report, so treat it as keeping the report alive.
-                const splitDestinationReportID = splitExpense.reportID ?? allTransactionsList?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${splitExpense.transactionID}`]?.reportID;
-                return !splitDestinationReportID || splitDestinationReportID === expenseReportID;
-            });
+        const willExpenseReportBecomeEmpty = !isCreationOfSplits && willSplitUpdateEmptyExpenseReport(expenseReportID, originalTransactionID, splitExpenses, allTransactionsList);
         if (willExpenseReportBecomeEmpty) {
             pushExpenseReportDeletionToOnyxData();
         }
@@ -2080,5 +2099,5 @@ function updateSplitTransactions({
     TransitionTracker.runAfterTransitions({callback: () => removeDraftSplitTransaction(originalTransactionID), waitForUpcomingTransition: true});
 }
 
-export {hasEditableSplitExpenseLeft, updateSplitTransactions};
+export {hasEditableSplitExpenseLeft, updateSplitTransactions, willSplitUpdateEmptyExpenseReport};
 export type {UpdateSplitTransactionsParams};

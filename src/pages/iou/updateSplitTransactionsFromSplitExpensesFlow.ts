@@ -7,7 +7,7 @@ import {getChildTransactions} from '@libs/TransactionUtils';
 
 import signalExpenseAddedGrowl from '@userActions/IOU/signalExpenseAddedGrowl';
 import type {UpdateSplitTransactionsParams} from '@userActions/IOU/SplitTransactionUpdate';
-import {hasEditableSplitExpenseLeft, updateSplitTransactions} from '@userActions/IOU/SplitTransactionUpdate';
+import {hasEditableSplitExpenseLeft, updateSplitTransactions, willSplitUpdateEmptyExpenseReport} from '@userActions/IOU/SplitTransactionUpdate';
 import {setDeleteTransactionNavigateBackUrl} from '@userActions/Report';
 
 import CONST from '@src/CONST';
@@ -49,12 +49,9 @@ function updateSplitTransactionsFromSplitExpensesFlow(params: UpdateSplitTransac
     // In any of these cases we must navigate away from the soon-to-be-empty report so the user
     // isn't stranded on a "Not Found" page.
     const expenseReportTransactions = expenseReportID ? Object.values(params.allTransactionsList ?? {}).filter((itemTransaction) => itemTransaction?.reportID === expenseReportID) : [];
-    const areAllExpenseReportTransactionsSplitChildren =
-        expenseReportTransactions.length > 0 && expenseReportTransactions.every((itemTransaction) => itemTransaction?.comment?.originalTransactionID === originalTransactionID);
-    const anyRemainingSplitStaysInExpenseReport = splitExpenses.some((expense) => expense.reportID === expenseReportID);
     const reverseSplitKeepsOriginalInExpenseReport = isReverseSplitOperation && splitExpenses.at(0)?.reportID === expenseReportID;
-    const willExpenseReportBecomeEmpty =
-        !!expenseReportID && areAllExpenseReportTransactionsSplitChildren && !anyRemainingSplitStaysInExpenseReport && !reverseSplitKeepsOriginalInExpenseReport;
+    // Same check updateSplitTransactions uses to delete the report, so we never navigate back into a report it removes.
+    const willExpenseReportBecomeEmpty = willSplitUpdateEmptyExpenseReport(expenseReportID, originalTransactionID, splitExpenses, params.allTransactionsList);
     const isLastTransactionInReport = willExpenseReportBecomeEmpty || (isReverseSplitOperation && !reverseSplitKeepsOriginalInExpenseReport && expenseReportTransactions.length === 1);
     const fallbackReportID = params.expenseReport?.chatReportID ?? params.expenseReport?.parentReportID;
 
