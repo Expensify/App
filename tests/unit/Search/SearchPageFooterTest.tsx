@@ -29,7 +29,8 @@ type MockFilterPopupButtonProps = {
 jest.mock('@hooks/useThemeStyles', () => ({__esModule: true, default: () => new Proxy({}, {get: () => ({})})}));
 jest.mock('@hooks/useStyleUtils', () => ({__esModule: true, default: () => new Proxy({}, {get: () => () => ({})})}));
 jest.mock('@hooks/useTheme', () => ({__esModule: true, default: () => new Proxy({}, {get: () => 'transparent'})}));
-jest.mock('@hooks/useNetwork', () => ({__esModule: true, default: () => ({isOffline: false})}));
+const mockIsOffline = {current: false};
+jest.mock('@hooks/useNetwork', () => ({__esModule: true, default: () => ({isOffline: mockIsOffline.current})}));
 jest.mock('@hooks/useResponsiveLayout', () => ({__esModule: true, default: () => ({shouldUseNarrowLayout: false, isSmallScreenWidth: false})}));
 jest.mock('@hooks/useKeyboardShortcut', () => ({__esModule: true, default: () => {}}));
 const mockIsFooterSelectorsBetaEnabled = {current: true};
@@ -54,8 +55,8 @@ jest.mock('@components/Button', () => {
     const ReactModule = require<typeof React>('react');
     const {View: MockView, Text: MockText} = require<typeof ReactNative>('react-native');
 
-    function MockButton({children}: {children?: React.ReactNode}) {
-        return ReactModule.createElement(MockView, {testID: 'searchPageFooterTrigger'}, children);
+    function MockButton({children, isDisabled}: {children?: React.ReactNode; isDisabled?: boolean}) {
+        return ReactModule.createElement(MockView, {testID: 'searchPageFooterTrigger', accessibilityState: {disabled: !!isDisabled}}, children);
     }
     function MockButtonText({children}: {children?: React.ReactNode}) {
         return ReactModule.createElement(MockText, null, children);
@@ -120,6 +121,7 @@ const defaultProps = {
 describe('SearchPageFooter', () => {
     beforeEach(() => {
         mockIsFooterSelectorsBetaEnabled.current = true;
+        mockIsOffline.current = false;
         mockCapturedPopupProps.current = undefined;
         mockCapturedSkeletonProps.current = undefined;
         mockCapturedCurrencyPopupProps.current = undefined;
@@ -196,6 +198,17 @@ describe('SearchPageFooter', () => {
         expect(screen.getByText('common.totalSpend:')).toBeOnTheScreen();
         // The menu stays reachable while the total reloads: it is the total's own row that goes inert, not the trigger.
         expect(mockCapturedPopupProps.current?.isTotalLoading).toBe(true);
+    });
+
+    it('keeps the display menu reachable offline, since switching the count needs no request', () => {
+        // Given the device is offline
+        mockIsOffline.current = true;
+
+        // When the footer renders
+        render(<SearchPageFooter {...defaultProps} />);
+
+        // Then its trigger still opens the menu, where only the rows that need the backend wait
+        expect(screen.getByTestId('searchPageFooterTrigger')).not.toBeDisabled();
     });
 
     it('makes the whole footer content the trigger, so the count opens the menu too', () => {

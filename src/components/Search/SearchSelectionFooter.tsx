@@ -17,6 +17,7 @@ import {getEmptyObject} from '@src/types/utils/EmptyObject';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
+import {accountIDSelector} from '@selectors/Session';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 
 import type {SearchFooterCount, SearchFooterTotal, SelectedTransactionInfo, SelectedTransactions} from './types';
@@ -38,6 +39,9 @@ type FooterCurrencyState = {
 
     /** Default currency captured for this search */
     defaultCurrency: string | undefined;
+
+    /** The query's currency when the pick was made. Once the query moves off it, the query's own currency wins */
+    queryCurrency: string | undefined;
 };
 
 const EMPTY_FOOTER_SELECTION = {footerCount: undefined, footerTotal: undefined, footerCurrency: undefined};
@@ -52,9 +56,10 @@ type AnsweredFooterTotals = {
     totals: Partial<Record<SearchFooterTotal, number>>;
 };
 
-// Breakdown totals answered per search hash, so offline can show the one the query asks for. Not on the snapshot
-// (a search response replaces it) nor in the footer (tab switches remount it). In memory only.
-const answeredFooterTotalsByHash = new Map<number, AnsweredFooterTotals>();
+// Breakdown totals answered per account and search hash, so offline can show the one the query asks for. Not on the
+// snapshot (a search response replaces it) nor in the footer (tab switches remount it). In memory only. Keyed by account
+// too, since a hash comes from the query text alone and another account signed in later shares it.
+const answeredFooterTotalsByHash = new Map<string, AnsweredFooterTotals>();
 
 /** Test-only: clears the recorded answers between tests. */
 function resetAnsweredFooterTotalsForTesting() {
@@ -65,15 +70,22 @@ function resetAnsweredFooterTotalsForTesting() {
  * Records a settled answer and returns this search's answers. A function, not an inline read: React Compiler would
  * cache a bare map read on the hash, which a footer switch never changes.
  */
-function recordAnsweredFooterTotals(searchHash: number, requestedFooterTotal: SearchFooterTotal, total: number | undefined, isSettledAnswer: boolean): AnsweredFooterTotals | undefined {
+function recordAnsweredFooterTotals(
+    accountID: number,
+    searchHash: number,
+    requestedFooterTotal: SearchFooterTotal,
+    total: number | undefined,
+    isSettledAnswer: boolean,
+): AnsweredFooterTotals | undefined {
+    const key = `${accountID}_${searchHash}`;
     if (isSettledAnswer) {
-        const previous = answeredFooterTotalsByHash.get(searchHash);
-        answeredFooterTotalsByHash.set(searchHash, {
+        const previous = answeredFooterTotalsByHash.get(key);
+        answeredFooterTotalsByHash.set(key, {
             answered: requestedFooterTotal,
             totals: typeof total === 'number' ? {...previous?.totals, [requestedFooterTotal]: total} : (previous?.totals ?? {}),
         });
     }
-    return answeredFooterTotalsByHash.get(searchHash);
+    return answeredFooterTotalsByHash.get(key);
 }
 
 function getGroupCount(group: unknown): number {
@@ -146,12 +158,14 @@ function SearchSelectionFooter({searchResults}: SearchSelectionFooterProps) {
     const shouldAllowFooterTotals = useSearchShouldCalculateTotals(currentSearchKey, true, areAllMatchingItemsSelected);
     const {isOffline} = useNetwork();
     const activePolicy = useActivePolicy();
+    const [accountID = CONST.DEFAULT_NUMBER_ID] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector});
     // The server converts search figures to the active policy's currency when the query carries no explicit target.
     const searchTargetCurrency = activePolicy?.outputCurrency ?? CONST.CURRENCY.USD;
     const [footerCurrencyState, setFooterCurrencyState] = useState<FooterCurrencyState>({
         searchHash: undefined,
         selectedCurrency: undefined,
         defaultCurrency: undefined,
+        queryCurrency: undefined,
     });
     // Whether the backend is still answering the breakdown the footer asked for. The request keys no hash of its own —
     // it refreshes the figures of the search already on screen — so the wait is held here and ends with the response.
@@ -164,8 +178,10 @@ function SearchSelectionFooter({searchResults}: SearchSelectionFooterProps) {
     const pendingReportConversionSources = useRef<Record<string, Record<string, number>>>({});
     const isCurrentFooterState = footerCurrencyState.searchHash === currentSearchHash;
     // The query carries the currency across a reload and into a saved search, so it is what an untouched footer starts
-    // from. This session's own pick wins once made, since it also covers a Reset back to the default.
-    const selectedCurrency = (isCurrentFooterState ? footerCurrencyState.selectedCurrency : undefined) ?? footerSelection.footerCurrency;
+    // from. This session's own pick bridges the moment until the query catches up with it. Once the query's currency
+    // moves (the pick landing, an edit, or a saved search on the same hash), the query wins.
+    const isPickAheadOfQuery = isCurrentFooterState && footerCurrencyState.queryCurrency === footerSelection.footerCurrency;
+    const selectedCurrency = (isPickAheadOfQuery ? footerCurrencyState.selectedCurrency : undefined) ?? footerSelection.footerCurrency;
     const defaultFooterCurrency = isCurrentFooterState ? footerCurrencyState.defaultCurrency : undefined;
 
     // The Auth command merges converted figures here (by transaction, report, group, and query hash, each nested
@@ -195,7 +211,7 @@ function SearchSelectionFooter({searchResults}: SearchSelectionFooterProps) {
     const isSnapshotTotalForOtherBreakdown = isFooterSelectorsEnabled && !isOffline && !shouldUseLiveData && !!metadata?.footerTotal && metadata.footerTotal !== requestedFooterTotal;
     const isSettledAnswer = !isOffline && !isAwaitingBreakdownTotal && !isSnapshotTotalForOtherBreakdown && !metadata?.isLoading && metadata?.hash === currentSearchHash;
 
-    const answeredFooterTotals = recordAnsweredFooterTotals(currentSearchHash, requestedFooterTotal, metadata?.total, isSettledAnswer);
+    const answeredFooterTotals = recordAnsweredFooterTotals(accountID, currentSearchHash, requestedFooterTotal, metadata?.total, isSettledAnswer);
 
     // Offline, the snapshot may still hold another breakdown's total: show this breakdown's recorded one, or none. The stamp
     // survives a reload, which empties the recorded answers.
@@ -407,13 +423,15 @@ function SearchSelectionFooter({searchResults}: SearchSelectionFooterProps) {
     // An excluded collapsed group hides the breakdown's figure, so the selector stays to lead back to the plain total.
     const hasExcludedGroupWithQueryBreakdown = excludedGroupKeys.length > 0 && !!footerSelection.footerTotal;
     // An empty result set has no total to break down, so it keeps the plain total spend with no selector.
-    const shouldShowTotalSelector = isFooterSelectorsEnabled && (!hasGroupSelection || hasExcludedGroupWithQueryBreakdown) && (!!metadataCount || selectedTransactionsKeys.length > 0);
+    // Footer selections are only kept for expense and report searches, so other types keep the plain total, as on main.
+    const isFooterTotalSupported = isFooterSelectorsEnabled && (isExpenseType || isReportsSearch);
+    const shouldShowTotalSelector = isFooterTotalSupported && (!hasGroupSelection || hasExcludedGroupWithQueryBreakdown) && (!!metadataCount || selectedTransactionsKeys.length > 0);
 
     // Use the per-selection (client) total for a partial selection; nothing-selected and everything-selected both fall
     // to the whole-search grand total, which every search type now returns converted, keyed by the search hash.
     const shouldUseClientTotal = !metadataCount || hasPartialSelection;
 
-    const shouldNameQueryBreakdown = isFooterSelectorsEnabled && (shouldShowTotalSelector || !shouldUseClientTotal);
+    const shouldNameQueryBreakdown = isFooterTotalSupported && (shouldShowTotalSelector || !shouldUseClientTotal);
     const footerTotalType = shouldNameQueryBreakdown ? (footerSelection.footerTotal ?? CONST.SEARCH.FOOTER_TOTAL.TOTAL) : undefined;
     // No selector means no breakdown, which is the plain total, so the sums below never have to special-case it.
     const footerTotalBreakdown = footerTotalType ?? CONST.SEARCH.FOOTER_TOTAL.TOTAL;
@@ -648,6 +666,7 @@ function SearchSelectionFooter({searchResults}: SearchSelectionFooterProps) {
             searchHash: currentSearchHash,
             selectedCurrency: currency,
             defaultCurrency: effectiveDefaultCurrency,
+            queryCurrency: footerSelection.footerCurrency,
         });
         applyFooterSelection({footerCurrency: currency});
     };

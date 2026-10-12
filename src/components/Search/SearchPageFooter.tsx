@@ -242,14 +242,14 @@ function SearchPageFooter({
     const footerAccessibilityLabel = [`${countLabel}: ${count ?? ''}`, hasTotal ? `${totalLabel}: ${totalDisplayValue}` : undefined].filter(Boolean).join(', ');
 
     // The whole content is the trigger, not just the total: every figure it shows is changed from the same menu.
-    // It stays pressable while the total reloads, since the count and currency rows in the menu need no request.
+    // It stays pressable while the total reloads and offline, since the count row needs no request; the rows that do
+    // wait inside the menu.
     const footerButton = (props: ButtonComponentProps) => (
         <Button
             ref={props.ref}
             accessibilityLabel={footerAccessibilityLabel}
             innerStyles={[styles.bgTransparent, styles.mnh0, styles.ph0, styles.pv0]}
             contentContainerStyle={styles.gap1}
-            isDisabled={isOffline}
             size={CONST.BUTTON_SIZE.SMALL}
             hoverStyles={styles.bgTransparent}
             onPress={props.onPress}

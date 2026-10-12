@@ -617,6 +617,31 @@ describe('SearchSelectionFooter', () => {
             expect(mockCapturedFooterProps.current).toEqual(expect.objectContaining({totalType: CONST.SEARCH.FOOTER_TOTAL.TOTAL, total: 342}));
         });
 
+        it('never shows another account its recorded totals', async () => {
+            // Given the plain total and then the billable one answered online for this account
+            setSearchQuery('type:expense');
+            mockSelectedTransactions.current = {};
+            const first = render(<SearchSelectionFooter searchResults={buildSearchResults(CONST.CURRENCY.USD, 10, 342)} />);
+            await waitForBatchedUpdates();
+            setSearchQuery('type:expense footerTotal:billable');
+            first.rerender(<SearchSelectionFooter searchResults={buildSearchResults(CONST.CURRENCY.USD, 10, 229)} />);
+            await waitForBatchedUpdates();
+            first.unmount();
+
+            // When another account signs in and, offline, opens the plain total on the same query, whose snapshot is
+            // stamped for billable
+            await Onyx.merge(ONYXKEYS.SESSION, {accountID: ACCOUNT_ID + 1});
+            mockIsOffline.current = true;
+            setSearchQuery('type:expense');
+            const billableSnapshot = buildSearchResults(CONST.CURRENCY.USD, 10, 229);
+            billableSnapshot.search.footerTotal = CONST.SEARCH.FOOTER_TOTAL.BILLABLE;
+            render(<SearchSelectionFooter searchResults={billableSnapshot} />);
+            await waitForBatchedUpdates();
+
+            // Then the first account's plain total is not shown to it
+            expect(mockCapturedFooterProps.current).toEqual(expect.objectContaining({totalType: CONST.SEARCH.FOOTER_TOTAL.TOTAL, total: undefined}));
+        });
+
         it('keeps showing it after another tab remounts the footer', async () => {
             setSearchQuery('type:expense');
             mockSelectedTransactions.current = {};
@@ -739,6 +764,18 @@ describe('SearchSelectionFooter', () => {
             await waitForBatchedUpdates();
 
             expect(mockCapturedFooterProps.current).toEqual(expect.objectContaining({totalType: CONST.SEARCH.FOOTER_TOTAL.BILLABLE, total: 229}));
+        });
+
+        it('offers no total selector on a search type that keeps no footer selection', async () => {
+            // Given an invoice search with totals, where footer selections are not kept
+            setSearchQuery('type:invoice');
+            mockSelectedTransactions.current = {};
+
+            render(<SearchSelectionFooter searchResults={buildSearchResults(CONST.CURRENCY.USD, 10, 36000, CONST.SEARCH.DATA_TYPES.INVOICE)} />);
+            await waitForBatchedUpdates();
+
+            // Then the footer keeps the plain total with no selector, as on main
+            expect(mockCapturedFooterProps.current).toEqual(expect.objectContaining({shouldShowTotalSelector: false, totalType: undefined}));
         });
 
         it('offers no total selector on an empty result set', async () => {
@@ -1007,6 +1044,28 @@ describe('SearchSelectionFooter', () => {
             expect(getFooterConvertedAmounts).toHaveBeenCalledWith(expect.objectContaining({targetCurrency: CONST.CURRENCY.EUR}));
             // ...while the query carries the choice so it survives a reload, with no results reload of its own.
             expect(mockSetParams.mock.calls.at(0)?.at(0)?.q).toContain('footerCurrency:EUR');
+        });
+
+        it('lets the query currency take over once it moves off the one the pick was made on', async () => {
+            // Given EUR picked on a query that carried no currency
+            setSearchQuery('type:expense');
+            mockSelectedTransactions.current = {};
+            const {rerender} = render(<SearchSelectionFooter searchResults={buildSearchResults(CONST.CURRENCY.USD, 10, 36000)} />);
+            await waitForBatchedUpdates();
+            await act(async () => {
+                mockCapturedFooterProps.current?.onCurrencyChange?.(CONST.CURRENCY.EUR);
+                await waitForBatchedUpdates();
+            });
+
+            // When a saved search on the same hash opens with GBP, which no footer change made
+            jest.mocked(getFooterConvertedAmounts).mockClear();
+            setSearchQuery(`type:expense footerCurrency:${CONST.CURRENCY.GBP}`);
+            rerender(<SearchSelectionFooter searchResults={buildSearchResults(CONST.CURRENCY.USD, 10, 36000)} />);
+            await waitForBatchedUpdates();
+
+            // Then the footer converts to the query's GBP rather than holding on to the earlier pick
+            expect(getFooterConvertedAmounts).toHaveBeenCalledWith(expect.objectContaining({targetCurrency: CONST.CURRENCY.GBP}));
+            expect(getFooterConvertedAmounts).not.toHaveBeenCalledWith(expect.objectContaining({targetCurrency: CONST.CURRENCY.EUR}));
         });
 
         it('starts from the currency the query carries, so a saved search reopens on it', async () => {

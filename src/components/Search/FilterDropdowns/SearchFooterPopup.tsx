@@ -4,6 +4,7 @@ import type {SingleSelectItem} from '@components/Search/FilterComponents/SingleS
 import type {SearchFooterCount, SearchFooterTotal} from '@components/Search/types';
 
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {getFooterTotalItems} from '@libs/SearchUIUtils';
@@ -79,6 +80,7 @@ function SearchFooterPopup({
     onCurrencyChange,
 }: SearchFooterPopupProps) {
     const {translate} = useLocalize();
+    const {isOffline} = useNetwork();
     const styles = useThemeStyles();
     const [selectedFooterFilter, setSelectedFooterFilter] = useState<SelectedFooterFilter>(null);
 
@@ -114,7 +116,7 @@ function SearchFooterPopup({
                 )}
                 <MenuItemWithTopDescription
                     shouldShowRightIcon
-                    interactive={!isTotalLoading}
+                    interactive={!isTotalLoading && !isOffline}
                     description={translate('common.currency')}
                     title={currency ?? defaultCurrency}
                     onPress={() => setSelectedFooterFilter(CONST.SEARCH.SYNTAX_FILTER_KEYS.FOOTER_CURRENCY)}
