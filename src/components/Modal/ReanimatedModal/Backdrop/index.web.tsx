@@ -52,7 +52,8 @@ function Backdrop({
         return (
             <PressableWithoutFeedback
                 accessible
-                accessibilityLabel={translate('modal.backdropLabel')}
+                role={CONST.ROLE.BUTTON}
+                accessibilityLabel={translate('common.dismiss')}
                 onPress={onBackdropPress}
                 style={[styles.userSelectNone, styles.cursorAuto]}
                 dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}

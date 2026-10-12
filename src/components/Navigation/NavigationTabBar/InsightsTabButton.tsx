@@ -46,6 +46,7 @@ function InsightsTabButton({selectedTab, isWideLayout}: InsightsTabButtonProps) 
                 role={CONST.ROLE.TAB}
                 accessibilityLabel={translate('common.insights')}
                 accessibilityState={{selected: isSelected}}
+                wrapperStyle={styles.leftNavigationTabBarItem}
                 style={({hovered}) => [styles.leftNavigationTabBarItem, hovered && styles.navigationTabBarItemHovered]}
                 sentryLabel={CONST.SENTRY_LABEL.NAVIGATION_TAB_BAR.INSIGHTS}
             >

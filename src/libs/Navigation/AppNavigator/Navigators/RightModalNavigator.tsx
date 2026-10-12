@@ -13,8 +13,10 @@ import hideKeyboardOnSwipe from '@libs/Navigation/AppNavigator/hideKeyboardOnSwi
 import * as ModalStackNavigators from '@libs/Navigation/AppNavigator/ModalStackNavigators';
 import useModalStackScreenOptions from '@libs/Navigation/AppNavigator/ModalStackNavigators/useModalStackScreenOptions';
 import useRHPScreenOptions from '@libs/Navigation/AppNavigator/useRHPScreenOptions';
+import {useRHPFrameStyle} from '@libs/Navigation/AppNavigator/useRHPTransition';
 import calculateSuperWideRHPWidth from '@libs/Navigation/helpers/calculateSuperWideRHPWidth';
 import calculateWideRHPWidth from '@libs/Navigation/helpers/calculateWideRHPWidth';
+import getRHPLayoutValue from '@libs/Navigation/helpers/getRHPLayoutValue';
 import getSidePanelRHPShrink from '@libs/Navigation/helpers/getSidePanelRHPShrink';
 import {isFullScreenName} from '@libs/Navigation/helpers/isNavigatorName';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
@@ -118,6 +120,7 @@ type RightModalDialogFrameProps = {
 function RightModalDialogFrame({hasDialogSemantics, style, onContainerRef, children}: RightModalDialogFrameProps) {
     const {dialogAriaLabel} = useDialogLabelData();
     const hasName = !!dialogAriaLabel;
+    const frameStyle = useRHPFrameStyle();
 
     return (
         <Animated.View
@@ -127,7 +130,7 @@ function RightModalDialogFrame({hasDialogSemantics, style, onContainerRef, child
             aria-label={hasDialogSemantics && hasName ? dialogAriaLabel : undefined}
             // Focusable so SRs / claimDialogFocus can land on the dialog when it has no nested controls.
             tabIndex={hasDialogSemantics ? -1 : undefined}
-            style={style}
+            style={[style, frameStyle]}
         >
             {children}
         </Animated.View>
@@ -178,8 +181,8 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
     // When the wide rhp page is opened as first one, it will be animated with the entire RightModalNavigator.
     const animationEnabledOnSearchReport = superWideRHPRouteKeys.length > 0 || wideRHPRouteKeys.length > 0 || isSmallScreenWidth;
 
-    // When the Concierge/Help Side Panel is open on a wide (extra large) layout, it shifts the whole RHP
-    // left by its width via paddingRight (see useModalCardStyleInterpolator + SidePanelContextProvider).
+    // When the Concierge/Help Side Panel is open on a wide (extra large) layout, the panel frame shifts
+    // left by its width (see useRHPFrameStyle + SidePanelContextProvider).
     // The super wide RHP already spans almost the full window, so without shrinking it by the same amount
     // its left edge would be pushed off-screen once the Side Panel opens. Subtract the Side Panel offset
     // from the super wide width only (progress === 2) so the sheet's left edge stays put while the Side
@@ -197,27 +200,33 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
         superWideRHPSidePanelOffset,
     );
 
-    const overlayPositionLeft = useMemo(() => -1 * calculateSuperWideRHPWidth(windowWidth), [windowWidth]);
+    let rhpWidth: number = singleRHPWidth;
+    if (superWideRHPRouteKeys.length > 0) {
+        rhpWidth = calculateSuperWideRHPWidth(windowWidth);
+    } else if (wideRHPRouteKeys.length > 0) {
+        rhpWidth = calculateWideRHPWidth(windowWidth);
+    }
+    const dismissalPositionRight = getRHPLayoutValue(rhpWidth, Animated.add<number>(animatedWidth, sidePanelOffset.current));
 
     // Width of the focused card. The super wide animated width already gives up the Side Panel offset.
     let focusedRHPWidth: OverlayPositionValue = singleRHPWidth;
     if (isSuperWideRHPFocused) {
-        focusedRHPWidth = animatedWidth;
+        focusedRHPWidth = getRHPLayoutValue(rhpWidth, animatedWidth);
     } else if (isWideRHPFocused) {
         focusedRHPWidth = calculateWideRHPWidth(windowWidth);
     }
 
     // Where the focused card starts, measured from the right window edge and from the left.
     const tertiaryOverlayColumn = Animated.add(sidePanelOffset.current, Animated.add(focusedRHPWidth, 2 * variables.rhpFloatingCardBorderWidth + variables.rhpFloatingCardMargin));
-    const tertiaryOverlayCardBandLeft = Animated.subtract(windowWidth, tertiaryOverlayColumn);
-    const tertiaryOverlayVerticalGapInset = windowHeight - variables.rhpFloatingCardMargin;
+    const tertiaryOverlayCardBandLeft = getRHPLayoutValue(windowWidth - singleRHPWidth, Animated.subtract(windowWidth, tertiaryOverlayColumn));
+    const tertiaryOverlayVerticalGapInset = windowHeight - getRHPLayoutValue(0, variables.rhpFloatingCardMargin);
 
     // With a report or expense stacked in the RHP every card draws its own modal, so the frame is invisible.
     const shouldUseCenteredFrame =
         !shouldUseNarrowLayout &&
         (superWideRHPRouteKeys.length > 0 || wideRHPRouteKeys.length > 0 || shouldRenderSecondaryOverlayForRHPOnWideRHP || shouldRenderSecondaryOverlayForRHPOnSuperWideRHP);
 
-    const frameStyle = getRHPFrameStyle({styles, animatedWidth, shouldUseNarrowLayout, shouldUseCenteredFrame});
+    const frameStyle = getRHPFrameStyle({styles, animatedWidth: getRHPLayoutValue(rhpWidth, animatedWidth), shouldUseNarrowLayout, shouldUseCenteredFrame});
 
     const screenListeners = useMemo(
         () => ({
@@ -261,7 +270,7 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
     const floatingCardGapProgress = shouldRenderTertiaryOverlay ? thirdOverlayProgress : undefined;
     const handleFloatingCardGapPress = shouldRenderTertiaryOverlay ? Navigation.dismissToPreviousRHP : handleOverlayPress;
     // The gap on the right stops before the Side Panel, which shares that edge.
-    const floatingCardGapRightBandLeft = Animated.subtract(Animated.subtract(windowWidth, sidePanelOffset.current), variables.rhpFloatingCardMargin);
+    const floatingCardGapRightBandLeft = getRHPLayoutValue(windowWidth, Animated.subtract(Animated.subtract(windowWidth, sidePanelOffset.current), variables.rhpFloatingCardMargin));
 
     const clearWideRHPKeysAfterTabChanged = useCallback(() => {
         const isRhpOpened = navigationRef?.getRootState()?.routes?.some((rootStateRoute) => rootStateRoute.key === route.key);
@@ -288,7 +297,7 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
             <NoDropZone>
                 {!shouldUseNarrowLayout && (
                     <RHPOverlay
-                        positionLeftValue={overlayPositionLeft}
+                        dismissalPositionRight={dismissalPositionRight}
                         onPress={handleOverlayPress}
                     />
                 )}
@@ -566,7 +575,7 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
                 {!shouldUseNarrowLayout && shouldRenderTertiaryOverlay && (
                     <RHPOverlay
                         progress={thirdOverlayProgress}
-                        positionRightValue={tertiaryOverlayColumn}
+                        positionRightValue={getRHPLayoutValue(singleRHPWidth, tertiaryOverlayColumn)}
                         onPress={Navigation.dismissToPreviousRHP}
                         transparent
                     />
@@ -591,7 +600,7 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
                         <RHPOverlay
                             progress={floatingCardGapProgress}
                             positionLeftValue={floatingCardGapRightBandLeft}
-                            positionRightValue={sidePanelOffset.current}
+                            positionRightValue={getRHPLayoutValue(0, sidePanelOffset.current)}
                             onPress={handleFloatingCardGapPress}
                             transparent
                         />

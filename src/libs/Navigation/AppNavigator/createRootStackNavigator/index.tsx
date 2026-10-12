@@ -2,7 +2,7 @@ import RootNavigatorExtraContent from '@components/Navigation/RootNavigatorExtra
 
 import addRootHistoryRouterExtension from '@libs/Navigation/AppNavigator/routerExtensions/addRootHistoryRouterExtension';
 import useNavigationResetOnLayoutChange from '@libs/Navigation/AppNavigator/useNavigationResetOnLayoutChange';
-import createPlatformStackNavigatorComponent from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigatorComponent';
+import createJSStackNavigatorComponent from '@libs/Navigation/PlatformStackNavigation/createJSStackNavigatorComponent';
 import defaultPlatformStackScreenOptions from '@libs/Navigation/PlatformStackNavigation/defaultPlatformStackScreenOptions';
 import type {
     CustomEffectsHookProps,
@@ -26,7 +26,7 @@ function RootStackNavigatorEffects(props: CustomEffectsHookProps) {
     return <></>;
 }
 
-const RootStackNavigatorComponent = createPlatformStackNavigatorComponent('RootStackNavigator', {
+const RootStackNavigatorComponent = createJSStackNavigatorComponent('RootStackNavigator', {
     createRouter: addRootHistoryRouterExtension(RootStackRouter as PlatformStackRouterFactory<ParamListBase>),
     defaultScreenOptions: defaultPlatformStackScreenOptions,
     Effects: RootStackNavigatorEffects,

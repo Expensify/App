@@ -2,21 +2,6 @@ import calculateMaxSidePanelRHPShrink from '@libs/Navigation/helpers/calculateMa
 import calculateSuperWideRHPWidth from '@libs/Navigation/helpers/calculateSuperWideRHPWidth';
 import calculateWideRHPWidth from '@libs/Navigation/helpers/calculateWideRHPWidth';
 
-// jest-expo resolves bare specifiers to index.native.ts (defaultPlatform 'ios'), so the web index.ts is loaded explicitly, same pattern as resetOnboardingStackToRootTest.
-// requireActual hands back an untyped module, which is what each no-unsafe-return below is silencing.
-jest.mock('@libs/Navigation/helpers/calculateSuperWideRHPWidth', () =>
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
-    jest.requireActual('@libs/Navigation/helpers/calculateSuperWideRHPWidth/index.ts'),
-);
-jest.mock('@libs/Navigation/helpers/calculateReceiptPaneRHPWidth', () =>
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
-    jest.requireActual('@libs/Navigation/helpers/calculateReceiptPaneRHPWidth/index.ts'),
-);
-jest.mock('@libs/Navigation/helpers/calculateMaxSidePanelRHPShrink', () =>
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
-    jest.requireActual('@libs/Navigation/helpers/calculateMaxSidePanelRHPShrink/index.ts'),
-);
-
 // Widths are pinned to concrete pixels so a change to any of the underlying variables forces a visible update here.
 describe('calculateSuperWideRHPWidth', () => {
     it('leaves the configured 360px left margin on a wide window', () => {
@@ -95,17 +80,15 @@ describe('calculateSuperWideRHPWidth', () => {
     });
 
     describe('regression: native platforms (https://github.com/Expensify/App/issues/99035)', () => {
-        it('reports no spare room so the Side Panel shrink stays a number', () => {
-            // Given native, where the super wide RHP does not exist and the web width helpers it builds on are no-ops
-            const calculateMaxSidePanelRHPShrinkNative = jest.requireActual<{default: (windowWidth: number) => number}>(
-                '@libs/Navigation/helpers/calculateMaxSidePanelRHPShrink/index.native.ts',
-            ).default;
+        it('calculates finite spare room with the shared native width helpers', () => {
+            // Given native, where wide RHPs now use the same width calculations as web
+            const windowWidth = 1440;
 
             // When the Side Panel asks how much of the sheet it may take
-            const shrink = calculateMaxSidePanelRHPShrinkNative(1440);
+            const shrink = calculateMaxSidePanelRHPShrink(windowWidth);
 
-            // Then it is 0 rather than NaN, because the shrink feeds an animated inputRange and NaN there takes the whole RHP down on iOS.
-            expect(shrink).toBe(0);
+            // Then the shrink is finite and preserves enough room for both panes instead of feeding NaN into an animated inputRange.
+            expect(shrink).toBe(155);
         });
     });
 });
