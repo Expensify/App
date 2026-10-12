@@ -1,5 +1,6 @@
 import {BarChart, LineChart, PieChart} from '@components/Charts';
 import type {ChartDataPoint} from '@components/Charts';
+import VictoryTheme from '@components/Charts/VictoryTheme';
 
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
@@ -46,6 +47,9 @@ type SearchChartViewProps = {
     /** Whether pressing a bar, point or slice opens Search filtered to it */
     shouldDrillDownOnPress?: boolean;
 
+    /** Whether a line chart with a single point is drawn as a bar */
+    shouldShowSinglePointAsBar?: boolean;
+
     /** Renders the details of the plotted groups below the chart */
     renderDetails?: (rows: SearchChartDataRow[]) => React.ReactNode;
 
@@ -57,7 +61,18 @@ type SearchChartViewProps = {
  * Layer 3 component - dispatches to the appropriate chart type based on view parameter
  * and handles navigation/drill-down logic
  */
-function SearchChartView({queryJSON, view, groupBy, data, isLoading, shouldShowGroupLabels = true, shouldDrillDownOnPress = true, renderDetails, chartContainerStyle}: SearchChartViewProps) {
+function SearchChartView({
+    queryJSON,
+    view,
+    groupBy,
+    data,
+    isLoading,
+    shouldShowGroupLabels = true,
+    shouldDrillDownOnPress = true,
+    shouldShowSinglePointAsBar = false,
+    renderDetails,
+    chartContainerStyle,
+}: SearchChartViewProps) {
     const {preferredLocale, translate, dateFnsLocale} = useLocalize();
     const {getCurrencySymbol, getCurrencyDecimals} = useCurrencyListActions();
     const {currentSearchKey} = useSearchQueryContext();
@@ -112,15 +127,25 @@ function SearchChartView({queryJSON, view, groupBy, data, isLoading, shouldShowG
                 shouldShowLabels={shouldShowGroupLabels}
             />
         ),
-        [CONST.SEARCH.VIEW.LINE]: (
-            <LineChart
-                data={points}
-                isLoading={isLoading}
-                onPointPress={onItemPress}
-                yAxisUnit={unit}
-                yAxisUnitPosition={unitPosition}
-            />
-        ),
+        [CONST.SEARCH.VIEW.LINE]:
+            shouldShowSinglePointAsBar && points.length === 1 ? (
+                <BarChart
+                    data={points}
+                    isLoading={isLoading}
+                    onBarPress={onItemPress}
+                    yAxisUnit={unit}
+                    yAxisUnitPosition={unitPosition}
+                    color={VictoryTheme.colors.default}
+                />
+            ) : (
+                <LineChart
+                    data={points}
+                    isLoading={isLoading}
+                    onPointPress={onItemPress}
+                    yAxisUnit={unit}
+                    yAxisUnitPosition={unitPosition}
+                />
+            ),
         [CONST.SEARCH.VIEW.PIE]: (
             <PieChart
                 data={points}
