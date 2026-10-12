@@ -129,7 +129,7 @@ function IOURequestStepConfirmationContent({
 
     // Depend on transactions.length to avoid updating transactionIDs when only the transaction details change
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    const transactionIDs = useMemo(() => transactions?.map((transaction) => transaction.transactionID), [transactions.length]);
+    const transactionIDs = useMemo(() => transactions?.map((item) => item.transactionID), [transactions.length]);
     const requestType = getRequestType(transaction);
     const isPerDiemRequest = requestType === CONST.IOU.REQUEST_TYPE.PER_DIEM;
     const isUnreported = transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
