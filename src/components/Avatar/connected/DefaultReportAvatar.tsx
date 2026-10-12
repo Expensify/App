@@ -3,15 +3,17 @@ import SingleAvatar from '@components/Avatar/layouts/SingleAvatar';
 import {PersonalDetailsContext} from '@components/OnyxListItemProvider';
 
 import useDefaultAvatars from '@hooks/useDefaultAvatars';
+import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import {useAllPersonalDetails} from '@hooks/usePersonalDetails';
 import useStyleUtils from '@hooks/useStyleUtils';
 
-import {getIconsForParticipants, isOneOnOneChat, isSelfDM, isSupportTicket, isSystemChat, isTripRoom} from '@libs/ReportUtils';
+import {getIconsForParticipants, getParticipantIcon, isOneOnOneChat, isSelfDM, isSupportTicket, isSystemChat, isTripRoom} from '@libs/ReportUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report} from '@src/types/onyx';
+import type {Icon} from '@src/types/onyx/OnyxCommon';
 
 import type {StyleProp, ViewStyle} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -66,8 +68,10 @@ function getChatAccountID(report: OnyxEntry<Report>, currentUserAccountID: numbe
 function DefaultReportAvatar({reportID, size, containerStyle, horizontalStacking, sort, fallbackDisplayName}: DefaultReportAvatarProps) {
     const StyleUtils = useStyleUtils();
     const defaultAvatars = useDefaultAvatars();
+    const {formatPhoneNumber, translate} = useLocalize();
     const [currentUserAccountID] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector});
     const [isReportTripRoom] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {selector: isTripRoom});
+    const [isReportSupportTicket] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {selector: isSupportTicket});
     // Resolved inside the selector, so a participants change only re-renders when the pictured account changes.
     const chatAccountIDSelector = (report: OnyxEntry<Report>) => getChatAccountID(report, currentUserAccountID);
     const [accountID] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {selector: chatAccountIDSelector});
@@ -89,12 +93,13 @@ function DefaultReportAvatar({reportID, size, containerStyle, horizontalStacking
     }
 
     // The unknown account stands in while there is no account to picture, such as a report that hasn't loaded.
-    const avatar = (accountID ? getIconsForParticipants([accountID], personalDetails).at(0) : undefined) ?? {
-        id: CONST.DEFAULT_NUMBER_ID,
-        type: CONST.ICON_TYPE_AVATAR,
-        source: defaultAvatars.FallbackAvatar,
-        name: '',
-    };
+    let avatar: Icon = {id: CONST.DEFAULT_NUMBER_ID, type: CONST.ICON_TYPE_AVATAR, source: defaultAvatars.FallbackAvatar, name: ''};
+    if (accountID) {
+        // A support ticket names its rep the way a display name reads elsewhere: a formatted phone number, "Concierge", or "Hidden" while their details are missing.
+        avatar = isReportSupportTicket
+            ? getParticipantIcon(accountID, personalDetails, formatPhoneNumber, translate, true)
+            : (getIconsForParticipants([accountID], personalDetails).at(0) ?? avatar);
+    }
 
     return (
         <SingleAvatar

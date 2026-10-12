@@ -15125,6 +15125,7 @@ export {
     getOutstandingChildRequest,
     getParentNavigationSubtitle,
     getParsedComment,
+    getParticipantIcon,
     getParticipantsAccountIDsForDisplay,
     getParticipantsChatKey,
     getParticipantsList,

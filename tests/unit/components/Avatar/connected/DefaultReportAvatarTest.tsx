@@ -66,6 +66,14 @@ jest.mock('@hooks/useLazyAsset', () => ({
     }),
 }));
 
+jest.mock('@hooks/useLocalize', () =>
+    jest.fn(() => ({
+        formatPhoneNumber: (phoneNumber: string) => phoneNumber,
+        translate: (key: string) => key,
+        localeCompare: (first: string, second: string) => first.localeCompare(second),
+    })),
+);
+
 let mockPersonalDetails: PersonalDetailsList = {};
 
 /** Renders inside the live personal details context, which the component reads while there is no Search snapshot. */
@@ -139,11 +147,6 @@ describe('DefaultReportAvatar (connected)', () => {
         ],
         ['a self DM by the current user', {type: CONST.REPORT.TYPE.CHAT, chatType: CONST.REPORT.CHAT_TYPE.SELF_DM}, buildParticipantIcon(CURRENT_USER_ACCOUNT_ID)],
         ['the system chat by Notifications', {type: CONST.REPORT.TYPE.CHAT, chatType: CONST.REPORT.CHAT_TYPE.SYSTEM}, buildParticipantIcon(CONST.ACCOUNT_ID.NOTIFICATIONS)],
-        [
-            'a support ticket by its assigned rep, not its participants',
-            {type: CONST.REPORT.TYPE.SUPPORT_TICKET, managerID: OTHER_ACCOUNT_ID, participants: buildParticipants(CURRENT_USER_ACCOUNT_ID, THIRD_ACCOUNT_ID)},
-            buildParticipantIcon(OTHER_ACCOUNT_ID),
-        ],
         ['a support ticket without an assigned rep by the unknown account', {type: CONST.REPORT.TYPE.SUPPORT_TICKET, participants: buildParticipants(OTHER_ACCOUNT_ID)}, PLACEHOLDER_ICON],
         [
             'a report without a type by the lowest account ID, since only a chat can be a 1:1 DM',
@@ -178,6 +181,30 @@ describe('DefaultReportAvatar (connected)', () => {
             containerStyles: SIZE_DERIVED_CONTAINER_STYLE,
             fallbackDisplayName: FALLBACK_NAME,
         });
+    });
+
+    it.each([
+        [
+            'their display name',
+            {[OTHER_ACCOUNT_ID]: {accountID: OTHER_ACCOUNT_ID, displayName: `User ${OTHER_ACCOUNT_ID}`, avatar: `https://example.com/avatar-${OTHER_ACCOUNT_ID}.png`}},
+            {name: `User ${OTHER_ACCOUNT_ID}`, source: `https://example.com/avatar-${OTHER_ACCOUNT_ID}.png`},
+        ],
+        ['"Hidden" while their personal details are missing', {}, {name: 'common.hidden', source: getDefaultAvatarURL({accountID: OTHER_ACCOUNT_ID})}],
+    ])('should picture a support ticket by its assigned rep, named by %s', (_case, personalDetails, expectedIcon) => {
+        // Given a support ticket assigned to a rep who is not among its participants
+        seedReport({type: CONST.REPORT.TYPE.SUPPORT_TICKET, managerID: OTHER_ACCOUNT_ID, participants: buildParticipants(CURRENT_USER_ACCOUNT_ID, THIRD_ACCOUNT_ID)});
+        mockPersonalDetails = personalDetails;
+
+        // When it renders
+        renderWithPersonalDetails(
+            <DefaultReportAvatar
+                reportID={REPORT_ID}
+                size={CONST.AVATAR_SIZE.DEFAULT}
+            />,
+        );
+
+        // Then the rep is pictured instead of a participant, named the way a display name reads elsewhere, with a default avatar seeded from their account ID while their avatar is unknown
+        expect(mockCapturedSingleAvatarProps.avatar).toEqual({id: OTHER_ACCOUNT_ID, type: CONST.ICON_TYPE_AVATAR, fallbackIcon: undefined, ...expectedIcon});
     });
 
     it('should render the unknown account for a self DM while the session has no account', () => {
