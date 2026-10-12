@@ -4,16 +4,16 @@ import AvatarWithDisplayName from '@components/AvatarWithDisplayName';
 import useDialogLabelRegistration from '@hooks/useDialogLabelRegistration';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import {View} from 'react-native';
+
 function HeaderAvatarWithDisplayName(props: AvatarWithDisplayNameProps) {
     useDialogLabelRegistration(props.report?.reportName ?? '');
     const styles = useThemeStyles();
 
     return (
-        <AvatarWithDisplayName
-            {...props}
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-            style={[...props.style, styles.pr2]}
-        />
+        <View style={[styles.flex1, styles.pr2]}>
+            <AvatarWithDisplayName {...props} />
+        </View>
     );
 }
 
