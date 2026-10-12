@@ -39,7 +39,7 @@ export default function AgentsTableRow({item, rowIndex, shouldUseNarrowTableLayo
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const icons = useMemoizedLazyExpensifyIcons(['ArrowRight', 'ChatBubble']);
+    const icons = useMemoizedLazyExpensifyIcons(['ArrowRight', 'ChatBubble', 'Globe']);
 
     const isTableSemanticsEnabled = shouldUseTableSemantics(shouldUseNarrowTableLayout);
 
@@ -111,12 +111,22 @@ export default function AgentsTableRow({item, rowIndex, shouldUseNarrowTableLayo
                             style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}
                             {...getCellAccessibilityProps(isTableSemanticsEnabled)}
                         >
-                            <AccountAvatar
-                                size={CONST.AVATAR_SIZE.XXX_SMALL}
-                                accountID={item.ownerAccountID}
-                                fallbackDisplayName={item.ownerDisplayName}
-                                containerStyle={[styles.pr2, styles.alignSelfCenter]}
-                            />
+                            {item.ownerType === CONST.AGENTS.OWNER_TYPE.PERSON && (
+                                <AccountAvatar
+                                    size={CONST.AVATAR_SIZE.XXX_SMALL}
+                                    accountID={item.ownerAccountID}
+                                    fallbackDisplayName={item.ownerDisplayName}
+                                    containerStyle={[styles.pr2, styles.alignSelfCenter]}
+                                />
+                            )}
+                            {item.ownerType === CONST.AGENTS.OWNER_TYPE.DOMAIN && (
+                                <Icon
+                                    src={icons.Globe}
+                                    fill={theme.icon}
+                                    additionalStyles={[styles.pr2, styles.alignSelfCenter]}
+                                    size={CONST.ICON_SIZE.SMALL}
+                                />
+                            )}
                             {!!item.ownerDisplayName && (
                                 <TextWithTooltip
                                     shouldShowTooltip
