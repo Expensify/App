@@ -488,6 +488,32 @@ describe('AddPersonalBankAccountPage', () => {
             expect(goBackSpy).not.toHaveBeenCalled();
         });
 
+        it('keeps the error for the confirmation step when the user goes back from the magic code step', async () => {
+            // Given a user on the magic code step whose submission failed for a reason other than the magic code
+            await act(async () => {
+                await Onyx.set(ONYXKEYS.PRIVATE_PERSONAL_DETAILS, SAVED_PRIVATE_PERSONAL_DETAILS);
+                await Onyx.set(ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM_DRAFT, {...MANUAL_BANK_ACCOUNT_DRAFT, phoneNumber: '+14155550199'});
+            });
+            await renderPageOverTab(settingsTabIndex, SUB_PAGE_NAMES.VALIDATE_CODE);
+            act(() => {
+                jest.mocked(ValidateCodeActionContent).mock.lastCall?.[0]?.handleSubmitForm('123456');
+            });
+            await act(async () => {
+                await Onyx.merge(ONYXKEYS.PERSONAL_BANK_ACCOUNT, {isLoading: false, errors: {[Date.now()]: 'This bank account has already been added.'}});
+            });
+
+            // When they go back
+            const validateCodeContentProps = jest.mocked(ValidateCodeActionContent).mock.lastCall?.[0];
+            act(() => {
+                validateCodeContentProps?.onClose?.();
+            });
+
+            // Then they land on the confirmation step with the error kept, so it shows next to the details to fix
+            expect(validateCodeContentProps?.shouldClearErrorOnClose).toBe(false);
+            expect(goBackSpy).toHaveBeenCalledWith(ROUTES.BANK_ACCOUNT_PERSONAL.getRoute(SUB_PAGE_NAMES.CONFIRMATION, undefined));
+            expect(clearPersonalBankAccountErrors).not.toHaveBeenCalled();
+        });
+
         it('clears the previous error before opening the magic code step', async () => {
             // Given a user back on the confirmation step with the account ownership error from their previous submission
             await act(async () => {

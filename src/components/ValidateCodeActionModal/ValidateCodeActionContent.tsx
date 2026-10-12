@@ -29,6 +29,7 @@ function ValidateCodeActionContent({
     validateCodeActionErrorField,
     handleSubmitForm,
     clearError,
+    shouldClearErrorOnClose = true,
     sendValidateCode,
     validateCodeReasonCode,
     isLoading,
@@ -63,9 +64,11 @@ function ValidateCodeActionContent({
     }, [sendValidateCode, validateCodeActionMetadata]);
 
     const hide = useCallback(() => {
-        clearError();
+        if (shouldClearErrorOnClose) {
+            clearError();
+        }
         onClose?.();
-    }, [onClose, clearError]);
+    }, [onClose, clearError, shouldClearErrorOnClose]);
 
     return (
         <ScreenWrapper

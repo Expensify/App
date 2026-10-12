@@ -39,6 +39,7 @@ function ValidateCodeStep({onNext, prevPage}: SubPageProps) {
             handleSubmitForm={onNext}
             validateError={submitError}
             clearError={clearError}
+            shouldClearErrorOnClose={false}
             onClose={prevPage}
             isLoading={personalBankAccount?.isLoading}
         />
