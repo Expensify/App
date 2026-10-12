@@ -1,6 +1,6 @@
 import ActivityIndicator from '@components/ActivityIndicator';
-import ChartTooltip from '@components/Charts/components/ChartTooltip';
-import {TOOLTIP_BAR_GAP, useChartLabelFormats, useTooltipData} from '@components/Charts/hooks';
+import ChartTooltipLayer from '@components/Charts/components/ChartTooltipLayer';
+import {TOOLTIP_BAR_GAP, useChartLabelFormats} from '@components/Charts/hooks';
 import type {ChartDataPoint, ChartProps, PieSlice, UnitPosition} from '@components/Charts/types';
 import {findSliceAtPosition, processDataIntoSlices} from '@components/Charts/utils';
 import {markChartTouch} from '@components/Charts/utils/pinnedChartTooltip';
@@ -13,10 +13,10 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import type {LayoutChangeEvent} from 'react-native';
 
-import React, {useLayoutEffect, useState} from 'react';
+import React, {useState} from 'react';
 import {View} from 'react-native';
 import {Gesture, GestureDetector, PointerType} from 'react-native-gesture-handler';
-import Animated, {useSharedValue} from 'react-native-reanimated';
+import Animated, {useDerivedValue, useSharedValue} from 'react-native-reanimated';
 import {scheduleOnRN, scheduleOnUI} from 'react-native-worklets';
 import {Pie, PolarChart} from 'victory-native';
 
@@ -41,12 +41,9 @@ function PieChartContent({data, isLoading, valueUnit, valueUnitPosition, onSlice
     const {translate} = useLocalize();
     const [canvasWidth, setCanvasWidth] = useState(0);
     const [canvasHeight, setCanvasHeight] = useState(0);
-    const [activeSliceIndex, setActiveSliceIndex] = useState(-1);
 
     /** True while a slice tooltip opened by a touch tap is shown, which lets a touch anywhere on the screen hide it */
     const [isTouchPinned, setIsTouchPinned] = useState(false);
-    /** Point of the last touch tap */
-    const [touchedPoint, setTouchedPoint] = useState<{x: number; y: number}>();
     const [isHoveringOverPie, setIsHoveringOverPie] = useState(false);
 
     // Shared values for hover state
@@ -54,6 +51,10 @@ function PieChartContent({data, isLoading, valueUnit, valueUnitPosition, onSlice
     const cursorX = useSharedValue(0);
     const cursorY = useSharedValue(0);
     const tooltipPosition = useSharedValue({x: 0, y: 0});
+
+    /** Data index of the slice under the cursor or the last touch tap, resolved on the UI thread together with the tooltip position */
+    const matchedIndex = useSharedValue(-1);
+    const isTooltipActive = useDerivedValue(() => matchedIndex.get() >= 0);
 
     const handleLayout = (event: LayoutChangeEvent) => {
         setCanvasWidth(event.nativeEvent.layout.width);
@@ -69,17 +70,30 @@ function PieChartContent({data, isLoading, valueUnit, valueUnitPosition, onSlice
     // so slice indices don't match the original data array. We map back via
     // originalIndex so the tooltip can display the original (possibly negative) value.
     const processedSlices = processDataIntoSlices(data, pieGeometry);
-    const activeOriginalDataIndex = activeSliceIndex >= 0 ? (processedSlices.at(activeSliceIndex)?.originalIndex ?? -1) : -1;
 
     const {formatValue} = useChartLabelFormats({data, unit: valueUnit, unitPosition: valueUnitPosition});
-    const tooltipData = useTooltipData(activeOriginalDataIndex, data, formatValue);
 
-    // Handle hover state updates
-    const updateActiveSlice = (x: number, y: number) => {
+    /** Data index of the slice at the given point, or -1 when the point is outside the slices */
+    const findDataIndexAt = (x: number, y: number) => {
+        'worklet';
+
         const {centerX, centerY} = pieGeometry;
         const sliceIndex = findSliceAtPosition(x, y, centerX, centerY, radius, innerRadius, processedSlices);
-        setActiveSliceIndex(sliceIndex);
-        setIsHoveringOverPie(sliceIndex >= 0);
+        return sliceIndex >= 0 ? (processedSlices.at(sliceIndex)?.originalIndex ?? -1) : -1;
+    };
+
+    const hoverAt = (x: number, y: number) => {
+        'worklet';
+
+        cursorX.set(x);
+        cursorY.set(y);
+        tooltipPosition.set({x, y: y - TOOLTIP_BAR_GAP});
+        const dataIndex = findDataIndexAt(x, y);
+        const wasOverPie = matchedIndex.get() >= 0;
+        matchedIndex.set(dataIndex);
+        if (wasOverPie !== dataIndex >= 0) {
+            scheduleOnRN(setIsHoveringOverPie, dataIndex >= 0);
+        }
     };
 
     // Handle slice press callback
@@ -104,34 +118,13 @@ function PieChartContent({data, isLoading, valueUnit, valueUnitPosition, onSlice
         if (!isHovering.get()) {
             return;
         }
-        const x = cursorX.get() - deltaX;
-        const y = cursorY.get() - deltaY;
-        cursorX.set(x);
-        cursorY.set(y);
-        tooltipPosition.set({x, y: y - TOOLTIP_BAR_GAP});
-        scheduleOnRN(updateActiveSlice, x, y);
+        hoverAt(cursorX.get() - deltaX, cursorY.get() - deltaY);
     };
 
     const onChartMoved = (deltaX: number, deltaY: number) => scheduleOnUI(handleChartMoved, deltaX, deltaY);
 
-    // Touch taps show the slice tooltip instead of drilling in, and the next touch anywhere on the screen hides it
-    const showTouchedSlice = (x: number, y: number) => {
-        const {centerX, centerY} = pieGeometry;
-        const sliceIndex = findSliceAtPosition(x, y, centerX, centerY, radius, innerRadius, processedSlices);
-        setActiveSliceIndex(sliceIndex);
-        setIsTouchPinned(sliceIndex >= 0);
-        setTouchedPoint({x, y});
-    };
-
-    useLayoutEffect(() => {
-        if (!touchedPoint) {
-            return;
-        }
-        tooltipPosition.set({x: touchedPoint.x, y: touchedPoint.y - TOOLTIP_BAR_GAP});
-    }, [touchedPoint, tooltipPosition]);
-
     const dismissTouchedSlice = () => {
-        setActiveSliceIndex(-1);
+        matchedIndex.set(-1);
         setIsTouchPinned(false);
     };
 
@@ -146,10 +139,7 @@ function PieChartContent({data, isLoading, valueUnit, valueUnitPosition, onSlice
                 }
                 isHovering.set(true);
                 scheduleOnRN(setIsTouchPinned, false);
-                cursorX.set(e.x);
-                cursorY.set(e.y);
-                tooltipPosition.set({x: e.x, y: e.y - TOOLTIP_BAR_GAP});
-                scheduleOnRN(updateActiveSlice, e.x, e.y);
+                hoverAt(e.x, e.y);
             })
             .onUpdate((e) => {
                 'worklet';
@@ -157,10 +147,7 @@ function PieChartContent({data, isLoading, valueUnit, valueUnitPosition, onSlice
                 if (e.pointerType === PointerType.TOUCH) {
                     return;
                 }
-                cursorX.set(e.x);
-                cursorY.set(e.y);
-                tooltipPosition.set({x: e.x, y: e.y - TOOLTIP_BAR_GAP});
-                scheduleOnRN(updateActiveSlice, e.x, e.y);
+                hoverAt(e.x, e.y);
             })
             .onEnd((e) => {
                 'worklet';
@@ -169,7 +156,7 @@ function PieChartContent({data, isLoading, valueUnit, valueUnitPosition, onSlice
                     return;
                 }
                 isHovering.set(false);
-                scheduleOnRN(setActiveSliceIndex, -1);
+                matchedIndex.set(-1);
                 scheduleOnRN(setIsHoveringOverPie, false);
             });
 
@@ -187,8 +174,12 @@ function PieChartContent({data, isLoading, valueUnit, valueUnitPosition, onSlice
             .onEnd((e) => {
                 'worklet';
 
+                // Touch taps show the slice tooltip instead of drilling in, and the next touch anywhere on the screen hides it
                 if (e.pointerType === PointerType.TOUCH) {
-                    scheduleOnRN(showTouchedSlice, e.x, e.y);
+                    const dataIndex = findDataIndexAt(e.x, e.y);
+                    tooltipPosition.set({x: e.x, y: e.y - TOOLTIP_BAR_GAP});
+                    matchedIndex.set(dataIndex);
+                    scheduleOnRN(setIsTouchPinned, dataIndex >= 0);
                     return;
                 }
 
@@ -210,10 +201,10 @@ function PieChartContent({data, isLoading, valueUnit, valueUnitPosition, onSlice
                 style={[styles.flexRow, styles.alignItemsCenter]}
                 onMouseEnter={() => {
                     tooltipPosition.set(slice.tooltipPosition);
-                    setActiveSliceIndex(slice.ordinalIndex);
+                    matchedIndex.set(slice.originalIndex);
                 }}
                 onMouseLeave={() => {
-                    setActiveSliceIndex(-1);
+                    matchedIndex.set(-1);
                 }}
             >
                 <View style={[styles.pieChartLegendDot, StyleUtils.getBackgroundColorStyle(slice.color)]} />
@@ -283,18 +274,16 @@ function PieChartContent({data, isLoading, valueUnit, valueUnitPosition, onSlice
                     )}
 
                     {/* Tooltip */}
-                    {activeSliceIndex >= 0 && !!tooltipData && (
-                        <ChartTooltip
-                            label={tooltipData.label}
-                            amount={tooltipData.amount}
-                            percentage={tooltipData.percentage}
-                            expenseCount={tooltipData.expenseCount}
-                            chartWidth={canvasWidth}
-                            initialTooltipPosition={tooltipPosition}
-                            onChartMoved={onChartMoved}
-                            onDismiss={isTouchPinned ? dismissTouchedSlice : undefined}
-                        />
-                    )}
+                    <ChartTooltipLayer
+                        matchedIndex={matchedIndex}
+                        isTooltipActive={isTooltipActive}
+                        data={data}
+                        formatValue={formatValue}
+                        chartWidth={canvasWidth}
+                        initialTooltipPosition={tooltipPosition}
+                        onChartMoved={onChartMoved}
+                        onDismiss={isTouchPinned ? dismissTouchedSlice : undefined}
+                    />
                 </Animated.View>
             </GestureDetector>
             {shouldShowLegend && <View style={styles.pieChartLegendContainer}>{processedSlices.map((slice) => renderLegendItem(slice))}</View>}
