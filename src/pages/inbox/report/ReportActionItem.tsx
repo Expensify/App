@@ -287,6 +287,7 @@ function ReportActionItem({
                 isOffline,
                 isSingleTransactionView: true,
                 policy: iouPolicy,
+                reports: reportsParentHierarchy,
             });
             return;
         }
