@@ -18,7 +18,8 @@ import {format} from 'date-fns';
 import React from 'react';
 import {View} from 'react-native';
 
-import type {ChartView, GroupedItem, SearchChartDataRow, SearchGroupBy, SearchQueryJSON} from './types';
+import type {SearchChartModel} from './buildChartSeries';
+import type {ChartView, GroupedItem, SearchGroupBy, SearchQueryJSON} from './types';
 
 import {buildChartSeries} from './buildChartSeries';
 import {buildChartDrillDownQuery} from './chartDrillDown';
@@ -47,7 +48,7 @@ type SearchChartViewProps = {
     shouldShowSinglePointAsBar?: boolean;
 
     /** Renders the details of the plotted groups below the chart */
-    renderDetails?: (rows: SearchChartDataRow[]) => React.ReactNode;
+    renderDetails?: (model: SearchChartModel) => React.ReactNode;
 
     /** Style of the view around the chart, which the details below it don't share */
     chartContainerStyle?: StyleProp<ViewStyle>;
@@ -76,7 +77,7 @@ function SearchChartView({
 
     const today = format(new Date(), CONST.DATE.FNS_FORMAT_STRING);
     const dateFilterRange = queryJSON ? getDateFilterRange(queryJSON) : {};
-    const rows = buildChartSeries({
+    const {series, rows} = buildChartSeries({
         data,
         view,
         getLabel,
@@ -113,6 +114,7 @@ function SearchChartView({
         [CONST.SEARCH.VIEW.BAR]: (
             <BarChart
                 data={points}
+                series={series}
                 isLoading={isLoading}
                 onBarPress={(dataPoint, index) => handleItemPress(index)}
                 yAxisUnit={unit}
@@ -124,6 +126,7 @@ function SearchChartView({
             shouldShowSinglePointAsBar && points.length === 1 ? (
                 <BarChart
                     data={points}
+                    series={series}
                     isLoading={isLoading}
                     onBarPress={(dataPoint, index) => handleItemPress(index)}
                     yAxisUnit={unit}
@@ -133,6 +136,7 @@ function SearchChartView({
             ) : (
                 <LineChart
                     data={points}
+                    series={series}
                     isLoading={isLoading}
                     onPointPress={(dataPoint, index) => handleItemPress(index)}
                     yAxisUnit={unit}
@@ -142,6 +146,7 @@ function SearchChartView({
         [CONST.SEARCH.VIEW.PIE]: (
             <PieChart
                 data={points}
+                series={series}
                 isLoading={isLoading}
                 onSlicePress={(dataPoint, index) => handleItemPress(index)}
                 valueUnit={unit.value}
@@ -154,7 +159,7 @@ function SearchChartView({
     return (
         <>
             <View style={chartContainerStyle}>{CHART_VIEW_TO_CHART[view]}</View>
-            {renderDetails?.(rows)}
+            {renderDetails?.({series, rows})}
         </>
     );
 }

@@ -14,7 +14,7 @@ import {
     useDynamicYDomain,
     useLabelHitTesting,
 } from '@components/Charts/hooks';
-import {getBarLayout, getXAxisLabel, getYAxisLabelWidth} from '@components/Charts/utils';
+import {getBarLayout, getPrimarySeriesKey, getXAxisLabel, getYAxisLabelWidth} from '@components/Charts/utils';
 import VictoryTheme, {CHART_CONTENT_MIN_HEIGHT, GLYPH_PADDING} from '@components/Charts/VictoryTheme';
 
 import useTheme from '@hooks/useTheme';
@@ -33,7 +33,7 @@ import {Bar, CartesianChart} from 'victory-native';
 
 import type BarChartProps from './types';
 
-function VerticalBarChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPosition = 'left', onBarPress, shouldShowLabels = true, color}: BarChartProps) {
+function VerticalBarChartContentBody({data, series, isLoading, yAxisUnit, yAxisUnitPosition = 'left', onBarPress, shouldShowLabels = true, color}: BarChartProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const fontManager = useChartFontManager();
@@ -42,9 +42,10 @@ function VerticalBarChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPosit
     const [boundsLeft, setBoundsLeft] = useState(0);
     const [boundsRight, setBoundsRight] = useState(0);
 
+    const primarySeriesKey = getPrimarySeriesKey(series);
     const chartData = data.map((point, index) => ({
         x: index,
-        y: point.total,
+        y: point.values[primarySeriesKey],
     }));
 
     const yAxisDomain = useDynamicYDomain(data);
@@ -278,6 +279,7 @@ function VerticalBarChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPosit
                     matchedIndex={matchedIndex}
                     isTooltipActive={isTooltipActive}
                     data={data}
+                    series={series}
                     formatValue={formatValue}
                     chartWidth={chartWidth}
                     initialTooltipPosition={initialTooltipPosition}
