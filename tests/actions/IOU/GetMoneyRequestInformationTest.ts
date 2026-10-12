@@ -2,7 +2,7 @@ import {getMoneyRequestInformation} from '@libs/actions/IOU/MoneyRequestBuilder'
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Beta, PolicyTagLists, Report, Transaction} from '@src/types/onyx';
+import type {PolicyTagLists, Report, Transaction} from '@src/types/onyx';
 
 import Onyx from 'react-native-onyx';
 
@@ -68,7 +68,6 @@ const baseParams = {
         created: '2024-01-01',
         merchant: 'Test Merchant',
     },
-    betas: [] as Beta[],
     isASAPSubmitBetaEnabled: false,
     currentUserAccountIDParam: PAYEE_ACCOUNT_ID,
     currentUserEmailParam: 'payee@example.com',

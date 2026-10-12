@@ -68,7 +68,9 @@ Purpose: The Invoice fields section sits below Invoice balance, Bank accounts, a
 
 - Invoice fields appear on the invoices sent from the workspace, where you can set each field's value.
 - Invoice fields and report fields are kept separate. Report fields don't appear on invoices, and invoice fields don't appear on expense reports.
+- Field names must be unique across the whole workspace. An invoice field can't reuse the name of an existing report field, and a report field can't reuse the name of an existing invoice field.
 - Turning off the **Invoice fields** toggle disables invoice fields on invoices.
+- Invoice fields stay available only while the workspace is on the Control plan. If the workspace moves to the Collect plan, the **Invoice fields** toggle turns off and your invoice fields are hidden.
 
 ---
 
@@ -84,8 +86,26 @@ Check each of the following:
 
 ## Do invoice fields carry over when I duplicate a workspace or copy workspace settings?
 
-Yes. Selecting **Invoices** carries the workspace's invoice fields over as well. Because invoice fields require Control, you're prompted to upgrade any destination workspace that isn't on the Control plan. Learn how to [duplicate a workspace](/articles/new-expensify/workspaces/Duplicate-Workspace) or [copy workspace settings](/articles/new-expensify/workspaces/Copy-Workspace-Settings).
+Yes. Selecting **Invoices** carries the workspace's invoice fields over as well. **Invoices** is offered as a setting to copy whenever the **Invoice fields** toggle is on, even if you haven't created any invoice fields yet. Learn how to [duplicate a workspace](/articles/new-expensify/workspaces/Duplicate-Workspace) or [copy workspace settings](/articles/new-expensify/workspaces/Copy-Workspace-Settings).
 
 ## Does deleting a report field also delete my invoice fields?
 
 No. Report fields and invoice fields are managed separately, so deleting a report field on the **Reports** page leaves your invoice fields unchanged.
+
+## Why do I see an error that a field with this name already exists?
+
+Invoice field and report field names must be unique across the whole workspace, so you see an error when the name is already taken by either type of field. The error tells you which type of field is using the name.
+
+If you see:
+
+> A report field with this name already exists
+
+a report field on the **Reports** page already uses that name. If you see:
+
+> An invoice field with this name already exists
+
+another invoice field already uses that name. Enter a different name, or rename the field that's already using it.
+
+## What happens to my invoice fields if the workspace moves to the Collect plan?
+
+Invoice fields are only available on the Control plan, so moving a workspace to the Collect plan turns the **Invoice fields** toggle off. Your invoice fields and the **Add field** button are hidden, and the invoice field pages can't be opened by direct link. Your fields aren't deleted — they're available again when the workspace returns to the Control plan.

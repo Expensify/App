@@ -5,7 +5,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import REPORT_LINK_ROUTE_PARAMS from '@libs/Navigation/reportLinkRouteParams';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
-import {isReportPreviewAction} from '@libs/ReportActionsUtils';
+import {getVisibleReportActionErrors, isReportPreviewAction} from '@libs/ReportActionsUtils';
 import {getReportLastVisibleActionCreated, shouldReportAlignToTop} from '@libs/ReportUtils';
 
 import type {ReportsSplitNavigatorParamList} from '@navigation/types';
@@ -21,6 +21,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
+import {isEmptyValueObject} from '@src/types/utils/EmptyObject';
 import type {ViewableItemsChanged} from '@src/types/utils/ReactNativeCompat';
 
 import type {NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
@@ -59,6 +60,9 @@ type UseReportActionsScrollParams = {
     /** Actions actually rendered by the list (may include a synthetic draft), used for mount scroll positioning */
     renderedVisibleReportActions: OnyxTypes.ReportAction[];
 
+    /** Maps hidden canonical actions to the summary row used by the list. */
+    reportActionIDToDisplayIndex?: ReadonlyMap<string, number>;
+
     /** Extracts the list key for an action; used to locate the initial scroll target */
     keyExtractor: (item: OnyxTypes.ReportAction) => string;
 
@@ -74,7 +78,7 @@ type UseReportActionsScrollParams = {
     /** The report action ID the unread marker is anchored to, if any */
     unreadMarkerReportActionID: string | null;
 
-    /** The index of the unread report action in the sorted visible actions list (-1 if none) */
+    /** The index of the unread report action in the rendered actions list (-1 if none) */
     unreadMarkerReportActionIndex: number;
 
     /** Whether the report has newer actions to load */
@@ -108,7 +112,7 @@ type UseReportActionsScrollResult = {
     /** Whether the action badge target is above the viewport */
     isActionBadgeAboveViewport: boolean;
 
-    /** Scrolls to the newest action and marks the report as read */
+    /** Scrolls to the unread marker when available, otherwise to the newest action, and marks the report as read when appropriate */
     scrollToBottomAndMarkReportAsRead: () => void;
 
     scrollToActionBadgeTarget: () => void;
@@ -146,6 +150,7 @@ function useReportActionsScroll({
     parentReportAction,
     sortedVisibleReportActions,
     renderedVisibleReportActions,
+    reportActionIDToDisplayIndex,
     keyExtractor,
     hasScrolledOverThreshold,
     markNewestActionAsRead,
@@ -167,7 +172,6 @@ function useReportActionsScroll({
     const backTo = route?.params?.backTo;
     const {isOffline} = useNetworkWithOfflineStatus();
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [guidedSetupAndTourStatus] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: guidedSetupAndTourStatusSelector});
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const [reportLoadingState] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${reportID}`);
@@ -237,7 +241,6 @@ function useReportActionsScroll({
         conciergeChat,
         reportID,
         introSelected,
-        betas,
         isSelfTourViewed: guidedSetupAndTourStatus?.isSelfTourViewed,
         hasCompletedGuidedSetupFlow: guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow,
         isOffline,
@@ -349,7 +352,8 @@ function useReportActionsScroll({
         return () => clearTimeout(timer);
     }, [actionIdToHighlight]);
 
-    const lastIOUActionWithError = sortedVisibleReportActions.find((action) => action.errors);
+    // Only errors the user can actually see should pull the list down to them.
+    const lastIOUActionWithError = sortedVisibleReportActions.find((action) => !isEmptyValueObject(getVisibleReportActionErrors(action)));
     const prevLastIOUActionWithError = usePrevious(lastIOUActionWithError);
 
     // Scroll to the bottom when a new errored action appears, so the user sees the failed money request. Re-checked
@@ -369,6 +373,14 @@ function useReportActionsScroll({
     const scrollToBottomAndMarkReportAsRead = () => {
         setIsFloatingMessageCounterVisible(false);
 
+        if (unreadMarkerReportActionIndex >= 0) {
+            reportScrollManager.scrollToIndex(unreadMarkerReportActionIndex);
+            if (hasNewestReportAction) {
+                markNewestActionAsRead();
+            }
+            return;
+        }
+
         if (!hasNewestReportAction) {
             if (!Navigation.getReportRHPActiveRoute()) {
                 Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(reportID, undefined, undefined, backTo));
@@ -377,7 +389,6 @@ function useReportActionsScroll({
                 reportID,
                 introSelected,
                 conciergeChat,
-                betas,
                 hasReportActions: true,
                 currentUserAccountID,
                 isSelfTourViewed: guidedSetupAndTourStatus?.isSelfTourViewed,
@@ -394,7 +405,8 @@ function useReportActionsScroll({
         if (actionBadgeTargetIndex < 0) {
             return;
         }
-        reportScrollManager.scrollToIndex(actionBadgeTargetIndex, {viewPosition: 1, viewOffset: CONST.REPORT.ACTIONS.LINKED_MESSAGE_OFFSET});
+        // `animated` is explicit because native defaults to an instant jump, which would teleport the list and lose the user's place.
+        reportScrollManager.scrollToIndex(actionBadgeTargetIndex, {animated: true, viewPosition: 1, viewOffset: CONST.REPORT.ACTIONS.LINKED_MESSAGE_OFFSET});
     };
 
     const flushPendingScrollToBottom = () => {
@@ -443,7 +455,9 @@ function useReportActionsScroll({
     //    of the viewport (viewPosition: 1) with a small offset so the message above is partly visible.
     // 2. Otherwise, if the report should be opened at top (ex: for transaction threads), scroll to the top message and offset by
     //    the window height so we land at top of the top message for sure.
-    const targetIndex = initialScrollKey ? renderedVisibleReportActions.findIndex((item) => keyExtractor(item) === initialScrollKey) : -1;
+    const targetIndex = initialScrollKey
+        ? (reportActionIDToDisplayIndex?.get(initialScrollKey) ?? renderedVisibleReportActions.findIndex((item) => keyExtractor(item) === initialScrollKey))
+        : -1;
     let initialScrollIndex: number | undefined;
     let initialScrollIndexParams: {viewPosition?: number; viewOffset?: number} | undefined;
     if (targetIndex > 0) {

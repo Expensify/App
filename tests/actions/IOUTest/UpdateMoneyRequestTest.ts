@@ -73,16 +73,6 @@ jest.mock('@react-navigation/native');
 
 jest.mock('@libs/Navigation/helpers/isSearchTopmostFullScreenRoute', () => jest.fn());
 jest.mock('@libs/Navigation/helpers/isReportTopmostSplitNavigator', () => jest.fn());
-jest.mock('@libs/deferredLayoutWrite', () => ({
-    registerDeferredWrite: (_key: string, callback: () => void) => callback(),
-    flushDeferredWrite: jest.fn(),
-    cancelDeferredWrite: jest.fn(),
-    hasDeferredWrite: () => false,
-    getOptimisticWatchKey: () => undefined,
-    deferOrExecuteWrite: (apiWrite: () => void) => apiWrite(),
-    reserveDeferredWriteChannel: jest.fn(),
-    resetForTesting: jest.fn(),
-}));
 jest.mock('@hooks/useCardFeedsForDisplay', () => jest.fn(() => ({defaultCardFeed: null, cardFeedsByPolicy: {}})));
 
 jest.mock('@libs/PolicyUtils', () => ({
@@ -3121,7 +3111,6 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                     getCurrencySymbol: getCurrencySymbolLocal,
                     transactions: {[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]: fakeTransaction},
                     transactionViolations: {},
-                    betas: undefined,
                     isASAPSubmitBetaEnabled: false,
                     introSelected: undefined,
                     currentUserAccountID: RORY_ACCOUNT_ID,

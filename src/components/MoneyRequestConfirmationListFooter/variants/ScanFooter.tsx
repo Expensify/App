@@ -1,3 +1,4 @@
+import ExpenseFormLayoutContext, {dropdownRowsExpenseFormLayout} from '@components/MoneyRequestConfirmationList/sections/ExpenseFormLayoutContext';
 import ConfirmationFieldList from '@components/MoneyRequestConfirmationListFooter/ConfirmationFieldList';
 import ManualDetailsFields from '@components/MoneyRequestConfirmationListFooter/fieldGroups/detailsFields/ManualDetailsFields';
 import ReceiptSection from '@components/MoneyRequestConfirmationListFooter/sections/ReceiptSection';
@@ -29,33 +30,35 @@ function ScanFooter({
     const {showMoreFields, setShowMoreFields} = compactControls;
 
     return (
-        <View style={isCompactMode ? styles.flex1 : undefined}>
-            <ReceiptSection
-                policy={policy}
-                showMoreFields={showMoreFields}
-                {...receiptOptions}
-            />
-
-            <ConfirmationFieldList
-                policy={policy}
-                policyTags={policyTags}
-                selectedParticipants={selectedParticipants}
-                amountDisplay={amountDisplay}
-                requiredFlags={requiredFlags}
-                visibilityFlags={visibilityFlags}
-                errorState={errorState}
-                toggleHandlers={toggleHandlers}
-                compactState={{isCompactMode, setShowMoreFields}}
-            >
-                <ManualDetailsFields
+        <ExpenseFormLayoutContext.Provider value={dropdownRowsExpenseFormLayout}>
+            <View style={isCompactMode ? styles.flex1 : undefined}>
+                <ReceiptSection
                     policy={policy}
+                    showMoreFields={showMoreFields}
+                    {...receiptOptions}
+                />
+
+                <ConfirmationFieldList
+                    policy={policy}
+                    policyTags={policyTags}
+                    selectedParticipants={selectedParticipants}
                     amountDisplay={amountDisplay}
                     requiredFlags={requiredFlags}
+                    visibilityFlags={visibilityFlags}
                     errorState={errorState}
-                    isParticipantPickerVisible={visibilityFlags.isParticipantPickerVisible}
-                />
-            </ConfirmationFieldList>
-        </View>
+                    toggleHandlers={toggleHandlers}
+                    compactState={{isCompactMode, setShowMoreFields}}
+                >
+                    <ManualDetailsFields
+                        policy={policy}
+                        amountDisplay={amountDisplay}
+                        requiredFlags={requiredFlags}
+                        errorState={errorState}
+                        isParticipantPickerVisible={visibilityFlags.isParticipantPickerVisible}
+                    />
+                </ConfirmationFieldList>
+            </View>
+        </ExpenseFormLayoutContext.Provider>
     );
 }
 

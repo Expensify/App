@@ -362,7 +362,6 @@ describe('useMoneyRequestReportScroll', () => {
         it('should pass the onboarding and session context the fetch needs', async () => {
             // Given a user who has not finished the guided setup flow
             await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {hasCompletedGuidedSetupFlow: false});
-            await Onyx.merge(ONYXKEYS.BETAS, [CONST.BETAS.ALL]);
             await waitForBatchedUpdates();
             const {result} = await renderScroll({hasNewestReportAction: false, hasNewerActions: true});
 
@@ -378,7 +377,6 @@ describe('useMoneyRequestReportScroll', () => {
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     hasReportActions: true,
                     hasCompletedGuidedSetupFlow: false,
-                    betas: [CONST.BETAS.ALL],
                 }),
             );
         });
@@ -485,11 +483,13 @@ describe('useMoneyRequestReportScroll', () => {
                 jest.advanceTimersByTime(100);
             });
 
-            // Then the list follows the user's own message, the delay giving the item time to land in the data
+            // Then the list follows the user's own message, the delay giving the item time to land in the data, and the
+            // pill is dismissed because the list is heading to the newest message
             expect(mockScrollToIndex).toHaveBeenCalledWith(LAST_ITEM_INDEX, {animated: false, viewPosition: 1});
+            expect(mockSetIsFloatingMessageCounterVisible).toHaveBeenCalledWith(false);
         });
 
-        it('should not move the list when someone else sends a comment', async () => {
+        it('should not move the list or hide the pill when someone else sends a comment', async () => {
             // Given a list scrolled away from the bottom
             const {result} = await renderScroll();
             applyLayoutAndScroll(result, BOTTOM_OFFSET_AT_TOP);
@@ -500,9 +500,9 @@ describe('useMoneyRequestReportScroll', () => {
                 jest.advanceTimersByTime(100);
             });
 
-            // Then the reader's position is left alone, and only the pill is dismissed
+            // Then the reader's position is left alone and the pill stays, so the reader can still see a new message arrived
             expect(mockScrollToIndex).not.toHaveBeenCalled();
-            expect(mockSetIsFloatingMessageCounterVisible).toHaveBeenCalledWith(false);
+            expect(mockSetIsFloatingMessageCounterVisible).not.toHaveBeenCalled();
         });
 
         it('should not move the list for an own action that is not a comment', async () => {
@@ -516,8 +516,9 @@ describe('useMoneyRequestReportScroll', () => {
                 jest.advanceTimersByTime(100);
             });
 
-            // Then the list does not jump, because expense rows scroll through their own flow
+            // Then the list does not jump and the pill stays, because expense rows scroll through their own flow
             expect(mockScrollToIndex).not.toHaveBeenCalled();
+            expect(mockSetIsFloatingMessageCounterVisible).not.toHaveBeenCalled();
         });
 
         it('should jump when a comment the user sent lands after the event was handled', async () => {

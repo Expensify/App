@@ -1,19 +1,30 @@
+import Accordion from '@components/Accordion';
 import ConnectionLayout from '@components/ConnectionLayout';
+import MenuItem from '@components/MenuItem';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import Text from '@components/Text';
 
+import useAccordionAnimation from '@hooks/useAccordionAnimation';
+import useCardFeeds from '@hooks/useCardFeeds';
+import useCardsLists from '@hooks/useCardsLists';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import {updateCampfireExportToMultipleAccounts, clearCampfireErrorField} from '@libs/actions/connections/Campfire';
+import {findMatchingCards, getCardsUsingCustomExportCount, getCardsCustomExportPendingAction, areCardsCustomExportInErrorFields} from '@libs/CardFeedUtils';
+import {getLatestErrorField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {areSettingsInErrorFields, settingsPendingAction} from '@libs/PolicyUtils';
 
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
+import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
 
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
+import type {CardFeedWithNumber} from '@src/types/onyx/CardFeeds';
 
 import {View} from 'react-native';
 
@@ -21,6 +32,8 @@ function CampfireExportPage({policy}: WithPolicyConnectionsProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const policyID = policy?.id;
+    const [cardFeeds] = useCardFeeds(policyID);
+    const [cardLists] = useCardsLists();
     const policyOwner = policy?.owner;
     const campfireConfig = policy?.connections?.campfire?.config;
     const campfireData = policy?.connections?.campfire?.data;
@@ -31,6 +44,16 @@ function CampfireExportPage({policy}: WithPolicyConnectionsProps) {
     const defaultCompanyCardVendor = campfireData?.vendors?.find((vendor) => vendor.id === campfireConfig?.export?.defaultVendorID);
     const companyCardAccountID = campfireConfig?.export?.creditCardAccountID;
     const companyCardAccount = campfireData?.accounts?.find((account) => account.id === companyCardAccountID);
+    const exportToMultipleAccounts = campfireConfig?.export?.exportToMultipleAccounts ?? false;
+    const cardProgramsUsingCustomAccountsCount = Object.keys(campfireConfig?.export?.cardProgramAccounts ?? {}).filter(
+        (cardFeed) => findMatchingCards(cardFeeds ?? {}, cardLists, cardFeed as CardFeedWithNumber).length > 0,
+    ).length;
+    const cardProgramsOfflineFeedbackKeys = Object.values(cardFeeds ?? {}).map((program) => `${CONST.CAMPFIRE_CONFIG.CARD_PROGRAM_ACCOUNT_PREFIX}${program.feed}`);
+    const cardsUsingCustomAccountsCount = getCardsUsingCustomExportCount(cardFeeds ?? {}, cardLists, CONST.COMPANY_CARDS.EXPORT_CARD_TYPES.NVP_CAMPFIRE_EXPORT_ACCOUNT);
+    const hasActiveCards = findMatchingCards(cardFeeds ?? {}, cardLists).length > 0;
+
+    const {isAccordionExpanded: isExportToMultipleAccountsAccordionExpanded, shouldAnimateAccordionSection: shouldAnimateExportToMultipleAccountsAccordionSection} =
+        useAccordionAnimation(exportToMultipleAccounts);
 
     return (
         <ConnectionLayout
@@ -104,6 +127,48 @@ function CampfireExportPage({policy}: WithPolicyConnectionsProps) {
                     }
                 />
             </OfflineWithFeedback>
+            {hasActiveCards && (
+                <>
+                    <ToggleSettingOptionRow
+                        title={translate('workspace.campfire.exportToMultipleAccounts')}
+                        switchAccessibilityLabel={translate('workspace.campfire.exportToMultipleAccounts')}
+                        shouldPlaceSubtitleBelowSwitch
+                        wrapperStyle={[styles.mv3, styles.mh5]}
+                        isActive={exportToMultipleAccounts}
+                        onToggle={() => policyID && updateCampfireExportToMultipleAccounts(policyID, !exportToMultipleAccounts, exportToMultipleAccounts)}
+                        pendingAction={settingsPendingAction([CONST.CAMPFIRE_CONFIG.EXPORT_TO_MULTIPLE_ACCOUNTS], campfireConfig?.pendingFields)}
+                        errors={getLatestErrorField(campfireConfig ?? {}, CONST.CAMPFIRE_CONFIG.EXPORT_TO_MULTIPLE_ACCOUNTS)}
+                        onCloseError={() => policyID && clearCampfireErrorField(policyID, CONST.CAMPFIRE_CONFIG.EXPORT_TO_MULTIPLE_ACCOUNTS)}
+                    />
+                    <Accordion
+                        isExpanded={isExportToMultipleAccountsAccordionExpanded}
+                        isToggleTriggered={shouldAnimateExportToMultipleAccountsAccordionSection}
+                    >
+                        <OfflineWithFeedback pendingAction={settingsPendingAction(cardProgramsOfflineFeedbackKeys, campfireConfig?.pendingFields)}>
+                            <MenuItemField
+                                name={translate('workspace.campfire.cardProgramAccount.label')}
+                                onPress={() => (policyID ? Navigation.navigate(ROUTES.POLICY_ACCOUNTING_CAMPFIRE_CARD_PROGRAM_ACCOUNT.getRoute(policyID)) : undefined)}
+                                value={translate('workspace.campfire.cardProgramAccount.countInfo', cardProgramsUsingCustomAccountsCount)}
+                            >
+                                {areSettingsInErrorFields(cardProgramsOfflineFeedbackKeys, campfireConfig?.errorFields) && (
+                                    <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />
+                                )}
+                            </MenuItemField>
+                        </OfflineWithFeedback>
+                        <OfflineWithFeedback pendingAction={getCardsCustomExportPendingAction(cardFeeds ?? {}, cardLists, CONST.COMPANY_CARDS.EXPORT_CARD_TYPES.NVP_CAMPFIRE_EXPORT_ACCOUNT)}>
+                            <MenuItemField
+                                name={translate('workspace.campfire.cardAccount.label')}
+                                onPress={() => (policyID ? Navigation.navigate(ROUTES.POLICY_ACCOUNTING_CAMPFIRE_CARD_ACCOUNT.getRoute(policyID)) : undefined)}
+                                value={translate('workspace.campfire.cardAccount.countInfo', cardsUsingCustomAccountsCount.totalCount)}
+                            >
+                                {areCardsCustomExportInErrorFields(cardFeeds ?? {}, cardLists, CONST.COMPANY_CARDS.EXPORT_CARD_TYPES.NVP_CAMPFIRE_EXPORT_ACCOUNT) && (
+                                    <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />
+                                )}
+                            </MenuItemField>
+                        </OfflineWithFeedback>
+                    </Accordion>
+                </>
+            )}
         </ConnectionLayout>
     );
 }

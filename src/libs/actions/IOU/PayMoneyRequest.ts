@@ -73,7 +73,6 @@ type PayInvoiceArgs = {
     paymentMethod?: PaymentMethod;
     activePolicy?: OnyxTypes.Policy;
     conciergeChat: OnyxEntry<OnyxTypes.Report>;
-    betas: OnyxEntry<OnyxTypes.Beta[]>;
     isASAPSubmitBetaEnabled: boolean;
     isSelfTourViewed: boolean | undefined;
     defaultWorkspaceName: string;
@@ -112,7 +111,6 @@ type PayMoneyRequestFunctionParams = {
     activePolicy?: OnyxEntry<OnyxTypes.Policy>;
     policy?: OnyxEntry<OnyxTypes.Policy>;
     chatReportPolicy: OnyxEntry<OnyxTypes.Policy>;
-    betas: OnyxEntry<OnyxTypes.Beta[]>;
     isASAPSubmitBetaEnabled: boolean;
     isSelfTourViewed: boolean | undefined;
     conciergeChat: OnyxEntry<OnyxTypes.Report>;
@@ -147,7 +145,6 @@ function getPayMoneyRequestParams({
     existingB2BInvoiceReport,
     activePolicy,
     conciergeChat,
-    betas,
     isASAPSubmitBetaEnabled,
     isSelfTourViewed,
     defaultWorkspaceName,
@@ -175,7 +172,6 @@ function getPayMoneyRequestParams({
     currentUserAccountIDParam: number;
     currentUserEmailParam: string;
     introSelected?: OnyxEntry<OnyxTypes.IntroSelected>;
-    betas: OnyxEntry<OnyxTypes.Beta[]>;
     isASAPSubmitBetaEnabled: boolean;
     isSelfTourViewed: boolean | undefined;
     defaultWorkspaceName?: string;
@@ -229,10 +225,7 @@ function getPayMoneyRequestParams({
             activePolicy,
             conciergeChat,
             companySize: introSelected?.companySize as OnboardingCompanySize,
-            betas,
             isSelfTourViewed,
-            // hasActiveAdminPolicies is only needed if lastUsedPaymentMethod is passed
-            hasActiveAdminPolicies: undefined,
             delegateAccountID,
             // This workspace is created by the invoice payment command, which does not apply CreatePolicy's
             // paid-workspace check, so the #admins room keeps starting out pinned here.
@@ -411,7 +404,8 @@ function getPayMoneyRequestParams({
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport?.reportID}`,
             value: {
                 [optimisticIOUReportAction.reportActionID]: {
-                    errors: getMicroSecondOnyxErrorWithTranslationKey('iou.error.other', 0),
+                    // Same key as the preview copy below, so dismissing this one clears that one too.
+                    errors: getMicroSecondOnyxErrorWithTranslationKey('iou.error.other', CONST.IOU.PAY_FAILURE_PREVIEW_ERROR_KEY),
                 },
             },
         },
@@ -430,7 +424,8 @@ function getPayMoneyRequestParams({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`,
             value: {
-                [optimisticReportPreviewAction.reportActionID]: optimisticReportPreviewAction,
+                // Clear only our own previous failure so a retry does not keep showing a stale RBR.
+                [optimisticReportPreviewAction.reportActionID]: {...optimisticReportPreviewAction, errors: {[CONST.IOU.PAY_FAILURE_PREVIEW_ERROR_KEY]: null}},
             },
         });
         onyxData.failureData?.push({
@@ -439,6 +434,9 @@ function getPayMoneyRequestParams({
             value: {
                 [optimisticReportPreviewAction.reportActionID]: {
                     created: optimisticReportPreviewAction.created,
+                    // The error above sits in the expense report, which the payer cannot reach once it is deleted.
+                    // Mirror it here. Only shown once the preview is deleted, see getVisibleReportActionErrors.
+                    errors: getMicroSecondOnyxErrorWithTranslationKey('iou.error.other', CONST.IOU.PAY_FAILURE_PREVIEW_ERROR_KEY),
                 },
             },
         });
@@ -827,7 +825,6 @@ function completePaymentOnboarding(
     paymentSelected: ValueOf<typeof CONST.PAYMENT_SELECTED>,
     introSelected: OnyxEntry<OnyxTypes.IntroSelected>,
     isSelfTourViewed: boolean | undefined,
-    betas: OnyxEntry<OnyxTypes.Beta[]>,
     currentUserAccountID: number,
     conciergeChat: OnyxEntry<OnyxTypes.Report>,
     delegateAccountID: number | undefined,
@@ -885,7 +882,6 @@ function payMoneyRequest(params: PayMoneyRequestFunctionParams) {
         activePolicy,
         policy,
         chatReportPolicy,
-        betas,
         isASAPSubmitBetaEnabled,
         isSelfTourViewed,
         conciergeChat,
@@ -913,7 +909,7 @@ function payMoneyRequest(params: PayMoneyRequestFunctionParams) {
     }
 
     const paymentSelected = paymentType === CONST.IOU.PAYMENT_TYPE.VBBA ? CONST.IOU.PAYMENT_SELECTED.BBA : CONST.IOU.PAYMENT_SELECTED.PBA;
-    completePaymentOnboarding(paymentSelected, introSelected, isSelfTourViewed, betas, currentUserAccountID, conciergeChat, delegateAccountID);
+    completePaymentOnboarding(paymentSelected, introSelected, isSelfTourViewed, currentUserAccountID, conciergeChat, delegateAccountID);
 
     const recipient = {accountID: iouReport?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID};
     const {params: payMoneyRequestParams, onyxData} = getPayMoneyRequestParams({
@@ -930,7 +926,6 @@ function payMoneyRequest(params: PayMoneyRequestFunctionParams) {
         // payMoneyRequest never creates a payer workspace (no payAsBusiness branch), so currency and conciergeChat are unused here.
         currentUserLocalCurrency: undefined,
         conciergeChat: undefined,
-        betas,
         isASAPSubmitBetaEnabled,
         isSelfTourViewed,
         bankAccountID: paymentType === CONST.IOU.PAYMENT_TYPE.VBBA ? methodID : undefined,
@@ -962,15 +957,13 @@ function markReportPaymentReceived(
     currentUserEmail: string,
     chatReportActions: OnyxEntry<OnyxTypes.ReportActions>,
     isTrackIntentUser: boolean | undefined,
+    allTransactionViolations: OnyxCollection<OnyxTypes.TransactionViolations>,
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'],
     rules: OnyxCollection<OnyxTypes.Rule>,
 ) {
     if (!chatReport || !iouReport) {
         return;
     }
-    // TODO: https://github.com/Expensify/App/issues/66512
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
-    const allTransactionViolations = getAllTransactionViolations();
     const recipient = {accountID: iouReport.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID};
     const total = getReimbursableTotal(iouReport);
     const optimisticIOUReportAction = buildOptimisticIOUReportAction({
@@ -1138,7 +1131,6 @@ function payInvoice({
     paymentMethod,
     activePolicy,
     conciergeChat,
-    betas,
     isASAPSubmitBetaEnabled,
     isSelfTourViewed,
     defaultWorkspaceName,
@@ -1180,7 +1172,6 @@ function payInvoice({
         currentUserEmailParam,
         currentUserLocalCurrency,
         introSelected,
-        betas,
         isASAPSubmitBetaEnabled,
         isSelfTourViewed,
         defaultWorkspaceName,
@@ -1192,7 +1183,7 @@ function payInvoice({
     });
 
     const paymentSelected = paymentMethodType === CONST.IOU.PAYMENT_TYPE.VBBA ? CONST.IOU.PAYMENT_SELECTED.BBA : CONST.IOU.PAYMENT_SELECTED.PBA;
-    completePaymentOnboarding(paymentSelected, introSelected, isSelfTourViewed, betas, currentUserAccountIDParam, conciergeChat, delegateAccountID);
+    completePaymentOnboarding(paymentSelected, introSelected, isSelfTourViewed, currentUserAccountIDParam, conciergeChat, delegateAccountID);
 
     let params: PayInvoiceParams = {
         reportID: invoiceReport?.reportID,

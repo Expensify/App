@@ -65,7 +65,6 @@ function AddPaymentMethodMenu({
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const [introSelected, introSelectedStatus] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [isSelfTourViewed = false] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
@@ -88,9 +87,9 @@ function AddPaymentMethodMenu({
             return;
         }
 
-        completePaymentOnboarding(CONST.PAYMENT_SELECTED.PBA, introSelected, isSelfTourViewed, betas, currentUserAccountID, conciergeChat, delegateAccountID);
+        completePaymentOnboarding(CONST.PAYMENT_SELECTED.PBA, introSelected, isSelfTourViewed, currentUserAccountID, conciergeChat, delegateAccountID);
         onItemSelected(CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT);
-    }, [betas, currentUserAccountID, introSelected, isLoadingIntroSelected, isPersonalOnlyOption, isVisible, onItemSelected, isSelfTourViewed, conciergeChat, delegateAccountID]);
+    }, [currentUserAccountID, introSelected, isLoadingIntroSelected, isPersonalOnlyOption, isVisible, onItemSelected, isSelfTourViewed, conciergeChat, delegateAccountID]);
 
     if (isPersonalOnlyOption) {
         return null;
@@ -118,7 +117,7 @@ function AddPaymentMethodMenu({
                               text: translate('common.personalBankAccount'),
                               icon: icons.Bank,
                               onSelected: () => {
-                                  completePaymentOnboarding(CONST.PAYMENT_SELECTED.PBA, introSelected, isSelfTourViewed, betas, currentUserAccountID, conciergeChat, delegateAccountID);
+                                  completePaymentOnboarding(CONST.PAYMENT_SELECTED.PBA, introSelected, isSelfTourViewed, currentUserAccountID, conciergeChat, delegateAccountID);
                                   onItemSelected(CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT);
                               },
                           },

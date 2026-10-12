@@ -3,6 +3,7 @@ import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useDuplicateTransactionsAndViolations from '@hooks/useDuplicateTransactionsAndViolations';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
+import {useAllPersonalDetails} from '@hooks/usePersonalDetails';
 import usePersonalPolicy from '@hooks/usePersonalPolicy';
 import useSelfDMReport from '@hooks/useSelfDMReport';
 
@@ -41,7 +42,6 @@ type AmountSubmitData = Pick<
     | 'duplicateTransactions'
     | 'duplicateTransactionViolations'
     | 'reportAttributesDerivedValue'
-    | 'betas'
     | 'isASAPSubmitBetaEnabled'
     | 'quickAction'
     | 'onboarding'
@@ -81,7 +81,7 @@ function AmountSubmitDataSync({report, transaction, transactionID, policyID, isE
     const selfDMReport = useSelfDMReport();
     const defaultExpensePolicy = useDefaultExpensePolicy();
     const personalPolicy = usePersonalPolicy();
-    const [allPersonalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
+    const [allPersonalDetails] = useAllPersonalDetails();
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const [allReportDrafts] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT);
     const [allReportNVPs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
@@ -94,7 +94,6 @@ function AmountSubmitDataSync({report, transaction, transactionID, policyID, isE
     const reportIDToCheck = isMoneyRequestReport(report) ? report?.chatReportID : report?.reportID;
     const [isDraftChatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${reportIDToCheck}`, {selector: isDraftReportSelector});
     const [reportAttributesDerivedValue] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES);
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
     const {isBetaEnabled} = usePermissions();
     const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE);
     const [onboarding] = useOnyx(ONYXKEYS.NVP_ONBOARDING);
@@ -132,7 +131,6 @@ function AmountSubmitDataSync({report, transaction, transactionID, policyID, isE
             duplicateTransactions,
             duplicateTransactionViolations,
             reportAttributesDerivedValue,
-            betas,
             isASAPSubmitBetaEnabled: isBetaEnabled(CONST.BETAS.ASAP_SUBMIT),
             quickAction,
             onboarding,
@@ -164,7 +162,6 @@ function AmountSubmitDataSync({report, transaction, transactionID, policyID, isE
         duplicateTransactions,
         duplicateTransactionViolations,
         reportAttributesDerivedValue,
-        betas,
         isBetaEnabled,
         quickAction,
         onboarding,

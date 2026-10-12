@@ -67,7 +67,7 @@ type TableColumnDynamicSizing<DataType extends TableData = TableData> = {
     /** Whether this column's values come from a fixed set (a role, a status), so it always fits them in full and never truncates. */
     shouldFitContent?: boolean;
 
-    /** Smallest width this column may be squeezed to. Defaults to a readable width, or the column's content width when that is narrower. */
+    /** Smallest width this column may be squeezed to, capped at its content width. Defaults to a readable width. */
     minWidth?: number;
 
     /**
@@ -222,6 +222,12 @@ type TableProps<DataType extends TableData, ColumnKey extends string = string, F
          * native can't measure text synchronously, so both keep the equal-width layout.
          */
         shouldUseDynamicColumns?: boolean;
+
+        /**
+         * Enables column resizing and keys the stored widths. Requires `shouldUseDynamicColumns`, the `resizableTableColumns` beta, and works on web in the wide layout only.
+         * Name it after the column set, not the screen, so tables with the same columns share widths.
+         */
+        columnResizingID?: string;
 
         /** Optional filter configuration for dropdown filters. */
         filters?: FilterConfig<FilterKey>;

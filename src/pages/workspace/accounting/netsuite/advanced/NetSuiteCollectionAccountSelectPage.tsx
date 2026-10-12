@@ -10,7 +10,8 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {updateNetSuiteCollectionAccount} from '@libs/actions/connections/NetSuiteCommands';
 import {getLatestErrorField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import {getNetSuiteCollectionAccountOptions, settingsPendingAction} from '@libs/PolicyUtils';
+import {getNetSuiteCollectionAccountOptions} from '@libs/NetSuiteUtils';
+import {settingsPendingAction} from '@libs/PolicyUtils';
 
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';

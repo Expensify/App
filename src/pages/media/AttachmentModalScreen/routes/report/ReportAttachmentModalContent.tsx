@@ -50,7 +50,6 @@ function ReportAttachmentModalContent({route, navigation}: AttachmentModalScreen
     const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`);
     const hasReportActions = !!reportActions;
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
     const [guidedSetupAndTourStatus] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: guidedSetupAndTourStatusSelector});
@@ -87,7 +86,6 @@ function ReportAttachmentModalContent({route, navigation}: AttachmentModalScreen
             introSelected,
             conciergeChat,
             reportActionID,
-            betas,
             hasReportActions,
             currentUserAccountID,
             isSelfTourViewed: guidedSetupAndTourStatus?.isSelfTourViewed,
@@ -99,7 +97,6 @@ function ReportAttachmentModalContent({route, navigation}: AttachmentModalScreen
         introSelected,
         conciergeChat,
         reportActionID,
-        betas,
         hasReportActions,
         currentUserAccountID,
         guidedSetupAndTourStatus?.isSelfTourViewed,
