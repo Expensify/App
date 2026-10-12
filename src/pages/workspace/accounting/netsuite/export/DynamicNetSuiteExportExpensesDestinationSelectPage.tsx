@@ -40,7 +40,8 @@ function DynamicNetSuiteExportExpensesDestinationSelectPage({policy}: WithPolicy
     const styles = useThemeStyles();
     const {showConfirmModal} = useConfirmModal();
     const policyID = policy?.id;
-    const config = policy?.connections?.netsuite?.options.config;
+    const netSuiteConnection = policy?.connections?.netsuite;
+    const config = netSuiteConnection?.options.config;
 
     const route = useRoute<PlatformStackRouteProp<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_NETSUITE_EXPORT_EXPENSES_DESTINATION_SELECT>>();
     const params = route.params;
@@ -52,7 +53,7 @@ function DynamicNetSuiteExportExpensesDestinationSelectPage({policy}: WithPolicy
 
     const exportDestinations = isReimbursable
         ? Object.values(CONST.NETSUITE_EXPORT_DESTINATION).filter((destination) => destination !== CONST.NETSUITE_EXPORT_DESTINATION.CREDIT_CARD_CHARGE)
-        : getNonReimbursableNetSuiteExportDestinations(config);
+        : getNonReimbursableNetSuiteExportDestinations(config, netSuiteConnection);
 
     const data: MenuListItem[] = exportDestinations.map((dateType) => ({
         value: dateType,

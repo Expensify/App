@@ -11,6 +11,9 @@ type MenuItemHelpTextSharedProps = {
 type MenuItemHelpTextProps = MenuItemHelpTextSharedProps & {
     /** Error or hint text to render under the row. Nothing renders when it is empty */
     message?: string | ReactNode;
+
+    /** Renders message as HTML (for markdown copy with links) using the same layout as plain help text */
+    shouldRenderMessageAsHTML?: boolean;
 };
 
 /** Props of the HTML help line */
@@ -29,6 +32,8 @@ type BaseMenuItemHelpTextProps = MenuItemHelpTextSharedProps & {
 
     /** Spacing of the line, which depends on where the leaf sits */
     style?: StyleProp<ViewStyle>;
+
+    shouldRenderMessageAsHTML?: boolean;
 };
 
 export type {BaseMenuItemHelpTextProps, MenuItemHelpTextHTMLProps, MenuItemHelpTextProps};

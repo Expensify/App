@@ -1247,8 +1247,11 @@ type NetSuiteConnection = {
 
     lastSync?: ConnectionLastSync;
 
-    /** Config object used solely to store autosync settings */
+    /** Connection-level config (OAuth credentials and autosync) */
     config: OnyxCommon.OnyxValueWithOfflineFeedback<{
+        /** OAuth2 REST connections set authType to oauth2. SOAP connections omit this field. */
+        authType?: string;
+
         /** NetSuite auto synchronization configs */
         autoSync: {
             /** Whether data should be automatically synched between the app and NetSuite */
