@@ -1,3 +1,5 @@
+import CollapsibleHeaderOnKeyboardGroup from '@components/CollapsibleHeaderOnKeyboard/Group';
+import CollapsibleHeaderOnKeyboardGroupMember from '@components/CollapsibleHeaderOnKeyboard/GroupMember';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -109,22 +111,26 @@ function CollectDepositAccount() {
             shouldEnableMaxHeight
             testID="CollectDepositAccount"
         >
-            <HeaderWithBackButtonAndTitle
-                title={translate('bankAccount.addBankAccount')}
-                onBackButtonPress={handleBackButtonPress}
-            />
-            {isRedirecting || shouldReturnToCountryStep || (isLoadingCountries && pageIndex !== STEP_INDEXES.COUNTRY_SELECTOR) ? (
-                <FullScreenLoadingIndicator />
-            ) : (
-                <CurrentPage
-                    isEditing={isEditing}
-                    onNext={handleNextPage}
-                    onMove={moveTo}
-                    formValues={formValues}
-                    fieldsMap={fieldsMap}
-                    fieldsType={fieldsType}
-                />
-            )}
+            <CollapsibleHeaderOnKeyboardGroup>
+                <CollapsibleHeaderOnKeyboardGroupMember>
+                    <HeaderWithBackButtonAndTitle
+                        title={translate('bankAccount.addBankAccount')}
+                        onBackButtonPress={handleBackButtonPress}
+                    />
+                </CollapsibleHeaderOnKeyboardGroupMember>
+                {isRedirecting || shouldReturnToCountryStep || (isLoadingCountries && pageIndex !== STEP_INDEXES.COUNTRY_SELECTOR) ? (
+                    <FullScreenLoadingIndicator />
+                ) : (
+                    <CurrentPage
+                        isEditing={isEditing}
+                        onNext={handleNextPage}
+                        onMove={moveTo}
+                        formValues={formValues}
+                        fieldsMap={fieldsMap}
+                        fieldsType={fieldsType}
+                    />
+                )}
+            </CollapsibleHeaderOnKeyboardGroup>
         </ScreenWrapper>
     );
 }
