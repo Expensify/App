@@ -58,6 +58,7 @@ import DisplayNames from './DisplayNames';
 import Icon from './Icon';
 import ParentNavigationSubtitle from './ParentNavigationSubtitle';
 import PressableWithoutFeedback from './Pressable/PressableWithoutFeedback';
+import ReportHeaderTitleSkeleton from './ReportHeaderTitleSkeleton';
 import Text from './Text';
 
 type AvatarWithDisplayNameProps = {
@@ -200,7 +201,8 @@ function AvatarWithDisplayName({
     const derivedReportNames = useDerivedReportNamesByReportIDs([report?.reportID, report?.parentReportID]);
     const derivedParentReportName = getReportNameFromNames(derivedReportNames, report?.parentReportID);
     const isReportArchived = useReportIsArchived(report?.reportID);
-    const title = getReportName(report, getReportNameFromNames(derivedReportNames, report?.reportID));
+    const derivedReportName = getReportNameFromNames(derivedReportNames, report?.reportID);
+    const title = getReportName(report, derivedReportName);
     const isParentReportArchived = useReportIsArchived(report?.parentReportID);
     const subtitle = getChatRoomSubtitle(report, policy, conciergeReportID, translate, rules, true, isReportArchived);
     const parentNavigationSubtitleData = getParentNavigationSubtitle(report, policy, conciergeReportID, translate, derivedParentReportName, isParentReportArchived);
@@ -226,6 +228,16 @@ function AvatarWithDisplayName({
         }
         actorAccountID.current = parentReportActionActorAccountID ?? CONST.DEFAULT_NUMBER_ID;
     }, [parentReportActionActorAccountID, report?.parentReportActionID]);
+
+    // The default name placeholder is hidden until the derived name is computed, so show a skeleton for that short gap only.
+    // A report whose derived name is legitimately empty keeps the empty title instead of a skeleton that would never go away.
+    if (derivedReportName === undefined && report?.reportName === CONST.REPORT.DEFAULT_REPORT_NAME) {
+        return (
+            <View style={[styles.appContentHeaderTitle, styles.flex1]}>
+                <ReportHeaderTitleSkeleton />
+            </View>
+        );
+    }
 
     const goToDetailsPage = () => {
         navigateToDetailsPage(report, isInSidePanel);
