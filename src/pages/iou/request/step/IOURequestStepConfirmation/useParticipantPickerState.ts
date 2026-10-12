@@ -21,6 +21,7 @@ import type {Policy, Report} from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
 import type Transaction from '@src/types/onyx/Transaction';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
+import getEmptyArray from '@src/types/utils/getEmptyArray';
 
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
@@ -68,8 +69,10 @@ function useParticipantPickerState({
         : undefined;
     const {participants: resolvedDefaultParticipants, isLoading: isLoadingDefaultParticipants} = useDefaultParticipants({sourceReport, transaction, iouType});
     const hasSelectedParticipants = (transaction?.participants ?? []).some((participant) => participant?.selected);
-    // Don't override the participants the user has already selected, and bail when there is no source report.
-    const defaultParticipants = hasSelectedParticipants || !sourceReportID ? [] : resolvedDefaultParticipants;
+
+    // Don't override the participants the user has already selected, and bail when there is no source report. The shared
+    // empty array keeps the reference stable, so the auto-assign effect below doesn't re-run on every render.
+    const defaultParticipants = hasSelectedParticipants || !sourceReportID ? getEmptyArray<Participant>() : resolvedDefaultParticipants;
 
     const transactionParticipants = transaction?.participants ?? [];
     const shouldAutoOpenParticipantPicker =
