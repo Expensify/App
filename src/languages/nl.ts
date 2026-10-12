@@ -2290,6 +2290,7 @@ const translations: TranslationDeepObject<typeof en> = {
     displayNamePage: {
         headerTitle: 'Weergavenaam',
         isShownOnProfile: 'Je weergavenaam wordt weergegeven op je profiel.',
+        isShownOnMemberProfile: 'De schermnaam verschijnt op het profiel van het lid. Zodra die is opgeslagen, kan alleen het lid deze nog wijzigen.',
     },
     timezonePage: {
         timezone: 'Tijdzone',
@@ -8287,6 +8288,8 @@ Vereis onkostendetails zoals bonnen en beschrijvingen, stel limieten en standaar
                 applyUpdates: 'Pas deze updates toe:',
                 saveRule: 'Regel opslaan',
                 previewMatches: 'Voorbeelden van overeenkomsten bekijken',
+                previewMatchesDescription: 'Bekijk hoe deze regel op je uitgaven wordt toegepast',
+                preview: 'Voorbeeld',
                 confirmError: 'Voer handelaar in en pas minstens één wijziging toe',
                 confirmErrorMerchant: 'Voer handelaar in',
                 confirmErrorUpdate: 'Pas ten minste één wijziging toe',
@@ -8621,6 +8624,14 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
                 requireFieldsDescription: 'Specifieke onkostenvakken verplicht stellen of afzien van het verplicht stellen ervan.',
                 createAgentRule: 'Agentregel beschrijven',
                 createAgentRuleDescription: 'Maak flexibele regels die worden uitgevoerd wanneer jij dat nodig hebt.',
+                describe: 'Beschrijven',
+                describeRule: 'Beschrijf je regel in gewone taal en Concierge maakt de regel voor je',
+                describeRuleInputLabel: 'Beschrijf de regel',
+                promptErrors: {
+                    unsupported: 'Die regel wordt nog niet ondersteund — we werken eraan. Probeer voorlopig een andere regel.',
+                    unintelligible: 'Formuleer je regel bijvoorbeeld zo: als uitgaven hoger zijn dan $100, vraag dan een bon.',
+                    multipleRules: 'Eén regel per keer graag — beschrijf één enkele regel, bijvoorbeeld: retailaankopen op alle kaarten blokkeren.',
+                },
             },
             expenseDefaultsTable: {
                 tableColumnType: 'Type',
@@ -9718,6 +9729,8 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
             return `heeft de deelnemers van categorie "${categoryName}" gewijzigd naar ${newValue ? 'verplicht' : 'niet verplicht'} (voorheen ${newValue ? 'niet verplicht' : 'verplicht'})`;
         },
         updatedAutoHarvesting: (enabled: boolean) => `${enabled ? 'ingeschakeld' : 'uitgeschakeld'} inzendingen`,
+        updatedMemberDisplayName: (newName: string, oldName: string, editProfileURL: string) =>
+            `je schermnaam bijgewerkt naar ${newName} (voorheen "${oldName}"). <a href="${editProfileURL}">Bewerk dit in je profiel</a>`,
         changedOverLimitForwardsTo: ({
             member,
             approver,

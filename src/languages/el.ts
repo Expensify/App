@@ -2348,6 +2348,7 @@ const translations: TranslationDeepObject<typeof en> = {
     displayNamePage: {
         headerTitle: 'Εμφανιζόμενο όνομα',
         isShownOnProfile: 'Το εμφανιζόμενο όνομά σας εμφανίζεται στο προφίλ σας.',
+        isShownOnMemberProfile: 'Το εμφανιζόμενο όνομα θα εμφανίζεται στο προφίλ του μέλους. Μόλις αποθηκευτεί, μόνο το μέλος μπορεί να το επεξεργαστεί.',
     },
     timezonePage: {
         timezone: 'Ζώνη ώρας',
@@ -8719,6 +8720,8 @@ ${reportName}`,
                 applyUpdates: 'Εφαρμόστε αυτές τις ενημερώσεις:',
                 saveRule: 'Αποθήκευση κανόνα',
                 previewMatches: 'Προεπισκόπηση αντιστοιχιών',
+                previewMatchesDescription: 'Δείτε πώς εφαρμόζεται αυτός ο κανόνας στις δαπάνες σας',
+                preview: 'Προεπισκόπηση',
                 confirmError: 'Εισαγάγετε τον έμπορο και εφαρμόστε τουλάχιστον μία ενημέρωση',
                 confirmErrorMerchant: 'Παρακαλούμε εισαγάγετε τον έμπορο',
                 confirmErrorUpdate: 'Παρακαλούμε εφαρμόστε τουλάχιστον μία ενημέρωση',
@@ -8785,6 +8788,14 @@ ${reportName}`,
                 applyExpenseDefaultsDescription: 'Ενημέρωση πεδίων χωρίς να χρειάζεται ο υποβάλλων να κάνει τίποτα',
                 createAgentRule: 'Περιγράψτε τον κανόνα πράκτορα',
                 createAgentRuleDescription: 'Δημιουργήστε ευέλικτους κανόνες που εκτελούνται όταν τους χρειάζεστε.',
+                describe: 'Περιγραφή',
+                describeRule: 'Περιγράψτε τον κανόνα σας με απλά λόγια και ο Concierge θα τον δημιουργήσει για εσάς',
+                describeRuleInputLabel: 'Περιγράψτε τον κανόνα',
+                promptErrors: {
+                    unsupported: 'Αυτός ο κανόνας δεν υποστηρίζεται ακόμη — το δουλεύουμε. Δοκιμάστε προς το παρόν έναν διαφορετικό κανόνα.',
+                    unintelligible: 'Δοκιμάστε να διατυπώσετε τον κανόνα σας έτσι: αν οι δαπάνες ξεπερνούν τα 100 $, να απαιτείται απόδειξη.',
+                    multipleRules: 'Έναν κανόνα τη φορά — δοκιμάστε να περιγράψετε έναν μόνο κανόνα, π.χ.: αποκλεισμός αγορών λιανικής σε όλες τις κάρτες.',
+                },
             },
             expenseDefaultsTable: {
                 tableColumnType: 'Τύπος',
@@ -9978,6 +9989,8 @@ ${reportName}`,
         updateAreAttendeesRequired: (categoryName: string, newValue: boolean) => {
             return `άλλαξε τους συμμετέχοντες της κατηγορίας «${categoryName}» σε ${newValue ? 'υποχρεωτικό' : 'μη υποχρεωτικό'} (προηγουμένως ${newValue ? 'μη υποχρεωτικό' : 'υποχρεωτικό'})`;
         },
+        updatedMemberDisplayName: (newName: string, oldName: string, editProfileURL: string) =>
+            `ενημέρωσε το εμφανιζόμενο όνομά σας σε ${newName} (προηγουμένως «${oldName}»). <a href="${editProfileURL}">Επεξεργαστείτε το στο προφίλ σας</a>`,
         changedOverLimitForwardsTo: ({
             member,
             approver,
