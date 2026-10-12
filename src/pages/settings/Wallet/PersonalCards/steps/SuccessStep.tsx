@@ -1,6 +1,6 @@
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import ConfirmationPage from '@components/ConfirmationPage';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 
@@ -27,7 +27,7 @@ function SuccessStep() {
             testID="SuccessStep"
         >
             <FullPageNotFoundView>
-                <HeaderWithBackButton
+                <HeaderWithBackButtonAndTitle
                     title={translate('personalCard.addPersonalCard')}
                     onBackButtonPress={exitFlow}
                 />

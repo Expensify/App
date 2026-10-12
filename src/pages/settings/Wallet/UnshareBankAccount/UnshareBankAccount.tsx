@@ -1,6 +1,6 @@
 import Button from '@components/Button';
 import ErrorMessageRow from '@components/ErrorMessageRow';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -193,7 +193,7 @@ function UnshareBankAccount({route}: ShareBankAccountProps) {
 
     return (
         <ScreenWrapper testID={UnshareBankAccount.displayName}>
-            <HeaderWithBackButton
+            <HeaderWithBackButtonAndTitle
                 title={translate('walletPage.unshareBankAccount')}
                 onBackButtonPress={onButtonPress}
             />

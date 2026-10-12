@@ -2,7 +2,7 @@ import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView
 import ConfirmationPage from '@components/ConfirmationPage';
 import CurrentWalletBalance from '@components/CurrentWalletBalance';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import MenuItem from '@components/MenuItem';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
@@ -121,7 +121,7 @@ function TransferBalancePage() {
     if (walletTransfer?.shouldShowSuccess && !walletTransfer?.loading) {
         return (
             <ScreenWrapper testID="TransferBalancePage">
-                <HeaderWithBackButton
+                <HeaderWithBackButtonAndTitle
                     title={translate('common.transferBalance')}
                     onBackButtonPress={dismissSuccessfulTransferBalancePage}
                 />
@@ -165,10 +165,7 @@ function TransferBalancePage() {
                 linkTranslationKey="transferAmountPage.goToWallet"
                 onLinkPress={() => Navigation.goBack(ROUTES.SETTINGS_WALLET)}
             >
-                <HeaderWithBackButton
-                    title={translate('common.transferBalance')}
-                    shouldShowBackButton
-                />
+                <HeaderWithBackButtonAndTitle title={translate('common.transferBalance')} />
                 <View style={[styles.flexGrow1, styles.flexShrink1, styles.flexBasisAuto, styles.justifyContentCenter]}>
                     <CurrentWalletBalance balanceStyles={[styles.transferBalanceBalance]} />
                 </View>

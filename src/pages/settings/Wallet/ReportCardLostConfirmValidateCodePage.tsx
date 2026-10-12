@@ -1,4 +1,4 @@
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ValidateCodeActionContent from '@components/ValidateCodeActionModal/ValidateCodeActionContent';
 
@@ -69,7 +69,7 @@ function ReportCardLostConfirmValidateCodePage({
                 includeSafeAreaPaddingBottom
                 testID="ReportCardLostConfirmValidateCodePage"
             >
-                <HeaderWithBackButton
+                <HeaderWithBackButtonAndTitle
                     title={translate('common.success')}
                     onBackButtonPress={() =>
                         Navigation.goBack(isFromDomainCardDetail ? ROUTES.SETTINGS_DOMAIN_CARD_DETAIL.getRoute(newCardID) : ROUTES.SETTINGS_WALLET_DOMAIN_CARD.getRoute(newCardID), {

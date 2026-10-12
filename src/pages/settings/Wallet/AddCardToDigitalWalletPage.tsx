@@ -2,7 +2,7 @@ import Button from '@components/Button';
 import ButtonDisabledWhenOffline from '@components/Button/composed/ButtonDisabledWhenOffline';
 import ConfirmationPage from '@components/ConfirmationPage';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import ImageSVG from '@components/ImageSVG';
 import LoadingIndicator from '@components/LoadingIndicator';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -167,7 +167,7 @@ function AddCardToDigitalWalletPage({
                 testID="AddCardToDigitalWalletPage"
                 shouldShowOfflineIndicatorInWideScreen
             >
-                <HeaderWithBackButton
+                <HeaderWithBackButtonAndTitle
                     title={translate('addCardToDigitalWallet.title', {walletName})}
                     onBackButtonPress={goBackToEntryPoint}
                 />
@@ -191,7 +191,7 @@ function AddCardToDigitalWalletPage({
             testID="AddCardToDigitalWalletPage"
             shouldShowOfflineIndicatorInWideScreen
         >
-            <HeaderWithBackButton
+            <HeaderWithBackButtonAndTitle
                 title={translate('addCardToDigitalWallet.title', {walletName})}
                 onBackButtonPress={goBackToEntryPoint}
             />
