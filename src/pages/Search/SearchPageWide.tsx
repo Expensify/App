@@ -1,4 +1,5 @@
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
+import {dismissPinnedChartTooltip} from '@components/Charts/utils/pinnedChartTooltip';
 import {useSearchSidebarContentOffsetStyle} from '@components/Navigation/SearchSidebarCollapseStore';
 import ReceiptScanDropZone from '@components/ReceiptScanDropZone';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -117,6 +118,7 @@ function SearchPageWide({
         <Animated.View
             ref={receiptDropTargetRef}
             style={[styles.searchSplitContainer, splitContainerAnimatedStyle]}
+            onTouchStart={dismissPinnedChartTooltip}
         >
             <ReceiptScanDropZone
                 dropZoneRef={receiptDropTargetRef}

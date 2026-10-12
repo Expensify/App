@@ -1,6 +1,5 @@
 import FullPageErrorView from '@components/BlockingViews/FullPageErrorView';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
-import {dismissPinnedChartTooltip} from '@components/Charts/utils/pinnedChartTooltip';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import SearchRowSkeleton from '@components/Skeletons/SearchRowSkeleton';
 import {useWideRHPActions} from '@components/WideRHPContextProvider';
@@ -1428,7 +1427,6 @@ function Search({
                     contentContainerStyle={styles.flexGrow1}
                     onScroll={onSearchListScroll}
                     onLayout={onLayoutChart}
-                    onTouchStart={dismissPinnedChartTooltip}
                     scrollEventThrottle={CONST.TIMING.MIN_SMOOTH_SCROLL_EVENT_THROTTLE}
                 >
                     <View style={[listContainerStyle, styles.mh4, styles.mb4, styles.flex1]}>

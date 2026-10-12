@@ -102,6 +102,9 @@ type UseChartInteractionsProps = {
 
     /** Scale applied to the rendered chart container */
     coordinateScale?: number;
+
+    /** Whether a touch tap pins the tooltip instead of calling handlePress */
+    shouldPinTooltipOnTouch?: boolean;
 };
 
 function normalizeChartCoordinate(coordinate: number, coordinateScale: number): number {
@@ -174,6 +177,7 @@ function useChartInteractions({
     chartBottom,
     yZero,
     coordinateScale = 1,
+    shouldPinTooltipOnTouch = true,
 }: UseChartInteractionsProps) {
     /** Interaction state compatible with Victory Native's internal logic */
     const {state: chartInteractionState} = useChartInteractionState();
@@ -440,7 +444,7 @@ function useChartInteractions({
                 const cursorY = normalizeChartCoordinate(e.y, coordinateScale);
                 chartInteractionState.cursor.x.set(cursorX);
                 chartInteractionState.cursor.y.set(cursorY);
-                if (e.pointerType === PointerType.TOUCH) {
+                if (e.pointerType === PointerType.TOUCH && shouldPinTooltipOnTouch) {
                     handleTouchTap(cursorX, cursorY);
                     return;
                 }

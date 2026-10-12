@@ -256,6 +256,7 @@ function SearchPageNarrow({
         <View
             ref={receiptDropTargetRef}
             style={styles.flex1}
+            onTouchStart={dismissPinnedChartTooltip}
         >
             <ReceiptScanDropZone
                 dropZoneRef={receiptDropTargetRef}
@@ -272,10 +273,7 @@ function SearchPageNarrow({
                 >
                     <View style={[styles.flex1, styles.overflowHidden]}>
                         {!isMobileSelectionModeEnabled ? (
-                            <View
-                                style={[StyleUtils.getSearchPageNarrowHeaderStyles(), styles.mh100]}
-                                onTouchStart={dismissPinnedChartTooltip}
-                            >
+                            <View style={[StyleUtils.getSearchPageNarrowHeaderStyles(), styles.mh100]}>
                                 <View style={[styles.zIndex10, styles.appBG]}>
                                     <SearchPageHeaderNarrow
                                         queryJSON={queryJSON}
