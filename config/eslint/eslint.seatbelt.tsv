@@ -1858,7 +1858,6 @@
 "../../tests/unit/SearchAutocompleteListTest.tsx"	"@typescript-eslint/no-restricted-imports"	1
 "../../tests/unit/SidebarUtilsTest.ts"	"no-restricted-imports"	1
 "../../tests/unit/TransactionTest.ts"	"@typescript-eslint/no-restricted-imports"	1
-"../../tests/unit/useMarkAsReadTest.ts"	"no-restricted-imports"	1
 "../../tests/unit/WorkspacesSettingsUtilsTest.ts"	"@typescript-eslint/no-restricted-imports"	1
 "../../tests/utils/createMock.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../rsbuild/CustomVersionFilePlugin.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
