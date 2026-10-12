@@ -2416,13 +2416,16 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
                 originalMessage: {type: CONST.IOU.REPORT_ACTION_TYPE.CREATE, IOUTransactionID: '70003', amount: 100, currency: 'USD', IOUReportID: IOU_REPORT_ID},
             };
 
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${CHAT_REPORT_ID}`, {...createRandomReport(70001, undefined), reportID: CHAT_REPORT_ID, type: CONST.REPORT.TYPE.CHAT});
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${IOU_REPORT_ID}`, {
+            const chatReport: Report = {...createRandomReport(70001, undefined), reportID: CHAT_REPORT_ID, type: CONST.REPORT.TYPE.CHAT};
+            const iouReport: Report = {
                 ...createRandomReport(70002, undefined),
                 reportID: IOU_REPORT_ID,
                 type: CONST.REPORT.TYPE.EXPENSE,
                 chatReportID: CHAT_REPORT_ID,
-            });
+            };
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${CHAT_REPORT_ID}`, chatReport);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${IOU_REPORT_ID}`, iouReport);
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${CHAT_REPORT_ID}`, {[previewAction.reportActionID]: previewAction});
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${IOU_REPORT_ID}`, {
                 [olderIOUAction.reportActionID]: olderIOUAction,
@@ -2435,6 +2438,8 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
                 const result = getCleanUpTransactionThreadReportOnyxData({
                     shouldDeleteTransactionThread: false,
                     reportAction: deletedIOUAction,
+                    iouReport,
+                    chatReport,
                     currentUserAccountID,
                 });
                 const entry = result.optimisticData.find((update) => update.key === `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${CHAT_REPORT_ID}`);
