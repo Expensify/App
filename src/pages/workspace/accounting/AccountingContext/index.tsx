@@ -100,6 +100,7 @@ function AccountingContextProvider({children, policy}: AccountingContextProvider
         'RilletSquare',
         'DualEntrySquare',
         'CampfireSquare',
+        'ZohoBooksSquare',
         'BusinessCentralSquare',
     ]);
     const hasReusablePoliciesConnectedToSageIntacct = useHasReusablePoliciesConnectedTo(CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT, policyID);

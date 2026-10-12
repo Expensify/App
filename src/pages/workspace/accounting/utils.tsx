@@ -8,6 +8,7 @@ import ConnectToQuickbooksOnlineFlow from '@components/ConnectToQuickbooksOnline
 import ConnectToRilletFlow from '@components/ConnectToRilletFlow';
 import ConnectToSageIntacctFlow from '@components/ConnectToSageIntacctFlow';
 import ConnectToXeroFlow from '@components/ConnectToXeroFlow';
+import ConnectToZohoBooksFlow from '@components/ConnectToZohoBooksFlow';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
@@ -85,6 +86,7 @@ function getAccountingIntegrationData(
         | 'RilletSquare'
         | 'DualEntrySquare'
         | 'CampfireSquare'
+        | 'ZohoBooksSquare'
         | 'BusinessCentralSquare',
         IconAsset
     >,
@@ -659,6 +661,26 @@ function getAccountingIntegrationData(
                 errorFields: policy?.connections?.campfire?.config?.errorFields,
             };
         }
+        case CONST.POLICY.CONNECTIONS.NAME.ZOHO_BOOKS:
+            return {
+                title: translate('workspace.accounting.zohoBooks'),
+                icon: expensifyIcons?.ZohoBooksSquare,
+                setupConnectionFlow: (
+                    <ConnectToZohoBooksFlow
+                        policyID={policyID}
+                        key={key}
+                    />
+                ),
+                // Import, export, and advanced screens are added in later releases.
+                onImportPagePress: () => null,
+                subscribedImportSettings: [],
+                onExportPagePress: () => null,
+                subscribedExportSettings: [],
+                onAdvancedPagePress: () => null,
+                subscribedAdvancedSettings: [],
+                pendingFields: policy?.connections?.zohoBooks?.config?.pendingFields,
+                errorFields: policy?.connections?.zohoBooks?.config?.errorFields,
+            };
         case CONST.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL: {
             return {
                 title: translate('workspace.accounting.businessCentral'),

@@ -59,6 +59,7 @@ function DynamicReportDetailsExportPage({route}: DynamicReportDetailsExportPageP
         'RilletSquare',
         'DualEntrySquare',
         'CampfireSquare',
+        'ZohoBooksSquare',
         'BusinessCentralSquare',
         'GustoSquare',
     ]);

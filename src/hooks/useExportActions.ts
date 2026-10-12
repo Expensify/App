@@ -106,6 +106,7 @@ function useExportActions({reportID, policy, onPDFModalOpen}: UseExportActionsPa
         'RilletSquare',
         'DualEntrySquare',
         'CampfireSquare',
+        'ZohoBooksSquare',
         'BusinessCentralSquare',
         'GustoSquare',
         'ArrowRight',

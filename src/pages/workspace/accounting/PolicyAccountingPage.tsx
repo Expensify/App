@@ -135,6 +135,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
         'RilletSquare',
         'DualEntrySquare',
         'CampfireSquare',
+        'ZohoBooksSquare',
         'BusinessCentralSquare',
     ]);
     const [cardFeeds] = useCardFeeds(policyID);
@@ -142,15 +143,19 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
     const connectionSyncStage = connectionSyncProgress?.stageInProgress;
 
     const canUseBusinessCentralIntegration = isBetaEnabled(CONST.BETAS.BUSINESS_CENTRAL) || !!policy?.connections?.businessCentral;
+    const canUseZohoBooksIntegration = isBetaEnabled(CONST.BETAS.ZOHO_BOOKS) || !!policy?.connections?.zohoBooks;
     const accountingIntegrations = useMemo(
         () =>
             CONST.POLICY.CONNECTIONS.ACCOUNTING_CONNECTION_NAMES.filter((name) => {
                 if (name === CONST.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL) {
                     return canUseBusinessCentralIntegration;
                 }
+                if (name === CONST.POLICY.CONNECTIONS.NAME.ZOHO_BOOKS) {
+                    return canUseZohoBooksIntegration;
+                }
                 return true;
             }),
-        [canUseBusinessCentralIntegration],
+        [canUseBusinessCentralIntegration, canUseZohoBooksIntegration],
     );
     const accountingIntegrationOptions = useMemo(
         () =>
@@ -194,7 +199,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
     const shouldShowSynchronizationError = !!synchronizationError;
     const shouldShowReinstallConnectorMenuItem = shouldShowSynchronizationError && connectedIntegration === CONST.POLICY.CONNECTIONS.NAME.QBD;
     const shouldShowCardReconciliationOption = Object.values(allCardSettings ?? {})?.some((cardSetting) => isExpensifyCardFullySetUp(policy, cardSetting));
-    const shouldShowReconnect = hasAuthError && connectedIntegration === CONST.POLICY.CONNECTIONS.NAME.CERTINIA;
+    const shouldShowReconnect = hasAuthError && (connectedIntegration === CONST.POLICY.CONNECTIONS.NAME.CERTINIA || connectedIntegration === CONST.POLICY.CONNECTIONS.NAME.ZOHO_BOOKS);
     let credentialsMenuTextKey: Parameters<typeof translate>[0] = 'workspace.accounting.enterCredentials';
     if (shouldShowReconnect || isQBOTokenExpiringSoon) {
         credentialsMenuTextKey = 'workspace.accounting.reconnect';
