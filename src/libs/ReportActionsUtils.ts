@@ -3641,7 +3641,7 @@ function getWorkspaceDescriptionUpdatedMessage(translate: LocalizedTranslate, ac
 }
 
 function getWorkspaceRulesDocumentUpdatedMessage(translate: LocalizedTranslate, action: ReportAction) {
-    const {isReplacement} = getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_RULES_DOCUMENT>) ?? {};
+    const isReplacement = isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_RULES_DOCUMENT) ? getOriginalMessage(action)?.isReplacement : false;
     return translate('workspaceActions.updateRulesDocument', !!isReplacement);
 }
 
