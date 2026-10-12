@@ -5,7 +5,7 @@
  * and the Side Panel (help) button. Some account settings pages also use `shouldDisplaySearchRouter`.
  */
 import Header from '@components/Header/Header';
-import HeaderCustomActions from '@components/Header/layout/HeaderActions';
+import HeaderCustomActions from '@components/Header/layout/HeaderCustomActions';
 import HeaderBackButton from '@components/Header/primitives/HeaderBackButton';
 import HeaderTitle from '@components/Header/primitives/HeaderTitle';
 import SearchButton from '@components/Search/SearchRouter/SearchButton';

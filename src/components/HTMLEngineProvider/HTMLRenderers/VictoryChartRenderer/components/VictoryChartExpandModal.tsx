@@ -77,7 +77,7 @@ function VictoryChartExpandModal({isVisible, onClose}: VictoryChartExpandModalPr
                 <Header style={styles.borderBottom}>
                     {shouldUseNarrowLayout && <Header.BackButton onPress={onClose} />}
                     <Header.Title title={translate('common.details')} />
-                    <Header.Right>{!shouldUseNarrowLayout && <Header.CloseButton onPress={onClose} />}</Header.Right>
+                    <Header.CustomActions>{!shouldUseNarrowLayout && <Header.CloseButton onPress={onClose} />}</Header.CustomActions>
                 </Header>
                 <View style={[styles.flex1, styles.ph5]}>
                     <View

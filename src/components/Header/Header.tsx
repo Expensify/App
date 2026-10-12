@@ -11,7 +11,7 @@ import HeaderContext from './context/HeaderContext';
 
 /** Bar-level configuration for the composed `<Header>` (content lives in the child blocks). */
 type HeaderProps = {
-    /** The composed content of the header: primitive blocks and the `Header.Right` zone. */
+    /** The composed content of the header: primitive blocks. */
     children: ReactNode;
 
     shouldSkipFocusAfterTransition?: boolean;
@@ -20,7 +20,7 @@ type HeaderProps = {
     style?: StyleProp<ViewStyle>;
 };
 
-/** Composed counterpart of `HeaderWithBackButton`. Content is composed from primitive blocks and the `Header.Right` zone (see the barrel for a full example). */
+/** Composed counterpart of `HeaderWithBackButton`. Content is composed from primitive blocks (see the barrel for a full example). */
 function Header({children, shouldSkipFocusAfterTransition = false, style}: HeaderProps) {
     const isInLandscapeMode = useIsInLandscapeMode();
     const {contentHeaderHeightStyle} = useContentHeaderHeight();
