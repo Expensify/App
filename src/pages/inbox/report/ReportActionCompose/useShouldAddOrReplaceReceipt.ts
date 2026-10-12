@@ -5,12 +5,14 @@ import useReportTransactionsCollection from '@hooks/useReportTransactionsCollect
 
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getAllNonDeletedTransactions} from '@libs/MoneyRequestReportUtils';
-import {getFilteredReportActionsForReportView, getLinkedTransactionID, getReportAction, isMoneyRequestAction} from '@libs/ReportActionsUtils';
+import {getFilteredReportActionsForReportView, getLinkedTransactionID, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {canEditFieldOfMoneyRequest, canUserPerformWriteAction as canUserPerformWriteActionReportUtils, isReportTransactionThread} from '@libs/ReportUtils';
 import {getTransactionID} from '@libs/TransactionUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import {getParentReportActionSelector} from '@selectors/ReportAction';
 
 function useShouldAddOrReplaceReceipt(reportID: string) {
     const {isOffline} = useNetwork();
@@ -34,7 +36,8 @@ function useShouldAddOrReplaceReceipt(reportID: string) {
 
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transactionID)}`);
     const isSingleTransactionView = !!transaction && !!reportTransactions && reportTransactions.length === 1;
-    const effectiveParentReportAction = isSingleTransactionView ? iouAction : getReportAction(report?.parentReportID, report?.parentReportActionID);
+    const parentReportAction = getParentReportActionSelector(parentReportActions, report?.parentReportActionID);
+    const effectiveParentReportAction = isSingleTransactionView ? iouAction : parentReportAction;
     const canUserPerformWriteAction = !!canUserPerformWriteActionReportUtils(report, isReportArchived);
     const canEditReceipt =
         canUserPerformWriteAction &&
@@ -44,7 +47,6 @@ function useShouldAddOrReplaceReceipt(reportID: string) {
             transaction,
             rules,
             reportNameValuePairs: undefined,
-            // The IOU action belongs to this report in the single-transaction view and to the parent report in the thread view
             reportActions: isSingleTransactionView ? rawReportActions : parentReportActions,
         }) &&
         !transaction?.receipt?.isTestDriveReceipt;

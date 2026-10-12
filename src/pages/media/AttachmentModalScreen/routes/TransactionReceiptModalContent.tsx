@@ -27,7 +27,7 @@ import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/crea
 import Navigation from '@libs/Navigation/Navigation';
 import ReceiptStorage from '@libs/ReceiptStorage';
 import {getThumbnailAndImageURIs} from '@libs/ReceiptUtils';
-import {getReportAction, isTrackExpenseAction} from '@libs/ReportActionsUtils';
+import {isTrackExpenseAction} from '@libs/ReportActionsUtils';
 import {canEditFieldOfMoneyRequest, isMoneyRequestReport, isTrackExpenseReport} from '@libs/ReportUtils';
 import {logReceiptAdoptFailed} from '@libs/telemetry/ReceiptObservability';
 import {
@@ -56,7 +56,7 @@ import type {FileObject} from '@src/types/utils/Attachment';
 import type {RotationDegrees} from 'react-fast-pdf';
 
 import {guidedSetupAndTourStatusSelector} from '@selectors/Onboarding';
-import {transactionThreadReportIDSelector} from '@selectors/ReportAction';
+import {getParentReportActionSelector, transactionThreadReportIDSelector} from '@selectors/ReportAction';
 import {Str} from 'expensify-common';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
@@ -175,7 +175,7 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
     const source = isOdometerImage ? odometerImageSource : receiptSource;
     const [sourceUri, setSourceUri] = useState<ReceiptSource>('');
 
-    const parentReportAction = getReportAction(report?.parentReportID, report?.parentReportActionID);
+    const parentReportAction = getParentReportActionSelector(parentReportActions, report?.parentReportActionID);
     const canEditReceipt = canEditFieldOfMoneyRequest({
         reportAction: parentReportAction,
         fieldToEdit: CONST.EDIT_REQUEST_FIELD.RECEIPT,
