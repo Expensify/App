@@ -1,7 +1,12 @@
 import CONST from '@src/CONST';
 
+/** Whether a list of `itemCount` items is long enough for the initial selection to be pinned to the top. */
+function shouldMoveInitialSelectionToTop(itemCount: number): boolean {
+    return itemCount >= CONST.STANDARD_LIST_ITEM_LIMIT;
+}
+
 function moveInitialSelectionToTop<T extends {value?: number | string}>(items: T[], initialSelectedValues: string[]): T[] {
-    if (initialSelectedValues.length === 0 || items.length < CONST.STANDARD_LIST_ITEM_LIMIT) {
+    if (initialSelectedValues.length === 0 || !shouldMoveInitialSelectionToTop(items.length)) {
         return items;
     }
 
@@ -22,3 +27,4 @@ function moveInitialSelectionToTop<T extends {value?: number | string}>(items: T
 }
 
 export default moveInitialSelectionToTop;
+export {shouldMoveInitialSelectionToTop};

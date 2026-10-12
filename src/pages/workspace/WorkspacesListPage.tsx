@@ -41,6 +41,7 @@ import {useIsFocused, useRoute} from '@react-navigation/native';
 import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 
+import ArchiveWorkspaceFlow from './archiveWorkspace/ArchiveWorkspaceFlow';
 import CopyPolicySettingsProgressModal from './copyPolicySettings/CopyPolicySettingsProgressModal';
 import DeleteWorkspaceFlow from './deleteWorkspace/DeleteWorkspaceFlow';
 
@@ -76,6 +77,7 @@ function WorkspacesListPage() {
         !!copySettingsEligibleTargets && (copySettingsEligibleTargets.length > 1 || (copySettingsEligibleTargets.length === 1 && copySettingsEligibleTargets.at(0) !== policyID));
 
     const [policyIDToDelete, setPolicyIDToDelete] = useState<string>();
+    const [policyIDToArchive, setPolicyIDToArchive] = useState<string>();
 
     // Narrow subscription keeping the owner name/avatar columns reactive without re-rendering the page
     // when anything else in the personal details list changes.
@@ -264,6 +266,7 @@ function WorkspacesListPage() {
                         workspaces={workspaceRows}
                         headerComponent={headerComponent}
                         onDeleteWorkspace={setPolicyIDToDelete}
+                        onArchiveWorkspace={setPolicyIDToArchive}
                         pendingDeletePolicyID={policyIDToDelete}
                     />
                 )}
@@ -272,6 +275,13 @@ function WorkspacesListPage() {
                         key={policyIDToDelete}
                         policyID={policyIDToDelete}
                         onDismiss={() => setPolicyIDToDelete(undefined)}
+                    />
+                )}
+                {!!policyIDToArchive && (
+                    <ArchiveWorkspaceFlow
+                        key={policyIDToArchive}
+                        policyID={policyIDToArchive}
+                        onDismiss={() => setPolicyIDToArchive(undefined)}
                     />
                 )}
                 <CopyPolicySettingsProgressModal />

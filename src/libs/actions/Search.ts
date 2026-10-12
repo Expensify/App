@@ -18,6 +18,7 @@ import type {
     OpenSearchPageParams,
     OpenSearchTagFiltersPageParams,
     OpenSearchTagFiltersPageResponse,
+    QueueBulkMarkAsExportedParams,
     QueueExportSearchItemsToCSVParams,
     QueueExportSearchWithTemplateParams,
     ReportExportParams,
@@ -793,6 +794,12 @@ function getOnyxLoadingData(
     const isSearchRequest = isSearchAPI && !!queryJSON;
     const type = queryJSON?.type;
 
+    // Record the query string on the snapshot itself so IOU optimistic updates can later apply to every loaded
+    // snapshot whose query matches. Living on the snapshot means it is evicted together with it. It is written
+    // optimistically so snapshots first opened offline carry it, and again in finallyData because the SEARCH
+    // response can replace `snapshot.search`.
+    const inputQuery = isSearchRequest ? queryJSON.inputQuery : undefined;
+
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.SNAPSHOT>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -801,6 +808,7 @@ function getOnyxLoadingData(
                 search: {
                     ...(isSearchAPI && shouldShowLoading && {isLoading: true}),
                     ...(isSearchRequest && {state: CONST.SEARCH.SNAPSHOT_STATE.LOADING}),
+                    ...(inputQuery && {inputQuery}),
                     ...(offset !== undefined ? {offset} : {}),
                     ...(shouldClearTotals ? {count: null, reportCount: null, total: null, currency: null} : {}),
                 },
@@ -817,14 +825,6 @@ function getOnyxLoadingData(
         },
     ];
 
-    // Side effect: record this query string under SEARCH_QUERY_BY_HASH so IOU optimistic updates
-    // can later fan to every loaded snapshot whose query matches. Done here (not via optimisticData)
-    // because this function's return type only allows snapshot keys; the matching eviction lives
-    // in the SNAPSHOT subscription in IOU/index.ts.
-    if (queryJSON?.inputQuery) {
-        Onyx.merge(ONYXKEYS.SEARCH_QUERY_BY_HASH, {[hash]: queryJSON.inputQuery});
-    }
-
     // finallyData runs for every HTTP response, including 460 responses that deliberately skip failureData.
     // It owns the terminal request state, while failureData separately records whether the request failed.
     const finallyData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.SNAPSHOT>> = [
@@ -835,6 +835,7 @@ function getOnyxLoadingData(
                 search: {
                     ...(isSearchAPI && {isLoading: false}),
                     ...(isSearchRequest && {state: CONST.SEARCH.SNAPSHOT_STATE.LOADED, type, hash}),
+                    ...(inputQuery && {inputQuery}),
                 },
             },
         },
@@ -1038,7 +1039,16 @@ function openSearchPage(params?: OpenSearchPageParams, hashWithStaleError?: numb
 }
 
 function openSearchCardFiltersPage() {
-    const finallyData: Array<OnyxUpdate<typeof ONYXKEYS.IS_SEARCH_FILTERS_CARD_DATA_LOADED>> = [
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.RAM_ONLY_IS_LOADING_SEARCH_FILTERS_CARD_DATA>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.RAM_ONLY_IS_LOADING_SEARCH_FILTERS_CARD_DATA,
+            value: true,
+        },
+    ];
+
+    // Set on success only. On `finallyData` a failed request would pass for a complete list.
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.IS_SEARCH_FILTERS_CARD_DATA_LOADED>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.IS_SEARCH_FILTERS_CARD_DATA_LOADED,
@@ -1046,7 +1056,15 @@ function openSearchCardFiltersPage() {
         },
     ];
 
-    read(READ_COMMANDS.OPEN_SEARCH_CARD_FILTERS_PAGE, null, {finallyData});
+    const finallyData: Array<OnyxUpdate<typeof ONYXKEYS.RAM_ONLY_IS_LOADING_SEARCH_FILTERS_CARD_DATA>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.RAM_ONLY_IS_LOADING_SEARCH_FILTERS_CARD_DATA,
+            value: false,
+        },
+    ];
+
+    read(READ_COMMANDS.OPEN_SEARCH_CARD_FILTERS_PAGE, null, {optimisticData, successData, finallyData});
 }
 
 function openSearchCategoryFiltersPage() {
@@ -1077,6 +1095,8 @@ function openSearchCategoryFiltersPage() {
     read(READ_COMMANDS.OPEN_SEARCH_CATEGORY_FILTERS_PAGE, null, {optimisticData, successData, finallyData});
 }
 
+const ALL_POLICY_IDS_KEY = 'all';
+
 /**
  * Fetches a page of tag filter search results from the server.
  * Returns pagination metadata (hasMore, nextCursor) for infinite scroll.
@@ -1087,16 +1107,19 @@ function openSearchTagFiltersPage(
     params: OpenSearchTagFiltersPageParams,
     shouldCancelPendingRequests = false,
     currentResults: SearchTagFilterItem[] = [],
-): Promise<{hasMore: boolean; nextCursor: string}> {
+): Promise<{hasMore: boolean; nextCursor: string; tags?: SearchTagFilterItem[]}> {
     if (shouldCancelPendingRequests) {
         HttpUtils.cancelPendingRequests(SIDE_EFFECT_REQUEST_COMMANDS.OPEN_SEARCH_TAG_FILTERS_PAGE);
     }
+
+    const policyIDsKey = !params.policyIDs ? ALL_POLICY_IDS_KEY : params.policyIDs;
+    const resultsKey: `${typeof ONYXKEYS.COLLECTION.RAM_ONLY_SEARCH_TAG_FILTERS_RESULTS}${string}` = `${ONYXKEYS.COLLECTION.RAM_ONLY_SEARCH_TAG_FILTERS_RESULTS}${policyIDsKey}`;
 
     const optimisticData: AnyOnyxUpdate[] = shouldCancelPendingRequests
         ? [
               {
                   onyxMethod: Onyx.METHOD.SET,
-                  key: ONYXKEYS.RAM_ONLY_SEARCH_TAG_FILTERS_RESULTS,
+                  key: resultsKey,
                   value: [],
               },
           ]
@@ -1107,12 +1130,11 @@ function openSearchTagFiltersPage(
         // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- OpenSearchTagFiltersPage response fields are command-specific and not declared on the shared Response type
         const tagFiltersResponse = response as OpenSearchTagFiltersPageResponse | undefined;
         const newTags = tagFiltersResponse?.tags ?? [];
-        if (params.cursor && newTags.length > 0) {
-            Onyx.set(ONYXKEYS.RAM_ONLY_SEARCH_TAG_FILTERS_RESULTS, [...currentResults, ...newTags]);
-        }
+        Onyx.set(resultsKey, params.cursor ? [...currentResults, ...newTags] : newTags);
         return {
             hasMore: !!tagFiltersResponse?.hasMore,
             nextCursor: tagFiltersResponse?.nextCursor ?? '',
+            tags: newTags,
         };
     });
 }
@@ -1121,18 +1143,25 @@ function openSearchTagFiltersPage(
  * Updates the pagination state for tag filter search.
  * Stored in RAM-only Onyx key so it survives component remounts but resets on app restart.
  */
-function setSearchTagFiltersPagination(hasMore: boolean, nextCursor: string, searchQuery: string) {
-    Onyx.set(ONYXKEYS.RAM_ONLY_SEARCH_TAG_FILTERS_PAGINATION, {
+function setSearchTagFiltersPagination(
+    hasMore: boolean,
+    nextCursor: string,
+    searchQuery: string,
+    policyIDs?: string,
+    baseResults?: SearchTagFilterItem[],
+    baseHasMore?: boolean,
+    baseCursor?: string,
+) {
+    const policyIDsKey = !policyIDs ? ALL_POLICY_IDS_KEY : policyIDs;
+    Onyx.set(`${ONYXKEYS.COLLECTION.RAM_ONLY_SEARCH_TAG_FILTERS_PAGINATION}${policyIDsKey}`, {
         hasMore,
         nextCursor,
         searchQuery,
+        policyIDs,
+        baseResults,
+        baseHasMore,
+        baseCursor,
     });
-}
-
-/** Resets tag filter pagination and cached results when the filter closes. */
-function clearSearchTagFiltersState() {
-    setSearchTagFiltersPagination(false, '', '');
-    Onyx.set(ONYXKEYS.RAM_ONLY_SEARCH_TAG_FILTERS_RESULTS, []);
 }
 
 function openBulkChangeApproverPage(reportIDList: OpenBulkChangeApproverPageParams['reportIDList']) {
@@ -2157,6 +2186,17 @@ function queueBulkPayReports(jsonQuery: string) {
     write(WRITE_COMMANDS.QUEUE_BULK_PAY_REPORTS, {jsonQuery});
 }
 
+/**
+ * Queues a manual bulk "Mark as exported" for every report matching the given search query on the given connection.
+ * The backend pages through all matches itself, so this covers reports beyond the currently loaded page(s) when
+ * "Select all" is checked in Search. connectionName scopes the resolved reports to a single accounting connection,
+ * since the button is per-integration and must never mix connections. qboIntegrationAlias further disambiguates an
+ * Intuit Enterprise Suite connection from a regular QBO connection, since both share the same connectionName.
+ */
+function queueBulkMarkAsExported(jsonQuery: string, connectionName: ConnectionName, qboIntegrationAlias?: QueueBulkMarkAsExportedParams['qboIntegrationAlias']) {
+    write(WRITE_COMMANDS.QUEUE_BULK_MARK_AS_EXPORTED, {jsonQuery, connectionName, qboIntegrationAlias});
+}
+
 /** Export templates pre-grouped for the Export menus: each group is sorted alphabetically and rendered with a divider between groups */
 type ExportTemplateGroups = {
     /** Custom templates (custom integrations + account/policy in-app templates) */
@@ -2270,6 +2310,11 @@ function updateAdvancedFilters(values: Nullable<Partial<FormOnyxValues<typeof ON
  */
 function setSearchContext(shouldShowSearchQuery: boolean) {
     Onyx.set(ONYXKEYS.SEARCH_CONTEXT, {shouldShowSearchQuery});
+}
+
+/** Stores the reports selected for the Search Merge Reports flow so the selection survives app refreshes. */
+function setSearchMergeReportIDs(reportIDs: string[] | null) {
+    return Onyx.set(ONYXKEYS.SEARCH_MERGE_REPORT_IDS, reportIDs);
 }
 
 /**
@@ -2592,8 +2637,10 @@ export {
     queueExportSearchItemsToCSV,
     queueExportSearchWithTemplate,
     queueBulkPayReports,
+    queueBulkMarkAsExported,
     updateAdvancedFilters,
     setSearchContext,
+    setSearchMergeReportIDs,
     deleteSavedSearch,
     getSearchPayOnyxData,
     getChatReportWithFallback,
@@ -2617,8 +2664,8 @@ export {
     openSearchCardFiltersPage,
     openSearchCategoryFiltersPage,
     openSearchTagFiltersPage,
+    ALL_POLICY_IDS_KEY,
     setSearchTagFiltersPagination,
-    clearSearchTagFiltersState,
     getPolicyFromSearchSnapshot,
     getReportFromSearchSnapshot,
     getReportActionsFromSearchSnapshot,

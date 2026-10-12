@@ -19,6 +19,7 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useOriginalReportID from '@hooks/useOriginalReportID';
 import {usePersonalDetail} from '@hooks/usePersonalDetails';
+import useReportsParentHierarchy from '@hooks/useReportsParentHierarchy';
 import useReportTransactionsCollection from '@hooks/useReportTransactionsCollection';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -40,20 +41,24 @@ import type {ReportsSplitNavigatorParamList} from '@libs/Navigation/types';
 import Permissions from '@libs/Permissions';
 import {
     extractLinksFromMessageHtml,
+    getAgentPromptUpdatedMessage,
     getIOUReportIDFromReportActionPreview,
     getOriginalMessage,
     getPaymentMessageWithExpectedDate,
     getReportActionMessage,
     getReportActionText,
     getWhisperedTo,
-    isCreatedTaskReportAction,
     isActionOfType,
+    isCreatedTaskReportAction,
     isDeletedParentAction as isDeletedParentActionUtils,
+    isDeletedReportPreviewWithError,
+    getVisibleReportActionErrors,
     isMessageDeleted,
     isMoneyRequestAction,
     isPendingRemove,
     isTripPreview,
     isWhisperActionTargetedToOthers,
+    shouldHidePayAction,
     useTableReportViewActionRenderConditionals,
 } from '@libs/ReportActionsUtils';
 import {
@@ -78,6 +83,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import {getStableReportSelector} from '@src/selectors/Report';
 import {getReimbursedExpectedDateSelector} from '@src/selectors/ReportAction';
+import {isSplitContainerTransactionSelector, originalTransactionIDSelector} from '@src/selectors/Transaction';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 import {isEmptyObject, isEmptyValueObject} from '@src/types/utils/EmptyObject';
@@ -106,6 +112,7 @@ import ReportActionItemFrame from './ReportActionItemFrame';
 import ReportActionItemThread from './ReportActionItemThread';
 import SearchActionHeader from './SearchActionHeader';
 import TripSummary from './TripSummary';
+import useShouldEditInComposer from './useShouldEditInComposer';
 import WhisperBanner from './WhisperBanner';
 
 type ReportActionItemProps = {
@@ -187,6 +194,7 @@ function ReportActionItem({
     const reportID = report?.reportID ?? action?.reportID;
     const originalReportID = useOriginalReportID(report?.reportID, action);
     const {isOffline} = useNetwork();
+    const reportsParentHierarchy = useReportsParentHierarchy();
     const [iouReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getIOUReportIDFromReportActionPreview(action)}`, {selector: getStableReportSelector});
     const [iouPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${iouReport?.policyID}`);
 
@@ -208,6 +216,9 @@ function ReportActionItem({
 
     const [linkedTransactionRouteError] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {selector: getLinkedTransactionRouteError});
 
+    const [originalTransactionID] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {selector: originalTransactionIDSelector});
+    const [isOriginalTransactionSplitContainer] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransactionID}`, {selector: isSplitContainerTransactionSelector});
+
     const {editingMessage, editingReportAction} = useReportActionActiveEdit();
 
     const isConciergeGreeting = action.reportActionID === CONST.CONCIERGE_GREETING_ACTION_ID;
@@ -218,6 +229,7 @@ function ReportActionItem({
     const [actorDisplayName] = usePersonalDetail(action.actorAccountID, displayNameOrDefaultSelector(translate, formatPhoneNumber));
     const {showConfirmModal} = useConfirmModal();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const shouldEditInComposer = useShouldEditInComposer();
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -239,10 +251,9 @@ function ReportActionItem({
     const highlightedBackgroundColorIfNeeded = isReportActionLinked || shouldHighlight ? StyleUtils.getBackgroundColorStyle(theme.messageHighlightBG) : {};
 
     const isDeletedParentAction = isDeletedParentActionUtils(action);
-
     const draftMessage = editingReportAction && action && editingReportAction.reportActionID === action.reportActionID ? (editingMessage ?? undefined) : undefined;
     const hasDraft = draftMessage !== undefined;
-    const isEditingInline = !shouldUseNarrowLayout && hasDraft;
+    const isEditingInline = !shouldEditInComposer && hasDraft;
 
     // IOUDetails only exists when we are sending money
     const isSendingMoney = isMoneyRequestAction(action) && getOriginalMessage(action)?.type === CONST.IOU.REPORT_ACTION_TYPE.PAY && getOriginalMessage(action)?.IOUDetails;
@@ -284,9 +295,9 @@ function ReportActionItem({
             navigation.setParams({reportActionID: ''});
         }
         if (transactionIDToDismiss) {
-            clearErrorWithOriginalTransactionError(transactionIDToDismiss);
+            clearErrorWithOriginalTransactionError(transactionIDToDismiss, originalTransactionID, isOriginalTransactionSplitContainer);
         }
-        clearAllRelatedReportActionErrors(reportID, action, originalReportID, isOffline);
+        clearAllRelatedReportActionErrors({reportID, reportAction: action, originalReportID, isOffline, reports: reportsParentHierarchy});
     };
 
     const showDismissReceiptErrorModal = async () => {
@@ -403,12 +414,24 @@ function ReportActionItem({
 
     const disabledActions = !canWriteInReport(report) ? RestrictedReadOnlyContextMenuActions : [];
 
-    const hasActionErrors = !isEmptyValueObject(action.errors);
+    // An error the payer cannot see must not disable the action, or the preview loses its context menu for no visible reason.
+    const visibleActionErrors = getVisibleReportActionErrors(action);
+
+    const hasActionErrors = !isEmptyValueObject(visibleActionErrors);
 
     // Receipt upload errors should still allow the context menu so the user can access "Delete expense"
-    const hasOnlyReceiptErrors = hasActionErrors && Object.values(action.errors ?? {}).every((error) => error === null || isReceiptError(error));
+    const hasOnlyReceiptErrors = hasActionErrors && Object.values(visibleActionErrors ?? {}).every((error) => error === null || isReceiptError(error));
 
     const isContextMenuDisabled = hasDraft || (hasActionErrors && !hasOnlyReceiptErrors) || !shouldDisplayContextMenuValue;
+
+    const latestActionErrors = getLatestErrorMessageField({...action, errors: visibleActionErrors} as OnyxDataWithErrors);
+
+    // Once the report is deleted there is nothing to retry, so say what happened instead of "try again later".
+    let displayedActionErrors = latestActionErrors;
+    if (isDeletedReportPreviewWithError(action)) {
+        const payFailedMessage = translate('iou.error.payFailedExpenseDeleted');
+        displayedActionErrors = mapValues(latestActionErrors, () => payFailedMessage);
+    }
 
     /**
      * Show the ReportActionContextMenu modal popover.
@@ -498,7 +521,7 @@ function ReportActionItem({
 
     // For the `pay` IOU action on non-pay expense flow, we don't want to render anything if `isWaitingOnBankAccount` is true
     // Otherwise, we will see two system messages informing the payee needs to add a bank account or wallet
-    if (isMoneyRequestAction(action) && !!report?.isWaitingOnBankAccount && getOriginalMessage(action)?.type === CONST.IOU.REPORT_ACTION_TYPE.PAY && !isSendingMoney) {
+    if (shouldHidePayAction(action, !!report?.isWaitingOnBankAccount)) {
         return null;
     }
 
@@ -519,7 +542,9 @@ function ReportActionItem({
     const shouldDisplayThreadReplies = shouldDisplayThreadRepliesUtils(action, isThreadReportParentAction) && !isOnSearch;
 
     const formattedTimestamp = datetimeToCalendarTime(action.created, false);
-    const plainMessage = getPaymentMessageWithExpectedDate(translate, dateFnsLocale, getReportActionText(action), paymentExpectedDate);
+    const plainMessage = isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.AGENT_PROMPT_UPDATED)
+        ? getAgentPromptUpdatedMessage(translate, action)
+        : getPaymentMessageWithExpectedDate(translate, dateFnsLocale, getReportActionText(action), paymentExpectedDate);
     const accessibilityLabel = `${actorDisplayName ?? ''}, ${formattedTimestamp}, ${plainMessage}`;
 
     return (
@@ -608,7 +633,7 @@ function ReportActionItem({
                                                     hasDraft ? undefined : (action.pendingAction ?? (action.isOptimisticAction ? CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD : undefined))
                                                 }
                                                 shouldHideOnDelete={!isDeletedParentAction}
-                                                errors={(linkedTransactionRouteError ?? !isOnSearch) ? getLatestErrorMessageField(action as OnyxDataWithErrors) : {}}
+                                                errors={(linkedTransactionRouteError ?? !isOnSearch) ? displayedActionErrors : {}}
                                                 errorRowStyles={[styles.ml10, styles.mr2]}
                                                 needsOffscreenAlphaCompositing={isMoneyRequestAction(action)}
                                                 shouldDisableStrikeThrough
@@ -661,7 +686,7 @@ function ReportActionItem({
                                                                     <LinkPreviewer linkMetadata={action.linkMetadata?.filter((item) => !isEmptyObject(item))} />
                                                                 </View>
                                                             )}
-                                                            {!isOnSearch && !isMessageDeleted(action) && (
+                                                            {!isOnSearch && !isMessageDeleted(action) && action.actionName !== CONST.REPORT.ACTIONS.TYPE.SUPPORT_SURVEY && (
                                                                 <ReportActionItemEmojiReactions
                                                                     reportAction={action}
                                                                     reportID={reportID}
