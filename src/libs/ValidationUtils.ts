@@ -937,5 +937,3 @@ export {
     isValidPIN,
     containsHtmlTag,
 };
-
-export type {MerchantValidationError};
