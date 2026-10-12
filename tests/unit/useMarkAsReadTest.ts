@@ -1,5 +1,6 @@
 import {act, renderHook} from '@testing-library/react-native';
 
+import {IsHiddenWideTabPreMountContext} from '@hooks/useIsHiddenWideTabPreMount';
 import {IsInPreloadedTabContext} from '@hooks/useIsInPreloadedTab';
 import useMarkAsRead, {resetMarkAsReadScopes} from '@hooks/useMarkAsRead';
 
@@ -83,9 +84,14 @@ function PreloadedTabWrapper({children}: {children: React.ReactNode}) {
     return React.createElement(IsInPreloadedTabContext.Provider, {value: mockIsInPreloadedTab}, children);
 }
 
-function renderMarkAsRead(params: Partial<Parameters<typeof useMarkAsRead>[0]> = {}) {
+/** Renders with the hidden flag a wide submit pre-mount gets until its reveal, read again on every render. */
+function createHiddenPreMountWrapper(getIsHiddenPreMount: () => boolean) {
+    return ({children}: {children: React.ReactNode}) => React.createElement(IsHiddenWideTabPreMountContext.Provider, {value: getIsHiddenPreMount()}, children);
+}
+
+function renderMarkAsRead(params: Partial<Parameters<typeof useMarkAsRead>[0]> = {}, wrapper: React.ComponentType<{children: React.ReactNode}> = PreloadedTabWrapper) {
     return renderHook(
-        () =>
+        (props?: {report: OnyxTypes.Report}) =>
             useMarkAsRead({
                 reportID: REPORT_ID,
                 report: REPORT as OnyxEntry<OnyxTypes.Report>,
@@ -94,8 +100,9 @@ function renderMarkAsRead(params: Partial<Parameters<typeof useMarkAsRead>[0]> =
                 isScrolledToEnd: true,
                 hasNewerActions: false,
                 ...params,
+                ...props,
             }),
-        {wrapper: PreloadedTabWrapper},
+        {wrapper},
     );
 }
 
@@ -490,5 +497,56 @@ describe('useMarkAsRead', () => {
         rerender({report: reportAWithNewMessage});
 
         expect(readNewestAction).toHaveBeenCalledWith('A', expect.anything());
+    });
+
+    it('should keep marking the visible report read while a hidden pre-mount of another report shares its scope', () => {
+        // Given a visible report A and a hidden wide pre-mount of report B mounted later in the same scope
+        const reportA = {reportID: 'A', lastReadTime: '2023-01-01 10:00:00.000', lastVisibleActionCreated: '2023-01-01 10:00:00.000'} as OnyxTypes.Report;
+        const reportAWithNewMessage = {...reportA, lastVisibleActionCreated: '2023-01-01 11:00:00.000'} as OnyxTypes.Report;
+        const reportB = {reportID: 'B', lastReadTime: '2023-01-01 10:00:00.000', lastVisibleActionCreated: '2023-01-01 10:00:00.000'} as OnyxTypes.Report;
+
+        mockIsUnread = false;
+        const {rerender} = renderMarkAsRead({reportID: 'A', report: reportA});
+        renderMarkAsRead(
+            {reportID: 'B', report: reportB},
+            createHiddenPreMountWrapper(() => true),
+        );
+        readNewestAction.mockClear();
+
+        // When a new message lands in the visible report A
+        mockIsUnread = true;
+        rerender({report: reportAWithNewMessage});
+
+        // Then A is still marked read, because the hidden pre-mount did not take the scope over
+        expect(readNewestAction).toHaveBeenCalledWith('A', expect.anything());
+    });
+
+    it('should take the scope and mark the report read once a hidden pre-mount is revealed', () => {
+        // Given a visible report A and an unread hidden wide pre-mount of report B in the same scope
+        const reportA = {reportID: 'A', lastReadTime: '2023-01-01 10:00:00.000', lastVisibleActionCreated: '2023-01-01 10:00:00.000'} as OnyxTypes.Report;
+        const reportAWithNewMessage = {...reportA, lastVisibleActionCreated: '2023-01-01 11:00:00.000'} as OnyxTypes.Report;
+        const reportB = {reportID: 'B', lastReadTime: '2023-01-01 10:00:00.000', lastVisibleActionCreated: '2023-01-01 11:00:00.000'} as OnyxTypes.Report;
+        let isHiddenPreMount = true;
+
+        mockIsUnread = false;
+        const {rerender: rerenderA} = renderMarkAsRead({reportID: 'A', report: reportA});
+        mockIsUnread = true;
+        const {rerender: rerenderB} = renderMarkAsRead(
+            {reportID: 'B', report: reportB},
+            createHiddenPreMountWrapper(() => isHiddenPreMount),
+        );
+        expect(readNewestAction).not.toHaveBeenCalledWith('B', expect.anything());
+
+        // When the submit reveals B (the wrapper reads isHiddenPreMount again on rerenderB)
+        isHiddenPreMount = false;
+        rerenderB(undefined);
+
+        // Then B is marked read, as on a regular open, because the user now sees it
+        expect(readNewestAction).toHaveBeenCalledWith('B', expect.anything());
+
+        // And B owns the scope, so a new message in the covered report A is not marked read
+        readNewestAction.mockClear();
+        rerenderA({report: reportAWithNewMessage});
+        expect(readNewestAction).not.toHaveBeenCalledWith('A', expect.anything());
     });
 });

@@ -49,6 +49,9 @@ if (!copyMessageAction || !('onPress' in copyMessageAction)) {
 }
 type CopyMessagePayload = Parameters<typeof copyMessageAction.onPress>[1];
 
+const MENTIONED_REPORT_ID = '1';
+const REPORT_ID_TO_NAME = {[MENTIONED_REPORT_ID]: '#general'};
+
 const createPayload = (selection: string): CopyMessagePayload =>
     createMock<CopyMessagePayload>({
         reportAction: {
@@ -56,6 +59,7 @@ const createPayload = (selection: string): CopyMessagePayload =>
             message: [{html: selection}],
         },
         selection,
+        reportIDToName: REPORT_ID_TO_NAME,
         report: {},
         originalReport: {},
         getLocalDateFromDatetime: jest.fn(),
@@ -74,6 +78,7 @@ const createReportActionPayload = (reportAction: CopyMessagePayload['reportActio
     createMock<CopyMessagePayload>({
         reportAction,
         selection: '',
+        reportIDToName: REPORT_ID_TO_NAME,
         report: {},
         originalReport: {},
         getLocalDateFromDatetime: jest.fn(),
@@ -103,7 +108,7 @@ describe('ContextMenuActions copy message', () => {
 
         copyMessageAction.onPress(false, createPayload(selection));
 
-        expect(mockGetClipboardText).toHaveBeenCalledWith(selection);
+        expect(mockGetClipboardText).toHaveBeenCalledWith(selection, REPORT_ID_TO_NAME);
         expect(mockSetString).toHaveBeenCalledWith('Expensify');
         expect(mockSetHtml).not.toHaveBeenCalled();
     });
@@ -119,7 +124,7 @@ describe('ContextMenuActions copy message', () => {
 
         copyMessageAction.onPress(false, createPayload(selection));
 
-        expect(mockGetClipboardText).toHaveBeenCalledWith(selection);
+        expect(mockGetClipboardText).toHaveBeenCalledWith(selection, REPORT_ID_TO_NAME);
         expect(mockSetHtml).toHaveBeenCalledWith(selection, 'Expensify');
         expect(mockSetString).not.toHaveBeenCalled();
     });
@@ -155,7 +160,7 @@ describe('ContextMenuActions copy message', () => {
             ),
         );
 
-        expect(mockGetClipboardText).toHaveBeenCalledWith(expectedTranslationKey);
+        expect(mockGetClipboardText).toHaveBeenCalledWith(expectedTranslationKey, undefined);
         expect(mockSetString).toHaveBeenCalledWith('mocked clipboard text');
     });
 
@@ -180,6 +185,58 @@ describe('ContextMenuActions copy message', () => {
         expect(mockSetString).toHaveBeenCalledWith('workspaceActions.updateAreAttendeesRequired');
     });
 
+    it('copies the localized message for an agent prompt update action', () => {
+        if (!copyMessageAction?.onPress) {
+            throw new Error('Copy message context menu action was not found');
+        }
+
+        copyMessageAction.onPress(
+            false,
+            createReportActionPayload(
+                createMock<CopyMessagePayload['reportAction']>({
+                    actionName: CONST.REPORT.ACTIONS.TYPE.AGENT_PROMPT_UPDATED,
+                    message: [
+                        {
+                            type: CONST.REPORT.MESSAGE.TYPE.TEXT,
+                            style: 'normal',
+                            text: "owner@expensify.com updated this agent's instructions.",
+                        },
+                    ],
+                    originalMessage: {
+                        previousPrompt: 'Review every expense',
+                        newPrompt: 'Review expenses over $100',
+                        updatedByAccountID: 1,
+                        updatedBy: 'owner@expensify.com',
+                    },
+                }),
+            ),
+        );
+
+        expect(mockSetString).toHaveBeenCalledWith('agentPromptUpdated');
+    });
+
+    it('copies the report action text when an agent prompt update has no original message', () => {
+        const actionText = "owner@expensify.com updated this agent's instructions.";
+
+        copyMessageAction.onPress(
+            false,
+            createReportActionPayload(
+                createMock<CopyMessagePayload['reportAction']>({
+                    actionName: CONST.REPORT.ACTIONS.TYPE.AGENT_PROMPT_UPDATED,
+                    message: [
+                        {
+                            type: CONST.REPORT.MESSAGE.TYPE.TEXT,
+                            style: 'normal',
+                            text: actionText,
+                        },
+                    ],
+                }),
+            ),
+        );
+
+        expect(mockSetString).toHaveBeenCalledWith(actionText);
+    });
+
     it('copies the localized message for a member work arrangement update action', () => {
         mockCanSetHtml.mockReturnValue(false);
         mockGetClipboardText.mockReturnValue('updated work arrangement');
@@ -199,7 +256,7 @@ describe('ContextMenuActions copy message', () => {
             ),
         );
 
-        expect(mockGetClipboardText).toHaveBeenCalledWith('workspaceActions.updatedMemberWorkArrangement');
+        expect(mockGetClipboardText).toHaveBeenCalledWith('workspaceActions.updatedMemberWorkArrangement', undefined);
         expect(mockSetString).toHaveBeenCalledWith('updated work arrangement');
     });
 
@@ -223,7 +280,7 @@ describe('ContextMenuActions copy message', () => {
             ),
         );
 
-        expect(mockGetClipboardText).toHaveBeenCalledWith('workspaceActions.updatedMemberWorkArrangement');
+        expect(mockGetClipboardText).toHaveBeenCalledWith('workspaceActions.updatedMemberWorkArrangement', undefined);
         expect(mockSetHtml).toHaveBeenCalledWith('workspaceActions.updatedMemberWorkArrangement', 'updated work arrangement');
         expect(mockSetString).not.toHaveBeenCalled();
     });

@@ -8,6 +8,8 @@ import MenuItemFieldNamePlaceholder from '@components/MenuItem/leaves/content/Me
 import MenuItemFieldValue from '@components/MenuItem/leaves/content/MenuItemFieldValue';
 import MenuItemChevron from '@components/MenuItem/leaves/trailing/icons/MenuItemChevron';
 
+import hasRenderableChildren from '@libs/hasRenderableChildren';
+
 import {callFunctionIfActionIsAllowed} from '@userActions/Session';
 
 import type {PropsWithChildren, ReactNode} from 'react';
@@ -42,7 +44,7 @@ type MenuItemFieldContentProps = {
 function MenuItemFieldContent({name, children}: MenuItemFieldContentProps) {
     return (
         <MenuItemContent>
-            {children ? (
+            {hasRenderableChildren(children) ? (
                 <>
                     <MenuItemFieldName>{name}</MenuItemFieldName>
                     {children}
@@ -63,7 +65,7 @@ function MenuItemFieldRow({name, value, numberOfLinesValue, children}: MenuItemF
     return (
         <MenuItemRow>
             <MenuItemFieldContent name={name}>{!!value && <MenuItemFieldValue numberOfLines={numberOfLinesValue}>{value}</MenuItemFieldValue>}</MenuItemFieldContent>
-            {!!children && <MenuItemTrailing>{children}</MenuItemTrailing>}
+            {hasRenderableChildren(children) && <MenuItemTrailing>{children}</MenuItemTrailing>}
         </MenuItemRow>
     );
 }
@@ -85,12 +87,8 @@ function MenuItemFieldPreset({name, value, numberOfLinesValue, children, onPress
                 value={value}
                 numberOfLinesValue={numberOfLinesValue}
             >
-                {(!!children || !!onPress) && (
-                    <>
-                        {children}
-                        {!!onPress && <MenuItemChevron />}
-                    </>
-                )}
+                {children}
+                {!!onPress && <MenuItemChevron />}
             </MenuItemFieldRow>
         </MenuItemRoot>
     );
