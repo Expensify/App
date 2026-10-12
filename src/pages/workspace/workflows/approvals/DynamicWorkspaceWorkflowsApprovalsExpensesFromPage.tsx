@@ -121,7 +121,7 @@ function DynamicWorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingRe
         isApprovalWorkflowLockedByIntegration(policy) ||
         shouldHideDynamicExternalWorkflowPeople(policy);
     const isInitialCreationFlow = approvalWorkflow?.action === CONST.APPROVAL_WORKFLOW.ACTION.CREATE && approvalWorkflow?.isInitialFlow;
-    const hasAnyEligibleMember = Object.values(policy?.employeeList ?? {}).some((employee) => !!employee.email && employee.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
+    const hasAnyEligibleMember = Object.values(policy?.employeeList ?? {}).some((employee) => !!employee?.email && employee.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
     const shouldShowListEmptyContent = !isLoadingApprovalWorkflow && !hasAnyEligibleMember;
     const isCreateAction = approvalWorkflow?.action === CONST.APPROVAL_WORKFLOW.ACTION.CREATE;
     const policyMemberEmailsToAccountIDs = getMemberAccountIDsForWorkspace(policy?.employeeList, employeeAndApprovalMembersPersonalDetails);
@@ -141,7 +141,7 @@ function DynamicWorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingRe
         const map = new Map<string, string>();
 
         for (const employee of Object.values(employees)) {
-            if (!employee.email || !employee.submitsTo || employee.submitsTo === defaultApprover) {
+            if (!employee?.email || !employee.submitsTo || employee.submitsTo === defaultApprover) {
                 continue;
             }
             // Only track members who submit to a non-default approver (i.e., they're in a custom workflow)
@@ -231,7 +231,7 @@ function DynamicWorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingRe
     const liveAvailableMembers = useMemo<Member[]>(() => {
         const employees = policy?.employeeList ?? {};
         return Object.values(employees)
-            .filter((employee) => !!employee.email && employee.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE)
+            .filter((employee) => !!employee?.email && employee.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE)
             .map((employee) => {
                 const personalDetail = employeeAndApprovalMembersPersonalDetails[employee.email ?? ''];
                 return {

@@ -824,7 +824,7 @@ function mergeWorkflowMembersWithAvailableMembers(workflowMembers: Member[], all
  */
 function includesEveryWorkspaceMember(memberEmails: Array<string | null | undefined>, employeeList: PolicyEmployeeList | undefined): boolean {
     const memberEmailSet = new Set(memberEmails);
-    const workspaceMembers = Object.values(employeeList ?? {}).filter((employee) => !!employee.email && employee.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
+    const workspaceMembers = Object.values(employeeList ?? {}).filter((employee) => !!employee?.email && employee.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
     return workspaceMembers.length > 0 && workspaceMembers.every((employee) => memberEmailSet.has(employee.email));
 }
 
@@ -1846,7 +1846,7 @@ function hasApprovalWorkflowWithNonMemberApprover({policy, currentUserLogin, rul
             isNonMemberApprover(policy, getHRFinalApprover(policy) ?? getDefaultApprover(policy)) ||
             Object.values(policy?.employeeList ?? {}).some(
                 (employee) =>
-                    isNonMemberApprover(policy, employee.submitsTo) || isNonMemberApprover(policy, employee.forwardsTo) || isNonMemberApprover(policy, employee.overLimitForwardsTo),
+                    isNonMemberApprover(policy, employee?.submitsTo) || isNonMemberApprover(policy, employee?.forwardsTo) || isNonMemberApprover(policy, employee?.overLimitForwardsTo),
             );
         if (!hasNonMemberRoute) {
             return false;
