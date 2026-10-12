@@ -42,7 +42,6 @@ import getActiveTabName from './helpers/getActiveTabName';
 import getAdaptedStateFromPath from './helpers/getAdaptedStateFromPath';
 import getPathFromState from './helpers/getPathFromState';
 import getStateToResetAfterLogout from './helpers/getStateToResetAfterLogout';
-import isJoinWorkspaceTaskPath, {isOnboardingPath} from './helpers/isJoinWorkspaceTaskPath';
 import {isSplitNavigatorName} from './helpers/isNavigatorName';
 import {saveSettingsTabPathToSessionStorage, saveWorkspacesTabPathToSessionStorage} from './helpers/lastVisitedTabPathUtils';
 import {linkingConfig} from './linkingConfig';
@@ -153,11 +152,6 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady}: N
 
     const [initialState] = useState(() => {
         const path = initialUrl ? getPathFromURL(initialUrl) : null;
-        const shouldRedirectCompletedUser = !!path && isOnboardingPath(path) && !isJoinWorkspaceTaskPath(path);
-        if (isOnboardingCompleted && shouldRedirectCompletedUser) {
-            return getAdaptedStateFromPath(ROUTES.HOME);
-        }
-
         if (path?.includes(DYNAMIC_ROUTES.MIGRATED_USER_WELCOME.path) && shouldOpenLastVisitedPath(lastVisitedPath) && isOnboardingCompleted && authenticated) {
             Navigation.isNavigationReady().then(() => {
                 Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.MIGRATED_USER_WELCOME.path, lastVisitedPath));

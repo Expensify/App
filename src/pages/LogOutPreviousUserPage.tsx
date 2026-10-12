@@ -212,7 +212,8 @@ function LogOutPreviousUserPage({route}: LogOutPreviousUserPageProps) {
         return <NotFoundPage />;
     }
 
-    return <FullScreenLoadingIndicator />;
+    // No "Go Back" button: going back would pop /transition into the outgoing user's session mid sign-out.
+    return <FullScreenLoadingIndicator shouldUseGoBackButton={false} />;
 }
 
 export default LogOutPreviousUserPage;

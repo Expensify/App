@@ -276,7 +276,6 @@ export type {default as ArchivePolicyParams} from './ArchivePolicyParams';
 export type {default as UnarchivePolicyParams} from './UnarchivePolicyParams';
 export type {default as ShareBankAccountAndSetPayerParams} from './ShareBankAccountAndSetPayerParams';
 export type {default as CreateWorkspaceParams} from './CreateWorkspaceParams';
-export type {default as CreateJoinWorkspaceOnboardingContentParams} from './CreateJoinWorkspaceOnboardingContentParams';
 export type {default as UpdateWorkspaceGeneralSettingsParams} from './UpdateWorkspaceGeneralSettingsParams';
 export type {default as DeleteWorkspaceAvatarParams} from './DeleteWorkspaceAvatarParams';
 export type {default as UpdateWorkspaceAvatarParams} from './UpdateWorkspaceAvatarParams';
