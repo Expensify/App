@@ -143,7 +143,6 @@ jest.mock('@libs/ReportActionsUtils', () => ({
     isTransactionThread: () => mockIsTransactionThread,
     isSentMoneyReportAction: () => mockIsSentMoneyReportAction,
     isReportPreviewAction: () => mockIsReportPreviewAction,
-    getVisibleReportActionErrors: (reportAction: ReportAction | undefined) => reportAction?.errors ?? {},
 }));
 
 // --- ReportUtils ---
