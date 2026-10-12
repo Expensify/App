@@ -8,6 +8,9 @@ import useNetwork from './useNetwork';
 import useWorkspaceAccountID from './useWorkspaceAccountID';
 import useWorkspaceMembers from './useWorkspaceMembers';
 
+/**
+ * Hook that returns the agent rows for a workspace: agents the user can manage joined with their workspace role, plus read-only rows for custom-agent members the user cannot manage.
+ */
 function useWorkspaceAgents(policy: OnyxEntry<Policy>) {
     const {isOffline} = useNetwork();
     const policyID = policy?.id;
