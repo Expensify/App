@@ -24,7 +24,7 @@ import {getOriginalMessage, getReportActionMessage, isActionOfType, isDeletedAct
 import playSound, {SOUNDS} from '@libs/Sound';
 import {appendParam} from '@libs/Url';
 
-import {toggleEmojiReaction} from '@userActions/EmojiReactions';
+import toggleEmojiReaction from '@userActions/EmojiReactions';
 
 import CONST from '@src/CONST';
 import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
@@ -6198,6 +6198,70 @@ describe('actions/Report', () => {
             });
             await waitForBatchedUpdates();
 
+            expect(await getManualUnreadMark(REPORT_ID)).toBe('marked-action-id');
+        });
+    });
+
+    describe('openReport with shouldKeepManualUnreadMarker', () => {
+        async function givenAManualUnreadMark(reportID: string) {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {reportID, manuallyMarkedUnreadReportActionID: 'marked-action-id'});
+            await waitForBatchedUpdates();
+        }
+
+        async function getManualUnreadMark(reportID: string) {
+            const report = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
+            return report?.manuallyMarkedUnreadReportActionID;
+        }
+
+        function openReportFor(reportID: string, shouldKeepManualUnreadMarker: boolean) {
+            Report.openReport({
+                conciergeChat: undefined,
+                reportID,
+                introSelected: undefined,
+                hasReportActions: true,
+                currentUserAccountID: 1,
+                hasOnceLoadedReportActions: true,
+                shouldKeepManualUnreadMarker,
+            });
+        }
+
+        it('keeps the manual unread mark of a report the user left, and still treats the next real open as a return trip', async () => {
+            global.fetch = TestHelper.createGlobalFetchMock();
+            const REPORT_ID = 'unreadMarkHiddenPreMount';
+            // Given a report the user marked as unread and then navigated away from
+            await givenAManualUnreadMark(REPORT_ID);
+            Report.flagReportNavigatedAway(REPORT_ID);
+
+            // When it is loaded for a screen the user does not see yet (a hidden wide submit pre-mount)
+            openReportFor(REPORT_ID, true);
+            await waitForBatchedUpdates();
+
+            // Then the mark stays, so the user still sees the New line when they open the report
+            expect(await getManualUnreadMark(REPORT_ID)).toBe('marked-action-id');
+
+            // When the user really opens it later
+            openReportFor(REPORT_ID, false);
+            await waitForBatchedUpdates();
+
+            // Then it counts as a return trip and the mark is cleared, like on any return to a report
+            expect(await getManualUnreadMark(REPORT_ID)).toBeFalsy();
+        });
+
+        it('keeps the manual unread mark through the visit that starts on the reveal', async () => {
+            global.fetch = TestHelper.createGlobalFetchMock();
+            const REPORT_ID = 'unreadMarkRevealedPreMount';
+            // Given a report the user left with a manual unread mark, loaded by a hidden pre-mount
+            await givenAManualUnreadMark(REPORT_ID);
+            Report.flagReportNavigatedAway(REPORT_ID);
+            openReportFor(REPORT_ID, true);
+            await waitForBatchedUpdates();
+
+            // When the pre-mount is revealed and another fetch runs during that visit
+            Report.clearReportNavigatedAway(REPORT_ID);
+            openReportFor(REPORT_ID, false);
+            await waitForBatchedUpdates();
+
+            // Then the reveal already ended the return trip, so the mark stays while the user is in the report
             expect(await getManualUnreadMark(REPORT_ID)).toBe('marked-action-id');
         });
     });
