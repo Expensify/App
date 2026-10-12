@@ -825,13 +825,16 @@ type MerchantValidationError = {type: 'required'} | {type: 'invalidValue'} | {ty
  * Copy for a merchant validation error on the merchant form.
  */
 function getMerchantErrorMessage(translate: LocalizedTranslate, error: MerchantValidationError): string {
-    if (error.type === 'required') {
-        return translate('common.error.fieldRequired');
+    // Disabling the default-case lint rule here is actually safer as this forces us to make the switch cases exhaustive
+    // eslint-disable-next-line default-case
+    switch (error.type) {
+        case 'required':
+            return translate('common.error.fieldRequired');
+        case 'invalidValue':
+            return translate('iou.error.invalidMerchant');
+        case 'tooLong':
+            return translate('common.error.characterLimitExceedCounter', error.byteLength, CONST.MERCHANT_NAME_MAX_BYTES);
     }
-    if (error.type === 'invalidValue') {
-        return translate('iou.error.invalidMerchant');
-    }
-    return translate('common.error.characterLimitExceedCounter', error.byteLength, CONST.MERCHANT_NAME_MAX_BYTES);
 }
 
 /**
