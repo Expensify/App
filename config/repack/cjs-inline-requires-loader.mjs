@@ -101,7 +101,8 @@ export default async function cjsInlineRequiresLoader(source, inputSourceMap) {
                       assumptions: {setPublicClassFields: true, privateFieldsAsProperties: true},
                   }
                 : undefined,
-            module: {type: 'commonjs', lazy: false},
+            // Match `strictMode: false` in @react-native/babel-preset
+            module: {type: 'commonjs', lazy: false, strictMode: false},
             sourceMaps,
             inputSourceMap: inputSourceMap ? JSON.stringify(inputSourceMap) : undefined,
         });

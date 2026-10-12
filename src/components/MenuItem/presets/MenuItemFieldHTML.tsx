@@ -5,6 +5,8 @@ import MenuItemTrailing from '@components/MenuItem/layout/MenuItemTrailing';
 import MenuItemFieldValueHTML from '@components/MenuItem/leaves/content/MenuItemFieldValueHTML';
 import MenuItemChevron from '@components/MenuItem/leaves/trailing/icons/MenuItemChevron';
 
+import hasRenderableChildren from '@libs/hasRenderableChildren';
+
 import {callFunctionIfActionIsAllowed} from '@userActions/Session';
 
 import type {PropsWithChildren} from 'react';
@@ -39,7 +41,7 @@ function MenuItemFieldHTML({name, value, characterLimit, children, onPress, isDi
         >
             <MenuItemRow>
                 <MenuItemField.Content name={name}>{!!value && <MenuItemFieldValueHTML characterLimit={characterLimit}>{value}</MenuItemFieldValueHTML>}</MenuItemField.Content>
-                {(!!children || !!onPress) && (
+                {(hasRenderableChildren(children) || !!onPress) && (
                     <MenuItemTrailing>
                         {children}
                         {!!onPress && <MenuItemChevron />}
