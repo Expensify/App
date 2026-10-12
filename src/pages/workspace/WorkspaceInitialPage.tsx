@@ -334,7 +334,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
                                         onEducationTooltipPress={onPress}
                                         // The workspace menu is the sidebar, which isn't the navigation-focused screen on wide layouts.
                                         shouldHideTooltipOnNavigate={false}
-                                        shouldHideOnScroll={shouldUseNarrowLayout}
+                                        shouldHideOnScroll
                                         shouldCheckTooltipVisibilityOnFirstDisplay={shouldUseNarrowLayout}
                                     />
                                 );

@@ -1,6 +1,7 @@
 import {useProductTrainingContext} from '@components/ProductTrainingContext';
 import Text from '@components/Text';
 
+import useBeforeRemove from '@hooks/useBeforeRemove';
 import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
@@ -36,6 +37,15 @@ function useConnectionsMovedTooltip(shouldShow: boolean, activeRoute: string | u
         shownOnRouteRef.current = undefined;
         dismissProductTraining(CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.CONNECTIONS_MOVED);
     }, [activeRoute, isWorkspacesTabFocused, shouldShowProductTrainingTooltip]);
+
+    // Going back from the workspace removes the page without changing the route seen above
+    useBeforeRemove(() => {
+        if (!shownOnRouteRef.current) {
+            return;
+        }
+        shownOnRouteRef.current = undefined;
+        dismissProductTraining(CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.CONNECTIONS_MOVED);
+    });
 
     const hideTooltip = () => {
         shownOnRouteRef.current = undefined;
