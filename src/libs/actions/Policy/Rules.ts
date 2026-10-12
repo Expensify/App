@@ -1,3 +1,4 @@
+import {clearDraftValues} from '@libs/actions/FormActions';
 import {getImportFailedFinalModal} from '@libs/actions/ImportSpreadsheet';
 // Namespace import on purpose. `rulesdir/no-api-side-effects-method` only matches member calls, so importing
 // `makeRequestWithSideEffects` by name would quietly switch that guardrail off.
@@ -5,6 +6,7 @@ import * as API from '@libs/API';
 import type {
     AddPolicyAgentRuleParams,
     DeletePolicyAgentRuleParams,
+    GenerateRuleParams,
     GetAgentRuleSuggestionsParams,
     ImportMerchantRulesSpreadsheetParams,
     UpdatePolicyAgentRuleParams,
@@ -20,8 +22,10 @@ import {getIsOffline} from '@libs/NetworkState';
 import {rand64} from '@libs/NumberUtils';
 
 import CONST from '@src/CONST';
+import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ExpenseDefaultAction} from '@src/types/onyx/ExpenseDefaultRules';
+import type {GeneratedRuleState, GeneratedRuleType} from '@src/types/onyx/GeneratedRule';
 import type {ImportFinalModal} from '@src/types/onyx/ImportedSpreadsheet';
 import type Policy from '@src/types/onyx/Policy';
 import type {AgentRule, CodingRule, CodingRuleFilter} from '@src/types/onyx/Policy';
@@ -399,6 +403,66 @@ function deleteMerchantRule(policyID: string, ruleID: string, rule: Rule | undef
     API.write(WRITE_COMMANDS.SET_POLICY_CODING_RULE, parameters, onyxData);
 }
 
+const PROMPT_ERROR_BY_STATE: Partial<Record<GeneratedRuleState, TranslationPaths>> = {
+    [CONST.GENERATED_RULE.STATE.UNSUPPORTED]: 'workspace.rules.newRule.promptErrors.unsupported',
+    [CONST.GENERATED_RULE.STATE.MULTIPLE_RULES]: 'workspace.rules.newRule.promptErrors.multipleRules',
+    [CONST.GENERATED_RULE.STATE.UNINTELLIGIBLE]: 'workspace.rules.newRule.promptErrors.unintelligible',
+};
+
+/**
+ * Asks Concierge to turn a description into values for the given rule form. The response only confirms the job was
+ * queued. The answer arrives later under `ONYXKEYS.GENERATED_RULE`, so the form stays loading until it does.
+ * @returns the generationID the answer carries
+ */
+function generateRule(policyID: string, ruleType: GeneratedRuleType, prompt: string): string {
+    const generationID = rand64();
+    type GenerateRuleKey = typeof ONYXKEYS.FORMS.NEW_RULE_PROMPT_FORM | typeof ONYXKEYS.GENERATED_RULE;
+
+    const optimisticData: Array<OnyxUpdate<GenerateRuleKey>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.FORMS.NEW_RULE_PROMPT_FORM,
+            value: {isLoading: true, errors: null},
+        },
+        {
+            onyxMethod: Onyx.METHOD.SET,
+            key: ONYXKEYS.GENERATED_RULE,
+            value: null,
+        },
+    ];
+    const failureData: Array<OnyxUpdate<GenerateRuleKey>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.FORMS.NEW_RULE_PROMPT_FORM,
+            value: {isLoading: false, errors: getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')},
+        },
+    ];
+
+    const parameters: GenerateRuleParams = {policyID, generationID, ruleType, prompt};
+
+    API.write(WRITE_COMMANDS.GENERATE_RULE, parameters, {optimisticData, failureData});
+
+    return generationID;
+}
+
+/** Shows on the prompt form why a description did not become a rule */
+function setNewRulePromptError(state: GeneratedRuleState) {
+    Onyx.merge(ONYXKEYS.FORMS.NEW_RULE_PROMPT_FORM, {
+        isLoading: false,
+        errors: getMicroSecondOnyxErrorWithTranslationKey(PROMPT_ERROR_BY_STATE[state] ?? 'common.genericErrorMessage'),
+    });
+}
+
+function clearGeneratedRule() {
+    Onyx.set(ONYXKEYS.GENERATED_RULE, null);
+}
+
+function clearNewRulePrompt() {
+    Onyx.set(ONYXKEYS.FORMS.NEW_RULE_PROMPT_FORM, null);
+    clearDraftValues(ONYXKEYS.FORMS.NEW_RULE_PROMPT_FORM);
+    clearGeneratedRule();
+}
+
 function addPolicyAgentRule(policyID: string, agentRuleID: string, prompt: string) {
     if (!policyID || !agentRuleID || !prompt) {
         Log.warn('Invalid params for addPolicyAgentRule', {policyID, agentRuleID, prompt});
@@ -662,6 +726,10 @@ export {
     deleteMerchantRule,
     getTransactionsMatchingCodingRule,
     addPolicyAgentRule,
+    generateRule,
+    setNewRulePromptError,
+    clearGeneratedRule,
+    clearNewRulePrompt,
     updatePolicyAgentRule,
     deletePolicyAgentRule,
     clearMerchantRuleErrors,
