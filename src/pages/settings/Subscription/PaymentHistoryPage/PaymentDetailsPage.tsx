@@ -20,16 +20,13 @@ import {getBadgeAppearance, getPaymentDetailsBadge, getPaymentHistoryRow, getSta
 
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 
-import {openPaymentHistoryPage} from '@userActions/Subscription';
-
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 
 import type {Locale as DateFnsLocale} from 'date-fns';
 
-import {useFocusEffect} from '@react-navigation/native';
-import React, {useCallback} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 
 type PaymentDetailsPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.SUBSCRIPTION.PAYMENT_DETAILS>;
@@ -75,15 +72,6 @@ function PaymentDetailsPage({route}: PaymentDetailsPageProps) {
 
     const purchaseID = Number(route.params.purchaseID);
     const isBetaOn = isBetaEnabled(CONST.BETAS.PAYMENT_HISTORY);
-
-    useFocusEffect(
-        useCallback(() => {
-            if (!isBetaOn) {
-                return;
-            }
-            openPaymentHistoryPage();
-        }, [isBetaOn]),
-    );
 
     const row = getPaymentHistoryRow(purchases, purchaseID);
 
