@@ -1632,7 +1632,6 @@ const translations: TranslationDeepObject<typeof en> = {
             invalidSplitYourself: 'Insira um valor diferente de zero para a sua divisão',
             noParticipantSelected: 'Selecione um participante',
             other: 'Erro inesperado. Tente novamente mais tarde.',
-            payFailedExpenseDeleted: 'O pagamento falhou porque o relatório de despesas foi excluído.',
             genericCreateFailureMessage: 'Erro inesperado ao enviar esta despesa. Tente novamente mais tarde.',
             genericCreateInvoiceFailureMessage: 'Erro inesperado ao enviar esta fatura. Tente novamente mais tarde.',
             genericHoldExpenseFailureMessage: 'Erro inesperado ao reter esta despesa. Tente novamente mais tarde.',
@@ -6143,6 +6142,11 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
             syncReimbursedReports: 'Sincronizar relatórios reembolsados',
             syncReimbursedReportsDescription: 'Quando um relatório for pago via ACH, um pagamento de conta será gerado nesta conta.',
             billPaymentAccount: {label: 'Conta de pagamento de faturas', description: 'Escolha de onde deseja pagar as contas e criaremos o pagamento no DualEntry.'},
+            fxExpenseAccount: {
+                label: 'Conta de taxa de conversão de moeda DualEntry',
+                description:
+                    'Quando sua empresa cobrir o custo de conversão de moeda em um pagamento feito no exterior, vamos lançar esse custo nesta conta no DualEntry como um lançamento contábil.',
+            },
             syncExpensifyCardSettlements: 'Sincronizar liquidações do Cartão Expensify',
             settlementAccount: {label: 'Conta de liquidação do Cartão Expensify', description: 'Escolha sua conta de liquidação e nós criaremos o pagamento no DualEntry.'},
             syncTravelInvoicingSettlements: 'Sincronizar liquidações de faturamento de viagens',
@@ -10204,6 +10208,10 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
         genericUpdateReportFieldFailureMessage: 'Erro inesperado ao atualizar o campo. Tente novamente mais tarde.',
         genericUpdateReportNameEditFailureMessage: 'Erro inesperado ao renomear o relatório. Tente novamente mais tarde.',
         noActivityYet: 'Ainda não há atividade',
+        collapsedSystemMessages: () => ({
+            one: 'mostrar 1 atualização',
+            other: (count: number) => `mostrar ${count} atualizações`,
+        }),
         connectionSettings: 'Configurações de conexão',
         actions: {
             type: {
