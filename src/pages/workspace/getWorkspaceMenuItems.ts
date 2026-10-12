@@ -234,7 +234,7 @@ function getWorkspaceMenuItems({
         return canReadPolicyFeature(CONST.POLICY.POLICY_FEATURE.MEMBERS);
     });
 
-    if (isGroupPolicy(policy) && isCompanyAgentsBetaEnabled) {
+    if (isGroupPolicy(policy) && canReadPolicyFeature(CONST.POLICY.POLICY_FEATURE.AGENTS) && isCompanyAgentsBetaEnabled) {
         const membersItemIndex = items.findIndex((item) => item.screenName === SCREENS.WORKSPACE.MEMBERS);
         items.splice(membersItemIndex + 1, 0, {
             translationKey: 'agentsPage.title',
