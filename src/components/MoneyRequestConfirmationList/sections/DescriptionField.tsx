@@ -161,6 +161,7 @@ function DescriptionField({isDescriptionRequired, policy}: DescriptionFieldProps
                                     onSubmitEditing={canUseHardwareKeyboard ? onSubmitForm : undefined}
                                     label={translate('common.description')}
                                     accessibilityLabel={translate('common.description')}
+                                    shouldAllowFocusInLandscapeMode
                                     autoGrowHeight
                                     maxAutoGrowHeight={variables.textInputAutoGrowMaxHeight}
                                     type="markdown"

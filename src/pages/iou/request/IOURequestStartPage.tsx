@@ -43,7 +43,7 @@ import type {NavigationAction, NavigationState} from '@react-navigation/native';
 
 import {useFocusEffect} from '@react-navigation/native';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import {View} from 'react-native';
+import {InteractionManager, View} from 'react-native';
 
 import type {WithWritableReportOrNotFoundProps} from './step/withWritableReportOrNotFound';
 
@@ -255,10 +255,12 @@ function IOURequestStartPage({
     const [hasSubmitted, setHasSubmitted] = useState(false);
     const hasSubmittedRef = useRef(false);
     const lastFocusedInputRef = useRef<RestoreFocus | null>(null);
+    const lastFocusedInputCandidateRef = useRef<RestoreFocus | null>(null);
+    const focusToRestoreAfterDiscardRef = useRef<RestoreFocus | null>(null);
     const isDiscardModalOpenRef = useRef(false);
     const isDiscardNavigationPendingRef = useRef(false);
     const focusTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-    const blurTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+    const blurCleanupTaskRef = useRef<ReturnType<typeof InteractionManager.runAfterInteractions> | null>(null);
     const isPayFlow = iouType === CONST.IOU.TYPE.PAY;
     // Older empty drafts did not store a baseline. Treat their standard empty representation as clean, while
     // conservatively treating an older non-empty draft as dirty so an unsaved amount is never silently discarded.
@@ -295,26 +297,31 @@ function IOURequestStartPage({
         if (isDiscardModalOpenRef.current || isDiscardNavigationPendingRef.current) {
             return;
         }
-        if (blurTimeoutRef.current) {
-            clearTimeout(blurTimeoutRef.current);
+        if (blurCleanupTaskRef.current) {
+            blurCleanupTaskRef.current.cancel();
         }
-        blurTimeoutRef.current = setTimeout(() => {
-            if (isDiscardModalOpenRef.current) {
+        blurCleanupTaskRef.current = InteractionManager.runAfterInteractions(() => {
+            blurCleanupTaskRef.current = null;
+            if (isDiscardModalOpenRef.current || isDiscardNavigationPendingRef.current) {
                 return;
             }
             lastFocusedInputRef.current = null;
-        }, 100);
+        });
     };
 
     const handleInputFocus = (restoreFocus: RestoreFocus) => {
-        if (blurTimeoutRef.current) {
-            clearTimeout(blurTimeoutRef.current);
+        if (blurCleanupTaskRef.current) {
+            blurCleanupTaskRef.current.cancel();
+            blurCleanupTaskRef.current = null;
         }
         lastFocusedInputRef.current = restoreFocus;
+        lastFocusedInputCandidateRef.current = restoreFocus;
     };
 
     const restoreLastFocusedInput = () => {
-        const restoreFocus = lastFocusedInputRef.current;
+        const restoreFocus = focusToRestoreAfterDiscardRef.current ?? lastFocusedInputRef.current;
+        focusToRestoreAfterDiscardRef.current = null;
+        lastFocusedInputCandidateRef.current = null;
         if (!restoreFocus) {
             isDiscardNavigationPendingRef.current = false;
             return;
@@ -340,9 +347,11 @@ function IOURequestStartPage({
             if (focusTimeoutRef.current) {
                 clearTimeout(focusTimeoutRef.current);
             }
-            if (blurTimeoutRef.current) {
-                clearTimeout(blurTimeoutRef.current);
+            if (blurCleanupTaskRef.current) {
+                blurCleanupTaskRef.current.cancel();
             }
+            lastFocusedInputCandidateRef.current = null;
+            focusToRestoreAfterDiscardRef.current = null;
         },
         [],
     );
@@ -357,16 +366,24 @@ function IOURequestStartPage({
         onVisibilityChange: (isVisible) => {
             isDiscardModalOpenRef.current = isVisible;
             if (isVisible) {
+                // Native keyboard dismissal can blur an input before React Navigation exposes the blocked action.
+                // Keep the most recently focused input as the restoration target for this discard attempt.
+                focusToRestoreAfterDiscardRef.current = lastFocusedInputCandidateRef.current;
                 if (focusTimeoutRef.current) {
                     clearTimeout(focusTimeoutRef.current);
                     focusTimeoutRef.current = null;
                 }
-                if (blurTimeoutRef.current) {
-                    clearTimeout(blurTimeoutRef.current);
+                if (blurCleanupTaskRef.current) {
+                    blurCleanupTaskRef.current.cancel();
+                    blurCleanupTaskRef.current = null;
                 }
             }
         },
-        onConfirm: cleanupPreInsertedDestination,
+        onConfirm: () => {
+            focusToRestoreAfterDiscardRef.current = null;
+            lastFocusedInputCandidateRef.current = null;
+            cleanupPreInsertedDestination();
+        },
     });
 
     const suppressEmbeddedDiscardPrompt = () => {
@@ -380,9 +397,9 @@ function IOURequestStartPage({
             // Pressing the header button blurs the active field before the discard modal has mounted.
             // Preserve the field's restore callback through that transition so Cancel can reliably restore focus.
             isDiscardNavigationPendingRef.current = true;
-            if (blurTimeoutRef.current) {
-                clearTimeout(blurTimeoutRef.current);
-                blurTimeoutRef.current = null;
+            if (blurCleanupTaskRef.current) {
+                blurCleanupTaskRef.current.cancel();
+                blurCleanupTaskRef.current = null;
             }
             // Let the discard guard decide whether this navigation may proceed. Cleaning up the pre-insert now
             // would make cancelling the discard prompt destructive.
