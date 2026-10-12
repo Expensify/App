@@ -26,7 +26,7 @@ function useTransactionThreadReportID(reportID: string | undefined) {
     const nonDeletedTransactions = getAllNonDeletedTransactions(allReportTransactions, reportActions, isOffline, true);
     const visibleTransactions = nonDeletedTransactions?.filter((t) => isOffline || t.pendingAction !== 'delete');
     const reportTransactionIDs = visibleTransactions?.map((t) => t.transactionID);
-    const {shouldUseTableViewForSingleExpense} = useSingleExpenseReportView();
+    const {shouldUseTableViewForSingleExpense} = useSingleExpenseReportView(reportID);
 
     const transactionThreadReportID = getOneTransactionThreadReportID(moneyRequestReport, chatReport, reportActions ?? [], isOffline, reportTransactionIDs);
     const isSentMoneyReport = reportActions.some((action) => isSentMoneyReportAction(action));

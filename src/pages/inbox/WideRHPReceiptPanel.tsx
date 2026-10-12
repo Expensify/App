@@ -62,7 +62,7 @@ function WideRHPReceiptPanelGate() {
     const reportTransactionIDs = visibleTransactions?.map((transaction) => transaction.transactionID);
     const transactionThreadReportID = getOneTransactionThreadReportID(report, chatReport, reportActions ?? [], isOffline, reportTransactionIDs);
     const [transactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`);
-    const {shouldUseTableViewForSingleExpense} = useSingleExpenseReportView();
+    const {shouldUseTableViewForSingleExpense} = useSingleExpenseReportView(report?.reportID);
 
     const isMoneyRequestOrInvoiceReport = isMoneyRequestReport(report) || isInvoiceReport(report);
     const visibleTransactionsCount = visibleTransactions?.length ?? 0;

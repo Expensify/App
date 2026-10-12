@@ -59,7 +59,7 @@ function MoneyReportHeaderActions({reportID, primaryAction, isReportInSearch, ba
     const hasSelectedTransactions = !!selectedTransactionIDs.length;
 
     // In the table view a single-expense report lists its expense as a selectable row, so it acts like a multi-expense report here.
-    const {shouldUseTableViewForSingleExpense} = useSingleExpenseReportView();
+    const {shouldUseTableViewForSingleExpense} = useSingleExpenseReportView(moneyRequestReport?.reportID);
     const isTransactionThread = !!transactionThreadReportID && !shouldUseTableViewForSingleExpense;
 
     useEffect(() => {

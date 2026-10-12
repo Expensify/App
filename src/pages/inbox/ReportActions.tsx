@@ -55,7 +55,7 @@ function ReportActions() {
 
     const allReportTransactions = useReportTransactionsCollection(reportIDFromRoute);
     const reportTransactions = getAllNonDeletedTransactions(allReportTransactions, reportActions, isOffline, true);
-    const {shouldUseTableViewForSingleExpense} = useSingleExpenseReportView();
+    const {shouldUseTableViewForSingleExpense} = useSingleExpenseReportView(report?.reportID);
 
     const isMoneyRequestOrInvoiceReport = isMoneyRequestReport(report) || isInvoiceReport(report);
     const shouldWaitForTransactions = shouldWaitForTransactionsUtil(report, reportTransactions, reportLoadingState, isReportLoadPending, isOffline);

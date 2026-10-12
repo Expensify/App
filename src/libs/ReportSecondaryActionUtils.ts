@@ -49,6 +49,7 @@ import {
     hasPendingDEWApprove,
     hasPendingDEWSubmit,
     isPayAction,
+    isSentMoneyReportAction,
 } from './ReportActionsUtils';
 import {getReportPrimaryAction, isPrimaryPayAction} from './ReportPrimaryActionUtils';
 import {
@@ -1206,8 +1207,9 @@ function getSecondaryReportActions({
         options.push(CONST.REPORT.SECONDARY_ACTIONS.CHANGE_APPROVER);
     }
 
-    // Reports with more than one expense always use the table view, so the switch only applies to single-expense reports
-    if (isSingleTransactionReport(report, reportTransactions)) {
+    // Reports with more than one expense always use the table view, so the switch only applies to single-expense reports.
+    // "Pay someone" reports always use the expense view, because their expense is the report itself.
+    if (isSingleTransactionReport(report, reportTransactions) && !reportActions?.some(isSentMoneyReportAction)) {
         options.push(CONST.REPORT.SECONDARY_ACTIONS.TOGGLE_SINGLE_EXPENSE_VIEW);
     }
 

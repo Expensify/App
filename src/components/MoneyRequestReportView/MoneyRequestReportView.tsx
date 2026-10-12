@@ -142,7 +142,7 @@ function MoneyRequestReportView({report, reportIDFromRoute, reportLoadingState, 
     const reportErrors = visibleTransactions.length === 1 && visibleTransactions.at(0)?.errors ? undefined : allReportErrors;
     const reportTransactionIDs = visibleTransactions.map((transaction) => transaction.transactionID);
     const transactionThreadReportID = getOneTransactionThreadReportID(report, chatReport, reportActions ?? [], isOffline, reportTransactionIDs);
-    const {shouldUseTableViewForSingleExpense} = useSingleExpenseReportView();
+    const {shouldUseTableViewForSingleExpense} = useSingleExpenseReportView(reportID);
 
     const isReportLoadPending = useIsReportLoadPending(reportID);
     const dismissReportCreationError = () => {

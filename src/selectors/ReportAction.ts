@@ -1,4 +1,12 @@
-import {filterOutDeprecatedReportActions, getIOUActionForTransactionID, getLinkedTransactionID, getOriginalMessage, getSortedReportActions, isActionOfType} from '@libs/ReportActionsUtils';
+import {
+    filterOutDeprecatedReportActions,
+    getIOUActionForTransactionID,
+    getLinkedTransactionID,
+    getOriginalMessage,
+    getSortedReportActions,
+    isActionOfType,
+    isSentMoneyReportAction,
+} from '@libs/ReportActionsUtils';
 
 import CONST from '@src/CONST';
 import type {ReportAction, ReportActions} from '@src/types/onyx';
@@ -142,7 +150,11 @@ function getReceiptScanFailedIOUActionDataSelector(
 const transactionThreadReportIDSelector = (transactionID: string | undefined) => (reportActions: OnyxEntry<ReportActions>) =>
     transactionID ? getIOUActionForTransactionID(Object.values(reportActions ?? {}), transactionID)?.childReportID : undefined;
 
+/** Returns whether the report is a "Pay someone" (sent money) report, which has a pay action with IOUDetails instead of an expense-creating one. */
+const isSentMoneyReportSelector = (reportActions: OnyxEntry<ReportActions>) => Object.values(reportActions ?? {}).some(isSentMoneyReportAction);
+
 export {
+    isSentMoneyReportSelector,
     getParentReportActionSelector,
     getLastClosedReportAction,
     getNewestReportActionSelector,

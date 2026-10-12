@@ -119,7 +119,7 @@ function MoneyReportHeaderSecondaryActionsInner({reportID, primaryAction, isRepo
     });
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
-    const {singleExpenseReportView, shouldUseTableViewForSingleExpense} = useSingleExpenseReportView();
+    const {singleExpenseReportView, shouldUseTableViewForSingleExpense} = useSingleExpenseReportView(moneyRequestReport?.reportID);
     const [isSelfTourViewed = false] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {
         selector: hasSeenTourSelector,
     });

@@ -200,7 +200,7 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
 
     // In the table view a single-expense expense report is deleted as a report, so its expense moves to the self DM.
     // IOU and invoice reports can't be deleted as a report, so they keep deleting their only expense.
-    const {shouldUseTableViewForSingleExpense} = useSingleExpenseReportView();
+    const {shouldUseTableViewForSingleExpense} = useSingleExpenseReportView(reportID);
     const shouldDeleteSingleExpense = isDeletingOwnExpense && !(shouldUseTableViewForSingleExpense && isExpenseReport(moneyRequestReport));
     const shouldShowEditSplitOnDeleteAction = shouldDeleteSingleExpense && !!transaction?.transactionID && shouldOpenSplitExpenseEditFlowOnDelete([transaction.transactionID]);
 

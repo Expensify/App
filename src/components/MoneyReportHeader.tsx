@@ -135,7 +135,7 @@ function MoneyReportHeaderContent({reportID: reportIDProp, shouldDisplayBackButt
     const shouldShowBackButton = shouldDisplayBackButton || shouldUseNarrowLayout;
 
     const isMobileSelectionModeEnabled = useMobileSelectionMode();
-    const {shouldUseTableViewForSingleExpense} = useSingleExpenseReportView();
+    const {shouldUseTableViewForSingleExpense} = useSingleExpenseReportView(moneyRequestReport?.reportID);
     const isFocused = useIsFocused();
 
     useEffect(() => {

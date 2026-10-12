@@ -251,6 +251,38 @@ describe('getSecondaryAction', () => {
         expect(result).not.toContain(CONST.REPORT.SECONDARY_ACTIONS.TOGGLE_SINGLE_EXPENSE_VIEW);
     });
 
+    it('does not include TOGGLE_SINGLE_EXPENSE_VIEW on a "Pay someone" report', () => {
+        // Given a "Pay someone" report, whose one expense comes from a pay action with IOUDetails
+        const report = createMock<Report>({reportID: REPORT_ID});
+        const policy = createMock<Policy>({});
+        const transaction = createMock<Transaction>({transactionID: '1', reportID: REPORT_ID});
+        const sentMoneyAction = createMock<ReportAction>({
+            reportActionID: '1',
+            actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+            originalMessage: {type: CONST.IOU.REPORT_ACTION_TYPE.PAY, IOUTransactionID: '1', IOUDetails: {amount: 100, comment: '', currency: CONST.CURRENCY.USD}},
+        });
+
+        // When the More menu actions are computed
+        const result = getSecondaryReportActions({
+            currentUserLogin: EMPLOYEE_EMAIL,
+            currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
+            submitterLogin: '',
+            report,
+            chatReport,
+            reportTransactions: [transaction],
+            originalTransaction: createMock<Transaction>({}),
+            violations: {},
+            bankAccountList: {},
+            policy,
+            reportActions: [sentMoneyAction],
+            rules: undefined,
+            cardList: undefined,
+        });
+
+        // Then there's no option to switch views, because the report has no expense thread for a table row to open
+        expect(result).not.toContain(CONST.REPORT.SECONDARY_ACTIONS.TOGGLE_SINGLE_EXPENSE_VIEW);
+    });
+
     it('includes DOWNLOAD_RECEIPTS when at least one transaction has a receipt', () => {
         const report = createMock<Report>({});
         const policy = createMock<Policy>({});

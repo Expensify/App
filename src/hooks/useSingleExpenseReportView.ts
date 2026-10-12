@@ -1,8 +1,12 @@
+import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import type {ValueOf} from 'type-fest';
+
+import {isSentMoneyReportSelector} from '@selectors/ReportAction';
 
 import useOnyx from './useOnyx';
 
@@ -19,13 +23,17 @@ type UseSingleExpenseReportViewResult = {
 
 /**
  * Returns the user's saved view for single-expense reports (expense view or table view).
+ *
+ * Pass the report's ID to apply the view to that report. A "Pay someone" report always uses the expense view: its
+ * expense is the report itself, so it has no expense thread for a table row to open.
  */
-function useSingleExpenseReportView(): UseSingleExpenseReportViewResult {
+function useSingleExpenseReportView(reportID?: string): UseSingleExpenseReportViewResult {
     const [singleExpenseReportView = CONST.REPORT_LAYOUT.SINGLE_EXPENSE_REPORT_VIEW.EXPENSE, singleExpenseReportViewMetadata] = useOnyx(ONYXKEYS.NVP_SINGLE_EXPENSE_REPORT_VIEW);
+    const [isSentMoneyReport = false] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(reportID)}`, {selector: isSentMoneyReportSelector});
 
     return {
         singleExpenseReportView,
-        shouldUseTableViewForSingleExpense: singleExpenseReportView === CONST.REPORT_LAYOUT.SINGLE_EXPENSE_REPORT_VIEW.TABLE,
+        shouldUseTableViewForSingleExpense: singleExpenseReportView === CONST.REPORT_LAYOUT.SINGLE_EXPENSE_REPORT_VIEW.TABLE && !isSentMoneyReport,
         isLoading: isLoadingOnyxValue(singleExpenseReportViewMetadata),
     };
 }

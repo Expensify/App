@@ -23,7 +23,7 @@ function useComposerReportData(reportID: string): ComposerReportData {
     const {isOffline} = useNetwork();
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.chatReportID}`);
-    const {shouldUseTableViewForSingleExpense} = useSingleExpenseReportView();
+    const {shouldUseTableViewForSingleExpense} = useSingleExpenseReportView(reportID);
     const {reportActions: unfilteredReportActions} = usePaginatedReportActions(report?.reportID);
     const filteredReportActions = getFilteredReportActionsForReportView(unfilteredReportActions);
     const allReportTransactions = useReportTransactionsCollection(reportID);
