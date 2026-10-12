@@ -64,6 +64,7 @@ function ConnectionsAccountingPage({policy}: PolicyAccountingPageProps) {
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
             policyFeature={CONST.POLICY.POLICY_FEATURE.ACCOUNTING}
             shouldBeBlocked={!isUnifiedConnectionsBetaEnabled || (!connectedIntegration && !hasUnsupportedNDIntegration)}
+            fullPageNotFoundViewProps={{onBackButtonPress: () => Navigation.goBack(ROUTES.WORKSPACE_CONNECTIONS.getRoute(policyID))}}
         >
             <ScreenWrapper
                 testID="ConnectionsAccountingPage"

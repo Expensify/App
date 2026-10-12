@@ -1,11 +1,14 @@
 import ConnectToMergeFlow from '@components/ConnectToMergeFlow';
+import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import ScreenWrapper from '@components/ScreenWrapper';
 
 import useIsUnifiedConnectionsBetaEnabled from '@hooks/useIsUnifiedConnectionsBetaEnabled';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
+import useThemeStyles from '@hooks/useThemeStyles';
 import useWorkspaceDocumentTitle from '@hooks/useWorkspaceDocumentTitle';
 
 import {openPolicyHRPage, openPolicyRecruitingPage} from '@libs/actions/PolicyConnections';
@@ -18,6 +21,7 @@ import MergeSyncResultsListener from '@pages/workspace/merge/MergeSyncResultsLis
 import type {MergeProviderCardCategory, MergeProviderCardDescriptor} from '@pages/workspace/merge/types';
 
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 
 import React, {useEffect, useState} from 'react';
@@ -123,10 +127,16 @@ function ConnectionsMergePageBaseContent({policyID, category, cards}: Connection
 function ConnectionsMergePageBase({policyID, category, cards, shouldBeBlocked}: ConnectionsMergePageBaseProps) {
     const {featureName, openPage} = PAGE_CONFIG[category];
     const isUnifiedConnectionsBetaEnabled = useIsUnifiedConnectionsBetaEnabled();
+    const styles = useThemeStyles();
 
     useWorkspaceDocumentTitle(undefined, `workspace.common.${category}`);
 
-    useNetwork({onReconnect: () => openPage(policyID)});
+    const {isOffline} = useNetwork({onReconnect: () => openPage(policyID)});
+    const [hasConnectionsDataBeenFetched] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_HAS_CONNECTIONS_DATA_BEEN_FETCHED}${policyID}`);
+    const isConnected = cards.some((card) => card.isConnected);
+
+    // Only the active workspace has its connections at app start, so wait for the fetch before calling the provider missing
+    const isFetchingConnections = !isConnected && !isOffline && hasConnectionsDataBeenFetched === undefined;
 
     useEffect(() => {
         openPage(policyID);
@@ -138,13 +148,21 @@ function ConnectionsMergePageBase({policyID, category, cards, shouldBeBlocked}: 
             policyID={policyID}
             featureName={featureName}
             policyFeature={CONST.POLICY.POLICY_FEATURE.MORE_FEATURES}
-            shouldBeBlocked={(shouldBeBlocked ?? false) || !isUnifiedConnectionsBetaEnabled || !cards.some((card) => card.isConnected)}
+            shouldBeBlocked={(shouldBeBlocked ?? false) || !isUnifiedConnectionsBetaEnabled || (!isConnected && !isFetchingConnections)}
+            fullPageNotFoundViewProps={{onBackButtonPress: () => Navigation.goBack(ROUTES.WORKSPACE_CONNECTIONS.getRoute(policyID))}}
         >
-            <ConnectionsMergePageBaseContent
-                policyID={policyID}
-                category={category}
-                cards={cards}
-            />
+            {isFetchingConnections ? (
+                <FullScreenLoadingIndicator
+                    shouldUseGoBackButton
+                    style={styles.flex1}
+                />
+            ) : (
+                <ConnectionsMergePageBaseContent
+                    policyID={policyID}
+                    category={category}
+                    cards={cards}
+                />
+            )}
         </AccessOrNotFoundWrapper>
     );
 }

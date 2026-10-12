@@ -71,6 +71,7 @@ function ConnectionsReceiptPartnersPage({route}: ConnectionsReceiptPartnersPageP
             featureName={CONST.POLICY.MORE_FEATURES.ARE_RECEIPT_PARTNERS_ENABLED}
             policyFeature={CONST.POLICY.POLICY_FEATURE.MORE_FEATURES}
             shouldBeBlocked={!isUnifiedConnectionsBetaEnabled || (!isLoading && !isUberConnected && !shouldShowEnterCredentialsError)}
+            fullPageNotFoundViewProps={{onBackButtonPress: () => Navigation.goBack(ROUTES.WORKSPACE_CONNECTIONS.getRoute(policyID))}}
         >
             {isLoading ? (
                 <FullScreenLoadingIndicator
