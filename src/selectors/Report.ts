@@ -1,3 +1,4 @@
+import type {ReportHierarchyInfo} from '@libs/actions/ClearReportActionErrors';
 import {getOriginalMessage, isClosedAction} from '@libs/ReportActionsUtils';
 import {
     canShowReportRecipientLocalTime,
@@ -13,6 +14,7 @@ import {
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {OutstandingReportsByPolicyIDDerivedValue, PersonalDetailsList, Report, ReportActions, ReportNameValuePairs, Transaction} from '@src/types/onyx';
+import mapOnyxCollectionItems from '@src/utils/mapOnyxCollectionItems';
 
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {TupleToUnion, ValueOf} from 'type-fest';
@@ -87,7 +89,7 @@ function reportAvatarKindSelector(report: OnyxEntry<Report>): ValueOf<typeof CON
         case CONST.REPORT.CHAT_TYPE.INVOICE:
             return CONST.REPORT_AVATAR_KIND.ROOM;
         default:
-            // DM, self-DM, system, trip room and anything unclassified
+            // DM, self-DM, system, a trip room without its parent fields and anything unclassified
             return CONST.REPORT_AVATAR_KIND.DEFAULT;
     }
 }
@@ -100,6 +102,37 @@ function groupChatAvatarReportSelector(report: OnyxEntry<Report>): GroupChatAvat
         return undefined;
     }
     return {reportID: report.reportID, avatarUrl: report.avatarUrl, reportName: report.reportName, participants: report.participants};
+}
+
+/** The report fields the report-type avatar wrappers render from: the owner, the parent-action link, the chat type and the workspace-icon fallbacks. */
+type ReportAvatarFields = Pick<
+    Report,
+    'ownerAccountID' | 'chatType' | 'policyID' | 'policyAvatar' | 'policyName' | 'oldPolicyName' | 'chatReportID' | 'parentReportID' | 'parentReportActionID'
+>;
+
+function reportAvatarFieldsSelector(report: OnyxEntry<Report>): ReportAvatarFields | undefined {
+    if (!report) {
+        return undefined;
+    }
+    return {
+        ownerAccountID: report.ownerAccountID,
+        chatType: report.chatType,
+        policyID: report.policyID,
+        policyAvatar: report.policyAvatar,
+        policyName: report.policyName,
+        oldPolicyName: report.oldPolicyName,
+        chatReportID: report.chatReportID,
+        parentReportID: report.parentReportID,
+        parentReportActionID: report.parentReportActionID,
+    };
+}
+
+/** Policy fallbacks a child report's workspace icon reads off its parent chat. */
+function reportPolicyFieldsSelector(report: OnyxEntry<Report>): Pick<Report, 'policyID' | 'policyName' | 'oldPolicyName' | 'policyAvatar'> | undefined {
+    if (!report) {
+        return undefined;
+    }
+    return {policyID: report.policyID, policyName: report.policyName, oldPolicyName: report.oldPolicyName, policyAvatar: report.policyAvatar};
 }
 
 const policyIDsWithEmptyReportsSelector =
@@ -138,6 +171,12 @@ const policyChatRoomsSelector =
         }
         return list;
     };
+
+/** Selects the outstanding reports that belong to the given policy. */
+const createOutstandingReportsForPolicySelector =
+    (policyID: string | undefined) =>
+    (outstandingReportsByPolicyID: OnyxEntry<OutstandingReportsByPolicyIDDerivedValue>): OnyxCollection<Report> =>
+        outstandingReportsByPolicyID?.[policyID ?? CONST.DEFAULT_NUMBER_ID];
 
 /**
  * Selects archived report NVPs for the current report and possible "Move expense" destination reports.
@@ -206,6 +245,7 @@ type ExcludedFields = ValidReportKeys<
         'lastMessageText',
         'lastVisibleActionCreated',
         'lastReadTime',
+        'manuallyMarkedUnreadReportActionID',
         'lastReadSequenceNumber',
         'lastMentionedTime',
         'lastVisibleActionLastModified',
@@ -292,6 +332,7 @@ function getStableReportSelector(report: OnyxEntry<Report>) {
         // `undefined` keeps the projection stable through that reconciliation.
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         managerID: report.managerID || undefined,
+        supportTicketCalendarLink: report.supportTicketCalendarLink,
         ownerAccountID: report.ownerAccountID,
         participants: report.participants,
         total: report.total,
@@ -303,6 +344,7 @@ function getStableReportSelector(report: OnyxEntry<Report>) {
         errorFields: report.errorFields,
         errors: report.errors,
         isWaitingOnBankAccount: report.isWaitingOnBankAccount,
+        canCancelReimbursement: report.canCancelReimbursement,
         isCancelledIOU: report.isCancelledIOU,
         hasReportBeenRetracted: report.hasReportBeenRetracted,
         hasReportBeenReopened: report.hasReportBeenReopened,
@@ -314,7 +356,6 @@ function getStableReportSelector(report: OnyxEntry<Report>) {
         privateNotes: report.privateNotes,
         fieldList: report.fieldList,
         permissions: getStablePermissions(report.permissions),
-        tripData: report.tripData,
         welcomeMessage: report.welcomeMessage,
         nextStep: report.nextStep,
         pendingAction: report.pendingAction,
@@ -326,6 +367,33 @@ function isDraftReportSelector(draft: OnyxEntry<Report>): boolean {
     return !!draft;
 }
 
+function reportHierarchySelector(report: OnyxEntry<Report>): OnyxEntry<ReportHierarchyInfo> {
+    return (
+        report && {
+            parentReportID: report.parentReportID,
+            parentReportActionID: report.parentReportActionID,
+        }
+    );
+}
+
+function reportsParentHierarchySelector(reports: OnyxCollection<Report>): OnyxCollection<ReportHierarchyInfo> {
+    return mapOnyxCollectionItems(reports, reportHierarchySelector);
+}
+/**
+ * Creates a selector returning only the reports for the given IDs, so a consumer that knows the exact
+ * reports it needs doesn't re-render when any other report in the account changes.
+ */
+const reportsByIDsSelector =
+    (reportIDs: string[]) =>
+    (allReports: OnyxCollection<Report>): OnyxCollection<Report> => {
+        const result: OnyxCollection<Report> = {};
+        for (const reportID of reportIDs) {
+            const key = `${ONYXKEYS.COLLECTION.REPORT}${reportID}` as const;
+            result[key] = allReports?.[key];
+        }
+        return result;
+    };
+
 export {
     getArchiveReason,
     getReportChatType,
@@ -336,11 +404,16 @@ export {
     policyIDsWithEmptyReportsSelector,
     canShowReportRecipientLocalTimeSelector,
     policyChatRoomsSelector,
+    reportAvatarFieldsSelector,
     reportAvatarKindSelector,
+    reportPolicyFieldsSelector,
     createMoveExpenseReportNVPSelector,
+    createOutstandingReportsForPolicySelector,
     openExpenseReportIDsSelector,
     getStableReportSelector,
     isDraftReportSelector,
+    reportsParentHierarchySelector,
+    reportsByIDsSelector,
 };
 
-export type {StableReport};
+export type {ReportAvatarFields, StableReport};

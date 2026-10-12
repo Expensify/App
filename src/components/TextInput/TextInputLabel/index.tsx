@@ -3,6 +3,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 import textRef from '@src/types/utils/textRef';
 
+import type {ComponentRef} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import type {Text} from 'react-native';
 
@@ -14,7 +15,7 @@ import type TextInputLabelProps from './types';
 function TextInputLabel({for: inputId = '', label, labelTranslateY, labelScale, isMultiline, shouldLabelStayOnSingleLine}: TextInputLabelProps) {
     const shouldClipToSingleLine = !isMultiline || shouldLabelStayOnSingleLine;
     const styles = useThemeStyles();
-    const labelRef = useRef<Text | HTMLFormElement>(null);
+    const labelRef = useRef<ComponentRef<typeof Text> | HTMLFormElement>(null);
 
     useEffect(() => {
         if (!inputId || !labelRef.current || !('setAttribute' in labelRef.current)) {

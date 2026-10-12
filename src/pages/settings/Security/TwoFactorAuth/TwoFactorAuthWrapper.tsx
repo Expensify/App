@@ -21,7 +21,6 @@ import {useRoute} from '@react-navigation/native';
 import React, {useMemo} from 'react';
 
 type TwoFactorAuthWrapperProps = ChildrenProps & {
-    /** Name of the step */
     stepName: ValueOf<typeof CONST.TWO_FACTOR_AUTH_STEPS>;
 
     /** Title of the Header */
@@ -33,10 +32,7 @@ type TwoFactorAuthWrapperProps = ChildrenProps & {
     /** Method to trigger when pressing back button of the header */
     onBackButtonPress?: () => void;
 
-    /** Flag to indicate if the keyboard avoiding view should be enabled */
     shouldEnableKeyboardAvoidingView?: boolean;
-
-    /** Flag to indicate if max height should be enabled */
     shouldEnableMaxHeight?: boolean;
 };
 

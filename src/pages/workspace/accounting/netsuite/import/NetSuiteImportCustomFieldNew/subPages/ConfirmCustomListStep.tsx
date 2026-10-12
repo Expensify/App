@@ -1,11 +1,11 @@
 import ActivityIndicator from '@components/ActivityIndicator';
-import Button from '@components/ButtonComposed';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import Button from '@components/Button';
+import ButtonDisabledWhenOffline from '@components/Button/composed/ButtonDisabledWhenOffline';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import Text from '@components/Text';
 
 import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
 import useLocalize from '@hooks/useLocalize';
-import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import type {CustomFieldSubPageWithPolicy} from '@pages/workspace/accounting/netsuite/types';
@@ -20,7 +20,6 @@ import {View} from 'react-native';
 function ConfirmCustomListStep({onMove, netSuiteCustomFieldFormValues: values, onNext}: CustomFieldSubPageWithPolicy) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {isOffline} = useNetwork();
 
     const bottomSafeAreaPaddingStyle = useBottomSafeSafeAreaPaddingStyle({addBottomSafeAreaPadding: true});
 
@@ -38,30 +37,28 @@ function ConfirmCustomListStep({onMove, netSuiteCustomFieldFormValues: values, o
         <View style={[styles.flex1, styles.mt3, bottomSafeAreaPaddingStyle]}>
             <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mb3]}>{translate('workspace.common.letsDoubleCheck')}</Text>
             {fieldNames.map((fieldName, index) => (
-                <MenuItemWithTopDescription
+                <MenuItemField
                     key={fieldName}
-                    description={translate(`workspace.netsuite.import.importCustomFields.customLists.fields.${fieldName}` as TranslationPaths)}
-                    title={
+                    name={translate(`workspace.netsuite.import.importCustomFields.customLists.fields.${fieldName}` as TranslationPaths)}
+                    value={
                         fieldName === INPUT_IDS.MAPPING && values[fieldName]
                             ? translate(`workspace.netsuite.import.importTypes.${values[fieldName]}.label` as TranslationPaths)
                             : values[fieldName]
                     }
-                    shouldShowRightIcon
                     onPress={() => {
                         onMove(index);
                     }}
                 />
             ))}
             <View style={[styles.ph5, styles.pb5, styles.flexGrow1, styles.justifyContentEnd]}>
-                <Button
-                    isDisabled={isOffline}
+                <ButtonDisabledWhenOffline
                     variant={CONST.BUTTON_VARIANT.SUCCESS}
                     size={CONST.BUTTON_SIZE.LARGE}
                     style={[styles.w100]}
                     onPress={onNext}
                 >
                     <Button.Text>{translate('common.confirm')}</Button.Text>
-                </Button>
+                </ButtonDisabledWhenOffline>
             </View>
         </View>
     );

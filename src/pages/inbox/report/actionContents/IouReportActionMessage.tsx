@@ -18,7 +18,6 @@ import React from 'react';
 import ReportActionMessageContent from './ReportActionMessageContent';
 
 type IouReportActionMessageProps = {
-    /** The report action */
     action: ReportAction;
 
     /** Should the comment have the appearance of being grouped with the previous comment? */
@@ -30,7 +29,6 @@ type IouReportActionMessageProps = {
     /** Whether or not the message is hidden by moderation */
     isHidden?: boolean;
 
-    /** The ID of the report */
     reportID: string | undefined;
 };
 

@@ -8,14 +8,7 @@ import React from 'react';
 import Animated, {useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 
 type SpacerViewProps = {
-    /**
-     * Should we show the spacer
-     */
     shouldShow: boolean;
-
-    /**
-     * Array of style objects
-     */
     style?: StyleProp<ViewStyle>;
 };
 

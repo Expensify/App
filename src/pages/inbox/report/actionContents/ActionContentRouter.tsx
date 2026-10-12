@@ -5,6 +5,8 @@ import ExportIntegration from '@components/ReportActionItem/ExportIntegration';
 import IssueCardMessage from '@components/ReportActionItem/IssueCardMessage';
 import MoneyRequestReportPreview from '@components/ReportActionItem/MoneyRequestReportPreview';
 import MovedTransactionAction from '@components/ReportActionItem/MovedTransactionAction';
+import SupportTicketPreview from '@components/ReportActionItem/SupportTicketPreview';
+import SupportTicketSurvey from '@components/ReportActionItem/SupportTicketSurvey';
 import TaskAction from '@components/ReportActionItem/TaskAction';
 import TaskPreview from '@components/ReportActionItem/TaskPreview';
 import TripRoomPreview from '@components/ReportActionItem/TripRoomPreview';
@@ -18,8 +20,10 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {
     getChangedApproverActionMessage,
+    getCompanyCardConnectionBroken30DaysMessage,
     getCommuterExclusionMessage,
     getCompanyCardConnectionBrokenMessage,
+    getConciergeAutoSelectDistanceRateMessage,
     getDelegateSubmitMessage,
     getForwardedReportActionMessage,
     getIOUReportIDFromReportActionPreview,
@@ -36,15 +40,19 @@ import {
     isActionableMentionWhisper,
     isActionableReportMentionWhisper,
     isActionOfType,
+    isApprovalFlowAction,
     isCardBrokenConnectionAction,
     isCardIssuedAction,
     isCreatedTaskReportAction,
+    isCreatedSupportTicketReportAction,
+    isDeletedReportPreviewWithError,
     isIOURequestReportAction,
     isMemberChangeAction,
     isMoneyRequestAction,
     isReimbursementDeQueuedOrCanceledAction,
     isReimbursementQueuedAction,
     isRenamedAction,
+    isSimpleMessageAction,
     isTaskAction,
     isTripPreview,
 } from '@libs/ReportActionsUtils';
@@ -60,9 +68,10 @@ import type * as OnyxTypes from '@src/types/onyx';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
+import {Str} from 'expensify-common';
 import React from 'react';
 
-import ApprovalFlowContent, {isApprovalFlowAction} from './ApprovalFlowContent';
+import ApprovalFlowContent from './ApprovalFlowContent';
 import CardBrokenConnectionContent from './CardBrokenConnectionContent';
 import ChatMessageContent from './ChatMessageContent';
 import ChatTransactionPreview from './ChatTransactionPreview';
@@ -83,11 +92,11 @@ import ReimbursedContent from './ReimbursedContent';
 import ReimbursementDeQueuedContent from './ReimbursementDeQueuedContent';
 import ReimbursementQueuedContent from './ReimbursementQueuedContent';
 import RemovedFromApprovalChainContent from './RemovedFromApprovalChainContent';
+import ReportActionMessageContent from './ReportActionMessageContent';
 import ReportMentionWhisperContent from './ReportMentionWhisperContent';
-import SimpleMessageContent, {isSimpleMessageAction} from './SimpleMessageContent';
+import SimpleMessageContent from './SimpleMessageContent';
 
 type ActionContentRouterProps = {
-    /** All the data of the action item */
     action: OnyxTypes.ReportAction;
 
     /** Report for this action */
@@ -102,16 +111,12 @@ type ActionContentRouterProps = {
     /** The IOU/Expense report we are paying */
     iouReport?: OnyxTypes.Report;
 
-    /** Report ID for the current report */
     reportID: string | undefined;
 
     /** Should the comment have the appearance of being grouped with the previous comment? */
     displayAsGroup: boolean;
 
-    /** ReportAction draft message */
     draftMessage: string | undefined;
-
-    /** Whether the report action is a whisper */
     isWhisper: boolean;
 
     /** Whether the report action is hovered (or context menu / emoji picker active) */
@@ -123,7 +128,6 @@ type ActionContentRouterProps = {
     /** Toggle the hidden state of the message */
     updateHiddenState: (isHiddenValue: boolean) => void;
 
-    /** Whether the provided report is a closed expense report with no expenses */
     isClosedExpenseReportWithNoExpenses?: boolean;
 
     /** Whether the report action is the "Created" action of a harvest-created expense report */
@@ -135,11 +139,12 @@ type ActionContentRouterProps = {
     /** Whether the search-page UI is active */
     isOnSearch: boolean;
 
-    /** Toggle whether the payment method popover is active */
-    setIsPaymentMethodPopoverActive: (value: boolean) => void;
+    /** Whether this is the newest Concierge comment eligible for the inline feedback prompt */
+    isLatestConciergeFeedbackAction: boolean;
 
-    /** Whether the user is a track intent user */
+    setIsPaymentMethodPopoverActive: (value: boolean) => void;
     isTrackIntentUser?: boolean;
+    paymentExpectedDate?: string;
 };
 
 function ActionContentRouter({
@@ -161,6 +166,8 @@ function ActionContentRouter({
     isOnSearch,
     setIsPaymentMethodPopoverActive,
     isTrackIntentUser,
+    isLatestConciergeFeedbackAction,
+    paymentExpectedDate,
 }: ActionContentRouterProps): React.JSX.Element | null {
     const {translate, formatTravelDate} = useLocalize();
     const styles = useThemeStyles();
@@ -175,6 +182,7 @@ function ActionContentRouter({
     const actionOwnerReportID = originalReportID ?? reportID;
     const policyID = report?.policyID;
     const reportOwnerAccountID = report?.ownerAccountID;
+    const isSupportTicketReport = report?.type === CONST.REPORT.TYPE.SUPPORT_TICKET;
 
     if (isIOURequestReportAction(action)) {
         const moneyRequestOriginalMessage = isMoneyRequestAction(action) ? getOriginalMessage(action) : undefined;
@@ -207,7 +215,8 @@ function ActionContentRouter({
             />
         );
     }
-    if (action.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW && isClosedExpenseReportWithNoExpenses) {
+    // This preview has no report left to show, so render the placeholder instead of pointing at a report that is gone.
+    if (action.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW && (isClosedExpenseReportWithNoExpenses || isDeletedReportPreviewWithError(action))) {
         return <RenderHTML html={`<deleted-action>${translate('parentReportAction.deletedReport')}</deleted-action>`} />;
     }
     if (action.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW) {
@@ -241,6 +250,24 @@ function ActionContentRouter({
                 action={action}
                 isHovered={hovered}
                 policyID={policyID}
+            />
+        );
+    }
+    if (isCreatedSupportTicketReportAction(action)) {
+        return (
+            <SupportTicketPreview
+                style={displayAsGroup ? [] : [styles.mt1]}
+                action={action}
+                isHovered={hovered}
+            />
+        );
+    }
+    if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.SUPPORT_SURVEY)) {
+        return (
+            <SupportTicketSurvey
+                action={action}
+                report={report}
+                reportID={reportID}
             />
         );
     }
@@ -293,6 +320,7 @@ function ActionContentRouter({
         return (
             <PaymentContent
                 action={action}
+                expectedDate={paymentExpectedDate}
                 policyID={policyID}
             />
         );
@@ -315,6 +343,16 @@ function ActionContentRouter({
                 actionReportID={action.reportID}
                 action={action}
                 originalReport={originalReport}
+            />
+        );
+    }
+    if (isSupportTicketReport && (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.CLOSED) || isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.REOPENED))) {
+        return (
+            <ReportActionMessageContent
+                action={action}
+                displayAsGroup={displayAsGroup}
+                reportID={reportID}
+                isSupportTicketReport={isSupportTicketReport}
             />
         );
     }
@@ -365,6 +403,14 @@ function ActionContentRouter({
         return (
             <ReportActionItemBasicMessage message="">
                 <RenderHTML html={`<comment><muted-text>${getTravelUpdateMessage(translate, action, formatTravelDate)}</muted-text></comment>`} />
+            </ReportActionItemBasicMessage>
+        );
+    }
+    if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.CONCIERGE_AUTO_SELECT_DISTANCE_RATE)) {
+        return (
+            <ReportActionItemBasicMessage message="">
+                {/* The helper returns plain text, so encode it before it becomes HTML or a workspace name containing an entity like `&copy;` would be parsed as markup. */}
+                <RenderHTML html={`<comment><muted-text>${Str.htmlEncode(getConciergeAutoSelectDistanceRateMessage(translate, action))}</muted-text></comment>`} />
             </ReportActionItemBasicMessage>
         );
     }
@@ -485,6 +531,13 @@ function ActionContentRouter({
             </ReportActionItemBasicMessage>
         );
     }
+    if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.COMPANY_CARD_CONNECTION_BROKEN_30_DAYS)) {
+        return (
+            <ReportActionItemBasicMessage message="">
+                <RenderHTML html={`<comment><muted-text>${getCompanyCardConnectionBroken30DaysMessage(translate, action)}</muted-text></comment>`} />
+            </ReportActionItemBasicMessage>
+        );
+    }
     if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.PLAID_BALANCE_FAILURE)) {
         return (
             <ReportActionItemBasicMessage message="">
@@ -550,6 +603,7 @@ function ActionContentRouter({
             isHidden={isHidden}
             updateHiddenState={updateHiddenState}
             isOnSearch={isOnSearch}
+            isLatestConciergeFeedbackAction={isLatestConciergeFeedbackAction}
         />
     );
 }

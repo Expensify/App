@@ -7,11 +7,12 @@ import CONST from '@src/CONST';
 import React from 'react';
 import {View} from 'react-native';
 
-import Button from './ButtonComposed';
-import Header from './Header';
+import Button from './Button';
+import HeaderTitle from './HeaderTitle';
 import Modal from './Modal';
 import RenderHTML from './RenderHTML';
 import ScrollView from './ScrollView';
+import Text from './Text';
 
 type DecisionModalProps = {
     /** Title describing purpose of modal */
@@ -53,11 +54,13 @@ type DecisionModalProps = {
     /** Callback when modal has fully disappeared */
     onModalHide?: () => void;
 
-    /** Whether modal is visible */
     isVisible: boolean;
 
     /** Whether to handle browser navigation back to close the modal */
     shouldHandleNavigationBack?: boolean;
+
+    /** Whether to render the prompt as HTML or plain text */
+    shouldRenderPromptAsHTML?: boolean;
 };
 
 function DecisionModal({
@@ -76,6 +79,7 @@ function DecisionModal({
     isSecondOptionSuccess = false,
     isSecondOptionDanger = false,
     shouldHandleNavigationBack,
+    shouldRenderPromptAsHTML = true,
 }: DecisionModalProps) {
     const styles = useThemeStyles();
 
@@ -111,12 +115,11 @@ function DecisionModal({
             >
                 <View>
                     <View style={[styles.flexRow, styles.mb5]}>
-                        <Header
-                            title={title}
-                            containerStyles={styles.alignItemsCenter}
-                        />
+                        <HeaderTitle style={styles.alignItemsCenter}>
+                            <HeaderTitle.Text>{title}</HeaderTitle.Text>
+                        </HeaderTitle>
                     </View>
-                    <RenderHTML html={prompt} />
+                    {shouldRenderPromptAsHTML ? <RenderHTML html={prompt} /> : <Text>{prompt}</Text>}
                 </View>
                 {!!firstOptionText && (
                     <Button

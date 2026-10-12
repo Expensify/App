@@ -1,5 +1,7 @@
 import * as API from '@libs/API';
 import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
+import Pusher from '@libs/Pusher';
+import PusherUtils from '@libs/PusherUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -8,11 +10,12 @@ import type {NewLogin} from '@src/types/onyx';
 import {CONST as COMMON_CONST} from 'expensify-common';
 import Onyx from 'react-native-onyx';
 
+import * as App from '../../src/libs/actions/App';
 import * as DeviceActions from '../../src/libs/actions/Device';
 import redirectToSignIn from '../../src/libs/actions/SignInRedirect';
 import * as UserActions from '../../src/libs/actions/User';
 import createMock from '../utils/createMock';
-import {anyArray, anyObject, anyString} from '../utils/TestHelper';
+import {anyArray, anyObject, anyString, formatPhoneNumber} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 jest.mock('@libs/API');
@@ -400,6 +403,54 @@ describe('actions/User', () => {
                 expect(mockAPI.write.mock.calls.at(0)?.[0]).toBe(WRITE_COMMANDS.RESEND_VALIDATE_CODE);
                 expect(mockAPI.write.mock.calls.at(0)?.[1]).toEqual({reasonCode: COMMON_CONST.VALIDATE_CODE_REASONS.REVEAL_CARD_DETAILS, reasonCardID});
             });
+        });
+    });
+
+    describe('requestEmailUnblock', () => {
+        it('should call API.write with USER_UNBLOCK_EMAIL and no params', async () => {
+            // Given the user is on the email issue page
+
+            // When requestEmailUnblock is called
+            UserActions.requestEmailUnblock();
+            await waitForBatchedUpdates();
+
+            // Then API.write targets USER_UNBLOCK_EMAIL with null params, since the backend derives the email from the session
+            expect(mockAPI.write).toHaveBeenCalledWith(
+                WRITE_COMMANDS.USER_UNBLOCK_EMAIL,
+                null,
+                expect.objectContaining({
+                    optimisticData: anyArray,
+                    successData: anyArray,
+                    failureData: anyArray,
+                }),
+            );
+        });
+
+        it('should set isUnblockingEmail optimistically', async () => {
+            // When requestEmailUnblock is called
+            UserActions.requestEmailUnblock();
+            await waitForBatchedUpdates();
+
+            // Then the optimistic update flags the account as unblocking
+            const onyxData = mockAPI.write.mock.calls.at(0)?.[2];
+            const optimisticUpdate = onyxData?.optimisticData?.find((update) => update.key === ONYXKEYS.ACCOUNT);
+
+            expect(optimisticUpdate?.value).toEqual({isUnblockingEmail: true});
+        });
+
+        it('should clear isUnblockingEmail on both success and failure without writing to account.errors', async () => {
+            // When requestEmailUnblock is called
+            UserActions.requestEmailUnblock();
+            await waitForBatchedUpdates();
+
+            // Then both branches clear the loading flag, and neither writes account.errors: the ConfirmModal on
+            // EmailIssuePage is the only failure surface (deliberate deviation from the generic-error spec).
+            const onyxData = mockAPI.write.mock.calls.at(0)?.[2];
+            const successUpdate = onyxData?.successData?.find((update) => update.key === ONYXKEYS.ACCOUNT);
+            const failureUpdate = onyxData?.failureData?.find((update) => update.key === ONYXKEYS.ACCOUNT);
+
+            expect(successUpdate?.value).toEqual({isUnblockingEmail: false});
+            expect(failureUpdate?.value).toEqual({isUnblockingEmail: false});
         });
     });
 
@@ -1048,6 +1099,48 @@ describe('actions/User', () => {
 
             // Then redirectToSignIn should be called
             expect(redirectToSignIn).toHaveBeenCalled();
+        });
+    });
+
+    describe('subscribeToUserEvents RECONNECT_APP', () => {
+        const reconnectAppMock = jest.fn();
+
+        beforeEach(() => {
+            reconnectAppMock.mockClear();
+            jest.spyOn(App, 'reconnectApp').mockImplementation(reconnectAppMock);
+        });
+
+        afterEach(() => {
+            jest.restoreAllMocks();
+        });
+
+        it('passes lastUpdateIDAppliedToClient when reconnecting as an anonymous user', async () => {
+            const lastUpdateID = 42;
+            await Onyx.merge(ONYXKEYS.SESSION, {authTokenType: CONST.AUTH_TOKEN_TYPES.ANONYMOUS, accountID: 1, authToken: 'anon'});
+            await Onyx.merge(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT, lastUpdateID);
+            await waitForBatchedUpdates();
+
+            UserActions.subscribeToUserEvents(1, 'anon@test.com', () => {}, formatPhoneNumber, undefined);
+            await waitForBatchedUpdates();
+
+            await PusherUtils.triggerMultiEventHandler(Pusher.TYPE.MULTIPLE_EVENT_TYPE.RECONNECT_APP, []);
+            await waitForBatchedUpdates();
+
+            expect(reconnectAppMock).toHaveBeenCalledWith(lastUpdateID);
+        });
+
+        it('calls reconnectApp without updateIDFrom for authenticated users', async () => {
+            await Onyx.merge(ONYXKEYS.SESSION, {authTokenType: undefined, accountID: 1, authToken: 'token'});
+            await Onyx.merge(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT, 42);
+            await waitForBatchedUpdates();
+
+            UserActions.subscribeToUserEvents(1, 'test@test.com', () => {}, formatPhoneNumber, undefined);
+            await waitForBatchedUpdates();
+
+            await PusherUtils.triggerMultiEventHandler(Pusher.TYPE.MULTIPLE_EVENT_TYPE.RECONNECT_APP, []);
+            await waitForBatchedUpdates();
+
+            expect(reconnectAppMock).toHaveBeenCalledWith();
         });
     });
 });

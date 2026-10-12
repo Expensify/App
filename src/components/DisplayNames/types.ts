@@ -29,10 +29,7 @@ type DisplayNamesProps = ForwardedFSClassProps & {
      */
     shouldParseFullTitle?: boolean;
 
-    /** Array of objects that map display names to their corresponding tooltip */
     displayNamesWithTooltips?: DisplayNameWithTooltip[];
-
-    /** Number of lines before wrapping */
     numberOfLines: number;
 
     /** Is tooltip needed? When true, triggers complex title rendering */
@@ -47,7 +44,6 @@ type DisplayNamesProps = ForwardedFSClassProps & {
      */
     accessibilityLabel?: string;
 
-    /** If the full title needs to be displayed */
     shouldUseFullTitle?: boolean;
 
     /** If we should add an ellipsis after the participants list */
@@ -59,7 +55,6 @@ type DisplayNamesProps = ForwardedFSClassProps & {
     /** Additional Text component to render after the displayNames */
     renderAdditionalText?: () => React.ReactNode;
 
-    /** TestID indicating order */
     testID?: number;
 };
 

@@ -1,4 +1,7 @@
-import type {State} from '@navigation/types';
+import hasDifferentSplitScope from '@libs/Navigation/helpers/hasDifferentSplitScope';
+import {isRecord} from '@libs/ObjectUtils';
+
+import type {NavigationRoute, State} from '@navigation/types';
 
 import type {NavigationAction, NavigationState} from '@react-navigation/native';
 import type {Writable} from 'type-fest';
@@ -7,8 +10,35 @@ import type {ActionPayload} from './types';
 
 type MinimalAction = {
     action: Writable<NavigationAction>;
-    targetState: State | undefined;
+    /** The state of the navigator the minimal action is addressed at, which is the root state when the descent stops on it */
+    targetState: State;
+    /**
+     * True when the descent stopped on a split navigator with the requested name but another scope (workspace or
+     * domain). Callers decide: forward navigation pushes a sibling split, backward navigation looks for the match.
+     */
+    isFocusedRouteInDifferentScope: boolean;
 };
+
+function isNamedActionPayload(payload: unknown): payload is ActionPayload & {name: string} {
+    return isRecord(payload) && typeof payload.name === 'string';
+}
+
+/**
+ * One step of the descent: the same action addressed at `nestedState`. Its payload has no name when the action
+ * addresses nothing below that route, which is where a descent stops.
+ */
+function getNestedAction(action: NavigationAction, nestedState: State): Writable<NavigationAction> {
+    const params = isNamedActionPayload(action.payload) ? action.payload.params : undefined;
+    return {
+        type: action.type,
+        payload: {
+            name: params?.screen,
+            params: params?.params,
+            path: params?.path,
+        },
+        target: nestedState.key,
+    };
+}
 
 /**
  * Motivation for this function is described in NAVIGATION.md
@@ -18,32 +48,29 @@ type MinimalAction = {
  * @returns minimalAction minimal action is the action that we should dispatch
  */
 function getMinimalAction(action: NavigationAction, state: NavigationState): MinimalAction {
-    let currentAction: NavigationAction = action;
-    let currentState: State | undefined = state;
-    let currentTargetKey: string | undefined;
+    let currentAction: Writable<NavigationAction> = action;
+    let currentState: State = state;
 
-    while (currentAction.payload && 'name' in currentAction.payload && currentState?.routes[currentState.index ?? -1].name === currentAction.payload.name) {
-        if (!currentState?.routes[currentState.index ?? -1].state) {
+    while (isNamedActionPayload(currentAction.payload)) {
+        const currentRoute: NavigationRoute | undefined = currentState.routes.at(currentState.index ?? -1);
+        if (!currentRoute || currentRoute.name !== currentAction.payload.name) {
             break;
         }
 
-        currentState = currentState?.routes[currentState.index ?? -1].state;
-        currentTargetKey = currentState?.key;
+        // Descending into a split of another scope would reuse its sidebar for a different workspace or domain.
+        if (hasDifferentSplitScope(currentRoute, currentAction.payload)) {
+            return {action: currentAction, targetState: currentState, isFocusedRouteInDifferentScope: true};
+        }
 
-        const payload = currentAction.payload as ActionPayload;
+        if (!currentRoute.state) {
+            break;
+        }
 
-        // Creating new smaller action
-        currentAction = {
-            type: currentAction.type,
-            payload: {
-                name: payload?.params?.screen,
-                params: payload?.params?.params,
-                path: payload?.params?.path,
-            },
-            target: currentTargetKey,
-        };
+        currentAction = getNestedAction(currentAction, currentRoute.state);
+        currentState = currentRoute.state;
     }
-    return {action: currentAction, targetState: currentState};
+    return {action: currentAction, targetState: currentState, isFocusedRouteInDifferentScope: false};
 }
 
 export default getMinimalAction;
+export {getNestedAction, isNamedActionPayload};

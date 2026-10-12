@@ -4,7 +4,6 @@
 type PaymentInformation = {
     /** The name of the payment type used Elsewhere, Expensify, ACH, or a policyID. */
     name: string;
-    /** The bank account id of the last payment method */
     bankAccountID?: number;
 };
 
@@ -14,11 +13,8 @@ type PaymentInformation = {
 type LastPaymentMethodType = {
     /** The default last payment method */
     lastUsed: PaymentInformation;
-    /** The lastPaymentMethod of an IOU */
     iou: PaymentInformation;
-    /** The lastPaymentMethod of an Expense */
     expense: PaymentInformation;
-    /** The lastPaymentMethod of an Invoice */
     invoice: string | PaymentInformation;
 };
 

@@ -19,6 +19,7 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import {useReportPaymentContext} from '@hooks/usePaymentContext';
+import {useAllPersonalDetailsWithoutSnapshots} from '@hooks/usePersonalDetails';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
@@ -55,19 +56,13 @@ import TotalCell from './TotalCell';
 import UserInfoAndActionButtonRow from './UserInfoAndActionButtonRow';
 
 type ReportListItemHeaderProps<TItem extends ListItem> = SearchListActionProps & {
-    /** The report currently being looked at */
     report: TransactionReportGroupListItemType;
-
-    /** Callback to fire when the item is pressed */
     onSelectRow: (item: TItem, event?: ModifiedMouseEvent) => void;
-
-    /** Callback to fire when a checkbox is pressed */
     onCheckboxPress?: (item: TItem) => void;
 
     /** Whether this section items disabled for selection */
     isDisabled?: boolean | null;
 
-    /** Whether the item is focused */
     isFocused?: boolean;
 
     /** Whether selecting multiple transactions at once is allowed */
@@ -79,21 +74,16 @@ type ReportListItemHeaderProps<TItem extends ListItem> = SearchListActionProps &
     /** Whether only some transactions are selected */
     isIndeterminate?: boolean;
 
-    /** Callback for when the down arrow is clicked */
     onDownArrowClick?: () => void;
 
     /** Whether the down arrow is expanded */
     isExpanded?: boolean;
 
-    /** Whether the item is hovered */
     isHovered?: boolean;
 };
 
 type FirstRowReportHeaderProps<TItem extends ListItem> = {
-    /** The report currently being looked at */
     report: TransactionReportGroupListItemType;
-
-    /** Callback to fire when a checkbox is pressed */
     onCheckboxPress?: (item: TItem) => void;
 
     /** Whether this section items disabled for selection */
@@ -114,7 +104,6 @@ type FirstRowReportHeaderProps<TItem extends ListItem> = {
     /** Whether only some transactions are selected */
     isIndeterminate?: boolean;
 
-    /** Callback for when the down arrow is clicked */
     onDownArrowClick?: () => void;
 
     /** Whether the down arrow is expanded */
@@ -282,26 +271,39 @@ function ReportListItemHeaderInner<TItem extends ListItem>({
     }, [snapshot, snapshotReport?.chatReportID, reportItem.parentReportID]);
     const [parentPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(snapshotReport?.policyID ?? reportItem.policyID)}`);
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(snapshotReport?.reportID ?? reportItem.reportID)}`);
-    const [submitterLogin] = useOnyxWithoutSnapshots(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsLoginSelector(reportItem.ownerAccountID)});
+    const [submitterLogin] = useAllPersonalDetailsWithoutSnapshots(personalDetailsLoginSelector(reportItem.ownerAccountID));
     const [parentChatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(snapshotReport?.chatReportID ?? reportItem.parentReportID)}`);
     const chatReport = parentChatReport ?? snapshotChatReport;
     const [chatReportActions] = useOnyx(
         `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(chatReport?.reportID ?? snapshotReport?.chatReportID ?? snapshotReport.parentReportID)}`,
     );
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
     const shouldShowMarkAsDoneCopy = shouldShowMarkAsDone({
         policy: parentPolicy,
         report: parentReport,
         isTrackIntentUser,
+        rules,
     });
 
     const reportTransactionIDs = (reportItem.transactions ?? []).map((transaction) => transaction.transactionID);
     const [allViolations] = useOnyxWithoutSnapshots(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {selector: transactionViolationsByIDsSelector(reportTransactionIDs)});
 
-    const {currentUserAccountID, currentUserLogin, introSelected, betas, isSelfTourViewed, activePolicy, chatReportPolicy, amountOwed, delegateEmail, delegateAccountID, conciergeChat} =
-        useReportPaymentContext({
-            chatReportPolicyID: chatReport?.policyID,
-        });
+    const {
+        currentUserAccountID,
+        currentUserLogin,
+        introSelected,
+        isASAPSubmitBetaEnabled,
+        isSelfTourViewed,
+        activePolicy,
+        chatReportPolicy,
+        amountOwed,
+        delegateEmail,
+        delegateAccountID,
+        conciergeChat,
+    } = useReportPaymentContext({
+        chatReportPolicyID: chatReport?.policyID,
+    });
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
     const {translate} = useLocalize();
@@ -316,6 +318,7 @@ function ReportListItemHeaderInner<TItem extends ListItem>({
 
     const handleOnButtonPress = (event?: ModifiedMouseEvent) => {
         handleActionButtonPress({
+            isASAPSubmitBetaEnabled,
             getCurrencyDecimals,
             hash: currentSearchHash,
             item: reportItem,
@@ -340,7 +343,6 @@ function ReportListItemHeaderInner<TItem extends ListItem>({
             currentUserAccountID,
             currentUserLogin,
             introSelected,
-            betas,
             isSelfTourViewed,
             activePolicy,
             chatReport,
@@ -351,6 +353,7 @@ function ReportListItemHeaderInner<TItem extends ListItem>({
             delegateAccountID,
             isTrackIntentUser,
             allViolations,
+            rules,
             conciergeChat,
         });
     };

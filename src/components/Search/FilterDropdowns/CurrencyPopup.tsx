@@ -12,10 +12,7 @@ type CurrencyPopupProps = {
     /** The label to show when in an overlay on mobile */
     label?: string;
 
-    /** Function to call when the back button is pressed */
     onBackButtonPress?: () => void;
-
-    /** Function to call to close the overlay */
     closeOverlay: () => void;
 
     /** Function to call when a currency is selected */

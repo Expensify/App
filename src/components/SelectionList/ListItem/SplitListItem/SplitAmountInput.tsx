@@ -9,8 +9,6 @@ import {convertToFrontendAmountAsString} from '@libs/CurrencyUtils';
 
 import CONST from '@src/CONST';
 
-import type {BlurEvent} from 'react-native';
-
 import React from 'react';
 
 import SplitAmountDisplay from './SplitAmountDisplay';
@@ -22,17 +20,14 @@ type SplitAmountInputProps = {
     formattedOriginalAmount: string;
     /** The width of the input content area. */
     contentWidth: number;
-    /** Callback invoked when the split expense value changes. */
     onSplitExpenseValueChange: (value: string) => void;
     /** Callback invoked when the input receives focus. */
     focusHandler: () => void;
-    /** Callback invoked when the input loses focus. */
-    onInputBlur: ((e: BlurEvent) => void) | undefined;
     /** Callback ref for accessing the underlying text input. */
     inputCallbackRef: (ref: BaseTextInputRef | null) => void;
 };
 
-function SplitAmountInput({splitItem, formattedOriginalAmount, contentWidth, onSplitExpenseValueChange, focusHandler, onInputBlur, inputCallbackRef}: SplitAmountInputProps) {
+function SplitAmountInput({splitItem, formattedOriginalAmount, contentWidth, onSplitExpenseValueChange, focusHandler, inputCallbackRef}: SplitAmountInputProps) {
     const styles = useThemeStyles();
     const {getCurrencyDecimals} = useCurrencyListActions();
 
@@ -69,7 +64,6 @@ function SplitAmountInput({splitItem, formattedOriginalAmount, contentWidth, onS
                 shouldUseDefaultLineHeightForPrefix={false}
                 shouldWrapInputInContainer={false}
                 onFocus={focusHandler}
-                onBlur={onInputBlur}
                 keyboardType={CONST.KEYBOARD_TYPE.NUMBERS_AND_PUNCTUATION}
                 allowNegativeInput
             />

@@ -1,5 +1,5 @@
 import type {FocusTrapProps} from 'focus-trap-react';
-import type {RefObject} from 'react';
+import type {ComponentRef, RefObject} from 'react';
 // eslint-disable-next-line no-restricted-imports -- type-only: the launcher union must cover every anchor shape popovers pass, including RN Text anchors
 import type {Text, View} from 'react-native';
 
@@ -21,7 +21,7 @@ type FocusTrapForModalProps = {
      * Deliberately covers every anchor shape in use (`View`, `Text`, DOM element): the trap narrows it with
      * `instanceof HTMLElement` anyway, so a ref it cannot use is simply ignored rather than rejected.
      */
-    launcherRef?: RefObject<View | Text | HTMLElement | null>;
+    launcherRef?: RefObject<ComponentRef<typeof View> | ComponentRef<typeof Text> | HTMLElement | null>;
 };
 
 export default FocusTrapForModalProps;

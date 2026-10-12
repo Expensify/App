@@ -19,7 +19,6 @@ type AvatarCommonProps = {
     /** Extra styles to pass to View wrapper */
     containerStyles?: StyleProp<ViewStyle>;
 
-    /** Set the size of Avatar */
     size?: AvatarSizeName;
 
     /** Test ID for the Avatar component */
@@ -27,7 +26,6 @@ type AvatarCommonProps = {
 };
 
 type AvatarPrimitivesCommonProps = {
-    /** Size of Avatar */
     size: AvatarSizeName;
 
     /** Shape of the avatar: round for users, rounded square for workspaces */

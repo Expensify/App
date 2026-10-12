@@ -6,7 +6,6 @@ import lodashDebounce from 'lodash/debounce';
 import {useState} from 'react';
 
 type UseDebouncedCommentValidationProps = {
-    /** The report ID */
     reportID: string | undefined;
 
     /** Whether the composer is in edit mode */

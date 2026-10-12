@@ -1,0 +1,92 @@
+name: Seed Jest perf cache
+
+# One `reassure --baseline` run, writing the Jest transform cache the perf jobs restore and this
+# commit's baseline. Cache entries are scoped to the ref that wrote them, so writing from main is what
+# shares them and keeps them off fork PRs. No paths filter: the probe on every push is what rebuilds an
+# evicted transform entry.
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.sha }}
+  cancel-in-progress: false
+
+jobs:
+  seedJestPerfCache:
+    name: Seed the Jest transform cache and main's baseline
+    # Must match the perf measure jobs' class: transform output interchangeable, durations comparable.
+    runs-on: blacksmith-4vcpu-ubuntu-2404
+    steps:
+      - name: Checkout
+        uses: useblacksmith/checkout@0647fdbab2614a5eb86d2971070e325060d91056 # v1.7.0
+
+      # Writes normalized-package-lock.json, which the transform cache key hashes.
+      - name: Setup NodeJS
+        uses: ./.github/actions/composite/setupNode
+
+      # Keyed on the commit alone, so a PR run can look it up by its own base.sha. Nothing restores it
+      # yet; a lookup that misses is a cold baseline, never a wrong one.
+      - name: Look up this commit's baseline
+        id: lookupBaseline
+        # v5.0.1
+        uses: actions/cache/restore@9255dc7a253b0ccc959486e2bca901246202afeb
+        with:
+          path: .reassure/baseline.perf
+          key: ${{ format('{0}-{1}-reassure-baseline-{2}', runner.os, runner.arch, github.sha) }}
+          lookup-only: true
+
+      # normalized-package-lock.json is the app-version-stripped lockfile, so deploy bumps do not rotate
+      # the key. No restore-keys, here or in the perf workflow: babel-jest does not hash plugin versions
+      # into an entry's name, so a prefix fallback would serve output from a different react-compiler.
+      - name: Restore the Jest transform cache
+        id: restoreJestCache
+        # v5.0.1
+        uses: actions/cache/restore@9255dc7a253b0ccc959486e2bca901246202afeb
+        with:
+          path: .jest-cache
+          key: ${{ format('{0}-{1}-jest-perf-{2}', runner.os, runner.arch, hashFiles('normalized-package-lock.json', 'patches/**', 'babel.config.js', 'config/babel/**', 'jest.config.js', '.nvmrc')) }}
+
+      # Must be the invocation the perf jobs run: Jest hashes the serialized project config into every
+      # entry's key, so a different testMatch populates a key space they never read. Left to fail the
+      # job - the saves below imply success(), so no partial entry is written. Also runs when only the
+      # transform entry is missing, since the measure is the only thing that fills .jest-cache.
+      - name: Measure the baseline
+        id: measureBaseline
+        if: steps.lookupBaseline.outputs.cache-hit != 'true' || steps.restoreJestCache.outputs.cache-hit != 'true'
+        shell: bash
+        run: NODE_OPTIONS=--experimental-vm-modules npx reassure --baseline
+
+      - name: Save this commit's baseline
+        if: steps.lookupBaseline.outputs.cache-hit != 'true'
+        # v5.0.1
+        uses: actions/cache/save@9255dc7a253b0ccc959486e2bca901246202afeb
+        with:
+          path: .reassure/baseline.perf
+          key: ${{ format('{0}-{1}-reassure-baseline-{2}', runner.os, runner.arch, github.sha) }}
+
+      - name: Save the Jest transform cache
+        if: steps.restoreJestCache.outputs.cache-hit != 'true'
+        # v5.0.1
+        uses: actions/cache/save@9255dc7a253b0ccc959486e2bca901246202afeb
+        with:
+          path: .jest-cache
+          key: ${{ format('{0}-{1}-jest-perf-{2}', runner.os, runner.arch, hashFiles('normalized-package-lock.json', 'patches/**', 'babel.config.js', 'config/babel/**', 'jest.config.js', '.nvmrc')) }}
+
+      - name: Report what was seeded
+        if: always()
+        run: |
+          if [[ "${{ steps.measureBaseline.outcome }}" == "failure" ]]; then
+            echo "::notice::Baseline for ${{ github.sha }}: measure failed, nothing cached"
+          elif [[ -f .reassure/baseline.perf ]]; then
+            echo "::notice::Baseline for ${{ github.sha }}: $(grep -c '"meanDuration"' .reassure/baseline.perf) measurements"
+          else
+            echo "::notice::Baseline for ${{ github.sha }}: not measured this run (cache-hit=${{ steps.lookupBaseline.outputs.cache-hit || 'false' }})"
+          fi
+          if [[ -d .jest-cache ]]; then
+            echo "::notice::Jest perf cache: $(du -sm .jest-cache | cut -f1)MB, $(find .jest-cache -type f | wc -l) files (cache-hit=${{ steps.restoreJestCache.outputs.cache-hit || 'false' }})"
+          else
+            echo "::notice::Jest perf cache: not populated this run (cache-hit=${{ steps.restoreJestCache.outputs.cache-hit || 'false' }})"
+          fi

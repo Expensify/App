@@ -20,7 +20,6 @@ import {View} from 'react-native';
 import ImageSVG from './ImageSVG';
 
 type ExpensifyWordmarkProps = {
-    /** Additional styles to add to the component */
     style?: StyleProp<ViewStyle>;
 };
 

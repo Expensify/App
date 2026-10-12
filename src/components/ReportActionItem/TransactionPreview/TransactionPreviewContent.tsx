@@ -1,5 +1,5 @@
 import MultiAccountAvatar from '@components/Avatar/connected/MultiAccountAvatar';
-import Button from '@components/ButtonComposed';
+import Button from '@components/Button';
 import Icon from '@components/Icon';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ReportActionItemImages from '@components/ReportActionItem/ReportActionItemImages';
@@ -21,6 +21,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import {getBrokenConnectionUrlToFixPersonalCard} from '@libs/CardUtils';
 import {getDecodedLeafCategoryName} from '@libs/CategoryUtils';
+import getIOUPayerAndReceiver from '@libs/getIOUPayerAndReceiver';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {calculateAmount} from '@libs/IOUUtils';
 import Parser from '@libs/Parser';
@@ -32,10 +33,11 @@ import type {TransactionDetails} from '@libs/ReportUtils';
 import {canEditMoneyRequest, getTransactionDetails, isPolicyExpenseChat, isReportApproved, isSettled} from '@libs/ReportUtils';
 import StringUtils from '@libs/StringUtils';
 import type {TranslationPathOrText} from '@libs/TransactionPreviewUtils';
-import {createTransactionPreviewConditionals, getIOUPayerAndReceiver, getTransactionPreviewTextAndTranslationPaths} from '@libs/TransactionPreviewUtils';
+import {createTransactionPreviewConditionals, getTransactionPreviewTextAndTranslationPaths} from '@libs/TransactionPreviewUtils';
 import {isManagedCardTransaction as isCardTransactionUtils, isGPSDistanceRequest, isMapDistanceRequest, isScanning} from '@libs/TransactionUtils';
 import ViolationsUtils, {filterReceiptViolations} from '@libs/Violations/ViolationsUtils';
 
+import {fontScale} from '@styles/typography';
 import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
@@ -96,6 +98,7 @@ function TransactionPreviewContent({
     const cardID = firstViolation?.data?.cardID;
     const [card] = useOnyx(ONYXKEYS.CARD_LIST, {selector: cardByIdSelector(String(cardID))});
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.parentReportID)}`, {selector: getStableReportSelector});
+    const [policyVendors] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_VENDORS}${report?.policyID}`);
     const managerID = report?.managerID ?? reportPreviewAction?.childManagerAccountID ?? CONST.DEFAULT_NUMBER_ID;
     const ownerAccountID = report?.ownerAccountID ?? reportPreviewAction?.childOwnerAccountID ?? CONST.DEFAULT_NUMBER_ID;
     const ownerLogin = getLoginByAccountID(ownerAccountID, personalDetails);
@@ -134,8 +137,9 @@ function TransactionPreviewContent({
 
     const {shouldShowRBR, shouldShowMerchant, shouldShowSplitShare, shouldShowCategory, shouldShowSkeleton, shouldShowDescription} = conditionals;
 
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
     const isIOUActionType = isMoneyRequestAction(action);
-    const canEdit = isIOUActionType && canEditMoneyRequest(action, transaction, isChatReportArchived, report, policy, reportActions);
+    const canEdit = isIOUActionType && canEditMoneyRequest(action, transaction, rules, isChatReportArchived, report, policy, reportActions);
     const companyCardPageURL = `${environmentURL}/${ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(report?.policyID)}`;
     const {personalCardsWithBrokenConnection} = useCardFeedErrors();
     const connectionLink = getBrokenConnectionUrlToFixPersonalCard(personalCardsWithBrokenConnection, environmentURL);
@@ -154,6 +158,8 @@ function TransactionPreviewContent({
               isMarkAsCash,
               routeDistanceMeters: transaction?.comment?.customUnit?.routeDistanceMeters,
               distanceUnit: transaction?.comment?.customUnit?.distanceUnit,
+              policyVendors,
+              transactionCurrency: transaction?.currency,
           })
         : undefined;
 
@@ -322,7 +328,7 @@ function TransactionPreviewContent({
                                         <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.gap2]}>
                                             {shouldShowPrimaryText && (
                                                 <Text
-                                                    fontSize={variables.fontSizeNormal}
+                                                    fontSize={fontScale.text}
                                                     style={[isDeleted && styles.lineThrough, styles.flexShrink1]}
                                                     numberOfLines={1}
                                                 >
@@ -332,7 +338,7 @@ function TransactionPreviewContent({
                                         </View>
                                         {!shouldUseScanningLayout && (
                                             <Text
-                                                fontSize={variables.fontSizeNormal}
+                                                fontSize={fontScale.text}
                                                 style={[isDeleted && styles.lineThrough, styles.flexShrink0]}
                                                 numberOfLines={1}
                                             >
@@ -387,7 +393,7 @@ function TransactionPreviewContent({
                                         />
                                         <Text
                                             numberOfLines={1}
-                                            style={[isDeleted && styles.lineThrough, styles.textMicroSupporting, styles.pre, styles.flexShrink1, {color: theme.danger}]}
+                                            style={[isDeleted && styles.lineThrough, styles.textMicroSupporting, styles.pre, styles.flexShrink1, {color: theme.textError}]}
                                         >
                                             {RBRMessage}
                                         </Text>

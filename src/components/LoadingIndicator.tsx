@@ -12,10 +12,7 @@ import ActivityIndicator from './ActivityIndicator';
 type LoadingIndicatorIconSize = RNActivityIndicatorProps['size'];
 
 type LoadingIndicatorProps = {
-    /** Styles of the outer view */
     style?: StyleProp<ViewStyle>;
-
-    /** Size of the icon */
     iconSize?: LoadingIndicatorIconSize;
 };
 

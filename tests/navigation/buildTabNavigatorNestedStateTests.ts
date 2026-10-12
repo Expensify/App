@@ -5,7 +5,7 @@ import NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';
 
 describe('buildTabNavigatorNestedState', () => {
-    it('returns state with all 5 tab routes', () => {
+    it('returns state with all 6 tab routes', () => {
         const result = buildTabNavigatorNestedState({name: NAVIGATORS.REPORTS_SPLIT_NAVIGATOR});
         expect(result.routes).toHaveLength(TAB_SCREENS.length);
         const routeNames = result.routes.map((r) => r.name);
@@ -13,14 +13,15 @@ describe('buildTabNavigatorNestedState', () => {
             SCREENS.HOME,
             NAVIGATORS.REPORTS_SPLIT_NAVIGATOR,
             NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR,
+            SCREENS.INSIGHTS,
             NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR,
             NAVIGATORS.WORKSPACE_NAVIGATOR,
         ]);
     });
 
-    it('sets index to the position of the selected tab (SETTINGS = 3)', () => {
+    it('sets index to the position of the selected tab (SETTINGS = 4)', () => {
         const result = buildTabNavigatorNestedState({name: NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR});
-        expect(result.index).toBe(3);
+        expect(result.index).toBe(4);
     });
 
     it('falls back to index 0 for an unknown tab name', () => {
@@ -39,7 +40,7 @@ describe('buildTabNavigatorNestedState', () => {
     it('copies params from selectedTabRoute onto the matched route only', () => {
         const params = {screen: 'SomeScreen'};
         const result = buildTabNavigatorNestedState({name: NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR, params});
-        expect(result.routes.at(3)?.params).toEqual(params);
+        expect(result.routes.at(4)?.params).toEqual(params);
         expect(result.routes.at(0)?.params).toBeUndefined();
         expect(result.routes.at(1)?.params).toBeUndefined();
     });

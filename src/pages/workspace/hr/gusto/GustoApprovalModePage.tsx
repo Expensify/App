@@ -28,10 +28,10 @@ function GustoApprovalModePage({
         testID: 'GustoApprovalModePage',
         isConnected: isGustoConnected,
         approvalModes: CONST.GUSTO.APPROVAL_MODE,
-        getCurrentApprovalMode: (policy) => policy?.connections?.gusto?.config?.approvalMode ?? null,
+        getCurrentApprovalMode: (policy) => policy?.connections?.gusto?.config?.approvalMode ?? undefined,
         getProviderName: () => translate('workspace.hr.gusto.title'),
-        getHeaderTitle: () => translate('workspace.hr.approvalMode'),
-        handleSave: ({draftApprovalMode, currentApprovalMode}) => updateGustoApprovalMode(policyID, draftApprovalMode, currentApprovalMode),
+        getHeaderTitle: () => translate('workspace.merge.approvalMode'),
+        handleSave: ({draftApprovalMode, currentApprovalMode, rules}) => updateGustoApprovalMode(policyID, draftApprovalMode, currentApprovalMode, rules),
     };
 
     return (

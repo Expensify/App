@@ -35,7 +35,7 @@ type InviteeNewMemberStepProps = PlatformStackScreenProps<SettingsNavigatorParam
     WithCurrentUserPersonalDetailsProps;
 
 function InviteNewMemberStep({route, currentUserPersonalDetails}: InviteeNewMemberStepProps) {
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
     const [assignCard] = useOnyx(ONYXKEYS.ASSIGN_CARD);
     const [workspaceCardFeeds] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST);
     const policyID = route.params.policyID;
@@ -66,7 +66,9 @@ function InviteNewMemberStep({route, currentUserPersonalDetails}: InviteeNewMemb
 
     const goToNextStep = () => {
         const invitingMemberEmail = assignCard?.cardToAssign?.invitingMemberEmail ?? '';
-        const memberName = invitingMemberDetails?.firstName ? invitingMemberDetails.firstName : Str.removeSMSDomain(invitingMemberDetails?.login ?? invitingMemberEmail);
+        const invitingMemberLogin = invitingMemberDetails?.login ?? invitingMemberEmail;
+        const formattedInvitingMemberLogin = Str.isSMSLogin(invitingMemberLogin) ? formatPhoneNumber(invitingMemberLogin) : invitingMemberLogin;
+        const memberName = invitingMemberDetails?.firstName ? invitingMemberDetails.firstName : formattedInvitingMemberLogin;
         const defaultCardName = getDefaultCardName(memberName);
         // Keep the name the user manually typed in CardNameStep. Otherwise always recompute it from the inviting member.
         const customCardName = assignCard?.cardToAssign?.isCustomCardNameEdited ? (assignCard?.cardToAssign?.customCardName ?? defaultCardName) : defaultCardName;

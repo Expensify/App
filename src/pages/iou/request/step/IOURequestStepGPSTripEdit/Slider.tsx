@@ -15,7 +15,6 @@ import Animated, {useAnimatedStyle, useSharedValue} from 'react-native-reanimate
 import {scheduleOnRN} from 'react-native-worklets';
 
 type SliderProps = {
-    /** Function called when the slider ratio changes */
     onSliderRatioChange: (ratio: number) => void;
 };
 

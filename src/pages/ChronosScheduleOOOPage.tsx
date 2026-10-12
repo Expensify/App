@@ -36,6 +36,7 @@ import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/ChronosScheduleOOOForm';
 
 import {differenceInCalendarDays} from 'date-fns';
+import {Str} from 'expensify-common';
 import React, {useRef, useState} from 'react';
 import {View} from 'react-native';
 
@@ -74,7 +75,7 @@ function ChronosScheduleOOOPage({route}: ChronosScheduleOOOPageProps) {
         {value: CONST.CHRONOS.OOO_LEAVE_TYPES.NORMAL, label: translate('chronos.normalOOO')},
         ...Object.values(CONST.CHRONOS.OOO_LEAVE_TYPES)
             .filter((leaveType) => leaveType !== CONST.CHRONOS.OOO_LEAVE_TYPES.NORMAL)
-            .map((leaveType) => ({value: leaveType, label: leaveType})),
+            .map((leaveType) => ({value: leaveType, label: Str.recapitalize(leaveType)})),
     ];
     const selectedLeaveTypeItem = leaveTypeItems.find((item) => item.value === selectedLeaveType);
     const shouldShowReason = selectedLeaveType === CONST.CHRONOS.OOO_LEAVE_TYPES.NORMAL;
@@ -317,7 +318,7 @@ function ChronosScheduleOOOPage({route}: ChronosScheduleOOOPageProps) {
                 <View style={styles.mb4}>
                     <MenuItemWithTopDescription
                         shouldShowRightIcon
-                        style={styles.ph0}
+                        outerWrapperStyle={styles.mhn5}
                         title={selectedLeaveTypeItem?.label ?? ''}
                         description={translate('chronos.leaveType')}
                         onPress={() => setIsLeaveTypeModalVisible(true)}

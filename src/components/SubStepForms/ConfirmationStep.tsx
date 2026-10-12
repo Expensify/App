@@ -1,4 +1,5 @@
-import Button from '@components/ButtonComposed';
+import Button from '@components/Button';
+import ButtonDisabledWhenOffline from '@components/Button/composed/ButtonDisabledWhenOffline';
 import DotIndicatorMessage from '@components/DotIndicatorMessage';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import RenderHTML from '@components/RenderHTML';
@@ -6,7 +7,6 @@ import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 
 import useLocalize from '@hooks/useLocalize';
-import useNetwork from '@hooks/useNetwork';
 import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
 import type {SubPageProps} from '@hooks/useSubPage/types';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -16,7 +16,6 @@ import type {BrickRoad} from '@libs/WorkspacesSettingsUtils';
 
 import CONST from '@src/CONST';
 
-import React from 'react';
 import {View} from 'react-native';
 
 type SummaryItem = {
@@ -32,10 +31,7 @@ type SummaryItem = {
 
 type ConfirmationStepProps = SubPageProps &
     ForwardedFSClassProps & {
-        /** The title of the step */
         pageTitle: string;
-
-        /** The summary items to display */
         summaryItems: SummaryItem[];
 
         /** Whether show additional section with Onfido terms etc. */
@@ -44,13 +40,11 @@ type ConfirmationStepProps = SubPageProps &
         /** The title of the Onfido section */
         onfidoLinksTitle?: string;
 
-        /** Whether the data is loading */
         isLoading?: boolean;
 
         /** The error message to display */
         error?: string;
 
-        /** Whether to apply safe area padding bottom */
         shouldApplySafeAreaPaddingBottom?: boolean;
     };
 
@@ -67,7 +61,6 @@ function ConfirmationStep({
 }: ConfirmationStepProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const {isOffline} = useNetwork();
 
     const {paddingBottom: safeAreaInsetPaddingBottom} = useSafeAreaPaddings();
 
@@ -105,8 +98,7 @@ function ConfirmationStep({
                         messages={{error}}
                     />
                 )}
-                <Button
-                    isDisabled={isOffline}
+                <ButtonDisabledWhenOffline
                     variant={CONST.BUTTON_VARIANT.SUCCESS}
                     size={CONST.BUTTON_SIZE.LARGE}
                     isLoading={isLoading}
@@ -114,7 +106,7 @@ function ConfirmationStep({
                     onPress={onNext}
                 >
                     <Button.Text>{translate('common.confirm')}</Button.Text>
-                </Button>
+                </ButtonDisabledWhenOffline>
             </View>
         </ScrollView>
     );

@@ -1,6 +1,8 @@
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useFilesValidation from '@hooks/useFilesValidation';
 import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
 import usePersonalPolicy from '@hooks/usePersonalPolicy';
 
 import {getFilesFromClipboardEvent} from '@libs/fileDownload/FileUtils';
@@ -23,6 +25,7 @@ import type {FileObject} from '@src/types/utils/Attachment';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
+import {transactionThreadReportIDSelector} from '@selectors/ReportAction';
 import {validTransactionDraftIDsSelector} from '@selectors/TransactionDraft';
 
 type UseReceiptDropParams = {
@@ -34,6 +37,8 @@ type UseReceiptDropParams = {
 
 function useReceiptDrop({reportID, report, shouldAddOrReplaceReceipt, transactionID}: UseReceiptDropParams) {
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const {isBetaEnabledOrUnknown} = usePermissions();
+    const isVendorMatchingBetaEnabled = isBetaEnabledOrUnknown(CONST.BETAS.VENDOR_MATCHING);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`);
     const [newParentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`);
     const [currentDate] = useOnyx(ONYXKEYS.CURRENT_DATE);
@@ -48,6 +53,11 @@ function useReceiptDrop({reportID, report, shouldAddOrReplaceReceipt, transactio
     const [transactionViolations] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${getNonEmptyStringOnyxID(transactionID)}`);
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transactionID)}`);
     const [transactionReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`);
+    const [transactionThreadReportID] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(transaction?.reportID)}`, {
+        selector: transactionThreadReportIDSelector(transaction?.transactionID),
+    });
+    const [transactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(transactionThreadReportID)}`);
+    const delegateAccountID = useDelegateAccountID();
 
     const onFilesValidated = (files: FileObject[]) => {
         if (files.length === 0) {
@@ -57,6 +67,7 @@ function useReceiptDrop({reportID, report, shouldAddOrReplaceReceipt, transactio
         if (shouldAddOrReplaceReceipt && transactionID) {
             const source = URL.createObjectURL(files.at(0) as Blob);
             replaceReceipt({
+                isVendorMatchingBetaEnabled,
                 transaction,
                 file: files.at(0) as File,
                 source,
@@ -65,6 +76,9 @@ function useReceiptDrop({reportID, report, shouldAddOrReplaceReceipt, transactio
                 transactionPolicyTagList: policyTagList,
                 transactionViolations,
                 transactionReport,
+                delegateAccountID,
+                currentUserPersonalDetails,
+                transactionThreadReport,
             });
             return;
         }

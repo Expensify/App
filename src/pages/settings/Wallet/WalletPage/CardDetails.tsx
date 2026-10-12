@@ -1,3 +1,5 @@
+import MenuItem from '@components/MenuItem';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import TextLink from '@components/TextLink';
 
@@ -41,10 +43,7 @@ type CardDetailsProps = {
     /** Callback to navigate to update address page */
     onUpdateAddressPress?: () => void;
 
-    /** Card limit type */
     limitType?: CardLimitType;
-
-    /** Hint text for the card */
     cardHintText?: string;
 };
 
@@ -66,12 +65,13 @@ function CardDetails({pan = '', expiration = '', cvv = '', onUpdateAddressPress,
                 />
             )}
             {!!limitType && (
-                <MenuItemWithTopDescription
-                    description={translate('workspace.card.issueNewCard.limitType')}
-                    title={translate(getTranslationKeyForLimitType(limitType))}
-                    interactive={false}
-                    hintText={cardHintText}
-                />
+                <MenuItem.Root>
+                    <MenuItemField.Row
+                        name={translate('workspace.card.issueNewCard.limitType')}
+                        value={translate(getTranslationKeyForLimitType(limitType))}
+                    />
+                    {!!cardHintText && <MenuItem.HelpText message={cardHintText} />}
+                </MenuItem.Root>
             )}
             {expiration?.length > 0 && (
                 <MenuItemWithTopDescription

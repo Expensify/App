@@ -9,15 +9,15 @@ import type {Address} from '@src/types/onyx/PrivatePersonalDetails';
 import type {OnyxData} from '@src/types/onyx/Request';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
-import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
+import type {OnyxEntry, OnyxMergeInput, OnyxUpdate} from 'react-native-onyx';
 import type {SetNonNullable} from 'type-fest';
 
 import {Str} from 'expensify-common';
 import Onyx from 'react-native-onyx';
 
 import {getCountryCode} from './CountryUtils';
-import {translateLocal} from './Localize';
 import {areEmailsFromSamePrivateDomain} from './LoginUtils';
+import {getPersonalDetailByLogin} from './PersonalDetailsStore';
 import {addSMSDomainIfPhoneNumber, parsePhoneNumber} from './PhoneNumber';
 import {getDefaultAvatarURL} from './UserAvatarUtils';
 import {generateAccountID} from './UserUtils';
@@ -27,87 +27,7 @@ type FirstAndLastName = {
     lastName: string;
 };
 
-let emailToPersonalDetailsCache: Record<string, PersonalDetails> = {};
-Onyx.connect({
-    key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-    callback: (val) => {
-        const personalDetails = Object.values(val ?? {});
-        emailToPersonalDetailsCache = personalDetails.reduce((acc: Record<string, PersonalDetails>, detail) => {
-            if (detail?.login) {
-                const key = detail.login.toLowerCase();
-                const existing = acc[key];
-                if (!existing || existing.isClosed || existing.isOptimisticPersonalDetail) {
-                    acc[key] = detail;
-                }
-            }
-            return acc;
-        }, {});
-    },
-});
-
-let hiddenTranslation = '';
-let youTranslation = '';
-
-Onyx.connect({
-    key: ONYXKEYS.RAM_ONLY_ARE_TRANSLATIONS_LOADING,
-    callback: (value) => {
-        if (value ?? true) {
-            return;
-        }
-        hiddenTranslation = translateLocal('common.hidden');
-        youTranslation = translateLocal('common.you').toLowerCase();
-    },
-});
-
 const regexMergedAccount = new RegExp(CONST.REGEX.MERGED_ACCOUNT_PREFIX);
-
-function getDisplayNameOrDefault(
-    passedPersonalDetails?: Partial<PersonalDetails> | null,
-    defaultValue = '',
-    shouldFallbackToHidden = true,
-    shouldAddCurrentUserPostfix = false,
-    youAfterTranslation = youTranslation,
-): string {
-    let displayName = passedPersonalDetails?.displayName ?? '';
-
-    let login = passedPersonalDetails?.login ?? '';
-
-    // If the displayName starts with the merged account prefix, remove it.
-    if (regexMergedAccount.test(displayName)) {
-        // Remove the merged account prefix from the displayName.
-        displayName = displayName.replaceAll(CONST.REGEX.MERGED_ACCOUNT_PREFIX, '');
-    }
-
-    // If the displayName is not set by the user, the backend sets the displayName same as the login so
-    // we need to remove the sms domain from the displayName if it is an sms login.
-    if (Str.isSMSLogin(login)) {
-        if (displayName === login) {
-            displayName = Str.removeSMSDomain(displayName);
-        }
-        login = Str.removeSMSDomain(login);
-    }
-
-    if (shouldAddCurrentUserPostfix && !!displayName) {
-        displayName = `${displayName} (${youAfterTranslation})`;
-    }
-
-    if (passedPersonalDetails?.accountID === CONST.ACCOUNT_ID.CONCIERGE) {
-        displayName = CONST.CONCIERGE_DISPLAY_NAME;
-    }
-
-    if (displayName) {
-        return displayName;
-    }
-
-    if (defaultValue) {
-        return defaultValue;
-    }
-
-    if (login) {
-        return login;
-    }
-    return shouldFallbackToHidden ? hiddenTranslation : '';
-}
 
 function temporaryGetDisplayNameOrDefault({
     passedPersonalDetails,
@@ -115,6 +35,7 @@ function temporaryGetDisplayNameOrDefault({
     shouldFallbackToHidden = true,
     shouldAddCurrentUserPostfix = false,
     youAfterTranslation,
+    hiddenAfterTranslation,
     translate,
     formatPhoneNumber,
 }: {
@@ -123,11 +44,12 @@ function temporaryGetDisplayNameOrDefault({
     shouldFallbackToHidden?: boolean;
     shouldAddCurrentUserPostfix?: boolean;
     youAfterTranslation?: string;
-    translate: LocalizedTranslate;
+    hiddenAfterTranslation?: string;
+    translate?: LocalizedTranslate;
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
 }): string {
-    const temporaryHiddenTranslation = translate('common.hidden');
-    const temporaryYouTranslation = translate('common.you').toLowerCase();
+    const temporaryHiddenTranslation = hiddenAfterTranslation ?? translate?.('common.hidden') ?? '';
+    const temporaryYouTranslation = translate?.('common.you').toLowerCase();
     let displayName = passedPersonalDetails?.displayName ?? '';
 
     const login = passedPersonalDetails?.login ?? '';
@@ -264,10 +186,7 @@ function getDisplayNameOrYou(displayName: string, accountID: number, currentUser
 }
 
 function getPersonalDetailByEmail(email: string | undefined): PersonalDetails | undefined {
-    if (!email) {
-        return undefined;
-    }
-    return emailToPersonalDetailsCache[email.toLowerCase()];
+    return getPersonalDetailByLogin(email);
 }
 
 /**
@@ -337,6 +256,20 @@ function getNewAccountIDsAndLogins(invitedEmailsToAccountIDs: InvitedEmailsToAcc
     );
 }
 
+type PersonalDetailsUpdate = OnyxMergeInput<typeof ONYXKEYS.PERSONAL_DETAILS_LIST>;
+
+// All writes are merges, and the builder is what turns one list update into one update per account after the reshape
+function buildPersonalDetailsUpdate(personalDetails: PersonalDetailsUpdate): OnyxUpdate<typeof ONYXKEYS.PERSONAL_DETAILS_LIST> {
+    return {
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+        value: personalDetails,
+    };
+}
+
+// The Onyx update produced by buildPersonalDetailsUpdate. Use it instead of naming the key in an OnyxUpdate generic.
+type PersonalDetailsOnyxUpdate = ReturnType<typeof buildPersonalDetailsUpdate>;
+
 /**
  * Given a list of logins and accountIDs, return Onyx data for users with no existing personal details stored. These users might be brand new or unknown.
  * They will have an "optimistic" accountID that must be cleaned up later.
@@ -366,21 +299,9 @@ function getPersonalDetailsOnyxDataForOptimisticUsers(
         personalDetailsCleanup[accountID] = null;
     }
 
-    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.PERSONAL_DETAILS_LIST>> = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-            value: personalDetailsNew,
-        },
-    ];
+    const optimisticData: PersonalDetailsOnyxUpdate[] = [buildPersonalDetailsUpdate(personalDetailsNew)];
 
-    const finallyData: Array<OnyxUpdate<typeof ONYXKEYS.PERSONAL_DETAILS_LIST>> = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-            value: personalDetailsCleanup,
-        },
-    ];
+    const finallyData: PersonalDetailsOnyxUpdate[] = [buildPersonalDetailsUpdate(personalDetailsCleanup)];
 
     return {
         optimisticData,
@@ -607,8 +528,9 @@ function areTravelPersonalDetailsMissing(privatePersonalDetails: OnyxEntry<Priva
     return !privatePersonalDetails?.legalFirstName || !privatePersonalDetails?.legalLastName;
 }
 
+export type {PersonalDetailsOnyxUpdate};
+
 export {
-    getDisplayNameOrDefault,
     getPersonalDetailForAccountID,
     getPersonalDetailsByID,
     getPersonalDetailsByIDs,
@@ -637,4 +559,5 @@ export {
     areAddressAndPersonalDetailsMissing,
     areTravelPersonalDetailsMissing,
     temporaryGetDisplayNameOrDefault,
+    buildPersonalDetailsUpdate,
 };

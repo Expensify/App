@@ -110,7 +110,7 @@ describe('AccountAvatarWithCardFeed (connected)', () => {
             expect.objectContaining({
                 cardFeed: CARD_FEED,
                 cardFeedIconSize: CARD_FEED_ICON_SIZE,
-                subscriptAvatarBorderColor: 'red',
+                backdropColor: 'red',
                 containerStyle: CUSTOM_CONTAINER_STYLE,
             }),
         );

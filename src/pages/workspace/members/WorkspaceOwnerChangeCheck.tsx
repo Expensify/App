@@ -1,4 +1,4 @@
-import Button from '@components/ButtonComposed';
+import Button from '@components/Button';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import Text from '@components/Text';
 
@@ -23,10 +23,7 @@ import React, {useCallback, useEffect, useState} from 'react';
 import {View} from 'react-native';
 
 type WorkspaceOwnerChangeCheckProps = {
-    /** The policy */
     policy: OnyxEntry<OnyxTypes.Policy>;
-
-    /** The accountID */
     accountID: number;
 
     /** The error code */

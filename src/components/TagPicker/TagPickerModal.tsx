@@ -13,6 +13,8 @@ import type {OptionData} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
+import type {ComponentRef} from 'react';
+
 import React, {useRef} from 'react';
 import {View} from 'react-native';
 
@@ -24,13 +26,11 @@ const DEFAULT_ANCHOR_ALIGNMENT = {
 };
 
 type TagPickerModalProps = {
-    /** Callback to close the modal */
     onClose: () => void;
 
     /** The policy whose tags should be shown */
     policyID: string | undefined;
 
-    /** Currently selected tag */
     selectedTag?: string;
 
     /** The current transaction tag of the expense */
@@ -69,7 +69,7 @@ function TagPickerModal({
     const {isSmallScreenWidth} = useResponsiveLayout();
     const {isKeyboardActive} = useKeyboardState();
 
-    const anchorRef = useRef<View>(null);
+    const anchorRef = useRef<ComponentRef<typeof View>>(null);
     const popoverDimensions = {
         width: CONST.POPOVER_DROPDOWN_WIDTH,
         height: popoverHeight,

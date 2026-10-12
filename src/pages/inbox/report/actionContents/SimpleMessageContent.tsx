@@ -1,8 +1,11 @@
+import RenderHTML from '@components/RenderHTML';
+
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
 
 import {
     getActionableCard3DSTransactionApprovalMessage,
+    getAgentPromptUpdatedMessageHTML,
     getDemotedFromWorkspaceMessage,
     getDismissedViolationMessageText,
     getMarkedReimbursedMessage,
@@ -26,33 +29,17 @@ type SimpleMessageContentProps = {
     action: OnyxTypes.ReportAction;
 };
 
-const SIMPLE_MESSAGE_ACTION_TYPES = new Set<string>([
-    CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED,
-    CONST.REPORT.ACTIONS.TYPE.HOLD,
-    CONST.REPORT.ACTIONS.TYPE.HOLD_COMMENT,
-    CONST.REPORT.ACTIONS.TYPE.UNHOLD,
-    CONST.REPORT.ACTIONS.TYPE.REJECTEDTRANSACTION_THREAD,
-    CONST.REPORT.ACTIONS.TYPE.REJECTED_TRANSACTION_MARKASRESOLVED,
-    CONST.REPORT.ACTIONS.TYPE.RETRACTED,
-    CONST.REPORT.ACTIONS.TYPE.REOPENED,
-    CONST.REPORT.ACTIONS.TYPE.CHANGE_POLICY,
-    CONST.REPORT.ACTIONS.TYPE.DELETED_TRANSACTION,
-    CONST.REPORT.ACTIONS.TYPE.MERGED_WITH_CASH_TRANSACTION,
-    CONST.REPORT.ACTIONS.TYPE.DISMISSED_VIOLATION,
-    CONST.REPORT.ACTIONS.TYPE.RESOLVED_DUPLICATES,
-    CONST.REPORT.ACTIONS.TYPE.DEMOTED_FROM_WORKSPACE,
-    CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_CARD_3DS_TRANSACTION_APPROVAL,
-    CONST.REPORT.ACTIONS.TYPE.MARK_REIMBURSED_FROM_INTEGRATION,
-]);
-
-function isSimpleMessageAction(action: OnyxTypes.ReportAction): boolean {
-    return SIMPLE_MESSAGE_ACTION_TYPES.has(action.actionName) || isUnapprovedAction(action) || isRejectedAction(action);
-}
-
 function SimpleMessageContent({action}: SimpleMessageContentProps) {
     const {translate} = useLocalize();
-    const {convertToDisplayString} = useCurrencyListActions();
+    const {convertToDisplayString, convertToDisplayStringWithoutCurrency} = useCurrencyListActions();
 
+    if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.AGENT_PROMPT_UPDATED)) {
+        return (
+            <ReportActionItemBasicMessage>
+                <RenderHTML html={`<comment><muted-text>${getAgentPromptUpdatedMessageHTML(translate, action)}</muted-text></comment>`} />
+            </ReportActionItemBasicMessage>
+        );
+    }
     if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED)) {
         return <ReportActionItemBasicMessage message={getMarkedReimbursedMessage(translate, action)} />;
     }
@@ -83,6 +70,9 @@ function SimpleMessageContent({action}: SimpleMessageContentProps) {
     if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.DELETED_TRANSACTION)) {
         return <ReportActionItemBasicMessage message={getDeletedTransactionMessage(translate, action, convertToDisplayString)} />;
     }
+    if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.UNDELETED_TRANSACTION)) {
+        return <ReportActionItemBasicMessage message={translate('iou.undeletedExpense')} />;
+    }
     if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.MERGED_WITH_CASH_TRANSACTION)) {
         return <ReportActionItemBasicMessage message={translate('systemMessage.mergedWithCashTransaction')} />;
     }
@@ -102,7 +92,7 @@ function SimpleMessageContent({action}: SimpleMessageContentProps) {
         return <ReportActionItemBasicMessage message={getDemotedFromWorkspaceMessage(translate, action)} />;
     }
     if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_CARD_3DS_TRANSACTION_APPROVAL)) {
-        return <ReportActionItemBasicMessage message={getActionableCard3DSTransactionApprovalMessage(translate, action)} />;
+        return <ReportActionItemBasicMessage message={getActionableCard3DSTransactionApprovalMessage(translate, action, convertToDisplayString, convertToDisplayStringWithoutCurrency)} />;
     }
     if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.MARK_REIMBURSED_FROM_INTEGRATION)) {
         return <ReportActionItemBasicMessage message={getMessageOfOldDotReportAction(translate, action)} />;
@@ -112,4 +102,3 @@ function SimpleMessageContent({action}: SimpleMessageContentProps) {
 }
 
 export default SimpleMessageContent;
-export {isSimpleMessageAction};

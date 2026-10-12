@@ -22,18 +22,10 @@ type GroupByPopupItem = {
 };
 
 type GroupByPopupProps = {
-    /** The grouped options to show in the list */
     sections: GroupBySection[];
-
-    /** The currently selected item */
     value: GroupByPopupItem | null;
-
     onBackButtonPress: () => void;
-
-    /** Function to call to close the overlay when changes are applied */
     closeOverlay: () => void;
-
-    /** Function to call when changes are applied */
     onChange: (item: GroupByPopupItem | null) => void;
 };
 

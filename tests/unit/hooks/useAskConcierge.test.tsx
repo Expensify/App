@@ -19,6 +19,7 @@ const ADMINS_ROOM_REPORT_ID = '200';
 
 let mockSidePanelReportID: string | undefined;
 let mockIsInSidePanel = false;
+let mockIsBetaEnabled = false;
 const mockOpenConciergeAnywhere = jest.fn();
 
 jest.mock('@hooks/useSidePanelReportID', () => ({
@@ -39,6 +40,11 @@ jest.mock('@hooks/useCurrentUserPersonalDetails', () => ({
 jest.mock('@hooks/useDelegateAccountID', () => ({
     __esModule: true,
     default: () => '99',
+}));
+
+jest.mock('@hooks/usePermissions', () => ({
+    __esModule: true,
+    default: () => ({isBetaEnabled: () => mockIsBetaEnabled, isBetaEnabledOrUnknown: () => mockIsBetaEnabled}),
 }));
 
 jest.mock('@userActions/Report', () => ({
@@ -74,6 +80,7 @@ describe('useAskConcierge', () => {
     beforeEach(async () => {
         mockSidePanelReportID = undefined;
         mockIsInSidePanel = false;
+        mockIsBetaEnabled = false;
         jest.clearAllMocks();
         await Onyx.clear();
     });
@@ -249,6 +256,94 @@ describe('useAskConcierge', () => {
             expect(mockAddAttachmentWithComment).toHaveBeenCalledWith(
                 expect.objectContaining({report: ADMINS_ROOM_REPORT, notifyReportID: ADMINS_ROOM_REPORT_ID, isInSidePanel: true, conciergeReportID: CONCIERGE_REPORT_ID}),
             );
+        });
+    });
+
+    describe('Concierge threads', () => {
+        const FILES: FileObject[] = [{name: 'receipt.jpg', type: 'image/jpeg', uri: 'file://receipt.jpg'}];
+
+        it('shows the new thread in the side panel instead of sending the user to the Inbox', async () => {
+            // Given web, where Concierge answers each question in its own thread
+            mockIsInSidePanel = true;
+            mockIsBetaEnabled = true;
+            await seedReports();
+            const {result} = renderAskConcierge({forceConcierge: true});
+            expect(result.current.shouldShowAskConcierge).toBe(true);
+
+            // When a question is asked from the Home page
+            result.current.askConcierge('Where is my expense?');
+
+            // Then a thread is created without navigating to it
+            const conciergeThreadReportID = mockAddComment.mock.calls.at(0)?.at(0)?.conciergeThreadReportID;
+            expect(conciergeThreadReportID).toEqual(expect.any(String));
+            expect(mockAddComment).toHaveBeenCalledWith(expect.objectContaining({shouldNavigateToConciergeThread: false}));
+
+            // And the side panel shows that thread
+            expect(mockOpenConciergeAnywhere).toHaveBeenCalledWith({forceConcierge: true, reportID: conciergeThreadReportID});
+        });
+
+        it('sends the user to the thread on native, where there is no side panel', async () => {
+            // Given native, where Concierge answers each question in its own thread
+            mockIsBetaEnabled = true;
+            await seedReports();
+            const {result} = renderAskConcierge({forceConcierge: true});
+            expect(result.current.shouldShowAskConcierge).toBe(true);
+
+            // When a question is asked
+            result.current.askConcierge('Where is my expense?');
+
+            // Then the thread is created and navigated to, and no side panel is opened
+            expect(mockAddComment.mock.calls.at(0)?.at(0)?.conciergeThreadReportID).toEqual(expect.any(String));
+            expect(mockAddComment).toHaveBeenCalledWith(expect.objectContaining({shouldNavigateToConciergeThread: true}));
+            expect(mockOpenConciergeAnywhere).not.toHaveBeenCalled();
+        });
+
+        it('opens the Concierge chat itself when the beta is off', async () => {
+            // Given web without the thread beta
+            mockIsInSidePanel = true;
+            await seedReports();
+            const {result} = renderAskConcierge({forceConcierge: true});
+            expect(result.current.shouldShowAskConcierge).toBe(true);
+
+            // When a question is asked
+            result.current.askConcierge('Where is my expense?');
+
+            // Then no thread is created and the side panel falls back to the Concierge chat
+            expect(mockAddComment).toHaveBeenCalledWith(expect.objectContaining({conciergeThreadReportID: undefined}));
+            expect(mockOpenConciergeAnywhere).toHaveBeenCalledWith({forceConcierge: true, reportID: undefined});
+        });
+
+        it('shows the thread in the side panel for a single attachment', async () => {
+            // Given web, where Concierge answers each question in its own thread
+            mockIsInSidePanel = true;
+            mockIsBetaEnabled = true;
+            await seedReports();
+            const {result} = renderAskConcierge({forceConcierge: true});
+            expect(result.current.shouldShowAskConcierge).toBe(true);
+
+            // When one attachment is sent
+            result.current.askConciergeWithAttachment(FILES, 'Here it is');
+
+            // Then the side panel shows the thread it was posted to
+            const conciergeThreadReportID = mockAddAttachmentWithComment.mock.calls.at(0)?.at(0)?.conciergeThreadReportID;
+            expect(conciergeThreadReportID).toEqual(expect.any(String));
+            expect(mockOpenConciergeAnywhere).toHaveBeenCalledWith({forceConcierge: true, reportID: conciergeThreadReportID});
+        });
+
+        it('keeps several attachments in the Concierge chat', async () => {
+            // Given web, where Concierge answers each question in its own thread
+            mockIsInSidePanel = true;
+            mockIsBetaEnabled = true;
+            await seedReports();
+            const {result} = renderAskConcierge({forceConcierge: true});
+            expect(result.current.shouldShowAskConcierge).toBe(true);
+
+            // When two attachments are sent at once
+            result.current.askConciergeWithAttachment([...FILES, {name: 'second.jpg', type: 'image/jpeg', uri: 'file://second.jpg'}], 'Here they are');
+
+            // Then no thread is created and the side panel stays on the Concierge chat
+            expect(mockAddAttachmentWithComment).toHaveBeenCalledWith(expect.objectContaining({conciergeThreadReportID: undefined}));
+            expect(mockOpenConciergeAnywhere).toHaveBeenCalledWith({forceConcierge: true, reportID: undefined});
         });
     });
 });

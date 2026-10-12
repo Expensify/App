@@ -67,7 +67,6 @@ type VerifiedBankAccountFlowEntryPointProps = {
     /** Back to url passed from page */
     backTo?: Route;
 
-    /** Should show the continue setup button */
     shouldShowContinueSetupButton: boolean | null;
 
     /** Whether the workspace currency is set to non USD currency */
@@ -79,7 +78,6 @@ type VerifiedBankAccountFlowEntryPointProps = {
     /** Method to set the state of shouldShowContinueSetupButton */
     setShouldShowContinueSetupButton?: (shouldShowContinueSetupButton: boolean) => void;
 
-    /** Whether the user is coming from the expensify card */
     isComingFromExpensifyCard?: boolean;
 
     /** Whether this instance is starting a fresh setup from a "change bank account" flow */
@@ -159,7 +157,8 @@ function VerifiedBankAccountFlowEntryPoint({
 
     /**
      * optionPressed ref indicates what user selected before modal to validate account was displayed
-     * In this hook we check if account was validated and then proceed with the option user selected
+     * In this hook we check if account was validated and then prepare the data for the option user selected.
+     * Navigation to the next step is done by DynamicReimbursementAccountVerifyAccountPage.
      * note: non USD accounts only have manual option available
      */
     useEffect(() => {
@@ -173,25 +172,26 @@ function VerifiedBankAccountFlowEntryPoint({
                 if (isComingFromExpensifyCard) {
                     setDraftValues(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM, {isComingFromExpensifyCard});
                 }
-                Navigation.navigate(ROUTES.BANK_ACCOUNT_NON_USD_SETUP.getRoute({policyID, page: CONST.NON_USD_BANK_ACCOUNT.PAGE_NAME.CURRENCY_AND_COUNTRY, backTo}));
                 setReimbursementAccountOptionPressed(CONST.BANK_ACCOUNT.SETUP_TYPE.NONE);
                 return;
             }
 
-            prepareNextStep(CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL);
+            setBankAccountSubStep(CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL);
+            goToWithdrawalAccountSetupStep(CONST.BANK_ACCOUNT.STEP.COUNTRY);
             setReimbursementAccountOptionPressed(CONST.BANK_ACCOUNT.SETUP_TYPE.NONE);
         } else if (reimbursementAccountOptionPressed === CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID) {
             removeExistingBankAccountDetails();
             openPlaidView();
-            prepareNextStep(CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID);
+            setBankAccountSubStep(CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID);
+            goToWithdrawalAccountSetupStep(CONST.BANK_ACCOUNT.STEP.COUNTRY);
             setReimbursementAccountOptionPressed(CONST.BANK_ACCOUNT.SETUP_TYPE.NONE);
         }
-    }, [isAccountValidated, isNonUSDWorkspace, prepareNextStep, reimbursementAccountOptionPressed, policyID, isComingFromExpensifyCard, backTo, removeExistingBankAccountDetails]);
+    }, [isAccountValidated, isNonUSDWorkspace, reimbursementAccountOptionPressed, isComingFromExpensifyCard, removeExistingBankAccountDetails]);
 
     const handleConnectManually = () => {
         if (!isAccountValidated) {
             setReimbursementAccountOptionPressed(CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL);
-            Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.BANK_ACCOUNT_VERIFY_ACCOUNT.path));
+            Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.BANK_ACCOUNT_VERIFY_ACCOUNT.getRoute(CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL, isNonUSDWorkspace)));
             return;
         }
 
@@ -215,7 +215,7 @@ function VerifiedBankAccountFlowEntryPoint({
 
         if (!isAccountValidated) {
             setReimbursementAccountOptionPressed(CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID);
-            Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.BANK_ACCOUNT_VERIFY_ACCOUNT.path));
+            Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.BANK_ACCOUNT_VERIFY_ACCOUNT.getRoute(CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID)));
             return;
         }
 
