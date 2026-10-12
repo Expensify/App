@@ -40,6 +40,7 @@ type ChartTooltipLayerProps = {
  */
 function ChartTooltipLayer({matchedIndex, isTooltipActive, data, formatValue, chartWidth, initialTooltipPosition, onChartMoved, onDismiss}: ChartTooltipLayerProps) {
     const [activeDataIndex, setActiveDataIndex] = useState(-1);
+    const renderedIndex = useSharedValue(-1);
 
     useAnimatedReaction(
         () => matchedIndex.get(),
@@ -48,13 +49,11 @@ function ChartTooltipLayer({matchedIndex, isTooltipActive, data, formatValue, ch
         },
     );
 
-    // The target changes on the UI thread a frame before its content renders, so the tooltip stays hidden until both match
-    const renderedIndex = useSharedValue(-1);
     useLayoutEffect(() => {
         renderedIndex.set(activeDataIndex);
     }, [activeDataIndex, renderedIndex]);
-    const isContentCurrent = useDerivedValue(() => matchedIndex.get() === renderedIndex.get());
 
+    const isContentCurrent = useDerivedValue(() => matchedIndex.get() === renderedIndex.get());
     const tooltipData = useTooltipData(activeDataIndex, data, formatValue);
 
     if (!tooltipData) {

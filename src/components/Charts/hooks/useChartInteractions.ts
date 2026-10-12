@@ -398,15 +398,10 @@ function useChartInteractions({
 
     const dismissTouchTooltip = () => {
         hideTooltip();
-        // Clearing the target unmounts the tooltip, so the next tap mounts a fresh one instead of revealing the old content for a frame
         applyTargetIndex(-1);
         setIsTouchPinned(false);
     };
 
-    /**
-     * Touch taps show the tooltip instead of drilling in, since touch devices have no hover.
-     * While it is shown, a tap on this chart switches it and a touch anywhere else hides it.
-     */
     const handleTouchTap = (cursorX: number, cursorY: number) => {
         'worklet';
 

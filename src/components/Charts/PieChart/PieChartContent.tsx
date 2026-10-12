@@ -173,7 +173,7 @@ function PieChartContent({data, isLoading, valueUnit, valueUnitPosition, onSlice
                 scheduleOnRN(setIsHoveringOverPie, false);
             });
 
-    // Tap gesture: touch toggles the tooltip, other pointers navigate on click
+    // Tap gesture for click/tap navigation
     const tapGesture = () =>
         Gesture.Tap()
             .onFinalize((e, success) => {

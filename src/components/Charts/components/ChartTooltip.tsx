@@ -49,7 +49,7 @@ type ChartTooltipProps = {
     /** Updates the hovered point after the chart is moved in the window (e.g. via scroll) by the given offset */
     onChartMoved?: (deltaX: number, deltaY: number) => void;
 
-    /** Hides a tooltip pinned by a touch tap, passed only while it is pinned; called on any touch on the screen or when the screen loses focus */
+    /** Hides a tooltip pinned by a touch tap, passed only while it is pinned */
     onDismiss?: () => void;
 };
 
@@ -119,13 +119,12 @@ function ChartTooltip({label, amount, percentage, expenseCount, chartWidth, init
 
     const isFocused = useIsFocused();
 
-    // A pinned tooltip has no hover to end it, so it is registered for the screen's touch start to hide it
+    // A pinned tooltip is registered for the screen's touch start to hide it
     useEffect(() => {
         if (!isShown || !onDismiss) {
             return;
         }
 
-        // The tooltip is drawn in a root portal, so it would stay on top of the next screen after navigating away
         if (!isFocused) {
             onDismiss();
             return;
