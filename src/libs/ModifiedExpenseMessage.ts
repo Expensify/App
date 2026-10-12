@@ -98,14 +98,6 @@ function buildDateChangeFragment(
 }
 
 /**
- * Get the absolute value for a tax amount.
- */
-function getTaxAmountAbsValue(taxAmount: number): number {
-    // IOU requests cannot have negative values but they can be stored as negative values, let's return absolute value
-    return Math.abs(taxAmount ?? 0);
-}
-
-/**
  * Get the message line for a modified expense.
  */
 function getMessageLine(translate: LocalizedTranslate, prefix: string, messageFragments: string[]): string {
@@ -477,9 +469,8 @@ function getForReportAction({
     if (hasModifiedTaxAmount) {
         const currency = reportActionOriginalMessage?.currency;
 
-        const taxAmount = convertToDisplayString(getTaxAmountAbsValue(reportActionOriginalMessage?.taxAmount ?? 0), currency);
-        const oldTaxAmountValue = getTaxAmountAbsValue(reportActionOriginalMessage?.oldTaxAmount ?? 0);
-        const oldTaxAmount = convertToDisplayString(oldTaxAmountValue, currency);
+        const taxAmount = convertToDisplayString(reportActionOriginalMessage?.taxAmount ?? 0, currency);
+        const oldTaxAmount = convertToDisplayString(reportActionOriginalMessage?.oldTaxAmount ?? 0, currency);
         buildMessageFragmentForValue(translate, taxAmount, oldTaxAmount, translate('iou.taxAmount'), false, setFragments, removalFragments, changeFragments);
     }
 
