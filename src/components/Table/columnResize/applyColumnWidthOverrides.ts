@@ -1,22 +1,19 @@
 /** Merges stored drag widths into a table's resolved column widths, and decides which column edges can be dragged. */
 import type {ColumnWidthOverrides} from '@src/types/onyx/TableColumnWidths';
 
-import type {OverridableColumn} from './resolveOverriddenColumnWidths';
+import type {ResizableColumn} from './resolveDraggedColumnWidths';
 
 import {getColumnWidthValue} from './columnWidthExpressions';
-import resolveOverriddenColumnWidths, {isColumnResizable} from './resolveOverriddenColumnWidths';
+import {isColumnResizable} from './resolveDraggedColumnWidths';
 
 type ApplyColumnWidthOverridesParams = {
     /** Every column, in render order. */
-    columns: OverridableColumn[];
+    columns: ResizableColumn[];
 
     /** Widths before stored overrides are applied. */
     baseColumnWidths: Record<string, number>;
 
     columnWidthOverrides: ColumnWidthOverrides | undefined;
-
-    /** Width the row has for its columns, which absorbers keep it at. */
-    availableColumnsWidth: number;
 };
 
 type AppliedColumnWidthOverrides = {
@@ -30,13 +27,31 @@ type AppliedColumnWidthOverrides = {
     resizableColumnKeys: string[];
 };
 
-/** Layout-agnostic, so it serves grid tracks and flex basis alike. */
-function applyColumnWidthOverrides({columns, baseColumnWidths, columnWidthOverrides, availableColumnsWidth}: ApplyColumnWidthOverridesParams): AppliedColumnWidthOverrides {
-    const columnWidths = resolveOverriddenColumnWidths({columns, baseColumnWidths, columnWidthOverrides, availableColumnsWidth});
-    const columnWidthValues = columns.map((column) => getColumnWidthValue(column.key, columnWidths[column.key] ?? 0));
-    const resizableColumnKeys = columns.filter(isColumnResizable).map((column) => column.key);
+/**
+ * Rounded to whole px, but not held to the minimum a drag allows. That minimum depends on the current layout, so a width
+ * stored earlier can sit below it, and clamping would resize a column the user set.
+ */
+function getStoredColumnWidth(width: number): number {
+    return Math.max(Math.round(width), 0);
+}
 
-    return {columnWidths, columnWidthValues, resizableColumnKeys};
+/** Layout-agnostic, so it serves grid tracks and flex basis alike. */
+function applyColumnWidthOverrides({columns, baseColumnWidths, columnWidthOverrides}: ApplyColumnWidthOverridesParams): AppliedColumnWidthOverrides {
+    const columnWidths = {...baseColumnWidths};
+    const resizableColumns = columns.filter(isColumnResizable);
+
+    for (const column of resizableColumns) {
+        const overriddenWidth = columnWidthOverrides?.[column.key];
+
+        if (overriddenWidth !== undefined) {
+            columnWidths[column.key] = getStoredColumnWidth(overriddenWidth);
+        }
+    }
+
+    const columnWidthValues = columns.map((column) => getColumnWidthValue(column.key, columnWidths[column.key] ?? 0));
+
+    return {columnWidths, columnWidthValues, resizableColumnKeys: resizableColumns.map((column) => column.key)};
 }
 
 export default applyColumnWidthOverrides;
+export {getStoredColumnWidth};

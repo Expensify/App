@@ -1,6 +1,6 @@
 /**
- * Web column resizing: dragging a column's right edge sets its width, absorbed by the columns to its right. Widths live in
- * CSS custom properties so React doesn't render mid-drag. Only the dragged column's final width is stored in Onyx.
+ * Web column resizing: dragging a column's right edge sets its width, absorbed by the unset columns to its right. Widths
+ * live in CSS custom properties so React doesn't render mid-drag. Only the dragged column's final width is stored in Onyx.
  */
 import getDraggedColumnWidth from '@components/Table/columnResize/getDraggedColumnWidth';
 
@@ -48,6 +48,7 @@ function useColumnResize({
     getResizedColumnWidths,
     resolvedColumnWidths,
     dragMinWidths,
+    pinColumnWidths,
     columnGap,
 }: UseColumnResizeParams): ColumnResizeController | undefined {
     const styles = useThemeStyles();
@@ -73,7 +74,9 @@ function useColumnResize({
             return;
         }
 
-        // Only the dragged column is stored. The resolver re-derives the absorbers, and storing them would mark them as user-sized.
+        // Only the dragged column is stored, since storing the absorbers would mark them as user-sized. The rest is pinned
+        // as painted instead, because a fresh layout would share the room between the unset columns differently.
+        pinColumnWidths?.(Object.fromEntries(Object.keys(resolvedColumnWidths).map((columnKey) => [columnKey, readColumnWidth(columnKey) ?? 0])));
         setTableColumnWidth(columnResizingID, drag.columnKey, width);
     };
 

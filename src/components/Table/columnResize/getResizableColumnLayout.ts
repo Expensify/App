@@ -7,7 +7,7 @@ import type {ColumnWidthOverrides} from '@src/types/onyx/TableColumnWidths';
 import applyColumnWidthOverrides from './applyColumnWidthOverrides';
 import {getColumnsWidthExpression, getGrowableColumnTrack} from './columnWidthExpressions';
 import getColumnsWidthSum from './getColumnsWidthSum';
-import resolveOverriddenColumnWidths from './resolveOverriddenColumnWidths';
+import resolveDraggedColumnWidths from './resolveDraggedColumnWidths';
 
 /** Row space that isn't column width, so it can be added back around the column sum. */
 type RowChromeWidths = {
@@ -33,6 +33,9 @@ type GetResizableColumnLayoutParams<DataType extends TableData, ColumnKey extend
 
     columnWidthOverrides: ColumnWidthOverrides | undefined;
 
+    /** Widths the last drag left painted, kept until the layout reflows so releasing a drag moves nothing. */
+    pinnedColumnWidths: Record<string, number> | undefined;
+
     /** Width each content-sized column's content and header need, which absorbing another column's resize never squeezes it below. */
     fitColumnWidths: Record<string, number>;
 
@@ -55,7 +58,7 @@ type ResizableColumnLayout = {
     /** Keys of the columns whose right edge the user can drag, in render order. */
     resizableColumnKeys: string[];
 
-    /** Every column's width with one column resized, resolved like a stored width so the drag paints what release keeps. */
+    /** The dragged column's width and the widths of the columns that absorb it, painted mid-drag. */
     getResizedColumnWidths: (columnKey: string, width: number) => Record<string, number>;
 
     /** Width drags start from: stored overrides applied, and the growable column at its painted width. */
@@ -69,6 +72,7 @@ function getResizableColumnLayout<DataType extends TableData, ColumnKey extends 
     columns,
     resolvedColumnWidths,
     columnWidthOverrides,
+    pinnedColumnWidths,
     fitColumnWidths,
     tableWidth,
     rowChromeWidths: {selectionColumnWidth, totalGapWidth, rowMarginWidth, rowPaddingWidth},
@@ -85,17 +89,18 @@ function getResizableColumnLayout<DataType extends TableData, ColumnKey extends 
         baseColumnWidths[growableColumnKey] = (baseColumnWidths[growableColumnKey] ?? 0) + Math.max(leftoverWidth, 0);
     }
 
-    const overridableColumns = columns.map((column) => ({
+    const resizableColumns = columns.map((column) => ({
         key: column.key,
         label: column.label,
         hasDeclaredWidth: typeof column.width === 'number',
         fitWidth: fitColumnWidths[column.key],
         maxWidth: column.dynamicSizing?.maxWidth,
     }));
-    const {columnWidths, columnWidthValues, resizableColumnKeys} = applyColumnWidthOverrides({columns: overridableColumns, baseColumnWidths, columnWidthOverrides, availableColumnsWidth});
-
-    const getResizedColumnWidths = (columnKey: string, width: number) =>
-        resolveOverriddenColumnWidths({columns: overridableColumns, baseColumnWidths, columnWidthOverrides: {...columnWidthOverrides, [columnKey]: width}, availableColumnsWidth});
+    const {columnWidths, columnWidthValues, resizableColumnKeys} = applyColumnWidthOverrides({
+        columns: resizableColumns,
+        baseColumnWidths,
+        columnWidthOverrides: {...pinnedColumnWidths, ...columnWidthOverrides},
+    });
 
     // Row width sums the widths, not the tracks, so the growable track only grows into real leftover room.
     const gridTemplateColumns = columnWidthValues.map((widthValue, index) => (columns.at(index)?.key === growableColumnKey ? getGrowableColumnTrack(widthValue) : widthValue));
@@ -118,6 +123,9 @@ function getResizableColumnLayout<DataType extends TableData, ColumnKey extends 
         // A width already below the drag bound stays put rather than jumping wider.
         dragMinWidths[growableColumnKey] = Math.min(minWidth, paintedWidth);
     }
+
+    const getResizedColumnWidths = (columnKey: string, width: number) =>
+        resolveDraggedColumnWidths({columns: resizableColumns, startWidths: dragStartWidths, columnWidthOverrides, availableColumnsWidth, columnKey, width});
 
     // Scroll at the live column sum, so a drag that exhausts the absorbers starts scrolling mid-drag.
     return {

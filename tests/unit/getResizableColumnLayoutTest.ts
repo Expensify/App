@@ -22,6 +22,7 @@ describe('getResizableColumnLayout', () => {
             columns,
             resolvedColumnWidths: {name: 200, email: 200, role: 200},
             columnWidthOverrides: undefined,
+            pinnedColumnWidths: undefined,
             fitColumnWidths: {},
             tableWidth: 600,
             rowChromeWidths,
@@ -40,6 +41,7 @@ describe('getResizableColumnLayout', () => {
             columns,
             resolvedColumnWidths: {name: 200, email: 200, role: 250},
             columnWidthOverrides: undefined,
+            pinnedColumnWidths: undefined,
             fitColumnWidths: {},
             tableWidth: 600,
             rowChromeWidths,
@@ -58,6 +60,7 @@ describe('getResizableColumnLayout', () => {
             columns,
             resolvedColumnWidths: {name: 800, email: 800, role: 200},
             columnWidthOverrides: undefined,
+            pinnedColumnWidths: undefined,
             fitColumnWidths: {},
             tableWidth: 600,
             rowChromeWidths,
@@ -76,6 +79,7 @@ describe('getResizableColumnLayout', () => {
             columns,
             resolvedColumnWidths: {name: 280, role: 280, arrow: 40},
             columnWidthOverrides: undefined,
+            pinnedColumnWidths: undefined,
             fitColumnWidths: {},
             tableWidth: 600,
             rowChromeWidths,
@@ -94,6 +98,7 @@ describe('getResizableColumnLayout', () => {
             columns,
             resolvedColumnWidths: {name: 200, role: 200, arrow: 40},
             columnWidthOverrides: undefined,
+            pinnedColumnWidths: undefined,
             fitColumnWidths: {},
             tableWidth: 600,
             rowChromeWidths,
@@ -107,34 +112,41 @@ describe('getResizableColumnLayout', () => {
         expect(dragMinWidths).toEqual({role: 360});
     });
 
-    it("takes a wider column out of the last headed column's leftover room first", () => {
+    it('drags the last headed column from the leftover room it paints', () => {
         // Given a 600px table whose last headed column is painted 100px wider than it needs
         const columns = [column('name'), column('email'), column('role'), column('arrow', '')];
-
-        // When the user has stored the first column 60px wider
-        const {resolvedColumnWidths} = getResizableColumnLayout({
+        const params = {
             columns,
             resolvedColumnWidths: {name: 200, email: 160, role: 100, arrow: 40},
+            columnWidthOverrides: undefined,
+            pinnedColumnWidths: undefined,
+            tableWidth: 600,
+            rowChromeWidths,
+        };
+
+        // When the first column is dragged 60px wider
+        const {getResizedColumnWidths} = getResizableColumnLayout({...params, fitColumnWidths: {name: 200, email: 160, role: 100}});
+
+        // Then the last headed column gives up its leftover, since the content-fitted column between has nothing to give
+        expect(getResizedColumnWidths('name', 260)).toEqual({name: 260, email: 160, role: 140});
+    });
+
+    it('paints the widths a drag ended at instead of reflowing the unset columns', () => {
+        // Given a layout whose unset columns would reflow once a dragged width is stored
+        const columns = [column('name'), column('email'), column('role')];
+
+        // When the drag's painted widths are pinned alongside the stored width
+        const {resolvedColumnWidths} = getResizableColumnLayout({
+            columns,
+            resolvedColumnWidths: {name: 260, email: 170, role: 170},
             columnWidthOverrides: {name: 260},
-            fitColumnWidths: {name: 200, email: 160, role: 100},
+            pinnedColumnWidths: {name: 260, email: 140, role: 200},
+            fitColumnWidths: {},
             tableWidth: 600,
             rowChromeWidths,
         });
 
-        // Then the last headed column absorbs from its leftover, since the content-fitted column between has nothing to give
-        expect(resolvedColumnWidths).toEqual({name: 260, email: 160, role: 140, arrow: 40});
-    });
-
-    it('paints mid-drag exactly the widths that release resolves to', () => {
-        // Given a 600px table whose last headed column is painted 100px wider than it needs
-        const columns = [column('name'), column('email'), column('role'), column('arrow', '')];
-        const params = {columns, resolvedColumnWidths: {name: 200, email: 160, role: 100, arrow: 40}, fitColumnWidths: {name: 200, email: 160, role: 100}, tableWidth: 600, rowChromeWidths};
-
-        // When the first column is dragged 60px wider, and separately once that width is stored
-        const {getResizedColumnWidths} = getResizableColumnLayout({...params, columnWidthOverrides: undefined});
-        const {resolvedColumnWidths} = getResizableColumnLayout({...params, columnWidthOverrides: {name: 260}});
-
-        // Then the drag already paints the stored layout, so no column jumps when the pointer is released
-        expect(getResizedColumnWidths('name', 260)).toEqual(resolvedColumnWidths);
+        // Then the pinned widths win, so releasing the drag moves nothing
+        expect(resolvedColumnWidths).toEqual({name: 260, email: 140, role: 200});
     });
 });

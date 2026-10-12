@@ -26,7 +26,7 @@ const resolvedColumnWidths = {name: 200, email: 200, role: 200};
 
 /** Stands in for the resolver: the email column absorbs the whole resize, the role column is user-sized and doesn't. */
 function getResizedColumnWidths(columnKey: string, width: number): Record<string, number> {
-    return {...resolvedColumnWidths, [columnKey]: width, email: 400 - width};
+    return {[columnKey]: width, email: 400 - width};
 }
 
 type PointerEventInit = {clientX: number; button?: number};
@@ -117,7 +117,8 @@ describe('useColumnResize', () => {
 
     it('paints a drag onto the scope and stores the dragged column on release', () => {
         // Given a 200px column with two 200px columns after it, the first of which absorbs its resize
-        const {handleElement, getHandleProps, readWidth} = renderColumnResize();
+        const pinColumnWidths = jest.fn();
+        const {handleElement, getHandleProps, readWidth} = renderColumnResize({pinColumnWidths});
 
         // When its edge is dragged 60px right
         act(() => {
@@ -125,10 +126,10 @@ describe('useColumnResize', () => {
             getHandleProps().onPointerMove?.(createPointerEvent(handleElement, {clientX: 160}));
         });
 
-        // Then every resolved width is painted straight onto the scope without a React render, so the absorber gives way mid-drag
+        // Then the dragged column and its absorber are painted straight onto the scope without a React render, and the user-sized column is left alone
         expect(readWidth('name')).toBe('260px');
         expect(readWidth('email')).toBe('140px');
-        expect(readWidth('role')).toBe('200px');
+        expect(readWidth('role')).toBe('');
         expect(document.body.style.cursor).toBe('col-resize');
 
         // When the pointer is released
@@ -136,9 +137,10 @@ describe('useColumnResize', () => {
             getHandleProps().onPointerUp?.(createPointerEvent(handleElement, {clientX: 160}));
         });
 
-        // Then the dragged column is stored, once
+        // Then the dragged column is stored, once, and every column is pinned as painted so the release moves nothing
         expect(setTableColumnWidth).toHaveBeenCalledTimes(1);
         expect(setTableColumnWidth).toHaveBeenCalledWith(COLUMN_RESIZING_ID, 'name', 260);
+        expect(pinColumnWidths).toHaveBeenCalledWith({name: 260, email: 140, role: 200});
         expect(document.body.style.cursor).toBe('');
     });
 
