@@ -62,6 +62,8 @@ function BaseOverlay({
             aria-hidden
             style={[
                 styles.pFixed,
+                // Overlays shorter than the 30px top bar (the floating RHP gap bands) would otherwise leak a pressable area onto the card below.
+                styles.overflowHidden,
                 !transparent && styles.overlayBackground,
                 styles.overlayStyles({progress: progress ?? current.progress, positionLeftValue, positionRightValue, positionTopValue, positionBottomValue, maxOpacity}),
             ]}
