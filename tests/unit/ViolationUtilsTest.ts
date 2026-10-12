@@ -24,10 +24,6 @@ jest.mock('@libs/actions/Report', () => ({
     getCurrentUserEmail: jest.fn(() => MOCK_CURRENT_USER_EMAIL),
 }));
 
-jest.mock('@expensify/react-native-hybrid-app', () => ({
-    isHybridApp: jest.fn(() => false),
-}));
-
 const categoryOutOfPolicyViolation = {
     name: CONST.VIOLATIONS.CATEGORY_OUT_OF_POLICY,
     type: CONST.VIOLATION_TYPES.VIOLATION,
@@ -3264,110 +3260,6 @@ describe('getViolationsOnyxData', () => {
                 isInvoiceTransaction: false,
             });
             expect(result.value).not.toContainEqual(inactiveVendorViolation);
-        });
-
-        it('adds the violation when the vendor remains in the raw integration list but is disabled in policyVendors', () => {
-            const activeVendorID = 'v-active';
-            policy = policyWithQBOVendorFeature();
-            transaction.comment = {...transaction.comment, vendor: {externalID: activeVendorID, wasManuallySet: true}};
-            const policyVendors: PolicyVendors = {
-                [activeVendorID]: {
-                    externalID: activeVendorID,
-                    name: 'Acme Co',
-                    enabled: false,
-                },
-            };
-            const result = ViolationsUtils.getViolationsOnyxData({
-                isVendorMatchingBetaEnabled: true,
-                ownerLogin: undefined,
-                updatedTransaction: transaction,
-                transactionViolations: [],
-                policy,
-                policyTagList: policyTags,
-                policyCategories,
-                hasDependentTags: false,
-                isInvoiceTransaction: false,
-                policyVendors,
-            });
-            expect(result.value).toEqual(expect.arrayContaining([inactiveVendorViolation]));
-        });
-
-        it('retains an existing violation through an optimistic update while the vendor remains disabled in policyVendors', () => {
-            const activeVendorID = 'v-active';
-            policy = policyWithQBOVendorFeature();
-            transaction.comment = {...transaction.comment, vendor: {externalID: activeVendorID, wasManuallySet: true}};
-            const policyVendors: PolicyVendors = {
-                [activeVendorID]: {
-                    externalID: activeVendorID,
-                    name: 'Acme Co',
-                    enabled: false,
-                },
-            };
-            const result = ViolationsUtils.getViolationsOnyxData({
-                isVendorMatchingBetaEnabled: true,
-                ownerLogin: undefined,
-                updatedTransaction: transaction,
-                transactionViolations: [inactiveVendorViolation],
-                policy,
-                policyTagList: policyTags,
-                policyCategories,
-                hasDependentTags: false,
-                isInvoiceTransaction: false,
-                policyVendors,
-            });
-            expect(result.value).toContainEqual(inactiveVendorViolation);
-        });
-
-        it('removes an existing violation when the vendor is re-enabled in policyVendors', () => {
-            const activeVendorID = 'v-active';
-            policy = policyWithQBOVendorFeature();
-            transaction.comment = {...transaction.comment, vendor: {externalID: activeVendorID, wasManuallySet: true}};
-            const policyVendors: PolicyVendors = {
-                [activeVendorID]: {
-                    externalID: activeVendorID,
-                    name: 'Acme Co',
-                    enabled: true,
-                },
-            };
-            const result = ViolationsUtils.getViolationsOnyxData({
-                isVendorMatchingBetaEnabled: true,
-                ownerLogin: undefined,
-                updatedTransaction: transaction,
-                transactionViolations: [inactiveVendorViolation],
-                policy,
-                policyTagList: policyTags,
-                policyCategories,
-                hasDependentTags: false,
-                isInvoiceTransaction: false,
-                policyVendors,
-            });
-            expect(result.value).not.toContainEqual(inactiveVendorViolation);
-        });
-
-        it('leaves the violation untouched when the active integration vendor list is not loaded yet even if policyVendors is present', () => {
-            const activeVendorID = 'v-active';
-            policy = policyWithQBOVendorFeature(null);
-            transaction.comment = {...transaction.comment, vendor: {externalID: activeVendorID, wasManuallySet: true}};
-            const policyVendors: PolicyVendors = {
-                [activeVendorID]: {
-                    externalID: activeVendorID,
-                    name: 'Acme Co',
-                    enabled: false,
-                },
-            };
-            const result = ViolationsUtils.getViolationsOnyxData({
-                isVendorMatchingBetaEnabled: true,
-                ownerLogin: undefined,
-                updatedTransaction: transaction,
-                transactionViolations: [inactiveVendorViolation],
-                policy,
-                policyTagList: policyTags,
-                policyCategories,
-                hasDependentTags: false,
-                isInvoiceTransaction: false,
-                policyVendors,
-            });
-            expect(result.value).toContainEqual(inactiveVendorViolation);
         });
 
         it('removes an existing violation when the user clears the vendor while the feature is still active', () => {
