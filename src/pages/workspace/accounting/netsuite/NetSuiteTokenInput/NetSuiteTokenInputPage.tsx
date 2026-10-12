@@ -74,7 +74,7 @@ function NetSuiteTokenInputPage({policy}: WithPolicyConnectionsProps) {
     const {CurrentPage, nextPage, prevPage, pageIndex, moveTo, currentPageName} = useSubPage<CustomSubPageTokenInputProps>({
         pages,
         onFinished: submit,
-        buildRoute: (pageName) => ROUTES.POLICY_ACCOUNTING_NETSUITE_TOKEN_INPUT.getRoute(params.policyID, pageName, authType),
+        buildRoute: (pageName) => ROUTES.POLICY_ACCOUNTING_NETSUITE_TOKEN_INPUT.getRoute(params.policyID, pageName, authType, isMigrationFromParam),
     });
 
     const handleBackButtonPress = () => {
@@ -85,7 +85,7 @@ function NetSuiteTokenInputPage({policy}: WithPolicyConnectionsProps) {
         prevPage();
     };
 
-    const shouldPageBeBlocked = !isEmptyObject(policy?.connections?.[CONST.POLICY.CONNECTIONS.NAME.NETSUITE]) && !hasAuthError && !isMigration;
+    const shouldPageBeBlocked = !isEmptyObject(policy?.connections?.[CONST.POLICY.CONNECTIONS.NAME.NETSUITE]) && !hasAuthError && !isMigrationFromConnection;
 
     return (
         <ConnectionLayout
