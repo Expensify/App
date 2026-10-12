@@ -21,7 +21,7 @@ function useMCPConnectionListings(policy: OnyxEntry<Policy>): ConnectionListing[
     const policyID = policy?.id;
     const {translate} = useLocalize();
     const {canWrite, showReadOnlyModal} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.MORE_FEATURES);
-    const icons = useMemoizedLazyExpensifyIcons(['ChatGPTSquare', 'ClaudeSquare', 'CursorSquare']);
+    const icons = useMemoizedLazyExpensifyIcons(['ChatGPTSquare', 'ClaudeSquare', 'CursorSquare', 'MCPSquare']);
 
     if (!policyID) {
         return [];
@@ -53,6 +53,7 @@ function useMCPConnectionListings(policy: OnyxEntry<Policy>): ConnectionListing[
         key: MCP_CONNECTOR.MCP,
         category: CONST.TAB.CONNECTIONS.AI,
         title: translate('workspace.moreFeatures.mcp.title'),
+        icon: icons.MCPSquare,
         onConnect: () => openExternalLink(CONST.MCP_HELP_URL),
     };
 
