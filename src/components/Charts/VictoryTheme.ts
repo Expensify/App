@@ -81,12 +81,6 @@ const VictoryTheme = {
         /** Base domain padding applied to all sides */
         domainPadding: {top: 16, bottom: 0, left: 0, right: 0},
     },
-    tooltip: {
-        /** The height of the chart tooltip pointer */
-        pointerHeight: 4,
-        /** The width of the chart tooltip pointer */
-        pointerWidth: 12,
-    },
     pie: {
         /** Starting angle for pie chart (0 = 3 o'clock, -90 = 12 o'clock) */
         startAngle: -90,

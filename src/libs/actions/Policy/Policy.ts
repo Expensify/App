@@ -94,7 +94,6 @@ import getWorkspaceCreatedAnalyticsEvent from '@libs/getWorkspaceCreatedAnalytic
 import GoogleTagManager from '@libs/GoogleTagManager';
 import Log from '@libs/Log';
 import {buildOptimisticNextStep} from '@libs/NextStepUtils';
-import {rand64} from '@libs/NumberUtils';
 import {isTrackOnboardingChoice} from '@libs/OnboardingUtils';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as PhoneNumber from '@libs/PhoneNumber';
@@ -117,7 +116,7 @@ import type {Feature} from '@pages/OnboardingInterestedFeatures/types';
 
 import * as PaymentMethods from '@userActions/PaymentMethods';
 import * as PersistedRequests from '@userActions/PersistedRequests';
-import {buildTaskData, getOnboardingTaskCompletionOnSuccessData, withReviewWorkspaceSettingsTaskData} from '@userActions/Task';
+import {buildTaskData, withReviewWorkspaceSettingsTaskData} from '@userActions/Task';
 import type {OnboardingTaskCompletionOnyxData} from '@userActions/Task';
 import {getOnboardingMessages} from '@userActions/Welcome/OnboardingFlow';
 import type {OnboardingCompanySize, OnboardingPurpose} from '@userActions/Welcome/OnboardingFlow';
@@ -317,7 +316,7 @@ type DuplicatePolicyDataOptions = {
     policyCategories?: PolicyCategories;
     localCurrency: string;
     rules?: OnyxCollection<Rule>;
-    personalDetailsByLogins?: PersonalDetailsByLogin;
+    personalDetailsByLogins: PersonalDetailsByLogin;
 };
 
 type SetWorkspaceReimbursementActionParams = {
@@ -1700,6 +1699,7 @@ function addBillingCardAndRequestPolicyOwnerChange(
         addressZip: string;
         currency: string;
     },
+    source?: string,
 ) {
     const policyID = policy?.id;
     if (!policyID) {
@@ -1759,7 +1759,7 @@ function addBillingCardAndRequestPolicyOwnerChange(
             currency: currency as ValueOf<typeof CONST.PAYMENT_CARD_CURRENCY>,
             isP2PDebitCard: false,
         };
-        PaymentMethods.addPaymentCardSCA(params);
+        PaymentMethods.addPaymentCardSCA(params, source);
     } else {
         const params: AddBillingCardAndRequestWorkspaceOwnerChangeParams = {
             policyID,
@@ -1780,12 +1780,13 @@ function addBillingCardAndRequestPolicyOwnerChange(
  * Properly updates the nvp_privateStripeCustomerID onyx data for 3DS payment
  *
  */
-function verifySetupIntentAndRequestPolicyOwnerChange(policy: OnyxEntry<Policy>, currentUserAccountID: number, currentUserEmail: string) {
+function verifySetupIntentAndRequestPolicyOwnerChange(policy: OnyxEntry<Policy>, currentUserAccountID: number, currentUserEmail: string, source?: string) {
     const policyID = policy?.id;
     if (!policyID) {
         return;
     }
 
+    PaymentMethods.prepareCardAuthentication(source);
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -1799,7 +1800,7 @@ function verifySetupIntentAndRequestPolicyOwnerChange(policy: OnyxEntry<Policy>,
         },
     ];
 
-    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY | typeof ONYXKEYS.VERIFY_3DS_SUBSCRIPTION_SOURCE>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
@@ -1812,6 +1813,7 @@ function verifySetupIntentAndRequestPolicyOwnerChange(policy: OnyxEntry<Policy>,
                 ...getOwnerChangePayerSuccessData(policy, currentUserEmail),
             },
         },
+        ...PaymentMethods.getVerify3dsSubscriptionSourceData(source),
     ];
 
     const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
@@ -7920,23 +7922,7 @@ function updateInvoiceCompanyWebsite(policyID: string, companyWebsite: string, c
 /**
  * Validates user account and returns a list of accessible policies.
  */
-/**
- * @param validateEmailTaskReport The join-workspace intent's "validate your email" Concierge task, when one exists.
- * Auth auto-completes it as part of this command via a forwarded CompleteTask, but ticking it here too avoids waiting
- * on that command's Pusher update to reach the client. The tick rides the command's successData so it only lands once
- * the command has actually succeeded - an invalid validate code must leave the task open. See
- * getOnboardingTaskCompletionOnSuccessData.
- */
-function getAccessiblePolicies(
-    validateCode?: string,
-    validateEmailTaskReport?: OnyxEntry<Report>,
-    validateEmailTaskParentReport?: OnyxEntry<Report>,
-    isValidateEmailTaskParentReportArchived?: boolean,
-    validateEmailTaskHasOutstandingChildTask?: boolean,
-    validateEmailTaskParentReportAction?: OnyxEntry<ReportAction>,
-    currentUserAccountID?: number,
-): string {
-    const requestID = rand64();
+function getAccessiblePolicies(validateCode?: string) {
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.VALIDATE_USER_AND_GET_ACCESSIBLE_POLICIES>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -7944,19 +7930,17 @@ function getAccessiblePolicies(
             value: {
                 loading: true,
                 errors: null,
-                requestID,
             },
         },
     ];
 
-    const successData: Array<OnyxUpdate<typeof ONYXKEYS.VALIDATE_USER_AND_GET_ACCESSIBLE_POLICIES | typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> = [
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.VALIDATE_USER_AND_GET_ACCESSIBLE_POLICIES>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.VALIDATE_USER_AND_GET_ACCESSIBLE_POLICIES,
             value: {
                 loading: false,
                 errors: null,
-                requestID,
             },
         },
     ];
@@ -7967,30 +7951,13 @@ function getAccessiblePolicies(
             key: ONYXKEYS.VALIDATE_USER_AND_GET_ACCESSIBLE_POLICIES,
             value: {
                 loading: false,
-                requestID,
             },
         },
     ];
 
-    let completedTaskReportActionID: string | undefined;
-    if (validateEmailTaskReport && currentUserAccountID) {
-        const validateEmailTaskCompletion = getOnboardingTaskCompletionOnSuccessData(
-            validateEmailTaskReport,
-            validateEmailTaskParentReport,
-            isValidateEmailTaskParentReportArchived ?? false,
-            currentUserAccountID,
-            validateEmailTaskHasOutstandingChildTask ?? false,
-            validateEmailTaskParentReportAction,
-        );
-        successData.push(...validateEmailTaskCompletion.successData);
-        completedTaskReportActionID = validateEmailTaskCompletion.completedTaskReportActionID;
-    }
-
     const command = validateCode ? WRITE_COMMANDS.VALIDATE_USER_AND_GET_ACCESSIBLE_POLICIES : WRITE_COMMANDS.GET_ACCESSIBLE_POLICIES;
 
-    API.write(command, validateCode ? {validateCode, completedTaskReportActionID} : null, {optimisticData, successData, failureData});
-
-    return requestID;
+    API.write(command, validateCode ? {validateCode} : null, {optimisticData, successData, failureData});
 }
 
 /**
