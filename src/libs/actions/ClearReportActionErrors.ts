@@ -19,7 +19,6 @@ type IgnoreDirection = 'parent' | 'child';
 /** The subset of report data needed to walk the parent hierarchy when clearing related errors */
 type ReportHierarchyInfo = Pick<OnyxTypes.Report, 'parentReportID' | 'parentReportActionID'>;
 
-// TODO: Remove this transitional fallback once all callers pass the `reportActions` param (https://github.com/Expensify/App/issues/96139)
 let allReportActions: OnyxCollection<OnyxTypes.ReportActions>;
 Onyx.connectWithoutView({
     key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
@@ -126,7 +125,6 @@ type ClearAllRelatedReportActionErrorsParams = {
     ignore?: IgnoreDirection;
     keys?: string[];
     reports?: OnyxCollection<ReportHierarchyInfo>;
-    /** Report actions data used for the orphaned-reject-sibling cleanup and the parent/child walks, keyed by `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}` */
     reportActions?: OnyxCollection<OnyxTypes.ReportActions>;
 };
 

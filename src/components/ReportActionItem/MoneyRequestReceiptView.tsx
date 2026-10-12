@@ -158,6 +158,7 @@ function MoneyRequestReceiptView({
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(parentReportID)}`);
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(parentReport?.parentReportID)}`);
     const [parentReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`);
+    const [allReportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
@@ -570,7 +571,14 @@ function MoneyRequestReceiptView({
                 return;
             }
             clearError(linkedTransactionID);
-            clearAllRelatedReportActionErrors({reportID: report.reportID, reportAction: parentReportAction, originalReportID, isOffline, reports: reportsParentHierarchy});
+            clearAllRelatedReportActionErrors({
+                reportID: report.reportID,
+                reportAction: parentReportAction,
+                originalReportID,
+                isOffline,
+                reports: reportsParentHierarchy,
+                reportActions: allReportActions,
+            });
             return;
         }
         if (!isEmptyObject(transactionAndReportActionErrors)) {
@@ -578,7 +586,14 @@ function MoneyRequestReceiptView({
         }
         if (!isEmptyObject(errorsWithoutReportCreation)) {
             clearError(transaction.transactionID);
-            clearAllRelatedReportActionErrors({reportID: report.reportID, reportAction: parentReportAction, originalReportID, isOffline, reports: reportsParentHierarchy});
+            clearAllRelatedReportActionErrors({
+                reportID: report.reportID,
+                reportAction: parentReportAction,
+                originalReportID,
+                isOffline,
+                reports: reportsParentHierarchy,
+                reportActions: allReportActions,
+            });
         }
         if (!isEmptyObject(reportCreationError)) {
             if (isInNarrowPaneModal) {
