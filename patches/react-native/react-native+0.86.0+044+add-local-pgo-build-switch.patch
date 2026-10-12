@@ -149,14 +149,14 @@ diff --git a/node_modules/react-native/sdks/hermes-engine/utils/build-hermes-xco
 +pgo_compile_flags=""
 +pgo_linker_flags=""
 +if [[ "${EXPENSIFY_PGO_MODE:-off}" == "generate" ]]; then
-+  pgo_compile_flags="-fprofile-instr-generate"
-+  pgo_linker_flags="-fprofile-instr-generate;LINKER:-alias,___llvm_profile_set_filename,_expensify_llvm_profile_set_filename;LINKER:-alias,___llvm_profile_write_file,_expensify_llvm_profile_write_file;LINKER:-alias,___llvm_profile_reset_counters,_expensify_llvm_profile_reset_counters"
++  pgo_compile_flags="-fprofile-generate"
++  pgo_linker_flags="-fprofile-generate;LINKER:-alias,___llvm_profile_set_filename,_expensify_llvm_profile_set_filename;LINKER:-alias,___llvm_profile_write_file,_expensify_llvm_profile_write_file;LINKER:-alias,___llvm_profile_reset_counters,_expensify_llvm_profile_reset_counters"
 +elif [[ "${EXPENSIFY_PGO_MODE:-off}" == "use" ]]; then
 +  if [[ -z "${EXPENSIFY_PGO_PROFILE:-}" ]]; then
 +    echo "EXPENSIFY_PGO_PROFILE is required when EXPENSIFY_PGO_MODE=use" >&2
 +    exit 1
 +  fi
-+  pgo_compile_flags="-fprofile-instr-use=${EXPENSIFY_PGO_PROFILE}"
++  pgo_compile_flags="-fprofile-use=${EXPENSIFY_PGO_PROFILE}"
 +fi
 +
  boost_context_flag=""

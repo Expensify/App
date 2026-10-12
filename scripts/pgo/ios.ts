@@ -1,4 +1,4 @@
-// cspell:ignore hermesv profdata devicectl libdav intops libwebp fprofile CPLUSPLUSFLAGS ARCHS profraw cnts hermesvm unprofiled
+// cspell:ignore Xfrontend hermesv profdata devicectl libdav intops libwebp fprofile CPLUSPLUSFLAGS ARCHS profraw cnts hermesvm unprofiled
 
 /** iOS-specific release builds, signing, native profile persistence, retrieval, and instrumentation checks. */
 
@@ -14,7 +14,7 @@ import {capture, environmentString, fail, findFiles, rootDirectory, run, runAllo
 import {BENCHMARK_SPANS_ENVIRONMENT} from './shared';
 
 function createIOSPgoAdapter(configuredAppID?: string, cliDeviceIdentifier?: string): PlatformAdapter {
-    const profileFormat = 'ios-clang-frontend-swift-ir-v1';
+    const profileFormat = 'ios-clang-swift-ir-v3';
     const profileDirectory = join(rootDirectory, '.pgo/ios/arm64');
     const rawProfileDirectory = join(profileDirectory, 'raw');
     const appDirectory = join(profileDirectory, 'app');
@@ -181,19 +181,19 @@ function createIOSPgoAdapter(configuredAppID?: string, cliDeviceIdentifier?: str
             return [
                 ...baseSettings,
                 'GCC_PREPROCESSOR_DEFINITIONS=$(inherited) EXPENSIFY_PGO_GENERATE=1',
-                'OTHER_CFLAGS=$(inherited) -fprofile-instr-generate',
-                'OTHER_CPLUSPLUSFLAGS=$(inherited) -fprofile-instr-generate',
-                'OTHER_SWIFT_FLAGS=$(inherited) -ir-profile-generate',
-                'OTHER_LDFLAGS=$(inherited) -fprofile-instr-generate',
+                'OTHER_CFLAGS=$(inherited) -fprofile-generate',
+                'OTHER_CPLUSPLUSFLAGS=$(inherited) -fprofile-generate',
+                'OTHER_SWIFT_FLAGS=$(inherited) -Xfrontend -ir-profile-generate',
+                'OTHER_LDFLAGS=$(inherited) -fprofile-generate',
             ];
         }
         if (kind === 'optimized') {
-            const clangProfileFlags = `-fprofile-instr-use=${profilePath} -Wno-error=profile-instr-unprofiled`;
+            const clangProfileFlags = `-fprofile-use=${profilePath} -Wno-error=profile-instr-unprofiled`;
             return [
                 ...baseSettings,
                 `OTHER_CFLAGS=$(inherited) ${clangProfileFlags}`,
                 `OTHER_CPLUSPLUSFLAGS=$(inherited) ${clangProfileFlags}`,
-                `OTHER_SWIFT_FLAGS=$(inherited) -ir-profile-use=${profilePath}`,
+                `OTHER_SWIFT_FLAGS=$(inherited) -Xfrontend -ir-profile-use=${profilePath}`,
             ];
         }
         return baseSettings;
@@ -208,7 +208,7 @@ function createIOSPgoAdapter(configuredAppID?: string, cliDeviceIdentifier?: str
             const profileFormatPath = `${profilePath}.format`;
             const recordedFormat = existsSync(profileFormatPath) ? readFileSync(profileFormatPath, 'utf8').trim() : undefined;
             if (recordedFormat !== profileFormat) {
-                fail('The merged iOS profile predates the current Swift IR instrumentation. Install the latest instrumented app and run record-startups again.');
+                fail('The merged iOS profile does not match the current Clang and Swift IR instrumentation. Install the latest instrumented app and run record-startups again.');
             }
         }
 
@@ -230,28 +230,24 @@ function createIOSPgoAdapter(configuredAppID?: string, cliDeviceIdentifier?: str
                   ...(developmentTeam ? [`DEVELOPMENT_TEAM=${developmentTeam}`] : []),
               ]
             : ['CODE_SIGNING_ALLOWED=NO', 'CODE_SIGNING_REQUIRED=NO'];
-        const xcodeArguments = [
-            'xcodebuild',
-            '-workspace',
-            'Expensify.xcworkspace',
-            '-scheme',
-            'Expensify',
-            '-configuration',
-            'Release',
-            '-destination',
-            'generic/platform=iOS',
-            '-derivedDataPath',
-            derivedDataDirectory,
-            ...(codeSigningAllowed ? ['-allowProvisioningUpdates'] : []),
-            '-quiet',
+        const rockArguments = iosRockBuildArguments(derivedDataDirectory, [
             'build',
             'ARCHS=arm64',
             'ONLY_ACTIVE_ARCH=YES',
             'COMPILER_INDEX_STORE_ENABLE=NO',
+            ...(codeSigningAllowed ? ['-allowProvisioningUpdates'] : []),
             ...signingSettings,
             ...pgoBuildSettings(kind, profilePath),
-        ];
-        withLocalUploadPhasesDisabled(() => run('/usr/bin/env', [...sourceBuildEnvironment(mode, profilePath), ...xcodeArguments], iosDirectory));
+        ]);
+        withLocalUploadPhasesDisabled(() => run('/usr/bin/env', [
+            ...sourceBuildEnvironment(mode, profilePath),
+            'IS_HYBRID_APP=true',
+            'BUNDLER=metro',
+            `PATH=${join(rootDirectory, 'node_modules/.bin')}:${process.env.PATH ?? ''}`,
+            'node',
+            join(rootDirectory, 'node_modules/rock/dist/src/bin.js'),
+            ...rockArguments,
+        ], join(rootDirectory, 'Mobile-Expensify')));
         if (!existsSync(builtAppPath)) {
             fail(`Missing built iOS app at ${builtAppPath}.`);
         }
@@ -472,4 +468,15 @@ function replaceOnce(content: string, previous: string, next: string): string {
     return `${content.slice(0, offset)}${next}${content.slice(offset + previous.length)}`;
 }
 
+/** Preserve each Xcode setting as one argument through Rock's string argument parser. */
+function iosRockBuildArguments(derivedDataDirectory: string, settings: string[]): string[] {
+    return [
+        'build:ios', '--local', '--verbose', '--configuration', 'Release',
+        '--scheme', 'Expensify', '--destination', 'generic/platform=iOS',
+        '--build-folder', derivedDataDirectory, '--no-install-pods',
+        '--extra-params', settings.map((argument) => JSON.stringify(argument)).join(' '),
+    ];
+}
+
+export {iosRockBuildArguments};
 export default createIOSPgoAdapter;
