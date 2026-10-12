@@ -12,6 +12,7 @@ import '../wdyr';
 import {ActionSheetAwareScrollViewProvider} from './components/ActionSheetAwareScrollView';
 import ActiveElementRoleProvider from './components/ActiveElementRoleProvider';
 import {AvatarTooltipsProvider} from './components/Avatar/tooltips/AvatarTooltipContext';
+import {dismissPinnedChartTooltip} from './components/Charts/utils/pinnedChartTooltip';
 import ColorSchemeWrapper from './components/ColorSchemeWrapper';
 import ComposeProviders from './components/ComposeProviders';
 import {CurrencyListContextProvider} from './components/CurrencyListContextProvider';
@@ -97,6 +98,7 @@ function App() {
                             <View
                                 style={fill}
                                 fsClass={CONST.FULLSTORY.CLASS.UNMASK}
+                                onTouchStart={dismissPinnedChartTooltip}
                             >
                                 <ComposeProviders
                                     components={[

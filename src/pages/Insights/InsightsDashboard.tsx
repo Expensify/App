@@ -1,6 +1,5 @@
 import BlockingView from '@components/BlockingViews/BlockingView';
 import FullPageErrorView from '@components/BlockingViews/FullPageErrorView';
-import {dismissPinnedChartTooltip} from '@components/Charts/utils/pinnedChartTooltip';
 import NAVIGATION_TABS from '@components/Navigation/NavigationTabBar/NAVIGATION_TABS';
 import TabBarBottomContent from '@components/Navigation/TabBarBottomContent';
 import TopBar from '@components/Navigation/TopBar';
@@ -166,7 +165,6 @@ function InsightsDashboardContent({state, headlineChart, supportingCharts, filte
 }
 
 function InsightsDashboard({dashboardID}: {dashboardID: InsightsDashboardID}) {
-    const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
     const isFocused = useIsFocused();
@@ -219,30 +217,25 @@ function InsightsDashboard({dashboardID}: {dashboardID: InsightsDashboardID}) {
             bottomContent={<TabBarBottomContent selectedTab={NAVIGATION_TABS.INSIGHTS} />}
             testID="InsightsPage"
         >
-            <View
-                style={styles.flex1}
-                onTouchStart={dismissPinnedChartTooltip}
-            >
-                <TopBar
-                    breadcrumbLabel={translate('common.insights')}
-                    shouldDisplayHelpButton
-                />
-                {state !== INSIGHTS_DASHBOARD_STATE.NO_EXPENSES && (
-                    <InsightsPageControls
-                        filters={filters}
-                        defaultFilters={defaultFilters}
-                        onChange={setFilters}
-                    />
-                )}
-                <InsightsDashboardContent
-                    state={state}
-                    headlineChart={headlineChart}
-                    supportingCharts={supportingCharts}
+            <TopBar
+                breadcrumbLabel={translate('common.insights')}
+                shouldDisplayHelpButton
+            />
+            {state !== INSIGHTS_DASHBOARD_STATE.NO_EXPENSES && (
+                <InsightsPageControls
                     filters={filters}
-                    onRetry={requestDashboard}
-                    onGroupByChange={(groupBy) => setFilters({groupBy})}
+                    defaultFilters={defaultFilters}
+                    onChange={setFilters}
                 />
-            </View>
+            )}
+            <InsightsDashboardContent
+                state={state}
+                headlineChart={headlineChart}
+                supportingCharts={supportingCharts}
+                filters={filters}
+                onRetry={requestDashboard}
+                onGroupByChange={(groupBy) => setFilters({groupBy})}
+            />
         </ScreenWrapper>
     );
 }

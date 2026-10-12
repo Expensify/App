@@ -1,5 +1,4 @@
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
-import {dismissPinnedChartTooltip} from '@components/Charts/utils/pinnedChartTooltip';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import NAVIGATION_TABS from '@components/Navigation/NavigationTabBar/NAVIGATION_TABS';
 import TabBarBottomContent from '@components/Navigation/TabBarBottomContent';
@@ -256,7 +255,6 @@ function SearchPageNarrow({
         <View
             ref={receiptDropTargetRef}
             style={styles.flex1}
-            onTouchStart={dismissPinnedChartTooltip}
         >
             <ReceiptScanDropZone
                 dropZoneRef={receiptDropTargetRef}

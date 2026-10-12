@@ -1,4 +1,3 @@
-import {dismissPinnedChartTooltip} from '@components/Charts/utils/pinnedChartTooltip';
 import NAVIGATION_TABS from '@components/Navigation/NavigationTabBar/NAVIGATION_TABS';
 import QuickCreationActionsBar from '@components/Navigation/QuickCreationActionsBar';
 import TabBarBottomContent from '@components/Navigation/TabBarBottomContent';
@@ -137,7 +136,6 @@ function HomePage() {
         <View
             ref={receiptDropTargetRef}
             style={styles.flex1}
-            onTouchStart={dismissPinnedChartTooltip}
         >
             <ReceiptScanDropZone
                 dropZoneRef={receiptDropTargetRef}
