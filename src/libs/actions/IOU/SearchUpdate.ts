@@ -94,21 +94,20 @@ function shouldOptimisticallyUpdateSearch(
         (isInvoice && currentSearchQueryJSON.type === CONST.SEARCH.DATA_TYPES.INVOICE) ||
         (iouReport?.type === CONST.REPORT.TYPE.EXPENSE && currentSearchQueryJSON.type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT);
 
-    // `status` and `policyID` are regular filters now, but they used to be root keys. They are already accounted for by the
-    // status/policyID checks above, so they don't count as restrictive flat filters when deciding whether to optimistically update.
-    // The Spend footer's selections restrict nothing either — they pick which figures the footer prints — so a new expense
-    // still belongs on the list, which matters most offline, where the server's answer never comes.
-    const NON_RESTRICTIVE_FILTER_KEYS = new Set<SearchFilterKey>([
-        CONST.SEARCH.SYNTAX_FILTER_KEYS.STATUS,
-        CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID,
+    // The Spend footer's selections restrict nothing — they pick which figures the footer prints — so the query is judged
+    // as if they were not there, and a new expense still lands on the list, which matters most offline.
+    const FOOTER_FILTER_KEYS = new Set<SearchFilterKey>([
         CONST.SEARCH.SYNTAX_FILTER_KEYS.FOOTER_COUNT,
         CONST.SEARCH.SYNTAX_FILTER_KEYS.FOOTER_TOTAL,
         CONST.SEARCH.SYNTAX_FILTER_KEYS.FOOTER_CURRENCY,
     ]);
-    const restrictiveFlatFilters = currentSearchQueryJSON.flatFilters.filter((filter) => !NON_RESTRICTIVE_FILTER_KEYS.has(filter.key));
-    const hasNoFlatFilters = restrictiveFlatFilters.length === 0;
+    const flatFilters = currentSearchQueryJSON.flatFilters.filter((filter) => !FOOTER_FILTER_KEYS.has(filter.key));
 
-    const onlyFromFilter = restrictiveFlatFilters.length === 1 ? restrictiveFlatFilters.at(0) : undefined;
+    // `status` and `policyID` are regular filters now, but they used to be root keys. They are already accounted for by the
+    // status/policyID checks above, so they don't count as restrictive flat filters when deciding whether to optimistically update.
+    const hasNoFlatFilters = flatFilters.every((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.STATUS || filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID);
+
+    const onlyFromFilter = flatFilters.length === 1 ? flatFilters.at(0) : undefined;
     const matchesFromQuery: boolean =
         onlyFromFilter?.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM &&
         onlyFromFilter.filters.some((f) => f.operator === CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO && String(f.value) === String(currentUserAccountID));

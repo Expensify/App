@@ -132,24 +132,42 @@ describe('actions/IOU', () => {
                 statusNum: CONST.REPORT.STATUS_NUM.OPEN,
             };
 
-            // Given "My expenses", whose only restrictive filter is the current user
-            const myExpenses = buildSearchQueryJSON(`type:expense status:all from:${RORY_ACCOUNT_ID}`);
+            // Given "My expenses", whose only filter is the current user
+            const myExpenses = buildSearchQueryJSON(`type:expense from:${RORY_ACCOUNT_ID}`);
             expect(myExpenses && shouldOptimisticallyUpdateSearch(myExpenses, iouReport, false, RORY_ACCOUNT_ID, transaction)).toBeTruthy();
 
             // Then a footer selection alongside it changes nothing: it picks which figures the footer prints, it does
             // not narrow the rows, and offline the server's answer never comes to correct the list
-            const withFooterCurrency = buildSearchQueryJSON(`type:expense status:all from:${RORY_ACCOUNT_ID} footerCurrency:EUR`);
+            const withFooterCurrency = buildSearchQueryJSON(`type:expense from:${RORY_ACCOUNT_ID} footerCurrency:EUR`);
             expect(withFooterCurrency && shouldOptimisticallyUpdateSearch(withFooterCurrency, iouReport, false, RORY_ACCOUNT_ID, transaction)).toBeTruthy();
 
-            const withEveryFooterSelection = buildSearchQueryJSON(`type:expense status:all from:${RORY_ACCOUNT_ID} footerCount:reports footerTotal:billable footerCurrency:EUR`);
+            const withEveryFooterSelection = buildSearchQueryJSON(`type:expense from:${RORY_ACCOUNT_ID} footerCount:reports footerTotal:billable footerCurrency:EUR`);
             expect(withEveryFooterSelection && shouldOptimisticallyUpdateSearch(withEveryFooterSelection, iouReport, false, RORY_ACCOUNT_ID, transaction)).toBeTruthy();
 
             // While a filter that does narrow the rows still keeps the expense off the list
-            const someoneElsesExpenses = buildSearchQueryJSON(`type:expense status:all from:${RORY_ACCOUNT_ID + 1} footerCurrency:EUR`);
+            const someoneElsesExpenses = buildSearchQueryJSON(`type:expense from:${RORY_ACCOUNT_ID + 1} footerCurrency:EUR`);
             expect(someoneElsesExpenses && shouldOptimisticallyUpdateSearch(someoneElsesExpenses, iouReport, false, RORY_ACCOUNT_ID, transaction)).toBeFalsy();
 
-            const narrowedByCategory = buildSearchQueryJSON(`type:expense status:all from:${RORY_ACCOUNT_ID} category:Travel footerCurrency:EUR`);
+            const narrowedByCategory = buildSearchQueryJSON(`type:expense from:${RORY_ACCOUNT_ID} category:Travel footerCurrency:EUR`);
             expect(narrowedByCategory && shouldOptimisticallyUpdateSearch(narrowedByCategory, iouReport, false, RORY_ACCOUNT_ID, transaction)).toBeFalsy();
+        });
+
+        it('leaves a "from" search with a status filter as main had it, with or without a Spend footer selection', () => {
+            const transaction = {...createRandomTransaction(1)};
+            const iouReport: Report = {
+                ...createRandomReport(2, undefined),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+            };
+
+            // Given the current user's drafts, which pairs the "from" filter with a status
+            const myDrafts = buildSearchQueryJSON(`type:expense from:${RORY_ACCOUNT_ID} status:drafts`);
+            const myDraftsWithFooterSelection = buildSearchQueryJSON(`type:expense from:${RORY_ACCOUNT_ID} status:drafts footerCurrency:EUR`);
+
+            // Then neither gets a new expense inserted: the footer keys are ignored, and nothing else is widened
+            expect(myDrafts && shouldOptimisticallyUpdateSearch(myDrafts, iouReport, false, RORY_ACCOUNT_ID, transaction)).toBeFalsy();
+            expect(myDraftsWithFooterSelection && shouldOptimisticallyUpdateSearch(myDraftsWithFooterSelection, iouReport, false, RORY_ACCOUNT_ID, transaction)).toBeFalsy();
         });
 
         it('when the current hash is submit action query it should only return true if the iou report is in draft state', () => {
