@@ -732,7 +732,13 @@ async function updateWorkspaceMembersRole(policy: OnyxEntry<Policy>, selectedMem
 
     if (newRole === CONST.POLICY.ROLE.APPROVE_ONLY) {
         // eslint-disable-next-line rulesdir/no-api-side-effects-method -- blocked reasons are only on the response, which API.write does not expose
-        return API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.UPDATE_WORKSPACE_MEMBERS_ROLE, params, {optimisticData, successData, failureData});
+        return API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.UPDATE_WORKSPACE_MEMBERS_ROLE, params, {optimisticData, successData, failureData}).catch((error: unknown) => {
+            // The queue's failure rollback only covers WRITE requests, so a network rejection on a side-effects
+            // request leaves the optimistic role changes in Onyx. Revert them here before the error surfaces.
+            return Onyx.update(failureData).then(() => {
+                throw error;
+            });
+        });
     }
 
     // eslint-disable-next-line rulesdir/no-multiple-api-calls -- the approve-only branch returns early
