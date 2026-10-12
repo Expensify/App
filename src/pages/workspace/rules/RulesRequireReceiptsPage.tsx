@@ -132,8 +132,17 @@ function RulesRequireReceiptsPage({
             const receiptValue = receiptEnabled ? values.maxExpenseAmountNoReceipt : '';
             const itemizedValue = itemizedEnabled ? values.maxExpenseAmountNoItemizedReceipt : '';
 
-            const updateReceipt = () => setPolicyMaxExpenseAmountNoReceipt(policyID, receiptValue, policy?.maxExpenseAmountNoReceipt, getReviewWorkspaceSettingsTaskCompletion());
-            const updateItemized = () => setPolicyMaxExpenseAmountNoItemizedReceipt(policyID, itemizedValue, policy?.maxExpenseAmountNoItemizedReceipt);
+            // Only one of the two calls below should carry this, otherwise both requests would ask the backend to
+            // complete the same onboarding task with a different reportActionID, creating a duplicate completion.
+            let reviewWorkspaceSettingsTaskData = getReviewWorkspaceSettingsTaskCompletion();
+            const updateReceipt = () => {
+                setPolicyMaxExpenseAmountNoReceipt(policyID, receiptValue, policy?.maxExpenseAmountNoReceipt, reviewWorkspaceSettingsTaskData);
+                reviewWorkspaceSettingsTaskData = {};
+            };
+            const updateItemized = () => {
+                setPolicyMaxExpenseAmountNoItemizedReceipt(policyID, itemizedValue, policy?.maxExpenseAmountNoItemizedReceipt, reviewWorkspaceSettingsTaskData);
+                reviewWorkspaceSettingsTaskData = {};
+            };
 
             if (receiptChanged && itemizedChanged) {
                 // The two amounts are saved as separate requests, and each is validated on the server against the OTHER

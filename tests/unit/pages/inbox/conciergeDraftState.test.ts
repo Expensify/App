@@ -77,6 +77,68 @@ describe('conciergeDraftState', () => {
         expect(getFirstMessageHTML(draft)).not.toContain('<strong>streaming</strong>');
     });
 
+    it('keeps canonical entity Markdown while displaying only the prefix until final HTML arrives', () => {
+        // Given an entity split across streamed snapshots
+        const bodyMarkdown = '**Lunch** &lt;client team&gt; &#42;alpha&#42; &amp;lt;literal&amp;gt;';
+        const initialDraft = applyConciergeDraftEvent(null, createDraftEvent({bodyMarkdown: '**Lunch** &'}), REPORT_ID, false);
+        expect(getFirstMessageText(initialDraft)).toBe('Lunch ');
+
+        // When the complete source arrives, the draft must not display double-escaped entities
+        const updatedDraft = applyConciergeDraftEvent(initialDraft, createDraftEvent({sequence: 2, status: 'updated', bodyMarkdown}), REPORT_ID, false);
+        expect(updatedDraft?.bodyMarkdown).toBe(bodyMarkdown);
+        expect(updatedDraft?.sequence).toBe(2);
+        expect(updatedDraft?.streamSessionID).toBe(STREAM_SESSION_ID);
+        expect(updatedDraft?.reportAction.reportActionID).toBe(REPORT_ACTION_ID);
+        expect(getFirstMessageHTML(updatedDraft)).toContain('<strong>Lunch</strong>');
+        expect(getFirstMessageText(updatedDraft)).toBe('Lunch ');
+
+        // Then server-rendered HTML reveals the exact literal text in the same action
+        const finalRenderedHTML = '<comment><strong>Lunch</strong> &lt;client team&gt; &#42;alpha&#42; &amp;lt;literal&amp;gt;</comment>';
+        const completedDraft = applyConciergeDraftEvent(updatedDraft, createDraftEvent({sequence: 3, status: 'completed', bodyMarkdown, finalRenderedHTML}), REPORT_ID, false);
+        expect(completedDraft?.bodyMarkdown).toBe(bodyMarkdown);
+        expect(completedDraft?.status).toBe('completed');
+        expect(completedDraft?.reportAction.reportActionID).toBe(REPORT_ACTION_ID);
+        expect(getFirstMessageHTML(completedDraft)).toBe(finalRenderedHTML);
+        expect(getFirstMessageText(completedDraft)).toBe('Lunch <client team> *alpha* &lt;literal&gt;');
+    });
+
+    it('waits for final HTML when an entity starts the draft', () => {
+        // Given a draft whose first character could start an encoded literal
+        const initialDraft = applyConciergeDraftEvent(null, createDraftEvent({bodyMarkdown: '&'}), REPORT_ID, false);
+        expect(initialDraft).toBeNull();
+
+        // When the entity completes, there is still no prefix that the client can safely render
+        const bodyMarkdown = '&lt;client team&gt;';
+        const updatedDraft = applyConciergeDraftEvent(initialDraft, createDraftEvent({sequence: 2, status: 'updated', bodyMarkdown}), REPORT_ID, false);
+        expect(updatedDraft).toBeNull();
+
+        // Then final HTML creates the intended action without displaying entity syntax
+        const finalRenderedHTML = '<comment>&lt;client team&gt;</comment>';
+        const completedDraft = applyConciergeDraftEvent(updatedDraft, createDraftEvent({sequence: 3, status: 'completed', bodyMarkdown, finalRenderedHTML}), REPORT_ID, false);
+        expect(completedDraft?.reportAction.reportActionID).toBe(REPORT_ACTION_ID);
+        expect(getFirstMessageHTML(completedDraft)).toBe(finalRenderedHTML);
+        expect(getFirstMessageText(completedDraft)).toBe('<client team>');
+    });
+
+    it('also waits at an ordinary ampersand until final HTML arrives', () => {
+        // Given an ordinary draft that contains an ampersand rather than an entity
+        const bodyMarkdown = 'Lunch & dinner';
+
+        // When rendering Markdown, the same boundary avoids guessing which ampersands start entities
+        const draft = applyConciergeDraftEvent(null, createDraftEvent({bodyMarkdown}), REPORT_ID, false);
+        expect(draft?.bodyMarkdown).toBe(bodyMarkdown);
+        expect(getFirstMessageText(draft)).toBe('Lunch ');
+
+        // Then final HTML reveals the complete text without truncation
+        const completedDraft = applyConciergeDraftEvent(
+            draft,
+            createDraftEvent({sequence: 2, status: 'completed', bodyMarkdown, finalRenderedHTML: '<comment>Lunch &amp; dinner</comment>'}),
+            REPORT_ID,
+            false,
+        );
+        expect(getFirstMessageText(completedDraft)).toBe(bodyMarkdown);
+    });
+
     it('should ignore stale events from the same stream session', () => {
         const initialDraft = applyConciergeDraftEvent(null, createDraftEvent({sequence: 3}), REPORT_ID, false);
         const staleDraft = applyConciergeDraftEvent(
