@@ -1,0 +1,42 @@
+name: Verify PGO release build and benchmarks
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pgo-preview-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  # The signed-in device and release credentials are available only to a reviewed branch in Expensify/App.
+  android:
+    name: Train, build, and benchmark Android PGO
+    if: ${{ github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.head.ref == '@chrispader/perf/pgo-ci-preview' }}
+    cache-mode: read
+    uses: ./.github/workflows/buildAndroid.yml
+    with:
+      ref: ${{ github.event.pull_request.head.sha }}
+      variant: Release
+      run-pgo: true
+      benchmark-pgo: true
+      artifact-prefix: preview-
+    secrets: inherit
+
+  ios:
+    name: Train, build, and benchmark iOS PGO
+    if: ${{ github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.head.ref == '@chrispader/perf/pgo-ci-preview' }}
+    cache-mode: read
+    uses: ./.github/workflows/buildIOS.yml
+    with:
+      ref: ${{ github.event.pull_request.head.sha }}
+      variant: Release
+      run-pgo: true
+      benchmark-pgo: true
+      artifact-prefix: preview-
+      download-dsyms: true
+    secrets: inherit

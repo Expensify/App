@@ -206,6 +206,7 @@ jobs:
     with:
       ref: ${{ needs.prep.outputs.DEPLOY_SHA }}
       variant: Release
+      run-pgo: true
     secrets: inherit
 
   androidUploadGooglePlay:
@@ -434,6 +435,7 @@ jobs:
     with:
       ref: ${{ needs.prep.outputs.DEPLOY_SHA }}
       variant: Release
+      run-pgo: true
       download-dsyms: true
     secrets: inherit
 

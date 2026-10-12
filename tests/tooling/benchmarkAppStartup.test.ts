@@ -1,4 +1,4 @@
-// cspell:ignore appex
+// cspell:ignore appex devicectl
 
 import {describe, expect, it, jest} from 'bun:test';
 
@@ -7,6 +7,7 @@ import {
     assertAndroidAppInstalled,
     findBenchmarkDuration,
     iOSBenchmarkMarkerPath,
+    iOSProcessListArguments,
     latestBenchmarkEvents,
     parseAndroidProcessIdentifier,
     parseIOSInstalledAppURL,
@@ -76,6 +77,35 @@ describe('benchmarkAppStartup', () => {
 
         expect(appURL).toBe('file:///containers/Example.app/');
         expect(processIdentifier).toBe(456);
+    });
+
+    it('lists iOS processes without a version-specific CoreDevice filter', () => {
+        // Given
+        const deviceIdentifier = '00008120-EXAMPLE';
+        const outputPath = '/tmp/processes.json';
+
+        // When
+        const args = iOSProcessListArguments(deviceIdentifier, outputPath);
+
+        // Then
+        expect(args).toEqual(['devicectl', 'device', 'info', 'processes', '--device', deviceIdentifier, '--json-output', outputPath, '--quiet']);
+        expect(args).not.toContain('--filter');
+    });
+
+    it('ignores an extension process when the main iOS app is not running', () => {
+        // Given
+        const appURL = 'file:///private/var/containers/Bundle/Application/EXAMPLE/Expensify.app/';
+        const response = {
+            result: {
+                runningProcesses: [{executable: `${appURL}PlugIns/LiveActivityExtension.appex/LiveActivityExtension`, processIdentifier: 20702}],
+            },
+        };
+
+        // When
+        const processIdentifier = parseIOSRunningAppProcessIdentifier(response, appURL);
+
+        // Then
+        expect(processIdentifier).toBeUndefined();
     });
 
     it('rejects malformed CoreDevice installed-app responses before using them', () => {
