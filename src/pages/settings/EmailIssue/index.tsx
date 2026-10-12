@@ -26,7 +26,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import {useIsFocused} from '@react-navigation/native';
-import {hasSeenTourSelector} from '@selectors/Onboarding';
+import {guidedSetupAndTourStatusSelector} from '@selectors/Onboarding';
 import React, {useEffect} from 'react';
 import {View} from 'react-native';
 
@@ -42,7 +42,9 @@ function EmailIssuePage() {
 
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
-    const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
+    const [guidedSetupAndTourStatus] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: guidedSetupAndTourStatusSelector});
+    const isSelfTourViewed = guidedSetupAndTourStatus?.isSelfTourViewed;
+    const hasCompletedGuidedSetupFlow = guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow;
     const [conciergePersonalDetails] = usePersonalDetailsByIDs([CONST.ACCOUNT_ID.CONCIERGE]);
 
     const hasEmailDeliveryFailure = !!account?.hasEmailDeliveryFailure;
@@ -122,7 +124,15 @@ function EmailIssuePage() {
                 <Button
                     size={CONST.BUTTON_SIZE.LARGE}
                     onPress={() => {
-                        navigateToConciergeChat({conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, conciergePersonalDetails, shouldDismissModal: false});
+                        navigateToConciergeChat({
+                            conciergeReportID,
+                            introSelected,
+                            currentUserAccountID,
+                            isSelfTourViewed,
+                            hasCompletedGuidedSetupFlow,
+                            conciergePersonalDetails,
+                            shouldDismissModal: false,
+                        });
                     }}
                 >
                     <Button.Text>{translate('emailIssuePage.getHelpFromConcierge')}</Button.Text>
