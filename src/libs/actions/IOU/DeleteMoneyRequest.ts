@@ -412,7 +412,7 @@ type CleanUpMoneyRequestParams = {
     isOffline: boolean;
     isSingleTransactionView?: boolean;
     policy?: OnyxEntry<OnyxTypes.Policy>;
-    reports?: OnyxCollection<ReportHierarchyInfo>;
+    reports: OnyxCollection<ReportHierarchyInfo>;
 };
 
 function cleanUpMoneyRequest({
