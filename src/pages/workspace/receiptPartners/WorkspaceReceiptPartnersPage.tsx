@@ -191,8 +191,8 @@ function WorkspaceReceiptPartnersPage({route}: WorkspaceReceiptPartnersPageProps
         >
             {isLoading ? (
                 <FullScreenLoadingIndicator
-                    shouldUseGoBackButton
                     style={styles.flex1}
+                    shouldUseGoBackButton={shouldUseNarrowLayout}
                 />
             ) : (
                 <ScreenWrapper

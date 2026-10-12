@@ -210,8 +210,6 @@ import {
     isCurrentActionUnread,
     isDeletedAction,
     isDeletedParentAction,
-    isDeletedReportPreviewWithError,
-    getVisibleReportActionErrors,
     isDynamicExternalWorkflowApproveFailedAction,
     isDynamicExternalWorkflowSubmitFailedAction,
     isExportIntegrationAction,
@@ -10799,15 +10797,13 @@ function getAllReportActionsErrorsAndReportActionThatRequiresAttention(
     isReportArchived = false,
     reports?: OnyxCollection<Report>,
 ): ReportErrorsAndReportActionThatRequiresAttention {
-    // Keep a preview errored because its report was deleted. It still has to mark the chat as needing attention.
-    const reportActionsArray = Object.values(reportActions ?? {}).filter((action) => !isDeletedAction(action) || isDeletedReportPreviewWithError(action));
+    const reportActionsArray = Object.values(reportActions ?? {}).filter((action) => !isDeletedAction(action));
     const reportActionErrors: ErrorFields = {};
     let reportAction: OnyxEntry<ReportAction>;
 
     for (const action of reportActionsArray) {
-        const actionErrors = getVisibleReportActionErrors(action);
-        if (action && !isEmptyValueObject(actionErrors)) {
-            Object.assign(reportActionErrors, actionErrors);
+        if (action && !isEmptyValueObject(action.errors)) {
+            Object.assign(reportActionErrors, action.errors);
 
             if (!reportAction) {
                 reportAction = action;
@@ -13050,31 +13046,7 @@ type PrepareOnboardingOnyxDataParams = {
     currentUserAccountID?: number;
     /** Whether onboarding is handled outside the Concierge DM, so no message, tasks, or sign-off should be posted there. */
     shouldSkipConciergeOnboarding?: boolean;
-    /** The domain of the user's company, used by the join-workspace onboarding tasks. */
-    companyDomain?: string;
-    /** The user's work email, used by the join-workspace onboarding tasks. */
-    workEmail?: string;
-    /** Whether the validation task should resume an account merge instead of validating the current account. */
-    shouldResumeAccountMerge?: boolean;
-    /** Whether this posts a follow-up Concierge item after onboarding has completed. */
-    isIncremental?: boolean;
 };
-
-function getValidateEmailTaskLink(targetChatReportID: string | undefined, shouldResumeAccountMerge: boolean) {
-    return shouldResumeAccountMerge
-        ? `${environmentURL}/${ROUTES.ONBOARDING_WORK_EMAIL_VALIDATION.getRoute(true)}`
-        : `${environmentURL}/${createDynamicRoute(DYNAMIC_ROUTES.VERIFY_ACCOUNT.getRoute(true), ROUTES.REPORT_WITH_ID.getRoute(targetChatReportID))}`;
-}
-
-function getValidateEmailTaskDescription(workEmail: string, targetChatReportID: string | undefined, shouldResumeAccountMerge: boolean) {
-    const validateEmailTask = getOnboardingMessages().joinWorkspaceMessages.validateEmail.tasks.find((task) => task.type === CONST.ONBOARDING_TASK_TYPE.VALIDATE_EMAIL);
-    if (!validateEmailTask) {
-        return '';
-    }
-
-    const validateEmailLink = getValidateEmailTaskLink(targetChatReportID, shouldResumeAccountMerge);
-    return typeof validateEmailTask.description === 'function' ? validateEmailTask.description({validateEmailLink, workEmail}) : validateEmailTask.description;
-}
 
 function prepareOnboardingOnyxData({
     introSelected,
@@ -13095,10 +13067,6 @@ function prepareOnboardingOnyxData({
     delegateAccountID,
     currentUserAccountID,
     shouldSkipConciergeOnboarding = false,
-    companyDomain,
-    workEmail,
-    shouldResumeAccountMerge = false,
-    isIncremental = false,
 }: PrepareOnboardingOnyxDataParams) {
     if (engagementChoice === CONST.ONBOARDING_CHOICES.PERSONAL_SPEND) {
         // eslint-disable-next-line no-param-reassign
@@ -13170,11 +13138,6 @@ function prepareOnboardingOnyxData({
         testDriveURL: `${environmentURL}/${testDriveURL}`,
         workspaceAccountingLink: `${environmentURL}/${ROUTES.POLICY_ACCOUNTING.getRoute(onboardingPolicyID)}`,
         corporateCardLink: `${environmentURL}/${ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(onboardingPolicyID)}`,
-        companyDomain: companyDomain ?? '',
-        workEmail: workEmail ?? '',
-        validateEmailLink: getValidateEmailTaskLink(targetChatReportID, shouldResumeAccountMerge),
-        workEmailLink: `${environmentURL}/${ROUTES.ONBOARDING_WORK_EMAIL.getRoute(true)}`,
-        joinWorkspaceLink: `${environmentURL}/${ROUTES.ONBOARDING_WORKSPACES.getRoute(undefined, true)}`,
     };
 
     // Text message
@@ -13195,9 +13158,6 @@ function prepareOnboardingOnyxData({
     let setupTagsTaskReportID;
     let setupCategoriesAndTagsTaskReportID;
     let reviewWorkspaceSettingsTaskReportID;
-    let addWorkEmailTaskReportID;
-    let validateEmailTaskReportID;
-    let joinWorkspaceTaskReportID;
     const tasks = onboardingMessage.tasks;
     const tasksData = tasks
         .filter((task) => {
@@ -13278,15 +13238,6 @@ function prepareOnboardingOnyxData({
             }
             if (task.type === CONST.ONBOARDING_TASK_TYPE.REVIEW_WORKSPACE_SETTINGS) {
                 reviewWorkspaceSettingsTaskReportID = currentTask.reportID;
-            }
-            if (task.type === CONST.ONBOARDING_TASK_TYPE.ADD_WORK_EMAIL) {
-                addWorkEmailTaskReportID = currentTask.reportID;
-            }
-            if (task.type === CONST.ONBOARDING_TASK_TYPE.VALIDATE_EMAIL) {
-                validateEmailTaskReportID = currentTask.reportID;
-            }
-            if (task.type === CONST.ONBOARDING_TASK_TYPE.JOIN_WORKSPACE) {
-                joinWorkspaceTaskReportID = currentTask.reportID;
             }
 
             return {
@@ -13498,22 +13449,11 @@ function prepareOnboardingOnyxData({
             key: ONYXKEYS.NVP_INTRO_SELECTED,
             value: {
                 choice: engagementChoice,
-                ...(isIncremental
-                    ? {
-                          ...(addWorkEmailTaskReportID ? {addWorkEmail: addWorkEmailTaskReportID} : {}),
-                          ...(validateEmailTaskReportID ? {validateEmail: validateEmailTaskReportID} : {}),
-                          ...(joinWorkspaceTaskReportID ? {joinWorkspace: joinWorkspaceTaskReportID} : {}),
-                      }
-                    : {
-                          createWorkspace: createWorkspaceTaskReportID,
-                          addExpenseApprovals: addExpenseApprovalsTaskReportID,
-                          setupTags: setupTagsTaskReportID,
-                          setupCategoriesAndTags: setupCategoriesAndTagsTaskReportID,
-                          reviewWorkspaceSettings: reviewWorkspaceSettingsTaskReportID,
-                          addWorkEmail: addWorkEmailTaskReportID,
-                          validateEmail: validateEmailTaskReportID,
-                          joinWorkspace: joinWorkspaceTaskReportID,
-                      }),
+                createWorkspace: createWorkspaceTaskReportID,
+                addExpenseApprovals: addExpenseApprovalsTaskReportID,
+                setupTags: setupTagsTaskReportID,
+                setupCategoriesAndTags: setupCategoriesAndTagsTaskReportID,
+                reviewWorkspaceSettings: reviewWorkspaceSettingsTaskReportID,
             },
         },
     );
@@ -13528,7 +13468,7 @@ function prepareOnboardingOnyxData({
         });
     }
 
-    if (!wasInvited && !isIncremental) {
+    if (!wasInvited) {
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.NVP_ONBOARDING,
@@ -13574,14 +13514,14 @@ function prepareOnboardingOnyxData({
         | OnyxUpdate<typeof ONYXKEYS.NVP_INTRO_SELECTED | typeof ONYXKEYS.NVP_ONBOARDING | typeof ONYXKEYS.COLLECTION.POLICY>
         | PersonalDetailsOnyxUpdate
     > = shouldDeferOptimisticTasks ? [] : [...tasksForFailureData];
-    failureData.push({
-        onyxMethod: Onyx.METHOD.MERGE,
-        key: `${ONYXKEYS.COLLECTION.REPORT}${targetChatReportID}`,
-        value: failureReport,
-    });
+    failureData.push(
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${targetChatReportID}`,
+            value: failureReport,
+        },
 
-    if (!isIncremental) {
-        failureData.push({
+        {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.NVP_INTRO_SELECTED,
             value: {
@@ -13590,22 +13530,9 @@ function prepareOnboardingOnyxData({
                 setupCategoriesAndTags: null,
                 setupTags: null,
                 reviewWorkspaceSettings: null,
-                addWorkEmail: null,
-                validateEmail: null,
-                joinWorkspace: null,
             },
-        });
-    } else {
-        failureData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.NVP_INTRO_SELECTED,
-            value: {
-                ...(addWorkEmailTaskReportID ? {addWorkEmail: null} : {}),
-                ...(validateEmailTaskReportID ? {validateEmail: null} : {}),
-                ...(joinWorkspaceTaskReportID ? {joinWorkspace: null} : {}),
-            },
-        });
-    }
+        },
+    );
 
     if (message) {
         failureData.push({
@@ -13619,7 +13546,7 @@ function prepareOnboardingOnyxData({
         });
     }
 
-    if (!wasInvited && !isIncremental) {
+    if (!wasInvited) {
         failureData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.NVP_ONBOARDING,
@@ -15173,7 +15100,6 @@ export {
     getDisplayNameForParticipant,
     getDisplayNamesWithTooltips,
     prepareOnboardingOnyxData,
-    getValidateEmailTaskDescription,
     getIOUReportActionDisplayMessage,
     getIOUReportActionMessage,
     getWorkspaceNameUpdatedMessage,

@@ -78,6 +78,7 @@ export type {default as UpdateDualEntryAutoSyncParams} from './UpdateDualEntryAu
 export type {default as UpdateDualEntryAccountingMethodParams} from './UpdateDualEntryAccountingMethodParams';
 export type {default as UpdateDualEntrySyncReimbursedReportsParams} from './UpdateDualEntrySyncReimbursedReportsParams';
 export type {default as UpdateDualEntryBillPaymentAccountParams} from './UpdateDualEntryBillPaymentAccountParams';
+export type {default as UpdateDualEntryFxExpenseAccountParams} from './UpdateDualEntryFxExpenseAccountParams';
 export type {default as UpdateDualEntrySyncExpensifyCardSettlementsParams} from './UpdateDualEntrySyncExpensifyCardSettlementsParams';
 export type {default as UpdateDualEntrySettlementsAccountParams} from './UpdateDualEntrySettlementsAccountParams';
 export type {default as UpdateDualEntrySyncTravelInvoicingSettlementsParams} from './UpdateDualEntrySyncTravelInvoicingSettlementsParams';
@@ -104,7 +105,7 @@ export type {default as UpdateCampfireSyncTravelInvoicingSettlementsParams} from
 export type {default as UpdateCampfireTravelInvoicingSettlementsAccountParams} from './UpdateCampfireTravelInvoicingSettlementsAccountParams';
 export type {default as UpdateCampfireTravelInvoicingPayableAccountParams} from './UpdateCampfireTravelInvoicingPayableAccountParams';
 export type {default as SyncPolicyToZohoBooksParams} from './SyncPolicyToZohoBooksParams';
-export type {default as UpdateZohoBooksOrganizationParams} from './UpdateZohoBooksOrganizationParams';
+export type {default as UpdateZohoBooksSubsidiaryParams} from './UpdateZohoBooksSubsidiaryParams';
 export type {default as UpdateZohoBooksFieldMappingParams} from './UpdateZohoBooksFieldMappingParams';
 export type {default as UpdateZohoBooksEnableNewCategoriesParams} from './UpdateZohoBooksEnableNewCategoriesParams';
 export type {default as UpdateZohoBooksSyncTaxRatesParams} from './UpdateZohoBooksSyncTaxRatesParams';
@@ -276,7 +277,6 @@ export type {default as ArchivePolicyParams} from './ArchivePolicyParams';
 export type {default as UnarchivePolicyParams} from './UnarchivePolicyParams';
 export type {default as ShareBankAccountAndSetPayerParams} from './ShareBankAccountAndSetPayerParams';
 export type {default as CreateWorkspaceParams} from './CreateWorkspaceParams';
-export type {default as CreateJoinWorkspaceOnboardingContentParams} from './CreateJoinWorkspaceOnboardingContentParams';
 export type {default as UpdateWorkspaceGeneralSettingsParams} from './UpdateWorkspaceGeneralSettingsParams';
 export type {default as DeleteWorkspaceAvatarParams} from './DeleteWorkspaceAvatarParams';
 export type {default as UpdateWorkspaceAvatarParams} from './UpdateWorkspaceAvatarParams';
