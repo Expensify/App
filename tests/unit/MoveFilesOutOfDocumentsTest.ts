@@ -166,11 +166,14 @@ describe('MoveFilesOutOfDocuments migration (native)', () => {
     });
 
     it('keeps the Android share staging directory, which uses the same path as the old iOS export staging directory', async () => {
+        // Given an Android device with a file staged by the share intent handler, which lives at the same path the iOS export staging folder used
         mockGetPlatform.mockImplementation(() => CONST.PLATFORM.ANDROID);
         mockRNFS.exists.mockImplementation((existsPath: string) => Promise.resolve(existsPath === OLD_EXPORT_STAGING_DIR));
 
+        // When the migration runs on app launch, possibly before the share screen has read the staged file
         await MoveFilesOutOfDocuments();
 
+        // Then the directory is kept, because deleting it would lose the file the user is sharing into the app
         expect(mockRNFS.unlink).not.toHaveBeenCalledWith(OLD_EXPORT_STAGING_DIR);
     });
 
