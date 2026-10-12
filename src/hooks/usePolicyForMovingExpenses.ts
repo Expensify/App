@@ -22,7 +22,6 @@ function checkForUserPendingDelete(login: string, policy: OnyxEntry<Policy>) {
     return isPolicyMemberWithoutPendingDelete(login, policy);
 }
 
-// `policy.role` is only set on the active policy, so fall back to `getPolicyRole` (matches `getGroupPoliciesWhereReportCanBeCreated`).
 function isPolicyMemberByRole(policy: OnyxEntry<Policy>, login: string) {
     const role = getPolicyRole(policy, login);
     return !!role && (Object.values(CONST.POLICY.ROLE) as string[]).includes(role);
@@ -130,9 +129,7 @@ function usePolicyForMovingExpenses(isPerDiemRequest?: boolean, isTimeRequest?: 
         return {policyForMovingExpensesID: undefined, policyForMovingExpenses: undefined, shouldSelectPolicy: false, shouldNavigateToUpgradePath: false, arePoliciesLoaded};
     }
 
-    // User has no eligible policy
     if (!resolvedPolicyID) {
-        // The active workspace may still be valid when qualification finds nothing, so check it before the upgrade path.
         if (isPolicyValidForMovingExpenses(activePolicy, login, isPerDiemRequest, isTimeRequest)) {
             return {policyForMovingExpensesID: activePolicyID, policyForMovingExpenses: activePolicy, shouldSelectPolicy: false, shouldNavigateToUpgradePath: false, arePoliciesLoaded};
         }
