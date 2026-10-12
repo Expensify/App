@@ -9,7 +9,6 @@ import SkeletonRect from './SkeletonRect';
 import SkeletonViewContentLoader from './SkeletonViewContentLoader';
 
 type ReportHeaderTitleSkeletonProps = {
-    /** Whether the skeleton should animate */
     shouldAnimate?: boolean;
 };
 
