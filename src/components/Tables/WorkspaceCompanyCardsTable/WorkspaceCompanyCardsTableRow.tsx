@@ -12,7 +12,7 @@ import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {formatMaskedCardName} from '@libs/CardUtils';
+import {formatMaskedCardName, getCompanyCardFeed} from '@libs/CardUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 
@@ -20,8 +20,9 @@ import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
-import type {Card, CompanyCardFeed, CompanyCardFeedWithDomainID} from '@src/types/onyx';
+import type {Card, CompanyCardFeedWithDomainID} from '@src/types/onyx';
 import type {CardAssignmentData} from '@src/types/onyx/Card';
+import {isEmptyValueObject} from '@src/types/utils/EmptyObject';
 
 import {Str} from 'expensify-common';
 import React from 'react';
@@ -82,10 +83,11 @@ function WorkspaceCompanyCardTableRow({
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate, formatPhoneNumber} = useLocalize();
-    const Expensicons = useMemoizedLazyExpensifyIcons(['ArrowRight']);
+    const Expensicons = useMemoizedLazyExpensifyIcons(['ArrowRight', 'DotIndicator']);
     const isTableSemanticsEnabled = shouldUseTableSemantics(shouldUseNarrowTableLayout);
 
     const {cardName, encryptedCardNumber, customCardName, cardholder, assignedCard, isAssigned, errors, pendingAction, isCardDeleted, onDismissError} = item;
+    const hasErrors = !isEmptyValueObject(errors ?? {});
 
     const formattedCustomCardName = customCardName ?? '';
     const formattedCardDetails = formatMaskedCardName(cardName);
@@ -147,7 +149,7 @@ function WorkspaceCompanyCardTableRow({
                         {isAssigned ? (
                             <AccountAvatarWithCardFeed
                                 accountID={cardholder?.accountID ?? CONST.DEFAULT_NUMBER_ID}
-                                cardFeed={assignedCard?.bank as CompanyCardFeed}
+                                cardFeed={getCompanyCardFeed(assignedCard?.bank)}
                                 cardFeedIconSize={subscriptCardFeedIconSize}
                                 borderColor={hovered ? theme.hoverComponentBG : theme.highlightBG}
                                 containerStyle={styles.mr0}
@@ -220,6 +222,12 @@ function WorkspaceCompanyCardTableRow({
                         style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentEnd, styles.gap3]}
                         {...getCellAccessibilityProps(isTableSemanticsEnabled)}
                     >
+                        {hasErrors && (
+                            <Icon
+                                src={Expensicons.DotIndicator}
+                                fill={theme.danger}
+                            />
+                        )}
                         {!isAssigned && canWriteCompanyCards && (
                             <Button
                                 size={CONST.BUTTON_SIZE.SMALL}

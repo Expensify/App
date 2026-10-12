@@ -19,9 +19,10 @@ import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {resetFailedWorkspaceCompanyCardUnassignment} from '@libs/actions/CompanyCards';
+import {clearCompanyCardErrorField, resetFailedWorkspaceCompanyCardUnassignment} from '@libs/actions/CompanyCards';
 import {renameCompanyCardInline} from '@libs/actions/Policy/InlineEdit';
 import {formatMaskedCardName, getCompanyCardCustomName, getDefaultCardName} from '@libs/CardUtils';
+import {getLatestErrorField} from '@libs/ErrorUtils';
 import {getConnectedIntegration} from '@libs/PolicyUtils';
 import tokenizedSearch from '@libs/tokenizedSearch';
 
@@ -34,6 +35,7 @@ import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import type {ListRenderItemInfo} from '@shopify/flash-list';
@@ -285,6 +287,12 @@ function WorkspaceCompanyCardsTable({
                   const storedCardName = getCompanyCardCustomName(cardID, sharedCardCustomNames, customCardNames);
                   const customCardName = storedCardName ?? getDefaultCardName(cardholder?.displayName ?? '');
                   const canEditName = canWriteCompanyCards && !!bankName && isAssigned && cardID !== undefined && !isCardDeleted && !isSelectionModeActive;
+                  const transactionStartDateErrors = getLatestErrorField(assignedCard ?? {}, 'scrapeMinDate');
+                  const hasTransactionStartDateErrors = !isEmptyObject(transactionStartDateErrors);
+                  let rowErrors = hasTransactionStartDateErrors ? transactionStartDateErrors : assignedCard?.errors;
+                  if (!hasTransactionStartDateErrors && (isFeedConnectionBroken || assignedCard?.pendingFields?.lastScrape)) {
+                      rowErrors = undefined;
+                  }
 
                   return {
                       cardName,
@@ -298,7 +306,7 @@ function WorkspaceCompanyCardsTable({
                       cardholder,
                       // Unassigned cards have no details page and so no Accounting section to match, hence no title.
                       exportAccountTitle: shouldShowExportAccountColumn && assignedCard ? getCardExportAccountTitle(cardExportSettings, assignedCard) : undefined,
-                      errors: isFeedConnectionBroken || assignedCard?.pendingFields?.lastScrape ? undefined : assignedCard?.errors,
+                      errors: rowErrors,
                       pendingAction: assignedCard?.pendingAction,
                       canEditName,
                       onRenameName: (newName: string) => {
@@ -307,7 +315,13 @@ function WorkspaceCompanyCardsTable({
                           }
                           renameCompanyCardInline(domainOrWorkspaceAccountID, String(cardID), newName, bankName, customCardName, storedCardName);
                       },
-                      onDismissError: () => resetFailedWorkspaceCompanyCardUnassignment(domainOrWorkspaceAccountID, bankName, assignedCard?.cardID),
+                      onDismissError: () => {
+                          if (hasTransactionStartDateErrors && bankName && cardID !== undefined) {
+                              clearCompanyCardErrorField(domainOrWorkspaceAccountID, String(cardID), bankName, 'scrapeMinDate', true);
+                              return;
+                          }
+                          resetFailedWorkspaceCompanyCardUnassignment(domainOrWorkspaceAccountID, bankName, assignedCard?.cardID);
+                      },
                   };
               })
               .filter((item) => isOffline || item.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
