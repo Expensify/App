@@ -4,6 +4,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReportActions} from '@src/types/onyx';
 
+import {reportActionsErrorFieldsSelector} from '@selectors/ReportAction';
 import Onyx from 'react-native-onyx';
 
 import {createMockReport, getFakeReportAction} from '../utils/ReportTestUtils';
@@ -609,7 +610,7 @@ describe('ClearReportActionErrors', () => {
         it('should thread the reportActions parameter into the parent walk recursion', async () => {
             // Given a parent action that Onyx knows as a plain action next to a non-reject sibling, while the
             // reportActions parameter presents the parent action as optimistic and its sibling as an orphaned
-            // reject action — the sibling can only be deleted if the recursive parent call forwards the parameter
+            // reject action. The sibling can only be deleted if the recursive parent call forwards the parameter.
             const reportAction = getFakeReportAction(Number(REPORT_ACTION_ID), {
                 errors: {sharedError: 'Error message'},
             });
@@ -661,6 +662,65 @@ describe('ClearReportActionErrors', () => {
             await waitForBatchedUpdates();
 
             // Then the parent frame should have deleted the reject sibling, proving it read the forwarded parameter
+            const parentReportActions = await getReportActionsFromOnyx(PARENT_REPORT_ID);
+            expect(parentReportActions?.[SIBLING_REPORT_ACTION_ID]).toBeUndefined();
+        });
+
+        it('should clear errors when the reportActions data is narrowed by reportActionsErrorFieldsSelector', async () => {
+            // Given the same hierarchy as the recursion test, but with the reportActions parameter passed
+            // through the selector components use to narrow each action to the fields the error clearing
+            // reads. This fails if the selector ever drops a field the walk or its helpers start consuming.
+            const reportAction = getFakeReportAction(Number(REPORT_ACTION_ID), {
+                errors: {sharedError: 'Error message'},
+            });
+            const seededParentReportAction = getFakeReportAction(Number(PARENT_REPORT_ACTION_ID), {
+                errors: {sharedError: 'Parent error message'},
+            });
+            const optimisticParentReportAction = getFakeReportAction(Number(PARENT_REPORT_ACTION_ID), {
+                errors: {sharedError: 'Parent error message'},
+                isOptimisticAction: true,
+            });
+            const seededSiblingAction = getFakeReportAction(Number(SIBLING_REPORT_ACTION_ID), {
+                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                errors: undefined,
+            });
+            const rejectSiblingAction = getFakeReportAction(Number(SIBLING_REPORT_ACTION_ID), {
+                actionName: CONST.REPORT.ACTIONS.TYPE.REJECTED,
+                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                errors: undefined,
+            });
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`, {
+                [REPORT_ACTION_ID]: reportAction,
+            });
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${PARENT_REPORT_ID}`, {
+                [PARENT_REPORT_ACTION_ID]: seededParentReportAction,
+                [SIBLING_REPORT_ACTION_ID]: seededSiblingAction,
+            });
+            await waitForBatchedUpdates();
+
+            // When clearAllRelatedReportActionErrors is called with selector-narrowed reportActions data
+            clearAllRelatedReportActionErrors({
+                reportID: REPORT_ID,
+                reportAction,
+                originalReportID: REPORT_ID,
+                isOffline: false,
+                reports: {
+                    [`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`]: {parentReportID: PARENT_REPORT_ID, parentReportActionID: PARENT_REPORT_ACTION_ID},
+                },
+                reportActions: reportActionsErrorFieldsSelector({
+                    [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`]: {
+                        [REPORT_ACTION_ID]: reportAction,
+                    },
+                    [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${PARENT_REPORT_ID}`]: {
+                        [PARENT_REPORT_ACTION_ID]: optimisticParentReportAction,
+                        [SIBLING_REPORT_ACTION_ID]: rejectSiblingAction,
+                    },
+                }),
+            });
+            await waitForBatchedUpdates();
+
+            // Then the narrowed data should still drive the full walk and delete the reject sibling
             const parentReportActions = await getReportActionsFromOnyx(PARENT_REPORT_ID);
             expect(parentReportActions?.[SIBLING_REPORT_ACTION_ID]).toBeUndefined();
         });

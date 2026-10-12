@@ -3,8 +3,9 @@ import {filterOutDeprecatedReportActions, getIOUActionForTransactionID, getLinke
 import CONST from '@src/CONST';
 import type {ReportAction, ReportActions} from '@src/types/onyx';
 import type {VisibleReportActionsDerivedValue} from '@src/types/onyx/DerivedValues';
+import mapOnyxCollectionItems from '@src/utils/mapOnyxCollectionItems';
 
-import type {OnyxEntry} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
 import lodashFindLast from 'lodash/findLast';
 
@@ -142,6 +143,47 @@ function getReceiptScanFailedIOUActionDataSelector(
 const transactionThreadReportIDSelector = (transactionID: string | undefined) => (reportActions: OnyxEntry<ReportActions>) =>
     transactionID ? getIOUActionForTransactionID(Object.values(reportActions ?? {}), transactionID)?.childReportID : undefined;
 
+/**
+ * Keeps only the fields `clearAllRelatedReportActionErrors` reads when walking related report actions.
+ * Nested fields (`errors`, `message`, `originalMessage`) are copied by reference so equality checks on the
+ * projected result short-circuit and unrelated action updates (reactions, read receipts, person data, ...)
+ * neither re-render the subscriber nor pay a deep comparison.
+ */
+function reportActionErrorFieldsSelector(reportAction: OnyxEntry<ReportAction>): OnyxEntry<ReportAction> {
+    return (
+        reportAction && {
+            reportActionID: reportAction.reportActionID,
+            actionName: reportAction.actionName,
+            created: reportAction.created,
+            pendingAction: reportAction.pendingAction,
+            isOptimisticAction: reportAction.isOptimisticAction,
+            childReportID: reportAction.childReportID,
+            errors: reportAction.errors,
+            message: reportAction.message,
+            // Copying the deprecated originalMessage field is intentional. The projection must preserve the raw
+            // data so downstream helpers can resolve it through getOriginalMessage.
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
+            originalMessage: reportAction.originalMessage,
+        }
+    );
+}
+
+function reportActionsErrorFieldsSelector(reportActions: OnyxCollection<ReportActions>): OnyxCollection<ReportActions> {
+    return mapOnyxCollectionItems(reportActions, (actions) => {
+        if (!actions) {
+            return actions;
+        }
+        const projectedActions: ReportActions = {};
+        for (const [reportActionID, reportAction] of Object.entries(actions)) {
+            const projectedAction = reportActionErrorFieldsSelector(reportAction);
+            if (projectedAction) {
+                projectedActions[reportActionID] = projectedAction;
+            }
+        }
+        return projectedActions;
+    });
+}
+
 export {
     getParentReportActionSelector,
     getLastClosedReportAction,
@@ -150,6 +192,7 @@ export {
     getReportActionByIDSelector,
     getReceiptScanFailedIOUActionDataSelector,
     reportVisibleActionsSelector,
+    reportActionsErrorFieldsSelector,
     transactionThreadReportIDSelector,
 };
 export type {NewestReportAction};
