@@ -12,8 +12,10 @@ import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
+import {usingPolicyAccountIDPoliciesSelector} from '@src/selectors/Policy';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 
+import {Str} from 'expensify-common';
 import {useEffect, useRef, useState} from 'react';
 
 import useChatWithAgent from './useChatWithAgent';
@@ -72,7 +74,17 @@ function useAgents() {
             return [];
         }
 
-        const ownerDetails = personalDetailsList?.[agent.ownerAccountID];
+        let ownerDisplayName: string | undefined;
+        if (agent.ownerType === CONST.AGENTS.OWNER_TYPE.PERSON) {
+            const ownerDetails = personalDetailsList?.[agent.ownerAccountID];
+            ownerDisplayName = ownerDetails?.displayName ?? ownerDetails?.login;
+        } else if (agent.ownerType === CONST.AGENTS.OWNER_TYPE.WORKSPACE) {
+            const policy = usingPolicyAccountIDPoliciesSelector(allPolicies, agent.ownerAccountID);
+            ownerDisplayName = policy?.name;
+        } else if (agent.ownerType === CONST.AGENTS.OWNER_TYPE.DOMAIN) {
+            const ownerDetails = personalDetailsList?.[agent.ownerAccountID];
+            ownerDisplayName = ownerDetails?.login ? Str.extractEmailDomain(ownerDetails.login) : undefined;
+        }
 
         const mergedErrors = {
             ...getLatestError(agent.errors ?? undefined),
@@ -89,7 +101,7 @@ function useAgents() {
                 displayName: details.displayName ?? details.login ?? '',
                 login: details.login ?? '',
                 ownerAccountID: agent.ownerAccountID,
-                ownerDisplayName: ownerDetails?.displayName ?? ownerDetails?.login ?? '',
+                ownerDisplayName,
                 ownerType: agent.ownerType,
                 pendingAction,
                 errors: Object.keys(rowErrors).length > 0 ? rowErrors : undefined,
