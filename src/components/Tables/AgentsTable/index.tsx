@@ -131,7 +131,7 @@ export default function AgentsTable({ref, agents, headerComponent, canSelectAgen
 
         if (activeSorting.columnKey === 'owner') {
             const compareOwnerDisplayNames = (ownerDisplayName1: string, ownerDisplayName2: string) => localeCompare(ownerDisplayName1, ownerDisplayName2);
-            return compareOptionalValues(item1.ownerDisplayName, item2.displayName, compareOwnerDisplayNames, orderMultiplier, displayNameComparison) * orderMultiplier;
+            return compareOptionalValues(item1.ownerDisplayName, item2.ownerDisplayName, compareOwnerDisplayNames, orderMultiplier, displayNameComparison);
         }
 
         return displayNameComparison;
