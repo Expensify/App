@@ -404,8 +404,10 @@ function SearchSelectionFooter({searchResults}: SearchSelectionFooterProps) {
         isFooterSelectorsEnabled && (isExpenseType || isReportsSearch) && !hasGroupSelection && (hasPartialSelection || (!shouldUseLiveData && typeof metadataReportCount === 'number'));
     const footerCountType = shouldShowCountSelector ? (footerSelection.footerCount ?? defaultFooterCountType) : undefined;
 
+    // An excluded collapsed group hides the breakdown's figure, so the selector stays to lead back to the plain total.
+    const hasExcludedGroupWithQueryBreakdown = excludedGroupKeys.length > 0 && !!footerSelection.footerTotal;
     // An empty result set has no total to break down, so it keeps the plain total spend with no selector.
-    const shouldShowTotalSelector = isFooterSelectorsEnabled && !hasGroupSelection && (!!metadataCount || selectedTransactionsKeys.length > 0);
+    const shouldShowTotalSelector = isFooterSelectorsEnabled && (!hasGroupSelection || hasExcludedGroupWithQueryBreakdown) && (!!metadataCount || selectedTransactionsKeys.length > 0);
 
     // Use the per-selection (client) total for a partial selection; nothing-selected and everything-selected both fall
     // to the whole-search grand total, which every search type now returns converted, keyed by the search hash.

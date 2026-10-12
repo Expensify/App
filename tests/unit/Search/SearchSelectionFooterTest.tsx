@@ -427,6 +427,22 @@ describe('SearchSelectionFooter', () => {
             expect(mockCapturedFooterProps.current).toEqual(expect.objectContaining({count: 169, total: undefined}));
         });
 
+        it('keeps the total selector under a breakdown, so the plain total can still be picked', async () => {
+            // When the footer describes the reimbursable breakdown, which leaves it no figure to show
+            await renderWithExcludedGroup(`type:expense group-by:category footerTotal:${CONST.SEARCH.FOOTER_TOTAL.REIMBURSABLE}`);
+
+            // Then the selector stays, instead of leaving the footer on a breakdown it cannot switch away from
+            expect(mockCapturedFooterProps.current).toEqual(expect.objectContaining({totalType: CONST.SEARCH.FOOTER_TOTAL.REIMBURSABLE, shouldShowTotalSelector: true}));
+        });
+
+        it('hides the total selector for the excluded group on the plain total, as for any group selection', async () => {
+            // When the footer describes the plain total
+            await renderWithExcludedGroup('type:expense group-by:category');
+
+            // Then the group selection keeps the selector out, as before
+            expect(mockCapturedFooterProps.current?.shouldShowTotalSelector).toBe(false);
+        });
+
         it('still takes the group off the plain total', async () => {
             // When the footer describes the plain total
             await renderWithExcludedGroup('type:expense group-by:category');
@@ -1148,7 +1164,7 @@ describe('SearchSelectionFooter', () => {
             expect(mockCapturedFooterProps.current?.totalType).toBeUndefined();
         });
 
-        it('names the breakdown the figure is, even where a group selection hides the selector', async () => {
+        it('names the breakdown the figure is, keeping the selector so an excluded group can lead back to the plain total', async () => {
             // Given a select-all on a billable total, with one group taken off it
             setSearchQuery('type:expense groupBy:category footerTotal:billable');
             mockSelectedTransactions.current = {};
@@ -1158,9 +1174,9 @@ describe('SearchSelectionFooter', () => {
             render(<SearchSelectionFooter searchResults={buildSearchResults(CONST.CURRENCY.USD, 1204, 36000, CONST.SEARCH.DATA_TYPES.EXPENSE, 87)} />);
             await waitForBatchedUpdates();
 
-            // Then the figure is the backend's billable aggregate, so that is what the label says — with no selector to
-            // change it, since a whole group has no breakdown of its own yet.
-            expect(mockCapturedFooterProps.current).toEqual(expect.objectContaining({totalType: CONST.SEARCH.FOOTER_TOTAL.BILLABLE, shouldShowTotalSelector: false, countType: undefined}));
+            // Then the label names the billable breakdown, and the selector stays: a whole group has no breakdown of its own
+            // yet, so the figure is hidden and the plain total is the way back to one.
+            expect(mockCapturedFooterProps.current).toEqual(expect.objectContaining({totalType: CONST.SEARCH.FOOTER_TOTAL.BILLABLE, shouldShowTotalSelector: true, countType: undefined}));
         });
 
         it('keeps the plain total over a group selection the client sums itself, which has no breakdown to apply', async () => {
