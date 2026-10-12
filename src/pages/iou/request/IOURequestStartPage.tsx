@@ -261,6 +261,7 @@ function IOURequestStartPage({
     const isDiscardModalOpenRef = useRef(false);
     const isDiscardNavigationPendingRef = useRef(false);
     const focusTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+    const focusRestoreGenerationRef = useRef(0);
     const blurCleanupTaskRef = useRef<ReturnType<typeof TransitionTracker.runAfterTransitions> | null>(null);
     const isPayFlow = iouType === CONST.IOU.TYPE.PAY;
     // Older empty drafts did not store a baseline. Treat their standard empty representation as clean, while
@@ -338,14 +339,18 @@ function IOURequestStartPage({
             clearTimeout(focusTimeoutRef.current);
         }
 
+        const focusRestoreGeneration = ++focusRestoreGenerationRef.current;
         focusTimeoutRef.current = setTimeout(() => {
             focusTimeoutRef.current = null;
-            if (isDiscardModalOpenRef.current) {
-                isDiscardNavigationPendingRef.current = false;
-                return;
-            }
-            restoreFocus();
-            isDiscardNavigationPendingRef.current = false;
+            TransitionTracker.runAfterTransitions({
+                callback: () => {
+                    if (focusRestoreGeneration !== focusRestoreGenerationRef.current || isDiscardModalOpenRef.current) {
+                        return;
+                    }
+                    restoreFocus();
+                    isDiscardNavigationPendingRef.current = false;
+                },
+            });
         }, CONST.ANIMATED_TRANSITION);
     };
 
@@ -354,6 +359,7 @@ function IOURequestStartPage({
             if (focusTimeoutRef.current) {
                 clearTimeout(focusTimeoutRef.current);
             }
+            focusRestoreGenerationRef.current += 1;
             if (blurCleanupTaskRef.current) {
                 blurCleanupTaskRef.current.cancel();
             }
@@ -380,6 +386,7 @@ function IOURequestStartPage({
                     clearTimeout(focusTimeoutRef.current);
                     focusTimeoutRef.current = null;
                 }
+                focusRestoreGenerationRef.current += 1;
                 if (blurCleanupTaskRef.current) {
                     blurCleanupTaskRef.current.cancel();
                     blurCleanupTaskRef.current = null;
@@ -524,6 +531,7 @@ function IOURequestStartPage({
                                             clearTimeout(focusTimeoutRef.current);
                                             focusTimeoutRef.current = null;
                                         }
+                                        focusRestoreGenerationRef.current += 1;
                                         resetIOUTypeIfChanged(newIOUType);
                                     }}
                                     onTabSelect={onTabSelectFocusHandler}

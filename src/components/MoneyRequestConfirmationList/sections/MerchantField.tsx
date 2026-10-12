@@ -147,6 +147,7 @@ function MerchantField({isMerchantRequired, shouldDisplayFieldError, formError}:
                     accessibilityLabel={translate('common.merchant')}
                     errorText={merchantErrorText}
                     rightHandSideComponent={shouldShowAutomaticHint ? <AutomaticFieldHint /> : undefined}
+                    shouldAllowFocusInLandscapeMode
                 />
             </View>
         );

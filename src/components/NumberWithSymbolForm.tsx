@@ -603,6 +603,7 @@ function NumberWithSymbolForm({
                 onBlur={props.onBlur}
                 testID={props.testID}
                 rightHandSideComponent={shouldShowCurrencyButton || shouldShowFlipButton || !!leadingRightHandSideComponent ? textInputRightHandSideComponent : undefined}
+                shouldAllowFocusInLandscapeMode
             />
         );
     }
