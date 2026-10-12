@@ -6,6 +6,7 @@ import {readFileAsync} from '@libs/fileDownload/FileUtils';
 import {navigateToStartMoneyRequestStep} from '@libs/IOUUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
+import {rand64} from '@libs/NumberUtils';
 import {hasDependentTags, isGroupPolicy} from '@libs/PolicyUtils';
 import ReceiptStorage from '@libs/ReceiptStorage';
 import {buildOptimisticDetachReceipt, buildOptimisticReceiptAddedAction, isInvoiceReport as isInvoiceReportReportUtils} from '@libs/ReportUtils';
@@ -47,6 +48,7 @@ type ReplaceReceipt = {
     delegateAccountID: number | undefined;
     currentUserPersonalDetails: CurrentUserPersonalDetails;
     transactionThreadReport: OnyxEntry<OnyxTypes.Report>;
+    receiptAddedReportActionID?: string;
 };
 // The actor and thread fields are left out because a retry builds a fresh optimistic action,
 // so it has to reflect who is acting and the thread state at retry time rather than when the upload failed.
@@ -208,6 +210,7 @@ function replaceReceipt({
     delegateAccountID,
     currentUserPersonalDetails,
     transactionThreadReport,
+    receiptAddedReportActionID,
 }: ReplaceReceipt) {
     const transactionID = transaction?.transactionID;
 
@@ -229,15 +232,23 @@ function replaceReceipt({
         pageCount: null,
     };
     const newTransaction = transaction && {...transaction, receipt: receiptOptimistic};
+
+    // Show "added a receipt" right away, but not for a crop or rotate (isSameReceipt) and only if the
+    // thread already exists. Otherwise the backend creates the thread and message and it syncs in.
+    const transactionThreadReportID = transactionThreadReport?.reportID;
+    const optimisticReceiptAddedActionID = !isSameReceipt && transactionThreadReportID ? (receiptAddedReportActionID ?? rand64()) : undefined;
     const retryParams: ReplaceReceiptRetryParams = {
         transactionID: transaction.transactionID,
         file: undefined,
         source,
+        state,
+        isSameReceipt,
         transactionPolicy,
         transactionPolicyCategories,
         transactionPolicyTagList,
         transactionViolations,
         isVendorMatchingBetaEnabled,
+        receiptAddedReportActionID: optimisticReceiptAddedActionID,
     };
     const currentSearchQueryJSON = getCurrentSearchQueryJSON();
 
@@ -345,11 +356,8 @@ function replaceReceipt({
         });
     }
 
-    // Show "added a receipt" right away, but not for a crop or rotate (isSameReceipt) and only if the
-    // thread already exists. Otherwise the backend creates the thread and message and it syncs in.
-    const transactionThreadReportID = transactionThreadReport?.reportID;
     const optimisticReceiptAddedAction =
-        !isSameReceipt && transactionThreadReportID
+        optimisticReceiptAddedActionID && transactionThreadReportID
             ? buildOptimisticReceiptAddedAction(
                   transactionThreadReportID,
                   transactionID,
@@ -357,6 +365,7 @@ function replaceReceipt({
                   currentUserPersonalDetails.displayName,
                   currentUserPersonalDetails.avatar,
                   delegateAccountID,
+                  optimisticReceiptAddedActionID,
               )
             : undefined;
 
@@ -366,7 +375,7 @@ function replaceReceipt({
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`,
                 value: {
-                    [optimisticReceiptAddedAction.reportActionID]: optimisticReceiptAddedAction as OnyxTypes.ReportAction,
+                    [optimisticReceiptAddedAction.reportActionID]: {...(optimisticReceiptAddedAction as OnyxTypes.ReportAction), errors: null},
                 },
             },
             {
@@ -449,6 +458,22 @@ function setMoneyRequestReceipt(
     });
 }
 
+function readReceiptFile(receiptFilename: string, receiptPath: ReceiptSource, receiptType: string | undefined, onSuccess: (file: File) => void, onFailure: () => void) {
+    const path = ReceiptStorage.resolve(receiptPath) ?? receiptPath.toString();
+    let didFail = false;
+    const markFailed = () => {
+        didFail = true;
+    };
+
+    return readFileAsync(path, receiptFilename, onSuccess, markFailed, receiptType).then(() => {
+        if (!didFail) {
+            return;
+        }
+
+        return ReceiptStorage.recheckAfterSwap(receiptPath).then((isPresent) => (isPresent ? readFileAsync(path, receiptFilename, onSuccess, onFailure, receiptType) : onFailure()));
+    });
+}
+
 // eslint-disable-next-line rulesdir/no-negated-variables
 function navigateToStartStepIfScanFileCannotBeRead(
     receiptFilename: string | undefined,
@@ -484,7 +509,7 @@ function navigateToStartStepIfScanFileCannotBeRead(
         }
         navigateToStartMoneyRequestStep(requestType, iouType, transactionID, reportID);
     };
-    readFileAsync(ReceiptStorage.resolve(receiptPath) ?? receiptPath.toString(), receiptFilename, onSuccess, onFailure, receiptType);
+    return readReceiptFile(receiptFilename, receiptPath, receiptType, onSuccess, onFailure);
 }
 
 function checkIfLocalFileIsAccessible(
@@ -499,7 +524,7 @@ function checkIfLocalFileIsAccessible(
         return Promise.resolve();
     }
 
-    return readFileAsync(ReceiptStorage.resolve(receiptPath) ?? receiptPath.toString(), receiptFilename, onSuccess, onFailure, receiptType);
+    return readReceiptFile(receiptFilename, receiptPath, receiptType, onSuccess, onFailure);
 }
 
 function clearReceiptUploadError({
@@ -527,4 +552,4 @@ function clearReceiptUploadError({
 }
 
 export {checkIfLocalFileIsAccessible, clearReceiptUploadError, detachReceipt, navigateToStartStepIfScanFileCannotBeRead, replaceReceipt, setMoneyRequestReceipt};
-export type {ReplaceReceiptRetryParams};
+export type {ReplaceReceipt, ReplaceReceiptRetryParams};

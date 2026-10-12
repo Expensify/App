@@ -31,9 +31,9 @@ function ignorePaymentRowPress() {}
 function PaymentHistoryTable() {
     const {translate, dateFnsLocale} = useLocalize();
     const styles = useThemeStyles();
-    const [purchaseList] = useOnyx(ONYXKEYS.PURCHASE_LIST);
-    const isLoading = purchaseList === undefined;
-    const rows = getPaymentHistoryRows(purchaseList);
+    const [purchases] = useOnyx(ONYXKEYS.PURCHASES);
+    const isLoading = purchases === undefined;
+    const rows = getPaymentHistoryRows(purchases);
 
     return (
         <Section

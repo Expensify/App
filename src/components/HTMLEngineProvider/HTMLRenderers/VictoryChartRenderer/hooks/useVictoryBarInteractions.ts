@@ -261,7 +261,7 @@ function useVictoryBarInteractions() {
         pointWidth.set(widths);
         hasSearchQuery.set(searchQueryFlags);
         chartBottom.set(chartBounds.bottom);
-        yZero.set(yScale(0));
+        yZero.set(Math.max(chartBounds.top, yScale(0)));
     };
 
     return {
