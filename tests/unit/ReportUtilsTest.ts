@@ -4465,8 +4465,12 @@ describe('ReportUtils', () => {
 
                 // When the caller passes that report metadata
                 const {actionBadge} =
-                    getReasonAndReportActionThatRequiresAttention(policyExpenseChat, currentUserEmail, currentUserAccountID, undefined, false, undefined, undefined, undefined, {
-                        pendingExpenseAction: CONST.EXPENSE_PENDING_ACTION.APPROVE,
+                    getReasonAndReportActionThatRequiresAttention({
+                        optionOrReport: policyExpenseChat,
+                        currentUserLogin: currentUserEmail,
+                        currentUserAccountID,
+                        transactionViolations: undefined,
+                        reportMetadata: {pendingExpenseAction: CONST.EXPENSE_PENDING_ACTION.APPROVE},
                     }) ?? {};
 
                 // Then no approve badge is offered, because approving again would be a duplicate
@@ -4480,7 +4484,13 @@ describe('ReportUtils', () => {
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${policyExpenseChat.reportID}`, {pendingExpenseAction: CONST.EXPENSE_PENDING_ACTION.APPROVE});
 
                 // When the caller asks for the badge without passing the metadata
-                const {actionBadge} = getReasonAndReportActionThatRequiresAttention(policyExpenseChat, currentUserEmail, currentUserAccountID) ?? {};
+                const {actionBadge} =
+                    getReasonAndReportActionThatRequiresAttention({
+                        optionOrReport: policyExpenseChat,
+                        currentUserLogin: currentUserEmail,
+                        currentUserAccountID,
+                        transactionViolations: undefined,
+                    }) ?? {};
 
                 // Then the approve badge still shows: the function no longer falls back to reading Onyx itself
                 expect(actionBadge).toBe(CONST.REPORT.ACTION_BADGE.APPROVE);
