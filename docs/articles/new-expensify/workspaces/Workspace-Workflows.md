@@ -87,7 +87,7 @@ You can select an **Authorized payer** even when a business bank account isn't c
 Who can pay reports depends on whether a business bank account is connected:
 
 - **No bank account connected:** workspace admins can use **Mark as Paid** to record payments made outside of Expensify.
-- **Bank account connected:** The authorized payer and workspace admins the bank account has been shared with can pay reports.
+- **Bank account connected:** Any **Workspace admin** or **Payments admin** can pay reports from a bank account they have access to, or use **Mark as paid**.
 
 [Learn how to add a business bank account](/articles/new-expensify/wallet-and-payments/Connect-a-Business-Bank-Account).
 

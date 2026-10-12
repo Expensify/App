@@ -4,9 +4,12 @@ import type {PopoverComponentProps} from '@components/Search/FilterDropdowns/Fil
 import SingleSelectPopup from '@components/Search/FilterDropdowns/SingleSelectPopup';
 
 import useLocalize from '@hooks/useLocalize';
+import useThemeStyles from '@hooks/useThemeStyles';
 
 import type {InsightsFilters} from '@pages/Insights/insightsFilters';
 import DEFAULT_INSIGHTS_FILTERS, {INSIGHTS_GROUP_BY_OPTIONS} from '@pages/Insights/insightsFilters';
+
+import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 
@@ -23,6 +26,7 @@ type InsightsGroupByDropdownProps = {
 
 function InsightsGroupByDropdown({groupBy, onChange}: InsightsGroupByDropdownProps) {
     const {translate} = useLocalize();
+    const styles = useThemeStyles();
 
     const items: Array<SingleSelectItem<InsightsFilters['groupBy']>> = INSIGHTS_GROUP_BY_OPTIONS.map((option) => ({
         text: translate(`search.filters.groupBy.${option}`),
@@ -48,6 +52,10 @@ function InsightsGroupByDropdown({groupBy, onChange}: InsightsGroupByDropdownPro
             label={label}
             value={selectedItem?.text ?? null}
             sentryLabel={CONST.SENTRY_LABEL.INSIGHTS.CONTROL_GROUP_BY}
+            wrapperStyle={[styles.getWidgetHeaderButtonOverflowStyle(variables.componentSizeSmall), styles.flexShrink1]}
+            innerStyles={styles.bgTransparent}
+            hoverStyles={styles.widgetHeaderMenuButtonHovered}
+            labelStyle={styles.textSupporting}
             popoverAnchorAlignment={INSIGHTS_CONTROL_ANCHOR_ALIGNMENT}
             PopoverComponent={groupByPopover}
         />

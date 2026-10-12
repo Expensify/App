@@ -77,6 +77,7 @@ import SortingMachine from '@assets/images/product-illustrations/illustration-so
 import CardReplacementSuccess from '@assets/images/product-illustrations/illustration__card-replacement-success.svg';
 import Copilots from '@assets/images/product-illustrations/illustration__copilots.svg';
 import AgentsIceCream from '@assets/images/product-illustrations/illustration_agents-ice-cream.svg';
+import IceCreamMenu from '@assets/images/product-illustrations/illustration_ice-cream-menu.svg';
 import ModalHoldOrReject from '@assets/images/product-illustrations/modal-hold-or-reject.svg';
 import MushroomTopHat from '@assets/images/product-illustrations/mushroom-top-hat.svg';
 import PaymentHands from '@assets/images/product-illustrations/payment-hands.svg';
@@ -181,6 +182,7 @@ import MagnifyingGlassReceipt from '@assets/images/simple-illustrations/simple-i
 import Mailbox from '@assets/images/simple-illustrations/simple-illustration__mailbox.svg';
 import ExpensifyMobileApp from '@assets/images/simple-illustrations/simple-illustration__mobileapp.svg';
 import MoneyReceipts from '@assets/images/simple-illustrations/simple-illustration__money-receipts.svg';
+import MoneyBadge from '@assets/images/simple-illustrations/simple-illustration__moneybadge.svg';
 import MoneyIntoWallet from '@assets/images/simple-illustrations/simple-illustration__moneyintowallet.svg';
 import MoneyWings from '@assets/images/simple-illustrations/simple-illustration__moneywings.svg';
 import MonitorSyncNo from '@assets/images/simple-illustrations/simple-illustration__monitorsync-no.svg';
@@ -322,6 +324,7 @@ const Illustrations = {
     SmartScan,
     SortingMachine,
     AgentsIceCream,
+    IceCreamMenu,
     TeleScope,
     Telescope: TeleScope, // Alias for consistency
     ThreeLeggedLaptopWoman,
@@ -367,6 +370,7 @@ const Illustrations = {
     MagnifyingGlassMoney,
     MagnifyingGlassReceipt,
     MoneyReceipts,
+    MoneyBadge,
     MoneyWings,
     MoneyIntoWallet,
     MonitorSyncNo,

@@ -1,8 +1,9 @@
 import Button from '@components/Button';
-import ConfirmModal from '@components/ConfirmModal';
 import {loadIllustration} from '@components/Icon/IllustrationLoader';
+import {ModalActions} from '@components/Modal/Global/ModalContext';
 import {useSession} from '@components/OnyxListItemProvider';
 
+import useConfirmModal from '@hooks/useConfirmModal';
 import {useMemoizedLazyAsset} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -22,7 +23,7 @@ import type {GPSPoint} from '@src/types/onyx/GpsDraftDetails';
 import type {Unit} from '@src/types/onyx/Policy';
 
 import {hasServicesEnabledAsync, startLocationUpdatesAsync} from 'expo-location';
-import React, {useState} from 'react';
+import React, {useRef} from 'react';
 import {Linking, View} from 'react-native';
 
 import GPSTooltip from './GPSTooltip';
@@ -49,11 +50,9 @@ type ButtonsProps = {
 };
 
 function GPSButtons({navigateToNextStep, setShouldShowStartError, setShouldShowPermissionsError, reportID, unit, gpsPoints}: ButtonsProps) {
-    const [showLocationRequiredModal, setShowLocationRequiredModal] = useState(false);
-    const [showZeroDistanceModal, setShowZeroDistanceModal] = useState(false);
-    const [showDisabledServicesModal, setShowDisabledServicesModal] = useState(false);
     const {isOffline} = useNetwork();
     const session = useSession();
+    const {showConfirmModal} = useConfirmModal();
 
     const {asset: ReceiptLocationMarker} = useMemoizedLazyAsset(() => loadIllustration('ReceiptLocationMarker'));
     const [gpsDraftDetails] = useOnyx(ONYXKEYS.GPS_DRAFT_DETAILS);
@@ -61,6 +60,69 @@ function GPSButtons({navigateToNextStep, setShouldShowStartError, setShouldShowP
     const {translate} = useLocalize();
 
     const isTripStopped = isTripStoppedUtil(gpsDraftDetails);
+
+    // The prompts live on the global modal stack, which adds a new entry on every call. Two quick presses can both get
+    // past the awaited services check before either prompt is up, so this keeps a second prompt from stacking on the first.
+    const isPromptOpenRef = useRef(false);
+
+    const showPrompt = (options: Parameters<typeof showConfirmModal>[0], onConfirm?: () => void) => {
+        if (isPromptOpenRef.current) {
+            return;
+        }
+        isPromptOpenRef.current = true;
+
+        showConfirmModal(options).then((result) => {
+            isPromptOpenRef.current = false;
+
+            if (result.action !== ModalActions.CONFIRM) {
+                return;
+            }
+
+            onConfirm?.();
+        });
+    };
+
+    const showDisabledServicesModal = () => {
+        showPrompt(
+            {
+                title: translate('gps.locationServicesRequiredModal.title'),
+                prompt: translate('gps.locationServicesRequiredModal.prompt'),
+                confirmText: translate('gps.locationServicesRequiredModal.confirm'),
+                cancelText: translate('common.dismiss'),
+                shouldReverseStackedButtons: true,
+            },
+            openSettings,
+        );
+    };
+
+    const showLocationRequiredModal = () => {
+        showPrompt(
+            {
+                title: translate('gps.locationRequiredModal.title'),
+                prompt: translate('gps.locationRequiredModal.prompt'),
+                confirmText: translate('common.settings'),
+                cancelText: translate('common.dismiss'),
+                iconSource: ReceiptLocationMarker,
+                iconFill: false,
+                iconWidth: 140,
+                iconHeight: 120,
+                shouldCenterIcon: true,
+                shouldReverseStackedButtons: true,
+            },
+            () => {
+                Linking.openSettings();
+            },
+        );
+    };
+
+    const showZeroDistanceModal = () => {
+        showPrompt({
+            title: translate('gps.zeroDistanceTripModal.title'),
+            prompt: translate('gps.zeroDistanceTripModal.prompt'),
+            confirmText: translate('common.buttonConfirm'),
+            shouldShowCancelButton: false,
+        });
+    };
 
     // Returns true if location tracking was successfully initialized, false otherwise
     const initLocationTracking = async (): Promise<boolean> => {
@@ -99,7 +161,7 @@ function GPSButtons({navigateToNextStep, setShouldShowStartError, setShouldShowP
     const startPermissionsFlow = useBackgroundLocationPermissionsFlow({
         // eslint-disable-next-line @typescript-eslint/no-misused-promises -- the flow starts the trip without awaiting it
         onGrant: isTripStopped ? resumeGpsTrip : startGpsTrip,
-        onDeny: () => setShowLocationRequiredModal(true),
+        onDeny: showLocationRequiredModal,
         onError: () => setShouldShowPermissionsError(true),
     });
 
@@ -109,7 +171,7 @@ function GPSButtons({navigateToNextStep, setShouldShowStartError, setShouldShowP
         const hasLocationServicesEnabled = await hasServicesEnabledAsync();
 
         if (!hasLocationServicesEnabled) {
-            setShowDisabledServicesModal(true);
+            showDisabledServicesModal();
             return;
         }
 
@@ -122,96 +184,50 @@ function GPSButtons({navigateToNextStep, setShouldShowStartError, setShouldShowP
 
     const saveGpsTrip = () => {
         if (gpsDraftDetails?.distanceInMeters === 0) {
-            setShowZeroDistanceModal(true);
+            showZeroDistanceModal();
             return;
         }
 
         navigateToNextStep();
     };
 
-    const openSettingsForLocationServices = () => {
-        setShowDisabledServicesModal(false);
-        openSettings();
-    };
-
-    return (
-        <>
-            {isTripStopped ? (
-                <View style={[styles.gap2, styles.flexRow]}>
-                    <Button
-                        onPress={checkSettingsAndPermissions}
-                        size={CONST.BUTTON_SIZE.LARGE}
-                        style={[styles.flex1]}
-                        sentryLabel={CONST.SENTRY_LABEL.IOU_REQUEST_STEP.GPS_DISCARD_BUTTON}
-                    >
-                        <Button.KeyboardShortcut allowBubble />
-                        <Button.Text>{translate('gps.resume')}</Button.Text>
-                    </Button>
-                    <Button
-                        onPress={saveGpsTrip}
-                        variant={CONST.BUTTON_VARIANT.SUCCESS}
-                        size={CONST.BUTTON_SIZE.LARGE}
-                        style={[styles.flex1]}
-                        sentryLabel={CONST.SENTRY_LABEL.IOU_REQUEST_STEP.GPS_NEXT_BUTTON}
-                    >
-                        <Button.KeyboardShortcut allowBubble />
-                        <Button.Text>{translate('gps.save')}</Button.Text>
-                    </Button>
-                </View>
-            ) : (
-                <GPSTooltip>
-                    <View>
-                        <Button
-                            onPress={gpsDraftDetails?.isTracking ? stopGpsTrip : checkSettingsAndPermissions}
-                            variant={gpsDraftDetails?.isTracking ? undefined : CONST.BUTTON_VARIANT.SUCCESS}
-                            size={CONST.BUTTON_SIZE.LARGE}
-                            style={[styles.w100, styles.flexShrink0]}
-                            sentryLabel={CONST.SENTRY_LABEL.IOU_REQUEST_STEP.GPS_START_STOP_BUTTON}
-                        >
-                            <Button.KeyboardShortcut allowBubble />
-                            <Button.Text>{gpsDraftDetails?.isTracking ? translate('gps.stop') : translate('gps.start')}</Button.Text>
-                        </Button>
-                    </View>
-                </GPSTooltip>
-            )}
-
-            <ConfirmModal
-                shouldShowCancelButton={false}
-                title={translate('gps.zeroDistanceTripModal.title')}
-                isVisible={showZeroDistanceModal}
-                onConfirm={() => setShowZeroDistanceModal(false)}
-                confirmText={translate('common.buttonConfirm')}
-                prompt={translate('gps.zeroDistanceTripModal.prompt')}
-            />
-            <ConfirmModal
-                isVisible={showLocationRequiredModal}
-                title={translate('gps.locationRequiredModal.title')}
-                onConfirm={() => {
-                    setShowLocationRequiredModal(false);
-                    Linking.openSettings();
-                }}
-                onCancel={() => setShowLocationRequiredModal(false)}
-                confirmText={translate('common.settings')}
-                cancelText={translate('common.dismiss')}
-                prompt={translate('gps.locationRequiredModal.prompt')}
-                iconSource={ReceiptLocationMarker}
-                iconFill={false}
-                iconWidth={140}
-                iconHeight={120}
-                shouldCenterIcon
-                shouldReverseStackedButtons
-            />
-            <ConfirmModal
-                title={translate('gps.locationServicesRequiredModal.title')}
-                isVisible={showDisabledServicesModal}
-                onConfirm={openSettingsForLocationServices}
-                onCancel={() => setShowDisabledServicesModal(false)}
-                confirmText={translate('gps.locationServicesRequiredModal.confirm')}
-                cancelText={translate('common.dismiss')}
-                prompt={translate('gps.locationServicesRequiredModal.prompt')}
-                shouldReverseStackedButtons
-            />
-        </>
+    return isTripStopped ? (
+        <View style={[styles.gap2, styles.flexRow]}>
+            <Button
+                onPress={checkSettingsAndPermissions}
+                size={CONST.BUTTON_SIZE.LARGE}
+                style={[styles.flex1]}
+                sentryLabel={CONST.SENTRY_LABEL.IOU_REQUEST_STEP.GPS_DISCARD_BUTTON}
+            >
+                <Button.KeyboardShortcut allowBubble />
+                <Button.Text>{translate('gps.resume')}</Button.Text>
+            </Button>
+            <Button
+                onPress={saveGpsTrip}
+                variant={CONST.BUTTON_VARIANT.SUCCESS}
+                size={CONST.BUTTON_SIZE.LARGE}
+                style={[styles.flex1]}
+                sentryLabel={CONST.SENTRY_LABEL.IOU_REQUEST_STEP.GPS_NEXT_BUTTON}
+            >
+                <Button.KeyboardShortcut allowBubble />
+                <Button.Text>{translate('gps.save')}</Button.Text>
+            </Button>
+        </View>
+    ) : (
+        <GPSTooltip>
+            <View>
+                <Button
+                    onPress={gpsDraftDetails?.isTracking ? stopGpsTrip : checkSettingsAndPermissions}
+                    variant={gpsDraftDetails?.isTracking ? undefined : CONST.BUTTON_VARIANT.SUCCESS}
+                    size={CONST.BUTTON_SIZE.LARGE}
+                    style={[styles.w100, styles.flexShrink0]}
+                    sentryLabel={CONST.SENTRY_LABEL.IOU_REQUEST_STEP.GPS_START_STOP_BUTTON}
+                >
+                    <Button.KeyboardShortcut allowBubble />
+                    <Button.Text>{gpsDraftDetails?.isTracking ? translate('gps.stop') : translate('gps.start')}</Button.Text>
+                </Button>
+            </View>
+        </GPSTooltip>
     );
 }
 

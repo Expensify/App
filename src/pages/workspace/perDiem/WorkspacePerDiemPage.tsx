@@ -13,6 +13,7 @@ import useCleanupSelectedOptions from '@hooks/useCleanupSelectedOptions';
 import useConfirmModal from '@hooks/useConfirmModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useFilteredSelection from '@hooks/useFilteredSelection';
+import useLayoutSpacing from '@hooks/useLayoutSpacing';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
@@ -26,6 +27,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useWorkspaceDocumentTitle from '@hooks/useWorkspaceDocumentTitle';
 
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
+import {renamePerDiemDestinationInline, renamePerDiemSubrateInline, updatePerDiemAmountInline} from '@libs/actions/Policy/InlineEdit';
 import {convertAmountToDisplayString} from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -92,6 +94,7 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {shouldUseNarrowLayout, isSmallScreenWidth, isInLandscapeMode} = useResponsiveLayout();
     const styles = useThemeStyles();
+    const {pageGutter} = useLayoutSpacing();
     const {translate} = useLocalize();
     const {showConfirmModal} = useConfirmModal();
     const [isDownloadFailureModalVisible, setIsDownloadFailureModalVisible] = useState(false);
@@ -176,12 +179,15 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
 
     const hasVisibleSubRates = allSubRates.some((subRate) => subRate.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || isOffline);
 
+    const isSelectionModeActive = selectedSubRateKeys.length > 0 || isMobileSelectionModeEnabled;
+
     const perDiemRows: PerDiemTableRowData[] = useMemo(
         () =>
             allSubRates
                 .filter((subRate) => isOffline || subRate.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE)
                 .map((subRate) => {
                     const isDeleting = subRate.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
+                    const canEdit = canWritePerDiem && !isDeleting && !isSelectionModeActive;
 
                     return {
                         keyForList: getPerDiemRowKey(subRate.rateID, subRate.subRateID),
@@ -190,13 +196,20 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
                         destination: subRate.destination,
                         subRateName: subRate.subRateName,
                         rate: subRate.rate,
+                        currency: subRate.currency,
                         formattedAmount: convertAmountToDisplayString(subRate.rate, subRate.currency),
                         disabled: isDeleting,
                         pendingAction: subRate.pendingAction,
+                        canEditDestination: canEdit,
+                        canEditSubrate: canEdit,
+                        canEditAmount: canEdit,
                         action: () => openSubRateDetails(subRate.rateID, subRate.subRateID),
+                        onRenameDestination: (newName: string) => renamePerDiemDestinationInline(policyID, subRate.rateID, customUnit, subRate.destination, newName),
+                        onRenameSubrate: (newName: string) => renamePerDiemSubrateInline(policyID, subRate.rateID, subRate.subRateID, customUnit, subRate.subRateName, newName),
+                        onChangeAmount: (newAmount: string) => updatePerDiemAmountInline(policyID, subRate.rateID, subRate.subRateID, customUnit, subRate.rate, newAmount),
                     };
                 }),
-        [allSubRates, isOffline, openSubRateDetails],
+        [allSubRates, isOffline, openSubRateDetails, canWritePerDiem, isSelectionModeActive, policyID, customUnit],
     );
 
     const secondaryActions = useMemo(() => {
@@ -401,7 +414,7 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
                 >
                     {!shouldDisplayButtonsInSeparateLine && headerButtons}
                 </HeaderWithBackButton>
-                {!!headerButtons && shouldDisplayButtonsInSeparateLine && <View style={[styles.pl5, styles.pr5]}>{headerButtons}</View>}
+                {!!headerButtons && shouldDisplayButtonsInSeparateLine && <View style={pageGutter}>{headerButtons}</View>}
                 {!hasVisibleSubRates && subtitleContent}
                 <WorkspacePerDiemTable
                     perDiemData={perDiemRows}
