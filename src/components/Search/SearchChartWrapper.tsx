@@ -1,7 +1,7 @@
 import {ChartHeader} from '@components/Charts';
 
+import useLayoutSpacing from '@hooks/useLayoutSpacing';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import React from 'react';
@@ -13,13 +13,13 @@ import CHART_GROUP_BY_CONFIG from './chartGroupByConfig';
 
 function SearchChartWrapper({children, title, groupBy}: {children: React.ReactNode; title?: string; groupBy: SearchGroupBy}) {
     const styles = useThemeStyles();
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {cardPadding} = useLayoutSpacing();
     const icons = useMemoizedLazyExpensifyIcons(['Users', 'CreditCard', 'Send', 'Folder', 'Basket', 'Tag', 'Calendar']);
     const {titleIconName} = CHART_GROUP_BY_CONFIG[groupBy];
     const titleIcon = icons[titleIconName];
 
     return (
-        <View style={[styles.chartContainer, styles.highlightBG, shouldUseNarrowLayout ? styles.p5 : styles.p8]}>
+        <View style={[styles.chartContainer, styles.highlightBG, cardPadding]}>
             <ChartHeader
                 title={title}
                 titleIcon={titleIcon}

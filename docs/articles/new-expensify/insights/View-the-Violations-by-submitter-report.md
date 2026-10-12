@@ -75,4 +75,4 @@ The **Violations** column is only available when your search filters for violati
 
 ## How is the Violations by submitter report calculated?
 
-The report uses expenses from the previous calendar month that had a violation at the time they were submitted, groups them by the member who submitted them, and shows the top 10 members by the number of expenses with violations.
+The report uses expenses from the previous calendar month that had a violation at the time they were submitted, groups them by the member who submitted them, and shows the top 5 members by the number of expenses with violations.

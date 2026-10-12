@@ -1,7 +1,7 @@
 ---
 title: Act as a Copilot
 description: Learn how to switch into another member's account as a Copilot, act on their behalf, and remove your access when it's no longer needed.
-keywords: [act as a copilot, copilot access, switch to a copilot account, switch accounts, delegated access, delegated account access, copilot account, access another account, account switching, proxy access, manage someone else's account, executive assistant, accountant, bookkeeper, shared account access, remove copilot access, remove my copilot access, forward receipts, submit expenses on behalf of someone, act on behalf of another user, copilot permissions]
+keywords: [act as a copilot, copilot access, switch to a copilot account, switch accounts, switch button, where is the switch button, delegated access, delegated account access, copilot account, access another account, account switching, proxy access, manage someone else's account, executive assistant, accountant, bookkeeper, shared account access, remove copilot access, remove my copilot access, forward receipts, submit expenses on behalf of someone, act on behalf of another user, copilot permissions]
 internalScope: Audience is members who have been granted Copilot access. Covers accessing another account, forwarding receipts, and removing your own access. Does not cover granting or managing Copilot access for others.
 ---
 
@@ -35,13 +35,13 @@ Some actions may be restricted if you've been granted Limited Access.
 ## How to switch to a Copilot account
 
 1. In the navigation tabs (on the left on web, on the bottom on mobile), select **Account** > **Copilot**.
-2. In the **Copilot: Delegated Access** section, choose the account you want to access.
+2. In the **Copilot: Delegated access** section, choose the account you want to access.
 3. Select **Switch**.
 
 ## How to remove yourself as a Copilot
 
 1. In the navigation tabs (on the left on web, on the bottom on mobile), select **Account** > **Copilot**.
-2. In the **Copilot: Delegated Access** section, choose the account you want to remove yourself from. 
+2. In the **Copilot: Delegated access** section, choose the account you want to remove yourself from. 
 3. Select **Remove my copilot access**.
 4. Select **Remove access**.
 
@@ -56,9 +56,21 @@ The receipt is automatically SmartScanned to the account owner's Expensify accou
 
 ## How to exit a Copilot account and return to your own account
 
-1. In the navigation tabs (on the left on web, on the bottom on mobile), select **Account**.
-2. At the top of the page, select **Switch** to open the account switcher.
+The **Switch** button sits in a different place on web than on mobile.
+
+Web:
+
+1. In the navigation tabs on the left, select **Account**.
+2. In the page header, to the right of **Account**, select **Switch**.
 3. Select your name.
+
+Mobile:
+
+1. In the navigation tabs on the bottom, select **Account**.
+2. Next to your name and email address, select **Switch**.
+3. Select your name.
+
+If you resize your browser window until it is narrow, web uses the mobile layout, and **Switch** moves next to your name and email address.
 
 ## What happens after you switch to a Copilot account
 
@@ -77,6 +89,12 @@ When acting as a Copilot:
 Yes. If multiple members grant you Copilot access, you can switch between those accounts.
 
 To switch between Copilot accounts, first return to your own account, then switch to the other member's account.
+
+## Where is the Switch button on the Account page?
+
+On web, **Switch** is in the page header, to the right of **Account**. On mobile, **Switch** is next to your name and email address. A narrow browser window uses the mobile layout.
+
+**Switch** only appears if you can act as a Copilot for someone else or someone can act as a Copilot for you.
 
 ## How do I know I'm acting as a Copilot?
 
