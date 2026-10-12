@@ -146,6 +146,7 @@ type ThreadReplyCounterFields = 'childVisibleActionCount' | 'childCommenterCount
 
 type ReportActionWithoutThreadReplyCounters = Omit<ReportAction, ThreadReplyCounterFields>;
 
+/** Strips the reply counters, which change on every reply in the thread, so components that only show the parent message don't re-render for each reply. */
 function getParentReportActionWithoutThreadRepliesSelector(parentReportActions: OnyxEntry<ReportActions>, parentReportActionID?: string): ReportActionWithoutThreadReplyCounters | undefined {
     const parentReportAction = getParentReportActionSelector(parentReportActions, parentReportActionID);
     if (!parentReportAction) {
