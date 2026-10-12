@@ -117,7 +117,7 @@ function ChooseTransferAccountPage() {
     };
 
     if (isLoadingOnyxValue(walletTransferResult)) {
-        return <FullscreenLoadingIndicator />;
+        return <FullscreenLoadingIndicator onGoBack={() => Navigation.goBack(ROUTES.SETTINGS_WALLET_TRANSFER_BALANCE)} />;
     }
 
     return (
