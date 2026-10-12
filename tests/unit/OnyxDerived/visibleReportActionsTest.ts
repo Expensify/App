@@ -2,7 +2,7 @@ import visibleReportActionsConfig from '@libs/actions/OnyxDerived/configs/visibl
 
 import type {OnyxKey} from '@src/ONYXKEYS';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {ReportActions} from '@src/types/onyx';
+import type {Report, ReportActions} from '@src/types/onyx';
 import type {VisibleReportActionsDerivedValue} from '@src/types/onyx/DerivedValues';
 
 import type {OnyxCollection} from 'react-native-onyx';
@@ -12,7 +12,7 @@ describe('visibleReportActions', () => {
         const reportActionsKeyA = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}A`;
         // Only report A has report actions now; report B exists only in the previous derived value (currentValue).
         const allReportActions: OnyxCollection<ReportActions> = {[reportActionsKeyA]: {}};
-        const args: Parameters<typeof visibleReportActionsConfig.compute>[0] = [allReportActions, undefined];
+        const args: Parameters<typeof visibleReportActionsConfig.compute>[0] = [allReportActions, undefined, {} as OnyxCollection<Report>];
         const currentValue: VisibleReportActionsDerivedValue = {A: {}, B: {}};
         const sourceValues: Parameters<typeof visibleReportActionsConfig.compute>[1]['sourceValues'] = {[ONYXKEYS.COLLECTION.REPORT_ACTIONS]: {[reportActionsKeyA]: {}}};
 
