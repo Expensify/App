@@ -40,9 +40,12 @@ import useTransactionSelector from './useTransactionSelector';
 type DescriptionFieldProps = {
     isDescriptionRequired: boolean;
     policy: OnyxEntry<OnyxTypes.Policy>;
+
+    /** The selected category's description hint, shown below the input */
+    descriptionHint?: string;
 };
 
-function DescriptionField({isDescriptionRequired, policy}: DescriptionFieldProps) {
+function DescriptionField({isDescriptionRequired, policy, descriptionHint = ''}: DescriptionFieldProps) {
     const {isEditingSplitBill, scrollFocusedInputIntoView, onSubmitForm, isReadOnly, didConfirm, transactionID, action, iouType, reportID, reportActionID, onInputFocus, onInputBlur} =
         useConfirmationFields();
     const {shouldUseDropdownRows} = useExpenseFormLayout();
@@ -166,6 +169,8 @@ function DescriptionField({isDescriptionRequired, policy}: DescriptionFieldProps
                                     maxAutoGrowHeight={variables.textInputAutoGrowMaxHeight}
                                     type="markdown"
                                     excludedMarkdownStyles={!policy ? ['mentionReport'] : []}
+                                    hint={descriptionHint}
+                                    shouldRenderHintAsHTML={!!descriptionHint}
                                 />
                             </View>
                         ) : (

@@ -6,6 +6,17 @@ describe('getFormattedPostedDate', () => {
         expect(getFormattedPostedDate('20251231')).toBe('2025-12-31');
     });
 
+    it('converts a raw YYYYMMDDHHmmss card posted date to YYYY-MM-DD', () => {
+        // Given a posted value with a time suffix, as some card feeds (e.g. Amex) send it
+        const posted = '20261002153000';
+
+        // When it is formatted for display
+        const result = getFormattedPostedDate(posted);
+
+        // Then only the date is shown, so the Search "Posted" column doesn't show the raw value
+        expect(result).toBe('2026-10-02');
+    });
+
     it('passes an already-ISO date through unchanged (idempotent)', () => {
         expect(getFormattedPostedDate('2026-07-10')).toBe('2026-07-10');
     });

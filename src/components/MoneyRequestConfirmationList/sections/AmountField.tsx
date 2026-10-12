@@ -269,7 +269,8 @@ function AmountField({
         const updatedAmount = parsedAmount ?? amount;
 
         buildAndSaveSplitShares(updatedAmount, value);
-        if (parsedAmount === null && !isEditingSplitBill) {
+        // Only save the currency while the amount is empty, since setMoneyRequestAmount sets isAmountSet and blocks Scan submission.
+        if (parsedAmount === null && shouldShowEmptyAmount && !isEditingSplitBill) {
             setMoneyRequestCurrency(transactionID, value);
         } else {
             persistMainDraftTotal(updatedAmount, value);
