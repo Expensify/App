@@ -1,0 +1,13 @@
+diff --git a/node_modules/@react-navigation/bottom-tabs/lib/module/unstable/NativeBottomTabView.native.js b/node_modules/@react-navigation/bottom-tabs/lib/module/unstable/NativeBottomTabView.native.js
+index 1183c51..303635c 100644
+--- a/node_modules/@react-navigation/bottom-tabs/lib/module/unstable/NativeBottomTabView.native.js
++++ b/node_modules/@react-navigation/bottom-tabs/lib/module/unstable/NativeBottomTabView.native.js
+@@ -160,7 +160,7 @@ export function NativeBottomTabView({
+     ios: PlatformColor('label'),
+     default: colors.text
+   });
+-  const activeIndicatorColor = currentOptions?.tabBarActiveIndicatorColor ?? typeof activeTintColor === 'string' ? Color(activeTintColor)?.alpha(0.1).string() : undefined;
++  const activeIndicatorColor = currentOptions?.tabBarActiveIndicatorColor ?? (typeof activeTintColor === 'string' ? Color(activeTintColor)?.alpha(0.1).string() : undefined);
+   const onTransitionStart = ({
+     closing,
+     route

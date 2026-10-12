@@ -67,6 +67,8 @@ jest.mock('@userActions/App', () => ({
 
 jest.mock('@libs/Navigation/helpers/useIsSidebarRouteActive', () => jest.fn(() => false));
 
+jest.mock('@hooks/useHasTabBeenShown', () => jest.fn(() => true));
+
 jest.mock('@hooks/useSubscriptionPlan', () => jest.fn(() => null));
 
 jest.mock('@components/AccountSwitcher', () => {
@@ -83,14 +85,6 @@ jest.mock('@components/AccountSwitcherSkeletonView', () => {
     }
     MockAccountSwitcherSkeletonView.displayName = 'AccountSwitcherSkeletonView';
     return MockAccountSwitcherSkeletonView;
-});
-
-jest.mock('@components/Navigation/TabBarBottomContent', () => {
-    function MockTabBarBottomContent() {
-        return null;
-    }
-    MockTabBarBottomContent.displayName = 'TabBarBottomContent';
-    return MockTabBarBottomContent;
 });
 
 jest.mock('@components/Navigation/TopBarWithLoadingBar', () => {

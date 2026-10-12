@@ -20,12 +20,12 @@ import ScrollView from '@components/ScrollView';
 
 import useAccountTabIndicatorStatus from '@hooks/useAccountTabIndicatorStatus';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useInboxTabIndicatorStatus from '@hooks/useInboxTabIndicatorStatus';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import {usePersonalDetailsByIDs} from '@hooks/usePersonalDetails';
 import useRestoreWorkspacesTabOnNavigate from '@hooks/useRestoreWorkspacesTabOnNavigate';
-import {useSidebarOrderedReportsState} from '@hooks/useSidebarOrderedReports';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWorkspacesTabIndicatorStatus from '@hooks/useWorkspacesTabIndicatorStatus';
@@ -90,7 +90,7 @@ function FlatNavigationBar({selectedTab}: FlatNavigationBarProps) {
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
     const [conciergePersonalDetails] = usePersonalDetailsByIDs([CONST.ACCOUNT_ID.CONCIERGE]);
 
-    const {chatTabBrickRoad} = useSidebarOrderedReportsState();
+    const {status: chatTabBrickRoad, indicatorColor: inboxStatusIndicatorColor} = useInboxTabIndicatorStatus();
     const {indicatorColor: workspacesTabIndicatorColor, status: workspacesTabIndicatorStatus} = useWorkspacesTabIndicatorStatus();
     const {status: accountTabIndicatorStatus} = useAccountTabIndicatorStatus();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
@@ -105,13 +105,6 @@ function FlatNavigationBar({selectedTab}: FlatNavigationBarProps) {
     const isInboxSelected = selectedTab === NAVIGATION_TABS.INBOX && !isConciergeSelected;
     const isSpendTabSelected = selectedTab === NAVIGATION_TABS.SEARCH;
     const isAccountSelected = selectedTab === NAVIGATION_TABS.SETTINGS;
-
-    let inboxStatusIndicatorColor: string | undefined;
-    if (chatTabBrickRoad === CONST.BRICK_ROAD_INDICATOR_STATUS.INFO) {
-        inboxStatusIndicatorColor = theme.iconSuccessFill;
-    } else if (chatTabBrickRoad) {
-        inboxStatusIndicatorColor = theme.danger;
-    }
 
     const navigateToHome = () => {
         if (selectedTab === NAVIGATION_TABS.HOME) {

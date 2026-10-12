@@ -172,6 +172,7 @@ function NavigationTabBar({selectedTab, shouldShowFloatingButtons = true}: Navig
                         icon={expensifyIcons.Home}
                         label={translate('common.home')}
                         isSelected={selectedTab === NAVIGATION_TABS.HOME}
+                        numberOfLines={1}
                     />
                 </PressableWithFeedback>
                 <InboxTabButton

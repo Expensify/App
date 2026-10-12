@@ -15,14 +15,14 @@ describe('buildTabNavigatorNestedState', () => {
             NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR,
             SCREENS.INSIGHTS,
             SCREENS.MORE,
-            NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR,
             NAVIGATORS.WORKSPACE_NAVIGATOR,
+            NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR,
         ]);
     });
 
-    it('sets index to the position of the selected tab (SETTINGS = 5)', () => {
+    it('sets index to the position of the selected tab (SETTINGS = 6)', () => {
         const result = buildTabNavigatorNestedState({name: NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR});
-        expect(result.index).toBe(5);
+        expect(result.index).toBe(6);
     });
 
     it('falls back to index 0 for an unknown tab name', () => {
@@ -41,7 +41,7 @@ describe('buildTabNavigatorNestedState', () => {
     it('copies params from selectedTabRoute onto the matched route only', () => {
         const params = {screen: 'SomeScreen'};
         const result = buildTabNavigatorNestedState({name: NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR, params});
-        expect(result.routes.at(5)?.params).toEqual(params);
+        expect(result.routes.at(6)?.params).toEqual(params);
         expect(result.routes.at(0)?.params).toBeUndefined();
         expect(result.routes.at(1)?.params).toBeUndefined();
     });
