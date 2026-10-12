@@ -1,4 +1,5 @@
 import AccountAvatar from '@components/Avatar/connected/AccountAvatar';
+import PolicyAvatar from '@components/Avatar/connected/PolicyAvatar';
 import Button from '@components/Button';
 import Icon from '@components/Icon';
 import UserInfoCell from '@components/Search/SearchList/ListItem/UserInfoCell';
@@ -115,6 +116,14 @@ export default function AgentsTableRow({item, rowIndex, shouldUseNarrowTableLayo
                                 <AccountAvatar
                                     size={CONST.AVATAR_SIZE.XXX_SMALL}
                                     accountID={item.ownerAccountID}
+                                    fallbackDisplayName={item.ownerDisplayName}
+                                    containerStyle={[styles.pr2, styles.alignSelfCenter]}
+                                />
+                            )}
+                            {item.ownerType === CONST.AGENTS.OWNER_TYPE.WORKSPACE && !!item.ownerPolicyID && (
+                                <PolicyAvatar
+                                    size={CONST.AVATAR_SIZE.XXX_SMALL}
+                                    policyID={item.ownerPolicyID}
                                     fallbackDisplayName={item.ownerDisplayName}
                                     containerStyle={[styles.pr2, styles.alignSelfCenter]}
                                 />

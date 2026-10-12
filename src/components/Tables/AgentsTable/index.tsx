@@ -33,9 +33,19 @@ type AgentRowData = TableData & {
     displayName: string;
     login: string;
     role?: ValueOf<typeof CONST.POLICY.ROLE>;
+
+    /** The accountID of the agent owner */
     ownerAccountID?: number;
+
+    /** The display name of the agent owner */
     ownerDisplayName?: string;
+
+    /** The type of the agent owner */
     ownerType?: AgentOwnerType;
+
+    /** The policy ID of the agent owner, only set if ownerType=workspace */
+    ownerPolicyAccountID?: string;
+
     canManage: boolean;
     errors?: OnyxCommon.Errors;
     pendingAction?: OnyxCommon.PendingAction;

@@ -75,12 +75,14 @@ function useAgents() {
         }
 
         let ownerDisplayName: string | undefined;
+        let ownerPolicyID: string | undefined;
         if (agent.ownerType === CONST.AGENTS.OWNER_TYPE.PERSON) {
             const ownerDetails = personalDetailsList?.[agent.ownerAccountID];
             ownerDisplayName = ownerDetails?.displayName ?? ownerDetails?.login;
         } else if (agent.ownerType === CONST.AGENTS.OWNER_TYPE.WORKSPACE) {
             const policy = usingPolicyAccountIDPoliciesSelector(allPolicies, agent.ownerAccountID);
             ownerDisplayName = policy?.name;
+            ownerPolicyID = policy?.id;
         } else if (agent.ownerType === CONST.AGENTS.OWNER_TYPE.DOMAIN) {
             const ownerDetails = personalDetailsList?.[agent.ownerAccountID];
             ownerDisplayName = ownerDetails?.login ? Str.extractEmailDomain(ownerDetails.login) : undefined;
@@ -103,6 +105,7 @@ function useAgents() {
                 ownerAccountID: agent.ownerAccountID,
                 ownerDisplayName,
                 ownerType: agent.ownerType,
+                ownerPolicyID,
                 pendingAction,
                 errors: Object.keys(rowErrors).length > 0 ? rowErrors : undefined,
                 disabled: isPendingDeletion,
