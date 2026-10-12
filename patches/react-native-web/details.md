@@ -144,5 +144,5 @@
     ```
   
 - Upstream PR/issue: https://github.com/necolas/react-native-web/pull/2891
-- E/App issue: 🛑
+- E/App issue: https://github.com/Expensify/App/issues/103760
 - PR introducing patch: https://github.com/Expensify/App/pull/103460
