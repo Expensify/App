@@ -520,6 +520,66 @@ function updateSplitTransactions({
             childOldestFourAccountIDs,
         };
     };
+    // Optimistically removes the expense report the split flow was opened from, together with its report preview,
+    // once none of its transactions are left in it.
+    const pushExpenseReportDeletionToOnyxData = () => {
+        if (!expenseReportID) {
+            return;
+        }
+
+        onyxData.optimisticData?.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${expenseReportID}`,
+            value: {
+                reportID: null,
+                pendingFields: {
+                    preview: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                },
+            },
+        });
+        onyxData.successData?.push({
+            onyxMethod: Onyx.METHOD.SET,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${expenseReportID}`,
+            value: null,
+        });
+        onyxData.failureData?.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${expenseReportID}`,
+            value: {
+                reportID: expenseReportID,
+                pendingFields: null,
+            },
+        });
+        if (expenseReport?.parentReportID && expenseReport?.parentReportActionID) {
+            onyxData.optimisticData?.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport?.parentReportID}`,
+                value: {
+                    [expenseReport?.parentReportActionID]: {
+                        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                    },
+                },
+            });
+            onyxData.successData?.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport?.parentReportID}`,
+                value: {
+                    [expenseReport?.parentReportActionID]: {
+                        pendingAction: null,
+                    },
+                },
+            });
+            onyxData.failureData?.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport?.parentReportID}`,
+                value: {
+                    [expenseReport?.parentReportActionID]: {
+                        pendingAction: null,
+                    },
+                },
+            });
+        }
+    };
     const pushUpdatedReportPreviewActionToOnyxData = () => {
         if (!updatedReportPreviewAction) {
             return;
@@ -1633,6 +1693,24 @@ function updateSplitTransactions({
     }
 
     if (!isReverseSplitOperation) {
+        // Removing every split that lived in the expense report empties it. Without this the report and its preview
+        // stay behind holding only pending-delete splits, and opening it shows the Not Found page.
+        const expenseReportTransactions = Object.values(allTransactionsList ?? {}).filter(
+            (itemTransaction) => itemTransaction?.reportID === expenseReportID && itemTransaction?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+        );
+        const willExpenseReportBecomeEmpty =
+            !isCreationOfSplits &&
+            expenseReportTransactions.length > 0 &&
+            expenseReportTransactions.every((itemTransaction) => itemTransaction?.comment?.originalTransactionID === originalTransactionID) &&
+            !splitExpenses.some((splitExpense) => {
+                // A split with no known destination stays in the expense report, so treat it as keeping the report alive.
+                const splitDestinationReportID = splitExpense.reportID ?? allTransactionsList?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${splitExpense.transactionID}`]?.reportID;
+                return !splitDestinationReportID || splitDestinationReportID === expenseReportID;
+            });
+        if (willExpenseReportBecomeEmpty) {
+            pushExpenseReportDeletionToOnyxData();
+        }
+
         // Use SET to update originalTransaction more quickly in Onyx as compared to MERGE to prevent UI inconsistency
         onyxData.optimisticData?.push({
             onyxMethod: Onyx.METHOD.SET,
@@ -1882,59 +1960,8 @@ function updateSplitTransactions({
         const reverseSplitKeepsOriginalInThisReport = isReverseSplitOperation && splitExpenses.at(0)?.reportID === expenseReportID;
         const isLastTransactionInReport =
             !reverseSplitKeepsOriginalInThisReport && Object.values(allTransactionsList ?? {}).filter((itemTransaction) => itemTransaction?.reportID === expenseReportID).length === 1;
-        if (isLastTransactionInReport && expenseReportID) {
-            onyxData.optimisticData?.push({
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.REPORT}${expenseReportID}`,
-                value: {
-                    reportID: null,
-                    pendingFields: {
-                        preview: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
-                    },
-                },
-            });
-            onyxData.successData?.push({
-                onyxMethod: Onyx.METHOD.SET,
-                key: `${ONYXKEYS.COLLECTION.REPORT}${expenseReportID}`,
-                value: null,
-            });
-            onyxData.failureData?.push({
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.REPORT}${expenseReportID}`,
-                value: {
-                    reportID: expenseReportID,
-                    pendingFields: null,
-                },
-            });
-            if (expenseReport?.parentReportID && expenseReport?.parentReportActionID) {
-                onyxData.optimisticData?.push({
-                    onyxMethod: Onyx.METHOD.MERGE,
-                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport?.parentReportID}`,
-                    value: {
-                        [expenseReport?.parentReportActionID]: {
-                            pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
-                        },
-                    },
-                });
-                onyxData.successData?.push({
-                    onyxMethod: Onyx.METHOD.MERGE,
-                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport?.parentReportID}`,
-                    value: {
-                        [expenseReport?.parentReportActionID]: {
-                            pendingAction: null,
-                        },
-                    },
-                });
-                onyxData.failureData?.push({
-                    onyxMethod: Onyx.METHOD.MERGE,
-                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport?.parentReportID}`,
-                    value: {
-                        [expenseReport?.parentReportActionID]: {
-                            pendingAction: null,
-                        },
-                    },
-                });
-            }
+        if (isLastTransactionInReport) {
+            pushExpenseReportDeletionToOnyxData();
         }
 
         const originalTransactionThreadReportID = splits.at(0)?.transactionThreadReportID;
