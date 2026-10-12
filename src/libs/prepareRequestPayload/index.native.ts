@@ -1,12 +1,34 @@
 import {checkFileExistsWithReason} from '@libs/fileDownload/checkFileExists';
 import {readFileAsync} from '@libs/fileDownload/FileUtils';
+import getReceiptsUploadFolderPath from '@libs/getReceiptsUploadFolderPath';
 import ReceiptStorage from '@libs/ReceiptStorage';
 import {logReceiptDropped} from '@libs/telemetry/ReceiptObservability';
 import validateFormDataParameter from '@libs/validateFormDataParameter';
 
 import type {Receipt} from '@src/types/onyx/Transaction';
 
+import RNFS from 'react-native-fs';
+
 import type PrepareRequestPayload from './types';
+
+async function getReceiptsFolderState(): Promise<{exists: boolean; entryCount?: number}> {
+    let folderPath: string;
+    try {
+        folderPath = getReceiptsUploadFolderPath();
+        if (!(await RNFS.exists(folderPath))) {
+            return {exists: false};
+        }
+    } catch {
+        return {exists: false};
+    }
+
+    try {
+        const entries = await RNFS.readDir(folderPath);
+        return {exists: true, entryCount: entries.length};
+    } catch {
+        return {exists: true};
+    }
+}
 
 /**
  * Prepares the request payload (body) for a given command and data.
@@ -24,6 +46,12 @@ const prepareRequestPayload: PrepareRequestPayload = (command, data, initiatedOf
                 return Promise.resolve();
             }
 
+            // The assertion is FormData's signature being narrower than what request data can hold.
+            const appendValueAsIs = () => {
+                validateFormDataParameter(command, key, value);
+                formData.append(key, value as string | Blob);
+            };
+
             if (key === 'receipt') {
                 const {source, name, type, receiptTraceId} = value as Omit<File, 'source'> & Pick<Receipt, 'receiptTraceId' | 'source'>;
 
@@ -33,13 +61,13 @@ const prepareRequestPayload: PrepareRequestPayload = (command, data, initiatedOf
                         return Promise.resolve();
                     }
 
-                    const localUri = ReceiptStorage.resolve(source) ?? source;
-
-                    return checkFileExistsWithReason(localUri).then(({exists, error}) => {
-                        if (!exists) {
+                    return ReceiptStorage.locate(source).then((localUri) => {
+                        if (!localUri) {
                             const transactionID = typeof data.transactionID === 'string' ? data.transactionID : undefined;
-                            logReceiptDropped({receiptTraceId, transactionID, command, source, fileName: name, statError: error});
-                            return;
+                            const resolvedUri = ReceiptStorage.resolve(source) ?? source;
+                            return Promise.all([checkFileExistsWithReason(resolvedUri), getReceiptsFolderState()]).then(([{error}, receiptsFolder]) => {
+                                logReceiptDropped({receiptTraceId, transactionID, command, source, localUri: resolvedUri, fileName: name, statError: error, receiptsFolder});
+                            });
                         }
                         const receiptFormData = {
                             uri: localUri,
@@ -49,6 +77,10 @@ const prepareRequestPayload: PrepareRequestPayload = (command, data, initiatedOf
                         validateFormDataParameter(command, key, receiptFormData);
                         formData.append(key, receiptFormData as File);
                     });
+                }
+
+                if (name) {
+                    return ReceiptStorage.settle(name).then(appendValueAsIs);
                 }
             }
 
@@ -72,8 +104,7 @@ const prepareRequestPayload: PrepareRequestPayload = (command, data, initiatedOf
                 });
             }
 
-            validateFormDataParameter(command, key, value);
-            formData.append(key, value as string | Blob);
+            appendValueAsIs();
 
             return Promise.resolve();
         });

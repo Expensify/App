@@ -44,7 +44,6 @@ jest.mock('@hooks/useExportedToFilterOptions', () => ({
     __esModule: true,
     default: () => ({
         exportedToFilterOptions: [],
-        combinedUniqueExportTemplates: [],
         connectedIntegrationNames: new Set<string>(),
     }),
 }));
