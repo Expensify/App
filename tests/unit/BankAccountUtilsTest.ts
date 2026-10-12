@@ -454,8 +454,12 @@ describe('BankAccountUtils', () => {
             expect(canLinkPlaid(undefined, undefined)).toBe(false);
         });
 
-        it('returns true when isExpensifyCardSettlementAccount is set', () => {
+        it('returns true when the top-level isExpensifyCardSettlementAccount is set', () => {
             expect(canLinkPlaid({isExpensifyCardSettlementAccount: true, accountData: {}}, undefined)).toBe(true);
+        });
+
+        it('returns true when accountData.isExpensifyCardSettlementAccount is set', () => {
+            expect(canLinkPlaid({accountData: {isExpensifyCardSettlementAccount: true}}, undefined)).toBe(true);
         });
 
         it('returns true when any of the account policies is on the waitlist', () => {
