@@ -477,27 +477,43 @@ describe('DynamicFormFields', () => {
         expect(rendered.get('otherDescription')?.InputComponent).toBe(TextInput);
     });
 
-    it('draws a choice with the tabs presentation as a tab row', () => {
+    it('draws a choice with the tabs presentation as a tab row under its question', () => {
         // Given a recipient type select presented as tabs, next to another question
-        const legalType: DynamicFormField = {key: 'legalType', type: 'select', required: true, presentation: 'tabs', values: [{key: 'PRIVATE'}, {key: 'BUSINESS'}]};
+        const legalType: DynamicFormField = {
+            key: 'legalType',
+            label: 'Recipient type',
+            type: 'select',
+            required: true,
+            presentation: 'tabs',
+            values: [{key: 'PRIVATE'}, {key: 'BUSINESS'}],
+        };
 
         // When it renders
         const rendered = renderFields([legalType, otherQuestion]);
 
-        // Then it is a tab row, as the schema asked
+        // Then it is a tab row, as the schema asked, with the question above it, since the tab titles alone do not say what they answer
         expect(rendered.get('legalType')?.InputComponent).toBe(TabsAdapter);
+        expect(screen.getByText('Recipient type')).toBeOnTheScreen();
     });
 
     it('keeps the tab row for a tabs choice that is the only question on its page', () => {
         // Given a recipient type presented as tabs, followed by a field it reveals, so the tabs are the page's only question
-        const legalType: DynamicFormField = {key: 'legalType', type: 'select', required: true, presentation: 'tabs', values: [{key: 'PRIVATE'}, {key: 'BUSINESS'}]};
+        const legalType: DynamicFormField = {
+            key: 'legalType',
+            label: 'Recipient type',
+            type: 'select',
+            required: true,
+            presentation: 'tabs',
+            values: [{key: 'PRIVATE'}, {key: 'BUSINESS'}],
+        };
         const companyName: DynamicFormField = {key: 'companyName', type: 'text', required: true, showWhen: {key: 'legalType', equals: ['BUSINESS']}};
 
         // When it renders for a business recipient
         const rendered = renderFields([legalType, companyName], {legalType: 'BUSINESS'});
 
-        // Then it is still a tab row rather than an inline list, since the schema asked for tabs
+        // Then it is still a tab row rather than an inline list, since the schema asked for tabs, and the question is left to the page title
         expect(rendered.get('legalType')?.InputComponent).toBe(TabsAdapter);
+        expect(screen.queryByText('Recipient type')).not.toBeOnTheScreen();
     });
 
     it('asks a lone boolean as Yes/No, and a boolean among other fields as a checkbox', () => {
