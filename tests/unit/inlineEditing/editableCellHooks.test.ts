@@ -1,7 +1,7 @@
 import {act, renderHook} from '@testing-library/react-native';
 
-import useInlineEditState from '@components/TransactionItemRow/EditableCell/useInlineEditState';
-import usePopoverEditState from '@components/TransactionItemRow/EditableCell/usePopoverEditState';
+import useInlineEditState from '@components/EditableCell/useInlineEditState';
+import usePopoverEditState from '@components/EditableCell/usePopoverEditState';
 
 type InlineHookParameters = Parameters<typeof useInlineEditState<string>>;
 
@@ -9,6 +9,7 @@ type InlineSetupOptions = {
     canEdit?: InlineHookParameters[0];
     onSave?: InlineHookParameters[2];
     isEqual?: InlineHookParameters[3];
+    onKeepEditing?: InlineHookParameters[4];
 };
 
 type InlineHookProps = {
@@ -16,8 +17,8 @@ type InlineHookProps = {
     canEdit: NonNullable<InlineHookParameters[0]>;
 };
 
-const setupInline = (value: string, {canEdit = true, onSave, isEqual}: InlineSetupOptions = {}) =>
-    renderHook(({value: currentValue, canEdit: currentCanEdit}: InlineHookProps) => useInlineEditState<string>(currentCanEdit, currentValue, onSave, isEqual), {
+const setupInline = (value: string, {canEdit = true, onSave, isEqual, onKeepEditing}: InlineSetupOptions = {}) =>
+    renderHook(({value: currentValue, canEdit: currentCanEdit}: InlineHookProps) => useInlineEditState<string>(currentCanEdit, currentValue, onSave, isEqual, onKeepEditing), {
         initialProps: {value, canEdit},
     });
 
@@ -140,7 +141,8 @@ describe('useInlineEditState', () => {
         expect(result.current.localValue).toBe('updated');
     });
 
-    it('syncs localValue to the external value even while editing', () => {
+    it('keeps the draft when the external value changes while editing', () => {
+        // Given an open editor holding a value the user typed
         const {result, rerender} = setupInline('initial');
 
         startInlineEditing(result);
@@ -148,10 +150,83 @@ describe('useInlineEditState', () => {
 
         expect(result.current.localValue).toBe('draft');
 
+        // When an external update lands mid-edit
         rerender({value: 'updated externally', canEdit: true});
 
+        // Then the draft survives, because overwriting it would make the next blur read the edit as unchanged and drop it
         expect(result.current.isEditing).toBe(true);
+        expect(result.current.localValue).toBe('draft');
+
+        // When the user cancels out of the editor
+        act(() => result.current.cancelEditing());
+
+        // Then the cell catches up to the newer value it skipped while the editor was open
+        expect(result.current.isEditing).toBe(false);
         expect(result.current.localValue).toBe('updated externally');
+    });
+
+    it('saves the draft after an external update changed the value mid-edit', () => {
+        // Given an edit typed over a value that an external update has since changed
+        const onSave = jest.fn();
+        const {result, rerender} = setupInline('initial', {onSave});
+
+        startInlineEditing(result);
+        setInlineValue(result, 'draft');
+        rerender({value: 'updated externally', canEdit: true});
+
+        // When the user commits the edit
+        saveInline(result);
+
+        // Then what they typed is what gets written, rather than being swallowed as a no-op
+        expect(onSave).toHaveBeenCalledWith('draft');
+        expect(result.current.isEditing).toBe(false);
+        expect(result.current.localValue).toBe('updated externally');
+    });
+
+    it('adopts an external update when the editor is open but untouched, so blur does not write the stale value', () => {
+        // Given an open editor the user has not typed in
+        const onSave = jest.fn();
+        const {result, rerender} = setupInline('old', {onSave});
+
+        startInlineEditing(result);
+
+        // When an external rename lands before the user changes anything
+        rerender({value: 'renamed', canEdit: true});
+
+        // Then the open editor shows the rename instead of the stale buffer
+        expect(result.current.isEditing).toBe(true);
+        expect(result.current.localValue).toBe('renamed');
+
+        // When the user blurs
+        saveInline(result);
+
+        // Then the stale buffer is not written back over the rename
+        expect(onSave).not.toHaveBeenCalled();
+        expect(result.current.isEditing).toBe(false);
+        expect(result.current.localValue).toBe('renamed');
+    });
+
+    it('adopts an external update when the open edit only differs by the caller equality check', () => {
+        // Given an open editor whose buffer matches the original once normalized, the way "1.00" matches "1"
+        const onSave = jest.fn();
+        const isEqual = (newValue: string, originalValue: string) => Number(newValue) === Number(originalValue);
+        const {result, rerender} = setupInline('1', {onSave, isEqual});
+
+        startInlineEditing(result);
+        setInlineValue(result, '1.00');
+
+        // When an external update lands
+        rerender({value: '2', canEdit: true});
+
+        // Then the normalized edit is not held as a draft
+        expect(result.current.localValue).toBe('2');
+
+        // When the user blurs
+        saveInline(result);
+
+        // Then "1.00" is not written back over the update
+        expect(onSave).not.toHaveBeenCalled();
+        expect(result.current.localValue).toBe('2');
     });
 
     it('cancels editing when canEdit becomes false while editing', () => {
@@ -220,6 +295,122 @@ describe('useInlineEditState', () => {
         expect(onSave).not.toHaveBeenCalled();
         expect(result.current.isEditing).toBe(false);
         expect(result.current.localValue).toBe('hello');
+    });
+
+    it('keeps the typed value on screen while onSave is waiting for confirmation', async () => {
+        // Given a save that must wait for a confirm modal before the edit is allowed to close
+        let resolveSave: (shouldClose: boolean) => void = () => {};
+        const onSave = jest.fn(
+            () =>
+                new Promise<boolean>((resolve) => {
+                    resolveSave = resolve;
+                }),
+        );
+        const onKeepEditing = jest.fn();
+        const {result} = setupInline('10', {onSave, onKeepEditing});
+
+        startInlineEditing(result);
+        setInlineValue(result, '0');
+
+        // When the user commits the edit and blur from the modal commits it again
+        act(() => {
+            result.current.save();
+            result.current.save();
+        });
+
+        // Then the draft stays visible and onSave runs once, because closing now would hide the typed amount behind the modal
+        expect(onSave).toHaveBeenCalledTimes(1);
+        expect(onSave).toHaveBeenCalledWith('0');
+        expect(result.current.isEditing).toBe(true);
+        expect(result.current.isAwaitingConfirm).toBe(true);
+        expect(result.current.localValue).toBe('0');
+        expect(onKeepEditing).not.toHaveBeenCalled();
+
+        // When the user cancels the confirm modal
+        await act(async () => {
+            resolveSave(false);
+        });
+
+        // Then the editor closes and the draft is dropped, so leaving the field cannot open the same modal again
+        expect(result.current.isEditing).toBe(false);
+        expect(result.current.isAwaitingConfirm).toBe(false);
+        expect(result.current.localValue).toBe('10');
+        expect(onKeepEditing).not.toHaveBeenCalled();
+    });
+
+    it('closes the editor after a deferred save is confirmed', async () => {
+        // Given a save that waits for confirmation before writing
+        let resolveSave: (shouldClose: boolean) => void = () => {};
+        const onSave = jest.fn(
+            () =>
+                new Promise<boolean>((resolve) => {
+                    resolveSave = resolve;
+                }),
+        );
+        const onKeepEditing = jest.fn();
+        const {result} = setupInline('10', {onSave, onKeepEditing});
+
+        startInlineEditing(result);
+        setInlineValue(result, '0');
+        act(() => result.current.save());
+
+        // When the user confirms the change
+        await act(async () => {
+            resolveSave(true);
+        });
+
+        // Then the editor closes back to the stored value, because the write is no longer deferred
+        expect(result.current.isEditing).toBe(false);
+        expect(result.current.isAwaitingConfirm).toBe(false);
+        expect(result.current.localValue).toBe('10');
+        expect(onKeepEditing).not.toHaveBeenCalled();
+    });
+
+    it('cancels a declined confirmation when editing permission was revoked while the modal was open', async () => {
+        // Given an edit that is waiting on a confirm modal
+        let resolveSave: (shouldClose: boolean) => void = () => {};
+        const onSave = jest.fn(
+            () =>
+                new Promise<boolean>((resolve) => {
+                    resolveSave = resolve;
+                }),
+        );
+        const {result, rerender} = setupInline('10', {onSave});
+
+        startInlineEditing(result);
+        setInlineValue(result, '0');
+        act(() => result.current.save());
+
+        // When permission is revoked while the modal is still open and the user then declines
+        rerender({value: '10', canEdit: false});
+        expect(result.current.isEditing).toBe(true);
+
+        await act(async () => {
+            resolveSave(false);
+        });
+
+        // Then the editor closes instead of reopening on a cell the user may no longer edit
+        expect(result.current.isEditing).toBe(false);
+        expect(result.current.localValue).toBe('10');
+    });
+
+    it('stays open when onSave rejects the edit immediately', () => {
+        // Given a save that refuses to close, the way a caller does when it still needs the typed value
+        const onSave = jest.fn(() => false);
+        const onKeepEditing = jest.fn();
+        const {result} = setupInline('10', {onSave, onKeepEditing});
+
+        startInlineEditing(result);
+        setInlineValue(result, '0');
+
+        // When the user commits the edit
+        saveInline(result);
+
+        // Then the editor stays on the typed value so the field does not snap back
+        expect(onSave).toHaveBeenCalledWith('0');
+        expect(result.current.isEditing).toBe(true);
+        expect(result.current.localValue).toBe('0');
+        expect(onKeepEditing).toHaveBeenCalledTimes(1);
     });
 
     it('auto-cancels after starting to edit when canEdit is already false', () => {

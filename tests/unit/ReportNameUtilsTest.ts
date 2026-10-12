@@ -206,6 +206,36 @@ describe('ReportNameUtils', () => {
         });
     });
 
+    describe('computeReportName - support tickets', () => {
+        test('uses the support rep login when their display name is unavailable', () => {
+            const supportTicket = createMock<Report>({
+                reportID: 'supportTicketReportID',
+                type: CONST.REPORT.TYPE.SUPPORT_TICKET,
+                ownerAccountID: 1,
+                managerID: 2,
+                created: '2026-09-30 00:00:00.000',
+            });
+            const personalDetailsWithoutSupportRepName = {...participantsPersonalDetails};
+            personalDetailsWithoutSupportRepName[2] = {
+                accountID: 2,
+                login: 'support.rep@expensify.com',
+            };
+
+            const name = computeReportName(
+                supportTicket,
+                emptyCollections.reports,
+                emptyCollections.policies,
+                undefined,
+                undefined,
+                personalDetailsWithoutSupportRepName,
+                emptyCollections.reportActions,
+                currentUserAccountID,
+            );
+
+            expect(name).toBe('Support ticket, Sep 30, 2026: Ragnar Lothbrok and support.rep@expensify.com');
+        });
+    });
+
     describe('computeReportName - Admin room', () => {
         test('Active admin room', () => {
             const report = createAdminRoom(10);
@@ -560,6 +590,52 @@ describe('ReportNameUtils', () => {
             );
             expect(name).toBe(expected);
         });
+
+        test('Agent prompt update parent action', () => {
+            const thread: Report = createWorkspaceThread(52);
+            const originalMessage = {
+                previousPrompt: 'Review every expense',
+                newPrompt: 'Review expenses over $100',
+                updatedByAccountID: 1,
+                updatedBy: 'owner@expensify.com',
+            };
+            const parentAction = createMock<ReportAction>({
+                actionName: CONST.REPORT.ACTIONS.TYPE.AGENT_PROMPT_UPDATED,
+                reportActionID: String(thread.parentReportActionID),
+                message: [
+                    {
+                        type: CONST.REPORT.MESSAGE.TYPE.TEXT,
+                        style: 'normal',
+                        text: "owner@expensify.com updated this agent's instructions.",
+                    },
+                ],
+                created: '',
+                lastModified: '',
+                actorAccountID: 1,
+                person: [],
+                originalMessage,
+            });
+
+            const reportActionsCollection: Record<string, ReportActions> = {
+                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${thread.parentReportID}`]: {
+                    [String(thread.parentReportActionID)]: parentAction,
+                },
+            };
+
+            const name = computeReportName(
+                thread,
+                emptyCollections.reports,
+                emptyCollections.policies,
+                undefined,
+                undefined,
+                participantsPersonalDetails,
+                reportActionsCollection,
+                currentUserAccountID,
+            );
+
+            expect(name).toBe(translate(CONST.LOCALES.EN, 'agentPromptUpdated', originalMessage));
+        });
+
         test('VBBA pay parent action uses action accountNumber before current policy account', () => {
             const policyID = '123';
             const thread: Report = {

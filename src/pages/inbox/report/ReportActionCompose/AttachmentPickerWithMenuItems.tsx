@@ -173,7 +173,7 @@ function AttachmentPickerWithMenuItems({
     const {accountID} = currentUserPersonalDetails;
     const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
     const hasViolations = hasViolationsReportUtils(undefined, transactionViolations, accountID, '');
-    const shouldShowEmptyReportConfirmation = useShouldShowEmptyReportConfirmation(report?.policyID);
+    const shouldShowEmptyReportConfirmation = useShouldShowEmptyReportConfirmation(report?.policyID, !isMenuVisible);
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
     const {getCurrencyDecimals} = useCurrencyListActions();

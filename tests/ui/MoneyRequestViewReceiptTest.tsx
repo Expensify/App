@@ -71,7 +71,8 @@ jest.mock('@components/MenuItemWithTopDescription', () => {
 
 jest.mock('@components/MenuItem', () => {
     const RN = jest.requireActual<Record<string, React.ComponentType<{testID?: string; children?: React.ReactNode}>>>('react-native');
-    return ({title}: {title?: string}) => <RN.Text testID={`menu-item-simple-${title}`}>{title}</RN.Text>;
+    const {default: actualMenuItem} = jest.requireActual<{default: Record<string, unknown>}>('@components/MenuItem');
+    return Object.assign(({title}: {title?: string}) => <RN.Text testID={`menu-item-simple-${title}`}>{title}</RN.Text>, {...actualMenuItem});
 });
 
 jest.mock('@hooks/useCardFeedsForDisplay', () => jest.fn(() => ({defaultCardFeed: null, cardFeedsByPolicy: {}})));

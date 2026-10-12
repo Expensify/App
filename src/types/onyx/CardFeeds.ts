@@ -297,6 +297,9 @@ type AddNewCompanyCardFeed = {
 
     /** Whether the user is editing step */
     isEditing: boolean;
+
+    /** Collection of errors coming from BE */
+    errors?: OnyxCommon.Errors;
 };
 
 /** Card fund ID */

@@ -790,6 +790,67 @@ describe('createOrUpdateDeployChecklist', () => {
 
             mockGetDeployChecklistData.mockRestore();
         });
+
+        test('filters out Internal QA PRs that were already included in previous checklist', async () => {
+            // Given a previous checklist where cherry-picked PR 8 sat in the Internal QA section rather than the main PR list
+            vol.reset();
+            vol.fromJSON({
+                [PATH_TO_PACKAGE_JSON]: JSON.stringify({version: '1.0.3-0'}),
+            });
+
+            mockGetInput.mockImplementation((arg) => (arg === 'GITHUB_TOKEN' ? 'fake_token' : ''));
+            mockGetMergedPRsDeployedBetween.mockImplementation(async (fromRef, toRef, repositoryName) => {
+                if (fromRef === '1.0.2-1-staging' && toRef === '1.0.3-0-staging') {
+                    if (repositoryName === CONST.MOBILE_EXPENSIFY_REPO) {
+                        return {mergedPRs: [], submoduleUpdates: []};
+                    }
+                    return toMergedPRs([6, 8, 10, 11]);
+                }
+                return {mergedPRs: [], submoduleUpdates: []};
+            });
+
+            const mockGetDeployChecklistData = jest.spyOn(DeployChecklistUtils, 'getDeployChecklistData');
+            mockGetDeployChecklistData.mockImplementation(() => ({
+                title: 'Previous Checklist',
+                url: `https://github.com/${process.env.GITHUB_REPOSITORY}/issues/29`,
+                number: 29,
+                labels: [LABELS.STAGING_DEPLOY_CASH],
+                PRList: [{url: `https://github.com/${process.env.GITHUB_REPOSITORY}/pull/6`, number: 6, isChecked: true}],
+                PRListMobileExpensify: [],
+                deployBlockers: [],
+                internalQAPRList: [{url: `https://github.com/${process.env.GITHUB_REPOSITORY}/pull/8`, number: 8, isChecked: true}],
+                isSentryChecked: true,
+                isGHStatusChecked: true,
+                version: '1.0.2-1',
+                tag: '1.0.2-1-staging',
+            }));
+
+            mockDeployChecklistIssuesByLabel({
+                [CONST.LABELS.STAGING_DEPLOY]: [
+                    {
+                        number: 29,
+                        state: 'closed',
+                        labels: [LABELS.STAGING_DEPLOY_CASH],
+                    },
+                ],
+            });
+
+            // When a new checklist is created
+            await run();
+            const createCall = mockCreateIssue.mock.lastCall;
+            if (!createCall || !createCall[0]) {
+                throw new Error('Expected issues.create to receive a request payload.');
+            }
+            const createPayload = createCall[0];
+
+            // Then both previously released PRs are excluded, regardless of which section listed them
+            expect(createPayload.body).toContain('https://github.com/Expensify/App/pull/10');
+            expect(createPayload.body).toContain('https://github.com/Expensify/App/pull/11');
+            expect(createPayload.body).not.toContain('https://github.com/Expensify/App/pull/6');
+            expect(createPayload.body).not.toContain('https://github.com/Expensify/App/pull/8');
+
+            mockGetDeployChecklistData.mockRestore();
+        });
     });
 
     describe('chronological section with submodule updates', () => {

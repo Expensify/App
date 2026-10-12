@@ -12,7 +12,7 @@ Customize hotel booking policies to guide travelers toward compliant, cost-effec
 
 Tap the **➕ Create** button at the bottom of your screen, then choose **Book travel**.
 
-If you don’t see **Book travel**, ask a Workspace Admin to [enable Expensify Travel](https://help.expensify.com/articles/travel/company-setup/Enable-Travel-on-a-Workspace) on the workspace. 
+If you don’t see **Book travel**, ask a Workspace Admin to finish setting up Expensify Travel on a workspace you belong to. **Book travel** stays hidden until travel setup is complete, even when the **Travel** toggle is on. Learn how to [enable Expensify Travel on a workspace](/articles/travel/company-setup/Enable-Travel-on-a-Workspace). 
 
 ---
 

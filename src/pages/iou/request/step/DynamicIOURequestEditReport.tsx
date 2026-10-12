@@ -105,6 +105,7 @@ function DynamicIOURequestEditReport({route}: DynamicIOURequestEditReportProps) 
     const [selfDMReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(selfDMReportID)}`);
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
+    const [cardList] = useOnyx(ONYXKEYS.CARD_LIST);
     const {getCurrencyDecimals, getCurrencySymbol} = useCurrencyListActions();
     const selectReport = (item: TransactionGroupListItem, report?: OnyxEntry<Report>) => {
         if (transactionIDs.length === 0 || item.value === reportID) {
@@ -131,6 +132,7 @@ function DynamicIOURequestEditReport({route}: DynamicIOURequestEditReportProps) 
                 allTransactionViolation: transactionViolations,
                 reports: reportsForCall,
                 rules,
+                cardList,
                 isTrackIntentUser,
                 personalPolicyOutputCurrency: personalPolicy?.outputCurrency,
                 selfDMReportActions,
@@ -162,6 +164,7 @@ function DynamicIOURequestEditReport({route}: DynamicIOURequestEditReportProps) 
             allTransactionViolation: transactionViolations,
             reports,
             rules,
+            cardList,
             isTrackIntentUser,
             personalPolicyOutputCurrency: personalPolicy?.outputCurrency,
             selfDMReportActions,
