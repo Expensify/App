@@ -121,7 +121,7 @@ function useDistanceSubmission({
     const iouReportPolicyID = (moneyRequestReportID ? moneyRequestReport?.policyID : undefined) ?? currentChatReport?.policyID ?? selectedParticipantsReport?.policyID;
     const [iouReportPolicyTagList] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${iouReportPolicyID}`);
 
-    function createTransaction({shouldHandleNavigation = true, writeBarrier}: CreateTransactionParams) {
+    function createTransaction({shouldHandleNavigation, writeBarrier}: CreateTransactionParams) {
         if (!transaction) {
             markSubmitExpenseEnd();
             return false;
@@ -135,8 +135,8 @@ function useDistanceSubmission({
 
         onExpenseWriteWillStart?.();
 
-        // Same reasoning as above: reuse the confirmation screen's optimistic report ID for a brand-new
-        // P2P recipient, so the screen isn't left subscribed to a report ID that's never created.
+        // Reuse the confirmation screen's optimistic report ID for a brand-new P2P recipient, so the screen isn't left
+        // subscribed to a report ID that's never created.
         const optimisticChatReportID = getReusableP2PReportID(participant, transaction.reportID);
         const shouldIncludeCommuterExclusionOverrides = hasAppliedCommuterExclusion(transaction);
 
