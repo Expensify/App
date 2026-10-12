@@ -559,7 +559,7 @@ function normalizeTaxAmountSign(rawAmount: number | undefined, isFromExpenseRepo
 /**
  * Return the tax amount field from the transaction.
  */
-function getTaxAmount(transaction: OnyxInputOrEntry<Pick<Transaction, 'taxAmount'>>, isFromExpenseReport: boolean, isFromTrackedExpense = false): number {
+function getTaxAmount(transaction: OnyxInputOrEntry<Transaction>, isFromExpenseReport: boolean, isFromTrackedExpense = false): number {
     return normalizeTaxAmountSign(transaction?.taxAmount, isFromExpenseReport, isFromTrackedExpense);
 }
 
@@ -1856,6 +1856,7 @@ export {
     getAmount,
     getAttendees,
     getTaxAmount,
+    normalizeTaxAmountSign,
     getTaxCode,
     getCurrency,
     shouldClearConvertedAmount,
