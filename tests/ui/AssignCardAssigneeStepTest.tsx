@@ -106,7 +106,6 @@ jest.mock('@libs/PolicyUtils', () => ({
     isDeletedPolicyEmployee: jest.fn(() => false),
 }));
 jest.mock('@libs/OptionsListUtils', () => ({
-    sortAlphabetically: (items: Array<Record<string, string>>, key: string, cmp: (a: string, b: string) => number) => [...items].sort((a, b) => cmp(a[key] ?? '', b[key] ?? '')),
     getSearchValueForPhoneOrEmail: (value: string) => value,
 }));
 jest.mock('@libs/PersonalDetailOptionsListUtils', () => ({

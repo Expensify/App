@@ -10,6 +10,7 @@ import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getValidConnectedIntegration, isSubmitPolicy} from '@libs/PolicyUtils';
 import {getFilteredReportActionsForReportView} from '@libs/ReportActionsUtils';
 import {
+    canIOUBePaid,
     getIntegrationNameFromExportMessage as getIntegrationNameFromExportMessageUtils,
     hasHeldExpensesFromTransactions as hasHeldExpensesReportUtils,
     hasOnlyHeldExpenses as hasOnlyHeldExpensesReportUtils,
@@ -29,7 +30,7 @@ import {
 } from '@libs/TransactionUtils';
 
 import {cancelPayment, markReportPaymentReceived} from '@userActions/IOU/PayMoneyRequest';
-import {approveMoneyRequest, canIOUBePaid as canIOUBePaidAction, reopenReport, retractReport, submitReport, unapproveExpenseReport} from '@userActions/IOU/ReportWorkflow';
+import {approveMoneyRequest, reopenReport, retractReport, submitReport, unapproveExpenseReport} from '@userActions/IOU/ReportWorkflow';
 import {markPendingRTERTransactionsAsCash} from '@userActions/Transaction';
 
 import CONST from '@src/CONST';
@@ -39,7 +40,7 @@ import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import {delegateEmailSelector} from '@selectors/Account';
 import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 import {loginSelector} from '@selectors/PersonalDetails';
-import React from 'react';
+import React, {useEffect, useRef} from 'react';
 
 import type {ActionHandledType} from './useHoldMenuSubmit';
 
@@ -55,6 +56,7 @@ import useOnyx from './useOnyx';
 import usePaginatedReportActions from './usePaginatedReportActions';
 import usePermissions from './usePermissions';
 import {usePersonalDetail} from './usePersonalDetails';
+import useReportIsArchived from './useReportIsArchived';
 import useSearchShouldCalculateTotals from './useSearchShouldCalculateTotals';
 import useStrictPolicyRules from './useStrictPolicyRules';
 import useThemeStyles from './useThemeStyles';
@@ -92,17 +94,30 @@ function useLifecycleActions({reportID, startApprovedAnimation, startAnimation, 
     const [moneyRequestReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(moneyRequestReport?.policyID)}`);
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(moneyRequestReport?.chatReportID)}`);
+    const isChatReportArchived = useReportIsArchived(chatReport?.reportID);
     const [chatReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(moneyRequestReport?.chatReportID)}`);
     const [submitterLogin] = usePersonalDetail(moneyRequestReport?.ownerAccountID, loginSelector);
     const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
+
+    // The "Received payment" handler awaits a confirmation modal (and the hold menu on top of it), so the collection captured when the
+    // menu item was pressed can be out of date by the time the payment is actually recorded. Keep the latest collection in a ref so those
+    // handlers read the violations as of the confirmation instead of the earlier render.
+    const allTransactionViolationsRef = useRef(allTransactionViolations);
+    useEffect(() => {
+        allTransactionViolationsRef.current = allTransactionViolations;
+    }, [allTransactionViolations]);
     const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
     const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
     const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
-    const [delegateEmail] = useOnyx(ONYXKEYS.ACCOUNT, {selector: delegateEmailSelector});
+    const [delegateEmail] = useOnyx(ONYXKEYS.ACCOUNT, {
+        selector: delegateEmailSelector,
+    });
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const delegateAccountID = useDelegateAccountID();
-    const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
+    const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {
+        selector: isTrackIntentUserSelector,
+    });
 
     const {convertToDisplayString} = useCurrencyListActions();
 
@@ -209,10 +224,10 @@ function useLifecycleActions({reportID, startApprovedAnimation, startAnimation, 
         }
     };
 
-    const canIOUBePaid = canIOUBePaidAction(moneyRequestReport, chatReport, policy, bankAccountList, currentUserPersonalDetails.login ?? '', accountID);
+    const isIOUPayable = canIOUBePaid(moneyRequestReport, chatReport, policy, bankAccountList, currentUserPersonalDetails.login ?? '', accountID, undefined, false, isChatReportArchived);
     const onlyShowPayElsewhere =
-        !canIOUBePaid && canIOUBePaidAction(moneyRequestReport, chatReport, policy, bankAccountList, currentUserPersonalDetails.login ?? '', accountID, undefined, true);
-    const shouldShowPayButton = canIOUBePaid || onlyShowPayElsewhere;
+        !isIOUPayable && canIOUBePaid(moneyRequestReport, chatReport, policy, bankAccountList, currentUserPersonalDetails.login ?? '', accountID, undefined, true, isChatReportArchived);
+    const shouldShowPayButton = isIOUPayable || onlyShowPayElsewhere;
     const hasOnlyHeldExpenses = hasOnlyHeldExpensesReportUtils(transactions);
     const shouldShowApprovalSecondaryActions = isAnyTransactionOnHold && !isDelegateAccessRestricted;
     const secondaryApprovalActions = shouldShowApprovalSecondaryActions
@@ -373,7 +388,17 @@ function useLifecycleActions({reportID, startApprovedAnimation, startAnimation, 
                         CONST.IOU.REPORT_ACTION_TYPE.PAY,
                         () => {
                             startAnimation();
-                            markReportPaymentReceived(chatReport, moneyRequestReport, accountID, email ?? '', chatReportActions, isTrackIntentUser, getCurrencyDecimals, rules);
+                            markReportPaymentReceived(
+                                chatReport,
+                                moneyRequestReport,
+                                accountID,
+                                email ?? '',
+                                chatReportActions,
+                                isTrackIntentUser,
+                                allTransactionViolationsRef.current,
+                                getCurrencyDecimals,
+                                rules,
+                            );
                         },
                         CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
                     );
@@ -381,7 +406,17 @@ function useLifecycleActions({reportID, startApprovedAnimation, startAnimation, 
                 }
 
                 startAnimation();
-                markReportPaymentReceived(chatReport, moneyRequestReport, accountID, email ?? '', chatReportActions, isTrackIntentUser, getCurrencyDecimals, rules);
+                markReportPaymentReceived(
+                    chatReport,
+                    moneyRequestReport,
+                    accountID,
+                    email ?? '',
+                    chatReportActions,
+                    isTrackIntentUser,
+                    allTransactionViolationsRef.current,
+                    getCurrencyDecimals,
+                    rules,
+                );
             },
         },
         [CONST.REPORT.SECONDARY_ACTIONS.UNAPPROVE]: {

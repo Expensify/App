@@ -6,6 +6,7 @@ import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelec
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import {useAllPersonalDetails} from '@hooks/usePersonalDetails';
 import {useDerivedReportNameByReportID} from '@hooks/useReportAttributes';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -41,7 +42,7 @@ function DebugReportActions({reportID}: DebugReportActionsProps) {
     const [invoiceReceiverPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${invoiceReceiverPolicyID}`);
     const isReportArchived = useReportIsArchived(reportID);
     const ifUserCanPerformWriteAction = canUserPerformWriteAction(report, isReportArchived);
-    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
+    const [personalDetails] = useAllPersonalDetails();
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const derivedReportName = useDerivedReportNameByReportID(report?.reportID);
 
@@ -102,15 +103,16 @@ function DebugReportActions({reportID}: DebugReportActionsProps) {
                 text: getReportActionDebugText(reportAction),
                 alternateText: `${reportAction.reportActionID} | ${datetimeToCalendarTime(reportAction.created, false, false)}`,
                 keyForList: reportAction.reportActionID,
+                titleStyles: styles.fontWeightNormal,
             }));
-    }, [sortedAllReportActions, debouncedSearchValue, getReportActionDebugText, datetimeToCalendarTime]);
+    }, [sortedAllReportActions, debouncedSearchValue, getReportActionDebugText, datetimeToCalendarTime, styles.fontWeightNormal]);
 
     const textInputOptions = useMemo(
         () => ({
             value: searchValue,
             label: translate('common.search'),
             onChangeText: setSearchValue,
-            headerMessage: getHeaderMessageForNonUserList(searchedReportActions.length > 0, debouncedSearchValue),
+            headerMessage: getHeaderMessageForNonUserList(translate, searchedReportActions.length > 0, debouncedSearchValue),
         }),
         [debouncedSearchValue, searchValue, searchedReportActions.length, setSearchValue, translate],
     );
@@ -127,7 +129,6 @@ function DebugReportActions({reportID}: DebugReportActionsProps) {
             </Button>
             <SelectionList
                 data={searchedReportActions}
-                style={{listItemTitleStyles: styles.fontWeightNormal}}
                 textInputOptions={textInputOptions}
                 onSelectRow={(item) => Navigation.navigate(ROUTES.DEBUG_REPORT_ACTION.getRoute(reportID, item.reportActionID))}
                 ListItem={SingleSelectListItem}

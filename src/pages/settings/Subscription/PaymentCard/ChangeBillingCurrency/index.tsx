@@ -3,7 +3,7 @@ import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import ScreenWrapper from '@components/ScreenWrapper';
 import TextInput from '@components/TextInput';
 
@@ -107,11 +107,9 @@ function ChangeBillingCurrency() {
                 >
                     <PaymentCardCurrencyHeader />
                     <View style={[styles.mt5, styles.mhn5]}>
-                        <MenuItemWithTopDescription
-                            shouldShowRightIcon
-                            title={currency}
-                            descriptionTextStyle={styles.textNormal}
-                            description={translate('common.currency')}
+                        <MenuItemField
+                            name={translate('common.currency')}
+                            value={currency}
                             onPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.PAYMENT_CARD_CURRENCY_SELECTOR.path))}
                         />
                     </View>

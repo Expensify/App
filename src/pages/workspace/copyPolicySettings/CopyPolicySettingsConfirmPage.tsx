@@ -42,6 +42,7 @@ function CopyPolicySettingsConfirmPage() {
     const [copyPolicySettingsState, copyPolicySettingsMetadata] = useOnyx(ONYXKEYS.COPY_POLICY_SETTINGS);
     const [allPolicyCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES);
     const [allPolicyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS);
+    const [allRules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
 
     const sourcePolicy = sourcePolicyID ? policies?.[`${ONYXKEYS.COLLECTION.POLICY}${sourcePolicyID}`] : undefined;
     const targetPolicyIDs = copyPolicySettingsState?.targetPolicyIDs ?? [];
@@ -91,7 +92,7 @@ function CopyPolicySettingsConfirmPage() {
             Navigation.navigate(ROUTES.POLICY_COPY_SETTINGS_UPGRADE.getRoute(sourcePolicyID));
             return;
         }
-        copyPolicySettings(sourcePolicy, targetPolicies, parts, allPolicyCategories, allPolicyTags);
+        copyPolicySettings(sourcePolicy, targetPolicies, parts, allPolicyCategories, allPolicyTags, allRules);
         Navigation.dismissModal();
     };
 

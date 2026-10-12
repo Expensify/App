@@ -76,6 +76,13 @@ function openSubscriptionPage(currentGracePeriods?: OnyxCollection<BillingGraceE
 }
 
 /**
+ * Fetches the full purchase history when the user opens the payment history page.
+ */
+function openPaymentHistoryPage() {
+    API.read(READ_COMMANDS.OPEN_PAYMENT_HISTORY_PAGE, null);
+}
+
+/**
  * Fetches data when the user opens the Save The World page
  */
 function openSaveTheWorldPage() {
@@ -483,6 +490,7 @@ function applyExpensifyCode(promoCode: string) {
 
 export {
     openSubscriptionPage,
+    openPaymentHistoryPage,
     openSaveTheWorldPage,
     updateSubscriptionAutoRenew,
     updateSubscriptionAddNewUsersAutomatically,
