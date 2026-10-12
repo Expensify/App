@@ -45,7 +45,7 @@ jest.mock('@react-navigation/native', () => {
         ...actualNav,
         // eslint-disable-next-line @typescript-eslint/no-unsafe-return
         useIsFocused: () => mockUseIsFocused(),
-        useRoute: jest.fn(),
+        useRoute: () => ({key: 'Report-test', name: 'Report', params: {}}),
         useNavigationState: jest.fn(),
         createNavigationContainerRef: () => ({
             getState: () => jest.fn(),
