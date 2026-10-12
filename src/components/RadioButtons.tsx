@@ -23,8 +23,8 @@ type RadioButtonsProps = ForwardedFSClassProps & {
 
     defaultCheckedValue?: string;
 
-    /** Callback to fire when selecting a radio button */
-    onSelect: (value: string) => void;
+    /** Callback to fire when selecting a radio button. Inside a form, FormProvider gets the value through onInputChange instead. */
+    onSelect?: (value: string) => void;
 
     /** Potential error text provided by a form InputWrapper */
     errorText?: string;
@@ -57,7 +57,7 @@ function RadioButtons({items, onSelect, defaultCheckedValue = '', errorText, onI
                         onPress={() => {
                             setLocalValue(item.value);
                             onInputChange(item.value);
-                            return onSelect(item.value);
+                            return onSelect?.(item.value);
                         }}
                         label={item.label}
                         forwardedFSClass={forwardedFSClass}
