@@ -5,7 +5,7 @@ import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 
 import {isBillableEnabledOnPolicy} from '@libs/MoneyRequestReportUtils';
 import {shouldShowConfirmationDate} from '@libs/MoneyRequestUtils';
-import {isSubmitPolicy} from '@libs/PolicyUtils';
+import {canShowReimbursableToggleForPolicy, isSubmitPolicy} from '@libs/PolicyUtils';
 import {hasEnabledTags} from '@libs/TagsOptionsListUtils';
 import {getCurrency, isManagedCardTransaction, isScanRequest, shouldShowAttendees as shouldShowAttendeesTransactionUtils} from '@libs/TransactionUtils';
 
@@ -94,14 +94,10 @@ function useFooterDerivedFlags({
 
     // A flag for showing the billable field
     const shouldShowBillable = isBillableEnabledOnPolicy(policy);
-    // A locked field normally hides the toggle, but an expense that already disagrees with the policy
-    // default has to stay correctable - otherwise it is silently stuck on the wrong value.
-    // An absent `defaultReimbursable` means "reimbursable", matching the expense creation path.
-    const isCurrentTransactionReimbursableDifferentFromPolicyDefault = !!transaction?.reimbursable !== (policy?.defaultReimbursable ?? true);
     const shouldShowReimbursable =
         (isPolicyExpenseChat || isTrackExpense) &&
         !!policy &&
-        (policy?.disabledFields?.reimbursable !== true || isCurrentTransactionReimbursableDifferentFromPolicyDefault) &&
+        canShowReimbursableToggleForPolicy(policy, transaction?.reimbursable) &&
         !isManagedCardTransaction(transaction) &&
         !isTypeInvoice;
     // Submit workspaces ship Categories/Distance enabled by default, so never route their fields to the upgrade gate.

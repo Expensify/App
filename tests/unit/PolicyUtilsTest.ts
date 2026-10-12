@@ -13,6 +13,7 @@ import {
     canMemberRead,
     canMemberWrite,
     canSendInvoiceFromWorkspace,
+    canShowReimbursableToggleForPolicy,
     canUnarchivePolicy,
     evaluateApprovalWorkflowRule,
     findVendorByID,
@@ -6556,6 +6557,47 @@ describe('arePolicyRulesEnabled', () => {
 
     it('returns false for a team policy with areRulesEnabled explicitly false', () => {
         expect(arePolicyRulesEnabled({...teamBase, areRulesEnabled: false})).toBe(false);
+    });
+});
+
+describe('canShowReimbursableToggleForPolicy', () => {
+    const teamBase = createMock<Policy>({id: 'policy1', type: CONST.POLICY.TYPE.TEAM});
+
+    it('returns true when the reimbursable field is not locked', () => {
+        // Given a workspace that lets members change the reimbursable field
+        const policy = {...teamBase, defaultReimbursable: false, disabledFields: {reimbursable: false}};
+
+        // When checking an expense that already matches the default
+        // Then the toggle is shown, because nothing stops the member from editing it
+        expect(canShowReimbursableToggleForPolicy(policy, false)).toBe(true);
+    });
+
+    it('returns false when the field is locked and the expense matches the policy default', () => {
+        // Given a workspace locked to "cash expenses are always non-reimbursable"
+        const policy = {...teamBase, defaultReimbursable: false, disabledFields: {reimbursable: true}};
+
+        // When checking an expense that is already non-reimbursable
+        // Then the toggle is hidden, because the lock says members cannot change it
+        expect(canShowReimbursableToggleForPolicy(policy, false)).toBe(false);
+    });
+
+    it('returns true when the field is locked but the expense disagrees with the policy default', () => {
+        // Given a workspace locked to "cash expenses are always non-reimbursable"
+        const policy = {...teamBase, defaultReimbursable: false, disabledFields: {reimbursable: true}};
+
+        // When checking an expense that drifted to reimbursable
+        // Then the toggle is shown so the expense can be corrected instead of staying stuck
+        expect(canShowReimbursableToggleForPolicy(policy, true)).toBe(true);
+    });
+
+    it('treats an absent defaultReimbursable as reimbursable when the field is locked', () => {
+        // Given a locked workspace with no stored defaultReimbursable
+        const policy = {...teamBase, defaultReimbursable: undefined, disabledFields: {reimbursable: true}};
+
+        // When checking a reimbursable expense and a non-reimbursable expense
+        // Then only the non-reimbursable one disagrees with the implied "reimbursable" default
+        expect(canShowReimbursableToggleForPolicy(policy, true)).toBe(false);
+        expect(canShowReimbursableToggleForPolicy(policy, false)).toBe(true);
     });
 });
 

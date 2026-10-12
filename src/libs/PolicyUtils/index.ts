@@ -1280,6 +1280,20 @@ function canDisableOrDeleteTaxRate(policy: Policy, taxID: string): boolean {
     return policy.taxRates?.defaultExternalID !== taxID && policy.taxRates?.foreignTaxDefault !== taxID;
 }
 
+/**
+ * Whether the policy lets an expense with the given `reimbursable` value show the reimbursable toggle.
+ *
+ * A locked field (`disabledFields.reimbursable`) normally hides the toggle, but an expense that already
+ * disagrees with the policy default has to stay correctable - otherwise it is silently stuck on the wrong value.
+ * An absent `defaultReimbursable` means "reimbursable", matching the expense creation path.
+ */
+function canShowReimbursableToggleForPolicy(policy: OnyxEntry<Policy>, isReimbursable: boolean | undefined): boolean {
+    if (!policy?.disabledFields?.reimbursable) {
+        return true;
+    }
+    return !!isReimbursable !== (policy.defaultReimbursable ?? true);
+}
+
 function arePolicyRulesEnabled(policy: OnyxEntry<Policy>, policyCategories?: PolicyCategories | null): boolean {
     if (!isPaidGroupPolicy(policy)) {
         return false;
@@ -2492,6 +2506,7 @@ export {
     getCorrectedAutoReportingFrequency,
     hasEligibleBankAccountShareRecipient,
     arePolicyRulesEnabled,
+    canShowReimbursableToggleForPolicy,
     isPolicyFeatureEnabled,
     isPolicyFieldListEmpty,
     canUnarchivePolicy,
