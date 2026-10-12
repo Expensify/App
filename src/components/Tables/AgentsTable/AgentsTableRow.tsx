@@ -47,6 +47,9 @@ export default function AgentsTableRow({item, rowIndex, shouldUseNarrowTableLayo
     const accessibilityLabel = [item.displayName, item.login].filter(Boolean).join(', ');
     const selectedButtonInnerStyle = item.selected ? styles.buttonDefaultHovered : undefined;
 
+    const agentRoleLabel = item.role ? translate('workspace.common.roleName', item.role) : undefined;
+    const agentSubtitle = shouldShowRoleColumn && shouldUseNarrowTableLayout && agentRoleLabel ? `${agentRoleLabel} • ${item.login}` : item.login;
+
     return (
         <Table.Row
             interactive={item.canManage}
@@ -81,7 +84,7 @@ export default function AgentsTableRow({item, rowIndex, shouldUseNarrowTableLayo
                             />
                             <TextWithTooltip
                                 shouldShowTooltip
-                                text={item.login}
+                                text={agentSubtitle}
                                 style={[styles.textLabelSupporting, styles.lh16, styles.pre, isPendingDeletion && styles.offlineFeedbackDeleted]}
                             />
                         </View>
