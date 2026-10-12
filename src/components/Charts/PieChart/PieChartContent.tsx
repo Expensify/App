@@ -2,7 +2,7 @@ import ActivityIndicator from '@components/ActivityIndicator';
 import ChartTooltip from '@components/Charts/components/ChartTooltip';
 import {TOOLTIP_BAR_GAP, useChartLabelFormats, useTooltipData} from '@components/Charts/hooks';
 import type {ChartDataPoint, ChartProps, PieSlice, UnitPosition} from '@components/Charts/types';
-import {findSliceAtPosition, getPrimarySeriesKey, processDataIntoSlices} from '@components/Charts/utils';
+import {findSliceAtPosition, processDataIntoSlices} from '@components/Charts/utils';
 import VictoryTheme from '@components/Charts/VictoryTheme';
 import Text from '@components/Text';
 
@@ -62,7 +62,7 @@ function PieChartContent({data, series, isLoading, valueUnit, valueUnitPosition,
     // Slices are sorted by absolute value (largest first) for color assignment,
     // so slice indices don't match the original data array. We map back via
     // originalIndex so the tooltip can display the original (possibly negative) value.
-    const primarySeriesKey = getPrimarySeriesKey(series);
+    const [{key: primarySeriesKey}] = series;
     const processedSlices = processDataIntoSlices(data, primarySeriesKey, pieGeometry);
     const activeOriginalDataIndex = activeSliceIndex >= 0 ? (processedSlices.at(activeSliceIndex)?.originalIndex ?? -1) : -1;
 

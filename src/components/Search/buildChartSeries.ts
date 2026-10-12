@@ -7,6 +7,8 @@ import StringUtils from '@libs/StringUtils';
 
 import CONST from '@src/CONST';
 
+import type {NonEmptyTuple} from 'type-fest';
+
 import type {ChartView, GroupedItem, SearchChartDataRow} from './types';
 
 const CHART_SERIES_KEY = {
@@ -35,7 +37,7 @@ type BuildChartSeriesParams = {
 
 type SearchChartModel = {
     /** Metadata for each plotted series, primary first */
-    series: ChartSeries[];
+    series: NonEmptyTuple<ChartSeries>;
 
     /** One row per plotted group, holding the point the chart draws and the row its values came from */
     rows: SearchChartDataRow[];

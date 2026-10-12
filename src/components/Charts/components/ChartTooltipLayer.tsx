@@ -2,6 +2,7 @@ import {useTooltipData} from '@components/Charts/hooks';
 import type {ChartDataPoint, ChartSeries} from '@components/Charts/types';
 
 import type {DerivedValue, SharedValue} from 'react-native-reanimated';
+import type {NonEmptyTuple} from 'type-fest';
 
 import React, {useState} from 'react';
 import {useAnimatedReaction} from 'react-native-reanimated';
@@ -19,7 +20,7 @@ type ChartTooltipLayerProps = {
     data: ChartDataPoint[];
 
     /** Chart series used to compute tooltip content */
-    series: ChartSeries[];
+    series: NonEmptyTuple<ChartSeries>;
 
     /** Formats a numeric value for display */
     formatValue: (value: number) => string;

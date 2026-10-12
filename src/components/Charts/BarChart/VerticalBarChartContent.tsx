@@ -14,7 +14,7 @@ import {
     useDynamicYDomain,
     useLabelHitTesting,
 } from '@components/Charts/hooks';
-import {getBarLayout, getPrimarySeriesKey, getXAxisLabel, getYAxisLabelWidth} from '@components/Charts/utils';
+import {getBarLayout, getXAxisLabel, getYAxisLabelWidth} from '@components/Charts/utils';
 import VictoryTheme, {CHART_CONTENT_MIN_HEIGHT, GLYPH_PADDING} from '@components/Charts/VictoryTheme';
 
 import useTheme from '@hooks/useTheme';
@@ -42,7 +42,7 @@ function VerticalBarChartContentBody({data, series, isLoading, yAxisUnit, yAxisU
     const [boundsLeft, setBoundsLeft] = useState(0);
     const [boundsRight, setBoundsRight] = useState(0);
 
-    const primarySeriesKey = getPrimarySeriesKey(series);
+    const [{key: primarySeriesKey}] = series;
     const chartData = data.map((point, index) => ({
         x: index,
         y: point.values[primarySeriesKey],

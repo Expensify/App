@@ -1,9 +1,10 @@
 import type {ChartDataPoint, ChartSeries} from '@components/Charts/types';
-import {getPrimarySeriesKey} from '@components/Charts/utils';
 
 import useLocalize from '@hooks/useLocalize';
 
 import {formatPercentOfTotal} from '@libs/PercentageUtils';
+
+import type {NonEmptyTuple} from 'type-fest';
 
 type TooltipData = {
     label: string;
@@ -16,7 +17,7 @@ type TooltipData = {
  * Formats tooltip content for the active chart data point.
  * Computes the display amount of the primary series using the provided formatter and reads the share of total spend and the expense count off the point.
  */
-function useTooltipData(activeDataIndex: number, data: ChartDataPoint[], series: ChartSeries[], formatAmount: (value: number) => string): TooltipData | null {
+function useTooltipData(activeDataIndex: number, data: ChartDataPoint[], series: NonEmptyTuple<ChartSeries>, formatAmount: (value: number) => string): TooltipData | null {
     const {translate, preferredLocale} = useLocalize();
 
     if (activeDataIndex < 0 || activeDataIndex >= data.length) {
@@ -26,7 +27,8 @@ function useTooltipData(activeDataIndex: number, data: ChartDataPoint[], series:
     if (!dataPoint) {
         return null;
     }
-    const value = dataPoint.values[getPrimarySeriesKey(series)];
+    const [{key: primarySeriesKey}] = series;
+    const value = dataPoint.values[primarySeriesKey];
 
     return {
         label: dataPoint.label,

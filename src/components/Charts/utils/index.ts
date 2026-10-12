@@ -1,5 +1,5 @@
 import BAR_INNER_PADDING, {BAR_GAP, BAR_MAX_WIDTH} from '@components/Charts/barChartConstants';
-import type {ChartDataPoint, ChartSeries, LabelRotation, PieSlice} from '@components/Charts/types';
+import type {ChartDataPoint, LabelRotation, PieSlice} from '@components/Charts/types';
 import VictoryTheme, {CHART_Y_SCALE_HEIGHT, DIAGONAL_ANGLE_RADIAN_THRESHOLD, ELLIPSIS, LABEL_PADDING, LABEL_ROTATIONS, MAX_X_AXIS_LABEL_WIDTH, SIN_45} from '@components/Charts/VictoryTheme';
 
 import {isShareWorthDrawing} from '@libs/PercentageUtils';
@@ -199,16 +199,6 @@ function findSliceAtPosition(cursorX: number, cursorY: number, centerX: number, 
     const cursorAngle = Math.atan2(dy, dx) * (180 / Math.PI);
 
     return slices.findIndex((slice) => isAngleInSlice(cursorAngle, slice.startAngle, slice.endAngle));
-}
-
-/** The key of the chart's primary series, the first one plotted */
-function getPrimarySeriesKey(series: ChartSeries[]): string {
-    return series.at(0)?.key ?? '';
-}
-
-/** Every series' amount at a point */
-function getPointValues(point: ChartDataPoint): number[] {
-    return Object.values(point.values);
 }
 
 /**
@@ -480,7 +470,7 @@ function getYAxisLabelWidth(
     if (!fontManager) {
         return 0;
     }
-    const values = data.flatMap(getPointValues);
+    const values = data.flatMap((point) => Object.values(point.values));
     const rawDataMax = values.length ? Math.max(...values) : 0;
     const rawDataMin = values.length ? Math.min(...values) : 0;
     return Math.max(
@@ -502,8 +492,6 @@ export {
     normalizeAngle,
     isAngleInSlice,
     findSliceAtPosition,
-    getPointValues,
-    getPrimarySeriesKey,
     processDataIntoSlices,
     getXAxisLabel,
     truncateLabel,

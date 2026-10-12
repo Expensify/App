@@ -1,7 +1,7 @@
 import type {LABEL_ROTATIONS} from '@components/Charts/VictoryTheme';
 
 import type {SkParagraph} from '@shopify/react-native-skia';
-import type {ValueOf} from 'type-fest';
+import type {NonEmptyTuple, ValueOf} from 'type-fest';
 
 /** One plotted dataset: a line, or one bar of every group. */
 type ChartSeries = {
@@ -45,7 +45,7 @@ type ChartProps = {
     data: ChartDataPoint[];
 
     /** The datasets plotted, in drawing order. The first one is the chart's primary series. */
-    series: ChartSeries[];
+    series: NonEmptyTuple<ChartSeries>;
 
     isLoading?: boolean;
 };
