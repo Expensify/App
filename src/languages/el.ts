@@ -10022,6 +10022,7 @@ ${reportName}`,
             `άλλαξε τη ρύθμιση εργασίας του/της ${displayName} σε ${newArrangement} (προηγουμένως: ${oldArrangement})`,
         updatedDefaultWorkArrangement: ({newArrangement, oldArrangement}: {newArrangement: string; oldArrangement: string}) =>
             `άλλαξε τη προεπιλεγμένη εργασιακή ρύθμιση σε ${newArrangement} (προηγουμένως ${oldArrangement})`,
+        updateRulesDocument: (isReplacement: boolean) => (isReplacement ? 'αντικατέστησε το έγγραφο πολιτικής εξόδων' : 'προστέθηκε έγγραφο πολιτικής εξόδων'),
     },
     roomMembersPage: {
         memberNotFound: 'Το μέλος δεν βρέθηκε.',

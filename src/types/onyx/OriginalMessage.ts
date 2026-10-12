@@ -547,6 +547,9 @@ type OriginalMessagePolicyChangeLog = {
     newDescription?: string;
     oldDescription?: string;
 
+    /** Whether an existing expense policy document was replaced (true) or a first one added (false) */
+    isReplacement?: boolean;
+
     /** Report field type */
     fieldType?: string;
 
