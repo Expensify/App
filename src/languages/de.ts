@@ -8742,6 +8742,8 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                 describeRuleForConcierge: 'Beschreiben Sie Ihre Regel und Concierge erstellt sie',
                 gotIt: 'Verstanden',
                 createRule: 'Regel erstellen',
+                fallbackBanner:
+                    'Das ist keine Standardregel, daher haben wir sie als Agentenregel entworfen. Agentenregeln greifen, nachdem sich eine Ausgabe oder ein Bericht ändert, zum Beispiel indem sie die Ausgabe zurückhalten oder den Bericht ablehnen. Prüfen und speichern Sie die Regel.',
             },
             tabs: {
                 general: 'Allgemein',
@@ -8812,8 +8814,8 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                 flagForReviewDescription: 'Genehmigende benachrichtigen, wenn Ausgaben Kategorienlimits überschreiten',
                 requireFields: 'Feldanforderungen festlegen',
                 requireFieldsDescription: 'Bestimmte Spesenfelder vorschreiben oder auf ihre Pflicht verzichten.',
-                createAgentRule: 'Agentenregel beschreiben',
-                createAgentRuleDescription: 'Erstellen Sie flexible Regeln, die ausgeführt werden, wenn Sie sie benötigen.',
+                describeYourRule: 'Beschreibe deine Regel',
+                describeYourRuleDescription: 'Sag Concierge, was du brauchst, und Concierge erstellt die Regel',
                 describe: 'Beschreiben',
                 describeRule: 'Beschreibe deine Regel in einfachen Worten und Concierge erstellt sie für dich',
                 describeRuleInputLabel: 'Beschreibe die Regel',
@@ -8821,6 +8823,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                     unsupported: 'Diese Regel wird noch nicht unterstützt – wir arbeiten daran. Bitte versuche vorerst eine andere Regel.',
                     unintelligible: 'Formuliere deine Regel etwa so: Wenn Ausgaben über 100 $ liegen, ist ein Beleg erforderlich.',
                     multipleRules: 'Bitte eine Regel nach der anderen – beschreibe eine einzelne Regel, z. B.: Einzelhandelskäufe auf allen Karten blockieren.',
+                    agentRuleAdminOnly: 'Dafür ist eine Agentenregel nötig, und nur Workspace-Admins können sie erstellen. Bitte einen Workspace-Admin darum, sie hinzuzufügen.',
                 },
             },
             expenseDefaultsTable: {

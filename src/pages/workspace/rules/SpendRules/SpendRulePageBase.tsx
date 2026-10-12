@@ -29,7 +29,7 @@ import {convertToBackendAmount} from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {rand64} from '@libs/NumberUtils';
 import {temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
-import {getSpendRuleFormValuesFromCardRule, getTruncatedSpendRuleSummary} from '@libs/SpendRulesUtils';
+import {getSpendRuleDraftFromGeneratedValues, getSpendRuleFormValuesFromCardRule, getTruncatedSpendRuleSummary, hasSpendRuleMerchantRestrictions} from '@libs/SpendRulesUtils';
 
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
@@ -44,7 +44,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import type {SpendRuleCategory} from '@src/types/form/SpendRuleForm';
-import {isSpendRuleCategory} from '@src/types/form/SpendRuleForm';
 import type {GeneratedRuleValues} from '@src/types/onyx/GeneratedRule';
 import type IconAsset from '@src/types/utils/IconAsset';
 
@@ -100,17 +99,14 @@ function SpendRulePageBase({policyID, ruleID, testID, upgradeBackTo}: SpendRuleP
     const existingFormValues = useMemo(() => getSpendRuleFormValuesFromCardRule(existingRule), [existingRule]);
 
     const [isErrorVisible, setIsErrorVisible] = useState(false);
-    const [isRestrictMerchantsOff, setIsRestrictMerchantsOff] = useState(() => {
-        const hasNoMerchantRestrictions = !existingFormValues?.merchantNames.length && !existingFormValues?.categories?.length;
-        return isNewRule || hasNoMerchantRestrictions;
-    });
+    const [isRestrictMerchantsOff, setIsRestrictMerchantsOff] = useState(() => !hasSpendRuleMerchantRestrictions(isNewRule ? spendRuleForm : existingFormValues));
 
     useEffect(() => () => clearDraftSpendRule(), []);
 
     const applyGeneratedRule = (values: GeneratedRuleValues) => {
-        const generatedCategories = values.categories?.filter(isSpendRuleCategory);
-        setDraftSpendRule(generatedCategories ? {...values, categories: generatedCategories} : values);
-        setIsRestrictMerchantsOff(!generatedCategories?.length && !values.merchantNames?.length);
+        const draft = getSpendRuleDraftFromGeneratedValues(values);
+        setDraftSpendRule(draft);
+        setIsRestrictMerchantsOff(!hasSpendRuleMerchantRestrictions(draft));
     };
 
     useEffect(() => {

@@ -9089,8 +9089,8 @@ const translations = {
                 requireFieldsDescription: 'Require specific expense fields or waive requiring them.',
                 applyExpenseDefaults: 'Apply expense defaults',
                 applyExpenseDefaultsDescription: 'Update fields without submitter doing anything',
-                createAgentRule: 'Describe agent rule',
-                createAgentRuleDescription: 'Create flexible rules that run when you need.',
+                describeYourRule: 'Describe your rule',
+                describeYourRuleDescription: 'Tell Concierge what you need and it will build the rule',
                 describe: 'Describe',
                 describeRule: 'Describe your rule in plain English and have Concierge build the rule for you',
                 describeRuleInputLabel: 'Describe the rule',
@@ -9098,6 +9098,7 @@ const translations = {
                     unsupported: "That rule isn't supported yet — we're working on it. Please try a different rule for now.",
                     unintelligible: 'Try phrasing your rule like: if expenses have a value over $100, then require a receipt.',
                     multipleRules: 'One rule at a time, please — try describing a single rule, like: block retail purchases on all cards.',
+                    agentRuleAdminOnly: 'This needs an agent rule, and only workspace admins can create those. Ask a workspace admin to add it.',
                 },
             },
             expenseDefaultsTable: {
@@ -9396,6 +9397,8 @@ const translations = {
                 describeRuleForConcierge: 'Describe your rule and Concierge will build it',
                 disclaimer: 'AI agents can make mistakes.',
                 createRule: 'Create rule',
+                fallbackBanner:
+                    "This isn't a standard rule, so we drafted it as an agent rule. Agent rules act after an expense or report changes, for example by holding the expense or rejecting the report. Review and save.",
                 agentCreatedTitle: 'RuleBot has been added to your workspace!',
                 agentCreatedDescription: (agentsRoute: string) =>
                     `<muted-text>To enforce your agent rules, we’ve created an agent for you and added it as an admin to your workspace.<br><br>Edit your agent’s details in <a href="${agentsRoute}">Account &gt; Agents</a>.</muted-text>`,

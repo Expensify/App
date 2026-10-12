@@ -54,12 +54,18 @@ import ROUTES, {DYNAMIC_ROUTES, getRequireFieldsRuleCategoryRoute, getWorkspaceC
 import type {RequireFieldsRuleForm, RequireFieldsRuleSettingFieldKey} from '@src/types/form/RequireFieldsRuleForm';
 import INPUT_IDS from '@src/types/form/RequireFieldsRuleForm';
 import type {GeneratedRuleValues} from '@src/types/onyx/GeneratedRule';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import {useFocusEffect} from '@react-navigation/native';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 
 const SETTING_FIELD_KEYS = [INPUT_IDS.DESCRIPTION_SETTING, INPUT_IDS.ATTENDEES_SETTING, INPUT_IDS.RECEIPT_SETTING, INPUT_IDS.ITEMIZED_RECEIPT_SETTING] as const;
+
+/** Returns the setting fields that have a value in the given form values */
+function getDefinedSettingFieldKeys(values: Partial<RequireFieldsRuleForm> | undefined) {
+    return SETTING_FIELD_KEYS.filter((fieldKey) => values?.[fieldKey] !== undefined);
+}
 
 type RequireFieldsRulePageBaseProps = {
     policyID: string;
@@ -166,7 +172,7 @@ function RequireFieldsRulePageBase({policyID, categoryName, initialCategoryName,
 
     // Remount after a category change loses local touched state — rebuild it from the draft.
     if (isEditing && categoryName && selectedCategoryName && selectedCategoryName !== categoryName && form) {
-        const draftSettingKeys = SETTING_FIELD_KEYS.filter((fieldKey) => form[fieldKey] !== undefined);
+        const draftSettingKeys = getDefinedSettingFieldKeys(form);
         if (draftSettingKeys.some((fieldKey) => !touchedFields.has(fieldKey))) {
             setTouchedFields(new Set([...touchedFields, ...draftSettingKeys]));
         }
@@ -179,7 +185,12 @@ function RequireFieldsRulePageBase({policyID, categoryName, initialCategoryName,
         if (!isEditing) {
             if (initializedDraftForRuleKeyRef.current !== ROUTES.NEW) {
                 initializedDraftForRuleKeyRef.current = ROUTES.NEW;
-                setDraftRequireFieldsRule(initialCategoryName ? {[INPUT_IDS.CATEGORY]: initialCategoryName} : {});
+                if (!isEmptyObject(form)) {
+                    // eslint-disable-next-line react-hooks/set-state-in-effect -- Seed local selection state from the seeded draft.
+                    setTouchedFields(new Set(getDefinedSettingFieldKeys(form)));
+                } else {
+                    setDraftRequireFieldsRule(initialCategoryName ? {[INPUT_IDS.CATEGORY]: initialCategoryName} : {});
+                }
             }
             return;
         }
@@ -202,7 +213,6 @@ function RequireFieldsRulePageBase({policyID, categoryName, initialCategoryName,
 
         // Always reseed from the category so a leftover new-rule draft cannot leave a stale Require/Don't require.
         initializedDraftForRuleKeyRef.current = ruleKey;
-        // eslint-disable-next-line react-hooks/set-state-in-effect -- Seed local selection state when opening an edit rule.
         setTouchedFields(new Set());
         setClearedFields(new Set());
         setCouplingInteractionFields(new Set());
@@ -434,7 +444,7 @@ function RequireFieldsRulePageBase({policyID, categoryName, initialCategoryName,
     const applyGeneratedRule = (values: GeneratedRuleValues) => {
         setDraftRequireFieldsRule(values);
         setGeneratedCategoryName(values.category);
-        setTouchedFields(new Set(SETTING_FIELD_KEYS.filter((fieldKey) => values[fieldKey] !== undefined)));
+        setTouchedFields(new Set(getDefinedSettingFieldKeys(values)));
     };
 
     const footer = canWriteRules ? (
