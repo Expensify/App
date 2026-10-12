@@ -1633,6 +1633,23 @@ describe('ReportActionsUtils', () => {
 
             expect(ReportActionsUtils.getReportActionMessageFragments(translateLocal, action)).toEqual(action.message);
         });
+
+        it('formats a closed support ticket as a muted system message', () => {
+            const action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.CLOSED> = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.CLOSED,
+                reportActionID: 'support-ticket-closed-action',
+                created: '2026-10-05 12:00:00.000',
+                message: [{text: 'Daniel resolved this support ticket.', type: CONST.REPORT.MESSAGE.TYPE.TEXT}],
+                originalMessage: {
+                    policyName: '',
+                    reason: CONST.REPORT.ARCHIVE_REASON.DEFAULT,
+                },
+            };
+
+            expect(ReportActionsUtils.getReportActionMessageFragments(translateLocal, action, true)).toEqual([
+                {text: 'Daniel resolved this support ticket.', html: '<muted-text>Daniel resolved this support ticket.</muted-text>', type: 'COMMENT'},
+            ]);
+        });
     });
 
     describe('getConciergeAutoSelectDistanceRateMessage', () => {
@@ -2529,6 +2546,39 @@ describe('ReportActionsUtils', () => {
         });
     });
 
+    describe('isPushScopedToOthers', () => {
+        const cardholderAccountID = 1;
+        const auditorAccountID = 2;
+        const buildDecline = (originalMessage: Record<string, unknown>): ReportAction =>
+            ({
+                actionName: CONST.REPORT.ACTIONS.TYPE.EXPENSIFY_CARD_SYSTEM_MESSAGE,
+                reportActionID: '1',
+                actorAccountID: 3,
+                created: '2026-10-06',
+                message: [],
+                originalMessage,
+            }) as ReportAction;
+
+        it('returns true for an account outside actionableForAccountIDs when the push is scoped', () => {
+            const decline = buildDecline({actionableForAccountIDs: [cardholderAccountID], shouldScopePushToActionableAccounts: true});
+            expect(ReportActionsUtils.isPushScopedToOthers(decline, auditorAccountID)).toBe(true);
+        });
+
+        it('returns false for an account in actionableForAccountIDs', () => {
+            const decline = buildDecline({actionableForAccountIDs: [cardholderAccountID], shouldScopePushToActionableAccounts: true});
+            expect(ReportActionsUtils.isPushScopedToOthers(decline, cardholderAccountID)).toBe(false);
+        });
+
+        it('returns false when the action does not ask to scope its push', () => {
+            const decline = buildDecline({actionableForAccountIDs: [cardholderAccountID]});
+            expect(ReportActionsUtils.isPushScopedToOthers(decline, auditorAccountID)).toBe(false);
+        });
+
+        it('returns false for an empty reportAction', () => {
+            expect(ReportActionsUtils.isPushScopedToOthers(undefined, auditorAccountID)).toBe(false);
+        });
+    });
+
     describe('doesReportHaveVisibleActions', () => {
         const reportID = 'report_1';
         const visibleComment: ReportAction = {
@@ -2582,6 +2632,21 @@ describe('ReportActionsUtils', () => {
     });
 
     describe('shouldReportActionBeVisible', () => {
+        it('keeps a closed support ticket action visible', () => {
+            const reportAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.CLOSED> = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.CLOSED,
+                reportActionID: '1',
+                created: '2025-09-29',
+                originalMessage: {
+                    policyName: '',
+                    reason: CONST.REPORT.ARCHIVE_REASON.DEFAULT,
+                },
+            };
+
+            expect(ReportActionsUtils.shouldReportActionBeVisible(reportAction, reportAction.reportActionID, true)).toBe(false);
+            expect(ReportActionsUtils.shouldReportActionBeVisible(reportAction, reportAction.reportActionID, true, undefined, undefined, true)).toBe(true);
+        });
+
         it('should return false for moved transaction if the report destination is unavailable', () => {
             // Given a moved transaction action but the report destination is not available
             const reportAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION> = {
@@ -6970,6 +7035,38 @@ describe('ReportActionsUtils', () => {
                     isReversed: true,
                 }),
             ).toEqual(['unread-newer', 1]);
+        });
+
+        it.each([null, 'older-unread'])('keeps older unread actions before the offline boundary with manual anchor %s', (manuallyMarkedUnreadReportActionID) => {
+            // Given an older unread action before the remembered offline row in an oldest-first list
+            const visibleReportActions = [makeAction({reportActionID: 'older-unread'}), makeAction({reportActionID: 'offline-newer', created: '2023-01-01 12:00:00.000'})];
+
+            // When either the timestamp or an explicit manual anchor selects that older action
+            expect(
+                getUnreadMarkerReportAction({
+                    ...baseScanParams,
+                    visibleReportActions,
+                    earliestReceivedOfflineMessageIndex: 1,
+                    isReversed: true,
+                    manuallyMarkedUnreadReportActionID,
+                }),
+            ).toEqual(['older-unread', 0]);
+        });
+
+        it('still marks the first offline row when earlier visible actions are already read', () => {
+            // Given a remembered offline message and a read older row
+            const visibleReportActions = [makeAction({reportActionID: 'read-older'}), makeAction({reportActionID: 'offline-anchor', created: '2023-01-01 12:00:00.000'})];
+
+            // Then scanning all visible rows still preserves the existing offline marker rule
+            expect(
+                getUnreadMarkerReportAction({
+                    ...baseScanParams,
+                    visibleReportActions,
+                    unreadMarkerTime: '2023-01-01 13:00:00.000',
+                    earliestReceivedOfflineMessageIndex: 1,
+                    isReversed: true,
+                }),
+            ).toEqual(['offline-anchor', 1]);
         });
 
         it("clears the marker entirely when the only unread action is the current user's own new message", () => {

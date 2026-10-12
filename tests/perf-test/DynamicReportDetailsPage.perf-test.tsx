@@ -206,16 +206,10 @@ function Wrapper({children}: {children: React.ReactNode}) {
     return <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, CurrentUserPersonalDetailsProvider]}>{children}</ComposeProviders>;
 }
 
-// withReportOrNotFound reads the report from Onyx by the route reportID, so the report prop only satisfies the wrapped props type.
 function renderPage(report: Report) {
     return (
         <DynamicReportDetailsPage
-            isLoadingReportData={false}
             navigation={navigationMock}
-            policy={undefined}
-            report={report}
-            reportMetadata={undefined}
-            reportLoadingState={undefined}
             route={getRouteMock(report.reportID)}
         />
     );
