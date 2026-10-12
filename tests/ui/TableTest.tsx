@@ -26,7 +26,7 @@ import type {NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
 import {PortalProvider} from '@gorhom/portal';
 import {NavigationContainer} from '@react-navigation/native';
 import React from 'react';
-import {Platform, StyleSheet, View} from 'react-native';
+import {StyleSheet, View} from 'react-native';
 import Onyx from 'react-native-onyx';
 import waitForBatchedUpdatesWithAct from 'tests/utils/waitForBatchedUpdatesWithAct';
 
@@ -67,10 +67,6 @@ type MockFlashListProps<T> = {
     onViewableItemsChanged?: (info: MockViewabilityInfo<T>) => void;
     overrideItemLayout?: (layout: {span?: number}, item: T, index: number, maxColumns: number, extraData?: unknown) => void;
     stickyHeaderIndices?: number[];
-    stickyHeaderConfig?: {
-        hideWhenInactive?: boolean;
-        hideRelatedCell?: boolean;
-    };
     viewabilityConfigCallbackPairs?: Array<{
         viewabilityConfig: Record<string, unknown>;
         onViewableItemsChanged: ((info: MockViewabilityInfo<T>) => void) | null;
@@ -1063,34 +1059,6 @@ describe('Table', () => {
                     .some((node) => node.props.disabled === false && node.props.tabIndex === undefined),
             ).toBe(true);
             expect(screen.getByTestId('flash-list-sticky-header')).toBeTruthy();
-        });
-
-        it.each(['android', 'ios', 'web'] as const)('should opt in to native sticky release only on Android (%s)', (platform) => {
-            const platformOverride = jest.replaceProperty(Platform, 'OS', platform);
-            try {
-                // Given a table with a scrolling page header and a sticky column header.
-                const props = createDefaultProps();
-                // When the table renders on each platform.
-                render(
-                    <Table
-                        data={props.data}
-                        columns={props.columns}
-                        renderItem={props.renderItem}
-                        keyExtractor={props.keyExtractor}
-                        title="Categories"
-                    >
-                        <Table.ListHeader>
-                            <Text>Page controls</Text>
-                        </Table.ListHeader>
-                        <Table.Header />
-                        <Table.Body />
-                    </Table>,
-                );
-                // Then only Android opts in to native sticky-header release.
-                expect(mockFlashListProps.at(-1)?.stickyHeaderConfig?.hideWhenInactive).toBe(platform === 'android');
-            } finally {
-                platformOverride.restore();
-            }
         });
 
         it('should request drag dismissal and preserve the query and caller callback', () => {

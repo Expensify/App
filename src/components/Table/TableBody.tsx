@@ -13,7 +13,7 @@ import type {StyleProp, ViewProps, ViewStyle} from 'react-native';
 
 import {FlashList} from '@shopify/flash-list';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
-import {Platform, StyleSheet, View} from 'react-native';
+import {StyleSheet, View} from 'react-native';
 
 import type {TableData} from '.';
 import type {TableListMetadata} from './buildTableListData';
@@ -188,7 +188,6 @@ function TableBodyList({contentContainerStyle, emptyMessage, onLayout, style, ..
         overrideItemLayout,
         overrideProps,
         renderItem,
-        stickyHeaderConfig,
         stickyHeaderIndices,
         viewabilityConfigCallbackPairs,
         ...restListProps
@@ -492,10 +491,6 @@ function TableBodyList({contentContainerStyle, emptyMessage, onLayout, style, ..
                 onLoad={handleLoad}
                 onChangeStickyIndex={handleChangeStickyIndex}
                 stickyHeaderIndices={hasRows && canRenderStickyHeader ? adjustedStickyHeaderIndices : undefined}
-                stickyHeaderConfig={{
-                    hideWhenInactive: Platform.OS === 'android' && shouldRenderColumnHeaderAsStickyRow,
-                    ...stickyHeaderConfig,
-                }}
                 contentContainerStyle={[
                     listContentContainerStyle,
                     tableBodyContentContainerStyle,
