@@ -2370,6 +2370,8 @@ const CONST = {
             MFA_SCENARIO: 'mfa_scenario',
             MFA_ERROR_REASON: 'mfa_error_reason',
             BUILD_TYPE: 'build_type',
+            /** Written by Sentry's `thirdPartyErrorFilterIntegration` on events whose every frame is foreign to our bundle, read by the noise filters. */
+            THIRD_PARTY_CODE: 'third_party_code',
         },
         EXPENSE_ERROR_TYPE: {
             REPORT_CREATION_FAILED: 'report_creation_failed',
