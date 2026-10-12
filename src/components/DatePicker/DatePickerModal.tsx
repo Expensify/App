@@ -51,7 +51,7 @@ function DatePickerModal({
     forwardedFSClass,
     shouldEnableMonthYearBackdropInNarrowPane = false,
 }: DatePickerProps) {
-    const [selectedDate, setSelectedDate] = useState(value ?? defaultValue ?? undefined);
+    const [selectedDate, setSelectedDate] = useState(value);
     const anchorRef = useRef<ComponentRef<typeof View>>(null);
     const styles = useThemeStyles();
 
@@ -106,6 +106,7 @@ function DatePickerModal({
                 maxDate={maxDate}
                 isDateSelectable={isDateSelectable}
                 value={DateUtils.parseCalendarDate(selectedDate)}
+                defaultMonth={DateUtils.parseCalendarDate(defaultValue)}
                 onSelected={handleDateSelection}
                 containerStyle={bottomSafeAreaPaddingStyle}
                 shouldEnableMonthYearBackdropInNarrowPane={shouldEnableMonthYearBackdropInNarrowPane}

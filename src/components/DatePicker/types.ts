@@ -9,7 +9,7 @@ type DatePickerBaseProps = ForwardedFSClassProps & {
     /** The selected date as a `yyyy-MM-dd` string, read with DateUtils.parseCalendarDate. `onInputChange` is called with the picked date in the same format. */
     value?: string;
 
-    /** The date to start with when there is no value, in the same format as `value`. */
+    /** The date the field starts with when there is no value, in the same format as `value`. When the field is empty, the calendar opens on its month without selecting it. */
     defaultValue?: string;
 
     inputID: string;
@@ -82,7 +82,7 @@ type DatePickerProps = {
     /** The selected date as a `yyyy-MM-dd` string, read with DateUtils.parseCalendarDate. `onInputChange` is called with the picked date in the same format. */
     value?: string;
 
-    /** The date to start with when there is no value, in the same format as `value`. */
+    /** The month the calendar opens on when there is no value, in the same format as `value`. It isn't selected. */
     defaultValue?: string;
 
     inputID: string;
