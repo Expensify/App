@@ -55,7 +55,7 @@ function MoneyRequestAccountantSelector({onFinish, onAccountantSelected, iouType
     const {isOffline} = useNetwork();
     const {didScreenTransitionEnd} = useScreenWrapperTransitionStatus();
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
-    const [isSearchingForReports] = useOnyx(ONYXKEYS.RAM_ONLY_IS_SEARCHING_FOR_REPORTS);
+    const [isSearchingForUsers] = useOnyx(ONYXKEYS.RAM_ONLY_IS_SEARCHING_FOR_USERS);
     const [loginList] = useOnyx(ONYXKEYS.LOGINS, {selector: expensifyLoginsSelector});
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const currentUserEmail = currentUserPersonalDetails.email ?? '';
@@ -176,7 +176,7 @@ function MoneyRequestAccountantSelector({onFinish, onAccountantSelected, iouType
             textInputOptions={textInputOptions}
             listEmptyContent={<EmptySelectionListContent contentType={iouType} />}
             shouldShowLoadingPlaceholder={shouldShowLoadingPlaceholder}
-            isLoadingNewOptions={!!isSearchingForReports}
+            isLoadingNewOptions={!!isSearchingForUsers}
             shouldShowListEmptyContent={shouldShowListEmptyContent}
         />
     );

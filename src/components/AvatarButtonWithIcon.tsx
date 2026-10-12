@@ -10,7 +10,7 @@ import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import type IconAsset from '@src/types/utils/IconAsset';
 import type WithSentryLabel from '@src/types/utils/SentryLabel';
 
-import type {RefObject} from 'react';
+import type {ComponentRef, RefObject} from 'react';
 import type {ImageStyle, StyleProp, ViewStyle} from 'react-native';
 import type {ValueOf} from 'type-fest';
 
@@ -29,13 +29,8 @@ type AvatarButtonWithIconProps = WithSentryLabel & {
     /** Style applied to the avatar. Defaults to centering it within the parent. */
     avatarStyle?: StyleProp<ViewStyle & ImageStyle>;
 
-    /** Executed on click */
     onPress: () => void;
-
-    /** Ref of the anchor */
-    anchorRef?: RefObject<View | HTMLDivElement | null>;
-
-    /** The avatar to display. */
+    anchorRef?: RefObject<ComponentRef<typeof View> | HTMLDivElement | null>;
     avatar: React.ReactNode;
 
     /** Size of the displayed avatar. Keeps the button footprint even when `avatar` is empty. */
@@ -44,7 +39,6 @@ type AvatarButtonWithIconProps = WithSentryLabel & {
     /** Additional style props for disabled picker */
     disabledStyle?: StyleProp<ViewStyle>;
 
-    /** Additional style props for the edit icon */
     editIconStyle?: StyleProp<ViewStyle>;
 
     /** The type of action that's pending  */

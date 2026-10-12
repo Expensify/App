@@ -1,15 +1,17 @@
-import Button from '@components/ButtonComposed';
+import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
-import type {DomainAdminRowData} from '@components/Tables/DomainAdminsTable';
+import type {DomainAdminRequestRowData, DomainAdminRowData} from '@components/Tables/DomainAdminsTable';
 import DomainAdminsTable from '@components/Tables/DomainAdminsTable';
 
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDomainDocumentTitle from '@hooks/useDomainDocumentTitle';
+import useLayoutSpacing from '@hooks/useLayoutSpacing';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import {useAllPersonalDetails} from '@hooks/usePersonalDetails';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useShouldDisplayButtonsInSeparateLine from '@hooks/useShouldDisplayButtonsInSeparateLine';
 import useTheme from '@hooks/useTheme';
@@ -25,19 +27,43 @@ import type {DomainSplitNavigatorParamList} from '@navigation/types';
 
 import DomainNotFoundPageWrapper from '@pages/domain/DomainNotFoundPageWrapper';
 
-import {clearAdminError} from '@userActions/Domain';
+import {approveDomainAdminshipRequest, clearAdminError, clearAdminshipRequesterError, declineDomainAdminshipRequest} from '@userActions/Domain';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+import type {PersonalDetails} from '@src/types/onyx';
+import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
-import {adminAccountIDsSelector, adminPendingActionSelector, domainNameSelector, technicalContactSettingsSelector} from '@selectors/Domain';
+import {
+    adminAccountIDsSelector,
+    adminPendingActionSelector,
+    adminshipRequesterPendingActionSelector,
+    domainNameSelector,
+    pendingAdminRequesterAccountIDsSelector,
+    technicalContactSettingsSelector,
+} from '@selectors/Domain';
 import React from 'react';
 import {View} from 'react-native';
 
 type DomainAdminsPageProps = PlatformStackScreenProps<DomainSplitNavigatorParamList, typeof SCREENS.DOMAIN.ADMINS>;
+
+/** Whether a pending admin/requester row should still be shown, given its personal details, pending action, and errors. */
+function shouldShowPendingRow(
+    details: PersonalDetails | null | undefined,
+    pendingAction: OnyxCommon.PendingAction | undefined,
+    errors: OnyxCommon.Errors | undefined,
+    isOffline: boolean,
+): boolean {
+    if (!details?.login && !details?.displayName) {
+        return false;
+    }
+
+    const isPendingDelete = pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
+    return isOffline || !isPendingDelete || !isEmptyObject(errors);
+}
 
 function DomainAdminsPage({route}: DomainAdminsPageProps) {
     const {domainAccountID} = route.params;
@@ -45,6 +71,7 @@ function DomainAdminsPage({route}: DomainAdminsPageProps) {
     useDomainDocumentTitle(domainName, 'domain.domainAdmins');
     const {translate, formatPhoneNumber} = useLocalize();
     const styles = useThemeStyles();
+    const {pageGutter} = useLayoutSpacing();
     const theme = useTheme();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const icons = useMemoizedLazyExpensifyIcons(['Gear', 'Plus', 'DotIndicator']);
@@ -59,7 +86,15 @@ function DomainAdminsPage({route}: DomainAdminsPageProps) {
         selector: adminPendingActionSelector,
     });
 
-    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
+    const [requesterAccountIDs] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {
+        selector: pendingAdminRequesterAccountIDsSelector,
+    });
+
+    const [adminshipRequesterPendingAction] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`, {
+        selector: adminshipRequesterPendingActionSelector,
+    });
+
+    const [personalDetails] = useAllPersonalDetails();
     const [technicalContactSettings] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${domainAccountID}`, {
         selector: technicalContactSettingsSelector,
     });
@@ -73,15 +108,10 @@ function DomainAdminsPage({route}: DomainAdminsPageProps) {
     const admins: DomainAdminRowData[] = (adminAccountIDs ?? [])
         .filter((accountID) => {
             const details = personalDetails?.[accountID];
-            if (!details?.login && !details?.displayName) {
-                return false;
-            }
-
             const pendingAction = domainPendingAction?.[accountID]?.pendingAction;
             const errors = domainErrors?.adminErrors?.[accountID]?.errors;
-            const isPendingDelete = pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
 
-            return isOffline || !isPendingDelete || !isEmptyObject(errors);
+            return shouldShowPendingRow(details, pendingAction, errors, isOffline);
         })
         .map((accountID) => {
             const details = personalDetails?.[accountID];
@@ -92,6 +122,8 @@ function DomainAdminsPage({route}: DomainAdminsPageProps) {
 
             return {
                 keyForList: String(accountID),
+                rowType: CONST.DOMAIN.ADMINS.ROW_TYPE.ADMIN,
+                groupOrder: CONST.DOMAIN.ADMINS.GROUP_ORDER.ADMINS,
                 accountID,
                 name: temporaryGetDisplayNameOrDefault({passedPersonalDetails: details, translate, formatPhoneNumber}),
                 email: formatPhoneNumber(login),
@@ -100,9 +132,40 @@ function DomainAdminsPage({route}: DomainAdminsPageProps) {
                 pendingAction,
                 disabled: isPendingActionDelete || !!details?.isOptimisticPersonalDetail,
                 action: () => Navigation.navigate(ROUTES.DOMAIN_ADMIN_DETAILS.getRoute(domainAccountID, accountID)),
-                dismissError: () => clearAdminError(domainAccountID, accountID),
+                dismissError: () => clearAdminError(domainAccountID, accountID, !!details?.isOptimisticPersonalDetail),
             };
         });
+
+    const requests: DomainAdminRequestRowData[] = isAdmin
+        ? (requesterAccountIDs ?? []).reduce<DomainAdminRequestRowData[]>((acc, accountID) => {
+              const details = personalDetails?.[accountID];
+              const pendingAction = adminshipRequesterPendingAction?.[accountID]?.pendingAction;
+              const errors = domainErrors?.adminshipRequesterErrors?.[accountID]?.errors;
+
+              if (!shouldShowPendingRow(details, pendingAction, errors, isOffline)) {
+                  return acc;
+              }
+
+              const login = details?.login ?? '';
+
+              acc.push({
+                  keyForList: `request-${accountID}`,
+                  rowType: CONST.DOMAIN.ADMINS.ROW_TYPE.REQUEST,
+                  groupOrder: CONST.DOMAIN.ADMINS.GROUP_ORDER.REQUESTS,
+                  accountID,
+                  name: temporaryGetDisplayNameOrDefault({passedPersonalDetails: details, translate, formatPhoneNumber}),
+                  email: formatPhoneNumber(login),
+                  canApprove: !!login,
+                  errors: getLatestError(errors),
+                  pendingAction,
+                  approve: () => approveDomainAdminshipRequest(domainAccountID, accountID, login, domainName ?? ''),
+                  deny: () => declineDomainAdminshipRequest(domainAccountID, accountID),
+                  dismissError: () => clearAdminshipRequesterError(domainAccountID, accountID),
+              });
+
+              return acc;
+          }, [])
+        : [];
 
     const hasSettingsErrors = hasDomainAdminsSettingsErrors(domainErrors);
     const shouldDisplayButtonsInSeparateLine = useShouldDisplayButtonsInSeparateLine();
@@ -150,10 +213,11 @@ function DomainAdminsPage({route}: DomainAdminsPageProps) {
                 >
                     {!shouldDisplayButtonsInSeparateLine && headerContent}
                 </HeaderWithBackButton>
-                {shouldDisplayButtonsInSeparateLine && !!headerContent && <View style={[styles.ph5, styles.flexRow, styles.gap2]}>{headerContent}</View>}
+                {shouldDisplayButtonsInSeparateLine && !!headerContent && <View style={pageGutter}>{headerContent}</View>}
                 <DomainAdminsTable
                     domainAccountID={domainAccountID}
                     admins={admins}
+                    requests={requests}
                 />
             </ScreenWrapper>
         </DomainNotFoundPageWrapper>

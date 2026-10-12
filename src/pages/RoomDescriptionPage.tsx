@@ -41,7 +41,6 @@ type RoomDescriptionPageProps = {
     /** Policy for the current report */
     policy: OnyxEntry<OnyxTypes.Policy>;
 
-    /** The report currently being looked at */
     report: OnyxTypes.Report;
 };
 

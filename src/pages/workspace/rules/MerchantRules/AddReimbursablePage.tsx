@@ -6,21 +6,25 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import MERCHANT_RULE_INPUT_IDS from '@src/types/form/MerchantRuleForm';
 
 import React from 'react';
 
-type AddReimbursablePageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.RULES_MERCHANT_REIMBURSABLE>;
+import useMerchantRuleRoute from './useMerchantRuleRoute';
+
+type AddReimbursablePageProps = PlatformStackScreenProps<
+    SettingsNavigatorParamList,
+    typeof SCREENS.WORKSPACE.RULES_MERCHANT_REIMBURSABLE | typeof SCREENS.WORKSPACE.DYNAMIC_RULES_MERCHANT_REIMBURSABLE
+>;
 
 function AddReimbursablePage({route}: AddReimbursablePageProps) {
     const {policyID, ruleID} = route.params;
-    const isEditing = ruleID !== ROUTES.NEW;
+    const {backToRoute} = useMerchantRuleRoute(DYNAMIC_ROUTES.RULES_MERCHANT_REIMBURSABLE_FROM_EXPENSE.path, policyID, ruleID);
 
     const goBack = () => {
-        const backRoute = isEditing ? ROUTES.RULES_MERCHANT_EDIT.getRoute(policyID, ruleID) : ROUTES.RULES_MERCHANT_NEW.getRoute(policyID);
-        Navigation.goBack(backRoute);
+        Navigation.goBack(backToRoute);
     };
 
     const onSelect = (fieldID: string, value: boolean | 'true' | 'false' | null) => {

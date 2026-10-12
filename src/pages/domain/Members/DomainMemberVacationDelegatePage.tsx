@@ -4,6 +4,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import {usePersonalDetail} from '@hooks/usePersonalDetails';
 
 import Navigation from '@libs/Navigation/Navigation';
 
@@ -20,7 +21,6 @@ import type SCREENS from '@src/SCREENS';
 import type {Participant} from '@src/types/onyx/IOU';
 
 import {vacationDelegateSelector} from '@selectors/Domain';
-import {personalDetailsSelector} from '@selectors/PersonalDetails';
 import React from 'react';
 
 type DomainMemberVacationDelegatePageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.DOMAIN.VACATION_DELEGATE>;
@@ -35,9 +35,7 @@ function DomainMemberVacationDelegatePage({route}: DomainMemberVacationDelegateP
         selector: vacationDelegateSelector(accountID),
     });
 
-    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {
-        selector: personalDetailsSelector(accountID),
-    });
+    const [personalDetails] = usePersonalDetail(accountID);
     const memberLogin = personalDetails?.login;
 
     const onSelectRow = (option: Participant) => {

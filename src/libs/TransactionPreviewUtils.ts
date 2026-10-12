@@ -43,40 +43,16 @@ import {
     isAmountMissing,
     isCreatedMissing,
     isDistanceRequest,
+    isFailedScanAmountPlaceholder,
     isFetchingWaypointsFromServer,
     isMerchantMissing,
     isOnHold,
     isPending,
     isScanning,
+    shouldShowViolation,
 } from './TransactionUtils';
 import {isInvalidMerchantValue} from './ValidationUtils';
 import {filterReceiptViolations, isHardViolationOrRateDateWarning} from './Violations/ViolationsUtils';
-
-const emptyPersonalDetails: OnyxTypes.PersonalDetails = {
-    accountID: CONST.REPORT.OWNER_ACCOUNT_ID_FAKE,
-    avatar: '',
-    displayName: undefined,
-    login: undefined,
-};
-
-/**
- * Returns the data for displaying payer and receiver (`from` and `to`) values for given ids and amount.
- * In IOU transactions we can deduce who is the payer and receiver based on sign (positive/negative) of the amount.
- */
-function getIOUPayerAndReceiver(managerID: number, ownerAccountID: number, personalDetails: OnyxTypes.PersonalDetailsList | undefined, amount: number) {
-    let fromID = ownerAccountID;
-    let toID = managerID;
-
-    if (amount < 0) {
-        fromID = managerID;
-        toID = ownerAccountID;
-    }
-
-    return {
-        from: personalDetails ? personalDetails[fromID] : emptyPersonalDetails,
-        to: personalDetails ? personalDetails[toID] : emptyPersonalDetails,
-    };
-}
 
 const getReviewNavigationRoute = (
     backTo: string,
@@ -341,6 +317,8 @@ function getTransactionPreviewTextAndTranslationPaths({
     let displayAmountText: TranslationPathOrText = isTransactionScanning ? {translationPath: 'iou.receiptStatusTitle'} : {text: convertToDisplayString(amount, requestCurrency)};
     if (isFetchingWaypoints && !requestAmount) {
         displayAmountText = {translationPath: 'iou.fieldPending'};
+    } else if (isFailedScanAmountPlaceholder(transaction, isMoneyRequestSettled)) {
+        displayAmountText = {text: ''};
     }
 
     const iouOriginalMessage: OnyxEntry<OnyxTypes.OriginalMessageIOU> = isMoneyRequestAction(action) ? (getOriginalMessage(action) ?? undefined) : undefined;
@@ -356,6 +334,27 @@ function getTransactionPreviewTextAndTranslationPaths({
         previewStatusText,
         previewTypeText,
     };
+}
+
+/**
+ * The over-auto-approval-limit notice ships without `showInReview`, so the notice-type check that gates the preview RBR
+ * skips it, even though it is worth an RBR for whoever has to approve the report. `shouldShowViolation` is the single
+ * rule for who that is, and it is applied here rather than trusting the array because some callers pass raw Onyx
+ * violations instead of the visible ones.
+ */
+function hasVisibleOverAutoApprovalLimitViolation(
+    transaction: OnyxEntry<OnyxTypes.Transaction> | undefined,
+    violations: OnyxTypes.TransactionViolations,
+    currentUserEmail: string,
+    currentUserAccountID: number,
+    report: OnyxEntry<OnyxTypes.Report>,
+    policy: OnyxEntry<OnyxTypes.Policy>,
+): boolean {
+    if (!violations?.some((violation) => violation.name === CONST.VIOLATIONS.OVER_AUTO_APPROVAL_LIMIT)) {
+        return false;
+    }
+
+    return shouldShowViolation(report, policy, CONST.VIOLATIONS.OVER_AUTO_APPROVAL_LIMIT, currentUserEmail, currentUserAccountID, true, transaction);
 }
 
 function createTransactionPreviewConditionals({
@@ -418,6 +417,7 @@ function createTransactionPreviewConditionals({
         !!hasViolationsOfTypeNotice ||
         hasWarningTypeViolation(transaction, violations, currentUserEmail ?? '', currentUserAccountID, iouReport ?? undefined, iouReportOwnerLogin, policy) ||
         hasViolation(transaction, violations, currentUserEmail ?? '', currentUserAccountID, iouReport ?? undefined, iouReportOwnerLogin, policy, true) ||
+        hasVisibleOverAutoApprovalLimitViolation(transaction, violations, currentUserEmail ?? '', currentUserAccountID, iouReport ?? undefined, policy) ||
         (isDistanceRequest(transaction) &&
             violations?.some(
                 (violation) => violation.name === CONST.VIOLATIONS.MODIFIED_AMOUNT && (violation.type === CONST.VIOLATION_TYPES.VIOLATION || violation.type === CONST.VIOLATION_TYPES.NOTICE),
@@ -486,6 +486,11 @@ function transactionHasRBR(
 
     // Check for notice-type violations (only on group policies)
     if (hasNoticeTypeViolation(transaction, violations, currentUserEmail, currentUserAccountID, iouReport, iouReportOwnerLogin, policy, true) && isGroupPolicyUtil(policy)) {
+        return true;
+    }
+
+    // Check for the over-auto-approval-limit notice, which reaches the approver without showInReview
+    if (hasVisibleOverAutoApprovalLimitViolation(transaction, violations, currentUserEmail, currentUserAccountID, iouReport, policy)) {
         return true;
     }
 
@@ -560,7 +565,6 @@ function compareByRBR(
 
 export {
     getReviewNavigationRoute,
-    getIOUPayerAndReceiver,
     getTransactionPreviewTextAndTranslationPaths,
     createTransactionPreviewConditionals,
     getViolationTranslatePath,

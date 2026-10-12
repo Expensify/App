@@ -8,6 +8,8 @@ type ColumnMappingIndexes = {
     amount?: number | boolean;
     /** Category column index or false if not mapped */
     category?: number | boolean;
+    /** Tag column index or false if not mapped */
+    tag?: number | boolean;
     /** Ignore column index or false if not mapped */
     ignore?: number | boolean;
     /** Type (debit/credit) column index or false if not mapped */
@@ -24,6 +26,8 @@ type ColumnMappingNames = {
     amount?: string | boolean;
     /** Category column header name or false if not mapped */
     category?: string | boolean;
+    /** Tag column header name or false if not mapped */
+    tag?: string | boolean;
     /** Ignore column header name or false if not mapped */
     ignore?: string | boolean;
     /** Type (debit/credit) column header name or false if not mapped */
@@ -32,7 +36,6 @@ type ColumnMappingNames = {
 
 /** Account details for a saved CSV layout */
 type AccountDetails = {
-    /** Bank type */
     bank: string;
 
     /** Currency code */
@@ -56,13 +59,11 @@ type ColumnMapping = {
 
 /** Column layout data for a saved CSV layout (structure matches oldDot) */
 type SavedCSVColumnLayoutData = {
-    /** Layout name */
     name: string;
 
     /** Whether to use type column for debit/credit */
     useTypeColumn: boolean;
 
-    /** Whether to flip the amount sign */
     flipAmountSign: boolean;
 
     /** Whether transactions are reimbursable */
@@ -74,7 +75,6 @@ type SavedCSVColumnLayoutData = {
     /** Date format string (null for auto-detect) */
     dateFormat?: string | null;
 
-    /** Account details */
     accountDetails: AccountDetails;
 
     /** Column mapping configuration */

@@ -17,6 +17,7 @@ import variables from '@styles/variables';
 
 import type {Transaction} from '@src/types/onyx';
 
+import type {ComponentRef} from 'react';
 import type {ViewStyle} from 'react-native';
 
 import {Str} from 'expensify-common';
@@ -48,7 +49,7 @@ function ReceiptCell({
     // ReceiptPreview handles its own visibility via debounced state, so keeping it
     // mounted avoids re-creating the portal and reloading images on subsequent hovers.
     const [shouldMountPreview, setShouldMountPreview] = useState(false);
-    const cellRef = useRef<View>(null);
+    const cellRef = useRef<ComponentRef<typeof View>>(null);
     // The preview is a document.body portal, so it needs the hovered cell's window position to
     // anchor itself beside the row instead of sitting fixed in the upper-left corner.
     const [previewAnchor, setPreviewAnchor] = useState<AnchorPosition>();

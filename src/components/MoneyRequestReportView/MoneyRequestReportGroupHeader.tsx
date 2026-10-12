@@ -11,6 +11,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {getDecodedFullCategoryName} from '@libs/CategoryUtils';
 import {getCommaSeparatedTagNameWithSanitizedColons} from '@libs/PolicyUtils';
 
+import {fontScale, lineHeightScale} from '@styles/typography';
 import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
@@ -21,10 +22,7 @@ import React from 'react';
 import {View} from 'react-native';
 
 type MoneyRequestReportGroupHeaderProps = {
-    /** The grouped transaction data */
     group: GroupedTransactions;
-
-    /** The group key for toggle callback */
     groupKey: string;
 
     /** Currency code for amount formatting */
@@ -51,7 +49,6 @@ type MoneyRequestReportGroupHeaderProps = {
     /** Pending action for offline feedback styling (Pattern B - Optimistic WITH Feedback) */
     pendingAction?: PendingAction;
 
-    /** Whether to use narrow layout */
     shouldUseNarrowLayout?: boolean;
 };
 
@@ -80,7 +77,7 @@ function MoneyRequestReportGroupHeader({
     const formattedAmount = convertToDisplayString(group.subTotalAmount, currency);
     const shouldShowCheckbox = isSelectionModeEnabled || !shouldUseNarrowLayout;
 
-    const textStyle = shouldUseNarrowLayout ? {fontSize: variables.fontSizeLabel, lineHeight: variables.lineHeightNormal} : [styles.labelStrong];
+    const textStyle = shouldUseNarrowLayout ? {fontSize: fontScale.label, lineHeight: lineHeightScale.label} : [styles.labelStrong];
 
     const handleToggleSelection = () => {
         onToggleSelection?.(groupKey);

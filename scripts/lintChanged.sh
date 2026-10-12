@@ -22,9 +22,9 @@ if [[ -n "$CHANGED_FILES_OUTPUT" ]]; then
     done <<< "$CHANGED_FILES_OUTPUT"
 fi
 
-# Run eslint on the changed files, forwarding any user-provided flags
+# Run lint on the changed files. Flags must precede paths; this script puts "$@" first.
 if [[ "${#ALL_CHANGED_FILES[@]}" -gt 0 ]]; then
-    exec bun "${TOP}/scripts/lint.ts" "$@" "${ALL_CHANGED_FILES[@]}"
+    exec bun "${TOP}/scripts/lint/index.ts" "$@" "${ALL_CHANGED_FILES[@]}"
 else
     info "No lintable files changed"
 fi

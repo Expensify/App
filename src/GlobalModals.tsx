@@ -2,17 +2,17 @@ import React, {startTransition, useEffect, useState} from 'react';
 
 import DelegateNoAccessModalProvider from './components/DelegateNoAccessModalProvider';
 import EmojiPicker from './components/EmojiPicker/EmojiPicker';
+import ExpenseAddedGrowl from './components/ExpenseAddedGrowl';
 import GrowlNotification from './components/GrowlNotification';
 import LazyModalSlot from './components/LazyModalSlot';
+import useIsAuthenticated from './hooks/useIsAuthenticated';
 import * as EmojiPickerAction from './libs/actions/EmojiPickerAction';
 import {growlRef} from './libs/Growl';
 import * as ReportActionContextMenu from './pages/inbox/report/ContextMenu/ReportActionContextMenu';
 
 const LazyPopoverReportActionContextMenu = React.lazy(() => import('./pages/inbox/report/ContextMenu/PopoverReportActionContextMenu'));
-const LazyUpdateAppModal = React.lazy(() => import('./components/UpdateAppModal'));
-const LazyScreenShareRequestModal = React.lazy(() => import('./components/ScreenShareRequestModal'));
-const LazyProactiveAppReviewModalManager = React.lazy(() => import('./components/ProactiveAppReviewModalManager'));
-const LazyTrialPaymentReminderModalManager = React.lazy(() => import('./components/TrialPaymentReminderModalManager'));
+// Dynamic rather than static so this module graph is only fetched once the idle callback has fired.
+const LazyDeferredGlobalModals = React.lazy(() => import('./components/DeferredGlobalModals'));
 
 // Maximum time (ms) the context menu mount can stay deferred before requestIdleCallback forces it to run,
 // guaranteeing mount even if the main thread never becomes idle.
@@ -24,6 +24,7 @@ const IDLE_CALLBACK_TIMEOUT_MS = 2000;
 function GlobalModals() {
     const [shouldRenderContextMenu, setShouldRenderContextMenu] = useState(false);
     const [shouldRenderDeferredModals, setShouldRenderDeferredModals] = useState(false);
+    const isAuthenticated = useIsAuthenticated();
 
     // Defer loading the context menu and rare-condition modals until after startup to avoid
     // pulling in their dependencies (ContextMenuActions, ReportUtils, ModifiedExpenseMessage,
@@ -50,6 +51,7 @@ function GlobalModals() {
     return (
         <>
             <GrowlNotification ref={growlRef} />
+            {isAuthenticated && <ExpenseAddedGrowl />}
             <DelegateNoAccessModalProvider>
                 {shouldRenderContextMenu && (
                     <LazyModalSlot>
@@ -61,24 +63,9 @@ function GlobalModals() {
             {/* eslint-disable-next-line react-hooks/refs -- module-level createRef, safe to pass as ref prop */}
             <EmojiPicker ref={EmojiPickerAction.emojiPickerRef} />
             {shouldRenderDeferredModals && (
-                <>
-                    {/* Order matters: BaseModal hardcodes zIndex: 1 on every modal, so DOM source order
-                        determines stacking when modals coincide. UpdateAppModal is last so the forced-update
-                        prompt sits on top if it ever overlaps with the others. */}
-                    <LazyModalSlot>
-                        {/* Proactive app review modal shown when user has completed a trigger action */}
-                        <LazyProactiveAppReviewModalManager />
-                    </LazyModalSlot>
-                    <LazyModalSlot>
-                        <LazyTrialPaymentReminderModalManager />
-                    </LazyModalSlot>
-                    <LazyModalSlot>
-                        <LazyScreenShareRequestModal />
-                    </LazyModalSlot>
-                    <LazyModalSlot>
-                        <LazyUpdateAppModal />
-                    </LazyModalSlot>
-                </>
+                <LazyModalSlot>
+                    <LazyDeferredGlobalModals />
+                </LazyModalSlot>
             )}
         </>
     );

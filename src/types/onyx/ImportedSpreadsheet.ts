@@ -13,7 +13,6 @@ type ImportFinalModal<TPath extends SpreadsheetTranslationPaths> = {
     /** Message to display */
     promptKey: TPath;
 
-    /** Parameters for the translation */
     promptKeyParams?: TranslationParameters<TPath>[0];
 
     /** Optional message appended after the prompt */
@@ -32,6 +31,20 @@ type ImportFinalModal<TPath extends SpreadsheetTranslationPaths> = {
         /** Quantity the appended message pluralizes on */
         count: number;
     };
+
+    /**
+     * A second appended message, for an importer that can independently skip two different kinds of
+     * values in the same run (e.g. merchant rules skipping both unknown categories and unknown vendors).
+     * Kept separate from `pendingMessageKey` instead of turning that into a list so every existing
+     * single-message importer is unaffected.
+     */
+    secondaryPendingMessageKey?: SpreadsheetTranslationPaths;
+
+    /** Parameters for the second appended message's translation. */
+    secondaryPendingMessageKeyParams?: {
+        /** Quantity the appended message pluralizes on */
+        count: number;
+    };
 };
 
 /**
@@ -44,7 +57,6 @@ type ImportFinalModalUnion = {
 
 /** Settings for importing transactions */
 type ImportTransactionSettings = {
-    /** Display name for the card */
     cardDisplayName?: string;
 
     /** Currency for the imported transactions */
@@ -53,13 +65,11 @@ type ImportTransactionSettings = {
     /** Whether the transactions are reimbursable */
     isReimbursable?: boolean;
 
-    /** Whether to flip the amount sign */
     flipAmountSign?: boolean;
 };
 
 /** Model of imported spreadsheet data */
 type ImportedSpreadsheet = {
-    /** Data of the imported spreadsheet */
     data: string[][];
 
     /** Columns' names */
@@ -68,22 +78,14 @@ type ImportedSpreadsheet = {
     /** Whether the first row of the spreadsheet contains headers */
     containsHeader: boolean;
 
-    /** Whether the spreadsheet is importing multi-level tags */
     isImportingMultiLevelTags: boolean;
-
-    /** Whether the spreadsheet is importing independent multi-level tags */
     isImportingIndependentMultiLevelTags: boolean;
 
     /** Whether the GL code is in the adjacent column */
     isGLAdjacent: boolean;
 
-    /** The imported file URI */
     fileURI?: string;
-
-    /** The file type of the imported file */
     fileType?: string;
-
-    /** The file name of the imported file */
     fileName?: string;
 
     /** Settings for importing transactions from the spreadsheet */

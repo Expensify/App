@@ -48,10 +48,10 @@ function getStartPageForContinueSetup(
         !!(reimbursementAccountDraft?.consentToPrivacyNotice ?? achData?.corpay?.consentToPrivacyNotice) &&
         !!(reimbursementAccountDraft?.provideTruthfulInformation ?? achData?.corpay?.provideTruthfulInformation);
 
-    // AUD accounts must upload a bank statement, which is collected on the Agreements page and only lives in the draft until
-    // it's submitted on the Docusign page. Accounts that checked the agreements before the bank statement became required won't
-    // have one, so gate the Docusign resume on it to avoid submitting without a bank statement.
-    const isBankStatementNeeded = policyCurrency === CONST.CURRENCY.AUD;
+    // AUD and CAD accounts must upload a bank statement, which is collected on the Agreements page and only lives in the draft
+    // until it's submitted on the Docusign page. Accounts that checked the agreements before the bank statement became required
+    // won't have one, so gate the Docusign resume on it to avoid submitting without a bank statement.
+    const isBankStatementNeeded = policyCurrency === CONST.CURRENCY.AUD || policyCurrency === CONST.CURRENCY.CAD;
     const isBankStatementUploaded = !!reimbursementAccountDraft?.[INPUT_IDS.ADDITIONAL_DATA.CORPAY.BANK_STATEMENT]?.length;
 
     if (nonUSDCountryDraftValue !== '' && achData?.created === undefined) {

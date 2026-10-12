@@ -10,7 +10,6 @@ import type {TransactionMerchantGroupListItemType} from './types';
 import BaseListItemHeader from './BaseListItemHeader';
 
 type MerchantListItemHeaderProps<TItem extends ListItem> = Omit<BaseListItemHeaderProps<TItem>, 'item' | 'displayName' | 'groupColumnKey' | 'columnStyleKey'> & {
-    /** The merchant currently being looked at */
     merchant: TransactionMerchantGroupListItemType;
 };
 

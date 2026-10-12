@@ -60,18 +60,20 @@ Other ways to SmartScan receipts include:
 **On mobile:**
 1. Tap the green camera button.
 2. Select **Manual**.
-3. Enter the amount and currency, then tap **Next**.
-4. Choose a workspace or an individual.
-5. Add optional fields like category, tags, or description.
+3. Confirm or change the workspace or individual the expense is going to.
+4. Enter the amount and select the currency.
+5. Add the merchant, date, and optional fields like category, tags, or description.
 6. Tap **Create expense**.
 
 **On desktop:**
 1. Click the green add receipt button.
 2. Select **Manual**.
-3. Enter the amount and currency, then click **Next**.
-4. Choose a workspace or an individual.
-5. Add optional fields like category, tags, or description.
+3. Confirm or change the workspace or individual the expense is going to.
+4. Enter the amount and select the currency.
+5. Add the merchant, date, and optional fields like category, tags, or description.
 6. Click **Create expense**.
+
+**Note:** Amount and date are required. If you leave either one blank, Expensify shows **This field is required** on that field and the expense is not created.
 
 Learn more about [creating expenses](https://help.expensify.com/articles/new-expensify/reports-and-expenses/Create-an-Expense)
 
@@ -95,7 +97,7 @@ Let Expensify automatically import and match card transactions to SmartScanned r
 
 ## Connect a Credit Card
 
-💳 For more information on connecting credit cards, check out this article: [Personal Cards](https://help.expensify.com/articles/new-expensify/connect-credit-cards/Personal-Cards).
+💳 For more information on connecting credit cards, check out this article: [Manage Personal Cards](https://help.expensify.com/articles/new-expensify/connect-credit-cards/connect-and-manage-personal-cards/Manage-Personal-Cards).
 
 ---
 

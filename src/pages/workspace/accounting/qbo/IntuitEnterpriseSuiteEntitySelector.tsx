@@ -1,4 +1,4 @@
-import MenuItem from '@components/MenuItem';
+import MenuItemAction from '@components/MenuItem/presets/MenuItemAction';
 import SelectionScreen from '@components/SelectionScreen';
 import type {SelectorType} from '@components/SelectionScreen';
 import Text from '@components/Text';
@@ -69,7 +69,7 @@ function IntuitEnterpriseSuiteEntitySelector({policy}: WithPolicyConnectionsProp
         </View>
     );
     const listFooterContent = (
-        <MenuItem
+        <MenuItemAction
             title={translate('workspace.qbo.connectNewEntity')}
             icon={icons.Plus}
             onPress={() => startOAuth()}

@@ -1,4 +1,4 @@
-import type {ForwardedRef} from 'react';
+import type {ComponentRef, ForwardedRef} from 'react';
 import type {View} from 'react-native';
 
 import React from 'react';
@@ -12,8 +12,7 @@ type RequestorStepProps = {
     /** Handles submit button press (URL-based navigation) */
     onSubmit?: () => void;
 
-    /** Reference to the outer element */
-    ref?: ForwardedRef<View>;
+    ref?: ForwardedRef<ComponentRef<typeof View>>;
 
     /** Back to URL for preserving navigation context */
     backTo?: string;

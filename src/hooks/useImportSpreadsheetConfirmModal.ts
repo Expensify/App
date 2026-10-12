@@ -31,7 +31,10 @@ function useImportSpreadsheetConfirmModal() {
         const titleText = translate(importFinalModal.titleKey);
         const promptText = translateKey(importFinalModal.promptKey, importFinalModal.promptKeyParams);
         const pendingText = importFinalModal.pendingMessageKey ? translateKey(importFinalModal.pendingMessageKey, importFinalModal.pendingMessageKeyParams) : '';
-        const fullPromptText = pendingText ? `${promptText} ${pendingText}` : promptText;
+        const secondaryPendingText = importFinalModal.secondaryPendingMessageKey
+            ? translateKey(importFinalModal.secondaryPendingMessageKey, importFinalModal.secondaryPendingMessageKeyParams)
+            : '';
+        const fullPromptText = [promptText, pendingText, secondaryPendingText].filter(Boolean).join(' ');
 
         await showConfirmModal({
             id: 'import-spreadsheet-confirm-modal',

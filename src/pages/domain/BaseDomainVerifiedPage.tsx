@@ -25,7 +25,6 @@ import React, {useEffect} from 'react';
 import {View} from 'react-native';
 
 type BaseDomainVerifiedPageProps = {
-    /** The accountID of the domain */
     domainAccountID: number;
 
     /** Route to redirect to when trying to access the page for an unverified domain */

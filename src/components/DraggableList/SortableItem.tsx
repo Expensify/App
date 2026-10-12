@@ -24,11 +24,16 @@ function SortableItem({id, children, disabled = false, isFocused = false}: Sorta
         node.current.scrollIntoView({block: 'nearest'});
     }, [isFocused, node]);
 
-    const style = {
+    // Every row's transform makes it its own stacking context, so rows paint in DOM order and a later sibling
+    // covers an earlier one. Lift the dragged row above the rest, otherwise dragging downward tucks it under
+    // the row it overlaps.
+    const style: React.CSSProperties = {
         touchAction: 'none',
         transform: CSS.Transform.toString(transform),
         transition,
         outline: 'none',
+        position: isDragging ? 'relative' : undefined,
+        zIndex: isDragging ? 1 : undefined,
     };
 
     // The sortable wrapper is the single Tab stop (tabIndex: 0 via dnd-kit attributes).

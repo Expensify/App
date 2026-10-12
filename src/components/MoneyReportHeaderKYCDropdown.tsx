@@ -29,6 +29,10 @@ type MoneyReportHeaderKYCDropdownProps = Omit<KYCWallProps, 'children' | 'enable
 
     onPaymentSelect: (event: KYCFlowEvent, iouPaymentType: PaymentMethodType, triggerKYCFlow: TriggerKYCFlow) => void;
 
+    headerText?: string;
+
+    shouldPutHeaderTextAfterBackButton?: boolean;
+
     /**
      * Called when a workspace-policy sub-item is picked. The parent owns the full flow (guards, telemetry,
      * then invoking `triggerKYCFlow({policy})` when ready). If omitted, defaults to `triggerKYCFlow({policy})`.
@@ -38,12 +42,13 @@ type MoneyReportHeaderKYCDropdownProps = Omit<KYCWallProps, 'children' | 'enable
     customText?: string;
 
     shouldShowSuccessStyle?: boolean;
-
-    /** Ref for the inner ButtonWithDropdownMenu */
     dropdownMenuRef?: React.Ref<ButtonWithDropdownMenuRef>;
 
     /** Callback fired when the dropdown menu hides */
     onOptionsMenuHide?: () => void;
+
+    /** Disables the "More" dropdown, e.g. while expenses are selected */
+    isDisabled?: boolean;
 };
 
 function MoneyReportHeaderKYCDropdown({
@@ -58,7 +63,10 @@ function MoneyReportHeaderKYCDropdown({
     shouldShowSuccessStyle,
     dropdownMenuRef,
     onOptionsMenuHide,
+    isDisabled,
     ref,
+    headerText = '',
+    shouldPutHeaderTextAfterBackButton = false,
     ...props
 }: MoneyReportHeaderKYCDropdownProps) {
     const styles = useThemeStyles();
@@ -104,6 +112,7 @@ function MoneyReportHeaderKYCDropdown({
                     }}
                     buttonRef={buttonRef}
                     shouldAlwaysShowDropdownMenu
+                    isDisabled={isDisabled}
                     shouldPopoverUseScrollView={shouldPopoverUseScrollView(applicableSecondaryActions)}
                     customText={customText ?? translate('common.more')}
                     options={applicableSecondaryActions}
@@ -113,6 +122,8 @@ function MoneyReportHeaderKYCDropdown({
                     shouldUseModalPaddingStyle
                     onOptionsMenuHide={onOptionsMenuHide}
                     sentryLabel={CONST.SENTRY_LABEL.MORE_MENU.MORE_BUTTON}
+                    menuHeaderText={headerText}
+                    shouldPutHeaderTextAfterBackButton={shouldPutHeaderTextAfterBackButton}
                 />
             )}
         </KYCWall>

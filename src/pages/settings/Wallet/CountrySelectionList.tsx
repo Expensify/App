@@ -20,7 +20,6 @@ import React from 'react';
 import {View} from 'react-native';
 
 type CountrySelectionListProps = {
-    /** The currently selected country */
     selectedCountry: string;
 
     /** List of available countries in country code format */
@@ -35,7 +34,6 @@ type CountrySelectionListProps = {
     /** Whether the user is editing an existing account */
     isEditing?: boolean;
 
-    /** Custom content to display in the footer */
     footerContent?: React.ReactNode;
 };
 
@@ -75,7 +73,8 @@ function CountrySelectionList({isEditing, selectedCountry, countries, onCountryS
     const confirmButtonOptions = {
         showButton: true,
         text: isEditing ? translate('common.confirm') : translate('common.next'),
-        isDisabled: isOffline,
+        // Nothing selected would submit an account with no country, so the step cannot be confirmed yet.
+        isDisabled: isOffline || !selectedCountry,
         onConfirm,
     };
 

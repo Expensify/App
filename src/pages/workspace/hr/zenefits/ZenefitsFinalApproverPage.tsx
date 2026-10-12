@@ -5,9 +5,11 @@ import {isZenefitsConnected} from '@libs/merge/HRUtils';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 
-import HRFinalApproverPageBase from '@pages/workspace/hr/HRFinalApproverPageBase';
-import type {HRFinalApproverProviderConfig} from '@pages/workspace/hr/HRFinalApproverPageBase';
+import MergeFinalApproverPageBase from '@pages/workspace/merge/MergeFinalApproverPageBase';
+import type {MergeFinalApproverProviderConfig} from '@pages/workspace/merge/MergeFinalApproverPageBase';
 
+import CONST from '@src/CONST';
+import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
 import React from 'react';
@@ -21,17 +23,19 @@ function ZenefitsFinalApproverPage({
 }: ZenefitsFinalApproverPageProps) {
     const {translate} = useLocalize();
 
-    const config: HRFinalApproverProviderConfig = {
+    const config: MergeFinalApproverProviderConfig = {
         testID: 'ZenefitsFinalApproverPage',
         isConnected: isZenefitsConnected,
+        featureName: CONST.POLICY.MORE_FEATURES.IS_HR_ENABLED,
+        backRoute: ROUTES.WORKSPACE_HR.getRoute(policyID),
         getCurrentFinalApprover: (policy) => policy?.connections?.zenefits?.config?.finalApprover ?? null,
         getProviderName: () => translate('workspace.hr.zenefits.title'),
-        getHeaderTitle: () => translate('workspace.hr.finalApprover'),
+        getHeaderTitle: () => translate('workspace.merge.finalApprover'),
         handleSave: ({policyID: id, email, currentFinalApprover}) => updateZenefitsFinalApprover(id, email, currentFinalApprover),
     };
 
     return (
-        <HRFinalApproverPageBase
+        <MergeFinalApproverPageBase
             policyID={policyID}
             config={config}
         />

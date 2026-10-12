@@ -16,7 +16,6 @@ import PressableWithFeedback from './Pressable/PressableWithFeedback';
 import Tooltip from './Tooltip';
 
 type PinButtonProps = {
-    /** Report to pin */
     report: Report;
 };
 

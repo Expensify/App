@@ -1,0 +1,94 @@
+import ConfirmationListLayout from '@components/MoneyRequestConfirmationList/ConfirmationListLayout';
+import DistanceRequestController from '@components/MoneyRequestConfirmationList/DistanceRequestController';
+import FieldAutoSelector from '@components/MoneyRequestConfirmationList/FieldAutoSelector';
+import useDistanceConfirmationListData from '@components/MoneyRequestConfirmationList/hooks/useDistanceConfirmationListData';
+import SplitBillController from '@components/MoneyRequestConfirmationList/SplitBillController';
+import TaxController from '@components/MoneyRequestConfirmationList/TaxController';
+import type {MoneyRequestConfirmationListProps} from '@components/MoneyRequestConfirmationList/types';
+import DistanceManualFooter from '@components/MoneyRequestConfirmationListFooter/variants/DistanceManualFooter';
+import DistanceMapFooter from '@components/MoneyRequestConfirmationListFooter/variants/DistanceMapFooter';
+import DistanceOdometerFooter from '@components/MoneyRequestConfirmationListFooter/variants/DistanceOdometerFooter';
+
+import DistanceRequestUtils from '@libs/DistanceRequestUtils';
+import {getCreated, isGPSDistanceRequest as isGPSDistanceRequestUtil, isManualDistanceRequest as isManualDistanceRequestUtil} from '@libs/TransactionUtils';
+
+import React from 'react';
+
+/**
+ * Confirms a distance expense, for all three of its shapes: a mapped route, a manually entered distance, and an
+ * odometer reading.
+ */
+function DistanceConfirmationList(props: MoneyRequestConfirmationListProps) {
+    const {transaction, isOdometerDistanceRequest = false, receiptStitchError} = props;
+
+    const isManualDistanceRequest = isManualDistanceRequestUtil(transaction);
+    const isGPSDistanceRequest = isGPSDistanceRequestUtil(transaction);
+
+    const {data, distanceState} = useDistanceConfirmationListData(props);
+    const {mileageRate, unit, currency, distance, hasRoute, isDistanceRequestWithPendingRoute} = distanceState;
+
+    const shouldShowRateAutoUpdatedTooltip =
+        !!transaction?.comment?.customUnit?.rateAutoUpdated && !!transaction.created && DistanceRequestUtils.isRateEligibleForDate(mileageRate, transaction.created);
+
+    const distanceData = {
+        distance,
+        // The distance field reads this to decide whether it has a figure worth showing, so a
+        // pending route (or a commuter exclusion still being decided) reads as not having one.
+        hasRoute: hasRoute && !isDistanceRequestWithPendingRoute,
+        unit,
+        distanceRateName: mileageRate.name,
+        distanceRateCurrency: currency,
+        mileageRate,
+        expenseDate: getCreated(transaction),
+        customUnitRateID: data.distanceControllerProps.customUnitRateID,
+        shouldShowRateAutoUpdatedTooltip,
+        customUnit: transaction?.comment?.customUnit,
+    };
+
+    const renderFooter = () => {
+        if (isManualDistanceRequest) {
+            return (
+                <DistanceManualFooter
+                    {...data.footerProps}
+                    distanceData={distanceData}
+                />
+            );
+        }
+        if (isOdometerDistanceRequest) {
+            return (
+                <DistanceOdometerFooter
+                    {...data.footerProps}
+                    distanceData={distanceData}
+                    receiptStitchError={receiptStitchError}
+                />
+            );
+        }
+        return (
+            <DistanceMapFooter
+                {...data.footerProps}
+                distanceData={distanceData}
+            />
+        );
+    };
+
+    return (
+        <ConfirmationListLayout
+            {...data.layoutProps}
+            fieldFlags={{isDistanceRequest: true, isManualDistanceRequest, isOdometerDistanceRequest, isGPSDistanceRequest}}
+            listFooterContent={renderFooter()}
+        >
+            <TaxController
+                {...data.taxControllerProps}
+                distanceState={distanceState}
+            />
+            <DistanceRequestController
+                {...data.distanceControllerProps}
+                distanceState={distanceState}
+            />
+            <SplitBillController {...data.splitBillControllerProps} />
+            <FieldAutoSelector {...data.fieldAutoSelectProps} />
+        </ConfirmationListLayout>
+    );
+}
+
+export default DistanceConfirmationList;

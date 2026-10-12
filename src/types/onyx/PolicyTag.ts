@@ -2,7 +2,6 @@ import type * as OnyxCommon from './OnyxCommon';
 
 /** Model of policy tag */
 type PolicyTag = OnyxCommon.OnyxValueWithOfflineFeedback<{
-    /** Name of a Tag */
     name: string;
 
     /** Flag that determines if a tag is active and able to be selected */
@@ -45,7 +44,6 @@ type PolicyTagList = {
     /** Flag that determines if tags are required */
     required: boolean;
 
-    /** List of tags */
     tags: PolicyTags;
 
     /** Index by which the tag appears in the hierarchy of tags */
@@ -64,4 +62,13 @@ type PolicyTagLists = Record<string, OnyxCommon.OnyxValueWithOfflineFeedback<Pol
 /** Record of policy tag lists, indexed by policyID */
 type ParticipantsPolicyTags = Record<string, PolicyTagLists>;
 
-export type {PolicyTag, PolicyTags, PolicyTagLists, ParticipantsPolicyTags};
+/** Tag filter result item returned in flat searchTagFiltersResults array */
+type SearchTagFilterItem = {
+    /** Name of the tag */
+    tagName: string;
+
+    /** Name of the tag list */
+    tagListName: string;
+};
+
+export type {PolicyTag, PolicyTags, PolicyTagLists, ParticipantsPolicyTags, SearchTagFilterItem};

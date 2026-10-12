@@ -16,7 +16,6 @@ import {View} from 'react-native';
 import IconWrapperStyles from './IconWrapperStyles';
 
 type InlineIconProps = {
-    /** Icon asset to render. */
     src: IconAsset;
 
     /** Preset size that resolves to square pixel dimensions, matching `Icon`. */

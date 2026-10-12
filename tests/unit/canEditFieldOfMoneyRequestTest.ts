@@ -4,7 +4,7 @@ import initOnyxDerivedValues from '@userActions/OnyxDerived';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy} from '@src/types/onyx';
+import type {Policy, Report, ReportAction} from '@src/types/onyx';
 import {toCollectionDataSet} from '@src/types/utils/CollectionDataSet';
 
 import Onyx from 'react-native-onyx';
@@ -110,10 +110,12 @@ describe('canEditFieldOfMoneyRequest', () => {
                 const outstandingReportsByPolicyID = await OnyxUtils.get(ONYXKEYS.DERIVED.OUTSTANDING_REPORTS_BY_POLICY_ID);
 
                 const canEditReportField = canEditFieldOfMoneyRequest({
+                    rules: undefined,
                     reportAction,
                     fieldToEdit: CONST.EDIT_REQUEST_FIELD.REPORT,
                     outstandingReportsByPolicyID,
                     transaction: moneyRequestTransaction,
+                    reportNameValuePairs: undefined,
                 });
                 expect(canEditReportField).toBe(false);
             });
@@ -124,28 +126,68 @@ describe('canEditFieldOfMoneyRequest', () => {
                 const outstandingReportsByPolicyID = await OnyxUtils.get(ONYXKEYS.DERIVED.OUTSTANDING_REPORTS_BY_POLICY_ID);
 
                 const canEditReportField = canEditFieldOfMoneyRequest({
+                    rules: undefined,
                     reportAction,
                     fieldToEdit: CONST.EDIT_REQUEST_FIELD.REPORT,
                     outstandingReportsByPolicyID,
                     transaction: moneyRequestTransaction,
+                    reportNameValuePairs: undefined,
                 });
 
                 expect(canEditReportField).toBe(true);
             });
 
-            it('should return false for invoice report action when billable field is edited on an approved invoice report', async () => {
+            it('should return true for invoice report action when billable field is edited on an approved invoice report', async () => {
+                // Given an approved invoice
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${IOUReportID}`, {
                     stateNum: CONST.REPORT.STATE_NUM.APPROVED,
                     statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
                 });
                 await waitForBatchedUpdates();
 
-                const canEditBillable = canEditFieldOfMoneyRequest({reportAction, fieldToEdit: CONST.EDIT_REQUEST_FIELD.BILLABLE, transaction: moneyRequestTransaction});
-                expect(canEditBillable).toBe(false);
+                // When the billable field is edited
+                const canEditBillable = canEditFieldOfMoneyRequest({
+                    reportAction,
+                    fieldToEdit: CONST.EDIT_REQUEST_FIELD.BILLABLE,
+                    transaction: moneyRequestTransaction,
+                    rules: undefined,
+                    reportNameValuePairs: undefined,
+                });
+
+                // Then it is allowed, because billable follows the coding fields in every report state. This is what
+                // the single-expense view already does, so bulk edit has to agree with it
+                expect(canEditBillable).toBe(true);
+            });
+
+            it('should return true for invoice report action when billable field is edited on a paid invoice report', async () => {
+                // Given an invoice that has already been paid, which lands on REIMBURSED rather than APPROVED
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${IOUReportID}`, {
+                    stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                    statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED,
+                });
+                await waitForBatchedUpdates();
+
+                // When the billable field is edited
+                const canEditBillable = canEditFieldOfMoneyRequest({
+                    reportAction,
+                    fieldToEdit: CONST.EDIT_REQUEST_FIELD.BILLABLE,
+                    transaction: moneyRequestTransaction,
+                    rules: undefined,
+                    reportNameValuePairs: undefined,
+                });
+
+                // Then it is allowed too, so approved and paid invoices stay consistent with each other
+                expect(canEditBillable).toBe(true);
             });
 
             it('should return true for invoice report action when billable field is edited on an unapproved invoice report', () => {
-                const canEditBillable = canEditFieldOfMoneyRequest({reportAction, fieldToEdit: CONST.EDIT_REQUEST_FIELD.BILLABLE, transaction: moneyRequestTransaction});
+                const canEditBillable = canEditFieldOfMoneyRequest({
+                    reportAction,
+                    fieldToEdit: CONST.EDIT_REQUEST_FIELD.BILLABLE,
+                    transaction: moneyRequestTransaction,
+                    rules: undefined,
+                    reportNameValuePairs: undefined,
+                });
                 expect(canEditBillable).toBe(true);
             });
         });
@@ -244,8 +286,20 @@ describe('canEditFieldOfMoneyRequest', () => {
 
                 // If it is the submitter of a distance request
                 const distanceTransaction = {...moneyRequestTransaction, iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE};
-                const canEditReportFieldAmount = canEditFieldOfMoneyRequest({reportAction, fieldToEdit: CONST.EDIT_REQUEST_FIELD.AMOUNT, transaction: distanceTransaction});
-                const canEditReportFieldCurrency = canEditFieldOfMoneyRequest({reportAction, fieldToEdit: CONST.EDIT_REQUEST_FIELD.CURRENCY, transaction: distanceTransaction});
+                const canEditReportFieldAmount = canEditFieldOfMoneyRequest({
+                    reportAction,
+                    fieldToEdit: CONST.EDIT_REQUEST_FIELD.AMOUNT,
+                    transaction: distanceTransaction,
+                    rules: undefined,
+                    reportNameValuePairs: undefined,
+                });
+                const canEditReportFieldCurrency = canEditFieldOfMoneyRequest({
+                    reportAction,
+                    fieldToEdit: CONST.EDIT_REQUEST_FIELD.CURRENCY,
+                    transaction: distanceTransaction,
+                    rules: undefined,
+                    reportNameValuePairs: undefined,
+                });
 
                 // Then we should allow editing amount and currency fields.
                 expect(canEditReportFieldAmount).toBe(true);
@@ -269,14 +323,46 @@ describe('canEditFieldOfMoneyRequest', () => {
 
                 // When the submitter tries to move an expense between reports
                 const canEditReportField = canEditFieldOfMoneyRequest({
+                    rules: undefined,
                     reportAction,
                     fieldToEdit: CONST.EDIT_REQUEST_FIELD.REPORT,
                     outstandingReportsByPolicyID,
                     transaction: moneyRequestTransaction,
+                    reportNameValuePairs: undefined,
                 });
 
                 // Then they should be able to move the expense since there are multiple outstanding expense reports
                 expect(canEditReportField).toBe(true);
+            });
+
+            it('should return false when the expense report is archived', async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${IOUReportID}`, expenseReport);
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${EXPENSE_OUTSTANDING_REPORT_1_ID}`, outstandingExpenseReport1);
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${EXPENSE_OUTSTANDING_REPORT_2_ID}`, outstandingExpenseReport2);
+                await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, expensePolicy);
+                await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+                    [currentUserAccountID]: {
+                        accountID: currentUserAccountID,
+                        login: currentUserEmail,
+                    },
+                });
+                await waitForBatchedUpdates();
+                const outstandingReportsByPolicyID = await OnyxUtils.get(ONYXKEYS.DERIVED.OUTSTANDING_REPORTS_BY_POLICY_ID);
+
+                const canEditReportField = canEditFieldOfMoneyRequest({
+                    rules: undefined,
+                    reportAction,
+                    fieldToEdit: CONST.EDIT_REQUEST_FIELD.REPORT,
+                    outstandingReportsByPolicyID,
+                    transaction: moneyRequestTransaction,
+                    reportNameValuePairs: {
+                        [`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${IOUReportID}`]: {
+                            private_isArchived: 'true',
+                        },
+                    },
+                });
+
+                expect(canEditReportField).toBe(false);
             });
 
             it('should return false when the current user is not the submitter or admin and the report is open', async () => {
@@ -296,10 +382,12 @@ describe('canEditFieldOfMoneyRequest', () => {
 
                 // When a user tries to move an expense between reports
                 const canEditReportField = canEditFieldOfMoneyRequest({
+                    rules: undefined,
                     reportAction,
                     fieldToEdit: CONST.EDIT_REQUEST_FIELD.REPORT,
                     outstandingReportsByPolicyID,
                     transaction: moneyRequestTransaction,
+                    reportNameValuePairs: undefined,
                 });
 
                 // Then they should not be able to move the expense since only the submitter or admin can edit the report when the report is open
@@ -329,10 +417,12 @@ describe('canEditFieldOfMoneyRequest', () => {
 
                 // When trying to move an expense between reports
                 const canEditReportField = canEditFieldOfMoneyRequest({
+                    rules: undefined,
                     reportAction,
                     fieldToEdit: CONST.EDIT_REQUEST_FIELD.REPORT,
                     outstandingReportsByPolicyID,
                     transaction: moneyRequestTransaction,
+                    reportNameValuePairs: undefined,
                 });
 
                 // Then they should not be able to move the expense since there's only one outstanding report
@@ -349,10 +439,12 @@ describe('canEditFieldOfMoneyRequest', () => {
 
                 // When the submitter tries to move an expense between reports
                 const canEditReportField = canEditFieldOfMoneyRequest({
+                    rules: undefined,
                     reportAction,
                     fieldToEdit: CONST.EDIT_REQUEST_FIELD.REPORT,
                     outstandingReportsByPolicyID,
                     transaction: moneyRequestTransaction,
+                    reportNameValuePairs: undefined,
                 });
 
                 // Then they should be able to move the expense since there are multiple outstanding expense reports
@@ -416,7 +508,13 @@ describe('canEditFieldOfMoneyRequest', () => {
                 });
                 await waitForBatchedUpdates();
 
-                const canEditReceipt = canEditFieldOfMoneyRequest({reportAction: dewReportAction, fieldToEdit: CONST.EDIT_REQUEST_FIELD.RECEIPT, transaction: dewTransaction});
+                const canEditReceipt = canEditFieldOfMoneyRequest({
+                    reportAction: dewReportAction,
+                    fieldToEdit: CONST.EDIT_REQUEST_FIELD.RECEIPT,
+                    transaction: dewTransaction,
+                    rules: undefined,
+                    reportNameValuePairs: undefined,
+                });
 
                 expect(canEditReceipt).toBe(false);
             });
@@ -439,7 +537,13 @@ describe('canEditFieldOfMoneyRequest', () => {
                 });
                 await waitForBatchedUpdates();
 
-                const canEditReceipt = canEditFieldOfMoneyRequest({reportAction: dewReportAction, fieldToEdit: CONST.EDIT_REQUEST_FIELD.RECEIPT, transaction: dewTransaction});
+                const canEditReceipt = canEditFieldOfMoneyRequest({
+                    reportAction: dewReportAction,
+                    fieldToEdit: CONST.EDIT_REQUEST_FIELD.RECEIPT,
+                    transaction: dewTransaction,
+                    rules: undefined,
+                    reportNameValuePairs: undefined,
+                });
 
                 expect(canEditReceipt).toBe(true);
             });
@@ -466,7 +570,13 @@ describe('canEditFieldOfMoneyRequest', () => {
                 });
                 await waitForBatchedUpdates();
 
-                const canEditReceipt = canEditFieldOfMoneyRequest({reportAction: dewReportAction, fieldToEdit: CONST.EDIT_REQUEST_FIELD.RECEIPT, transaction: dewTransaction});
+                const canEditReceipt = canEditFieldOfMoneyRequest({
+                    reportAction: dewReportAction,
+                    fieldToEdit: CONST.EDIT_REQUEST_FIELD.RECEIPT,
+                    transaction: dewTransaction,
+                    rules: undefined,
+                    reportNameValuePairs: undefined,
+                });
 
                 expect(canEditReceipt).toBe(true);
             });
@@ -490,10 +600,12 @@ describe('canEditFieldOfMoneyRequest', () => {
                 await waitForBatchedUpdates();
 
                 const canDeleteReceipt = canEditFieldOfMoneyRequest({
+                    rules: undefined,
                     reportAction: dewReportAction,
                     fieldToEdit: CONST.EDIT_REQUEST_FIELD.RECEIPT,
                     isDeleteAction: true,
                     transaction: dewTransaction,
+                    reportNameValuePairs: undefined,
                 });
 
                 expect(canDeleteReceipt).toBe(true);
@@ -529,13 +641,225 @@ describe('canEditFieldOfMoneyRequest', () => {
                 await waitForBatchedUpdates();
 
                 const canDeleteReceipt = canEditFieldOfMoneyRequest({
+                    rules: undefined,
                     reportAction: nonRequestorReportAction,
                     fieldToEdit: CONST.EDIT_REQUEST_FIELD.RECEIPT,
                     isDeleteAction: true,
                     transaction: dewTransaction,
+                    reportNameValuePairs: undefined,
                 });
 
                 expect(canDeleteReceipt).toBe(false);
+            });
+        });
+
+        describe('receipt on an approved expense', () => {
+            const APPROVED_POLICY_ID = '55';
+            const APPROVED_REPORT_ID = '66';
+            const APPROVED_TRANSACTION_ID = '77';
+            const EXPENSE_AMOUNT = 500;
+
+            const approvedReportAction = {
+                ...createRandomReportAction(9),
+                reportID: APPROVED_REPORT_ID,
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                actorAccountID: currentUserAccountID,
+                originalMessage: {
+                    IOUTransactionID: APPROVED_TRANSACTION_ID,
+                    type: CONST.IOU.ACTION.CREATE,
+                    amount: EXPENSE_AMOUNT,
+                    currency: CONST.CURRENCY.USD,
+                },
+            };
+
+            const approvedTransaction = {
+                ...createRandomTransaction(Number(APPROVED_TRANSACTION_ID)),
+                transactionID: APPROVED_TRANSACTION_ID,
+                reportID: APPROVED_REPORT_ID,
+                amount: EXPENSE_AMOUNT,
+            };
+
+            const memberPolicy: Policy = {
+                ...createRandomPolicy(Number(APPROVED_POLICY_ID), CONST.POLICY.TYPE.CORPORATE),
+                id: APPROVED_POLICY_ID,
+                role: CONST.POLICY.ROLE.USER,
+            };
+
+            const adminPolicy: Policy = {...memberPolicy, role: CONST.POLICY.ROLE.ADMIN};
+
+            const approvedReport = {
+                ...createExpenseReport(Number(APPROVED_REPORT_ID)),
+                policyID: APPROVED_POLICY_ID,
+                ownerAccountID: currentUserAccountID,
+                stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
+            };
+
+            const setUpOnyx = async (reportPolicy: Policy, report: Report = approvedReport, reportAction = approvedReportAction) => {
+                const policyCollectionDataSet = toCollectionDataSet(ONYXKEYS.COLLECTION.POLICY, [reportPolicy], (p) => p.id);
+                await Onyx.multiSet({
+                    [ONYXKEYS.SESSION]: {email: currentUserEmail, accountID: currentUserAccountID},
+                    [`${ONYXKEYS.COLLECTION.TRANSACTION}${APPROVED_TRANSACTION_ID}`]: approvedTransaction,
+                    [`${ONYXKEYS.COLLECTION.REPORT}${APPROVED_REPORT_ID}`]: report,
+                    ...policyCollectionDataSet,
+                });
+                await waitForBatchedUpdates();
+                return reportAction;
+            };
+
+            afterEach(() => {
+                Onyx.clear();
+                return waitForBatchedUpdates();
+            });
+
+            it('should return true for an admin replacing a receipt on an approved report', async () => {
+                const reportAction = await setUpOnyx(adminPolicy);
+
+                const canEditReceipt = canEditFieldOfMoneyRequest({
+                    reportAction,
+                    fieldToEdit: CONST.EDIT_REQUEST_FIELD.RECEIPT,
+                    transaction: approvedTransaction,
+                    rules: undefined,
+                    reportNameValuePairs: undefined,
+                });
+
+                expect(canEditReceipt).toBe(true);
+            });
+
+            it('should return false for the non-admin submitter replacing a receipt on an approved report', async () => {
+                const reportAction = await setUpOnyx(memberPolicy);
+
+                const canEditReceipt = canEditFieldOfMoneyRequest({
+                    reportAction,
+                    fieldToEdit: CONST.EDIT_REQUEST_FIELD.RECEIPT,
+                    transaction: approvedTransaction,
+                    rules: undefined,
+                    reportNameValuePairs: undefined,
+                });
+
+                expect(canEditReceipt).toBe(false);
+            });
+
+            it('should return false for a non-admin manager replacing a receipt on an approved report', async () => {
+                const reportAction = await setUpOnyx(memberPolicy, {
+                    ...approvedReport,
+                    ownerAccountID: secondUserAccountID,
+                    managerID: currentUserAccountID,
+                });
+
+                const canEditReceipt = canEditFieldOfMoneyRequest({
+                    reportAction,
+                    fieldToEdit: CONST.EDIT_REQUEST_FIELD.RECEIPT,
+                    transaction: approvedTransaction,
+                    rules: undefined,
+                    reportNameValuePairs: undefined,
+                });
+
+                expect(canEditReceipt).toBe(false);
+            });
+
+            it('should return false for an admin deleting a receipt on an approved report', async () => {
+                const reportAction = await setUpOnyx(adminPolicy);
+
+                const canDeleteReceipt = canEditFieldOfMoneyRequest({
+                    reportAction,
+                    fieldToEdit: CONST.EDIT_REQUEST_FIELD.RECEIPT,
+                    isDeleteAction: true,
+                    transaction: approvedTransaction,
+                    rules: undefined,
+                    reportNameValuePairs: undefined,
+                });
+
+                expect(canDeleteReceipt).toBe(false);
+            });
+
+            it('should return false for an admin replacing a receipt on a reimbursed report', async () => {
+                const reportAction = await setUpOnyx(adminPolicy, {
+                    ...approvedReport,
+                    statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED,
+                });
+
+                const canEditReceipt = canEditFieldOfMoneyRequest({
+                    reportAction,
+                    fieldToEdit: CONST.EDIT_REQUEST_FIELD.RECEIPT,
+                    transaction: approvedTransaction,
+                    rules: undefined,
+                    reportNameValuePairs: undefined,
+                });
+
+                expect(canEditReceipt).toBe(false);
+            });
+
+            it('should keep the other restricted fields locked for an admin on an approved report', async () => {
+                const reportAction = await setUpOnyx(adminPolicy);
+
+                const restrictedFields = [
+                    CONST.EDIT_REQUEST_FIELD.AMOUNT,
+                    CONST.EDIT_REQUEST_FIELD.CURRENCY,
+                    CONST.EDIT_REQUEST_FIELD.MERCHANT,
+                    CONST.EDIT_REQUEST_FIELD.DATE,
+                    CONST.EDIT_REQUEST_FIELD.REIMBURSABLE,
+                ];
+
+                for (const fieldToEdit of restrictedFields) {
+                    expect(canEditFieldOfMoneyRequest({reportAction, fieldToEdit, transaction: approvedTransaction, rules: undefined, reportNameValuePairs: undefined})).toBe(false);
+                }
+            });
+
+            it('should return true for an admin editing billable on an approved report', async () => {
+                // Given an expense on an approved report in a workspace the current user admins
+                const reportAction = await setUpOnyx(adminPolicy);
+
+                // When the admin edits the billable field
+                const canEditBillable = canEditFieldOfMoneyRequest({
+                    reportAction,
+                    fieldToEdit: CONST.EDIT_REQUEST_FIELD.BILLABLE,
+                    transaction: approvedTransaction,
+                    rules: undefined,
+                    reportNameValuePairs: undefined,
+                });
+
+                // Then it is allowed, because billable is a coding field an admin can already change one expense at a
+                // time on an approved report, and bulk edit has to offer the same thing to stay consistent with it
+                expect(canEditBillable).toBe(true);
+            });
+
+            it('should return true for an admin editing billable on a reimbursed report', async () => {
+                // Given an expense on a report that has already been paid
+                const reportAction = await setUpOnyx(adminPolicy, {
+                    ...approvedReport,
+                    statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED,
+                });
+
+                // When the admin edits the billable field
+                const canEditBillable = canEditFieldOfMoneyRequest({
+                    reportAction,
+                    fieldToEdit: CONST.EDIT_REQUEST_FIELD.BILLABLE,
+                    transaction: approvedTransaction,
+                    rules: undefined,
+                    reportNameValuePairs: undefined,
+                });
+
+                // Then it is still allowed, since paying a report does not lock its coding
+                expect(canEditBillable).toBe(true);
+            });
+
+            it('should return false for the non-admin submitter editing billable on an approved report', async () => {
+                // Given the same approved report seen by the submitter, who is a plain workspace member
+                const reportAction = await setUpOnyx(memberPolicy);
+
+                // When they try to edit the billable field
+                const canEditBillable = canEditFieldOfMoneyRequest({
+                    reportAction,
+                    fieldToEdit: CONST.EDIT_REQUEST_FIELD.BILLABLE,
+                    transaction: approvedTransaction,
+                    rules: undefined,
+                    reportNameValuePairs: undefined,
+                });
+
+                // Then it is blocked, so dropping billable from the restricted fields does not widen access past
+                // admins and the report manager
+                expect(canEditBillable).toBe(false);
             });
         });
 
@@ -597,9 +921,11 @@ describe('canEditFieldOfMoneyRequest', () => {
 
             it('should return true for a regular legacy unreported expense with no report action', () => {
                 const canEditReportField = canEditFieldOfMoneyRequest({
+                    rules: undefined,
                     reportAction: undefined,
                     fieldToEdit: CONST.EDIT_REQUEST_FIELD.REPORT,
                     transaction: legacyTransaction,
+                    reportNameValuePairs: undefined,
                 });
                 expect(canEditReportField).toBe(true);
             });
@@ -610,9 +936,11 @@ describe('canEditFieldOfMoneyRequest', () => {
                 await waitForBatchedUpdates();
 
                 const canEditReportField = canEditFieldOfMoneyRequest({
+                    rules: undefined,
                     reportAction: undefined,
                     fieldToEdit: CONST.EDIT_REQUEST_FIELD.REPORT,
                     transaction: legacyPerDiemTransaction,
+                    reportNameValuePairs: undefined,
                 });
                 expect(canEditReportField).toBe(true);
             });
@@ -623,18 +951,22 @@ describe('canEditFieldOfMoneyRequest', () => {
                 await waitForBatchedUpdates();
 
                 const canEditReportField = canEditFieldOfMoneyRequest({
+                    rules: undefined,
                     reportAction: undefined,
                     fieldToEdit: CONST.EDIT_REQUEST_FIELD.REPORT,
                     transaction: legacyPerDiemTransaction,
+                    reportNameValuePairs: undefined,
                 });
                 expect(canEditReportField).toBe(false);
             });
 
             it('should return false for a legacy unreported expense when field is not REPORT', () => {
                 const canEditDescription = canEditFieldOfMoneyRequest({
+                    rules: undefined,
                     reportAction: undefined,
                     fieldToEdit: CONST.EDIT_REQUEST_FIELD.DESCRIPTION,
                     transaction: legacyTransaction,
+                    reportNameValuePairs: undefined,
                 });
                 expect(canEditDescription).toBe(false);
             });
@@ -721,7 +1053,13 @@ describe('canEditFieldOfMoneyRequest', () => {
                 });
                 await waitForBatchedUpdates();
 
-                const canEditReportField = canEditFieldOfMoneyRequest({reportAction: perDiemReportAction, fieldToEdit: CONST.EDIT_REQUEST_FIELD.REPORT, transaction: perDiemTransaction});
+                const canEditReportField = canEditFieldOfMoneyRequest({
+                    reportAction: perDiemReportAction,
+                    fieldToEdit: CONST.EDIT_REQUEST_FIELD.REPORT,
+                    transaction: perDiemTransaction,
+                    rules: undefined,
+                    reportNameValuePairs: undefined,
+                });
 
                 expect(canEditReportField).toBe(true);
             });
@@ -734,7 +1072,13 @@ describe('canEditFieldOfMoneyRequest', () => {
                 });
                 await waitForBatchedUpdates();
 
-                const canEditReportField = canEditFieldOfMoneyRequest({reportAction: perDiemReportAction, fieldToEdit: CONST.EDIT_REQUEST_FIELD.REPORT, transaction: perDiemTransaction});
+                const canEditReportField = canEditFieldOfMoneyRequest({
+                    reportAction: perDiemReportAction,
+                    fieldToEdit: CONST.EDIT_REQUEST_FIELD.REPORT,
+                    transaction: perDiemTransaction,
+                    rules: undefined,
+                    reportNameValuePairs: undefined,
+                });
 
                 expect(canEditReportField).toBe(false);
             });
@@ -815,7 +1159,13 @@ describe('canEditFieldOfMoneyRequest', () => {
             await waitForBatchedUpdates();
 
             // When the admin tries to edit the receipt field
-            const canEditReceipt = canEditFieldOfMoneyRequest({reportAction, fieldToEdit: CONST.EDIT_REQUEST_FIELD.RECEIPT, transaction: moneyRequestTransaction});
+            const canEditReceipt = canEditFieldOfMoneyRequest({
+                reportAction,
+                fieldToEdit: CONST.EDIT_REQUEST_FIELD.RECEIPT,
+                transaction: moneyRequestTransaction,
+                rules: undefined,
+                reportNameValuePairs: undefined,
+            });
 
             // Then they should not be able to edit the receipt on a closed report
             expect(canEditReceipt).toBe(false);
@@ -836,10 +1186,131 @@ describe('canEditFieldOfMoneyRequest', () => {
             await waitForBatchedUpdates();
 
             // When the admin tries to edit the receipt field
-            const canEditReceipt = canEditFieldOfMoneyRequest({reportAction, fieldToEdit: CONST.EDIT_REQUEST_FIELD.RECEIPT, transaction: moneyRequestTransaction});
+            const canEditReceipt = canEditFieldOfMoneyRequest({
+                reportAction,
+                fieldToEdit: CONST.EDIT_REQUEST_FIELD.RECEIPT,
+                transaction: moneyRequestTransaction,
+                rules: undefined,
+                reportNameValuePairs: undefined,
+            });
 
             // Then they should be able to edit the receipt on an open report
             expect(canEditReceipt).toBe(true);
+        });
+    });
+
+    describe('reportActions', () => {
+        // A corporate workspace where the current user submits to the second user, who is also the report's manager,
+        // so whether the submitter can still edit restricted fields depends only on the passed report actions
+        const secondUserEmail = 'floki@vikings.net';
+        const forwardedPolicyID = '77';
+        const forwardedReportID = '770';
+        const forwardedTransactionID = '771';
+        const corporatePolicy: Policy = {
+            id: forwardedPolicyID,
+            name: 'Advanced approval policy',
+            role: CONST.POLICY.ROLE.USER,
+            type: CONST.POLICY.TYPE.CORPORATE,
+            owner: '',
+            outputCurrency: CONST.CURRENCY.USD,
+            employeeList: {
+                [currentUserEmail]: {email: currentUserEmail, role: CONST.POLICY.ROLE.USER, submitsTo: secondUserEmail},
+            },
+        };
+        const submittedExpenseReport = {
+            ...createExpenseReport(Number(forwardedReportID)),
+            policyID: forwardedPolicyID,
+            ownerAccountID: currentUserAccountID,
+            managerID: secondUserAccountID,
+            stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+            statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+        };
+        const transaction = {
+            ...createRandomTransaction(Number(forwardedTransactionID)),
+            transactionID: forwardedTransactionID,
+            reportID: forwardedReportID,
+            managedCard: false,
+        };
+        const moneyRequestAction: ReportAction = {
+            ...createRandomReportAction(772),
+            reportID: forwardedReportID,
+            actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+            actorAccountID: currentUserAccountID,
+            originalMessage: {
+                IOUTransactionID: forwardedTransactionID,
+                IOUReportID: forwardedReportID,
+                type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                amount: 50,
+                currency: CONST.CURRENCY.USD,
+            },
+        };
+        const submittedAction: ReportAction = {
+            ...createRandomReportAction(773),
+            actionName: CONST.REPORT.ACTIONS.TYPE.SUBMITTED,
+            created: '2026-04-21 17:00:00',
+        };
+        const forwardedAction: ReportAction = {
+            ...createRandomReportAction(774),
+            actionName: CONST.REPORT.ACTIONS.TYPE.FORWARDED,
+            created: '2026-04-21 17:10:00',
+        };
+        const submitOnlyActions = {[submittedAction.reportActionID]: submittedAction};
+        const forwardedActions = {[submittedAction.reportActionID]: submittedAction, [forwardedAction.reportActionID]: forwardedAction};
+
+        beforeEach(async () => {
+            const policyCollectionDataSet = toCollectionDataSet(ONYXKEYS.COLLECTION.POLICY, [corporatePolicy], (current) => current.id);
+            const reportCollectionDataSet = toCollectionDataSet(ONYXKEYS.COLLECTION.REPORT, [submittedExpenseReport], (current) => current.reportID);
+            const transactionCollectionDataSet = toCollectionDataSet(ONYXKEYS.COLLECTION.TRANSACTION, [transaction], (current) => current.transactionID);
+            await Onyx.multiSet({
+                [ONYXKEYS.SESSION]: {email: currentUserEmail, accountID: currentUserAccountID},
+                [ONYXKEYS.PERSONAL_DETAILS_LIST]: {
+                    [currentUserAccountID]: {accountID: currentUserAccountID, login: currentUserEmail},
+                    [secondUserAccountID]: {accountID: secondUserAccountID, login: secondUserEmail},
+                },
+                ...policyCollectionDataSet,
+                ...reportCollectionDataSet,
+                ...transactionCollectionDataSet,
+            });
+            await waitForBatchedUpdates();
+        });
+
+        afterEach(async () => {
+            await Onyx.clear();
+            await waitForBatchedUpdates();
+        });
+
+        const canEditAmount = (reportActions: Parameters<typeof canEditFieldOfMoneyRequest>[0]['reportActions']) =>
+            canEditFieldOfMoneyRequest({
+                reportAction: moneyRequestAction,
+                fieldToEdit: CONST.EDIT_REQUEST_FIELD.AMOUNT,
+                transaction,
+                report: submittedExpenseReport,
+                policy: corporatePolicy,
+                reportActions,
+                rules: undefined,
+                reportNameValuePairs: undefined,
+            });
+
+        it('should let the submitter edit a restricted field when the passed reportActions show no forward since the last submit', () => {
+            expect(canEditAmount(submitOnlyActions)).toBe(true);
+        });
+
+        it('should block the submitter from editing a restricted field when the passed reportActions show the report was forwarded since the last submit', () => {
+            expect(canEditAmount(forwardedActions)).toBe(false);
+        });
+
+        it('should accept the report actions as an array', () => {
+            expect(canEditAmount([submittedAction])).toBe(true);
+            expect(canEditAmount([submittedAction, forwardedAction])).toBe(false);
+        });
+
+        it('should read the passed reportActions rather than the report actions stored in Onyx', async () => {
+            // The Onyx-stored actions say the report was forwarded...
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${forwardedReportID}`, forwardedActions);
+            await waitForBatchedUpdates();
+
+            // ...but the passed reportActions only contain the submit, and they must win
+            expect(canEditAmount(submitOnlyActions)).toBe(true);
         });
     });
 });

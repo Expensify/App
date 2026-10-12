@@ -13,7 +13,6 @@ import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigati
 import type {SettingsNavigatorParamList} from '@navigation/types';
 
 import RulesRequireFieldsPage from '@pages/workspace/rules/RulesRequireFieldsPage';
-import WorkspaceTagsSettingsPage from '@pages/workspace/tags/WorkspaceTagsSettingsPage';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -32,26 +31,6 @@ import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct'
 TestHelper.setupGlobalFetchMock();
 
 const Stack = createPlatformStackNavigator<SettingsNavigatorParamList>();
-
-const renderSettingsPage = (policyID: string) => {
-    return render(
-        <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, CurrentReportIDContextProvider]}>
-            <PortalProvider>
-                <ModalProvider>
-                    <NavigationContainer>
-                        <Stack.Navigator initialRouteName={SCREENS.WORKSPACE.DYNAMIC_TAGS_SETTINGS}>
-                            <Stack.Screen
-                                name={SCREENS.WORKSPACE.DYNAMIC_TAGS_SETTINGS}
-                                component={WorkspaceTagsSettingsPage}
-                                initialParams={{policyID}}
-                            />
-                        </Stack.Navigator>
-                    </NavigationContainer>
-                </ModalProvider>
-            </PortalProvider>
-        </ComposeProviders>,
-    );
-};
 
 const renderRulesPage = (policyID: string) => {
     return render(
@@ -128,8 +107,6 @@ const dependentMultiLevelTags: PolicyTagLists = {
     },
 };
 
-const getRequiresTagLabel = () => TestHelper.translateLocal('workspace.tags.requiresTag');
-
 beforeAll(() => {
     Onyx.init({keys: ONYXKEYS});
 });
@@ -162,8 +139,7 @@ afterEach(async () => {
 
 const setupPolicy = async (policyTags: PolicyTagLists, hasMultipleTagLists: boolean, policyOverrides: Partial<Policy> = {}, betas: Beta[] = []) => {
     await TestHelper.signInWithTestUser();
-    // signInWithTestUser seeds BETAS with 'all', which turns on rulesRevamp everywhere. Each page needs a different
-    // side of that beta, so pin the exact list after signing in.
+    // signInWithTestUser seeds BETAS with 'all'. Pin the exact list so an unrelated beta can't change what renders.
     await act(async () => {
         await Onyx.set(ONYXKEYS.BETAS, betas);
     });
@@ -181,62 +157,13 @@ const setupPolicy = async (policyTags: PolicyTagLists, hasMultipleTagLists: bool
     return policy;
 };
 
-// With rulesRevamp on, this page no longer renders the toggle at all; it lives on RulesRequireFieldsPage. These cases
-// therefore run with the beta off, which is the path where the gate still applies.
-describe('WorkspaceTagsSettingsPage required-tag toggle visibility', () => {
-    it('shows the "Members must tag all expenses" toggle for single-level tags', async () => {
-        const policy = await setupPolicy(singleLevelTags, false);
-        const {unmount} = renderSettingsPage(policy.id);
-        await waitForBatchedUpdatesWithAct();
-
-        // The billable toggle is always present; wait on its accessibility label before asserting the required toggle.
-        await waitFor(() => {
-            expect(screen.getByLabelText(TestHelper.translateLocal('workspace.tags.trackBillable'))).toBeOnTheScreen();
-        });
-        expect(screen.getByLabelText(getRequiresTagLabel())).toBeOnTheScreen();
-
-        unmount();
-        await waitForBatchedUpdatesWithAct();
-    });
-
-    it('shows the "Members must tag all expenses" toggle for dependent multi-level tags', async () => {
-        const policy = await setupPolicy(dependentMultiLevelTags, true);
-        const {unmount} = renderSettingsPage(policy.id);
-        await waitForBatchedUpdatesWithAct();
-
-        // The billable toggle is always present; wait on its accessibility label before asserting the required toggle.
-        await waitFor(() => {
-            expect(screen.getByLabelText(TestHelper.translateLocal('workspace.tags.trackBillable'))).toBeOnTheScreen();
-        });
-        expect(screen.getByLabelText(getRequiresTagLabel())).toBeOnTheScreen();
-
-        unmount();
-        await waitForBatchedUpdatesWithAct();
-    });
-
-    it('hides the "Members must tag all expenses" toggle for independent multi-level tags', async () => {
-        const policy = await setupPolicy(independentMultiLevelTags, true);
-        const {unmount} = renderSettingsPage(policy.id);
-        await waitForBatchedUpdatesWithAct();
-
-        // The billable toggle is always present, so wait on its label before asserting the required toggle is absent.
-        await waitFor(() => {
-            expect(screen.getByLabelText(TestHelper.translateLocal('workspace.tags.trackBillable'))).toBeOnTheScreen();
-        });
-        expect(screen.queryByLabelText(getRequiresTagLabel())).not.toBeOnTheScreen();
-
-        unmount();
-        await waitForBatchedUpdatesWithAct();
-    });
-});
-
-describe('RulesRequireFieldsPage tag toggles', () => {
+describe('RulesRequireFieldsPage tag toggle visibility', () => {
     const getRulesTagLabel = () => TestHelper.translateLocal('workspace.rules.requireFields.tag');
     const getRulesCategoryLabel = () => TestHelper.translateLocal('workspace.rules.requireFields.category');
 
-    // The page is gated behind the rulesRevamp beta and the Rules feature (Control plan).
+    // The page needs an admin on a Control workspace with the Rules feature on.
     const setupRulesPolicy = async (policyTags: PolicyTagLists, hasMultipleTagLists: boolean) =>
-        setupPolicy(policyTags, hasMultipleTagLists, {type: CONST.POLICY.TYPE.CORPORATE, areRulesEnabled: true}, [CONST.BETAS.RULES_REVAMP]);
+        setupPolicy(policyTags, hasMultipleTagLists, {type: CONST.POLICY.TYPE.CORPORATE, areRulesEnabled: true});
 
     it('names the single toggle after the tag list for single-level tags', async () => {
         const policy = await setupRulesPolicy(singleLevelTags, false);

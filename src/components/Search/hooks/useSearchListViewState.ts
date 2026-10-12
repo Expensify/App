@@ -1,8 +1,8 @@
+import {useEditingCellState} from '@components/EditableCell';
 import useRowLongPressMenu from '@components/Search/primitives/useRowLongPressMenu';
 import useScrollRestoration from '@components/Search/primitives/useScrollRestoration';
 import {useSearchRowSelectionActions, useSearchSelectionContext} from '@components/Search/SearchContext';
 import type {SearchListItem} from '@components/Search/SearchList/ListItem/types';
-import {useEditingCellState} from '@components/TransactionItemRow/EditableCell';
 
 import useKeyboardState from '@hooks/useKeyboardState';
 import useNetwork from '@hooks/useNetwork';
@@ -63,6 +63,7 @@ function useSearchListViewState({data, listData = data, isMobileSelectionModeEna
     // See https://github.com/Expensify/App/issues/48675 for more details
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth, isLargeScreenWidth} = useResponsiveLayout();
+    const contentHeaderHeight = isSmallScreenWidth ? variables.contentHeaderNarrowHeight : variables.contentHeaderHeight;
     const {isEditingCell, wasRecentlyEditingCell} = useEditingCellState();
 
     const listRef = useRef<FlashListRef<SearchListItem>>(null);
@@ -102,7 +103,7 @@ function useSearchListViewState({data, listData = data, isMobileSelectionModeEna
         if (isEditingCell || wasRecentlyEditingCell) {
             return;
         }
-        listRef.current.scrollToIndex({index, animated, viewOffset: -variables.contentHeaderHeight});
+        listRef.current.scrollToIndex({index, animated, viewOffset: -contentHeaderHeight});
     };
 
     useScrollRestoration(listRef);

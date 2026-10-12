@@ -2,8 +2,9 @@ import ActivityIndicator from '@components/ActivityIndicator';
 import UserAvatar from '@components/Avatar/UserAvatar';
 import WorkspaceAvatar from '@components/Avatar/WorkspaceAvatar';
 import AvatarWithDisplayName from '@components/AvatarWithDisplayName';
-import Header from '@components/Header';
+import HeaderTitle from '@components/HeaderTitle';
 import Icon from '@components/Icon';
+import AccountAvatarButton from '@components/Navigation/AccountAvatarButton';
 import PinButton from '@components/PinButton';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import SearchButton from '@components/Search/SearchRouter/SearchButton';
@@ -11,6 +12,7 @@ import SidePanelButton from '@components/SidePanel/SidePanelButton';
 import ThreeDotsMenu from '@components/ThreeDotsMenu';
 import Tooltip from '@components/Tooltip';
 
+import useContentHeaderHeight from '@hooks/useContentHeaderHeight';
 import useDialogLabelRegistration from '@hooks/useDialogLabelRegistration';
 import useInitialFocusRef from '@hooks/useInitialFocusRef';
 import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
@@ -84,6 +86,7 @@ function HeaderWithBackButton({
     shouldOverlay = false,
     shouldNavigateToTopMostReport = false,
     shouldDisplayHelpButton = false,
+    shouldDisplayAccountButton = false,
     shouldDisplaySearchRouter = false,
     style,
     subTitleLink = '',
@@ -101,6 +104,7 @@ function HeaderWithBackButton({
     const [isDownloadButtonActive, temporarilyDisableDownloadButton] = useThrottledButtonState();
     const {translate} = useLocalize();
     const isInLandscapeMode = useIsInLandscapeMode();
+    const {contentHeaderHeightStyle} = useContentHeaderHeight();
     const setBackButtonRef = useInitialFocusRef({shouldSkip: shouldSkipFocusAfterTransition});
 
     const middleContent = useMemo(() => {
@@ -116,16 +120,24 @@ function HeaderWithBackButton({
             );
         }
 
+        const resolvedSubtitle = stepCounterTranslation ?? subtitle;
+
         return (
-            <Header
-                title={title}
-                subtitle={stepCounterTranslation ?? subtitle}
-                textStyles={[titleColor ? StyleUtils.getTextColorStyle(titleColor) : {}, shouldUseHeadlineHeader && styles.textHeadlineH2, titleStyles]}
-                subTitleLink={subTitleLink}
-                numberOfTitleLines={numberOfTitleLines}
-                isScreenHeader
+            <HeaderTitle
+                dialogLabel={title}
                 shouldSkipFocusAfterTransition={shouldSkipFocusAfterTransition}
-            />
+            >
+                {!!title && (
+                    <HeaderTitle.Text
+                        numberOfLines={numberOfTitleLines}
+                        style={[titleColor ? StyleUtils.getTextColorStyle(titleColor) : {}, shouldUseHeadlineHeader && styles.textHeadlineH2, titleStyles]}
+                    >
+                        {title}
+                    </HeaderTitle.Text>
+                )}
+                {!!resolvedSubtitle && <HeaderTitle.Subtitle>{resolvedSubtitle}</HeaderTitle.Subtitle>}
+                {!!subTitleLink && <HeaderTitle.SubtitleLink>{subTitleLink}</HeaderTitle.SubtitleLink>}
+            </HeaderTitle>
         );
     }, [
         StyleUtils,
@@ -198,7 +210,7 @@ function HeaderWithBackButton({
         <View
             style={[
                 styles.headerBar,
-                shouldUseHeadlineHeader && styles.headerBarHeight,
+                contentHeaderHeightStyle,
                 shouldShowBorderBottom && styles.borderBottom,
                 shouldShowBackButton && [styles.pl2],
                 shouldOverlay && StyleSheet.absoluteFill,
@@ -336,6 +348,7 @@ function HeaderWithBackButton({
                 </View>
                 {shouldDisplaySearchRouter && <SearchButton />}
                 {shouldDisplayHelpButton && <SidePanelButton />}
+                {shouldDisplayAccountButton && <AccountAvatarButton />}
             </View>
         </View>
     );

@@ -53,6 +53,7 @@ function createReadinessSignals(overrides: Partial<ReportActionsReadinessSignals
         isConciergeMainDM: false,
         hasCachedReportActions: false,
         showConciergeSidePanelWelcome: false,
+        derivedIsEmptyReport: undefined,
         ...overrides,
     };
 }

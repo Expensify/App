@@ -109,11 +109,11 @@ describe('WorkspaceCardSettingsPage', () => {
 
     describe('Settlement frequency row', () => {
         it('shows the monthly settlement date hint when the card settles monthly', async () => {
-            // Given a card whose settlement frequency is Monthly with a known settlement date
+            // Given a card that settles monthly on the 27th, the way the value arrives: a day of the month, not a date
             await act(async () => {
                 await Onyx.merge(cardSettingsKey, {
                     isMonthlySettlementAllowed: true,
-                    monthlySettlementDate: new Date('2024-01-27'),
+                    monthlySettlementDate: 27,
                 });
                 await waitForBatchedUpdatesWithAct();
             });
@@ -122,10 +122,48 @@ describe('WorkspaceCardSettingsPage', () => {
             renderWorkspaceCardSettingsPage();
             await waitForBatchedUpdatesWithAct();
 
-            // Then the settlement frequency row shows "Monthly" with the settlement-date hint below it
+            // Then the settlement frequency row shows "Monthly" with the settlement-date hint below it, and the hint
+            // shows the 27th rather than a day derived from reading 27 as milliseconds since the epoch
             expect(screen.getByText('Settlement frequency')).toBeTruthy();
             expect(screen.getByText('Monthly')).toBeTruthy();
             expect(screen.getByText('Expensify cards will settle on the 27th of each month.')).toBeTruthy();
+        });
+
+        it('shows the first of the month as the settlement day', async () => {
+            // Given a card that settles monthly on the 1st, the smallest day the backend can send
+            await act(async () => {
+                await Onyx.merge(cardSettingsKey, {
+                    isMonthlySettlementAllowed: true,
+                    monthlySettlementDate: 1,
+                });
+                await waitForBatchedUpdatesWithAct();
+            });
+
+            // When the card settings page is rendered
+            renderWorkspaceCardSettingsPage();
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the hint shows the 1st
+            expect(screen.getByText('Expensify cards will settle on the 1st of each month.')).toBeTruthy();
+        });
+
+        it('shows no settlement date hint when the settlement date cannot be read', async () => {
+            // Given a card that settles monthly but whose settlement date is not a day of the month
+            await act(async () => {
+                await Onyx.merge(cardSettingsKey, {
+                    isMonthlySettlementAllowed: true,
+                    monthlySettlementDate: 1706353253,
+                });
+                await waitForBatchedUpdatesWithAct();
+            });
+
+            // When the card settings page is rendered
+            renderWorkspaceCardSettingsPage();
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the row still shows "Monthly" and no hint is rendered, rather than a wrong settlement date
+            expect(screen.getByText('Monthly')).toBeTruthy();
+            expect(screen.queryByText(/Expensify cards will settle on the .* of each month\./)).toBeNull();
         });
 
         it('does not show the monthly settlement date hint when the card settles daily', async () => {

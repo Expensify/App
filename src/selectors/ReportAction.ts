@@ -1,4 +1,4 @@
-import {filterOutDeprecatedReportActions, getLinkedTransactionID, getSortedReportActions, isActionOfType} from '@libs/ReportActionsUtils';
+import {filterOutDeprecatedReportActions, getIOUActionForTransactionID, getLinkedTransactionID, getOriginalMessage, getSortedReportActions, isActionOfType} from '@libs/ReportActionsUtils';
 
 import CONST from '@src/CONST';
 import type {ReportAction, ReportActions} from '@src/types/onyx';
@@ -51,6 +51,19 @@ function getReportActionByIDSelector(reportActions: OnyxEntry<ReportActions>, re
         return;
     }
     return reportActions[reportActionID];
+}
+
+function getReimbursedExpectedDateSelector(reportActions: OnyxEntry<ReportActions>, paymentCreated: string): string | undefined {
+    let latestReimbursedAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REIMBURSED> | undefined;
+    for (const reportAction of Object.values(reportActions ?? {})) {
+        if (!isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.REIMBURSED) || reportAction.created > paymentCreated) {
+            continue;
+        }
+        if (!latestReimbursedAction || reportAction.created > latestReimbursedAction.created) {
+            latestReimbursedAction = reportAction;
+        }
+    }
+    return getOriginalMessage(latestReimbursedAction)?.expectedDate;
 }
 
 /**
@@ -125,12 +138,18 @@ function getReceiptScanFailedIOUActionDataSelector(
     };
 }
 
+/** Returns the transaction thread reportID (childReportID of the transaction's IOU action) from the expense report's actions. */
+const transactionThreadReportIDSelector = (transactionID: string | undefined) => (reportActions: OnyxEntry<ReportActions>) =>
+    transactionID ? getIOUActionForTransactionID(Object.values(reportActions ?? {}), transactionID)?.childReportID : undefined;
+
 export {
     getParentReportActionSelector,
     getLastClosedReportAction,
     getNewestReportActionSelector,
+    getReimbursedExpectedDateSelector,
     getReportActionByIDSelector,
     getReceiptScanFailedIOUActionDataSelector,
     reportVisibleActionsSelector,
+    transactionThreadReportIDSelector,
 };
 export type {NewestReportAction};

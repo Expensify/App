@@ -2,6 +2,7 @@ import type {MeasurableInput} from '@components/SelectionList/SelectionListWithS
 
 import CONST from '@src/CONST';
 
+import type {ComponentRef} from 'react';
 import type {EmitterSubscription, NativeScrollEvent, NativeSyntheticEvent, View} from 'react-native';
 
 import {useCallback, useEffect, useRef} from 'react';
@@ -29,7 +30,7 @@ function isMeasurable(node: MeasurableInput): node is MeasurableNode {
  * so we instead pull the focused input up toward the top of the list area once the keyboard is shown.
  */
 const useScrollToFocusedInput: UseScrollToFocusedInput = (listRef, isKeyboardShown) => {
-    const containerRef = useRef<View | null>(null);
+    const containerRef = useRef<ComponentRef<typeof View> | null>(null);
     const scrollOffsetRef = useRef(0);
     const isKeyboardShownRef = useRef(isKeyboardShown);
     const keyboardListenerRef = useRef<EmitterSubscription | null>(null);

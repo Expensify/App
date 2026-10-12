@@ -1,0 +1,33 @@
+name: Re.Pack babel allowlist guard
+
+on:
+  pull_request:
+    types: [opened, synchronize]
+    paths:
+      - 'package.json'
+      - 'package-lock.json'
+      - 'config/repack/**'
+      - 'scripts/checkRepackBabelAllowlist.ts'
+      - '.github/workflows/repackBabelAllowlist.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.ref }}-repack-babel-allowlist
+  cancel-in-progress: true
+
+jobs:
+  check-allowlist:
+    name: Check Re.Pack babel allowlist
+    if: ${{ github.actor != 'OSBotify' }}
+    runs-on: blacksmith-2vcpu-ubuntu-2404
+    steps:
+      - name: Checkout
+        uses: useblacksmith/checkout@1c9394c220d293645707b625ba9d79685f093a8f # v1
+
+      - name: Setup Node
+        uses: ./.github/actions/composite/setupNode
+
+      - name: Check that every package needing the babel path is allowlisted
+        run: npx bun ./scripts/checkRepackBabelAllowlist.ts

@@ -1,4 +1,4 @@
-import Button from '@components/ButtonComposed';
+import Button from '@components/Button';
 import ActionableItemButtons from '@components/ReportActionItem/ActionableItemButtons';
 
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
@@ -34,6 +34,9 @@ function FraudAlertContent({action, reportID}: FraudAlertContentProps) {
     const [card] = useOnyx(ONYXKEYS.CARD_LIST, {selector: cardByIdSelector(String(cardID))});
     const possibleFraud = card?.nameValuePairs?.possibleFraud ?? null;
 
+    // CARD_LIST only holds the current user's cards, so a match means the current user is the cardholder and the fraud is still live.
+    const canResolve = !originalMessage?.resolution && !!reportID && String(possibleFraud?.fraudAlertReportID) === reportID;
+
     const message = getActionableCardFraudAlertMessage(translate, dateFnsLocale, action, getLocalDateFromDatetime, convertToDisplayString);
 
     return (
@@ -43,7 +46,7 @@ function FraudAlertContent({action, reportID}: FraudAlertContentProps) {
             accessibilityLabel={translate('reportFraudConfirmationPage.title')}
         >
             <ReportActionItemBasicMessage message={message} />
-            {!originalMessage?.resolution && (
+            {canResolve && (
                 <ActionableItemButtons layout="horizontal">
                     <Button
                         variant={CONST.BUTTON_VARIANT.SUCCESS}

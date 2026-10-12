@@ -3,6 +3,7 @@ import Badge from '@components/Badge';
 import Icon from '@components/Icon';
 import Table from '@components/Table';
 import {getCellAccessibilityProps, shouldUseTableSemantics} from '@components/Table/tableAccessibility';
+import {useTableContext} from '@components/Table/TableContext';
 import TextWithTooltip from '@components/TextWithTooltip';
 
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -20,21 +21,16 @@ import {View} from 'react-native';
 import type {DomainAdminRowData} from '.';
 
 type DomainAdminsTableRowProps = {
-    /** Data about the domain admin */
     item: DomainAdminRowData;
-
-    /** The index of the row relative to all other rows */
     rowIndex: number;
-
-    /** Whether to use narrow table row layout */
-    shouldUseNarrowTableLayout: boolean;
 };
 
-export default function DomainAdminsTableRow({item, rowIndex, shouldUseNarrowTableLayout}: DomainAdminsTableRowProps) {
+export default function DomainAdminsTableRow({item, rowIndex}: DomainAdminsTableRowProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['ArrowRight']);
+    const {shouldUseNarrowTableLayout} = useTableContext<DomainAdminRowData>();
 
     const isTableSemanticsEnabled = shouldUseTableSemantics(shouldUseNarrowTableLayout);
 

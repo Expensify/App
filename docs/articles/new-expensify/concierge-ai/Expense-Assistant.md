@@ -75,6 +75,8 @@ Concierge uses context to figure out which expense you mean:
 - **In a workspace chat:** It focuses on expenses tied to that Workspace.
 - **In a direct message (DM):** It may ask for more details if it’s unclear.
 
+If you open Concierge with the **Help** icon in a report header, Concierge uses that report as context and looks there first. This works the same way on web and mobile.
+
 The more details you provide, the easier it is for Concierge to help.
 
 # What if I make a mistake?

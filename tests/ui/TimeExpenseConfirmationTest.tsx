@@ -24,6 +24,7 @@ import Onyx from 'react-native-onyx';
 import type * as TrackExpense from '../../src/libs/actions/IOU/TrackExpense';
 
 import createRandomPolicy from '../utils/collections/policies';
+import createMockScreenNavigation from '../utils/createMockScreenNavigation';
 import {signInWithTestUser} from '../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
@@ -104,6 +105,9 @@ jest.mock('@libs/Navigation/Navigation', () => {
         clearFullscreenPreInsertedFlag: jest.fn(),
         revealRouteBeforeDismissingModal: jest.fn(),
         isTopmostRouteModalScreen: jest.fn(() => false),
+        getTopmostReportId: jest.fn(() => undefined),
+        preInsertFullscreenUnderRHP: jest.fn(),
+        removePreInsertedFullscreenIfNeeded: jest.fn(),
         navigationRef: mockRef,
     };
 });
@@ -187,6 +191,8 @@ const DEFAULT_TIME_TRANSACTION: Transaction = {
     iouRequestType: CONST.IOU.REQUEST_TYPE.TIME,
 };
 
+const {navigation: mockNavigation} = createMockScreenNavigation();
+
 function renderConfirmation(action: IOUAction = CONST.IOU.ACTION.CREATE) {
     return render(
         <OnyxListItemProvider>
@@ -205,8 +211,7 @@ function renderConfirmation(action: IOUAction = CONST.IOU.ACTION.CREATE) {
                                         reportID: POLICY_CHAT_REPORT_ID,
                                     },
                                 }}
-                                // @ts-expect-error we don't need navigation param here
-                                navigation={undefined}
+                                navigation={mockNavigation}
                             />
                         </CurrencyListContextProvider>
                     </LocaleContextProvider>
@@ -262,7 +267,7 @@ describe('TimeExpenseConfirmationTest', () => {
             renderConfirmation();
             await waitForBatchedUpdatesWithAct();
 
-            const hoursRow = screen.getByTestId('menu-item-Hours');
+            const hoursRow = screen.getByRole('button', {name: /^Hours/});
             expect(within(hoursRow).getByText('8')).toBeDefined();
         });
 
@@ -272,7 +277,7 @@ describe('TimeExpenseConfirmationTest', () => {
             renderConfirmation();
             await waitForBatchedUpdatesWithAct();
 
-            const rateRow = screen.getByTestId('menu-item-Rate');
+            const rateRow = screen.getByRole('button', {name: /^Rate/});
             expect(within(rateRow).getByText(/\$50\.00 \/ hour/)).toBeDefined();
         });
 
@@ -282,15 +287,11 @@ describe('TimeExpenseConfirmationTest', () => {
             renderConfirmation();
             await waitForBatchedUpdatesWithAct();
 
-            const amountRow = screen.queryByTestId('menu-item-Amount');
-
-            // In the new manual expense flow, amount is rendered as a text input instead of a menu item.
-            if (amountRow) {
-                expect(within(amountRow).getByText(/\$400\.00/)).toBeDefined();
-            } else {
-                const amountInput = screen.getByLabelText('Amount');
-                expect(amountInput.props.value).toBe('400.00');
-            }
+            // A time expense computes its amount from the hours and the rate, so the amount is a read-only row on
+            // both presentations of the form: the push row and the bordered field row the manual form uses. The row
+            // is matched by its label rather than by a button role, since a computed amount has nothing to open.
+            const amountRow = screen.getByLabelText(/^Amount/);
+            expect(within(amountRow).getByText(/\$400\.00/)).toBeDefined();
         });
     });
 
@@ -302,7 +303,7 @@ describe('TimeExpenseConfirmationTest', () => {
             await waitForBatchedUpdatesWithAct();
 
             // Merchant row should not be shown for time expenses during CREATE
-            expect(screen.queryByTestId('menu-item-Merchant')).toBeNull();
+            expect(screen.queryByLabelText(/^Merchant/)).toBeNull();
         });
 
         it('should not display Tax row', async () => {
@@ -312,7 +313,7 @@ describe('TimeExpenseConfirmationTest', () => {
             await waitForBatchedUpdatesWithAct();
 
             // Tax is disabled for time expenses (isTaxTrackingEnabled returns false)
-            expect(screen.queryByTestId('menu-item-Tax')).toBeNull();
+            expect(screen.queryByLabelText(/^Tax/)).toBeNull();
         });
 
         it('should display Merchant but not Hours and Rate when action is submit', async () => {
@@ -321,19 +322,11 @@ describe('TimeExpenseConfirmationTest', () => {
             renderConfirmation(CONST.IOU.ACTION.SUBMIT);
             await waitForBatchedUpdatesWithAct();
 
-            const merchantRow = screen.queryByTestId('menu-item-Merchant');
-
-            // In the new manual expense flow, merchant is rendered as a text input instead of a menu item.
-            if (merchantRow) {
-                expect(merchantRow).toBeDefined();
-            } else {
-                const merchantInput = screen.getByLabelText('Merchant');
-                expect(merchantInput).toBeDefined();
-            }
+            expect(screen.getByLabelText(/^Merchant/)).toBeDefined();
 
             // Hours and Rate are only shown during CREATE
-            expect(screen.queryByTestId('menu-item-Hours')).toBeNull();
-            expect(screen.queryByTestId('menu-item-Rate')).toBeNull();
+            expect(screen.queryByRole('button', {name: /^Hours/})).toBeNull();
+            expect(screen.queryByRole('button', {name: /^Rate/})).toBeNull();
         });
     });
 
@@ -354,7 +347,7 @@ describe('TimeExpenseConfirmationTest', () => {
             renderConfirmation();
             await waitForBatchedUpdatesWithAct();
 
-            const rateRow = screen.getByTestId('menu-item-Rate');
+            const rateRow = screen.getByRole('button', {name: /^Rate/});
             expect(within(rateRow).getByText(/€50\.00 \/ hour/)).toBeDefined();
         });
     });

@@ -29,7 +29,6 @@ type RuleSelectionBaseProps = {
     /** The translated page title */
     title?: string;
 
-    /** Test ID for the screen wrapper */
     testID: string;
 
     /** Callback to go back */
@@ -43,10 +42,7 @@ type RuleSelectionBaseProps = {
 };
 
 type RuleSelectionPickerProps = {
-    /** The currently selected item */
     selectedItem?: SelectionItem;
-
-    /** The list of items to display */
     items: SelectionItem[];
 
     /** Callback when a value is selected */

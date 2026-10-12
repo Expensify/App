@@ -8,9 +8,7 @@ import type {StackScreenProps} from '@react-navigation/stack';
 type OnboardingPrivateDomainProps = Record<string, unknown> & StackScreenProps<OnboardingModalNavigatorParamList, typeof SCREENS.ONBOARDING.PRIVATE_DOMAIN>;
 
 type BaseOnboardingPrivateDomainProps = {
-    /* Whether to use native styles tailored for native devices */
     shouldUseNativeStyles: boolean;
-
     route: RouteProp<OnboardingModalNavigatorParamList, typeof SCREENS.ONBOARDING.PRIVATE_DOMAIN>;
 };
 

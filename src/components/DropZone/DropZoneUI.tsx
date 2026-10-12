@@ -32,7 +32,6 @@ type DropZoneUIProps = {
     /** Custom styles for the inner wrapper of the drop zone */
     dashedBorderStyles?: StyleProp<ViewStyle>;
 
-    /** Custom styles for the drop wrapper */
     dropWrapperStyles?: StyleProp<ViewStyle>;
 };
 

@@ -8,6 +8,7 @@ import getButtonState from '@libs/getButtonState';
 
 import CONST from '@src/CONST';
 
+import type {ComponentRef} from 'react';
 import type {View} from 'react-native';
 
 import React, {useEffect, useRef} from 'react';
@@ -25,7 +26,7 @@ function EmojiPickerMenuItem({
     isHighlighted = false,
     isUsingKeyboardMovement = false,
 }: EmojiPickerMenuItemProps) {
-    const ref = useRef<View>(null);
+    const ref = useRef<ComponentRef<typeof View>>(null);
     const StyleUtils = useStyleUtils();
     const themeStyles = useThemeStyles();
 

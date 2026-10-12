@@ -1,12 +1,13 @@
 # Flows
 
+This file is the reference for every `.ad` file in the repository: the metadata spec, selector rules, recording, and maintenance.
+
 ## Directory layout
 
-- `macros/` - reusable helpers for common setup/navigation actions that stop in a navigable state for further interactive work.
-- `macros/<platform>/` - platform-specific overrides of a `macros/` flow, for flows whose selectors differ per platform. See [Platform scoping](#platform-scoping).
-- `tests/` - critical-scenario scripts for QA/perf verification that assert explicit outcomes (for example Sentry spans) and then stop.
+1. `macros/` contains reusable setup and navigation helpers for interactive work. These are the only flows an interactive agent may propose.
+2. `macros/<platform>/` contains platform-specific overrides of a `macros/` flow, for flows whose selectors differ per platform. See [Platform scoping](#platform-scoping).
 
-Composable `.ad` snippets - bounded units of work. A flow may span one or multiple screens as long as it represents a coherent, reusable action with clear start (`@pre`) and completion (`@post`) checkpoints. Each flow advertises machine-matchable metadata (`@pre`, `@post`, `@tag`, `@param`) via `# @`-prefixed comment headers, while flow type is derived from location (`flows/macros/` or `flows/tests/`).
+`macros/` contains composable `.ad` snippets. The caller owns application startup, authentication, platform selection, session state, and cleanup. A flow may span one or multiple screens as long as it represents a coherent action with clear start (`@pre`) and completion (`@post`) checkpoints.
 
 ## Platform scoping
 
@@ -34,29 +35,24 @@ Before manually navigating, use this human-in-the-loop loop:
 7. `agent-device replay <path> -e KEY=VALUE ...`.
 8. If the flow declares `@post`, verify each `@post` with `is exists`. On success, re-enter the loop only if the user's stated goal is not complete; otherwise stop and report completion. On failure, propose peer flow/manual fallback options and ask before continuing. If no `@post` is declared (utility flow), rely on explicit user confirmation or the next snapshot before continuing.
 
-## QA workflow (separate)
+## Replay lifecycle
 
-`flows/tests/` is reserved for dedicated QA automation and should not be offered to users as part of the interactive helper loop above. Run these flows with the dedicated test runner:
-
-```bash
-agent-device test .claude/skills/agent-device/flows/tests/<name>.ad -e KEY=VALUE ...
-```
+No flow in this repository owns application lifecycle, so none of them is a self-contained `agent-device test` input. `agent-device test` creates an isolated session per attempt; use it only for scripts that own `context`, `open`, and cleanup. Repository flows expect the caller to open the app and prepare a named session first.
 
 ## Metadata header spec
 
 Each flow starts with `# @key value` comment lines. The `.ad` parser treats `#` lines as no-ops, so headers cost nothing at replay time.
 
-| Field    | Cardinality | Value                                                                                            |
-| -------- | ----------- | ------------------------------------------------------------------------------------------------ |
-| `@desc`  | 1           | One-line human summary.                                                                          |
-| `@pre`   | 1..N        | Selector that must resolve in the current snapshot. Multiple lines are ANDed.                    |
-| `@post`  | 0..N        | Selector expected after replay. Multiple lines are ANDed. Used for chaining + success.           |
-| `@tag`   | 0..N        | Free-form category (`auth`, `onboarding`, ...) or scoped (`sentry-<spanName>`).                  |
-| `@param` | 0..N        | Runtime input contract: `@param KEY description.` Use with `${KEY}` in flow body.                |
+| Field    | Cardinality | Value                                                                                  |
+| -------- | ----------- | -------------------------------------------------------------------------------------- |
+| `@desc`  | 1           | One-line human summary.                                                                |
+| `@pre`   | 1..N        | Selector that must resolve in the current snapshot. Multiple lines are ANDed.           |
+| `@post`  | 0..N        | Selector expected after replay. Multiple lines are ANDed. The flow body enforces them. |
+| `@param` | 0..N        | Runtime input contract: `@param KEY description.` Use with `${KEY}` in flow body.      |
 
 Selector syntax matches the body: `id="..."`, `role="..." label="..."`, `text="..."`, `||` for fallbacks.
 
-## Parametrization (`agent-device` v0.13.0+)
+## Parametrization
 
 Declare runtime inputs via metadata (`@param`) and reference them in the body with `${VAR}` interpolation. Values are supplied by caller arguments (`-e`) or shell imports (`AD_VAR_*`) - never by in-file `env` directives.
 
@@ -78,11 +74,16 @@ agent-device replay <flow>.ad -e EMAIL=other@example.com
 ## Authoring rules
 
 - **No `open`, no `close`, no `context` header.** Caller owns lifecycle.
-- **No fixed `wait` calls.** `fill`/`press` resolve selectors with retry. Only add `wait <selector>` for real post-action blocks.
+- **No fixed-duration `wait` calls.** Guard every asynchronous transition with `wait "<selector>" <timeoutMs>`, which polls until the selector resolves. A bare `wait <ms>` only burns wall clock.
+- **No command flags in a flow body.** The `.ad` parser only reads flags for `press`, `fill`, `click`, and a few capture commands; for `is`, `wait`, and `find` it treats `--first` and friends as positionals. Disambiguate with a tighter selector instead.
 - **Durable selectors.** Prefer `id=...` first, then `role=... label=...`, with `||` fallbacks. Avoid `@eN` refs.
+- **A `@pre` must distinguish the start screen from the destination.** A bottom-tab label such as `text="Home"` is rendered on every tab, so asserting it proves nothing. Anchor on a screen-scoped `id=` instead - `id="HomePage"` for Home, `id="BaseSidebarScreen"` for Inbox - otherwise a flow that starts on the wrong screen reports success while the action it measures never happens.
 - **Confirm every selector on the platform it is written for.** `snapshot -i` prints display tags, which are not selector values - a node printed as `[text-field]` may only match `role="textbox"`. Check the exit code of `agent-device is visible "<selector>"` before committing a selector, and never carry one across platforms unchecked.
-- **Every flow declares `@desc` and `@pre`.** Add `@post` for outcome-bearing flows; utility flows (for example `go-back`) may omit it. Add `@tag` when applicable.
-- **Choose directory intentionally.** Put reusable setup/navigation steps in `flows/macros/`; put outcome verification scenarios in `flows/tests/`.
+- **Every flow declares `@desc` and `@pre`.** Outcome-bearing flows also declare at least one `@post`. Utility macros (for example `go-back`) may omit `@post`.
+- **Every declared `@pre` and `@post` runs as a body assertion.** Use `is exists` or `wait`. Metadata documents the contract but does not execute it.
+- **Assertion order decides whether a pass means anything.** Enforce every `@pre` before the first mutation and every `@post` after the last one. An assertion on the wrong side of a mutation lets a flow report success from the screen it started on.
+- **No `find <selector> "click"`.** It resolves at runtime and hides which element was hit. Press an exact selector instead.
+- **A bare `label=` alternative must carry `hittable=true`.** Without it the match can land on an off-screen or non-interactive node and the press silently does nothing.
 - **Keep scope coherent, not artificially tiny.** Flows can span multiple screens when that sequence is the reusable intent (for example "create and submit manual expense").
 - **Peers share `@pre` and differ on `@post`.** One flow per narrow outcome is better than a mega-flow with conditional branches.
 - **Use `@param` for substituted values.** If a literal is interpolated into the body, declare `# @param KEY description.` and reference it as `${KEY}`.
@@ -94,21 +95,24 @@ agent-device replay <flow>.ad -e EMAIL=other@example.com
 1. Drive the target screen manually.
 2. Start a session with `--save-script`:
    ```bash
-   agent-device open <app> --save-script .claude/skills/agent-device/flows/<kind>/<name>.ad
+   agent-device open <app> --save-script .claude/skills/agent-device/flows/macros/<name>.ad
    ```
 3. Perform the steps.
 4. `agent-device close` - flushes the `.ad`.
 5. Edit the generated file:
    - Delete the `context` line, leading `open ... --relaunch`, trailing `close`, and eyeballing `wait`s.
-   - Move file to `flows/macros/` or `flows/tests/`, then add `@desc`, `@pre`, optional `@post`, optional `@tag`, and any needed `@param` headers.
-6. Verify: pre-check from a matching state, replay, post-check.
+   - Move the file to `flows/macros/`, then add `@desc`, `@pre`, optional `@post`, and any needed `@param` headers.
+6. Add executable checks for every declared `@pre` and `@post`.
+7. Verify: pre-check from a matching state, replay, post-check.
 
 ## Maintenance
 
-Heal selector drift in place:
+Heal selector drift by hand. Replay the flow and read the divergence report:
 
 ```bash
-agent-device replay -u .claude/skills/agent-device/flows/<kind>/<name>.ad
+agent-device replay <path-to-flow>.ad --session <name>
 ```
 
-Re-verify `@pre`/`@post` still hold, then commit. Note: `replay -u` can rewrite interpolated lines to concrete selectors/values; review diffs and restore `${KEY}` placeholders where needed. Keep runtime inputs in `@param` + `-e`/`AD_VAR_*`; do not reintroduce in-file `env` directives.
+Every divergence carries ranked selector suggestions. Apply them yourself: `replay --update`/`-u` no longer rewrites the `.ad` file. Editing by hand also keeps `${KEY}` placeholders intact. Re-verify `@pre`/`@post` still hold, then commit. Keep runtime inputs in `@param` + `-e`/`AD_VAR_*`; do not reintroduce in-file `env` directives.
+
+After editing a flow, re-read the authoring rules above and replay it from a matching start state. A green replay plus enforced `@pre`/`@post` is the check.

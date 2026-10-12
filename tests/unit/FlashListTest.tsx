@@ -1,5 +1,6 @@
 import {render} from '@testing-library/react-native';
 
+import type {ComponentRef} from 'react';
 import type {LayoutChangeEvent, View as RNView, ViewStyle} from 'react-native';
 
 import {FlashList} from '@shopify/flash-list';
@@ -20,7 +21,7 @@ describe('FlashList - stale onLayout after rapid data change', () => {
         // Map of index -> captured onLayout handler from each ViewHolder render
         const capturedLayoutHandlers = new Map<number, (event: LayoutChangeEvent) => void>();
 
-        const CapturingCell = React.forwardRef<RNView, CellProps>(({index, onLayout, style, children}, ref) => {
+        const CapturingCell = React.forwardRef<ComponentRef<typeof RNView>, CellProps>(({index, onLayout, style, children}, ref) => {
             capturedLayoutHandlers.set(index, onLayout);
             return (
                 <View

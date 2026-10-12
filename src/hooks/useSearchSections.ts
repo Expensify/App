@@ -34,6 +34,7 @@ function useSearchSections(): UseSearchSectionsResult {
 
     const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
     const reportAttributesDerivedValue = useReportAttributes();
 
     const {type, sortBy, sortOrder, groupBy} = lastSearchQuery?.queryJSON ?? {};
@@ -54,6 +55,7 @@ function useSearchSections(): UseSearchSectionsResult {
             translate,
             formatPhoneNumber,
             bankAccountList,
+            rules,
             groupBy,
             queryJSON: lastSearchQuery?.queryJSON,
             currentSearch: searchKey,

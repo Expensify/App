@@ -8,7 +8,6 @@ import React from 'react';
 import {View} from 'react-native';
 
 type WithToggleVisibilityViewProps = {
-    /** Whether the content is visible. */
     isVisible?: boolean;
 };
 

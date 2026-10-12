@@ -183,6 +183,7 @@ function GroupChildrenContent({
             nonPersonalAndWorkspaceCards={nonPersonalAndWorkspaceCards}
             onUndelete={onUndelete}
             hideSearchTableHeader
+            syncScrollKey={groupItem.groupKeyForList}
         />
     );
 }

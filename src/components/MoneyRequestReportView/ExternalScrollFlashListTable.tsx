@@ -1,6 +1,7 @@
 import ScrollView from '@components/ScrollView';
 
 import type {FlashListRef, ListRenderItemInfo} from '@shopify/flash-list';
+import type {ComponentRef} from 'react';
 import type {NativeScrollEvent, NativeSyntheticEvent, ScrollViewProps} from 'react-native';
 
 // Deliberately not the @components/FlashList wrapper: it doesn't type `ref` (this list needs one for layout reads),
@@ -51,8 +52,8 @@ type MinimalScrollRef = {
     scrollTo: () => void;
     scrollToEnd: () => void;
     flashScrollIndicators: () => void;
-    getScrollableNode: () => View | null;
-    getNativeScrollRef: () => View | null;
+    getScrollableNode: () => ComponentRef<typeof View> | null;
+    getNativeScrollRef: () => ComponentRef<typeof View> | null;
 };
 
 // `store` and `offsetTop` are injected at runtime by FlashList via `overrideProps`, never by FlashList's own typed
@@ -79,7 +80,7 @@ type ExternalScrollDriverProps = Omit<ScrollViewProps, 'ref'> & {
  * FlashList memoizes its scroll component on identity.
  */
 function ExternalScrollDriver({store, offsetTop = 0, onScroll, children, style, ref}: ExternalScrollDriverProps) {
-    const nodeRef = useRef<View>(null);
+    const nodeRef = useRef<ComponentRef<typeof View>>(null);
 
     useImperativeHandle(
         ref,

@@ -5,9 +5,6 @@ import React, {createContext, useContext, useState} from 'react';
 import FullScreenLoadingIndicator from './FullscreenLoadingIndicator';
 
 type FullScreenLoaderStateContextType = {
-    /**
-     * Whether the full screen loader is visible.
-     */
     isLoaderVisible: boolean;
 };
 
@@ -52,7 +49,8 @@ function FullScreenLoaderContextProvider({children}: FullScreenLoaderContextProv
         <FullScreenLoaderActionsContext.Provider value={actionsContextValue}>
             <FullScreenLoaderStateContext.Provider value={stateContextValue}>
                 {children}
-                {isLoaderVisible && <FullScreenLoadingIndicator />}
+                {/* No "Go Back" button: this overlay sits above the current screen, so going back would navigate underneath it without clearing isLoaderVisible. */}
+                {isLoaderVisible && <FullScreenLoadingIndicator shouldUseGoBackButton={false} />}
             </FullScreenLoaderStateContext.Provider>
         </FullScreenLoaderActionsContext.Provider>
     );

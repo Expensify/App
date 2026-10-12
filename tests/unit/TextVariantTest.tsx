@@ -3,8 +3,7 @@ import {render, screen} from '@testing-library/react-native';
 import Text from '@components/Text';
 
 import type {TextVariant} from '@styles/typography';
-import {textVariants} from '@styles/typography';
-import variables from '@styles/variables';
+import {fontScale, lineHeightScale, textVariants} from '@styles/typography';
 
 import React from 'react';
 
@@ -59,8 +58,8 @@ describe('Text variant prop', () => {
         render(<Text>probe</Text>);
 
         expect(screen.getByText('probe')).toHaveStyle({
-            fontSize: variables.fontSizeNormal,
-            lineHeight: variables.fontSizeNormalHeight,
+            fontSize: fontScale.text,
+            lineHeight: lineHeightScale.text,
         });
     });
 
@@ -68,7 +67,7 @@ describe('Text variant prop', () => {
         render(
             <Text
                 variant="text"
-                style={{lineHeight: variables.lineHeightXLarge}}
+                style={{lineHeight: lineHeightScale.pageHeader}}
             >
                 probe
             </Text>,
@@ -76,7 +75,7 @@ describe('Text variant prop', () => {
 
         expect(screen.getByText('probe')).toHaveStyle({
             fontSize: textVariants.text.fontSize,
-            lineHeight: variables.lineHeightXLarge,
+            lineHeight: lineHeightScale.pageHeader,
         });
     });
 });

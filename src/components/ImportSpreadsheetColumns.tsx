@@ -14,7 +14,7 @@ import {View} from 'react-native';
 
 import type {ColumnRole} from './ImportColumn';
 
-import Button from './ButtonComposed';
+import Button from './Button';
 import FixedFooter from './FixedFooter';
 import ImportColumn from './ImportColumn';
 import OfflineWithFeedback from './OfflineWithFeedback';
@@ -24,32 +24,24 @@ import Text from './Text';
 import TextLink from './TextLink';
 
 type ImportSpreadsheetColumnsProps = {
-    // An array of arrays containing strings, representing the spreadsheet data.
     spreadsheetColumns: string[][];
-
-    // An array of strings representing the names of the columns.
     columnNames: string[];
-
-    // An array of column roles to define the role of each column.
     columnRoles?: ColumnRole[];
-
-    // A function to perform the import operation.
     importFunction: () => void | Promise<void>;
-
-    // An optional Errors object containing any errors that may have occurred.
     errors?: Errors | null;
-
-    // An optional boolean indicating whether the import button is in a loading state.
     isButtonLoading?: boolean;
 
-    // Link to learn more about the file preparation for import.
+    /** Link to learn more about the file preparation for import */
     learnMoreLink?: string;
 
-    // An optional boolean indicating whether to show the column header.
     shouldShowColumnHeader?: boolean;
-
-    // An optional boolean indicating whether to show the dropdown menu.
     shouldShowDropdownMenu?: boolean;
+
+    /**
+     * Whether each column may auto-detect its role from its header. Flows that compute the whole mapping in one
+     * coordinated pass (e.g. company cards) set this to false to avoid duplicate pre-selections.
+     */
+    shouldAutoDetectColumns?: boolean;
 
     customHeaderText?: string;
 
@@ -67,6 +59,7 @@ function ImportSpreadsheetColumns({
     learnMoreLink,
     shouldShowColumnHeader = true,
     shouldShowDropdownMenu = true,
+    shouldAutoDetectColumns = true,
     customHeaderText,
     shouldDisableButtonWhenOffline = true,
 }: ImportSpreadsheetColumnsProps) {
@@ -114,6 +107,7 @@ function ImportSpreadsheetColumns({
                                 columnRoles={columnRoles}
                                 columnIndex={index}
                                 shouldShowDropdownMenu={shouldShowDropdownMenu}
+                                shouldAutoDetectColumn={shouldAutoDetectColumns}
                             />
                         );
                     })}

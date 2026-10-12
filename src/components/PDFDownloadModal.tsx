@@ -11,8 +11,8 @@ import React, {useEffect, useRef} from 'react';
 import {View} from 'react-native';
 
 import ActivityIndicator from './ActivityIndicator';
-import Button from './ButtonComposed';
-import Header from './Header';
+import Button from './Button';
+import HeaderTitle from './HeaderTitle';
 import Icon from './Icon';
 import Modal from './Modal';
 import {PressableWithFeedback} from './Pressable';
@@ -21,6 +21,9 @@ import Text from './Text';
 type PDFDownloadModalProps = {
     /** Whether the PDF has finished generating and is ready to download */
     hasFinishedPDFDownload: boolean;
+
+    /** Whether the PDF generation failed, so there is nothing left to wait for or download */
+    hasPDFDownloadFailed?: boolean;
 
     /** Message shown under the header (generating / ready / error copy) */
     message: string;
@@ -34,7 +37,6 @@ type PDFDownloadModalProps = {
     /** Whether the download button uses the success (green) style once the PDF is ready */
     shouldUseSuccessButton?: boolean;
 
-    /** Whether the modal is visible */
     isVisible: boolean;
 
     /** Whether this modal should count as covering the product marketing window */
@@ -54,6 +56,7 @@ type PDFDownloadModalProps = {
  */
 function PDFDownloadModal({
     hasFinishedPDFDownload,
+    hasPDFDownloadFailed = false,
     message,
     onDownloadPDF,
     shouldCloseOnDownload = false,
@@ -106,12 +109,14 @@ function PDFDownloadModal({
                     <View style={[styles.flexRow, styles.mb4]}>
                         <View style={[styles.flex1]}>
                             <View style={[styles.flexRow]}>
-                                <Header title={translate('reportDetailsPage.generatingPDF')} />
+                                <HeaderTitle>
+                                    <HeaderTitle.Text>{translate('reportDetailsPage.generatingPDF')}</HeaderTitle.Text>
+                                </HeaderTitle>
                             </View>
                             <Text style={[styles.mt5, styles.textAlignLeft]}>{message}</Text>
                         </View>
 
-                        {!hasFinishedPDFDownload && (
+                        {!hasFinishedPDFDownload && !hasPDFDownloadFailed && (
                             <View style={[styles.dFlex, styles.justifyContentEnd]}>
                                 <ActivityIndicator
                                     size={CONST.ACTIVITY_INDICATOR_SIZE.SMALL}
@@ -136,7 +141,7 @@ function PDFDownloadModal({
                             }
                         }}
                     >
-                        <Button.Text>{hasFinishedPDFDownload ? translate('common.download') : translate('common.cancel')}</Button.Text>
+                        <Button.Text>{hasFinishedPDFDownload ? translate('common.download') : translate(hasPDFDownloadFailed ? 'common.close' : 'common.cancel')}</Button.Text>
                     </Button>
                 </View>
                 <PressableWithFeedback

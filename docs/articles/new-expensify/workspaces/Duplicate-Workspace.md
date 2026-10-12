@@ -15,6 +15,7 @@ Duplicating a workspace helps Workspace Admins quickly create a new workspace us
 Only **Workspace Admins** can duplicate an existing workspace. Members without admin access won’t see the duplicate option in the workspace menu.
 
 ---
+
 ## How to duplicate a workspace
 Follow these steps to create a new workspace based on an existing one:
 
@@ -61,10 +62,11 @@ Yes. If you select **Workflows** when duplicating, all approval steps and settin
 ## Can I change which workspace settings are copied after duplication?
 No. Once the new workspace is created, you’ll need to manually adjust any settings you didn’t include during duplication.
 
+## Does duplicating a workspace copy my invoicing details?
+No. When you select **Invoices**, the new workspace has invoicing enabled, but the **Invoicing details**—including **Company name**, **Company website**, and the connected bank account—are not copied. Because these details are set up per workspace, you’ll need to enter them again in the new workspace before sending an invoice.
+
 ## Does duplicating a workspace affect the original one?
 No. The original workspace remains unchanged. Duplication creates a separate, independent workspace with the settings you selected.
 
 ## Can I rename or delete a duplicated workspace later?
 Yes. You can rename or delete any workspace at any time under **Workspaces > Settings > Workspace Info**.
-
----

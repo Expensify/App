@@ -11,6 +11,7 @@ import withNavigationTransitionEnd from '@components/withNavigationTransitionEnd
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import {useAllPersonalDetails, usePersonalDetailsByIDs} from '@hooks/usePersonalDetails';
 import usePersonalDetailSearchSelector from '@hooks/usePersonalDetailSearchSelector';
 import usePolicy from '@hooks/usePolicy';
 import useReportIsArchived from '@hooks/useReportIsArchived';
@@ -19,6 +20,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {inviteToGroupChat, searchUserInServer} from '@libs/actions/Report';
 import {clearUserSearchPhrase, updateUserSearchPhrase} from '@libs/actions/RoomMembersUserSearchPhrase';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
+import getPlatform from '@libs/getPlatform';
 import {appendCountryCode} from '@libs/LoginUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getHeaderMessage} from '@libs/PersonalDetailOptionsListUtils';
@@ -50,9 +52,8 @@ function DynamicReportParticipantsInvitePage({report}: DynamicReportParticipants
     const styles = useThemeStyles();
     const {translate, formatPhoneNumber} = useLocalize();
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
-    const [participantLogins = getEmptyArray<string>()] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {
-        selector: personalDetailsLoginsSelector(getParticipantsAccountIDsForDisplay(report, false, true)),
-    });
+    const participantAccountIDs = getParticipantsAccountIDsForDisplay(report, false, true);
+    const [participantLogins = getEmptyArray<string>()] = usePersonalDetailsByIDs(participantAccountIDs, personalDetailsLoginsSelector(participantAccountIDs));
     const [pendingDeleteMemberAccountIDs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${report?.reportID}`, {selector: pendingDeleteMemberAccountIDsSelector});
     const [didScreenTransitionEnd, setDidScreenTransitionEnd] = useState(false);
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.REPORT_PARTICIPANTS_INVITE.path);
@@ -137,7 +138,7 @@ function DynamicReportParticipantsInvitePage({report}: DynamicReportParticipants
         acc[login] = accountID;
         return acc;
     }, {} as InvitedEmailsToAccountIDs);
-    const [newAccountIDsAndLogins] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: newAccountIDsAndLoginsSelector(invitedEmailsToAccountIDs)});
+    const [newAccountIDsAndLogins] = useAllPersonalDetails(newAccountIDsAndLoginsSelector(invitedEmailsToAccountIDs));
 
     const inviteUsers = () => {
         if (selectedOptions.length === 0) {
@@ -208,6 +209,8 @@ function DynamicReportParticipantsInvitePage({report}: DynamicReportParticipants
                     ListItem={InviteMemberListItem}
                     confirmButtonOptions={{
                         onConfirm: inviteUsers,
+                        isFooterConfirmEnabled: selectedOptions.length > 0,
+                        isFooterConfirmEnterKeyEnabled: getPlatform() !== CONST.PLATFORM.ANDROID,
                     }}
                     shouldShowTextInput
                     textInputOptions={textInputOptions}
