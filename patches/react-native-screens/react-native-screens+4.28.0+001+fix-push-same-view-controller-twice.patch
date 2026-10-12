@@ -24,19 +24,7 @@ index c233036..0bd814f 100644
    if (![viewController.view isKindOfClass:[RNSScreenView class]] ||
        static_cast<RNSScreenView *>(viewController.view).isInvalidated) {
      // if the screen was already deleted by React, its config was already removed
-@@ -281,6 +289,11 @@ - (void)presentationControllerDidDismiss:(UIPresentationController *)presentatio
- - (void)didMoveToWindow
- {
-   [super didMoveToWindow];
-+  if (self.window == nil) {
-+    // Detached stacks get a full update on the next attach, so stop waiting for a held push.
-+    _pendingPushController = nil;
-+    _updateSkippedForPendingPush = NO;
-+  }
-   // for handling nested stacks
-   [self maybeAddToParentAndUpdateContainer];
- }
-@@ -578,6 +591,20 @@ - (void)setModalViewControllers:(NSArray<UIViewController *> *)controllers
+@@ -578,6 +586,20 @@ - (void)setModalViewControllers:(NSArray<UIViewController *> *)controllers
  
  - (void)setPushViewControllers:(NSArray<UIViewController *> *)controllers
  {
@@ -57,7 +45,7 @@ index c233036..0bd814f 100644
    // when there is no change we return immediately
    if ([_controller.viewControllers isEqualToArray:controllers]) {
      return;
-@@ -663,6 +690,12 @@ - (void)setPushViewControllers:(NSArray<UIViewController *> *)controllers
+@@ -663,6 +685,12 @@ - (void)setPushViewControllers:(NSArray<UIViewController *> *)controllers
  
        [_controller setViewControllers:newControllers animated:NO];
        [_controller pushViewController:top animated:YES];
@@ -70,7 +58,7 @@ index c233036..0bd814f 100644
      } else {
        // don't really know what this case could be, but may need to handle it
        // somehow
-@@ -674,6 +707,20 @@ - (void)setPushViewControllers:(NSArray<UIViewController *> *)controllers
+@@ -674,6 +702,20 @@ - (void)setPushViewControllers:(NSArray<UIViewController *> *)controllers
    }
  }
  
@@ -91,7 +79,7 @@ index c233036..0bd814f 100644
  - (void)updateContainer
  {
    NSMutableArray<UIViewController *> *pushControllers = [NSMutableArray new];
-@@ -988,6 +1035,10 @@ - (void)navigationController:(UINavigationController *)navigationController
+@@ -988,6 +1030,10 @@ - (void)navigationController:(UINavigationController *)navigationController
         didShowViewController:(UIViewController *)viewController
                      animated:(BOOL)animated
  {
@@ -102,7 +90,7 @@ index c233036..0bd814f 100644
    [self emitOnFinishTransitioningEvent];
    [RNSScreenWindowTraits updateWindowTraits];
    // Because of the bug that caused view to have incorrect dimensions while changing the orientation,
-@@ -1382,6 +1433,8 @@ - (void)prepareForRecycle
+@@ -1382,6 +1428,8 @@ - (void)prepareForRecycle
    }
  
    [_presentedModals removeAllObjects];

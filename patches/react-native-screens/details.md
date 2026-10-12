@@ -29,9 +29,13 @@
     The skip runs before the "no change" early return in setPushViewControllers: while the push is held,
     viewControllers still equals the stack from before the push, so an update that removes the pushed
     screen would otherwise return early and never be replayed.
-    The pending controller is a weak reference, so the wait also ends if React deallocates it.
-    didMoveToWindow with a nil window and prepareForRecycle reset the state, since a detached or recycled
-    stack gets a full update on the next attach. There is no timer and no retry loop: like the rest of
+    The pending controller is a weak reference, so the wait also ends if React deallocates it. In that
+    case nothing replays the skipped update right away: the next stack update applies the full stack.
+    prepareForRecycle resets the state, since a recycled stack gets a full update on the next attach.
+    Detaching from the window keeps the state: Fabric can detach and reattach a stack before UIKit runs
+    the held push, and the update on reattach would otherwise push the same controller again. The held
+    push still runs while the stack is detached, so the update on reattach finds the controller in
+    viewControllers and ends the wait. There is no timer and no retry loop: like the rest of
     react-native-screens, the patch waits for UIKit callbacks instead.
 
     This follows the approach the react-native-screens maintainers described as correct (keep pending
