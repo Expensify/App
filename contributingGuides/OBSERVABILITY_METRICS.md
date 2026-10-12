@@ -117,6 +117,25 @@ This document lists all implemented telemetry metrics in the Expensify App.
 - Technical: Autocomplete list finalized ([`src/components/Search/SearchAutocompleteList.tsx`](https://github.com/Expensify/App/blob/8f123f449f1a4533830b18a1040c9a5f1949821d/src/components/Search/SearchAutocompleteList.tsx#L126))
 **Attributes**: `trigger: 'keyboard'` when opened via keyboard shortcut
 
+### Search Router Keystroke
+
+**Constant**: `CONST.TELEMETRY.SPAN_SEARCH_ROUTER_QUERY`
+**Sentry Name**: `ManualSearchRouterQuery`
+**Threshold**: None yet. P90 is set after about 2 weeks of baseline data, per `SIZE_TIER`.
+**What's Measured**: Time from a debounced query being applied to the autocomplete list committing that query while the Search Router is open. The 300ms debounce delay is excluded from the span, and rapid keystrokes within that window coalesce into a single measured query evaluation. At most `CONST.TELEMETRY.SEARCH_ROUTER_MAX_MEASURED_QUERIES_PER_OPEN` query attempts are started per open session (cancelled attempts also count towards this cap).
+**Start**: Debounce timer fires with a new value, before React renders it ([`src/hooks/useDebouncedState.ts`](https://github.com/Expensify/App/blob/main/src/hooks/useDebouncedState.ts), [`src/components/Search/SearchRouter/SearchRouter.tsx`](https://github.com/Expensify/App/blob/main/src/components/Search/SearchRouter/SearchRouter.tsx), [`src/libs/telemetry/searchRouterQuerySpans.ts`](https://github.com/Expensify/App/blob/main/src/libs/telemetry/searchRouterQuerySpans.ts))
+**End**:
+- User sees: Autocomplete list updated for the typed query
+- Technical: Layout effect after the commit for that query via `markSearchRouterQueryCommitted()` ([`src/components/Search/SearchAutocompleteList.tsx`](https://github.com/Expensify/App/blob/main/src/components/Search/SearchAutocompleteList.tsx), [`src/libs/telemetry/searchRouterQuerySpans.ts`](https://github.com/Expensify/App/blob/main/src/libs/telemetry/searchRouterQuerySpans.ts)). The list's initial mount commit cancels the span as `list_mount` so initial open latency is left to `ManualOpenSearchRouter`.
+**Attributes**:
+- `query_length_bucket`: bucketed free-text length (`0-empty`, `1-short`, `2-medium`, `3-long`, `4-very-long`) with syntax filters stripped; query text is never recorded
+- `has_filter`: boolean indicating whether the query contains syntax filters or autocomplete tokens
+- `autocomplete_key`: syntax filter key being autocompleted (e.g. `to`, `in`) or `'none'`
+- `query_ordinal`: 1-indexed attempt number in the current session (up to `CONST.TELEMETRY.SEARCH_ROUTER_MAX_MEASURED_QUERIES_PER_OPEN`)
+- `result_count`: number of matching suggestions (`recentReports` + `personalDetails`)
+- `search_path`: query execution path (`legacy`, with `index` reserved for indexed search rollout)
+- `cancel_reason`: cancellation reason when cancelled (`superseded`, `cleared`, `closed`, `unmounted`, `list_mount`, `timed_out`). A span running longer than `CONST.TELEMETRY.SEARCH_ROUTER_QUERY_MAX_DURATION_MS` is cancelled as `timed_out`.
+
 ### Open Create Expense
 
 **Constant**: `CONST.TELEMETRY.SPAN_OPEN_CREATE_EXPENSE`
