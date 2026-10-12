@@ -64,6 +64,9 @@ type CameraViewportProps = {
     /** Whether a photo has been captured (forces camera inactive) */
     didCapturePhoto?: boolean;
 
+    /** Whether a full-resolution capture is still running; keeps the camera session active even after didCapturePhoto so the capture is not cancelled */
+    hasPendingPhotoCapture?: boolean;
+
     onConfigured?: () => void;
 
     onStarted?: () => void;
@@ -106,6 +109,7 @@ function CameraViewport({
     blinkStyle,
     isAttachmentPickerActive,
     didCapturePhoto = false,
+    hasPendingPhotoCapture = false,
     onConfigured,
     onStarted,
     onSessionConfigSelected,
@@ -136,7 +140,8 @@ function CameraViewport({
                         style={styles.flex1}
                         zoom={getZoomProp(device)}
                         cameraTabIndex={1}
-                        forceInactive={isAttachmentPickerActive || didCapturePhoto}
+                        forceInactive={isAttachmentPickerActive || (didCapturePhoto && !hasPendingPhotoCapture)}
+                        shouldStayActiveWhenBlurred={hasPendingPhotoCapture}
                         onConfigured={onConfigured}
                         onStarted={onStarted}
                         onSessionConfigSelected={onSessionConfigSelected}

@@ -22,6 +22,7 @@ import MultiScanEducationalModal from '@pages/iou/request/step/IOURequestStepSca
 import ReceiptPreviews from '@pages/iou/request/step/IOURequestStepScan/components/ReceiptPreviews';
 import ScannerControlsBar from '@pages/iou/request/step/IOURequestStepScan/components/ScannerControlsBar';
 import useCameraInitTelemetry from '@pages/iou/request/step/IOURequestStepScan/hooks/useCameraInitTelemetry';
+import usePhotoUpgrade from '@pages/iou/request/step/IOURequestStepScan/hooks/usePhotoUpgrade';
 import startReceiptPrepareSpan from '@pages/iou/request/step/IOURequestStepScan/utils/startReceiptPrepareSpan';
 
 import CONST from '@src/CONST';
@@ -48,7 +49,7 @@ const PREPARED_IOS_PHOTO_SETTINGS = [{flashMode: 'off' as const, enableShutterSo
  * Renders a react-native-vision-camera viewfinder with shutter, flash toggle, gallery picker, and focus gesture.
  * Calls `onCapture(file, source)` for each photo taken or file picked from the gallery.
  */
-function Camera({onCapture, onPicked, shouldAcceptMultipleFiles = false, onLayout, onAttachmentPickerStatusChange, onMultiScanSubmit}: CameraProps) {
+function Camera({onCapture, onPicked, shouldAcceptMultipleFiles = false, onLayout, onAttachmentPickerStatusChange, onMultiScanSubmit, canUpgradeReceiptQuality = true}: CameraProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -118,6 +119,8 @@ function Camera({onCapture, onPicked, shouldAcceptMultipleFiles = false, onLayou
         });
     };
 
+    const {hasPendingPhotoCapture, startPhotoCapture, upgradeReceiptWithPhoto, discardPendingPhoto} = usePhotoUpgrade();
+
     const maybeCancelShutterSpan = () => {
         if (isMultiScanEnabled) {
             return;
@@ -174,6 +177,9 @@ function Camera({onCapture, onPicked, shouldAcceptMultipleFiles = false, onLayou
         isCapturingPhoto.current = true;
         showBlink();
 
+        const shouldUpgradeToPhoto = canUpgradeReceiptQuality && !isMultiScanEnabled && !shouldTakePhoto({flash, hasFlash, isInLandscapeMode});
+
+        // The snapshot goes first so its request reaches the native queue ahead of the still.
         captureReceipt(camera.current, photoOutput, {flash, hasFlash, isPlatformMuted, isInLandscapeMode, path: getReceiptsUploadFolderPath()})
             .then((photo: CapturedPhoto) => {
                 endSpanWithAttributes(CONST.TELEMETRY.SPAN_RECEIPT_CAPTURE, {
@@ -199,6 +205,10 @@ function Camera({onCapture, onPicked, shouldAcceptMultipleFiles = false, onLayou
                     type: 'image/jpeg',
                 };
 
+                if (shouldUpgradeToPhoto) {
+                    upgradeReceiptWithPhoto(durableName);
+                }
+
                 onCapture(cameraFile, source);
             })
             .catch((error: unknown) => {
@@ -206,7 +216,12 @@ function Camera({onCapture, onPicked, shouldAcceptMultipleFiles = false, onLayou
                 maybeCancelShutterSpan();
                 showCameraAlert();
                 Log.warn('Error taking photo', {message: error instanceof Error ? error.message : String(error), stack: error instanceof Error ? error.stack : undefined});
+                discardPendingPhoto();
             });
+
+        if (shouldUpgradeToPhoto) {
+            startPhotoCapture(photoOutput);
+        }
     };
 
     // Wait for camera permission status to render
@@ -249,6 +264,7 @@ function Camera({onCapture, onPicked, shouldAcceptMultipleFiles = false, onLayou
                             blinkStyle={blinkStyle}
                             isAttachmentPickerActive={isAttachmentPickerActive}
                             didCapturePhoto={didCapturePhoto}
+                            hasPendingPhotoCapture={hasPendingPhotoCapture}
                             onConfigured={handleCameraConfigured}
                             onStarted={updatePhotoResolution}
                             onSessionConfigSelected={handleSessionConfigSelected}
