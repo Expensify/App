@@ -217,4 +217,50 @@ describe('CategorySelector', () => {
 
         expect(mockedMultiSelect.mock.lastCall?.[0].items.at(0)).toEqual({text: 'search.noCategory', value: CONST.SEARCH.CATEGORY_EMPTY_VALUE});
     });
+
+    it('resolves workspace names when filtering categories offline', () => {
+        mockedUseNetwork.mockReturnValue({isOffline: true} as ReturnType<typeof useNetwork>);
+        (mockedUseOnyx as jest.Mock).mockImplementation((key) => {
+            if (key === ONYXKEYS.IS_SEARCH_FILTERS_CATEGORY_DATA_LOADED) {
+                return [true];
+            }
+            if (key === ONYXKEYS.PERSONAL_POLICY_ID) {
+                return [undefined];
+            }
+            if (key === ONYXKEYS.COLLECTION.POLICY) {
+                return [
+                    {
+                        [`${ONYXKEYS.COLLECTION.POLICY}1`]: {id: '1', name: 'Workspace 1'},
+                        [`${ONYXKEYS.COLLECTION.POLICY}2`]: {id: '2', name: 'Workspace 2'},
+                    },
+                ];
+            }
+            if (key === ONYXKEYS.COLLECTION.POLICY_CATEGORIES) {
+                return [
+                    {
+                        [`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}1`]: {
+                            Meals: {name: 'Meals', enabled: true},
+                        },
+                        [`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}2`]: {
+                            Travel: {name: 'Travel', enabled: true},
+                        },
+                    },
+                ];
+            }
+            return [{}];
+        });
+
+        render(
+            <CategorySelector
+                value={[]}
+                policyID={{value: ['Workspace 2'], isNegated: false}}
+                onChange={jest.fn()}
+            />,
+        );
+
+        expect(mockedMultiSelect.mock.lastCall?.[0].items).toEqual([
+            {text: 'search.noCategory', value: CONST.SEARCH.CATEGORY_EMPTY_VALUE},
+            {text: 'Travel', value: 'Travel'},
+        ]);
+    });
 });

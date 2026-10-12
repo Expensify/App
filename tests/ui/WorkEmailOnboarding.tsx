@@ -693,6 +693,121 @@ describe('OnboardingWorkEmail Page', () => {
         unmount();
         await waitForBatchedUpdatesWithAct();
     });
+
+    it('should move on to Onboarding private domain without an error or a new request when the prefilled work email is already the account login', async () => {
+        await TestHelper.signInWithTestUser();
+
+        // Given the state after an unvalidated public-domain user added a work email and went back from the private domain screen:
+        // AddWorkEmail made the work email the account's login, going back cleared shouldValidate, and the form still holds the email
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.SESSION, {email: workEmail});
+            await Onyx.merge(ONYXKEYS.ACCOUNT, {validated: false, isFromPublicDomain: true});
+            await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {hasCompletedGuidedSetupFlow: false});
+            await Onyx.merge(ONYXKEYS.FORMS.ONBOARDING_WORK_EMAIL_FORM, {onboardingWorkEmail: workEmail});
+            await Onyx.merge(ONYXKEYS.FORMS.ONBOARDING_WORK_EMAIL_FORM_DRAFT, {onboardingWorkEmail: workEmail});
+        });
+        const xhrSpy = jest.spyOn(HttpUtils, 'xhr');
+
+        const {unmount} = renderOnboardingWorkEmailPage(SCREENS.ONBOARDING.WORK_EMAIL, undefined);
+        await waitForBatchedUpdatesWithAct();
+        expect(screen.getByDisplayValue(workEmail)).toBeOnTheScreen();
+
+        // When the user submits the prefilled email again
+        fireEvent.press(screen.getByRole('button', {name: TestHelper.translateLocal('onboarding.workEmail.addWorkEmail')}));
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the email is not rejected as the signup email, it is not sent again (the backend would treat the account's own login as an account to merge),
+        // and the user moves on to the private domain screen just like after the first submit
+        await waitFor(() => {
+            expect(navigate).toHaveBeenCalledWith(ROUTES.ONBOARDING_PRIVATE_DOMAIN.getRoute(), {forceReplace: true});
+        });
+        expect(screen.queryByText(TestHelper.translateLocal('onboarding.workEmailValidationError.sameAsSignupEmail'))).not.toBeOnTheScreen();
+        expect(xhrSpy.mock.calls.filter(([command]) => command === 'AddWorkEmail')).toHaveLength(0);
+
+        xhrSpy.mockRestore();
+        unmount();
+        await waitForBatchedUpdatesWithAct();
+    });
+
+    it('should still send AddWorkEmail when a different work email is entered after the account login was switched to a work email', async () => {
+        await TestHelper.signInWithTestUser();
+
+        // Given an account whose login was already switched to a work email by an earlier AddWorkEmail
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.SESSION, {email: workEmail});
+            await Onyx.merge(ONYXKEYS.ACCOUNT, {validated: false, isFromPublicDomain: true});
+            await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {hasCompletedGuidedSetupFlow: false});
+        });
+        const xhrSpy = jest.spyOn(HttpUtils, 'xhr').mockImplementation(() => {
+            const mockedResponse: OnyxResponse<typeof ONYXKEYS.NVP_ONBOARDING> = {
+                jsonCode: 200,
+                onyxData: [{onyxMethod: Onyx.METHOD.MERGE, key: ONYXKEYS.NVP_ONBOARDING, value: {shouldValidate: false}}],
+            };
+            return Promise.resolve(mockedResponse);
+        });
+
+        const {unmount} = renderOnboardingWorkEmailPage(SCREENS.ONBOARDING.WORK_EMAIL, undefined);
+        await waitForBatchedUpdatesWithAct();
+
+        // When the user enters a different work email and submits it
+        fireEvent.changeText(screen.getByLabelText(TestHelper.translateLocal('common.workEmail')), 'anotherworkemail@privateEmail.com');
+        await waitForBatchedUpdatesWithAct();
+        fireEvent.press(screen.getByRole('button', {name: TestHelper.translateLocal('onboarding.workEmail.addWorkEmail')}));
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the new email is sent to the backend, because only the email that is already the account's login skips the request
+        await waitFor(() => {
+            expect(xhrSpy.mock.calls.filter(([command]) => command === 'AddWorkEmail')).toHaveLength(1);
+        });
+        await waitFor(() => {
+            expect(navigate).toHaveBeenCalledWith(ROUTES.ONBOARDING_PRIVATE_DOMAIN.getRoute(), {forceReplace: true});
+        });
+
+        xhrSpy.mockRestore();
+        unmount();
+        await waitForBatchedUpdatesWithAct();
+    });
+
+    it('should reject the public signup email with the signup email message and other public emails with the public domain message', async () => {
+        const publicSignupEmail = 'testsignup@gmail.com';
+        await TestHelper.signInWithTestUser();
+
+        // Given an unvalidated user who signed up with a public-domain email and hasn't added a work email yet
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.SESSION, {email: publicSignupEmail});
+            await Onyx.merge(ONYXKEYS.ACCOUNT, {validated: false, isFromPublicDomain: true});
+            await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {hasCompletedGuidedSetupFlow: false});
+        });
+        const xhrSpy = jest.spyOn(HttpUtils, 'xhr');
+
+        const {unmount} = renderOnboardingWorkEmailPage(SCREENS.ONBOARDING.WORK_EMAIL, undefined);
+        await waitForBatchedUpdatesWithAct();
+
+        // When the user submits their signup email as the work email
+        fireEvent.changeText(screen.getByLabelText(TestHelper.translateLocal('common.workEmail')), publicSignupEmail);
+        await waitForBatchedUpdatesWithAct();
+        fireEvent.press(screen.getByRole('button', {name: TestHelper.translateLocal('onboarding.workEmail.addWorkEmail')}));
+        await waitForBatchedUpdatesWithAct();
+
+        // Then it is rejected with the message that points at the signup email
+        await waitFor(() => {
+            expect(screen.getByText(TestHelper.translateLocal('onboarding.workEmailValidationError.sameAsSignupEmail'))).toBeOnTheScreen();
+        });
+
+        // When the user changes it to a different public-domain email
+        fireEvent.changeText(screen.getByLabelText(TestHelper.translateLocal('common.workEmail')), 'someoneelse@gmail.com');
+        await waitForBatchedUpdatesWithAct();
+
+        // Then it is rejected with the public domain message, and neither email was sent to the backend
+        await waitFor(() => {
+            expect(screen.getByText(TestHelper.translateLocal('onboarding.workEmailValidationError.publicEmail'))).toBeOnTheScreen();
+        });
+        expect(xhrSpy.mock.calls.filter(([command]) => command === 'AddWorkEmail')).toHaveLength(0);
+
+        xhrSpy.mockRestore();
+        unmount();
+        await waitForBatchedUpdatesWithAct();
+    });
 });
 
 describe('OnboardingWorkEmailValidation Page', () => {

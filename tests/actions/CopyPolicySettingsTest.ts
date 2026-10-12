@@ -220,6 +220,37 @@ describe('actions/Policy/CopyPolicySettings', () => {
                 expect(policy?.pendingFields?.showTagGLCodes).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
             });
 
+            it('enables Rules on the target when merchant rules are copied so they are visible while offline', () => {
+                // Given a target with Rules off, and a source whose Rules toggle was turned off after it got merchant rules
+                const sourcePolicy = makeSourcePolicy({areRulesEnabled: false});
+                const targetPolicy = makeTargetPolicy({areRulesEnabled: false});
+
+                // When only merchant rules are copied
+                const {optimisticData, successData, failureData} = buildCopyPolicySettingsData(sourcePolicy, [targetPolicy], ['codingRules'], {}, {}, {});
+                const policy = getOptimisticPolicy(optimisticData);
+
+                // Then Rules is turned on optimistically and marked pending, because merchant rules only show up while Rules is on
+                expect(policy?.areRulesEnabled).toBe(true);
+                expect(policy?.pendingFields?.areRulesEnabled).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
+
+                // Then success clears the pending marker and failure restores the original toggle
+                const successPatch = getMergedPolicyPatch(successData.find((entry) => entry.key === POLICY_KEY));
+                expect(successPatch?.pendingFields?.areRulesEnabled).toBeNull();
+                expect(getFailurePolicy(failureData)?.areRulesEnabled).toBe(false);
+            });
+
+            it('enables Rules on the target when merchant rules are copied together with rules from a source that has Rules off', () => {
+                // Given a source whose Rules toggle is off
+                const sourcePolicy = makeSourcePolicy({areRulesEnabled: false});
+                const targetPolicy = makeTargetPolicy({areRulesEnabled: false});
+
+                // When rules and merchant rules are copied together
+                const {optimisticData} = buildCopyPolicySettingsData(sourcePolicy, [targetPolicy], ['rules', 'codingRules'], {}, {}, {});
+
+                // Then merchant rules still turn Rules on, so the copied merchant rules stay visible
+                expect(getOptimisticPolicy(optimisticData)?.areRulesEnabled).toBe(true);
+            });
+
             it('copies only autoAddTripName from travelSettings, never the Spotnana identity fields or terms acceptance', () => {
                 const sourcePolicy = makeSourcePolicy({
                     travelSettings: {
