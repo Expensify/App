@@ -43,7 +43,6 @@ jest.mock('@hooks/useVerifyAccountAndResume', () => ({
     },
 }));
 
-jest.mock('@components/HeaderWithBackButton', () => () => null);
 jest.mock(
     '@components/ScreenWrapper',
     () =>

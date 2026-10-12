@@ -1,5 +1,5 @@
 import FormHelpMessage from '@components/FormHelpMessage';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import Icon from '@components/Icon';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -194,7 +194,7 @@ function CardTypeStep({policyID, cardFeeds, workspaceAccountID}: CardTypeStepPro
             shouldEnablePickerAvoiding={false}
             shouldEnableMaxHeight
         >
-            <HeaderWithBackButton
+            <HeaderWithBackButtonAndTitle
                 title={translate('workspace.companyCards.addCards')}
                 onBackButtonPress={handleBackButtonPress}
             />

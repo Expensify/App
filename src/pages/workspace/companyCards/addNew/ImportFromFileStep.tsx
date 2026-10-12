@@ -1,6 +1,6 @@
 import Button from '@components/Button';
 import ButtonDisabledWhenOffline from '@components/Button/composed/ButtonDisabledWhenOffline';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import MenuItem from '@components/MenuItem';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import {PressableWithoutFeedback} from '@components/Pressable';
@@ -86,7 +86,7 @@ function ImportFromFileStep() {
             shouldEnableMaxHeight
             enableEdgeToEdgeBottomSafeAreaPadding
         >
-            <HeaderWithBackButton
+            <HeaderWithBackButtonAndTitle
                 title={translate('workspace.companyCards.addCards')}
                 onBackButtonPress={handleBackButtonPress}
             />
