@@ -538,9 +538,10 @@ describe('IOURequestStartPage manual tab content', () => {
             mockOnInputBlur?.();
         });
 
-        // Advance timers past blur debounce (100ms)
-        act(() => {
-            jest.advanceTimersByTime(150);
+        // Wait for the transition-aware blur cleanup to time out when no discard navigation follows.
+        await act(async () => {
+            jest.advanceTimersByTime(CONST.MAX_TRANSITION_START_WAIT_MS);
+            await Promise.resolve();
         });
 
         // Discard modal opens and user cancels

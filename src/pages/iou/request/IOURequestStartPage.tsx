@@ -23,6 +23,7 @@ import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {shouldShowPerDiemTabOption} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import OnyxTabNavigator, {TabScreenWithFocusTrapWrapper, TopTab} from '@libs/Navigation/OnyxTabNavigator';
+import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import {isPerDiemEligiblePolicy, isTimeTrackingEnabled} from '@libs/PolicyUtils';
 import {getPayeeName} from '@libs/ReportUtils';
 import {endSpan} from '@libs/telemetry/activeSpans';
@@ -43,7 +44,7 @@ import type {NavigationAction, NavigationState} from '@react-navigation/native';
 
 import {useFocusEffect} from '@react-navigation/native';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import {InteractionManager, View} from 'react-native';
+import {View} from 'react-native';
 
 import type {WithWritableReportOrNotFoundProps} from './step/withWritableReportOrNotFound';
 
@@ -260,7 +261,7 @@ function IOURequestStartPage({
     const isDiscardModalOpenRef = useRef(false);
     const isDiscardNavigationPendingRef = useRef(false);
     const focusTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-    const blurCleanupTaskRef = useRef<ReturnType<typeof InteractionManager.runAfterInteractions> | null>(null);
+    const blurCleanupTaskRef = useRef<ReturnType<typeof TransitionTracker.runAfterTransitions> | null>(null);
     const isPayFlow = iouType === CONST.IOU.TYPE.PAY;
     // Older empty drafts did not store a baseline. Treat their standard empty representation as clean, while
     // conservatively treating an older non-empty draft as dirty so an unsaved amount is never silently discarded.
@@ -300,12 +301,18 @@ function IOURequestStartPage({
         if (blurCleanupTaskRef.current) {
             blurCleanupTaskRef.current.cancel();
         }
-        blurCleanupTaskRef.current = InteractionManager.runAfterInteractions(() => {
-            blurCleanupTaskRef.current = null;
-            if (isDiscardModalOpenRef.current || isDiscardNavigationPendingRef.current) {
-                return;
-            }
-            lastFocusedInputRef.current = null;
+        blurCleanupTaskRef.current = TransitionTracker.runAfterTransitions({
+            // A native keyboard or discard-modal transition can start in the same tick as the blur.
+            // Wait for it to finish before clearing the input that may need focus restored on Cancel.
+            waitForUpcomingTransition: true,
+            callback: () => {
+                blurCleanupTaskRef.current = null;
+                if (isDiscardModalOpenRef.current || isDiscardNavigationPendingRef.current) {
+                    return;
+                }
+                lastFocusedInputRef.current = null;
+                lastFocusedInputCandidateRef.current = null;
+            },
         });
     };
 
