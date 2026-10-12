@@ -4,6 +4,7 @@ import type {ColumnWidthOverrides} from '@src/types/onyx/TableColumnWidths';
 import type {ColumnAbsorber} from './getAbsorbedColumnWidths';
 
 import getAbsorbedColumnWidths from './getAbsorbedColumnWidths';
+import getColumnsWidthSum from './getColumnsWidthSum';
 
 /** What resizing needs to know about a column, whatever lays the columns out. */
 type OverridableColumn = {
@@ -18,6 +19,9 @@ type OverridableColumn = {
 
     /** Width its content and header need, which absorbing another column's resize never squeezes it below. `undefined` when unknown. */
     fitWidth: number | undefined;
+
+    /** Width absorbing another column's resize never grows it past. `undefined` when uncapped. */
+    maxWidth: number | undefined;
 };
 
 type ResolveOverriddenColumnWidthsParams = {
@@ -32,6 +36,11 @@ type ResolveOverriddenColumnWidthsParams = {
     /** Width the row has for its columns, which absorbers keep it at. */
     availableColumnsWidth: number;
 };
+
+/** Only headed, content-sized columns share the row. Columns with a declared width, like a switch, status or count, hold fixed-size content. */
+function isColumnResizable(column: OverridableColumn): boolean {
+    return !!column.label && !column.hasDeclaredWidth;
+}
 
 /** Whole px, deliberately not clamped: stored widths may legitimately fall outside drag bounds. */
 function getStoredColumnWidth(width: number): number {
@@ -54,7 +63,6 @@ function getAbsorbedDelta(delta: number, overflowWidth: number): number {
  * or user-sized) down to their fit width. A drag resolves through here too, so columns don't jump on release.
  */
 function resolveOverriddenColumnWidths({columns, baseColumnWidths, columnWidthOverrides, availableColumnsWidth}: ResolveOverriddenColumnWidthsParams): Record<string, number> {
-    const canColumnAbsorb = (column: OverridableColumn) => !!column.label && !column.hasDeclaredWidth;
     const columnWidths = {...baseColumnWidths};
 
     for (const [index, column] of columns.entries()) {
@@ -67,11 +75,11 @@ function resolveOverriddenColumnWidths({columns, baseColumnWidths, columnWidthOv
 
         const width = getStoredColumnWidth(overriddenWidth);
         const delta = width - (columnWidths[column.key] ?? 0);
-        const overflowWidth = columns.reduce((total, rowColumn) => total + (columnWidths[rowColumn.key] ?? 0), 0) - availableColumnsWidth;
+        const overflowWidth = getColumnsWidthSum(columns, columnWidths) - availableColumnsWidth;
         const absorbers = columns
             .slice(index + 1)
-            .filter(canColumnAbsorb)
-            .map((absorber): ColumnAbsorber => ({columnKey: absorber.key, minWidth: absorber.fitWidth ?? 0}));
+            .filter(isColumnResizable)
+            .map((absorber): ColumnAbsorber => ({columnKey: absorber.key, minWidth: absorber.fitWidth ?? 0, maxWidth: absorber.maxWidth ?? Number.POSITIVE_INFINITY}));
 
         Object.assign(columnWidths, getAbsorbedColumnWidths(absorbers, columnWidths, getAbsorbedDelta(delta, overflowWidth)));
         columnWidths[column.key] = width;
@@ -81,4 +89,5 @@ function resolveOverriddenColumnWidths({columns, baseColumnWidths, columnWidthOv
 }
 
 export default resolveOverriddenColumnWidths;
+export {isColumnResizable};
 export type {OverridableColumn};

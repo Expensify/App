@@ -6,6 +6,7 @@ import type {ColumnWidthOverrides} from '@src/types/onyx/TableColumnWidths';
 
 import applyColumnWidthOverrides from './applyColumnWidthOverrides';
 import {getColumnsWidthExpression, getGrowableColumnTrack} from './columnWidthExpressions';
+import getColumnsWidthSum from './getColumnsWidthSum';
 import resolveOverriddenColumnWidths from './resolveOverriddenColumnWidths';
 
 /** Row space that isn't column width, so it can be added back around the column sum. */
@@ -64,10 +65,6 @@ type ResizableColumnLayout = {
     dragMinWidths: Record<string, number>;
 };
 
-function getColumnsWidthSum<DataType extends TableData, ColumnKey extends string>(columns: Array<TableColumn<ColumnKey, DataType>>, columnWidths: Record<string, number>): number {
-    return columns.reduce((total, column) => total + (columnWidths[column.key] ?? 0), 0);
-}
-
 function getResizableColumnLayout<DataType extends TableData, ColumnKey extends string>({
     columns,
     resolvedColumnWidths,
@@ -93,6 +90,7 @@ function getResizableColumnLayout<DataType extends TableData, ColumnKey extends 
         label: column.label,
         hasDeclaredWidth: typeof column.width === 'number',
         fitWidth: fitColumnWidths[column.key],
+        maxWidth: column.dynamicSizing?.maxWidth,
     }));
     const {columnWidths, columnWidthValues, resizableColumnKeys} = applyColumnWidthOverrides({columns: overridableColumns, baseColumnWidths, columnWidthOverrides, availableColumnsWidth});
 

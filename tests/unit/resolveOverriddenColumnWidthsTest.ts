@@ -7,7 +7,7 @@ const {MIN_WIDTH} = CONST.TABLES.COLUMN_RESIZE;
 
 /** A headed column sized from its content, which absorbs other columns' resizes down to its fit width. */
 function contentColumn(key: string, fitWidth?: number): OverridableColumn {
-    return {key, label: key, hasDeclaredWidth: false, fitWidth};
+    return {key, label: key, hasDeclaredWidth: false, fitWidth, maxWidth: undefined};
 }
 
 describe('resolveOverriddenColumnWidths', () => {
@@ -33,6 +33,18 @@ describe('resolveOverriddenColumnWidths', () => {
 
         // Then both stop at their fit width, so content is never truncated, and the 50px nobody can give scrolls
         expect(columnWidths).toEqual({name: 300, email: 190, role: 160});
+    });
+
+    it("moves an absorber's share to the rest once it reaches its maximum width", () => {
+        // Given a 560px row whose second column is capped 20px above its width, so it truncates long values
+        const columns = [contentColumn('member'), {...contentColumn('card'), maxWidth: 180}, contentColumn('account')];
+        const baseColumnWidths = {member: 200, card: 160, account: 200};
+
+        // When the first column is stored 60px narrower
+        const columnWidths = resolveOverriddenColumnWidths({columns, baseColumnWidths, columnWidthOverrides: {member: 140}, availableColumnsWidth: 560});
+
+        // Then the capped column stops at its maximum and the uncapped one takes the rest, so the row still fits
+        expect(columnWidths).toEqual({member: 140, card: 180, account: 240});
     });
 
     it('never squeezes an absorber below the drag bound, even when its content is narrower', () => {

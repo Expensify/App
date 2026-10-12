@@ -4,7 +4,7 @@ import type {ColumnWidthOverrides} from '@src/types/onyx/TableColumnWidths';
 import type {OverridableColumn} from './resolveOverriddenColumnWidths';
 
 import {getColumnWidthValue} from './columnWidthExpressions';
-import resolveOverriddenColumnWidths from './resolveOverriddenColumnWidths';
+import resolveOverriddenColumnWidths, {isColumnResizable} from './resolveOverriddenColumnWidths';
 
 type ApplyColumnWidthOverridesParams = {
     /** Every column, in render order. */
@@ -34,9 +34,7 @@ type AppliedColumnWidthOverrides = {
 function applyColumnWidthOverrides({columns, baseColumnWidths, columnWidthOverrides, availableColumnsWidth}: ApplyColumnWidthOverridesParams): AppliedColumnWidthOverrides {
     const columnWidths = resolveOverriddenColumnWidths({columns, baseColumnWidths, columnWidthOverrides, availableColumnsWidth});
     const columnWidthValues = columns.map((column) => getColumnWidthValue(column.key, columnWidths[column.key] ?? 0));
-
-    // Only headed, content-sized columns drag. Columns with a declared width, like a switch, status or count, hold fixed-size content.
-    const resizableColumnKeys = columns.filter((column) => !!column.label && !column.hasDeclaredWidth).map((column) => column.key);
+    const resizableColumnKeys = columns.filter(isColumnResizable).map((column) => column.key);
 
     return {columnWidths, columnWidthValues, resizableColumnKeys};
 }

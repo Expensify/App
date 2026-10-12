@@ -3,17 +3,17 @@ import type {OverridableColumn} from '@components/Table/columnResize/resolveOver
 
 /** A headed column sized from its content, which is the only kind whose edge drags. */
 function contentColumn(key: string): OverridableColumn {
-    return {key, label: key, hasDeclaredWidth: false, fitWidth: undefined};
+    return {key, label: key, hasDeclaredWidth: false, fitWidth: undefined, maxWidth: undefined};
 }
 
 /** A headed column that declared a width of its own, e.g. a status or a switch. */
 function fixedColumn(key: string): OverridableColumn {
-    return {key, label: key, hasDeclaredWidth: true, fitWidth: undefined};
+    return {key, label: key, hasDeclaredWidth: true, fitWidth: undefined, maxWidth: undefined};
 }
 
 /** A column with no heading, e.g. a trailing arrow. */
 function headlessColumn(key: string): OverridableColumn {
-    return {key, label: '', hasDeclaredWidth: false, fitWidth: undefined};
+    return {key, label: '', hasDeclaredWidth: false, fitWidth: undefined, maxWidth: undefined};
 }
 
 describe('applyColumnWidthOverrides', () => {
