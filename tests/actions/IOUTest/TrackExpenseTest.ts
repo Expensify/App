@@ -2685,6 +2685,7 @@ describe('actions/IOU/TrackExpense', () => {
                     isChatReportArchived: false,
                     currentUserAccountID,
                     transactionThreadReportActions: {},
+                    transactionThread: undefined,
                 });
                 const update = optimisticData.find((entry) => entry.key === `${ONYXKEYS.COLLECTION.REPORT}${CHAT_REPORT_ID}`);
                 const {value} = update ?? {};
