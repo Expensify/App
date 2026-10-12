@@ -458,7 +458,7 @@ function MoneyRequestReceiptView({
               formatPhoneNumber,
               getCurrencyDecimals,
               transactionReport,
-              transactionThreadReport,
+              transactionThreadReport: resolvedTransactionThreadReport,
               transactionViolations: rawTransactionViolations,
               currentUserPersonalDetails: currentUserPersonalDetail,
           }

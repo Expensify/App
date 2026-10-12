@@ -681,9 +681,10 @@ describe('actions/IOU/Receipt', () => {
             }
         });
 
-        it('should reuse the failed "added a receipt" action on retry and clear its error', async () => {
-            // Given a retry of an upload whose "added a receipt" action failed and kept an error
+        it('should reuse the failed audit actions on retry and clear their errors', async () => {
+            // Given a retry of an upload whose "removed a receipt" and "added a receipt" actions failed and kept an error
             const failedActionID = '1234567890';
+            const failedRemovedActionID = '1234567891';
             const threadReport = {...createRandomReport(2, undefined), reportID: 'replaceReceiptRetryThreadReportID'};
             const transaction = await setupTransactionWithSnapshot(transactionID, {receipt: OLD_RECEIPT});
             const writeSpy = mockApiWrite();
@@ -701,10 +702,11 @@ describe('actions/IOU/Receipt', () => {
                     currentUserPersonalDetails: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
                     transactionThreadReport: threadReport,
                     receiptAddedReportActionID: failedActionID,
+                    receiptRemovedReportActionID: failedRemovedActionID,
                 });
                 await waitForBatchedUpdates();
 
-                // Then the same action is sent and overwritten without its error, and its ID is stored again for another retry
+                // Then the same actions are sent and overwritten without their errors, and their IDs are stored again for another retry
                 const [, parameters, onyxData] = getRequiredWriteCall(writeSpy.mock.calls, 0);
                 const threadActionsUpdate = getRequiredOnyxUpdate(onyxData, 'optimisticData', `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${threadReport.reportID}`, Onyx.METHOD.MERGE, true);
                 const transactionFailure = getRequiredOnyxUpdate(onyxData, 'failureData', `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, Onyx.METHOD.MERGE, true);
@@ -717,9 +719,12 @@ describe('actions/IOU/Receipt', () => {
                 expect(addedActions.at(0)?.reportActionID).toBe(failedActionID);
                 // The receipt already has a file, so the retry still audits the removal alongside the reused addition.
                 expect(removedActions).toHaveLength(1);
+                expect(removedActions.at(0)?.reportActionID).toBe(failedRemovedActionID);
+                expect(parameters.receiptRemovedReportActionID).toBe(failedRemovedActionID);
                 expect(threadActionsUpdate.value[failedActionID]).toEqual(expect.objectContaining({errors: null}));
+                expect(threadActionsUpdate.value[failedRemovedActionID]).toEqual(expect.objectContaining({errors: null}));
                 expect(JSON.parse(typeof receiptError?.retryParams === 'string' ? receiptError.retryParams : '')).toEqual(
-                    expect.objectContaining({receiptAddedReportActionID: failedActionID}),
+                    expect.objectContaining({receiptAddedReportActionID: failedActionID, receiptRemovedReportActionID: failedRemovedActionID}),
                 );
             } finally {
                 writeSpy.mockRestore();

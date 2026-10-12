@@ -35,25 +35,35 @@ function buildIOUAction(IOUTransactionID: string): ReportAction<typeof CONST.REP
 
 describe('getTransactionThreadReport', () => {
     it('keeps the thread found from the expense report', () => {
+        // Given an expense whose expense report already points at a thread
         const expenseThread = {...createRandomReport(2), reportID: 'expenseThread'};
 
-        // When the expense report already points at a thread, that thread is the one to audit on
-        expect(getTransactionThreadReport(transaction, expenseThread, selfDMThread, buildIOUAction(TRANSACTION_ID))).toBe(expenseThread);
+        // When the thread report is resolved
+        const result = getTransactionThreadReport(transaction, expenseThread, selfDMThread, buildIOUAction(TRANSACTION_ID));
+
+        // Then that thread is the one to audit on, not the open report
+        expect(result).toBe(expenseThread);
     });
 
     it('uses the open report when a self DM expense is unreported', () => {
         // Given a self DM expense with no thread stored on the expense itself, whose open report's parent action is the expense's IOU action
         const parentReportAction = buildIOUAction(TRANSACTION_ID);
 
+        // When the thread report is resolved
+        const result = getTransactionThreadReport(transaction, undefined, selfDMThread, parentReportAction);
+
         // Then the report the expense is open in is its thread
-        expect(getTransactionThreadReport(transaction, undefined, selfDMThread, parentReportAction)?.reportID).toBe(THREAD_REPORT_ID);
+        expect(result?.reportID).toBe(THREAD_REPORT_ID);
     });
 
     it('does not treat an unrelated report as the thread', () => {
         // Given an open report whose parent action belongs to a different expense
         const parentReportAction = buildIOUAction('someOtherTransaction');
 
-        // Then the open report is not used as the thread
-        expect(getTransactionThreadReport(transaction, undefined, selfDMThread, parentReportAction)).toBeUndefined();
+        // When the thread report is resolved
+        const result = getTransactionThreadReport(transaction, undefined, selfDMThread, parentReportAction);
+
+        // Then the open report is not used as the thread, so no audit action lands in the wrong chat
+        expect(result).toBeUndefined();
     });
 });

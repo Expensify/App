@@ -9019,6 +9019,7 @@ function buildOptimisticReceiptAddedAction(
  * Builds an optimistic "removed a receipt" action that shares its ID with the server action.
  *
  * @param created Set slightly earlier so a replacement shows the removal first.
+ * @param reportActionID Pre-generated so a retry updates this action instead of posting another.
  */
 function buildOptimisticReceiptRemovedAction(
     reportID: string | undefined,
@@ -9028,8 +9029,19 @@ function buildOptimisticReceiptRemovedAction(
     currentUserAvatar: AvatarSource | undefined,
     delegateAccountID: number | undefined,
     created?: string,
+    reportActionID: string = rand64(),
 ): OptimisticModifiedExpenseReportAction {
-    return buildOptimisticReceiptAuditAction(reportID, transactionID, currentUserAccountID, currentUserDisplayName, currentUserAvatar, delegateAccountID, 'receiptRemoved', created);
+    return buildOptimisticReceiptAuditAction(
+        reportID,
+        transactionID,
+        currentUserAccountID,
+        currentUserDisplayName,
+        currentUserAvatar,
+        delegateAccountID,
+        'receiptRemoved',
+        created,
+        reportActionID,
+    );
 }
 
 function buildOptimisticReceiptAuditAction(

@@ -62,6 +62,7 @@ type ReplaceReceipt = {
     currentUserPersonalDetails: CurrentUserPersonalDetails;
     transactionThreadReport: OnyxEntry<OnyxTypes.Report>;
     receiptAddedReportActionID?: string;
+    receiptRemovedReportActionID?: string;
 };
 // The actor and thread fields are left out because a retry builds a fresh optimistic action,
 // so it has to reflect who is acting and the thread state at retry time rather than when the upload failed.
@@ -241,6 +242,7 @@ function replaceReceipt({
     currentUserPersonalDetails,
     transactionThreadReport,
     receiptAddedReportActionID,
+    receiptRemovedReportActionID,
 }: ReplaceReceipt) {
     const transactionID = transaction?.transactionID;
 
@@ -263,10 +265,13 @@ function replaceReceipt({
     };
     const newTransaction = transaction && {...transaction, receipt: receiptOptimistic};
 
-    // The added-action ID is chosen before the optimistic data is built. A retry passes that same ID back
-    // so it updates the failed action. Nothing is posted for a crop or rotate, or when the thread does not exist yet.
+    // The audit action IDs are chosen before the optimistic data is built. A retry passes the same IDs back
+    // so it updates the failed actions. Nothing is posted for a crop or rotate, or when the thread does not exist yet.
     const transactionThreadReportID = transactionThreadReport?.reportID;
     const optimisticReceiptAddedActionID = !isSameReceipt && transactionThreadReportID ? (receiptAddedReportActionID ?? rand64()) : undefined;
+    // A receipt added offline has a file but no receipt ID yet, and that still counts as one being replaced.
+    const isReplacingReceipt = !!transaction && (hasReceiptSource(transaction) || hasUploadedReceipt(transaction));
+    const optimisticReceiptRemovedActionID = optimisticReceiptAddedActionID && isReplacingReceipt ? (receiptRemovedReportActionID ?? rand64()) : undefined;
     const retryParams: ReplaceReceiptRetryParams = {
         transactionID: transaction.transactionID,
         file: undefined,
@@ -279,6 +284,7 @@ function replaceReceipt({
         transactionViolations,
         isVendorMatchingBetaEnabled,
         receiptAddedReportActionID: optimisticReceiptAddedActionID,
+        receiptRemovedReportActionID: optimisticReceiptRemovedActionID,
     };
     const currentSearchQueryJSON = getCurrentSearchQueryJSON();
 
@@ -386,8 +392,6 @@ function replaceReceipt({
         });
     }
 
-    // A receipt added offline has a file but no receipt ID yet, and that still counts as one being replaced.
-    const isReplacingReceipt = !!transaction && (hasReceiptSource(transaction) || hasUploadedReceipt(transaction));
     const created = DateUtils.getDBTime();
     const optimisticReceiptAddedAction = optimisticReceiptAddedActionID
         ? buildOptimisticReceiptAddedAction(
@@ -402,18 +406,18 @@ function replaceReceipt({
           )
         : undefined;
 
-    const optimisticReceiptRemovedAction =
-        optimisticReceiptAddedActionID && isReplacingReceipt
-            ? buildOptimisticReceiptRemovedAction(
-                  transactionThreadReportID,
-                  transactionID,
-                  currentUserPersonalDetails.accountID,
-                  currentUserPersonalDetails.displayName,
-                  currentUserPersonalDetails.avatar,
-                  delegateAccountID,
-                  DateUtils.subtractMillisecondsFromDateTime(created, 1),
-              )
-            : undefined;
+    const optimisticReceiptRemovedAction = optimisticReceiptRemovedActionID
+        ? buildOptimisticReceiptRemovedAction(
+              transactionThreadReportID,
+              transactionID,
+              currentUserPersonalDetails.accountID,
+              currentUserPersonalDetails.displayName,
+              currentUserPersonalDetails.avatar,
+              delegateAccountID,
+              DateUtils.subtractMillisecondsFromDateTime(created, 1),
+              optimisticReceiptRemovedActionID,
+          )
+        : undefined;
 
     const optimisticAuditActions = [optimisticReceiptRemovedAction, optimisticReceiptAddedAction].filter((action) => !!action);
 
