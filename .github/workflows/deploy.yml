@@ -180,6 +180,24 @@ jobs:
                 isCherryPick,
             );
 
+      - name: Record native evaluation candidate
+        id: pgoCandidate
+        continue-on-error: true
+        env:
+          PGO_CANDIDATE_ENVIRONMENT: ${{ env.DEPLOY_ENV }}
+          PGO_NATIVE_ELIGIBLE: ${{ env.DEPLOY_ENV == 'staging' || fromJSON(steps.isCherryPick.outputs.IS_CHERRY_PICK) }}
+        run: ./node_modules/.bin/bun scripts/pgo/pgoCandidate.ts capture --output pgo-candidate/candidate.json --environment "$PGO_CANDIDATE_ENVIRONMENT" --native-eligible "$PGO_NATIVE_ELIGIBLE"
+
+      - name: Upload native evaluation candidate metadata
+        if: steps.pgoCandidate.outcome == 'success'
+        continue-on-error: true
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f
+        with:
+          name: pgo-native-candidate-${{ github.run_attempt }}
+          path: pgo-candidate/candidate.json
+          if-no-files-found: error
+          retention-days: 30
+
       - name: Get Android native version
         id: getAndroidVersion
         run: echo "VERSION_CODE=$(grep -oP 'android:versionCode="\K[0-9]+' Mobile-Expensify/Android/AndroidManifest.xml)" >> "$GITHUB_OUTPUT"

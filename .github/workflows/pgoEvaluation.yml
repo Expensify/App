@@ -1,0 +1,219 @@
+name: Evaluate native PGO candidate
+
+on:
+  workflow_run:
+    workflows: [Deploy code to staging or production]
+    types: [completed]
+    branches: [staging, production]
+  pull_request:
+    types: [opened, synchronize, reopened]
+  workflow_dispatch:
+    inputs:
+      producer_run_id:
+        description: 'Immutable deploy run to evaluate'
+        required: true
+        type: string
+      platform:
+        description: 'Platforms to evaluate'
+        type: choice
+        default: both
+        options: [both, android, ios]
+
+# Evaluation never publishes or selects a deployable native artifact.
+permissions:
+  contents: read
+
+jobs:
+  prepare:
+    if: >-
+      github.repository == 'Expensify/App' &&
+      (github.event_name != 'pull_request' ||
+      (github.event.pull_request.head.repo.full_name == 'Expensify/App' &&
+      github.event.pull_request.head.ref == '@chrispader/perf/pgo-ci-evaluation'))
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      actions: read
+      pull-requests: read
+    outputs:
+      eligible: ${{ steps.candidate.outputs.eligible }}
+      app-sha: ${{ steps.candidate.outputs.app-sha }}
+      mobile-sha: ${{ steps.candidate.outputs.mobile-sha }}
+      platforms: ${{ steps.candidate.outputs.platforms }}
+      tooling-sha: ${{ steps.tooling.outputs.sha }}
+      platform-matrix: ${{ steps.candidate.outputs.platform-matrix }}
+    steps:
+      - name: Checkout reviewed evaluation tooling
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+        with:
+          ref: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.sha }}
+          persist-credentials: false
+      - name: Record reviewed tooling revision
+        id: tooling
+        run: echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+      - name: Setup repository tooling
+        uses: ./.github/actions/composite/setupNode
+      - name: Resolve and validate immutable candidate
+        id: candidate
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          PGO_PRODUCER_RUN_ID: ${{ inputs.producer_run_id }}
+          PGO_PLATFORM: ${{ inputs.platform || 'both' }}
+        run: |
+          args=()
+          if [[ -n "$PGO_PRODUCER_RUN_ID" ]]; then
+            args+=(--source-run-id "$PGO_PRODUCER_RUN_ID")
+          fi
+          ./node_modules/.bin/bun scripts/pgo/pgoCandidate.ts prepare --output pgo-plan/plan.json --platform "$PGO_PLATFORM" "${args[@]}"
+      - name: Preserve verified evaluation plan
+        if: steps.candidate.outputs.eligible == 'true'
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f
+        with:
+          name: pgo-evaluation-plan
+          path: pgo-plan/plan.json
+          if-no-files-found: error
+          retention-days: 30
+
+  evaluate:
+    needs: prepare
+    if: needs.prepare.outputs.eligible == 'true'
+    strategy:
+      fail-fast: false
+      matrix:
+        platform: ${{ fromJSON(needs.prepare.outputs.platform-matrix) }}
+    # A single platform process owns build, training and both benchmark orders.
+    runs-on: ${{ matrix.platform == 'android' && 'pgo-android' || 'pgo-ios' }}
+    concurrency:
+      group: pgo-evaluation-physical-${{ matrix.platform }}
+      cancel-in-progress: false
+      queue: max
+    timeout-minutes: 360
+    permissions:
+      contents: read
+      actions: read
+    steps:
+      - name: Checkout pinned native candidate
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+        with:
+          ref: ${{ needs.prepare.outputs.app-sha }}
+          submodules: recursive
+          persist-credentials: false
+      - name: Checkout reviewed evaluation tooling
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+        with:
+          ref: ${{ needs.prepare.outputs.tooling-sha }}
+          path: evaluation-tooling
+          persist-credentials: false
+      - name: Setup pinned candidate dependencies
+        uses: ./evaluation-tooling/.github/actions/composite/setupNode
+        with:
+          IS_HYBRID_BUILD: 'true'
+      - name: Expose pinned dependencies to reviewed execution overlay
+        run: ln -s "$GITHUB_WORKSPACE/node_modules" evaluation-tooling/node_modules
+      - name: Download verified plan
+        if: contains(needs.prepare.outputs.platforms, matrix.platform)
+        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131
+        with:
+          name: pgo-evaluation-plan
+          path: pgo-plan
+      - name: Verify candidate and native gitlink before device access
+        if: contains(needs.prepare.outputs.platforms, matrix.platform)
+        env:
+          APP_SHA: ${{ needs.prepare.outputs.app-sha }}
+          MOBILE_SHA: ${{ needs.prepare.outputs.mobile-sha }}
+        run: |
+          test "$(git rev-parse HEAD)" = "$APP_SHA"
+          test "$(git -C Mobile-Expensify rev-parse HEAD)" = "$MOBILE_SHA"
+          test "$(git ls-tree HEAD Mobile-Expensify | awk '{print $3}')" = "$MOBILE_SHA"
+      - name: Evaluate pinned candidate on its physical device
+        if: contains(needs.prepare.outputs.platforms, matrix.platform)
+        env:
+          PGO_CANDIDATE_DIRECTORY: ${{ github.workspace }}
+          PGO_TOOLING_DIRECTORY: ${{ github.workspace }}/evaluation-tooling
+          PGO_PLATFORM: ${{ matrix.platform }}
+          PGO_ANDROID_DEVICE_ID: ${{ secrets.PGO_ANDROID_DEVICE_ID }}
+          PGO_ANDROID_APP_ID: ${{ vars.PGO_ANDROID_APP_ID }}
+          PGO_ANDROID_FIXTURE_PATH: ${{ secrets.PGO_ANDROID_FIXTURE_PATH }}
+          PGO_ANDROID_ENVFILE: ${{ secrets.PGO_ANDROID_ENVFILE }}
+          PGO_IOS_DEVICE_ID: ${{ secrets.PGO_IOS_DEVICE_ID }}
+          PGO_IOS_APP_ID: ${{ vars.PGO_IOS_APP_ID }}
+          PGO_IOS_FIXTURE_PATH: ${{ secrets.PGO_IOS_FIXTURE_PATH }}
+          PGO_IOS_ENVFILE: ${{ secrets.PGO_IOS_ENVFILE }}
+          IOS_CODE_SIGNING_ALLOWED: ${{ vars.IOS_CODE_SIGNING_ALLOWED }}
+          IOS_DEVELOPMENT_TEAM: ${{ vars.IOS_DEVELOPMENT_TEAM }}
+        run: ./node_modules/.bin/bun evaluation-tooling/scripts/pgo/pgoEvaluation.ts execute "$PGO_PLATFORM" --plan pgo-plan/plan.json --output pgo-public
+      - name: Preserve public numeric result and provenance
+        if: always() && contains(needs.prepare.outputs.platforms, matrix.platform)
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f
+        with:
+          name: pgo-evaluation-${{ matrix.platform }}
+          path: pgo-public/evaluation-${{ matrix.platform }}.json
+          if-no-files-found: warn
+          retention-days: 30
+
+  report:
+    needs: [prepare, evaluate]
+    if: always() && needs.prepare.outputs.eligible == 'true'
+    runs-on: ubuntu-latest
+    concurrency:
+      group: pgo-evaluation-report-${{ needs.prepare.outputs.app-sha }}
+      cancel-in-progress: false
+      queue: max
+    permissions:
+      contents: read
+      actions: read
+      issues: write
+    steps:
+      - name: Checkout reviewed reporting tooling
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+        with:
+          ref: ${{ needs.prepare.outputs.tooling-sha }}
+          persist-credentials: false
+      - name: Setup repository tooling
+        uses: ./.github/actions/composite/setupNode
+      - name: Download public evaluation artifacts
+        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131
+        with:
+          pattern: pgo-evaluation-*
+          path: pgo-results
+      - name: Render report for this immutable candidate
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: ./node_modules/.bin/bun scripts/pgo/pgoEvaluation.ts report --plan pgo-results/pgo-evaluation-plan/plan.json --results pgo-results --output pgo-report
+      - name: Publish report summary
+        run: cat pgo-report/summary.md >> "$GITHUB_STEP_SUMMARY"
+      - name: Preserve public report
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f
+        with:
+          name: pgo-evaluation-report
+          path: |
+            pgo-report/summary.json
+            pgo-report/summary.md
+          if-no-files-found: error
+          retention-days: 30
+      - name: Attach report to its matching deploy checklist
+        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd
+        with:
+          script: |
+            const fs = require('node:fs');
+            const comment = JSON.parse(fs.readFileSync('pgo-report/comment.json', 'utf8'));
+            if (!Number.isSafeInteger(comment.targetIssueNumber) || !comment.marker || !comment.body) {
+              core.notice('No matching report target was resolved.');
+              return;
+            }
+            const {data: issue} = await github.rest.issues.get({...context.repo, issue_number: comment.targetIssueNumber});
+            {
+              const labels = issue.labels.map((label) => typeof label === 'string' ? label : label.name);
+              const tag = issue.body?.match(/\*\*Release Version:\*\*\s*`([^`]+)`/)?.[1];
+              if (!labels.includes('StagingDeployCash') || !comment.version || tag !== `${comment.version}-staging`) {
+                core.notice('Historical checklist changed; report remains available as an artifact.');
+                return;
+              }
+            }
+            const comments = await github.paginate(github.rest.issues.listComments, {...context.repo, issue_number: comment.targetIssueNumber, per_page: 100});
+            const existing = comments.find((item) => item.user?.type === 'Bot' && item.body?.includes(comment.marker));
+            if (existing) {
+              await github.rest.issues.updateComment({...context.repo, comment_id: existing.id, body: comment.body});
+            } else {
+              await github.rest.issues.createComment({...context.repo, issue_number: comment.targetIssueNumber, body: comment.body});
+            }
