@@ -52,20 +52,11 @@ function show(bodyText: string, type: GrowlType, duration?: number, action?: Gro
     });
 }
 
-function isGrowlOptions(value: number | GrowlOptions | undefined): value is GrowlOptions {
-    return typeof value === 'object' && value !== null;
-}
-
 /**
  * Show error growl.
- * The second argument stays a duration for existing callers, or an options object when the anchor must be set.
  */
-function error(bodyText: string, durationOrOptions?: number | GrowlOptions, action?: GrowlAction) {
-    if (isGrowlOptions(durationOrOptions)) {
-        show(bodyText, CONST.GROWL.ERROR, durationOrOptions.duration, durationOrOptions.action, durationOrOptions.position);
-        return;
-    }
-    show(bodyText, CONST.GROWL.ERROR, durationOrOptions, action);
+function error(bodyText: string, options?: GrowlOptions) {
+    show(bodyText, CONST.GROWL.ERROR, options?.duration, options?.action, options?.position);
 }
 
 /**

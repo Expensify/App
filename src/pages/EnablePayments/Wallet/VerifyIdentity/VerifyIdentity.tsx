@@ -51,7 +51,7 @@ function VerifyIdentity() {
     const onfidoError = getLatestErrorMessage(walletOnfidoData) ?? '';
 
     const handleOnfidoError = () => {
-        Growl.error(translate('onfidoStep.genericError'), ONFIDO_ERROR_DISPLAY_DURATION);
+        Growl.error(translate('onfidoStep.genericError'), {duration: ONFIDO_ERROR_DISPLAY_DURATION});
     };
 
     const goBack = () => {
