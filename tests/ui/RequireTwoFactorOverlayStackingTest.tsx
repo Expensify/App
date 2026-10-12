@@ -1,3 +1,5 @@
+// The jest.mock factories below construct React elements and read props off untyped mock values,
+// so the unsafe-* rules fire on intentional test wiring rather than real type problems.
 /* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-return */
 import {render, screen, within} from '@testing-library/react-native';
 
@@ -56,7 +58,7 @@ jest.mock('@hooks/useLocalize', () => ({
 
 jest.mock('@hooks/useTheme', () => ({
     __esModule: true,
-    default: () => ({icon: '#000'}),
+    default: () => ({icon: '#000', overlay: '#000000'}),
 }));
 
 jest.mock('@hooks/useThemeStyles', () => ({
@@ -234,10 +236,13 @@ describe('RequireTwoFactorAuthenticationOverlay stacking', () => {
     });
 
     it('shows the offline banner outside the covering overlay while required 2FA is visible', () => {
+        // Given required 2FA is visible and the user is offline, the ScreenWrapper banner is covered by the overlay.
+
+        // When the overlay renders its own banner above that layer.
         render(<RequireTwoFactorAuthenticationOverlay />);
 
+        // Then the user can still see they are offline, and the banner is not trapped inside the overlay.
         const overlay = screen.getByTestId('RequireTwoFactorAuthenticationOverlay');
-
         expect(overlay).toBeOnTheScreen();
         expect(screen.getByTestId('RequireTwoFactorOfflineBanner')).toBeOnTheScreen();
         expect(screen.getByText('You appear to be offline.')).toBeOnTheScreen();
@@ -246,34 +251,43 @@ describe('RequireTwoFactorAuthenticationOverlay stacking', () => {
     });
 
     it('hides the banner when the overlay is not showing', () => {
+        // Given required 2FA is not showing, so the ScreenWrapper banner is visible again.
         mockVisibility = {
             isRequire2FAOverlayVisible: false,
             isTestToolsRouteFocused: false,
         };
 
+        // When the overlay decides whether to render.
         render(<RequireTwoFactorAuthenticationOverlay />);
 
+        // Then there is no second banner, because the two would stack.
         expect(screen.queryByText('You appear to be offline.')).toBeNull();
         expect(screen.queryByTestId('RequireTwoFactorAuthenticationOverlay')).toBeNull();
     });
 
     it('hides the banner while online', () => {
+        // Given required 2FA is visible but the user is online.
         mockIsOffline = false;
 
+        // When the overlay renders.
         render(<RequireTwoFactorAuthenticationOverlay />);
 
+        // Then the extra banner stays hidden, because there is no offline state to show.
         expect(screen.getByTestId('RequireTwoFactorAuthenticationOverlay')).toBeOnTheScreen();
         expect(screen.queryByText('You appear to be offline.')).toBeNull();
     });
 
     it('turns the web focus trap off while test tools are focused', () => {
+        // Given test tools are focused on top of the required-2FA overlay.
         mockVisibility = {
             isRequire2FAOverlayVisible: true,
             isTestToolsRouteFocused: true,
         };
 
+        // When the overlay renders.
         render(<RequireTwoFactorAuthenticationOverlay />);
 
+        // Then the web focus trap turns off, so keyboard focus can reach the tools.
         expect(screen.getByTestId('RequireTwoFactorAuthenticationOverlay')).toBeOnTheScreen();
         expect(screen.getByTestId('focus-trap-inactive')).toBeOnTheScreen();
         expect(screen.queryByTestId('focus-trap-active')).toBeNull();
@@ -290,37 +304,49 @@ describe('TestToolsModalNavigator portal', () => {
     });
 
     it('keeps test tools in place when the required-2FA overlay is hidden', () => {
+        // Given the required-2FA overlay is hidden, so the screen contentStyle already dims the tools.
+
+        // When test tools render in the root stack.
         render(<TestToolsModalNavigator />);
 
+        // Then they stay in place, and the portaled scrim is absent so the two dims do not stack.
         expect(screen.getByTestId('test-tools-stack')).toBeOnTheScreen();
         expect(screen.getByTestId('test-tools-page')).toBeOnTheScreen();
         expect(screen.queryByTestId(`portal-${REQUIRE_2FA_ABOVE_PORTAL_HOST}`)).toBeNull();
+        expect(screen.queryByTestId('Require2FATestToolsScrim')).toBeNull();
     });
 
     it('portals the focused screen above the overlay and keeps its route', () => {
+        // Given required 2FA covers the root stack and the root test-tools screen is focused.
         mockVisibility = {
             isRequire2FAOverlayVisible: true,
             isTestToolsRouteFocused: true,
         };
 
+        // When test tools render above that overlay.
         render(<TestToolsModalNavigator />);
 
+        // Then that screen is portaled with its route, and the native scrim travels with it so the 2FA screen is dimmed.
         const portal = screen.getByTestId(`portal-${REQUIRE_2FA_ABOVE_PORTAL_HOST}`);
 
         expect(screen.getByTestId('test-tools-stack')).toBeOnTheScreen();
         expect(within(portal).getByText('TestToolsModal_Root')).toBeOnTheScreen();
+        expect(within(portal).getByTestId('Require2FATestToolsScrim')).toBeOnTheScreen();
         expect(screen.queryByTestId('test-tools-server-page')).toBeNull();
     });
 
     it('renders nothing for an unfocused test tools screen', () => {
+        // Given the server page is the focused test-tools screen while required 2FA is showing.
         mockVisibility = {
             isRequire2FAOverlayVisible: true,
             isTestToolsRouteFocused: true,
         };
         mockFocusedRouteName = 'TestToolsModal_Server';
 
+        // When test tools render above the overlay.
         render(<TestToolsModalNavigator />);
 
+        // Then only the focused page is portaled, so the previous tool screen does not stay on top of 2FA.
         const portal = screen.getByTestId(`portal-${REQUIRE_2FA_ABOVE_PORTAL_HOST}`);
 
         expect(within(portal).getByText('TestToolsModal_Server')).toBeOnTheScreen();

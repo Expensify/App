@@ -155,6 +155,9 @@ function RequireTwoFactorAuthenticationOverlay() {
                     </View>
                 </View>
             </FocusTrapForModal>
+            {/* The overlay covers the screen (and its ScreenWrapper banner) at a higher z-index, so render the
+                offline banner here, above the overlay, so the user can still see they're offline. box-none lets
+                taps fall through to the overlay below. */}
             <View
                 pointerEvents="box-none"
                 style={[StyleSheet.absoluteFill, styles.twoFARequiredOfflineBanner]}

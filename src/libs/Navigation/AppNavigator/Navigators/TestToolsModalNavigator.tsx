@@ -8,12 +8,16 @@ import useIsAuthenticated from '@hooks/useIsAuthenticated';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import useRequire2FAOverlayVisibility, {REQUIRE_2FA_ABOVE_PORTAL_HOST} from '@hooks/useRequire2FAOverlayVisibility';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useStyleUtils from '@hooks/useStyleUtils';
+import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import blurActiveElement from '@libs/Accessibility/blurActiveElement';
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {TestToolsModalModalNavigatorParamList} from '@libs/Navigation/types';
+
+import variables from '@styles/variables';
 
 import toggleTestToolsModal from '@userActions/TestTool';
 
@@ -26,7 +30,7 @@ import {Portal} from '@gorhom/portal';
 import {NavigationContext, NavigationRouteContext, useIsFocused} from '@react-navigation/native';
 import {CardAnimationContext} from '@react-navigation/stack';
 import React, {useCallback, useContext, useRef} from 'react';
-import {View} from 'react-native';
+import {Platform, StyleSheet, View} from 'react-native';
 
 import Overlay from './Overlay';
 
@@ -87,11 +91,16 @@ function TestToolsModalFrame({children}: TestToolsModalFrameProps) {
  */
 function withRequire2FAPortal<RouteName extends TestToolsRouteName>(Screen: ComponentType<PlatformStackScreenProps<TestToolsModalModalNavigatorParamList, RouteName>>) {
     function Require2FAPortaledTestToolsScreen(props: PlatformStackScreenProps<TestToolsModalModalNavigatorParamList, RouteName>) {
+        const theme = useTheme();
+        const StyleUtils = useStyleUtils();
         const {isRequire2FAOverlayVisible} = useRequire2FAOverlayVisibility();
         const navigation = useContext(NavigationContext);
         const route = useContext(NavigationRouteContext);
         const cardAnimation = useContext(CardAnimationContext);
         const isFocused = useIsFocused();
+        // Native Overlay renders nothing, and the screen contentStyle stays under the 2FA overlay.
+        // This fill is the dim that travels with the portal. Web already dims via Overlay inside the frame.
+        const nativeScrimStyle = Platform.OS === 'web' ? undefined : StyleUtils.getBackgroundColorWithOpacityStyle(theme.overlay, variables.overlayOpacity);
 
         if (!isRequire2FAOverlayVisible) {
             return <Screen {...props} />;
@@ -112,7 +121,15 @@ function withRequire2FAPortal<RouteName extends TestToolsRouteName>(Screen: Comp
         return (
             <Portal hostName={REQUIRE_2FA_ABOVE_PORTAL_HOST}>
                 <NavigationContext.Provider value={navigation}>
-                    <NavigationRouteContext.Provider value={route}>{frame}</NavigationRouteContext.Provider>
+                    <NavigationRouteContext.Provider value={route}>
+                        <View
+                            pointerEvents="box-none"
+                            style={[StyleSheet.absoluteFill, nativeScrimStyle]}
+                            testID="Require2FATestToolsScrim"
+                        >
+                            {frame}
+                        </View>
+                    </NavigationRouteContext.Provider>
                 </NavigationContext.Provider>
             </Portal>
         );
