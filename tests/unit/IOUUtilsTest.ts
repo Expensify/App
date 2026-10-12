@@ -1503,15 +1503,26 @@ describe('getDefaultReimbursableForPolicy', () => {
         expect(result).toBe(true);
     });
 
-    it('honors a locked non-reimbursable policy even when the participant is not flagged as a policy expense chat', () => {
+    it('honors a locked non-reimbursable policy in its policy expense chat', () => {
         // Given a workspace locked to "cash expenses are always non-reimbursable"
         const policy: Policy = {...createRandomPolicy(0, CONST.POLICY.TYPE.TEAM), defaultReimbursable: false, disabledFields: {reimbursable: true}};
 
-        // When a new expense is created without the policy-expense-chat flag
+        // When a new expense is created in its policy expense chat
+        const result = IOUUtils.getDefaultReimbursableForPolicy({policy, isPolicyExpenseChat: true, isCreatingTrackExpense: false});
+
+        // Then the lock applies, because the expense goes to that workspace
+        expect(result).toBe(false);
+    });
+
+    it('ignores a locked non-reimbursable policy when the expense does not go to that workspace', () => {
+        // Given a workspace locked to "cash expenses are always non-reimbursable"
+        const policy: Policy = {...createRandomPolicy(0, CONST.POLICY.TYPE.TEAM), defaultReimbursable: false, disabledFields: {reimbursable: true}};
+
+        // When a new expense is created outside its policy expense chat, such as a P2P expense
         const result = IOUUtils.getDefaultReimbursableForPolicy({policy, isPolicyExpenseChat: false, isCreatingTrackExpense: false});
 
-        // Then the lock wins, because members have no way to correct the value afterwards
-        expect(result).toBe(false);
+        // Then it stays reimbursable, because that workspace's rules do not apply to the expense
+        expect(result).toBe(true);
     });
 
     it('still reports reimbursable for a locked policy whose defaultReimbursable is absent', () => {
@@ -1574,6 +1585,22 @@ describe('calculateDefaultReimbursable', () => {
         });
 
         // Then the expense is reimbursable
+        expect(result).toBe(true);
+    });
+
+    it('does not apply a locked workspace rule when an unreported expense is submitted to a P2P participant', () => {
+        // Given the policy for moving expenses is locked to "cash expenses are always non-reimbursable"
+        const policyForMovingExpenses: Policy = {...createRandomPolicy(0, CONST.POLICY.TYPE.TEAM), defaultReimbursable: false, disabledFields: {reimbursable: true}};
+
+        // When an unreported expense is submitted to a P2P participant
+        const result = IOUUtils.calculateDefaultReimbursable({
+            iouType: CONST.IOU.TYPE.SUBMIT,
+            policyForMovingExpenses,
+            participant: {isPolicyExpenseChat: false},
+            transactionReportID: CONST.REPORT.UNREPORTED_REPORT_ID,
+        });
+
+        // Then the expense stays reimbursable, because the unrelated workspace's lock does not reach P2P expenses
         expect(result).toBe(true);
     });
 });

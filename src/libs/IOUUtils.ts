@@ -466,10 +466,10 @@ function getExistingTransactionID(linkedTrackedExpenseReportAction: ReportAction
  * Resolve the `reimbursable` value a brand new expense should be created with.
  *
  * `defaultReimbursable` is optional on the policy blob and an absent value means "reimbursable",
- * which is what the backend assumes too. When the workspace locks the field
- * (`disabledFields.reimbursable`), members cannot change it afterwards, so the policy default is
- * authoritative regardless of the chat/track context - otherwise a locked "always non-reimbursable"
- * workspace would still create reimbursable expenses that nobody can correct.
+ * which is what the backend assumes too. The policy default, locked or not, only applies when the policy
+ * is where the expense goes (its policy expense chat, or a track expense). `policy` can be an unrelated
+ * workspace - for example the policy for moving expenses when an unreported expense is submitted to a
+ * P2P participant - and that workspace's rules must not leak into the P2P expense.
  */
 function getDefaultReimbursableForPolicy({
     policy,
@@ -480,13 +480,7 @@ function getDefaultReimbursableForPolicy({
     isPolicyExpenseChat: boolean;
     isCreatingTrackExpense: boolean;
 }): boolean {
-    const policyDefaultReimbursable = policy?.defaultReimbursable ?? true;
-
-    if (isGroupPolicy(policy) && policy?.disabledFields?.reimbursable) {
-        return policyDefaultReimbursable;
-    }
-
-    return (isPolicyExpenseChat && isGroupPolicy(policy)) || isCreatingTrackExpense ? policyDefaultReimbursable : true;
+    return (isPolicyExpenseChat && isGroupPolicy(policy)) || isCreatingTrackExpense ? (policy?.defaultReimbursable ?? true) : true;
 }
 
 function calculateDefaultReimbursable({
