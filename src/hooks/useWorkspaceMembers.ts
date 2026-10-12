@@ -1,5 +1,4 @@
 import {openWorkspaceMembersPage} from '@libs/actions/Policy/Member';
-import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
 import {shouldFilterExpensifyTeam, isDeletedPolicyEmployee, isExpensifyTeam, canMemberRead, getMemberAccountIDsForWorkspace} from '@libs/PolicyUtils';
 import {generateAccountID} from '@libs/UserUtils';
 
@@ -12,6 +11,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import {useEffectEvent, useEffect} from 'react';
 
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
+import useLocalize from './useLocalize';
 import useNetwork from './useNetwork';
 import {usePersonalDetailsByLogins} from './usePersonalDetailByLogin';
 import {useAllPersonalDetails} from './usePersonalDetails';
@@ -20,6 +20,7 @@ function useWorkspaceMembers(policy: OnyxEntry<Policy>) {
     const policyID = policy?.id;
     const policyOwner = policy?.owner;
 
+    const {formatPhoneNumber} = useLocalize();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const currentUserLogin = currentUserPersonalDetails.login;
     const employeePersonalDetails = usePersonalDetailsByLogins(Object.keys(policy?.employeeList ?? {}));
