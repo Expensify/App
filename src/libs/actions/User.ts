@@ -878,8 +878,11 @@ function subscribeToUserEvents(
     PusherUtils.onPrivateUserChannelResubscribe(currentUserAccountID.toString());
 
     // Temporary labels bypass the reliable update stream, but wait for the current API response so an older snapshot cannot overwrite them.
+    // Keep events in arrival order even when they wait on different queued requests.
+    let processingStatusEventsPromise = Promise.resolve();
     PusherUtils.subscribeToPrivateUserChannelEvent(Pusher.TYPE.AGENT_ZERO_PROCESSING_STATUS, currentUserAccountID.toString(), (pushJSON) => {
-        SequentialQueue.getCurrentRequest()
+        processingStatusEventsPromise = processingStatusEventsPromise
+            .then(() => SequentialQueue.getCurrentRequest())
             .then(() => {
                 if (sessionAccountID !== currentUserAccountID || !ActiveClientManager.isClientTheLeader()) {
                     return;

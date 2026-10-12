@@ -5,6 +5,7 @@ import Log from '@libs/Log';
 import * as SequentialQueue from '@libs/Network/SequentialQueue';
 import Pusher from '@libs/Pusher';
 import type {EventData} from '@libs/Pusher/types';
+import * as RequestModule from '@libs/Request';
 
 import {subscribeToUserEvents} from '@userActions/User';
 
@@ -108,6 +109,43 @@ describe('Agent Zero processing status Pusher events', () => {
 
         // Then the new label survives the older response
         expect(await getOnyxValue(REPORT_NVP_KEY)).toEqual({agentZeroProcessingRequestIndicator: {[ACTOR_ACCOUNT_ID]: 'Thinking...'}});
+    });
+
+    it('keeps a newer clear after status events arrive during different queued requests', async () => {
+        // Given two requests waiting in the real sequential queue
+        SequentialQueue.resetQueue();
+        let finishFirstRequest = () => {};
+        let finishSecondRequest = () => {};
+        const firstRequest = new Promise<void>((resolve) => {
+            finishFirstRequest = resolve;
+        });
+        const secondRequest = new Promise<void>((resolve) => {
+            finishSecondRequest = resolve;
+        });
+        const processSpy = jest.spyOn(RequestModule, 'processWithMiddleware').mockReturnValueOnce(firstRequest).mockReturnValueOnce(secondRequest);
+        await SequentialQueue.push({command: 'OpenApp'});
+        await waitForBatchedUpdates();
+        await SequentialQueue.push({command: 'ReadNewestAction'});
+        expect(processSpy).toHaveBeenCalledTimes(1);
+
+        // When a thinking label arrives during the first request and that request finishes
+        Pusher.sendEvent(CHANNEL_NAME, Pusher.TYPE.AGENT_ZERO_PROCESSING_STATUS, processingStatusEvent);
+        finishFirstRequest();
+        await waitForBatchedUpdates();
+
+        // Then the next request starts while the label is still waiting
+        expect(processSpy).toHaveBeenCalledTimes(2);
+        expect(await getOnyxValue(REPORT_NVP_KEY)).toBeUndefined();
+
+        // When the clear arrives during the second request and the queue drains
+        Pusher.sendEvent(CHANNEL_NAME, Pusher.TYPE.AGENT_ZERO_PROCESSING_STATUS, {
+            updates: processingStatusEvent.updates.map((update) => ({...update, value: {agentZeroProcessingRequestIndicator: {[ACTOR_ACCOUNT_ID]: null}}})),
+        });
+        finishSecondRequest();
+        await waitForBatchedUpdates();
+
+        // Then the newer clear wins over the earlier thinking label
+        expect(await getOnyxValue(REPORT_NVP_KEY)).toEqual({agentZeroProcessingRequestIndicator: {}});
     });
 
     it('ignores processing status events on a non-leader client', async () => {
