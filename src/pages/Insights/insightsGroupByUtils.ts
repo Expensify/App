@@ -20,7 +20,7 @@ const MIN_MONTHS_BY_GROUP_BY = {
 
 /** Returns the Group by options that fit the date range, in the dropdown's order */
 function getInsightsGroupByOptions(date: InsightsFilters['date']): InsightsGroupBy[] {
-    // Custom date -> no group by
+    // We don't show the group-by filter for "Custom date" date option
     if ('on' in date) {
         return [];
     }
