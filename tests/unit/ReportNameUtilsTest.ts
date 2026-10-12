@@ -1746,7 +1746,7 @@ describe('ReportNameUtils', () => {
             ['prefers the derived name over the placeholder', '$12.00 for Lunch', '$12.00 for Lunch'],
             ['keeps a derived name equal to the placeholder, since only the raw fallback is filtered', CONST.REPORT.DEFAULT_REPORT_NAME, CONST.REPORT.DEFAULT_REPORT_NAME],
         ])('Optimistic report with the default name placeholder %s', (_description, derivedReportName, expected) => {
-            // Given a report that stores the "Chat Report" default placeholder name, as optimistic reports do until their real name is derived
+            // Given a report storing the default placeholder name
             const report: Report = {
                 ...createRegularChat(75, [currentUserAccountID, 1]),
                 reportID: '75',
@@ -1754,10 +1754,10 @@ describe('ReportNameUtils', () => {
                 ownerAccountID: currentUserAccountID,
             };
 
-            // When the name is read with or without the derived value
+            // When its name is read with each derived value
             const name = getReportName(report, derivedReportName);
 
-            // Then the placeholder never leaks into the UI as a real name, so headers can show a loading state instead
+            // Then the placeholder is never returned as a fallback
             expect(name).toBe(expected);
         });
     });

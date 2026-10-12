@@ -13,7 +13,7 @@ type ReportHeaderTitleSkeletonProps = {
     shouldAnimate?: boolean;
 };
 
-/** Placeholder for the report header avatar, title and subtitle while the report name is not available yet */
+/** Report header avatar and title placeholder, shown while the report name is loading */
 function ReportHeaderTitleSkeleton({shouldAnimate = true}: ReportHeaderTitleSkeletonProps) {
     const theme = useTheme();
     const styles = useThemeStyles();

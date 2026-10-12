@@ -229,9 +229,8 @@ function AvatarWithDisplayName({
         actorAccountID.current = parentReportActionActorAccountID ?? CONST.DEFAULT_NUMBER_ID;
     }, [parentReportActionActorAccountID, report?.parentReportActionID]);
 
-    // The default name placeholder is hidden until the derived name is computed, so show a skeleton for that short gap only.
-    // A report whose derived name is legitimately empty keeps the empty title instead of a skeleton that would never go away.
-    if (derivedReportName === undefined && report?.reportName === CONST.REPORT.DEFAULT_REPORT_NAME) {
+    // Placeholder name with no derived name means the name is still loading. Search rows may never get a derived name, so skip them.
+    if (!shouldUseCustomSearchTitleName && derivedReportName === undefined && report?.reportName === CONST.REPORT.DEFAULT_REPORT_NAME) {
         return (
             <View style={[styles.appContentHeaderTitle, styles.flex1]}>
                 <ReportHeaderTitleSkeleton />

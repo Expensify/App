@@ -1387,8 +1387,7 @@ function computeReportName({
  * i.e. `reportAttributes?.[reportID]?.reportName`. Prefer the O(1) selectors (`useDerivedReportNameByReportID`) over
  * subscribing to the whole attributes Record just to read one name.
  * The fallback to `report.reportName` exists only for edge-cases where the derived value is not yet populated.
- * A stored `CONST.REPORT.DEFAULT_REPORT_NAME` is the default placeholder name, not a displayable one, so it falls back
- * to an empty string, which lets callers render a loading state until the derived name is computed.
+ * The `CONST.REPORT.DEFAULT_REPORT_NAME` placeholder falls back to '' so callers can show a loading state.
  * Do NOT compute any part of the name here. Adjust `computeReportName` (internal) function if any change to report name are required.
  *
  * @param derivedReportName the cached name for this report from `ONYXKEYS.DERIVED.REPORT_ATTRIBUTES`.
