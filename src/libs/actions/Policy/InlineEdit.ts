@@ -188,15 +188,6 @@ function updateExpensifyCardLimitTypeInline(workspaceAccountID: number, card: Ca
  * Cents to persist from an inline dollar-string edit, or undefined when the value is invalid or unchanged.
  * The table page uses this to skip the confirm modal; the write path uses the same result so both stay in sync.
  */
-/** User-facing message for an invalid Expensify card limit, or undefined when the limit can be saved. */
-function getExpensifyCardLimitInlineEditError(translate: LocalizedTranslate, newLimit: string): string | undefined {
-    const limitError = getExpensifyCardLimitError(newLimit);
-    if (!limitError) {
-        return;
-    }
-    return getExpensifyCardLimitErrorMessage(translate, limitError);
-}
-
 function getExpensifyCardLimitInlineUpdate(card: Card, newLimit: string): number | undefined {
     if (getExpensifyCardLimitError(newLimit)) {
         return;
@@ -208,6 +199,15 @@ function getExpensifyCardLimitInlineUpdate(card: Card, newLimit: string): number
     }
 
     return nextLimit;
+}
+
+/** User-facing message for an invalid Expensify card limit, or undefined when the limit can be saved. */
+function getExpensifyCardLimitInlineEditError(translate: LocalizedTranslate, newLimit: string): string | undefined {
+    const limitError = getExpensifyCardLimitError(newLimit);
+    if (!limitError) {
+        return;
+    }
+    return getExpensifyCardLimitErrorMessage(translate, limitError);
 }
 
 /**
