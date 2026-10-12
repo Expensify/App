@@ -161,6 +161,11 @@ function canMemberAssignRole(policy: OnyxInputOrEntry<Policy>, login: string, ro
         return false;
     }
 
+    // Guest role assignment is temporarily disabled until the remaining guest issues are fixed.
+    if (role === CONST.POLICY.ROLE.GUEST) {
+        return false;
+    }
+
     const isCorporatePolicy = policy?.type === CONST.POLICY.TYPE.CORPORATE;
     if (isControlPolicyOnlyRole(role) && !isCorporatePolicy) {
         return false;

@@ -580,7 +580,7 @@ function getPostedDate(transaction: OnyxInputOrEntry<Transaction>): string {
  */
 function getFormattedPostedDate(transaction: OnyxInputOrEntry<Transaction>, dateFormat: MachineDateFormat = CONST.DATE.FNS_FORMAT_STRING): string {
     const postedDate = getPostedDate(transaction);
-    const parsedDate = parse(postedDate, 'yyyyMMdd', new Date());
+    const parsedDate = parse(postedDate.slice(0, 8), 'yyyyMMdd', new Date());
 
     if (isValid(parsedDate)) {
         return DateUtils.formatMachineDateWithUTCTimeZone(format(parsedDate, 'yyyy-MM-dd'), dateFormat);

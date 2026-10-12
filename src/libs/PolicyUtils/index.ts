@@ -2027,6 +2027,18 @@ function resolveCurrentTaxCode(policy: OnyxEntry<PolicyWithTaxRates>, taxCode: s
     return getCurrentTaxID(policy, taxCode) ?? taxCode;
 }
 
+/**
+ * Whether a tax code still points to a rate the user can pick. A disabled or pending-delete rate still resolves, but
+ * it is no longer an option, so it counts the same as a removed rate.
+ */
+function isSelectableTaxCode(policy: OnyxEntry<Policy>, taxCode: string | undefined): boolean {
+    if (!taxCode) {
+        return false;
+    }
+    const taxRate = getTaxByID(policy, resolveCurrentTaxCode(policy, taxCode));
+    return !!taxRate && !taxRate.isDisabled && taxRate.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
+}
+
 function getTagApproverRule(policy: OnyxEntry<Policy>, tagName: string) {
     if (!policy) {
         return;
@@ -2591,6 +2603,7 @@ export {
     isPolicyTaxEnabled,
     sortPoliciesByName,
     resolveCurrentTaxCode,
+    isSelectableTaxCode,
     hasActiveExpensifyCard,
     tryNavigateToSubmitWorkspaceUpgrade,
     tryNavigateToControlPolicyUpgrade,
