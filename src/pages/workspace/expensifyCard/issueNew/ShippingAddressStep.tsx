@@ -90,7 +90,8 @@ function ShippingAddressStep({policyID, stepNames, startStepIndex}: ShippingAddr
                       addressCountry: values.country,
                   }
                 : null;
-        const isPhoneNumberNeeded = !!enteredShippingAddress && issueNewCard?.hasAssigneePhoneNumber !== true;
+        const hasEnteredPhoneNumber = !!isEditing && !!shippingAddress?.phoneNumber;
+        const isPhoneNumberNeeded = !!enteredShippingAddress && issueNewCard?.hasAssigneePhoneNumber !== true && !hasEnteredPhoneNumber;
         KeyboardUtils.dismiss().then(() => {
             setIssueNewCardStepAndData({
                 step: isPhoneNumberNeeded ? CONST.EXPENSIFY_CARD.STEP.PHONE_NUMBER : CONST.EXPENSIFY_CARD.STEP.CONFIRMATION,
