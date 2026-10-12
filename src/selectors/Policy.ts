@@ -17,6 +17,7 @@ import {
     isPendingDeletePolicy,
     isPerDiemEligiblePolicy,
     isPolicyAdmin,
+    isArchivedOrPendingDeletePolicy,
     isArchivedPolicy,
     isTimeTrackingEnabled,
     shouldShowPolicy,
@@ -26,7 +27,7 @@ import {getDefaultAvatarURL} from '@libs/UserAvatarUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy, PolicyConnectionSyncProgress, PolicyReportField} from '@src/types/onyx';
+import type {Card, Policy, PolicyConnectionSyncProgress, PolicyReportField} from '@src/types/onyx';
 import type {PolicyConnectionName, PolicyDetailsForNonMembers} from '@src/types/onyx/Policy';
 import ObjectUtils from '@src/types/utils/ObjectUtils';
 
@@ -69,6 +70,21 @@ const createOwnedPaidPoliciesCountsSelector =
             active: ownedPaidPolicies.filter((policy) => !isPendingDeletePolicy(policy)).length,
         };
     };
+
+/** Whether any workspace collects deposit account details, which is what makes the collect flow relevant. */
+const isCollectingDepositAccountsSelector = (policies: OnyxCollection<Policy>): boolean =>
+    Object.values(policies ?? {}).some((policy) => !!policy?.isCollectDepositAccountsEnabled && !isArchivedOrPendingDeletePolicy(policy));
+
+/**
+ * Whether any collecting workspace would have to pay this country from abroad, which means wire details.
+ * One account has to serve every collecting workspace, so a single one banking elsewhere settles it.
+ */
+const createIsInternationalCountrySelector =
+    (countryISO: string) =>
+    (policies: OnyxCollection<Policy>): boolean =>
+        Object.values(policies ?? {}).some(
+            (policy) => !!policy?.isCollectDepositAccountsEnabled && !isArchivedOrPendingDeletePolicy(policy) && !(countryISO in (policy.reimbursement?.countries ?? {})),
+        );
 
 /**
  * Creates a selector returning only the IDs of policies eligible as copy-settings targets, so
@@ -266,16 +282,26 @@ const createAllPolicyReportFieldsSelector = (policies: OnyxCollection<Policy>, l
     return Object.fromEntries(nonFormulaReportFields);
 };
 
-const createPoliciesForDomainCardsSelector = (domainNames: string[]) => {
-    const policyIDs = new Set(domainNames.map(getPolicyIDFromDomainName).filter((policyID): policyID is string => !!policyID));
+/**
+ * Creates a selector returning only the policies the given cards belong to.
+ *
+ * A card's feed is what names its workspace, so `namedPolicyIDs` carries what the feeds point at. The fund and the
+ * domain name are matched as well, for a feed that names no workspace of its own.
+ */
+const createPoliciesForAssignedCardsSelector = (cards: Array<Pick<Card, 'domainName' | 'fundID'>>, namedPolicyIDs: string[] = []) => {
+    const workspaceAccountIDs = new Set(cards.map((card) => Number(card.fundID)).filter((workspaceAccountID) => !!workspaceAccountID));
+    const policyIDs = new Set([
+        ...namedPolicyIDs.map((policyID) => policyID.toUpperCase()),
+        ...cards.map((card) => (card.domainName ? getPolicyIDFromDomainName(card.domainName) : undefined)).filter((policyID): policyID is string => !!policyID),
+    ]);
 
     return (policies: OnyxCollection<Policy>) => {
-        if (policyIDs.size === 0) {
+        if (workspaceAccountIDs.size === 0 && policyIDs.size === 0) {
             return {};
         }
 
         return Object.entries(policies ?? {}).reduce<NonNullable<OnyxCollection<Policy>>>((acc, [key, policy]) => {
-            if (policy?.id && policyIDs.has(policy.id.toUpperCase())) {
+            if ((!!policy?.policyAccountID && workspaceAccountIDs.has(policy.policyAccountID)) || (!!policy?.id && policyIDs.has(policy.id.toUpperCase()))) {
                 acc[key] = policy;
             }
             return acc;
@@ -563,7 +589,7 @@ export {
     createHasAdminPolicyWithXeroConnectionSelector,
     createTimeSensitiveAdminPoliciesSelector,
     createHasWorkspaceToSubmitToSelector,
-    createPoliciesForDomainCardsSelector,
+    createPoliciesForAssignedCardsSelector,
     createPoliciesByIDsSelector,
     policyTimeTrackingSelector,
     createIOURequestStartPoliciesSelector,
@@ -582,5 +608,7 @@ export {
     policyACHAccountNumberSelector,
     createAdminPoliciesSelector,
     isAdminForPolicyByIDSelector,
+    isCollectingDepositAccountsSelector,
+    createIsInternationalCountrySelector,
 };
 export type {ReusablePolicyConnectionName};

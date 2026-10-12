@@ -146,7 +146,7 @@ function DynamicIOURequestStepTag({
     // Backfill the policy's tags here too, not just inside TagPicker: on a lazy-loaded account an absent collection
     // makes `hasEnabledTags` false, so without this the empty state renders, TagPicker never mounts, and the read it
     // owns never fires — leaving the user unable to assign a tag to an untagged expense.
-    const {isLoadingPolicyTags} = useLoadPolicyTags(policyID);
+    const {isLoadingPolicyTags, hasLoadedPolicyTags} = useLoadPolicyTags(policyID);
 
     // An absent tags collection means "not read yet", not "this policy has no tags", so keep the picker mounted while
     // the read is in flight and let it show its own loading state. Once the tags land, a genuinely tag-less policy
@@ -172,6 +172,7 @@ function DynamicIOURequestStepTag({
             policyTags,
             hasDependentTags,
             hasMultipleTagLists: policy?.hasMultipleTagLists ?? false,
+            tagListCount: hasLoadedPolicyTags ? policyTagLists.length : undefined,
         });
 
         if (isEditingSplit) {
