@@ -118,12 +118,10 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
                     shouldShowSwitchButton={canSwitchAccounts}
                 />
             ) : (
-                <View style={[styles.flexRow, styles.alignItemsCenter]}>
-                    <AccountSwitcher
-                        isScreenFocused={isScreenFocused}
-                        shouldShowSwitchButton={shouldUseNarrowLayout}
-                    />
-                </View>
+                <AccountSwitcher
+                    isScreenFocused={isScreenFocused}
+                    shouldShowSwitchButton={shouldUseNarrowLayout}
+                />
             )}
         </View>
     );
@@ -176,7 +174,6 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
                 onScroll={onScroll}
                 scrollEventThrottle={CONST.TIMING.MIN_SMOOTH_SCROLL_EVENT_THROTTLE}
                 contentContainerStyle={[styles.w100]}
-                showsVerticalScrollIndicator={false}
             >
                 {headerContent}
                 {accountMenuItems}
