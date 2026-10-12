@@ -282,8 +282,8 @@ function editTransactionMerchantInline(translate: LocalizedTranslate, params: Tr
         return getMerchantErrorMessage(translate, merchantError);
     }
 
-    // The merchant form rejects HTML through FormProvider. Inline edit skips that form, so check it here.
-    if (containsHtmlTag(newMerchant)) {
+    // The merchant form uses strict HTML validation, which also rejects values like <✓>. Inline edit skips that form, so match it here.
+    if (containsHtmlTag(newMerchant, true)) {
         return translate('common.error.invalidCharacter');
     }
 

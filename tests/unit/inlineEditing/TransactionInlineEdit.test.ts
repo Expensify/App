@@ -812,6 +812,16 @@ describe('TransactionInlineEdit', () => {
             expect(updateMoneyRequestMerchant).not.toHaveBeenCalled();
         });
 
+        it.each(['<✓>', '<@>'])('rejects a merchant with a non-standard tag %s without saving', (merchant) => {
+            // Given a merchant the merchant step rejects through strict HTML validation, which the default tag check allows
+            // When that merchant is saved from the table
+            const rejection = editTransactionMerchantInline(translate, buildParams(), merchant);
+
+            // Then the edit is dropped with the same invalid character failure the merchant step shows
+            expect(rejection).toBe('common.error.invalidCharacter');
+            expect(updateMoneyRequestMerchant).not.toHaveBeenCalled();
+        });
+
         it('rejects a zero amount on an invoice without saving', () => {
             // Given an invoice, where a zero amount is invalid even though an unreported expense can store one
             const invoiceReport: Report = {reportID: 'invoice-report-1', type: CONST.REPORT.TYPE.INVOICE};
