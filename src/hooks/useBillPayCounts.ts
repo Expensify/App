@@ -15,7 +15,9 @@ function useBillPayCounts() {
     let billsApprove = 0;
     let billsPay = 0;
     for (const report of Object.values(reports ?? {})) {
-        if (!report || !isBillPayReport(report, accountID)) {
+        // TODO: POC only. The backend's isBillPayReport flag isn't live yet, so any invoice counts as a bill and the
+        // Bills nav group shows. Restore `isBillPayReport(report, accountID)` on its own before merging.
+        if (!report || (!isBillPayReport(report, accountID) && report.type !== CONST.REPORT.TYPE.INVOICE)) {
             continue;
         }
         hasBills = true;
