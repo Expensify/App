@@ -83,6 +83,7 @@ import ExpenseDefaultsSetter from '@pages/iou/request/step/confirmation/ExpenseD
 import getSubmitExpensePreMountDestinationRoute from '@pages/iou/request/step/confirmation/getSubmitExpensePreMountDestinationRoute';
 import MoneyRequestInitializer from '@pages/iou/request/step/confirmation/MoneyRequestInitializer';
 import ReceiptFileValidator from '@pages/iou/request/step/confirmation/ReceiptFileValidator';
+import useSubmitLock from '@pages/iou/request/step/confirmation/submission/useSubmitLock';
 import SubmitExpenseOrchestrator from '@pages/iou/request/step/confirmation/SubmitExpenseOrchestrator';
 import TelemetrySpanManager from '@pages/iou/request/step/confirmation/TelemetrySpanManager';
 import useExpenseSubmission from '@pages/iou/request/step/confirmation/useExpenseSubmission';
@@ -645,7 +646,10 @@ function IOURequestStepConfirmationContent({
 
     const preMountedDraftReportIDRef = useRef<string | undefined>(undefined);
 
-    const {createTransaction, sendMoney, isConfirmed, setIsConfirmed, formHasBeenSubmitted} = useExpenseSubmission({
+    const submitLock = useSubmitLock();
+    const {isConfirmed, setIsConfirmed, formHasBeenSubmitted} = submitLock;
+
+    const {createTransaction, sendMoney} = useExpenseSubmission({
         reportDrafts,
         transaction,
         transactions,
@@ -682,6 +686,7 @@ function IOURequestStepConfirmationContent({
             preMountedDraftReportIDRef.current = undefined;
             clearPreMountedDraftReportMarker(preMountedReportID);
         },
+        submitLock,
     });
 
     // handleSearchDismiss doesn't pre-insert - it just dismisses the modal when search is

@@ -6,6 +6,7 @@ import Log from '@libs/Log';
 // eslint-disable-next-line no-restricted-imports -- Namespace import is required to spy on getChatByParticipants without replacing the production module.
 import * as ReportUtils from '@libs/ReportUtils';
 
+import type {SubmitLock} from '@pages/iou/request/step/confirmation/submission/useSubmitLock';
 import useExpenseSubmission from '@pages/iou/request/step/confirmation/useExpenseSubmission';
 
 import CONST from '@src/CONST';
@@ -199,6 +200,28 @@ function buildPerDiemTransaction(overrides: Partial<Transaction> = {}): Transact
     });
 }
 
+function buildSubmitLock(): SubmitLock {
+    const formHasBeenSubmitted = {current: false};
+    const setIsConfirmed = jest.fn();
+    return {
+        isConfirmed: false,
+        setIsConfirmed,
+        formHasBeenSubmitted,
+        unlockSubmission: () => {
+            formHasBeenSubmitted.current = false;
+            setIsConfirmed(false);
+        },
+        lockSubmission: () => {
+            setIsConfirmed(true);
+            if (formHasBeenSubmitted.current) {
+                return false;
+            }
+            formHasBeenSubmitted.current = true;
+            return true;
+        },
+    };
+}
+
 function buildParams(overrides: Partial<Parameters<typeof useExpenseSubmission>[0]> = {}): Parameters<typeof useExpenseSubmission>[0] {
     const transaction = buildTransaction();
     return {
@@ -229,6 +252,7 @@ function buildParams(overrides: Partial<Parameters<typeof useExpenseSubmission>[
         isPolicyExpenseChat: false,
         draftTransactionIDs: [DRAFT_ID],
         privateIsArchivedMap: {},
+        submitLock: buildSubmitLock(),
         ...overrides,
     };
 }
@@ -1051,6 +1075,7 @@ describe('useExpenseSubmission orchestrator-suppressed cleanup', () => {
             const scannedTransaction = buildTransaction({transactionID: 'transaction-1', amount: 0, iouRequestType: CONST.IOU.REQUEST_TYPE.SCAN});
             const staleTransactionID = 'stale-transaction';
             const receiptFiles: Record<string, Receipt> = {[staleTransactionID]: {source: 'file://receipt.jpg'}};
+            const submitLock = buildSubmitLock();
 
             const {result} = renderHook(() =>
                 useExpenseSubmission(
@@ -1059,6 +1084,7 @@ describe('useExpenseSubmission orchestrator-suppressed cleanup', () => {
                         transaction: scannedTransaction,
                         transactions: [scannedTransaction],
                         receiptFiles,
+                        submitLock,
                     }),
                 ),
             );
@@ -1072,8 +1098,8 @@ describe('useExpenseSubmission orchestrator-suppressed cleanup', () => {
             expect(mockStartSplitBillAction).not.toHaveBeenCalled();
             expect(mockSplitBillAction).not.toHaveBeenCalled();
             // The submit lock is released so the next tap works once the receipt map catches up.
-            expect(result.current.isConfirmed).toBe(false);
-            expect(result.current.formHasBeenSubmitted.current).toBe(false);
+            expect(submitLock.setIsConfirmed).toHaveBeenLastCalledWith(false);
+            expect(submitLock.formHasBeenSubmitted.current).toBe(false);
         });
 
         it('resolves the chat once and dismisses once when multiple receipts split into one group chat', async () => {
