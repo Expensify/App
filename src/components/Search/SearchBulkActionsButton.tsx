@@ -2,7 +2,6 @@ import BulkActionBar from '@components/BulkActionBar';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import DecisionModal from '@components/DecisionModal';
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
-import ExpensifyCardStatementPDFDownloadModal from '@components/ExpensifyCardStatementPDFDownloadModal';
 import HoldOrRejectEducationalModal from '@components/HoldOrRejectEducationalModal';
 import HoldSubmitterEducationalModal from '@components/HoldSubmitterEducationalModal';
 import KYCWall from '@components/KYCWall';
@@ -88,10 +87,6 @@ function SearchBulkActionsButton({queryJSON}: SearchBulkActionsButtonProps) {
         emptyReportsCount,
         handleOfflineModalClose,
         handleDownloadErrorModalClose,
-        isExpensifyCardStatementPDFModalVisible,
-        setIsExpensifyCardStatementPDFModalVisible,
-        expensifyCardStatementPDFParams,
-        handleExpensifyCardStatementPDFModalHide,
         isExpensifyCardStatementMultiFeedAlertVisible,
         handleExpensifyCardStatementMultiFeedAlertClose,
         dismissModalAndUpdateUseHold,
@@ -290,14 +285,6 @@ function SearchBulkActionsButton({queryJSON}: SearchBulkActionsButtonProps) {
                 isVisible={isDownloadErrorModalVisible}
                 onClose={handleDownloadErrorModalClose}
             />
-            {!!expensifyCardStatementPDFParams && (
-                <ExpensifyCardStatementPDFDownloadModal
-                    statementParams={expensifyCardStatementPDFParams}
-                    isVisible={isExpensifyCardStatementPDFModalVisible}
-                    onClose={() => setIsExpensifyCardStatementPDFModalVisible(false)}
-                    onModalHide={handleExpensifyCardStatementPDFModalHide}
-                />
-            )}
             <DecisionModal
                 title={translate('search.expensifyCardStatementPDF.title')}
                 prompt={translate('search.expensifyCardStatementPDF.oneFeedAtATime')}
