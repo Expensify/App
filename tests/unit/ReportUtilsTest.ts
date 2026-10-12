@@ -24494,6 +24494,18 @@ describe('ReportUtils', () => {
             expect(result).toBe(-500);
         });
 
+        it('should keep the negative sign of an unreported expense tax amount for TAX_AMOUNT column', () => {
+            // Given an unreported expense, which is stored with the opposite sign like an expense report expense, so a -$5.00 tax is stored as 500
+            const transaction = createMockTransaction({reportID: CONST.REPORT.UNREPORTED_REPORT_ID, taxAmount: 500});
+            const chatReport = createMock<Report>({reportID: 'self-dm-report-id', type: CONST.REPORT.TYPE.CHAT});
+
+            // When we get the sort value for the tax amount column
+            const result = getTransactionSortValue(transaction, CONST.SEARCH.TABLE_COLUMNS.TAX_AMOUNT, chatReport, mockPolicy);
+
+            // Then the sign is flipped back instead of returning the absolute value, matching the TOTAL_AMOUNT column
+            expect(result).toBe(-500);
+        });
+
         it('should return cardID for CARD column', () => {
             const transaction = createMockTransaction({cardID: 12345});
             const result = getTransactionSortValue(transaction, CONST.SEARCH.TABLE_COLUMNS.CARD, mockReport, mockPolicy);
@@ -24775,6 +24787,28 @@ describe('ReportUtils', () => {
             const details = getTransactionDetails(transaction);
 
             expect(details?.taxValue).toBe('10%');
+        });
+
+        it('should keep the negative sign of the tax amount for a negative unreported expense', () => {
+            // Given a negative unreported expense, which is stored with the opposite sign like an expense report expense,
+            // so a -$9.50 expense with -$0.95 tax is stored as amount 950 and taxAmount 95
+            const transaction = createMock<Transaction>({
+                transactionID: 'unreported-negative-transaction',
+                reportID: CONST.REPORT.UNREPORTED_REPORT_ID,
+                amount: 950,
+                currency: 'USD',
+                taxCode: 'id_TAX_RATE_1',
+                taxAmount: 95,
+                convertedTaxAmount: 95,
+            });
+
+            // When we get the transaction details to display
+            const details = getTransactionDetails(transaction);
+
+            // Then the tax amounts keep the same negative sign as the amount instead of being shown as absolute values
+            expect(details?.amount).toBe(-950);
+            expect(details?.taxAmount).toBe(-95);
+            expect(details?.convertedTaxAmount).toBe(-95);
         });
     });
 

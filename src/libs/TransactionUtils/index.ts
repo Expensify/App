@@ -535,9 +535,9 @@ function getAmount(transaction: OnyxInputOrEntry<Transaction>, isFromExpenseRepo
 /**
  * Convert a stored tax amount to the sign we display.
  */
-function normalizeTaxAmountSign(rawAmount: number | undefined, isFromExpenseReport: boolean): number {
+function normalizeTaxAmountSign(rawAmount: number | undefined, isFromExpenseReport: boolean, isFromTrackedExpense = false): number {
     // IOU requests cannot have negative values but they can be stored as negative values, let's return absolute value
-    if (!isFromExpenseReport) {
+    if (!isFromExpenseReport && !isFromTrackedExpense) {
         return Math.abs(rawAmount ?? 0);
     }
 
@@ -549,16 +549,16 @@ function normalizeTaxAmountSign(rawAmount: number | undefined, isFromExpenseRepo
 /**
  * Return the tax amount field from the transaction.
  */
-function getTaxAmount(transaction: OnyxInputOrEntry<Transaction>, isFromExpenseReport: boolean): number {
-    return normalizeTaxAmountSign(transaction?.taxAmount, isFromExpenseReport);
+function getTaxAmount(transaction: OnyxInputOrEntry<Transaction>, isFromExpenseReport: boolean, isFromTrackedExpense = false): number {
+    return normalizeTaxAmountSign(transaction?.taxAmount, isFromExpenseReport, isFromTrackedExpense);
 }
 
 /**
  * Return the converted tax amount field from the transaction.
  * It follows the same sign convention as `getTaxAmount`.
  */
-function getConvertedTaxAmount(transaction: OnyxInputOrEntry<Transaction>, isFromExpenseReport: boolean): number {
-    return normalizeTaxAmountSign(transaction?.convertedTaxAmount, isFromExpenseReport);
+function getConvertedTaxAmount(transaction: OnyxInputOrEntry<Transaction>, isFromExpenseReport: boolean, isFromTrackedExpense = false): number {
+    return normalizeTaxAmountSign(transaction?.convertedTaxAmount, isFromExpenseReport, isFromTrackedExpense);
 }
 
 /**
