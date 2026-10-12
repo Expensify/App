@@ -1,3 +1,4 @@
+import useLayoutSpacing from '@hooks/useLayoutSpacing';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -5,7 +6,6 @@ import useShouldDisplayButtonsInSeparateLine from '@hooks/useShouldDisplayButton
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {clearLastVisitedMoreDestination} from '@libs/MoreDestinationHistory';
 import Navigation from '@libs/Navigation/Navigation';
 
 import useDomainsTabBadge from '@pages/home/ForYouSection/useDomainsTabBadge';
@@ -42,8 +42,8 @@ type WorkspaceListLayoutProps = {
 
 function WorkspaceListHeaderContent({activeTabKey, headerButton, shouldShowHeaderButton = true}: WorkspaceListHeaderContentProps) {
     const styles = useThemeStyles();
+    const {pageGutterRight, pageGutter} = useLayoutSpacing();
     const {translate} = useLocalize();
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const icons = useMemoizedLazyExpensifyIcons(['Globe', 'Building']);
     const {badgeText: domainsBadgeText, hasDomainErrors} = useDomainsTabBadge();
     const navigationOptions = [
@@ -77,12 +77,12 @@ function WorkspaceListHeaderContent({activeTabKey, headerButton, shouldShowHeade
     };
 
     return (
-        <View style={[styles.flexRow, styles.justifyContentBetween, shouldUseNarrowLayout ? styles.pr3 : styles.pr5, styles.pt1, styles.pb2]}>
+        <View style={[styles.flexRow, styles.justifyContentBetween, pageGutterRight, styles.pt1, styles.pb2]}>
             <TabSelectorBase
+                contentContainerStyles={pageGutter}
                 tabs={navigationOptions}
                 activeTabKey={activeTabKey}
                 onTabPress={onTabPress}
-                contentContainerStyles={shouldUseNarrowLayout ? styles.ph3 : undefined}
             />
             {shouldShowHeaderButton && headerButton}
         </View>
@@ -130,15 +130,6 @@ function WorkspaceListLayout({children, activeTabKey, headerButton, headerCompon
                     <TopBarWithLoadingBar
                         shouldDisplayHelpButton
                         breadcrumbLabel={activeTabLabel}
-                        // Workspaces has no tab of its own on narrow layouts - it is reached through More.
-                        onBackButtonPress={
-                            shouldUseNarrowLayout
-                                ? () => {
-                                      clearLastVisitedMoreDestination();
-                                      Navigation.navigate(ROUTES.MORE);
-                                  }
-                                : undefined
-                        }
                     >
                         {!scrollHeaderWithTable && <View style={[styles.pr3]}>{!shouldDisplayButtonsInSeparateLine && headerButton}</View>}
                     </TopBarWithLoadingBar>

@@ -4,7 +4,6 @@ import {useSearchQueryContext} from '@components/Search/SearchContext';
 import useActiveSavedSearch from '@hooks/useActiveSavedSearch';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useSearchTypeMenuSections from '@hooks/useSearchTypeMenuSections';
 
 import {clearLastVisitedMoreDestination, setLastVisitedSearchKey} from '@libs/MoreDestinationHistory';
 import Navigation from '@libs/Navigation/Navigation';
@@ -27,9 +26,8 @@ type SearchPageHeaderCommonProps = {
 
 function SearchPageHeaderCommon({queryJSONType, shouldShowLoadingBar, shouldUseGroupTitle = false}: SearchPageHeaderCommonProps) {
     const {translate} = useLocalize();
-    const typeMenuSections = useSearchTypeMenuSections();
-    const {currentSearchKey} = useSearchQueryContext();
-    const selectedItem = typeMenuSections.flatMap((section) => section.menuItems).find((item) => item.key === currentSearchKey);
+    const {currentSearchKey, suggestedSearches} = useSearchQueryContext();
+    const selectedItem = currentSearchKey ? suggestedSearches[currentSearchKey] : undefined;
     const activeSavedSearch = useActiveSavedSearch();
     // Remember where the user is inside Accounting or Saved, so the More menu can return them here.
     const groupID = getSpendGroupID(currentSearchKey);

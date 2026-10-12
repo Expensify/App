@@ -1,4 +1,5 @@
 import NAVIGATION_TABS from '@components/Navigation/NavigationTabBar/NAVIGATION_TABS';
+import QuickCreationActionsBar from '@components/Navigation/QuickCreationActionsBar';
 import TabBarBottomContent from '@components/Navigation/TabBarBottomContent';
 import TopBar from '@components/Navigation/TopBar';
 import ReceiptScanDropZone from '@components/ReceiptScanDropZone';
@@ -7,6 +8,7 @@ import ScrollView from '@components/ScrollView';
 
 import useDocumentTitle from '@hooks/useDocumentTitle';
 import {useAppLoadSkeletonVisibility} from '@hooks/useInFlightRequests';
+import useLayoutSpacing from '@hooks/useLayoutSpacing';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -42,6 +44,7 @@ const RIGHT_COLUMN_TEST_ID = 'homePageRightColumn';
 function HomePage() {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const styles = useThemeStyles();
+    const {pageGutter} = useLayoutSpacing();
     const {translate} = useLocalize();
     useDocumentTitle(translate('common.home'));
     const {isOffline} = useNetwork({onReconnect: openHomePage});
@@ -153,10 +156,15 @@ function HomePage() {
                     />
                     <ScrollView
                         style={styles.homePageScrollView}
-                        contentContainerStyle={styles.homePageContentContainer(shouldUseNarrowLayout)}
+                        contentContainerStyle={[styles.homePageContentContainer, pageGutter]}
                         addBottomSafeAreaPadding
                         keyboardShouldPersistTaps="handled"
                     >
+                        {!shouldUseNarrowLayout && (
+                            <View style={styles.centeredContentWidthLimiter}>
+                                <QuickCreationActionsBar />
+                            </View>
+                        )}
                         <View style={styles.homePageMainLayout(shouldUseNarrowLayout)}>{homeLayout}</View>
                     </ScrollView>
                     <PortalHost name="suggestions" />

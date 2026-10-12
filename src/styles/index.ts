@@ -26,6 +26,7 @@ import {interpolate} from 'react-native-reanimated';
 
 import type {ThemeColors} from './theme/types';
 
+import layoutSpacing, {menuItemHorizontalPadding} from './layoutSpacing';
 import colors from './theme/colors';
 import {fontFamilyScale, fontScale, lineHeightScale, textVariants} from './typography';
 import addOutlineWidth from './utils/addOutlineWidth';
@@ -38,6 +39,7 @@ import editedLabelStyles from './utils/editedLabelStyles';
 import emojiDefaultStyles from './utils/emojiDefaultStyles';
 import flex from './utils/flex';
 import FontUtils from './utils/FontUtils';
+import tooltipPlatformStyle from './utils/generators/TooltipStyleUtils/tooltipPlatformStyles';
 import objectFit from './utils/objectFit';
 import optionAlternateTextPlatformStyles from './utils/optionAlternateTextPlatformStyles';
 import overflow from './utils/overflow';
@@ -1548,26 +1550,18 @@ const staticStyles = (theme: ThemeColors) =>
          * visually aligned with their editable cells.
          */
         editableCellHeader: {
-            borderWidth: 1,
+            borderWidth: variables.editableCellBorderWidth,
             borderRadius: variables.componentBorderRadius,
             borderColor: 'transparent',
-            paddingHorizontal: 4,
-        },
-
-        /**
-         * Cancels editableCell's horizontal chrome so the value lines up with a
-         * sibling that has no edit padding, such as a card title under a cardholder name.
-         */
-        editableCellFlushWithSibling: {
-            marginHorizontal: -(variables.editableCellChromeWidth / 2),
+            paddingHorizontal: variables.editableCellPadding,
         },
 
         editableCell: {
             width: '100%',
-            borderWidth: 1,
+            borderWidth: variables.editableCellBorderWidth,
             borderRadius: variables.componentBorderRadius,
             borderColor: 'transparent',
-            padding: 4,
+            padding: variables.editableCellPadding,
             height: 'auto',
             minHeight: variables.editableCellHeight,
             overflow: 'hidden',
@@ -1587,16 +1581,16 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         editableCellEditButtonContainerLeft: {
-            left: 4,
+            left: variables.editableCellPadding,
         },
 
         editableCellEditButtonContainerRight: {
-            right: 4,
+            right: variables.editableCellPadding,
         },
 
         editableCellEditButton: {
-            width: 28,
-            height: 28,
+            width: variables.editableCellEditButtonSize,
+            height: variables.editableCellEditButtonSize,
             borderRadius: variables.componentBorderRadiusCircle,
             backgroundColor: theme.buttonDefaultBG,
             justifyContent: 'center',
@@ -2306,7 +2300,7 @@ const staticStyles = (theme: ThemeColors) =>
         popoverMenuItem: {
             flexDirection: 'row',
             borderRadius: 0,
-            paddingHorizontal: 20,
+            paddingHorizontal: menuItemHorizontalPadding,
             paddingVertical: 12,
             justifyContent: 'space-between',
             width: '100%',
@@ -3052,6 +3046,10 @@ const staticStyles = (theme: ThemeColors) =>
         tableBorder: {
             borderWidth: 1,
             borderColor: 'transparent',
+        },
+
+        tableColumnResizeIndicator: {
+            backgroundColor: theme.iconMenu,
         },
 
         tableRowHeightCompact: {
@@ -3977,6 +3975,7 @@ const staticStyles = (theme: ThemeColors) =>
         // "View" action rendered as a Medium Link Button on the growl's inverse-colored surface.
         growlNotificationActionText: {
             color: theme.linkReversed,
+            textDecorationLine: theme.isHighContrast ? 'underline' : 'none',
         },
 
         growlNotificationActionHovered: {
@@ -4567,7 +4566,7 @@ const staticStyles = (theme: ThemeColors) =>
             textAlign: 'left',
             overflow: 'hidden',
             marginBottom: 20,
-            marginHorizontal: variables.sectionMargin,
+            marginHorizontal: layoutSpacing.pageGutter.wide,
         },
 
         // Tucked into the card's top right corner, where the composer below overlaps its lower edge.
@@ -4699,6 +4698,12 @@ const staticStyles = (theme: ThemeColors) =>
         // Reserved so the centered home layout does not slide sideways when the scrollbar appears.
         homePageScrollView: {
             ...scrollbarGutterStable,
+        },
+
+        homePageContentContainer: {
+            flexGrow: 1,
+            paddingTop: 0,
+            paddingBottom: 20,
         },
 
         cardSectionIllustration: {
@@ -6122,7 +6127,7 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         workspaceSection: {
-            maxWidth: variables.workspaceSectionMaxWidth + variables.sectionMargin * 2,
+            maxWidth: variables.workspaceSectionMaxWidth + layoutSpacing.pageGutter.wide * 2,
         },
 
         workspaceSectionMobile: {
@@ -7160,26 +7165,31 @@ const staticStyles = (theme: ThemeColors) =>
             ...textVariants.textStrong,
             color: theme.text,
         },
-        chartTooltipWrapper: {
-            alignItems: 'center',
-        },
         chartTooltipBox: {
-            backgroundColor: theme.heading,
-            borderRadius: variables.componentBorderRadiusSmall,
-            paddingVertical: 4,
-            paddingHorizontal: 8,
+            backgroundColor: theme.appBG,
+            borderColor: theme.border,
+            borderWidth: 1,
+            borderRadius: variables.componentBorderRadiusNormal,
+            boxShadow: theme.shadow,
+            padding: 12,
+            rowGap: 8,
+        },
+        chartTooltipLayer: {
+            ...tooltipPlatformStyle,
+            zIndex: variables.tooltipZIndex,
+        },
+        chartTooltipOrigin: {
+            position: 'absolute',
+            top: 0,
+            left: 0,
+        },
+        chartTooltipTitle: {
+            ...textVariants.labelStrong,
+            color: theme.text,
         },
         chartTooltipText: {
-            color: theme.textReversed,
-            fontSize: variables.fontSizeSmall,
-            lineHeight: variables.lineHeightSmall,
-            whiteSpace: 'nowrap',
-        },
-        chartTooltipPointer: {
-            width: 0,
-            height: 0,
-            backgroundColor: theme.transparent,
-            borderStyle: 'solid',
+            ...textVariants.label,
+            color: theme.text,
         },
         chartContainer: {
             borderRadius: variables.componentBorderRadiusLarge,
@@ -7856,13 +7866,13 @@ const plainStyles = (theme: ThemeColors) =>
                 marginRight: (variables.widgetHeaderTitleLineHeight - buttonSize) / 2,
             }) satisfies ViewStyle,
 
-        getWidgetContainerHeaderStyle: (shouldUseNarrowLayout: boolean) =>
+        getWidgetContainerHeaderStyle: (cardPadding: number) =>
             ({
                 flexDirection: 'row',
                 alignItems: 'center',
                 marginBottom: 20,
-                marginHorizontal: shouldUseNarrowLayout ? 20 : 32,
-                marginTop: shouldUseNarrowLayout ? 20 : 32,
+                marginHorizontal: cardPadding,
+                marginTop: cardPadding,
             }) satisfies ViewStyle,
 
         // Grows to fill the "+" column so the button sits at the bottom on multi-line input. On a single
@@ -7908,24 +7918,10 @@ const plainStyles = (theme: ThemeColors) =>
             height: variables.componentSizeNormal,
         },
 
-        // Cards sit as close together as the page's own gutter on narrow layouts, the way the home page's do.
-        insightsCardGapStyle: (shouldUseNarrowLayout: boolean) =>
-            ({
-                gap: shouldUseNarrowLayout ? variables.insightsCardGapNarrow : variables.insightsCardGap,
-            }) satisfies ViewStyle,
-
-        homePageContentContainer: (shouldUseNarrowLayout: boolean) =>
-            ({
-                flexGrow: 1,
-                paddingTop: 4,
-                paddingHorizontal: shouldUseNarrowLayout ? 12 : 20,
-                paddingBottom: 20,
-            }) satisfies ViewStyle,
-
         homePageMainLayout: (shouldUseNarrowLayout: boolean) =>
             ({
                 flexDirection: shouldUseNarrowLayout ? 'column' : 'row',
-                gap: shouldUseNarrowLayout ? 12 : 20,
+                gap: shouldUseNarrowLayout ? layoutSpacing.cardGap.narrow : layoutSpacing.cardGap.wide,
                 width: '100%',
                 maxWidth: variables.centeredContentMaxWidth,
                 alignSelf: 'center',
@@ -7941,11 +7937,13 @@ const plainStyles = (theme: ThemeColors) =>
 
         homePageRightColumn: {flex: 5, flexBasis: '41.667%', flexDirection: 'column', gap: 20} satisfies ViewStyle,
 
-        insightsDashboardLayout: {
-            width: '100%',
-            maxWidth: variables.centeredContentMaxWidth,
-            alignSelf: 'center',
-        } satisfies ViewStyle,
+        insightsDashboardLayout: (shouldUseNarrowLayout: boolean) =>
+            ({
+                width: '100%',
+                maxWidth: variables.centeredContentMaxWidth,
+                alignSelf: 'center',
+                gap: shouldUseNarrowLayout ? layoutSpacing.cardGap.narrow : layoutSpacing.cardGap.wide,
+            }) satisfies ViewStyle,
 
         insightsDashboardScrollView: {
             ...scrollbarGutterStable,
@@ -7956,10 +7954,17 @@ const plainStyles = (theme: ThemeColors) =>
             overflow: 'hidden',
         },
 
-        insightsChartGrid: {
-            flexDirection: 'row',
-            alignItems: 'flex-start',
-        } satisfies ViewStyle,
+        insightsChartGrid: (shouldUseNarrowLayout: boolean) =>
+            ({
+                flexDirection: 'row',
+                alignItems: 'flex-start',
+                gap: shouldUseNarrowLayout ? layoutSpacing.cardGap.narrow : layoutSpacing.cardGap.wide,
+            }) satisfies ViewStyle,
+
+        insightsChartColumn: (shouldUseNarrowLayout: boolean) =>
+            ({
+                gap: shouldUseNarrowLayout ? layoutSpacing.cardGap.narrow : layoutSpacing.cardGap.wide,
+            }) satisfies ViewStyle,
 
         insightsEmptyStateIllustration: {
             width: variables.insightsEmptyStateIllustrationSize,

@@ -6,6 +6,7 @@ import {useRowSelection} from '@components/Search/SearchSelectionProvider';
 import type {ListItem} from '@components/SelectionList/types';
 import TransactionItemRow from '@components/TransactionItemRow';
 
+import useLayoutSpacing from '@hooks/useLayoutSpacing';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useSyncFocus from '@hooks/useSyncFocus';
 import useTheme from '@hooks/useTheme';
@@ -46,6 +47,7 @@ function TransactionListItemNarrow<TItem extends ListItem>({
     isAttendeesEnabledForMovingPolicy,
 }: TransactionListItemNarrowProps<TItem>) {
     const styles = useThemeStyles();
+    const {pageGutterMargin} = useLayoutSpacing();
     const theme = useTheme();
     const StyleUtils = useStyleUtils();
     const pressableRef = useRef<ComponentRef<typeof View>>(null);
@@ -98,13 +100,13 @@ function TransactionListItemNarrow<TItem extends ListItem>({
                 ]}
                 onFocus={onFocus}
                 wrapperStyle={[
-                    styles.mh3,
+                    pageGutterMargin,
                     styles.flex1,
                     StyleUtils.getSearchRowBackgroundStyle(isSelected),
                     styles.userSelectNone,
                     isFirstItem && styles.tableTopRadius,
                     isLastItem && styles.tableBottomRadius,
-                    !isLastItem && StyleUtils.getSelectedBorderBottomStyle(isSelected, true),
+                    !isLastItem && StyleUtils.getSelectedBorderBottomStyle(isSelected),
                 ]}
             >
                 {() => (
@@ -135,7 +137,7 @@ function TransactionListItemNarrow<TItem extends ListItem>({
                             taxAmountColumnSize={CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL}
                             shouldShowCheckbox={!!canSelectMultiple}
                             checkboxSentryLabel={CONST.SENTRY_LABEL.SEARCH.TRANSACTION_LIST_ITEM_CHECKBOX}
-                            style={[styles.p3, styles.pv2, styles.p0, styles.pt3, styles.noBorderRadius]}
+                            style={[styles.p3, styles.pv2, styles.p0, styles.pt3, isLastItem ? styles.tableBottomRadius : styles.noBorderRadius]}
                             violations={transactionViolations}
                             onArrowRightPress={isDeletedTransaction ? undefined : (event) => onSelectRow(item, transactionPreviewData, event)}
                             isHover={false}

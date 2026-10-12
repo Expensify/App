@@ -7,6 +7,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useLayoutSpacing from '@hooks/useLayoutSpacing';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useMultipleSnapshots from '@hooks/useMultipleSnapshots';
@@ -66,6 +67,7 @@ type InsightsDashboardContentProps = {
 
 function InsightsDashboardContent({state, headlineChart, supportingCharts, filters, onRetry, onGroupByChange, controls}: InsightsDashboardContentProps) {
     const styles = useThemeStyles();
+    const {pageGutter} = useLayoutSpacing();
     const theme = useTheme();
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -142,8 +144,8 @@ function InsightsDashboardContent({state, headlineChart, supportingCharts, filte
             {controls}
             {/* The gutter sits outside the cards' own width limit, so the limit measures the cards rather than the
                 page, and so the filter pills above them can run edge to edge. */}
-            <View style={shouldUseNarrowLayout ? styles.ph3 : styles.ph5}>
-                <View style={[styles.insightsDashboardLayout, styles.insightsCardGapStyle(shouldUseNarrowLayout)]}>
+            <View style={pageGutter}>
+                <View style={styles.insightsDashboardLayout(shouldUseNarrowLayout)}>
                     <InsightsChartWidget
                         chart={headlineChart.chart}
                         queryJSON={headlineChart.queryJSON}
@@ -152,12 +154,12 @@ function InsightsDashboardContent({state, headlineChart, supportingCharts, filte
                         onRetry={onRetry}
                         onGroupByChange={onGroupByChange}
                     />
-                    <View style={[styles.insightsChartGrid, styles.insightsCardGapStyle(shouldUseNarrowLayout)]}>
+                    <View style={styles.insightsChartGrid(shouldUseNarrowLayout)}>
                         {columns.map((columnCharts, columnIndex) => (
                             <View
                                 // eslint-disable-next-line react/no-array-index-key -- columns are fixed positions
                                 key={columnIndex}
-                                style={[styles.flex1, styles.insightsCardGapStyle(shouldUseNarrowLayout)]}
+                                style={[styles.flex1, styles.insightsChartColumn(shouldUseNarrowLayout)]}
                             >
                                 {columnCharts.map(({chart, queryJSON, snapshot}) => (
                                     <InsightsChartWidget

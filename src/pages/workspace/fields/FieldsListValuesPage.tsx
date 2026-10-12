@@ -11,6 +11,7 @@ import Text from '@components/Text';
 import useCleanupSelectedOptions from '@hooks/useCleanupSelectedOptions';
 import useConfirmModal from '@hooks/useConfirmModal';
 import useFilteredSelection from '@hooks/useFilteredSelection';
+import useLayoutSpacing from '@hooks/useLayoutSpacing';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
@@ -71,10 +72,11 @@ type FieldsListValuesTableHeaderProps = {
 
 function FieldsListValuesTableHeader({headerButtons, shouldDisplayButtonsInSeparateLine, subtitle}: FieldsListValuesTableHeaderProps) {
     const styles = useThemeStyles();
+    const {pageGutter} = useLayoutSpacing();
 
     return (
         <>
-            {shouldDisplayButtonsInSeparateLine && <View style={[styles.pl5, styles.pr5]}>{headerButtons}</View>}
+            {shouldDisplayButtonsInSeparateLine && <View style={pageGutter}>{headerButtons}</View>}
             <View style={[styles.ph5, styles.pb5, styles.pt3]}>
                 <Text style={[styles.sidebarLinkText, styles.optionAlternateText]}>{subtitle}</Text>
             </View>

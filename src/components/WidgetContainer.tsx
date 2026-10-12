@@ -1,4 +1,4 @@
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useLayoutSpacing from '@hooks/useLayoutSpacing';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -30,13 +30,13 @@ type WidgetContainerProps = {
 function WidgetContainer({children, title, titleContent, containerStyles, titleRightContent, backgroundContent}: WidgetContainerProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {values} = useLayoutSpacing();
 
     return (
         <View style={[styles.widgetContainer, containerStyles]}>
             {/* First child, so it paints beneath everything that follows. */}
             {backgroundContent}
-            <View style={styles.getWidgetContainerHeaderStyle(shouldUseNarrowLayout)}>
+            <View style={styles.getWidgetContainerHeaderStyle(values.cardPadding)}>
                 <View style={[styles.flexShrink1, styles.flexGrow1, styles.gap2]}>
                     {titleContent ?? (!!title && <Text style={styles.getWidgetContainerTitleStyle(theme.text)}>{title}</Text>)}
                 </View>
