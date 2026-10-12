@@ -94,7 +94,10 @@ function getChoiceErrors(field: DynamicFormChoiceField, values: DynamicFormValue
 /** Options change with the answer they depend on, so a chosen key can stop being offered */
 function getMultiChoiceErrors(field: DynamicFormFieldOfType<'multiselect' | 'countryMultiselect'>, values: DynamicFormValues, translate: LocalizedTranslate): string[] {
     const offeredKeys = new Set(getFieldOptions(field, values).map((option) => option.key));
-    return getStringListAnswer(field, values).every((key) => offeredKeys.has(key)) ? [] : [translate('dynamicForm.error.invalidOption')];
+    const answer = values[field.key];
+    const keys = getStringListAnswer(field, values);
+    const hasNonStringEntry = Array.isArray(answer) && keys.length !== answer.length;
+    return !hasNonStringEntry && keys.every((key) => offeredKeys.has(key)) ? [] : [translate('dynamicForm.error.invalidOption')];
 }
 
 /** For inputs that only accept valid answers: UploadFile checks type and count, AmountForm rejects invalid typing */

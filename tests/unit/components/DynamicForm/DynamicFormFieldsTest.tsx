@@ -345,6 +345,17 @@ describe('DynamicFormFields', () => {
         expect(afterPick.get('expectedVolume')?.currency).toBe(CONST.CURRENCY.EUR);
     });
 
+    it('masks an amount in session recordings', () => {
+        // Given an amount, whose AmountForm input takes no FullStory class
+        const expectedVolume: DynamicFormField = {key: 'expectedVolume', type: 'amount', required: true};
+
+        // When it renders
+        renderFields([expectedVolume, otherQuestion]);
+
+        // Then a masked view wraps the amount input, so the typed amount stays out of session recordings
+        expect(screen.UNSAFE_getByProps({inputID: 'expectedVolume'}).parent?.props.fsClass).toBe(CONST.FULLSTORY.CLASS.MASK);
+    });
+
     it('draws the full address form with a country picker', () => {
         // Given an address field
         const homeAddress: DynamicFormField = {key: 'homeAddress', label: 'Home address', type: 'address', required: true};

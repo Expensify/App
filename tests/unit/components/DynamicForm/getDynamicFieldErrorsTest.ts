@@ -255,6 +255,17 @@ describe('getDynamicFieldErrors', () => {
         expect(validErrors).toEqual({});
     });
 
+    it('flags a multiselect answer holding something other than option keys', () => {
+        // Given a required multiselect whose draft holds a list of booleans, which counts as answered since the list is not empty
+        const industries: DynamicFormField = {key: 'industries', type: 'multiselect', required: true, values: [{key: 'RETAIL'}]};
+
+        // When it is validated
+        const errors = getDynamicFieldErrors([industries], {industries: [false]}, translateLocal);
+
+        // Then the user is asked to pick from the options, rather than the list being sent with the stray entry
+        expect(errors).toEqual({industries: translateLocal('dynamicForm.error.invalidOption')});
+    });
+
     it('flags each missing part of a required address on its own input', () => {
         // Given a required address with only the street filled in
         const homeAddress: DynamicFormField = {key: 'homeAddress', type: 'address', required: true};

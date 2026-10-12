@@ -91,15 +91,18 @@ const TEXT_RENDERERS: Pick<DynamicFieldRendererMap, 'text' | 'number' | 'date' |
     }),
     amount: (field, {values, translate, styles, currency}, inputProps) => {
         const chosenCurrency = field.currencyKey ? values[field.currencyKey] : undefined;
+        // AmountForm takes no FullStory class, so the mask goes on a View around it
         const amountInput = (
-            <InputWrapper
-                InputComponent={AmountForm}
-                {...inputProps}
-                label={getFieldLabel(field, translate)}
-                currency={typeof chosenCurrency === 'string' && chosenCurrency !== '' ? chosenCurrency : currency}
-                displayAsTextInput
-                isCurrencyPressable={false}
-            />
+            <View fsClass={inputProps.forwardedFSClass}>
+                <InputWrapper
+                    InputComponent={AmountForm}
+                    {...inputProps}
+                    label={getFieldLabel(field, translate)}
+                    currency={typeof chosenCurrency === 'string' && chosenCurrency !== '' ? chosenCurrency : currency}
+                    displayAsTextInput
+                    isCurrencyPressable={false}
+                />
+            </View>
         );
         if (!field.currencyKey) {
             return {isMenuRow: false, input: amountInput};
