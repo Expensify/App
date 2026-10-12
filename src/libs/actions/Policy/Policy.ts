@@ -316,7 +316,7 @@ type DuplicatePolicyDataOptions = {
     policyCategories?: PolicyCategories;
     localCurrency: string;
     rules?: OnyxCollection<Rule>;
-    personalDetailsByLogins?: PersonalDetailsByLogin;
+    personalDetailsByLogins: PersonalDetailsByLogin;
 };
 
 type SetWorkspaceReimbursementActionParams = {
