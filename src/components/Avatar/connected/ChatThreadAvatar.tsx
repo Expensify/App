@@ -28,7 +28,7 @@ import type {ColorValue, StyleProp, ViewStyle} from 'react-native';
 import type {ValueOf} from 'type-fest';
 
 import {reportAvatarFieldsSelector, reportAvatarKindSelector} from '@selectors/Report';
-import {getParentReportActionSelector} from '@selectors/ReportAction';
+import {getParentReportActionWithoutThreadRepliesSelector} from '@selectors/ReportAction';
 import React from 'react';
 
 import useAccountIcons, {seedFallbackIcons} from './useAccountIcons';
@@ -74,7 +74,7 @@ function ChatThreadAvatar({reportID, size, backdropColor, containerStyle, subscr
     const parentReportID = getNonEmptyStringOnyxID(thread?.parentReportID);
     const [parentKind] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`, {selector: reportAvatarKindSelector});
     const [parentAction] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`, {
-        selector: (actions) => getParentReportActionSelector(actions, thread?.parentReportActionID),
+        selector: (actions) => getParentReportActionWithoutThreadRepliesSelector(actions, thread?.parentReportActionID),
     });
 
     // A transaction thread points `chatReportID` at its parent, a comment thread leaves it unset. Only a linked thread shows the copilot, the revealed agent and the expense subscript.

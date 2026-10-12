@@ -12,7 +12,6 @@ import {useCallback} from 'react';
 import useOnyx from './useOnyx';
 
 type UseParentReportActionOptions = {
-    /** Drop the parent action's thread reply counters (`childVisibleActionCount`, ...), so replies in the thread don't re-render the caller. */
     shouldIgnoreThreadReplies?: boolean;
 };
 

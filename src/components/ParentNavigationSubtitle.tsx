@@ -20,6 +20,7 @@ import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
+import {getStableReportSelector} from '@src/selectors/Report';
 import {reportVisibleActionsSelector} from '@src/selectors/ReportAction';
 
 import type {ColorValue, StyleProp, TextStyle, ViewStyle} from 'react-native';
@@ -100,7 +101,7 @@ function ParentNavigationSubtitle({
     const {workspaceName, reportName} = parentNavigationSubtitleData;
     const {translate} = useLocalize();
     const [currentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
-    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`);
+    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`, {selector: getStableReportSelector});
     const [visibleReportActionsData] = useOnyx(ONYXKEYS.DERIVED.VISIBLE_REPORT_ACTIONS, {selector: reportVisibleActionsSelector(parentReportID)});
     const isReportArchived = useReportIsArchived(report?.reportID);
     const canUserPerformWriteAction = canUserPerformWriteActionReportUtils(report, isReportArchived);

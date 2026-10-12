@@ -23,7 +23,6 @@ import {View} from 'react-native';
 import Button from './Button';
 
 type TaskHeaderActionButtonProps = {
-    /** ID of the task report */
     reportID: string;
 };
 
@@ -31,8 +30,6 @@ function TaskHeaderActionButton({reportID}: TaskHeaderActionButtonProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-    // Subscribes to the full report because completing a task builds failure data from `lastReadTime`, which the header's
-    // stable projection drops.
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const parentReport = useParentReport(reportID);
     const isParentReportArchived = useReportIsArchived(parentReport?.reportID);

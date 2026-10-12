@@ -36,7 +36,6 @@ describe('useParentReportAction', () => {
     });
 
     const replyInThread = async () => {
-        // A reply in the thread bumps the reply counters on the parent action (see getOptimisticDataForAncestors)
         await act(async () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${PARENT_REPORT_ID}`, {
                 [PARENT_REPORT_ACTION_ID]: {childVisibleActionCount: 2, childLastVisibleActionCreated: '2026-10-08 11:00:00.000'},
