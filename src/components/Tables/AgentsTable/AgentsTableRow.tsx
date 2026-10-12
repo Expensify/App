@@ -1,6 +1,7 @@
 import AccountAvatar from '@components/Avatar/connected/AccountAvatar';
 import Button from '@components/Button';
 import Icon from '@components/Icon';
+import UserInfoCell from '@components/Search/SearchList/ListItem/UserInfoCell';
 import type {TableRow} from '@components/Table';
 import Table from '@components/Table';
 import {getCellAccessibilityProps, shouldUseTableSemantics} from '@components/Table/tableAccessibility';
@@ -29,9 +30,12 @@ type AgentsTableRowProps = {
 
     /** Whether to show the role column */
     shouldShowRoleColumn?: boolean;
+
+    /** Whether to show the owner column */
+    shouldShowOwnerColumn?: boolean;
 };
 
-export default function AgentsTableRow({item, rowIndex, shouldUseNarrowTableLayout, shouldShowRoleColumn = false}: AgentsTableRowProps) {
+export default function AgentsTableRow({item, rowIndex, shouldUseNarrowTableLayout, shouldShowRoleColumn = false, shouldShowOwnerColumn = false}: AgentsTableRowProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -102,6 +106,17 @@ export default function AgentsTableRow({item, rowIndex, shouldUseNarrowTableLayo
                         </View>
                     )}
 
+                    {!shouldUseNarrowTableLayout && shouldShowOwnerColumn && (
+                        <View
+                            style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.editableCellColumn]}
+                            {...getCellAccessibilityProps(isTableSemanticsEnabled)}
+                        >
+                            <UserInfoCell
+                                accountID={item.ownerAccountID}
+                                isLargeScreenWidth
+                            />
+                        </View>
+                    )}
                     <View
                         style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentEnd, styles.gap2]}
                         {...getCellAccessibilityProps(isTableSemanticsEnabled)}

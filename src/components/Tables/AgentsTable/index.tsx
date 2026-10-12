@@ -26,7 +26,7 @@ import {View} from 'react-native';
 
 import AgentsTableRow from './AgentsTableRow';
 
-type AgentsTableColumnKey = 'agent' | 'role' | 'actions';
+type AgentsTableColumnKey = 'agent' | 'role' | 'owner' | 'actions';
 
 type AgentRowData = TableData & {
     accountID: number;
@@ -34,6 +34,8 @@ type AgentRowData = TableData & {
     login: string;
     role?: ValueOf<typeof CONST.POLICY.ROLE>;
     ownerAccountID?: number;
+    ownerDisplayName?: string;
+    ownerLogin?: string;
     ownerType?: AgentOwnerType;
     canManage: boolean;
     errors?: OnyxCommon.Errors;
@@ -60,10 +62,13 @@ type AgentsTableProps = {
     /** Whether to show the role column */
     shouldShowRoleColumn?: boolean;
 
+    /** Whether to show the owner column */
+    shouldShowOwnerColumn?: boolean;
+
     onRowSelectionChange: (selectedRowKeys: string[]) => void;
 };
 
-export default function AgentsTable({ref, agents, headerComponent, canSelectAgents, selectedKeys, shouldShowRoleColumn, onRowSelectionChange}: AgentsTableProps) {
+export default function AgentsTable({ref, agents, headerComponent, canSelectAgents, selectedKeys, shouldShowRoleColumn, shouldShowOwnerColumn, onRowSelectionChange}: AgentsTableProps) {
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
@@ -89,6 +94,15 @@ export default function AgentsTable({ref, agents, headerComponent, canSelectAgen
                   },
               ]
             : []),
+        ...(shouldShowOwnerColumn
+            ? [
+                  {
+                      key: 'owner' as const,
+                      label: translate('common.owner'),
+                      sortable: true,
+                  },
+              ]
+            : []),
         {
             key: 'actions',
             label: '',
@@ -106,6 +120,11 @@ export default function AgentsTable({ref, agents, headerComponent, canSelectAgen
             return compareOptionalValues(item1.role, item2.role, compareRoleNames, orderMultiplier, displayNameComparison);
         }
 
+        if (activeSorting.columnKey === 'owner') {
+            const compareOwnerDisplayNames = (ownerDisplayName1: string, ownerDisplayName2: string) => localeCompare(ownerDisplayName1, ownerDisplayName2);
+            return compareOptionalValues(item1.ownerDisplayName, item2.displayName, compareOwnerDisplayNames, orderMultiplier, displayNameComparison) * orderMultiplier;
+        }
+
         return displayNameComparison;
     };
 
@@ -120,6 +139,7 @@ export default function AgentsTable({ref, agents, headerComponent, canSelectAgen
             rowIndex={index}
             shouldUseNarrowTableLayout={shouldUseNarrowTableLayout}
             shouldShowRoleColumn={shouldShowRoleColumn}
+            shouldShowOwnerColumn={shouldShowOwnerColumn}
         />
     );
 

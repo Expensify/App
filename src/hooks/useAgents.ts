@@ -72,6 +72,8 @@ function useAgents() {
             return [];
         }
 
+        const ownerDetails = personalDetailsList?.[agent.ownerAccountID];
+
         const mergedErrors = {
             ...getLatestError(agent.errors ?? undefined),
             ...getLatestError(agent.nameErrors ?? undefined),
@@ -87,6 +89,8 @@ function useAgents() {
                 displayName: details.displayName ?? details.login ?? '',
                 login: details.login ?? '',
                 ownerAccountID: agent.ownerAccountID,
+                ownerDisplayName: ownerDetails?.displayName ?? ownerDetails?.login ?? '',
+                ownerLogin: ownerDetails?.login ?? '',
                 ownerType: agent.ownerType,
                 pendingAction,
                 errors: Object.keys(rowErrors).length > 0 ? rowErrors : undefined,

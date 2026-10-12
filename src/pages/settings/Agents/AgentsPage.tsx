@@ -128,6 +128,7 @@ function AgentsPage() {
                 canSelectAgents
                 selectedKeys={selectedAgentKeys}
                 onRowSelectionChange={setSelectedAgents}
+                shouldShowOwnerColumn
             />
         </ScreenWrapper>
     );
