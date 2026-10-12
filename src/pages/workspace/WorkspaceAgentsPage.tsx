@@ -34,7 +34,6 @@ import WorkspacePageWithSections from './WorkspacePageWithSections';
 type WorkspaceAgentsPageProps = PlatformStackScreenProps<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.AGENTS>;
 function WorkspaceAgentsPage({route}: WorkspaceAgentsPageProps) {
     const policy = usePolicy(route.params.policyID);
-    const policyID = policy?.id;
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {pageGutter} = useLayoutSpacing();
@@ -104,7 +103,7 @@ function WorkspaceAgentsPage({route}: WorkspaceAgentsPageProps) {
     return (
         <AccessOrNotFoundWrapper
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.PAID]}
-            policyID={policyID}
+            policyID={route.params.policyID}
             policyFeature={CONST.POLICY.POLICY_FEATURE.AGENTS}
             shouldBeBlocked={!isCompanyAgentsBetaEnabled}
         >
