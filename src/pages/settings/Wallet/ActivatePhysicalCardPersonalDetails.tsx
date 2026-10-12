@@ -139,7 +139,7 @@ function ActivatePhysicalCardPersonalDetails({card, lastFourDigits, onBackButton
                             state={state}
                             zip={zip}
                             defaultCountry={country}
-                            country={inputValues.country}
+                            country={inputValues.country ?? country}
                         />
                         {!!cardError && (
                             <FormHelpMessage

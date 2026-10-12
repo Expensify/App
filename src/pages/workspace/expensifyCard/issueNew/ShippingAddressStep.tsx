@@ -50,6 +50,8 @@ function ShippingAddressStep({policyID, stepNames, startStepIndex}: ShippingAddr
     const shippingAddress = issueNewCard?.data?.shippingAddress;
     const [street1, street2] = getStreetLines(shippingAddress?.addressStreet);
     const assigneeEmail = issueNewCard?.data?.assigneeEmail;
+    const defaultOption = shippingAddress ? CONST.EXPENSIFY_CARD.SHIPPING_ADDRESS_OPTION.ENTER_ADDRESS : CONST.EXPENSIFY_CARD.SHIPPING_ADDRESS_OPTION.PROMPT_CARDHOLDER;
+    const defaultCountry = shippingAddress?.addressCountry ?? CONST.COUNTRY.US;
 
     useEffect(() => {
         openIssueNewCardShippingAddressStep(policyID, assigneeEmail);
@@ -137,7 +139,8 @@ function ShippingAddressStep({policyID, stepNames, startStepIndex}: ShippingAddr
                 addBottomSafeAreaPadding
             >
                 {({inputValues}) => {
-                    const isEnteringAddress = inputValues.shippingAddressOption === CONST.EXPENSIFY_CARD.SHIPPING_ADDRESS_OPTION.ENTER_ADDRESS;
+                    // An input only fills inputValues once it mounts, so its default stands in until then
+                    const isEnteringAddress = (inputValues.shippingAddressOption ?? defaultOption) === CONST.EXPENSIFY_CARD.SHIPPING_ADDRESS_OPTION.ENTER_ADDRESS;
                     return (
                         <>
                             <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mt3]}>{translate('workspace.card.issueNewCard.enterShippingAddress')}</Text>
@@ -146,7 +149,7 @@ function ShippingAddressStep({policyID, stepNames, startStepIndex}: ShippingAddr
                                 InputComponent={ValuePicker}
                                 inputID={INPUT_IDS.SHIPPING_ADDRESS_OPTION}
                                 label={translate('workspace.card.issueNewCard.enterShippingAddress')}
-                                defaultValue={shippingAddress ? CONST.EXPENSIFY_CARD.SHIPPING_ADDRESS_OPTION.ENTER_ADDRESS : CONST.EXPENSIFY_CARD.SHIPPING_ADDRESS_OPTION.PROMPT_CARDHOLDER}
+                                defaultValue={defaultOption}
                                 items={[
                                     {
                                         value: CONST.EXPENSIFY_CARD.SHIPPING_ADDRESS_OPTION.PROMPT_CARDHOLDER,
@@ -194,8 +197,8 @@ function ShippingAddressStep({policyID, stepNames, startStepIndex}: ShippingAddr
                                         city={shippingAddress?.addressCity}
                                         state={shippingAddress?.addressState}
                                         zip={shippingAddress?.addressZip}
-                                        defaultCountry={shippingAddress?.addressCountry ?? CONST.COUNTRY.US}
-                                        country={inputValues.country}
+                                        defaultCountry={defaultCountry}
+                                        country={inputValues.country ?? defaultCountry}
                                     />
                                 </View>
                             )}
