@@ -1,7 +1,7 @@
 ---
 title: Understanding Report Statuses and Actions
 description: Learn what each report status in Expensify means, what actions are available at each stage, and how to manage reports effectively.
-keywords: [New Expensify, report statuses, report actions, reimbursements, report approval, move report, delete report, submit report, approve report, invoice actions, IOU actions, export report, view report, reject, report progress, approve expense, pay invoice, what does submitted mean, locked report, report status meaning]
+keywords: [New Expensify, report statuses, report actions, reimbursements, report approval, move report, delete report, submit report, approve report, invoice actions, IOU actions, export report, view report, reject, report progress, approve expense, pay invoice, what does submitted mean, locked report, report status meaning, who can see draft reports, unsubmitted report visibility]
 ---
 
 Understand what each report status means, what actions are available, and how to manage reports, invoices, and IOUs in New Expensify.
@@ -12,7 +12,7 @@ Understand what each report status means, what actions are available, and how to
 
 Each report status reflects a different stage in the reporting workflow:
 
-- **Draft**: The report is a draft. You can still add or remove expenses.
+- **Draft**: The report is a draft. You can still add or remove expenses. Draft reports are visible to the submitter, the approvers in their approval workflow, and Workspace Admins. A Draft report isn't sent to anyone for approval until it's submitted.
 - **Submitted**: The report is awaiting approval from another person.
 - **Outstanding**: The report is in progress—under review, held, or partially completed.
 - **Approved**: The report is approved and ready for payment or export.
@@ -40,7 +40,7 @@ The grey **More** button is always visible in the report header. Tap it to acces
 - Duplicate report
 - Download as CSV
 - Print
-- Change Workspace
+- Change workspace
 - Change approver
 - View details
 - Delete
@@ -84,7 +84,7 @@ If Expensify cannot detect a potential match between a SmartScanned receipt and 
 # Moving Expenses or Reports
 
 - **To move a single expense**: Open the expense, then update the **Report** field to select another Draft report.
-- **To move a report to another workspace**: Tap **More > Change Workspace**.
+- **To move a report to another workspace**: Tap **More > Change workspace**, tap the workspace you want, then tap **Save**. The report does not move until you tap **Save**.
 
 ---
 
@@ -104,13 +104,13 @@ If Expensify cannot detect a potential match between a SmartScanned receipt and 
 
 ## Invoices - As the Sender
 - Choose **Export** or **Mark as exported**.
-- **Delete** and **Change Workspace** are not available.
+- **Delete** and **Change workspace** are not available.
 
 ## IOUs - As the Receiver
-- You can **Pay**, **Reject**, **Change Workspace**, or **Download**.
+- You can **Pay**, **Reject**, **Change workspace**, or **Download**.
 
 ## IOUs - As the Sender
-- **Change Workspace** converts the IOU into a regular expense report on the selected workspace.
+- **Change workspace** converts the IOU into a regular expense report on the workspace you select and confirm with **Save**.
 
 ---
 
@@ -122,8 +122,13 @@ If no green button appears, it means no immediate action is required. Tap the **
 ## Can I delete reports?  
 Yes—if the report is a **Draft** or is **Outstanding**. **Done** or **Paid** reports cannot be deleted.
 
+## Who can view a Draft (unsubmitted) report?
+The submitter, their copilots, the approvers in their approval workflow, and Workspace Admins can all view a Draft report in **Spend > Reports**. Viewing a Draft report is not limited to Workspace Admins.
+
+Approvers can see a Draft report in the **Reports** list, but it won't appear in their approval queue until the submitter submits it. [Learn how to approve expenses](/articles/new-expensify/reports-and-expenses/Approve-Expenses).
+
 ## Can I view report details?  
 Yes. Tap the report title or select **View Details** from the **More** menu.
 
 ## An employee sent an IOU before our company had a company workspace. How do we report their expenses on the workspace instead?
-The employee can move their IOU to the company workspace by selecting **More** > **Change Workspace**. This will convert the IOU into a regular expense report on the selected workspace.
+The employee can move their IOU to the company workspace by selecting **More** > **Change workspace**, selecting the workspace, then selecting **Save**. This will convert the IOU into a regular expense report on the selected workspace.

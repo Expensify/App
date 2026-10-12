@@ -29,7 +29,7 @@ import {
     setTwoFactorAuthExemptEmailForDomain,
     updateDomainSecurityGroup,
 } from '@libs/actions/Domain';
-import {SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
+import {WRITE_COMMANDS} from '@libs/API/types';
 import {generateAccountID} from '@libs/UserUtils';
 
 import CONST from '@src/CONST';
@@ -607,7 +607,7 @@ describe('actions/Domain', () => {
                 },
             };
 
-            closeUserAccount(domainAccountID, domainName, targetEmail, securityGroupsData);
+            closeUserAccount(domainAccountID, domainName, targetEmail, accountID, securityGroupsData);
 
             expect(apiWriteSpy).toHaveBeenCalledWith(
                 WRITE_COMMANDS.DELETE_DOMAIN_MEMBER,
@@ -616,7 +616,10 @@ describe('actions/Domain', () => {
                     optimisticData: expect.arrayContaining([
                         expect.objectContaining({
                             key: `${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`,
-                            value: {member: {[targetEmail]: {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}}},
+                            value: {
+                                member: {[targetEmail]: {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}},
+                                adminshipRequester: {[accountID]: {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}},
+                            },
                         }),
                         expect.objectContaining({
                             key: `${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`,
@@ -626,11 +629,11 @@ describe('actions/Domain', () => {
                     successData: expect.arrayContaining([
                         expect.objectContaining({
                             key: `${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`,
-                            value: {member: {[targetEmail]: null}},
+                            value: {member: {[targetEmail]: null}, adminshipRequester: {[accountID]: null}},
                         }),
                         expect.objectContaining({
                             key: `${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`,
-                            value: {memberErrors: {[targetEmail]: null}},
+                            value: {memberErrors: {[targetEmail]: null}, adminshipRequesterErrors: {[accountID]: null}},
                         }),
                     ]),
                     failureData: expect.arrayContaining([
@@ -646,7 +649,7 @@ describe('actions/Domain', () => {
                         }),
                         expect.objectContaining({
                             key: `${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`,
-                            value: {member: {[targetEmail]: null}},
+                            value: {member: {[targetEmail]: null}, adminshipRequester: {[accountID]: null}},
                         }),
                     ]),
                 },
@@ -660,8 +663,9 @@ describe('actions/Domain', () => {
             const domainAccountID = 123;
             const domainName = 'test.com';
             const targetEmail = 'user@test.com';
+            const accountID = 456;
 
-            closeUserAccount(domainAccountID, domainName, targetEmail, undefined, true);
+            closeUserAccount(domainAccountID, domainName, targetEmail, accountID, undefined, true);
 
             expect(apiWriteSpy).toHaveBeenCalledWith(
                 WRITE_COMMANDS.DELETE_DOMAIN_MEMBER,
@@ -671,11 +675,71 @@ describe('actions/Domain', () => {
 
             apiWriteSpy.mockRestore();
         });
+
+        it('closeUserAccount - marks the adminship request for deletion and drops it only once the close lands', () => {
+            const apiWriteSpy = jest.spyOn(require('@libs/API'), 'write').mockImplementation(() => Promise.resolve());
+            const domainAccountID = 123;
+            const domainName = 'test.com';
+            const targetEmail = 'user@test.com';
+            const accountID = 456;
+
+            closeUserAccount(domainAccountID, domainName, targetEmail, accountID, undefined);
+
+            expect(apiWriteSpy).toHaveBeenCalledWith(
+                WRITE_COMMANDS.DELETE_DOMAIN_MEMBER,
+                expect.any(Object),
+                expect.objectContaining({
+                    optimisticData: expect.arrayContaining([
+                        expect.objectContaining({
+                            key: `${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`,
+                            value: expect.objectContaining({adminshipRequester: {[accountID]: {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}}}),
+                        }),
+                    ]),
+                    successData: expect.arrayContaining([
+                        expect.objectContaining({
+                            key: `${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`,
+                            // eslint-disable-next-line @typescript-eslint/naming-convention
+                            value: {domain_adminRequesters: {[accountID]: null}},
+                        }),
+                        expect.objectContaining({
+                            key: `${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`,
+                            value: expect.objectContaining({adminshipRequester: {[accountID]: null}}),
+                        }),
+                    ]),
+                    failureData: expect.arrayContaining([
+                        expect.objectContaining({
+                            key: `${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`,
+                            value: expect.objectContaining({adminshipRequester: {[accountID]: null}}),
+                        }),
+                    ]),
+                }),
+            );
+
+            // The request entry is never removed optimistically, so there is nothing to restore on failure
+            const requestersUpdate = expect.objectContaining({
+                key: `${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`,
+                // eslint-disable-next-line @typescript-eslint/naming-convention, @typescript-eslint/no-unsafe-assignment
+                value: expect.objectContaining({domain_adminRequesters: expect.anything()}),
+            });
+            expect(apiWriteSpy).toHaveBeenCalledWith(
+                WRITE_COMMANDS.DELETE_DOMAIN_MEMBER,
+                expect.any(Object),
+                expect.objectContaining({
+                    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+                    optimisticData: expect.not.arrayContaining([requestersUpdate]),
+                    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+                    failureData: expect.not.arrayContaining([requestersUpdate]),
+                }),
+            );
+
+            apiWriteSpy.mockRestore();
+        });
     });
 
     describe('setDomainVacationDelegate', () => {
         it('sends SET_VACATION_DELEGATE request with ADD pending action when no existing delegate', () => {
-            const apiSideEffectSpy = jest.spyOn(require('@libs/API'), 'makeRequestWithSideEffects').mockImplementation(() => Promise.resolve());
+            // Given a domain member with no vacation delegate set yet
+            const apiWriteSpy = jest.spyOn(require('@libs/API'), 'write').mockImplementation(() => Promise.resolve());
             const domainAccountID = 123;
             const domainMemberAccountID = 456;
             const creator = 'admin@test.com';
@@ -684,10 +748,14 @@ describe('actions/Domain', () => {
             const PRIVATE_VACATION_DELEGATE_KEY =
                 `${CONST.DOMAIN.PRIVATE_VACATION_DELEGATE_PREFIX}${domainMemberAccountID}` as const satisfies `${typeof CONST.DOMAIN.PRIVATE_VACATION_DELEGATE_PREFIX}${string}`;
 
+            // When a domain admin sets a delegate for that member
             setDomainVacationDelegate(domainAccountID, domainMemberAccountID, creator, vacationer, delegate);
 
-            expect(apiSideEffectSpy).toHaveBeenCalledWith(
-                SIDE_EFFECT_REQUEST_COMMANDS.SET_VACATION_DELEGATE,
+            // Then the request is a persisted write with overridePolicyDiffWarning always true, since a domain admin
+            // acting on someone else's behalf skips the per-workspace confirmation step entirely, and the pending
+            // action is ADD because no delegate existed before this pick
+            expect(apiWriteSpy).toHaveBeenCalledWith(
+                WRITE_COMMANDS.SET_VACATION_DELEGATE,
                 {creator, vacationerEmail: vacationer, vacationDelegateEmail: delegate, overridePolicyDiffWarning: true, domainAccountID},
                 {
                     optimisticData: expect.arrayContaining([
@@ -732,11 +800,12 @@ describe('actions/Domain', () => {
                 },
             );
 
-            apiSideEffectSpy.mockRestore();
+            apiWriteSpy.mockRestore();
         });
 
         it('uses UPDATE pending action when existing delegate is present', () => {
-            const apiSideEffectSpy = jest.spyOn(require('@libs/API'), 'makeRequestWithSideEffects').mockImplementation(() => Promise.resolve());
+            // Given a domain member who already has a vacation delegate set
+            const apiWriteSpy = jest.spyOn(require('@libs/API'), 'write').mockImplementation(() => Promise.resolve());
             const domainAccountID = 123;
             const domainMemberAccountID = 456;
             const creator = 'admin@test.com';
@@ -744,10 +813,12 @@ describe('actions/Domain', () => {
             const delegate = 'newdelegate@test.com';
             const existingVacationDelegate: BaseVacationDelegate = {delegate: 'olddelegate@test.com'};
 
+            // When a domain admin changes that member's delegate to someone new
             setDomainVacationDelegate(domainAccountID, domainMemberAccountID, creator, vacationer, delegate, existingVacationDelegate);
 
-            expect(apiSideEffectSpy).toHaveBeenCalledWith(
-                SIDE_EFFECT_REQUEST_COMMANDS.SET_VACATION_DELEGATE,
+            // Then the pending action is UPDATE rather than ADD, since a delegate was already in place before this pick
+            expect(apiWriteSpy).toHaveBeenCalledWith(
+                WRITE_COMMANDS.SET_VACATION_DELEGATE,
                 expect.any(Object),
                 expect.objectContaining({
                     optimisticData: expect.arrayContaining([
@@ -759,7 +830,7 @@ describe('actions/Domain', () => {
                 }),
             );
 
-            apiSideEffectSpy.mockRestore();
+            apiWriteSpy.mockRestore();
         });
     });
 

@@ -32,6 +32,7 @@ const ABORT_COMMANDS = {
     All: 'All',
     [READ_COMMANDS.SEARCH_FOR_REPORTS]: READ_COMMANDS.SEARCH_FOR_REPORTS,
     [READ_COMMANDS.SEARCH_FOR_USERS]: READ_COMMANDS.SEARCH_FOR_USERS,
+    [SIDE_EFFECT_REQUEST_COMMANDS.OPEN_SEARCH_TAG_FILTERS_PAGE]: SIDE_EFFECT_REQUEST_COMMANDS.OPEN_SEARCH_TAG_FILTERS_PAGE,
 } as const;
 
 type AbortCommand = keyof typeof ABORT_COMMANDS;
@@ -53,6 +54,7 @@ const abortControllerMap = new Map<AbortCommand, AbortController>();
 abortControllerMap.set(ABORT_COMMANDS.All, new AbortController());
 abortControllerMap.set(ABORT_COMMANDS.SearchForReports, new AbortController());
 abortControllerMap.set(ABORT_COMMANDS.SearchForUsers, new AbortController());
+abortControllerMap.set(ABORT_COMMANDS.OpenSearchTagFiltersPage, new AbortController());
 
 /**
  * The API commands that require the skew calculation
@@ -216,6 +218,16 @@ function processHTTPRequest<TKey extends OnyxKey>(
                     message: CONST.ERROR.EXPENSIFY_SERVICE_INTERRUPTED,
                     status: CONST.JSON_CODE.EXP_ERROR.toString(),
                     title: CONST.ERROR_TITLE.SOCKET,
+                    requestID: response.requestID,
+                });
+            }
+
+            // The server sheds writes during instability with an app-level 503, which asks us to try again shortly
+            if (response.jsonCode === CONST.JSON_CODE.SERVICE_UNAVAILABLE) {
+                throw new HttpsError({
+                    message: CONST.ERROR.SERVICE_UNAVAILABLE,
+                    status: CONST.JSON_CODE.SERVICE_UNAVAILABLE.toString(),
+                    title: CONST.ERROR_TITLE.SERVICE_UNAVAILABLE,
                     requestID: response.requestID,
                 });
             }

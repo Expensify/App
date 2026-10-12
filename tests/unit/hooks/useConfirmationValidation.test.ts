@@ -101,6 +101,7 @@ const baseParams = {
     isMovingTransactionFromTrackExpense: false,
     isTimeRequest: false,
     routeError: undefined,
+    canEnterScanFieldsManually: false,
     isReadOnly: false,
     shouldShowDate: true,
     isTaxAmountEmpty: false,
@@ -897,6 +898,109 @@ describe('useConfirmationValidation', () => {
 
         it('does not block when the tax section is hidden for this policy', () => {
             const {result} = renderHook(() => useConfirmationValidation(createTaxValidationParams({shouldShowTax: false, isTaxAmountEmpty: true})));
+            expect(result.current.validate()).toEqual({errorKey: null});
+        });
+    });
+
+    describe('manually entered scan fields (amount / merchant / date)', () => {
+        function createScanValidationParams(transactionOverrides: Partial<OnyxTypes.Transaction> = {}, overrides: ValidationParamsOverrides = {}): UseConfirmationValidationParams {
+            return {
+                ...baseParams,
+                canEnterScanFieldsManually: true,
+                iouAmount: 0,
+                iouMerchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
+                isMerchantEmpty: true,
+                ...overrides,
+                transaction: createTransactionBase({
+                    iouRequestType: CONST.IOU.REQUEST_TYPE.SCAN,
+                    receipt: {source: 'https://example.com/receipt.jpg', state: CONST.IOU.RECEIPT_STATE.SCAN_READY},
+                    merchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
+                    participants: [P2P_PARTICIPANT],
+                    ...transactionOverrides,
+                }),
+            };
+        }
+
+        it('does not require anything while the user leaves the scan fields untouched', () => {
+            const {result} = renderHook(() => useConfirmationValidation(createScanValidationParams()));
+            expect(result.current.validate()).toEqual({errorKey: null});
+        });
+
+        it.each([
+            ['merchant', {isMerchantSet: true, merchant: 'Starbucks'}, {iouMerchant: 'Starbucks', isMerchantEmpty: false}],
+            ['amount', {isAmountSet: true, amount: 1000}, {iouAmount: 1000}],
+            ['date', {isCreatedSet: true, created: '2025-01-15'}, {}],
+        ])('requires the other two once the %s is entered, since the three are all-or-nothing', (_field, transactionOverrides, overrides) => {
+            const {result} = renderHook(() => useConfirmationValidation(createScanValidationParams(transactionOverrides, overrides)));
+            expect(result.current.validate()).toEqual({errorKey: 'common.error.fieldRequired'});
+        });
+
+        it.each([
+            ['merchant', {isAmountSet: true, amount: 1000, isCreatedSet: true, created: '2025-01-15'}, {iouAmount: 1000}],
+            ['amount', {isMerchantSet: true, merchant: 'Starbucks', isCreatedSet: true, created: '2025-01-15'}, {iouMerchant: 'Starbucks', isMerchantEmpty: false}],
+            ['date', {isAmountSet: true, amount: 1000, isMerchantSet: true, merchant: 'Starbucks'}, {iouAmount: 1000, iouMerchant: 'Starbucks', isMerchantEmpty: false}],
+        ])('still blocks confirmation while only the %s is left blank', (_field, transactionOverrides, overrides) => {
+            const {result} = renderHook(() => useConfirmationValidation(createScanValidationParams(transactionOverrides, overrides)));
+            expect(result.current.validate()).toEqual({errorKey: 'common.error.fieldRequired'});
+        });
+
+        it('passes again once the user clears the fields back to an untouched scan', () => {
+            const {result} = renderHook(() => useConfirmationValidation(createScanValidationParams({isAmountSet: false, isMerchantSet: false, isCreatedSet: false})));
+            expect(result.current.validate()).toEqual({errorKey: null});
+        });
+
+        it('passes once all three fields are entered', () => {
+            const {result} = renderHook(() =>
+                useConfirmationValidation(
+                    createScanValidationParams(
+                        {isAmountSet: true, amount: 1000, isMerchantSet: true, merchant: 'Starbucks', isCreatedSet: true, created: '2025-01-15'},
+                        {iouAmount: 1000, iouMerchant: 'Starbucks', isMerchantEmpty: false},
+                    ),
+                ),
+            );
+            expect(result.current.validate()).toEqual({errorKey: null});
+        });
+
+        it('validates the entered amount the same way a manually entered one is validated', () => {
+            const {result} = renderHook(() =>
+                useConfirmationValidation(
+                    createScanValidationParams(
+                        {isAmountSet: true, amount: 0, isMerchantSet: true, merchant: 'Starbucks', isCreatedSet: true, created: '2025-01-15'},
+                        {iouAmount: 0, iouMerchant: 'Starbucks', isMerchantEmpty: false},
+                    ),
+                ),
+            );
+            expect(result.current.validate()).toEqual({errorKey: 'common.error.invalidAmount'});
+        });
+
+        it('blocks confirmation when another receipt in a multi-scan is the partially filled one', () => {
+            // The transaction on screen is a complete manual scan, but a sibling receipt is not.
+            const {result} = renderHook(() =>
+                useConfirmationValidation(
+                    createScanValidationParams(
+                        {isAmountSet: true, amount: 1000, isMerchantSet: true, merchant: 'Starbucks', isCreatedSet: true, created: '2025-01-15'},
+                        {iouAmount: 1000, iouMerchant: 'Starbucks', isMerchantEmpty: false, partiallyManuallyFilledScanID: 'other-txn'},
+                    ),
+                ),
+            );
+            expect(result.current.validate()).toEqual({errorKey: 'common.error.fieldRequired'});
+        });
+
+        it('lets a multi-scan through once no receipt is left partially filled', () => {
+            const {result} = renderHook(() =>
+                useConfirmationValidation(
+                    createScanValidationParams(
+                        {isAmountSet: true, amount: 1000, isMerchantSet: true, merchant: 'Starbucks', isCreatedSet: true, created: '2025-01-15'},
+                        {iouAmount: 1000, iouMerchant: 'Starbucks', isMerchantEmpty: false, partiallyManuallyFilledScanID: undefined},
+                    ),
+                ),
+            );
+            expect(result.current.validate()).toEqual({errorKey: null});
+        });
+
+        it('requires nothing on surfaces that do not expose the scan fields (splits, test receipts)', () => {
+            // Those surfaces never showed the three fields, so a flag set elsewhere must not hold them to the rule.
+            const {result} = renderHook(() => useConfirmationValidation(createScanValidationParams({isAmountSet: true, amount: 1000}, {canEnterScanFieldsManually: false, iouAmount: 1000})));
             expect(result.current.validate()).toEqual({errorKey: null});
         });
     });

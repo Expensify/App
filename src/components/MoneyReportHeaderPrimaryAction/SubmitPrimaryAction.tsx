@@ -17,6 +17,8 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePaginatedReportActions from '@hooks/usePaginatedReportActions';
 import usePermissions from '@hooks/usePermissions';
+import {useGetPersonalDetailsByLogin} from '@hooks/usePersonalDetailByLogin';
+import {usePersonalDetail} from '@hooks/usePersonalDetails';
 import useSearchShouldCalculateTotals from '@hooks/useSearchShouldCalculateTotals';
 import useStrictPolicyRules from '@hooks/useStrictPolicyRules';
 import useTransactionsAndViolationsForReport from '@hooks/useTransactionsAndViolationsForReport';
@@ -34,7 +36,7 @@ import {markPendingRTERTransactionsAsCash} from '@userActions/Transaction';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {personalDetailsLoginSelector} from '@src/selectors/PersonalDetails';
+import {loginSelector} from '@src/selectors/PersonalDetails';
 
 import type {ValueOf} from 'type-fest';
 
@@ -49,11 +51,13 @@ const ANCHOR_ALIGNMENT = {
 
 type SubmitPrimaryActionProps = {
     reportID: string | undefined;
+    /** Disables the Submit button, e.g. while expenses are selected */
+    isDisabled?: boolean;
 };
 
 type SubmissionMethod = ValueOf<typeof CONST.REPORT.SUBMISSION_METHOD>;
 
-function SubmitPrimaryAction({reportID}: SubmitPrimaryActionProps) {
+function SubmitPrimaryAction({reportID, isDisabled}: SubmitPrimaryActionProps) {
     const {startSubmittingAnimation} = usePaymentAnimationsContext();
 
     return (
@@ -62,12 +66,15 @@ function SubmitPrimaryAction({reportID}: SubmitPrimaryActionProps) {
             onSubmitSuccess={startSubmittingAnimation}
             anchorAlignment={ANCHOR_ALIGNMENT}
         >
-            <SubmitPrimaryActionContent reportID={reportID} />
+            <SubmitPrimaryActionContent
+                reportID={reportID}
+                isDisabled={isDisabled}
+            />
         </ReportSubmitToPopoverAnchor>
     );
 }
 
-function SubmitPrimaryActionContent({reportID}: SubmitPrimaryActionProps) {
+function SubmitPrimaryActionContent({reportID, isDisabled}: SubmitPrimaryActionProps) {
     const {isSubmittingAnimationRunning, stopAnimation, startSubmittingAnimation} = usePaymentAnimationsContext();
     const {translate} = useLocalize();
     const {getCurrencyDecimals} = useCurrencyListActions();
@@ -81,18 +88,18 @@ function SubmitPrimaryActionContent({reportID}: SubmitPrimaryActionProps) {
     const [moneyRequestReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(moneyRequestReport?.chatReportID)}`);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(moneyRequestReport?.policyID)}`);
-    const [submitterLogin] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsLoginSelector(moneyRequestReport?.ownerAccountID)});
+    const [submitterLogin] = usePersonalDetail(moneyRequestReport?.ownerAccountID, loginSelector);
     const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
     const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
     const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
     const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [delegateEmail] = useOnyx(ONYXKEYS.ACCOUNT, {selector: delegateEmailSelector});
     const delegateAccountID = useDelegateAccountID();
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
     const [preferredSubmissionMethod] = useOnyx(`${ONYXKEYS.COLLECTION.NVP_PREFERRED_REPORT_SUBMISSION_METHOD}${getNonEmptyStringOnyxID(moneyRequestReport?.policyID)}`);
 
+    const getPersonalDetailsByLogin = useGetPersonalDetailsByLogin();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const {reportActions: unfilteredReportActions} = usePaginatedReportActions(moneyRequestReport?.reportID);
     const reportActions = getFilteredReportActionsForReportView(unfilteredReportActions);
@@ -170,7 +177,6 @@ function SubmitPrimaryActionContent({reportID}: SubmitPrimaryActionProps) {
                 currentUserEmailParam: email ?? '',
                 hasViolations,
                 isASAPSubmitBetaEnabled,
-                betas,
                 userBillingGracePeriodEnds,
                 amountOwed,
                 // Open the PDF download modal only once submitReport commits to running (it fires onSubmitted after its
@@ -206,6 +212,7 @@ function SubmitPrimaryActionContent({reportID}: SubmitPrimaryActionProps) {
                 delegateAccountID,
                 shouldExportToPDF,
                 submitterLogin,
+                personalDetailsByLogins: getPersonalDetailsByLogin(),
                 // Submit via PDF submits the report to the submitter (self); the backend keys off this to generate the PDF.
                 managerEmail: shouldExportToPDF ? email : undefined,
                 isTrackIntentUser,
@@ -252,7 +259,7 @@ function SubmitPrimaryActionContent({reportID}: SubmitPrimaryActionProps) {
                 variant={CONST.BUTTON_VARIANT.SUCCESS}
                 shouldAlwaysShowDropdownMenu
                 pressOnEnter
-                isDisabled={shouldBlockSubmit}
+                isDisabled={shouldBlockSubmit || isDisabled}
                 options={submitOptions}
                 defaultSelectedIndex={defaultSelectedIndex}
                 onPress={(event, value) => {
@@ -271,7 +278,7 @@ function SubmitPrimaryActionContent({reportID}: SubmitPrimaryActionProps) {
             onPress={() => handleSubmit()}
             isSubmittingAnimationRunning={isSubmittingAnimationRunning}
             onAnimationFinish={stopAnimation}
-            isDisabled={shouldBlockSubmit}
+            isDisabled={shouldBlockSubmit || isDisabled}
             isDEWSubmission={isDEWSubmission}
             reportID={reportID}
         />

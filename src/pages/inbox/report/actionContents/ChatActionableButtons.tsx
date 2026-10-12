@@ -30,7 +30,7 @@ import {
 } from '@libs/ReportActionsUtils';
 import shouldRenderAddPaymentCard from '@libs/shouldRenderAppPaymentCard';
 import {doesUserHavePaymentCardAdded} from '@libs/SubscriptionUtils';
-import {isSplitChildTransaction} from '@libs/TransactionUtils';
+import {isPerDiemRequest, isSplitChildTransaction, isTimeRequest} from '@libs/TransactionUtils';
 
 import {createDraftTransactionAndNavigateToParticipantSelector} from '@userActions/IOU/StartExpenseFlows';
 import {dismissTrackExpenseActionableWhisper, resolveConciergeCategoryOptions, resolveConciergeDescriptionOptions} from '@userActions/Report';
@@ -42,7 +42,7 @@ import type * as OnyxTypes from '@src/types/onyx';
 
 import type {ValueOf} from 'type-fest';
 
-import {createFilteredPoliciesInfoSelector, createHasWorkspaceToSubmitToSelector} from '@selectors/Policy';
+import {billingRestrictionPolicySelector, createFilteredPoliciesInfoSelector, createHasWorkspaceToSubmitToSelector} from '@selectors/Policy';
 import {validTransactionDraftIDsSelector} from '@selectors/TransactionDraft';
 import React from 'react';
 
@@ -198,6 +198,7 @@ function TrackExpenseButtons({action, actionOwnerReportID}: TrackExpenseButtonsP
     const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
     const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
     const [filteredPoliciesInfo] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: createFilteredPoliciesInfoSelector(personalDetail.email)});
+    const [preferredPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(preferredPolicyID)}`, {selector: billingRestrictionPolicySelector});
     const [trackExpenseTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(getOriginalMessage(action)?.transactionID)}`);
     const [actionOwnerReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(actionOwnerReportID)}`);
     const [hasWorkspaceToSubmitTo] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: createHasWorkspaceToSubmitToSelector(personalDetail.login)});
@@ -217,7 +218,8 @@ function TrackExpenseButtons({action, actionOwnerReportID}: TrackExpenseButtonsP
         currentUserEmail: personalDetail.email ?? '',
         currentUserLocalCurrency: personalDetail.localCurrencyCode ?? CONST.CURRENCY.USD,
         filteredPoliciesCount: filteredPoliciesInfo?.filteredPoliciesCount ?? 0,
-        firstPolicyID: filteredPoliciesInfo?.firstPolicyID,
+        firstPolicy: filteredPoliciesInfo?.firstPolicy,
+        restrictedPreferredPolicy: isRestrictedToPreferredPolicy ? preferredPolicy : undefined,
     };
     const isSplitExpense = isSplitChildTransaction(trackExpenseTransaction);
     const shouldShowSubmitButtons = !isSplitExpense || !!hasWorkspaceToSubmitTo;
@@ -225,11 +227,9 @@ function TrackExpenseButtons({action, actionOwnerReportID}: TrackExpenseButtonsP
     const submit = (submitDestination?: ValueOf<typeof CONST.IOU.SUBMIT_DESTINATION>) => {
         createDraftTransactionAndNavigateToParticipantSelector({
             ...baseDraftTransactionParams,
-            isRestrictedToPreferredPolicy,
-            preferredPolicyID,
             actionName: CONST.IOU.ACTION.SUBMIT,
             submitDestination,
-            defaultWorkspaceName: submitDestination && generateDefaultWorkspaceName(personalDetail.email ?? '', lastWorkspaceNumber, translate, personalDetail.displayName),
+            defaultWorkspaceName: submitDestination && generateDefaultWorkspaceName(personalDetail.email ?? '', personalDetail.displayName, lastWorkspaceNumber, translate),
         });
     };
 
@@ -238,7 +238,8 @@ function TrackExpenseButtons({action, actionOwnerReportID}: TrackExpenseButtonsP
             {/* "Submit it to someone" is one button per destination. */}
             {shouldShowSubmitButtons && (
                 <>
-                    {!isSplitExpense && (
+                    {/* A DM is not a valid destination for per diem and time expenses, nor for a user restricted to one workspace. */}
+                    {!isSplitExpense && !isRestrictedToPreferredPolicy && !isPerDiemRequest(trackExpenseTransaction) && !isTimeRequest(trackExpenseTransaction) && (
                         <Button onPress={() => submit(CONST.IOU.SUBMIT_DESTINATION.FRIEND)}>
                             <Button.Text>{translate('actionableMentionTrackExpense.submitToFriend')}</Button.Text>
                         </Button>

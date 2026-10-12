@@ -1,7 +1,6 @@
 import type {SearchQueryJSON} from '@components/Search/types';
 
-import type {SearchKey} from '@libs/SearchUIUtils';
-
+import type {SearchKey} from '@libs/SearchKeyUtils';
 /**
  * Represents the parameters from the previous search invocation.
  * This is used to persist search arguments between navigations within reports,

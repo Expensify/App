@@ -10,17 +10,13 @@ import type SuggestedAgentRule from '@src/types/onyx/SuggestedAgentRule';
 import React from 'react';
 
 jest.mock('@hooks/useLazyAsset', () => ({
-    useMemoizedLazyExpensifyIcons: jest.fn(() => ({
-        ThumbsUp: 'ThumbsUp',
-        CircleSlash: 'CircleSlash',
-        Flag: 'Flag',
-        Coins: 'Coins',
-    })),
+    useMemoizedLazyExpensifyIcons: jest.fn(() => ({DownArrow: 'DownArrow', UpArrow: 'UpArrow'})),
     useMemoizedLazyIllustrations: jest.fn(() => ({Lightbulb: 'Lightbulb'})),
 }));
 jest.mock('@hooks/useLocalize', () =>
     jest.fn(() => ({
         translate: (key: string) => key,
+        localeCompare: (a: string, b: string) => a.localeCompare(b),
     })),
 );
 jest.mock('@hooks/useNetwork');
@@ -118,25 +114,34 @@ jest.mock('@components/Pressable', () => {
 });
 jest.mock('@components/Text', () => {
     const ReactModule = jest.requireActual<typeof React>('react');
-    const {Text} = jest.requireActual<{Text: React.ComponentType<{children?: React.ReactNode}>}>('react-native');
-    return ({children}: {children: React.ReactNode}) => ReactModule.createElement(Text, null, children);
+    const {Text} = jest.requireActual<{Text: React.ComponentType<{children?: React.ReactNode; role?: string}>}>('react-native');
+    return ({children, role}: {children: React.ReactNode; role?: string}) => ReactModule.createElement(Text, {role}, children);
 });
 
 const mockedUseSuggestedAgentRules = jest.mocked(useSuggestedAgentRules);
 const mockedUseNetwork = jest.mocked(useNetwork);
+
+const AMOUNT_CATEGORY = 'Amount and spending';
+const MERCHANT_CATEGORY = 'Merchant';
 
 const SUGGESTIONS: SuggestedAgentRule[] = [
     {
         id: 'approveUnder75',
         title: 'Approve under $75 title',
         prompt: 'Approve any report that consists of expenses under $75',
+        category: AMOUNT_CATEGORY,
     },
     {
         id: 'blockGambling',
         title: 'Block gambling title',
         prompt: 'Block all spend from gambling or shady websites',
+        category: MERCHANT_CATEGORY,
     },
 ];
+
+function getCardLabel(suggestion: SuggestedAgentRule | undefined): string {
+    return `${suggestion?.title ?? ''}, ${suggestion?.prompt ?? ''}`;
+}
 
 describe('AddAgentRuleSuggestionsTab', () => {
     beforeEach(() => {
@@ -145,13 +150,47 @@ describe('AddAgentRuleSuggestionsTab', () => {
         mockedUseSuggestedAgentRules.mockReturnValue({data: SUGGESTIONS, isLoading: false});
     });
 
-    it('renders suggestion prompts from hook data', () => {
+    it('renders each suggestion as its title with the prompt below it', () => {
+        // Given the default suggestions from the hook
+
+        // When the tab renders
         render(<AddAgentRuleSuggestionsTab onSelectSuggestion={jest.fn()} />);
 
+        // Then each card shows the short title to scan, and the full prompt that Next copies into the rule
+        expect(screen.getByText(SUGGESTIONS.at(0)?.title ?? '')).toBeOnTheScreen();
         expect(screen.getByText(SUGGESTIONS.at(0)?.prompt ?? '')).toBeOnTheScreen();
+        expect(screen.getByText(SUGGESTIONS.at(1)?.title ?? '')).toBeOnTheScreen();
         expect(screen.getByText(SUGGESTIONS.at(1)?.prompt ?? '')).toBeOnTheScreen();
-        expect(screen.queryByText(SUGGESTIONS.at(0)?.title ?? '')).toBeNull();
-        expect(screen.queryByText(SUGGESTIONS.at(1)?.title ?? '')).toBeNull();
+    });
+
+    it('shows one header for each category, in the order each category first appears', () => {
+        // Given a second amount suggestion that comes after the merchant suggestion
+        mockedUseSuggestedAgentRules.mockReturnValue({
+            data: [...SUGGESTIONS, {id: 'reportOver2500', title: 'Report over limit', prompt: 'Reject reports whose total is over $2,500', category: AMOUNT_CATEGORY}],
+            isLoading: false,
+        });
+
+        // When the tab renders
+        render(<AddAgentRuleSuggestionsTab onSelectSuggestion={jest.fn()} />);
+
+        // Then the amount category gets one header, and the headers follow the order of the list
+        const headers = screen.getAllByRole('heading');
+        expect(headers).toHaveLength(2);
+        expect(headers.at(0)).toHaveTextContent(AMOUNT_CATEGORY);
+        expect(headers.at(1)).toHaveTextContent(MERCHANT_CATEGORY);
+    });
+
+    it('shows no header for suggestions without a category', () => {
+        // Given suggestions that have no category
+        mockedUseSuggestedAgentRules.mockReturnValue({data: SUGGESTIONS.map(({id, title, prompt}) => ({id, title, prompt})), isLoading: false});
+
+        // When the tab renders
+        render(<AddAgentRuleSuggestionsTab onSelectSuggestion={jest.fn()} />);
+
+        // Then the cards render as one list with no header, because there is no section name to show
+        expect(screen.getByText(SUGGESTIONS.at(0)?.title ?? '')).toBeOnTheScreen();
+        expect(screen.getByText(SUGGESTIONS.at(1)?.title ?? '')).toBeOnTheScreen();
+        expect(screen.queryByRole('heading')).toBeNull();
     });
 
     it('calls onSelectSuggestion only after a card is chosen and Next is pressed', () => {
@@ -161,7 +200,7 @@ describe('AddAgentRuleSuggestionsTab', () => {
         fireEvent.press(screen.getByText('common.next'));
         expect(onSelectSuggestion).not.toHaveBeenCalled();
 
-        fireEvent.press(screen.getByLabelText(SUGGESTIONS.at(0)?.prompt ?? ''));
+        fireEvent.press(screen.getByLabelText(getCardLabel(SUGGESTIONS.at(0))));
         fireEvent.press(screen.getByText('common.next'));
 
         expect(onSelectSuggestion).toHaveBeenCalledTimes(1);
@@ -175,6 +214,67 @@ describe('AddAgentRuleSuggestionsTab', () => {
 
         expect(screen.queryByText(SUGGESTIONS.at(0)?.prompt ?? '')).toBeNull();
         expect(screen.getByText(SUGGESTIONS.at(1)?.prompt ?? '')).toBeOnTheScreen();
+    });
+
+    it('removes the header of a category that the search leaves empty', () => {
+        // Given one amount suggestion and one merchant suggestion
+        render(<AddAgentRuleSuggestionsTab onSelectSuggestion={jest.fn()} />);
+
+        // When the search matches only the merchant suggestion
+        fireEvent.changeText(screen.getByLabelText('workspace.rules.agentRules.findSuggestion'), 'gambling');
+
+        // Then the amount header goes away with its only suggestion, so no empty section stays on screen
+        expect(screen.queryByRole('heading', {name: AMOUNT_CATEGORY})).toBeNull();
+        expect(screen.getByRole('heading', {name: MERCHANT_CATEGORY})).toBeOnTheScreen();
+    });
+
+    it('hides the suggestions of a section when its header is pressed', () => {
+        // Given one amount suggestion and one merchant suggestion
+        render(<AddAgentRuleSuggestionsTab onSelectSuggestion={jest.fn()} />);
+
+        // When the amount header is pressed
+        fireEvent.press(screen.getByLabelText(AMOUNT_CATEGORY));
+
+        // Then only the amount suggestion is hidden, and its header stays so the admin can expand the section again
+        expect(screen.queryByText(SUGGESTIONS.at(0)?.title ?? '')).toBeNull();
+        expect(screen.getByText(SUGGESTIONS.at(1)?.title ?? '')).toBeOnTheScreen();
+        expect(screen.getByRole('heading', {name: AMOUNT_CATEGORY})).toBeOnTheScreen();
+    });
+
+    it('shows the suggestions of a collapsed section again when its header is pressed', () => {
+        // Given the amount section is collapsed
+        render(<AddAgentRuleSuggestionsTab onSelectSuggestion={jest.fn()} />);
+        fireEvent.press(screen.getByLabelText(AMOUNT_CATEGORY));
+
+        // When the amount header is pressed again
+        fireEvent.press(screen.getByLabelText(AMOUNT_CATEGORY));
+
+        // Then the amount suggestion shows again
+        expect(screen.getByText(SUGGESTIONS.at(0)?.title ?? '')).toBeOnTheScreen();
+    });
+
+    it('expands every section when the search changes', () => {
+        // Given the amount section is collapsed
+        render(<AddAgentRuleSuggestionsTab onSelectSuggestion={jest.fn()} />);
+        fireEvent.press(screen.getByLabelText(AMOUNT_CATEGORY));
+
+        // When the admin searches for text that only the amount suggestion contains
+        fireEvent.changeText(screen.getByLabelText('workspace.rules.agentRules.findSuggestion'), 'approve');
+
+        // Then the amount suggestion shows, because a collapsed section must not hide a search result
+        expect(screen.getByText(SUGGESTIONS.at(0)?.title ?? '')).toBeOnTheScreen();
+    });
+
+    it('filters the list by search text against categories', () => {
+        // Given one amount suggestion and one merchant suggestion
+        render(<AddAgentRuleSuggestionsTab onSelectSuggestion={jest.fn()} />);
+
+        // When the search matches a header, but no title or prompt
+        fireEvent.changeText(screen.getByLabelText('workspace.rules.agentRules.findSuggestion'), 'merchant');
+
+        // Then the suggestions under that header stay listed, because an admin can search for a header they see
+        expect(screen.getByText(SUGGESTIONS.at(1)?.title ?? '')).toBeOnTheScreen();
+        expect(screen.queryByText(SUGGESTIONS.at(0)?.title ?? '')).toBeNull();
     });
 
     it('shows a simple no-results message when search matches nothing', () => {
@@ -192,7 +292,7 @@ describe('AddAgentRuleSuggestionsTab', () => {
         const onSelectSuggestion = jest.fn();
         render(<AddAgentRuleSuggestionsTab onSelectSuggestion={onSelectSuggestion} />);
 
-        fireEvent.press(screen.getByLabelText(SUGGESTIONS.at(0)?.prompt ?? ''));
+        fireEvent.press(screen.getByLabelText(getCardLabel(SUGGESTIONS.at(0))));
         fireEvent.changeText(screen.getByLabelText('workspace.rules.agentRules.findSuggestion'), 'gambling');
         fireEvent.press(screen.getByText('common.next'));
 

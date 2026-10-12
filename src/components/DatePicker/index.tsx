@@ -15,6 +15,7 @@ import {setDraftValues} from '@userActions/FormActions';
 
 import CONST from '@src/CONST';
 
+import type {ComponentRef} from 'react';
 import type {TextInputKeyPressEvent} from 'react-native';
 
 import {format, setYear} from 'date-fns';
@@ -48,6 +49,13 @@ function DatePicker({
     forwardedFSClass,
     shouldDeferShowUntilPositioned = false,
     shouldDismissKeyboardBeforeShow = false,
+    wrapperStyle,
+    onBlur,
+    rightHandSideComponent,
+    onPickerVisibilityChange,
+    shouldHideCalendarIcon = false,
+    shouldEnableMonthYearBackdropInNarrowPane = false,
+    textInputContainerStyles,
 }: DateInputWithPickerProps) {
     const icons = useMemoizedLazyExpensifyIcons(['Calendar']);
     const styles = useThemeStyles();
@@ -60,7 +68,7 @@ function DatePicker({
     const [selectedDate, setSelectedDate] = useState(() => value ?? defaultValue ?? '');
     const [popoverPosition, setPopoverPosition] = useState({horizontal: 0, vertical: 0});
     const textInputRef = useRef<BaseTextInputRef | null>(null);
-    const anchorRef = useRef<View>(null);
+    const anchorRef = useRef<ComponentRef<typeof View>>(null);
     const [isInverted, setIsInverted] = useState(false);
     // Whether the user currently intends the picker to be open. Lets a deferred measurement skip opening if the
     // picker was dismissed before it resolved.
@@ -101,6 +109,14 @@ function DatePicker({
         [windowHeight],
     );
 
+    const setPickerVisibility = useCallback(
+        (isVisible: boolean) => {
+            setIsModalVisible(isVisible);
+            onPickerVisibilityChange?.(isVisible);
+        },
+        [onPickerVisibilityChange],
+    );
+
     const showDatePickerModal = useCallback(() => {
         cancelAutoFocus();
         // Blur the date input before showing the modal, so the focus won't be returned after the modal is closed
@@ -116,7 +132,7 @@ function DatePicker({
         const openPicker = () => {
             if (!shouldDeferShowUntilPositioned) {
                 calculatePopoverPosition();
-                setIsModalVisible(true);
+                setPickerVisibility(true);
                 return;
             }
 
@@ -125,16 +141,16 @@ function DatePicker({
                 if (!openIntentRef.current) {
                     return;
                 }
-                setIsModalVisible(true);
+                setPickerVisibility(true);
             });
         };
 
         openPicker();
-    }, [shouldDeferShowUntilPositioned, shouldDismissKeyboardBeforeShow, calculatePopoverPosition, cancelAutoFocus]);
+    }, [shouldDeferShowUntilPositioned, shouldDismissKeyboardBeforeShow, calculatePopoverPosition, cancelAutoFocus, setPickerVisibility]);
 
     const closeDatePicker = useCallback(() => {
         openIntentRef.current = false;
-        setIsModalVisible(false);
+        setPickerVisibility(false);
 
         if (!shouldDismissKeyboardBeforeShow) {
             return;
@@ -143,7 +159,7 @@ function DatePicker({
         textInputRef.current?.blur();
         ComposerFocusManager.blurActiveInput();
         Keyboard.dismiss();
-    }, [shouldDismissKeyboardBeforeShow]);
+    }, [shouldDismissKeyboardBeforeShow, setPickerVisibility]);
 
     const handlePress = useCallback<NonNullable<BaseTextInputProps['onPress']>>(
         (event) => {
@@ -216,13 +232,15 @@ function DatePicker({
         <>
             <View
                 ref={anchorRef}
-                style={styles.mv2}
+                style={[styles.mv2, wrapperStyle]}
             >
                 <TextInput
                     ref={combinedTextInputRef}
                     inputID={inputID}
                     forceActiveLabel
-                    icon={selectedDate ? null : icons.Calendar}
+                    // The icon, the clear button and any `rightHandSideComponent` share the right-hand slot. The icon
+                    // gives way when the caller asks for the slot outright, or to a clear button that will actually render.
+                    icon={shouldHideCalendarIcon || (selectedDate && !shouldHideClearButton) ? null : icons.Calendar}
                     iconContainerStyle={styles.pr0}
                     label={label}
                     accessibilityLabel={label}
@@ -235,14 +253,16 @@ function DatePicker({
                     disabled={disabled}
                     hideFocusedState={shouldDismissKeyboardBeforeShow}
                     onPress={shouldDismissKeyboardBeforeShow ? handlePress : () => showDatePickerModal()}
+                    onBlur={onBlur}
                     onSubmitEditing={() => showDatePickerModal()}
                     onKeyPress={handleInputKeyPress}
-                    textInputContainerStyles={isModalVisible ? styles.borderColorFocus : {}}
+                    textInputContainerStyles={[textInputContainerStyles, isModalVisible && styles.borderColorFocus]}
                     shouldHideClearButton={shouldHideClearButton}
                     onClearInput={handleClear}
                     forwardedFSClass={forwardedFSClass}
                     autoComplete={autoComplete}
                     disableKeyboard
+                    rightHandSideComponent={rightHandSideComponent}
                 />
             </View>
 
@@ -258,6 +278,7 @@ function DatePicker({
                 shouldPositionFromTop={!isInverted}
                 forwardedFSClass={forwardedFSClass}
                 shouldCloseWhenBrowserNavigationChanged
+                shouldEnableMonthYearBackdropInNarrowPane={shouldEnableMonthYearBackdropInNarrowPane}
             />
         </>
     );

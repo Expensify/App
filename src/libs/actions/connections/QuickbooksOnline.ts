@@ -1,5 +1,5 @@
 import * as API from '@libs/API';
-import type {SelectIntuitEnterpriseSuiteEntityParams, UpdateQuickbooksOnlineAccountingMethodParams} from '@libs/API/parameters';
+import type {SelectIntuitEnterpriseSuiteEntityParams, UpdatePolicyConnectionConfigurationParams, UpdateQuickbooksOnlineAccountingMethodParams} from '@libs/API/parameters';
 import type UpdateQuickbooksOnlineAutoCreateVendorParams from '@libs/API/parameters/UpdateQuickbooksOnlineAutoCreateVendorParams';
 import type UpdateQuickbooksOnlineGenericTypeParams from '@libs/API/parameters/UpdateQuickbooksOnlineGenericTypeParams';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
@@ -178,6 +178,8 @@ function buildOnyxDataForQuickbooksConfiguration<TSettingName extends keyof Conn
     const oldExporter =
         settingName === CONST.QUICKBOOKS_CONFIG.EXPORT && oldSettingValue && typeof oldSettingValue === 'object' && 'exporter' in oldSettingValue ? oldSettingValue.exporter : undefined;
     const exporterErrorData = typeof oldExporter === 'string' ? {exporter: oldExporter} : {};
+    const feedbackFields =
+        settingName === CONST.QUICKBOOKS_CONFIG.SYNC_CUSTOM_DIMENSIONS ? Object.keys(settingValue ?? {}).map((dimensionID) => `${settingName}_${dimensionID}`) : [settingName];
 
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
         {
@@ -189,12 +191,8 @@ function buildOnyxDataForQuickbooksConfiguration<TSettingName extends keyof Conn
                     [CONST.POLICY.CONNECTIONS.NAME.QBO]: {
                         config: {
                             [settingName]: settingValue ?? null,
-                            pendingFields: {
-                                [settingName]: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
-                            },
-                            errorFields: {
-                                [settingName]: null,
-                            },
+                            pendingFields: Object.fromEntries(feedbackFields.map((field) => [field, CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE])),
+                            errorFields: Object.fromEntries(feedbackFields.map((field) => [field, null])),
                         },
                     },
                 },
@@ -212,12 +210,8 @@ function buildOnyxDataForQuickbooksConfiguration<TSettingName extends keyof Conn
                     [CONST.POLICY.CONNECTIONS.NAME.QBO]: {
                         config: {
                             [settingName]: oldSettingValue ?? null,
-                            pendingFields: {
-                                [settingName]: null,
-                            },
-                            errorFields: {
-                                [settingName]: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
-                            },
+                            pendingFields: Object.fromEntries(feedbackFields.map((field) => [field, null])),
+                            errorFields: Object.fromEntries(feedbackFields.map((field) => [field, ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')])),
                         },
                     },
                 },
@@ -234,12 +228,8 @@ function buildOnyxDataForQuickbooksConfiguration<TSettingName extends keyof Conn
                     [CONST.POLICY.CONNECTIONS.NAME.QBO]: {
                         config: {
                             [settingName]: settingValue ?? null,
-                            pendingFields: {
-                                [settingName]: null,
-                            },
-                            errorFields: {
-                                [settingName]: null,
-                            },
+                            pendingFields: Object.fromEntries(feedbackFields.map((field) => [field, null])),
+                            errorFields: Object.fromEntries(feedbackFields.map((field) => [field, null])),
                         },
                     },
                 },
@@ -392,6 +382,24 @@ function updateQuickbooksOnlineSyncClasses<TSettingValue extends Connections['qu
         idempotencyKey: String(CONST.QUICKBOOKS_CONFIG.SYNC_CLASSES),
     };
     API.write(WRITE_COMMANDS.UPDATE_QUICKBOOKS_ONLINE_SYNC_CLASSES, parameters, onyxData);
+}
+
+function updateQuickbooksOnlineSyncCustomDimensions(
+    policyID: string,
+    mappings: NonNullable<QBOConnectionConfig['syncCustomDimensions']>,
+    oldMappings: QBOConnectionConfig['syncCustomDimensions'],
+) {
+    const previousMappings = Object.fromEntries(Object.keys(mappings).map((id) => [id, oldMappings?.[id] ?? CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE]));
+    const onyxData = buildOnyxDataForQuickbooksConfiguration(policyID, CONST.QUICKBOOKS_CONFIG.SYNC_CUSTOM_DIMENSIONS, mappings, previousMappings);
+    const parameters: UpdatePolicyConnectionConfigurationParams = {
+        policyID,
+        connectionName: CONST.POLICY.CONNECTIONS.NAME.QBO,
+        settingName: CONST.QUICKBOOKS_CONFIG.SYNC_CUSTOM_DIMENSIONS,
+        settingValue: JSON.stringify(mappings),
+    };
+
+    // This existing command queues a sync only after Auth saves the mappings, including when an offline write is replayed.
+    API.write(WRITE_COMMANDS.UPDATE_POLICY_CONNECTION_CONFIGURATION, parameters, onyxData);
 }
 
 function updateQuickbooksOnlineNonReimbursableBillDefaultVendor<TSettingValue extends Connections['quickbooksOnline']['config']['nonReimbursableBillDefaultVendor']>(
@@ -638,6 +646,7 @@ export {
     updateQuickbooksOnlineNonReimbursableCreditCardDefaultVendor,
     updateQuickbooksOnlineSyncTax,
     updateQuickbooksOnlineSyncClasses,
+    updateQuickbooksOnlineSyncCustomDimensions,
     updateQuickbooksOnlineSyncLocations,
     updateQuickbooksOnlineSyncCustomers,
     updateQuickbooksOnlineAccountingMethod,

@@ -5,7 +5,6 @@ import Text from '@components/Text';
 
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
-import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {updateManyPolicyConnectionConfigs} from '@libs/actions/connections';
@@ -13,7 +12,7 @@ import {clearXeroErrorField} from '@libs/actions/Policy/Policy';
 import {getLatestErrorField} from '@libs/ErrorUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
-import {getXeroSuppliers, isXeroVendorMatchingActive, settingsPendingAction} from '@libs/PolicyUtils';
+import {getXeroSuppliers, isXeroVendorMatchingActive, settingsPendingAction, sortVendors} from '@libs/PolicyUtils';
 import tokenizedSearch from '@libs/tokenizedSearch';
 
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
@@ -34,23 +33,23 @@ const CLEAR_DEFAULT_VENDOR_VALUE = '';
 
 function DynamicXeroNonReimbursableDefaultContactSelectPage({policy}: WithPolicyConnectionsProps) {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
-    const {isBetaEnabled} = usePermissions();
+    const {translate, localeCompare} = useLocalize();
     const illustrations = useMemoizedLazyIllustrations(['Telescope']);
 
     const policyID = policy?.id;
     const xeroConfig = policy?.connections?.xero?.config;
     const currentContactID = xeroConfig?.defaultVendor;
 
-    // Match the parent page's gate so direct deep-links (or stale-open tabs after the beta is
-    // revoked) cannot reach the supplier updater. The parent page hides the row when the feature
-    // is off, but the route remains addressable on its own. Gated on Xero specifically being
-    // configured — not the global hasVendorFeature predicate — so dual-connected workspaces mid
-    // Xero tenant switch (config.isConfigured=false with stale data.contacts) cannot persist a
-    // defaultVendor from the prior tenant.
-    const isFeatureAvailable = isBetaEnabled(CONST.BETAS.VENDOR_MATCHING) && isXeroVendorMatchingActive(policy);
+    // Match the parent page's gate so a direct deep link cannot reach the supplier updater. The
+    // parent page hides the row when the feature is off, but the route remains addressable on its
+    // own. The gate checks that Xero itself is configured instead of using the global
+    // hasVendorFeature predicate, so a workspace in the middle of a Xero tenant switch, where
+    // config.isConfigured is false and data.contacts still holds the previous tenant's contacts,
+    // cannot persist a defaultVendor from that tenant.
+    const isFeatureAvailable = isXeroVendorMatchingActive(policy);
 
     const suppliers = useMemo(() => getXeroSuppliers(policy), [policy]);
+    const sortedSuppliers = sortVendors(suppliers, localeCompare);
     const [searchText, setSearchText] = useState('');
 
     // Prepend a "None" row so an admin can persist an empty default — without it the picker has
@@ -67,13 +66,13 @@ function DynamicXeroNonReimbursableDefaultContactSelectPage({policy}: WithPolicy
 
     const supplierOptions: SelectorType[] = useMemo(
         () =>
-            suppliers.map((supplier) => ({
+            sortedSuppliers.map((supplier) => ({
                 value: supplier.id,
                 text: supplier.name,
                 keyForList: supplier.id,
                 isSelected: supplier.id === currentContactID,
             })),
-        [suppliers, currentContactID],
+        [sortedSuppliers, currentContactID],
     );
 
     // Match the threshold the Company Cards export picker uses for its search input — Xero
@@ -113,7 +112,10 @@ function DynamicXeroNonReimbursableDefaultContactSelectPage({policy}: WithPolicy
             // Treat the clear row and an already-empty default as the same state so picking
             // "None" on a workspace that never had a default doesn't fire a no-op write.
             const isAlreadySelected = value === currentContactID || (!value && !currentContactID);
-            if (!isAlreadySelected && policyID) {
+            if (isAlreadySelected) {
+                return;
+            }
+            if (policyID) {
                 updateManyPolicyConnectionConfigs(
                     policyID,
                     CONST.POLICY.CONNECTIONS.NAME.XERO,

@@ -15,7 +15,8 @@ import {SafeString} from 'expensify-common';
 import createDynamicRoute from './Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from './Navigation/Navigation';
 import {isGroupPolicy} from './PolicyUtils';
-import {getOriginalMessage, isMoneyRequestAction} from './ReportActionsUtils';
+import {getOriginalMessage} from './ReportActionMessageUtils';
+import {isMoneyRequestAction} from './ReportActionTypeGuards';
 import {canAddTransaction, generateReportID, getChatByParticipants, isArchivedReport, isSelfDM} from './ReportUtils';
 import {endSpan, getSpan, startSpan} from './telemetry/activeSpans';
 import {getTagArrayFromName, hasRoute, isDistanceRequest} from './TransactionUtils';
@@ -54,18 +55,23 @@ function navigateToStartMoneyRequestStep(requestType: IOURequestType, iouType: I
     }
 }
 
-function navigateToParticipantPage(iouType: ValueOf<typeof CONST.IOU.TYPE>, transactionID: string, reportID: string) {
-    let navigationIOUType: IOUType = iouType;
+/**
+ * `request` and `send` are deprecated OldDot aliases of `submit` and `pay`. This resolves an
+ * alias to the type NewDot actually renders before building a route with it.
+ */
+function getNonDeprecatedIOUType(iouType: IOUType): IOUType {
     switch (iouType) {
         case CONST.IOU.TYPE.REQUEST:
-            navigationIOUType = CONST.IOU.TYPE.SUBMIT;
-            break;
+            return CONST.IOU.TYPE.SUBMIT;
         case CONST.IOU.TYPE.SEND:
-            navigationIOUType = CONST.IOU.TYPE.PAY;
-            break;
+            return CONST.IOU.TYPE.PAY;
         default:
-            break;
+            return iouType;
     }
+}
+
+function navigateToParticipantPage(iouType: ValueOf<typeof CONST.IOU.TYPE>, transactionID: string, reportID: string) {
+    const navigationIOUType = getNonDeprecatedIOUType(iouType);
 
     // The base is explicit because the picker can be opened from a create tab, the Inbox or Search drop zone.
     Navigation.navigate(
@@ -308,15 +314,21 @@ function isValidMoneyRequestType(iouType: string): boolean {
  * @param tag - a newly selected tag, that should be added to the transactionTags
  * @param tagIndex - the index of a tag list
  * @param hasMultipleTagLists - whether the policy has multiple levels tag
+ * @param tagListCount - the policy's current number of tag lists. When positive, values for tag lists the policy no longer has are dropped.
  * @returns
  */
-function insertTagIntoTransactionTagsString(transactionTags: string, tag: string, tagIndex: number, hasMultipleTagLists: boolean): string {
+function insertTagIntoTransactionTagsString(transactionTags: string, tag: string, tagIndex: number, hasMultipleTagLists: boolean, tagListCount?: number): string {
     if (!hasMultipleTagLists) {
         return tag;
     }
 
     const tagArray = transactionTags ? getTagArrayFromName(transactionTags) : [];
     tagArray[tagIndex] = tag;
+
+    // A removed tag list leaves its value in the stored string, which keeps the "Tag no longer valid" violation on the expense
+    if (tagListCount && tagListCount > 0 && tagArray.length > tagListCount) {
+        tagArray.length = tagListCount;
+    }
 
     // Fill any sparse slots created when tagIndex > tagArray.length
     for (let i = 0; i < tagArray.length; i++) {
@@ -669,6 +681,7 @@ export {
     calculateSplitAmountFromPercentage,
     calculateSplitPercentagesFromAmounts,
     getExistingTransactionID,
+    getNonDeprecatedIOUType,
     insertTagIntoTransactionTagsString,
     isMovingTransactionFromTrackExpense,
     shouldUseTransactionDraft,

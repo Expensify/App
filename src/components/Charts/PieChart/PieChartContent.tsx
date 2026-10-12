@@ -7,6 +7,7 @@ import VictoryTheme from '@components/Charts/VictoryTheme';
 import Text from '@components/Text';
 
 import useLocalize from '@hooks/useLocalize';
+import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import type {LayoutChangeEvent} from 'react-native';
@@ -15,7 +16,7 @@ import React, {useState} from 'react';
 import {View} from 'react-native';
 import {Gesture, GestureDetector} from 'react-native-gesture-handler';
 import Animated, {useSharedValue} from 'react-native-reanimated';
-import {scheduleOnRN} from 'react-native-worklets';
+import {scheduleOnRN, scheduleOnUI} from 'react-native-worklets';
 import {Pie, PolarChart} from 'victory-native';
 
 import PaddedPieSlice from './PaddedPieSlice';
@@ -28,10 +29,14 @@ type PieChartProps = ChartProps & {
 
     /** Position of the unit symbol relative to the value. Defaults to 'left'. */
     valueUnitPosition?: UnitPosition;
+
+    /** Whether to draw the slice legend below the donut */
+    shouldShowLegend?: boolean;
 };
 
-function PieChartContent({data, isLoading, valueUnit, valueUnitPosition, onSlicePress}: PieChartProps) {
+function PieChartContent({data, isLoading, valueUnit, valueUnitPosition, onSlicePress, shouldShowLegend = true}: PieChartProps) {
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     const [canvasWidth, setCanvasWidth] = useState(0);
     const [canvasHeight, setCanvasHeight] = useState(0);
@@ -86,6 +91,23 @@ function PieChartContent({data, isLoading, valueUnit, valueUnitPosition, onSlice
         }
     };
 
+    /** The page scrolling moves the pie under a still cursor without any hover event, so the hovered slice is checked again at the cursor's new position */
+    const handleChartMoved = (deltaX: number, deltaY: number) => {
+        'worklet';
+
+        if (!isHovering.get()) {
+            return;
+        }
+        const x = cursorX.get() - deltaX;
+        const y = cursorY.get() - deltaY;
+        cursorX.set(x);
+        cursorY.set(y);
+        tooltipPosition.set({x, y: y - TOOLTIP_BAR_GAP});
+        scheduleOnRN(updateActiveSlice, x, y);
+    };
+
+    const onChartMoved = (deltaX: number, deltaY: number) => scheduleOnUI(handleChartMoved, deltaX, deltaY);
+
     // Hover gesture
     const hoverGesture = () =>
         Gesture.Hover()
@@ -134,7 +156,7 @@ function PieChartContent({data, isLoading, valueUnit, valueUnitPosition, onSlice
         return (
             <View
                 key={`legend-${slice.originalIndex}`}
-                style={[styles.flexRow, styles.alignItemsCenter, styles.mr4, styles.mb2]}
+                style={[styles.flexRow, styles.alignItemsCenter]}
                 onMouseEnter={() => {
                     tooltipPosition.set(slice.tooltipPosition);
                     setActiveSliceIndex(slice.ordinalIndex);
@@ -143,7 +165,7 @@ function PieChartContent({data, isLoading, valueUnit, valueUnitPosition, onSlice
                     setActiveSliceIndex(-1);
                 }}
             >
-                <View style={[styles.pieChartLegendDot, {backgroundColor: slice.color}]} />
+                <View style={[styles.pieChartLegendDot, StyleUtils.getBackgroundColorStyle(slice.color)]} />
                 <Text style={[styles.textNormal, styles.ml2]}>{slice.label}</Text>
             </View>
         );
@@ -163,7 +185,10 @@ function PieChartContent({data, isLoading, valueUnit, valueUnitPosition, onSlice
 
     return (
         <>
-            <GestureDetector gesture={combinedGesture}>
+            <GestureDetector
+                gesture={combinedGesture}
+                touchAction="pan-y"
+            >
                 <Animated.View
                     style={[styles.chartContent, isHoveringOverPie && styles.cursorPointer]}
                     onLayout={handleLayout}
@@ -211,13 +236,15 @@ function PieChartContent({data, isLoading, valueUnit, valueUnitPosition, onSlice
                             label={tooltipData.label}
                             amount={tooltipData.amount}
                             percentage={tooltipData.percentage}
+                            expenseCount={tooltipData.expenseCount}
                             chartWidth={canvasWidth}
                             initialTooltipPosition={tooltipPosition}
+                            onChartMoved={onChartMoved}
                         />
                     )}
                 </Animated.View>
             </GestureDetector>
-            <View style={styles.pieChartLegendContainer}>{processedSlices.map((slice) => renderLegendItem(slice))}</View>
+            {shouldShowLegend && <View style={styles.pieChartLegendContainer}>{processedSlices.map((slice) => renderLegendItem(slice))}</View>}
         </>
     );
 }

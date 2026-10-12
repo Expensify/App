@@ -1,6 +1,7 @@
 import Accordion from '@components/Accordion';
 import ConnectionLayout from '@components/ConnectionLayout';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import MenuItem from '@components/MenuItem';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import RenderHTML from '@components/RenderHTML';
 
@@ -127,22 +128,18 @@ function NetSuiteImportCustomersOrProjectsPage({policy}: WithPolicyConnectionsPr
                         config?.pendingFields,
                     )}
                 >
-                    <MenuItemWithTopDescription
-                        description={translate('workspace.common.displayedAs')}
-                        title={translate(`workspace.netsuite.import.importTypes.${importedValue}.label`)}
-                        shouldShowRightIcon
+                    <MenuItemField
+                        name={translate('workspace.common.displayedAs')}
                         onPress={() => {
                             Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_IMPORT_CUSTOMERS_OR_PROJECTS_SELECT.getRoute(policyID));
                         }}
-                        brickRoadIndicator={
-                            areSettingsInErrorFields(
-                                [CONST.NETSUITE_CONFIG.SYNC_OPTIONS.CUSTOMER_MAPPINGS.CUSTOMERS, CONST.NETSUITE_CONFIG.SYNC_OPTIONS.CUSTOMER_MAPPINGS.JOBS],
-                                config?.errorFields,
-                            )
-                                ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR
-                                : undefined
-                        }
-                    />
+                        value={translate(`workspace.netsuite.import.importTypes.${importedValue}.label`)}
+                    >
+                        {areSettingsInErrorFields(
+                            [CONST.NETSUITE_CONFIG.SYNC_OPTIONS.CUSTOMER_MAPPINGS.CUSTOMERS, CONST.NETSUITE_CONFIG.SYNC_OPTIONS.CUSTOMER_MAPPINGS.JOBS],
+                            config?.errorFields,
+                        ) && <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />}
+                    </MenuItemField>
                 </OfflineWithFeedback>
             </Accordion>
         </ConnectionLayout>

@@ -5,6 +5,8 @@ import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
 
 import type {OnyxFormValuesMapping} from '@src/ONYXKEYS';
 
+import type {StyleProp, ViewStyle} from 'react-native';
+
 type DatePickerBaseProps = ForwardedFSClassProps & {
     /**
      * The datepicker supports any value that `new Date()` can parse.
@@ -69,6 +71,26 @@ type DateInputWithPickerProps = DatePickerBaseProps &
          * @default false
          */
         shouldDismissKeyboardBeforeShow?: boolean;
+
+        /**
+         * Style for the view that wraps the input and anchors the calendar. It carries a vertical margin by default,
+         * which a caller laying the field out itself can override, for example to line the input up with a plain
+         * `TextInput` beside it.
+         */
+        wrapperStyle?: StyleProp<ViewStyle>;
+
+        /**
+         * Reports whether the calendar is open. Opening the picker blurs the input, so this is the signal for "the
+         * user is on this field" rather than `onFocus`, and it is what drives the input's focused border.
+         */
+        onPickerVisibilityChange?: (isVisible: boolean) => void;
+
+        /**
+         * Hides the trailing calendar icon the empty input shows by default. Use it when the caller renders its own
+         * `rightHandSideComponent` in that space and the two would otherwise sit side by side.
+         * @default false
+         */
+        shouldHideCalendarIcon?: boolean;
     };
 
 type DatePickerProps = {

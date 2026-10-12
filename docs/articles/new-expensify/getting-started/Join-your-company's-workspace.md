@@ -72,12 +72,12 @@ You can upload a receipt with **SmartScan** or enter the details manually.
 
 ## Manually add an expense
 
-1. Click the **+** icon > **Submit expense**
+1. Click the **➕ Create** button > **Create expense**
 2. Select **Manual**
-3. Enter the amount and click **Next**
-4. Select the workspace or person
-5. Add the merchant and optional details like description, category, or tags
-6. Click **Submit**
+3. Confirm or change the workspace or person the expense is going to
+4. Enter the amount and select the currency
+5. Add the merchant, date, and optional details like description, category, or tags
+6. Click **Create expense**
 
 ---
 

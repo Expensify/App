@@ -15,7 +15,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {updateMoneyRequestVendor} from '@libs/actions/IOU/UpdateMoneyRequest';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Navigation from '@libs/Navigation/Navigation';
-import {getMatchingVendors, getVendorEmptyState, hasVendorFeature, isXeroActiveMatchingSource} from '@libs/PolicyUtils';
+import {getMatchingVendors, getVendorEmptyState, hasVendorFeature, isXeroActiveMatchingSource, sortVendors} from '@libs/PolicyUtils';
 import {isPerDiemRequest} from '@libs/TransactionUtils';
 
 import variables from '@styles/variables';
@@ -47,7 +47,7 @@ function IOURequestStepVendor({
     transaction,
 }: IOURequestStepVendorProps) {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate, localeCompare} = useLocalize();
     const {isBetaEnabled} = usePermissions();
     const illustrations = useMemoizedLazyIllustrations(['Telescope']);
     const [searchValue, setSearchValue] = useState('');
@@ -63,7 +63,8 @@ function IOURequestStepVendor({
     const [transactionViolations] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${getNonEmptyStringOnyxID(transactionID)}`);
     const delegateAccountID = useDelegateAccountID();
 
-    const isFeatureAvailable = hasVendorFeature(policy, isBetaEnabled(CONST.BETAS.VENDOR_MATCHING));
+    const isVendorMatchingBetaEnabled = isBetaEnabled(CONST.BETAS.VENDOR_MATCHING);
+    const isFeatureAvailable = hasVendorFeature(policy, isVendorMatchingBetaEnabled);
     const isOnXero = isXeroActiveMatchingSource(policy);
     const emptyState = getVendorEmptyState(policy, translate);
 
@@ -71,11 +72,12 @@ function IOURequestStepVendor({
     const isReimbursable = !!transaction?.reimbursable;
     const isInvoice = iouType === CONST.IOU.TYPE.INVOICE;
     const vendors = getMatchingVendors(policy);
+    const sortedVendors = sortVendors(vendors, localeCompare);
     const currentVendorID = transaction?.comment?.vendor?.externalID;
     const vendorLabel = isOnXero ? translate('common.supplier') : translate('common.vendor');
 
     const trimmedSearch = searchValue.trim().toLowerCase();
-    const vendorRows: VendorListItem[] = vendors
+    const vendorRows: VendorListItem[] = sortedVendors
         .filter((vendor) => !trimmedSearch || vendor.name.toLowerCase().includes(trimmedSearch))
         .map((vendor) => ({
             value: vendor.id,

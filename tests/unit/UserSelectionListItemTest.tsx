@@ -52,13 +52,13 @@ describe('UserSelectionListItem', () => {
         );
 
         // The row's display name resolves via getDisplayNameForParticipant, which must receive the translate from useLocalize.
-        expect(mockGetDisplayNameForParticipant).toHaveBeenCalledWith(expect.objectContaining({accountID: ITEM_ACCOUNT_ID, translate: mockTranslate}));
+        expect(mockGetDisplayNameForParticipant).toHaveBeenCalledWith(expect.objectContaining({accountID: ITEM_ACCOUNT_ID, hiddenTranslation: 'common.hidden'}));
     });
 
     describe('user handle', () => {
         // Render the row content so the handle text is reachable; the mock from the module factory renders nothing by default.
         beforeEach(() => {
-            mockSelectableListItem.mockImplementation(({children}) => <View>{typeof children === 'function' ? children(false) : children}</View>);
+            mockSelectableListItem.mockImplementation(({children}) => <View>{children}</View>);
         });
 
         it.each([

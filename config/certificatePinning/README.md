@@ -54,7 +54,7 @@ alternative monitors fill the gap:
 |-----------------|-------------|-------------|
 | OkHttp (fetch, blob-util, RN networking) | OkHttp interceptor in `CertificatePinning.kt` | OkHttp `CertificatePinner` + reporting interceptor |
 | Fresco (React Native Image) | Via OkHttp (same client from `OkHttpClientProvider`) | Via OkHttp |
-| WebView (react-native-webview) | `WebViewCertificateMonitor.kt` (SPKI check on leaf cert after page load) | `<pin-set>` in `network_security_config_enforce.xml` |
+| WebView (react-native-webview) | `WebViewCertificateMonitor.kt` (SPKI check of the rebuilt chain, root included, after page load) | `<pin-set>` in `network_security_config_enforce.xml` |
 | HttpURLConnection | Wrapping `HostnameVerifier` in `CertificatePinning.kt` | `<pin-set>` in `network_security_config_enforce.xml` |
 
 #### HybridApp (OldDot + NewDot)
@@ -81,7 +81,13 @@ Pin failures are reported from the **native** pinning layer (TrustKit callback o
 interceptors on Android), tagged with:
 - `certificate_pinning_host` — the hostname that failed validation
 - `certificate_pinning_mode` — `monitor` or `enforce`
-- `certificate_pinning_channel` — (Android only) the networking channel: `OkHttp`, `HttpURLConnection`, or `WebView`
+- `certificate_pinning_channel` — (Android only) the networking channel: `OkHttp`, `HttpURLConnection`, `WebView`, or `cronet`
+- `certificate_pinning_outcome` — (Android only) set on **monitoring failures that are not pin mismatches**:
+  `chain_rebuild_failed` (the served chain could not be rebuilt up to its trust-anchor root, so the root
+  pins were not evaluated) or `trust_extensions_unavailable` (the platform trust manager could not be
+  created; reported once). Events without this tag are real pin mismatches. A `chain_rebuild_failed`
+  event is still worth investigating before flipping to enforce mode: OkHttp and the platform rebuild the
+  chain the same way, so enforce mode would block that connection.
 
 Reporting requires early native Sentry initialization via `SentryNativeSDKManager` in
 `AppDelegate.swift` / `MainApplication.kt` (standalone NewDot) or
@@ -94,68 +100,116 @@ and fragile across OS versions.
 ## Single source of truth
 
 `config/certificatePinning/pins.json` is the canonical pin list. The native files above mirror it.
-When pins change, update **all** of them. Each domain pins:
+When pins change, update **all** of them.
 
-1. The leaf certificate SPKI hash (primary).
-2. The issuing intermediate CA SPKI hash (durable backup that survives leaf rotation — Let's Encrypt
-   leaves rotate roughly every 90 days; the intermediate is stable for years).
+Each domain pins **ONLY the ROOT CA SPKI hashes** of every CA that can issue its certificate. Roots
+are the only durable pin target: leaves are re-keyed on every renewal and every CA in play issues
+from a rotating pool of intermediates — both have already broken leaf/intermediate pins in
+production (the 2026-07-07 Let's Encrypt → GTS edge rotation on Cloudflare, and the 2026-07 Amazon
+M01 → M04 intermediate rotation on CloudFront). Root pins survive leaf rotation, intermediate
+rotation, AND a CA switch within the pinned set without an emergency release.
+
+- Cloudflare-fronted `*.expensify.com` hosts pin the roots of Let's Encrypt (ISRG X1/X2),
+  Google Trust Services (GTS R1–R4), SSL.com (TLS ECC/RSA Root CA 2022), and Sectigo (USERTrust
+  RSA/ECC and Sectigo Public Server Authentication Root R46/E46). The first three are the CAs
+  Cloudflare rotates between without notice; Sectigo is the additional CA Cloudflare uses for
+  [backup certificates](https://developers.cloudflare.com/ssl/edge-certificates/backup-certificates/),
+  which it deploys automatically on a certificate revocation or key compromise (see Cloudflare's
+  [certificate authorities](https://developers.cloudflare.com/ssl/reference/certificate-authorities/)
+  table). Cloudflare explicitly documents that you should **not** pin a single CA's chain
+  ([SSL/TLS docs](https://developers.cloudflare.com/ssl/reference/certificate-pinning/)).
+  GTS Root R2 stays pinned — as a `RETAINED_PINS` entry, see below — even though Mozilla removed it
+  from its root store in 2026 (Debian's `ca-certificates` 20260601 changelog). A Mozilla delisting does not decide what a
+  phone anchors at: every enforcement path here (OkHttp `CertificatePinner`, the Android `<pin-set>`,
+  Cronet's `addPublicKeyPins`, TrustKit) matches pins against the chain the **device's own trust
+  store** validated, and Android ships CA updates on its own cadence — old OS versions keep roots for
+  years — while Apple removes roots on Apple's schedule. If Cloudflare serves a GTS chain that such a
+  device anchors at R2, TLS validation succeeds and a root-only pin set without R2 does not match:
+  monitor failures now, and every affected Expensify request blocked once enforce mode is on. Removing
+  it is also one-sided: a device that has already dropped R2 fails the TLS validation before pinning is
+  consulted, so keeping R2 in the set cannot widen what the device trusts. Unpin it only once the
+  supported platform stores no longer trust it (see step 4 below).
+- The CloudFront host pins all five Amazon Trust Services roots (Amazon Root CA 1–4 and Starfield
+  Services Root CA G2) — the only stable pin targets AWS documents for ACM-issued certificates.
+
+A TLS server never sends its root, so every monitor that checks the served chain must first rebuild
+it up to the trust anchor (see `anchoredChain` in the Kotlin/Java pinners and the chain rebuild in
+the WebView monitors); the platform `<pin-set>`, OkHttp's enforce-mode `CertificatePinner`, Cronet's
+`addPublicKeyPins`, and TrustKit all evaluate the validated chain (root included) natively. When a
+monitor cannot rebuild the chain it does **not** fall through to a pin check on the raw served chain
+— that chain has no root, so the check could only ever produce a false mismatch — and reports a
+`chain_rebuild_failed` outcome instead (see [Sentry reporting](#sentry-reporting)).
+
+The root certificates are NOT committed. `scripts/generateCertificatePins.sh` downloads them from
+the Mozilla CA bundle into a gitignored cache (`config/certificatePinning/roots/`) and verifies each
+against the SHA-256 certificate fingerprints committed in the script's `ROOT_MANIFEST` — the
+fingerprints, not the downloaded bytes, are the source of trust. The pin hashes are derived from
+those verified PEMs, never from live handshakes.
+
+A root that has left the Mozilla bundle but that devices still anchor at moves from `ROOT_MANIFEST` to
+`RETAINED_PINS` in the same script. The bundle no longer carries its certificate, so its SPKI hash
+cannot be re-derived; the entry carries the hash this script generated while the root was still in the
+bundle, together with the certificate fingerprint it came from and the CA's URL for re-checking it by
+hand. `git log -S<hash> -- config/certificatePinning/pins.json` shows when the value was generated and
+from what. Retained entries keep their place in the group lists, so generated output, `pins.json` and
+the native lists stay in the same order. GTS Root R2 is the one entry today.
+
+Generation never downloads a certificate for a retained root — that is what keeps a clean checkout and
+the offline test suite working — so between runs the pin rests on its committed value and its history.
+`--verify` is where it is checked: it fetches the certificate from the entry's URL, confirms the
+SHA-256 fingerprint, re-derives the SPKI hash and compares it with the shipped pin, failing the run if
+any of that does not line up. The verified certificate is then used as a trust anchor for the live
+chain checks, so a host legitimately serving a chain that builds to a retained root verifies like any
+other. A retained pin that cannot be fetched is reported and fails the run rather than being skipped
+silently.
 
 Both production and staging hosts are pinned in every release build, because beta/TestFlight builds
 resolve their runtime environment to STAGING and hit `staging.*` APIs while still being non-debug.
 
-## Cloudflare-fronted hosts: multi-CA root + intermediate pinning
-
-The `expensify.com` edge certificates for `www`, `secure`, `staging`, `staging-secure`, `new` and
-`staging.new` are issued by **Cloudflare**, which can pick — and rotate between — any of the CAs it
-uses (**Let's Encrypt**, **Google Trust Services**, **SSL.com**) without notice. An unannounced
-Let's Encrypt → Google Trust Services rotation on 2026-07-07 is what broke pinning; `www` has since
-reverted to Let's Encrypt. Cloudflare explicitly documents that you should **not** pin a single CA's
-chain ([SSL/TLS docs](https://developers.cloudflare.com/ssl/reference/certificate-pinning/)).
-
-To keep the app working across leaf rotation, intermediate rotation, **and** a switch between those
-three CAs — without shipping an emergency release each time — these six hosts (Groups A & B) share
-one pin set that pins the **SPKI of the ROOT** of all three CAs plus each CA's **live issuing
-intermediate**. Pinning the roots is what survives an intermediate rotation (the failure mode that
-hit us). Any one of these appearing in the served chain satisfies the pin:
-
-| CA | Pin (base64 SHA-256 of SPKI) | Certificate |
-|----|------------------------------|-------------|
-| Let's Encrypt | `C5+lpZ7tcVwmwQIMcRtPbsQtWLABXhQzejna0wHFr8M=` | ISRG Root X1 (RSA 4096) |
-| Let's Encrypt | `diGVwiVYbubAI3RW4hB9xU8e/CH2GnkuvVFZE8zmgzI=` | ISRG Root X2 (ECDSA P-384) |
-| Let's Encrypt | `brzvtCELCIZUo4sD/qPX0ccRtPsd3DY6RfmxpOU9oB4=` | Let's Encrypt YE1 (live ECDSA intermediate) |
-| Google Trust Services | `hxqRlPTu1bMS/0DITB1SSu0vd4u/8l8TjPgfaAp63Gc=` | GTS Root R1 (RSA 4096) |
-| Google Trust Services | `Vfd95BwDeSQo+NUYxVEEIlvkOlWY2SalKK1lPhzOx78=` | GTS Root R2 (RSA 4096) |
-| Google Trust Services | `QXnt2YHvdHR3tJYmQIr0Paosp6t/nggsEGD4QJZ3Q0g=` | GTS Root R3 (ECDSA P-384) |
-| Google Trust Services | `mEflZT5enoR1FuXLgYYGqnVEoZvmf9c2bVBpiOjYQ0c=` | GTS Root R4 (ECDSA P-384) |
-| Google Trust Services | `kIdp6NNEd8wsugYyyIYFsi1ylMCED3hZbSR8ZFsa/A4=` | GTS WE1 (live ECDSA intermediate) |
-| SSL.com | `G/ANXI8TwJTdF+AFBM8IiIUPEv0Gf6H5LA/b9guG4yE=` | SSL.com TLS ECC Root CA 2022 (ECDSA P-384) |
-| SSL.com | `K89VOmb1cJAN3TK6bf4ezAbJGC1mLcG2Dh97dnwr3VQ=` | SSL.com TLS RSA Root CA 2022 (RSA 4096) |
-
-These root/intermediate pins are broad by design (they trust each CA's whole hierarchy), which is the
-tightest safe posture for a host whose CA is controlled by Cloudflare. The other groups
-(`integrations`, `travel`, CloudFront) are single-CA and keep the tighter leaf + issuing-intermediate
-pinning. Trade-off accepted per the incident: resilience over a narrower trust set for the Cloudflare
-hosts.
-
-**Before flipping these hosts to enforce mode**, re-run `scripts/generateCertificatePins.sh
---ca-pins` on a networked machine to confirm each root/intermediate SPKI still matches (roots are
-stable for years, but confirm) and that the live `www`/`new` chains still terminate in one of the
-pinned CAs.
-
 ## Regenerating pins
 
 ```bash
-./scripts/generateCertificatePins.sh            # prints leaf + intermediate hashes per domain
-./scripts/generateCertificatePins.sh --android  # also prints the network_security_config <pin-set>
-./scripts/generateCertificatePins.sh --ca-pins  # prints the multi-CA root+intermediate pins for the
-                                                # Cloudflare-fronted expensify.com hosts (Groups A & B),
-                                                # computed from each CA's official published certificate
+./scripts/generateCertificatePins.sh            # prints the root pins (downloads + fingerprint-verifies the roots on first run)
+./scripts/generateCertificatePins.sh --android  # also prints the network_security_config <pin-set> blocks
+./scripts/generateCertificatePins.sh --verify   # checks each live chain anchors at a pinned root; exits 1 if any host FAILs or is UNREACHABLE
+./scripts/generateCertificatePins.sh --refresh  # force re-download of the cached roots; a cached root the bundle no longer carries is removed
 ```
+
+Offline/CI use: set `ROOTS_BUNDLE=/path/to/bundle.pem` to read the roots from a local CA bundle
+instead of downloading; fingerprint verification still applies. `ROOTS_DIR=/path` overrides the
+cache location.
+
+If the script reports that a root in its `ROOT_MANIFEST` was not found in the bundle, Mozilla has
+dropped that root: investigate. That is a distrust signal worth understanding, but it is **not** on its
+own a reason to unpin — Mozilla's bundle is not what the mobile clients anchor at (see the GTS Root R2
+note above). Keep shipping the pin by moving the entry from `ROOT_MANIFEST` to `RETAINED_PINS`, which
+carries its committed hash forward; `--refresh` then leaves it alone instead of dropping it. Remove the
+pin only once the platform trust stores have dropped the root too.
+
+`tests/unit/generateCertificatePinsTest.ts` runs the script against Node's bundled Mozilla root store
+and checks the clean-checkout path, `--refresh`, unreachable hosts under `--verify`, retained pins
+(shipped without a certificate, present in `pins.json` and every native list, untouched by `--refresh`),
+and that `pins.json` and the native files carry exactly the pins the script generates. The suite never
+touches the network and needs no certificate beyond what Node bundles, so it behaves the same whichever
+Node snapshot of Mozilla's store you run it on.
 
 ## Rotation runbook
 
-1. A few weeks before a certificate changes, run the generator against the new certificate.
-2. Add the **new** hashes alongside the existing ones (do not remove the old ones yet) in
+Root pins only need to change when a host starts using a CA whose root is not yet pinned (e.g. a
+CDN adds a new CA to its pool), or when a pinned root is distrusted/retired.
+
+1. Look up the new root's SHA-256 certificate fingerprint in the CA's official repository. Add a
+   `"<Name>|<FINGERPRINT>"` entry to `ROOT_MANIFEST` and the name to the relevant group in
+   `scripts/generateCertificatePins.sh`, then re-run the script (it downloads and
+   fingerprint-verifies the certificate).
+2. Add the **new** root hash alongside the existing ones (do not remove old ones yet) in
    `pins.json` and all native files, then ship an app release.
-3. After the new certificate is live and the old app versions have aged out, remove the stale hashes.
-4. Never add an `expiration` to the Android `<pin-set>` — an expired pin-set silently disables pinning.
+3. Run `./scripts/generateCertificatePins.sh --verify` to confirm every live chain anchors at a
+   pinned root, and that each retained pin still matches its CA's published certificate. `--verify`
+   considers only the pinned roots as anchors — it passes `-no-CAfile -no-CApath -no-CAstore` to
+   `openssl verify`, without which the machine's own trust store would be searched too and a chain
+   anchored at any locally trusted CA would be reported as anchoring at a pinned root.
+4. Only after old app versions have aged out **and** the root is gone from every supported platform
+   trust store (Android's, including the versions still in the field, and Apple's — not merely
+   Mozilla's), remove hashes of roots no longer in play.
+5. Never add an `expiration` to the Android `<pin-set>` — an expired pin-set silently disables pinning.

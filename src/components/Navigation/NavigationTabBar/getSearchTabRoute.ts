@@ -30,9 +30,13 @@ function getSearchTabRoute(rootState: NavigationState, lastSearchParams: OnyxEnt
 
     const lastQueryJSON = lastSearchParams?.queryJSON;
     const lastQueryFromOnyx = lastQueryJSON ? buildSearchQueryString(lastQueryJSON) : undefined;
+    if (lastQueryFromOnyx) {
+        // The persisted search key belongs to the persisted query, so it only travels with it.
+        return ROUTES.SEARCH_ROOT.getRoute({query: lastQueryFromOnyx, searchKey: lastSearchParams?.searchKey});
+    }
+
     const defaultSearchQuery = buildCannedSearchQuery({type: CONST.SEARCH.DATA_TYPES.EXPENSE});
-    const fallbackSearchQuery = getValidLastQuery(lastExpensesSearchQuery, defaultSearchQuery);
-    return ROUTES.SEARCH_ROOT.getRoute({query: lastQueryFromOnyx ?? fallbackSearchQuery});
+    return ROUTES.SEARCH_ROOT.getRoute({query: getValidLastQuery(lastExpensesSearchQuery, defaultSearchQuery), searchKey: CONST.SEARCH.SEARCH_KEYS.EXPENSES});
 }
 
 export default getSearchTabRoute;

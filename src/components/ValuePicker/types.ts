@@ -2,7 +2,7 @@ import type {ListItem} from '@components/SelectionList/types';
 
 import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
 
-import type {ForwardedRef, ReactNode} from 'react';
+import type {ComponentRef, ForwardedRef, ReactNode} from 'react';
 import type {StyleProp, TextStyle, View} from 'react-native';
 
 type ValuePickerListItem = ListItem & {
@@ -84,7 +84,7 @@ type ValuePickerProps = ForwardedFSClassProps & {
     /** Whether to show the selector modal */
     shouldShowModal?: boolean;
 
-    ref: ForwardedRef<View>;
+    ref: ForwardedRef<ComponentRef<typeof View>>;
     addBottomSafeAreaPadding?: boolean;
     disableKeyboardShortcuts?: boolean;
 

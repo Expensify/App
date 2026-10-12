@@ -200,6 +200,7 @@ function MultiGestureCanvas({
     const {singleTapGesture: baseSingleTapGesture, doubleTapGesture} = useTapGestures({
         canvasSize,
         contentSize,
+        zoomRange,
         minContentScale,
         maxContentScale,
         offsetX,
