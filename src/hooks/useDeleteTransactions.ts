@@ -398,6 +398,7 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
                 reportAction: action,
                 transactionThreadReport,
                 transactionThreadReportActions: allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReport?.reportID}`],
+                chatReportActions: allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatIOUReportID}`],
                 transactions: duplicateTransactions,
                 violations: duplicateTransactionViolations,
                 iouReport,

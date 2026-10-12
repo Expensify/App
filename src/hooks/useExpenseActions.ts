@@ -139,6 +139,7 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(iouTransactionID)}`);
     const [originalTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transaction?.comment?.originalTransactionID)}`);
     const {iouReport, chatReport: chatIOUReport, isChatIOUReportArchived} = useGetIOUReportFromReportAction(requestParentReportAction);
+    const [chatIOUReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(iouReport?.chatReportID)}`);
 
     // Global collections
     const [personalDetails] = useAllPersonalDetails();
@@ -568,6 +569,7 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
                             isChatIOUReportArchived,
                             getCurrencyDecimals,
                             false,
+                            chatIOUReportActions,
                         );
                         const deleteNavigateBackUrl = goBackRoute ?? backTo ?? Navigation.getActiveRoute();
                         setDeleteTransactionNavigateBackUrl(deleteNavigateBackUrl);
