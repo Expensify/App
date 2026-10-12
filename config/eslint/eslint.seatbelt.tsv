@@ -1264,8 +1264,6 @@
 "../../src/pages/settings/Security/SecuritySettingsPage.tsx"	"no-restricted-imports"	1
 "../../src/pages/settings/Security/TwoFactorAuth/TwoFactorAuthWrapper.tsx"	"no-restricted-imports"	1
 "../../src/pages/settings/Subscription/CancelSubscriptionPage/index.tsx"	"no-restricted-imports"	1
-"../../src/pages/settings/Subscription/CardAuthenticationModal/index.tsx"	"no-restricted-imports"	1
-"../../src/pages/settings/Subscription/CardAuthenticationModal/index.tsx"	"react-hooks/set-state-in-effect"	1
 "../../src/pages/settings/Subscription/DisableAutoRenewSurveyPage/index.tsx"	"no-restricted-imports"	1
 "../../src/pages/settings/Subscription/ExpensifyCodePage/index.tsx"	"no-restricted-imports"	1
 "../../src/pages/settings/Subscription/PaymentCard/ChangeBillingCurrency/index.tsx"	"no-restricted-imports"	1
