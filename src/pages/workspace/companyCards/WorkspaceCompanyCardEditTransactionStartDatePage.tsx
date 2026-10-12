@@ -1,6 +1,6 @@
 import Button from '@components/Button';
 import DatePicker from '@components/DatePicker';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import Header from '@components/Header';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
@@ -21,11 +21,11 @@ import Navigation from '@navigation/Navigation';
 
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 
-import {updateCardTransactionStartDate} from '@userActions/CompanyCards';
+import {bulkUpdateCardTransactionStartDate, updateCardTransactionStartDate} from '@userActions/CompanyCards';
 
 import CONST from '@src/CONST';
+import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {CompanyCardFeedWithDomainID} from '@src/types/onyx';
 
 import type {ValueOf} from 'type-fest';
 
@@ -40,7 +40,8 @@ type WorkspaceCompanyCardEditTransactionStartDatePageProps = PlatformStackScreen
 
 function WorkspaceCompanyCardEditTransactionStartDatePage({route, navigation}: WorkspaceCompanyCardEditTransactionStartDatePageProps) {
     const {policyID, cardID} = route.params;
-    const feedName = decodeURIComponent(route.params.feed) as CompanyCardFeedWithDomainID;
+    const isBulkAction = route.params.isBulkAction === 'true';
+    const feedName = route.params.feed;
     const bank = getCompanyCardFeed(feedName);
 
     const {translate} = useLocalize();
@@ -51,7 +52,8 @@ function WorkspaceCompanyCardEditTransactionStartDatePage({route, navigation}: W
     const [cardFeeds] = useCardFeeds(policyID);
     const companyFeeds = getCompanyFeeds(cardFeeds);
     const domainOrWorkspaceAccountID = getDomainOrWorkspaceAccountID(workspaceAccountID, companyFeeds[feedName]);
-    const goBackToCardDetails = () => Navigation.goBack(getCompanyCardDetailsBackPath(policyID, feedName, cardID, navigation.getState()));
+    const goBack = () =>
+        Navigation.goBack(isBulkAction ? ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID) : getCompanyCardDetailsBackPath(policyID, feedName, cardID, navigation.getState()));
 
     const [allBankCards] = useCardsList(feedName);
     const card = allBankCards?.[cardID];
@@ -90,8 +92,12 @@ function WorkspaceCompanyCardEditTransactionStartDatePage({route, navigation}: W
 
         const newStartDate = dateOptionSelected === CONST.COMPANY_CARD.TRANSACTION_START_DATE_OPTIONS.FROM_BEGINNING ? '' : startDate;
 
-        updateCardTransactionStartDate(domainOrWorkspaceAccountID, cardID, newStartDate, bank, currentStartDate);
-        goBackToCardDetails();
+        if (isBulkAction) {
+            bulkUpdateCardTransactionStartDate(domainOrWorkspaceAccountID, bank, [{cardID, oldStartDate: currentStartDate}], newStartDate);
+        } else {
+            updateCardTransactionStartDate(domainOrWorkspaceAccountID, cardID, newStartDate, bank, currentStartDate);
+        }
+        goBack();
     };
 
     const dateOptions = [
@@ -120,10 +126,10 @@ function WorkspaceCompanyCardEditTransactionStartDatePage({route, navigation}: W
                 testID="WorkspaceCompanyCardEditTransactionStartDatePage"
                 enableEdgeToEdgeBottomSafeAreaPadding
             >
-                <HeaderWithBackButton
-                    title={translate('workspace.moreFeatures.companyCards.transactionStartDate')}
-                    onBackButtonPress={goBackToCardDetails}
-                />
+                <Header>
+                    <Header.BackButton onPress={goBack} />
+                    <Header.Title title={translate('workspace.moreFeatures.companyCards.transactionStartDate')} />
+                </Header>
                 <Text style={[styles.textSupporting, styles.ph5, styles.mv3]}>{translate('workspace.companyCards.editStartDateDescription')}</Text>
                 <View style={styles.flex1}>
                     <SelectionList
