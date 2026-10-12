@@ -549,7 +549,7 @@ function normalizeTaxAmountSign(rawAmount: number | undefined, isFromExpenseRepo
 /**
  * Return the tax amount field from the transaction.
  */
-function getTaxAmount(transaction: OnyxInputOrEntry<Transaction>, isFromExpenseReport: boolean): number {
+function getTaxAmount(transaction: OnyxInputOrEntry<Pick<Transaction, 'taxAmount'>>, isFromExpenseReport: boolean): number {
     return normalizeTaxAmountSign(transaction?.taxAmount, isFromExpenseReport);
 }
 
