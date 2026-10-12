@@ -67,7 +67,7 @@ function GrowlNotificationContent({bodyText, type, duration, action, position, n
     const icons = useMemoizedLazyExpensifyIcons(['Exclamation', 'Checkmark']);
 
     // Derived live so that resizing the window flips position + slide direction during display.
-    // Narrow layouts stay at the top: the bottom-right anchor is a wide-screen sidebar-width toast.
+    // Narrow layouts stay at the top. The bottom-right anchor is a toast the width of the sidebar on wide screens.
     const useBottomPosition = !shouldUseNarrowLayout && (!!action || position === CONST.GROWL.POSITION.BOTTOM_RIGHT);
     const inactiveY = useBottomPosition ? INACTIVE_OFFSET : INACTIVE_POSITION_Y;
 
