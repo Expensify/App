@@ -3416,6 +3416,24 @@ describe('WorkflowUtils', () => {
             expect(hasApprovalWorkflowWithNonMemberApprover({policy: approvalsOffPolicy, currentUserLogin: ownerEmail, isMultipleApproversBetaEnabled: false})).toBe(false);
             expect(hasApprovalWorkflowWithNonMemberApprover({policy: lockedPolicy, currentUserLogin: ownerEmail, isMultipleApproversBetaEnabled: false})).toBe(false);
         });
+
+        it.each([false, true])('skips a null employeeList entry instead of crashing when the multiple approvers beta is %s', (isMultipleApproversBetaEnabled) => {
+            // Given a workspace whose employeeList holds a null entry, which the type rules out but happens at runtime,
+            // next to member 1 who still submits to someone no longer on the workspace
+            // The null entry comes first, so every pass over employeeList reaches it before finding member 1
+            const policy = buildPolicy({
+                employeeList: {
+                    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- the null entry is the runtime data this test guards against
+                    'stale@example.com': null as unknown as PolicyEmployee,
+                    [ownerEmail]: {email: ownerEmail, role: CONST.POLICY.ROLE.ADMIN, submitsTo: ownerEmail},
+                    '1@example.com': {email: '1@example.com', role: CONST.POLICY.ROLE.USER, submitsTo: removedEmail},
+                },
+            });
+
+            // When the owner checks whether a workflow needs fixing, as the Workspaces tab does on every page
+            // Then the null entry is skipped rather than crashing the tab bar, and member 1's workflow is still flagged
+            expect(hasApprovalWorkflowWithNonMemberApprover({policy, currentUserLogin: ownerEmail, rules: {}, isMultipleApproversBetaEnabled})).toBe(true);
+        });
     });
 
     describe('getNonMemberApproverError', () => {

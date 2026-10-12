@@ -233,6 +233,11 @@ function convertPolicyEmployeesToApprovalWorkflows({policy, personalDetails, fir
     const hrAdvancedModeFinalApproverEmail = getHRAdvancedModeFinalApprover(policy);
 
     for (const employee of Object.values(employees)) {
+        // The type doesn't allow it, but `employeeList` can hold a null entry at runtime, so skip it rather than crash
+        if (!employee) {
+            continue;
+        }
+
         const {email, submitsTo, pendingAction} = employee;
         if (!email) {
             continue;
@@ -1662,6 +1667,11 @@ function convertApprovalWorkflowRulesToWorkflows({
     const availableMembers: Member[] = [];
 
     for (const employee of Object.values(employees)) {
+        // The type doesn't allow it, but `employeeList` can hold a null entry at runtime, so skip it rather than crash
+        if (!employee) {
+            continue;
+        }
+
         const {email, submitsTo, pendingAction} = employee;
         if (!email) {
             continue;
@@ -1845,8 +1855,9 @@ function hasApprovalWorkflowWithNonMemberApprover({policy, currentUserLogin, rul
         const hasNonMemberRoute =
             isNonMemberApprover(policy, getHRFinalApprover(policy) ?? getDefaultApprover(policy)) ||
             Object.values(policy?.employeeList ?? {}).some(
+                // `employeeList` can hold a null entry at runtime, so read it optionally
                 (employee) =>
-                    isNonMemberApprover(policy, employee.submitsTo) || isNonMemberApprover(policy, employee.forwardsTo) || isNonMemberApprover(policy, employee.overLimitForwardsTo),
+                    isNonMemberApprover(policy, employee?.submitsTo) || isNonMemberApprover(policy, employee?.forwardsTo) || isNonMemberApprover(policy, employee?.overLimitForwardsTo),
             );
         if (!hasNonMemberRoute) {
             return false;
