@@ -33,7 +33,6 @@ import {buildUserIcon} from '@libs/UserAvatarUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {getReportPolicyID, getStableReportSelector} from '@src/selectors/Report';
 import {getReportActionByIDSelector} from '@src/selectors/ReportAction';
 import {pendingDeleteMemberAccountIDsSelector} from '@src/selectors/ReportMetaData';
 import type {InvitedEmailsToAccountIDs, OnyxInputOrEntry, Policy, Report, ReportAction} from '@src/types/onyx';
@@ -83,7 +82,7 @@ function useReportActionAvatars({
     const isReportAChatReport = report?.type === CONST.REPORT.TYPE.CHAT && report?.chatType !== CONST.REPORT.CHAT_TYPE.TRIP_ROOM;
 
     const chatReportID = report?.chatReportID ?? passedChatReportID;
-    const [reportChatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`, {selector: getStableReportSelector});
+    const [reportChatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`);
 
     const chatReport = isReportAChatReport ? report : reportChatReport;
     const iouReport = isReportAChatReport ? undefined : report;
@@ -101,7 +100,7 @@ function useReportActionAvatars({
     // Support tickets use the assigned rep's avatar, not the parent message's author.
     const action = passedAction ?? (isSupportTicket(report) ? undefined : derivedAction);
 
-    const [actionChildReportPolicyID] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${action?.childReportID}`, {selector: getReportPolicyID});
+    const [actionChildReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${action?.childReportID}`);
 
     const isAReportPreviewAction = action?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW;
 
@@ -115,7 +114,7 @@ function useReportActionAvatars({
 
     const reportPolicyID = iouReport?.policyID ?? chatReport?.policyID;
     const chatReportPolicyIDExists = chatReport?.policyID === CONST.POLICY.ID_FAKE || !chatReport?.policyID;
-    const changedPolicyID = actionChildReportPolicyID ?? iouReport?.policyID;
+    const changedPolicyID = actionChildReport?.policyID ?? iouReport?.policyID;
     const shouldUseChangedPolicyID = !!changedPolicyID && changedPolicyID !== (reportPolicyID ?? iouReport?.policyID);
     const retrievedPolicyID = chatReportPolicyIDExists ? reportPolicyID : chatReport?.policyID;
 

@@ -41,10 +41,6 @@ function getReportPolicyID(report: OnyxEntry<Report>) {
     return report?.policyID;
 }
 
-function getReportLastActorAccountID(report: OnyxEntry<Report>) {
-    return report?.lastActorAccountID;
-}
-
 function getReportOwnerAccountID(report: OnyxEntry<Report>) {
     return report?.ownerAccountID;
 }
@@ -405,7 +401,6 @@ export {
     getReportOwnerAccountID,
     getReportParentReportID,
     getReportPolicyID,
-    getReportLastActorAccountID,
     policyIDsWithEmptyReportsSelector,
     canShowReportRecipientLocalTimeSelector,
     policyChatRoomsSelector,
