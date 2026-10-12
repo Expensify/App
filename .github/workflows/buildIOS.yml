@@ -334,16 +334,13 @@ jobs:
             } >> "$GITHUB_OUTPUT"
           fi
 
-      - name: Find and upload IPA artifact
-        # v6
-        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f
-        with:
-          name: ${{ inputs.artifact-prefix }}iosBuild-artifact
-          path: .rock/cache/ios/export/*.ipa
-
       - name: Seal iOS PGO release proof
         if: ${{ inputs.variant == 'Release' }}
         run: ./node_modules/.bin/bun scripts/pgo/ciProfile.ts seal ios "$(jq -r .version package.json)" ".rock/cache/ios/export/${{ steps.set-ipa-filename.outputs.IPA_FILENAME }}" pgo-proof-ios.json
+
+      - name: Verify sealed iOS PGO release proof
+        if: ${{ inputs.variant == 'Release' }}
+        run: ./node_modules/.bin/bun scripts/pgo/ciProfile.ts verify ios "$(jq -r .version package.json)" pgo-proof-ios.json ".rock/cache/ios/export/${{ steps.set-ipa-filename.outputs.IPA_FILENAME }}"
 
       - name: Upload iOS PGO release proof
         if: ${{ inputs.variant == 'Release' }}
@@ -352,6 +349,13 @@ jobs:
           name: ${{ inputs.artifact-prefix }}pgo-proof-ios
           path: pgo-proof-ios.json
           if-no-files-found: error
+
+      - name: Find and upload IPA artifact
+        # v6
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f
+        with:
+          name: ${{ inputs.artifact-prefix }}iosBuild-artifact
+          path: .rock/cache/ios/export/*.ipa
 
       - name: Zip dSYMs from xcarchive
         id: zip-dsyms
