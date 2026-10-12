@@ -17,7 +17,7 @@ import {
     useReadyCartesianCanvas,
 } from '@components/Charts/hooks';
 import {getCartesianPlotBounds, getDomainPaddingForEdgeSpace, getXAxisLabel, getYAxisLabelWidth, labelOverhang} from '@components/Charts/utils';
-import VictoryTheme, {CHART_CONTENT_MIN_HEIGHT, DASH_INTERVALS, GLYPH_PADDING, LABEL_PADDING, LABEL_ROTATIONS, SIN_45} from '@components/Charts/VictoryTheme';
+import VictoryTheme, {CARTESIAN_Y_AXIS, CHART_CONTENT_MIN_HEIGHT, DASH_INTERVALS, GLYPH_PADDING, LABEL_PADDING, LABEL_ROTATIONS, SIN_45} from '@components/Charts/VictoryTheme';
 
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
@@ -290,15 +290,7 @@ function LineChartCanvas({data, yAxisUnit, yAxisUnitPosition = 'left', onPointPr
                         // doesn't draw (we render ChartXAxisLabels ourselves), on top of our own labelSpace.
                         labelPosition: 'inset',
                     }}
-                    yAxis={[
-                        {
-                            tickCount: VictoryTheme.axis.tickCount,
-                            axisSide: 'right',
-                            lineWidth: 0,
-                            labelOffset: VictoryTheme.axis.labelGap,
-                            domain: yAxisDomain,
-                        },
-                    ]}
+                    yAxis={[{...CARTESIAN_Y_AXIS, domain: yAxisDomain}]}
                     frame={{lineWidth: 0}}
                     data={chartData}
                 >

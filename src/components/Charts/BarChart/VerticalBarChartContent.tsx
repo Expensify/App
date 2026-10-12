@@ -15,7 +15,7 @@ import {
     useReadyCartesianCanvas,
 } from '@components/Charts/hooks';
 import {getBarLayout, getCartesianPlotBounds, getXAxisLabel, getYAxisLabelWidth} from '@components/Charts/utils';
-import VictoryTheme, {CHART_CONTENT_MIN_HEIGHT, GLYPH_PADDING} from '@components/Charts/VictoryTheme';
+import VictoryTheme, {CARTESIAN_Y_AXIS, CHART_CONTENT_MIN_HEIGHT, GLYPH_PADDING} from '@components/Charts/VictoryTheme';
 
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
@@ -227,15 +227,7 @@ function VerticalBarChartCanvas({data, yAxisUnit, yAxisUnitPosition = 'left', on
                         // doesn't draw (we render ChartXAxisLabels ourselves), on top of our own labelSpace.
                         labelPosition: 'inset',
                     }}
-                    yAxis={[
-                        {
-                            tickCount: VictoryTheme.axis.tickCount,
-                            axisSide: 'right',
-                            lineWidth: 0,
-                            labelOffset: VictoryTheme.axis.labelGap,
-                            domain: yAxisDomain,
-                        },
-                    ]}
+                    yAxis={[{...CARTESIAN_Y_AXIS, domain: yAxisDomain}]}
                     frame={{lineWidth: 0}}
                     data={chartData}
                 >

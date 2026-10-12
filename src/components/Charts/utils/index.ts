@@ -446,7 +446,7 @@ function getBarLayout(plotWidth: number, barCount: number): {barWidth: number; g
 }
 
 /**
- * Horizontal plot bounds of a cartesian chart with its y axis on the right, mirroring victory-native's layout,
+ * Horizontal plot bounds of a cartesian chart whose y axis is `CARTESIAN_Y_AXIS`, mirroring victory-native's layout,
  * so labels can be laid out from the width before the chart mounts.
  */
 function getCartesianPlotBounds(chartWidth: number, paddingRight: number): {left: number; right: number; width: number} {
