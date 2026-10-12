@@ -1,4 +1,5 @@
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -14,7 +15,7 @@ import type {Report} from '@src/types/onyx';
 import type AnchorAlignment from '@src/types/utils/AnchorAlignment';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
-import type {RefObject} from 'react';
+import type {ComponentRef, RefObject} from 'react';
 import type {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 
@@ -27,28 +28,21 @@ import type BaseModalProps from './Modal/types';
 import PopoverMenu from './PopoverMenu';
 
 type AddPaymentMethodMenuProps = {
-    /** Should the component be visible? */
     isVisible: boolean;
-
-    /** Callback to execute when the component closes. */
     onClose: () => void;
-
-    /** Callback to execute when the payment method is selected. */
     onItemSelected: (paymentMethod: PaymentMethod) => void;
 
     /** The IOU/Expense report we are paying */
     iouReport?: OnyxEntry<Report>;
 
-    /** Anchor position for the AddPaymentMenu. */
     anchorPosition: AnchorPosition;
 
     /** Where the popover should be positioned relative to the anchor points. */
     anchorAlignment?: AnchorAlignment;
 
     /** Popover anchor ref */
-    anchorRef: RefObject<View | HTMLDivElement | null>;
+    anchorRef: RefObject<ComponentRef<typeof View> | HTMLDivElement | null>;
 
-    /** Whether the personal bank account option should be shown */
     shouldShowPersonalBankAccountOption?: boolean;
 };
 
@@ -71,10 +65,10 @@ function AddPaymentMethodMenu({
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const [introSelected, introSelectedStatus] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [isSelfTourViewed = false] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
+    const delegateAccountID = useDelegateAccountID();
 
     // Users can choose to pay with business bank account in case of Expense reports or in case of P2P IOU report
     // which then starts a bottom up flow and creates a Collect workspace where the payer is an admin and payee is an employee.
@@ -93,9 +87,9 @@ function AddPaymentMethodMenu({
             return;
         }
 
-        completePaymentOnboarding(CONST.PAYMENT_SELECTED.PBA, introSelected, isSelfTourViewed, betas, currentUserAccountID, conciergeChat);
+        completePaymentOnboarding(CONST.PAYMENT_SELECTED.PBA, introSelected, isSelfTourViewed, currentUserAccountID, conciergeChat, delegateAccountID);
         onItemSelected(CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT);
-    }, [betas, currentUserAccountID, introSelected, isLoadingIntroSelected, isPersonalOnlyOption, isVisible, onItemSelected, isSelfTourViewed, conciergeChat]);
+    }, [currentUserAccountID, introSelected, isLoadingIntroSelected, isPersonalOnlyOption, isVisible, onItemSelected, isSelfTourViewed, conciergeChat, delegateAccountID]);
 
     if (isPersonalOnlyOption) {
         return null;
@@ -111,6 +105,7 @@ function AddPaymentMethodMenu({
             anchorPosition={anchorPosition}
             anchorAlignment={anchorAlignment}
             anchorRef={anchorRef}
+            enableEdgeToEdgeBottomSafeAreaPadding
             onItemSelected={() => {
                 setRestoreFocusType(CONST.MODAL.RESTORE_FOCUS_TYPE.DELETE);
                 onClose();
@@ -122,7 +117,7 @@ function AddPaymentMethodMenu({
                               text: translate('common.personalBankAccount'),
                               icon: icons.Bank,
                               onSelected: () => {
-                                  completePaymentOnboarding(CONST.PAYMENT_SELECTED.PBA, introSelected, isSelfTourViewed, betas, currentUserAccountID, conciergeChat);
+                                  completePaymentOnboarding(CONST.PAYMENT_SELECTED.PBA, introSelected, isSelfTourViewed, currentUserAccountID, conciergeChat, delegateAccountID);
                                   onItemSelected(CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT);
                               },
                           },

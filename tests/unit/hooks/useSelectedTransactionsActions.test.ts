@@ -138,6 +138,7 @@ jest.mock('@hooks/usePermissions', () => ({
     __esModule: true,
     default: () => ({
         isBetaEnabled: () => true,
+        isBetaEnabledOrUnknown: () => true,
     }),
 }));
 
@@ -409,7 +410,7 @@ describe('useSelectedTransactionsActions', () => {
 
         await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, transaction);
 
-        jest.spyOn(require('@libs/ReportUtils'), 'canDeleteCardTransactionByLiabilityType').mockReturnValue(true);
+        jest.spyOn(require('@libs/ReportUtils'), 'canDeleteCardTransaction').mockReturnValue(true);
         jest.spyOn(require('@libs/ReportUtils'), 'canDeleteTransaction').mockReturnValue(true);
         jest.spyOn(require('@libs/ReportActionsUtils'), 'isDeletedAction').mockReturnValue(false);
         jest.spyOn(require('@libs/ReportActionsUtils'), 'getIOUActionForTransactionID').mockReturnValue(reportActions.at(0) as OnyxEntry<ReportAction>);
@@ -491,7 +492,7 @@ describe('useSelectedTransactionsActions', () => {
 
         await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, transaction);
 
-        jest.spyOn(require('@libs/ReportUtils'), 'canDeleteCardTransactionByLiabilityType').mockReturnValue(true);
+        jest.spyOn(require('@libs/ReportUtils'), 'canDeleteCardTransaction').mockReturnValue(true);
         jest.spyOn(require('@libs/ReportUtils'), 'canDeleteTransaction').mockReturnValue(true);
         jest.spyOn(require('@libs/ReportActionsUtils'), 'isDeletedAction').mockReturnValue(false);
         jest.spyOn(require('@libs/ReportActionsUtils'), 'getIOUActionForTransactionID').mockReturnValue(reportActions.at(0) as OnyxEntry<ReportAction>);
@@ -724,7 +725,19 @@ describe('useSelectedTransactionsActions', () => {
 
         unholdOption?.onSelected?.();
 
-        expect(unholdRequest).toHaveBeenCalledWith(transactionID, 'child123', undefined, false, CURRENT_USER_LOGIN, CURRENT_USER_ACCOUNT_ID, undefined, false, undefined);
+        expect(unholdRequest).toHaveBeenCalledWith({
+            transactionID,
+            transaction,
+            reportID: 'child123',
+            policy: undefined,
+            isOffline: false,
+            currentUserLogin: CURRENT_USER_LOGIN,
+            currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+            transactionViolations: undefined,
+            isTrackIntentUser: false,
+            delegateAccountID: undefined,
+            rules: {},
+        });
         expect(mockClearSelectedTransactions).toHaveBeenCalledWith(true);
     });
 
@@ -778,7 +791,19 @@ describe('useSelectedTransactionsActions', () => {
 
         unholdOption?.onSelected?.();
 
-        expect(unholdRequest).toHaveBeenCalledWith(transactionID, 'child123', undefined, true, CURRENT_USER_LOGIN, CURRENT_USER_ACCOUNT_ID, undefined, false, undefined);
+        expect(unholdRequest).toHaveBeenCalledWith({
+            transactionID,
+            transaction,
+            reportID: 'child123',
+            policy: undefined,
+            isOffline: true,
+            currentUserLogin: CURRENT_USER_LOGIN,
+            currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+            transactionViolations: undefined,
+            isTrackIntentUser: false,
+            delegateAccountID: undefined,
+            rules: {},
+        });
         expect(mockClearSelectedTransactions).toHaveBeenCalledWith(true);
     });
 
@@ -842,7 +867,7 @@ describe('useSelectedTransactionsActions', () => {
                 reportID: 'iou123',
                 originalMessage: {
                     type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
-                    transactionID,
+                    IOUTransactionID: transactionID,
                 },
             },
         ];
@@ -850,9 +875,19 @@ describe('useSelectedTransactionsActions', () => {
         transaction.transactionID = transactionID;
         transaction.reportID = report.reportID;
 
+        const forwardedAction: ReportAction = {
+            ...createRandomReportAction(2),
+            reportActionID: 'action2',
+            actionName: CONST.REPORT.ACTIONS.TYPE.FORWARDED,
+            reportID: 'iou123',
+        };
+
         mockSelectedTransactionIDs.push(transactionID);
 
         await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, transaction);
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}iou123`, {
+            [forwardedAction.reportActionID]: forwardedAction,
+        });
 
         jest.spyOn(require('@libs/ReportUtils'), 'canEditFieldOfMoneyRequest').mockReturnValue(true);
         const mockCanEditFieldOfMoneyRequest = jest.mocked(canEditFieldOfMoneyRequest);
@@ -872,13 +907,16 @@ describe('useSelectedTransactionsActions', () => {
             expect(moveOption).toBeDefined();
         });
 
-        // Verify canEditFieldOfMoneyRequest was called with the transaction in the object argument
-        const lastCall = mockCanEditFieldOfMoneyRequest.mock.calls.at(mockCanEditFieldOfMoneyRequest.mock.calls.length - 1)?.at(0);
-        if (!lastCall) {
-            throw new Error('canEditFieldOfMoneyRequest was not called');
-        }
-        expect(lastCall.fieldToEdit).toBe(CONST.EDIT_REQUEST_FIELD.REPORT);
-        expect(lastCall.transaction).toEqual(expect.objectContaining({transactionID}));
+        await waitFor(() => {
+            const lastCall = mockCanEditFieldOfMoneyRequest.mock.calls.at(mockCanEditFieldOfMoneyRequest.mock.calls.length - 1)?.at(0);
+            if (!lastCall) {
+                throw new Error('canEditFieldOfMoneyRequest was not called');
+            }
+            expect(lastCall.fieldToEdit).toBe(CONST.EDIT_REQUEST_FIELD.REPORT);
+            expect(lastCall.transaction).toEqual(expect.objectContaining({transactionID}));
+            expect(lastCall.reportAction).toEqual(expect.objectContaining({reportActionID: 'action1'}));
+            expect(lastCall.reportActions).toEqual(expect.objectContaining({[forwardedAction.reportActionID]: expect.objectContaining({actionName: CONST.REPORT.ACTIONS.TYPE.FORWARDED})}));
+        });
     });
 
     it('should show split option when transaction can be split', async () => {
@@ -892,7 +930,6 @@ describe('useSelectedTransactionsActions', () => {
         };
         const policy = {
             ...createRandomPolicy(1),
-            isPolicyExpenseChatEnabled: true,
             role: CONST.POLICY.ROLE.ADMIN,
             employeeList: {
                 [CURRENT_USER_LOGIN]: {role: CONST.POLICY.ROLE.ADMIN},

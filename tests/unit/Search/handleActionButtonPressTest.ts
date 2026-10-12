@@ -109,7 +109,6 @@ const mockReportItemWithHold = createMock<TransactionReportGroupListItemType>({
                 owner: 'apb@apb.com',
                 name: 'Policy',
                 outputCurrency: 'USD',
-                isPolicyExpenseChatEnabled: true,
             },
             reportAction: {
                 reportActionID: '3042630993757922770',
@@ -211,7 +210,6 @@ const mockReportItemWithHold = createMock<TransactionReportGroupListItemType>({
                 owner: 'apb@apb.com',
                 name: 'Policy',
                 outputCurrency: 'USD',
-                isPolicyExpenseChatEnabled: true,
             },
             reportAction: {
                 reportActionID: '3042630993757922770',
@@ -308,7 +306,6 @@ mockSnapshotData[policyKey] = createMock<Policy>({
     owner: 'apb@apb.com',
     ownerAccountID: mockReportItemWithHold.ownerAccountID,
     outputCurrency: 'USD',
-    isPolicyExpenseChatEnabled: true,
 });
 mockSnapshotData[reportKey] = createMock<Report>({
     reportID: mockReportItemWithHold.reportID,
@@ -343,6 +340,7 @@ describe('handleActionButtonPress', () => {
     test('Should not navigate to item when report has one transaction on hold and action is approve', () => {
         const goToItem = jest.fn(() => {});
         handleActionButtonPress({
+            isASAPSubmitBetaEnabled: false,
             conciergeChat: undefined,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
             hash: searchHash,
@@ -363,6 +361,8 @@ describe('handleActionButtonPress', () => {
             delegateAccountID: undefined,
             isTrackIntentUser: false,
             allViolations: undefined,
+            rules: undefined,
+            personalDetailsByLogins: {},
         });
         expect(goToItem).not.toHaveBeenCalled();
     });
@@ -370,6 +370,7 @@ describe('handleActionButtonPress', () => {
     test('Should open the hold menu when the report has one transaction on hold and action is approve', () => {
         const onHoldMenuOpen = jest.fn();
         handleActionButtonPress({
+            isASAPSubmitBetaEnabled: false,
             conciergeChat: undefined,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
             hash: searchHash,
@@ -390,6 +391,8 @@ describe('handleActionButtonPress', () => {
             delegateAccountID: undefined,
             isTrackIntentUser: false,
             allViolations: undefined,
+            rules: undefined,
+            personalDetailsByLogins: {},
         });
 
         expect(onHoldMenuOpen).toHaveBeenCalledWith(mockReportItemWithHold, CONST.IOU.REPORT_ACTION_TYPE.APPROVE);
@@ -398,6 +401,7 @@ describe('handleActionButtonPress', () => {
     test('Should not navigate to item when the hold is removed', () => {
         const goToItem = jest.fn(() => {});
         handleActionButtonPress({
+            isASAPSubmitBetaEnabled: false,
             conciergeChat: undefined,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
             hash: searchHash,
@@ -417,6 +421,8 @@ describe('handleActionButtonPress', () => {
             delegateAccountID: undefined,
             isTrackIntentUser: false,
             allViolations: undefined,
+            rules: undefined,
+            personalDetailsByLogins: {},
         });
         expect(goToItem).toHaveBeenCalledTimes(0);
     });
@@ -433,6 +439,7 @@ describe('handleActionButtonPress', () => {
 
         // When: the approve action button is pressed
         handleActionButtonPress({
+            isASAPSubmitBetaEnabled: false,
             hash: searchHash,
             item: updatedMockReportItem,
             goToItem: jest.fn(),
@@ -450,6 +457,8 @@ describe('handleActionButtonPress', () => {
             delegateAccountID: undefined,
             isTrackIntentUser: false,
             allViolations,
+            rules: undefined,
+            personalDetailsByLogins: {},
             conciergeChat: undefined,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
         });

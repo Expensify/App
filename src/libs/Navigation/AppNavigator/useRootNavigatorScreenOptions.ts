@@ -54,6 +54,8 @@ const useRootNavigatorScreenOptions = () => {
             animationTypeForReplace: 'pop',
             web: {
                 presentation: Presentation.TRANSPARENT_MODAL,
+                // The wide RHP draws its own scrim (BaseOverlay), so drop react-navigation's dark card overlay behind the floating card. Narrow keeps it, as nothing else dims the background there.
+                cardOverlayEnabled: shouldUseNarrowLayout,
                 cardStyleInterpolator: (props: StackCardInterpolationProps) =>
                     modalCardStyleInterpolator({
                         props,
@@ -74,6 +76,8 @@ const useRootNavigatorScreenOptions = () => {
                     top: 0,
                     left: 0,
                     position: 'fixed',
+                    paddingLeft: 'env(safe-area-inset-left)',
+                    paddingRight: 'env(safe-area-inset-right)',
                 },
                 cardStyleInterpolator: (props: StackCardInterpolationProps) => modalCardStyleInterpolator({props, enter: onboardingEnter}),
             },
@@ -113,7 +117,7 @@ const useRootNavigatorScreenOptions = () => {
             animation: Animations.NONE,
             web: {
                 cardStyleInterpolator: (props: StackCardInterpolationProps) => modalCardStyleInterpolator({props, enter: {kind: 'none'}, applySidePanelOffset: true}),
-                cardStyle: shouldUseNarrowLayout ? {...StyleUtils.getNavigationModalCardStyle(), paddingLeft: 0} : {...themeStyles.h100, width: '100%'},
+                cardStyle: shouldUseNarrowLayout ? StyleUtils.getStyleWithEnvSafeAreaPadding(StyleUtils.getNavigationModalCardStyle()) : {...themeStyles.h100, width: '100%'},
             },
         },
     } satisfies RootNavigatorScreenOptions;

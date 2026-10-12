@@ -1,5 +1,4 @@
 type ConnectPolicyToQuickBooksDesktopParams = {
-    /** ID of the policy */
     policyID: string;
 };
 

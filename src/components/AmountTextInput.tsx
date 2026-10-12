@@ -19,28 +19,19 @@ type AmountTextInputProps = {
     /** Function to call when amount in text input is changed */
     onChangeAmount: (amount: string) => void;
 
-    /** Placeholder value for amount text input */
     placeholder: string;
-
-    /** Selection Object */
     selection?: TextSelection;
-
-    /** Function to call when selection in text input is changed */
     onSelectionChange?: (event: TextInputSelectionChangeEvent) => void;
-
-    /** Style for the input */
     style?: StyleProp<TextStyle>;
 
     /** Style for the container */
     touchableInputWrapperStyle?: StyleProp<ViewStyle>;
 
-    /** Whether to disable keyboard */
     disableKeyboard?: boolean;
 
     /** Function to call to handle key presses in the text input */
     onKeyPress?: (event: NativeSyntheticEvent<KeyboardEvent>) => void;
 
-    /** Style for the TextInput container */
     containerStyle?: StyleProp<ViewStyle>;
 
     /** Whether to apply padding to the input, some inputs doesn't require any padding, e.g. Amount input in money request flow */
@@ -52,12 +43,11 @@ type AmountTextInputProps = {
     /** A unique identifier for this text input for testing purposes */
     testID?: string;
 
-    /** Determines which keyboard to open */
     keyboardType?: KeyboardTypeOptions;
 
     /** Component to render on the right hand side of the input - only shown if clear button is not rendered */
     rightHandSideComponent?: React.ReactNode;
-} & Pick<BaseTextInputProps, 'autoFocus' | 'autoGrowExtraSpace' | 'submitBehavior' | 'ref' | 'onFocus' | 'onBlur' | 'disabled' | 'accessibilityLabel'>;
+} & Pick<BaseTextInputProps, 'autoFocus' | 'autoGrowExtraSpace' | 'containerStyles' | 'submitBehavior' | 'ref' | 'onFocus' | 'onBlur' | 'disabled' | 'accessibilityLabel'>;
 
 function AmountTextInput({
     formattedAmount,

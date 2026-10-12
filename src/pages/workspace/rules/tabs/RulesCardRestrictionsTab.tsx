@@ -55,7 +55,6 @@ function RulesCardRestrictionsTab({policyID, canWriteRules, selectedKeys, onSele
             prompt: translate('workspace.rules.spendRules.builtInProtectionModal.description'),
             promptStyles: [styles.mb1],
             shouldShowCancelButton: false,
-            success: false,
             confirmText: translate('common.buttonConfirm'),
             innerContainerStyle: shouldUseNarrowLayout ? undefined : StyleUtils.getWidthStyle(variables.wideConfirmModalWidth),
         });
@@ -110,11 +109,11 @@ function RulesCardRestrictionsTab({policyID, canWriteRules, selectedKeys, onSele
         headerContentStyles: shouldUseNarrowLayout ? styles.expensifyCardEmptyIllustration : styles.cardRulesEmptyStateIllustration,
         title: translate('workspace.rules.spendRules.cardRulesUpsell.title'),
         subtitle: translate('workspace.rules.spendRules.cardRulesUpsell.subtitle'),
-        subtitleStyles: [styles.textLabel, styles.textSupporting],
+        subtitleStyles: [styles.textSupporting],
         containerStyles: [styles.alignItemsCenter, styles.w100, styles.alignSelfCenter, StyleUtils.getMaximumWidth(variables.cardRulesEmptyStateMaxWidth)],
         buttons: [
             {
-                success: true,
+                buttonVariant: CONST.BUTTON_VARIANT.SUCCESS,
                 isDisabled: !canWriteMoreFeatures,
                 buttonText: translate('workspace.rules.spendRules.cardRulesUpsell.cta'),
                 buttonAction: handleGetExpensifyCardPress,

@@ -10,9 +10,9 @@ import useEnvironment from '@hooks/useEnvironment';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import useScreenBoundDynamicRoute from '@hooks/useScreenBoundDynamicRoute';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
@@ -45,6 +45,7 @@ function MergeResultPage() {
     const [isTrackingGPS = false] = useOnyx(ONYXKEYS.GPS_DRAFT_DETAILS, {selector: isTrackingSelector});
     const {params} = useRoute<PlatformStackRouteProp<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.MERGE_ACCOUNTS.MERGE_RESULT>>();
     const {environmentURL} = useEnvironment();
+    const buildDynamicRoute = useScreenBoundDynamicRoute();
     const {result, login, backTo} = params;
     const lazyIllustrations = useMemoizedLazyIllustrations(['RunningTurtle', 'LockClosedOrange']);
     const isLoadingTryNewDot = isLoadingOnyxValue(tryNewDotMetadata);
@@ -78,7 +79,7 @@ function MergeResultPage() {
                             html={translate(
                                 'mergeAccountsPage.mergeFailureUncreatedAccountDescription',
                                 login,
-                                `${environmentURL}/${createDynamicRoute(DYNAMIC_ROUTES.CONTACT_METHODS.path)}`,
+                                `${environmentURL}/${buildDynamicRoute(DYNAMIC_ROUTES.CONTACT_METHODS.path)}`,
                             )}
                         />
                     </View>
@@ -199,7 +200,18 @@ function MergeResultPage() {
                 illustration: lazyIllustrations.LockClosedOrange,
             },
         };
-    }, [login, translate, userEmailOrPhone, styles, isTrackingGPS, environmentURL, lazyIllustrations.LockClosedOrange, lazyIllustrations.RunningTurtle, isClassicRedirectBlocked]);
+    }, [
+        login,
+        translate,
+        userEmailOrPhone,
+        styles,
+        isTrackingGPS,
+        environmentURL,
+        buildDynamicRoute,
+        lazyIllustrations.LockClosedOrange,
+        lazyIllustrations.RunningTurtle,
+        isClassicRedirectBlocked,
+    ]);
 
     useEffect(() => {
         /**

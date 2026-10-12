@@ -21,10 +21,13 @@ import NarrowPaneContext from '@libs/Navigation/AppNavigator/Navigators/NarrowPa
 import Overlay from '@libs/Navigation/AppNavigator/Navigators/Overlay';
 import Navigation from '@libs/Navigation/Navigation';
 
+import variables from '@styles/variables';
+
 import {areAllModalsHidden, closeTop, onModalDidClose, setCloseModal, setModalCovering, setModalVisibility, willAlertModalBecomeVisible} from '@userActions/Modal';
 
 import CONST from '@src/CONST';
 
+import type {ComponentRef} from 'react';
 import type {GestureResponderEvent, LayoutChangeEvent} from 'react-native';
 
 import React, {useCallback, useContext, useEffect, useRef, useState} from 'react';
@@ -84,6 +87,7 @@ function BaseModal({
     ref,
     shouldDisplayBelowModals = false,
     shouldKeepRightDockedBackdropInNarrowPane = false,
+    shouldShowBackdrop = false,
     shouldWrapModalChildrenInScrollViewIfBottomDockedInLandscapeMode = true,
 }: BaseModalProps) {
     const theme = useTheme();
@@ -111,7 +115,7 @@ function BaseModal({
 
     const shouldCallHideModalOnUnmount = useRef(false);
     const hideModalCallbackRef = useRef<(callHideCallback: boolean) => void>(undefined);
-    const bottomDockedDismissButtonRef = useRef<View>(null);
+    const bottomDockedDismissButtonRef = useRef<ComponentRef<typeof View>>(null);
     const [fallbackModalID] = useState(() => ComposerFocusManager.getId());
     const coveringModalID = fallbackModalID;
     // On Android the hide callback fires from the reanimated exit-animation snapshot taken when the close began,
@@ -246,6 +250,11 @@ function BaseModal({
         setModalHeight(e.nativeEvent.layout.height);
     };
 
+    const {isInNarrowPane} = useContext(NarrowPaneContext);
+
+    // A right docked modal opened from inside the RHP sits on the RHP's own card, so it must not dim it or add a second shadow.
+    const isStackedOnRHP = type === CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED && !isSmallScreenWidth && (isInNarrowPane || isInNarrowPaneModal) && !shouldKeepRightDockedBackdropInNarrowPane;
+
     const {
         modalStyle,
         modalContainerStyle,
@@ -274,6 +283,7 @@ function BaseModal({
         },
         enableEdgeToEdgeBottomSafeAreaPadding,
         shouldDisplayBelowModals,
+        isStackedOnRHP,
     });
 
     // When the `enableEdgeToEdgeBottomSafeAreaPadding` prop is explicitly set, we enable edge-to-edge mode.
@@ -290,27 +300,27 @@ function BaseModal({
     });
     const modalPaddingStyles = shouldUseModalPaddingStyle ? paddings : {paddingLeft: paddings.paddingLeft, paddingRight: paddings.paddingRight};
 
-    const modalContextValue = {
-        activeModalType: isVisible ? type : undefined,
-        default: false,
-    };
-
-    const {isInNarrowPane} = useContext(NarrowPaneContext);
-
-    const shouldSuppressRightDockedBackdrop =
-        type === CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED && !isSmallScreenWidth && (isInNarrowPane || isInNarrowPaneModal) && !shouldKeepRightDockedBackdropInNarrowPane;
     const isFullWidthNarrowSheet =
         (type === CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED || type === CONST.MODAL.MODAL_TYPE.CENTERED_SWIPEABLE_TO_RIGHT) && isSmallScreenWidth && !shouldKeepRightDockedBackdropInNarrowPane;
+    // A right docked sheet floats like the RHP on wide web, so it dims the page as lightly as the RHP does.
+    const rightDockedBackdropOpacity = type === CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED && !isSmallScreenWidth ? variables.rhpOverlayOpacity : undefined;
     const backdropOpacityAdjusted =
-        hideBackdrop || shouldSuppressRightDockedBackdrop || isFullWidthNarrowSheet // full-width narrow sheets (RHP-like) shouldn't dim a backdrop behind them
+        !shouldShowBackdrop && (hideBackdrop || isStackedOnRHP || isFullWidthNarrowSheet) // full-width narrow sheets (RHP-like) shouldn't dim a backdrop behind them
             ? 0
-            : backdropOpacity;
+            : (backdropOpacity ?? rightDockedBackdropOpacity);
 
     const dragArea = type === CONST.MODAL.MODAL_TYPE.CENTERED || type === CONST.MODAL.MODAL_TYPE.CENTERED_UNSWIPEABLE ? undefined : false;
 
     const isBottomDockedModalInLandscapeMode = type === CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED && isInLandscapeMode;
 
     const shouldWrapChildrenInScrollView = shouldWrapModalChildrenInScrollViewIfBottomDockedInLandscapeMode && isBottomDockedModalInLandscapeMode;
+
+    const modalContextValue = {
+        activeModalType: isVisible ? type : undefined,
+        isContentWrappedInScrollView: shouldWrapChildrenInScrollView,
+        default: false,
+    };
+
     const shouldShowBottomDockedDismissButton = isSmallScreenWidth && type === CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED && !!(onBackdropPress ?? onClose);
     // `bottomDockedDismissButtonRef.current` can be `null` by the time focus-trap reads `initialFocus` (the read is
     // deferred via setTimeout) — e.g. the sheet was dismissed quickly, or a layout change flipped `shouldShowBottomDockedDismissButton`

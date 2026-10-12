@@ -72,7 +72,6 @@ describe('QuickCreationActionsBar - empty report confirmation', () => {
                 name: 'Test Workspace',
                 type: CONST.POLICY.TYPE.TEAM,
                 role: CONST.POLICY.ROLE.ADMIN,
-                isPolicyExpenseChatEnabled: true,
                 pendingAction: null,
                 owner: CURRENT_USER_EMAIL,
                 outputCurrency: CONST.CURRENCY.USD,
@@ -145,7 +144,7 @@ describe('QuickCreationActionsBar - empty report confirmation', () => {
 describe('QuickCreationActionsBar - travel', () => {
     const TRAVEL_POLICY_ID = 'policy-travel-456';
 
-    const seedTravelWorkspaces = async (defaultPolicyID: string) => {
+    const seedTravelWorkspaces = async (defaultPolicyID: string, isTravelWorkspaceProvisioned = true) => {
         await act(async () => {
             await Onyx.merge(ONYXKEYS.SESSION, {accountID: CURRENT_USER_ACCOUNT_ID, email: CURRENT_USER_EMAIL});
             await Onyx.merge(ONYXKEYS.ACCOUNT, {primaryLogin: CURRENT_USER_EMAIL});
@@ -167,7 +166,9 @@ describe('QuickCreationActionsBar - travel', () => {
                 owner: CURRENT_USER_EMAIL,
                 outputCurrency: CONST.CURRENCY.USD,
                 isTravelEnabled: true,
-                travelSettings: {spotnanaCompanyID: 'spotnana-company-uuid', associatedTravelDomainAccountID: 'spotnana-entity-uuid', hasAcceptedTerms: true},
+                travelSettings: isTravelWorkspaceProvisioned
+                    ? {spotnanaCompanyID: 'spotnana-company-uuid', associatedTravelDomainAccountID: 'spotnana-entity-uuid', hasAcceptedTerms: true}
+                    : undefined,
             });
             await Onyx.set(ONYXKEYS.NVP_ACTIVE_POLICY_ID, defaultPolicyID);
         });
@@ -206,6 +207,87 @@ describe('QuickCreationActionsBar - travel', () => {
         fireEvent.press(screen.getByText(translateLocal('workspace.common.travel')));
         await waitForBatchedUpdatesWithAct();
 
+        expect(openTravelDotLink).toHaveBeenCalledWith(TRAVEL_POLICY_ID);
+    });
+
+    it('does not show travel for a workspace that is not provisioned and has a stale enabled flag', async () => {
+        await seedTravelWorkspaces(TRAVEL_POLICY_ID, false);
+        renderComponent();
+        await waitForBatchedUpdatesWithAct();
+
+        expect(screen.queryByText(translateLocal('workspace.common.travel'))).toBeNull();
+    });
+});
+
+describe('QuickCreationActionsBar - button identifiers', () => {
+    const TRAVEL_POLICY_ID = 'policy-travel-789';
+
+    beforeAll(() => {
+        Onyx.init({keys: ONYXKEYS});
+    });
+
+    beforeEach(async () => {
+        // Given a travel-enabled default workspace, so that all four buttons including Travel are rendered
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.SESSION, {accountID: CURRENT_USER_ACCOUNT_ID, email: CURRENT_USER_EMAIL});
+            await Onyx.merge(ONYXKEYS.ACCOUNT, {primaryLogin: CURRENT_USER_EMAIL});
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${TRAVEL_POLICY_ID}`, {
+                id: TRAVEL_POLICY_ID,
+                name: 'Travel Workspace',
+                type: CONST.POLICY.TYPE.CORPORATE,
+                role: CONST.POLICY.ROLE.ADMIN,
+                pendingAction: null,
+                owner: CURRENT_USER_EMAIL,
+                outputCurrency: CONST.CURRENCY.USD,
+                isTravelEnabled: true,
+                travelSettings: {spotnanaCompanyID: 'spotnana-company-uuid', associatedTravelDomainAccountID: 'spotnana-entity-uuid', hasAcceptedTerms: true},
+            });
+            await Onyx.set(ONYXKEYS.NVP_ACTIVE_POLICY_ID, TRAVEL_POLICY_ID);
+        });
+        await waitForBatchedUpdatesWithAct();
+    });
+
+    afterEach(async () => {
+        jest.clearAllMocks();
+        await act(async () => {
+            await Onyx.clear();
+        });
+        await waitForBatchedUpdatesWithAct();
+    });
+
+    it('gives every button a distinct test ID so analytics tooling can tell them apart', async () => {
+        // When the bar renders
+        renderComponent();
+        await waitForBatchedUpdatesWithAct();
+
+        // Then each button exposes its own test ID, which becomes a distinct data-testid on web
+        expect(screen.getByTestId(CONST.TEST_ID.QUICK_CREATION_ACTIONS_BAR.EXPENSE)).toBeOnTheScreen();
+        expect(screen.getByTestId(CONST.TEST_ID.QUICK_CREATION_ACTIONS_BAR.REPORT)).toBeOnTheScreen();
+        expect(screen.getByTestId(CONST.TEST_ID.QUICK_CREATION_ACTIONS_BAR.DISTANCE)).toBeOnTheScreen();
+        expect(screen.getByTestId(CONST.TEST_ID.QUICK_CREATION_ACTIONS_BAR.BOOK_TRAVEL)).toBeOnTheScreen();
+    });
+
+    it('gives every button an accessibility label matching its visible text', async () => {
+        // When the bar renders
+        renderComponent();
+        await waitForBatchedUpdatesWithAct();
+
+        // Then each button has a readable name instead of an empty aria-label
+        expect(screen.getByLabelText(translateLocal('common.expense'))).toBeOnTheScreen();
+        expect(screen.getByLabelText(translateLocal('common.report'))).toBeOnTheScreen();
+        expect(screen.getByLabelText(translateLocal('common.distance'))).toBeOnTheScreen();
+        expect(screen.getByLabelText(translateLocal('workspace.common.travel'))).toBeOnTheScreen();
+    });
+
+    it('routes a press on the test-ID-targeted travel button to the travel flow', async () => {
+        // When the travel button is pressed by its test ID
+        renderComponent();
+        await waitForBatchedUpdatesWithAct();
+
+        fireEvent.press(screen.getByTestId(CONST.TEST_ID.QUICK_CREATION_ACTIONS_BAR.BOOK_TRAVEL));
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the existing behavior is unchanged because adding identifiers did not rewire the handlers
         expect(openTravelDotLink).toHaveBeenCalledWith(TRAVEL_POLICY_ID);
     });
 });

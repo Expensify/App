@@ -1,4 +1,4 @@
-import Button from '@components/ButtonComposed';
+import Button from '@components/Button';
 import FixedFooter from '@components/FixedFooter';
 import ScrollView from '@components/ScrollView';
 import type {BaseTwoFactorAuthFormRef} from '@components/TwoFactorAuthForm/types';
@@ -8,7 +8,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {clearDisableTwoFactorAuthErrors} from '@libs/actions/Session';
+import {clearAccountErrors, clearDisableTwoFactorAuthErrors} from '@libs/actions/Session';
 import Navigation from '@libs/Navigation/Navigation';
 
 import CONST from '@src/CONST';
@@ -28,6 +28,13 @@ function DisablePage() {
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
 
     const formRef = useRef<BaseTwoFactorAuthFormRef>(null);
+
+    useEffect(() => {
+        clearAccountErrors();
+        return () => {
+            clearAccountErrors();
+        };
+    }, []);
 
     useEffect(() => {
         if (account?.requiresTwoFactorAuth) {

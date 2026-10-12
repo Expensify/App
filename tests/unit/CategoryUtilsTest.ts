@@ -1,7 +1,10 @@
 import {
     formatRequireItemizedReceiptsOverText,
     getAvailableNonPersonalPolicyCategories,
+    getCategoryDefaultTaxRate,
+    getCategoryDescriptionHint,
     getCategoryGLCode,
+    getCategoryNameError,
     getDecodedFullCategoryName,
     getDecodedLeafCategoryName,
     hasAnyCategoryRules,
@@ -13,6 +16,7 @@ import {
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, PolicyCategories} from '@src/types/onyx';
+import type {ExpenseRule} from '@src/types/onyx/Policy';
 
 import type {OnyxCollection} from 'react-native-onyx';
 
@@ -80,6 +84,51 @@ describe('formatRequireItemizedReceiptsOverText', () => {
         } as Policy;
         const result = formatRequireItemizedReceiptsOverText(translateLocal, policyWithUndefinedItemizedReceipt, undefined, convertToDisplayString);
         expect(result).toBe(translateLocal('workspace.rules.categoryRules.requireItemizedReceiptsOverList.never'));
+    });
+});
+
+describe('getCategoryDescriptionHint', () => {
+    const mockPolicyCategories: PolicyCategories = {
+        Advertising: {
+            commentHint: 'Client name',
+            enabled: true,
+            name: 'Advertising',
+        },
+        Meals: {
+            enabled: true,
+            name: 'Meals',
+        },
+    };
+
+    it('returns the hint when the category has one and rules are enabled', () => {
+        // Given a category with a description hint on a workspace with Rules on
+        // When the hint is looked up
+        // Then the saved hint is returned so the description field can show it
+        expect(getCategoryDescriptionHint(mockPolicyCategories, 'Advertising', true)).toBe('Client name');
+    });
+
+    it('returns an empty string when rules are not enabled, even if the category has a hint', () => {
+        // Given a category that kept its hint but its workspace has Rules off (for example a duplicated workspace)
+        // When the hint is looked up
+        // Then no hint is returned, because category rules don't apply without Rules
+        expect(getCategoryDescriptionHint(mockPolicyCategories, 'Advertising', false)).toBe('');
+        expect(getCategoryDescriptionHint(mockPolicyCategories, 'Advertising', undefined)).toBe('');
+    });
+
+    it('returns an empty string when the category has no hint', () => {
+        // Given a category without a description hint
+        // When the hint is looked up
+        // Then nothing is returned
+        expect(getCategoryDescriptionHint(mockPolicyCategories, 'Meals', true)).toBe('');
+    });
+
+    it('returns an empty string when no category is selected or categories are missing', () => {
+        // Given no selected category, an unknown category, or no loaded categories
+        // When the hint is looked up
+        // Then nothing is returned instead of throwing
+        expect(getCategoryDescriptionHint(mockPolicyCategories, undefined, true)).toBe('');
+        expect(getCategoryDescriptionHint(mockPolicyCategories, 'NonExistentCategory', true)).toBe('');
+        expect(getCategoryDescriptionHint(undefined, 'Advertising', true)).toBe('');
     });
 });
 
@@ -469,5 +518,87 @@ describe('getCategoryGLCode', () => {
             },
         };
         expect(getCategoryGLCode(categories, 'Meals')).toBe('1200');
+    });
+});
+
+describe('getCategoryNameError', () => {
+    const encodedFoodAndDrink = 'Food &amp; Drink';
+    const categories: PolicyCategories = {
+        Food: {name: 'Food', enabled: true, pendingAction: null},
+        [encodedFoodAndDrink]: {name: encodedFoodAndDrink, enabled: true, pendingAction: null},
+    };
+
+    it('does not flag an HTML-encoded category as a duplicate of its decoded name', () => {
+        // Given a category stored under an HTML-encoded key
+        // When the caller passes the already-decoded display name as the name being edited
+        // Then keeping that display name is allowed, because decoding it again would change the comparison
+        expect(getCategoryNameError(categories, 'Food & Drink', 'Food & Drink')).toBeUndefined();
+    });
+
+    it('keeps a display name that still contains an entity distinct from its decoded form', () => {
+        const doubleEncodedFoodAndDrink = 'Food &amp;amp; Drink';
+        const categoriesWithEntityName: PolicyCategories = {
+            ...categories,
+            [doubleEncodedFoodAndDrink]: {name: doubleEncodedFoodAndDrink, enabled: true, pendingAction: null},
+        };
+
+        // Given a category whose once-decoded name still contains an entity, beside a different category named Food & Drink
+        // When validation receives that once-decoded name as the name being edited
+        // Then renaming it to Food & Drink is a duplicate, because decoding currentName again would treat the two as the same category
+        expect(getCategoryNameError(categoriesWithEntityName, 'Food & Drink', 'Food &amp; Drink')).toBe(CONST.INPUT_VALIDATION_ERRORS.EXISTING);
+
+        // Then saving the unchanged display name is allowed, because a second decode would make it look like a different category
+        expect(getCategoryNameError(categoriesWithEntityName, 'Food &amp; Drink', 'Food &amp; Drink')).toBeUndefined();
+    });
+
+    it('flags a decoded name that already exists as an encoded category', () => {
+        expect(getCategoryNameError(categories, 'Food & Drink')).toBe(CONST.INPUT_VALIDATION_ERRORS.EXISTING);
+        expect(getCategoryNameError(categories, 'Food & Drink', 'Food')).toBe(CONST.INPUT_VALIDATION_ERRORS.EXISTING);
+    });
+
+    it('still flags an exact-key duplicate', () => {
+        expect(getCategoryNameError(categories, 'Food')).toBe(CONST.INPUT_VALIDATION_ERRORS.EXISTING);
+        expect(getCategoryNameError(categories, 'Food', 'Food')).toBeUndefined();
+    });
+
+    it('flags an HTML-like name the Name page already rejects', () => {
+        // Given a category the admin is renaming from the table
+        // When the new name is an HTML-like token such as </>
+        // Then the name is invalid, because the Name page blocks it and the table must not save it
+        expect(getCategoryNameError(categories, '</>', 'Food')).toBe(CONST.INPUT_VALIDATION_ERRORS.INVALID);
+    });
+
+    it('allows a whitelisted angle-bracket token', () => {
+        // Given a category the admin is renaming
+        // When the new name is a harmless token the Name page already allows, such as <>
+        // Then the name is valid, so the table and the Name page stay in agreement
+        expect(getCategoryNameError(categories, '<>', 'Food')).toBeUndefined();
+    });
+});
+
+describe('getCategoryDefaultTaxRate', () => {
+    const buildCategoryTaxRule = (categoryName: string, taxID: string): ExpenseRule => ({
+        applyWhen: [{condition: CONST.POLICY.RULE_CONDITIONS.MATCHES, field: CONST.POLICY.FIELDS.CATEGORY, value: categoryName}],
+        // eslint-disable-next-line @typescript-eslint/naming-convention
+        tax: {field_id_TAX: {externalID: taxID}},
+    });
+
+    it("returns the category's own rate", () => {
+        expect(getCategoryDefaultTaxRate([buildCategoryTaxRule('Travel', 'id_TAX_A')], 'Travel', 'id_TAX_DEFAULT')).toBe('id_TAX_A');
+    });
+
+    it('falls back to the workspace rate when the category has no rule', () => {
+        expect(getCategoryDefaultTaxRate([buildCategoryTaxRule('Travel', 'id_TAX_A')], 'Meals', 'id_TAX_DEFAULT')).toBe('id_TAX_DEFAULT');
+    });
+
+    it('ignores a rule that carries the name on some other condition', () => {
+        // Matching on the value alone would read a rule that a save or delete never targets, handing the expense a
+        // rate the admin never set for this category.
+        const tagNamedAfterTheCategory: ExpenseRule = {
+            applyWhen: [{condition: CONST.POLICY.RULE_CONDITIONS.MATCHES, field: CONST.POLICY.FIELDS.TAG, value: 'Travel'}],
+            // eslint-disable-next-line @typescript-eslint/naming-convention
+            tax: {field_id_TAX: {externalID: 'id_TAX_B'}},
+        };
+        expect(getCategoryDefaultTaxRate([tagNamedAfterTheCategory], 'Travel', 'id_TAX_DEFAULT')).toBe('id_TAX_DEFAULT');
     });
 });

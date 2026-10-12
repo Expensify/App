@@ -1,7 +1,6 @@
 import Icon from '@components/Icon';
 import {PressableWithFeedback} from '@components/Pressable';
 import ScrollView from '@components/ScrollView';
-import type {Filter} from '@components/Search/types';
 import SpacerView from '@components/SpacerView';
 import Text from '@components/Text';
 
@@ -13,7 +12,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import getButtonState from '@libs/getButtonState';
-import {FILTER_VIEW_MAP} from '@libs/SearchUIUtils';
+import {FILTER_VIEW_MAP, getFilterViewLabelKey} from '@libs/SearchUIUtils';
 import type {SearchFilter} from '@libs/SearchUIUtils';
 
 import variables from '@styles/variables';
@@ -34,24 +33,31 @@ type FilterItemCallbacks = {
 
 type FilterListProps = FilterItemCallbacks & {
     type: SearchDataTypes | undefined;
-    policyID: Filter;
     selectedFilter?: SearchFilter['key'];
     style?: StyleProp<ViewStyle>;
     contentContainerStyle?: StyleProp<ViewStyle>;
+
+    /** Called as the cursor travels over the list. Web only - it reports the movement inside a row, which `onHoverIn` only reports entering. */
+    onPointerMove?: (event: {clientX: number; clientY: number}) => void;
+
+    /** Called when the cursor leaves the list, so the consumer can settle whatever it was still waiting on for the last row. Web only. */
+    onPointerLeave?: (event: {clientX: number}) => void;
 };
 
 type FilterItemProps = FilterItemCallbacks & {
     filterKey: SearchFilter['key'];
     isSelected?: boolean;
+    type: SearchDataTypes | undefined;
 };
 
-function FilterItem({filterKey, isSelected, onPress, onHoverIn, onFocus}: FilterItemProps) {
+function FilterItem({filterKey, isSelected, type, onPress, onHoverIn, onFocus}: FilterItemProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const theme = useTheme();
 
-    const {labelKey, icon} = FILTER_VIEW_MAP[filterKey];
+    const {icon} = FILTER_VIEW_MAP[filterKey];
+    const labelKey = getFilterViewLabelKey(filterKey, type);
     const icons = useMemoizedLazyExpensifyIcons(['ArrowRight', icon]);
 
     const getPressableBackgroundStyle = (pressed: boolean) => {
@@ -92,7 +98,7 @@ function FilterItem({filterKey, isSelected, onPress, onHoverIn, onFocus}: Filter
                     </Text>
                     <Icon
                         src={icons.ArrowRight}
-                        fill={StyleUtils.getIconFillColor(getButtonState(isSelected, pressed))}
+                        fill={StyleUtils.getIconFillColor({buttonState: getButtonState({isActive: isSelected, isPressed: pressed})})}
                         width={variables.iconSizeNormal}
                         height={variables.iconSizeNormal}
                     />
@@ -102,15 +108,17 @@ function FilterItem({filterKey, isSelected, onPress, onHoverIn, onFocus}: Filter
     );
 }
 
-function FilterList({type, policyID, selectedFilter, style, contentContainerStyle, onHoverIn, onFocus, onPress}: FilterListProps) {
+function FilterList({type, selectedFilter, style, contentContainerStyle, onHoverIn, onFocus, onPress, onPointerMove, onPointerLeave}: FilterListProps) {
     const styles = useThemeStyles();
-    const typeFiltersKeys = useAdvancedSearchFilters(type, policyID);
+    const typeFiltersKeys = useAdvancedSearchFilters(type);
 
     return (
         <ScrollView
             style={[style]}
             contentContainerStyle={[contentContainerStyle]}
             showsVerticalScrollIndicator={false}
+            onMouseMove={onPointerMove}
+            onMouseLeave={onPointerLeave}
         >
             {typeFiltersKeys.map((section, index) => (
                 <View key={`${section.at(0)}`}>
@@ -124,6 +132,7 @@ function FilterList({type, policyID, selectedFilter, style, contentContainerStyl
                         <FilterItem
                             key={item}
                             filterKey={item}
+                            type={type}
                             isSelected={item === selectedFilter}
                             onHoverIn={onHoverIn}
                             onFocus={onFocus}

@@ -2,7 +2,6 @@ import {translate} from '@libs/Localize';
 import getAdaptedStateFromPath from '@libs/Navigation/helpers/getAdaptedStateFromPath';
 import {linkingConfig} from '@libs/Navigation/linkingConfig';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
-import type {RootNavigatorParamList} from '@libs/Navigation/types';
 
 import {openApp} from '@userActions/App';
 import type {Video} from '@userActions/Report';
@@ -20,7 +19,7 @@ import type {NavigationState, PartialState} from '@react-navigation/native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 
-import {findFocusedRoute, getStateFromPath} from '@react-navigation/native';
+import {getStateFromPath} from '@react-navigation/native';
 import Onyx from 'react-native-onyx';
 
 type OnboardingCompanySize = ValueOf<typeof CONST.ONBOARDING_COMPANY_SIZE>;
@@ -90,15 +89,16 @@ Onyx.connectWithoutView({
  * Start a new onboarding flow or continue from the last visited onboarding page.
  */
 function startOnboardingFlow(startOnboardingFlowParams: GetOnboardingInitialPathParamsType) {
-    const currentRoute = navigationRef.getCurrentRoute();
-    const onboardingPath = startOnboardingFlowParams.resumePath ?? getOnboardingInitialPath(startOnboardingFlowParams);
-    const adaptedState = getAdaptedStateFromPath(onboardingPath as Route, undefined, false);
-    const focusedRoute = findFocusedRoute(adaptedState as PartialState<NavigationState<RootNavigatorParamList>>);
-    if (focusedRoute?.name === currentRoute?.name) {
+    const rootState = navigationRef.getRootState();
+
+    if (rootState.routes.some((route) => route.name === NAVIGATORS.ONBOARDING_MODAL_NAVIGATOR)) {
         return;
     }
-    const rootState = navigationRef.getRootState();
+
+    const onboardingPath = startOnboardingFlowParams.resumePath ?? getOnboardingInitialPath(startOnboardingFlowParams);
+    const adaptedState = getAdaptedStateFromPath(onboardingPath as Route, undefined, false);
     const rootStateRouteNamesSet = new Set(rootState.routes.map((route) => route.name));
+
     navigationRef.resetRoot({
         ...rootState,
         ...adaptedState,

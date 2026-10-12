@@ -26,6 +26,8 @@ const TEST_USER_ACCOUNT_ID = 12345;
 
 // Capture the props passed to the upgrade intro card so the test can drive onUpgrade and read loading.
 let capturedIntroProps: UpgradeIntroViewProps | null = null;
+type UpgradeConfirmationProps = {afterUpgradeAcknowledged: () => void};
+let mockCapturedUpgradeConfirmationProps: UpgradeConfirmationProps | null = null;
 
 // jest.mock factories can't reference imported bindings, but `mock`-prefixed locals are allowed.
 const MockView = View;
@@ -40,7 +42,10 @@ jest.mock('@pages/workspace/upgrade/UpgradeIntroView', () => ({
 
 jest.mock('@pages/workspace/upgrade/UpgradeConfirmation', () => ({
     __esModule: true,
-    default: () => <MockView testID="upgrade-success" />,
+    default: (props: UpgradeConfirmationProps) => {
+        mockCapturedUpgradeConfirmationProps = props;
+        return <MockView testID="upgrade-success" />;
+    },
 }));
 
 // Track the bulk upgrade call without performing the real API write; the test drives Onyx manually.
@@ -130,6 +135,7 @@ describe('CopyPolicySettingsUpgradePage', () => {
     beforeEach(async () => {
         jest.clearAllMocks();
         capturedIntroProps = null;
+        mockCapturedUpgradeConfirmationProps = null;
         await Onyx.clear();
         // Control source, Collect (Team) target, with a Control-only part selected so an upgrade is required.
         await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${SOURCE_POLICY_ID}`, createTestPolicy(SOURCE_POLICY_ID, 'Source Workspace', CONST.POLICY.TYPE.CORPORATE));
@@ -137,7 +143,7 @@ describe('CopyPolicySettingsUpgradePage', () => {
         await Onyx.set(ONYXKEYS.COPY_POLICY_SETTINGS, {
             sourcePolicyID: SOURCE_POLICY_ID,
             targetPolicyIDs: [TARGET_POLICY_ID],
-            parts: ['rules'] as Part[],
+            parts: ['perDiem'] as Part[],
         });
         await waitForBatchedUpdates();
     });
@@ -184,6 +190,25 @@ describe('CopyPolicySettingsUpgradePage', () => {
         expect(screen.queryByTestId('upgrade-intro')).toBeNull();
         // Showing success must not, by itself, navigate to Confirm.
         expect(mockNavigate).not.toHaveBeenCalledWith(ROUTES.POLICY_COPY_SETTINGS_CONFIRM.getRoute(SOURCE_POLICY_ID));
+
+        // Given the user acknowledged a successful upgrade, when Continue is activated, then the completed Upgrade route is replaced.
+        act(() => {
+            mockCapturedUpgradeConfirmationProps?.afterUpgradeAcknowledged();
+        });
+        expect(mockNavigate).toHaveBeenCalledWith(ROUTES.POLICY_COPY_SETTINGS_CONFIRM.getRoute(SOURCE_POLICY_ID), {forceReplace: true});
+    });
+
+    it('replaces the upgrade page when the upgrade is no longer needed', async () => {
+        // Given the target workspace is already Control, when the Upgrade page loads, then it replaces itself with Confirm.
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${TARGET_POLICY_ID}`, {type: CONST.POLICY.TYPE.CORPORATE});
+        });
+        await waitForBatchedUpdates();
+
+        renderUpgradePage();
+        await waitForBatchedUpdates();
+
+        expect(mockNavigate).toHaveBeenCalledWith(ROUTES.POLICY_COPY_SETTINGS_CONFIRM.getRoute(SOURCE_POLICY_ID), {forceReplace: true});
     });
 
     it('does not show success when the bulk upgrade fails', async () => {

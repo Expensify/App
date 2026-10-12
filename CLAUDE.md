@@ -56,13 +56,14 @@ Use the `/react-native-best-practices` skill when working on performance-sensiti
 
 ### Memoization
 
-React Compiler auto-memoizes code in components and hooks (excluding `tests/`). Two different compilers run it: `babel-plugin-react-compiler` on native/Jest (see `babel.config.js`) and `oxc-transform-react` on web (see `config/rsbuild/`). They do not behave identically. The compliance check and the ESLint processor run BOTH compilers via the shared helpers in `config/reactCompiler/` and only relax manual-memoization rules when both compilers memoize the file.
+React Compiler auto-memoizes code in components and hooks (excluding `tests/`). Two different compilers run it: `babel-plugin-react-compiler` on native (see `babel.config.js`) and `oxc-transform-react` on web (see `config/rsbuild/`) and under Jest (see `config/babel/oxcJestTransformer.js`). They do not behave identically. The compliance check and the ESLint processor run BOTH compilers via the shared helpers in `config/reactCompiler/` and only relax manual-memoization rules when both compilers memoize the file.
 
 Do not use `useMemo`, `useCallback`, or `React.memo` in components or hooks that compile with React Compiler.
 
 ### Code Quality
 
-- **ESLint**: Linter. Pre-existing violations are grandfathered via [`eslint-seatbelt`](https://github.com/justjake/eslint-seatbelt).
+- **ESLint**: Linter. Pre-existing violations are grandfathered via the seatbelt ratchet in `scripts/lint/`.
+- **Design tokens**: font sizes come from `<Text variant="...">`, and paddings or margins that differ between narrow and wide layouts come from `useLayoutSpacing()` (`cardPaddingHorizontal`, `pageGutter`, ...). Never write `shouldUseNarrowLayout ? styles.ph5 : styles.ph8` or a raw `fontSize`. See `contributingGuides/STYLING.md`.
 
 ### Post-Edit Checklist (IMPORTANT)
 
@@ -71,11 +72,13 @@ Do not use `useMemo`, `useCallback`, or `React.memo` in components or hooks that
 1. **ESLint**: Run `npm run lint-changed` to catch lint errors early.
 2. **TypeScript**: Run `npm run typecheck` after changes that may affect typing (types, interfaces, or function signatures). It runs the TypeScript 7 native compiler and is the required merge gate in CI.
 3. **React Compiler**: If you added new React components/hooks or modified existing ones, run `npm run react-compiler-compliance-check check-changed` to verify they compile with React Compiler. This applies the same rules as CI, evaluated against BOTH the Babel and OXC compilers: new components/hooks must compile, existing compiled files must not regress, and changes must not introduce new memoization divergence (one compiler memoizing a file while the other does not). See `contributingGuides/REACT_COMPILER.md` for details and common fixes.
-4. **Spelling**: Run `npm run spell-changed -- <files you changed>` to catch spelling errors (cspell needs an explicit file list). CI validates with cspell, which remains the required merge gate.
+4. **Spelling**: Run `npm run spell-changed` to catch spelling errors (it discovers changed files itself; pass an explicit file list only if you want to check specific files instead). CI validates with cspell, which remains the required merge gate.
 
 ### Testing
 
 App tests use Jest. Tests for `.github/` and `scripts/` live in `tests/tooling/` and run under `bun:test` (`npm run test:bun`) — see `tests/tooling/README.md`.
+
+Every test case must be documented with `// Given`, `// When` and `// Then` comments explaining **why** the test does what it does — see [tests/README.md](tests/README.md#documenting-tests).
 
 ## Special Considerations
 

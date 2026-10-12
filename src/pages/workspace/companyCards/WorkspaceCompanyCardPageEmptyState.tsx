@@ -11,6 +11,7 @@ import usePolicy from '@hooks/usePolicy';
 import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useVerifyAccountAndResume from '@hooks/useVerifyAccountAndResume';
 
 import {hasIssuedExpensifyCard} from '@libs/CardUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
@@ -24,7 +25,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 
-import {isUserValidatedSelector} from '@selectors/Account';
 import React from 'react';
 import {View} from 'react-native';
 
@@ -40,10 +40,9 @@ function WorkspaceCompanyCardPageEmptyState({policyID, shouldShowGBDisclaimer, c
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const {isActingAsDelegate} = useDelegateNoAccessState();
+    const {isDelegateAccessRestricted} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
     const [allWorkspaceCards] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST);
-    const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {selector: isUserValidatedSelector});
 
     const policy = usePolicy(policyID);
     const {showReadOnlyModal, withReadOnlyFallback} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.COMPANY_CARDS);
@@ -97,16 +96,8 @@ function WorkspaceCompanyCardPageEmptyState({policyID, shouldShowGBDisclaimer, c
         return illustrations.CompanyCardsEmptyStateGeneric;
     };
 
-    const handleCtaPress = () => {
+    const continueAddCardsFlow = () => {
         if (!policy?.id) {
-            return;
-        }
-        if (isActingAsDelegate) {
-            showDelegateNoAccessModal();
-            return;
-        }
-        if (!isUserValidated) {
-            Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_VERIFY_ACCOUNT.getRoute(policy.id));
             return;
         }
         if (otherFeeds.length > 0) {
@@ -114,7 +105,25 @@ function WorkspaceCompanyCardPageEmptyState({policyID, shouldShowGBDisclaimer, c
             return;
         }
         clearAddNewCardFlow();
-        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_COMPANY_CARDS_ADD_NEW.path));
+        // Pass an explicit base path: this also runs as the verify-account resume callback, when the active route is whatever the verify page navigated back to.
+        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_COMPANY_CARDS_ADD_NEW.path, ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policy.id)));
+    };
+
+    const {isUserValidated, verifyAccountAndResume} = useVerifyAccountAndResume(() => continueAddCardsFlow());
+
+    const handleCtaPress = () => {
+        if (!policy?.id) {
+            return;
+        }
+        if (isDelegateAccessRestricted) {
+            showDelegateNoAccessModal();
+            return;
+        }
+        if (!isUserValidated) {
+            verifyAccountAndResume(undefined);
+            return;
+        }
+        continueAddCardsFlow();
     };
 
     return (

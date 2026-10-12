@@ -44,6 +44,7 @@ import {expensifyLoginsSelector} from '@libs/UserUtils';
 
 import {close} from '@userActions/Modal';
 
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
@@ -180,7 +181,7 @@ function DynamicContactMethodDetailsPage({route}: DynamicContactMethodDetailsPag
             confirmText: translate('common.yesContinue'),
             cancelText: translate('common.cancel'),
             shouldShowCancelButton: true,
-            danger: true,
+            buttonVariant: CONST.BUTTON_VARIANT.DANGER,
         });
     }, [showConfirmModal, translate]);
 
@@ -223,7 +224,7 @@ function DynamicContactMethodDetailsPage({route}: DynamicContactMethodDetailsPag
     }, [isValidateCodeFormVisible, translate, turnOnDeleteModal, isDefaultContactMethod, icons.Trashcan]);
 
     if (isLoadingOnyxValues || (isLoadingReportData && isEmptyObject(loginList))) {
-        return <FullscreenLoadingIndicator />;
+        return <FullscreenLoadingIndicator onGoBack={() => Navigation.goBack(listPath)} />;
     }
 
     if (!contactMethod || !loginData) {

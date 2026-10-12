@@ -1,6 +1,7 @@
 import Log from '@libs/Log';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
 
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 import type {Channel, ChannelAuthorizerGenerator, Options} from 'pusher-js/with-encryption';
@@ -43,6 +44,7 @@ Onyx.connectWithoutView({
 
 let socket: PusherWithAuthParams | null;
 let pusherSocketID: string | undefined;
+let hasUnclaimedOutage = false;
 const socketEventCallbacks: SocketEventCallback[] = [];
 let customAuthorizer: ChannelAuthorizerGenerator;
 
@@ -85,7 +87,8 @@ function init(args: Args): Promise<void> {
 
         const options: Options = {
             cluster: args.cluster,
-            authEndpoint: args.authEndpoint,
+            activityTimeout: CONST.PUSHER.ACTIVITY_TIMEOUT_MS,
+            pongTimeout: CONST.PUSHER.PONG_TIMEOUT_MS,
         };
 
         if (customAuthorizer) {
@@ -110,6 +113,7 @@ function init(args: Args): Promise<void> {
         });
 
         socket?.connection.bind('state_change', (states: States) => {
+            hasUnclaimedOutage ||= states.current === 'unavailable';
             callSocketEventCallbacks('state_change', states);
         });
     }).then(resolveInitPromise);
@@ -278,12 +282,13 @@ function subscribe<EventName extends PusherEventName>(channelName: string, event
                                 return;
                             }
 
-                            // In production, report to Sentry without crashing the app.
-                            // This can happen when disconnect() is called (e.g. during the "Upgrade Required"
-                            // teardown) before this deferred TransitionTracker callback runs.
-                            Sentry.captureException(error, {
-                                tags: {source: 'Pusher.subscribe'},
-                                extra: {channelName, eventName},
+                            // In production this is an expected teardown race, not a crash: disconnect() (e.g. during
+                            // the "Upgrade Required" teardown) can run before this deferred TransitionTracker callback
+                            // does. It goes to Sentry logs rather than the error stream, and the app carries on.
+                            Sentry.logger.warn('[Pusher] Socket disconnected before subscribe could complete', {
+                                source: 'Pusher.subscribe',
+                                channelName,
+                                eventName,
                             });
                             Log.info('[Pusher] Socket disconnected before subscribe could complete, skipping subscription', false, {channelName, eventName});
                             resolve();
@@ -480,6 +485,7 @@ function disconnect() {
     socket.disconnect();
     socket = null;
     pusherSocketID = '';
+    hasUnclaimedOutage = false;
     eventsBoundToChannels.clear();
     initPromise = new Promise((resolve) => {
         resolveInitPromise = resolve;
@@ -496,12 +502,24 @@ function reconnect() {
     }
 
     Log.info('[Pusher] Reconnecting to Pusher');
+
+    // pusher-js takes a manual disconnect through `disconnected`, never `unavailable`, so record the outage here.
+    hasUnclaimedOutage = true;
     socket.disconnect();
     socket.connect();
 }
 
 function getPusherSocketID(): string | undefined {
     return pusherSocketID;
+}
+
+// pusher-js only enters `unavailable` after unavailableTimeout of failed connects, so a socket that came back without reaching it only blipped.
+function claimOutageSync(): boolean {
+    if (!hasUnclaimedOutage) {
+        return false;
+    }
+    hasUnclaimedOutage = false;
+    return true;
 }
 
 if (window) {
@@ -524,6 +542,7 @@ const WebPusher: PusherModule = {
     reconnect,
     registerSocketEventCallback,
     registerCustomAuthorizer,
+    claimOutageSync,
     TYPE,
     getPusherSocketID,
 };

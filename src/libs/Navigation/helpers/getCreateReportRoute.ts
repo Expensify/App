@@ -17,6 +17,7 @@ type GetCreateReportRouteParams = {
 function getReportsRootRoute() {
     return ROUTES.SEARCH_ROOT.getRoute({
         query: buildCannedSearchQuery({type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT}),
+        searchKey: CONST.SEARCH.SEARCH_KEYS.REPORTS,
     });
 }
 

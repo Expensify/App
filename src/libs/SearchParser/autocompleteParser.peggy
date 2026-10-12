@@ -86,11 +86,13 @@ autocompleteKey "key"
       / from
       / attendee
       / payer
+      / paidBy
       / exporter
       / createdBy
       / assignee
       / expenseType
       / receiptType
+      / transactionStatus
       / withdrawalType
       / withdrawalStatus
       / paidStatus
@@ -136,7 +138,7 @@ autocompleteKey "key"
 
 filterKey
   = k:autocompleteKey {
-      nameOperator = (k === "from" || k === "to" || k === "payer" || k === "exporter" || k === "attendee" || k === "createdBy" || k === "assignee");
+      nameOperator = (k === "from" || k === "to" || k === "payer" || k === "paidBy" || k === "exporter" || k === "attendee" || k === "createdBy" || k === "assignee");
       return k;
     }
 

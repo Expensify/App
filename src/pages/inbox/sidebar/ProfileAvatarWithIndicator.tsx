@@ -6,9 +6,12 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDefaultAvatars from '@hooks/useDefaultAvatars';
 import useOnyx from '@hooks/useOnyx';
+import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {getSmallSizeAvatar} from '@libs/UserAvatarUtils';
+
+import type {AvatarSizeName} from '@styles/utils/types';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -20,15 +23,14 @@ import React from 'react';
 import {View} from 'react-native';
 
 type ProfileAvatarWithIndicatorProps = {
-    /** Whether the avatar is selected */
     isSelected?: boolean;
-
-    /** Avatar Container styles */
     containerStyles?: StyleProp<ViewStyle>;
+    size?: AvatarSizeName;
 };
 
-function ProfileAvatarWithIndicator({isSelected = false, containerStyles}: ProfileAvatarWithIndicatorProps) {
+function ProfileAvatarWithIndicator({isSelected = false, containerStyles, size = CONST.AVATAR_SIZE.SMALL}: ProfileAvatarWithIndicatorProps) {
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     const defaultAvatars = useDefaultAvatars();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const [isLoadingApp = true] = useOnyx(ONYXKEYS.IS_LOADING_APP);
@@ -41,16 +43,16 @@ function ProfileAvatarWithIndicator({isSelected = false, containerStyles}: Profi
         >
             <View style={[styles.pRelative]}>
                 <View
-                    style={[isSelected && styles.selectedAvatarBorder, styles.pAbsolute]}
+                    style={[isSelected && StyleUtils.getSelectedAvatarRingStyle(size), styles.pAbsolute]}
                     testID="avatar-ring"
                 />
-                <View style={styles.sidebarAvatar}>
+                <View style={StyleUtils.getWidthAndHeightStyle(StyleUtils.getAvatarSize(size))}>
                     {isLoading ? (
-                        <AvatarSkeleton />
+                        <AvatarSkeleton size={size} />
                     ) : (
                         <>
                             <UserAvatar
-                                size={CONST.AVATAR_SIZE.SMALL}
+                                size={size}
                                 source={getSmallSizeAvatar({
                                     avatarSource: currentUserPersonalDetails.avatar,
                                     accountID: currentUserPersonalDetails.accountID,

@@ -1,6 +1,6 @@
 import ActivityIndicator from '@components/ActivityIndicator';
 import BlockingView from '@components/BlockingViews/BlockingView';
-import Button from '@components/ButtonComposed';
+import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -55,7 +55,7 @@ function AgentTemplateCard({template, avatarID, onAdd}: AgentTemplateCardProps) 
                     src={avatar}
                     width={avatarSize}
                     height={avatarSize}
-                    additionalStyles={StyleUtils.getAvatarBorderStyle(CONST.AVATAR_SIZE.DEFAULT, CONST.ICON_TYPE_AVATAR)}
+                    additionalStyles={StyleUtils.getAvatarBorderStyle(CONST.AVATAR_SIZE.DEFAULT, CONST.AVATAR_SHAPE.CIRCLE)}
                 />
                 <View style={[styles.flex1, styles.gapHalf]}>
                     <Text style={[styles.textStrong]}>{template.name}</Text>

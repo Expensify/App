@@ -259,7 +259,6 @@ describe('EmptySearchView', () => {
             type: CONST.POLICY.TYPE.TEAM,
             role: CONST.POLICY.ROLE.ADMIN,
             areInvoicesEnabled: true,
-            isPolicyExpenseChatEnabled: true,
         });
 
         it('should display correct buttons and subtitle when user has not clicked on "Take a test drive"', async () => {

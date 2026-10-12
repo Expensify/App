@@ -26,10 +26,10 @@ const TEST_USER_ACCOUNT_ID = 12345;
 // jest.mock factories can't reference imported bindings, but `mock`-prefixed locals are allowed.
 const MockView = View;
 
-// Capture the onPress handler the copy button passes to ButtonComposed so the test can drive it.
+// Capture the onPress handler the copy button passes to Button so the test can drive it.
 const mockOnPressHolder: {current?: () => void} = {current: undefined};
 
-jest.mock('@components/ButtonComposed', () => {
+jest.mock('@components/Button', () => {
     function MockButton(props: {onPress?: () => void}) {
         mockOnPressHolder.current = props.onPress;
         return <MockView testID="copy-settings-button" />;
@@ -172,7 +172,7 @@ describe('CopyPolicySettingsConfirmPage', () => {
         await Onyx.set(ONYXKEYS.COPY_POLICY_SETTINGS, {
             sourcePolicyID: SOURCE_POLICY_ID,
             targetPolicyIDs: [TARGET_POLICY_ID],
-            parts: ['rules'] as Part[],
+            parts: ['perDiem'] as Part[],
         });
         await waitForBatchedUpdates();
 
@@ -195,7 +195,7 @@ describe('CopyPolicySettingsConfirmPage', () => {
         await Onyx.set(ONYXKEYS.COPY_POLICY_SETTINGS, {
             sourcePolicyID: SOURCE_POLICY_ID,
             targetPolicyIDs: [TARGET_POLICY_ID],
-            parts: ['rules'] as Part[],
+            parts: ['perDiem'] as Part[],
         });
         await waitForBatchedUpdates();
 

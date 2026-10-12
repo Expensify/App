@@ -48,16 +48,17 @@ function SocialSecurityNumberUBO({onNext, onMove, isEditing, beneficialOwnerBein
             onNext={onNext}
             onMove={onMove}
             formID={ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM}
-            formTitle={translate('beneficialOwnerInfoStep.enterTheLast4')}
+            formTitle={translate('beneficialOwnerInfoStep.enterTheSSN')}
             formDisclaimer={translate('beneficialOwnerInfoStep.dontWorry')}
             validate={validate}
             onSubmit={handleSubmit}
             inputId={ssnLast4InputID}
-            inputLabel={translate('beneficialOwnerInfoStep.last4SSN')}
+            inputLabel={translate('personalInfoStep.last4SSN')}
             inputMode={CONST.INPUT_MODE.NUMERIC}
             defaultValue={defaultSsnLast4}
             shouldShowHelpLinks={false}
             maxLength={CONST.BANK_ACCOUNT.MAX_LENGTH.SSN}
+            forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}
             shouldDelayAutoFocus
         />
     );

@@ -48,6 +48,7 @@ describe('OnboardingGuard', () => {
         isLoading: false,
         currentUrl: '',
         isSupportalSession: false,
+        isDelegateSession: false,
     };
 
     beforeAll(() => {
@@ -96,6 +97,7 @@ describe('OnboardingGuard', () => {
                 isLoading: false,
                 currentUrl: 'https://new.expensify.com/transition',
                 isSupportalSession: false,
+                isDelegateSession: false,
             };
 
             // When the guard evaluates during the transition

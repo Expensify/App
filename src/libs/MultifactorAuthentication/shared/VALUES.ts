@@ -9,7 +9,7 @@ import {PROMPT_NAMES, SCENARIO_NAMES} from '@components/MultifactorAuthenticatio
  */
 const BACKEND_MESSAGE = {
     REGISTRATION_REQUIRED: 'Registration required',
-    INVALID_VALIDATE_CODE: 'Invalid validate code',
+    INVALID_VALIDATE_CODE: 'Invalid validateCode',
     TRANSACTION_EXPIRED: 'Transaction review period expired',
     TRANSACTION_ALREADY_APPROVED: 'Transaction already approved',
     TRANSACTION_ALREADY_DENIED: 'Transaction already denied',

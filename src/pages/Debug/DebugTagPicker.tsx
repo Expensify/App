@@ -1,4 +1,4 @@
-import Button from '@components/ButtonComposed';
+import Button from '@components/Button';
 import TagPicker from '@components/TagPicker';
 import Text from '@components/Text';
 
@@ -24,7 +24,6 @@ type DebugTagPickerProps = {
     /** The policyID we are getting tags for */
     policyID: string;
 
-    /** Current tag name */
     tagName?: string;
 
     /** Callback to submit the selected tag */

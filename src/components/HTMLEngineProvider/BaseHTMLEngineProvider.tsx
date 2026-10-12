@@ -17,7 +17,6 @@ import htmlRenderers from './HTMLRenderers';
 import VICTORY_HTML_ELEMENT_MODELS from './HTMLRenderers/VictoryChartRenderer/victoryHtmlElementModels';
 
 type BaseHTMLEngineProviderProps = ChildrenProps & {
-    /** Whether text elements should be selectable */
     textSelectable?: boolean;
 
     /** Handle line breaks according to the HTML standard (default on web)  */

@@ -14,13 +14,8 @@ import React from 'react';
 import {View} from 'react-native';
 
 type AvatarIconProps = AvatarPrimitivesCommonProps & {
-    /** Icon asset to render as the avatar. */
     avatarSource: IconAsset;
-
-    /** Test ID used for the fallback avatar. */
     fallbackAvatarTestID: string;
-
-    /** Styles for View wrapping Icon / Image. */
     iconContainerStyles?: StyleProp<ViewStyle & ImageStyle>;
 
     /** Fill and background colors for the icon, or null to use the defaults. */
@@ -29,17 +24,16 @@ type AvatarIconProps = AvatarPrimitivesCommonProps & {
     /** The fill color for the icon */
     fill?: string;
 
-    /** Additional styles for Icon */
     iconAdditionalStyles?: StyleProp<ViewStyle>;
 };
 
 /** Renders an avatar as an SVG icon. */
-function AvatarIcon({avatarSource, size, type, iconContainerStyles, iconAdditionalStyles, fallbackAvatarTestID, iconColors, fill}: AvatarIconProps) {
+function AvatarIcon({avatarSource, size, shape, iconContainerStyles, iconAdditionalStyles, fallbackAvatarTestID, iconColors, fill}: AvatarIconProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const iconSize = StyleUtils.getAvatarSize(size);
     const containerStyles = iconContainerStyles ? [StyleUtils.getAvatarStyle(size), styles.bgTransparent, iconContainerStyles] : undefined;
-    const additionalStyles = [StyleUtils.getAvatarBorderStyle(size, type), iconColors, iconAdditionalStyles];
+    const additionalStyles = [StyleUtils.getAvatarBorderStyle(size, shape), iconColors, iconAdditionalStyles];
 
     return (
         <View style={containerStyles}>

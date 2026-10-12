@@ -1,9 +1,9 @@
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import Section from '@components/Section';
 
+import useLayoutSpacing from '@hooks/useLayoutSpacing';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import Navigation from '@navigation/Navigation';
@@ -12,10 +12,9 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 
-import React, {useMemo} from 'react';
+import React from 'react';
 
 type WorkspaceInvoicingDetailsSectionProps = {
-    /** The current policy ID */
     policyID: string;
 
     /** Whether the current user can edit miscellaneous settings. */
@@ -25,16 +24,16 @@ type WorkspaceInvoicingDetailsSectionProps = {
 function WorkspaceInvoicingDetailsSection({policyID, canWriteMoreFeatures}: WorkspaceInvoicingDetailsSectionProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {cardPaddingHorizontal, cardPaddingTop} = useLayoutSpacing();
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
 
-    const horizontalPadding = useMemo(() => (shouldUseNarrowLayout ? styles.ph5 : styles.ph8), [shouldUseNarrowLayout, styles]);
+    const horizontalPadding = cardPaddingHorizontal;
 
     return (
         <Section
             title={translate('workspace.invoices.invoicingDetails')}
             subtitle={translate('workspace.invoices.invoicingDetailsDescription')}
-            containerStyles={[styles.ph0, shouldUseNarrowLayout ? styles.pt5 : styles.pt8]}
+            containerStyles={[styles.ph0, cardPaddingTop]}
             subtitleStyles={horizontalPadding}
             titleStyles={[styles.accountSettingsSectionTitle, horizontalPadding]}
             childrenStyles={styles.pt5}

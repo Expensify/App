@@ -20,7 +20,6 @@ type MessageEditCancelButtonProps = ViewProps & {
     /** Handle clicking on cancel button */
     onCancel: () => void;
 
-    /** The test ID to use for the button */
     testID?: string;
 };
 
@@ -38,7 +37,7 @@ function MessageEditCancelButton({onCancel, testID, ...restProps}: MessageEditCa
                 <PressableWithoutFeedback
                     testID={testID}
                     onPress={onCancel}
-                    style={({hovered, pressed}) => [...closeButtonStyles, StyleUtils.getButtonBackgroundColorStyle(getButtonState(hovered, pressed))]}
+                    style={({hovered, pressed}) => [...closeButtonStyles, StyleUtils.getButtonBackgroundColorStyle(getButtonState({isActive: hovered, isPressed: pressed}))]}
                     role={CONST.ROLE.BUTTON}
                     accessibilityLabel={translate('common.close')}
                     // Keep focus on the composer when cancel button is clicked.
@@ -47,7 +46,7 @@ function MessageEditCancelButton({onCancel, testID, ...restProps}: MessageEditCa
                 >
                     {({hovered, pressed}) => (
                         <Icon
-                            fill={StyleUtils.getIconFillColor(getButtonState(hovered, pressed))}
+                            fill={StyleUtils.getIconFillColor({buttonState: getButtonState({isActive: hovered, isPressed: pressed})})}
                             src={icons.Close}
                         />
                     )}

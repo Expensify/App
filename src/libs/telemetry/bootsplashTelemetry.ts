@@ -43,11 +43,7 @@ function startBootsplashMonitor(gateStatusRef: React.RefObject<BootsplashGateSta
             return;
         }
 
-        Sentry.captureMessage('[BootSplash] splash screen is still visible', {
-            level: 'warning',
-            extra: {...currentGateStatus, appState},
-            fingerprint: ['bootsplash-stuck'],
-        });
+        Sentry.logger.warn('[BootSplash] splash screen is still visible', {...currentGateStatus, appState});
     }, 10_000);
 
     return () => clearInterval(intervalId);

@@ -1,5 +1,4 @@
 import {addSplitExpenseField, evenlyDistributeSplitExpenseAmounts, removeSplitExpenseField, updateSplitExpenseAmountField} from '@libs/actions/IOU/SplitExpenseItems';
-import {getCurrencySymbol} from '@libs/CurrencyUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -11,7 +10,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 
 import createMock from '../utils/createMock';
-import {getCurrencyDecimalsLocal} from '../utils/TestHelper';
+import {getCurrencyDecimalsLocal, getCurrencySymbolLocal} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 /**
@@ -74,7 +73,7 @@ describe('Split Expense Auto-Adjustment', () => {
             await waitForBatchedUpdates();
 
             // Action: Add a third split
-            addSplitExpenseField(mockTransaction, mockTransaction, undefined, undefined, false, undefined, getCurrencySymbol, getCurrencyDecimalsLocal);
+            addSplitExpenseField(mockTransaction, mockTransaction, undefined, undefined, false, undefined, getCurrencySymbolLocal, getCurrencyDecimalsLocal);
             await waitForBatchedUpdates();
 
             // Verify: Should be 3 splits at ~$3.33/$3.33/$3.34 (33/33/34%)
@@ -112,7 +111,7 @@ describe('Split Expense Auto-Adjustment', () => {
             await waitForBatchedUpdates();
 
             // Action: Add a new split
-            addSplitExpenseField(mockTransaction, mockTransaction, undefined, undefined, false, undefined, getCurrencySymbol, getCurrencyDecimalsLocal);
+            addSplitExpenseField(mockTransaction, mockTransaction, undefined, undefined, false, undefined, getCurrencySymbolLocal, getCurrencyDecimalsLocal);
             await waitForBatchedUpdates();
 
             // Verify: 3 splits
@@ -151,7 +150,7 @@ describe('Split Expense Auto-Adjustment', () => {
             await waitForBatchedUpdates();
 
             // Action: Add a new split
-            addSplitExpenseField(mockTransaction, mockTransaction, undefined, undefined, false, undefined, getCurrencySymbol, getCurrencyDecimalsLocal);
+            addSplitExpenseField(mockTransaction, mockTransaction, undefined, undefined, false, undefined, getCurrencySymbolLocal, getCurrencyDecimalsLocal);
             await waitForBatchedUpdates();
 
             const draftTransaction = await new Promise<OnyxEntry<Transaction>>((resolve) => {
@@ -215,7 +214,7 @@ describe('Split Expense Auto-Adjustment', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${originalTransactionID}`, draftTransaction);
             await waitForBatchedUpdates();
 
-            addSplitExpenseField(transaction, draftTransaction, undefined, undefined, false, undefined, getCurrencySymbol, getCurrencyDecimalsLocal);
+            addSplitExpenseField(transaction, draftTransaction, undefined, undefined, false, undefined, getCurrencySymbolLocal, getCurrencyDecimalsLocal);
             await waitForBatchedUpdates();
 
             const updatedDraft = await new Promise<OnyxEntry<Transaction>>((resolve) => {
@@ -247,7 +246,7 @@ describe('Split Expense Auto-Adjustment', () => {
             await waitForBatchedUpdates();
 
             // Action: Add new split
-            addSplitExpenseField(mockTransaction, mockTransaction, undefined, undefined, false, undefined, getCurrencySymbol, getCurrencyDecimalsLocal);
+            addSplitExpenseField(mockTransaction, mockTransaction, undefined, undefined, false, undefined, getCurrencySymbolLocal, getCurrencyDecimalsLocal);
             await waitForBatchedUpdates();
 
             // Verify: New split should stay at 0 (not redistributed)
@@ -291,7 +290,7 @@ describe('Split Expense Auto-Adjustment', () => {
             await waitForBatchedUpdates();
 
             // Action: Add new split
-            addSplitExpenseField(mockTransaction, mockTransaction, undefined, undefined, false, undefined, getCurrencySymbol, getCurrencyDecimalsLocal);
+            addSplitExpenseField(mockTransaction, mockTransaction, undefined, undefined, false, undefined, getCurrencySymbolLocal, getCurrencyDecimalsLocal);
             await waitForBatchedUpdates();
 
             // Verify: All unedited splits should be redistributed
@@ -451,7 +450,7 @@ describe('Split Expense Auto-Adjustment', () => {
             await waitForBatchedUpdates();
 
             // Action: Edit split1 to $3.00
-            updateSplitExpenseAmountField(mockTransaction, 'split1', 300, undefined, false, undefined, getCurrencySymbol, getCurrencyDecimalsLocal);
+            updateSplitExpenseAmountField(mockTransaction, 'split1', 300, undefined, false, undefined, getCurrencySymbolLocal, getCurrencyDecimalsLocal);
             await waitForBatchedUpdates();
 
             // Verify
@@ -493,7 +492,7 @@ describe('Split Expense Auto-Adjustment', () => {
             await waitForBatchedUpdates();
 
             // Action: Edit split1 to $5.00
-            updateSplitExpenseAmountField(mockTransaction, 'split1', 500, undefined, false, undefined, getCurrencySymbol, getCurrencyDecimalsLocal);
+            updateSplitExpenseAmountField(mockTransaction, 'split1', 500, undefined, false, undefined, getCurrencySymbolLocal, getCurrencyDecimalsLocal);
             await waitForBatchedUpdates();
 
             // Verify: split2 should remain unchanged
@@ -530,7 +529,7 @@ describe('Split Expense Auto-Adjustment', () => {
             await waitForBatchedUpdates();
 
             // Action: Edit split1 to $3.00
-            updateSplitExpenseAmountField(mockTransaction, 'split1', 300, undefined, false, undefined, getCurrencySymbol, getCurrencyDecimalsLocal);
+            updateSplitExpenseAmountField(mockTransaction, 'split1', 300, undefined, false, undefined, getCurrencySymbolLocal, getCurrencyDecimalsLocal);
             await waitForBatchedUpdates();
 
             const draftTransaction = await new Promise<OnyxEntry<Transaction>>((resolve) => {
@@ -561,7 +560,7 @@ describe('Split Expense Auto-Adjustment', () => {
             await waitForBatchedUpdates();
 
             // Action: Try to update with NaN amount (simulates user entering just "-")
-            updateSplitExpenseAmountField(mockTransaction, 'split1', NaN, undefined, false, undefined, getCurrencySymbol, getCurrencyDecimalsLocal);
+            updateSplitExpenseAmountField(mockTransaction, 'split1', NaN, undefined, false, undefined, getCurrencySymbolLocal, getCurrencyDecimalsLocal);
             await waitForBatchedUpdates();
 
             // Verify: Splits should remain unchanged
@@ -596,7 +595,7 @@ describe('Split Expense Auto-Adjustment', () => {
             await waitForBatchedUpdates();
 
             // Action: Make splits even
-            evenlyDistributeSplitExpenseAmounts(mockTransaction, undefined, undefined, false, undefined, getCurrencySymbol, getCurrencyDecimalsLocal);
+            evenlyDistributeSplitExpenseAmounts(mockTransaction, undefined, undefined, false, undefined, getCurrencySymbolLocal, getCurrencyDecimalsLocal);
             await waitForBatchedUpdates();
 
             // Verify
@@ -637,7 +636,7 @@ describe('Split Expense Auto-Adjustment', () => {
             await waitForBatchedUpdates();
 
             // Action: Make splits even ($5/$5)
-            evenlyDistributeSplitExpenseAmounts(mockTransaction, originalTransaction, undefined, false, undefined, getCurrencySymbol, getCurrencyDecimalsLocal);
+            evenlyDistributeSplitExpenseAmounts(mockTransaction, originalTransaction, undefined, false, undefined, getCurrencySymbolLocal, getCurrencyDecimalsLocal);
             await waitForBatchedUpdates();
 
             const draftTransaction = await new Promise<OnyxEntry<Transaction>>((resolve) => {

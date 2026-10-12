@@ -14,10 +14,7 @@ import {View} from 'react-native';
 import WorkspaceCardsListLabel from './WorkspaceCardsListLabel';
 
 type WorkspaceCardListLabelsProps = {
-    /** ID of the current policy */
     policyID: string;
-
-    /** Card settings */
     cardSettings: ExpensifyCardSettingsBase | undefined;
 };
 

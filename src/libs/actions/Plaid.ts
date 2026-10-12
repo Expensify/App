@@ -3,6 +3,7 @@ import type {AddPersonalPlaidCardParams, ImportPlaidAccountsParams, OpenPlaidBan
 import type OpenPlaidCompanyCardLoginParams from '@libs/API/parameters/OpenPlaidCompanyCardLoginParams';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import {getCardFeedWithoutDomainID} from '@libs/CardUtils';
+import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import getPlaidLinkTokenParameters from '@libs/getPlaidLinkTokenParameters';
 
 import CONST from '@src/CONST';
@@ -35,6 +36,12 @@ function openPlaidBankLogin(allowDebit: boolean, bankAccountID: number) {
             onyxMethod: Onyx.METHOD.SET,
             key: ONYXKEYS.RAM_ONLY_PLAID_LINK_TOKEN,
             value: '',
+        },
+        {
+            // The response re-derives this flag from the server-side throttle state, so a value persisted by an earlier attempt must not be shown as current.
+            onyxMethod: Onyx.METHOD.SET,
+            key: ONYXKEYS.IS_PLAID_DISABLED,
+            value: false,
         },
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -84,6 +91,12 @@ function openPlaidCompanyCardLogin(country: string, domain?: string, feed?: Card
             onyxMethod: Onyx.METHOD.SET,
             key: ONYXKEYS.RAM_ONLY_PLAID_LINK_TOKEN,
             value: '',
+        },
+        {
+            // The response re-derives this flag from the server-side throttle state, so a value persisted by an earlier attempt must not be shown as current.
+            onyxMethod: Onyx.METHOD.SET,
+            key: ONYXKEYS.IS_PLAID_DISABLED,
+            value: false,
         },
     ];
 
@@ -151,6 +164,7 @@ function importPlaidAccounts(
     plaidAccounts: string,
     plaidAccessToken: string | undefined,
     domainAccountID?: number,
+    isRepairingFeed = false,
 ) {
     const parameters: ImportPlaidAccountsParams = {
         publicToken,
@@ -178,7 +192,7 @@ function importPlaidAccounts(
             {
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: ONYXKEYS.ASSIGN_CARD,
-                value: {isRefreshing: null},
+                value: {isRefreshing: null, ...(isRepairingFeed ? {errors: getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')} : {})},
             },
         ],
     };

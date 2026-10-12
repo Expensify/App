@@ -1,9 +1,10 @@
-import Button from '@components/ButtonComposed';
-import Header from '@components/Header';
+import Button from '@components/Button';
+import HeaderTitle from '@components/HeaderTitle';
 import Modal from '@components/Modal';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 
+import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -30,6 +31,8 @@ function BaseOpenAppFailureModal({onRefreshAndTryAgainButtonPress}: BaseOpenAppF
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
 
+    const bottomSafeAreaPaddingStyle = useBottomSafeSafeAreaPaddingStyle({addBottomSafeAreaPadding: isSmallScreenWidth, addOfflineIndicatorBottomSafeAreaPadding: false, style: styles.p6});
+
     return (
         <Modal
             type={isSmallScreenWidth ? CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED : CONST.MODAL.MODAL_TYPE.CONFIRM}
@@ -37,12 +40,12 @@ function BaseOpenAppFailureModal({onRefreshAndTryAgainButtonPress}: BaseOpenAppF
             shouldTreatModalAsCovering
             innerContainerStyle={styles.pv0}
             onClose={() => setIsOpenAppFailureModalOpen(false)}
+            enableEdgeToEdgeBottomSafeAreaPadding
         >
-            <View style={[styles.p6]}>
-                <Header
-                    title={translate('openAppFailureModal.title')}
-                    textStyles={[styles.mb2]}
-                />
+            <View style={bottomSafeAreaPaddingStyle}>
+                <HeaderTitle>
+                    <HeaderTitle.Text style={[styles.mb2]}>{translate('openAppFailureModal.title')}</HeaderTitle.Text>
+                </HeaderTitle>
                 <Text style={[styles.mb6]}>
                     {`${translate('openAppFailureModal.subtitle')} `}
                     <TextLink

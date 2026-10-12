@@ -15,17 +15,11 @@ import type TransactionViolations from './TransactionViolation';
  * The attributes of a report.
  */
 type ReportAttributes = {
-    /**
-     * The name of the report.
-     */
     reportName: string;
     /**
      * Whether the report is empty (has no visible messages).
      */
     isEmpty: boolean;
-    /**
-     * The status of the brick road.
-     */
     brickRoadStatus: ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS> | undefined;
     /**
      * Whether the report requires attention from current user.
@@ -39,9 +33,6 @@ type ReportAttributes = {
      * The reportActionID that the action badge refers to, used for deep linking when the LHN row is pressed.
      */
     actionTargetReportActionID?: string;
-    /**
-     * The errors of the report.
-     */
     reportErrors: Errors;
     /**
      * The reportID of the one-transaction thread report, if applicable.
@@ -61,9 +52,6 @@ type ReportAttributes = {
  * The derived value for report attributes.
  */
 type ReportAttributesDerivedValue = {
-    /**
-     * The report attributes.
-     */
     reports: Record<string, ReportAttributes>;
     /**
      * The locale used to compute the report attributes.
@@ -104,9 +92,6 @@ type VisibleReportActionsDerivedValue = Record<string, Record<string, boolean>>;
  * The errors of a card.
  */
 type CardErrors = {
-    /**
-     * The errors of the card.
-     */
     errors?: Card['errors'];
     /**
      * The form field errors of the card.
@@ -137,9 +122,6 @@ type CardFeedErrorState = {
      */
     hasFeedErrors: boolean;
 
-    /**
-     * Whether some workspace has errors.
-     */
     hasWorkspaceErrors: boolean;
 
     /**
@@ -154,15 +136,19 @@ type CardFeedErrorState = {
      * unresolved past the grace period, so we stop nagging without taking away the ability to fix it.
      */
     shouldPromptBrokenConnection: boolean;
+
+    /**
+     * Whether a card on the feed reports something its holder has to act on, which covers the scrape statuses
+     * `isFeedConnectionBroken` ignores (e.g. 434, the bank changing the account number). The wallet sends those
+     * cards to the Company cards page, so that page has to offer the same fix for them.
+     */
+    hasFeedConnectionIssue: boolean;
 };
 
 /**
  * The errors of a card feed.
  */
 type FeedErrors = CardFeedErrorState & {
-    /**
-     * The errors of the feed.
-     */
     feedErrors?: Errors;
     /**
      * The errors of all cards for a specific feed within a workspace/domain.
@@ -188,44 +174,13 @@ type CardFeedErrors = {
      */
     cardFeedErrors: CardFeedErrorsObject;
 
-    /**
-     * The cards with a broken feed connection.
-     */
     cardsWithBrokenFeedConnection: Record<string, Card>;
-
-    /**
-     * The personal cards with a broken connection.
-     */
     personalCardsWithBrokenConnection: Record<string, Card>;
-
-    /**
-     * Whether to show the RBR for each workspace account ID.
-     */
     shouldShowRbrForWorkspaceAccountID: Record<number, boolean>;
-
-    /**
-     * Whether to show the RBR for each feed name with domain ID.
-     */
     shouldShowRbrForFeedNameWithDomainID: Record<string, boolean>;
-
-    /**
-     * The errors of all card feeds.
-     */
     all: CardFeedErrorState;
-
-    /**
-     * The errors of company cards.
-     */
     companyCards: CardFeedErrorState;
-
-    /**
-     * The errors of expensify card.
-     */
     expensifyCard: CardFeedErrorState;
-
-    /**
-     * The errors of personal card.
-     */
     personalCard: CardFeedErrorState;
 };
 
@@ -264,6 +219,31 @@ type PersonalAndWorkspaceCardListDerivedValue = CardList;
  */
 type LoginToAccountIDMapDerivedValue = Record<string, number>;
 
+/**
+ * The accountIDs of every Expensify Guide known to the personal details list, sorted ascending.
+ * Lets callers check for a guide participant without re-scanning the whole list (see issue #66413).
+ */
+type GuideAccountIDsDerivedValue = number[];
+
+/**
+ * Counters that move when spend data changes, used by the Home cards to know a refetch is owed.
+ */
+type SpendDataSignatureDerivedValue = {
+    /** Moves on every change to any expense */
+    expenses: number;
+
+    /** Moves only on changes to expenses charged to one of the user's cards */
+    cardExpenses: number;
+};
+
+/**
+ * Maps a participant set to the reportID of its 1:1 (or system) chat, for the accountID it was built for.
+ */
+type OneOnOneChatReportIDsDerivedValue = {
+    reportIDs: Record<string, string>;
+    accountID?: number;
+};
+
 export type {
     ReportAttributes,
     ReportAttributesDerivedValue,
@@ -276,6 +256,9 @@ export type {
     PersonalAndWorkspaceCardListDerivedValue,
     CardFeedErrorsDerivedValue,
     LoginToAccountIDMapDerivedValue,
+    GuideAccountIDsDerivedValue,
+    SpendDataSignatureDerivedValue,
+    OneOnOneChatReportIDsDerivedValue,
     CardFeedErrorsObject,
     CardFeedErrorState,
     CardFeedErrors,

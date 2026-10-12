@@ -34,6 +34,8 @@ import React, {useEffect, useState} from 'react';
 import {StyleSheet, View} from 'react-native';
 import Animated, {useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 
+import getRHPFrameStyle from './getRHPFrameStyle';
+
 type Phase = 'open' | 'closing' | 'closed';
 
 const Stack = createPlatformStackNavigator<MultifactorAuthenticationModalNavigatorInternalParamList>();
@@ -136,8 +138,10 @@ function MultifactorAuthenticationModalNavigator() {
     }, [phase, backdropProgress, dispatch]);
 
     const backdropAnimatedStyle = useAnimatedStyle(() => ({
-        opacity: backdropProgress.get() * variables.overlayOpacity,
+        opacity: backdropProgress.get() * variables.rhpOverlayOpacity,
     }));
+
+    const frameStyle = getRHPFrameStyle({styles, animatedWidth: variables.rhpWidth, shouldUseNarrowLayout, shouldUseCenteredFrame: false});
 
     if (phase === 'closed') {
         return null;
@@ -160,7 +164,7 @@ function MultifactorAuthenticationModalNavigator() {
                     />
                 </Animated.View>
             )}
-            <View style={[styles.pAbsolute, styles.r0, styles.h100, styles.overflowHidden, shouldUseNarrowLayout ? styles.w100 : {width: variables.sideBarWidth}]}>
+            <View style={frameStyle}>
                 {isStackReadyToMount && (
                     <NavigationIndependentTree>
                         <BaseNavigationContainer

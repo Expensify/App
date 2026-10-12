@@ -1,6 +1,6 @@
 import {isMobile} from '@libs/Browser';
 
-import type {PanGesture} from 'react-native-gesture-handler';
+import type {LegacyPanGesture} from 'react-native-gesture-handler';
 
 import {useCallback} from 'react';
 import {Dimensions} from 'react-native';
@@ -52,7 +52,7 @@ const usePanGesture = ({
     isSwipingDownToClose,
     shouldDisableSwipeDownToClose,
     onSwipeDown,
-}: UsePanGestureProps): PanGesture => {
+}: UsePanGestureProps): LegacyPanGesture => {
     // The content size after fitting it to the canvas and zooming
     const zoomedContentWidth = useDerivedValue(() => contentSize.width * totalScale.get(), [contentSize.width]);
     const zoomedContentHeight = useDerivedValue(() => contentSize.height * totalScale.get(), [contentSize.height]);

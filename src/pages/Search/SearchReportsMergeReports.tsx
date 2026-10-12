@@ -1,0 +1,284 @@
+import EmptyStateComponent from '@components/EmptyStateComponent';
+import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
+import {usePersonalDetails, useSession} from '@components/OnyxListItemProvider';
+import ScrollView from '@components/ScrollView';
+import {useSearchQueryContext, useSearchResultsContext, useSearchSelectionActions} from '@components/Search/SearchContext';
+import SearchMergeReportsListItem from '@components/Search/SearchList/ListItem/SearchMergeReportsListItem';
+import SelectionList from '@components/SelectionList';
+import type {ListItem} from '@components/SelectionList/types';
+import Text from '@components/Text';
+
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useDelegateAccountID from '@hooks/useDelegateAccountID';
+import useHydrateReportsFromSnapshot from '@hooks/useHydrateReportsFromSnapshot';
+import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
+import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
+import usePersonalPolicy from '@hooks/usePersonalPolicy';
+import useThemeStyles from '@hooks/useThemeStyles';
+
+import {mergeReports} from '@libs/actions/Report';
+import {getReportFromSearchSnapshot, setSearchMergeReportIDs} from '@libs/actions/Search';
+import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
+import Navigation from '@libs/Navigation/Navigation';
+import {canMergeReports, getMoneyRequestSpendBreakdown, getPersonalDetailsForAccountID} from '@libs/ReportUtils';
+
+import StepScreenWrapper from '@pages/iou/request/step/StepScreenWrapper';
+
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
+import {isTrackIntentUserSelector} from '@src/selectors/Onboarding';
+import type {Transaction} from '@src/types/onyx';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
+
+import React, {useMemo, useState} from 'react';
+
+function SearchMergeReports() {
+    const {clearSelectedTransactions} = useSearchSelectionActions();
+    const {currentSearchResults} = useSearchResultsContext();
+    const {currentSearchHash} = useSearchQueryContext();
+
+    const [selectedReportIDs, selectedReportIDsMeta] = useOnyx(ONYXKEYS.SEARCH_MERGE_REPORT_IDS);
+    const [allReports, allReportsMeta] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
+    const isLoadingOnyxData = isLoadingOnyxValue(allReportsMeta, selectedReportIDsMeta);
+    const [allReportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS);
+    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+    const [allPolicyCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES);
+    const [allPolicyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS);
+    const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
+    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
+    const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
+    const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
+    const [selfDMReportID] = useOnyx(ONYXKEYS.SELF_DM_REPORT_ID);
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
+    const [cardList] = useOnyx(ONYXKEYS.CARD_LIST);
+    const [selfDMReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(selfDMReportID)}`);
+
+    const {isBetaEnabled, isBetaEnabledOrUnknown} = usePermissions();
+    const isVendorMatchingBetaEnabled = isBetaEnabledOrUnknown(CONST.BETAS.VENDOR_MATCHING);
+    const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
+    const isReportMergeBetaEnabled = isBetaEnabled(CONST.BETAS.REPORT_MERGE);
+    const session = useSession();
+    const personalDetails = usePersonalDetails();
+    const personalPolicy = usePersonalPolicy();
+    const styles = useThemeStyles();
+    const {translate} = useLocalize();
+    const delegateAccountID = useDelegateAccountID();
+    const {getCurrencyDecimals, getCurrencySymbol} = useCurrencyListActions();
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const illustrations = useMemoizedLazyIllustrations(['EmptyShelves']);
+
+    const [destinationReportID, setDestinationReportID] = useState<string | undefined>();
+
+    useHydrateReportsFromSnapshot(currentSearchResults, allReports, allTransactions, selectedReportIDs);
+
+    const allReportsTransactions: Record<string, Transaction[]> = useMemo(() => {
+        const selectedReportIDSet = new Set(selectedReportIDs);
+        const addedTransactionIDSet = new Set<string>();
+
+        const isTransaction = (key: string, value: unknown): value is Transaction =>
+            key.startsWith(ONYXKEYS.COLLECTION.TRANSACTION) && typeof value === 'object' && value !== null && 'transactionID' in value;
+        const result: Record<string, Transaction[]> = {};
+        for (const transaction of Object.values(allTransactions ?? {})) {
+            if (!transaction?.reportID || transaction.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || !selectedReportIDSet.has(transaction.reportID)) {
+                continue;
+            }
+            addedTransactionIDSet.add(transaction.transactionID);
+            if (!result[transaction.reportID]) {
+                result[transaction.reportID] = [];
+            }
+            result[transaction.reportID].push(transaction);
+        }
+        // We iterate through `snapshotData` because some transactions may not yet be available in `allTransactions` immediately after the user logs in.
+        for (const [key, value] of Object.entries(currentSearchResults?.data ?? {})) {
+            if (!isTransaction(key, value)) {
+                continue;
+            }
+            const transaction = value;
+            if (
+                !transaction.reportID ||
+                transaction.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE ||
+                !selectedReportIDSet.has(transaction.reportID) ||
+                addedTransactionIDSet.has(transaction.transactionID)
+            ) {
+                continue;
+            }
+            if (!result[transaction.reportID]) {
+                result[transaction.reportID] = [];
+            }
+            result[transaction.reportID].push(transaction);
+        }
+        return result;
+    }, [currentSearchResults?.data, selectedReportIDs, allTransactions]);
+
+    const reportItems = useMemo(() => {
+        if (!selectedReportIDs) {
+            return [];
+        }
+        return selectedReportIDs
+            .map((reportID) => {
+                const report = getReportFromSearchSnapshot(reportID, currentSearchResults?.data, allReports);
+                if (!reportID || !report?.reportID || report?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
+                    return undefined;
+                }
+
+                const {totalDisplaySpend, nonReimbursableSpend, reimbursableSpend} = getMoneyRequestSpendBreakdown(report);
+                return {
+                    ...report,
+                    groupedBy: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
+                    keyForList: reportID,
+                    text: report.reportName ?? '',
+                    isSelected: reportID === destinationReportID,
+                    from: getPersonalDetailsForAccountID(report.ownerAccountID, personalDetails) ?? {},
+                    to: getPersonalDetailsForAccountID(report.managerID, personalDetails) ?? {},
+                    totalDisplaySpend,
+                    nonReimbursableSpend,
+                    reimbursableSpend,
+                    errors: undefined,
+                    pendingAction: undefined,
+                    pendingFields: undefined,
+                };
+            })
+            .filter((item) => !!item);
+    }, [selectedReportIDs, allReports, destinationReportID, personalDetails, currentSearchResults?.data]);
+
+    const destinationReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${destinationReportID}`];
+    const sourceReportIDs = destinationReport
+        ? reportItems.reduce((acc, report) => {
+              const reportID = report.reportID;
+              if (reportID !== destinationReportID) {
+                  acc.push(reportID);
+              }
+              return acc;
+          }, [] as string[])
+        : [];
+
+    // Ensure `allReports` and `allReportActions` are fully hydrated before merging reports.
+    const isValidForMerge =
+        !!allReports &&
+        !!allReportActions &&
+        !!destinationReportID &&
+        !!destinationReport &&
+        sourceReportIDs.length > 0 &&
+        canMergeReports(reportItems, currentUserPersonalDetails.accountID, rules);
+
+    const mergeSelectedReports = () => {
+        if (!destinationReportID || !destinationReport || !isValidForMerge) {
+            return;
+        }
+
+        const policyID = destinationReport.policyID;
+
+        mergeReports({
+            isVendorMatchingBetaEnabled,
+            destinationReportID,
+            sourceReportIDs,
+            isASAPSubmitBetaEnabled,
+            accountID: session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
+            email: session?.email ?? '',
+            policy: policyID ? allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`] : undefined,
+            policyCategories: policyID ? allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`] : undefined,
+            policyTagList: policyID ? (allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`] ?? {}) : {},
+            allTransactionViolation: transactionViolations,
+            allReports,
+            allReportActions,
+            allReportsTransactions,
+            bankAccountList,
+            rules,
+            cardList,
+            hash: currentSearchHash,
+            isTrackIntentUser,
+            personalPolicyOutputCurrency: personalPolicy?.outputCurrency,
+            selfDMReportActions,
+            delegateAccountID,
+            getCurrencyDecimals,
+            getCurrencySymbol,
+        });
+
+        Navigation.dismissModal({
+            afterTransition: () => {
+                setSearchMergeReportIDs(null);
+                clearSelectedTransactions(undefined, true);
+                // Wrap navigation in a microtask to avoid a visual glitch on Android.
+                // If we navigate before selection mode has fully exited and the UI has finished rendering,
+                // the report header may briefly display incorrectly.
+                Navigation.setNavigationActionToMicrotaskQueue(() => {
+                    Navigation.navigate(ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID: destinationReportID, backTo: Navigation.getActiveRoute()}));
+                });
+            },
+        });
+    };
+
+    const onSelection = (item: ListItem) => {
+        setDestinationReportID(item.reportID);
+    };
+
+    // Loading while `selectedReportIDs` and `allReports` are being hydrated.
+    // Or while reports are being hydrated from snapshot data.
+    const isLoading =
+        isLoadingOnyxData ||
+        selectedReportIDs?.some((reportID) => {
+            const reportKey = `${ONYXKEYS.COLLECTION.REPORT}${reportID}` as const;
+            return !allReports?.[reportKey] && !!currentSearchResults?.data[reportKey];
+        });
+
+    if (!isReportMergeBetaEnabled) {
+        return null;
+    }
+
+    return (
+        <StepScreenWrapper
+            headerTitle={translate('search.mergeReports.title')}
+            onBackButtonPress={() => Navigation.goBack()}
+            shouldShowWrapper
+            testID="SearchMergeReports"
+            includeSafeAreaPaddingBottom
+        >
+            {reportItems.length > 0 || isLoading ? (
+                <SelectionList
+                    data={reportItems}
+                    onSelectRow={onSelection}
+                    ListItem={SearchMergeReportsListItem}
+                    shouldSingleExecuteRowSelect
+                    canSelectMultiple={false}
+                    shouldShowLoadingPlaceholder={isLoading}
+                    customListHeader={<Text style={[styles.ph5, styles.pb5, styles.textLabelSupporting]}>{translate('search.mergeReports.description')}</Text>}
+                    footerContent={
+                        !isLoading && (
+                            <FormAlertWithSubmitButton
+                                buttonText={translate('common.confirm')}
+                                onSubmit={mergeSelectedReports}
+                                isDisabled={!isValidForMerge}
+                                enabledWhenOffline
+                            />
+                        )
+                    }
+                />
+            ) : (
+                <ScrollView contentContainerStyle={[styles.flexGrow1, styles.flexShrink0]}>
+                    <EmptyStateComponent
+                        cardStyles={[styles.appBG]}
+                        cardContentStyles={[styles.p0]}
+                        headerMedia={illustrations.EmptyShelves}
+                        title={translate('search.mergeReports.listPage.noEligibleReportsFound')}
+                        subtitleText={
+                            <Text
+                                style={[styles.textNormal, styles.colorMuted]}
+                                textAlign={'center'}
+                            >
+                                {translate('search.mergeReports.listPage.noEligibleReportsFoundSubtitle')}
+                            </Text>
+                        }
+                        headerStyles={[styles.emptyStateCardIllustrationContainer, styles.mb5]}
+                        headerContentStyles={styles.emptyStateTransactionMergeIllustration}
+                    />
+                </ScrollView>
+            )}
+        </StepScreenWrapper>
+    );
+}
+
+export default SearchMergeReports;

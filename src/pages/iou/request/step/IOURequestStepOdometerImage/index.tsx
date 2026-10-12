@@ -1,6 +1,6 @@
 import ActivityIndicator from '@components/ActivityIndicator';
 import AttachmentPicker from '@components/AttachmentPicker';
-import Button from '@components/ButtonComposed';
+import Button from '@components/Button';
 import DragAndDropConsumer from '@components/DragAndDrop/Consumer';
 import {useDragAndDropState} from '@components/DragAndDrop/Provider';
 import DropZoneUI from '@components/DropZone/DropZoneUI';
@@ -131,7 +131,7 @@ function IOURequestStepOdometerImage({
             op: CONST.TELEMETRY.SPAN_ODOMETER_IMAGE_CAPTURE,
             attributes: {
                 [CONST.TELEMETRY.ATTRIBUTE_ODOMETER_IMAGE_TYPE]: imageType,
-                [CONST.TELEMETRY.ATTRIBUTE_PLATFORM]: 'web',
+                [CONST.TELEMETRY.ATTRIBUTE_PLATFORM]: CONST.TELEMETRY.SPAN_PLATFORM.WEB,
             },
         });
 

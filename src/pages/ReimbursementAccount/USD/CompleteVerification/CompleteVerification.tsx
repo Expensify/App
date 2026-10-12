@@ -19,7 +19,6 @@ import React, {useCallback, useMemo} from 'react';
 import ConfirmAgreements from './subSteps/ConfirmAgreements';
 
 type CompleteVerificationProps = {
-    /** Handles back button press */
     onBackButtonPress: () => void;
 
     /** Handles submit button press (URL-based navigation) */

@@ -24,10 +24,11 @@ import createMock from '../../utils/createMock';
 
 jest.mock('@libs/actions/IOU/Duplicate', () => ({
     bulkDuplicateExpenses: jest.fn(),
-    bulkDuplicateReports: jest.fn(),
+    bulkDuplicateReports: jest.fn(() => Promise.resolve()),
 }));
 
 jest.mock('@libs/actions/Search', () => ({
+    openSearchCardFiltersPage: jest.fn(),
     getExportTemplates: jest.fn(() => ({customTemplates: [], defaultTemplates: []})),
     exportSearchItemsToCSV: jest.fn(),
     queueExportSearchItemsToCSV: jest.fn(),
@@ -123,7 +124,7 @@ jest.mock('@hooks/useConfirmModal', () => ({
 
 jest.mock('@hooks/usePermissions', () => ({
     __esModule: true,
-    default: () => ({isBetaEnabled: () => false}),
+    default: () => ({isBetaEnabled: () => false, isBetaEnabledOrUnknown: () => false}),
 }));
 
 jest.mock('@hooks/useSelfDMReport', () => ({
@@ -214,6 +215,7 @@ function makeSelectedTransaction(overrides: Partial<SelectedTransactions[string]
         reportID: 'report1',
         policyID: 'policy1',
         amount: 100,
+        displayAmount: 100,
         currency: 'USD',
         isFromOneTransactionReport: false,
         ...overrides,

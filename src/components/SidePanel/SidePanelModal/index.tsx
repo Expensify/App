@@ -11,6 +11,8 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import ComposerFocusManager from '@libs/ComposerFocusManager';
 
+import {areAllModalsHidden} from '@userActions/Modal';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
@@ -27,7 +29,7 @@ import type SidePanelModalProps from './types';
 function SidePanelModal({children, sidePanelTranslateX, closeSidePanel, shouldHideSidePanelBackdrop}: SidePanelModalProps) {
     const styles = useThemeStyles();
     const {isExtraLargeScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
-    const {paddingTop, paddingBottom} = useSafeAreaPaddings();
+    const {paddingTop, paddingBottom, paddingLeft, paddingRight} = useSafeAreaPaddings();
 
     const [isRHPVisible = false] = useOnyx(ONYXKEYS.MODAL, {selector: isRHPVisibleSelector});
     const uniqueModalId = ComposerFocusManager.getId();
@@ -44,8 +46,19 @@ function SidePanelModal({children, sidePanelTranslateX, closeSidePanel, shouldHi
         closeSidePanel();
     };
 
-    // Close Side Panel on escape key press
-    useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ESCAPE, () => closeSidePanel(), {isActive: !isExtraLargeScreenWidth, shouldBubble: false});
+    // Close Side Panel on escape key press. Stand down while any modal is open on top of it, otherwise the same Esc
+    // that closes the modal (whose handler bubbles) would also close the panel underneath. The open-modal registry is
+    // read when the key is pressed, so it stays correct for stacked modals and has no gap while Onyx writes are pending.
+    useKeyboardShortcut(
+        CONST.KEYBOARD_SHORTCUTS.ESCAPE,
+        () => {
+            if (!areAllModalsHidden()) {
+                return;
+            }
+            closeSidePanel();
+        },
+        {isActive: !isExtraLargeScreenWidth, shouldBubble: false},
+    );
     // Close Side Panel on debug key press i.e. opening the TestTools modal
     useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.DEBUG, () => closeSidePanel(), {shouldBubble: true});
 
@@ -85,7 +98,7 @@ function SidePanelModal({children, sidePanelTranslateX, closeSidePanel, shouldHi
                                 styles.sidePanelContent,
                                 styles.sidePanelContentWidth(shouldUseNarrowLayout),
                                 styles.sidePanelContentBorderWidth(isExtraLargeScreenWidth),
-                                {transform: [{translateX: sidePanelTranslateX.current}], paddingTop, paddingBottom},
+                                {transform: [{translateX: sidePanelTranslateX.current}], paddingTop, paddingBottom, paddingLeft, paddingRight},
                             ]}
                         >
                             {children}

@@ -106,7 +106,7 @@ describe('QuickbooksOnlineSetupPage', () => {
     it('disables policy taxes because QBO does not support them', () => {
         renderQuickbooksOnlineSetupPage();
 
-        expect(mockedEnablePolicyTaxes).toHaveBeenCalledWith(POLICY_ID, false);
+        expect(mockedEnablePolicyTaxes).toHaveBeenCalledWith(POLICY_ID, false, false);
     });
 
     it('shows the loading indicator until the authenticated setup URL resolves, then opens a WebView pointing at it', async () => {

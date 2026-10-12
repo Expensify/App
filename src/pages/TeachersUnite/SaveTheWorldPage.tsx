@@ -118,7 +118,7 @@ function SaveTheWorldPage() {
                 prompt: personalKarmaStopDonationsPrompt,
                 confirmText: translate('common.disable'),
                 cancelText: translate('common.cancel'),
-                danger: true,
+                buttonVariant: CONST.BUTTON_VARIANT.DANGER,
             }).then(({action}) => {
                 if (action !== ModalActions.CONFIRM) {
                     return;

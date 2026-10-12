@@ -15,6 +15,7 @@ import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import type {FileObject} from '@src/types/utils/Attachment';
 import type IconAsset from '@src/types/utils/IconAsset';
 
+import type {ComponentRef} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 
 import {useIsFocused} from '@react-navigation/native';
@@ -47,31 +48,23 @@ type MenuItem = {
 };
 
 type AvatarWithImagePickerProps = Omit<AvatarButtonWithIconProps, 'text' | 'onPress' | 'anchorRef'> & {
-    /** Additional style props */
     style?: StyleProp<ViewStyle>;
 
     /** Current avatar source. Used to clear the validation error whenever the avatar changes. */
     source?: AvatarSource;
 
-    /** Executed once an image has been selected */
     onImageSelected?: (file: File | CustomRNImageManipulatorResult) => void;
-
-    /** Execute when the user taps "remove" */
     onImageRemoved?: () => void;
-
-    /** Whether we are using the default avatar */
     isUsingDefaultAvatar?: boolean;
 
     /** Image crop vector mask */
     editorMaskImage?: IconAsset;
 
-    /** Additional style object for the error row */
     errorRowStyles?: StyleProp<ViewStyle>;
 
     /** A function to run when the X button next to the error is clicked */
     onErrorClose?: () => void;
 
-    /** The errors to display  */
     errors?: OnyxCommon.Errors | null;
 
     /** If set, the AvatarWithImagePicker will show a "View Photo" option and use this callback on press */
@@ -112,7 +105,7 @@ function AvatarWithImagePicker({
     const [isMenuVisible, setIsMenuVisible] = useState(false);
     const [errorData, setErrorData] = useState<ErrorData>({validationError: null, phraseParam: {}});
     const {calculatePopoverPosition} = usePopoverPosition();
-    const anchorRef = useRef<View>(null);
+    const anchorRef = useRef<ComponentRef<typeof View>>(null);
     const {translate} = useLocalize();
     const {openCropper} = useAvatarCrop({maskType: editorMaskImage ? 'square' : undefined, onCropped: onImageSelected});
 
@@ -274,6 +267,7 @@ function AvatarWithImagePicker({
                                     menuItems={menuItems}
                                     anchorAlignment={anchorAlignment}
                                     anchorRef={anchorRef}
+                                    enableEdgeToEdgeBottomSafeAreaPadding
                                 />
                             </>
                         );

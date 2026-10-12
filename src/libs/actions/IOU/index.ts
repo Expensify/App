@@ -1,3 +1,6 @@
+import {getAllPersonalDetails as getAllPersonalDetailsFromStore, getPersonalDetail} from '@libs/PersonalDetailsStore';
+import {isMoneyRequestAction} from '@libs/ReportActionsUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
@@ -6,14 +9,6 @@ import type {Attendee} from '@src/types/onyx/IOU';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
 import Onyx from 'react-native-onyx';
-
-let allPersonalDetails: OnyxTypes.PersonalDetailsList = {};
-Onyx.connect({
-    key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-    callback: (value) => {
-        allPersonalDetails = value ?? {};
-    },
-});
 
 let allTransactions: NonNullable<OnyxCollection<OnyxTypes.Transaction>> = {};
 Onyx.connect({
@@ -74,14 +69,6 @@ Onyx.connect({
     },
 });
 
-let deprecatedCurrentUserPersonalDetails: OnyxEntry<OnyxTypes.PersonalDetails>;
-Onyx.connect({
-    key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-    callback: (value) => {
-        deprecatedCurrentUserPersonalDetails = value?.[deprecatedUserAccountID] ?? undefined;
-    },
-});
-
 let allReportActions: OnyxCollection<OnyxTypes.ReportActions>;
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
@@ -100,41 +87,17 @@ Onyx.connectWithoutView({
     callback: (value) => (recentAttendees = value),
 });
 
-let searchQueryByHash: Record<string, string> = {};
-Onyx.connect({
-    key: ONYXKEYS.SEARCH_QUERY_BY_HASH,
-    callback: (value) => {
-        searchQueryByHash = value ?? {};
-    },
-});
-
 let allSnapshots: OnyxCollection<OnyxTypes.SearchResults> = {};
-let knownSnapshotHashes = new Set<string>();
-Onyx.connect({
+// Expense actions run outside React and use this cache to optimistically update loaded searches without a view subscription.
+Onyx.connectWithoutView({
     key: ONYXKEYS.COLLECTION.SNAPSHOT,
     callback: (value) => {
         allSnapshots = value ?? {};
-        // Keep SEARCH_QUERY_BY_HASH bounded by mirroring the snapshot collection's lifecycle:
-        // when a snapshot disappears, drop its query entry so the map can never outgrow it.
-        const snapshotPrefixLength = ONYXKEYS.COLLECTION.SNAPSHOT.length;
-        const currentHashes = new Set(Object.keys(allSnapshots).map((k) => k.slice(snapshotPrefixLength)));
-        // Reconcile against persisted SEARCH_QUERY_BY_HASH too, so entries whose snapshots were evicted
-        // before this JS session get pruned on first sync (not just hashes seen since startup).
-        const candidates = new Set<string>([...knownSnapshotHashes, ...Object.keys(searchQueryByHash)]);
-        const removed = [...candidates].filter((h) => !currentHashes.has(h));
-        if (removed.length > 0) {
-            const evictions: Record<string, string | null> = {};
-            for (const h of removed) {
-                evictions[h] = null;
-            }
-            Onyx.merge(ONYXKEYS.SEARCH_QUERY_BY_HASH, evictions);
-        }
-        knownSnapshotHashes = currentHashes;
     },
 });
 
 function getAllPersonalDetails(): OnyxTypes.PersonalDetailsList {
-    return allPersonalDetails;
+    return getAllPersonalDetailsFromStore();
 }
 
 function getAllTransactions(): NonNullable<OnyxCollection<OnyxTypes.Transaction>> {
@@ -166,7 +129,11 @@ function getAllTransactionDrafts(): NonNullable<OnyxCollection<OnyxTypes.Transac
 }
 
 function getCurrentUserPersonalDetails(): OnyxEntry<OnyxTypes.PersonalDetails> {
-    return deprecatedCurrentUserPersonalDetails;
+    return getPersonalDetail(deprecatedUserAccountID);
+}
+
+function getCurrentUserAccountIDFromSession(): number {
+    return deprecatedUserAccountID;
 }
 
 function getRecentAttendees(): OnyxEntry<Attendee[]> {
@@ -177,8 +144,10 @@ function getAllSnapshots(): OnyxCollection<OnyxTypes.SearchResults> {
     return allSnapshots;
 }
 
-function getSearchQueryByHash(): Record<string, string> {
-    return searchQueryByHash;
+function getIOUAndChatReportForIOUAction(reportAction: OnyxEntry<OnyxTypes.ReportAction>, reports: OnyxCollection<OnyxTypes.Report>) {
+    const iouReportID = isMoneyRequestAction(reportAction) ? reportAction.reportID : undefined;
+    const iouReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`];
+    return {iouReport, chatReport: reports?.[`${ONYXKEYS.COLLECTION.REPORT}${iouReport?.chatReportID}`]};
 }
 
 export {
@@ -191,7 +160,8 @@ export {
     getAllReportNameValuePairs,
     getAllTransactionDrafts,
     getCurrentUserPersonalDetails,
+    getCurrentUserAccountIDFromSession,
     getRecentAttendees,
     getAllSnapshots,
-    getSearchQueryByHash,
+    getIOUAndChatReportForIOUAction,
 };

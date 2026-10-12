@@ -17,12 +17,20 @@ import React, {useMemo} from 'react';
 type DynamicAddBankAccountVerifyAccountPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.DYNAMIC_ADD_BANK_ACCOUNT_VERIFY_ACCOUNT>;
 
 function DynamicAddBankAccountVerifyAccountPage({route}: DynamicAddBankAccountVerifyAccountPageProps) {
-    const {shouldSkipPurposeSelection} = route.params ?? {};
+    const {shouldSkipPurposeSelection, shouldSetUpUSBankAccount} = route.params ?? {};
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.ADD_BANK_ACCOUNT_VERIFY_ACCOUNT.path);
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const currentUserEmail = getCurrentUserEmail();
     const isAdmin = useMemo(() => hasActiveAdminWorkspaces(currentUserEmail ?? '', allPolicies), [currentUserEmail, allPolicies]);
-    const navigateForwardTo = isAdmin && !shouldSkipPurposeSelection ? ROUTES.SETTINGS_BANK_ACCOUNT_PURPOSE : ROUTES.SETTINGS_ADD_BANK_ACCOUNT.getRoute(backPath);
+    // This forward path must agree with the validated branch of openPersonalBankAccountSetupView.
+    let navigateForwardTo;
+    if (shouldSetUpUSBankAccount === 'true') {
+        navigateForwardTo = ROUTES.SETTINGS_ADD_US_BANK_ACCOUNT.getRoute();
+    } else if (isAdmin && shouldSkipPurposeSelection !== 'true') {
+        navigateForwardTo = ROUTES.SETTINGS_BANK_ACCOUNT_PURPOSE;
+    } else {
+        navigateForwardTo = ROUTES.SETTINGS_ADD_BANK_ACCOUNT.getRoute(backPath);
+    }
 
     return (
         <VerifyAccountPageBase

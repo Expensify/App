@@ -27,9 +27,6 @@ import type ReactionListProps from './types';
 import HeaderReactionList from './HeaderReactionList';
 
 type BaseReactionListProps = ReactionListProps & {
-    /**
-     *  Array of personal detail objects
-     */
     users: PersonalDetails[];
 
     /**

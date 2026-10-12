@@ -60,7 +60,7 @@ function DistanceRequestStartPage({
     const [selectedTab, selectedTabResult] = useOnyx(`${ONYXKEYS.COLLECTION.SELECTED_TAB}${CONST.TAB.DISTANCE_REQUEST_TYPE}`);
     const [lastDistanceExpenseType] = useOnyx(ONYXKEYS.NVP_LAST_DISTANCE_EXPENSE_TYPE);
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
-    const {participants} = useDefaultParticipants({sourceReport: report, transaction, iouType});
+    const {participants, isLoading: isLoadingDefaultParticipants} = useDefaultParticipants({sourceReport: report, transaction, iouType});
     const isLoadingSelectedTab = isLoadingOnyxValue(selectedTabResult);
     const isTrackDistanceExpense = iouType === CONST.IOU.TYPE.TRACK;
     const activeGroupPolicies = getActivePolicies(policies ?? null, currentUserLogin).filter(isGroupPolicy);
@@ -79,9 +79,9 @@ function DistanceRequestStartPage({
     const isSelfDMTarget = isSelfDM(report) || participants.some((participant) => participant.isSelfDM);
     const isReportScopedTarget = isPolicyExpenseChat(report) || isExpenseReport(report);
     const isEveryActiveWorkspaceRestricted = activeGroupPolicies.length > 1 && activeGroupPolicies.every(isMapOrGPSRequired);
-    const shouldHideManualAndOdometerTabs = isReportScopedTarget
-        ? isMapOrGPSRequired(reportPolicy)
-        : !isSelfDMTarget && (isMapOrGPSRequired(targetPolicy) || isEveryActiveWorkspaceRestricted);
+    const shouldHideManualAndOdometerTabs =
+        !isLoadingDefaultParticipants &&
+        (isReportScopedTarget ? isMapOrGPSRequired(reportPolicy) : !isSelfDMTarget && (isMapOrGPSRequired(targetPolicy) || isEveryActiveWorkspaceRestricted));
 
     const tabTitles = {
         [CONST.IOU.TYPE.REQUEST]: translate('iou.trackDistance'),
@@ -149,8 +149,9 @@ function DistanceRequestStartPage({
             policyID={policy?.id}
             accessVariants={[CONST.IOU.ACCESS_VARIANTS.CREATE]}
         >
+            {/* IOURequestStepDistanceOdometer handles keyboard avoidance without resizing the shared tab layout. */}
             <ScreenWrapper
-                shouldEnableKeyboardAvoidingView={selectedTab === CONST.TAB_REQUEST.DISTANCE_ODOMETER}
+                shouldEnableKeyboardAvoidingView={false}
                 shouldEnableMinHeight={canUseTouchScreen()}
                 testID="DistanceRequestStartPage"
                 focusTrapSettings={{containerElements: focusTrapContainerElements}}
@@ -173,6 +174,11 @@ function DistanceRequestStartPage({
                         onTabBarFocusTrapContainerElementChanged={setTabBarContainerElement}
                         onActiveTabFocusTrapContainerElementChanged={setActiveTabContainerElement}
                         lazyLoadEnabled
+                        // The Odometer tab has text inputs, and Android keeps the keyboard up after the focused input
+                        // goes away, so without this the next tab lays out while the keyboard still occupies the screen.
+                        // Applied on every platform rather than gated to Android: `Keyboard.isVisible()` already
+                        // makes this a no-op wherever the keyboard isn't up, so iOS only waits when it actually needs to.
+                        shouldDismissKeyboardBeforeTabSwitch
                     >
                         <TopTab.Screen name={CONST.TAB_REQUEST.DISTANCE_MAP}>
                             {() => (

@@ -35,7 +35,6 @@ function UserAvatar({
     iconAdditionalStyles,
     containerStyles,
     size = CONST.AVATAR_SIZE.DEFAULT,
-    fill,
     fallbackIcon,
     fallbackIconTestID = '',
     accountID,
@@ -61,7 +60,7 @@ function UserAvatar({
                     urlColors={letterAvatar.colors}
                     accountID={accountID}
                     size={size}
-                    type={CONST.ICON_TYPE_AVATAR}
+                    shape={CONST.AVATAR_SHAPE.CIRCLE}
                     containerStyles={imageStyles}
                     containerAdditionalStyles={iconAdditionalStyles}
                 />
@@ -84,7 +83,7 @@ function UserAvatar({
                 <AvatarImage
                     avatarSource={avatarSource}
                     size={size}
-                    type={CONST.ICON_TYPE_AVATAR}
+                    shape={CONST.AVATAR_SHAPE.CIRCLE}
                     imageStyles={imageStyles}
                     imageContainerAdditionalStyles={iconAdditionalStyles}
                     onImageError={onImageError}
@@ -106,12 +105,12 @@ function UserAvatar({
             <AvatarIcon
                 avatarSource={avatarSource}
                 size={size}
-                type={CONST.ICON_TYPE_AVATAR}
+                shape={CONST.AVATAR_SHAPE.CIRCLE}
                 iconContainerStyles={imageStyles}
                 iconAdditionalStyles={iconAdditionalStyles}
                 fallbackAvatarTestID={fallbackAvatarTestID}
                 iconColors={iconColors}
-                fill={iconColors?.fill ?? (hasImageError ? theme.offline : fill)}
+                fill={iconColors?.fill ?? (hasImageError ? theme.offline : undefined)}
             />
         </AvatarContainer>
     );

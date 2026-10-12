@@ -81,7 +81,6 @@ type InputWrapperProps<TInput extends ValidInputs, TValue extends ValueTypeKey =
          */
         shouldSubmitForm?: boolean;
 
-        /** Reference to the outer element */
         ref?: ForwardedRef<AnimatedTextInputRef>;
     };
 

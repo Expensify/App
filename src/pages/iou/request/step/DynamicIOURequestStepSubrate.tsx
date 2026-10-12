@@ -199,7 +199,7 @@ function DynamicIOURequestStepSubrate({
             confirmText: translate('common.delete'),
             cancelText: translate('common.cancel'),
             shouldEnableNewFocusManagement: true,
-            danger: true,
+            buttonVariant: CONST.BUTTON_VARIANT.DANGER,
         });
         if (result.action !== ModalActions.CONFIRM) {
             return;
