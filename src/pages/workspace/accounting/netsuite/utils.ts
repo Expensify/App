@@ -2,7 +2,7 @@ import {isAuthenticationError} from '@libs/actions/connections';
 import {canUseProvincialTaxNetSuite, canUseTaxNetSuite} from '@libs/NetSuiteUtils';
 
 import CONST from '@src/CONST';
-import type {NetSuiteConnectionConfig, NetSuiteSubsidiary} from '@src/types/onyx/Policy';
+import type {NetSuiteConnection, NetSuiteConnectionConfig, NetSuiteSubsidiary} from '@src/types/onyx/Policy';
 import type Policy from '@src/types/onyx/Policy';
 
 import type {OnyxEntry} from 'react-native-onyx';
@@ -38,8 +38,12 @@ function exportExpensesDestinationSettingName(isReimbursable: boolean) {
     return isReimbursable ? CONST.NETSUITE_CONFIG.REIMBURSABLE_EXPENSES_EXPORT_DESTINATION : CONST.NETSUITE_CONFIG.NON_REIMBURSABLE_EXPENSES_EXPORT_DESTINATION;
 }
 
-function isNetSuiteRestConnection(config?: NetSuiteConnectionConfig) {
-    return config?.authType === CONST.NETSUITE_CONFIG.AUTH_TYPE.OAUTH2;
+function getNetSuiteConnectionAuthType(config?: NetSuiteConnectionConfig, connection?: NetSuiteConnection) {
+    return config?.authType ?? connection?.config?.authType;
+}
+
+function isNetSuiteRestConnection(config?: NetSuiteConnectionConfig, connection?: NetSuiteConnection) {
+    return getNetSuiteConnectionAuthType(config, connection) === CONST.NETSUITE_CONFIG.AUTH_TYPE.OAUTH2;
 }
 
 function isNonReimbursableCreditCardChargeExport(config?: NetSuiteConnectionConfig) {
@@ -107,9 +111,9 @@ function getInitialSubPageForNetsuiteTokenInput(policy: OnyxEntry<Policy>) {
     return CONST.NETSUITE_CONFIG.TOKEN_INPUT.PAGE_NAME.INSTALL;
 }
 
-function getNonReimbursableNetSuiteExportDestinations(config?: NetSuiteConnectionConfig) {
+function getNonReimbursableNetSuiteExportDestinations(config?: NetSuiteConnectionConfig, connection?: NetSuiteConnection) {
     const destinations = Object.values(CONST.NETSUITE_EXPORT_DESTINATION);
-    if (isNetSuiteRestConnection(config)) {
+    if (isNetSuiteRestConnection(config, connection)) {
         return destinations;
     }
     return destinations.filter((destination) => destination !== CONST.NETSUITE_EXPORT_DESTINATION.CREDIT_CARD_CHARGE);

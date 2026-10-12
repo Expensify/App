@@ -11,7 +11,6 @@ import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/crea
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
-import Parser from '@libs/Parser';
 import {areSettingsInErrorFields, settingsPendingAction} from '@libs/PolicyUtils';
 
 import {
@@ -25,6 +24,8 @@ import {
 } from '@pages/workspace/accounting/netsuite/utils';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
+
+import {callFunctionIfActionIsAllowed} from '@userActions/Session';
 
 import CONST from '@src/CONST';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
@@ -79,43 +80,52 @@ function DynamicNetSuiteExportExpensesPage({policy}: WithPolicyConnectionsProps)
             connectionName={CONST.POLICY.CONNECTIONS.NAME.NETSUITE}
         >
             <OfflineWithFeedback pendingAction={settingsPendingAction([exportDestinationSettingName], config?.pendingFields)}>
-                <MenuItemField
-                    name={translate('workspace.accounting.exportAs')}
-                    value={exportDestination ? translate(`workspace.netsuite.exportDestination.values.${exportDestination}.label`) : undefined}
-                    onPress={() => navigateToStep(DYNAMIC_ROUTES.POLICY_ACCOUNTING_NETSUITE_EXPORT_EXPENSES_DESTINATION_SELECT.path)}
-                >
-                    {areSettingsInErrorFields([exportDestinationSettingName], config?.errorFields) && <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />}
-                </MenuItemField>
-                {!!exportDestination && (
-                    <MenuItem.HelpTextHTML>{Parser.replace(translate(`workspace.netsuite.exportDestination.values.${exportDestination}.${helperTextType}`))}</MenuItem.HelpTextHTML>
-                )}
+                <MenuItem.Root onPress={callFunctionIfActionIsAllowed(() => navigateToStep(DYNAMIC_ROUTES.POLICY_ACCOUNTING_NETSUITE_EXPORT_EXPENSES_DESTINATION_SELECT.path))}>
+                    <MenuItemField.Row
+                        name={translate('workspace.accounting.exportAs')}
+                        value={exportDestination ? translate(`workspace.netsuite.exportDestination.values.${exportDestination}.label`) : undefined}
+                    >
+                        {areSettingsInErrorFields([exportDestinationSettingName], config?.errorFields) && <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />}
+                        <MenuItem.Chevron />
+                    </MenuItemField.Row>
+                    {!!exportDestination && (
+                        <MenuItem.HelpText
+                            message={translate(`workspace.netsuite.exportDestination.values.${exportDestination}.${helperTextType}`)}
+                            shouldRenderMessageAsHTML
+                        />
+                    )}
+                </MenuItem.Root>
             </OfflineWithFeedback>
             {!shouldHideReimbursableDefaultVendor(isReimbursable, config) && (
                 <OfflineWithFeedback pendingAction={settingsPendingAction([CONST.NETSUITE_CONFIG.DEFAULT_VENDOR], config?.pendingFields)}>
-                    <MenuItemField
-                        name={translate('workspace.accounting.defaultVendor')}
-                        value={defaultVendor?.name}
-                        onPress={() => navigateToStep(DYNAMIC_ROUTES.POLICY_ACCOUNTING_NETSUITE_EXPORT_EXPENSES_VENDOR_SELECT.path)}
-                    >
-                        {areSettingsInErrorFields([CONST.NETSUITE_CONFIG.DEFAULT_VENDOR], config?.errorFields) && (
-                            <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />
-                        )}
-                    </MenuItemField>
-                    {isCreditCardChargeExport && <MenuItem.HelpText message={translate('workspace.netsuite.creditCardChargeDefaultVendorHelperText', isDefaultVendorSet)} />}
+                    <MenuItem.Root onPress={callFunctionIfActionIsAllowed(() => navigateToStep(DYNAMIC_ROUTES.POLICY_ACCOUNTING_NETSUITE_EXPORT_EXPENSES_VENDOR_SELECT.path))}>
+                        <MenuItemField.Row
+                            name={translate('workspace.accounting.defaultVendor')}
+                            value={defaultVendor?.name}
+                        >
+                            {areSettingsInErrorFields([CONST.NETSUITE_CONFIG.DEFAULT_VENDOR], config?.errorFields) && (
+                                <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />
+                            )}
+                            <MenuItem.Chevron />
+                        </MenuItemField.Row>
+                        {isCreditCardChargeExport && <MenuItem.HelpText message={translate('workspace.netsuite.creditCardChargeDefaultVendorHelperText', isDefaultVendorSet)} />}
+                    </MenuItem.Root>
                 </OfflineWithFeedback>
             )}
             {!shouldHideNonReimbursableCreditCardAccount(isReimbursable, config) && (
                 <OfflineWithFeedback pendingAction={settingsPendingAction([CONST.NETSUITE_CONFIG.CREDIT_CARD_ACCOUNT], config?.pendingFields)}>
-                    <MenuItemField
-                        name={translate('workspace.netsuite.creditCardAccount')}
-                        value={selectedCreditCardAccount?.name}
-                        onPress={() => navigateToStep(DYNAMIC_ROUTES.POLICY_ACCOUNTING_NETSUITE_EXPORT_EXPENSES_CREDIT_CARD_ACCOUNT_SELECT.path)}
-                    >
-                        {areSettingsInErrorFields([CONST.NETSUITE_CONFIG.CREDIT_CARD_ACCOUNT], config?.errorFields) && (
-                            <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />
-                        )}
-                    </MenuItemField>
-                    <MenuItem.HelpText message={translate('workspace.netsuite.creditCardAccountHelperText', !!selectedCreditCardAccount?.name)} />
+                    <MenuItem.Root onPress={callFunctionIfActionIsAllowed(() => navigateToStep(DYNAMIC_ROUTES.POLICY_ACCOUNTING_NETSUITE_EXPORT_EXPENSES_CREDIT_CARD_ACCOUNT_SELECT.path))}>
+                        <MenuItemField.Row
+                            name={translate('workspace.netsuite.creditCardAccount')}
+                            value={selectedCreditCardAccount?.name}
+                        >
+                            {areSettingsInErrorFields([CONST.NETSUITE_CONFIG.CREDIT_CARD_ACCOUNT], config?.errorFields) && (
+                                <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />
+                            )}
+                            <MenuItem.Chevron />
+                        </MenuItemField.Row>
+                        <MenuItem.HelpText message={translate('workspace.netsuite.creditCardAccountHelperText', !!selectedCreditCardAccount?.name)} />
+                    </MenuItem.Root>
                 </OfflineWithFeedback>
             )}
             {!shouldHideNonReimbursableJournalPostingAccount(isReimbursable, config) && (
