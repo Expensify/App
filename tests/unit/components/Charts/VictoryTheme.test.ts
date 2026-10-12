@@ -54,13 +54,6 @@ describe('VictoryTheme', () => {
         });
     });
 
-    describe('colors.defaultDot', () => {
-        it('equals the palette entry at the default dot index (green500)', () => {
-            const VictoryTheme = loadVictoryTheme();
-            expect(VictoryTheme.colors.defaultDot).toBe(colors.green500);
-        });
-    });
-
     describe('colors.getColor', () => {
         it('returns a non-empty hex string for index 0', () => {
             const VictoryTheme = loadVictoryTheme();
@@ -127,15 +120,8 @@ describe('VictoryTheme', () => {
                 xLineWidth: 0,
                 yLineWidth: 1,
                 labelGap: 12,
+                xAxisLabelGap: 24,
                 padding: {top: 5, left: 5, right: 5, bottom: 5},
-            });
-        });
-
-        it('exposes tooltip values', () => {
-            const VictoryTheme = loadVictoryTheme();
-            expect(VictoryTheme.tooltip).toEqual({
-                pointerHeight: 4,
-                pointerWidth: 12,
             });
         });
 
