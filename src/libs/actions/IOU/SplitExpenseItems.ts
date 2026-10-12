@@ -672,25 +672,19 @@ function evenlyDistributeSplitExpenseAmounts(
         // Update distance for distance transactions based on new amount and rate
         if (isDistanceRequest && transaction && splitExpense.customUnit) {
             const {unit, rate} = resolveSplitItemRate({customUnit: splitExpense.customUnit, fallbackMileageRate: mileageRate, policy, policies});
-            if (rate === 0) {
-                // A $0 rate split is always $0, so even out the distance instead of the amount
+            if (rate === 0 || (total === 0 && isUsableSplitRate(rate))) {
+                // A $0 rate split is always $0 and a $0 expense has no amount to even out, so even out the distance instead.
+                // Each split's amount then comes from its own share of the distance, which is only nonzero for a split
+                // the user moved to a positive rate.
                 const quantity = getEvenSplitQuantity(transaction.comment?.customUnit?.quantity ?? 0, splitCount, index, 0);
-                const {customUnit: updatedCustomUnit, merchant} = updateSplitExpenseDistanceFromAmount(
-                    0,
-                    rate,
-                    unit,
-                    {...splitExpense.customUnit, quantity},
-                    mileageRate,
-                    getCurrencySymbol,
-                    transaction.currency,
-                );
+                const splitAmount = Math.round(quantity * rate);
 
                 updatedSplitExpense = {
                     ...updatedSplitExpense,
-                    amount: 0,
-                    taxAmount: 0,
-                    customUnit: updatedCustomUnit,
-                    merchant,
+                    amount: splitAmount,
+                    taxAmount: convertToBackendAmount(calculateTaxAmount(splitExpense.taxValue, splitAmount, getCurrencyDecimals(currency))),
+                    customUnit: {...splitExpense.customUnit, quantity, distanceUnit: unit ?? splitExpense.customUnit.distanceUnit},
+                    merchant: getDistanceMerchantFromDistance(quantity, unit, rate, transaction.currency ?? mileageRate.currency ?? CONST.CURRENCY.USD, getCurrencySymbol),
                 };
             } else if (amount !== 0 && isUsableSplitRate(rate)) {
                 const {customUnit: updatedCustomUnit, merchant} = updateSplitExpenseDistanceFromAmount(

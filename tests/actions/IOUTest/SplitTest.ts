@@ -9711,6 +9711,66 @@ describe('updateSplitExpenseAmountField', () => {
         expect(evenSplits?.map((split) => split.customUnit?.quantity)).toEqual([100, 100]);
     });
 
+    it('recalculates a split moved to a positive rate when making the splits of a $0 distance expense even', async () => {
+        // Given a $0 distance expense on a $0 rate, split in two, where the user moved one split to a positive rate
+        const customUnitID = 'distance-unit';
+        const zeroRateID = 'rate-zero-even';
+        const positiveRateID = 'rate-positive-even';
+        const originalTransactionID = 'orig-zero-rate-even';
+        const policy: Policy = {
+            ...createRandomPolicy(1),
+            customUnits: {
+                [customUnitID]: {
+                    customUnitID,
+                    name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                    enabled: true,
+                    attributes: {
+                        unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                    },
+                    rates: {
+                        [zeroRateID]: {customUnitRateID: zeroRateID, currency: CONST.CURRENCY.USD, rate: 0, enabled: true, name: 'Untracked', subRates: []},
+                        [positiveRateID]: {customUnitRateID: positiveRateID, currency: CONST.CURRENCY.USD, rate: 70, enabled: true, name: 'Default', subRates: []},
+                    },
+                },
+            },
+        };
+        const distanceCustomUnit = {name: CONST.CUSTOM_UNITS.NAME_DISTANCE, customUnitID, distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES};
+        const originalTransaction: Transaction = {
+            transactionID: originalTransactionID,
+            amount: 0,
+            currency: 'USD',
+            iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MAP,
+            comment: {
+                type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT,
+                customUnit: {...distanceCustomUnit, customUnitRateID: zeroRateID, quantity: 200},
+            },
+        };
+        const draftTransaction: Transaction = {
+            ...originalTransaction,
+            transactionID: '235',
+            comment: {
+                ...originalTransaction.comment,
+                originalTransactionID,
+                splitExpenses: [
+                    {transactionID: 'split-zero', amount: 0, created: DateUtils.getDBTime(), customUnit: {...distanceCustomUnit, customUnitRateID: zeroRateID, quantity: 150}},
+                    {transactionID: 'split-positive', amount: 3500, created: DateUtils.getDBTime(), customUnit: {...distanceCustomUnit, customUnitRateID: positiveRateID, quantity: 50}},
+                ],
+            },
+        };
+
+        // When the user makes the splits even
+        evenlyDistributeSplitExpenseAmounts(draftTransaction, originalTransaction, policy, false, undefined, getCurrencySymbolLocal, getCurrencyDecimalsLocal);
+        await waitForBatchedUpdates();
+
+        // Then the distance is evened out and the positive-rate split's amount and merchant follow its own share of the
+        // distance, so it isn't saved as a $0 split whose positive rate and distance contradict its amount
+        const evenSplits = (await getOnyxValue(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${originalTransactionID}`))?.comment?.splitExpenses;
+        expect(evenSplits?.map((split) => split.customUnit?.quantity)).toEqual([100, 100]);
+        expect(evenSplits?.map((split) => split.amount)).toEqual([0, 7000]);
+        expect(evenSplits?.at(1)?.merchant).toContain('100.00');
+        expect(evenSplits?.at(1)?.merchant).toContain('$0.70');
+    });
+
     it('should keep the unit the expense is stored with when the workspace distance unit changed', async () => {
         // Given a distance split created in miles, whose workspace unit was later switched to kilometers
         const customUnitRateID = 'rate-unit-change';
