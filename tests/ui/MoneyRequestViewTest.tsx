@@ -9,7 +9,7 @@ import initOnyxDerivedValues from '@userActions/OnyxDerived';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy} from '@src/types/onyx';
+import type {Policy, Transaction} from '@src/types/onyx';
 
 import type * as NativeNavigation from '@react-navigation/native';
 import type {PartialDeep} from 'type-fest';
@@ -632,6 +632,48 @@ describe('MoneyRequestView edit fields', () => {
         await waitForBatchedUpdatesWithAct();
 
         // Then the tax amount keeps the negative sign instead of being shown as an absolute value
+        await waitFor(() => {
+            expect(screen.getByLabelText('iou.taxAmount, USD-95')).toBeOnTheScreen();
+        });
+    });
+
+    it('shows a negative tax amount on the merge confirmation page for a negative merged expense', async () => {
+        // Given a merged expense preview on an expense report. The merge flow keeps amounts with the sign they are
+        // displayed with, so a -$9.50 expense with -$0.95 tax is kept as amount -950 and taxAmount -95.
+        await setupTestData();
+        const mergedTransaction = createMock<Transaction>({
+            transactionID,
+            reportID: expenseReportID,
+            amount: -950,
+            modifiedAmount: -950,
+            currency: CONST.CURRENCY.USD,
+            created: '2025-06-01',
+            merchant: 'Coffee Shop',
+            comment: {},
+            taxCode: 'TAX_10',
+            taxName: 'Tax 10%',
+            taxValue: '10%',
+            taxAmount: -95,
+        });
+
+        // When the merge confirmation page renders the merged expense
+        render(
+            <ComposeProviders components={[OnyxListItemProvider]}>
+                <ScreenWrapperStatusContext.Provider value={SCREEN_WRAPPER_STATUS}>
+                    <MoneyRequestView
+                        parentReportID={expenseReportID}
+                        expensePolicy={createMock<Policy>({id: policyID, type: CONST.POLICY.TYPE.TEAM, outputCurrency: CONST.CURRENCY.USD, tax: {trackingEnabled: true}})}
+                        shouldShowAnimatedBackground={false}
+                        readonly
+                        updatedTransaction={mergedTransaction}
+                        mergeTransactionID={transactionID}
+                    />
+                </ScreenWrapperStatusContext.Provider>
+            </ComposeProviders>,
+        );
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the tax amount keeps the negative sign instead of being flipped again for the expense report
         await waitFor(() => {
             expect(screen.getByLabelText('iou.taxAmount, USD-95')).toBeOnTheScreen();
         });

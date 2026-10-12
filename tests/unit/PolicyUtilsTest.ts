@@ -1,6 +1,8 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 import {renderHook} from '@testing-library/react-native';
 
+import type {PersonalDetailsByLogin} from '@components/PersonalDetailsByLoginProvider';
+
 import useDefaultFundID from '@hooks/useDefaultFundID';
 
 import DateUtils from '@libs/DateUtils';
@@ -252,6 +254,10 @@ const personalDetails: PersonalDetailsList = {
         login: guideEmail,
     },
 };
+
+const personalDetailsByLogins: PersonalDetailsByLogin = Object.fromEntries(
+    Object.values(personalDetails).flatMap((personalDetail) => (personalDetail?.login ? [[personalDetail.login, personalDetail]] : [])),
+);
 
 const rules = {
     approvalRules: [
@@ -1535,7 +1541,7 @@ describe('PolicyUtils', () => {
                 managerID: categoryApprover1AccountID,
                 type: CONST.REPORT.TYPE.EXPENSE,
             };
-            expect(getSubmitReportManagerAccountID(policy, expenseReport, employeeEmail, undefined)).toBeUndefined();
+            expect(getSubmitReportManagerAccountID(policy, expenseReport, employeeEmail, undefined, personalDetailsByLogins)).toBeUndefined();
         });
         it('should return the known approver accountID when the policy route is reliable', () => {
             const policy: Policy = {
@@ -1552,7 +1558,7 @@ describe('PolicyUtils', () => {
                 managerID: categoryApprover1AccountID,
                 type: CONST.REPORT.TYPE.EXPENSE,
             };
-            expect(getSubmitReportManagerAccountID(policy, expenseReport, employeeEmail, undefined)).toBe(adminAccountID);
+            expect(getSubmitReportManagerAccountID(policy, expenseReport, employeeEmail, undefined, personalDetailsByLogins)).toBe(adminAccountID);
         });
         it('should return undefined instead of a generated accountID when the approver is missing from personal details', () => {
             const policy: Policy = {
@@ -1580,7 +1586,7 @@ describe('PolicyUtils', () => {
                 managerID: categoryApprover1AccountID,
                 type: CONST.REPORT.TYPE.EXPENSE,
             };
-            expect(getSubmitReportManagerAccountID(policy, expenseReport, employeeEmail, undefined)).toBeUndefined();
+            expect(getSubmitReportManagerAccountID(policy, expenseReport, employeeEmail, undefined, personalDetailsByLogins)).toBeUndefined();
         });
     });
     describe('shouldShowPolicy', () => {
@@ -1964,7 +1970,7 @@ describe('PolicyUtils', () => {
                 ownerAccountID: employeeAccountID,
                 type: CONST.REPORT.TYPE.EXPENSE,
             };
-            expect(getSubmitReportManagerAccountID(policy, expenseReport, employeeEmail, undefined)).toBe(ownerAccountID);
+            expect(getSubmitReportManagerAccountID(policy, expenseReport, employeeEmail, undefined, personalDetailsByLogins)).toBe(ownerAccountID);
         });
         it('should keep the submitsTo approver that is not a policy member when the policy uses HR advanced (manager) mode', () => {
             const policy: Policy = {
@@ -1996,7 +2002,7 @@ describe('PolicyUtils', () => {
                 ownerAccountID: employeeAccountID,
                 type: CONST.REPORT.TYPE.EXPENSE,
             };
-            expect(getSubmitReportManagerAccountID(policy, expenseReport, employeeEmail, undefined)).toBe(adminAccountID);
+            expect(getSubmitReportManagerAccountID(policy, expenseReport, employeeEmail, undefined, personalDetailsByLogins)).toBe(adminAccountID);
         });
     });
 
