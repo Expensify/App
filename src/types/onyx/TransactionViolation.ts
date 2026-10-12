@@ -4,6 +4,8 @@ import type CollectionDataSet from '@src/types/utils/CollectionDataSet';
 
 import type {ValueOf} from 'type-fest';
 
+import type {RuleFilterNode} from './RuleFilters';
+
 /**
  * Names of violations.
  * Derived from `CONST.VIOLATIONS` to maintain a single source of truth.
@@ -126,6 +128,12 @@ type TransactionViolationData = {
 
     /** Number of nights the limit was averaged over, for overLimit/overCategoryLimit on a multi-day reservation */
     nights?: number;
+
+    /** ID of the rule that triggered this violation */
+    ruleID?: number;
+
+    /** Filters from the rule that triggered this violation */
+    filters?: RuleFilterNode;
 };
 
 /** Model of a transaction violation */

@@ -1011,5 +1011,16 @@ describe('DateUtils', () => {
         test('formats a compact day label', () => {
             expect(DateUtils.getShortFormattedDayForSearch('2026-09-15', undefined)).toBe('Sep 15, ’26');
         });
+
+        test('formats compact labels without the year when asked to', () => {
+            // Given a chart whose points all fall in one year, so the year is left out of each axis label
+            // When each compact formatter is asked to leave the year out
+            // Then only the day, month, quarter or range remains
+            expect(DateUtils.getShortFormattedDayForSearch('2026-09-15', undefined, false)).toBe('Sep 15');
+            expect(DateUtils.getShortFormattedMonthForSearch(2026, 9, undefined, false)).toBe('Sep');
+            expect(DateUtils.getShortFormattedQuarterForSearch(2026, 3, undefined, false)).toBe('Q3');
+            expect(DateUtils.getShortFormattedDateRangeForSearch('2026-09-01', '2026-09-07', undefined, false)).toBe('Sep 1 - 7');
+            expect(DateUtils.getShortFormattedDateRangeForSearch('2026-09-28', '2026-10-04', undefined, false)).toBe('Sep 28 - Oct 4');
+        });
     });
 });
