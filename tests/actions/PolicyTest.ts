@@ -779,6 +779,7 @@ describe('actions/Policy', () => {
                 },
                 localCurrency: 'USD',
                 rules: {[`${ONYXKEYS.COLLECTION.RULE}sourceRule`]: sourceRule},
+                personalDetailsByLogins: {},
             });
             await waitForBatchedUpdates();
 
