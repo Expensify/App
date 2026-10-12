@@ -628,15 +628,6 @@ const translations: TranslationDeepObject<typeof en> = {
         launching: 'Lancement d’Expensify',
         expired: 'Votre session a expiré.',
         signIn: 'Veuillez vous reconnecter.',
-        notValid: 'Lien invalide.',
-        sessionMismatch: 'Le lien sur lequel vous avez cliqué n’est pas valide pour votre session actuelle.',
-        switchAccount: {
-            title: 'Changer de compte ?',
-            prompt: ({newEmail, currentEmail}: {newEmail: string; currentEmail: string}) =>
-                `Vous êtes connecté en tant que ${currentEmail}. Cette action vous connectera plutôt en tant que ${newEmail}.`,
-            confirm: 'Changer de compte',
-            staySignedIn: 'Ne changez pas de compte',
-        },
     },
     multifactorAuthentication: {
         reviewTransaction: {
@@ -1643,7 +1634,6 @@ const translations: TranslationDeepObject<typeof en> = {
             invalidSplitYourself: 'Veuillez saisir un montant non nul pour votre répartition',
             noParticipantSelected: 'Veuillez sélectionner un participant',
             other: 'Erreur inattendue. Veuillez réessayer plus tard.',
-            payFailedExpenseDeleted: 'Le paiement a échoué car la note de frais a été supprimée.',
             genericCreateFailureMessage: 'Erreur inattendue lors de la soumission de cette dépense. Veuillez réessayer plus tard.',
             genericCreateInvoiceFailureMessage: 'Erreur inattendue lors de l’envoi de cette facture. Veuillez réessayer plus tard.',
             genericHoldExpenseFailureMessage: 'Erreur inattendue lors de la mise en attente de cette dépense. Veuillez réessayer ultérieurement.',
@@ -2360,7 +2350,6 @@ const translations: TranslationDeepObject<typeof en> = {
             useProfiling: 'Utiliser le profilage',
             profileTrace: 'Profil de trace',
             results: 'Résultats',
-            releaseOptions: 'Options de version',
             testingPreferences: 'Préférences de test',
             server: 'Serveur',
             servers: {
@@ -6197,6 +6186,11 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
             syncReimbursedReports: 'Synchroniser les notes de frais remboursées',
             syncReimbursedReportsDescription: 'Lorsqu’une note de frais est payée par ACH, un paiement de facture sera généré dans ce compte.',
             billPaymentAccount: {label: 'Compte de paiement des factures', description: 'Choisissez d’où payer les factures et nous créerons le paiement dans DualEntry.'},
+            fxExpenseAccount: {
+                label: 'Compte de frais de conversion de devise DualEntry',
+                description:
+                    'Lorsque votre entreprise prend en charge les frais de conversion de devise sur un paiement effectué à l’étranger, nous comptabiliserons ces frais sur ce compte dans DualEntry sous forme d’écriture de journal.',
+            },
             syncExpensifyCardSettlements: 'Synchroniser les règlements de Carte Expensify',
             settlementAccount: {label: 'Compte de règlement de la Carte Expensify', description: 'Choisissez votre compte de règlement et nous créerons le paiement dans DualEntry.'},
             syncTravelInvoicingSettlements: 'Synchroniser les règlements de facturation de voyages',
@@ -8385,6 +8379,8 @@ Rendez obligatoires des informations de dépense comme les reçus et les descrip
                 applyUpdates: 'Appliquer ces mises à jour :',
                 saveRule: 'Enregistrer la règle',
                 previewMatches: 'Aperçu des correspondances',
+                previewMatchesDescription: 'Voyez comment cette règle s’applique à vos dépenses',
+                preview: 'Aperçu',
                 confirmError: 'Saisissez un commerçant et appliquez au moins une mise à jour',
                 confirmErrorMerchant: 'Veuillez saisir le commerçant',
                 confirmErrorUpdate: 'Veuillez appliquer au moins une mise à jour',
@@ -8722,6 +8718,14 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                 requireFieldsDescription: 'Rendre certains champs de dépense obligatoires ou renoncer à les exiger.',
                 createAgentRule: 'Décrire la règle de l’agent',
                 createAgentRuleDescription: 'Créez des règles flexibles qui s’exécutent quand vous en avez besoin.',
+                describe: 'Décrire',
+                describeRule: 'Décrivez votre règle avec vos propres mots et Concierge la créera pour vous',
+                describeRuleInputLabel: 'Décrivez la règle',
+                promptErrors: {
+                    unsupported: 'Cette règle n’est pas encore prise en charge — nous y travaillons. Essayez une autre règle pour le moment.',
+                    unintelligible: 'Essayez de formuler votre règle ainsi : si les dépenses dépassent 100 $, exigez un reçu.',
+                    multipleRules: 'Une règle à la fois, s’il vous plaît — essayez de décrire une seule règle, comme : bloquer les achats en magasin sur toutes les cartes.',
+                },
             },
             expenseDefaultsTable: {
                 tableColumnType: 'Type',
@@ -10316,6 +10320,10 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
         genericUpdateReportFieldFailureMessage: 'Erreur inattendue lors de la mise à jour du champ. Veuillez réessayer plus tard.',
         genericUpdateReportNameEditFailureMessage: 'Erreur inattendue lors du renommage de la note de frais. Veuillez réessayer plus tard.',
         noActivityYet: 'Aucune activité pour le moment',
+        collapsedSystemMessages: () => ({
+            one: 'afficher 1 mise à jour',
+            other: (count: number) => `afficher ${count} mises à jour`,
+        }),
         connectionSettings: 'Paramètres de connexion',
         actions: {
             type: {
