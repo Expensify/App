@@ -361,7 +361,8 @@ function getCardTotalsByCardID(snapshot: OnyxEntry<SearchResults>): Record<numbe
 // The Search footer can answer a breakdown (e.g. non-reimbursable) on this same snapshot, and a response lands before
 // its stamp does, so only a total stamped as the plain one is the row's.
 function isUnconfirmedTotal(searchResults: OnyxEntry<SearchResults>): boolean {
-    return !!searchResults && searchResults.search?.footerTotal !== CONST.SEARCH.FOOTER_TOTAL.TOTAL;
+    const footerTotal = searchResults?.search?.footerTotal;
+    return !!footerTotal && footerTotal !== CONST.SEARCH.FOOTER_TOTAL.TOTAL;
 }
 
 function getYourSpendRowState({isApplicable, isOffline, searchResults}: GetYourSpendRowStateParams): YourSpendRowState {
