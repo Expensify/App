@@ -169,7 +169,7 @@ function getForExpenseMovedFromSelfDM(
     // - A policy expense chat
     // - A 1:1 DM
     const reportName = isPolicyExpenseChat(rootParentReport)
-        ? getPolicyExpenseChatName({report: rootParentReport, translate})
+        ? getPolicyExpenseChatName({report: rootParentReport, translate, formatPhoneNumber})
         : buildReportNameFromParticipantNames({report: rootParentReport, currentUserAccountID, translate, formatPhoneNumber});
     const policyName = getPolicyName({report: rootParentReport, returnEmptyIfNotFound: true, policy});
     // If we can't determine either the report name or policy name, return the default message
