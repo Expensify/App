@@ -128,7 +128,6 @@ function InsightsDashboardContent({state, headlineChart, supportingCharts, filte
         <ScrollView
             style={styles.insightsDashboardScrollView}
             onScroll={triggerScrollEvent}
-            onTouchStart={dismissPinnedChartTooltip}
             contentContainerStyle={[styles.flexGrow1, pageGutter, styles.pb5]}
             addBottomSafeAreaPadding
         >
@@ -167,6 +166,7 @@ function InsightsDashboardContent({state, headlineChart, supportingCharts, filte
 }
 
 function InsightsDashboard({dashboardID}: {dashboardID: InsightsDashboardID}) {
+    const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
     const isFocused = useIsFocused();
@@ -219,25 +219,30 @@ function InsightsDashboard({dashboardID}: {dashboardID: InsightsDashboardID}) {
             bottomContent={<TabBarBottomContent selectedTab={NAVIGATION_TABS.INSIGHTS} />}
             testID="InsightsPage"
         >
-            <TopBar
-                breadcrumbLabel={translate('common.insights')}
-                shouldDisplayHelpButton
-            />
-            {state !== INSIGHTS_DASHBOARD_STATE.NO_EXPENSES && (
-                <InsightsPageControls
-                    filters={filters}
-                    defaultFilters={defaultFilters}
-                    onChange={setFilters}
+            <View
+                style={styles.flex1}
+                onTouchStart={dismissPinnedChartTooltip}
+            >
+                <TopBar
+                    breadcrumbLabel={translate('common.insights')}
+                    shouldDisplayHelpButton
                 />
-            )}
-            <InsightsDashboardContent
-                state={state}
-                headlineChart={headlineChart}
-                supportingCharts={supportingCharts}
-                filters={filters}
-                onRetry={requestDashboard}
-                onGroupByChange={(groupBy) => setFilters({groupBy})}
-            />
+                {state !== INSIGHTS_DASHBOARD_STATE.NO_EXPENSES && (
+                    <InsightsPageControls
+                        filters={filters}
+                        defaultFilters={defaultFilters}
+                        onChange={setFilters}
+                    />
+                )}
+                <InsightsDashboardContent
+                    state={state}
+                    headlineChart={headlineChart}
+                    supportingCharts={supportingCharts}
+                    filters={filters}
+                    onRetry={requestDashboard}
+                    onGroupByChange={(groupBy) => setFilters({groupBy})}
+                />
+            </View>
         </ScreenWrapper>
     );
 }

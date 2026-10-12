@@ -1,4 +1,5 @@
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
+import {dismissPinnedChartTooltip} from '@components/Charts/utils/pinnedChartTooltip';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import NAVIGATION_TABS from '@components/Navigation/NavigationTabBar/NAVIGATION_TABS';
 import TabBarBottomContent from '@components/Navigation/TabBarBottomContent';
@@ -271,7 +272,10 @@ function SearchPageNarrow({
                 >
                     <View style={[styles.flex1, styles.overflowHidden]}>
                         {!isMobileSelectionModeEnabled ? (
-                            <View style={[StyleUtils.getSearchPageNarrowHeaderStyles(), styles.mh100]}>
+                            <View
+                                style={[StyleUtils.getSearchPageNarrowHeaderStyles(), styles.mh100]}
+                                onTouchStart={dismissPinnedChartTooltip}
+                            >
                                 <View style={[styles.zIndex10, styles.appBG]}>
                                     <SearchPageHeaderNarrow
                                         queryJSON={queryJSON}

@@ -137,6 +137,7 @@ function HomePage() {
         <View
             ref={receiptDropTargetRef}
             style={styles.flex1}
+            onTouchStart={dismissPinnedChartTooltip}
         >
             <ReceiptScanDropZone
                 dropZoneRef={receiptDropTargetRef}
@@ -157,7 +158,6 @@ function HomePage() {
                     />
                     <ScrollView
                         style={styles.homePageScrollView}
-                        onTouchStart={dismissPinnedChartTooltip}
                         contentContainerStyle={[styles.homePageContentContainer, pageGutter]}
                         addBottomSafeAreaPadding
                         keyboardShouldPersistTaps="handled"
