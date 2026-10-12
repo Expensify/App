@@ -154,7 +154,7 @@ describe('Rule editors opened with a draft from the describe flow', () => {
 
         // Then the editor shows the seeded values, because it must not reset a draft that already exists
         expect(await getOnyxValue(ONYXKEYS.FORMS.FLAG_FOR_REVIEW_RULE_FORM)).toEqual(draft);
-        expect(screen.getByText('common.category: Meals')).toBeOnTheScreen();
+        expect(screen.getByLabelText('common.category, Meals')).toBeOnTheScreen();
     });
 
     it('keeps the seeded require fields draft and marks its settings as touched when the editor opens for a new rule', async () => {

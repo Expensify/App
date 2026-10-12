@@ -155,7 +155,7 @@ describe('DescribeRuleModal', () => {
         });
 
         // Then the editor gets the values and the modal closes, because the editor can show them
-        expect(onRuleGenerated).toHaveBeenCalledWith({maxExpenseAmount: '500'});
+        expect(onRuleGenerated).toHaveBeenCalledWith({maxExpenseAmount: '500'}, CONST.GENERATED_RULE.RULE_TYPE.FLAG_FOR_REVIEW);
         expect(onClose).toHaveBeenCalled();
     });
 
@@ -198,5 +198,21 @@ describe('DescribeRuleModal', () => {
         expect(onRuleGenerated).not.toHaveBeenCalled();
         expect(onClose).not.toHaveBeenCalled();
         expect(await getPromptErrors()).toEqual([translateLocal('workspace.rules.newRule.promptErrors.unintelligible')]);
+    });
+
+    it('shows the unsupported error for an unsupported answer when the caller gives no agent rule fallback', async () => {
+        // Given the flag for review editor asked for a rule, and the editor does not offer the agent rule fallback
+        const onRuleGenerated = jest.fn();
+        const onClose = jest.fn();
+        await renderFlagForReviewModal(onRuleGenerated, onClose);
+        const generationID = describeRule(writeSpy, 'Block gift cards');
+
+        // When Concierge answers that the rule is not supported
+        await answerGeneration({generationID, state: CONST.GENERATED_RULE.STATE.UNSUPPORTED});
+
+        // Then the modal shows the unsupported error, because only a caller with a fallback turns this answer into an agent rule
+        expect(onRuleGenerated).not.toHaveBeenCalled();
+        expect(onClose).not.toHaveBeenCalled();
+        expect(await getPromptErrors()).toEqual([translateLocal('workspace.rules.newRule.promptErrors.unsupported')]);
     });
 });

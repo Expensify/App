@@ -12,7 +12,6 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 
-import DescribeRuleModal from '@pages/workspace/rules/DescribeRuleModal';
 import RulesNewPage from '@pages/workspace/rules/RulesNewPage';
 
 import type * as ModalActions from '@userActions/Modal';
@@ -371,68 +370,5 @@ describe('RulesNewPage describe flow', () => {
         expect(await getPromptErrors()).toEqual([translateLocal('workspace.rules.newRule.promptErrors.unintelligible')]);
         expect(Navigation.navigate).not.toHaveBeenCalled();
         expect(await getOnyxValue(ONYXKEYS.FORMS.ADD_AGENT_RULE_FORM_DRAFT)).toBeUndefined();
-    });
-});
-
-describe('DescribeRuleModal in a rule editor', () => {
-    let writeSpy: WriteSpy;
-
-    beforeEach(() => {
-        jest.clearAllMocks();
-        writeSpy = jest.spyOn(API, 'write').mockImplementation(() => Promise.resolve());
-    });
-
-    afterEach(async () => {
-        writeSpy.mockRestore();
-        await act(async () => {
-            await Onyx.clear();
-        });
-    });
-
-    async function renderEditorModal(onRuleGenerated: jest.Mock) {
-        render(
-            <DescribeRuleModal
-                isVisible
-                onClose={jest.fn()}
-                policyID={POLICY_ID}
-                ruleType={CONST.GENERATED_RULE.RULE_TYPE.FLAG_FOR_REVIEW}
-                onRuleGenerated={onRuleGenerated}
-            />,
-        );
-        await waitForBatchedUpdatesWithAct();
-    }
-
-    it('shows the unsupported error when the answer has another rule type', async () => {
-        // Given the flag for review editor asked for a rule
-        const onRuleGenerated = jest.fn();
-        await renderEditorModal(onRuleGenerated);
-        const {generationID} = describeRule(writeSpy, 'Block retail purchases on all cards');
-
-        // When Concierge answers with a card spend rule
-        await answerGeneration({
-            generationID,
-            state: CONST.GENERATED_RULE.STATE.RULE,
-            ruleType: CONST.GENERATED_RULE.RULE_TYPE.RESTRICT_CARD_SPEND,
-            rule: {merchantNames: ['Walmart']},
-        });
-
-        // Then the editor keeps its form, because it cannot show the values of another rule type
-        expect(onRuleGenerated).not.toHaveBeenCalled();
-        expect(await getPromptErrors()).toEqual([translateLocal('workspace.rules.newRule.promptErrors.unsupported')]);
-    });
-
-    it('keeps the inline error for an unsupported answer when no agent rule fallback is given', async () => {
-        // Given an editor, which does not offer the agent rule fallback
-        const onRuleGenerated = jest.fn();
-        await renderEditorModal(onRuleGenerated);
-        const {generationID} = describeRule(writeSpy, 'Block gift cards');
-
-        // When Concierge answers that the rule is not supported
-        await answerGeneration({generationID, state: CONST.GENERATED_RULE.STATE.UNSUPPORTED});
-
-        // Then the editor shows the unsupported error, because only the New rule page routes to an agent rule
-        expect(onRuleGenerated).not.toHaveBeenCalled();
-        expect(await getPromptErrors()).toEqual([translateLocal('workspace.rules.newRule.promptErrors.unsupported')]);
-        expect(Navigation.navigate).not.toHaveBeenCalled();
     });
 });
