@@ -42,13 +42,19 @@ jest.mock('@libs/Navigation/Navigation', () => ({
 }));
 
 // Replaces the real, personal-details-backed selection list with a plain pressable row so tests can
-// simulate a row tap on VacationDelegatePage's onSelectRow without driving the full list UI.
+// simulate a row tap on VacationDelegatePage's onSelectRow without driving the full list UI. The preselected
+// delegate is rendered as text so tests can check which member the picker would show as selected.
 jest.mock('@components/BaseVacationDelegateSelectionComponent', () => {
     const ReactMock = jest.requireActual<typeof React>('react');
     const {Pressable, Text} = jest.requireActual<{Pressable: typeof ReactNativePressable; Text: typeof ReactNativeText}>('react-native');
 
-    return ({onSelectRow}: {onSelectRow: (option: {login: string}) => void}) =>
-        ReactMock.createElement(Pressable, {testID: 'select-delegate-a', onPress: () => onSelectRow({login: 'delegateA@example.com'})}, ReactMock.createElement(Text, null, 'select-a'));
+    return ({onSelectRow, vacationDelegate}: {onSelectRow: (option: {login: string}) => void; vacationDelegate?: {delegate?: string}}) =>
+        ReactMock.createElement(
+            ReactMock.Fragment,
+            null,
+            ReactMock.createElement(Pressable, {testID: 'select-delegate-a', onPress: () => onSelectRow({login: 'delegateA@example.com'})}, ReactMock.createElement(Text, null, 'select-a')),
+            ReactMock.createElement(Text, {testID: 'preselected-delegate'}, vacationDelegate?.delegate ?? 'none'),
+        );
 });
 
 /**
@@ -156,5 +162,33 @@ describe('VacationDelegatePage', () => {
         expect(apiWriteSpy).not.toHaveBeenCalled();
         const vacationDelegate = await getOnyxValue(ONYXKEYS.NVP_PRIVATE_VACATION_DELEGATE);
         expect(vacationDelegate?.delegate).toBe(DELEGATE_A_EMAIL);
+    });
+
+    it('does not preselect a saved delegate whose clear after date has passed', async () => {
+        // Given a saved delegate whose clear after date has passed, but whose clearing hasn't reached the client yet
+        await act(async () => {
+            await Onyx.set(ONYXKEYS.NVP_PRIVATE_VACATION_DELEGATE, {creator: CREATOR_EMAIL, delegate: DELEGATE_A_EMAIL, clearAfter: '2020-01-01 00:00:00'});
+        });
+
+        // When the picker opens
+        renderPage();
+        await waitForBatchedUpdatesWithAct();
+
+        // Then no member is preselected, since an expired delegate reads as no delegate everywhere else, including Profile
+        expect(screen.getByTestId('preselected-delegate')).toHaveTextContent('none');
+    });
+
+    it('preselects a saved delegate whose clear after date is still ahead', async () => {
+        // Given a saved delegate that clears in the future
+        await act(async () => {
+            await Onyx.set(ONYXKEYS.NVP_PRIVATE_VACATION_DELEGATE, {creator: CREATOR_EMAIL, delegate: DELEGATE_A_EMAIL, clearAfter: '2999-01-01 00:00:00'});
+        });
+
+        // When the picker opens
+        renderPage();
+        await waitForBatchedUpdatesWithAct();
+
+        // Then that delegate is preselected, so only expired delegates are hidden
+        expect(screen.getByTestId('preselected-delegate')).toHaveTextContent(DELEGATE_A_EMAIL);
     });
 });
