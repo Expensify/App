@@ -14,6 +14,7 @@ import type {AvatarSource} from '@libs/UserAvatarUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import type {Route} from '@src/ROUTES';
 import type {Policy} from '@src/types/onyx';
 import type NewAgentTemplate from '@src/types/onyx/NewAgentTemplate';
 import type PolicyEmployee from '@src/types/onyx/PolicyEmployee';
@@ -319,7 +320,7 @@ function updateAgentAvatar(
     write(WRITE_COMMANDS.UPDATE_AGENT_AVATAR, params, {optimisticData, successData, failureData});
 }
 
-function deleteAgent(accountID: number, agentLogin?: string, allPolicies?: OnyxCollection<Policy>, shouldNavigateBack = true) {
+function deleteAgent(accountID: number, agentLogin?: string, allPolicies?: OnyxCollection<Policy>, shouldNavigateBack = true, backPath?: Route) {
     // The caller may still hold an optimistic accountID that was already reconciled while its screen was open.
     const agentAccountID = resolveAgentAccountID(accountID);
     const optimisticData: AnyOnyxUpdate[] = [
@@ -380,7 +381,7 @@ function deleteAgent(accountID: number, agentLogin?: string, allPolicies?: OnyxC
     // Callers that end the copilot session right after deleting (e.g. deleting the agent you're copiloting into)
     // don't want the extra navigation, since the delegate transition resets navigation on its own.
     if (shouldNavigateBack) {
-        Navigation.goBack(ROUTES.SETTINGS_AGENTS);
+        Navigation.goBack(backPath ?? ROUTES.SETTINGS_AGENTS);
     }
 }
 
