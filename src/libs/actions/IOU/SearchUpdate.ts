@@ -237,6 +237,7 @@ function getSearchOnyxUpdate({
         if (queryJSON.groupBy === CONST.SEARCH.GROUP_BY.FROM && !alreadyInSnapshot) {
             const groupKey = `${CONST.SEARCH.GROUP_PREFIX}${fromAccountID}` as const;
             const existingGroup = existingSnapshot?.data?.[groupKey];
+
             // The group total is in the group's currency, so we can't add an amount in a different currency to it
             const transactionCurrency = getCurrency(transaction);
             const isSameCurrencyAsGroup = !existingGroup?.currency || transactionCurrency === existingGroup.currency;
