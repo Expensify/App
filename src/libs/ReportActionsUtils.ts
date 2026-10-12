@@ -3028,6 +3028,11 @@ function getReportActionMessageFragments(translate: LocalizedTranslate, action: 
         return [{text: message, html: `<muted-text>${message}</muted-text>`, type: 'COMMENT'}];
     }
 
+    if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_RULES_DOCUMENT)) {
+        const message = getWorkspaceRulesDocumentUpdatedMessage(translate, action);
+        return [{text: message, html: `<muted-text>${message}</muted-text>`, type: 'COMMENT'}];
+    }
+
     if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.RETRACTED)) {
         const message = translate('iou.retracted');
         return [{text: message, html: `<muted-text>${message}</muted-text>`, type: 'COMMENT'}];
@@ -3633,6 +3638,11 @@ function getWorkspaceDescriptionUpdatedMessage(translate: LocalizedTranslate, ac
     const message =
         typeof oldDescription === 'string' && newDescription ? translate('workspaceActions.updateWorkspaceDescription', newDescription, oldDescription) : getReportActionText(action);
     return message;
+}
+
+function getWorkspaceRulesDocumentUpdatedMessage(translate: LocalizedTranslate, action: ReportAction) {
+    const {isReplacement} = getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_RULES_DOCUMENT>) ?? {};
+    return translate('workspaceActions.updateRulesDocument', !!isReplacement);
 }
 
 function getWorkspaceCurrencyUpdateMessage(translate: LocalizedTranslate, action: ReportAction) {
@@ -5980,6 +5990,7 @@ export {
     getPolicyChangeLogDefaultTitleMessage,
     getPolicyChangeLogDefaultTitleEnforcedMessage,
     getWorkspaceDescriptionUpdatedMessage,
+    getWorkspaceRulesDocumentUpdatedMessage,
     getWorkspaceReportFieldAddMessage,
     getWorkspaceCustomUnitSubRateDeletedMessage,
     getWorkspaceCustomUnitRateImportedMessage,
