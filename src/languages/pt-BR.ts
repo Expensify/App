@@ -627,15 +627,6 @@ const translations: TranslationDeepObject<typeof en> = {
         launching: 'Iniciando Expensify',
         expired: 'Sua sessão expirou.',
         signIn: 'Faça login novamente.',
-        notValid: 'Link inválido.',
-        sessionMismatch: 'O link em que você clicou não é válido para a sua sessão atual.',
-        switchAccount: {
-            title: 'Trocar de conta?',
-            prompt: ({newEmail, currentEmail}: {newEmail: string; currentEmail: string}) =>
-                `Você está conectado como ${currentEmail}. Esta ação fará com que você entre como ${newEmail} em vez disso.`,
-            confirm: 'Alterar contas',
-            staySignedIn: 'Não trocar de conta',
-        },
     },
     multifactorAuthentication: {
         reviewTransaction: {
@@ -8328,6 +8319,8 @@ Exija dados de despesas como recibos e descrições, defina limites e padrões e
                 applyUpdates: 'Aplicar estas atualizações:',
                 saveRule: 'Salvar regra',
                 previewMatches: 'Pré-visualizar correspondências',
+                previewMatchesDescription: 'Veja como esta regra se aplica às suas despesas',
+                preview: 'Pré-visualizar',
                 confirmError: 'Insira o comerciante e aplique pelo menos uma atualização',
                 confirmErrorMerchant: 'Insira o comerciante',
                 confirmErrorUpdate: 'Aplicar pelo menos uma atualização',
@@ -8663,6 +8656,14 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
                 requireFieldsDescription: 'Exigir campos específicos de despesa ou dispensar a exigência deles.',
                 createAgentRule: 'Descrever regra do agente',
                 createAgentRuleDescription: 'Crie regras flexíveis que sejam executadas quando você precisar.',
+                describe: 'Descrever',
+                describeRule: 'Descreva sua regra em linguagem simples e o Concierge criará a regra para você',
+                describeRuleInputLabel: 'Descreva a regra',
+                promptErrors: {
+                    unsupported: 'Essa regra ainda não tem suporte — estamos trabalhando nisso. Tente uma regra diferente por enquanto.',
+                    unintelligible: 'Tente formular sua regra assim: se a despesa for maior que $100, exija um recibo.',
+                    multipleRules: 'Uma regra por vez, por favor — tente descrever uma única regra, como: bloquear compras no varejo em todos os cartões.',
+                },
             },
             expenseDefaultsTable: {
                 tableColumnType: 'Tipo',
