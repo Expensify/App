@@ -19,14 +19,13 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {getInsights} from '@libs/actions/Insights';
-import {clearLastVisitedMoreDestination, setLastVisitedInsightsDashboard} from '@libs/MoreDestinationHistory';
-import Navigation from '@libs/Navigation/Navigation';
+import {setLastVisitedInsightsDashboard} from '@libs/MoreDestinationHistory';
+import navigateBackToMore from '@libs/Navigation/helpers/navigateBackToMore';
 
 import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
 import type {InsightsDashboardID} from '@src/types/onyx';
 
 import {useIsFocused} from '@react-navigation/native';
@@ -226,14 +225,7 @@ function InsightsDashboard({dashboardID}: {dashboardID: InsightsDashboardID}) {
             <TopBar
                 breadcrumbLabel={translate('common.insights')}
                 // Insights has no tab of its own on narrow layouts - it is reached through More.
-                onBackButtonPress={
-                    shouldUseNarrowLayout
-                        ? () => {
-                              clearLastVisitedMoreDestination();
-                              Navigation.navigate(ROUTES.MORE);
-                          }
-                        : undefined
-                }
+                onBackButtonPress={shouldUseNarrowLayout ? navigateBackToMore : undefined}
                 shouldDisplayHelpButton
             />
             {state !== INSIGHTS_DASHBOARD_STATE.NO_EXPENSES && (

@@ -13,4 +13,11 @@ function navigateToCannedSpendSearch(searchKey: SearchKey, searchQuery: string, 
     Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query, searchKey}));
 }
 
+/** Opens a search as it was last seen, such as a saved search or one recorded for the More menu. */
+function navigateToSearch({query, searchKey, name}: {query: string; searchKey?: SearchKey; name?: string}) {
+    setSearchContext(false);
+    Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query, name, searchKey}));
+}
+
 export default navigateToCannedSpendSearch;
+export {navigateToSearch};

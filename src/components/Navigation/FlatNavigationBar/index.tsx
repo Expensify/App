@@ -4,64 +4,47 @@ import SidebarRightIcon from '@assets/images/sidebar-right.svg';
 import Hoverable from '@components/Hoverable';
 import Icon from '@components/Icon';
 import DebugTabView from '@components/Navigation/DebugTabView';
-import getLastRoute from '@components/Navigation/NavigationTabBar/getLastRoute';
-import getSearchTabRoute from '@components/Navigation/NavigationTabBar/getSearchTabRoute';
-import getStringParam from '@components/Navigation/NavigationTabBar/getStringParam';
 import NAVIGATION_TABS from '@components/Navigation/NavigationTabBar/NAVIGATION_TABS';
 import useWideInboxNavigation from '@components/Navigation/NavigationTabBar/useWideInboxNavigation';
 import {
-    useFlatNavigationBarAccountAvatarStyle,
-    useFlatNavigationBarLayoutWidthStyle,
-    useFlatNavigationBarPeekShadowStyle,
-    useFlatNavigationBarVisualWidthStyle,
+    getCollapseFadeStyle,
+    getFlatNavigationBarAccountAvatarStyle,
+    getFlatNavigationBarLayoutWidth,
+    getFlatNavigationBarPeekShadowStyle,
+    getFlatNavigationBarVisualWidthStyle,
+    layoutTransitionStyle,
     useSearchSidebarCollapse,
-    useSearchSidebarCollapseFadeStyle,
 } from '@components/Navigation/SearchSidebarCollapseStore';
 import {PressableWithFeedback} from '@components/Pressable';
 import ScrollView from '@components/ScrollView';
-import {useSearchQueryContext, useSearchSelectionActions} from '@components/Search/SearchContext';
 
 import useAccountTabIndicatorStatus from '@hooks/useAccountTabIndicatorStatus';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import usePermissions from '@hooks/usePermissions';
 import {usePersonalDetailsByIDs} from '@hooks/usePersonalDetails';
 import useRestoreWorkspacesTabOnNavigate from '@hooks/useRestoreWorkspacesTabOnNavigate';
-import useRootNavigationState from '@hooks/useRootNavigationState';
 import {useSidebarOrderedReportsState} from '@hooks/useSidebarOrderedReports';
-import useSingleExecution from '@hooks/useSingleExecution';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useTodoCounts from '@hooks/useTodoCounts';
 import useWorkspacesTabIndicatorStatus from '@hooks/useWorkspacesTabIndicatorStatus';
 
 import {navigateToConciergeChat} from '@libs/actions/Report';
-import {setSearchContext} from '@libs/actions/Search';
 import clearSelectedText from '@libs/clearSelectedText/clearSelectedText';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import Navigation from '@libs/Navigation/Navigation';
-import navigationRef from '@libs/Navigation/navigationRef';
-import navigateToCannedSpendSearch from '@libs/SearchNavigationUtils';
-import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
-import type {SearchTypeMenuItem} from '@libs/SearchUIUtils';
-import {formatBadgeText, getItemBadgeText, getLastSearchQuery} from '@libs/SearchUIUtils';
-import {ACCOUNTING_KEYS, EXPENSES_KEYS, getGroupedSearchTranslationPath, REPORTS_KEYS} from '@libs/SpendNavigationGroups';
 
 import NavigationTabBarFloatingActionButton from '@pages/inbox/sidebar/NavigationTabBarFloatingActionButton';
 import ProfileAvatarWithIndicator from '@pages/inbox/sidebar/ProfileAvatarWithIndicator';
+import SupportalSwitcherButton from '@pages/inbox/sidebar/SupportalSwitcherButton';
 
 import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
-import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import SCREENS from '@src/SCREENS';
 import {hasSeenTourSelector} from '@src/selectors/Onboarding';
-import {lastExpensesSearchQuerySelector} from '@src/selectors/SearchFilters';
-import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
 
 import type {ValueOf} from 'type-fest';
 
@@ -72,10 +55,7 @@ import Animated from 'react-native-reanimated';
 import FlatNavDivider from './FlatNavDivider';
 import FlatNavItem from './FlatNavItem';
 import FlatNavLogo from './FlatNavLogo';
-import FlatNavSavedSearches from './FlatNavSavedSearches';
-import FlatNavSubItemList from './FlatNavSubItemList';
-import useFlatNavSavedSearchItems from './useFlatNavSavedSearchItems';
-import useFlatNavSpendItems from './useFlatNavSpendItems';
+import FlatNavSpendSection, {FlatNavSpendSectionWithTodoCounts} from './FlatNavSpendSection';
 
 const FAB_ANCHOR_ALIGNMENT = {
     horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
@@ -101,35 +81,10 @@ function FlatNavigationBar({selectedTab}: FlatNavigationBarProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
-    const {singleExecution} = useSingleExecution();
-    const {isBetaEnabled} = usePermissions();
     const [isDebugModeEnabled] = useOnyx(ONYXKEYS.IS_DEBUG_MODE_ENABLED);
 
-    const navIcons = useMemoizedLazyExpensifyIcons([
-        'Home',
-        'Concierge',
-        'Inbox',
-        'Receipt',
-        'Document',
-        'Coins',
-        'InvoiceGeneric',
-        'Connect',
-        'Bookmark',
-        'PieChart',
-        'LuggageWithLines',
-        'Buildings',
-    ]);
+    const navIcons = useMemoizedLazyExpensifyIcons(['Home', 'Concierge', 'Inbox', 'Buildings']);
 
-    const {currentSearchKey, currentSearchQueryJSON} = useSearchQueryContext();
-    const {clearSelectedTransactions} = useSearchSelectionActions();
-    const {counts: reportCounts} = useTodoCounts();
-    const {expenses, reports, accounting} = useFlatNavSpendItems();
-    const savedSearchItems = useFlatNavSavedSearchItems();
-
-    const [searchFilters] = useOnyx(ONYXKEYS.SEARCH_FILTERS);
-    const [savedSearches] = useOnyx(ONYXKEYS.SAVED_SEARCHES);
-    const [lastSearchParams] = useOnyx(ONYXKEYS.REPORT_NAVIGATION_LAST_SEARCH_QUERY);
-    const [lastExpensesSearchQuery] = useOnyx(ONYXKEYS.SEARCH_FILTERS, {selector: lastExpensesSearchQuerySelector});
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
@@ -140,47 +95,16 @@ function FlatNavigationBar({selectedTab}: FlatNavigationBarProps) {
     const {status: accountTabIndicatorStatus} = useAccountTabIndicatorStatus();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
 
-    const lastInboxReportID = useRootNavigationState((rootState) => {
-        if (!rootState) {
-            return undefined;
-        }
-        return getStringParam(getLastRoute(rootState, NAVIGATORS.REPORTS_SPLIT_NAVIGATOR, SCREENS.REPORT)?.params, 'reportID');
-    });
+    const {isCollapsed, isPeeking, isVisuallyCollapsed, toggleSidebar, startPeek, endPeek} = useSearchSidebarCollapse();
 
-    const {isCollapsed, isVisuallyCollapsed, toggleSidebar, startPeek, endPeek} = useSearchSidebarCollapse();
-    const layoutWidthStyle = useFlatNavigationBarLayoutWidthStyle();
-    const visualWidthStyle = useFlatNavigationBarVisualWidthStyle();
-    const accountAvatarStyle = useFlatNavigationBarAccountAvatarStyle();
-    const logoFadeStyle = useSearchSidebarCollapseFadeStyle();
-    const peekShadowStyle = useFlatNavigationBarPeekShadowStyle();
-
-    const navigateToInbox = useWideInboxNavigation(selectedTab === NAVIGATION_TABS.INBOX);
+    const {navigateToInbox, lastReportRouteReportID: lastInboxReportID} = useWideInboxNavigation(selectedTab === NAVIGATION_TABS.INBOX);
     const navigateToWorkspaces = useRestoreWorkspacesTabOnNavigate();
 
     // The Concierge chat lives in the Inbox, so its row takes the selection away from the Inbox row while it is open.
     const isConciergeSelected = selectedTab === NAVIGATION_TABS.INBOX && !!conciergeReportID && lastInboxReportID === conciergeReportID;
     const isInboxSelected = selectedTab === NAVIGATION_TABS.INBOX && !isConciergeSelected;
     const isSpendTabSelected = selectedTab === NAVIGATION_TABS.SEARCH;
-    const isExpensesGroupSelected = isSpendTabSelected && EXPENSES_KEYS.some((key) => key === currentSearchKey);
-    const isReportsGroupSelected = isSpendTabSelected && REPORTS_KEYS.some((key) => key === currentSearchKey);
-    const isAccountingGroupSelected = isSpendTabSelected && ACCOUNTING_KEYS.some((key) => key === currentSearchKey);
-    const isSavedGroupSelected = isSpendTabSelected && !!currentSearchKey?.startsWith(CONST.SEARCH.SAVED_SEARCH_PREFIX);
-    // Invoices and Travel are plain searches by type, with no suggested search key of their own.
-    const isTypeSearchSelected = (type: SearchDataTypes) => isSpendTabSelected && !currentSearchKey && currentSearchQueryJSON?.type === type;
     const isAccountSelected = selectedTab === NAVIGATION_TABS.SETTINGS;
-
-    // The parent row of Expenses and Reports is the group's broadest search, so it leads nowhere new as a child.
-    const expensesRoot = expenses.find((item) => item.key === CONST.SEARCH.SEARCH_KEYS.EXPENSES);
-    const expensesChildren = expenses.filter((item) => item.key !== CONST.SEARCH.SEARCH_KEYS.EXPENSES);
-    const reportsRoot = reports.find((item) => item.key === CONST.SEARCH.SEARCH_KEYS.REPORTS);
-    const reportsChildren = reports.filter((item) => item.key !== CONST.SEARCH.SEARCH_KEYS.REPORTS);
-
-    // A collapsed bar hides every group's children, so a selected group is only expanded while the bar is open.
-    const isExpensesGroupExpanded = isExpensesGroupSelected && !isVisuallyCollapsed && expensesChildren.length > 0;
-    const isReportsGroupExpanded = isReportsGroupSelected && !isVisuallyCollapsed && reportsChildren.length > 0;
-    const isAccountingGroupExpanded = isAccountingGroupSelected && !isVisuallyCollapsed;
-    const isSavedGroupExpanded = isSavedGroupSelected && !isVisuallyCollapsed;
-    const hasSavedSearches = Object.keys(savedSearches ?? {}).length > 0;
 
     let inboxStatusIndicatorColor: string | undefined;
     if (chatTabBrickRoad === CONST.BRICK_ROAD_INDICATOR_STATUS.INFO) {
@@ -188,40 +112,6 @@ function FlatNavigationBar({selectedTab}: FlatNavigationBarProps) {
     } else if (chatTabBrickRoad) {
         inboxStatusIndicatorColor = theme.danger;
     }
-
-    const navigateToSearchItem = singleExecution((item: SearchTypeMenuItem) => {
-        clearSelectedText();
-        interceptAnonymousUser(() => {
-            navigateToCannedSpendSearch(item.key, item.searchQuery, getLastSearchQuery(searchFilters, item.key), clearSelectedTransactions);
-        });
-    });
-
-    // A collapsed group carries its children's combined count. Once it expands, each child shows its own count, so
-    // repeating the total on the parent would double-report it. formatBadgeText returns '' for zero, which renders nothing.
-    const countsBySearchKey: Record<string, number> = reportCounts;
-    const getGroupBadgeText = (items: SearchTypeMenuItem[], isExpanded: boolean) =>
-        isExpanded ? undefined : formatBadgeText(items.reduce((total, item) => total + (countsBySearchKey[item.key] ?? 0), 0));
-
-    const getParentBadgeText = (items: SearchTypeMenuItem[], rootItem: SearchTypeMenuItem | undefined, isExpanded: boolean) =>
-        isExpanded && rootItem ? getItemBadgeText(rootItem.key, reportCounts) : getGroupBadgeText(items, isExpanded && !rootItem);
-
-    // The collapsed row's dot has to outlive the badge it stands in for, so it fades rather than blinks.
-    const hasGroupBadge = (items: SearchTypeMenuItem[]) => !!getGroupBadgeText(items, false);
-
-    const renderSubItem = (item: SearchTypeMenuItem, index: number, total: number) => (
-        <FlatNavItem
-            key={item.key}
-            isCollapsed={isVisuallyCollapsed}
-            label={translate(getGroupedSearchTranslationPath(item.key, item.translationPath))}
-            isSelected={isSpendTabSelected && currentSearchKey === item.key}
-            isSubItem
-            isFirstSubItem={index === 0}
-            isLastSubItem={index === total - 1}
-            badgeText={getItemBadgeText(item.key, reportCounts)}
-            sentryLabel={CONST.SENTRY_LABEL.SEARCH.TYPE_MENU_ITEM}
-            onPress={() => navigateToSearchItem(item)}
-        />
-    );
 
     const navigateToHome = () => {
         if (selectedTab === NAVIGATION_TABS.HOME) {
@@ -246,51 +136,14 @@ function FlatNavigationBar({selectedTab}: FlatNavigationBarProps) {
         });
     };
 
-    const navigateToSpendRoot = () => {
-        clearSelectedText();
-        interceptAnonymousUser(() => {
-            Navigation.navigate(getSearchTabRoute(navigationRef.getRootState(), lastSearchParams, lastExpensesSearchQuery));
-        });
-    };
-
-    const navigateToGroup = (rootItem: SearchTypeMenuItem | undefined) => {
-        if (!rootItem) {
-            navigateToSpendRoot();
-            return;
-        }
-        navigateToSearchItem(rootItem);
-    };
-
-    const navigateToTypeSearch = (type: SearchDataTypes) => {
-        clearSelectedText();
-        interceptAnonymousUser(() => {
-            setSearchContext(false);
-            Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: buildCannedSearchQuery({type})}));
-        });
-    };
-
-    const navigateToInsights = () => {
-        if (selectedTab === NAVIGATION_TABS.INSIGHTS) {
+    // With Concierge open, the Inbox's last report is Concierge itself, so reopening it would change nothing.
+    const navigateToInboxRow = () => {
+        if (!isConciergeSelected) {
+            navigateToInbox();
             return;
         }
         clearSelectedText();
-        interceptAnonymousUser(() => {
-            Navigation.navigate(ROUTES.INSIGHTS.getRoute(CONST.INSIGHTS.DASHBOARD.SPEND));
-        });
-    };
-
-    // Opening the group navigates to a saved search so its children can render, and it lands on the row the list
-    // shows first rather than on whichever one Onyx happens to hold first.
-    const navigateToFirstSavedSearch = () => {
-        const firstSavedSearch = savedSearchItems.at(0);
-        if (!firstSavedSearch) {
-            return;
-        }
-        clearSelectedText();
-        interceptAnonymousUser(() => {
-            setSearchContext(false);
-            Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: firstSavedSearch.query, name: firstSavedSearch.name, searchKey: firstSavedSearch.searchKey}));
-        });
+        Navigation.navigate(ROUTES.INBOX);
     };
 
     const navigateToSettings = () => {
@@ -302,21 +155,28 @@ function FlatNavigationBar({selectedTab}: FlatNavigationBarProps) {
         });
     };
 
+    const accountAccessibilityLabel = [
+        `${translate('initialSettingsPage.account')}, ${translate('sidebarScreen.buttonMySettings')}`,
+        accountTabIndicatorStatus ? translate('common.yourReviewIsRequired') : undefined,
+    ]
+        .filter(Boolean)
+        .join('. ');
+
     return (
         <>
             {!!isDebugModeEnabled && <DebugTabView selectedTab={selectedTab} />}
-            <Animated.View style={layoutWidthStyle}>
+            <Animated.View style={[layoutTransitionStyle, styles.h100, {width: getFlatNavigationBarLayoutWidth(isCollapsed)}]}>
                 <Hoverable onHoverOut={endPeek}>
                     <Animated.View
-                        style={[styles.flatNavigationBarContainer, styles.stickToLeft, styles.zIndex1, visualWidthStyle]}
+                        style={[styles.flatNavigationBarContainer, styles.stickToLeft, styles.zIndex1, getFlatNavigationBarVisualWidthStyle(isVisuallyCollapsed)]}
                         testID="FlatNavigationBar"
                     >
                         <Animated.View
-                            style={[styles.flatNavigationBarPeekShadow, peekShadowStyle]}
+                            style={[styles.flatNavigationBarPeekShadow, getFlatNavigationBarPeekShadowStyle(isPeeking)]}
                             pointerEvents="none"
                         />
                         <View style={[styles.flatNavigationBarHeader, isVisuallyCollapsed && styles.flatNavigationBarHeaderCollapsed]}>
-                            <Animated.View style={[styles.flatNavigationBarLogoContainer, logoFadeStyle]}>
+                            <Animated.View style={[styles.flatNavigationBarLogoContainer, getCollapseFadeStyle(isVisuallyCollapsed)]}>
                                 <FlatNavLogo />
                             </Animated.View>
                             <PressableWithFeedback
@@ -362,6 +222,7 @@ function FlatNavigationBar({selectedTab}: FlatNavigationBarProps) {
                                     label={CONST.CONCIERGE_DISPLAY_NAME}
                                     icon={navIcons.Concierge}
                                     isSelected={isConciergeSelected}
+                                    sentryLabel={CONST.SENTRY_LABEL.NAVIGATION_TAB_BAR.CONCIERGE}
                                     onPress={navigateToConcierge}
                                 />
                                 <FlatNavItem
@@ -372,127 +233,22 @@ function FlatNavigationBar({selectedTab}: FlatNavigationBarProps) {
                                     statusIndicatorColor={inboxStatusIndicatorColor}
                                     accessibilityLabel={chatTabBrickRoad ? `${translate('common.inbox')}. ${translate('common.yourReviewIsRequired')}` : translate('common.inbox')}
                                     sentryLabel={CONST.SENTRY_LABEL.NAVIGATION_TAB_BAR.INBOX}
-                                    onPress={navigateToInbox}
+                                    onPress={navigateToInboxRow}
                                 />
 
                                 <FlatNavDivider />
 
-                                {expenses.length > 0 && (
-                                    <>
-                                        <FlatNavItem
-                                            isCollapsed={isVisuallyCollapsed}
-                                            label={translate('search.tabs.expenses')}
-                                            icon={navIcons.Receipt}
-                                            isSelected={isSpendTabSelected && currentSearchKey === CONST.SEARCH.SEARCH_KEYS.EXPENSES}
-                                            badgeText={getParentBadgeText(expenses, expensesRoot, isExpensesGroupExpanded)}
-                                            hasCollapsedStatusIndicator={hasGroupBadge(expenses)}
-                                            sentryLabel={CONST.SENTRY_LABEL.NAVIGATION_TAB_BAR.EXPENSES}
-                                            onPress={() => navigateToGroup(expensesRoot)}
-                                        />
-                                        {isExpensesGroupSelected && expensesChildren.length > 0 && (
-                                            <FlatNavSubItemList
-                                                isExpanded={isExpensesGroupExpanded}
-                                                selectedIndex={expensesChildren.findIndex((item) => item.key === currentSearchKey)}
-                                            >
-                                                {expensesChildren.map((item, index) => renderSubItem(item, index, expensesChildren.length))}
-                                            </FlatNavSubItemList>
-                                        )}
-                                    </>
-                                )}
-
-                                {reports.length > 0 && (
-                                    <>
-                                        <FlatNavItem
-                                            isCollapsed={isVisuallyCollapsed}
-                                            label={translate('common.reports')}
-                                            icon={navIcons.Document}
-                                            isSelected={isReportsGroupSelected}
-                                            badgeText={getParentBadgeText(reports, reportsRoot, isReportsGroupExpanded)}
-                                            hasCollapsedStatusIndicator={hasGroupBadge(reports)}
-                                            sentryLabel={CONST.SENTRY_LABEL.NAVIGATION_TAB_BAR.REPORTS}
-                                            onPress={() => navigateToGroup(reportsRoot)}
-                                        />
-                                        {isReportsGroupSelected && reportsChildren.length > 0 && (
-                                            <FlatNavSubItemList
-                                                isExpanded={isReportsGroupExpanded}
-                                                selectedIndex={reportsChildren.findIndex((item) => item.key === currentSearchKey)}
-                                            >
-                                                {reportsChildren.map((item, index) => renderSubItem(item, index, reportsChildren.length))}
-                                            </FlatNavSubItemList>
-                                        )}
-                                    </>
-                                )}
-
-                                {/* TODO: Bills has no destination in the app yet, so the row is a placeholder for the design. */}
-                                <FlatNavItem
-                                    isCollapsed={isVisuallyCollapsed}
-                                    label={translate('workspace.common.bills')}
-                                    icon={navIcons.Coins}
-                                    isSelected={false}
-                                    onPress={() => {}}
-                                />
-
-                                <FlatNavItem
-                                    isCollapsed={isVisuallyCollapsed}
-                                    label={translate('workspace.common.invoices')}
-                                    icon={navIcons.InvoiceGeneric}
-                                    isSelected={isTypeSearchSelected(CONST.SEARCH.DATA_TYPES.INVOICE)}
-                                    onPress={() => navigateToTypeSearch(CONST.SEARCH.DATA_TYPES.INVOICE)}
-                                />
-
-                                {accounting.length > 0 && (
-                                    <>
-                                        <FlatNavItem
-                                            isCollapsed={isVisuallyCollapsed}
-                                            label={translate('search.tabs.accounting')}
-                                            icon={navIcons.Connect}
-                                            isSelected={isAccountingGroupSelected}
-                                            badgeText={getGroupBadgeText(accounting, isAccountingGroupExpanded)}
-                                            hasCollapsedStatusIndicator={hasGroupBadge(accounting)}
-                                            onPress={() => navigateToGroup(accounting.at(0))}
-                                        />
-                                        {isAccountingGroupSelected && (
-                                            <FlatNavSubItemList
-                                                isExpanded={isAccountingGroupExpanded}
-                                                selectedIndex={accounting.findIndex((item) => item.key === currentSearchKey)}
-                                            >
-                                                {accounting.map((item, index) => renderSubItem(item, index, accounting.length))}
-                                            </FlatNavSubItemList>
-                                        )}
-                                    </>
-                                )}
-
-                                {hasSavedSearches && (
-                                    <>
-                                        <FlatNavItem
-                                            isCollapsed={isVisuallyCollapsed}
-                                            label={translate('search.savedSearchesMenuItemTitle')}
-                                            icon={navIcons.Bookmark}
-                                            isSelected={isSavedGroupSelected}
-                                            onPress={navigateToFirstSavedSearch}
-                                        />
-                                        {isSavedGroupSelected && <FlatNavSavedSearches isExpanded={isSavedGroupExpanded} />}
-                                    </>
-                                )}
-
-                                {isBetaEnabled(CONST.BETAS.INSIGHTS_PAGE) && (
-                                    <FlatNavItem
+                                {isSpendTabSelected ? (
+                                    <FlatNavSpendSectionWithTodoCounts
+                                        selectedTab={selectedTab}
                                         isCollapsed={isVisuallyCollapsed}
-                                        label={translate('common.insights')}
-                                        icon={navIcons.PieChart}
-                                        isSelected={selectedTab === NAVIGATION_TABS.INSIGHTS}
-                                        sentryLabel={CONST.SENTRY_LABEL.NAVIGATION_TAB_BAR.INSIGHTS}
-                                        onPress={navigateToInsights}
+                                    />
+                                ) : (
+                                    <FlatNavSpendSection
+                                        selectedTab={selectedTab}
+                                        isCollapsed={isVisuallyCollapsed}
                                     />
                                 )}
-
-                                <FlatNavItem
-                                    isCollapsed={isVisuallyCollapsed}
-                                    label={translate('workspace.common.travel')}
-                                    icon={navIcons.LuggageWithLines}
-                                    isSelected={isTypeSearchSelected(CONST.SEARCH.DATA_TYPES.TRIP)}
-                                    onPress={() => navigateToTypeSearch(CONST.SEARCH.DATA_TYPES.TRIP)}
-                                />
 
                                 <FlatNavDivider />
 
@@ -502,7 +258,11 @@ function FlatNavigationBar({selectedTab}: FlatNavigationBarProps) {
                                     icon={navIcons.Buildings}
                                     isSelected={selectedTab === NAVIGATION_TABS.WORKSPACES}
                                     statusIndicatorColor={workspacesTabIndicatorStatus ? workspacesTabIndicatorColor : undefined}
-                                    accessibilityLabel={`${translate('common.workspacesTabTitle')}${workspacesTabIndicatorStatus ? `. ${translate('common.yourReviewIsRequired')}` : ''}`}
+                                    accessibilityLabel={
+                                        workspacesTabIndicatorStatus
+                                            ? `${translate('common.workspacesTabTitle')}. ${translate('common.yourReviewIsRequired')}`
+                                            : translate('common.workspacesTabTitle')
+                                    }
                                     sentryLabel={CONST.SENTRY_LABEL.NAVIGATION_TAB_BAR.WORKSPACES}
                                     onPress={navigateToWorkspaces}
                                 />
@@ -510,19 +270,24 @@ function FlatNavigationBar({selectedTab}: FlatNavigationBarProps) {
                         </Hoverable>
 
                         <View style={styles.flatNavigationBarFooter}>
+                            <Hoverable shouldUseNativeHoverEvents>
+                                {(isFooterHovered) => (
+                                    <View style={[styles.flexRow, styles.ph3]}>
+                                        <SupportalSwitcherButton isSidebarHovered={isFooterHovered && !isVisuallyCollapsed} />
+                                    </View>
+                                )}
+                            </Hoverable>
                             <FlatNavDivider />
                             <FlatNavItem
                                 isCollapsed={isVisuallyCollapsed}
                                 label={currentUserPersonalDetails.displayName ?? translate('initialSettingsPage.account')}
                                 leftElement={
-                                    <Animated.View style={[styles.flatNavigationBarAccountAvatar, accountAvatarStyle]}>
+                                    <Animated.View style={[styles.flatNavigationBarAccountAvatar, getFlatNavigationBarAccountAvatarStyle(isVisuallyCollapsed)]}>
                                         <ProfileAvatarWithIndicator isSelected={isAccountSelected} />
                                     </Animated.View>
                                 }
                                 isSelected={isAccountSelected}
-                                accessibilityLabel={`${translate('initialSettingsPage.account')}, ${translate('sidebarScreen.buttonMySettings')}. ${
-                                    accountTabIndicatorStatus ? `${translate('common.yourReviewIsRequired')}.` : ''
-                                }`}
+                                accessibilityLabel={accountAccessibilityLabel}
                                 additionalStyle={styles.flatNavigationBarAccountItem}
                                 sentryLabel={CONST.SENTRY_LABEL.NAVIGATION_TAB_BAR.ACCOUNT}
                                 onPress={navigateToSettings}

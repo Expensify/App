@@ -10,6 +10,9 @@ type WorkspacesTabIndicatorStatusResult = {
     /** The indicator status, prioritizing policy errors, then domain errors, then policy info statuses. */
     status: IndicatorStatus | undefined;
 
+    /** Whether the indicator stands for an error rather than information. */
+    isError: boolean;
+
     /** The policy ID associated with the active policy indicator. */
     indicatorPolicyID: string | undefined;
 };
@@ -24,7 +27,7 @@ function useWorkspacesTabIndicatorStatus(): WorkspacesTabIndicatorStatusResult {
     const status = errorStatus ?? policyInfoStatus ?? domainInfoStatus;
     const indicatorColor = errorStatus ? theme.danger : theme.success;
 
-    return {indicatorColor, status, indicatorPolicyID};
+    return {indicatorColor, status, isError: !!errorStatus, indicatorPolicyID};
 }
 
 export default useWorkspacesTabIndicatorStatus;

@@ -15,28 +15,25 @@ import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useRestoreWorkspacesTabOnNavigate from '@hooks/useRestoreWorkspacesTabOnNavigate';
-import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWorkspacesTabIndicatorStatus from '@hooks/useWorkspacesTabIndicatorStatus';
 
-import {setSearchContext} from '@libs/actions/Search';
 import clearSelectedText from '@libs/clearSelectedText/clearSelectedText';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
-import {getLastVisitedInsightsDashboard, getLastVisitedSearchKey, MORE_DESTINATIONS, setLastVisitedMoreDestination} from '@libs/MoreDestinationHistory';
-import Navigation from '@libs/Navigation/Navigation';
+import {MORE_DESTINATIONS, setLastVisitedMoreDestination} from '@libs/MoreDestinationHistory';
+import {openLastInsightsDashboard, reopenLastVisitedSearch} from '@libs/MoreNavigationUtils';
 import {savedSearchIDToSearchKey} from '@libs/SearchKeyUtils';
-import type {SearchKey} from '@libs/SearchKeyUtils';
-import navigateToCannedSpendSearch from '@libs/SearchNavigationUtils';
+import navigateToCannedSpendSearch, {navigateToSearch} from '@libs/SearchNavigationUtils';
 import {getValidLastQuery} from '@libs/SearchQueryUtils';
 import {getLastSearchQuery} from '@libs/SearchUIUtils';
-import {ACCOUNTING_GROUP_ID, SAVED_SEARCHES_GROUP_ID} from '@libs/SpendNavigationGroups';
+import {ACCOUNTING_GROUP_ID, INSIGHTS_GROUP_ID, SAVED_SEARCHES_GROUP_ID} from '@libs/SpendNavigationGroups';
 
 import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
 
+import {useIsFocused} from '@react-navigation/native';
 import React from 'react';
 import {View} from 'react-native';
 
@@ -50,7 +47,6 @@ import {View} from 'react-native';
  */
 function MorePage() {
     const styles = useThemeStyles();
-    const theme = useTheme();
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {isBetaEnabled} = usePermissions();
@@ -70,17 +66,20 @@ function MorePage() {
 
     useDocumentTitle(translate('common.more'));
 
-    const {accounting} = useFlatNavSpendItems();
+    // Native tabs stay mounted in the background, so the approval watch behind the item list only runs while this is shown.
+    const isFocused = useIsFocused();
+    const {accounting, insights} = useFlatNavSpendItems(isFocused);
+    const isInsightsPageEnabled = isBetaEnabled(CONST.BETAS.INSIGHTS_PAGE);
     const {clearSelectedTransactions} = useSearchSelectionActions();
     const [searchFilters] = useOnyx(ONYXKEYS.SEARCH_FILTERS);
     const [savedSearches] = useOnyx(ONYXKEYS.SAVED_SEARCHES);
-    const {indicatorColor: workspacesIndicatorColor, status: workspacesIndicatorStatus} = useWorkspacesTabIndicatorStatus();
+    const {status: workspacesIndicatorStatus, isError: isWorkspacesIndicatorError} = useWorkspacesTabIndicatorStatus();
     const navigateToWorkspaces = useRestoreWorkspacesTabOnNavigate();
 
-    // The hook reports a broader set of statuses than a menu row can show, and encodes severity in the color it picks.
+    // The hook reports a broader set of statuses than a menu row can show, so the row only carries their severity.
     let workspacesBrickRoadIndicator;
     if (workspacesIndicatorStatus) {
-        workspacesBrickRoadIndicator = workspacesIndicatorColor === theme.danger ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : CONST.BRICK_ROAD_INDICATOR_STATUS.INFO;
+        workspacesBrickRoadIndicator = isWorkspacesIndicatorError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : CONST.BRICK_ROAD_INDICATOR_STATUS.INFO;
     }
 
     const savedSearchEntries = Object.entries(savedSearches ?? {});
@@ -108,12 +107,14 @@ function MorePage() {
             description: shouldUseNarrowLayout ? translate('morePage.accountingDescription') : undefined,
             icon: shouldUseNarrowLayout ? illustrations.Accounting : icons.Connect,
             onPress: () => {
-                const lastKey = getLastVisitedSearchKey(ACCOUNTING_GROUP_ID);
-                const item = accounting.find((search) => search.key === lastKey) ?? accounting.at(0);
+                setLastVisitedMoreDestination(MORE_DESTINATIONS.ACCOUNTING);
+                if (reopenLastVisitedSearch(ACCOUNTING_GROUP_ID, savedSearches, clearSelectedTransactions)) {
+                    return;
+                }
+                const item = accounting.at(0);
                 if (!item) {
                     return;
                 }
-                setLastVisitedMoreDestination(MORE_DESTINATIONS.ACCOUNTING);
                 clearSelectedText();
                 interceptAnonymousUser(() => {
                     navigateToCannedSpendSearch(item.key, item.searchQuery, getLastSearchQuery(searchFilters, item.key), clearSelectedTransactions);
@@ -130,25 +131,26 @@ function MorePage() {
             description: shouldUseNarrowLayout ? translate('morePage.savedSearchesDescription') : undefined,
             icon: shouldUseNarrowLayout ? illustrations.MagnifyingGlassReceipt : icons.Bookmark,
             onPress: () => {
-                const lastKey = getLastVisitedSearchKey(SAVED_SEARCHES_GROUP_ID);
-                const entry = savedSearchEntries.find(([id]) => savedSearchIDToSearchKey(id) === lastKey) ?? savedSearchEntries.at(0);
+                setLastVisitedMoreDestination(MORE_DESTINATIONS.SAVED_SEARCHES);
+                if (reopenLastVisitedSearch(SAVED_SEARCHES_GROUP_ID, savedSearches, clearSelectedTransactions)) {
+                    return;
+                }
+                const entry = savedSearchEntries.at(0);
                 if (!entry) {
                     return;
                 }
                 const [savedSearchID, savedSearch] = entry;
-                const searchKey: SearchKey = savedSearchIDToSearchKey(savedSearchID);
-                const query = getValidLastQuery(getLastSearchQuery(searchFilters, searchKey), savedSearch.query);
-                setLastVisitedMoreDestination(MORE_DESTINATIONS.SAVED_SEARCHES);
+                const searchKey = savedSearchIDToSearchKey(savedSearchID);
                 clearSelectedText();
                 interceptAnonymousUser(() => {
-                    setSearchContext(false);
-                    Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query, name: savedSearch.name, searchKey}));
+                    navigateToSearch({query: getValidLastQuery(getLastSearchQuery(searchFilters, searchKey), savedSearch.query), name: savedSearch.name, searchKey});
                 });
             },
         });
     }
 
-    if (isBetaEnabled(CONST.BETAS.INSIGHTS_PAGE)) {
+    // Without the Insights page, its charts are still reachable as searches, so the row opens those instead.
+    if (isInsightsPageEnabled || insights.length > 0) {
         menuItems.push({
             key: 'insights',
             ...cardProps,
@@ -157,9 +159,20 @@ function MorePage() {
             icon: shouldUseNarrowLayout ? illustrations.Chart : icons.PieChart,
             onPress: () => {
                 setLastVisitedMoreDestination(MORE_DESTINATIONS.INSIGHTS);
+                if (isInsightsPageEnabled) {
+                    openLastInsightsDashboard();
+                    return;
+                }
+                if (reopenLastVisitedSearch(INSIGHTS_GROUP_ID, savedSearches, clearSelectedTransactions)) {
+                    return;
+                }
+                const item = insights.at(0);
+                if (!item) {
+                    return;
+                }
                 clearSelectedText();
                 interceptAnonymousUser(() => {
-                    Navigation.navigate(ROUTES.INSIGHTS.getRoute(getLastVisitedInsightsDashboard() ?? CONST.INSIGHTS.DASHBOARD.SPEND));
+                    navigateToCannedSpendSearch(item.key, item.searchQuery, getLastSearchQuery(searchFilters, item.key), clearSelectedTransactions);
                 });
             },
         });

@@ -37,7 +37,7 @@ function WideInboxTabButton({selectedTab, statusIndicatorColor, accessibilityLab
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Inbox']);
-    const navigateToChats = useWideInboxNavigation(selectedTab === NAVIGATION_TABS.INBOX);
+    const {navigateToInbox: navigateToChats} = useWideInboxNavigation(selectedTab === NAVIGATION_TABS.INBOX);
 
     return (
         <PressableWithFeedback

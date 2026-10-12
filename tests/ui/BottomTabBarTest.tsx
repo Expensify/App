@@ -244,7 +244,7 @@ describe('DebugTabView', () => {
             expect(style.at(0)).toEqual(
                 expect.objectContaining({
                     top: 0,
-                    left: variables.navigationTabBarSize,
+                    left: variables.flatNavigationBarWidth,
                     width: variables.sideBarWithLHBWidth - variables.cropBorderWidth,
                 }),
             );
@@ -264,8 +264,8 @@ describe('DebugTabView', () => {
             expect(style.at(0)).toEqual(
                 expect.objectContaining({
                     bottom: 0,
-                    left: variables.navigationTabBarSize,
-                    width: 1280 - variables.navigationTabBarSize,
+                    left: variables.flatNavigationBarWidth,
+                    width: 1280 - variables.flatNavigationBarWidth,
                 }),
             );
         });
@@ -283,8 +283,8 @@ describe('DebugTabView', () => {
             expect(style.at(0)).toEqual(
                 expect.objectContaining({
                     bottom: 0,
-                    left: variables.navigationTabBarSize,
-                    width: 1280 - variables.navigationTabBarSize,
+                    left: variables.flatNavigationBarWidth,
+                    width: 1280 - variables.flatNavigationBarWidth,
                 }),
             );
         });
@@ -313,8 +313,8 @@ describe('DebugTabView', () => {
             expect(style.at(0)).toEqual(
                 expect.objectContaining({
                     bottom: 0,
-                    left: variables.navigationTabBarSize,
-                    width: 1280 - variables.navigationTabBarSize - variables.sidePanelWidth,
+                    left: variables.flatNavigationBarWidth,
+                    width: 1280 - variables.flatNavigationBarWidth - variables.sidePanelWidth,
                 }),
             );
         });

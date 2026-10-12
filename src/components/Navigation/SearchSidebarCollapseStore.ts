@@ -142,31 +142,31 @@ function useSearchSidebarToggleButtonStyle() {
 // Sliding it by half that difference lines it up, and the transform animates where a padding change would jump.
 const ACCOUNT_AVATAR_COLLAPSED_TRANSLATE_X = -(variables.avatarSizeSmall - variables.iconSizeNormal) / 2;
 
-/** The shadow only reads while a collapsed bar is peeking over the content; expanded, it has nothing to sit above. */
-function useFlatNavigationBarPeekShadowStyle() {
-    const {isPeeking: peeking} = useSearchSidebarCollapse();
-
-    return useMemo<ViewStyle>(() => ({...fadeTransitionStyle, opacity: peeking ? 1 : 0}), [peeking]);
+function getCollapseFadeStyle(isVisuallyCollapsed: boolean): ViewStyle {
+    return {
+        ...fadeTransitionStyle,
+        opacity: isVisuallyCollapsed ? 0 : 1,
+        transform: [{translateX: isVisuallyCollapsed ? SEARCH_SIDEBAR_COLLAPSE_TRANSLATE_X : 0}],
+    };
 }
 
-function useFlatNavigationBarAccountAvatarStyle() {
-    const {isVisuallyCollapsed} = useSearchSidebarCollapse();
+/** The shadow only reads while a collapsed bar is peeking over the content; expanded, it has nothing to sit above. */
+function getFlatNavigationBarPeekShadowStyle(isBarPeeking: boolean): ViewStyle {
+    return {...fadeTransitionStyle, opacity: isBarPeeking ? 1 : 0};
+}
 
-    return useMemo<ViewStyle>(() => ({...fadeTransitionStyle, transform: [{translateX: isVisuallyCollapsed ? ACCOUNT_AVATAR_COLLAPSED_TRANSLATE_X : 0}]}), [isVisuallyCollapsed]);
+function getFlatNavigationBarAccountAvatarStyle(isVisuallyCollapsed: boolean): ViewStyle {
+    return {...fadeTransitionStyle, transform: [{translateX: isVisuallyCollapsed ? ACCOUNT_AVATAR_COLLAPSED_TRANSLATE_X : 0}]};
 }
 
 /** Layout space the bar reserves. Peeking overlays the content rather than pushing it, so this ignores the peek. */
-function useFlatNavigationBarLayoutWidthStyle() {
-    const {isCollapsed: collapsed} = useSearchSidebarCollapse();
-
-    return useMemo<ViewStyle>(() => ({...layoutTransitionStyle, height: '100%', width: getFlatNavigationBarWidth(collapsed ? 1 : 0)}), [collapsed]);
+function getFlatNavigationBarLayoutWidth(isCollapsed: boolean): number {
+    return getFlatNavigationBarWidth(isCollapsed ? 1 : 0);
 }
 
 /** What the bar actually draws, which widens back out while the pointer peeks at it. */
-function useFlatNavigationBarVisualWidthStyle() {
-    const {isCollapsed: collapsed, isPeeking: peeking} = useSearchSidebarCollapse();
-
-    return useMemo<ViewStyle>(() => ({...layoutTransitionStyle, width: getFlatNavigationBarWidth(collapsed && !peeking ? 1 : 0)}), [collapsed, peeking]);
+function getFlatNavigationBarVisualWidthStyle(isVisuallyCollapsed: boolean): ViewStyle {
+    return {...layoutTransitionStyle, width: getFlatNavigationBarWidth(isVisuallyCollapsed ? 1 : 0)};
 }
 
 export {
@@ -175,10 +175,11 @@ export {
     getFlatNavigationBarWidth,
     heightTransitionStyle,
     layoutTransitionStyle,
-    useFlatNavigationBarAccountAvatarStyle,
-    useFlatNavigationBarLayoutWidthStyle,
-    useFlatNavigationBarPeekShadowStyle,
-    useFlatNavigationBarVisualWidthStyle,
+    getCollapseFadeStyle,
+    getFlatNavigationBarAccountAvatarStyle,
+    getFlatNavigationBarLayoutWidth,
+    getFlatNavigationBarPeekShadowStyle,
+    getFlatNavigationBarVisualWidthStyle,
     useSearchSidebarCollapse,
     useSearchSidebarLayoutWidthStyle,
     useSearchSidebarVisualWidthStyle,

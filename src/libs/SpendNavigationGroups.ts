@@ -25,16 +25,29 @@ const ACCOUNTING_KEYS: SearchKey[] = [
     CONST.SEARCH.SEARCH_KEYS.RECONCILIATION,
 ];
 
+/** Keys under "Insights" for users without the Insights page, who reach these charts as searches instead. */
+const INSIGHTS_KEYS: SearchKey[] = [
+    CONST.SEARCH.SEARCH_KEYS.SPEND_OVER_TIME,
+    CONST.SEARCH.SEARCH_KEYS.TOP_SPENDERS,
+    CONST.SEARCH.SEARCH_KEYS.TOP_CATEGORIES,
+    CONST.SEARCH.SEARCH_KEYS.TOP_MERCHANTS,
+    CONST.SEARCH.SEARCH_KEYS.VIOLATIONS_BY_SUBMITTER,
+];
+
 /** Saved searches have no fixed key list, so their group needs an id of its own. */
 const SAVED_SEARCHES_GROUP_ID = 'savedSearches';
 
 /** Group id for the Accounting searches. Matches what getSpendGroupID returns for any of its keys. */
 const ACCOUNTING_GROUP_ID: TranslationPaths = 'search.tabs.accounting';
 
+/** Group id for the Insights searches. Matches what getSpendGroupID returns for any of its keys. */
+const INSIGHTS_GROUP_ID: TranslationPaths = 'search.tabs.insights';
+
 const GROUPS: Array<{keys: SearchKey[]; translationPath: TranslationPaths}> = [
     {keys: EXPENSES_KEYS, translationPath: 'search.tabs.expenses'},
     {keys: REPORTS_KEYS, translationPath: 'common.reports'},
     {keys: ACCOUNTING_KEYS, translationPath: 'search.tabs.accounting'},
+    {keys: INSIGHTS_KEYS, translationPath: 'search.tabs.insights'},
 ];
 
 /**
@@ -89,6 +102,8 @@ export {
     getSpendGroupID,
     getSpendGroupKeys,
     getSpendGroupTranslationPath,
+    INSIGHTS_GROUP_ID,
+    INSIGHTS_KEYS,
     REPORTS_KEYS,
     SAVED_SEARCHES_GROUP_ID,
     shouldHideSpendTabRow,

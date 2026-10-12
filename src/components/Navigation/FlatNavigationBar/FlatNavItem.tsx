@@ -1,6 +1,6 @@
 import Badge from '@components/Badge';
 import Icon from '@components/Icon';
-import {fadeTransitionStyle, useSearchSidebarCollapseFadeStyle} from '@components/Navigation/SearchSidebarCollapseStore';
+import {fadeTransitionStyle, getCollapseFadeStyle} from '@components/Navigation/SearchSidebarCollapseStore';
 import {PressableWithFeedback} from '@components/Pressable';
 import Text from '@components/Text';
 
@@ -62,6 +62,9 @@ type FlatNavItemProps = {
     isFirstSubItem?: boolean;
     isLastSubItem?: boolean;
 
+    /** Shown but not selectable, for destinations the app doesn't have yet */
+    isDisabled?: boolean;
+
     /** Whether a label too long for its row shows the full text in a tooltip. For rows the user named themselves. */
     shouldShowTooltipWhenTruncated?: boolean;
 
@@ -105,12 +108,13 @@ function FlatNavItem({
     isFirstSubItem = false,
     isLastSubItem = false,
     shouldShowTooltipWhenTruncated = false,
+    isDisabled = false,
     onPress,
 }: FlatNavItemProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     // The label and badge stay mounted and fade, rather than disappearing the moment the bar starts narrowing.
-    const collapseFadeStyle = useSearchSidebarCollapseFadeStyle();
+    const collapseFadeStyle = getCollapseFadeStyle(isCollapsed);
 
     // Collapsed rows have nowhere to put a badge, so a row that has one shows the same green dot the Inbox uses.
     // The dot stays mounted either way and fades, rather than blinking in as the bar finishes narrowing.
@@ -120,9 +124,10 @@ function FlatNavItem({
     return (
         <PressableWithFeedback
             onPress={onPress}
+            disabled={isDisabled}
             role={CONST.ROLE.TAB}
             accessibilityLabel={accessibilityLabel ?? label}
-            accessibilityState={{selected: isSelected}}
+            accessibilityState={{selected: isSelected, disabled: isDisabled}}
             sentryLabel={sentryLabel}
             style={({hovered}) => [
                 styles.flatNavigationBarItem,
@@ -132,85 +137,80 @@ function FlatNavItem({
                 additionalStyle,
             ]}
         >
-            {({hovered}) => (
-                <>
-                    {isSubItem && !isCollapsed && (
-                        <View
-                            style={[
-                                styles.flatNavigationBarSubItemRule,
-                                isFirstSubItem && styles.flatNavigationBarSubItemRuleFirst,
-                                isLastSubItem && styles.flatNavigationBarSubItemRuleLast,
-                            ]}
-                        />
-                    )}
-                    {!!icon && (
-                        <View>
-                            <Icon
-                                src={icon}
-                                fill={getIconFill(isSelected, hovered, theme)}
-                                width={variables.iconSizeNormal}
-                                height={variables.iconSizeNormal}
-                            />
-                            {!!resolvedStatusIndicatorColor && (
-                                <View
-                                    style={[
-                                        styles.navigationTabBarStatusIndicator,
-                                        styles.flatNavigationBarStatusIndicator,
-                                        styles.statusIndicatorColor(resolvedStatusIndicatorColor),
-                                        // The dot's stroke reads as a gap punched out of the row, so it has to track the row's background.
-                                        getStatusIndicatorBorderStyle(isSelected, hovered, styles),
-                                        fadeTransitionStyle,
-                                        {opacity: isStatusIndicatorVisible ? 1 : 0},
-                                    ]}
-                                />
-                            )}
-                        </View>
-                    )}
-                    {leftElement}
-                    <Animated.View style={[styles.flex1, collapseFadeStyle]}>
-                        {shouldShowTooltipWhenTruncated ? (
-                            <FlatNavMarqueeLabel
-                                text={label}
-                                isHovered={hovered}
+            {({hovered}) => {
+                const labelStyle = [styles.flatNavigationBarLabel, !isSelected && styles.flatNavigationBarLabelRegular, {color: isSelected || hovered ? theme.text : theme.textSupporting}];
+                return (
+                    <>
+                        {isSubItem && !isCollapsed && (
+                            <View
                                 style={[
-                                    styles.flatNavigationBarLabel,
-                                    !isSelected && styles.flatNavigationBarLabelRegular,
-                                    {color: isSelected || hovered ? theme.text : theme.textSupporting},
+                                    styles.flatNavigationBarSubItemRule,
+                                    isFirstSubItem && styles.flatNavigationBarSubItemRuleFirst,
+                                    isLastSubItem && styles.flatNavigationBarSubItemRuleLast,
                                 ]}
                             />
-                        ) : (
-                            <Text
-                                numberOfLines={1}
-                                style={[
-                                    styles.flatNavigationBarLabel,
-                                    !isSelected && styles.flatNavigationBarLabelRegular,
-                                    {color: isSelected || hovered ? theme.text : theme.textSupporting},
-                                ]}
-                            >
-                                {label}
-                            </Text>
                         )}
-                    </Animated.View>
-                    {!!badgeText && (
-                        <Animated.View style={collapseFadeStyle}>
-                            <Badge
-                                text={badgeText}
-                                // todoBadge is left off deliberately: it fixes a 28x24 box that would override condensed sizing.
-                                badgeStyles={styles.ml0}
-                                success
-                                isCondensed
-                            />
+                        {!!icon && (
+                            <View>
+                                <Icon
+                                    src={icon}
+                                    fill={getIconFill(isSelected, hovered, theme)}
+                                    width={variables.iconSizeNormal}
+                                    height={variables.iconSizeNormal}
+                                />
+                                {!!resolvedStatusIndicatorColor && (
+                                    <View
+                                        style={[
+                                            styles.navigationTabBarStatusIndicator,
+                                            styles.flatNavigationBarStatusIndicator,
+                                            styles.statusIndicatorColor(resolvedStatusIndicatorColor),
+                                            // The dot's stroke reads as a gap punched out of the row, so it has to track the row's background.
+                                            getStatusIndicatorBorderStyle(isSelected, hovered, styles),
+                                            fadeTransitionStyle,
+                                            {opacity: isStatusIndicatorVisible ? 1 : 0},
+                                        ]}
+                                    />
+                                )}
+                            </View>
+                        )}
+                        {leftElement}
+                        <Animated.View style={[styles.flex1, collapseFadeStyle]}>
+                            {shouldShowTooltipWhenTruncated ? (
+                                <FlatNavMarqueeLabel
+                                    text={label}
+                                    isHovered={hovered}
+                                    style={labelStyle}
+                                />
+                            ) : (
+                                <Text
+                                    numberOfLines={1}
+                                    style={labelStyle}
+                                >
+                                    {label}
+                                </Text>
+                            )}
                         </Animated.View>
-                    )}
-                    {/* Hidden rather than unmounted, so the menu it opens survives the pointer leaving the row. */}
-                    {!isCollapsed && !!hoverActionComponent && (
-                        <View style={[styles.flatNavigationBarRowAction, !hovered && styles.flatNavigationBarRowActionHidden]}>
-                            <FlatNavRowActionBackdrop />
-                            {hoverActionComponent}
-                        </View>
-                    )}
-                </>
-            )}
+                        {!!badgeText && (
+                            <Animated.View style={collapseFadeStyle}>
+                                <Badge
+                                    text={badgeText}
+                                    // todoBadge is left off deliberately: it fixes a 28x24 box that would override condensed sizing.
+                                    badgeStyles={styles.ml0}
+                                    success
+                                    isCondensed
+                                />
+                            </Animated.View>
+                        )}
+                        {/* Hidden rather than unmounted, so the menu it opens survives the pointer leaving the row. */}
+                        {!isCollapsed && !!hoverActionComponent && (
+                            <View style={[styles.flatNavigationBarRowAction, !hovered && styles.flatNavigationBarRowActionHidden]}>
+                                {hovered && <FlatNavRowActionBackdrop />}
+                                {hoverActionComponent}
+                            </View>
+                        )}
+                    </>
+                );
+            }}
         </PressableWithFeedback>
     );
 }

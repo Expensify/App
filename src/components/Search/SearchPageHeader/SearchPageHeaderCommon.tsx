@@ -5,11 +5,10 @@ import useActiveSavedSearch from '@hooks/useActiveSavedSearch';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 
-import {clearLastVisitedMoreDestination, setLastVisitedSearchKey} from '@libs/MoreDestinationHistory';
-import Navigation from '@libs/Navigation/Navigation';
-import {ACCOUNTING_GROUP_ID, getSpendGroupID, getSpendGroupTranslationPath, SAVED_SEARCHES_GROUP_ID} from '@libs/SpendNavigationGroups';
+import {setLastVisitedSearch} from '@libs/MoreDestinationHistory';
+import navigateBackToMore from '@libs/Navigation/helpers/navigateBackToMore';
+import {ACCOUNTING_GROUP_ID, getSpendGroupID, getSpendGroupTranslationPath, INSIGHTS_GROUP_ID, SAVED_SEARCHES_GROUP_ID} from '@libs/SpendNavigationGroups';
 
-import ROUTES from '@src/ROUTES';
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
 
 import React, {useEffect} from 'react';
@@ -26,21 +25,23 @@ type SearchPageHeaderCommonProps = {
 
 function SearchPageHeaderCommon({queryJSONType, shouldShowLoadingBar, shouldUseGroupTitle = false}: SearchPageHeaderCommonProps) {
     const {translate} = useLocalize();
-    const {currentSearchKey, suggestedSearches} = useSearchQueryContext();
+    const {currentSearchKey, currentSearchQueryJSON, suggestedSearches} = useSearchQueryContext();
     const selectedItem = currentSearchKey ? suggestedSearches[currentSearchKey] : undefined;
     const activeSavedSearch = useActiveSavedSearch();
     // Remember where the user is inside Accounting or Saved, so the More menu can return them here.
     const groupID = getSpendGroupID(currentSearchKey);
+    const currentQuery = currentSearchQueryJSON?.inputQuery;
+    const savedSearchName = activeSavedSearch?.name;
     useEffect(() => {
-        if (!groupID || !currentSearchKey) {
+        if (!groupID || !currentSearchKey || !currentQuery) {
             return;
         }
-        setLastVisitedSearchKey(groupID, currentSearchKey);
-    }, [groupID, currentSearchKey]);
+        setLastVisitedSearch(groupID, {searchKey: currentSearchKey, query: currentQuery, name: savedSearchName});
+    }, [groupID, currentSearchKey, currentQuery, savedSearchName]);
 
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    // Accounting and Saved have no tab of their own on narrow layouts - they are reached through More.
-    const shouldShowBackToMore = shouldUseNarrowLayout && (groupID === ACCOUNTING_GROUP_ID || groupID === SAVED_SEARCHES_GROUP_ID);
+    // Accounting, Saved and Insights have no tab of their own on narrow layouts - they are reached through More.
+    const shouldShowBackToMore = shouldUseNarrowLayout && (groupID === ACCOUNTING_GROUP_ID || groupID === SAVED_SEARCHES_GROUP_ID || groupID === INSIGHTS_GROUP_ID);
     const groupTranslationPath = shouldUseGroupTitle ? getSpendGroupTranslationPath(currentSearchKey) : undefined;
     const title = groupTranslationPath ? translate(groupTranslationPath) : getSearchPageHeaderTitle({translate, type: queryJSONType, activeSavedSearch, selectedItem});
 
@@ -48,14 +49,7 @@ function SearchPageHeaderCommon({queryJSONType, shouldShowLoadingBar, shouldUseG
         <TopBar
             shouldShowLoadingBar={shouldShowLoadingBar}
             breadcrumbLabel={title}
-            onBackButtonPress={
-                shouldShowBackToMore
-                    ? () => {
-                          clearLastVisitedMoreDestination();
-                          Navigation.navigate(ROUTES.MORE);
-                      }
-                    : undefined
-            }
+            onBackButtonPress={shouldShowBackToMore ? navigateBackToMore : undefined}
             shouldDisplayHelpButton
         />
     );

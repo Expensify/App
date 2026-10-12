@@ -54,7 +54,8 @@ function makeDoesLastReportActionExistSelector(actionID: string | undefined) {
 
 /**
  * Returns the wide-layout Inbox navigation handler, which reopens the last-viewed report instead of the
- * Inbox root. It subscribes to that report, so only call it from components that render in the wide layout.
+ * Inbox root, along with that report's ID. It subscribes to that report, so only call it from components that render
+ * in the wide layout.
  *
  * @param isInboxSelected whether the Inbox tab is the one currently showing
  */
@@ -92,7 +93,7 @@ function useWideInboxNavigation(isInboxSelected: boolean) {
         selector: doesLastReportActionExistSelector,
     });
 
-    return () => {
+    const navigateToInbox = () => {
         if (isInboxSelected) {
             return;
         }
@@ -173,6 +174,8 @@ function useWideInboxNavigation(isInboxSelected: boolean) {
 
         Navigation.navigate(ROUTES.INBOX);
     };
+
+    return {navigateToInbox, lastReportRouteReportID};
 }
 
 export default useWideInboxNavigation;
