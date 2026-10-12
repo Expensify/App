@@ -224,6 +224,10 @@ function AttachmentCamera({isVisible, onCapture, onClose, onModalHide}: Attachme
     };
 
     const retakePhoto = () => {
+        // After "Use photo" the picker owns the file, and the review controls stay tappable during the hide animation
+        if (isConfirmingPhoto.current) {
+            return;
+        }
         if (capturedPhoto) {
             discardPhoto(capturedPhoto.uri);
         }
@@ -240,6 +244,10 @@ function AttachmentCamera({isVisible, onCapture, onClose, onModalHide}: Attachme
     };
 
     const handleClose = () => {
+        // The photo was already handed to the picker, so closing now must neither delete it nor report a cancel
+        if (isConfirmingPhoto.current) {
+            return;
+        }
         isActiveRef.current = false;
         isCapturing.current = false;
         if (capturedPhoto) {

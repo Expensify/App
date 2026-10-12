@@ -233,6 +233,43 @@ describe('AttachmentCamera', () => {
         expect(onCapture).toHaveBeenCalledTimes(1);
     });
 
+    it('keeps the confirmed photo when Retake is tapped while the camera is closing', async () => {
+        // Given a photo the user has already confirmed with "Use photo"
+        const {onCapture, onClose} = renderCamera();
+        await waitForBatchedUpdatesWithAct();
+        fireEvent.press(screen.getByLabelText(translateLocal('receipt.shutter')));
+        await waitForBatchedUpdatesWithAct();
+        fireEvent.press(screen.getByLabelText(translateLocal('attachmentPicker.usePhoto')));
+
+        // When "Retake" is tapped before the modal finishes hiding
+        fireEvent.press(screen.getByLabelText(translateLocal('attachmentPicker.retake')));
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the file the picker is uploading is not deleted and the review stays as it was
+        expect(onCapture).toHaveBeenCalledTimes(1);
+        expect(onClose).not.toHaveBeenCalled();
+        expect(mockedDiscard).not.toHaveBeenCalled();
+        expect(screen.getByLabelText(translateLocal('attachmentPicker.usePhoto'))).toBeOnTheScreen();
+    });
+
+    it('keeps the confirmed photo when close is tapped while the camera is closing', async () => {
+        // Given a photo the user has already confirmed with "Use photo"
+        const {onCapture, onClose} = renderCamera();
+        await waitForBatchedUpdatesWithAct();
+        fireEvent.press(screen.getByLabelText(translateLocal('receipt.shutter')));
+        await waitForBatchedUpdatesWithAct();
+        fireEvent.press(screen.getByLabelText(translateLocal('attachmentPicker.usePhoto')));
+
+        // When the close button is tapped before the modal finishes hiding
+        fireEvent.press(screen.getByLabelText(translateLocal('common.close')));
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the file is not deleted and the picker is not told the selection was cancelled
+        expect(onCapture).toHaveBeenCalledTimes(1);
+        expect(onClose).not.toHaveBeenCalled();
+        expect(mockedDiscard).not.toHaveBeenCalled();
+    });
+
     it('returns to the viewfinder when the user presses "Retake"', async () => {
         // Given a captured photo under review
         const {onCapture} = renderCamera();
