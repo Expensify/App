@@ -1,4 +1,4 @@
-name: Verify Podfile
+name: Verify iOS native configuration
 
 on:
   pull_request:
