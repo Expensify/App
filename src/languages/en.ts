@@ -7604,6 +7604,7 @@ const translations = {
             paymentsAdmins: 'Payments Admins',
             approvers: 'Approvers',
             auditors: 'Auditors',
+            approveOnly: 'Approve-only',
             guests: 'Guests',
             editors: 'Editors',
             members: 'Members',
