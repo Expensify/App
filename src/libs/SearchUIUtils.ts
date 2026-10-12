@@ -4722,6 +4722,17 @@ function isTransactionSearchType(type: string | undefined): boolean {
  * own Reimbursable column renders. Billable works the other way round. Every consumer of a footer breakdown goes
  * through this, so a snapshot total, a live to-do total and a selection subtotal classify a row identically.
  */
+/**
+ * The breakdown a snapshot's total answers. A settled snapshot with no stamp predates it, when only the plain total was
+ * asked for. One with neither is a response still landing, whose stamp follows, so it is unknown.
+ */
+function getSnapshotFooterTotal(search: OnyxEntry<OnyxTypes.SearchResults['search']>): SearchFooterTotal | undefined {
+    if (search?.footerTotal) {
+        return search.footerTotal;
+    }
+    return search?.state === CONST.SEARCH.SNAPSHOT_STATE.LOADED ? CONST.SEARCH.FOOTER_TOTAL.TOTAL : undefined;
+}
+
 function doesTransactionMatchFooterTotal(transaction: OnyxEntry<OnyxTypes.Transaction>, totalType: SearchFooterTotal | undefined): boolean {
     switch (totalType) {
         case CONST.SEARCH.FOOTER_TOTAL.REIMBURSABLE:
@@ -7364,6 +7375,7 @@ function isTransactionMatchWithGroupItem(transaction: OnyxTypes.Transaction, gro
 
 export {
     doesTransactionMatchFooterTotal,
+    getSnapshotFooterTotal,
     getSearchBulkEditPolicyID,
     getSuggestedSearches,
     getSections,

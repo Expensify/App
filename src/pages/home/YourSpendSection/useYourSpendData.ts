@@ -9,7 +9,7 @@ import {WRITE_COMMANDS} from '@libs/API/types';
 import {getDisplayableExpensifyCards, getDisplayableThirdPartyCards, isPersonalCard, lastFourNumbersFromCardName} from '@libs/CardUtils';
 import {arePaymentsEnabled, isPaidGroupPolicy} from '@libs/PolicyUtils';
 import {buildSearchQueryJSON} from '@libs/SearchQueryUtils';
-import {isGroupEntry} from '@libs/SearchUIUtils';
+import {getSnapshotFooterTotal, isGroupEntry} from '@libs/SearchUIUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -359,10 +359,9 @@ function getCardTotalsByCardID(snapshot: OnyxEntry<SearchResults>): Record<numbe
 }
 
 // The Search footer can answer a breakdown (e.g. non-reimbursable) on this same snapshot, and a response lands before
-// its stamp does, so only a total stamped as the plain one is the row's.
+// its stamp does, so only a total known to be the plain one is the row's.
 function isUnconfirmedTotal(searchResults: OnyxEntry<SearchResults>): boolean {
-    const footerTotal = searchResults?.search?.footerTotal;
-    return !!footerTotal && footerTotal !== CONST.SEARCH.FOOTER_TOTAL.TOTAL;
+    return !!searchResults && getSnapshotFooterTotal(searchResults.search) !== CONST.SEARCH.FOOTER_TOTAL.TOTAL;
 }
 
 function getYourSpendRowState({isApplicable, isOffline, searchResults}: GetYourSpendRowStateParams): YourSpendRowState {

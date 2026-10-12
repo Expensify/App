@@ -1132,6 +1132,42 @@ describe('useYourSpendData — drops the approval cache when no outstanding repo
         // Then the row hides, as with no snapshot at all, since nothing can confirm a total until back online
         expect(result.current.approvalRowState).toBe(YOUR_SPEND_ROW_STATE.HIDDEN_EMPTY);
     });
+
+    describe('a snapshot cached before the stamp existed', () => {
+        function makeSettledUnstampedSnapshot(total: number): SearchResults {
+            const snapshot = makeSearchResultsWithCount(1);
+            snapshot.search.total = total;
+            snapshot.search.footerTotal = undefined;
+            snapshot.search.state = CONST.SEARCH.SNAPSHOT_STATE.LOADED;
+            return snapshot;
+        }
+
+        it('shows its total online, since only the plain total was asked for before the stamp', () => {
+            // Given an upgrade onto a snapshot that finished loading before the stamp existed
+            setupReports([makeReport()]);
+            setupApprovalSnapshot(makeSettledUnstampedSnapshot(900));
+
+            // When Home renders online, before its own search returns
+            const {result} = renderHook(() => useYourSpendData());
+
+            // Then the cached total shows straight away, as before the upgrade
+            expect(result.current.approvalRowState).toBe(YOUR_SPEND_ROW_STATE.READY);
+            expect(result.current.approvalTotals.total).toBe(900);
+        });
+
+        it('shows its total offline instead of hiding the row', () => {
+            // Given the same upgrade, opened offline with nothing cached in memory
+            mockedUseNetwork.mockReturnValue(networkState(true));
+            setupReports([makeReport()]);
+            setupApprovalSnapshot(makeSettledUnstampedSnapshot(900));
+
+            const {result} = renderHook(() => useYourSpendData());
+
+            // Then the row keeps the cached total
+            expect(result.current.approvalRowState).toBe(YOUR_SPEND_ROW_STATE.READY);
+            expect(result.current.approvalTotals.total).toBe(900);
+        });
+    });
 });
 
 // isApprovalStale / isPaymentStale — grey only the total a queued change would move
