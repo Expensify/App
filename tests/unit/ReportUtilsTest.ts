@@ -62,6 +62,7 @@ import {
     canBeAutoReimbursed,
     canCreateRequest,
     canCreateTaskInReport,
+    canDeleteCardTransaction,
     canDeleteMoneyRequestReport,
     canDeleteReportAction,
     canDeleteTransaction,
@@ -128,6 +129,7 @@ import {
     getParticipantsList,
     getPayeeName,
     getPendingChatMembers,
+    getUpdateEmployeeDisplayNameMessage,
     getPendingDeleteMemberAccountIDs,
     getPolicyChangeLogCopyMessage,
     getPolicyExpenseChat,
@@ -409,6 +411,7 @@ const computeReportName = (
         conciergeReportID,
         reportTransactions: buildTransactionsByReportID(transactions),
         isTrackIntentUser: false,
+        formatPhoneNumber,
         rules: undefined,
     });
 const participantsPersonalDetails: PersonalDetailsList = {
@@ -963,103 +966,6 @@ describe('ReportUtils', () => {
                     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
                     testDriveURL: expect.any(String),
                 }),
-            );
-        });
-
-        it('provides the Concierge report as the base for a join-workspace validation task link', () => {
-            const description = jest.fn(() => '');
-
-            prepareOnboardingOnyxData({
-                introSelected: undefined,
-                engagementChoice: CONST.ONBOARDING_CHOICES.JOIN_WORKSPACE,
-                onboardingMessage: {
-                    message: 'This is a test',
-                    tasks: [{type: CONST.ONBOARDING_TASK_TYPE.VALIDATE_EMAIL, title: '', description, autoCompleted: false}],
-                },
-                companySize: undefined,
-                conciergeChat: {reportID: REPORT_ID},
-                delegateAccountID: undefined,
-            });
-
-            expect(description).toHaveBeenCalledWith(
-                expect.objectContaining<OnboardingTaskLinks>({
-                    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-                    validateEmailLink: expect.stringContaining(`/r/${REPORT_ID}/verify-account?isJoinWorkspaceTask=true`),
-                }),
-            );
-        });
-
-        it('provides the merge-code screen for an account-merge validation task link', () => {
-            const description = jest.fn(() => '');
-
-            prepareOnboardingOnyxData({
-                introSelected: undefined,
-                engagementChoice: CONST.ONBOARDING_CHOICES.JOIN_WORKSPACE,
-                onboardingMessage: {
-                    message: 'This is a test',
-                    tasks: [{type: CONST.ONBOARDING_TASK_TYPE.VALIDATE_EMAIL, title: '', description, autoCompleted: false}],
-                },
-                companySize: undefined,
-                conciergeChat: {reportID: REPORT_ID},
-                delegateAccountID: undefined,
-                shouldResumeAccountMerge: true,
-            });
-
-            expect(description).toHaveBeenCalledWith(
-                expect.objectContaining<OnboardingTaskLinks>({
-                    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-                    validateEmailLink: expect.stringContaining('/onboarding/work-email-validation?isJoinWorkspaceTask=true'),
-                }),
-            );
-        });
-
-        it('persists and rolls back only incremental join-workspace task IDs', () => {
-            const result = prepareOnboardingOnyxData({
-                introSelected: {choice: CONST.ONBOARDING_CHOICES.JOIN_WORKSPACE, createWorkspace: 'existing-task'},
-                engagementChoice: CONST.ONBOARDING_CHOICES.JOIN_WORKSPACE,
-                onboardingMessage: {
-                    message: '',
-                    tasks: [
-                        {type: CONST.ONBOARDING_TASK_TYPE.ADD_WORK_EMAIL, title: 'Add work email', description: '', autoCompleted: false},
-                        {type: CONST.ONBOARDING_TASK_TYPE.VALIDATE_EMAIL, title: 'Validate email', description: '', autoCompleted: false},
-                        {type: CONST.ONBOARDING_TASK_TYPE.JOIN_WORKSPACE, title: 'Join workspace', description: '', autoCompleted: false},
-                    ],
-                },
-                companySize: undefined,
-                conciergeChat: conciergeChatReport,
-                delegateAccountID: undefined,
-                isIncremental: true,
-            });
-
-            const optimisticTaskIDs = result?.optimisticData.find((update) => update.key === ONYXKEYS.NVP_INTRO_SELECTED);
-            expect(optimisticTaskIDs).toEqual(
-                expect.objectContaining({
-                    value: expect.objectContaining({
-                        choice: CONST.ONBOARDING_CHOICES.JOIN_WORKSPACE,
-                        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-                        addWorkEmail: expect.any(String),
-                        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-                        validateEmail: expect.any(String),
-                        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-                        joinWorkspace: expect.any(String),
-                    }),
-                }),
-            );
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-            expect(optimisticTaskIDs).not.toEqual(expect.objectContaining({value: expect.objectContaining({createWorkspace: expect.anything()})}));
-
-            const rollbackTaskIDs = result?.failureData.find((update) => update.key === ONYXKEYS.NVP_INTRO_SELECTED);
-            expect(rollbackTaskIDs).toEqual(
-                expect.objectContaining({
-                    value: {
-                        addWorkEmail: null,
-                        validateEmail: null,
-                        joinWorkspace: null,
-                    },
-                }),
-            );
-            expect(result?.failureData).not.toEqual(
-                expect.arrayContaining([expect.objectContaining({key: ONYXKEYS.NVP_ONBOARDING, value: expect.objectContaining({hasCompletedGuidedSetupFlow: false})})]),
             );
         });
 
@@ -1673,7 +1579,7 @@ describe('ReportUtils', () => {
                 reportName: 'Fallback Report Name',
             });
 
-            const name = getPolicyExpenseChatName({report, personalDetailsList: participantsPersonalDetails, translate: translateLocal});
+            const name = getPolicyExpenseChatName({report, personalDetailsList: participantsPersonalDetails, translate: translateLocal, formatPhoneNumber});
             expect(name).toBe(translate(CONST.LOCALES.EN, 'workspace.common.policyExpenseChatName', 'Ragnar Lothbrok'));
         });
 
@@ -1683,7 +1589,7 @@ describe('ReportUtils', () => {
                 reportName: 'Fallback Report Name',
             });
 
-            const name = getPolicyExpenseChatName({report, personalDetailsList: participantsPersonalDetails, translate: translateLocal});
+            const name = getPolicyExpenseChatName({report, personalDetailsList: participantsPersonalDetails, translate: translateLocal, formatPhoneNumber});
             expect(name).toBe(translate(CONST.LOCALES.EN, 'workspace.common.policyExpenseChatName', 'floki'));
         });
 
@@ -1693,7 +1599,7 @@ describe('ReportUtils', () => {
                 reportName: 'Fallback Report Name',
             });
 
-            const name = getPolicyExpenseChatName({report, personalDetailsList: {}, translate: translateLocal});
+            const name = getPolicyExpenseChatName({report, personalDetailsList: {}, translate: translateLocal, formatPhoneNumber});
             expect(name).toBe('Fallback Report Name');
         });
     });
@@ -3868,13 +3774,13 @@ describe('ReportUtils', () => {
         });
 
         it('should return the correct parent navigation subtitle for the archived invoice report', () => {
-            const actual = getParentNavigationSubtitle(baseArchivedPolicyExpenseChat, undefined, undefined, translateLocal, undefined, true);
+            const actual = getParentNavigationSubtitle(baseArchivedPolicyExpenseChat, undefined, undefined, translateLocal, formatPhoneNumber, undefined, true);
             const normalizedActual = {...actual, reportName: actual.reportName?.replaceAll('\u00A0', ' ')};
             expect(normalizedActual).toEqual({reportName: 'A workspace & Ragnar Lothbrok (archived)'});
         });
 
         it('should return the correct parent navigation subtitle for the non archived invoice report', () => {
-            const actual = getParentNavigationSubtitle(baseArchivedPolicyExpenseChat, undefined, undefined, translateLocal, undefined, false);
+            const actual = getParentNavigationSubtitle(baseArchivedPolicyExpenseChat, undefined, undefined, translateLocal, formatPhoneNumber, undefined, false);
             const normalizedActual = {...actual, reportName: actual.reportName?.replaceAll('\u00A0', ' ')};
             expect(normalizedActual).toEqual({reportName: 'A workspace & Ragnar Lothbrok'});
         });
@@ -3893,7 +3799,7 @@ describe('ReportUtils', () => {
                 role: CONST.POLICY.ROLE.ADMIN,
             });
 
-            const actual = getParentNavigationSubtitle(expenseReport, testPolicy, undefined, translateLocal, undefined);
+            const actual = getParentNavigationSubtitle(expenseReport, testPolicy, undefined, translateLocal, formatPhoneNumber, undefined);
             expect(actual.workspaceName).toBe('Direct Policy Name');
         });
 
@@ -3921,14 +3827,14 @@ describe('ReportUtils', () => {
             };
 
             return Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}200`, parentInvoiceRoom).then(() => {
-                const actual = getParentNavigationSubtitle(invoiceReport, testPolicy, undefined, translateLocal, undefined);
+                const actual = getParentNavigationSubtitle(invoiceReport, testPolicy, undefined, translateLocal, formatPhoneNumber, undefined);
                 const normalizedActual = {...actual, reportName: actual.reportName?.replaceAll('\u00A0', ' ')};
                 expect(normalizedActual.reportName).toContain('Invoice Policy');
             });
         });
 
         it('should fall back to allPolicies when policy parameter is undefined', () => {
-            const actual = getParentNavigationSubtitle(baseArchivedPolicyExpenseChat, undefined, undefined, translateLocal, undefined);
+            const actual = getParentNavigationSubtitle(baseArchivedPolicyExpenseChat, undefined, undefined, translateLocal, formatPhoneNumber, undefined);
             const normalizedActual = {...actual, reportName: actual.reportName?.replaceAll('\u00A0', ' ')};
             // Should still resolve via Onyx-connected allPolicies or report.policyName
             expect(normalizedActual.reportName).toContain('A workspace');
@@ -3941,7 +3847,7 @@ describe('ReportUtils', () => {
                 reportName: 'Chat Report',
                 type: CONST.REPORT.TYPE.CHAT,
             };
-            const actual = getParentNavigationSubtitle(chatReport, undefined, undefined, translateLocal, undefined);
+            const actual = getParentNavigationSubtitle(chatReport, undefined, undefined, translateLocal, formatPhoneNumber, undefined);
             expect(actual).toEqual({});
         });
 
@@ -3968,13 +3874,13 @@ describe('ReportUtils', () => {
             })
                 .then(waitForBatchedUpdates)
                 .then(() => {
-                    const actual = getParentNavigationSubtitle(childReport, undefined, conciergeReportID, translateLocal, 'Concierge');
+                    const actual = getParentNavigationSubtitle(childReport, undefined, conciergeReportID, translateLocal, formatPhoneNumber, 'Concierge');
                     expect(actual.reportName).toBe('Concierge');
                 });
         });
 
         it('should return reportName and workspaceName when parent report exists and conciergeReportID is undefined', () => {
-            const actual = getParentNavigationSubtitle(baseArchivedPolicyExpenseChat, undefined, undefined, translateLocal, undefined);
+            const actual = getParentNavigationSubtitle(baseArchivedPolicyExpenseChat, undefined, undefined, translateLocal, formatPhoneNumber, undefined);
             expect(actual).toHaveProperty('reportName');
         });
 
@@ -3986,7 +3892,7 @@ describe('ReportUtils', () => {
             const expenseReport = {reportID: '780051', type: CONST.REPORT.TYPE.EXPENSE, ownerAccountID: hiddenOwnerAccountID};
             const translateWithHiddenMarker: LocalizedTranslate = (path, ...parameters) => (path === 'common.hidden' ? 'HiddenMarker' : translateLocal(path, ...parameters));
 
-            const actual = getParentNavigationSubtitle(expenseReport, undefined, undefined, translateWithHiddenMarker, undefined);
+            const actual = getParentNavigationSubtitle(expenseReport, undefined, undefined, translateWithHiddenMarker, formatPhoneNumber, undefined);
             expect(actual.reportName).toContain('HiddenMarker');
         });
     });
@@ -6331,16 +6237,70 @@ describe('ReportUtils', () => {
                 expect(canDeleteMoneyRequestReport(draftReport, [transaction], [iouAction], currentUserAccountID, undefined, memberPolicy, undefined)).toBe(false);
             });
 
-            it('should allow an admin to delete a draft report holding a card transaction with restricted liability, since the expenses become unreported rather than deleted', () => {
-                const transaction = {
-                    ...createRandomTransaction(904),
+            it('should allow an admin to delete a draft report holding cash and third-party card expenses regardless of liability', () => {
+                const cashTransaction = {...createRandomTransaction(904), reportID: draftReport.reportID, managedCard: false};
+                const cardTransaction = {
+                    ...createRandomTransaction(905),
                     reportID: draftReport.reportID,
                     managedCard: true,
+                    bank: 'third-party-bank',
                     comment: {liabilityType: CONST.TRANSACTION.LIABILITY_TYPE.RESTRICT},
                 };
-                const iouAction = buildIOUActionForTransaction(draftReport.reportID, transaction.transactionID, currentUserAccountID);
+                const cashIOUAction = buildIOUActionForTransaction(draftReport.reportID, cashTransaction.transactionID, 777);
+                const cardIOUAction = buildIOUActionForTransaction(draftReport.reportID, cardTransaction.transactionID, 777);
 
-                expect(canDeleteMoneyRequestReport(draftReport, [transaction], [iouAction], currentUserAccountID, undefined, adminPolicy, undefined, true)).toBe(true);
+                expect(
+                    canDeleteMoneyRequestReport(
+                        draftReport,
+                        [cashTransaction, cardTransaction],
+                        [cashIOUAction, cardIOUAction],
+                        currentUserAccountID,
+                        undefined,
+                        adminPolicy,
+                        undefined,
+                        true,
+                    ),
+                ).toBe(true);
+            });
+
+            it('should not allow an admin to delete a draft report containing an Expensify Card transaction', () => {
+                const cashTransaction = {...createRandomTransaction(906), reportID: draftReport.reportID, managedCard: false};
+                const expensifyCardTransaction = {
+                    ...createRandomTransaction(907),
+                    reportID: draftReport.reportID,
+                    managedCard: true,
+                    bank: CONST.EXPENSIFY_CARD.BANK,
+                    comment: {liabilityType: CONST.TRANSACTION.LIABILITY_TYPE.RESTRICT},
+                };
+                const cashIOUAction = buildIOUActionForTransaction(draftReport.reportID, cashTransaction.transactionID, 777);
+                const cardIOUAction = buildIOUActionForTransaction(draftReport.reportID, expensifyCardTransaction.transactionID, 777);
+
+                expect(
+                    canDeleteMoneyRequestReport(
+                        draftReport,
+                        [cashTransaction, expensifyCardTransaction],
+                        [cashIOUAction, cardIOUAction],
+                        currentUserAccountID,
+                        undefined,
+                        adminPolicy,
+                        undefined,
+                        true,
+                    ),
+                ).toBe(false);
+            });
+
+            it('should not allow a member to delete their own draft report containing an Expensify Card transaction', () => {
+                const ownDraftReport = {...draftReport, ownerAccountID: currentUserAccountID};
+                const expensifyCardTransaction = {
+                    ...createRandomTransaction(908),
+                    reportID: ownDraftReport.reportID,
+                    managedCard: false,
+                    bank: CONST.EXPENSIFY_CARD.BANK,
+                    comment: {liabilityType: CONST.TRANSACTION.LIABILITY_TYPE.RESTRICT},
+                };
+                const iouAction = buildIOUActionForTransaction(ownDraftReport.reportID, expensifyCardTransaction.transactionID, currentUserAccountID);
+
+                expect(canDeleteMoneyRequestReport(ownDraftReport, [expensifyCardTransaction], [iouAction], currentUserAccountID, undefined, memberPolicy, undefined, true)).toBe(false);
             });
         });
 
@@ -9932,6 +9892,50 @@ describe('ReportUtils', () => {
         });
     });
 
+    describe('getUpdateEmployeeDisplayNameMessage', () => {
+        function buildDisplayNameAction(originalMessage: {oldValue?: string; newValue?: string}): ReportAction {
+            return createMock<ReportAction>({
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_EMPLOYEE_DISPLAY_NAME,
+                reportActionID: '1',
+                reportID: '123',
+                created: '2026-05-15 10:00:00.000',
+                message: [],
+                originalMessage,
+            });
+        }
+
+        it('names the member and what they were shown as before', async () => {
+            const environmentURL = await getEnvironmentURL();
+            const action = buildDisplayNameAction({oldValue: 'cathy@boulderdev.com', newValue: 'Cathy Miller'});
+
+            expect(getUpdateEmployeeDisplayNameMessage(translateLocal, action)).toBe(
+                `updated your display name to Cathy Miller (Previously "cathy@boulderdev.com"). <a href="${environmentURL}/${ROUTES.SETTINGS_DISPLAY_NAME}">Edit in your profile</a>`,
+            );
+        });
+
+        it('encodes a name an admin filled with markup', async () => {
+            const environmentURL = await getEnvironmentURL();
+            const action = buildDisplayNameAction({oldValue: 'cathy@boulderdev.com', newValue: '<b>Cathy</b>'});
+
+            expect(getUpdateEmployeeDisplayNameMessage(translateLocal, action)).toBe(
+                `updated your display name to &lt;b&gt;Cathy&lt;/b&gt; (Previously "cathy@boulderdev.com"). <a href="${environmentURL}/${ROUTES.SETTINGS_DISPLAY_NAME}">Edit in your profile</a>`,
+            );
+        });
+
+        it('returns nothing for another action', () => {
+            const action = createMock<ReportAction>({
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_EMPLOYEE,
+                reportActionID: '1',
+                reportID: '123',
+                created: '2026-05-15 10:00:00.000',
+                message: [],
+                originalMessage: {oldValue: 'user', newValue: 'admin'},
+            });
+
+            expect(getUpdateEmployeeDisplayNameMessage(translateLocal, action)).toBe('');
+        });
+    });
+
     describe('getPolicyChangeLogCopyMessage', () => {
         const sourcePolicyID = 'sourcePolicy1';
         const sourcePolicyName = 'Acme HQ Workspace';
@@ -10252,6 +10256,22 @@ describe('ReportUtils', () => {
     });
 
     describe('canDeleteReportAction', () => {
+        it('should not allow an Expensify Card transaction to be deleted when managedCard is missing', () => {
+            // Given an Expensify Card transaction whose managed-card metadata is unavailable
+            const transaction = {
+                ...createRandomTransaction(1000),
+                managedCard: false,
+                bank: CONST.EXPENSIFY_CARD.BANK,
+                comment: {liabilityType: CONST.TRANSACTION.LIABILITY_TYPE.RESTRICT},
+            };
+
+            // When checking whether the transaction can be deleted
+            const canDeleteTransactionByLiability = canDeleteCardTransaction(transaction, undefined, undefined);
+
+            // Then the bank identifies it as an Expensify Card transaction and deletion stays blocked
+            expect(canDeleteTransactionByLiability).toBe(false);
+        });
+
         it('should return false for delete button visibility if transaction is not allowed to be deleted', async () => {
             // Given a restricted managed-card expense on an open expense report owned by the current user
             const expenseReport = {
@@ -10984,7 +11004,7 @@ describe('ReportUtils', () => {
             expect(shouldReportShowSubscript(report)).toBe(true);
         });
 
-        it('should return true for workspace task report', async () => {
+        it('should return false for workspace task report', async () => {
             // Given a parent report that is a policy expense chat
             const parentReport = createPolicyExpenseChat(1);
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${parentReport.reportID}`, parentReport);
@@ -10993,8 +11013,8 @@ describe('ReportUtils', () => {
             const report = createWorkspaceTaskReport(2, [currentUserAccountID, 1], parentReport.reportID);
 
             // When we check if the report should show a subscript
-            // Then it should return true because isWorkspaceTaskReport() returns true
-            expect(shouldReportShowSubscript(report)).toBe(true);
+            // Then it should return false because a task always shows its owner alone, even when assigned in a workspace chat
+            expect(shouldReportShowSubscript(report)).toBe(false);
         });
 
         it('should return true for invoice room', () => {
@@ -24841,7 +24861,17 @@ describe('ReportUtils', () => {
             await waitForBatchedUpdates();
 
             const action = {...createRandomReportAction(1)};
-            const result = getChatListItemReportName(action, conciergeReport, undefined, conciergeReportID, [], translateLocal, convertToDisplayString, undefined, undefined);
+            const result = getChatListItemReportName(
+                action,
+                conciergeReport,
+                undefined,
+                conciergeReportID,
+                [],
+                {translate: translateLocal, formatPhoneNumber},
+                convertToDisplayString,
+                undefined,
+                undefined,
+            );
             expect(result).toBe(CONST.CONCIERGE_DISPLAY_NAME);
         });
 
@@ -24855,7 +24885,17 @@ describe('ReportUtils', () => {
             await waitForBatchedUpdates();
 
             const action = {...createRandomReportAction(2)};
-            const result = getChatListItemReportName(action, regularReport, undefined, conciergeReportID, [], translateLocal, convertToDisplayString, undefined, undefined);
+            const result = getChatListItemReportName(
+                action,
+                regularReport,
+                undefined,
+                conciergeReportID,
+                [],
+                {translate: translateLocal, formatPhoneNumber},
+                convertToDisplayString,
+                undefined,
+                undefined,
+            );
             expect(result).not.toBe(CONST.CONCIERGE_DISPLAY_NAME);
         });
 
@@ -24865,7 +24905,17 @@ describe('ReportUtils', () => {
                 type: CONST.REPORT.TYPE.CHAT,
             };
             const action = {...createRandomReportAction(3), reportName: 'Custom Action Name'};
-            const result = getChatListItemReportName(action, conciergeReport, undefined, conciergeReportID, [], translateLocal, convertToDisplayString, undefined, undefined);
+            const result = getChatListItemReportName(
+                action,
+                conciergeReport,
+                undefined,
+                conciergeReportID,
+                [],
+                {translate: translateLocal, formatPhoneNumber},
+                convertToDisplayString,
+                undefined,
+                undefined,
+            );
             expect(result).toBe('Custom Action Name');
         });
 
@@ -24875,7 +24925,17 @@ describe('ReportUtils', () => {
                 type: CONST.REPORT.TYPE.CHAT,
             };
             const action = {...createRandomReportAction(4)};
-            const result = getChatListItemReportName(action, conciergeReport, undefined, conciergeReportID, [], translateLocal, convertToDisplayString, undefined, undefined);
+            const result = getChatListItemReportName(
+                action,
+                conciergeReport,
+                undefined,
+                conciergeReportID,
+                [],
+                {translate: translateLocal, formatPhoneNumber},
+                convertToDisplayString,
+                undefined,
+                undefined,
+            );
             expect(result).toBe(CONST.CONCIERGE_DISPLAY_NAME);
         });
 
@@ -24896,7 +24956,17 @@ describe('ReportUtils', () => {
             const translateWithMarker: LocalizedTranslate = (path, ...parameters) => (path === 'iou.payerOwesAmount' ? 'PayerOwesMarker' : translateLocal(path, ...parameters));
 
             const action = {...createRandomReportAction(5)};
-            const result = getChatListItemReportName(action, invoiceReport, parentChatReport, undefined, [], translateWithMarker, convertToDisplayString, undefined, undefined);
+            const result = getChatListItemReportName(
+                action,
+                invoiceReport,
+                parentChatReport,
+                undefined,
+                [],
+                {translate: translateWithMarker, formatPhoneNumber},
+                convertToDisplayString,
+                undefined,
+                undefined,
+            );
 
             expect(result).toBe('PayerOwesMarker');
         });
@@ -24916,7 +24986,17 @@ describe('ReportUtils', () => {
             };
 
             const action = {...createRandomReportAction(6)};
-            const result = getChatListItemReportName(action, invoiceReport, parentChatReport, undefined, [], translateLocal, convertToDisplayString, undefined, undefined);
+            const result = getChatListItemReportName(
+                action,
+                invoiceReport,
+                parentChatReport,
+                undefined,
+                [],
+                {translate: translateLocal, formatPhoneNumber},
+                convertToDisplayString,
+                undefined,
+                undefined,
+            );
 
             expect(result).toBe('Invoice #42');
         });
@@ -24932,8 +25012,28 @@ describe('ReportUtils', () => {
             const action = {...createRandomReportAction(7)};
             const derivedName = 'Derived Report Name';
 
-            const resultWithDerived = getChatListItemReportName(action, chatReport, undefined, undefined, [], translateLocal, convertToDisplayString, undefined, derivedName);
-            const resultWithoutDerived = getChatListItemReportName(action, chatReport, undefined, undefined, [], translateLocal, convertToDisplayString, undefined, undefined);
+            const resultWithDerived = getChatListItemReportName(
+                action,
+                chatReport,
+                undefined,
+                undefined,
+                [],
+                {translate: translateLocal, formatPhoneNumber},
+                convertToDisplayString,
+                undefined,
+                derivedName,
+            );
+            const resultWithoutDerived = getChatListItemReportName(
+                action,
+                chatReport,
+                undefined,
+                undefined,
+                [],
+                {translate: translateLocal, formatPhoneNumber},
+                convertToDisplayString,
+                undefined,
+                undefined,
+            );
 
             expect(resultWithDerived).toBe(derivedName);
             expect(resultWithDerived).not.toBe(resultWithoutDerived);
@@ -24942,7 +25042,17 @@ describe('ReportUtils', () => {
         it('should return empty string when report is undefined even with derivedReportName', () => {
             const action = {...createRandomReportAction(8)};
 
-            const result = getChatListItemReportName(action, undefined, undefined, undefined, [], translateLocal, convertToDisplayString, undefined, 'Derived Name');
+            const result = getChatListItemReportName(
+                action,
+                undefined,
+                undefined,
+                undefined,
+                [],
+                {translate: translateLocal, formatPhoneNumber},
+                convertToDisplayString,
+                undefined,
+                'Derived Name',
+            );
             expect(result).toBe('');
         });
 
@@ -24979,7 +25089,17 @@ describe('ReportUtils', () => {
                 };
 
                 const action = {...createRandomReportAction(7)};
-                const result = getChatListItemReportName(action, invoiceReport, nonInvoiceParent, undefined, [], translateWithMarker, convertToDisplayString, undefined, undefined);
+                const result = getChatListItemReportName(
+                    action,
+                    invoiceReport,
+                    nonInvoiceParent,
+                    undefined,
+                    [],
+                    {translate: translateWithMarker, formatPhoneNumber},
+                    convertToDisplayString,
+                    undefined,
+                    undefined,
+                );
 
                 expect(result).toBe('PayerOwesMarker');
             });
@@ -24994,7 +25114,17 @@ describe('ReportUtils', () => {
                 };
 
                 const action = {...createRandomReportAction(8)};
-                const result = getChatListItemReportName(action, invoiceReport, invoiceRoom, undefined, [], translateWithMarker, convertToDisplayString, undefined, undefined);
+                const result = getChatListItemReportName(
+                    action,
+                    invoiceReport,
+                    invoiceRoom,
+                    undefined,
+                    [],
+                    {translate: translateWithMarker, formatPhoneNumber},
+                    convertToDisplayString,
+                    undefined,
+                    undefined,
+                );
 
                 expect(result).toBe('PayerOwesMarker');
             });
@@ -25008,7 +25138,17 @@ describe('ReportUtils', () => {
                 };
 
                 const action = {...createRandomReportAction(9)};
-                getChatListItemReportName(action, invoiceReport, invoiceRoom, undefined, [], translateWithMarker, convertToDisplayString, undefined, undefined);
+                getChatListItemReportName(
+                    action,
+                    invoiceReport,
+                    invoiceRoom,
+                    undefined,
+                    [],
+                    {translate: translateWithMarker, formatPhoneNumber},
+                    convertToDisplayString,
+                    undefined,
+                    undefined,
+                );
 
                 expect(invoiceReport.chatReportID).toBeUndefined();
             });
@@ -25034,7 +25174,17 @@ describe('ReportUtils', () => {
                 };
 
                 const action = {...createRandomReportAction(10)};
-                const result = getChatListItemReportName(action, invoiceThread, parentInvoiceReport, undefined, [], translateWithMarker, convertToDisplayString, undefined, undefined);
+                const result = getChatListItemReportName(
+                    action,
+                    invoiceThread,
+                    parentInvoiceReport,
+                    undefined,
+                    [],
+                    {translate: translateWithMarker, formatPhoneNumber},
+                    convertToDisplayString,
+                    undefined,
+                    undefined,
+                );
 
                 expect(result).toBe('PayerOwesMarker');
             });

@@ -831,7 +831,7 @@ const translations: TranslationDeepObject<typeof en> = {
             } else if (action?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW) {
                 type = 'informe';
             }
-            return `¿Estás seguro de que quieres eliminar este ${type}?`;
+            return `¿Estás seguro de que quieres eliminar este ${type}?${action?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW ? ' Todos los gastos de este informe quedarán sin reportar.' : ''}`;
         },
         onlyVisible: 'Visible sólo para',
         explain: 'Explicar',
@@ -1474,6 +1474,7 @@ const translations: TranslationDeepObject<typeof en> = {
             one: '¿Estás seguro de que quieres eliminar este informe?',
             other: '¿Estás seguro de que quieres eliminar estos informes?',
         }),
+        deleteExpenseReportConfirmation: '¿Estás seguro de que quieres eliminar este informe? Todos los gastos de este informe quedarán sin reportar.',
         settledExpensify: 'Pagado',
         paidStatusMarkedAsPaid: 'Marcado como pagado',
         paidStatusWithdrawing: 'Retirada',
@@ -2209,6 +2210,7 @@ const translations: TranslationDeepObject<typeof en> = {
     displayNamePage: {
         headerTitle: 'Nombre',
         isShownOnProfile: 'Este nombre es visible en tu perfil.',
+        isShownOnMemberProfile: 'El nombre para mostrar aparecerá en el perfil del miembro. Una vez guardado, solo el miembro podrá editarlo.',
     },
     timezonePage: {
         timezone: 'Zona horaria',
@@ -2255,7 +2257,6 @@ const translations: TranslationDeepObject<typeof en> = {
             useProfiling: 'Usar el trazado',
             profileTrace: 'Traza de ejecución',
             results: 'Resultados',
-            releaseOptions: 'Opciones de publicación',
             testingPreferences: 'Preferencias para Tests',
             server: 'Servidor',
             servers: {
@@ -2898,6 +2899,9 @@ ${amount} para ${merchant} - ${date}`,
             },
         },
         approverInMultipleWorkflows: 'Este miembro ya pertenece a otro flujo de aprobación. Cualquier actualización aquí se reflejará allí también.',
+        approverNotWorkspaceMember: 'Este aprobador ya no es miembro del espacio de trabajo. Elige un nuevo aprobador o elimina este flujo de trabajo.',
+        defaultWorkflowApproverNotWorkspaceMember: 'Este aprobador ya no es miembro del espacio de trabajo. Elige un nuevo aprobador.',
+        overLimitApproverNotWorkspaceMember: 'El aprobador adicional para los informes que superan el límite ya no es miembro del espacio de trabajo. Elige un nuevo aprobador adicional.',
         approverCircularReference: (name1, name2) =>
             `<strong>${name1}</strong> ya aprueba informes a <strong>${name2}</strong>. Por favor, elige un aprobador diferente para evitar un flujo de trabajo circular.`,
         emptyContent: {
@@ -3309,13 +3313,12 @@ ${amount} para ${merchant} - ${date}`,
         errorSelection: 'Selecciona una opción para continuar',
         purpose: {
             title: '¿Qué quieres hacer hoy?',
-            errorContinue: 'Pulsa continuar para configurarte',
-            errorBackButton: 'Por favor, completa las preguntas de configuración para empezar a usar la aplicación',
-            [CONST.ONBOARDING_CHOICES.JOIN_WORKSPACE]: 'Únete al espacio de trabajo de mi empresa',
-            [CONST.ONBOARDING_CHOICES.EMPLOYER]: 'Enviar gastos a mi empresa',
+            errorContinue: 'Por favor, haz click en continuar para configurar tu cuenta',
+            errorBackButton: 'Por favor, finaliza las preguntas de configuración para empezar a utilizar la aplicación',
+            [CONST.ONBOARDING_CHOICES.EMPLOYER]: 'Enviar gastos a mi empleador',
             [CONST.ONBOARDING_CHOICES.MANAGE_TEAM]: 'Gestionar los gastos de mi equipo',
-            [CONST.ONBOARDING_CHOICES.TRACK_BUSINESS]: 'Controla los gastos de mi empresa',
-            [CONST.ONBOARDING_CHOICES.TRACK_PERSONAL]: 'Organiza mis gastos personales',
+            [CONST.ONBOARDING_CHOICES.TRACK_BUSINESS]: 'Controlar gastos de mi negocio',
+            [CONST.ONBOARDING_CHOICES.TRACK_PERSONAL]: 'Organizar mis gastos personales',
             [CONST.ONBOARDING_CHOICES.LOOKING_AROUND]: 'Algo más',
         },
         personalTrackGoal: {
@@ -3372,8 +3375,6 @@ ${amount} para ${merchant} - ${date}`,
         mergeBlockScreen: {
             title: 'No se pudo añadir el correo electrónico de trabajo',
             subtitle: (workEmail) => `No pudimos añadir ${workEmail}. Por favor, inténtalo de nuevo más tarde en Configuración o chatea con Concierge para obtener ayuda.`,
-            validatedPublicDomainSubtitle: (workEmail: string | undefined) =>
-                `No pudimos añadir ${workEmail}. Para fusionar estas cuentas, inicia sesión como ${workEmail} y ve a Cuenta > Seguridad > Fusionar cuentas para completar el proceso.`,
             workAccountClosedSubtitle:
                 'La cuenta de trabajo asociada a este correo electrónico está cerrada. Ponte en contacto con el administrador de tu empresa para reactivarla o regístrate con un correo electrónico diferente.',
             domainControlledSubtitle: (workEmail) => `${workEmail} es un inicio de sesión controlado por dominio de una cuenta de Expensify existente.`,
@@ -3620,34 +3621,6 @@ ${amount} para ${merchant} - ${date}`,
                     ¡Y listo!
                 `),
             },
-            addWorkEmailTask: {
-                title: 'Añade tu correo electrónico del trabajo',
-                description: ({workEmailLink = ''}) =>
-                    Str.dedent(`
-                        1. Abre [Añadir correo electrónico del trabajo](${workEmailLink}).
-                        2. Introduce la dirección de correo electrónico de tu empresa.
-                        3. Introduce el código que te enviamos por correo electrónico.
-                        4. Elige un espacio de trabajo al que unirte o haz clic en *Pedir unirse* para enviar una solicitud a la persona propietaria del espacio de trabajo.
-                    `),
-            },
-            validateEmailTask: {
-                title: 'Valida tu correo electrónico',
-                description: ({validateEmailLink = '', workEmail = ''}) =>
-                    Str.dedent(`
-                        1. Abre [Valida tu cuenta](${validateEmailLink}).
-                        2. Introduce el código que enviamos a ${workEmail}.
-                        3. Elige un espacio de trabajo al que unirte o haz clic en *Pedir unirse* para enviar una solicitud a la persona propietaria del espacio de trabajo.
-                    `),
-            },
-            joinWorkspaceTask: {
-                title: 'Únete al espacio de trabajo de tu empresa',
-                description: ({joinWorkspaceLink = ''}) =>
-                    Str.dedent(`
-                        1. Abre [Unirte a un espacio de trabajo](${joinWorkspaceLink}).
-                        2. Busca a tu equipo en la lista. Cada uno muestra a su propietario y cuántas personas hay en él, empezando por el más grande. Haz clic en *Mostrar más* si no ves el tuyo.
-                        3. Haz clic en *Unirte ahora* o en *Pedir unirse* si necesita aprobación de un administrador.
-                    `),
-            },
         },
         testDrive: {
             name: ({testDriveURL}) => (testDriveURL ? `Haz una [prueba](${testDriveURL})` : 'Haz una prueba'),
@@ -3670,14 +3643,6 @@ ${amount} para ${merchant} - ${date}`,
             onboardingChatSplitMessage: 'Dividir cuentas con amigos es tan fácil como enviar un mensaje. Así se hace.',
             onboardingAdminMessage: 'Aprende a gestionar el espacio de tu equipo como administrador y enviar tus propios gastos.',
             onboardingTestDriveReceiverMessage: '*¡Tienes 3 meses gratis! Empieza abajo.*',
-            onboardingJoinWorkspaceAddWorkEmailMessage:
-                'Como estás intentando unirte al espacio de trabajo de tu empresa, no he creado uno para ti. Añade tu correo electrónico del trabajo y comprobaré a qué espacios de trabajo de tu empresa puedes unirte.',
-            onboardingJoinWorkspaceValidateEmailMessage: ({companyDomain = ''}: {companyDomain?: string}) =>
-                `Como quieres unirte al espacio de trabajo de tu empresa, no he creado uno para ti. Verifica tu correo electrónico y revisaré a qué espacios de trabajo en ${companyDomain} puedes unirte.`,
-            onboardingJoinWorkspaceMessage: ({companyDomain = '', joinWorkspaceLink = ''}: {companyDomain?: string; joinWorkspaceLink?: string}) =>
-                `Como quieres unirte al espacio de trabajo de tu empresa, no he creado uno para ti. Tu equipo en ${companyDomain} ya está en Expensify. [Echa un vistazo a los espacios de trabajo a los que puedes unirte.](${joinWorkspaceLink})`,
-            onboardingJoinWorkspaceEmptyMessage:
-                'Parece que tu empresa no tiene ningún espacio de trabajo al que puedas unirte. Por favor, ponte en contacto con tu administrador y pídele que te invite a su espacio de trabajo.',
         },
         workspace: {
             title: 'Mantente organizado con un espacio de trabajo',
@@ -3935,6 +3900,15 @@ ${amount} para ${merchant} - ${date}`,
         },
         unlockAlreadyRequestedTitle: 'Solicitud ya enviada',
         unlockAlreadyRequestedDescription: 'Tu solicitud para desbloquear esta cuenta bancaria ya ha sido enviada. Concierge se pondrá en contacto contigo si se necesita algo más.',
+    },
+    dynamicForm: {
+        exampleHint: ({example}: {example: string}) => `Ejemplo: ${example}`,
+        error: {
+            tooShort: ({minLength}: {minLength: number}) => `Debe tener al menos ${minLength} caracteres`,
+            invalidFormat: ({example}: {example?: string}) => (example ? `Formato inválido. Ejemplo: ${example}` : 'Formato inválido'),
+            invalidOption: 'Elige una de las opciones disponibles',
+            outOfRange: ({min, max}: {min: number; max: number}) => `Introduce un valor entre ${min} y ${max}`,
+        },
     },
     addPersonalBankAccount: {
         swiftBicFormatError: 'El SWIFT/BIC debe tener 8 u 11 caracteres, con 6 letras seguidas de 2 o 5 letras o números.',
@@ -6085,6 +6059,11 @@ ${amount} para ${merchant} - ${date}`,
             syncReimbursedReports: 'Sincronizar informes reembolsados',
             syncReimbursedReportsDescription: 'Cuando un informe se pague mediante ACH, se generará un pago de factura en esta cuenta.',
             billPaymentAccount: {label: 'Cuenta de pago de facturas', description: 'Elige desde dónde pagar las facturas y crearemos el pago en DualEntry.'},
+            fxExpenseAccount: {
+                label: 'Cuenta de comisión por conversión de divisa de DualEntry',
+                description:
+                    'Cuando tu empresa cubra el coste de conversión de divisa en un pago realizado en el extranjero, registraremos ese coste en esta cuenta en DualEntry como un asiento contable.',
+            },
             syncExpensifyCardSettlements: 'Sincronizar liquidaciones de la Tarjeta Expensify',
             settlementAccount: {label: 'Cuenta de liquidación de la Tarjeta Expensify', description: 'Elige tu cuenta de liquidación y crearemos el pago en DualEntry.'},
             syncTravelInvoicingSettlements: 'Sincronizar liquidaciones de facturación de viajes',
@@ -6794,11 +6773,6 @@ ${amount} para ${merchant} - ${date}`,
             emptySubtitle: 'Los proveedores aparecerán aquí una vez que se complete la sincronización de contabilidad.',
             findVendor: 'Buscar proveedor',
             managedInAccountingSoftware: 'Los proveedores se gestionan en tu',
-            enableVendor: 'Habilitar proveedor',
-            enableVendors: 'Habilitar proveedores',
-            disableVendor: 'Deshabilitar proveedor',
-            disableVendors: 'Deshabilitar proveedores',
-            updateFailureMessage: 'Se ha producido un error al actualizar el proveedor, inténtalo de nuevo por favor',
         },
         tags: {
             tagName: 'Nombre de etiqueta',
@@ -7560,7 +7534,17 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
             setupIncomplete: (setupLink: string | undefined) =>
                 `<muted-text-label>Conectado. ${setupLink ? `<a href="${setupLink}">Completa la configuración</a>` : 'Completar configuración'} para importar empleados.</muted-text-label>`,
             mergeHR: {
-                groups: {title: 'Grupos', description: 'Elige los grupos de empleados que te gustaría sincronizar con este espacio de trabajo'},
+                groups: {
+                    title: 'Grupos',
+                    description: 'Elige los grupos de empleados que te gustaría sincronizar con este espacio de trabajo',
+                    staleSelectionError: (providerName: string) =>
+                        `Algunos de los grupos que seleccionaste ya no existen en ${providerName}, por lo que sus empleados han dejado de sincronizarse.`,
+                    updateSelectionLink: 'Actualiza tus grupos.',
+                    noGroupsFound: 'No se han encontrado grupos',
+                    noGroupsFoundDescription:
+                        'No hay grupos para seleccionar ahora mismo. Guarda sin grupos seleccionados para sincronizar a todos los empleados o vuelve a sincronizar la conexión cuando existan nuevos grupos.',
+                    unnamedGroup: (groupID: string) => `Grupo sin nombre (${groupID})`,
+                },
             },
         },
         recruiting: {
@@ -8409,6 +8393,8 @@ ${reportName}`,
                 applyUpdates: 'Aplicar estas actualizaciones:',
                 saveRule: 'Guardar regla',
                 previewMatches: 'Vista previa de coincidencias',
+                previewMatchesDescription: 'Mira cómo se aplica esta regla a tus gastos',
+                preview: 'Vista previa',
                 confirmError: 'Ingresa comerciante y aplica al menos una actualización',
                 confirmErrorMerchant: 'Por favor ingresa comerciante',
                 confirmErrorUpdate: 'Por favor aplica al menos una actualización',
@@ -8718,6 +8704,14 @@ ${reportName}`,
                 requireFieldsDescription: 'Exige campos específicos de gasto o renuncia a exigirlos.',
                 createAgentRule: 'Describir regla de agente',
                 createAgentRuleDescription: 'Crea reglas flexibles que se ejecuten cuando las necesites.',
+                describe: 'Describir',
+                describeRule: 'Describe tu regla con tus propias palabras y Concierge la creará por ti',
+                describeRuleInputLabel: 'Describe la regla',
+                promptErrors: {
+                    unsupported: 'Esa regla aún no es compatible: estamos trabajando en ello. Prueba con otra regla por ahora.',
+                    unintelligible: 'Prueba a formular tu regla así: si los gastos superan los $100, exige un recibo.',
+                    multipleRules: 'Una regla a la vez, por favor. Prueba a describir una sola regla, como: bloquear compras en comercios minoristas en todas las tarjetas.',
+                },
             },
             expenseDefaultsTable: {
                 tableColumnType: 'Tipo',
@@ -9586,6 +9580,8 @@ ${reportName}`,
         customUnitRateDateRangeFrom: (date: string) => `desde ${date}`,
         customUnitRateDateRangeUntilEnd: (date: string) => `hasta ${date}`,
         customUnitRateDateRangeAllDates: () => `para todas las fechas`,
+        updatedMemberDisplayName: (newName: string, oldName: string, editProfileURL: string) =>
+            `actualizó tu nombre para mostrar a ${newName} (previamente «${oldName}»). <a href="${editProfileURL}">Editar en tu perfil</a>`,
         policyCopy: {
             overview: (sourcePolicyName: string, sourcePolicyURL: string) => `copió la descripción general de <a href="${sourcePolicyURL}">${sourcePolicyName}</a>`,
             currency: (sourcePolicyName: string, sourcePolicyURL: string) => `copió la divisa de <a href="${sourcePolicyURL}">${sourcePolicyName}</a>`,
@@ -10037,7 +10033,11 @@ ${reportName}`,
         errors: {
             pleaseSelectDatesForBothFromAndTo: 'Por favor, selecciona fechas para Desde y Hasta',
         },
-        mergeReports: {title: 'Combinar informes', description: 'Selecciona el informe que quieres conservar. Todos los gastos se moverán a él y los demás informes se eliminarán.'},
+        mergeReports: {
+            title: 'Combinar informes',
+            description: 'Selecciona el informe que quieres conservar. Todos los gastos se moverán a él y los demás informes se eliminarán.',
+            listPage: {noEligibleReportsFound: 'No se encontraron informes aptos', noEligibleReportsFoundSubtitle: 'No tienes ningún informe que se pueda combinar.'},
+        },
         periodSoFar: ({period}: {period: string}) => `${period} hasta ahora`,
         weekOf: ({date}: {date: string}) => `Semana del ${date}`,
         saveEdits: {
@@ -10073,12 +10073,7 @@ ${reportName}`,
         },
     },
     settlement: {
-        status: {
-            pending: 'Pendiente',
-            cleared: 'Liquidado',
-            failed: 'Fallido',
-            never: 'Nunca',
-        },
+        status: {pending: 'Pendiente', cleared: 'Liquidado', failed: 'Fallido', never: 'Nunca', cashBack: 'Devolución de dinero'},
         failedError: ({link}: {link: string}) => `Reintentaremos esta liquidación cuando <a href="${link}">desbloquees tu cuenta</a>.`,
         withdrawalInfo: ({date, withdrawalID}: {date: string; withdrawalID: number}) => `${date} • ID de retiro: ${withdrawalID}`,
     },
@@ -10111,6 +10106,10 @@ ${reportName}`,
         genericUpdateReportFieldFailureMessage: 'Error inesperado al actualizar el campo. Por favor, inténtalo más tarde.',
         genericUpdateReportNameEditFailureMessage: 'Error inesperado al cambiar el nombre del informe. Por favor, intentarlo más tarde.',
         noActivityYet: 'Sin actividad todavía',
+        collapsedSystemMessages: () => ({
+            one: 'mostrar 1 actualización',
+            other: (count: number) => `mostrar ${count} actualizaciones`,
+        }),
         connectionSettings: 'Configuración de conexión',
         actions: {
             type: {

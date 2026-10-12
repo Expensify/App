@@ -285,10 +285,12 @@ import {
     hasReceipt as hasReceiptTransactionUtils,
     hasViolation,
     hasWarningTypeViolation,
+    isCorporateCardTransaction,
     isDeletedTransaction,
     isDemoTransaction,
     isDistanceRequest,
     isExpenseValueUnsettled,
+    isExpensifyCardTransaction,
     isFailedScanAmountPlaceholder,
     isFetchingWaypointsFromServer,
     isManagedCardTransaction,
@@ -778,6 +780,7 @@ type BaseOptimisticMoneyRequestEntities = {
     existingTransactionThreadReportID?: string;
     linkedTrackedExpenseReportAction?: ReportAction;
     optimisticCreatedReportActionID?: string;
+    optimisticIOUCreatedReportActionID?: string;
     reportActionID?: string;
     currentUserAccountID: number;
     // TODO: delegateAccountIDParam will be made required when all callers pass the value (https://github.com/Expensify/App/issues/66425)
@@ -3626,6 +3629,10 @@ function shouldCurrentUserSubmitReport(iouReport: OnyxEntry<Report>, chatReport:
 }
 
 function canDeleteCardTransaction(transaction: OnyxEntry<Transaction>, policy: OnyxEntry<Policy>, cardList: OnyxEntry<CardList>): boolean {
+    if (isExpensifyCardTransaction(transaction)) {
+        return false;
+    }
+
     const isCardTransaction = isManagedCardTransaction(transaction);
     if (!isCardTransaction) {
         return true;
@@ -3668,6 +3675,18 @@ function canDeleteMoneyRequestReport(
         return true;
     }
 
+    const hasExpensifyCardTransaction = reportTransactions.some(isExpensifyCardTransaction);
+    const hasRestrictedCorporateCardTransaction = reportTransactions.some(isCorporateCardTransaction);
+    // Expensify Card transactions cannot be deleted or unreported, including by workspace admins.
+    if (isReportLevelDelete && hasExpensifyCardTransaction) {
+        return false;
+    }
+
+    // Admins can delete reports containing third-party card expenses because those expenses become unreported.
+    if (isReportLevelDelete && !isReportPolicyAdmin && hasRestrictedCorporateCardTransaction) {
+        return false;
+    }
+
     const isUnreported = isSelfDM(report) || transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
     const canCardTransactionBeDeleted = canDeleteCardTransaction(transaction, policy, cardList);
 
@@ -3676,7 +3695,6 @@ function canDeleteMoneyRequestReport(
     }
 
     // Admins can delete a draft report even when they are not its submitter, but not its individual expenses.
-    // Card liability does not apply here: deleting a draft report leaves its expenses unreported rather than deleting them.
     const isDraft = report?.statusNum === CONST.REPORT.STATUS_NUM.OPEN && report?.stateNum === CONST.REPORT.STATE_NUM.OPEN;
     if (isDraft && isReportPolicyAdmin && isReportLevelDelete) {
         return true;
@@ -7176,6 +7194,7 @@ function getParentNavigationSubtitle(
     policy: OnyxEntry<Policy>,
     conciergeReportID: string | undefined,
     translate: LocalizedTranslate,
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
     parentReportName: string | undefined,
     isParentReportArchived = false,
 ): ParentNavigationSummaryParams {
@@ -7219,7 +7238,7 @@ function getParentNavigationSubtitle(
         const invoiceReceiverPolicy = invoiceReceiverPolicyID ? allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${invoiceReceiverPolicyID}`] : undefined;
         const isCurrentUserReceiver = isCurrentUserInvoiceReceiver(parentReport);
         const invoiceReceiverPersonalDetail = getInvoiceReceiverPersonalDetail(parentReport, getAllPersonalDetails());
-        const invoicePayerName = getInvoicePayerName(parentReport, translate, invoiceReceiverPersonalDetail, invoiceReceiverPolicy);
+        const invoicePayerName = getInvoicePayerName(parentReport, translate, formatPhoneNumber, invoiceReceiverPersonalDetail, invoiceReceiverPolicy);
 
         let reportName = senderWorkspaceName;
         if (!isCurrentUserReceiver && invoicePayerName) {
@@ -8214,6 +8233,18 @@ function getPolicyChangeMessage(translate: LocalizedTranslate, action: ReportAct
     const fromPolicyName = fromPolicyID ? (allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${fromPolicyID}`]?.name ?? '') : undefined;
     const message = translate('report.actions.type.changeReportPolicy', toPolicyName, fromPolicyName);
     return message;
+}
+
+function getUpdateEmployeeDisplayNameMessage(translate: LocalizedTranslate, action: ReportAction) {
+    if (!isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_EMPLOYEE_DISPLAY_NAME)) {
+        return '';
+    }
+    const {oldValue, newValue} = getOriginalMessage(action) ?? {};
+
+    // Both names are set by an admin and are interpolated into HTML, so markup in them must not be parsed as HTML.
+    const oldName = Str.htmlEncode(typeof oldValue === 'string' ? oldValue : '');
+    const newName = Str.htmlEncode(typeof newValue === 'string' ? newValue : '');
+    return translate('workspaceActions.updatedMemberDisplayName', newName, oldName, `${environmentURL}/${ROUTES.SETTINGS_DISPLAY_NAME}`);
 }
 
 function getPolicyChangeLogCopyMessage(translate: LocalizedTranslate, action: ReportAction) {
@@ -10219,6 +10250,7 @@ function buildOptimisticMoneyRequestEntities({
     existingTransactionThreadReportID,
     linkedTrackedExpenseReportAction,
     optimisticCreatedReportActionID,
+    optimisticIOUCreatedReportActionID,
     shouldGenerateTransactionThreadReport = true,
     reportActionID,
     currentUserAccountID,
@@ -10238,6 +10270,7 @@ function buildOptimisticMoneyRequestEntities({
     const createdActionForIOUReport = buildOptimisticCreatedReportAction({
         emailCreatingAction: payeeEmail,
         created: DateUtils.subtractMillisecondsFromDateTime(iouActionCreationTime, 1),
+        optimisticReportActionID: optimisticIOUCreatedReportActionID,
     });
 
     const iouAction = buildOptimisticIOUReportAction({
@@ -11651,10 +11684,6 @@ function shouldReportShowSubscript(report: OnyxEntry<Report>, isReportArchived =
         return true;
     }
 
-    if (isWorkspaceTaskReport(report)) {
-        return true;
-    }
-
     if (isWorkspaceThread(report)) {
         return true;
     }
@@ -13061,31 +13090,7 @@ type PrepareOnboardingOnyxDataParams = {
     currentUserAccountID?: number;
     /** Whether onboarding is handled outside the Concierge DM, so no message, tasks, or sign-off should be posted there. */
     shouldSkipConciergeOnboarding?: boolean;
-    /** The domain of the user's company, used by the join-workspace onboarding tasks. */
-    companyDomain?: string;
-    /** The user's work email, used by the join-workspace onboarding tasks. */
-    workEmail?: string;
-    /** Whether the validation task should resume an account merge instead of validating the current account. */
-    shouldResumeAccountMerge?: boolean;
-    /** Whether this posts a follow-up Concierge item after onboarding has completed. */
-    isIncremental?: boolean;
 };
-
-function getValidateEmailTaskLink(targetChatReportID: string | undefined, shouldResumeAccountMerge: boolean) {
-    return shouldResumeAccountMerge
-        ? `${environmentURL}/${ROUTES.ONBOARDING_WORK_EMAIL_VALIDATION.getRoute(true)}`
-        : `${environmentURL}/${createDynamicRoute(DYNAMIC_ROUTES.VERIFY_ACCOUNT.getRoute(true), ROUTES.REPORT_WITH_ID.getRoute(targetChatReportID))}`;
-}
-
-function getValidateEmailTaskDescription(workEmail: string, targetChatReportID: string | undefined, shouldResumeAccountMerge: boolean) {
-    const validateEmailTask = getOnboardingMessages().joinWorkspaceMessages.validateEmail.tasks.find((task) => task.type === CONST.ONBOARDING_TASK_TYPE.VALIDATE_EMAIL);
-    if (!validateEmailTask) {
-        return '';
-    }
-
-    const validateEmailLink = getValidateEmailTaskLink(targetChatReportID, shouldResumeAccountMerge);
-    return typeof validateEmailTask.description === 'function' ? validateEmailTask.description({validateEmailLink, workEmail}) : validateEmailTask.description;
-}
 
 function prepareOnboardingOnyxData({
     introSelected,
@@ -13106,10 +13111,6 @@ function prepareOnboardingOnyxData({
     delegateAccountID,
     currentUserAccountID,
     shouldSkipConciergeOnboarding = false,
-    companyDomain,
-    workEmail,
-    shouldResumeAccountMerge = false,
-    isIncremental = false,
 }: PrepareOnboardingOnyxDataParams) {
     if (engagementChoice === CONST.ONBOARDING_CHOICES.PERSONAL_SPEND) {
         // eslint-disable-next-line no-param-reassign
@@ -13181,11 +13182,6 @@ function prepareOnboardingOnyxData({
         testDriveURL: `${environmentURL}/${testDriveURL}`,
         workspaceAccountingLink: `${environmentURL}/${ROUTES.POLICY_ACCOUNTING.getRoute(onboardingPolicyID)}`,
         corporateCardLink: `${environmentURL}/${ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(onboardingPolicyID)}`,
-        companyDomain: companyDomain ?? '',
-        workEmail: workEmail ?? '',
-        validateEmailLink: getValidateEmailTaskLink(targetChatReportID, shouldResumeAccountMerge),
-        workEmailLink: `${environmentURL}/${ROUTES.ONBOARDING_WORK_EMAIL.getRoute(true)}`,
-        joinWorkspaceLink: `${environmentURL}/${ROUTES.ONBOARDING_WORKSPACES.getRoute(undefined, true)}`,
     };
 
     // Text message
@@ -13206,9 +13202,6 @@ function prepareOnboardingOnyxData({
     let setupTagsTaskReportID;
     let setupCategoriesAndTagsTaskReportID;
     let reviewWorkspaceSettingsTaskReportID;
-    let addWorkEmailTaskReportID;
-    let validateEmailTaskReportID;
-    let joinWorkspaceTaskReportID;
     const tasks = onboardingMessage.tasks;
     const tasksData = tasks
         .filter((task) => {
@@ -13289,15 +13282,6 @@ function prepareOnboardingOnyxData({
             }
             if (task.type === CONST.ONBOARDING_TASK_TYPE.REVIEW_WORKSPACE_SETTINGS) {
                 reviewWorkspaceSettingsTaskReportID = currentTask.reportID;
-            }
-            if (task.type === CONST.ONBOARDING_TASK_TYPE.ADD_WORK_EMAIL) {
-                addWorkEmailTaskReportID = currentTask.reportID;
-            }
-            if (task.type === CONST.ONBOARDING_TASK_TYPE.VALIDATE_EMAIL) {
-                validateEmailTaskReportID = currentTask.reportID;
-            }
-            if (task.type === CONST.ONBOARDING_TASK_TYPE.JOIN_WORKSPACE) {
-                joinWorkspaceTaskReportID = currentTask.reportID;
             }
 
             return {
@@ -13509,22 +13493,11 @@ function prepareOnboardingOnyxData({
             key: ONYXKEYS.NVP_INTRO_SELECTED,
             value: {
                 choice: engagementChoice,
-                ...(isIncremental
-                    ? {
-                          ...(addWorkEmailTaskReportID ? {addWorkEmail: addWorkEmailTaskReportID} : {}),
-                          ...(validateEmailTaskReportID ? {validateEmail: validateEmailTaskReportID} : {}),
-                          ...(joinWorkspaceTaskReportID ? {joinWorkspace: joinWorkspaceTaskReportID} : {}),
-                      }
-                    : {
-                          createWorkspace: createWorkspaceTaskReportID,
-                          addExpenseApprovals: addExpenseApprovalsTaskReportID,
-                          setupTags: setupTagsTaskReportID,
-                          setupCategoriesAndTags: setupCategoriesAndTagsTaskReportID,
-                          reviewWorkspaceSettings: reviewWorkspaceSettingsTaskReportID,
-                          addWorkEmail: addWorkEmailTaskReportID,
-                          validateEmail: validateEmailTaskReportID,
-                          joinWorkspace: joinWorkspaceTaskReportID,
-                      }),
+                createWorkspace: createWorkspaceTaskReportID,
+                addExpenseApprovals: addExpenseApprovalsTaskReportID,
+                setupTags: setupTagsTaskReportID,
+                setupCategoriesAndTags: setupCategoriesAndTagsTaskReportID,
+                reviewWorkspaceSettings: reviewWorkspaceSettingsTaskReportID,
             },
         },
     );
@@ -13539,7 +13512,7 @@ function prepareOnboardingOnyxData({
         });
     }
 
-    if (!wasInvited && !isIncremental) {
+    if (!wasInvited) {
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.NVP_ONBOARDING,
@@ -13585,14 +13558,14 @@ function prepareOnboardingOnyxData({
         | OnyxUpdate<typeof ONYXKEYS.NVP_INTRO_SELECTED | typeof ONYXKEYS.NVP_ONBOARDING | typeof ONYXKEYS.COLLECTION.POLICY>
         | PersonalDetailsOnyxUpdate
     > = shouldDeferOptimisticTasks ? [] : [...tasksForFailureData];
-    failureData.push({
-        onyxMethod: Onyx.METHOD.MERGE,
-        key: `${ONYXKEYS.COLLECTION.REPORT}${targetChatReportID}`,
-        value: failureReport,
-    });
+    failureData.push(
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${targetChatReportID}`,
+            value: failureReport,
+        },
 
-    if (!isIncremental) {
-        failureData.push({
+        {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.NVP_INTRO_SELECTED,
             value: {
@@ -13601,22 +13574,9 @@ function prepareOnboardingOnyxData({
                 setupCategoriesAndTags: null,
                 setupTags: null,
                 reviewWorkspaceSettings: null,
-                addWorkEmail: null,
-                validateEmail: null,
-                joinWorkspace: null,
             },
-        });
-    } else {
-        failureData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.NVP_INTRO_SELECTED,
-            value: {
-                ...(addWorkEmailTaskReportID ? {addWorkEmail: null} : {}),
-                ...(validateEmailTaskReportID ? {validateEmail: null} : {}),
-                ...(joinWorkspaceTaskReportID ? {joinWorkspace: null} : {}),
-            },
-        });
-    }
+        },
+    );
 
     if (message) {
         failureData.push({
@@ -13630,7 +13590,7 @@ function prepareOnboardingOnyxData({
         });
     }
 
-    if (!wasInvited && !isIncremental) {
+    if (!wasInvited) {
         failureData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.NVP_ONBOARDING,
@@ -14230,17 +14190,18 @@ function getChatListItemReportName(
     parentReport: OnyxEntry<Report>,
     conciergeReportID: string | undefined,
     linkedTransactions: Transaction[],
-    translate: LocalizedTranslate,
+    Localize: {translate: LocalizedTranslate; formatPhoneNumber: LocaleContextProps['formatPhoneNumber']},
     convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'],
     personalDetailsList: OnyxEntry<PersonalDetailsList>,
     derivedReportName: string | undefined,
 ): string {
+    const {translate, formatPhoneNumber} = Localize;
     const reportForHeader = getReportForHeader(report, parentReport);
     if (reportForHeader && isInvoiceReport(reportForHeader)) {
         // Search snapshots of invoice reports may only carry `parentReportID` as the invoice room ID, so fall back to it
         // when `chatReportID` is missing (without mutating the Onyx report) so `getInvoiceReportName` resolves the NewDot title.
         const invoiceReport = reportForHeader.chatReportID ? reportForHeader : {...reportForHeader, chatReportID: reportForHeader.parentReportID};
-        return getInvoiceReportName(invoiceReport, linkedTransactions, translate, convertToDisplayString, personalDetailsList);
+        return getInvoiceReportName(invoiceReport, linkedTransactions, translate, formatPhoneNumber, convertToDisplayString, personalDetailsList);
     }
 
     if (action?.reportName) {
@@ -15185,7 +15146,6 @@ export {
     getDisplayNameForParticipant,
     getDisplayNamesWithTooltips,
     prepareOnboardingOnyxData,
-    getValidateEmailTaskDescription,
     getIOUReportActionDisplayMessage,
     getIOUReportActionMessage,
     getWorkspaceNameUpdatedMessage,
@@ -15432,6 +15392,7 @@ export {
     computeOptimisticReportName,
     computeOptimisticReportNameWithMetadata,
     getPolicyChangeMessage,
+    getUpdateEmployeeDisplayNameMessage,
     getPolicyChangeLogCopyMessage,
     getMovedTransactionMessage,
     getUnreportedTransactionMessage,
