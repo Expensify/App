@@ -346,6 +346,50 @@ describe('WorkspaceUpgrade', () => {
         await waitForBatchedUpdatesWithAct();
     });
 
+    it('should render the generic Control upgrade view instead of Advanced Approvals for auto-pay approved reports', async () => {
+        const policy: Policy = LHNTestUtils.getFakePolicy();
+
+        // Given that a policy is initialized in Onyx
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+        });
+
+        // When the upgrade page is opened from the Auto-pay approved reports toggle, which requires Control but not advanced approvals
+        const {unmount} = renderPage(SCREENS.WORKSPACE.UPGRADE, {policyID: policy.id, featureName: CONST.UPGRADE_FEATURE_INTRO_MAPPING.autoPayApprovedReports.alias});
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the generic Control title is shown
+        expect(await screen.findByText(TestHelper.translateLocal('workspace.upgrade.commonFeatures.title'))).toBeTruthy();
+
+        // And the Advanced Approvals copy is not shown
+        expect(screen.queryByText(TestHelper.translateLocal('workspace.upgrade.approvals.title'))).toBeNull();
+
+        unmount();
+        await waitForBatchedUpdatesWithAct();
+    });
+
+    it.each([CONST.UPGRADE_FEATURE_INTRO_MAPPING.preventSelfApproval.alias, CONST.UPGRADE_FEATURE_INTRO_MAPPING.autoApproveCompliantReports.alias])(
+        'should keep the Advanced Approvals upgrade view for %s',
+        async (featureName) => {
+            const policy: Policy = LHNTestUtils.getFakePolicy();
+
+            // Given that a policy is initialized in Onyx
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+            });
+
+            // When the upgrade page is opened from an approval toggle, which is an advanced approvals feature
+            const {unmount} = renderPage(SCREENS.WORKSPACE.UPGRADE, {policyID: policy.id, featureName});
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the Advanced Approvals title is shown
+            expect(await screen.findByText(TestHelper.translateLocal('workspace.upgrade.approvals.title'))).toBeTruthy();
+
+            unmount();
+            await waitForBatchedUpdatesWithAct();
+        },
+    );
+
     it.each([ROUTES.WORKSPACE_COMPANY_CARDS.getRoute('1'), ROUTES.WORKSPACE_COMPANY_CARDS_SELECT_FEED.getRoute('1')])(
         'should resume the add-card flow nested under %s after acknowledging the company cards upgrade',
         async (backTo) => {
