@@ -254,7 +254,6 @@ function VerticalBarChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPosit
                                 tickCount: VictoryTheme.axis.tickCount,
                                 axisSide: 'right',
                                 lineWidth: 0,
-                                labelOffset: VictoryTheme.axis.labelGap,
                                 domain: yAxisDomain,
                             },
                         ]}

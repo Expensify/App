@@ -109,7 +109,7 @@ function LineChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPosition = '
 
         const edgeSpace = {
             left: Math.max(0, leftOverhang - VictoryTheme.axis.padding.left),
-            right: Math.max(0, rightOverhang - chartPaddingRight - VictoryTheme.axis.labelGap),
+            right: Math.max(0, rightOverhang - chartPaddingRight),
         };
         return {...VictoryTheme.line.domainPadding, ...getDomainPaddingForEdgeSpace(edgeSpace, plotAreaWidth)};
     })();
@@ -316,7 +316,6 @@ function LineChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPosition = '
                                 tickCount: VictoryTheme.axis.tickCount,
                                 axisSide: 'right',
                                 lineWidth: 0,
-                                labelOffset: VictoryTheme.axis.labelGap,
                                 domain: yAxisDomain,
                             },
                         ]}
