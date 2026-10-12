@@ -3563,7 +3563,31 @@ function isPolicyChangeLogChangeRoleMessage(reportAction: OnyxInputOrEntry<Repor
     return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_EMPLOYEE);
 }
 
-function buildPolicyChangeLogUpdateEmployeeSingleFieldMessage(translate: LocalizedTranslate, field: string | undefined, oldValue: unknown, newValue: unknown, rawEmail: string): string {
+type PolicyChangeLogEmployeeFieldChange = {
+    field?: string;
+    oldValue?: unknown;
+    newValue?: unknown;
+};
+
+type PolicyChangeLogApprovalLimitContext = {
+    convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'];
+    currency: string;
+
+    /** The approvalLimit change logged in the same action, if any */
+    approvalLimitChange?: PolicyChangeLogEmployeeFieldChange;
+
+    /** The member's approval limit on the policy, used when the action doesn't log an approvalLimit change */
+    currentApprovalLimit?: number | null;
+};
+
+function buildPolicyChangeLogUpdateEmployeeSingleFieldMessage(
+    translate: LocalizedTranslate,
+    field: string | undefined,
+    oldValue: unknown,
+    newValue: unknown,
+    rawEmail: string,
+    approvalLimitContext: PolicyChangeLogApprovalLimitContext,
+): string {
     if (!field) {
         return '';
     }
@@ -3597,11 +3621,46 @@ function buildPolicyChangeLogUpdateEmployeeSingleFieldMessage(translate: Localiz
         return translate('workspaceActions.changedForwardsTo', {approver: email, forwardsTo: newApprover, previousForwardsTo: previousApprover});
     }
 
+    const {convertToDisplayString, currency, approvalLimitChange, currentApprovalLimit} = approvalLimitContext;
+    const formatLimit = (limit: unknown) => (typeof limit === 'number' ? convertToDisplayString(limit, currency) : '');
+
+    if (field === CONST.POLICY_CHANGE_LOG_EMPLOYEE_FIELDS.APPROVAL_LIMIT) {
+        const limit = formatLimit(newValue);
+        const previousLimit = formatLimit(oldValue);
+        if (!limit || !previousLimit) {
+            return '';
+        }
+        return translate('workspaceActions.changedApprovalLimit', {member: email, limit, previousLimit});
+    }
+
+    if (field === CONST.POLICY_CHANGE_LOG_EMPLOYEE_FIELDS.OVER_LIMIT_FORWARDS_TO) {
+        if (!newApprover) {
+            const previousLimit = formatLimit(approvalLimitChange ? approvalLimitChange.oldValue : currentApprovalLimit);
+            if (!previousLimit) {
+                return '';
+            }
+            return translate('workspaceActions.removedOverLimitForwardsTo', {member: email, previousApprover, previousLimit});
+        }
+
+        const limit = formatLimit(approvalLimitChange ? approvalLimitChange.newValue : currentApprovalLimit);
+        if (!limit) {
+            return '';
+        }
+        // Only mention the previous limit when it changed together with the approver, matching the dedicated overLimitForwardsTo action
+        const previousLimit = previousApprover && approvalLimitChange && approvalLimitChange.oldValue !== approvalLimitChange.newValue ? formatLimit(approvalLimitChange.oldValue) : '';
+        return translate('workspaceActions.changedOverLimitForwardsTo', {member: email, approver: newApprover, limit, previousApprover, previousLimit});
+    }
+
     // We don't have dedicated copy for this field, so the caller falls back to the server-provided message instead of guessing
     return '';
 }
 
-function getPolicyChangeLogUpdateEmployee(translate: LocalizedTranslate, reportAction: OnyxInputOrEntry<ReportAction>): string {
+function getPolicyChangeLogUpdateEmployee(
+    translate: LocalizedTranslate,
+    reportAction: OnyxInputOrEntry<ReportAction>,
+    convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'],
+    policy?: OnyxEntry<Policy>,
+): string {
     if (!isPolicyChangeLogChangeRoleMessage(reportAction)) {
         return '';
     }
@@ -3609,13 +3668,28 @@ function getPolicyChangeLogUpdateEmployee(translate: LocalizedTranslate, reportA
     const originalMessage = getOriginalMessage(reportAction);
     const email = originalMessage?.email ?? '';
     const fieldChanges = originalMessage?.fields;
+    const approvalLimitContext: PolicyChangeLogApprovalLimitContext = {
+        convertToDisplayString,
+        currency: policy?.outputCurrency ?? CONST.CURRENCY.USD,
+        currentApprovalLimit: policy?.employeeList?.[email]?.approvalLimit,
+    };
 
     if (Array.isArray(fieldChanges) && fieldChanges.length > 0) {
-        const messages = fieldChanges.map((fieldChange) => {
+        const approvalLimitChange = fieldChanges.find((fieldChange) => fieldChange?.field === CONST.POLICY_CHANGE_LOG_EMPLOYEE_FIELDS.APPROVAL_LIMIT);
+        const hasOverLimitForwardsToChange = fieldChanges.some((fieldChange) => fieldChange?.field === CONST.POLICY_CHANGE_LOG_EMPLOYEE_FIELDS.OVER_LIMIT_FORWARDS_TO);
+
+        // The overLimitForwardsTo message already includes the limit, so the approvalLimit change is folded into it instead of being shown twice
+        const fieldChangesToShow = hasOverLimitForwardsToChange
+            ? fieldChanges.filter((fieldChange) => fieldChange?.field !== CONST.POLICY_CHANGE_LOG_EMPLOYEE_FIELDS.APPROVAL_LIMIT)
+            : fieldChanges;
+        const messages = fieldChangesToShow.map((fieldChange) => {
             if (!fieldChange || typeof fieldChange !== 'object') {
                 return '';
             }
-            return buildPolicyChangeLogUpdateEmployeeSingleFieldMessage(translate, fieldChange.field, fieldChange.oldValue, fieldChange.newValue, email);
+            return buildPolicyChangeLogUpdateEmployeeSingleFieldMessage(translate, fieldChange.field, fieldChange.oldValue, fieldChange.newValue, email, {
+                ...approvalLimitContext,
+                approvalLimitChange,
+            });
         });
 
         if (messages.every(Boolean)) {
@@ -3626,7 +3700,14 @@ function getPolicyChangeLogUpdateEmployee(translate: LocalizedTranslate, reportA
         return getReportActionText(reportAction) || messages.filter(Boolean).join(', ');
     }
 
-    const message = buildPolicyChangeLogUpdateEmployeeSingleFieldMessage(translate, originalMessage?.field, originalMessage?.oldValue, originalMessage?.newValue, email);
+    const message = buildPolicyChangeLogUpdateEmployeeSingleFieldMessage(
+        translate,
+        originalMessage?.field,
+        originalMessage?.oldValue,
+        originalMessage?.newValue,
+        email,
+        approvalLimitContext,
+    );
     return message || getReportActionText(reportAction);
 }
 

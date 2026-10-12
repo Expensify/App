@@ -315,6 +315,8 @@ const CONST = {
         ROLE: 'role',
         SUBMITS_TO: 'submitsTo',
         FORWARDS_TO: 'forwardsTo',
+        OVER_LIMIT_FORWARDS_TO: 'overLimitForwardsTo',
+        APPROVAL_LIMIT: 'approvalLimit',
     },
     WORKSPACE_ENABLE_FEATURE_REDIRECT_DELAY: 100,
     ANIMATED_HIGHLIGHT_ENTRY_DELAY: 50,

@@ -206,7 +206,8 @@ const POLICY_CHANGE_LOG_RESOLVERS: Record<string, ResolverFn> = {
     [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_DEFAULT_REIMBURSABLE]: (translate, action) => getPolicyChangeLogDefaultReimbursableMessage(translate, action),
     [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_DEFAULT_TITLE_ENFORCED]: (translate, action) => getPolicyChangeLogDefaultTitleEnforcedMessage(translate, action),
     [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_EMPLOYEE]: (translate, action) => getPolicyChangeLogAddEmployeeMessage(translate, action),
-    [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_EMPLOYEE]: (translate, action) => getPolicyChangeLogUpdateEmployee(translate, action),
+    [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_EMPLOYEE]: (translate, action, policy, convertToDisplayString) =>
+        getPolicyChangeLogUpdateEmployee(translate, action, convertToDisplayString, policy),
     [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_EMPLOYEE]: (translate, action) => getPolicyChangeLogDeleteMemberMessage(translate, action),
     [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_APPROVER_RULE]: (translate, action) => getAddedApprovalRuleMessage(translate, action),
     [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_APPROVER_RULE]: (translate, action) => getDeletedApprovalRuleMessage(translate, action),

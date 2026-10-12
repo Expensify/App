@@ -558,8 +558,8 @@ type OriginalMessagePolicyChangeLog = {
     /** Array of field changes for consolidated employee updates */
     fields?: Array<{
         field: string;
-        oldValue: string;
-        newValue: string;
+        oldValue: string | number;
+        newValue: string | number;
     }>;
 
     /** Report field name */
