@@ -8744,6 +8744,8 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                 describeRuleForConcierge: 'Décrivez votre règle et Concierge la créera',
                 gotIt: 'Compris',
                 createRule: 'Créer une règle',
+                fallbackBanner:
+                    'Ce n’est pas une règle standard, nous l’avons donc rédigée comme une règle d’agent. Les règles d’agent agissent après la modification d’une dépense ou d’une note de frais, par exemple en mettant la dépense en attente ou en rejetant la note de frais. Vérifiez-la et enregistrez-la.',
             },
             tabs: {
                 general: 'Général',
@@ -8814,8 +8816,8 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                 flagForReviewDescription: 'Avertir les approbateurs lorsque les dépenses dépassent les limites de catégorie',
                 requireFields: 'Définir les exigences des champs',
                 requireFieldsDescription: 'Rendre certains champs de dépense obligatoires ou renoncer à les exiger.',
-                createAgentRule: 'Décrire la règle de l’agent',
-                createAgentRuleDescription: 'Créez des règles flexibles qui s’exécutent quand vous en avez besoin.',
+                describeYourRule: 'Décrivez votre règle',
+                describeYourRuleDescription: 'Dites à Concierge ce dont vous avez besoin et il créera la règle',
                 describe: 'Décrire',
                 describeRule: 'Décrivez votre règle avec vos propres mots et Concierge la créera pour vous',
                 describeRuleInputLabel: 'Décrivez la règle',
@@ -8823,6 +8825,8 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                     unsupported: 'Cette règle n’est pas encore prise en charge — nous y travaillons. Essayez une autre règle pour le moment.',
                     unintelligible: 'Essayez de formuler votre règle ainsi : si les dépenses dépassent 100 $, exigez un reçu.',
                     multipleRules: 'Une règle à la fois, s’il vous plaît — essayez de décrire une seule règle, comme : bloquer les achats en magasin sur toutes les cartes.',
+                    agentRuleAdminOnly:
+                        'Cela nécessite une règle d’agent, et seuls les administrateurs de l’espace de travail peuvent en créer. Demandez à un administrateur de l’espace de travail de l’ajouter.',
                 },
             },
             expenseDefaultsTable: {

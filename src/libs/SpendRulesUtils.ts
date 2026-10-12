@@ -6,6 +6,7 @@ import type {SpendRuleForm} from '@src/types/form';
 import {isSpendRuleCategory} from '@src/types/form/SpendRuleForm';
 import type {ExpensifyCardSettings} from '@src/types/onyx';
 import type {ExpensifyCardRule, ExpensifyCardRuleFilter} from '@src/types/onyx/ExpensifyCardSettings';
+import type {GeneratedRuleValues} from '@src/types/onyx/GeneratedRule';
 
 import type {OnyxCollection} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
@@ -119,6 +120,17 @@ function buildSpendRuleAST(spendRuleValues: SpendRuleValues, existingCreated?: s
         action: spendRuleValues.restrictionAction ?? CONST.SPEND_RULES.ACTION.ALLOW,
         filters,
     };
+}
+
+/** Returns the spend rule draft for generated values, without the categories that a spend rule cannot hold */
+function getSpendRuleDraftFromGeneratedValues(values: GeneratedRuleValues): Partial<SpendRuleForm> {
+    const categories = values.categories?.filter(isSpendRuleCategory);
+    return categories ? {...values, categories} : values;
+}
+
+/** Returns whether the spend rule restricts merchants or categories */
+function hasSpendRuleMerchantRestrictions(values: Partial<SpendRuleForm> | undefined): boolean {
+    return !!values?.merchantNames?.length || !!values?.categories?.length;
 }
 
 function getSpendRuleFormValuesFromCardRule(cardRule?: ExpensifyCardRule): SpendRuleForm | undefined {
@@ -356,4 +368,13 @@ function getSpendRuleSummaryText(
 }
 
 export type {SpendRuleSummaryPart};
-export {buildSpendRuleAST, getSpendRuleByCardID, getSpendRuleFormValuesFromCardRule, getSpendRuleSummaryParts, getSpendRuleSummaryText, getTruncatedSpendRuleSummary};
+export {
+    buildSpendRuleAST,
+    getSpendRuleByCardID,
+    getSpendRuleDraftFromGeneratedValues,
+    getSpendRuleFormValuesFromCardRule,
+    getSpendRuleSummaryParts,
+    getSpendRuleSummaryText,
+    getTruncatedSpendRuleSummary,
+    hasSpendRuleMerchantRestrictions,
+};

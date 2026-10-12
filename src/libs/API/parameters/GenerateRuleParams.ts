@@ -3,7 +3,7 @@ import type {GeneratedRuleType} from '@src/types/onyx/GeneratedRule';
 type GenerateRuleParams = {
     policyID: string;
     generationID: string;
-    ruleType: GeneratedRuleType;
+    ruleType?: GeneratedRuleType;
     prompt: string;
 };
 

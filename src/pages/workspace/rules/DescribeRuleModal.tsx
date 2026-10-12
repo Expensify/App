@@ -22,7 +22,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/NewRulePromptForm';
 import type {PolicyCategories} from '@src/types/onyx';
-import type {GeneratedRuleType, GeneratedRuleValues} from '@src/types/onyx/GeneratedRule';
+import type {GeneratedRuleState, GeneratedRuleType, GeneratedRuleValues} from '@src/types/onyx/GeneratedRule';
 
 import type {TextInputKeyPressEvent} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -40,12 +40,30 @@ type DescribeRuleModalProps = {
 
     policyID: string;
 
-    /** The rule type of the editor the modal opens from, so Concierge fills in that form */
-    ruleType: GeneratedRuleType;
+    /** The rule type of the editor that opens the modal. Without it, the modal accepts an answer of any known rule type. */
+    ruleType?: GeneratedRuleType;
 
-    /** Called with the generated form values once Concierge has built the rule */
-    onRuleGenerated: (values: GeneratedRuleValues) => void;
+    /** Called with the generated form values and their rule type after Concierge builds the rule */
+    onRuleGenerated: (values: GeneratedRuleValues, generatedRuleType: GeneratedRuleType) => void;
+
+    /**
+     * Called in place of the inline error when the description is not one standard rule. The modal stays open. The
+     * caller closes it or shows an error.
+     */
+    onAgentRuleFallback?: (prompt: string, generationID: string, state: GeneratedRuleState) => void;
 };
+
+type PendingGeneration = {
+    generationID: string;
+    prompt: string;
+};
+
+const GENERATED_RULE_TYPES = new Set<string>(Object.values(CONST.GENERATED_RULE.RULE_TYPE));
+
+/** Returns whether a description with this answer can become an agent rule */
+function isAgentRuleFallbackState(state: GeneratedRuleState): boolean {
+    return state === CONST.GENERATED_RULE.STATE.UNSUPPORTED || state === CONST.GENERATED_RULE.STATE.MULTIPLE_RULES;
+}
 
 /** Replaces the generated category with the workspace's own spelling of it, or drops it when the workspace has no such category */
 function withPolicyCategory(values: GeneratedRuleValues, policyCategories: OnyxEntry<PolicyCategories>): GeneratedRuleValues {
@@ -57,7 +75,7 @@ function withPolicyCategory(values: GeneratedRuleValues, policyCategories: OnyxE
     return policyCategory ? {...rest, category: policyCategory.name} : rest;
 }
 
-function DescribeRuleModal({isVisible, onClose, policyID, ruleType, onRuleGenerated}: DescribeRuleModalProps) {
+function DescribeRuleModal({isVisible, onClose, policyID, ruleType, onRuleGenerated, onAgentRuleFallback}: DescribeRuleModalProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     // We need to use isSmallScreenWidth here because the Modal breaks in RHP with shouldUseNarrowLayout.
@@ -65,7 +83,7 @@ function DescribeRuleModal({isVisible, onClose, policyID, ruleType, onRuleGenera
     const {isSmallScreenWidth} = useResponsiveLayout();
     const formRef = useRef<FormRef>(null);
     const inputRef = useRef<AnimatedTextInputRef>(null);
-    const pendingGenerationIDRef = useRef<string>(undefined);
+    const pendingGenerationRef = useRef<PendingGeneration>(undefined);
     const [generatedRule] = useOnyx(ONYXKEYS.GENERATED_RULE);
     const [newRulePromptForm] = useOnyx(ONYXKEYS.FORMS.NEW_RULE_PROMPT_FORM);
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
@@ -76,13 +94,22 @@ function DescribeRuleModal({isVisible, onClose, policyID, ruleType, onRuleGenera
     const inputLabel = translate('workspace.rules.newRule.describeRuleInputLabel');
 
     const close = () => {
-        pendingGenerationIDRef.current = undefined;
+        pendingGenerationRef.current = undefined;
         clearNewRulePrompt();
         onClose();
     };
 
     useEffect(() => {
-        if (!generatedRuleID || !generatedRuleState || generatedRuleID !== pendingGenerationIDRef.current) {
+        const pendingGeneration = pendingGenerationRef.current;
+        if (!generatedRuleID || !generatedRuleState || generatedRuleID !== pendingGeneration?.generationID) {
+            return;
+        }
+        if (onAgentRuleFallback && isAgentRuleFallbackState(generatedRuleState)) {
+            // The effect can run again before Onyx clears the answer. Clear the pending generation first, because the
+            // caller must get the answer one time only.
+            pendingGenerationRef.current = undefined;
+            clearGeneratedRule();
+            onAgentRuleFallback(pendingGeneration.prompt, generatedRuleID, generatedRuleState);
             return;
         }
         if (generatedRuleState !== CONST.GENERATED_RULE.STATE.RULE) {
@@ -90,18 +117,20 @@ function DescribeRuleModal({isVisible, onClose, policyID, ruleType, onRuleGenera
             clearGeneratedRule();
             return;
         }
-        // Concierge picks the rule type itself. It can answer with a rule type other than the one this editor asked for.
-        if (generatedRuleType !== ruleType) {
+        // Concierge picks the rule type itself. It can answer with a rule type other than `ruleType`, or with a rule type
+        // that this app version does not know.
+        const canApplyRuleType = ruleType ? generatedRuleType === ruleType : GENERATED_RULE_TYPES.has(generatedRuleType ?? '');
+        if (!generatedRuleType || !canApplyRuleType) {
             setNewRulePromptError(CONST.GENERATED_RULE.STATE.UNSUPPORTED);
             clearGeneratedRule();
             return;
         }
-        onRuleGenerated(withPolicyCategory(generatedRuleValues ?? {}, policyCategories));
+        onRuleGenerated(withPolicyCategory(generatedRuleValues ?? {}, policyCategories), generatedRuleType);
         close();
-    }, [close, generatedRuleID, generatedRuleState, generatedRuleType, generatedRuleValues, onRuleGenerated, policyCategories, ruleType]);
+    }, [close, generatedRuleID, generatedRuleState, generatedRuleType, generatedRuleValues, onAgentRuleFallback, onRuleGenerated, policyCategories, ruleType]);
 
     useEffect(() => {
-        if (!isVisible || !newRulePromptForm?.isLoading || pendingGenerationIDRef.current) {
+        if (!isVisible || !newRulePromptForm?.isLoading || pendingGenerationRef.current) {
             return;
         }
         clearNewRulePrompt();
@@ -135,7 +164,8 @@ function DescribeRuleModal({isVisible, onClose, policyID, ruleType, onRuleGenera
     };
 
     const submit = (values: FormOnyxValues<NewRulePromptFormID>) => {
-        pendingGenerationIDRef.current = generateRule(policyID, ruleType, values[INPUT_IDS.PROMPT].trim());
+        const prompt = values[INPUT_IDS.PROMPT].trim();
+        pendingGenerationRef.current = {generationID: generateRule(policyID, prompt, ruleType), prompt};
     };
 
     return (
