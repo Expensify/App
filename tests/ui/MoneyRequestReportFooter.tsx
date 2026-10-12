@@ -113,7 +113,7 @@ const renderMoneyRequestConfirmationListFooter = async (transaction: Transaction
             customUnitRateID: undefined,
         },
         amountDisplay: {amount: 10000, formattedAmount: '100', formattedAmountPerAttendee: '50'},
-        requiredFlags: {isCategoryRequired: false, isMerchantRequired: false, isDescriptionRequired: false},
+        requiredFlags: {isCategoryRequired: false, isMerchantRequired: false, isDescriptionRequired: false, descriptionHint: ''},
         visibilityFlags: {
             shouldShowSmartScanFields: false,
             shouldShowAmountField: true,

@@ -36,6 +36,17 @@ let mockCapturedAccountAvatarProps: Record<string, unknown> = {};
 
 let mockCapturedPolicyExpenseChatAvatarProps: Record<string, unknown> = {};
 
+let mockCapturedTaskReportAvatarProps: Record<string, unknown> = {};
+
+jest.mock('@components/Avatar/connected/TaskReportAvatar', () => {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+    const {View} = require('react-native');
+    return (props: Record<string, unknown>) => {
+        mockCapturedTaskReportAvatarProps = props;
+        return <View testID="MockedTaskReportAvatar" />;
+    };
+});
+
 let mockCapturedDefaultReportAvatarProps: Record<string, unknown> = {};
 
 jest.mock('@components/Avatar/connected/DefaultReportAvatar', () => {
@@ -105,6 +116,7 @@ describe('ReportAvatar (connected)', () => {
         mockCapturedChatThreadAvatarProps = {};
         mockCapturedAccountAvatarProps = {};
         mockCapturedPolicyExpenseChatAvatarProps = {};
+        mockCapturedTaskReportAvatarProps = {};
         mockCapturedDefaultReportAvatarProps = {};
     });
 
@@ -117,7 +129,6 @@ describe('ReportAvatar (connected)', () => {
 
     it.each([
         ['an IOU report', {type: CONST.REPORT.TYPE.IOU}],
-        ['a task report', {type: CONST.REPORT.TYPE.TASK}],
         ['an invoice report', {type: CONST.REPORT.TYPE.INVOICE}],
         ['a room', {type: CONST.REPORT.TYPE.CHAT, chatType: CONST.REPORT.CHAT_TYPE.POLICY_ROOM}],
     ] as const)('should render the legacy component for %s until its wrapper exists', async (_case, reportOverrides) => {
@@ -284,6 +295,38 @@ describe('ReportAvatar (connected)', () => {
         expect(mockCapturedPolicyExpenseChatAvatarProps.sort).toBe(CONST.REPORT_ACTION_AVATARS.SORT_BY.REVERSE);
     });
 
+    it.each([
+        ['the single container style outside a horizontal stack', undefined, [{marginRight: 12}]],
+        ['no container styles inside a horizontal stack', {maxRows: 2}, []],
+    ])('should render TaskReportAvatar for a task report with %s', async (_case, horizontalStacking, expectedContainerStyle) => {
+        // Given a task report in Onyx
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, {reportID: REPORT_ID, type: CONST.REPORT.TYPE.TASK});
+        await waitForBatchedUpdatesWithAct();
+
+        // When the dispatcher renders it with every prop
+        render(
+            <ReportAvatar
+                reportID={REPORT_ID}
+                size={CONST.AVATAR_SIZE.SMALL}
+                singleAvatarContainerStyle={[{marginRight: 12}]}
+                backdropColor="#ff0000"
+                subscriptAvatarContainerStyle={[{marginRight: 0}]}
+                horizontalStacking={horizontalStacking}
+                sort={CONST.REPORT_ACTION_AVATARS.SORT_BY.REVERSE}
+                fallbackDisplayName={FALLBACK_NAME}
+            />,
+        );
+
+        // Then the always-single wrapper gets only the single container style, dropped inside a horizontal stack like the legacy component
+        expect(screen.getByTestId('MockedTaskReportAvatar')).toBeOnTheScreen();
+        expect(mockCapturedTaskReportAvatarProps).toEqual({
+            reportID: REPORT_ID,
+            size: CONST.AVATAR_SIZE.SMALL,
+            containerStyle: expectedContainerStyle,
+            fallbackDisplayName: FALLBACK_NAME,
+        });
+    });
+
     it('should render ChatThreadAvatar for a trip room, which is a thread of its trip preview', async () => {
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, {
             reportID: REPORT_ID,
@@ -347,6 +390,7 @@ describe('ReportAvatar (connected)', () => {
         ['the system chat', {type: CONST.REPORT.TYPE.CHAT, chatType: CONST.REPORT.CHAT_TYPE.SYSTEM}],
         ['a trip room without its parent fields', {type: CONST.REPORT.TYPE.CHAT, chatType: CONST.REPORT.CHAT_TYPE.TRIP_ROOM}],
         ['a report with neither a type nor a chat type', {}],
+        ['a support ticket', {type: CONST.REPORT.TYPE.SUPPORT_TICKET}],
         ['an unsupported report type', {type: CONST.REPORT.UNSUPPORTED_TYPE.PAYCHECK}],
         ['a report that has not loaded', null],
     ] as const)('should render DefaultReportAvatar for %s', async (_case, reportOverrides) => {

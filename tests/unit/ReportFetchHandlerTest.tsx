@@ -2,6 +2,7 @@ import {act, render} from '@testing-library/react-native';
 
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 
+import {IsHiddenWideTabPreMountContext} from '@hooks/useIsHiddenWideTabPreMount';
 import {IsInPreloadedTabContext} from '@hooks/useIsInPreloadedTab';
 
 import ReportFetchHandler from '@pages/inbox/ReportFetchHandler';
@@ -44,31 +45,58 @@ jest.mock('@hooks/useNetwork', () => ({
 }));
 
 const mockOpenReport = jest.fn<void, Parameters<typeof UserActionsReport.openReport>>();
+const mockFlagReportNavigatedAway = jest.fn<void, Parameters<typeof UserActionsReport.flagReportNavigatedAway>>();
+const mockClearReportNavigatedAway = jest.fn<void, Parameters<typeof UserActionsReport.clearReportNavigatedAway>>();
+const mockUpdateLastVisitTime = jest.fn<void, Parameters<typeof UserActionsReport.updateLastVisitTime>>();
+const mockReadNewestAction = jest.fn<void, Parameters<typeof UserActionsReport.readNewestAction>>();
 jest.mock('@userActions/Report', () => ({
     ...jest.requireActual<typeof UserActionsReport>('@userActions/Report'),
     openReport: (...args: Parameters<typeof UserActionsReport.openReport>) => {
         mockOpenReport(...args);
     },
+    flagReportNavigatedAway: (...args: Parameters<typeof UserActionsReport.flagReportNavigatedAway>) => {
+        mockFlagReportNavigatedAway(...args);
+    },
+    clearReportNavigatedAway: (...args: Parameters<typeof UserActionsReport.clearReportNavigatedAway>) => {
+        mockClearReportNavigatedAway(...args);
+    },
+    updateLastVisitTime: (...args: Parameters<typeof UserActionsReport.updateLastVisitTime>) => {
+        mockUpdateLastVisitTime(...args);
+    },
+    readNewestAction: (...args: Parameters<typeof UserActionsReport.readNewestAction>) => {
+        mockReadNewestAction(...args);
+    },
 }));
 
-function HandlerTree({isInPreloadedTab}: {isInPreloadedTab: boolean}) {
+function HandlerTree({isInPreloadedTab, isHiddenPreMount = false}: {isInPreloadedTab: boolean; isHiddenPreMount?: boolean}) {
     return (
         <IsInPreloadedTabContext.Provider value={isInPreloadedTab}>
-            <OnyxListItemProvider>
-                <ReportFetchHandler />
-            </OnyxListItemProvider>
+            <IsHiddenWideTabPreMountContext.Provider value={isHiddenPreMount}>
+                <OnyxListItemProvider>
+                    <ReportFetchHandler />
+                </OnyxListItemProvider>
+            </IsHiddenWideTabPreMountContext.Provider>
         </IsInPreloadedTabContext.Provider>
     );
 }
 
-function renderHandler(isInPreloadedTab = false) {
-    return render(<HandlerTree isInPreloadedTab={isInPreloadedTab} />);
+function renderHandler(isInPreloadedTab = false, isHiddenPreMount = false) {
+    return render(
+        <HandlerTree
+            isInPreloadedTab={isInPreloadedTab}
+            isHiddenPreMount={isHiddenPreMount}
+        />,
+    );
 }
 
 /** Regression tests for the guards that suppress openReport for a client-generated report ID that doesn't exist on the server yet. */
 describe('ReportFetchHandler', () => {
     beforeEach(async () => {
         mockOpenReport.mockClear();
+        mockFlagReportNavigatedAway.mockClear();
+        mockClearReportNavigatedAway.mockClear();
+        mockUpdateLastVisitTime.mockClear();
+        mockReadNewestAction.mockClear();
         mockSetParams.mockClear();
         mockIsOffline = false;
         setRouteParams({reportID: REPORT_ID});
@@ -152,6 +180,200 @@ describe('ReportFetchHandler', () => {
 
         // Then fetching stays blocked because the report is not committed on the server
         expect(mockOpenReport).not.toHaveBeenCalled();
+    });
+
+    it('loads a hidden wide submit pre-mount without marking it read or clearing its manual unread marker', async () => {
+        // Given a report that exists locally, mounted hidden under the screen the user is looking at
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, {reportID: REPORT_ID});
+        await waitForBatchedUpdates();
+
+        // When the handler fetches it
+        renderHandler(false, true);
+        await waitForBatchedUpdates();
+
+        // Then it still loads, so the reveal is instant, but the read state waits for the user to actually see it
+        expect(mockOpenReport).toHaveBeenCalledWith(expect.objectContaining({reportID: REPORT_ID, shouldMarkAsRead: false, shouldKeepManualUnreadMarker: true}));
+    });
+
+    it('does not flag a hidden wide submit pre-mount as navigated away when it unmounts unseen', async () => {
+        // Given a report mounted hidden under the screen the user is looking at
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, {reportID: REPORT_ID});
+        await waitForBatchedUpdates();
+        const {unmount} = renderHandler(false, true);
+        await waitForBatchedUpdates();
+
+        // When the submit is cancelled and the hidden screen unmounts
+        unmount();
+
+        // Then the next real open is not treated as a return trip that clears a manual unread marker
+        expect(mockFlagReportNavigatedAway).not.toHaveBeenCalled();
+    });
+
+    it('flags a revealed wide submit pre-mount as navigated away when it unmounts', async () => {
+        // Given a hidden pre-mount that was then revealed to the user
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, {reportID: REPORT_ID});
+        await waitForBatchedUpdates();
+        const {rerender, unmount} = renderHandler(false, true);
+        await waitForBatchedUpdates();
+        rerender(
+            <HandlerTree
+                isInPreloadedTab={false}
+                isHiddenPreMount={false}
+            />,
+        );
+        await waitForBatchedUpdates();
+
+        // When the screen unmounts
+        unmount();
+
+        // Then it is flagged like any report the user left
+        expect(mockFlagReportNavigatedAway).toHaveBeenCalledWith(REPORT_ID);
+    });
+
+    it('does not re-fetch a hidden wide submit pre-mount when the reveal rebuilds its route', async () => {
+        // Given a report that the hidden pre-mount already fetched
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, {reportID: REPORT_ID});
+        await waitForBatchedUpdates();
+        const {rerender} = renderHandler(false, true);
+        await waitForBatchedUpdates();
+        mockOpenReport.mockClear();
+
+        // When the reveal replaces the route object with one that has the same key and params
+        setRouteParams({reportID: REPORT_ID});
+        rerender(
+            <HandlerTree
+                isInPreloadedTab={false}
+                isHiddenPreMount={false}
+            />,
+        );
+        await waitForBatchedUpdates();
+
+        // Then no return-trip fetch runs, so the manual unread marker and the newest page stay for this visit
+        expect(mockOpenReport).not.toHaveBeenCalled();
+    });
+
+    it('fetches a revealed wide submit pre-mount again when the user navigates to a new route', async () => {
+        // Given a hidden pre-mount that was revealed, with its rebuilt route skipped
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, {reportID: REPORT_ID});
+        await waitForBatchedUpdates();
+        const {rerender} = renderHandler(false, true);
+        await waitForBatchedUpdates();
+        setRouteParams({reportID: REPORT_ID});
+        rerender(
+            <HandlerTree
+                isInPreloadedTab={false}
+                isHiddenPreMount={false}
+            />,
+        );
+        await waitForBatchedUpdates();
+        mockOpenReport.mockClear();
+
+        // When the route changes again after the reveal
+        setRouteParams({reportID: REPORT_ID});
+        rerender(
+            <HandlerTree
+                isInPreloadedTab={false}
+                isHiddenPreMount={false}
+            />,
+        );
+        await waitForBatchedUpdates();
+
+        // Then the skip was spent on the reveal, so this navigation fetches like any other
+        expect(mockOpenReport).toHaveBeenCalledWith(expect.objectContaining({reportID: REPORT_ID, shouldMarkAsRead: true}));
+    });
+
+    it('ends the return trip of a hidden wide submit pre-mount when it is revealed', async () => {
+        // Given a report mounted hidden under the screen the user is looking at
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, {reportID: REPORT_ID});
+        await waitForBatchedUpdates();
+        const {rerender} = renderHandler(false, true);
+        await waitForBatchedUpdates();
+        expect(mockClearReportNavigatedAway).not.toHaveBeenCalled();
+
+        // When it is revealed
+        rerender(
+            <HandlerTree
+                isInPreloadedTab={false}
+                isHiddenPreMount={false}
+            />,
+        );
+        await waitForBatchedUpdates();
+
+        // Then the visit starts now, so later fetches in it do not clear a manual unread marker as a return trip
+        expect(mockClearReportNavigatedAway).toHaveBeenCalledWith(REPORT_ID);
+    });
+
+    it('keeps the return trip of a hidden wide submit pre-mount that unmounts unseen', async () => {
+        // Given a report mounted hidden under the screen the user is looking at
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, {reportID: REPORT_ID});
+        await waitForBatchedUpdates();
+        const {unmount} = renderHandler(false, true);
+        await waitForBatchedUpdates();
+
+        // When the submit is cancelled and the hidden screen unmounts
+        unmount();
+
+        // Then the next real open still counts as a return trip and clears a marker the user left
+        expect(mockClearReportNavigatedAway).not.toHaveBeenCalled();
+    });
+
+    it('records the visit of a hidden wide submit pre-mount only once it is revealed', async () => {
+        // Given a report mounted hidden under the screen the user is looking at
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, {reportID: REPORT_ID});
+        await waitForBatchedUpdates();
+        const {rerender} = renderHandler(false, true);
+        await waitForBatchedUpdates();
+
+        // Then the user has not visited it yet
+        expect(mockUpdateLastVisitTime).not.toHaveBeenCalled();
+
+        // When it is revealed
+        rerender(
+            <HandlerTree
+                isInPreloadedTab={false}
+                isHiddenPreMount={false}
+            />,
+        );
+        await waitForBatchedUpdates();
+
+        // Then the visit is recorded
+        expect(mockUpdateLastVisitTime).toHaveBeenCalledWith(REPORT_ID);
+    });
+
+    it('marks a hidden wide submit pre-mount task report read only once it is revealed', async () => {
+        // Given a task report with no read time, mounted hidden under the screen the user is looking at
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, {reportID: REPORT_ID, type: CONST.REPORT.TYPE.TASK});
+        await waitForBatchedUpdates();
+        const {rerender} = renderHandler(false, true);
+        await waitForBatchedUpdates();
+
+        // Then the read state waits for the user to see it
+        expect(mockReadNewestAction).not.toHaveBeenCalled();
+
+        // When it is revealed
+        rerender(
+            <HandlerTree
+                isInPreloadedTab={false}
+                isHiddenPreMount={false}
+            />,
+        );
+        await waitForBatchedUpdates();
+
+        // Then it is marked read like any opened task report
+        expect(mockReadNewestAction).toHaveBeenCalledWith(REPORT_ID, expect.anything());
+    });
+
+    it('marks a visible report read when fetching it', async () => {
+        // Given a report that exists locally, on a screen the user is looking at
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, {reportID: REPORT_ID});
+        await waitForBatchedUpdates();
+
+        // When the handler fetches it
+        renderHandler();
+        await waitForBatchedUpdates();
+
+        // Then the fetch marks it read like opening any report does
+        expect(mockOpenReport).toHaveBeenCalledWith(expect.objectContaining({reportID: REPORT_ID, shouldMarkAsRead: true, shouldKeepManualUnreadMarker: false}));
     });
 
     it('calls openReport again once the pre-mount marker is cleared', async () => {

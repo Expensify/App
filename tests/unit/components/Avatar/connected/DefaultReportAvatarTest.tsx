@@ -140,6 +140,12 @@ describe('DefaultReportAvatar (connected)', () => {
         ['a self DM by the current user', {type: CONST.REPORT.TYPE.CHAT, chatType: CONST.REPORT.CHAT_TYPE.SELF_DM}, buildParticipantIcon(CURRENT_USER_ACCOUNT_ID)],
         ['the system chat by Notifications', {type: CONST.REPORT.TYPE.CHAT, chatType: CONST.REPORT.CHAT_TYPE.SYSTEM}, buildParticipantIcon(CONST.ACCOUNT_ID.NOTIFICATIONS)],
         [
+            'a support ticket by its assigned rep, not its participants',
+            {type: CONST.REPORT.TYPE.SUPPORT_TICKET, managerID: OTHER_ACCOUNT_ID, participants: buildParticipants(CURRENT_USER_ACCOUNT_ID, THIRD_ACCOUNT_ID)},
+            buildParticipantIcon(OTHER_ACCOUNT_ID),
+        ],
+        ['a support ticket without an assigned rep by the unknown account', {type: CONST.REPORT.TYPE.SUPPORT_TICKET, participants: buildParticipants(OTHER_ACCOUNT_ID)}, PLACEHOLDER_ICON],
+        [
             'a report without a type by the lowest account ID, since only a chat can be a 1:1 DM',
             {participants: buildParticipants(CURRENT_USER_ACCOUNT_ID, OTHER_ACCOUNT_ID)},
             buildParticipantIcon(CURRENT_USER_ACCOUNT_ID),

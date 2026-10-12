@@ -1,8 +1,7 @@
 import type {AvatarIcon} from '@components/Avatar/types';
 
 import initOnyxDerivedValues from '@libs/actions/OnyxDerived';
-import {getReportAction} from '@libs/ReportActionsUtils';
-import {getIcons, isChatThread, isExpenseRequest, isTaskReport, isTripRoom, isWorkspaceTaskReport, shouldReportShowSubscript} from '@libs/ReportUtils';
+import {getIcons, isChatThread, isExpenseRequest, isTripRoom, shouldReportShowSubscript} from '@libs/ReportUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -94,11 +93,7 @@ function computeAvatarResult({report, policy = TEST_POLICY, isReportArchived = f
     const rawShouldShowSubscript = shouldReportShowSubscript(report, isReportArchived);
     const isWorkspaceExpenseRequest = isExpenseRequest(report) && !!policy && policy.type !== CONST.POLICY.TYPE.PERSONAL;
     const threadSuppression = isChatThread(report) && !isTripRoom(report) && !isWorkspaceExpenseRequest;
-    const parentReportAction = getReportAction(report.parentReportID, report.parentReportActionID);
-    const taskParentAction = isTaskReport(report) && !report.chatReportID ? undefined : parentReportAction;
-    const isReportPreviewOrNoAction = !taskParentAction || taskParentAction?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW;
-    const taskSuppression = isTaskReport(report) && !(isWorkspaceTaskReport(report) && isReportPreviewOrNoAction);
-    const shouldShowSubscript = rawShouldShowSubscript && !threadSuppression && !taskSuppression;
+    const shouldShowSubscript = rawShouldShowSubscript && !threadSuppression;
 
     const formatPhoneNumber = (s: string) => s;
     let icons: AvatarIcon[] = getIcons(report, formatPhoneNumber, translateLocal, PERSONAL_DETAILS, null, '', -1, policy, undefined, isReportArchived, undefined, conciergeReportID);
@@ -116,7 +111,7 @@ function computeAvatarResult({report, policy = TEST_POLICY, isReportArchived = f
 
     // Stage 3: OptionRowLHN — Delegate icon replacement
     const isConciergeThread = isChatThread(report) && !!conciergeReportID && report.parentReportID === conciergeReportID;
-    const skipDelegate = isConciergeThread || report.type === CONST.REPORT.TYPE.INVOICE || (isTaskReport(report) && !report.chatReportID);
+    const skipDelegate = isConciergeThread || report.type === CONST.REPORT.TYPE.INVOICE;
     if (delegateAccountID && PERSONAL_DETAILS[delegateAccountID] && icons.length > 0 && !skipDelegate) {
         const delegateDetails = PERSONAL_DETAILS[delegateAccountID];
         const firstIcon = icons.at(0);
@@ -540,8 +535,7 @@ describe('LHN Avatar Pipeline', () => {
     });
 
     // ── Case 19: Policy Expense Chat + Task (no parent PEC in Onyx) ─────
-    // shouldReportShowSubscript excludes tasks from PEC path (lines 9987/9991),
-    // and isWorkspaceTaskReport needs a parent PEC in Onyx (which this report lacks).
+    // shouldReportShowSubscript never shows a subscript for a task.
     // Header also shows SINGLE for this edge case — both pipelines agree.
     it('Policy Expense Chat Task (no parent PEC) → single (matches header)', () => {
         const report = {
@@ -584,8 +578,8 @@ describe('LHN Avatar Pipeline', () => {
         expect(result.icons).toHaveLength(1);
     });
 
-    // ── Case 12d: Direct workspace task offline (no chatReportID) → SUBSCRIPT
-    it('Task Report (workspace, offline without chatReportID) → subscript', () => {
+    // ── Case 12d: Direct workspace task offline (no chatReportID) → SINGLE, like the header
+    it('Task Report (workspace, offline without chatReportID) → single', () => {
         const report = {
             ...createWorkspaceTaskReport(124, [CURRENT_USER_ACCOUNT_ID, 2], PARENT_PEC_REPORT_ID),
             policyID: POLICY_ID,
@@ -594,13 +588,13 @@ describe('LHN Avatar Pipeline', () => {
         };
         const result = computeAvatarResult({report});
 
-        expect(result.shouldShowSubscript).toBe(true);
-        expect(result.avatarType).toBe('subscript');
-        expect(result.icons).toHaveLength(2);
+        expect(result.shouldShowSubscript).toBe(false);
+        expect(result.avatarType).toBe('single');
+        expect(result.icons).toHaveLength(1);
     });
 
-    // ── Case 21: Delegate skipped for task without chatReportID ──────
-    it('Delegate skipped for task without chatReportID', () => {
+    // ── Case 21: Delegate applied for task without chatReportID, like the header ──
+    it('Delegate applied for task without chatReportID', () => {
         const report = {
             ...createWorkspaceTaskReport(125, [CURRENT_USER_ACCOUNT_ID, 2], PARENT_PEC_REPORT_ID),
             policyID: POLICY_ID,
@@ -608,7 +602,7 @@ describe('LHN Avatar Pipeline', () => {
         };
         const result = computeAvatarResult({report, delegateAccountID: 5});
 
-        expect(result.icons.at(0)?.id).not.toBe(5);
+        expect(result.icons.at(0)?.id).toBe(5);
     });
 
     // ── Case 22: Delegate applied for task WITH chatReportID ─────────

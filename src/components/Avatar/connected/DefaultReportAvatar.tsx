@@ -7,7 +7,7 @@ import useOnyx from '@hooks/useOnyx';
 import {useAllPersonalDetails} from '@hooks/usePersonalDetails';
 import useStyleUtils from '@hooks/useStyleUtils';
 
-import {getIconsForParticipants, isOneOnOneChat, isSelfDM, isSystemChat, isTripRoom} from '@libs/ReportUtils';
+import {getIconsForParticipants, isOneOnOneChat, isSelfDM, isSupportTicket, isSystemChat, isTripRoom} from '@libs/ReportUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -44,8 +44,11 @@ type DefaultReportAvatarProps = {
     fallbackDisplayName?: string;
 };
 
-/** Picks the account a chat is pictured by: the current user in their self DM, Notifications in the system chat, the other member of a 1:1 DM, otherwise the first participant. */
+/** Picks the account a chat is pictured by: the assigned rep of a support ticket, the current user in their self DM, Notifications in the system chat, the other member of a 1:1 DM, otherwise the first participant. */
 function getChatAccountID(report: OnyxEntry<Report>, currentUserAccountID: number | undefined): number {
+    if (isSupportTicket(report)) {
+        return report?.managerID ?? CONST.DEFAULT_NUMBER_ID;
+    }
     if (isSelfDM(report)) {
         return currentUserAccountID ?? CONST.DEFAULT_NUMBER_ID;
     }
@@ -59,7 +62,7 @@ function getChatAccountID(report: OnyxEntry<Report>, currentUserAccountID: numbe
     return participantAccountIDs.at(0) ?? CONST.DEFAULT_NUMBER_ID;
 }
 
-/** Renders the avatar of a DM, self DM, system chat or any other report without a dedicated avatar: the account the chat is pictured by. */
+/** Renders the avatar of a DM, self DM, system chat, support ticket or any other report without a dedicated avatar: the account the chat is pictured by. */
 function DefaultReportAvatar({reportID, size, containerStyle, horizontalStacking, sort, fallbackDisplayName}: DefaultReportAvatarProps) {
     const StyleUtils = useStyleUtils();
     const defaultAvatars = useDefaultAvatars();
