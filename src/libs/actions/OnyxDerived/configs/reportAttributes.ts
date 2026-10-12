@@ -1,9 +1,10 @@
-import type {LocalizedTranslate} from '@components/LocaleContextProvider';
+import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
 
 import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
 
 import {getReportPreviewReportAction} from '@libs/actions/IOU/MoneyRequestBuilder';
 import {convertToFrontendAmountAsInteger, sanitizeCurrencyCode} from '@libs/CurrencyUtils';
+import {formatPhoneNumberWithCountryCode} from '@libs/LocalePhoneNumber';
 import {translate as translateForLocale} from '@libs/Localize';
 import {getIsOffline} from '@libs/NetworkState';
 import {format, formatToParts} from '@libs/NumberFormatUtils';
@@ -222,6 +223,7 @@ export default createOnyxDerivedValueConfig({
     dependencies: [
         ONYXKEYS.COLLECTION.REPORT,
         ONYXKEYS.NVP_PREFERRED_LOCALE,
+        ONYXKEYS.COUNTRY_CODE,
         ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS,
         ONYXKEYS.COLLECTION.REPORT_ACTIONS,
         ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS,
@@ -242,6 +244,7 @@ export default createOnyxDerivedValueConfig({
         [
             reports,
             preferredLocale,
+            countryCodeByIP,
             transactionViolations,
             reportActions,
             reportNameValuePairs,
@@ -263,6 +266,7 @@ export default createOnyxDerivedValueConfig({
         const isOffline = getIsOffline();
         const dateFnsLocale = IntlStore.getDateFnsLocale(preferredLocale);
         const translate: LocalizedTranslate = (path, ...parameters) => translateForLocale(preferredLocale, path, ...parameters);
+        const formatPhoneNumber: LocaleContextProps['formatPhoneNumber'] = (phoneNumber) => formatPhoneNumberWithCountryCode(phoneNumber, countryCodeByIP ?? CONST.DEFAULT_COUNTRY_CODE);
         // Non-React computation: there is no component to inject the currency formatters from CurrencyListContextProvider,
         // so mirror the provider's implementations here using the CURRENCY_LIST dependency and the preferred locale.
         const getCurrencyDecimals = (currencyCode: string): number => currencyList?.[currencyCode]?.decimals ?? CONST.DEFAULT_CURRENCY_DECIMALS;
@@ -742,6 +746,7 @@ export default createOnyxDerivedValueConfig({
                               convertToDisplayStringWithoutCurrency,
                               getCurrencySymbol,
                               pendingDeleteMemberAccountIDs,
+                              formatPhoneNumber,
                               rules,
                           }),
                     isEmpty: generateIsEmptyReport(report, isReportArchived),

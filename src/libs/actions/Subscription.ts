@@ -19,6 +19,8 @@ import type {OnyxCollection, OnyxUpdate} from 'react-native-onyx';
 
 import Onyx from 'react-native-onyx';
 
+import {getVerify3dsSubscriptionSourceData, prepareCardAuthentication} from './PaymentMethods';
+
 /**
  * Fetches data when the user opens the SubscriptionSettingsPage
  * @param currentGracePeriods - The current billing grace period collection. If provided and non-empty,
@@ -351,9 +353,16 @@ function clearUpdateSubscriptionSizeError() {
     });
 }
 
-function clearOutstandingBalance() {
+/**
+ * An SCA card that needs 3DS fails this charge with a 409 whose onyxData sets verify3dsSubscription to a new 3DS link.
+ */
+function clearOutstandingBalance(source: string) {
+    prepareCardAuthentication(source);
     const onyxData: OnyxData<
-        typeof ONYXKEYS.SUBSCRIPTION_RETRY_BILLING_STATUS_PENDING | typeof ONYXKEYS.SUBSCRIPTION_RETRY_BILLING_STATUS_SUCCESSFUL | typeof ONYXKEYS.SUBSCRIPTION_RETRY_BILLING_STATUS_FAILED
+        | typeof ONYXKEYS.SUBSCRIPTION_RETRY_BILLING_STATUS_PENDING
+        | typeof ONYXKEYS.SUBSCRIPTION_RETRY_BILLING_STATUS_SUCCESSFUL
+        | typeof ONYXKEYS.SUBSCRIPTION_RETRY_BILLING_STATUS_FAILED
+        | typeof ONYXKEYS.VERIFY_3DS_SUBSCRIPTION_SOURCE
     > = {
         optimisticData: [
             {
@@ -395,6 +404,7 @@ function clearOutstandingBalance() {
                 key: ONYXKEYS.SUBSCRIPTION_RETRY_BILLING_STATUS_FAILED,
                 value: true,
             },
+            ...getVerify3dsSubscriptionSourceData(source),
         ],
     };
 
