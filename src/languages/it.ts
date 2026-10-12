@@ -2348,7 +2348,6 @@ const translations: TranslationDeepObject<typeof en> = {
             useProfiling: 'Usa il profiling',
             profileTrace: 'Traccia profilo',
             results: 'Risultati',
-            releaseOptions: 'Opzioni di rilascio',
             testingPreferences: 'Preferenze di test',
             server: 'Server',
             servers: {
