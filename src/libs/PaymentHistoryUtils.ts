@@ -316,4 +316,4 @@ function getBadgeText(badge: PaymentDetailsBadge, state: PaymentHistoryState, tr
 }
 
 export {formatDate, getBadgeAppearance, getBadgeText, getPaymentDetailsBadge, getPaymentHistoryRow, getPaymentHistoryRows, getStateTranslationKey};
-export type {PaymentDetailsBadge, PaymentHistoryRow};
+export type {PaymentHistoryRow};
