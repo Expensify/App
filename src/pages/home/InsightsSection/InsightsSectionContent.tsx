@@ -72,7 +72,7 @@ function InsightsSectionContent() {
                 />
             }
             titleRightContent={
-                state === INSIGHTS_CHART_STATE.READY || state === INSIGHTS_CHART_STATE.EMPTY || state === INSIGHTS_CHART_STATE.ERROR ? (
+                isInsightsPageEnabled || state === INSIGHTS_CHART_STATE.READY || state === INSIGHTS_CHART_STATE.EMPTY || state === INSIGHTS_CHART_STATE.ERROR ? (
                     <WidgetHeaderMenu
                         testID="insightsOverflowMenu"
                         sentryLabel="InsightsOverflowMenu"
@@ -114,9 +114,8 @@ function InsightsSectionContent() {
 
     return (
         <PressableWithoutFeedback
-            accessibilityLabel={translate(config.translationPath)}
+            accessible={false}
             onPress={navigateToInsights}
-            role={CONST.ROLE.BUTTON}
             sentryLabel={CONST.SENTRY_LABEL.HOME_PAGE.WIDGET_ITEM}
         >
             {widget}
