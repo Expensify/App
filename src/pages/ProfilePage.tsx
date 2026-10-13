@@ -293,10 +293,9 @@ function ProfilePage({route}: ProfilePageProps) {
                                 </View>
                             ) : null}
                             {canManageMemberDisplayName ? (
-                                <View style={[styles.w100, styles.detailsPageSectionContainer]}>
+                                <View style={[styles.alignSelfStretch, styles.mhn5]}>
                                     <OfflineWithFeedback pendingAction={details?.pendingFields?.displayName}>
                                         <MenuItemWithTopDescription
-                                            style={[styles.ph0]}
                                             title={displayName}
                                             description={translate('displayNamePage.headerTitle')}
                                             interactive={!hasDisplayNameSet}
