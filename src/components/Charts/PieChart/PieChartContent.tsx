@@ -151,7 +151,7 @@ function PieChartContent({data, series, isLoading, valueUnit, valueUnitPosition,
         });
 
     // Combined gestures - Race allows both hover and tap to work independently
-    const combinedGesture = Gesture.Race(hoverGesture(), tapGesture());
+    const combinedGesture = onSlicePress ? Gesture.Race(hoverGesture(), tapGesture()) : hoverGesture();
 
     const renderLegendItem = (slice: PieSlice) => {
         return (

@@ -1,4 +1,5 @@
 import {BarChart, LineChart, PieChart} from '@components/Charts';
+import type {ChartDataPoint} from '@components/Charts';
 
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
@@ -43,6 +44,9 @@ type SearchChartViewProps = {
     /** Whether a bar chart labels its bars and a donut chart shows its legend. Line chart labels always show. */
     shouldShowGroupLabels?: boolean;
 
+    /** Whether pressing a bar, point or slice opens Search filtered to it */
+    shouldDrillDownOnPress?: boolean;
+
     /** Whether a line chart with a single point is drawn as a bar */
     shouldShowSinglePointAsBar?: boolean;
 
@@ -64,6 +68,7 @@ function SearchChartView({
     data,
     isLoading,
     shouldShowGroupLabels = true,
+    shouldDrillDownOnPress = true,
     shouldShowSinglePointAsBar = false,
     renderDetails,
     chartContainerStyle,
@@ -86,7 +91,7 @@ function SearchChartView({
     });
     const points = rows.map((row) => row.point);
 
-    const handleItemPress = (index: number) => {
+    const handleItemPress = (dataPoint: ChartDataPoint, index: number) => {
         const item = rows.at(index)?.item;
         if (!item || !queryJSON) {
             return;
@@ -99,6 +104,8 @@ function SearchChartView({
         }
         Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query, searchKey: currentSearchKey}));
     };
+
+    const onItemPress = shouldDrillDownOnPress ? handleItemPress : undefined;
 
     const firstItem = data.at(0);
     const currency = sanitizeCurrencyCode(firstItem?.currency ?? CONST.CURRENCY.USD);
@@ -115,7 +122,7 @@ function SearchChartView({
                 data={points}
                 series={series}
                 isLoading={isLoading}
-                onBarPress={(dataPoint, index) => handleItemPress(index)}
+                onBarPress={onItemPress}
                 yAxisUnit={unit}
                 yAxisUnitPosition={unitPosition}
                 shouldShowLabels={shouldShowGroupLabels}
@@ -127,7 +134,7 @@ function SearchChartView({
                     data={points}
                     series={series}
                     isLoading={isLoading}
-                    onBarPress={(dataPoint, index) => handleItemPress(index)}
+                    onBarPress={onItemPress}
                     yAxisUnit={unit}
                     yAxisUnitPosition={unitPosition}
                 />
@@ -136,7 +143,7 @@ function SearchChartView({
                     data={points}
                     series={series}
                     isLoading={isLoading}
-                    onPointPress={(dataPoint, index) => handleItemPress(index)}
+                    onPointPress={onItemPress}
                     yAxisUnit={unit}
                     yAxisUnitPosition={unitPosition}
                 />
@@ -146,7 +153,7 @@ function SearchChartView({
                 data={points}
                 series={series}
                 isLoading={isLoading}
-                onSlicePress={(dataPoint, index) => handleItemPress(index)}
+                onSlicePress={onItemPress}
                 valueUnit={unit.value}
                 valueUnitPosition={unitPosition}
                 shouldShowLegend={shouldShowGroupLabels}

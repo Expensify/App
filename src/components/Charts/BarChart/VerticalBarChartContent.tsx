@@ -129,7 +129,7 @@ function VerticalBarChartContentBody({data, series, isLoading, yAxisUnit, yAxisU
     };
 
     const {customGestures, setPointPositions, matchedIndex, isTooltipActive, isCursorOverClickable, initialTooltipPosition, onChartMoved} = useChartInteractions({
-        handlePress: handleBarPress,
+        handlePress: onBarPress ? handleBarPress : undefined,
         checkIsOver: checkIsOverBar,
         isCursorOverLabel: shouldShowLabels ? isCursorOverLabel : undefined,
         resolveLabelTouchX: shouldShowLabels ? findLabelCursorX : undefined,
@@ -230,7 +230,7 @@ function VerticalBarChartContentBody({data, series, isLoading, yAxisUnit, yAxisU
             touchAction="pan-y"
         >
             <Animated.View
-                style={[styles.chartContent, dynamicChartStyle, cursorStyle]}
+                style={[styles.chartContent, dynamicChartStyle, !!onBarPress && cursorStyle]}
                 onLayout={handleLayout}
             >
                 {chartWidth > 0 && (
