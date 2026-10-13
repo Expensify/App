@@ -21,7 +21,7 @@ This report is a pre-built suggested search so you can review spending activity 
 
 ## Who can use the Top Spenders report 
 
-The Top Spenders report is available to Workspace Admins, Approvers, and Auditors on both web and mobile.
+The Top Spenders report is available to Workspace Admins, Approvers, and Auditors on both web and mobile. It only appears if at least one workspace where you hold one of these roles has 2 or more members.
 
 **Note:** Exporting data is only available on web.
 
@@ -125,6 +125,12 @@ Additional Insights reports help you analyze spending from different perspective
 ## Can other people see my Top Spenders report?
 
 Only Workspace Admins, Approvers, and Auditors can view a workspace's **Top Spenders** report. Regular members do not have access.
+
+## Why don't I see the Top Spenders report?
+
+The report only appears if you're a Workspace Admin, Approver, or Auditor on a workspace with 2 or more members. If you're the only member of your workspace, you're always the top spender, so the report isn't shown.
+
+If you chose **Track expenses for my business** or **Organize my personal spending** during onboarding, the report may also be hidden until you enable **Workflows** on one of your workspaces.
 
 ## How is the Top Spenders report calculated?
 
