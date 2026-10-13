@@ -1,5 +1,5 @@
 import type {ChartDataPoint, ChartSeries} from '@components/Charts';
-import {getPrimaryValue} from '@components/Charts/utils';
+import getPrimaryValue from '@components/Charts/utils/getPrimaryValue';
 import VictoryTheme from '@components/Charts/VictoryTheme';
 
 import {convertToFrontendAmountAsInteger} from '@libs/CurrencyUtils';

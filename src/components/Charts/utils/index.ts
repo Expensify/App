@@ -11,6 +11,8 @@ import type {SkParagraph, SkParagraphBuilder, SkTypefaceFontProvider} from '@sho
 import {FontStyle, FontWeight, Skia} from '@shopify/react-native-skia';
 import {scaleLinear} from 'd3-scale';
 
+import getPrimaryValue from './getPrimaryValue';
+
 /** One reusable ParagraphBuilder per fontManager instance. Auto-GC'd when fontManager is released. */
 const builderCache = new WeakMap<SkTypefaceFontProvider, SkParagraphBuilder>();
 
@@ -199,11 +201,6 @@ function findSliceAtPosition(cursorX: number, cursorY: number, centerX: number, 
     const cursorAngle = Math.atan2(dy, dx) * (180 / Math.PI);
 
     return slices.findIndex((slice) => isAngleInSlice(cursorAngle, slice.startAngle, slice.endAngle));
-}
-
-/** A point's amount for the chart's primary series */
-function getPrimaryValue(point: ChartDataPoint, primarySeriesKey: string): number {
-    return point.values[primarySeriesKey];
 }
 
 /**
