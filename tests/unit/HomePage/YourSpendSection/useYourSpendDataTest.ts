@@ -174,6 +174,8 @@ function makeSearchResultsWithCount(count: number): SearchResults {
             hasResults: count > 0,
             isLoading: false,
             count,
+            // Every Search response is stamped with the breakdown its total answers once it lands.
+            footerTotal: CONST.SEARCH.FOOTER_TOTAL.TOTAL,
         },
         data: {},
     };
@@ -1029,6 +1031,175 @@ describe('useYourSpendData — drops the approval cache when no outstanding repo
         rerender(undefined);
 
         expect(result.current.approvalRowState).toBe(YOUR_SPEND_ROW_STATE.READY);
+    });
+
+    it('keeps the plain approval total when the Search footer answers a breakdown on the same snapshot', () => {
+        // Given Home showing the plain awaiting-approval total
+        setupReports([makeReport()]);
+        const plainSnapshot = makeSearchResultsWithCount(1);
+        plainSnapshot.search.total = 900;
+        setupApprovalSnapshot(plainSnapshot);
+        const {result, rerender} = renderHook(() => useYourSpendData());
+        expect(result.current.approvalTotals.total).toBe(900);
+
+        // When the Search footer, opened from that row, answers non-reimbursable on the snapshot they share
+        const breakdownSnapshot = makeSearchResultsWithCount(1);
+        breakdownSnapshot.search.total = 0;
+        breakdownSnapshot.search.footerTotal = CONST.SEARCH.FOOTER_TOTAL.NON_REIMBURSABLE;
+        setupApprovalSnapshot(breakdownSnapshot);
+        rerender(undefined);
+
+        // Then Home keeps its own total, which is also the one it replays once offline
+        expect(result.current.approvalRowState).toBe(YOUR_SPEND_ROW_STATE.READY);
+        expect(result.current.approvalTotals.total).toBe(900);
+        mockedUseNetwork.mockReturnValue(networkState(true));
+        rerender(undefined);
+        expect(result.current.approvalTotals.total).toBe(900);
+    });
+
+    it('waits for its own total rather than showing a breakdown one it has nothing cached for', () => {
+        // Given Home first seeing the snapshot after the Search footer answered non-reimbursable on it
+        setupReports([makeReport()]);
+        const breakdownSnapshot = makeSearchResultsWithCount(1);
+        breakdownSnapshot.search.total = 0;
+        breakdownSnapshot.search.footerTotal = CONST.SEARCH.FOOTER_TOTAL.NON_REIMBURSABLE;
+        setupApprovalSnapshot(breakdownSnapshot);
+
+        const {result} = renderHook(() => useYourSpendData());
+
+        // Then the row loads until Home's own search answers the plain total
+        expect(result.current.approvalRowState).toBe(YOUR_SPEND_ROW_STATE.LOADING);
+    });
+
+    it('keeps the plain approval total through a response that lands before its stamp', () => {
+        // Given Home showing the plain awaiting-approval total
+        setupReports([makeReport()]);
+        const plainSnapshot = makeSearchResultsWithCount(1);
+        plainSnapshot.search.total = 900;
+        setupApprovalSnapshot(plainSnapshot);
+        const {result, rerender} = renderHook(() => useYourSpendData());
+        expect(result.current.approvalTotals.total).toBe(900);
+
+        // When a breakdown response replaces the snapshot's search info, wiping the stamp until its success data lands
+        const unstampedSnapshot = makeSearchResultsWithCount(1);
+        unstampedSnapshot.search.total = 0;
+        unstampedSnapshot.search.footerTotal = undefined;
+        setupApprovalSnapshot(unstampedSnapshot);
+        rerender(undefined);
+
+        // Then Home neither shows nor caches that figure, so the stamp arriving later leaves it on its own total
+        expect(result.current.approvalTotals.total).toBe(900);
+        const breakdownSnapshot = makeSearchResultsWithCount(1);
+        breakdownSnapshot.search.total = 0;
+        breakdownSnapshot.search.footerTotal = CONST.SEARCH.FOOTER_TOTAL.NON_REIMBURSABLE;
+        setupApprovalSnapshot(breakdownSnapshot);
+        rerender(undefined);
+        expect(result.current.approvalTotals.total).toBe(900);
+        mockedUseNetwork.mockReturnValue(networkState(true));
+        rerender(undefined);
+        expect(result.current.approvalTotals.total).toBe(900);
+    });
+
+    it('takes a new plain total once it is stamped as one', () => {
+        // Given Home showing the plain awaiting-approval total
+        setupReports([makeReport()]);
+        const plainSnapshot = makeSearchResultsWithCount(1);
+        plainSnapshot.search.total = 900;
+        setupApprovalSnapshot(plainSnapshot);
+        const {result, rerender} = renderHook(() => useYourSpendData());
+
+        // When Home's own search answers a new plain total
+        const nextPlainSnapshot = makeSearchResultsWithCount(2);
+        nextPlainSnapshot.search.total = 1500;
+        setupApprovalSnapshot(nextPlainSnapshot);
+        rerender(undefined);
+
+        // Then the row shows it
+        expect(result.current.approvalTotals.total).toBe(1500);
+    });
+
+    it('hides the row offline rather than loading forever when no plain total is confirmed', () => {
+        // Given Home first seeing, offline, a snapshot whose total answers a breakdown
+        mockedUseNetwork.mockReturnValue(networkState(true));
+        setupReports([makeReport()]);
+        const breakdownSnapshot = makeSearchResultsWithCount(1);
+        breakdownSnapshot.search.total = 0;
+        breakdownSnapshot.search.footerTotal = CONST.SEARCH.FOOTER_TOTAL.NON_REIMBURSABLE;
+        setupApprovalSnapshot(breakdownSnapshot);
+
+        const {result} = renderHook(() => useYourSpendData());
+
+        // Then the row hides, as with no snapshot at all, since nothing can confirm a total until back online
+        expect(result.current.approvalRowState).toBe(YOUR_SPEND_ROW_STATE.HIDDEN_EMPTY);
+    });
+
+    describe('a snapshot cached before the stamp existed', () => {
+        function makeSettledUnstampedSnapshot(total: number): SearchResults {
+            const snapshot = makeSearchResultsWithCount(1);
+            snapshot.search.total = total;
+            snapshot.search.footerTotal = undefined;
+            snapshot.search.state = CONST.SEARCH.SNAPSHOT_STATE.LOADED;
+            return snapshot;
+        }
+
+        it('shows its total online, since only the plain total was asked for before the stamp', () => {
+            // Given an upgrade onto a snapshot that finished loading before the stamp existed
+            setupReports([makeReport()]);
+            setupApprovalSnapshot(makeSettledUnstampedSnapshot(900));
+
+            // When Home renders online, before its own search returns
+            const {result} = renderHook(() => useYourSpendData());
+
+            // Then the cached total shows straight away, as before the upgrade
+            expect(result.current.approvalRowState).toBe(YOUR_SPEND_ROW_STATE.READY);
+            expect(result.current.approvalTotals.total).toBe(900);
+        });
+
+        it('shows its total offline instead of hiding the row', () => {
+            // Given the same upgrade, opened offline with nothing cached in memory
+            mockedUseNetwork.mockReturnValue(networkState(true));
+            setupReports([makeReport()]);
+            setupApprovalSnapshot(makeSettledUnstampedSnapshot(900));
+
+            const {result} = renderHook(() => useYourSpendData());
+
+            // Then the row keeps the cached total
+            expect(result.current.approvalRowState).toBe(YOUR_SPEND_ROW_STATE.READY);
+            expect(result.current.approvalTotals.total).toBe(900);
+        });
+    });
+
+    describe('an unstamped snapshot whose search is still loading', () => {
+        function makeLoadingUnstampedSnapshot(total: number): SearchResults {
+            const snapshot = makeSearchResultsWithCount(1);
+            snapshot.search.total = total;
+            snapshot.search.footerTotal = undefined;
+            snapshot.search.state = CONST.SEARCH.SNAPSHOT_STATE.LOADING;
+            return snapshot;
+        }
+
+        it('does not take its total online, since the breakdown it answers is not known yet', () => {
+            // Given a snapshot with no stamp whose search has not settled, so its total could be any breakdown
+            setupReports([makeReport()]);
+            setupApprovalSnapshot(makeLoadingUnstampedSnapshot(0));
+
+            const {result} = renderHook(() => useYourSpendData());
+
+            // Then the row loads until Home's own search confirms a plain total
+            expect(result.current.approvalRowState).toBe(YOUR_SPEND_ROW_STATE.LOADING);
+        });
+
+        it('hides the row offline with nothing cached', () => {
+            // Given the same snapshot, opened offline with nothing cached in memory
+            mockedUseNetwork.mockReturnValue(networkState(true));
+            setupReports([makeReport()]);
+            setupApprovalSnapshot(makeLoadingUnstampedSnapshot(0));
+
+            const {result} = renderHook(() => useYourSpendData());
+
+            // Then the row hides rather than show a total that may be another breakdown's
+            expect(result.current.approvalRowState).toBe(YOUR_SPEND_ROW_STATE.HIDDEN_EMPTY);
+        });
     });
 });
 

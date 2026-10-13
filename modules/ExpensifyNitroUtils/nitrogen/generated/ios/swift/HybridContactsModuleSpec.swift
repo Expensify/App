@@ -14,6 +14,7 @@ public protocol HybridContactsModuleSpec_protocol: HybridObject {
 
   // Methods
   func getAll(keys: [ContactFields]) throws -> Promise<[Contact]>
+  func pick(keys: [ContactFields]) throws -> Promise<[Contact]>
 }
 
 public extension HybridContactsModuleSpec_protocol {
