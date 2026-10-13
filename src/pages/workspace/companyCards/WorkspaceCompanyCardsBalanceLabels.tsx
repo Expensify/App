@@ -31,7 +31,7 @@ function WorkspaceCompanyCardsBalanceLabels({selectedFeed, feedName}: WorkspaceC
     const currentBalance = selectedFeed?.currentBalance;
     const remainingLimit = selectedFeed?.remainingLimit;
     const lastUpdated = selectedFeed?.balanceTimestamp;
-    const currency = selectedFeed?.balanceCurrency ?? CONST.CURRENCY.USD;
+    const currency = selectedFeed?.balanceCurrency;
 
     // Hide the whole block when the bank returned no balance data at all (e.g. the issuer does not provide it).
     if (typeof currentBalance !== 'number' && typeof remainingLimit !== 'number') {

@@ -20,8 +20,8 @@ type WorkspaceCompanyCardsBalanceLabelProps = {
     /** Datetime the balance was last fetched, formatted as 'yyyy-MM-dd HH:mm:ss', shown in the tooltip */
     lastUpdated: string | null | undefined;
 
-    /** Currency the value is denominated in */
-    currency: string;
+    /** Currency the value is denominated in, or undefined when the bank did not report one, in which case the amount is shown without a currency symbol */
+    currency: string | undefined;
 
     /** Style applied to the outer container, set by the parent when the labels share a row */
     containerStyle?: StyleProp<ViewStyle>;
@@ -29,9 +29,12 @@ type WorkspaceCompanyCardsBalanceLabelProps = {
 
 function WorkspaceCompanyCardsBalanceLabel({type, value, lastUpdated, currency, containerStyle}: WorkspaceCompanyCardsBalanceLabelProps) {
     const {translate, getLocalDateFromDatetime} = useLocalize();
-    const {convertToDisplayString} = useCurrencyListActions();
+    const {convertToDisplayString, convertToDisplayStringWithoutCurrency} = useCurrencyListActions();
 
-    const displayValue = typeof value !== 'number' ? translate('workspace.companyCards.balance.notAvailable') : convertToDisplayString(value, currency);
+    let displayValue = translate('workspace.companyCards.balance.notAvailable');
+    if (typeof value === 'number') {
+        displayValue = currency ? convertToDisplayString(value, currency) : convertToDisplayStringWithoutCurrency(value);
+    }
     const formattedLastUpdated = lastUpdated ? format(getLocalDateFromDatetime(lastUpdated), CONST.DATE.FNS_DATE_TIME_FORMAT_STRING) : undefined;
     const description = formattedLastUpdated
         ? translate(`workspace.companyCards.balance.${type}Description`, {lastUpdated: formattedLastUpdated})

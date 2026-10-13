@@ -110,4 +110,18 @@ describe('WorkspaceCompanyCardsBalanceLabels', () => {
         expect(screen.getByText(TestHelper.convertToDisplayString(150000, CONST.CURRENCY.USD))).toBeTruthy();
         expect(screen.getByText(TestHelper.translateLocal('workspace.companyCards.balance.notAvailable'))).toBeTruthy();
     });
+
+    it('shows the amounts without a currency symbol when the bank did not report a currency', async () => {
+        // Given a Plaid feed with balance amounts but no balanceCurrency
+        const selectedFeed = buildSelectedFeed({currentBalance: 150000, remainingLimit: 500000});
+
+        // When the balance labels render
+        renderBalanceLabels(selectedFeed, PLAID_FEED_NAME);
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the amounts show as plain numbers instead of being labelled with a guessed currency
+        expect(screen.getByText('1,500.00')).toBeTruthy();
+        expect(screen.getByText('5,000.00')).toBeTruthy();
+        expect(screen.queryByText(TestHelper.convertToDisplayString(150000, CONST.CURRENCY.USD))).toBeNull();
+    });
 });
