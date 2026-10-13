@@ -149,4 +149,32 @@ describe('getResizableColumnLayout', () => {
         // Then the pinned widths win, so releasing the drag moves nothing
         expect(resolvedColumnWidths).toEqual({name: 260, email: 140, role: 200});
     });
+
+    it('keeps a column the user sized earlier out of a later drag, so the row fits while other columns still have room', () => {
+        // Given four 150px columns filling a 600px table, each able to shrink to 100px
+        const columns = [column('a'), column('b'), column('c'), column('d')];
+        const fitColumnWidths = {a: 100, b: 100, c: 100, d: 100};
+        const params = {columns, resolvedColumnWidths: {a: 150, b: 150, c: 150, d: 150}, fitColumnWidths, tableWidth: 600, rowChromeWidths};
+
+        // When the third column is dragged to 180px, and the drag is stored with the layout it left painted
+        const firstDragWidths = getResizableColumnLayout({...params, columnWidthOverrides: undefined, pinnedColumnWidths: undefined}).getResizedColumnWidths('c', 180);
+        const pinnedColumnWidths = {...params.resolvedColumnWidths, ...firstDragWidths};
+        const columnWidthOverrides = {c: 180};
+
+        // And the first column is then dragged to 210px
+        const secondDragWidths = getResizableColumnLayout({...params, columnWidthOverrides, pinnedColumnWidths}).getResizedColumnWidths('a', 210);
+
+        // Then the user-sized column keeps its width and the unset ones give way, the last down to its fit width, so the
+        // row still fits instead of overflowing while the second column has room to give
+        expect(pinnedColumnWidths).toEqual({a: 150, b: 150, c: 180, d: 120});
+        expect({...pinnedColumnWidths, ...secondDragWidths}).toEqual({a: 210, b: 110, c: 180, d: 100});
+
+        // And a reload repaints those widths, so releasing the drag moves nothing
+        const {resolvedColumnWidths} = getResizableColumnLayout({
+            ...params,
+            columnWidthOverrides: {...columnWidthOverrides, a: 210},
+            pinnedColumnWidths: {...pinnedColumnWidths, ...secondDragWidths},
+        });
+        expect(resolvedColumnWidths).toEqual({a: 210, b: 110, c: 180, d: 100});
+    });
 });
