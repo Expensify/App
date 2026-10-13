@@ -126,6 +126,7 @@ function PieChartContent({data, isLoading, valueUnit, valueUnitPosition, onSlice
     const dismissTouchedSlice = () => {
         matchedIndex.set(-1);
         setIsTouchPinned(false);
+        setIsHoveringOverPie(false);
     };
 
     // Hover gesture
@@ -176,10 +177,8 @@ function PieChartContent({data, isLoading, valueUnit, valueUnitPosition, onSlice
 
                 // Touch taps show the slice tooltip instead of drilling in, and the next touch anywhere on the screen hides it
                 if (e.pointerType === PointerType.TOUCH) {
-                    const dataIndex = findDataIndexAt(e.x, e.y);
-                    tooltipPosition.set({x: e.x, y: e.y - TOOLTIP_BAR_GAP});
-                    matchedIndex.set(dataIndex);
-                    scheduleOnRN(setIsTouchPinned, dataIndex >= 0);
+                    hoverAt(e.x, e.y);
+                    scheduleOnRN(setIsTouchPinned, matchedIndex.get() >= 0);
                     return;
                 }
 
