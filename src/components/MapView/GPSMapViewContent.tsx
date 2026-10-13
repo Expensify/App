@@ -100,32 +100,9 @@ function GPSMapViewContent({
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [waypoints?.length]);
 
-    useFocusEffect(() => {
-        if (noWaypoints || shouldFollowUserLocation || !!lastLocation || userInteractedWithMap) {
-            return;
-        }
-
-        if (singlePointCoordinate) {
-            cameraRef.current?.setCamera({
-                zoomLevel: CONST.MAPBOX.SINGLE_MARKER_ZOOM,
-                animationDuration: CONST.MAPBOX.ANIMATION_DURATION_DEFAULT,
-                animationMode: CONST.MAPBOX.CAMERA_ANIMATION_MODE,
-                centerCoordinate: singlePointCoordinate,
-            });
-            return;
-        }
-
-        const {southWest, northEast} = utils.getBounds(
-            waypoints.map((waypoint) => waypoint.coordinate),
-            directionCoordinates,
-        );
-        cameraRef.current?.setCamera({
-            bounds: {ne: northEast, sw: southWest},
-            padding: cameraPadding,
-            animationDuration: CONST.MAPBOX.ANIMATION_DURATION_DEFAULT,
-            animationMode: CONST.MAPBOX.CAMERA_ANIMATION_MODE,
-        });
-    });
+    // Coming back to the screen (e.g. tab change, Save and back) drops the manual pan, so the camera props frame the route again
+    // or resume following the user's location while tracking
+    useFocusEffect(() => setUserInteractedWithMap(false));
 
     const centerMap = () => {
         const waypointCoordinates = waypoints?.map((waypoint) => waypoint.coordinate) ?? [];
