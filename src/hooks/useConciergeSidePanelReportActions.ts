@@ -68,6 +68,7 @@ function useConciergeSidePanelReportActions({
     // them sticky rather than re-deriving visibility from the timestamp.
     const [sessionSentActionIDs, setSessionSentActionIDs] = useState<ReadonlySet<string>>(() => new Set());
 
+    const hadMessagesAtSessionStart = localHadMessagesAtSessionStart;
     const showFullHistory = externalShowFullHistory ?? localShowFullHistory;
     const setShowFullHistory = onSetShowFullHistory ?? setLocalShowFullHistory;
 
@@ -135,7 +136,7 @@ function useConciergeSidePanelReportActions({
     // A re-stamp flips `hasUserSentMessage` too, so the sticky set is what keeps the welcome state from coming back.
     const hasSentInSession = hasUserSentMessage || sessionSentActionIDs.size > 0;
     const showConciergeSidePanelWelcome = isConciergeHiddenHistory && hadUserMessageAtSessionStart && !hasSentInSession && !showFullHistory && !hasMessagesInSession && !hasOpenChildTask;
-    const showConciergeGreeting = isConciergeHiddenHistory && hadUserMessageAtSessionStart && !showFullHistory && !isConciergeMainDM;
+    const showConciergeGreeting = isConciergeHiddenHistory && hadUserMessageAtSessionStart && !showFullHistory && (!isConciergeMainDM || !hadMessagesAtSessionStart);
 
     const conciergeGreetingAction = useMemo(() => {
         if (!showConciergeGreeting) {
