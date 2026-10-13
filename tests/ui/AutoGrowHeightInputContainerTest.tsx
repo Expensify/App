@@ -88,6 +88,35 @@ describe('AutoGrowHeightInputContainer', () => {
         expect('minHeight' in containerStyle ? containerStyle.minHeight : undefined).toBe(expectedMinimum);
     });
 
+    it('keeps a fixed popup allocation when the web viewport changes but still responds to exact layout', () => {
+        // Given a fixed-height popover that measures a 300px editor allocation.
+        mockMeasureContent.mockImplementation((_content, callback) => callback(0));
+        const input = () => (
+            <AutoGrowHeightInputContainer
+                measureContent={mockMeasureContent}
+                shouldUseWebViewportHeightFallback={false}
+            >
+                {(height) => (
+                    <View
+                        testID="popup-height"
+                        accessibilityLabel={String(height)}
+                    />
+                )}
+            </AutoGrowHeightInputContainer>
+        );
+        const {rerender} = render(input());
+        fireEvent(screen.UNSAFE_getByType(ScrollView), 'layout', {nativeEvent: {layout: {height: 300, width: 300}}});
+        // When the viewport grows beyond the popup's unchanged size.
+        mockUseWindowDimensions.mockReturnValue({windowWidth: 300, windowHeight: 1000});
+        rerender(input());
+        // Then the allocation stays measured rather than adding the 200px viewport delta.
+        expect(screen.getByTestId('popup-height').props.accessibilityLabel).toBe('300');
+        // When the actual popup allocation later shrinks, exact layout still takes effect.
+        fireEvent(screen.UNSAFE_getByType(ScrollView), 'layout', {nativeEvent: {layout: {height: 180, width: 300}}});
+        // Then the input adopts that actual available height.
+        expect(screen.getByTestId('popup-height').props.accessibilityLabel).toBe('180');
+    });
+
     it('measures reserved content after clamping and tracks layout changes', async () => {
         const measuredContentHeights: number[] = [];
         mockMeasureContent.mockImplementation((_content, callback) => {

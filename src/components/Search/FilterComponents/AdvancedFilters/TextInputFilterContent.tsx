@@ -34,6 +34,7 @@ type TextInputFilterContentProps = {
     autoFocus?: boolean;
     style?: StyleProp<ViewStyle>;
     buttonText?: string;
+    shouldUseWebViewportHeightFallback?: boolean;
     onChange: (value: string | undefined, isNegated: boolean) => void;
 };
 
@@ -49,6 +50,10 @@ type TextInputFilterInputOptions = {
 
 function isTextInput(element: BaseTextInputRef | ComponentRef<typeof RNTextInput> | null): element is ComponentRef<typeof RNTextInput> {
     return !!element && 'isFocused' in element;
+}
+
+function shouldTextFilterGrow(baseFilterKey: TextInputFilterContentProps['baseFilterKey']) {
+    return baseFilterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.DESCRIPTION || baseFilterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.TITLE;
 }
 
 function useTextInputFilterState({baseFilterKey, value: initialValue, isNegated: initialIsNegated, autoFocus, onChange}: TextInputFilterStateProps) {
@@ -139,7 +144,17 @@ function TextInputFilterContent({baseFilterKey, value: initialValue, isNegated: 
     );
 }
 
-function TextInputFilterContentFillHeight({baseFilterKey, value: initialValue, isNegated: initialIsNegated, autoFocus, size, style, buttonText, onChange}: TextInputFilterContentProps) {
+function TextInputFilterContentFillHeight({
+    baseFilterKey,
+    value: initialValue,
+    isNegated: initialIsNegated,
+    autoFocus,
+    size,
+    style,
+    buttonText,
+    shouldUseWebViewportHeightFallback,
+    onChange,
+}: TextInputFilterContentProps) {
     const {isNegated, renderTextInput, setIsNegated, styles, submit, translate, value} = useTextInputFilterState({
         baseFilterKey,
         value: initialValue,
@@ -172,7 +187,7 @@ function TextInputFilterContentFillHeight({baseFilterKey, value: initialValue, i
                     style={styles.flex1}
                     onNegationChange={setIsNegated}
                 >
-                    <AutoGrowHeightInputContainer>
+                    <AutoGrowHeightInputContainer shouldUseWebViewportHeightFallback={shouldUseWebViewportHeightFallback}>
                         {(maxAutoGrowHeight) =>
                             renderTextInput({
                                 autoGrowHeight: true,
@@ -192,5 +207,5 @@ function TextInputFilterContentFillHeight({baseFilterKey, value: initialValue, i
 }
 
 export default TextInputFilterContent;
-export {TextInputFilterContentFillHeight};
+export {TextInputFilterContentFillHeight, shouldTextFilterGrow};
 export type {TextInputFilterContentProps};

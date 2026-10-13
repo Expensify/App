@@ -10,6 +10,9 @@ const mockTextInputFilterContent = jest.fn<null, [Record<string, unknown>]>(() =
 const mockTextInputFilterContentFillHeight = jest.fn<null, [Record<string, unknown>]>(() => null);
 
 jest.mock('@components/Search/FilterComponents/AdvancedFilters/TextInputFilterContent', () => ({
+    ...jest.requireActual<typeof import('@components/Search/FilterComponents/AdvancedFilters/TextInputFilterContent')>(
+        '@components/Search/FilterComponents/AdvancedFilters/TextInputFilterContent',
+    ),
     __esModule: true,
     default: (props: Record<string, unknown>) => mockTextInputFilterContent(props),
     TextInputFilterContentFillHeight: (props: Record<string, unknown>) => mockTextInputFilterContentFillHeight(props),
@@ -30,17 +33,45 @@ describe('Search text input filter wrappers', () => {
         mockTextInputFilterContentFillHeight.mockClear();
     });
 
-    it('enables fill-height auto-grow in the narrow Search RHP', () => {
-        render(<TextInputFilterContentPageWrapper {...defaultProps} />);
+    describe.each([
+        ['narrow RHP', TextInputFilterContentPageWrapper],
+        ['wide popup', TextInputFilterContentPopupWrapper],
+    ] as const)('%s', (_name, Wrapper) => {
+        it.each([CONST.SEARCH.SYNTAX_FILTER_KEYS.DESCRIPTION, CONST.SEARCH.SYNTAX_FILTER_KEYS.TITLE])('allows %s to grow', (baseFilterKey) => {
+            // Given a prose filter in either supported Search layout.
+            // When its editor is opened with the existing action and value.
+            render(
+                <Wrapper
+                    {...defaultProps}
+                    baseFilterKey={baseFilterKey}
+                    value="Long prose"
+                />,
+            );
+            // Then it uses bounded growth and retains its editing contract.
+            expect(mockTextInputFilterContentFillHeight.mock.calls.at(-1)?.[0]).toEqual(expect.objectContaining({baseFilterKey, value: 'Long prose', onChange: defaultProps.onChange}));
+            expect(mockTextInputFilterContent).not.toHaveBeenCalled();
+        });
 
-        expect(mockTextInputFilterContentFillHeight.mock.calls.at(-1)?.[0]).toEqual(expect.objectContaining({autoFocus: true, buttonText: 'Save filter', size: CONST.BUTTON_SIZE.LARGE}));
-        expect(mockTextInputFilterContent).not.toHaveBeenCalled();
-    });
-
-    it('keeps the wide Search popup compact', () => {
-        render(<TextInputFilterContentPopupWrapper {...defaultProps} />);
-
-        expect(mockTextInputFilterContent.mock.calls.at(-1)?.[0]).not.toHaveProperty('shouldFillAvailableHeight');
-        expect(mockTextInputFilterContentFillHeight).not.toHaveBeenCalled();
+        it.each([
+            CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD,
+            CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT,
+            CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_ID,
+            CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_ID,
+            CONST.SEARCH.SYNTAX_FILTER_KEYS.SUBMITTER_USER_ID,
+            CONST.SEARCH.SYNTAX_FILTER_KEYS.SUBMITTER_PAYROLL_ID,
+            CONST.SEARCH.SYNTAX_FILTER_KEYS.ORDER_DEAL_NUMBERS,
+        ])('keeps %s compact', (baseFilterKey) => {
+            // Given a structured or short-text filter, regardless of layout.
+            // When that editor opens.
+            render(
+                <Wrapper
+                    {...defaultProps}
+                    baseFilterKey={baseFilterKey}
+                />,
+            );
+            // Then it cannot take the growing-input path.
+            expect(mockTextInputFilterContent.mock.calls.at(-1)?.[0]).toEqual(expect.objectContaining({baseFilterKey, onChange: defaultProps.onChange}));
+            expect(mockTextInputFilterContentFillHeight).not.toHaveBeenCalled();
+        });
     });
 });

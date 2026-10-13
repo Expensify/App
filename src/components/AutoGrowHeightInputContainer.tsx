@@ -30,6 +30,9 @@ type AutoGrowHeightInputContainerProps = {
 
     /** Preserves a one-line web input slot inside a constrained form when the viewport is very short. */
     shouldKeepMinimumHeight?: boolean;
+
+    /** Uses web viewport deltas when a panel's resized allocation has not emitted onLayout yet. Disable for fixed-height popovers. */
+    shouldUseWebViewportHeightFallback?: boolean;
 };
 
 type MeasurementPhase = 'normal' | 'clamp' | 'probe';
@@ -46,7 +49,13 @@ function defaultMeasureContent(content: View | null, callback: (contentHeight: n
     content?.measure((_x, _y, _width, contentHeight) => callback(contentHeight));
 }
 
-function AutoGrowHeightInputContainer({children, measureContent = defaultMeasureContent, style, shouldKeepMinimumHeight = false}: AutoGrowHeightInputContainerProps) {
+function AutoGrowHeightInputContainer({
+    children,
+    measureContent = defaultMeasureContent,
+    style,
+    shouldKeepMinimumHeight = false,
+    shouldUseWebViewportHeightFallback = true,
+}: AutoGrowHeightInputContainerProps) {
     const styles = useThemeStyles();
     const {windowHeight} = useWindowDimensions();
     const {isKeyboardActive, isKeyboardShown, isKeyboardAnimatingRef, keyboardActiveHeight, keyboardHeight} = useKeyboardState();
@@ -85,7 +94,7 @@ function AutoGrowHeightInputContainer({children, measureContent = defaultMeasure
 
     useLayoutEffect(() => {
         const previousViewportHeight = viewportHeightRef.current;
-        if (isNativePlatform || windowHeight === previousViewportHeight) {
+        if (isNativePlatform || !shouldUseWebViewportHeightFallback || windowHeight === previousViewportHeight) {
             return;
         }
 
@@ -93,7 +102,7 @@ function AutoGrowHeightInputContainer({children, measureContent = defaultMeasure
         const availableHeight = Math.max(availableHeightRef.current + windowHeight - previousViewportHeight, variables.componentSizeLarge);
         availableHeightRef.current = availableHeight;
         startMeasurement('clamp', availableHeight);
-    }, [isNativePlatform, startMeasurement, windowHeight]);
+    }, [isNativePlatform, shouldUseWebViewportHeightFallback, startMeasurement, windowHeight]);
 
     useLayoutEffect(() => {
         const previousKeyboardHeight = keyboardHeightRef.current;

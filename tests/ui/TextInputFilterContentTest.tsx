@@ -1,9 +1,13 @@
 import {act, fireEvent, render, screen, within} from '@testing-library/react-native';
 
 import TextInputFilterContent, {TextInputFilterContentFillHeight} from '@components/Search/FilterComponents/AdvancedFilters/TextInputFilterContent';
+import TextInputFilterContentPopupWrapper from '@components/Search/FilterDropdowns/SearchAdvancedFiltersPopup/TextInputFilterContentPopupWrapper';
+import TextFilterPopup from '@components/Search/FilterDropdowns/TextFilterPopup';
 import type * as TextFilterValidationModule from '@components/Search/hooks/useTextFilterValidation';
 
 import {buildSearchQueryJSON, sanitizeSearchValue} from '@libs/SearchQueryUtils';
+
+import TextInputFilterContentPageWrapper from '@pages/Search/SearchAdvancedFiltersContentPage/TextInputFilterContentPageWrapper';
 
 import variables from '@styles/variables';
 
@@ -80,6 +84,13 @@ jest.mock('@components/Button', () => {
         default: MockButton,
     };
 });
+jest.mock('@components/Search/FilterDropdowns/BasePopup', () => ({
+    __esModule: true,
+    default: ({children}: {children?: React.ReactNode}) => {
+        const MockReact = jest.requireActual<typeof React>('react');
+        return MockReact.createElement(MockView, null, children);
+    },
+}));
 jest.mock('@components/ScrollView', () => ({
     __esModule: true,
     default: ({children}: {children: React.ReactNode}) => {
@@ -134,6 +145,91 @@ describe('TextInputFilterContent', () => {
         mockTextInput.mockClear();
         mockValidationError = '';
         mockShouldFooterBeInsideList = false;
+    });
+
+    describe.each([
+        ['narrow RHP', TextInputFilterContentPageWrapper],
+        ['wide popup', TextInputFilterContentPopupWrapper],
+    ] as const)('%s growing filter behavior', (_name, Wrapper) => {
+        it.each([CONST.SEARCH.SYNTAX_FILTER_KEYS.DESCRIPTION, CONST.SEARCH.SYNTAX_FILTER_KEYS.TITLE])('preserves %s validation and normalized Enter submission', (baseFilterKey) => {
+            // Given a growing filter with an existing value and negation.
+            const onChange = jest.fn<void, [string | undefined, boolean]>();
+            render(
+                <Wrapper
+                    baseFilterKey={baseFilterKey}
+                    value="Prose"
+                    isNegated
+                    onChange={onChange}
+                />,
+            );
+            // When multiline text is pasted and confirmed with Enter.
+            act(() => mockTextInput.mock.calls.at(-1)?.[0].onChangeText?.('Long\nprose'));
+            mockTextInput.mock.calls.at(-1)?.[0].onSubmitEditing?.();
+            // Then wrapping does not split the saved query value or lose negation.
+            expect(onChange).toHaveBeenCalledWith('Long prose', true);
+            expect(mockTextInput.mock.calls.at(-1)?.[0].autoGrowHeight).toBe(true);
+
+            // When an over-limit value is entered, existing validation still blocks submission.
+            onChange.mockClear();
+            const maxLength = baseFilterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.TITLE ? CONST.TASK_TITLE_CHARACTER_LIMIT : CONST.DESCRIPTION_LIMIT;
+            act(() => mockTextInput.mock.calls.at(-1)?.[0].onChangeText?.('x'.repeat(maxLength + 1)));
+            mockTextInput.mock.calls.at(-1)?.[0].onSubmitEditing?.();
+            // Then the error remains visible and no value is accepted.
+            expect(mockTextInput.mock.calls.at(-1)?.[0].hasError).toBe(true);
+            expect(onChange).not.toHaveBeenCalled();
+        });
+    });
+
+    it.each([CONST.SEARCH.SYNTAX_FILTER_KEYS.DESCRIPTION, CONST.SEARCH.SYNTAX_FILTER_KEYS.TITLE])('keeps the growing %s chip editor normalized and validated', (baseFilterKey) => {
+        // Given an applied negated prose filter opened through its chip.
+        const updateFilterForm = jest.fn();
+        const closeOverlay = jest.fn();
+        render(
+            <TextFilterPopup
+                baseFilterKey={baseFilterKey}
+                values={{[`${baseFilterKey}Not`]: 'Prose'}}
+                label="Prose"
+                updateFilterForm={updateFilterForm}
+                closeOverlay={closeOverlay}
+            />,
+        );
+        // When multiline input is confirmed with Enter.
+        act(() => mockTextInput.mock.calls.at(-1)?.[0].onChangeText?.('Long\r\nprose'));
+        mockTextInput.mock.calls.at(-1)?.[0].onSubmitEditing?.();
+        // Then one normalized, negated filter is applied and the popup closes once.
+        expect(mockTextInput.mock.calls.at(-1)?.[0].autoGrowHeight).toBe(true);
+        expect(mockTextInput.mock.calls.at(-1)?.[0].maxAutoGrowHeight).toBe(variables.textInputAutoGrowMaxHeight);
+        expect(updateFilterForm).toHaveBeenCalledWith({[baseFilterKey]: undefined, [`${baseFilterKey}Not`]: 'Long prose'});
+        expect(updateFilterForm).toHaveBeenCalledTimes(1);
+        expect(closeOverlay).toHaveBeenCalledTimes(1);
+
+        // When the same editor contains an over-limit value.
+        updateFilterForm.mockClear();
+        closeOverlay.mockClear();
+        const maxLength = baseFilterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.TITLE ? CONST.TASK_TITLE_CHARACTER_LIMIT : CONST.DESCRIPTION_LIMIT;
+        act(() => mockTextInput.mock.calls.at(-1)?.[0].onChangeText?.('x'.repeat(maxLength + 1)));
+        mockTextInput.mock.calls.at(-1)?.[0].onSubmitEditing?.();
+        // Then validation keeps the popup open without applying anything.
+        expect(mockTextInput.mock.calls.at(-1)?.[0].hasError).toBe(true);
+        expect(updateFilterForm).not.toHaveBeenCalled();
+        expect(closeOverlay).not.toHaveBeenCalled();
+    });
+
+    it.each([CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT, CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_ID])('keeps the %s chip input compact', (baseFilterKey) => {
+        // Given a non-prose filter opened through its chip.
+        // When the editor renders its existing applied value.
+        render(
+            <TextFilterPopup
+                baseFilterKey={baseFilterKey}
+                values={{[baseFilterKey]: '123'}}
+                label="Filter"
+                updateFilterForm={jest.fn()}
+                closeOverlay={jest.fn()}
+            />,
+        );
+        // Then it remains single-line and leaves keyboard submission with its existing action button.
+        expect(mockTextInput.mock.calls.at(-1)?.[0].autoGrowHeight).toBe(false);
+        expect(mockTextInput.mock.calls.at(-1)?.[0].onSubmitEditing).toBeUndefined();
     });
 
     it('passes the measured height to a populated Search RHP text input', () => {
