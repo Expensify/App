@@ -13,7 +13,6 @@ import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import type {ReportsSplitNavigatorParamList} from '@navigation/types';
 
 import CONST from '@src/CONST';
-import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
 
@@ -107,15 +106,6 @@ function useReportActionsNewActionLiveTail({
                 // If a new comment is added and it's from the current user scroll to the bottom otherwise leave the user positioned where
                 // they are now in the list.
                 if (!isFromCurrentUser || (!isReportTopmostSplitNavigator() && !Navigation.getReportRHPActiveRoute())) {
-                    return;
-                }
-                if (!hasNewestReportAction && !isFromCurrentUser) {
-                    if (Navigation.getReportRHPActiveRoute()) {
-                        return;
-                    }
-                    Navigation.setNavigationActionToMicrotaskQueue(() => {
-                        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(reportID));
-                    });
                     return;
                 }
 

@@ -425,8 +425,6 @@ describe('useReportActionsScroll', () => {
             mockIsScrollToBottomEnabled = true;
 
             const {result} = await renderScroll();
-            // Ignore the flush the effect already made on mount, so only the layout-driven call is measured.
-            jest.clearAllMocks();
             act(() => {
                 result.current.flushPendingScrollToBottom();
             });
@@ -436,8 +434,9 @@ describe('useReportActionsScroll', () => {
             expect(mockCompleteLiveTailPrune).toHaveBeenCalledTimes(1);
         });
 
-        it('flushes a pending scroll-to-bottom without waiting for a list layout event', async () => {
-            // Given the live-tail hook asked for a scroll to bottom, as it does after the user sends a comment
+        it('flushes a pending scroll-to-bottom without waiting for a list layout event in an aligned-to-top report', async () => {
+            // Given an expense report, and the live-tail hook asked for a scroll to bottom, as it does after the user sends a comment
+            mockIsMoneyRequestReport = true;
             mockIsScrollToBottomEnabled = true;
 
             // When the hook renders and no list onLayout follows, because a new comment changes content size, not layout size
@@ -447,6 +446,19 @@ describe('useReportActionsScroll', () => {
             expect(mockScrollToBottom).toHaveBeenCalledTimes(1);
             expect(mockSetIsScrollToBottomEnabled).toHaveBeenCalledWith(false);
             expect(mockCompleteLiveTailPrune).toHaveBeenCalledTimes(1);
+        });
+
+        it('leaves a pending scroll-to-bottom to the list layout event in a regular chat', async () => {
+            // Given a regular chat, and the live-tail hook asked for a scroll to bottom
+            mockIsScrollToBottomEnabled = true;
+
+            // When the hook renders
+            await renderScroll();
+
+            // Then nothing flushes on the next frame, because the first scrollToBottom in a regular chat already lands
+            expect(mockScrollToBottom).not.toHaveBeenCalled();
+            expect(mockSetIsScrollToBottomEnabled).not.toHaveBeenCalled();
+            expect(mockCompleteLiveTailPrune).not.toHaveBeenCalled();
         });
     });
 
