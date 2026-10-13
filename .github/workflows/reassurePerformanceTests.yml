@@ -4,9 +4,7 @@ on:
   pull_request:
     types: [opened, synchronize]
     branches-ignore: [staging, production]
-    # Ordered: GitHub applies each pattern in turn, so a later pattern overrides an earlier match.
-    # Start from everything, drop what the measurement cannot read, put back the measured parts of the
-    # dropped trees, then drop docs everywhere.
+    # Ordered: later patterns override earlier matches. Exclude unread trees, re-include what's measured, exclude docs.
     paths:
       - '**'
       # Native and OldDot: Jest never loads these.

@@ -3,36 +3,27 @@ import {describe, expect, it} from 'bun:test';
 import fs from 'fs';
 
 /**
- * reassurePerformanceTests.yml triggers on one ordered `paths` list rather than `paths-ignore`, so a
- * later pattern can re-include a file a broader `!exclude` already dropped (GitHub's documented
- * ordered-paths behavior: https://github.com/orgs/community/discussions/60317). Evaluating that order
- * is the only way to tell, from outside the workflow, which files the perf check actually measures.
+ * The workflow's ordered `paths` list lets a later pattern re-include what an earlier `!exclude`
+ * dropped (https://github.com/orgs/community/discussions/60317), so this test replays that order.
  */
 
 const PERF_WORKFLOW = '.github/workflows/reassurePerformanceTests.yml';
 
-// eslint-disable-next-line @typescript-eslint/naming-convention -- `pull_request` is the YAML key GitHub Actions defines, not a name this repo chooses
+// eslint-disable-next-line @typescript-eslint/naming-convention -- `pull_request` is GitHub's YAML key
 type Workflow = {on: {pull_request: {paths: string[]}}};
 
 function readWorkflow(path: string): Workflow {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- Bun.YAML.parse returns unknown, and the one field this test reads is a plain string array, so a shape mismatch fails an assertion rather than throwing
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- Bun.YAML.parse returns unknown
     return Bun.YAML.parse(fs.readFileSync(path, 'utf8')) as Workflow;
 }
 
-/**
- * `*` in these workflow path patterns only ever appears as part of `**`, so a run of one or more `*`
- * can be converted to `.*` without distinguishing `*` from `**`. The regex is matched against the
- * whole path (`^...$`), so, unlike shell globs, a leading dot needs no special-casing to match `.*`.
- */
+// Only `**` appears here (never a bare `*`), so any run of `*` can become `.*`.
 function globToRegExp(glob: string): RegExp {
     const escaped = glob.replaceAll(/[.+^${}()|[\]\\]/g, '\\$&').replaceAll(/\*+/g, '.*');
     return new RegExp(`^${escaped}$`);
 }
 
-/**
- * Mirrors GitHub's own evaluation: patterns apply in order, and whichever one (positive or negated)
- * last matches the path decides whether it runs.
- */
+// Mirrors GitHub: patterns apply in order, last match (positive or negated) wins.
 function pathTriggersRun(patterns: string[], filePath: string): boolean {
     let included = false;
     for (const pattern of patterns) {
