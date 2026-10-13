@@ -11,6 +11,9 @@ type ValidateCodeActionContentProps = {
     /** Function to call when the user closes the modal */
     onClose?: () => void;
 
+    /** Whether to display a close button instead of the default back button. */
+    shouldShowCloseButton?: boolean;
+
     /** The pending action we're trying to validate */
     validatePendingAction?: PendingAction;
 

@@ -44,9 +44,9 @@ You can download the receipts attached to your selected expenses in a single ZIP
 
 **Note:** This action only appears when at least one selected expense has a receipt. It reads **Download receipt** when exactly one selected expense has a receipt, and **Download receipts** when more than one does. Deleted expenses are not included in the download.
 
-## How to export the columns currently displayed using Export current view
+## How to export the columns currently displayed using Current view
 
-Use **Export current view** to download a CSV that matches the columns currently shown on the **Expenses** page, instead of a fixed export template.
+Use **Current view** to download a CSV that matches the columns currently shown on the **Expenses** page, instead of a fixed export template.
 
 1. In the navigation tabs (on the left on web, on the bottom on mobile), go to **Spend** > **Expenses**.
 2. Select **Display**, then select **Edit columns** to choose which columns appear on the page.
@@ -54,7 +54,7 @@ Use **Export current view** to download a CSV that matches the columns currently
 4. On the selection bar, choose **Export**.
 5. Select **Current view**.
 
-The CSV includes one row per expense using the same columns displayed on the page. When a **Group by** filter is applied, the CSV keeps each group as its own section and uses the columns currently shown on the page.
+The CSV includes one row per expense using the same columns displayed on the page. When a **Group by** filter is applied, the CSV keeps each group as its own section. Each group row uses the group columns currently shown on the page (for example, **Category**, **Expenses**, and **Total**), and group columns hidden on the page are left out.
 
 ---
 
@@ -75,7 +75,7 @@ For the Basic Export template, the file downloads directly to your device. For a
 
 ## Can I customize which columns appear in the export?
 
-Yes. Select **Export current view** to download a CSV that matches the columns currently shown on the **Expenses** page. Adjust which columns appear by selecting **Display** > **Edit columns**. You can also select a custom export template during export, if your Workspace Admin has created one.
+Yes. Select **Current view** to download a CSV that matches the columns currently shown on the **Expenses** page. Adjust which columns appear by selecting **Display** > **Edit columns**. You can also select a custom export template during export, if your Workspace Admin has created one.
 
 ## Why don't I see certain export templates?
 
