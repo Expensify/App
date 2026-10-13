@@ -297,16 +297,18 @@ describe('getDynamicFieldErrors', () => {
         const homeAddress: DynamicFormField = {key: 'homeAddress', type: 'address', required: false};
         const addressKeys = getAddressInputKeys(homeAddress.key);
 
-        // When it is validated untouched, with only the street filled in, and with only the city filled in
+        // When it is validated untouched, with only the street filled in, with only the city filled in, and with only a country picked
         const untouchedErrors = getDynamicFieldErrors([homeAddress], {}, translateLocal);
         const streetOnlyErrors = getDynamicFieldErrors([homeAddress], {homeAddress: '1 High Street'}, translateLocal);
         const cityOnlyErrors = getDynamicFieldErrors([homeAddress], {[addressKeys.city]: 'London'}, translateLocal);
+        const countryOnlyErrors = getDynamicFieldErrors([homeAddress], {[addressKeys.country]: CONST.COUNTRY.GB}, translateLocal);
 
         // Then skipping it is fine, but a started address flags every missing part, the street included, so it is never submitted in part
         const required = translateLocal('common.error.fieldRequired');
         expect(untouchedErrors).toEqual({});
         expect(streetOnlyErrors).toEqual({[addressKeys.city]: required, [addressKeys.state]: required, [addressKeys.zipCode]: required, [addressKeys.country]: required});
         expect(cityOnlyErrors).toEqual({homeAddress: required, [addressKeys.state]: required, [addressKeys.zipCode]: required, [addressKeys.country]: required});
+        expect(countryOnlyErrors).toEqual({homeAddress: required, [addressKeys.city]: required, [addressKeys.zipCode]: required});
     });
 
     it('asks for a zip only where the country zip format needs one', () => {

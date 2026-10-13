@@ -70,7 +70,14 @@ function DynamicFormFieldRow({field, values, currency, isLoneField, onRefreshReq
 
     return (
         <View style={isMenuRow ? [styles.mhn5, styles.pv1] : styles.pv2}>
-            {!!labelAbove && <Text style={[labelAbove === 'prompt' ? styles.mt3 : [styles.textStrong, styles.mb3], isMenuRow && styles.ph5]}>{label}</Text>}
+            {!!labelAbove && (
+                <Text
+                    style={[labelAbove === 'prompt' ? styles.mt3 : [styles.textStrong, styles.mb3], isMenuRow && styles.ph5]}
+                    role={labelAbove === 'heading' ? CONST.ROLE.HEADING : undefined}
+                >
+                    {label}
+                </Text>
+            )}
             {!!description && <Text style={[styles.textSupporting, styles.mb3, isMenuRow && styles.ph5]}>{description}</Text>}
             {input}
         </View>

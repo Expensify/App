@@ -46,7 +46,7 @@ function renderInlineChoice(label: string, choices: Choice[], inputProps: Dynami
     };
 }
 
-function renderTabs(choices: Choice[], inputProps: DynamicFieldInputProps, isLoneField: boolean): DynamicFieldInput {
+function renderTabs(label: string, choices: Choice[], inputProps: DynamicFieldInputProps, isLoneField: boolean): DynamicFieldInput {
     return {
         isMenuRow: false,
         labelAbove: isLoneField ? undefined : 'prompt',
@@ -55,6 +55,7 @@ function renderTabs(choices: Choice[], inputProps: DynamicFieldInputProps, isLon
                 InputComponent={TabsAdapter}
                 {...inputProps}
                 items={choices}
+                accessibilityLabel={label}
             />
         ),
     };
@@ -90,7 +91,7 @@ const CHOICE_RENDERERS: Pick<DynamicFieldRendererMap, 'select' | 'radio' | 'mult
         const choices = getFieldChoices(field, values, translate);
         const isLong = choices.length > LONG_CHOICE_LIST_THRESHOLD;
         if (field.presentation === 'tabs') {
-            return renderTabs(choices, inputProps, isLoneField);
+            return renderTabs(label, choices, inputProps, isLoneField);
         }
         if (isLoneField) {
             return renderInlineChoice(label, choices, inputProps, {canSelectMultiple: false, isSearchable: isLong});
@@ -123,9 +124,10 @@ const CHOICE_RENDERERS: Pick<DynamicFieldRendererMap, 'select' | 'radio' | 'mult
         };
     },
     radio: (field, {values, translate, isLoneField}, inputProps) => {
+        const label = getFieldLabel(field, translate);
         const choices = getFieldChoices(field, values, translate);
         if (field.presentation === 'tabs') {
-            return renderTabs(choices, inputProps, isLoneField);
+            return renderTabs(label, choices, inputProps, isLoneField);
         }
         return {
             isMenuRow: true,
@@ -135,6 +137,7 @@ const CHOICE_RENDERERS: Pick<DynamicFieldRendererMap, 'select' | 'radio' | 'mult
                     InputComponent={RadioButtons}
                     {...inputProps}
                     items={choices}
+                    accessibilityLabel={label}
                 />
             ),
         };
@@ -188,6 +191,7 @@ const CHOICE_RENDERERS: Pick<DynamicFieldRendererMap, 'select' | 'radio' | 'mult
                     <InputWrapper
                         InputComponent={YesNoAdapter}
                         {...inputProps}
+                        accessibilityLabel={getFieldLabel(field, translate)}
                     />
                 ),
             };

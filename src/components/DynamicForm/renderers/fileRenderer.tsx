@@ -1,4 +1,5 @@
 import FileUploadAdapter from '@components/DynamicForm/adapters/FileUploadAdapter';
+import {getFieldLabel} from '@components/DynamicForm/utils/getLocalizedText';
 import InputWrapper from '@components/Form/InputWrapper';
 
 import CONST from '@src/CONST';
@@ -10,6 +11,7 @@ import type {DynamicFieldRenderer} from './types';
 /** Uploaded documents, one file unless the schema allows more */
 const renderFile: DynamicFieldRenderer<'file'> = (field, {translate}, inputProps) => {
     const fileLimit = field.maxFiles ?? CONST.DYNAMIC_FORM_DOCUMENT.FILE_LIMIT;
+    const buttonText = translate(fileLimit > 1 ? 'common.chooseFiles' : 'common.chooseFile');
     return {
         isMenuRow: false,
         labelAbove: 'heading',
@@ -18,7 +20,8 @@ const renderFile: DynamicFieldRenderer<'file'> = (field, {translate}, inputProps
                 InputComponent={FileUploadAdapter}
                 {...inputProps}
                 valueType="files"
-                buttonText={translate(fileLimit > 1 ? 'common.chooseFiles' : 'common.chooseFile')}
+                buttonText={buttonText}
+                accessibilityLabel={`${buttonText}, ${getFieldLabel(field, translate)}`}
                 fileLimit={fileLimit}
                 acceptedFileTypes={[...CONST.DYNAMIC_FORM_DOCUMENT.ALLOWED_FILE_TYPES]}
                 maxFileSize={CONST.DYNAMIC_FORM_DOCUMENT.MAX_FILE_SIZE}

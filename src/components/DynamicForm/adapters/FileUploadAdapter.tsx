@@ -10,7 +10,7 @@ import React, {useState} from 'react';
 import {View} from 'react-native';
 
 /** UploadFile settings the adapter passes through unchanged */
-type UploadFileSettings = Pick<ComponentProps<typeof UploadFile>, 'buttonText' | 'acceptedFileTypes' | 'fileLimit' | 'maxFileSize'>;
+type UploadFileSettings = Pick<ComponentProps<typeof UploadFile>, 'buttonText' | 'acceptedFileTypes' | 'fileLimit' | 'maxFileSize' | 'accessibilityLabel'>;
 
 type FileUploadAdapterProps = UploadFileSettings &
     ForwardedFSClassProps & {

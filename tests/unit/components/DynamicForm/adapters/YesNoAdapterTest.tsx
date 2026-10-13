@@ -79,4 +79,20 @@ describe('YesNoAdapter', () => {
         // Then the radio buttons get the mask, since they are what draws the answer
         expect(mockedRadioButtons.mock.lastCall?.[0]?.forwardedFSClass).toBe(forwardedFSClass);
     });
+
+    it('names the Yes/No group after its question for screen readers', () => {
+        // Given a Yes/No question
+        const question = 'Does anyone else own 25% or more?';
+
+        // When it renders
+        render(
+            <YesNoAdapter
+                value=""
+                accessibilityLabel={question}
+            />,
+        );
+
+        // Then the radio buttons announce the question as their group name
+        expect(mockedRadioButtons.mock.lastCall?.[0]?.accessibilityLabel).toBe(question);
+    });
 });

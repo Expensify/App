@@ -42,6 +42,7 @@ type CapturedInputProps = {
     valueType?: string;
     fileLimit?: number;
     maxFileSize?: number;
+    accessibilityLabel?: string;
     currency?: string;
     defaultValue?: string;
     onValueChange?: (value: string, key: string) => void;
@@ -332,6 +333,7 @@ describe('DynamicFormFields', () => {
             fileLimit: 1,
             maxFileSize: CONST.DYNAMIC_FORM_DOCUMENT.MAX_FILE_SIZE,
             buttonText: 'common.chooseFile',
+            accessibilityLabel: 'common.chooseFile, Source of funds document',
         });
         expect(severalFiles.get('idDocument')).toMatchObject({fileLimit: 3, buttonText: 'common.chooseFiles'});
         expect(isLabelShown).toBe(true);
@@ -369,9 +371,9 @@ describe('DynamicFormFields', () => {
         // When it renders
         const rendered = renderFields([homeAddress]);
 
-        // Then the user sees and can correct every part, each stored under the field key
+        // Then the user sees and can correct every part, each stored under the field key, under a heading screen reader users can jump to
         expect([...rendered.keys()]).toEqual(['homeAddress', 'homeAddress.city', 'homeAddress.state', 'homeAddress.zipCode', 'homeAddress.country']);
-        expect(screen.getByText('Home address')).toBeOnTheScreen();
+        expect(screen.getByRole('heading', {name: 'Home address'})).toBeOnTheScreen();
     });
 
     it('opens the numeric keyboard for a text field whose regex takes digits only', () => {
@@ -526,6 +528,22 @@ describe('DynamicFormFields', () => {
         // Then it is still a tab row rather than an inline list, since the schema asked for tabs, and the question is left to the page title
         expect(rendered.get('legalType')?.InputComponent).toBe(TabsAdapter);
         expect(screen.queryByText('Recipient type')).not.toBeOnTheScreen();
+    });
+
+    it('names radio buttons, tabs and a Yes/No question after their question for screen readers', () => {
+        // Given a radio question and a tabs question sharing a page, and a Yes/No question alone on its page
+        const accountType: DynamicFormField = {key: 'accountType', label: 'Account type', type: 'radio', required: true, values: [{key: 'CHECKING'}]};
+        const legalType: DynamicFormField = {key: 'legalType', label: 'Recipient type', type: 'radio', required: true, presentation: 'tabs', values: [{key: 'PRIVATE'}]};
+        const hasOtherOwners: DynamicFormField = {key: 'hasOtherOwners', label: 'Does anyone else own 25% or more?', type: 'boolean', required: true};
+
+        // When they render
+        const sharedPage = renderFields([accountType, legalType]);
+        const lonePage = renderFields([hasOtherOwners]);
+
+        // Then each group is named after its question, since otherwise a screen reader announces "Yes, radio button" without saying what it answers
+        expect(sharedPage.get('accountType')?.accessibilityLabel).toBe('Account type');
+        expect(sharedPage.get('legalType')?.accessibilityLabel).toBe('Recipient type');
+        expect(lonePage.get('hasOtherOwners')?.accessibilityLabel).toBe('Does anyone else own 25% or more?');
     });
 
     it('asks a lone boolean as Yes/No, and a boolean among other fields as a checkbox', () => {

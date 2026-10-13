@@ -157,8 +157,8 @@ const VALIDATORS: {[TType in DynamicFormFieldType]: FieldValidator<TType>} = {
 
 /** An optional address the user has started filling in is checked like a required one, so it is never submitted in part */
 function isAddressRequired(field: DynamicFormAddressField, values: DynamicFormValues): boolean {
-    const {street, city, state, zipCode} = getAddressInputKeys(field.key);
-    return field.required || [street, city, state, zipCode].some((partKey) => isAnswered(values[partKey]));
+    const {street, city, state, zipCode, country} = getAddressInputKeys(field.key);
+    return field.required || [street, city, state, zipCode, country].some((partKey) => isAnswered(values[partKey]));
 }
 
 /** Each address part has its own input, so its errors go under its own draft key */

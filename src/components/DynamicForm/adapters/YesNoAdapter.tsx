@@ -18,10 +18,13 @@ type YesNoAdapterProps = ForwardedFSClassProps & {
 
     /** Validation error shown under the buttons */
     errorText?: string;
+
+    /** The question, read out by screen readers as the name of the Yes/No group */
+    accessibilityLabel?: string;
 };
 
 /** A boolean asked as a Yes/No question, where No is an answer too */
-function YesNoAdapter({value, onInputChange = () => {}, errorText, forwardedFSClass}: YesNoAdapterProps) {
+function YesNoAdapter({value, onInputChange = () => {}, errorText, forwardedFSClass, accessibilityLabel}: YesNoAdapterProps) {
     const {translate} = useLocalize();
     let checkedValue = '';
     if (value === true) {
@@ -40,6 +43,7 @@ function YesNoAdapter({value, onInputChange = () => {}, errorText, forwardedFSCl
             onInputChange={(choice) => onInputChange(choice === YES)}
             errorText={errorText}
             forwardedFSClass={forwardedFSClass}
+            accessibilityLabel={accessibilityLabel}
         />
     );
 }

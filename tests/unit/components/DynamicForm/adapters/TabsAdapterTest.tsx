@@ -28,4 +28,20 @@ describe('TabsAdapter', () => {
         // Then the view around the tabs carries the mask, since TabSelectorBase takes no FullStory class itself
         expect(screen.toJSON()).toMatchObject({props: {fsClass: forwardedFSClass}});
     });
+
+    it('groups the tabs in a tab list named after the question for screen readers', () => {
+        // Given a tab row answering the recipient type question
+        const question = 'Recipient type';
+
+        // When it renders
+        render(
+            <TabsAdapter
+                items={[{value: 'PRIVATE', label: 'Person'}]}
+                accessibilityLabel={question}
+            />,
+        );
+
+        // Then the tabs sit in a tab list carrying the question, which web also needs for valid tab markup
+        expect(screen.getByLabelText(question)).toHaveProp('role', CONST.ROLE.TABLIST);
+    });
 });
