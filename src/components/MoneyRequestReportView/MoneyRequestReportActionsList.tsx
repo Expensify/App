@@ -290,14 +290,7 @@ function MoneyRequestReportActionsListContent({reportIDFromRoute, onLayout}: Mon
         );
     };
 
-    const reportActionsExtraData = [
-        draftReportActionID,
-        isDraftPendingCompletion,
-        latestConciergeFeedbackActionID,
-        expandedSystemMessageReportActionIDs,
-        unreadMarkerReportActionID,
-        reportsParentHierarchy,
-    ];
+    const reportActionsExtraData = [draftReportActionID, isDraftPendingCompletion, latestConciergeFeedbackActionID, expandedSystemMessageReportActionIDs, unreadMarkerReportActionID];
 
     /**
      * Runs when the FlatList finishes laying out

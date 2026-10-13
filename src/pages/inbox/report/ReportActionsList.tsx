@@ -531,7 +531,6 @@ function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportAct
         isDraftPendingCompletion,
         latestConciergeFeedbackActionID,
         expandedSystemMessageReportActionIDs,
-        reportsParentHierarchy,
     ];
 
     const listHeaderComponent = (
