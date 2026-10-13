@@ -1,16 +1,19 @@
-import {read} from '@libs/API';
-import {READ_COMMANDS} from '@libs/API/types';
+import {read, write} from '@libs/API';
+import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 
 import ONYXKEYS from '@src/ONYXKEYS';
+import SCREENS from '@src/SCREENS';
 import type {BillingGraceEndPeriod} from '@src/types/onyx';
 
 import Onyx from 'react-native-onyx';
 
-import {openSubscriptionPage} from '../../src/libs/actions/Subscription';
+import {clearOutstandingBalance, openSubscriptionPage} from '../../src/libs/actions/Subscription';
+import getOnyxValue from '../utils/getOnyxValue';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 jest.mock('@libs/API');
 const mockRead = jest.mocked(read);
+const mockWrite = jest.mocked(write);
 
 describe('actions/Subscription', () => {
     beforeAll(() => {
@@ -181,6 +184,35 @@ describe('actions/Subscription', () => {
             // failureData should only have the loading key
             expect(onyxData.failureData).toHaveLength(1);
             expect(failureUpdate.key).toBe(ONYXKEYS.IS_LOADING_SUBSCRIPTION_DATA);
+        });
+    });
+
+    describe('clearOutstandingBalance', () => {
+        it('pairs the 3DS source with the failure response, where an SCA retry delivers its link', async () => {
+            // Given an earlier 3DS attempt left its link in Onyx
+            await Onyx.set(ONYXKEYS.VERIFY_3DS_SUBSCRIPTION, 'https://hooks.stripe.com/3d_secure_2/previous');
+
+            // When Retry payment fires from Subscription
+            clearOutstandingBalance(SCREENS.SETTINGS.SUBSCRIPTION.ROOT);
+            await waitForBatchedUpdates();
+
+            // Then the old link is cleared, so a byte-identical link in the response still registers as a change
+            expect(await getOnyxValue(ONYXKEYS.VERIFY_3DS_SUBSCRIPTION)).toBe('');
+
+            // And the source is recorded in failureData, because a charge that needs 3DS comes back as a 409
+            expect(mockWrite).toHaveBeenCalledWith(
+                WRITE_COMMANDS.CLEAR_OUTSTANDING_BALANCE,
+                null,
+                expect.objectContaining({
+                    failureData: expect.arrayContaining([
+                        {
+                            onyxMethod: Onyx.METHOD.SET,
+                            key: ONYXKEYS.VERIFY_3DS_SUBSCRIPTION_SOURCE,
+                            value: SCREENS.SETTINGS.SUBSCRIPTION.ROOT,
+                        },
+                    ]),
+                }),
+            );
         });
     });
 });

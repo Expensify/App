@@ -1,7 +1,7 @@
 ---
 title: Reconcile Reimbursements
 description: Learn how to use the Bank reconciliation report to match reimbursement payments to bank charges, trace payments to expense reports, and troubleshoot discrepancies with your accounting system.
-keywords: [New Expensify, reconcile reimbursements, match reimbursements bank statement, reimbursement payments Expensify, reimbursement mismatch NetSuite QuickBooks, trace reimbursement to expense reports, amount debited, amount reimbursed, cross-border reimbursement currency, bank reconciliation, reimbursement debit]
+keywords: [New Expensify, reconcile reimbursements, match reimbursements bank statement, reimbursement payments Expensify, reimbursement mismatch NetSuite QuickBooks, trace reimbursement to expense reports, amount debited, amount reimbursed, cross-border reimbursement currency, bank reconciliation, reimbursement debit, export bank reconciliation CSV, withdrawal ID]
 internalScope: Audience is Workspace Admins reconciling reimbursement payments. Covers payment-based reconciliation under Accounting > Bank reconciliation. Does not cover Expensify Card reconciliation or company card statement matching.
 ---
 
@@ -56,6 +56,19 @@ If every reimbursement in view is domestic, these columns are hidden entirely. I
 2. In the **Bank reconciliation** view, compare each payment total to the corresponding charge on your bank statement.
    - If the totals match, the reimbursement is reconciled. 
    - If a total does not match, expand the reimbursement to review the underlying expenses and identify discrepancies.
+
+---
+
+## How to export reimbursement withdrawals from Bank reconciliation to CSV
+
+1. From the **Bank reconciliation** report, check the box next to each reimbursement you want to export, or use the top checkbox to select all.
+2. Click the selection button at the top (for example, **1 selected**).
+3. Select **Export**. If **Export** is the only action available, the export options are already listed under an **Export** heading—skip to the next step.
+4. Select **Current view**.
+
+In the exported file, each reimbursement appears as its own section. The reimbursement row uses the columns shown in the **Bank reconciliation** view, such as **Withdrawn**, **Withdrawal status**, **Bank account**, **Withdrawal ID**, **Expenses**, and **Total**. The expenses in that reimbursement are listed below it.
+
+**Amount debited** and **Amount reimbursed** are included only when they appear in the view, which happens when your selected results include at least one cross-border reimbursement.
 
 ---
 

@@ -2,7 +2,8 @@ import CollapsibleHeaderOnKeyboard from '@components/CollapsibleHeaderOnKeyboard
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues, FormRef} from '@components/Form/types';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import Header from '@components/Header';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
@@ -80,7 +81,7 @@ function EditAgentRulePage({
 
     const inputWrapperStyles = useAgentPromptInputStyles();
 
-    const {deleteHeaderProps} = useRuleDeleteHeaderProps({
+    const {deleteIconButtonProps} = useRuleDeleteHeaderProps({
         canDelete: !!policy && !!agentRule && agentRule.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
         onDelete: () => {
             if (!policy) {
@@ -111,10 +112,9 @@ function EditAgentRulePage({
                 shouldEnableMaxHeight={shouldUseExpandedRevampFormLayout}
             >
                 <CollapsibleHeaderOnKeyboard>
-                    <HeaderWithBackButton
-                        title={translate('workspace.rules.agentRules.editRuleTitle')}
-                        {...deleteHeaderProps}
-                    />
+                    <HeaderWithBackButtonAndTitle title={translate('workspace.rules.agentRules.editRuleTitle')}>
+                        {!!deleteIconButtonProps && <Header.IconButton {...deleteIconButtonProps} />}
+                    </HeaderWithBackButtonAndTitle>
                 </CollapsibleHeaderOnKeyboard>
                 <FormProvider
                     ref={formRef}
