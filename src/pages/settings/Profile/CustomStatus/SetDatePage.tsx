@@ -54,7 +54,7 @@ function SetDatePage() {
     const isLoadingStatusDraft = isLoadingOnyxValue(statusDraftCustomClearAfterDateMetaData);
 
     if (isLoadingStatusDraft) {
-        return <FullScreenLoadingIndicator />;
+        return <FullScreenLoadingIndicator onGoBack={() => Navigation.goBack(ROUTES.SETTINGS_STATUS_CLEAR_AFTER)} />;
     }
 
     return (
