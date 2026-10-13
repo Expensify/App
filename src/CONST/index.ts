@@ -10319,6 +10319,9 @@ const CONST = {
         UPLOAD_FILE: {
             REMOVE_BUTTON: 'UploadFile-RemoveButton',
         },
+        LIST_FIELD: {
+            REMOVE_BUTTON: 'ListField-RemoveButton',
+        },
         BANK_ACCOUNT: {
             DATA_SECURE_LINK: 'BankAccount-DataSecureLink',
         },

@@ -19,6 +19,7 @@ import type {
     DynamicFormChoiceField,
     DynamicFormField,
     DynamicFormFieldType,
+    DynamicFormListField,
     DynamicFormNumberField,
     DynamicFormSchemaField,
     DynamicFormTextField,
@@ -28,6 +29,7 @@ import getAddressInputKeys, {getAddressCountry, isStateAsked} from './getAddress
 import getFieldOptions from './getFieldOptions';
 import getVisibleFields, {getLoneField} from './getVisibleFields';
 import isSupportedField from './isSupportedField';
+import {getListItems, getListItemSensitiveAnswers} from './listItems';
 import logSchemaProblem from './logSchemaProblem';
 
 /** Checks a field the user has answered. Unanswered fields only get the required check. */
@@ -100,6 +102,25 @@ function getMultiChoiceErrors(field: DynamicFormFieldOfType<'multiselect' | 'cou
     return !hasNonStringEntry && keys.every((key) => offeredKeys.has(key)) ? [] : [translate('dynamicForm.error.invalidOption')];
 }
 
+/** The list shows one error, so the first entry with a problem names it. The flow keeps sensitive answers in memory apart from their entry, so one lost with the memory is asked for again. */
+function getListErrors(field: DynamicFormListField, values: DynamicFormValues, translate: LocalizedTranslate): string[] {
+    const items = getListItems(values[field.key]);
+    const messages: string[] = [];
+    if (field.minItems !== undefined && items.length < field.minItems) {
+        messages.push(translate('dynamicForm.error.tooFewItems', {min: field.minItems}));
+    }
+    if (field.maxItems !== undefined && items.length > field.maxItems) {
+        messages.push(translate('dynamicForm.error.tooManyItems', {max: field.maxItems}));
+    }
+    const firstItemError = items
+        .map((item) => Object.values(getDynamicFieldErrors(field.itemFields, {...item, ...getListItemSensitiveAnswers(field, item.id, values)}, translate)).at(0))
+        .find(Boolean);
+    if (firstItemError) {
+        messages.push(firstItemError);
+    }
+    return messages;
+}
+
 /** For inputs that only accept valid answers: UploadFile checks type and count, AmountForm rejects invalid typing */
 const noChecks = () => [];
 
@@ -153,6 +174,7 @@ const VALIDATORS: {[TType in DynamicFormFieldType]: FieldValidator<TType>} = {
         const percent = Number(getStringAnswer(field, values));
         return Number.isFinite(percent) && percent >= PERCENT_MIN && percent <= PERCENT_MAX ? [] : [translate('dynamicForm.error.outOfRange', {min: PERCENT_MIN, max: PERCENT_MAX})];
     },
+    list: getListErrors,
 };
 
 /** An optional address the user has started filling in is checked like a required one, so it is never submitted in part */

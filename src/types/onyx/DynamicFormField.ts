@@ -148,6 +148,27 @@ type DynamicFormBooleanField = DynamicFormFieldBase & {
     type: 'boolean';
 };
 
+/** Repeated entries, such as a company's owners, each answered with its own fields on an editor page */
+type DynamicFormListField = DynamicFormFieldBase & {
+    type: 'list';
+
+    /** The fields of one entry */
+    itemFields: DynamicFormField[];
+
+    /** The noun for one entry, such as "owner", for the add row and the editor title */
+    itemLabel?: string;
+
+    itemLabelKey?: TranslationPaths;
+
+    /** Hint shown under the add row */
+    addItemDescription?: string;
+
+    addItemDescriptionKey?: TranslationPaths;
+
+    minItems?: number;
+    maxItems?: number;
+};
+
 /** Types that need nothing beyond the common properties */
 type DynamicFormPlainField = DynamicFormFieldBase & {
     type: 'currency' | 'percent';
@@ -165,7 +186,14 @@ type DynamicFormField =
     | DynamicFormAmountField
     | DynamicFormCountryField
     | DynamicFormBooleanField
+    | DynamicFormListField
     | DynamicFormPlainField;
+
+/** One entry of a list field: its answers keyed by item field key, and an `id` made on the device to key the entry's row and editor page */
+type DynamicFormListItem = {
+    id: string;
+    [fieldKey: string]: FormValue | undefined;
+};
 
 /** A field as the schema sends it, which can be of a type this App version does not know */
 type DynamicFormSchemaField = DynamicFormField | (DynamicFormFieldBase & {type: string});
@@ -197,6 +225,8 @@ export type {
     DynamicFormFieldOption,
     DynamicFormFieldType,
     DynamicFormHeading,
+    DynamicFormListField,
+    DynamicFormListItem,
     DynamicFormMultiChoiceField,
     DynamicFormNumberField,
     DynamicFormPage,

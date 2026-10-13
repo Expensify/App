@@ -3901,6 +3901,10 @@ ${amount} para ${merchant} - ${date}`,
         unlockAlreadyRequestedTitle: 'Solicitud ya enviada',
         unlockAlreadyRequestedDescription: 'Tu solicitud para desbloquear esta cuenta bancaria ya ha sido enviada. Concierge se pondrá en contacto contigo si se necesita algo más.',
     },
+    listField: {
+        editItem: ({name}: {name: string}) => `Editar ${name}`,
+        removeItem: ({name}: {name: string}) => `Eliminar ${name}`,
+    },
     dynamicForm: {
         exampleHint: ({example}: {example: string}) => `Ejemplo: ${example}`,
         fileCount: ({count}: {count: number}) => ({
@@ -3912,7 +3916,12 @@ ${amount} para ${merchant} - ${date}`,
             invalidFormat: ({example}: {example?: string}) => (example ? `Formato inválido. Ejemplo: ${example}` : 'Formato inválido'),
             invalidOption: 'Elige una de las opciones disponibles',
             outOfRange: ({min, max}: {min: number; max: number}) => `Introduce un valor entre ${min} y ${max}`,
+            tooFewItems: ({min}: {min: number}) => `Añade al menos ${min}`,
+            tooManyItems: ({max}: {max: number}) => `Añade como máximo ${max}`,
         },
+        addItem: ({item}: {item: string}) => `Añadir ${item}`,
+        removeItemTitle: ({item}: {item: string}) => `¿Eliminar ${item}?`,
+        removeItemPrompt: ({name}: {name: string}) => `¿Seguro que quieres eliminar a ${name}?`,
     },
     addPersonalBankAccount: {
         swiftBicFormatError: 'El SWIFT/BIC debe tener 8 u 11 caracteres, con 6 letras seguidas de 2 o 5 letras o números.',

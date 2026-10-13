@@ -30,6 +30,7 @@ function DynamicFormFieldsPage({
     maxFileSize,
     onRefreshRequirements,
     onPageSubmit,
+    onOpenListItemEditor,
 }: DynamicFormSubPageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
@@ -78,6 +79,7 @@ function DynamicFormFieldsPage({
                             currency={currency}
                             maxFileSize={maxFileSize}
                             onRefreshRequirements={onRefreshRequirements}
+                            onOpenListItemEditor={onOpenListItemEditor}
                         />
                     </>
                 );

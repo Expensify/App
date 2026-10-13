@@ -33,12 +33,32 @@ type DynamicFormFieldsProps = {
 
     /** Called when the user changes a field marked `refreshOnChange`, with the draft key that changed, so the screen can fetch the schema again */
     onRefreshRequirements?: (inputID: string, value: FormValue) => void;
+
+    /** Opens the editor page of a list entry, or of a new one without `itemID`. DynamicFormFlow passes it; without it list entries are edited in a modal. */
+    onOpenListItemEditor?: (listKey: string, itemID?: string) => void;
 };
 
 /** The inputs of a schema-driven form. Render it inside a FormProvider and validate the fields of the same content with getDynamicFieldErrors. */
-function DynamicFormFields({content, values, allFields, isTitledByPage = false, currency = CONST.CURRENCY.USD, maxFileSize, onRefreshRequirements}: DynamicFormFieldsProps) {
+function DynamicFormFields({
+    content,
+    values,
+    allFields,
+    isTitledByPage = false,
+    currency = CONST.CURRENCY.USD,
+    maxFileSize,
+    onRefreshRequirements,
+    onOpenListItemEditor,
+}: DynamicFormFieldsProps) {
     const visibleContent = getVisibleContent(content, values, allFields);
     const loneField = getLoneField(getContentFields(visibleContent));
+    const renderFields = (itemFields: DynamicFormField[], itemValues: DynamicFormValues) => (
+        <DynamicFormFields
+            content={itemFields}
+            values={itemValues}
+            currency={currency}
+            maxFileSize={maxFileSize}
+        />
+    );
 
     return visibleContent.map((item, index) =>
         isHeading(item) ? (
@@ -57,6 +77,8 @@ function DynamicFormFields({content, values, allFields, isTitledByPage = false, 
                 isLoneField={item === loneField}
                 shouldHideLabel={isTitledByPage && item === loneField}
                 onRefreshRequirements={onRefreshRequirements}
+                onOpenListItemEditor={onOpenListItemEditor}
+                renderFields={renderFields}
             />
         ),
     );

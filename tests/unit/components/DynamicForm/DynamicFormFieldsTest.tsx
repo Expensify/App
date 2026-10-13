@@ -9,11 +9,13 @@ import DatePicker from '@components/DatePicker';
 import CurrencyInlineListAdapter from '@components/DynamicForm/adapters/CurrencyInlineListAdapter';
 import FileUploadAdapter from '@components/DynamicForm/adapters/FileUploadAdapter';
 import InlineSelectionListAdapter from '@components/DynamicForm/adapters/InlineSelectionListAdapter';
+import ListFieldAdapter from '@components/DynamicForm/adapters/ListFieldAdapter';
 import TabsAdapter from '@components/DynamicForm/adapters/TabsAdapter';
 import YesNoAdapter from '@components/DynamicForm/adapters/YesNoAdapter';
 import DynamicFormFields from '@components/DynamicForm/components/DynamicFormFields';
 import type {DynamicFormValues} from '@components/DynamicForm/types';
 import getAddressInputKeys from '@components/DynamicForm/utils/getAddressInputKeys';
+import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import PercentageForm from '@components/PercentageForm';
 import PushRowWithModal from '@components/PushRowWithModal';
 import RadioButtons from '@components/RadioButtons';
@@ -69,6 +71,20 @@ jest.mock('@hooks/useLocalize', () =>
 
 jest.mock('@hooks/useThemeStyles', () => jest.fn(() => new Proxy({}, {get: () => ({})})));
 
+type TestInstance = ReturnType<typeof screen.UNSAFE_getByProps>;
+
+/** Whether a view around the element masks it in session recordings */
+function isMasked(element: TestInstance): boolean {
+    let ancestor: TestInstance | null = element;
+    while (ancestor) {
+        if (ancestor.props.fsClass === CONST.FULLSTORY.CLASS.MASK) {
+            return true;
+        }
+        ancestor = ancestor.parent;
+    }
+    return false;
+}
+
 type RenderFieldsOptions = {
     currency?: string;
     maxFileSize?: number;
@@ -107,6 +123,7 @@ const EXPECTED_INPUT_BY_TYPE: Record<DynamicFormFieldType, ComponentType<never>>
     file: FileUploadAdapter,
     amount: AmountForm,
     percent: PercentageForm,
+    list: ListFieldAdapter,
 };
 
 const FIELD_TYPES = Object.keys(EXPECTED_INPUT_BY_TYPE).filter((type): type is DynamicFormFieldType => Object.hasOwn(EXPECTED_INPUT_BY_TYPE, type));
@@ -114,14 +131,15 @@ const FIELD_TYPES = Object.keys(EXPECTED_INPUT_BY_TYPE).filter((type): type is D
 describe('DynamicFormFields', () => {
     it.each(FIELD_TYPES)('renders a %s field with its input', (type) => {
         // Given a field of one type with nothing but the required properties, next to another question so it is drawn as a row
-        const field: DynamicFormField = {key: 'answer', type, required: false};
+        const field: DynamicFormField = type === 'list' ? {key: 'answer', type, required: false, itemFields: []} : {key: 'answer', type, required: false};
 
         // When it renders
         const rendered = renderFields([field, otherQuestion]);
 
-        // Then it is drawn by the input its type maps to, which is what a schema without layout hints gets, and its answer is masked in session recordings
+        // Then it is drawn by the input its type maps to, which is what a schema without layout hints gets, and its answer is masked in session recordings, including by inputs that do not pass the FullStory class on
         expect(rendered.get('answer')?.InputComponent).toBe(EXPECTED_INPUT_BY_TYPE[type]);
         expect(rendered.get('answer')?.forwardedFSClass).toBe(CONST.FULLSTORY.CLASS.MASK);
+        expect(isMasked(screen.UNSAFE_getByProps({inputID: 'answer'}))).toBe(true);
     });
 
     it('keeps sensitive answers out of the draft', () => {
@@ -232,9 +250,10 @@ describe('DynamicFormFields', () => {
         // When the fields render
         const rendered = renderFields([readonlyCountry], {nationality: 'GB'});
 
-        // Then no input is drawn, and the row shows the translated country
+        // Then no input is drawn, and the row shows the translated country, masked in session recordings since a prefilled answer is still personal
         expect(rendered.size).toBe(0);
         expect(screen.getByText('allCountries.GB')).toBeOnTheScreen();
+        expect(isMasked(screen.UNSAFE_getByType(MenuItemWithTopDescription))).toBe(true);
     });
 
     it('draws a heading with its description above the fields that follow it', () => {

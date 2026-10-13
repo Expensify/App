@@ -1,5 +1,6 @@
 import getAddressInputKeys from '@components/DynamicForm/utils/getAddressInputKeys';
 import getDynamicFieldErrors from '@components/DynamicForm/utils/getDynamicFieldErrors';
+import {getListItemSensitiveKey} from '@components/DynamicForm/utils/listItems';
 
 import Log from '@libs/Log';
 import {getCountryZipRegexDetails} from '@libs/ValidationUtils';
@@ -368,5 +369,49 @@ describe('getDynamicFieldErrors', () => {
         expect(noErrors).toEqual({});
         expect(unansweredErrors).toEqual({hasOtherOwners: translateLocal('common.error.fieldRequired')});
         expect(consentErrors).toEqual({acceptTerms: translateLocal('common.error.fieldRequired')});
+    });
+
+    it('checks a list for its size and for the first entry with a problem', () => {
+        // Given a list of at least two directors, whose entries need a first name and may hold a sensitive SSN
+        const directors: DynamicFormField = {
+            key: 'directors',
+            type: 'list',
+            required: true,
+            minItems: 2,
+            itemFields: [
+                {key: 'firstName', type: 'text', required: true},
+                {key: 'ssn', type: 'text', required: true, sensitive: true},
+            ],
+        };
+
+        // When it holds no entry, and when it holds one entry without a first name
+        const emptyErrors = getDynamicFieldErrors([directors], {directors: []}, translateLocal);
+        const shortErrors = getDynamicFieldErrors([directors], {directors: [{id: 'jane', firstName: ''}]}, translateLocal);
+
+        // Then the empty list is required, and the short list shows both the size and the entry's first problem, its missing name
+        expect(emptyErrors).toEqual({directors: translateLocal('common.error.fieldRequired')});
+        expect(shortErrors).toEqual({directors: `${translateLocal('dynamicForm.error.tooFewItems', {min: 2})}\n${translateLocal('common.error.fieldRequired')}`});
+    });
+
+    it('asks again for a sensitive entry answer the memory no longer holds', () => {
+        // Given a director whose required SSN is kept in memory apart from the drafted entry
+        const directors: DynamicFormField = {
+            key: 'directors',
+            type: 'list',
+            required: true,
+            itemFields: [
+                {key: 'firstName', type: 'text', required: true},
+                {key: 'ssn', type: 'text', required: true, sensitive: true},
+            ],
+        };
+        const draftValues = {directors: [{id: 'jane', firstName: 'Jane'}]};
+
+        // When the SSN is in memory, and when the memory was lost, as after the app restarts
+        const keptErrors = getDynamicFieldErrors([directors], {...draftValues, [getListItemSensitiveKey('directors', 'jane', 'ssn')]: '123456789'}, translateLocal);
+        const lostErrors = getDynamicFieldErrors([directors], draftValues, translateLocal);
+
+        // Then the list passes while the SSN is kept, and asks for it once it is lost, so a director is never submitted without one
+        expect(keptErrors).toEqual({});
+        expect(lostErrors).toEqual({directors: translateLocal('common.error.fieldRequired')});
     });
 });

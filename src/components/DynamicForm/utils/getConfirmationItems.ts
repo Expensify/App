@@ -1,8 +1,10 @@
 import type {DynamicFormValues} from '@components/DynamicForm/types';
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
-import type {SummaryGroup} from '@components/SubStepForms/ConfirmationStep';
+import type {SummaryGroup, SummaryGroupRow} from '@components/SubStepForms/ConfirmationStep';
 
-import type {DynamicFormField, DynamicFormPage} from '@src/types/onyx';
+import {getLetterAvatarURLForName} from '@libs/UserAvatarUtils';
+
+import type {DynamicFormField, DynamicFormListField, DynamicFormPage} from '@src/types/onyx';
 
 import noop from 'lodash/noop';
 
@@ -13,15 +15,38 @@ import getPageTitle, {isPageShown} from './getPageTitle';
 import getVisibleFields from './getVisibleFields';
 import isSensitiveField from './isSensitiveField';
 import isSupportedField from './isSupportedField';
+import {getListItems} from './listItems';
 import maskSensitiveValue from './maskSensitiveValue';
+import summarizeListItem from './summarizeListItem';
 
-/** One section per shown page holding its visible answers. Tapping a row opens the page to edit; readonly rows open nothing. */
+/** One avatar row per list entry, which opens the entry */
+function getListItemRows(
+    field: DynamicFormListField,
+    values: DynamicFormValues,
+    translate: LocalizedTranslate,
+    onEditListItem: (listKey: string, itemID: string) => void,
+): SummaryGroupRow[] {
+    return getListItems(values[field.key]).map((item) => {
+        const {title, description} = summarizeListItem(item, field.itemFields, translate);
+        return {
+            kind: 'avatar',
+            id: `${field.key}-${item.id}`,
+            title,
+            description,
+            avatarSource: getLetterAvatarURLForName(title),
+            onPress: () => onEditListItem(field.key, item.id),
+        };
+    });
+}
+
+/** One section per shown page holding its visible answers, with each list entry as an avatar row and an empty list as a plain row. Tapping a row opens the page or entry to edit; readonly rows open nothing. */
 function getConfirmationItems(
     pages: DynamicFormPage[],
     allFields: DynamicFormField[],
     values: DynamicFormValues,
     translate: LocalizedTranslate,
     onEditPage: (pageIndex: number) => void,
+    onEditListItem: (listKey: string, itemID: string) => void,
 ): SummaryGroup[] {
     return pages.flatMap((page, pageIndex): SummaryGroup[] => {
         if (!isPageShown(page, values, allFields)) {
@@ -40,18 +65,25 @@ function getConfirmationItems(
             {
                 id: page.key,
                 name: getPageTitle(page, values, translate, allFields),
-                rows: fields.map((field) => {
+                rows: fields.flatMap((field): SummaryGroupRow[] => {
+                    const listItemRows = field.type === 'list' ? getListItemRows(field, values, translate, onEditListItem) : [];
+                    if (listItemRows.length > 0) {
+                        return listItemRows;
+                    }
+
                     const answer = formatDynamicFieldValue(field, values, translate);
                     const isEditable = !field.readonly;
 
-                    return {
-                        id: field.key,
-                        description: getFieldLabel(field, translate),
-                        title: isSensitiveField(field) ? maskSensitiveValue(answer) : answer,
-                        shouldShowRightIcon: isEditable,
-                        onPress: isEditable ? handleEdit : noop,
-                        interactive: isEditable,
-                    };
+                    return [
+                        {
+                            id: field.key,
+                            description: getFieldLabel(field, translate),
+                            title: isSensitiveField(field) ? maskSensitiveValue(answer) : answer,
+                            shouldShowRightIcon: isEditable,
+                            onPress: isEditable ? handleEdit : noop,
+                            interactive: isEditable,
+                        },
+                    ];
                 }),
             },
         ];
