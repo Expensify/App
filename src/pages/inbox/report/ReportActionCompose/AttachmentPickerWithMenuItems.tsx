@@ -336,22 +336,19 @@ function AttachmentPickerWithMenuItems({
         rules,
     ]);
 
-    const createReportOption: PopoverMenuItem[] = useMemo(() => {
-        // Members without create-expenses permission cannot create reports on the workspace either.
-        if (!isPolicyExpenseChat(report) || !isGroupPolicyByType(policy?.type) || !isReportOwner(report) || !canCreateExpensesOnPolicy(policy)) {
-            return [];
-        }
-
-        return [
-            {
-                icon: icons.Document,
-                text: translate('report.newReport.createReport'),
-                shouldCallAfterModalHide: shouldUseNarrowLayout,
-                sentryLabel: CONST.SENTRY_LABEL.REPORT.ATTACHMENT_PICKER_MENU_CREATE_REPORT,
-                onSelected: () => selectOption(() => handleCreateReport(), true),
-            },
-        ];
-    }, [icons.Document, handleCreateReport, policy, report, selectOption, shouldUseNarrowLayout, translate]);
+    // Members without create-expenses permission cannot create reports on the workspace either.
+    const createReportOption: PopoverMenuItem[] =
+        !isPolicyExpenseChat(report) || !isGroupPolicyByType(policy?.type) || !isReportOwner(report) || !canCreateExpensesOnPolicy(policy)
+            ? []
+            : [
+                  {
+                      icon: icons.Document,
+                      text: translate('report.newReport.createReport'),
+                      shouldCallAfterModalHide: shouldUseNarrowLayout,
+                      sentryLabel: CONST.SENTRY_LABEL.REPORT.ATTACHMENT_PICKER_MENU_CREATE_REPORT,
+                      onSelected: () => selectOption(() => handleCreateReport(), true),
+                  },
+              ];
 
     /**
      * Determines if we can show the task option
