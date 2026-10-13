@@ -12,6 +12,7 @@ import type {
     ChangePolicyUberBillingAccountPageParams,
     CreateWorkspaceFromIOUPaymentParams,
     ArchivePolicyParams,
+    UnarchivePolicyParams,
     CreateWorkspaceParams,
     DeletePolicyRulesDocumentParams,
     DeleteWorkspaceAvatarParams,
@@ -96,6 +97,7 @@ import {buildOptimisticNextStep} from '@libs/NextStepUtils';
 import {isTrackOnboardingChoice} from '@libs/OnboardingUtils';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as PhoneNumber from '@libs/PhoneNumber';
+import {buildOnyxDataForGovernmentRateAutoUpdate} from '@libs/PolicyDistanceRatesUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import {
     getCustomUnitsForDuplication,
@@ -127,6 +129,7 @@ import type {
     BankAccountList,
     CardFeeds,
     DuplicateWorkspace,
+    GovernmentMileageRate,
     IntroSelected,
     InvitedEmailsToAccountIDs,
     LastPaymentMethod,
@@ -166,7 +169,7 @@ import type {OnyxData} from '@src/types/onyx/Request';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import type {NullishDeep, OnyxCollection, OnyxCollectionInputValue, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
-import type {TupleToUnion, ValueOf} from 'type-fest';
+import type {ValueOf} from 'type-fest';
 
 /* eslint-disable max-lines */
 import {formatInTimeZone} from 'date-fns-tz';
@@ -313,7 +316,7 @@ type DuplicatePolicyDataOptions = {
     policyCategories?: PolicyCategories;
     localCurrency: string;
     rules?: OnyxCollection<Rule>;
-    personalDetailsByLogins?: PersonalDetailsByLogin;
+    personalDetailsByLogins: PersonalDetailsByLogin;
 };
 
 type SetWorkspaceReimbursementActionParams = {
@@ -356,8 +359,8 @@ function isCurrencySupportedForDirectReimbursement(currency: string) {
 /**
  * Checks if the currency is supported for global reimbursement
  */
-function isCurrencySupportedForGlobalReimbursement(currency: TupleToUnion<typeof CONST.DIRECT_REIMBURSEMENT_CURRENCIES>) {
-    return CONST.DIRECT_REIMBURSEMENT_CURRENCIES.includes(currency);
+function isCurrencySupportedForGlobalReimbursement(currency: string) {
+    return (CONST.DIRECT_REIMBURSEMENT_CURRENCIES as readonly string[]).includes(currency);
 }
 
 /** Check if the policy has invoicing company details */
@@ -781,6 +784,58 @@ function archivePolicy(params: ArchivePolicyActionParams) {
     API.write(WRITE_COMMANDS.ARCHIVE_POLICY, apiParams, {optimisticData, failureData, successData});
 
     Log.info(`[ArchivePolicy] Archived policy ${policyName} (${policyID})`);
+}
+
+type UnarchivePolicyActionParams = {
+    policyID: string;
+    policyName?: string;
+
+    /** The policy's current archivedDate, restored if the request fails */
+    archivedDate: string | undefined;
+};
+
+function unarchivePolicy(params: UnarchivePolicyActionParams) {
+    const {policyID, policyName, archivedDate} = params;
+
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                archivedDate: null,
+                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                errors: null,
+            },
+        },
+    ];
+
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                archivedDate: archivedDate ?? null,
+                pendingAction: null,
+                errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
+            },
+        },
+    ];
+
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                pendingAction: null,
+            },
+        },
+    ];
+
+    const apiParams: UnarchivePolicyParams = {policyID};
+
+    API.write(WRITE_COMMANDS.UNARCHIVE_POLICY, apiParams, {optimisticData, failureData, successData});
+
+    Log.info(`[UnarchivePolicy] Unarchived policy ${policyName} (${policyID})`);
 }
 
 /* Set the auto harvesting on a workspace. This goes in tandem with auto reporting. so when you enable/disable
@@ -1346,7 +1401,9 @@ function setWorkspaceReimbursement({
         return account?.accountData?.policyIDs?.includes(policyID);
     });
 
-    if (oldBankAccountID !== undefined && String(bankAccountID) === oldBankAccountID) {
+    // A bank account can list the workspace in its policyIDs while the workspace itself points at another account,
+    // so the selection is only redundant when the workspace's own bank account is the selected one too.
+    if (oldBankAccountID !== undefined && String(bankAccountID) === oldBankAccountID && currentAchAccount?.bankAccountID === bankAccountID) {
         return;
     }
 
@@ -1642,6 +1699,7 @@ function addBillingCardAndRequestPolicyOwnerChange(
         addressZip: string;
         currency: string;
     },
+    source?: string,
 ) {
     const policyID = policy?.id;
     if (!policyID) {
@@ -1701,7 +1759,7 @@ function addBillingCardAndRequestPolicyOwnerChange(
             currency: currency as ValueOf<typeof CONST.PAYMENT_CARD_CURRENCY>,
             isP2PDebitCard: false,
         };
-        PaymentMethods.addPaymentCardSCA(params);
+        PaymentMethods.addPaymentCardSCA(params, source);
     } else {
         const params: AddBillingCardAndRequestWorkspaceOwnerChangeParams = {
             policyID,
@@ -1722,12 +1780,13 @@ function addBillingCardAndRequestPolicyOwnerChange(
  * Properly updates the nvp_privateStripeCustomerID onyx data for 3DS payment
  *
  */
-function verifySetupIntentAndRequestPolicyOwnerChange(policy: OnyxEntry<Policy>, currentUserAccountID: number, currentUserEmail: string) {
+function verifySetupIntentAndRequestPolicyOwnerChange(policy: OnyxEntry<Policy>, currentUserAccountID: number, currentUserEmail: string, source?: string) {
     const policyID = policy?.id;
     if (!policyID) {
         return;
     }
 
+    PaymentMethods.prepareCardAuthentication(source);
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -1741,7 +1800,7 @@ function verifySetupIntentAndRequestPolicyOwnerChange(policy: OnyxEntry<Policy>,
         },
     ];
 
-    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY | typeof ONYXKEYS.VERIFY_3DS_SUBSCRIPTION_SOURCE>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
@@ -1754,6 +1813,7 @@ function verifySetupIntentAndRequestPolicyOwnerChange(policy: OnyxEntry<Policy>,
                 ...getOwnerChangePayerSuccessData(policy, currentUserEmail),
             },
         },
+        ...PaymentMethods.getVerify3dsSubscriptionSourceData(source),
     ];
 
     const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
@@ -2165,11 +2225,24 @@ function clearAvatarErrors(policyID: string) {
     });
 }
 
+type UpdateGeneralSettingsGovernmentRateOptions = {
+    /** Country whose government mileage rates to enable for a shared (EUR) currency, set in the same request */
+    governmentRateCountry?: string;
+    /** Reference rates used to copy the country's rates optimistically while the request is in flight */
+    governmentMileageRates?: GovernmentMileageRate[];
+};
+
 /**
  * Optimistically update the general settings. Set the general settings as pending until the response succeeds.
  * If the response fails set a general error message. Clear the error message when updating.
  */
-function updateGeneralSettings(policy: OnyxEntry<Policy>, name: string, currencyValue?: string, reviewWorkspaceSettingsTaskData: OnboardingTaskCompletionOnyxData = {}) {
+function updateGeneralSettings(
+    policy: OnyxEntry<Policy>,
+    name: string,
+    currencyValue?: string,
+    reviewWorkspaceSettingsTaskData: OnboardingTaskCompletionOnyxData = {},
+    {governmentRateCountry, governmentMileageRates = []}: UpdateGeneralSettingsGovernmentRateOptions = {},
+) {
     if (!policy?.id) {
         return;
     }
@@ -2203,6 +2276,21 @@ function updateGeneralSettings(policy: OnyxEntry<Policy>, name: string, currency
         }
     }
 
+    // Enabling government rate auto-update and copying the chosen country's reference rates rides on this request, so the
+    // whole currency change stays a single API call. The server applies the same copy when it saves the currency.
+    const governmentRateAutoUpdateData = governmentRateCountry
+        ? buildOnyxDataForGovernmentRateAutoUpdate(
+              policy.id,
+              distanceUnit,
+              true,
+              governmentMileageRates,
+              currency,
+              governmentRateCountry,
+              !!policy.shouldAutoUpdateGovernmentDistanceRates,
+              policy.autoUpdateGovernmentRateCountry,
+          )
+        : undefined;
+
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
         {
             // We use SET because it's faster than merge and avoids a race condition when setting the currency and navigating the user to the Bank account page in confirmCurrencyChangeAndHideModal
@@ -2224,6 +2312,8 @@ function updateGeneralSettings(policy: OnyxEntry<Policy>, name: string, currency
                 },
                 name,
                 outputCurrency: currency,
+                // The server clears the stored government rate country whenever the currency changes, so mirror that here
+                ...(currencyPendingAction !== undefined && {autoUpdateGovernmentRateCountry: governmentRateCountry ?? null}),
                 ...(customUnitID && {
                     customUnits: {
                         ...policy.customUnits,
@@ -2235,6 +2325,7 @@ function updateGeneralSettings(policy: OnyxEntry<Policy>, name: string, currency
                 }),
             },
         },
+        ...(governmentRateAutoUpdateData?.onyxData.optimisticData ?? []),
     ];
     const finallyData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
         {
@@ -2248,7 +2339,6 @@ function updateGeneralSettings(policy: OnyxEntry<Policy>, name: string, currency
                 ...(customUnitID && {
                     customUnits: {
                         [customUnitID]: {
-                            ...distanceUnit,
                             rates: finallyRates,
                         },
                     },
@@ -2256,6 +2346,9 @@ function updateGeneralSettings(policy: OnyxEntry<Policy>, name: string, currency
             },
         },
     ];
+    // The builder's successData only applies to a successful response. finallyData also runs after a failure, so putting
+    // it there would merge pendingAction clears back under the rate IDs the failure data just deleted.
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [...(governmentRateAutoUpdateData?.onyxData.successData ?? [])];
 
     const errorFields: Policy['errorFields'] = {
         name: namePendingAction && ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workspace.editor.genericFailureMessage'),
@@ -2273,6 +2366,8 @@ function updateGeneralSettings(policy: OnyxEntry<Policy>, name: string, currency
                 errorFields,
                 name: policy.name,
                 outputCurrency: policy.outputCurrency,
+                // Restore the government rate country that the optimistic currency change cleared
+                ...(currencyPendingAction !== undefined && {autoUpdateGovernmentRateCountry: policy.autoUpdateGovernmentRateCountry ?? null}),
                 ...(customUnitID && {
                     customUnits: {
                         [customUnitID]: {
@@ -2283,6 +2378,7 @@ function updateGeneralSettings(policy: OnyxEntry<Policy>, name: string, currency
                 }),
             },
         },
+        ...(governmentRateAutoUpdateData?.onyxData.failureData ?? []),
     ];
 
     const params: UpdateWorkspaceGeneralSettingsParams = {
@@ -2290,6 +2386,14 @@ function updateGeneralSettings(policy: OnyxEntry<Policy>, name: string, currency
         workspaceName: name,
         currency,
         completedTaskReportActionID: reviewWorkspaceSettingsTaskData.completedTaskReportActionID,
+        // The server mirrors this copy through its own SetWorkspaceDistanceAutoUpdate call, so send the client-side
+        // optimistic rate IDs to keep the persisted rates consistent with the optimistic Onyx state.
+        ...(governmentRateCountry && {
+            governmentRateCountry,
+            ...(Object.keys(governmentRateAutoUpdateData?.optimisticRateIDs ?? {}).length > 0 && {
+                optimisticRateIDs: JSON.stringify(governmentRateAutoUpdateData?.optimisticRateIDs),
+            }),
+        }),
     };
 
     const persistedRequests = PersistedRequests.getAll();
@@ -2314,7 +2418,11 @@ function updateGeneralSettings(policy: OnyxEntry<Policy>, name: string, currency
         return;
     }
 
-    API.write(WRITE_COMMANDS.UPDATE_WORKSPACE_GENERAL_SETTINGS, params, withReviewWorkspaceSettingsTaskData({optimisticData, finallyData, failureData}, reviewWorkspaceSettingsTaskData));
+    API.write(
+        WRITE_COMMANDS.UPDATE_WORKSPACE_GENERAL_SETTINGS,
+        params,
+        withReviewWorkspaceSettingsTaskData({optimisticData, successData, finallyData, failureData}, reviewWorkspaceSettingsTaskData),
+    );
 }
 
 function updateWorkspaceDescription(policyID: string, description: string, currentDescription: string | undefined, reviewWorkspaceSettingsTaskData: OnboardingTaskCompletionOnyxData = {}) {
@@ -7962,6 +8070,7 @@ export {
     addBillingCardAndRequestPolicyOwnerChange,
     deleteWorkspace,
     archivePolicy,
+    unarchivePolicy,
     updateAddress,
     updateLastAccessedWorkspace,
     dismissWorkspaceError,

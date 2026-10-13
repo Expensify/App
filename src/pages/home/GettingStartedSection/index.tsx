@@ -2,6 +2,7 @@ import {PressableWithoutFeedback} from '@components/Pressable';
 import Text from '@components/Text';
 import WidgetContainer from '@components/WidgetContainer';
 
+import useLayoutSpacing from '@hooks/useLayoutSpacing';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
@@ -25,6 +26,7 @@ import useGettingStartedItems from './hooks/useGettingStartedItems';
 function GettingStartedSection() {
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {cardPaddingHorizontal, cardPaddingBottom} = useLayoutSpacing();
     const styles = useThemeStyles();
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const activePolicy = usePolicy(activePolicyID);
@@ -65,7 +67,7 @@ function GettingStartedSection() {
                     />
                 ))}
             </View>
-            <View style={shouldUseNarrowLayout ? [styles.ph5, styles.pb5] : [styles.ph8, styles.pb8]}>
+            <View style={[cardPaddingHorizontal, cardPaddingBottom]}>
                 <PressableWithoutFeedback
                     onPress={openAdminsRoom}
                     accessibilityLabel={footerHelpText}
