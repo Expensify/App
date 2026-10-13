@@ -13959,10 +13959,13 @@ function getIntegrationIcon(
 /**
  * Whether an export is already in flight, which the backend records as the report's latest action.
  */
-function isQueuedForExport(reportActions?: ReportAction[]): boolean {
+function isQueuedForExport(reportActions?: ReportAction[], report?: OnyxEntry<Report>): boolean {
     const latestAction = reportActions?.reduce<ReportAction | undefined>((latest, action) => (!latest || action.created > latest.created ? action : latest), undefined);
+    if (latestAction) {
+        return latestAction.actionName === CONST.REPORT.ACTIONS.TYPE.QUEUED_FOR_EXPORT;
+    }
 
-    return latestAction?.actionName === CONST.REPORT.ACTIONS.TYPE.QUEUED_FOR_EXPORT;
+    return report?.lastActionType === CONST.REPORT.ACTIONS.TYPE.QUEUED_FOR_EXPORT;
 }
 
 function canBeExported(report: OnyxEntry<Report>) {

@@ -335,7 +335,7 @@ function isExportAction(report: Report, currentUserLogin: string, policy?: Polic
     }
 
     // An export already in flight needs no second one, unless the last one failed
-    if (isQueuedForExportUtil(reportActions) && !hasExportError) {
+    if (isQueuedForExportUtil(reportActions, report) && !hasExportError) {
         return false;
     }
 
@@ -602,7 +602,7 @@ function getReportPrimaryAction(params: GetReportPrimaryActionParams): ValueOf<t
         return CONST.REPORT.PRIMARY_ACTIONS.PAY;
     }
 
-    if (isExportAction(report, currentUserLogin, policy, reportActions)) {
+    if (isExportAction(report, currentUserLogin, policy, reportActions, {reportNameValuePairs})) {
         return CONST.REPORT.PRIMARY_ACTIONS.EXPORT_TO_ACCOUNTING;
     }
 

@@ -38,7 +38,7 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {NullishDeep, OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 
-import {CONST as COMMON_CONST, Str} from 'expensify-common';
+import {Str} from 'expensify-common';
 
 import {getAccountingConnectionNames, hasAccountingFeatureConnection} from './connections';
 import {canMemberWrite, getPolicyRole, isPolicyAdmin, isPolicyApprover, isPolicyOwner, isPolicyUser} from './permissions';
