@@ -18,6 +18,7 @@ import {
     getCommaSeparatedTagNameWithSanitizedColons,
     getPerDiemCustomUnit,
     isAttendeeTrackingEnabled as isAttendeeTrackingEnabledForPolicy,
+    isTimeTrackingEnabled,
 } from '@libs/PolicyUtils';
 import {getOriginalMessage, getReportAction, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {getReportOrDraftReport, getReportTransactions, getTransactionDetails, isInvoiceReport, isIOUReport, isThread} from '@libs/ReportUtils';
@@ -533,32 +534,17 @@ function getAmount(transaction: OnyxInputOrEntry<Transaction>, isFromExpenseRepo
 }
 
 /**
- * Convert a stored tax amount to the sign we display.
- */
-function normalizeTaxAmountSign(rawAmount: number | undefined, isFromExpenseReport: boolean): number {
-    // IOU requests cannot have negative values but they can be stored as negative values, let's return absolute value
-    if (!isFromExpenseReport) {
-        return Math.abs(rawAmount ?? 0);
-    }
-
-    // To avoid -0 being shown, lets only change the sign if the value is other than 0.
-    const amount = rawAmount ?? 0;
-    return amount ? -amount : 0;
-}
-
-/**
  * Return the tax amount field from the transaction.
  */
 function getTaxAmount(transaction: OnyxInputOrEntry<Transaction>, isFromExpenseReport: boolean): number {
-    return normalizeTaxAmountSign(transaction?.taxAmount, isFromExpenseReport);
-}
+    // IOU requests cannot have negative values but they can be stored as negative values, let's return absolute value
+    if (!isFromExpenseReport) {
+        return Math.abs(transaction?.taxAmount ?? 0);
+    }
 
-/**
- * Return the converted tax amount field from the transaction.
- * It follows the same sign convention as `getTaxAmount`.
- */
-function getConvertedTaxAmount(transaction: OnyxInputOrEntry<Transaction>, isFromExpenseReport: boolean): number {
-    return normalizeTaxAmountSign(transaction?.convertedTaxAmount, isFromExpenseReport);
+    // To avoid -0 being shown, lets only change the sign if the value is other than 0.
+    const amount = transaction?.taxAmount ?? 0;
+    return amount ? -amount : 0;
 }
 
 /**
@@ -1558,14 +1544,12 @@ function getChildTransactions(transactions: OnyxCollection<Transaction>, origina
 function createUnreportedExpenses(transactions: Array<OnyxEntry<Transaction> | undefined>): UnreportedExpenseListItemType[] {
     return transactions
         .filter((t): t is Transaction => t !== undefined)
-        .map(
-            (transaction): UnreportedExpenseListItemType => ({
-                ...transaction,
-                isDisabled: isTransactionPendingDelete(transaction),
-                keyForList: transaction.transactionID,
-                errors: transaction.errors as Errors | undefined,
-            }),
-        );
+        .map((transaction): UnreportedExpenseListItemType => ({
+            ...transaction,
+            isDisabled: isTransactionPendingDelete(transaction),
+            keyForList: transaction.transactionID,
+            errors: transaction.errors as Errors | undefined,
+        }));
 }
 
 type GetEligibleTransactionsToAddParams = {
@@ -1599,6 +1583,7 @@ function getEligibleTransactionsToAdd({
     const isIOU = isIOUReport(report);
     const canSubmitPerDiemExpense = canSubmitPerDiemExpenseFromWorkspace(policy);
     const workspacePerDiemUnitID = getPerDiemCustomUnit(policy)?.customUnitID;
+    const canSubmitTimeExpense = isTimeTrackingEnabled(policy);
 
     return Object.values(transactions).filter((transaction): transaction is Transaction => {
         if (!transaction) {
@@ -1647,6 +1632,11 @@ function getEligibleTransactionsToAdd({
             const perDiemCustomUnitID = transaction.comment?.customUnit?.customUnitID;
 
             return canSubmitPerDiemExpense && (!perDiemCustomUnitID || perDiemCustomUnitID === workspacePerDiemUnitID);
+        }
+
+        // Only show time expenses if the target workspace has time tracking enabled
+        if (isTimeRequest(transaction)) {
+            return canSubmitTimeExpense;
         }
 
         return true;
@@ -1992,7 +1982,6 @@ export {
     getMCCForDisplay,
     hasDisplayableMCC,
     getConvertedAmount,
-    getConvertedTaxAmount,
     isTimeRequest,
     getExpenseTypeTranslationKey,
     getDetailedExpenseTypeTranslationKey,

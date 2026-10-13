@@ -1,3 +1,4 @@
+import getPlatform from '@libs/getPlatform';
 import Log from '@libs/Log';
 
 import CONST from '@src/CONST';
@@ -131,8 +132,14 @@ function removeStaleOnyxDump(): Promise<void> {
  * Older app versions staged CSV/report exports in Documents/Expensify before handing them to the
  * iOS share sheet, and cancelling the sheet leaked the staged file. Exports are internal files
  * (current versions stage them in Caches), so the whole staging directory is removed.
+ *
+ * This only applies to iOS. On Android the same path (filesDir/Expensify) is where the native
+ * share intent handler stages files shared into the app, so removing it would lose the share.
  */
 function removeStaleExportStagingDir(): Promise<void> {
+    if (getPlatform() !== CONST.PLATFORM.IOS) {
+        return Promise.resolve();
+    }
     const stagingDir = `${RNFS.DocumentDirectoryPath}/Expensify`;
     return RNFS.exists(stagingDir).then((exists) => {
         if (!exists) {
@@ -149,7 +156,8 @@ function removeStaleExportStagingDir(): Promise<void> {
  * (and other apps) through the Files app because file sharing is enabled. This moves or removes
  * the ones older app versions left behind, so on iOS the directory only holds files the user
  * expects to see there: their downloads and queued receipt uploads. Android keeps the same
- * internal files under the same relative paths, so it runs the same cleanup.
+ * internal files under the same relative paths, so it runs the same cleanup, except for the
+ * export staging directory (see removeStaleExportStagingDir).
  */
 export default function (): Promise<void> {
     return (
