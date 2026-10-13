@@ -13,6 +13,7 @@ import {updateMemberCustomField} from '@libs/actions/Policy/Policy';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
+import {getMemberLoginByOptimisticAccountID} from '@libs/PolicyUtils';
 
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPolicyAndFullscreenLoading';
@@ -43,7 +44,7 @@ function WorkspaceMemberCustomFieldPage({policy, route, personalDetails}: Worksp
     const params = route.params;
     const customFieldType = params.customFieldType;
     const accountID = Number(params.accountID);
-    const memberLogin = personalDetails?.[accountID]?.login ?? '';
+    const memberLogin = personalDetails?.[accountID]?.login ?? getMemberLoginByOptimisticAccountID(policy, accountID);
     const member = policy?.employeeList?.[memberLogin];
     const customFieldKey = CONST.CUSTOM_FIELD_KEYS[customFieldType];
     const [customField, setCustomField] = useState(member?.[customFieldKey ?? ''] ?? '');

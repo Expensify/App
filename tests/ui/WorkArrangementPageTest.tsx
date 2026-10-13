@@ -30,6 +30,7 @@ jest.mock('@libs/Navigation/Navigation', () => ({goBack: jest.fn()}));
 jest.mock('@libs/actions/Policy/DistanceRate', () => ({setEmployeeWorkArrangement: jest.fn()}));
 jest.mock('@libs/PolicyUtils', () => ({
     canMemberWrite: jest.fn(() => true),
+    getMemberLoginByOptimisticAccountID: jest.fn(() => ''),
     isMemberInHomeAndOfficeWorkspace: jest.fn(() => true),
 }));
 jest.mock('@pages/workspace/AccessOrNotFoundWrapper', () => ({__esModule: true, default: ({children}: PropsWithChildren) => children}));

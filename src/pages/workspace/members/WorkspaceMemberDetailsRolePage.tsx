@@ -3,6 +3,7 @@ import WorkspaceMemberRoleList from '@components/WorkspaceMemberRoleList';
 import type {ListItemType} from '@components/WorkspaceMemberRoleList';
 
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import usePersonalDetailByLogin from '@hooks/usePersonalDetailByLogin';
 import useRedirectSubmitWorkspaceFeatureUpgrade from '@hooks/useRedirectSubmitWorkspaceFeatureUpgrade';
 import useRuleBotGuardModal from '@hooks/useRuleBotGuardModal';
 
@@ -12,7 +13,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {getAllowedRolesForMember, isPolicyReimburser} from '@libs/PolicyMemberRoleUtils';
-import {canMemberAssignRole, canRolePay} from '@libs/PolicyUtils';
+import {canMemberAssignRole, canRolePay, getMemberLoginByOptimisticAccountID} from '@libs/PolicyUtils';
 
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullscreenLoading';
@@ -33,11 +34,13 @@ type WorkspaceMemberDetailsRolePageProps = Omit<WithPolicyAndFullscreenLoadingPr
     };
 
 function WorkspaceMemberDetailsRolePage({policy, personalDetails, route}: WorkspaceMemberDetailsRolePageProps) {
-    const accountID = Number(route.params.accountID);
+    const routeAccountID = Number(route.params.accountID);
     const policyID = route.params.policyID;
     const showRuleBotGuardModal = useRuleBotGuardModal();
     const {login: currentUserLogin = ''} = useCurrentUserPersonalDetails();
-    const memberLogin = personalDetails?.[accountID]?.login ?? '';
+    const memberLogin = personalDetails?.[routeAccountID]?.login ?? getMemberLoginByOptimisticAccountID(policy, routeAccountID);
+    const memberPersonalDetails = usePersonalDetailByLogin(memberLogin);
+    const accountID = memberPersonalDetails?.accountID ?? routeAccountID;
     const member = policy?.employeeList?.[memberLogin];
     const canManageSelectedMemberRole = canMemberAssignRole(policy, currentUserLogin, member?.role);
     // The Authorized Payer (reimburser) must stay a valid payer, so restrict them to the roles that can pay (for example Admin or Payments Admin).
