@@ -136,10 +136,12 @@ function ConciergeFeedbackPrompt({
     const thumbsDown = findEmojiByName('-1');
 
     const thumbsUpReactedAt = getReactedAtTimestamp(thumbsUp, reactions, currentUserAccountID);
+    const thumbsDownReactedAt = getReactedAtTimestamp(thumbsDown, reactions, currentUserAccountID);
+    const latestReactionTimestamp = Math.max(thumbsUpReactedAt ?? 0, thumbsDownReactedAt ?? 0) || undefined;
 
     // The reaction that was already there when this row mounted is an old rating, so only a reaction that lands while the row is open is acknowledged
-    const [mountedWithThumbsUpReactedAt] = useState(thumbsUpReactedAt);
-    const hasJustReacted = thumbsUpReactedAt !== undefined && thumbsUpReactedAt !== mountedWithThumbsUpReactedAt;
+    const [mountedWithLatestReactionTimestamp] = useState(latestReactionTimestamp);
+    const hasJustReacted = latestReactionTimestamp !== undefined && latestReactionTimestamp !== mountedWithLatestReactionTimestamp;
 
     // The debounced copy catches up once the window has passed, which is what takes the acknowledgement back down
     const hasSettledAfterReacting = useDebouncedValue(hasJustReacted, THANKS_VISIBLE_DURATION_MS);
@@ -151,15 +153,6 @@ function ConciergeFeedbackPrompt({
     };
 
     const hasRated = hasReactedWithEmoji(thumbsUp, reactions, currentUserAccountID) || hasReactedWithEmoji(thumbsDown, reactions, currentUserAccountID);
-
-    // The acknowledgement comes from the reaction, so removing it from the reaction row brings the prompt back right away
-    if (!shouldPersistAfterRating && isDisplayedThankMessage) {
-        return <Text style={[styles.textLabelSupporting, styles.mt2]}>{translate('concierge.feedback.thanks')}</Text>;
-    }
-
-    if (!shouldPersistAfterRating && hasRated) {
-        return null;
-    }
 
     const feedbackThumbs = (
         <View style={styles.flexRow}>
@@ -181,6 +174,36 @@ function ConciergeFeedbackPrompt({
             />
         </View>
     );
+
+    const selectedEmoji = thumbsUpReactedAt ? thumbsUp : thumbsDown;
+    const selectedFeedbackThumb = (
+        <ConciergeFeedbackThumb
+            emoji={selectedEmoji}
+            label={translate(selectedEmoji.name === thumbsUp.name ? 'common.yes' : 'common.no')}
+            accessibilityLabel={translate(selectedEmoji.name === thumbsUp.name ? 'concierge.feedback.useful' : 'concierge.feedback.notUseful')}
+            onPress={callFunctionIfActionIsAllowed(() => rate(selectedEmoji))}
+            shouldShowTooltip={shouldShowTooltips}
+            isSelected
+        />
+    );
+
+    // The acknowledgement comes from the reaction, so removing it from the reaction row brings the prompt back right away
+    if (!shouldPersistAfterRating && isDisplayedThankMessage) {
+        return <Text style={[styles.textLabelSupporting, styles.mt2]}>{translate('concierge.feedback.thanks')}</Text>;
+    }
+
+    if (!shouldPersistAfterRating && hasRated) {
+        return null;
+    }
+
+    if (shouldPersistAfterRating && hasRated) {
+        return (
+            <View style={styles.flexRow}>
+                {isDisplayedThankMessage && <Text style={styles.textLabelSupporting}>{translate('concierge.feedback.thanks')}</Text>}
+                {selectedFeedbackThumb}
+            </View>
+        );
+    }
 
     if (shouldRenderInline) {
         return feedbackThumbs;
