@@ -29,6 +29,7 @@ const weekGroup = (week: string): GroupedItem => {
         week,
         formattedWeek: DateUtils.getFormattedDateRangeForSearch(start, end, undefined),
         shortFormattedWeek: DateUtils.getShortFormattedDateRangeForSearch(start, end, undefined),
+        compactFormattedWeek: DateUtils.getCompactFormattedDateForSearch(start, undefined),
     };
 };
 const quarterGroup = (year: number, quarter: number): GroupedItem => ({
@@ -47,6 +48,7 @@ const dayGroup = (day: string): GroupedItem => ({
     day,
     formattedDay: DateUtils.formatToReadableString(day, undefined),
     shortFormattedDay: DateUtils.getShortFormattedDayForSearch(day, undefined),
+    compactFormattedDay: DateUtils.getCompactFormattedDateForSearch(day, undefined),
 });
 const merchantGroup = (merchant: string): GroupedItem => ({...BASE, groupedBy: CONST.SEARCH.GROUP_BY.MERCHANT, merchant, formattedMerchant: merchant});
 
