@@ -1,19 +1,28 @@
 import {write} from '@libs/API';
 import type {
     ConnectPolicyToBusinessCentralParams,
+    UpdateBusinessCentralAccountingMethodParams,
+    UpdateBusinessCentralAutoCreateEntitiesParams,
+    UpdateBusinessCentralAutoSyncParams,
     UpdateBusinessCentralCompanyParams,
     UpdateBusinessCentralCustomerMappingParams,
     UpdateBusinessCentralDefaultVendorParams,
     UpdateBusinessCentralEnableNewCategoriesParams,
     UpdateBusinessCentralExportDateParams,
     UpdateBusinessCentralExporterParams,
+    UpdateBusinessCentralExportToNextOpenPeriodParams,
     UpdateBusinessCentralFieldMappingParams,
     UpdateBusinessCentralNonreimbursableAccountParams,
     UpdateBusinessCentralNonreimbursableExpensesExportDestinationParams,
     UpdateBusinessCentralPaymentMethodParams,
+    UpdateBusinessCentralPostingModeParams,
     UpdateBusinessCentralReimbursableAccountParams,
     UpdateBusinessCentralReimbursableExpensesExportDestinationParams,
+    UpdateBusinessCentralReimbursementBankAccountParams,
+    UpdateBusinessCentralSettlementsBankAccountParams,
+    UpdateBusinessCentralSyncExpensifyCardSettlementsParams,
     UpdateBusinessCentralSyncItemsParams,
+    UpdateBusinessCentralSyncReimbursedReportsParams,
     UpdateBusinessCentralSyncTaxRatesParams,
 } from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
@@ -21,7 +30,7 @@ import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {BusinessCentralCoding, BusinessCentralCodingOfflineFeedbackKeys, BusinessCentralCustomerMappings, BusinessCentralExport} from '@src/types/onyx/Policy';
+import type {BusinessCentralCoding, BusinessCentralCodingOfflineFeedbackKeys, BusinessCentralCustomerMappings, BusinessCentralExport, BusinessCentralSync} from '@src/types/onyx/Policy';
 
 import type {OnyxUpdate} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
@@ -467,6 +476,220 @@ function updateBusinessCentralPaymentMethod(
     write(WRITE_COMMANDS.UPDATE_BUSINESS_CENTRAL_PAYMENT_METHOD, parameters, onyxData);
 }
 
+function updateBusinessCentralExportToNextOpenPeriod(
+    policyID: string,
+    enabled: BusinessCentralExport['exportToNextOpenPeriod'],
+    oldEnabled?: BusinessCentralExport['exportToNextOpenPeriod'],
+) {
+    const onyxData = prepareBusinessCentralExportOnyxData(policyID, CONST.BUSINESS_CENTRAL_CONFIG.EXPORT_TO_NEXT_OPEN_PERIOD, enabled, oldEnabled ?? null);
+    const parameters: UpdateBusinessCentralExportToNextOpenPeriodParams = {policyID, enabled};
+    write(WRITE_COMMANDS.UPDATE_BUSINESS_CENTRAL_EXPORT_TO_NEXT_OPEN_PERIOD, parameters, onyxData);
+}
+
+function updateBusinessCentralAccountingMethod(
+    policyID: string,
+    accountingMethod: BusinessCentralExport['accountingMethod'],
+    oldAccountingMethod?: BusinessCentralExport['accountingMethod'],
+) {
+    const onyxData = prepareBusinessCentralExportOnyxData(policyID, CONST.BUSINESS_CENTRAL_CONFIG.ACCOUNTING_METHOD, accountingMethod, oldAccountingMethod ?? null);
+    const parameters: UpdateBusinessCentralAccountingMethodParams = {policyID, accountingMethod};
+    write(WRITE_COMMANDS.UPDATE_BUSINESS_CENTRAL_ACCOUNTING_METHOD, parameters, onyxData);
+}
+
+function updateBusinessCentralPostingMode(policyID: string, postingMode: BusinessCentralExport['postingMode'], oldPostingMode?: BusinessCentralExport['postingMode']) {
+    const onyxData = prepareBusinessCentralExportOnyxData(policyID, CONST.BUSINESS_CENTRAL_CONFIG.POSTING_MODE, postingMode, oldPostingMode ?? null);
+    const parameters: UpdateBusinessCentralPostingModeParams = {policyID, postingMode};
+    write(WRITE_COMMANDS.UPDATE_BUSINESS_CENTRAL_POSTING_MODE, parameters, onyxData);
+}
+
+function updateBusinessCentralAutoCreateEntities(policyID: string, enabled: BusinessCentralExport['autoCreateEntities'], oldEnabled?: BusinessCentralExport['autoCreateEntities']) {
+    const onyxData = prepareBusinessCentralExportOnyxData(policyID, CONST.BUSINESS_CENTRAL_CONFIG.AUTO_CREATE_ENTITIES, enabled, oldEnabled ?? null);
+    const parameters: UpdateBusinessCentralAutoCreateEntitiesParams = {policyID, enabled};
+    write(WRITE_COMMANDS.UPDATE_BUSINESS_CENTRAL_AUTO_CREATE_ENTITIES, parameters, onyxData);
+}
+
+/** The pending and error state of the auto-sync toggle lives under the `autoSync` key. */
+function updateBusinessCentralAutoSync(policyID: string, enabled: boolean, oldEnabled?: boolean) {
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                connections: {
+                    [CONST.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL]: {
+                        config: {
+                            autoSync: {enabled},
+                            pendingFields: {
+                                [CONST.BUSINESS_CENTRAL_CONFIG.AUTO_SYNC]: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                            },
+                            errorFields: {
+                                [CONST.BUSINESS_CENTRAL_CONFIG.AUTO_SYNC]: null,
+                            },
+                        },
+                    },
+                },
+            },
+        },
+    ];
+
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                connections: {
+                    [CONST.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL]: {
+                        config: {
+                            pendingFields: {
+                                [CONST.BUSINESS_CENTRAL_CONFIG.AUTO_SYNC]: null,
+                            },
+                        },
+                    },
+                },
+            },
+        },
+    ];
+
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                connections: {
+                    [CONST.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL]: {
+                        config: {
+                            autoSync: {enabled: oldEnabled ?? null},
+                            pendingFields: {
+                                [CONST.BUSINESS_CENTRAL_CONFIG.AUTO_SYNC]: null,
+                            },
+                            errorFields: {
+                                [CONST.BUSINESS_CENTRAL_CONFIG.AUTO_SYNC]: getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
+                            },
+                        },
+                    },
+                },
+            },
+        },
+    ];
+
+    const parameters: UpdateBusinessCentralAutoSyncParams = {policyID, enabled};
+    write(WRITE_COMMANDS.UPDATE_BUSINESS_CENTRAL_AUTO_SYNC, parameters, {optimisticData, successData, failureData});
+}
+
+/**
+ * Builds the Onyx updates for a change to one payment sync setting. The pending and error state lives under the setting's own key.
+ */
+function prepareBusinessCentralSyncOnyxData<TSettingName extends keyof BusinessCentralSync>(
+    policyID: string,
+    settingName: TSettingName,
+    settingValue: BusinessCentralSync[TSettingName],
+    oldSettingValue: BusinessCentralSync[TSettingName] | null,
+) {
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                connections: {
+                    [CONST.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL]: {
+                        config: {
+                            sync: {
+                                [settingName]: settingValue,
+                            },
+                            pendingFields: {
+                                [settingName]: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                            },
+                            errorFields: {
+                                [settingName]: null,
+                            },
+                        },
+                    },
+                },
+            },
+        },
+    ];
+
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                connections: {
+                    [CONST.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL]: {
+                        config: {
+                            pendingFields: {
+                                [settingName]: null,
+                            },
+                        },
+                    },
+                },
+            },
+        },
+    ];
+
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                connections: {
+                    [CONST.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL]: {
+                        config: {
+                            sync: {
+                                [settingName]: oldSettingValue,
+                            },
+                            pendingFields: {
+                                [settingName]: null,
+                            },
+                            errorFields: {
+                                [settingName]: getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
+                            },
+                        },
+                    },
+                },
+            },
+        },
+    ];
+
+    return {optimisticData, successData, failureData};
+}
+
+function updateBusinessCentralSyncReimbursedReports(policyID: string, enabled: BusinessCentralSync['syncReimbursedReports'], oldEnabled?: BusinessCentralSync['syncReimbursedReports']) {
+    const onyxData = prepareBusinessCentralSyncOnyxData(policyID, CONST.BUSINESS_CENTRAL_CONFIG.SYNC_REIMBURSED_REPORTS, enabled, oldEnabled ?? null);
+    const parameters: UpdateBusinessCentralSyncReimbursedReportsParams = {policyID, enabled};
+    write(WRITE_COMMANDS.UPDATE_BUSINESS_CENTRAL_SYNC_REIMBURSED_REPORTS, parameters, onyxData);
+}
+
+function updateBusinessCentralReimbursementBankAccount(
+    policyID: string,
+    bankAccountID: BusinessCentralSync['reimbursementBankAccountID'],
+    oldBankAccountID?: BusinessCentralSync['reimbursementBankAccountID'],
+) {
+    const onyxData = prepareBusinessCentralSyncOnyxData(policyID, CONST.BUSINESS_CENTRAL_CONFIG.REIMBURSEMENT_BANK_ACCOUNT_ID, bankAccountID, oldBankAccountID ?? null);
+    const parameters: UpdateBusinessCentralReimbursementBankAccountParams = {policyID, reimbursementBankAccountID: bankAccountID};
+    write(WRITE_COMMANDS.UPDATE_BUSINESS_CENTRAL_REIMBURSEMENT_BANK_ACCOUNT, parameters, onyxData);
+}
+
+function updateBusinessCentralSyncExpensifyCardSettlements(
+    policyID: string,
+    enabled: BusinessCentralSync['syncExpensifyCardSettlements'],
+    oldEnabled?: BusinessCentralSync['syncExpensifyCardSettlements'],
+) {
+    const onyxData = prepareBusinessCentralSyncOnyxData(policyID, CONST.BUSINESS_CENTRAL_CONFIG.SYNC_EXPENSIFY_CARD_SETTLEMENTS, enabled, oldEnabled ?? null);
+    const parameters: UpdateBusinessCentralSyncExpensifyCardSettlementsParams = {policyID, enabled};
+    write(WRITE_COMMANDS.UPDATE_BUSINESS_CENTRAL_SYNC_EXPENSIFY_CARD_SETTLEMENTS, parameters, onyxData);
+}
+
+function updateBusinessCentralSettlementsBankAccount(
+    policyID: string,
+    bankAccountID: BusinessCentralSync['settlementsBankAccountID'],
+    oldBankAccountID?: BusinessCentralSync['settlementsBankAccountID'],
+) {
+    const onyxData = prepareBusinessCentralSyncOnyxData(policyID, CONST.BUSINESS_CENTRAL_CONFIG.SETTLEMENTS_BANK_ACCOUNT_ID, bankAccountID, oldBankAccountID ?? null);
+    const parameters: UpdateBusinessCentralSettlementsBankAccountParams = {policyID, settlementsBankAccountID: bankAccountID};
+    write(WRITE_COMMANDS.UPDATE_BUSINESS_CENTRAL_SETTLEMENTS_BANK_ACCOUNT, parameters, onyxData);
+}
+
 export {
     connectToBusinessCentral,
     clearBusinessCentralErrorField,
@@ -484,4 +707,13 @@ export {
     updateBusinessCentralNonReimbursableAccount,
     updateBusinessCentralDefaultVendor,
     updateBusinessCentralPaymentMethod,
+    updateBusinessCentralExportToNextOpenPeriod,
+    updateBusinessCentralAccountingMethod,
+    updateBusinessCentralPostingMode,
+    updateBusinessCentralAutoCreateEntities,
+    updateBusinessCentralAutoSync,
+    updateBusinessCentralSyncReimbursedReports,
+    updateBusinessCentralReimbursementBankAccount,
+    updateBusinessCentralSyncExpensifyCardSettlements,
+    updateBusinessCentralSettlementsBankAccount,
 };
