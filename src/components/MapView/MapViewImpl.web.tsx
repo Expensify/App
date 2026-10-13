@@ -243,8 +243,12 @@ function MapViewImpl({
 
         // With a single waypoint there is no route to fit yet, so that lone waypoint is what the button alternates with.
         const singleWaypointCoordinate = !hasRoute ? waypointCoordinates.at(0) : undefined;
-        const hasWaypointsTarget = hasRoute || !!singleWaypointCoordinate;
         const canCenterOnCurrentPosition = currentPosition?.longitude !== undefined && currentPosition?.latitude !== undefined;
+
+        // A lone waypoint at the current position is the same target, so there is nothing to alternate with.
+        const isSingleWaypointAtCurrentPosition =
+            !!singleWaypointCoordinate && canCenterOnCurrentPosition && utils.areSameCoordinate(singleWaypointCoordinate, [currentPosition?.longitude ?? 0, currentPosition?.latitude ?? 0]);
+        const hasWaypointsTarget = hasRoute || (!!singleWaypointCoordinate && !isSingleWaypointAtCurrentPosition);
 
         const shouldCenterOnWaypoints = hasWaypointsTarget && (isWaypointsNextCenterTarget || !canCenterOnCurrentPosition);
         setIsWaypointsNextCenterTarget(!shouldCenterOnWaypoints && hasWaypointsTarget && canCenterOnCurrentPosition);

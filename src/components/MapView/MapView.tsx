@@ -10,6 +10,7 @@ import {clearUserLocation, setUserLocation} from '@libs/actions/UserLocation';
 import getCurrentPosition from '@libs/getCurrentPosition';
 import type {GeolocationErrorCallback} from '@libs/getCurrentPosition/getCurrentPosition.types';
 import {GeolocationErrorCode} from '@libs/getCurrentPosition/getCurrentPosition.types';
+import TransitionTracker from '@libs/Navigation/TransitionTracker';
 
 import CONST from '@src/CONST';
 import useLocalize from '@src/hooks/useLocalize';
@@ -162,32 +163,46 @@ function MapView({
                 if (currentPositionLongitude === undefined || currentPositionLatitude === undefined) {
                     return;
                 }
-                cameraRef.current?.setCamera({
-                    zoomLevel: CONST.MAPBOX.DEFAULT_ZOOM,
-                    animationMode: CONST.MAPBOX.CAMERA_ANIMATION_MODE,
-                    animationDuration: CONST.MAPBOX.ANIMATION_DURATION_DEFAULT,
-                    centerCoordinate: [currentPositionLongitude, currentPositionLatitude],
+
+                TransitionTracker.runAfterTransitions({
+                    callback: () =>
+                        cameraRef.current?.setCamera({
+                            zoomLevel: CONST.MAPBOX.DEFAULT_ZOOM,
+                            animationMode: CONST.MAPBOX.CAMERA_ANIMATION_MODE,
+                            animationDuration: CONST.MAPBOX.ANIMATION_DURATION_DEFAULT,
+                            centerCoordinate: [currentPositionLongitude, currentPositionLatitude],
+                        }),
+                    waitForUpcomingTransition: true,
                 });
                 return;
             }
 
             if (waypoints.length === 1) {
-                cameraRef.current?.setCamera({
-                    zoomLevel: CONST.MAPBOX.SINGLE_MARKER_ZOOM,
-                    animationDuration: CONST.MAPBOX.ANIMATION_DURATION_LONG,
-                    animationMode: CONST.MAPBOX.CAMERA_ANIMATION_MODE,
-                    centerCoordinate: waypoints.at(0)?.coordinate,
+                TransitionTracker.runAfterTransitions({
+                    callback: () =>
+                        cameraRef.current?.setCamera({
+                            zoomLevel: CONST.MAPBOX.SINGLE_MARKER_ZOOM,
+                            animationDuration: CONST.MAPBOX.ANIMATION_DURATION_LONG,
+                            animationMode: CONST.MAPBOX.CAMERA_ANIMATION_MODE,
+                            centerCoordinate: waypoints.at(0)?.coordinate,
+                        }),
+                    waitForUpcomingTransition: true,
                 });
             } else {
                 const {southWest, northEast} = utils.getBounds(
                     waypoints.map((waypoint) => waypoint.coordinate),
                     allDirectionCoordinates,
                 );
-                cameraRef.current?.setCamera({
-                    bounds: {ne: northEast, sw: southWest},
-                    padding: utils.getCameraPadding(mapPadding),
-                    animationDuration: CONST.MAPBOX.ANIMATION_DURATION_DEFAULT,
-                    animationMode: CONST.MAPBOX.CAMERA_ANIMATION_MODE,
+
+                TransitionTracker.runAfterTransitions({
+                    callback: () =>
+                        cameraRef.current?.setCamera({
+                            bounds: {ne: northEast, sw: southWest},
+                            padding: utils.getCameraPadding(mapPadding),
+                            animationDuration: CONST.MAPBOX.ANIMATION_DURATION_DEFAULT,
+                            animationMode: CONST.MAPBOX.CAMERA_ANIMATION_MODE,
+                        }),
+                    waitForUpcomingTransition: true,
                 });
             }
         }, [mapPadding, waypoints, isIdle, allDirectionCoordinates, currentPositionLongitude, currentPositionLatitude]),
@@ -229,8 +244,12 @@ function MapView({
 
         // With a single waypoint there is no route to fit yet, so that lone waypoint is what the button alternates with.
         const singleWaypointCoordinate = !hasRoute ? waypointCoordinates.at(0) : undefined;
-        const hasWaypointsTarget = hasRoute || !!singleWaypointCoordinate;
         const canCenterOnCurrentPosition = currentPositionLongitude !== undefined && currentPositionLatitude !== undefined;
+
+        // A lone waypoint at the current position is the same target, so there is nothing to alternate with.
+        const isSingleWaypointAtCurrentPosition =
+            !!singleWaypointCoordinate && canCenterOnCurrentPosition && utils.areSameCoordinate(singleWaypointCoordinate, [currentPositionLongitude, currentPositionLatitude]);
+        const hasWaypointsTarget = hasRoute || (!!singleWaypointCoordinate && !isSingleWaypointAtCurrentPosition);
 
         const shouldCenterOnWaypoints = hasWaypointsTarget && (isWaypointsNextCenterTarget || !canCenterOnCurrentPosition);
         setIsWaypointsNextCenterTarget(!shouldCenterOnWaypoints && hasWaypointsTarget && canCenterOnCurrentPosition);
