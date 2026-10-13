@@ -40,15 +40,15 @@ function openProfilePage() {
     read(READ_COMMANDS.OPEN_PROFILE_PAGE, null);
 }
 
-function createAgent(
-    firstName: string | undefined,
+function prepareNewAgentOnyxData(
+    currentUserAccountID: number,
+    currentUserLogin: string | undefined,
     prompt: string,
-    ownerAccountID: number,
-    ownerLogin: string | undefined,
-    customExpensifyAvatarID?: string,
-    file?: File | CustomRNImageManipulatorResult,
-    optimisticAvatarURI?: string,
     policyID?: string,
+    role?: string,
+    firstName?: string,
+    customExpensifyAvatarID?: string,
+    optimisticAvatarURI?: string,
 ) {
     const optimisticAccountID = Number(generateReportID());
 
@@ -59,7 +59,7 @@ function createAgent(
         avatarURI = optimisticAvatarURI;
     }
 
-    // Optimistic row for Settings > Agents until CREATE_AGENT responds. Omit `login` (server-assigned).
+    // Optimistic row for Settings > Agents until BE responds. Omit `login` (server-assigned).
     const optimisticPersonalDetail = {
         accountID: optimisticAccountID,
         displayName: firstName,
@@ -71,16 +71,17 @@ function createAgent(
     // Generate the DM report ID client-side so it can be written to Onyx and opened immediately.
     const optimisticReportID = generateReportID();
     const optimisticChatReport = buildOptimisticChatReport({
-        participantList: [ownerAccountID, optimisticAccountID],
-        ownerAccountID,
+        participantList: [currentUserAccountID, optimisticAccountID],
+        ownerAccountID: currentUserAccountID,
         optimisticReportID,
-        currentUserAccountID: ownerAccountID,
+        currentUserAccountID,
     });
+
     // Reuse the client-generated CREATED action ID when CreateAgent creates the DM.
     const createdReportActionID = rand64();
     const optimisticCreatedAction = buildOptimisticCreatedReportAction({
-        emailCreatingAction: ownerLogin ?? CONST.REPORT.OWNER_EMAIL_FAKE,
-        currentUserAccountID: ownerAccountID,
+        emailCreatingAction: currentUserLogin ?? CONST.REPORT.OWNER_EMAIL_FAKE,
+        currentUserAccountID,
         optimisticReportActionID: createdReportActionID,
     });
 
@@ -149,6 +150,30 @@ function createAgent(
             value: null,
         },
     ];
+
+    return {optimisticData, successData, failureData, optimisticAccountID, avatarURI, optimisticReportID, createdReportActionID, optimisticPersonalDetailPromise};
+}
+
+function createAgent(
+    firstName: string | undefined,
+    prompt: string,
+    currentUserAccountID: number,
+    currentUserLogin: string | undefined,
+    customExpensifyAvatarID?: string,
+    file?: File | CustomRNImageManipulatorResult,
+    optimisticAvatarURI?: string,
+    policyID?: string,
+) {
+    const {optimisticData, successData, failureData, optimisticAccountID, avatarURI, optimisticReportID, createdReportActionID, optimisticPersonalDetailPromise} = prepareNewAgentOnyxData(
+        currentUserAccountID,
+        currentUserLogin,
+        prompt,
+        policyID,
+        undefined,
+        firstName,
+        customExpensifyAvatarID,
+        optimisticAvatarURI,
+    );
 
     write(
         // Flag this as the user's personal agent; the backend makes personal agents a full co-pilot of the creator.
