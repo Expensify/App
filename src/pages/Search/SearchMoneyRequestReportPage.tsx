@@ -76,7 +76,9 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
     const {currentSearchResults: snapshot} = useSearchResultsContext();
 
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportIDFromRoute}`);
-    const [fullPolicySnapshotLastModified] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(report?.policyID)}`, {
+    // Search results for reports with several expenses aren't copied into Onyx, so the first open reads the policy from the search snapshot
+    const reportPolicyID = report?.policyID ?? snapshot?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${reportIDFromRoute}`]?.policyID;
+    const [fullPolicySnapshotLastModified] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(reportPolicyID)}`, {
         selector: fullPolicySnapshotLastModifiedSelector,
     });
     const [hasReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportIDFromRoute}`, {selector: Boolean});
@@ -231,7 +233,7 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
             currentUserAccountID,
             isSelfTourViewed: guidedSetupAndTourStatus?.isSelfTourViewed,
             hasCompletedGuidedSetupFlow: guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow,
-            fullPolicySnapshot: report?.policyID && fullPolicySnapshotLastModified ? {policyID: report.policyID, lastModified: fullPolicySnapshotLastModified} : undefined,
+            fullPolicySnapshot: reportPolicyID && fullPolicySnapshotLastModified ? {policyID: reportPolicyID, lastModified: fullPolicySnapshotLastModified} : undefined,
         });
         isInitialMountRef.current = false;
 
