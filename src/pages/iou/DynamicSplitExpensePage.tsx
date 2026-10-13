@@ -66,6 +66,8 @@ import {getChildTransactions, getExpenseTypeTranslationKey, getTransactionType, 
 
 import variables from '@styles/variables';
 
+import {callFunctionIfActionIsAllowed} from '@userActions/Session';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
@@ -552,21 +554,35 @@ function DynamicSplitExpensePage({route}: DynamicSplitExpensePageProps) {
     const listFooterContent = (
         <>
             <View style={[styles.w100, styles.flexColumn, styles.mt1, shouldUseNarrowLayout && styles.mb3]}>
-                <MenuItem
-                    onPress={onAddSplitExpense}
-                    title={translate('iou.addSplit')}
-                    icon={icons.Plus}
+                <MenuItem.Root
+                    onPress={callFunctionIfActionIsAllowed(onAddSplitExpense)}
                     style={[styles.ph4]}
                     sentryLabel={CONST.SENTRY_LABEL.SPLIT_EXPENSE.ADD_SPLIT_BUTTON}
-                />
+                >
+                    <MenuItem.Row>
+                        <MenuItem.Leading>
+                            <MenuItem.Icon src={icons.Plus} />
+                        </MenuItem.Leading>
+                        <MenuItem.Content>
+                            <MenuItem.Title>{translate('iou.addSplit')}</MenuItem.Title>
+                        </MenuItem.Content>
+                    </MenuItem.Row>
+                </MenuItem.Root>
                 {isInitialSplit && (
-                    <MenuItem
-                        onPress={onMakeSplitsEven}
-                        title={translate('iou.makeSplitsEven')}
-                        icon={icons.ArrowsLeftRight}
+                    <MenuItem.Root
+                        onPress={callFunctionIfActionIsAllowed(onMakeSplitsEven)}
                         style={[styles.ph4]}
                         sentryLabel={CONST.SENTRY_LABEL.SPLIT_EXPENSE.MAKE_SPLITS_EVEN_BUTTON}
-                    />
+                    >
+                        <MenuItem.Row>
+                            <MenuItem.Leading>
+                                <MenuItem.Icon src={icons.ArrowsLeftRight} />
+                            </MenuItem.Leading>
+                            <MenuItem.Content>
+                                <MenuItem.Title>{translate('iou.makeSplitsEven')}</MenuItem.Title>
+                            </MenuItem.Content>
+                        </MenuItem.Row>
+                    </MenuItem.Root>
                 )}
             </View>
             {isInLandscapeMode && footerContent}

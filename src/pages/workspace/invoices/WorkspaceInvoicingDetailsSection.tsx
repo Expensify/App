@@ -1,4 +1,5 @@
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import MenuItem from '@components/MenuItem';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import Section from '@components/Section';
 
 import useLayoutSpacing from '@hooks/useLayoutSpacing';
@@ -7,6 +8,8 @@ import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import Navigation from '@navigation/Navigation';
+
+import {callFunctionIfActionIsAllowed} from '@userActions/Session';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -39,26 +42,32 @@ function WorkspaceInvoicingDetailsSection({policyID, canWriteMoreFeatures}: Work
             childrenStyles={styles.pt5}
             subtitleMuted
         >
-            <MenuItemWithTopDescription
+            <MenuItem.Root
                 key={translate('workspace.invoices.companyName')}
-                shouldShowRightIcon={canWriteMoreFeatures}
-                title={policy?.invoice?.companyName}
-                description={translate('workspace.invoices.companyName')}
                 sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.INVOICES.COMPANY_NAME}
-                onPress={() => Navigation.navigate(ROUTES.WORKSPACE_INVOICES_COMPANY_NAME.getRoute(policyID))}
-                interactive={canWriteMoreFeatures}
+                onPress={canWriteMoreFeatures ? callFunctionIfActionIsAllowed(() => Navigation.navigate(ROUTES.WORKSPACE_INVOICES_COMPANY_NAME.getRoute(policyID))) : undefined}
                 style={horizontalPadding}
-            />
-            <MenuItemWithTopDescription
+            >
+                <MenuItemField.Row
+                    name={translate('workspace.invoices.companyName')}
+                    value={policy?.invoice?.companyName}
+                >
+                    {canWriteMoreFeatures && <MenuItem.Chevron />}
+                </MenuItemField.Row>
+            </MenuItem.Root>
+            <MenuItem.Root
                 key={translate('workspace.invoices.companyWebsite')}
-                shouldShowRightIcon={canWriteMoreFeatures}
-                title={policy?.invoice?.companyWebsite}
-                description={translate('workspace.invoices.companyWebsite')}
                 sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.INVOICES.COMPANY_WEBSITE}
-                onPress={() => Navigation.navigate(ROUTES.WORKSPACE_INVOICES_COMPANY_WEBSITE.getRoute(policyID))}
-                interactive={canWriteMoreFeatures}
+                onPress={canWriteMoreFeatures ? callFunctionIfActionIsAllowed(() => Navigation.navigate(ROUTES.WORKSPACE_INVOICES_COMPANY_WEBSITE.getRoute(policyID))) : undefined}
                 style={horizontalPadding}
-            />
+            >
+                <MenuItemField.Row
+                    name={translate('workspace.invoices.companyWebsite')}
+                    value={policy?.invoice?.companyWebsite}
+                >
+                    {canWriteMoreFeatures && <MenuItem.Chevron />}
+                </MenuItemField.Row>
+            </MenuItem.Root>
         </Section>
     );
 }

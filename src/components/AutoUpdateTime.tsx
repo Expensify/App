@@ -12,7 +12,8 @@ import type {Timezone} from '@src/types/onyx/PersonalDetails';
 import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 
-import MenuItemWithTopDescription from './MenuItemWithTopDescription';
+import MenuItem from './MenuItem';
+import MenuItemField from './MenuItem/presets/MenuItemField';
 
 type AutoUpdateTimeProps = {
     /** Timezone of the user from their personal details */
@@ -41,12 +42,12 @@ function AutoUpdateTime({timezone}: AutoUpdateTimeProps) {
 
     return (
         <View style={[styles.w100, styles.detailsPageSectionContainer]}>
-            <MenuItemWithTopDescription
-                style={[styles.ph0]}
-                title={`${DateUtils.formatToLocalTime(currentUserLocalTime, dateFnsLocale)} ${timezoneName}`}
-                description={translate('detailsPage.localTime')}
-                interactive={false}
-            />
+            <MenuItem.Root style={[styles.ph0]}>
+                <MenuItemField.Row
+                    name={translate('detailsPage.localTime')}
+                    value={`${DateUtils.formatToLocalTime(currentUserLocalTime, dateFnsLocale)} ${timezoneName}`}
+                />
+            </MenuItem.Root>
         </View>
     );
 }

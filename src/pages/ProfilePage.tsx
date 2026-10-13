@@ -166,6 +166,7 @@ function ProfilePage({route}: ProfilePageProps) {
 
     const isSMSLogin = Str.isSMSLogin(login);
     const phoneNumber = getPhoneNumber(details);
+    const formattedLogin = isSMSLogin ? formatPhoneNumber(phoneNumber ?? '') : login;
 
     // An admin opens this page from their workspace Members list, which is the only place the member's display name can be set.
     const canManageMemberDisplayName = !!policyID && !!login && isPolicyAdmin(policy, currentUserLogin) && !!policy?.employeeList?.[login];
@@ -270,50 +271,59 @@ function ProfilePage({route}: ProfilePageProps) {
                             />
                             {hasStatus && (
                                 <View style={[styles.detailsPageSectionContainer, styles.w100]}>
-                                    <MenuItemWithTopDescription
-                                        style={[styles.ph0]}
-                                        title={statusContent}
-                                        description={translate('statusPage.status')}
-                                        interactive={false}
-                                    />
+                                    <MenuItem.Root style={styles.ph0}>
+                                        <MenuItemField.Row
+                                            name={translate('statusPage.status')}
+                                            value={statusContent}
+                                        />
+                                    </MenuItem.Root>
                                 </View>
                             )}
 
                             {/* Don't display email if current user is anonymous */}
                             {!(isCurrentUser && isAnonymousUserSession()) && login ? (
                                 <View style={[styles.w100, styles.detailsPageSectionContainer]}>
-                                    <MenuItemWithTopDescription
-                                        style={[styles.ph0]}
-                                        title={isSMSLogin ? formatPhoneNumber(phoneNumber ?? '') : login}
-                                        copyValue={isSMSLogin ? formatPhoneNumber(phoneNumber ?? '') : login}
-                                        description={translate(isSMSLogin ? 'common.phoneNumber' : 'common.email')}
-                                        interactive={false}
-                                        copyable
-                                    />
+                                    <MenuItem.Root style={styles.ph0}>
+                                        <MenuItemField.Row
+                                            name={translate(isSMSLogin ? 'common.phoneNumber' : 'common.email')}
+                                            value={formattedLogin}
+                                        >
+                                            {!!formattedLogin && <MenuItem.Copy value={formattedLogin} />}
+                                        </MenuItemField.Row>
+                                    </MenuItem.Root>
                                 </View>
                             ) : null}
                             {canManageMemberDisplayName ? (
                                 <View style={[styles.w100, styles.detailsPageSectionContainer]}>
                                     <OfflineWithFeedback pendingAction={details?.pendingFields?.displayName}>
-                                        <MenuItemWithTopDescription
-                                            style={[styles.ph0]}
-                                            title={displayName}
-                                            description={translate('displayNamePage.headerTitle')}
-                                            interactive={!hasDisplayNameSet}
-                                            shouldShowRightIcon={!hasDisplayNameSet}
-                                            onPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.PROFILE_DISPLAY_NAME.getRoute(accountID, policyID)))}
-                                        />
+                                        <MenuItem.Root
+                                            style={styles.ph0}
+                                            onPress={
+                                                !hasDisplayNameSet
+                                                    ? callFunctionIfActionIsAllowed(() =>
+                                                          Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.PROFILE_DISPLAY_NAME.getRoute(accountID, policyID))),
+                                                      )
+                                                    : undefined
+                                            }
+                                        >
+                                            <MenuItemField.Row
+                                                name={translate('displayNamePage.headerTitle')}
+                                                value={displayName}
+                                            >
+                                                {!hasDisplayNameSet && <MenuItem.Chevron />}
+                                            </MenuItemField.Row>
+                                        </MenuItem.Root>
                                     </OfflineWithFeedback>
                                 </View>
                             ) : null}
                             {pronouns ? (
                                 <View style={[styles.w100, styles.detailsPageSectionContainer]}>
-                                    <MenuItemWithTopDescription
-                                        style={[styles.ph0]}
-                                        title={pronouns}
-                                        description={translate('profilePage.preferredPronouns')}
-                                        interactive={false}
-                                    />
+                                    <MenuItem.Root style={styles.ph0}>
+                                        <MenuItemField.Row
+                                            name={translate('profilePage.preferredPronouns')}
+                                            value={pronouns}
+                                        />
+                                    </MenuItem.Root>
                                 </View>
                             ) : null}
                             {shouldShowLocalTime && <AutoUpdateTime timezone={timezone} />}
@@ -350,8 +360,7 @@ function ProfilePage({route}: ProfilePageProps) {
                             />
                         )}
                         {!!accountID && !isAnonymousUserSession() && (
-                            <MenuItem
-                                shouldShowRightIcon
+                            <MenuItemNavigation
                                 title={translate(isCustomAgent || isAgentEmail(login) ? 'profilePage.viewAgentHistory' : 'profilePage.seeChatHistory')}
                                 icon={expensifyIcons.History}
                                 onPress={() => {

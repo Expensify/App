@@ -1,5 +1,7 @@
 import ConnectionLayout from '@components/ConnectionLayout';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import FormHelpMessage from '@components/FormHelpMessage';
+import MenuItem from '@components/MenuItem';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
@@ -132,21 +134,27 @@ function CertiniaExportPage({policy}: WithPolicyConnectionsProps) {
         >
             {rows.map((row) => {
                 const pendingAction = settingsPendingAction(row.subscribedSettings, config?.pendingFields);
-                const brickRoadIndicator = areSettingsInErrorFields(row.subscribedSettings, config?.errorFields) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined;
+                const isInErrorFields = areSettingsInErrorFields(row.subscribedSettings, config?.errorFields);
                 return (
                     <OfflineWithFeedback
                         key={row.description}
                         pendingAction={pendingAction}
                     >
-                        <MenuItemWithTopDescription
-                            title={row.title}
-                            description={row.description}
-                            helperText={row.helperText}
-                            shouldShowRightIcon={row.interactive !== false}
+                        <MenuItemField
+                            name={row.description}
                             onPress={row.onPress}
-                            interactive={row.interactive}
-                            brickRoadIndicator={brickRoadIndicator}
-                        />
+                            value={row.title}
+                        >
+                            {isInErrorFields && <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />}
+                        </MenuItemField>
+                        {!!row.helperText && (
+                            <FormHelpMessage
+                                isError={false}
+                                shouldShowRedDotIndicator={false}
+                                message={row.helperText}
+                                style={[styles.mt0, styles.mb0, styles.ph5, styles.pb5]}
+                            />
+                        )}
                     </OfflineWithFeedback>
                 );
             })}

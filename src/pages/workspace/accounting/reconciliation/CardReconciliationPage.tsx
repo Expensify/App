@@ -1,7 +1,8 @@
 import CardFeedIcon from '@components/CardFeedIcon';
 import FeedSelector from '@components/FeedSelector';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import MenuItem from '@components/MenuItem';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -32,6 +33,7 @@ import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOpt
 import variables from '@styles/variables';
 
 import {toggleContinuousReconciliation} from '@userActions/Card';
+import {callFunctionIfActionIsAllowed} from '@userActions/Session';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -197,13 +199,19 @@ function CardReconciliationPage({policy, route}: CardReconciliationPageProps) {
                     )}
                     <OfflineWithFeedback pendingAction={continuousReconciliationPendingAction}>
                         {!!paymentBankAccountID && !!continuousReconciliation && (
-                            <MenuItemWithTopDescription
+                            <MenuItem.Root
                                 style={styles.mt5}
-                                title={bankAccountTitle}
-                                description={translate('workspace.accounting.reconciliationAccount')}
-                                shouldShowRightIcon
-                                onPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_ACCOUNTING_RECONCILIATION_ACCOUNT_SETTINGS.path))}
-                            />
+                                onPress={callFunctionIfActionIsAllowed(() =>
+                                    Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_ACCOUNTING_RECONCILIATION_ACCOUNT_SETTINGS.path)),
+                                )}
+                            >
+                                <MenuItemField.Row
+                                    name={translate('workspace.accounting.reconciliationAccount')}
+                                    value={bankAccountTitle}
+                                >
+                                    <MenuItem.Chevron />
+                                </MenuItemField.Row>
+                            </MenuItem.Root>
                         )}
                     </OfflineWithFeedback>
                 </ScrollView>

@@ -56,6 +56,7 @@ import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import variables from '@styles/variables';
 
 import {clearCompanyCardErrorField, unassignWorkspaceCompanyCard, updateWorkspaceCompanyCard} from '@userActions/CompanyCards';
+import {callFunctionIfActionIsAllowed} from '@userActions/Session';
 
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
@@ -286,11 +287,9 @@ function DynamicWorkspaceCompanyCardDetailsPage({route}: DynamicWorkspaceCompany
                         />
                     )}
                     {canWriteCompanyCards && (
-                        <MenuItem
-                            icon={expensifyIcons.RemoveMembers}
-                            title={translate('workspace.moreFeatures.companyCards.unassignCard')}
+                        <MenuItem.Root
                             style={styles.mb1}
-                            onPress={() => {
+                            onPress={callFunctionIfActionIsAllowed(() => {
                                 showConfirmModal({
                                     shouldSetModalVisibility: false,
                                     title: translate('workspace.moreFeatures.companyCards.unassignCard'),
@@ -305,9 +304,18 @@ function DynamicWorkspaceCompanyCardDetailsPage({route}: DynamicWorkspaceCompany
 
                                     unassignCard();
                                 });
-                            }}
+                            })}
                             sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.COMPANY_CARDS.UNASSIGN_CARD}
-                        />
+                        >
+                            <MenuItem.Row>
+                                <MenuItem.Leading>
+                                    <MenuItem.Icon src={expensifyIcons.RemoveMembers} />
+                                </MenuItem.Leading>
+                                <MenuItem.Content>
+                                    <MenuItem.Title>{translate('workspace.moreFeatures.companyCards.unassignCard')}</MenuItem.Title>
+                                </MenuItem.Content>
+                            </MenuItem.Row>
+                        </MenuItem.Root>
                     )}
                     {exportMenuItem?.shouldShowMenuItem ? (
                         <>

@@ -1,4 +1,5 @@
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import MenuItem from '@components/MenuItem';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import Section from '@components/Section';
 
@@ -15,6 +16,7 @@ import {getWorkflowApprovalsUnavailable, isAutoPayApprovedReportsAvailable, isCo
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
 
 import {enableAutoApprovalOptions, enablePolicyAutoReimbursementLimit, setPolicyPreventSelfApproval} from '@userActions/Policy/Policy';
+import {callFunctionIfActionIsAllowed} from '@userActions/Session';
 
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
@@ -117,14 +119,17 @@ function ExpenseReportRulesSection({policyID, canWriteApprovals, canWritePayment
                     pendingAction={!policy?.pendingFields?.shouldShowAutoApprovalOptions && policy?.autoApproval?.pendingFields?.limit ? policy?.autoApproval?.pendingFields?.limit : null}
                     key="autoApproveReportsUnder"
                 >
-                    <MenuItemWithTopDescription
-                        description={translate('workspace.rules.expenseReportRules.autoApproveReportsUnderTitle')}
-                        title={convertToDisplayString(policy?.autoApproval?.limit ?? CONST.POLICY.AUTO_APPROVE_REPORTS_UNDER_DEFAULT_CENTS, policy?.outputCurrency ?? CONST.CURRENCY.USD)}
-                        shouldShowRightIcon={canWriteApprovals}
+                    <MenuItem.Root
+                        onPress={canWriteApprovals ? callFunctionIfActionIsAllowed(() => Navigation.navigate(ROUTES.RULES_AUTO_APPROVE_REPORTS_UNDER.getRoute(policyID))) : undefined}
                         style={[styles.sectionMenuItemTopDescription, styles.mt6, styles.mbn3]}
-                        onPress={() => Navigation.navigate(ROUTES.RULES_AUTO_APPROVE_REPORTS_UNDER.getRoute(policyID))}
-                        interactive={canWriteApprovals}
-                    />
+                    >
+                        <MenuItemField.Row
+                            name={translate('workspace.rules.expenseReportRules.autoApproveReportsUnderTitle')}
+                            value={convertToDisplayString(policy?.autoApproval?.limit ?? CONST.POLICY.AUTO_APPROVE_REPORTS_UNDER_DEFAULT_CENTS, policy?.outputCurrency ?? CONST.CURRENCY.USD)}
+                        >
+                            {canWriteApprovals && <MenuItem.Chevron />}
+                        </MenuItemField.Row>
+                    </MenuItem.Root>
                 </OfflineWithFeedback>,
                 <OfflineWithFeedback
                     pendingAction={
@@ -132,14 +137,17 @@ function ExpenseReportRulesSection({policyID, canWriteApprovals, canWritePayment
                     }
                     key="randomReportAuditTitle"
                 >
-                    <MenuItemWithTopDescription
-                        description={translate('workspace.rules.expenseReportRules.randomReportAuditTitle')}
-                        title={`${Math.round((policy?.autoApproval?.auditRate ?? CONST.POLICY.RANDOM_AUDIT_DEFAULT_PERCENTAGE) * 100)}%`}
-                        shouldShowRightIcon={canWriteApprovals}
+                    <MenuItem.Root
+                        onPress={canWriteApprovals ? callFunctionIfActionIsAllowed(() => Navigation.navigate(ROUTES.RULES_RANDOM_REPORT_AUDIT.getRoute(policyID))) : undefined}
                         style={[styles.sectionMenuItemTopDescription, styles.mt6, styles.mbn3]}
-                        onPress={() => Navigation.navigate(ROUTES.RULES_RANDOM_REPORT_AUDIT.getRoute(policyID))}
-                        interactive={canWriteApprovals}
-                    />
+                    >
+                        <MenuItemField.Row
+                            name={translate('workspace.rules.expenseReportRules.randomReportAuditTitle')}
+                            value={`${Math.round((policy?.autoApproval?.auditRate ?? CONST.POLICY.RANDOM_AUDIT_DEFAULT_PERCENTAGE) * 100)}%`}
+                        >
+                            {canWriteApprovals && <MenuItem.Chevron />}
+                        </MenuItemField.Row>
+                    </MenuItem.Root>
                 </OfflineWithFeedback>,
             ],
         },
@@ -177,14 +185,20 @@ function ExpenseReportRulesSection({policyID, canWriteApprovals, canWritePayment
                     }
                     key="autoPayReportsUnder"
                 >
-                    <MenuItemWithTopDescription
-                        description={translate('workspace.rules.expenseReportRules.autoPayReportsUnderTitle')}
-                        title={convertToDisplayString(policy?.autoReimbursement?.limit ?? CONST.POLICY.AUTO_REIMBURSEMENT_LIMIT_DEFAULT_CENTS, policy?.outputCurrency ?? CONST.CURRENCY.USD)}
-                        shouldShowRightIcon={canWritePayments}
+                    <MenuItem.Root
+                        onPress={canWritePayments ? callFunctionIfActionIsAllowed(() => Navigation.navigate(ROUTES.RULES_AUTO_PAY_REPORTS_UNDER.getRoute(policyID))) : undefined}
                         style={[styles.sectionMenuItemTopDescription, styles.mt6, styles.mbn3]}
-                        onPress={() => Navigation.navigate(ROUTES.RULES_AUTO_PAY_REPORTS_UNDER.getRoute(policyID))}
-                        interactive={canWritePayments}
-                    />
+                    >
+                        <MenuItemField.Row
+                            name={translate('workspace.rules.expenseReportRules.autoPayReportsUnderTitle')}
+                            value={convertToDisplayString(
+                                policy?.autoReimbursement?.limit ?? CONST.POLICY.AUTO_REIMBURSEMENT_LIMIT_DEFAULT_CENTS,
+                                policy?.outputCurrency ?? CONST.CURRENCY.USD,
+                            )}
+                        >
+                            {canWritePayments && <MenuItem.Chevron />}
+                        </MenuItemField.Row>
+                    </MenuItem.Root>
                 </OfflineWithFeedback>,
             ],
         },

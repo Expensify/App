@@ -15,6 +15,7 @@ import Navigation from '@navigation/Navigation';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
 
 import {clearCardErrorField, clearCardNameValuePairsErrorField, setPersonalCardReimbursable} from '@userActions/Card';
+import {callFunctionIfActionIsAllowed} from '@userActions/Session';
 
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
@@ -137,19 +138,35 @@ function PersonalCardDetailsHeaderMenu({
                     />
                 )}
                 {isCSVImportedPersonalCard ? (
-                    <MenuItem
-                        icon={icons.Trashcan}
-                        title={translate('common.delete')}
+                    <MenuItem.Root
                         style={styles.mb1}
-                        onPress={onDeleteCard}
-                    />
+                        onPress={callFunctionIfActionIsAllowed(onDeleteCard)}
+                        accessibilityLabel={translate('common.delete')}
+                    >
+                        <MenuItem.Row>
+                            <MenuItem.Leading>
+                                <MenuItem.Icon src={icons.Trashcan} />
+                            </MenuItem.Leading>
+                            <MenuItem.Content>
+                                <MenuItem.Title>{translate('common.delete')}</MenuItem.Title>
+                            </MenuItem.Content>
+                        </MenuItem.Row>
+                    </MenuItem.Root>
                 ) : (
-                    <MenuItem
-                        icon={expensifyIcons.RemoveMembers}
-                        title={translate('workspace.moreFeatures.companyCards.removeCard')}
+                    <MenuItem.Root
                         style={styles.mb1}
-                        onPress={onUnassignCard}
-                    />
+                        onPress={callFunctionIfActionIsAllowed(onUnassignCard)}
+                        accessibilityLabel={translate('workspace.moreFeatures.companyCards.removeCard')}
+                    >
+                        <MenuItem.Row>
+                            <MenuItem.Leading>
+                                <MenuItem.Icon src={expensifyIcons.RemoveMembers} />
+                            </MenuItem.Leading>
+                            <MenuItem.Content>
+                                <MenuItem.Title>{translate('workspace.moreFeatures.companyCards.removeCard')}</MenuItem.Title>
+                            </MenuItem.Content>
+                        </MenuItem.Row>
+                    </MenuItem.Root>
                 )}
             </View>
         </>

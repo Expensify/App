@@ -1,4 +1,5 @@
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import MenuItem from '@components/MenuItem';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import ScrollView from '@components/ScrollView';
 import type {SingleSelectItem} from '@components/Search/FilterComponents/SingleSelect';
 import type {SearchFooterCount, SearchFooterTotal} from '@components/Search/types';
@@ -8,6 +9,8 @@ import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {getFooterTotalItems} from '@libs/SearchUIUtils';
+
+import {callFunctionIfActionIsAllowed} from '@userActions/Session';
 
 import CONST from '@src/CONST';
 
@@ -94,34 +97,39 @@ function SearchFooterPopup({
         return (
             <ScrollView contentContainerStyle={[styles.pv4]}>
                 {!!countType && (
-                    <MenuItemWithTopDescription
-                        shouldShowRightIcon
-                        description={translate('common.count')}
-                        title={countItems.find((item) => item.value === countType)?.text}
+                    <MenuItemField
+                        name={translate('common.count')}
+                        value={countItems.find((item) => item.value === countType)?.text}
                         onPress={() => setSelectedFooterFilter(CONST.SEARCH.SYNTAX_FILTER_KEYS.FOOTER_COUNT)}
                         sentryLabel={CONST.SENTRY_LABEL.SEARCH.FOOTER_COUNT}
                     />
                 )}
                 {shouldShowTotalSelector && !!totalType && (
-                    <MenuItemWithTopDescription
-                        shouldShowRightIcon
+                    <MenuItem.Root
                         // Both rows re-run the search, so they are inert until the one in flight lands. The count row
                         // stays interactive, since switching it needs no request.
-                        interactive={!isTotalLoading}
-                        description={translate('common.total')}
-                        title={totalItems.find((item) => item.value === totalType)?.text}
-                        onPress={() => setSelectedFooterFilter(CONST.SEARCH.SYNTAX_FILTER_KEYS.FOOTER_TOTAL)}
+                        onPress={!isTotalLoading ? callFunctionIfActionIsAllowed(() => setSelectedFooterFilter(CONST.SEARCH.SYNTAX_FILTER_KEYS.FOOTER_TOTAL)) : undefined}
                         sentryLabel={CONST.SENTRY_LABEL.SEARCH.FOOTER_TOTAL}
-                    />
+                    >
+                        <MenuItemField.Row
+                            name={translate('common.total')}
+                            value={totalItems.find((item) => item.value === totalType)?.text}
+                        >
+                            <MenuItem.Chevron />
+                        </MenuItemField.Row>
+                    </MenuItem.Root>
                 )}
-                <MenuItemWithTopDescription
-                    shouldShowRightIcon
-                    interactive={!isTotalLoading && !isOffline}
-                    description={translate('common.currency')}
-                    title={currency ?? defaultCurrency}
-                    onPress={() => setSelectedFooterFilter(CONST.SEARCH.SYNTAX_FILTER_KEYS.FOOTER_CURRENCY)}
+                <MenuItem.Root
+                    onPress={!isTotalLoading && !isOffline ? callFunctionIfActionIsAllowed(() => setSelectedFooterFilter(CONST.SEARCH.SYNTAX_FILTER_KEYS.FOOTER_CURRENCY)) : undefined}
                     sentryLabel={CONST.SENTRY_LABEL.SEARCH.FOOTER_CURRENCY}
-                />
+                >
+                    <MenuItemField.Row
+                        name={translate('common.currency')}
+                        value={currency ?? defaultCurrency}
+                    >
+                        <MenuItem.Chevron />
+                    </MenuItemField.Row>
+                </MenuItem.Root>
             </ScrollView>
         );
     }

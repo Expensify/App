@@ -1,5 +1,6 @@
 import Button from '@components/Button';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import MenuItem from '@components/MenuItem';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import Text from '@components/Text';
 
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -143,13 +144,13 @@ function SubscriptionPlanCardActionButton({subscriptionPlan, isFromComparisonMod
 
     return (
         <View>
-            <MenuItemWithTopDescription
-                description={translate('subscription.subscriptionSettings.title')}
-                style={style}
-                interactive={false}
-                numberOfLinesTitle={3}
-                title={translate('subscription.subscriptionSettings.summary', subscriptionType, subscriptionSize, expensifyCode, autoRenew, autoIncrease)}
-            />
+            <MenuItem.Root style={style}>
+                <MenuItemField.Row
+                    name={translate('subscription.subscriptionSettings.title')}
+                    value={translate('subscription.subscriptionSettings.summary', subscriptionType, subscriptionSize, expensifyCode, autoRenew, autoIncrease)}
+                    numberOfLinesValue={3}
+                />
+            </MenuItem.Root>
             <View style={[style, styles.mt2]}>
                 <Button
                     onPress={() => Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION_SETTINGS_DETAILS)}

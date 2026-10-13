@@ -26,13 +26,19 @@ function ReportDetailsMenuDebugItem({reportID}: ReportDetailsMenuDebugItemProps)
     }
 
     return (
-        <MenuItem
-            title={translate('debug.debug')}
-            icon={expensifyIcons.Bug}
-            onPress={() => Navigation.navigate(ROUTES.DEBUG_REPORT.getRoute(report.reportID))}
-            isAnonymousAction
-            shouldShowRightIcon
-        />
+        <MenuItem.Root onPress={() => Navigation.navigate(ROUTES.DEBUG_REPORT.getRoute(report.reportID))}>
+            <MenuItem.Row>
+                <MenuItem.Leading>
+                    <MenuItem.Icon src={expensifyIcons.Bug} />
+                </MenuItem.Leading>
+                <MenuItem.Content>
+                    <MenuItem.Title>{translate('debug.debug')}</MenuItem.Title>
+                </MenuItem.Content>
+                <MenuItem.Trailing>
+                    <MenuItem.Chevron />
+                </MenuItem.Trailing>
+            </MenuItem.Row>
+        </MenuItem.Root>
     );
 }
 
