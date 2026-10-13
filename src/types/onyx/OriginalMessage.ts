@@ -983,7 +983,7 @@ type OriginalMessageModifiedExpense = {
     /** The Concierge reasoning for the action */
     reasoning?: string;
 
-    /** The expense the receipt audit action belongs to */
+    /** The transaction that was modified */
     transactionID?: string;
 
     /** Whether a receipt was added to the expense */
