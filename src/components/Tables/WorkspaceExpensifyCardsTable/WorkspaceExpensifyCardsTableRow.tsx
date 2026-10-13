@@ -124,22 +124,23 @@ export default function WorkspaceExpensifyCardsTableRow({item, rowIndex, shouldU
             {({hovered}) => (
                 <>
                     <View
-                        style={[styles.flex1, styles.mnw0, styles.justifyContentCenter]}
+                        style={[styles.flex1, styles.mnw0, styles.flexRow, styles.gap3, styles.alignItemsCenter]}
                         {...getCellAccessibilityProps(isTableSemanticsEnabled)}
                     >
-                        <InlineTextEditCell
-                            value={item.name}
-                            accessibilityLabel={translate('workspace.card.issueNewCard.cardName')}
-                            canEdit={!!item.canEditName}
-                            onSave={item.onRenameName}
-                            displayTextStyle={[styles.textLabelSupporting, styles.lh16]}
-                        >
-                            <View style={[styles.flexRow, styles.gap3, styles.alignItemsCenter]}>
-                                <UserAvatar
-                                    source={item.cardholder?.avatar}
-                                    accountID={item.cardholder?.accountID ?? CONST.DEFAULT_NUMBER_ID}
-                                    size={avatarSize}
-                                />
+                        {/* The avatar sits outside the edit cell so it stays on screen while the card name is edited. */}
+                        <UserAvatar
+                            source={item.cardholder?.avatar}
+                            accountID={item.cardholder?.accountID ?? CONST.DEFAULT_NUMBER_ID}
+                            size={avatarSize}
+                        />
+                        <View style={[styles.flex1, styles.mnw0]}>
+                            <InlineTextEditCell
+                                value={item.name}
+                                accessibilityLabel={translate('workspace.card.issueNewCard.cardName')}
+                                canEdit={!!item.canEditName}
+                                onSave={item.onRenameName}
+                                displayTextStyle={[styles.textLabelSupporting, styles.lh16]}
+                            >
                                 <View style={[styles.flex1, styles.mnw0, shouldUseNarrowTableLayout && styles.gap1]}>
                                     <TextWithTooltip
                                         shouldShowTooltip
@@ -163,8 +164,8 @@ export default function WorkspaceExpensifyCardsTableRow({item, rowIndex, shouldU
                                         />
                                     )}
                                 </View>
-                            </View>
-                        </InlineTextEditCell>
+                            </InlineTextEditCell>
+                        </View>
                     </View>
 
                     {!shouldUseNarrowTableLayout && (
