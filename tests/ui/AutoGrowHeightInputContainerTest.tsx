@@ -81,8 +81,11 @@ describe('AutoGrowHeightInputContainer', () => {
         render(<AutoGrowHeightInputContainer shouldKeepMinimumHeight={shouldKeepMinimumHeight}>{() => <View />}</AutoGrowHeightInputContainer>);
 
         // Then only the opted-in web slot gets a minimum; native and default consumers retain intrinsic sizing.
-        const containerStyle = screen.UNSAFE_getByType(ScrollView).props.style as ReactNative.StyleProp<ReactNative.ViewStyle>;
-        expect(StyleSheet.flatten(containerStyle).minHeight).toBe(expectedMinimum);
+        const containerStyle: unknown = StyleSheet.flatten(screen.UNSAFE_getByType(ScrollView).props.style);
+        if (!containerStyle || typeof containerStyle !== 'object') {
+            throw new Error('Expected the input container to have a flattened style');
+        }
+        expect('minHeight' in containerStyle ? containerStyle.minHeight : undefined).toBe(expectedMinimum);
     });
 
     it('measures reserved content after clamping and tracks layout changes', async () => {
