@@ -362,6 +362,8 @@ function MapView({
                     // displayed after the first render when the app's storage is cleared.
                     centerCoordinate={initCenterCoordinate}
                     bounds={initBounds}
+                    animationDuration={CONST.MAPBOX.ANIMATION_DURATION_DEFAULT}
+                    animationMode={CONST.MAPBOX.CAMERA_ANIMATION_MODE}
                 />
                 {interactive && shouldDisplayCurrentLocation && (
                     <MarkerView
