@@ -63,11 +63,22 @@ describe('isMerchantRuleSuggestionLive', () => {
     });
 
     it('is not live while the edit is still waiting on the server', () => {
-        expect(isMerchantRuleSuggestionLive(buildSuggestion({confirmedFields: undefined}))).toBe(false);
+        // Given an edit recorded before its queued write has been answered
+        const suggestion = buildSuggestion({confirmedFields: undefined});
+
+        // When the offer is checked
+        // Then it does not stand, since only the server can say the edit repeats
+        expect(isMerchantRuleSuggestionLive(suggestion)).toBe(false);
     });
 
     it('is not live when the confirmation belongs to a different expense', () => {
-        expect(isMerchantRuleSuggestionLive(buildSuggestion({confirmedFields: {[OTHER_TRANSACTION_ID]: {category: true}}}))).toBe(false);
+        // Given a confirmation recorded against an expense other than the one offering
+        const suggestion = buildSuggestion({confirmedFields: {[OTHER_TRANSACTION_ID]: {category: true}}});
+
+        // When the offer is checked
+        // Then it does not stand, because confirmation is keyed per expense so a late response cannot confirm the
+        // wrong one
+        expect(isMerchantRuleSuggestionLive(suggestion)).toBe(false);
     });
 
     it('is not live when the only confirmed field was never edited', () => {
