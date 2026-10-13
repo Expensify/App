@@ -1,10 +1,19 @@
-import {filterOutDeprecatedReportActions, getIOUActionForTransactionID, getLinkedTransactionID, getOriginalMessage, getSortedReportActions, isActionOfType} from '@libs/ReportActionsUtils';
+import {
+    filterOutDeprecatedReportActions,
+    getIOUActionForTransactionID,
+    getLinkedTransactionID,
+    getOriginalMessage,
+    getSortedReportActions,
+    isActionOfType,
+    isForwardedAction,
+    isSubmittedAction,
+} from '@libs/ReportActionsUtils';
 
 import CONST from '@src/CONST';
 import type {ReportAction, ReportActions} from '@src/types/onyx';
 import type {VisibleReportActionsDerivedValue} from '@src/types/onyx/DerivedValues';
 
-import type {OnyxEntry} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
 import lodashFindLast from 'lodash/findLast';
 
@@ -142,6 +151,22 @@ function getReceiptScanFailedIOUActionDataSelector(
 const transactionThreadReportIDSelector = (transactionID: string | undefined) => (reportActions: OnyxEntry<ReportActions>) =>
     transactionID ? getIOUActionForTransactionID(Object.values(reportActions ?? {}), transactionID)?.childReportID : undefined;
 
+// Keeps only SUBMITTED/FORWARDED actions per report, so subscribers skip re-rendering on unrelated action writes.
+function submitForwardReportActionsSelector(allReportActions: OnyxCollection<ReportActions>): OnyxCollection<ReportAction[]> {
+    if (!allReportActions) {
+        return allReportActions;
+    }
+
+    const result: OnyxCollection<ReportAction[]> = {};
+    for (const key of Object.keys(allReportActions)) {
+        const relevantActions = Object.values(allReportActions[key] ?? {}).filter((action) => isSubmittedAction(action) || isForwardedAction(action));
+        if (relevantActions.length > 0) {
+            result[key] = relevantActions;
+        }
+    }
+    return result;
+}
+
 export {
     getParentReportActionSelector,
     getLastClosedReportAction,
@@ -150,6 +175,7 @@ export {
     getReportActionByIDSelector,
     getReceiptScanFailedIOUActionDataSelector,
     reportVisibleActionsSelector,
+    submitForwardReportActionsSelector,
     transactionThreadReportIDSelector,
 };
 export type {NewestReportAction};

@@ -2047,9 +2047,9 @@ function isOpenOrProcessingReport(report: OnyxEntry<Report>): boolean {
 
 // Instant submit shows Fix until the first approval. A forward leaves the report submitted, so that still counts as approved.
 // Every other workspace only shows Fix on a draft.
-function isReportEligibleForViolationFix(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>): boolean {
+function isReportEligibleForViolationFix(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>, reportActions?: OnyxEntry<ReportActions> | ReportAction[]): boolean {
     if (isInstantSubmitEnabled(policy)) {
-        return isOpenOrProcessingReport(report) && !hasReportBeenForwardedSinceLastSubmit(report);
+        return isOpenOrProcessingReport(report) && !hasReportBeenForwardedSinceLastSubmit(report, reportActions);
     }
     return isOpenReport(report);
 }

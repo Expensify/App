@@ -11,12 +11,13 @@ import {getVisibleTransactionViolations} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {Policy, Report, Session, Transaction} from '@src/types/onyx';
+import type {Policy, Report, ReportAction, Session, Transaction} from '@src/types/onyx';
 import type TransactionViolations from '@src/types/onyx/TransactionViolation';
 
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
 import {useIsFocused} from '@react-navigation/native';
+import {submitForwardReportActionsSelector} from '@selectors/ReportAction';
 import noop from 'lodash/noop';
 import {useState} from 'react';
 
@@ -41,7 +42,7 @@ type FlaggedExpense = {
 
 // True when the current user owns this expense report and its state still lets them fix violations.
 // Pass currentUserAccountID as `session?.accountID ?? DEFAULT_NUMBER_ID` so ownership fails closed before login.
-function isCurrentUserReportEligibleForViolationFix(report: Report | null | undefined, policy: OnyxEntry<Policy>, currentUserAccountID: number): boolean {
+function isCurrentUserReportEligibleForViolationFix(report: Report | null | undefined, policy: OnyxEntry<Policy>, currentUserAccountID: number, reportActions?: ReportAction[]): boolean {
     if (!report) {
         return false;
     }
@@ -51,7 +52,7 @@ function isCurrentUserReportEligibleForViolationFix(report: Report | null | unde
     if (report.ownerAccountID !== currentUserAccountID) {
         return false;
     }
-    return isReportEligibleForViolationFix(report, policy);
+    return isReportEligibleForViolationFix(report, policy, reportActions);
 }
 
 // True when a violation should show in "Review expenses".
@@ -92,6 +93,7 @@ function getFlaggedExpenses(
     allTransactionViolations: OnyxCollection<TransactionViolations>,
     allPolicies: OnyxCollection<Policy>,
     session: OnyxEntry<Session>,
+    allSubmitForwardReportActions?: OnyxCollection<ReportAction[]>,
 ): FlaggedExpense[] {
     if (!allReports || !allTransactions) {
         return [];
@@ -109,7 +111,8 @@ function getFlaggedExpenses(
 
         const report = allReports[`${ONYXKEYS.COLLECTION.REPORT}${transaction.reportID}`];
         const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`];
-        if (!isCurrentUserReportEligibleForViolationFix(report, policy, currentUserAccountID)) {
+        const reportActions = allSubmitForwardReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transaction.reportID}`];
+        if (!isCurrentUserReportEligibleForViolationFix(report, policy, currentUserAccountID, reportActions)) {
             continue;
         }
 
@@ -144,8 +147,10 @@ function useReviewFlaggedExpenses(): ReviewFlaggedExpenses {
     const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [session] = useOnyx(ONYXKEYS.SESSION);
+    // Catches a forward that lands via REPORT_ACTIONS alone, with no report write to trigger a re-render.
+    const [allSubmitForwardReportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS, {selector: submitForwardReportActionsSelector});
 
-    const flaggedExpenses = isFocused ? getFlaggedExpenses(allReports, allTransactions, allTransactionViolations, allPolicies, session) : undefined;
+    const flaggedExpenses = isFocused ? getFlaggedExpenses(allReports, allTransactions, allTransactionViolations, allPolicies, session, allSubmitForwardReportActions) : undefined;
 
     // Retain the count across blur via "adjust state during render". It's a primitive, so this guard can't loop
     // and doesn't depend on the scan being referentially stable.

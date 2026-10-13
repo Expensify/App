@@ -206,6 +206,47 @@ describe('Violation Fix parity between Inbox and Home', () => {
         expect(homeShows).toBe(false);
     });
 
+    it('Home honors a forward passed via the reportActions param, independent of any Onyx REPORT_ACTIONS write', async () => {
+        // Given an instant-submit report with a resolvable violation and no forward recorded in Onyx
+        const fixture = await buildCell({
+            name: 'processing-instant-owner-explicit-forward-resolvable',
+            reportState: 'processing',
+            instantSubmit: true,
+            ownedByCurrentUser: true,
+            violations: [RESOLVABLE],
+        });
+        expect(evaluateSurfaces(fixture).homeShows).toBe(true);
+
+        // When Home is given a late-arriving forward only through the reportActions param (e.g. the
+        // COLLECTION.REPORT_ACTIONS selector in useReviewFlaggedExpenses), with Onyx's own REPORT_ACTIONS key
+        // left untouched
+        const expenseReportID = fixture.expenseReport.reportID;
+        const submittedAction = createMock<ReportAction>({
+            reportActionID: `${expenseReportID}-submitted`,
+            actionName: CONST.REPORT.ACTIONS.TYPE.SUBMITTED,
+            created: '2026-01-02 10:00:00.000',
+        });
+        const forwardedAction = createMock<ReportAction>({
+            reportActionID: `${expenseReportID}-forwarded`,
+            actionName: CONST.REPORT.ACTIONS.TYPE.FORWARDED,
+            created: '2026-01-03 10:00:00.000',
+        });
+        const allSubmitForwardReportActions: OnyxCollection<ReportAction[]> = {
+            [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReportID}`]: [submittedAction, forwardedAction],
+        };
+
+        // Then it no longer shows the report as fixable
+        const homeShows = getFlaggedExpenses(
+            fixture.allReports,
+            fixture.allTransactions,
+            fixture.violationsCollection,
+            fixture.allPolicies,
+            fixture.session,
+            allSubmitForwardReportActions,
+        ).some((flagged) => flagged.reportID === expenseReportID);
+        expect(homeShows).toBe(false);
+    });
+
     it('counts a warning-typed modifiedAmount on both surfaces', async () => {
         // Given a submitted instant-submit report with only a warning modifiedAmount
         const fixture = await buildCell({
