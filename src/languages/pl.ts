@@ -1638,6 +1638,7 @@ const translations: TranslationDeepObject<typeof en> = {
         pendingConversionMessage: 'Suma zaktualizuje się, gdy wrócisz do trybu online',
         changedTheExpense: 'zmienił(a) wydatek',
         addedReceipt: 'dodał(a) paragon',
+        removedReceipt: 'usunął(-ęła) paragon',
         setTheRequest: (valueName: string, newValueToDisplay: string) => `${valueName} na ${newValueToDisplay}`,
         setTheDistanceMerchant: (translatedChangedField: string, newMerchant: string, newAmountToDisplay: string) =>
             `ustawiono ${translatedChangedField} na ${newMerchant}, co ustawiło kwotę na ${newAmountToDisplay}`,
