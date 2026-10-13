@@ -82,7 +82,7 @@ jobs:
       # Skips a cold Babel pass over the whole source tree; seedJestPerfCache.yml writes the entry
       # on main and explains the key. Restore-only, so nothing an untrusted PR runs can end up in an
       # entry a later run executes, and no restore-keys: a prefix fallback could serve output built
-      # by an older babel-plugin-react-compiler and move the render counts gated at
+      # by an older React Compiler and move the render counts gated at
       # COUNT_DEVIATION: 0. Keep the key identical to the other three.
       - name: Restore Jest transform cache
         id: restoreJestCache
@@ -137,7 +137,7 @@ jobs:
       # Skips a cold Babel pass over the whole source tree; seedJestPerfCache.yml writes the entry
       # on main and explains the key. Restore-only, so nothing an untrusted PR runs can end up in an
       # entry a later run executes, and no restore-keys: a prefix fallback could serve output built
-      # by an older babel-plugin-react-compiler and move the render counts gated at
+      # by an older React Compiler and move the render counts gated at
       # COUNT_DEVIATION: 0. Keep the key identical to the other three.
       - name: Restore Jest transform cache
         id: restoreJestCache

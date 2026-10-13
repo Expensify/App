@@ -6,7 +6,6 @@
  * optimizing the offending component and reports the reason as a `Warning`. Everything that
  * genuinely stops the file being transformed (parse errors, semantic analysis, invalid options)
  * arrives as an `Error` and sets `fatal` on the result, which is what fails the build here.
- * That mirrors babel-plugin-react-compiler's behaviour on the Metro/Jest side.
  */
 
 import remapping from '@jridgewell/remapping';

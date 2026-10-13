@@ -5,13 +5,8 @@ require('dotenv').config();
  */
 process.env.EXPO_PUBLIC_USE_RN_FETCH = process.env.EXPO_PUBLIC_USE_RN_FETCH ?? '1';
 
-const BaseReactCompilerConfig = require('./config/babel/reactCompilerConfig');
 const {expoInlineEnvVars} = require('babel-preset-expo/build/plugins/inline-env-vars');
-
-const ReactCompilerConfig = {
-    ...BaseReactCompilerConfig,
-    sources: (filename) => !filename.includes('tests/') && !filename.includes('node_modules/'),
-};
+const oxcReactCompilerConfig = require('./config/babel/oxcReactCompilerConfig');
 
 /**
  * Custom plugin that prints a file name when it's being processed by babel.
@@ -32,8 +27,6 @@ const isTestEnv = process.env.BABEL_ENV === 'test' || process.env.NODE_ENV === '
 const metro = {
     presets: [require('@react-native/babel-preset')],
     plugins: [
-        ['babel-plugin-react-compiler', ReactCompilerConfig], // must run first!
-
         // This is needed due to a react-native bug: https://github.com/facebook/react-native/issues/29084#issuecomment-1030732709
         // It is included in metro-react-native-babel-preset but needs to be before plugin-proposal-class-properties or FlatList will break
         '@babel/plugin-transform-flow-strip-types',
@@ -160,6 +153,16 @@ if (process.env.CAPTURE_METRICS === 'true') {
     ]);
 }
 
+// Jest coverage runs send app source through babel-jest instead of OXC (see oxcJestTransformer.js), so this
+// lane still needs the Babel React Compiler. It shares OXC's options so both compile the same way.
+const jest = {
+    ...metro,
+    plugins: [
+        ['babel-plugin-react-compiler', oxcReactCompilerConfig({sources: (filename) => !filename.includes('tests/') && !filename.includes('node_modules/')})], // must run first!
+        ...metro.plugins,
+    ],
+};
+
 const repack = {
     ...metro,
     plugins: metro.plugins
@@ -189,5 +192,9 @@ module.exports = (api) => {
         return repack;
     }
 
-    return ['metro', 'babel-jest'].includes(runningIn) ? metro : {};
+    if (runningIn === 'babel-jest') {
+        return jest;
+    }
+
+    return runningIn === 'metro' ? metro : {};
 };
