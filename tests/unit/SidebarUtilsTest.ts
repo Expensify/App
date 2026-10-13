@@ -1461,6 +1461,69 @@ describe('SidebarUtils', () => {
             expect(result).toStrictEqual({shouldDisplay: true, hasErrorsOtherThanFailedReceipt: true});
         });
 
+        it('returns shouldDisplay as true for a failed thread whose parent actions are simply not loaded', async () => {
+            // Given a failed thread whose parent report is alive, but its actions are evicted or not loaded yet
+            const MOCK_EXPENSE_REPORT: Report = {
+                reportID: '14',
+                ownerAccountID: 12345,
+                policyID: '6',
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                type: CONST.REPORT.TYPE.EXPENSE,
+            };
+            const MOCK_FAILED_THREAD: Report = {
+                reportID: '15',
+                ownerAccountID: 12345,
+                policyID: '6',
+                parentReportID: MOCK_EXPENSE_REPORT.reportID,
+                parentReportActionID: '24',
+                type: CONST.REPORT.TYPE.CHAT,
+                errorFields: {createChat: {'1772030710775000': 'report.genericCreateReportFailureMessage'}},
+            };
+
+            const MOCK_REPORTS = {
+                [`${ONYXKEYS.COLLECTION.REPORT}${MOCK_EXPENSE_REPORT.reportID}` as const]: MOCK_EXPENSE_REPORT,
+                [`${ONYXKEYS.COLLECTION.REPORT}${MOCK_FAILED_THREAD.reportID}` as const]: MOCK_FAILED_THREAD,
+            } satisfies ReportCollectionDataSet;
+            const onyxUnloadedReports: ReportCollectionDataSet = MOCK_REPORTS;
+
+            await act(async () => {
+                // No actions for the parent, which is what eviction looks like. REPORT_ACTIONS is evictable.
+                await Onyx.multiSet({...onyxUnloadedReports});
+            });
+
+            const MOCK_UNLOADED_ATTRIBUTES: ReportAttributesDerivedValue['reports'] = {
+                [MOCK_FAILED_THREAD.reportID]: {
+                    reportName: '',
+                    isEmpty: true,
+                    brickRoadStatus: CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR,
+                    requiresAttention: false,
+                    reportErrors: {'1772030710775000': 'Unexpected error creating this report. Please try again later.'},
+                },
+            };
+
+            // When the LHN decides whether to show it
+            const result = SidebarUtils.shouldDisplayReportInLHN({
+                report: MOCK_FAILED_THREAD,
+                reports: MOCK_REPORTS,
+                currentReportId: undefined,
+                isInFocusMode: false,
+                isDefaultRoomsBetaEnabled: false,
+                transactionViolations: {},
+                draftComment: undefined,
+                transactions: {},
+                isOffline: false,
+                reportAttributes: MOCK_UNLOADED_ATTRIBUTES,
+                currentUserLogin: CURRENT_USER_LOGIN,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                hasGuidesEmails: false,
+                conciergeReportID: undefined,
+            });
+
+            // Then it behaves as before, because a missing action is not proof the expense is gone
+            expect(result).toStrictEqual({shouldDisplay: true, hasErrorsOtherThanFailedReceipt: true});
+        });
+
         it('returns shouldDisplay as false when report is falsy', () => {
             const result = SidebarUtils.shouldDisplayReportInLHN({
                 // @ts-expect-error Intentionally exercise the runtime guard with invalid input.

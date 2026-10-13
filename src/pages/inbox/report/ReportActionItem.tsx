@@ -423,8 +423,6 @@ function ReportActionItem({
 
     const isContextMenuDisabled = hasDraft || (hasActionErrors && !hasOnlyReceiptErrors) || !shouldDisplayContextMenuValue;
 
-    const displayedActionErrors = getLatestErrorMessageField({errors: visibleActionErrors} as OnyxDataWithErrors);
-
     /**
      * Show the ReportActionContextMenu modal popover.
      *
@@ -625,7 +623,7 @@ function ReportActionItem({
                                                     hasDraft ? undefined : (action.pendingAction ?? (action.isOptimisticAction ? CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD : undefined))
                                                 }
                                                 shouldHideOnDelete={!isDeletedParentAction}
-                                                errors={(linkedTransactionRouteError ?? !isOnSearch) ? displayedActionErrors : {}}
+                                                errors={(linkedTransactionRouteError ?? !isOnSearch) ? getLatestErrorMessageField({errors: visibleActionErrors} as OnyxDataWithErrors) : {}}
                                                 errorRowStyles={[styles.ml10, styles.mr2]}
                                                 needsOffscreenAlphaCompositing={isMoneyRequestAction(action)}
                                                 shouldDisableStrikeThrough

@@ -212,7 +212,7 @@ function shouldDisplayReportInLHN({
     const isOrphanedFailedThread =
         (!!report.errorFields?.createChat || !!report.errorFields?.createChatThread) &&
         !!report.parentReportActionID &&
-        (!parentReportAction || isDeletedAction(parentReportAction)) &&
+        (parentReportAction ? isDeletedAction(parentReportAction) : !parentReport) &&
         !hasContentOfItsOwn(report.reportID);
     if (isOrphanedFailedThread) {
         return {shouldDisplay: false};

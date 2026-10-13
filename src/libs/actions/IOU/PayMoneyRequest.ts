@@ -423,12 +423,14 @@ function getPayMoneyRequestParams({
         // Mirror the error onto the chat's preview, which the payer can still reach once the paid report is gone.
         // An IOU report only ever hangs off a one-on-one chat, so workspace expense reports are untouched.
         const shouldMirrorPayFailure = isIOUReport(iouReport);
+        // Clear our own previous failure so a retry does not keep showing a stale RBR. Only when one is there, or
+        // the merge would leave an empty errors object behind, which reads as truthy to other consumers.
+        const hasStalePayFailure = shouldMirrorPayFailure && CONST.IOU.PAY_FAILURE_PREVIEW_ERROR_KEY in (optimisticReportPreviewAction.errors ?? {});
         onyxData.optimisticData?.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`,
             value: {
-                // Clear only our own previous failure so a retry does not keep showing a stale RBR.
-                [optimisticReportPreviewAction.reportActionID]: shouldMirrorPayFailure
+                [optimisticReportPreviewAction.reportActionID]: hasStalePayFailure
                     ? {...optimisticReportPreviewAction, errors: {[CONST.IOU.PAY_FAILURE_PREVIEW_ERROR_KEY]: null}}
                     : optimisticReportPreviewAction,
             },
@@ -1046,7 +1048,10 @@ function markReportPaymentReceived(
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`,
             value: {
                 // Clear any mirrored failure, or it resurfaces as a phantom error once the report is deleted.
-                [optimisticReportPreviewAction.reportActionID]: {...optimisticReportPreviewAction, errors: {[CONST.IOU.PAY_FAILURE_PREVIEW_ERROR_KEY]: null}},
+                [optimisticReportPreviewAction.reportActionID]:
+                    CONST.IOU.PAY_FAILURE_PREVIEW_ERROR_KEY in (optimisticReportPreviewAction.errors ?? {})
+                        ? {...optimisticReportPreviewAction, errors: {[CONST.IOU.PAY_FAILURE_PREVIEW_ERROR_KEY]: null}}
+                        : optimisticReportPreviewAction,
             },
         });
     }
