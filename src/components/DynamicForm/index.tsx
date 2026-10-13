@@ -137,6 +137,14 @@ function DynamicFormFlow({
         clearSensitiveAnswers(formID);
     }, [isRedirecting, formID]);
 
+    // Leaving the flow any way other than its Back button (hardware back, swipe, a link) must not leave sensitive answers behind
+    useEffect(
+        () => () => {
+            clearSensitiveAnswers(formID);
+        },
+        [formID],
+    );
+
     // A submission that finishes without an error drops the sensitive answers
     const wasSubmittingRef = useRef(false);
     useEffect(() => {
@@ -213,7 +221,7 @@ function DynamicFormFlow({
             stepIndex={stepIndex}
             shouldShowStepIndicator={isStepIndicatorAsked && stepNames.length > 1}
         >
-            {isDraftLoading || isRedirecting || isOnUnavailablePage || !hasPageToShow ? (
+            {isDraftLoading || isRedirecting || isOnUnavailablePage || (!hasPageToShow && pages.length > 0) ? (
                 <FullscreenLoadingIndicator />
             ) : (
                 <CurrentPage

@@ -39,6 +39,7 @@ function DynamicFormShell({children, testID, headerTitle, onBackButtonPress, ste
                 stepNames={stepNames}
                 startStepIndex={stepIndex}
                 handleBackButtonPress={onBackButtonPress}
+                shouldRemountSubHeaderOnStepChange
                 shouldEnableMaxHeight
             >
                 {children}

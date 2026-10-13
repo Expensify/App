@@ -139,7 +139,7 @@ async function renderFlow({
             isSubmitting={submitting}
         />
     );
-    const {rerender} = render(renderWith(isSubmitting));
+    const {rerender, unmount} = render(renderWith(isSubmitting));
     const setSubmitting = async (submitting?: boolean) => {
         rerender(renderWith(submitting));
         await waitForBatchedUpdatesWithAct();
@@ -150,7 +150,7 @@ async function renderFlow({
         throw new Error('useSubPage was not called');
     }
     const pageProps = mockCurrentPage.mock.lastCall?.[0];
-    return {subPageOptions, setSubmitting, onSubmit, onBack, onPageSubmit, pageProps: hasDynamicFormProps(pageProps) ? pageProps : undefined};
+    return {subPageOptions, setSubmitting, unmount, onSubmit, onBack, onPageSubmit, pageProps: hasDynamicFormProps(pageProps) ? pageProps : undefined};
 }
 
 describe('DynamicFormFlow', () => {
@@ -190,6 +190,27 @@ describe('DynamicFormFlow', () => {
 
         // Then the confirmation page is the only page, since useSubPage throws when every page is skipped
         expect(subPageOptions.pages.map((page) => page.pageName)).toEqual(['confirm']);
+    });
+
+    it('draws the confirmation page when the schema has no page', async () => {
+        // Given a schema with no page and a confirmation page
+        // When the flow renders
+        await renderFlow({flowSchema: {pages: []}, hasConfirmation: true, currentPageName: 'confirm'});
+
+        // Then the confirmation page is drawn instead of a loading indicator the user could never leave
+        expect(mockCurrentPage).toHaveBeenCalled();
+    });
+
+    it('drops the sensitive answers when the flow unmounts', async () => {
+        // Given a flow that was left by the hardware back button or a link instead of its own Back button
+        const {unmount} = await renderFlow();
+        jest.mocked(clearSensitiveAnswers).mockClear();
+
+        // When the flow unmounts
+        unmount();
+
+        // Then the sensitive answers do not stay in memory for the next visit
+        expect(clearSensitiveAnswers).toHaveBeenCalledWith(FORM_ID);
     });
 
     it('paginates a flat list of fields', async () => {

@@ -15,10 +15,12 @@ describe('maskSensitiveValue', () => {
         expect(maskSensitiveValue('00112233445')).toBe('•••••••3445');
     });
 
-    it('does not hide a value of four characters or fewer', () => {
-        // Given a short value
-        // When it is masked
-        // Then nothing is padded and the value is shown as typed
-        expect(maskSensitiveValue('12')).toBe('12');
+    it('hides half of a short value', () => {
+        // Given values of four characters or fewer, such as a PIN
+        // When they are masked
+        // Then at most half of each stays visible, so a short answer is never shown in full
+        expect(maskSensitiveValue('1234')).toBe('••34');
+        expect(maskSensitiveValue('12')).toBe('•2');
+        expect(maskSensitiveValue('1')).toBe('•');
     });
 });
