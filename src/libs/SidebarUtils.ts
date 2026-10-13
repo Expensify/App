@@ -39,7 +39,7 @@ import DateUtils from './DateUtils';
 import Log from './Log';
 import {shouldUseFullTitleForOption} from './OptionsListUtils';
 import {getPersonalDetailsForAccountIDs} from './PersonalDetailsUtils';
-import {doesReportHaveVisibleActions, getAllReportActions, getIOUReportIDFromReportActionPreview, getReportAction, isDeletedAction, isMoneyRequestAction} from './ReportActionsUtils';
+import {doesReportHaveVisibleActions, getAllReportActions, getIOUReportIDFromReportActionPreview, getReportAction, isDeletedAction} from './ReportActionsUtils';
 import {getReportAlternateText, getWelcomeMessage} from './ReportAlternateTextUtils';
 import {getReportName} from './ReportNameUtils';
 import {
@@ -201,16 +201,16 @@ function shouldDisplayReportInLHN({
         return {shouldDisplay: false};
     }
 
-    // A transaction thread whose expense is gone. Nothing links to it any more, so an error on it is not
-    // actionable and must not force an empty row into the LHN. Threads that hold messages of their own are
-    // left alone, since those stay reachable.
-    const hasMoneyRequestParent = isMoneyRequestReport(parentReport) && (!parentReportAction || isMoneyRequestAction(parentReportAction));
-    const isOrphanedTransactionThread =
+    // A thread that failed to be created and whose parent action is gone. Nothing links to it any more, so its
+    // error is not actionable and must not force an empty row into the LHN. A thread holding messages of its own
+    // is left alone, so the user can still reach them.
+    const hasFailedCreation = !!report.errorFields?.createChat || !!report.errorFields?.createChatThread;
+    const isOrphanedFailedThread =
+        hasFailedCreation &&
         !!report.parentReportActionID &&
-        hasMoneyRequestParent &&
         (!parentReportAction || isDeletedAction(parentReportAction)) &&
         !doesReportHaveVisibleActions(report.reportID, getAllReportActions(report.reportID));
-    if (isOrphanedTransactionThread) {
+    if (isOrphanedFailedThread) {
         return {shouldDisplay: false};
     }
 
