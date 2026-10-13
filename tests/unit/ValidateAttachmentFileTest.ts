@@ -4,7 +4,12 @@ import type {FileObject} from '@src/types/utils/Attachment';
 
 import CONST from '../../src/CONST';
 import * as FileUtils from '../../src/libs/fileDownload/FileUtils';
+import getMimeTypeFromFileHeader from '../../src/libs/getMimeTypeFromFileHeader';
 import createMock from '../utils/createMock';
+
+jest.mock('@src/libs/getMimeTypeFromFileHeader', () => jest.fn());
+
+const mockGetMimeTypeFromFileHeader = jest.mocked(getMimeTypeFromFileHeader);
 
 // Mock only normalizeFileObject and validateImageForCorruption; keep real hasHeicOrHeifExtension and isValidReceiptExtension
 jest.mock('@src/libs/fileDownload/FileUtils', () => {
@@ -29,6 +34,7 @@ describe('validateAttachmentFile', () => {
         // Default: pass-through so async validation succeeds
         mockFileUtils.normalizeFileObject.mockImplementation(async (file) => file);
         mockFileUtils.validateImageForCorruption.mockResolvedValue(undefined);
+        mockGetMimeTypeFromFileHeader.mockResolvedValue(undefined);
     });
 
     describe('FILE_INVALID', () => {
@@ -339,6 +345,161 @@ describe('validateAttachmentFile', () => {
 
                 expect(error.isValid).toBe(true);
                 expect(mockFileUtils.normalizeFileObject).toHaveBeenCalledWith(convertedFile);
+            } finally {
+                createObjectURLSpy.mockRestore();
+            }
+        });
+    });
+
+    describe('missing file extension', () => {
+        it('recovers the extension from the MIME type for a native file picked without one', async () => {
+            // Given a native attachment whose picker returned no extension (an Android content:// URI
+            // resolves to a bare numeric segment), but which does carry its MIME type
+            const file: FileObject = {name: '1000000042', size: 100, type: 'video/mp4', uri: 'content://media/external/video/media/42'};
+
+            // When it is validated
+            const result = await validateAttachmentFile(file);
+
+            // Then the extension is backfilled, so downloading it later produces a file the OS can open
+            // instead of a generic document with no extension
+            expect(result.isValid).toBe(true);
+            if (!result.isValid) {
+                throw new Error('validateAttachmentFile should return a valid result');
+            }
+            expect(result.file.name).toBe('1000000042.mp4');
+        });
+
+        it('recovers the extension for the chat_attachment fallback name', async () => {
+            // Given a document picker that returned `name: null`, so getDataForUpload fell back to the
+            // literal default attachment name
+            const file: FileObject = {name: CONST.DEFAULT_ATTACHMENT_FILENAME, size: 100, type: 'video/mp4'};
+
+            // When it is validated
+            const result = await validateAttachmentFile(file);
+
+            // Then the default name gets a real extension
+            expect(result.isValid).toBe(true);
+            if (!result.isValid) {
+                throw new Error('validateAttachmentFile should return a valid result');
+            }
+            expect(result.file.name).toBe(`${CONST.DEFAULT_ATTACHMENT_FILENAME}.mp4`);
+        });
+
+        it('leaves the name untouched when the MIME type is unknown', async () => {
+            // Given an attachment with no extension whose MIME type cannot be mapped to one
+            const file: FileObject = {name: '1000000042', size: 100, type: 'application/not-a-real-type'};
+
+            // When it is validated
+            const result = await validateAttachmentFile(file);
+
+            // Then no extension is invented, because a wrong extension is worse than none
+            expect(result.isValid).toBe(true);
+            if (!result.isValid) {
+                throw new Error('validateAttachmentFile should return a valid result');
+            }
+            expect(result.file.name).toBe('1000000042');
+        });
+
+        it('leaves a name that already has an extension untouched', async () => {
+            // Given an attachment that already carries an extension disagreeing with its MIME type
+            const file: FileObject = {name: 'recording.mov', size: 100, type: 'video/mp4'};
+
+            // When it is validated
+            const result = await validateAttachmentFile(file);
+
+            // Then the picker's own name is preserved
+            expect(result.isValid).toBe(true);
+            if (!result.isValid) {
+                throw new Error('validateAttachmentFile should return a valid result');
+            }
+            expect(result.file.name).toBe('recording.mov');
+        });
+
+        it('recovers the extension on the web File path too', async () => {
+            // Given a web File with a real MIME type but no extension in its name
+            const createObjectURLSpy = jest.spyOn(URL, 'createObjectURL').mockReturnValue('blob:mock-url');
+            try {
+                const file: FileObject = new File([new Blob(['content'], {type: 'video/mp4'})], 'screen_recording', {type: 'video/mp4'});
+
+                // When it is validated
+                const result = await validateAttachmentFile(file);
+
+                // Then the snapshotted File is renamed with the recovered extension
+                expect(result.isValid).toBe(true);
+                if (!result.isValid) {
+                    throw new Error('validateAttachmentFile should return a valid result');
+                }
+                expect(result.file.name).toBe('screen_recording.mp4');
+            } finally {
+                createObjectURLSpy.mockRestore();
+            }
+        });
+
+        it('detects the real type from the file header when the picker reports application/octet-stream', async () => {
+            // Given an extensionless MP4 from the Android document picker, which reports only the generic type
+            const file: FileObject = {name: 'recording', size: 100, type: 'application/octet-stream', uri: 'content://documents/document/42'};
+            mockGetMimeTypeFromFileHeader.mockResolvedValue('video/mp4');
+
+            // When it is validated
+            const result = await validateAttachmentFile(file);
+
+            // Then the bytes are sniffed, and both the extension and the type come from the real format,
+            // so the download gets a .mp4 name and the optimistic message renders it as a video
+            expect(mockGetMimeTypeFromFileHeader).toHaveBeenCalledWith(file);
+            expect(result.isValid).toBe(true);
+            if (!result.isValid) {
+                throw new Error('validateAttachmentFile should return a valid result');
+            }
+            expect(result.file.name).toBe('recording.mp4');
+            expect(result.file.type).toBe('video/mp4');
+        });
+
+        it('leaves the name untouched when the header of an application/octet-stream file is not recognized', async () => {
+            // Given an extensionless file with the generic type whose header matches no known signature
+            const file: FileObject = {name: 'recording', size: 100, type: 'application/octet-stream', uri: 'content://documents/document/42'};
+
+            // When it is validated
+            const result = await validateAttachmentFile(file);
+
+            // Then no meaningless .bin extension is added and the type is kept
+            expect(result.isValid).toBe(true);
+            if (!result.isValid) {
+                throw new Error('validateAttachmentFile should return a valid result');
+            }
+            expect(result.file.name).toBe('recording');
+            expect(result.file.type).toBe('application/octet-stream');
+        });
+
+        it('does not read the file header when the MIME type or extension is already known', async () => {
+            // Given one file with a real MIME type and one with an extension
+            const fileWithType: FileObject = {name: 'recording', size: 100, type: 'video/mp4'};
+            const fileWithExtension: FileObject = {name: 'recording.mp4', size: 100, type: 'application/octet-stream'};
+
+            // When they are validated
+            await validateAttachmentFile(fileWithType);
+            await validateAttachmentFile(fileWithExtension);
+
+            // Then the header is never read, since the name can already be resolved
+            expect(mockGetMimeTypeFromFileHeader).not.toHaveBeenCalled();
+        });
+
+        it('detects the real type on the web File path when the browser reports no type', async () => {
+            // Given a web File with no extension and an empty type, which browsers report for such files
+            const createObjectURLSpy = jest.spyOn(URL, 'createObjectURL').mockReturnValue('blob:mock-url');
+            mockGetMimeTypeFromFileHeader.mockResolvedValue('video/mp4');
+            try {
+                const file: FileObject = new File([new Blob(['content'])], 'screen_recording', {type: ''});
+
+                // When it is validated
+                const result = await validateAttachmentFile(file);
+
+                // Then the snapshotted File gets the sniffed extension and type
+                expect(result.isValid).toBe(true);
+                if (!result.isValid) {
+                    throw new Error('validateAttachmentFile should return a valid result');
+                }
+                expect(result.file.name).toBe('screen_recording.mp4');
+                expect(result.file.type).toBe('video/mp4');
             } finally {
                 createObjectURLSpy.mockRestore();
             }

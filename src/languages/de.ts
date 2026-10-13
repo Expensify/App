@@ -26,6 +26,7 @@ import {CONST as COMMON_CONST, Str} from 'expensify-common';
 import startCase from 'lodash/startCase';
 
 import type en from './en';
+import type {CompanyCardBalanceParams} from './params';
 import type {TranslationDeepObject} from './types';
 type StateValue = {
     stateISO: string;
@@ -92,7 +93,9 @@ const translations: TranslationDeepObject<typeof en> = {
         selectMultiple: 'Mehrfachauswahl',
         saveChanges: 'Änderungen speichern',
         submit: 'Senden',
+        submitAnyway: 'Trotzdem senden',
         markAsDone: 'Als erledigt markieren',
+        markAsDoneAnyway: 'Trotzdem als erledigt markieren',
         submitted: 'Übermittelt',
         markedAsDoneStatus: 'Als erledigt markiert',
         rotate: 'Drehen',
@@ -450,6 +453,7 @@ const translations: TranslationDeepObject<typeof en> = {
         leaveWorkspaceReimburser:
             'Du kannst diesen Workspace als Erstattungsverantwortliche·r nicht verlassen. Bitte lege unter „Workspaces > Zahlungen senden oder nachverfolgen“ eine·n neue·n Erstattungsverantwortliche·n fest und versuche es erneut.',
         reimbursable: 'Erstattungsfähig',
+        nonReimbursable: 'Nicht erstattungsfähig',
         editYourProfile: 'Profil bearbeiten',
         comments: 'Kommentare',
         sharedIn: 'Geteilt in',
@@ -1319,7 +1323,7 @@ const translations: TranslationDeepObject<typeof en> = {
             phrase1: 'Beleg hinzufügen',
             phrase2: 'oder ziehe eine hierher und lege sie ab',
         },
-        pageCount: ({pageCount}: {pageCount: number}) => `Seite 1 von ${pageCount}`,
+        pageCount: ({page, pageCount}: {page: number; pageCount: number}) => `Seite ${page} von ${pageCount}`,
     },
     quickAction: {
         scanReceipt: 'Beleg scannen',
@@ -1424,8 +1428,15 @@ const translations: TranslationDeepObject<typeof en> = {
         pendingMatch: 'Ausstehende Zuordnung',
         pendingMatchWithCreditCardDescription: 'Beleg wartet auf Abgleich mit Kartenumsatz. Als Barzahlung markieren, um abzubrechen.',
         markAsCash: 'Als Bar markieren',
-        pendingMatchSubmitTitle: 'Bericht einreichen',
-        pendingMatchSubmitDescription: 'Einige Ausgaben warten auf die Zuordnung mit einer Kreditkartentransaktion. Möchten Sie sie als Bar markieren?',
+        confirmSubmitReportViolations: {
+            title: 'Bericht einreichen?',
+            description: 'Dieser Bericht enthält Richtlinienverstöße. Möchten Sie ihn wirklich ohne Änderungen einreichen?',
+            titleMarkAsDone: 'Als erledigt markieren?',
+            descriptionMarkAsDone: 'Dieser Bericht enthält Richtlinienverstöße. Möchten Sie ihn wirklich ohne Änderungen als erledigt markieren?',
+            rejectedExpense: 'Abgelehnte Ausgabe nicht als gelöst markiert',
+            reportRejected: 'Bericht zuvor abgelehnt',
+            pendingCardMatch: 'Ausgabe wartet auf mögliche Zuordnung zu einer Kartentransaktion',
+        },
         routePending: 'Routing ausstehend ...',
         automaticallyEnterExpenseDetails: 'Concierge füllt die Details für Sie aus.',
         receiptScanning: () => ({
@@ -1597,6 +1608,7 @@ const translations: TranslationDeepObject<typeof en> = {
         pendingConversionMessage: 'Die Gesamtsumme wird aktualisiert, sobald du wieder online bist',
         changedTheExpense: 'hat die Ausgabe geändert',
         addedReceipt: 'hat einen Beleg hinzugefügt',
+        removedReceipt: 'hat einen Beleg entfernt',
         setTheRequest: (valueName: string, newValueToDisplay: string) => `den Wert ${valueName} auf ${newValueToDisplay}`,
         setTheDistanceMerchant: (translatedChangedField: string, newMerchant: string, newAmountToDisplay: string) =>
             `lege ${translatedChangedField} auf ${newMerchant} fest, wodurch der Betrag auf ${newAmountToDisplay} gesetzt wurde`,
@@ -2299,6 +2311,7 @@ const translations: TranslationDeepObject<typeof en> = {
     displayNamePage: {
         headerTitle: 'Anzeigename',
         isShownOnProfile: 'Dein Anzeigename wird in deinem Profil angezeigt.',
+        isShownOnMemberProfile: 'Der Anzeigename wird im Profil des Mitglieds angezeigt. Sobald er gespeichert ist, kann ihn nur noch das Mitglied bearbeiten.',
     },
     timezonePage: {
         timezone: 'Zeitzone',
@@ -3991,6 +4004,10 @@ ${amount} für ${merchant} – ${date}`,
     },
     dynamicForm: {
         exampleHint: ({example}: {example: string}) => `Beispiel: ${example}`,
+        fileCount: ({count}: {count: number}) => ({
+            one: '1 Datei',
+            other: `${count} Dateien`,
+        }),
         error: {
             tooShort: ({minLength}: {minLength: number}) => `Muss mindestens ${minLength} Zeichen lang sein`,
             invalidFormat: ({example}: {example?: string}) => (example ? `Ungültiges Format. Beispiel: ${example}` : 'Ungültiges Format'),
@@ -6202,6 +6219,16 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
             submit: 'Einreichen',
         },
         companyCards: {
+            balance: {
+                currentBalance: 'Aktueller Kontostand',
+                remainingLimit: 'Verbleibendes Limit',
+                notAvailable: 'Nicht verfügbar',
+                currentBalanceDescription: ({lastUpdated}: CompanyCardBalanceParams) => `Der aktuelle Kontostand wird von Ihrer Bank gemeldet und zuletzt am ${lastUpdated} aktualisiert.`,
+                remainingLimitDescription: ({lastUpdated}: CompanyCardBalanceParams) =>
+                    `Der verbleibende Verfügungsrahmen wird von Ihrer Bank gemeldet und zuletzt am ${lastUpdated} aktualisiert.`,
+                currentBalanceDescriptionNoTimestamp: 'Der aktuelle Kontostand wird von Ihrer Bank gemeldet.',
+                remainingLimitDescriptionNoTimestamp: 'Der verbleibende Verfügungsrahmen wird von Ihrer Bank gemeldet.',
+            },
             addCards: 'Karten hinzufügen',
             selectCards: 'Karten auswählen',
             fromOtherWorkspaces: 'Aus anderen Workspaces',
@@ -9808,6 +9835,8 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
             return `hat die Kategorie „${categoryName}“ für Teilnehmende auf ${newValue ? 'erforderlich' : 'nicht erforderlich'} geändert (zuvor ${newValue ? 'nicht erforderlich' : 'erforderlich'})`;
         },
         updatedAutoHarvesting: (enabled: boolean) => `${enabled ? 'aktiviert' : 'deaktiviert'} Einreichungen`,
+        updatedMemberDisplayName: (newName: string, oldName: string, editProfileURL: string) =>
+            `hat Ihren Anzeigenamen in ${newName} geändert (zuvor „${oldName}“). <a href="${editProfileURL}">Im Profil bearbeiten</a>`,
         changedOverLimitForwardsTo: ({
             member,
             approver,
@@ -11333,6 +11362,16 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                 other: `${count} aktive Benutzer`,
             }),
             state: {paid: 'Bezahlt', cleared: 'Ausgeglichen', failed: 'Fehlgeschlagen', refunded: 'Erstattet', disputed: 'Angefochten', balanceTransfer: 'Saldoübertrag'},
+            details: 'Zahlungsdetails',
+            badge: {
+                balanceTransferTo: ({email}: {email: string}) => `Saldoübertrag an ${email}`,
+                balanceTransferFrom: ({email}: {email: string}) => `Saldoübertrag von ${email}`,
+                disputedPending: ({date}: {date: string}) => `Angefochten am ${date} (Ausstehend)`,
+                disputedRefunded: ({date}: {date: string}) => `Angefochten am ${date} (Erstattet)`,
+                disputedClosed: ({date}: {date: string}) => `Angefochten am ${date} (Abgeschlossen)`,
+                refundedOn: ({date}: {date: string}) => `Erstattet am ${date}`,
+                refundedAmountOn: ({amount, date}: {amount: string; date: string}) => `${amount} erstattet am ${date}`,
+            },
         },
         subscriptionSettings: {
             title: 'Abonnementeinstellungen',

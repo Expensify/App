@@ -22,6 +22,7 @@ import {CONST as COMMON_CONST, Str} from 'expensify-common';
 import startCase from 'lodash/startCase';
 
 import type en from './en';
+import type {CompanyCardBalanceParams} from './params';
 import type {AllConnectionName, PolicyConnectionSyncStage} from './TranslationTypes';
 import type {TranslationDeepObject} from './types';
 type StateValue = {
@@ -96,7 +97,9 @@ const translations: TranslationDeepObject<typeof en> = {
         selectMultiple: 'Πολλαπλή επιλογή',
         saveChanges: 'Αποθήκευση αλλαγών',
         submit: 'Υποβολή',
+        submitAnyway: 'Υποβολή ούτως ή άλλως',
         markAsDone: 'Σήμανση ως ολοκληρωμένο',
+        markAsDoneAnyway: 'Σήμανση ως ολοκληρωμένο ούτως ή άλλως',
         submitted: 'Υποβλήθηκε',
         markedAsDoneStatus: 'Έχει σημανθεί ως ολοκληρωμένο',
         rotate: 'Περιστροφή',
@@ -449,6 +452,7 @@ const translations: TranslationDeepObject<typeof en> = {
         leaveWorkspaceReimburser:
             'Δεν μπορείτε να αποχωρήσετε από αυτόν τον χώρο εργασίας ως αυτός που πραγματοποιεί τις επιστροφές χρημάτων. Ορίστε νέο υπεύθυνο επιστροφών στο Χώροι εργασίας > Πραγματοποίηση ή παρακολούθηση πληρωμών και δοκιμάστε ξανά.',
         reimbursable: 'Επανεντάξιμο',
+        nonReimbursable: 'Μη επιστρέψιμο',
         editYourProfile: 'Επεξεργαστείτε το προφίλ σας',
         comments: 'Σχόλια',
         sharedIn: 'Κοινοποιήθηκε σε',
@@ -1364,7 +1368,7 @@ const translations: TranslationDeepObject<typeof en> = {
             phrase1: 'Προσθήκη απόδειξης',
             phrase2: 'ή σύρετε και αποθέστε ένα εδώ',
         },
-        pageCount: ({pageCount}: {pageCount: number}) => `Σελίδα 1 από ${pageCount}`,
+        pageCount: ({page, pageCount}: {page: number; pageCount: number}) => `Σελίδα ${page} από ${pageCount}`,
     },
     quickAction: {
         scanReceipt: 'Σαρώστε απόδειξη',
@@ -1469,8 +1473,15 @@ const translations: TranslationDeepObject<typeof en> = {
         pendingMatch: 'Εκκρεμής αντιστοίχιση',
         pendingMatchWithCreditCardDescription: 'Η απόδειξη εκκρεμεί για αντιστοίχιση με συναλλαγή κάρτας. Επισημάνετε την ως μετρητά για ακύρωση.',
         markAsCash: 'Σήμανση ως μετρητά',
-        pendingMatchSubmitTitle: 'Υποβολή αναφοράς',
-        pendingMatchSubmitDescription: 'Κάποιες δαπάνες αναμένουν αντιστοίχιση με συναλλαγή πιστωτικής κάρτας. Θέλετε να τις σημάνετε ως μετρητά;',
+        confirmSubmitReportViolations: {
+            title: 'Υποβολή αναφοράς;',
+            description: 'Αυτή η αναφορά έχει παραβιάσεις πολιτικής. Είστε σίγουροι ότι θέλετε να την υποβάλετε χωρίς αλλαγές;',
+            titleMarkAsDone: 'Σήμανση ως ολοκληρωμένο;',
+            descriptionMarkAsDone: 'Αυτή η αναφορά έχει παραβιάσεις πολιτικής. Είστε σίγουροι ότι θέλετε να τη σημάνετε ως ολοκληρωμένη χωρίς αλλαγές;',
+            rejectedExpense: 'Απορριφθέν έξοδο δεν έχει επισημανθεί ως επιλυμένο',
+            reportRejected: 'Η αναφορά απορρίφθηκε προηγουμένως',
+            pendingCardMatch: 'Έξοδο σε αναμονή πιθανής αντιστοίχισης με συναλλαγή κάρτας',
+        },
         routePending: 'Εκκρεμεί προώθηση διαδρομής...',
         automaticallyEnterExpenseDetails: 'Το Concierge θα συμπληρώσει τις λεπτομέρειες για εσάς.',
         receiptScanning: () => ({
@@ -1648,6 +1659,7 @@ const translations: TranslationDeepObject<typeof en> = {
         pendingConversionMessage: 'Το σύνολο θα ενημερωθεί όταν είστε ξανά συνδεδεμένοι στο διαδίκτυο',
         changedTheExpense: 'τροποποίησε την δαπάνη',
         addedReceipt: 'πρόσθεσε μια απόδειξη',
+        removedReceipt: 'αφαίρεσε μια απόδειξη',
         setTheRequest: (valueName: string, newValueToDisplay: string) => `η τιμή ${valueName} σε ${newValueToDisplay}`,
         setTheDistanceMerchant: (translatedChangedField: string, newMerchant: string, newAmountToDisplay: string) =>
             `ορίστηκε το ${translatedChangedField} σε ${newMerchant}, το οποίο όρισε το ποσό σε ${newAmountToDisplay}`,
@@ -2348,6 +2360,7 @@ const translations: TranslationDeepObject<typeof en> = {
     displayNamePage: {
         headerTitle: 'Εμφανιζόμενο όνομα',
         isShownOnProfile: 'Το εμφανιζόμενο όνομά σας εμφανίζεται στο προφίλ σας.',
+        isShownOnMemberProfile: 'Το εμφανιζόμενο όνομα θα εμφανίζεται στο προφίλ του μέλους. Μόλις αποθηκευτεί, μόνο το μέλος μπορεί να το επεξεργαστεί.',
     },
     timezonePage: {
         timezone: 'Ζώνη ώρας',
@@ -4039,6 +4052,10 @@ ${amount} για ${merchant} - ${date}`,
     },
     dynamicForm: {
         exampleHint: ({example}: {example: string}) => `Παράδειγμα: ${example}`,
+        fileCount: ({count}: {count: number}) => ({
+            one: '1 αρχείο',
+            other: `${count} αρχεία`,
+        }),
         error: {
             tooShort: ({minLength}: {minLength: number}) => `Πρέπει να έχει τουλάχιστον ${minLength} χαρακτήρες`,
             invalidFormat: ({example}: {example?: string}) => (example ? `Μη έγκυρη μορφή. Παράδειγμα: ${example}` : 'Μη έγκυρη μορφή'),
@@ -6489,6 +6506,17 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
             assignNewCards: {
                 title: 'Ανάθεση νέων καρτών',
                 description: 'Λάβετε τις πιο πρόσφατες κάρτες προς ανάθεση από την τράπεζά σας',
+            },
+            balance: {
+                currentBalance: 'Τρέχον υπόλοιπο',
+                remainingLimit: 'Υπόλοιπο ορίου',
+                notAvailable: 'Μη διαθέσιμο',
+                currentBalanceDescription: ({lastUpdated}: CompanyCardBalanceParams) =>
+                    `Το τρέχον υπόλοιπο αναφέρεται από την τράπεζά σας και ενημερώθηκε τελευταία φορά στις ${lastUpdated}.`,
+                remainingLimitDescription: ({lastUpdated}: CompanyCardBalanceParams) =>
+                    `Το υπόλοιπο ορίου αναφέρεται από την τράπεζά σας και ενημερώθηκε τελευταία φορά στις ${lastUpdated}.`,
+                currentBalanceDescriptionNoTimestamp: 'Το τρέχον υπόλοιπο αναφέρεται από την τράπεζά σας.',
+                remainingLimitDescriptionNoTimestamp: 'Το υπόλοιπο ορίου αναφέρεται από την τράπεζά σας.',
             },
         },
         expensifyCard: {
@@ -9988,6 +10016,8 @@ ${reportName}`,
         updateAreAttendeesRequired: (categoryName: string, newValue: boolean) => {
             return `άλλαξε τους συμμετέχοντες της κατηγορίας «${categoryName}» σε ${newValue ? 'υποχρεωτικό' : 'μη υποχρεωτικό'} (προηγουμένως ${newValue ? 'μη υποχρεωτικό' : 'υποχρεωτικό'})`;
         },
+        updatedMemberDisplayName: (newName: string, oldName: string, editProfileURL: string) =>
+            `ενημέρωσε το εμφανιζόμενο όνομά σας σε ${newName} (προηγουμένως «${oldName}»). <a href="${editProfileURL}">Επεξεργαστείτε το στο προφίλ σας</a>`,
         changedOverLimitForwardsTo: ({
             member,
             approver,
@@ -11546,6 +11576,16 @@ ${reportName}`,
                 other: `${count} ενεργοί χρήστες`,
             }),
             state: {paid: 'Πληρωμένο', cleared: 'Εκκαθαρισμένο', failed: 'Απέτυχε', refunded: 'Επιστράφηκε', disputed: 'Αμφισβητούμενη', balanceTransfer: 'Μεταφορά υπολοίπου'},
+            details: 'Στοιχεία πληρωμής',
+            badge: {
+                balanceTransferTo: ({email}: {email: string}) => `Μεταφορά υπολοίπου σε ${email}`,
+                balanceTransferFrom: ({email}: {email: string}) => `Μεταφορά υπολοίπου από ${email}`,
+                disputedPending: ({date}: {date: string}) => `Αμφισβητήθηκε στις ${date} (Σε εκκρεμότητα)`,
+                disputedRefunded: ({date}: {date: string}) => `Αμφισβητήθηκε στις ${date} (Επιστράφηκε)`,
+                disputedClosed: ({date}: {date: string}) => `Αμφισβητήθηκε στις ${date} (Έκλεισε)`,
+                refundedOn: ({date}: {date: string}) => `Επιστράφηκε στις ${date}`,
+                refundedAmountOn: ({amount, date}: {amount: string; date: string}) => `Επιστράφηκαν ${amount} στις ${date}`,
+            },
         },
         subscriptionSettings: {
             title: 'Ρυθμίσεις συνδρομής',

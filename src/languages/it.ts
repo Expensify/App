@@ -26,6 +26,7 @@ import {CONST as COMMON_CONST, Str} from 'expensify-common';
 import startCase from 'lodash/startCase';
 
 import type en from './en';
+import type {CompanyCardBalanceParams} from './params';
 import type {TranslationDeepObject} from './types';
 type StateValue = {
     stateISO: string;
@@ -92,7 +93,9 @@ const translations: TranslationDeepObject<typeof en> = {
         selectMultiple: 'Selezione multipla',
         saveChanges: 'Salva modifiche',
         submit: 'Invia',
+        submitAnyway: 'Invia comunque',
         markAsDone: 'Segna come completata',
+        markAsDoneAnyway: 'Segna comunque come completata',
         submitted: 'Inviato',
         markedAsDoneStatus: 'Contrassegnato come completato',
         rotate: 'Ruota',
@@ -450,6 +453,7 @@ const translations: TranslationDeepObject<typeof en> = {
         leaveWorkspaceReimburser:
             'Non puoi lasciare questo spazio di lavoro come rimborsatore. Imposta un nuovo rimborsatore in Spazi di lavoro > Effettua o monitora pagamenti, quindi riprova.',
         reimbursable: 'Rimborsabile',
+        nonReimbursable: 'Non rimborsabile',
         editYourProfile: 'Modifica il tuo profilo',
         comments: 'Commenti',
         sharedIn: 'Condiviso in',
@@ -1316,7 +1320,7 @@ const translations: TranslationDeepObject<typeof en> = {
             phrase1: 'Aggiungi una ricevuta',
             phrase2: 'o trascinalo qui',
         },
-        pageCount: ({pageCount}: {pageCount: number}) => `Pagina 1 di ${pageCount}`,
+        pageCount: ({page, pageCount}: {page: number; pageCount: number}) => `Pagina ${page} di ${pageCount}`,
     },
     quickAction: {
         scanReceipt: 'Scansiona ricevuta',
@@ -1421,8 +1425,15 @@ const translations: TranslationDeepObject<typeof en> = {
         pendingMatch: 'Corrispondenza in sospeso',
         pendingMatchWithCreditCardDescription: 'Ricevuta in attesa di abbinamento con la transazione della carta. Contrassegna come contante per annullare.',
         markAsCash: 'Segna come contante',
-        pendingMatchSubmitTitle: 'Invia report',
-        pendingMatchSubmitDescription: 'Alcune spese sono in attesa di abbinamento con una transazione della carta di credito. Vuoi segnarle come contante?',
+        confirmSubmitReportViolations: {
+            title: 'Invia il rapporto?',
+            description: 'Questo rapporto presenta violazioni delle norme. Sei sicuro di volerlo inviare senza apportare modifiche?',
+            titleMarkAsDone: 'Segnare come completata?',
+            descriptionMarkAsDone: 'Questo rapporto presenta violazioni delle norme. Sei sicuro di volerlo segnare come completata senza apportare modifiche?',
+            rejectedExpense: 'Spesa rifiutata non contrassegnata come risolta',
+            reportRejected: 'Rapporto precedentemente rifiutato',
+            pendingCardMatch: 'Spesa in attesa di un possibile abbinamento con una transazione della carta',
+        },
         routePending: 'Instradamento in sospeso...',
         automaticallyEnterExpenseDetails: 'Concierge compilerà i dettagli per te.',
         receiptScanning: () => ({
@@ -1593,6 +1604,7 @@ const translations: TranslationDeepObject<typeof en> = {
         pendingConversionMessage: 'Il totale verrà aggiornato quando torni online',
         changedTheExpense: 'ha modificato la spesa',
         addedReceipt: 'ha aggiunto una ricevuta',
+        removedReceipt: 'ha rimosso una ricevuta',
         setTheRequest: (valueName: string, newValueToDisplay: string) => `${valueName} a ${newValueToDisplay}`,
         setTheDistanceMerchant: (translatedChangedField: string, newMerchant: string, newAmountToDisplay: string) =>
             `imposta ${translatedChangedField} su ${newMerchant}, che ha impostato l’importo su ${newAmountToDisplay}`,
@@ -2292,6 +2304,7 @@ const translations: TranslationDeepObject<typeof en> = {
     displayNamePage: {
         headerTitle: 'Nome visualizzato',
         isShownOnProfile: 'Il tuo nome visualizzato viene mostrato sul tuo profilo.',
+        isShownOnMemberProfile: 'Il nome visualizzato apparirà sul profilo del membro. Una volta salvato, solo il membro potrà modificarlo.',
     },
     timezonePage: {
         timezone: 'Fuso orario',
@@ -3969,6 +3982,10 @@ ${amount} per ${merchant} - ${date}`,
     },
     dynamicForm: {
         exampleHint: ({example}: {example: string}) => `Esempio: ${example}`,
+        fileCount: ({count}: {count: number}) => ({
+            one: '1 file',
+            other: `${count} file`,
+        }),
         error: {
             tooShort: ({minLength}: {minLength: number}) => `Deve contenere almeno ${minLength} caratteri`,
             invalidFormat: ({example}: {example?: string}) => (example ? `Formato non valido. Esempio: ${example}` : 'Formato non valido'),
@@ -6156,6 +6173,16 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
             submit: 'Invia',
         },
         companyCards: {
+            balance: {
+                currentBalance: 'Saldo attuale',
+                remainingLimit: 'Limite rimanente',
+                notAvailable: 'Non disponibile',
+                currentBalanceDescription: ({lastUpdated}: CompanyCardBalanceParams) =>
+                    `Il saldo attuale è comunicato dalla tua banca ed è stato aggiornato l’ultima volta il ${lastUpdated}.`,
+                remainingLimitDescription: ({lastUpdated}: CompanyCardBalanceParams) => `Il limite residuo è comunicato dalla tua banca e aggiornato l’ultima volta il ${lastUpdated}.`,
+                currentBalanceDescriptionNoTimestamp: 'Il saldo attuale è riportato dalla tua banca.',
+                remainingLimitDescriptionNoTimestamp: 'Il limite residuo è riportato dalla tua banca.',
+            },
             addCards: 'Aggiungi carte',
             selectCards: 'Seleziona carte',
             fromOtherWorkspaces: 'Da altri spazi di lavoro',
@@ -9761,6 +9788,8 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
             return `ha modificato i partecipanti della categoria "${categoryName}" in ${newValue ? 'obbligatorio' : 'non obbligatorio'} (in precedenza ${newValue ? 'non obbligatorio' : 'obbligatorio'})`;
         },
         updatedAutoHarvesting: (enabled: boolean) => `invii ${enabled ? 'abilitato' : 'disattivato'}`,
+        updatedMemberDisplayName: (newName: string, oldName: string, editProfileURL: string) =>
+            `ha aggiornato il tuo nome visualizzato in ${newName} (precedentemente “${oldName}”). <a href="${editProfileURL}">Modifica nel tuo profilo</a>`,
         changedOverLimitForwardsTo: ({
             member,
             approver,
@@ -11283,6 +11312,16 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
                 other: `${count} utenti attivi`,
             }),
             state: {paid: 'Pagato', cleared: 'Compensato', failed: 'Non riuscito', refunded: 'Rimborsato', disputed: 'Contestata', balanceTransfer: 'Trasferimento di saldo'},
+            details: 'Dettagli del pagamento',
+            badge: {
+                balanceTransferTo: ({email}: {email: string}) => `Trasferimento di saldo a ${email}`,
+                balanceTransferFrom: ({email}: {email: string}) => `Trasferimento di saldo da ${email}`,
+                disputedPending: ({date}: {date: string}) => `Contestato il ${date} (In sospeso)`,
+                disputedRefunded: ({date}: {date: string}) => `Contestato il ${date} (Rimborsato)`,
+                disputedClosed: ({date}: {date: string}) => `Contestato il ${date} (Chiuso)`,
+                refundedOn: ({date}: {date: string}) => `Rimborsato il ${date}`,
+                refundedAmountOn: ({amount, date}: {amount: string; date: string}) => `Rimborsati ${amount} il ${date}`,
+            },
         },
         subscriptionSettings: {
             title: 'Impostazioni abbonamento',
