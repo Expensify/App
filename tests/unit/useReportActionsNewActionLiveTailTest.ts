@@ -31,7 +31,7 @@ jest.mock('@hooks/useCurrentUserPersonalDetails', () => ({
     default: () => ({accountID: 1}),
 }));
 
-let mockNavigation: Record<string, unknown> = {setParams: mockNavigationSetParams, getState: () => ({key: 'stack-report'})};
+let mockNavigation: Record<string, unknown> = {setParams: mockNavigationSetParams, getState: () => ({key: 'stack-report'}), isFocused: () => true};
 let mockIsInSidePanel = false;
 
 jest.mock('@react-navigation/native', () => ({
@@ -119,7 +119,7 @@ describe('useReportActionsNewActionLiveTail', () => {
     beforeEach(() => {
         jest.clearAllMocks();
         newActionHandler = undefined;
-        mockNavigation = {setParams: mockNavigationSetParams, getState: () => ({key: 'stack-report'})};
+        mockNavigation = {setParams: mockNavigationSetParams, getState: () => ({key: 'stack-report'}), isFocused: () => true};
         mockIsInSidePanel = false;
     });
 
@@ -250,10 +250,68 @@ describe('useReportActionsNewActionLiveTail', () => {
 
         // When openReport finishes and the newest actions arrive
         rerender(buildParams({markNewestActionAsRead, prevIsLoadingInitialReportActions: true, reportLoadingState: {isLoadingInitialReportActions: false}}));
-        rerender(buildParams({markNewestActionAsRead, prevIsLoadingInitialReportActions: false, reportLoadingState: {isLoadingInitialReportActions: false}, hasNewestReportAction: true}));
+        rerender(
+            buildParams({
+                markNewestActionAsRead,
+                prevIsLoadingInitialReportActions: false,
+                reportLoadingState: {isLoadingInitialReportActions: false},
+                hasNewestReportAction: true,
+                hasNewerActions: false,
+            }),
+        );
 
         // Then the report is marked as read once, alongside hiding the pill
         expect(markNewestActionAsRead).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not mark the report as read when the user sends a comment offline while newer actions are not loaded', () => {
+        // Given an offline report with a gap of newer actions on the server. The optimistic comment still sits at the
+        // top of the newest chain, so hasNewestReportAction is true even though newer actions are missing.
+        const markNewestActionAsRead = jest.fn();
+        renderHook((props: HookParams) => useReportActionsNewActionLiveTail(props), {
+            initialProps: buildParams({isOffline: true, hasNewerActions: true, hasNewestReportAction: true, markNewestActionAsRead}),
+        });
+
+        // When the current user sends a comment, which scrolls directly because the live-tail jump can't run offline
+        act(() => {
+            newActionHandler?.(true, getFakeReportAction(1, {actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT}));
+        });
+
+        // Then the list still scrolls, but nothing is marked as read, so the unloaded actions stay unread
+        expect(reportScrollManager.scrollToBottom).toHaveBeenCalledTimes(1);
+        expect(markNewestActionAsRead).not.toHaveBeenCalled();
+    });
+
+    it('does not mark the report as read when the live-tail jump finishes after the user switched to another report', () => {
+        // Given a live-tail jump started by the user's comment
+        const markNewestActionAsRead = jest.fn();
+        const setIsFloatingMessageCounterVisible = jest.fn();
+        const {rerender} = renderHook((props: HookParams) => useReportActionsNewActionLiveTail(props), {
+            initialProps: buildParams({markNewestActionAsRead, setIsFloatingMessageCounterVisible}),
+        });
+        act(() => {
+            newActionHandler?.(true, getFakeReportAction(1, {actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT}));
+        });
+
+        // When the user switches to another report, leaving this screen mounted in the background on web, and openReport then finishes
+        mockNavigation = {...mockNavigation, isFocused: () => false};
+        rerender(
+            buildParams({markNewestActionAsRead, setIsFloatingMessageCounterVisible, prevIsLoadingInitialReportActions: true, reportLoadingState: {isLoadingInitialReportActions: false}}),
+        );
+        rerender(
+            buildParams({
+                markNewestActionAsRead,
+                setIsFloatingMessageCounterVisible,
+                prevIsLoadingInitialReportActions: false,
+                reportLoadingState: {isLoadingInitialReportActions: false},
+                hasNewestReportAction: true,
+                hasNewerActions: false,
+            }),
+        );
+
+        // Then the jump still completes, but the background report is not marked as read
+        expect(setIsFloatingMessageCounterVisible).toHaveBeenCalledWith(false);
+        expect(markNewestActionAsRead).not.toHaveBeenCalled();
     });
 
     it('still loads the live tail when an unread marker is set and the newest actions are not loaded', () => {
