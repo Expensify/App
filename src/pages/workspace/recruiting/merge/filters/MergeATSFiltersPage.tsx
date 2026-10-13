@@ -2,7 +2,6 @@ import Button from '@components/Button';
 import FixedFooter from '@components/FixedFooter';
 import FormHelpMessage from '@components/FormHelpMessage';
 import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
-import MenuItem from '@components/MenuItem';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -23,8 +22,6 @@ import type {MergeATSFiltersNavigatorParamList} from '@libs/Navigation/types';
 
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
-
-import {callFunctionIfActionIsAllowed} from '@userActions/Session';
 
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
@@ -121,19 +118,13 @@ function MergeATSFiltersPage({
                                     onToggle={(isEnabled) => toggleFilter(filterType, isEnabled)}
                                     subMenuItems={
                                         <>
-                                            <MenuItem.Root
-                                                style={[styles.ph5, styles.mv3]}
-                                                onPress={callFunctionIfActionIsAllowed(() =>
-                                                    Navigation.navigate(ROUTES.WORKSPACE_RECRUITING_MERGE_IMPORT_SETTINGS_FILTER.getRoute(policyID, filterType)),
-                                                )}
-                                            >
-                                                <MenuItemField.Row
+                                            <View style={styles.mv3}>
+                                                <MenuItemField
                                                     name={rowDescription}
                                                     value={getMergeATSFilterLabel(filterType, filters, mergeATS?.data, translate)}
-                                                >
-                                                    <MenuItem.Chevron />
-                                                </MenuItemField.Row>
-                                            </MenuItem.Root>
+                                                    onPress={() => Navigation.navigate(ROUTES.WORKSPACE_RECRUITING_MERGE_IMPORT_SETTINGS_FILTER.getRoute(policyID, filterType))}
+                                                />
+                                            </View>
                                             {index !== filterRows.length - 1 && <View style={[styles.sectionDividerLine, styles.mh5]} />}
                                         </>
                                     }

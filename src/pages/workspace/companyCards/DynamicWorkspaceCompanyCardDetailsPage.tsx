@@ -56,7 +56,6 @@ import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import variables from '@styles/variables';
 
 import {clearCompanyCardErrorField, unassignWorkspaceCompanyCard, updateWorkspaceCompanyCard} from '@userActions/CompanyCards';
-import {callFunctionIfActionIsAllowed} from '@userActions/Session';
 
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
@@ -287,35 +286,29 @@ function DynamicWorkspaceCompanyCardDetailsPage({route}: DynamicWorkspaceCompany
                         />
                     )}
                     {canWriteCompanyCards && (
-                        <MenuItem.Root
-                            style={styles.mb1}
-                            onPress={callFunctionIfActionIsAllowed(() => {
-                                showConfirmModal({
-                                    shouldSetModalVisibility: false,
-                                    title: translate('workspace.moreFeatures.companyCards.unassignCard'),
-                                    prompt: translate('workspace.moreFeatures.companyCards.unassignCardDescription'),
-                                    confirmText: translate('workspace.moreFeatures.companyCards.unassign'),
-                                    cancelText: translate('common.cancel'),
-                                    buttonVariant: CONST.BUTTON_VARIANT.DANGER,
-                                }).then((result) => {
-                                    if (result.action !== ModalActions.CONFIRM) {
-                                        return;
-                                    }
+                        <View style={styles.mb1}>
+                            <MenuItemAction
+                                icon={expensifyIcons.RemoveMembers}
+                                title={translate('workspace.moreFeatures.companyCards.unassignCard')}
+                                onPress={() => {
+                                    showConfirmModal({
+                                        shouldSetModalVisibility: false,
+                                        title: translate('workspace.moreFeatures.companyCards.unassignCard'),
+                                        prompt: translate('workspace.moreFeatures.companyCards.unassignCardDescription'),
+                                        confirmText: translate('workspace.moreFeatures.companyCards.unassign'),
+                                        cancelText: translate('common.cancel'),
+                                        buttonVariant: CONST.BUTTON_VARIANT.DANGER,
+                                    }).then((result) => {
+                                        if (result.action !== ModalActions.CONFIRM) {
+                                            return;
+                                        }
 
-                                    unassignCard();
-                                });
-                            })}
-                            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.COMPANY_CARDS.UNASSIGN_CARD}
-                        >
-                            <MenuItem.Row>
-                                <MenuItem.Leading>
-                                    <MenuItem.Icon src={expensifyIcons.RemoveMembers} />
-                                </MenuItem.Leading>
-                                <MenuItem.Content>
-                                    <MenuItem.Title>{translate('workspace.moreFeatures.companyCards.unassignCard')}</MenuItem.Title>
-                                </MenuItem.Content>
-                            </MenuItem.Row>
-                        </MenuItem.Root>
+                                        unassignCard();
+                                    });
+                                }}
+                                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.COMPANY_CARDS.UNASSIGN_CARD}
+                            />
+                        </View>
                     )}
                     {exportMenuItem?.shouldShowMenuItem ? (
                         <>

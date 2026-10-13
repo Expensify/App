@@ -455,19 +455,13 @@ function DynamicWorkspaceExpensifyCardDetailsPage({route}: DynamicWorkspaceExpen
                             />
                         )}
                         {canWriteExpensifyCard && !isDeactivated && (
-                            <MenuItem.Root
-                                style={styles.mb1}
-                                onPress={callFunctionIfActionIsAllowed(() => (isOffline ? setIsOfflineModalVisible(true) : deactivateCard()))}
-                            >
-                                <MenuItem.Row>
-                                    <MenuItem.Leading>
-                                        <MenuItem.Icon src={expensifyIcons.Trashcan} />
-                                    </MenuItem.Leading>
-                                    <MenuItem.Content>
-                                        <MenuItem.Title>{translate('workspace.expensifyCard.deactivate')}</MenuItem.Title>
-                                    </MenuItem.Content>
-                                </MenuItem.Row>
-                            </MenuItem.Root>
+                            <View style={styles.mb1}>
+                                <MenuItemAction
+                                    icon={expensifyIcons.Trashcan}
+                                    title={translate('workspace.expensifyCard.deactivate')}
+                                    onPress={() => (isOffline ? setIsOfflineModalVisible(true) : deactivateCard())}
+                                />
+                            </View>
                         )}
                     </View>
                     {exportMenuItem?.shouldShowMenuItem ? (

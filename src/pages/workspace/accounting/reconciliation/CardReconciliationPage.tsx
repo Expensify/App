@@ -1,7 +1,6 @@
 import CardFeedIcon from '@components/CardFeedIcon';
 import FeedSelector from '@components/FeedSelector';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import MenuItem from '@components/MenuItem';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import RenderHTML from '@components/RenderHTML';
@@ -33,7 +32,6 @@ import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOpt
 import variables from '@styles/variables';
 
 import {toggleContinuousReconciliation} from '@userActions/Card';
-import {callFunctionIfActionIsAllowed} from '@userActions/Session';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -199,19 +197,13 @@ function CardReconciliationPage({policy, route}: CardReconciliationPageProps) {
                     )}
                     <OfflineWithFeedback pendingAction={continuousReconciliationPendingAction}>
                         {!!paymentBankAccountID && !!continuousReconciliation && (
-                            <MenuItem.Root
-                                style={styles.mt5}
-                                onPress={callFunctionIfActionIsAllowed(() =>
-                                    Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_ACCOUNTING_RECONCILIATION_ACCOUNT_SETTINGS.path)),
-                                )}
-                            >
-                                <MenuItemField.Row
+                            <View style={styles.mt5}>
+                                <MenuItemField
                                     name={translate('workspace.accounting.reconciliationAccount')}
                                     value={bankAccountTitle}
-                                >
-                                    <MenuItem.Chevron />
-                                </MenuItemField.Row>
-                            </MenuItem.Root>
+                                    onPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_ACCOUNTING_RECONCILIATION_ACCOUNT_SETTINGS.path))}
+                                />
+                            </View>
                         )}
                     </OfflineWithFeedback>
                 </ScrollView>

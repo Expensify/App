@@ -4,7 +4,6 @@ import Button from '@components/Button';
 import CalendarPicker from '@components/DatePicker/CalendarPicker';
 import DotIndicatorMessage from '@components/DotIndicatorMessage';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import MenuItem from '@components/MenuItem';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import {useSession} from '@components/OnyxListItemProvider';
 import RenderHTML from '@components/RenderHTML';
@@ -193,12 +192,12 @@ function ScheduleCallPage() {
                                 />
                             </View>
                         </View>
-                        <MenuItem.Root style={[styles.mt3, styles.mb3]}>
-                            <MenuItemField.Row
+                        <View style={[styles.mt3, styles.mb3]}>
+                            <MenuItemField
                                 name={translate('timezonePage.timezone')}
                                 value={userTimezone}
                             />
-                        </MenuItem.Root>
+                        </View>
                         {!isEmptyObject(adminReportNameValuePairs?.calendlySchedule?.errors) && (
                             <DotIndicatorMessage
                                 type="error"
