@@ -134,4 +134,3 @@ export {
     shouldShowNetSuiteOAuthMigrationNudge,
     getNetSuiteOAuthMigrationSeverity,
 };
-export type {NetSuiteOAuthMigrationSeverity};

@@ -6,12 +6,14 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type Policy from '@src/types/onyx/Policy';
 
+import type {PartialDeep} from 'type-fest';
+
 import Onyx from 'react-native-onyx';
 
 import createMock from '../../utils/createMock';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
-function makePolicy(id: string, overrides: Partial<Policy> = {}): Policy {
+function makePolicy(id: string, overrides: PartialDeep<Policy, {recurseIntoArrays: true}> = {}): Policy {
     return createMock<Policy>({
         id,
         name: overrides.name ?? `Workspace ${id}`,
