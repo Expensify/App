@@ -70,6 +70,7 @@ function MerchantRuleSuggestionBannerContent({reportID, policyID, containerStyle
     const {translate} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['Lightbulb']);
     const {suggestion, fields, editedTagLevels, transaction, policy} = useMerchantRuleSuggestion(reportID, policyID);
+    const offeringTransactionID = suggestion?.transactionID;
     const isShowing = !!suggestion && !!policyID;
 
     // Sprung in from the edge it is pinned to, the way FloatingMessageCounter moves its pill. A reanimated entering
@@ -109,7 +110,7 @@ function MerchantRuleSuggestionBannerContent({reportID, policyID, containerStyle
         markMerchantRuleSuggestionSeen(reportID);
     }, [isShowing, reportID, isComposerFullSize, suggestion?.seenInReportID]);
 
-    if (!suggestion || !policyID) {
+    if (!suggestion || !policyID || !offeringTransactionID) {
         return null;
     }
 
@@ -125,7 +126,7 @@ function MerchantRuleSuggestionBannerContent({reportID, policyID, containerStyle
         setDraftMerchantRule(draft);
         // The offer was taken, so it must not still be asking on the way back, and the recording ends here. Editing
         // the expense again starts fresh instead of repeating fields already in this rule.
-        clearMerchantRuleSuggestionFields(suggestion.transactionID);
+        clearMerchantRuleSuggestionFields(offeringTransactionID);
         retireMerchantRuleSuggestion();
         Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.RULES_MERCHANT_NEW_FROM_EXPENSE.getRoute(policyID)));
     };

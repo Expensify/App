@@ -45,8 +45,8 @@ type TrackMerchantRuleSuggestionParams = {
  * site, where the data already is, and lets an edit made offline still offer once its queued write is sent.
  *
  * Edits accumulate per expense until the offer is taken, so one rule can carry category, tag and tax together. Only
- * the most recently edited expense offers. Recorded for anyone on the workspace; `useMerchantRuleSuggestion` decides
- * who actually sees the callout.
+ * the most recently confirmed expense offers. Recorded for anyone on the workspace; `useMerchantRuleSuggestion`
+ * decides who actually sees the callout.
  */
 function trackMerchantRuleSuggestion({transactionID, field, reportID, policy, policyCategories, transaction, parentReport, editedTagLevels}: TrackMerchantRuleSuggestionParams) {
     // Skip workspaces that could not hold a merchant rule, otherwise an edit made with Rules off would surface the
@@ -69,11 +69,10 @@ function trackMerchantRuleSuggestion({transactionID, field, reportID, policy, po
         return;
     }
 
-    // Merged rather than set, so dismissals survive and `editedFields` accumulates. `isRetired` belongs to the offer
-    // being replaced, so it is cleared: a new edit is a new offer.
+    // Merged rather than set, so dismissals survive and `editedFields` accumulates. Nothing here says this expense is
+    // the one offering, since only a confirmation can decide that.
     Onyx.merge(ONYXKEYS.RAM_ONLY_MERCHANT_RULE_SUGGESTION, {
-        transactionID,
-        reportID,
+        reportIDs: {[transactionID]: reportID},
         editedFields: {[transactionID]: {[field]: true}},
         // A fresh edit of this field answers to its own response, so an earlier confirmation of it must not stand in
         // for one. Other fields keep theirs, which is what lets an offer earned on category survive editing the tag.
@@ -81,7 +80,6 @@ function trackMerchantRuleSuggestion({transactionID, field, reportID, policy, po
         // Keyed by level so editing several levels of one tag accumulates, the same way fields do.
         ...(editedTagLevels?.length ? {editedTagLevels: {[transactionID]: Object.fromEntries(editedTagLevels.map((level) => [level, true]))}} : {}),
         seenInReportID: null,
-        isRetired: null,
     });
 }
 
@@ -98,7 +96,18 @@ function trackMerchantRuleSuggestion({transactionID, field, reportID, policy, po
  * one's value.
  */
 function setMerchantRuleSuggestionConfirmation(transactionID: string, field: MerchantRuleSuggestionField, isConfirmed: boolean) {
-    Onyx.merge(ONYXKEYS.RAM_ONLY_MERCHANT_RULE_SUGGESTION, {confirmedFields: {[transactionID]: {[field]: isConfirmed ? true : null}}});
+    if (!isConfirmed) {
+        Onyx.merge(ONYXKEYS.RAM_ONLY_MERCHANT_RULE_SUGGESTION, {confirmedFields: {[transactionID]: {[field]: null}}});
+        return;
+    }
+
+    // A confirmation is what hands an expense the offer, so it is also what ends the one before it. `isRetired`
+    // belongs to the offer being replaced.
+    Onyx.merge(ONYXKEYS.RAM_ONLY_MERCHANT_RULE_SUGGESTION, {
+        transactionID,
+        confirmedFields: {[transactionID]: {[field]: true}},
+        isRetired: null,
+    });
 }
 
 /**
@@ -115,6 +124,9 @@ function markMerchantRuleSuggestionSeen(reportID: string) {
  * offers this one again.
  */
 function dismissMerchantRuleSuggestion(suggestion: MerchantRuleSuggestion) {
+    if (!suggestion.transactionID) {
+        return;
+    }
     Onyx.merge(ONYXKEYS.RAM_ONLY_MERCHANT_RULE_SUGGESTION, {
         dismissedTransactionIDs: [...new Set([...(suggestion.dismissedTransactionIDs ?? []), suggestion.transactionID])],
     });
@@ -129,6 +141,7 @@ function clearMerchantRuleSuggestionFields(transactionID: string) {
         editedFields: {[transactionID]: null},
         confirmedFields: {[transactionID]: null},
         editedTagLevels: {[transactionID]: null},
+        reportIDs: {[transactionID]: null},
     });
 }
 

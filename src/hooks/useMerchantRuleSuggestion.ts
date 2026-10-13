@@ -48,7 +48,8 @@ function useMerchantRuleSuggestion(reportID: string | undefined, policyID: strin
     // whichever report was in scope during the edit.
     const reportTransactions = useReportTransactions(reportID);
     const isOneExpenseReportForSuggestion = reportTransactions.length === 1 && reportTransactions.at(0)?.transactionID === storedSuggestion?.transactionID;
-    const isHostingReport = !!reportID && (reportID === storedSuggestion?.reportID || isOneExpenseReportForSuggestion);
+    const suggestionReportID = storedSuggestion?.transactionID ? storedSuggestion.reportIDs?.[storedSuggestion.transactionID] : undefined;
+    const isHostingReport = !!reportID && (reportID === suggestionReportID || isOneExpenseReportForSuggestion);
     const isForThisExpenseView = isMerchantRuleSuggestionLive(storedSuggestion) && isHostingReport;
     // Offer it to exactly who the rule page lets in: write access to Rules on a Control workspace. Admins today, and
     // editors, who can already create the same rule from workspace settings. The rule page is Control-only, so
@@ -58,7 +59,8 @@ function useMerchantRuleSuggestion(reportID: string | undefined, policyID: strin
 
     const fields = getOfferableMerchantRuleSuggestionFields(suggestion);
 
-    const editedTagLevels = suggestion?.editedTagLevels?.[suggestion.transactionID];
+    const offeringTransactionID = suggestion?.transactionID;
+    const editedTagLevels = offeringTransactionID ? suggestion?.editedTagLevels?.[offeringTransactionID] : undefined;
     // Built here rather than only on press, so an offer that would apply nothing never appears. Clearing a field is
     // still an edit worth recording, but the rule it would make sets that field to empty, which changes nothing.
     const draft = suggestion && transaction ? getMerchantRuleDraftFromTransaction(transaction, fields, policy, editedTagLevels) : undefined;

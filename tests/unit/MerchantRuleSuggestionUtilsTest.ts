@@ -43,7 +43,7 @@ const buildPolicyWithTax = (taxCode: string): Policy => {
 const buildSuggestion = (overrides: Partial<MerchantRuleSuggestion> = {}) =>
     ({
         transactionID: TRANSACTION_ID,
-        reportID: '999',
+        reportIDs: {[TRANSACTION_ID]: '999'},
         editedFields: {[TRANSACTION_ID]: {category: true}},
         confirmedFields: {[TRANSACTION_ID]: {category: true}},
         ...overrides,
@@ -54,8 +54,8 @@ describe('isMerchantRuleSuggestionLive', () => {
         expect(isMerchantRuleSuggestionLive(undefined)).toBe(false);
     });
 
-    it('is not live without a transaction to offer for', () => {
-        expect(isMerchantRuleSuggestionLive(buildSuggestion({transactionID: ''}))).toBe(false);
+    it('is not live until a confirmation names the expense offering', () => {
+        expect(isMerchantRuleSuggestionLive(buildSuggestion({transactionID: undefined}))).toBe(false);
     });
 
     it('is live once the server has confirmed an edited field', () => {

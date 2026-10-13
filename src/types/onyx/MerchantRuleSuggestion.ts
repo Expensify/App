@@ -11,11 +11,16 @@ type MerchantRuleSuggestionField = ValueOf<typeof CONST.MERCHANT_RULE_SUGGESTION
  * RAM-only, so the callout can appear again on the same expense next session.
  */
 type MerchantRuleSuggestion = {
-    /** The most recently edited expense, the one currently offering */
-    transactionID: string;
+    /**
+     * The expense currently offering, which is the one whose edit the server confirmed most recently.
+     *
+     * Set when a confirmation lands rather than when an edit is recorded. An edit that turns out to be a one-off would
+     * otherwise take the offer away from an expense that had earned one and put nothing in its place.
+     */
+    transactionID?: string;
 
-    /** That expense's transaction thread, where the callout can show */
-    reportID: string;
+    /** Each recorded expense's transaction thread, where its callout can show */
+    reportIDs?: Record<string, string>;
 
     /**
      * Fields edited so far, keyed by expense. Keying by expense lets `Onyx.merge` accumulate them without a read, and
