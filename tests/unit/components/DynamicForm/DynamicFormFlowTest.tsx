@@ -2,7 +2,6 @@ import {render} from '@testing-library/react-native';
 
 import DynamicFormFlow from '@components/DynamicForm';
 import type {DynamicFormLayout, DynamicFormSubPageProps} from '@components/DynamicForm/types';
-import type {FormValue} from '@components/Form/types';
 
 import useSubPage from '@hooks/useSubPage';
 import type {SubPageProps} from '@hooks/useSubPage/types';
@@ -79,7 +78,7 @@ const buildRoute = (pageName: string, action?: 'edit') => ROUTES.BANK_ACCOUNT_PE
 
 type RenderFlowOptions = {
     flowSchema?: DynamicFormSchema;
-    draft?: Record<string, FormValue>;
+    draft?: Record<string, string>;
     sensitiveAnswers?: Record<string, string>;
     pageIndex?: number;
     currentPageName?: string;
