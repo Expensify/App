@@ -83,7 +83,8 @@ type RenderFlowOptions = {
     pageIndex?: number;
     currentPageName?: string;
     isRedirecting?: boolean;
-    hasConfirmation?: boolean;
+    /** `default` leaves the prop out, so the flow's own default applies. Tests that do not care about the confirmation page turn it off. */
+    hasConfirmation?: boolean | 'default';
     layout?: DynamicFormLayout;
     isSubmitting?: boolean;
     shouldReplaceRoute?: boolean;
@@ -132,7 +133,7 @@ async function renderFlow({
             onSubmit={onSubmit}
             onBack={onBack}
             onPageSubmit={onPageSubmit}
-            hasConfirmation={hasConfirmation}
+            hasConfirmation={hasConfirmation === 'default' ? undefined : hasConfirmation}
             layout={layout}
             maxFileSize={maxFileSize}
             isSubmitting={submitting}
@@ -174,7 +175,7 @@ describe('DynamicFormFlow', () => {
 
     it('asks for a confirmation page unless the screen turns it off', async () => {
         // Given the same schema rendered with the default and with the confirmation page turned off
-        const defaultFlow = await renderFlow({hasConfirmation: undefined});
+        const defaultFlow = await renderFlow({hasConfirmation: 'default'});
         const withoutConfirmation = await renderFlow({hasConfirmation: false});
 
         // Then only the first ends on a confirmation page, since a flow of any length has answers worth reviewing
