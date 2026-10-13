@@ -239,7 +239,7 @@ function ProfilePage({route}: ProfilePageProps) {
                 />
                 <View style={[styles.containerWithSpaceBetween, styles.pointerEventsBoxNone]}>
                     <ScrollView>
-                        <View style={[styles.avatarSectionWrapper, styles.pb0]}>
+                        <View style={styles.avatarSectionWrapper}>
                             <PressableWithoutFocus
                                 style={[styles.noOutline, styles.mb4]}
                                 onPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.PROFILE_AVATAR.getRoute(accountID)))}
@@ -259,75 +259,51 @@ function ProfilePage({route}: ProfilePageProps) {
                             </PressableWithoutFocus>
                             {!!displayName && (
                                 <Text
-                                    style={[styles.textHeadline, styles.pre, styles.mb8, styles.w100, styles.textAlignCenter]}
+                                    style={[styles.textHeadline, styles.pre, styles.mb3, styles.w100, styles.textAlignCenter]}
                                     numberOfLines={1}
                                 >
                                     {displayName}
                                 </Text>
                             )}
-                            <PromotedActionsBar
-                                promotedActions={promotedActions}
-                                containerStyle={[styles.ph0, styles.mb8]}
-                            />
-                            {hasStatus && (
-                                <View style={[styles.detailsPageSectionContainer, styles.w100]}>
-                                    <MenuItem.Root style={styles.ph0}>
-                                        <MenuItemField.Row
-                                            name={translate('statusPage.status')}
-                                            value={statusContent}
-                                        />
-                                    </MenuItem.Root>
-                                </View>
-                            )}
-
-                            {/* Don't display email if current user is anonymous */}
-                            {!(isCurrentUser && isAnonymousUserSession()) && login ? (
-                                <View style={[styles.w100, styles.detailsPageSectionContainer]}>
-                                    <MenuItem.Root style={styles.ph0}>
-                                        <MenuItemField.Row
-                                            name={translate(isSMSLogin ? 'common.phoneNumber' : 'common.email')}
-                                            value={formattedLogin}
-                                        >
-                                            {!!formattedLogin && <MenuItem.Copy value={formattedLogin} />}
-                                        </MenuItemField.Row>
-                                    </MenuItem.Root>
-                                </View>
-                            ) : null}
-                            {canManageMemberDisplayName ? (
-                                <View style={[styles.w100, styles.detailsPageSectionContainer]}>
-                                    <OfflineWithFeedback pendingAction={details?.pendingFields?.displayName}>
-                                        <MenuItem.Root
-                                            style={styles.ph0}
-                                            onPress={
-                                                !hasDisplayNameSet
-                                                    ? callFunctionIfActionIsAllowed(() =>
-                                                          Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.PROFILE_DISPLAY_NAME.getRoute(accountID, policyID))),
-                                                      )
-                                                    : undefined
-                                            }
-                                        >
-                                            <MenuItemField.Row
-                                                name={translate('displayNamePage.headerTitle')}
-                                                value={displayName}
-                                            >
-                                                {!hasDisplayNameSet && <MenuItem.Chevron />}
-                                            </MenuItemField.Row>
-                                        </MenuItem.Root>
-                                    </OfflineWithFeedback>
-                                </View>
-                            ) : null}
-                            {pronouns ? (
-                                <View style={[styles.w100, styles.detailsPageSectionContainer]}>
-                                    <MenuItem.Root style={styles.ph0}>
-                                        <MenuItemField.Row
-                                            name={translate('profilePage.preferredPronouns')}
-                                            value={pronouns}
-                                        />
-                                    </MenuItem.Root>
-                                </View>
-                            ) : null}
-                            {shouldShowLocalTime && <AutoUpdateTime timezone={timezone} />}
                         </View>
+                        <PromotedActionsBar
+                            promotedActions={promotedActions}
+                            containerStyle={styles.mb8}
+                        />
+                        {hasStatus && (
+                            <MenuItemField
+                                name={translate('statusPage.status')}
+                                value={statusContent}
+                            />
+                        )}
+
+                        {/* Don't display email if current user is anonymous */}
+                        {!(isCurrentUser && isAnonymousUserSession()) && login ? (
+                            <MenuItemField
+                                name={translate(isSMSLogin ? 'common.phoneNumber' : 'common.email')}
+                                value={formattedLogin}
+                            >
+                                {!!formattedLogin && <MenuItem.Copy value={formattedLogin} />}
+                            </MenuItemField>
+                        ) : null}
+                        {canManageMemberDisplayName ? (
+                            <OfflineWithFeedback pendingAction={details?.pendingFields?.displayName}>
+                                <MenuItemField
+                                    name={translate('displayNamePage.headerTitle')}
+                                    value={displayName}
+                                    onPress={
+                                        !hasDisplayNameSet ? () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.PROFILE_DISPLAY_NAME.getRoute(accountID, policyID))) : undefined
+                                    }
+                                />
+                            </OfflineWithFeedback>
+                        ) : null}
+                        {pronouns ? (
+                            <MenuItemField
+                                name={translate('profilePage.preferredPronouns')}
+                                value={pronouns}
+                            />
+                        ) : null}
+                        {shouldShowLocalTime && <AutoUpdateTime timezone={timezone} />}
                         {isCurrentUser && (
                             <MenuItemNavigation
                                 title={translate('common.editYourProfile')}
