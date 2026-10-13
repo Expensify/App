@@ -1985,6 +1985,7 @@ describe('OptionsListUtils', () => {
                     convertToDisplayString,
                     conciergeReportID: undefined,
                     isSearching: true,
+                    formatPhoneNumber,
                 },
                 undefined,
             );
@@ -2006,7 +2007,7 @@ describe('OptionsListUtils', () => {
                     includeSelfDM: true,
                     searchString: 'me',
                 },
-                translateLocal,
+                {translate: translateLocal, formatPhoneNumber},
                 undefined,
             );
 
@@ -5923,6 +5924,7 @@ describe('OptionsListUtils', () => {
                     convertToDisplayString,
                     conciergeReportID: undefined,
                     isSearching: true,
+                    formatPhoneNumber,
                 },
                 undefined,
             );
@@ -11482,7 +11484,6 @@ describe('OptionsListUtils', () => {
                 policy: undefined,
                 sortedActions: undefined,
                 conciergeReportID: report.reportID,
-                formatPhoneNumber,
                 pendingDeleteMemberAccountIDs: undefined,
             });
             expect(conciergeOption.subtitle).toBe(translateLocal('reportActionsView.conciergeSupport'));
@@ -11499,7 +11500,6 @@ describe('OptionsListUtils', () => {
                 policy: undefined,
                 sortedActions: undefined,
                 conciergeReportID: 'a-different-report-id',
-                formatPhoneNumber,
                 pendingDeleteMemberAccountIDs: undefined,
             });
             expect(regularOption.subtitle).not.toBe(translateLocal('reportActionsView.conciergeSupport'));
@@ -11533,7 +11533,6 @@ describe('OptionsListUtils', () => {
                 policy: undefined,
                 sortedActions,
                 conciergeReportID: undefined,
-                formatPhoneNumber,
                 pendingDeleteMemberAccountIDs: undefined,
             });
 
@@ -11570,7 +11569,6 @@ describe('OptionsListUtils', () => {
                 policy: undefined,
                 sortedActions,
                 conciergeReportID: undefined,
-                formatPhoneNumber,
                 pendingDeleteMemberAccountIDs: undefined,
             });
 
@@ -11606,7 +11604,6 @@ describe('OptionsListUtils', () => {
                 policy: undefined,
                 sortedActions,
                 conciergeReportID: undefined,
-                formatPhoneNumber,
                 pendingDeleteMemberAccountIDs: undefined,
             });
 
@@ -11642,7 +11639,6 @@ describe('OptionsListUtils', () => {
                 policy: undefined,
                 sortedActions,
                 conciergeReportID: undefined,
-                formatPhoneNumber,
                 pendingDeleteMemberAccountIDs: undefined,
             });
 
@@ -11680,7 +11676,6 @@ describe('OptionsListUtils', () => {
                 sortedActions,
                 conciergeReportID: undefined,
                 config,
-                formatPhoneNumber,
                 pendingDeleteMemberAccountIDs: undefined,
             });
 
@@ -11721,7 +11716,6 @@ describe('OptionsListUtils', () => {
                 policy: POLICY,
                 sortedActions,
                 conciergeReportID: undefined,
-                formatPhoneNumber,
                 pendingDeleteMemberAccountIDs: undefined,
             });
             const personalDetailsOption = createOptionFromReport({
@@ -11736,7 +11730,6 @@ describe('OptionsListUtils', () => {
                 sortedActions,
                 conciergeReportID: undefined,
                 config: {showPersonalDetails: true},
-                formatPhoneNumber,
                 pendingDeleteMemberAccountIDs: undefined,
             });
 
@@ -11802,8 +11795,8 @@ describe('OptionsListUtils', () => {
                 });
 
                 // When the option is built for the report owner, and for somebody else
-                const ownOption = createOptionFromReport({...params, currentUserAccountID: ownerAccountID, formatPhoneNumber});
-                const otherOption = createOptionFromReport({...params, currentUserAccountID: 999, formatPhoneNumber});
+                const ownOption = createOptionFromReport({...params, currentUserAccountID: ownerAccountID});
+                const otherOption = createOptionFromReport({...params, currentUserAccountID: 999});
 
                 // Then the wording follows the passed currentUserAccountID
                 expect(ownOption.alternateText).toContain('your bank account ending in 1111');
@@ -11820,8 +11813,8 @@ describe('OptionsListUtils', () => {
                 });
 
                 // When the option is built for the report owner, and for somebody else
-                const ownOption = createOptionFromReport({...params, currentUserAccountID: ownerAccountID, formatPhoneNumber});
-                const otherOption = createOptionFromReport({...params, currentUserAccountID: 999, formatPhoneNumber});
+                const ownOption = createOptionFromReport({...params, currentUserAccountID: ownerAccountID});
+                const otherOption = createOptionFromReport({...params, currentUserAccountID: 999});
 
                 // Then the wording follows the passed currentUserAccountID
                 expect(ownOption.alternateText).toContain('your bank account ending in 2222');
@@ -11837,7 +11830,7 @@ describe('OptionsListUtils', () => {
                 });
 
                 // When the option is built for a different account than the one in the session
-                const option = createOptionFromReport({...params, currentUserAccountID: 999, formatPhoneNumber});
+                const option = createOptionFromReport({...params, currentUserAccountID: 999});
 
                 // Then the passed account wins over the module-level session value, so the owner is named explicitly
                 expect(option.alternateText).toContain(`${SUBMITTER_LOGIN}'s bank account ending in 3333`);
@@ -11853,8 +11846,8 @@ describe('OptionsListUtils', () => {
                 });
 
                 // When the option is built for the report owner, and for somebody else
-                const ownOption = createOptionFromReport({...params, currentUserAccountID: 42, formatPhoneNumber});
-                const otherOption = createOptionFromReport({...params, currentUserAccountID: 999, formatPhoneNumber});
+                const ownOption = createOptionFromReport({...params, currentUserAccountID: 42});
+                const otherOption = createOptionFromReport({...params, currentUserAccountID: 999});
 
                 // Then both previews are identical
                 expect(ownOption.alternateText).toBe(otherOption.alternateText);
@@ -12599,7 +12592,6 @@ describe('OptionsListUtils', () => {
                 policy: POLICY,
                 sortedActions,
                 conciergeReportID: undefined,
-                formatPhoneNumber,
                 pendingDeleteMemberAccountIDs: undefined,
             });
             expect(result).toBeDefined();

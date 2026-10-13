@@ -495,6 +495,7 @@ describe('ReportAlternateTextUtils', () => {
                 isReportArchived: false,
                 lastAction: agentPromptUpdatedAction,
                 currentUserLogin: CURRENT_USER_LOGIN,
+                formatPhoneNumber,
                 rules: undefined,
             });
 
@@ -1617,6 +1618,7 @@ describe('ReportAlternateTextUtils', () => {
                 isReportArchived: false,
 
                 currentUserLogin: CURRENT_USER_LOGIN,
+                formatPhoneNumber,
             });
 
             // Then the preview reads the same as the in-chat change log rather than the raw stored text

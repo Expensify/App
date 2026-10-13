@@ -293,7 +293,6 @@ function useAutocompleteSuggestions({
                 translate,
                 getReportByID,
                 rules,
-                formatPhoneNumber,
             }).options.personalDetails.filter((participant) => participant.text && !alreadyAutocompletedKeys.has(participant.text.toLowerCase()));
 
             return participants.map((participant) => ({
@@ -345,7 +344,6 @@ function useAutocompleteSuggestions({
                 translate,
                 getReportByID,
                 rules,
-                formatPhoneNumber,
             }).options.recentReports.filter((chat) => {
                 if (!chat.text) {
                     return false;

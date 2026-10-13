@@ -322,7 +322,6 @@ function useSearchSelectorBase({
                     translate,
                     getReportByID,
                     rules,
-                    formatPhoneNumber,
                 });
             case CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_GENERAL:
                 return getValidOptions(

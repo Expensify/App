@@ -106,7 +106,6 @@ function ShareTab() {
               translate,
               getReportByID,
               rules,
-              formatPhoneNumber,
           }).options
         : defaultListOptions;
 

@@ -317,7 +317,6 @@ function SearchAutocompleteList({
             translate,
             getReportByID,
             rules,
-            formatPhoneNumber,
         }).options;
     }, [
         listOptions,
@@ -346,7 +345,6 @@ function SearchAutocompleteList({
         convertToDisplayString,
         convertToDisplayStringWithoutCurrency,
         rules,
-        formatPhoneNumber,
     ]);
 
     // Deduped once and read everywhere the order is needed, so a repeated reportID ranks at its first position.
