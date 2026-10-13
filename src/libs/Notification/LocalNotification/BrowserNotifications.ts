@@ -163,12 +163,10 @@ export default {
         if (!plainTextMessage) {
             const messages = Array.isArray(reportAction.message) ? reportAction.message : reportAction.message ? [reportAction.message] : [];
             plainTextMessage = messages
-                .filter((m) => m.style === 'normal')
+                .filter((m): m is NonNullable<typeof m> => m?.style === 'normal')
                 .map((m) => m.text ?? '')
                 .join(' ')
                 .trim();
-            // eslint-disable-next-line no-console
-            console.log('[BrowserNotifications] [DEBUG] fallback plainTextMessage', {messages, plainTextMessage});
         }
 
         if (isRoomOrGroupChat) {
@@ -184,8 +182,6 @@ export default {
             reportID: report.reportID,
         };
 
-        // eslint-disable-next-line no-console
-        console.log('[BrowserNotifications] [DEBUG] about to push', {title, body});
         push(title, body, icon, data, onClick);
     },
 
