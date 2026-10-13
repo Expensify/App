@@ -414,7 +414,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
         [SUBMISSION_PATH.REQUEST_MONEY]: requestMoneySubmission.createTransaction,
     };
 
-    function createTransaction({locationPermissionGranted = false, shouldHandleNavigation = true, writeBarrier}: CreateTransactionParams): boolean {
+    function createTransaction({locationPermissionGranted, shouldHandleNavigation, writeBarrier}: CreateTransactionParams): boolean {
         getSpan(CONST.TELEMETRY.SPAN_SUBMIT_EXPENSE)?.setAttribute(CONST.TELEMETRY.ATTRIBUTE_LOCATION_SOURCE, CONST.TELEMETRY.SUBMIT_EXPENSE_LOCATION_SOURCE.NONE);
         if (blockDistanceRequestIfNeeded()) {
             return false;

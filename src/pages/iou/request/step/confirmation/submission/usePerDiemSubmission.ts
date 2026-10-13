@@ -113,7 +113,7 @@ function usePerDiemSubmission({
         : undefined;
     const [perDiemExpensePolicyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${earlyPerDiemExpensePolicyID}`);
 
-    function createTransaction({shouldHandleNavigation = true, writeBarrier}: CreateTransactionParams) {
+    function createTransaction({shouldHandleNavigation, writeBarrier}: CreateTransactionParams) {
         if (!transaction) {
             markSubmitExpenseEnd();
             return false;

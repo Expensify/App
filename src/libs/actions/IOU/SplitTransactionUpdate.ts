@@ -3,7 +3,8 @@ import type {SearchActionsContextValue, SearchStateContextValue} from '@componen
 
 import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
 
-import {createTransitionBarrier, write as apiWrite, writeWhenReady} from '@libs/API';
+import {write as apiWrite, writeWhenReady} from '@libs/API';
+import type {WriteReadyBarrier} from '@libs/API';
 import type {RevertSplitTransactionParams, SplitTransactionParams, SplitTransactionSplitsParam} from '@libs/API/parameters';
 import type {ApiRequestCommandParameters, WriteCommand} from '@libs/API/types';
 import {WRITE_COMMANDS} from '@libs/API/types';
@@ -76,7 +77,8 @@ import {getMoneyRequestInformation, getReportPreviewReportAction} from './MoneyR
 import {getDeleteTrackExpenseInformation} from './TrackExpense';
 import {getUpdateMoneyRequestParams} from './UpdateMoneyRequest';
 
-type UpdateSplitTransactionsParams = {
+/** The splits to save and everything they are built from. The split-expenses flow takes only this and decides how the write runs itself. */
+type UpdateSplitTransactionsData = {
     allTransactionsList: OnyxCollection<OnyxTypes.Transaction>;
     allReportsList: OnyxCollection<OnyxTypes.Report>;
     /** Draft reports, so chats that only exist in REPORT_DRAFT (e.g. a not-yet-created workspace chat) still resolve */
@@ -103,9 +105,6 @@ type UpdateSplitTransactionsParams = {
     transactionViolations: OnyxCollection<OnyxTypes.TransactionViolation[]>;
     quickAction: OnyxEntry<OnyxTypes.QuickAction>;
     policyRecentlyUsedCurrencies: string[];
-    isFromSplitExpensesFlow?: boolean;
-    /** Keeps the new splits off the highlight rail, for flows that never open the expense report */
-    shouldSkipReportHighlightRail?: boolean;
     personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
     transactionReport: OnyxEntry<OnyxTypes.Report>;
     expenseReport: OnyxEntry<OnyxTypes.Report>;
@@ -117,6 +116,16 @@ type UpdateSplitTransactionsParams = {
     getCurrencySymbol: CurrencyListActionsContextType['getCurrencySymbol'];
     rules: OnyxCollection<OnyxTypes.Rule>;
     isVendorMatchingBetaEnabled: boolean | undefined;
+};
+
+type UpdateSplitTransactionsParams = UpdateSplitTransactionsData & {
+    isFromSplitExpensesFlow?: boolean;
+
+    /** Readiness barrier the API write waits on before applying its optimistic data, handed down by whoever navigates. */
+    writeBarrier?: WriteReadyBarrier;
+
+    /** Keeps the new splits off the highlight rail, for flows that never open the expense report */
+    shouldSkipReportHighlightRail?: boolean;
 };
 
 /**
@@ -209,6 +218,7 @@ function updateSplitTransactions({
     quickAction,
     policyRecentlyUsedCurrencies,
     isFromSplitExpensesFlow,
+    writeBarrier,
     shouldSkipReportHighlightRail,
     personalDetails,
     transactionReport,
@@ -2044,15 +2054,13 @@ function updateSplitTransactions({
         }
     }
 
-    // Saving from the split-expenses flow also navigates to the destination screen. A plain API.write would apply
-    // optimisticData right away and re-render that screen mid-transition, so writeSplit holds the write until the
-    // navigation ends. Callers outside that flow have no such navigation to wait on, so they write immediately.
+    // A caller that navigates as part of saving passes a barrier, because applying optimisticData mid-transition re-renders the screen it is navigating to. Callers with no navigation pass none and write immediately.
     const writeSplit = <TCommand extends WriteCommand>(command: TCommand, parameters: ApiRequestCommandParameters[TCommand]) => {
-        if (!isFromSplitExpensesFlow) {
+        if (!writeBarrier) {
             apiWrite(command, parameters, onyxData);
             return;
         }
-        writeWhenReady(command, parameters, onyxData, createTransitionBarrier('navigation'));
+        writeWhenReady(command, parameters, onyxData, writeBarrier);
     };
 
     if (isReverseSplitOperation) {
@@ -2084,4 +2092,4 @@ function updateSplitTransactions({
 }
 
 export {hasEditableSplitExpenseLeft, updateSplitTransactions};
-export type {UpdateSplitTransactionsParams};
+export type {UpdateSplitTransactionsData, UpdateSplitTransactionsParams};
