@@ -42,13 +42,13 @@ function renderColumnResize(params?: Partial<UseColumnResizeParams>) {
 
     scopeElement.appendChild(headingElement);
     headingElement.appendChild(handleElement);
-    // jsdom has no layout: a 200x40 heading whose handle overhangs its right edge by 6px.
+    // jsdom has no layout: a 200x40 heading whose handle starts 2px inside its right edge and spans the 12px gap past it.
     document.elementFromPoint = (x, y) => {
-        if (y > 40 || x > 206) {
+        if (y > 40 || x > 212) {
             return document.body;
         }
 
-        return x > 194 ? handleElement : headingElement;
+        return x > 198 ? handleElement : headingElement;
     };
     // jsdom has no pointer capture.
     const setPointerCapture = jest.fn();

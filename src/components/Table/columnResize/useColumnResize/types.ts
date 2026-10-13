@@ -13,7 +13,7 @@ type UseColumnResizeParams = {
     /** The narrowest width a drag may take a column to, for columns tighter than the default drag bound. */
     dragMinWidths?: Record<string, number>;
 
-    /** Gap between columns, so handles can be centred in it. */
+    /** Gap between columns, which handles span. */
     columnGap: number;
 };
 

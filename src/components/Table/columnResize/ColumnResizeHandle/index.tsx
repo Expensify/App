@@ -1,3 +1,4 @@
+import Hoverable from '@components/Hoverable';
 import {
     RESIZE_GRIP_HOVER_VARIABLE,
     RESIZE_INDICATOR_DATA_ATTRIBUTE,
@@ -8,6 +9,7 @@ import {
 import type {ColumnResizeHandleProps} from '@components/Table/columnResize/types';
 import {useTableContext} from '@components/Table/TableContext';
 
+import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import CONST from '@src/CONST';
@@ -15,15 +17,17 @@ import CONST from '@src/CONST';
 import React from 'react';
 
 // DOM `div` styles, which the React Native style system can't type because of the custom property expressions.
-// The handle centres both bars on the column edge.
+// Both bars sit at the handle's left, which is flush against the column's edge.
 const BAR_STYLE: React.CSSProperties = {
     position: 'absolute',
+    left: 0,
     width: CONST.TABLES.COLUMN_RESIZE.INDICATOR_WIDTH,
 };
 
 const GRIP_STYLE: React.CSSProperties = {
     ...BAR_STYLE,
-    height: '100%',
+    top: `${((1 - CONST.TABLES.COLUMN_RESIZE.GRIP_HEIGHT_RATIO) / 2) * 100}%`,
+    height: `${CONST.TABLES.COLUMN_RESIZE.GRIP_HEIGHT_RATIO * 100}%`,
     borderRadius: CONST.TABLES.COLUMN_RESIZE.INDICATOR_WIDTH / 2,
     // Hidden while the line shows, since the line grew out of it.
     opacity: `calc(var(${RESIZE_GRIP_HOVER_VARIABLE}, 0) * (1 - var(${RESIZE_INDICATOR_OPACITY_VARIABLE}, 0)))`,
@@ -45,6 +49,7 @@ const INDICATOR_STYLE: React.CSSProperties = {
  * A plain `div` because it relies on DOM pointer capture.
  */
 function ColumnResizeHandle({columnKey}: ColumnResizeHandleProps) {
+    const theme = useTheme();
     const styles = useThemeStyles();
     const {columnResize} = useTableContext();
     const handleProps = columnResize?.getHandleProps(columnKey);
@@ -54,17 +59,22 @@ function ColumnResizeHandle({columnKey}: ColumnResizeHandleProps) {
     }
 
     return (
-        <div {...handleProps}>
-            <div
-                aria-hidden
-                style={{...GRIP_STYLE, ...styles.tableColumnResizeGrip}}
-            />
-            <div
-                aria-hidden
-                {...{[RESIZE_INDICATOR_DATA_ATTRIBUTE]: true}}
-                style={{...INDICATOR_STYLE, ...styles.tableColumnResizeIndicator}}
-            />
-        </div>
+        <Hoverable>
+            {(isHovered) => (
+                <div {...handleProps}>
+                    <div
+                        aria-hidden
+                        // Takes the line's color while the handle itself is hovered, hinting that pressing grows it into the line.
+                        style={{...GRIP_STYLE, backgroundColor: isHovered ? theme.iconMenu : theme.border}}
+                    />
+                    <div
+                        aria-hidden
+                        {...{[RESIZE_INDICATOR_DATA_ATTRIBUTE]: true}}
+                        style={{...INDICATOR_STYLE, ...styles.tableColumnResizeIndicator}}
+                    />
+                </div>
+            )}
+        </Hoverable>
     );
 }
 

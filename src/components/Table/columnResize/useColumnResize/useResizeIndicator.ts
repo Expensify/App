@@ -46,9 +46,10 @@ function drawIndicatorAtHandle(scopeElement: HTMLElement | null, handleElement: 
     handleElement.style.setProperty(RESIZE_INDICATOR_HEIGHT_VARIABLE, `${lowestRowBottom - headerRowTop}px`);
     handleElement.style.setProperty(RESIZE_INDICATOR_OPACITY_VARIABLE, INDICATOR_OPACITY.VISIBLE);
 
-    // Starts clipped to the handle's box, which the grip fills, so the grip reads as stretching into the line.
-    const gripTop = handleRect.top - headerRowTop;
-    const gripBottom = lowestRowBottom - handleRect.bottom;
+    // Starts clipped to the grip, so the grip reads as stretching into the line.
+    const gripInset = (handleRect.height * (1 - CONST.TABLES.COLUMN_RESIZE.GRIP_HEIGHT_RATIO)) / 2;
+    const gripTop = handleRect.top + gripInset - headerRowTop;
+    const gripBottom = lowestRowBottom - handleRect.bottom + gripInset;
     handleElement.querySelector<HTMLElement>(`[${RESIZE_INDICATOR_DATA_ATTRIBUTE}]`)?.animate([{clipPath: `inset(${gripTop}px 0 ${gripBottom}px 0)`}, {clipPath: 'inset(0 0 0 0)'}], {
         duration: CONST.TABLES.COLUMN_RESIZE.INDICATOR_MORPH_DURATION,
         easing: 'ease-out',

@@ -25,11 +25,9 @@ function getHandleStyle(columnGap: number): React.CSSProperties {
         position: 'absolute',
         top: 0,
         bottom: 0,
-        right: -(columnGap / 2 + CONST.TABLES.COLUMN_RESIZE.HANDLE_HIT_WIDTH / 2),
-        width: CONST.TABLES.COLUMN_RESIZE.HANDLE_HIT_WIDTH,
-        // Centres the grip and the line on the column edge.
-        display: 'flex',
-        justifyContent: 'center',
+        // Spans the gap to the next column, with the grip and the line flush against this column's edge, so they read as part of the column being resized.
+        right: -columnGap,
+        width: columnGap + CONST.TABLES.COLUMN_RESIZE.INDICATOR_WIDTH,
         // Otherwise a touch drag on the handle is taken over by the table's own horizontal scrolling.
         touchAction: 'none',
     };
