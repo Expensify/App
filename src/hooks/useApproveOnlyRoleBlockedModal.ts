@@ -20,6 +20,10 @@ function useApproveOnlyRoleBlockedModal() {
         };
         // Skip reasons outside the known set instead of showing wrong copy for a value the backend added later.
         const reasonLines = blockedReasons.filter((reason) => reason in reasonTranslationKeys).map((reason) => `• ${translate(reasonTranslationKeys[reason])}`);
+        if (reasonLines.length === 0) {
+            showRoleUpdateErrorModal();
+            return;
+        }
         showConfirmModal({
             title: translate('workspace.people.approveOnlyRoleBlockedTitle'),
             prompt: [translate('workspace.people.approveOnlyRoleBlockedDescription'), '', ...reasonLines].join('\n'),
