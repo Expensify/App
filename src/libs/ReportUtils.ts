@@ -13957,15 +13957,13 @@ function getIntegrationIcon(
 }
 
 /**
- * Whether an export is already in flight, which the backend records as the report's latest action.
+ * Whether an export is already in flight. Reads both the cached actions and lastActionType, since cached actions can be
+ * empty, stale or partial on a cold start or offline.
  */
 function isQueuedForExport(reportActions?: ReportAction[], report?: OnyxEntry<Report>): boolean {
     const latestAction = reportActions?.reduce<ReportAction | undefined>((latest, action) => (!latest || action.created > latest.created ? action : latest), undefined);
-    if (latestAction) {
-        return latestAction.actionName === CONST.REPORT.ACTIONS.TYPE.QUEUED_FOR_EXPORT;
-    }
 
-    return report?.lastActionType === CONST.REPORT.ACTIONS.TYPE.QUEUED_FOR_EXPORT;
+    return latestAction?.actionName === CONST.REPORT.ACTIONS.TYPE.QUEUED_FOR_EXPORT || report?.lastActionType === CONST.REPORT.ACTIONS.TYPE.QUEUED_FOR_EXPORT;
 }
 
 function canBeExported(report: OnyxEntry<Report>) {
@@ -14070,7 +14068,7 @@ function hasExportError(reportActions: OnyxEntry<ReportActions> | ReportAction[]
         return false;
     }
 
-    // Only the latest integration message reflects the current export state; a later reconciled message clears an earlier failure
+    // Only the latest integration message reflects the current export state. A later reconciled message clears an earlier failure.
     const latestMessage = integrationMessages.reduce((latest, action) => (action.created > latest.created ? action : latest));
 
     return !getOriginalMessage(latestMessage)?.result?.reconciled && latestMessage.created > lastResetCreated;
