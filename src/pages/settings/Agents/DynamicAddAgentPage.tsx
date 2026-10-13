@@ -39,6 +39,7 @@ import {clearNewAgentAvatarDraft, clearNewAgentTemplate, createAgent, setNewAgen
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
+import type {Route} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/AddAgentForm';
 import type NewAgentTemplate from '@src/types/onyx/NewAgentTemplate';
@@ -156,12 +157,22 @@ function DynamicAddAgentPageContent({route, template}: DynamicAddAgentPageConten
         const firstName = values[INPUT_IDS.FIRST_NAME].trim() || defaultAgentName;
         const prompt = values[INPUT_IDS.PROMPT].trim();
 
-        // Pure optimistic flow: `createAgent` writes the agent and the owner<->agent DM to Onyx under a
-        // reportID it generates client-side, and CreateAgent creates the DM under that exact ID (see
-        // CreateAgent.cpp), so we can navigate to the DM immediately, online or offline, without waiting.
-        const {optimisticReportID, optimisticPersonalDetailPromise} = uploadedAvatar?.uri
-            ? createAgent(firstName, prompt, currentUserAccountID, currentUserLogin, undefined, buildFileFromAvatarCropResult(uploadedAvatar), uploadedAvatar.uri, policyID)
-            : createAgent(firstName, prompt, currentUserAccountID, currentUserLogin, selectedPresetID ?? AGENT_AVATARS.getRandomID(), undefined, undefined, policyID);
+        // Pure optimistic flow: `createAgent/createCompanyAgent` writes the agent and the owner<->agent DM to Onyx under a
+        // reportID it generates client-side, and CreateAgent/CreateCompanyAgent creates the DM under that exact ID,
+        // so we can navigate to the DM immediately, online or offline, without waiting.
+        let optimisticReportID: string | undefined;
+        let optimisticPersonalDetailPromise: Promise<void> | undefined;
+        let backToAgentsListRoute: Route | undefined;
+
+        if (policyID) {
+            // TODO
+            backToAgentsListRoute = ROUTES.WORKSPACE_AGENTS.getRoute(policyID);
+        } else {
+            ({optimisticReportID, optimisticPersonalDetailPromise} = uploadedAvatar?.uri
+                ? createAgent(firstName, prompt, currentUserAccountID, currentUserLogin, undefined, buildFileFromAvatarCropResult(uploadedAvatar), uploadedAvatar.uri, policyID)
+                : createAgent(firstName, prompt, currentUserAccountID, currentUserLogin, selectedPresetID ?? AGENT_AVATARS.getRandomID(), undefined, undefined, policyID));
+            backToAgentsListRoute = ROUTES.SETTINGS_AGENTS;
+        }
 
         clearNewAgentTemplate();
 
@@ -180,7 +191,7 @@ function DynamicAddAgentPageContent({route, template}: DynamicAddAgentPageConten
             if (isNarrowLayout) {
                 // Reveal the DM under the modal before dismissing so we navigate directly to it in one animation,
                 // instead of dismissing to the agents list first and navigating to the DM afterward.
-                Navigation.revealRouteBeforeDismissingModal(ROUTES.REPORT_WITH_ID.getRoute(optimisticReportID, undefined, undefined, ROUTES.SETTINGS_AGENTS), {
+                Navigation.revealRouteBeforeDismissingModal(ROUTES.REPORT_WITH_ID.getRoute(optimisticReportID, undefined, undefined, backToAgentsListRoute), {
                     afterTransition: () => {
                         clearNewAgentAvatarDraft();
                     },
