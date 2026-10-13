@@ -24,7 +24,8 @@ Insights help you understand spending through charts that highlight trends, top 
 
 All charts on the page share the same **Date**, **Workspace**, and **Group currency** filters, so you can see the same period and workspaces across every chart.
 
-![ nsights page showing charts: Spend over time, Top spenders, Top merchants]({{site.url}}/assets/images/insights_charts.png){:width="100%"}
+![Insights page showing charts: Spend over time, Top spenders, Top merchants]({{site.url}}/assets/images/insights_charts.png){:width="100%"}
+
 ---
 
 ## How Insights and Spend work together
