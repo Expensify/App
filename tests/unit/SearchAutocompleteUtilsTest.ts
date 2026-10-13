@@ -51,6 +51,26 @@ describe('SearchAutocompleteUtils', () => {
             ]);
         });
 
+        it('should highlight the Spend footer selections in either spelling', () => {
+            const input = 'footer-count:reports footerTotal:non-reimbursable footer-currency:EUR';
+
+            const result = parseForLiveMarkdown(input, currentUserName, mockSubstitutionMap, mockUserLogins, mockCurrencyList, mockCategoryList, mockTagList, mockExportedToList);
+
+            expect(result).toEqual([
+                {start: 13, type: 'mention-user', length: 7}, // footer-count:reports
+                {start: 33, type: 'mention-user', length: 16}, // footerTotal:non-reimbursable
+                {start: 66, type: 'mention-user', length: 3}, // footer-currency:EUR
+            ]);
+        });
+
+        it('should not highlight a Spend footer selection the footer cannot render', () => {
+            const input = 'footer-count:pandas footerTotal:whatever footer-currency:NOPE';
+
+            const result = parseForLiveMarkdown(input, currentUserName, mockSubstitutionMap, mockUserLogins, mockCurrencyList, mockCategoryList, mockTagList, mockExportedToList);
+
+            expect(result).toEqual([]);
+        });
+
         it('should highlight new PURCHASE_CURRENCY filter', () => {
             const input = 'purchaseCurrency:USD';
 

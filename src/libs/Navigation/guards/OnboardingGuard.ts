@@ -150,7 +150,9 @@ function isCurrentlyOnTwoFactorSetupRoute(state: NavigationState): boolean {
 }
 
 function shouldPreventReset(state: NavigationState, action: NavigationAction) {
-    if (action.type !== CONST.NAVIGATION_ACTIONS.RESET || !action?.payload) {
+    // Browser back that pops the last history entry dispatches GO_BACK instead of RESET, and it reaches the root only when it would leave onboarding
+    const isGoBack = action.type === CONST.NAVIGATION.ACTION_TYPE.GO_BACK;
+    if (!isGoBack && (action.type !== CONST.NAVIGATION_ACTIONS.RESET || !action?.payload)) {
         return false;
     }
 
