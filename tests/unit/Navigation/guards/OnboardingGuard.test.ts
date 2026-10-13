@@ -139,6 +139,24 @@ describe('OnboardingGuard', () => {
                 expect(result.reason).toBe('Cannot reset to non-onboarding screen while on onboarding');
             }
         });
+
+        it('should BLOCK GO_BACK action when user is on onboarding', () => {
+            // Given a user who is currently on the onboarding purpose screen and has not yet completed onboarding
+            const onboardingState: NavigationState = {
+                key: 'root',
+                index: 0,
+                routeNames: [SCREENS.ONBOARDING.PURPOSE],
+                routes: [{key: 'purpose', name: SCREENS.ONBOARDING.PURPOSE}],
+                stale: false,
+                type: 'root',
+            };
+
+            // When the browser back button pops the last history entry, which React Navigation dispatches as GO_BACK
+            const result = OnboardingGuard.evaluate(onboardingState, {type: CONST.NAVIGATION.ACTION_TYPE.GO_BACK}, authenticatedContext);
+
+            // Then the action should be blocked because going back from onboarding would close the modal without finishing it
+            expect(result.type).toBe('BLOCK');
+        });
     });
 
     describe('skip onboarding conditions', () => {
