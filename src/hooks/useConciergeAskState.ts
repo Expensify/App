@@ -19,7 +19,7 @@ import useOnyx from './useOnyx';
 import useResponsiveLayout from './useResponsiveLayout';
 
 type ConciergeAskState = {
-    /** Whether this is the Concierge chat in the Inbox and the beta is on */
+    /** Whether this is the Concierge chat in the Inbox */
     isAskConciergeChat: boolean;
 
     /** Whether the messages from before this session are shown */
