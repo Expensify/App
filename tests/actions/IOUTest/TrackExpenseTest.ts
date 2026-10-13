@@ -955,10 +955,6 @@ describe('actions/IOU/TrackExpense', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${policyExpenseChat.reportID}`, policyExpenseChat);
             await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transaction.transactionID}`, transaction);
-            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
-                [existingMemberAID]: {accountID: existingMemberAID, login: existingMemberA},
-                [existingMemberBID]: {accountID: existingMemberBID, login: existingMemberB},
-            });
 
             const recentWaypoints = (await getOnyxValue(ONYXKEYS.NVP_RECENT_WAYPOINTS)) ?? [];
 
@@ -1054,6 +1050,10 @@ describe('actions/IOU/TrackExpense', () => {
                 delegateAccountID: undefined,
                 reportActionsList: undefined,
                 rules: undefined,
+                personalDetailsByLogins: {
+                    [existingMemberA]: {accountID: existingMemberAID, login: existingMemberA},
+                    [existingMemberB]: {accountID: existingMemberBID, login: existingMemberB},
+                },
             });
             await waitForBatchedUpdates();
 
