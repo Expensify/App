@@ -620,15 +620,6 @@ const translations: TranslationDeepObject<typeof en> = {
         launching: 'Cargando Expensify',
         expired: 'Tu sesión ha expirado.',
         signIn: 'Por favor, inicia sesión de nuevo.',
-        notValid: 'Enlace no válido.',
-        sessionMismatch: 'El enlace que has pulsado no es válido para tu sesión actual.',
-        switchAccount: {
-            title: '¿Cambiar de cuenta?',
-            prompt: ({newEmail, currentEmail}: {newEmail: string; currentEmail: string}) =>
-                `Has iniciado sesión como ${currentEmail}. Esta acción hará que inicies sesión como ${newEmail} en su lugar.`,
-            confirm: 'Cambiar de cuenta',
-            staySignedIn: 'No cambies de cuenta',
-        },
     },
     multifactorAuthentication: {
         reviewTransaction: {
@@ -1649,7 +1640,6 @@ const translations: TranslationDeepObject<typeof en> = {
             other: 'Error inesperado. Por favor, inténtalo más tarde.',
             genericHoldExpenseFailureMessage: 'Error inesperado al retener el gasto. Por favor, inténtalo de nuevo más tarde.',
             genericUnholdExpenseFailureMessage: 'Error inesperado al desbloquear el gasto. Por favor, inténtalo de nuevo más tarde.',
-            payFailedExpenseDeleted: 'El pago falló porque el informe de gastos fue eliminado.',
             genericCreateFailureMessage: 'Error inesperado al enviar este gasto. Por favor, inténtalo más tarde.',
             genericCreateInvoiceFailureMessage: 'Error inesperado al enviar la factura. Por favor, inténtalo de nuevo más tarde.',
             receiptDeleteFailureError: 'Error inesperado al borrar este recibo. Por favor, vuelve a intentarlo más tarde.',
@@ -2221,6 +2211,7 @@ const translations: TranslationDeepObject<typeof en> = {
     displayNamePage: {
         headerTitle: 'Nombre',
         isShownOnProfile: 'Este nombre es visible en tu perfil.',
+        isShownOnMemberProfile: 'El nombre para mostrar aparecerá en el perfil del miembro. Una vez guardado, solo el miembro podrá editarlo.',
     },
     timezonePage: {
         timezone: 'Zona horaria',
@@ -2267,7 +2258,6 @@ const translations: TranslationDeepObject<typeof en> = {
             useProfiling: 'Usar el trazado',
             profileTrace: 'Traza de ejecución',
             results: 'Resultados',
-            releaseOptions: 'Opciones de publicación',
             testingPreferences: 'Preferencias para Tests',
             server: 'Servidor',
             servers: {
@@ -6070,6 +6060,11 @@ ${amount} para ${merchant} - ${date}`,
             syncReimbursedReports: 'Sincronizar informes reembolsados',
             syncReimbursedReportsDescription: 'Cuando un informe se pague mediante ACH, se generará un pago de factura en esta cuenta.',
             billPaymentAccount: {label: 'Cuenta de pago de facturas', description: 'Elige desde dónde pagar las facturas y crearemos el pago en DualEntry.'},
+            fxExpenseAccount: {
+                label: 'Cuenta de comisión por conversión de divisa de DualEntry',
+                description:
+                    'Cuando tu empresa cubra el coste de conversión de divisa en un pago realizado en el extranjero, registraremos ese coste en esta cuenta en DualEntry como un asiento contable.',
+            },
             syncExpensifyCardSettlements: 'Sincronizar liquidaciones de la Tarjeta Expensify',
             settlementAccount: {label: 'Cuenta de liquidación de la Tarjeta Expensify', description: 'Elige tu cuenta de liquidación y crearemos el pago en DualEntry.'},
             syncTravelInvoicingSettlements: 'Sincronizar liquidaciones de facturación de viajes',
@@ -8399,6 +8394,8 @@ ${reportName}`,
                 applyUpdates: 'Aplicar estas actualizaciones:',
                 saveRule: 'Guardar regla',
                 previewMatches: 'Vista previa de coincidencias',
+                previewMatchesDescription: 'Mira cómo se aplica esta regla a tus gastos',
+                preview: 'Vista previa',
                 confirmError: 'Ingresa comerciante y aplica al menos una actualización',
                 confirmErrorMerchant: 'Por favor ingresa comerciante',
                 confirmErrorUpdate: 'Por favor aplica al menos una actualización',
@@ -8708,6 +8705,14 @@ ${reportName}`,
                 requireFieldsDescription: 'Exige campos específicos de gasto o renuncia a exigirlos.',
                 createAgentRule: 'Describir regla de agente',
                 createAgentRuleDescription: 'Crea reglas flexibles que se ejecuten cuando las necesites.',
+                describe: 'Describir',
+                describeRule: 'Describe tu regla con tus propias palabras y Concierge la creará por ti',
+                describeRuleInputLabel: 'Describe la regla',
+                promptErrors: {
+                    unsupported: 'Esa regla aún no es compatible: estamos trabajando en ello. Prueba con otra regla por ahora.',
+                    unintelligible: 'Prueba a formular tu regla así: si los gastos superan los $100, exige un recibo.',
+                    multipleRules: 'Una regla a la vez, por favor. Prueba a describir una sola regla, como: bloquear compras en comercios minoristas en todas las tarjetas.',
+                },
             },
             expenseDefaultsTable: {
                 tableColumnType: 'Tipo',
@@ -9576,6 +9581,8 @@ ${reportName}`,
         customUnitRateDateRangeFrom: (date: string) => `desde ${date}`,
         customUnitRateDateRangeUntilEnd: (date: string) => `hasta ${date}`,
         customUnitRateDateRangeAllDates: () => `para todas las fechas`,
+        updatedMemberDisplayName: (newName: string, oldName: string, editProfileURL: string) =>
+            `actualizó tu nombre para mostrar a ${newName} (previamente «${oldName}»). <a href="${editProfileURL}">Editar en tu perfil</a>`,
         policyCopy: {
             overview: (sourcePolicyName: string, sourcePolicyURL: string) => `copió la descripción general de <a href="${sourcePolicyURL}">${sourcePolicyName}</a>`,
             currency: (sourcePolicyName: string, sourcePolicyURL: string) => `copió la divisa de <a href="${sourcePolicyURL}">${sourcePolicyName}</a>`,
@@ -10100,6 +10107,10 @@ ${reportName}`,
         genericUpdateReportFieldFailureMessage: 'Error inesperado al actualizar el campo. Por favor, inténtalo más tarde.',
         genericUpdateReportNameEditFailureMessage: 'Error inesperado al cambiar el nombre del informe. Por favor, intentarlo más tarde.',
         noActivityYet: 'Sin actividad todavía',
+        collapsedSystemMessages: () => ({
+            one: 'mostrar 1 actualización',
+            other: (count: number) => `mostrar ${count} actualizaciones`,
+        }),
         connectionSettings: 'Configuración de conexión',
         actions: {
             type: {
