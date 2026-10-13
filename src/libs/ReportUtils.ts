@@ -141,6 +141,7 @@ import {buildPersonalDetailsUpdate, getAccountIDsByLogins, getLoginByAccountID, 
 import {
     arePaymentsEnabled,
     canMemberWrite as canMemberWritePolicyUtils,
+    canCreateExpensesOnPolicy,
     canRoleCreateExpenses,
     canSendInvoiceFromWorkspace,
     getActivePolicies,

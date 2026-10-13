@@ -526,7 +526,7 @@ describe('PolicyUtils', () => {
             });
 
             it('blocks expense creation when the policy role cannot be resolved', () => {
-                expect(canCreateExpensesOnPolicy({role: undefined} as Policy)).toBe(false);
+                expect(canCreateExpensesOnPolicy({role: undefined} as unknown as Policy)).toBe(false);
                 expect(canCreateExpensesOnPolicy(undefined)).toBe(false);
             });
 
