@@ -5,6 +5,7 @@ import type Form from './Form';
 const INPUT_IDS = {
     FIRST_NAME: 'firstName',
     PROMPT: 'prompt',
+    ROLE: 'role',
 } as const;
 
 type InputID = ValueOf<typeof INPUT_IDS>;
@@ -14,6 +15,7 @@ type AddAgentForm = Form<
     {
         [INPUT_IDS.FIRST_NAME]: string;
         [INPUT_IDS.PROMPT]: string;
+        [INPUT_IDS.ROLE]: string;
     }
 >;
 

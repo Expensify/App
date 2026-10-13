@@ -9,6 +9,8 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
+import ValuePicker from '@components/ValuePicker';
+import {getAssignableWorkspaceMemberRoleItems} from '@components/WorkspaceMemberRoleList';
 
 import useBeforeRemove from '@hooks/useBeforeRemove';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -17,6 +19,7 @@ import useKeyboardState from '@hooks/useKeyboardState';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import usePolicy from '@hooks/usePolicy';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
@@ -43,8 +46,9 @@ import type {Errors} from '@src/types/onyx/OnyxCommon';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import type {TextInputKeyPressEvent} from 'react-native';
+import type {ValueOf} from 'type-fest';
 
-import React, {useCallback, useEffect, useRef} from 'react';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {Platform, View} from 'react-native';
 
 import {PROMPT_MAX_AUTO_GROW_HEIGHT, PROMPT_MAX_HEIGHT_ON_KEYBOARD_OPEN_LANDSCAPE_MODE} from './const';
@@ -63,6 +67,7 @@ type DynamicAddAgentPageContentProps = {
 function DynamicAddAgentPageContent({route, template}: DynamicAddAgentPageContentProps) {
     const StyleUtils = useStyleUtils();
     const policyID = route.params?.policyID;
+    const policy = usePolicy(policyID);
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {windowWidth, windowHeight} = useWindowDimensions();
@@ -73,7 +78,7 @@ function DynamicAddAgentPageContent({route, template}: DynamicAddAgentPageConten
     const shouldAutoGrowPromptInput = Platform.OS !== 'web' && !isInLandscapeMode;
     const shouldUseScrollableLayout = shouldAutoGrowPromptInput || isInLandscapeMode;
     const shouldShrinkPromptInput = isInLandscapeMode && isKeyboardActive;
-    const {accountID: ownerAccountID, login: ownerLogin, displayName} = useCurrentUserPersonalDetails();
+    const {accountID: currentUserAccountID, login: currentUserLogin, displayName} = useCurrentUserPersonalDetails();
     const defaultAgentName = template?.name ?? (displayName ? translate('addAgentPage.defaultAgentName', displayName) : undefined);
     const defaultPrompt = template?.prompt ?? translate('addAgentPage.defaultPrompt');
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Pencil']);
@@ -82,6 +87,13 @@ function DynamicAddAgentPageContent({route, template}: DynamicAddAgentPageConten
     const hasSubmittedRef = useRef(false);
     const hasLeftPageRef = useRef(false);
     const formRef = useRef<FormRef>(null);
+    const availableRoleItems = getAssignableWorkspaceMemberRoleItems(translate, undefined, policy, currentUserLogin ?? '');
+    const [role, setRole] = useState<ValueOf<typeof CONST.POLICY.ROLE>>(availableRoleItems.at(0)?.value ?? CONST.POLICY.ROLE.ADMIN);
+    const roleOptions = availableRoleItems.map((roleItem) => ({
+        label: roleItem.text,
+        value: roleItem.value,
+        description: roleItem.alternateText,
+    }));
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.AGENT_ADD.path);
 
     const submitFormOnModEnter = (event: TextInputKeyPressEvent | KeyboardEvent) => {
@@ -148,8 +160,8 @@ function DynamicAddAgentPageContent({route, template}: DynamicAddAgentPageConten
         // reportID it generates client-side, and CreateAgent creates the DM under that exact ID (see
         // CreateAgent.cpp), so we can navigate to the DM immediately, online or offline, without waiting.
         const {optimisticReportID, optimisticPersonalDetailPromise} = uploadedAvatar?.uri
-            ? createAgent(firstName, prompt, ownerAccountID, ownerLogin, undefined, buildFileFromAvatarCropResult(uploadedAvatar), uploadedAvatar.uri, policyID)
-            : createAgent(firstName, prompt, ownerAccountID, ownerLogin, selectedPresetID ?? AGENT_AVATARS.getRandomID(), undefined, undefined, policyID);
+            ? createAgent(firstName, prompt, currentUserAccountID, currentUserLogin, undefined, buildFileFromAvatarCropResult(uploadedAvatar), uploadedAvatar.uri, policyID)
+            : createAgent(firstName, prompt, currentUserAccountID, currentUserLogin, selectedPresetID ?? AGENT_AVATARS.getRandomID(), undefined, undefined, policyID);
 
         clearNewAgentTemplate();
 
@@ -247,6 +259,19 @@ function DynamicAddAgentPageContent({route, template}: DynamicAddAgentPageConten
                         spellCheck={false}
                         defaultValue={defaultAgentName}
                     />
+                    {!!policyID && (
+                        <View style={[styles.mhn5]}>
+                            <InputWrapper
+                                InputComponent={ValuePicker}
+                                inputID={INPUT_IDS.ROLE}
+                                label={translate('common.role')}
+                                items={roleOptions}
+                                onValueChange={(value) => setRole(value as typeof role)}
+                                value={role}
+                                shouldShowTooltips={false}
+                            />
+                        </View>
+                    )}
                     <View
                         style={
                             shouldShrinkPromptInput
