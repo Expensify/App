@@ -1,6 +1,9 @@
 import getFullPolicySnapshotClearUpdates from '@libs/FullPolicySnapshotUtils';
 
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {OnyxData} from '@src/types/onyx/Request';
+
+import type {OnyxKey} from 'react-native-onyx';
 
 import Onyx from 'react-native-onyx';
 
@@ -13,7 +16,7 @@ const clearUpdate = (policyID: string) => ({
 describe('getFullPolicySnapshotClearUpdates', () => {
     it('clears the marker of policies whose tags, categories or members are written locally', () => {
         // Given a request that writes tags, categories and members of three policies in different phases
-        const onyxData = {
+        const onyxData: OnyxData<OnyxKey> = {
             optimisticData: [{onyxMethod: Onyx.METHOD.MERGE, key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}A`, value: {}}],
             failureData: [{onyxMethod: Onyx.METHOD.MERGE, key: `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}B`, value: {}}],
             successData: [{onyxMethod: Onyx.METHOD.MERGE, key: `${ONYXKEYS.COLLECTION.POLICY}C`, value: {employeeList: {}}}],
@@ -29,7 +32,7 @@ describe('getFullPolicySnapshotClearUpdates', () => {
 
     it('does not clear the marker for writes that leave the snapshot data alone', () => {
         // Given a request that only renames a policy and updates a report
-        const onyxData = {
+        const onyxData: OnyxData<OnyxKey> = {
             optimisticData: [
                 {onyxMethod: Onyx.METHOD.MERGE, key: `${ONYXKEYS.COLLECTION.POLICY}A`, value: {name: 'New name'}},
                 {onyxMethod: Onyx.METHOD.MERGE, key: `${ONYXKEYS.COLLECTION.REPORT}1`, value: {reportName: 'Report'}},
