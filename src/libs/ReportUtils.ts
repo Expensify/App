@@ -15006,12 +15006,16 @@ function shouldShowMarkAsDone({
 
 /**
  * Determines whether the current user is eligible to initiate a merge of the selected expense reports.
+ *
+ * @param policy - The workspace policy the selected reports belong to. A single policy is enough because cross-workspace
+ * merges are rejected below, so every report that reaches the policy check shares the first report's `policyID`.
  */
 function canMergeReports(
     selectedReports: Array<OnyxEntry<Report>>,
     currentUserAccountID: number | undefined,
     rules: OnyxCollection<Rule>,
     reportNameValuePairs: OnyxCollection<ReportNameValuePairs>,
+    policy: OnyxEntry<Policy>,
 ): boolean {
     // Need at least 2 reports and a valid caller identity.
     if (selectedReports.length < 2 || !currentUserAccountID) {
@@ -15056,7 +15060,6 @@ function canMergeReports(
         // report owner or an admin / approver on the workspace.
         const isReportArchived = isArchivedReport(reportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`]);
         const hasWriteAccess = canUserPerformWriteAction(report, isReportArchived);
-        const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`];
         const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
         const isReportEligibleForMerge = isMoneyRequestReportEligibleForMerge(report, isAdmin, rules, currentUserAccountID);
 
