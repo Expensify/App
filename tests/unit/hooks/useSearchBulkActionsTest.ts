@@ -220,6 +220,13 @@ const expenseReportQueryJSON: SearchQueryJSON = {
     filters: {operator: CONST.SEARCH.SYNTAX_OPERATORS.AND, left: 'type', right: 'expense-report'},
 };
 
+const invoiceQueryJSON: SearchQueryJSON = {
+    ...baseQueryJSON,
+    inputQuery: 'type:invoice status:all',
+    type: CONST.SEARCH.DATA_TYPES.INVOICE,
+    filters: {operator: CONST.SEARCH.SYNTAX_OPERATORS.AND, left: 'type', right: 'invoice'},
+};
+
 const groupedExpenseQueryJSON: SearchQueryJSON = {
     ...baseQueryJSON,
     inputQuery: 'type:expense sortBy:groupMerchant sortOrder:asc groupBy:merchant',
@@ -284,6 +291,33 @@ describe('useSearchBulkActions - CSV export flow', () => {
 
     afterEach(async () => {
         await Onyx.clear();
+    });
+
+    it('uses the unreported-expenses warning for a single expense report', async () => {
+        // Given a single selected expense report
+        mockSelectedTransactions = {report1: makeSelectedTransaction()};
+
+        // When the bulk actions are created for an expense-report search
+        renderHook(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON}), {wrapper: OnyxListItemProvider});
+
+        // Then the report deletion prompt explains that its expenses become unreported
+        await waitFor(() => {
+            expect(mockTranslate).toHaveBeenCalledWith('iou.deleteExpenseReportConfirmation');
+        });
+    });
+
+    it('uses the generic report confirmation for a single invoice', async () => {
+        // Given a single selected invoice
+        mockSelectedTransactions = {report1: makeSelectedTransaction()};
+
+        // When the bulk actions are created for an invoice search
+        renderHook(() => useSearchBulkActions({queryJSON: invoiceQueryJSON}), {wrapper: OnyxListItemProvider});
+
+        // Then the report deletion prompt does not claim that expenses become unreported
+        await waitFor(() => {
+            expect(mockTranslate).toHaveBeenCalledWith('iou.deleteReportConfirmation', {count: 1});
+        });
+        expect(mockTranslate).not.toHaveBeenCalledWith('iou.deleteExpenseReportConfirmation');
     });
 
     it('handleBasicExport with select-all tracks the export', async () => {
@@ -588,6 +622,43 @@ describe('useSearchBulkActions - CSV export flow', () => {
                     reportID: 'childReport1',
                 }),
             );
+        });
+
+        it('shows the unhold option offline and removes the hold from every selected expense optimistically', async () => {
+            // Given the user is offline with two held expenses selected that they can unhold
+            mockIsOffline = true;
+            mockSelectedTransactions = {
+                tx1: makeSelectedTransaction({
+                    canUnhold: true,
+                    isHeld: true,
+                    policyID: undefined,
+                    reportAction: createMock<ReportAction>({childReportID: 'childReport1'}),
+                }),
+                tx2: makeSelectedTransaction({
+                    canUnhold: true,
+                    isHeld: true,
+                    policyID: undefined,
+                    reportAction: createMock<ReportAction>({childReportID: 'childReport2'}),
+                }),
+            };
+
+            const {result} = renderHook(() => useSearchBulkActions({queryJSON: baseQueryJSON}), {wrapper: OnyxListItemProvider});
+
+            // Then the unhold option is offered, because unholdRequest works offline with optimistic data
+            await waitFor(() => {
+                expect(result.current.headerButtonsOptions.find((option) => option.value === CONST.SEARCH.BULK_ACTION_TYPES.UNHOLD)).toBeDefined();
+            });
+
+            // When the user selects it
+            act(() => {
+                result.current.headerButtonsOptions.find((option) => option.value === CONST.SEARCH.BULK_ACTION_TYPES.UNHOLD)?.onSelected?.();
+            });
+
+            // Then each expense is unheld with the offline flag, and the offline modal is not shown
+            expect(mockUnholdRequest).toHaveBeenCalledTimes(2);
+            expect(mockUnholdRequest).toHaveBeenCalledWith(expect.objectContaining({transactionID: 'tx1', reportID: 'childReport1', isOffline: true}));
+            expect(mockUnholdRequest).toHaveBeenCalledWith(expect.objectContaining({transactionID: 'tx2', reportID: 'childReport2', isOffline: true}));
+            expect(result.current.isOfflineModalVisible).toBe(false);
         });
     });
 });
