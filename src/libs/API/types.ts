@@ -174,6 +174,7 @@ const WRITE_COMMANDS = {
     COPY_POLICY_SETTINGS: 'CopyPolicySettings',
     COPY_POLICY_SETTINGS_NOTIFY: 'CopyPolicySettings_Notify',
     CREATE_WORKSPACE_FROM_IOU_PAYMENT: 'CreateWorkspaceFromIOUPayment',
+    UPDATE_POLICY_MEMBER_DISPLAY_NAME: 'UpdatePolicyMemberDisplayName',
     UPDATE_POLICY_MEMBERS_CUSTOM_FIELDS: 'UpdatePolicyMembersCustomFields',
     SET_WORKSPACE_CATEGORIES_ENABLED: 'SetWorkspaceCategoriesEnabled',
     MOVE_IOU_REPORT_TO_POLICY_AND_INVITE_SUBMITTER: 'MoveIOUReportToPolicyAndInviteSubmitter',
@@ -305,6 +306,7 @@ const WRITE_COMMANDS = {
     SET_POLICY_REQUIRE_MAP_OR_GPS: 'SetPolicyRequireMapOrGPS',
     SET_POLICY_EXPENSE_MAX_AGE: 'SetPolicyExpenseMaxAge',
     ADD_POLICY_AGENT_RULE: 'AddPolicyAgentRule',
+    GENERATE_RULE: 'GenerateRule',
     UPDATE_POLICY_AGENT_RULE: 'UpdatePolicyAgentRule',
     DELETE_POLICY_AGENT_RULE: 'DeletePolicyAgentRule',
     UPDATE_CUSTOM_RULES: 'UpdateCustomRules',
@@ -941,6 +943,7 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.UPDATE_WORKSPACE_MEMBERS_ROLE]: Parameters.UpdateWorkspaceMembersRoleParams;
     [WRITE_COMMANDS.CREATE_WORKSPACE]: Parameters.CreateWorkspaceParams;
     [WRITE_COMMANDS.CREATE_WORKSPACE_FROM_IOU_PAYMENT]: Parameters.CreateWorkspaceFromIOUPaymentParams;
+    [WRITE_COMMANDS.UPDATE_POLICY_MEMBER_DISPLAY_NAME]: Parameters.UpdatePolicyMemberDisplayNameParams;
     [WRITE_COMMANDS.UPDATE_POLICY_MEMBERS_CUSTOM_FIELDS]: Parameters.UpdatePolicyMembersCustomFieldsParams;
     [WRITE_COMMANDS.MOVE_IOU_REPORT_TO_EXISTING_POLICY]: Parameters.MoveIOUReportToExistingPolicyParams;
     [WRITE_COMMANDS.SET_WORKSPACE_CATEGORIES_ENABLED]: Parameters.SetWorkspaceCategoriesEnabledParams;
@@ -1119,6 +1122,7 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.SET_POLICY_EXPENSE_MAX_AMOUNT]: Parameters.SetPolicyExpenseMaxAmount;
     [WRITE_COMMANDS.SET_POLICY_EXPENSE_MAX_AGE]: Parameters.SetPolicyExpenseMaxAge;
     [WRITE_COMMANDS.ADD_POLICY_AGENT_RULE]: Parameters.AddPolicyAgentRuleParams;
+    [WRITE_COMMANDS.GENERATE_RULE]: Parameters.GenerateRuleParams;
     [WRITE_COMMANDS.UPDATE_POLICY_AGENT_RULE]: Parameters.UpdatePolicyAgentRuleParams;
     [WRITE_COMMANDS.DELETE_POLICY_AGENT_RULE]: Parameters.DeletePolicyAgentRuleParams;
     [WRITE_COMMANDS.UPDATE_CUSTOM_RULES]: Parameters.UpdateCustomRules;
