@@ -107,12 +107,12 @@ export default function AgentsTableRow({item, rowIndex, shouldUseNarrowTableLayo
                         </View>
                     )}
 
-                    {!shouldUseNarrowTableLayout && shouldShowOwnerColumn && !!item.ownerAccountID && (
+                    {!shouldUseNarrowTableLayout && shouldShowOwnerColumn && (
                         <View
                             style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}
                             {...getCellAccessibilityProps(isTableSemanticsEnabled)}
                         >
-                            {item.ownerType === CONST.AGENTS.OWNER_TYPE.PERSON && (
+                            {item.ownerType === CONST.AGENTS.OWNER_TYPE.PERSON && !!item.ownerAccountID && (
                                 <AccountAvatar
                                     size={CONST.AVATAR_SIZE.XXX_SMALL}
                                     accountID={item.ownerAccountID}
