@@ -20,6 +20,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {searchUserInServer, shareReport} from '@libs/actions/Report';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import getPlatform from '@libs/getPlatform';
+import Growl from '@libs/Growl';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {ReportDetailsNavigatorParamList} from '@libs/Navigation/types';
@@ -75,6 +76,7 @@ function DynamicReportDetailsShareReportPage({report, policy}: DynamicReportDeta
         startWithLoading(() => {
             shareReport(report.reportID, selectedLogin);
             Navigation.goBack(backPath);
+            Growl.success(translate('common.reportShared'));
         });
     };
 
