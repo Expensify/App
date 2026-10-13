@@ -658,8 +658,6 @@ function buildUpdateWorkspaceMembersRoleOnyxData(policy: OnyxEntry<Policy>, sele
                         member[current.email] = {
                             ...(previousEmployeeList[current.email] ?? {}),
                             pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
-                            // Failures of the approve-only side-effects request surface through page-level modals, so no inline member error is set.
-                            errors: newRole === CONST.POLICY.ROLE.APPROVE_ONLY ? null : ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workspace.editor.genericFailureMessage'),
                         };
                         return member;
                     }, {}),
@@ -734,17 +732,30 @@ async function updateWorkspaceMembersRole(policy: OnyxEntry<Policy>, selectedMem
         employees: JSON.stringify(memberRoles.map((item) => ({email: item.email, role: item.role}))),
     };
 
+    // A write request reports failures through the member rows, while the side-effects request reports them through page-level modals.
+    const setMemberErrorsOnFailure = (errors: PolicyEmployee['errors']): OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY> => ({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.POLICY}${policy.id}`,
+        value: {
+            employeeList: Object.fromEntries(memberRoles.map(({email}) => [email, {errors}])),
+        },
+    });
+
     if (newRole === CONST.POLICY.ROLE.APPROVE_ONLY) {
+        const modalFailureData = [...failureData, setMemberErrorsOnFailure(null)];
         // eslint-disable-next-line rulesdir/no-api-side-effects-method -- blocked reasons are only on the response, which API.write does not expose
-        return API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.UPDATE_WORKSPACE_MEMBERS_ROLE, params, {optimisticData, successData, failureData}).catch((error: unknown) => {
-            // The queue's failure rollback only covers WRITE requests, so a network rejection on a side-effects
-            // request leaves the optimistic role changes in Onyx. Revert them here before the error surfaces.
-            return Onyx.update(failureData).then(() => {
-                throw error;
-            });
-        });
+        return API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.UPDATE_WORKSPACE_MEMBERS_ROLE, params, {optimisticData, successData, failureData: modalFailureData}).catch(
+            (error: unknown) => {
+                // The queue's failure rollback only covers WRITE requests, so a network rejection on a side-effects
+                // request leaves the optimistic role changes in Onyx. Revert them here before the error surfaces.
+                return Onyx.update(modalFailureData).then(() => {
+                    throw error;
+                });
+            },
+        );
     }
 
+    failureData.push(setMemberErrorsOnFailure(ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workspace.editor.genericFailureMessage')));
     // eslint-disable-next-line rulesdir/no-multiple-api-calls -- the approve-only branch returns early
     API.write(WRITE_COMMANDS.UPDATE_WORKSPACE_MEMBERS_ROLE, params, {optimisticData, successData, failureData});
 }
