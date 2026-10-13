@@ -1,3 +1,5 @@
+import type {ColumnLayout} from '@src/types/onyx/TableColumnWidths';
+
 import type React from 'react';
 
 type UseColumnResizeParams = {
@@ -16,8 +18,8 @@ type UseColumnResizeParams = {
     /** The narrowest width a drag may take a column to, for columns tighter than the default drag bound. */
     dragMinWidths?: Record<string, number>;
 
-    /** Keeps every column at the width a drag ended at until the layout reflows. */
-    pinColumnWidths?: (columnWidths: Record<string, number>) => void;
+    /** The layout to store with a drag's width, from every column's width when it ended. */
+    getColumnLayout: (columnWidths: Record<string, number>) => ColumnLayout;
 
     /** Gap between columns, so handles can be centred in it. */
     columnGap: number;

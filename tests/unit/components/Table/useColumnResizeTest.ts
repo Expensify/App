@@ -29,6 +29,11 @@ function getResizedColumnWidths(columnKey: string, width: number): Record<string
     return {[columnKey]: width, email: 400 - width};
 }
 
+/** Stands in for the resolver's layout, wrapping the painted widths in what the layout was sized for. */
+function getColumnLayout(columnWidths: Record<string, number>) {
+    return {tableWidth: 600, fitColumnWidths: {}, columnWidths};
+}
+
 type PointerEventInit = {clientX: number; button?: number};
 
 /** A pointer event carrying only what the hook reads, aimed at the given handle. */
@@ -57,6 +62,7 @@ function renderColumnResize(params?: Partial<UseColumnResizeParams>) {
         resizableColumnKeys: [NAME_COLUMN_KEY],
         getResizedColumnWidths,
         resolvedColumnWidths,
+        getColumnLayout,
         columnGap: 12,
         ...params,
     };
@@ -93,7 +99,14 @@ describe('useColumnResize', () => {
 
     it('returns no controller when resizing is off', () => {
         // Given a table with no resizing ID, which is how native, narrow layouts and tables that didn't opt in render it
-        const params: UseColumnResizeParams = {columnResizingID: undefined, resizableColumnKeys: [NAME_COLUMN_KEY], getResizedColumnWidths, resolvedColumnWidths, columnGap: 12};
+        const params: UseColumnResizeParams = {
+            columnResizingID: undefined,
+            resizableColumnKeys: [NAME_COLUMN_KEY],
+            getResizedColumnWidths,
+            resolvedColumnWidths,
+            getColumnLayout,
+            columnGap: 12,
+        };
 
         // When the hook runs
         const {result} = renderHook(() => useColumnResize(params));
@@ -104,7 +117,14 @@ describe('useColumnResize', () => {
 
     it('returns a controller before the columns are measured', () => {
         // Given a resizable table on its first render, before layout, when no column is resizable yet
-        const params: UseColumnResizeParams = {columnResizingID: COLUMN_RESIZING_ID, resizableColumnKeys: [], getResizedColumnWidths, resolvedColumnWidths: {}, columnGap: 12};
+        const params: UseColumnResizeParams = {
+            columnResizingID: COLUMN_RESIZING_ID,
+            resizableColumnKeys: [],
+            getResizedColumnWidths,
+            resolvedColumnWidths: {},
+            getColumnLayout,
+            columnGap: 12,
+        };
 
         // When the hook runs
         const {result} = renderHook(() => useColumnResize(params));
@@ -117,8 +137,7 @@ describe('useColumnResize', () => {
 
     it('paints a drag onto the scope and stores the dragged column on release', () => {
         // Given a 200px column with two 200px columns after it, the first of which absorbs its resize
-        const pinColumnWidths = jest.fn();
-        const {handleElement, getHandleProps, readWidth} = renderColumnResize({pinColumnWidths});
+        const {handleElement, getHandleProps, readWidth} = renderColumnResize();
 
         // When its edge is dragged 60px right
         act(() => {
@@ -137,10 +156,9 @@ describe('useColumnResize', () => {
             getHandleProps().onPointerUp?.(createPointerEvent(handleElement, {clientX: 160}));
         });
 
-        // Then the dragged column is stored, once, and every column is pinned as painted so the release moves nothing
+        // Then the dragged column is stored, once, with every column as painted, so neither the release nor a reload moves anything
         expect(setTableColumnWidth).toHaveBeenCalledTimes(1);
-        expect(setTableColumnWidth).toHaveBeenCalledWith(COLUMN_RESIZING_ID, 'name', 260);
-        expect(pinColumnWidths).toHaveBeenCalledWith({name: 260, email: 140, role: 200});
+        expect(setTableColumnWidth).toHaveBeenCalledWith(COLUMN_RESIZING_ID, 'name', 260, getColumnLayout({name: 260, email: 140, role: 200}));
         expect(document.body.style.cursor).toBe('');
     });
 
@@ -180,7 +198,7 @@ describe('useColumnResize', () => {
 
         // Then the drag ends the same way a release does, so the width the user already sees is kept
         expect(setTableColumnWidth).toHaveBeenCalledTimes(1);
-        expect(setTableColumnWidth).toHaveBeenCalledWith(COLUMN_RESIZING_ID, 'name', 240);
+        expect(setTableColumnWidth).toHaveBeenCalledWith(COLUMN_RESIZING_ID, 'name', 240, expect.objectContaining({columnWidths: expect.objectContaining({name: 240})}));
         expect(document.body.style.cursor).toBe('');
     });
 

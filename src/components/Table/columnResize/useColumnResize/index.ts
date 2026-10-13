@@ -48,7 +48,7 @@ function useColumnResize({
     getResizedColumnWidths,
     resolvedColumnWidths,
     dragMinWidths,
-    pinColumnWidths,
+    getColumnLayout,
     columnGap,
 }: UseColumnResizeParams): ColumnResizeController | undefined {
     const styles = useThemeStyles();
@@ -74,10 +74,10 @@ function useColumnResize({
             return;
         }
 
-        // Only the dragged column is stored, since storing the absorbers would mark them as user-sized. The rest is pinned
-        // as painted instead, because a fresh layout would share the room between the unset columns differently.
-        pinColumnWidths?.(Object.fromEntries(Object.keys(resolvedColumnWidths).map((columnKey) => [columnKey, readColumnWidth(columnKey) ?? 0])));
-        setTableColumnWidth(columnResizingID, drag.columnKey, width);
+        // Only the dragged column is user-sized, since marking the absorbers would stop them absorbing. The rest is stored
+        // as the painted layout instead, because a fresh layout would share the room between the unset columns differently.
+        const columnLayout = getColumnLayout(Object.fromEntries(Object.keys(resolvedColumnWidths).map((columnKey) => [columnKey, readColumnWidth(columnKey) ?? 0])));
+        setTableColumnWidth(columnResizingID, drag.columnKey, width, columnLayout);
     };
 
     const handlePointerDown = (columnKey: string, event: React.PointerEvent<HTMLDivElement>) => {

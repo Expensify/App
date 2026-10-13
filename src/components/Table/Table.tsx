@@ -18,7 +18,7 @@ import {canMeasureText} from '@libs/measureTextWidth';
 import {acquireBackgroundInputFocusSuppression} from '@libs/ModalFocusManager';
 
 import CONST from '@src/CONST';
-import type {ColumnWidthOverrides} from '@src/types/onyx/TableColumnWidths';
+import type {StoredTableColumnWidths} from '@src/types/onyx/TableColumnWidths';
 
 import type {FlashListRef} from '@shopify/flash-list';
 import type {ReactElement} from 'react';
@@ -145,8 +145,8 @@ function createTableHandle<DataType extends TableData, ColumnKey extends string 
 }
 
 type TableContentProps<DataType extends TableData, ColumnKey extends string, FilterKey extends string> = TableProps<DataType, ColumnKey, FilterKey> & {
-    /** Stored dragged widths for this table's `columnResizingID`. */
-    columnWidthOverrides?: ColumnWidthOverrides;
+    /** Stored dragged widths and painted layout for this table's `columnResizingID`. */
+    storedTableColumnWidths?: StoredTableColumnWidths;
 };
 
 function TableContent<DataType extends TableData, ColumnKey extends string = string, FilterKey extends string = string>({
@@ -170,7 +170,7 @@ function TableContent<DataType extends TableData, ColumnKey extends string = str
     shouldPreserveSelectionOnSearchAndFilter,
     shouldFooterRenderAsLastRow,
     columnResizingID,
-    columnWidthOverrides,
+    storedTableColumnWidths,
     onRowSelectionChange,
     onSearchStringChange,
     onSortingChange,
@@ -292,7 +292,7 @@ function TableContent<DataType extends TableData, ColumnKey extends string = str
         getResizedColumnWidths,
         resolvedColumnWidths,
         dragMinWidths,
-        pinColumnWidths,
+        getColumnLayout,
     } = useDynamicColumnWidths<DataType, ColumnKey>({
         columns,
         data,
@@ -301,7 +301,7 @@ function TableContent<DataType extends TableData, ColumnKey extends string = str
         // In the wide layout the checkbox column is rendered whenever selection is enabled.
         hasSelectionColumn: !!selectionEnabled,
         isColumnResizingEnabled,
-        columnWidthOverrides,
+        storedTableColumnWidths,
     });
 
     const columnResize = useColumnResize({
@@ -310,7 +310,7 @@ function TableContent<DataType extends TableData, ColumnKey extends string = str
         getResizedColumnWidths,
         resolvedColumnWidths,
         dragMinWidths,
-        pinColumnWidths,
+        getColumnLayout,
         columnGap: styles.gap3.gap,
     });
 
@@ -526,12 +526,12 @@ function TableContent<DataType extends TableData, ColumnKey extends string = str
 function TableWithStoredColumnWidths<DataType extends TableData, ColumnKey extends string = string, FilterKey extends string = string>(
     props: TableProps<DataType, ColumnKey, FilterKey> & {columnResizingID: string},
 ) {
-    const columnWidthOverrides = useStoredColumnWidths(props.columnResizingID);
+    const storedTableColumnWidths = useStoredColumnWidths(props.columnResizingID);
 
     return (
         <TableContent
             {...props}
-            columnWidthOverrides={columnWidthOverrides}
+            storedTableColumnWidths={storedTableColumnWidths}
         />
     );
 }

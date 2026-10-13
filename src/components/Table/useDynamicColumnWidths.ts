@@ -8,11 +8,9 @@ import {fontScale} from '@styles/typography';
 import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
-import type {ColumnWidthOverrides} from '@src/types/onyx/TableColumnWidths';
+import type {ColumnLayout, StoredTableColumnWidths} from '@src/types/onyx/TableColumnWidths';
 
 import type {StyleProp, ViewStyle} from 'react-native';
-
-import {useState} from 'react';
 
 import type {DynamicColumnConstraints} from './calculateDynamicColumnWidths';
 import type {TableColumn, TableData} from './types';
@@ -20,6 +18,7 @@ import type {TableColumn, TableData} from './types';
 import calculateDynamicColumnWidths, {distributeEqualWidths} from './calculateDynamicColumnWidths';
 import {getStoredColumnWidth} from './columnResize/applyColumnWidthOverrides';
 import getResizableColumnLayout from './columnResize/getResizableColumnLayout';
+import getValidColumnLayoutWidths from './columnResize/getValidColumnLayoutWidths';
 
 const {MIN_FREE_TEXT_COLUMN_WIDTH} = CONST.TABLES.DYNAMIC_COLUMNS;
 
@@ -45,8 +44,8 @@ type UseDynamicColumnWidthsParams<DataType extends TableData, ColumnKey extends 
     /** Whether columns are resizable, which forces px tracks read from custom properties. */
     isColumnResizingEnabled: boolean;
 
-    /** Widths the user dragged this table's columns to. */
-    columnWidthOverrides: ColumnWidthOverrides | undefined;
+    /** Widths the user dragged this table's columns to, and the layout the last drag left painted. */
+    storedTableColumnWidths: StoredTableColumnWidths | undefined;
 };
 
 type UseDynamicColumnWidthsResult = {
@@ -71,41 +70,9 @@ type UseDynamicColumnWidthsResult = {
     /** Narrowest width a drag may take a column to, for columns tighter than the default drag bound. */
     dragMinWidths: Record<string, number>;
 
-    /** Keeps the widths a drag ended at painted until the layout reflows, so releasing moves nothing. */
-    pinColumnWidths: (columnWidths: Record<string, number>) => void;
+    /** The layout to store with a drag's width, from every column's width when it ended, so a reload repaints it. */
+    getColumnLayout: (columnWidths: Record<string, number>) => ColumnLayout;
 };
-
-/** Widths a drag ended at, and the layout they were painted in. */
-type PinnedColumnWidths = {
-    tableWidth: number;
-    fitColumnWidths: Record<string, number>;
-
-    /** Columns already stored when the drag ended. The dragged one is stored right after. */
-    storedColumnKeys: string[];
-
-    columnWidths: Record<string, number>;
-};
-
-/**
- * Pinned widths hold only while the layout they were painted in does. A new table width, new content, or a stored width
- * that changed or was removed reflows the columns from scratch.
- */
-function getValidPinnedColumnWidths(
-    pinned: PinnedColumnWidths | undefined,
-    tableWidth: number,
-    fitColumnWidths: Record<string, number>,
-    storedColumnWidths: Map<string, number>,
-): Record<string, number> | undefined {
-    if (!pinned || pinned.tableWidth !== tableWidth) {
-        return undefined;
-    }
-
-    const hasSameContent = Object.entries(fitColumnWidths).every(([columnKey, fitWidth]) => pinned.fitColumnWidths[columnKey] === fitWidth);
-    const hasSameStoredWidths =
-        pinned.storedColumnKeys.every((columnKey) => storedColumnWidths.has(columnKey)) && [...storedColumnWidths].every(([columnKey, width]) => pinned.columnWidths[columnKey] === width);
-
-    return hasSameContent && hasSameStoredWidths ? pinned.columnWidths : undefined;
-}
 
 /**
  * Measures how wide a column's widest cell content renders, or `null` when the platform can't measure text.
@@ -192,11 +159,11 @@ function useDynamicColumnWidths<DataType extends TableData, ColumnKey extends st
     isEnabled,
     hasSelectionColumn,
     isColumnResizingEnabled,
-    columnWidthOverrides,
+    storedTableColumnWidths,
 }: UseDynamicColumnWidthsParams<DataType, ColumnKey>): UseDynamicColumnWidthsResult {
+    const {columnWidthOverrides, columnLayout} = storedTableColumnWidths ?? {};
     const styles = useThemeStyles();
     const {values} = useLayoutSpacing();
-    const [pinnedColumnWidths, setPinnedColumnWidths] = useState<PinnedColumnWidths>();
 
     const noDynamicWidths: UseDynamicColumnWidthsResult = {
         gridTemplateColumns: undefined,
@@ -206,7 +173,7 @@ function useDynamicColumnWidths<DataType extends TableData, ColumnKey extends st
         getResizedColumnWidths: (columnKey, width) => ({[columnKey]: width}),
         resolvedColumnWidths: {},
         dragMinWidths: {},
-        pinColumnWidths: () => {},
+        getColumnLayout: (columnWidths) => ({tableWidth, fitColumnWidths: {}, columnWidths}),
     };
 
     // Checked before anything else, so native never walks the data to gather text that it can't measure anyway.
@@ -335,13 +302,13 @@ function useDynamicColumnWidths<DataType extends TableData, ColumnKey extends st
         columns,
         resolvedColumnWidths,
         columnWidthOverrides,
-        pinnedColumnWidths: getValidPinnedColumnWidths(pinnedColumnWidths, tableWidth, fitColumnWidths, storedColumnWidths),
+        pinnedColumnWidths: getValidColumnLayoutWidths(columnLayout, tableWidth, fitColumnWidths, storedColumnWidths),
         fitColumnWidths,
         tableWidth,
         rowChromeWidths: {selectionColumnWidth, totalGapWidth, rowMarginWidth, rowPaddingWidth},
     });
 
-    return {...layout, pinColumnWidths: (columnWidths) => setPinnedColumnWidths({tableWidth, fitColumnWidths, storedColumnKeys: [...storedColumnWidths.keys()], columnWidths})};
+    return {...layout, getColumnLayout: (columnWidths) => ({tableWidth, fitColumnWidths, columnWidths})};
 }
 
 export default useDynamicColumnWidths;
