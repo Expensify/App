@@ -94,19 +94,21 @@ function getInitialSubPageForNetsuiteTokenInput(policy: OnyxEntry<Policy>) {
 type NetSuiteOAuthMigrationSeverity = 'info' | 'warning' | 'danger';
 
 const NETSUITE_OAUTH_DEADLINE = new Date('2027-02-01');
+const NETSUITE_OAUTH_DANGER_THRESHOLD_DAYS = 30;
+const NETSUITE_OAUTH_WARNING_THRESHOLD_DAYS = 90;
 
 function shouldShowNetSuiteOAuthMigrationNudge(policy?: Policy): boolean {
     const netsuite = policy?.connections?.netsuite;
-    return !!netsuite?.verified && netsuite.config?.authType !== 'oauth2' && !!netsuite.tokenID && !!netsuite.tokenSecret;
+    return !!netsuite?.verified && netsuite.config?.authType !== CONST.NETSUITE_CONFIG.TOKEN_INPUT.AUTH_TYPE.OAUTH2 && !!netsuite.tokenID && !!netsuite.tokenSecret;
 }
 
 function getNetSuiteOAuthMigrationSeverity(): NetSuiteOAuthMigrationSeverity {
     const now = new Date();
     const daysRemaining = (NETSUITE_OAUTH_DEADLINE.getTime() - now.getTime()) / (1000 * 60 * 60 * 24);
-    if (daysRemaining <= 30) {
+    if (daysRemaining <= NETSUITE_OAUTH_DANGER_THRESHOLD_DAYS) {
         return 'danger';
     }
-    if (daysRemaining <= 90) {
+    if (daysRemaining <= NETSUITE_OAUTH_WARNING_THRESHOLD_DAYS) {
         return 'warning';
     }
     return 'info';
