@@ -174,9 +174,9 @@ const WRITE_COMMANDS = {
     COPY_POLICY_SETTINGS: 'CopyPolicySettings',
     COPY_POLICY_SETTINGS_NOTIFY: 'CopyPolicySettings_Notify',
     CREATE_WORKSPACE_FROM_IOU_PAYMENT: 'CreateWorkspaceFromIOUPayment',
+    UPDATE_POLICY_MEMBER_DISPLAY_NAME: 'UpdatePolicyMemberDisplayName',
     UPDATE_POLICY_MEMBERS_CUSTOM_FIELDS: 'UpdatePolicyMembersCustomFields',
     SET_WORKSPACE_CATEGORIES_ENABLED: 'SetWorkspaceCategoriesEnabled',
-    SET_POLICY_VENDORS_ENABLED: 'SetPolicyVendorsEnabled',
     MOVE_IOU_REPORT_TO_POLICY_AND_INVITE_SUBMITTER: 'MoveIOUReportToPolicyAndInviteSubmitter',
     SET_POLICY_TAGS_ENABLED: 'SetPolicyTagsEnabled',
     CREATE_WORKSPACE_CATEGORIES: 'CreateWorkspaceCategories',
@@ -306,6 +306,7 @@ const WRITE_COMMANDS = {
     SET_POLICY_REQUIRE_MAP_OR_GPS: 'SetPolicyRequireMapOrGPS',
     SET_POLICY_EXPENSE_MAX_AGE: 'SetPolicyExpenseMaxAge',
     ADD_POLICY_AGENT_RULE: 'AddPolicyAgentRule',
+    GENERATE_RULE: 'GenerateRule',
     UPDATE_POLICY_AGENT_RULE: 'UpdatePolicyAgentRule',
     DELETE_POLICY_AGENT_RULE: 'DeletePolicyAgentRule',
     UPDATE_CUSTOM_RULES: 'UpdateCustomRules',
@@ -577,6 +578,7 @@ const WRITE_COMMANDS = {
     UPDATE_DUALENTRY_ACCOUNTING_METHOD: 'UpdateDualEntryAccountingMethod',
     UPDATE_DUALENTRY_SYNC_REIMBURSED_REPORTS: 'UpdateDualEntrySyncReimbursedReports',
     UPDATE_DUALENTRY_BILL_PAYMENT_ACCOUNT: 'UpdateDualEntryBillPaymentAccount',
+    UPDATE_DUALENTRY_FX_EXPENSE_ACCOUNT: 'UpdateDualEntryFxExpenseAccount',
     UPDATE_DUALENTRY_SYNC_EXPENSIFY_CARD_SETTLEMENTS: 'UpdateDualEntrySyncExpensifyCardSettlements',
     UPDATE_DUALENTRY_SETTLEMENTS_ACCOUNT: 'UpdateDualEntrySettlementsAccount',
     UPDATE_DUALENTRY_SYNC_TRAVEL_INVOICING_SETTLEMENTS: 'UpdateDualEntrySyncTravelInvoicingSettlements',
@@ -618,7 +620,7 @@ const WRITE_COMMANDS = {
     UPDATE_CAMPFIRE_SYNC_TRAVEL_INVOICING_SETTLEMENTS: 'UpdateCampfireSyncTravelInvoicingSettlements',
     UPDATE_CAMPFIRE_TRAVEL_INVOICING_SETTLEMENTS_ACCOUNT: 'UpdateCampfireTravelInvoicingSettlementsAccount',
     UPDATE_CAMPFIRE_TRAVEL_INVOICING_PAYABLE_ACCOUNT: 'UpdateCampfireTravelInvoicingPayableAccount',
-    UPDATE_ZOHO_BOOKS_ORGANIZATION: 'UpdateZohoBooksOrganization',
+    UPDATE_ZOHO_BOOKS_SUBSIDIARY: 'UpdateZohoBooksSubsidiary',
     UPDATE_ZOHO_BOOKS_FIELD_MAPPING: 'UpdateZohoBooksFieldMapping',
     UPDATE_ZOHO_BOOKS_ENABLE_NEW_CATEGORIES: 'UpdateZohoBooksEnableNewCategories',
     UPDATE_ZOHO_BOOKS_SYNC_TAX_RATES: 'UpdateZohoBooksSyncTaxRates',
@@ -780,7 +782,6 @@ const WRITE_COMMANDS = {
     UPGRADE_SUBMIT: 'UpgradeSubmit',
     UPLOAD_USER_KYB_DOCS: 'UploadUserKYBDocs',
     JOIN_REPORT_VIA_SECURE_LINK: 'JoinReportViaSecureLink',
-    CREATE_JOIN_WORKSPACE_ONBOARDING_CONTENT: 'CreateJoinWorkspacePostOnboardingContent',
 } as const;
 
 /** `payMoneyRequest` sends the wallet command for Expensify Wallet payments and the plain one for everything else, both built from the same params. */
@@ -942,10 +943,10 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.UPDATE_WORKSPACE_MEMBERS_ROLE]: Parameters.UpdateWorkspaceMembersRoleParams;
     [WRITE_COMMANDS.CREATE_WORKSPACE]: Parameters.CreateWorkspaceParams;
     [WRITE_COMMANDS.CREATE_WORKSPACE_FROM_IOU_PAYMENT]: Parameters.CreateWorkspaceFromIOUPaymentParams;
+    [WRITE_COMMANDS.UPDATE_POLICY_MEMBER_DISPLAY_NAME]: Parameters.UpdatePolicyMemberDisplayNameParams;
     [WRITE_COMMANDS.UPDATE_POLICY_MEMBERS_CUSTOM_FIELDS]: Parameters.UpdatePolicyMembersCustomFieldsParams;
     [WRITE_COMMANDS.MOVE_IOU_REPORT_TO_EXISTING_POLICY]: Parameters.MoveIOUReportToExistingPolicyParams;
     [WRITE_COMMANDS.SET_WORKSPACE_CATEGORIES_ENABLED]: Parameters.SetWorkspaceCategoriesEnabledParams;
-    [WRITE_COMMANDS.SET_POLICY_VENDORS_ENABLED]: Parameters.SetPolicyVendorsEnabledParams;
     [WRITE_COMMANDS.MOVE_IOU_REPORT_TO_POLICY_AND_INVITE_SUBMITTER]: Parameters.MoveIOUReportToPolicyAndInviteSubmitterParams;
     [WRITE_COMMANDS.CREATE_WORKSPACE_CATEGORIES]: Parameters.CreateWorkspaceCategoriesParams;
     [WRITE_COMMANDS.IMPORT_CSV_COMPANY_CARDS]: Parameters.ImportCSVCompanyCardsParams;
@@ -1121,6 +1122,7 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.SET_POLICY_EXPENSE_MAX_AMOUNT]: Parameters.SetPolicyExpenseMaxAmount;
     [WRITE_COMMANDS.SET_POLICY_EXPENSE_MAX_AGE]: Parameters.SetPolicyExpenseMaxAge;
     [WRITE_COMMANDS.ADD_POLICY_AGENT_RULE]: Parameters.AddPolicyAgentRuleParams;
+    [WRITE_COMMANDS.GENERATE_RULE]: Parameters.GenerateRuleParams;
     [WRITE_COMMANDS.UPDATE_POLICY_AGENT_RULE]: Parameters.UpdatePolicyAgentRuleParams;
     [WRITE_COMMANDS.DELETE_POLICY_AGENT_RULE]: Parameters.DeletePolicyAgentRuleParams;
     [WRITE_COMMANDS.UPDATE_CUSTOM_RULES]: Parameters.UpdateCustomRules;
@@ -1244,7 +1246,6 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.SEND_SCHEDULE_CALL_NUDGE]: Parameters.SendScheduleCallNudgeParams;
     [WRITE_COMMANDS.UPLOAD_USER_KYB_DOCS]: Parameters.UploadUserKYBDocsParams;
     [WRITE_COMMANDS.JOIN_REPORT_VIA_SECURE_LINK]: Parameters.JoinReportViaSecureLinkParams;
-    [WRITE_COMMANDS.CREATE_JOIN_WORKSPACE_ONBOARDING_CONTENT]: Parameters.CreateJoinWorkspaceOnboardingContentParams;
 
     [WRITE_COMMANDS.REJECT_MONEY_REQUEST_IN_BULK]: Parameters.RejectMoneyRequestInBulkParams;
     [WRITE_COMMANDS.BANK_ACCOUNT_CREATE_CORPAY]: Parameters.BankAccountCreateCorpayParams;
@@ -1326,6 +1327,7 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.UPDATE_DUALENTRY_ACCOUNTING_METHOD]: Parameters.UpdateDualEntryAccountingMethodParams;
     [WRITE_COMMANDS.UPDATE_DUALENTRY_SYNC_REIMBURSED_REPORTS]: Parameters.UpdateDualEntrySyncReimbursedReportsParams;
     [WRITE_COMMANDS.UPDATE_DUALENTRY_BILL_PAYMENT_ACCOUNT]: Parameters.UpdateDualEntryBillPaymentAccountParams;
+    [WRITE_COMMANDS.UPDATE_DUALENTRY_FX_EXPENSE_ACCOUNT]: Parameters.UpdateDualEntryFxExpenseAccountParams;
     [WRITE_COMMANDS.UPDATE_DUALENTRY_SYNC_EXPENSIFY_CARD_SETTLEMENTS]: Parameters.UpdateDualEntrySyncExpensifyCardSettlementsParams;
     [WRITE_COMMANDS.UPDATE_DUALENTRY_SETTLEMENTS_ACCOUNT]: Parameters.UpdateDualEntrySettlementsAccountParams;
     [WRITE_COMMANDS.UPDATE_DUALENTRY_SYNC_TRAVEL_INVOICING_SETTLEMENTS]: Parameters.UpdateDualEntrySyncTravelInvoicingSettlementsParams;
@@ -1368,7 +1370,7 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.UPDATE_CAMPFIRE_SYNC_TRAVEL_INVOICING_SETTLEMENTS]: Parameters.UpdateCampfireSyncTravelInvoicingSettlementsParams;
     [WRITE_COMMANDS.UPDATE_CAMPFIRE_TRAVEL_INVOICING_SETTLEMENTS_ACCOUNT]: Parameters.UpdateCampfireTravelInvoicingSettlementsAccountParams;
     [WRITE_COMMANDS.UPDATE_CAMPFIRE_TRAVEL_INVOICING_PAYABLE_ACCOUNT]: Parameters.UpdateCampfireTravelInvoicingPayableAccountParams;
-    [WRITE_COMMANDS.UPDATE_ZOHO_BOOKS_ORGANIZATION]: Parameters.UpdateZohoBooksOrganizationParams;
+    [WRITE_COMMANDS.UPDATE_ZOHO_BOOKS_SUBSIDIARY]: Parameters.UpdateZohoBooksSubsidiaryParams;
     [WRITE_COMMANDS.UPDATE_ZOHO_BOOKS_FIELD_MAPPING]: Parameters.UpdateZohoBooksFieldMappingParams;
     [WRITE_COMMANDS.UPDATE_ZOHO_BOOKS_ENABLE_NEW_CATEGORIES]: Parameters.UpdateZohoBooksEnableNewCategoriesParams;
     [WRITE_COMMANDS.UPDATE_ZOHO_BOOKS_SYNC_TAX_RATES]: Parameters.UpdateZohoBooksSyncTaxRatesParams;
@@ -1837,6 +1839,7 @@ const SIDE_EFFECT_REQUEST_COMMANDS = {
     GENERATE_SPOTNANA_TOKEN: 'GenerateSpotnanaToken',
     GET_MISSING_ONYX_MESSAGES: 'GetMissingOnyxMessages',
     GET_SUPPORTAL_REASON: 'GetSupportalReason',
+    CREATE_SUPPORT_TICKET: 'CreateSupportTicket',
     IMPORT_CATEGORIES_SPREADSHEET: 'ImportCategoriesSpreadsheet',
     IMPORT_MEMBERS_SPREADSHEET: 'ImportMembersSpreadsheet',
     IMPORT_MERCHANT_RULES_SPREADSHEET: 'ImportMerchantRulesSpreadsheet',
@@ -1888,6 +1891,7 @@ type SideEffectRequestCommand = ValueOf<typeof SIDE_EFFECT_REQUEST_COMMANDS>;
 type SideEffectRequestCommandParameters = {
     [SIDE_EFFECT_REQUEST_COMMANDS.AUTHENTICATE_PUSHER]: Parameters.AuthenticatePusherParams;
     [SIDE_EFFECT_REQUEST_COMMANDS.GET_SUPPORTAL_REASON]: Parameters.GetSupportalReasonParams;
+    [SIDE_EFFECT_REQUEST_COMMANDS.CREATE_SUPPORT_TICKET]: Parameters.CreateSupportTicketParams;
     [SIDE_EFFECT_REQUEST_COMMANDS.IMPORT_CATEGORIES_SPREADSHEET]: Parameters.ImportCategoriesSpreadsheetParams;
     [SIDE_EFFECT_REQUEST_COMMANDS.IMPORT_MEMBERS_SPREADSHEET]: Parameters.ImportMembersSpreadsheetParams;
     [SIDE_EFFECT_REQUEST_COMMANDS.IMPORT_MERCHANT_RULES_SPREADSHEET]: Parameters.ImportMerchantRulesSpreadsheetParams;

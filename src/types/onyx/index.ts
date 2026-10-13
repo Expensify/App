@@ -83,6 +83,17 @@ import type DomainHighlightItems from './DomainHighlightItems';
 import type DomainPendingActions from './DomainPendingActions';
 import type Download from './Download';
 import type DuplicateWorkspace from './DuplicateWorkspace';
+import type {
+    DynamicFormChoiceField,
+    DynamicFormContentItem,
+    DynamicFormField,
+    DynamicFormFieldOption,
+    DynamicFormFieldType,
+    DynamicFormHeading,
+    DynamicFormNumberField,
+    DynamicFormSchemaField,
+    DynamicFormTextField,
+} from './DynamicFormField';
 import type EarlyRenewalOfferEligibility from './EarlyRenewalOfferEligibility';
 import type ExpenseRule from './ExpenseRule';
 import type ExpensifyCardBankAccountMetadata from './ExpensifyCardBankAccountMetadata';
@@ -95,6 +106,7 @@ import type ExportTemplate from './ExportTemplate';
 import type FrequentlyUsedEmoji from './FrequentlyUsedEmoji';
 import type {FundList} from './Fund';
 import type Fund from './Fund';
+import type GeneratedRule from './GeneratedRule';
 import type GovernmentMileageRate from './GovernmentMileageRate';
 import type GpsDraftDetails from './GpsDraftDetails';
 import type HybridApp from './HybridApp';
@@ -119,6 +131,8 @@ import type Login from './Login';
 import type {Login as NewLogin} from './Logins';
 import type Logins from './Logins';
 import type MapboxAccessToken from './MapboxAccessToken';
+import type MarketingAttribution from './MarketingAttribution';
+import type {StoredMarketingAttribution} from './MarketingAttribution';
 import type MerchantRuleSuggestion from './MerchantRuleSuggestion';
 import type MergeTransaction from './MergeTransaction';
 import type Modal from './Modal';
@@ -150,7 +164,6 @@ import type PolicyOwnershipChangeChecks from './PolicyOwnershipChangeChecks';
 import type PolicyRoomsMetadata from './PolicyRoomsMetadata';
 import type {ParticipantsPolicyTags, PolicyTag, PolicyTagLists, PolicyTags, SearchTagFilterItem} from './PolicyTag';
 import type PolicyVendors from './PolicyVendor';
-import type {PolicyVendor} from './PolicyVendor';
 import type PrivatePersonalDetails from './PrivatePersonalDetails';
 import type PrivatePromoDiscount from './PrivatePromoDiscount';
 import type PrivateSubscription from './PrivateSubscription';
@@ -206,6 +219,7 @@ import type StripeCustomerID from './StripeCustomerID';
 import type SuggestedAgent from './SuggestedAgent';
 import type SuggestedAgentRule from './SuggestedAgentRule';
 import type SupportalPermissionDenied from './SupportalPermissionDenied';
+import type TableColumnWidths from './TableColumnWidths';
 import type Task from './Task';
 import type Transaction from './Transaction';
 import type TransactionPending3DSReview from './TransactionPending3DSReview';
@@ -267,6 +281,7 @@ export type {
     Domain,
     Download,
     ExportDownload,
+    GeneratedRule,
     DuplicateWorkspace,
     CopyPolicySettingsNVP,
     CopyPolicySettings,
@@ -310,6 +325,8 @@ export type {
     PasskeyTransport,
     PendingContactAction,
     MapboxAccessToken,
+    MarketingAttribution,
+    StoredMarketingAttribution,
     Modal,
     Network,
     OnyxInputOrEntry,
@@ -329,7 +346,6 @@ export type {
     PolicyCategories,
     PolicyCategory,
     PolicyDataLoadingState,
-    PolicyVendor,
     PolicyVendors,
     PolicyEmployee,
     PolicyEmployeeList,
@@ -378,6 +394,7 @@ export type {
     DomainSecurityGroupMembership,
     SelectedTabRequest,
     Session,
+    TableColumnWidths,
     Task,
     TaxRate,
     TaxRates,
@@ -449,6 +466,15 @@ export type {
     ShareTempFile,
     CorpayFields,
     CorpayFormField,
+    DynamicFormChoiceField,
+    DynamicFormContentItem,
+    DynamicFormField,
+    DynamicFormFieldOption,
+    DynamicFormFieldType,
+    DynamicFormHeading,
+    DynamicFormNumberField,
+    DynamicFormSchemaField,
+    DynamicFormTextField,
     JoinablePolicies,
     DismissedProductTraining,
     TravelProvisioning,
