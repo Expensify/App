@@ -1,4 +1,5 @@
 /** Decides whether a failed `TrackExpense` can be retried and rebuilds the call from Onyx. */
+import {getAllReportActions, isCreatedAction} from '@libs/ReportActionsUtils';
 import {isSelfDM} from '@libs/ReportUtils';
 
 import {getAllReports, getCurrentUserPersonalDetails} from '@userActions/IOU';
@@ -61,6 +62,7 @@ function buildTrackExpenseRetryPayload(context: ReceiptRetryContext, receiptFile
         optimisticTransactionID: transaction.transactionID,
         currentReportActionID: iouActionID,
         existingTransactionThreadReportID: transactionThreadReportID,
+        existingTransactionThreadCreatedReportActionID: Object.values(getAllReportActions(transactionThreadReportID)).find((action) => isCreatedAction(action))?.reportActionID,
         existingTransaction: transaction,
         isASAPSubmitBetaEnabled,
         currentUser: {

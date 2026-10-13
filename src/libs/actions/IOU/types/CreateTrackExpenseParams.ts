@@ -41,6 +41,7 @@ type CreateTrackExpenseParams = {
     optimisticTransactionID?: string;
     currentReportActionID?: string;
     existingTransactionThreadReportID?: string;
+    existingTransactionThreadCreatedReportActionID?: string;
     isASAPSubmitBetaEnabled: boolean;
     currentUser: CurrentUser;
     introSelected: OnyxEntry<OnyxTypes.IntroSelected>;
