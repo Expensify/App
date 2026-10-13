@@ -70,10 +70,20 @@ function TableSearchBar({label}: TableSearchBarProps) {
             return;
         }
 
-        // Filtering to zero rows collapses the list below the persistent page header. Reset the
+        // Filters can remove the last row without changing the query. Reset the
         // old row offset so the focused input stays in the viewport while the keyboard remains open.
         listRef.current?.scrollToOffset({offset: 0, animated: false});
     }, [isEmptyResult, listRef]);
+
+    // Keep shared search edits and clearing visible, including on web where scrolling retains focus.
+    // Wait until native scroll refs are reattached after layout effects so FlashList can apply the reset.
+    useEffect(() => {
+        if (!isTextInputFocused(inputRef)) {
+            return;
+        }
+
+        listRef.current?.scrollToOffset({offset: 0, animated: false});
+    }, [activeSearchString, listRef]);
 
     const handleSearchStringChange = (text: string) => {
         updateSearchString(text);
