@@ -1,3 +1,4 @@
+import {useReportChartLoading} from '@components/Charts/components/ChartReveal';
 import {useChartFontManager} from '@components/Charts/context/ChartFontsContext';
 
 import type {SkTypefaceFontProvider} from '@shopify/react-native-skia';
@@ -10,7 +11,11 @@ type CartesianCanvasInputs = {
 function useReadyCartesianCanvas(isLoading: boolean, chartWidth: number | null): CartesianCanvasInputs | null {
     const fontManager = useChartFontManager();
 
-    if (isLoading || !fontManager || chartWidth === null) {
+    // Until the width is measured there is no canvas for Skia to draw, so the reveal must not start counting frames yet
+    const isChartLoading = isLoading || !fontManager || chartWidth === null;
+    useReportChartLoading(isChartLoading);
+
+    if (isChartLoading) {
         return null;
     }
 

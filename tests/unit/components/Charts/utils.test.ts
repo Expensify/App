@@ -23,7 +23,15 @@ import {
     rotatedLabelYOffset,
     truncateLabel,
 } from '@components/Charts/utils';
-import VictoryTheme, {CHART_Y_SCALE_HEIGHT, DIAGONAL_ANGLE_RADIAN_THRESHOLD, LABEL_ROTATIONS, SIN_45} from '@components/Charts/VictoryTheme';
+import {getCartesianChartHeight} from '@components/Charts/utils/chartHeights';
+import VictoryTheme, {
+    CHART_CONTENT_MIN_HEIGHT,
+    CHART_Y_SCALE_HEIGHT,
+    DIAGONAL_ANGLE_RADIAN_THRESHOLD,
+    LABEL_ROTATIONS,
+    SIN_45,
+    X_AXIS_LABEL_MIN_HEIGHT,
+} from '@components/Charts/VictoryTheme';
 import {CHART_SERIES_KEY} from '@components/Search/buildChartSeries';
 
 const LINE_HEIGHT = 16;
@@ -752,6 +760,30 @@ describe('getBarLayout', () => {
         // When computing the bar layout
         // Then barWidth is 0 so victory-native sizes the bars itself, and the domain gives each bar a slot centered on its x value
         expect(getBarLayout(0, 3)).toEqual({barWidth: 0, gap: 0, edgeSpace: 0, xDomain: [-0.5, 2.5]});
+    });
+});
+
+describe('getCartesianChartHeight', () => {
+    const ROTATED_LABEL_HEIGHT = 120;
+
+    it('should give the loading box and a chart with one line of labels the same height', () => {
+        // Given the loading box, which has no labels to measure, and a loaded chart whose labels fit on one line
+        const loadingHeight = getCartesianChartHeight();
+
+        // When the loaded chart sizes its box from the measured label strip
+        const loadedHeight = getCartesianChartHeight(X_AXIS_LABEL_MIN_HEIGHT - 1);
+
+        // Then both heights match, so the card does not jump when the chart replaces the spinner
+        expect(loadedHeight).toBe(loadingHeight);
+    });
+
+    it('should grow the box when rotated labels need more room than one line', () => {
+        // Given labels rotated so their strip is taller than one line of text
+        // When the chart sizes its box
+        const height = getCartesianChartHeight(ROTATED_LABEL_HEIGHT);
+
+        // Then the box makes room for the whole strip, since clipping the labels would be worse than a jump
+        expect(height).toBe(CHART_CONTENT_MIN_HEIGHT + VictoryTheme.axis.xAxisLabelGap + ROTATED_LABEL_HEIGHT);
     });
 });
 

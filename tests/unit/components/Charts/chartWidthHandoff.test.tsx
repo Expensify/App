@@ -59,6 +59,33 @@ describe('chart width handoff', () => {
         expect(getMeasuredBox()).toBeTruthy();
     });
 
+    it.each([
+        ['bar', BarChart],
+        ['line', LineChart],
+        ['pie', PieChart],
+    ])('should collapse the %s chart as soon as it loads with no data', (_name, Chart) => {
+        // Given a loading chart
+        const {rerender} = render(
+            <Chart
+                data={[]}
+                series={series}
+                isLoading
+            />,
+        );
+
+        // When it finishes loading with nothing to draw
+        rerender(
+            <Chart
+                data={[]}
+                series={series}
+                isLoading={false}
+            />,
+        );
+
+        // Then the spinner goes in the same render, because holding it for Skia's first draw would leave it over an empty box
+        expect(screen.UNSAFE_queryByType(ActivityIndicator)).toBeNull();
+    });
+
     it('should hand the pie chart the width measured while it was loading', () => {
         // Given a loading pie chart whose box has been measured
         const {rerender} = render(
@@ -94,7 +121,8 @@ describe('chart width handoff', () => {
             />,
         );
 
-        // Then the spinner stays and the chart does not mount, because it can only be sized once the width is known
+        // Then the chart waits for the width instead of measuring itself, because the reveal counts its held frames
+        // from the render the chart reports ready in, and a chart that measures itself draws later than that
         expect(PolarChart).not.toHaveBeenCalled();
         expect(screen.UNSAFE_queryByType(ActivityIndicator)).not.toBeNull();
     });
@@ -115,7 +143,7 @@ describe('chart width handoff', () => {
         fireEvent(measuredBox, 'layout', {nativeEvent: {layout: {width: 0, height: 0}}});
 
         // Then the chart stays mounted at its last width instead of falling back to the spinner, which would drop its hover state and rebuild its canvas
-        expect(screen.UNSAFE_queryByType(ActivityIndicator)).toBeNull();
+        expect(screen.UNSAFE_queryByType(PolarChart)).not.toBeNull();
         expect(PolarChart).toHaveBeenLastCalledWith(expect.objectContaining({explicitSize: {width: CONTAINER_WIDTH, height: CHART_CONTENT_MIN_HEIGHT}}), undefined);
     });
 });
