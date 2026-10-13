@@ -62,8 +62,8 @@ type ResolveTargetIndexArgs = {
  * Configuration for the chart interactions hook
  */
 type UseChartInteractionsProps = {
-    /** Callback triggered when a valid data point is tapped/clicked */
-    handlePress: (index: number) => void;
+    /** Callback triggered when a valid data point is tapped/clicked. Without it, the chart only reacts to hover */
+    handlePress?: (index: number) => void;
 
     /**
      * Worklet function to determine if the cursor is technically "hovering"
@@ -424,9 +424,9 @@ function useChartInteractions({
 
     /**
      * Tap gesture. Resolves the nearest data point entirely on the UI thread.
-     * Touch taps show the tooltip; other pointers schedule handlePress on the JS thread if the cursor is over the target.
+     * Touch taps show the tooltip; other pointers schedule onPress on the JS thread if the cursor is over the target.
      */
-    const tapGesture = () =>
+    const tapGesture = (onPress: (index: number) => void) =>
         Gesture.Tap()
             // A touch on this chart that turns into a scroll leaves the pinned tooltip to the chart, so the chart hides it
             .onFinalize((e, success) => {
@@ -462,7 +462,7 @@ function useChartInteractions({
                 const isClickable = (checkIsClickable ?? checkIsOver)(hitTestArgs);
                 updateInteractionFlags(idx, cursorX, cursorY, currentChartBottom);
                 if (isClickable) {
-                    scheduleOnRN(handlePress, idx);
+                    scheduleOnRN(onPress, idx);
                 }
             });
 
@@ -491,7 +491,7 @@ function useChartInteractions({
         y: chartInteractionState.y.y.position.get(),
     }));
 
-    const customGestures = Gesture.Race(hoverGesture(), tapGesture());
+    const customGestures = handlePress ? Gesture.Race(hoverGesture(), tapGesture(handlePress)) : hoverGesture();
 
     return {
         /** Custom gestures to be passed to CartesianChart */
