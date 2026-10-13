@@ -48,7 +48,6 @@ function RejectReasonPage({route}: RejectReasonPageProps) {
     const {accountID: currentUserAccountID, login: currentUserLogin} = useCurrentUserPersonalDetails();
     const {isBetaEnabled} = usePermissions();
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
-    // Expenses currently on the report, used to tell if more than one expense remains after this rejection.
     const reportTransactionsCollection = useReportTransactionsCollection(reportID);
     const delegateAccountID = useDelegateAccountID();
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
@@ -59,18 +58,19 @@ function RejectReasonPage({route}: RejectReasonPageProps) {
             return;
         }
 
-        const urlToNavigateBack = rejectMoneyRequest(
+        const urlToNavigateBack = rejectMoneyRequest({
             transactionID,
             reportID,
-            values.comment,
+            comment: values.comment,
             policy,
-            currentUserAccountID,
-            currentUserLogin ?? '',
-            isBetaEnabled(CONST.BETAS.ASAP_SUBMIT),
+            currentUserAccountIDParam: currentUserAccountID,
+            currentUserLogin: currentUserLogin ?? '',
+            isASAPSubmitBetaEnabled: isBetaEnabled(CONST.BETAS.ASAP_SUBMIT),
             delegateAccountID,
             getCurrencyDecimals,
-            {rules, reportTransactionsCollection},
-        );
+            rules,
+            reportTransactionsCollection,
+        });
         removeTransaction(transactionID);
         // If the super wide rhp is not opened, dismiss the entire modal.
         if (superWideRHPRouteKeys.length > 0) {

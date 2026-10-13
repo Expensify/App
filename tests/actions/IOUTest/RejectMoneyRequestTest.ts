@@ -150,18 +150,19 @@ describe('actions/IOU/RejectMoneyRequest', () => {
             if (!transaction?.transactionID || !iouReport?.reportID) {
                 throw new Error('Required transaction or report data is missing');
             }
-            const result = rejectMoneyRequest(
-                transaction.transactionID,
-                iouReport.reportID,
+            const result = rejectMoneyRequest({
+                transactionID: transaction.transactionID,
+                reportID: iouReport.reportID,
                 comment,
                 policy,
-                TEST_USER_ACCOUNT_ID,
-                TEST_USER_EMAIL,
-                true,
-                undefined,
-                getCurrencyDecimalsLocal,
-                {rules: undefined, reportTransactionsCollection: {[transaction.transactionID]: transaction}},
-            );
+                currentUserAccountIDParam: TEST_USER_ACCOUNT_ID,
+                currentUserLogin: TEST_USER_EMAIL,
+                isASAPSubmitBetaEnabled: true,
+                delegateAccountID: undefined,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                rules: undefined,
+                reportTransactionsCollection: {[transaction.transactionID]: transaction},
+            });
 
             // Then: Should return navigation route to chat report
             expect(result).toBe(ROUTES.REPORT_WITH_ID.getRoute(iouReport.reportID));
@@ -177,7 +178,16 @@ describe('actions/IOU/RejectMoneyRequest', () => {
             if (!transaction?.transactionID || !iouReport?.reportID) {
                 throw new Error('Required transaction or report data is missing');
             }
-            rejectMoneyRequest(transaction.transactionID, iouReport.reportID, comment, policy, TEST_USER_ACCOUNT_ID, TEST_USER_EMAIL, true, undefined, getCurrencyDecimalsLocal, {
+            rejectMoneyRequest({
+                transactionID: transaction.transactionID,
+                reportID: iouReport.reportID,
+                comment,
+                policy,
+                currentUserAccountIDParam: TEST_USER_ACCOUNT_ID,
+                currentUserLogin: TEST_USER_EMAIL,
+                isASAPSubmitBetaEnabled: true,
+                delegateAccountID: undefined,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
                 rules: undefined,
                 reportTransactionsCollection: {[transaction.transactionID]: transaction},
             });
@@ -236,7 +246,16 @@ describe('actions/IOU/RejectMoneyRequest', () => {
             if (!transaction?.transactionID || !iouReport?.reportID) {
                 throw new Error('Required transaction or report data is missing');
             }
-            rejectMoneyRequest(transaction.transactionID, iouReport.reportID, comment, policy, TEST_USER_ACCOUNT_ID, TEST_USER_EMAIL, true, undefined, getCurrencyDecimalsLocal, {
+            rejectMoneyRequest({
+                transactionID: transaction.transactionID,
+                reportID: iouReport.reportID,
+                comment,
+                policy,
+                currentUserAccountIDParam: TEST_USER_ACCOUNT_ID,
+                currentUserLogin: TEST_USER_EMAIL,
+                isASAPSubmitBetaEnabled: true,
+                delegateAccountID: undefined,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
                 rules: undefined,
                 reportTransactionsCollection: {[transaction.transactionID]: transaction, [secondTransaction.transactionID]: secondTransaction},
             });
@@ -278,7 +297,16 @@ describe('actions/IOU/RejectMoneyRequest', () => {
                 throw new Error('Required transaction or report data is missing');
             }
 
-            rejectMoneyRequest(transaction.transactionID, iouReport.reportID, comment, policy, TEST_USER_ACCOUNT_ID, TEST_USER_EMAIL, true, undefined, getCurrencyDecimalsLocal, {
+            rejectMoneyRequest({
+                transactionID: transaction.transactionID,
+                reportID: iouReport.reportID,
+                comment,
+                policy,
+                currentUserAccountIDParam: TEST_USER_ACCOUNT_ID,
+                currentUserLogin: TEST_USER_EMAIL,
+                isASAPSubmitBetaEnabled: true,
+                delegateAccountID: undefined,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
                 rules: undefined,
                 reportTransactionsCollection: {[transaction.transactionID]: transaction, [secondTransaction.transactionID]: secondTransaction},
                 options: {
@@ -288,7 +316,16 @@ describe('actions/IOU/RejectMoneyRequest', () => {
                 },
             });
 
-            rejectMoneyRequest(secondTransaction.transactionID, iouReport.reportID, comment, policy, TEST_USER_ACCOUNT_ID, TEST_USER_EMAIL, true, undefined, getCurrencyDecimalsLocal, {
+            rejectMoneyRequest({
+                transactionID: secondTransaction.transactionID,
+                reportID: iouReport.reportID,
+                comment,
+                policy,
+                currentUserAccountIDParam: TEST_USER_ACCOUNT_ID,
+                currentUserLogin: TEST_USER_EMAIL,
+                isASAPSubmitBetaEnabled: true,
+                delegateAccountID: undefined,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
                 rules: undefined,
                 reportTransactionsCollection: {[transaction.transactionID]: transaction, [secondTransaction.transactionID]: secondTransaction},
                 options: {
@@ -356,18 +393,19 @@ describe('actions/IOU/RejectMoneyRequest', () => {
                 await waitForBatchedUpdates();
 
                 // When: Rejecting it from the report it is no longer on
-                const result = rejectMoneyRequest(
-                    transaction.transactionID,
-                    iouReport.reportID,
+                const result = rejectMoneyRequest({
+                    transactionID: transaction.transactionID,
+                    reportID: iouReport.reportID,
                     comment,
                     policy,
-                    TEST_USER_ACCOUNT_ID,
-                    TEST_USER_EMAIL,
-                    true,
-                    undefined,
-                    getCurrencyDecimalsLocal,
-                    {rules: undefined, reportTransactionsCollection: {}},
-                );
+                    currentUserAccountIDParam: TEST_USER_ACCOUNT_ID,
+                    currentUserLogin: TEST_USER_EMAIL,
+                    isASAPSubmitBetaEnabled: true,
+                    delegateAccountID: undefined,
+                    getCurrencyDecimals: getCurrencyDecimalsLocal,
+                    rules: undefined,
+                    reportTransactionsCollection: {},
+                });
 
                 await waitForBatchedUpdates();
 
@@ -386,7 +424,16 @@ describe('actions/IOU/RejectMoneyRequest', () => {
 
                 // When: The server rejects the request
                 mockFetch?.fail?.();
-                rejectMoneyRequest(transaction.transactionID, iouReport.reportID, comment, policy, TEST_USER_ACCOUNT_ID, TEST_USER_EMAIL, true, undefined, getCurrencyDecimalsLocal, {
+                rejectMoneyRequest({
+                    transactionID: transaction.transactionID,
+                    reportID: iouReport.reportID,
+                    comment,
+                    policy,
+                    currentUserAccountIDParam: TEST_USER_ACCOUNT_ID,
+                    currentUserLogin: TEST_USER_EMAIL,
+                    isASAPSubmitBetaEnabled: true,
+                    delegateAccountID: undefined,
+                    getCurrencyDecimals: getCurrencyDecimalsLocal,
                     rules: undefined,
                     reportTransactionsCollection: {[transaction.transactionID]: transaction, [secondTransaction.transactionID]: secondTransaction},
                 });
@@ -408,7 +455,16 @@ describe('actions/IOU/RejectMoneyRequest', () => {
 
                 // When: The expense is rejected while offline
                 mockFetch?.pause?.();
-                rejectMoneyRequest(transaction.transactionID, iouReport.reportID, comment, policy, TEST_USER_ACCOUNT_ID, TEST_USER_EMAIL, true, undefined, getCurrencyDecimalsLocal, {
+                rejectMoneyRequest({
+                    transactionID: transaction.transactionID,
+                    reportID: iouReport.reportID,
+                    comment,
+                    policy,
+                    currentUserAccountIDParam: TEST_USER_ACCOUNT_ID,
+                    currentUserLogin: TEST_USER_EMAIL,
+                    isASAPSubmitBetaEnabled: true,
+                    delegateAccountID: undefined,
+                    getCurrencyDecimals: getCurrencyDecimalsLocal,
                     rules: undefined,
                     reportTransactionsCollection: {[transaction.transactionID]: transaction, [secondTransaction.transactionID]: secondTransaction},
                 });
@@ -446,7 +502,16 @@ describe('actions/IOU/RejectMoneyRequest', () => {
 
                 // When: The expense is rejected while offline and the queued request fails on reconnection
                 mockFetch?.pause?.();
-                rejectMoneyRequest(transaction.transactionID, iouReport.reportID, comment, policy, TEST_USER_ACCOUNT_ID, TEST_USER_EMAIL, true, undefined, getCurrencyDecimalsLocal, {
+                rejectMoneyRequest({
+                    transactionID: transaction.transactionID,
+                    reportID: iouReport.reportID,
+                    comment,
+                    policy,
+                    currentUserAccountIDParam: TEST_USER_ACCOUNT_ID,
+                    currentUserLogin: TEST_USER_EMAIL,
+                    isASAPSubmitBetaEnabled: true,
+                    delegateAccountID: undefined,
+                    getCurrencyDecimals: getCurrencyDecimalsLocal,
                     rules: undefined,
                     reportTransactionsCollection: {[transaction.transactionID]: transaction, [secondTransaction.transactionID]: secondTransaction},
                 });
@@ -480,7 +545,16 @@ describe('actions/IOU/RejectMoneyRequest', () => {
                 await waitForBatchedUpdates();
 
                 // When: Rejecting it again
-                rejectMoneyRequest(transaction.transactionID, iouReport.reportID, comment, policy, TEST_USER_ACCOUNT_ID, TEST_USER_EMAIL, true, undefined, getCurrencyDecimalsLocal, {
+                rejectMoneyRequest({
+                    transactionID: transaction.transactionID,
+                    reportID: iouReport.reportID,
+                    comment,
+                    policy,
+                    currentUserAccountIDParam: TEST_USER_ACCOUNT_ID,
+                    currentUserLogin: TEST_USER_EMAIL,
+                    isASAPSubmitBetaEnabled: true,
+                    delegateAccountID: undefined,
+                    getCurrencyDecimals: getCurrencyDecimalsLocal,
                     rules: undefined,
                     reportTransactionsCollection: {[transaction.transactionID]: transaction, [secondTransaction.transactionID]: secondTransaction},
                 });
@@ -539,7 +613,16 @@ describe('actions/IOU/RejectMoneyRequest', () => {
             if (!transaction?.transactionID || !iouReport?.reportID) {
                 throw new Error('Required transaction or report data is missing');
             }
-            rejectMoneyRequest(transaction.transactionID, iouReport.reportID, comment, policy, TEST_USER_ACCOUNT_ID, TEST_USER_EMAIL, true, undefined, getCurrencyDecimalsLocal, {
+            rejectMoneyRequest({
+                transactionID: transaction.transactionID,
+                reportID: iouReport.reportID,
+                comment,
+                policy,
+                currentUserAccountIDParam: TEST_USER_ACCOUNT_ID,
+                currentUserLogin: TEST_USER_EMAIL,
+                isASAPSubmitBetaEnabled: true,
+                delegateAccountID: undefined,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
                 rules: undefined,
                 reportTransactionsCollection: {[transaction.transactionID]: transaction, [secondTransaction.transactionID]: secondTransaction},
             });

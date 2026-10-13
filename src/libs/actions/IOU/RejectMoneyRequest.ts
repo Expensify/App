@@ -83,12 +83,6 @@ type RejectMoneyRequestOptions = {
     setExistingRejectedReport?: (report: OnyxEntry<OnyxTypes.Report>) => void;
 };
 
-type RejectMoneyRequestRulesAndOptions = {
-    rules: OnyxCollection<OnyxTypes.Rule>;
-    options?: RejectMoneyRequestOptions;
-    reportTransactionsCollection: Record<string, OnyxTypes.Transaction>;
-};
-
 function dismissRejectUseExplanation() {
     const parameters: SetNameValuePairParams = {
         name: ONYXKEYS.NVP_DISMISSED_REJECT_USE_EXPLANATION,
@@ -964,32 +958,8 @@ function prepareRejectMoneyRequestData({
     return {optimisticData, successData, failureData, parameters, urlToNavigateBack: urlToNavigateBack as Route};
 }
 
-function rejectMoneyRequest(
-    transactionID: string,
-    reportID: string,
-    comment: string,
-    policy: OnyxEntry<OnyxTypes.Policy>,
-    currentUserAccountIDParam: number,
-    currentUserLogin: string,
-    isASAPSubmitBetaEnabled: boolean,
-    delegateAccountID: number | undefined,
-    getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'],
-    {rules, options, reportTransactionsCollection}: RejectMoneyRequestRulesAndOptions,
-): Route | undefined {
-    const data = prepareRejectMoneyRequestData({
-        transactionID,
-        reportID,
-        comment,
-        policy,
-        currentUserAccountIDParam,
-        currentUserLogin,
-        isASAPSubmitBetaEnabled,
-        delegateAccountID,
-        getCurrencyDecimals,
-        rules,
-        options,
-        reportTransactionsCollection,
-    });
+function rejectMoneyRequest(params: Omit<PrepareRejectMoneyRequestDataParams, 'shouldUseBulkAction'>): Route | undefined {
+    const data = prepareRejectMoneyRequestData(params);
     if (!data) {
         return;
     }
