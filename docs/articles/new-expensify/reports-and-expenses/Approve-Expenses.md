@@ -186,6 +186,9 @@ A rejection made while offline is only sent once you reconnect. If the expense w
 ## What are expense reports?
 Expense reports group multiple expenses into one batch for review or payment. Draft reports collect new expenses automatically. You can check the status of an expense under **Spend > Expenses**.
 
+## Why can I see a member's Draft report that isn't waiting for my approval?
+Approvers in a member's approval workflow, Workspace Admins, and the member's copilots can view the member's reports in **Spend > Reports**, including Draft (unsubmitted) reports. A Draft report only appears in **Needs approval** after the member submits it.
+
 ## What happens after I approve a report?
 
 The report moves to the next approver in the workflow. If you are the final approver, the report becomes **Approved** and is ready for payment.
