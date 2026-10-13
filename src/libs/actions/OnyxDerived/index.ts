@@ -149,8 +149,11 @@ function init() {
 
                     // A config signals "nothing changed" by handing back the exact `currentValue` reference it was
                     // given. Writing in that case rewrites the whole value to disk and notifies every subscriber with
-                    // a value equal to the one it already holds, so skip it.
-                    if (newDerivedValue === derivedValue) {
+                    // a value equal to the one it already holds, so skip it. Onyx still holding the key is part of the
+                    // condition: a clear that preserves every dependency of this config never notifies it, so
+                    // `resetForClear` above never runs and `derivedValue` outlives the key Onyx dropped. Writing is
+                    // what puts it back.
+                    if (newDerivedValue === derivedValue && OnyxCache.hasCacheForKey(key)) {
                         return;
                     }
                     Log.info(`[OnyxDerived] updating value for ${key} in Onyx`);

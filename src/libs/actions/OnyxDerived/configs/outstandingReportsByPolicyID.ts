@@ -6,10 +6,12 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {OutstandingReportsByPolicyIDDerivedValue} from '@src/types/onyx';
 
+import {shallowEqual} from 'fast-equals';
+
 export default createOnyxDerivedValueConfig({
     key: ONYXKEYS.DERIVED.OUTSTANDING_REPORTS_BY_POLICY_ID,
     dependencies: [ONYXKEYS.COLLECTION.REPORT],
-    compute: ([reports]) => {
+    compute: ([reports], {currentValue}) => {
         if (!reports) {
             return {};
         }
@@ -38,6 +40,9 @@ export default createOnyxDerivedValueConfig({
             }
         }
 
-        return outstandingReportsByPolicyID;
+        // Consumers of this key compare by reference, so handing back `currentValue` when nothing moved keeps them
+        // from re-rendering, and lets the engine skip the write entirely. Every `REPORT` write recomputes this, and
+        // for an account with no outstanding reports the result is a fresh empty object every time.
+        return currentValue && shallowEqual(currentValue, outstandingReportsByPolicyID) ? currentValue : outstandingReportsByPolicyID;
     },
 });
