@@ -159,18 +159,19 @@ function MoneyReportView({
                 {shouldShowAnimatedBackground && <AnimatedEmptyStateBackground />}
                 {!isClosedExpenseReportWithNoExpenses && (
                     <>
-                        {shouldDisplayReportFields && (!isCombinedReport || !isOnlyTitleFieldEnabled) && (
-                            // One-expense reports edit their fields in place like the report view does, instead of
-                            // opening the report field editor page. They stay one field per row though: this screen
-                            // reads as a single expense rather than a table, so the fields stack vertically here.
-                            <MoneyRequestViewReportFields
-                                report={report}
-                                policy={policy}
-                                pendingAction={pendingAction}
-                                style={styles.mt5}
-                                shouldUseSingleColumn
-                            />
-                        )}
+                        {shouldDisplayReportFields &&
+                            (!isCombinedReport || !isOnlyTitleFieldEnabled) && (
+                                // One-expense reports edit their fields in place like the report view does, instead of
+                                // opening the report field editor page. They stay one field per row though: this screen
+                                // reads as a single expense rather than a table, so the fields stack vertically here.
+                                <MoneyRequestViewReportFields
+                                    report={report}
+                                    policy={policy}
+                                    pendingAction={pendingAction}
+                                    style={styles.mt5}
+                                    shouldUseSingleColumn
+                                />
+                            )}
                         {shouldShowTotalRow && (
                             <View style={[styles.flexRow, styles.pointerEventsNone, styles.containerWithSpaceBetween, styles.ph5, styles.pv2]}>
                                 <View style={[styles.flex1, styles.justifyContentCenter]}>
