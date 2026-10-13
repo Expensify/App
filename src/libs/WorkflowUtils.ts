@@ -829,7 +829,8 @@ function mergeWorkflowMembersWithAvailableMembers(workflowMembers: Member[], all
  */
 function includesEveryWorkspaceMember(memberEmails: Array<string | null | undefined>, employeeList: PolicyEmployeeList | undefined): boolean {
     const memberEmailSet = new Set(memberEmails);
-    const workspaceMembers = Object.values(employeeList ?? {}).filter((employee) => !!employee.email && employee.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
+    // `employeeList` can hold a null entry at runtime, so read it optionally
+    const workspaceMembers = Object.values(employeeList ?? {}).filter((employee) => !!employee?.email && employee.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
     return workspaceMembers.length > 0 && workspaceMembers.every((employee) => memberEmailSet.has(employee.email));
 }
 
