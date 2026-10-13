@@ -201,6 +201,11 @@ function findSliceAtPosition(cursorX: number, cursorY: number, centerX: number, 
     return slices.findIndex((slice) => isAngleInSlice(cursorAngle, slice.startAngle, slice.endAngle));
 }
 
+/** A point's amount for the chart's primary series */
+function getPrimaryValue(point: ChartDataPoint, primarySeriesKey: string): number {
+    return point.values[primarySeriesKey];
+}
+
 /**
  * Process raw data into pie chart slices sorted by absolute value descending.
  * Slices are sized by the primary series only.
@@ -216,7 +221,13 @@ function processDataIntoSlices(
     startAngle: number = VictoryTheme.pie.startAngle,
 ): PieSlice[] {
     const visibleSlices = data
-        .map((point, index) => ({label: point.label, color: point.color, absTotal: Math.abs(point.values[primarySeriesKey]), originalIndex: index, percentOfTotal: point.percentOfTotal}))
+        .map((point, index) => ({
+            label: point.label,
+            color: point.color,
+            absTotal: Math.abs(getPrimaryValue(point, primarySeriesKey)),
+            originalIndex: index,
+            percentOfTotal: point.percentOfTotal,
+        }))
         .filter((slice) => isShareWorthDrawing(slice.percentOfTotal))
         .sort((a, b) => b.absTotal - a.absTotal);
 
@@ -492,6 +503,7 @@ export {
     normalizeAngle,
     isAngleInSlice,
     findSliceAtPosition,
+    getPrimaryValue,
     processDataIntoSlices,
     getXAxisLabel,
     truncateLabel,

@@ -1,4 +1,5 @@
 import type {ChartDataPoint, ChartSeries} from '@components/Charts';
+import {getPrimaryValue} from '@components/Charts/utils';
 import VictoryTheme from '@components/Charts/VictoryTheme';
 
 import {convertToFrontendAmountAsInteger} from '@libs/CurrencyUtils';
@@ -48,7 +49,7 @@ function getSliceColorsByDataIndex(data: ChartDataPoint[]): Array<string | undef
     const colors: Array<string | undefined> = Array.from({length: data.length});
 
     const ranked = data
-        .map((point, index) => ({absTotal: Math.abs(point.values[CHART_SERIES_KEY.PRIMARY]), percentOfTotal: point.percentOfTotal, index}))
+        .map((point, index) => ({absTotal: Math.abs(getPrimaryValue(point, CHART_SERIES_KEY.PRIMARY)), percentOfTotal: point.percentOfTotal, index}))
         .filter((entry) => isShareWorthDrawing(entry.percentOfTotal))
         .sort((a, b) => b.absTotal - a.absTotal);
 

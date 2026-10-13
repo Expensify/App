@@ -2,7 +2,7 @@ import ActivityIndicator from '@components/ActivityIndicator';
 import ChartTooltip from '@components/Charts/components/ChartTooltip';
 import {TOOLTIP_BAR_GAP, useChartLabelFormats, useTooltipData} from '@components/Charts/hooks';
 import type {ChartDataPoint, ChartProps, PieSlice, UnitPosition} from '@components/Charts/types';
-import {findSliceAtPosition, processDataIntoSlices} from '@components/Charts/utils';
+import {findSliceAtPosition, getPrimaryValue, processDataIntoSlices} from '@components/Charts/utils';
 import VictoryTheme from '@components/Charts/VictoryTheme';
 import Text from '@components/Text';
 
@@ -226,7 +226,7 @@ function PieChartContent({data, series, isLoading, valueUnit, valueUnitPosition,
                                 adjustsFontSizeToFit
                                 style={[styles.textHeadlineH1, styles.textAlignCenter]}
                             >
-                                {formatValue(data.reduce((sum, point) => sum + point.values[primarySeriesKey], 0))}
+                                {formatValue(data.reduce((sum, point) => sum + getPrimaryValue(point, primarySeriesKey), 0))}
                             </Text>
                         </View>
                     )}

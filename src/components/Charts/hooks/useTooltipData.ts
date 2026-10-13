@@ -1,4 +1,5 @@
 import type {ChartDataPoint, ChartSeries} from '@components/Charts/types';
+import {getPrimaryValue} from '@components/Charts/utils';
 
 import useLocalize from '@hooks/useLocalize';
 
@@ -28,7 +29,7 @@ function useTooltipData(activeDataIndex: number, data: ChartDataPoint[], series:
         return null;
     }
     const [{key: primarySeriesKey}] = series;
-    const value = dataPoint.values[primarySeriesKey];
+    const value = getPrimaryValue(dataPoint, primarySeriesKey);
 
     return {
         label: dataPoint.label,
