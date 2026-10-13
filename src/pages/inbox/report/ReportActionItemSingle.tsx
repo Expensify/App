@@ -93,7 +93,7 @@ function ReportActionItemSingle({
 
     const hasVacationDelegate = !!getVacationer(action) || !!getManagerOnVacation(action);
 
-    // A deleted expense report leaves no second actor to name, so skip the join rather than trail an "&".
+    // A deleted report leaves no second actor to name, so skip the join rather than trail an "&".
     const headingText = avatarType === CONST.REPORT_ACTION_AVATARS.TYPE.MULTIPLE && secondaryAvatar?.name ? `${primaryAvatar.name} & ${secondaryAvatar.name}` : primaryAvatar.name;
 
     // Since the display name for a report action message is delivered with the report history as an array of fragments

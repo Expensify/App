@@ -413,7 +413,7 @@ function ReportActionItem({
 
     const disabledActions = !canWriteInReport(report) ? RestrictedReadOnlyContextMenuActions : [];
 
-    // An error the payer cannot see must not disable the action, or the preview loses its context menu for no visible reason.
+    // An invisible error must not disable the action, or the preview loses its context menu for no reason.
     const visibleActionErrors = getVisibleReportActionErrors(action);
 
     const hasActionErrors = !isEmptyValueObject(visibleActionErrors);

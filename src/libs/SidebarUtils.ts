@@ -155,6 +155,13 @@ type ShouldDisplayReportInLHNParams = {
     conciergeReportID: string | undefined;
 };
 
+/**
+ * Whether the user put something in this report themselves. A failed comment counts, since it has to stay reachable.
+ */
+function hasContentOfItsOwn(reportID: string): boolean {
+    return Object.values(getAllReportActions(reportID)).some((action) => !isCreatedAction(action) && !isDeletedAction(action));
+}
+
 function shouldDisplayReportInLHN({
     report,
     reports,
@@ -201,13 +208,12 @@ function shouldDisplayReportInLHN({
         return {shouldDisplay: false};
     }
 
-    // A thread that failed to be created and whose parent action is gone. Nothing links to it any more, so its
-    // error is not actionable and must not force an empty row into the LHN. A thread the user put something into
-    // stays, so they can still reach it. Counted rather than asked of `doesReportHaveVisibleActions`, because a
-    // comment that failed to send is not "visible" yet is exactly what needs to stay reachable.
-    const hasFailedCreation = !!report.errorFields?.createChat || !!report.errorFields?.createChatThread;
-    const hasContentOfItsOwn = Object.values(getAllReportActions(report.reportID)).some((action) => !isCreatedAction(action) && !isDeletedAction(action));
-    const isOrphanedFailedThread = hasFailedCreation && !!report.parentReportActionID && (!parentReportAction || isDeletedAction(parentReportAction)) && !hasContentOfItsOwn;
+    // An error on a thread nothing links to any more is not actionable, so it must not force an empty LHN row.
+    const isOrphanedFailedThread =
+        (!!report.errorFields?.createChat || !!report.errorFields?.createChatThread) &&
+        !!report.parentReportActionID &&
+        (!parentReportAction || isDeletedAction(parentReportAction)) &&
+        !hasContentOfItsOwn(report.reportID);
     if (isOrphanedFailedThread) {
         return {shouldDisplay: false};
     }

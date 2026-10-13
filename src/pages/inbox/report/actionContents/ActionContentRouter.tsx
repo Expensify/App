@@ -215,7 +215,7 @@ function ActionContentRouter({
             />
         );
     }
-    // This preview has no report left to show, so render the placeholder instead of pointing at a report that is gone.
+    // No report left to open, so show the placeholder rather than a link to nothing.
     if (action.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW && (isClosedExpenseReportWithNoExpenses || isDeletedReportPreviewWithError(action))) {
         return <RenderHTML html={`<deleted-action>${translate('parentReportAction.deletedReport')}</deleted-action>`} />;
     }

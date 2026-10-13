@@ -420,9 +420,8 @@ function getPayMoneyRequestParams({
 
     // In case the report preview action is loaded locally, let's update it.
     if (optimisticReportPreviewAction) {
-        // The error above sits in the paid report, which the payer cannot reach once it is deleted, so mirror it onto
-        // the chat's preview. An IOU report is only ever attached to a one-on-one chat, so this stays scoped to the
-        // DM case the original report covered and leaves workspace expense reports untouched.
+        // Mirror the error onto the chat's preview, which the payer can still reach once the paid report is gone.
+        // An IOU report only ever hangs off a one-on-one chat, so workspace expense reports are untouched.
         const shouldMirrorPayFailure = isIOUReport(iouReport);
         onyxData.optimisticData?.push({
             onyxMethod: Onyx.METHOD.MERGE,
@@ -1046,8 +1045,7 @@ function markReportPaymentReceived(
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`,
             value: {
-                // Settling here clears any mirrored pay failure, or it would resurface as a phantom error once the
-                // report is deleted, see getVisibleReportActionErrors.
+                // Clear any mirrored failure, or it resurfaces as a phantom error once the report is deleted.
                 [optimisticReportPreviewAction.reportActionID]: {...optimisticReportPreviewAction, errors: {[CONST.IOU.PAY_FAILURE_PREVIEW_ERROR_KEY]: null}},
             },
         });
