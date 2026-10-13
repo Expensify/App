@@ -70,11 +70,20 @@ type CalendarPickerProps = {
     viewDateVersion?: number;
 };
 
+/** The Date constructor takes a year below this as a shorthand for the twentieth century, so 99 would arrive as 1999 */
+const FIRST_LITERAL_YEAR = 100;
+
 function getInitialCurrentDateView(value: Date | string, minDate: Date, maxDate: Date) {
     // A date the field actually holds is followed even when it sits outside the range, so reopening the calendar does
     // not lose the year that was typed. Validation is what reports a date that cannot be picked.
     if (value) {
-        return typeof value === 'string' ? parseISO(value) : new Date(value);
+        const heldDate = typeof value === 'string' ? parseISO(value) : new Date(value);
+
+        // The calendar builds its days from a year and a month, and the Date constructor reads a year below the
+        // hundreds as a shorthand for the twentieth century. Following one would show 1999 for a date reading 0099.
+        if (heldDate.getFullYear() >= FIRST_LITERAL_YEAR) {
+            return heldDate;
+        }
     }
 
     // Without a date to follow the calendar starts from today, pulled into range so it still opens on a month that

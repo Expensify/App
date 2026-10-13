@@ -420,7 +420,9 @@ function DatePicker({
                 shouldCloseOnWheel={!shouldAllowTyping}
                 viewDate={segmentInput.viewDate}
                 viewDateVersion={segmentInput.viewDateVersion}
-                onMonthOrYearSelected={shouldAllowTyping ? commitDate : undefined}
+                // Picking a month or year revises a date the field already holds. An empty field has no day to go with
+                // one, so it waits for the day press rather than being filled with a day nobody chose.
+                onMonthOrYearSelected={shouldAllowTyping && selectedDate ? commitDate : undefined}
                 shouldEnableMonthYearBackdropInNarrowPane={shouldEnableMonthYearBackdropInNarrowPane}
             />
         </>

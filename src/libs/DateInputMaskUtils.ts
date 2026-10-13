@@ -7,7 +7,7 @@ import CONST from '@src/CONST';
 
 import type {TupleToUnion} from 'type-fest';
 
-import {isValid, parse} from 'date-fns';
+import {getDaysInMonth, isValid, parse, setDate} from 'date-fns';
 
 const DATE_SEGMENT_NAMES = ['year', 'month', 'day'] as const;
 
@@ -15,6 +15,10 @@ const YEAR_LENGTH = 4;
 const SEGMENT_LENGTH = 2;
 
 const FIRST_MONTH = 1;
+const FIRST_DAY = 1;
+
+/** The Date constructor takes a year below this as a shorthand for the twentieth century, so 99 would arrive as 1999 */
+const FIRST_LITERAL_YEAR = 100;
 
 /**
  * The highest a segment may read, and the highest its leading digit may be while still allowing a second one. The day
@@ -215,8 +219,8 @@ function typeDigitIntoSegments(
 }
 
 /**
- * Which month the calendar should show for the date being typed, or undefined when there is nowhere useful to go and
- * the calendar should stay where it is. A month only counts once both its digits read as a real month, so the calendar
+ * The date the calendar should show for the date being typed, or undefined when there is nowhere useful to go and the
+ * calendar should stay where it is. A month only counts once both its digits read as a real month, so the calendar
  * does not lurch to January while the user is still on the first digit.
  *
  * A year outside the allowed range is followed too, so the calendar keeps agreeing with the field while validation is
@@ -226,7 +230,10 @@ function typeDigitIntoSegments(
 function getViewDateFromSegments(segments: DateSegments, fallbackDate: Date, minDate: Date, maxDate: Date): Date | undefined {
     const monthNumber = Number(segments.month);
     const hasMonth = segments.month.length === SEGMENT_LENGTH && monthNumber >= FIRST_MONTH && monthNumber <= SEGMENT_LIMITS.month.max;
-    const hasYear = segments.year.length === YEAR_LENGTH;
+    const yearNumber = Number(segments.year);
+    // A year below the hundreds has no date that could carry it, and it sits a century before the oldest date any
+    // field offers, so the calendar stays where it is rather than showing the year that date would have reported.
+    const hasYear = segments.year.length === YEAR_LENGTH && yearNumber >= FIRST_LITERAL_YEAR;
 
     // Neither segment reads as somewhere to go yet, so the calendar keeps whatever it is showing
     if (!hasYear && !hasMonth) {
@@ -236,8 +243,12 @@ function getViewDateFromSegments(segments: DateSegments, fallbackDate: Date, min
     // The year on screen can sit outside the allowed range, since it starts at today even where only much older dates
     // may be picked. Pulling it into range keeps a year the user never typed from landing somewhere unselectable.
     const fallbackYear = Math.min(Math.max(fallbackDate.getFullYear(), minDate.getFullYear()), maxDate.getFullYear());
+    const viewDate = new Date(hasYear ? yearNumber : fallbackYear, hasMonth ? monthNumber - 1 : fallbackDate.getMonth(), FIRST_DAY);
+    const dayNumber = Number(segments.day);
 
-    return new Date(hasYear ? Number(segments.year) : fallbackYear, hasMonth ? monthNumber - 1 : fallbackDate.getMonth(), 1);
+    // The day comes along so that a month or year picked from the calendar keeps the day the field already shows. A
+    // day the month it lands in is too short for would carry the view into the next month, so it is held to that month.
+    return dayNumber >= FIRST_DAY ? setDate(viewDate, Math.min(dayNumber, getDaysInMonth(viewDate))) : viewDate;
 }
 
 /** Empties a segment and every segment before it, which is what deleting to the start of the field leaves behind */
@@ -328,6 +339,27 @@ function getSegmentsFromText(text: string, startName: DateSegmentName, baseSegme
 }
 
 /**
+ * What a change added to the text a segment was showing, which is what the user pasted into it. The digits the segment
+ * already held are still there when the text was inserted beside them, so the new text is split around them. Text that
+ * kept none of them replaced a selection, and is therefore taken whole.
+ */
+function getInsertedText(previousValue: string, nextValue: string): string {
+    if (nextValue.length <= previousValue.length) {
+        return nextValue;
+    }
+
+    for (let keptLength = 0; keptLength <= previousValue.length; keptLength++) {
+        if (!nextValue.startsWith(previousValue.slice(0, keptLength)) || !nextValue.endsWith(previousValue.slice(keptLength))) {
+            continue;
+        }
+
+        return nextValue.slice(keptLength, nextValue.length - (previousValue.length - keptLength));
+    }
+
+    return nextValue;
+}
+
+/**
  * Returns the date in the format the rest of the app stores, or undefined while a segment is empty or reads as an
  * impossible date.
  *
@@ -371,6 +403,7 @@ export {
     getClipboardTextFromSegments,
     getDateMaskParts,
     getFirstUnfilledSegmentName,
+    getInsertedText,
     getISODateFromSegments,
     getSegmentDisplay,
     getSegmentsFromISODate,

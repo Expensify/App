@@ -4,6 +4,7 @@ import {
     getClipboardTextFromSegments,
     getDateMaskParts,
     getFirstUnfilledSegmentName,
+    getInsertedText,
     getISODateFromSegments,
     getSegmentDisplay,
     getSegmentsFromISODate,
@@ -136,15 +137,41 @@ describe('DateInputMaskUtils', () => {
             expect(viewDateFor(segments('2030', '00', ''))).toEqual(new Date(2030, 8, 1));
         });
 
-        it('ignores the day, which picks a date rather than a month to show', () => {
-            expect(viewDateFor(segments('2030', '02', '28'))).toEqual(new Date(2030, 1, 1));
+        it('carries the day, so a month or year picked from the calendar keeps it', () => {
+            // Given a day already in the field
+            // When the calendar is asked where to go
+            // Then the day comes along, since the calendar builds a month or year pick from the date it is showing
+            expect(viewDateFor(segments('2030', '02', '28'))).toEqual(new Date(2030, 1, 28));
+        });
+
+        it('holds a day to the month it lands in, which would otherwise carry the view into the next one', () => {
+            // Given the 31st, typed while the month still read as a longer one
+            // When the month that is typed next only has 30 days
+            // Then the view stays in that month on its last day rather than moving on to the first of the next
+            expect(viewDateFor(segments('2030', '04', '31'))).toEqual(new Date(2030, 3, 30));
+        });
+
+        it('leaves the day out while it reads as nothing to go to', () => {
+            expect(viewDateFor(segments('2030', '02', ''))).toEqual(new Date(2030, 1, 1));
+            expect(viewDateFor(segments('2030', '02', '0'))).toEqual(new Date(2030, 1, 1));
+        });
+
+        it('leaves the calendar alone for a year below the hundreds, which no date can carry', () => {
+            // Given a year the Date constructor would read as a shorthand for the twentieth century
+            // When the calendar is asked where to go
+            // Then it stays where it is, rather than claiming the 1999 that year would have arrived as
+            expect(viewDateFor(segments('0099', '', ''))).toBeUndefined();
+
+            // Given a month typed alongside it, which is somewhere the calendar can go
+            // Then the month is followed in the year already on screen
+            expect(viewDateFor(segments('0099', '03', ''))).toEqual(new Date(2026, 2, 1));
         });
 
         it('follows a year outside the range, which validation is what reports', () => {
             // Given a year nowhere near the dates the field accepts
             // When the calendar is asked where to go
             // Then it follows all the same, so it does not sit on a month that disagrees with what the field shows
-            expect(viewDateFor(segments('1111', '01', '03'))).toEqual(new Date(1111, 0, 1));
+            expect(viewDateFor(segments('1111', '01', '03'))).toEqual(new Date(1111, 0, 3));
             expect(viewDateFor(segments('9999', '01', ''))).toEqual(new Date(9999, 0, 1));
         });
 
@@ -249,6 +276,32 @@ describe('DateInputMaskUtils', () => {
 
         it('reports nothing once the whole date is filled in', () => {
             expect(getFirstUnfilledSegmentName(segments('2026', '09', '18'))).toBeUndefined();
+        });
+    });
+
+    describe('getInsertedText', () => {
+        it('reads what was pasted beside the digits a segment was already showing', () => {
+            // Given a year reading 1990 with the caret resting between the 19 and the 90
+            // When 1998 is pasted there
+            // Then only the pasted year is read back, rather than the digits it was dropped between
+            expect(getInsertedText('1990', '19199890')).toBe('1998');
+        });
+
+        it('reads a paste at either end of a segment', () => {
+            expect(getInsertedText('1990', '19901998')).toBe('1998');
+            expect(getInsertedText('1990', '19981990')).toBe('1998');
+        });
+
+        it('reads a paste over a segment that was selected', () => {
+            // Given a year whose digits were all selected, so none of them are left in what the input now reports
+            // When a year is pasted over them
+            // Then the whole of what the input reports is read back as the paste
+            expect(getInsertedText('1990', '1998')).toBe('1998');
+            expect(getInsertedText('1990', '12')).toBe('12');
+        });
+
+        it('reads a paste into an empty segment', () => {
+            expect(getInsertedText('', '1998')).toBe('1998');
         });
     });
 
