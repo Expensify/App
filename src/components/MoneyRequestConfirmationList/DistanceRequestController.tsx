@@ -17,17 +17,62 @@ import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import {getCreated, isManualDistanceRequest as isManualDistanceRequestUtil} from '@libs/TransactionUtils';
 
 import CONST from '@src/CONST';
+import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {Policy, Transaction} from '@src/types/onyx';
+import type {Participant} from '@src/types/onyx/IOU';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+
+import type {OnyxEntry} from 'react-native-onyx';
 
 import {useEffect, useRef} from 'react';
 
 import type useDistanceRequestState from './hooks/useDistanceRequestState';
 
-import {useConfirmationData} from './ConfirmationDataContext';
-
 type DistanceRequestControllerProps = {
-    /** The full distance state. Only a distance surface resolves one, so it stays a prop rather than joining the context. */
+    /** ID of the transaction being confirmed */
+    transactionID: string | undefined;
+
+    /** Read for its manual-distance type, its created date and its `rateAutoUpdated` flag */
+    transaction: OnyxEntry<Transaction>;
+
+    /** The workspace whose mileage rates the selected rate is checked against. */
+    policy: OnyxEntry<Policy>;
+
+    /** Whether the expense is a distance expense */
+    isDistanceRequest: boolean;
+
+    /** Whether the expense is submitted to a workspace chat */
+    isPolicyExpenseChat: boolean;
+
+    /** Whether the expense is being moved off a track expense */
+    isMovingTransactionFromTrackExpense: boolean;
+
+    /** Whether the confirmation is read-only */
+    isReadOnly: boolean;
+
+    /** Whether the expense is a split */
+    isTypeSplit: boolean;
+
+    /** The selected distance rate ID */
+    customUnitRateID: string;
+
+    /** Account ID of the current user */
+    currentUserAccountID: number;
+
+    /** Participants that are selected */
+    selectedParticipants: Participant[];
+
+    /** Every participant the page passed in, selected or not. Split shares are set for all of them. */
+    selectedParticipantsProp: Participant[];
+
+    /** Raises a form error */
+    setFormError: (value: TranslationPaths | '') => void;
+
+    /** Clears the form error if it is one of the given keys */
+    clearFormErrors: (errors: string[]) => void;
+
+    /** The full distance state. Only a distance surface resolves one. */
     distanceState: ReturnType<typeof useDistanceRequestState>;
 };
 
@@ -38,24 +83,23 @@ type DistanceRequestControllerProps = {
  *
  * Mounted only by the distance variant, which is the only surface that resolves a distance state.
  */
-function DistanceRequestController({distanceState}: DistanceRequestControllerProps) {
-    const {
-        transactionID,
-        transaction,
-        policy,
-        isDistanceRequest,
-        isPolicyExpenseChat,
-        isMovingTransactionFromTrackExpense,
-        isReadOnly,
-        isTypeSplit,
-        customUnitRateID,
-        currentUserAccountID,
-        selectedParticipants,
-        selectedParticipantsProp,
-        setFormError,
-        clearFormErrors,
-    } = useConfirmationData();
-
+function DistanceRequestController({
+    transactionID,
+    transaction,
+    policy,
+    isDistanceRequest,
+    isPolicyExpenseChat,
+    isMovingTransactionFromTrackExpense,
+    isReadOnly,
+    isTypeSplit,
+    customUnitRateID,
+    currentUserAccountID,
+    selectedParticipants,
+    selectedParticipantsProp,
+    setFormError,
+    clearFormErrors,
+    distanceState,
+}: DistanceRequestControllerProps) {
     const isManualDistanceRequest = isManualDistanceRequestUtil(transaction);
     const {
         mileageRate,
@@ -301,3 +345,4 @@ function DistanceRequestController({distanceState}: DistanceRequestControllerPro
 DistanceRequestController.displayName = 'DistanceRequestController';
 
 export default DistanceRequestController;
+export type {DistanceRequestControllerProps};
