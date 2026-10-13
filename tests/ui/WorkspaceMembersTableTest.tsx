@@ -86,6 +86,7 @@ describe('WorkspaceMembersTable', () => {
 
     describe('bank account sorting', () => {
         it('sorts members by their bank account last four, with members without one last in both directions', async () => {
+            // Given members where only some have a bank account, since the ones without must sort last
             const members: WorkspaceMemberRowData[] = [
                 buildMember({keyForList: 'nina', login: 'nina@example.com', email: 'nina@example.com', name: 'Nina', accountID: 1, bankAccountLastFour: '5382'}),
                 buildMember({keyForList: 'carol', login: 'carol@example.com', email: 'carol@example.com', name: 'Carol', accountID: 2}),
@@ -97,14 +98,18 @@ describe('WorkspaceMembersTable', () => {
             renderTable(members, tableRef);
             await waitForBatchedUpdatesWithAct();
 
+            // When the Bank account header is pressed, which sorts descending first
             const [bankAccountHeader] = screen.getAllByLabelText(TestHelper.translateLocal('common.bankAccount'));
             fireEvent.press(bankAccountHeader);
 
+            // Then the last fours go high to low and the members without one stay at the bottom
             expect(tableRef.current?.getActiveSorting()).toEqual({columnKey: 'bankAccount', order: 'desc'});
             expect(tableRef.current?.getProcessedData().map((item) => item.name)).toEqual(['Nina', 'Adam', 'Carol', 'Brian']);
 
+            // When the header is pressed again to flip the order
             fireEvent.press(bankAccountHeader);
 
+            // Then the last fours go low to high and the members without one are still at the bottom
             expect(tableRef.current?.getActiveSorting()).toEqual({columnKey: 'bankAccount', order: 'asc'});
             expect(tableRef.current?.getProcessedData().map((item) => item.name)).toEqual(['Adam', 'Nina', 'Brian', 'Carol']);
         });
