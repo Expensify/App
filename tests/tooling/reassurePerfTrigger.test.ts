@@ -1,7 +1,6 @@
 import {describe, expect, it} from 'bun:test';
 
 import fs from 'fs';
-import {isMatch} from 'micromatch';
 
 /**
  * reassurePerformanceTests.yml triggers on one ordered `paths` list rather than `paths-ignore`, so a
@@ -21,16 +20,25 @@ function readWorkflow(path: string): Workflow {
 }
 
 /**
+ * `*` in these workflow path patterns only ever appears as part of `**`, so a run of one or more `*`
+ * can be converted to `.*` without distinguishing `*` from `**`. The regex is matched against the
+ * whole path (`^...$`), so, unlike shell globs, a leading dot needs no special-casing to match `.*`.
+ */
+function globToRegExp(glob: string): RegExp {
+    const escaped = glob.replaceAll(/[.+^${}()|[\]\\]/g, '\\$&').replaceAll(/\*+/g, '.*');
+    return new RegExp(`^${escaped}$`);
+}
+
+/**
  * Mirrors GitHub's own evaluation: patterns apply in order, and whichever one (positive or negated)
- * last matches the path decides whether it runs. `dot: true` because GitHub's path matching, unlike
- * micromatch's default, treats a leading dot in a path segment as an ordinary character.
+ * last matches the path decides whether it runs.
  */
 function pathTriggersRun(patterns: string[], filePath: string): boolean {
     let included = false;
     for (const pattern of patterns) {
         const isNegated = pattern.startsWith('!');
         const glob = isNegated ? pattern.slice(1) : pattern;
-        if (isMatch(filePath, glob, {dot: true})) {
+        if (globToRegExp(glob).test(filePath)) {
             included = !isNegated;
         }
     }
