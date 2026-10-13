@@ -5,6 +5,7 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 
 import getSelectionListPopoverContentHeight from '@libs/getSelectionListPopoverContentHeight';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
+import shouldWaitForSheetToHide from '@libs/shouldWaitForSheetToHide';
 
 import CONST from '@src/CONST';
 import type AnchorAlignment from '@src/types/utils/AnchorAlignment';
@@ -148,21 +149,34 @@ function ExpenseFieldDropdown({renderDropdown, shouldOpenInDropdown, onPress, on
     const [landscapeHandOverCount, setLandscapeHandOverCount] = useState(0);
 
     const handleModalHide = () => {
-        if (!shouldHandOverToPage) {
+        if (!shouldWaitForSheetToHide() || !shouldHandOverToPage) {
             return;
         }
         setIsVisible(false);
         setLandscapeHandOverCount((count) => count + 1);
     };
 
-    const handOverToPage = useEffectEvent(() => openPageForLandscape());
+    const openPageAfterSheetHides = useEffectEvent(() => openPageForLandscape());
 
     useEffect(() => {
         if (!landscapeHandOverCount) {
             return;
         }
-        handOverToPage();
+        openPageAfterSheetHides();
     }, [landscapeHandOverCount]);
+
+    const handOverToPageOnWeb = useEffectEvent(() => {
+        setIsVisible(false);
+        openPageForLandscape();
+    });
+
+    useEffect(() => {
+        if (shouldWaitForSheetToHide() || !shouldHandOverToPage) {
+            return;
+        }
+        const handle = TransitionTracker.runAfterTransitions({callback: handOverToPageOnWeb});
+        return () => handle.cancel();
+    }, [shouldHandOverToPage]);
 
     useEffect(() => {
         if (isFocused || landscapeStepRef.current !== 'departing') {

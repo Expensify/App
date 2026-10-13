@@ -26,6 +26,10 @@ jest.mock('@hooks/useResponsiveLayout', () =>
 );
 // Read lazily so a test can shrink the viewport, leaving the row short of room on both sides at once.
 let mockWindowHeight = 800;
+// Native by default; the web test switches it off, since only native waits for the sheet to hide before handing over.
+let mockShouldWaitForSheetToHide = true;
+jest.mock('@libs/shouldWaitForSheetToHide', () => jest.fn(() => mockShouldWaitForSheetToHide));
+
 jest.mock('@hooks/useWindowDimensions', () => jest.fn(() => ({windowWidth: 1280, windowHeight: mockWindowHeight})));
 
 // Mirrors `useFocusEffect`: runs the effect while the screen is focused, and again whenever the effect changes.
@@ -95,6 +99,7 @@ describe('ExpenseFieldDropdown', () => {
         mockIsSmallScreenWidth = false;
         mockIsInLandscapeMode = false;
         mockIsFocused = true;
+        mockShouldWaitForSheetToHide = true;
         await Onyx.clear();
         await waitForBatchedUpdates();
     });
@@ -345,6 +350,21 @@ describe('ExpenseFieldDropdown', () => {
             expect(screen.queryByText(DROPDOWN_TEXT)).not.toBeOnTheScreen();
             expect(onLandscapePress).toHaveBeenCalledTimes(1);
             expect(screen.getByTestId(ROW_TEST_ID)).toBeCollapsed();
+        });
+
+        it('hands an open sheet over as soon as the phone is turned on the web', () => {
+            // Given mobile web, whose hide callback can't be relied on, with the sheet open in portrait
+            mockShouldWaitForSheetToHide = false;
+            const rerenderField = renderOnPhone();
+            act(() => pressRow());
+
+            // When the phone is turned to landscape
+            mockIsInLandscapeMode = true;
+            rerenderField();
+
+            // Then the page meant for landscape opens straight away, instead of waiting for a hide callback that may never come
+            expect(onLandscapePress).toHaveBeenCalledTimes(1);
+            expect(screen.queryByText(DROPDOWN_TEXT)).not.toBeOnTheScreen();
         });
 
         it('does not open the full-page selector when the sheet closes for any other reason', () => {
