@@ -633,15 +633,6 @@ const translations: TranslationDeepObject<typeof en> = {
         launching: 'Εκκίνηση του Expensify',
         expired: 'Η συνεδρία σας έχει λήξει.',
         signIn: 'Παρακαλούμε συνδεθείτε ξανά.',
-        notValid: 'Μη έγκυρος σύνδεσμος.',
-        sessionMismatch: 'Ο σύνδεσμος που κάνατε κλικ δεν είναι έγκυρος για την τρέχουσα συνεδρία σας.',
-        switchAccount: {
-            title: 'Αλλαγή λογαριασμών;',
-            prompt: ({newEmail, currentEmail}: {newEmail: string; currentEmail: string}) =>
-                `Έχετε συνδεθεί ως ${currentEmail}. Αυτή η ενέργεια θα σας συνδέσει ως ${newEmail} αντί για αυτό.`,
-            confirm: 'Αλλαγή λογαριασμών',
-            staySignedIn: 'Να μην αλλάξω λογαριασμούς',
-        },
     },
     multifactorAuthentication: {
         reviewTransaction: {
@@ -1373,7 +1364,7 @@ const translations: TranslationDeepObject<typeof en> = {
             phrase1: 'Προσθήκη απόδειξης',
             phrase2: 'ή σύρετε και αποθέστε ένα εδώ',
         },
-        pageCount: ({pageCount}: {pageCount: number}) => `Σελίδα 1 από ${pageCount}`,
+        pageCount: ({page, pageCount}: {page: number; pageCount: number}) => `Σελίδα ${page} από ${pageCount}`,
     },
     quickAction: {
         scanReceipt: 'Σαρώστε απόδειξη',
@@ -2357,6 +2348,7 @@ const translations: TranslationDeepObject<typeof en> = {
     displayNamePage: {
         headerTitle: 'Εμφανιζόμενο όνομα',
         isShownOnProfile: 'Το εμφανιζόμενο όνομά σας εμφανίζεται στο προφίλ σας.',
+        isShownOnMemberProfile: 'Το εμφανιζόμενο όνομα θα εμφανίζεται στο προφίλ του μέλους. Μόλις αποθηκευτεί, μόνο το μέλος μπορεί να το επεξεργαστεί.',
     },
     timezonePage: {
         timezone: 'Ζώνη ώρας',
@@ -2403,7 +2395,6 @@ const translations: TranslationDeepObject<typeof en> = {
             useProfiling: 'Χρησιμοποιήστε προφίλωση',
             profileTrace: 'Ίχνος προφίλ',
             results: 'Αποτελέσματα',
-            releaseOptions: 'Επιλογές έκδοσης',
             testingPreferences: 'Προτιμήσεις δοκιμών',
             server: 'Διακομιστής',
             servers: {
@@ -4049,6 +4040,10 @@ ${amount} για ${merchant} - ${date}`,
     },
     dynamicForm: {
         exampleHint: ({example}: {example: string}) => `Παράδειγμα: ${example}`,
+        fileCount: ({count}: {count: number}) => ({
+            one: '1 αρχείο',
+            other: `${count} αρχεία`,
+        }),
         error: {
             tooShort: ({minLength}: {minLength: number}) => `Πρέπει να έχει τουλάχιστον ${minLength} χαρακτήρες`,
             invalidFormat: ({example}: {example?: string}) => (example ? `Μη έγκυρη μορφή. Παράδειγμα: ${example}` : 'Μη έγκυρη μορφή'),
@@ -8729,6 +8724,8 @@ ${reportName}`,
                 applyUpdates: 'Εφαρμόστε αυτές τις ενημερώσεις:',
                 saveRule: 'Αποθήκευση κανόνα',
                 previewMatches: 'Προεπισκόπηση αντιστοιχιών',
+                previewMatchesDescription: 'Δείτε πώς εφαρμόζεται αυτός ο κανόνας στις δαπάνες σας',
+                preview: 'Προεπισκόπηση',
                 confirmError: 'Εισαγάγετε τον έμπορο και εφαρμόστε τουλάχιστον μία ενημέρωση',
                 confirmErrorMerchant: 'Παρακαλούμε εισαγάγετε τον έμπορο',
                 confirmErrorUpdate: 'Παρακαλούμε εφαρμόστε τουλάχιστον μία ενημέρωση',
@@ -8795,6 +8792,14 @@ ${reportName}`,
                 applyExpenseDefaultsDescription: 'Ενημέρωση πεδίων χωρίς να χρειάζεται ο υποβάλλων να κάνει τίποτα',
                 createAgentRule: 'Περιγράψτε τον κανόνα πράκτορα',
                 createAgentRuleDescription: 'Δημιουργήστε ευέλικτους κανόνες που εκτελούνται όταν τους χρειάζεστε.',
+                describe: 'Περιγραφή',
+                describeRule: 'Περιγράψτε τον κανόνα σας με απλά λόγια και ο Concierge θα τον δημιουργήσει για εσάς',
+                describeRuleInputLabel: 'Περιγράψτε τον κανόνα',
+                promptErrors: {
+                    unsupported: 'Αυτός ο κανόνας δεν υποστηρίζεται ακόμη — το δουλεύουμε. Δοκιμάστε προς το παρόν έναν διαφορετικό κανόνα.',
+                    unintelligible: 'Δοκιμάστε να διατυπώσετε τον κανόνα σας έτσι: αν οι δαπάνες ξεπερνούν τα 100 $, να απαιτείται απόδειξη.',
+                    multipleRules: 'Έναν κανόνα τη φορά — δοκιμάστε να περιγράψετε έναν μόνο κανόνα, π.χ.: αποκλεισμός αγορών λιανικής σε όλες τις κάρτες.',
+                },
             },
             expenseDefaultsTable: {
                 tableColumnType: 'Τύπος',
@@ -9988,6 +9993,8 @@ ${reportName}`,
         updateAreAttendeesRequired: (categoryName: string, newValue: boolean) => {
             return `άλλαξε τους συμμετέχοντες της κατηγορίας «${categoryName}» σε ${newValue ? 'υποχρεωτικό' : 'μη υποχρεωτικό'} (προηγουμένως ${newValue ? 'μη υποχρεωτικό' : 'υποχρεωτικό'})`;
         },
+        updatedMemberDisplayName: (newName: string, oldName: string, editProfileURL: string) =>
+            `ενημέρωσε το εμφανιζόμενο όνομά σας σε ${newName} (προηγουμένως «${oldName}»). <a href="${editProfileURL}">Επεξεργαστείτε το στο προφίλ σας</a>`,
         changedOverLimitForwardsTo: ({
             member,
             approver,
@@ -11546,6 +11553,16 @@ ${reportName}`,
                 other: `${count} ενεργοί χρήστες`,
             }),
             state: {paid: 'Πληρωμένο', cleared: 'Εκκαθαρισμένο', failed: 'Απέτυχε', refunded: 'Επιστράφηκε', disputed: 'Αμφισβητούμενη', balanceTransfer: 'Μεταφορά υπολοίπου'},
+            details: 'Στοιχεία πληρωμής',
+            badge: {
+                balanceTransferTo: ({email}: {email: string}) => `Μεταφορά υπολοίπου σε ${email}`,
+                balanceTransferFrom: ({email}: {email: string}) => `Μεταφορά υπολοίπου από ${email}`,
+                disputedPending: ({date}: {date: string}) => `Αμφισβητήθηκε στις ${date} (Σε εκκρεμότητα)`,
+                disputedRefunded: ({date}: {date: string}) => `Αμφισβητήθηκε στις ${date} (Επιστράφηκε)`,
+                disputedClosed: ({date}: {date: string}) => `Αμφισβητήθηκε στις ${date} (Έκλεισε)`,
+                refundedOn: ({date}: {date: string}) => `Επιστράφηκε στις ${date}`,
+                refundedAmountOn: ({amount, date}: {amount: string; date: string}) => `Επιστράφηκαν ${amount} στις ${date}`,
+            },
         },
         subscriptionSettings: {
             title: 'Ρυθμίσεις συνδρομής',
