@@ -1,3 +1,4 @@
+import type {ComponentRef} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import type {ScrollView as RNScrollView, View as RNView} from 'react-native';
 
@@ -16,7 +17,7 @@ function asElement(node: unknown): HTMLElement | undefined {
 }
 
 /** React Native types `getScrollableNode` as `any`. On web it resolves to the element that actually scrolls. */
-function getScrollableElement(scrollView: RNScrollView | null): HTMLElement | undefined {
+function getScrollableElement(scrollView: ComponentRef<typeof RNScrollView> | null): HTMLElement | undefined {
     return asElement(scrollView?.getScrollableNode());
 }
 
@@ -38,7 +39,7 @@ const useSyncedHorizontalScroll: UseSyncedHorizontalScroll = (key, isEnabled) =>
     // A ref callback, not an effect, because a group renders collapsed and its rows scroller only mounts on expand,
     // after this hook's first render. The group header stays mounted across expand and collapse, so an effect keyed
     // on render values would never re-run to catch it.
-    const scrollViewRef = (scrollView: RNScrollView | null) => {
+    const scrollViewRef = (scrollView: ComponentRef<typeof RNScrollView> | null) => {
         releaseRef.current?.();
         releaseRef.current = undefined;
 
@@ -89,7 +90,7 @@ const useHorizontalScrollFollower: UseHorizontalScrollFollower = (key, isEnabled
 
     // A ref callback for the same reason the publisher uses one, plus one of its own. When a group header sticks,
     // FlashList mounts a second copy of it, and that copy has to pick the group's offset up as it arrives.
-    return (view: RNView | null) => {
+    return (view: ComponentRef<typeof RNView> | null) => {
         releaseRef.current?.();
         releaseRef.current = undefined;
 

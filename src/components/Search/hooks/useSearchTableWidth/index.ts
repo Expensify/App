@@ -1,3 +1,4 @@
+import type {ComponentRef} from 'react';
 import type {LayoutChangeEvent, View} from 'react-native';
 
 import {useLayoutEffect, useRef, useState} from 'react';
@@ -14,7 +15,7 @@ import {useLayoutEffect, useRef, useState} from 'react';
  * `onLayout` keeps the width current afterwards (window resize, sidebar collapse), which is also native's only source.
  */
 function useSearchTableWidth() {
-    const tableWidthRef = useRef<View | null>(null);
+    const tableWidthRef = useRef<ComponentRef<typeof View> | null>(null);
     const [tableWidth, setTableWidth] = useState(0);
 
     useLayoutEffect(() => {

@@ -12,8 +12,9 @@ import setTextInputSelection from './setTextInputSelection';
 
 /**
  * Create a function that focuses the composer.
+ * @param [canFocusAfterDelay] Re-checked when the delay is up, so a composer that lost its focus claim meanwhile does not take focus back
  */
-function focusComposerWithDelay(textInput: InputType | null, delay: number = CONST.COMPOSER_FOCUS_DELAY): FocusComposerWithDelay {
+function focusComposerWithDelay(textInput: InputType | null, delay: number = CONST.COMPOSER_FOCUS_DELAY, canFocusAfterDelay?: () => boolean): FocusComposerWithDelay {
     function getIsFocused() {
         if (textInput && 'isFocused' in textInput) {
             return textInput.isFocused();
@@ -61,7 +62,12 @@ function focusComposerWithDelay(textInput: InputType | null, delay: number = CON
 
         // When the closing modal has a focused text input focus() needs a delay to properly work.
         // Setting 150ms here is a temporary workaround for the Android HybridApp. It should be reverted once we identify the real root cause of this issue: https://github.com/Expensify/App/issues/56311.
-        setTimeout(() => focusAndUpdateSelection(textInput), delay);
+        setTimeout(() => {
+            if (canFocusAfterDelay && !canFocusAfterDelay()) {
+                return;
+            }
+            focusAndUpdateSelection(textInput);
+        }, delay);
     };
 }
 

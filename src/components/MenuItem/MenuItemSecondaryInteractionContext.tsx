@@ -1,4 +1,4 @@
-import type {Dispatch, SetStateAction} from 'react';
+import type {ComponentRef, Dispatch, SetStateAction} from 'react';
 import type {GestureResponderEvent, View} from 'react-native';
 
 import {createContext, useContext, useEffect, useRef, useState} from 'react';
@@ -7,7 +7,7 @@ import {createContext, useContext, useEffect, useRef, useState} from 'react';
  * Handles a long press or a right-click on the row. `anchor` is the row's own pressable, handed over
  * so a sub-component can anchor a popover to the whole row without the call site threading a ref down.
  */
-type MenuItemSecondaryInteractionHandler = (event: GestureResponderEvent | MouseEvent, anchor: View | null) => void;
+type MenuItemSecondaryInteractionHandler = (event: GestureResponderEvent | MouseEvent, anchor: ComponentRef<typeof View> | null) => void;
 
 /** Takes over the row's long press / right-click. Returns the callback that gives it back */
 type RegisterMenuItemSecondaryInteraction = (handler: MenuItemSecondaryInteractionHandler) => () => void;

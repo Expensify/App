@@ -31,7 +31,7 @@ import {usePersonalDetails, useSession} from './OnyxListItemProvider';
 
 type AddExistingExpenseFooterProps = {
     /** Selected transaction IDs */
-    selectedIds: Set<string>;
+    selectedIds: string[];
     /** The report to add expenses to */
     report: OnyxEntry<Report>;
     reportToConfirm: OnyxEntry<Report>;
@@ -63,12 +63,13 @@ function AddExistingExpenseFooter({selectedIds, report, reportToConfirm, policy,
     const [selfDMReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(selfDMReportID)}`);
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
+    const [cardList] = useOnyx(ONYXKEYS.CARD_LIST);
 
-    const [transactions] = useTransactionsByID([...selectedIds]);
+    const [transactions] = useTransactionsByID(selectedIds);
     const reports = useChangeTransactionsReportReports(transactions, reportToConfirm?.reportID);
 
     const handleConfirm = () => {
-        if (selectedIds.size === 0) {
+        if (selectedIds.length === 0) {
             setErrorMessage(translate('iou.selectExistingExpense'));
             return;
         }
@@ -99,7 +100,7 @@ function AddExistingExpenseFooter({selectedIds, report, reportToConfirm, policy,
                 } else {
                     changeTransactionsReport({
                         isVendorMatchingBetaEnabled,
-                        transactionIDs: [...selectedIds],
+                        transactionIDs: selectedIds,
                         isASAPSubmitBetaEnabled,
                         accountID: session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
                         email: session?.email ?? '',
@@ -111,6 +112,7 @@ function AddExistingExpenseFooter({selectedIds, report, reportToConfirm, policy,
                         allTransactionViolation: transactionViolations,
                         reports,
                         rules,
+                        cardList,
                         isTrackIntentUser,
                         personalPolicyOutputCurrency: personalPolicy?.outputCurrency,
                         selfDMReportActions,

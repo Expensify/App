@@ -1,7 +1,7 @@
 ---
 title: Split Expenses 
 description: Learn how to create and submit expenses to a workspace or individual using SmartScan, manual entry, or distance tracking in Expensify.
-keywords: [New Expensify, split expenses, split by percentage, split by day, split evenly, edit split, revert split, expense allocation, SmartScan, mileage, distance expense, validation rules, remove split, modify split, unreported expenses, split unreported, split reimbursable, reimbursable toggle missing, cash expense default]
+keywords: [New Expensify, split expenses, split by percentage, split by day, split evenly, edit split, revert split, expense allocation, SmartScan, mileage, distance expense, validation rules, remove split, modify split, unreported expenses, split unreported, split reimbursable, reimbursable toggle missing on split, cash expenses rule, cash expense default, always non-reimbursable]
 internalScope: Audience is submitters, approvers and admins. Covers how to split, edit, and revert expenses in New Expensify using the Split feature. Does not cover Classic behavior.
 ---
 
@@ -12,7 +12,7 @@ Expensify makes it easy to split expenses by dividing a single transaction acros
 
 ## Who can split expenses
 
-- **Submitters** can split any editable expense they've created, excluding unreported expenses that haven't been added to a report yet (but this functionality will be available soon)
+- **Submitters** can split any editable expense they've created, including unreported expenses in their self-DM that haven't been added to a report yet
 - **Approvers** can split expenses assigned to them for approval
 - **Admins** can split any expense that hasn't been fully approved
 
@@ -115,7 +115,9 @@ Yes. Each split is treated as a regular expense and follows all workspace requir
 
 ## Why don’t I see the Reimbursable toggle on a split?
 
-The workspace’s **Cash expenses** rule is set to **Always reimbursable** or **Always non-reimbursable**. Those options fix the reimbursable value for every cash expense, so each split is created with the workspace default and the **Reimbursable** toggle is hidden. Imported company card expenses are always non-reimbursable, so their splits don’t show the toggle either. [Learn how to configure Workspace Rules](/articles/new-expensify/workspaces/Workspace-Rules).
+The workspace’s **Cash expenses** rule is set to **Always reimbursable** or **Always non-reimbursable**. Those options fix the reimbursable value for every cash expense, so each split is created with the workspace default and the **Reimbursable** toggle is hidden — even if the original expense was created before an Admin changed the rule.
+
+Under the plain **Reimbursable** or **Non-reimbursable** options the value isn’t fixed, so each split starts with the original expense’s value and shows a **Reimbursable** toggle you can change. Imported company card expenses are always non-reimbursable, so their splits don’t show the toggle either. [Learn how to configure Workspace Rules](/articles/new-expensify/workspaces/Workspace-Rules#how-to-set-basic-rules-on-the-general-tab).
 
 ## Can I split a distance or mileage expense?
 

@@ -11,6 +11,7 @@ import {
 } from '@libs/actions/RequestConflictUtils';
 import {WRITE_COMMANDS} from '@libs/API/types';
 
+import ONYXKEYS from '@src/ONYXKEYS';
 import type {AnyRequest} from '@src/types/onyx/Request';
 
 import type {OnyxKey} from 'react-native-onyx';
@@ -162,40 +163,6 @@ describe('RequestConflictUtils', () => {
         });
     });
 
-    it('resolveEditCommentWithNewAddCommentRequest should rename the queued attachment when the edit renamed it', () => {
-        const reportActionID = '2';
-        const persistedRequests = [
-            {command: 'AddTextAndAttachment', data: {reportActionID, reportComment: 'test', file: {uri: 'blob:local', name: 'data.csv'}, attachmentID: '5'}},
-            {command: 'OpenReport'},
-        ];
-        const parameters = {reportID: '1', reportActionID, reportComment: 'text edited'};
-        const result = resolveEditCommentWithNewAddCommentRequest(persistedRequests, parameters, reportActionID, 0, false, 'renamed.csv');
-        expect(result).toEqual({
-            conflictAction: {
-                type: 'replace',
-                index: 0,
-                request: {
-                    command: 'AddTextAndAttachment',
-                    data: {reportID: '1', reportActionID, reportComment: 'text edited', file: {uri: 'blob:local', name: 'renamed.csv'}, attachmentID: '5'},
-                },
-            },
-        });
-    });
-
-    it('resolveEditCommentWithNewAddCommentRequest should rebuild a renamed File, whose name cannot be reassigned', () => {
-        const reportActionID = '2';
-        const file = new File(['id,total\n1,2'], 'data.csv', {type: 'text/csv'});
-        const queuedRequest = {command: 'AddTextAndAttachment', data: {reportActionID, reportComment: 'test', file, attachmentID: '5'}};
-        const persistedRequests = [queuedRequest, {command: 'OpenReport'}];
-        const parameters = {reportID: '1', reportActionID, reportComment: 'text edited'};
-        resolveEditCommentWithNewAddCommentRequest(persistedRequests, parameters, reportActionID, 0, false, 'renamed.csv');
-        const renamedFile = queuedRequest.data.file;
-
-        expect(renamedFile).toBeInstanceOf(File);
-        expect(renamedFile.name).toBe('renamed.csv');
-        expect(renamedFile.type).toBe('text/csv');
-    });
-
     it('resolveEditCommentWithNewAddCommentRequest should keep the queued attachment when the edit kept it', () => {
         const reportActionID = '2';
         const persistedRequests = [{command: 'AddTextAndAttachment', data: {reportActionID, reportComment: 'test', file: {uri: 'blob:local'}, attachmentID: '5'}}, {command: 'OpenReport'}];
@@ -295,6 +262,43 @@ describe('RequestConflictUtils', () => {
 
             const result = resolveDetachReceiptConflicts<OnyxKey>(persistedRequests, {transactionID: '1', reportActionID: '1'});
             expect(result).toEqual({conflictAction: {type: 'delete', indices: [0, 2], pushNewRequest: true}});
+        });
+
+        it('rolls back the receipt added actions owned by the deleted replace-receipt requests', () => {
+            const updateSpy = jest.spyOn(Onyx, 'update');
+            const firstReplacedReportActionID = '10';
+            const secondReplacedReportActionID = '11';
+            const persistedRequests = [
+                {command: WRITE_COMMANDS.REPLACE_RECEIPT, data: {transactionID: '1', reportActionID: firstReplacedReportActionID}},
+                {command: WRITE_COMMANDS.REPLACE_RECEIPT, data: {transactionID: '1', reportActionID: secondReplacedReportActionID}},
+                {command: WRITE_COMMANDS.REPLACE_RECEIPT, data: {transactionID: '1', reportActionID: '12'}},
+            ];
+
+            const result = resolveDetachReceiptConflicts<OnyxKey>(persistedRequests, {transactionID: '1', reportActionID: '1'}, '5');
+
+            expect(result).toEqual({conflictAction: {type: 'delete', indices: [0, 1], pushNewRequest: true}});
+            expect(updateSpy).toHaveBeenCalledWith([
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}5`,
+                    value: {[firstReplacedReportActionID]: null, [secondReplacedReportActionID]: null},
+                },
+            ]);
+            updateSpy.mockClear();
+        });
+
+        it('does not roll back anything when the transaction thread is not known', () => {
+            const updateSpy = jest.spyOn(Onyx, 'update');
+            const persistedRequests = [
+                {command: WRITE_COMMANDS.REPLACE_RECEIPT, data: {transactionID: '1', reportActionID: '10'}},
+                {command: WRITE_COMMANDS.REPLACE_RECEIPT, data: {transactionID: '1', reportActionID: '11'}},
+            ];
+
+            const result = resolveDetachReceiptConflicts<OnyxKey>(persistedRequests, {transactionID: '1', reportActionID: '1'});
+
+            expect(result).toEqual({conflictAction: {type: 'delete', indices: [0], pushNewRequest: true}});
+            expect(updateSpy).not.toHaveBeenCalled();
+            updateSpy.mockClear();
         });
     });
 

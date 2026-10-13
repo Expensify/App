@@ -12,6 +12,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import CONST from '@src/CONST';
 
+import type {ComponentRef} from 'react';
 import type {View} from 'react-native';
 
 import React, {useCallback, useMemo, useRef, useState} from 'react';
@@ -31,7 +32,7 @@ function SearchSelectAllMenu({isSelectAllChecked, isIndeterminate, selectedItems
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Checkmark', 'CheckSquare']);
     const {currentSearchResults} = useSearchResultsContext();
     const {selectAllMatchingItems} = useSearchSelectionActions();
-    const selectAllAnchorRef = useRef<View>(null);
+    const selectAllAnchorRef = useRef<ComponentRef<typeof View>>(null);
     const [isSelectAllMenuVisible, setIsSelectAllMenuVisible] = useState(false);
     const [selectAllMenuPosition, setSelectAllMenuPosition] = useState({horizontal: 0, vertical: 0});
     const {calculatePopoverPosition} = usePopoverPosition();

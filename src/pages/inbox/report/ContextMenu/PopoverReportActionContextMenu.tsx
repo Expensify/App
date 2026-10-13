@@ -15,6 +15,7 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useParentReportAction from '@hooks/useParentReportAction';
 import useReportIsArchived from '@hooks/useReportIsArchived';
+import useReportTransactionsCollection from '@hooks/useReportTransactionsCollection';
 import useTransactionsAndViolationsForReport from '@hooks/useTransactionsAndViolationsForReport';
 
 import {deleteTrackExpense} from '@libs/actions/IOU/TrackExpense';
@@ -34,7 +35,7 @@ import type {AnchorDimensions} from '@src/styles';
 import type {ReportAction} from '@src/types/onyx';
 import type {Location} from '@src/types/utils/Layout';
 
-import type {ForwardedRef} from 'react';
+import type {ComponentRef, ForwardedRef} from 'react';
 import type {EmitterSubscription, GestureResponderEvent, NativeTouchEvent, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 
@@ -102,8 +103,8 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
     const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const [visibleReportActionsData] = useOnyx(ONYXKEYS.DERIVED.VISIBLE_REPORT_ACTIONS);
 
-    const contentRef = useRef<View>(null);
-    const anchorRef = useRef<View | HTMLDivElement | null>(null);
+    const contentRef = useRef<ComponentRef<typeof View>>(null);
+    const anchorRef = useRef<ComponentRef<typeof View> | HTMLDivElement | null>(null);
     const dimensionsEventListener = useRef<EmitterSubscription | null>(null);
     const contextMenuAnchorRef = useRef<ContextMenuAnchor>(null);
     const contextMenuTargetNode = useRef<HTMLDivElement | null>(null);
@@ -356,6 +357,8 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
     const childParentReportAction = useParentReportAction(childReport);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`);
     const [iouPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${iouReport?.policyID}`);
+    const iouReportTransactionsCollection = useReportTransactionsCollection(iouReport?.reportID);
+    const iouReportTransactions = Object.values(iouReportTransactionsCollection);
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const {currentSearchHash} = useSearchQueryContext();
     const {getCurrencyDecimals} = useCurrencyListActions();
@@ -390,6 +393,7 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
                     transactionID: originalMessage?.IOUTransactionID,
                     reportAction,
                     iouReport,
+                    iouReportTransactions,
                     chatIOUReport: chatReport,
                     transactions: duplicateTransactions,
                     violations: duplicateTransactionViolations,
@@ -452,6 +456,7 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
         childReport,
         selfDMReport,
         iouReport,
+        iouReportTransactions,
         chatReport,
         duplicateTransactions,
         duplicateTransactionViolations,

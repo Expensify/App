@@ -9,6 +9,7 @@ import DragCursor from '@libs/DragCursor';
 import CONST from '@src/CONST';
 
 import type {DragEndEvent, DragStartEvent} from '@dnd-kit/core';
+import type {ComponentRef} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import type {ScrollView as RNScrollView} from 'react-native';
 
@@ -43,7 +44,7 @@ function DraggableList<T>({
     disableScroll,
     focusedIndex: controlledFocusedIndex,
     ref,
-}: DraggableListProps<T> & {ref?: React.ForwardedRef<RNScrollView>}) {
+}: DraggableListProps<T> & {ref?: React.ForwardedRef<ComponentRef<typeof RNScrollView>>}) {
     const styles = useThemeStyles();
     const isControlled = controlledFocusedIndex !== undefined;
     const hasKeyboardNav = !isControlled && !!onSelectRow;

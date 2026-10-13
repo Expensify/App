@@ -1,6 +1,6 @@
 import CONST from '@src/CONST';
 
-import type {ForwardedRef, ReactNode} from 'react';
+import type {ComponentRef, ForwardedRef, ReactNode} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import type {NativeScrollEvent, NativeSyntheticEvent, ScrollView as RNScrollView} from 'react-native';
 
@@ -12,7 +12,7 @@ import ScrollView from './ScrollView';
 
 type ScrollContextValue = {
     contentOffsetY: number;
-    scrollViewRef?: ForwardedRef<RNScrollView>;
+    scrollViewRef?: ForwardedRef<ComponentRef<typeof RNScrollView>>;
 };
 
 const ScrollContext = createContext<ScrollContextValue>({
@@ -35,7 +35,7 @@ type ScrollViewWithContextProps = Partial<ScrollViewProps> & {
  */
 function ScrollViewWithContext({onScroll, scrollEventThrottle, children, ref, ...restProps}: ScrollViewWithContextProps) {
     const [contentOffsetY, setContentOffsetY] = useState(0);
-    const defaultScrollViewRef = useRef<RNScrollView>(null);
+    const defaultScrollViewRef = useRef<ComponentRef<typeof RNScrollView>>(null);
     const scrollViewRef = ref ?? defaultScrollViewRef;
 
     const setContextScrollPosition = (event: NativeSyntheticEvent<NativeScrollEvent>) => {

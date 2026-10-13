@@ -51,7 +51,7 @@
     Fix: keep the renderer alive without a GrDirectContext and fall back to
     CanvasKit.MakeSWCanvasSurface in onResize, so the chart still renders (on the
     CPU) instead of crashing the page. If that also fails, leave this.surface null -
-    the constructor already initialises it to null and both draw() and
+    the constructor already initializes it to null and both draw() and
     makeImageSnapshot() null-check it. This mirrors the sibling
     renderPictureToSurface path, which already treats a failed WebGL surface as
     recoverable rather than fatal. Charts on capable clients are unaffected and
@@ -134,3 +134,89 @@
 - Upstream PR/issue: https://github.com/Shopify/react-native-skia/issues/3976, fixed by https://github.com/Shopify/react-native-skia/pull/4002 (merged 2026-09-02, not in any release as of 2026-09-16; the latest is 2.11.2 and 2.12.0-next.1 does not carry it either). Its dispose() applies the same isConnected guard (deferred by a microtask, since its caller is a layout effect) and adds context-restore handling, but it also zeroes the canvas size on cleanup, so a hidden Activity screen would show a blank chart in the backdrop. When the Skia dependency is bumped past that merge, either accept the blank backdrop and drop this patch or replace it with a patch that only removes the size reset.
 - E/App issue: https://github.com/Expensify/App/issues/98254
 - PR introducing patch: https://github.com/Expensify/App/pull/100714
+
+### [@shopify+react-native-skia+2.11.2+004+size-backing-store-to-painted-size.patch](@shopify+react-native-skia+2.11.2+004+size-backing-store-to-painted-size.patch)
+
+- Reason:
+
+    ```
+    Fixes soft/blurry text inside inline charts on web. WebGLRenderer sizes its backing
+    store from canvas.clientWidth * devicePixelRatio, which is the canvas's layout size.
+    Charts are laid out at their authored design size (680px wide for every summary chart)
+    and fitted to the chat column with a CSS transform, and clientWidth does not report
+    that transform. So the surface is rasterised for the design box and the browser
+    resamples it onto a smaller area: a chat column narrower than 680px paints a 1360px
+    backing store across 1032 to 1162 device pixels. The glyphs are a resampled bitmap
+    while the surrounding chat text is rasterised at device resolution, which is the
+    visible sharpness gap.
+
+    Fix: fold getBoundingClientRect().width / clientWidth, which is exactly the accumulated
+    CSS transform scale, into the pixel density the renderer already derives in onResize, so
+    the backing store and the canvas.scale() applied before drawing match the painted size.
+    Untransformed canvases keep the previous ratio, so nothing else changes.
+    ```
+
+- Upstream PR/issue:
+- E/App issue: https://github.com/Expensify/App/issues/95221
+- PR introducing patch:
+
+### [@shopify+react-native-skia+2.11.2+005+load-skia-web-fail-closed.patch](@shopify+react-native-skia+2.11.2+005+load-skia-web-fail-closed.patch)
+
+- Reason:
+
+    ```
+    Makes LoadSkiaWeb fail closed when CanvasKit comes up without its bindings
+    (Sentry APP-M73 / APP-M7F: "PictureRecorder is not a constructor"), and stops
+    it from caching a rejected init forever (APP-M6B / APP-M76: the LinkError was
+    re-thrown on every later chart mount in the tab).
+
+    Both come from pairing canvaskit.js glue from one canvaskit-wasm release with
+    canvaskit.wasm from another. Newer glue plus an older binary fails to link
+    (the binary declares an import the glue no longer supplies). Older glue plus a
+    newer binary is worse: it links, because the newer binary's imports are a
+    subset of what the old glue provides, but the glue then reads the exports
+    under stale minified names, the embind constructors never register, and
+    CanvasKitInit resolves with an object that has no classes at all.
+    LoadSkiaWeb stored that object on global.CanvasKit, Skia.web.ts wrapped it,
+    and the first draw threw from a worklet queue where no React error boundary
+    can reach it. The App side fixes the pairing itself (the binary is served
+    under a versioned URL); this patch is the safety net for tabs that still hit
+    a mismatch.
+
+    LoadSkiaWeb now checks that the resolved module has its PictureRecorder and
+    Paint constructors before publishing it, throwing otherwise so the failure
+    surfaces inside WithSkiaWeb's lazy() and reaches the chart's error boundary.
+    It also clears ckSharedPromise when the init rejects or fails that check, so
+    the next mount gets a fresh attempt instead of the cached failure.
+    ```
+
+- Upstream PR/issue:
+- E/App issue: https://github.com/Expensify/App/issues/102042
+- PR introducing patch: https://github.com/Expensify/App/pull/102138
+
+### [@shopify+react-native-skia+2.11.2+006+redraw-texture-view-when-window-visible.patch](@shopify+react-native-skia+2.11.2+006+redraw-texture-view-when-window-visible.patch)
+
+- Reason:
+
+    ```
+    Fixes a Skia canvas going blank on Android when it lives in a Modal and the
+    app is minimized and reopened (e.g. the expanded Concierge chart).
+
+    When the activity stops, Android destroys the hardware resources of every
+    window sharing its token, Dialog windows included. For a TextureView that
+    only drops the texture layer: the SurfaceTexture is kept, so no
+    onSurfaceTextureDestroyed/Available callback reaches Skia. On restart a new
+    layer is attached to the old SurfaceTexture, but it only latches a frame once
+    a new one is queued or the view gets onVisibilityChanged(VISIBLE). Activity
+    views get the latter because ActivityThread toggles the decor view's
+    visibility. A Dialog's decor is never toggled, and a static Skia picture
+    never queues a new frame, so the canvas stays blank. iOS is unaffected
+    because a CAMetalLayer keeps its contents across backgrounding.
+
+    SkiaTextureView now redraws when its window becomes visible again, through
+    the existing size-changed path, which queues a fresh frame for the new layer.
+    ```
+
+- Upstream PR/issue: https://github.com/wcandillon/react-native-skia/issues/2135
+- E/App issue: https://github.com/Expensify/App/issues/101396
+- PR introducing patch: https://github.com/Expensify/App/pull/103398

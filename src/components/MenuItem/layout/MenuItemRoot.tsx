@@ -20,8 +20,8 @@ import CONST from '@src/CONST';
 import type WithSentryLabel from '@src/types/utils/SentryLabel';
 import type WithTestID from '@src/types/utils/TestID';
 
-import type {PropsWithChildren} from 'react';
-import type {GestureResponderEvent, StyleProp, ViewStyle} from 'react-native';
+import type {ComponentRef, PropsWithChildren} from 'react';
+import type {AccessibilityState, GestureResponderEvent, StyleProp, ViewStyle} from 'react-native';
 
 import React, {useRef} from 'react';
 import {View} from 'react-native';
@@ -35,22 +35,31 @@ type MenuItemRootProps = PropsWithChildren &
         isDisabled?: boolean;
 
         /**
-         * Pre-computed accessibility label. When provided, `Root` uses it directly instead of
-         * deriving the label from registered `Title`/`Description` children. Presets that know
-         * their text statically should pass it.
+         * Pre-computed accessibility label. When provided, `Root` uses it instead of deriving the label
+         * from the text leaves. Announcements such as "opens in a new tab" are still appended.
+         * Presets that know their text statically should pass it.
          */
         accessibilityLabel?: string;
+
+        /**
+         * Styles layered on top of the row's own, e.g. to give it a bordered container. Applied
+         * before the hover/press background so the row keeps its interaction feedback.
+         */
+        style?: StyleProp<ViewStyle>;
+
+        /** Accessibility state for the row, e.g. `{expanded}`. Lands on the pressable, which is what a screen reader focuses. */
+        accessibilityState?: AccessibilityState;
     };
 
-function MenuItemRoot({children, onPress, isDisabled = false, sentryLabel, testID, accessibilityLabel}: MenuItemRootProps) {
+function MenuItemRoot({children, onPress, isDisabled = false, sentryLabel, testID, accessibilityLabel, style, accessibilityState}: MenuItemRootProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const pressableRef = useRef<View>(null);
+    const pressableRef = useRef<ComponentRef<typeof View>>(null);
     const isCompactPopover = useIsCompactPopover();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const isInteractive = !!onPress;
 
-    const {accessibilityLabel: derivedAccessibilityLabel, accessibilityHint, accessibilityActions} = useMenuItemAccessibility();
+    const {accessibilityLabel: rowAccessibilityLabel, accessibilityHint, registries: accessibilityRegistries} = useMenuItemAccessibility(accessibilityLabel);
     const {handler: registeredSecondaryInteraction, register: registerSecondaryInteraction} = useMenuItemSecondaryInteractionRegistry();
 
     useRemoveNonInteractiveClickHandler(pressableRef, isInteractive);
@@ -93,6 +102,7 @@ function MenuItemRoot({children, onPress, isDisabled = false, sentryLabel, testI
                                 styles.popoverMenuItem,
                                 !isInteractive && styles.cursorDefault,
                                 isCompactPopover && styles.compactPopoverMenuItemBase,
+                                style,
                                 StyleUtils.getButtonBackgroundColorStyle(getButtonState({isActive: isHovered, isPressed: pressed, isDisabled, isInteractive}), true),
                                 isDisabled && styles.buttonOpacityDisabled,
                                 isHovered && isInteractive && !pressed && styles.hoveredComponentBG,
@@ -101,15 +111,16 @@ function MenuItemRoot({children, onPress, isDisabled = false, sentryLabel, testI
                         disabled={isDisabled}
                         ref={pressableRef}
                         role={isInteractive ? CONST.ROLE.BUTTON : undefined}
-                        accessibilityLabel={accessibilityLabel ?? derivedAccessibilityLabel}
+                        accessibilityLabel={rowAccessibilityLabel}
                         accessibilityHint={accessibilityHint}
+                        accessibilityState={accessibilityState}
                         accessible
                         tabIndex={isInteractive ? 0 : -1}
                         sentryLabel={sentryLabel}
                         testID={testID}
                     >
                         {({pressed}) => (
-                            <MenuItemAccessibilityContext.Provider value={accessibilityLabel === undefined ? accessibilityActions : undefined}>
+                            <MenuItemAccessibilityContext.Provider value={accessibilityRegistries}>
                                 <MenuItemSecondaryInteractionContext.Provider value={registerSecondaryInteraction}>
                                     <MenuItemInteractionContext.Provider
                                         value={{

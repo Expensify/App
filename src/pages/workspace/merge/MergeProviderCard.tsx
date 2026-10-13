@@ -69,16 +69,39 @@ function MergeProviderCard({card, policy, handleConnect, canWriteMoreFeatures, s
         connectionDescription = translate('workspace.merge.lastSync', datetimeToRelative(card.successfulDate));
     }
 
+    // Checked in this order: reconnect, then a stale selection, then any other sync failure - a stale
+    // selection is reported here even if the same sync also failed for an unrelated reason.
     let lastSyncErrorMessage: ReactNode | undefined;
     if (card.needsReconnect) {
         lastSyncErrorMessage = (
             <>
                 {`${translate('workspace.merge.authenticationError', card.displayName)} `}
+                {!isOffline && (
+                    <TextLink
+                        style={[styles.link, styles.fontSizeLabel]}
+                        onPress={handleConnect}
+                    >
+                        {translate('workspace.merge.reconnectLink')}
+                    </TextLink>
+                )}
+            </>
+        );
+    } else if (card.staleGroupsRoute) {
+        const staleGroupsRoute = card.staleGroupsRoute;
+        lastSyncErrorMessage = (
+            <>
+                {`${translate('workspace.hr.mergeHR.groups.staleSelectionError', card.displayName)} `}
                 <TextLink
                     style={[styles.link, styles.fontSizeLabel]}
-                    onPress={handleConnect}
+                    onPress={() => {
+                        if (!canWriteMoreFeatures) {
+                            showReadOnlyModal();
+                            return;
+                        }
+                        Navigation.navigate(staleGroupsRoute);
+                    }}
                 >
-                    {translate('workspace.merge.reconnectLink')}
+                    {translate('workspace.hr.mergeHR.groups.updateSelectionLink')}
                 </TextLink>
             </>
         );
@@ -219,9 +242,10 @@ function MergeProviderCard({card, policy, handleConnect, canWriteMoreFeatures, s
                                     description={row.description}
                                     title={row.title}
                                     icon={row.icon}
+                                    numberOfLinesTitle={row.numberOfLinesTitle}
                                     style={styles.sectionMenuItemTopDescription}
                                     shouldShowRightIcon={canWriteMoreFeatures}
-                                    brickRoadIndicator={row.errors ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+                                    brickRoadIndicator={row.errors || row.hasInvalidValue ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                                     onPress={() => Navigation.navigate(row.route)}
                                     interactive={canWriteMoreFeatures}
                                 />

@@ -48,6 +48,9 @@ type SearchResultsInfo = {
     /** The hash of the current search */
     hash: number;
 
+    /** Client-only query string this snapshot was searched with, used to add optimistic expenses to matching snapshots */
+    inputQuery?: string;
+
     /** Whether the user can fetch more search results */
     hasMoreResults: boolean;
 
@@ -141,6 +144,9 @@ type SearchGroupBase = {
     /** Currency of total value */
     currency: string;
 
+    /** The group's share of `search.total` in percentage points */
+    percentOfTotal?: number;
+
     /** Set to `delete` while every expense in the group is being deleted, so the row can leave the list before the next Search response drops the group */
     pendingAction?: PendingAction;
 };
@@ -211,6 +217,12 @@ type SearchWithdrawalIDGroup = SearchGroupBase & {
 
     /** Whether the current user may export this settlement as a statement PDF (set by the backend, which applies the same admin authorization it uses to generate the PDF) */
     canExportStatement?: boolean;
+
+    /** Whether this group is an ACH cash back credit rather than a card settlement withdrawal */
+    isCashBack?: boolean;
+
+    /** The feed a cash back credit was paid through; matches the fundID of that feed's settlements */
+    domainAccountID?: number;
 };
 
 /** Model of category grouped search result */
@@ -232,18 +244,9 @@ type SearchTagGroup = SearchGroupBase & {
 };
 
 /** Model of day grouped search result */
-type SearchDayGroup = {
+type SearchDayGroup = SearchGroupBase & {
     /** Date in YYYY-MM-DD format */
     day: string;
-
-    /** Number of transactions */
-    count: number;
-
-    /** Total value of transactions */
-    total: number;
-
-    /** Currency of total value */
-    currency: string;
 };
 
 /** Model of month grouped search result */

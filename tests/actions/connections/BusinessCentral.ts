@@ -2,7 +2,24 @@ import * as API from '@libs/API';
 import {WRITE_COMMANDS} from '@libs/API/types';
 
 import CONST from '@src/CONST';
-import {clearBusinessCentralErrorField, connectToBusinessCentral, updateBusinessCentralCompany} from '@src/libs/actions/connections/BusinessCentral';
+import {
+    clearBusinessCentralErrorField,
+    connectToBusinessCentral,
+    updateBusinessCentralCompany,
+    updateBusinessCentralCustomerMapping,
+    updateBusinessCentralDefaultVendor,
+    updateBusinessCentralEnableNewCategories,
+    updateBusinessCentralExportDate,
+    updateBusinessCentralExporter,
+    updateBusinessCentralFieldMapping,
+    updateBusinessCentralNonReimbursableAccount,
+    updateBusinessCentralNonReimbursableExpensesExportDestination,
+    updateBusinessCentralPaymentMethod,
+    updateBusinessCentralReimbursableAccount,
+    updateBusinessCentralReimbursableExpensesExportDestination,
+    updateBusinessCentralSyncItems,
+    updateBusinessCentralSyncTaxRates,
+} from '@src/libs/actions/connections/BusinessCentral';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 import Onyx from 'react-native-onyx';
@@ -194,6 +211,400 @@ describe('actions/connections/BusinessCentral', () => {
                     },
                 ],
             });
+        });
+    });
+
+    describe('updateBusinessCentralEnableNewCategories', () => {
+        it('writes the enable-new-categories command and optimistically updates the config', () => {
+            // Given a policy whose newly imported categories are currently disabled
+            // When the setting is turned on
+            updateBusinessCentralEnableNewCategories(MOCK_POLICY_ID, true, false);
+
+            // Then the command is sent and the config optimistically reflects the enabled setting so the toggle updates instantly
+            expect(writeSpy).toHaveBeenCalledWith(
+                WRITE_COMMANDS.UPDATE_BUSINESS_CENTRAL_ENABLE_NEW_CATEGORIES,
+                expect.objectContaining({policyID: MOCK_POLICY_ID, enabled: true}),
+                expect.anything(),
+            );
+            expect(getFirstWriteOnyxData()).toMatchObject({
+                optimisticData: [
+                    {
+                        key: POLICY_KEY,
+                        value: {
+                            connections: {
+                                businessCentral: {
+                                    config: {
+                                        [CONST.BUSINESS_CENTRAL_CONFIG.ENABLE_NEW_CATEGORIES]: true,
+                                        pendingFields: {[CONST.BUSINESS_CENTRAL_CONFIG.ENABLE_NEW_CATEGORIES]: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
+                                    },
+                                },
+                            },
+                        },
+                    },
+                ],
+            });
+        });
+
+        it('rolls back to the old value and sets an error on failure', () => {
+            // Given a policy whose newly imported categories are currently disabled
+            // When the setting is turned on
+            updateBusinessCentralEnableNewCategories(MOCK_POLICY_ID, true, false);
+
+            // Then on failure the setting rolls back and an error is set, so the user knows the change did not stick
+            expect(getFirstWriteOnyxData()).toMatchObject({
+                failureData: [
+                    {
+                        key: POLICY_KEY,
+                        value: {
+                            connections: {
+                                businessCentral: {
+                                    config: {
+                                        [CONST.BUSINESS_CENTRAL_CONFIG.ENABLE_NEW_CATEGORIES]: false,
+                                        pendingFields: {[CONST.BUSINESS_CENTRAL_CONFIG.ENABLE_NEW_CATEGORIES]: null},
+                                        errorFields: {[CONST.BUSINESS_CENTRAL_CONFIG.ENABLE_NEW_CATEGORIES]: ANY_VALUE},
+                                    },
+                                },
+                            },
+                        },
+                    },
+                ],
+            });
+        });
+    });
+
+    describe('updateBusinessCentralSyncTaxRates', () => {
+        it('writes the sync-tax-rates command and optimistically updates the coding config', () => {
+            // Given a policy where syncing tax rates is currently off
+            // When tax-rate syncing is turned on
+            updateBusinessCentralSyncTaxRates(MOCK_POLICY_ID, true, false);
+
+            // Then the command is sent and the nested coding config optimistically reflects the enabled setting so the toggle updates instantly
+            expect(writeSpy).toHaveBeenCalledWith(
+                WRITE_COMMANDS.UPDATE_BUSINESS_CENTRAL_SYNC_TAX_RATES,
+                expect.objectContaining({policyID: MOCK_POLICY_ID, enabled: true}),
+                expect.anything(),
+            );
+            expect(getFirstWriteOnyxData()).toMatchObject({
+                optimisticData: [
+                    {
+                        key: POLICY_KEY,
+                        value: {
+                            connections: {
+                                businessCentral: {
+                                    config: {
+                                        coding: {[CONST.BUSINESS_CENTRAL_CONFIG.SYNC_TAX_RATES]: true},
+                                        pendingFields: {[CONST.BUSINESS_CENTRAL_CONFIG.SYNC_TAX_RATES]: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
+                                    },
+                                },
+                            },
+                        },
+                    },
+                ],
+            });
+        });
+
+        it('rolls the coding config back to the old value on failure', () => {
+            // Given a policy where syncing tax rates is currently off
+            // When tax-rate syncing is turned on
+            updateBusinessCentralSyncTaxRates(MOCK_POLICY_ID, true, false);
+
+            // Then on failure the nested setting rolls back so the toggle reflects that the change was not saved
+            expect(getFirstWriteOnyxData()).toMatchObject({
+                failureData: [
+                    {
+                        key: POLICY_KEY,
+                        value: {
+                            connections: {
+                                businessCentral: {
+                                    config: {
+                                        coding: {[CONST.BUSINESS_CENTRAL_CONFIG.SYNC_TAX_RATES]: false},
+                                        pendingFields: {[CONST.BUSINESS_CENTRAL_CONFIG.SYNC_TAX_RATES]: null},
+                                        errorFields: {[CONST.BUSINESS_CENTRAL_CONFIG.SYNC_TAX_RATES]: ANY_VALUE},
+                                    },
+                                },
+                            },
+                        },
+                    },
+                ],
+            });
+        });
+    });
+
+    describe('updateBusinessCentralSyncItems', () => {
+        it('writes the sync-items command and optimistically updates the coding config', () => {
+            // Given a policy where importing items is currently off
+            // When item import is turned on
+            updateBusinessCentralSyncItems(MOCK_POLICY_ID, true, false);
+
+            // Then the command is sent and the nested coding config optimistically reflects the enabled setting so the toggle updates instantly
+            expect(writeSpy).toHaveBeenCalledWith(WRITE_COMMANDS.UPDATE_BUSINESS_CENTRAL_SYNC_ITEMS, expect.objectContaining({policyID: MOCK_POLICY_ID, enabled: true}), expect.anything());
+            expect(getFirstWriteOnyxData()).toMatchObject({
+                optimisticData: [
+                    {
+                        key: POLICY_KEY,
+                        value: {
+                            connections: {
+                                businessCentral: {
+                                    config: {
+                                        coding: {[CONST.BUSINESS_CENTRAL_CONFIG.SYNC_ITEMS]: true},
+                                        pendingFields: {[CONST.BUSINESS_CENTRAL_CONFIG.SYNC_ITEMS]: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
+                                    },
+                                },
+                            },
+                        },
+                    },
+                ],
+            });
+        });
+    });
+
+    describe('updateBusinessCentralFieldMapping', () => {
+        const DIMENSION_CODE = 'DEPARTMENT';
+        const FEEDBACK_KEY = `${CONST.BUSINESS_CENTRAL_CONFIG.FIELD_MAPPING_PREFIX}${DIMENSION_CODE}` as const;
+
+        it('writes the field-mapping command and optimistically updates the nested field mapping', () => {
+            // Given a policy whose DEPARTMENT dimension is currently not imported
+            // When the dimension is switched to import as a tag
+            updateBusinessCentralFieldMapping(MOCK_POLICY_ID, DIMENSION_CODE, CONST.BUSINESS_CENTRAL_MAPPING_VALUE.TAG, CONST.BUSINESS_CENTRAL_MAPPING_VALUE.NONE);
+
+            // Then the command carries the dimension code and the mapping is optimistically stored under a prefixed pending key so only that row shows a pending indicator
+            expect(writeSpy).toHaveBeenCalledWith(
+                WRITE_COMMANDS.UPDATE_BUSINESS_CENTRAL_FIELD_MAPPING,
+                expect.objectContaining({policyID: MOCK_POLICY_ID, dimensionCode: DIMENSION_CODE, mapping: CONST.BUSINESS_CENTRAL_MAPPING_VALUE.TAG}),
+                expect.anything(),
+            );
+            expect(getFirstWriteOnyxData()).toMatchObject({
+                optimisticData: [
+                    {
+                        key: POLICY_KEY,
+                        value: {
+                            connections: {
+                                businessCentral: {
+                                    config: {
+                                        coding: {fieldMappings: {[DIMENSION_CODE]: CONST.BUSINESS_CENTRAL_MAPPING_VALUE.TAG}},
+                                        pendingFields: {[FEEDBACK_KEY]: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
+                                    },
+                                },
+                            },
+                        },
+                    },
+                ],
+            });
+        });
+
+        it('rolls the field mapping back to the old value on failure', () => {
+            // Given a policy whose DEPARTMENT dimension is currently not imported
+            // When the dimension is switched to import as a tag
+            updateBusinessCentralFieldMapping(MOCK_POLICY_ID, DIMENSION_CODE, CONST.BUSINESS_CENTRAL_MAPPING_VALUE.TAG, CONST.BUSINESS_CENTRAL_MAPPING_VALUE.NONE);
+
+            // Then on failure the mapping rolls back to the old value so the row reflects that the change was not saved
+            expect(getFirstWriteOnyxData()).toMatchObject({
+                failureData: [
+                    {
+                        key: POLICY_KEY,
+                        value: {
+                            connections: {
+                                businessCentral: {
+                                    config: {
+                                        coding: {fieldMappings: {[DIMENSION_CODE]: CONST.BUSINESS_CENTRAL_MAPPING_VALUE.NONE}},
+                                        pendingFields: {[FEEDBACK_KEY]: null},
+                                        errorFields: {[FEEDBACK_KEY]: ANY_VALUE},
+                                    },
+                                },
+                            },
+                        },
+                    },
+                ],
+            });
+        });
+
+        it.each([
+            [CONST.BUSINESS_CENTRAL_FIELD_MAPPING.CUSTOMERS, WRITE_COMMANDS.UPDATE_BUSINESS_CENTRAL_CUSTOMERS_MAPPING],
+            [CONST.BUSINESS_CENTRAL_FIELD_MAPPING.PROJECTS, WRITE_COMMANDS.UPDATE_BUSINESS_CENTRAL_PROJECTS_MAPPING],
+        ])('updates the %s mapping through its dedicated command', (mappingName, command) => {
+            // Given a Customer or Project mapping that is not imported as a tag
+            // When the admin enables it
+            updateBusinessCentralCustomerMapping(MOCK_POLICY_ID, mappingName, CONST.BUSINESS_CENTRAL_MAPPING_VALUE.TAG, CONST.BUSINESS_CENTRAL_MAPPING_VALUE.NONE);
+
+            // Then the dedicated command updates the separate customerMappings object without touching real dimensions
+            expect(writeSpy).toHaveBeenCalledWith(command, expect.objectContaining({policyID: MOCK_POLICY_ID, mapping: CONST.BUSINESS_CENTRAL_MAPPING_VALUE.TAG}), expect.anything());
+            expect(getFirstWriteOnyxData()).toMatchObject({
+                optimisticData: [
+                    {
+                        key: POLICY_KEY,
+                        value: {
+                            connections: {
+                                businessCentral: {
+                                    config: {
+                                        coding: {customerMappings: {[mappingName]: CONST.BUSINESS_CENTRAL_MAPPING_VALUE.TAG}},
+                                        pendingFields: {
+                                            [mappingName]: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                                        },
+                                    },
+                                },
+                            },
+                        },
+                    },
+                ],
+            });
+        });
+    });
+
+    describe('export settings', () => {
+        const exportCases = [
+            {
+                name: 'updateBusinessCentralExporter',
+                update: () => updateBusinessCentralExporter(MOCK_POLICY_ID, 'exporter@example.com', 'owner@example.com'),
+                command: WRITE_COMMANDS.UPDATE_BUSINESS_CENTRAL_EXPORTER,
+                parameters: {email: 'exporter@example.com'},
+                settingName: CONST.BUSINESS_CENTRAL_CONFIG.EXPORTER,
+                value: 'exporter@example.com',
+            },
+            {
+                name: 'updateBusinessCentralExportDate',
+                update: () => updateBusinessCentralExportDate(MOCK_POLICY_ID, CONST.BUSINESS_CENTRAL_EXPORT_DATE.REPORT_SUBMITTED, CONST.BUSINESS_CENTRAL_EXPORT_DATE.LAST_EXPENSE),
+                command: WRITE_COMMANDS.UPDATE_BUSINESS_CENTRAL_EXPORT_DATE,
+                parameters: {value: CONST.BUSINESS_CENTRAL_EXPORT_DATE.REPORT_SUBMITTED},
+                settingName: CONST.BUSINESS_CENTRAL_CONFIG.EXPORT_DATE,
+                value: CONST.BUSINESS_CENTRAL_EXPORT_DATE.REPORT_SUBMITTED,
+            },
+            {
+                name: 'updateBusinessCentralReimbursableExpensesExportDestination',
+                update: () =>
+                    updateBusinessCentralReimbursableExpensesExportDestination(
+                        MOCK_POLICY_ID,
+                        CONST.BUSINESS_CENTRAL_EXPORT_DESTINATION.PURCHASE_INVOICE,
+                        CONST.BUSINESS_CENTRAL_EXPORT_DESTINATION.JOURNAL_ENTRY,
+                    ),
+                command: WRITE_COMMANDS.UPDATE_BUSINESS_CENTRAL_REIMBURSABLE_EXPENSES_EXPORT_DESTINATION,
+                parameters: {value: CONST.BUSINESS_CENTRAL_EXPORT_DESTINATION.PURCHASE_INVOICE},
+                settingName: CONST.BUSINESS_CENTRAL_CONFIG.REIMBURSABLE,
+                value: CONST.BUSINESS_CENTRAL_EXPORT_DESTINATION.PURCHASE_INVOICE,
+            },
+            {
+                name: 'updateBusinessCentralNonReimbursableExpensesExportDestination',
+                update: () =>
+                    updateBusinessCentralNonReimbursableExpensesExportDestination(
+                        MOCK_POLICY_ID,
+                        CONST.BUSINESS_CENTRAL_EXPORT_DESTINATION.JOURNAL_ENTRY,
+                        CONST.BUSINESS_CENTRAL_EXPORT_DESTINATION.PURCHASE_INVOICE,
+                    ),
+                command: WRITE_COMMANDS.UPDATE_BUSINESS_CENTRAL_NONREIMBURSABLE_EXPENSES_EXPORT_DESTINATION,
+                parameters: {value: CONST.BUSINESS_CENTRAL_EXPORT_DESTINATION.JOURNAL_ENTRY},
+                settingName: CONST.BUSINESS_CENTRAL_CONFIG.NON_REIMBURSABLE,
+                value: CONST.BUSINESS_CENTRAL_EXPORT_DESTINATION.JOURNAL_ENTRY,
+            },
+            {
+                name: 'updateBusinessCentralReimbursableAccount',
+                update: () => updateBusinessCentralReimbursableAccount(MOCK_POLICY_ID, 'bank-2', 'bank-1'),
+                command: WRITE_COMMANDS.UPDATE_BUSINESS_CENTRAL_REIMBURSABLE_ACCOUNT,
+                parameters: {value: 'bank-2'},
+                settingName: CONST.BUSINESS_CENTRAL_CONFIG.REIMBURSABLE_ACCOUNT,
+                value: 'bank-2',
+            },
+            {
+                name: 'updateBusinessCentralNonReimbursableAccount',
+                update: () => updateBusinessCentralNonReimbursableAccount(MOCK_POLICY_ID, 'bank-2', 'bank-1'),
+                command: WRITE_COMMANDS.UPDATE_BUSINESS_CENTRAL_NONREIMBURSABLE_ACCOUNT,
+                parameters: {value: 'bank-2'},
+                settingName: CONST.BUSINESS_CENTRAL_CONFIG.NON_REIMBURSABLE_ACCOUNT,
+                value: 'bank-2',
+            },
+            {
+                name: 'updateBusinessCentralDefaultVendor',
+                update: () => updateBusinessCentralDefaultVendor(MOCK_POLICY_ID, 'vendor-2', 'vendor-1'),
+                command: WRITE_COMMANDS.UPDATE_BUSINESS_CENTRAL_DEFAULT_VENDOR,
+                parameters: {vendorID: 'vendor-2'},
+                settingName: CONST.BUSINESS_CENTRAL_CONFIG.DEFAULT_VENDOR_ID,
+                value: 'vendor-2',
+            },
+            {
+                name: 'updateBusinessCentralPaymentMethod',
+                update: () => updateBusinessCentralPaymentMethod(MOCK_POLICY_ID, 'BANK', 'CASH'),
+                command: WRITE_COMMANDS.UPDATE_BUSINESS_CENTRAL_PAYMENT_METHOD,
+                parameters: {value: 'BANK'},
+                settingName: CONST.BUSINESS_CENTRAL_CONFIG.PAYMENT_METHOD_CODE,
+                value: 'BANK',
+            },
+        ];
+
+        it.each(exportCases)('$name sends the request parameter the backend reads and optimistically updates the export config', ({update, command, parameters, settingName, value}) => {
+            // Given a connected policy
+            // When an admin changes an export setting
+            update();
+
+            // Then the command carries the parameter name Web-Expensify reads, and the export config shows the new value as pending so the row updates instantly
+            expect(writeSpy).toHaveBeenCalledWith(command, {policyID: MOCK_POLICY_ID, ...parameters}, expect.anything());
+            expect(getFirstWriteOnyxData()).toMatchObject({
+                optimisticData: [
+                    {
+                        key: POLICY_KEY,
+                        value: {
+                            connections: {
+                                businessCentral: {
+                                    config: {
+                                        export: {[settingName]: value},
+                                        pendingFields: {[settingName]: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
+                                        errorFields: {[settingName]: null},
+                                    },
+                                },
+                            },
+                        },
+                    },
+                ],
+                successData: [
+                    {
+                        key: POLICY_KEY,
+                        value: {connections: {businessCentral: {config: {pendingFields: {[settingName]: null}}}}},
+                    },
+                ],
+            });
+        });
+
+        it('rolls an export setting back to the old value and sets an error on failure', () => {
+            // Given a policy whose default vendor is vendor-1
+            // When an admin picks vendor-2
+            updateBusinessCentralDefaultVendor(MOCK_POLICY_ID, 'vendor-2', 'vendor-1');
+
+            // Then on failure the export config goes back to vendor-1 and the row shows an error, so the admin sees the change was not saved
+            expect(getFirstWriteOnyxData()).toMatchObject({
+                failureData: [
+                    {
+                        key: POLICY_KEY,
+                        value: {
+                            connections: {
+                                businessCentral: {
+                                    config: {
+                                        export: {[CONST.BUSINESS_CENTRAL_CONFIG.DEFAULT_VENDOR_ID]: 'vendor-1'},
+                                        pendingFields: {[CONST.BUSINESS_CENTRAL_CONFIG.DEFAULT_VENDOR_ID]: null},
+                                        errorFields: {[CONST.BUSINESS_CENTRAL_CONFIG.DEFAULT_VENDOR_ID]: ANY_VALUE},
+                                    },
+                                },
+                            },
+                        },
+                    },
+                ],
+            });
+        });
+
+        it('rolls back to no value when the setting was never saved', () => {
+            // Given a policy that has never had a reimbursable account set
+            // When an admin picks one
+            updateBusinessCentralReimbursableAccount(MOCK_POLICY_ID, 'bank-1');
+
+            // Then on failure the account is cleared again rather than left on the rejected value
+            expect(getFirstWriteOnyxData()).toMatchObject({
+                failureData: [{key: POLICY_KEY, value: {connections: {businessCentral: {config: {export: {[CONST.BUSINESS_CENTRAL_CONFIG.REIMBURSABLE_ACCOUNT]: null}}}}}}],
+            });
+        });
+
+        it('clears the payment method with an empty code', () => {
+            // Given a policy with a payment method set
+            // When an admin picks None
+            updateBusinessCentralPaymentMethod(MOCK_POLICY_ID, '', 'BANK');
+
+            // Then an empty code is sent, which Web-Expensify accepts as clearing the payment method
+            expect(writeSpy).toHaveBeenCalledWith(WRITE_COMMANDS.UPDATE_BUSINESS_CENTRAL_PAYMENT_METHOD, {policyID: MOCK_POLICY_ID, value: ''}, expect.anything());
         });
     });
 });

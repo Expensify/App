@@ -9,15 +9,13 @@ import UserListItem from '@components/SelectionList/ListItem/UserListItem';
 
 import useDebouncedState from '@hooks/useDebouncedState';
 import {useIsAppLoadPending} from '@hooks/useInFlightRequests';
-import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
-import useKeyboardState from '@hooks/useKeyboardState';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import useShouldFooterBeInsideList from '@hooks/useShouldFooterBeInsideList';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWorkspaceList from '@hooks/useWorkspaceList';
 
-import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {isGroupPolicy} from '@libs/PolicyUtils';
@@ -51,25 +49,19 @@ function SetDefaultWorkspacePage({route}: SetDefaultWorkspacePageProps) {
 
     const [draftPolicyID, setDraftPolicyID] = useState<string>();
 
-    const isInLandscapeMode = useIsInLandscapeMode();
-    const {isKeyboardActive} = useKeyboardState();
-    const shouldFooterBeInsideList = isInLandscapeMode && isKeyboardActive;
+    const shouldFooterBeInsideList = useShouldFooterBeInsideList();
 
     const selectPolicy = (selectedPolicyID?: string) => {
         if (!selectedPolicyID) {
             return;
         }
-        if (!navigateTo) {
-            Log.hmmm(`[SetDefaultWorkspacePage] navigateTo is undefined. Cannot navigate after setting default workspace to ${selectedPolicyID}`);
-            return;
-        }
-
         const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${selectedPolicyID}`];
 
         // eslint-disable-next-line rulesdir/no-default-id-values
         setNameValuePair(ONYXKEYS.NVP_ACTIVE_POLICY_ID, selectedPolicyID, activePolicyID ?? '');
 
-        if (policy?.areCategoriesEnabled) {
+        // Without a destination, the caller handles what comes next once it is back in focus.
+        if (navigateTo && policy?.areCategoriesEnabled) {
             Navigation.navigate(navigateTo);
             return;
         }

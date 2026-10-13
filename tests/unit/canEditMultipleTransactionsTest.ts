@@ -184,10 +184,44 @@ describe('canEditMultipleTransactions', () => {
         expect(result).toBe(false);
     });
 
-    it('returns false when any selected transaction belongs to a reimbursed report', () => {
+    it('returns true for an admin when a selected transaction belongs to a reimbursed report', () => {
         const {transaction1, transaction2, reports, policies, reportActions, report2} = buildTestData();
 
         report2.statusNum = CONST.REPORT.STATUS_NUM.REIMBURSED;
+
+        const result = canEditMultipleTransactions([transaction1, transaction2], reportActions, reports, policies, undefined);
+
+        expect(result).toBe(true);
+    });
+
+    it('returns false for a non-admin when a selected transaction belongs to a reimbursed report', () => {
+        const {transaction1, transaction2, reports, policies, reportActions, report2, policy2} = buildTestData();
+
+        report2.statusNum = CONST.REPORT.STATUS_NUM.REIMBURSED;
+        policy2.role = CONST.POLICY.ROLE.USER;
+
+        const result = canEditMultipleTransactions([transaction1, transaction2], reportActions, reports, policies, undefined);
+
+        expect(result).toBe(false);
+    });
+
+    it('returns true for an admin when a selected transaction belongs to an approved report', () => {
+        const {transaction1, transaction2, reports, policies, reportActions, report2} = buildTestData();
+
+        report2.stateNum = CONST.REPORT.STATE_NUM.APPROVED;
+        report2.statusNum = CONST.REPORT.STATUS_NUM.APPROVED;
+
+        const result = canEditMultipleTransactions([transaction1, transaction2], reportActions, reports, policies, undefined);
+
+        expect(result).toBe(true);
+    });
+
+    it('returns false for a non-admin when a selected transaction belongs to an approved report', () => {
+        const {transaction1, transaction2, reports, policies, reportActions, report2, policy2} = buildTestData();
+
+        report2.stateNum = CONST.REPORT.STATE_NUM.APPROVED;
+        report2.statusNum = CONST.REPORT.STATUS_NUM.APPROVED;
+        policy2.role = CONST.POLICY.ROLE.USER;
 
         const result = canEditMultipleTransactions([transaction1, transaction2], reportActions, reports, policies, undefined);
 
@@ -255,7 +289,7 @@ describe('canEditMultipleTransactions', () => {
         expect(resultReversed).toBe(true);
     });
 
-    it('returns false when selecting an unreported expense and an approved expense', () => {
+    it('returns true for an admin when selecting an unreported expense and an approved expense', () => {
         const {transaction1, transaction2, reports, policies, reportActions, report2} = buildTestData();
 
         const unreportedTransaction: Transaction = {...transaction1, reportID: CONST.REPORT.UNREPORTED_REPORT_ID};
@@ -263,7 +297,7 @@ describe('canEditMultipleTransactions', () => {
         report2.statusNum = CONST.REPORT.STATUS_NUM.APPROVED;
 
         const result = canEditMultipleTransactions([unreportedTransaction, transaction2], reportActions, reports, policies, undefined);
-        expect(result).toBe(false);
+        expect(result).toBe(true);
     });
 
     it('considers workflow actions that exist only in the search snapshot when checking edit permissions', async () => {

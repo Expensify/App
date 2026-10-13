@@ -3,7 +3,7 @@ import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
 import type {Country} from '@src/CONST';
 import type {Address} from '@src/types/onyx/PrivatePersonalDetails';
 
-import type {ForwardedRef, RefObject} from 'react';
+import type {ComponentRef, ForwardedRef, RefObject} from 'react';
 import type {BlurEvent, StyleProp, TextInputProps, View, ViewStyle} from 'react-native';
 import type {Place} from 'react-native-google-places-autocomplete';
 
@@ -100,6 +100,6 @@ type AddressSearchProps = ForwardedFSClassProps & {
     ref?: ForwardedRef<HTMLElement>;
 };
 
-type IsCurrentTargetInsideContainerType = (event: FocusEvent | BlurEvent, containerRef: RefObject<View | HTMLElement | null>) => boolean;
+type IsCurrentTargetInsideContainerType = (event: FocusEvent | BlurEvent, containerRef: RefObject<ComponentRef<typeof View> | HTMLElement | null>) => boolean;
 
 export type {CurrentLocationButtonProps, AddressSearchProps, IsCurrentTargetInsideContainerType, StreetValue, PredefinedPlace};

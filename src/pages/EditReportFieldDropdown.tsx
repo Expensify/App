@@ -10,8 +10,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {getHeaderMessageForNonUserList} from '@libs/OptionsListUtils';
 import {getReportFieldOptionsSection} from '@libs/ReportFieldOptionsListUtils';
 
-import variables from '@styles/variables';
-
 import ONYXKEYS from '@src/ONYXKEYS';
 
 import React from 'react';
@@ -68,7 +66,7 @@ function EditReportFieldDropdown({
     // The live value still drives the checkmark, so tapping a row marks it without reordering the list. The reorder happens only on reopen.
     const initialFieldValue = useInitialSelection(fieldValue, {resetOnFocus: true});
 
-    const sections = getReportFieldOptionsSection({
+    const optionSections = getReportFieldOptionsSection({
         searchValue: debouncedSearchValue,
         // Live value drives the checkmark, so tapping a row marks it immediately.
         selectedOptions: [
@@ -87,13 +85,20 @@ function EditReportFieldDropdown({
         shouldShowSectionTitles,
     });
 
+    // Same override the Spend single-select dropdowns use to shorten the default 64px option row. It also makes the rows
+    // match the 52px `getSelectionListPopoverHeight` already assumes, so the popover stops being sized for less content
+    // than it holds.
+    const sections = shouldUseCompactRows
+        ? optionSections.map((section) => ({...section, data: section.data.map((option) => ({...option, itemStyle: styles.optionRowCompactMinHeight}))}))
+        : optionSections;
+
     const policyReportFieldData = sections.at(0)?.data ?? [];
 
     const textInputOptions = {
         value: searchValue,
         label: translate('common.search'),
         onChangeText: setSearchValue,
-        headerMessage: getHeaderMessageForNonUserList(policyReportFieldData.length > 0, debouncedSearchValue),
+        headerMessage: getHeaderMessageForNonUserList(translate, policyReportFieldData.length > 0, debouncedSearchValue),
         // Nothing is rendered above the search input here, so it needs the top padding the surrounding page or popover doesn't provide.
         style: {containerStyle: styles.pt3},
     };
@@ -102,10 +107,6 @@ function EditReportFieldDropdown({
         <SelectionListWithSections
             sections={sections ?? []}
             ListItem={SingleSelectListItem}
-            // Same override the Spend single-select dropdowns use to shorten the default 64px option row. It also makes
-            // the rows match the 52px `getSelectionListPopoverHeight` already assumes, so the popover stops being sized
-            // for less content than it holds.
-            style={shouldUseCompactRows ? {listItemWrapperStyle: {minHeight: variables.optionRowHeightCompact}} : undefined}
             shouldShowTextInput={shouldShowTextInput}
             textInputOptions={textInputOptions}
             // Re-selecting the value the field already holds submits that same value rather than an empty string.

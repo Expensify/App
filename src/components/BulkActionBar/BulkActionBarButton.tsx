@@ -4,12 +4,14 @@ import PopoverMenu from '@components/PopoverMenu';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import usePopoverPosition from '@hooks/usePopoverPosition';
 import useTheme from '@hooks/useTheme';
+import useThemeStyles from '@hooks/useThemeStyles';
 
 import shouldPopoverUseScrollView from '@libs/shouldPopoverUseScrollView';
 
 import CONST from '@src/CONST';
 import type {AnchorPosition} from '@src/styles';
 
+import type {ComponentRef} from 'react';
 import type {View} from 'react-native';
 
 import React, {useEffect, useRef, useState} from 'react';
@@ -25,10 +27,11 @@ import {defaultPopoverAnchorPosition, SUB_MENU_ANCHOR_ALIGNMENT} from './popover
  */
 function BulkActionBarButton<TValueType>({option, onSubItemSelected}: BulkActionBarButtonProps<TValueType>) {
     const theme = useTheme();
+    const styles = useThemeStyles();
     const icons = useMemoizedLazyExpensifyIcons(['DownArrow', 'UpArrow']);
     const {calculatePopoverPosition} = usePopoverPosition();
 
-    const anchorRef = useRef<View | null>(null);
+    const anchorRef = useRef<ComponentRef<typeof View> | null>(null);
     const [isMenuVisible, setIsMenuVisible] = useState(false);
     const [anchorPosition, setAnchorPosition] = useState<AnchorPosition | null>(defaultPopoverAnchorPosition);
 
@@ -90,7 +93,12 @@ function BulkActionBarButton<TValueType>({option, onSubItemSelected}: BulkAction
                         anchorRef={anchorRef}
                         anchorPosition={anchorPosition}
                         anchorAlignment={SUB_MENU_ANCHOR_ALIGNMENT}
-                        menuItems={subMenuItems.map((subItem) => ({...subItem, shouldCallAfterModalHide: true}))}
+                        headerText={option.subMenuHeaderText}
+                        headerStyles={styles.lineHeightNormal}
+                        menuItems={subMenuItems.map((subItem) => ({
+                            ...subItem,
+                            shouldCallAfterModalHide: true,
+                        }))}
                         onClose={() => setIsMenuVisible(false)}
                         onItemSelected={(selectedSubItem, index, event) => {
                             onSubItemSelected?.(selectedSubItem, index, event);

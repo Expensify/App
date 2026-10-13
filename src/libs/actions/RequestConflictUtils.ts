@@ -275,27 +275,12 @@ function resolveCommentDeletionConflicts<TKey extends OnyxKey>(persistedRequests
     };
 }
 
-/**
- * The server builds the stored attachment from the uploaded file, so a rename only survives if the queued file
- * carries the new name. `File.name` is readonly on web, hence the rebuild; native picker results are plain objects.
- */
-function renameQueuedAttachment(file: unknown, name: string): unknown {
-    if (typeof File !== 'undefined' && file instanceof File) {
-        return new File([file], name, {type: file.type, lastModified: file.lastModified});
-    }
-    if (typeof file !== 'object' || file === null) {
-        return file;
-    }
-    return {...file, name};
-}
-
 function resolveEditCommentWithNewAddCommentRequest<TKey extends OnyxKey>(
     persistedRequests: Array<OnyxRequest<TKey>>,
     parameters: UpdateCommentParams,
     reportActionID: string,
     addCommentIndex: number,
     shouldRemoveQueuedAttachment = false,
-    renamedAttachmentLabel?: string,
 ): ConflictActionData {
     const indicesToDelete: number[] = [];
     for (const [index, request] of persistedRequests.entries()) {
@@ -315,8 +300,6 @@ function resolveEditCommentWithNewAddCommentRequest<TKey extends OnyxKey>(
             delete currentAddComment.data.file;
             delete currentAddComment.data.attachmentID;
             currentAddComment.command = WRITE_COMMANDS.ADD_COMMENT;
-        } else if (renamedAttachmentLabel && currentAddComment.data?.file) {
-            currentAddComment.data.file = renameQueuedAttachment(currentAddComment.data.file, renamedAttachmentLabel);
         }
 
         nextAction = {
@@ -368,7 +351,11 @@ function resolveEnableFeatureConflicts<TKey extends OnyxKey>(
     };
 }
 
-function resolveDetachReceiptConflicts<TKey extends OnyxKey>(persistedRequests: Array<OnyxRequest<TKey>>, parameters: DetachReceiptParams): ConflictActionData {
+function resolveDetachReceiptConflicts<TKey extends OnyxKey>(
+    persistedRequests: Array<OnyxRequest<TKey>>,
+    parameters: DetachReceiptParams,
+    transactionThreadReportID?: string,
+): ConflictActionData {
     const indicesToDelete: number[] = [];
     for (const [index, request] of persistedRequests.entries()) {
         if (request.command !== WRITE_COMMANDS.REPLACE_RECEIPT || request.data?.transactionID !== parameters.transactionID) {
@@ -389,6 +376,29 @@ function resolveDetachReceiptConflicts<TKey extends OnyxKey>(persistedRequests: 
                 type: 'push',
             },
         };
+    }
+
+    // Each replace receipt request owns the optimistic action announcing its receipt, so we need to rollback the actions of the requests we drop.
+    if (transactionThreadReportID) {
+        const receiptAddedActionsToRollback: Record<string, null> = {};
+        for (const index of indicesToDelete) {
+            const reportActionID = persistedRequests.at(index)?.data?.reportActionID;
+            if (typeof reportActionID !== 'string') {
+                continue;
+            }
+            receiptAddedActionsToRollback[reportActionID] = null;
+        }
+
+        if (Object.keys(receiptAddedActionsToRollback).length > 0) {
+            const rollbackData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> = [
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`,
+                    value: receiptAddedActionsToRollback,
+                },
+            ];
+            Onyx.update(rollbackData);
+        }
     }
 
     return {

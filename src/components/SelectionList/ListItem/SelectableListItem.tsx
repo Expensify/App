@@ -21,29 +21,15 @@ function SelectableListItem<TItem extends ListItem>({
     onSelectRow,
     isDisabled = false,
     children,
-    rightHandSideComponent,
     isFocused,
-    isSelected,
     showTooltip,
     wrapperStyle,
-    testID,
-    forwardedFSClass,
-    pressableStyle,
-    pressableWrapperStyle,
     shouldPreventEnterKeySubmit,
     onDismissError,
-    errorRowStyles,
     isFocusVisible,
     shouldSyncFocus,
     onFocus,
-    hoverStyle,
-    onLongPressRow,
-    shouldHighlightSelectedItem,
-    shouldDisableHoverStyle,
-    accessible,
-    accessibilityLabel,
     accessibilityRole,
-    shouldUseOptionRole,
 }: SelectableListItemProps<TItem>) {
     const selectionButton = !item.shouldHideSelectionButton && (
         <ListItemComposed.SelectionButton
@@ -62,34 +48,19 @@ function SelectableListItem<TItem extends ListItem>({
             isDisabled={isDisabled}
             canSelectMultiple={canSelectMultiple}
             isFocused={isFocused}
-            isSelected={isSelected}
-            pressableStyle={pressableStyle}
-            pressableWrapperStyle={pressableWrapperStyle}
             shouldPreventEnterKeySubmit={shouldPreventEnterKeySubmit}
             onDismissError={onDismissError}
-            errorRowStyles={errorRowStyles}
             isFocusVisible={isFocusVisible}
             shouldSyncFocus={shouldSyncFocus}
             onFocus={onFocus}
-            hoverStyle={hoverStyle}
-            onLongPressRow={onLongPressRow}
-            shouldHighlightSelectedItem={shouldHighlightSelectedItem}
-            shouldDisableHoverStyle={shouldDisableHoverStyle}
-            accessible={accessible}
-            accessibilityLabel={accessibilityLabel}
             accessibilityRole={accessibilityRole}
-            shouldUseOptionRole={shouldUseOptionRole}
         >
-            <View
-                testID={testID}
-                style={wrapperStyle}
-                fsClass={forwardedFSClass}
-            >
+            <View style={wrapperStyle}>
                 {selectionButtonPosition === CONST.SELECTION_BUTTON_POSITION.LEFT && selectionButton}
                 {children}
-                {shouldShowRBRIndicator(item, isSelected) && <ListItemComposed.RBRIndicator item={item} />}
+                {shouldShowRBRIndicator(item) && <ListItemComposed.RBRIndicator item={item} />}
                 {selectionButtonPosition === CONST.SELECTION_BUTTON_POSITION.RIGHT && selectionButton}
-                {typeof rightHandSideComponent === 'function' ? rightHandSideComponent(item, isFocused) : rightHandSideComponent}
+                {item.actionElement}
             </View>
         </ListItemComposed>
     );

@@ -1,0 +1,17 @@
+diff --git a/node_modules/expo-location/android/src/main/java/expo/modules/location/taskConsumers/LocationTaskConsumer.kt b/node_modules/expo-location/android/src/main/java/expo/modules/location/taskConsumers/LocationTaskConsumer.kt
+index b4f6c06..daf10e4 100644
+--- a/node_modules/expo-location/android/src/main/java/expo/modules/location/taskConsumers/LocationTaskConsumer.kt
++++ b/node_modules/expo-location/android/src/main/java/expo/modules/location/taskConsumers/LocationTaskConsumer.kt
+@@ -86,6 +86,12 @@ override fun didReceiveBroadcast(intent: Intent) {
+     } else {
+       try {
+         mLocationClient.lastLocation.addOnCompleteListener { task ->
++          // `task.result` rethrows a failed task's exception as a `RuntimeExecutionException`, and
++          // this listener runs after the enclosing `try` returned, so the `catch` never sees it.
++          if (!task.isSuccessful) {
++            Log.e(TAG, "Cannot get last location: " + task.exception?.message)
++            return@addOnCompleteListener
++          }
+           task.result?.let { handleLocationUpdate(listOf(it)) }
+         }
+       } catch (e: SecurityException) {

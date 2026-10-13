@@ -356,6 +356,8 @@ describe('MoneyReportView report fields visibility', () => {
     });
 
     it('keeps a custom report field visible for a non-admin submitter after the report is approved (single-expense combined view)', async () => {
+        // Given an approved report with a custom field, viewed by its non-admin submitter, who cannot edit a field
+        // once the report has been approved
         const fieldList = {
             [CONST.REPORT_FIELD_TITLE_FIELD_ID]: buildTitleField(),
             [customFieldKey]: buildCustomTextField(),
@@ -368,17 +370,20 @@ describe('MoneyReportView report fields visibility', () => {
         });
         await seedReportFieldsPolicy(policy, approvedReport);
 
+        // When the combined view is rendered
         renderMoneyReportView(approvedReport, policy, true);
         await waitForBatchedUpdatesWithAct();
 
-        // The custom field (rendered read-only after approval) must still show for the submitter. It renders as an
-        // inline input now rather than a row that opens the report field editor, so it's found by its label.
+        // Then the field is still on the screen, because a submitter who can no longer change a value still needs to
+        // read it. It is looked up by its label since it is a read-only inline input now rather than a row that opens
+        // the report field editor
         await waitFor(() => {
             expect(screen.getByLabelText('Test')).toBeOnTheScreen();
         });
     });
 
     it('stacks the report fields one per row on a wide layout, because this is the one-expense report view', async () => {
+        // Given a one-expense report with 4 custom fields on a wide layout
         const customFields = Array.from({length: 4}, (_unused, index) => ({
             ...buildCustomTextField(),
             fieldID: `field_test${index}`,
@@ -393,10 +398,13 @@ describe('MoneyReportView report fields visibility', () => {
         const report = buildExpenseReport({fieldList});
         await seedReportFieldsPolicy(policy, report);
 
+        // When this view renders them
         renderMoneyReportView(report, policy);
         await waitForBatchedUpdatesWithAct();
 
-        // Four fields would fill two rows of three if this view used the grid, so four rows proves one per row.
+        // Then each field gets its own row. Four fields would fill two rows of three if the grid were in use, so four
+        // rows proves this view asks for a single column: it renders inside a container too narrow for three fields
+        // side by side even though the window itself is wide
         await waitFor(() => {
             expect(screen.getAllByTestId('reportFieldsRow')).toHaveLength(4);
         });

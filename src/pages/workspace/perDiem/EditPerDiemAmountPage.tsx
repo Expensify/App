@@ -13,6 +13,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {convertToBackendAmount, convertToFrontendAmountAsString} from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import {getPerDiemAmountError, getPerDiemAmountErrorMessage} from '@libs/PolicyPerDiemUtils';
 import {getPerDiemCustomUnit} from '@libs/PolicyUtils';
 
 import type {SettingsNavigatorParamList} from '@navigation/types';
@@ -52,11 +53,10 @@ function EditPerDiemAmountPage({route}: EditPerDiemAmountPageProps) {
 
     const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_PER_DIEM_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.WORKSPACE_PER_DIEM_FORM> => {
         const errors: FormInputErrors<typeof ONYXKEYS.FORMS.WORKSPACE_PER_DIEM_FORM> = {};
+        const amountError = getPerDiemAmountError(values.amount);
 
-        const newAmount = values.amount.trim();
-        const backendAmount = newAmount ? convertToBackendAmount(Number(newAmount)) : 0;
-        if (backendAmount === 0 || newAmount === '-') {
-            errors.amount = translate('common.error.fieldRequired');
+        if (amountError) {
+            errors.amount = getPerDiemAmountErrorMessage(translate, amountError);
         }
 
         return errors;

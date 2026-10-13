@@ -1,7 +1,7 @@
 import FormHelpMessage from '@components/FormHelpMessage';
 import ScrollView from '@components/ScrollView';
 import DatePresetFilterBase from '@components/Search/FilterComponents/DatePresetFilterBase';
-import type {SearchDatePresetFilterBaseHandle} from '@components/Search/FilterComponents/DatePresetFilterBase';
+import type {CustomDateModifier, SearchDatePresetFilterBaseHandle} from '@components/Search/FilterComponents/DatePresetFilterBase';
 import ActionButtons from '@components/Search/FilterDropdowns/ActionButtons';
 import type {SearchDatePreset} from '@components/Search/types';
 import Text from '@components/Text';
@@ -17,6 +17,7 @@ import type {SearchDateModifier} from '@libs/SearchUIUtils';
 
 import CONST from '@src/CONST';
 
+import type {ComponentRef} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
@@ -30,6 +31,7 @@ type DateSelectPopupProps = {
 
     value: SearchDateValues;
     presets?: SearchDatePreset[];
+    allowedCustomDateModifiers?: readonly CustomDateModifier[];
     style?: StyleProp<ViewStyle>;
     onChange: (value: SearchDateValues) => void;
     closeOverlay: () => void;
@@ -38,7 +40,7 @@ type DateSelectPopupProps = {
     setPopoverWidth?: (width: number | undefined) => void;
 };
 
-function DateSelectPopup({label, value, presets, style, closeOverlay, onChange, setPopoverWidth}: DateSelectPopupProps) {
+function DateSelectPopup({label, value, presets, allowedCustomDateModifiers = CONST.SEARCH.CUSTOM_DATE_MODIFIERS, style, closeOverlay, onChange, setPopoverWidth}: DateSelectPopupProps) {
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth, isInLandscapeMode} = useResponsiveLayout();
 
@@ -46,7 +48,7 @@ function DateSelectPopup({label, value, presets, style, closeOverlay, onChange, 
     const styles = useThemeStyles();
     const {windowHeight} = useWindowDimensions();
     const searchDatePresetFilterBaseRef = useRef<SearchDatePresetFilterBaseHandle>(null);
-    const scrollViewRef = useRef<React.ComponentRef<typeof ScrollView>>(null);
+    const scrollViewRef = useRef<ComponentRef<typeof ScrollView>>(null);
     const [selectedDateModifier, setSelectedDateModifier] = useState<SearchDateModifier | null>(null);
     const [shouldShowRangeError, setShouldShowRangeError] = useState(false);
     const [rangeText, setRangeText] = useState(() =>
@@ -134,6 +136,7 @@ function DateSelectPopup({label, value, presets, style, closeOverlay, onChange, 
                         selectedDateModifier={selectedDateModifier}
                         onSelectDateModifier={setSelectedDateModifier}
                         presets={presets}
+                        allowedCustomDateModifiers={allowedCustomDateModifiers}
                         onDateValuesChange={updateRangeText}
                         onRangeValidationErrorChange={setShouldShowRangeError}
                     />
@@ -194,6 +197,7 @@ function DateSelectPopup({label, value, presets, style, closeOverlay, onChange, 
                     selectedDateModifier={selectedDateModifier}
                     onSelectDateModifier={setSelectedDateModifier}
                     presets={presets}
+                    allowedCustomDateModifiers={allowedCustomDateModifiers}
                     onDateValuesChange={updateRangeText}
                     onRangeValidationErrorChange={setShouldShowRangeError}
                 />

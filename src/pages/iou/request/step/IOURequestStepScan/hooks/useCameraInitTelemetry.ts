@@ -1,10 +1,12 @@
 import getReceiptsUploadFolderPath from '@libs/getReceiptsUploadFolderPath';
 import Log from '@libs/Log';
-import {cancelSpan, endSpan, getSpan, startSpan} from '@libs/telemetry/activeSpans';
+import {cancelSpan, endSpan, endSpanWithAttributes, getSpan, startSpan} from '@libs/telemetry/activeSpans';
+
+import getCameraCapabilityAttributes from '@pages/iou/request/step/IOURequestStepScan/utils/getCameraCapabilityAttributes';
 
 import CONST from '@src/CONST';
 
-import type {CameraDevice} from 'react-native-vision-camera';
+import type {CameraDevice, CameraDeviceFormat} from 'react-native-vision-camera';
 
 import {useEffect, useRef} from 'react';
 import ReactNativeBlobUtil from 'react-native-blob-util';
@@ -16,6 +18,9 @@ type UseCameraInitTelemetryParams = {
 
     /** The active camera device descriptor, undefined while loading */
     device: CameraDevice | undefined;
+
+    /** The format the camera is running at, undefined until one is selected */
+    format: CameraDeviceFormat | undefined;
 };
 
 /**
@@ -23,7 +28,7 @@ type UseCameraInitTelemetryParams = {
  * Handles starting spans when permission is granted, cancelling when denied,
  * and cleaning up on unmount.
  */
-function useCameraInitTelemetry({cameraPermissionStatus, device}: UseCameraInitTelemetryParams) {
+function useCameraInitTelemetry({cameraPermissionStatus, device, format}: UseCameraInitTelemetryParams) {
     const cameraInitSpanStarted = useRef(false);
     const cameraInitialized = useRef(false);
 
@@ -91,7 +96,7 @@ function useCameraInitTelemetry({cameraPermissionStatus, device}: UseCameraInitT
         cameraInitialized.current = true;
         // Only end camera init span if it was actually started
         if (cameraInitSpanStarted.current) {
-            endSpan(CONST.TELEMETRY.SPAN_CAMERA_INIT);
+            endSpanWithAttributes(CONST.TELEMETRY.SPAN_CAMERA_INIT, getCameraCapabilityAttributes(device, format));
         }
         endSpan(CONST.TELEMETRY.SPAN_OPEN_CREATE_EXPENSE);
         endSpan(CONST.TELEMETRY.SPAN_ENTRY_TO_SCAN_READY);

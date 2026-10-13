@@ -49,7 +49,6 @@ function CardListItem<TItem extends ListItem>({
     onSelectRow,
     onSelectionButtonPress,
     onDismissError,
-    rightHandSideComponent,
     onFocus,
     shouldSyncFocus,
 }: CardListItemProps<TItem>) {
@@ -87,7 +86,6 @@ function CardListItem<TItem extends ListItem>({
             onSelectRow={onSelectRow}
             onSelectionButtonPress={onSelectionButtonPress}
             onDismissError={onDismissError}
-            rightHandSideComponent={rightHandSideComponent}
             onFocus={onFocus}
             shouldSyncFocus={shouldSyncFocus}
         >

@@ -22,6 +22,7 @@ import useShowNotFoundPageInIOUStep from '@hooks/useShowNotFoundPageInIOUStep';
 import useWaypointItems from '@hooks/useWaypointItems';
 
 import {init, stop} from '@libs/actions/MapboxToken';
+import {fetchReusableDistanceRoutes} from '@libs/actions/ReusableDistanceRoutes';
 import {openDraftDistanceExpense, removeWaypoint, updateWaypoints as updateWaypointsUtil} from '@libs/actions/Transaction';
 import {getLatestErrorField} from '@libs/ErrorUtils';
 import {shouldUseTransactionDraft} from '@libs/IOUUtils';
@@ -33,7 +34,7 @@ import {doesMoneyRequestDraftHaveUserInput, getRateID, getRequestType} from '@li
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {DYNAMIC_ROUTES} from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 import type {WaypointCollection} from '@src/types/onyx/Transaction';
@@ -41,6 +42,7 @@ import type Transaction from '@src/types/onyx/Transaction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type TransactionStateType from '@src/types/utils/TransactionStateType';
 
+import type {ComponentRef} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import type {ScrollView as RNScrollView} from 'react-native';
 import type {RenderItemParams} from 'react-native-draggable-flatlist/lib/typescript/types';
@@ -100,7 +102,6 @@ function IOURequestStepDistanceMap({
     });
     const [skipConfirmation] = useOnyx(`${ONYXKEYS.COLLECTION.SKIP_CONFIRMATION}${transactionID}`);
     const [optimisticWaypoints, setOptimisticWaypoints] = useState<WaypointCollection | null>(null);
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
 
     const transactionWaypoints = transaction?.comment?.waypoints;
     const areTransactionWaypointsEmpty = !transactionWaypoints || Object.values(transactionWaypoints).every((w) => isEmptyObject(w));
@@ -123,7 +124,7 @@ function IOURequestStepDistanceMap({
     const previousWaypoints = usePrevious(waypoints);
     const numberOfWaypoints = Object.keys(waypoints).length;
     const numberOfPreviousWaypoints = Object.keys(previousWaypoints).length;
-    const scrollViewRef = useRef<RNScrollView>(null);
+    const scrollViewRef = useRef<ComponentRef<typeof RNScrollView>>(null);
     const isLoadingRoute = transaction?.comment?.isLoading ?? false;
     const isLoading = transaction?.isLoading ?? false;
     const isSplitRequest = iouType === CONST.IOU.TYPE.SPLIT;
@@ -190,6 +191,18 @@ function IOURequestStepDistanceMap({
         return stop;
     }, []);
 
+    // Load the reusable routes on mount so the Reuse route button visibility is known before the user opens the picker
+    useEffect(() => {
+        if (action !== CONST.IOU.ACTION.CREATE) {
+            return;
+        }
+        fetchReusableDistanceRoutes();
+    }, [action]);
+
+    const navigateToReuseRoutePage = () => {
+        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_REUSE_ROUTE.getRoute(action, iouType, transactionID, reportID));
+    };
+
     useEffect(() => {
         if (numberOfWaypoints <= numberOfPreviousWaypoints) {
             return;
@@ -241,7 +254,6 @@ function IOURequestStepDistanceMap({
         translate,
         selfDMReport,
         policyForMovingExpenses,
-        betas,
         recentWaypoints,
         introSelected,
     });
@@ -295,7 +307,7 @@ function IOURequestStepDistanceMap({
 
             Promise.all([
                 removeWaypoint(transaction, emptyWaypointIndex.toString(), shouldUseTransactionDraft(action), undefined),
-                updateWaypointsUtil(transactionID, newWaypoints, transactionState),
+                updateWaypointsUtil(transactionID, newWaypoints, transactionState, waypoints),
             ]).then(() => {
                 setOptimisticWaypoints(null);
             });
@@ -372,6 +384,7 @@ function IOURequestStepDistanceMap({
                 errorState={errorState}
                 loadingState={loadingState}
                 transactionState={transactionState}
+                navigateToReuseRoutePage={action === CONST.IOU.ACTION.CREATE ? navigateToReuseRoutePage : undefined}
             />
         </StepScreenWrapper>
     );

@@ -8,6 +8,7 @@ import path from 'node:path';
 import {fileURLToPath} from 'node:url';
 
 import oxcReactCompilerConfig from '../babel/oxcReactCompilerConfig.js';
+import BABEL_PACKAGES from './babelPackages.mjs';
 import SentryDebugIdPlugin from './sentryDebugIdPlugin.mjs';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -29,40 +30,6 @@ const expoPublicDefines = Object.fromEntries(
         .map((key) => [`process.env.${key}`, JSON.stringify(process.env[key])]),
 );
 
-/**
- * Packages that must stay on babel + hermes-parser: Flow-typed runtime JS (OXC/SWC can't parse
- * Flow) and packages calling `codegenNativeComponent` in shipped JS, which needs the RN preset's
- * codegen plugin to register Fabric view configs. Without it the app crashes on boot.
- */
-const BABEL_PACKAGES = [
-    // Flow-typed:
-    'react-native',
-    '@react-native',
-    '@react-native-picker/picker',
-    'deprecated-react-native-prop-types',
-    'react-native-blob-util',
-    'react-native-config',
-    'react-native-fs',
-    'react-native-image-size',
-    'react-native-pdf',
-    'shallowequal',
-    // Re.Pack's own runtime: its native-module lookup breaks on boot through the OXC chain.
-    '@callstack/repack',
-    // codegenNativeComponent in shipped JS:
-    '@expensify/react-native-live-markdown',
-    '@fullstory/react-native',
-    '@sentry/react-native',
-    '@shopify/react-native-skia',
-    'lottie-react-native',
-    'react-native-advanced-input-mask',
-    'react-native-keyboard-controller',
-    'react-native-plaid-link-sdk',
-    'react-native-reanimated',
-    'react-native-safe-area-context',
-    'react-native-screens',
-    'react-native-svg',
-    'react-native-webview',
-];
 const babelPackagesRegex = new RegExp(`node_modules/(${BABEL_PACKAGES.join('|')})/`);
 
 /**

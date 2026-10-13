@@ -12,7 +12,8 @@ import {convertAmountToDisplayString} from './CurrencyUtils';
 import {formatList} from './Localize';
 import Parser from './Parser';
 import stripFollowupListFromHtml from './ReportActionFollowupUtils/stripFollowupListFromHtml';
-import {getOriginalMessage, isActionOfType} from './ReportActionsUtils';
+import {getOriginalMessage} from './ReportActionMessageUtils';
+import {isActionOfType} from './ReportActionTypeGuards';
 
 function getSpendRuleFallbackReportActionText(reportAction: OnyxEntry<ReportAction>): string {
     const message = Array.isArray(reportAction?.message) ? reportAction?.message.at(0) : reportAction?.message;
