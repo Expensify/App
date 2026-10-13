@@ -160,7 +160,7 @@ function CategoryPickerModal({
         >
             <View style={[StyleUtils.getHeight(popoverDimensions.height), styles.flexColumn, styles.pt4, bottomSafeAreaPaddingStyle]}>
                 {!!onAddCategory && (
-                    <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, styles.ph5, styles.pb5, StyleUtils.getHeight(headerHeight)]}>
+                    <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, styles.ph5, styles.pt1, styles.pb4, StyleUtils.getHeight(headerHeight)]}>
                         <Text style={styles.textLabelSupporting}>{translate('common.category')}</Text>
                         <Tooltip text={translate('workspace.categories.addCategory')}>
                             <PressableWithFeedback
