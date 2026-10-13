@@ -16,13 +16,14 @@ import useConfirmModal from '@hooks/useConfirmModal';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useHoldMenuModal from '@hooks/useHoldMenuModal';
+import useLayoutSpacing from '@hooks/useLayoutSpacing';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import {useReportPaymentContext} from '@hooks/usePaymentContext';
+import {useGetPersonalDetailsByLogin} from '@hooks/usePersonalDetailByLogin';
 import {useAllPersonalDetailsWithoutSnapshots} from '@hooks/usePersonalDetails';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useRowHighlightAnimation from '@hooks/useRowHighlightAnimation';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -99,6 +100,7 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
 }: ExpenseReportListItemProps<TItem>) {
     const reportItem = item as unknown as ExpenseReportListItemType;
     const styles = useThemeStyles();
+    const {pageGutterMargin} = useLayoutSpacing();
     const StyleUtils = useStyleUtils();
     const theme = useTheme();
     /*
@@ -117,6 +119,7 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
     const currentUserDetails = useCurrentUserPersonalDetails();
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
+    const getPersonalDetailsByLogin = useGetPersonalDetailsByLogin();
 
     // Fetch live policy categories from Onyx to sync violations at render time
     const [parentPolicy] = useOnyxWithoutSnapshots(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(reportItem.policyID)}`);
@@ -322,6 +325,7 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
             // every row on unrelated violation changes.
             allViolations: liveViolationsForSnapshotTransactions,
             rules,
+            personalDetailsByLogins: getPersonalDetailsByLogin(),
             conciergeChat,
         });
     }, [
@@ -366,6 +370,7 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
         isTrackIntentUser,
         liveViolationsForSnapshotTransactions,
         rules,
+        getPersonalDetailsByLogin,
         conciergeChat,
         shouldShowMarkAsDoneCopy,
     ]);
@@ -379,7 +384,7 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
             styles.selectionListPressableItemWrapper,
             isLargeScreenWidth && styles.pv3,
             isLargeScreenWidth && styles.ph3,
-            // Removing background style because they are added to the parent OpacityView via animatedHighlightStyle
+            // Background is applied on the parent wrapper, so keep this transparent
             styles.bgTransparent,
             isSelected && styles.activeComponentBG,
             styles.mh0,
@@ -390,17 +395,6 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
         ],
         [styles, isSelected, isLargeScreenWidth, isFirstItem, isLastItem, isPendingDelete, StyleUtils],
     );
-
-    // The animated style is applied inline, so the `borderRadius: 0` it carries wins over the static
-    // `tableTopRadius`/`tableBottomRadius` below and squares off the list's outer corners. Skip it for the first
-    // and last rows only, so every other row keeps its existing (already square) behavior.
-    const shouldApplyAnimatedBorderRadius = !isLargeScreenWidth && !isFirstItem && !isLastItem;
-    const animatedHighlightStyle = useRowHighlightAnimation({
-        shouldHighlight: item?.shouldAnimateInHighlight ?? false,
-        isSelected,
-        borderRadius: 0,
-        shouldApplyOtherStyles: shouldApplyAnimatedBorderRadius,
-    });
 
     const shouldShowViolationDescription = isOpenExpenseReport(reportItem) || isProcessingReport(reportItem);
 
@@ -497,8 +491,9 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
             shouldSyncFocus={shouldSyncFocus}
             hoverStyle={isSelected && styles.activeComponentBG}
             pressableWrapperStyle={[
-                styles.mh5,
-                animatedHighlightStyle,
+                pageGutterMargin,
+                StyleUtils.getSearchRowBackgroundStyle(isSelected),
+                !isLargeScreenWidth && styles.br0,
                 isPendingDelete && styles.cursorDisabled,
                 isLargeScreenWidth && isLastItem && [styles.tableBottomRadius, styles.overflowHidden],
                 !isLargeScreenWidth && isFirstItem && styles.tableTopRadius,

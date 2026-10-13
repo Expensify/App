@@ -6,8 +6,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import CONST from '@src/CONST';
 
-import type {BlurEvent} from 'react-native';
-
 import React from 'react';
 
 import SplitPercentageDisplay from './SplitPercentageDisplay';
@@ -24,11 +22,9 @@ type SplitPercentageInputProps = {
     setPercentageDraft: React.Dispatch<React.SetStateAction<string | undefined>>;
     /** Callback invoked when the input receives focus. */
     focusHandler: () => void;
-    /** Callback invoked when the input loses focus. */
-    onInputBlur: ((e: BlurEvent) => void) | undefined;
 };
 
-function SplitPercentageInput({splitItem, contentWidth, percentageDraft, onSplitExpenseValueChange, setPercentageDraft, focusHandler, onInputBlur}: SplitPercentageInputProps) {
+function SplitPercentageInput({splitItem, contentWidth, percentageDraft, onSplitExpenseValueChange, setPercentageDraft, focusHandler}: SplitPercentageInputProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
 
@@ -46,12 +42,7 @@ function SplitPercentageInput({splitItem, contentWidth, percentageDraft, onSplit
                 containerStyles={[styles.optionRowPercentInputContainer, styles.ml3]}
                 inputStyle={[styles.optionRowPercentInput, styles.lineHeightUndefined]}
                 onFocus={focusHandler}
-                onBlur={(event) => {
-                    setPercentageDraft(undefined);
-                    if (onInputBlur) {
-                        onInputBlur(event);
-                    }
-                }}
+                onBlur={() => setPercentageDraft(undefined)}
                 allowExceedingHundred
                 allowDecimal
                 allowNegative

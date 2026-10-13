@@ -11,6 +11,9 @@ type AttachmentViewVideoProps = Pick<AttachmentViewProps, 'duration' | 'isHovere
     /** Video file source URL */
     source: string;
 
+    /** Original file name of the video, used to name the file saved by the player's Download action */
+    fileName?: string;
+
     shouldUseSharedVideoElement?: boolean;
 
     /** The reportID related to the attachment */
@@ -20,13 +23,14 @@ type AttachmentViewVideoProps = Pick<AttachmentViewProps, 'duration' | 'isHovere
     onTap?: (shouldShowArrows?: boolean) => void;
 };
 
-function AttachmentViewVideo({source, isHovered = false, shouldUseSharedVideoElement = false, duration = 0, reportID, onTap}: AttachmentViewVideoProps) {
+function AttachmentViewVideo({source, fileName, isHovered = false, shouldUseSharedVideoElement = false, duration = 0, reportID, onTap}: AttachmentViewVideoProps) {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const styles = useThemeStyles();
 
     return (
         <VideoPlayer
             url={source}
+            fileName={fileName}
             shouldUseSharedVideoElement={shouldUseSharedVideoElement && !shouldUseNarrowLayout}
             isVideoHovered={isHovered}
             videoDuration={duration}

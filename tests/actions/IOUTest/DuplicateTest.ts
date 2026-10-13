@@ -4,10 +4,12 @@ import type {RenderAPI} from '@testing-library/react-native';
 import {bulkDuplicateExpenses, bulkDuplicateReports, duplicateExpenseTransaction, duplicateReport, mergeDuplicates, resolveDuplicates} from '@libs/actions/IOU/Duplicate';
 import type {BulkDuplicateReportsParams, DuplicateReportParams} from '@libs/actions/IOU/Duplicate';
 import {getReportPreviewReportAction} from '@libs/actions/IOU/MoneyRequestBuilder';
+import signalExpenseAddedGrowl from '@libs/actions/IOU/signalExpenseAddedGrowl';
 import initOnyxDerivedValues from '@libs/actions/OnyxDerived';
 import {addComment, openReport} from '@libs/actions/Report';
 import type {MergeDuplicatesParams} from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
+import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {getLoginsByAccountIDs} from '@libs/PersonalDetailsUtils';
 import {getOriginalMessage, getReportAction} from '@libs/ReportActionsUtils';
@@ -40,6 +42,8 @@ import initCurrencyListContext from '../../utils/initCurrencyListContext';
 import {formatPhoneNumber, getCurrencyDecimalsLocal, getGlobalFetchMock, getOnyxData} from '../../utils/TestHelper';
 import {isObject} from '../../utils/typeGuards';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
+
+jest.mock('@libs/actions/IOU/signalExpenseAddedGrowl', () => jest.fn());
 
 const topMostReportID = '23423423';
 jest.mock('@src/libs/Navigation/Navigation', () => ({
@@ -1880,6 +1884,73 @@ describe('actions/Duplicate', () => {
             expect(duplicatedTransaction?.transactionID).toBeDefined();
             // The duplicated transaction should have a different transactionID than the original
             expect(duplicatedTransaction?.transactionID).not.toBe(mockCashExpenseTransaction.transactionID);
+        });
+
+        it('should add the duplicate to the open expense report passed as targetReport', async () => {
+            // Given an open expense report on a workspace, while the workspace chat points at a different report
+            const sourcePolicy: Policy = {...createRandomPolicy(42), type: CONST.POLICY.TYPE.TEAM, role: CONST.POLICY.ROLE.USER, pendingAction: null, autoReporting: false};
+            const sourceChatReport: Report = {
+                ...createRandomReport(42, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT),
+                policyID: sourcePolicy.id,
+                ownerAccountID: RORY_ACCOUNT_ID,
+                iouReportID: 'another-report',
+                hasOutstandingChildRequest: false,
+            };
+            const sourceExpenseReport: Report = {
+                ...createRandomReport(43, undefined),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                policyID: sourcePolicy.id,
+                chatReportID: sourceChatReport.reportID,
+                ownerAccountID: RORY_ACCOUNT_ID,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                errorFields: undefined,
+                pendingFields: undefined,
+            };
+            const {waypoints, ...restOfComment} = mockTransaction.comment ?? {};
+            const sourceTransaction: Transaction = {...mockTransaction, reportID: sourceExpenseReport.reportID, amount: mockTransaction.amount * -1, comment: restOfComment};
+
+            await Onyx.set(ONYXKEYS.SESSION, {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL});
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${sourcePolicy.id}`, sourcePolicy);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${sourceChatReport.reportID}`, sourceChatReport);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${sourceExpenseReport.reportID}`, sourceExpenseReport);
+            await waitForBatchedUpdates();
+
+            // When the expense is duplicated with that expense report as the target
+            duplicateExpenseTransaction({
+                isVendorMatchingBetaEnabled: false,
+                dateFnsLocale: undefined,
+                conciergeChat: undefined,
+                transaction: sourceTransaction,
+                optimisticChatReportID: mockOptimisticChatReportID,
+                optimisticIOUReportID: mockOptimisticIOUReportID,
+                isASAPSubmitBetaEnabled: mockIsASAPSubmitBetaEnabled,
+                introSelected: undefined,
+                quickAction: undefined,
+                policyRecentlyUsedCurrencies: [],
+                isSelfTourViewed: false,
+                customUnitPolicyID: sourcePolicy.id,
+                targetPolicy: sourcePolicy,
+                targetPolicyCategories: fakePolicyCategories,
+                targetReport: sourceExpenseReport,
+                existingTransactionDraft: undefined,
+                personalDetails: mockPersonalDetails,
+                recentWaypoints,
+                targetPolicyTags: {},
+                policyTagList: {},
+                currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
+                currentUserLocalCurrency: undefined,
+                delegateAccountID: undefined,
+                isTrackIntentUser: false,
+                formatPhoneNumber,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                participantsPolicyTags: {},
+                rules: undefined,
+            });
+            await waitForBatchedUpdates();
+
+            // Then the duplicate is requested on the source expense report, not on the report the workspace chat points at
+            expect(writeSpy).toHaveBeenCalledWith(WRITE_COMMANDS.REQUEST_MONEY, expect.objectContaining({iouReportID: sourceExpenseReport.reportID}), expect.objectContaining({}));
         });
 
         it('should create a duplicate time expense successfully', async () => {
@@ -3808,6 +3879,8 @@ describe('actions/Duplicate', () => {
         });
 
         it('should create a single IOU report for multiple bulk-duplicated expenses', async () => {
+            // Given bulk duplication is initiated from Spend
+            jest.mocked(isSearchTopmostFullScreenRoute).mockReturnValue(true);
             const tx1: Transaction = {
                 ...createRandomTransaction(1),
                 transactionID: 'bulk_1',
@@ -3832,6 +3905,7 @@ describe('actions/Duplicate', () => {
                 [`${ONYXKEYS.COLLECTION.TRANSACTION}bulk_3`]: tx3,
             };
 
+            // When the selected expenses are duplicated
             bulkDuplicateExpenses({
                 isVendorMatchingBetaEnabled: false,
                 dateFnsLocale: undefined,
@@ -3869,9 +3943,15 @@ describe('actions/Duplicate', () => {
 
             const iouReportIDs = new Set(requestMoneyCalls.map((call) => call[1].iouReportID));
             expect(iouReportIDs.size).toBe(1);
+
+            // Then the expense-added growl is signaled
+            expect(signalExpenseAddedGrowl).toHaveBeenCalledTimes(1);
+            expect(jest.mocked(signalExpenseAddedGrowl).mock.calls.at(0)?.at(1)).toBe(CONST.SEARCH.DATA_TYPES.EXPENSE);
         });
 
-        it('should not defer auto submit when the last selected expense is unreported', async () => {
+        it('should not defer auto submit or signal the growl outside Spend when the last selected expense is unreported', async () => {
+            // Given bulk duplication is initiated outside Spend
+            jest.mocked(isSearchTopmostFullScreenRoute).mockReturnValue(false);
             const reportedTransaction: Transaction = {
                 ...createRandomTransaction(1),
                 transactionID: 'bulk_reported',
@@ -3890,6 +3970,7 @@ describe('actions/Duplicate', () => {
                 [`${ONYXKEYS.COLLECTION.TRANSACTION}bulk_unreported`]: unreportedTransaction,
             };
 
+            // When the selected expenses are duplicated
             bulkDuplicateExpenses({
                 isVendorMatchingBetaEnabled: false,
                 dateFnsLocale: undefined,
@@ -3927,6 +4008,9 @@ describe('actions/Duplicate', () => {
             expect(requestMoneyCalls).toHaveLength(1);
             expect(trackExpenseCalls).toHaveLength(1);
             expect(requestMoneyCalls.at(0)?.[1].shouldDeferAutoSubmit).toBeFalsy();
+
+            // Then the expense-added growl is not signaled
+            expect(signalExpenseAddedGrowl).not.toHaveBeenCalled();
         });
     });
 
