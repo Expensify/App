@@ -8,6 +8,7 @@ import TextInput from '@components/TextInput';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import {usePersonalDetail} from '@hooks/usePersonalDetails';
+import useReportsParentHierarchy from '@hooks/useReportsParentHierarchy';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import DateUtils from '@libs/DateUtils';
@@ -73,6 +74,7 @@ function DebugReportActionCreatePage({
     const [draftReportAction, setDraftReportAction] = useState<string>(() => getInitialReportAction(reportID, session, currentUserPersonalDetail));
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.chatReportID)}`);
+    const reportsParentHierarchy = useReportsParentHierarchy(reportID);
 
     const reportAction = parseReportActionJSON(draftReportAction);
 
@@ -142,6 +144,7 @@ function DebugReportActionCreatePage({
                                     shouldDisplayNewMarker={false}
                                     isFirstVisibleReportAction={false}
                                     shouldDisplayContextMenu={false}
+                                    reportsParentHierarchy={reportsParentHierarchy}
                                 />
                             ) : (
                                 <Text>{translate('debug.nothingToPreview')}</Text>

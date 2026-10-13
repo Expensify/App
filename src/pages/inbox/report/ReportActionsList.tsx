@@ -13,6 +13,7 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useReportActionsScroll from '@hooks/useReportActionsScroll';
 import useReportScrollManager from '@hooks/useReportScrollManager';
+import useReportsParentHierarchy from '@hooks/useReportsParentHierarchy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useRetireMerchantRuleSuggestionOnLeave from '@hooks/useRetireMerchantRuleSuggestionOnLeave';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -188,6 +189,7 @@ function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportAct
 
     const [reportStable] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {selector: getStableReportSelector});
     const [chatReportStable] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(reportStable?.chatReportID)}`, {selector: getStableReportSelector});
+    const reportsParentHierarchy = useReportsParentHierarchy(reportID);
 
     const linkedReportActionID = reportActionIDFromRoute;
 
@@ -503,6 +505,7 @@ function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportAct
                         shouldUseThreadDividerLine={shouldUseThreadDividerLine}
                         isHarvestCreatedExpenseReport={isHarvestCreatedExpenseReportAction}
                         shouldDisableContextMenuForConciergeDraft={shouldDisableContextMenuForConciergeDraft}
+                        reportsParentHierarchy={reportsParentHierarchy}
                     />
                 )}
                 {!!reportStable?.reportID && (
@@ -528,6 +531,7 @@ function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportAct
         isDraftPendingCompletion,
         latestConciergeFeedbackActionID,
         expandedSystemMessageReportActionIDs,
+        reportsParentHierarchy,
     ];
 
     const listHeaderComponent = (

@@ -7,6 +7,7 @@ import useOnyx from '@hooks/useOnyx';
 import usePaginatedReportActions from '@hooks/usePaginatedReportActions';
 import useParentReportAction from '@hooks/useParentReportAction';
 import useReportIsArchived from '@hooks/useReportIsArchived';
+import useReportsParentHierarchy from '@hooks/useReportsParentHierarchy';
 import useResponsiveLayoutOnWideRHP from '@hooks/useResponsiveLayoutOnWideRHP';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useUnreadMarker from '@hooks/useUnreadMarker';
@@ -95,6 +96,7 @@ function MoneyRequestReportActionsListContent({reportIDFromRoute, onLayout}: Mon
     // Self-subscribe to report, policy, metadata, actions, transactions
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportIDFromRoute}`);
     const [reportStable] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportIDFromRoute}`, {selector: getStableReportSelector});
+    const reportsParentHierarchy = useReportsParentHierarchy(reportIDFromRoute);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(report?.policyID)}`);
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
     const [reportLoadingState] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${reportIDFromRoute}`);
@@ -280,6 +282,7 @@ function MoneyRequestReportActionsListContent({reportIDFromRoute, onLayout}: Mon
                             isHarvestCreatedExpenseReport={shouldShowHarvestCreatedAction}
                             shouldDisableContextMenuForConciergeDraft={shouldDisableContextMenuForConciergeDraft}
                             isLatestConciergeFeedbackAction={!!latestConciergeFeedbackActionID && latestConciergeFeedbackActionID === reportAction.reportActionID}
+                            reportsParentHierarchy={reportsParentHierarchy}
                         />
                     )}
                 </ReportActionPositionContextProvider>
@@ -287,7 +290,14 @@ function MoneyRequestReportActionsListContent({reportIDFromRoute, onLayout}: Mon
         );
     };
 
-    const reportActionsExtraData = [draftReportActionID, isDraftPendingCompletion, latestConciergeFeedbackActionID, expandedSystemMessageReportActionIDs, unreadMarkerReportActionID];
+    const reportActionsExtraData = [
+        draftReportActionID,
+        isDraftPendingCompletion,
+        latestConciergeFeedbackActionID,
+        expandedSystemMessageReportActionIDs,
+        unreadMarkerReportActionID,
+        reportsParentHierarchy,
+    ];
 
     /**
      * Runs when the FlatList finishes laying out

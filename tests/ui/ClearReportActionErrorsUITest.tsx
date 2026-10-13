@@ -6,6 +6,8 @@ import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
 
+import useReportsParentHierarchy from '@hooks/useReportsParentHierarchy';
+
 import * as ClearReportActionErrorsActions from '@libs/actions/ClearReportActionErrors';
 import {setHasRadio} from '@libs/NetworkState';
 import {getIOUActionForReportID} from '@libs/ReportActionsUtils';
@@ -90,20 +92,31 @@ describe('ClearReportActionErrors UI', () => {
         await waitForBatchedUpdatesWithAct();
     });
 
+    function ReportActionItemWithHierarchy({action, report}: {action: ReportAction; report: Report}) {
+        const reportsParentHierarchy = useReportsParentHierarchy(report.reportID);
+        return (
+            <ReportActionItem
+                report={report}
+                chatReport={undefined}
+                transactionThreadReport={undefined}
+                parentReportAction={undefined}
+                action={action}
+                displayAsGroup={false}
+                shouldDisplayNewMarker={false}
+                isFirstVisibleReportAction={false}
+                reportsParentHierarchy={reportsParentHierarchy}
+            />
+        );
+    }
+
     function renderReportActionItem(action: ReportAction, report: Report) {
         return render(
             <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, HTMLEngineProvider]}>
                 <ScreenWrapper testID="test">
                     <PortalProvider>
-                        <ReportActionItem
-                            report={report}
-                            chatReport={undefined}
-                            transactionThreadReport={undefined}
-                            parentReportAction={undefined}
+                        <ReportActionItemWithHierarchy
                             action={action}
-                            displayAsGroup={false}
-                            shouldDisplayNewMarker={false}
-                            isFirstVisibleReportAction={false}
+                            report={report}
                         />
                     </PortalProvider>
                 </ScreenWrapper>
@@ -295,7 +308,7 @@ describe('ClearReportActionErrors UI', () => {
             fireEvent.press(screen.getByLabelText('Dismiss'));
             await waitForBatchedUpdatesWithAct();
 
-            // Then the component supplies the ancestor links itself, so the walk does not depend on the module-level fallback
+            // Then the ancestor links read by the hook reach the action, so the walk does not depend on the module-level fallback
             const suppliedReports = spy.mock.calls.at(0)?.at(0)?.reports;
             expect(suppliedReports?.[`${ONYXKEYS.COLLECTION.REPORT}${CHILD_REPORT_ID}`]).toMatchObject({parentReportID: REPORT_ID, parentReportActionID: PARENT_REPORT_ACTION_ID});
             expect(suppliedReports?.[`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`]).toMatchObject({
