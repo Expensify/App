@@ -337,12 +337,14 @@ describe('OnyxDerived', () => {
                     undefined,
                     undefined,
                     undefined,
+                    undefined,
                 ],
                 {},
             );
             const reportAttributesComputedValue = reportAttributes.compute(
                 [
                     reports,
+                    undefined,
                     undefined,
                     undefined,
                     undefined,
@@ -480,6 +482,7 @@ describe('OnyxDerived', () => {
                     undefined,
                     undefined,
                     undefined,
+                    undefined,
                     personalDetails,
                     undefined,
                     undefined,
@@ -503,6 +506,7 @@ describe('OnyxDerived', () => {
                     undefined,
                     undefined,
                     undefined,
+                    undefined,
                     personalDetails,
                     undefined,
                     undefined,
@@ -521,6 +525,7 @@ describe('OnyxDerived', () => {
             const afterChange = reportAttributes.compute(
                 [
                     reports,
+                    undefined,
                     undefined,
                     undefined,
                     undefined,
@@ -749,6 +754,39 @@ describe('OnyxDerived', () => {
                 // The parent report's RBR should be cleared now that the child's error is gone.
                 derivedReportAttributes = await OnyxUtils.get(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES);
                 expect(derivedReportAttributes?.reports[parentReport.reportID].brickRoadStatus).toBeUndefined();
+            });
+
+            it('should not propagate RBR from an IOU report whose preview action in the chat was deleted', async () => {
+                // Given a chat and an IOU report with an error, whose preview action in the chat was deleted
+                const parentReport = {...createRandomReport(3, undefined), reportID: '700', type: CONST.REPORT.TYPE.CHAT};
+                const previewAction = getFakeReportAction(701, {reportActionID: '701', actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW, childReportID: '702'});
+                const deletedPreviewAction = {...previewAction, message: [{type: 'COMMENT', html: '', text: '', deleted: '2024-01-01 10:00:00'}]};
+                const iouReport = {
+                    ...createRandomReport(4, undefined),
+                    reportID: '702',
+                    chatReportID: parentReport.reportID,
+                    parentReportID: parentReport.reportID,
+                    parentReportActionID: previewAction.reportActionID,
+                    ownerAccountID: 1,
+                    type: CONST.REPORT.TYPE.IOU,
+                    errorFields: {generic: {'1234567890': 'Generic error'}},
+                };
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReport.reportID}`, {[deletedPreviewAction.reportActionID]: deletedPreviewAction} as ReportActions);
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${parentReport.reportID}`, parentReport);
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`, iouReport);
+                await waitForBatchedUpdates();
+
+                // Then the chat does not show the error, since it has no surface left to fix it from
+                let derivedReportAttributes = await OnyxUtils.get(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES);
+                expect(derivedReportAttributes?.reports[parentReport.reportID].brickRoadStatus).toBeUndefined();
+
+                // When the preview action is restored
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReport.reportID}`, {[previewAction.reportActionID]: previewAction} as ReportActions);
+                await waitForBatchedUpdates();
+
+                // Then the chat shows the child's error
+                derivedReportAttributes = await OnyxUtils.get(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES);
+                expect(derivedReportAttributes?.reports[parentReport.reportID].brickRoadStatus).toBe(CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR);
             });
         });
     });
