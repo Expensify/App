@@ -5,13 +5,17 @@ import useTheme from '@hooks/useTheme';
 import useTransactionsAndViolationsForReport from '@hooks/useTransactionsAndViolationsForReport';
 
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
-import {isProcessingReport} from '@libs/ReportUtils';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
+import Navigation from '@libs/Navigation/Navigation';
+import {isGroupPolicy} from '@libs/PolicyUtils';
+import {isExpenseReport, isProcessingReport} from '@libs/ReportUtils';
 import {getUnsuppressibleBrokenConnectionTransactionID} from '@libs/TransactionUtils';
 
 import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type IconAsset from '@src/types/utils/IconAsset';
 
 import type {ValueOf} from 'type-fest';
@@ -45,6 +49,9 @@ function MoneyReportHeaderStatusBarSection({reportID, statusBarType, iouTransact
         return null;
     }
 
+    // The history only covers expense reports on group policies, while status bars also show on IOU and invoice reports
+    const openReportHistory = isExpenseReport(moneyRequestReport) && isGroupPolicy(policy) ? () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.REPORT_HISTORY.path)) : undefined;
+
     const getStatusIcon = (src: IconAsset) => (
         <Icon
             src={src}
@@ -59,6 +66,7 @@ function MoneyReportHeaderStatusBarSection({reportID, statusBarType, iouTransact
             <MoneyRequestHeaderStatusBar
                 icon={getStatusIcon(expensifyIcons.Hourglass)}
                 description={translate('iou.reject.rejectedStatus')}
+                onPress={openReportHistory}
             />
         );
     }
@@ -68,6 +76,7 @@ function MoneyReportHeaderStatusBarSection({reportID, statusBarType, iouTransact
             <MoneyRequestHeaderStatusBar
                 icon={getStatusIcon(expensifyIcons.Hourglass)}
                 description={translate('iou.bookingPendingDescription')}
+                onPress={openReportHistory}
             />
         );
     }
@@ -77,6 +86,7 @@ function MoneyReportHeaderStatusBarSection({reportID, statusBarType, iouTransact
             <MoneyRequestHeaderStatusBar
                 icon={getStatusIcon(expensifyIcons.Box)}
                 description={translate('iou.bookingArchivedDescription')}
+                onPress={openReportHistory}
             />
         );
     }
@@ -86,6 +96,7 @@ function MoneyReportHeaderStatusBarSection({reportID, statusBarType, iouTransact
             <MoneyRequestHeaderStatusBar
                 icon={getStatusIcon(expensifyIcons.Stopwatch)}
                 description={translate(transactions.length > 1 ? 'iou.expensesOnHold' : 'iou.expenseOnHold')}
+                onPress={openReportHistory}
             />
         );
     }
@@ -95,6 +106,7 @@ function MoneyReportHeaderStatusBarSection({reportID, statusBarType, iouTransact
             <MoneyRequestHeaderStatusBar
                 icon={getStatusIcon(expensifyIcons.Flag)}
                 description={translate('iou.duplicateTransaction', isProcessingReport(moneyRequestReport))}
+                onPress={openReportHistory}
             />
         );
     }
@@ -124,6 +136,7 @@ function MoneyReportHeaderStatusBarSection({reportID, statusBarType, iouTransact
             <MoneyRequestHeaderStatusBar
                 icon={getStatusIcon(expensifyIcons.Hourglass)}
                 description={translate('iou.pendingMatchWithCreditCardDescription')}
+                onPress={openReportHistory}
             />
         );
     }
@@ -134,6 +147,7 @@ function MoneyReportHeaderStatusBarSection({reportID, statusBarType, iouTransact
             <MoneyRequestHeaderStatusBar
                 icon={getStatusIcon(expensifyIcons.CreditCardHourglass)}
                 description={pendingDescription}
+                onPress={openReportHistory}
             />
         );
     }
@@ -143,6 +157,7 @@ function MoneyReportHeaderStatusBarSection({reportID, statusBarType, iouTransact
             <MoneyRequestHeaderStatusBar
                 icon={getStatusIcon(expensifyIcons.ReceiptScan)}
                 description={translate('iou.receiptScanInProgressDescription')}
+                onPress={openReportHistory}
             />
         );
     }

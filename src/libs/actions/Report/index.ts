@@ -31,6 +31,7 @@ import type {
     MoveIOUReportToExistingPolicyParams,
     MoveIOUReportToPolicyAndInviteSubmitterParams,
     OpenReportParams,
+    OpenReportStatusPageParams,
     OpenRoomMembersPageParams,
     ReadNewestActionParams,
     RemoveFromGroupChatParams,
@@ -6277,6 +6278,13 @@ function openRoomMembersPage(reportID: string) {
     API.read(READ_COMMANDS.OPEN_ROOM_MEMBERS_PAGE, parameters);
 }
 
+/** Loads the report's history and upcoming steps for the ReportHistoryPage */
+function openReportStatusPage(reportID: string) {
+    const parameters: OpenReportStatusPageParams = {reportID};
+
+    API.read(READ_COMMANDS.OPEN_REPORT_STATUS_PAGE, parameters);
+}
+
 /**
  * Checks if there are any errors in the private notes for a given report
  *
@@ -9124,6 +9132,7 @@ export {
     navigateToConciergeChatAndDeleteReport,
     clearCreateChatError,
     openReport,
+    openReportStatusPage,
     openRoomMembersPage,
     readNewestAction,
     removeFromGroupChat,

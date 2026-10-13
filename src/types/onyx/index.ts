@@ -191,6 +191,7 @@ import type ReportMetadata from './ReportMetadata';
 import type ReportNameValuePairs from './ReportNameValuePairs';
 import type LastSearchParams from './ReportNavigation';
 import type ReportPaginationState from './ReportPaginationState';
+import type ReportUpcomingSteps from './ReportUpcomingSteps';
 import type ReportUserIsTyping from './ReportUserIsTyping';
 import type ReportViolationName from './ReportViolationName';
 import type Request from './Request';
@@ -382,6 +383,7 @@ export type {
     ReportLoadingState,
     ReportMetadata,
     ReportPaginationState,
+    ReportUpcomingSteps,
     ReportViolationName,
     ReportLayoutGroupBy,
     ReportLayoutOption,

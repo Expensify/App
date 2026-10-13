@@ -16,6 +16,7 @@ import type {
     ReportChangeWorkspaceNavigatorParamList,
     ReportDescriptionNavigatorParamList,
     ReportDetailsNavigatorParamList,
+    ReportHistoryNavigatorParamList,
     ReportSettingsNavigatorParamList,
     RoomMembersNavigatorParamList,
 } from '@navigation/types';
@@ -50,6 +51,7 @@ type WithReportOrNotFoundOnyxProps = {
 type ScreenProps =
     | PlatformStackScreenProps<PrivateNotesNavigatorParamList, typeof SCREENS.DYNAMIC_PRIVATE_NOTES_EDIT>
     | PlatformStackScreenProps<ReportDescriptionNavigatorParamList, typeof SCREENS.DYNAMIC_REPORT_DESCRIPTION>
+    | PlatformStackScreenProps<ReportHistoryNavigatorParamList, typeof SCREENS.DYNAMIC_REPORT_HISTORY>
     | PlatformStackScreenProps<ParticipantsNavigatorParamList, typeof SCREENS.REPORT_PARTICIPANTS.DYNAMIC_ROOT>
     | PlatformStackScreenProps<ParticipantsNavigatorParamList, typeof SCREENS.REPORT_PARTICIPANTS.DYNAMIC_INVITE>
     | PlatformStackScreenProps<ParticipantsNavigatorParamList, typeof SCREENS.REPORT_PARTICIPANTS.DYNAMIC_DETAILS>
