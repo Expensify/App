@@ -368,7 +368,7 @@ describe('TestToolsModalNavigator portal', () => {
 
     it('keeps test tools inside the native modal while required 2FA is showing', () => {
         // Given native, where this navigator is already a transparent modal above the overlay.
-        // Portaling the screen out of that modal leaves an empty opaque screen that covers the tools after the transition.
+        // Moving the screen out of that modal into the portal host leaves an empty opaque screen that covers the tools after the transition.
         Platform.OS = 'ios';
         mockVisibility = {
             isRequire2FAOverlayVisible: true,

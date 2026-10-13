@@ -85,8 +85,8 @@ function TestToolsModalFrame({children}: TestToolsModalFrameProps) {
  * into the portal host above it. The nested stack stays in the root navigator so the URL, backTo,
  * and goBack keep working. The host is outside that stack, so the frame gets the screen contexts it reads.
  *
- * Native already presents this navigator as a transparent modal above that overlay. Portaling the
- * screen out of the modal leaves an empty opaque screen, which covers the tools once the transition ends.
+ * Native already presents this navigator as a transparent modal above that overlay. Moving the
+ * screen into the portal host leaves an empty opaque screen, which covers the tools once the transition ends.
  */
 function withRequire2FAPortal<RouteName extends TestToolsRouteName>(Screen: ComponentType<PlatformStackScreenProps<TestToolsModalModalNavigatorParamList, RouteName>>) {
     function Require2FAPortaledTestToolsScreen(props: PlatformStackScreenProps<TestToolsModalModalNavigatorParamList, RouteName>) {
