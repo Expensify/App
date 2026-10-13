@@ -312,22 +312,29 @@ function useChartInteractions({
         return updateInteractionFlags(hitTestArgs.targetIndex, hitTestArgs.cursorX, hitTestArgs.cursorY, hitTestArgs.chartBottom);
     };
 
+    /** Resolves the target at the given chart position, then updates the interaction flags and returns whether the cursor is over the target */
+    const matchTargetAt = (cursorX: number, cursorY: number) => {
+        'worklet';
+
+        const bottom = chartBottom?.get() ?? cursorY;
+        const touchX = cursorY >= bottom && resolveLabelTouchX ? resolveLabelTouchX(cursorX, cursorY) : cursorX;
+        const targetIndex = getResolvedTargetIndex(cursorX, cursorY, touchX);
+        applyTargetIndex(targetIndex);
+        return updateInteractionFlags(targetIndex, cursorX, cursorY, bottom);
+    };
+
     /** Moves the hover cursor to the given chart position and updates the matched target and the tooltip visibility */
     const updateHoverAt = (cursorX: number, cursorY: number) => {
         'worklet';
 
         chartInteractionState.cursor.x.set(cursorX);
         chartInteractionState.cursor.y.set(cursorY);
-        const bottom = chartBottom?.get() ?? cursorY;
         const isOverCurrentTarget = updateCurrentInteractionFlags();
         // Only update the matched index when the cursor is not over the current target.
         // This keeps the active index locked while hovering over a bar/point/label,
         // preventing it from jumping to a different point during continuous movement.
         if (!isOverCurrentTarget) {
-            const touchX = cursorY >= bottom && resolveLabelTouchX ? resolveLabelTouchX(cursorX, cursorY) : cursorX;
-            const targetIndex = getResolvedTargetIndex(cursorX, cursorY, touchX);
-            applyTargetIndex(targetIndex);
-            updateInteractionFlags(targetIndex, cursorX, cursorY, bottom);
+            matchTargetAt(cursorX, cursorY);
         }
     };
 
@@ -377,11 +384,7 @@ function useChartInteractions({
                 chartInteractionState.isActive.set(true);
                 chartInteractionState.cursor.x.set(cursorX);
                 chartInteractionState.cursor.y.set(cursorY);
-                const bottom = chartBottom?.get() ?? cursorY;
-                const touchX = cursorY >= bottom && resolveLabelTouchX ? resolveLabelTouchX(cursorX, cursorY) : cursorX;
-                const targetIndex = getResolvedTargetIndex(cursorX, cursorY, touchX);
-                applyTargetIndex(targetIndex);
-                updateInteractionFlags(targetIndex, cursorX, cursorY, bottom);
+                matchTargetAt(cursorX, cursorY);
             })
             .onUpdate((e) => {
                 'worklet';
@@ -409,12 +412,8 @@ function useChartInteractions({
     const handleTouchTap = (cursorX: number, cursorY: number) => {
         'worklet';
 
-        const bottom = chartBottom?.get() ?? cursorY;
-        const touchX = cursorY >= bottom && resolveLabelTouchX ? resolveLabelTouchX(cursorX, cursorY) : cursorX;
-        const targetIndex = getResolvedTargetIndex(cursorX, cursorY, touchX);
         chartInteractionState.isActive.set(true);
-        applyTargetIndex(targetIndex);
-        const isOverTarget = updateInteractionFlags(targetIndex, cursorX, cursorY, bottom);
+        const isOverTarget = matchTargetAt(cursorX, cursorY);
         if (!isOverTarget) {
             scheduleOnRN(dismissTouchTooltip);
             return;
