@@ -21,9 +21,13 @@ jest.mock('@hooks/useThemeStyles', () => () => ({}));
 jest.mock('@hooks/useLazyAsset', () => ({useMemoizedLazyExpensifyIcons: () => ({})}));
 jest.mock('@hooks/usePolicyFeatureWriteAccess', () => () => ({canWrite: mockCanWrite, showReadOnlyModal: mockShowReadOnlyModal}));
 jest.mock('@libs/actions/connections', () => ({isConnectionInProgress: () => false, isConnectionUnverified: () => false}));
-jest.mock('@libs/actions/connections/QuickbooksOnline', () => ({shouldShowQBOReimbursableExportDestinationAccountError: () => false}));
+
 jest.mock('@libs/Navigation/Navigation', () => ({__esModule: true, default: {navigate: jest.fn()}}));
-jest.mock('@libs/PolicyUtils', () => ({getConnectedIntegration: () => mockConnectedIntegration, getIntegrationLastSuccessfulDate: () => undefined}));
+jest.mock('@libs/PolicyUtils', () => ({
+    getConnectedIntegration: () => mockConnectedIntegration,
+    getIntegrationLastSuccessfulDate: () => undefined,
+    shouldShowQBOReimbursableExportDestinationAccountError: () => false,
+}));
 jest.mock('@pages/workspace/accounting/AccountingContext', () => ({
     useAccountingActions: () => ({startIntegrationFlow: mockStartIntegrationFlow}),
     useAccountingState: () => ({activeIntegration: undefined, popoverAnchorRefs: {current: {}}}),
