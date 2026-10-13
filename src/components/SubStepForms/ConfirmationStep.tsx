@@ -125,7 +125,14 @@ function ConfirmationStep({
             {groups.map((group, index) => (
                 <View key={group.id}>
                     {index > 0 && <View style={[styles.mh5, styles.mt3, styles.borderBottom]} />}
-                    {!!group.name && <Text style={[styles.textNormalThemeText, styles.textLineHeightNormal, styles.textStrong, styles.ph5, styles.mt4, styles.mb1]}>{group.name}</Text>}
+                    {!!group.name && (
+                        <Text
+                            style={[styles.textNormalThemeText, styles.textLineHeightNormal, styles.textStrong, styles.ph5, styles.mt4, styles.mb1]}
+                            accessibilityRole={CONST.ROLE.HEADER}
+                        >
+                            {group.name}
+                        </Text>
+                    )}
                     {group.rows.map(({id, description, title, shouldShowRightIcon, onPress, interactive, brickRoadIndicator, errorText, testID}) => (
                         <MenuItemWithTopDescription
                             key={id}

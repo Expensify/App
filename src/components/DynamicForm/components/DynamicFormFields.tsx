@@ -22,7 +22,7 @@ type DynamicFormFieldsProps = {
     /** The whole form when `content` is one page of it, since a field's `showWhen` can name a controller on another page */
     allFields?: DynamicFormField[];
 
-    /** The page's title already names its only question, so that question's label is not drawn again above its input */
+    /** The page's title is that question's label, so the label is not drawn again above its input. False when the page has its own title, since the label then still says what the inputs are for. */
     isTitledByPage?: boolean;
 
     /** Currency of amount fields that let the user pick none */

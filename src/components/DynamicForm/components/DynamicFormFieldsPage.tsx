@@ -57,15 +57,23 @@ function DynamicFormFieldsPage({
             {({inputValues}) => {
                 const currentValues = withInputValues(inputValues);
                 const title = getPageTitle(page, currentValues, translate, allFields);
+                const hasOwnTitle = !!getLocalizedText(translate, page.titleKey, page.title);
                 const description = getLocalizedText(translate, page.descriptionKey, page.description);
                 return (
                     <>
-                        {!!title && <Text style={[styles.textHeadlineLineHeightXXL, styles.mb3]}>{title}</Text>}
+                        {!!title && (
+                            <Text
+                                style={[styles.textHeadlineLineHeightXXL, styles.mb3]}
+                                accessibilityRole={CONST.ROLE.HEADER}
+                            >
+                                {title}
+                            </Text>
+                        )}
                         {!!description && <Text style={[styles.textSupporting, styles.mb3]}>{description}</Text>}
                         <DynamicFormFields
                             content={page.content}
                             allFields={allFields}
-                            isTitledByPage
+                            isTitledByPage={!hasOwnTitle}
                             values={currentValues}
                             currency={currency}
                             maxFileSize={maxFileSize}
