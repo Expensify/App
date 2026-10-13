@@ -38,7 +38,7 @@ The navigation tabs include:
 - **Insights**
 - **Workspaces**
 
-To open your personal settings, select **Account**.
+You can also select **Account** to access your account settings.
 
 ---
 
@@ -95,7 +95,7 @@ From **Spend**, you can:
 
 **Insights** shows charts of your spending, such as **Spend over time**, **Top categories**, **Top merchants**, and **Top spenders**.
 
-Use Insights to see spending trends and what changed at a glance. From any chart, you can open the matching expenses in **Spend**.
+Use Insights to see spending trends and what changed at a glance. From any chart, select **More (⋮)* to open matching expenses in **Spend**.
 
 Learn more about [Insights](/articles/new-expensify/insights/How-to-Use-Insights-in-Expensify).
 
@@ -294,10 +294,6 @@ Assigned support contacts only appear if:
 - A support contact has been assigned to your account
 
 If no contacts are assigned, these options will not appear on the **Help** page.
-
-## How do I get an account manager assigned?
-
-Account managers are typically assigned to accounts with subscriptions that include 10 or more members. Contact **Concierge** if you believe your account qualifies.
 
 ## Why don't I see the Book a call button?
 
