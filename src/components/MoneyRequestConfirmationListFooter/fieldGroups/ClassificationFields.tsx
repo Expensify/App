@@ -19,6 +19,9 @@ type TagFieldRowProps = {
     /** Tag entry to render (carries name, index, and required flag) */
     entry: TagEntry;
 
+    /** Policy the tags belong to */
+    policy: OnyxEntry<OnyxTypes.Policy>;
+
     /** Tag lists configured on the policy (used to look up the list at the entry's index) */
     policyTagLists: Array<ValueOf<OnyxTypes.PolicyTagLists>>;
 
@@ -29,7 +32,7 @@ type TagFieldRowProps = {
     formError: string;
 };
 
-function TagFieldRow({entry: {index, isTagRequired}, policyTagLists, previousTagsVisibility, formError}: TagFieldRowProps) {
+function TagFieldRow({entry: {index, isTagRequired}, policy, policyTagLists, previousTagsVisibility, formError}: TagFieldRowProps) {
     const {action, iouType, transactionID, reportID, reportActionID, isReadOnly, didConfirm} = useConfirmationFields();
     const policyTagList = policyTagLists.at(index);
     if (!policyTagList) {
@@ -38,6 +41,7 @@ function TagFieldRow({entry: {index, isTagRequired}, policyTagLists, previousTag
     return (
         <TagFields
             tagIndex={index}
+            policy={policy}
             policyTagList={policyTagList}
             isTagRequired={isTagRequired}
             previousShouldShow={previousTagsVisibility.at(index) ?? false}
@@ -148,6 +152,7 @@ function ClassificationFields({
                 <TagFieldRow
                     key={`tag_${entry.name}`}
                     entry={entry}
+                    policy={policy}
                     policyTagLists={policyTagLists}
                     previousTagsVisibility={previousTagsVisibility}
                     formError={errorState.formError}
@@ -159,6 +164,7 @@ function ClassificationFields({
                     <TagFieldRow
                         key={`tag_${entry.name}`}
                         entry={entry}
+                        policy={policy}
                         policyTagLists={policyTagLists}
                         previousTagsVisibility={previousTagsVisibility}
                         formError={errorState.formError}

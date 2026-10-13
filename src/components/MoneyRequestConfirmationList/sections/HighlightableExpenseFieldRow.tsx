@@ -1,13 +1,9 @@
-import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
-import useTheme from '@hooks/useTheme';
-
-import variables from '@styles/variables';
-
 import React from 'react';
 
 import type {ExpenseFieldRowProps} from './ExpenseFieldRow';
 
 import ExpenseFieldRow from './ExpenseFieldRow';
+import useFieldRowHighlightStyle from './useFieldRowHighlightStyle';
 
 type HighlightableExpenseFieldRowProps = Omit<ExpenseFieldRowProps, 'backgroundStyle'> & {
     /** Whether the row flashes once when it mounts, to point out a field that just appeared */
@@ -22,14 +18,7 @@ type HighlightableExpenseFieldRowProps = Omit<ExpenseFieldRowProps, 'backgroundS
  * same way `HighlightableMenuItemWithTopDescription` does through its outer wrapper.
  */
 function HighlightableExpenseFieldRow({shouldHighlight = false, ...props}: HighlightableExpenseFieldRowProps) {
-    const theme = useTheme();
-    const animatedHighlightStyle = useAnimatedHighlightStyle({
-        shouldHighlight,
-        highlightColor: theme.messageHighlightBG,
-        backgroundColor: theme.appBG,
-        borderRadius: variables.componentBorderRadiusNormal,
-        itemEnterDelay: 0,
-    });
+    const animatedHighlightStyle = useFieldRowHighlightStyle(shouldHighlight);
 
     return (
         <ExpenseFieldRow
