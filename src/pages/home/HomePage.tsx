@@ -13,6 +13,7 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useScrollEventEmitter from '@hooks/useScrollEventEmitter';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import openHomePage from '@libs/actions/HomePage';
@@ -46,6 +47,7 @@ function HomePage() {
     const styles = useThemeStyles();
     const {pageGutter} = useLayoutSpacing();
     const {translate} = useLocalize();
+    const triggerScrollEvent = useScrollEventEmitter();
     useDocumentTitle(translate('common.home'));
     const {isOffline} = useNetwork({onReconnect: openHomePage});
     const [isLoadingApp = true] = useOnyx(ONYXKEYS.IS_LOADING_APP);
@@ -156,6 +158,7 @@ function HomePage() {
                     />
                     <ScrollView
                         style={styles.homePageScrollView}
+                        onScroll={triggerScrollEvent}
                         contentContainerStyle={[styles.homePageContentContainer, pageGutter]}
                         addBottomSafeAreaPadding
                         keyboardShouldPersistTaps="handled"
