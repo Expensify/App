@@ -40,6 +40,7 @@ import {
 } from '@libs/PolicyUtils';
 import {getAllPolicyExpenseChatReportActions} from '@libs/ReportUtils';
 import updateMultilineInputRange from '@libs/updateMultilineInputRange';
+import {getSearchParamFromPath} from '@libs/Url';
 
 import variables from '@styles/variables';
 
@@ -233,7 +234,10 @@ function WorkspaceInviteMessageComponent({
         }
 
         if (isWorkflowApprovalExpensesFromRoute) {
-            if (approvalWorkflow?.isFastEdit) {
+            const nestedBackTo = getSearchParamFromPath(backTo?.toString() ?? '', 'backTo');
+            if (nestedBackTo) {
+                Navigation.goBack(nestedBackTo as Routes);
+            } else if (approvalWorkflow?.isFastEdit) {
                 const invitedEmails = new Set(Object.keys(invitedEmailsToAccountIDsDraft ?? {}));
                 const shouldExcludeInvitedMembers = shouldShowApproverRow && !!approverDraft && !!validatedApprover && validatedApprover !== approvalWorkflow.approvers.at(0)?.email;
                 // An explicit approver choice owns the invited members. Saving them with the edited workflow would overwrite that choice.
@@ -249,10 +253,10 @@ function WorkspaceInviteMessageComponent({
                             isMultipleApproversBetaEnabled: isBetaEnabled(CONST.BETAS.MULTIPLE_APPROVERS),
                         }),
                 });
-            } else if (approvalWorkflow?.action === CONST.APPROVAL_WORKFLOW.ACTION.CREATE && approvalWorkflow.isInitialFlow) {
-                Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_APPROVER.getRoute(policyID, 0), {forceReplace: true});
             } else {
-                Navigation.goBack(backTo);
+                // forceReplace so the invite page is removed from the stack. Otherwise it stays
+                // underneath the Approver page and an iOS swipe-back reopens the invite confirm page.
+                Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_APPROVER.getRoute(policyID, 0), {forceReplace: true});
             }
             return;
         }

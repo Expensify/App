@@ -65,12 +65,10 @@ function WorkArrangementPage({policy, personalDetails, route}: WorkArrangementPa
     const {isBetaEnabled} = usePermissions();
     const isWorkArrangementBetaEnabled = isBetaEnabled(CONST.BETAS.COMMUTER_EXCLUSIONS_ARRANGEMENTS);
 
-    const [invitedEmailsToAccountIDsDraft] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MEMBERS_DRAFT}${policyID}`);
     const [inviteWorkArrangementDraft] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_WORK_ARRANGEMENT_DRAFT}${policyID}`);
-    const [firstInviteLogin, firstInviteAccountID] = Object.entries(invitedEmailsToAccountIDsDraft ?? {}).at(0) ?? [];
-    const accountID = isInviteFlow ? Number(firstInviteAccountID) : Number(route.params.accountID);
-    const inviteLogin = isInviteFlow ? firstInviteLogin : undefined;
-    const memberLogin = inviteLogin ?? personalDetails?.[accountID]?.login ?? getMemberLoginByAccountID(policy, accountID);
+    // Only an existing member has an account ID here. The invite flow reads its own arrangement draft and never looks up a member.
+    const accountID = route.name === SCREENS.WORKSPACE.MEMBER_WORK_ARRANGEMENT ? Number(route.params.accountID) : CONST.DEFAULT_NUMBER_ID;
+    const memberLogin = personalDetails?.[accountID]?.login ?? getMemberLoginByAccountID(policy, accountID);
     const member = policy?.employeeList?.[memberLogin];
     const memberPersonalDetails = usePersonalDetailByLogin(memberLogin);
     const memberAccountID = memberPersonalDetails?.accountID ?? accountID;

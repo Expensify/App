@@ -245,15 +245,16 @@ describe('WorkspaceInviteMessageComponent - "+N more" workflow edit', () => {
         expect(params?.approvalWorkflow.members.map((member) => member.email)).toEqual([ALICE_EMAIL, BOB_EMAIL]);
     });
 
-    it('returns to the dynamically nested Expense from page without saving when the invite came from the Edit page', async () => {
+    it('replaces the invite page with the Approver step without saving when the invite came from the Edit page', async () => {
         // Given an invite reached from the Edit page, which owns the save
         await seedHandOff({isFastEdit: false});
 
         // When the admin sends the invite
         await renderAndPressInvite(EDIT_PAGE_EXPENSES_FROM_ROUTE);
 
-        // Then the admin returns to the dynamically nested Expense from page and nothing is saved here
-        expect(goBackMock.mock.calls.at(0)?.at(0)).toBe(EDIT_PAGE_EXPENSES_FROM_ROUTE);
+        // Then the invite page is replaced by the Approver step so it cannot be reopened by a swipe-back, and nothing is saved here
+        expect(navigateMock).toHaveBeenCalledWith(`workspaces/${POLICY_ID}/workflows/approvals/approver?approverIndex=0`, {forceReplace: true});
+        expect(goBackMock).not.toHaveBeenCalled();
         expect(saveFastEditApprovalWorkflowMock).not.toHaveBeenCalled();
     });
 
