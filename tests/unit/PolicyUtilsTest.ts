@@ -14,6 +14,7 @@ import {
     canMemberManageMemberWithRole,
     canMemberRead,
     canMemberWrite,
+    canCreateExpensesOnPolicy,
     canRoleCreateExpenses,
     canSendInvoiceFromWorkspace,
     canUnarchivePolicy,
@@ -524,6 +525,22 @@ describe('PolicyUtils', () => {
                 expect(canRoleCreateExpenses(CONST.POLICY.ROLE.APPROVE_ONLY)).toBe(false);
             });
 
+            it('blocks expense creation when the policy role cannot be resolved', () => {
+                expect(canCreateExpensesOnPolicy({role: undefined} as Policy)).toBe(false);
+                expect(canCreateExpensesOnPolicy(undefined)).toBe(false);
+            });
+
+            it('resolves the member role from employeeList when the policy role is missing', () => {
+                const legacyPolicy = {
+                    employeeList: {
+                        [memberLogin]: {role: CONST.POLICY.ROLE.USER},
+                    },
+                } as unknown as Policy;
+
+                expect(canCreateExpensesOnPolicy(legacyPolicy)).toBe(false);
+                expect(canCreateExpensesOnPolicy(legacyPolicy, memberLogin)).toBe(true);
+            });
+
             it('blocks Guest assignment even on Control workspaces', () => {
                 const controlPolicy = buildPolicy(CONST.POLICY.ROLE.ADMIN);
 
@@ -955,10 +972,11 @@ describe('PolicyUtils', () => {
     });
     describe('getActivePoliciesWithExpenseChat', () => {
         it('excludes archived policies while keeping the active sibling', () => {
-            const activePolicy = createMock<Policy>({...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE), name: 'active', pendingAction: null});
+            const activePolicy = createMock<Policy>({...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE), name: 'active', role: CONST.POLICY.ROLE.USER, pendingAction: null});
             const archivedPolicy = createMock<Policy>({
                 ...createRandomPolicy(2, CONST.POLICY.TYPE.CORPORATE),
                 name: 'archived',
+                role: CONST.POLICY.ROLE.USER,
                 pendingAction: null,
                 archivedDate: '2024-01-01',
             });

@@ -22,7 +22,7 @@ import type {OptionData as PersonalDetailOptionData} from '@libs/PersonalDetailO
 import {getLoginByAccountID, getPersonalDetailForAccountID, getPersonalDetailsForAccountIDs, temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import {addSMSDomainIfPhoneNumber, parsePhoneNumber} from '@libs/PhoneNumber';
 import {
-    canRoleCreateExpenses,
+    canCreateExpensesOnPolicy,
     canSendInvoiceFromWorkspace,
     canSubmitPerDiemExpenseFromWorkspace,
     getCountOfEnabledTagsOfList,
@@ -1973,7 +1973,7 @@ function isValidReport(
     }
 
     // A workspace chat is not a valid submit destination when the member lacks create-expenses permission.
-    if (isPolicyExpenseChat && excludeWorkspacesWithoutCreateExpensePermission && !canRoleCreateExpenses(policy?.role)) {
+    if (isPolicyExpenseChat && excludeWorkspacesWithoutCreateExpensePermission && !canCreateExpensesOnPolicy(policy)) {
         return false;
     }
 

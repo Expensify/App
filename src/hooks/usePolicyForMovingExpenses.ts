@@ -2,7 +2,7 @@ import {useActivePolicyContext} from '@components/ActivePolicyProvider';
 import {useSession} from '@components/OnyxListItemProvider';
 
 import isTeachersUnitePolicyID from '@libs/isTeachersUnitePolicyID';
-import {canRoleCreateExpenses, canSubmitPerDiemExpenseFromWorkspace, isGroupPolicy, isPolicyMemberWithoutPendingDelete, isTimeTrackingEnabled} from '@libs/PolicyUtils';
+import {canCreateExpensesOnPolicy, canSubmitPerDiemExpenseFromWorkspace, isGroupPolicy, isPolicyMemberWithoutPendingDelete, isTimeTrackingEnabled} from '@libs/PolicyUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -30,7 +30,7 @@ function isPolicyValidForMovingExpenses(policy: OnyxEntry<Policy>, login: string
         checkForUserPendingDelete(login, policy) &&
         isPolicyMemberByRole(policy) &&
         // Moving an expense to a workspace creates it there, which requires create-expenses permission.
-        canRoleCreateExpenses(policy?.role) &&
+        canCreateExpensesOnPolicy(policy, login) &&
         isGroupPolicy(policy) &&
         policy?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE &&
         // Teachers Unite doesn't support reimbursement, so it can never be a destination for moving/reporting an expense.

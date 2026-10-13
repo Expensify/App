@@ -28,7 +28,7 @@ import getButtonState from '@libs/getButtonState';
 import getIconForAction from '@libs/getIconForAction';
 import Navigation from '@libs/Navigation/Navigation';
 import {getDistanceExpenseTypeForPolicy} from '@libs/PolicyDistanceRatesUtils';
-import {canRoleCreateExpenses, isGroupPolicyByType} from '@libs/PolicyUtils';
+import {canCreateExpensesOnPolicy, isGroupPolicyByType} from '@libs/PolicyUtils';
 import {
     canCreateTaskInReport,
     getPayeeName,
@@ -338,7 +338,7 @@ function AttachmentPickerWithMenuItems({
 
     const createReportOption: PopoverMenuItem[] = useMemo(() => {
         // Members without create-expenses permission cannot create reports on the workspace either.
-        if (!isPolicyExpenseChat(report) || !isGroupPolicyByType(policy?.type) || !isReportOwner(report) || !canRoleCreateExpenses(policy?.role)) {
+        if (!isPolicyExpenseChat(report) || !isGroupPolicyByType(policy?.type) || !isReportOwner(report) || !canCreateExpensesOnPolicy(policy)) {
             return [];
         }
 

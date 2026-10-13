@@ -41,7 +41,7 @@ import type {ValueOf} from 'type-fest';
 import {Str} from 'expensify-common';
 
 import {getAccountingConnectionNames, hasAccountingFeatureConnection} from './connections';
-import {canMemberWrite, canRoleCreateExpenses, getPolicyRole, isPolicyAdmin, isPolicyApprover, isPolicyOwner, isPolicyUser} from './permissions';
+import {canCreateExpensesOnPolicy, canMemberWrite, getPolicyRole, isPolicyAdmin, isPolicyApprover, isPolicyOwner, isPolicyUser} from './permissions';
 import {canPolicyAccessFeature, isArchivedPolicy, isCollectPolicy, isControlPolicy, isGroupPolicy, isPaidGroupPolicy, isSubmitPolicy} from './policyType';
 
 type MemberEmailsToAccountIDs = Record<string, number>;
@@ -122,9 +122,8 @@ function getActivePoliciesWithExpenseChat(policies: OnyxCollection<Policy> | nul
             policy.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE &&
             !!policy.name &&
             !!policy.id &&
-            !!getPolicyRole(policy, currentUserLogin) &&
-            // No login means no member to resolve, so the create-expenses gate only applies per member.
-            (!currentUserLogin || canRoleCreateExpenses(getPolicyRole(policy, currentUserLogin))) &&
+            // Members without create-expenses permission cannot use the workspace as an expense destination.
+            canCreateExpensesOnPolicy(policy, currentUserLogin) &&
             (isPaidGroupPolicy(policy) || isSubmitPolicy(policy)) &&
             !isArchivedPolicy(policy),
     );
@@ -1929,7 +1928,7 @@ function getGroupPoliciesWhereReportCanBeCreated(policies: OnyxCollection<Policy
             (isPaidGroupPolicy(policy) || isSubmitPolicy(policy)) &&
             shouldShowPolicy(policy, false, currentUserLogin) &&
             // Members without create-expenses permission cannot create reports on that workspace either.
-            canRoleCreateExpenses(getPolicyRole(policy, currentUserLogin)) &&
+            canCreateExpensesOnPolicy(policy, currentUserLogin) &&
             !isTeachersUnitePolicyID(policy.id),
     );
 }

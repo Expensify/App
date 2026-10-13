@@ -254,9 +254,9 @@ function canRoleCreateExpenses(role: string | undefined): boolean {
     return !!role && ROLE_PERMISSION_BUNDLES[role]?.[CONST.POLICY.POLICY_FEATURE.CREATE_EXPENSES] === CONST.POLICY.POLICY_FEATURE_ACCESS.WRITE;
 }
 
-/** Whether the policy's viewer role allows creating expenses. A missing role does not gate. */
-function canCreateExpensesOnPolicy(policy: OnyxInputOrEntry<Pick<Policy, 'role'>>): boolean {
-    return !policy?.role || canRoleCreateExpenses(policy.role);
+/** Whether the role resolved for the policy allows creating expenses. With a login, the member role is resolved through employeeList. An unresolvable role blocks, since the permission cannot be confirmed. */
+function canCreateExpensesOnPolicy(policy: OnyxInputOrEntry<Policy>, currentUserLogin?: string): boolean {
+    return canRoleCreateExpenses(getPolicyRole(policy, currentUserLogin));
 }
 
 /** Check if the passed employee is an approver in the policy's employeeList */

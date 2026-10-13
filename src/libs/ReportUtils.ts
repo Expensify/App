@@ -11414,7 +11414,7 @@ function canRequestMoney(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>, o
     }
 
     // Members without create-expenses permission get no create options in the workspace chats and reports.
-    if (!!policy?.id && report?.policyID === policy.id && !canRoleCreateExpenses(policy.role)) {
+    if (!!policy?.id && report?.policyID === policy.id && !canCreateExpensesOnPolicy(policy)) {
         return false;
     }
 

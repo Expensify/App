@@ -18,7 +18,7 @@ import useWorkspaceList from '@hooks/useWorkspaceList';
 
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import {canRoleCreateExpenses, isGroupPolicy} from '@libs/PolicyUtils';
+import {canCreateExpensesOnPolicy, isGroupPolicy} from '@libs/PolicyUtils';
 
 import type {MoneyRequestNavigatorParamList} from '@navigation/types';
 
@@ -79,7 +79,7 @@ function SetDefaultWorkspacePage({route}: SetDefaultWorkspacePageProps) {
         searchTerm: debouncedSearchTerm,
         localeCompare,
         // A workspace cannot be the default expense destination when the member lacks permission to create expenses.
-        additionalFilter: (newPolicy) => isGroupPolicy(newPolicy) && canRoleCreateExpenses(newPolicy?.role),
+        additionalFilter: (newPolicy) => isGroupPolicy(newPolicy) && canCreateExpensesOnPolicy(newPolicy),
     });
 
     const confirmButtonOptions = {
