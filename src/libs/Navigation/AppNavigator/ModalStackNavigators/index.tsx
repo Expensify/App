@@ -274,6 +274,7 @@ const SplitDetailsModalStackNavigator = createModalStackNavigator<SplitDetailsNa
 
 const ProfileModalStackNavigator = createModalStackNavigator<ProfileNavigatorParamList>({
     [SCREENS.DYNAMIC_PROFILE]: () => require<ReactComponentModule>('../../../../pages/ProfilePage').default,
+    [SCREENS.DYNAMIC_PROFILE_DISPLAY_NAME]: () => require<ReactComponentModule>('../../../../pages/workspace/members/WorkspaceMemberDisplayNamePage').default,
 });
 
 const NewReportWorkspaceSelectionModalStackNavigator = createModalStackNavigator<NewReportWorkspaceSelectionNavigatorParamList>({
@@ -478,6 +479,8 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
     [SCREENS.SETTINGS.WALLET.TRANSACTIONS_IMPORTED]: () => require<ReactComponentModule>('../../../../pages/settings/Wallet/TransactionsImportedPage').default,
     [SCREENS.SETTINGS.WALLET.ENABLE_PAYMENTS]: () => require<ReactComponentModule>('../../../../pages/EnablePayments/Wallet/EnablePayments').default,
     [SCREENS.SETTINGS.WALLET.ENABLE_PAYMENTS_CONFIRM_VALIDATE_CODE]: () => require<ReactComponentModule>('../../../../pages/EnablePayments/shared/WalletConfirmValidateCodePage').default,
+    [SCREENS.SETTINGS.WALLET.DYNAMIC_ENABLE_PAYMENTS_CONFIRM_VALIDATE_CODE]: () =>
+        require<ReactComponentModule>('../../../../pages/EnablePayments/shared/WalletConfirmValidateCodePage').default,
     [SCREENS.SETTINGS.WALLET.UNSHARE_BANK_ACCOUNT]: () => require<ReactComponentModule>('../../../../pages/settings/Wallet/UnshareBankAccount/UnshareBankAccount').default,
     [SCREENS.SETTINGS.WALLET.ENABLE_GLOBAL_REIMBURSEMENTS_BUSINESS]: () =>
         require<ReactComponentModule>('../../../../pages/settings/Wallet/EnableGlobalReimbursements/EnableGlobalReimbursementsBusinessPage').default,
@@ -545,6 +548,7 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
     [SCREENS.SETTINGS.SUBSCRIPTION.SIZE]: () => require<ReactComponentModule>('../../../../pages/settings/Subscription/SubscriptionSize').default,
     [SCREENS.SETTINGS.SUBSCRIPTION.EXPENSIFY_CODE]: () => require<ReactComponentModule>('../../../../pages/settings/Subscription/ExpensifyCodePage').default,
     [SCREENS.SETTINGS.SUBSCRIPTION.PAYMENT_HISTORY]: () => require<ReactComponentModule>('../../../../pages/settings/Subscription/PaymentHistoryPage').default,
+    [SCREENS.SETTINGS.SUBSCRIPTION.PAYMENT_DETAILS]: () => require<ReactComponentModule>('../../../../pages/settings/Subscription/PaymentHistoryPage/PaymentDetailsPage').default,
     [SCREENS.SETTINGS.SUBSCRIPTION.SETTINGS_DETAILS]: () => require<ReactComponentModule>('../../../../pages/settings/Subscription/SubscriptionSettings').default,
     [SCREENS.SETTINGS.SUBSCRIPTION.DISABLE_AUTO_RENEW_SURVEY]: () => require<ReactComponentModule>('../../../../pages/settings/Subscription/DisableAutoRenewSurveyPage').default,
     [SCREENS.SETTINGS.SUBSCRIPTION.CANCEL_SUBSCRIPTION]: () => require<ReactComponentModule>('../../../../pages/settings/Subscription/CancelSubscriptionPage').default,
@@ -998,6 +1002,8 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
         require<ReactComponentModule>('../../../../pages/workspace/accounting/dualentry/advanced/DualEntryExportMethodPage').default,
     [SCREENS.WORKSPACE.ACCOUNTING.DUALENTRY_BILL_PAYMENT_ACCOUNT]: () =>
         require<ReactComponentModule>('../../../../pages/workspace/accounting/dualentry/advanced/DualEntryBillPaymentAccountPage').default,
+    [SCREENS.WORKSPACE.ACCOUNTING.DUALENTRY_FX_EXPENSE_ACCOUNT]: () =>
+        require<ReactComponentModule>('../../../../pages/workspace/accounting/dualentry/advanced/DualEntryFxExpenseAccountPage').default,
     [SCREENS.WORKSPACE.ACCOUNTING.DUALENTRY_EXPENSIFY_CARD_SETTLEMENT_ACCOUNT]: () =>
         require<ReactComponentModule>('../../../../pages/workspace/accounting/dualentry/advanced/DualEntryExpensifyCardSettlementAccountPage').default,
     [SCREENS.WORKSPACE.ACCOUNTING.DUALENTRY_TRAVEL_BILLING_SETTLEMENT_ACCOUNT]: () =>
