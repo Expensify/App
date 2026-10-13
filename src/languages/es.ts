@@ -3903,6 +3903,10 @@ ${amount} para ${merchant} - ${date}`,
     },
     dynamicForm: {
         exampleHint: ({example}: {example: string}) => `Ejemplo: ${example}`,
+        fileCount: ({count}: {count: number}) => ({
+            one: '1 archivo',
+            other: `${count} archivos`,
+        }),
         error: {
             tooShort: ({minLength}: {minLength: number}) => `Debe tener al menos ${minLength} caracteres`,
             invalidFormat: ({example}: {example?: string}) => (example ? `Formato inválido. Ejemplo: ${example}` : 'Formato inválido'),
@@ -11525,6 +11529,16 @@ ${reportName}`,
                 other: `${count} usuarios activos`,
             }),
             state: {paid: 'Pagado', cleared: 'Borrado', failed: 'Error', refunded: 'Reembolsado', disputed: 'En disputa', balanceTransfer: 'Transferencia de saldo'},
+            details: 'Detalles del pago',
+            badge: {
+                balanceTransferTo: ({email}: {email: string}) => `Transferencia de saldo a ${email}`,
+                balanceTransferFrom: ({email}: {email: string}) => `Transferencia de saldo de ${email}`,
+                disputedPending: ({date}: {date: string}) => `En disputa el ${date} (Pendiente)`,
+                disputedRefunded: ({date}: {date: string}) => `En disputa el ${date} (Reembolsado)`,
+                disputedClosed: ({date}: {date: string}) => `En disputa el ${date} (Cerrado)`,
+                refundedOn: ({date}: {date: string}) => `Reembolsado el ${date}`,
+                refundedAmountOn: ({amount, date}: {amount: string; date: string}) => `Reembolsado ${amount} el ${date}`,
+            },
         },
         subscriptionSettings: {
             title: 'Configuración de suscripción',

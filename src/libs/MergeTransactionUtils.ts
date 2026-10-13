@@ -36,6 +36,7 @@ import {
     getReimbursable,
     getTaxName,
     getWaypoints,
+    hasValidModifiedAmount,
     isDistanceRequest,
     isExpenseSplit,
     isFetchingWaypointsFromServer,
@@ -798,8 +799,7 @@ function getMergeFieldUpdatedValues<K extends MergeFieldKey>({
 
     if (field === 'amount') {
         updatedValues.currency = getCurrency(transaction);
-        // Use the displayed amount so the tax has the same sign as the amount, like the taxValue branch below
-        const amount = Number(fieldValue) || 0;
+        const amount = hasValidModifiedAmount(transaction) ? Number(transaction?.modifiedAmount) : (transaction?.amount ?? 0);
         if (mergeTransaction?.taxValue && amount) {
             updatedValues.taxAmount = convertToBackendAmount(calculateTaxAmount(mergeTransaction?.taxValue, amount, getCurrencyDecimals(getCurrency(transaction))));
         }
@@ -859,7 +859,7 @@ function getMergeFieldUpdatedValues<K extends MergeFieldKey>({
         updatedValues.taxValue = transaction?.taxValue;
         updatedValues.taxCode = transaction?.taxCode;
         updatedValues.taxName = getTaxName(policy, transaction) ?? transaction?.taxValue;
-        updatedValues.taxAmount = transactionDetails?.taxAmount;
+        updatedValues.taxAmount = transaction?.taxAmount;
         // Don't erase this prop
         // The selected rate might not have tax tracking
         // The backend needs it to remove tax from the transaction

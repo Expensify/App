@@ -4040,6 +4040,10 @@ ${amount} για ${merchant} - ${date}`,
     },
     dynamicForm: {
         exampleHint: ({example}: {example: string}) => `Παράδειγμα: ${example}`,
+        fileCount: ({count}: {count: number}) => ({
+            one: '1 αρχείο',
+            other: `${count} αρχεία`,
+        }),
         error: {
             tooShort: ({minLength}: {minLength: number}) => `Πρέπει να έχει τουλάχιστον ${minLength} χαρακτήρες`,
             invalidFormat: ({example}: {example?: string}) => (example ? `Μη έγκυρη μορφή. Παράδειγμα: ${example}` : 'Μη έγκυρη μορφή'),
@@ -11549,6 +11553,16 @@ ${reportName}`,
                 other: `${count} ενεργοί χρήστες`,
             }),
             state: {paid: 'Πληρωμένο', cleared: 'Εκκαθαρισμένο', failed: 'Απέτυχε', refunded: 'Επιστράφηκε', disputed: 'Αμφισβητούμενη', balanceTransfer: 'Μεταφορά υπολοίπου'},
+            details: 'Στοιχεία πληρωμής',
+            badge: {
+                balanceTransferTo: ({email}: {email: string}) => `Μεταφορά υπολοίπου σε ${email}`,
+                balanceTransferFrom: ({email}: {email: string}) => `Μεταφορά υπολοίπου από ${email}`,
+                disputedPending: ({date}: {date: string}) => `Αμφισβητήθηκε στις ${date} (Σε εκκρεμότητα)`,
+                disputedRefunded: ({date}: {date: string}) => `Αμφισβητήθηκε στις ${date} (Επιστράφηκε)`,
+                disputedClosed: ({date}: {date: string}) => `Αμφισβητήθηκε στις ${date} (Έκλεισε)`,
+                refundedOn: ({date}: {date: string}) => `Επιστράφηκε στις ${date}`,
+                refundedAmountOn: ({amount, date}: {amount: string; date: string}) => `Επιστράφηκαν ${amount} στις ${date}`,
+            },
         },
         subscriptionSettings: {
             title: 'Ρυθμίσεις συνδρομής',

@@ -7,7 +7,13 @@ import type {ValueOf} from 'type-fest';
 import {CONST as COMMON_CONST, Str} from 'expensify-common';
 import startCase from 'lodash/startCase';
 
-import type {ExportAgainModalDescriptionParams, ExportIntegrationSelectedParams} from './params';
+import type {
+    ExportAgainModalDescriptionParams,
+    ExportIntegrationSelectedParams,
+    PaymentDetailsBadgeDateParams,
+    PaymentDetailsBadgeEmailParams,
+    PaymentDetailsPartialRefundParams,
+} from './params';
 import type {
     AllConnectionName,
     ConnectionName,
@@ -4151,6 +4157,10 @@ const translations = {
     },
     dynamicForm: {
         exampleHint: ({example}: {example: string}) => `Example: ${example}`,
+        fileCount: ({count}: {count: number}) => ({
+            one: '1 file',
+            other: `${count} files`,
+        }),
         error: {
             tooShort: ({minLength}: {minLength: number}) => `Must be at least ${minLength} characters`,
             invalidFormat: ({example}: {example?: string}) => (example ? `Invalid format. Example: ${example}` : 'Invalid format'),
@@ -11589,6 +11599,16 @@ const translations = {
                 refunded: 'Refunded',
                 disputed: 'Disputed',
                 balanceTransfer: 'Balance transfer',
+            },
+            details: 'Payment details',
+            badge: {
+                balanceTransferTo: ({email}: PaymentDetailsBadgeEmailParams) => `Balance transfer to ${email}`,
+                balanceTransferFrom: ({email}: PaymentDetailsBadgeEmailParams) => `Balance transfer from ${email}`,
+                disputedPending: ({date}: PaymentDetailsBadgeDateParams) => `Disputed on ${date} (Pending)`,
+                disputedRefunded: ({date}: PaymentDetailsBadgeDateParams) => `Disputed on ${date} (Refunded)`,
+                disputedClosed: ({date}: PaymentDetailsBadgeDateParams) => `Disputed on ${date} (Closed)`,
+                refundedOn: ({date}: PaymentDetailsBadgeDateParams) => `Refunded on ${date}`,
+                refundedAmountOn: ({amount, date}: PaymentDetailsPartialRefundParams) => `Refunded ${amount} on ${date}`,
             },
         },
         subscriptionSettings: {
