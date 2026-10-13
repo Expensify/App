@@ -21,6 +21,9 @@ import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 const REPORT_ID = '1';
 const PUBLIC_ROOM_ID = '2';
+const EXPENSE_REPORT_ID = '3';
+const IOU_ACTION_ID = '500';
+const TRANSACTION_ID = '10';
 
 // The real useRoute returns a stable object until the route actually changes, and the fetch effect keys off that
 // identity. Mirror it here, or every re-render would look like a navigation and fire its own openReport.
@@ -49,6 +52,7 @@ const mockFlagReportNavigatedAway = jest.fn<void, Parameters<typeof UserActionsR
 const mockClearReportNavigatedAway = jest.fn<void, Parameters<typeof UserActionsReport.clearReportNavigatedAway>>();
 const mockUpdateLastVisitTime = jest.fn<void, Parameters<typeof UserActionsReport.updateLastVisitTime>>();
 const mockReadNewestAction = jest.fn<void, Parameters<typeof UserActionsReport.readNewestAction>>();
+const mockCreateTransactionThreadReport = jest.fn<void, Parameters<typeof UserActionsReport.createTransactionThreadReport>>();
 jest.mock('@userActions/Report', () => ({
     ...jest.requireActual<typeof UserActionsReport>('@userActions/Report'),
     openReport: (...args: Parameters<typeof UserActionsReport.openReport>) => {
@@ -65,6 +69,9 @@ jest.mock('@userActions/Report', () => ({
     },
     readNewestAction: (...args: Parameters<typeof UserActionsReport.readNewestAction>) => {
         mockReadNewestAction(...args);
+    },
+    createTransactionThreadReport: (...args: Parameters<typeof UserActionsReport.createTransactionThreadReport>) => {
+        mockCreateTransactionThreadReport(...args);
     },
 }));
 
@@ -90,6 +97,48 @@ function renderHandler(isInPreloadedTab = false, isHiddenPreMount = false) {
 }
 
 /** Regression tests for the guards that suppress openReport for a client-generated report ID that doesn't exist on the server yet. */
+// A one-transaction expense report whose IOU action has no childReportID yet, which is the state that asks the
+// screen to build the transaction thread.
+function buildIOUAction(transactionID: string, childReportID?: string) {
+    return {
+        reportActionID: IOU_ACTION_ID,
+        actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+        created: '2026-01-01 00:00:00.000',
+        message: [{type: 'TEXT', text: 'requested $1.00', html: 'requested $1.00'}],
+        originalMessage: {type: CONST.IOU.REPORT_ACTION_TYPE.CREATE, IOUTransactionID: transactionID, amount: 100, currency: CONST.CURRENCY.USD},
+        childReportID,
+    };
+}
+
+function buildDerivedTransactions(entries: Array<{reportID: string; transactionID: string}>) {
+    return Object.fromEntries(
+        entries.map(({reportID, transactionID}) => [
+            reportID,
+            {
+                transactions: {
+                    [`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]: {transactionID, reportID, amount: 100, currency: CONST.CURRENCY.USD},
+                },
+                violations: {},
+            },
+        ]),
+    );
+}
+
+async function seedOneTransactionReports(entries: Array<{reportID: string; transactionID: string}>) {
+    const updates: Record<string, unknown> = {
+        // The screen reads its transactions from the derived value, which no test harness computes for it.
+        [ONYXKEYS.DERIVED.REPORT_TRANSACTIONS_AND_VIOLATIONS]: buildDerivedTransactions(entries),
+    };
+    for (const {reportID, transactionID} of entries) {
+        updates[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`] = {reportID, type: CONST.REPORT.TYPE.EXPENSE};
+        updates[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`] = {[IOU_ACTION_ID]: buildIOUAction(transactionID)};
+        updates[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`] = {transactionID, reportID, amount: 100, currency: CONST.CURRENCY.USD};
+        updates[`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${reportID}`] = {hasOnceLoadedReportActions: true, isLoadingInitialReportActions: false};
+    }
+    await Onyx.multiSet(updates);
+    await waitForBatchedUpdates();
+}
+
 describe('ReportFetchHandler', () => {
     beforeEach(async () => {
         mockOpenReport.mockClear();
@@ -97,6 +146,7 @@ describe('ReportFetchHandler', () => {
         mockClearReportNavigatedAway.mockClear();
         mockUpdateLastVisitTime.mockClear();
         mockReadNewestAction.mockClear();
+        mockCreateTransactionThreadReport.mockClear();
         mockSetParams.mockClear();
         mockIsOffline = false;
         setRouteParams({reportID: REPORT_ID});
@@ -533,5 +583,27 @@ describe('ReportFetchHandler', () => {
         await waitForBatchedUpdates();
 
         expect(mockOpenReport).toHaveBeenCalledWith(expect.objectContaining({reportID: PUBLIC_ROOM_ID}));
+    });
+
+    it('does NOT rebuild the one-transaction thread after a failed create rolls it back', async () => {
+        // Given a one-transaction expense report whose thread has not been created yet
+        await seedOneTransactionReports([{reportID: EXPENSE_REPORT_ID, transactionID: TRANSACTION_ID}]);
+        setRouteParams({reportID: EXPENSE_REPORT_ID});
+        renderHandler();
+        await waitForBatchedUpdates();
+
+        // Then the screen builds it once
+        expect(mockCreateTransactionThreadReport).toHaveBeenCalledTimes(1);
+
+        // When the optimistic create points the IOU action at the new thread
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${EXPENSE_REPORT_ID}`, {[IOU_ACTION_ID]: {childReportID: '999'}});
+        await waitForBatchedUpdates();
+
+        // And OpenReport then fails, so the rollback clears childReportID and the thread ID falls back to FAKE_REPORT_ID
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${EXPENSE_REPORT_ID}`, {[IOU_ACTION_ID]: {childReportID: null}});
+        await waitForBatchedUpdates();
+
+        // Then it is not rebuilt, because a create that keeps failing would otherwise loop forever
+        expect(mockCreateTransactionThreadReport).toHaveBeenCalledTimes(1);
     });
 });
