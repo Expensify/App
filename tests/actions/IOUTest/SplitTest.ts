@@ -6633,6 +6633,7 @@ describe('updateSplitTransactions', () => {
             getCurrencySymbol: getCurrencySymbolLocal,
             allTransactionsList: allTransactions,
             allReportsList: allReports,
+            reportDrafts: {},
             allReportActionsList: allReportActions,
             allReportNameValuePairsList: allReportNameValuePairs,
             transactionData: {
