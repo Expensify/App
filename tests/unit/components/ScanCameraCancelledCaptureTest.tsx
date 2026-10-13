@@ -89,8 +89,8 @@ jest.mock('@libs/telemetry/activeSpans', () => ({
     startSpan: jest.fn(),
 }));
 
-const mockLogInfo = jest.fn();
-const mockLogWarn = jest.fn();
+const mockLogInfo = jest.fn<void, unknown[]>();
+const mockLogWarn = jest.fn<void, unknown[]>();
 jest.mock('@libs/Log', () => ({
     __esModule: true,
     default: {

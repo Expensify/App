@@ -84,8 +84,8 @@ jest.mock('@libs/telemetry/activeSpans', () => ({
     startSpan: jest.fn(),
 }));
 
-const mockLogInfo = jest.fn();
-const mockLogWarn = jest.fn();
+const mockLogInfo = jest.fn<void, unknown[]>();
+const mockLogWarn = jest.fn<void, unknown[]>();
 jest.mock('@libs/Log', () => ({
     __esModule: true,
     default: {
@@ -107,6 +107,8 @@ const ROUTE_PARAMS = {
 };
 
 function renderFocusedOdometerCamera() {
+    // The screen only reads these route params here; the HOC that provides the rest is mocked out.
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
     const props = {route: {params: ROUTE_PARAMS}, transaction: undefined} as unknown as React.ComponentProps<typeof IOURequestStepOdometerImage>;
     render(<IOURequestStepOdometerImage {...props} />);
     act(() => {
