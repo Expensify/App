@@ -12,7 +12,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import {hasCircularReferences} from '@libs/Formula';
 import Navigation from '@libs/Navigation/Navigation';
-import {getReportFieldKey} from '@libs/ReportUtils';
+import {getReportFieldKey, hasEnabledListValue} from '@libs/ReportUtils';
 import {isRequiredFulfilled} from '@libs/ValidationUtils';
 import {getReportFieldInitialValue, getReportFieldsForTarget, getUnsupportedReportFieldFormulaParts, isReportFieldTargetValid} from '@libs/WorkspaceReportFieldUtils';
 
@@ -49,7 +49,7 @@ function FieldsInitialValuePage({policy, policyID, reportFieldID, featureName, e
 
     const reportField = policy?.fieldList?.[getReportFieldKey(reportFieldID)] ?? null;
     const isInvoiceField = reportField?.target === CONST.REPORT_FIELD_TARGETS.INVOICE;
-    const availableListValuesLength = (reportField?.disabledOptions ?? []).filter((disabledListValue) => !disabledListValue).length;
+    const hasAvailableListValues = !!reportField && hasEnabledListValue(reportField);
     const currentInitialValue = getReportFieldInitialValue(reportField, translate);
     const [initialValue, setInitialValue] = useState(currentInitialValue);
 
@@ -91,7 +91,7 @@ function FieldsInitialValuePage({policy, policyID, reportFieldID, featureName, e
                 }
             }
 
-            if (reportField?.type === CONST.REPORT_FIELD_TYPES.LIST && availableListValuesLength > 0 && !isRequiredFulfilled(formInitialValue)) {
+            if (reportField?.type === CONST.REPORT_FIELD_TYPES.LIST && hasAvailableListValues && !isRequiredFulfilled(formInitialValue)) {
                 errors[INPUT_IDS.INITIAL_VALUE] = translate(
                     isInvoiceField ? 'workspace.invoiceFields.invoiceFieldInitialValueRequiredError' : 'workspace.reportFields.reportFieldInitialValueRequiredError',
                 );
@@ -99,7 +99,7 @@ function FieldsInitialValuePage({policy, policyID, reportFieldID, featureName, e
 
             return errors;
         },
-        [availableListValuesLength, expectedTarget, isInvoiceField, reportField?.name, reportField?.type, policy?.fieldList, translate],
+        [hasAvailableListValues, expectedTarget, isInvoiceField, reportField?.name, reportField?.type, policy?.fieldList, translate],
     );
 
     if (!reportField || !isReportFieldTargetValid(reportField, expectedTarget)) {

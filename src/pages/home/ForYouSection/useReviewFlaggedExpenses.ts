@@ -2,6 +2,7 @@ import useNavigateToTransactionThread from '@hooks/useNavigateToTransactionThrea
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 
+import {CAROUSEL_SOURCE, setActiveTransactionIDs} from '@libs/actions/TransactionThreadNavigation';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Navigation from '@libs/Navigation/Navigation';
 import {isOneTransactionReport} from '@libs/ReportUtils';
@@ -170,16 +171,23 @@ function useReviewFlaggedExpenses(): ReviewFlaggedExpenses {
               const firstFlaggedReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${firstFlaggedExpense.reportID}`];
               const firstFlaggedTransaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${firstFlaggedExpense.transactionID}`];
 
-              // With a single flagged expense the review carousel has nothing to navigate between, and for a
-              // one-transaction report the transaction thread is a redundant duplicate of the report itself.
-              // Gate on the report's transaction count (not its type) so a lone flagged expense inside a
-              // multi-transaction report still opens that expense's thread rather than the whole report.
-              if (flaggedExpenses.length === 1 && isOneTransactionReport(firstFlaggedReport)) {
-                  Navigation.navigate(
-                      shouldUseNarrowLayout
-                          ? ROUTES.REPORT_WITH_ID.getRoute(firstFlaggedExpense.reportID, undefined, undefined, ROUTES.HOME)
-                          : ROUTES.EXPENSE_REPORT_RHP.getRoute({reportID: firstFlaggedExpense.reportID, backTo: ROUTES.HOME}),
-                  );
+              const siblingTransactionIDs = flaggedExpenses.map((flaggedExpense) => flaggedExpense.transactionID);
+
+              if (isOneTransactionReport(firstFlaggedReport) && (flaggedExpenses.length === 1 || !shouldUseNarrowLayout)) {
+                  // A lone flagged expense has nothing to page between, so it skips seeding the carousel entirely.
+                  const shouldSeedCarousel = flaggedExpenses.length > 1;
+                  const openReport = () =>
+                      Navigation.navigate(
+                          shouldUseNarrowLayout
+                              ? ROUTES.REPORT_WITH_ID.getRoute(firstFlaggedExpense.reportID, undefined, undefined, ROUTES.HOME)
+                              : ROUTES.EXPENSE_REPORT_RHP.getRoute({reportID: firstFlaggedExpense.reportID, backTo: ROUTES.HOME}),
+                      );
+
+                  if (!shouldSeedCarousel) {
+                      openReport();
+                      return;
+                  }
+                  setActiveTransactionIDs(siblingTransactionIDs, {source: CAROUSEL_SOURCE.homeReviewFlagged}).then(openReport);
                   return;
               }
 
@@ -188,7 +196,8 @@ function useReviewFlaggedExpenses(): ReviewFlaggedExpenses {
                   reportActions: Object.values(firstFlaggedReportActions ?? {}),
                   report: firstFlaggedReport,
                   transaction: firstFlaggedTransaction,
-                  siblingTransactionIDs: flaggedExpenses.map((flaggedExpense) => flaggedExpense.transactionID),
+                  siblingTransactionIDs,
+                  carouselSource: CAROUSEL_SOURCE.homeReviewFlagged,
                   backTo: ROUTES.HOME,
               });
           }
