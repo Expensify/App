@@ -91,6 +91,27 @@ function getInitialSubPageForNetsuiteTokenInput(policy: OnyxEntry<Policy>) {
     return CONST.NETSUITE_CONFIG.TOKEN_INPUT.PAGE_NAME.INSTALL;
 }
 
+type NetSuiteOAuthMigrationSeverity = 'info' | 'warning' | 'danger';
+
+const NETSUITE_OAUTH_DEADLINE = new Date('2027-02-01');
+
+function shouldShowNetSuiteOAuthMigrationNudge(policy?: Policy): boolean {
+    const netsuite = policy?.connections?.netsuite;
+    return !!netsuite?.verified && netsuite.config?.authType !== 'oauth2' && !!netsuite.tokenID && !!netsuite.tokenSecret;
+}
+
+function getNetSuiteOAuthMigrationSeverity(): NetSuiteOAuthMigrationSeverity {
+    const now = new Date();
+    const daysRemaining = (NETSUITE_OAUTH_DEADLINE.getTime() - now.getTime()) / (1000 * 60 * 60 * 24);
+    if (daysRemaining <= 30) {
+        return 'danger';
+    }
+    if (daysRemaining <= 90) {
+        return 'warning';
+    }
+    return 'info';
+}
+
 export {
     shouldHideReimbursedReportsSection,
     shouldHideReportsExportTo,
@@ -108,4 +129,7 @@ export {
     shouldHideExportForeignCurrencyAmount,
     getImportCustomFieldsSettings,
     getInitialSubPageForNetsuiteTokenInput,
+    shouldShowNetSuiteOAuthMigrationNudge,
+    getNetSuiteOAuthMigrationSeverity,
 };
+export type {NetSuiteOAuthMigrationSeverity};

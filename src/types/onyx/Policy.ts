@@ -1241,7 +1241,7 @@ type NetSuiteConnection = {
 
     lastSync?: ConnectionLastSync;
 
-    /** Config object used solely to store autosync settings */
+    /** Config object used to store autosync settings and authentication type */
     config: OnyxCommon.OnyxValueWithOfflineFeedback<{
         /** NetSuite auto synchronization configs */
         autoSync: {
@@ -1256,6 +1256,9 @@ type NetSuiteConnection = {
 
         /** Collection of form field errors  */
         errorFields?: OnyxCommon.ErrorFields;
+
+        /** Authentication method used for this connection */
+        authType?: 'tba' | 'oauth2';
     }>;
 
     /** Encrypted token secret for authenticating to NetSuite */
