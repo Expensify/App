@@ -12,7 +12,7 @@ import ThemeStylesProvider from '@components/ThemeStylesContextProvider';
 import SearchEditMultiplePage from '@pages/Search/SearchEditMultiple/SearchEditMultiplePage';
 
 import initOnyxDerivedValues from '@userActions/OnyxDerived';
-import {openPolicyCategoriesPage} from '@userActions/Policy/Category';
+import {getPolicyCategories} from '@userActions/Policy/Category';
 import {openPolicyTagsPage} from '@userActions/Policy/Tag';
 
 import CONST from '@src/CONST';
@@ -36,7 +36,7 @@ import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct'
 
 jest.mock('@userActions/Policy/Category', () => ({
     ...jest.requireActual<Record<string, unknown>>('@userActions/Policy/Category'),
-    openPolicyCategoriesPage: jest.fn(),
+    getPolicyCategories: jest.fn(),
 }));
 
 jest.mock('@userActions/Policy/Tag', () => ({
@@ -196,12 +196,12 @@ describe('SearchEditMultiplePage', () => {
         await waitForBatchedUpdatesWithAct();
 
         // Then it fetches them itself, since the search snapshot doesn't include them and the Category/Tag rows depend on them
-        expect(openPolicyCategoriesPage).toHaveBeenCalledWith(POLICY_ID);
+        expect(getPolicyCategories).toHaveBeenCalledWith(POLICY_ID);
         expect(openPolicyTagsPage).toHaveBeenCalledWith(POLICY_ID);
     });
 
-    it('does not refetch policy categories and tags that are already loaded', async () => {
-        // Given a workspace with categories and tags enabled whose categories and tags are already in Onyx
+    it('fetches policy categories and tags when only a partial set is in Onyx', async () => {
+        // Given a lazy-loaded account that only holds the category and tag already on its expenses, with no completed read
         await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, {areCategoriesEnabled: true, areTagsEnabled: true});
         await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${POLICY_ID}`, {Food: {name: 'Food', enabled: true}});
         await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${POLICY_ID}`, {Department: {name: 'Department', required: false, orderWeight: 0, tags: {Sales: {name: 'Sales', enabled: true}}}});
@@ -211,8 +211,26 @@ describe('SearchEditMultiplePage', () => {
         renderPage();
         await waitForBatchedUpdatesWithAct();
 
+        // Then it still fetches them, because a partial collection can be missing other categories or whole tag lists
+        expect(getPolicyCategories).toHaveBeenCalledWith(POLICY_ID);
+        expect(openPolicyTagsPage).toHaveBeenCalledWith(POLICY_ID);
+    });
+
+    it('does not refetch policy categories and tags that are already loaded', async () => {
+        // Given a workspace with categories and tags enabled whose categories and tags were already fully loaded
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, {areCategoriesEnabled: true, areTagsEnabled: true});
+        await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${POLICY_ID}`, {Food: {name: 'Food', enabled: true}});
+        await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${POLICY_ID}`, {Department: {name: 'Department', required: false, orderWeight: 0, tags: {Sales: {name: 'Sales', enabled: true}}}});
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.RAM_ONLY_POLICY_CATEGORIES_LOADING_STATE}${POLICY_ID}`, {isLoading: false, hasOnceLoaded: true});
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.RAM_ONLY_POLICY_TAGS_LOADING_STATE}${POLICY_ID}`, {isLoading: false, hasOnceLoaded: true});
+        await selectTransactions([OPEN_TRANSACTION_ID]);
+
+        // When the Edit multiple page opens
+        renderPage();
+        await waitForBatchedUpdatesWithAct();
+
         // Then no extra request is made, so opening the page doesn't add network traffic when the data is already available
-        expect(openPolicyCategoriesPage).not.toHaveBeenCalled();
+        expect(getPolicyCategories).not.toHaveBeenCalled();
         expect(openPolicyTagsPage).not.toHaveBeenCalled();
     });
 });

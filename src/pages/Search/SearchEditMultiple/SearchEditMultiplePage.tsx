@@ -12,8 +12,9 @@ import useConfirmModal from '@hooks/useConfirmModal';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
+import useLoadPolicyCategories from '@hooks/useLoadPolicyCategories';
+import useLoadPolicyTags from '@hooks/useLoadPolicyTags';
 import useLocalize from '@hooks/useLocalize';
-import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import {usePersonalDetailsByIDs} from '@hooks/usePersonalDetails';
@@ -21,8 +22,6 @@ import usePersonalPolicy from '@hooks/usePersonalPolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {clearBulkEditDraftTransaction, updateMultipleMoneyRequests} from '@libs/actions/IOU/BulkEdit';
-import {openPolicyCategoriesPage} from '@libs/actions/Policy/Category';
-import {openPolicyTagsPage} from '@libs/actions/Policy/Tag';
 import Navigation from '@libs/Navigation/Navigation';
 import {hasEnabledOptions} from '@libs/OptionsListUtils';
 import Parser from '@libs/Parser';
@@ -176,26 +175,10 @@ function SearchEditMultiplePage() {
     const areAttendeesEnabled = areSelectedTransactionsExpenses && isAttendeeTrackingEnabledForSelection;
 
     // Policy categories and tags are not part of the search snapshot, and this page can be opened straight from Search
-    // before any screen has loaded them (e.g. after a cache clear), so fetch them here or their rows stay hidden.
-    const fetchPolicyData = () => {
-        if (!policyID) {
-            return;
-        }
-        if (policy?.areCategoriesEnabled && !policyCategories) {
-            openPolicyCategoriesPage(policyID);
-        }
-        if (policy?.areTagsEnabled && !policyTags) {
-            openPolicyTagsPage(policyID);
-        }
-    };
-
-    useNetwork({onReconnect: fetchPolicyData});
-
-    useEffect(() => {
-        fetchPolicyData();
-        // Only refetch when the policy or its enabled features change, not when the fetched data lands.
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [policyID, policy?.areCategoriesEnabled, policy?.areTagsEnabled]);
+    // before any screen has fully loaded them (e.g. after a cache clear, or on a lazy-loaded account that only holds the
+    // values already on its expenses), so load them here or their rows stay hidden or incomplete.
+    useLoadPolicyCategories(policy?.areCategoriesEnabled ? policyID : undefined);
+    useLoadPolicyTags(policy?.areTagsEnabled ? policyID : undefined);
 
     useEffect(() => {
         return () => {
