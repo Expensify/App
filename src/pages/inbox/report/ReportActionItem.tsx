@@ -192,7 +192,7 @@ function ReportActionItem({
     const reportID = report?.reportID ?? action?.reportID;
     const originalReportID = useOriginalReportID(report?.reportID, action);
     const {isOffline} = useNetwork();
-    const reportsParentHierarchy = useReportsParentHierarchy();
+    const reportsParentHierarchy = useReportsParentHierarchy(reportID);
     const [iouReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getIOUReportIDFromReportActionPreview(action)}`, {selector: getStableReportSelector});
     const [iouPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${iouReport?.policyID}`);
 
