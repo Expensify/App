@@ -24,7 +24,7 @@ type ActionListRef = {
     getNativeScrollRef?: () => unknown;
     getScrollableNode?: () => unknown;
     /** Measured item positions supplied by LegendList. Other list implementations can omit this. */
-    getState?: () => {positionByKey: (key: string) => number | undefined} | undefined;
+    getState?: () => {positionByKey: (key: string) => number | undefined; scroll?: number; contentLength?: number; scrollLength?: number} | undefined;
 };
 
 /** Ref to the underlying list instance attached via `ref={}`. */

@@ -54,6 +54,18 @@ function useLinkedReportActionScroll({listID, linkedReportActionID, targetIndex,
             return;
         }
         wasLastActionRef.current = isLastAction;
+        if (Platform.OS === 'android' && !isLastAction && linkedReportActionID) {
+            const state = getListRef()?.current?.getState?.();
+            const position = state?.positionByKey(linkedReportActionID);
+            if (position !== undefined && state?.scroll !== undefined && state.contentLength !== undefined && state.scrollLength !== undefined) {
+                const targetOffset = Math.max(0, Math.min(position - CONST.REPORT.ACTIONS.LINKED_MESSAGE_OFFSET, state.contentLength - state.scrollLength));
+                // LegendList includes pending native anchoring in its scroll offset. An imperative
+                // scroll to that same offset would apply the height correction twice on Android.
+                if (Math.abs(targetOffset - state.scroll) <= 1) {
+                    return;
+                }
+            }
+        }
         reportScrollManager.scrollToIndex(
             targetIndex,
             isLastAction ? {animated: false, viewPosition: 1} : {animated: false, viewPosition: 0, viewOffset: CONST.REPORT.ACTIONS.LINKED_MESSAGE_OFFSET},

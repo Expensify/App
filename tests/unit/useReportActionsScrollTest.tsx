@@ -13,6 +13,7 @@ import type {ReportAction} from '@src/types/onyx';
 import type {ReactNode} from 'react';
 
 import React from 'react';
+import {Platform} from 'react-native';
 import Onyx from 'react-native-onyx';
 
 import createMock from '../utils/createMock';
@@ -35,6 +36,7 @@ jest.spyOn(global, 'requestAnimationFrame').mockImplementation((callback: FrameR
 const mockScrollToBottom = jest.fn();
 const mockScrollToIndex = jest.fn();
 let mockLinkedActionPosition = 40;
+let mockListScroll: number | undefined;
 jest.mock('@hooks/useReportScrollManager', () => ({
     __esModule: true,
     default: () => ({
@@ -217,7 +219,7 @@ function buildActionListContextValue() {
                 scrollToIndex: mockScrollToIndex,
                 scrollToEnd: mockScrollToBottom,
                 scrollToOffset: jest.fn(),
-                getState: () => ({positionByKey: () => mockLinkedActionPosition}),
+                getState: () => ({positionByKey: () => mockLinkedActionPosition, scroll: mockListScroll, contentLength: 5000, scrollLength: 600}),
             },
         }),
     };
@@ -253,6 +255,7 @@ describe('useReportActionsScroll', () => {
         mockTransitionCallbacks.length = 0;
         mockRouteParams = {};
         mockLinkedActionPosition = 40;
+        mockListScroll = undefined;
         mockIsFocused = true;
         mockReportRHPActiveRoute = undefined;
         mockIsFloatingMessageCounterVisible = false;
@@ -389,6 +392,40 @@ describe('useReportActionsScroll', () => {
     });
 
     describe('linked message positioning', () => {
+        it('lets Android preserve an already aligned linked message when a preceding row changes height', async () => {
+            // Given Android has already positioned the link and is preserving it during measurement.
+            const platform = jest.replaceProperty(Platform, 'OS', 'android');
+            mockRouteParams = {reportActionID: LINKED_ACTION_ID};
+            mockLinkedActionPosition = 2690;
+            mockListScroll = 2650;
+            const {result} = await renderScroll({renderedVisibleReportActions: [makeAction('123'), makeAction(LINKED_ACTION_ID), makeAction('999')]});
+            act(() => result.current.onLoad());
+            flushTransitions();
+            mockScrollToIndex.mockClear();
+
+            // When LegendList updates both the measured position and its pending native scroll adjustment.
+            mockLinkedActionPosition = 2460;
+            mockListScroll = 2420;
+            act(() => result.current.onItemSizeChanged({index: 0, previous: 500, size: 270}));
+            flushTransitions();
+
+            // Then another imperative scroll does not apply the same correction a second time.
+            expect(mockScrollToIndex).not.toHaveBeenCalled();
+
+            // A later scroll event that really moves the link still receives a correction.
+            mockListScroll = 2190;
+            act(() =>
+                result.current.trackLinkedMessageScroll(
+                    createMock<Parameters<typeof result.current.trackLinkedMessageScroll>[0]>({
+                        nativeEvent: {contentOffset: {x: 0, y: 2190}, contentSize: {width: 300, height: 5000}, layoutMeasurement: {width: 300, height: 600}},
+                    }),
+                ),
+            );
+            flushTransitions();
+            expect(mockScrollToIndex).toHaveBeenCalledWith(1, {animated: false, viewPosition: 0, viewOffset: CONST.REPORT.ACTIONS.LINKED_MESSAGE_OFFSET});
+            platform.restore();
+        });
+
         it('restores a linked message moved out of view by a late native scroll adjustment', async () => {
             // Given the linked message has already landed below a measured long predecessor.
             mockRouteParams = {reportActionID: LINKED_ACTION_ID};
