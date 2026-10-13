@@ -34,7 +34,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ImportedSpreadsheetMemberData, InvitedEmailsToAccountIDs, Policy, PolicyEmployee, PolicyOwnershipChangeChecks, Report, ReportAction, ReportActions} from '@src/types/onyx';
 import type {ImportFinalModal} from '@src/types/onyx/ImportedSpreadsheet';
-import type {PendingAction} from '@src/types/onyx/OnyxCommon';
+import type {Errors, PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {JoinWorkspaceResolution} from '@src/types/onyx/OriginalMessage';
 import type {ApprovalRule} from '@src/types/onyx/Policy';
 import type {NotificationPreference, Participant} from '@src/types/onyx/Report';
@@ -733,7 +733,7 @@ async function updateWorkspaceMembersRole(policy: OnyxEntry<Policy>, selectedMem
     };
 
     // A write request reports failures through the member rows, while the side-effects request reports them through page-level modals.
-    const setMemberErrorsOnFailure = (errors: PolicyEmployee['errors']): OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY> => ({
+    const setMemberErrorsOnFailure = (errors: Errors | null): OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY> => ({
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.POLICY}${policy.id}`,
         value: {

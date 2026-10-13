@@ -12,6 +12,15 @@ function useApproveOnlyRoleBlockedModal() {
     const {translate} = useLocalize();
     const {showConfirmModal} = useConfirmModal();
 
+    const showRoleUpdateErrorModal = () => {
+        showConfirmModal({
+            title: translate('workspace.people.approveOnlyRoleBlockedTitle'),
+            prompt: translate('common.genericErrorMessage'),
+            confirmText: translate('common.buttonConfirm'),
+            shouldShowCancelButton: false,
+        });
+    };
+
     const showApproveOnlyBlockedModal = (blockedReasons: string[]) => {
         const reasonTranslationKeys: Record<string, TranslationPaths> = {
             [CONST.POLICY.APPROVE_ONLY_BLOCKED_REASONS.HAS_CARD_ON_POLICY]: 'workspace.people.approveOnlyRoleBlockedReasons.hasCardOnPolicy',
@@ -28,15 +37,6 @@ function useApproveOnlyRoleBlockedModal() {
             title: translate('workspace.people.approveOnlyRoleBlockedTitle'),
             prompt: [translate('workspace.people.approveOnlyRoleBlockedDescription'), '', ...reasonLines].join('\n'),
             confirmText: translate('workspace.people.approveOnlyRoleBlockedConfirm'),
-            shouldShowCancelButton: false,
-        });
-    };
-
-    const showRoleUpdateErrorModal = () => {
-        showConfirmModal({
-            title: translate('workspace.people.approveOnlyRoleBlockedTitle'),
-            prompt: translate('common.genericErrorMessage'),
-            confirmText: translate('common.buttonConfirm'),
             shouldShowCancelButton: false,
         });
     };

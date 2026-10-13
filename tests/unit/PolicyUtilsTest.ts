@@ -526,16 +526,16 @@ describe('PolicyUtils', () => {
             });
 
             it('blocks expense creation when the policy role cannot be resolved', () => {
-                expect(canCreateExpensesOnPolicy({role: undefined} as unknown as Policy)).toBe(false);
+                expect(canCreateExpensesOnPolicy(createMock<Policy>({role: undefined}))).toBe(false);
                 expect(canCreateExpensesOnPolicy(undefined)).toBe(false);
             });
 
             it('resolves the member role from employeeList when the policy role is missing', () => {
-                const legacyPolicy = {
+                const legacyPolicy = createMock<Policy>({
                     employeeList: {
                         [memberLogin]: {role: CONST.POLICY.ROLE.USER},
                     },
-                } as unknown as Policy;
+                });
 
                 expect(canCreateExpensesOnPolicy(legacyPolicy)).toBe(false);
                 expect(canCreateExpensesOnPolicy(legacyPolicy, memberLogin)).toBe(true);

@@ -4,12 +4,13 @@ import AddExpenseActionButton from '@components/ReportActionItem/MoneyRequestRep
 
 import {getAddExpenseDropdownOptions} from '@userActions/IOU/StartExpenseFlows';
 
+import CONST from '@src/CONST';
 import type {Report} from '@src/types/onyx';
 
 import React from 'react';
 
 const mockIouReport = {reportID: '1001', parentReportID: '3003'} as Report;
-const mockPolicy = {id: 'policy1'};
+const mockPolicy = {id: 'policy1', role: CONST.POLICY.ROLE.USER};
 
 // Capture the props AddExpenseActionButton forwards to ButtonWithDropdownMenu.
 const mockButtonProps: {current: {customText?: string} | undefined} = {current: undefined};
