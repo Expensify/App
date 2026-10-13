@@ -1,15 +1,8 @@
-import {
-    filterOutDeprecatedReportActions,
-    getIOUActionForTransactionID,
-    getLinkedTransactionID,
-    getOriginalMessage,
-    getSortedReportActions,
-    isActionOfType,
-    isForwardedAction,
-    isSubmittedAction,
-} from '@libs/ReportActionsUtils';
+import {filterOutDeprecatedReportActions, getIOUActionForTransactionID, getLinkedTransactionID, getOriginalMessage, getSortedReportActions, isActionOfType} from '@libs/ReportActionsUtils';
+import {hasReportBeenForwardedSinceLastSubmit} from '@libs/ReportUtils';
 
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReportAction, ReportActions} from '@src/types/onyx';
 import type {VisibleReportActionsDerivedValue} from '@src/types/onyx/DerivedValues';
 
@@ -151,17 +144,17 @@ function getReceiptScanFailedIOUActionDataSelector(
 const transactionThreadReportIDSelector = (transactionID: string | undefined) => (reportActions: OnyxEntry<ReportActions>) =>
     transactionID ? getIOUActionForTransactionID(Object.values(reportActions ?? {}), transactionID)?.childReportID : undefined;
 
-// Keeps only SUBMITTED/FORWARDED actions per report, so subscribers skip re-rendering on unrelated action writes.
-function submitForwardReportActionsSelector(allReportActions: OnyxCollection<ReportActions>): OnyxCollection<ReportAction[]> {
+// IDs of reports forwarded since their last submit, so re-renders only happen on a yes/no flip per report.
+function forwardedSinceLastSubmitReportIDsSelector(allReportActions: OnyxCollection<ReportActions>): Record<string, true> | undefined {
     if (!allReportActions) {
-        return allReportActions;
+        return undefined;
     }
 
-    const result: OnyxCollection<ReportAction[]> = {};
+    const result: Record<string, true> = {};
     for (const key of Object.keys(allReportActions)) {
-        const relevantActions = Object.values(allReportActions[key] ?? {}).filter((action) => isSubmittedAction(action) || isForwardedAction(action));
-        if (relevantActions.length > 0) {
-            result[key] = relevantActions;
+        const reportID = key.slice(ONYXKEYS.COLLECTION.REPORT_ACTIONS.length);
+        if (hasReportBeenForwardedSinceLastSubmit({reportID}, allReportActions[key])) {
+            result[reportID] = true;
         }
     }
     return result;
@@ -175,7 +168,7 @@ export {
     getReportActionByIDSelector,
     getReceiptScanFailedIOUActionDataSelector,
     reportVisibleActionsSelector,
-    submitForwardReportActionsSelector,
+    forwardedSinceLastSubmitReportIDsSelector,
     transactionThreadReportIDSelector,
 };
 export type {NewestReportAction};
