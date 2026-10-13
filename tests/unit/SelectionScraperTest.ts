@@ -84,6 +84,32 @@ describe('SelectionScraper', () => {
         expect(SelectionScraper.getCurrentSelection()).toBe('Aug 26 Paid<br>Aug 27 Draft');
     });
 
+    it('preserves semantic formatting without layout wrappers in a multi-field selection', () => {
+        createFixture(`
+            <div ${copyableRowAttribute}="true">
+                <span id="amount" ${copyableTextAttribute}="true">TJS 10.00</span>
+                <span id="description" ${copyableTextAttribute}="true">
+                    <div>
+                        <div data-testid="p">
+                            <span><span id="formatted-description" data-testid="strong">Test is</span></span>
+                            <span data-testid="code">good</span>
+                        </div>
+                    </div>
+                </span>
+                <span id="merchant" ${copyableTextAttribute}="true">Merchant</span>
+            </div>
+        `);
+
+        selectText(getTextNode('amount'), 0, getTextNode('merchant'), 'Merchant'.length);
+
+        const selectionHTML = SelectionScraper.getCurrentSelection();
+        expect(selectionHTML).toBe('TJS 10.00 <strong>Test is</strong> <code>good</code> Merchant');
+        expect(getClipboardText(selectionHTML)).toBe('TJS 10.00 Test is good Merchant');
+
+        selectText(getTextNode('formatted-description'), 'Test '.length, getTextNode('merchant'), 'Merchant'.length);
+        expect(SelectionScraper.getCurrentSelection()).toBe('<strong>is</strong> <code>good</code> Merchant');
+    });
+
     it('joins a continuation row to the next row with a space', () => {
         // Given report fields followed by expense details in separate copyable rows
         createFixture(`

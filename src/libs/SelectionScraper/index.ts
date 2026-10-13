@@ -22,10 +22,50 @@ const COPYABLE_ROW_DATA_SET = {[CONST.COPYABLE_ROW_ELEMENT]: true} as const;
 const copyableRowContinuationAttribute = `data-${CONST.COPYABLE_ROW_CONTINUATION_ELEMENT}`;
 const COPYABLE_ROW_CONTINUATION_DATA_SET = {...COPYABLE_ROW_DATA_SET, [CONST.COPYABLE_ROW_CONTINUATION_ELEMENT]: true} as const;
 
-function getCopyableElementText(element: globalThis.Element, selection: Selection): string {
+function normalizeSelectedContent(content: globalThis.DocumentFragment) {
+    const walker = document.createTreeWalker(content, NodeFilter.SHOW_TEXT);
+    const textNodes: globalThis.Text[] = [];
+    let textNode = walker.nextNode();
+    let hasText = false;
+    let previousTextEndsWithSpace = false;
+
+    while (textNode) {
+        if (textNode instanceof globalThis.Text) {
+            textNode.data = textNode.data.replaceAll(/[\t\n\r ]+/g, ' ');
+            if (!hasText || previousTextEndsWithSpace) {
+                textNode.data = textNode.data.trimStart();
+            }
+            if (textNode.data) {
+                hasText = true;
+                previousTextEndsWithSpace = textNode.data.endsWith(' ');
+            }
+            textNodes.push(textNode);
+        }
+        textNode = walker.nextNode();
+    }
+
+    const lastTextNode = textNodes.findLast((node) => !!node.data);
+    if (lastTextNode) {
+        lastTextNode.data = lastTextNode.data.trimEnd();
+    }
+}
+
+function unwrapNonSemanticElements(content: globalThis.DocumentFragment) {
+    for (const element of content.querySelectorAll('*')) {
+        const renderedTag = element.getAttribute(tagAttribute);
+        const nativeTag = element.tagName.toLowerCase();
+        if ((renderedTag && markdownElements.has(renderedTag)) || markdownElements.has(nativeTag)) {
+            continue;
+        }
+
+        element.replaceWith(...Array.from(element.childNodes));
+    }
+}
+
+function getCopyableElementContent(element: globalThis.Element, selection: Selection): globalThis.DocumentFragment {
     const elementRange = document.createRange();
     elementRange.selectNodeContents(element);
-    const selectedText: string[] = [];
+    const selectedContent = document.createDocumentFragment();
 
     for (let i = 0; i < selection.rangeCount; i++) {
         const intersectionRange = selection.getRangeAt(i).cloneRange();
@@ -39,23 +79,44 @@ function getCopyableElementText(element: globalThis.Element, selection: Selectio
         if (intersectionRange.compareBoundaryPoints(globalThis.Range.END_TO_END, elementRange) > 0) {
             intersectionRange.setEnd(elementRange.endContainer, elementRange.endOffset);
         }
-        selectedText.push(intersectionRange.toString());
+
+        let content: globalThis.Node = intersectionRange.cloneContents();
+        let parent = getElementFromNode(intersectionRange.commonAncestorContainer)?.closest(`[${tagAttribute}]`) ?? null;
+        while (parent && element.contains(parent)) {
+            const clonedParent = parent.cloneNode();
+            clonedParent.appendChild(content);
+            content = clonedParent;
+            parent = parent.parentElement?.closest(`[${tagAttribute}]`) ?? null;
+        }
+
+        const fragment = document.createDocumentFragment();
+        fragment.appendChild(content);
+        for (const hiddenElement of fragment.querySelectorAll(hiddenElementSelector)) {
+            hiddenElement.remove();
+        }
+        unwrapNonSemanticElements(fragment);
+        normalizeSelectedContent(fragment);
+        if (!fragment.textContent?.trim()) {
+            continue;
+        }
+
+        if (selectedContent.textContent) {
+            selectedContent.appendChild(document.createTextNode(' '));
+        }
+        selectedContent.appendChild(fragment);
     }
 
-    return selectedText
-        .join(' ')
-        .trim()
-        .replaceAll(/[\t\n\r ]+/g, ' ');
+    return selectedContent;
 }
 
-function replaceElementContentWithLines(element: globalThis.Element, lines: Array<{row: globalThis.Element; text: string}>) {
-    for (const [index, {text}] of lines.entries()) {
+function replaceElementContentWithLines(element: globalThis.Element, lines: Array<{row: globalThis.Element; content: globalThis.DocumentFragment}>) {
+    for (const [index, {content}] of lines.entries()) {
         if (index > 0) {
             const previousRow = lines.at(index - 1)?.row;
             const separator = previousRow?.getAttribute(copyableRowContinuationAttribute) === 'true' ? document.createTextNode(' ') : document.createElement('br');
             element.appendChild(separator);
         }
-        element.appendChild(document.createTextNode(text));
+        element.appendChild(content);
     }
 }
 
@@ -171,15 +232,26 @@ function getHTMLOfSelectedCopyableRows(selection: Selection): string {
     }
 
     const lines = selectedRows
-        .map((row) => ({
-            row,
-            text: [row, ...Array.from(row.querySelectorAll(COPYABLE_TEXT_SELECTOR))]
-                .filter((copyableElement) => selectedCopyableElementsByRow.get(row)?.has(copyableElement))
-                .map((copyableElement) => getCopyableElementText(copyableElement, selection))
-                .filter((text) => !!text)
-                .join(' '),
-        }))
-        .filter(({text}) => !!text);
+        .map((row) => {
+            const content = document.createDocumentFragment();
+            for (const copyableElement of [row, ...Array.from(row.querySelectorAll(COPYABLE_TEXT_SELECTOR))]) {
+                if (!selectedCopyableElementsByRow.get(row)?.has(copyableElement)) {
+                    continue;
+                }
+
+                const copyableContent = getCopyableElementContent(copyableElement, selection);
+                if (!copyableContent.textContent) {
+                    continue;
+                }
+
+                if (content.textContent) {
+                    content.appendChild(document.createTextNode(' '));
+                }
+                content.appendChild(copyableContent);
+            }
+            return {row, content};
+        })
+        .filter(({content}) => !!content.textContent);
 
     if (lines.length === 0) {
         return '';
