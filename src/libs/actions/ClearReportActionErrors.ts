@@ -1,4 +1,4 @@
-import {getLinkedTransactionID, getReportAction, getReportActionMessage, isCreatedTaskReportAction, isRejectedAction} from '@libs/ReportActionsUtils';
+import {getLinkedTransactionID, getReportAction, getReportActionMessage, getVisibleReportActionErrors, isCreatedTaskReportAction, isRejectedAction} from '@libs/ReportActionsUtils';
 import {getOriginalReportID} from '@libs/ReportUtils';
 import {buildOptimisticSnapshotData} from '@libs/SearchQueryUtils';
 
@@ -128,7 +128,9 @@ type ClearAllRelatedReportActionErrorsParams = {
 };
 
 function clearAllRelatedReportActionErrors({reportID, reportAction, originalReportID, isOffline, ignore, keys, reports}: ClearAllRelatedReportActionErrorsParams) {
-    const errorKeys = keys ?? Object.keys(reportAction?.errors ?? {});
+    // Default to the errors the user can see. Propagating a hidden one, e.g. the mirrored pay failure, would clear
+    // or delete the action it was mirrored from without the user ever seeing it.
+    const errorKeys = keys ?? Object.keys(getVisibleReportActionErrors(reportAction ?? undefined) ?? {});
     if (!reportAction || errorKeys.length === 0 || !reportID) {
         return;
     }
