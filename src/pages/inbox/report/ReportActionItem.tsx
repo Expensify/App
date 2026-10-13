@@ -56,7 +56,6 @@ import {
     isPendingRemove,
     isTripPreview,
     isWhisperActionTargetedToOthers,
-    shouldHidePayAction,
     useTableReportViewActionRenderConditionals,
 } from '@libs/ReportActionsUtils';
 import {
@@ -515,7 +514,7 @@ function ReportActionItem({
 
     // For the `pay` IOU action on non-pay expense flow, we don't want to render anything if `isWaitingOnBankAccount` is true
     // Otherwise, we will see two system messages informing the payee needs to add a bank account or wallet
-    if (shouldHidePayAction(action, !!report?.isWaitingOnBankAccount)) {
+    if (isMoneyRequestAction(action) && !!report?.isWaitingOnBankAccount && getOriginalMessage(action)?.type === CONST.IOU.REPORT_ACTION_TYPE.PAY && !isSendingMoney) {
         return null;
     }
 
