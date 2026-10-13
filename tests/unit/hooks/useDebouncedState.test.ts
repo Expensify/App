@@ -87,6 +87,51 @@ describe('useDebouncedState', () => {
             });
         }).not.toThrow();
     });
+
+    it('should not restart delay when the same value is set repeatedly while pending', () => {
+        // Given a hook initialized with an empty string
+        const {result} = renderHook(() => useDebouncedState(''));
+
+        // When a value is set and then re-set halfway through the delay
+        act(() => {
+            result.current[2]('john');
+        });
+        act(() => {
+            jest.advanceTimersByTime(150);
+            result.current[2]('john');
+        });
+        act(() => {
+            jest.advanceTimersByTime(CONST.TIMING.USE_DEBOUNCED_STATE_DELAY - 150);
+        });
+
+        // Then debounced value settles without waiting an extra full delay
+        expect(result.current[1]).toBe('john');
+    });
+
+    it('should restart the pending timer with the new delay when the delay changes', () => {
+        // Given a hook with a long delay and a pending value
+        const {result, rerender} = renderHook(({delay}: {delay: number}) => useDebouncedState('', delay), {initialProps: {delay: 1000}});
+        act(() => {
+            result.current[2]('john');
+        });
+        act(() => {
+            jest.advanceTimersByTime(500);
+        });
+
+        // When the delay is shortened while the value is still pending
+        rerender({delay: 100});
+        act(() => {
+            jest.advanceTimersByTime(99);
+        });
+
+        // Then the debounced value waits for the full new delay, not the old one
+        expect(result.current[1]).toBe('');
+        act(() => {
+            jest.advanceTimersByTime(1);
+        });
+        expect(result.current[1]).toBe('john');
+    });
+
     describe('onDebouncedValueChange', () => {
         it('should fire once per distinct debounced value, before the debounced state updates', () => {
             // Given a callback that records the debounced state seen at call time
@@ -156,6 +201,24 @@ describe('useDebouncedState', () => {
             // Then only the final value is reported
             expect(onDebouncedValueChange).toHaveBeenCalledTimes(1);
             expect(onDebouncedValueChange).toHaveBeenCalledWith('jo');
+        });
+
+        it('should not fire when the hook unmounts while a value is pending', () => {
+            // Given a callback and a pending value
+            const onDebouncedValueChange = jest.fn();
+            const {result, unmount} = renderHook(() => useDebouncedState<string>('', CONST.TIMING.USE_DEBOUNCED_STATE_DELAY, {onDebouncedValueChange}));
+            act(() => {
+                result.current[2]('john');
+            });
+
+            // When the hook unmounts before the delay elapses
+            unmount();
+            act(() => {
+                jest.advanceTimersByTime(CONST.TIMING.USE_DEBOUNCED_STATE_DELAY);
+            });
+
+            // Then the pending value is dropped and no change is reported, since nothing will render it
+            expect(onDebouncedValueChange).not.toHaveBeenCalled();
         });
 
         it('should still update the debounced value when the callback throws', () => {
