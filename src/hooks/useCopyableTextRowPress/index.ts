@@ -1,6 +1,6 @@
 import CONST from '@src/CONST';
 
-import {useRef} from 'react';
+import {useRef, useState} from 'react';
 
 const COPYABLE_TEXT_SELECTOR = `[data-${CONST.COPYABLE_TEXT_ELEMENT}=true]`;
 
@@ -10,6 +10,10 @@ type MarkCopyableTextMouseDownOptions = {
 
 type HandleCopyableTextRowPressOptions = {
     shouldCheck?: boolean;
+};
+
+type UseCopyableTextRowPressOptions = {
+    shouldTrackTouchStart?: boolean;
 };
 
 type PressStartOnCopyableTextCache = {
@@ -144,11 +148,13 @@ function shouldSuppressCopyableTextPress(didMouseDownStartOnCopyableText: boolea
     return !!anchorCopyableElement || !!focusCopyableElement;
 }
 
-function useCopyableTextRowPress() {
+function useCopyableTextRowPress({shouldTrackTouchStart = false}: UseCopyableTextRowPressOptions = {}) {
     const wasMouseDownOnCopyableTextRef = useRef(false);
     const wasTouchStartOnCopyableTextRef = useRef(false);
+    const didTouchStartOnCopyableTextRef = useRef(false);
     const shouldSuppressNextPressRef = useRef(false);
     const pressStartOnCopyableTextCacheRef = useRef<PressStartOnCopyableTextCache | null>(null);
+    const [didTouchStartOnCopyableText, setDidTouchStartOnCopyableText] = useState(false);
 
     const getCachedIsPressStartOnCopyableText = (event: unknown, shouldCheck = true): boolean => {
         if (!shouldCheck) {
@@ -177,7 +183,11 @@ function useCopyableTextRowPress() {
         pressStartOnCopyableTextCacheRef.current = null;
         const isCopyableTarget = shouldCheck && isCopyableTextTarget(target);
         wasMouseDownOnCopyableTextRef.current = isCopyableTarget;
+        didTouchStartOnCopyableTextRef.current = false;
         shouldSuppressNextPressRef.current = isCopyableTarget && shouldSuppressNextPress;
+        if (shouldTrackTouchStart) {
+            setDidTouchStartOnCopyableText(false);
+        }
         return isCopyableTarget;
     };
 
@@ -186,9 +196,15 @@ function useCopyableTextRowPress() {
         const isCopyableTarget = shouldCheck && isCopyableTextTarget(getPressStartTarget(event));
         wasMouseDownOnCopyableTextRef.current = false;
         wasTouchStartOnCopyableTextRef.current = isCopyableTarget;
+        didTouchStartOnCopyableTextRef.current = isCopyableTarget;
         shouldSuppressNextPressRef.current = false;
+        if (shouldTrackTouchStart) {
+            setDidTouchStartOnCopyableText(isCopyableTarget);
+        }
         return isCopyableTarget;
     };
+
+    const shouldPreserveNativeTextSelection = () => didTouchStartOnCopyableTextRef.current;
 
     const shouldSuppressCopyableTextRowPress = (shouldCheck = true): boolean => {
         const didPressStartOnCopyableText = wasMouseDownOnCopyableTextRef.current || wasTouchStartOnCopyableTextRef.current;
@@ -218,10 +234,12 @@ function useCopyableTextRowPress() {
     const shouldSuppressCopyableTextRowFocus = () => wasMouseDownOnCopyableTextRef.current;
 
     return {
+        didTouchStartOnCopyableText,
         handleCopyableTextRowPress,
         isPressStartOnCopyableText: getCachedIsPressStartOnCopyableText,
         markMouseDownOnCopyableText,
         markTouchStartOnCopyableText,
+        shouldPreserveNativeTextSelection,
         shouldSuppressCopyableTextRowFocus,
         shouldSuppressCopyableTextRowLongPress,
         shouldSuppressCopyableTextRowPress,

@@ -69,11 +69,11 @@ jest.mock('@hooks/useResponsiveLayout', () => ({
 jest.mock('@libs/getPlatform', () => jest.fn());
 
 jest.mock('@hooks/useCopyableTextRowPress', () => {
-    const actual = jest.requireActual<typeof CopyableTextRowPress>('@hooks/useCopyableTextRowPress');
+    const actual = jest.requireActual<typeof CopyableTextRowPress>('../../../../src/hooks/useCopyableTextRowPress/index.ts');
     return {...actual, __esModule: true, default: jest.fn(actual.default)};
 });
 
-const actualUseCopyableTextRowPress = jest.requireActual<typeof CopyableTextRowPress>('@hooks/useCopyableTextRowPress').default;
+const actualUseCopyableTextRowPress = jest.requireActual<typeof CopyableTextRowPress>('../../../../src/hooks/useCopyableTextRowPress/index.ts').default;
 const mockedUseCopyableTextRowPress = jest.mocked(useCopyableTextRowPress);
 const mockedGetPlatform = jest.mocked(getPlatform);
 const mockedHasHoverSupport = jest.mocked(hasHoverSupport);
@@ -121,11 +121,17 @@ function LegacyRow({isTitleSelectable = false}: {isTitleSelectable?: boolean}) {
 }
 
 function mockCopyableTextHitTest(isPressStartOnCopyableText: (event: unknown) => boolean) {
-    mockedUseCopyableTextRowPress.mockImplementation(() => ({
-        ...actualUseCopyableTextRowPress(),
-        isPressStartOnCopyableText,
-        markTouchStartOnCopyableText: (_event, shouldCheck = true) => shouldCheck,
-    }));
+    mockedUseCopyableTextRowPress.mockImplementation((options) => {
+        const hook = actualUseCopyableTextRowPress(options);
+        const copyableTextElement = document.createElement('span');
+        copyableTextElement.setAttribute(`data-${CONST.COPYABLE_TEXT_ELEMENT}`, 'true');
+
+        return {
+            ...hook,
+            isPressStartOnCopyableText,
+            markTouchStartOnCopyableText: (_event, shouldCheck = true) => hook.markTouchStartOnCopyableText({target: copyableTextElement}, shouldCheck),
+        };
+    });
 }
 
 /** A long press reaches the row's handler through `PressableWithSecondaryInteraction`. */

@@ -1,4 +1,4 @@
-import {renderHook} from '@testing-library/react-native';
+import {act, renderHook} from '@testing-library/react-native';
 
 import type useCopyableTextRowPressModule from '../../../src/hooks/useCopyableTextRowPress/index';
 import type {isPressStartOnCopyableText as isPressStartOnCopyableTextModule} from '../../../src/hooks/useCopyableTextRowPress/index';
@@ -67,6 +67,25 @@ describe('useCopyableTextRowPress', () => {
 
         expect(result.current.markTouchStartOnCopyableText({target: copyableTextElement})).toBe(true);
         expect(result.current.shouldSuppressCopyableTextRowLongPress()).toBe(true);
+    });
+
+    it('tracks copyable touch starts for consumers that need to preserve native text selection', () => {
+        const {result} = renderHook(() => useCopyableTextRowPress({shouldTrackTouchStart: true}));
+        const copyableTextElement = getCopyableTextElement();
+
+        act(() => {
+            result.current.markTouchStartOnCopyableText({target: copyableTextElement});
+        });
+
+        expect(result.current.didTouchStartOnCopyableText).toBe(true);
+        expect(result.current.shouldPreserveNativeTextSelection()).toBe(true);
+
+        act(() => {
+            result.current.markMouseDownOnCopyableText(copyableTextElement);
+        });
+
+        expect(result.current.didTouchStartOnCopyableText).toBe(false);
+        expect(result.current.shouldPreserveNativeTextSelection()).toBe(false);
     });
 
     it('does not suppress row press when the press starts outside copyable text', () => {

@@ -65,7 +65,7 @@ import type {GestureResponderEvent, ImageStyle, Role, StyleProp, TextStyle, View
 import type {AnimatedStyle} from 'react-native-reanimated';
 import type {ValueOf} from 'type-fest';
 
-import React, {useMemo, useRef, useState} from 'react';
+import React, {useMemo, useRef} from 'react';
 import {View} from 'react-native';
 
 import useRemoveNonInteractiveClickHandler from './hooks/useRemoveNonInteractiveClickHandler';
@@ -591,10 +591,15 @@ function MenuItem({
     const {singleExecution, waitForNavigate} = useMenuItemGroupActions() ?? {};
     const popoverAnchor = useRef<ComponentRef<typeof View>>(null);
     const pressableRef = useRef<ComponentRef<typeof View>>(null);
-    const didTouchStartOnCopyableTextRef = useRef(false);
-    const [didTouchStartOnCopyableText, setDidTouchStartOnCopyableText] = useState(false);
-    const {isPressStartOnCopyableText, markMouseDownOnCopyableText, markTouchStartOnCopyableText, shouldSuppressCopyableTextRowLongPress, shouldSuppressCopyableTextRowPress} =
-        useCopyableTextRowPress();
+    const {
+        didTouchStartOnCopyableText,
+        isPressStartOnCopyableText,
+        markMouseDownOnCopyableText,
+        markTouchStartOnCopyableText,
+        shouldPreserveNativeTextSelection,
+        shouldSuppressCopyableTextRowLongPress,
+        shouldSuppressCopyableTextRowPress,
+    } = useCopyableTextRowPress({shouldTrackTouchStart: true});
     useRemoveNonInteractiveClickHandler(pressableRef, interactive);
     const deviceHasHoverSupport = hasHoverSupport();
     const isCompactMenu = useIsCompactMenu();
@@ -803,7 +808,7 @@ function MenuItem({
     const secondaryInteractionHandler = copyable && !deviceHasHoverSupport ? secondaryInteraction : onSecondaryInteraction;
 
     const handlePressIn = () => {
-        if (shouldEnableTextSelection && didTouchStartOnCopyableTextRef.current) {
+        if (shouldEnableTextSelection && shouldPreserveNativeTextSelection()) {
             return;
         }
         if (shouldBlockSelection && shouldUseNarrowLayout && canUseTouchScreen()) {
@@ -847,14 +852,10 @@ function MenuItem({
                             <PressableWithSecondaryInteraction
                                 onPress={shouldCheckActionAllowedOnPress ? callFunctionIfActionIsAllowed(onPressAction, isAnonymousAction) : onPressAction}
                                 onMouseDown={(event) => {
-                                    didTouchStartOnCopyableTextRef.current = false;
-                                    setDidTouchStartOnCopyableText(false);
                                     markMouseDownOnCopyableText(event?.target, isTitleSelectable);
                                 }}
                                 onTouchStart={(event) => {
-                                    const isCopyableTarget = markTouchStartOnCopyableText(event, shouldEnableTextSelection && isPressStartOnCopyableText(event));
-                                    didTouchStartOnCopyableTextRef.current = isCopyableTarget;
-                                    setDidTouchStartOnCopyableText(isCopyableTarget);
+                                    markTouchStartOnCopyableText(event, shouldEnableTextSelection && isPressStartOnCopyableText(event));
                                 }}
                                 shouldAllowTextSelection={isTitleSelectable}
                                 preventDefaultContextMenu={(event) => deviceHasHoverSupport || !isTitleSelectable || !isPressStartOnCopyableText(event)}

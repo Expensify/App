@@ -25,7 +25,7 @@ import type WithTestID from '@src/types/utils/TestID';
 import type {ComponentRef, PropsWithChildren} from 'react';
 import type {AccessibilityState, GestureResponderEvent, StyleProp, ViewStyle} from 'react-native';
 
-import React, {useRef, useState} from 'react';
+import React, {useRef} from 'react';
 import {View} from 'react-native';
 
 type MenuItemRootProps = PropsWithChildren &
@@ -60,14 +60,19 @@ function MenuItemRoot({children, onPress, isDisabled = false, sentryLabel, testI
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const pressableRef = useRef<ComponentRef<typeof View>>(null);
-    const didTouchStartOnCopyableTextRef = useRef(false);
-    const [didTouchStartOnCopyableText, setDidTouchStartOnCopyableText] = useState(false);
     const isCompactPopover = useIsCompactPopover();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const isInteractive = !!onPress;
     const shouldEnableTextSelection = shouldAllowTextSelection && getPlatform() === CONST.PLATFORM.WEB;
-    const {isPressStartOnCopyableText, markMouseDownOnCopyableText, markTouchStartOnCopyableText, shouldSuppressCopyableTextRowLongPress, shouldSuppressCopyableTextRowPress} =
-        useCopyableTextRowPress();
+    const {
+        didTouchStartOnCopyableText,
+        isPressStartOnCopyableText,
+        markMouseDownOnCopyableText,
+        markTouchStartOnCopyableText,
+        shouldPreserveNativeTextSelection,
+        shouldSuppressCopyableTextRowLongPress,
+        shouldSuppressCopyableTextRowPress,
+    } = useCopyableTextRowPress({shouldTrackTouchStart: true});
 
     const {accessibilityLabel: rowAccessibilityLabel, accessibilityHint, registries: accessibilityRegistries} = useMenuItemAccessibility(accessibilityLabel);
     const {handler: registeredSecondaryInteraction, register: registerSecondaryInteraction} = useMenuItemSecondaryInteractionRegistry();
@@ -106,7 +111,7 @@ function MenuItemRoot({children, onPress, isDisabled = false, sentryLabel, testI
 
     const handlePressIn = () => {
         // RN Web responder events omit client coordinates, so reuse the original touch hit-test.
-        if (shouldEnableTextSelection && didTouchStartOnCopyableTextRef.current) {
+        if (shouldEnableTextSelection && shouldPreserveNativeTextSelection()) {
             return;
         }
 
@@ -122,14 +127,10 @@ function MenuItemRoot({children, onPress, isDisabled = false, sentryLabel, testI
                     <PressableWithSecondaryInteraction
                         onPress={onPressAction}
                         onMouseDown={(event) => {
-                            didTouchStartOnCopyableTextRef.current = false;
-                            setDidTouchStartOnCopyableText(false);
                             markMouseDownOnCopyableText(event?.target, shouldEnableTextSelection);
                         }}
                         onTouchStart={(event) => {
-                            const isCopyableTarget = markTouchStartOnCopyableText(event, shouldEnableTextSelection && isPressStartOnCopyableText(event));
-                            didTouchStartOnCopyableTextRef.current = isCopyableTarget;
-                            setDidTouchStartOnCopyableText(isCopyableTarget);
+                            markTouchStartOnCopyableText(event, shouldEnableTextSelection && isPressStartOnCopyableText(event));
                         }}
                         shouldAllowTextSelection={shouldEnableTextSelection}
                         preventDefaultContextMenu={(event) => !shouldEnableTextSelection || !isPressStartOnCopyableText(event)}
