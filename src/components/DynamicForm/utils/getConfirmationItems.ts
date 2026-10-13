@@ -15,7 +15,7 @@ import isSensitiveField from './isSensitiveField';
 import isSupportedField from './isSupportedField';
 import maskSensitiveValue from './maskSensitiveValue';
 
-/** One section per shown page holding its visible answers. Tapping a row opens the page to edit; readonly rows open nothing. */
+/** One section per shown page holding its visible answers. Tapping a row opens the page to edit. Readonly rows open nothing. */
 function getConfirmationItems(
     pages: DynamicFormPage[],
     allFields: DynamicFormField[],
