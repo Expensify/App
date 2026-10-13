@@ -1691,7 +1691,7 @@ function MoneyRequestView({
                                             email: a?.email,
                                         }))}
                                         maxVisible={canEdit ? undefined : actualAttendees.length}
-                                        isCopyable={areAttendeesCopyable}
+                                        isSelectable={areAttendeesCopyable}
                                     />
                                 ) : undefined
                             }

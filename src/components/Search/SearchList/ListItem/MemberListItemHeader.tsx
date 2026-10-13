@@ -97,12 +97,12 @@ function MemberListItemHeaderImpl({
                     <TextWithTooltip
                         text={formattedDisplayName}
                         style={[styles.optionDisplayName, styles.sidebarLinkTextBold, styles.pre, styles.fontWeightNormal]}
-                        isCopyable
+                        isSelectable
                     />
                     <TextWithTooltip
                         text={formattedLogin || formattedDisplayName}
                         style={[styles.textLabelSupporting, styles.lh16, styles.pre]}
-                        isCopyable
+                        isSelectable
                     />
                 </View>
             </View>
@@ -156,12 +156,12 @@ function MemberListItemHeaderImpl({
                                 <TextWithTooltip
                                     text={formattedDisplayName}
                                     style={[styles.optionDisplayName, styles.sidebarLinkTextBold, styles.pre, styles.fontWeightNormal]}
-                                    isCopyable
+                                    isSelectable
                                 />
                                 <TextWithTooltip
                                     text={formattedLogin || formattedDisplayName}
                                     style={[styles.textLabelSupporting, styles.lh16, styles.pre]}
-                                    isCopyable
+                                    isSelectable
                                 />
                             </View>
                         </View>

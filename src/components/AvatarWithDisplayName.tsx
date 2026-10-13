@@ -89,8 +89,8 @@ type AvatarWithDisplayNameProps = {
 
     customDisplayNameStyle?: TextStyle;
 
-    /** Whether the displayed report title should be directly selectable/copyable */
-    isDisplayNameCopyable?: boolean;
+    /** Whether the displayed report title should be directly selectable */
+    isDisplayNameSelectable?: boolean;
 
     /** The style of the parent navigation subtitle text */
     parentNavigationSubtitleTextStyles?: StyleProp<TextStyle>;
@@ -108,7 +108,7 @@ type CustomDisplayNameOptions = {
     regularStyle: TextStyle[];
     isAnonymous: boolean;
     isMoneyRequestOrReport: boolean;
-    isCopyable: boolean;
+    isSelectable: boolean;
 };
 
 function getCustomDisplayName({
@@ -122,7 +122,7 @@ function getCustomDisplayName({
     regularStyle,
     isAnonymous,
     isMoneyRequestOrReport,
-    isCopyable,
+    isSelectable,
 }: CustomDisplayNameOptions): React.ReactNode {
     const reportName = report?.reportName ?? CONST.REPORT.DEFAULT_REPORT_NAME;
     const isIOUOrInvoice = report?.type === CONST.REPORT.TYPE.IOU || report?.type === CONST.REPORT.TYPE.INVOICE;
@@ -184,7 +184,7 @@ function getCustomDisplayName({
             numberOfLines={numberOfLines}
             textStyles={textStyles}
             shouldUseFullTitle={shouldUseFullTitleProp}
-            isCopyable={isCopyable}
+            isSelectable={isSelectable}
         />
     );
 }
@@ -201,7 +201,7 @@ function AvatarWithDisplayName({
     avatarBorderColor: avatarBorderColorProp,
     shouldDisplayStatus = false,
     customDisplayNameStyle = {},
-    isDisplayNameCopyable = false,
+    isDisplayNameSelectable = false,
     parentNavigationSubtitleTextStyles,
     parentNavigationStatusContainerStyles = {},
 }: AvatarWithDisplayNameProps) {
@@ -305,7 +305,7 @@ function AvatarWithDisplayName({
         regularStyle: [isAnonymous ? styles.headerAnonymousFooter : styles.headerText, styles.pre],
         isAnonymous,
         isMoneyRequestOrReport,
-        isCopyable: isDisplayNameCopyable,
+        isSelectable: isDisplayNameSelectable,
     });
 
     const multipleAvatars = (

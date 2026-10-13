@@ -12,8 +12,8 @@ type TextWithTooltipProps = ForwardedFSClassProps & {
 
     testID?: string;
 
-    /** Whether this value should be directly selectable/copyable inside pressable rows */
-    isCopyable?: boolean;
+    /** Whether this value should be directly selectable inside pressable rows */
+    isSelectable?: boolean;
 };
 
 export default TextWithTooltipProps;

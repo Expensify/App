@@ -36,7 +36,7 @@ describe('AvatarWithTextCell', () => {
                 reportName="Shared chat"
                 icon={ICON}
                 isLargeScreenWidth
-                isCopyable
+                isSelectable
             />,
         );
 

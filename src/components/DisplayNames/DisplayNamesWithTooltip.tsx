@@ -29,7 +29,7 @@ function DisplayNamesWithToolTip({
     renderAdditionalText,
     forwardedFSClass,
     accessibilityLabel,
-    isCopyable = false,
+    isSelectable = false,
 }: DisplayNamesProps) {
     const styles = useThemeStyles();
     const containerRef = useRef<HTMLElementWithText>(null);
@@ -75,8 +75,8 @@ function DisplayNamesWithToolTip({
             ref={containerRef}
             testID="DisplayNamesWithToolTip"
             fsClass={forwardedFSClass}
-            selectable={isCopyable}
-            dataSet={isCopyable ? COPYABLE_TEXT_DATA_SET : undefined}
+            selectable={isSelectable}
+            dataSet={isSelectable ? COPYABLE_TEXT_DATA_SET : undefined}
         >
             {shouldUseFullTitle
                 ? formatReportLastMessageText(fullTitle)
@@ -93,7 +93,7 @@ function DisplayNamesWithToolTip({
                               textStyles={textStyles}
                               childRefs={childRefs}
                               forwardedFSClass={forwardedFSClass}
-                              isCopyable={isCopyable}
+                              isSelectable={isSelectable}
                           />
                           {index < displayNamesWithTooltips.length - 1 && <Text style={textStyles}>,&nbsp;</Text>}
                           {shouldAddEllipsis && index === displayNamesWithTooltips.length - 1 && <Text style={textStyles}>...</Text>}

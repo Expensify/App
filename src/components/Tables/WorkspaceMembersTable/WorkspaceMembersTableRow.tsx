@@ -96,14 +96,14 @@ export default function WorkspaceMembersTableRow({
                                 text={item.name}
                                 style={[styles.optionDisplayName, styles.pre]}
                                 numberOfLines={1}
-                                isCopyable
+                                isSelectable
                             />
                             <TextWithTooltip
                                 shouldShowTooltip
                                 text={memberSubtitle}
                                 style={[styles.textLabelSupporting, styles.lh16, styles.pre]}
                                 numberOfLines={1}
-                                isCopyable
+                                isSelectable
                             />
                         </View>
                     </View>
@@ -119,7 +119,7 @@ export default function WorkspaceMembersTableRow({
                                     numberOfLines={1}
                                     text={item.employeeUserID}
                                     style={[styles.lh16, styles.optionDisplayName, styles.pre]}
-                                    isCopyable
+                                    isSelectable
                                 />
                             )}
                         </View>
@@ -136,7 +136,7 @@ export default function WorkspaceMembersTableRow({
                                     numberOfLines={1}
                                     text={item.employeePayrollID}
                                     style={[styles.lh16, styles.optionDisplayName, styles.pre]}
-                                    isCopyable
+                                    isSelectable
                                 />
                             )}
                         </View>

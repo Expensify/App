@@ -22,7 +22,7 @@ function DisplayNames({
     forwardedFSClass,
     shouldParseFullTitle = true,
     accessibilityLabel,
-    isCopyable = false,
+    isSelectable = false,
 }: DisplayNamesProps) {
     const {translate} = useLocalize();
     const title = useMemo(() => {
@@ -39,7 +39,7 @@ function DisplayNames({
                 renderAdditionalText={renderAdditionalText}
                 forwardedFSClass={forwardedFSClass}
                 accessibilityLabel={accessibilityLabel}
-                isCopyable={isCopyable}
+                isSelectable={isSelectable}
             />
         );
     }
@@ -54,7 +54,7 @@ function DisplayNames({
                 renderAdditionalText={renderAdditionalText}
                 forwardedFSClass={forwardedFSClass}
                 accessibilityLabel={accessibilityLabel}
-                isCopyable={isCopyable}
+                isSelectable={isSelectable}
             />
         );
     }
@@ -69,7 +69,7 @@ function DisplayNames({
             renderAdditionalText={renderAdditionalText}
             forwardedFSClass={forwardedFSClass}
             accessibilityLabel={accessibilityLabel}
-            isCopyable={isCopyable}
+            isSelectable={isSelectable}
         />
     );
 }

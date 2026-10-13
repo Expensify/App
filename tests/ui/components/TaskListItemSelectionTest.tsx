@@ -88,9 +88,9 @@ describe('TaskListItem text selection', () => {
 
         // When the row is rendered, then its press handling allows native selection for each copyable value.
         expect(mockedListItemComposed).toHaveBeenCalledWith(expect.objectContaining({shouldAllowTextSelection: true}), undefined);
-        expect(mockedTextWithTooltip).toHaveBeenCalledWith(expect.objectContaining({text: 'Review expense', isCopyable: true}), undefined);
-        expect(mockedTextWithTooltip).toHaveBeenCalledWith(expect.objectContaining({text: 'Review the expense', isCopyable: true}), undefined);
-        expect(mockedAvatarWithTextCell).toHaveBeenCalledWith(expect.objectContaining({reportName: 'Shared chat', isCopyable: true}), undefined);
+        expect(mockedTextWithTooltip).toHaveBeenCalledWith(expect.objectContaining({text: 'Review expense', isSelectable: true}), undefined);
+        expect(mockedTextWithTooltip).toHaveBeenCalledWith(expect.objectContaining({text: 'Review the expense', isSelectable: true}), undefined);
+        expect(mockedAvatarWithTextCell).toHaveBeenCalledWith(expect.objectContaining({reportName: 'Shared chat', isSelectable: true}), undefined);
     });
 
     it('excludes the compact assignee avatar from copied content', () => {

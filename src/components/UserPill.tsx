@@ -23,10 +23,10 @@ type UserPillProps = {
     accountID?: number;
     email?: string;
     style?: StyleProp<ViewStyle>;
-    isCopyable?: boolean;
+    isSelectable?: boolean;
 };
 
-function UserPill({avatar, displayName, accountID, email, style, isCopyable = false}: UserPillProps) {
+function UserPill({avatar, displayName, accountID, email, style, isSelectable = false}: UserPillProps) {
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {formatPhoneNumber} = useLocalize();
@@ -45,8 +45,8 @@ function UserPill({avatar, displayName, accountID, email, style, isCopyable = fa
         >
             <View style={[styles.flexRow, styles.alignItemsCenter, styles.alignSelfStart, styles.userPill, shouldUseNarrowLayout && styles.mw100, style]}>
                 <View
-                    style={isCopyable && styles.userSelectNone}
-                    dataSet={isCopyable ? {[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true} : undefined}
+                    style={isSelectable && styles.userSelectNone}
+                    dataSet={isSelectable ? {[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true} : undefined}
                 >
                     <UserAvatar
                         source={avatar}
@@ -57,8 +57,8 @@ function UserPill({avatar, displayName, accountID, email, style, isCopyable = fa
                 <Text
                     style={styles.userPillText}
                     numberOfLines={1}
-                    selectable={isCopyable || undefined}
-                    dataSet={isCopyable ? COPYABLE_TEXT_DATA_SET : undefined}
+                    selectable={isSelectable || undefined}
+                    dataSet={isSelectable ? COPYABLE_TEXT_DATA_SET : undefined}
                 >
                     {formattedDisplayName}
                 </Text>

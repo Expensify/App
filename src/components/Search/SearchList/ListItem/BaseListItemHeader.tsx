@@ -121,7 +121,7 @@ function BaseListItemHeaderImpl({
                     <TextWithTooltip
                         text={displayName}
                         style={[styles.optionDisplayName, styles.sidebarLinkTextBold, styles.pre, styles.fontWeightNormal]}
-                        isCopyable
+                        isSelectable
                     />
                 </View>
             </View>
@@ -168,7 +168,7 @@ function BaseListItemHeaderImpl({
                                 <TextWithTooltip
                                     text={displayName}
                                     style={[styles.optionDisplayName, styles.sidebarLinkTextBold, styles.pre, styles.fontWeightNormal]}
-                                    isCopyable
+                                    isSelectable
                                 />
                             </View>
                         </View>

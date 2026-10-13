@@ -63,7 +63,7 @@ function TitleCell({taskItem, showTooltip, isLargeScreenWidth}: TaskCellProps) {
             shouldShowTooltip={showTooltip}
             numberOfLines={2}
             style={[isLargeScreenWidth ? styles.lineHeightLarge : styles.lh20, styles.preWrap, styles.justifyContentCenter]}
-            isCopyable
+            isSelectable
         />
     );
 }
@@ -77,7 +77,7 @@ function DescriptionCell({taskItem, showTooltip, isLargeScreenWidth}: TaskCellPr
             text={taskItem.description}
             numberOfLines={2}
             style={[styles.lineHeightLarge, styles.preWrap, styles.justifyContentCenter, isLargeScreenWidth ? undefined : [styles.textMicro, styles.textSupporting]]}
-            isCopyable
+            isSelectable
         />
     );
 }
@@ -167,7 +167,7 @@ function TaskListItemRow({item, containerStyle, showTooltip}: TaskListItemRowPro
                                 reportName={item?.parentReportName}
                                 icon={item?.parentReportIcon}
                                 isLargeScreenWidth={isLargeScreenWidth}
-                                isCopyable
+                                isSelectable
                             />
                         </View>
                     </View>
@@ -258,7 +258,7 @@ function TaskListItemRow({item, containerStyle, showTooltip}: TaskListItemRowPro
                         reportName={item?.parentReportName}
                         icon={item?.parentReportIcon}
                         isLargeScreenWidth={isLargeScreenWidth}
-                        isCopyable
+                        isSelectable
                     />
                 </View>
                 <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.ASSIGNEE)]}>

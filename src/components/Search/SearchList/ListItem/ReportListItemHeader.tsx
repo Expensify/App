@@ -175,8 +175,8 @@ function HeaderFirstRow<TItem extends ListItem>({
                         style={[{maxWidth: 700}]}
                         transactions={reportItem.transactions}
                         avatarBorderColor={avatarBorderColor}
-                        // Grouped report headers sit inside pressable rows, so their title needs the copyable marker too.
-                        isTitleCopyable
+                        // Grouped report headers sit inside pressable rows, so their title needs the selection marker too.
+                        isTitleSelectable
                     />
                 </View>
             </View>

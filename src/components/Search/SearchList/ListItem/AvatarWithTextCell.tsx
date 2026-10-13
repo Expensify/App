@@ -20,10 +20,10 @@ type AvatarWithTextCellProps = {
     textStyle?: StyleProp<TextStyle>;
 
     /** Whether the text can be selected inside a copyable row */
-    isCopyable?: boolean;
+    isSelectable?: boolean;
 };
 
-function AvatarWithTextCell({reportName, icon, isLargeScreenWidth, textStyle, isCopyable = false}: AvatarWithTextCellProps) {
+function AvatarWithTextCell({reportName, icon, isLargeScreenWidth, textStyle, isSelectable = false}: AvatarWithTextCellProps) {
     const styles = useThemeStyles();
 
     if (!reportName || !icon) {
@@ -40,7 +40,7 @@ function AvatarWithTextCell({reportName, icon, isLargeScreenWidth, textStyle, is
 
     return (
         <View style={[styles.flexRow, styles.alignItemsCenter]}>
-            {isCopyable ? (
+            {isSelectable ? (
                 <View
                     style={styles.userSelectNone}
                     dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
@@ -54,8 +54,8 @@ function AvatarWithTextCell({reportName, icon, isLargeScreenWidth, textStyle, is
             <Text
                 numberOfLines={1}
                 style={[textStyle ?? (isLargeScreenWidth ? styles.themeTextColor : styles.textMicroBold), styles.flexShrink1]}
-                selectable={isCopyable ? true : undefined}
-                dataSet={isCopyable ? COPYABLE_TEXT_DATA_SET : undefined}
+                selectable={isSelectable ? true : undefined}
+                dataSet={isSelectable ? COPYABLE_TEXT_DATA_SET : undefined}
             >
                 {reportName}
             </Text>

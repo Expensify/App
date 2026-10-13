@@ -22,7 +22,7 @@ function DisplayNames({
     forwardedFSClass,
     testID,
     shouldParseFullTitle = true,
-    isCopyable = false,
+    isSelectable = false,
 }: DisplayNamesProps) {
     const {translate} = useLocalize();
     const titleContainsTextAndCustomEmoji = useMemo(() => containsCustomEmoji(fullTitle) && !containsOnlyCustomEmoji(fullTitle), [fullTitle]);
@@ -38,7 +38,7 @@ function DisplayNames({
             numberOfLines={numberOfLines}
             testID={`DisplayNames${testID !== undefined ? `-${testID}` : ''}`}
             fsClass={forwardedFSClass}
-            selectable={isCopyable}
+            selectable={isSelectable}
         >
             {titleContainsTextAndCustomEmoji ? (
                 <TextWithEmojiFragment

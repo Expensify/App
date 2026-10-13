@@ -24,8 +24,8 @@ type DisplayNamesWithoutTooltipProps = ForwardedFSClassProps & {
     /** Overrides the text read by screen readers. */
     accessibilityLabel?: string;
 
-    /** Whether this display name should be directly selectable/copyable inside pressable rows */
-    isCopyable?: boolean;
+    /** Whether this display name should be directly selectable inside pressable rows */
+    isSelectable?: boolean;
 };
 
 function DisplayNamesWithoutTooltip({
@@ -35,7 +35,7 @@ function DisplayNamesWithoutTooltip({
     renderAdditionalText,
     forwardedFSClass,
     accessibilityLabel,
-    isCopyable = false,
+    isSelectable = false,
 }: DisplayNamesWithoutTooltipProps) {
     const styles = useThemeStyles();
     return (
@@ -44,8 +44,8 @@ function DisplayNamesWithoutTooltip({
             style={[textStyles, numberOfLines === 1 ? styles.pre : styles.preWrap]}
             numberOfLines={numberOfLines}
             fsClass={forwardedFSClass}
-            selectable={isCopyable}
-            dataSet={isCopyable ? COPYABLE_TEXT_DATA_SET : undefined}
+            selectable={isSelectable}
+            dataSet={isSelectable ? COPYABLE_TEXT_DATA_SET : undefined}
         >
             {fullTitle}
             {renderAdditionalText?.()}
