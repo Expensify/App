@@ -334,14 +334,31 @@ describe('ExpenseFieldDropdown', () => {
             act(() => pressRow());
             expect(screen.getByText(DROPDOWN_TEXT)).toBeOnTheScreen();
 
-            // When the phone is turned to landscape, where the sheet has no room to scroll its list
+            // When the phone is turned to landscape, where the sheet has no room to scroll its list, and the sheet finishes closing
             mockIsInLandscapeMode = true;
             rerenderField();
+            expect(onLandscapePress).not.toHaveBeenCalled();
+            act(() => renderedProps?.onModalHide());
 
-            // Then the sheet closes and the page meant for landscape opens in its place, the same as a press in landscape
+            // Then the page meant for landscape opens in its place, the same as a press in landscape, but only once the
+            // sheet is gone, since iOS drops a navigation while a sheet is still up
             expect(screen.queryByText(DROPDOWN_TEXT)).not.toBeOnTheScreen();
             expect(onLandscapePress).toHaveBeenCalledTimes(1);
             expect(screen.getByTestId(ROW_TEST_ID)).toBeCollapsed();
+        });
+
+        it('does not open the full-page selector when the sheet closes for any other reason', () => {
+            // Given a phone in portrait with the sheet open
+            renderOnPhone();
+            act(() => pressRow());
+
+            // When the user dismisses the sheet and it finishes closing
+            act(() => renderedProps?.onClose());
+            act(() => renderedProps?.onModalHide());
+
+            // Then nothing else opens, since only turning the phone hands over to the full page
+            expect(onLandscapePress).not.toHaveBeenCalled();
+            expect(onPress).not.toHaveBeenCalled();
         });
 
         it('reopens the sheet once the phone is back in portrait and the page has closed', () => {

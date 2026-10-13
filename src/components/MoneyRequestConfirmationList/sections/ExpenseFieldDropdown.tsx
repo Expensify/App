@@ -13,7 +13,7 @@ import type {ComponentRef, ReactNode, Ref} from 'react';
 import type {View} from 'react-native';
 
 import {useFocusEffect, useIsFocused} from '@react-navigation/native';
-import React, {useEffect, useImperativeHandle, useRef, useState} from 'react';
+import React, {useEffect, useEffectEvent, useImperativeHandle, useRef, useState} from 'react';
 
 import type {ExpenseFieldRowProps} from './ExpenseFieldRow';
 
@@ -60,6 +60,9 @@ type ExpenseFieldDropdownRenderProps = {
     /** Dismisses the container */
     onClose: () => void;
 
+    /** Must be called once the container has finished closing */
+    onModalHide: () => void;
+
     /** Where the container is pinned, in window coordinates */
     anchorPosition: {horizontal: number; vertical: number};
 
@@ -96,7 +99,7 @@ type ExpenseFieldDropdownProps = Omit<ExpenseFieldRowProps, 'onPress' | 'anchorR
     ref?: Ref<ExpenseFieldDropdownHandle>;
 };
 
-/** idle → departing (full page opened for landscape) → away (form left for it) → idle (form focused again) */
+/** Idle until the field opens the full page for landscape (departing), away while the form is left for that page, and idle again once the form is focused. */
 type LandscapeStep = 'idle' | 'departing' | 'away';
 
 type ExpenseFieldDropdownHandle = {
@@ -142,20 +145,24 @@ function ExpenseFieldDropdown({renderDropdown, shouldOpenInDropdown, onPress, on
     // Turned to landscape with the sheet open: hide the sheet and hand over to the full page, as a press in landscape would.
     const shouldHandOverToPage = isVisible && isInLandscapeMode;
 
-    useEffect(() => {
+    const [landscapeHandOverCount, setLandscapeHandOverCount] = useState(0);
+
+    const handleModalHide = () => {
         if (!shouldHandOverToPage) {
             return;
         }
-        // Wait for the sheet to finish closing, since navigating while it is still up gets dropped on iOS.
-        const handle = TransitionTracker.runAfterTransitions({
-            callback: () => {
-                setIsVisible(false);
-                landscapeStepRef.current = 'departing';
-                onLandscapePress();
-            },
-        });
-        return () => handle.cancel();
-    }, [shouldHandOverToPage, onLandscapePress]);
+        setIsVisible(false);
+        setLandscapeHandOverCount((count) => count + 1);
+    };
+
+    const handOverToPage = useEffectEvent(() => openPageForLandscape());
+
+    useEffect(() => {
+        if (!landscapeHandOverCount) {
+            return;
+        }
+        handOverToPage();
+    }, [landscapeHandOverCount]);
 
     useEffect(() => {
         if (isFocused || landscapeStepRef.current !== 'departing') {
@@ -255,6 +262,7 @@ function ExpenseFieldDropdown({renderDropdown, shouldOpenInDropdown, onPress, on
                 renderDropdown({
                     isVisible: isVisible && !shouldHandOverToPage,
                     onClose: closeDropdown,
+                    onModalHide: handleModalHide,
                     anchorPosition: {horizontal: layout.horizontal, vertical: layout.vertical},
                     anchorAlignment: layout.shouldOpenAbove ? ANCHOR_ALIGNMENT_ABOVE : ANCHOR_ALIGNMENT_BELOW,
                     shouldMeasureAnchorPositionFromTop: !layout.shouldOpenAbove,

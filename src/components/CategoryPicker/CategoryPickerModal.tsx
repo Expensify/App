@@ -59,6 +59,7 @@ type CategoryPickerModalProps = {
 function CategoryPickerModal({
     isVisible,
     onClose,
+    onModalHide,
     anchorPosition,
     policyID,
     selectedCategory,
@@ -120,6 +121,7 @@ function CategoryPickerModal({
             anchorRef={anchorRef}
             isVisible={isVisible}
             onClose={onClose}
+            onModalHide={onModalHide}
             anchorPosition={anchorPosition}
             popoverDimensions={popoverDimensions}
             anchorAlignment={anchorAlignment}
