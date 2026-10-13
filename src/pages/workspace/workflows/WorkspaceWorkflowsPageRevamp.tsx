@@ -23,7 +23,7 @@ import {openPolicyWorkflowsPage} from '@libs/actions/Policy/Policy';
 import Tab from '@libs/actions/Tab';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import {canMemberRead, isGroupPolicy as isGroupPolicyUtil, isSubmitPolicy, shouldHideDynamicExternalWorkflowPeople} from '@libs/PolicyUtils';
+import {canMemberRead, getApprovalWorkflow, isGroupPolicy as isGroupPolicyUtil, isSubmitPolicy, shouldHideDynamicExternalWorkflowPeople} from '@libs/PolicyUtils';
 import {isApprovalWorkflowLockedByIntegration} from '@libs/WorkflowUtils';
 
 import type {WorkspaceSplitNavigatorParamList} from '@navigation/types';
@@ -253,9 +253,12 @@ function WorkspaceWorkflowsPageRevamp({policy, route}: WorkspaceWorkflowsPageRev
     const shouldHideApprovalWorkflows = shouldHideDynamicExternalWorkflowPeople(policy);
     const shouldBlockApprovalWorkflowEditing = isApprovalWorkflowLockedByIntegration(policy) || shouldHideApprovalWorkflows;
 
+    // With multiple approvers, the spreadsheet sets up approval workflows, which don't route anything while approvals are off
+    const shouldHideImportWithoutApprovals = isMultipleApproversBetaEnabled && getApprovalWorkflow(policy) === CONST.POLICY.APPROVAL_MODE.OPTIONAL;
+
     const approvalSecondaryActions: Array<DropdownOption<ValueOf<typeof CONST.POLICY.SECONDARY_ACTIONS>>> = [];
     // Importing modifies the workflows, so only offer it when editing is allowed.
-    if (!shouldBlockApprovalWorkflowEditing) {
+    if (!shouldBlockApprovalWorkflowEditing && !shouldHideImportWithoutApprovals) {
         approvalSecondaryActions.push({
             icon: expensifyIcons.Table,
             text: translate('spreadsheet.importWorkflows'),
