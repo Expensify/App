@@ -9,6 +9,7 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
+import {usePersonalDetailsByLogins} from '@hooks/usePersonalDetailByLogin';
 import {useAllPersonalDetails} from '@hooks/usePersonalDetails';
 import usePressLoading from '@hooks/usePressLoading';
 import useReportTransactions from '@hooks/useReportTransactions';
@@ -71,12 +72,13 @@ function ReportReassignApproverPage({report, policy, isLoadingReportData}: Repor
         !isApprovalEnabled;
 
     const employeeList = policy?.employeeList;
+    const employeePersonalDetails = usePersonalDetailsByLogins(Object.keys(employeeList ?? {}));
     const allApprovers = (() => {
         if (!employeeList) {
             return [];
         }
 
-        const policyMemberEmailsToAccountIDs = getMemberAccountIDsForWorkspace(employeeList, undefined, true, false);
+        const policyMemberEmailsToAccountIDs = getMemberAccountIDsForWorkspace(employeeList, employeePersonalDetails, true, false);
         // Resolve the translation once, not per member.
         const hiddenText = translate('common.hidden');
         const memberOptions = Object.values(employeeList)
