@@ -11,6 +11,7 @@ const {
     MILEAGE_RATE_AUTO_UPDATED,
     MARK_ALL_AS_READ,
     ACCOUNT_MOVED_TO_TOP_BAR,
+    CONNECTIONS_MOVED,
     REQUIRE_FIELDS_RULE_RECEIPT_COUPLING_TOOLTIP,
     REQUIRE_FIELDS_RULE_ITEMIZED_RECEIPT_COUPLING_TOOLTIP,
 } = CONST.PRODUCT_TRAINING_TOOLTIP_NAMES;
@@ -100,6 +101,11 @@ type DismissedProductTraining = {
      * When user dismisses the tooltip pointing at the account button in the top bar, we store the timestamp here.
      */
     [ACCOUNT_MOVED_TO_TOP_BAR]: DismissedProductTrainingElement;
+
+    /**
+     * When user dismisses the tooltip pointing at the Connections item in the workspace menu, we store the timestamp here.
+     */
+    [CONNECTIONS_MOVED]: DismissedProductTrainingElement;
 
     /**
      * When user dismisses the require fields rule tooltip explaining why Receipt is locked while

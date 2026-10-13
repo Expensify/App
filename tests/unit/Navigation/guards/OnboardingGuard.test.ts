@@ -87,6 +87,25 @@ describe('OnboardingGuard', () => {
             // Then navigation should be allowed because null onboarding data is treated as "completed" to avoid forcing legacy users through onboarding
             expect(result.type).toBe('ALLOW');
         });
+
+        it('should allow resetting into onboarding before onboarding data loads', () => {
+            const resetToOnboardingAction: NavigationAction = {
+                type: CONST.NAVIGATION_ACTIONS.RESET,
+                payload: {
+                    key: 'root',
+                    index: 1,
+                    routeNames: [SCREENS.HOME, NAVIGATORS.ONBOARDING_MODAL_NAVIGATOR],
+                    routes: [
+                        {key: 'home', name: SCREENS.HOME},
+                        {key: 'onboarding', name: NAVIGATORS.ONBOARDING_MODAL_NAVIGATOR},
+                    ],
+                    stale: false,
+                    type: 'root',
+                },
+            };
+
+            expect(OnboardingGuard.evaluate(mockState, resetToOnboardingAction, authenticatedContext).type).toBe('ALLOW');
+        });
     });
 
     describe('early exit conditions', () => {
@@ -172,6 +191,29 @@ describe('OnboardingGuard', () => {
             };
 
             expect(OnboardingGuard.evaluate(onboardingState, resetAction, authenticatedContext).type).toBe('ALLOW');
+        });
+
+        it('should BLOCK GO_BACK action when user is on onboarding', async () => {
+            // Given a user who is currently on the onboarding purpose screen and has not yet completed onboarding
+            await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {
+                hasCompletedGuidedSetupFlow: false,
+            });
+            await waitForBatchedUpdates();
+
+            const onboardingState: NavigationState = {
+                key: 'root',
+                index: 0,
+                routeNames: [SCREENS.ONBOARDING.PURPOSE],
+                routes: [{key: 'purpose', name: SCREENS.ONBOARDING.PURPOSE}],
+                stale: false,
+                type: 'root',
+            };
+
+            // When the browser back button pops the last history entry, which React Navigation dispatches as GO_BACK
+            const result = OnboardingGuard.evaluate(onboardingState, {type: CONST.NAVIGATION.ACTION_TYPE.GO_BACK}, authenticatedContext);
+
+            // Then the action should be blocked because going back from onboarding would close the modal without finishing it
+            expect(result.type).toBe('BLOCK');
         });
     });
 
