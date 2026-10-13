@@ -137,6 +137,8 @@ function ConciergeFeedbackPrompt({
 
     const thumbsUpReactedAt = getReactedAtTimestamp(thumbsUp, reactions, currentUserAccountID);
     const thumbsDownReactedAt = getReactedAtTimestamp(thumbsDown, reactions, currentUserAccountID);
+
+    // Either rating starts the acknowledgement window, and the zero fallback keeps an unanswered survey undefined.
     const latestReactionTimestamp = Math.max(thumbsUpReactedAt ?? 0, thumbsDownReactedAt ?? 0) || undefined;
 
     // The reaction that was already there when this row mounted is an old rating, so only a reaction that lands while the row is open is acknowledged
@@ -154,38 +156,26 @@ function ConciergeFeedbackPrompt({
 
     const hasRated = hasReactedWithEmoji(thumbsUp, reactions, currentUserAccountID) || hasReactedWithEmoji(thumbsDown, reactions, currentUserAccountID);
 
+    const getFeedbackThumb = (emoji: Emoji, isSelected: boolean) => (
+        <ConciergeFeedbackThumb
+            emoji={emoji}
+            label={translate(emoji.name === thumbsUp.name ? 'common.yes' : 'common.no')}
+            accessibilityLabel={translate(emoji.name === thumbsUp.name ? 'concierge.feedback.useful' : 'concierge.feedback.notUseful')}
+            onPress={callFunctionIfActionIsAllowed(() => rate(emoji))}
+            shouldShowTooltip={shouldShowTooltips}
+            isSelected={isSelected}
+        />
+    );
+
     const feedbackThumbs = (
         <View style={styles.flexRow}>
-            <ConciergeFeedbackThumb
-                emoji={thumbsUp}
-                label={translate('common.yes')}
-                accessibilityLabel={translate('concierge.feedback.useful')}
-                onPress={callFunctionIfActionIsAllowed(() => rate(thumbsUp))}
-                shouldShowTooltip={shouldShowTooltips}
-                isSelected={hasReactedWithEmoji(thumbsUp, reactions, currentUserAccountID)}
-            />
-            <ConciergeFeedbackThumb
-                emoji={thumbsDown}
-                label={translate('common.no')}
-                accessibilityLabel={translate('concierge.feedback.notUseful')}
-                onPress={callFunctionIfActionIsAllowed(() => rate(thumbsDown))}
-                shouldShowTooltip={shouldShowTooltips}
-                isSelected={hasReactedWithEmoji(thumbsDown, reactions, currentUserAccountID)}
-            />
+            {getFeedbackThumb(thumbsUp, hasReactedWithEmoji(thumbsUp, reactions, currentUserAccountID))}
+            {getFeedbackThumb(thumbsDown, hasReactedWithEmoji(thumbsDown, reactions, currentUserAccountID))}
         </View>
     );
 
     const selectedEmoji = thumbsUpReactedAt ? thumbsUp : thumbsDown;
-    const selectedFeedbackThumb = (
-        <ConciergeFeedbackThumb
-            emoji={selectedEmoji}
-            label={translate(selectedEmoji.name === thumbsUp.name ? 'common.yes' : 'common.no')}
-            accessibilityLabel={translate(selectedEmoji.name === thumbsUp.name ? 'concierge.feedback.useful' : 'concierge.feedback.notUseful')}
-            onPress={callFunctionIfActionIsAllowed(() => rate(selectedEmoji))}
-            shouldShowTooltip={shouldShowTooltips}
-            isSelected
-        />
-    );
+    const selectedFeedbackThumb = getFeedbackThumb(selectedEmoji, true);
 
     // The acknowledgement comes from the reaction, so removing it from the reaction row brings the prompt back right away
     if (!shouldPersistAfterRating && isDisplayedThankMessage) {
