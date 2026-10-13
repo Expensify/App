@@ -38,7 +38,6 @@ describe('useConciergeAskState', () => {
     beforeAll(async () => {
         Onyx.init({keys: ONYXKEYS});
         await Onyx.set(ONYXKEYS.CONCIERGE_REPORT_ID, CONCIERGE_REPORT_ID);
-        await Onyx.set(ONYXKEYS.BETAS, [CONST.BETAS.CONCIERGE_RESPOND_IN_THREAD]);
         await waitForBatchedUpdates();
     });
 
@@ -135,16 +134,5 @@ describe('useConciergeAskState', () => {
 
         expect(result.current.isAskConciergeChat).toBe(false);
         expect(result.current.shouldShowWelcome).toBe(false);
-    });
-
-    it('stays off when the Ask Concierge beta is disabled', async () => {
-        await Onyx.set(ONYXKEYS.BETAS, []);
-        await waitForBatchedUpdates();
-
-        const {result} = renderHook(() => useConciergeAskState(CONCIERGE_REPORT_ID), {wrapper});
-        expect(result.current.isAskConciergeChat).toBe(false);
-
-        await Onyx.set(ONYXKEYS.BETAS, [CONST.BETAS.CONCIERGE_RESPOND_IN_THREAD]);
-        await waitForBatchedUpdates();
     });
 });

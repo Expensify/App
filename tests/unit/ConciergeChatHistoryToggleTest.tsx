@@ -63,7 +63,6 @@ describe('ConciergeChatHistoryToggle', () => {
         jest.spyOn(Navigation, 'setParams').mockImplementation(() => {});
         await IntlStore.load(CONST.LOCALES.EN);
         await Onyx.set(ONYXKEYS.CONCIERGE_REPORT_ID, CONCIERGE_REPORT_ID);
-        await Onyx.set(ONYXKEYS.BETAS, [CONST.BETAS.CONCIERGE_RESPOND_IN_THREAD]);
         await waitForBatchedUpdates();
     });
 
@@ -92,16 +91,5 @@ describe('ConciergeChatHistoryToggle', () => {
     it('renders nothing when there is no earlier conversation to reveal', () => {
         renderToggle({hasPreviousMessages: false});
         expect(screen.queryByRole('button')).toBeNull();
-    });
-
-    it('renders nothing when the Ask Concierge beta is disabled', async () => {
-        await Onyx.set(ONYXKEYS.BETAS, []);
-        await waitForBatchedUpdates();
-
-        renderToggle();
-        expect(screen.queryByRole('button')).toBeNull();
-
-        await Onyx.set(ONYXKEYS.BETAS, [CONST.BETAS.CONCIERGE_RESPOND_IN_THREAD]);
-        await waitForBatchedUpdates();
     });
 });
