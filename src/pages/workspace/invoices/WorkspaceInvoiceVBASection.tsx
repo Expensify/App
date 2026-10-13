@@ -71,7 +71,12 @@ function WorkspaceInvoiceVBASection({policyID, canWriteMoreFeatures, showReadOnl
     const hasMultipleEligibleBankAccounts = eligibleBusinessBankAccounts.length > 1;
     const hasInvoiceDefaultBankAccount = transferBankAccountID !== CONST.DEFAULT_NUMBER_ID;
     const isInvoiceDefaultBankAccountMissing = hasInvoiceDefaultBankAccount && !eligibleBusinessBankAccounts.some((account) => account.accountData?.bankAccountID === transferBankAccountID);
-    const invoiceDefaultBankAccountID = hasInvoiceDefaultBankAccount ? transferBankAccountID : (eligibleBusinessBankAccounts.at(0)?.accountData?.bankAccountID ?? CONST.DEFAULT_NUMBER_ID);
+    // The backend doesn't save an invoice default when an account is added, and keeps it after that account is deleted.
+    // Until the user picks an eligible one, the first eligible account that isn't being deleted stands in.
+    const invoiceDefaultBankAccountID =
+        hasInvoiceDefaultBankAccount && !isInvoiceDefaultBankAccountMissing
+            ? transferBankAccountID
+            : (eligibleBusinessBankAccounts.find((account) => account.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE)?.accountData?.bankAccountID ?? CONST.DEFAULT_NUMBER_ID);
     const shouldShowMakeDefaultButton = !paymentMethod.isSelectedPaymentMethodDefault && (hasMultipleEligibleBankAccounts || isInvoiceDefaultBankAccountMissing);
     const isSupportedGlobalReimbursement = isCurrencySupportedForGlobalReimbursement((policy?.outputCurrency ?? '') as CurrencyType);
 
@@ -126,12 +131,12 @@ function WorkspaceInvoiceVBASection({policyID, canWriteMoreFeatures, showReadOnl
         }
 
         const remainingEligibleBankAccountID = eligibleBusinessBankAccounts.find((account) => account.accountData?.bankAccountID !== bankAccountID)?.accountData?.bankAccountID;
-        if (invoiceDefaultBankAccountID === bankAccountID && remainingEligibleBankAccountID) {
+        if (transferBankAccountID === bankAccountID && remainingEligibleBankAccountID) {
             setInvoicingTransferBankAccount(remainingEligibleBankAccountID, policyID, bankAccountID);
         }
 
         deletePaymentBankAccount(bankAccountID, personalPolicyID);
-    }, [eligibleBusinessBankAccounts, paymentMethod.selectedPaymentMethod.bankAccountID, paymentMethod.selectedPaymentMethodType, personalPolicyID, policyID, invoiceDefaultBankAccountID]);
+    }, [eligibleBusinessBankAccounts, paymentMethod.selectedPaymentMethod.bankAccountID, paymentMethod.selectedPaymentMethodType, personalPolicyID, policyID, transferBankAccountID]);
 
     const makeDefaultPaymentMethod = useCallback(() => {
         if (paymentMethod.selectedPaymentMethodType === CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT) {
@@ -281,7 +286,7 @@ function WorkspaceInvoiceVBASection({policyID, canWriteMoreFeatures, showReadOnl
                 onThreeDotsMenuPress={paymentMethodPressed}
                 shouldSkipDefaultAccountValidation
                 invoiceTransferBankAccountID={invoiceDefaultBankAccountID}
-                activePaymentMethodID={invoiceDefaultBankAccountID}
+                activePaymentMethodID={transferBankAccountID}
                 threeDotsMenuItems={canWriteMoreFeatures ? threeDotsMenuItems : undefined}
                 addBankAccountItemStyle={!canWriteMoreFeatures ? styles.buttonOpacityDisabled : undefined}
                 style={[styles.mt5, cardEdgeToEdge]}

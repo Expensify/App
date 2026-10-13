@@ -2,6 +2,7 @@ import {act, fireEvent, render, screen} from '@testing-library/react-native';
 
 import ComposeProviders from '@components/ComposeProviders';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
+import {ModalActions} from '@components/Modal/Global/ModalContext';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 
@@ -10,6 +11,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PaymentMethodPressHandlerParams} from '@pages/settings/Wallet/WalletPage/types';
 import WorkspaceInvoiceVBASection from '@pages/workspace/invoices/WorkspaceInvoiceVBASection';
 
+import * as BankAccounts from '@userActions/BankAccounts';
 import * as PaymentMethods from '@userActions/PaymentMethods';
 
 import CONST from '@src/CONST';
@@ -26,6 +28,7 @@ import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct'
 const POLICY_ID = 'invoicesPolicy123';
 const BANK_ACCOUNT_ID = 12345;
 const SECOND_BANK_ACCOUNT_ID = 67890;
+const DELETED_BANK_ACCOUNT_ID = 11111;
 
 let mockIsUserValidated = false;
 let mockCapturedOnResume: ((payload?: () => void) => void) | undefined;
@@ -67,6 +70,7 @@ jest.mock('@pages/settings/Wallet/PaymentMethodList', () => {
 
 const navigateSpy = jest.spyOn(Navigation, 'navigate').mockImplementation(() => {});
 const setInvoicingTransferBankAccountSpy = jest.spyOn(PaymentMethods, 'setInvoicingTransferBankAccount').mockImplementation(() => {});
+const deletePaymentBankAccountSpy = jest.spyOn(BankAccounts, 'deletePaymentBankAccount').mockImplementation(() => {});
 
 const eligibleBusinessBankAccount = {
     methodID: BANK_ACCOUNT_ID,
@@ -122,6 +126,13 @@ async function openRowMenu(account: typeof eligibleBusinessBankAccount) {
 
 function getMenuItemTexts() {
     return (mockListProps.threeDotsMenuItems ?? []).map((item) => item.text);
+}
+
+async function saveInvoiceDefault(bankAccountID: number) {
+    await act(async () => {
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, {invoice: {bankAccount: {transferBankAccountID: bankAccountID}}});
+    });
+    await waitForBatchedUpdatesWithAct();
 }
 
 async function pressAddBankAccount() {
@@ -268,5 +279,70 @@ describe('WorkspaceInvoiceVBASection', () => {
 
         // Then a failed request restores the saved invoice default instead of the wallet default
         expect(setInvoicingTransferBankAccountSpy).toHaveBeenCalledWith(SECOND_BANK_ACCOUNT_ID, POLICY_ID, BANK_ACCOUNT_ID);
+    });
+
+    it('shows the badge on the saved invoice default instead of the first account', async () => {
+        // Given the user already saved the second account as the invoice default
+        await seedPolicy({withEligibleBankAccount: true, withSecondEligibleBankAccount: true});
+        await saveInvoiceDefault(SECOND_BANK_ACCOUNT_ID);
+        renderSection();
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the saved default wins over the first eligible account
+        expect(mockListProps.invoiceTransferBankAccountID).toBe(SECOND_BANK_ACCOUNT_ID);
+    });
+
+    it('treats the first eligible account as the invoice default when the saved default was deleted', async () => {
+        // Given a saved invoice default whose account no longer exists, because the backend keeps the saved value after the account is deleted
+        await seedPolicy({withEligibleBankAccount: true, withSecondEligibleBankAccount: true});
+        await saveInvoiceDefault(DELETED_BANK_ACCOUNT_ID);
+        renderSection();
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the first eligible account gets the badge instead of no account getting it
+        expect(mockListProps.invoiceTransferBankAccountID).toBe(BANK_ACCOUNT_ID);
+
+        // When the first account's menu is opened
+        await openRowMenu(eligibleBusinessBankAccount);
+
+        // Then it only offers Delete, because the account already stands in as the default
+        expect(getMenuItemTexts()).toContain(TestHelper.translateLocal('common.delete'));
+        expect(getMenuItemTexts()).not.toContain(TestHelper.translateLocal('walletPage.setDefaultConfirmation'));
+    });
+
+    it('moves the badge to the next account while the first one is being deleted offline', async () => {
+        // Given no saved invoice default and the first account deleted while offline, so it stays listed until the delete reaches the server
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.NETWORK, {shouldForceOffline: true});
+        });
+        await seedPolicy({withEligibleBankAccount: true, withSecondEligibleBankAccount: true});
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.BANK_ACCOUNT_LIST, {[BANK_ACCOUNT_ID]: {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}});
+        });
+        renderSection();
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the second account stands in as the default, so the badge doesn't stay on the struck-through row
+        expect(mockListProps.invoiceTransferBankAccountID).toBe(SECOND_BANK_ACCOUNT_ID);
+    });
+
+    it('does not save the next account as the invoice default when deleting an account that only stands in as the default', async () => {
+        // Given no saved invoice default, so the first account only stands in as the default
+        await seedPolicy({withEligibleBankAccount: true, withSecondEligibleBankAccount: true});
+        mockShowConfirmModal.mockImplementationOnce(() => Promise.resolve({action: ModalActions.CONFIRM}));
+        renderSection();
+        await waitForBatchedUpdatesWithAct();
+
+        // When the user deletes the first account
+        await openRowMenu(eligibleBusinessBankAccount);
+        await act(async () => {
+            mockListProps.threeDotsMenuItems?.find((item) => item.text === TestHelper.translateLocal('common.delete'))?.onSelected?.();
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        // Then only the account is deleted. Saving the next account here would roll back to the deleted one if the request failed,
+        // while the next account already stands in as the default once the first one is gone.
+        expect(deletePaymentBankAccountSpy).toHaveBeenCalledWith(BANK_ACCOUNT_ID, undefined);
+        expect(setInvoicingTransferBankAccountSpy).not.toHaveBeenCalled();
     });
 });
