@@ -34,8 +34,11 @@ type TextInputFilterContentProps = {
     autoFocus?: boolean;
     style?: StyleProp<ViewStyle>;
     buttonText?: string;
-    shouldUseWebViewportHeightFallback?: boolean;
     onChange: (value: string | undefined, isNegated: boolean) => void;
+};
+
+type TextInputFilterContentFillHeightProps = TextInputFilterContentProps & {
+    shouldUseWebViewportHeightFallback?: boolean;
 };
 
 type TextInputFilterStateProps = Pick<TextInputFilterContentProps, 'baseFilterKey' | 'value' | 'isNegated' | 'autoFocus' | 'onChange'>;
@@ -154,7 +157,7 @@ function TextInputFilterContentFillHeight({
     buttonText,
     shouldUseWebViewportHeightFallback,
     onChange,
-}: TextInputFilterContentProps) {
+}: TextInputFilterContentFillHeightProps) {
     const {isNegated, renderTextInput, setIsNegated, styles, submit, translate, value} = useTextInputFilterState({
         baseFilterKey,
         value: initialValue,

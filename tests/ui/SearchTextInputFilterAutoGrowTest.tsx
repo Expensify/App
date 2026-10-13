@@ -1,5 +1,6 @@
 import {render} from '@testing-library/react-native';
 
+import type * as TextInputFilterContentModule from '@components/Search/FilterComponents/AdvancedFilters/TextInputFilterContent';
 import TextInputFilterContentPopupWrapper from '@components/Search/FilterDropdowns/SearchAdvancedFiltersPopup/TextInputFilterContentPopupWrapper';
 
 import TextInputFilterContentPageWrapper from '@pages/Search/SearchAdvancedFiltersContentPage/TextInputFilterContentPageWrapper';
@@ -10,9 +11,7 @@ const mockTextInputFilterContent = jest.fn<null, [Record<string, unknown>]>(() =
 const mockTextInputFilterContentFillHeight = jest.fn<null, [Record<string, unknown>]>(() => null);
 
 jest.mock('@components/Search/FilterComponents/AdvancedFilters/TextInputFilterContent', () => ({
-    ...jest.requireActual<typeof import('@components/Search/FilterComponents/AdvancedFilters/TextInputFilterContent')>(
-        '@components/Search/FilterComponents/AdvancedFilters/TextInputFilterContent',
-    ),
+    ...jest.requireActual<typeof TextInputFilterContentModule>('@components/Search/FilterComponents/AdvancedFilters/TextInputFilterContent'),
     __esModule: true,
     default: (props: Record<string, unknown>) => mockTextInputFilterContent(props),
     TextInputFilterContentFillHeight: (props: Record<string, unknown>) => mockTextInputFilterContentFillHeight(props),
