@@ -1,10 +1,9 @@
+import CONST from '@src/CONST';
+
 import type {Event, Integration} from '@sentry/core';
 
 /** Message Babel's `_classCallCheck` throws when a transpiled class is called without `new`, from inside the class, never the caller. */
 const CLASS_CALL_CHECK_MESSAGE = 'Cannot call a class as a function';
-
-/** Tag `thirdPartyErrorFilterIntegration` sets on events whose every frame is foreign to our bundle. */
-const THIRD_PARTY_CODE_TAG = 'third_party_code';
 
 /**
  * Filenames that mean "this frame has no URL".
@@ -39,7 +38,7 @@ const ANONYMOUS_FILENAMES = new Set(['app:///', '', '[native code]', 'native', '
  * (APP-J2J is a genuine Convert-experiment bug).
  */
 function isClassCallCheckNoise(event: Event): boolean {
-    if (event.tags?.[THIRD_PARTY_CODE_TAG] !== true) {
+    if (event.tags?.[CONST.TELEMETRY.TAGS.THIRD_PARTY_CODE] !== true) {
         return false;
     }
 
@@ -69,4 +68,4 @@ const classCallCheckNoiseFilterIntegration: Integration = {
 };
 
 export default classCallCheckNoiseFilterIntegration;
-export {isClassCallCheckNoise, CLASS_CALL_CHECK_MESSAGE, THIRD_PARTY_CODE_TAG};
+export {isClassCallCheckNoise, CLASS_CALL_CHECK_MESSAGE};
