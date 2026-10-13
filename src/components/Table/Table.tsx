@@ -291,6 +291,7 @@ function TableContent<DataType extends TableData, ColumnKey extends string = str
         resizableColumnKeys,
         resolvedColumnWidths,
         dragMinWidths,
+        fitColumnWidths,
     } = useDynamicColumnWidths<DataType, ColumnKey>({
         columns,
         data,
@@ -307,6 +308,8 @@ function TableContent<DataType extends TableData, ColumnKey extends string = str
         resizableColumnKeys,
         resolvedColumnWidths,
         dragMinWidths,
+        fitColumnWidths,
+        columnWidthOverrides,
         columnGap: styles.gap3.gap,
     });
 
