@@ -3973,6 +3973,10 @@ ${amount} voor ${merchant} - ${date}`,
     },
     dynamicForm: {
         exampleHint: ({example}: {example: string}) => `Voorbeeld: ${example}`,
+        fileCount: ({count}: {count: number}) => ({
+            one: '1 bestand',
+            other: `${count} bestanden`,
+        }),
         error: {
             tooShort: ({minLength}: {minLength: number}) => `Moet minimaal ${minLength} tekens bevatten`,
             invalidFormat: ({example}: {example?: string}) => (example ? `Ongeldige indeling. Voorbeeld: ${example}` : 'Ongeldige indeling'),
@@ -11248,6 +11252,16 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
                 other: `${count} actieve gebruikers`,
             }),
             state: {paid: 'Betaald', cleared: 'Afgeboekt', failed: 'Mislukt', refunded: 'Terugbetaald', disputed: 'Betwist', balanceTransfer: 'Saldo-overboeking'},
+            details: 'Betalingsgegevens',
+            badge: {
+                balanceTransferTo: ({email}: {email: string}) => `Saldo-overboeking naar ${email}`,
+                balanceTransferFrom: ({email}: {email: string}) => `Saldo-overboeking van ${email}`,
+                disputedPending: ({date}: {date: string}) => `Betwist op ${date} (In behandeling)`,
+                disputedRefunded: ({date}: {date: string}) => `Betwist op ${date} (Terugbetaald)`,
+                disputedClosed: ({date}: {date: string}) => `Betwist op ${date} (Gesloten)`,
+                refundedOn: ({date}: {date: string}) => `Terugbetaald op ${date}`,
+                refundedAmountOn: ({amount, date}: {amount: string; date: string}) => `${amount} terugbetaald op ${date}`,
+            },
         },
         subscriptionSettings: {
             title: 'Abonnementsinstellingen',

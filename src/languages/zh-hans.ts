@@ -3849,6 +3849,10 @@ ${amount}，商户：${merchant} - 日期：${date}`,
     },
     dynamicForm: {
         exampleHint: ({example}: {example: string}) => `示例：${example}`,
+        fileCount: ({count}: {count: number}) => ({
+            one: `${count} 个文件`,
+            other: `${count} 个文件`,
+        }),
         error: {
             tooShort: ({minLength}: {minLength: number}) => `至少需要 ${minLength} 个字符`,
             invalidFormat: ({example}: {example?: string}) => (example ? `格式无效。示例：${example}` : '格式无效'),
@@ -10829,6 +10833,16 @@ ${reportName}`,
                 other: `${count} 名活跃用户`,
             }),
             state: {paid: '已支付', cleared: '已清算', failed: '失败', refunded: '已退款', disputed: '有争议', balanceTransfer: '余额转账'},
+            details: '付款详情',
+            badge: {
+                balanceTransferTo: ({email}: {email: string}) => `余额转账至 ${email}`,
+                balanceTransferFrom: ({email}: {email: string}) => `余额转账来自 ${email}`,
+                disputedPending: ({date}: {date: string}) => `${date} 提出争议（待处理）`,
+                disputedRefunded: ({date}: {date: string}) => `${date} 提出争议（已退款）`,
+                disputedClosed: ({date}: {date: string}) => `${date} 提出争议（已关闭）`,
+                refundedOn: ({date}: {date: string}) => `${date} 已退款`,
+                refundedAmountOn: ({amount, date}: {amount: string; date: string}) => `${date} 已退款 ${amount}`,
+            },
         },
         subscriptionSettings: {
             title: '订阅设置',
