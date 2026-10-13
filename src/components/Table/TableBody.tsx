@@ -72,7 +72,7 @@ const columnScrollPageHeaderStyle = {position: 'sticky', left: 0} as ViewStyle;
  * Sticks the shared list-header box at minus the page header's height, so exactly that much scrolls off and leaves the
  * column header flush against the scroller. `zIndex` lifts it above the rows, which paint later in tree order.
  */
-function getStickyListHeaderStyle(pageHeaderHeight: number): ViewStyle {
+function getColumnScrollListHeaderStyle(pageHeaderHeight: number): ViewStyle {
     return {position: 'sticky', top: -pageHeaderHeight, zIndex: 1} as ViewStyle;
 }
 
@@ -476,7 +476,7 @@ function TableBodyList({contentContainerStyle, emptyMessage, onLayout, style, ..
                 ListHeaderComponentStyle={[
                     ListHeaderComponentStyle,
                     // An unmeasured page header leaves nothing to offset the stack by, and 0 would pin it instead.
-                    pageHeaderHeight > 0 && shouldRenderColumnHeaderInListHeader && getStickyListHeaderStyle(pageHeaderHeight),
+                    pageHeaderHeight > 0 && shouldRenderColumnHeaderInListHeader && getColumnScrollListHeaderStyle(pageHeaderHeight),
                 ]}
                 ListEmptyComponent={shouldRenderEmptyStateInList ? emptyStateContent : ListEmptyComponent}
                 ListEmptyComponentStyle={[ListEmptyComponentStyle, shouldRenderEmptyStateInList && styles.flexGrow1, shouldRenderEmptyStateInList && styles.justifyContentCenter]}
