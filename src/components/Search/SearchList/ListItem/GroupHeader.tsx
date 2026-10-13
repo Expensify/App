@@ -3,6 +3,7 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {PressableWithFeedback} from '@components/Pressable';
 import {useHorizontalScrollFollower} from '@components/Search/hooks/useSyncedHorizontalScroll';
 import SearchTableHeader from '@components/Search/SearchTableHeader';
+import {getSearchGroupCount} from '@components/Search/selectionBuilders';
 import type {SearchColumnType, SearchCustomColumnIds, SearchGroupBy} from '@components/Search/types';
 import type {ExtendedTargetedEvent} from '@components/SelectionList/ListItem/types';
 
@@ -183,7 +184,11 @@ function GroupHeader({
     const isCashBackWithdrawal = isCashBackWithdrawalGroup(groupItem);
 
     // The same derivation the narrow layout reads, so the two cannot disagree about what a group's checkbox shows.
-    const {isSelectAllChecked, isIndeterminate} = useGroupCheckboxState({groupKey: item.groupKeyForList, groupTransactions: groupItem.transactions});
+    const {isSelectAllChecked, isIndeterminate} = useGroupCheckboxState({
+        groupKey: item.groupKeyForList,
+        groupTransactions: groupItem.transactions,
+        groupCount: getSearchGroupCount(groupItem),
+    });
 
     const isItemSelected = isSelectAllChecked || item?.isSelected;
 

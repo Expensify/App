@@ -229,6 +229,13 @@ const expenseReportQueryJSON: SearchQueryJSON = {
     filters: {operator: CONST.SEARCH.SYNTAX_OPERATORS.AND, left: 'type', right: 'expense-report'},
 };
 
+const expenseQueryJSON: SearchQueryJSON = {
+    ...expenseReportQueryJSON,
+    inputQuery: 'type:expense status:all',
+    type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+    filters: {operator: CONST.SEARCH.SYNTAX_OPERATORS.AND, left: 'type', right: 'expense'},
+};
+
 function makeSelectedTransaction(overrides: Partial<SelectedTransactions[string]> = {}): SelectedTransactions[string] {
     return {
         isSelected: true,
@@ -386,6 +393,40 @@ describe('useSearchBulkActions - Pay option', () => {
         const serializedQuery = jest.mocked(queueBulkPayReports).mock.calls.at(0)?.at(0);
         expect(serializedQuery).toBeDefined();
         expect(serializedQuery).toContain('-reportID:excluded-report');
+    });
+
+    it('pays every matching report under Select all in an expense search with nothing unchecked', async () => {
+        // Given every matching expense selected on the Expenses search, none of them unchecked
+        mockAreAllMatchingItemsSelected = true;
+        mockBulkPayButtonOptions = [{text: 'Mark as paid', key: CONST.IOU.PAYMENT_TYPE.ELSEWHERE}];
+        const {result} = renderHook(() => useSearchBulkActions({queryJSON: expenseQueryJSON}), {wrapper: OnyxListItemProvider});
+        await waitFor(() => {
+            expect(getPayOptionFromResult(result.current.headerButtonsOptions)).toBeDefined();
+        });
+
+        // When Pay is selected
+        await act(async () => {
+            await getPayOptionFromResult(result.current.headerButtonsOptions)?.onSelected?.();
+        });
+
+        // Then the search itself is sent, since it holds exactly what is selected
+        expect(queueBulkPayReports).toHaveBeenCalledTimes(1);
+    });
+
+    it('hides the Pay option under Select all in an expense search once an expense is unchecked, since paying its report would pay it too', async () => {
+        // Given every matching expense selected on the Expenses search, then one of them unchecked
+        mockAreAllMatchingItemsSelected = true;
+        mockExcludedTransactions = {tx2: makeSelectedTransaction({reportID: 'report-with-unchecked-expense'})};
+        mockBulkPayButtonOptions = [{text: 'Mark as paid', key: CONST.IOU.PAYMENT_TYPE.ELSEWHERE}];
+
+        // When the bulk actions are built
+        const {result} = renderHook(() => useSearchBulkActions({queryJSON: expenseQueryJSON}), {wrapper: OnyxListItemProvider});
+        await waitFor(() => {
+            expect(result.current.headerButtonsOptions.length).toBeGreaterThan(0);
+        });
+
+        // Then Pay is not offered, since it pays whole reports from the search and a report cannot leave out one of its expenses
+        expect(getPayOptionFromResult(result.current.headerButtonsOptions)).toBeUndefined();
     });
 
     it('keeps the Pay option under Select all when getPayOption rejects the loaded page', async () => {

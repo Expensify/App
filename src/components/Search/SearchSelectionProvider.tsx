@@ -1,3 +1,5 @@
+import {isGroupEntry} from '@libs/SearchUIUtils';
+
 import CONST from '@src/CONST';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
@@ -7,7 +9,7 @@ import type {SearchData, SearchSelectionActionsValue, SearchSelectionContextValu
 
 import {useSearchQueryContext, useSearchSelectionActions, useSearchSelectionContext} from './SearchContext';
 import {SearchSelectionActionsContext, SearchSelectionClearGenerationContext, SearchSelectionContext} from './SearchContextDefinitions';
-import {deriveSelectedReports, isRowChecked} from './selectionBuilders';
+import {deriveSelectedReports, getClaimedGroupKey, isRowChecked} from './selectionBuilders';
 
 type SearchSelectionProviderProps = {
     children: React.ReactNode;
@@ -136,6 +138,7 @@ function createSelectionActions(setSelectionState: React.Dispatch<React.SetState
                 areAllMatchingItemsSelected: prevState.areAllMatchingItemsSelected,
             });
             const reconciledExcludedTransactions = options?.reconciledExcludedTransactions;
+            const deselectedWithoutEntry = options?.deselectedWithoutEntry ?? {};
             if (selectedTransactions === prevState.selectedTransactions && (!reconciledExcludedTransactions || reconciledExcludedTransactions === prevState.excludedTransactions)) {
                 return prevState;
             }
@@ -153,15 +156,28 @@ function createSelectionActions(setSelectionState: React.Dispatch<React.SetState
                 areAllMatchingItemsSelected = true;
                 excludedTransactions = {...prevState.excludedTransactions};
                 for (const [key, transaction] of Object.entries(prevState.selectedTransactions)) {
-                    if (!Object.hasOwn(selectedTransactions, key)) {
+                    // A row re-checked inside a group excluded whole is already covered by the group's exclusion when it is unchecked again.
+                    const isCoveredByExcludedGroup = !!transaction.groupKey && isGroupEntry(transaction.groupKey) && Object.hasOwn(excludedTransactions, transaction.groupKey);
+                    if (!Object.hasOwn(selectedTransactions, key) && !isCoveredByExcludedGroup) {
                         excludedTransactions[key] = transaction;
+                    }
+                }
+                // This runs before the loop below, so a commit that also selects the group again still un-excludes it.
+                for (const [key, transaction] of Object.entries(deselectedWithoutEntry)) {
+                    excludedTransactions[key] = transaction;
+                    // An excluded group stands for every row in it, so a row keeping its own exclusion would be counted twice.
+                    for (const [excludedKey, excludedTransaction] of Object.entries(excludedTransactions)) {
+                        if (excludedTransaction.groupKey === key) {
+                            delete excludedTransactions[excludedKey];
+                        }
                     }
                 }
                 for (const [key, transaction] of Object.entries(selectedTransactions)) {
                     if (!Object.hasOwn(prevState.selectedTransactions, key) && Object.hasOwn(excludedTransactions, key)) {
                         delete excludedTransactions[key];
                     }
-                    if (!Object.hasOwn(prevState.selectedTransactions, key) && transaction.isSelectedViaGroup && transaction.groupKey) {
+                    // A group's exclusion goes once its rows are back as a whole, whether through the header or one row at a time.
+                    if (!Object.hasOwn(prevState.selectedTransactions, key) && (transaction.isSelectedViaGroup || transaction.isEntireGroupSelected) && transaction.groupKey) {
                         delete excludedTransactions[transaction.groupKey];
                     }
                 }
@@ -250,7 +266,7 @@ function createSelectionActions(setSelectionState: React.Dispatch<React.SetState
         });
     };
 
-    const removeTransaction: SearchSelectionActionsValue['removeTransaction'] = (transactionID) => {
+    const removeTransaction: SearchSelectionActionsValue['removeTransaction'] = (transactionID, {isDeleted}) => {
         if (!transactionID) {
             return;
         }
@@ -266,11 +282,14 @@ function createSelectionActions(setSelectionState: React.Dispatch<React.SetState
 
             const newState = {...prevState};
             if (hasSelectedTransactions) {
+                // An expense that stays in a group checked through its header makes the group a partial selection, as unchecking its row does. A deleted one leaves the group, which stays whole.
+                const removedTransaction = prevState.selectedTransactions[transactionID];
+                const partialGroupKey = !isDeleted && removedTransaction ? getClaimedGroupKey(removedTransaction) : undefined;
                 const newSelectedTransactions = Object.entries(prevState.selectedTransactions).reduce((acc, [key, value]) => {
                     if (key === transactionID) {
                         return acc;
                     }
-                    acc[key] = value;
+                    acc[key] = partialGroupKey && value.groupKey === partialGroupKey ? {...value, isSelectedViaGroup: false, isEntireGroupSelected: false} : value;
                     return acc;
                 }, {} as SelectedTransactions);
                 newState.selectedTransactions = newSelectedTransactions;

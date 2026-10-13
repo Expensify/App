@@ -88,9 +88,31 @@ function removeTransaction(selectedTransactions: SelectedTransactions, transacti
     return nextSelection;
 }
 
+function buildGroupRows(groupKey: string, ...keys: string[]): SelectedTransactions {
+    return Object.fromEntries(Object.entries(buildSelected(...keys)).map(([key, entry]) => [key, {...entry, groupKey, isSelectedViaGroup: true}]));
+}
+
 describe('SearchSelectionProvider all-matching exclusions', () => {
     beforeEach(() => {
         mockCurrentSearchQueryJSON = expenseQueryJSON;
+    });
+
+    it('keeps a group selected when the same commit names its exclusion and selects it again', () => {
+        // Given every matching item selected
+        const {result} = renderSelection();
+        seedAllMatchingSelection(result);
+
+        // When one commit both names the group as excluded and writes its rows back through the group
+        act(() => {
+            result.current.actions.applySelection((selectedTransactions) => ({...selectedTransactions, ...buildGroupRows('group_1', 'tx_3')}), {
+                shouldPreserveAllMatchingSelection: true,
+                deselectedWithoutEntry: buildSelected('group_1'),
+            });
+        });
+
+        // Then the selection wins, since what the commit writes is what the checkbox will show
+        expect(result.current.state.excludedTransactions.group_1).toBeUndefined();
+        expect(result.current.state.selectedTransactions.tx_3?.isSelected).toBe(true);
     });
 
     it('keeps all-matching active and records a row exclusion', () => {

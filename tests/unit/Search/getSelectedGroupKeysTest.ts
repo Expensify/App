@@ -77,6 +77,20 @@ describe('getSelectedGroupKeys', () => {
         expect(keys).toEqual([groupKey]);
     });
 
+    it('skips a group stamped as not wholly selected even when its selected rows match the count', () => {
+        // Given two selected rows of a two-expense group, stamped as not covering it since a loaded row was unchecked and one of them was deleted elsewhere
+        const selection = buildSelection({
+            txn2: {groupKey, isEntireGroupSelected: false},
+            txn3: {groupKey, isEntireGroupSelected: false},
+        });
+
+        // When the groups a delete would take whole are read
+        const keys = getSelectedGroupKeys(selection, buildGroupSearchData({[groupKey]: {count: 2, total: 0, currency: 'USD'}}));
+
+        // Then the group is left out, so the delete hides only the selected rows and not the unchecked one with them
+        expect(keys).toEqual([]);
+    });
+
     it('skips a group whose loaded selection is smaller than the group count', () => {
         const keys = getSelectedGroupKeys(
             buildSelection({
