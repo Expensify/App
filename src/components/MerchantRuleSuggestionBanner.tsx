@@ -69,8 +69,7 @@ function MerchantRuleSuggestionBannerContent({reportID, policyID, containerStyle
     const theme = useTheme();
     const {translate} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['Lightbulb']);
-    const {suggestion, fields, editedTagLevels, transaction, policy} = useMerchantRuleSuggestion(reportID, policyID);
-    const offeringTransactionID = suggestion?.transactionID;
+    const {suggestion, transactionID: offeringTransactionID, fields, editedTagLevels, transaction, policy} = useMerchantRuleSuggestion(reportID, policyID);
     const isShowing = !!suggestion && !!policyID;
 
     // Sprung in from the edge it is pinned to, the way FloatingMessageCounter moves its pill. A reanimated entering
@@ -114,7 +113,7 @@ function MerchantRuleSuggestionBannerContent({reportID, policyID, containerStyle
         return null;
     }
 
-    const dismiss = () => dismissMerchantRuleSuggestion(suggestion);
+    const dismiss = () => dismissMerchantRuleSuggestion(suggestion, offeringTransactionID);
 
     const createRule = () => {
         const draft = getMerchantRuleDraftFromTransaction(transaction, fields, policy, editedTagLevels);
@@ -127,7 +126,7 @@ function MerchantRuleSuggestionBannerContent({reportID, policyID, containerStyle
         // The offer was taken, so it must not still be asking on the way back, and the recording ends here. Editing
         // the expense again starts fresh instead of repeating fields already in this rule.
         clearMerchantRuleSuggestionFields(offeringTransactionID);
-        retireMerchantRuleSuggestion();
+        retireMerchantRuleSuggestion(offeringTransactionID);
         Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.RULES_MERCHANT_NEW_FROM_EXPENSE.getRoute(policyID)));
     };
 
@@ -173,6 +172,7 @@ function MerchantRuleSuggestionBannerContent({reportID, policyID, containerStyle
  */
 function MerchantRuleSuggestionBanner({reportID, policyID, containerStyles, overlayStyles, isAnchoredToBottom}: MerchantRuleSuggestionBannerProps) {
     const [storedSuggestion] = useOnyx(ONYXKEYS.RAM_ONLY_MERCHANT_RULE_SUGGESTION);
+    const [confirmation] = useOnyx(ONYXKEYS.MERCHANT_RULE_SUGGESTION_CONFIRMATION);
     // A full-size composer leaves no room for the callout, and on narrow layouts it would sit over the button that
     // collapses the composer again. Handled inside the content rather than here, so the callout goes at once instead
     // of animating out over the composer as it grows.
@@ -194,7 +194,7 @@ function MerchantRuleSuggestionBanner({reportID, policyID, containerStyles, over
 
     // Nothing is stored for most of a session, so skip the inner component and its Onyx subscriptions until there is
     // an edit to offer.
-    if (!isFocused || !isMountForThisLayout || !isMerchantRuleSuggestionLive(storedSuggestion)) {
+    if (!isFocused || !isMountForThisLayout || !isMerchantRuleSuggestionLive(storedSuggestion, confirmation)) {
         return null;
     }
 

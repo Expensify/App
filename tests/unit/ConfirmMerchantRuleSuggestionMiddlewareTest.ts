@@ -3,7 +3,7 @@ import ConfirmMerchantRuleSuggestion from '@libs/Middleware/ConfirmMerchantRuleS
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {MerchantRuleSuggestion} from '@src/types/onyx';
+import type {MerchantRuleSuggestionConfirmation} from '@src/types/onyx';
 import type {MerchantRuleSuggestionField} from '@src/types/onyx/MerchantRuleSuggestion';
 import type Request from '@src/types/onyx/Request';
 import type Response from '@src/types/onyx/Response';
@@ -45,8 +45,8 @@ function seedRecordedEdit(field: MerchantRuleSuggestionField) {
     });
 }
 
-function getSuggestion() {
-    return getOnyxValue(ONYXKEYS.RAM_ONLY_MERCHANT_RULE_SUGGESTION) as Promise<MerchantRuleSuggestion | undefined>;
+function getConfirmation() {
+    return getOnyxValue(ONYXKEYS.MERCHANT_RULE_SUGGESTION_CONFIRMATION) as Promise<MerchantRuleSuggestionConfirmation | undefined>;
 }
 
 describe('ConfirmMerchantRuleSuggestion middleware', () => {
@@ -68,9 +68,9 @@ describe('ConfirmMerchantRuleSuggestion middleware', () => {
         await waitForBatchedUpdates();
 
         // Then that one field is confirmed, and the expense becomes the one offering
-        const suggestion = await getSuggestion();
-        expect(suggestion?.confirmedFields?.[TRANSACTION_ID]).toEqual({[field]: true});
-        expect(suggestion?.transactionID).toBe(TRANSACTION_ID);
+        const confirmation = await getConfirmation();
+        expect(confirmation?.confirmedFields?.[TRANSACTION_ID]).toEqual({[field]: true});
+        expect(confirmation?.transactionID).toBe(TRANSACTION_ID);
     });
 
     it('withdraws a confirmation when a later response says no', async () => {
@@ -84,8 +84,8 @@ describe('ConfirmMerchantRuleSuggestion middleware', () => {
         await waitForBatchedUpdates();
 
         // Then the earlier confirmation no longer stands in for the value the expense now holds
-        const suggestion = await getSuggestion();
-        expect(suggestion?.confirmedFields?.[TRANSACTION_ID]?.category).toBeUndefined();
+        const confirmation = await getConfirmation();
+        expect(confirmation?.confirmedFields?.[TRANSACTION_ID]?.category).toBeUndefined();
     });
 
     it('leaves the fields of other expenses alone', async () => {
@@ -99,8 +99,8 @@ describe('ConfirmMerchantRuleSuggestion middleware', () => {
         await waitForBatchedUpdates();
 
         // Then the first expense keeps what it earned, since a verdict speaks only for the edit that asked for it
-        const suggestion = await getSuggestion();
-        expect(suggestion?.confirmedFields?.[TRANSACTION_ID]?.category).toBe(true);
+        const confirmation = await getConfirmation();
+        expect(confirmation?.confirmedFields?.[TRANSACTION_ID]?.category).toBe(true);
     });
 
     it('records nothing for a command that cannot lead to a rule', async () => {
@@ -112,9 +112,9 @@ describe('ConfirmMerchantRuleSuggestion middleware', () => {
         await waitForBatchedUpdates();
 
         // Then nothing is confirmed, because no field maps to that command
-        const suggestion = await getSuggestion();
-        expect(suggestion?.confirmedFields).toBeUndefined();
-        expect(suggestion?.transactionID).toBeUndefined();
+        const confirmation = await getConfirmation();
+        expect(confirmation?.confirmedFields).toBeUndefined();
+        expect(confirmation?.transactionID).toBeUndefined();
     });
 
     it('records nothing when the request names no expense', async () => {
@@ -126,8 +126,8 @@ describe('ConfirmMerchantRuleSuggestion middleware', () => {
         await waitForBatchedUpdates();
 
         // Then there is nothing to key the verdict by, so nothing is written
-        const suggestion = await getSuggestion();
-        expect(suggestion?.confirmedFields).toBeUndefined();
+        const confirmation = await getConfirmation();
+        expect(confirmation?.confirmedFields).toBeUndefined();
     });
 
     it('records nothing when the request never got a response', async () => {
@@ -139,8 +139,8 @@ describe('ConfirmMerchantRuleSuggestion middleware', () => {
         await waitForBatchedUpdates();
 
         // Then no verdict is recorded, since the server has not given one
-        const suggestion = await getSuggestion();
-        expect(suggestion?.confirmedFields).toBeUndefined();
+        const confirmation = await getConfirmation();
+        expect(confirmation?.confirmedFields).toBeUndefined();
     });
 
     it('passes the response through unchanged as the middleware result', async () => {

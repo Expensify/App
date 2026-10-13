@@ -1,6 +1,6 @@
 import CONST from '@src/CONST';
 import type {MerchantRuleForm} from '@src/types/form';
-import type {MerchantRuleSuggestion, Policy, Transaction} from '@src/types/onyx';
+import type {MerchantRuleSuggestion, MerchantRuleSuggestionConfirmation, Policy, Transaction} from '@src/types/onyx';
 import type {MerchantRuleSuggestionField} from '@src/types/onyx/MerchantRuleSuggestion';
 
 import type {OnyxEntry} from 'react-native-onyx';
@@ -15,15 +15,19 @@ import {getBillable, getCategory, getDescription, getMerchant, getReimbursable, 
  *
  * Both halves are needed. An unedited field has nothing to seed from, and an unconfirmed one is an edit nobody
  * repeats, so a rule built from it would impose a one-off on every future expense from the merchant. Taken from the
- * canonical list rather than the record's own keys, so the order is fixed and only known fields reach the draft.
+ * canonical list rather than the records' own keys, so the order is fixed and only known fields reach the draft.
+ *
+ * Requiring both is also what keeps a verdict that outlives its session inert. The edits are RAM-only, so a stored
+ * confirmation with nothing left to answer offers nothing.
  */
-function getOfferableMerchantRuleSuggestionFields(suggestion: OnyxEntry<MerchantRuleSuggestion>): MerchantRuleSuggestionField[] {
-    if (!suggestion?.transactionID) {
+function getOfferableMerchantRuleSuggestionFields(suggestion: OnyxEntry<MerchantRuleSuggestion>, confirmation: OnyxEntry<MerchantRuleSuggestionConfirmation>): MerchantRuleSuggestionField[] {
+    const transactionID = confirmation?.transactionID;
+    if (!transactionID) {
         return [];
     }
 
-    const editedFields = suggestion.editedFields?.[suggestion.transactionID];
-    const confirmedFields = suggestion.confirmedFields?.[suggestion.transactionID];
+    const editedFields = suggestion?.editedFields?.[transactionID];
+    const confirmedFields = confirmation.confirmedFields?.[transactionID];
 
     return Object.values(CONST.MERCHANT_RULE_SUGGESTION_FIELDS).filter((field) => !!editedFields?.[field] && !!confirmedFields?.[field]);
 }
@@ -35,14 +39,15 @@ function getOfferableMerchantRuleSuggestionFields(suggestion: OnyxEntry<Merchant
  * An edit is recorded before the server has answered, so a record on its own is not yet an offer. Callers mount the
  * callout on this, and a pending record would spend its entrance animation before there was anything to show.
  */
-function isMerchantRuleSuggestionLive(suggestion: OnyxEntry<MerchantRuleSuggestion>): boolean {
-    if (!suggestion?.transactionID || suggestion.isRetired) {
+function isMerchantRuleSuggestionLive(suggestion: OnyxEntry<MerchantRuleSuggestion>, confirmation: OnyxEntry<MerchantRuleSuggestionConfirmation>): boolean {
+    const transactionID = confirmation?.transactionID;
+    if (!transactionID || suggestion?.retiredTransactionIDs?.[transactionID]) {
         return false;
     }
-    if (getOfferableMerchantRuleSuggestionFields(suggestion).length === 0) {
+    if (getOfferableMerchantRuleSuggestionFields(suggestion, confirmation).length === 0) {
         return false;
     }
-    return !suggestion.dismissedTransactionIDs?.includes(suggestion.transactionID);
+    return !suggestion?.dismissedTransactionIDs?.includes(transactionID);
 }
 
 /**

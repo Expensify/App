@@ -74,13 +74,16 @@ function trackMerchantRuleSuggestion({transactionID, field, reportID, policy, po
     Onyx.merge(ONYXKEYS.RAM_ONLY_MERCHANT_RULE_SUGGESTION, {
         reportIDs: {[transactionID]: reportID},
         editedFields: {[transactionID]: {[field]: true}},
-        // A fresh edit of this field answers to its own response, so an earlier confirmation of it must not stand in
-        // for one. Other fields keep theirs, which is what lets an offer earned on category survive editing the tag.
-        confirmedFields: {[transactionID]: {[field]: null}},
         // Keyed by level so editing several levels of one tag accumulates, the same way fields do.
         ...(editedTagLevels?.length ? {editedTagLevels: {[transactionID]: Object.fromEntries(editedTagLevels.map((level) => [level, true]))}} : {}),
+        // Editing this expense again asks afresh, so whatever became of its last offer is behind it now.
+        retiredTransactionIDs: {[transactionID]: null},
         seenInReportID: null,
     });
+
+    // A fresh edit of this field answers to its own response, so an earlier confirmation of it must not stand in for
+    // one. Other fields keep theirs, which is what lets an offer earned on category survive editing the tag.
+    setMerchantRuleSuggestionConfirmation(transactionID, field, false);
 }
 
 /**
@@ -97,17 +100,12 @@ function trackMerchantRuleSuggestion({transactionID, field, reportID, policy, po
  */
 function setMerchantRuleSuggestionConfirmation(transactionID: string, field: MerchantRuleSuggestionField, isConfirmed: boolean) {
     if (!isConfirmed) {
-        Onyx.merge(ONYXKEYS.RAM_ONLY_MERCHANT_RULE_SUGGESTION, {confirmedFields: {[transactionID]: {[field]: null}}});
+        Onyx.merge(ONYXKEYS.MERCHANT_RULE_SUGGESTION_CONFIRMATION, {confirmedFields: {[transactionID]: {[field]: null}}});
         return;
     }
 
-    // A confirmation is what hands an expense the offer, so it is also what ends the one before it. `isRetired`
-    // belongs to the offer being replaced.
-    Onyx.merge(ONYXKEYS.RAM_ONLY_MERCHANT_RULE_SUGGESTION, {
-        transactionID,
-        confirmedFields: {[transactionID]: {[field]: true}},
-        isRetired: null,
-    });
+    // A confirmation is what hands an expense the offer, so it is also what ends the one before it.
+    Onyx.merge(ONYXKEYS.MERCHANT_RULE_SUGGESTION_CONFIRMATION, {transactionID, confirmedFields: {[transactionID]: {[field]: true}}});
 }
 
 /**
@@ -123,12 +121,12 @@ function markMerchantRuleSuggestionSeen(reportID: string) {
  * Hides the callout for this expense for the rest of the session. Other expenses still offer, and a new session
  * offers this one again.
  */
-function dismissMerchantRuleSuggestion(suggestion: MerchantRuleSuggestion) {
-    if (!suggestion.transactionID) {
-        return;
-    }
+function dismissMerchantRuleSuggestion(suggestion: MerchantRuleSuggestion, transactionID: string) {
     Onyx.merge(ONYXKEYS.RAM_ONLY_MERCHANT_RULE_SUGGESTION, {
-        dismissedTransactionIDs: [...new Set([...(suggestion.dismissedTransactionIDs ?? []), suggestion.transactionID])],
+        dismissedTransactionIDs: [...new Set([...(suggestion.dismissedTransactionIDs ?? []), transactionID])],
+        // Cleared so leaving the report does not also retire what the user has already taken away. The retire hook
+        // reads this alone, which keeps it off the verdict key it would otherwise have to consult.
+        seenInReportID: null,
     });
 }
 
@@ -139,15 +137,17 @@ function dismissMerchantRuleSuggestion(suggestion: MerchantRuleSuggestion) {
 function clearMerchantRuleSuggestionFields(transactionID: string) {
     Onyx.merge(ONYXKEYS.RAM_ONLY_MERCHANT_RULE_SUGGESTION, {
         editedFields: {[transactionID]: null},
-        confirmedFields: {[transactionID]: null},
         editedTagLevels: {[transactionID]: null},
         reportIDs: {[transactionID]: null},
     });
+    Onyx.merge(ONYXKEYS.MERCHANT_RULE_SUGGESTION_CONFIRMATION, {confirmedFields: {[transactionID]: null}});
 }
 
-/** Ends the current offer without silencing the expense. Returning shows nothing; editing it again offers afresh. */
-function retireMerchantRuleSuggestion() {
-    Onyx.merge(ONYXKEYS.RAM_ONLY_MERCHANT_RULE_SUGGESTION, {isRetired: true});
+/**
+ * Ends an expense's offer without silencing the expense. Returning shows nothing, and editing it again offers afresh.
+ */
+function retireMerchantRuleSuggestion(transactionID: string) {
+    Onyx.merge(ONYXKEYS.RAM_ONLY_MERCHANT_RULE_SUGGESTION, {retiredTransactionIDs: {[transactionID]: true}});
 }
 
 export {
