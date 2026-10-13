@@ -6128,7 +6128,7 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
             enterCredentials: 'Saisissez votre clé API DualEntry',
             howToFindAPIKey:
                 '<strong>Recherche de votre clé API.</strong><ol><li>Connectez-vous à DualEntry</li><li>Accédez à [organization name] -> Paramètres -> Accès développeur -> Clés API</li><li>Créez une clé API</li><li>Collez la clé API ci-dessous</li></ol>',
-            subsidiary: 'Société',
+            subsidiary: 'Entreprise',
             subsidiarySelectDescription: 'Choisissez l’entreprise dans DualEntry depuis laquelle vous souhaitez importer des données.',
             noCompaniesFound: 'Aucune entreprise trouvée',
             noCompaniesFoundDescription: 'Veuillez ajouter une entreprise dans DualEntry et synchroniser à nouveau la connexion',
