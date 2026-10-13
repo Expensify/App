@@ -4,6 +4,8 @@ import type {SummaryGroup} from '@components/SubStepForms/ConfirmationStep';
 
 import type {DynamicFormField, DynamicFormPage} from '@src/types/onyx';
 
+import noop from 'lodash/noop';
+
 import formatDynamicFieldValue from './formatDynamicFieldValue';
 import getContentFields from './getContentFields';
 import {getFieldLabel} from './getLocalizedText';
@@ -21,25 +23,39 @@ function getConfirmationItems(
     translate: LocalizedTranslate,
     onEditPage: (pageIndex: number) => void,
 ): SummaryGroup[] {
-    return pages
-        .map((page, pageIndex) => ({page, pageIndex}))
-        .filter(({page}) => isPageShown(page, values, allFields))
-        .map(({page, pageIndex}) => ({
-            id: page.key,
-            name: getPageTitle(page, values, translate, allFields),
-            rows: getVisibleFields(getContentFields(page.content).filter(isSupportedField), values, allFields).map((field) => {
-                const answer = formatDynamicFieldValue(field, values, translate);
-                return {
-                    id: field.key,
-                    description: getFieldLabel(field, translate),
-                    title: isSensitiveField(field) ? maskSensitiveValue(answer) : answer,
-                    shouldShowRightIcon: !field.readonly,
-                    onPress: field.readonly ? () => {} : () => onEditPage(pageIndex),
-                    interactive: !field.readonly,
-                };
-            }),
-        }))
-        .filter((section) => section.rows.length > 0);
+    return pages.flatMap((page, pageIndex): SummaryGroup[] => {
+        if (!isPageShown(page, values, allFields)) {
+            return [];
+        }
+
+        const fields = getVisibleFields(getContentFields(page.content).filter(isSupportedField), values, allFields);
+
+        if (fields.length === 0) {
+            return [];
+        }
+
+        const handleEdit = () => onEditPage(pageIndex);
+
+        return [
+            {
+                id: page.key,
+                name: getPageTitle(page, values, translate, allFields),
+                rows: fields.map((field) => {
+                    const answer = formatDynamicFieldValue(field, values, translate);
+                    const isEditable = !field.readonly;
+
+                    return {
+                        id: field.key,
+                        description: getFieldLabel(field, translate),
+                        title: isSensitiveField(field) ? maskSensitiveValue(answer) : answer,
+                        shouldShowRightIcon: isEditable,
+                        onPress: isEditable ? handleEdit : noop,
+                        interactive: isEditable,
+                    };
+                }),
+            },
+        ];
+    });
 }
 
 export default getConfirmationItems;
