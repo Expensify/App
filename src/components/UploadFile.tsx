@@ -49,6 +49,9 @@ type UploadFileProps = {
 
     /** The maximum size of a single file that can be selected. */
     maxFileSize?: number;
+
+    /** Read out by screen readers for the upload button in place of its text, such as to name the document it asks for */
+    accessibilityLabel?: string;
 };
 
 function UploadFile({
@@ -64,6 +67,7 @@ function UploadFile({
     totalFilesSizeLimit = 0,
     fileLimit = 0,
     maxFileSize = 0,
+    accessibilityLabel,
 }: UploadFileProps) {
     const icons = useMemoizedLazyExpensifyIcons(['Close', 'Paperclip']);
     const {translate} = useLocalize();
@@ -121,7 +125,7 @@ function UploadFile({
             >
                 {({openPicker}) => (
                     <Button
-                        accessibilityLabel={buttonText}
+                        accessibilityLabel={accessibilityLabel ?? buttonText}
                         onPress={() => {
                             openPicker({
                                 onPicked: handleFileUpload,
@@ -150,7 +154,7 @@ function UploadFile({
                     <PressableWithFeedback
                         onPress={() => onRemove(file?.name ?? '')}
                         role={CONST.ROLE.BUTTON}
-                        accessibilityLabel={translate('common.remove')}
+                        accessibilityLabel={`${translate('common.remove')}, ${file.name ?? ''}`}
                         sentryLabel={CONST.SENTRY_LABEL.UPLOAD_FILE.REMOVE_BUTTON}
                     >
                         <Icon
