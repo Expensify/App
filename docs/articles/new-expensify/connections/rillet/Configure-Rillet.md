@@ -27,8 +27,6 @@ Each Workspace has its own Rillet integration. To view or update the configurati
 2. Select **Accounting**. 
 3. On the Rillet connection, select **Import**, **Export**, or **Advanced**.
 
-![Accounting page showing Rillet connection]({{site.url}}/assets/images/Accounting_Rillet_Configure.png){:width="100%"}
-
 ---
 
 ## How to configure Rillet import settings
@@ -40,7 +38,7 @@ On the Rillet integration, choose **Import** to configure:
 - **Chart of accounts** – Imports active Expense, Current Asset, and Fixed Asset accounts as Categories. This setting is always enabled.
 - **Enable newly imported accounts** – Choose whether newly imported accounts arrive as enabled or disabled categories. This defaults to off, so new accounts import as disabled categories.
 - **Dimensions** – Choose which Rillet dimensions to import as tags. Each available dimension (such as Departments, Projects, or Classes) can be enabled independently.
-- **Tax rates** – Import tax rates from Rillet. This option only appears when tax rates are available for the selected subsidiary.
+- **Tax rates** – Import tax rates from Rillet. This option only appears when tax rates are available for the selected entity.
 
 ---
 
