@@ -9,6 +9,7 @@ import Text from '@components/Text';
 
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useConfirmModal from '@hooks/useConfirmModal';
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useDefaultFundID from '@hooks/useDefaultFundID';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -16,7 +17,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import {updateTravelBillingMonthlyLimit} from '@libs/actions/TravelBilling';
 import {getCardSettings} from '@libs/CardUtils';
-import {convertToBackendAmount, convertToDisplayString, convertToFrontendAmountAsString} from '@libs/CurrencyUtils';
+import {convertToBackendAmount, convertToFrontendAmountAsString} from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
@@ -35,6 +36,7 @@ type WorkspaceTravelBillingMonthlyLimitPageProps = PlatformStackScreenProps<Sett
 function WorkspaceTravelBillingMonthlyLimitPage({route}: WorkspaceTravelBillingMonthlyLimitPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const {convertToDisplayString} = useCurrencyListActions();
     const policyID = route.params?.policyID;
     const defaultFundID = useDefaultFundID(policyID);
     const [cardSettings] = useOnyx(getTravelBillingCardSettingsKey(defaultFundID));
