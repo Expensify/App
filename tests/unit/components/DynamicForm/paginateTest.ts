@@ -1,12 +1,12 @@
 import getPageTitle, {isPageShown} from '@components/DynamicForm/utils/getPageTitle';
 import paginate, {getAllFields, getPages} from '@components/DynamicForm/utils/paginate';
 
-import type {DynamicFormField, DynamicFormPage} from '@src/types/onyx';
+import type {DynamicFormField, DynamicFormPage, DynamicFormTextField} from '@src/types/onyx';
 
 import {translateLocal} from '../../../utils/TestHelper';
 
-function text(key: string, extra: Partial<DynamicFormField> = {}): DynamicFormField {
-    return {key, type: 'text', required: true, label: key, ...extra} as DynamicFormField;
+function text(key: string, extra: Partial<DynamicFormTextField> = {}): DynamicFormTextField {
+    return {key, type: 'text', required: true, label: key, ...extra};
 }
 
 function options(count: number) {

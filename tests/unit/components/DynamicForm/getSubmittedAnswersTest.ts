@@ -1,6 +1,9 @@
+import getAddressInputKeys from '@components/DynamicForm/utils/getAddressInputKeys';
 import getSubmittedAnswers from '@components/DynamicForm/utils/getSubmittedAnswers';
 
 import type {DynamicFormField} from '@src/types/onyx';
+
+const cityKey = getAddressInputKeys('home').city;
 
 describe('getSubmittedAnswers', () => {
     it('leaves out the answer of a field hidden by its controller', () => {
@@ -37,9 +40,9 @@ describe('getSubmittedAnswers', () => {
         ];
 
         // When the answers are collected
-        const answers = getSubmittedAnswers(fields, {home: '1 Main St', 'home.city': 'Austin', fee: '100', feeCurrency: 'EUR'});
+        const answers = getSubmittedAnswers(fields, {home: '1 Main St', [cityKey]: 'Austin', fee: '100', feeCurrency: 'EUR'});
 
         // Then the currency is part of the answer, since the amount means nothing without it
-        expect(answers).toMatchObject({home: '1 Main St', 'home.city': 'Austin', fee: '100', feeCurrency: 'EUR'});
+        expect(answers).toMatchObject({home: '1 Main St', [cityKey]: 'Austin', fee: '100', feeCurrency: 'EUR'});
     });
 });
