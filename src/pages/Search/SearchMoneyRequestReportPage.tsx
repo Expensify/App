@@ -157,6 +157,7 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
 
     // Prevents creating duplicate transaction threads for legacy transactions
     const hasCreatedLegacyThreadRef = useRef(false);
+    const createdOneTransactionThreadForRef = useRef<string | undefined>(undefined);
 
     // Get transaction from search snapshot if not available in main collections
     const {snapshotTransaction, snapshotViolations} = useMemo(() => {
@@ -205,6 +206,14 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
         }
 
         if (transactionThreadReportID === CONST.FAKE_REPORT_ID && oneTransactionID) {
+            // A failed create rolls the thread back, which puts the ID back to FAKE_REPORT_ID. Without this we
+            // rebuild it at once and keep looping for as long as the server keeps failing.
+            const createdFor = `${reportIDFromRoute}:${oneTransactionID}`;
+            if (createdOneTransactionThreadForRef.current === createdFor) {
+                return;
+            }
+            createdOneTransactionThreadForRef.current = createdFor;
+
             const iouAction = getIOUActionForTransactionID(reportActions, oneTransactionID);
             createTransactionThreadReport({
                 introSelected,

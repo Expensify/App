@@ -118,6 +118,7 @@ function ReportFetchHandler() {
     const isAnonymousUser = useIsAnonymousUser();
     const prevIsAnonymousUser = useRef(false);
     const hasCreatedLegacyThreadRef = useRef(false);
+    const createdOneTransactionThreadForRef = useRef<string | undefined>(undefined);
     const didSubscribeToReportLeavingEvents = useRef(false);
     const joinedSecureLinkReportIDRef = useRef<string | undefined>(undefined);
     const hiddenPreMountFetchedRouteRef = useRef<Pick<ReportScreenRoute, 'key' | 'params'> | undefined>(undefined);
@@ -267,6 +268,15 @@ function ReportFetchHandler() {
             (transaction): transaction is Transaction => !!transaction && transaction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
         );
         const oneTransactionID = currentReportTransactions.at(0)?.transactionID;
+
+        // A failed create rolls the thread back, which puts the ID back to FAKE_REPORT_ID. Without this we rebuild
+        // it at once and keep looping for as long as the server keeps failing.
+        const createdFor = `${reportID}:${oneTransactionID}`;
+        if (createdOneTransactionThreadForRef.current === createdFor) {
+            return;
+        }
+        createdOneTransactionThreadForRef.current = createdFor;
+
         const iouAction = getIOUActionForReportID(reportID, oneTransactionID);
         createTransactionThreadReport({
             introSelected,
