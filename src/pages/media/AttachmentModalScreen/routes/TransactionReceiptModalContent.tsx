@@ -28,7 +28,7 @@ import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/crea
 import Navigation from '@libs/Navigation/Navigation';
 import ReceiptStorage from '@libs/ReceiptStorage';
 import {getThumbnailAndImageURIs} from '@libs/ReceiptUtils';
-import {getTransactionThreadReport, isTrackExpenseAction} from '@libs/ReportActionsUtils';
+import {resolveTransactionThreadReport, isTrackExpenseAction} from '@libs/ReportActionsUtils';
 import {canEditFieldOfMoneyRequest, isMoneyRequestReport, isTrackExpenseReport} from '@libs/ReportUtils';
 import {logReceiptAdoptFailed} from '@libs/telemetry/ReceiptObservability';
 import {
@@ -176,7 +176,7 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
     const [sourceUri, setSourceUri] = useState<ReceiptSource>('');
 
     const parentReportAction = useParentReportAction(report);
-    const transactionThread = getTransactionThreadReport(transaction, transactionThreadReport, report, parentReportAction);
+    const transactionThread = resolveTransactionThreadReport(transaction, transactionThreadReport, report, parentReportAction);
     const canEditReceipt = canEditFieldOfMoneyRequest({reportAction: parentReportAction, fieldToEdit: CONST.EDIT_REQUEST_FIELD.RECEIPT, transaction, rules, reportNameValuePairs: undefined});
     const canDeleteReceipt = canEditFieldOfMoneyRequest({
         reportAction: parentReportAction,

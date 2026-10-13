@@ -216,10 +216,10 @@ function detachReceipt({
     }
 
     // The expense report only records a detach in some cases, so that message is not shown up front.
-    // The ID is still sent so the server message matches it when one is written.
+    // Since it isn't used optimistically, the backend generates the ID.
     const parameters: DetachReceiptParams = {
         transactionID,
-        reportActionID: 0,
+        reportActionID: '0',
         receiptRemovedReportActionID: optimisticReceiptRemovedAction?.reportActionID,
     };
 

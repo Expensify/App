@@ -2258,7 +2258,7 @@ function getLinkedTransactionID(reportAction: OnyxEntry<ReportAction> | undefine
  * The expense's thread, or the open report when that report is the thread.
  * Self DM expenses are unreported, so their thread is the report already on screen.
  */
-function getTransactionThreadReport(
+function resolveTransactionThreadReport(
     transaction: OnyxEntry<Transaction> | undefined,
     transactionThreadReport: OnyxEntry<Report> | undefined,
     report: OnyxEntry<Report> | undefined,
@@ -5802,7 +5802,7 @@ export {
     getLastVisibleMessage,
     getLatestReportActionFromOnyxData,
     getLinkedTransactionID,
-    getTransactionThreadReport,
+    resolveTransactionThreadReport,
     getCrossBorderReimbursedMessage,
     getElsewherePaymentReportActionMessage,
     getMarkedReimbursedMessage,

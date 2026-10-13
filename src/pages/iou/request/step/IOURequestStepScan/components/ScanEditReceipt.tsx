@@ -12,7 +12,7 @@ import usePolicy from '@hooks/usePolicy';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Navigation from '@libs/Navigation/Navigation';
 import navigationRef from '@libs/Navigation/navigationRef';
-import {getTransactionThreadReport} from '@libs/ReportActionsUtils';
+import {resolveTransactionThreadReport} from '@libs/ReportActionsUtils';
 import {cancelSpan} from '@libs/telemetry/activeSpans';
 
 import getFileSource from '@pages/iou/request/step/IOURequestStepScan/utils/getFileSource';
@@ -96,7 +96,7 @@ function ScanEditReceipt({report, transactionID, backTo, isEditing}: ScanEditRec
                 transactionReport,
                 delegateAccountID,
                 currentUserPersonalDetails,
-                transactionThreadReport: getTransactionThreadReport(transaction, transactionThreadReport, report, parentReportAction),
+                transactionThreadReport: resolveTransactionThreadReport(transaction, transactionThreadReport, report, parentReportAction),
             });
         } else {
             setMoneyRequestReceipt(transactionID, source, file.name ?? '', true, file.type);

@@ -9,7 +9,7 @@ import usePersonalPolicy from '@hooks/usePersonalPolicy';
 import {getFilesFromClipboardEvent} from '@libs/fileDownload/FileUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {hasOnlyPersonalPolicies as hasOnlyPersonalPoliciesUtil} from '@libs/PolicyUtils';
-import {getTransactionThreadReport} from '@libs/ReportActionsUtils';
+import {resolveTransactionThreadReport} from '@libs/ReportActionsUtils';
 import {isSelfDM} from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 
@@ -81,7 +81,7 @@ function useReceiptDrop({reportID, report, shouldAddOrReplaceReceipt, transactio
                 transactionReport,
                 delegateAccountID,
                 currentUserPersonalDetails,
-                transactionThreadReport: getTransactionThreadReport(transaction, transactionThreadReport, report, parentReportAction),
+                transactionThreadReport: resolveTransactionThreadReport(transaction, transactionThreadReport, report, parentReportAction),
             });
             return;
         }

@@ -1,4 +1,4 @@
-import {getTransactionThreadReport} from '@libs/ReportActionsUtils';
+import {resolveTransactionThreadReport} from '@libs/ReportActionsUtils';
 
 import CONST from '@src/CONST';
 import type {ReportAction} from '@src/types/onyx';
@@ -33,13 +33,13 @@ function buildIOUAction(IOUTransactionID: string): ReportAction<typeof CONST.REP
     };
 }
 
-describe('getTransactionThreadReport', () => {
+describe('resolveTransactionThreadReport', () => {
     it('keeps the thread found from the expense report', () => {
         // Given an expense whose expense report already points at a thread
         const expenseThread = {...createRandomReport(2), reportID: 'expenseThread'};
 
         // When the thread report is resolved
-        const result = getTransactionThreadReport(transaction, expenseThread, selfDMThread, buildIOUAction(TRANSACTION_ID));
+        const result = resolveTransactionThreadReport(transaction, expenseThread, selfDMThread, buildIOUAction(TRANSACTION_ID));
 
         // Then that thread is the one to audit on, not the open report
         expect(result).toBe(expenseThread);
@@ -50,7 +50,7 @@ describe('getTransactionThreadReport', () => {
         const parentReportAction = buildIOUAction(TRANSACTION_ID);
 
         // When the thread report is resolved
-        const result = getTransactionThreadReport(transaction, undefined, selfDMThread, parentReportAction);
+        const result = resolveTransactionThreadReport(transaction, undefined, selfDMThread, parentReportAction);
 
         // Then the report the expense is open in is its thread
         expect(result?.reportID).toBe(THREAD_REPORT_ID);
@@ -61,7 +61,7 @@ describe('getTransactionThreadReport', () => {
         const parentReportAction = buildIOUAction('someOtherTransaction');
 
         // When the thread report is resolved
-        const result = getTransactionThreadReport(transaction, undefined, selfDMThread, parentReportAction);
+        const result = resolveTransactionThreadReport(transaction, undefined, selfDMThread, parentReportAction);
 
         // Then the open report is not used as the thread, so no audit action lands in the wrong chat
         expect(result).toBeUndefined();
