@@ -1380,6 +1380,87 @@ describe('SidebarUtils', () => {
             expect(result).toStrictEqual({shouldDisplay: false});
         });
 
+        it('returns shouldDisplay as true for an orphaned thread holding a comment that failed to send', async () => {
+            // Given the same orphaned thread, except the user wrote a comment in it offline and that comment failed
+            const MOCK_EXPENSE_REPORT: Report = {
+                reportID: '12',
+                ownerAccountID: 12345,
+                policyID: '6',
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                type: CONST.REPORT.TYPE.EXPENSE,
+            };
+            const MOCK_ORPHANED_THREAD: Report = {
+                reportID: '13',
+                ownerAccountID: 12345,
+                policyID: '6',
+                parentReportID: MOCK_EXPENSE_REPORT.reportID,
+                parentReportActionID: '22',
+                type: CONST.REPORT.TYPE.CHAT,
+                errorFields: {createChat: {'1772030710775000': 'report.genericCreateReportFailureMessage'}},
+            };
+
+            const MOCK_REPORTS = {
+                [`${ONYXKEYS.COLLECTION.REPORT}${MOCK_ORPHANED_THREAD.reportID}` as const]: MOCK_ORPHANED_THREAD,
+            } satisfies ReportCollectionDataSet;
+            const onyxCommentReports: ReportCollectionDataSet = MOCK_REPORTS;
+
+            const MOCK_THREAD_ACTIONS: ReportActions = {
+                '100': {
+                    reportActionID: '100',
+                    actionName: CONST.REPORT.ACTIONS.TYPE.CREATED,
+                    message: [{type: 'COMMENT', html: '', text: ''}],
+                    created: '2024-08-08 18:20:44.171',
+                },
+                '101': {
+                    reportActionID: '101',
+                    actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                    message: [{type: 'COMMENT', html: 'my comment', text: 'my comment'}],
+                    created: '2024-08-08 18:21:44.171',
+                    // A comment that failed to send keeps an error, which is why it must stay reachable.
+                    errors: {'1772030710775001': 'Unexpected error. Please try again later.'},
+                },
+            };
+
+            await act(async () => {
+                await Onyx.multiSet({
+                    ...onyxCommentReports,
+                    [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${MOCK_ORPHANED_THREAD.reportID}` as const]: MOCK_THREAD_ACTIONS,
+                });
+            });
+
+            const MOCK_COMMENT_ATTRIBUTES: ReportAttributesDerivedValue['reports'] = {
+                [MOCK_ORPHANED_THREAD.reportID]: {
+                    reportName: '',
+                    isEmpty: false,
+                    brickRoadStatus: CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR,
+                    requiresAttention: false,
+                    reportErrors: {'1772030710775000': 'Unexpected error creating this report. Please try again later.'},
+                },
+            };
+
+            // When the LHN decides whether to show it
+            const result = SidebarUtils.shouldDisplayReportInLHN({
+                report: MOCK_ORPHANED_THREAD,
+                reports: MOCK_REPORTS,
+                currentReportId: undefined,
+                isInFocusMode: false,
+                isDefaultRoomsBetaEnabled: false,
+                transactionViolations: {},
+                draftComment: undefined,
+                transactions: {},
+                isOffline: false,
+                reportAttributes: MOCK_COMMENT_ATTRIBUTES,
+                currentUserLogin: CURRENT_USER_LOGIN,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                hasGuidesEmails: false,
+                conciergeReportID: undefined,
+            });
+
+            // Then it stays, so the user can still open it and retry or dismiss their comment
+            expect(result).toStrictEqual({shouldDisplay: true, hasErrorsOtherThanFailedReceipt: true});
+        });
+
         it('returns shouldDisplay as false when report is falsy', () => {
             const result = SidebarUtils.shouldDisplayReportInLHN({
                 // @ts-expect-error Intentionally exercise the runtime guard with invalid input.

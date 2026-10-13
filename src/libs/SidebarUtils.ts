@@ -39,7 +39,7 @@ import DateUtils from './DateUtils';
 import Log from './Log';
 import {shouldUseFullTitleForOption} from './OptionsListUtils';
 import {getPersonalDetailsForAccountIDs} from './PersonalDetailsUtils';
-import {doesReportHaveVisibleActions, getAllReportActions, getIOUReportIDFromReportActionPreview, getReportAction, isDeletedAction} from './ReportActionsUtils';
+import {getAllReportActions, getIOUReportIDFromReportActionPreview, getReportAction, isCreatedAction, isDeletedAction} from './ReportActionsUtils';
 import {getReportAlternateText, getWelcomeMessage} from './ReportAlternateTextUtils';
 import {getReportName} from './ReportNameUtils';
 import {
@@ -202,14 +202,12 @@ function shouldDisplayReportInLHN({
     }
 
     // A thread that failed to be created and whose parent action is gone. Nothing links to it any more, so its
-    // error is not actionable and must not force an empty row into the LHN. A thread holding messages of its own
-    // is left alone, so the user can still reach them.
+    // error is not actionable and must not force an empty row into the LHN. A thread the user put something into
+    // stays, so they can still reach it. Counted rather than asked of `doesReportHaveVisibleActions`, because a
+    // comment that failed to send is not "visible" yet is exactly what needs to stay reachable.
     const hasFailedCreation = !!report.errorFields?.createChat || !!report.errorFields?.createChatThread;
-    const isOrphanedFailedThread =
-        hasFailedCreation &&
-        !!report.parentReportActionID &&
-        (!parentReportAction || isDeletedAction(parentReportAction)) &&
-        !doesReportHaveVisibleActions(report.reportID, getAllReportActions(report.reportID));
+    const hasContentOfItsOwn = Object.values(getAllReportActions(report.reportID)).some((action) => !isCreatedAction(action) && !isDeletedAction(action));
+    const isOrphanedFailedThread = hasFailedCreation && !!report.parentReportActionID && (!parentReportAction || isDeletedAction(parentReportAction)) && !hasContentOfItsOwn;
     if (isOrphanedFailedThread) {
         return {shouldDisplay: false};
     }
