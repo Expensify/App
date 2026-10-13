@@ -201,6 +201,7 @@ jobs:
   androidBuild:
     name: Build Android HybridApp
     needs: [prep]
+    permissions: write-all
     if: ${{ fromJSON(needs.prep.outputs.SHOULD_BUILD_NATIVE) }}
     uses: ./.github/workflows/buildAndroid.yml
     with:
@@ -429,6 +430,7 @@ jobs:
   iosBuild:
     name: Build iOS HybridApp
     needs: [prep]
+    permissions: write-all
     if: ${{ fromJSON(needs.prep.outputs.SHOULD_BUILD_NATIVE) }}
     uses: ./.github/workflows/buildIOS.yml
     with:
