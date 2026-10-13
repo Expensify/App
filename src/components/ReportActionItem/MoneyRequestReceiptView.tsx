@@ -48,7 +48,7 @@ import ReceiptStorage from '@libs/ReceiptStorage';
 import retryReceiptUpload, {canRetryReceiptUpload} from '@libs/ReceiptUploadRetryHandler';
 import type {ReceiptRetryContext} from '@libs/ReceiptUploadRetryHandler/types';
 import {getThumbnailAndImageURIs} from '@libs/ReceiptUtils';
-import {getOriginalMessage, isMoneyRequestAction, wasActionTakenByCurrentUser} from '@libs/ReportActionsUtils';
+import {getOriginalMessage, resolveTransactionThreadReport, isMoneyRequestAction, wasActionTakenByCurrentUser} from '@libs/ReportActionsUtils';
 import {isMarkAsCashActionForTransaction} from '@libs/ReportPrimaryActionUtils';
 import {
     canCurrentUserEditExpense,
@@ -193,6 +193,7 @@ function MoneyRequestReceiptView({
         selector: transactionThreadReportIDSelector(transaction?.transactionID),
     });
     const [transactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(transactionThreadReportID)}`);
+    const resolvedTransactionThreadReport = resolveTransactionThreadReport(transaction, transactionThreadReport, report, parentReportAction);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${moneyRequestReport?.policyID}`);
     const [policyVendors] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_VENDORS}${moneyRequestReport?.policyID}`);
     const [cardList] = useOnyx(ONYXKEYS.CARD_LIST);
@@ -467,7 +468,7 @@ function MoneyRequestReceiptView({
               formatPhoneNumber,
               getCurrencyDecimals,
               transactionReport,
-              transactionThreadReport,
+              transactionThreadReport: resolvedTransactionThreadReport,
               transactionViolations: rawTransactionViolations,
               currentUserPersonalDetails: currentUserPersonalDetail,
           }
@@ -558,6 +559,7 @@ function MoneyRequestReceiptView({
                 setDeleteTransactionNavigateBackUrl(backToRoute);
                 cleanUpMoneyRequest({
                     transactionID: transaction?.transactionID ?? linkedTransactionID,
+                    currentUserAccountID,
                     reportAction: parentReportAction,
                     reportID: report.reportID,
                     transactionThreadReport: parentReportActionChildReport,
@@ -676,7 +678,7 @@ function MoneyRequestReceiptView({
             transactionReport,
             delegateAccountID,
             currentUserPersonalDetails: currentUserPersonalDetail,
-            transactionThreadReport,
+            transactionThreadReport: resolvedTransactionThreadReport,
         });
     };
 
