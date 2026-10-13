@@ -110,32 +110,17 @@ function buildIOUAction(transactionID: string, childReportID?: string) {
     };
 }
 
-function buildDerivedTransactions(entries: Array<{reportID: string; transactionID: string}>) {
-    return Object.fromEntries(
-        entries.map(({reportID, transactionID}) => [
-            reportID,
-            {
-                transactions: {
-                    [`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]: {transactionID, reportID, amount: 100, currency: CONST.CURRENCY.USD},
-                },
-                violations: {},
-            },
-        ]),
-    );
-}
+const TRANSACTION = {transactionID: TRANSACTION_ID, reportID: EXPENSE_REPORT_ID, amount: 100, currency: CONST.CURRENCY.USD};
 
-async function seedOneTransactionReports(entries: Array<{reportID: string; transactionID: string}>) {
-    const updates: Record<string, unknown> = {
-        // The screen reads its transactions from the derived value, which no test harness computes for it.
-        [ONYXKEYS.DERIVED.REPORT_TRANSACTIONS_AND_VIOLATIONS]: buildDerivedTransactions(entries),
-    };
-    for (const {reportID, transactionID} of entries) {
-        updates[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`] = {reportID, type: CONST.REPORT.TYPE.EXPENSE};
-        updates[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`] = {[IOU_ACTION_ID]: buildIOUAction(transactionID)};
-        updates[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`] = {transactionID, reportID, amount: 100, currency: CONST.CURRENCY.USD};
-        updates[`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${reportID}`] = {hasOnceLoadedReportActions: true, isLoadingInitialReportActions: false};
-    }
-    await Onyx.multiSet(updates);
+async function seedOneTransactionReport() {
+    await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${EXPENSE_REPORT_ID}`, {reportID: EXPENSE_REPORT_ID, type: CONST.REPORT.TYPE.EXPENSE});
+    await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${EXPENSE_REPORT_ID}`, {[IOU_ACTION_ID]: buildIOUAction(TRANSACTION_ID)});
+    await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${TRANSACTION_ID}`, TRANSACTION);
+    // The screen reads its transactions from the derived value, which no test harness computes for it.
+    await Onyx.merge(ONYXKEYS.DERIVED.REPORT_TRANSACTIONS_AND_VIOLATIONS, {
+        [EXPENSE_REPORT_ID]: {transactions: {[`${ONYXKEYS.COLLECTION.TRANSACTION}${TRANSACTION_ID}`]: TRANSACTION}, violations: {}},
+    });
+    await Onyx.merge(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${EXPENSE_REPORT_ID}`, {hasOnceLoadedReportActions: true, isLoadingInitialReportActions: false});
     await waitForBatchedUpdates();
 }
 
@@ -587,7 +572,7 @@ describe('ReportFetchHandler', () => {
 
     it('does NOT rebuild the one-transaction thread after a failed create rolls it back', async () => {
         // Given a one-transaction expense report whose thread has not been created yet
-        await seedOneTransactionReports([{reportID: EXPENSE_REPORT_ID, transactionID: TRANSACTION_ID}]);
+        await seedOneTransactionReport();
         setRouteParams({reportID: EXPENSE_REPORT_ID});
         renderHandler();
         await waitForBatchedUpdates();
