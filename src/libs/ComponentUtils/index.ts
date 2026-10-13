@@ -1,3 +1,5 @@
+import type {ComposerRef} from '@components/Composer/types';
+
 import ObjectUtils from '@src/types/utils/ObjectUtils';
 
 import type {HostInstance} from 'react-native';
@@ -10,7 +12,7 @@ import type AccessibilityRoleForm from './types';
  */
 const ACCESSIBILITY_ROLE_FORM: AccessibilityRoleForm = 'form';
 
-function forceClearInput(animatedInputRef: AnimatedRef<HostInstance>) {
+function forceClearInput<TRef extends HostInstance | ComposerRef>(animatedInputRef: AnimatedRef<TRef>) {
     'worklet';
 
     const input = animatedInputRef.current;

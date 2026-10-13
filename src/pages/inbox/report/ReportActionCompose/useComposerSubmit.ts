@@ -59,7 +59,11 @@ function useComposerSubmit(reportID: string) {
     /**
      * Add or edit a comment in the composer
      */
-    const validateAndSubmitDraft = (draftMessage: string) => {
+    const validateAndSubmitDraft = (draftMessage: string | undefined) => {
+        // Live-markdown may clear before it initializes value. Keep that failure before submission effects.
+        if (draftMessage === undefined) {
+            throw new TypeError("Cannot read properties of undefined (reading 'trim')");
+        }
         const draftMessageTrimmed = draftMessage.trim();
 
         const isSubmittingEdit = isEditingInComposer || didResetComposerHeightWhileEditing;

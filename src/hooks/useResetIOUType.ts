@@ -70,7 +70,7 @@ function useResetIOUType({
     policy,
     isTrackDistanceExpense = false,
     skipKeyboardDismissForPerDiem = false,
-}: UseResetIOUTypeParams): (newIOUType: IOURequestType) => void {
+}: UseResetIOUTypeParams): (newIOUType: IOURequestType | undefined) => void {
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`);
     const [hasOnlyPersonalPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: hasOnlyPersonalPoliciesSelector});
     const [lastSelectedDistanceRates] = useOnyx(ONYXKEYS.NVP_LAST_SELECTED_DISTANCE_RATES);
@@ -96,7 +96,7 @@ function useResetIOUType({
     });
     const defaultParticipants = resolvedDefaultParticipants.length > 0 ? resolvedDefaultParticipants : undefined;
 
-    const resetIOUTypeIfChanged = (newIOUType: IOURequestType) => {
+    const resetIOUTypeIfChanged = (newIOUType: IOURequestType | undefined) => {
         if (transaction?.iouRequestType === newIOUType) {
             return;
         }
@@ -145,9 +145,9 @@ function useResetIOUType({
         hydrateOdometerOnLanding(newIOUType);
     };
 
-    const tabSelectedTypeRef = useRef<IOURequestType | null>(null);
+    const tabSelectedTypeRef = useRef<IOURequestType | undefined | null>(null);
 
-    const onTabSelected = (newIouType: IOURequestType) => {
+    const onTabSelected = (newIouType: IOURequestType | undefined) => {
         tabSelectedTypeRef.current = newIouType;
         resetIOUTypeIfChanged(newIouType);
     };

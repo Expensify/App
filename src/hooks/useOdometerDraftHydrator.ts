@@ -27,7 +27,7 @@ function useOdometerDraftHydrator({
     transactionRequestType,
     isLoadingTransaction = false,
     isLoadingSelectedTab = false,
-}: UseOdometerDraftHydratorParams): (newIOUType: IOURequestType) => void {
+}: UseOdometerDraftHydratorParams): (newIOUType: IOURequestType | undefined) => void {
     const [odometerDraft] = useOnyx(ONYXKEYS.ODOMETER_DRAFT);
 
     useEffect(() => {
@@ -54,7 +54,7 @@ function useOdometerDraftHydrator({
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [transactionRequestType, odometerDraft, isLoadingTransaction, isLoadingSelectedTab]);
 
-    return (newIOUType: IOURequestType) => {
+    return (newIOUType: IOURequestType | undefined) => {
         if (newIOUType !== CONST.IOU.REQUEST_TYPE.DISTANCE_ODOMETER) {
             return;
         }

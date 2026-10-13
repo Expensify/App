@@ -17,7 +17,7 @@ const updateNativeSelectionValue = (composerRef: RefObject<ComposerRef | null>, 
     requestIdleCallback(() => {
         // note: this implementation is only available on non-web RN, thus the wrapping
         // 'if' block contains a redundant (since the ref is only used on iOS) platform check
-        composerRef.current?.setSelection(start, end);
+        composerRef.current?.setSelection?.(start, end);
     });
 };
 
