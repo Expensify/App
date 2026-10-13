@@ -6,9 +6,11 @@ import RenderHTML from '@components/RenderHTML';
 import Section from '@components/Section';
 
 import useConfirmModal from '@hooks/useConfirmModal';
+import useEarlyRenewalPeriod from '@hooks/useEarlyRenewalPeriod';
 import useHasTeam2025Pricing from '@hooks/useHasTeam2025Pricing';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useNavigateToCardAuthenticationOnLink from '@hooks/useNavigateToCardAuthenticationOnLink';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
@@ -37,12 +39,14 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
+import {useRoute} from '@react-navigation/native';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 
 import type {BillingStatusResult} from './utils';
 
 import EarlyDiscountBanner from './BillingBanner/EarlyDiscountBanner';
+import EarlyRenewalBillingBanner from './BillingBanner/EarlyRenewalBillingBanner';
 import PreTrialBillingBanner from './BillingBanner/PreTrialBillingBanner';
 import SubscriptionBillingBanner from './BillingBanner/SubscriptionBillingBanner';
 import SubscriptionExpiringSoonBanner from './BillingBanner/SubscriptionExpiringSoonBanner';
@@ -56,15 +60,17 @@ import getSectionSubtitle from './CardSectionSubtitle';
 import CardSectionUtils from './utils';
 
 function CardSection() {
+    const route = useRoute();
     const {translate, dateFnsLocale} = useLocalize();
     const styles = useThemeStyles();
     const {isBetaEnabled} = usePermissions();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['History', 'Bill', 'Close']);
     const illustrations = useMemoizedLazyIllustrations(['CreditCardEyes']);
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
+    const [earlyRenewalEligibility, earlyRenewalEligibilityMetadata] = useOnyx(ONYXKEYS.EARLY_RENEWAL_OFFER_ELIGIBILITY);
+    const {isNonIncentivizedPeriod, isIncentivizedPeriod} = useEarlyRenewalPeriod();
     const privateSubscription = usePrivateSubscription();
     const [privateStripeCustomerID] = useOnyx(ONYXKEYS.NVP_PRIVATE_STRIPE_CUSTOMER_ID);
-    const [authenticationLink] = useOnyx(ONYXKEYS.VERIFY_3DS_SUBSCRIPTION);
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const [fundList] = useOnyx(ONYXKEYS.FUND_LIST);
     const [purchaseList] = useOnyx(ONYXKEYS.PURCHASE_LIST);
@@ -72,14 +78,11 @@ function CardSection() {
     const hasTeam2025Pricing = useHasTeam2025Pricing();
     const subscriptionPlan = useSubscriptionPlan();
     const [subscriptionRetryBillingStatusPending] = useOnyx(ONYXKEYS.SUBSCRIPTION_RETRY_BILLING_STATUS_PENDING);
+    const [isVerifyingSetupIntent] = useOnyx(ONYXKEYS.SUBSCRIPTION_VERIFY_SETUP_INTENT_PENDING);
     const [subscriptionRetryBillingStatusSuccessful] = useOnyx(ONYXKEYS.SUBSCRIPTION_RETRY_BILLING_STATUS_SUCCESSFUL);
     const [subscriptionRetryBillingStatusFailed] = useOnyx(ONYXKEYS.SUBSCRIPTION_RETRY_BILLING_STATUS_FAILED);
     const {isOffline} = useNetwork();
     const defaultCard = useMemo(() => Object.values(fundList ?? {}).find((card) => card.accountData?.additionalData?.isBillingCard), [fundList]);
-    const hasFailedLastBilling = useMemo(
-        () => purchaseList?.[0]?.message.billingType === CONST.BILLING.TYPE_STRIPE_FAILED_AUTHENTICATION || purchaseList?.[0]?.message.billingType === CONST.BILLING.TYPE_FAILED_2018,
-        [purchaseList],
-    );
     const [firstDayFreeTrial] = useOnyx(ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL);
     const [lastDayFreeTrial] = useOnyx(ONYXKEYS.NVP_LAST_DAY_FREE_TRIAL);
     const [billingDisputePending] = useOnyx(ONYXKEYS.NVP_PRIVATE_BILLING_DISPUTE_PENDING);
@@ -166,6 +169,8 @@ function CardSection() {
         nextPaymentDate,
     });
 
+    useNavigateToCardAuthenticationOnLink();
+
     useEffect(() => {
         // eslint-disable-next-line react-hooks/set-state-in-effect
         setBillingStatus(
@@ -207,18 +212,11 @@ function CardSection() {
     ]);
 
     const handleRetryPayment = () => {
-        clearOutstandingBalance();
+        clearOutstandingBalance(route.name);
     };
 
-    useEffect(() => {
-        if (!authenticationLink || (privateStripeCustomerID?.status !== CONST.STRIPE_SCA_AUTH_STATUSES.CARD_AUTHENTICATION_REQUIRED && !hasFailedLastBilling)) {
-            return;
-        }
-        Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION_ADD_PAYMENT_CARD);
-    }, [authenticationLink, privateStripeCustomerID?.status, hasFailedLastBilling]);
-
     const handleAuthenticatePayment = () => {
-        verifySetupIntent(session?.accountID ?? CONST.DEFAULT_NUMBER_ID, false);
+        verifySetupIntent(session?.accountID ?? CONST.DEFAULT_NUMBER_ID, false, route.name);
     };
 
     const handleBillingBannerClose = () => {
@@ -226,9 +224,12 @@ function CardSection() {
     };
 
     let BillingBanner: React.ReactNode | undefined;
-    // Checked before the trial banners because the pre-trial check also passes when the free trial NVPs are absent,
-    // which an annual subscriber can have
-    if (shouldShowSubscriptionExpiringSoonUI(privateSubscription)) {
+    // Renewing early also resolves an expiring subscription, so the offer wins over every other non-error banner
+    if (earlyRenewalEligibilityMetadata.status === 'loaded' && earlyRenewalEligibility?.canClaim && (isNonIncentivizedPeriod || isIncentivizedPeriod)) {
+        BillingBanner = <EarlyRenewalBillingBanner />;
+    } else if (shouldShowSubscriptionExpiringSoonUI(privateSubscription)) {
+        // Checked before the trial banners because the pre-trial check also passes when the free trial NVPs are absent,
+        // which an annual subscriber can have
         BillingBanner = <SubscriptionExpiringSoonBanner endDate={privateSubscription?.endDate} />;
     } else if (shouldShowDiscountBanner(session?.accountID, hasTeam2025Pricing, subscriptionPlan, firstDayFreeTrial, lastDayFreeTrial, userBillingFundID, allPolicies)) {
         BillingBanner = <EarlyDiscountBanner isSubscriptionPage />;
@@ -291,7 +292,7 @@ function CardSection() {
             {hasCardAuthenticatedError(privateStripeCustomerID, amountOwed) && (
                 <CardSectionButton
                     isDisabled={isOffline || !billingStatus?.isAuthenticationRequired}
-                    isLoading={subscriptionRetryBillingStatusPending}
+                    isLoading={isVerifyingSetupIntent}
                     onPress={handleAuthenticatePayment}
                     style={[styles.w100, styles.mt5]}
                     size={CONST.BUTTON_SIZE.LARGE}

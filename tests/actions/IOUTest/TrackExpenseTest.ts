@@ -88,6 +88,10 @@ jest.mock('@expensify/react-native-hybrid-app', () => ({
 
 jest.mock('@libs/PolicyUtils', () => ({
     ...jest.requireActual<typeof PolicyUtils>('@libs/PolicyUtils'),
+    // This factory runs while PolicyUtils is still loading inside an import cycle, so the barrel's `export *` helpers
+    // aren't on it yet. Spread them from their own modules, which load fully.
+    ...jest.requireActual<Record<string, unknown>>('@libs/PolicyUtils/customUnits'),
+    ...jest.requireActual<Record<string, unknown>>('@libs/PolicyUtils/tax'),
     isPaidGroupPolicy: jest.fn().mockReturnValue(true),
     isPolicyOwner: jest.fn().mockImplementation((policy?: OnyxEntry<Policy>, currentUserAccountID?: number) => !!currentUserAccountID && policy?.ownerAccountID === currentUserAccountID),
 }));
@@ -955,10 +959,6 @@ describe('actions/IOU/TrackExpense', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${policyExpenseChat.reportID}`, policyExpenseChat);
             await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transaction.transactionID}`, transaction);
-            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
-                [existingMemberAID]: {accountID: existingMemberAID, login: existingMemberA},
-                [existingMemberBID]: {accountID: existingMemberBID, login: existingMemberB},
-            });
 
             const recentWaypoints = (await getOnyxValue(ONYXKEYS.NVP_RECENT_WAYPOINTS)) ?? [];
 
@@ -1054,6 +1054,10 @@ describe('actions/IOU/TrackExpense', () => {
                 delegateAccountID: undefined,
                 reportActionsList: undefined,
                 rules: undefined,
+                personalDetailsByLogins: {
+                    [existingMemberA]: {accountID: existingMemberAID, login: existingMemberA},
+                    [existingMemberB]: {accountID: existingMemberBID, login: existingMemberB},
+                },
             });
             await waitForBatchedUpdates();
 
@@ -2547,6 +2551,7 @@ describe('actions/IOU/TrackExpense', () => {
                 isChatReportArchived: false,
                 currentUserAccountID: RORY_ACCOUNT_ID,
                 transactionThreadReportActions: passedThreadReportActions,
+                transactionThread: thread,
             });
             await waitForBatchedUpdates();
 
@@ -2619,6 +2624,7 @@ describe('actions/IOU/TrackExpense', () => {
                 isChatReportArchived: false,
                 currentUserAccountID: RORY_ACCOUNT_ID,
                 transactionThreadReportActions: undefined,
+                transactionThread: undefined,
                 isMovingTransactionFromTrackExpense: true,
             });
             await waitForBatchedUpdates();

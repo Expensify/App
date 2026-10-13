@@ -1,5 +1,6 @@
 import ScrollView from '@components/ScrollView';
 
+import useLayoutSpacing from '@hooks/useLayoutSpacing';
 import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -28,6 +29,7 @@ type InsightsPageControlsProps = {
 
 function InsightsPageControls({filters, defaultFilters, onChange}: InsightsPageControlsProps) {
     const styles = useThemeStyles();
+    const {pageGutter} = useLayoutSpacing();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {isBetaEnabled} = usePermissions();
 
@@ -61,15 +63,19 @@ function InsightsPageControls({filters, defaultFilters, onChange}: InsightsPageC
                 horizontal
                 showsHorizontalScrollIndicator={false}
                 keyboardShouldPersistTaps="always"
-                style={[styles.flexGrow0, styles.flexShrink0, styles.pb3]}
-                contentContainerStyle={[styles.flexRow, styles.alignItemsCenter, styles.gap2, styles.ph5]}
+                style={[styles.flexGrow0, styles.flexShrink0, styles.pb5]}
+                contentContainerStyle={[styles.flexRow, styles.alignItemsCenter, styles.gap2, pageGutter]}
             >
                 {controls}
             </ScrollView>
         );
     }
 
-    return <View style={[styles.flexRow, styles.flexWrap, styles.alignItemsCenter, styles.justifyContentEnd, styles.gap2, styles.ph5, styles.pb3]}>{controls}</View>;
+    return (
+        <View style={[pageGutter, styles.pb5, styles.insightsPageControlsContainer]}>
+            <View style={[styles.centeredContentWidthLimiter, styles.flexRow, styles.flexWrap, styles.alignItemsCenter, styles.justifyContentEnd, styles.gap2]}>{controls}</View>
+        </View>
+    );
 }
 
 export default InsightsPageControls;
