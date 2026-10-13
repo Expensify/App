@@ -1122,6 +1122,25 @@ describe('WorkflowUtils', () => {
             });
         });
 
+        it('marks the approver change pending for members and approvers taken out of a workflow', () => {
+            // Given a workflow losing a member and an approver, both of whom fall back to the default routing
+            const approvalWorkflow: ApprovalWorkflow = {members: [buildMember(4)], approvers: [buildApprover(1)], isDefault: false};
+
+            const convertedEmployees = convertApprovalWorkflowToPolicyEmployees({
+                previousEmployeeList: {'5@example.com': buildPolicyEmployee(5, {submitsTo: '1@example.com'}), '2@example.com': buildPolicyEmployee(2, {forwardsTo: '3@example.com'})},
+                approvalWorkflow,
+                type: 'update',
+                membersToRemove: [buildMember(5)],
+                approversToRemove: [buildApprover(2)],
+                defaultApprover: '9@example.com',
+            });
+
+            // Then both carry a pending field, not just a pending action, since that is what the surfaces showing
+            // their approver read to dim it while the change is in flight
+            expect(convertedEmployees['5@example.com']?.pendingFields).toEqual({submitsTo: 'update'});
+            expect(convertedEmployees['2@example.com']?.pendingFields).toEqual({forwardsTo: 'update'});
+        });
+
         it('Should include approvalLimit and overLimitForwardsTo when creating workflow with limits', () => {
             const approvalWorkflow: ApprovalWorkflow = {
                 members: [buildMember(2)],
@@ -2717,6 +2736,18 @@ describe('WorkflowUtils', () => {
             });
 
             expect(getApproverPendingActionByMemberEmail(policy, [buildWorkflow([1], [2])], undefined)).toEqual({'1@example.com': CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE});
+        });
+
+        it('marks every submitter when a change deeper in their chain is in flight', () => {
+            // Given a chain of three approvers whose third approver was swapped for someone else. That lands on the
+            // second approver's forwardsTo, leaving the first approver's own record untouched.
+            const policy = policyWithEmployees({
+                '1@example.com': {email: '1@example.com'},
+                '2@example.com': {email: '2@example.com'},
+                '3@example.com': {email: '3@example.com', pendingFields: {forwardsTo: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}},
+            });
+
+            expect(getApproverPendingActionByMemberEmail(policy, [buildWorkflow([1], [2, 3, 4])], undefined)).toEqual({'1@example.com': CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE});
         });
 
         it('reads the rules, which is where a save lands while the beta is on and the employee list is untouched', () => {

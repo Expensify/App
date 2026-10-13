@@ -564,10 +564,12 @@ function convertApprovalWorkflowToPolicyEmployees({
     // which will set the submitsTo field to the default approver email on backend.
     if (membersToRemove) {
         for (const {email} of membersToRemove) {
+            const existing = updatedEmployeeList[email];
             updatedEmployeeList[email] = {
-                ...(updatedEmployeeList[email] ? updatedEmployeeList[email] : {email}),
+                ...(existing ?? {email}),
                 submitsTo: defaultApprover,
                 pendingAction,
+                pendingFields: {...existing?.pendingFields, submitsTo: pendingAction},
             };
         }
     }
@@ -580,10 +582,12 @@ function convertApprovalWorkflowToPolicyEmployees({
                 continue;
             }
 
+            const existing = updatedEmployeeList[email];
             updatedEmployeeList[email] = {
-                ...(updatedEmployeeList[email] ? updatedEmployeeList[email] : {email}),
+                ...(existing ?? {email}),
                 forwardsTo: '',
                 pendingAction,
+                pendingFields: {...existing?.pendingFields, forwardsTo: pendingAction},
             };
         }
     }
@@ -1652,11 +1656,11 @@ function getApproverPendingActionByMemberEmail(
         pendingActionByMemberEmail[employee.email] ??= pendingAction;
     }
 
-    // A change further up the chain lands on the first approver's `forwardsTo`, leaving every submitter's `submitsTo`
-    // alone. It still changes what their row shows, since the label follows how deep their chain runs.
+    // A change anywhere up the chain lands on the `forwardsTo` of whichever approver precedes it, leaving every
+    // submitter's `submitsTo` alone. It still changes what their row shows, since the label follows how deep their
+    // chain runs, so every approver of the chain counts.
     for (const workflow of approvalWorkflows) {
-        const firstApproverEmail = workflow.approvers.at(0)?.email;
-        const pendingAction = firstApproverEmail ? employees[firstApproverEmail]?.pendingFields?.forwardsTo : undefined;
+        const pendingAction = workflow.approvers.reduce<PendingAction | undefined>((found, approver) => found ?? employees[approver.email]?.pendingFields?.forwardsTo, undefined);
         if (!pendingAction) {
             continue;
         }
