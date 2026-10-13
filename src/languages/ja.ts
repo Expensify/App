@@ -5920,7 +5920,7 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
                 '<strong>API キーの見つけ方</strong><ol><li>Rillet にログインします</li><li>[organization name] -> Organization settings -> API access に移動します</li><li>API キーを作成します</li><li>作成した API キーを下に貼り付けます</li></ol>',
             subsidiary: 'エンティティ',
             subsidiarySelectDescription: 'Rillet でデータをインポートしたいエンティティを選択してください。',
-            noSubsidiariesFound: 'エンティティが見つかりませんでした',
+            noSubsidiariesFound: 'エンティティが見つかりません',
             noSubsidiariesFoundDescription: 'Rillet にエンティティを追加して、もう一度接続を同期してください',
             accountTypesDescription: 'Rillet の口座はカテゴリとしてインポートされます。',
             enableNewAccountsTitle: '新しくインポートされた口座を有効にする',
