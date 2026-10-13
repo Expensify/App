@@ -146,6 +146,8 @@ The **Agents** tab holds agent rules, which are written in plain language and ru
 - **Apply expense defaults** – Update fields without the submitter doing anything.
 - **Describe agent rule** – Create flexible rules that run when you need.
 
+For any new rule except an agent rule, you can have Concierge build it for you: select **Describe** next to **Save rule**, describe the rule in plain English, and select **Next**. Concierge fills in the form so you can review it and select **Save rule**.
+
 ---
 
 ## How to set rules for a single category
