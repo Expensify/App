@@ -1199,6 +1199,14 @@ const translations: TranslationDeepObject<typeof en> = {
         singleFieldMultipleColumns: (fieldName: string) => `Ups! Du hast ein einzelnes Feld („${fieldName}“) mehreren Spalten zugeordnet. Bitte überprüfe dies und versuche es erneut.`,
         emptyMappedField: (fieldName: string) => `Ups! Das Feld („${fieldName}“) enthält einen oder mehrere leere Werte. Bitte überprüfe es und versuche es erneut.`,
         invalidApprovalLimit: 'Genehmigungslimits müssen gültige Beträge in der Währung des Arbeitsbereichs sein.',
+        approverColumn: (position: number) => `Genehmiger ${position}`,
+        approverLimitColumn: (position: number) => `Limit für Genehmiger ${position}`,
+        approverOverLimitApproverColumn: (position: number) => `Genehmiger bei Limitüberschreitung für Genehmiger ${position}`,
+        approversOutOfOrder: (rowNumber: number) =>
+            `Ups! In Zeile ${rowNumber} fehlt ein Genehmiger. Bitte liste die Genehmiger der Reihe nach auf, beginnend mit Genehmiger 1, und versuche es erneut.`,
+        approverRepeated: (rowNumber: number) => `Ups! Zeile ${rowNumber} enthält denselben Genehmiger mehr als einmal. Bitte überprüfe dies und versuche es erneut.`,
+        approvalLimitIncomplete: (rowNumber: number) =>
+            `Ups! Zeile ${rowNumber} hat ein Genehmigungslimit ohne Genehmiger bei Limitüberschreitung oder einen Genehmiger bei Limitüberschreitung ohne Genehmigungslimit. Bitte überprüfe dies und versuche es erneut.`,
         fieldValueTooLong: (fieldName: string, limit: number) =>
             `Ups! Das Feld („${fieldName}“) enthält einen oder mehrere Werte mit mehr als ${limit} Zeichen. Bitte überprüfe es und versuche es erneut.`,
         importSuccessfulTitle: 'Import erfolgreich',

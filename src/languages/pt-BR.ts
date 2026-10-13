@@ -1198,6 +1198,13 @@ const translations: TranslationDeepObject<typeof en> = {
         singleFieldMultipleColumns: (fieldName: string) => `Ops! Você mapeou um único campo ("${fieldName}") para várias colunas. Revise e tente novamente.`,
         emptyMappedField: (fieldName: string) => `Ops! O campo ("${fieldName}") contém um ou mais valores vazios. Revise e tente novamente.`,
         invalidApprovalLimit: 'Os limites de aprovação devem ser valores válidos na moeda do espaço de trabalho.',
+        approverColumn: (position: number) => `Aprovador ${position}`,
+        approverLimitColumn: (position: number) => `Limite do aprovador ${position}`,
+        approverOverLimitApproverColumn: (position: number) => `Aprovador acima do limite do aprovador ${position}`,
+        approversOutOfOrder: (rowNumber: number) => `Ops! Falta um aprovador na linha ${rowNumber}. Liste os aprovadores em ordem, começando pelo Aprovador 1, e tente novamente.`,
+        approverRepeated: (rowNumber: number) => `Ops! A linha ${rowNumber} inclui o mesmo aprovador mais de uma vez. Revise e tente novamente.`,
+        approvalLimitIncomplete: (rowNumber: number) =>
+            `Ops! A linha ${rowNumber} tem um limite de aprovação sem aprovador acima do limite, ou um aprovador acima do limite sem limite de aprovação. Revise e tente novamente.`,
         fieldValueTooLong: (fieldName: string, limit: number) => `Ops! O campo ("${fieldName}") contém um ou mais valores com mais de ${limit} caracteres. Revise e tente novamente.`,
         importSuccessfulTitle: 'Importação concluída',
         importCategoriesNoneAddedOrUpdated: 'Nenhuma categoria foi adicionada ou atualizada.',

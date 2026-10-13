@@ -1220,6 +1220,14 @@ const translations: TranslationDeepObject<typeof en> = {
         singleFieldMultipleColumns: (fieldName: string) => `Ups! Przypisałeś jedno pole („${fieldName}”) do wielu kolumn. Sprawdź ustawienia i spróbuj ponownie.`,
         emptyMappedField: (fieldName: string) => `Ups! Pole („${fieldName}”) zawiera jedną lub więcej pustych wartości. Sprawdź je i spróbuj ponownie.`,
         invalidApprovalLimit: 'Limity zatwierdzania muszą być prawidłowymi kwotami w walucie przestrzeni roboczej.',
+        approverColumn: (position: number) => `Zatwierdzający ${position}`,
+        approverLimitColumn: (position: number) => `Limit zatwierdzającego ${position}`,
+        approverOverLimitApproverColumn: (position: number) => `Zatwierdzający powyżej limitu zatwierdzającego ${position}`,
+        approversOutOfOrder: (rowNumber: number) =>
+            `Ups! W wierszu ${rowNumber} brakuje zatwierdzającego. Podaj zatwierdzających po kolei, zaczynając od Zatwierdzającego 1, i spróbuj ponownie.`,
+        approverRepeated: (rowNumber: number) => `Ups! Wiersz ${rowNumber} zawiera tego samego zatwierdzającego więcej niż raz. Sprawdź i spróbuj ponownie.`,
+        approvalLimitIncomplete: (rowNumber: number) =>
+            `Ups! Wiersz ${rowNumber} ma limit zatwierdzania bez zatwierdzającego powyżej limitu albo zatwierdzającego powyżej limitu bez limitu zatwierdzania. Sprawdź i spróbuj ponownie.`,
         fieldValueTooLong: (fieldName: string, limit: number) => `Ups! Pole („${fieldName}”) zawiera jedną lub więcej wartości dłuższych niż ${limit} znaków. Sprawdź je i spróbuj ponownie.`,
         importSuccessfulTitle: 'Import zakończony powodzeniem',
         importCategoriesNoneAddedOrUpdated: 'Nie dodano ani nie zaktualizowano żadnych kategorii.',

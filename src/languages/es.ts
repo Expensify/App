@@ -1194,6 +1194,14 @@ const translations: TranslationDeepObject<typeof en> = {
         singleFieldMultipleColumns: (fieldName) => `¡Vaya! Has mapeado un solo campo ("${fieldName}") a varias columnas. Por favor, revisa e inténtalo de nuevo.`,
         emptyMappedField: (fieldName) => `¡Vaya! El campo ("${fieldName}") contiene uno o más valores vacíos. Por favor, revísalo e inténtalo de nuevo.`,
         invalidApprovalLimit: 'Los límites de aprobación deben ser importes válidos en la moneda del espacio de trabajo.',
+        approverColumn: (position) => `Aprobador ${position}`,
+        approverLimitColumn: (position) => `Límite del aprobador ${position}`,
+        approverOverLimitApproverColumn: (position) => `Aprobador por exceso de límite del aprobador ${position}`,
+        approversOutOfOrder: (rowNumber) =>
+            `¡Vaya! A la fila ${rowNumber} le falta un aprobador. Por favor, indica los aprobadores en orden, empezando por el Aprobador 1, e inténtalo de nuevo.`,
+        approverRepeated: (rowNumber) => `¡Vaya! La fila ${rowNumber} incluye el mismo aprobador más de una vez. Por favor, revísalo e inténtalo de nuevo.`,
+        approvalLimitIncomplete: (rowNumber) =>
+            `¡Vaya! La fila ${rowNumber} tiene un límite de aprobación sin aprobador por exceso de límite, o un aprobador por exceso de límite sin límite de aprobación. Por favor, revísalo e inténtalo de nuevo.`,
         fieldValueTooLong: (fieldName, limit) => `¡Vaya! El campo ("${fieldName}") contiene uno o más valores de más de ${limit} caracteres. Por favor, revísalo e inténtalo de nuevo.`,
         importFailedTitle: 'Fallo en la importación',
         importFailedDescription: 'Por favor, asegúrate de que todos los campos estén llenos correctamente e inténtalo de nuevo. Si el problema persiste, por favor contacta a Concierge.',

@@ -1204,6 +1204,14 @@ const translations: TranslationDeepObject<typeof en> = {
         singleFieldMultipleColumns: (fieldName: string) => `Oups ! Vous avez associé un seul champ (« ${fieldName} ») à plusieurs colonnes. Veuillez vérifier et réessayer.`,
         emptyMappedField: (fieldName: string) => `Oups ! Le champ (« ${fieldName} ») contient une ou plusieurs valeurs vides. Veuillez vérifier et réessayer.`,
         invalidApprovalLimit: 'Les limites d’approbation doivent être des montants valides dans la devise de l’espace de travail.',
+        approverColumn: (position: number) => `Approbateur ${position}`,
+        approverLimitColumn: (position: number) => `Limite de l’approbateur ${position}`,
+        approverOverLimitApproverColumn: (position: number) => `Approbateur en cas de dépassement de l’approbateur ${position}`,
+        approversOutOfOrder: (rowNumber: number) =>
+            `Oups ! Il manque un approbateur à la ligne ${rowNumber}. Veuillez indiquer les approbateurs dans l’ordre, en commençant par l’Approbateur 1, puis réessayer.`,
+        approverRepeated: (rowNumber: number) => `Oups ! La ligne ${rowNumber} contient le même approbateur plusieurs fois. Veuillez vérifier et réessayer.`,
+        approvalLimitIncomplete: (rowNumber: number) =>
+            `Oups ! La ligne ${rowNumber} a une limite d’approbation sans approbateur en cas de dépassement, ou un approbateur en cas de dépassement sans limite d’approbation. Veuillez vérifier et réessayer.`,
         fieldValueTooLong: (fieldName: string, limit: number) =>
             `Oups ! Le champ (« ${fieldName} ») contient une ou plusieurs valeurs de plus de ${limit} caractères. Veuillez vérifier et réessayer.`,
         importSuccessfulTitle: 'Importation réussie',

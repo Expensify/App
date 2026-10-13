@@ -12,6 +12,7 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
 import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -72,6 +73,8 @@ function WorkspaceWorkflowsPageRevamp({policy, route}: WorkspaceWorkflowsPageRev
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {showConfirmModal} = useConfirmModal();
     const {login: currentUserLogin = ''} = useCurrentUserPersonalDetails();
+    const {isBetaEnabled} = usePermissions();
+    const isMultipleApproversBetaEnabled = isBetaEnabled(CONST.BETAS.MULTIPLE_APPROVERS);
 
     const isSubmitPolicyWorkspace = isSubmitPolicy(policy);
 
@@ -232,6 +235,7 @@ function WorkspaceWorkflowsPageRevamp({policy, route}: WorkspaceWorkflowsPageRev
         }
         downloadMembersCSV(
             policyID,
+            isMultipleApproversBetaEnabled,
             () => {
                 showConfirmModal({
                     title: translate('common.downloadFailedTitle'),
@@ -242,7 +246,7 @@ function WorkspaceWorkflowsPageRevamp({policy, route}: WorkspaceWorkflowsPageRev
             },
             translate,
         );
-    }, [isOffline, showConfirmModal, translate, policyID]);
+    }, [isOffline, showConfirmModal, translate, policyID, isMultipleApproversBetaEnabled]);
 
     // A Dynamic External Workflow with "Hide People Table Columns" keeps the approval workflows out of the customer's
     // hands entirely, so the importer that would edit them is blocked too.

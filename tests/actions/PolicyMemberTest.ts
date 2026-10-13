@@ -1,5 +1,8 @@
+import type {ApiCommand} from '@libs/API/types';
+import {SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import DateUtils from '@libs/DateUtils';
 import {getPersonalDetailsOnyxDataForOptimisticUsers} from '@libs/PersonalDetailsUtils';
+import {toIndexMap} from '@libs/RuleUtils';
 
 import CONST from '@src/CONST';
 import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
@@ -27,6 +30,14 @@ import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 OnyxUpdateManager();
+
+/** Reads a JSON-encoded parameter of the first request sent for `command` */
+function getJSONRequestParameter(command: ApiCommand, parameter: string): unknown {
+    const body = TestHelper.getFetchMockCalls(command).at(0)?.[1]?.body;
+    const value = body instanceof FormData ? body.get(parameter) : null;
+    return typeof value === 'string' ? JSON.parse(value) : undefined;
+}
+
 describe('actions/PolicyMember', () => {
     beforeAll(() => {
         Onyx.init({
@@ -1451,6 +1462,61 @@ describe('actions/PolicyMember', () => {
             // Then it should show the plural member added and updated success message
             expect(importFinalModal.promptKey).toBe('spreadsheet.importMembersAddedAndUpdated');
             expect(importFinalModal.promptKeyParams).toStrictEqual({added: 2, updated: 2});
+        });
+
+        it('leaves out the approval fields the spreadsheet has no columns for', async () => {
+            // Given a member who submits to a manager
+            const userEmail = 'user@gmail.com';
+            const policy = {
+                ...createRandomPolicy(1),
+                employeeList: {
+                    [userEmail]: {email: userEmail, role: CONST.POLICY.ROLE.USER, submitsTo: 'manager@gmail.com', forwardsTo: 'director@gmail.com'},
+                },
+            };
+
+            // When they're imported from a spreadsheet without approval columns
+            const importFinalModal = await Member.importPolicyMembers(policy, [{email: userEmail, role: CONST.POLICY.ROLE.ADMIN}]);
+
+            // Then the request has no approval fields, so the backend keeps the ones they have
+            expect(getJSONRequestParameter(SIDE_EFFECT_REQUEST_COMMANDS.IMPORT_MEMBERS_SPREADSHEET, 'employees')).toEqual([{email: userEmail, role: CONST.POLICY.ROLE.ADMIN}]);
+
+            // And only the role change counts as an update
+            expect(importFinalModal.promptKey).toBe('spreadsheet.importMembersUpdated');
+        });
+
+        it('moves members into the workflows of their imported approvers once they are imported', async () => {
+            // Given a member who submits to the owner
+            const ownerEmail = 'owner@gmail.com';
+            const userEmail = 'user@gmail.com';
+            const managerEmail = 'manager@gmail.com';
+            const policy = {
+                ...createRandomPolicy(1),
+                owner: ownerEmail,
+                approver: ownerEmail,
+                employeeList: {
+                    [ownerEmail]: {email: ownerEmail, role: CONST.POLICY.ROLE.ADMIN, submitsTo: ownerEmail},
+                    [userEmail]: {email: userEmail, role: CONST.POLICY.ROLE.USER, submitsTo: ownerEmail},
+                },
+            };
+
+            // When the spreadsheet lists a manager as their only approver
+            const importFinalModal = await Member.importPolicyMembers(policy, [{email: userEmail, role: CONST.POLICY.ROLE.USER, approvers: [{email: managerEmail}]}], false, {});
+            await waitForBatchedUpdates();
+
+            // Then the import leaves their employeeList approval fields alone
+            expect(getJSONRequestParameter(SIDE_EFFECT_REQUEST_COMMANDS.IMPORT_MEMBERS_SPREADSHEET, 'employees')).toEqual([{email: userEmail, role: CONST.POLICY.ROLE.USER}]);
+
+            // And the approval workflow rules route their reports to the manager
+            const rules = getJSONRequestParameter(WRITE_COMMANDS.SET_APPROVAL_WORKFLOW, 'rules');
+            expect(Object.values(rules ?? {})).toContainEqual(
+                expect.objectContaining({
+                    filters: {operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, left: CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM, right: [userEmail]},
+                    actions: toIndexMap([{name: CONST.RULES.ACTIONS.FORWARD_TO, approver: managerEmail}]),
+                }),
+            );
+
+            // And the new approvers count as an update
+            expect(importFinalModal.promptKey).toBe('spreadsheet.importMembersUpdated');
         });
     });
 

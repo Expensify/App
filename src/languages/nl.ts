@@ -1198,6 +1198,13 @@ const translations: TranslationDeepObject<typeof en> = {
         singleFieldMultipleColumns: (fieldName: string) => `Oeps! Je hebt één veld (‘${fieldName}’) aan meerdere kolommen gekoppeld. Controleer dit en probeer het opnieuw.`,
         emptyMappedField: (fieldName: string) => `Oeps! Het veld („${fieldName}”) bevat een of meer lege waarden. Controleer het en probeer het opnieuw.`,
         invalidApprovalLimit: 'Goedkeuringslimieten moeten geldige bedragen in de valuta van de werkruimte zijn.',
+        approverColumn: (position: number) => `Fiatteur ${position}`,
+        approverLimitColumn: (position: number) => `Limiet van fiatteur ${position}`,
+        approverOverLimitApproverColumn: (position: number) => `Fiatteur bij overschrijding voor fiatteur ${position}`,
+        approversOutOfOrder: (rowNumber: number) => `Oeps! In rij ${rowNumber} ontbreekt een fiatteur. Zet de fiatteurs op volgorde, te beginnen met Fiatteur 1, en probeer het opnieuw.`,
+        approverRepeated: (rowNumber: number) => `Oeps! Rij ${rowNumber} bevat dezelfde fiatteur meer dan eens. Controleer dit en probeer het opnieuw.`,
+        approvalLimitIncomplete: (rowNumber: number) =>
+            `Oeps! Rij ${rowNumber} heeft een goedkeuringslimiet zonder fiatteur bij overschrijding, of een fiatteur bij overschrijding zonder goedkeuringslimiet. Controleer dit en probeer het opnieuw.`,
         fieldValueTooLong: (fieldName: string, limit: number) =>
             `Oeps! Het veld („${fieldName}”) bevat een of meer waarden die langer zijn dan ${limit} tekens. Controleer het en probeer het opnieuw.`,
         importSuccessfulTitle: 'Import geslaagd',

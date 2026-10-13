@@ -1244,6 +1244,14 @@ const translations: TranslationDeepObject<typeof en> = {
         singleFieldMultipleColumns: (fieldName: string) => `Ωχ! Έχετε αντιστοιχίσει ένα μόνο πεδίο («${fieldName}») σε πολλές στήλες. Παρακαλούμε ελέγξτε και δοκιμάστε ξανά.`,
         emptyMappedField: (fieldName: string) => `Ωχ! Το πεδίο («${fieldName}») περιέχει μία ή περισσότερες κενές τιμές. Παρακαλούμε ελέγξτε και δοκιμάστε ξανά.`,
         invalidApprovalLimit: 'Τα όρια έγκρισης πρέπει να είναι έγκυρα ποσά στο νόμισμα του χώρου εργασίας.',
+        approverColumn: (position: number) => `Εγκρίνων ${position}`,
+        approverLimitColumn: (position: number) => `Όριο εγκρίνοντα ${position}`,
+        approverOverLimitApproverColumn: (position: number) => `Εγκρίνων υπέρβασης ορίου για τον εγκρίνοντα ${position}`,
+        approversOutOfOrder: (rowNumber: number) =>
+            `Ωχ! Στη γραμμή ${rowNumber} λείπει ένας εγκρίνων. Παρακαλούμε καταχωρίστε τους εγκρίνοντες με τη σειρά, ξεκινώντας από τον Εγκρίνοντα 1, και δοκιμάστε ξανά.`,
+        approverRepeated: (rowNumber: number) => `Ωχ! Η γραμμή ${rowNumber} περιλαμβάνει τον ίδιο εγκρίνοντα περισσότερες από μία φορές. Παρακαλούμε ελέγξτε και δοκιμάστε ξανά.`,
+        approvalLimitIncomplete: (rowNumber: number) =>
+            `Ωχ! Η γραμμή ${rowNumber} έχει όριο έγκρισης χωρίς εγκρίνοντα υπέρβασης ορίου ή εγκρίνοντα υπέρβασης ορίου χωρίς όριο έγκρισης. Παρακαλούμε ελέγξτε και δοκιμάστε ξανά.`,
         fieldValueTooLong: (fieldName: string, limit: number) =>
             `Ωχ! Το πεδίο («${fieldName}») περιέχει μία ή περισσότερες τιμές μεγαλύτερες από ${limit} χαρακτήρες. Παρακαλούμε ελέγξτε και δοκιμάστε ξανά.`,
         importSuccessfulTitle: 'Η εισαγωγή ήταν επιτυχής',
