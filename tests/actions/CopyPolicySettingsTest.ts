@@ -725,7 +725,7 @@ describe('actions/Policy/CopyPolicySettings', () => {
             });
 
             it("sets currentStep='complete' optimistically when offline and still patches the target", () => {
-                // Given the admin starts the copy while offline, so the server can't report progress until they reconnect
+                // Given the admin starts the copy while offline, so the copy request isn't processed until they reconnect
                 const sourcePolicy = makeSourcePolicy();
                 const targetPolicy = makeTargetPolicy();
 
