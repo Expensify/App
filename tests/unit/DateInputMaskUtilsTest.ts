@@ -4,8 +4,8 @@ import {
     getClipboardTextFromSegments,
     getDateMaskParts,
     getFirstUnfilledSegmentName,
-    getInsertedText,
     getISODateFromSegments,
+    getPastedText,
     getSegmentDisplay,
     getSegmentsFromISODate,
     getSegmentsFromText,
@@ -279,29 +279,62 @@ describe('DateInputMaskUtils', () => {
         });
     });
 
-    describe('getInsertedText', () => {
-        it('reads what was pasted beside the digits a segment was already showing', () => {
+    describe('getPastedText', () => {
+        it('reads a whole year pasted beside the digits the segment was showing', () => {
             // Given a year reading 1990 with the caret resting between the 19 and the 90
-            // When 1998 is pasted there
+            // When a year is pasted there
             // Then only the pasted year is read back, rather than the digits it was dropped between
-            expect(getInsertedText('1990', '19199890')).toBe('1998');
+            expect(getPastedText('year', '1990', '19199890', false)).toBe('1998');
         });
 
-        it('reads a paste at either end of a segment', () => {
-            expect(getInsertedText('1990', '19901998')).toBe('1998');
-            expect(getInsertedText('1990', '19981990')).toBe('1998');
+        it('reads a whole year pasted at either end of the segment', () => {
+            expect(getPastedText('year', '1990', '19901998', false)).toBe('1998');
+            expect(getPastedText('year', '1990', '19981990', false)).toBe('1998');
+        });
+
+        it('reads a paste too short to fill the segment into the digits already there', () => {
+            // Given a year reading 1990 with the caret resting between the 19 and the 90
+            // When two digits are pasted there, which say nothing about the rest of the year
+            // Then they are read in where they landed, the way typing them there would be
+            expect(getPastedText('year', '1990', '198890', false)).toBe('1988');
+            expect(getPastedText('year', '1990', '881990', false)).toBe('8819');
+            expect(getPastedText('month', '05', '085', false)).toBe('08');
+        });
+
+        it('extends a segment that still has room for the paste', () => {
+            expect(getPastedText('year', '19', '1988', false)).toBe('1988');
+        });
+
+        it('starts a full segment over for a paste that lands after its last digit', () => {
+            // Given a year with no room left, which typing into starts over rather than extending
+            // When two digits are pasted after it
+            // Then they start the year over too, rather than being dropped for want of anywhere to go
+            expect(getPastedText('year', '1990', '199088', false)).toBe('88');
+            expect(getPastedText('month', '05', '057', false)).toBe('7');
+        });
+
+        it('reads a paste carrying separators of its own as the date it describes', () => {
+            expect(getPastedText('year', '1990', '192026-09-1890', false)).toBe('2026-09-18');
         });
 
         it('reads a paste over a segment that was selected', () => {
             // Given a year whose digits were all selected, so none of them are left in what the input now reports
             // When a year is pasted over them
             // Then the whole of what the input reports is read back as the paste
-            expect(getInsertedText('1990', '1998')).toBe('1998');
-            expect(getInsertedText('1990', '12')).toBe('12');
+            expect(getPastedText('year', '1990', '1998', false)).toBe('1998');
+            expect(getPastedText('year', '1990', '12', false)).toBe('12');
+        });
+
+        it('replaces rather than merges while the whole date is selected', () => {
+            // Given the whole date selected, which no selection in the segment's own input stands for
+            // When two digits are pasted into the year
+            // Then they replace the date rather than being read into the year that is being replaced
+            expect(getPastedText('year', '1990', '881990', true)).toBe('88');
         });
 
         it('reads a paste into an empty segment', () => {
-            expect(getInsertedText('', '1998')).toBe('1998');
+            expect(getPastedText('year', '', '1998', false)).toBe('1998');
+            expect(getPastedText('year', '', '88', false)).toBe('88');
         });
     });
 

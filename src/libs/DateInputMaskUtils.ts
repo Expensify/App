@@ -37,6 +37,8 @@ const NON_DIGIT_REGEX = /\D/g;
 
 const DIGIT_GROUP_REGEX = /\d+/g;
 
+const DIGITS_ONLY_REGEX = /^\d+$/;
+
 type DateSegmentName = TupleToUnion<typeof DATE_SEGMENT_NAMES>;
 
 /** The digits typed into each segment, empty when the segment has not been filled in yet */
@@ -339,13 +341,13 @@ function getSegmentsFromText(text: string, startName: DateSegmentName, baseSegme
 }
 
 /**
- * What a change added to the text a segment was showing, which is what the user pasted into it. The digits the segment
- * already held are still there when the text was inserted beside them, so the new text is split around them. Text that
- * kept none of them replaced a selection, and is therefore taken whole.
+ * What a change added to the text a segment was showing, and where in that text it landed. The digits the segment held
+ * are still there when something was inserted beside them, so the new text is split around them. Undefined means none
+ * of them are left, which is what replacing a selection does.
  */
-function getInsertedText(previousValue: string, nextValue: string): string {
+function getInsertion(previousValue: string, nextValue: string): {text: string; at: number} | undefined {
     if (nextValue.length <= previousValue.length) {
-        return nextValue;
+        return undefined;
     }
 
     for (let keptLength = 0; keptLength <= previousValue.length; keptLength++) {
@@ -353,10 +355,40 @@ function getInsertedText(previousValue: string, nextValue: string): string {
             continue;
         }
 
-        return nextValue.slice(keptLength, nextValue.length - (previousValue.length - keptLength));
+        return {text: nextValue.slice(keptLength, nextValue.length - (previousValue.length - keptLength)), at: keptLength};
     }
 
-    return nextValue;
+    return undefined;
+}
+
+/**
+ * What a paste into one segment should be read as, given the text that segment was showing and the text its input now
+ * reports.
+ *
+ * A paste too short to fill the segment is read into the digits already there, at the point it landed, the way typing
+ * it there would be. Anything else stands on its own, since a paste that fills the segment, carries separators of its
+ * own, or lands over a selection is a value rather than an edit of the one that was there.
+ */
+function getPastedText(name: DateSegmentName, previousValue: string, nextValue: string, isReplacingWholeDate: boolean): string {
+    const insertion = getInsertion(previousValue, nextValue);
+
+    if (!insertion) {
+        return nextValue;
+    }
+
+    const segmentLength = getSegmentLength(name);
+
+    if (isReplacingWholeDate || insertion.text.length >= segmentLength || !DIGITS_ONLY_REGEX.test(insertion.text)) {
+        return insertion.text;
+    }
+
+    // A segment with no room left starts the segment over when it is typed into, so a paste landing after its last
+    // digit does the same rather than being dropped for want of somewhere to go
+    if (insertion.at >= segmentLength) {
+        return insertion.text;
+    }
+
+    return `${previousValue.slice(0, insertion.at)}${insertion.text}${previousValue.slice(insertion.at)}`.slice(0, segmentLength);
 }
 
 /**
@@ -403,8 +435,8 @@ export {
     getClipboardTextFromSegments,
     getDateMaskParts,
     getFirstUnfilledSegmentName,
-    getInsertedText,
     getISODateFromSegments,
+    getPastedText,
     getSegmentDisplay,
     getSegmentsFromISODate,
     getSegmentsFromText,

@@ -12,8 +12,8 @@ import {
     getAdjacentSegmentName,
     getClipboardTextFromSegments,
     getFirstUnfilledSegmentName,
-    getInsertedText,
     getISODateFromSegments,
+    getPastedText,
     getSegmentDisplay,
     getSegmentsFromISODate,
     getSegmentsFromText,
@@ -375,7 +375,7 @@ function useDateSegmentInput({value, isEnabled, minDate, maxDate, onCommit, onLe
     // Every keystroke is prevented, so this only runs for text the user pasted in
     const handleChangeText = (name: DateSegmentName, text: string) => {
         // The input reports its whole value, so what the user pasted is whatever the segment was not already showing
-        const pastedText = getInsertedText(getSegmentDisplay(segments, name), text);
+        const pastedText = getPastedText(name, getSegmentDisplay(segments, name), text, isAllSelected);
 
         // A paste over the whole date replaces it, while one into a single segment merges into what is already there
         const baseSegments = isAllSelected ? EMPTY_SEGMENTS : segments;
