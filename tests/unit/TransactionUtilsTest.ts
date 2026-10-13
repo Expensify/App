@@ -4135,41 +4135,6 @@ describe('TransactionUtils', () => {
         });
     });
 
-    describe('getConvertedTaxAmount', () => {
-        it('should return the absolute converted tax amount if the transaction is not from an expense report', () => {
-            // Given an IOU transaction whose converted tax is stored as a negative value
-            const transaction = generateTransaction({convertedTaxAmount: -100});
-
-            // When we read the converted tax amount for a non-expense report
-            const convertedTaxAmount = TransactionUtils.getConvertedTaxAmount(transaction, false);
-
-            // Then it is returned unsigned, because IOU requests cannot have negative values
-            expect(convertedTaxAmount).toBe(100);
-        });
-
-        it('should return the opposite sign if the transaction is from an expense report', () => {
-            // Given an expense-report transaction whose converted tax is stored with the opposite sign of what we display
-            const transaction = generateTransaction({convertedTaxAmount: 182});
-
-            // When we read the converted tax amount for an expense report
-            const convertedTaxAmount = TransactionUtils.getConvertedTaxAmount(transaction, true);
-
-            // Then the sign is flipped back, so a refund's tax displays as negative
-            expect(convertedTaxAmount).toBe(-182);
-        });
-
-        it('should return 0 instead of -0 when there is no converted tax amount', () => {
-            // Given an expense-report transaction with no converted tax
-            const transaction = generateTransaction({convertedTaxAmount: 0});
-
-            // When we read the converted tax amount
-            const convertedTaxAmount = TransactionUtils.getConvertedTaxAmount(transaction, true);
-
-            // Then we get 0 rather than -0, so we never render "-0.00"
-            expect(Object.is(convertedTaxAmount, 0)).toBe(true);
-        });
-    });
-
     describe('hasTaxRateWithMatchingValue', () => {
         const policy: Policy = {
             ...createRandomPolicy(0),
@@ -5418,9 +5383,10 @@ describe('TransactionUtils', () => {
                 ),
                 duplicates,
                 keptTransaction,
+                keptTransaction,
             );
 
-            expect(params.transactionIDList).toEqual([openDuplicate.transactionID, submittedDuplicate.transactionID]);
+            expect(params.transactionList.map((transaction) => transaction.transactionID)).toEqual([openDuplicate.transactionID, submittedDuplicate.transactionID]);
         });
 
         it('excludes a duplicate on a Submit & Close (approved and closed) report', () => {
@@ -5431,9 +5397,10 @@ describe('TransactionUtils', () => {
                 buildReviewDuplicates(keptTransaction.transactionID, [closedDuplicate.transactionID]),
                 [closedDuplicate],
                 keptTransaction,
+                keptTransaction,
             );
 
-            expect(params.transactionIDList).toEqual([]);
+            expect(params.transactionList).toEqual([]);
         });
 
         it('returns an empty transactionIDList when every duplicate is non-editable', () => {
@@ -5449,9 +5416,10 @@ describe('TransactionUtils', () => {
                 ),
                 duplicates,
                 keptTransaction,
+                keptTransaction,
             );
 
-            expect(params.transactionIDList).toEqual([]);
+            expect(params.transactionList).toEqual([]);
         });
     });
 

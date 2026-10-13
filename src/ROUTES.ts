@@ -127,6 +127,8 @@ const DYNAMIC_ROUTES = {
             SCREENS.WORKSPACE.TRAVEL,
             SCREENS.WORKSPACES_ADD_DOMAIN,
         ],
+        getRoute: (isJoinWorkspaceTask?: boolean) => getUrlWithParams('verify-account', {isJoinWorkspaceTask: isJoinWorkspaceTask ? 'true' : undefined}),
+        queryParams: ['isJoinWorkspaceTask'],
     },
     CONTACT_METHODS: {
         path: 'contact-methods',
@@ -235,6 +237,15 @@ const DYNAMIC_ROUTES = {
             }),
         queryParams: ['setupType', 'isNonUSDSetup'],
     },
+    CARD_AUTHENTICATION: {
+        path: 'card-authentication',
+        entryScreens: [
+            SCREENS.SETTINGS.SUBSCRIPTION.ROOT,
+            SCREENS.SETTINGS.SUBSCRIPTION.ADD_PAYMENT_CARD,
+            SCREENS.SAVE_THE_WORLD.ADD_PAYMENT_CARD,
+            SCREENS.WORKSPACE.DYNAMIC_OWNER_CHANGE_CHECK,
+        ],
+    },
     OWNER_SELECTOR: {
         path: 'owner-selector',
         entryScreens: [SCREENS.WORKSPACE_CONFIRMATION.DYNAMIC_ROOT],
@@ -281,7 +292,12 @@ const DYNAMIC_ROUTES = {
     },
     PAYMENT_CARD_CURRENCY_SELECTOR: {
         path: 'payment-card-currency',
-        entryScreens: [SCREENS.SETTINGS.SUBSCRIPTION.CHANGE_BILLING_CURRENCY, SCREENS.SETTINGS.SUBSCRIPTION.ADD_PAYMENT_CARD, SCREENS.WORKSPACE.DYNAMIC_OWNER_CHANGE_CHECK],
+        entryScreens: [
+            SCREENS.SETTINGS.SUBSCRIPTION.CHANGE_BILLING_CURRENCY,
+            SCREENS.SETTINGS.SUBSCRIPTION.ADD_PAYMENT_CARD,
+            SCREENS.SAVE_THE_WORLD.ADD_PAYMENT_CARD,
+            SCREENS.WORKSPACE.DYNAMIC_OWNER_CHANGE_CHECK,
+        ],
     },
     REPORT_SETTINGS_NAME: {
         path: 'settings/name',
@@ -672,8 +688,15 @@ const DYNAMIC_ROUTES = {
     PROFILE: {
         path: 'a/:accountID',
         entryScreens: ['*'],
-        getRoute: (accountID?: number, login?: string) => getUrlWithParams(`a/${accountID}`, {login}),
-        queryParams: ['login'],
+        getRoute: (accountID?: number, login?: string, policyID?: string) => getUrlWithParams(`a/${accountID}`, {login, policyID}),
+        queryParams: ['login', 'policyID'],
+    },
+    PROFILE_DISPLAY_NAME: {
+        // `accountID` is carried as `memberAccountID` so it never collides with the `accountID` of the
+        // profile this is opened from.
+        path: 'display-name/:memberAccountID/:policyID',
+        entryScreens: [SCREENS.DYNAMIC_PROFILE],
+        getRoute: (memberAccountID: number, policyID: string) => `display-name/${memberAccountID}/${policyID}` as const,
     },
     PROFILE_AVATAR: {
         path: 'avatar/:accountID',
@@ -712,11 +735,16 @@ const DYNAMIC_ROUTES = {
     },
     SAGE_INTACCT_PREREQUISITES: {
         path: 'sage-intacct/prerequisites',
-        entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.ROOT, SCREENS.WORKSPACE.ACCOUNTING.EXISTING_SAGE_INTACCT_CONNECTIONS],
+        entryScreens: [
+            SCREENS.WORKSPACE.ACCOUNTING.ROOT,
+            SCREENS.WORKSPACE.CONNECTIONS_ACCOUNTING,
+            SCREENS.WORKSPACE.CONNECTIONS,
+            SCREENS.WORKSPACE.ACCOUNTING.EXISTING_SAGE_INTACCT_CONNECTIONS,
+        ],
     },
     POLICY_ACCOUNTING_CERTINIA_EXPORT: {
         path: 'certinia/export',
-        entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.ROOT],
+        entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.ROOT, SCREENS.WORKSPACE.CONNECTIONS_ACCOUNTING],
     },
     POLICY_ACCOUNTING_CERTINIA_PREFERRED_EXPORTER: {
         path: 'certinia-preferred-exporter/select',
@@ -736,7 +764,7 @@ const DYNAMIC_ROUTES = {
     },
     POLICY_ACCOUNTING_CERTINIA_ADVANCED: {
         path: 'certinia/advanced',
-        entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.ROOT],
+        entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.ROOT, SCREENS.WORKSPACE.CONNECTIONS_ACCOUNTING],
     },
     POLICY_ACCOUNTING_CERTINIA_FX_EXPENSE_ACCOUNT: {
         path: 'certinia-fx-expense-account/select',
@@ -748,7 +776,7 @@ const DYNAMIC_ROUTES = {
     },
     POLICY_ACCOUNTING_CERTINIA_COMPANY_SELECTOR: {
         path: 'certinia/company',
-        entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.ROOT],
+        entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.ROOT, SCREENS.WORKSPACE.CONNECTIONS_ACCOUNTING],
     },
     POLICY_ACCOUNTING_NETSUITE_EXPORT_EXPENSES_VENDOR_SELECT: {
         path: 'vendor/select',
@@ -764,7 +792,7 @@ const DYNAMIC_ROUTES = {
     },
     POLICY_ACCOUNTING_NETSUITE_EXPORT: {
         path: 'connections/netsuite/export',
-        entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.ROOT, SCREENS.WORKSPACE.DYNAMIC_COMPANY_CARD_EXPORT],
+        entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.ROOT, SCREENS.WORKSPACE.CONNECTIONS_ACCOUNTING, SCREENS.WORKSPACE.DYNAMIC_COMPANY_CARD_EXPORT],
     },
     POLICY_ACCOUNTING_NETSUITE_RECEIVABLE_ACCOUNT_SELECT: {
         path: 'receivable-account/select',
@@ -817,7 +845,7 @@ const DYNAMIC_ROUTES = {
     },
     POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_EXPORT: {
         path: 'quickbooks-online/export',
-        entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.ROOT, SCREENS.WORKSPACE.DYNAMIC_COMPANY_CARD_EXPORT],
+        entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.ROOT, SCREENS.WORKSPACE.CONNECTIONS_ACCOUNTING, SCREENS.WORKSPACE.DYNAMIC_COMPANY_CARD_EXPORT],
     },
     POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_COMPANY_CARD_EXPENSE_ACCOUNT: {
         path: 'company-card-expense-account',
@@ -833,7 +861,7 @@ const DYNAMIC_ROUTES = {
     },
     POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_EXPORT: {
         path: 'quickbooks-desktop/export',
-        entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.ROOT, SCREENS.WORKSPACE.DYNAMIC_COMPANY_CARD_EXPORT],
+        entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.ROOT, SCREENS.WORKSPACE.CONNECTIONS_ACCOUNTING, SCREENS.WORKSPACE.DYNAMIC_COMPANY_CARD_EXPORT],
     },
     POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_COMPANY_CARD_EXPENSE_ACCOUNT: {
         path: 'qbd-company-card-expense-account',
@@ -923,7 +951,7 @@ const DYNAMIC_ROUTES = {
     },
     POLICY_ACCOUNTING_XERO_EXPORT: {
         path: 'xero/export',
-        entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.ROOT, SCREENS.WORKSPACE.DYNAMIC_COMPANY_CARD_EXPORT],
+        entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.ROOT, SCREENS.WORKSPACE.CONNECTIONS_ACCOUNTING, SCREENS.WORKSPACE.DYNAMIC_COMPANY_CARD_EXPORT],
     },
     POLICY_ACCOUNTING_XERO_PREFERRED_EXPORTER_SELECT: {
         path: 'xero-preferred-exporter/select',
@@ -959,7 +987,7 @@ const DYNAMIC_ROUTES = {
     },
     WORKSPACE_ACCOUNTING_QUICKBOOKS_DESKTOP_ADVANCED: {
         path: 'quickbooks-desktop/advanced',
-        entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.ROOT],
+        entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.ROOT, SCREENS.WORKSPACE.CONNECTIONS_ACCOUNTING],
     },
     POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_FX_EXPENSE_ACCOUNT_SELECT: {
         path: 'qbd-fx-expense-account-select',
@@ -1023,6 +1051,10 @@ const DYNAMIC_ROUTES = {
         ],
         getRoute: (state = '', label = '') => `state${state ? `?state=${encodeURIComponent(state)}` : ''}${label ? `${state ? '&' : '?'}label=${encodeURIComponent(label)}` : ''}`,
         queryParams: ['state', 'label'],
+    },
+    ENABLE_PAYMENTS_CONFIRM_VALIDATE_CODE: {
+        path: 'wallet-confirm-validate-code',
+        entryScreens: [SCREENS.IOU_SEND.ENABLE_PAYMENTS, SCREENS.ENABLE_PAYMENTS_ROOT],
     },
     SETTINGS_CATEGORY_SETTINGS: {
         path: 'category-settings/:categoryName',
@@ -1179,7 +1211,7 @@ const DYNAMIC_ROUTES = {
     },
     POLICY_ACCOUNTING_SAGE_INTACCT_EXPORT: {
         path: 'sage-intacct/export',
-        entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.ROOT, SCREENS.WORKSPACE.DYNAMIC_COMPANY_CARD_EXPORT],
+        entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.ROOT, SCREENS.WORKSPACE.CONNECTIONS_ACCOUNTING, SCREENS.WORKSPACE.DYNAMIC_COMPANY_CARD_EXPORT],
     },
     WORKSPACE_OVERVIEW_PLAN: {
         path: 'plan',
@@ -1304,14 +1336,34 @@ const DYNAMIC_ROUTES = {
         // suffix inherits their `:policyID` (same as WORKSPACE_INVITE above).
         path: 'hr-sync-results',
         // The results screen opens automatically when an HR sync finishes, and a sync can complete
-        // while the user is on either the HR page or the members list, so both are entry screens.
-        entryScreens: [SCREENS.WORKSPACE.HR, SCREENS.WORKSPACE.MEMBERS],
+        // while the user is on the HR page, the Connections page or its HR panel, or the members list.
+        // With the unified connections beta, the Connections page also renders on the old integration routes.
+        entryScreens: [
+            SCREENS.WORKSPACE.HR,
+            SCREENS.WORKSPACE.CONNECTIONS,
+            SCREENS.WORKSPACE.CONNECTIONS_HR,
+            SCREENS.WORKSPACE.MEMBERS,
+            SCREENS.WORKSPACE.ACCOUNTING.ROOT,
+            SCREENS.WORKSPACE.RECRUITING,
+            SCREENS.WORKSPACE.RECEIPT_PARTNERS,
+            SCREENS.WORKSPACE.MCP,
+        ],
     },
     WORKSPACE_RECRUITING_SYNC_RESULTS: {
         // The results screen opens automatically when a recruiting sync finishes, and a sync can complete
-        // while the user is on either the recruiting page or the members list, so both are entry screens.
+        // while the user is on the recruiting page, the Connections page or its recruiting panel, or the members list.
+        // With the unified connections beta, the Connections page also renders on the old integration routes.
         path: 'recruiting-sync-results',
-        entryScreens: [SCREENS.WORKSPACE.RECRUITING, SCREENS.WORKSPACE.MEMBERS],
+        entryScreens: [
+            SCREENS.WORKSPACE.RECRUITING,
+            SCREENS.WORKSPACE.CONNECTIONS,
+            SCREENS.WORKSPACE.CONNECTIONS_RECRUITING,
+            SCREENS.WORKSPACE.MEMBERS,
+            SCREENS.WORKSPACE.ACCOUNTING.ROOT,
+            SCREENS.WORKSPACE.HR,
+            SCREENS.WORKSPACE.RECEIPT_PARTNERS,
+            SCREENS.WORKSPACE.MCP,
+        ],
     },
     WORKSPACE_OWNER_CHANGE_CHECK: {
         path: 'change-owner/:policyID/:accountID/:error',
@@ -1334,12 +1386,12 @@ const DYNAMIC_ROUTES = {
     },
     WORKSPACE_RECEIPT_PARTNERS_INVITE_EDIT: {
         path: ':integration/invite/edit',
-        entryScreens: [SCREENS.WORKSPACE.RECEIPT_PARTNERS],
+        entryScreens: [SCREENS.WORKSPACE.RECEIPT_PARTNERS, SCREENS.WORKSPACE.CONNECTIONS_RECEIPT_PARTNERS],
         getRoute: (integration: string) => `${integration}/invite/edit` as const,
     },
     WORKSPACE_RECEIPT_PARTNERS_INVITE: {
         path: ':integration/invite',
-        entryScreens: [SCREENS.WORKSPACE.RECEIPT_PARTNERS],
+        entryScreens: [SCREENS.WORKSPACE.RECEIPT_PARTNERS, SCREENS.WORKSPACE.CONNECTIONS_RECEIPT_PARTNERS],
         getRoute: (integration: string) => `${integration}/invite` as const,
     },
     EXPENSIFY_CARD_DETAILS: {
@@ -2349,6 +2401,10 @@ const ROUTES = {
     SETTINGS_SUBSCRIPTION_EARLY_RENEWAL: 'settings/subscription/early-renewal',
     SETTINGS_EMAIL_ISSUE: 'settings/email-issue',
     SETTINGS_SUBSCRIPTION_PAYMENT_HISTORY: 'settings/subscription/payment-history',
+    SETTINGS_SUBSCRIPTION_PAYMENT_DETAILS: {
+        route: 'settings/subscription/payment-history/:purchaseID',
+        getRoute: (purchaseID: number | string) => `settings/subscription/payment-history/${purchaseID}` as const,
+    },
     SETTINGS_PRIORITY_MODE: 'settings/preferences/priority-mode',
     SETTINGS_LANGUAGE: 'settings/preferences/language',
     SETTINGS_PAYMENT_CURRENCY: 'setting/preferences/payment-currency',
@@ -3520,6 +3576,71 @@ const ROUTES = {
             return `workspaces/${policyID}/accounting${queryParams}` as const;
         },
     },
+    WORKSPACE_CONNECTIONS: {
+        route: 'workspaces/:policyID/connections',
+        getRoute: (
+            policyID: string | undefined,
+            newConnectionName?: ConnectionName,
+            integrationToDisconnect?: ConnectionName,
+            shouldDisconnectIntegrationBeforeConnecting?: boolean,
+            isIntuitEnterpriseSuite?: boolean,
+        ) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the WORKSPACE_CONNECTIONS route');
+            }
+
+            let queryParams = '';
+            if (newConnectionName) {
+                queryParams += `?newConnectionName=${newConnectionName}`;
+                if (integrationToDisconnect) {
+                    queryParams += `&integrationToDisconnect=${integrationToDisconnect}`;
+                }
+                if (shouldDisconnectIntegrationBeforeConnecting !== undefined) {
+                    queryParams += `&shouldDisconnectIntegrationBeforeConnecting=${shouldDisconnectIntegrationBeforeConnecting}`;
+                }
+                if (isIntuitEnterpriseSuite !== undefined) {
+                    queryParams += `&isIntuitEnterpriseSuite=${isIntuitEnterpriseSuite}`;
+                }
+            }
+            return `workspaces/${policyID}/connections${queryParams}` as const;
+        },
+    },
+    WORKSPACE_CONNECTIONS_ACCOUNTING: {
+        route: 'workspaces/:policyID/connections/accounting',
+        getRoute: (policyID: string | undefined) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the WORKSPACE_CONNECTIONS_ACCOUNTING route');
+            }
+            return `workspaces/${policyID}/connections/accounting` as const;
+        },
+    },
+    WORKSPACE_CONNECTIONS_HR: {
+        route: 'workspaces/:policyID/connections/hr',
+        getRoute: (policyID: string | undefined) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the WORKSPACE_CONNECTIONS_HR route');
+            }
+            return `workspaces/${policyID}/connections/hr` as const;
+        },
+    },
+    WORKSPACE_CONNECTIONS_RECRUITING: {
+        route: 'workspaces/:policyID/connections/recruiting',
+        getRoute: (policyID: string | undefined) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the WORKSPACE_CONNECTIONS_RECRUITING route');
+            }
+            return `workspaces/${policyID}/connections/recruiting` as const;
+        },
+    },
+    WORKSPACE_CONNECTIONS_RECEIPT_PARTNERS: {
+        route: 'workspaces/:policyID/connections/receipt-partners',
+        getRoute: (policyID: string | undefined) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the WORKSPACE_CONNECTIONS_RECEIPT_PARTNERS route');
+            }
+            return `workspaces/${policyID}/connections/receipt-partners` as const;
+        },
+    },
     WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_ADVANCED: {
         route: 'workspaces/:policyID/accounting/quickbooks-online/advanced',
         getRoute: (policyID: string | undefined) => {
@@ -4420,7 +4541,8 @@ const ROUTES = {
     ONBOARDING_PRIVATE_DOMAIN: {
         route: 'onboarding/private-domain',
 
-        getRoute: (backTo?: string) => getUrlWithBackToParam(`onboarding/private-domain`, backTo),
+        getRoute: (backTo?: string, isJoinWorkspaceTask = false, reportID?: string) =>
+            getUrlWithParams(getUrlWithBackToParam(`onboarding/private-domain`, backTo), {isJoinWorkspaceTask: isJoinWorkspaceTask ? 'true' : undefined, reportID}),
     },
     ONBOARDING_EMPLOYEES: {
         route: 'onboarding/employees',
@@ -4445,17 +4567,22 @@ const ROUTES = {
     ONBOARDING_WORKSPACES: {
         route: 'onboarding/join-workspaces',
 
-        getRoute: (backTo?: string) => getUrlWithBackToParam(`onboarding/join-workspaces`, backTo),
+        getRoute: (backTo?: string, isJoinWorkspaceTask = false, shouldCreateJoinWorkspaceTaskOnExit = false) =>
+            getUrlWithParams(getUrlWithBackToParam(`onboarding/join-workspaces`, backTo), {
+                isJoinWorkspaceTask: isJoinWorkspaceTask ? 'true' : undefined,
+                shouldCreateJoinWorkspaceTaskOnExit: shouldCreateJoinWorkspaceTaskOnExit ? 'true' : undefined,
+            }),
     },
     ONBOARDING_WORK_EMAIL: {
         route: 'onboarding/work-email',
 
-        getRoute: () => 'onboarding/work-email' as const,
+        getRoute: (isJoinWorkspaceTask = false, reportID?: string) => getUrlWithParams('onboarding/work-email', {isJoinWorkspaceTask: isJoinWorkspaceTask ? 'true' : undefined, reportID}),
     },
     ONBOARDING_WORK_EMAIL_VALIDATION: {
         route: 'onboarding/work-email-validation',
 
-        getRoute: () => 'onboarding/work-email-validation' as const,
+        getRoute: (isJoinWorkspaceTask = false, reportID?: string) =>
+            getUrlWithParams('onboarding/work-email-validation', {isJoinWorkspaceTask: isJoinWorkspaceTask ? 'true' : undefined, reportID}),
     },
     ONBOARDING_PERSONAL_TRACK_GOAL: {
         route: 'onboarding/personaltrackcase',
@@ -4649,16 +4776,18 @@ const ROUTES = {
     },
     POLICY_ACCOUNTING_NETSUITE_TOKEN_INPUT: {
         route: 'workspaces/:policyID/accounting/netsuite/token-input/:subPage',
-        getRoute: (policyID: string | undefined, subPage: string, authType?: string) => {
+        getRoute: (policyID: string | undefined, subPage: string, authType?: string, isMigration?: boolean) => {
             if (!policyID) {
                 Log.warn('Invalid policyID is used to build the POLICY_ACCOUNTING_NETSUITE_TOKEN_INPUT route');
             }
-            return `workspaces/${policyID}/accounting/netsuite/token-input/${subPage}${authType ? `?authType=${authType}` : ''}` as const;
+            const query = [authType ? `authType=${authType}` : '', isMigration ? `isMigration=true` : ''].filter(Boolean).join('&');
+            return `workspaces/${policyID}/accounting/netsuite/token-input/${subPage}${query ? `?${query}` : ''}` as const;
         },
     },
     POLICY_ACCOUNTING_NETSUITE_SETUP: {
         route: 'workspaces/:policyID/accounting/netsuite/setup/:accountID?',
-        getRoute: (policyID: string, accountID: string) => `workspaces/${policyID}/accounting/netsuite/setup/${accountID}` as const,
+        getRoute: (policyID: string, accountID: string, isMigration?: boolean) =>
+            `workspaces/${policyID}/accounting/netsuite/setup/${accountID}${isMigration ? '?isMigration=true' : ''}` as const,
     },
     POLICY_ACCOUNTING_NETSUITE_IMPORT: {
         route: 'workspaces/:policyID/accounting/netsuite/import',
