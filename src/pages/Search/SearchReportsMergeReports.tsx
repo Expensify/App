@@ -223,7 +223,7 @@ function SearchMergeReports() {
         isLoadingOnyxData ||
         selectedReportIDs?.some((reportID) => {
             const reportKey = `${ONYXKEYS.COLLECTION.REPORT}${reportID}` as const;
-            return !allReports?.[reportKey] && !!currentSearchResults?.data[reportKey];
+            return !allReports?.[reportKey] && !!currentSearchResults?.data?.[reportKey];
         });
 
     if (!isReportMergeBetaEnabled) {
