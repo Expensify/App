@@ -348,6 +348,7 @@ const translations = {
         with: 'with',
         shareCode: 'Share code',
         shareReport: 'Share report',
+        reportShared: 'Report shared',
         share: 'Share',
         per: 'per',
         // @context Unit label for “mile.” Should be treated as a measurement unit and may require capitalization depending on locale conventions.
