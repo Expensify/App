@@ -681,6 +681,13 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
             shouldSkipFocusRestore: hasSelectedRuleBot,
             onSelected: () => changeUserRole(CONST.POLICY.ROLE.AUDITOR),
         };
+        const guestOption = {
+            text: translate('workspace.people.makeGuest', {count: selectedEmployees.length}),
+            value: CONST.POLICY.MEMBERS_BULK_ACTION_TYPES.MAKE_GUEST,
+            icon: icons.User,
+            shouldSkipFocusRestore: hasSelectedRuleBot,
+            onSelected: () => changeUserRole(CONST.POLICY.ROLE.GUEST),
+        };
         const approveOnlyOption = {
             text: translate('workspace.people.makeApproveOnly', {count: selectedEmployees.length}),
             value: CONST.POLICY.MEMBERS_BULK_ACTION_TYPES.MAKE_APPROVE_ONLY,
@@ -711,6 +718,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
         };
 
         const hasAtLeastOneNonAuditorRole = selectedEmployeesRoles.some((role) => role !== CONST.POLICY.ROLE.AUDITOR);
+        const hasAtLeastOneNonGuestRole = selectedEmployeesRoles.some((role) => role !== CONST.POLICY.ROLE.GUEST);
         const hasAtLeastOneNonApproveOnlyRole = selectedEmployeesRoles.some((role) => role !== CONST.POLICY.ROLE.APPROVE_ONLY);
         const hasAtLeastOneNonCardAdminRole = selectedEmployeesRoles.some((role) => role !== CONST.POLICY.ROLE.CARD_ADMIN);
         const hasAtLeastOneNonPeopleAdminRole = selectedEmployeesRoles.some((role) => role !== CONST.POLICY.ROLE.PEOPLE_ADMIN);
@@ -737,6 +745,16 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
             canMemberAssignRole(policy, currentUserLogin ?? '', CONST.POLICY.ROLE.AUDITOR)
         ) {
             options.push(auditorOption);
+        }
+
+        if (
+            hasAtLeastOneNonGuestRole &&
+            isControlPolicy(policy) &&
+            !hasAtLeastOnePayer &&
+            canManageSelectedEmployees &&
+            canMemberAssignRole(policy, currentUserLogin ?? '', CONST.POLICY.ROLE.GUEST)
+        ) {
+            options.push(guestOption);
         }
 
         if (
