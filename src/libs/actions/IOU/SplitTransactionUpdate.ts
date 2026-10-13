@@ -547,11 +547,14 @@ function updateSplitTransactions({
     // selfDM split transactions can't resolve their IOU action, which leaves the "From" column
     // blank and breaks downstream ownership lookups.
     const optimisticSelfDMIouActionsByReportID: Record<string, Record<string, OnyxTypes.ReportAction>> = {};
+
     // Everything created optimistically for brand-new splits is removed on failure. These updates are pushed after all
     // other failure data so no earlier failure MERGE (errors, hold state, etc.) recreates the removed keys.
     const newSplitsFailureCleanupData: Array<OnyxUpdate<BuildOnyxDataForMoneyRequestKeys>> = [];
+
     // Reports whose totals the optimistic pass rewrites, keyed by reportID, so the pre-split values can be restored on failure
     const reportsToRestoreOnFailure = new Map<string, OnyxTypes.Report>();
+
     // SelfDM reports that splits are routed to, keyed by reportID, so the chat preview the optimistic pass points at a split can be restored on failure
     const selfDMReportsToRestoreOnFailure = new Map<string, OnyxTypes.Report>();
 
@@ -2078,6 +2081,7 @@ function updateSplitTransactions({
             },
         });
     }
+
     // The selfDM split builder's own failure data only covers the transaction and IOU action, so put back the preview fields it overwrote
     for (const [reportID, selfDMReportToRestore] of selfDMReportsToRestoreOnFailure) {
         onyxData.failureData?.push({
