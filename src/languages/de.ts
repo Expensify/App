@@ -26,6 +26,7 @@ import {CONST as COMMON_CONST, Str} from 'expensify-common';
 import startCase from 'lodash/startCase';
 
 import type en from './en';
+import type {CompanyCardBalanceParams} from './params';
 import type {TranslationDeepObject} from './types';
 type StateValue = {
     stateISO: string;
@@ -450,6 +451,7 @@ const translations: TranslationDeepObject<typeof en> = {
         leaveWorkspaceReimburser:
             'Du kannst diesen Workspace als Erstattungsverantwortliche·r nicht verlassen. Bitte lege unter „Workspaces > Zahlungen senden oder nachverfolgen“ eine·n neue·n Erstattungsverantwortliche·n fest und versuche es erneut.',
         reimbursable: 'Erstattungsfähig',
+        nonReimbursable: 'Nicht erstattungsfähig',
         editYourProfile: 'Profil bearbeiten',
         comments: 'Kommentare',
         sharedIn: 'Geteilt in',
@@ -629,15 +631,6 @@ const translations: TranslationDeepObject<typeof en> = {
         launching: 'Expensify wird gestartet',
         expired: 'Ihre Sitzung ist abgelaufen.',
         signIn: 'Bitte melde dich erneut an.',
-        notValid: 'Ungültiger Link.',
-        sessionMismatch: 'Der Link, den Sie angeklickt haben, ist für Ihre aktuelle Sitzung nicht gültig.',
-        switchAccount: {
-            title: 'Konten wechseln?',
-            prompt: ({newEmail, currentEmail}: {newEmail: string; currentEmail: string}) =>
-                `Sie sind als ${currentEmail} angemeldet. Diese Aktion meldet Sie stattdessen als ${newEmail} an.`,
-            confirm: 'Konten wechseln',
-            staySignedIn: 'Nicht das Konto wechseln',
-        },
     },
     multifactorAuthentication: {
         reviewTransaction: {
@@ -1328,7 +1321,7 @@ const translations: TranslationDeepObject<typeof en> = {
             phrase1: 'Beleg hinzufügen',
             phrase2: 'oder ziehe eine hierher und lege sie ab',
         },
-        pageCount: ({pageCount}: {pageCount: number}) => `Seite 1 von ${pageCount}`,
+        pageCount: ({page, pageCount}: {page: number; pageCount: number}) => `Seite ${page} von ${pageCount}`,
     },
     quickAction: {
         scanReceipt: 'Beleg scannen',
@@ -2308,6 +2301,7 @@ const translations: TranslationDeepObject<typeof en> = {
     displayNamePage: {
         headerTitle: 'Anzeigename',
         isShownOnProfile: 'Dein Anzeigename wird in deinem Profil angezeigt.',
+        isShownOnMemberProfile: 'Der Anzeigename wird im Profil des Mitglieds angezeigt. Sobald er gespeichert ist, kann ihn nur noch das Mitglied bearbeiten.',
     },
     timezonePage: {
         timezone: 'Zeitzone',
@@ -4000,6 +3994,10 @@ ${amount} für ${merchant} – ${date}`,
     },
     dynamicForm: {
         exampleHint: ({example}: {example: string}) => `Beispiel: ${example}`,
+        fileCount: ({count}: {count: number}) => ({
+            one: '1 Datei',
+            other: `${count} Dateien`,
+        }),
         error: {
             tooShort: ({minLength}: {minLength: number}) => `Muss mindestens ${minLength} Zeichen lang sein`,
             invalidFormat: ({example}: {example?: string}) => (example ? `Ungültiges Format. Beispiel: ${example}` : 'Ungültiges Format'),
@@ -6211,6 +6209,16 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
             submit: 'Einreichen',
         },
         companyCards: {
+            balance: {
+                currentBalance: 'Aktueller Kontostand',
+                remainingLimit: 'Verbleibendes Limit',
+                notAvailable: 'Nicht verfügbar',
+                currentBalanceDescription: ({lastUpdated}: CompanyCardBalanceParams) => `Der aktuelle Kontostand wird von Ihrer Bank gemeldet und zuletzt am ${lastUpdated} aktualisiert.`,
+                remainingLimitDescription: ({lastUpdated}: CompanyCardBalanceParams) =>
+                    `Der verbleibende Verfügungsrahmen wird von Ihrer Bank gemeldet und zuletzt am ${lastUpdated} aktualisiert.`,
+                currentBalanceDescriptionNoTimestamp: 'Der aktuelle Kontostand wird von Ihrer Bank gemeldet.',
+                remainingLimitDescriptionNoTimestamp: 'Der verbleibende Verfügungsrahmen wird von Ihrer Bank gemeldet.',
+            },
             addCards: 'Karten hinzufügen',
             selectCards: 'Karten auswählen',
             fromOtherWorkspaces: 'Aus anderen Workspaces',
@@ -8368,6 +8376,8 @@ Fordern Sie Spesendetails wie Belege und Beschreibungen an, legen Sie Limits und
                 applyUpdates: 'Diese Aktualisierungen anwenden:',
                 saveRule: 'Regel speichern',
                 previewMatches: 'Übereinstimmungen anzeigen',
+                previewMatchesDescription: 'Sieh dir an, wie diese Regel auf deine Ausgaben angewendet wird',
+                preview: 'Vorschau',
                 confirmError: 'Gib ein Händlerunternehmen ein und nimm mindestens eine Aktualisierung vor',
                 confirmErrorMerchant: 'Bitte Händler eingeben',
                 confirmErrorUpdate: 'Bitte wende mindestens ein Update an',
@@ -8704,6 +8714,14 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                 requireFieldsDescription: 'Bestimmte Spesenfelder vorschreiben oder auf ihre Pflicht verzichten.',
                 createAgentRule: 'Agentenregel beschreiben',
                 createAgentRuleDescription: 'Erstellen Sie flexible Regeln, die ausgeführt werden, wenn Sie sie benötigen.',
+                describe: 'Beschreiben',
+                describeRule: 'Beschreibe deine Regel in einfachen Worten und Concierge erstellt sie für dich',
+                describeRuleInputLabel: 'Beschreibe die Regel',
+                promptErrors: {
+                    unsupported: 'Diese Regel wird noch nicht unterstützt – wir arbeiten daran. Bitte versuche vorerst eine andere Regel.',
+                    unintelligible: 'Formuliere deine Regel etwa so: Wenn Ausgaben über 100 $ liegen, ist ein Beleg erforderlich.',
+                    multipleRules: 'Bitte eine Regel nach der anderen – beschreibe eine einzelne Regel, z. B.: Einzelhandelskäufe auf allen Karten blockieren.',
+                },
             },
             expenseDefaultsTable: {
                 tableColumnType: 'Typ',
@@ -9807,6 +9825,8 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
             return `hat die Kategorie „${categoryName}“ für Teilnehmende auf ${newValue ? 'erforderlich' : 'nicht erforderlich'} geändert (zuvor ${newValue ? 'nicht erforderlich' : 'erforderlich'})`;
         },
         updatedAutoHarvesting: (enabled: boolean) => `${enabled ? 'aktiviert' : 'deaktiviert'} Einreichungen`,
+        updatedMemberDisplayName: (newName: string, oldName: string, editProfileURL: string) =>
+            `hat Ihren Anzeigenamen in ${newName} geändert (zuvor „${oldName}“). <a href="${editProfileURL}">Im Profil bearbeiten</a>`,
         changedOverLimitForwardsTo: ({
             member,
             approver,
@@ -11332,6 +11352,16 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                 other: `${count} aktive Benutzer`,
             }),
             state: {paid: 'Bezahlt', cleared: 'Ausgeglichen', failed: 'Fehlgeschlagen', refunded: 'Erstattet', disputed: 'Angefochten', balanceTransfer: 'Saldoübertrag'},
+            details: 'Zahlungsdetails',
+            badge: {
+                balanceTransferTo: ({email}: {email: string}) => `Saldoübertrag an ${email}`,
+                balanceTransferFrom: ({email}: {email: string}) => `Saldoübertrag von ${email}`,
+                disputedPending: ({date}: {date: string}) => `Angefochten am ${date} (Ausstehend)`,
+                disputedRefunded: ({date}: {date: string}) => `Angefochten am ${date} (Erstattet)`,
+                disputedClosed: ({date}: {date: string}) => `Angefochten am ${date} (Abgeschlossen)`,
+                refundedOn: ({date}: {date: string}) => `Erstattet am ${date}`,
+                refundedAmountOn: ({amount, date}: {amount: string; date: string}) => `${amount} erstattet am ${date}`,
+            },
         },
         subscriptionSettings: {
             title: 'Abonnementeinstellungen',

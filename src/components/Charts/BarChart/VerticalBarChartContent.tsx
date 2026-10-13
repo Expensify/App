@@ -122,7 +122,7 @@ function VerticalBarChartCanvas({data, yAxisUnit, yAxisUnitPosition = 'left', on
     };
 
     const {customGestures, setPointPositions, matchedIndex, isTooltipActive, isCursorOverClickable, initialTooltipPosition, onChartMoved} = useChartInteractions({
-        handlePress: handleBarPress,
+        handlePress: onBarPress ? handleBarPress : undefined,
         checkIsOver: checkIsOverBar,
         isCursorOverLabel: shouldShowLabels ? isCursorOverLabel : undefined,
         resolveLabelTouchX: shouldShowLabels ? findLabelCursorX : undefined,
@@ -209,7 +209,7 @@ function VerticalBarChartCanvas({data, yAxisUnit, yAxisUnitPosition = 'left', on
             gesture={customGestures}
             touchAction="pan-y"
         >
-            <Animated.View style={[styles.chartContent, StyleUtils.getHeight(chartHeight), cursorStyle]}>
+            <Animated.View style={[styles.chartContent, StyleUtils.getHeight(chartHeight), !!onBarPress && cursorStyle]}>
                 <CartesianChart
                     explicitSize={{width: chartWidth, height: chartHeight}}
                     xKey="x"

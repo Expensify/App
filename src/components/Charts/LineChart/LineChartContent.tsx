@@ -165,7 +165,7 @@ function LineChartCanvas({data, yAxisUnit, yAxisUnitPosition = 'left', onPointPr
     };
 
     const {customGestures, setPointPositions, matchedIndex, isTooltipActive, isCursorOverClickable, initialTooltipPosition, activePointPosition, onChartMoved} = useChartInteractions({
-        handlePress: handlePointPress,
+        handlePress: onPointPress ? handlePointPress : undefined,
         checkIsOver: checkIsOverBand,
         isCursorOverLabel: checkIsOverLabelInPlotArea,
         resolveLabelTouchX: findLabelCursorX,
@@ -273,7 +273,7 @@ function LineChartCanvas({data, yAxisUnit, yAxisUnitPosition = 'left', onPointPr
             gesture={customGestures}
             touchAction="pan-y"
         >
-            <Animated.View style={[styles.chartContent, StyleUtils.getHeight(chartHeight), cursorStyle]}>
+            <Animated.View style={[styles.chartContent, StyleUtils.getHeight(chartHeight), !!onPointPress && cursorStyle]}>
                 <CartesianChart
                     explicitSize={{width: chartWidth, height: chartHeight}}
                     xKey="x"
