@@ -4,28 +4,58 @@ on:
   pull_request:
     types: [opened, synchronize]
     branches-ignore: [staging, production]
+    # Ordered: GitHub applies each pattern in turn, so a later pattern overrides an earlier match.
+    # Start from everything, drop what the measurement cannot read, put back the measured parts of the
+    # dropped trees, then drop docs everywhere.
     paths:
-      [
-        'src/**',
-        'modules/*/src/**',
-        'tests/perf-test/**',
-        'tests/utils/**',
-        'jest/**',
-        '__mocks__/**',
-        'assets/emojis/**',
-        'patches/**',
-        'config/babel/**',
-        'babel.config.js',
-        'jest.config.js',
-        'modules/*/package.json',
-        'package.json',
-        'package-lock.json',
-        '.nvmrc',
-        '.github/workflows/reassurePerformanceTests.yml',
-        '.github/workflows/seedJestPerfCache.yml',
-        '.github/actions/javascript/validateReassureOutput/**',
-        '.github/actions/composite/setupNode/**',
-      ]
+      - '**'
+      # Native and OldDot: Jest never loads these.
+      - '!ios/**'
+      - '!android/**'
+      - '!vendor/**'
+      - '!fastlane/**'
+      - '!Mobile-Expensify'
+      - '!Gemfile'
+      - '!Gemfile.lock'
+      - '!.ruby-version'
+      - '!.java-version'
+      - '!.buckconfig'
+      - '!.watchmanconfig'
+      # Web and Storybook builds: nothing under src/, jest/ or tests/ imports these.
+      - '!web/**'
+      - '!.well-known/**'
+      - '!.storybook/**'
+      - '!config/rsbuild/**'
+      - '!config/repack/**'
+      - '!config/certificatePinning/**'
+      # Lint, format and repo tooling config.
+      - '!eslint-plugin-local-rules/**'
+      - '!config/eslint/**'
+      - '!eslint.config.mjs'
+      - '!.oxfmtrc.json'
+      - '!cspell.json'
+      - '!codecov.yml'
+      - '!.imgbotconfig'
+      - '!.mcp.json'
+      # Docs and agent tooling.
+      - '!docs/**'
+      - '!contributingGuides/**'
+      - '!.claude/**'
+      - '!evals/**'
+      - '!prompts/**'
+      # Tests: only the perf harness feeds the measurement.
+      - '!tests/**'
+      - 'tests/perf-test/**'
+      - 'tests/utils/**'
+      - 'tests/unit/currencyList.json'
+      - 'tests/__mocks__/**'
+      # CI: only this check, its baseline seed, and the actions it runs.
+      - '!.github/**'
+      - '.github/workflows/reassurePerformanceTests.yml'
+      - '.github/workflows/seedJestPerfCache.yml'
+      - '.github/actions/javascript/validateReassureOutput/**'
+      - '.github/actions/composite/setupNode/**'
+      - '!**.md'
 
 # Cancel a run still measuring an earlier push to the same PR. pull_request-only, so github.ref is
 # refs/pull/<n>/merge and the group is one PR.
@@ -35,6 +65,7 @@ concurrency:
 
 jobs:
   baseline-perf-tests:
+    if: ${{ github.actor != 'OSBotify' }}
     runs-on: blacksmith-4vcpu-ubuntu-2404
     steps:
       - name: Checkout
@@ -145,6 +176,7 @@ jobs:
           include-hidden-files: true
 
   branch-perf-tests:
+    if: ${{ github.actor != 'OSBotify' }}
     runs-on: blacksmith-4vcpu-ubuntu-2404
     steps:
       - name: Checkout
@@ -200,6 +232,7 @@ jobs:
           include-hidden-files: true
 
   validate-perf-tests:
+    if: ${{ github.actor != 'OSBotify' }}
     runs-on: blacksmith-4vcpu-ubuntu-2404
     needs: [baseline-perf-tests, branch-perf-tests]
     steps:
