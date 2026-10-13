@@ -1,3 +1,4 @@
+import Button from '@components/Button';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import RenderHTML from '@components/RenderHTML';
@@ -16,12 +17,14 @@ import useWorkspaceAgents from '@hooks/useWorkspaceAgents';
 import useWorkspaceDocumentTitle from '@hooks/useWorkspaceDocumentTitle';
 
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 
 import type {WorkspaceSplitNavigatorParamList} from '@navigation/types';
 
 import CONST from '@src/CONST';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
 
@@ -51,8 +54,15 @@ function WorkspaceAgentsPage({route}: WorkspaceAgentsPageProps) {
 
     useWorkspaceDocumentTitle(policy?.name, 'agentsPage.title');
 
-    // The new agent functionality will be added after CreateCompanyAgent is exposed
-    const newAgentButton = null;
+    const newAgentButton = (
+        <Button
+            variant="success"
+            onPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.AGENT_NEW.getRoute()))}
+        >
+            <Button.Icon src={icons.Plus} />
+            <Button.Text>{translate('agentsPage.newAgent')}</Button.Text>
+        </Button>
+    );
 
     const bulkActionsButtonOptions: Array<DropdownOption<DeepValueOf<typeof CONST.AGENTS.BULK_ACTION_TYPES>>> = [
         {
