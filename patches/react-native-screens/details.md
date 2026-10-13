@@ -29,9 +29,14 @@
     The skip runs before the "no change" early return in setPushViewControllers: while the push is held,
     viewControllers still equals the stack from before the push, so an update that removes the pushed
     screen would otherwise return early and never be replayed.
-    The pending controller is a weak reference, so the wait also ends if React deallocates it. In that
-    case nothing replays the skipped update right away: the next stack update applies the full stack.
-    prepareForRecycle resets the state, since a recycled stack gets a full update on the next attach.
+    The pending controller is a weak reference. UIKit retains it until the held push runs (the push then
+    reports willShow and ends the wait), so in practice it is only freed if UIKit drops the push. The next
+    stack update then clears the pending state together with the skipped-update flag and applies the
+    full stack.
+    prepareForRecycle resets the state, since a recycled stack gets a full update on the next attach. If
+    a push is still held at that point, the recycled view gets a new navigation controller: resetting the
+    old one may not cancel the held push, which could otherwise land in the recycled stack. The old
+    navigation controller (detached, no delegate) receives the held push and is then released.
     Detaching from the window keeps the state: Fabric can detach and reattach a stack before UIKit runs
     the held push, and the update on reattach would otherwise push the same controller again. The held
     push still runs while the stack is detached, so the update on reattach finds the controller in
