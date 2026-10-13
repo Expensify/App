@@ -89,7 +89,7 @@ const EDITOR_POLICY_FEATURES = buildFeatureAccessMap(CONST.POLICY.POLICY_FEATURE
 const ROLE_PERMISSION_BUNDLES: Record<string, Partial<Record<PolicyFeature, PolicyFeatureAccess>>> = {
     [CONST.POLICY.ROLE.ADMIN]: WRITE_ALL_POLICY_FEATURES,
     [CONST.POLICY.ROLE.EDITOR]: EDITOR_POLICY_FEATURES,
-    // Auditors get read-only access to workspace settings, but they can still create expenses.
+    // Auditors get read-only access to workspace settings, write access to chat rooms, and can create expenses.
     [CONST.POLICY.ROLE.AUDITOR]: {
         ...READ_ALL_POLICY_FEATURES,
         [CONST.POLICY.POLICY_FEATURE.ROOMS]: CONST.POLICY.POLICY_FEATURE_ACCESS.WRITE,
@@ -101,8 +101,7 @@ const ROLE_PERMISSION_BUNDLES: Record<string, Partial<Record<PolicyFeature, Poli
         [CONST.POLICY.POLICY_FEATURE.ROOMS]: CONST.POLICY.POLICY_FEATURE_ACCESS.WRITE,
         [CONST.POLICY.POLICY_FEATURE.CREATE_EXPENSES]: CONST.POLICY.POLICY_FEATURE_ACCESS.WRITE,
     },
-    // Approve-only members act on reports routed to them. Their workspace feature access matches a Member,
-    // except for CREATE_EXPENSES, which every expense-creation entry point gates on.
+    // Approve-only members act on reports routed to them. Their workspace feature access matches a Member, except they cannot create expenses.
     [CONST.POLICY.ROLE.APPROVE_ONLY]: {
         [CONST.POLICY.POLICY_FEATURE.OVERVIEW]: CONST.POLICY.POLICY_FEATURE_ACCESS.READ,
         [CONST.POLICY.POLICY_FEATURE.MEMBERS]: CONST.POLICY.POLICY_FEATURE_ACCESS.READ,
@@ -198,7 +197,7 @@ function canMemberAssignRole(policy: OnyxInputOrEntry<Policy>, login: string, ro
     // Reaching here: USER always, plus GUEST/AUDITOR/APPROVE_ONLY only on corporate policies (control-only roles are
     // already filtered out on non-corporate policies above). Assigning these needs the
     // MEMBERS permission, and only on corporate policies. APPROVE_ONLY stays within a People Admin's
-    // authority because it is strictly less permissive than USER.
+    // authority because it is less permissive than USER.
     const isNonElevatedRole = role === CONST.POLICY.ROLE.USER || role === CONST.POLICY.ROLE.GUEST || role === CONST.POLICY.ROLE.AUDITOR || role === CONST.POLICY.ROLE.APPROVE_ONLY;
     return isCorporatePolicy && canMemberWrite(policy, login, CONST.POLICY.POLICY_FEATURE.MEMBERS) && isNonElevatedRole;
 }
@@ -248,7 +247,7 @@ function canRolePay(role: string | undefined): boolean {
 const PAYER_ROLES = Object.values(CONST.POLICY.ROLE).filter(canRolePay);
 
 /**
- * Whether a role allows creating expenses on a workspace, derived from the CREATE_EXPENSES permission.
+ * Whether a role allows creating expenses on a policy, derived from the CREATE_EXPENSES permission.
  * Every expense-creation entry point gates on this.
  */
 function canRoleCreateExpenses(role: string | undefined): boolean {

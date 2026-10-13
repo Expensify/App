@@ -216,7 +216,7 @@ type GetValidReportsConfig = {
     forcePolicyNamePreview?: boolean;
     includeSelfDM?: boolean;
     includeOwnedWorkspaceChats?: boolean;
-    excludeApproveOnlyWorkspaces?: boolean;
+    excludeWorkspacesWithoutCreateExpensePermission?: boolean;
     includeThreads?: boolean;
     includeTasks?: boolean;
     includeMoneyRequests?: boolean;
@@ -250,7 +250,7 @@ type IsValidReportsConfig = Pick<
     | 'isDefaultRoomsBetaEnabled'
     | 'includeMultipleParticipantReports'
     | 'includeOwnedWorkspaceChats'
-    | 'excludeApproveOnlyWorkspaces'
+    | 'excludeWorkspacesWithoutCreateExpensePermission'
     | 'includeThreads'
     | 'includeTasks'
     | 'includeMoneyRequests'

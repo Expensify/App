@@ -1907,7 +1907,7 @@ function isValidReport(
         isDefaultRoomsBetaEnabled = false,
         includeMultipleParticipantReports = false,
         includeOwnedWorkspaceChats = false,
-        excludeApproveOnlyWorkspaces = false,
+        excludeWorkspacesWithoutCreateExpensePermission = false,
         includeThreads = false,
         includeTasks = false,
         includeMoneyRequests = false,
@@ -1973,7 +1973,7 @@ function isValidReport(
     }
 
     // A workspace chat is not a valid submit destination when the member lacks create-expenses permission.
-    if (isPolicyExpenseChat && excludeApproveOnlyWorkspaces && !canRoleCreateExpenses(policy?.role)) {
+    if (isPolicyExpenseChat && excludeWorkspacesWithoutCreateExpensePermission && !canRoleCreateExpenses(policy?.role)) {
         return false;
     }
 

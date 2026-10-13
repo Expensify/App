@@ -1386,7 +1386,7 @@ describe('OptionsListUtils', () => {
             expect(results.recentReports).toEqual(expect.arrayContaining([expect.objectContaining({login: 'concierge@expensify.com'})]));
         });
 
-        describe('excludeApproveOnlyWorkspaces', () => {
+        describe('excludeWorkspacesWithoutCreateExpensePermission', () => {
             const approveOnlyPolicyID = 'APPROVE_ONLY_POLICY_1';
             const approveOnlyChatReportID = '901';
 
@@ -1455,7 +1455,7 @@ describe('OptionsListUtils', () => {
                         includeRecentReports: true,
                         includeP2P: true,
                         includeOwnedWorkspaceChats: true,
-                        excludeApproveOnlyWorkspaces: true,
+                        excludeWorkspacesWithoutCreateExpensePermission: true,
                         shouldSeparateWorkspaceChat: true,
                         action: CONST.IOU.ACTION.CREATE,
                         personalDetails: PERSONAL_DETAILS,

@@ -614,7 +614,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
 
         setSelectedEmployees([]);
         if (role === CONST.POLICY.ROLE.APPROVE_ONLY) {
-            // Blocked reasons are only on the response, which is not available offline, so the change cannot be evaluated.
+            // Blocked reasons are only returned in the server response, which we cannot receive while offline.
             if (isOffline) {
                 showRequiresInternetModal();
                 return;
