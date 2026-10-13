@@ -29,10 +29,26 @@ type SummaryItem = {
     testID?: string;
 };
 
+/** One row of a group. A single kind for now, so groups can grow other row kinds without touching their callers. */
+type SummaryGroupRow = SummaryItem;
+
+/** Answers under one heading. Used instead of `summaryItems` when the confirmation is split by section. */
+type SummaryGroup = {
+    id: string;
+
+    /** The heading, left out when empty */
+    name: string;
+
+    rows: SummaryGroupRow[];
+};
+
 type ConfirmationStepProps = SubPageProps &
     ForwardedFSClassProps & {
         pageTitle: string;
-        summaryItems: SummaryItem[];
+        summaryItems?: SummaryItem[];
+
+        /** Sections with their own heading, each holding field rows */
+        groups?: SummaryGroup[];
 
         /** Whether show additional section with Onfido terms etc. */
         showOnfidoLinks: boolean;
@@ -50,7 +66,8 @@ type ConfirmationStepProps = SubPageProps &
 
 function ConfirmationStep({
     pageTitle,
-    summaryItems,
+    summaryItems = [],
+    groups = [],
     showOnfidoLinks,
     onfidoLinksTitle,
     isLoading,
@@ -84,6 +101,26 @@ function ConfirmationStep({
                 />
             ))}
 
+            {groups.map((group, index) => (
+                <View key={group.id}>
+                    {index > 0 && <View style={[styles.mh5, styles.mt3, styles.borderBottom]} />}
+                    {!!group.name && <Text style={[styles.textNormalThemeText, styles.textLineHeightNormal, styles.textStrong, styles.ph5, styles.mt4, styles.mb1]}>{group.name}</Text>}
+                    {group.rows.map(({id, description, title, shouldShowRightIcon, onPress, brickRoadIndicator, errorText, testID}) => (
+                        <MenuItemWithTopDescription
+                            key={id}
+                            pressableTestID={testID ?? id}
+                            description={description}
+                            title={title}
+                            shouldShowRightIcon={shouldShowRightIcon}
+                            onPress={onPress}
+                            brickRoadIndicator={brickRoadIndicator}
+                            errorText={errorText}
+                            forwardedFSClass={forwardedFSClass}
+                        />
+                    ))}
+                </View>
+            ))}
+
             {showOnfidoLinks && (
                 <View style={[styles.renderHTML, styles.ph5, styles.mt3]}>
                     <RenderHTML html={translate('onfidoStep.onfidoLinks', onfidoLinksTitle ?? '')} />
@@ -113,3 +150,4 @@ function ConfirmationStep({
 }
 
 export default ConfirmationStep;
+export type {SummaryGroup, SummaryGroupRow, SummaryItem};
