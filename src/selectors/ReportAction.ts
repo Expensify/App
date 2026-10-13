@@ -153,7 +153,7 @@ function forwardedSinceLastSubmitReportIDsSelector(allReportActions: OnyxCollect
     const result: Record<string, true> = {};
     for (const key of Object.keys(allReportActions)) {
         const reportID = key.slice(ONYXKEYS.COLLECTION.REPORT_ACTIONS.length);
-        if (hasReportBeenForwardedSinceLastSubmit({reportID}, allReportActions[key])) {
+        if (hasReportBeenForwardedSinceLastSubmit({reportID}, allReportActions[key] ?? {})) {
             result[reportID] = true;
         }
     }
