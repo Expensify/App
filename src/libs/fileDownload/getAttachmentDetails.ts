@@ -11,6 +11,18 @@ import type {GetAttachmentDetails} from './types';
  */
 const ANCHOR_HREF_AND_LABEL_REGEX = /<a\s+(?:[^>]*?\s+)?href="([^"]*)"[^>]*>([^<]*)<\/a>/gi;
 
+const SOURCE_ELEMENT_REGEX = new RegExp(`<(?:a|video)\\s[^>]*?(?:${CONST.ATTACHMENT_SOURCE_ATTRIBUTE}|href)="([^"]*)"[^>]*>([^<]*)</(?:a|video)>`, 'gi');
+
+/** The name belongs to the element holding the file that is being downloaded, not to another link beside it. */
+function findLabelForSource(html: string, source: string): string | undefined {
+    for (const [, url, label] of html.matchAll(SOURCE_ELEMENT_REGEX)) {
+        if (url === source && label) {
+            return label;
+        }
+    }
+    return undefined;
+}
+
 function findAttachmentAnchor(html: string, reportActionID?: string): {href: string; label: string} | undefined {
     const attachmentURLRegex = new RegExp(CONST.ATTACHMENT_OR_RECEIPT_LOCAL_URL, 'i');
     let firstHostedAnchor: {href: string; label: string} | undefined;
@@ -46,10 +58,11 @@ const getAttachmentDetails: GetAttachmentDetails = (html, reportActionID) => {
 
     // Files created/uploaded/hosted by App should resolve from API ROOT. Other URLs aren't modified
     const attachmentAnchor = IS_IMAGE_TAG ? undefined : findAttachmentAnchor(html, reportActionID);
-    const sourceURL = tryResolveUrlFromApiRoot(html.match(SOURCE_REGEX)?.[1] ?? attachmentAnchor?.href ?? '');
+    const rawSourceURL = html.match(SOURCE_REGEX)?.[1] ?? attachmentAnchor?.href;
+    const sourceURL = tryResolveUrlFromApiRoot(rawSourceURL ?? '');
     const imageURL = IS_IMAGE_TAG ? tryResolveUrlFromApiRoot(html.match(PREVIEW_SOURCE_REGEX)?.[1] ?? '') : null;
     const previewSourceURL = IS_IMAGE_TAG ? imageURL : sourceURL;
-    const originalFileName = attachmentAnchor?.label ?? html.match(ORIGINAL_FILENAME_REGEX)?.[1] ?? null;
+    const originalFileName = (rawSourceURL ? findLabelForSource(html, rawSourceURL) : undefined) ?? html.match(ORIGINAL_FILENAME_REGEX)?.[1] ?? null;
 
     // Update the image URL so the images can be accessed depending on the config environment
     return {

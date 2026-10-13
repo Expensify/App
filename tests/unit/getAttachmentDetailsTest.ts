@@ -71,6 +71,32 @@ describe('getAttachmentDetails', () => {
         expect(details).toMatchObject({sourceURL: ownURL, originalFileName: 'new.csv'});
     });
 
+    it('names the download after the file it downloads, not a link sitting next to it', () => {
+        // Given an edited video comment that also links to a file uploaded earlier
+        const videoURL = 'https://www.expensify.com/chat-attachments/222/w_clip.mp4';
+        const earlierURL = 'https://www.expensify.com/chat-attachments/111/w_old.csv';
+        const html = `<video data-expensify-source="${videoURL}" data-name="clip.mp4">clip.mp4</video><br /><br /><a href="${earlierURL}" target="_blank" rel="noreferrer noopener">old.csv</a>`;
+
+        // When the attachment details are read for the action that holds the video
+        const details = getAttachmentDetails(html, '222');
+
+        // Then the name comes from the video being downloaded rather than the other link, which would save it as old.csv.mp4
+        expect(details).toMatchObject({sourceURL: videoURL, originalFileName: 'clip.mp4'});
+    });
+
+    it('names the download after the file it downloads when the other link comes first', () => {
+        // Given the same comment with the earlier link written above the video
+        const videoURL = 'https://www.expensify.com/chat-attachments/222/w_clip.mp4';
+        const earlierURL = 'https://www.expensify.com/chat-attachments/111/w_old.csv';
+        const html = `<a href="${earlierURL}" target="_blank" rel="noreferrer noopener">old.csv</a><br /><br /><video data-expensify-source="${videoURL}" data-name="clip.mp4">clip.mp4</video>`;
+
+        // When the attachment details are read
+        const details = getAttachmentDetails(html, '222');
+
+        // Then the order of the two does not decide the name
+        expect(details).toMatchObject({sourceURL: videoURL, originalFileName: 'clip.mp4'});
+    });
+
     it('falls back to the first Expensify-hosted link when no anchor names this action', () => {
         // Given a comment whose attachment URL carries no action ID of its own, such as a receipt
         const receiptURL = 'https://www.expensify.com/receipts/w_abc.jpg';

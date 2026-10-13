@@ -48,6 +48,18 @@ describe('wrapAttachmentAnchorsInBlocks', () => {
         expect(wrapped).toBe(html);
     });
 
+    it("leaves an image the author linked to this message's own file alone", () => {
+        // Given the message's own attachment rewritten by an edit as a linked image, so the URL does name this action
+        const imageURL = `https://www.expensify.com/chat-attachments/${reportActionID}/w_abc.jpg`;
+        const html = `<a href="${imageURL}"><img src="${imageURL}" alt="photo" /></a>`;
+
+        // When the anchors are wrapped
+        const wrapped = wrapAttachmentAnchorsInBlocks(html, reportActionID);
+
+        // Then it stays a linked image, because an anchor holding a picture has no label to name a file card with
+        expect(wrapped).toBe(html);
+    });
+
     it('leaves an attachment URL wrapped around an image alone', () => {
         // Given a linked image the author wrote by hand from an attachment URL, which has no text to name a card with
         const html = `<a href="https://www.expensify.com/chat-attachments/999/w_abc.jpg"><img src="https://www.expensify.com/chat-attachments/999/w_abc.jpg" alt="photo" /></a>`;

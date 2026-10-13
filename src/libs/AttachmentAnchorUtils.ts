@@ -9,6 +9,12 @@ function getAnchorHref(attributes: string): string | undefined {
     return attributes.match(ANCHOR_HREF_REGEX)?.at(1);
 }
 
+// A file card is drawn from the anchor's own label, so an anchor holding a picture or a clip has no name to show
+// and renders the media itself.
+function holdsMedia(label: string): boolean {
+    return /<(?:img|video)\b/i.test(label);
+}
+
 function hasAttachmentAttributes(attributes: string): boolean {
     return attributes.includes(` ${CONST.ATTACHMENT_SOURCE_ATTRIBUTE}="`) || attributes.includes(` ${CONST.ATTACHMENT_ID_ATTRIBUTE}="`);
 }
@@ -33,6 +39,9 @@ function wrapAttachmentAnchorsInBlocks(html: string, reportActionID: string | un
         return html;
     }
     return html.replaceAll(ANCHOR_TAG_REGEX, (match: string, attributes: string, label: string) => {
+        if (holdsMedia(label)) {
+            return match;
+        }
         if (hasAttachmentAttributes(attributes)) {
             return `<attachment-block><a ${attributes}>${label}</a></attachment-block>`;
         }
