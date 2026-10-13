@@ -23,6 +23,7 @@ import type {
     PrivatePersonalDetails,
     ReportMetadata,
     ReportNameValuePairs,
+    Transaction,
     VisibleReportActionsDerivedValue,
 } from '@src/types/onyx';
 import type {
@@ -2251,6 +2252,27 @@ function getLinkedTransactionID(reportAction: OnyxEntry<ReportAction> | undefine
         return undefined;
     }
     return getOriginalMessage(reportAction)?.IOUTransactionID;
+}
+
+/**
+ * The expense's thread, or the open report when that report is the thread.
+ * Self DM expenses are unreported, so their thread is the report already on screen.
+ */
+function resolveTransactionThreadReport(
+    transaction: OnyxEntry<Transaction> | undefined,
+    transactionThreadReport: OnyxEntry<Report> | undefined,
+    report: OnyxEntry<Report> | undefined,
+    parentReportAction: OnyxEntry<ReportAction> | undefined,
+): OnyxEntry<Report> | undefined {
+    if (transactionThreadReport?.reportID || !transaction?.transactionID) {
+        return transactionThreadReport;
+    }
+
+    if (getLinkedTransactionID(parentReportAction) === transaction.transactionID) {
+        return report;
+    }
+
+    return transactionThreadReport;
 }
 
 function getReportAction(reportID: string | undefined, reportActionID: string | undefined): ReportAction | undefined {
@@ -5780,6 +5802,7 @@ export {
     getLastVisibleMessage,
     getLatestReportActionFromOnyxData,
     getLinkedTransactionID,
+    resolveTransactionThreadReport,
     getCrossBorderReimbursedMessage,
     getElsewherePaymentReportActionMessage,
     getMarkedReimbursedMessage,
