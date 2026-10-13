@@ -4004,6 +4004,10 @@ ${amount} pour ${merchant} - ${date}`,
     },
     dynamicForm: {
         exampleHint: ({example}: {example: string}) => `Exemple : ${example}`,
+        fileCount: ({count}: {count: number}) => ({
+            one: `${count} fichier`,
+            other: `${count} fichiers`,
+        }),
         error: {
             tooShort: ({minLength}: {minLength: number}) => `Doit contenir au moins ${minLength} caractères`,
             invalidFormat: ({example}: {example?: string}) => (example ? `Format invalide. Exemple : ${example}` : 'Format invalide'),
@@ -11365,6 +11369,16 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                 other: `${count} utilisateurs actifs`,
             }),
             state: {paid: 'Payé', cleared: 'Compensé', failed: 'Échec', refunded: 'Remboursé', disputed: 'Contesté', balanceTransfer: 'Virement de solde'},
+            details: 'Détails du paiement',
+            badge: {
+                balanceTransferTo: ({email}: {email: string}) => `Virement de solde à ${email}`,
+                balanceTransferFrom: ({email}: {email: string}) => `Virement de solde de ${email}`,
+                disputedPending: ({date}: {date: string}) => `Contesté le ${date} (En attente)`,
+                disputedRefunded: ({date}: {date: string}) => `Contesté le ${date} (Remboursé)`,
+                disputedClosed: ({date}: {date: string}) => `Contesté le ${date} (Clôturé)`,
+                refundedOn: ({date}: {date: string}) => `Remboursé le ${date}`,
+                refundedAmountOn: ({amount, date}: {amount: string; date: string}) => `${amount} remboursé le ${date}`,
+            },
         },
         subscriptionSettings: {
             title: 'Paramètres d’abonnement',
