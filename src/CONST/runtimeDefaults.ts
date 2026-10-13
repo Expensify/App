@@ -100,6 +100,7 @@ const CONST_RUNTIME_DEFAULTS: ConstRuntime = {
         'Money_Request_Step_Scan',
         'Members_Move_To_Group',
         'PreMountBuffer',
+        'Share_Root',
         'Multifactor_Authentication_Validate_Code',
         'Multifactor_Authentication_Outcome_Success',
         'Multifactor_Authentication_Outcome_Failure',

@@ -14,6 +14,7 @@ import SidePanelActions from './actions/SidePanel';
 import {setOnboardingRHPVariant} from './actions/Welcome';
 import isReportTopmostSplitNavigator from './Navigation/helpers/isReportTopmostSplitNavigator';
 import {dismissOnboardingModalBeforeExit} from './Navigation/helpers/OnboardingNavigationUtils';
+import {openPendingShareIntentAfterOnboarding} from './Navigation/helpers/pendingShareIntent';
 import shouldOpenOnAdminRoom from './Navigation/helpers/shouldOpenOnAdminRoom';
 import Navigation from './Navigation/Navigation';
 import {findLastAccessedReport} from './ReportUtils';
@@ -85,6 +86,11 @@ function navigateAfterOnboarding(
     options?: NavigateAfterOnboardingOptions,
 ) {
     setDisableDismissOnEscape(false);
+
+    // A share started before sign-in was parked while the user onboarded, so it replaces the usual destination.
+    if (openPendingShareIntentAfterOnboarding(options?.afterTransition)) {
+        return;
+    }
 
     // On mobile (small screen), Track workspace admins with the trackExpensesWithConcierge variant
     // should navigate directly to the Concierge DM (which contains onboarding tasks).
@@ -161,6 +167,10 @@ function navigateAfterOnboardingWithMicrotaskQueue(
  */
 function navigateToSubmitWorkspaceAfterOnboarding(policyID?: string, shouldUseNarrowLayout = false) {
     setDisableDismissOnEscape(false);
+
+    if (openPendingShareIntentAfterOnboarding()) {
+        return;
+    }
 
     if (!policyID) {
         Navigation.navigate(ROUTES.HOME);

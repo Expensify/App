@@ -1,4 +1,5 @@
 import {navigateAfterOnboarding} from '@libs/navigateAfterOnboarding';
+import {holdPendingShareIntentForOnboarding, openPendingShareIntentAfterSignIn, setPendingShareIntent} from '@libs/Navigation/helpers/pendingShareIntent';
 import Navigation from '@libs/Navigation/Navigation';
 import type * as ReportUtils from '@libs/ReportUtils';
 
@@ -189,6 +190,59 @@ describe('navigateAfterOnboarding', () => {
         const navigate = jest.spyOn(Navigation, 'navigate');
         navigateAfterOnboarding(false, true, '', {}, undefined, ONBOARDING_ADMINS_CHAT_REPORT_ID, false, {variantOverride: CONST.ONBOARDING_RHP_VARIANT.INBOX_ADMINS_BESPOKE});
         expect(navigate).toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute(ONBOARDING_ADMINS_CHAT_REPORT_ID), undefined);
+    });
+
+    it('should open a share that was parked during onboarding once the completed onboarding is saved, only once', async () => {
+        const navigate = jest.spyOn(Navigation, 'navigate');
+
+        // Given a user who shared a file while signed out, so the share was held until onboarding finished
+        setPendingShareIntent();
+        holdPendingShareIntentForOnboarding();
+        await Onyx.set(ONYXKEYS.NVP_ONBOARDING, {hasCompletedGuidedSetupFlow: false});
+
+        // When onboarding finishes, before the completed onboarding NVP is saved
+        navigateAfterOnboarding(false, true, '', {}, undefined, ONBOARDING_ADMINS_CHAT_REPORT_ID);
+        await waitForBatchedUpdates();
+
+        // Then nothing opens yet, because OnboardingGuard would still send the share back to onboarding
+        expect(navigate).not.toHaveBeenCalled();
+
+        // When the completed onboarding NVP is saved
+        await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {hasCompletedGuidedSetupFlow: true});
+        await waitForBatchedUpdates();
+
+        // Then the share flow opens instead of the usual post-onboarding destination
+        expect(navigate).toHaveBeenCalledWith(ROUTES.SHARE_ROOT, undefined);
+        expect(navigate).not.toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute(ONBOARDING_ADMINS_CHAT_REPORT_ID), undefined);
+
+        // When it runs again, because the parked share must not reopen a second time
+        navigate.mockClear();
+        navigateAfterOnboarding(false, true, '', {}, undefined, ONBOARDING_ADMINS_CHAT_REPORT_ID);
+        await waitForBatchedUpdates();
+
+        // Then the usual destination is used
+        expect(navigate).toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute(ONBOARDING_ADMINS_CHAT_REPORT_ID), undefined);
+        expect(navigate).not.toHaveBeenCalledWith(ROUTES.SHARE_ROOT, undefined);
+    });
+
+    it('should not open a share held for onboarding from the sign-in path', async () => {
+        const navigate = jest.spyOn(Navigation, 'navigate');
+
+        // Given a share held for onboarding because the user started onboarding after sign-in
+        setPendingShareIntent();
+        holdPendingShareIntentForOnboarding();
+
+        // When the sign-in path tries to open it, as useOnboardingFlowRouter does once onboarding is complete
+        openPendingShareIntentAfterSignIn();
+        await waitForBatchedUpdates();
+
+        // Then it stays parked, so navigateAfterOnboarding still owns it and nothing opens a second share page
+        expect(navigate).not.toHaveBeenCalled();
+        await Onyx.set(ONYXKEYS.NVP_ONBOARDING, {hasCompletedGuidedSetupFlow: true});
+        navigateAfterOnboarding(false, true, '', {}, undefined, ONBOARDING_ADMINS_CHAT_REPORT_ID);
+        await waitForBatchedUpdates();
+        expect(navigate).toHaveBeenCalledTimes(1);
+        expect(navigate).toHaveBeenCalledWith(ROUTES.SHARE_ROOT, undefined);
     });
 
     it('should land on Home instead of the admin room for the homePageNoRHP variant', () => {

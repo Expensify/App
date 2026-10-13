@@ -100,10 +100,22 @@ function ShareRootPage() {
 
     const handleProcessFiles = useCallback(() => {
         ShareActionHandler.processFiles((processedFiles) => {
-            const tempFile = Array.isArray(processedFiles) ? processedFiles.at(0) : (JSON.parse(processedFiles) as ShareTempFile);
             if (errorTitle) {
                 return;
             }
+
+            let tempFile: ShareTempFile | undefined;
+            try {
+                tempFile = Array.isArray(processedFiles) ? processedFiles.at(0) : (JSON.parse(processedFiles) as ShareTempFile);
+            } catch (error) {
+                // The native module passes a plain string such as "No data found" when there is no shared file.
+                // Without this, the throw leaves the page on the loading skeleton forever.
+                Log.warn('[ShareRootPage] Failed to read the shared file', {error});
+                setErrorTitle(translate('attachmentPicker.attachmentError'));
+                setErrorMessage(translate('attachmentPicker.errorWhileSelectingAttachment'));
+                return;
+            }
+
             if (!tempFile?.mimeType || !shareFileMimeTypes.includes(tempFile?.mimeType)) {
                 setErrorTitle(translate('attachmentPicker.wrongFileType'));
                 setErrorMessage(translate('attachmentPicker.notAllowedExtension'));
