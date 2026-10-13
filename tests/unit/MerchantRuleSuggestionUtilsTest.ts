@@ -1,4 +1,4 @@
-import {getChangedTagLevels, getMerchantRuleDraftFromTransaction, isMerchantRuleSuggestionLive} from '@libs/MerchantRuleSuggestionUtils';
+import {getChangedTagLevels, getMerchantRuleDraftFromTransaction, getOfferableMerchantRuleSuggestionFields, isMerchantRuleSuggestionLive} from '@libs/MerchantRuleSuggestionUtils';
 
 import CONST from '@src/CONST';
 import type {MerchantRuleSuggestion, Policy, Transaction} from '@src/types/onyx';
@@ -70,6 +70,16 @@ describe('isMerchantRuleSuggestionLive', () => {
         expect(isMerchantRuleSuggestionLive(buildSuggestion({confirmedFields: {[OTHER_TRANSACTION_ID]: {category: true}}}))).toBe(false);
     });
 
+    it('is not live when the only confirmed field was never edited', () => {
+        // Given a confirmation for a field the user did not edit on this expense, which is what a response for an
+        // expense the call site declined to record leaves behind
+        const suggestion = buildSuggestion({editedFields: {[TRANSACTION_ID]: {description: true}}, confirmedFields: {[TRANSACTION_ID]: {category: true}}});
+
+        // When the offer is checked
+        // Then it does not stand, since there is no field the rule could be built from
+        expect(isMerchantRuleSuggestionLive(suggestion)).toBe(false);
+    });
+
     it('is not live once retired', () => {
         expect(isMerchantRuleSuggestionLive(buildSuggestion({isRetired: true}))).toBe(false);
     });
@@ -84,6 +94,39 @@ describe('isMerchantRuleSuggestionLive', () => {
 
     it('stays live when a different expense was dismissed', () => {
         expect(isMerchantRuleSuggestionLive(buildSuggestion({dismissedTransactionIDs: [OTHER_TRANSACTION_ID]}))).toBe(true);
+    });
+});
+
+describe('getOfferableMerchantRuleSuggestionFields', () => {
+    it('offers only the fields the server confirmed', () => {
+        // Given an expense whose category repeats often enough to earn a rule, edited alongside a one-off description
+        const suggestion = buildSuggestion({
+            editedFields: {[TRANSACTION_ID]: {category: true, description: true}},
+            confirmedFields: {[TRANSACTION_ID]: {category: true}},
+        });
+
+        // When the fields the rule may carry are worked out
+        // Then the one-off description is left out, so the rule does not impose it on every future expense
+        expect(getOfferableMerchantRuleSuggestionFields(suggestion)).toEqual([CONST.MERCHANT_RULE_SUGGESTION_FIELDS.CATEGORY]);
+    });
+
+    it('offers nothing for an expense other than the one offering', () => {
+        // Given confirmed edits recorded against an expense that is no longer the one offering
+        const suggestion = buildSuggestion({
+            editedFields: {[OTHER_TRANSACTION_ID]: {category: true}},
+            confirmedFields: {[OTHER_TRANSACTION_ID]: {category: true}},
+        });
+
+        // When the fields the rule may carry are worked out
+        // Then nothing is offered, since another expense's edits must not seed this one's rule
+        expect(getOfferableMerchantRuleSuggestionFields(suggestion)).toEqual([]);
+    });
+
+    it('offers nothing without a stored offer', () => {
+        // Given no record at all, which is how the key reads before the first tracked edit
+        // When the fields the rule may carry are worked out
+        // Then nothing is offered
+        expect(getOfferableMerchantRuleSuggestionFields(undefined)).toEqual([]);
     });
 });
 

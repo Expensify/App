@@ -25,8 +25,8 @@ type MerchantRuleSuggestion = {
 
     /**
      * Fields the server judged worth a rule, keyed the same way as `editedFields`. A field is recorded on the edit and
-     * confirmed later, once the response says the same value has been given to the same merchant often enough. The
-     * callout waits for at least one confirmed field, so a one-off edit never offers.
+     * confirmed later, once the response says the same value has been given to the same merchant often enough. Only a
+     * field present in both seeds the rule, so a one-off edit neither offers nor rides along on another field's offer.
      */
     confirmedFields?: Record<string, Partial<Record<MerchantRuleSuggestionField, boolean>>>;
 

@@ -1,5 +1,5 @@
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
-import {getMerchantRuleDraftFromTransaction, isMerchantRuleSuggestionLive} from '@libs/MerchantRuleSuggestionUtils';
+import {getMerchantRuleDraftFromTransaction, getOfferableMerchantRuleSuggestionFields, isMerchantRuleSuggestionLive} from '@libs/MerchantRuleSuggestionUtils';
 import {arePolicyRulesEnabled, isControlPolicy} from '@libs/PolicyUtils';
 import {isMerchantMissing} from '@libs/TransactionUtils';
 
@@ -17,7 +17,7 @@ type MerchantRuleSuggestionResult = {
     /** The edits that can be turned into a merchant rule, or undefined when no callout should render */
     suggestion: MerchantRuleSuggestion | undefined;
 
-    /** Every field edited on that expense so far, which the rule is pre-seeded from */
+    /** The confirmed edits on that expense, which the rule is pre-seeded from */
     fields: MerchantRuleSuggestionField[];
 
     /** Which levels of a multi-level tag were edited, so untouched levels stay out of the rule */
@@ -56,10 +56,7 @@ function useMerchantRuleSuggestion(reportID: string | undefined, policyID: strin
     const canCreateMerchantRule = canWriteRules && isControlPolicy(policy) && arePolicyRulesEnabled(policy, policyCategories);
     const suggestion = isForThisExpenseView && canCreateMerchantRule ? storedSuggestion : undefined;
 
-    // Filtered from the canonical list, not the record's own keys, so the order is fixed and only known fields reach
-    // the draft.
-    const editedFields = suggestion ? suggestion.editedFields?.[suggestion.transactionID] : undefined;
-    const fields = Object.values(CONST.MERCHANT_RULE_SUGGESTION_FIELDS).filter((field) => !!editedFields?.[field]);
+    const fields = getOfferableMerchantRuleSuggestionFields(suggestion);
 
     const editedTagLevels = suggestion?.editedTagLevels?.[suggestion.transactionID];
     // Built here rather than only on press, so an offer that would apply nothing never appears. Clearing a field is

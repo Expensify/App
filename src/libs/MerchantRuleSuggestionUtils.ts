@@ -11,6 +11,24 @@ import {trimTag} from './TagUtils';
 import {getBillable, getCategory, getDescription, getMerchant, getReimbursable, getTag, getTagArrayFromName, getTaxCode, isMerchantMissing} from './TransactionUtils';
 
 /**
+ * The fields of the offering expense a rule may carry: edited by the user and judged worth a rule by the server.
+ *
+ * Both halves are needed. An unedited field has nothing to seed from, and an unconfirmed one is an edit nobody
+ * repeats, so a rule built from it would impose a one-off on every future expense from the merchant. Taken from the
+ * canonical list rather than the record's own keys, so the order is fixed and only known fields reach the draft.
+ */
+function getOfferableMerchantRuleSuggestionFields(suggestion: OnyxEntry<MerchantRuleSuggestion>): MerchantRuleSuggestionField[] {
+    if (!suggestion?.transactionID) {
+        return [];
+    }
+
+    const editedFields = suggestion.editedFields?.[suggestion.transactionID];
+    const confirmedFields = suggestion.confirmedFields?.[suggestion.transactionID];
+
+    return Object.values(CONST.MERCHANT_RULE_SUGGESTION_FIELDS).filter((field) => !!editedFields?.[field] && !!confirmedFields?.[field]);
+}
+
+/**
  * Whether a stored offer still stands: the server judged at least one of its edits worth a rule, and it was not left
  * behind or dismissed this session.
  *
@@ -21,7 +39,7 @@ function isMerchantRuleSuggestionLive(suggestion: OnyxEntry<MerchantRuleSuggesti
     if (!suggestion?.transactionID || suggestion.isRetired) {
         return false;
     }
-    if (!Object.values(suggestion.confirmedFields?.[suggestion.transactionID] ?? {}).some(Boolean)) {
+    if (getOfferableMerchantRuleSuggestionFields(suggestion).length === 0) {
         return false;
     }
     return !suggestion.dismissedTransactionIDs?.includes(suggestion.transactionID);
@@ -121,4 +139,4 @@ function getMerchantRuleDraftFromTransaction(
     return draft;
 }
 
-export {getChangedTagLevels, getMerchantRuleDraftFromTransaction, isMerchantRuleSuggestionLive};
+export {getChangedTagLevels, getMerchantRuleDraftFromTransaction, getOfferableMerchantRuleSuggestionFields, isMerchantRuleSuggestionLive};
