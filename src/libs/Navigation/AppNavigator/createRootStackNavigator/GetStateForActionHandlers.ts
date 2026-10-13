@@ -853,10 +853,12 @@ function withPreMountedDestination(builtTabState: TabStateForReplacement, existi
     const builtDestination = builtNestedState?.routes.at(-1);
     if (!targetTabRoute || !preMountedRoute || !builtNestedState || builtDestination?.name !== preMountedRoute.name) {
         Log.hmmm('[Navigation] Wide pre-mount does not match the revealed destination, replacing without it', {preMountedRouteKey});
-        return builtTabState;
+        return withoutFocusedTabPreload(builtTabState);
     }
 
-    const nestedRoutes = [...builtNestedState.routes.slice(0, -1), {...builtDestination, key: preMountedRouteKey}];
+    // Native keeps the focused report's history, which holds the pre-mount under it, so that copy is dropped to keep keys unique.
+    const backRoutes = builtNestedState.routes.slice(0, -1).filter((route) => !('key' in route) || route.key !== preMountedRouteKey);
+    const nestedRoutes = [...backRoutes, {...builtDestination, key: preMountedRouteKey}];
     // When every screen of the built stack is already mounted, the mounted stack state is kept with only its routes changed.
     // A partial state would be rehydrated under a new key, which makes the navigator re-render all of its screens.
     const mountedNestedState = isRealizedNavigationState(existingTargetTabRoute?.state) ? existingTargetTabRoute.state : undefined;
@@ -872,10 +874,15 @@ function withPreMountedDestination(builtTabState: TabStateForReplacement, existi
     } else {
         routes[builtTabState.index] = {...targetTabRoute, state: {...builtNestedState, routes: nestedRoutes, index: nestedRoutes.length - 1}};
     }
-    // The pre-mount kept a covered tab unfrozen. It is focused from here, so it no longer needs that.
-    const {preloadedRouteKeys} = builtTabState as TabStateForReplacement & {preloadedRouteKeys?: string[]};
-    const targetTabRouteKey = 'key' in targetTabRoute ? targetTabRoute.key : undefined;
-    return {...builtTabState, routes, ...(preloadedRouteKeys ? {preloadedRouteKeys: preloadedRouteKeys.filter((key) => key !== targetTabRouteKey)} : {})};
+    return withoutFocusedTabPreload({...builtTabState, routes});
+}
+
+/** The pre-mount kept a covered tab unfrozen. It is focused from here, so it no longer needs that. */
+function withoutFocusedTabPreload(tabState: TabStateForReplacement): TabStateForReplacement {
+    const {preloadedRouteKeys} = tabState as TabStateForReplacement & {preloadedRouteKeys?: string[]};
+    const focusedTabRoute = tabState.routes[tabState.index];
+    const focusedTabRouteKey = focusedTabRoute && 'key' in focusedTabRoute ? focusedTabRoute.key : undefined;
+    return {...tabState, ...(preloadedRouteKeys ? {preloadedRouteKeys: preloadedRouteKeys.filter((key) => key !== focusedTabRouteKey)} : {})};
 }
 
 export {
