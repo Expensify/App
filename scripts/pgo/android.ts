@@ -41,7 +41,10 @@ function createAndroidPgoAdapter(configuredAppID?: string, configuredDeviceIdent
     let cachedAppID: string | undefined;
 
     function appID(): string {
-        cachedAppID ??= androidApplicationID(readFileSync(buildGradlePath, 'utf8'), configuredAppID);
+        if (configuredAppID) {
+            return configuredAppID;
+        }
+        cachedAppID ??= androidApplicationID(readFileSync(buildGradlePath, 'utf8'));
         return cachedAppID;
     }
 

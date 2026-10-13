@@ -1,6 +1,6 @@
 // cspell:ignore profdata
 
-import {beforeEach, describe, expect, it, mock} from 'bun:test';
+import {afterAll, beforeEach, describe, expect, it, mock} from 'bun:test';
 
 import * as scriptUtils from '@scripts/lib/scriptUtils';
 
@@ -10,11 +10,15 @@ import {dirname, join} from 'node:path';
 import process from 'node:process';
 
 let profileLogs = '';
+// Reproduce the CI checkout, which does not initialize the native submodule.
+const rootDirectory = mkdtempSync(join(tmpdir(), 'pgo-android-test-'));
 const runCommand = mock<typeof scriptUtils.run>(() => undefined);
 const captureCommand = mock<typeof scriptUtils.capture>(() => profileLogs);
 // Stub the device boundary while keeping the adapter's broadcast, polling and validation real.
-mock.module('@scripts/lib/scriptUtils', () => ({...scriptUtils, run: runCommand, capture: captureCommand}));
+mock.module('@scripts/lib/scriptUtils', () => ({...scriptUtils, rootDirectory, run: runCommand, capture: captureCommand}));
 const {default: createAndroidPgoAdapter, androidLlvmToolPath} = await import('@scripts/pgo/android');
+
+afterAll(() => rmSync(rootDirectory, {recursive: true, force: true}));
 
 describe('PGO Android profile dumps', () => {
     beforeEach(() => {
