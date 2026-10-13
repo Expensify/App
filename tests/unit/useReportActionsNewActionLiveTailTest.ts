@@ -99,7 +99,6 @@ function buildParams(overrides: Partial<HookParams> = {}): HookParams {
         reportScrollManager,
         setIsFloatingMessageCounterVisible: jest.fn(),
         setActionIdToHighlight: jest.fn(),
-        markNewestActionAsRead: jest.fn(),
         unreadMarkerReportActionID: null,
         hasNewerActions: true,
         linkedReportActionID: undefined,
@@ -214,9 +213,8 @@ describe('useReportActionsNewActionLiveTail', () => {
     it('scrolls straight to the bottom when an unread marker is set but the newest actions are already loaded', () => {
         // Given a report scrolled up with an unread marker from another user's comment, and the newest actions already loaded
         const setIsFloatingMessageCounterVisible = jest.fn();
-        const markNewestActionAsRead = jest.fn();
         const {result} = renderHook((props: HookParams) => useReportActionsNewActionLiveTail(props), {
-            initialProps: buildParams({unreadMarkerReportActionID: '2', hasNewerActions: false, hasNewestReportAction: true, setIsFloatingMessageCounterVisible, markNewestActionAsRead}),
+            initialProps: buildParams({unreadMarkerReportActionID: '2', hasNewerActions: false, hasNewestReportAction: true, setIsFloatingMessageCounterVisible}),
         });
 
         // When the current user sends a comment
@@ -229,31 +227,6 @@ describe('useReportActionsNewActionLiveTail', () => {
         expect(setIsFloatingMessageCounterVisible).toHaveBeenCalledWith(false);
         expect(reportScrollManager.scrollToBottom).toHaveBeenCalledTimes(1);
         expect(result.current.isScrollToBottomEnabled).toBe(true);
-
-        // And the report is marked as read, so the "New" divider clears and the pill doesn't come back
-        expect(markNewestActionAsRead).toHaveBeenCalledTimes(1);
-    });
-
-    it('marks the report as read once openReport has loaded the newest actions after the user sends a comment', () => {
-        // Given a report whose newest actions are not loaded yet
-        const markNewestActionAsRead = jest.fn();
-        const {rerender} = renderHook((props: HookParams) => useReportActionsNewActionLiveTail(props), {initialProps: buildParams({markNewestActionAsRead})});
-
-        // When the current user sends a comment, which starts the live-tail jump through openReport
-        act(() => {
-            newActionHandler?.(true, getFakeReportAction(1, {actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT}));
-        });
-
-        // Then nothing is marked as read while the newest actions are still loading
-        expect(mockOpenReport).toHaveBeenCalledTimes(1);
-        expect(markNewestActionAsRead).not.toHaveBeenCalled();
-
-        // When openReport finishes and the newest actions arrive
-        rerender(buildParams({markNewestActionAsRead, prevIsLoadingInitialReportActions: true, reportLoadingState: {isLoadingInitialReportActions: false}}));
-        rerender(buildParams({markNewestActionAsRead, prevIsLoadingInitialReportActions: false, reportLoadingState: {isLoadingInitialReportActions: false}, hasNewestReportAction: true}));
-
-        // Then the report is marked as read once, alongside hiding the pill
-        expect(markNewestActionAsRead).toHaveBeenCalledTimes(1);
     });
 
     it('still loads the live tail when an unread marker is set and the newest actions are not loaded', () => {

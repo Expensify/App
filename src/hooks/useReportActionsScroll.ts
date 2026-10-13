@@ -242,7 +242,6 @@ function useReportActionsScroll({
         reportScrollManager,
         setIsFloatingMessageCounterVisible,
         setActionIdToHighlight,
-        markNewestActionAsRead,
         unreadMarkerReportActionID,
         hasNewerActions,
         linkedReportActionID,
