@@ -93,7 +93,9 @@ const translations: TranslationDeepObject<typeof en> = {
         selectMultiple: 'Seleção múltipla',
         saveChanges: 'Salvar alterações',
         submit: 'Enviar',
+        submitAnyway: 'Enviar mesmo assim',
         markAsDone: 'Marcar como concluído',
+        markAsDoneAnyway: 'Marcar como concluído mesmo assim',
         submitted: 'Enviado',
         markedAsDoneStatus: 'Marcado como concluído',
         rotate: 'Girar',
@@ -1423,8 +1425,15 @@ const translations: TranslationDeepObject<typeof en> = {
         pendingMatch: 'Correspondência pendente',
         pendingMatchWithCreditCardDescription: 'Recibo aguardando correspondência com transação do cartão. Marque como dinheiro para cancelar.',
         markAsCash: 'Marcar como dinheiro',
-        pendingMatchSubmitTitle: 'Enviar relatório',
-        pendingMatchSubmitDescription: 'Algumas despesas estão pendentes de correspondência com uma transação de cartão de crédito. Deseja marcá-las como dinheiro?',
+        confirmSubmitReportViolations: {
+            title: 'Enviar relatório?',
+            description: 'Este relatório tem violações de política. Tem certeza de que deseja enviá-lo sem fazer alterações?',
+            titleMarkAsDone: 'Marcar como concluído?',
+            descriptionMarkAsDone: 'Este relatório tem violações de política. Tem certeza de que deseja marcá-lo como concluído sem fazer alterações?',
+            rejectedExpense: 'Despesa rejeitada não marcada como resolvida',
+            reportRejected: 'Relatório rejeitado anteriormente',
+            pendingCardMatch: 'Despesa aguardando uma possível correspondência com uma transação de cartão',
+        },
         routePending: 'Rota pendente...',
         automaticallyEnterExpenseDetails: 'O Concierge vai preencher os detalhes para você.',
         receiptScanning: () => ({
@@ -1593,6 +1602,7 @@ const translations: TranslationDeepObject<typeof en> = {
         pendingConversionMessage: 'O total será atualizado quando você voltar a ficar online',
         changedTheExpense: 'alterou a despesa',
         addedReceipt: 'adicionou um recibo',
+        removedReceipt: 'removeu um recibo',
         setTheRequest: (valueName: string, newValueToDisplay: string) => `o(a) ${valueName} para ${newValueToDisplay}`,
         setTheDistanceMerchant: (translatedChangedField: string, newMerchant: string, newAmountToDisplay: string) =>
             `definiu ${translatedChangedField} como ${newMerchant}, o que definiu o valor como ${newAmountToDisplay}`,
@@ -3397,7 +3407,8 @@ ${amount} para ${merchant} - ${date}`,
             title: 'O que você quer fazer hoje?',
             errorContinue: 'Pressione continuar para concluir a configuração',
             errorBackButton: 'Conclua as perguntas de configuração para começar a usar o app',
-            [CONST.ONBOARDING_CHOICES.EMPLOYER]: 'Enviar despesas ao meu empregador',
+            [CONST.ONBOARDING_CHOICES.JOIN_WORKSPACE]: 'Entrar no espaço de trabalho da minha empresa',
+            [CONST.ONBOARDING_CHOICES.EMPLOYER]: 'Enviar despesas para meu empregador',
             [CONST.ONBOARDING_CHOICES.MANAGE_TEAM]: 'Gerenciar as despesas da minha equipe',
             [CONST.ONBOARDING_CHOICES.TRACK_BUSINESS]: 'Controlar despesas do meu negócio',
             [CONST.ONBOARDING_CHOICES.TRACK_PERSONAL]: 'Organizar meus gastos pessoais',
@@ -3458,6 +3469,8 @@ ${amount} para ${merchant} - ${date}`,
             title: 'Não foi possível adicionar o e-mail de trabalho',
             subtitle: (workEmail: string | undefined) =>
                 `Não foi possível adicionar ${workEmail}. Tente novamente mais tarde em Configurações ou converse com o Concierge para obter orientação.`,
+            validatedPublicDomainSubtitle: (workEmail: string | undefined) =>
+                `Não foi possível adicionar ${workEmail}. Para mesclar essas contas, faça login como ${workEmail} e vá em Conta > Segurança > Mesclar contas para concluir o processo.`,
             workAccountClosedSubtitle:
                 'A conta de trabalho associada a este e-mail foi encerrada. Entre em contato com o administrador da sua empresa para reativá-la ou inscreva-se com um e-mail diferente.',
             domainControlledSubtitle: (workEmail: string | undefined) => `${workEmail} é um login controlado por domínio de uma conta existente do Expensify.`,
@@ -3696,6 +3709,34 @@ ${amount} para ${merchant} - ${date}`,
                     E pronto!
                 `),
             },
+            addWorkEmailTask: {
+                title: 'Adicione seu e-mail de trabalho',
+                description: ({workEmailLink = ''}) =>
+                    Str.dedent(`
+                        1. Abra [Adicionar e-mail de trabalho](${workEmailLink}).
+                        2. Digite o e-mail da sua empresa.
+                        3. Digite o código que enviamos por e-mail.
+                        4. Escolha um workspace para participar ou clique em *Pedir para participar* para enviar uma solicitação ao proprietário do workspace.
+                    `),
+            },
+            validateEmailTask: {
+                title: 'Valide seu e-mail',
+                description: ({validateEmailLink = '', workEmail = ''}) =>
+                    Str.dedent(`
+                        1. Abra [Validar sua conta](${validateEmailLink}).
+                        2. Digite o código que enviamos para ${workEmail}.
+                        3. Escolha um workspace para entrar ou clique em *Pedir para entrar* para enviar uma solicitação ao proprietário do workspace.
+                    `),
+            },
+            joinWorkspaceTask: {
+                title: 'Entre no workspace da sua empresa',
+                description: ({joinWorkspaceLink = ''}) =>
+                    Str.dedent(`
+                        1. Abra [Participar de um workspace](${joinWorkspaceLink}).
+                        2. Encontre sua equipe na lista. Cada uma mostra seu proprietário e quantas pessoas estão nela, das maiores para as menores. Clique em *Mostrar mais* se você não encontrar a sua.
+                        3. Clique em *Participar agora* ou em *Pedir para participar* se precisar de aprovação de um administrador.
+                    `),
+            },
         } satisfies Record<string, Pick<OnboardingTask, 'title' | 'description'>>,
         testDrive: {
             name: ({testDriveURL}: {testDriveURL?: string}) => (testDriveURL ? `Faça um [test drive](${testDriveURL})` : 'Faça um test drive'),
@@ -3718,6 +3759,14 @@ ${amount} para ${merchant} - ${date}`,
             onboardingChatSplitMessage: 'Dividir contas com amigos é tão fácil quanto enviar uma mensagem. Veja como.',
             onboardingAdminMessage: 'Saiba como gerenciar o workspace da sua equipe como administrador e enviar suas próprias despesas.',
             onboardingTestDriveReceiverMessage: '*Você ganhou 3 meses grátis! Comece abaixo.*',
+            onboardingJoinWorkspaceAddWorkEmailMessage:
+                'Como você está tentando entrar no espaço de trabalho da sua empresa, eu não criei um para você. Adicione seu e-mail de trabalho e vou verificar em quais espaços de trabalho da sua empresa você pode entrar.',
+            onboardingJoinWorkspaceValidateEmailMessage: ({companyDomain = ''}: {companyDomain?: string}) =>
+                `Como você quer entrar no espaço de trabalho da sua empresa, eu não criei um para você. Verifique seu e-mail e eu vou conferir quais espaços de trabalho em ${companyDomain} você pode acessar.`,
+            onboardingJoinWorkspaceMessage: ({companyDomain = '', joinWorkspaceLink = ''}: {companyDomain?: string; joinWorkspaceLink?: string}) =>
+                `Como você está querendo entrar no espaço de trabalho da sua empresa, eu não criei um para você. Sua equipe em ${companyDomain} já está no Expensify. [Dê uma olhada nos espaços de trabalho que você pode entrar.](${joinWorkspaceLink})`,
+            onboardingJoinWorkspaceEmptyMessage:
+                'Parece que sua empresa não tem nenhum workspace ao qual você possa se juntar. Entre em contato com o seu administrador e peça para que ele convide você para o workspace.',
         },
         workspace: {
             title: 'Mantenha-se organizado com um workspace',
@@ -4911,6 +4960,7 @@ ${amount} para ${merchant} - ${date}`,
             readOnlyActionTitle: 'Calma aí...',
             readOnlyActionPrompt: 'Sua função no workspace pode ver essas configurações, mas não pode editá-las.',
             noAccessActionPrompt: 'Sua função no espaço de trabalho não tem acesso a essas configurações. Peça a um administrador se você precisar disso.',
+            connections: 'Conexões',
         },
         createdForClient: {
             title: 'Você criou um espaço de trabalho para seu cliente!',
@@ -4934,6 +4984,31 @@ ${amount} para ${merchant} - ${date}`,
                 title: 'ChatGPT',
                 subtitle: 'da OpenAI',
             },
+        },
+        connections: {
+            tabs: {
+                [CONST.TAB.CONNECTIONS.ALL]: 'Tudo',
+                [CONST.TAB.CONNECTIONS.ACCOUNTING]: 'Contabilidade',
+                [CONST.TAB.CONNECTIONS.PEOPLE]: 'RH e Pessoas',
+                [CONST.TAB.CONNECTIONS.RECRUITING]: 'Recrutamento',
+                [CONST.TAB.CONNECTIONS.RECEIPTS]: 'Recibos',
+                [CONST.TAB.CONNECTIONS.AI]: 'IA e MCP',
+            },
+            findConnections: 'Encontrar conexões',
+            configure: 'Configurar',
+            fix: 'Corrigir',
+            active: 'Ativo',
+            broken: 'Quebrado',
+            brokenConnection: 'Não é possível sincronizar devido à conexão interrompida',
+            replaceConnectionTitle: 'Substituir conexão?',
+            offer: 'Oferta',
+            replaceConnectionPrompt: (connectionName: string) => `Isso vai remover sua conexão atual com ${connectionName}.`,
+            hrisListing: (providerName: string) => `${providerName} (RHIS)`,
+            atsListing: (providerName: string) => `${providerName} (ATS)`,
+            suggestIntegration: 'Não encontrou a sua? Sugira uma integração e nós vamos analisar.',
+            noResultsPrompt: '<muted-text><centered-text>Ajuste sua pesquisa ou <a href="#">sugira uma integração</a>.</centered-text></muted-text>',
+            allConnectedTitle: 'Tudo conectado',
+            allConnectedPrompt: '<muted-text><centered-text>Tudo aqui já está conectado. Você também pode <a href="#">sugerir uma integração</a>.</centered-text></muted-text>',
         },
         receiptPartners: {
             uber: {
@@ -10245,10 +10320,6 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
         genericUpdateReportFieldFailureMessage: 'Erro inesperado ao atualizar o campo. Tente novamente mais tarde.',
         genericUpdateReportNameEditFailureMessage: 'Erro inesperado ao renomear o relatório. Tente novamente mais tarde.',
         noActivityYet: 'Ainda não há atividade',
-        collapsedSystemMessages: () => ({
-            one: 'mostrar 1 atualização',
-            other: (count: number) => `mostrar ${count} atualizações`,
-        }),
         connectionSettings: 'Configurações de conexão',
         actions: {
             type: {
@@ -11525,6 +11596,7 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
         markAllAsRead: '<tooltip>Clique com o botão direito para <strong>marcar tudo como lido</strong>.</tooltip>',
         markAllAsReadTouchScreen: '<tooltip>Mantenha pressionado para <strong>marcar tudo como lido</strong>.</tooltip>',
         accountMovedToTopBar: '<tooltip>Acesse sua conta e configurações pessoais.</tooltip>',
+        connectionsMoved: 'Todas as suas conexões em um só lugar',
     },
     discardChangesConfirmation: {
         title: 'Descartar alterações?',
