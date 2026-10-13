@@ -91,4 +91,23 @@ describe('chart width handoff', () => {
         expect(PolarChart).not.toHaveBeenCalled();
         expect(screen.UNSAFE_queryByType(ActivityIndicator)).not.toBeNull();
     });
+
+    it('should keep the pie chart mounted when its box reports a width of 0', () => {
+        // Given a pie chart that has mounted at its measured width
+        render(
+            <PieChart
+                data={data}
+                isLoading={false}
+            />,
+        );
+        const measuredBox = getMeasuredBox();
+        fireEvent(measuredBox, 'layout', {nativeEvent: {layout: {width: CONTAINER_WIDTH, height: CHART_CONTENT_MIN_HEIGHT}}});
+
+        // When its card is hidden and the box reports a width of 0
+        fireEvent(measuredBox, 'layout', {nativeEvent: {layout: {width: 0, height: 0}}});
+
+        // Then the chart stays mounted at its last width instead of falling back to the spinner, which would drop its hover state and rebuild its canvas
+        expect(screen.UNSAFE_queryByType(ActivityIndicator)).toBeNull();
+        expect(PolarChart).toHaveBeenLastCalledWith(expect.objectContaining({explicitSize: {width: CONTAINER_WIDTH, height: CHART_CONTENT_MIN_HEIGHT}}), undefined);
+    });
 });
