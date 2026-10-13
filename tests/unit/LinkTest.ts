@@ -1,5 +1,6 @@
 import {canAnonymousUserAccessRoute, isAnonymousUser} from '@libs/actions/Session';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
+import openPrivatePersonalDetailsPage from '@libs/Navigation/helpers/openPrivatePersonalDetailsPage';
 import Navigation from '@libs/Navigation/Navigation';
 import navigationRef from '@libs/Navigation/navigationRef';
 import REPORT_LINK_ROUTE_PARAMS from '@libs/Navigation/reportLinkRouteParams';
@@ -22,6 +23,7 @@ type ReportUtilsMock = Record<string, unknown> & {
 
 jest.mock('@libs/getIsNarrowLayout', () => jest.fn());
 jest.mock('@libs/Navigation/helpers/swapBackgroundTabForRHPTarget', () => jest.fn());
+jest.mock('@libs/Navigation/helpers/openPrivatePersonalDetailsPage', () => jest.fn());
 jest.mock('@libs/Navigation/navigationRef', () => ({
     __esModule: true,
     default: {
@@ -58,6 +60,7 @@ const mockedNavigation = jest.mocked(Navigation);
 const mockedNavigationRef = jest.mocked(navigationRef);
 const mockedCanAnonymousUserAccessRoute = jest.mocked(canAnonymousUserAccessRoute);
 const mockedIsAnonymousUser = jest.mocked(isAnonymousUser);
+const mockedOpenPrivatePersonalDetailsPage = jest.mocked(openPrivatePersonalDetailsPage);
 
 function buildNavigationState(key: string, routes: NavigationState['routes'], index = routes.length - 1): NavigationState {
     return {
@@ -348,6 +351,30 @@ describe('Link.openLink', () => {
                 'true',
             ),
         );
+    });
+
+    it('opens private personal details links through the helper so the focused field is not blurred', () => {
+        // Given a link to private personal details that asks to focus Address line 1
+        const href = `${CONST.NEW_EXPENSIFY_URL}${ROUTES.SETTINGS_PRIVATE_PERSONAL_DETAILS.getRoute('addressLine1')}`;
+
+        // When the link is opened
+        openLink(href, environmentURL);
+
+        // Then it opens through the helper that waits for the background tab swap, keeping the requested field focused
+        expect(mockedOpenPrivatePersonalDetailsPage).toHaveBeenCalledWith('addressLine1');
+        expect(Navigation.navigate).not.toHaveBeenCalled();
+    });
+
+    it('opens private personal details links without a field to focus through the helper', () => {
+        // Given a link to private personal details with no field to focus, as the backend sends it
+        const href = `${CONST.NEW_EXPENSIFY_URL}${ROUTES.SETTINGS_PRIVATE_PERSONAL_DETAILS.route}`;
+
+        // When the link is opened
+        openLink(href, environmentURL);
+
+        // Then it still opens through the helper, without a field to focus
+        expect(mockedOpenPrivatePersonalDetailsPage).toHaveBeenCalledWith(undefined);
+        expect(Navigation.navigate).not.toHaveBeenCalled();
     });
 });
 

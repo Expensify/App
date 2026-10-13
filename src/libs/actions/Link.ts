@@ -9,6 +9,7 @@ import Log from '@libs/Log';
 import getStateFromPath from '@libs/Navigation/helpers/getStateFromPath';
 import {isOnboardingFlowName} from '@libs/Navigation/helpers/isNavigatorName';
 import normalizePath from '@libs/Navigation/helpers/normalizePath';
+import openPrivatePersonalDetailsPage from '@libs/Navigation/helpers/openPrivatePersonalDetailsPage';
 import shouldOpenOnAdminRoom from '@libs/Navigation/helpers/shouldOpenOnAdminRoom';
 import swapBackgroundTabForRHPTarget from '@libs/Navigation/helpers/swapBackgroundTabForRHPTarget';
 import willRouteNavigateToRHP from '@libs/Navigation/helpers/willRouteNavigateToRHP';
@@ -409,6 +410,13 @@ function openLink(href: string, environmentURL: string, isAttachment = false) {
         }
         if (shouldCloseRHP) {
             Navigation.closeRHPFlow();
+        }
+        // Open private personal details the same way the "Add address" button does, so the background tab swap
+        // settles before the page opens and doesn't blur the field it auto-focuses
+        const [internalPathWithoutQuery] = internalNewExpensifyPath.split(/[?#]/, 1);
+        if (internalPathWithoutQuery === ROUTES.SETTINGS_PRIVATE_PERSONAL_DETAILS.route) {
+            openPrivatePersonalDetailsPage(Url.getSearchParamFromPath(internalNewExpensifyPath, 'fieldToFocus') ?? undefined);
+            return;
         }
         Navigation.navigate(internalNewExpensifyPath as Route);
         return;
