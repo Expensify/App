@@ -1,0 +1,45 @@
+import getSubmittedAnswers from '@components/DynamicForm/utils/getSubmittedAnswers';
+
+import type {DynamicFormField} from '@src/types/onyx';
+
+describe('getSubmittedAnswers', () => {
+    it('leaves out the answer of a field hidden by its controller', () => {
+        // Given a text field shown only for business, with an answer left over from an earlier choice
+        const fields: DynamicFormField[] = [
+            {key: 'type', type: 'text', required: true},
+            {key: 'ein', type: 'text', required: true, showWhen: {key: 'type', equals: ['BUSINESS']}},
+        ];
+
+        // When the answers are collected for a private recipient
+        const answers = getSubmittedAnswers(fields, {type: 'PRIVATE', ein: '123'});
+
+        // Then the stale answer is not submitted
+        expect(answers).toEqual({type: 'PRIVATE'});
+    });
+
+    it('uses the whole form to find a controller on another page', () => {
+        // Given a field whose controller sits on another page
+        const controller: DynamicFormField = {key: 'type', type: 'text', required: true};
+        const dependent: DynamicFormField = {key: 'ein', type: 'text', required: true, showWhen: {key: 'type', equals: ['BUSINESS']}};
+
+        // When one page is collected with the whole form
+        const answers = getSubmittedAnswers([dependent], {type: 'BUSINESS', ein: '123'}, [controller, dependent]);
+
+        // Then the field counts as visible
+        expect(answers).toEqual({ein: '123'});
+    });
+
+    it('submits the address parts and the chosen currency along with the field', () => {
+        // Given an address and an amount that lets the user pick a currency
+        const fields: DynamicFormField[] = [
+            {key: 'home', type: 'address', required: true},
+            {key: 'fee', type: 'amount', required: true, currencyKey: 'feeCurrency'},
+        ];
+
+        // When the answers are collected
+        const answers = getSubmittedAnswers(fields, {home: '1 Main St', 'home.city': 'Austin', fee: '100', feeCurrency: 'EUR'});
+
+        // Then the currency is part of the answer, since the amount means nothing without it
+        expect(answers).toMatchObject({home: '1 Main St', 'home.city': 'Austin', fee: '100', feeCurrency: 'EUR'});
+    });
+});

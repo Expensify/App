@@ -191,10 +191,13 @@ function validateField<TType extends DynamicFormFieldType>(field: DynamicFormFie
     return validate(field, values, translate);
 }
 
-/** Errors for the fields the user can see, keyed by draft key, in the shape FormProvider's `validate` returns. */
-function getDynamicFieldErrors(fields: DynamicFormSchemaField[], values: DynamicFormValues, translate: LocalizedTranslate): Record<string, string> {
+/**
+ * Errors for the fields the user can see, keyed by draft key, in the shape FormProvider's `validate` returns.
+ * `fields` must be exactly one page's fields, since the lone-field check has to match what the page renders. Pass the whole form as `allFields` when a `showWhen` can name a field on another page.
+ */
+function getDynamicFieldErrors(fields: DynamicFormSchemaField[], values: DynamicFormValues, translate: LocalizedTranslate, allFields?: DynamicFormField[]): Record<string, string> {
     const errors: Record<string, string> = {};
-    const visibleFields = getVisibleFields(fields.filter(isSupportedField), values);
+    const visibleFields = getVisibleFields(fields.filter(isSupportedField), values, allFields);
     const loneField = getLoneField(visibleFields);
     for (const field of visibleFields) {
         if (field.readonly) {
