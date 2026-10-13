@@ -6008,7 +6008,7 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
             subsidiary: 'Jednostka',
             subsidiarySelectDescription: 'Wybierz jednostkę w Rillet, z której chcesz zaimportować dane.',
             noSubsidiariesFound: 'Nie znaleziono żadnych jednostek',
-            noSubsidiariesFoundDescription: 'Dodaj proszę podmiot w Rillet i zsynchronizuj połączenie ponownie',
+            noSubsidiariesFoundDescription: 'Dodaj proszę jednostkę w Rillet i zsynchronizuj połączenie ponownie',
             accountTypesDescription: 'Twoje konta Rillet zostaną zaimportowane jako kategorie.',
             enableNewAccountsTitle: 'Włącz nowo zaimportowane konta',
             enableNewAccountsDescription: 'Nowe konta Rillet będą dostępne jako kategorie.',
