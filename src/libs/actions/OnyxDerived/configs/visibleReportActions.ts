@@ -67,23 +67,25 @@ export default createOnyxDerivedValueConfig({
 
         const currentUserAccountID = session?.accountID;
         const reportActionsUpdates = sourceValues?.[ONYXKEYS.COLLECTION.REPORT_ACTIONS];
+        const reportNameValuePairsUpdates = sourceValues?.[ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS];
 
-        // Recompute only the reports whose actions changed when we have a usable delta. Otherwise
-        // recompute everything: on first load, when there's no delta, or on a SESSION change (the
-        // user changed, which affects whisper targeting for every report). SESSION is checked via
-        // triggeredKeys, not sourceValues, so a session cleared to `undefined` still forces the full recompute.
+        // Recompute only the reports whose actions or NVPs changed when we have a usable delta.
+        // Otherwise recompute everything: on first load, when there's no delta, or on a SESSION or
+        // REPORT change. SESSION is checked via triggeredKeys, not sourceValues, so a session cleared
+        // to `undefined` still forces the full recompute.
         const isIncremental =
-            !!reportActionsUpdates &&
-            !triggeredKeys?.has(ONYXKEYS.SESSION) &&
-            !triggeredKeys?.has(ONYXKEYS.COLLECTION.REPORT) &&
-            !triggeredKeys?.has(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS) &&
-            !!currentValue;
+            !!(reportActionsUpdates ?? reportNameValuePairsUpdates) && !triggeredKeys?.has(ONYXKEYS.SESSION) && !triggeredKeys?.has(ONYXKEYS.COLLECTION.REPORT) && !!currentValue;
 
         const result: VisibleReportActionsDerivedValue = isIncremental ? {...currentValue} : {};
-        const reportActionsKeysToProcess = isIncremental ? Object.keys(reportActionsUpdates) : Object.keys(allReportActions);
+        const reportIDsToProcess = isIncremental
+            ? new Set([
+                  ...Object.keys(reportActionsUpdates ?? {}).map((key) => key.replace(ONYXKEYS.COLLECTION.REPORT_ACTIONS, '')),
+                  ...Object.keys(reportNameValuePairsUpdates ?? {}).map((key) => key.replace(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, '')),
+              ])
+            : new Set(Object.keys(allReportActions).map((key) => key.replace(ONYXKEYS.COLLECTION.REPORT_ACTIONS, '')));
 
-        for (const reportActionsKey of reportActionsKeysToProcess) {
-            const reportID = reportActionsKey.replace(ONYXKEYS.COLLECTION.REPORT_ACTIONS, '');
+        for (const reportID of reportIDsToProcess) {
+            const reportActionsKey = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`;
             const reportActions = allReportActions[reportActionsKey];
 
             // The member was removed entirely — drop the report from the result.

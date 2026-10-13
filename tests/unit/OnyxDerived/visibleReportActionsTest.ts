@@ -40,6 +40,8 @@ describe('visibleReportActions', () => {
         const reportActionsKey = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`;
         const reportKey = `${ONYXKEYS.COLLECTION.REPORT}${reportID}`;
         const reportNameValuePairsKey = `${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`;
+        const unrelatedReportID = 'unrelatedReportID';
+        const unrelatedActionID = 'unrelatedActionID';
         const allReportActions: OnyxCollection<ReportActions> = {
             [reportActionsKey]: {
                 [surveyActionID]: {
@@ -55,7 +57,10 @@ describe('visibleReportActions', () => {
             {[reportKey]: {reportID, type: CONST.REPORT.TYPE.SUPPORT_TICKET}},
             {[reportNameValuePairsKey]: {reopenedAsReportID: 'replacementReportID'}},
         ];
-        const currentValue: VisibleReportActionsDerivedValue = {[reportID]: {[surveyActionID]: true}};
+        const currentValue: VisibleReportActionsDerivedValue = {
+            [reportID]: {[surveyActionID]: true},
+            [unrelatedReportID]: {[unrelatedActionID]: true},
+        };
 
         // When the replacement report NVP triggers a recompute
         const result = visibleReportActionsConfig.compute(args, {
@@ -66,5 +71,6 @@ describe('visibleReportActions', () => {
 
         // Then the shared visibility cache hides the stale survey
         expect(result[reportID]?.[surveyActionID]).toBe(false);
+        expect(result[unrelatedReportID]?.[unrelatedActionID]).toBe(true);
     });
 });
