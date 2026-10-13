@@ -47,6 +47,7 @@ type WhitelistedReport = OnyxCommon.OnyxValueWithOfflineFeedback<
         parentReportID: unknown;
         parentReportActionID: unknown;
         managerID: unknown;
+        supportTicketCalendarLink: unknown;
         lastVisibleActionLastModified: unknown;
         lastMessageHtml: unknown;
         lastActorAccountID: unknown;
@@ -62,6 +63,7 @@ type WhitelistedReport = OnyxCommon.OnyxValueWithOfflineFeedback<
         errorFields: unknown;
         errors: unknown;
         isWaitingOnBankAccount: unknown;
+        canCancelReimbursement: unknown;
         isCancelledIOU: unknown;
         hasReportBeenRetracted: unknown;
         hasReportBeenReopened: unknown;

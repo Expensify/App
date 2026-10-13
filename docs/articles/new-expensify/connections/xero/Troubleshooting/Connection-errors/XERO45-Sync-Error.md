@@ -1,112 +1,93 @@
 ---
-title: XERO45 Sync Error in Xero Integration
-description: Learn what the XERO45 sync error means and how to disconnect and reconnect Xero in New Expensify to restore syncing.
-keywords: XERO45, Xero invalid authentication token, disconnect Xero New Expensify, reconnect Xero Workspace, Expensify Xero integration, Workspace Admin
-internalScope: Audience is Workspace Admins using the Xero integration in New Expensify. Covers resolving the XERO45 sync error related to expired or invalid authentication tokens and reconnection steps. Does not cover Xero export mapping, tax, or category configuration.
+title: How to resolve the XERO45 sync error in Xero
+description: Learn what the XERO45 sync error means and how to reconnect Xero in New Expensify so syncing can resume.
+keywords: XERO45, XERO45 sync error, Xero rejected credentials, reconnect Xero New Expensify, enter your credentials Xero, Expensify Xero integration, Workspace Admin
+internalScope: Audience is Workspace Admins using the Xero integration in New Expensify. Covers resolving the XERO45 sync error that appears when Xero rejects the credentials stored for the connection, including reconnecting without disconnecting first. Does not cover Xero export mapping configuration, and does not cover temporary problems reaching Xero, which report XERO46 instead.
 ---
 
-# XERO45 Sync Error in Xero Integration
+# How to resolve the XERO45 sync error in Xero
 
 If you see the error:
 
-XERO45 Sync Error: Unable to sync Xero data due to an invalid authentication token. Please disconnect and reconnect Xero in the Workspace.
+XERO45 Sync Error: Unable to sync Xero data because Xero rejected the connection's credentials. Please reconnect Xero in the workspace.
 
-This means the authentication token connecting the Workspace to Xero has expired or is no longer valid.
+This means Xero turned down the credentials stored for the connection, so the sync could not run.
 
-Until the connection is refreshed, syncing and exports will fail.
+While the error is showing, the Xero configuration options are hidden. They come back once the connection is authorized again.
 
 ---
 
-## Why the XERO45 Sync Error Happens in Xero
+## Why the XERO45 sync error happens in Xero
 
-The XERO45 error typically occurs when:
+The XERO45 error typically indicates:
 
-- The Xero authentication token has expired.
-- The Xero connection was revoked in Xero.
-- The connected Xero account credentials were changed.
-- The Xero admin user who authorized the connection no longer has access.
-
-When the token is invalid, the Workspace cannot access Xero data.
+- Access for Expensify was revoked in Xero.
+- The Xero login used to create the connection no longer has access to the organization.
 
 This is a connection issue, not an export mapping issue.
 
----
-
-# How to Fix the XERO45 Sync Error
-
-Follow the steps below to disconnect and reconnect the Xero integration.
+A temporary problem reaching Xero, such as a timed-out request or a busy Xero API, is reported as XERO46 instead. That error usually clears on its own and does not need a reconnection.
 
 ---
 
-## Save Your Workspace Accounting Configuration
+## How to reconnect Xero after the XERO45 sync error
 
-Before disconnecting:
+You do not need to disconnect Xero first. Reconnecting restores access while keeping your imported data and your Xero configuration.
 
 On web:
+
 1. Go to **Settings > Workspaces**.
 2. Select your Workspace.
 3. Click **Accounting**.
-4. Review and save your settings under:
-   - **Export**
-   - **Coding**
-   - **Advanced**
-
-Disconnecting may remove imported options and configuration settings.
+4. Click the three dots **(⋮)** next to the Xero connection.
+5. Click **Enter your credentials**.
+6. Log in to Xero using an account with admin access to the connected organization.
+7. Review the access permissions and click **Allow Access**.
 
 On mobile:
+
 1. Tap the navigation tabs on the bottom.
 2. Tap **Workspaces**.
 3. Select your Workspace.
 4. Tap **Accounting**.
-5. Review your accounting configuration settings.
+5. Tap the three dots **(⋮)** next to the Xero connection.
+6. Tap **Enter your credentials** and complete the authorization flow.
+
+If the Workspace is not connected to Xero at all, [learn how to connect to Xero](/articles/new-expensify/connections/xero/Connect-to-Xero).
 
 ---
 
-## Disconnect Xero From the Workspace
-
-On web:
-1. Go to **Settings > Workspaces > [Workspace Name] > Accounting**.
-2. Click the three-dot icon next to the Xero connection.
-3. Click **Disconnect from Xero**.
-4. Click **Disconnect** to confirm.
-5. Refresh the page to confirm the connection is removed.
-
-On mobile:
-1. Tap the navigation tabs on the bottom.
-2. Tap **Workspaces**.
-3. Select your Workspace.
-4. Tap **Accounting**.
-5. Tap the three-dot icon next to the Xero connection.
-6. Tap **Disconnect** and confirm.
-
----
-
-## Reconnect to Xero in the Workspace
-
-1. In **Settings > Workspaces > [Workspace Name] > Accounting**, click **Connect to Xero**.
-2. Log in using the appropriate Xero admin credentials.
-3. Select the correct Xero organization.
-4. Complete the authorization flow.
-5. Click **Save** if prompted.
-
----
-
-## Run Sync
+## How to run a Xero sync after reconnecting
 
 1. Go to **Settings > Workspaces > [Workspace Name] > Accounting**.
-2. Click the three-dot icon.
+2. Click the three dots **(⋮)** next to the Xero connection.
 3. Click **Sync now**.
-
-If the connection is successfully restored, syncing and exports should complete normally.
+4. Retry any exports that failed while the error was showing.
 
 ---
 
 # FAQ
 
-## Do I Need Xero Admin Access to Reconnect?
+## Do I need to disconnect Xero before reconnecting?
 
-Yes. You must use a Xero account with admin permissions for the connected organization.
+No. Reconnecting on its own is enough, and it keeps your settings. Disconnecting removes imported options and configuration, so it creates extra work without fixing anything.
 
-## Will Disconnecting Remove My Configuration?
+## Do I need Xero admin access to reconnect?
 
-It may remove imported options and accounting settings. Save your configuration before disconnecting so you can reapply any custom settings if needed.
+Yes. You must sign in with a Xero account that has admin access to the connected organization.
+
+## Why are my Xero settings missing while the error is showing?
+
+The configuration options are hidden while the connection cannot be verified. They reappear after you reconnect, with your previous settings intact.
+
+## Does this error affect all syncs?
+
+Yes. While the credentials are rejected, every sync and export to Xero fails until the connection is authorized again.
+
+## Why does the XERO45 error keep coming back after reconnecting?
+
+If access for Expensify is revoked in Xero again, or the Xero login used for the connection loses access to the organization, the credentials are rejected again. Reconnect using a Xero login that keeps admin access to the organization.
+
+## Does the XERO45 error mean data was lost in Xero?
+
+No. A rejected credential stops Expensify from reaching Xero. Nothing already in Xero is changed or removed.

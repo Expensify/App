@@ -8,7 +8,7 @@ import type DeepValueOf from '@src/types/utils/DeepValueOf';
 import type IconAsset from '@src/types/utils/IconAsset';
 import type WithSentryLabel from '@src/types/utils/SentryLabel';
 
-import type {RefObject} from 'react';
+import type {ComponentRef, RefObject} from 'react';
 import type {GestureResponderEvent, StyleProp, TextStyle, View, ViewStyle} from 'react-native';
 import type {ValueOf} from 'type-fest';
 
@@ -64,6 +64,9 @@ type DropdownOption<TValueType> = WithSentryLabel & {
 
     /** Whether to ignore compact popover menu styling for this item */
     shouldIgnoreCompactStyle?: boolean;
+
+    /** Text shown above `subMenuItems` once the sub-menu is open */
+    subMenuHeaderText?: string;
 };
 
 type ButtonWithDropdownMenuProps<TValueType> = WithSentryLabel & {
@@ -114,7 +117,7 @@ type ButtonWithDropdownMenuProps<TValueType> = WithSentryLabel & {
     /** Whether the popover menu should flip to the opposite side of the button when it doesn't fit, instead of being clamped to the window edge */
     shouldSwitchPositionIfOverflow?: boolean;
 
-    buttonRef?: RefObject<View | null>;
+    buttonRef?: RefObject<ComponentRef<typeof View> | null>;
 
     /** The priority to assign the enter key event listener to buttons. 0 is the highest priority. */
     enterKeyEventListenerPriority?: number;

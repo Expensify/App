@@ -11,6 +11,8 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
+import type {ComponentRef} from 'react';
+
 import React, {useCallback, useMemo, useRef} from 'react';
 import {View} from 'react-native';
 
@@ -104,7 +106,7 @@ function USDVerifiedBankAccountFlowPage({route}: USDVerifiedBankAccountFlowPageP
 
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
 
-    const requestorStepRef = useRef<View>(null);
+    const requestorStepRef = useRef<ComponentRef<typeof View>>(null);
     const isOnfidoSetupComplete = reimbursementAccount?.achData?.isOnfidoSetupComplete;
     const isKYBDocumentsRequired = getRequiredKYBDocuments(reimbursementAccount?.achData?.verifications?.externalApiResponses).length > 0;
 

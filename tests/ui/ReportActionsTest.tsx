@@ -149,6 +149,7 @@ describe('ReportActions (orchestrator)', () => {
 
         render(<ReportActions />);
 
+        expect(screen.getByTestId('ReportActionsSkeletonCover')).toBeTruthy();
         expect(screen.getByTestId('ReportActionsSkeletonView')).toBeTruthy();
         expect(mockReportActionsListBody).not.toHaveBeenCalled();
         expect(mockMoneyRequestList).not.toHaveBeenCalled();
@@ -159,6 +160,7 @@ describe('ReportActions (orchestrator)', () => {
 
         render(<ReportActions />);
 
+        expect(screen.getByTestId('ReportActionsSkeletonCover')).toBeTruthy();
         expect(screen.getByTestId('ReportActionsSkeletonView')).toBeTruthy();
         expect(mockReportActionsListBody).not.toHaveBeenCalled();
         expect(mockMoneyRequestList).not.toHaveBeenCalled();

@@ -4,7 +4,6 @@ import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues, FormRef} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import ScreenWrapper from '@components/ScreenWrapper';
 import TextPicker from '@components/TextPicker';
 
@@ -17,7 +16,7 @@ import {addErrorMessage} from '@libs/ErrorUtils';
 import {hasCircularReferences} from '@libs/Formula';
 import Navigation from '@libs/Navigation/Navigation';
 import {isRequiredFulfilled} from '@libs/ValidationUtils';
-import {getReportFieldsForTarget, getUnsupportedReportFieldFormulaParts, hasFormulaPartsInInitialValue, isReportFieldNameExisting} from '@libs/WorkspaceReportFieldUtils';
+import {getExistingReportFieldByName, getReportFieldsForTarget, getUnsupportedReportFieldFormulaParts, hasFormulaPartsInInitialValue} from '@libs/WorkspaceReportFieldUtils';
 
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import InitialListValueSelector from '@pages/workspace/reports/InitialListValueSelector';
@@ -89,63 +88,71 @@ function CreateFieldsPage({policy, policyID, isInvoiceField, listValuesRoute, ge
         [availableListValuesLength, formDraft, isInvoiceField, policy, policyReportIDs],
     );
 
-    const validateForm = useCallback(
-        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM> => {
-            const {name, type, initialValue: formInitialValue} = values;
-            const errors: FormInputErrors<typeof ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM> = {};
+    const getExistingFieldNameError = (name: string) => {
+        const existingField = getExistingReportFieldByName(policy?.fieldList, name);
+        if (!existingField) {
+            return undefined;
+        }
 
-            if (!isRequiredFulfilled(name)) {
-                errors[INPUT_IDS.NAME] = translate(isInvoiceField ? 'workspace.invoiceFields.invoiceFieldNameRequiredError' : 'workspace.reportFields.reportFieldNameRequiredError');
-            } else if (isReportFieldNameExisting(policy?.fieldList, name)) {
-                errors[INPUT_IDS.NAME] = translate(isInvoiceField ? 'workspace.invoiceFields.existingInvoiceFieldNameError' : 'workspace.reportFields.existingReportFieldNameError');
-            } else if ([...name].length > CONST.WORKSPACE_REPORT_FIELD_POLICY_MAX_LENGTH) {
-                addErrorMessage(errors, INPUT_IDS.NAME, translate('common.error.characterLimitExceedCounter', [...name].length, CONST.WORKSPACE_REPORT_FIELD_POLICY_MAX_LENGTH));
+        return translate(
+            existingField.target === CONST.REPORT_FIELD_TARGETS.INVOICE ? 'workspace.invoiceFields.existingInvoiceFieldNameError' : 'workspace.reportFields.existingReportFieldNameError',
+        );
+    };
+
+    const validateForm = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM> => {
+        const {name, type, initialValue: formInitialValue} = values;
+        const errors: FormInputErrors<typeof ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM> = {};
+
+        const existingFieldNameError = getExistingFieldNameError(name);
+
+        if (!isRequiredFulfilled(name)) {
+            errors[INPUT_IDS.NAME] = translate(isInvoiceField ? 'workspace.invoiceFields.invoiceFieldNameRequiredError' : 'workspace.reportFields.reportFieldNameRequiredError');
+        } else if (existingFieldNameError) {
+            errors[INPUT_IDS.NAME] = existingFieldNameError;
+        } else if ([...name].length > CONST.WORKSPACE_REPORT_FIELD_POLICY_MAX_LENGTH) {
+            addErrorMessage(errors, INPUT_IDS.NAME, translate('common.error.characterLimitExceedCounter', [...name].length, CONST.WORKSPACE_REPORT_FIELD_POLICY_MAX_LENGTH));
+        }
+
+        if (!isRequiredFulfilled(type)) {
+            errors[INPUT_IDS.TYPE] = translate(isInvoiceField ? 'workspace.invoiceFields.invoiceFieldTypeRequiredError' : 'workspace.reportFields.reportFieldTypeRequiredError');
+        }
+
+        if (type === CONST.REPORT_FIELD_TYPES.TEXT && !!formInitialValue && formInitialValue.length > CONST.WORKSPACE_REPORT_FIELD_POLICY_MAX_LENGTH) {
+            errors[INPUT_IDS.INITIAL_VALUE] = translate('common.error.characterLimitExceedCounter', formInitialValue.length, CONST.WORKSPACE_REPORT_FIELD_POLICY_MAX_LENGTH);
+        }
+
+        if (
+            (type === CONST.REPORT_FIELD_TYPES.TEXT || type === CONST.REPORT_FIELD_TYPES.FORMULA) &&
+            hasCircularReferences(formInitialValue, name, getReportFieldsForTarget(policy?.fieldList, fieldTarget))
+        ) {
+            errors[INPUT_IDS.INITIAL_VALUE] = translate('workspace.reportFields.circularReferenceError');
+        }
+
+        if ((type === CONST.REPORT_FIELD_TYPES.TEXT || type === CONST.REPORT_FIELD_TYPES.FORMULA) && !!formInitialValue && !errors[INPUT_IDS.INITIAL_VALUE]) {
+            const unsupportedFormulaParts = getUnsupportedReportFieldFormulaParts(formInitialValue);
+            if (unsupportedFormulaParts.length > 0) {
+                errors[INPUT_IDS.INITIAL_VALUE] = translate('workspace.reportFields.unsupportedFormulaValueError', unsupportedFormulaParts.join(', '));
             }
+        }
 
-            if (!isRequiredFulfilled(type)) {
-                errors[INPUT_IDS.TYPE] = translate(isInvoiceField ? 'workspace.invoiceFields.invoiceFieldTypeRequiredError' : 'workspace.reportFields.reportFieldTypeRequiredError');
-            }
+        if (type === CONST.REPORT_FIELD_TYPES.LIST && availableListValuesLength > 0 && !isRequiredFulfilled(formInitialValue)) {
+            errors[INPUT_IDS.INITIAL_VALUE] = translate(
+                isInvoiceField ? 'workspace.invoiceFields.invoiceFieldInitialValueRequiredError' : 'workspace.reportFields.reportFieldInitialValueRequiredError',
+            );
+        }
 
-            if (type === CONST.REPORT_FIELD_TYPES.TEXT && !!formInitialValue && formInitialValue.length > CONST.WORKSPACE_REPORT_FIELD_POLICY_MAX_LENGTH) {
-                errors[INPUT_IDS.INITIAL_VALUE] = translate('common.error.characterLimitExceedCounter', formInitialValue.length, CONST.WORKSPACE_REPORT_FIELD_POLICY_MAX_LENGTH);
-            }
+        return errors;
+    };
 
-            if (
-                (type === CONST.REPORT_FIELD_TYPES.TEXT || type === CONST.REPORT_FIELD_TYPES.FORMULA) &&
-                hasCircularReferences(formInitialValue, name, getReportFieldsForTarget(policy?.fieldList, fieldTarget))
-            ) {
-                errors[INPUT_IDS.INITIAL_VALUE] = translate('workspace.reportFields.circularReferenceError');
-            }
-
-            if ((type === CONST.REPORT_FIELD_TYPES.TEXT || type === CONST.REPORT_FIELD_TYPES.FORMULA) && !!formInitialValue && !errors[INPUT_IDS.INITIAL_VALUE]) {
-                const unsupportedFormulaParts = getUnsupportedReportFieldFormulaParts(formInitialValue);
-                if (unsupportedFormulaParts.length > 0) {
-                    errors[INPUT_IDS.INITIAL_VALUE] = translate('workspace.reportFields.unsupportedFormulaValueError', unsupportedFormulaParts.join(', '));
-                }
-            }
-
-            if (type === CONST.REPORT_FIELD_TYPES.LIST && availableListValuesLength > 0 && !isRequiredFulfilled(formInitialValue)) {
-                errors[INPUT_IDS.INITIAL_VALUE] = translate(
-                    isInvoiceField ? 'workspace.invoiceFields.invoiceFieldInitialValueRequiredError' : 'workspace.reportFields.reportFieldInitialValueRequiredError',
-                );
-            }
-
-            return errors;
-        },
-        [availableListValuesLength, fieldTarget, isInvoiceField, policy?.fieldList, translate],
-    );
-
-    const validateName = useCallback(
-        (values: Record<string, string>) => {
-            const errors: Record<string, string> = {};
-            const name = values[INPUT_IDS.NAME];
-            if (isReportFieldNameExisting(policy?.fieldList, name)) {
-                errors[INPUT_IDS.NAME] = translate(isInvoiceField ? 'workspace.invoiceFields.existingInvoiceFieldNameError' : 'workspace.reportFields.existingReportFieldNameError');
-            }
-            return errors;
-        },
-        [isInvoiceField, policy?.fieldList, translate],
-    );
+    const validateName = (values: Record<string, string>) => {
+        const errors: Record<string, string> = {};
+        const name = values[INPUT_IDS.NAME];
+        const existingFieldNameError = getExistingFieldNameError(name);
+        if (existingFieldNameError) {
+            errors[INPUT_IDS.NAME] = existingFieldNameError;
+        }
+        return errors;
+    };
 
     const handleOnValueCommitted = (initialValue: string) => {
         setDraftValues(ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM, {
@@ -220,12 +227,11 @@ function CreateFieldsPage({policy, policyID, isInvoiceField, listValuesRoute, ge
                             />
 
                             {inputValues[INPUT_IDS.TYPE] === CONST.REPORT_FIELD_TYPES.LIST && (
-                                <MenuItemWithTopDescription
-                                    description={translate('workspace.reportFields.listValues')}
-                                    shouldShowRightIcon
+                                <MenuItemField
+                                    name={translate('workspace.reportFields.listValues')}
+                                    value={listValues}
+                                    numberOfLinesValue={5}
                                     onPress={() => Navigation.navigate(listValuesRoute)}
-                                    title={listValues}
-                                    numberOfLinesTitle={5}
                                 />
                             )}
 

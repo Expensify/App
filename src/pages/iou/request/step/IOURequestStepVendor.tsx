@@ -63,7 +63,8 @@ function IOURequestStepVendor({
     const [transactionViolations] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${getNonEmptyStringOnyxID(transactionID)}`);
     const delegateAccountID = useDelegateAccountID();
 
-    const isFeatureAvailable = hasVendorFeature(policy, isBetaEnabled(CONST.BETAS.VENDOR_MATCHING));
+    const isVendorMatchingBetaEnabled = isBetaEnabled(CONST.BETAS.VENDOR_MATCHING);
+    const isFeatureAvailable = hasVendorFeature(policy, isVendorMatchingBetaEnabled);
     const isOnXero = isXeroActiveMatchingSource(policy);
     const emptyState = getVendorEmptyState(policy, translate);
 

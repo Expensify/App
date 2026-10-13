@@ -2,14 +2,14 @@ import {typeOptionsPoliciesSelector} from '@components/Search/FilterComponents/T
 
 import {advancedSearchPoliciesSelector} from '@hooks/useAdvancedSearchFilters';
 import {exportedToPoliciesSelector} from '@hooks/useExportedToFilterOptions';
-import {policiesSelector, policyCategoriesSelector, policyTagsSelector} from '@hooks/useFilterFormValues';
+import {policiesSelector, policyCategoriesSelector} from '@hooks/useFilterFormValues';
 
 import {getAllTaxRates} from '@libs/PolicyUtils';
 import {buildFilterFormValuesFromQuery, buildSearchQueryJSON} from '@libs/SearchQueryUtils';
 
 import type {SearchQueryJSON} from '@src/components/Search/types';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy, PolicyCategories, PolicyTagLists, Report} from '@src/types/onyx';
+import type {Policy, PolicyCategories, Report} from '@src/types/onyx';
 
 import React, {useMemo} from 'react';
 import {View} from 'react-native';
@@ -34,7 +34,6 @@ function buildSearchQueryJSONOrThrow(query: string): SearchQueryJSON {
 const POLICY_COUNT = 500;
 const REPORT_COUNT = 500;
 const CATEGORY_COUNT = 500;
-const TAG_COUNT = 500;
 
 beforeAll(() => Onyx.init({keys: ONYXKEYS}));
 
@@ -82,23 +81,6 @@ describe('useFilterFormValues', () => {
             );
 
             await measureFunction(() => policyCategoriesSelector(categories));
-        });
-
-        test('policyTagsSelector with 500 policy tag collections', async () => {
-            const tags = createCollection<PolicyTagLists>(
-                (_, index) => `${ONYXKEYS.COLLECTION.POLICY_TAGS}${index}`,
-                () =>
-                    createMock<PolicyTagLists>({
-                        Department: {
-                            name: 'Department',
-                            required: true,
-                            tags: Object.fromEntries(Array.from({length: 30}, (_unused, i) => [`Tag${i}`, {name: `Tag${i}`, enabled: true}])),
-                        },
-                    }),
-                TAG_COUNT,
-            );
-
-            await measureFunction(() => policyTagsSelector(tags));
         });
 
         test('exportedToPoliciesSelector with 500 policies', async () => {
@@ -171,7 +153,7 @@ describe('useFilterFormValues', () => {
     });
 
     describe('buildFilterFormValuesFromQuery execution', () => {
-        test('buildFilterFormValuesFromQuery with 500 policies, reports, categories, tags', async () => {
+        test('buildFilterFormValuesFromQuery with 500 policies, reports, categories', async () => {
             const queryJSON = buildSearchQueryJSONOrThrow('type:expense status:all category:Category0 tag:Tag0');
 
             const policies = createCollection<Policy>(
@@ -198,21 +180,9 @@ describe('useFilterFormValues', () => {
                 () => createMock<PolicyCategories>(Object.fromEntries(Array.from({length: 40}, (_unused, i) => [`Category${i}`, {name: `Category${i}`, enabled: true}]))),
                 CATEGORY_COUNT,
             );
-            const tags = createCollection<PolicyTagLists>(
-                (_, index) => `${ONYXKEYS.COLLECTION.POLICY_TAGS}${index}`,
-                () =>
-                    createMock<PolicyTagLists>({
-                        Department: {
-                            name: 'Department',
-                            required: true,
-                            tags: Object.fromEntries(Array.from({length: 30}, (_unused, i) => [`Tag${i}`, {name: `Tag${i}`, enabled: true}])),
-                        },
-                    }),
-                TAG_COUNT,
-            );
             const taxRates = getAllTaxRates(policies);
 
-            await measureFunction(() => buildFilterFormValuesFromQuery(queryJSON, categories, tags, {}, {}, {}, reports, taxRates));
+            await measureFunction(() => buildFilterFormValuesFromQuery(queryJSON, categories, {}, {}, {}, reports, taxRates));
         });
     });
 
@@ -223,10 +193,9 @@ describe('useFilterFormValues', () => {
             function TestComponent() {
                 const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: policiesSelector});
                 const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
-                const [policyTagsLists] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS, {selector: policyTagsSelector});
                 const [policyCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES, {selector: policyCategoriesSelector});
                 const taxRates = useMemo(() => getAllTaxRates(policies), [policies]);
-                const formValues = buildFilterFormValuesFromQuery(queryJSON, policyCategories, policyTagsLists, {}, {}, {}, allReports, taxRates);
+                const formValues = buildFilterFormValuesFromQuery(queryJSON, policyCategories, {}, {}, {}, allReports, taxRates);
                 return <View testID={String(Object.keys(formValues).length)} />;
             }
 
@@ -243,18 +212,6 @@ describe('useFilterFormValues', () => {
                 () => createMock<PolicyCategories>(Object.fromEntries(Array.from({length: 40}, (_unused, i) => [`Category${i}`, {name: `Category${i}`, enabled: true}]))),
                 CATEGORY_COUNT,
             );
-            const tags = createCollection<PolicyTagLists>(
-                (_, index) => `${ONYXKEYS.COLLECTION.POLICY_TAGS}${index}`,
-                () =>
-                    createMock<PolicyTagLists>({
-                        Department: {
-                            name: 'Department',
-                            required: true,
-                            tags: Object.fromEntries(Array.from({length: 30}, (_unused, i) => [`Tag${i}`, {name: `Tag${i}`, enabled: true}])),
-                        },
-                    }),
-                TAG_COUNT,
-            );
             const reports = createCollection<Report>(
                 (_, index) => `${ONYXKEYS.COLLECTION.REPORT}${index}`,
                 (index) => createMock<Report>({reportID: `${index}`, reportName: `Report ${index}`}),
@@ -262,7 +219,6 @@ describe('useFilterFormValues', () => {
             );
             await Onyx.mergeCollection(ONYXKEYS.COLLECTION.POLICY, policies);
             await Onyx.mergeCollection(ONYXKEYS.COLLECTION.POLICY_CATEGORIES, categories);
-            await Onyx.mergeCollection(ONYXKEYS.COLLECTION.POLICY_TAGS, tags);
             await Onyx.mergeCollection(ONYXKEYS.COLLECTION.REPORT, reports);
             await waitForBatchedUpdates();
 
@@ -282,10 +238,9 @@ describe('useFilterFormValues', () => {
             function TestComponent() {
                 const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
                 const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
-                const [policyTagsLists] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS);
                 const [policyCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES);
                 const taxRates = useMemo(() => getAllTaxRates(policies), [policies]);
-                const formValues = buildFilterFormValuesFromQuery(queryJSON, policyCategories, policyTagsLists, {}, {}, {}, allReports, taxRates);
+                const formValues = buildFilterFormValuesFromQuery(queryJSON, policyCategories, {}, {}, {}, allReports, taxRates);
                 return <View testID={String(Object.keys(formValues).length)} />;
             }
 
@@ -302,18 +257,6 @@ describe('useFilterFormValues', () => {
                 () => createMock<PolicyCategories>(Object.fromEntries(Array.from({length: 40}, (_unused, i) => [`Category${i}`, {name: `Category${i}`, enabled: true}]))),
                 CATEGORY_COUNT,
             );
-            const tags = createCollection<PolicyTagLists>(
-                (_, index) => `${ONYXKEYS.COLLECTION.POLICY_TAGS}${index}`,
-                () =>
-                    createMock<PolicyTagLists>({
-                        Department: {
-                            name: 'Department',
-                            required: true,
-                            tags: Object.fromEntries(Array.from({length: 30}, (_unused, i) => [`Tag${i}`, {name: `Tag${i}`, enabled: true}])),
-                        },
-                    }),
-                TAG_COUNT,
-            );
             const reports = createCollection<Report>(
                 (_, index) => `${ONYXKEYS.COLLECTION.REPORT}${index}`,
                 (index) => createMock<Report>({reportID: `${index}`, reportName: `Report ${index}`}),
@@ -321,7 +264,6 @@ describe('useFilterFormValues', () => {
             );
             await Onyx.mergeCollection(ONYXKEYS.COLLECTION.POLICY, policies);
             await Onyx.mergeCollection(ONYXKEYS.COLLECTION.POLICY_CATEGORIES, categories);
-            await Onyx.mergeCollection(ONYXKEYS.COLLECTION.POLICY_TAGS, tags);
             await Onyx.mergeCollection(ONYXKEYS.COLLECTION.REPORT, reports);
             await waitForBatchedUpdates();
 

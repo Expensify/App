@@ -46,7 +46,7 @@ jest.mock('@react-navigation/native', () => {
 
 jest.mock('@components/SelectionList', () => jest.fn(() => null));
 jest.mock('@components/SelectionList/ListItem/CardListItem', () => jest.fn(() => null));
-jest.mock('@components/HeaderWithBackButton', () => jest.fn(() => null));
+jest.mock('@components/Header/composed/HeaderWithBackButtonAndTitle', () => jest.fn(() => null));
 jest.mock('@components/BlockingViews/BlockingView', () => jest.fn(() => null));
 jest.mock('@components/FullscreenLoadingIndicator', () => jest.fn(() => null));
 jest.mock('@components/FormAlertWithSubmitButton', () => jest.fn(() => null));

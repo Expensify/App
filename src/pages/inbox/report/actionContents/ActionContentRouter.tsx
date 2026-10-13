@@ -5,6 +5,8 @@ import ExportIntegration from '@components/ReportActionItem/ExportIntegration';
 import IssueCardMessage from '@components/ReportActionItem/IssueCardMessage';
 import MoneyRequestReportPreview from '@components/ReportActionItem/MoneyRequestReportPreview';
 import MovedTransactionAction from '@components/ReportActionItem/MovedTransactionAction';
+import SupportTicketPreview from '@components/ReportActionItem/SupportTicketPreview';
+import SupportTicketSurvey from '@components/ReportActionItem/SupportTicketSurvey';
 import TaskAction from '@components/ReportActionItem/TaskAction';
 import TaskPreview from '@components/ReportActionItem/TaskPreview';
 import TripRoomPreview from '@components/ReportActionItem/TripRoomPreview';
@@ -38,15 +40,18 @@ import {
     isActionableMentionWhisper,
     isActionableReportMentionWhisper,
     isActionOfType,
+    isApprovalFlowAction,
     isCardBrokenConnectionAction,
     isCardIssuedAction,
     isCreatedTaskReportAction,
+    isCreatedSupportTicketReportAction,
     isIOURequestReportAction,
     isMemberChangeAction,
     isMoneyRequestAction,
     isReimbursementDeQueuedOrCanceledAction,
     isReimbursementQueuedAction,
     isRenamedAction,
+    isSimpleMessageAction,
     isTaskAction,
     isTripPreview,
 } from '@libs/ReportActionsUtils';
@@ -65,7 +70,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import {Str} from 'expensify-common';
 import React from 'react';
 
-import ApprovalFlowContent, {isApprovalFlowAction} from './ApprovalFlowContent';
+import ApprovalFlowContent from './ApprovalFlowContent';
 import CardBrokenConnectionContent from './CardBrokenConnectionContent';
 import ChatMessageContent from './ChatMessageContent';
 import ChatTransactionPreview from './ChatTransactionPreview';
@@ -86,8 +91,9 @@ import ReimbursedContent from './ReimbursedContent';
 import ReimbursementDeQueuedContent from './ReimbursementDeQueuedContent';
 import ReimbursementQueuedContent from './ReimbursementQueuedContent';
 import RemovedFromApprovalChainContent from './RemovedFromApprovalChainContent';
+import ReportActionMessageContent from './ReportActionMessageContent';
 import ReportMentionWhisperContent from './ReportMentionWhisperContent';
-import SimpleMessageContent, {isSimpleMessageAction} from './SimpleMessageContent';
+import SimpleMessageContent from './SimpleMessageContent';
 
 type ActionContentRouterProps = {
     action: OnyxTypes.ReportAction;
@@ -132,8 +138,12 @@ type ActionContentRouterProps = {
     /** Whether the search-page UI is active */
     isOnSearch: boolean;
 
+    /** Whether this is the newest Concierge comment eligible for the inline feedback prompt */
+    isLatestConciergeFeedbackAction: boolean;
+
     setIsPaymentMethodPopoverActive: (value: boolean) => void;
     isTrackIntentUser?: boolean;
+    paymentExpectedDate?: string;
 };
 
 function ActionContentRouter({
@@ -155,6 +165,8 @@ function ActionContentRouter({
     isOnSearch,
     setIsPaymentMethodPopoverActive,
     isTrackIntentUser,
+    isLatestConciergeFeedbackAction,
+    paymentExpectedDate,
 }: ActionContentRouterProps): React.JSX.Element | null {
     const {translate, formatTravelDate} = useLocalize();
     const styles = useThemeStyles();
@@ -169,6 +181,7 @@ function ActionContentRouter({
     const actionOwnerReportID = originalReportID ?? reportID;
     const policyID = report?.policyID;
     const reportOwnerAccountID = report?.ownerAccountID;
+    const isSupportTicketReport = report?.type === CONST.REPORT.TYPE.SUPPORT_TICKET;
 
     if (isIOURequestReportAction(action)) {
         const moneyRequestOriginalMessage = isMoneyRequestAction(action) ? getOriginalMessage(action) : undefined;
@@ -238,6 +251,24 @@ function ActionContentRouter({
             />
         );
     }
+    if (isCreatedSupportTicketReportAction(action)) {
+        return (
+            <SupportTicketPreview
+                style={displayAsGroup ? [] : [styles.mt1]}
+                action={action}
+                isHovered={hovered}
+            />
+        );
+    }
+    if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.SUPPORT_SURVEY)) {
+        return (
+            <SupportTicketSurvey
+                action={action}
+                report={report}
+                reportID={reportID}
+            />
+        );
+    }
     if (isReimbursementQueuedAction(action)) {
         return (
             <ReimbursementQueuedContent
@@ -287,6 +318,7 @@ function ActionContentRouter({
         return (
             <PaymentContent
                 action={action}
+                expectedDate={paymentExpectedDate}
                 policyID={policyID}
             />
         );
@@ -309,6 +341,16 @@ function ActionContentRouter({
                 actionReportID={action.reportID}
                 action={action}
                 originalReport={originalReport}
+            />
+        );
+    }
+    if (isSupportTicketReport && (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.CLOSED) || isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.REOPENED))) {
+        return (
+            <ReportActionMessageContent
+                action={action}
+                displayAsGroup={displayAsGroup}
+                reportID={reportID}
+                isSupportTicketReport={isSupportTicketReport}
             />
         );
     }
@@ -559,6 +601,7 @@ function ActionContentRouter({
             isHidden={isHidden}
             updateHiddenState={updateHiddenState}
             isOnSearch={isOnSearch}
+            isLatestConciergeFeedbackAction={isLatestConciergeFeedbackAction}
         />
     );
 }

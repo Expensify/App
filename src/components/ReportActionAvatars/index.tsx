@@ -11,8 +11,8 @@ import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useStyleUtils from '@hooks/useStyleUtils';
-import useThemeStyles from '@hooks/useThemeStyles';
 
+import {getDelegateAccountIDFromReportAction} from '@libs/ReportActionsUtils';
 import {sortIconsByName} from '@libs/ReportUtils';
 
 import CONST from '@src/CONST';
@@ -58,11 +58,10 @@ type ReportActionAvatarsProps = {
 
     size?: ValueOf<typeof CONST.AVATAR_SIZE>;
 
+    subscriptAvatarContainerStyle?: StyleProp<ViewStyle>;
+
     /** Whether avatars are displayed within a reportAction */
     isInReportAction?: boolean;
-
-    /** Whether to show the subscript avatar without margin */
-    noRightMarginOnSubscriptContainer?: boolean;
 
     /** Color of the row surface behind the avatar. Affects secondary avatar so it blends into the row. */
     backdropColor?: ColorValue;
@@ -106,7 +105,7 @@ function ReportActionAvatars({
     sort: sortAvatars,
     singleAvatarContainerStyle,
     backdropColor,
-    noRightMarginOnSubscriptContainer = false,
+    subscriptAvatarContainerStyle,
     subscriptCardFeed,
     subscriptCardFeedIconSize,
     isInReportAction = false,
@@ -118,7 +117,6 @@ function ReportActionAvatars({
     const accountIDs = passedAccountIDs.filter((accountID) => accountID !== CONST.DEFAULT_NUMBER_ID);
     const allPersonalDetails = usePersonalDetails();
     const {localeCompare} = useLocalize();
-    const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
 
     const reportID =
@@ -190,16 +188,20 @@ function ReportActionAvatars({
         return null;
     }
 
-    const delegateAccountIDFromAction = shouldUseConciergeAvatar ? undefined : source.action?.delegateAccountID;
-    const singleAvatar: AvatarIcon = delegateAccountIDFromAction
-        ? {
-              ...primaryAvatar,
-              copilot: {
-                  accountID: delegateAccountIDFromAction,
-                  actedForAccountID: delegateAccountID,
-              },
-          }
-        : primaryAvatar;
+    // Read the copilot through `getDelegateAccountIDFromReportAction` rather than off the action: the server stamps
+    // `delegateAccountID` on every action a copilot's request creates, including Concierge-authored ones, and the
+    // accessor suppresses it there so Concierge never renders as "<copilot> (as copilot for Concierge)".
+    const delegateAccountIDFromAction = shouldUseConciergeAvatar ? undefined : getDelegateAccountIDFromReportAction(source.action);
+    const singleAvatar: AvatarIcon =
+        delegateAccountID && delegateAccountIDFromAction
+            ? {
+                  ...primaryAvatar,
+                  copilot: {
+                      accountID: delegateAccountIDFromAction,
+                      actedForAccountID: delegateAccountID,
+                  },
+              }
+            : primaryAvatar;
 
     if (avatarType === CONST.REPORT_ACTION_AVATARS.TYPE.SUBSCRIPT_CARD_FEED && subscriptCardFeed) {
         return (
@@ -208,7 +210,7 @@ function ReportActionAvatars({
                 cardFeed={subscriptCardFeed}
                 cardFeedIconSize={subscriptCardFeedIconSize}
                 size={size}
-                containerStyle={noRightMarginOnSubscriptContainer ? styles.mr0 : {}}
+                containerStyle={subscriptAvatarContainerStyle}
                 backdropColor={backdropColor}
                 fallbackDisplayName={fallbackDisplayName}
             />
@@ -221,7 +223,7 @@ function ReportActionAvatars({
                 primaryAvatar={primaryAvatar}
                 secondaryAvatar={secondaryAvatar}
                 size={size}
-                containerStyle={noRightMarginOnSubscriptContainer ? styles.mr0 : {}}
+                containerStyle={subscriptAvatarContainerStyle}
                 backdropColor={backdropColor}
                 fallbackDisplayName={fallbackDisplayName}
             />

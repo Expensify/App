@@ -31,7 +31,6 @@ function useAutoCreateSubmitWorkspace() {
         onboardingAdminsChatReportID,
         introSelected,
         isSelfTourViewed,
-        betas,
         currentUserEmail,
         currentUserAccountID,
         localCurrencyCode,
@@ -73,7 +72,7 @@ function useAutoCreateSubmitWorkspace() {
                 ? createWorkspace({
                       policyOwner: undefined,
                       makeMeAdmin: true,
-                      policyName: generateDefaultWorkspaceName(currentUserEmail, lastWorkspaceNumber, translate, displayName),
+                      policyName: generateDefaultWorkspaceName(currentUserEmail, displayName, lastWorkspaceNumber, translate),
                       policyID: generatePolicyID(),
                       engagementChoice: CONST.ONBOARDING_CHOICES.EMPLOYER,
                       currency: localCurrencyCode,
@@ -86,7 +85,6 @@ function useAutoCreateSubmitWorkspace() {
                       currentUserEmailParam: currentUserEmail,
                       shouldAddGuideWelcomeMessage: false,
                       type: CONST.POLICY.TYPE.SUBMIT,
-                      betas,
                       isSelfTourViewed,
                       hasActiveAdminPolicies,
                       delegateAccountID,
@@ -110,6 +108,7 @@ function useAutoCreateSubmitWorkspace() {
                         // #admins room, so a Concierge DM checklist on top of that is a competing second onboarding
                         // experience. Without a new workspace there is no #admins welcome, so the checklist stays.
                         shouldSkipConciergeOnboarding: shouldCreateWorkspace,
+                        currentUserAccountID,
                         delegateAccountID,
                     });
                 } catch (error) {
@@ -150,7 +149,6 @@ function useAutoCreateSubmitWorkspace() {
             activePolicy,
             isSelfTourViewed,
             onboardingMessages,
-            betas,
             hasActiveAdminPolicies,
             hasOwnedPaidPolicy,
             shouldUseNarrowLayout,

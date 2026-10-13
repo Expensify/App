@@ -44,7 +44,7 @@ import createMock from '../utils/createMock';
 
 type GetWorkspaceMenuItems = typeof getWorkspaceMenuItems;
 
-const mockUseSearchTypeMenuSections = jest.fn<SearchTypeMenuSection[], [queryParams: unknown, isScreenFocused: boolean]>();
+const mockUseSearchTypeMenuSections = jest.fn<SearchTypeMenuSection[], [isScreenFocused?: boolean]>();
 const mockUseMemoizedLazyExpensifyIcons = jest.fn<Record<string, IconAsset>, []>();
 const mockUseCreateNavigationSuggestions = jest.fn<NavigationSuggestionSourceItem[], []>(() => []);
 const mockUseSettingsNavigationMenuData = jest.fn<{accountMenuItemsData: MenuSection; generalMenuItemsData: MenuSection}, []>();
@@ -53,6 +53,7 @@ const mockUseOnyx = jest.fn<[unknown], [key: string]>(() => [undefined]);
 const mockShouldUseNarrowLayout = jest.fn(() => false);
 const mockUseNetwork = jest.fn<{isOffline: boolean}, []>(() => ({isOffline: false}));
 const mockIsBetaEnabled = jest.fn<boolean, [beta: string]>(() => false);
+const mockIsBetaEnabledOrUnknown = jest.fn<boolean | undefined, [beta: string]>(() => false);
 const currentUserAccountID = 1;
 
 jest.mock('@components/Search/SearchContext', () => ({
@@ -126,7 +127,7 @@ jest.mock('@hooks/useNetwork', () => ({
 
 jest.mock('@hooks/usePermissions', () => ({
     __esModule: true,
-    default: () => ({isBetaEnabled: (beta: string) => mockIsBetaEnabled(beta)}),
+    default: () => ({isBetaEnabled: (beta: string) => mockIsBetaEnabled(beta), isBetaEnabledOrUnknown: (beta: string) => mockIsBetaEnabledOrUnknown(beta)}),
 }));
 
 jest.mock('@hooks/useResponsiveLayout', () => ({
@@ -136,7 +137,8 @@ jest.mock('@hooks/useResponsiveLayout', () => ({
 
 jest.mock('@hooks/useSearchTypeMenuSections', () => ({
     __esModule: true,
-    default: (queryParams: unknown, isScreenFocused: boolean) => mockUseSearchTypeMenuSections(queryParams, isScreenFocused),
+    default: (isScreenFocused?: boolean) => mockUseSearchTypeMenuSections(isScreenFocused),
+    useSearchTypeMenuSectionsForNavigation: (isScreenFocused?: boolean) => mockUseSearchTypeMenuSections(isScreenFocused),
 }));
 
 jest.mock('@pages/settings/useSettingsNavigationMenuData', () => ({
@@ -269,6 +271,7 @@ beforeEach(() => {
     mockUseOnyx.mockImplementation(() => [undefined]);
     mockUseNetwork.mockReturnValue({isOffline: false});
     mockIsBetaEnabled.mockReturnValue(false);
+    mockIsBetaEnabledOrUnknown.mockReturnValue(false);
     mockUseSettingsNavigationMenuData.mockReturnValue({
         accountMenuItemsData: {sectionTranslationKey: 'initialSettingsPage.account', items: []},
         generalMenuItemsData: {sectionTranslationKey: 'initialSettingsPage.general', items: []},
@@ -973,7 +976,7 @@ describe('Spend Search Router navigation source', () => {
             initialProps: {shouldWatchForApprovals: false},
         });
 
-        expect(mockUseSearchTypeMenuSections).toHaveBeenLastCalledWith(false, undefined);
+        expect(mockUseSearchTypeMenuSections).toHaveBeenLastCalledWith(false);
         expect(result.current).toHaveLength(1);
         expect(result.current.at(0)).toMatchObject({
             text: 'Go to Reports',
@@ -990,7 +993,7 @@ describe('Spend Search Router navigation source', () => {
         expect(rightElement.props).toMatchObject({text: 'Spend', icon: spendContextIcon, iconSize: variables.fontSizeLabel, showTooltip: false});
 
         rerender({shouldWatchForApprovals: true});
-        expect(mockUseSearchTypeMenuSections).toHaveBeenLastCalledWith(true, undefined);
+        expect(mockUseSearchTypeMenuSections).toHaveBeenLastCalledWith(true);
     });
 
     it('keeps Create rows reachable when top-level and Spend sources are present', () => {

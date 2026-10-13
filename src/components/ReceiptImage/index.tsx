@@ -16,7 +16,7 @@ import type {Transaction} from '@src/types/onyx';
 import type {ReceiptSource} from '@src/types/onyx/Transaction';
 import type IconAsset from '@src/types/utils/IconAsset';
 
-import type {ImageResizeMode, ImageStyle, StyleProp, ViewStyle} from 'react-native';
+import type {ImageProps, ImageStyle, StyleProp, ViewStyle} from 'react-native';
 
 import React, {useRef, useState} from 'react';
 import {View} from 'react-native';
@@ -116,7 +116,7 @@ type ReceiptImageProps = (
     /** Callback to be called when the image fails to load */
     onLoadFailure?: () => void;
 
-    resizeMode?: ImageResizeMode;
+    resizeMode?: ImageProps['resizeMode'];
     style?: StyleProp<ViewStyle & ImageStyle>;
 
     /** Low-resolution URI shown as a placeholder while the full image loads */

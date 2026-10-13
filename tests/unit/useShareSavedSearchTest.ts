@@ -3,7 +3,7 @@ import {act, renderHook} from '@testing-library/react-native';
 import useShareSavedSearch from '@hooks/useShareSavedSearch';
 
 import Clipboard from '@libs/Clipboard';
-import {savedSearchIDToSearchKey} from '@libs/SearchUIUtils';
+import {savedSearchIDToSearchKey} from '@libs/SearchKeyUtils';
 
 import ROUTES from '@src/ROUTES';
 

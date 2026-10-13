@@ -15,13 +15,12 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import Navigation from '@navigation/Navigation';
 
-import {createWorkspaceWithPolicyDraft} from '@userActions/App';
-import {generateDefaultWorkspaceName, generatePolicyID} from '@userActions/Policy/Policy';
+import {createWorkspaceWithPolicyDraft} from '@userActions/Policy/CreateWorkspaceFlow';
+import {generateDefaultWorkspaceName, generatePolicyID} from '@userActions/Policy/PolicyDraft';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {LastPaymentMethodType} from '@src/types/onyx';
 
 import {hasSeenTourSelector} from '@selectors/Onboarding';
 import React, {useState} from 'react';
@@ -37,15 +36,13 @@ function PersonalCardUpgradePage() {
     const {isOffline} = useNetwork();
     const [isUpgraded, setIsUpgraded] = useState(false);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
-    const [lastPaymentMethod] = useOnyx(ONYXKEYS.NVP_LAST_PAYMENT_METHOD);
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
 
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const delegateAccountID = useDelegateAccountID();
-    const {accountID, email = ''} = currentUserPersonalDetails;
+    const {accountID, email = '', displayName} = currentUserPersonalDetails;
     const activePolicy = useActivePolicy();
     const hasActiveAdminPolicies = useHasActiveAdminPolicies();
     const hasOwnedPaidPolicy = useHasOwnedPaidPolicy();
@@ -54,19 +51,17 @@ function PersonalCardUpgradePage() {
     const onUpgrade = () => {
         createWorkspaceWithPolicyDraft({
             introSelected,
-            policyName: generateDefaultWorkspaceName(email, lastWorkspaceNumber, translate),
+            policyName: generateDefaultWorkspaceName(email, displayName, lastWorkspaceNumber, translate),
             currency: currentUserPersonalDetails.localCurrencyCode ?? CONST.CURRENCY.USD,
             transitionFromOldDot: false,
             makeMeAdmin: false,
             policyID,
-            lastUsedPaymentMethod: lastPaymentMethod?.[policyID] as LastPaymentMethodType,
             activePolicy,
             conciergeChat,
             currentUserAccountIDParam: accountID,
             currentUserEmailParam: email,
             shouldCreateControlPolicy: false,
             isSelfTourViewed,
-            betas,
             hasActiveAdminPolicies,
             delegateAccountID,
             hasOwnedPaidPolicy,

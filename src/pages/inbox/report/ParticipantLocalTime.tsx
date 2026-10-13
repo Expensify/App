@@ -17,12 +17,7 @@ type ParticipantLocalTimeProps = {
     participant: PersonalDetails;
 };
 
-function getParticipantLocalTime(
-    participant: PersonalDetails,
-    translate: LocaleContextProps['translate'],
-    getLocalDateFromDatetime: LocaleContextProps['getLocalDateFromDatetime'],
-    dateFnsLocale: LocaleContextProps['dateFnsLocale'],
-) {
+function getParticipantLocalTime(participant: PersonalDetails, getLocalDateFromDatetime: LocaleContextProps['getLocalDateFromDatetime'], dateFnsLocale: LocaleContextProps['dateFnsLocale']) {
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Disabling this line for safeness as nullish coalescing works only if the value is undefined or null
     const reportRecipientTimezone = participant.timezone || CONST.DEFAULT_TIME_ZONE;
     const reportTimezone = getLocalDateFromDatetime(undefined, reportRecipientTimezone.selected);
@@ -30,26 +25,26 @@ function getParticipantLocalTime(
     const reportRecipientDay = DateUtils.formatToDayOfWeek(reportTimezone, dateFnsLocale);
     const currentUserDay = DateUtils.formatToDayOfWeek(currentTimezone, dateFnsLocale);
     if (reportRecipientDay !== currentUserDay) {
-        return `${DateUtils.formatToLocalTime(translate, reportTimezone)} ${reportRecipientDay}`;
+        return `${DateUtils.formatToLocalTime(reportTimezone, dateFnsLocale)} ${reportRecipientDay}`;
     }
-    return `${DateUtils.formatToLocalTime(translate, reportTimezone)}`;
+    return `${DateUtils.formatToLocalTime(reportTimezone, dateFnsLocale)}`;
 }
 
 function ParticipantLocalTime({participant}: ParticipantLocalTimeProps) {
     const {translate, getLocalDateFromDatetime, dateFnsLocale} = useLocalize();
     const styles = useThemeStyles();
 
-    const [localTime, setLocalTime] = useState(() => getParticipantLocalTime(participant, translate, getLocalDateFromDatetime, dateFnsLocale));
+    const [localTime, setLocalTime] = useState(() => getParticipantLocalTime(participant, getLocalDateFromDatetime, dateFnsLocale));
     useEffect(() => {
         const timer = Timers.register(
             setInterval(() => {
-                setLocalTime(getParticipantLocalTime(participant, translate, getLocalDateFromDatetime, dateFnsLocale));
+                setLocalTime(getParticipantLocalTime(participant, getLocalDateFromDatetime, dateFnsLocale));
             }, 1000),
         );
         return () => {
             clearInterval(timer);
         };
-    }, [participant, translate, getLocalDateFromDatetime, dateFnsLocale]);
+    }, [participant, getLocalDateFromDatetime, dateFnsLocale]);
 
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Disabling this line for safeness as nullish coalescing works only if the value is undefined or null
     const reportRecipientDisplayName = participant.firstName || participant.displayName;

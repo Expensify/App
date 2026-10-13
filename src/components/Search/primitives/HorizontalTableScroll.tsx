@@ -8,6 +8,7 @@ import {getTableMinWidth} from '@libs/SearchUIUtils';
 
 import CONST from '@src/CONST';
 
+import type {ComponentRef} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import type {NativeScrollEvent, NativeSyntheticEvent, ScrollView as RNScrollView} from 'react-native';
 
@@ -73,7 +74,7 @@ function HorizontalTableScroll({children, columns, type, isActionColumnWide, isH
     const shouldScrollHorizontally = isHeaderVisible && minTableWidth > tableWidth;
     const contentTableWidth = Math.max(getTableMinWidth(columns, type, isActionColumnWide, columnContentWidths, isSizingColumns), minTableWidth, tableWidth);
 
-    const horizontalScrollViewRef = useRef<RNScrollView>(null);
+    const horizontalScrollViewRef = useRef<ComponentRef<typeof RNScrollView>>(null);
 
     const handleHorizontalScroll = useCallback((event: NativeSyntheticEvent<NativeScrollEvent>) => {
         savedHorizontalScrollOffset = event.nativeEvent.contentOffset.x;

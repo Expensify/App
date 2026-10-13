@@ -1,4 +1,5 @@
 import {getMicroSecondOnyxErrorWithMessage} from '@libs/ErrorUtils';
+import Log from '@libs/Log';
 import {clearSessionStorage} from '@libs/Navigation/helpers/lastVisitedTabPathUtils';
 import {getIsOffline} from '@libs/NetworkState';
 import clearPrefetchOnAppStart from '@libs/Prefetch/clearPrefetchOnAppStart';
@@ -67,6 +68,7 @@ const KEYS_TO_PRESERVE_ON_SIGN_OUT: OnyxKey[] = [
 ];
 
 function clearStorageAndRedirect(signOutReason: SignOutReason, errorMessage?: string, isSAMLReauthentication?: boolean): Promise<void> {
+    Log.info('[SignInRedirect] Clearing storage and redirecting to sign in', false, {signOutReason});
     logReceiptQueueSnapshot('signOut', signOutReason);
 
     const keysToPreserve: OnyxKey[] = [...KEYS_TO_PRESERVE_ON_SIGN_OUT];

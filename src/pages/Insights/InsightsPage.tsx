@@ -1,9 +1,3 @@
-import NAVIGATION_TABS from '@components/Navigation/NavigationTabBar/NAVIGATION_TABS';
-import TabBarBottomContent from '@components/Navigation/TabBarBottomContent';
-import TopBar from '@components/Navigation/TopBar';
-import ScreenWrapper from '@components/ScreenWrapper';
-import ScrollView from '@components/ScrollView';
-
 import useDocumentTitle from '@hooks/useDocumentTitle';
 import useLocalize from '@hooks/useLocalize';
 import usePermissions from '@hooks/usePermissions';
@@ -19,6 +13,8 @@ import type {BottomTabScreenProps} from '@react-navigation/bottom-tabs';
 
 import React from 'react';
 
+import InsightsDashboard from './InsightsDashboard';
+
 type InsightsPageProps = BottomTabScreenProps<TabNavigatorParamList, typeof SCREENS.INSIGHTS>;
 
 function InsightsPage({route}: InsightsPageProps) {
@@ -26,26 +22,13 @@ function InsightsPage({route}: InsightsPageProps) {
     const {isBetaEnabled} = usePermissions();
     useDocumentTitle(translate('common.insights'));
 
-    const isKnownDashboard = route.params?.dashboardID === CONST.INSIGHTS.DASHBOARD.SPEND;
+    const dashboardID = Object.values(CONST.INSIGHTS.DASHBOARD).find((id) => id === route.params?.dashboardID);
 
-    if (!isBetaEnabled(CONST.BETAS.INSIGHTS_PAGE) || !isKnownDashboard) {
+    if (!isBetaEnabled(CONST.BETAS.INSIGHTS_PAGE) || !dashboardID) {
         return <NotFoundPage />;
     }
 
-    return (
-        <ScreenWrapper
-            shouldShowOfflineIndicatorInWideScreen
-            enableEdgeToEdgeBottomSafeAreaPadding={false}
-            bottomContent={<TabBarBottomContent selectedTab={NAVIGATION_TABS.INSIGHTS} />}
-            testID="InsightsPage"
-        >
-            <TopBar
-                breadcrumbLabel={translate('common.insights')}
-                shouldDisplayHelpButton
-            />
-            <ScrollView addBottomSafeAreaPadding />
-        </ScreenWrapper>
-    );
+    return <InsightsDashboard dashboardID={dashboardID} />;
 }
 
 export default InsightsPage;

@@ -7,7 +7,7 @@ import {getBankAccountSearchLabel, isFilterableBankAccount} from '@libs/BankAcco
 import {getCardFeedsForDisplay} from '@libs/CardFeedUtils';
 import {getCardDescription, isCard, isCardHiddenFromSearch} from '@libs/CardUtils';
 import {getDecodedCategoryName} from '@libs/CategoryUtils';
-import type {OptionList} from '@libs/OptionsListUtils';
+import type {GetOptionsConfig, OptionList} from '@libs/OptionsListUtils';
 import {getSearchOptions} from '@libs/OptionsListUtils';
 import {getAllTaxRates, getCleanedTagName, getExpensifyTeamExclusions, shouldShowPolicy} from '@libs/PolicyUtils';
 import {
@@ -24,8 +24,8 @@ import {getDatePresets, getHasOptions} from '@libs/SearchUIUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Beta, CardFeeds, CardList, PersonalDetailsList, Policy} from '@src/types/onyx';
-import type {VisibleReportActionsDerivedValue} from '@src/types/onyx/DerivedValues';
+import type {CardFeeds, CardList, PersonalDetailsList, Policy} from '@src/types/onyx';
+import type {ReportAttributesDerivedValue, VisibleReportActionsDerivedValue} from '@src/types/onyx/DerivedValues';
 import type {Icon} from '@src/types/onyx/OnyxCommon';
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
 import getEmptyArray from '@src/types/utils/getEmptyArray';
@@ -57,12 +57,15 @@ type UseAutocompleteSuggestionsParams = {
     allCards: CardList | undefined;
     allFeeds: Record<string, CardFeeds | undefined> | undefined;
     options: OptionList;
+    /** Resolves a report from the same snapshot `options` was built from @see useFilteredOptions */
+    getReportByID: GetOptionsConfig['getReportByID'];
     draftComments: OnyxCollection<string>;
-    betas: OnyxEntry<Beta[]>;
+    isDefaultRoomsBetaEnabled: boolean;
     countryCode: OnyxEntry<number>;
     loginList: OnyxEntry<Record<string, unknown>>;
     policies: NonNullable<OnyxCollection<Policy>>;
     visibleReportActionsData?: VisibleReportActionsDerivedValue;
+    reportAttributesDerived?: ReportAttributesDerivedValue['reports'];
     currentUserAccountID: number;
     currentUserEmail: string;
     personalDetails: OnyxEntry<PersonalDetailsList>;
@@ -78,6 +81,7 @@ const GROUP_BY_FRIENDLY_VALUES = Object.values(CONST.SEARCH.GROUP_BY).map((value
 const VIEW_FRIENDLY_VALUES = Object.values(CONST.SEARCH.VIEW).map((value) => getUserFriendlyValue(value));
 const EXPENSE_TYPE_FRIENDLY_VALUES = Object.values(CONST.SEARCH.TRANSACTION_TYPE).map((value) => getUserFriendlyValue(value));
 const RECEIPT_TYPE_FRIENDLY_VALUES = CONST.SEARCH.SELECTABLE_RECEIPT_TYPES.map((value) => getUserFriendlyValue(value));
+const TRANSACTION_STATUS_FRIENDLY_VALUES = Object.values(CONST.SEARCH.TRANSACTION_STATUS).map((value) => getUserFriendlyValue(value));
 const WITHDRAWAL_TYPE_VALUES = Object.values(CONST.SEARCH.WITHDRAWAL_TYPE);
 const WITHDRAWAL_STATUS_VALUES = Object.values(CONST.SEARCH.SETTLEMENT_STATUS);
 const PAID_STATUS_VALUES = Object.values(CONST.SEARCH.PAID_STATUS);
@@ -107,12 +111,14 @@ function useAutocompleteSuggestions({
     allCards = CONST.EMPTY_OBJECT,
     allFeeds,
     options,
+    getReportByID,
     draftComments,
-    betas,
+    isDefaultRoomsBetaEnabled,
     countryCode,
     loginList,
     policies,
     visibleReportActionsData,
+    reportAttributesDerived,
     currentUserAccountID,
     currentUserEmail,
     personalDetails,
@@ -120,8 +126,8 @@ function useAutocompleteSuggestions({
     translate,
     autocompleteSubstitutions,
 }: UseAutocompleteSuggestionsParams): AutocompleteItemData[] {
-    const {localeCompare, dateFnsLocale} = useLocalize();
-    const {convertToDisplayString} = useCurrencyListActions();
+    const {localeCompare, dateFnsLocale, formatPhoneNumber} = useLocalize();
+    const {convertToDisplayString, convertToDisplayStringWithoutCurrency} = useCurrencyListActions();
     const [allPolicyCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES);
     const [allRecentCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES);
     const [recentCurrencyAutocompleteList] = useOnyx(ONYXKEYS.RECENTLY_USED_CURRENCIES);
@@ -132,6 +138,8 @@ function useAutocompleteSuggestions({
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const sortedReportActionsData = useSortedReportActionsData();
     const sortedActions = sortedReportActionsData?.sortedActions;
+    const transactionThreadIDs = sortedReportActionsData?.transactionThreadIDs;
+    const lastActions = sortedReportActionsData?.lastActions;
     const {currencyList} = useCurrencyListState();
     const {exportedToFilterOptions} = useExportedToFilterOptions();
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
@@ -252,9 +260,10 @@ function useAutocompleteSuggestions({
             const participants = getSearchOptions({
                 dateFnsLocale,
                 convertToDisplayString,
+                convertToDisplayStringWithoutCurrency,
                 options,
                 draftComments,
-                betas: betas ?? [],
+                isDefaultRoomsBetaEnabled,
                 isUsedInChatFinder: true,
                 includeReadOnly: true,
                 searchQuery: autocompleteValue,
@@ -270,11 +279,19 @@ function useAutocompleteSuggestions({
                 currentUserAccountID,
                 currentUserEmail,
                 personalDetails,
+                reportAttributesDerived,
+                currentUserLogin: currentUserEmail,
                 sortedActions,
+                transactionThreadIDs,
+                lastActions,
+                localeCompare,
+                formatPhoneNumber,
                 conciergeReportID,
                 excludeFromSuggestionsOnly: memberExclusions,
+                allPolicyTags: allPoliciesTags,
                 isTrackIntentUser,
                 translate,
+                getReportByID,
                 rules,
             }).options.personalDetails.filter((participant) => participant.text && !alreadyAutocompletedKeys.has(participant.text.toLowerCase()));
 
@@ -295,9 +312,10 @@ function useAutocompleteSuggestions({
             const filteredReports = getSearchOptions({
                 dateFnsLocale,
                 convertToDisplayString,
+                convertToDisplayStringWithoutCurrency,
                 options,
                 draftComments,
-                betas: betas ?? [],
+                isDefaultRoomsBetaEnabled,
                 isUsedInChatFinder: true,
                 includeReadOnly: true,
                 searchQuery: autocompleteValue,
@@ -313,10 +331,18 @@ function useAutocompleteSuggestions({
                 currentUserAccountID,
                 currentUserEmail,
                 personalDetails,
+                reportAttributesDerived,
+                currentUserLogin: currentUserEmail,
                 sortedActions,
+                transactionThreadIDs,
+                lastActions,
+                localeCompare,
+                formatPhoneNumber,
                 conciergeReportID,
+                allPolicyTags: allPoliciesTags,
                 isTrackIntentUser,
                 translate,
+                getReportByID,
                 rules,
             }).options.recentReports.filter((chat) => {
                 if (!chat.text) {
@@ -415,6 +441,16 @@ function useAutocompleteSuggestions({
             return filteredReceiptTypes.map((receiptType) => ({
                 filterKey: CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.RECEIPT_TYPE,
                 text: receiptType,
+            }));
+        }
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.TRANSACTION_STATUS: {
+            const filteredTransactionStatuses = TRANSACTION_STATUS_FRIENDLY_VALUES.filter(
+                (transactionStatus) => transactionStatus.includes(autocompleteValue.toLowerCase()) && !alreadyAutocompletedKeys.has(transactionStatus),
+            ).sort();
+
+            return filteredTransactionStatuses.map((transactionStatus) => ({
+                filterKey: CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.TRANSACTION_STATUS,
+                text: transactionStatus,
             }));
         }
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_TYPE: {
