@@ -6,6 +6,8 @@ import {
     handleReplaceFullscreenUnderRHP,
 } from '@libs/Navigation/AppNavigator/createRootStackNavigator/GetStateForActionHandlers';
 import type {RemoveFullscreenUnderRHPActionType, ReplaceFullscreenUnderRHPActionType} from '@libs/Navigation/AppNavigator/createRootStackNavigator/types';
+import {buildWideTabPreMount} from '@libs/Navigation/helpers/wideTabPreMount';
+import type {TabStateWithPreloads} from '@libs/Navigation/helpers/wideTabPreMount';
 import {markWideTabPreMountRouteKeyRevealed, setLiveWideTabPreMountRouteKey} from '@libs/Navigation/helpers/wideTabPreMountRouteKey';
 import type {NavigationPartialRoute, NavigationStateRoute, ReportsSplitNavigatorParamList} from '@libs/Navigation/types';
 
@@ -432,7 +434,7 @@ describe('handleReplaceFullscreenUnderRHP — focused Reports stack preservation
         const state = makeExistingReportsState(
             [
                 makeRoute(SCREENS.INBOX, undefined, undefined, 'inbox-key'),
-                makeRoute(SCREENS.REPORT, {reportID: 'B', reportActionID: 'old-action'}, undefined, 'Report-wide-pre-mount-7'),
+                makeRoute(SCREENS.REPORT, {reportID: 'B', reportActionID: 'old-action'}, undefined, 'Report-wide-pre-mount-8'),
                 makeRoute(SCREENS.REPORT, {reportID: 'A'}, undefined, 'report-a-key'),
             ],
             2,
@@ -444,19 +446,47 @@ describe('handleReplaceFullscreenUnderRHP — focused Reports stack preservation
                 key: 'reports-split-state-key',
                 history: [
                     {key: 'inbox-key', name: SCREENS.INBOX},
-                    {key: 'Report-wide-pre-mount-7', name: SCREENS.REPORT, params: {reportID: 'B', reportActionID: 'old-action'}},
+                    {key: 'Report-wide-pre-mount-8', name: SCREENS.REPORT, params: {reportID: 'B', reportActionID: 'old-action'}},
                     {key: 'report-a-key', name: SCREENS.REPORT, params: {reportID: 'A'}},
                 ],
             });
         }
-        const action: ReplaceFullscreenUnderRHPActionType = {...makeReportsAction('B'), payload: {...makeReportsAction('B').payload, preMountedRouteKey: 'Report-wide-pre-mount-7'}};
+        const action: ReplaceFullscreenUnderRHPActionType = {...makeReportsAction('B'), payload: {...makeReportsAction('B').payload, preMountedRouteKey: 'Report-wide-pre-mount-8'}};
 
         // When report B is revealed under the RHP
         const result = handleReplaceFullscreenUnderRHP(state, action, CONFIG_OPTIONS, stackRouter);
 
         // Then the history matches the revealed routes one to one, like a rehydrated stack, so back cannot land on the dropped report A
         const resultHistory: unknown[] = getReportsSplitState(result)?.history ?? [];
-        expect(resultHistory).toEqual([expect.objectContaining({key: 'inbox-key'}), expect.objectContaining({key: 'Report-wide-pre-mount-7', params: {reportID: 'B'}})]);
+        expect(resultHistory).toEqual([expect.objectContaining({key: 'inbox-key'}), expect.objectContaining({key: 'Report-wide-pre-mount-8', params: {reportID: 'B'}})]);
+    });
+
+    it.each([CONST.PLATFORM.WEB, CONST.PLATFORM.IOS])('reveals the pre-mount with the key and params it was mounted with on %s', (platform) => {
+        // Given a wide layout where report B was pre-mounted under the focused report A the way the submit flow builds it
+        mockGetPlatform.mockReturnValue(platform);
+        mockGetIsNarrowLayout.mockReturnValue(false);
+        mockStubbedParsedState = makeReportsParsedState('B');
+        const state = makeExistingReportsState([makeRoute(SCREENS.INBOX, undefined, undefined, 'inbox-key'), makeRoute(SCREENS.REPORT, {reportID: 'A'}, undefined, 'report-a-key')], 1);
+        const tabRoute = state.routes.at(0);
+        const reportsSplitState = getReportsSplitState(state);
+        if (!tabRoute?.state || !reportsSplitState) {
+            throw new Error('Expected the Reports tab to have a stack');
+        }
+        Object.assign(reportsSplitState, {stale: false, key: 'reports-split-state-key', routeNames: [SCREENS.INBOX, SCREENS.REPORT]});
+        const target = createMock<NavigationPartialRoute>({name: NAVIGATORS.REPORTS_SPLIT_NAVIGATOR, state: {index: 0, routes: [{name: SCREENS.REPORT, params: {reportID: 'B'}}]}});
+        const preMount = buildWideTabPreMount(createMock<TabStateWithPreloads>({...tabRoute.state, key: 'tab-state', stale: false}), target, 'Report-wide-pre-mount-7');
+        const preMountedRoute = preMount?.tabState.routes.at(0)?.state?.routes.find((route) => route.key === 'Report-wide-pre-mount-7');
+        Object.assign(tabRoute, {state: preMount?.tabState});
+        const action: ReplaceFullscreenUnderRHPActionType = {...makeReportsAction('B'), payload: {...makeReportsAction('B').payload, preMountedRouteKey: 'Report-wide-pre-mount-7'}};
+
+        // When report B is revealed under the RHP
+        const result = handleReplaceFullscreenUnderRHP(state, action, CONFIG_OPTIONS, stackRouter);
+        const destination = getReportsSplitState(result)?.routes.at(-1);
+
+        // Then the destination has the same key and params, which ReportFetchHandler needs to skip the reveal fetch and keep the unread marker
+        expect(preMountedRoute).toBeDefined();
+        expect(destination?.key).toBe(preMountedRoute?.key);
+        expect(destination?.params).toEqual(preMountedRoute?.params);
     });
 
     it('drops the pre-mount kept in the preserved native history, so the revealed destination is its only copy', () => {
