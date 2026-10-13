@@ -1914,7 +1914,6 @@ export {
     isSubmitterAndApprover,
     isSubmitAndClose,
     areApprovalsEnabled,
-    isTaxTrackingEnabled,
     shouldShowPolicy,
     getActiveAdminWorkspaces,
     hasActiveAdminWorkspaces,
