@@ -3,6 +3,7 @@ import type {ChartDataPoint} from '@components/Charts';
 
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 
 import {sanitizeCurrencyCode} from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -74,6 +75,7 @@ function SearchChartView({
     chartContainerStyle,
 }: SearchChartViewProps) {
     const {preferredLocale, translate, dateFnsLocale} = useLocalize();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {getCurrencySymbol, getCurrencyDecimals} = useCurrencyListActions();
     const {currentSearchKey} = useSearchQueryContext();
 
@@ -90,6 +92,8 @@ function SearchChartView({
         getInProgressLabel: (item) => getInProgressBucketLabel({groupBy, item, today, dateFnsLocale, dateFilterRange, translate}),
     });
     const points = rows.map((row) => row.point);
+
+    const labelSteps = shouldUseNarrowLayout && axisLabelSteps ? [Math.max(1, points.length - 1)] : axisLabelSteps;
 
     const handleItemPress = (dataPoint: ChartDataPoint, index: number) => {
         const item = rows.at(index)?.item;
@@ -144,7 +148,7 @@ function SearchChartView({
                     series={series}
                     isLoading={isLoading}
                     onPointPress={onItemPress}
-                    labelSteps={axisLabelSteps}
+                    labelSteps={labelSteps}
                     yAxisUnit={unit}
                     yAxisUnitPosition={unitPosition}
                 />
