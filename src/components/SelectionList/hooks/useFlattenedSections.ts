@@ -3,8 +3,6 @@ import type {FlattenedItem, Section, SectionListItem} from '@components/Selectio
 
 import CONST from '@src/CONST';
 
-import type {TupleToUnion} from 'type-fest';
-
 import {useMemo} from 'react';
 
 function isItemSelected<TItem extends ListItem>(item: TItem): boolean {
@@ -17,32 +15,26 @@ function isItemSelected<TItem extends ListItem>(item: TItem): boolean {
  * Selected items remain interactive even when marked as disabled.
  */
 function shouldTreatItemAsDisabled<TItem extends ListItem>(item: TItem | FlattenedItem<TItem>): boolean {
-    return !!item?.isDisabled && !('isSelected' in item && isItemSelected(item));
+    return !!item?.isDisabled && !isItemSelected(item as TItem);
 }
 
-type UseFlattenedSectionsResultGeneric<TItem extends ListItem> = {
-    flattenedData: Array<FlattenedItem<TItem>>;
+type UseFlattenedSectionsResult = {
+    flattenedData: Array<FlattenedItem<ListItem>>;
     disabledIndexes: number[];
     itemsCount: number;
-    selectedItems: TItem[];
+    selectedItems: ListItem[];
     initialFocusedIndex: number;
     firstFocusableIndex: number;
 };
 
-type UseFlattenedSections = <TItem extends ListItem>(sections: Array<Section<TItem>>, initiallyFocusedItemKey?: string | null) => UseFlattenedSectionsResultGeneric<TItem>;
-
 /**
- * Hook that flattens sections with headers and items into a single array for FlashList.
- * Also computes disabled indexes, selected items, and initial focus index.
- * The contextual generic keeps item provenance without declaring type params inside the hook,
- * which OXC's React Compiler cannot hoist.
+ * Non-generic implementation so OXC's React Compiler can memoize the hook.
+ * OXC bails on type params inside hooks ("Unsupported declaration type for hoisting").
  */
-const useFlattenedSections: UseFlattenedSections = (sections, initiallyFocusedItemKey) => {
+function useFlattenedSectionsImpl(sections: Array<Section<ListItem>>, initiallyFocusedItemKey?: string | null): UseFlattenedSectionsResult {
     return useMemo(() => {
-        type Item = TupleToUnion<typeof sections>['data'][number];
-
-        const data: Array<FlattenedItem<Item>> = [];
-        const selectedOptions: Item[] = [];
+        const data: Array<FlattenedItem<ListItem>> = [];
+        const selectedOptions: ListItem[] = [];
         const disabledIndices: number[] = [];
         let focusedIndex = -1;
         let firstNonHeaderIndex = -1;
@@ -66,12 +58,12 @@ const useFlattenedSections: UseFlattenedSections = (sections, initiallyFocusedIt
 
             for (const item of section.data ?? []) {
                 const currentIndex = data.length;
-                const itemData: SectionListItem<Item> = {
+                const itemData = {
                     ...item,
                     type: CONST.SECTION_LIST_ITEM_TYPE.ROW,
                     isDisabled: section.isDisabled === true || item.isDisabled === true,
                     flatListKey: `${section.sectionIndex}-${item.keyForList}`,
-                };
+                } as SectionListItem<ListItem>;
                 data.push(itemData);
 
                 if (firstNonHeaderIndex === -1) {
@@ -102,7 +94,24 @@ const useFlattenedSections: UseFlattenedSections = (sections, initiallyFocusedIt
             firstFocusableIndex: firstNonHeaderIndex === -1 ? 0 : firstNonHeaderIndex,
         };
     }, [initiallyFocusedItemKey, sections]);
+}
+
+type UseFlattenedSectionsResultGeneric<TItem extends ListItem> = {
+    flattenedData: Array<FlattenedItem<TItem>>;
+    disabledIndexes: number[];
+    itemsCount: number;
+    selectedItems: TItem[];
+    initialFocusedIndex: number;
+    firstFocusableIndex: number;
 };
+
+/**
+ * Hook that flattens sections with headers and items into a single array for FlashList.
+ * Also computes disabled indexes, selected items, and initial focus index.
+ */
+function useFlattenedSections<TItem extends ListItem>(sections: Array<Section<TItem>>, initiallyFocusedItemKey?: string | null): UseFlattenedSectionsResultGeneric<TItem> {
+    return useFlattenedSectionsImpl(sections as Array<Section<ListItem>>, initiallyFocusedItemKey) as UseFlattenedSectionsResultGeneric<TItem>;
+}
 
 export default useFlattenedSections;
 export {isItemSelected, shouldTreatItemAsDisabled};

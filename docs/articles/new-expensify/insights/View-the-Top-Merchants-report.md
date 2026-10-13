@@ -55,3 +55,20 @@ Select a merchant's bar to open **Spend** with a list of the expenses for that m
 ## Why does the same merchant appear more than once in Top merchants?
 
 Merchant names come from receipts and card transactions, so the same vendor can appear under different names, such as "Amazon.com" and "AMZN Marketplace." Each name is counted separately. Select each merchant to review its expenses.
+Each report provides a different view of your spending:
+
+- **Spend over time** shows how total expenses change over a date range.
+- **Top Categories** shows the highest-spending expense types (e.g., Travel, Meals).
+- **Top Spenders** shows which members submitted the most expenses.
+
+All reports help identify trends from different perspectives to support better financial decisions.
+
+## How is the Top Merchants report calculated?
+
+The report uses all expenses from the previous calendar month and groups them by merchant. It shows the **top 5 merchants** based on total spend.
+
+## Why do some merchant names look different?
+
+Merchant names are captured from receipt data and card transactions. The same vendor might appear under different names (e.g., "Amazon.com" vs "AMZN Marketplace"). You may need to review the individual expenses to confirm they're from the same merchant.
+
+---

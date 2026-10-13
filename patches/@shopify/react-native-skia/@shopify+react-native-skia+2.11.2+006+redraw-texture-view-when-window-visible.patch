@@ -1,0 +1,22 @@
+diff --git a/node_modules/@shopify/react-native-skia/android/src/main/java/com/shopify/reactnative/skia/SkiaTextureView.java b/node_modules/@shopify/react-native-skia/android/src/main/java/com/shopify/reactnative/skia/SkiaTextureView.java
+index d776590..d5ca875 100644
+--- a/node_modules/@shopify/react-native-skia/android/src/main/java/com/shopify/reactnative/skia/SkiaTextureView.java
++++ b/node_modules/@shopify/react-native-skia/android/src/main/java/com/shopify/reactnative/skia/SkiaTextureView.java
+@@ -29,6 +29,17 @@ public class SkiaTextureView extends TextureView implements TextureView.SurfaceT
+         super.onLayout(changed, left, top, right, bottom);
+     }
+ 
++    @Override
++    protected void onWindowVisibilityChanged(int visibility) {
++        super.onWindowVisibilityChanged(visibility);
++        // A stopped window drops the texture layer but keeps the SurfaceTexture, and a Dialog (RN Modal) never re-latches it
++        // like the activity's views do via onVisibilityChanged, so redraw to queue a fresh frame
++        SurfaceTexture surfaceTexture = getSurfaceTexture();
++        if (visibility == VISIBLE && surfaceTexture != null && getWidth() > 0 && getHeight() > 0) {
++            mApi.onSurfaceTextureChanged(surfaceTexture, getWidth(), getHeight());
++        }
++    }
++
+     @Override
+     public void onSurfaceTextureAvailable(@NonNull SurfaceTexture surfaceTexture, int width, int height) {
+         Log.i(tag, "onSurfaceTextureAvailable:  " + width + "x" + height);
