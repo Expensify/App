@@ -4903,7 +4903,8 @@ function openSupportTicket(resolvedSupportTicketReportID?: string) {
           }
         : {};
 
-    // eslint-disable-next-line rulesdir/no-api-side-effects-method -- reopening must wait for the server-selected report ID before navigating.
+    // Start the request before navigating so the optimistic support-ticket metadata is available for the pending LHN title.
+    // eslint-disable-next-line rulesdir/no-api-side-effects-method -- Reopening must wait for the server-selected report ID before navigating.
     const request = API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.CREATE_SUPPORT_TICKET, parameters, onyxData);
     if (newSupportTicketReportID) {
         Navigation.navigate(getReportRouteForCurrentContext({reportID: newSupportTicketReportID, isPendingCreation: true}));
