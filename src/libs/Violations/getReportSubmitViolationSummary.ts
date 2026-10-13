@@ -94,14 +94,15 @@ type BuildSubmitViolationBulletsParams = {
  * pending card match. Other violations use the same full message (with amounts/thresholds) shown elsewhere in the
  * app (e.g. the RBR message under an expense row), via ViolationsUtils.getViolationTranslation, rather than the
  * short label - so e.g. a receipt-required violation says "Receipt required over $25.00" instead of just "Expense
- * receipt required". That translation can include an HTML link (e.g. a broken-connection RTER message), which this
- * modal has no renderer for and which this call site doesn't have the data to build anyway (company-card page URL,
- * broken personal-card reconnect link); stripped to plain text here so an admin never sees a raw `<a href="...">`.
+ * receipt required".
  */
 function buildSubmitViolationBullets({summary, translate, dateFnsLocale, convertToDisplayString}: BuildSubmitViolationBulletsParams): string[] {
     const bullets: string[] = [];
 
     for (const violation of summary.otherViolations.values()) {
+        // The translation can include an HTML link (e.g. a broken-connection RTER message), which this modal has no
+        // renderer for and which this call site doesn't have the data to build anyway (company-card page URL, broken
+        // personal-card reconnect link); stripped to plain text here so an admin never sees a raw `<a href="...">`.
         bullets.push(Parser.htmlToText(ViolationsUtils.getViolationTranslation({violation, translate, dateFnsLocale, convertToDisplayString})));
     }
     if (summary.hasReportBeenRejected) {

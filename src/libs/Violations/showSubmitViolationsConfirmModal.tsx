@@ -24,8 +24,7 @@ type ShowSubmitViolationsConfirmModalParams = {
 };
 
 /**
- * Shows the "Submit report?" (or "Mark as done?") confirmation modal for a violation summary. Shared by every
- * Submit entry point so the copy, button style, and iOS popover-dismiss workaround can't drift between them.
+ * Shows the "Submit report?" (or "Mark as done?") confirmation modal for a violation summary.
  */
 function showSubmitViolationsConfirmModal({summary, showConfirmModal, translate, dateFnsLocale, convertToDisplayString, shouldShowMarkAsDoneCopy}: ShowSubmitViolationsConfirmModalParams) {
     const bullets = buildSubmitViolationBullets({summary, translate, dateFnsLocale, convertToDisplayString});

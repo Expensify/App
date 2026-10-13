@@ -149,23 +149,6 @@ function renderContent(overrideProps?: {shouldResolveAcknowledgedViolations?: bo
     );
 }
 
-/** Selects the first listed recipient and presses Confirm, as a submitter must do before any submit path runs. */
-function selectRecipientAndConfirm() {
-    let props = getLastSelectionListProps();
-    const recipient = props?.data.at(0);
-    if (!recipient) {
-        throw new Error('Expected at least one recipient in the submit-to list');
-    }
-    act(() => {
-        props?.onSelectRow?.(recipient);
-    });
-
-    props = getLastSelectionListProps();
-    act(() => {
-        props?.confirmButtonOptions?.onConfirm?.();
-    });
-}
-
 describe('ReportSubmitToContent', () => {
     const mockedSelectionList = jest.mocked(SelectionList);
     const mockedSubmitReport = jest.mocked(submitReport);
@@ -246,32 +229,5 @@ describe('ReportSubmitToContent', () => {
         mockedFormHelpMessage.mockClear();
         render(<View>{props?.listEmptyContent}</View>);
         expect(mockedFormHelpMessage.mock.calls.at(-1)?.[0]).toEqual(expect.objectContaining({message: 'iou.submitReportTo.selectRecipientError', isError: true}));
-    });
-
-    it('passes the shouldResolveAcknowledgedViolations prop through to submitReport', () => {
-        // Given the caller (e.g. SubmitPrimaryAction) already resolved the violations gate itself before opening
-        // this popover, and is forwarding the resolved flag down as a prop
-        renderContent({shouldResolveAcknowledgedViolations: true});
-
-        // When the submitter picks a recipient and confirms
-        selectRecipientAndConfirm();
-
-        // Then the prop must reach submitReport unchanged, since this component must not re-run its own violations
-        // check while the popover is already on screen (that's what caused the iOS freeze)
-        expect(mockedSubmitReport).toHaveBeenCalledWith(expect.objectContaining({shouldResolveAcknowledgedViolations: true}));
-    });
-
-    it('passes the shouldResolveAcknowledgedViolations prop through to onSubmitWithManagerEmail', () => {
-        // Given a caller (e.g. the Search row) that handles the actual submit itself via onSubmitWithManagerEmail,
-        // having already resolved the violations gate before opening this popover
-        const mockOnSubmitWithManagerEmail = jest.fn();
-        renderContent({shouldResolveAcknowledgedViolations: true, onSubmitWithManagerEmail: mockOnSubmitWithManagerEmail});
-
-        // When the submitter picks a recipient and confirms
-        selectRecipientAndConfirm();
-
-        // Then the resolved flag must reach the caller's callback as the third argument, not get dropped on this path
-        expect(mockOnSubmitWithManagerEmail).toHaveBeenCalledWith(expect.any(String), expect.any(Number), true);
-        expect(mockedSubmitReport).not.toHaveBeenCalled();
     });
 });

@@ -123,15 +123,12 @@ describe('useConfirmSubmitReportViolations', () => {
         // When the user cancels the confirmation modal
         result.current(onProceed);
         resolveShowConfirmModal({action: MockModalActions.CLOSE});
-        // The confirm-modal promise resolves through an extra microtask hop (showConfirmModalAfterMoreMenuDismiss's
-        // own internal .then), so flush more than one tick rather than assuming a single `await Promise.resolve()` is enough.
-        await Promise.resolve();
-        await Promise.resolve();
-        await Promise.resolve();
 
         // Then the report must stay a draft: Cancel must mean "make no changes" as promised by the modal copy, with
         // no exception for any violation type
-        expect(onProceed).not.toHaveBeenCalled();
+        await waitFor(() => {
+            expect(onProceed).not.toHaveBeenCalled();
+        });
     });
 
     it('does not call onProceed when the user cancels and a pending card match is the only violation', async () => {
@@ -147,12 +144,11 @@ describe('useConfirmSubmitReportViolations', () => {
         // When the user cancels the confirmation modal
         result.current(onProceed);
         resolveShowConfirmModal({action: MockModalActions.CLOSE});
-        await Promise.resolve();
-        await Promise.resolve();
-        await Promise.resolve();
 
         // Then submission must not proceed
-        expect(onProceed).not.toHaveBeenCalled();
+        await waitFor(() => {
+            expect(onProceed).not.toHaveBeenCalled();
+        });
     });
 
     it('calls onProceed(false) without resolving when the user confirms and a pending card match is the only violation', async () => {

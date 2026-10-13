@@ -21,19 +21,19 @@ const convertToDisplayString = jest.fn((amount: number | undefined, currency: st
 // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- test double stands in for the unused date-fns Locale param
 const dateFnsLocale = {} as LocaleContextProps['dateFnsLocale'];
 
-function violationsKey(transactionID: string) {
+function getViolationsKey(transactionID: string) {
     return `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`;
 }
 
-function transaction(transactionID: string): Transaction {
+function createMockTransaction(transactionID: string): Transaction {
     return createMock<Transaction>({transactionID});
 }
 
-function violation(name: TransactionViolation['name'], data?: TransactionViolation['data']): TransactionViolation {
+function createMockViolation(name: TransactionViolation['name'], data?: TransactionViolation['data']): TransactionViolation {
     return createMock<TransactionViolation>({name, data});
 }
 
-function rejectedReport(): Report {
+function createMockRejectedReport(): Report {
     return createMock<Report>({
         stateNum: CONST.REPORT.STATE_NUM.OPEN,
         nextStep: {icon: CONST.NEXT_STEP.ICONS.HOURGLASS, messageKey: CONST.NEXT_STEP.MESSAGE_KEY.REJECTED_REPORT},
@@ -43,7 +43,7 @@ function rejectedReport(): Report {
 describe('getReportSubmitViolationSummary', () => {
     it('returns all-false/empty when there are no violations', () => {
         // Given a transaction with an empty violations array (the shape Onyx reports once violations have been computed and none apply)
-        const summary = getReportSubmitViolationSummary([transaction('1')], {[violationsKey('1')]: []}, undefined, undefined, '', 0);
+        const summary = getReportSubmitViolationSummary([createMockTransaction('1')], {[getViolationsKey('1')]: []}, undefined, undefined, '', 0);
 
         // When the summary is built
         // Then the "Submit report?" modal has nothing to show, so every bucket must be empty
@@ -53,8 +53,8 @@ describe('getReportSubmitViolationSummary', () => {
     it('flags a rejected expense violation', () => {
         // Given a transaction whose expense was rejected by the backend
         const summary = getReportSubmitViolationSummary(
-            [transaction('1')],
-            {[violationsKey('1')]: [violation(CONST.VIOLATIONS.AUTO_REPORTED_REJECTED_EXPENSE)]},
+            [createMockTransaction('1')],
+            {[getViolationsKey('1')]: [createMockViolation(CONST.VIOLATIONS.AUTO_REPORTED_REJECTED_EXPENSE)]},
             undefined,
             undefined,
             '',
@@ -71,7 +71,14 @@ describe('getReportSubmitViolationSummary', () => {
 
     it('flags a pending RTER card-match violation', () => {
         // Given a transaction awaiting a potential match with a card transaction (pendingPattern, no rterType)
-        const summary = getReportSubmitViolationSummary([transaction('1')], {[violationsKey('1')]: [violation(CONST.VIOLATIONS.RTER, {pendingPattern: true})]}, undefined, undefined, '', 0);
+        const summary = getReportSubmitViolationSummary(
+            [createMockTransaction('1')],
+            {[getViolationsKey('1')]: [createMockViolation(CONST.VIOLATIONS.RTER, {pendingPattern: true})]},
+            undefined,
+            undefined,
+            '',
+            0,
+        );
 
         // When the summary is built
         // Then it must land in the dedicated "pending card match" bucket, since that's the one the modal uses to
@@ -86,11 +93,11 @@ describe('getReportSubmitViolationSummary', () => {
         // RTER is only shown to the report's submitter, so the report must be owned by the current test user.
         const currentUserAccountID = 1;
         const ownedReport = createMock<Report>({ownerAccountID: currentUserAccountID});
-        const rterViolation = violation(CONST.VIOLATIONS.RTER, {pendingPattern: true, rterType: CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION});
+        const rterViolation = createMockViolation(CONST.VIOLATIONS.RTER, {pendingPattern: true, rterType: CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION});
         const summary = getReportSubmitViolationSummary(
-            [transaction('1')],
+            [createMockTransaction('1')],
             {
-                [violationsKey('1')]: [rterViolation],
+                [getViolationsKey('1')]: [rterViolation],
             },
             ownedReport,
             undefined,
@@ -108,8 +115,8 @@ describe('getReportSubmitViolationSummary', () => {
 
     it('buckets any other violation name into otherViolations', () => {
         // Given a transaction with a violation that isn't rejected-expense or RTER (e.g. a policy category limit)
-        const overCategoryLimitViolation = violation(CONST.VIOLATIONS.OVER_CATEGORY_LIMIT);
-        const summary = getReportSubmitViolationSummary([transaction('1')], {[violationsKey('1')]: [overCategoryLimitViolation]}, undefined, undefined, '', 0);
+        const overCategoryLimitViolation = createMockViolation(CONST.VIOLATIONS.OVER_CATEGORY_LIMIT);
+        const summary = getReportSubmitViolationSummary([createMockTransaction('1')], {[getViolationsKey('1')]: [overCategoryLimitViolation]}, undefined, undefined, '', 0);
 
         // When the summary is built
         // Then it must be collected as an informational-only bullet, since the modal only needs to warn the user, not resolve anything
@@ -118,12 +125,12 @@ describe('getReportSubmitViolationSummary', () => {
 
     it('aggregates violations across multiple transactions', () => {
         // Given two transactions on the same report, each with a different kind of violation
-        const overCategoryLimitViolation = violation(CONST.VIOLATIONS.OVER_CATEGORY_LIMIT);
+        const overCategoryLimitViolation = createMockViolation(CONST.VIOLATIONS.OVER_CATEGORY_LIMIT);
         const summary = getReportSubmitViolationSummary(
-            [transaction('1'), transaction('2')],
+            [createMockTransaction('1'), createMockTransaction('2')],
             {
-                [violationsKey('1')]: [violation(CONST.VIOLATIONS.AUTO_REPORTED_REJECTED_EXPENSE)],
-                [violationsKey('2')]: [overCategoryLimitViolation],
+                [getViolationsKey('1')]: [createMockViolation(CONST.VIOLATIONS.AUTO_REPORTED_REJECTED_EXPENSE)],
+                [getViolationsKey('2')]: [overCategoryLimitViolation],
             },
             undefined,
             undefined,
@@ -139,7 +146,7 @@ describe('getReportSubmitViolationSummary', () => {
 
     it('ignores transactions with no violations entry', () => {
         // Given a transaction whose violations haven't been fetched into Onyx yet (key absent from the collection)
-        const summary = getReportSubmitViolationSummary([transaction('1')], {}, undefined, undefined, '', 0);
+        const summary = getReportSubmitViolationSummary([createMockTransaction('1')], {}, undefined, undefined, '', 0);
 
         // When the summary is built
         // Then it must not throw or treat the missing key as a violation, so a report just isn't flagged instead of crashing
@@ -151,7 +158,7 @@ describe('getReportSubmitViolationSummary', () => {
         // where the individual transactions carry no AUTO_REPORTED_REJECTED_EXPENSE violation of their own - the PO
         // asked for these two cases to use different copy, since a report-level rejection has no per-expense
         // "Mark as resolved" action, unlike a transaction-level rejected-expense violation
-        const summary = getReportSubmitViolationSummary([transaction('1')], {[violationsKey('1')]: []}, rejectedReport(), undefined, '', 0);
+        const summary = getReportSubmitViolationSummary([createMockTransaction('1')], {[getViolationsKey('1')]: []}, createMockRejectedReport(), undefined, '', 0);
 
         // When the summary is built
         // Then it must surface the report-level rejection in its own bucket, and must NOT also flag the
@@ -164,8 +171,8 @@ describe('getReportSubmitViolationSummary', () => {
         // Given a report whose nextStep still carries a stale REJECTED_REPORT messageKey but whose stateNum has moved on
         // (e.g. resubmitted and now back in an approval state)
         const summary = getReportSubmitViolationSummary(
-            [transaction('1')],
-            {[violationsKey('1')]: []},
+            [createMockTransaction('1')],
+            {[getViolationsKey('1')]: []},
             createMock<Report>({
                 stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
                 nextStep: {icon: CONST.NEXT_STEP.ICONS.HOURGLASS, messageKey: CONST.NEXT_STEP.MESSAGE_KEY.REJECTED_REPORT},
@@ -197,7 +204,7 @@ describe('buildSubmitViolationBullets', () => {
             hasRejectedExpense: true,
             hasReportBeenRejected: true,
             hasPendingCardMatch: true,
-            otherViolations: new Map([[CONST.VIOLATIONS.OVER_CATEGORY_LIMIT, violation(CONST.VIOLATIONS.OVER_CATEGORY_LIMIT)]]),
+            otherViolations: new Map([[CONST.VIOLATIONS.OVER_CATEGORY_LIMIT, createMockViolation(CONST.VIOLATIONS.OVER_CATEGORY_LIMIT)]]),
         };
 
         // When the bullets are built
@@ -215,7 +222,7 @@ describe('buildSubmitViolationBullets', () => {
 
     it('builds the full receipt-required message with the formatted threshold amount, not the short label', () => {
         // Given a receipt-required violation whose data carries the policy's no-receipt amount threshold (e.g. $25)
-        const receiptRequiredViolation = violation(CONST.VIOLATIONS.RECEIPT_REQUIRED, {amount: 2500, currency: 'USD'});
+        const receiptRequiredViolation = createMockViolation(CONST.VIOLATIONS.RECEIPT_REQUIRED, {amount: 2500, currency: 'USD'});
         const summary = {
             hasRejectedExpense: false,
             hasReportBeenRejected: false,
@@ -239,7 +246,7 @@ describe('buildSubmitViolationBullets', () => {
         // so the real translation renders one with an "undefined" href if the markup isn't stripped
         // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- narrows the test double to the wider LocaleContextProps['translate'] signature the function under test expects
         const htmlTranslate = jest.fn(() => 'Bank connection broken. <a href="undefined">Reconnect to match receipt</a>') as unknown as LocaleContextProps['translate'];
-        const rterViolation = violation(CONST.VIOLATIONS.RTER, {brokenBankConnection: true, isAdmin: true});
+        const rterViolation = createMockViolation(CONST.VIOLATIONS.RTER, {brokenBankConnection: true, isAdmin: true});
         const summary = {
             hasRejectedExpense: false,
             hasReportBeenRejected: false,

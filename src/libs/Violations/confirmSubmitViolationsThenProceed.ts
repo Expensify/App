@@ -29,8 +29,7 @@ type ConfirmSubmitViolationsThenProceedParams = {
  * otherwise shows it and only proceeds if the user confirms - cancelling always just returns to the report so
  * the user can fix violations manually. Every violation other than a rejected expense, including a pending card
  * match, stays on the expense even after confirming; only the user's own "Mark as cash" action resolves that
- * one, and RTER's own backend logic decides separately whether a card-matched expense can still submit. Every
- * Submit entry point uses this so the sequence can't drift between them.
+ * one, and RTER's own backend logic decides separately whether a card-matched expense can still submit.
  */
 function confirmSubmitViolationsThenProceed({
     summary,
