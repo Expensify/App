@@ -27,7 +27,6 @@ import {getRateID} from '@libs/TransactionUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {ReusableDistanceRoute} from '@src/types/onyx';
 
@@ -144,7 +143,6 @@ function IOURequestStepReuseRoute({
         currentUserLocalCurrency: currentUserPersonalDetails.localCurrencyCode ?? CONST.CURRENCY.USD,
         backTo: undefined,
         backToReport,
-        confirmationBackTo: ROUTES.MONEY_REQUEST_STEP_REUSE_ROUTE.getRoute(action, iouType, transactionID, reportID, backToReport),
         shouldSkipConfirmation,
         defaultExpensePolicy,
         isArchived,

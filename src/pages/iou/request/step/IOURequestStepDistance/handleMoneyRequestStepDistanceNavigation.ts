@@ -72,7 +72,6 @@ type MoneyRequestStepDistanceNavigationParams = {
     currentUserLocalCurrency: string | undefined;
     backTo?: Route;
     backToReport?: string;
-    confirmationBackTo?: string;
     shouldSkipConfirmation: boolean;
     defaultExpensePolicy?: OnyxEntry<Policy> | null;
     isArchivedExpenseReport: boolean;
@@ -179,7 +178,6 @@ function handleMoneyRequestStepDistanceNavigation({
     currentUserLocalCurrency,
     backTo,
     backToReport,
-    confirmationBackTo,
     shouldSkipConfirmation,
     defaultExpensePolicy,
     isArchivedExpenseReport,
@@ -471,7 +469,7 @@ function handleMoneyRequestStepDistanceNavigation({
             return;
         }
         setMoneyRequestParticipantsFromReport(transactionID, report, currentUserAccountID).then(() => {
-            navigateToConfirmationPage(iouType, transactionID, reportID, backToReport, false, undefined, isManualDistance, confirmationBackTo);
+            navigateToConfirmationPage(iouType, transactionID, reportID, backToReport, false, undefined, isManualDistance);
         });
         return;
     }
@@ -516,17 +514,7 @@ function handleMoneyRequestStepDistanceNavigation({
         }
 
         setMoneyRequestParticipantsFromReport(transactionID, targetReport, currentUserAccountID).then(() => {
-            Navigation.navigate(
-                ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(
-                    CONST.IOU.ACTION.CREATE,
-                    iouTypeTrackOrSubmit,
-                    transactionID,
-                    targetReport?.reportID,
-                    undefined,
-                    undefined,
-                    confirmationBackTo,
-                ),
-            );
+            Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, iouTypeTrackOrSubmit, transactionID, targetReport?.reportID));
         });
     } else {
         navigateToParticipantPage(iouType, transactionID, reportID);

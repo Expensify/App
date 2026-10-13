@@ -74,9 +74,6 @@ type UseDistanceNavigationParams = {
     /** Optional report to return to after submission completes. */
     backToReport: string | undefined;
 
-    /** Optional route that the confirmation screen should return to. */
-    confirmationBackTo?: string;
-
     /** True when the quick-action flow should bypass the confirmation screen. */
     shouldSkipConfirmation: boolean;
 
@@ -127,7 +124,6 @@ function useDistanceNavigation({
     currentUserLocalCurrency,
     backTo,
     backToReport,
-    confirmationBackTo,
     shouldSkipConfirmation,
     defaultExpensePolicy,
     isArchived,
@@ -199,7 +195,6 @@ function useDistanceNavigation({
             currentUserLocalCurrency,
             backTo,
             backToReport,
-            confirmationBackTo,
             shouldSkipConfirmation,
             defaultExpensePolicy,
             isArchivedExpenseReport: isArchived,
