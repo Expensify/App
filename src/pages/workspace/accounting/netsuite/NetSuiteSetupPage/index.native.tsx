@@ -17,6 +17,7 @@ function NetSuiteSetupPage({route}: NetSuiteSetupPageProps) {
     const policyID = route.params.policyID;
     const accountID = route.params.accountID;
     const isUnifiedConnectionsBetaEnabled = useIsUnifiedConnectionsBetaEnabled();
+    const isMigration = route.params.isMigration === 'true';
 
     if (!accountID) {
         return null;
@@ -24,7 +25,7 @@ function NetSuiteSetupPage({route}: NetSuiteSetupPageProps) {
 
     return (
         <AccountingSetupWebViewPage
-            uri={getNetSuiteSetupLink(policyID, accountID)}
+            uri={getNetSuiteSetupLink(policyID, accountID, isMigration)}
             testID="NetSuiteSetupPage"
             shouldAppendShortLivedAuthToken
             backTo={getAccountingConnectionsRoute(isUnifiedConnectionsBetaEnabled, policyID)}

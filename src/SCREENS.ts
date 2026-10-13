@@ -187,6 +187,7 @@ const SCREENS = {
             TRANSACTIONS_IMPORTED: 'Settings_Wallet_Transactions_Imported',
             ENABLE_PAYMENTS: 'Settings_Wallet_EnablePayments',
             ENABLE_PAYMENTS_CONFIRM_VALIDATE_CODE: 'Settings_Wallet_EnablePayments_ConfirmValidateCode',
+            DYNAMIC_ENABLE_PAYMENTS_CONFIRM_VALIDATE_CODE: 'Dynamic_Settings_Wallet_EnablePayments_ConfirmValidateCode',
             CARD_ACTIVATE: 'Settings_Wallet_Card_Activate',
             CARD_ADD_TO_DIGITAL_WALLET: 'Settings_Wallet_Card_Add_To_Digital_Wallet',
             CARD_ADDED_TO_WALLET: 'Settings_Wallet_Card_Added_To_Wallet',
@@ -253,6 +254,7 @@ const SCREENS = {
             EARLY_RENEWAL: 'Settings_Subscription_EarlyRenewal',
             DYNAMIC_SUBSCRIPTION_DOWNGRADE_BLOCKED: 'Dynamic_Settings_Subscription_DowngradeBlocked',
             PAYMENT_HISTORY: 'Settings_Subscription_PaymentHistory',
+            PAYMENT_DETAILS: 'Settings_Subscription_PaymentDetails',
         },
     },
     TWO_FACTOR_AUTH: {
@@ -1142,6 +1144,7 @@ const SCREENS = {
     SIGN_IN_ROOT: 'SignIn_Root',
     DETAILS_ROOT: 'Details_Root',
     DYNAMIC_PROFILE: 'Dynamic_Profile_Root',
+    DYNAMIC_PROFILE_DISPLAY_NAME: 'Dynamic_Profile_Display_Name',
     AUTO_SUBMIT_ROOT: 'AutoSubmit_Modal_Root',
     DYNAMIC_CHANGE_POLICY_EDUCATIONAL_ROOT: 'DynamicChangePolicyEducational_Root',
     REPORT_DESCRIPTION_ROOT: 'Report_Description_Root',
