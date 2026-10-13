@@ -29,6 +29,7 @@ import {
     getReportActionsFromSearchSnapshot,
     getReportFromSearchSnapshot,
     getReportType,
+    setSearchMergeReportIDs,
     getChatReportWithFallback,
     getSearchApproveOnyxData,
     getSearchPayOnyxData,
@@ -58,6 +59,7 @@ import {getConnectedIntegration, isAdminOfCardEnabledPolicy, isSubmitPolicy} fro
 import {getReportAccountingExportActions, isMergeActionForSelectedTransactions} from '@libs/ReportSecondaryActionUtils';
 import {
     canEditMultipleTransactions,
+    canIOUBePaid,
     canMergeReports,
     getAllPolicyExpenseChatReportActions,
     getIntegrationIcon,
@@ -117,7 +119,6 @@ import variables from '@styles/variables';
 
 import {initBulkEditDraftTransaction} from '@userActions/IOU/BulkEdit';
 import {dismissRejectUseExplanation} from '@userActions/IOU/RejectMoneyRequest';
-import {canIOUBePaid} from '@userActions/IOU/ReportWorkflow';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -154,9 +155,11 @@ import useOnyx from './useOnyx';
 import {getParticipantsInvoiceReport} from './useParticipantsInvoiceReport';
 import usePaymentContext from './usePaymentContext';
 import usePermissions from './usePermissions';
+import {useGetPersonalDetailsByLogin} from './usePersonalDetailByLogin';
 import {useAllPersonalDetails} from './usePersonalDetails';
 import usePersonalPolicy from './usePersonalPolicy';
 import usePolicyForMovingExpenses from './usePolicyForMovingExpenses';
+import useReportPDFDownloadModal from './useReportPDFDownloadModal';
 import useRestrictedActionPolicyID from './useRestrictedActionPolicyID';
 import useSearchShouldCalculateTotals from './useSearchShouldCalculateTotals';
 import useSelfDMReport from './useSelfDMReport';
@@ -666,13 +669,12 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
 
     const [isOfflineModalVisible, setIsOfflineModalVisible] = useState(false);
     const [isDownloadErrorModalVisible, setIsDownloadErrorModalVisible] = useState(false);
-    const [isPdfModalVisible, setIsPdfModalVisible] = useState(false);
-    const [pdfReportID, setPdfReportID] = useState<string | undefined>(undefined);
     const [isExpensifyCardStatementPDFModalVisible, setIsExpensifyCardStatementPDFModalVisible] = useState(false);
     const [expensifyCardStatementPDFParams, setExpensifyCardStatementPDFParams] = useState<ExpensifyCardStatementParams | undefined>(undefined);
     const [isExpensifyCardStatementMultiFeedAlertVisible, setIsExpensifyCardStatementMultiFeedAlertVisible] = useState(false);
     const {showConfirmModal} = useConfirmModal();
     const openSearchReportSubmitToPopover = useOpenSearchReportSubmitToPopover();
+    const {showReportPDFDownloadModal} = useReportPDFDownloadModal();
     const [isHoldEducationalModalVisible, setIsHoldEducationalModalVisible] = useState(false);
     const [rejectModalAction, setRejectModalAction] = useState<ValueOf<
         typeof CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.HOLD | typeof CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.REJECT
@@ -688,6 +690,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
     const [nonPersonalAndWorkspaceCards] = useOnyx(ONYXKEYS.DERIVED.NON_PERSONAL_AND_WORKSPACE_CARD_LIST);
     // "Auto report" cannot read a card's absence as no access until every card has arrived.
     const {areCardsLoaded: isSearchCardListComplete} = useLoadSearchCardData();
+    const getPersonalDetailsByLogin = useGetPersonalDetailsByLogin();
 
     const isExpenseReportType = queryJSON?.type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT;
     const expensifyIcons = useMemoizedLazyExpensifyIcons([
@@ -1426,9 +1429,12 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
     const deleteModalTitle = isDeletingOnlyExpenses
         ? getDeleteExpenseTitle(translate, expenseCount === 1 ? firstTransaction : undefined, expenseCount)
         : translate('iou.deleteReport', {count: deleteCount});
-    const deleteModalPrompt = isDeletingOnlyExpenses
-        ? getDeleteConfirmationPrompt(translate, expenseCount === 1 ? firstTransaction : undefined, expenseCount, hasSomePendingExpenses)
-        : translate('iou.deleteReportConfirmation', {count: deleteCount});
+    let deleteModalPrompt = translate('iou.deleteReportConfirmation', {count: deleteCount});
+    if (isDeletingOnlyExpenses) {
+        deleteModalPrompt = getDeleteConfirmationPrompt(translate, expenseCount === 1 ? firstTransaction : undefined, expenseCount, hasSomePendingExpenses);
+    } else if (isExpenseReportType && deleteCount === 1) {
+        deleteModalPrompt = translate('iou.deleteExpenseReportConfirmation');
+    }
 
     const handleDeleteSelectedTransactions = useCallback(async () => {
         if (!hash) {
@@ -2584,8 +2590,9 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                         return;
                     }
                     await exportReportToPDF({reportID: reportIDForPDF});
-                    setPdfReportID(reportIDForPDF);
-                    setIsPdfModalVisible(true);
+                    showReportPDFDownloadModal({reportID: reportIDForPDF});
+                    selectAllMatchingItems(false);
+                    clearSelectedTransactions(undefined, true);
                     return;
                 }
                 exportReportsToPDF(selectedReportIDs);
@@ -2842,6 +2849,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                                         getLoginByAccountID(snapshotReport.ownerAccountID, personalDetails),
                                         getCurrencyDecimals,
                                         rules,
+                                        getPersonalDetailsByLogin(),
                                         currentSearchKey,
                                         managerEmail,
                                         managerAccountID,
@@ -2860,13 +2868,22 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                         return;
                     }
 
+                    const personalDetailsByLogins = getPersonalDetailsByLogin();
                     for (const item of itemList) {
                         if (item.reportID && blockedReportIDs.has(item.reportID)) {
                             continue;
                         }
                         const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${item.policyID}`];
                         if (policy) {
-                            submitMoneyRequestOnSearch(hash, [item as Report], [policy], getLoginByAccountID(item.ownerAccountID, personalDetails), getCurrencyDecimals, rules);
+                            submitMoneyRequestOnSearch(
+                                hash,
+                                [item as Report],
+                                [policy],
+                                getLoginByAccountID(item.ownerAccountID, personalDetails),
+                                getCurrencyDecimals,
+                                rules,
+                                personalDetailsByLogins,
+                            );
                         } else {
                             Log.info('[BulkSubmit] Skipping report: policy not found in Onyx', false, {reportID: item?.reportID, policyID: item?.policyID});
                         }
@@ -2922,14 +2939,18 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             isBetaEnabled(CONST.BETAS.REPORT_MERGE) &&
             selectedMergeReports.length === selectedReports.length &&
             queryJSON?.type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT &&
-            canMergeReports(selectedMergeReports, currentUserPersonalDetails.accountID, rules)
+            canMergeReports(selectedMergeReports, currentUserPersonalDetails.accountID, rules, allReportNameValuePairs)
         ) {
             options.push({
                 icon: expensifyIcons.ArrowCollapse,
                 text: translate('search.mergeReports.title'),
                 value: CONST.SEARCH.BULK_ACTION_TYPES.MERGE_REPORTS,
                 shouldCloseModalOnSelect: true,
-                onSelected: () => Navigation.navigate(ROUTES.MERGE_REPORTS_SEARCH_RHP.getRoute()),
+                onSelected: () => {
+                    setSearchMergeReportIDs(selectedReportIDs).then(() => {
+                        Navigation.navigate(ROUTES.MERGE_REPORTS_SEARCH_RHP.getRoute(Navigation.getActiveRoute()));
+                    });
+                },
             });
         }
 
@@ -3038,7 +3059,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             });
         }
 
-        const shouldShowUnholdOption = !isOffline && selectedTransactionsKeys.every((id) => selectedTransactions[id].canUnhold);
+        const shouldShowUnholdOption = selectedTransactionsKeys.every((id) => selectedTransactions[id].canUnhold);
 
         if (shouldShowUnholdOption) {
             options.push({
@@ -3047,11 +3068,6 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 value: CONST.SEARCH.BULK_ACTION_TYPES.UNHOLD,
                 shouldCloseModalOnSelect: true,
                 onSelected: () => {
-                    if (isOffline) {
-                        setIsOfflineModalVisible(true);
-                        return;
-                    }
-
                     if (isDelegateAccessRestricted) {
                         showDelegateNoAccessModal();
                         return;
@@ -3309,6 +3325,9 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         currentSearchResults?.search?.isLoading,
         shouldCalculateTotalsOnRefresh,
         rules,
+        allReportNameValuePairs,
+        showReportPDFDownloadModal,
+        getPersonalDetailsByLogin,
     ]);
 
     // When the dropdown surfaces the export options directly there is no "Export" row above them, so on its own the
@@ -3325,11 +3344,6 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
     const handleDownloadErrorModalClose = useCallback(() => {
         setIsDownloadErrorModalVisible(false);
     }, [setIsDownloadErrorModalVisible]);
-
-    const handlePdfModalHide = useCallback(() => {
-        setPdfReportID(undefined);
-        clearSelectedTransactions();
-    }, [clearSelectedTransactions]);
 
     const handleExpensifyCardStatementPDFModalHide = useCallback(() => {
         setExpensifyCardStatementPDFParams(undefined);
@@ -3381,10 +3395,6 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         emptyReportsCount,
         handleOfflineModalClose,
         handleDownloadErrorModalClose,
-        isPdfModalVisible,
-        setIsPdfModalVisible,
-        pdfReportID,
-        handlePdfModalHide,
         isExpensifyCardStatementPDFModalVisible,
         setIsExpensifyCardStatementPDFModalVisible,
         expensifyCardStatementPDFParams,

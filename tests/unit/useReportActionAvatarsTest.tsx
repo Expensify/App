@@ -201,6 +201,61 @@ describe('useReportActionAvatars', () => {
         });
     });
 
+    describe('support ticket avatars', () => {
+        const customerAccountID = 12345;
+        const assigneeAccountID = 23456;
+        const parentReportID = '9300';
+        const parentActionID = '9301';
+        const assigneeAvatar = 'https://example.com/rep-avatar.png';
+        const customerAvatar = 'https://example.com/customer-avatar.png';
+        const supportTicket = {
+            reportID: '9302',
+            type: CONST.REPORT.TYPE.SUPPORT_TICKET,
+            chatReportID: parentReportID,
+            parentReportID,
+            parentReportActionID: parentActionID,
+            ownerAccountID: customerAccountID,
+            managerID: assigneeAccountID,
+        };
+        const customerAction = {
+            ...createRandomReportAction(Number(parentActionID)),
+            actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+            actorAccountID: customerAccountID,
+            childReportID: supportTicket.reportID,
+        };
+
+        beforeEach(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`, createRegularChat(Number(parentReportID), [CONST.ACCOUNT_ID.CONCIERGE, customerAccountID]));
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`, {[parentActionID]: customerAction});
+            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+                [customerAccountID]: {accountID: customerAccountID, displayName: 'Customer', avatar: customerAvatar},
+                [assigneeAccountID]: {accountID: assigneeAccountID, displayName: 'Support rep', avatar: assigneeAvatar},
+            });
+            await waitForBatchedUpdates();
+        });
+
+        afterEach(() => Onyx.clear());
+
+        test('shows the assigned rep in the header even when the parent message is loaded', () => {
+            // Given a support ticket created from the customer's Concierge message
+            // When its header requests the report avatar
+            const {result} = renderHook(() => useReportActionAvatars({report: supportTicket, action: undefined}), {wrapper});
+
+            // Then the header identifies the assigned rep, not the customer
+            expect(result.current.avatarType).toBe(CONST.REPORT_ACTION_AVATARS.TYPE.SINGLE);
+            expect(result.current.avatars.at(0)).toMatchObject({id: assigneeAccountID, source: assigneeAvatar});
+        });
+
+        test('keeps the customer avatar on their support ticket messages', () => {
+            // Given a message authored by the customer in a support ticket
+            // When the message requests its author avatar
+            const {result} = renderHook(() => useReportActionAvatars({report: supportTicket, action: customerAction}), {wrapper});
+
+            // Then it identifies the customer rather than the assigned rep
+            expect(result.current.avatars.at(0)).toMatchObject({id: customerAccountID, source: customerAvatar});
+        });
+    });
+
     describe('derived parent preview action', () => {
         const chatReportID = 9100;
         const iouReportID = 9101;

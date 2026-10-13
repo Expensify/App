@@ -19,6 +19,7 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useOriginalReportID from '@hooks/useOriginalReportID';
 import {usePersonalDetail} from '@hooks/usePersonalDetails';
+import useReportsParentHierarchy from '@hooks/useReportsParentHierarchy';
 import useReportTransactionsCollection from '@hooks/useReportTransactionsCollection';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -55,6 +56,7 @@ import {
     isPendingRemove,
     isTripPreview,
     isWhisperActionTargetedToOthers,
+    shouldHidePayAction,
     useTableReportViewActionRenderConditionals,
 } from '@libs/ReportActionsUtils';
 import {
@@ -108,6 +110,7 @@ import ReportActionItemFrame from './ReportActionItemFrame';
 import ReportActionItemThread from './ReportActionItemThread';
 import SearchActionHeader from './SearchActionHeader';
 import TripSummary from './TripSummary';
+import useShouldEditInComposer from './useShouldEditInComposer';
 import WhisperBanner from './WhisperBanner';
 
 type ReportActionItemProps = {
@@ -189,6 +192,7 @@ function ReportActionItem({
     const reportID = report?.reportID ?? action?.reportID;
     const originalReportID = useOriginalReportID(report?.reportID, action);
     const {isOffline} = useNetwork();
+    const reportsParentHierarchy = useReportsParentHierarchy();
     const [iouReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getIOUReportIDFromReportActionPreview(action)}`, {selector: getStableReportSelector});
     const [iouPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${iouReport?.policyID}`);
 
@@ -223,6 +227,7 @@ function ReportActionItem({
     const [actorDisplayName] = usePersonalDetail(action.actorAccountID, displayNameOrDefaultSelector(translate, formatPhoneNumber));
     const {showConfirmModal} = useConfirmModal();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const shouldEditInComposer = useShouldEditInComposer();
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -244,10 +249,9 @@ function ReportActionItem({
     const highlightedBackgroundColorIfNeeded = isReportActionLinked || shouldHighlight ? StyleUtils.getBackgroundColorStyle(theme.messageHighlightBG) : {};
 
     const isDeletedParentAction = isDeletedParentActionUtils(action);
-
     const draftMessage = editingReportAction && action && editingReportAction.reportActionID === action.reportActionID ? (editingMessage ?? undefined) : undefined;
     const hasDraft = draftMessage !== undefined;
-    const isEditingInline = !shouldUseNarrowLayout && hasDraft;
+    const isEditingInline = !shouldEditInComposer && hasDraft;
 
     // IOUDetails only exists when we are sending money
     const isSendingMoney = isMoneyRequestAction(action) && getOriginalMessage(action)?.type === CONST.IOU.REPORT_ACTION_TYPE.PAY && getOriginalMessage(action)?.IOUDetails;
@@ -291,7 +295,7 @@ function ReportActionItem({
         if (transactionIDToDismiss) {
             clearErrorWithOriginalTransactionError(transactionIDToDismiss, originalTransactionID, isOriginalTransactionSplitContainer);
         }
-        clearAllRelatedReportActionErrors(reportID, action, originalReportID, isOffline);
+        clearAllRelatedReportActionErrors({reportID, reportAction: action, originalReportID, isOffline, reports: reportsParentHierarchy});
     };
 
     const showDismissReceiptErrorModal = async () => {
@@ -503,7 +507,7 @@ function ReportActionItem({
 
     // For the `pay` IOU action on non-pay expense flow, we don't want to render anything if `isWaitingOnBankAccount` is true
     // Otherwise, we will see two system messages informing the payee needs to add a bank account or wallet
-    if (isMoneyRequestAction(action) && !!report?.isWaitingOnBankAccount && getOriginalMessage(action)?.type === CONST.IOU.REPORT_ACTION_TYPE.PAY && !isSendingMoney) {
+    if (shouldHidePayAction(action, !!report?.isWaitingOnBankAccount)) {
         return null;
     }
 
@@ -668,7 +672,7 @@ function ReportActionItem({
                                                                     <LinkPreviewer linkMetadata={action.linkMetadata?.filter((item) => !isEmptyObject(item))} />
                                                                 </View>
                                                             )}
-                                                            {!isOnSearch && !isMessageDeleted(action) && (
+                                                            {!isOnSearch && !isMessageDeleted(action) && action.actionName !== CONST.REPORT.ACTIONS.TYPE.SUPPORT_SURVEY && (
                                                                 <ReportActionItemEmojiReactions
                                                                     reportAction={action}
                                                                     reportID={reportID}
