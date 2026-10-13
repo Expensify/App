@@ -4,7 +4,6 @@ import useIsInSidePanel from '@hooks/useIsInSidePanel';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import CONST from '@src/CONST';
@@ -32,7 +31,6 @@ function ShowPreviousMessagesButton({reportID, actionType, hasPreviousMessages, 
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['UpArrow']);
-    const {isBetaEnabled} = usePermissions();
     const isInSidePanel = useIsInSidePanel();
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const isConciergeChat = reportID === conciergeReportID;
@@ -41,7 +39,7 @@ function ShowPreviousMessagesButton({reportID, actionType, hasPreviousMessages, 
         return null;
     }
     // ConciergeChatHistoryToggle takes over in the Ask Concierge design, where the control also collapses the history again.
-    if (!isInSidePanel && isBetaEnabled(CONST.BETAS.CONCIERGE_RESPOND_IN_THREAD)) {
+    if (!isInSidePanel) {
         return null;
     }
     if (!onPress) {

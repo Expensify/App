@@ -16,7 +16,6 @@ import {useRoute} from '@react-navigation/native';
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useIsInSidePanel from './useIsInSidePanel';
 import useOnyx from './useOnyx';
-import usePermissions from './usePermissions';
 import useResponsiveLayout from './useResponsiveLayout';
 
 type ConciergeAskState = {
@@ -37,7 +36,6 @@ type ConciergeAskState = {
 };
 
 function useConciergeAskState(reportID: string | undefined): ConciergeAskState {
-    const {isBetaEnabled} = usePermissions();
     const isInSidePanel = useIsInSidePanel();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const route = useRoute<PlatformStackRouteProp<ReportsSplitNavigatorParamList, typeof SCREENS.REPORT>>();
@@ -74,7 +72,7 @@ function useConciergeAskState(reportID: string | undefined): ConciergeAskState {
         selector: hasHistoryWithoutUserMessageSelector,
     });
 
-    const isAskConciergeChat = !!reportID && reportID === conciergeReportID && !isInSidePanel && isBetaEnabled(CONST.BETAS.CONCIERGE_RESPOND_IN_THREAD);
+    const isAskConciergeChat = !!reportID && reportID === conciergeReportID && !isInSidePanel;
 
     const hasSessionBoundary = isAskConciergeChat && !!sessionStartTime;
 
