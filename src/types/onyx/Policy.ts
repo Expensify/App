@@ -3731,7 +3731,7 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
         isFromFullPolicy?: boolean;
 
         /** The policy lastModified of the last full policy snapshot received from OpenReport. Sent back so the server can leave out the members, tags and categories the client already has */
-        fullPolicySnapshotLastModified?: number | null;
+        fullPolicySnapshotLastModified?: number;
 
         /** When this policy was last modified */
         lastModified?: string;
