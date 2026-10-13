@@ -11,7 +11,7 @@ order: 2
 
 # Learn About Billing Permissions
 
-Every Workspace has a Workspace owner, sometimes called the billing owner. The Workspace owner is responsible for the Workspace's Expensify subscription and is the only person who can manage billing-related settings like plans and subscriptions.
+Every Workspace has a Workspace owner, sometimes called the billing owner. The Workspace owner is responsible for the Workspace's Expensify subscription and is the only person who can manage billing-related settings like the subscription and payment method. Any Workspace Admin can change the Workspace's plan, which affects the Workspace owner's bill.
 
 To change the Workspace owner, see [Transfer Workspace Ownership](/articles/new-expensify/billing-and-subscriptions/manage-your-subscription-and-billing/manage-billing/Transfer-Workspace-Ownership).
 
@@ -57,7 +57,7 @@ No. Each Workspace has one Workspace owner, although the same member can own mul
 
 ## Can Workspace Admins manage billing?
 
-No. Workspace Admins can only manage workspace settings, but only the Workspace owner can manage billing and related settings. To learn more about the difference between Workspace Admin and Workspace owner, see [What member terms mean](/articles/new-expensify/billing-and-subscriptions/Learn-About-Billing-Terms-and-Definitions).
+Partly. Workspace Admins can manage Workspace settings and change the Workspace's plan, but only the Workspace owner can manage the subscription, payment method, and other billing settings. To learn more about changing the plan, see [Change Your Workspace Plan](/articles/new-expensify/billing-and-subscriptions/manage-your-subscription-and-billing/manage-subscription/Change-Your-Workspace-Plan). To learn more about the difference between Workspace Admin and Workspace owner, see [What member terms mean](/articles/new-expensify/billing-and-subscriptions/Learn-About-Billing-Terms-and-Definitions).
 
 ## Who can view the Expensify billing receipts? 
 
