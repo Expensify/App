@@ -888,7 +888,7 @@ function updateCardTransactionStartDate(domainOrWorkspaceAccountID: number, card
             key: `${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${domainOrWorkspaceAccountID}_${bankName}`,
             value: {
                 [cardID]: {
-                    scrapeMinDate: oldStartDate,
+                    scrapeMinDate: oldStartDate ?? null,
                     pendingFields: {
                         scrapeMinDate: null,
                     },
@@ -933,7 +933,7 @@ function bulkUpdateCardTransactionStartDate(
             pendingFields: {scrapeMinDate: null},
         };
         failureCards[cardID] = {
-            scrapeMinDate: oldStartDate,
+            scrapeMinDate: oldStartDate ?? null,
             pendingFields: {scrapeMinDate: null},
             errorFields: {
                 scrapeMinDate: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
@@ -945,6 +945,13 @@ function bulkUpdateCardTransactionStartDate(
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST>> = [{onyxMethod: Onyx.METHOD.MERGE, key, value: optimisticCards}];
     const finallyData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST>> = [{onyxMethod: Onyx.METHOD.MERGE, key, value: finallyCards}];
     const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST>> = [{onyxMethod: Onyx.METHOD.MERGE, key, value: failureCards}];
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.RAM_ONLY_COMPANY_CARDS_LOADING_STATE>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.RAM_ONLY_COMPANY_CARDS_LOADING_STATE}${domainOrWorkspaceAccountID}`,
+            value: {bulkTransactionStartDateUpdateSuccessID: rand64()},
+        },
+    ];
 
     const parameters: BulkUpdateCardTransactionStartDateParams = {
         cardIDs: JSON.stringify(cards.map(({cardID}) => Number(cardID))),
@@ -953,8 +960,15 @@ function bulkUpdateCardTransactionStartDate(
 
     return API.write(WRITE_COMMANDS.BULK_UPDATE_CARD_TRANSACTION_START_DATE, parameters, {
         optimisticData,
+        successData,
         finallyData,
         failureData,
+    });
+}
+
+function clearBulkUpdateTransactionStartDateSuccess(domainOrWorkspaceAccountID: number) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.RAM_ONLY_COMPANY_CARDS_LOADING_STATE}${domainOrWorkspaceAccountID}`, {
+        bulkTransactionStartDateUpdateSuccessID: null,
     });
 }
 
@@ -1540,6 +1554,7 @@ export {
     updateCompanyCardName,
     updateCardTransactionStartDate,
     bulkUpdateCardTransactionStartDate,
+    clearBulkUpdateTransactionStartDateSuccess,
     setCompanyCardExportAccount,
     clearCompanyCardErrorField,
     setAddNewCompanyCardStepAndData,

@@ -16,6 +16,8 @@ type GrowlPosition = ValueOf<typeof CONST.GROWL.POSITION>;
 type GrowlOptions = {
     duration?: number;
     action?: GrowlAction;
+
+    /** Position where the growl is anchored */
     position?: GrowlPosition;
 };
 

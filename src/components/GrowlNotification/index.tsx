@@ -12,6 +12,8 @@ type GrowlContent = {
     type: GrowlType;
     duration: number;
     action?: GrowlAction;
+
+    /** Position where the growl is anchored */
     position?: GrowlPosition;
 
     /** Bumped on every show() call so identical-args re-shows still remount and re-trigger the growl. */

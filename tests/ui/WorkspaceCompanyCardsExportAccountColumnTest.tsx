@@ -31,10 +31,13 @@ const FEED_NAME = `${CONST.COMPANY_CARD.FEED_BANK_NAME.CHASE}#${DOMAIN_OR_WORKSP
 const BANK_NAME = CONST.COMPANY_CARD.FEED_BANK_NAME.CHASE as CompanyCardFeedWithNumber;
 const ACCOUNT_ID = 1;
 const QBO_EXPORT_ACCOUNT_NVP = CONST.COMPANY_CARDS.EXPORT_CARD_TYPES.NVP_QUICKBOOKS_ONLINE_EXPORT_ACCOUNT;
+const ROOT_ERROR_KEY = 'rootError';
+const START_DATE_ERROR_KEY = 'startDateError';
 
 let capturedColumns: Array<TableColumn<string, WorkspaceCompanyCardTableItemData>> = [];
 let capturedData: WorkspaceCompanyCardTableItemData[] = [];
 let capturedCompareItems: CompareItemsCallback<WorkspaceCompanyCardTableItemData, string> | undefined;
+let mockCardFeedErrors: Record<string, {shouldPromptBrokenConnection?: boolean}> = {};
 
 jest.mock('@hooks/useLazyAsset', () => ({
     useMemoizedLazyIllustrations: () => ({}),
@@ -43,7 +46,7 @@ jest.mock('@hooks/useLazyAsset', () => ({
 
 jest.mock('@hooks/useCardFeedErrors', () => ({
     __esModule: true,
-    default: () => ({cardFeedErrors: {}}),
+    default: () => ({cardFeedErrors: mockCardFeedErrors}),
 }));
 
 jest.mock('@hooks/useNetwork', () => ({
@@ -206,6 +209,7 @@ async function setQBOPolicy(nvpExportAccount?: string) {
 
 describe('WorkspaceCompanyCardsTable Export account column', () => {
     beforeEach(async () => {
+        mockCardFeedErrors = {};
         await Onyx.clear();
         await waitForBatchedUpdates();
     });
@@ -312,5 +316,56 @@ describe('WorkspaceCompanyCardsTable Export account column', () => {
 
         expect(capturedColumns.map((column) => column.key)).not.toContain('exportAccount');
         expect(screen.getByTestId('WorkspaceCompanyCardsTable')).toBeTruthy();
+    });
+});
+
+describe('WorkspaceCompanyCardsTable row feedback', () => {
+    beforeEach(async () => {
+        mockCardFeedErrors = {};
+        await Onyx.clear();
+        await waitForBatchedUpdates();
+    });
+
+    it('combines root and transaction start date errors on the same row', async () => {
+        // Given an assigned card whose unassignment and start-date updates both failed
+        const card = buildAssignedCard({
+            errors: {[ROOT_ERROR_KEY]: 'Unassignment failed'},
+            errorFields: {scrapeMinDate: {[START_DATE_ERROR_KEY]: 'Start date update failed'}},
+        });
+
+        // When the company cards table builds its row data
+        renderTable(buildCompanyCards(card));
+        await waitForBatchedUpdates();
+
+        // Then both failures are forwarded together instead of competing for one slot
+        expect(capturedData.at(0)?.errors).toEqual({[ROOT_ERROR_KEY]: 'Unassignment failed', [START_DATE_ERROR_KEY]: 'Start date update failed'});
+    });
+
+    it('forwards the transaction start date pending state to the row', async () => {
+        // Given an assigned card with an offline transaction start date update
+        const card = buildAssignedCard({pendingFields: {scrapeMinDate: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}});
+
+        // When the company cards table builds its row data
+        renderTable(buildCompanyCards(card));
+        await waitForBatchedUpdates();
+
+        // Then OfflineWithFeedback receives the field-level pending state
+        expect(capturedData.at(0)?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
+    });
+
+    it('hides row errors while the feed-level connection error is displayed', async () => {
+        // Given a broken feed and a card with both root and start-date errors
+        mockCardFeedErrors = {[FEED_NAME]: {shouldPromptBrokenConnection: true}};
+        const card = buildAssignedCard({
+            errors: {[ROOT_ERROR_KEY]: 'Unassignment failed'},
+            errorFields: {scrapeMinDate: {[START_DATE_ERROR_KEY]: 'Start date update failed'}},
+        });
+
+        // When the company cards table builds its row data
+        renderTable(buildCompanyCards(card));
+        await waitForBatchedUpdates();
+
+        // Then the feed-level error remains the single visible error source
+        expect(capturedData.at(0)?.errors).toBeUndefined();
     });
 });

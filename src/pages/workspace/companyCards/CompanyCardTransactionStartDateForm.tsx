@@ -22,13 +22,28 @@ import {View} from 'react-native';
 type DateOption = ValueOf<typeof CONST.COMPANY_CARD.TRANSACTION_START_DATE_OPTIONS>;
 
 type CompanyCardTransactionStartDateFormProps = {
+    /** Supporting copy shown below the page header */
     description: string;
+
+    /** Date option selected before the user makes a local selection */
     initialDateOption: DateOption;
+
+    /** Date shown by the custom date picker on initial render */
     initialStartDate: string;
+
+    /** Called when the header back button is pressed */
     onBackButtonPress: () => void;
+
+    /** Called with the selected date, or an empty string for transactions from the beginning */
     onSubmit: (startDate: string) => void;
+
+    /** Identifier passed to the screen wrapper */
     testID: string;
+
+    /** Whether the save button is disabled */
     isSaveDisabled?: boolean;
+
+    /** Whether selecting the custom option resets its value to today's date */
     shouldResetStartDateOnCustomSelection?: boolean;
 };
 

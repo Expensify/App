@@ -289,10 +289,8 @@ function WorkspaceCompanyCardsTable({
                   const canEditName = canWriteCompanyCards && !!bankName && isAssigned && cardID !== undefined && !isCardDeleted && !isSelectionModeActive;
                   const transactionStartDateErrors = getLatestErrorField(assignedCard ?? {}, 'scrapeMinDate');
                   const hasTransactionStartDateErrors = !isEmptyObject(transactionStartDateErrors);
-                  let rowErrors = hasTransactionStartDateErrors ? transactionStartDateErrors : assignedCard?.errors;
-                  if (!hasTransactionStartDateErrors && (isFeedConnectionBroken || assignedCard?.pendingFields?.lastScrape)) {
-                      rowErrors = undefined;
-                  }
+                  const hasCardErrors = !isEmptyObject(assignedCard?.errors ?? {});
+                  const rowErrors = isFeedConnectionBroken || assignedCard?.pendingFields?.lastScrape ? undefined : {...assignedCard?.errors, ...transactionStartDateErrors};
 
                   return {
                       cardName,
@@ -307,7 +305,7 @@ function WorkspaceCompanyCardsTable({
                       // Unassigned cards have no details page and so no Accounting section to match, hence no title.
                       exportAccountTitle: shouldShowExportAccountColumn && assignedCard ? getCardExportAccountTitle(cardExportSettings, assignedCard) : undefined,
                       errors: rowErrors,
-                      pendingAction: assignedCard?.pendingAction,
+                      pendingAction: assignedCard?.pendingFields?.scrapeMinDate ?? assignedCard?.pendingAction,
                       canEditName,
                       onRenameName: (newName: string) => {
                           if (!bankName || cardID === undefined) {
@@ -318,9 +316,10 @@ function WorkspaceCompanyCardsTable({
                       onDismissError: () => {
                           if (hasTransactionStartDateErrors && bankName && cardID !== undefined) {
                               clearCompanyCardErrorField(domainOrWorkspaceAccountID, String(cardID), bankName, 'scrapeMinDate', true);
-                              return;
                           }
-                          resetFailedWorkspaceCompanyCardUnassignment(domainOrWorkspaceAccountID, bankName, assignedCard?.cardID);
+                          if (hasCardErrors) {
+                              resetFailedWorkspaceCompanyCardUnassignment(domainOrWorkspaceAccountID, bankName, assignedCard?.cardID);
+                          }
                       },
                   };
               })

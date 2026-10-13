@@ -4,7 +4,6 @@ import useLocalize from '@hooks/useLocalize';
 import usePolicy from '@hooks/usePolicy';
 
 import {getCompanyCardFeed, getCompanyFeeds, getDomainOrWorkspaceAccountID} from '@libs/CardUtils';
-import Growl from '@libs/Growl';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 
@@ -16,12 +15,11 @@ import {bulkUpdateCardTransactionStartDate} from '@userActions/CompanyCards';
 
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
-import SCREENS from '@src/SCREENS';
+import type SCREENS from '@src/SCREENS';
 import type {CompanyCardFeedWithDomainID} from '@src/types/onyx';
 
-import {StackActions} from '@react-navigation/native';
-import {format} from 'date-fns';
-import React, {useEffect} from 'react';
+import {format, parseISO} from 'date-fns';
+import React from 'react';
 
 import CompanyCardTransactionStartDateForm from './CompanyCardTransactionStartDateForm';
 
@@ -30,7 +28,7 @@ type WorkspaceCompanyCardsBulkEditTransactionStartDatePageProps = PlatformStackS
     typeof SCREENS.WORKSPACE.COMPANY_CARDS_BULK_EDIT_TRANSACTION_START_DATE
 >;
 
-function WorkspaceCompanyCardsBulkEditTransactionStartDatePage({route, navigation}: WorkspaceCompanyCardsBulkEditTransactionStartDatePageProps) {
+function WorkspaceCompanyCardsBulkEditTransactionStartDatePage({route}: WorkspaceCompanyCardsBulkEditTransactionStartDatePageProps) {
     const {policyID} = route.params;
     // The linking layer can provide the path parameter with the feed separator still encoded.
     // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- decoding preserves the company-feed shape guaranteed by this route
@@ -47,20 +45,10 @@ function WorkspaceCompanyCardsBulkEditTransactionStartDatePage({route, navigatio
     const companyFeeds = getCompanyFeeds(cardFeeds);
     const domainOrWorkspaceAccountID = getDomainOrWorkspaceAccountID(workspaceAccountID, companyFeeds[feedName]);
     const [allBankCards] = useCardsList(feedName);
-
-    useEffect(() => {
-        if (!singleCardID) {
-            return;
-        }
-
-        navigation.dispatch(
-            StackActions.replace(SCREENS.WORKSPACE.COMPANY_CARD_EDIT_TRANSACTION_START_DATE, {
-                policyID,
-                cardID: singleCardID,
-                feed: feedName,
-            }),
-        );
-    }, [feedName, navigation, policyID, singleCardID]);
+    const singleCardStartDate = singleCardID ? allBankCards?.[singleCardID]?.scrapeMinDate : undefined;
+    const initialDateOption =
+        singleCardID && !singleCardStartDate ? CONST.COMPANY_CARD.TRANSACTION_START_DATE_OPTIONS.FROM_BEGINNING : CONST.COMPANY_CARD.TRANSACTION_START_DATE_OPTIONS.CUSTOM;
+    const initialStartDate = singleCardStartDate ? format(parseISO(singleCardStartDate), CONST.DATE.FNS_FORMAT_STRING) : format(new Date(), CONST.DATE.FNS_FORMAT_STRING);
 
     const goBackToCompanyCards = () => Navigation.goBack(ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID));
 
@@ -73,15 +61,9 @@ function WorkspaceCompanyCardsBulkEditTransactionStartDatePage({route, navigatio
                 oldStartDate: allBankCards?.[cardID]?.scrapeMinDate,
             })),
             newStartDate,
-        ).then(() => {
-            Growl.success(translate('workspace.companyCards.bulkStartDateUpdated'), {position: CONST.GROWL.POSITION.BOTTOM_RIGHT});
-        });
+        );
         goBackToCompanyCards();
     };
-
-    if (singleCardID) {
-        return null;
-    }
 
     return (
         <AccessOrNotFoundWrapper
@@ -93,11 +75,12 @@ function WorkspaceCompanyCardsBulkEditTransactionStartDatePage({route, navigatio
             <CompanyCardTransactionStartDateForm
                 testID="WorkspaceCompanyCardsBulkEditTransactionStartDatePage"
                 description={translate('workspace.companyCards.bulkEditStartDateDescription')}
-                initialDateOption={CONST.COMPANY_CARD.TRANSACTION_START_DATE_OPTIONS.CUSTOM}
-                initialStartDate={format(new Date(), CONST.DATE.FNS_FORMAT_STRING)}
+                initialDateOption={initialDateOption}
+                initialStartDate={initialStartDate}
                 onBackButtonPress={goBackToCompanyCards}
                 onSubmit={submit}
                 isSaveDisabled={cardIDs.length === 0}
+                shouldResetStartDateOnCustomSelection={!!singleCardID && !singleCardStartDate}
             />
         </AccessOrNotFoundWrapper>
     );

@@ -157,4 +157,17 @@ describe('WorkspaceCompanyCardsTableControls narrow-layout selection mode', () =
         expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.WORKSPACE_COMPANY_CARDS_BULK_EDIT_TRANSACTION_START_DATE.getRoute('policy123', 'oauth.chase.com#123', ['123', '456']));
         expect(clearCardSelection).toHaveBeenCalledTimes(1);
     });
+
+    it('keeps a single selected card in the bulk transaction start date flow', () => {
+        // Given one assigned card is selected from the company cards table
+        mockProcessedData = [{selected: true, disabled: false, isAssigned: true, assignedCard: {cardID: 123}}];
+        const {clearCardSelection} = renderControls(true);
+
+        // When the bulk transaction start date action is selected
+        mockButtonProps.current?.options.find((option) => option.value === 'editTransactionStartDate')?.onSelected();
+
+        // Then the bulk editor opens so its save, back, and success feedback behavior is preserved
+        expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.WORKSPACE_COMPANY_CARDS_BULK_EDIT_TRANSACTION_START_DATE.getRoute('policy123', 'oauth.chase.com#123', ['123']));
+        expect(clearCardSelection).toHaveBeenCalledTimes(1);
+    });
 });

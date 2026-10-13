@@ -35,6 +35,8 @@ type GrowlNotificationContentProps = {
     type: GrowlType;
     duration: number;
     action?: GrowlAction;
+
+    /** Position where the growl is anchored */
     position?: GrowlPosition;
 
     /** Identifies this growl instance; passed back through onDismissed so the parent can ignore stale dismissals. */
