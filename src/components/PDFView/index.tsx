@@ -12,6 +12,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 
 import {isMobile} from '@libs/Browser';
+import isHTMLElement from '@libs/isHTMLElement';
 
 import variables from '@styles/variables';
 
@@ -40,6 +41,10 @@ const LOADING_THUMBNAIL_WIDTH = 250;
 const PDF_MIN_SCALE = 1;
 const PDF_SCROLL_DISABLED_SCALE = 2;
 const PDF_ZOOM_RANGE = {max: 5};
+
+// react-window's outer div, which react-fast-pdf makes focusable with tabIndex=-1. Matching it as a direct child of
+// react-pdf's Document keeps other tabIndex=-1 elements, like the password input wrapper, from matching.
+const PDF_SCROLLER_SELECTOR = '.react-pdf__Document > [tabindex="-1"]';
 
 type MobilePDFGestureCanvasProps = {
     children: (shouldDisablePDFScroll: boolean) => ReactNode;
@@ -163,6 +168,7 @@ function PDFView({onToggleKeyboard, fileName, onPress, isFocused, onScaleChanged
     const [maxCanvasHeight] = useOnyx(ONYXKEYS.MAX_CANVAS_HEIGHT);
     const [maxCanvasWidth] = useOnyx(ONYXKEYS.MAX_CANVAS_WIDTH);
     const shouldUsePDFGestureZoom = isMobile() && !!isUsedInAttachmentModal && !isUsedAsChatAttachment;
+    const containerRef = useRef<View>(null);
 
     /**
      * On small screens notify parent that the keyboard has opened or closed.
@@ -216,6 +222,49 @@ function PDFView({onToggleKeyboard, fileName, onPress, isFocused, onScaleChanged
             toggleKeyboardOnSmallScreens(false);
         }
     }, [isKeyboardOpen, prevWindowHeight, toggleKeyboardOnSmallScreens, windowHeight]);
+
+    // The attachment modal has no initial focus target, so focus falls back to the body and arrow keys scroll the
+    // chat behind the modal. Focus the PDF scroller once it renders so arrow keys scroll the PDF instead.
+    useEffect(() => {
+        if (!isUsedInAttachmentModal || isUsedAsChatAttachment || isFocused === false || shouldUsePDFGestureZoom) {
+            return;
+        }
+
+        const container = containerRef.current;
+        if (!isHTMLElement(container)) {
+            return;
+        }
+
+        const focusPDFScroller = () => {
+            const scroller = container.querySelector<HTMLElement>(PDF_SCROLLER_SELECTOR);
+            if (!scroller) {
+                return false;
+            }
+
+            const activeElement = document.activeElement;
+            const isFocusAvailable = !activeElement || activeElement === document.body || (container.contains(activeElement) && !scroller.contains(activeElement));
+            if (isFocusAvailable) {
+                scroller.focus({preventScroll: true});
+            }
+            return true;
+        };
+
+        if (focusPDFScroller()) {
+            return;
+        }
+
+        // The scroller renders only after the PDF loads (and is unlocked, for password-protected PDFs), so keep
+        // watching until it appears.
+        const observer = new MutationObserver(() => {
+            if (!focusPDFScroller()) {
+                return;
+            }
+            observer.disconnect();
+        });
+        observer.observe(container, {childList: true, subtree: true});
+
+        return () => observer.disconnect();
+    }, [isFocused, isUsedAsChatAttachment, isUsedInAttachmentModal, shouldUsePDFGestureZoom]);
 
     const renderPDFView = () => {
         const outerContainerStyle = [styles.w100, styles.h100, styles.justifyContentCenter, styles.alignItemsCenter];
@@ -273,6 +322,7 @@ function PDFView({onToggleKeyboard, fileName, onPress, isFocused, onScaleChanged
 
         return (
             <View
+                ref={containerRef}
                 style={outerContainerStyle}
                 tabIndex={0}
             >
