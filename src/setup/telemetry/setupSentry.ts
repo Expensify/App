@@ -59,9 +59,7 @@ function setupSentry(): void {
         tracesSampleRate: 1.0,
         enableAutoPerformanceTracing: true,
         enableUserInteractionTracing: true,
-        // TurboModuleContext (default since SDK 8.14) writes context to the scope around every RNSentry call, which on
-        // iOS means a file write each time. Sentry calls RNSentry for frame data on every navigation and tap, and all we
-        // get back is a crash tag naming the Sentry method that was running.
+        // TurboModuleContext adds CPU cost to every RNSentry call on iOS, see https://github.com/Expensify/App/pull/103900
         integrations: (defaultIntegrations) => [...defaultIntegrations.filter((integration) => integration.name !== TURBO_MODULE_CONTEXT_INTEGRATION), ...integrations],
         environment: CONFIG.ENVIRONMENT,
         release: `${pkg.name}@${semanticVersion}`,
