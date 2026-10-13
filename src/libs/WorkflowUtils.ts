@@ -233,6 +233,9 @@ function convertPolicyEmployeesToApprovalWorkflows({policy, personalDetails, fir
     const hrAdvancedModeFinalApproverEmail = getHRAdvancedModeFinalApprover(policy);
 
     for (const employee of Object.values(employees)) {
+        if (!employee) {
+            continue;
+        }
         const {email, submitsTo, pendingAction} = employee;
         if (!email) {
             continue;
@@ -1662,6 +1665,9 @@ function convertApprovalWorkflowRulesToWorkflows({
     const availableMembers: Member[] = [];
 
     for (const employee of Object.values(employees)) {
+        if (!employee) {
+            continue;
+        }
         const {email, submitsTo, pendingAction} = employee;
         if (!email) {
             continue;

@@ -1237,6 +1237,20 @@ describe('WorkflowUtils', () => {
             // Then it doesn't have everyone, so no workflow is made the default by mistake
             expect(includesEveryWorkspaceMember(['1@example.com'], {})).toBe(false);
         });
+
+        it('skips a null member entry', () => {
+            // Given a workspace whose employeeList holds a null entry, which Onyx can leave behind when several policy
+            // updates are applied in one batch
+            const employeeListWithNullEntry: PolicyEmployeeList = {
+                ...employeeList,
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- This entry deliberately exercises the runtime guard for a null employee.
+                '9@example.com': null as unknown as PolicyEmployee,
+            };
+
+            // When checking a workflow with every other member
+            // Then it still has everyone instead of crashing on the null entry
+            expect(includesEveryWorkspaceMember(['1@example.com', '2@example.com'], employeeListWithNullEntry)).toBe(true);
+        });
     });
 
     describe('convertApprovalWorkflowToPolicyEmployees', () => {
@@ -3415,6 +3429,26 @@ describe('WorkflowUtils', () => {
             ).toBe(false);
             expect(hasApprovalWorkflowWithNonMemberApprover({policy: approvalsOffPolicy, currentUserLogin: ownerEmail, isMultipleApproversBetaEnabled: false})).toBe(false);
             expect(hasApprovalWorkflowWithNonMemberApprover({policy: lockedPolicy, currentUserLogin: ownerEmail, isMultipleApproversBetaEnabled: false})).toBe(false);
+        });
+
+        it('skips a null member entry when building the workflows', () => {
+            // Given member 1 submits to someone no longer on the workspace, so the workflows get built, and
+            // employeeList holds a null entry, which Onyx can leave behind when several policy updates are applied in
+            // one batch
+            const policy = buildPolicy({
+                employeeList: {
+                    [ownerEmail]: {email: ownerEmail, role: CONST.POLICY.ROLE.ADMIN, submitsTo: ownerEmail},
+                    '1@example.com': {email: '1@example.com', role: CONST.POLICY.ROLE.USER, submitsTo: removedEmail},
+                    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- This entry deliberately exercises the runtime guard for a null employee.
+                    '2@example.com': null as unknown as PolicyEmployee,
+                },
+            });
+            const rules = keyRules(buildApprovalWorkflowRules({members: [buildMember(1)], approvers: [buildApprover(9)], isDefault: false}));
+
+            // When the owner checks whether a workflow needs fixing, with and without the multiple approvers beta
+            // Then both builders skip the null entry instead of crashing, and still flag the broken workflow
+            expect(hasApprovalWorkflowWithNonMemberApprover({policy, currentUserLogin: ownerEmail, isMultipleApproversBetaEnabled: false})).toBe(true);
+            expect(hasApprovalWorkflowWithNonMemberApprover({policy, currentUserLogin: ownerEmail, rules, isMultipleApproversBetaEnabled: true})).toBe(true);
         });
     });
 
