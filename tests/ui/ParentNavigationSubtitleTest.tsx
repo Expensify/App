@@ -337,6 +337,25 @@ describe('ParentNavigationSubtitle', () => {
             });
         });
 
+        it('renders the parent report name as plain text when the user has no access to the parent report', async () => {
+            // Given the current report says the user cannot access its parent
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${expenseReportID}`, {reportID: expenseReportID, hasParentAccess: false});
+
+            // When the subtitle renders
+            render(
+                <ParentNavigationSubtitle
+                    parentNavigationSubtitleData={subtitleData}
+                    parentReportID={parentReportID}
+                    reportID={expenseReportID}
+                />,
+            );
+            await waitForBatchedUpdates();
+
+            // Then the parent name is shown without the link, because hasParentAccess is read through getReportHasParentAccess
+            expect(screen.queryByTestId('parent-navigation-subtitle-link')).toBeNull();
+            expect(screen.getByText(subtitleData.reportName)).toBeTruthy();
+        });
+
         it('passes only the parent report visibility to isReportActionVisible', async () => {
             // Given visibility data for the parent report and for an unrelated report
             await Onyx.set(ONYXKEYS.DERIVED.VISIBLE_REPORT_ACTIONS, {
