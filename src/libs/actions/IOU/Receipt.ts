@@ -219,7 +219,7 @@ function detachReceipt({
     // The ID is still sent so the server message matches it when one is written.
     const parameters: DetachReceiptParams = {
         transactionID,
-        reportActionID: rand64(),
+        reportActionID: 0,
         receiptRemovedReportActionID: optimisticReceiptRemovedAction?.reportActionID,
     };
 
