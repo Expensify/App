@@ -302,6 +302,25 @@ function MapViewImpl({
         if (lastViewState && waypoints?.length) {
             return lastViewState;
         }
+        // Start framed on the waypoints the same way resetBoundaries frames them, so the map does not fly in from the current location
+        const firstWaypointCoordinate = waypoints?.length === 1 ? waypoints.at(0)?.coordinate : undefined;
+        if (firstWaypointCoordinate) {
+            return {
+                longitude: firstWaypointCoordinate[0],
+                latitude: firstWaypointCoordinate[1],
+                zoom: CONST.MAPBOX.SINGLE_MARKER_ZOOM,
+            };
+        }
+        if (waypoints?.length) {
+            const {northEast, southWest} = utils.getBounds(
+                waypoints.map((waypoint) => waypoint.coordinate),
+                allDirectionCoordinates,
+            );
+            return {
+                bounds: [northEast, southWest],
+                fitBoundsOptions: {padding: mapPadding},
+            };
+        }
         return {
             longitude: currentPosition?.longitude,
             latitude: currentPosition?.latitude,

@@ -296,8 +296,23 @@ function MapView({
         return {ne: northEast, sw: southWest};
     }, [waypoints, allDirectionCoordinates]);
 
+    const hasWaypoints = !!waypoints?.length;
+
     const defaultSettings: Mapbox.CameraStop | undefined = useMemo(() => {
         if (interactive) {
+            // Start framed on the waypoints the same way the focus effect frames them, so the map does not fly in from the current location
+            if (waypoints?.length === 1) {
+                return {
+                    zoomLevel: CONST.MAPBOX.SINGLE_MARKER_ZOOM,
+                    centerCoordinate: waypoints.at(0)?.coordinate,
+                };
+            }
+            if (waypoints?.length && waypointsBounds) {
+                return {
+                    bounds: waypointsBounds,
+                    padding: utils.getCameraPadding(mapPadding),
+                };
+            }
             if (!centerCoordinate) {
                 return undefined;
             }
@@ -312,9 +327,10 @@ function MapView({
         return {
             bounds: waypointsBounds,
         };
-    }, [interactive, centerCoordinate, waypointsBounds, initialState?.zoom]);
+    }, [interactive, waypoints, waypointsBounds, mapPadding, centerCoordinate, initialState?.zoom]);
 
-    const initCenterCoordinate = useMemo(() => (interactive ? centerCoordinate : undefined), [interactive, centerCoordinate]);
+    // The controlled centerCoordinate is applied after defaultSettings, so skip it while waypoints are shown or it would pull the camera back to the current location
+    const initCenterCoordinate = useMemo(() => (interactive && !hasWaypoints ? centerCoordinate : undefined), [interactive, hasWaypoints, centerCoordinate]);
     const initBounds = useMemo(() => (interactive ? undefined : waypointsBounds), [interactive, waypointsBounds]);
 
     return !isOffline && isAccessTokenReady && !!defaultSettings ? (
