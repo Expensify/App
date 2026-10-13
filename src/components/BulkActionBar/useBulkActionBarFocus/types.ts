@@ -12,9 +12,11 @@ type BulkActionBarFocus = {
 };
 
 /**
- * `isCoveredByOverlay` is true while a screen or a popover is open over the bar. Focus landing outside the bar then
- * belongs to that overlay rather than to the table, and leaves with it, so it is no use as a hand-back target.
+ * `isCoveredByScreen` is true while another screen is open over the bar. Focus landing outside the bar then belongs to
+ * that screen rather than to the table, and leaves with it, so it is no use as a hand-back target. Popovers are left
+ * out of this flag, because an RHP the bar is rendered inside reports itself as a visible modal for as long as it is
+ * open. The bar tells those apart by the launcher they were opened from instead.
  */
-type UseBulkActionBarFocus = (barRef: RefObject<unknown>, isCoveredByOverlay: boolean) => BulkActionBarFocus;
+type UseBulkActionBarFocus = (barRef: RefObject<unknown>, isCoveredByScreen: boolean) => BulkActionBarFocus;
 
 export default UseBulkActionBarFocus;

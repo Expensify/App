@@ -64,7 +64,7 @@ const RoleStack = createPlatformStackNavigator<SettingsNavigatorParamList>();
 
 const renderRolePage = (policyID: string) => {
     return render(
-        <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, HTMLEngineProvider, CurrentReportIDContextProvider, ModalProvider]}>
+        <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, HTMLEngineProvider, CurrentReportIDContextProvider, ModalProvider, PersonalDetailsByLoginProvider]}>
             <PortalProvider>
                 <NavigationContainer>
                     <RoleStack.Navigator initialRouteName={SCREENS.WORKSPACE.MEMBERS_ROLE}>

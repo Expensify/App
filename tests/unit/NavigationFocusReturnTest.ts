@@ -3114,6 +3114,8 @@ describe('nominateTriggerFallback', () => {
     });
 
     it('should stop offering the element once the nomination is withdrawn', () => {
+        // Given a row nominated as the fallback and then withdrawn, which is what the bulk action bar does as it
+        // unmounts, before a bar button opens the route
         const row = appendButton();
         const barButton = appendButton();
         nominateTriggerFallback(row);
@@ -3124,6 +3126,7 @@ describe('nominateTriggerFallback', () => {
         captureTriggerForRoute('route-a');
         barButton.remove();
 
+        // When the route pops
         // Then there is nothing left to restore to, as before the nomination existed
         expect(restoreTriggerForRoute('route-a')).toBe(false);
     });
@@ -3141,6 +3144,7 @@ describe('nominateTriggerFallback', () => {
         captureTriggerForRoute('route-a');
         menuItem.remove();
 
+        // When the route pops
         // Then the launcher is restored, and the nomination does not displace it
         const launcherSpy = jest.spyOn(launcher, 'focus');
         const rowSpy = jest.spyOn(row, 'focus');

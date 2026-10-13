@@ -1,4 +1,5 @@
 import isHTMLElement from '@libs/isHTMLElement';
+import {pickLauncher} from '@libs/LauncherStack';
 import {nominateTriggerFallback} from '@libs/NavigationFocusReturn';
 import markProgrammaticFocus from '@libs/programmaticFocus';
 import restoreFocusWithModality from '@libs/restoreFocusWithModality';
@@ -20,7 +21,7 @@ function isShowingFocusRing(element: HTMLElement): boolean {
 }
 
 /** Tracks where focus is relative to the bar, and hands it back when the bar goes away holding it. */
-const useBulkActionBarFocus: UseBulkActionBarFocus = (barRef, isCoveredByOverlay) => {
+const useBulkActionBarFocus: UseBulkActionBarFocus = (barRef, isCoveredByScreen) => {
     // Where focus was before the bar took it. The bar goes away with the selection, so focus has to be handed back.
     const lastFocusedOutsideRef = useRef<HTMLElement | null>(null);
 
@@ -43,8 +44,9 @@ const useBulkActionBarFocus: UseBulkActionBarFocus = (barRef, isCoveredByOverlay
 
             // The role screen and the bar's own "More" menu both take focus to controls that leave with them, and the
             // menu renders in a popover outside the bar rather than within it. Remembering either would leave the bar
-            // holding a target that is already gone when it needs one.
-            if (isCoveredByOverlay) {
+            // holding a target that is already gone when it needs one. A popover is identified by the launcher it
+            // registered as it opened, which it does before it moves focus into itself.
+            if (isCoveredByScreen || pickLauncher()) {
                 return;
             }
 
@@ -71,7 +73,7 @@ const useBulkActionBarFocus: UseBulkActionBarFocus = (barRef, isCoveredByOverlay
             document.removeEventListener('focusin', handleFocusIn);
             document.removeEventListener('focusout', handleFocusOut);
         };
-    }, [barRef, isCoveredByOverlay]);
+    }, [barRef, isCoveredByScreen]);
 
     // Most of the bar's actions clear the selection themselves, so the bar is torn out from under the button that was
     // just pressed and focus would fall to the document. Handing it back here covers every one of those actions,
@@ -88,7 +90,13 @@ const useBulkActionBarFocus: UseBulkActionBarFocus = (barRef, isCoveredByOverlay
             // before that screen hands its own focus back and there is nothing left for it to hand back to. Focus has
             // already fallen to the document by then, which is the same loss as the bar being torn out from under it.
             const hasFocusFallenToDocument = !active || active === document.body;
-            if (!hasFocusFallenToDocument && !(isHTMLElement(bar) && bar.contains(active))) {
+
+            // An action run from the bar's own "More" menu is pressed with focus inside a popover that renders outside
+            // the bar, so the bar does not contain the focus it nonetheless has to hand back. The popover that leaves
+            // with the bar is the one whose launcher the bar does contain.
+            const launcher = pickLauncher();
+            const isFocusInsideBarPopover = isHTMLElement(bar) && !!launcher && bar.contains(launcher);
+            if (!hasFocusFallenToDocument && !isFocusInsideBarPopover && !(isHTMLElement(bar) && bar.contains(active))) {
                 return;
             }
 

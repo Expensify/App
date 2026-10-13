@@ -10,8 +10,13 @@ import type {RefObject} from 'react';
 
 // Jest resolves index.native.ts by default, and that one is a no-op.
 const useBulkActionBarFocus = require<{
-    default: (barRef: RefObject<unknown>, isCoveredByOverlay: boolean) => {suppressStrayFocusRing: () => void; isFocusInsideBar: boolean};
+    default: (barRef: RefObject<unknown>, isCoveredByScreen: boolean) => {suppressStrayFocusRing: () => void; isFocusInsideBar: boolean};
 }>('../../src/components/BulkActionBar/useBulkActionBarFocus/index.ts').default;
+const {setActivePopoverLauncher, markActivePopoverLauncherDeactivated, resetLauncherStackForTests} = require<{
+    setActivePopoverLauncher: (element: HTMLElement) => void;
+    markActivePopoverLauncherDeactivated: (element?: HTMLElement) => void;
+    resetLauncherStackForTests: () => void;
+}>('../../src/libs/LauncherStack.ts');
 
 function createButton(label: string) {
     const button = document.createElement('button');
@@ -26,6 +31,7 @@ function focus(element: HTMLElement) {
 }
 
 afterEach(() => {
+    resetLauncherStackForTests();
     document.body.innerHTML = '';
 });
 
@@ -58,11 +64,11 @@ describe('useBulkActionBarFocus', () => {
         document.body.appendChild(bar);
         const save = createButton('Save');
 
-        const {rerender, unmount} = renderHook(({isCoveredByOverlay}) => useBulkActionBarFocus({current: bar}, isCoveredByOverlay), {initialProps: {isCoveredByOverlay: false}});
+        const {rerender, unmount} = renderHook(({isCoveredByScreen}) => useBulkActionBarFocus({current: bar}, isCoveredByScreen), {initialProps: {isCoveredByScreen: false}});
 
         focus(row);
 
-        rerender({isCoveredByOverlay: true});
+        rerender({isCoveredByScreen: true});
         focus(save);
 
         // When that screen saves and leaves, so its own controls are gone and focus has fallen to the document
@@ -103,23 +109,54 @@ describe('useBulkActionBarFocus', () => {
         const row = createButton('Row');
         const bar = document.createElement('div');
         document.body.appendChild(bar);
+        const moreButton = createButton('More');
+        bar.appendChild(moreButton);
         const menuItem = createButton('Remove members');
 
-        const {rerender, unmount} = renderHook(({isCoveredByOverlay}) => useBulkActionBarFocus({current: bar}, isCoveredByOverlay), {initialProps: {isCoveredByOverlay: false}});
+        const {unmount} = renderHook(() => useBulkActionBarFocus({current: bar}, false));
 
         focus(row);
-
-        rerender({isCoveredByOverlay: true});
+        focus(moreButton);
+        act(() => setActivePopoverLauncher(moreButton));
         focus(menuItem);
 
         // When the chosen action clears the selection, so the menu has closed and the bar unmounts with it
-        act(() => menuItem.remove());
-        rerender({isCoveredByOverlay: false});
+        act(() => {
+            markActivePopoverLauncherDeactivated(moreButton);
+            menuItem.remove();
+        });
 
         unmount();
         bar.remove();
 
         // Then focus is back on the row, rather than lost because the menu item was remembered and is now gone
+        expect(document.activeElement).toBe(row);
+    });
+
+    it('hands focus back when the bar unmounts while its own "More" menu still holds focus', () => {
+        // Given a row focused on the table, then an action chosen from the bar's "More" menu. The action clears the
+        // selection from the menu item, so the bar unmounts before the popover has finished closing and focus is
+        // still on the item rather than back on the table.
+        const row = createButton('Row');
+        const bar = document.createElement('div');
+        document.body.appendChild(bar);
+        const moreButton = createButton('More');
+        bar.appendChild(moreButton);
+        const menuItem = createButton('Duplicate expenses');
+
+        const {unmount} = renderHook(() => useBulkActionBarFocus({current: bar}, false));
+
+        focus(row);
+        focus(moreButton);
+        act(() => setActivePopoverLauncher(moreButton));
+        focus(menuItem);
+
+        // When the bar goes away with the selection, taking the launcher the popover would otherwise return to
+        unmount();
+        bar.remove();
+        act(() => menuItem.remove());
+
+        // Then focus is back on the row, rather than aimed at a "More" button that left with the bar
         expect(document.activeElement).toBe(row);
     });
 });

@@ -92,7 +92,7 @@ function BulkActionBarContent<TValueType>({
     const isCoveredByModal = !!modal?.isVisible && !isFocused;
 
     const barElementRef = useRef<ComponentRef<typeof View> | null>(null);
-    const {suppressStrayFocusRing, isFocusInsideBar} = useBulkActionBarFocus(barElementRef, !isFocused || !!modal?.isVisible);
+    const {suppressStrayFocusRing, isFocusInsideBar} = useBulkActionBarFocus(barElementRef, isCoveredByModal);
 
     const moreAnchorRef = useRef<ComponentRef<typeof View> | null>(null);
     const [isMoreMenuVisible, setIsMoreMenuVisible] = useState(false);
