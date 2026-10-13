@@ -7,6 +7,7 @@ import TabSelectorContextProvider from '@components/TabSelector/TabSelectorConte
 import type {TabSelectorBaseItem} from '@components/TabSelector/types';
 
 import useConfirmModal from '@hooks/useConfirmModal';
+import useLayoutSpacing from '@hooks/useLayoutSpacing';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -45,6 +46,7 @@ function InboxTabSelector() {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const isScreenFocused = useIsSidebarRouteActive(NAVIGATORS.REPORTS_SPLIT_NAVIGATOR, shouldUseNarrowLayout);
     const styles = useThemeStyles();
+    const {pageGutter} = useLayoutSpacing();
     const {activeTab, inboxTabCounts, hasStaleUnreadReport} = useSidebarOrderedReportsState();
     const {setActiveTab, getReportIDsForTab} = useSidebarOrderedReportsActions();
     const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {selector: reportNameValuePairsArchivedSelector});
@@ -167,6 +169,7 @@ function InboxTabSelector() {
         <View style={styles.pt1}>
             <TabSelectorContextProvider activeTabKey={activeTab}>
                 <TabSelectorBase
+                    contentContainerStyles={pageGutter}
                     tabs={tabs}
                     activeTabKey={activeTab}
                     onTabPress={(key) => {

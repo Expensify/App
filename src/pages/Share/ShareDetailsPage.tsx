@@ -23,6 +23,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {addAttachmentWithComment, addComment, openReport} from '@libs/actions/Report';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import {getFileName, readFileAsync} from '@libs/fileDownload/FileUtils';
+import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Navigation from '@libs/Navigation/Navigation';
 import type {ShareNavigatorParamList} from '@libs/Navigation/types';
 import {getReportDisplayOption} from '@libs/OptionsListUtils';
@@ -46,6 +47,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 
 import {guidedSetupAndTourStatusSelector} from '@selectors/Onboarding';
 import {isDraftReportSelector} from '@selectors/Report';
+import {pendingDeleteMemberAccountIDsSelector} from '@selectors/ReportMetaData';
 import React, {useCallback, useContext, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 
@@ -83,6 +85,7 @@ function ShareDetailsPage({route}: ShareDetailsPageProps) {
     const [errorMessage, setErrorMessage] = useState<string | undefined>(undefined);
 
     const report: OnyxEntry<ReportType> = useReportOrReportDraft(reportOrAccountID);
+    const [pendingDeleteMemberAccountIDs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${getNonEmptyStringOnyxID(report?.reportID)}`, {selector: pendingDeleteMemberAccountIDsSelector});
     const privateIsArchived = useReportIsArchived(report?.reportID);
     const ancestors = useAncestors(report);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`);
@@ -102,6 +105,7 @@ function ShareDetailsPage({route}: ShareDetailsPageProps) {
                 currentUserAccountID,
                 reportAttributesDerived,
                 rules,
+                pendingDeleteMemberAccountIDs,
             }),
         [
             report,
@@ -116,6 +120,7 @@ function ShareDetailsPage({route}: ShareDetailsPageProps) {
             dateFnsLocale,
             convertToDisplayString,
             rules,
+            pendingDeleteMemberAccountIDs,
         ],
     );
 

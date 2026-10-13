@@ -36,16 +36,19 @@ const DEFAULT_WALLET_ONFIDO_DATA = {
 type OnfidoPrivacyProps = {
     /** Stores various information used to build the UI and call any APIs */
     walletOnfidoData: OnyxEntry<WalletOnfido>;
+
+    /** Called when the user taps Continue, so the parent knows it can mount Onfido once the new token is ready */
+    onProceedToVerification?: () => void;
 };
 
-function OnfidoPrivacy({walletOnfidoData = DEFAULT_WALLET_ONFIDO_DATA}: OnfidoPrivacyProps) {
+function OnfidoPrivacy({walletOnfidoData = DEFAULT_WALLET_ONFIDO_DATA, onProceedToVerification}: OnfidoPrivacyProps) {
     const {translate} = useLocalize();
     const formRef = useRef<ComponentRef<typeof ScrollView>>(null);
     const styles = useThemeStyles();
     if (!walletOnfidoData) {
         return;
     }
-    const {isLoading = false, hasAcceptedPrivacyPolicy} = walletOnfidoData;
+    const {isLoading = false} = walletOnfidoData;
 
     const onfidoError = getLatestErrorMessage(walletOnfidoData) ?? '';
     const onfidoFixableErrors = walletOnfidoData?.fixableErrors ?? [];
@@ -53,9 +56,14 @@ function OnfidoPrivacy({walletOnfidoData = DEFAULT_WALLET_ONFIDO_DATA}: OnfidoPr
         onfidoError[0] += !isEmptyObject(onfidoFixableErrors) ? `\n${onfidoFixableErrors.join('\n')}` : '';
     }
 
+    // The parent shows this screen until the new token is ready, so show a spinner here while it loads.
     return (
         <View style={[styles.flex1, styles.justifyContentBetween]}>
-            {!hasAcceptedPrivacyPolicy ? (
+            {isLoading ? (
+                <View style={[StyleSheet.absoluteFill, styles.fullScreenLoading]}>
+                    <ActivityIndicator size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE} />
+                </View>
+            ) : (
                 <>
                     <FormScrollView ref={formRef}>
                         <View style={[styles.mh5, styles.justifyContentCenter]}>
@@ -72,7 +80,10 @@ function OnfidoPrivacy({walletOnfidoData = DEFAULT_WALLET_ONFIDO_DATA}: OnfidoPr
                     <FixedFooter>
                         <FormAlertWithSubmitButton
                             isAlertVisible={!!onfidoError}
-                            onSubmit={openOnfidoFlow}
+                            onSubmit={() => {
+                                onProceedToVerification?.();
+                                openOnfidoFlow();
+                            }}
                             onFixTheErrorsLinkPressed={() => {
                                 formRef.current?.scrollTo({y: 0, animated: true});
                             }}
@@ -83,12 +94,7 @@ function OnfidoPrivacy({walletOnfidoData = DEFAULT_WALLET_ONFIDO_DATA}: OnfidoPr
                         />
                     </FixedFooter>
                 </>
-            ) : null}
-            {hasAcceptedPrivacyPolicy && isLoading ? (
-                <View style={[StyleSheet.absoluteFill, styles.fullScreenLoading]}>
-                    <ActivityIndicator size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE} />
-                </View>
-            ) : null}
+            )}
         </View>
     );
 }
