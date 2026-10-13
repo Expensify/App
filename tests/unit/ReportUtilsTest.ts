@@ -369,6 +369,10 @@ jest.mock('@libs/PolicyUtils', () => {
     const isPaidGroupPolicy = jest.fn().mockImplementation((policy?: Policy) => policy?.type === 'corporate' || policy?.type === 'team');
     return {
         ...actualPolicyUtils,
+        // This factory runs while PolicyUtils is still loading inside an import cycle, so the barrel's `export *` helpers
+        // aren't on it yet. Spread them from their own modules, which load fully.
+        ...jest.requireActual<Record<string, unknown>>('@libs/PolicyUtils/customUnits'),
+        ...jest.requireActual<Record<string, unknown>>('@libs/PolicyUtils/tax'),
         isPolicyAdmin: jest.fn().mockImplementation((policy?: Policy) => policy?.role === 'admin'),
         isPaidGroupPolicy,
         // isGroupPolicy delegates to the isPaidGroupPolicy mock so tests that tweak isPaidGroupPolicy still drive group-policy checks
