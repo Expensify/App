@@ -3,12 +3,12 @@ import SelectionScreen from '@components/SelectionScreen';
 import Text from '@components/Text';
 
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {clearXeroErrorField} from '@libs/actions/Policy/Policy';
 import {getLatestErrorField} from '@libs/ErrorUtils';
-import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import {getAdminEmployees, isExpensifyTeam, settingsPendingAction} from '@libs/PolicyUtils';
 
 import Navigation from '@navigation/Navigation';
@@ -19,7 +19,7 @@ import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import {updateXeroExportExporter} from '@userActions/connections/Xero';
 
 import CONST from '@src/CONST';
-import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 
 import isEmpty from 'lodash/isEmpty';
 import React, {useCallback, useMemo} from 'react';
@@ -38,9 +38,10 @@ function DynamicXeroPreferredExporterSelectPage({policy}: WithPolicyConnectionsP
     const {login: currentUserLogin} = useCurrentUserPersonalDetails();
 
     const policyID = policy?.id;
+    const backPath = useDynamicBackPath(DYNAMIC_ROUTES.POLICY_ACCOUNTING_XERO_PREFERRED_EXPORTER_SELECT.path);
     const goBack = useCallback(() => {
-        Navigation.goBack(policyID ? createDynamicRoute(DYNAMIC_ROUTES.POLICY_ACCOUNTING_XERO_EXPORT.path, ROUTES.POLICY_ACCOUNTING.getRoute(policyID)) : undefined);
-    }, [policyID]);
+        Navigation.goBack(backPath);
+    }, [backPath]);
 
     const data: CardListItem[] = useMemo(() => {
         if (!isEmpty(policyOwner) && isEmpty(exporters)) {

@@ -149,6 +149,7 @@ const actionableIgnoredScrapeStatuses: number[] = [434];
 const cardHiddenFromSearchStates: number[] = [2, 4];
 
 const selectableOnboardingChoices = {
+    JOIN_WORKSPACE: 'newDotJoinWorkspace',
     MANAGE_TEAM: 'newDotManageTeam',
     EMPLOYER: 'newDotEmployer',
     TRACK_BUSINESS: 'newDotTrackWorkspace',
@@ -1189,10 +1190,12 @@ const CONST = {
         INSIGHTS_PAGE: 'insightsPage',
         INSIGHTS_COMPARE: 'insightsCompare',
         PAYMENT_HISTORY: 'paymentHistory',
+        UNIFIED_CONNECTIONS: 'unifiedConnections',
         SPEND_FOOTER_SELECTORS: 'spendFooterSelectors',
         SUPPORT_TICKET: 'supportTicket',
         ANCHORED_FIELD_DROPDOWNS: 'anchoredFieldDropdowns',
         RESIZABLE_TABLE_COLUMNS: 'resizableTableColumns',
+        DESCRIBE_RULE: 'describeRule',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
@@ -2063,7 +2066,6 @@ const CONST = {
             AUTOSCROLL_TO_TOP_THRESHOLD: 250,
             LINKED_MESSAGE_OFFSET: 40,
             MAX_GROUPING_TIME: 300000,
-            MAX_SYSTEM_MESSAGE_COLLAPSE_TIME: 24 * 60 * 60 * 1000,
         },
         CANCEL_PAYMENT_REASONS: {
             ADMIN: 'CANCEL_REASON_ADMIN',
@@ -6969,6 +6971,14 @@ const CONST = {
             FLAG_FOR_REVIEW: 'flagForReview',
             AGENTS: 'agents',
         },
+        CONNECTIONS: {
+            ALL: 'all',
+            ACCOUNTING: 'accounting',
+            PEOPLE: 'people',
+            RECRUITING: 'recruiting',
+            RECEIPTS: 'receipts',
+            AI: 'ai',
+        },
         WORKFLOWS_TAB_TYPE: 'workflowsTabType',
         WORKFLOWS: {
             SUBMISSIONS: 'submissions',
@@ -7458,6 +7468,9 @@ const CONST = {
 
     // Returned when a user tries to add a work email that is a domain-controlled login for an existing account, so we can show a specific error message instead of the generic blocking screen subtitle
     WORK_DOMAIN_CONTROLLED_ERROR: '401 work domain is controlled',
+
+    // Returned when an already validated public-domain account tries to add a work email, so we can show a takeover-protection error message instead of the generic blocking screen subtitle
+    WORK_EMAIL_VALIDATED_PUBLIC_DOMAIN_ERROR: '403 Forbidden',
     REIMBURSEMENT_ACCOUNT: {
         DEFAULT_DATA: {
             achData: {
@@ -9315,12 +9328,14 @@ const CONST = {
         MILEAGE_RATE_AUTO_UPDATED: 'mileageRateAutoUpdated',
         MARK_ALL_AS_READ: 'markAllAsRead',
         ACCOUNT_MOVED_TO_TOP_BAR: 'accountMovedToTopBar',
+        CONNECTIONS_MOVED: 'connectionsMoved',
         REQUIRE_FIELDS_RULE_RECEIPT_COUPLING_TOOLTIP: 'requireFieldsRuleReceiptCouplingTooltip',
         REQUIRE_FIELDS_RULE_ITEMIZED_RECEIPT_COUPLING_TOOLTIP: 'requireFieldsRuleItemizedReceiptCouplingTooltip',
     },
     PRODUCT_TRAINING_TOOLTIP_REAPPEAR_WINDOW: {
         SEVEN_DAYS: 7 * 24 * 60 * 60 * 1000,
     },
+
     INBOX_TAB_STALE_UNREAD_MONTHS: 3,
     CHANGE_POLICY_TRAINING_MODAL: 'changePolicyModal',
     AGENTS_RULES_BANNER: 'agentsRulesBanner',
@@ -9468,6 +9483,9 @@ const CONST = {
         REVIEW_WORKSPACE_SETTINGS: 'reviewWorkspaceSettings',
         INVITE_ACCOUNTANT: 'inviteAccountant',
         ADD_EXPENSE_APPROVALS: 'addExpenseApprovals',
+        ADD_WORK_EMAIL: 'addWorkEmail',
+        VALIDATE_EMAIL: 'validateEmail',
+        JOIN_WORKSPACE: 'joinWorkspace',
     },
 
     MODAL_EVENTS: {
@@ -9769,7 +9787,6 @@ const CONST = {
             REPORT_ACTION_ITEM_THREAD: 'Report-ReportActionItemThread',
             THREAD_DIVIDER: 'Report-ThreadDivider',
             REPORT_ACTION_ITEM: 'Report-ReportActionItem',
-            COLLAPSED_SYSTEM_MESSAGES: 'Report-CollapsedSystemMessages',
             MODERATION_BUTTON: 'Report-ModerationButton',
             MONEY_REQUEST_REPORT_ACTIONS_LIST_SELECT_ALL: 'MoneyRequestReportActionsList-SelectAll',
             MONEY_REQUEST_REPORT_TRANSACTION_ITEM: 'MoneyRequestReportTransactionItem',
@@ -10100,6 +10117,7 @@ const CONST = {
                 HR: 'WorkspaceInitial-HR',
                 RECRUITING: 'WorkspaceInitial-Recruiting',
                 RECEIPT_PARTNERS: 'WorkspaceInitial-ReceiptPartners',
+                CONNECTIONS: 'WorkspaceInitial-Connections',
                 CATEGORIES: 'WorkspaceInitial-Categories',
                 TAGS: 'WorkspaceInitial-Tags',
                 TAXES: 'WorkspaceInitial-Taxes',
@@ -10184,6 +10202,11 @@ const CONST = {
                 SETUP_BUTTON: 'WorkspaceAccounting-SetupButton',
                 CARD_SECTION_ADD_BUTTON: 'WorkspaceAccounting-CardSectionAddButton',
                 THREE_DOT_MENU: 'WorkspaceAccounting-ThreeDotMenu',
+            },
+            CONNECTIONS: {
+                CARD: 'WorkspaceConnections-Card',
+                CONFIGURE_BUTTON: 'WorkspaceConnections-ConfigureButton',
+                SUGGEST_INTEGRATION: 'WorkspaceConnections-SuggestIntegration',
             },
             RULES: {
                 ADD_SPEND_RULE: 'WorkspaceRules-AddSpendRule',
