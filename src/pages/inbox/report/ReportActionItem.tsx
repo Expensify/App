@@ -19,6 +19,7 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useOriginalReportID from '@hooks/useOriginalReportID';
 import {usePersonalDetail} from '@hooks/usePersonalDetails';
+import useReportsParentHierarchy from '@hooks/useReportsParentHierarchy';
 import useReportTransactionsCollection from '@hooks/useReportTransactionsCollection';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -55,6 +56,7 @@ import {
     isPendingRemove,
     isTripPreview,
     isWhisperActionTargetedToOthers,
+    shouldHidePayAction,
     useTableReportViewActionRenderConditionals,
 } from '@libs/ReportActionsUtils';
 import {
@@ -190,6 +192,7 @@ function ReportActionItem({
     const reportID = report?.reportID ?? action?.reportID;
     const originalReportID = useOriginalReportID(report?.reportID, action);
     const {isOffline} = useNetwork();
+    const reportsParentHierarchy = useReportsParentHierarchy();
     const [iouReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getIOUReportIDFromReportActionPreview(action)}`, {selector: getStableReportSelector});
     const [iouPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${iouReport?.policyID}`);
 
@@ -292,7 +295,7 @@ function ReportActionItem({
         if (transactionIDToDismiss) {
             clearErrorWithOriginalTransactionError(transactionIDToDismiss, originalTransactionID, isOriginalTransactionSplitContainer);
         }
-        clearAllRelatedReportActionErrors(reportID, action, originalReportID, isOffline);
+        clearAllRelatedReportActionErrors({reportID, reportAction: action, originalReportID, isOffline, reports: reportsParentHierarchy});
     };
 
     const showDismissReceiptErrorModal = async () => {
@@ -504,7 +507,7 @@ function ReportActionItem({
 
     // For the `pay` IOU action on non-pay expense flow, we don't want to render anything if `isWaitingOnBankAccount` is true
     // Otherwise, we will see two system messages informing the payee needs to add a bank account or wallet
-    if (isMoneyRequestAction(action) && !!report?.isWaitingOnBankAccount && getOriginalMessage(action)?.type === CONST.IOU.REPORT_ACTION_TYPE.PAY && !isSendingMoney) {
+    if (shouldHidePayAction(action, !!report?.isWaitingOnBankAccount)) {
         return null;
     }
 
