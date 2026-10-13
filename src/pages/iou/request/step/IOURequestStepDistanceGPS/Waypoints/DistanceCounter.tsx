@@ -40,7 +40,7 @@ function DistanceCounter({unit}: DistanceCounterProps) {
                             part.type === 'unit' ? (
                                 <Text
                                     key="unit"
-                                    style={styles.colorMuted}
+                                    style={[styles.iouAmountTextInput, styles.textXLarge, styles.colorMuted]}
                                 >
                                     {part.value}
                                 </Text>
