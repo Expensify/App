@@ -39,6 +39,13 @@ type ExportAgainModalDescriptionParams = {
 };
 
 type ExportIntegrationSelectedParams = {connectionName: ConnectionName; connectionNameFriendly?: string};
+
+type PaymentDetailsBadgeEmailParams = {email: string};
+
+type PaymentDetailsBadgeDateParams = {date: string};
+
+type PaymentDetailsPartialRefundParams = {amount: string; date: string};
+
 export type {
     CompanyCardBalanceParams,
     ParentNavigationSummaryParams,
@@ -51,4 +58,7 @@ export type {
     UnshareParams,
     ExportAgainModalDescriptionParams,
     ExportIntegrationSelectedParams,
+    PaymentDetailsBadgeEmailParams,
+    PaymentDetailsBadgeDateParams,
+    PaymentDetailsPartialRefundParams,
 };

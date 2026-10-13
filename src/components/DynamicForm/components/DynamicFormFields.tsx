@@ -22,12 +22,15 @@ type DynamicFormFieldsProps = {
     /** Currency of amount fields that let the user pick none */
     currency?: string;
 
+    /** Largest size of one file, in bytes, for file fields that set none. No limit when not set. */
+    maxFileSize?: number;
+
     /** Called when the user changes a field marked `refreshOnChange`, with the draft key that changed, so the screen can fetch the schema again */
     onRefreshRequirements?: (inputID: string, value: FormValue) => void;
 };
 
 /** The inputs of a schema-driven form. Render it inside a FormProvider and validate the fields of the same content with getDynamicFieldErrors. */
-function DynamicFormFields({content, values, currency = CONST.CURRENCY.USD, onRefreshRequirements}: DynamicFormFieldsProps) {
+function DynamicFormFields({content, values, currency = CONST.CURRENCY.USD, maxFileSize, onRefreshRequirements}: DynamicFormFieldsProps) {
     const visibleContent = getVisibleContent(content, values);
     const loneField = getLoneField(getContentFields(visibleContent));
 
@@ -44,6 +47,7 @@ function DynamicFormFields({content, values, currency = CONST.CURRENCY.USD, onRe
                 field={item}
                 values={values}
                 currency={currency}
+                maxFileSize={maxFileSize}
                 isLoneField={item === loneField}
                 onRefreshRequirements={onRefreshRequirements}
             />

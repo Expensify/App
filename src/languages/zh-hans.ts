@@ -2214,6 +2214,7 @@ const translations: TranslationDeepObject<typeof en> = {
     displayNamePage: {
         headerTitle: '显示名称',
         isShownOnProfile: '您的显示名称会显示在您的个人资料中。',
+        isShownOnMemberProfile: '显示名称会出现在该成员的个人资料中。保存后，只有该成员本人可以编辑。',
     },
     timezonePage: {
         timezone: '时区',
@@ -3848,6 +3849,10 @@ ${amount}，商户：${merchant} - 日期：${date}`,
     },
     dynamicForm: {
         exampleHint: ({example}: {example: string}) => `示例：${example}`,
+        fileCount: ({count}: {count: number}) => ({
+            one: `${count} 个文件`,
+            other: `${count} 个文件`,
+        }),
         error: {
             tooShort: ({minLength}: {minLength: number}) => `至少需要 ${minLength} 个字符`,
             invalidFormat: ({example}: {example?: string}) => (example ? `格式无效。示例：${example}` : '格式无效'),
@@ -9370,6 +9375,8 @@ ${reportName}`,
             return `将“${categoryName}”类别的出席者更改为 ${newValue ? '必填' : '非必填'}（之前为 ${newValue ? '非必填' : '必填'}）`;
         },
         updatedAutoHarvesting: (enabled: boolean) => `${enabled ? '已启用' : '已禁用'} 次提交`,
+        updatedMemberDisplayName: (newName: string, oldName: string, editProfileURL: string) =>
+            `已将您的显示名称更新为 ${newName}（之前为“${oldName}”）。<a href="${editProfileURL}">在个人资料中编辑</a>`,
         changedOverLimitForwardsTo: ({
             member,
             approver,
@@ -10835,6 +10842,16 @@ ${reportName}`,
                 other: `${count} 名活跃用户`,
             }),
             state: {paid: '已支付', cleared: '已清算', failed: '失败', refunded: '已退款', disputed: '有争议', balanceTransfer: '余额转账'},
+            details: '付款详情',
+            badge: {
+                balanceTransferTo: ({email}: {email: string}) => `余额转账至 ${email}`,
+                balanceTransferFrom: ({email}: {email: string}) => `余额转账来自 ${email}`,
+                disputedPending: ({date}: {date: string}) => `${date} 提出争议（待处理）`,
+                disputedRefunded: ({date}: {date: string}) => `${date} 提出争议（已退款）`,
+                disputedClosed: ({date}: {date: string}) => `${date} 提出争议（已关闭）`,
+                refundedOn: ({date}: {date: string}) => `${date} 已退款`,
+                refundedAmountOn: ({amount, date}: {amount: string; date: string}) => `${date} 已退款 ${amount}`,
+            },
         },
         subscriptionSettings: {
             title: '订阅设置',
