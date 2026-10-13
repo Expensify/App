@@ -103,7 +103,7 @@ type UseChartInteractionsProps = {
     /** Scale applied to the rendered chart container */
     coordinateScale?: number;
 
-    /** Whether a touch tap pins the tooltip instead of calling handlePress */
+    /** Whether a touch tap shows the tooltip for the tapped data point */
     shouldPinTooltipOnTouch?: boolean;
 };
 
@@ -425,7 +425,7 @@ function useChartInteractions({
      * Tap gesture. Resolves the nearest data point entirely on the UI thread.
      * Touch taps show the tooltip; other pointers schedule onPress on the JS thread if the cursor is over the target.
      */
-    const tapGesture = (onPress: (index: number) => void) =>
+    const tapGesture = (onPress?: (index: number) => void) =>
         Gesture.Tap()
             // A touch on this chart that turns into a scroll leaves the pinned tooltip to the chart, so the chart hides it
             .onFinalize((e, success) => {
@@ -445,6 +445,9 @@ function useChartInteractions({
                 chartInteractionState.cursor.y.set(cursorY);
                 if (e.pointerType === PointerType.TOUCH && shouldPinTooltipOnTouch) {
                     handleTouchTap(cursorX, cursorY);
+                    return;
+                }
+                if (!onPress) {
                     return;
                 }
                 const ox = pointOX.get();
@@ -490,7 +493,7 @@ function useChartInteractions({
         y: chartInteractionState.y.y.position.get(),
     }));
 
-    const customGestures = handlePress ? Gesture.Race(hoverGesture(), tapGesture(handlePress)) : hoverGesture();
+    const customGestures = handlePress || shouldPinTooltipOnTouch ? Gesture.Race(hoverGesture(), tapGesture(handlePress)) : hoverGesture();
 
     return {
         /** Custom gestures to be passed to CartesianChart */
