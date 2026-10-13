@@ -894,6 +894,42 @@ describe('actions/IOU/PayMoneyRequest', () => {
             mockFetch?.succeed?.();
         });
 
+        it('clears a mirrored pay failure when the payee confirms the payment was received', async () => {
+            // Given a DM IOU report whose payment already failed, leaving the mirrored error on the chat's preview
+            const chatReport = {
+                ...createRandomReport(40, undefined),
+                lastReadTime: DateUtils.getDBTime(),
+                lastVisibleActionCreated: DateUtils.getDBTime(),
+            };
+            const iouReport = {
+                ...createRandomReport(41, undefined),
+                chatType: undefined,
+                type: CONST.REPORT.TYPE.IOU,
+                chatReportID: chatReport.reportID,
+                total: 10,
+            };
+            const reportPreviewAction: ReportAction = {
+                ...createRandomReportAction(42),
+                actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
+                originalMessage: {linkedReportID: iouReport.reportID},
+                errors: {[CONST.IOU.PAY_FAILURE_PREVIEW_ERROR_KEY]: 'The payment failed because the expense report was deleted.'},
+            };
+            const chatReportActions: ReportActions = {[reportPreviewAction.reportActionID]: reportPreviewAction};
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`, chatReport);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`, iouReport);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`, chatReportActions);
+            await waitForBatchedUpdates();
+
+            // When the payee confirms the payment arrived some other way, settling the report
+            markReportPaymentReceived(chatReport, iouReport, CARLOS_ACCOUNT_ID, CARLOS_EMAIL, chatReportActions, false, {}, getCurrencyDecimalsLocal, undefined);
+            await waitForBatchedUpdates();
+
+            // Then the stale failure is gone, so it cannot resurface as a phantom error once the report is deleted
+            const updatedChatActions = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}` as const);
+            expect(updatedChatActions?.[reportPreviewAction.reportActionID]?.errors?.[CONST.IOU.PAY_FAILURE_PREVIEW_ERROR_KEY]).toBeUndefined();
+        });
+
         describe('delegateAccountID forwarding', () => {
             it('sets delegateAccountID on the pay IOU action when delegateAccountID is provided', async () => {
                 const DELEGATE_ACCOUNT_ID = 999;

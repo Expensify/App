@@ -1046,7 +1046,9 @@ function markReportPaymentReceived(
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`,
             value: {
-                [optimisticReportPreviewAction.reportActionID]: optimisticReportPreviewAction,
+                // Settling here clears any mirrored pay failure, or it would resurface as a phantom error once the
+                // report is deleted, see getVisibleReportActionErrors.
+                [optimisticReportPreviewAction.reportActionID]: {...optimisticReportPreviewAction, errors: {[CONST.IOU.PAY_FAILURE_PREVIEW_ERROR_KEY]: null}},
             },
         });
     }
