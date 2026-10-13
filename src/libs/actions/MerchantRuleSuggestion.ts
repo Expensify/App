@@ -40,7 +40,7 @@ type TrackMerchantRuleSuggestionParams = {
  * Records an edit that could become a merchant rule, so the expense can offer to create one.
  *
  * Only the server can tell whether an edit repeats, since it alone sees the user's history, so the record starts
- * unconfirmed and `confirmMerchantRuleSuggestion` promotes it when the response says the same merchant has been given
+ * unconfirmed and `setMerchantRuleSuggestionConfirmation` promotes it when the response says the same merchant has been given
  * the same value often enough. Recording here rather than waiting keeps the workspace and expense checks at the call
  * site, where the data already is, and lets an edit made offline still offer once its queued write is sent.
  *
@@ -86,15 +86,19 @@ function trackMerchantRuleSuggestion({transactionID, field, reportID, policy, po
 }
 
 /**
- * Promotes a recorded edit to one worth offering, once the server has said the same merchant keeps being given this
- * value. Called from the `ConfirmMerchantRuleSuggestion` middleware, since a queued write never returns its response
- * to the caller.
+ * Records the server's verdict on one recorded edit, promoting it to an offer or taking that promotion away. Called
+ * from the `ConfirmMerchantRuleSuggestion` middleware, since a queued write never returns its response to the caller.
  *
  * Keyed by expense and field rather than set on the record as a whole, so a response that lands after the user has
  * moved on to another expense cannot confirm that one.
+ *
+ * A verdict replaces whatever stood for that field rather than only ever adding to it. Edits of one field are sent in
+ * order, so the last answer is the one that describes the value the expense now holds. Were a `false` ignored, two
+ * edits of the same field made before either was answered would leave the first one's offer standing over the second
+ * one's value.
  */
-function confirmMerchantRuleSuggestion(transactionID: string, field: MerchantRuleSuggestionField) {
-    Onyx.merge(ONYXKEYS.RAM_ONLY_MERCHANT_RULE_SUGGESTION, {confirmedFields: {[transactionID]: {[field]: true}}});
+function setMerchantRuleSuggestionConfirmation(transactionID: string, field: MerchantRuleSuggestionField, isConfirmed: boolean) {
+    Onyx.merge(ONYXKEYS.RAM_ONLY_MERCHANT_RULE_SUGGESTION, {confirmedFields: {[transactionID]: {[field]: isConfirmed ? true : null}}});
 }
 
 /**
@@ -135,7 +139,7 @@ function retireMerchantRuleSuggestion() {
 
 export {
     trackMerchantRuleSuggestion,
-    confirmMerchantRuleSuggestion,
+    setMerchantRuleSuggestionConfirmation,
     dismissMerchantRuleSuggestion,
     markMerchantRuleSuggestionSeen,
     retireMerchantRuleSuggestion,

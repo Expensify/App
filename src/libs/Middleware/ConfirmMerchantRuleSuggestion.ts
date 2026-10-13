@@ -1,6 +1,6 @@
 import {WRITE_COMMANDS} from '@libs/API/types';
 
-import {confirmMerchantRuleSuggestion} from '@userActions/MerchantRuleSuggestion';
+import {setMerchantRuleSuggestionConfirmation} from '@userActions/MerchantRuleSuggestion';
 
 import CONST from '@src/CONST';
 import type {MerchantRuleSuggestionField} from '@src/types/onyx/MerchantRuleSuggestion';
@@ -26,14 +26,15 @@ const FIELD_BY_COMMAND: Partial<Record<string, MerchantRuleSuggestionField>> = {
 };
 
 /**
- * Lets the "Create a rule" callout appear once Auth has confirmed the edit repeats one the user keeps making.
+ * Carries Auth's verdict on a tracked expense edit back to the record it was made against, which is what lets the
+ * "Create a rule" callout appear for an edit the user keeps repeating and stay away for one they do not.
  *
  * Auth answers with a top-level `suggestNewRuleCreation` rather than an Onyx update, and these edits are queued
  * writes, whose response never reaches the caller. Reading it here is what makes the answer available at all.
  */
 const ConfirmMerchantRuleSuggestion: Middleware = <TKey extends OnyxKey>(responsePromise: Promise<Response<TKey> | void>, request: Request<TKey> | PaginatedRequest<TKey>) =>
     responsePromise.then((response) => {
-        if (!response?.suggestNewRuleCreation) {
+        if (!response) {
             return response;
         }
 
@@ -43,7 +44,9 @@ const ConfirmMerchantRuleSuggestion: Middleware = <TKey extends OnyxKey>(respons
             return response;
         }
 
-        confirmMerchantRuleSuggestion(transactionID, field);
+        // An answered edit always replaces the standing verdict for its field, including a rejected one, whose value
+        // the expense no longer holds.
+        setMerchantRuleSuggestionConfirmation(transactionID, field, !!response.suggestNewRuleCreation);
 
         return response;
     });
