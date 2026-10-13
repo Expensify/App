@@ -241,6 +241,18 @@ function useReportActionsScroll({
         shouldBeAlignedToTop,
     });
 
+    const prevIsComposerFullSize = usePrevious(isComposerFullSize);
+    // Scroll events skipped pill tracking while expanded, so sync the Latest messages pill with the current offset
+    const syncPillAfterComposerCollapse = useEffectEvent(() => {
+        if (!prevIsComposerFullSize || isComposerFullSize || shouldDisablePillTracking) {
+            return;
+        }
+        updatePillVisibility();
+    });
+    useEffect(() => {
+        syncPillAfterComposerCollapse();
+    }, [isComposerFullSize]);
+
     const {isScrollToBottomEnabled, setIsScrollToBottomEnabled, completeLiveTailPruneAfterScrollToBottom} = useReportActionsNewActionLiveTail({
         conciergeChat,
         reportID,
