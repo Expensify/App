@@ -61,8 +61,8 @@ export default function (useCachedViewportHeight = false): WindowDimensions {
     const [, cachedViewportHeight, setCachedViewportHeight] = useDebouncedState(windowHeight, CONST.TIMING.RESIZE_DEBOUNCE_TIME);
 
     const handleFocusIn = useRef((event: FocusEvent) => {
-        const targetElement = event.target as HTMLElement;
-        if (tagNamesOpenKeyboard.includes(targetElement.tagName)) {
+        const targetElement = event.target;
+        if (targetElement && 'tagName' in targetElement && typeof targetElement.tagName === 'string' && tagNamesOpenKeyboard.includes(targetElement.tagName)) {
             setCachedViewportHeight(cachedViewportHeightWithKeyboardRef.current);
         }
     });
@@ -80,8 +80,8 @@ export default function (useCachedViewportHeight = false): WindowDimensions {
     }, [isCachedViewportHeight]);
 
     const handleFocusOut = useRef((event: FocusEvent) => {
-        const targetElement = event.target as HTMLElement;
-        if (tagNamesOpenKeyboard.includes(targetElement.tagName)) {
+        const targetElement = event.target;
+        if (targetElement && 'tagName' in targetElement && typeof targetElement.tagName === 'string' && tagNamesOpenKeyboard.includes(targetElement.tagName)) {
             setCachedViewportHeight(initialViewportHeight);
         }
     });
