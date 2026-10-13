@@ -2,6 +2,7 @@ import Checkbox from '@components/Checkbox';
 import Icon from '@components/Icon';
 import {PressableWithFeedback} from '@components/Pressable';
 import RadioButton from '@components/RadioButton';
+import {useSearchColumnStyles} from '@components/Search/SearchColumnWidthsContext';
 import DeferredActionCell from '@components/Search/SearchList/ListItem/ActionCell/DeferredActionCell';
 import AttendeesCell from '@components/Search/SearchList/ListItem/AttendeesCell';
 import DateCell from '@components/Search/SearchList/ListItem/DateCell';
@@ -16,6 +17,7 @@ import Text from '@components/Text';
 
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
@@ -23,9 +25,10 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import {getCategoryGLCode} from '@libs/CategoryUtils';
 import getBase62ReportID from '@libs/getBase62ReportID';
-import {isTaxCodeCustomized, getTagGLCode} from '@libs/PolicyUtils';
+import {getTagGLCode, getVendorDisplayName, isTaxCodeCustomized} from '@libs/PolicyUtils';
 import {getReportName} from '@libs/ReportNameUtils';
 import {getReimbursableTotal, isExpenseReport} from '@libs/ReportUtils';
+import {getViolationsForTransaction} from '@libs/SearchUIUtils';
 import {getShiftKeyFromEvent} from '@libs/shiftRangeSelection';
 import {
     getAmount,
@@ -47,6 +50,10 @@ import getFormattedPostedDate from '@libs/TransactionUtils/getFormattedPostedDat
 import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import type {SearchAdvancedFiltersForm} from '@src/types/form';
+
+import type {OnyxEntry} from 'react-native-onyx';
 
 import React from 'react';
 import {View} from 'react-native';
@@ -70,6 +77,10 @@ type TransactionItemRowWideProps = Omit<
     TransactionItemRowWideComputedData &
     TransactionItemRowRBRDeferControlProps;
 
+function searchHasFilterSelector(form: OnyxEntry<SearchAdvancedFiltersForm>) {
+    return form?.has;
+}
+
 function TransactionItemRowWide({
     transactionItem,
     report,
@@ -80,6 +91,7 @@ function TransactionItemRowWide({
     isSelected,
     shouldShowTooltip,
     dateColumnSize,
+    isDateColumnCreated = false,
     submittedColumnSize,
     approvedColumnSize,
     postedColumnSize,
@@ -138,7 +150,9 @@ function TransactionItemRowWide({
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const StyleUtils = useStyleUtils();
+    const getSearchColumnStyles = useSearchColumnStyles();
     const theme = useTheme();
+    const [hasFilterValues] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {selector: searchHasFilterSelector});
     const expensicons = useMemoizedLazyExpensifyIcons(['ArrowRight']);
     const isDeletedTransaction = isDeletedTransactionUtil(transactionItem);
     const {policyForMovingExpensesID} = usePolicyForMovingExpenses();
@@ -169,7 +183,7 @@ function TransactionItemRowWide({
                 return (
                     <View
                         key={column}
-                        style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TYPE)]}
+                        style={[getSearchColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TYPE)]}
                     >
                         <TypeCell
                             transactionItem={transactionItem}
@@ -182,7 +196,7 @@ function TransactionItemRowWide({
                 return (
                     <View
                         key={column}
-                        style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.RECEIPT)]}
+                        style={[getSearchColumnStyles(CONST.SEARCH.TABLE_COLUMNS.RECEIPT)]}
                     >
                         <ReceiptCell
                             transactionItem={transactionItem}
@@ -195,7 +209,7 @@ function TransactionItemRowWide({
                 return (
                     <View
                         key={column}
-                        style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TAG), styles.editableCellColumn]}
+                        style={[getSearchColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TAG), styles.editableCellColumn]}
                     >
                         <TagCell
                             transactionItem={transactionItem}
@@ -208,11 +222,20 @@ function TransactionItemRowWide({
                         />
                     </View>
                 );
+            case CONST.SEARCH.TABLE_COLUMNS.VIOLATIONS:
+                return (
+                    <View
+                        key={column}
+                        style={[getSearchColumnStyles(CONST.SEARCH.TABLE_COLUMNS.VIOLATIONS)]}
+                    >
+                        <TextCell text={getViolationsForTransaction(reportActions, transactionItem.transactionID, hasFilterValues, translate)} />
+                    </View>
+                );
             case CONST.SEARCH.TABLE_COLUMNS.TAG_GL_CODE:
                 return (
                     <View
                         key={column}
-                        style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TAG_GL_CODE)]}
+                        style={[getSearchColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TAG_GL_CODE)]}
                     >
                         <TextCell text={getTagGLCode(policyTagLists, transactionItem.tag)} />
                     </View>
@@ -221,7 +244,7 @@ function TransactionItemRowWide({
                 return (
                     <View
                         key={column}
-                        style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.DATE, {isDateColumnWide}), styles.editableCellColumn]}
+                        style={[getSearchColumnStyles(CONST.SEARCH.TABLE_COLUMNS.DATE, {isDateColumnWide, isDateColumnCreated}), styles.editableCellColumn]}
                     >
                         <DateCell
                             canEdit={canEditDate}
@@ -236,7 +259,7 @@ function TransactionItemRowWide({
                 return (
                     <View
                         key={column}
-                        style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.SUBMITTED, {isDateColumnWide, isSubmittedColumnWide})]}
+                        style={[getSearchColumnStyles(CONST.SEARCH.TABLE_COLUMNS.SUBMITTED, {isDateColumnWide, isSubmittedColumnWide})]}
                     >
                         <DateCell
                             date={transactionItem.submitted ?? report?.submitted ?? ''}
@@ -250,7 +273,7 @@ function TransactionItemRowWide({
                 return (
                     <View
                         key={column}
-                        style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.APPROVED, {isApprovedColumnWide})]}
+                        style={[getSearchColumnStyles(CONST.SEARCH.TABLE_COLUMNS.APPROVED, {isApprovedColumnWide})]}
                     >
                         <DateCell
                             date={transactionItem.approved ?? report?.approved ?? ''}
@@ -264,7 +287,7 @@ function TransactionItemRowWide({
                 return (
                     <View
                         key={column}
-                        style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.POSTED, {isPostedColumnWide})]}
+                        style={[getSearchColumnStyles(CONST.SEARCH.TABLE_COLUMNS.POSTED, {isPostedColumnWide})]}
                     >
                         <DateCell
                             date={getFormattedPostedDate(transactionItem.posted)}
@@ -277,7 +300,7 @@ function TransactionItemRowWide({
                 return (
                     <View
                         key={column}
-                        style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.EXPORTED, {isExportedColumnWide})]}
+                        style={[getSearchColumnStyles(CONST.SEARCH.TABLE_COLUMNS.EXPORTED, {isExportedColumnWide})]}
                     >
                         <DateCell
                             date={transactionItem.exported ?? ''}
@@ -291,7 +314,7 @@ function TransactionItemRowWide({
                 return (
                     <View
                         key={column}
-                        style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.CATEGORY), styles.editableCellColumn]}
+                        style={[getSearchColumnStyles(CONST.SEARCH.TABLE_COLUMNS.CATEGORY), styles.editableCellColumn]}
                     >
                         <CategoryCell
                             transactionItem={transactionItem}
@@ -307,7 +330,7 @@ function TransactionItemRowWide({
                 return (
                     <View
                         key={column}
-                        style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.CATEGORY_GL_CODE)]}
+                        style={[getSearchColumnStyles(CONST.SEARCH.TABLE_COLUMNS.CATEGORY_GL_CODE)]}
                     >
                         <TextCell text={getCategoryGLCode(policyCategories, transactionItem.category)} />
                     </View>
@@ -316,7 +339,7 @@ function TransactionItemRowWide({
                 return (
                     <View
                         key={column}
-                        style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE)]}
+                        style={[getSearchColumnStyles(CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE)]}
                     >
                         <Text>{getReimbursable(transactionItem) ? translate('common.yes') : translate('common.no')}</Text>
                     </View>
@@ -325,7 +348,7 @@ function TransactionItemRowWide({
                 return (
                     <View
                         key={column}
-                        style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.BILLABLE)]}
+                        style={[getSearchColumnStyles(CONST.SEARCH.TABLE_COLUMNS.BILLABLE)]}
                     >
                         <Text>{transactionItem.billable ? translate('common.yes') : translate('common.no')}</Text>
                     </View>
@@ -334,7 +357,7 @@ function TransactionItemRowWide({
                 return (
                     <View
                         key={column}
-                        style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.ACTION, {isActionColumnWide: isActionColumnWideProp ?? isDeletedTransaction})]}
+                        style={[getSearchColumnStyles(CONST.SEARCH.TABLE_COLUMNS.ACTION, {isActionColumnWide: isActionColumnWideProp ?? isDeletedTransaction})]}
                     >
                         {!!transactionItem.action && (
                             <DeferredActionCell
@@ -358,7 +381,7 @@ function TransactionItemRowWide({
                 return (
                     <View
                         key={column}
-                        style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.MERCHANT), styles.editableCellColumn]}
+                        style={[getSearchColumnStyles(CONST.SEARCH.TABLE_COLUMNS.MERCHANT), styles.editableCellColumn]}
                     >
                         <MerchantOrDescriptionCell
                             merchantOrDescription={merchant ?? ''}
@@ -369,11 +392,20 @@ function TransactionItemRowWide({
                         />
                     </View>
                 );
+            case CONST.SEARCH.TABLE_COLUMNS.VENDOR:
+                return (
+                    <View
+                        key={column}
+                        style={[getSearchColumnStyles(CONST.SEARCH.TABLE_COLUMNS.VENDOR)]}
+                    >
+                        <TextCell text={getVendorDisplayName(policy, transactionItem.comment?.vendor)} />
+                    </View>
+                );
             case CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION:
                 return (
                     <View
                         key={column}
-                        style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION), styles.editableCellColumn]}
+                        style={[getSearchColumnStyles(CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION), styles.editableCellColumn]}
                     >
                         <MerchantOrDescriptionCell
                             merchantOrDescription={description}
@@ -389,7 +421,7 @@ function TransactionItemRowWide({
                 return (
                     <View
                         key={column}
-                        style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TO)]}
+                        style={[getSearchColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TO)]}
                     >
                         {!!transactionItem.to && (
                             <UserInfoCell
@@ -405,7 +437,7 @@ function TransactionItemRowWide({
                 return (
                     <View
                         key={column}
-                        style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.FROM)]}
+                        style={[getSearchColumnStyles(CONST.SEARCH.TABLE_COLUMNS.FROM)]}
                     >
                         {!!transactionItem.from && (
                             <UserInfoCell
@@ -421,7 +453,7 @@ function TransactionItemRowWide({
                 return (
                     <View
                         key={column}
-                        style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.CARD)]}
+                        style={[getSearchColumnStyles(CONST.SEARCH.TABLE_COLUMNS.CARD)]}
                     >
                         <TextCell text={cardName} />
                     </View>
@@ -430,7 +462,7 @@ function TransactionItemRowWide({
                 return (
                     <View
                         key={column}
-                        style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.ATTENDEES)]}
+                        style={[getSearchColumnStyles(CONST.SEARCH.TABLE_COLUMNS.ATTENDEES)]}
                     >
                         {shouldShowAttendees && (
                             <AttendeesCell
@@ -445,7 +477,7 @@ function TransactionItemRowWide({
                 return (
                     <View
                         key={column}
-                        style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.COMMENTS)]}
+                        style={[getSearchColumnStyles(CONST.SEARCH.TABLE_COLUMNS.COMMENTS)]}
                     >
                         <DeferredChatBubbleCell
                             transaction={transactionItem}
@@ -457,7 +489,7 @@ function TransactionItemRowWide({
                 return (
                     <View
                         key={column}
-                        style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.EXCHANGE_RATE)]}
+                        style={[getSearchColumnStyles(CONST.SEARCH.TABLE_COLUMNS.EXCHANGE_RATE)]}
                     >
                         <TextCell text={exchangeRateMessage} />
                     </View>
@@ -466,7 +498,7 @@ function TransactionItemRowWide({
                 return (
                     <View
                         key={column}
-                        style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT, {isAmountColumnWide, shouldRemoveTotalColumnFlex}), styles.editableCellColumn]}
+                        style={[getSearchColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT, {isAmountColumnWide, shouldRemoveTotalColumnFlex}), styles.editableCellColumn]}
                     >
                         <TotalCell
                             transactionItem={transactionItem}
@@ -483,7 +515,7 @@ function TransactionItemRowWide({
                 return (
                     <View
                         key={column}
-                        style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TOTAL_PER_ATTENDEE, {isAmountColumnWide, shouldRemoveTotalColumnFlex})]}
+                        style={[getSearchColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TOTAL_PER_ATTENDEE, {isAmountColumnWide, shouldRemoveTotalColumnFlex})]}
                     >
                         {shouldShowAttendees && (
                             <AmountCell
@@ -498,7 +530,7 @@ function TransactionItemRowWide({
                 return (
                     <View
                         key={column}
-                        style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.ORIGINAL_AMOUNT, {isAmountColumnWide, shouldRemoveTotalColumnFlex})]}
+                        style={[getSearchColumnStyles(CONST.SEARCH.TABLE_COLUMNS.ORIGINAL_AMOUNT, {isAmountColumnWide, shouldRemoveTotalColumnFlex})]}
                     >
                         <AmountCell
                             total={getOriginalAmountForDisplay(transactionItem, isExpenseReport(transactionItem.report))}
@@ -510,7 +542,7 @@ function TransactionItemRowWide({
                 return (
                     <View
                         key={column}
-                        style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.REPORT_ID)]}
+                        style={[getSearchColumnStyles(CONST.SEARCH.TABLE_COLUMNS.REPORT_ID)]}
                     >
                         <TextCell text={transactionItem.reportID === CONST.REPORT.UNREPORTED_REPORT_ID ? '' : transactionItem.reportID} />
                     </View>
@@ -519,7 +551,7 @@ function TransactionItemRowWide({
                 return (
                     <View
                         key={column}
-                        style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.BASE_62_REPORT_ID)]}
+                        style={[getSearchColumnStyles(CONST.SEARCH.TABLE_COLUMNS.BASE_62_REPORT_ID)]}
                     >
                         <TextCell text={transactionItem.reportID === CONST.REPORT.UNREPORTED_REPORT_ID ? '' : getBase62ReportID(Number(transactionItem.reportID))} />
                     </View>
@@ -528,7 +560,7 @@ function TransactionItemRowWide({
                 return (
                     <View
                         key={column}
-                        style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TAX_RATE)]}
+                        style={[getSearchColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TAX_RATE)]}
                     >
                         <TextCell text={shouldHideTaxValueByRequestType ? '' : (getTaxName(policy, transactionItem) ?? transactionItem.taxValue ?? '')} />
                     </View>
@@ -537,7 +569,7 @@ function TransactionItemRowWide({
                 return (
                     <View
                         key={column}
-                        style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TAX_CODE)]}
+                        style={[getSearchColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TAX_CODE)]}
                     >
                         <TextCell text={shouldHideTaxValueByRequestType || !isTaxCodeCustomized(transactionItem.taxCode, policy) ? '' : (transactionItem.taxCode ?? '')} />
                     </View>
@@ -546,7 +578,7 @@ function TransactionItemRowWide({
                 return (
                     <View
                         key={column}
-                        style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.MCC)]}
+                        style={[getSearchColumnStyles(CONST.SEARCH.TABLE_COLUMNS.MCC)]}
                     >
                         <TextCell text={getMCCForDisplay(transactionItem.mcc)} />
                     </View>
@@ -555,7 +587,7 @@ function TransactionItemRowWide({
                 return (
                     <View
                         key={column}
-                        style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TAX_AMOUNT, {isTaxAmountColumnWide})]}
+                        style={[getSearchColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TAX_AMOUNT, {isTaxAmountColumnWide})]}
                     >
                         {shouldHideTaxValueByRequestType ? null : (
                             <TaxCell
@@ -569,7 +601,7 @@ function TransactionItemRowWide({
                 return (
                     <View
                         key={column}
-                        style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.POLICY_NAME)]}
+                        style={[getSearchColumnStyles(CONST.SEARCH.TABLE_COLUMNS.POLICY_NAME)]}
                     >
                         <WorkspaceCell
                             policyID={transactionItem.report?.policyID}
@@ -581,7 +613,7 @@ function TransactionItemRowWide({
                 return (
                     <View
                         key={column}
-                        style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TITLE)]}
+                        style={[getSearchColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TITLE)]}
                     >
                         <TextCell
                             text={getReportName(transactionItem.report) || (transactionItem.report?.reportName ?? '')}
@@ -593,7 +625,7 @@ function TransactionItemRowWide({
                 return (
                     <View
                         key={column}
-                        style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.STATUS)]}
+                        style={[getSearchColumnStyles(CONST.SEARCH.TABLE_COLUMNS.STATUS)]}
                     >
                         <StatusCell
                             stateNum={transactionItem.report?.stateNum}
@@ -607,7 +639,7 @@ function TransactionItemRowWide({
                 return (
                     <View
                         key={column}
-                        style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.EXPORTED_TO)]}
+                        style={[getSearchColumnStyles(CONST.SEARCH.TABLE_COLUMNS.EXPORTED_TO)]}
                     >
                         <ExportedIconCell reportActions={reportActions} />
                     </View>
@@ -624,7 +656,7 @@ function TransactionItemRowWide({
                 return (
                     <View
                         key={column}
-                        style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT, {isAmountColumnWide, shouldRemoveTotalColumnFlex})]}
+                        style={[getSearchColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT, {isAmountColumnWide, shouldRemoveTotalColumnFlex})]}
                     >
                         <AmountCell
                             total={totalAmount}
@@ -637,7 +669,7 @@ function TransactionItemRowWide({
                 return (
                     <View
                         key={column}
-                        style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.WITHDRAWAL_ID)]}
+                        style={[getSearchColumnStyles(CONST.SEARCH.TABLE_COLUMNS.WITHDRAWAL_ID)]}
                     >
                         <TextCell text={transactionItem.withdrawalID} />
                     </View>
@@ -646,7 +678,7 @@ function TransactionItemRowWide({
                 return (
                     <View
                         key={column}
-                        style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.SUBMITTER_USER_ID)]}
+                        style={[getSearchColumnStyles(CONST.SEARCH.TABLE_COLUMNS.SUBMITTER_USER_ID)]}
                     >
                         <TextCell text={submitterUserID} />
                     </View>
@@ -655,7 +687,7 @@ function TransactionItemRowWide({
                 return (
                     <View
                         key={column}
-                        style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.SUBMITTER_PAYROLL_ID)]}
+                        style={[getSearchColumnStyles(CONST.SEARCH.TABLE_COLUMNS.SUBMITTER_PAYROLL_ID)]}
                     >
                         <TextCell text={submitterPayrollID} />
                     </View>
@@ -664,7 +696,7 @@ function TransactionItemRowWide({
                 return (
                     <View
                         key={column}
-                        style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.ORDER_DEAL_NUMBERS)]}
+                        style={[getSearchColumnStyles(CONST.SEARCH.TABLE_COLUMNS.ORDER_DEAL_NUMBERS)]}
                     >
                         <TextCell text={orderDealNumbers} />
                     </View>

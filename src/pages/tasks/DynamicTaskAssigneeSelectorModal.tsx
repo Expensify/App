@@ -52,7 +52,7 @@ function DynamicTaskAssigneeSelectorModal() {
     const reportID = !isNewTaskFlow && route.params && 'reportID' in route.params ? route.params.reportID : undefined;
     const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const [task] = useOnyx(ONYXKEYS.TASK);
-    const [isSearchingForReports] = useOnyx(ONYXKEYS.RAM_ONLY_IS_SEARCHING_FOR_REPORTS);
+    const [isSearchingForUsers] = useOnyx(ONYXKEYS.RAM_ONLY_IS_SEARCHING_FOR_USERS);
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const delegateAccountID = useDelegateAccountID();
@@ -244,7 +244,7 @@ function DynamicTaskAssigneeSelectorModal() {
                         initialScrollIndex={0}
                         initiallyFocusedItemKey={initiallyFocusedOptionKey}
                         shouldShowLoadingPlaceholder={!areOptionsInitialized}
-                        isLoadingNewOptions={!!isSearchingForReports}
+                        isLoadingNewOptions={!!isSearchingForUsers}
                         shouldUpdateFocusedIndex
                         shouldShowTextInput
                     />

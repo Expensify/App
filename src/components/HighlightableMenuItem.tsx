@@ -12,7 +12,6 @@ import type {MenuItemProps} from './MenuItem';
 import MenuItem from './MenuItem';
 
 type Props = MenuItemProps & {
-    /** Should the menu item be highlighted? */
     highlighted?: boolean;
 };
 

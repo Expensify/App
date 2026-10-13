@@ -2,6 +2,7 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Modal from '@components/Modal';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
+import MultiSelectListItem from '@components/SelectionList/ListItem/MultiSelectListItem';
 import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
 
 import useDebouncedState from '@hooks/useDebouncedState';
@@ -17,25 +18,24 @@ import CONST from '@src/CONST';
 import React, {useMemo} from 'react';
 
 type PushRowModalProps = {
-    /** Whether the modal is visible */
     isVisible: boolean;
 
-    /** The currently selected option */
-    selectedOption: string;
+    /** Keys of the checked rows. A single selection has at most one. */
+    selectedOptions: string[];
 
-    /** Function to call when the user selects an option */
+    /** Rows toggle instead of closing the modal, and a Save button calls onConfirm */
+    canSelectMultiple?: boolean;
+
     onOptionChange: (option: string) => void;
+
+    /** Called by the Save button when `canSelectMultiple` */
+    onConfirm?: () => void;
 
     /** Function to call when the user closes the modal */
     onClose: () => void;
 
-    /** The list of items to render */
     optionsList: Record<string, string>;
-
-    /** The title of the modal */
     headerTitle: string;
-
-    /** The title of the search input */
     searchInputTitle?: string;
 };
 
@@ -46,12 +46,11 @@ type ListItemType = {
     isSelected: boolean;
 };
 
-function PushRowModal({isVisible, selectedOption, onOptionChange, onClose, optionsList, headerTitle, searchInputTitle}: PushRowModalProps) {
+function PushRowModal({isVisible, selectedOptions, canSelectMultiple = false, onOptionChange, onConfirm, onClose, optionsList, headerTitle, searchInputTitle}: PushRowModalProps) {
     const {translate} = useLocalize();
 
     const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
-    const initialSelectedValue = useInitialSelection(selectedOption || undefined, {isVisible});
-    const initialSelectedValues = initialSelectedValue ? [initialSelectedValue] : [];
+    const initialSelectedValues = useInitialSelection(selectedOptions, {isVisible});
 
     const options = useMemo(
         () =>
@@ -59,17 +58,19 @@ function PushRowModal({isVisible, selectedOption, onOptionChange, onClose, optio
                 value: key,
                 text: value,
                 keyForList: key,
-                isSelected: key === selectedOption,
+                isSelected: selectedOptions.includes(key),
                 searchValue: StringUtils.sanitizeString(value),
             })),
-        [optionsList, selectedOption],
+        [optionsList, selectedOptions],
     );
 
     const orderedOptions = moveInitialSelectionToTop(options, initialSelectedValues);
 
     const handleSelectRow = (option: ListItemType) => {
         onOptionChange(option.value);
-        onClose();
+        if (!canSelectMultiple) {
+            onClose();
+        }
     };
 
     const handleClose = () => {
@@ -109,11 +110,14 @@ function PushRowModal({isVisible, selectedOption, onOptionChange, onClose, optio
                 />
                 <SelectionList
                     data={searchResults}
-                    ListItem={SingleSelectListItem}
+                    canSelectMultiple={canSelectMultiple}
+                    ListItem={canSelectMultiple ? MultiSelectListItem : SingleSelectListItem}
                     onSelectRow={handleSelectRow}
+                    onSelectionButtonPress={canSelectMultiple ? handleSelectRow : undefined}
+                    confirmButtonOptions={canSelectMultiple ? {showButton: true, text: translate('common.save'), onConfirm} : undefined}
                     textInputOptions={textInputOptions}
                     searchValueForFocusSync={debouncedSearchValue}
-                    initiallyFocusedItemKey={initialSelectedValue}
+                    initiallyFocusedItemKey={initialSelectedValues.at(0)}
                     disableMaintainingScrollPosition
                     shouldShowTooltips={false}
                     showScrollIndicator

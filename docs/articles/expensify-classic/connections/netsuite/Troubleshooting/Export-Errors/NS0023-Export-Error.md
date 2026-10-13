@@ -22,9 +22,10 @@ The NS0023 error occurs when:
 - The employee record in NetSuite does not exist.
 - The employee’s **subsidiary** in NetSuite does not match the subsidiary used in Expensify.
 - The employee’s **email address** in NetSuite does not exactly match their email in Expensify.
-- The employee record is inactive in NetSuite.
 
 Expensify matches employees based on both email address and subsidiary configuration.
+
+When Expensify confirms that the employee is inactive, you will see the NS0995 export error instead.
 
 ---
 
@@ -38,7 +39,6 @@ Expensify matches employees based on both email address and subsidiary configura
 4. Locate the employee associated with the report creator.
 5. Confirm:
    - The employee record exists.
-   - The record is active.
    - The **Email** field exactly matches the employee’s email in Expensify.
    - The **Subsidiary** matches the one configured in Expensify.
 

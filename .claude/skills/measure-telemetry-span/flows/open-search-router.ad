@@ -1,0 +1,10 @@
+# @desc   Open the SearchRouter from the Inbox tab. Triggers the ManualOpenSearchRouter Sentry span (Search button tap -> SearchRouterPage visible). Assumes the user is signed in.
+# @pre    id="BaseSidebarScreen"
+# @pre    id="searchButton" || role="button" label="Search"
+# @post   id="SearchRouterPage"
+# @reset  .claude/skills/agent-device/flows/macros/return-to-inbox.ad
+# @span   ManualOpenSearchRouter
+is exists "id=\"BaseSidebarScreen\""
+is exists "id=\"searchButton\" || role=\"button\" label=\"Search\""
+press "id=\"searchButton\" || role=\"button\" label=\"Search\""
+wait "id=\"SearchRouterPage\"" 10000

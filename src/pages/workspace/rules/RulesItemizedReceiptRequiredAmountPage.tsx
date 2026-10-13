@@ -2,7 +2,7 @@ import AmountForm from '@components/AmountForm';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 
@@ -10,12 +10,14 @@ import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
 import usePolicy from '@hooks/usePolicy';
+import useReviewWorkspaceSettingsTaskCompletion from '@hooks/useReviewWorkspaceSettingsTaskCompletion';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {convertToBackendAmount, convertToFrontendAmountAsString} from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
+import {isMaxExpenseAmountSet} from '@libs/PolicyUtils';
 
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 
@@ -40,13 +42,13 @@ function RulesItemizedReceiptRequiredAmountPage({
 
     const {inputCallbackRef} = useAutoFocusInput();
     const {translate} = useLocalize();
+    const getReviewWorkspaceSettingsTaskCompletion = useReviewWorkspaceSettingsTaskCompletion();
     const styles = useThemeStyles();
-    const {getCurrencyDecimals} = useCurrencyListActions();
+    const {getCurrencyDecimals, convertToDisplayString} = useCurrencyListActions();
 
-    const defaultValue =
-        policy?.maxExpenseAmountNoItemizedReceipt === CONST.DISABLED_MAX_EXPENSE_VALUE || !policy?.maxExpenseAmountNoItemizedReceipt
-            ? ''
-            : convertToFrontendAmountAsString(policy?.maxExpenseAmountNoItemizedReceipt, getCurrencyDecimals(policy?.outputCurrency));
+    const defaultValue = isMaxExpenseAmountSet(policy?.maxExpenseAmountNoItemizedReceipt)
+        ? convertToFrontendAmountAsString(policy?.maxExpenseAmountNoItemizedReceipt, getCurrencyDecimals(policy?.outputCurrency))
+        : '';
 
     const validate = (
         values: FormOnyxValues<typeof ONYXKEYS.FORMS.RULES_REQUIRED_ITEMIZED_RECEIPT_AMOUNT_FORM>,
@@ -56,12 +58,12 @@ function RulesItemizedReceiptRequiredAmountPage({
 
         if (maxExpenseAmountNoItemizedReceipt) {
             const maxExpenseAmountNoItemizedReceiptInCents = convertToBackendAmount(parseFloat(maxExpenseAmountNoItemizedReceipt));
-            const maxExpenseAmountNoReceipt = policy?.maxExpenseAmountNoReceipt ?? 0;
+            const maxExpenseAmountNoReceipt = policy?.maxExpenseAmountNoReceipt;
 
             // Check if itemized receipt amount is lower than regular receipt amount
-            if (maxExpenseAmountNoReceipt !== CONST.DISABLED_MAX_EXPENSE_VALUE && maxExpenseAmountNoItemizedReceiptInCents < maxExpenseAmountNoReceipt) {
+            if (isMaxExpenseAmountSet(maxExpenseAmountNoReceipt) && maxExpenseAmountNoItemizedReceiptInCents < maxExpenseAmountNoReceipt) {
                 errors.maxExpenseAmountNoItemizedReceipt = translate('workspace.rules.individualExpenseRules.itemizedReceiptRequiredAmountError', {
-                    amount: convertToFrontendAmountAsString(maxExpenseAmountNoReceipt, getCurrencyDecimals(policy?.outputCurrency)),
+                    amount: convertToDisplayString(maxExpenseAmountNoReceipt, policy?.outputCurrency),
                 });
             }
         }
@@ -80,15 +82,17 @@ function RulesItemizedReceiptRequiredAmountPage({
                 shouldEnableMaxHeight
                 testID={RulesItemizedReceiptRequiredAmountPage.displayName}
             >
-                <HeaderWithBackButton
-                    title={translate('workspace.rules.individualExpenseRules.itemizedReceiptRequiredAmount')}
-                    onBackButtonPress={() => Navigation.goBack()}
-                />
+                <HeaderWithBackButtonAndTitle title={translate('workspace.rules.individualExpenseRules.itemizedReceiptRequiredAmount')} />
                 <FormProvider
                     style={[styles.flexGrow1, styles.ph5]}
                     formID={ONYXKEYS.FORMS.RULES_REQUIRED_ITEMIZED_RECEIPT_AMOUNT_FORM}
                     onSubmit={({maxExpenseAmountNoItemizedReceipt}) => {
-                        setPolicyMaxExpenseAmountNoItemizedReceipt(policyID, maxExpenseAmountNoItemizedReceipt, policy?.maxExpenseAmountNoItemizedReceipt);
+                        setPolicyMaxExpenseAmountNoItemizedReceipt(
+                            policyID,
+                            maxExpenseAmountNoItemizedReceipt,
+                            policy?.maxExpenseAmountNoItemizedReceipt,
+                            getReviewWorkspaceSettingsTaskCompletion(),
+                        );
                         Navigation.setNavigationActionToMicrotaskQueue(Navigation.goBack);
                     }}
                     validate={validate}

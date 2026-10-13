@@ -4,7 +4,7 @@ import ComposeProviders from '@components/ComposeProviders';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 
-import PolicyRulesPage from '@pages/workspace/rules/PolicyRulesPage';
+import PolicyRulesPageRevamp from '@pages/workspace/rules/PolicyRulesPageRevamp';
 
 import CONST from '@src/CONST';
 import en from '@src/languages/en';
@@ -95,7 +95,7 @@ function buildPolicy(): Policy {
     } as Policy;
 }
 
-const rulesRoute: React.ComponentProps<typeof PolicyRulesPage>['route'] = {
+const rulesRoute: React.ComponentProps<typeof PolicyRulesPageRevamp>['route'] = {
     key: 'rules-route',
     name: SCREENS.WORKSPACE.RULES,
     params: {policyID: POLICY_ID},
@@ -105,11 +105,11 @@ const renderRulesPage = () =>
     render(
         <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>
             {/* @ts-expect-error - navigation prop is not used by the page in tests */}
-            <PolicyRulesPage route={rulesRoute} />
+            <PolicyRulesPageRevamp route={rulesRoute} />
         </ComposeProviders>,
     );
 
-async function setupOnyxBaseline({withCustomAgentBeta}: {withCustomAgentBeta: boolean}) {
+async function setupOnyxBaseline() {
     await Onyx.clear();
     await Onyx.set(ONYXKEYS.HAS_LOADED_APP, true);
     await Onyx.set(ONYXKEYS.IS_LOADING_REPORT_DATA, false);
@@ -118,9 +118,6 @@ async function setupOnyxBaseline({withCustomAgentBeta}: {withCustomAgentBeta: bo
         [USER_ACCOUNT_ID]: buildPersonalDetails(USER_EMAIL, USER_ACCOUNT_ID, 'Admin'),
     });
     await Onyx.merge(ONYXKEYS.SESSION, {email: USER_EMAIL, accountID: USER_ACCOUNT_ID});
-    if (withCustomAgentBeta) {
-        await Onyx.set(ONYXKEYS.BETAS, [CONST.BETAS.CUSTOM_AGENT]);
-    }
 }
 
 describe('Agents promo banners', () => {
@@ -136,9 +133,9 @@ describe('Agents promo banners', () => {
         });
     });
 
-    it('renders agentsRulesBanner above IndividualExpenseRulesSection when customAgent beta is active, and hides it after dismissal', async () => {
+    it('renders agentsRulesBanner on the General tab and hides it after dismissal', async () => {
         await act(async () => {
-            await setupOnyxBaseline({withCustomAgentBeta: true});
+            await setupOnyxBaseline();
             await waitForBatchedUpdatesWithAct();
         });
 
@@ -147,8 +144,6 @@ describe('Agents promo banners', () => {
 
         // Title includes a nested "New" badge, so match on subtitle instead of the full title string.
         expect(screen.getByText(en.workspace.rules.agentsPromoBanner.subtitle)).toBeTruthy();
-        // Section title for IndividualExpenseRulesSection sits below the banner.
-        expect(screen.getByText(en.workspace.rules.individualExpenseRules.title)).toBeTruthy();
 
         await act(async () => {
             await Onyx.merge(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING, {
@@ -157,17 +152,6 @@ describe('Agents promo banners', () => {
             await waitForBatchedUpdatesWithAct();
         });
 
-        expect(screen.queryByText(en.workspace.rules.agentsPromoBanner.subtitle)).toBeNull();
-    });
-
-    it('does not render the agents rules banner when customAgent beta is inactive', async () => {
-        await act(async () => {
-            await setupOnyxBaseline({withCustomAgentBeta: false});
-            await waitForBatchedUpdatesWithAct();
-        });
-
-        renderRulesPage();
-        await waitForBatchedUpdatesWithAct();
         expect(screen.queryByText(en.workspace.rules.agentsPromoBanner.subtitle)).toBeNull();
     });
 });

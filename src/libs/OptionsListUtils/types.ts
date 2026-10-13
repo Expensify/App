@@ -1,6 +1,7 @@
-import type {LocalizedTranslate} from '@components/LocaleContextProvider';
+import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
 import type {Section as SelectionListSection} from '@components/SelectionList/SelectionListWithSections/types';
 
+import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
 import type {PrivateIsArchivedMap} from '@hooks/usePrivateIsArchivedMap';
 
 import type {OptionData} from '@libs/ReportUtils';
@@ -8,7 +9,6 @@ import type {AvatarSource} from '@libs/UserAvatarUtils';
 
 import type {IOUAction} from '@src/CONST';
 import type {
-    Beta,
     Login,
     PersonalDetails,
     PersonalDetailsList,
@@ -118,6 +118,9 @@ type LazyHydrationContext = {
 
     /** Locale used when the option list was built. */
     translate: LocalizedTranslate;
+
+    /** Currency formatter used when the option list was built. */
+    convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'];
 };
 
 type SearchOption<T> = SearchOptionData & {
@@ -207,7 +210,7 @@ type GetValidOptionsSharedConfig = {
 
 type GetValidReportsConfig = {
     dateFnsLocale: DateFnsLocale | undefined;
-    betas?: OnyxEntry<Beta[]>;
+    isDefaultRoomsBetaEnabled?: boolean;
     includeMultipleParticipantReports?: boolean;
     showChatPreviewLine?: boolean;
     forcePolicyNamePreview?: boolean;
@@ -233,11 +236,17 @@ type GetValidReportsConfig = {
     shouldAlwaysIncludeDM?: boolean;
     personalDetails?: OnyxEntry<PersonalDetailsList>;
     allPolicyTags?: OnyxCollection<PolicyTagLists>;
+    /**
+     * Resolves a single report by ID so the option builders can read an option's parent chat report without the
+     * module-level `Onyx.connect()` cache. Callers pass a resolver backed by the same reports snapshot the option
+     * list was built from (see `useFilteredOptions`), which keeps both derived from one consistent snapshot.
+     */
+    getReportByID: (reportID: string | undefined) => OnyxEntry<Report>;
 } & GetValidOptionsSharedConfig;
 
 type IsValidReportsConfig = Pick<
     GetValidReportsConfig,
-    | 'betas'
+    | 'isDefaultRoomsBetaEnabled'
     | 'includeMultipleParticipantReports'
     | 'includeOwnedWorkspaceChats'
     | 'includeThreads'
@@ -264,6 +273,8 @@ type IsValidReportsConfig = Pick<
 
 type GetOptionsConfig = {
     dateFnsLocale: DateFnsLocale | undefined;
+    convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'];
+    convertToDisplayStringWithoutCurrency?: CurrencyListActionsContextType['convertToDisplayStringWithoutCurrency'];
     excludeLogins?: Record<string, boolean>;
     excludeFromSuggestionsOnly?: Record<string, boolean>;
     includeCurrentUser?: boolean;
@@ -281,6 +292,11 @@ type GetOptionsConfig = {
     visibleReportActionsData?: VisibleReportActionsDerivedValue;
     reportAttributesDerived?: ReportAttributesDerivedValue['reports'];
     sortedActions?: Record<string, ReportAction[]>;
+    transactionThreadIDs?: Record<string, string | undefined>;
+    lastActions?: Record<string, ReportAction>;
+    currentUserLogin?: string;
+    localeCompare?: LocaleContextProps['localeCompare'];
+    formatPhoneNumber?: LocaleContextProps['formatPhoneNumber'];
     isTrackIntentUser?: boolean;
     /** TODO: Should be required field in the future. Refactor issue: https://github.com/Expensify/App/issues/66407 */
     isOffline?: boolean;
@@ -303,6 +319,8 @@ type GetUserToInviteConfig = {
     countryCode?: number;
     loginList: OnyxEntry<Login>;
     currentUserEmail: string;
+    currentUserAccountID: number;
+    convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'];
 } & Pick<GetOptionsConfig, 'selectedOptions' | 'showChatPreviewLine'>;
 
 type MemberForList = {
@@ -345,8 +363,10 @@ type PreviewConfig = {
 
 type FilterUserToInviteConfig = Pick<GetUserToInviteConfig, 'selectedOptions' | 'shouldAcceptName' | 'searchInputValue'> & {
     dateFnsLocale: DateFnsLocale | undefined;
+    convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'];
     canInviteUser?: boolean;
     excludeLogins?: Record<string, boolean>;
+    currentUserAccountID: number;
 };
 
 type OrderOptionsConfig =

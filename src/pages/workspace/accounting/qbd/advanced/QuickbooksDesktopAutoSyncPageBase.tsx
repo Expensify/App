@@ -1,5 +1,5 @@
 import ConnectionLayout from '@components/ConnectionLayout';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 
 import useLocalize from '@hooks/useLocalize';
@@ -72,19 +72,18 @@ function QuickbooksDesktopAutoSyncPageBase({policy, navigateBackTo}: QuickbooksD
                     updateQuickbooksDesktopAutoSync(policyID, !autoSync?.enabled);
                 }}
                 pendingAction={pendingAction}
-                errors={getLatestErrorField(config ?? {}, CONST.QUICKBOOKS_DESKTOP_CONFIG.AUTO_SYNC_ENABLED)}
-                onCloseError={() => clearQBDErrorField(policyID, CONST.QUICKBOOKS_DESKTOP_CONFIG.AUTO_SYNC_ENABLED)}
+                errors={getLatestErrorField(config ?? {}, CONST.QUICKBOOKS_DESKTOP_CONFIG.AUTO_SYNC)}
+                onCloseError={() => clearQBDErrorField(policyID, CONST.QUICKBOOKS_DESKTOP_CONFIG.AUTO_SYNC)}
             />
             {!!autoSync?.enabled && (
                 <OfflineWithFeedback pendingAction={pendingAction}>
-                    <MenuItemWithTopDescription
-                        title={
+                    <MenuItemField
+                        value={
                             accountingMethod === COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL
                                 ? translate(`workspace.qbd.accountingMethods.values.${COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL}` as TranslationPaths)
                                 : translate(`workspace.qbd.accountingMethods.values.${COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH}` as TranslationPaths)
                         }
-                        description={translate('workspace.qbd.accountingMethods.label')}
-                        shouldShowRightIcon
+                        name={translate('workspace.qbd.accountingMethods.label')}
                         onPress={() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_ACCOUNTING_METHOD.getRoute(policyID))}
                     />
                 </OfflineWithFeedback>

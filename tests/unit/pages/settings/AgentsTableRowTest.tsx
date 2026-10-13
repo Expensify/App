@@ -65,7 +65,7 @@ jest.mock('@components/Table/TableContext', () => ({
         isMobileSelectionEnabled: false,
         tableListMetadata: {
             hasPageHeader: false,
-            shouldRenderStickyHeader: false,
+            columnHeaderPlacement: 'none',
         },
     })),
     useTableRowSemanticID: jest.fn(() => undefined),
@@ -112,7 +112,7 @@ const mockRecordButtonInnerStyles = jest.fn((accessibilityLabel: string, innerSt
     mockButtonInnerStyles[accessibilityLabel] = innerStyles;
 });
 
-jest.mock('@components/ButtonComposed', () => {
+jest.mock('@components/Button', () => {
     const {TouchableOpacity, Text} = jest.requireActual<typeof ReactNative>('react-native');
 
     function MockButtonIcon() {

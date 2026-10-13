@@ -97,7 +97,7 @@ function SageIntacctNonReimbursableExpensesPage({policy}: WithPolicyConnectionsP
             description: translate('workspace.sageIntacct.defaultVendor'),
             helperText:
                 config?.export.nonReimbursable === CONST.SAGE_INTACCT_NON_REIMBURSABLE_EXPENSE_TYPE.CREDIT_CARD_CHARGE
-                    ? translate('workspace.accounting.defaultVendorHelperText', isDefaultVendorSet)
+                    ? translate('workspace.accounting.defaultVendorHelperText', isDefaultVendorSet, CONST.NON_REIMBURSABLE_FALLBACK_VENDOR_NAME.CREDIT_CARD)
                     : undefined,
             onPress: () => {
                 if (!policyID) {

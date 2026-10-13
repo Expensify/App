@@ -27,7 +27,6 @@ type SearchTypeMenuItemProps = {
     /** Translated title */
     title: string;
 
-    /** Icon component or asset */
     icon: IconAsset | undefined;
 
     /** Optional badge text (e.g. count) */
@@ -36,7 +35,6 @@ type SearchTypeMenuItemProps = {
     /** Whether the item is focused (keyboard nav) */
     focused?: boolean;
 
-    /** Press handler */
     onPress: (event?: GestureResponderEvent | KeyboardEvent) => void | Promise<void>;
 };
 

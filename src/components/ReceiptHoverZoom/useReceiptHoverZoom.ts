@@ -1,6 +1,8 @@
 import {hasHoverSupport} from '@libs/DeviceCapabilities';
 
-import type {RefObject} from 'react';
+import CONST from '@src/CONST';
+
+import type {ComponentRef, RefObject} from 'react';
 import type {View} from 'react-native';
 
 import {useEffect, useRef, useState} from 'react';
@@ -8,7 +10,7 @@ import {useEffect, useRef, useState} from 'react';
 type UseReceiptHoverZoomConfig = {
     isEnabled: boolean;
     scale: number;
-    hoverContainerRef?: RefObject<View | null>;
+    hoverContainerRef?: RefObject<ComponentRef<typeof View> | null>;
 };
 
 type UseReceiptHoverZoomResult = {
@@ -18,7 +20,7 @@ type UseReceiptHoverZoomResult = {
     isHovering: boolean;
 };
 
-function resolveHoverTarget(wrapper: HTMLDivElement | null, externalRef: RefObject<View | null> | undefined): HTMLElement | null {
+function resolveHoverTarget(wrapper: HTMLDivElement | null, externalRef: RefObject<ComponentRef<typeof View> | null> | undefined): HTMLElement | null {
     if (externalRef) {
         const external = externalRef.current as unknown as HTMLElement | null;
         if (external) {
@@ -56,6 +58,14 @@ function useReceiptHoverZoom({isEnabled, scale, hoverContainerRef}: UseReceiptHo
             setIsHovering(false);
         };
         const updateZoomOrigin = (event: PointerEvent) => {
+            // The whole point of page navigation is to see the page you just flipped to, so zoom-tracking the
+            // cursor over the controls themselves (and having to move away to release it) defeats that purpose.
+            if (event.target instanceof Element && event.target.closest(`[data-${CONST.RECEIPT.HOVER_ZOOM_EXCLUDED_ELEMENT}]`)) {
+                if (hovering) {
+                    endZoom();
+                }
+                return;
+            }
             if (!bounds) {
                 bounds = target.getBoundingClientRect();
             }

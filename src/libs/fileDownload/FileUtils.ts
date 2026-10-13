@@ -14,6 +14,7 @@ import type {ReactNativeBlobUtilReadStream} from 'react-native-blob-util';
 import type {TupleToUnion, ValueOf} from 'type-fest';
 
 import {Str} from 'expensify-common';
+import mimeDb from 'mime-db';
 import {Alert, Linking, Platform} from 'react-native';
 import ReactNativeBlobUtil from 'react-native-blob-util';
 import ImageSize from 'react-native-image-size';
@@ -158,6 +159,65 @@ const splitExtensionFromFileName: SplitExtensionFromFileName = (fullFileName) =>
     const fileExtension = splitFileName.length > 1 ? splitFileName.pop() : '';
     return {fileName: splitFileName.join('.'), fileExtension: fileExtension ?? ''};
 };
+
+/**
+ * Returns the file name, reading it from the URI when the picker returns none, as the iOS document picker can.
+ * Falls back to `defaultFileName` only when the URI has no extension either, as with Android's `content://` URIs.
+ */
+function getFileNameWithFallback(fileName: string | null | undefined, uri: string, defaultFileName: string): string {
+    if (fileName) {
+        return fileName;
+    }
+
+    const fileNameFromURI = getFileName(uri);
+    if (!splitExtensionFromFileName(fileNameFromURI).fileExtension) {
+        return defaultFileName;
+    }
+
+    return fileNameFromURI;
+}
+
+/**
+ * Extensions to use instead of mime-db's first registered one. mime-db lists `video/quicktime` as
+ * `qt` first, but `Str.isVideo` only recognizes `mov`, so a `.qt` file would render as a generic file.
+ */
+const MIME_TYPE_EXTENSION_OVERRIDES = new Map<string, string>([['video/quicktime', 'mov']]);
+
+/**
+ * Returns the most common file extension registered for a MIME type, e.g. `video/mp4` resolves to `mp4`.
+ * Returns undefined for an empty or unrecognized MIME type so callers can pick their own fallback.
+ */
+function getExtensionFromMimeType(mimeType: string | undefined): string | undefined {
+    if (!mimeType) {
+        return undefined;
+    }
+    return MIME_TYPE_EXTENSION_OVERRIDES.get(mimeType) ?? mimeDb[mimeType]?.extensions?.at(0);
+}
+
+/**
+ * Whether a MIME type says nothing about the file's contents. Web reports `''` for a file it can't
+ * identify, and the Android document picker reports `application/octet-stream` for an extensionless file.
+ */
+function isUnknownMimeType(mimeType: string | undefined): boolean {
+    return !mimeType || mimeType === 'application/octet-stream';
+}
+
+/**
+ * Adds an extension to a file name that has none, recovering it from the file's MIME type.
+ * Some pickers hand us a name with no extension at all (an Android `content://` URI resolves to a bare
+ * numeric segment, and the document picker can return `name: null`), and such a file downloads as a
+ * bare blob the OS treats as a generic document even though the bytes are valid.
+ * The name is returned unchanged when it already has an extension or the MIME type is unknown or can't be
+ * resolved, because a wrong or meaningless extension (such as `.bin`) is worse than no extension.
+ */
+function appendExtensionFromMimeType(fileName: string, mimeType: string | undefined): string {
+    if (!fileName || isUnknownMimeType(mimeType) || splitExtensionFromFileName(fileName).fileExtension) {
+        return fileName;
+    }
+
+    const fileExtension = getExtensionFromMimeType(mimeType);
+    return fileExtension ? `${fileName}.${fileExtension}` : fileName;
+}
 
 /**
  * Returns the MIME type for a given file extension.
@@ -664,10 +724,13 @@ const createFile = (file: File): FileObject => {
             type: file.type,
         };
     }
-    return new File([file], file.name, {
+    const clonedFile = new File([file], file.name, {
         type: file.type,
         lastModified: file.lastModified,
     });
+    // `uri` is a custom property that the File constructor doesn't copy, and attachment previews need it
+    clonedFile.uri = file.uri;
+    return clonedFile;
 };
 
 const resizeImageIfNeeded = (file: FileObject) => {
@@ -790,12 +853,8 @@ const getFileValidationErrorText = (
                     title: translate('attachmentPicker.someFilesCantBeUploaded'),
                     reason: translate('attachmentPicker.sizeLimitExceeded', maxSize / 1024 / 1024),
                 };
-            case CONST.FILE_VALIDATION_ERRORS.FOLDER_NOT_ALLOWED:
-                return {
-                    title: translate('attachmentPicker.attachmentError'),
-                    reason: translate('attachmentPicker.folderNotAllowedMessage'),
-                };
             case CONST.FILE_VALIDATION_ERRORS.MAX_FILE_LIMIT_EXCEEDED:
+                // This error can only occur for a multi-file selection, so it intentionally has no single-file case below.
                 return {
                     title: translate('attachmentPicker.someFilesCantBeUploaded'),
                     reason: translate('attachmentPicker.maxFileLimitExceeded'),
@@ -806,6 +865,11 @@ const getFileValidationErrorText = (
     }
 
     switch (validationError.error) {
+        case CONST.FILE_VALIDATION_ERRORS.FOLDER_NOT_ALLOWED:
+            return {
+                title: translate(validationError.isValidatingMultipleFiles ? 'attachmentPicker.someFilesCantBeUploaded' : 'attachmentPicker.attachmentError'),
+                reason: translate('attachmentPicker.folderNotAllowedMessage'),
+            };
         case CONST.FILE_VALIDATION_ERRORS.WRONG_FILE_TYPE:
             return {
                 title: translate('attachmentPicker.wrongFileType'),
@@ -944,7 +1008,11 @@ export {
     showCameraPermissionsAlert,
     splitExtensionFromFileName,
     getMimeType,
+    getExtensionFromMimeType,
+    isUnknownMimeType,
+    appendExtensionFromMimeType,
     getFileName,
+    getFileNameWithFallback,
     getFileType,
     cleanFileName,
     getExportFileName,

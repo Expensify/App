@@ -10,6 +10,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
 
+import {PortalProvider} from '@gorhom/portal';
 import {NavigationContainer} from '@react-navigation/native';
 import React from 'react';
 import Onyx from 'react-native-onyx';
@@ -98,17 +99,13 @@ describe('IOURequestStartPage manual tab content', () => {
 
         /** The flow the page is started for - this is what decides whether tabs are rendered. */
         iouType?: IOUType;
-
-        /** Whether the new manual expense flow beta is on. */
-        isNewManualExpenseFlowEnabled?: boolean;
     };
 
     /**
-     * Seeds the beta, the manual tab selection and a draft transaction of the given request type, then renders the page.
+     * Seeds the manual tab selection and a draft transaction of the given request type, then renders the page.
      */
-    async function renderStartPage({iouRequestType, iouType = CONST.IOU.TYPE.SUBMIT, isNewManualExpenseFlowEnabled = true}: RenderStartPageOptions) {
+    async function renderStartPage({iouRequestType, iouType = CONST.IOU.TYPE.SUBMIT}: RenderStartPageOptions) {
         await act(async () => {
-            await Onyx.set(ONYXKEYS.BETAS, isNewManualExpenseFlowEnabled ? [CONST.BETAS.NEW_MANUAL_EXPENSE_FLOW] : []);
             await Onyx.set(`${ONYXKEYS.COLLECTION.SELECTED_TAB}${CONST.TAB.IOU_REQUEST_TYPE}`, CONST.TAB_REQUEST.MANUAL);
             await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${TRANSACTION_ID}`, {
                 transactionID: TRANSACTION_ID,
@@ -122,21 +119,23 @@ describe('IOURequestStartPage manual tab content', () => {
         render(
             <OnyxListItemProvider>
                 <LocaleContextProvider>
-                    <NavigationContainer>
-                        <IOURequestStartPage
-                            route={{
-                                key: 'Money_Request_Create-1',
-                                name: SCREENS.MONEY_REQUEST.CREATE,
-                                // @ts-expect-error the create route types `backTo` and `action` as never, so its params can't be built here.
-                                params: {iouType, reportID: REPORT_ID, transactionID: TRANSACTION_ID},
-                            }}
-                            report={undefined}
-                            reportDraft={undefined}
-                            // @ts-expect-error the page under test doesn't call into navigation.
-                            navigation={undefined}
-                            defaultSelectedTab={CONST.TAB_REQUEST.MANUAL}
-                        />
-                    </NavigationContainer>
+                    <PortalProvider>
+                        <NavigationContainer>
+                            <IOURequestStartPage
+                                route={{
+                                    key: 'Money_Request_Create-1',
+                                    name: SCREENS.MONEY_REQUEST.CREATE,
+                                    // @ts-expect-error the create route types `backTo` and `action` as never, so its params can't be built here.
+                                    params: {iouType, reportID: REPORT_ID, transactionID: TRANSACTION_ID},
+                                }}
+                                report={undefined}
+                                reportDraft={undefined}
+                                // @ts-expect-error the page under test doesn't call into navigation.
+                                navigation={undefined}
+                                defaultSelectedTab={CONST.TAB_REQUEST.MANUAL}
+                            />
+                        </NavigationContainer>
+                    </PortalProvider>
                 </LocaleContextProvider>
             </OnyxListItemProvider>,
         );
@@ -205,15 +204,6 @@ describe('IOURequestStartPage manual tab content', () => {
         await renderStartPage({iouRequestType: CONST.IOU.REQUEST_TYPE.MANUAL, iouType: CONST.IOU.TYPE.INVOICE});
 
         // Then it still lands on the amount page first
-        expect(screen.getByTestId(AMOUNT_TEST_ID)).toBeOnTheScreen();
-        expect(screen.queryByTestId(CONFIRMATION_TEST_ID)).not.toBeOnTheScreen();
-    });
-
-    it('keeps the amount page as the landing page for the pay flow when the beta is off', async () => {
-        // Given a pay flow started without the new manual expense flow beta
-        await renderStartPage({iouRequestType: CONST.IOU.REQUEST_TYPE.MANUAL, iouType: CONST.IOU.TYPE.PAY, isNewManualExpenseFlowEnabled: false});
-
-        // Then the legacy amount-first flow is preserved
         expect(screen.getByTestId(AMOUNT_TEST_ID)).toBeOnTheScreen();
         expect(screen.queryByTestId(CONFIRMATION_TEST_ID)).not.toBeOnTheScreen();
     });

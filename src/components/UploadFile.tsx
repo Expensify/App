@@ -15,7 +15,7 @@ import React from 'react';
 import {View} from 'react-native';
 
 import AttachmentPicker from './AttachmentPicker';
-import Button from './ButtonComposed';
+import Button from './Button';
 import DotIndicatorMessage from './DotIndicatorMessage';
 import Icon from './Icon';
 import {PressableWithFeedback} from './Pressable';
@@ -25,16 +25,9 @@ type UploadFileProps = {
     /** Text displayed on button when no file is uploaded */
     buttonText: string;
 
-    /** Name of currently uploaded file */
     uploadedFiles: FileObject[];
-
-    /** Handler that fires when file is selected for upload */
     onUpload: (files: FileObject[]) => void;
-
-    /** Handler that fires when file is removed */
     onRemove: (fileUri: string) => void;
-
-    /** Array containing accepted file types */
     acceptedFileTypes: Array<ValueOf<typeof CONST.API_ATTACHMENT_VALIDATIONS.ALLOWED_RECEIPT_EXTENSIONS>>;
 
     /** Styles to be assigned to Container */
@@ -52,11 +45,13 @@ type UploadFileProps = {
     /** Whether to allow multiple files to be selected. */
     fileLimit?: number;
 
-    /** The total size limit of the files that can be selected. */
     totalFilesSizeLimit?: number;
 
     /** The maximum size of a single file that can be selected. */
     maxFileSize?: number;
+
+    /** Read out by screen readers for the upload button in place of its text, such as to name the document it asks for */
+    accessibilityLabel?: string;
 };
 
 function UploadFile({
@@ -72,6 +67,7 @@ function UploadFile({
     totalFilesSizeLimit = 0,
     fileLimit = 0,
     maxFileSize = 0,
+    accessibilityLabel,
 }: UploadFileProps) {
     const icons = useMemoizedLazyExpensifyIcons(['Close', 'Paperclip']);
     const {translate} = useLocalize();
@@ -129,7 +125,7 @@ function UploadFile({
             >
                 {({openPicker}) => (
                     <Button
-                        accessibilityLabel={buttonText}
+                        accessibilityLabel={accessibilityLabel ?? buttonText}
                         onPress={() => {
                             openPicker({
                                 onPicked: handleFileUpload,
@@ -158,7 +154,7 @@ function UploadFile({
                     <PressableWithFeedback
                         onPress={() => onRemove(file?.name ?? '')}
                         role={CONST.ROLE.BUTTON}
-                        accessibilityLabel={translate('common.remove')}
+                        accessibilityLabel={`${translate('common.remove')}, ${file.name ?? ''}`}
                         sentryLabel={CONST.SENTRY_LABEL.UPLOAD_FILE.REMOVE_BUTTON}
                     >
                         <Icon

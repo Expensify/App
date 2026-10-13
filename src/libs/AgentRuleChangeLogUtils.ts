@@ -5,7 +5,8 @@ import type ReportAction from '@src/types/onyx/ReportAction';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
-import {getOriginalMessage, isActionOfType} from './ReportActionsUtils';
+import {getOriginalMessage} from './ReportActionMessageUtils';
+import {isActionOfType} from './ReportActionTypeGuards';
 
 /**
  * Builds the #admins system message shown when an agent rule is added. Includes the rule's title and

@@ -16,19 +16,13 @@ import React, {useMemo} from 'react';
 import type {BusinessTypeItemType, IncorporationType} from './types';
 
 type BusinessTypeSelectorModalProps = {
-    /** Whether the modal is visible */
     isVisible: boolean;
-
-    /** Business type value selected  */
     currentBusinessType: string;
-
-    /** Function to call when the user selects a business type */
     onBusinessTypeSelected: (value: BusinessTypeItemType) => void;
 
     /** Function to call when the user closes the business type selector modal */
     onClose: () => void;
 
-    /** Label to display on field */
     label: string;
 };
 

@@ -1,15 +1,6 @@
 import {DialogLabelProvider, useDialogLabelData} from '@components/DialogLabelContext';
 import NoDropZone from '@components/DragAndDrop/NoDropZone';
-import {
-    animatedWideRHPWidth,
-    expandedRHPProgress,
-    secondOverlayRHPOnSuperWideRHPProgress,
-    secondOverlayRHPOnWideRHPProgress,
-    secondOverlayWideRHPProgress,
-    thirdOverlayProgress,
-    useWideRHPActions,
-    useWideRHPState,
-} from '@components/WideRHPContextProvider';
+import {expandedRHPProgress, thirdOverlayProgress, useWideRHPActions, useWideRHPState} from '@components/WideRHPContextProvider';
 
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSidePanelState from '@hooks/useSidePanelState';
@@ -22,8 +13,9 @@ import hideKeyboardOnSwipe from '@libs/Navigation/AppNavigator/hideKeyboardOnSwi
 import * as ModalStackNavigators from '@libs/Navigation/AppNavigator/ModalStackNavigators';
 import useModalStackScreenOptions from '@libs/Navigation/AppNavigator/ModalStackNavigators/useModalStackScreenOptions';
 import useRHPScreenOptions from '@libs/Navigation/AppNavigator/useRHPScreenOptions';
-import calculateReceiptPaneRHPWidth from '@libs/Navigation/helpers/calculateReceiptPaneRHPWidth';
 import calculateSuperWideRHPWidth from '@libs/Navigation/helpers/calculateSuperWideRHPWidth';
+import calculateWideRHPWidth from '@libs/Navigation/helpers/calculateWideRHPWidth';
+import getSidePanelRHPShrink from '@libs/Navigation/helpers/getSidePanelRHPShrink';
 import {isFullScreenName} from '@libs/Navigation/helpers/isNavigatorName';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import Animations from '@libs/Navigation/PlatformStackNavigation/navigationOptions/animation';
@@ -35,7 +27,10 @@ import type {AuthScreensParamList, RightModalNavigatorParamList} from '@navigati
 
 import {PINContextProvider} from '@pages/MissingPersonalDetails/PINContext';
 import SearchAdvancedFiltersProvider from '@pages/Search/SearchAdvancedFiltersProvider';
+import {MergeATSApprovalDraftProvider} from '@pages/workspace/recruiting/approver/MergeATSApprovalDraftContext';
+import {MergeATSFiltersDraftProvider} from '@pages/workspace/recruiting/merge/filters/MergeATSFiltersDraftContext';
 
+import type {OverlayPositionValue} from '@styles/index';
 import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
@@ -44,6 +39,7 @@ import SCREENS from '@src/SCREENS';
 import type ReactComponentModule from '@src/types/utils/ReactComponentModule';
 
 import type {NavigatorScreenParams} from '@react-navigation/native';
+import type {ComponentRef} from 'react';
 import type {View} from 'react-native';
 
 import {useFocusEffect} from '@react-navigation/native';
@@ -51,15 +47,15 @@ import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import {Animated, DeviceEventEmitter} from 'react-native';
 
+import getRHPFrameStyle from './getRHPFrameStyle';
 import {NarrowPaneContextProvider} from './NarrowPaneContext';
-import Overlay from './Overlay';
+import RHPOverlay from './Overlay/RHPOverlay';
 
 type RightModalNavigatorProps = PlatformStackScreenProps<AuthScreensParamList, typeof NAVIGATORS.RIGHT_MODAL_NAVIGATOR>;
 
 const Stack = createRightModalNavigator<RightModalNavigatorParamList, typeof NAVIGATORS.RIGHT_MODAL_NAVIGATOR>();
 
-const singleRHPWidth = variables.sideBarWidth;
-const getWideRHPWidth = (windowWidth: number) => variables.sideBarWidth + calculateReceiptPaneRHPWidth(windowWidth);
+const singleRHPWidth = variables.rhpWidth;
 
 function MissingPersonalDetailsWithPINContext(props: Record<string, unknown>) {
     return (
@@ -77,41 +73,20 @@ function SearchAdvancedFiltersWithContext(props: Record<string, unknown>) {
     );
 }
 
-function SecondaryOverlay() {
-    const {shouldRenderSecondaryOverlayForWideRHP, shouldRenderSecondaryOverlayForRHPOnWideRHP, shouldRenderSecondaryOverlayForRHPOnSuperWideRHP} = useWideRHPState();
-    const {sidePanelOffset} = useSidePanelState();
+function MergeATSFiltersWithDraftContext(props: Record<string, unknown>) {
+    return (
+        <MergeATSFiltersDraftProvider>
+            <ModalStackNavigators.MergeATSFiltersModalStackNavigator {...props} />
+        </MergeATSFiltersDraftProvider>
+    );
+}
 
-    if (shouldRenderSecondaryOverlayForWideRHP) {
-        return (
-            <Overlay
-                progress={secondOverlayWideRHPProgress}
-                positionRightValue={Animated.add(sidePanelOffset.current, animatedWideRHPWidth)}
-                onPress={() => Navigation.closeRHPFlow()}
-            />
-        );
-    }
-
-    if (shouldRenderSecondaryOverlayForRHPOnWideRHP) {
-        return (
-            <Overlay
-                progress={secondOverlayRHPOnWideRHPProgress}
-                positionRightValue={Animated.add(sidePanelOffset.current, variables.sideBarWidth)}
-                onPress={Navigation.dismissToPreviousRHP}
-            />
-        );
-    }
-
-    if (shouldRenderSecondaryOverlayForRHPOnSuperWideRHP) {
-        return (
-            <Overlay
-                progress={secondOverlayRHPOnSuperWideRHPProgress}
-                positionRightValue={Animated.add(sidePanelOffset.current, variables.sideBarWidth)}
-                onPress={Navigation.dismissToSuperWideRHP}
-            />
-        );
-    }
-
-    return null;
+function MergeATSApprovalWithDraftContext(props: Record<string, unknown>) {
+    return (
+        <MergeATSApprovalDraftProvider>
+            <ModalStackNavigators.MergeATSApprovalModalStackNavigator {...props} />
+        </MergeATSApprovalDraftProvider>
+    );
 }
 
 const loadRHPReportScreen = () => require<ReactComponentModule>('../../../../pages/inbox/RHPReportScreen').default;
@@ -126,7 +101,7 @@ type RightModalDialogFrameProps = {
     style: React.ComponentProps<typeof Animated.View>['style'];
 
     /** Callback ref for the container node so the provider can observe node identity changes. */
-    onContainerRef: (node: View | null) => void;
+    onContainerRef: (node: ComponentRef<typeof View> | null) => void;
 
     /** RHP stack navigator rendered inside the dialog frame. */
     children: React.ReactNode;
@@ -162,15 +137,23 @@ function RightModalDialogFrame({hasDialogSemantics, style, onContainerRef, child
 function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
-    const [containerNode, setContainerNode] = useState<View | null>(null);
-    const [setContainerNodeFromRef] = useState(() => (node: View | null) => {
+    const [containerNode, setContainerNode] = useState<ComponentRef<typeof View> | null>(null);
+    const [setContainerNodeFromRef] = useState(() => (node: ComponentRef<typeof View> | null) => {
         setContainerNode(node);
     });
     const isExecutingRef = useRef<boolean>(false);
     const screenOptions = useRHPScreenOptions();
-    const {superWideRHPRouteKeys, wideRHPRouteKeys, shouldRenderTertiaryOverlay} = useWideRHPState();
+    const {
+        superWideRHPRouteKeys,
+        wideRHPRouteKeys,
+        shouldRenderTertiaryOverlay,
+        shouldRenderSecondaryOverlayForRHPOnWideRHP,
+        shouldRenderSecondaryOverlayForRHPOnSuperWideRHP,
+        isWideRHPFocused,
+        isSuperWideRHPFocused,
+    } = useWideRHPState();
     const {clearWideRHPKeys, syncRHPKeys} = useWideRHPActions();
-    const {windowWidth} = useWindowDimensions();
+    const {windowWidth, windowHeight} = useWindowDimensions();
     const modalStackScreenOptions = useModalStackScreenOptions();
     const styles = useThemeStyles();
     const {sidePanelOffset} = useSidePanelState();
@@ -200,24 +183,41 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
     // The super wide RHP already spans almost the full window, so without shrinking it by the same amount
     // its left edge would be pushed off-screen once the Side Panel opens. Subtract the Side Panel offset
     // from the super wide width only (progress === 2) so the sheet's left edge stays put while the Side
-    // Panel animates open/closed. See https://github.com/Expensify/App/issues/99035
-    const superWideRHPSidePanelOffset = Animated.multiply(expandedRHPProgress.interpolate({inputRange: [0, 1, 2], outputRange: [0, 0, 1], extrapolate: 'clamp'}), sidePanelOffset.current);
+    // Panel animates open/closed, and never below what its panes need. See https://github.com/Expensify/App/issues/99035
+    const superWideRHPSidePanelOffset = Animated.multiply(
+        expandedRHPProgress.interpolate({inputRange: [0, 1, 2], outputRange: [0, 0, 1], extrapolate: 'clamp'}),
+        getSidePanelRHPShrink(sidePanelOffset.current, windowWidth),
+    );
 
     const animatedWidth = Animated.subtract(
         expandedRHPProgress.interpolate({
             inputRange: [0, 1, 2],
-            outputRange: [singleRHPWidth, getWideRHPWidth(windowWidth), calculateSuperWideRHPWidth(windowWidth)],
+            outputRange: [singleRHPWidth, calculateWideRHPWidth(windowWidth), calculateSuperWideRHPWidth(windowWidth)],
         }),
         superWideRHPSidePanelOffset,
     );
 
-    const animatedWidthStyle = useMemo(() => {
-        return {
-            width: shouldUseNarrowLayout ? '100%' : animatedWidth,
-        } as const;
-    }, [animatedWidth, shouldUseNarrowLayout]);
-
     const overlayPositionLeft = useMemo(() => -1 * calculateSuperWideRHPWidth(windowWidth), [windowWidth]);
+
+    // Width of the focused card. The super wide animated width already gives up the Side Panel offset.
+    let focusedRHPWidth: OverlayPositionValue = singleRHPWidth;
+    if (isSuperWideRHPFocused) {
+        focusedRHPWidth = animatedWidth;
+    } else if (isWideRHPFocused) {
+        focusedRHPWidth = calculateWideRHPWidth(windowWidth);
+    }
+
+    // Where the focused card starts, measured from the right window edge and from the left.
+    const tertiaryOverlayColumn = Animated.add(sidePanelOffset.current, Animated.add(focusedRHPWidth, 2 * variables.rhpFloatingCardBorderWidth + variables.rhpFloatingCardMargin));
+    const tertiaryOverlayCardBandLeft = Animated.subtract(windowWidth, tertiaryOverlayColumn);
+    const tertiaryOverlayVerticalGapInset = windowHeight - variables.rhpFloatingCardMargin;
+
+    // With a report or expense stacked in the RHP every card draws its own modal, so the frame is invisible.
+    const shouldUseCenteredFrame =
+        !shouldUseNarrowLayout &&
+        (superWideRHPRouteKeys.length > 0 || wideRHPRouteKeys.length > 0 || shouldRenderSecondaryOverlayForRHPOnWideRHP || shouldRenderSecondaryOverlayForRHPOnSuperWideRHP);
+
+    const frameStyle = getRHPFrameStyle({styles, animatedWidth, shouldUseNarrowLayout, shouldUseCenteredFrame});
 
     const screenListeners = useMemo(
         () => ({
@@ -257,6 +257,12 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
         }
     }, [navigation]);
 
+    // Pressing the dimmed gap around the focused card goes back one level when a card is stacked below, and closes the RHP when it is not.
+    const floatingCardGapProgress = shouldRenderTertiaryOverlay ? thirdOverlayProgress : undefined;
+    const handleFloatingCardGapPress = shouldRenderTertiaryOverlay ? Navigation.dismissToPreviousRHP : handleOverlayPress;
+    // The gap on the right stops before the Side Panel, which shares that edge.
+    const floatingCardGapRightBandLeft = Animated.subtract(Animated.subtract(windowWidth, sidePanelOffset.current), variables.rhpFloatingCardMargin);
+
     const clearWideRHPKeysAfterTabChanged = useCallback(() => {
         const isRhpOpened = navigationRef?.getRootState()?.routes?.some((rootStateRoute) => rootStateRoute.key === route.key);
         const isFullScreenTopmostRoute = isFullScreenName(navigationRef.getRootState()?.routes?.at(-1)?.name);
@@ -281,7 +287,7 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
         <NarrowPaneContextProvider>
             <NoDropZone>
                 {!shouldUseNarrowLayout && (
-                    <Overlay
+                    <RHPOverlay
                         positionLeftValue={overlayPositionLeft}
                         onPress={handleOverlayPress}
                     />
@@ -295,7 +301,7 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
                     <RightModalDialogFrame
                         hasDialogSemantics={!isSmallScreenWidth}
                         onContainerRef={setContainerNodeFromRef}
-                        style={[styles.pAbsolute, styles.r0, styles.h100, styles.overflowHidden, animatedWidthStyle]}
+                        style={frameStyle}
                     >
                         <Stack.Navigator
                             parentRoute={route}
@@ -476,6 +482,15 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
                             <Stack.Screen
                                 name={SCREENS.RIGHT_MODAL.SEARCH_SAVE}
                                 getComponent={loadSearchSavePage}
+                                options={modalStackScreenOptions}
+                            />
+                            <Stack.Screen
+                                name={SCREENS.RIGHT_MODAL.RECRUITING_MERGE_IMPORT_SETTINGS}
+                                component={MergeATSFiltersWithDraftContext}
+                            />
+                            <Stack.Screen
+                                name={SCREENS.RIGHT_MODAL.RECRUITING_MERGE_APPROVAL}
+                                component={MergeATSApprovalWithDraftContext}
                             />
                             <Stack.Screen
                                 name={SCREENS.RIGHT_MODAL.SEARCH_ADVANCED_FILTERS}
@@ -544,16 +559,43 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
                         </Stack.Navigator>
                     </RightModalDialogFrame>
                 </DialogLabelProvider>
-                {/* The third and second overlays are displayed here to cover RHP screens wider than the currently focused screen. */}
-                {/* Clicking on these overlays redirects you to the RHP screen below them. */}
-                {/* The width of these overlays is equal to the width of the screen minus the width of the currently focused RHP screen (positionRightValue) */}
-                {!shouldUseNarrowLayout && <SecondaryOverlay />}
+                {/* The tertiary overlay covers RHP screens wider than the focused one and dismisses to the screen below. */}
+                {/* It paints nothing: the dim behind a stacked card is drawn by WideRHPOverlayWrapper from inside the */}
+                {/* screen below, so it follows that card's rounded corners instead of being a rectangle over the top. */}
+                {/* This one only exists because react-navigation's card wrapper swallows clicks on the dimmed area. */}
                 {!shouldUseNarrowLayout && shouldRenderTertiaryOverlay && (
-                    <Overlay
+                    <RHPOverlay
                         progress={thirdOverlayProgress}
-                        positionRightValue={Animated.add(sidePanelOffset.current, variables.sideBarWidth)}
+                        positionRightValue={tertiaryOverlayColumn}
                         onPress={Navigation.dismissToPreviousRHP}
+                        transparent
                     />
+                )}
+                {/* Keeps the dimmed margin above, below and to the right of the focused card pressable. */}
+                {!shouldUseNarrowLayout && shouldUseCenteredFrame && (
+                    <>
+                        <RHPOverlay
+                            progress={floatingCardGapProgress}
+                            positionLeftValue={tertiaryOverlayCardBandLeft}
+                            positionBottomValue={tertiaryOverlayVerticalGapInset}
+                            onPress={handleFloatingCardGapPress}
+                            transparent
+                        />
+                        <RHPOverlay
+                            progress={floatingCardGapProgress}
+                            positionLeftValue={tertiaryOverlayCardBandLeft}
+                            positionTopValue={tertiaryOverlayVerticalGapInset}
+                            onPress={handleFloatingCardGapPress}
+                            transparent
+                        />
+                        <RHPOverlay
+                            progress={floatingCardGapProgress}
+                            positionLeftValue={floatingCardGapRightBandLeft}
+                            positionRightValue={sidePanelOffset.current}
+                            onPress={handleFloatingCardGapPress}
+                            transparent
+                        />
+                    </>
                 )}
             </NoDropZone>
         </NarrowPaneContextProvider>

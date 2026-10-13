@@ -14,10 +14,7 @@ type FixedFooterProps = {
     /** Styles to be assigned to Container */
     style?: StyleProp<ViewStyle>;
 
-    /** Whether to add bottom safe area padding to the content. */
     addBottomSafeAreaPadding?: boolean;
-
-    /** Whether to add bottom safe area padding to the content. */
     addOfflineIndicatorBottomSafeAreaPadding?: boolean;
 
     /** Whether to stick the footer to the bottom of the screen. */

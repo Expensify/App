@@ -1,4 +1,4 @@
-import Button from '@components/ButtonComposed';
+import Button from '@components/Button';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {PressableWithoutFeedback} from '@components/Pressable';
@@ -38,7 +38,6 @@ import React, {useMemo} from 'react';
 import {FlatList, View} from 'react-native';
 
 type TripRoomPreviewProps = {
-    /** All the data of the action */
     action: ReportAction;
 
     /** Extra styles to pass to View wrapper */
@@ -129,19 +128,20 @@ function TripRoomPreview({action, containerStyles, isHovered = false}: TripRoomP
     const originalMessage = getOriginalMessage(action);
     const linkedReportID = originalMessage && 'linkedReportID' in originalMessage ? originalMessage.linkedReportID : undefined;
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${linkedReportID}`);
+    const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${chatReport?.reportID ?? linkedReportID}`);
     const [iouReportCurrency] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${chatReport?.iouReportID}`, {selector: selectCurrency});
 
     const chatReportID = chatReport?.reportID ?? linkedReportID;
     const tripTransactions = useTripTransactions(chatReportID);
 
-    const reservationsData: ReservationData[] = getReservationsFromTripReport(chatReport, tripTransactions);
+    const reservationsData: ReservationData[] = getReservationsFromTripReport(chatReport, reportNameValuePairs, tripTransactions);
     const dateInfo =
-        chatReport?.tripData?.startDate && chatReport?.tripData?.endDate
-            ? DateUtils.getFormattedDateRange(translate, dateFnsLocale, new Date(chatReport.tripData.startDate), new Date(chatReport.tripData.endDate))
+        reportNameValuePairs?.tripData?.startDate && reportNameValuePairs?.tripData?.endDate
+            ? DateUtils.getFormattedDateRange(translate, dateFnsLocale, new Date(reportNameValuePairs.tripData.startDate), new Date(reportNameValuePairs.tripData.endDate))
             : '';
     const reportCurrency = iouReportCurrency ?? chatReport?.currency;
 
-    const {totalDisplaySpend = 0, currency = reportCurrency} = chatReport ? getTripTotal(chatReport) : {};
+    const {totalDisplaySpend = 0, currency = reportCurrency} = chatReport ? getTripTotal(chatReport, reportNameValuePairs) : {};
 
     const displayAmount = useMemo(() => {
         if (totalDisplaySpend) {

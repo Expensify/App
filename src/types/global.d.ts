@@ -12,6 +12,12 @@ declare module '*.jpg' {
     export default value;
 }
 
+declare module '*.mp3' {
+    // Metro resolves assets to numeric registry IDs. Web bundlers resolve them to URL strings.
+    const value: number | string;
+    export default value;
+}
+
 declare module '*.svg' {
     import type React from 'react';
     import type {SvgProps} from 'react-native-svg';

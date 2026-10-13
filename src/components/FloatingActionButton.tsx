@@ -9,7 +9,7 @@ import variables from '@styles/variables';
 
 import type WithSentryLabel from '@src/types/utils/SentryLabel';
 
-import type {ForwardedRef} from 'react';
+import type {ComponentRef, ForwardedRef} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import type {GestureResponderEvent, Role, Text as TextType, View as ViewType} from 'react-native';
 
@@ -27,30 +27,21 @@ const SMALL_FAB_PATH =
 const AnimatedPath = Animated.createAnimatedComponent(Path);
 
 type FloatingActionButtonProps = WithSentryLabel & {
-    /* Callback to fire on request to toggle the FloatingActionButton */
+    /** Callback to fire on request to toggle the FloatingActionButton */
     onPress: (event: GestureResponderEvent | KeyboardEvent | undefined) => void;
 
-    /* Callback to fire on long press of the FloatingActionButton */
     onLongPress?: (event: GestureResponderEvent | KeyboardEvent | undefined) => void;
-
-    /* Current state (active or not active) of the component */
     isActive: boolean;
-
-    /* An accessibility label for the button */
     accessibilityLabel: string;
-
-    /* An accessibility role for the button */
     role: Role;
-
-    /** Reference to the outer element */
-    ref?: ForwardedRef<HTMLDivElement | ViewType | TextType>;
+    ref?: ForwardedRef<HTMLDivElement | ComponentRef<typeof ViewType> | ComponentRef<typeof TextType>>;
 };
 
 function FloatingActionButton({onPress, onLongPress, isActive, accessibilityLabel, role, ref, sentryLabel}: FloatingActionButtonProps) {
     const {buttonDefaultBG, buttonHoveredBG, icon} = useTheme();
     const styles = useThemeStyles();
     const borderRadius = styles.floatingActionButton.borderRadius;
-    const fabPressable = useRef<HTMLDivElement | ViewType | TextType | null>(null);
+    const fabPressable = useRef<HTMLDivElement | ComponentRef<typeof ViewType> | ComponentRef<typeof TextType> | null>(null);
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const isLHBVisible = !shouldUseNarrowLayout;
     const {translate} = useLocalize();

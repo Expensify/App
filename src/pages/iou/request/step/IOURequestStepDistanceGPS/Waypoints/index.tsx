@@ -24,7 +24,6 @@ type WaypointsProps = {
     /** Distance unit of the ongoing GPS trip */
     unit: Unit;
 
-    /** Whether the screen is in landscape mode */
     isInLandscapeMode: boolean;
 } & MoneyRequestNavigatorParamList[typeof SCREENS.MONEY_REQUEST.GPS_TRIP_EDIT];
 
@@ -66,11 +65,10 @@ function Waypoints({unit, isInLandscapeMode, action, iouType, transactionID, rep
 
     return (
         <Wrapper style={[styles.pt2, styles.pb4]}>
-            <View style={[styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter, styles.gap3, styles.ph5]}>
+            <View style={[styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter, styles.gap3, styles.pr5]}>
                 <View style={[styles.flex1]}>
                     <DistanceCounter unit={unit} />
                 </View>
-
                 <DiscardGPSTripButton />
                 <EditGPSTripButton
                     action={action}

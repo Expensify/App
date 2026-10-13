@@ -1,4 +1,5 @@
 import UserAvatar from '@components/Avatar/UserAvatar';
+import {InlineTextEditCell} from '@components/EditableCell';
 import Icon from '@components/Icon';
 import Switch from '@components/Switch';
 import Table from '@components/Table';
@@ -20,13 +21,8 @@ import {View} from 'react-native';
 import type {WorkspaceCategoryTableRowData} from '.';
 
 type WorkspaceCategoriesTableRowProps = {
-    /** Data about the category */
     item: WorkspaceCategoryTableRowData;
-
-    /** The index of the row relative to all other rows */
     rowIndex: number;
-
-    /** Whether to use narrow table row layout */
     shouldUseNarrowTableLayout: boolean;
 
     /** Whether the GL Code column is visible on web screens or not */
@@ -73,10 +69,11 @@ export default function WorkspaceCategoriesTableRow({rowIndex, shouldUseNarrowTa
                         style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}
                         {...getCellAccessibilityProps(isTableSemanticsEnabled)}
                     >
-                        <TextWithTooltip
-                            shouldShowTooltip
-                            numberOfLines={1}
-                            text={item.name}
+                        <InlineTextEditCell
+                            value={item.name}
+                            accessibilityLabel={translate('common.name')}
+                            canEdit={item.canEditName && !item.disabled}
+                            onSave={item.onRenameName}
                         />
                     </View>
 

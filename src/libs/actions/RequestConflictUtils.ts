@@ -1,4 +1,4 @@
-import type {DetachReceiptParams, OpenReportParams, UpdateCommentParams} from '@libs/API/parameters';
+import type {OpenReportParams, UpdateCommentParams} from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import type {ApiRequestCommandParameters} from '@libs/API/types';
 
@@ -30,11 +30,14 @@ const enablePolicyFeatureCommand = [
     WRITE_COMMANDS.ENABLE_POLICY_COMPANY_CARDS,
     WRITE_COMMANDS.ENABLE_POLICY_CONNECTIONS,
     WRITE_COMMANDS.ENABLE_POLICY_HR,
+    WRITE_COMMANDS.ENABLE_POLICY_RECRUITING,
+    WRITE_COMMANDS.ENABLE_POLICY_MCP,
     WRITE_COMMANDS.TOGGLE_RECEIPT_PARTNERS,
     WRITE_COMMANDS.ENABLE_POLICY_CATEGORIES,
     WRITE_COMMANDS.ENABLE_POLICY_TAGS,
     WRITE_COMMANDS.ENABLE_POLICY_TAXES,
     WRITE_COMMANDS.ENABLE_POLICY_REPORT_FIELDS,
+    WRITE_COMMANDS.ENABLE_POLICY_INVOICE_FIELDS,
     WRITE_COMMANDS.ENABLE_POLICY_WORKFLOWS,
     WRITE_COMMANDS.SET_POLICY_RULES_ENABLED,
     WRITE_COMMANDS.ENABLE_POLICY_INVOICING,
@@ -348,44 +351,13 @@ function resolveEnableFeatureConflicts<TKey extends OnyxKey>(
     };
 }
 
-function resolveDetachReceiptConflicts<TKey extends OnyxKey>(persistedRequests: Array<OnyxRequest<TKey>>, parameters: DetachReceiptParams): ConflictActionData {
-    const indicesToDelete: number[] = [];
-    for (const [index, request] of persistedRequests.entries()) {
-        if (request.command !== WRITE_COMMANDS.REPLACE_RECEIPT || request.data?.transactionID !== parameters.transactionID) {
-            continue;
-        }
-        indicesToDelete.push(index);
-    }
-
-    // In the case the transaction doesn't have the receipt, remove all the replace receipt requests will make the detach receipt request invalid
-    // So we should keep the last replace receipt request to ensure the detach receipt request is always valid
-    if (indicesToDelete.length >= 1) {
-        indicesToDelete.pop();
-    }
-
-    if (indicesToDelete.length === 0) {
-        return {
-            conflictAction: {
-                type: 'push',
-            },
-        };
-    }
-
-    return {
-        conflictAction: {
-            type: 'delete',
-            indices: indicesToDelete,
-            pushNewRequest: true,
-        },
-    };
-}
-
 export {
     resolveDuplicationConflictAction,
     resolveOpenAppDuplicationConflictAction,
     resolveOpenReportDuplicationConflictAction,
     resolveReconnectDuplicationConflictAction,
     readUpdateIDFrom,
+    reconnectCoverageFrom,
     isFullDownloadRequest,
     isReconnectFamilyRequest,
     resolveCommentDeletionConflicts,
@@ -393,7 +365,6 @@ export {
     createUpdateCommentMatcher,
     resolveEnableFeatureConflicts,
     enablePolicyFeatureCommand,
-    resolveDetachReceiptConflicts,
 };
 
 export type {EnablePolicyFeatureCommand, AnyRequestMatcher};

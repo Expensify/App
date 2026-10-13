@@ -24,11 +24,8 @@ type UseAvatarMenuParams = {
     originalFileName?: string;
     /** Account ID for navigation */
     accountID: number;
-    /** Callback when avatar is removed */
     onImageRemoved: () => void;
-    /** Callback to show avatar crop modal */
     showAvatarCropModal: (image: FileObject) => void;
-    /** Callback to clear errors */
     clearError: () => void;
 };
 

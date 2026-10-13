@@ -19,7 +19,6 @@ import DropZoneUI from './DropZoneUI';
 import DropZoneWrapper from './DropZoneWrapper';
 
 type DropZoneProps = {
-    /** Whether the user is editing */
     isEditing: boolean;
 
     /** Callback to execute when a file is dropped */
@@ -28,7 +27,6 @@ type DropZoneProps = {
     /** Callback to execute when a file is dropped */
     onReceiptDrop: (event: DragEvent) => void;
 
-    /** Whether the drop zone should accept a single receipt */
     shouldAcceptSingleReceipt?: boolean;
 };
 

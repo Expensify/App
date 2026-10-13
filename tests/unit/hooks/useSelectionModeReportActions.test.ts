@@ -9,6 +9,7 @@ import type {ReportSubmitToPopoverOpenOptions} from '@hooks/useReportSubmitToPop
 import useSelectionModeReportActions from '@hooks/useSelectionModeReportActions';
 
 import {submitReport} from '@libs/actions/IOU/ReportWorkflow';
+import type * as MoneyRequestReportUtils from '@libs/MoneyRequestReportUtils';
 import {isSubmitPolicy} from '@libs/PolicyUtils';
 import {
     getNextApproverAccountID,
@@ -77,6 +78,7 @@ jest.mock('@hooks/usePermissions', () => ({
     __esModule: true,
     default: jest.fn(() => ({
         isBetaEnabled: (beta: string) => beta === 'bulkSubmitApprovePay',
+        isBetaEnabledOrUnknown: (beta: string) => beta === 'bulkSubmitApprovePay',
     })),
 }));
 
@@ -88,11 +90,6 @@ jest.mock('@hooks/useStrictPolicyRules', () => ({
 jest.mock('@hooks/useConfirmModal', () => ({
     __esModule: true,
     default: jest.fn(() => ({showConfirmModal: jest.fn()})),
-}));
-
-jest.mock('@hooks/useConfirmPendingRTERAndProceed', () => ({
-    __esModule: true,
-    default: jest.fn(() => (onProceed: () => void) => onProceed()),
 }));
 
 jest.mock('@hooks/useReportIsArchived', () => ({
@@ -135,6 +132,9 @@ function mockLifecycleActionsReturn(overrides?: {shouldBlockSubmit?: boolean; is
         handleSubmitReport: mockLifecycleHandleSubmitReport,
         shouldBlockSubmit: overrides?.shouldBlockSubmit ?? false,
         isBlockSubmitDueToPreventSelfApproval: overrides?.isBlockSubmitDueToPreventSelfApproval ?? false,
+        approveSubMenuItems: undefined,
+        approveSubMenuHeaderText: '',
+        shouldShowApproveSubMenu: false,
     };
 }
 
@@ -234,6 +234,8 @@ jest.mock('@libs/ReportUtils', () => {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     return {
         ...actual,
+        canApproveIOU: jest.fn(() => false),
+        canIOUBePaid: jest.fn(() => false),
         hasHeldExpensesFromTransactions: jest.fn(() => false),
         hasOnlyHeldExpenses: jest.fn(() => false),
         hasUpdatedTotal: jest.fn(() => true),
@@ -251,8 +253,6 @@ jest.mock('@libs/actions/IOU/ReportWorkflow', () => ({
     __esModule: true,
     submitReport: jest.fn(),
     approveMoneyRequest: jest.fn(),
-    canApproveIOU: jest.fn(() => false),
-    canIOUBePaid: jest.fn(() => false),
 }));
 
 jest.mock('@libs/actions/IOU/PayMoneyRequest', () => ({
@@ -288,6 +288,7 @@ jest.mock('@libs/ReportActionsUtils', () => ({
 }));
 
 jest.mock('@libs/MoneyRequestReportUtils', () => ({
+    ...jest.requireActual<typeof MoneyRequestReportUtils>('@libs/MoneyRequestReportUtils'),
     __esModule: true,
     getTotalAmountForIOUReportPreviewButton: jest.fn(() => '$100.00'),
 }));
@@ -299,17 +300,12 @@ jest.mock('@libs/PaymentUtils', () => ({
 
 jest.mock('@libs/TransactionUtils', () => ({
     __esModule: true,
-    hasAnyPendingRTERViolation: jest.fn(() => false),
     hasOnlyPendingCardTransactions: jest.fn(() => false),
     showPendingCardTransactionsBlockModal: jest.fn(),
     isExpensifyCardTransaction: jest.fn(() => false),
     isPending: jest.fn(() => false),
     getReimbursable: jest.fn(() => true),
-}));
-
-jest.mock('@userActions/Transaction', () => ({
-    __esModule: true,
-    markPendingRTERTransactionsAsCash: jest.fn(),
+    isTransactionPendingDelete: jest.fn(() => false),
 }));
 
 const mockOpenReportSubmitToPopover = jest.fn<void, [ReportSubmitToPopoverOpenOptions | undefined]>();
@@ -438,6 +434,20 @@ describe('useSelectionModeReportActions', () => {
             });
 
             expect(result.current.allExpensesSelected).toBe(false);
+        });
+
+        it('returns true when Select All has written every row it can, leaving only an expense the backend refused to reject', () => {
+            // Given a report whose third expense carries a refused reject, which keeps it on the report until the user dismisses it
+            const transactions = [buildTransaction(1), buildTransaction(2), buildTransaction(3, {errorFields: {reject: {1700000000000: 'iou.rejectReport.couldNotRejectExpense'}}})];
+
+            // When Select All writes the two rows a checkbox can reach
+            const {result} = renderSelectionModeHook({
+                transactions,
+                selectedTransactionIDs: ['1', '2'],
+            });
+
+            // Then the report counts as covered, or Submit, Approve and Pay stay hidden for as long as that error stands
+            expect(result.current.allExpensesSelected).toBe(true);
         });
 
         it('returns false when no transactions are selected', () => {

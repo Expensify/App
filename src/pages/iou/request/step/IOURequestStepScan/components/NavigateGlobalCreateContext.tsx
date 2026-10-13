@@ -6,6 +6,7 @@ import usePersonalPolicy from '@hooks/usePersonalPolicy';
 import useSelfDMReport from '@hooks/useSelfDMReport';
 
 import {navigateToConfirmationPage, navigateToParticipantPage} from '@libs/IOUUtils';
+import deferNavigate from '@libs/Navigation/deferNavigate';
 import Navigation from '@libs/Navigation/Navigation';
 import {getPolicyExpenseChat, isSelfDM} from '@libs/ReportUtils';
 import shouldUseDefaultExpensePolicy from '@libs/shouldUseDefaultExpensePolicy';
@@ -95,8 +96,15 @@ function NavigateGlobalCreateSubscriber({fnRef, iouType, reportID, transactionID
 
     const navigateGlobalCreate: NavigateGlobalCreateFn = (transactionIDs, isMultiScanEnabled) => {
         startScanProcessSpan(isMultiScanEnabled);
-        if (shouldUseDefaultExpensePolicy(iouType, defaultExpensePolicy, amountOwed, userBillingGracePeriodEnds, ownerBillingGracePeriodEnd, currentUserPersonalDetails.accountID)) {
-            const shouldAutoReport = !!defaultExpensePolicy?.autoReporting || !!personalPolicy?.autoReporting;
+
+        // Manual's confirmation flips the shared route to TRACK once it lands on the self DM, so a later scan arrives already resolved.
+        const isSelfDMTrackExpense = iouType === CONST.IOU.TYPE.TRACK && !!transaction?.isFromGlobalCreate && !!selfDMReport;
+
+        if (
+            isSelfDMTrackExpense ||
+            shouldUseDefaultExpensePolicy(iouType, defaultExpensePolicy, amountOwed, userBillingGracePeriodEnds, ownerBillingGracePeriodEnd, currentUserPersonalDetails.accountID)
+        ) {
+            const shouldAutoReport = !isSelfDMTrackExpense && (!!defaultExpensePolicy?.autoReporting || !!personalPolicy?.autoReporting);
             const targetReport = shouldAutoReport ? getPolicyExpenseChat(currentUserPersonalDetails.accountID, defaultExpensePolicy?.id) : selfDMReport;
             const transactionReportID = isSelfDM(targetReport) ? CONST.REPORT.UNREPORTED_REPORT_ID : targetReport?.reportID;
             const iouTypeTrackOrSubmit = transactionReportID === CONST.REPORT.UNREPORTED_REPORT_ID ? CONST.IOU.TYPE.TRACK : CONST.IOU.TYPE.SUBMIT;
@@ -104,24 +112,28 @@ function NavigateGlobalCreateSubscriber({fnRef, iouType, reportID, transactionID
             // If the user previously selected different participants in confirmation, preserve that choice
             if (transaction?.participants && transaction.participants.at(0)?.reportID !== targetReport?.reportID) {
                 const isTrackExpense = transaction.participants.at(0)?.reportID === selfDMReport?.reportID;
+                const preservedParticipants = transaction.participants;
+                const preservedReportID = transaction.reportID;
 
-                const setParticipantsPromises = transactionIDs.map((tid) => setMoneyRequestParticipants(tid, transaction.participants));
-                Promise.all(setParticipantsPromises).then(() => {
+                for (const tid of transactionIDs) {
+                    setMoneyRequestParticipants(tid, preservedParticipants);
+                }
+                deferNavigate(() => {
                     if (isTrackExpense) {
                         endScanProcessAndStartConfirmationMountSpan();
                         Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, CONST.IOU.TYPE.TRACK, transactionID, selfDMReport?.reportID));
                     } else {
-                        navigateToConfirmationPage(iouType, transactionID, reportID, backToReport, iouType === CONST.IOU.TYPE.CREATE, transaction.reportID);
+                        navigateToConfirmationPage(iouType, transactionID, reportID, backToReport, iouType === CONST.IOU.TYPE.CREATE, preservedReportID);
                     }
                 });
                 return;
             }
 
-            const setParticipantsPromises = transactionIDs.map((tid) => {
+            for (const tid of transactionIDs) {
                 setTransactionReport(tid, {reportID: transactionReportID}, true);
-                return setMoneyRequestParticipantsFromReport(tid, targetReport, currentUserPersonalDetails.accountID);
-            });
-            Promise.all(setParticipantsPromises).then(() => {
+                setMoneyRequestParticipantsFromReport(tid, targetReport, currentUserPersonalDetails.accountID);
+            }
+            deferNavigate(() => {
                 endScanProcessAndStartConfirmationMountSpan();
                 Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, iouTypeTrackOrSubmit, transactionID, targetReport?.reportID));
             });

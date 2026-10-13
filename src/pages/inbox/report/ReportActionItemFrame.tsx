@@ -14,7 +14,6 @@ type ReportActionItemFrameProps = {
     /** Action content */
     children: React.ReactNode;
 
-    /** All the data of the action item */
     action: OnyxTypes.ReportAction;
 
     /** Report for this action */
@@ -26,7 +25,6 @@ type ReportActionItemFrameProps = {
     /** True when this message is edited inline on a wide layout; right-aligns the reaction row under the composer. */
     isEditingInline: boolean;
 
-    /** Whether the report action is a whisper */
     isWhisper: boolean;
 
     /** Whether the search-page UI is active */

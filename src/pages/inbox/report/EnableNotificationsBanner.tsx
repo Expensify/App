@@ -1,5 +1,5 @@
 import Banner from '@components/Banner';
-import Button from '@components/ButtonComposed';
+import Button from '@components/Button';
 
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';

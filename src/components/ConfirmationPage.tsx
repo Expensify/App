@@ -14,7 +14,7 @@ import {StyleSheet, View} from 'react-native';
 
 import type DotLottieAnimation from './LottieAnimations/types';
 
-import Button from './ButtonComposed';
+import Button from './Button';
 import FixedFooter from './FixedFooter';
 import ImageSVG from './ImageSVG';
 import Lottie from './Lottie';
@@ -23,16 +23,9 @@ import ScrollView from './ScrollView';
 import Text from './Text';
 
 type ConfirmationPageProps = {
-    /** The asset to render */
     illustration?: DotLottieAnimation | IconAsset;
-
-    /** Heading of the confirmation page */
     heading: string;
-
-    /** Description of the confirmation page */
     description?: React.ReactNode;
-
-    /** Description component of the confirmation page */
     descriptionComponent?: React.ReactNode;
 
     /** The text for the call to action */
@@ -59,34 +52,27 @@ type ConfirmationPageProps = {
     /** The text for the secondary button label */
     secondaryButtonText?: string;
 
-    /** A function that is called when the secondary button is clicked on */
     onSecondaryButtonPress?: () => void;
-
-    /** Whether we should show a secondary confirmation button */
     shouldShowSecondaryButton?: boolean;
 
-    /** Additional style for the heading */
+    /** Whether the secondary confirmation button should be disabled */
+    isSecondaryButtonDisabled?: boolean;
+
+    /** Whether the secondary confirmation button should show a loading spinner */
+    isSecondaryButtonLoading?: boolean;
     headingStyle?: TextStyle;
 
     /** Additional style for the animation */
     illustrationStyle?: StyleProp<ViewStyle>;
 
-    /** Additional style for the description */
     descriptionStyle?: StyleProp<TextStyle>;
-
-    /** Additional style for the cta */
     ctaStyle?: TextStyle;
-
-    /** Additional style for the footer */
     footerStyle?: ViewStyle;
 
     /** Component rendered inside the footer, above the buttons (e.g. an inline error message) */
     footerComponent?: React.ReactNode;
 
-    /** Additional style for the container */
     containerStyle?: ViewStyle;
-
-    /** Additional style for the inner container */
     innerContainerStyle?: ViewStyle;
 };
 
@@ -105,6 +91,8 @@ function ConfirmationPage({
     secondaryButtonText = '',
     onSecondaryButtonPress = () => {},
     shouldShowSecondaryButton = false,
+    isSecondaryButtonDisabled = false,
+    isSecondaryButtonLoading = false,
     headingStyle,
     illustrationStyle,
     descriptionStyle,
@@ -175,6 +163,8 @@ function ConfirmationPage({
                             size={CONST.BUTTON_SIZE.LARGE}
                             testID="confirmation-secondary-button"
                             style={styles.mt3}
+                            isDisabled={isSecondaryButtonDisabled}
+                            isLoading={isSecondaryButtonLoading}
                             onPress={onSecondaryButtonPress}
                         >
                             <Button.Text>{secondaryButtonText}</Button.Text>

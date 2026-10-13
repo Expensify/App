@@ -24,7 +24,7 @@ const mockCreateComment = jest.fn<(repo: string, issueNumber: number, body: stri
 const mockMinimizeCommentAsSpam = jest.fn<(commentNodeID: string) => Promise<void>>();
 const mockUpdateComment = jest.fn<(params: {comment_id: number; body: string}) => Promise<void>>();
 
-const mockPromptResponses = jest.fn<() => Promise<{text: string; responseID: string}>>();
+const mockPromptResponses = jest.fn<(params: {input: string}) => Promise<{text: string; responseID: string}>>();
 const mockCreateConversation = jest.fn<(items?: ResponseInputItem[]) => Promise<Conversation>>();
 const mockAddConversationItems = jest.fn<(conversationID: string, items: ResponseInputItem[]) => Promise<void>>();
 const mockListConversationItems = jest.fn<(conversationID: string) => Promise<ConversationItem[]>>();
@@ -141,6 +141,7 @@ describe('proposalPoliceComment', () => {
     beforeEach(() => {
         resetMocks();
         process.env.INPUT_PROPOSAL_POLICE_API_KEY = 'test-api-key';
+        process.env.INPUT_IS_TRUSTED_COMMENTER = 'false';
     });
 
     it('does nothing at all for a bot-authored comment', async () => {
@@ -227,6 +228,18 @@ describe('proposalPoliceComment', () => {
         expect(mockUpdateComment).not.toHaveBeenCalled();
     });
 
+    it('does not minimize a content-free claim from a trusted commenter', async () => {
+        process.env.INPUT_IS_TRUSTED_COMMENTER = 'true';
+        setPayload({action: 'created', comment: makeComment({body: 'I can take this.'})});
+        mockPromptResponses.mockResolvedValueOnce({text: JSON.stringify({intent: 'NOT_AN_ATTEMPT'}), responseID: 'resp_intent'});
+
+        await run();
+
+        expect(mockPromptResponses.mock.calls.at(0)?.[0].input).toContain('<author_context>trusted:');
+        expect(mockMinimizeCommentAsSpam).not.toHaveBeenCalled();
+        expect(mockCreateComment).not.toHaveBeenCalled();
+    });
+
     it('leaves ordinary discussion alone', async () => {
         setPayload({action: 'created', comment: makeComment({body: 'Retested on staging 9.1.42, still reproducible on iOS but not on web.'})});
         mockPromptResponses.mockResolvedValueOnce({text: JSON.stringify({intent: 'NOT_AN_ATTEMPT'}), responseID: 'resp_intent'});
@@ -290,32 +303,103 @@ describe('proposalPoliceComment', () => {
         );
     });
 
-    it('refreshes the recorded proposal when an already-bannered comment is edited again', async () => {
-        // The banner means this comment was flagged on a previous run. It must not be flagged twice, but
-        // the proposal underneath it can still have changed, and the stored copy would otherwise be stuck
-        // at whatever it said before this edit.
+    it('replaces the existing banner when an already-bannered proposal is edited again substantially', async () => {
+        // A later substantive edit must update the timestamp, not stack a second banner on top of the first.
         const bannered = (proposal: string) => `${buildSubstantiveEditMessage('2026-01-01 00:00:00 UTC')}\n\n${proposal}`;
+        const rewrittenProposal = `${VALID_PROPOSAL_BODY}\nyet another solution`;
         mockComments([makeComment({id: 5, login: 'github-actions[bot]', type: 'Bot', body: '<!-- proposal-police-conversation-id: conv_existing -->'})]);
         setPayload({
             action: 'edited',
-            comment: makeComment({id: 7, body: bannered(`${VALID_PROPOSAL_BODY}\nyet another solution`)}),
+            comment: makeComment({id: 7, body: bannered(rewrittenProposal)}),
             changes: {body: {from: bannered(VALID_PROPOSAL_BODY)}},
         });
         mockListConversationItems.mockResolvedValue([conversationMessage('item_7', 7)]);
+        mockPromptResponses.mockResolvedValueOnce({text: JSON.stringify({action: 'ACTION_EDIT'}), responseID: 'resp_edit'});
 
         await run();
 
-        // No second banner, and no model call - the edit check only decides whether to banner
-        expect(mockUpdateComment).not.toHaveBeenCalled();
-        expect(mockPromptResponses).not.toHaveBeenCalled();
+        expect(mockPromptResponses).toHaveBeenCalledTimes(1);
+        const [{input}] = mockPromptResponses.mock.calls.at(0) ?? [{}];
+        // Both sides of the comparison must be the proposal itself, not the banner wrapping it
+        expect(input).not.toContain(SUBSTANTIVE_EDIT_MESSAGE_PREFIX);
+        expect(input).toContain('yet another solution');
+
+        expect(mockUpdateComment).toHaveBeenCalledTimes(1);
+        const updatedBody = mockUpdateComment.mock.calls.at(0)?.at(0)?.body ?? '';
+        expect(updatedBody.startsWith(SUBSTANTIVE_EDIT_MESSAGE_PREFIX)).toBe(true);
+        expect(updatedBody.split(SUBSTANTIVE_EDIT_MESSAGE_PREFIX)).toHaveLength(2);
+        expect(updatedBody).toContain(rewrittenProposal);
+        expect(updatedBody).not.toContain('2026-01-01 00:00:00 UTC');
 
         expect(mockDeleteConversationItem).toHaveBeenCalledWith('conv_existing', 'item_7');
         const [, items] = mockAddConversationItems.mock.calls.at(0) ?? [];
         const storedItem = items?.at(0);
         const storedContent = storedItem && 'content' in storedItem && typeof storedItem.content === 'string' ? storedItem.content : '';
         expect(storedContent).toContain('yet another solution');
-        // The banner is ours, not the contributor's proposal, so it must not pollute future comparisons
         expect(storedContent).not.toContain(SUBSTANTIVE_EDIT_MESSAGE_PREFIX);
+    });
+
+    it('refreshes the recorded proposal when an already-bannered comment is edited non-substantively', async () => {
+        // The timestamp stays put, but the proposal underneath can still have changed, and the stored
+        // copy would otherwise be stuck at whatever it said before this edit.
+        const bannered = (proposal: string) => `${buildSubstantiveEditMessage('2026-01-01 00:00:00 UTC')}\n\n${proposal}`;
+        mockComments([makeComment({id: 5, login: 'github-actions[bot]', type: 'Bot', body: '<!-- proposal-police-conversation-id: conv_existing -->'})]);
+        setPayload({
+            action: 'edited',
+            comment: makeComment({id: 7, body: bannered(`${VALID_PROPOSAL_BODY}\nfixed a typo`)}),
+            changes: {body: {from: bannered(VALID_PROPOSAL_BODY)}},
+        });
+        mockListConversationItems.mockResolvedValue([conversationMessage('item_7', 7)]);
+        mockPromptResponses.mockResolvedValueOnce({text: JSON.stringify({action: 'NO_ACTION'}), responseID: 'resp_edit'});
+
+        await run();
+
+        expect(mockUpdateComment).not.toHaveBeenCalled();
+        expect(mockPromptResponses).toHaveBeenCalledTimes(1);
+
+        expect(mockDeleteConversationItem).toHaveBeenCalledWith('conv_existing', 'item_7');
+        const [, items] = mockAddConversationItems.mock.calls.at(0) ?? [];
+        const storedItem = items?.at(0);
+        const storedContent = storedItem && 'content' in storedItem && typeof storedItem.content === 'string' ? storedItem.content : '';
+        expect(storedContent).toContain('fixed a typo');
+        expect(storedContent).not.toContain(SUBSTANTIVE_EDIT_MESSAGE_PREFIX);
+    });
+
+    it('does not run the edit check when only the banner changed', async () => {
+        // Our own banner prepend comes back as another edited event. After stripping, the proposal
+        // is the same, so classifying it would just spend a request on a difference we introduced.
+        const bannered = (proposal: string) => `${buildSubstantiveEditMessage('2026-01-01 00:00:00 UTC')}\n\n${proposal}`;
+        mockComments([makeComment({id: 5, login: 'github-actions[bot]', type: 'Bot', body: '<!-- proposal-police-conversation-id: conv_existing -->'})]);
+        setPayload({
+            action: 'edited',
+            comment: makeComment({id: 7, body: bannered(VALID_PROPOSAL_BODY)}),
+            changes: {body: {from: VALID_PROPOSAL_BODY}},
+        });
+        mockListConversationItems.mockResolvedValue([conversationMessage('item_7', 7)]);
+
+        await run();
+
+        expect(mockPromptResponses).not.toHaveBeenCalled();
+        expect(mockUpdateComment).not.toHaveBeenCalled();
+        expect(mockAddConversationItems).toHaveBeenCalled();
+    });
+
+    it('does not refresh the recorded proposal when a never-bannered edit is classified as non-substantive', async () => {
+        // Minor rewording of a never-bannered comment is deliberately left as-is, including the stored copy.
+        mockComments([makeComment({id: 5, login: 'github-actions[bot]', type: 'Bot', body: '<!-- proposal-police-conversation-id: conv_existing -->'})]);
+        setPayload({
+            action: 'edited',
+            comment: makeComment({id: 7, body: `${VALID_PROPOSAL_BODY}\nfixed a typo`}),
+            changes: {body: {from: VALID_PROPOSAL_BODY}},
+        });
+        mockListConversationItems.mockResolvedValue([conversationMessage('item_7', 7)]);
+        mockPromptResponses.mockResolvedValueOnce({text: JSON.stringify({action: 'NO_ACTION'}), responseID: 'resp_edit'});
+
+        await run();
+
+        expect(mockUpdateComment).not.toHaveBeenCalled();
+        expect(mockDeleteConversationItem).not.toHaveBeenCalled();
+        expect(mockAddConversationItems).not.toHaveBeenCalled();
     });
 
     it('replaces the recorded proposal after a substantial edit so later duplicate checks see the new text', async () => {

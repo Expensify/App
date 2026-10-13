@@ -5,8 +5,6 @@ import useLocalize from '@hooks/useLocalize';
 
 import Navigation from '@libs/Navigation/Navigation';
 
-import colors from '@styles/theme/colors';
-
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 
@@ -34,8 +32,6 @@ function EnterSignerInfo({policyID, bankAccountID, bankAccountLastFour}: EnterSi
     return (
         <BaseWidgetItem
             icon={icons.Bank}
-            iconBackgroundColor={colors.green100}
-            iconFill={colors.green500}
             title={translate('homePage.timeSensitiveSection.enterSignerInfo.title')}
             subtitle={translate('homePage.timeSensitiveSection.enterSignerInfo.subtitle', {bankAccountLastFour})}
             ctaText={translate('homePage.forYouSection.begin')}

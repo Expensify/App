@@ -25,14 +25,11 @@ function validateReceiptFile(
 
     const localPath = ReceiptStorage.resolve(receiptPath) ?? receiptPathString;
 
-    return checkFileExists(localPath).then((exists) => {
-        if (!exists) {
-            onFailure();
-            return;
-        }
+    const succeed = () => onSuccess({uri: localPath, name: receiptFilename, type: receiptType, source: localPath});
 
-        onSuccess({uri: localPath, name: receiptFilename, type: receiptType, source: localPath});
-    });
+    return checkFileExists(localPath)
+        .then((exists) => exists || ReceiptStorage.recheckAfterSwap(receiptPath).then((isPresent) => isPresent && checkFileExists(localPath)))
+        .then((exists) => (exists ? succeed() : onFailure()));
 }
 
 export default validateReceiptFile;

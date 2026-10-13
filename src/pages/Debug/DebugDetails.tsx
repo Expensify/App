@@ -1,4 +1,4 @@
-import Button from '@components/ButtonComposed';
+import Button from '@components/Button';
 import CheckboxWithLabel from '@components/CheckboxWithLabel';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
@@ -39,10 +39,7 @@ type DebugDetailsProps = {
     /** The report or report action data to be displayed and edited. */
     data: OnyxEntry<Report> | OnyxEntry<ReportAction> | OnyxEntry<Transaction> | OnyxEntry<TransactionViolation>;
 
-    /** Whether the provided policy has enabled tags */
     policyHasEnabledTags?: boolean;
-
-    /** ID of the provided policy */
     policyID?: string;
 
     /** Metadata UI */

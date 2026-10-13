@@ -1,6 +1,7 @@
 import {checkIfLocalFileIsAccessible} from '@libs/actions/IOU/Receipt';
 
 import type {ReceiptSource} from '@src/types/onyx/Transaction';
+import type {FileObject} from '@src/types/utils/Attachment';
 
 /**
  * Validates a receipt file and processes it for upload
@@ -10,7 +11,7 @@ function validateReceiptFile(
     receiptFilename: string | undefined,
     receiptPath: ReceiptSource | undefined,
     receiptType: string | undefined,
-    onSuccess: (file: File) => void,
+    onSuccess: (file: FileObject) => void,
     onFailure: () => void,
 ): Promise<void | File> | undefined {
     return checkIfLocalFileIsAccessible(receiptFilename, receiptPath, receiptType, onSuccess, onFailure);

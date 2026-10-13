@@ -1,18 +1,34 @@
-import {endSpan, getSpanByPrefix, startSpan} from '@libs/telemetry/activeSpans';
+import {endSpan, getSpan, getSpanByPrefix, startSpan} from '@libs/telemetry/activeSpans';
 
 import CONST from '@src/CONST';
 
+import type {Span, StartSpanOptions} from '@sentry/core';
+
+type MockInactiveSpan = {
+    setAttribute: jest.Mock<void, Parameters<Span['setAttribute']>>;
+    setStatus: jest.Mock<void, Parameters<Span['setStatus']>>;
+    end: jest.Mock<void, Parameters<Span['end']>>;
+};
+
+const mockStartInactiveSpan = jest.fn<MockInactiveSpan, [StartSpanOptions]>(() => ({
+    setAttribute: jest.fn<void, Parameters<Span['setAttribute']>>(),
+    setStatus: jest.fn<void, Parameters<Span['setStatus']>>(),
+    end: jest.fn<void, Parameters<Span['end']>>(),
+}));
+
+jest.mock('@libs/telemetry/logBenchmarkSpanEnd', () => ({
+    __esModule: true,
+    default: jest.fn(),
+    isBenchmarkSpanEnabled: () => false,
+}));
 jest.mock('@sentry/react-native', () => ({
-    startInactiveSpan: () => ({
-        setAttribute: jest.fn(),
-        setStatus: jest.fn(),
-        end: jest.fn(),
-    }),
+    startInactiveSpan: (options: StartSpanOptions) => mockStartInactiveSpan(options),
     spanToJSON: () => ({data: {}}),
 }));
 
 afterEach(() => {
     jest.restoreAllMocks();
+    mockStartInactiveSpan.mockClear();
 });
 
 describe('activeSpans', () => {
@@ -32,7 +48,52 @@ describe('activeSpans', () => {
 
         expect(consoleDebugSpy).toHaveBeenLastCalledWith(expect.stringContaining('Ending span (750ms)'), expect.objectContaining({durationMs: 750, timestamp: 1_786_362_201_750}));
     });
+    describe('span parenting', () => {
+        beforeEach(() => {
+            jest.spyOn(console, 'debug').mockImplementation(() => {});
+        });
 
+        it('forces a span with no declared parent into its own transaction', () => {
+            // Given options from a caller that names no parent, which is how almost every span in the app is started
+            const options = {name: 'RootedSpan'};
+
+            // When the span is started
+            startSpan('RootedSpan', options);
+
+            // Then it is forced into its own transaction, because a child can be ended by whatever span sits on the scope
+            expect(mockStartInactiveSpan).toHaveBeenCalledWith(expect.objectContaining({name: 'RootedSpan', forceTransaction: true}));
+
+            endSpan('RootedSpan');
+        });
+
+        it('keeps a parent the caller declared', () => {
+            // Given another tracked span used as a parent, the way the send-message phases nest under the visible span
+            startSpan('ParentSpan', {name: 'ParentSpan'});
+            const parentSpan = getSpan('ParentSpan');
+
+            // When the span is started
+            startSpan('NestedSpan', {name: 'NestedSpan', parentSpan});
+
+            // Then it stays a child of that parent, so deliberate nesting is not broken
+            expect(mockStartInactiveSpan).toHaveBeenCalledWith(expect.objectContaining({name: 'NestedSpan', parentSpan, forceTransaction: false}));
+
+            endSpan('NestedSpan');
+            endSpan('ParentSpan');
+        });
+
+        it('keeps a caller that opts back into the span on the scope', () => {
+            // Given a caller that passes forceTransaction: false, as the Onyx derived recomputes do because they are short and want whatever transaction is open
+            const options = {name: 'InheritingSpan', forceTransaction: false};
+
+            // When the span is started
+            startSpan('InheritingSpan', options);
+
+            // Then the caller's choice wins over the no-parent default, so the span is left as a child
+            expect(mockStartInactiveSpan).toHaveBeenCalledWith({name: 'InheritingSpan', forceTransaction: false});
+
+            endSpan('InheritingSpan');
+        });
+    });
     describe('getSpanByPrefix', () => {
         const prefix = CONST.TELEMETRY.SPAN_STARTUP_DATA.APPLY;
 

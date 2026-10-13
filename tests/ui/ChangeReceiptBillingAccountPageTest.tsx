@@ -86,7 +86,6 @@ jest.mock('@hooks/useDebouncedState', () =>
 
 jest.mock('@libs/OptionsListUtils', () => ({
     formatMemberForList: (member: Record<string, unknown>) => ({...member}),
-    sortAlphabetically: (items: Array<Record<string, string>>, key: string, cmp: (a: string, b: string) => number) => [...items].sort((a, b) => cmp(a[key] ?? '', b[key] ?? '')),
     getSearchValueForPhoneOrEmail: (value: string) => value,
     getHeaderMessage: () => '',
 }));

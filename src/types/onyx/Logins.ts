@@ -49,7 +49,6 @@ type Login = OnyxValueWithOfflineFeedback<
             timestamp: string;
         };
 
-        /** Error fields of the login */
         errorFields?: ErrorFields<'revoke' | 'validateCodeSent' | 'addedLogin' | 'validateLogin' | 'defaultLogin' | 'deletedLogin'>;
     },
     'defaultLogin' | 'validateLogin' | 'addedLogin' | 'deletedLogin' | 'validateCodeSent'

@@ -29,6 +29,7 @@ const SplashScreenActionsContext = React.createContext<SplashScreenActionsContex
 
 function loadPostSplashScreenModules() {
     import('./libs/actions/replaceOptimisticReportWithActualReport');
+    import('./libs/actions/replaceOptimisticAgentWithActualAgent');
     loadUnreadIndicatorUpdater();
 }
 

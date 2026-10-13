@@ -1,5 +1,7 @@
 import ConnectionLayout from '@components/ConnectionLayout';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import FormHelpMessage from '@components/FormHelpMessage';
+import MenuItem from '@components/MenuItem';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
@@ -11,6 +13,7 @@ import {areSettingsInErrorFields, settingsPendingAction} from '@libs/PolicyUtils
 
 import Navigation from '@navigation/Navigation';
 
+import TravelBillingContinuousReconciliationSection from '@pages/workspace/accounting/common/TravelBillingContinuousReconciliationSection';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 
@@ -45,30 +48,39 @@ function DynamicXeroTravelBillingConfigurationPage({policy}: WithPolicyConnectio
             connectionName={CONST.POLICY.CONNECTIONS.NAME.XERO}
             onBackButtonPress={() => Navigation.goBack(backPath)}
         >
-            <MenuItemWithTopDescription
-                title={translate('workspace.xero.bankTransactions')}
-                description={translate('workspace.accounting.exportAs')}
-                helperText={translate('workspace.xero.travelInvoicingDescription')}
-                interactive={false}
-                shouldShowRightIcon={false}
+            <MenuItemField
+                name={translate('workspace.accounting.exportAs')}
+                value={translate('workspace.xero.bankTransactions')}
+            />
+            <FormHelpMessage
+                isError={false}
+                shouldShowRedDotIndicator={false}
+                message={translate('workspace.xero.travelInvoicingDescription')}
+                style={[styles.mt0, styles.mb0, styles.ph5, styles.pb5]}
             />
             <OfflineWithFeedback
                 pendingAction={settingsPendingAction(payableAccountSetting, config?.pendingFields)}
                 errorRowStyles={[styles.ph5]}
             >
-                <MenuItemWithTopDescription
-                    title={travelPayableAccount?.name}
-                    description={translate('workspace.common.travelInvoicingPayableAccount')}
+                <MenuItemField
+                    name={translate('workspace.common.travelInvoicingPayableAccount')}
                     onPress={() => {
                         if (!policyID) {
                             return;
                         }
                         Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.POLICY_ACCOUNTING_XERO_TRAVEL_BILLING_PAYABLE_ACCOUNT_SELECT.path, travelBillingPath));
                     }}
-                    shouldShowRightIcon
-                    brickRoadIndicator={areSettingsInErrorFields(payableAccountSetting, config?.errorFields) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-                />
+                    value={travelPayableAccount?.name}
+                >
+                    {areSettingsInErrorFields(payableAccountSetting, config?.errorFields) && <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />}
+                </MenuItemField>
             </OfflineWithFeedback>
+            <TravelBillingContinuousReconciliationSection
+                policy={policy}
+                connectionName={CONST.POLICY.CONNECTIONS.NAME.XERO}
+                isAutoSyncEnabled={!!config?.autoSync?.enabled}
+                isPayableAccountSet={!!config?.export?.travelInvoicingPayableAccountID}
+            />
         </ConnectionLayout>
     );
 }

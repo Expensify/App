@@ -384,6 +384,8 @@ describe('CardFeedErrors Derived Value', () => {
                 const result = cardFeedErrorsConfig.compute([globalCardList, {}, {}, undefined], DERIVED_VALUE_CONTEXT);
 
                 expect(result.personalCard.shouldShowRBR).toBe(true);
+                expect(result.personalCard.isFeedConnectionBroken).toBe(true);
+                expect(result.personalCardsWithBrokenConnection[CARD_IDS.card1]).toEqual(card);
             });
         });
 

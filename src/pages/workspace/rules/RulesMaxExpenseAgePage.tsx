@@ -1,13 +1,12 @@
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
-import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
 import useReviewWorkspaceSettingsTaskCompletion from '@hooks/useReviewWorkspaceSettingsTaskCompletion';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -41,8 +40,6 @@ function RulesMaxExpenseAgePage({
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const getReviewWorkspaceSettingsTaskCompletion = useReviewWorkspaceSettingsTaskCompletion();
-    const {isBetaEnabled} = usePermissions();
-    const isRevamp = isBetaEnabled(CONST.BETAS.RULES_REVAMP);
 
     const maxExpenseAgeDefaultValue = policy?.maxExpenseAge === CONST.DISABLED_MAX_EXPENSE_VALUE || !policy?.maxExpenseAge ? '' : `${policy?.maxExpenseAge}`;
 
@@ -66,10 +63,7 @@ function RulesMaxExpenseAgePage({
                 shouldEnableMaxHeight
                 testID="RulesMaxExpenseAgePage"
             >
-                <HeaderWithBackButton
-                    title={translate(isRevamp ? 'workspace.rules.generalTab.expensesOlderThan' : 'workspace.rules.individualExpenseRules.maxExpenseAge')}
-                    onBackButtonPress={() => Navigation.goBack()}
-                />
+                <HeaderWithBackButtonAndTitle title={translate('workspace.rules.generalTab.expensesOlderThan')} />
                 <FormProvider
                     style={[styles.flexGrow1, styles.ph5]}
                     formID={ONYXKEYS.FORMS.RULES_MAX_EXPENSE_AGE_FORM}

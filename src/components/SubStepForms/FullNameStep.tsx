@@ -22,10 +22,7 @@ import {View} from 'react-native';
 
 type FullNameStepProps<TFormID extends keyof OnyxFormValuesMapping> = SubPageProps &
     ForwardedFSClassProps & {
-        /** The ID of the form */
         formID: TFormID;
-
-        /** The title of the form */
         formTitle: string;
 
         /** Subtitle text shown below the title */
@@ -34,25 +31,15 @@ type FullNameStepProps<TFormID extends keyof OnyxFormValuesMapping> = SubPagePro
         /** The validation function to call when the form is submitted */
         customValidate?: (values: FormOnyxValues<TFormID>) => FormInputErrors<TFormID>;
 
-        /** A function to call when the form is submitted */
         onSubmit: (values: FormOnyxValues<TFormID>) => void;
-
-        /** Fields list of the form */
         stepFields: Array<FormOnyxKeys<TFormID>>;
-
-        /** The ID of the first name input */
         firstNameInputID: string;
-
-        /** The ID of the last name input */
         lastNameInputID: string;
-
-        /** The default values for the form */
         defaultValues: {
             firstName: string;
             lastName: string;
         };
 
-        /** Should show the help link or not */
         shouldShowHelpLinks?: boolean;
 
         /** Custom label of the first name input  */

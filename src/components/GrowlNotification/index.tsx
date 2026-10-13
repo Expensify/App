@@ -18,7 +18,6 @@ type GrowlContent = {
 };
 
 type GrowlNotificationProps = {
-    /** Reference to outer element */
     ref?: ForwardedRef<GrowlRef>;
 };
 

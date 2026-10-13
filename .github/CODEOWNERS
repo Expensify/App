@@ -13,3 +13,9 @@ contributingGuides/philosophies/ @tgolen
 
 # Help docs get a review from Steph Elliott 
 docs/articles/ @stephanieelliott
+
+# Claude Code skills
+/.claude/skills/ @Julesssss @Expensify/pullerbear
+
+# Cloudflare Worker that serves the web build
+/web/cloudflare-worker/ @justinpersaud @AndrewGable @roryabraham
