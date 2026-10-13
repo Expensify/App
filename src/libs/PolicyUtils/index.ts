@@ -1,10 +1,9 @@
 import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
 import type {PersonalDetailsByLogin} from '@components/PersonalDetailsByLoginProvider';
-import type {SelectorType} from '@components/SelectionScreen';
 
 import {isQBORefreshTokenExpiringSoon} from '@libs/AccountingUtils';
 import {getBankAccountFromID} from '@libs/actions/BankAccounts';
-import {hasSynchronizationErrorMessage, isConnectionUnverified} from '@libs/actions/connections';
+import {hasSynchronizationErrorMessage} from '@libs/actions/connections';
 import {shouldShowQBOReimbursableExportDestinationAccountError} from '@libs/actions/connections/QuickbooksOnline';
 import addEncryptedAuthTokenToURL from '@libs/addEncryptedAuthTokenToURL';
 import {getApiRoot} from '@libs/ApiUtils';
@@ -15,7 +14,7 @@ import {getHRAdvancedModeFinalApprover, isAnyHRConnected, isMergeHRCompleteSetup
 import {isAnyRecruitingConnected} from '@libs/merge/RecruitingUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getIsOffline} from '@libs/NetworkState';
-import {getAccountIDsByLogins, getKnownAccountIDByLogin, getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
+import {getAccountIDsByLogins} from '@libs/PersonalDetailsUtils';
 import {isApprovalWorkflowRule, isRuleFilterComparison} from '@libs/RuleUtils';
 import {getAllSortedTransactions, getCategory, getTag} from '@libs/TransactionUtils';
 import {generateAccountID} from '@libs/UserUtils';
@@ -29,21 +28,7 @@ import type {PolicyType} from '@src/types/form/WorkspaceConfirmationForm';
 import type {Card, OnyxInputOrEntry, PersonalDetailsList, Policy, PolicyCategories, PolicyEmployeeList, Report, TaxRate, Transaction, TravelSettings} from '@src/types/onyx';
 import type {ApprovalWorkflowRule} from '@src/types/onyx/ApprovalWorkflowRules';
 import type {ErrorFields, PendingAction, PendingFields} from '@src/types/onyx/OnyxCommon';
-import type {
-    Account,
-    ApprovalRule,
-    ConnectionLastSync,
-    CommuterExclusions,
-    ConnectionName,
-    Connections,
-    CustomUnit,
-    NetSuiteConnection,
-    PolicyConnectionSyncProgress,
-    PolicyFeatureName,
-    Rate,
-    TaxRates,
-    Tenant,
-} from '@src/types/onyx/Policy';
+import type {ApprovalRule, CommuterExclusions, ConnectionName, CustomUnit, PolicyFeatureName, Rate, TaxRates} from '@src/types/onyx/Policy';
 import type PolicyEmployee from '@src/types/onyx/PolicyEmployee';
 import type Rule from '@src/types/onyx/Rule';
 import type {RuleFilterComparison, RuleFilterNode} from '@src/types/onyx/RuleFilters';
@@ -51,9 +36,13 @@ import type {WorkspaceTravelSettings} from '@src/types/onyx/TravelSettings';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import type {NullishDeep, OnyxCollection, OnyxEntry} from 'react-native-onyx';
-import type {TupleToUnion, ValueOf} from 'type-fest';
+import type {ValueOf} from 'type-fest';
 
 import {Str} from 'expensify-common';
+
+import {getAccountingConnectionNames, hasAccountingFeatureConnection} from './connections';
+import {canMemberWrite, getPolicyRole, isPolicyAdmin, isPolicyApprover, isPolicyOwner, isPolicyUser} from './permissions';
+import {canPolicyAccessFeature, isArchivedPolicy, isCollectPolicy, isControlPolicy, isGroupPolicy, isPaidGroupPolicy, isSubmitPolicy} from './policyType';
 
 type MemberEmailsToAccountIDs = Record<string, number>;
 
@@ -64,17 +53,10 @@ type PolicyWithTaxRates = {
 };
 
 type TravelStep = ValueOf<typeof CONST.TRAVEL.STEPS>;
-type PolicyFeature = ValueOf<typeof CONST.POLICY.POLICY_FEATURE>;
-type PolicyFeatureAccess = ValueOf<typeof CONST.POLICY.POLICY_FEATURE_ACCESS>;
 
-type AccountingConnectionName = TupleToUnion<typeof CONST.POLICY.CONNECTIONS.ACCOUNTING_CONNECTION_NAMES>;
 type WorkspaceDetails = {
     policyID: string | undefined;
     name: string;
-};
-
-type ConnectionWithLastSyncData = {
-    lastSync?: ConnectionLastSync;
 };
 
 /** The report facts an approval workflow rule is matched against. */
@@ -103,20 +85,11 @@ function isPolicyFieldListEmpty(policy: OnyxEntry<Policy>): boolean {
 }
 
 /**
- * Whether the policy has been archived. archivedDate is the single source of truth
- * for the archived state; restoring the policy removes it.
+ * Whether the current user can unarchive the workspace: only the owner of an archived workspace can, and only
+ * while the archive policies beta is enabled. Takes primitives so it works with both a Policy and a workspace row.
  */
-function isArchivedPolicy(policy: OnyxInputOrEntry<Policy>): boolean {
-    return !!policy?.archivedDate;
-}
-
-/**
- * Whether the policy is archived or is optimistically pending deletion. Deleting a workspace
- * archives it on the backend, but the optimistic data only sets pendingAction, so report state
- * transitions must also treat a pending delete as archived while the request is in flight.
- */
-function isArchivedOrPendingDeletePolicy(policy: OnyxInputOrEntry<Policy>): boolean {
-    return isArchivedPolicy(policy) || policy?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
+function canUnarchivePolicy(isArchived: boolean, ownerAccountID: number | undefined, currentUserAccountID: number, isArchivePoliciesBetaEnabled: boolean): boolean {
+    return isArchivePoliciesBetaEnabled && isArchived && ownerAccountID === currentUserAccountID;
 }
 
 /**
@@ -161,161 +134,6 @@ function getActivePoliciesWithExpenseChatAndPerDiemEnabled(policies: OnyxCollect
 
 function getActivePoliciesWithExpenseChatAndTimeEnabled(policies: OnyxCollection<Policy> | null, currentUserLogin: string | undefined): Policy[] {
     return getActivePoliciesWithExpenseChat(policies, currentUserLogin).filter(isTimeTrackingEnabled);
-}
-
-/**
- * Checks if the current user is an admin of the policy.
- *
- * By default this answers "is the *viewing* user an admin?", because `getPolicyRole` short-circuits on the global
- * `policy.role`. When `login` belongs to somebody other than the current user you must pass
- * `shouldCheckGlobalPolicyRole = false`, otherwise the `login` argument is silently ignored.
- */
-const isPolicyAdmin = (policy: OnyxInputOrEntry<Policy>, login?: string, shouldCheckGlobalPolicyRole = true): boolean =>
-    getPolicyRole(policy, login, shouldCheckGlobalPolicyRole) === CONST.POLICY.ROLE.ADMIN;
-
-/**
- * Checks if the given account is the owner (creator) of the policy.
- *
- * The account is whoever you pass in, not necessarily the current user — callers resolving another member's role rely
- * on that.
- */
-const isPolicyOwner = (policy: OnyxInputOrEntry<Pick<Policy, 'ownerAccountID'>>, accountID: number | undefined): boolean => !!accountID && policy?.ownerAccountID === accountID;
-
-/**
- * Whether a room member's own policy role protects them from being removed from a policy expense chat.
- *
- * Only a member who was invited to the chat can be removed from it. Everybody else is there by virtue of the
- * workspace configuration, so their membership is governed by that configuration and not by this screen — see the
- * expense chat rules in `contributingGuides/philosophies/SECURITY.md`. That covers admins, the policy owner and
- * approvers, who are auto-added to the chats of everybody who submits to them.
- *
- * Fails closed on a missing `login`: without one we cannot resolve the member's role, and offering removal for a
- * member whose role is unknown could remove a workspace admin. Both the member list and the member details page must
- * agree on this, so it lives here rather than being spelled out at each call site.
- *
- * The policy owner is checked by `accountID` rather than by role. `ownerAccountID` is a required top-level field, so
- * unlike `employeeList` it resolves even when the employee roster has not loaded, and the owner is only protected
- * incidentally by `role: admin` otherwise. Note the callers' `report.ownerAccountID` is the *report* owner — the
- * employee whose expense chat it is — which is a different person from the policy owner.
- *
- * The approver check is policy-wide rather than walking this submitter's own approval chain, so an approver for a
- * different submitter who was invited into this chat is protected too. That errs toward un-removable, which is the
- * safe direction here.
- *
- * `accountID` is deliberately a required position rather than optional: omitting it silently drops the owner
- * protection, so every caller must state it even when it is `undefined`.
- */
-const isRoomMemberProtectedByPolicyRole = (policy: OnyxInputOrEntry<Policy>, login: string | undefined, accountID: number | undefined): boolean =>
-    isPolicyOwner(policy, accountID) || !login || isPolicyAdmin(policy, login, false) || isPolicyApprover(policy, login);
-
-const WRITE_ALL_POLICY_FEATURES = Object.fromEntries(Object.values(CONST.POLICY.POLICY_FEATURE).map((feature) => [feature, CONST.POLICY.POLICY_FEATURE_ACCESS.WRITE])) as Record<
-    PolicyFeature,
-    PolicyFeatureAccess
->;
-
-const READ_ALL_POLICY_FEATURES = Object.fromEntries(Object.values(CONST.POLICY.POLICY_FEATURE).map((feature) => [feature, CONST.POLICY.POLICY_FEATURE_ACCESS.READ])) as Record<
-    PolicyFeature,
-    PolicyFeatureAccess
->;
-
-const EDITOR_POLICY_FEATURES = Object.fromEntries(
-    Object.values(CONST.POLICY.POLICY_FEATURE)
-        .filter((feature) => feature !== CONST.POLICY.POLICY_FEATURE.ASSIGN_ELEVATED_ROLES)
-        .map((feature) => [feature, CONST.POLICY.POLICY_FEATURE_ACCESS.WRITE]),
-) as Partial<Record<PolicyFeature, PolicyFeatureAccess>>;
-
-const ROLE_PERMISSION_BUNDLES: Record<string, Partial<Record<PolicyFeature, PolicyFeatureAccess>>> = {
-    [CONST.POLICY.ROLE.ADMIN]: WRITE_ALL_POLICY_FEATURES,
-    [CONST.POLICY.ROLE.EDITOR]: EDITOR_POLICY_FEATURES,
-    [CONST.POLICY.ROLE.AUDITOR]: READ_ALL_POLICY_FEATURES,
-    [CONST.POLICY.ROLE.USER]: {
-        [CONST.POLICY.POLICY_FEATURE.OVERVIEW]: CONST.POLICY.POLICY_FEATURE_ACCESS.READ,
-        [CONST.POLICY.POLICY_FEATURE.MEMBERS]: CONST.POLICY.POLICY_FEATURE_ACCESS.READ,
-    },
-    [CONST.POLICY.ROLE.CARD_ADMIN]: {
-        [CONST.POLICY.POLICY_FEATURE.OVERVIEW]: CONST.POLICY.POLICY_FEATURE_ACCESS.READ,
-        [CONST.POLICY.POLICY_FEATURE.MEMBERS]: CONST.POLICY.POLICY_FEATURE_ACCESS.READ,
-        [CONST.POLICY.POLICY_FEATURE.EXPENSIFY_CARD]: CONST.POLICY.POLICY_FEATURE_ACCESS.WRITE,
-        [CONST.POLICY.POLICY_FEATURE.COMPANY_CARDS]: CONST.POLICY.POLICY_FEATURE_ACCESS.WRITE,
-    },
-    [CONST.POLICY.ROLE.PEOPLE_ADMIN]: {
-        [CONST.POLICY.POLICY_FEATURE.OVERVIEW]: CONST.POLICY.POLICY_FEATURE_ACCESS.READ,
-        [CONST.POLICY.POLICY_FEATURE.MEMBERS]: CONST.POLICY.POLICY_FEATURE_ACCESS.WRITE,
-        [CONST.POLICY.POLICY_FEATURE.WORKFLOWS]: CONST.POLICY.POLICY_FEATURE_ACCESS.READ,
-        [CONST.POLICY.POLICY_FEATURE.WORKFLOWS_APPROVALS]: CONST.POLICY.POLICY_FEATURE_ACCESS.WRITE,
-    },
-    [CONST.POLICY.ROLE.PAYMENTS_ADMIN]: {
-        [CONST.POLICY.POLICY_FEATURE.OVERVIEW]: CONST.POLICY.POLICY_FEATURE_ACCESS.READ,
-        [CONST.POLICY.POLICY_FEATURE.MEMBERS]: CONST.POLICY.POLICY_FEATURE_ACCESS.READ,
-        [CONST.POLICY.POLICY_FEATURE.WORKFLOWS]: CONST.POLICY.POLICY_FEATURE_ACCESS.READ,
-        [CONST.POLICY.POLICY_FEATURE.WORKFLOWS_PAYMENTS]: CONST.POLICY.POLICY_FEATURE_ACCESS.WRITE,
-    },
-};
-
-const CONTROL_POLICY_ONLY_ROLES = [CONST.POLICY.ROLE.AUDITOR, CONST.POLICY.ROLE.CARD_ADMIN, CONST.POLICY.ROLE.PEOPLE_ADMIN, CONST.POLICY.ROLE.PAYMENTS_ADMIN];
-
-function isControlPolicyOnlyRole(role: string | undefined): boolean {
-    return CONTROL_POLICY_ONLY_ROLES.some((controlPolicyOnlyRole) => controlPolicyOnlyRole === role);
-}
-
-function hasPolicyFeaturePermission(policy: OnyxInputOrEntry<Policy>, login: string, feature: PolicyFeature, requiredAccess: PolicyFeatureAccess): boolean {
-    const role = (login ? policy?.employeeList?.[login]?.role : undefined) ?? getPolicyRole(policy, login);
-    if (isControlPolicyOnlyRole(role) && (!policy || !isControlPolicy(policy))) {
-        return false;
-    }
-
-    const access = role ? ROLE_PERMISSION_BUNDLES[role]?.[feature] : undefined;
-
-    if (requiredAccess === CONST.POLICY.POLICY_FEATURE_ACCESS.READ) {
-        return access === CONST.POLICY.POLICY_FEATURE_ACCESS.READ || access === CONST.POLICY.POLICY_FEATURE_ACCESS.WRITE;
-    }
-
-    return access === CONST.POLICY.POLICY_FEATURE_ACCESS.WRITE;
-}
-
-function canMemberRead(policy: OnyxInputOrEntry<Policy>, login: string, feature: PolicyFeature): boolean {
-    return hasPolicyFeaturePermission(policy, login, feature, CONST.POLICY.POLICY_FEATURE_ACCESS.READ);
-}
-
-function canMemberWrite(policy: OnyxInputOrEntry<Policy>, login: string, feature: PolicyFeature): boolean {
-    if (isArchivedPolicy(policy)) {
-        return false;
-    }
-    return hasPolicyFeaturePermission(policy, login, feature, CONST.POLICY.POLICY_FEATURE_ACCESS.WRITE);
-}
-
-function canMemberAssignRole(policy: OnyxInputOrEntry<Policy>, login: string, role: string | undefined): boolean {
-    if (!role) {
-        return false;
-    }
-
-    const isCorporatePolicy = policy?.type === CONST.POLICY.TYPE.CORPORATE;
-    if (isControlPolicyOnlyRole(role) && !isCorporatePolicy) {
-        return false;
-    }
-
-    if (canMemberWrite(policy, login, CONST.POLICY.POLICY_FEATURE.ASSIGN_ELEVATED_ROLES)) {
-        return true;
-    }
-
-    // Reaching here: USER always, plus AUDITOR only on corporate policies (control-only roles are
-    // already filtered out on non-corporate policies above). Assigning USER/AUDITOR needs the
-    // MEMBERS permission, and only on corporate policies.
-    const isNonElevatedRole = role === CONST.POLICY.ROLE.USER || role === CONST.POLICY.ROLE.AUDITOR;
-    return isCorporatePolicy && canMemberWrite(policy, login, CONST.POLICY.POLICY_FEATURE.MEMBERS) && isNonElevatedRole;
-}
-
-// Whether the member can assign any elevated role: admins (via assignElevatedRoles) on any policy, or People Admins (up to auditor) on Control.
-function canMemberAssignElevatedRole(policy: OnyxInputOrEntry<Policy>, login: string): boolean {
-    return canMemberWrite(policy, login, CONST.POLICY.POLICY_FEATURE.ASSIGN_ELEVATED_ROLES) || canMemberAssignRole(policy, login, CONST.POLICY.ROLE.AUDITOR);
-}
-
-function canMemberManageMemberWithRole(policy: OnyxInputOrEntry<Policy>, login: string, role: string | undefined): boolean {
-    if (canMemberAssignRole(policy, login, role)) {
-        return true;
-    }
-
-    return isSubmitPolicy(policy) && canMemberWrite(policy, login, CONST.POLICY.POLICY_FEATURE.MEMBERS) && role === CONST.POLICY.ROLE.EDITOR;
 }
 
 /**
@@ -678,24 +496,6 @@ const isMergeHRCompleteSetupNeededSelector = (policy: OnyxEntry<Policy>) => isMe
  */
 const isQBORefreshTokenExpiringSoonSelector = (policy: OnyxEntry<Policy>) => isPolicyAdmin(policy) && isQBORefreshTokenExpiringSoon(policy);
 
-function getPolicyRole(policy: OnyxInputOrEntry<Policy>, currentUserLogin?: string, shouldCheckGlobalPolicyRole = true): string | undefined {
-    if (shouldCheckGlobalPolicyRole && policy?.role) {
-        return policy.role;
-    }
-
-    if (!currentUserLogin) {
-        return;
-    }
-
-    // `employeeList` is keyed by the canonical lowercase login, but a login read off personal details is not
-    // guaranteed to be lowercase, so fall back to a normalized lookup when the exact key misses. Both lookups are
-    // O(1), unlike a case-insensitive scan of every employee, which would run per participant on member lists.
-    // Pick the employee entry first and read `role` off whichever matched: `role` is optional, so falling back on the
-    // role itself would resolve one account's role from a different account's entry when the exact entry has no role.
-    const employeeList = policy?.employeeList;
-    return (employeeList?.[currentUserLogin] ?? employeeList?.[currentUserLogin.toLowerCase()])?.role;
-}
-
 /**
  * Check if the policy can be displayed
  * If shouldShowPendingDeletePolicy is true, show the policy pending deletion.
@@ -773,19 +573,6 @@ function getOwnerChangePayerSuccessData(policy: OnyxEntry<Policy>, newOwnerLogin
     };
 }
 
-/**
- * Whether the given role is allowed to pay (reimburse) on a workspace.
- */
-function canRolePay(role: string | undefined): boolean {
-    return !!role && ROLE_PERMISSION_BUNDLES[role]?.[CONST.POLICY.POLICY_FEATURE.WORKFLOWS_PAYMENTS] === CONST.POLICY.POLICY_FEATURE_ACCESS.WRITE;
-}
-
-/**
- * The roles that are allowed to pay (reimburse) on a workspace, derived from the WORKFLOWS_PAYMENTS permission. The
- * Authorized Payer (reimburser) must always hold one of these, so any role change for a payer is restricted to this set.
- */
-const PAYER_ROLES = Object.values(CONST.POLICY.ROLE).filter(canRolePay);
-
 function isPolicyPayer(policy: OnyxEntry<Policy>, currentUserLogin: string | undefined): boolean {
     if (!policy) {
         return false;
@@ -813,46 +600,10 @@ function isPolicyPayer(policy: OnyxEntry<Policy>, currentUserLogin: string | und
     return canPayOnPolicy && currentUserLogin === reimburserEmail;
 }
 
-/** Check if the passed employee is an approver in the policy's employeeList */
-function isPolicyApprover(policy: OnyxInputOrEntry<Policy>, employeeLogin: string) {
-    if (policy?.approver === employeeLogin) {
-        return true;
-    }
-    return Object.values(policy?.employeeList ?? {}).some(
-        (employee) => employee?.submitsTo === employeeLogin || employee?.forwardsTo === employeeLogin || employee?.overLimitForwardsTo === employeeLogin,
-    );
-}
-
 /** Check if the passed employee holds an active Expensify Card on the policy, as reported by the backend in the policy's employeeList */
 function hasActiveExpensifyCard(policy: OnyxEntry<Policy>, employeeLogin: string) {
     const primaryLogin = policy?.primaryLoginsInvited?.[employeeLogin];
     return !!policy?.employeeList?.[employeeLogin]?.hasActiveExpensifyCard || (!!primaryLogin && !!policy?.employeeList?.[primaryLogin]?.hasActiveExpensifyCard);
-}
-
-/** Set of every approver login in the policy. Prefer over calling isPolicyApprover in a loop (scans employeeList once, not per candidate). */
-function getPolicyApproverLogins(policy: OnyxEntry<Policy>): Set<string> {
-    const approverLogins = new Set<string>();
-    if (policy?.approver) {
-        approverLogins.add(policy.approver);
-    }
-    for (const employee of Object.values(policy?.employeeList ?? {})) {
-        if (employee?.submitsTo) {
-            approverLogins.add(employee.submitsTo);
-        }
-        if (employee?.forwardsTo) {
-            approverLogins.add(employee.forwardsTo);
-        }
-        if (employee?.overLimitForwardsTo) {
-            approverLogins.add(employee.overLimitForwardsTo);
-        }
-    }
-    return approverLogins;
-}
-
-function getUberConnectionErrorDirectlyFromPolicy(policy: OnyxEntry<Policy>) {
-    const receiptUber = policy?.receiptPartners?.uber;
-
-    return !!receiptUber?.error;
 }
 
 function isExpensifyTeam(email: string | undefined): boolean {
@@ -906,25 +657,13 @@ function createInvoiceConfigurationTextSelector(translate: LocaleContextProps['t
 }
 
 /**
- * Checks if the current user is of the role "user" on the policy.
+ * Get the active group policies where the current user can create policy rooms.
  */
-const isPolicyUser = (policy: OnyxInputOrEntry<Policy>, currentUserLogin?: string): boolean => getPolicyRole(policy, currentUserLogin) === CONST.POLICY.ROLE.USER;
-
-/**
- * Checks if the current user is an auditor of the policy
- */
-const isPolicyAuditor = (policy: OnyxInputOrEntry<Policy>, currentUserLogin?: string): boolean =>
-    (policy?.role ?? (currentUserLogin && policy?.employeeList?.[currentUserLogin]?.role)) === CONST.POLICY.ROLE.AUDITOR;
-
-/**
- * Checks if the current user is a workspace or card admin of the policy and the policy has a card product enabled.
- */
-const isAdminOfCardEnabledPolicy = (policy: OnyxInputOrEntry<Policy>, login?: string): boolean =>
-    (isPolicyAdmin(policy, login) || getPolicyRole(policy, login) === CONST.POLICY.ROLE.CARD_ADMIN) && (!!policy?.areCompanyCardsEnabled || !!policy?.areExpensifyCardsEnabled);
-
-const isPolicyEmployee = (policyID: string | undefined, policy: OnyxEntry<Policy>): boolean => {
-    return !!policyID && policyID === policy?.id;
-};
+function getPoliciesForRoomCreation(policies: OnyxCollection<Policy> | null, currentUserLogin: string | undefined): Policy[] {
+    return getActivePolicies(policies, currentUserLogin).filter(
+        (policy) => policy.type !== CONST.POLICY.TYPE.PERSONAL && canMemberWrite(policy, currentUserLogin ?? '', CONST.POLICY.POLICY_FEATURE.ROOMS),
+    );
+}
 
 /**
  * Create an object mapping member emails to their accountIDs. Filter for members without errors if includeMemberWithErrors is false, and get the login email from the personalDetail object using the accountID.
@@ -933,7 +672,7 @@ const isPolicyEmployee = (policyID: string | undefined, policy: OnyxEntry<Policy
  */
 function getMemberAccountIDsForWorkspace(
     employeeList: PolicyEmployeeList | undefined,
-    personalDetailsByLogins?: PersonalDetailsByLogin,
+    personalDetailsByLogins: PersonalDetailsByLogin,
     includeMemberWithErrors = false,
     includeMemberWithPendingDelete = true,
 ): MemberEmailsToAccountIDs {
@@ -952,7 +691,7 @@ function getMemberAccountIDsForWorkspace(
                 continue;
             }
         }
-        const personalDetail = personalDetailsByLogins?.[email] ?? getPersonalDetailByEmail(email);
+        const personalDetail = personalDetailsByLogins?.[email];
         if (!personalDetail?.login) {
             continue;
         }
@@ -966,13 +705,17 @@ function getMemberAccountIDsForWorkspace(
  * Uses personal details first, then the workspace employee list (same source as ReportSubmitToContent).
  * When the member is in employeeList but not yet in personal details, returns a stable optimistic accountID.
  */
-function getAccountIDForSubmitManagerEmail(managerEmail: string | undefined, employeeList: PolicyEmployeeList | undefined): number | undefined {
+function getAccountIDForSubmitManagerEmail(
+    managerEmail: string | undefined,
+    employeeList: PolicyEmployeeList | undefined,
+    personalDetailsByLogins: PersonalDetailsByLogin,
+): number | undefined {
     const trimmed = managerEmail?.trim();
     if (!trimmed) {
         return undefined;
     }
 
-    const fromPersonalDetails = getKnownAccountIDByLogin(trimmed);
+    const fromPersonalDetails = personalDetailsByLogins[trimmed]?.accountID;
     if (fromPersonalDetails !== undefined) {
         return fromPersonalDetails;
     }
@@ -982,7 +725,7 @@ function getAccountIDForSubmitManagerEmail(managerEmail: string | undefined, emp
     }
 
     const normalizedEmail = trimmed.toLowerCase();
-    const memberAccountIDs = getMemberAccountIDsForWorkspace(employeeList, undefined, true, false);
+    const memberAccountIDs = getMemberAccountIDsForWorkspace(employeeList, personalDetailsByLogins, true, false);
 
     for (const [email, accountID] of Object.entries(memberAccountIDs)) {
         if (email.toLowerCase() === normalizedEmail) {
@@ -1260,91 +1003,8 @@ function hasConfiguredRules(policy: OnyxEntry<Policy>, policyCategories: PolicyC
     return hasAnyCategoryRules(policyCategories ?? undefined);
 }
 
-function isPendingDeletePolicy(policy: OnyxEntry<Policy>): boolean {
-    return policy?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
-}
-
-/**
- * Returns true only for paid plans (Collect/Control). Use this only for billing/paid-only concerns:
- * subscriptions, payments and reimbursement, company cards, Expensify Card, Travel, Invoices, and
- * "do I own a paid workspace" checks.
- *
- * For workspace feature gating (violations, report fields, workspace chat, report creation,
- * expense-workspace usability) use `isGroupPolicy` instead, otherwise free group plans like Submit
- * (submit2026) are wrongly excluded. The report-based counterparts are `ReportUtils.isPaidGroupPolicy`
- * (paid-only) and `ReportUtils.isReportInGroupPolicy` (group).
- */
-function isPaidGroupPolicy(policy: OnyxInputOrEntry<Policy>): boolean {
-    return policy?.type === CONST.POLICY.TYPE.TEAM || policy?.type === CONST.POLICY.TYPE.CORPORATE;
-}
-
-function isPaidGroupPolicyByType(policyType: string | undefined): boolean {
-    return policyType === CONST.POLICY.TYPE.TEAM || policyType === CONST.POLICY.TYPE.CORPORATE;
-}
-
-function isSubmitPolicy(policy: OnyxInputOrEntry<Policy>): boolean {
-    return policy?.type === CONST.POLICY.TYPE.SUBMIT;
-}
-
-function isSubmitPolicyByType(policyType: string | undefined): boolean {
-    return policyType === CONST.POLICY.TYPE.SUBMIT;
-}
-
-/**
- * Checks if the submitter's approval is blocked on the submit workspace.
- *
- * @param policy - The policy to check
- * @param reportOwnerAccountID - The account ID of the report owner
- * @param approverAccountID - The account ID of the approver
- * @returns True if the submitter's approval is blocked on the submit workspace, false otherwise
- */
-function isSubmitterApproveBlockedOnSubmitWorkspace(policy: OnyxInputOrEntry<Policy>, reportOwnerAccountID: number | undefined, approverAccountID: number): boolean {
-    return isSubmitPolicy(policy) && reportOwnerAccountID === approverAccountID;
-}
-
-const isPolicyEditor = (policy: OnyxInputOrEntry<Policy>, login?: string): boolean => getPolicyRole(policy, login) === CONST.POLICY.ROLE.EDITOR;
-
-/**
- * Returns true if the current user can edit workspace settings — admins on any workspace,
- * or editors on Submit workspaces (Submit has no admin role, so editors manage it).
- *
- * `login` enables the per-employee role fallback in `getPolicyRole`, so partially-loaded/summary
- * policies (where `policy.role` isn't populated yet) don't incorrectly route admins/editors away.
- *
- * Archived policies are not editable regardless of role, unless `canBeAccessedIfArchived` is true.
- */
-function canEditWorkspaceSettings(policy: OnyxInputOrEntry<Policy>, login?: string, canBeAccessedIfArchived = false): boolean {
-    if (!canBeAccessedIfArchived && isArchivedPolicy(policy)) {
-        return false;
-    }
-    return isPolicyAdmin(policy, login) || (isSubmitPolicy(policy) && isPolicyEditor(policy, login));
-}
-
-/**
- * Returns true for any group workspace: paid (Collect/Control) or Submit.
- *
- * Prefer this over `isPaidGroupPolicy` whenever the check is about workspace features rather than
- * billing (violations, report fields, workspace chat, report creation, expense-workspace usability),
- * so free group plans like Submit (submit2026) are not excluded. It is a strict superset of
- * `isPaidGroupPolicy`, so switching a feature check to it never changes Collect/Control/Personal
- * behavior. Use `isPaidGroupPolicy` only when the concern is genuinely billing/paid-only.
- *
- * For report-based call sites, use `ReportUtils.isReportInGroupPolicy(report)`, which delegates here.
- */
-function isGroupPolicy(policy: OnyxInputOrEntry<Policy>): boolean {
-    return isPaidGroupPolicy(policy) || isSubmitPolicy(policy);
-}
-
-function isGroupPolicyByType(policyType: string | undefined): boolean {
-    return isPaidGroupPolicyByType(policyType) || isSubmitPolicyByType(policyType);
-}
-
 function getOwnedPaidPolicies(policies: OnyxCollection<Policy> | null, currentUserAccountID: number | undefined): Policy[] {
     return Object.values(policies ?? {}).filter((policy): policy is Policy => isPolicyOwner(policy, currentUserAccountID ?? CONST.DEFAULT_NUMBER_ID) && isPaidGroupPolicy(policy));
-}
-
-function isControlPolicy(policy: OnyxEntry<Policy>): boolean {
-    return policy?.type === CONST.POLICY.TYPE.CORPORATE;
 }
 
 /**
@@ -1368,34 +1028,6 @@ function tryNavigateToSubmitWorkspaceUpgrade(policy: OnyxEntry<Policy>, isEnabli
  */
 function isAttendeeTrackingEnabled(policy: OnyxEntry<Policy>): boolean {
     return (isControlPolicy(policy) && policy?.isAttendeeTrackingEnabled) ?? true;
-}
-
-/**
- * Whether the policy can access a feature based on plan level.
- * Corporate-only features are restricted to control (Corporate) policies.
- * Rules are available on both Control and Collect.
- */
-function canPolicyAccessFeature(policy: OnyxEntry<Policy>, featureName: PolicyFeatureName): boolean {
-    if (!isPaidGroupPolicy(policy)) {
-        return false;
-    }
-    if (featureName === CONST.POLICY.MORE_FEATURES.ARE_RULES_ENABLED) {
-        return isControlPolicy(policy) || isCollectPolicy(policy);
-    }
-    const corporateOnlyFeatures = new Set<PolicyFeatureName>([
-        CONST.POLICY.MORE_FEATURES.ARE_INVOICE_FIELDS_ENABLED,
-        CONST.POLICY.MORE_FEATURES.ARE_PER_DIEM_RATES_ENABLED,
-        CONST.POLICY.MORE_FEATURES.IS_HR_ENABLED,
-        CONST.POLICY.MORE_FEATURES.IS_RECRUITING_ENABLED,
-    ]);
-    if (corporateOnlyFeatures.has(featureName)) {
-        return isControlPolicy(policy);
-    }
-    return true;
-}
-
-function isCollectPolicy(policy: OnyxEntry<Policy>): boolean {
-    return policy?.type === CONST.POLICY.TYPE.TEAM;
 }
 
 /**
@@ -1551,19 +1183,6 @@ function shouldHideDynamicExternalWorkflowPeople(policy: OnyxEntry<Policy>): boo
     return hasDynamicExternalWorkflow(policy) && !!policy?.dynamicExternalWorkflowHidePeople;
 }
 
-/**
- * Whether the policy has active accounting integration connections.
- * `getCurrentConnectionName` only returns connections supported in NewDot.
- * `hasSupportedOnlyOnOldDotIntegration` detects connections that are supported only on OldDot.
- */
-function hasAccountingConnections(policy: OnyxEntry<Policy>) {
-    return !!getCurrentConnectionName(policy) || hasSupportedOnlyOnOldDotIntegration(policy);
-}
-
-function hasAccountingFeatureConnection(policy: OnyxEntry<Policy>) {
-    return hasAccountingConnections(policy) || hasUnsupportedIntegration(policy);
-}
-
 function goBackFromInvalidPolicy() {
     Navigation.goBack(ROUTES.WORKSPACES_LIST.route);
 }
@@ -1698,6 +1317,14 @@ function getApprovalWorkflow(policy: OnyxEntry<Policy>): ValueOf<typeof CONST.PO
 function getDefaultApprover(policy: OnyxEntry<Policy>): string {
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     return policy?.approver || policy?.owner || '';
+}
+
+/**
+ * Whether an approver email points at someone who is no longer on the workspace. The owner always counts as a member,
+ * and HR advanced (manager) mode is excluded, because its final approver doesn't have to be a workspace member.
+ */
+function isNonMemberApprover(policy: OnyxEntry<Policy>, approverEmail: string | undefined): boolean {
+    return !!approverEmail && !isPolicyMember(policy, approverEmail) && !getHRAdvancedModeFinalApprover(policy);
 }
 
 /**
@@ -1986,7 +1613,13 @@ function getSubmitToAccountID(
     return submitToEmail ? (getAccountIDsByLogins([submitToEmail]).at(0) ?? CONST.DEFAULT_NUMBER_ID) : CONST.DEFAULT_NUMBER_ID;
 }
 
-function getSubmitReportManagerAccountID(policy: OnyxEntry<Policy>, expenseReport: OnyxEntry<Report>, submitterLogin: string | undefined, rules: OnyxCollection<Rule>): number | undefined {
+function getSubmitReportManagerAccountID(
+    policy: OnyxEntry<Policy>,
+    expenseReport: OnyxEntry<Report>,
+    submitterLogin: string | undefined,
+    rules: OnyxCollection<Rule>,
+    personalDetailsByLogins: PersonalDetailsByLogin,
+): number | undefined {
     const approvalRules = policy?.rules?.approvalRules;
     const ruleApprover = !isSubmitAndClose(policy) && approvalRules?.length ? getFirstRuleApprover(approvalRules, expenseReport, submitterLogin) : '';
     const hasReliablePolicyRoute =
@@ -1998,7 +1631,8 @@ function getSubmitReportManagerAccountID(policy: OnyxEntry<Policy>, expenseRepor
         return undefined;
     }
 
-    const submitToAccountID = getKnownAccountIDByLogin(getSubmitToEmail(policy, expenseReport, submitterLogin, rules, true));
+    const submitToEmail = getSubmitToEmail(policy, expenseReport, submitterLogin, rules, true);
+    const submitToAccountID = submitToEmail ? personalDetailsByLogins[submitToEmail]?.accountID : undefined;
     if (submitToAccountID === undefined || !isValidAccountRoute(submitToAccountID)) {
         return undefined;
     }
@@ -2072,14 +1706,6 @@ function hasActiveAdminWorkspaces(currentUserLogin: string | undefined, policies
     return getActiveAdminWorkspaces(policies, currentUserLogin).length > 0;
 }
 
-/**
- * Given a list of admin policies for the current user, checks whether any of them
- * has a Xero accounting software integration configured.
- */
-function hasPolicyWithXeroConnection(adminPolicies: Policy[] | undefined) {
-    return adminPolicies?.some((policy) => !!policy?.connections?.[CONST.POLICY.CONNECTIONS.NAME.XERO]) ?? false;
-}
-
 /** Whether the user can send invoice from the workspace */
 function canSendInvoiceFromWorkspace(policy: OnyxEntry<Policy>): boolean {
     return policy?.areInvoicesEnabled ?? false;
@@ -2094,40 +1720,6 @@ function canSubmitPerDiemExpenseFromWorkspace(policy: OnyxEntry<Policy>): boolea
 /** Whether the user can send invoice */
 function canSendInvoice(policies: OnyxCollection<Policy> | null, currentUserLogin: string | undefined): boolean {
     return getActiveAdminWorkspaces(policies, currentUserLogin).some((policy) => canSendInvoiceFromWorkspace(policy));
-}
-
-/** Get the Xero organizations connected to the policy */
-function getXeroTenants(policy: Policy | undefined): Tenant[] {
-    return policy?.connections?.xero?.data?.tenants ?? [];
-}
-
-function findCurrentXeroOrganization(tenants: Tenant[] | undefined, organizationID: string | undefined): Tenant | undefined {
-    return tenants?.find((tenant) => tenant.id === organizationID);
-}
-
-function getCurrentXeroOrganizationName(policy: Policy | undefined): string | undefined {
-    return findCurrentXeroOrganization(getXeroTenants(policy), policy?.connections?.xero?.config?.tenantID)?.name;
-}
-
-function getXeroBankAccounts(policy: Policy | undefined, selectedBankAccountId: string | undefined): SelectorType[] {
-    const bankAccounts = policy?.connections?.xero?.data?.bankAccounts ?? [];
-
-    return (bankAccounts ?? []).map(({id, name}) => ({
-        value: id,
-        text: name,
-        keyForList: id,
-        isSelected: selectedBankAccountId === id,
-    }));
-}
-
-/** Only profit and loss accounts can take a currency conversion cost, so these are kept apart from the bank accounts. */
-function getXeroExpenseAccounts(expenseAccounts: Account[] | undefined, selectedExpenseAccountID: string | undefined): SelectorType[] {
-    return (expenseAccounts ?? []).map(({id, name}) => ({
-        value: id,
-        text: name,
-        keyForList: id,
-        isSelected: selectedExpenseAccountID === id,
-    }));
 }
 
 function areSettingsInErrorFields(settings?: string[], errorFields?: ErrorFields) {
@@ -2149,93 +1741,6 @@ function settingsPendingAction(settings?: string[], pendingFields?: PendingField
         return;
     }
     return pendingFields[key];
-}
-
-function getIntegrationLastSuccessfulDate(
-    getLocalDateFromDatetime: LocaleContextProps['getLocalDateFromDatetime'],
-    connection?: Connections[keyof Connections],
-    connectionSyncProgress?: PolicyConnectionSyncProgress,
-) {
-    let syncSuccessfulDate;
-    if (!connection) {
-        return undefined;
-    }
-    if ((connection as NetSuiteConnection)?.lastSyncDate) {
-        syncSuccessfulDate = (connection as NetSuiteConnection)?.lastSyncDate;
-    } else {
-        syncSuccessfulDate = (connection as ConnectionWithLastSyncData)?.lastSync?.successfulDate;
-    }
-
-    const connectionSyncTimeStamp = getLocalDateFromDatetime(connectionSyncProgress?.timestamp).toISOString();
-
-    if (
-        connectionSyncProgress?.stageInProgress === CONST.POLICY.CONNECTIONS.SYNC_STAGE_NAME.JOB_DONE &&
-        syncSuccessfulDate &&
-        connectionSyncTimeStamp > getLocalDateFromDatetime(syncSuccessfulDate).toISOString()
-    ) {
-        syncSuccessfulDate = connectionSyncTimeStamp;
-    }
-    return syncSuccessfulDate;
-}
-
-function getCurrentSageIntacctEntityName(policy: Policy | undefined, defaultNameIfNoEntity: string): string | undefined {
-    const currentEntityID = policy?.connections?.intacct?.config?.entity;
-    if (!currentEntityID) {
-        return defaultNameIfNoEntity;
-    }
-    const entities = policy?.connections?.intacct?.data?.entities;
-    return entities?.find((entity) => entity.id === currentEntityID)?.name;
-}
-
-function getSageIntacctBankAccounts(policy?: Policy, selectedBankAccountId?: string): SelectorType[] {
-    const bankAccounts = policy?.connections?.intacct?.data?.bankAccounts ?? [];
-    return (bankAccounts ?? []).map(({id, name}) => ({
-        value: id,
-        text: name,
-        keyForList: id,
-        isSelected: selectedBankAccountId === id,
-    }));
-}
-
-function getSageIntacctExpenseAccounts(policy: Policy | undefined, selectedExpenseAccountID: string | undefined): SelectorType[] {
-    const expenseAccounts = policy?.connections?.intacct?.data?.expenseAccounts ?? [];
-    return expenseAccounts.map(({id, name}) => ({
-        value: id,
-        text: name,
-        keyForList: id,
-        isSelected: selectedExpenseAccountID === id,
-    }));
-}
-
-function getSageIntacctVendors(policy?: Policy, selectedVendorId?: string, localeCompare?: LocaleContextProps['localeCompare']): SelectorType[] {
-    const vendors = policy?.connections?.intacct?.data?.vendors ?? [];
-    const sortedVendors = localeCompare ? [...vendors].sort((a, b) => localeCompare(a.value ?? '', b.value ?? '') || localeCompare(a.id, b.id)) : vendors;
-    return sortedVendors.map(({id, value}) => ({
-        value: id,
-        text: value,
-        keyForList: id,
-        isSelected: selectedVendorId === id,
-    }));
-}
-
-function getSageIntacctNonReimbursableActiveDefaultVendor(policy?: Policy): string | undefined {
-    const {
-        nonReimbursableCreditCardChargeDefaultVendor: creditCardDefaultVendor,
-        nonReimbursableVendor: expenseReportDefaultVendor,
-        nonReimbursable,
-    } = policy?.connections?.intacct?.config.export ?? {};
-
-    return nonReimbursable === CONST.SAGE_INTACCT_NON_REIMBURSABLE_EXPENSE_TYPE.CREDIT_CARD_CHARGE ? creditCardDefaultVendor : expenseReportDefaultVendor;
-}
-
-function getSageIntacctCreditCards(policy?: Policy, selectedAccount?: string): SelectorType[] {
-    const creditCards = policy?.connections?.intacct?.data?.creditCards ?? [];
-    return creditCards.map(({name}) => ({
-        value: name,
-        text: name,
-        keyForList: name,
-        isSelected: name === selectedAccount,
-    }));
 }
 
 /**
@@ -2286,46 +1791,6 @@ function navigateToExpensifyCardPage(policyID: string) {
     });
 }
 
-function getAccountingConnectionNames(): AccountingConnectionName[] {
-    return [...CONST.POLICY.CONNECTIONS.ACCOUNTING_CONNECTION_NAMES];
-}
-
-function isAccountingConnectionName(connectionName?: ConnectionName): connectionName is AccountingConnectionName {
-    return connectionName !== undefined && getAccountingConnectionNames().some((accountingConnectionName) => accountingConnectionName === connectionName);
-}
-
-function getConnectedIntegration(policy: Policy | undefined, connectionNames: readonly ConnectionName[] = getAccountingConnectionNames()) {
-    return connectionNames.find((integration) => !!policy?.connections?.[integration]);
-}
-
-function getValidConnectedIntegration(policy: Policy | undefined, connectionNames: readonly ConnectionName[] = getAccountingConnectionNames()) {
-    return connectionNames.find((integration) => !!policy?.connections?.[integration] && !isConnectionUnverified(policy, integration));
-}
-
-function hasIntegrationAutoSync(policy: Policy | undefined, connectedIntegration?: ConnectionName) {
-    if (!isAccountingConnectionName(connectedIntegration)) {
-        return false;
-    }
-
-    return policy?.connections?.[connectedIntegration]?.config?.autoSync?.enabled ?? false;
-}
-
-function hasUnsupportedIntegration(policy: Policy | undefined) {
-    return Object.values(CONST.POLICY.CONNECTIONS.UNSUPPORTED_NAMES).some((integration) => !!(policy?.connections as Record<string, unknown>)?.[integration]);
-}
-
-function hasSupportedOnlyOnOldDotIntegration(policy: Policy | undefined) {
-    return Object.values(CONST.POLICY.CONNECTIONS.SUPPORTED_ONLY_ON_OLDDOT as Record<string, string>).some(
-        (integration) => !!(policy?.connections as Record<string, unknown>)?.[integration],
-    );
-}
-
-function getCurrentConnectionName(policy: Policy | undefined): string | undefined {
-    const accountingIntegrations = getAccountingConnectionNames();
-    const connectionKey = accountingIntegrations.find((integration) => !!policy?.connections?.[integration]);
-    return connectionKey ? CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionKey] : undefined;
-}
-
 /**
  * Check if the policy member is deleted from the workspace
  */
@@ -2364,6 +1829,18 @@ function getCurrentTaxID(policy: OnyxEntry<PolicyWithTaxRates>, taxID: string): 
  */
 function resolveCurrentTaxCode(policy: OnyxEntry<PolicyWithTaxRates>, taxCode: string): string {
     return getCurrentTaxID(policy, taxCode) ?? taxCode;
+}
+
+/**
+ * Whether a tax code still points to a rate the user can pick. A disabled or pending-delete rate still resolves, but
+ * it is no longer an option, so it counts the same as a removed rate.
+ */
+function isSelectableTaxCode(policy: OnyxEntry<Policy>, taxCode: string | undefined): boolean {
+    if (!taxCode) {
+        return false;
+    }
+    const taxRate = getTaxByID(policy, resolveCurrentTaxCode(policy, taxCode));
+    return !!taxRate && !taxRate.isDisabled && taxRate.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
 }
 
 function getTagApproverRule(policy: OnyxEntry<Policy>, tagName: string) {
@@ -2640,12 +2117,6 @@ const getDescriptionForPolicyDomainCard = (domainName: string, policies: OnyxCol
     return domainName;
 };
 
-function isPreferredExporter(policy: Policy, currentUserLogin: string) {
-    const exporters = getConnectionExporters(policy);
-
-    return exporters.some((exporter) => exporter && exporter === currentUserLogin);
-}
-
 /** Whether a workspace has been provisioned with a Spotnana entity. */
 function isWorkspaceProvisionedForTravel(travelSettings?: WorkspaceTravelSettings): boolean {
     return !!(travelSettings?.spotnanaCompanyID ?? travelSettings?.associatedTravelDomainAccountID);
@@ -2684,23 +2155,6 @@ function getTravelStep(
         return CONST.TRAVEL.STEPS.REVIEWING_REQUEST;
     }
     return CONST.TRAVEL.STEPS.GET_STARTED_TRAVEL;
-}
-
-/**
- * Returns an array of connection exporters from the policy's accounting integrations
- */
-function getConnectionExporters(policy: OnyxInputOrEntry<Policy>): Array<string | undefined> {
-    return [
-        policy?.connections?.intacct?.config?.export?.exporter,
-        policy?.connections?.quickbooksDesktop?.config?.export?.exporter,
-        policy?.connections?.quickbooksOnline?.config?.export?.exporter,
-        policy?.connections?.xero?.config?.export?.exporter,
-        policy?.connections?.netsuite?.options?.config?.exporter,
-        policy?.connections?.rillet?.config?.export?.exporter,
-        policy?.connections?.dualEntry?.config?.export?.exporter,
-        policy?.connections?.campfire?.config?.export?.exporter,
-        policy?.connections?.businessCentral?.config?.export?.exporter,
-    ];
 }
 
 /**
@@ -2777,13 +2231,9 @@ function isTaxCodeCustomized(taxCode: string | undefined, policy: OnyxEntry<Poli
 
 export {
     canDisableOrDeleteTaxRate,
-    canPolicyAccessFeature,
     getActivePolicies,
     getActivePoliciesWithExpenseChat,
     getAdminEmployees,
-    getConnectedIntegration,
-    getConnectionExporters,
-    getValidConnectedIntegration,
     getIneligibleInvitees,
     getExcludedUsers,
     getMemberAccountIDsForWorkspace,
@@ -2800,12 +2250,9 @@ export {
     getUnitRateValue,
     getRateDisplayValue,
     goBackFromInvalidPolicy,
-    hasAccountingFeatureConnection,
-    hasAccountingConnections,
     shouldShowSyncError,
     shouldShowCustomUnitsError,
     shouldShowEmployeeListError,
-    hasIntegrationAutoSync,
     hasPolicyCategoriesError,
     hasPolicyRulesError,
     shouldShowPolicyError,
@@ -2818,38 +2265,16 @@ export {
     isInstantSubmitEnabled,
     isDelayedSubmissionEnabled,
     getCorrectedAutoReportingFrequency,
-    isPaidGroupPolicy,
-    isPaidGroupPolicyByType,
-    canEditWorkspaceSettings,
-    canMemberRead,
-    canMemberWrite,
-    canMemberAssignRole,
-    canMemberAssignElevatedRole,
-    canMemberManageMemberWithRole,
-    isGroupPolicy,
-    isGroupPolicyByType,
-    isPendingDeletePolicy,
-    isPolicyAdmin,
-    isRoomMemberProtectedByPolicyRole,
-    isPolicyUser,
-    isPolicyAuditor,
-    isAdminOfCardEnabledPolicy,
     hasEligibleBankAccountShareRecipient,
-    isPolicyEmployee,
     arePolicyRulesEnabled,
     isPolicyFeatureEnabled,
     isPolicyFieldListEmpty,
-    isArchivedOrPendingDeletePolicy,
-    isArchivedPolicy,
-    getUberConnectionErrorDirectlyFromPolicy,
-    isPolicyOwner,
+    canUnarchivePolicy,
     isPolicyMember,
     isMemberInHomeAndOfficeWorkspace,
     isPolicyPayer,
     getReimburserEmail,
     getOwnerChangePayerSuccessData,
-    PAYER_ROLES,
-    canRolePay,
     arePaymentsEnabled,
     isAutoPayApprovedReportsAvailable,
     getReimbursementChoice,
@@ -2863,18 +2288,7 @@ export {
     canSendInvoiceFromWorkspace,
     canSubmitPerDiemExpenseFromWorkspace,
     canSendInvoice,
-    getXeroTenants,
-    findCurrentXeroOrganization,
-    getCurrentXeroOrganizationName,
-    getXeroBankAccounts,
-    getXeroExpenseAccounts,
-    hasPolicyWithXeroConnection,
     getEligibleBankAccountShareRecipientEmails,
-    getSageIntacctVendors,
-    getSageIntacctNonReimbursableActiveDefaultVendor,
-    getSageIntacctCreditCards,
-    getSageIntacctBankAccounts,
-    getSageIntacctExpenseAccounts,
     getDistanceRateCustomUnit,
     hasOfficeWorkArrangement,
     getPerDiemCustomUnit,
@@ -2887,16 +2301,12 @@ export {
     removePendingFieldsFromCustomUnit,
     goBackWhenEnableFeature,
     navigateToExpensifyCardPage,
-    getIntegrationLastSuccessfulDate,
-    getCurrentConnectionName,
     getDefaultApprover,
+    isNonMemberApprover,
     hasCustomApprovalWorkflow,
     getApprovalWorkflow,
     getReimburserAccountID,
-    isControlPolicy,
     isAttendeeTrackingEnabled,
-    isCollectPolicy,
-    getCurrentSageIntacctEntityName,
     hasOnlyPersonalPolicies,
     getCurrentTaxID,
     areSettingsInErrorFields,
@@ -2914,7 +2324,6 @@ export {
     getAllTaxRatesNamesAndValues,
     getTagApproverRule,
     getDomainNameForPolicy,
-    hasSupportedOnlyOnOldDotIntegration,
     getWorkflowApprovalsUnavailable,
     getUserFriendlyWorkspaceType,
     getDefaultWorkspacePlanType,
@@ -2931,14 +2340,13 @@ export {
     getPolicyForAssignedCard,
     getDescriptionForPolicyDomainCard,
     getManagerAccountID,
-    isPreferredExporter,
     getCustomUnitsForDuplication,
     getActiveEmployeeWorkspaces,
-    getPolicyRole,
     isPolicyMemberWithoutPendingDelete,
     hasDynamicExternalWorkflow,
     shouldHideDynamicExternalWorkflowPeople,
     getActivePoliciesWithExpenseChatAndPerDiemEnabled,
+    getPoliciesForRoomCreation,
     isPerDiemEnabled,
     isPerDiemEligiblePolicy,
     isInvoiceFieldsEnabled,
@@ -2953,14 +2361,11 @@ export {
     isPolicyTaxEnabled,
     sortPoliciesByName,
     resolveCurrentTaxCode,
-    isPolicyApprover,
+    isSelectableTaxCode,
     hasActiveExpensifyCard,
-    getPolicyApproverLogins,
     tryNavigateToSubmitWorkspaceUpgrade,
     tryNavigateToControlPolicyUpgrade,
     getRulesDocumentSourceURL,
-    isSubmitPolicy,
-    isSubmitterApproveBlockedOnSubmitWorkspace,
     hasAnyPaidPolicy,
     isTaxCodeCustomized,
     isMergeHRCompleteSetupNeededSelector,
@@ -2972,5 +2377,10 @@ export {
 // from inside an import cycle.
 export * from './tag';
 export * from './vendor';
+export * from './policyType';
+export * from './permissions';
+export * from './connections';
+export * from './xero';
+export * from './sageIntacct';
 
-export type {MemberEmailsToAccountIDs, PolicyFeature, PolicyFeatureAccess};
+export type {MemberEmailsToAccountIDs};
