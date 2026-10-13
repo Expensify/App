@@ -1,3 +1,5 @@
+import ControlSelection from '@libs/ControlSelection';
+
 import CONST from '@src/CONST';
 
 import {useRef, useState} from 'react';
@@ -10,6 +12,11 @@ type MarkCopyableTextMouseDownOptions = {
 
 type HandleCopyableTextRowPressOptions = {
     shouldCheck?: boolean;
+};
+
+type HandleCopyableTextRowPressInOptions = {
+    shouldEnableTextSelection?: boolean;
+    shouldBlockSelection?: boolean;
 };
 
 type UseCopyableTextRowPressOptions = {
@@ -204,7 +211,16 @@ function useCopyableTextRowPress({shouldTrackTouchStart = false}: UseCopyableTex
         return isCopyableTarget;
     };
 
-    const shouldPreserveNativeTextSelection = () => didTouchStartOnCopyableTextRef.current;
+    // RN Web press-in events omit client coordinates, so reuse the original touch hit-test before blocking selection.
+    const handleCopyableTextRowPressIn = ({shouldEnableTextSelection = false, shouldBlockSelection = false}: HandleCopyableTextRowPressInOptions = {}) => {
+        if (shouldEnableTextSelection && didTouchStartOnCopyableTextRef.current) {
+            return;
+        }
+
+        if (shouldBlockSelection) {
+            ControlSelection.block();
+        }
+    };
 
     const shouldSuppressCopyableTextRowPress = (shouldCheck = true): boolean => {
         const didPressStartOnCopyableText = wasMouseDownOnCopyableTextRef.current || wasTouchStartOnCopyableTextRef.current;
@@ -236,10 +252,10 @@ function useCopyableTextRowPress({shouldTrackTouchStart = false}: UseCopyableTex
     return {
         didTouchStartOnCopyableText,
         handleCopyableTextRowPress,
+        handleCopyableTextRowPressIn,
         isPressStartOnCopyableText: getCachedIsPressStartOnCopyableText,
         markMouseDownOnCopyableText,
         markTouchStartOnCopyableText,
-        shouldPreserveNativeTextSelection,
         shouldSuppressCopyableTextRowFocus,
         shouldSuppressCopyableTextRowLongPress,
         shouldSuppressCopyableTextRowPress,

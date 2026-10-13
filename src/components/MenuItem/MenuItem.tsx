@@ -593,10 +593,10 @@ function MenuItem({
     const pressableRef = useRef<ComponentRef<typeof View>>(null);
     const {
         didTouchStartOnCopyableText,
+        handleCopyableTextRowPressIn,
         isPressStartOnCopyableText,
         markMouseDownOnCopyableText,
         markTouchStartOnCopyableText,
-        shouldPreserveNativeTextSelection,
         shouldSuppressCopyableTextRowLongPress,
         shouldSuppressCopyableTextRowPress,
     } = useCopyableTextRowPress({shouldTrackTouchStart: true});
@@ -807,15 +807,6 @@ function MenuItem({
     };
     const secondaryInteractionHandler = copyable && !deviceHasHoverSupport ? secondaryInteraction : onSecondaryInteraction;
 
-    const handlePressIn = () => {
-        if (shouldEnableTextSelection && shouldPreserveNativeTextSelection()) {
-            return;
-        }
-        if (shouldBlockSelection && shouldUseNarrowLayout && canUseTouchScreen()) {
-            ControlSelection.block();
-        }
-    };
-
     const isIDPassed = !!iconReportID || !!iconAccountID || iconAccountID === CONST.DEFAULT_NUMBER_ID;
 
     // A known account renders straight from the personal-details context. Only the report-derived avatars need `ReportAvatar`.
@@ -859,7 +850,12 @@ function MenuItem({
                                 }}
                                 shouldAllowTextSelection={isTitleSelectable}
                                 preventDefaultContextMenu={(event) => deviceHasHoverSupport || !isTitleSelectable || !isPressStartOnCopyableText(event)}
-                                onPressIn={handlePressIn}
+                                onPressIn={() =>
+                                    handleCopyableTextRowPressIn({
+                                        shouldEnableTextSelection,
+                                        shouldBlockSelection: shouldBlockSelection && shouldUseNarrowLayout && canUseTouchScreen(),
+                                    })
+                                }
                                 onPressOut={ControlSelection.unblock}
                                 // Keep the native selection menu available through press-out; reset on the next pointer start.
                                 onSecondaryInteraction={shouldEnableTextSelection && didTouchStartOnCopyableText ? undefined : secondaryInteractionHandler}

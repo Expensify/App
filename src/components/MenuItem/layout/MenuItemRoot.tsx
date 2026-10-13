@@ -66,10 +66,10 @@ function MenuItemRoot({children, onPress, isDisabled = false, sentryLabel, testI
     const shouldEnableTextSelection = shouldAllowTextSelection && getPlatform() === CONST.PLATFORM.WEB;
     const {
         didTouchStartOnCopyableText,
+        handleCopyableTextRowPressIn,
         isPressStartOnCopyableText,
         markMouseDownOnCopyableText,
         markTouchStartOnCopyableText,
-        shouldPreserveNativeTextSelection,
         shouldSuppressCopyableTextRowLongPress,
         shouldSuppressCopyableTextRowPress,
     } = useCopyableTextRowPress({shouldTrackTouchStart: true});
@@ -109,17 +109,6 @@ function MenuItemRoot({children, onPress, isDisabled = false, sentryLabel, testI
           }
         : undefined;
 
-    const handlePressIn = () => {
-        // RN Web responder events omit client coordinates, so reuse the original touch hit-test.
-        if (shouldEnableTextSelection && shouldPreserveNativeTextSelection()) {
-            return;
-        }
-
-        if (onSecondaryInteractionAction && shouldUseNarrowLayout && canUseTouchScreen()) {
-            ControlSelection.block();
-        }
-    };
-
     return (
         <MenuItemConfigContext.Provider value={{isDisabled, isInteractive, shouldAllowTextSelection: shouldEnableTextSelection}}>
             <Hoverable>
@@ -134,7 +123,12 @@ function MenuItemRoot({children, onPress, isDisabled = false, sentryLabel, testI
                         }}
                         shouldAllowTextSelection={shouldEnableTextSelection}
                         preventDefaultContextMenu={(event) => !shouldEnableTextSelection || !isPressStartOnCopyableText(event)}
-                        onPressIn={handlePressIn}
+                        onPressIn={() =>
+                            handleCopyableTextRowPressIn({
+                                shouldEnableTextSelection,
+                                shouldBlockSelection: !!onSecondaryInteractionAction && shouldUseNarrowLayout && canUseTouchScreen(),
+                            })
+                        }
                         onPressOut={ControlSelection.unblock}
                         // RN Web prevents the native context menu whenever an onLongPress handler is attached.
                         // Reset on the next pointer start, since press-out can precede the browser's selection menu.

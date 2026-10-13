@@ -6,25 +6,30 @@ type HandleCopyableTextRowPressOptions = {
     shouldCheck?: boolean;
 };
 
+type HandleCopyableTextRowPressInOptions = {
+    shouldEnableTextSelection?: boolean;
+    shouldBlockSelection?: boolean;
+};
+
 const isPressStartOnCopyableText = () => false;
 
 function useCopyableTextRowPress() {
     // Native does not expose browser selection APIs, so copyable text never suppresses row interactions here.
     const markMouseDownOnCopyableText: (target: EventTarget | null | undefined, shouldCheck?: boolean, options?: MarkCopyableTextMouseDownOptions) => boolean = () => false;
     const markTouchStartOnCopyableText: (event: unknown, shouldCheck?: boolean) => boolean = () => false;
-    const shouldPreserveNativeTextSelection = () => false;
     const shouldSuppressCopyableTextRowPress: (shouldCheck?: boolean) => boolean = () => false;
     const shouldSuppressCopyableTextRowLongPress: (shouldCheck?: boolean) => boolean = () => false;
     const shouldSuppressCopyableTextRowFocus = () => false;
     const handleCopyableTextRowPress: (onPress: () => void, options?: HandleCopyableTextRowPressOptions) => void = (onPress) => onPress();
+    const handleCopyableTextRowPressIn: (options?: HandleCopyableTextRowPressInOptions) => void = () => {};
 
     return {
         didTouchStartOnCopyableText: false,
         handleCopyableTextRowPress,
+        handleCopyableTextRowPressIn,
         isPressStartOnCopyableText,
         markMouseDownOnCopyableText,
         markTouchStartOnCopyableText,
-        shouldPreserveNativeTextSelection,
         shouldSuppressCopyableTextRowFocus,
         shouldSuppressCopyableTextRowLongPress,
         shouldSuppressCopyableTextRowPress,

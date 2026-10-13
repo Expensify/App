@@ -1,5 +1,7 @@
 import {act, renderHook} from '@testing-library/react-native';
 
+import ControlSelection from '@libs/ControlSelection';
+
 import type useCopyableTextRowPressModule from '../../../src/hooks/useCopyableTextRowPress/index';
 import type {isPressStartOnCopyableText as isPressStartOnCopyableTextModule} from '../../../src/hooks/useCopyableTextRowPress/index';
 
@@ -72,20 +74,23 @@ describe('useCopyableTextRowPress', () => {
     it('tracks copyable touch starts for consumers that need to preserve native text selection', () => {
         const {result} = renderHook(() => useCopyableTextRowPress({shouldTrackTouchStart: true}));
         const copyableTextElement = getCopyableTextElement();
+        const blockSelectionSpy = jest.spyOn(ControlSelection, 'block').mockImplementation();
 
         act(() => {
             result.current.markTouchStartOnCopyableText({target: copyableTextElement});
         });
 
         expect(result.current.didTouchStartOnCopyableText).toBe(true);
-        expect(result.current.shouldPreserveNativeTextSelection()).toBe(true);
+        result.current.handleCopyableTextRowPressIn({shouldEnableTextSelection: true, shouldBlockSelection: true});
+        expect(blockSelectionSpy).not.toHaveBeenCalled();
 
         act(() => {
             result.current.markMouseDownOnCopyableText(copyableTextElement);
         });
 
         expect(result.current.didTouchStartOnCopyableText).toBe(false);
-        expect(result.current.shouldPreserveNativeTextSelection()).toBe(false);
+        result.current.handleCopyableTextRowPressIn({shouldEnableTextSelection: true, shouldBlockSelection: true});
+        expect(blockSelectionSpy).toHaveBeenCalledTimes(1);
     });
 
     it('does not suppress row press when the press starts outside copyable text', () => {
