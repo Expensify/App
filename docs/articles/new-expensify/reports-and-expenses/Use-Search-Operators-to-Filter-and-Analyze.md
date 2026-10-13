@@ -180,7 +180,6 @@ Use `group-by:` to group results by a specific dimension.
 
 | **Syntax** | **Description** | **Example** |
 |---|---|---|
-| `group-by:report` | Group results by report | `type:expense group-by:report` |
 | `group-by:from` | Group results by submitter | `type:expense group-by:from` |
 | `group-by:card` | Group results by card | `type:expense group-by:card` |
 | `group-by:withdrawal-id` | Group results by withdrawal ID | `type:expense group-by:withdrawal-id` |
