@@ -258,6 +258,7 @@ function AddAgentRulePage({
                                     icon={icons.Info}
                                     shouldShowIcon
                                     containerStyles={[styles.mh5, styles.mb3]}
+                                    textStyles={styles.breakWord}
                                 />
                             )}
                             <AddAgentRuleWriteTab onSave={saveRule} />
