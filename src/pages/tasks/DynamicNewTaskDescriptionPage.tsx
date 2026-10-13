@@ -57,7 +57,7 @@ function DynamicNewTaskDescriptionPage() {
     };
 
     if (isLoadingOnyxValue(taskMetadata)) {
-        return <FullScreenLoadingIndicator />;
+        return <FullScreenLoadingIndicator onGoBack={goBack} />;
     }
 
     return (

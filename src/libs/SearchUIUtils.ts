@@ -395,7 +395,7 @@ const transactionWithdrawalIDGroupColumnNamesToSortingProperty: TransactionWithd
     [CONST.SEARCH.TABLE_COLUMNS.GROUP_BANK_ACCOUNT]: 'bankName' as const,
     [CONST.SEARCH.TABLE_COLUMNS.GROUP_WITHDRAWN]: 'debitPosted' as const,
     [CONST.SEARCH.TABLE_COLUMNS.WITHDRAWN]: 'debitPosted' as const,
-    [CONST.SEARCH.TABLE_COLUMNS.GROUP_WITHDRAWAL_STATUS]: 'state' as const,
+    [CONST.SEARCH.TABLE_COLUMNS.GROUP_WITHDRAWAL_STATUS]: 'settlementStatusRank' as const,
     [CONST.SEARCH.TABLE_COLUMNS.GROUP_WITHDRAWAL_ID]: 'formattedWithdrawalID' as const,
     // Both the backend page selection and this local sort rank the amounts as stored, without converting between
     // currencies, so a group can outrank one that is worth more in another currency.
@@ -902,6 +902,13 @@ function isTransactionReportGroupListItemType(item: ListItem): item is Transacti
  */
 function isTransactionWithdrawalIDGroupListItemType(item: ListItem): item is TransactionWithdrawalIDGroupListItemType {
     return isTransactionGroupListItemType(item) && 'groupedBy' in item && item.groupedBy === CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID;
+}
+
+/**
+ * Checks if a row is a cash back credit rather than a card settlement withdrawal
+ */
+function isCashBackWithdrawalGroup(item: ListItem): boolean {
+    return isTransactionWithdrawalIDGroupListItemType(item) && !!item.isCashBack;
 }
 
 /**
@@ -2152,10 +2159,15 @@ function getActions(
     }
 
     const policy = getPolicyFromKey(data, report);
-    const isExportAvailable = isExportAction(report, currentUserLogin, policy, reportActions) && !isTransaction;
+    const isExportAvailable = !isTransaction && isExportAction(report, currentUserLogin, policy, reportActions);
 
     if (isSettled(report) && !isExportAvailable) {
         return [CONST.SEARCH.ACTION_TYPES.PAID];
+    }
+
+    // Submit/Approve/Pay are report level actions, so expense rows only offer View.
+    if (isTransaction && !isInvoiceReport(report)) {
+        return [CONST.SEARCH.ACTION_TYPES.VIEW];
     }
 
     // We need to check both options for a falsy value since the transaction might not have an error but the report associated with it might. We return early if there are any errors for performance reasons, so we don't need to compute any other possible actions.
@@ -2181,8 +2193,7 @@ function getActions(
 
     const isChatReportArchived = isArchivedReport(data[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.chatReportID}`]);
 
-    // Submit/Approve/Pay can only be taken on transactions if the transaction is the only one on the report, otherwise `View` is the only option.
-    // If this condition is not met, return early for performance reasons
+    // Only invoice rows reach here. They get report actions only when the invoice has a single line.
     if (isTransaction && !isOneTransactionReport(report)) {
         return allActions.length > 0 ? allActions : [CONST.SEARCH.ACTION_TYPES.VIEW];
     }
@@ -3310,6 +3321,9 @@ function getCardSections(
     return [cardSectionsValues, cardSectionsValues.length, hasDeletedTransactionInData(data)];
 }
 
+// Cash back is not a settlement state, so it ranks past all of them instead of taking a slot between them.
+const CASH_BACK_STATUS_SORT_RANK = Number.MAX_SAFE_INTEGER;
+
 /**
  * @private
  * Organizes data into List Sections grouped by card for display, for the TransactionWithdrawalIDGroupListItemType of Search Results.
@@ -3337,6 +3351,7 @@ function getWithdrawalIDSections(data: OnyxTypes.SearchResults['data'], queryJSO
                 ...withdrawalIDGroup,
                 shouldShowYearWithdrawn,
                 formattedWithdrawalID: String(withdrawalIDGroup.entryID),
+                settlementStatusRank: withdrawalIDGroup.isCashBack ? CASH_BACK_STATUS_SORT_RANK : withdrawalIDGroup.state,
                 keyForList: key,
             };
         }
@@ -6879,11 +6894,20 @@ function getSettlementStatusBadgeProps(
     state: number | undefined,
     translate: LocaleContextProps['translate'],
     theme: ThemeColors,
+    isCashBack = false,
 ): {
     text: string;
     badgeStyles: ViewStyle;
     textStyles: TextStyle;
 } | null {
+    if (isCashBack) {
+        return {
+            text: translate('settlement.status.cashBack'),
+            badgeStyles: {backgroundColor: theme.reportStatusBadge.paid.backgroundColor},
+            textStyles: {color: theme.reportStatusBadge.paid.textColor},
+        };
+    }
+
     const status = getSettlementStatus(state);
     if (!status) {
         return null;
@@ -7311,6 +7335,7 @@ export {
     isTransactionGroupListItemType,
     isTransactionReportGroupListItemType,
     isTransactionWithdrawalIDGroupListItemType,
+    isCashBackWithdrawalGroup,
     isTransactionCategoryGroupListItemType,
     isTransactionMerchantGroupListItemType,
     isTransactionTagGroupListItemType,
