@@ -3322,6 +3322,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
         // the search snapshot and block treating it as a reverse split.
         updateSplitTransactionsFromSplitExpensesFlow({
             isVendorMatchingBetaEnabled: false,
+            reportDrafts: {},
             rules: undefined,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
             getCurrencySymbol: getCurrencySymbolLocal,
@@ -3419,6 +3420,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
         // The live transaction's Approved report must be used instead of that stale cached field.
         updateSplitTransactionsFromSplitExpensesFlow({
             isVendorMatchingBetaEnabled: false,
+            reportDrafts: {},
             rules: undefined,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
             getCurrencySymbol: getCurrencySymbolLocal,
@@ -3528,6 +3530,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
         // snapshot (not yet in Onyx). The snapshot transaction's live reportID must still be used.
         updateSplitTransactionsFromSplitExpensesFlow({
             isVendorMatchingBetaEnabled: false,
+            reportDrafts: {},
             rules: undefined,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
             getCurrencySymbol: getCurrencySymbolLocal,
