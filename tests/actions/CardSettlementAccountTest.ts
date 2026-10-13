@@ -67,7 +67,7 @@ describe('actions/Card', () => {
             selectNewSettlementAccount();
             await waitForBatchedUpdates();
 
-            // Then the settings page shows the backend error, since the generic fallback sorts below it
+            // Then the settings page shows the backend error, since the backend message wins when present
             const settings = await getOnyxValue(settingsKey);
             expect(getSettlementAccountErrors(settings, programKey)).toEqual({[backendErrorKey]: backendErrorMessage});
 
