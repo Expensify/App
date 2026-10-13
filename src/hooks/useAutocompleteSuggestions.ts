@@ -25,7 +25,7 @@ import {getDatePresets, getHasOptions} from '@libs/SearchUIUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {CardFeeds, CardList, PersonalDetailsList, Policy} from '@src/types/onyx';
-import type {VisibleReportActionsDerivedValue} from '@src/types/onyx/DerivedValues';
+import type {ReportAttributesDerivedValue, VisibleReportActionsDerivedValue} from '@src/types/onyx/DerivedValues';
 import type {Icon} from '@src/types/onyx/OnyxCommon';
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
 import getEmptyArray from '@src/types/utils/getEmptyArray';
@@ -65,6 +65,7 @@ type UseAutocompleteSuggestionsParams = {
     loginList: OnyxEntry<Record<string, unknown>>;
     policies: NonNullable<OnyxCollection<Policy>>;
     visibleReportActionsData?: VisibleReportActionsDerivedValue;
+    reportAttributesDerived?: ReportAttributesDerivedValue['reports'];
     currentUserAccountID: number;
     currentUserEmail: string;
     personalDetails: OnyxEntry<PersonalDetailsList>;
@@ -117,6 +118,7 @@ function useAutocompleteSuggestions({
     loginList,
     policies,
     visibleReportActionsData,
+    reportAttributesDerived,
     currentUserAccountID,
     currentUserEmail,
     personalDetails,
@@ -125,7 +127,7 @@ function useAutocompleteSuggestions({
     autocompleteSubstitutions,
 }: UseAutocompleteSuggestionsParams): AutocompleteItemData[] {
     const {localeCompare, dateFnsLocale, formatPhoneNumber} = useLocalize();
-    const {convertToDisplayString} = useCurrencyListActions();
+    const {convertToDisplayString, convertToDisplayStringWithoutCurrency} = useCurrencyListActions();
     const [allPolicyCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES);
     const [allRecentCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES);
     const [recentCurrencyAutocompleteList] = useOnyx(ONYXKEYS.RECENTLY_USED_CURRENCIES);
@@ -136,6 +138,8 @@ function useAutocompleteSuggestions({
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const sortedReportActionsData = useSortedReportActionsData();
     const sortedActions = sortedReportActionsData?.sortedActions;
+    const transactionThreadIDs = sortedReportActionsData?.transactionThreadIDs;
+    const lastActions = sortedReportActionsData?.lastActions;
     const {currencyList} = useCurrencyListState();
     const {exportedToFilterOptions} = useExportedToFilterOptions();
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
@@ -256,6 +260,7 @@ function useAutocompleteSuggestions({
             const participants = getSearchOptions({
                 dateFnsLocale,
                 convertToDisplayString,
+                convertToDisplayStringWithoutCurrency,
                 options,
                 draftComments,
                 isDefaultRoomsBetaEnabled,
@@ -274,9 +279,16 @@ function useAutocompleteSuggestions({
                 currentUserAccountID,
                 currentUserEmail,
                 personalDetails,
+                reportAttributesDerived,
+                currentUserLogin: currentUserEmail,
                 sortedActions,
+                transactionThreadIDs,
+                lastActions,
+                localeCompare,
+                formatPhoneNumber,
                 conciergeReportID,
                 excludeFromSuggestionsOnly: memberExclusions,
+                allPolicyTags: allPoliciesTags,
                 isTrackIntentUser,
                 translate,
                 getReportByID,
@@ -301,6 +313,7 @@ function useAutocompleteSuggestions({
             const filteredReports = getSearchOptions({
                 dateFnsLocale,
                 convertToDisplayString,
+                convertToDisplayStringWithoutCurrency,
                 options,
                 draftComments,
                 isDefaultRoomsBetaEnabled,
@@ -319,8 +332,15 @@ function useAutocompleteSuggestions({
                 currentUserAccountID,
                 currentUserEmail,
                 personalDetails,
+                reportAttributesDerived,
+                currentUserLogin: currentUserEmail,
                 sortedActions,
+                transactionThreadIDs,
+                lastActions,
+                localeCompare,
+                formatPhoneNumber,
                 conciergeReportID,
+                allPolicyTags: allPoliciesTags,
                 isTrackIntentUser,
                 translate,
                 getReportByID,

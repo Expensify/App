@@ -222,7 +222,7 @@ function ToggleSettingOptionRow({
             {customTitle ?? (
                 <View style={[styles.flexColumn, styles.flex1, styles.mr6]}>
                     <Text
-                        style={[styles.textNormal, styles.lh20, titleStyle]}
+                        style={[styles.textNormal, styles.lh20, styles.textAlignVerticalCenter, titleStyle]}
                         accessibilityRole={titleAccessibilityRole}
                     >
                         {title}

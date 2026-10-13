@@ -5,6 +5,7 @@
 import {act, fireEvent, render, screen} from '@testing-library/react-native';
 
 import {readFileAsync} from '@libs/fileDownload/FileUtils';
+import getCurrentPosition from '@libs/getCurrentPosition';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
@@ -22,6 +23,7 @@ import type {Report, Transaction} from '@src/types/onyx';
 
 import React from 'react';
 import Onyx from 'react-native-onyx';
+import {check} from 'react-native-permissions';
 
 import type * as FileUtilsModule from '../../src/libs/fileDownload/FileUtils';
 
@@ -71,6 +73,7 @@ jest.mock('@libs/ReceiptStorage', () => ({
     default: {
         adopt: jest.fn((uriOrPath: string) => Promise.resolve(uriOrPath)),
         toLocalUri: jest.fn((durableName: string) => durableName),
+        retain: jest.fn(),
         resolve: jest.fn((source: string) => source),
     },
 }));
@@ -164,18 +167,24 @@ jest.mock('@components/HeaderWithBackButton', () => {
     };
 });
 
+// The props the mocked confirmation list was last rendered with, so tests can assert what the page hands it without
+// pulling in the real form. The `mock` prefix is what lets the hoisted jest.mock factory reference it.
+let mockConfirmationListProps: Record<string, unknown> = {};
+
 // Mock the confirmation list down to a button that fires onConfirm — isolates the test from the form internals.
 jest.mock('@components/MoneyRequestConfirmationList', () => {
     const React2 = require('react');
     const {Pressable, Text} = require('react-native');
     return {
         __esModule: true,
-        default: ({onConfirm}: {onConfirm: (participants?: Array<{accountID: number; login: string}>) => void}) =>
-            React2.createElement(
+        default: (props: {onConfirm: (participants?: Array<{accountID: number; login: string}>) => void}) => {
+            mockConfirmationListProps = props;
+            return React2.createElement(
                 Pressable,
-                {testID: 'mock-confirm-button', onPress: () => onConfirm([{accountID: 2, login: 'participant@example.com'}])},
+                {testID: 'mock-confirm-button', onPress: () => props.onConfirm([{accountID: 2, login: 'participant@example.com'}])},
                 React2.createElement(Text, null, 'confirm'),
-            ),
+            );
+        },
     };
 });
 
@@ -237,6 +246,35 @@ async function renderAndConfirm() {
     await waitForBatchedUpdatesWithAct();
 }
 
+function mockPositionAnswer() {
+    jest.mocked(getCurrentPosition).mockImplementation(async (success) => {
+        success({
+            coords: {
+                latitude: 40.7128,
+                longitude: -74.006,
+                altitude: null,
+                accuracy: null,
+                altitudeAccuracy: null,
+                heading: null,
+                speed: null,
+            },
+            timestamp: 0,
+        });
+    });
+}
+
+function getUserLocationFromOnyx(): Promise<unknown> {
+    return new Promise((resolve) => {
+        const connection = Onyx.connect({
+            key: ONYXKEYS.USER_LOCATION,
+            callback: (val) => {
+                resolve(val);
+                Onyx.disconnect(connection);
+            },
+        });
+    });
+}
+
 function renderSubmitDetailsPage() {
     return render(
         <SubmitDetailsPage
@@ -269,6 +307,7 @@ describe('SubmitDetailsPage', () => {
 
     beforeEach(async () => {
         jest.clearAllMocks();
+        mockConfirmationListProps = {};
         const actualGetReportOrDraftReport = jest.requireActual<ReportUtilsActual>('@libs/ReportUtils').getReportOrDraftReport;
         jest.mocked(getReportOrDraftReport).mockImplementation(actualGetReportOrDraftReport);
         resetNavigationMocksForSubmitDetailsPageTests();
@@ -568,6 +607,43 @@ describe('SubmitDetailsPage', () => {
         }
     });
 
+    it('creates the shared expense with the position the share screen cached, without reading the device at submit', async () => {
+        // Given a shared receipt, location permission granted when the user confirms, and a position the share screen cached when it opened
+        mockPositionAnswer();
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.NVP_LAST_LOCATION_PERMISSION_PROMPT, null);
+        });
+        renderSubmitDetailsPage();
+        await waitForBatchedUpdatesWithAct();
+
+        expect(await getUserLocationFromOnyx()).toEqual({latitude: 40.7128, longitude: -74.006});
+
+        // When the user confirms the share
+        fireEvent.press(screen.getByTestId('mock-confirm-button'));
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the expense carries the cached position and confirming read the device no further
+        expect(TrackExpense.requestMoney).toHaveBeenCalledTimes(1);
+        expect(jest.mocked(TrackExpense.requestMoney).mock.calls.at(0)?.[0].gpsPoint).toEqual({lat: 40.7128, long: -74.006});
+        expect(getCurrentPosition).toHaveBeenCalledTimes(1);
+    });
+
+    it('caches nothing and raises nothing when the permission check fails on open', async () => {
+        // Given a device whose location permission check fails outright
+        jest.mocked(check).mockRejectedValueOnce(new Error('permission check failed'));
+        const unhandledRejection = jest.fn();
+        process.on('unhandledRejection', unhandledRejection);
+
+        // When the share screen opens
+        renderSubmitDetailsPage();
+        await waitForBatchedUpdatesWithAct();
+        process.off('unhandledRejection', unhandledRejection);
+
+        // Then the screen cached no position, and the failed check never surfaced as an unhandled rejection
+        expect(await getUserLocationFromOnyx()).toBeUndefined();
+        expect(unhandledRejection).not.toHaveBeenCalled();
+    });
+
     // Error #11 — narrow layout race: confirm fires before scheduleWhenIdle runs pre-insert setup.
     // Pre-insert should not happen, but submit must still complete without crashing.
     it('narrow layout: handles confirm before scheduleWhenIdle fires pre-insert setup', async () => {
@@ -587,5 +663,57 @@ describe('SubmitDetailsPage', () => {
         // Should fall back to reveal path for wide layout or skip nav (shouldNavigate false)
         // depending on how code handles the race — critical is no crash and proper cleanup
         expect(jest.mocked(cleanupAndNavigateAfterExpenseCreate).mock.calls.at(0)?.[0]).toBeDefined();
+    });
+
+    // The share flow always creates a Scan expense, so it must offer the same manually entered amount / merchant /
+    // date the in-app Scan confirmation does. Hardcoding `shouldShowSmartScanFields={false}` hid all three (#101168).
+    it('reveals the amount, merchant and date fields on the shared Scan confirmation', async () => {
+        // Given a shared file seeded into the Submit flow
+        // When the confirmation list renders
+        renderSubmitDetailsPage();
+        await waitForBatchedUpdatesWithAct();
+
+        // Then it is told to show the three smart-scan fields and to allow entering them by hand
+        expect(mockConfirmationListProps.shouldShowSmartScanFields).toBe(true);
+        expect(mockConfirmationListProps.canEnterScanFieldsManually).toBe(true);
+    });
+
+    // The share flow builds its receipt by hand, so it has to derive the receipt state the way ReceiptFileValidator
+    // does. Without this, SmartScan would re-read the receipt and overwrite whatever the user typed.
+    it('submits a receipt in the open state when the user filled in amount, merchant and date themselves', async () => {
+        // Given a Scan draft whose three fields the user has all filled in
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_TRANSACTION_ID}`, {
+                iouRequestType: CONST.IOU.REQUEST_TYPE.SCAN,
+                isAmountSet: true,
+                isMerchantSet: true,
+                isCreatedSet: true,
+            });
+        });
+
+        // When the expense is confirmed
+        await renderAndConfirm();
+
+        // Then the receipt is submitted as `open`, which keeps SmartScan from scanning over the entered values
+        const requestMoneyArg = jest.mocked(TrackExpense.requestMoney).mock.calls.at(0)?.[0];
+        expect(requestMoneyArg?.transactionParams?.receipt?.state).toBe(CONST.IOU.RECEIPT_STATE.OPEN);
+    });
+
+    it('submits a receipt in the scanready state when the user left one of the three fields to SmartScan', async () => {
+        // Given a Scan draft where only the amount and merchant were entered, so the date is still SmartScan's to read
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_TRANSACTION_ID}`, {
+                iouRequestType: CONST.IOU.REQUEST_TYPE.SCAN,
+                isAmountSet: true,
+                isMerchantSet: true,
+            });
+        });
+
+        // When the expense is confirmed
+        await renderAndConfirm();
+
+        // Then the receipt is still submitted for scanning
+        const requestMoneyArg = jest.mocked(TrackExpense.requestMoney).mock.calls.at(0)?.[0];
+        expect(requestMoneyArg?.transactionParams?.receipt?.state).toBe(CONST.IOU.RECEIPT_STATE.SCAN_READY);
     });
 });

@@ -1,4 +1,4 @@
-import {act, render} from '@testing-library/react-native';
+import {act, fireEvent, render, screen} from '@testing-library/react-native';
 
 import ComposeProviders from '@components/ComposeProviders';
 import {CurrencyListContextProvider} from '@components/CurrencyListContextProvider';
@@ -21,6 +21,7 @@ import React from 'react';
 import Onyx from 'react-native-onyx';
 
 import {buildCategoryGroup, buildTransactionRow} from '../utils/collections/searchListItems';
+import {makeSettlementGroup} from '../utils/ExpensifyCardStatementTestUtils';
 import MockSearchContextProvider from '../utils/MockSearchContextProvider';
 
 jest.mock('@components/ConfirmedRoute.tsx');
@@ -38,6 +39,11 @@ jest.mock('@components/Search/SearchList/ListItem/CategoryListItemHeader', () =>
         capturedSubHeader.current = props;
         return null;
     },
+}));
+
+jest.mock('@components/Search/SearchList/ListItem/WithdrawalIDListItemHeader', () => ({
+    __esModule: true,
+    default: () => null,
 }));
 
 const checkboxState = () => ({isSelectAllChecked: capturedSubHeader.current?.isSelectAllChecked, isIndeterminate: capturedSubHeader.current?.isIndeterminate});
@@ -86,6 +92,9 @@ const baseActions = {
     setLastSearchType: jest.fn(),
     setCurrentSelectedTransactionReportID: jest.fn(),
     setSelectedTransactions: jest.fn(),
+    getSelectedTransactions: jest.fn(() => ({})),
+    getExcludedTransactions: () => ({}),
+    getAreAllMatchingItemsSelected: () => false,
     applySelection: jest.fn(),
     setSelectedReports: jest.fn(),
     removeTransaction: jest.fn(),
@@ -185,5 +194,73 @@ describe('GroupHeader', () => {
         const onCheckboxPress = renderGroupHeader([], select(GROUP_KEY));
         act(() => capturedSubHeader.current?.onCheckboxPress());
         expect(onCheckboxPress).toHaveBeenCalledWith(expect.objectContaining({keyForList: GROUP_KEY}), []);
+    });
+
+    describe('withdrawal rows', () => {
+        const renderWithdrawalRow = (isCashBack: boolean) => {
+            const onToggle = jest.fn();
+            const groupKey = isCashBack ? 'group_cashBack' : 'group_settlement';
+            render(
+                <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, CurrencyListContextProvider]}>
+                    <ScreenWrapperStatusContext value={{didScreenTransitionEnd: true, isSafeAreaTopPaddingApplied: false, isSafeAreaBottomPaddingApplied: false}}>
+                        <MockSearchContextProvider
+                            state={baseState}
+                            actions={baseActions}
+                        >
+                            <GroupHeader
+                                item={{
+                                    ...makeSettlementGroup(isCashBack ? {count: 0, total: -2500, isCashBack: true} : {}),
+                                    groupedBy: CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID,
+                                    transactions: [],
+                                    transactionsQueryJSON: undefined,
+                                    formattedWithdrawalID: '123',
+                                    text: groupKey,
+                                    listItemType: GROUP_ITEM_TYPES.GROUP_HEADER,
+                                    keyForList: `header_${groupKey}`,
+                                    groupKeyForList: groupKey,
+                                }}
+                                groupBy={CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID}
+                                searchType={CONST.SEARCH.DATA_TYPES.EXPENSE}
+                                canSelectMultiple
+                                isExpanded={false}
+                                onToggle={onToggle}
+                                onSelectRow={jest.fn()}
+                                onCheckboxPress={jest.fn()}
+                                isFirstItem
+                                isLastItem={false}
+                                windowWidth={WINDOW_WIDTH}
+                            />
+                        </MockSearchContextProvider>
+                    </ScreenWrapperStatusContext>
+                </ComposeProviders>,
+            );
+            return {onToggle, groupKey};
+        };
+
+        it('expands a settlement row when it is pressed', () => {
+            // Given a settlement row, which holds expenses to drill into
+            const {onToggle, groupKey} = renderWithdrawalRow(false);
+
+            // When the row is pressed
+            fireEvent.press(screen.getByLabelText(groupKey));
+
+            // Then it expands, and is exposed as a focusable button because pressing it does something
+            expect(onToggle).toHaveBeenCalledTimes(1);
+            expect(screen.getByRole(CONST.ROLE.BUTTON, {name: groupKey})).toBeTruthy();
+            expect(screen.getByLabelText(groupKey)).toHaveProp('focusable', true);
+        });
+
+        it('does not expand, announce or tab to a cash back row', () => {
+            // Given a cash back row, which holds no expenses
+            const {onToggle, groupKey} = renderWithdrawalRow(true);
+
+            // When the row is pressed
+            fireEvent.press(screen.getByLabelText(groupKey));
+
+            // Then nothing opens, and neither screen readers nor the Tab key treat it as a control that does something
+            expect(onToggle).not.toHaveBeenCalled();
+            expect(screen.queryByRole(CONST.ROLE.BUTTON, {name: groupKey})).toBeNull();
+            expect(screen.getByLabelText(groupKey)).toHaveProp('focusable', false);
+        });
     });
 });
