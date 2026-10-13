@@ -14,6 +14,7 @@ type NetSuiteSetupPageProps = PlatformStackScreenProps<SettingsNavigatorParamLis
 function NetSuiteSetupPage({route}: NetSuiteSetupPageProps) {
     const policyID = route.params.policyID;
     const accountID = route.params.accountID;
+    const isMigration = route.params.isMigration === 'true';
 
     if (!accountID) {
         return null;
@@ -21,7 +22,7 @@ function NetSuiteSetupPage({route}: NetSuiteSetupPageProps) {
 
     return (
         <AccountingSetupWebViewPage
-            uri={getNetSuiteSetupLink(policyID, accountID)}
+            uri={getNetSuiteSetupLink(policyID, accountID, isMigration)}
             testID="NetSuiteSetupPage"
             shouldAppendShortLivedAuthToken
             backTo={ROUTES.POLICY_ACCOUNTING.getRoute(policyID)}
