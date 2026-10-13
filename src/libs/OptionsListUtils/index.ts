@@ -2451,7 +2451,7 @@ function getValidOptions(
                 },
                 draftComment,
                 chatReport,
-                // TODO: Pass guideAccountIDs in PR B2. hasExpensifyGuidesEmails falls back to the personal details store until then. See https://github.com/Expensify/App/issues/66413.
+                // TODO: Pass guideAccountIDs in Phase B. hasExpensifyGuidesEmails falls back to the personal details store until then. See https://github.com/Expensify/App/issues/66413.
                 isDefaultRoom(report.item) ? hasExpensifyGuidesEmails(Object.keys(report.item?.participants ?? {}).map(Number), undefined) : false,
                 report.reportID ? reportAttributesDerived?.[report.reportID]?.isEmpty : undefined,
             );

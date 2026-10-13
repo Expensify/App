@@ -6394,6 +6394,93 @@ describe('ReportUtils', () => {
 
             expect(canDeleteMoneyRequestReport(expenseReport, [cardTransaction], [], currentUserAccountID, undefined, undefined, adminPolicy, undefined, false)).toBe(true);
         });
+
+        describe('reportOwnerLogin threading', () => {
+            const THREADING_OWNER_ACCOUNT_ID = 811;
+            const THREADING_OWNER_EMAIL = 'threading.owner@vikings.net';
+            const THREADING_APPROVER_ACCOUNT_ID = 812;
+            const THREADING_APPROVER_EMAIL = 'threading.approver@vikings.net';
+            const THREADING_OTHER_MEMBER_EMAIL = 'threading.other@vikings.net';
+            const THREADING_POLICY_ID = 'threading-policy';
+
+            /**
+             * The owner submits to the approver holding the report, and the other member submits to someone else. That
+             * lets a test tell apart the login the caller passed from the one the personal details store holds.
+             */
+            async function setUpApprovalChain() {
+                await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+                    [THREADING_OWNER_ACCOUNT_ID]: {accountID: THREADING_OWNER_ACCOUNT_ID, login: THREADING_OWNER_EMAIL},
+                    [THREADING_APPROVER_ACCOUNT_ID]: {accountID: THREADING_APPROVER_ACCOUNT_ID, login: THREADING_APPROVER_EMAIL},
+                });
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${THREADING_POLICY_ID}`, {
+                    id: THREADING_POLICY_ID,
+                    type: CONST.POLICY.TYPE.TEAM,
+                    approver: THREADING_APPROVER_EMAIL,
+                    approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
+                    employeeList: {
+                        [THREADING_OWNER_EMAIL]: {email: THREADING_OWNER_EMAIL, submitsTo: THREADING_APPROVER_EMAIL},
+                        [THREADING_OTHER_MEMBER_EMAIL]: {email: THREADING_OTHER_MEMBER_EMAIL, submitsTo: THREADING_OWNER_EMAIL},
+                    },
+                });
+            }
+
+            /** A processing expense report submitted by the current user and sitting with its first approver. */
+            function buildSubmittedReport(): Report {
+                return {
+                    ...createRandomReport(910, undefined),
+                    policyID: THREADING_POLICY_ID,
+                    type: CONST.REPORT.TYPE.EXPENSE,
+                    stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                    statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+                    ownerAccountID: currentUserAccountID,
+                    managerID: THREADING_APPROVER_ACCOUNT_ID,
+                };
+            }
+
+            it('should decide first level approval from the reportOwnerLogin the caller passes', async () => {
+                // Given a submitted report whose owner submits to the approver currently holding it
+                await setUpApprovalChain();
+                const report = buildSubmittedReport();
+                const transaction = {...createRandomTransaction(910), reportID: report.reportID, managedCard: false};
+                const iouAction = buildIOUActionForTransaction(report.reportID, transaction.transactionID, currentUserAccountID);
+
+                // When the owner login reaches canDeleteMoneyRequestReport, the report is still awaiting its first level
+                expect(canDeleteMoneyRequestReport(report, [transaction], [iouAction], currentUserAccountID, undefined, THREADING_OWNER_EMAIL, undefined, undefined)).toBe(true);
+
+                // Then passing a member who submits elsewhere flips the answer, which proves the login is carried
+                // through rather than resolved from the personal details store inside the call
+                expect(canDeleteMoneyRequestReport(report, [transaction], [iouAction], currentUserAccountID, undefined, THREADING_OTHER_MEMBER_EMAIL, undefined, undefined)).toBe(false);
+            });
+
+            it('should resolve the report owner from the personalDetails canDeleteReportAction is given', async () => {
+                // Given the same submitted report, reachable by reportID, and its report preview action
+                await setUpApprovalChain();
+                const report = buildSubmittedReport();
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
+                const transaction = {...createRandomTransaction(911), reportID: report.reportID, managedCard: false};
+                const iouAction = buildIOUActionForTransaction(report.reportID, transaction.transactionID, currentUserAccountID);
+                const reportPreviewAction = {
+                    ...createRandomReportAction(911),
+                    actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
+                    actorAccountID: THREADING_APPROVER_ACCOUNT_ID,
+                } as ReportAction;
+                const transactions = {[`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`]: transaction};
+                const childReportActions = {[iouAction.reportActionID]: iouAction};
+
+                // When the list maps the owner to a login that submits to the approver holding the report
+                const ownerDetails = {[currentUserAccountID]: {accountID: currentUserAccountID, login: THREADING_OWNER_EMAIL}};
+                expect(
+                    canDeleteReportAction(reportPreviewAction, report.reportID, transaction, transactions, childReportActions, currentUserAccountID, undefined, ownerDetails, undefined),
+                ).toBe(true);
+
+                // Then a list mapping the owner to a member who submits elsewhere flips the answer, which proves the
+                // owner login is resolved from the list the caller passed
+                const otherDetails = {[currentUserAccountID]: {accountID: currentUserAccountID, login: THREADING_OTHER_MEMBER_EMAIL}};
+                expect(
+                    canDeleteReportAction(reportPreviewAction, report.reportID, transaction, transactions, childReportActions, currentUserAccountID, undefined, otherDetails, undefined),
+                ).toBe(false);
+            });
+        });
     });
 
     describe('isReportPendingDelete', () => {

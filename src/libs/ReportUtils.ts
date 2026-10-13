@@ -1826,7 +1826,7 @@ function getBankAccountRoute(report: OnyxEntry<Report>, areInvoicesEnabled: bool
 
 /**
  * Check if personal detail of accountID is empty or optimistic data
- * TODO: Remove this function in PR B2, once callers pass personal details explicitly. See https://github.com/Expensify/App/issues/66413.
+ * TODO: Remove this function in Phase B, once callers pass personal details explicitly. See https://github.com/Expensify/App/issues/66413.
  */
 function isOptimisticPersonalDetail(accountID: number): boolean {
     const personalDetail = getPersonalDetail(accountID);
@@ -2538,7 +2538,7 @@ function hasExpensifyGuidesEmails(accountIDs: number[], guideAccountIDs: GuideAc
         return accountIDs.some((accountID) => guideAccountIDs.includes(accountID));
     }
 
-    // TODO: Remove this fallback in PR B2, once all callers pass guideAccountIDs. See https://github.com/Expensify/App/issues/66413.
+    // TODO: Remove this fallback in Phase B, once all callers pass guideAccountIDs. See https://github.com/Expensify/App/issues/66413.
     return accountIDs.some((accountID) => Str.extractEmailDomain(getPersonalDetail(accountID)?.login ?? '') === CONST.EMAIL.GUIDES_DOMAIN);
 }
 
@@ -3745,7 +3745,8 @@ function canDeleteReportAction(
     childReportActions: OnyxCollection<ReportAction>,
     currentUserAccountID: number,
     rules: OnyxCollection<Rule>,
-    reportOwnerLogin: string | undefined,
+    // The full list is needed because the report being checked is resolved below, from the narrowed reportID.
+    personalDetails: OnyxEntry<PersonalDetailsList>,
     cardList: OnyxEntry<CardList>,
 ): boolean {
     const report = getReportOrDraftReport(reportID);
@@ -3785,7 +3786,7 @@ function canDeleteReportAction(
             Object.values(childReportActions ?? {}).filter((action): action is ReportAction => !!action),
             currentUserAccountID,
             rules,
-            reportOwnerLogin,
+            getLoginByAccountID(report.ownerAccountID, personalDetails),
             policy,
             cardList,
             true,

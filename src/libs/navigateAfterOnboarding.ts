@@ -56,7 +56,7 @@ function getReportIDAfterOnboarding(
         return undefined;
     }
 
-    // TODO: Pass guideAccountIDs in PR B2. findLastAccessedReport reaches hasExpensifyGuidesEmails, which falls back to the personal details store until then. See https://github.com/Expensify/App/issues/66413.
+    // TODO: Pass guideAccountIDs in Phase B. findLastAccessedReport reaches hasExpensifyGuidesEmails, which falls back to the personal details store until then. See https://github.com/Expensify/App/issues/66413.
     const lastAccessedReport = findLastAccessedReport(!canUseDefaultRooms, undefined, shouldOpenOnAdminRoom() && !shouldPreventOpenAdminRoom, undefined, reportNameValuePairs);
     const lastAccessedReportID = lastAccessedReport?.reportID;
 

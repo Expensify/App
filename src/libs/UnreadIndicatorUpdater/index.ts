@@ -121,7 +121,7 @@ function getUnreadReportsForUnreadIndicator(reports: OnyxCollection<Report>, cur
             draftComment,
             currentUserLogin,
             currentUserAccountID,
-            // TODO: Pass guideAccountIDs in PR B2. hasExpensifyGuidesEmails falls back to the personal details store until then. See https://github.com/Expensify/App/issues/66413.
+            // TODO: Pass guideAccountIDs in Phase B. hasExpensifyGuidesEmails falls back to the personal details store until then. See https://github.com/Expensify/App/issues/66413.
             hasGuidesEmails: ReportUtils.isDefaultRoom(report) ? ReportUtils.hasExpensifyGuidesEmails(Object.keys(report?.participants ?? {}).map(Number), undefined) : false,
             conciergeReportID,
             requiresAttention,
