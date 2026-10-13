@@ -1,4 +1,5 @@
 import UserAvatar from '@components/Avatar/UserAvatar';
+import {InlineTextEditCell} from '@components/EditableCell';
 import Icon from '@components/Icon';
 import {useSession} from '@components/OnyxListItemProvider';
 import Table from '@components/Table';
@@ -123,37 +124,47 @@ export default function WorkspaceExpensifyCardsTableRow({item, rowIndex, shouldU
             {({hovered}) => (
                 <>
                     <View
-                        style={[styles.flex1, styles.mnw0, styles.flexRow, styles.gap3, styles.alignItemsCenter]}
+                        style={[styles.flex1, styles.mnw0, styles.justifyContentCenter]}
                         {...getCellAccessibilityProps(isTableSemanticsEnabled)}
                     >
-                        <UserAvatar
-                            source={item.cardholder?.avatar}
-                            accountID={item.cardholder?.accountID ?? CONST.DEFAULT_NUMBER_ID}
-                            size={avatarSize}
-                        />
-                        <View style={[styles.flex1, styles.mnw0, shouldUseNarrowTableLayout && styles.gap1]}>
-                            <TextWithTooltip
-                                shouldShowTooltip
-                                numberOfLines={1}
-                                text={cardholderName}
-                                style={[styles.optionDisplayName, styles.pre]}
-                            />
-                            {shouldUseNarrowTableLayout ? (
-                                <TextWithTooltip
-                                    shouldShowTooltip
-                                    numberOfLines={1}
-                                    text={narrowLayoutSubtitle}
-                                    style={[styles.textLabelSupporting, styles.lh16, styles.pre, styles.mr3]}
+                        <InlineTextEditCell
+                            value={item.name}
+                            accessibilityLabel={translate('workspace.card.issueNewCard.cardName')}
+                            canEdit={!!item.canEditName}
+                            onSave={item.onRenameName}
+                            displayTextStyle={[styles.textLabelSupporting, styles.lh16]}
+                        >
+                            <View style={[styles.flexRow, styles.gap3, styles.alignItemsCenter]}>
+                                <UserAvatar
+                                    source={item.cardholder?.avatar}
+                                    accountID={item.cardholder?.accountID ?? CONST.DEFAULT_NUMBER_ID}
+                                    size={avatarSize}
                                 />
-                            ) : (
-                                <TextWithTooltip
-                                    shouldShowTooltip
-                                    numberOfLines={1}
-                                    text={item.name}
-                                    style={styles.textLabelSupporting}
-                                />
-                            )}
-                        </View>
+                                <View style={[styles.flex1, styles.mnw0, shouldUseNarrowTableLayout && styles.gap1]}>
+                                    <TextWithTooltip
+                                        shouldShowTooltip
+                                        numberOfLines={1}
+                                        text={cardholderName}
+                                        style={[styles.optionDisplayName, styles.pre]}
+                                    />
+                                    {shouldUseNarrowTableLayout ? (
+                                        <TextWithTooltip
+                                            shouldShowTooltip
+                                            numberOfLines={1}
+                                            text={narrowLayoutSubtitle}
+                                            style={[styles.textLabelSupporting, styles.lh16, styles.pre, styles.mr3]}
+                                        />
+                                    ) : (
+                                        <TextWithTooltip
+                                            shouldShowTooltip
+                                            numberOfLines={1}
+                                            text={item.name}
+                                            style={styles.textLabelSupporting}
+                                        />
+                                    )}
+                                </View>
+                            </View>
+                        </InlineTextEditCell>
                     </View>
 
                     {!shouldUseNarrowTableLayout && (
