@@ -551,7 +551,8 @@ function buildCopyPolicySettingsData(
     // Step 4: drive currentStep on the COPY_POLICY_SETTINGS key itself.
     // Success intentionally omits this key — the backend transitions the bulk policy
     // copy NVP state to complete, which the UI uses to show the completion modal.
-    // Offline, the copy is only queued, so skip the spinner and go straight to the Concierge notification step.
+    // Offline, the server can't process the copy until we reconnect, so the spinner would never finish.
+    // Skip it and go straight to the Concierge notification step.
     optimisticData.push({
         onyxMethod: Onyx.METHOD.MERGE,
         key: ONYXKEYS.COPY_POLICY_SETTINGS,
