@@ -2304,6 +2304,7 @@ const translations: TranslationDeepObject<typeof en> = {
     displayNamePage: {
         headerTitle: 'Nom d’affichage',
         isShownOnProfile: 'Votre nom d’affichage est affiché sur votre profil.',
+        isShownOnMemberProfile: 'Le nom d’affichage apparaîtra sur le profil du membre. Une fois enregistré, seul le membre pourra le modifier.',
     },
     timezonePage: {
         timezone: 'Fuseau horaire',
@@ -8379,6 +8380,8 @@ Rendez obligatoires des informations de dépense comme les reçus et les descrip
                 applyUpdates: 'Appliquer ces mises à jour :',
                 saveRule: 'Enregistrer la règle',
                 previewMatches: 'Aperçu des correspondances',
+                previewMatchesDescription: 'Voyez comment cette règle s’applique à vos dépenses',
+                preview: 'Aperçu',
                 confirmError: 'Saisissez un commerçant et appliquez au moins une mise à jour',
                 confirmErrorMerchant: 'Veuillez saisir le commerçant',
                 confirmErrorUpdate: 'Veuillez appliquer au moins une mise à jour',
@@ -8716,6 +8719,14 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                 requireFieldsDescription: 'Rendre certains champs de dépense obligatoires ou renoncer à les exiger.',
                 createAgentRule: 'Décrire la règle de l’agent',
                 createAgentRuleDescription: 'Créez des règles flexibles qui s’exécutent quand vous en avez besoin.',
+                describe: 'Décrire',
+                describeRule: 'Décrivez votre règle avec vos propres mots et Concierge la créera pour vous',
+                describeRuleInputLabel: 'Décrivez la règle',
+                promptErrors: {
+                    unsupported: 'Cette règle n’est pas encore prise en charge — nous y travaillons. Essayez une autre règle pour le moment.',
+                    unintelligible: 'Essayez de formuler votre règle ainsi : si les dépenses dépassent 100 $, exigez un reçu.',
+                    multipleRules: 'Une règle à la fois, s’il vous plaît — essayez de décrire une seule règle, comme : bloquer les achats en magasin sur toutes les cartes.',
+                },
             },
             expenseDefaultsTable: {
                 tableColumnType: 'Type',
@@ -9823,6 +9834,8 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             return `a modifié les participants de la catégorie « ${categoryName} » en ${newValue ? 'obligatoire' : 'non obligatoire'} (précédemment ${newValue ? 'non obligatoire' : 'obligatoire'})`;
         },
         updatedAutoHarvesting: (enabled: boolean) => `${enabled ? 'activé' : 'Désactivé'} envois`,
+        updatedMemberDisplayName: (newName: string, oldName: string, editProfileURL: string) =>
+            `a mis à jour votre nom affiché en ${newName} (auparavant « ${oldName} »). <a href="${editProfileURL}">Modifier dans votre profil</a>`,
         changedOverLimitForwardsTo: ({
             member,
             approver,
@@ -11347,6 +11360,16 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                 other: `${count} utilisateurs actifs`,
             }),
             state: {paid: 'Payé', cleared: 'Compensé', failed: 'Échec', refunded: 'Remboursé', disputed: 'Contesté', balanceTransfer: 'Virement de solde'},
+            details: 'Détails du paiement',
+            badge: {
+                balanceTransferTo: ({email}: {email: string}) => `Virement de solde à ${email}`,
+                balanceTransferFrom: ({email}: {email: string}) => `Virement de solde de ${email}`,
+                disputedPending: ({date}: {date: string}) => `Contesté le ${date} (En attente)`,
+                disputedRefunded: ({date}: {date: string}) => `Contesté le ${date} (Remboursé)`,
+                disputedClosed: ({date}: {date: string}) => `Contesté le ${date} (Clôturé)`,
+                refundedOn: ({date}: {date: string}) => `Remboursé le ${date}`,
+                refundedAmountOn: ({amount, date}: {amount: string; date: string}) => `${amount} remboursé le ${date}`,
+            },
         },
         subscriptionSettings: {
             title: 'Paramètres d’abonnement',
