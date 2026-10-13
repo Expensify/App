@@ -860,8 +860,11 @@ function withPreMountedDestination(builtTabState: TabStateForReplacement, existi
     // When every screen of the built stack is already mounted, the mounted stack state is kept with only its routes changed.
     // A partial state would be rehydrated under a new key, which makes the navigator re-render all of its screens.
     const mountedNestedState = isRealizedNavigationState(existingTargetTabRoute?.state) ? existingTargetTabRoute.state : undefined;
+    // Params still come from the built routes, so both branches reveal the destination the action asked for.
     const mountedRoutes = mountedNestedState
-        ? nestedRoutes.map((route) => mountedNestedState.routes.find((existing) => 'key' in route && existing.key === route.key)).filter((route) => route !== undefined)
+        ? nestedRoutes.flatMap((route) =>
+              mountedNestedState.routes.filter((existing) => 'key' in route && existing.key === route.key).map((existing) => ({...existing, params: route.params})),
+          )
         : [];
     const routes = [...builtTabState.routes];
     if (mountedNestedState && mountedRoutes.length === nestedRoutes.length && 'key' in targetTabRoute && typeof targetTabRoute.key === 'string') {
@@ -890,8 +893,8 @@ export {
     getPreInsertedOriginalTabRoute,
     clearPreInsertedOriginalTabRoute,
     MODAL_ROUTES_TO_DISMISS,
-    getTabStateWithFreshTarget,
     // Exported for unit-test access; not used outside of testing.
+    getTabStateWithFreshTarget,
     withSanitizedDeepLinkParams,
     getTabStateWithFocusedTarget,
     markFocusedTabRouteForRemount,

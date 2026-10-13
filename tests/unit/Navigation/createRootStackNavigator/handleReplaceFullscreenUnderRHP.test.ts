@@ -398,6 +398,33 @@ describe('handleReplaceFullscreenUnderRHP — focused Reports stack preservation
         expect(getReportsSplitRouteKey(result)).toBe('reports-split-key');
     });
 
+    it('reveals the wide pre-mount in the mounted stack state with the params of the built destination', () => {
+        // Given a wide layout with a mounted Reports stack where report B was pre-mounted with params the reveal no longer asks for
+        mockGetPlatform.mockReturnValue(CONST.PLATFORM.WEB);
+        mockStubbedParsedState = makeReportsParsedState('B');
+        const state = makeExistingReportsState(
+            [
+                makeRoute(SCREENS.INBOX, undefined, undefined, 'inbox-key'),
+                makeRoute(SCREENS.REPORT, {reportID: 'B', reportActionID: 'old-action'}, undefined, 'Report-wide-pre-mount-5'),
+                makeRoute(SCREENS.REPORT, {reportID: 'A'}, undefined, 'report-a-key'),
+            ],
+            2,
+        );
+        const reportsSplitState = getReportsSplitState(state);
+        if (reportsSplitState) {
+            Object.assign(reportsSplitState, {stale: false, key: 'reports-split-state-key'});
+        }
+        const action: ReplaceFullscreenUnderRHPActionType = {...makeReportsAction('B'), payload: {...makeReportsAction('B').payload, preMountedRouteKey: 'Report-wide-pre-mount-5'}};
+
+        // When report B is revealed under the RHP
+        const result = handleReplaceFullscreenUnderRHP(state, action, CONFIG_OPTIONS, stackRouter);
+
+        // Then the mounted stack state is kept so its screens are not re-rendered, but the destination shows what the action asked for
+        expect(getReportsSplitState(result)?.key).toBe('reports-split-state-key');
+        expect(getReportsSplitState(result)?.routes.at(-1)?.key).toBe('Report-wide-pre-mount-5');
+        expect(getReportsSplitState(result)?.routes.at(-1)?.params).toEqual({reportID: 'B'});
+    });
+
     it('reveals a report pre-mounted in a covered tab and stops keeping that tab preloaded', () => {
         // Given the Search tab focused and report B pre-mounted on top of the covered Reports tab, which is marked preloaded
         mockGetPlatform.mockReturnValue(CONST.PLATFORM.WEB);
