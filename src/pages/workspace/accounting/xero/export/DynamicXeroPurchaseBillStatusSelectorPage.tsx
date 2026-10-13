@@ -3,12 +3,12 @@ import SelectionScreen from '@components/SelectionScreen';
 import type {SelectorType} from '@components/SelectionScreen';
 import Text from '@components/Text';
 
+import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {clearXeroErrorField} from '@libs/actions/Policy/Policy';
 import {getLatestErrorField} from '@libs/ErrorUtils';
-import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import {settingsPendingAction} from '@libs/PolicyUtils';
 
 import Navigation from '@navigation/Navigation';
@@ -19,7 +19,7 @@ import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import {updateXeroExportBillStatus} from '@userActions/connections/Xero';
 
 import CONST from '@src/CONST';
-import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 
 import type {ValueOf} from 'type-fest';
 
@@ -38,9 +38,11 @@ function DynamicXeroPurchaseBillStatusSelectorPage({policy}: WithPolicyConnectio
     const {config} = policy?.connections?.xero ?? {};
     const invoiceStatus = config?.export?.billStatus?.purchase;
 
+    const backPath = useDynamicBackPath(DYNAMIC_ROUTES.POLICY_ACCOUNTING_XERO_BILL_STATUS_SELECTOR.path);
+
     const goBack = useCallback(() => {
-        Navigation.goBack(policyID ? createDynamicRoute(DYNAMIC_ROUTES.POLICY_ACCOUNTING_XERO_EXPORT.path, ROUTES.POLICY_ACCOUNTING.getRoute(policyID)) : undefined);
-    }, [policyID]);
+        Navigation.goBack(backPath);
+    }, [backPath]);
 
     const data: MenuListItem[] = Object.values(CONST.XERO_CONFIG.INVOICE_STATUS).map((status) => ({
         value: status,

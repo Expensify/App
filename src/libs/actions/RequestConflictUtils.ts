@@ -1,4 +1,4 @@
-import type {DetachReceiptParams, OpenReportParams, UpdateCommentParams} from '@libs/API/parameters';
+import type {OpenReportParams, UpdateCommentParams} from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import type {ApiRequestCommandParameters} from '@libs/API/types';
 
@@ -351,65 +351,6 @@ function resolveEnableFeatureConflicts<TKey extends OnyxKey>(
     };
 }
 
-function resolveDetachReceiptConflicts<TKey extends OnyxKey>(
-    persistedRequests: Array<OnyxRequest<TKey>>,
-    parameters: DetachReceiptParams,
-    transactionThreadReportID?: string,
-): ConflictActionData {
-    const indicesToDelete: number[] = [];
-    for (const [index, request] of persistedRequests.entries()) {
-        if (request.command !== WRITE_COMMANDS.REPLACE_RECEIPT || request.data?.transactionID !== parameters.transactionID) {
-            continue;
-        }
-        indicesToDelete.push(index);
-    }
-
-    // In the case the transaction doesn't have the receipt, remove all the replace receipt requests will make the detach receipt request invalid
-    // So we should keep the last replace receipt request to ensure the detach receipt request is always valid
-    if (indicesToDelete.length >= 1) {
-        indicesToDelete.pop();
-    }
-
-    if (indicesToDelete.length === 0) {
-        return {
-            conflictAction: {
-                type: 'push',
-            },
-        };
-    }
-
-    // Each replace receipt request owns the optimistic action announcing its receipt, so we need to rollback the actions of the requests we drop.
-    if (transactionThreadReportID) {
-        const receiptAddedActionsToRollback: Record<string, null> = {};
-        for (const index of indicesToDelete) {
-            const reportActionID = persistedRequests.at(index)?.data?.reportActionID;
-            if (typeof reportActionID !== 'string') {
-                continue;
-            }
-            receiptAddedActionsToRollback[reportActionID] = null;
-        }
-
-        if (Object.keys(receiptAddedActionsToRollback).length > 0) {
-            const rollbackData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> = [
-                {
-                    onyxMethod: Onyx.METHOD.MERGE,
-                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`,
-                    value: receiptAddedActionsToRollback,
-                },
-            ];
-            Onyx.update(rollbackData);
-        }
-    }
-
-    return {
-        conflictAction: {
-            type: 'delete',
-            indices: indicesToDelete,
-            pushNewRequest: true,
-        },
-    };
-}
-
 export {
     resolveDuplicationConflictAction,
     resolveOpenAppDuplicationConflictAction,
@@ -424,7 +365,6 @@ export {
     createUpdateCommentMatcher,
     resolveEnableFeatureConflicts,
     enablePolicyFeatureCommand,
-    resolveDetachReceiptConflicts,
 };
 
 export type {EnablePolicyFeatureCommand, AnyRequestMatcher};
