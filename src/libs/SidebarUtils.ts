@@ -39,7 +39,7 @@ import DateUtils from './DateUtils';
 import Log from './Log';
 import {shouldUseFullTitleForOption} from './OptionsListUtils';
 import {getPersonalDetailsForAccountIDs} from './PersonalDetailsUtils';
-import {getIOUReportIDFromReportActionPreview, getReportAction} from './ReportActionsUtils';
+import {doesReportHaveVisibleActions, getAllReportActions, getIOUReportIDFromReportActionPreview, getReportAction, isDeletedAction, isMoneyRequestAction} from './ReportActionsUtils';
 import {getReportAlternateText, getWelcomeMessage} from './ReportAlternateTextUtils';
 import {getReportName} from './ReportNameUtils';
 import {
@@ -198,6 +198,19 @@ function shouldDisplayReportInLHN({
     );
     const isReportInAccessible = report?.errorFields?.notFound;
     if (isOneTransactionThread(report, parentReport, parentReportAction, isOffline)) {
+        return {shouldDisplay: false};
+    }
+
+    // A transaction thread whose expense is gone. Nothing links to it any more, so an error on it is not
+    // actionable and must not force an empty row into the LHN. Threads that hold messages of their own are
+    // left alone, since those stay reachable.
+    const hasMoneyRequestParent = isMoneyRequestReport(parentReport) && (!parentReportAction || isMoneyRequestAction(parentReportAction));
+    const isOrphanedTransactionThread =
+        !!report.parentReportActionID &&
+        hasMoneyRequestParent &&
+        (!parentReportAction || isDeletedAction(parentReportAction)) &&
+        !doesReportHaveVisibleActions(report.reportID, getAllReportActions(report.reportID));
+    if (isOrphanedTransactionThread) {
         return {shouldDisplay: false};
     }
 
