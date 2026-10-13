@@ -140,10 +140,12 @@ function ConciergeFeedbackPrompt({
 
     // Either rating starts the acknowledgement window, and the zero fallback keeps an unanswered survey undefined.
     const latestReactionTimestamp = Math.max(thumbsUpReactedAt ?? 0, thumbsDownReactedAt ?? 0) || undefined;
+    // Regular Concierge feedback keeps its existing thumbs-up-only acknowledgement, while surveys acknowledge either rating.
+    const acknowledgementTimestamp = shouldPersistAfterRating ? latestReactionTimestamp : thumbsUpReactedAt;
 
     // The reaction that was already there when this row mounted is an old rating, so only a reaction that lands while the row is open is acknowledged
-    const [mountedWithLatestReactionTimestamp] = useState(latestReactionTimestamp);
-    const hasJustReacted = latestReactionTimestamp !== undefined && latestReactionTimestamp !== mountedWithLatestReactionTimestamp;
+    const [mountedWithAcknowledgementTimestamp] = useState(acknowledgementTimestamp);
+    const hasJustReacted = acknowledgementTimestamp !== undefined && acknowledgementTimestamp !== mountedWithAcknowledgementTimestamp;
 
     // The debounced copy catches up once the window has passed, which is what takes the acknowledgement back down
     const hasSettledAfterReacting = useDebouncedValue(hasJustReacted, THANKS_VISIBLE_DURATION_MS);
