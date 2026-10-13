@@ -9,6 +9,7 @@ import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import type {ActionHandledType} from '@hooks/useHoldMenuSubmit';
+import useLoadSearchCardData from '@hooks/useLoadSearchCardData';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -42,7 +43,7 @@ import {flushPendingSearchWrite, hasPendingSearchWrite} from '@libs/pendingSearc
 import {isCreatedTaskReportAction} from '@libs/ReportActionsUtils';
 import {isOneTransactionReport} from '@libs/ReportUtils';
 import {searchKeyToSavedSearchID} from '@libs/SearchKeyUtils';
-import {buildCannedSearchQuery, buildSearchQueryString} from '@libs/SearchQueryUtils';
+import {buildCannedSearchQuery, buildSearchQueryString, getFilterFromQuery} from '@libs/SearchQueryUtils';
 import {
     createAndOpenSearchTransactionThread,
     doesSearchItemMatchSort,
@@ -319,6 +320,13 @@ function Search({
         visibleRowLimit: shouldUseLiveData ? liveRowLimit : undefined,
         selectedTransactions,
     });
+
+    // Deleted expenses have no report owner, so their From column falls back to the cardholder. Search opens with only
+    // some cards, so load the rest whenever a deleted expense can be on screen. Grouped searches never set
+    // hasDeletedTransaction, so check the status filter too.
+    const statusFilter = getFilterFromQuery(queryJSON, CONST.SEARCH.SYNTAX_FILTER_KEYS.STATUS);
+    const isDeletedStatusQuery = !statusFilter.isNegated && !!statusFilter.value?.includes(CONST.SEARCH.STATUS.EXPENSE.DELETED);
+    useLoadSearchCardData(hasDeletedTransaction || isDeletedStatusQuery);
 
     // There's a race condition in Onyx which makes it return data from the previous Search, so in addition to checking that the data is loaded
     // we also need to check that the searchResults matches the type and status of the current search
