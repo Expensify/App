@@ -150,4 +150,4 @@ function ConfirmationStep({
 }
 
 export default ConfirmationStep;
-export type {SummaryGroup, SummaryGroupRow, SummaryItem};
+export type {SummaryGroup};

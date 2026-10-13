@@ -19,7 +19,6 @@ import React, {useEffect, useRef} from 'react';
 import type {DynamicFormFlowProps, DynamicFormSubPageProps, DynamicFormValues} from './types';
 
 import DynamicFormConfirmationPage from './components/DynamicFormConfirmationPage';
-import DynamicFormFields from './components/DynamicFormFields';
 import DynamicFormFieldsPage from './components/DynamicFormFieldsPage';
 import DynamicFormShell from './components/DynamicFormShell';
 import getContentFields from './utils/getContentFields';
@@ -242,4 +241,3 @@ function DynamicFormFlow({
 }
 
 export default DynamicFormFlow;
-export {DynamicFormFields, getDynamicFieldErrors};
