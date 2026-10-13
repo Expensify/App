@@ -34,6 +34,7 @@ import {scheduleOnRN} from 'react-native-worklets';
 
 import type {PDFViewProps} from './types';
 
+import focusPDFScrollerWhenReady from './focusPDFScrollerWhenReady';
 import PDFPasswordForm from './PDFPasswordForm';
 
 const LOADING_THUMBNAIL_HEIGHT = 250;
@@ -41,10 +42,6 @@ const LOADING_THUMBNAIL_WIDTH = 250;
 const PDF_MIN_SCALE = 1;
 const PDF_SCROLL_DISABLED_SCALE = 2;
 const PDF_ZOOM_RANGE = {max: 5};
-
-// react-window's outer div, which react-fast-pdf makes focusable with tabIndex=-1. Matching it as a direct child of
-// react-pdf's Document keeps other tabIndex=-1 elements, like the password input wrapper, from matching.
-const PDF_SCROLLER_SELECTOR = '.react-pdf__Document > [tabindex="-1"]';
 
 type MobilePDFGestureCanvasProps = {
     children: (shouldDisablePDFScroll: boolean) => ReactNode;
@@ -235,36 +232,8 @@ function PDFView({onToggleKeyboard, fileName, onPress, isFocused, onScaleChanged
             return;
         }
 
-        const focusPDFScroller = () => {
-            const scroller = container.querySelector<HTMLElement>(PDF_SCROLLER_SELECTOR);
-            if (!scroller) {
-                return false;
-            }
-
-            const activeElement = document.activeElement;
-            const isFocusAvailable = !activeElement || activeElement === document.body || (container.contains(activeElement) && !scroller.contains(activeElement));
-            if (isFocusAvailable) {
-                scroller.focus({preventScroll: true});
-            }
-            return true;
-        };
-
-        if (focusPDFScroller()) {
-            return;
-        }
-
-        // The scroller renders only after the PDF loads (and is unlocked, for password-protected PDFs), so keep
-        // watching until it appears.
-        const observer = new MutationObserver(() => {
-            if (!focusPDFScroller()) {
-                return;
-            }
-            observer.disconnect();
-        });
-        observer.observe(container, {childList: true, subtree: true});
-
-        return () => observer.disconnect();
-    }, [isFocused, isUsedAsChatAttachment, isUsedInAttachmentModal, shouldUsePDFGestureZoom]);
+        return focusPDFScrollerWhenReady(container);
+    },[isFocused, isUsedAsChatAttachment, isUsedInAttachmentModal, shouldUsePDFGestureZoom]);
 
     const renderPDFView = () => {
         const outerContainerStyle = [styles.w100, styles.h100, styles.justifyContentCenter, styles.alignItemsCenter];
