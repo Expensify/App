@@ -4888,9 +4888,9 @@ function openSupportTicket(resolvedSupportTicketReportID?: string) {
         ? {
               optimisticData: [
                   {
-                      onyxMethod: Onyx.METHOD.SET,
+                      onyxMethod: Onyx.METHOD.MERGE,
                       key: `${ONYXKEYS.COLLECTION.REPORT}${newSupportTicketReportID}`,
-                      value: {reportID: newSupportTicketReportID, type: CONST.REPORT.TYPE.SUPPORT_TICKET},
+                      value: {type: CONST.REPORT.TYPE.SUPPORT_TICKET},
                   },
               ],
               failureData: [
@@ -4910,12 +4910,19 @@ function openSupportTicket(resolvedSupportTicketReportID?: string) {
         Navigation.navigate(getReportRouteForCurrentContext({reportID: newSupportTicketReportID, isPendingCreation: true}));
     }
 
-    return request.then((response) => {
-        if (resolvedSupportTicketReportID && response?.reportID) {
-            Navigation.navigate(getReportRouteForCurrentContext({reportID: response.reportID}));
-        }
-        return response;
-    });
+    return request
+        .then((response) => {
+            if (resolvedSupportTicketReportID && response?.reportID) {
+                Navigation.navigate(getReportRouteForCurrentContext({reportID: response.reportID}));
+            }
+            return response;
+        })
+        .catch(async (error: unknown) => {
+            if (onyxData.failureData) {
+                await Onyx.update(onyxData.failureData);
+            }
+            throw error;
+        });
 }
 
 function dismissFailedSupportTicket(supportTicketReportID: string, parentReportID: string, parentReportActionID: string) {

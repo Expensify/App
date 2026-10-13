@@ -36,6 +36,10 @@ describe('actions/Report', () => {
         mockNavigate.mockClear();
     });
 
+    afterEach(() => {
+        jest.restoreAllMocks();
+    });
+
     it('opens a pending report and sends the expected payload for a new support ticket', async () => {
         // Given a request for a new support ticket
         // When the customer asks to talk to a human
@@ -51,9 +55,9 @@ describe('actions/Report', () => {
             {
                 optimisticData: [
                     {
-                        onyxMethod: Onyx.METHOD.SET,
+                        onyxMethod: Onyx.METHOD.MERGE,
                         key: `${ONYXKEYS.COLLECTION.REPORT}${newSupportTicketReportID}`,
-                        value: {reportID: newSupportTicketReportID, type: CONST.REPORT.TYPE.SUPPORT_TICKET},
+                        value: {type: CONST.REPORT.TYPE.SUPPORT_TICKET},
                     },
                 ],
                 failureData: [
@@ -73,6 +77,26 @@ describe('actions/Report', () => {
 
         // And the request does not navigate a second time after the server has created the report
         expect(mockNavigate).toHaveBeenCalledTimes(1);
+    });
+
+    it('removes the pending report when the request fails before receiving a response', async () => {
+        // Given a request that fails before the API can apply its failure data
+        const networkError = new Error('Network request failed');
+        const onyxUpdateSpy = jest.spyOn(Onyx, 'update').mockResolvedValue(undefined);
+        mockMakeRequestWithSideEffects.mockRejectedValueOnce(networkError);
+
+        // When the customer asks to talk to a human
+        const request = openSupportTicket();
+
+        // Then the App removes the pending report and preserves the request failure
+        await expect(request).rejects.toBe(networkError);
+        expect(onyxUpdateSpy).toHaveBeenCalledWith([
+            {
+                onyxMethod: Onyx.METHOD.SET,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${newSupportTicketReportID}`,
+                value: null,
+            },
+        ]);
     });
 
     it('navigates to a newly reassigned support ticket', async () => {
