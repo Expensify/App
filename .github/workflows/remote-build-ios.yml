@@ -97,7 +97,7 @@ jobs:
         with:
           role-to-assume: arn:aws:iam::949552126497:role/app-rock-cache-gh-actions
           role-session-name: gh-${{ github.run_id }}-${{ github.run_attempt }}
-          role-duration-seconds: 10800
+          role-duration-seconds: 21600
           aws-region: us-east-1
 
       - name: Rock Remote Build - iOS
