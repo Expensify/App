@@ -34,7 +34,7 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import type {AvatarSource} from '@libs/UserAvatarUtils';
 
-import {clearNewAgentAvatarDraft, clearNewAgentTemplate, createAgent, setNewAgentAvatarPreset} from '@userActions/Agent';
+import {clearNewAgentAvatarDraft, clearNewAgentTemplate, createAgent, createCompanyAgent, setNewAgentAvatarPreset} from '@userActions/Agent';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -165,7 +165,9 @@ function DynamicAddAgentPageContent({route, template}: DynamicAddAgentPageConten
         let backToAgentsListRoute: Route | undefined;
 
         if (policyID) {
-            // TODO
+            ({optimisticReportID, optimisticPersonalDetailPromise} = uploadedAvatar?.uri
+                ? createCompanyAgent(currentUserAccountID, currentUserLogin, prompt, policyID, role, firstName, undefined, buildFileFromAvatarCropResult(uploadedAvatar), uploadedAvatar.uri)
+                : createCompanyAgent(currentUserAccountID, currentUserLogin, prompt, policyID, role, firstName, selectedPresetID ?? AGENT_AVATARS.getRandomID()));
             backToAgentsListRoute = ROUTES.WORKSPACE_AGENTS.getRoute(policyID);
         } else {
             ({optimisticReportID, optimisticPersonalDetailPromise} = uploadedAvatar?.uri
