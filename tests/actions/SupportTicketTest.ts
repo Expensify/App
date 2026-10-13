@@ -7,6 +7,9 @@ import {generateReportID} from '@libs/ReportUtils';
 import {isNoSupportRepAvailableResponse, openSupportTicket} from '@userActions/Report';
 
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+
+import Onyx from 'react-native-onyx';
 
 jest.mock('@libs/API');
 jest.mock('@libs/Navigation/helpers/getReportRouteForCurrentContext');
@@ -42,7 +45,29 @@ describe('actions/Report', () => {
         expect(mockGenerateReportID).toHaveBeenCalled();
         expect(mockGetReportRouteForCurrentContext).toHaveBeenCalledWith({reportID: newSupportTicketReportID, isPendingCreation: true});
         expect(mockNavigate).toHaveBeenCalledWith(`r/${newSupportTicketReportID}`);
-        expect(mockMakeRequestWithSideEffects).toHaveBeenCalledWith(SIDE_EFFECT_REQUEST_COMMANDS.CREATE_SUPPORT_TICKET, {newSupportTicketReportID});
+        expect(mockMakeRequestWithSideEffects).toHaveBeenCalledWith(
+            SIDE_EFFECT_REQUEST_COMMANDS.CREATE_SUPPORT_TICKET,
+            {newSupportTicketReportID},
+            {
+                optimisticData: [
+                    {
+                        onyxMethod: Onyx.METHOD.SET,
+                        key: `${ONYXKEYS.COLLECTION.REPORT}${newSupportTicketReportID}`,
+                        value: {reportID: newSupportTicketReportID, type: CONST.REPORT.TYPE.SUPPORT_TICKET},
+                    },
+                ],
+                failureData: [
+                    {
+                        onyxMethod: Onyx.METHOD.SET,
+                        key: `${ONYXKEYS.COLLECTION.REPORT}${newSupportTicketReportID}`,
+                        value: null,
+                    },
+                ],
+            },
+        );
+        const requestCallOrder = mockMakeRequestWithSideEffects.mock.invocationCallOrder.at(0) ?? Number.MAX_SAFE_INTEGER;
+        const navigationCallOrder = mockNavigate.mock.invocationCallOrder.at(0) ?? Number.MIN_SAFE_INTEGER;
+        expect(requestCallOrder).toBeLessThan(navigationCallOrder);
 
         await request;
 
@@ -67,6 +92,7 @@ describe('actions/Report', () => {
             expect.objectContaining({
                 resolvedSupportTicketReportID,
             }),
+            {},
         );
         expect(mockMakeRequestWithSideEffects.mock.calls.at(0)?.[1]).not.toHaveProperty('newSupportTicketReportID');
         expect(mockGenerateReportID).not.toHaveBeenCalled();
