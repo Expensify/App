@@ -24,6 +24,7 @@ jest.mock('@userActions/IOU/Receipt', () => ({...jest.requireActual<Record<strin
 jest.mock('@userActions/IOU/TrackExpense', () => ({...jest.requireActual<Record<string, unknown>>('@userActions/IOU/TrackExpense'), requestMoney: jest.fn()}));
 
 const CURRENT_USER_ACCOUNT_ID = 1;
+const OTHER_ACCOUNT_ID = 2;
 const TRANSACTION_ID = '7000000000000001';
 const IOU_REPORT_ID = '8000000000000001';
 const CHAT_REPORT_ID = '9000000000000001';
@@ -220,6 +221,24 @@ describe('buildRetryPayload', () => {
 
         // Then it is hidden, because nothing is left on the device to resend
         expect(canRetry).toBe(false);
+    });
+
+    it('resolves the DM counterpart and payee from the context user, not the Onyx session', async () => {
+        // Given a 1:1 DM, and an Onyx session that disagrees with the context user
+        await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[OTHER_ACCOUNT_ID]: {accountID: OTHER_ACCOUNT_ID, login: 'other@example.com'}});
+        await Onyx.merge(ONYXKEYS.SESSION, {accountID: 999});
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${CHAT_REPORT_ID}`, {
+            reportID: CHAT_REPORT_ID,
+            participants: {[CURRENT_USER_ACCOUNT_ID]: {}, [OTHER_ACCOUNT_ID]: {}},
+        });
+        await waitForBatchedUpdates();
+
+        // When the retry payload is rebuilt
+        const payload = buildRetryPayload(buildContext(buildFailedTransaction()), receiptFile);
+
+        // Then only the other DM member is the participant and the context user is the payee
+        expect(payload?.participantParams.participant.accountID).toBe(OTHER_ACCOUNT_ID);
+        expect(payload?.participantParams.payeeAccountID).toBe(CURRENT_USER_ACCOUNT_ID);
     });
 
     describe('retryReceiptUpload', () => {

@@ -761,6 +761,7 @@ describe('actions/Policy', () => {
                 policyID: fakePolicy.id,
                 targetPolicyID: policyID,
                 welcomeNote: 'Join my policy',
+                personalDetailsByLogins: {},
                 parts: {
                     people: false,
                     reports: false,
