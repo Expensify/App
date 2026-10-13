@@ -21,6 +21,7 @@ import useMergeSyncResultsPage from '@hooks/useMergeSyncResultsPage';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
 import {usePersonalDetailsByLogins} from '@hooks/usePersonalDetailByLogin';
 import usePrevious from '@hooks/usePrevious';
 import usePrivateIsArchivedMap from '@hooks/usePrivateIsArchivedMap';
@@ -141,6 +142,8 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
     const [isDownloadFailureModalVisible, setIsDownloadFailureModalVisible] = useState(false);
     const isOfflineAndNoMemberDataAvailable = isEmptyObject(policy?.employeeList) && isOffline;
     const {translate, formatPhoneNumber, localeCompare} = useLocalize();
+    const {isBetaEnabled} = usePermissions();
+    const isMultipleApproversBetaEnabled = isBetaEnabled(CONST.BETAS.MULTIPLE_APPROVERS);
     const {isAccountLocked} = useLockedAccountState();
     const {showLockedAccountModal} = useLockedAccountActions();
     const [selectedEmployees, setSelectedEmployees] = useState<string[]>([]);
@@ -774,6 +777,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
                     close(() => {
                         downloadMembersCSV(
                             policyID,
+                            isMultipleApproversBetaEnabled,
                             () => {
                                 setIsDownloadFailureModalVisible(true);
                             },
@@ -822,6 +826,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
         showConfirmModal,
         isHRSyncInProgress,
         policy,
+        isMultipleApproversBetaEnabled,
     ]);
 
     const shouldDisplayButtonsInSeparateLine = useShouldDisplayButtonsInSeparateLine();
