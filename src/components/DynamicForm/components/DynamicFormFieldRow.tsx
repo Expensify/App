@@ -16,7 +16,7 @@ import {View} from 'react-native';
 
 import type {DynamicFormFieldsProps} from './DynamicFormFields';
 
-type DynamicFormFieldRowProps = Pick<DynamicFormFieldsProps, 'values' | 'onRefreshRequirements'> &
+type DynamicFormFieldRowProps = Pick<DynamicFormFieldsProps, 'values' | 'maxFileSize' | 'onRefreshRequirements'> &
     Required<Pick<DynamicFormFieldsProps, 'currency'>> & {
         field: DynamicFormField;
 
@@ -28,7 +28,7 @@ type DynamicFormFieldRowProps = Pick<DynamicFormFieldsProps, 'values' | 'onRefre
 const TYPED_FIELD_TYPES = new Set<DynamicFormFieldType>(['text', 'number', 'amount', 'percent']);
 
 /** One field of a schema-driven form: its input, or its value when the field is readonly */
-function DynamicFormFieldRow({field, values, currency, isLoneField, onRefreshRequirements}: DynamicFormFieldRowProps) {
+function DynamicFormFieldRow({field, values, currency, maxFileSize, isLoneField, onRefreshRequirements}: DynamicFormFieldRowProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const label = getFieldLabel(field, translate);
@@ -57,7 +57,7 @@ function DynamicFormFieldRow({field, values, currency, isLoneField, onRefreshReq
     const shouldRefreshOnChange = !!field.refreshOnChange && !isTypedField;
     const {input, isMenuRow, labelAbove, showsDescription} = renderDynamicField(
         field,
-        {values, translate, styles, currency, isLoneField},
+        {values, translate, styles, currency, maxFileSize, isLoneField},
         {
             inputID: field.key,
             shouldSaveDraft: !isSensitiveField(field),

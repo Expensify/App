@@ -71,16 +71,18 @@ jest.mock('@hooks/useThemeStyles', () => jest.fn(() => new Proxy({}, {get: () =>
 
 type RenderFieldsOptions = {
     currency?: string;
+    maxFileSize?: number;
     onRefreshRequirements?: (inputID: string, value: unknown) => void;
 };
 
-function renderFields(content: DynamicFormContentItem[], values: DynamicFormValues = {}, {currency, onRefreshRequirements}: RenderFieldsOptions = {}) {
+function renderFields(content: DynamicFormContentItem[], values: DynamicFormValues = {}, {currency, maxFileSize, onRefreshRequirements}: RenderFieldsOptions = {}) {
     mockInputWrapper.mockClear();
     render(
         <DynamicFormFields
             content={content}
             values={values}
             currency={currency}
+            maxFileSize={maxFileSize}
             onRefreshRequirements={onRefreshRequirements}
         />,
     );
@@ -327,16 +329,31 @@ describe('DynamicFormFields', () => {
         const isLabelShown = screen.queryByText('Source of funds document') !== null;
         const severalFiles = renderFields([idDocument]);
 
-        // Then the first takes a single file and the second up to its limit, each capped in size, and the label stays visible as a heading
+        // Then the first takes a single file and the second up to its limit, and the label stays visible as a heading
         expect(rendered.get('proofOfFunds')).toMatchObject({
             valueType: 'files',
             fileLimit: 1,
-            maxFileSize: CONST.DYNAMIC_FORM_DOCUMENT.MAX_FILE_SIZE,
             buttonText: 'common.chooseFile',
             accessibilityLabel: 'common.chooseFile, Source of funds document',
         });
         expect(severalFiles.get('idDocument')).toMatchObject({fileLimit: 3, buttonText: 'common.chooseFiles'});
         expect(isLabelShown).toBe(true);
+    });
+
+    it('limits a file to its own size, falling back to the screen limit, and to none when neither is set', () => {
+        // Given a case file allowing 15 MB, a document setting no limit, and a screen limit of 10 MB
+        const caseFile: DynamicFormField = {key: 'caseFile', type: 'file', required: true, maxFileSize: 15728640};
+        const idDocument: DynamicFormField = {key: 'idDocument', type: 'file', required: true};
+        const screenLimit = 10485760;
+
+        // When they render with the screen limit, and the document renders without one
+        const withScreenLimit = renderFields([caseFile, idDocument], {}, {maxFileSize: screenLimit});
+        const withoutScreenLimit = renderFields([idDocument]);
+
+        // Then the schema limit wins, the screen limit covers fields without one, and with neither the uploader takes any size
+        expect(withScreenLimit.get('caseFile')?.maxFileSize).toBe(15728640);
+        expect(withScreenLimit.get('idDocument')?.maxFileSize).toBe(screenLimit);
+        expect(withoutScreenLimit.get('idDocument')?.maxFileSize).toBeUndefined();
     });
 
     it('prices an amount in the currency the user picked, falling back to the screen currency', () => {

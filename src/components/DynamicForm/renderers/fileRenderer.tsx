@@ -9,7 +9,7 @@ import React from 'react';
 import type {DynamicFieldRenderer} from './types';
 
 /** Uploaded documents, one file unless the schema allows more */
-const renderFile: DynamicFieldRenderer<'file'> = (field, {translate}, inputProps) => {
+const renderFile: DynamicFieldRenderer<'file'> = (field, {translate, maxFileSize}, inputProps) => {
     const fileLimit = field.maxFiles ?? CONST.DYNAMIC_FORM_DOCUMENT.FILE_LIMIT;
     const buttonText = translate(fileLimit > 1 ? 'common.chooseFiles' : 'common.chooseFile');
     return {
@@ -24,7 +24,7 @@ const renderFile: DynamicFieldRenderer<'file'> = (field, {translate}, inputProps
                 accessibilityLabel={`${buttonText}, ${getFieldLabel(field, translate)}`}
                 fileLimit={fileLimit}
                 acceptedFileTypes={[...CONST.DYNAMIC_FORM_DOCUMENT.ALLOWED_FILE_TYPES]}
-                maxFileSize={CONST.DYNAMIC_FORM_DOCUMENT.MAX_FILE_SIZE}
+                maxFileSize={field.maxFileSize ?? maxFileSize}
             />
         ),
     };

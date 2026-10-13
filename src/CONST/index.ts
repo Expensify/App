@@ -951,7 +951,6 @@ const CONST = {
     DYNAMIC_FORM_DOCUMENT: {
         ALLOWED_FILE_TYPES: ['pdf', 'jpg', 'jpeg', 'png'],
         FILE_LIMIT: 1,
-        MAX_FILE_SIZE: 2097152,
     },
     NON_USD_BANK_ACCOUNT: {
         PURPOSE_OF_TRANSACTION_ID: 'Intercompany_Payment',

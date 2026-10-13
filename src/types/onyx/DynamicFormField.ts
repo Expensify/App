@@ -122,6 +122,9 @@ type DynamicFormFileField = DynamicFormFieldBase & {
 
     /** One file when not set */
     maxFiles?: number;
+
+    /** Largest size of one file, in bytes. The form-wide limit applies when not set. */
+    maxFileSize?: number;
 };
 
 /** A money amount */
