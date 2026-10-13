@@ -7051,6 +7051,14 @@ const dynamicStyles = (theme: ThemeColors) =>
                 backgroundColor: theme.appBG,
             }) satisfies ViewStyle,
 
+        // Runs a footer's background down under the tab bar that covers the bottom of a tab root screen, so the
+        // footer's content sits above the bar.
+        tabRootFooter: (tabBarCoveredHeight: number) =>
+            ({
+                paddingBottom: tabBarCoveredHeight,
+                backgroundColor: theme.appBG,
+            }) satisfies ViewStyle,
+
         // Zero-height strip anchored above the native tab bar, so the floating buttons can be positioned
         // against it without taking part in the tab screen's layout.
         nativeTabBarFloatingButtons: (bottom: number) =>

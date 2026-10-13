@@ -11,9 +11,11 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {SearchResults} from '@src/types/onyx';
 import {getEmptyObject} from '@src/types/utils/EmptyObject';
 
+import type {StyleProp, ViewStyle} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import {View} from 'react-native';
 
 import type {SelectedTransactionInfo, SelectedTransactions} from './types';
 
@@ -23,6 +25,9 @@ import SearchPageFooter from './SearchPageFooter';
 type SearchSelectionFooterProps = {
     /** The (sorting-aware) results the page is displaying; source of the footer's totals metadata. */
     searchResults: OnyxEntry<SearchResults>;
+
+    /** Styles for the footer's container */
+    style?: StyleProp<ViewStyle>;
 };
 
 type FooterCurrencyState = {
@@ -102,7 +107,7 @@ function areAllSelectedReportsConverted(selectedReportIDs: string[], isReportFre
 
 // Self-subscribing footer leaf. Owns the `selectedTransactions` read so a checkbox press re-renders only this
 // footer — not SearchPage and the <Search> list it contains.
-function SearchSelectionFooter({searchResults}: SearchSelectionFooterProps) {
+function SearchSelectionFooter({searchResults, style}: SearchSelectionFooterProps) {
     const {selectedTransactions, excludedTransactions = getEmptyObject<SelectedTransactions>(), areAllMatchingItemsSelected, selectedReports} = useSearchSelectionContext();
     const {currentSearchResults} = useSearchResultsContext();
     const {currentSearchHash, currentSearchKey, currentSearchQueryJSON} = useSearchQueryContext();
@@ -626,14 +631,16 @@ function SearchSelectionFooter({searchResults}: SearchSelectionFooterProps) {
     const isFooterTotalLoading = isFooterTotalConverting || (!hasPartialSelection && !!metadata?.isLoading && metadata?.offset === 0);
 
     return (
-        <SearchPageFooter
-            count={footerData.count}
-            total={footerData.total}
-            currency={footerData.currency}
-            defaultCurrency={searchTargetCurrency}
-            isTotalLoading={isFooterTotalLoading}
-            onCurrencyChange={handleFooterCurrencyChange}
-        />
+        <View style={style}>
+            <SearchPageFooter
+                count={footerData.count}
+                total={footerData.total}
+                currency={footerData.currency}
+                defaultCurrency={searchTargetCurrency}
+                isTotalLoading={isFooterTotalLoading}
+                onCurrencyChange={handleFooterCurrencyChange}
+            />
+        </View>
     );
 }
 

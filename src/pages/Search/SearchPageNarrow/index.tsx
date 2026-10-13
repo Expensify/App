@@ -3,6 +3,7 @@ import CollapsibleHeaderOnKeyboardGroup from '@components/CollapsibleHeaderOnKey
 import CollapsibleHeaderOnKeyboardGroupMember from '@components/CollapsibleHeaderOnKeyboard/GroupMember';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import NAVIGATION_TABS from '@components/Navigation/NavigationTabBar/NAVIGATION_TABS';
+import useTabBarCoveredHeight from '@components/Navigation/TabBarBottomContent/useTabBarCoveredHeight';
 import useTabRootScreenWrapperProps from '@components/Navigation/TabBarBottomContent/useTabRootScreenWrapperProps';
 import PulsingView from '@components/PulsingView';
 import ReceiptScanDropZone from '@components/ReceiptScanDropZone';
@@ -103,6 +104,9 @@ function SearchPageNarrow({
     const styles = useThemeStyles();
     const {pageGutterMargin} = useLayoutSpacing();
     const tabRootScreenWrapperProps = useTabRootScreenWrapperProps(NAVIGATION_TABS.SEARCH);
+    const tabBarCoveredHeight = useTabBarCoveredHeight();
+    // The footer is shown and hidden by its own selection state, so its height is read from layout.
+    const [footerHeight, setFooterHeight] = useState(0);
     const StyleUtils = useStyleUtils();
     const {clearSelectedTransactions} = useSearchSelectionActions();
     const {shouldUseLiveData} = useSearchResultsContext();
@@ -271,7 +275,7 @@ function SearchPageNarrow({
                     shouldEnableMaxHeight
                     shouldShowOfflineIndicator={!!searchResults}
                     {...tabRootScreenWrapperProps}
-                    offlineIndicatorStyle={[styles.mtAuto, tabRootScreenWrapperProps.offlineIndicatorStyle]}
+                    offlineIndicatorStyle={[styles.mtAuto, footerHeight > 0 ? styles.tabBarOfflineIndicator(footerHeight) : tabRootScreenWrapperProps.offlineIndicatorStyle]}
                 >
                     <View style={[styles.flex1, styles.overflowHidden]}>
                         {!isMobileSelectionModeEnabled ? (
@@ -406,7 +410,12 @@ function SearchPageNarrow({
                                 </>
                             )}
                         </View>
-                        <SearchSelectionFooter searchResults={searchResults} />
+                        <View onLayout={(event) => setFooterHeight(event.nativeEvent.layout.height)}>
+                            <SearchSelectionFooter
+                                searchResults={searchResults}
+                                style={styles.tabRootFooter(tabBarCoveredHeight)}
+                            />
+                        </View>
                     </View>
                 </ScreenWrapper>
             </ReceiptScanDropZone>
