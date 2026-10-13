@@ -2,11 +2,10 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import type {BankName} from '@src/types/onyx/Bank';
-
 import React from 'react';
 import {View} from 'react-native';
 
+import type {BankIconParams} from './Icon/BankIconsUtils';
 import type {ListItem} from './SelectionList/types';
 
 import Icon from './Icon';
@@ -31,7 +30,11 @@ type SettlementAccountSelectorProps = {
     initiallyFocusedItemKey?: string;
 };
 
-function BankAccountListItemLeftElement({bankName}: {bankName: BankName}) {
+type BankAccountListItemLeftElementProps = {
+    bankName: NonNullable<BankIconParams['bankName']>;
+};
+
+function BankAccountListItemLeftElement({bankName}: BankAccountListItemLeftElementProps) {
     const styles = useThemeStyles();
     const {icon, iconSize, iconStyles} = getBankIcon({bankName, styles});
 

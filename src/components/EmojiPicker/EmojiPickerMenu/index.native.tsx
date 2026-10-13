@@ -17,7 +17,6 @@ import type {EmojiPickerList, EmojiPickerListItem} from '@libs/EmojiUtils';
 import {getRemovedSkinToneEmoji} from '@libs/EmojiUtils';
 
 import CONST from '@src/CONST';
-import type {TranslationPaths} from '@src/languages/types';
 
 import type {ListRenderItem} from '@shopify/flash-list';
 import type {ComponentRef} from 'react';
@@ -161,11 +160,11 @@ function EmojiPickerMenu({onEmojiSelected, activeEmoji, ref}: EmojiPickerMenuPro
                         ref={getHeaderRef(index)}
                         accessible
                         accessibilityRole="header"
-                        accessibilityLabel={translate(`emojiPicker.headers.${code}` as TranslationPaths)}
+                        accessibilityLabel={translate(`emojiPicker.headers.${item.code}`)}
                         style={[styles.emojiHeaderContainer, target === 'StickyHeader' ? styles.mh4 : {width: windowWidth}]}
                         onLayout={() => handleHeaderLayout(index)}
                     >
-                        <Text style={styles.textLabelSupporting}>{translate(`emojiPicker.headers.${code}` as TranslationPaths)}</Text>
+                        <Text style={styles.textLabelSupporting}>{translate(`emojiPicker.headers.${item.code}`)}</Text>
                     </View>
                 );
             }

@@ -1,3 +1,4 @@
+import type en from '@src/languages/en';
 import type IconAsset from '@src/types/utils/IconAsset';
 
 type Emoji = {
@@ -16,7 +17,7 @@ type Emoji = {
 type HeaderEmoji = {
     header: true;
     icon: IconAsset;
-    code: string;
+    code: keyof typeof en.emojiPicker.headers;
 };
 
 type PickerEmoji = Emoji | HeaderEmoji;
