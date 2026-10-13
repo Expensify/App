@@ -26,6 +26,7 @@ import {CONST as COMMON_CONST, Str} from 'expensify-common';
 import startCase from 'lodash/startCase';
 
 import type en from './en';
+import type {CompanyCardBalanceParams} from './params';
 import type {TranslationDeepObject} from './types';
 type StateValue = {
     stateISO: string;
@@ -445,6 +446,7 @@ const translations: TranslationDeepObject<typeof en> = {
         leaveWorkspaceConfirmationTechContact: (workspaceOwner: string) => `如果你离开此工作区，你将由工作区所有者 ${workspaceOwner} 接任技术联系人。`,
         leaveWorkspaceReimburser: '作为报销人，您无法离开此工作区。请前往“工作区”>“进行或跟踪付款”中设置新的报销人，然后重试。',
         reimbursable: '可报销',
+        nonReimbursable: '不可报销',
         editYourProfile: '编辑个人资料',
         comments: '评论',
         sharedIn: '共享于',
@@ -625,14 +627,6 @@ const translations: TranslationDeepObject<typeof en> = {
         launching: '正在启动 Expensify',
         expired: '您的会话已过期。',
         signIn: '请重新登录。',
-        notValid: '链接无效。',
-        sessionMismatch: '您点击的链接对您当前的会话无效。',
-        switchAccount: {
-            title: '切换账户？',
-            prompt: ({newEmail, currentEmail}: {newEmail: string; currentEmail: string}) => `您当前以 ${currentEmail} 身份登录。此操作将改为以 ${newEmail} 身份登录。`,
-            confirm: '切换账户',
-            staySignedIn: '不要切换账户',
-        },
     },
     multifactorAuthentication: {
         reviewTransaction: {
@@ -1272,7 +1266,7 @@ const translations: TranslationDeepObject<typeof en> = {
             phrase1: '添加收据',
             phrase2: '或将文件拖放到此处',
         },
-        pageCount: ({pageCount}: {pageCount: number}) => `第 1 页，共 ${pageCount} 页`,
+        pageCount: ({page, pageCount}: {page: number; pageCount: number}) => `第 ${page} 页，共 ${pageCount} 页`,
     },
     quickAction: {
         scanReceipt: '扫描收据',
@@ -2221,6 +2215,7 @@ const translations: TranslationDeepObject<typeof en> = {
     displayNamePage: {
         headerTitle: '显示名称',
         isShownOnProfile: '您的显示名称会显示在您的个人资料中。',
+        isShownOnMemberProfile: '显示名称会出现在该成员的个人资料中。保存后，只有该成员本人可以编辑。',
     },
     timezonePage: {
         timezone: '时区',
@@ -3855,6 +3850,10 @@ ${amount}，商户：${merchant} - 日期：${date}`,
     },
     dynamicForm: {
         exampleHint: ({example}: {example: string}) => `示例：${example}`,
+        fileCount: ({count}: {count: number}) => ({
+            one: `${count} 个文件`,
+            other: `${count} 个文件`,
+        }),
         error: {
             tooShort: ({minLength}: {minLength: number}) => `至少需要 ${minLength} 个字符`,
             invalidFormat: ({example}: {example?: string}) => (example ? `格式无效。示例：${example}` : '格式无效'),
@@ -5958,6 +5957,15 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
             submit: '提交',
         },
         companyCards: {
+            balance: {
+                currentBalance: '当前余额',
+                remainingLimit: '剩余额度',
+                notAvailable: '不可用',
+                currentBalanceDescription: ({lastUpdated}: CompanyCardBalanceParams) => `当前余额由您的银行提供，上次更新于 ${lastUpdated}。`,
+                remainingLimitDescription: ({lastUpdated}: CompanyCardBalanceParams) => `剩余额度由您的银行提供，并于 ${lastUpdated} 最后更新。`,
+                currentBalanceDescriptionNoTimestamp: '当前余额由您的银行提供。',
+                remainingLimitDescriptionNoTimestamp: '剩余额度由您的银行提供。',
+            },
             addCards: '添加卡片',
             selectCards: '选择卡片',
             fromOtherWorkspaces: '来自其他工作区',
@@ -8025,6 +8033,8 @@ ${reportName}`,
                 applyUpdates: '应用这些更新：',
                 saveRule: '保存规则',
                 previewMatches: '预览匹配项',
+                previewMatchesDescription: '查看此规则如何应用于你的费用',
+                preview: '预览',
                 confirmError: '输入商户并应用至少一项更新',
                 confirmErrorMerchant: '请输入商户',
                 confirmErrorUpdate: '请至少应用一个更新',
@@ -8344,6 +8354,14 @@ ${reportName}`,
                 requireFieldsDescription: '要求填写特定报销字段，或免除其必填限制。',
                 createAgentRule: '描述代理规则',
                 createAgentRuleDescription: '创建可按需运行的灵活规则。',
+                describe: '描述',
+                describeRule: '用通俗的语言描述你的规则，Concierge 会为你创建规则',
+                describeRuleInputLabel: '描述规则',
+                promptErrors: {
+                    unsupported: '该规则暂不支持，我们正在开发中。请先尝试其他规则。',
+                    unintelligible: '可以这样描述规则：如果支出超过 100 美元，则需要收据。',
+                    multipleRules: '请一次描述一条规则，例如：在所有卡上阻止零售消费。',
+                },
             },
             expenseDefaultsTable: {
                 tableColumnType: '类型',
@@ -9377,6 +9395,8 @@ ${reportName}`,
             return `将“${categoryName}”类别的出席者更改为 ${newValue ? '必填' : '非必填'}（之前为 ${newValue ? '非必填' : '必填'}）`;
         },
         updatedAutoHarvesting: (enabled: boolean) => `${enabled ? '已启用' : '已禁用'} 次提交`,
+        updatedMemberDisplayName: (newName: string, oldName: string, editProfileURL: string) =>
+            `已将您的显示名称更新为 ${newName}（之前为“${oldName}”）。<a href="${editProfileURL}">在个人资料中编辑</a>`,
         changedOverLimitForwardsTo: ({
             member,
             approver,
@@ -10842,6 +10862,16 @@ ${reportName}`,
                 other: `${count} 名活跃用户`,
             }),
             state: {paid: '已支付', cleared: '已清算', failed: '失败', refunded: '已退款', disputed: '有争议', balanceTransfer: '余额转账'},
+            details: '付款详情',
+            badge: {
+                balanceTransferTo: ({email}: {email: string}) => `余额转账至 ${email}`,
+                balanceTransferFrom: ({email}: {email: string}) => `余额转账来自 ${email}`,
+                disputedPending: ({date}: {date: string}) => `${date} 提出争议（待处理）`,
+                disputedRefunded: ({date}: {date: string}) => `${date} 提出争议（已退款）`,
+                disputedClosed: ({date}: {date: string}) => `${date} 提出争议（已关闭）`,
+                refundedOn: ({date}: {date: string}) => `${date} 已退款`,
+                refundedAmountOn: ({amount, date}: {amount: string; date: string}) => `${date} 已退款 ${amount}`,
+            },
         },
         subscriptionSettings: {
             title: '订阅设置',

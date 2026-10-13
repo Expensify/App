@@ -165,6 +165,7 @@ import {
     isPaidGroupPolicyByType,
     isPendingDeletePolicy,
     isPerDiemEnabled,
+    isPolicyAccessible,
     isPolicyAdmin as isPolicyAdminPolicyUtils,
     isPolicyAuditor,
     isPolicyGuest,
@@ -251,7 +252,6 @@ import {
     getCardName,
     getCategory,
     getConvertedAmount,
-    getConvertedTaxAmount,
     getCurrency,
     getDescription,
     getDisplayTransactionWithoutInvalidCommuterExclusion,
@@ -844,7 +844,6 @@ type TransactionDetails = {
     odometerStart?: number;
     odometerEnd?: number;
     convertedAmount: number;
-    convertedTaxAmount?: number;
     gpsCoordinates?: string;
 };
 
@@ -5664,7 +5663,6 @@ function getTransactionDetails(
         originalAmount: getOriginalAmount(transaction),
         originalCurrency: getOriginalCurrency(transaction),
         convertedAmount: getConvertedAmount(transaction, isFromExpenseReport, transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID, allowNegativeAmount, disableOppositeConversion),
-        convertedTaxAmount: getConvertedTaxAmount(transaction, isFromExpenseReport),
         postedDate: getFormattedPostedDate(transaction),
         transactionID: transaction.transactionID,
         ...(isDistanceRequest(transaction) && {distance: transaction.comment?.customUnit?.quantity ?? undefined}),
@@ -8238,6 +8236,18 @@ function getPolicyChangeMessage(translate: LocalizedTranslate, action: ReportAct
     return message;
 }
 
+function getUpdateEmployeeDisplayNameMessage(translate: LocalizedTranslate, action: ReportAction) {
+    if (!isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_EMPLOYEE_DISPLAY_NAME)) {
+        return '';
+    }
+    const {oldValue, newValue} = getOriginalMessage(action) ?? {};
+
+    // Both names are set by an admin and are interpolated into HTML, so markup in them must not be parsed as HTML.
+    const oldName = Str.htmlEncode(typeof oldValue === 'string' ? oldValue : '');
+    const newName = Str.htmlEncode(typeof newValue === 'string' ? newValue : '');
+    return translate('workspaceActions.updatedMemberDisplayName', newName, oldName, `${environmentURL}/${ROUTES.SETTINGS_DISPLAY_NAME}`);
+}
+
 function getPolicyChangeLogCopyMessage(translate: LocalizedTranslate, action: ReportAction) {
     const PolicyChangeLogCopyOriginalMessage = getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.COPY_OVERVIEW>) ?? {};
     const {sourcePolicyID, quantity} = PolicyChangeLogCopyOriginalMessage;
@@ -10646,7 +10656,13 @@ function hasViolations(
     );
 }
 
-function hasVisibleReportFieldViolations(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>, currentUserAccountID: number | undefined, rules: OnyxCollection<Rule>): boolean {
+function hasVisibleReportFieldViolations(
+    report: OnyxEntry<Report>,
+    policy: OnyxEntry<Policy>,
+    currentUserAccountID: number | undefined,
+    rules: OnyxCollection<Rule>,
+    reportNameValuePairs: OnyxEntry<ReportNameValuePairs>,
+): boolean {
     const areFieldsEnabledForReport = isInvoiceReport(report) ? policy?.areInvoiceFieldsEnabled : policy?.areReportFieldsEnabled;
     if (!report || !policy?.fieldList || !areFieldsEnabledForReport) {
         return false;
@@ -10667,7 +10683,7 @@ function hasVisibleReportFieldViolations(report: OnyxEntry<Report>, policy: Onyx
         return false;
     }
 
-    const {fieldsByName} = getReportFieldMaps(report, policy.fieldList);
+    const {fieldsByName} = getReportFieldMaps(report, policy.fieldList, reportNameValuePairs);
 
     return Object.values(fieldsByName).some((field) => {
         if (!isReportFieldTargetMatchingReport(report, field)) {
@@ -12691,6 +12707,39 @@ function shouldCreateNewMoneyRequestReport(
         !canAddTransaction(existingIOUReport, rules) ||
         (!isFromExistingReport && action !== CONST.IOU.ACTION.SUBMIT && isScanRequest && isASAPSubmitBetaEnabled)
     );
+}
+
+type CanDuplicateExpenseIntoSourceReportParams = {
+    sourceReport: OnyxEntry<Report>;
+    chatReport: OnyxEntry<Report>;
+    policy: OnyxEntry<Policy>;
+    currentUserLogin: string;
+    isSourceReportArchived: boolean;
+    isChatReportArchived: boolean;
+    isASAPSubmitBetaEnabled: boolean;
+    rules: OnyxCollection<Rule>;
+};
+
+/**
+ * Whether a duplicated expense can be added to the expense report its source lives on, instead of the default workspace chat.
+ * Reuses `shouldCreateNewMoneyRequestReport` so this always agrees with the report the money request builder will pick.
+ * Duplicates are never scan requests because the receipt is stripped, so `isScanRequest` is always false here.
+ */
+function canDuplicateExpenseIntoSourceReport({
+    sourceReport,
+    chatReport,
+    policy,
+    currentUserLogin,
+    isSourceReportArchived,
+    isChatReportArchived,
+    isASAPSubmitBetaEnabled,
+    rules,
+}: CanDuplicateExpenseIntoSourceReportParams): boolean {
+    if (!isExpenseReport(sourceReport) || isSourceReportArchived || !chatReport || isChatReportArchived || !isPolicyAccessible(policy, currentUserLogin)) {
+        return false;
+    }
+
+    return !shouldCreateNewMoneyRequestReport(sourceReport, chatReport, false, isASAPSubmitBetaEnabled, rules, CONST.IOU.ACTION.CREATE, true);
 }
 
 /** Precomputed report-action error state used to make per-transaction RBR checks O(1). */
@@ -14759,9 +14808,8 @@ function getInvoiceReportFieldsFromReportNameValuePairs(reportNameValuePairs: On
 function getReportFieldMaps(
     report: OnyxEntry<Report>,
     fieldList: Record<string, PolicyReportField>,
-    reportNameValuePairsParam?: OnyxEntry<ReportNameValuePairs>,
+    reportNameValuePairs: OnyxEntry<ReportNameValuePairs>,
 ): {fieldValues: Record<string, string>; fieldsByName: Record<string, PolicyReportField>} {
-    const reportNameValuePairs = reportNameValuePairsParam ?? allReportNameValuePair?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`];
     const availableFields = getAvailableReportFields(report, Object.values(fieldList ?? {}));
     const invoiceReportFields = report?.type === CONST.REPORT.TYPE.INVOICE ? getInvoiceReportFieldsFromReportNameValuePairs(reportNameValuePairs) : [];
     const fieldsMatchingReport = [...availableFields, ...invoiceReportFields].filter((field) => isReportFieldTargetMatchingReport(report, field));
@@ -14942,7 +14990,12 @@ function shouldShowMarkAsDone({
 /**
  * Determines whether the current user is eligible to initiate a merge of the selected expense reports.
  */
-function canMergeReports(selectedReports: Array<OnyxEntry<Report>>, currentUserAccountID: number | undefined, rules: OnyxCollection<Rule>): boolean {
+function canMergeReports(
+    selectedReports: Array<OnyxEntry<Report>>,
+    currentUserAccountID: number | undefined,
+    rules: OnyxCollection<Rule>,
+    reportNameValuePairs: OnyxCollection<ReportNameValuePairs>,
+): boolean {
     // Need at least 2 reports and a valid caller identity.
     if (selectedReports.length < 2 || !currentUserAccountID) {
         return false;
@@ -14984,7 +15037,7 @@ function canMergeReports(selectedReports: Array<OnyxEntry<Report>>, currentUserA
 
         // The user must be able to write to the report, AND must be either the
         // report owner or an admin / approver on the workspace.
-        const isReportArchived = isArchivedReport(allReportNameValuePair?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`]);
+        const isReportArchived = isArchivedReport(reportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`]);
         const hasWriteAccess = canUserPerformWriteAction(report, isReportArchived);
         const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`];
         const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
@@ -15054,6 +15107,7 @@ export {
     canAccessReport,
     isReportNotFound,
     canAddTransaction,
+    canDuplicateExpenseIntoSourceReport,
     canDeleteTransaction,
     canBeAutoReimbursed,
     canApproveIOU,
@@ -15358,6 +15412,7 @@ export {
     computeOptimisticReportName,
     computeOptimisticReportNameWithMetadata,
     getPolicyChangeMessage,
+    getUpdateEmployeeDisplayNameMessage,
     getPolicyChangeLogCopyMessage,
     getMovedTransactionMessage,
     getUnreportedTransactionMessage,

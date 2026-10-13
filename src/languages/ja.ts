@@ -26,6 +26,7 @@ import {CONST as COMMON_CONST, Str} from 'expensify-common';
 import startCase from 'lodash/startCase';
 
 import type en from './en';
+import type {CompanyCardBalanceParams} from './params';
 import type {TranslationDeepObject} from './types';
 type StateValue = {
     stateISO: string;
@@ -449,6 +450,7 @@ const translations: TranslationDeepObject<typeof en> = {
         leaveWorkspaceReimburser:
             '支払担当者であるため、このワークスペースを退出することはできません。［ワークスペース］＞［支払いの作成または追跡］で新しい支払担当者を設定してから、もう一度お試しください。',
         reimbursable: '払い戻し対象',
+        nonReimbursable: '本人精算不可',
         editYourProfile: 'プロフィールを編集',
         comments: 'コメント',
         sharedIn: '共有元',
@@ -630,15 +632,6 @@ const translations: TranslationDeepObject<typeof en> = {
         launching: 'Expensify を起動中',
         expired: 'セッションの有効期限が切れました。',
         signIn: 'もう一度サインインしてください。',
-        notValid: '無効なリンクです。',
-        sessionMismatch: 'クリックされたリンクは現在のセッションでは有効ではありません。',
-        switchAccount: {
-            title: 'アカウントを切り替えますか？',
-            prompt: ({newEmail, currentEmail}: {newEmail: string; currentEmail: string}) =>
-                `現在は ${currentEmail} としてサインインしています。この操作を行うと、代わりに ${newEmail} としてサインインします。`,
-            confirm: 'アカウントを切り替える',
-            staySignedIn: 'アカウントを切り替えないでください',
-        },
     },
     multifactorAuthentication: {
         reviewTransaction: {
@@ -1311,7 +1304,7 @@ const translations: TranslationDeepObject<typeof en> = {
             phrase1: '領収書を追加',
             phrase2: 'または、ここにファイルをドラッグ＆ドロップしてください',
         },
-        pageCount: ({pageCount}: {pageCount: number}) => `${pageCount} ページ中 1 ページ`,
+        pageCount: ({page, pageCount}: {page: number; pageCount: number}) => `${pageCount} ページ中 ${page} ページ目`,
     },
     quickAction: {
         scanReceipt: 'レシートをスキャン',
@@ -2282,6 +2275,7 @@ const translations: TranslationDeepObject<typeof en> = {
     displayNamePage: {
         headerTitle: '表示名',
         isShownOnProfile: '表示名はあなたのプロフィールに表示されます。',
+        isShownOnMemberProfile: '表示名はメンバーのプロフィールに表示されます。保存後は、そのメンバー本人のみが編集できます。',
     },
     timezonePage: {
         timezone: 'タイムゾーン',
@@ -3947,6 +3941,10 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
     },
     dynamicForm: {
         exampleHint: ({example}: {example: string}) => `例：${example}`,
+        fileCount: ({count}: {count: number}) => ({
+            one: `${count} 件のファイル`,
+            other: `${count} 件のファイル`,
+        }),
         error: {
             tooShort: ({minLength}: {minLength: number}) => `${minLength}文字以上で入力してください`,
             invalidFormat: ({example}: {example?: string}) => (example ? `形式が正しくありません。例：${example}` : '形式が正しくありません'),
@@ -6104,6 +6102,15 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
             submit: '提出',
         },
         companyCards: {
+            balance: {
+                currentBalance: '現在残高',
+                remainingLimit: '残りの上限',
+                notAvailable: '利用できません',
+                currentBalanceDescription: ({lastUpdated}: CompanyCardBalanceParams) => `現在残高はご利用の銀行から報告されており、最終更新日は ${lastUpdated} です。`,
+                remainingLimitDescription: ({lastUpdated}: CompanyCardBalanceParams) => `残りの限度額はご利用の銀行から報告され、最終更新日時は${lastUpdated}です。`,
+                currentBalanceDescriptionNoTimestamp: '現在残高は、お使いの銀行から報告されています。',
+                remainingLimitDescriptionNoTimestamp: '残りの限度額は、お客様の銀行から報告されます。',
+            },
             addCards: 'カードを追加',
             selectCards: 'カードを選択',
             fromOtherWorkspaces: '他のワークスペースから',
@@ -8232,6 +8239,8 @@ ${reportName}`,
                 applyUpdates: 'これらの更新を適用する',
                 saveRule: 'ルールを保存',
                 previewMatches: 'プレビュー候補を表示',
+                previewMatchesDescription: 'このルールが経費にどう適用されるかを確認',
+                preview: 'プレビュー',
                 confirmError: '店舗名を入力し、少なくとも1つの更新を適用してください',
                 confirmErrorMerchant: '加盟店を入力してください',
                 confirmErrorUpdate: '少なくとも 1 つの更新を適用してください',
@@ -8564,6 +8573,14 @@ ${reportName}`,
                 requireFieldsDescription: '特定の経費項目フィールドを必須にするか、必須条件を免除します。',
                 createAgentRule: 'エージェントルールの説明',
                 createAgentRuleDescription: '必要なときに実行される柔軟なルールを作成できます。',
+                describe: '説明する',
+                describeRule: 'ルールを自然な言葉で説明すると、Concierge がルールを作成します',
+                describeRuleInputLabel: 'ルールを説明',
+                promptErrors: {
+                    unsupported: 'そのルールはまだ対応していません。現在対応を進めています。ほかのルールをお試しください。',
+                    unintelligible: '「経費が100ドルを超える場合は領収書を必須にする」のように書いてみてください。',
+                    multipleRules: '一度に1つのルールのみです。「すべてのカードで小売店での購入をブロックする」のように、1つのルールを説明してください。',
+                },
             },
             expenseDefaultsTable: {
                 tableColumnType: '種類',
@@ -9637,6 +9654,8 @@ ${reportName}`,
             return `「${categoryName}」カテゴリの出席者を${newValue ? '必須' : '必須ではありません'}に変更しました（以前は${newValue ? '必須ではありません' : '必須'}）`;
         },
         updatedAutoHarvesting: (enabled: boolean) => `${enabled ? '有効' : '無効'} 件の提出`,
+        updatedMemberDisplayName: (newName: string, oldName: string, editProfileURL: string) =>
+            `表示名を ${newName} に更新しました（以前は「${oldName}」でした）。<a href="${editProfileURL}">プロフィールで編集</a>`,
         changedOverLimitForwardsTo: ({
             member,
             approver,
@@ -11136,6 +11155,16 @@ ${reportName}`,
                 other: `アクティブユーザー ${count} 名`,
             }),
             state: {paid: '支払い済み', cleared: '決済済み', failed: '失敗しました', refunded: '返金済み', disputed: '異議あり', balanceTransfer: '残高振替'},
+            details: '支払いの詳細',
+            badge: {
+                balanceTransferTo: ({email}: {email: string}) => `${email} への残高振替`,
+                balanceTransferFrom: ({email}: {email: string}) => `${email} からの残高振替`,
+                disputedPending: ({date}: {date: string}) => `${date} に異議申立（保留中）`,
+                disputedRefunded: ({date}: {date: string}) => `${date} に異議申立（返金済み）`,
+                disputedClosed: ({date}: {date: string}) => `${date} に異議申立（終了）`,
+                refundedOn: ({date}: {date: string}) => `${date} に返金`,
+                refundedAmountOn: ({amount, date}: {amount: string; date: string}) => `${date} に ${amount} を返金`,
+            },
         },
         subscriptionSettings: {
             title: 'サブスクリプション設定',

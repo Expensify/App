@@ -521,12 +521,14 @@ function ParticipantSearchResults({
         addSingleParticipant(option);
     };
 
+    // Android picks contacts with the system picker. Elsewhere, importing needs the contact permission, which is granted in the app's settings.
+    const importContacts = contactState?.pickContact ?? goToSettings;
     const shouldShowImportContactsButton = contactState?.showImportUI ?? showImportContacts;
     const importContactsButtonComponent = shouldShowImportContactsButton ? (
         <MenuItemNavigation
             title={translate('contact.importContacts')}
             icon={icons.UserPlus}
-            onPress={goToSettings}
+            onPress={importContacts}
             sentryLabel={CONST.SENTRY_LABEL.MONEY_REQUEST.PARTICIPANTS_IMPORT_CONTACTS_ITEM}
         />
     ) : null;
@@ -537,6 +539,7 @@ function ParticipantSearchResults({
                 showImportContacts={contactState?.showImportUI ?? showImportContacts}
                 inputHelperText={translate('contact.importContactsTitle')}
                 isInSearch={false}
+                onPress={importContacts}
             />
         ) : undefined;
 
@@ -585,6 +588,7 @@ function ParticipantSearchResults({
                     showImportContacts={contactState?.showImportUI ?? showImportContacts}
                     inputHelperText={inputHelperText}
                     isInSearch
+                    onPress={importContacts}
                 />
             }
             footerContent={footerContent}

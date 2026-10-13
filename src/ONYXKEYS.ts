@@ -496,6 +496,9 @@ const ONYXKEYS = {
     /** Is loading agent rule suggestions for the add-rule Suggestions tab? */
     IS_LOADING_AGENT_TEMPLATES: 'isLoadingAgentTemplates',
 
+    /** The rule generated from an admin's description */
+    GENERATED_RULE: 'generatedRule',
+
     /** Set when we are loading fresh subscription/billing data from the server */
     IS_LOADING_SUBSCRIPTION_DATA: 'isLoadingSubscriptionData',
 
@@ -1164,6 +1167,8 @@ const ONYXKEYS = {
         WORKSPACE_DESCRIPTION_FORM: 'workspaceDescriptionForm',
         WORKSPACE_MEMBER_CUSTOM_FIELD_FORM: 'WorkspaceMemberCustomFieldForm',
         WORKSPACE_MEMBER_CUSTOM_FIELD_FORM_DRAFT: 'WorkspaceMemberCustomFieldFormDraft',
+        WORKSPACE_MEMBER_DISPLAY_NAME_FORM: 'WorkspaceMemberDisplayNameForm',
+        WORKSPACE_MEMBER_DISPLAY_NAME_FORM_DRAFT: 'WorkspaceMemberDisplayNameFormDraft',
         WORKSPACE_DESCRIPTION_FORM_DRAFT: 'workspaceDescriptionFormDraft',
         WORKSPACE_CLIENT_ID_FORM: 'workspaceClientIDForm',
         WORKSPACE_CLIENT_ID_FORM_DRAFT: 'workspaceClientIDFormDraft',
@@ -1407,6 +1412,8 @@ const ONYXKEYS = {
         EDIT_AGENT_PROMPT_FORM_DRAFT: 'editAgentPromptFormDraft',
         ADD_AGENT_RULE_FORM: 'addAgentRuleForm',
         ADD_AGENT_RULE_FORM_DRAFT: 'addAgentRuleFormDraft',
+        NEW_RULE_PROMPT_FORM: 'newRulePromptForm',
+        NEW_RULE_PROMPT_FORM_DRAFT: 'newRulePromptFormDraft',
         EDIT_AGENT_RULE_FORM: 'editAgentRuleForm',
         EDIT_AGENT_RULE_FORM_DRAFT: 'editAgentRuleFormDraft',
         RILLET_CREDENTIALS_FORM: 'rilletCredentialsForm',
@@ -1497,6 +1504,7 @@ type OnyxFormValuesMapping = {
     [ONYXKEYS.FORMS.WORKSPACE_DESCRIPTION_FORM]: FormTypes.WorkspaceDescriptionForm;
     [ONYXKEYS.FORMS.WORKSPACE_CLIENT_ID_FORM]: FormTypes.WorkspaceClientIDForm;
     [ONYXKEYS.FORMS.WORKSPACE_MEMBER_CUSTOM_FIELD_FORM]: FormTypes.WorkspaceMemberCustomFieldsForm;
+    [ONYXKEYS.FORMS.WORKSPACE_MEMBER_DISPLAY_NAME_FORM]: FormTypes.DisplayNameForm;
     [ONYXKEYS.FORMS.WALLET_ADDITIONAL_DETAILS]: FormTypes.AdditionalDetailStepForm;
     [ONYXKEYS.FORMS.POLICY_TAG_NAME_FORM]: FormTypes.PolicyTagNameForm;
     [ONYXKEYS.FORMS.WORKSPACE_NEW_TAX_FORM]: FormTypes.WorkspaceNewTaxForm;
@@ -1571,6 +1579,7 @@ type OnyxFormValuesMapping = {
     [ONYXKEYS.FORMS.EDIT_AGENT_NAME_FORM]: FormTypes.EditAgentNameForm;
     [ONYXKEYS.FORMS.EDIT_AGENT_PROMPT_FORM]: FormTypes.EditAgentPromptForm;
     [ONYXKEYS.FORMS.ADD_AGENT_RULE_FORM]: FormTypes.AddAgentRuleForm;
+    [ONYXKEYS.FORMS.NEW_RULE_PROMPT_FORM]: FormTypes.NewRulePromptForm;
     [ONYXKEYS.FORMS.EDIT_AGENT_RULE_FORM]: FormTypes.EditAgentRuleForm;
     [ONYXKEYS.FORMS.RILLET_CREDENTIALS_FORM]: FormTypes.RilletCredentialsForm;
     [ONYXKEYS.FORMS.DUALENTRY_CREDENTIALS_FORM]: FormTypes.DualEntryCredentialsForm;
@@ -1820,6 +1829,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.IS_LOADING_BULK_CHANGE_APPROVER_PAGE]: boolean;
     [ONYXKEYS.IS_LOADING_POLICY_CODING_RULES_PREVIEW]: boolean;
     [ONYXKEYS.IS_LOADING_AGENT_RULE_SUGGESTIONS]: boolean;
+    [ONYXKEYS.GENERATED_RULE]: OnyxTypes.GeneratedRule;
     [ONYXKEYS.IS_LOADING_AGENT_TEMPLATES]: boolean;
     [ONYXKEYS.IS_LOADING_REPORT_DATA]: boolean;
     [ONYXKEYS.IS_SEARCH_FILTERS_CARD_DATA_LOADED]: boolean;
