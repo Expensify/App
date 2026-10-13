@@ -221,8 +221,9 @@ function TableHeader<DataType extends TableData, ColumnKey extends string = stri
         </View>
     );
 
-    // In the list header rather than FlashList's sticky overlay, so it scrolls sideways with the columns. Resizable tables
-    // size the inner row. The rest need the wrapper at the scroll width, or the background and bottom border fall short of the columns.
+    // In the list header rather than FlashList's sticky overlay, which is a sibling of the scroller and so paints over the
+    // scrollbar. Resizable tables size the inner row. Tables whose columns overflow need the wrapper at the scroll width,
+    // or the background and bottom border fall short of the columns.
     if (rendersColumnHeaderInListHeader(tableListMetadata)) {
         return <View style={[styles.appBG, !rowWidth && typeof scrollWidth === 'number' && StyleUtils.getWidthStyle(scrollWidth)]}>{header}</View>;
     }
