@@ -8,7 +8,6 @@ import isSearchTopmostFullScreenRoute from './isSearchTopmostFullScreenRoute';
 let environmentURL: string;
 getEnvironmentURL().then((url: string) => (environmentURL = url));
 
-// Static part of ROUTES.SEARCH_REPORT ('search/view/:reportID/:reportActionID?'), i.e. an expense opened in the search RHP
 const SEARCH_REPORT_ROUTE_PREFIX = ROUTES.SEARCH_REPORT.route.slice(0, ROUTES.SEARCH_REPORT.route.indexOf(':'));
 
 /**
@@ -53,9 +52,6 @@ function getReportURLForCurrentContext(reportID: string | undefined): string {
             }
         }
 
-        // Paging through expenses with the carousel arrows stores the expense just left as backTo, so on an expense RHP
-        // a backTo pointing to another expense is a sibling, not where the user came from. Return to the current
-        // expense instead, otherwise going back from the linked report lands on that sibling.
         if (backToRoute?.startsWith(SEARCH_REPORT_ROUTE_PREFIX) && activeRoute.startsWith(SEARCH_REPORT_ROUTE_PREFIX)) {
             backToRoute = activeRoute;
         }
