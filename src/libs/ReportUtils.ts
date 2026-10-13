@@ -1601,6 +1601,14 @@ function isOpenExpenseReport(report: OnyxInputOrEntry<Report>): boolean {
 }
 
 /**
+ * A whole-report rejection doesn't add a violation to the report's transactions - it's a report-level
+ * state (nextStep, set when the last action is REJECTED_TO_SUBMITTER) rather than a TransactionViolations entry.
+ */
+function hasReportBeenRejectedToSubmitter(report: OnyxEntry<Report>): boolean {
+    return report?.stateNum === CONST.REPORT.STATE_NUM.OPEN && report?.nextStep?.messageKey === CONST.NEXT_STEP.MESSAGE_KEY.REJECTED_REPORT;
+}
+
+/**
  * Checks if the supplied report has a member with the array passed in params.
  */
 function hasParticipantInArray(report: OnyxEntry<Report>, memberAccountIDs: number[]) {
@@ -8996,45 +9004,10 @@ function buildOptimisticModifiedExpenseReportAction(
 }
 
 /**
- * Builds an optimistic DETACH_RECEIPT report action with a randomly generated reportActionID.
- */
-function buildOptimisticDetachReceipt(reportID: string | undefined, transactionID: string, merchant: string = CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT) {
-    return {
-        actionName: CONST.REPORT.ACTIONS.TYPE.MANAGER_DETACH_RECEIPT,
-        actorAccountID: deprecatedCurrentUserAccountID,
-        automatic: false,
-        avatar: getCurrentUserAvatar(),
-        created: DateUtils.getDBTime(),
-        isAttachmentOnly: false,
-        originalMessage: {
-            transactionID,
-            merchant: `${merchant}`,
-        },
-        message: [
-            {
-                type: 'COMMENT',
-                html: `detached a receipt from expense '${merchant}'`,
-                text: `detached a receipt from expense '${merchant}'`,
-                whisperedTo: [],
-            },
-        ],
-        person: [
-            {
-                style: 'strong',
-                text: getPersonalDetail(deprecatedCurrentUserAccountID)?.displayName ?? String(deprecatedCurrentUserAccountID),
-                type: 'TEXT',
-            },
-        ],
-        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-        reportActionID: rand64(),
-        reportID,
-        shouldShow: true,
-    };
-}
-
-/**
- * Builds an optimistic "added a receipt" action for the transaction thread.
- * It shares a reportActionID with the server action so the two reconcile.
+ * Builds an optimistic "added a receipt" action that shares its ID with the server action.
+ *
+ * @param created Shared clock sample so a replacement can order the removal first.
+ * @param reportActionID Pre-generated so a retry updates this action instead of posting another.
  */
 function buildOptimisticReceiptAddedAction(
     reportID: string | undefined,
@@ -9043,23 +9016,77 @@ function buildOptimisticReceiptAddedAction(
     currentUserDisplayName: string | undefined,
     currentUserAvatar: AvatarSource | undefined,
     delegateAccountID: number | undefined,
+    created?: string,
     reportActionID: string = rand64(),
-) {
+): OptimisticModifiedExpenseReportAction {
+    return buildOptimisticReceiptAuditAction(
+        reportID,
+        transactionID,
+        currentUserAccountID,
+        currentUserDisplayName,
+        currentUserAvatar,
+        delegateAccountID,
+        'receiptAdded',
+        created,
+        reportActionID,
+    );
+}
+
+/**
+ * Builds an optimistic "removed a receipt" action that shares its ID with the server action.
+ *
+ * @param created Set slightly earlier so a replacement shows the removal first.
+ * @param reportActionID Pre-generated so a retry updates this action instead of posting another.
+ */
+function buildOptimisticReceiptRemovedAction(
+    reportID: string | undefined,
+    transactionID: string,
+    currentUserAccountID: number,
+    currentUserDisplayName: string | undefined,
+    currentUserAvatar: AvatarSource | undefined,
+    delegateAccountID: number | undefined,
+    created?: string,
+    reportActionID: string = rand64(),
+): OptimisticModifiedExpenseReportAction {
+    return buildOptimisticReceiptAuditAction(
+        reportID,
+        transactionID,
+        currentUserAccountID,
+        currentUserDisplayName,
+        currentUserAvatar,
+        delegateAccountID,
+        'receiptRemoved',
+        created,
+        reportActionID,
+    );
+}
+
+function buildOptimisticReceiptAuditAction(
+    reportID: string | undefined,
+    transactionID: string,
+    currentUserAccountID: number,
+    currentUserDisplayName: string | undefined,
+    currentUserAvatar: AvatarSource | undefined,
+    delegateAccountID: number | undefined,
+    changeKey: 'receiptAdded' | 'receiptRemoved',
+    created: string = DateUtils.getDBTime(),
+    reportActionID: string = rand64(),
+): OptimisticModifiedExpenseReportAction {
     return {
         actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
         actorAccountID: currentUserAccountID,
         automatic: false,
         avatar: currentUserAvatar,
-        created: DateUtils.getDBTime(),
+        created,
         isAttachmentOnly: false,
         originalMessage: {
             transactionID,
-            receiptAdded: true,
+            [changeKey]: true,
         },
         message: [
             {
                 // The App builds the text from originalMessage, so this text is only used by OldDot.
-                text: 'You added a receipt',
+                text: changeKey === 'receiptAdded' ? 'You added a receipt' : 'You removed a receipt',
                 style: 'strong',
                 type: CONST.REPORT.MESSAGE.TYPE.TEXT,
             },
@@ -15084,8 +15111,8 @@ export {
     buildOptimisticAnnounceChat,
     buildOptimisticWorkspaceChats,
     buildOptimisticCardAssignedReportAction,
-    buildOptimisticDetachReceipt,
     buildOptimisticReceiptAddedAction,
+    buildOptimisticReceiptRemovedAction,
     buildOptimisticRejectReportAction,
     buildOptimisticRejectReportActionComment,
     buildOptimisticReportLevelRejectAction,
@@ -15430,6 +15457,7 @@ export {
     navigateOnDeleteExpense,
     canRejectReportAction,
     isPayBlockedByArchivedState,
+    hasReportBeenRejectedToSubmitter,
     hasReportBeenReopened,
     hasReportBeenRetracted,
     getNextApproverAccountID,
