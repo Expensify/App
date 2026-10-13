@@ -14,10 +14,10 @@ type ImportedSpreadsheetMemberData = {
     email: string;
     role: string;
 
-    /** The email of the member who approves this member's expenses. Unset when the spreadsheet has no column for it */
+    /** The email of the member who approves this member's expenses. Unset when the member's approvers are imported as a list instead */
     submitsTo?: string;
 
-    /** The email of the member to whom the expenses approved by this member are forwarded. Unset when the spreadsheet has no column for it */
+    /** The email of the member to whom the expenses approved by this member are forwarded. Unset when the member's approvers are imported as a list instead */
     forwardsTo?: string;
 
     /** Custom field 1 value for this member */

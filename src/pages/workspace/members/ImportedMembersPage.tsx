@@ -132,7 +132,9 @@ function ImportedMembersPage({route}: ImportedMembersPageProps) {
 
         const duplicate = findDuplicate(columns);
         if (duplicate) {
-            return {duplicates: translate('spreadsheet.singleFieldMultipleColumns', columnRoles.find((role) => role.value === duplicate)?.text ?? duplicate)};
+            // Approver columns have internal names like approverLimit2, so the error names them by their label instead
+            const duplicateName = isMultipleApproversBetaEnabled ? (columnRoles.find((role) => role.value === duplicate)?.text ?? duplicate) : duplicate;
+            return {duplicates: translate('spreadsheet.singleFieldMultipleColumns', duplicateName)};
         }
 
         const decimals = getCurrencyDecimals(currency);
@@ -261,9 +263,14 @@ function ImportedMembersPage({route}: ImportedMembersPageProps) {
                 return {email, role, customField1, customField2, approvers: approvers.length > 0 ? approvers : undefined};
             }
 
-            // A field without a column stays unset, so the member keeps what they have
-            const submitsTo = membersSubmitsToColumn !== -1 ? (membersSubmitsTo?.[containsHeader ? index + 1 : index] ?? '') : undefined;
-            const forwardsTo = membersForwardsToColumn !== -1 ? (membersForwardsTo?.[containsHeader ? index + 1 : index] ?? '') : undefined;
+            let submitsTo = '';
+            if (membersSubmitsToColumn !== -1 && membersSubmitsTo?.[containsHeader ? index + 1 : index]) {
+                submitsTo = membersSubmitsTo?.[containsHeader ? index + 1 : index];
+            }
+            let forwardsTo = '';
+            if (membersForwardsToColumn !== -1 && membersForwardsTo?.[containsHeader ? index + 1 : index]) {
+                forwardsTo = membersForwardsTo?.[containsHeader ? index + 1 : index];
+            }
             let approvalLimit: string | undefined;
             if (membersApprovalLimitColumn !== -1) {
                 const approvalLimitValue = membersApprovalLimit?.[containsHeader ? index + 1 : index] ?? '';

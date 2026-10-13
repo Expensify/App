@@ -1464,26 +1464,6 @@ describe('actions/PolicyMember', () => {
             expect(importFinalModal.promptKeyParams).toStrictEqual({added: 2, updated: 2});
         });
 
-        it('leaves out the approval fields the spreadsheet has no columns for', async () => {
-            // Given a member who submits to a manager
-            const userEmail = 'user@gmail.com';
-            const policy = {
-                ...createRandomPolicy(1),
-                employeeList: {
-                    [userEmail]: {email: userEmail, role: CONST.POLICY.ROLE.USER, submitsTo: 'manager@gmail.com', forwardsTo: 'director@gmail.com'},
-                },
-            };
-
-            // When they're imported from a spreadsheet without approval columns
-            const importFinalModal = await Member.importPolicyMembers(policy, [{email: userEmail, role: CONST.POLICY.ROLE.ADMIN}]);
-
-            // Then the request has no approval fields, so the backend keeps the ones they have
-            expect(getJSONRequestParameter(SIDE_EFFECT_REQUEST_COMMANDS.IMPORT_MEMBERS_SPREADSHEET, 'employees')).toEqual([{email: userEmail, role: CONST.POLICY.ROLE.ADMIN}]);
-
-            // And only the role change counts as an update
-            expect(importFinalModal.promptKey).toBe('spreadsheet.importMembersUpdated');
-        });
-
         it('moves members into the workflows of their imported approvers once they are imported', async () => {
             // Given a member who submits to the owner
             const ownerEmail = 'owner@gmail.com';

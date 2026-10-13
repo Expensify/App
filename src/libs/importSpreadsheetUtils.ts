@@ -99,13 +99,11 @@ function findColumnName(header: string, columnRoles?: ColumnRole[]): string {
         case 'payrol':
         case 'payrollcode':
         case 'customfield2':
-        case 'cf2':
             attribute = CONST.CSV_IMPORT_COLUMNS.CUSTOM_FIELD_2;
             break;
 
         case 'userid':
         case 'customfield1':
-        case 'cf1':
             attribute = CONST.CSV_IMPORT_COLUMNS.CUSTOM_FIELD_1;
             break;
 

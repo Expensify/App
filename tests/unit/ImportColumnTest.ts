@@ -105,12 +105,4 @@ describe('findColumnName', () => {
         expect(findColumnName(`Approver ${lastApprover}`)).toBe(getApproverColumnRole(lastApprover, 'approver'));
         expect(findColumnName(`Approver ${lastApprover + 1}`)).toBe('');
     });
-
-    it('maps "CF1" and "CF2" headers to the custom fields', () => {
-        // Given the short names admins use for the custom fields
-        // When they are auto-detected
-        // Then they map to the custom field columns
-        expect(findColumnName('CF1')).toBe(CONST.CSV_IMPORT_COLUMNS.CUSTOM_FIELD_1);
-        expect(findColumnName('CF2')).toBe(CONST.CSV_IMPORT_COLUMNS.CUSTOM_FIELD_2);
-    });
 });

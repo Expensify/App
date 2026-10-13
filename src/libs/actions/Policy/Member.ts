@@ -1122,8 +1122,8 @@ async function importPolicyMembers(
             members.map((member) => ({
                 email: member.email,
                 role: member.role,
-                ...(member.submitsTo !== undefined && {submitsTo: member.submitsTo}),
-                ...(member.forwardsTo !== undefined && {forwardsTo: member.forwardsTo}),
+                submitsTo: member.submitsTo,
+                forwardsTo: member.forwardsTo,
                 ...(member.customField1 !== undefined && {customField1: member.customField1}),
                 ...(member.customField2 !== undefined && {customField2: member.customField2}),
                 ...(member.approvalLimit !== undefined && {approvalLimit: member.approvalLimit}),
