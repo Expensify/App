@@ -33,6 +33,11 @@ function buildRequest(command: string, transactionID: unknown = TRANSACTION_ID):
     return {command, data: {transactionID}};
 }
 
+/** Its own builder rather than `buildRequest(command, undefined)`, which would fall back to the default expense. */
+function buildRequestWithoutTransactionID(command: string): Request<OnyxKey> {
+    return {command, data: {}};
+}
+
 function buildResponse(suggestNewRuleCreation?: boolean): Response<OnyxKey> {
     return {jsonCode: 200, suggestNewRuleCreation};
 }
@@ -122,7 +127,7 @@ describe('ConfirmMerchantRuleSuggestion middleware', () => {
         await seedRecordedEdit(CONST.MERCHANT_RULE_SUGGESTION_FIELDS.CATEGORY);
 
         // When its response arrives
-        await ConfirmMerchantRuleSuggestion(Promise.resolve(buildResponse(true)), buildRequest(WRITE_COMMANDS.UPDATE_MONEY_REQUEST_CATEGORY, undefined), false);
+        await ConfirmMerchantRuleSuggestion(Promise.resolve(buildResponse(true)), buildRequestWithoutTransactionID(WRITE_COMMANDS.UPDATE_MONEY_REQUEST_CATEGORY), false);
         await waitForBatchedUpdates();
 
         // Then there is nothing to key the verdict by, so nothing is written
