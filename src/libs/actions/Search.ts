@@ -5,8 +5,9 @@ import type {PersonalDetailsByLogin} from '@components/PersonalDetailsByLoginPro
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import type {HoldMenuCallback} from '@components/Search';
 import type {TransactionListItemType, TransactionReportGroupListItemType} from '@components/Search/SearchList/ListItem/types';
-import type {BankAccountMenuItem, BulkPaySelectionData, PaymentData, SearchQueryJSON, SelectedReports, SelectedTransactions} from '@components/Search/types';
+import type {BankAccountMenuItem, BulkPaySelectionData, PaymentData, SearchFooterTotal, SearchQueryJSON, SelectedReports, SelectedTransactions} from '@components/Search/types';
 
+import type {ConfirmSubmitReportViolationsOnProceed} from '@hooks/useConfirmSubmitReportViolations';
 import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
 import type {ReportSubmitToPopoverOpenOptions} from '@hooks/useReportSubmitToPopover';
 
@@ -67,7 +68,7 @@ import {
 } from '@libs/ReportUtils';
 import type {SearchKey} from '@libs/SearchKeyUtils';
 import {savedSearchIDToSearchKey} from '@libs/SearchKeyUtils';
-import {buildSearchQueryJSON, buildSearchQueryString, serializeQueryJSONForBackend} from '@libs/SearchQueryUtils';
+import {buildSearchQueryJSON, buildSearchQueryString, getFooterSelectionFromQuery, serializeQueryJSONForBackend} from '@libs/SearchQueryUtils';
 import {isTransactionGroupListItemType} from '@libs/SearchUIUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {cancelSpan, endSpan, startSpan} from '@libs/telemetry/activeSpans';
@@ -265,6 +266,8 @@ type HandleActionButtonPressParams = {
     onUndelete?: () => void;
     onPendingCardTransactionsBlock?: () => void;
     onAllHeldExpensesBlock?: () => void;
+    /** Confirms any unacknowledged report violations before proceeding with the SUBMIT action. */
+    confirmSubmitReportViolations: (onProceed: ConfirmSubmitReportViolationsOnProceed) => void;
     openReportSubmitToPopover?: (options?: ReportSubmitToPopoverOpenOptions) => void;
     shouldDisableSearchSubmitPress?: boolean;
     /** Consumes a one-shot flag set when the submit-to popover dismisses (prevents click-through on the row Submit button). */
@@ -310,6 +313,7 @@ function handleActionButtonPress({
     amountOwed,
     onUndelete,
     onAllHeldExpensesBlock,
+    confirmSubmitReportViolations,
     currentUserAccountID,
     openReportSubmitToPopover,
     shouldDisableSearchSubmitPress,
@@ -442,40 +446,45 @@ function handleActionButtonPress({
             }
             const policyForSubmit = policy ?? snapshotPolicy;
             if (isSubmitPolicy(policyForSubmit) && openReportSubmitToPopover) {
-                openReportSubmitToPopover({
-                    onSubmitWithManagerEmail: (managerEmail, managerAccountID) => {
-                        submitMoneyRequestOnSearch(
-                            hash,
-                            [snapshotReport],
-                            [policyForSubmit],
-                            submitterLogin,
-                            getCurrencyDecimals,
-                            rules,
-                            personalDetailsByLogins,
-                            currentSearchKey,
-                            managerEmail,
-                            managerAccountID,
-                            currentUserAccountID,
-                            delegateEmail,
-                        );
-                    },
+                confirmSubmitReportViolations((shouldResolveViolations) => {
+                    openReportSubmitToPopover({
+                        shouldResolveAcknowledgedViolations: shouldResolveViolations,
+                        onSubmitWithManagerEmail: (managerEmail, managerAccountID, shouldResolveAcknowledgedViolations) => {
+                            submitMoneyRequestOnSearch({
+                                hash,
+                                reportList: [snapshotReport],
+                                policy: [policyForSubmit],
+                                submitterLogin,
+                                getCurrencyDecimals,
+                                rules,
+                                personalDetailsByLogins,
+                                currentSearchKey,
+                                managerEmail,
+                                managerAccountID,
+                                currentUserAccountID,
+                                delegateEmail,
+                                shouldResolveAcknowledgedViolations,
+                            });
+                        },
+                    });
                 });
                 return;
             }
-            submitMoneyRequestOnSearch(
-                hash,
-                [snapshotReport],
-                [policyForSubmit],
-                submitterLogin,
-                getCurrencyDecimals,
-                rules,
-                personalDetailsByLogins,
-                currentSearchKey,
-                undefined,
-                undefined,
-                currentUserAccountID,
-                delegateEmail,
-            );
+            confirmSubmitReportViolations((shouldResolveAcknowledgedViolations) => {
+                submitMoneyRequestOnSearch({
+                    hash,
+                    reportList: [snapshotReport],
+                    policy: [policyForSubmit],
+                    submitterLogin,
+                    getCurrencyDecimals,
+                    rules,
+                    personalDetailsByLogins,
+                    currentSearchKey,
+                    currentUserAccountID,
+                    delegateEmail,
+                    shouldResolveAcknowledgedViolations,
+                });
+            });
             return;
         }
         case CONST.SEARCH.ACTION_TYPES.EXPORT_TO_ACCOUNTING: {
@@ -1203,6 +1212,10 @@ function openBulkChangeApproverPage(reportIDList: OpenBulkChangeApproverPagePara
 type InFlightSearchRequest = {
     shouldCalculateTotals: boolean;
     shouldSaveRecentSearch: boolean;
+    /** The footer breakdown it asks the total for. Not part of the hash, so it is told apart here. */
+    footerTotal?: SearchFooterTotal;
+    /** The request, including any re-fire chained onto it. */
+    promise?: Promise<string | number | undefined>;
     pendingShouldCalculateTotals?: boolean;
     pendingShouldSaveRecentSearch?: boolean;
     pendingUpgradeRequest?: () => Promise<string | number | undefined> | undefined;
@@ -1322,6 +1335,7 @@ function search({
     }
 
     const dedupeKey = `${queryJSON.hash}_${offset ?? 0}`;
+    const {footerTotal} = getFooterSelectionFromQuery(queryJSON);
     const inFlightRequest = inFlightSearchRequests.get(dedupeKey);
     if (inFlightRequest) {
         // Not just EXPENSE: any type can now need totals (e.g. EXPENSE_REPORT's reportCount). Gating this
@@ -1331,7 +1345,10 @@ function search({
         // A user-submitted query colliding with an unflagged in-flight request (e.g. a programmatic refresh
         // of the same query) must still reach the backend flagged, or it never enters recent searches.
         const needsSaveRecentSearchUpgrade = shouldSaveRecentSearch && !inFlightRequest.shouldSaveRecentSearch;
-        if (needsTotalsUpgrade || needsSaveRecentSearchUpgrade) {
+        // Another footer breakdown shares the hash but not the total, so it re-fires after the in-flight one, and the
+        // latest breakdown wins without racing it. Its caller gets the chain, so it waits until that total lands.
+        const needsBreakdownRefire = footerTotal !== inFlightRequest.footerTotal;
+        if (needsTotalsUpgrade || needsSaveRecentSearchUpgrade || needsBreakdownRefire) {
             // Accumulate desired flags so a later upgrade for one dimension can't drop an earlier
             // upgrade for the other. Only a single pending re-fire is kept.
             inFlightRequest.pendingShouldCalculateTotals = (inFlightRequest.pendingShouldCalculateTotals ?? inFlightRequest.shouldCalculateTotals) || shouldCalculateTotals;
@@ -1352,9 +1369,9 @@ function search({
                     shouldShowLoading: !inFlightRequest.didSucceed || inFlightRequest.pendingShouldCalculateTotals !== inFlightRequest.shouldCalculateTotals,
                 });
         }
-        return;
+        return needsBreakdownRefire ? inFlightRequest.promise : undefined;
     }
-    const inFlightRequestState: InFlightSearchRequest = {shouldCalculateTotals, shouldSaveRecentSearch};
+    const inFlightRequestState: InFlightSearchRequest = {shouldCalculateTotals, shouldSaveRecentSearch, footerTotal};
     inFlightSearchRequests.set(dedupeKey, inFlightRequestState);
 
     const onyxLoadingData = getOnyxLoadingData(queryJSON.hash, queryJSON, offset, true, shouldCalculateTotals, shouldShowLoading);
@@ -1383,6 +1400,12 @@ function search({
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.SNAPSHOT | typeof ONYXKEYS.SEARCH_FILTERS>> = [...(onyxLoadingData.optimisticData ?? [])];
     const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.SNAPSHOT | typeof ONYXKEYS.SEARCH_FILTERS>> = [...(onyxLoadingData.failureData ?? [])];
     const finallyData = onyxLoadingData.finallyData;
+    // The breakdown the total now answers, so the footer can tell a total for another one apart. A later page without
+    // totals keeps the earlier total, so it leaves the stamp alone.
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.SNAPSHOT>> =
+        shouldCalculateTotals || !offset
+            ? [{onyxMethod: Onyx.METHOD.MERGE, key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${queryJSON.hash}`, value: {search: {footerTotal: footerTotal ?? CONST.SEARCH.FOOTER_TOTAL.TOTAL}}}]
+            : [];
 
     if (searchKey) {
         optimisticData.push({
@@ -1397,7 +1420,7 @@ function search({
     }
 
     const startRequest = () =>
-        makeRequestWithSideEffects(READ_COMMANDS.SEARCH, {hash: queryJSON.hash, jsonQuery}, {optimisticData, finallyData, failureData})
+        makeRequestWithSideEffects(READ_COMMANDS.SEARCH, {hash: queryJSON.hash, jsonQuery}, {optimisticData, successData, finallyData, failureData})
             .then((result) => {
                 const response = result?.onyxData?.[0]?.value as OnyxSearchResponse;
                 inFlightRequestState.didSucceed = result?.jsonCode === CONST.JSON_CODE.SUCCESS;
@@ -1480,7 +1503,8 @@ function search({
     };
 
     if (skipWaitForWrites) {
-        return startRequest().catch(handleSearchError);
+        inFlightRequestState.promise = startRequest().catch(handleSearchError);
+        return inFlightRequestState.promise;
     }
 
     // A search can sit behind the whole write queue here. That wait happens before the request is dispatched, so none of the
@@ -1497,7 +1521,7 @@ function search({
         },
     });
 
-    return waitForWrites(READ_COMMANDS.SEARCH)
+    inFlightRequestState.promise = waitForWrites(READ_COMMANDS.SEARCH)
         .then(() => {
             endSpan(queueSpanId);
             return startRequest();
@@ -1507,6 +1531,7 @@ function search({
             cancelSpan(queueSpanId);
             return handleSearchError(error);
         });
+    return inFlightRequestState.promise;
 }
 
 /**
@@ -1578,22 +1603,37 @@ function clearFooterConversion() {
     Onyx.set(ONYXKEYS.SEARCH_FOOTER_CONVERSION, null);
 }
 
-// Refactoring this to a params object would touch every call site and is out of scope here.
-// eslint-disable-next-line @typescript-eslint/max-params
-function submitMoneyRequestOnSearch(
-    hash: number,
-    reportList: Report[],
-    policy: Policy[],
-    submitterLogin: string | undefined,
-    getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'],
-    rules: OnyxCollection<Rule>,
-    personalDetailsByLogins: PersonalDetailsByLogin,
-    currentSearchKey?: SearchKey,
-    managerEmail?: string,
-    managerAccountID?: number,
-    currentUserAccountID?: number,
-    delegateEmail?: string,
-) {
+type SubmitMoneyRequestOnSearchParams = {
+    hash: number;
+    reportList: Report[];
+    policy: Policy[];
+    submitterLogin: string | undefined;
+    getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
+    rules: OnyxCollection<Rule>;
+    personalDetailsByLogins: PersonalDetailsByLogin;
+    currentSearchKey?: SearchKey;
+    managerEmail?: string;
+    managerAccountID?: number;
+    currentUserAccountID?: number;
+    delegateEmail?: string;
+    shouldResolveAcknowledgedViolations?: boolean;
+};
+
+function submitMoneyRequestOnSearch({
+    hash,
+    reportList,
+    policy,
+    submitterLogin,
+    getCurrencyDecimals,
+    rules,
+    personalDetailsByLogins,
+    currentSearchKey,
+    managerEmail,
+    managerAccountID,
+    currentUserAccountID,
+    delegateEmail,
+    shouldResolveAcknowledgedViolations,
+}: SubmitMoneyRequestOnSearchParams) {
     const firstReport = (reportList.at(0) ?? {}) as Report;
     const firstPolicy = policy.at(0);
     const isDEWPolicy = hasDynamicExternalWorkflow(firstPolicy);
@@ -1710,6 +1750,7 @@ function submitMoneyRequestOnSearch(
         reportActionID: optimisticSubmittedReportAction.reportActionID,
         ...(resolvedManagerAccountID !== undefined ? {managerAccountID: resolvedManagerAccountID} : {}),
         ...(trimmedManagerEmail ? {managerEmail: trimmedManagerEmail} : {}),
+        ...(shouldResolveAcknowledgedViolations ? {shouldResolveAcknowledgedViolations} : {}),
     };
 
     // The SubmitReport command is not 1:1:1 yet, which means creating a separate SubmitMoneyRequestOnSearch command is not feasible until https://github.com/Expensify/Expensify/issues/451223 is done.

@@ -1,5 +1,7 @@
-import {canAnonymousUserAccessRoute, isAnonymousUser} from '@libs/actions/Session';
+import {canAnonymousUserAccessRoute, isAnonymousUser, waitForUserSignIn} from '@libs/actions/Session';
+import {setOnboardingErrorMessage} from '@libs/actions/Welcome';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
+import swapBackgroundTabForRHPTarget from '@libs/Navigation/helpers/swapBackgroundTabForRHPTarget';
 import Navigation from '@libs/Navigation/Navigation';
 import navigationRef from '@libs/Navigation/navigationRef';
 import REPORT_LINK_ROUTE_PARAMS from '@libs/Navigation/reportLinkRouteParams';
@@ -7,12 +9,17 @@ import * as Url from '@libs/Url';
 
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
-import {getInternalNewExpensifyPath, openLink} from '@src/libs/actions/Link';
+import {getInternalNewExpensifyPath, openLink, openReportFromDeepLink} from '@src/libs/actions/Link';
 import NAVIGATORS from '@src/NAVIGATORS';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 
 import type {NavigationState} from '@react-navigation/native';
+
+import Onyx from 'react-native-onyx';
+
+import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 const mockReports: Record<string, {isMoneyRequest?: boolean}> = {};
 type ReportUtilsMock = Record<string, unknown> & {
@@ -35,6 +42,7 @@ jest.mock('@libs/Navigation/Navigation', () => ({
         getActiveRoute: jest.fn(),
         navigate: jest.fn(),
         setParams: jest.fn(),
+        waitForProtectedRoutes: jest.fn(),
     },
 }));
 jest.mock('@libs/actions/Session', () => ({
@@ -42,6 +50,9 @@ jest.mock('@libs/actions/Session', () => ({
     isAnonymousUser: jest.fn(() => false),
     signOutAndRedirectToSignIn: jest.fn(),
     waitForUserSignIn: jest.fn(),
+}));
+jest.mock('@libs/actions/Welcome', () => ({
+    setOnboardingErrorMessage: jest.fn(),
 }));
 jest.mock('@libs/ReportUtils', () => {
     const actual = jest.requireActual<ReportUtilsMock>('@libs/ReportUtils');
@@ -56,8 +67,11 @@ jest.mock('@libs/ReportUtils', () => {
 const mockedGetIsNarrowLayout = jest.mocked(getIsNarrowLayout);
 const mockedNavigation = jest.mocked(Navigation);
 const mockedNavigationRef = jest.mocked(navigationRef);
+const mockedSwapBackgroundTabForRHPTarget = jest.mocked(swapBackgroundTabForRHPTarget);
 const mockedCanAnonymousUserAccessRoute = jest.mocked(canAnonymousUserAccessRoute);
 const mockedIsAnonymousUser = jest.mocked(isAnonymousUser);
+const mockedWaitForUserSignIn = jest.mocked(waitForUserSignIn);
+const mockedSetOnboardingErrorMessage = jest.mocked(setOnboardingErrorMessage);
 
 function buildNavigationState(key: string, routes: NavigationState['routes'], index = routes.length - 1): NavigationState {
     return {
@@ -348,6 +362,70 @@ describe('Link.openLink', () => {
                 'true',
             ),
         );
+    });
+
+    it('keeps the task RHP open when a join-workspace validation link is opened', () => {
+        mockedNavigationRef.getRootState.mockReturnValue(buildRootState({isRHPOpen: true}));
+
+        openLink(`${CONST.NEW_EXPENSIFY_URL}/home/verify-account?isJoinWorkspaceTask=true`, environmentURL);
+
+        expect(Navigation.closeRHPFlow).not.toHaveBeenCalled();
+        expect(mockedSwapBackgroundTabForRHPTarget).not.toHaveBeenCalled();
+        expect(Navigation.navigate).toHaveBeenCalledWith('/home/verify-account?isJoinWorkspaceTask=true');
+    });
+
+    it('does not treat an unrelated query value as a join-workspace task marker', () => {
+        mockedNavigationRef.getRootState.mockReturnValue(buildRootState({isRHPOpen: true}));
+
+        openLink(`${CONST.NEW_EXPENSIFY_URL}/onboarding/work-email?foo=isJoinWorkspaceTask=true`, environmentURL);
+
+        expect(Navigation.closeRHPFlow).toHaveBeenCalled();
+    });
+
+    it('closes the RHP for ordinary onboarding links', () => {
+        mockedNavigationRef.getRootState.mockReturnValue(buildRootState({isRHPOpen: true}));
+
+        openLink(`${CONST.NEW_EXPENSIFY_URL}/onboarding/work-email`, environmentURL);
+
+        expect(Navigation.closeRHPFlow).toHaveBeenCalled();
+    });
+});
+
+describe('Link.openReportFromDeepLink', () => {
+    const onboardingTaskState = buildNavigationState('root', [
+        {
+            key: NAVIGATORS.ONBOARDING_MODAL_NAVIGATOR,
+            name: NAVIGATORS.ONBOARDING_MODAL_NAVIGATOR,
+            state: buildNavigationState('onboarding-state', [
+                {
+                    key: SCREENS.ONBOARDING.WORK_EMAIL_VALIDATION,
+                    name: SCREENS.ONBOARDING.WORK_EMAIL_VALIDATION,
+                },
+            ]),
+        },
+    ]);
+
+    beforeAll(() => {
+        Onyx.init({keys: ONYXKEYS});
+    });
+
+    beforeEach(async () => {
+        jest.clearAllMocks();
+        await Onyx.clear();
+        mockedIsAnonymousUser.mockReturnValue(false);
+        mockedWaitForUserSignIn.mockResolvedValue(true);
+        mockedNavigation.waitForProtectedRoutes.mockResolvedValue(undefined);
+        mockedNavigationRef.getRootState.mockReturnValue(onboardingTaskState);
+    });
+
+    it('does not show an unfinished-setup error for a completed user on an onboarding task screen', async () => {
+        await Onyx.set(ONYXKEYS.NVP_ONBOARDING, {hasCompletedGuidedSetupFlow: true});
+
+        openReportFromDeepLink(`${CONST.NEW_EXPENSIFY_URL}/onboarding/work-email-validation?isJoinWorkspaceTask=true`, {}, true, undefined, undefined, false, 1, {}, {});
+        await waitForBatchedUpdates();
+
+        expect(mockedNavigation.waitForProtectedRoutes).toHaveBeenCalled();
+        expect(mockedSetOnboardingErrorMessage).not.toHaveBeenCalled();
     });
 });
 
