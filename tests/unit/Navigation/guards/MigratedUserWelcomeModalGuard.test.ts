@@ -2,10 +2,13 @@ import MigratedUserWelcomeModalGuard, {onSessionOrLoadingAppChanged, resetDismis
 import type {GuardContext} from '@libs/Navigation/guards/types';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 
+import clearOnyxAndSeedFullReconnect from '@userActions/clearOnyxAndSeedFullReconnect';
+
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
+import type {Route} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 
 import type {NavigationAction, NavigationState} from '@react-navigation/native';
@@ -17,12 +20,47 @@ import waitForBatchedUpdates from '../../../utils/waitForBatchedUpdates';
 const migratedUserWelcomeRoute = createDynamicRoute(DYNAMIC_ROUTES.MIGRATED_USER_WELCOME.path, ROUTES.HOME);
 
 const mockNavigate = jest.fn();
-jest.mock('@libs/Navigation/Navigation', () => ({
-    navigate: (...args: unknown[]) => {
-        mockNavigate(...args);
-    },
-    getActiveRoute: () => 'home',
-}));
+let mockActiveRoute: Route = ROUTES.HOME;
+type ScreensModule = {
+    default: typeof SCREENS;
+};
+jest.mock('@libs/Navigation/Navigation', () => {
+    const screens = jest.requireActual<ScreensModule>('@src/SCREENS').default;
+    const setupScreens = new Set<string>([
+        screens.TWO_FACTOR_AUTH.DYNAMIC_ROOT,
+        screens.TWO_FACTOR_AUTH.DYNAMIC_VERIFY,
+        screens.TWO_FACTOR_AUTH.DYNAMIC_VERIFY_ACCOUNT,
+        screens.TWO_FACTOR_AUTH.DYNAMIC_SUCCESS,
+        screens.TWO_FACTOR_AUTH.SUCCESS,
+        screens.TWO_FACTOR_AUTH.DISABLED,
+        screens.TWO_FACTOR_AUTH.DISABLE,
+        screens.TWO_FACTOR_AUTH.REPLACE_VERIFY_OLD,
+        screens.TWO_FACTOR_AUTH.REPLACE_VERIFY_NEW,
+        screens.RIGHT_MODAL.TWO_FACTOR_AUTH,
+    ]);
+
+    function getDeepestFocusedScreen(route: {name?: string; params?: {screen?: string; params?: {screen?: string}}} | undefined): {name: string} | undefined {
+        if (!route) {
+            return undefined;
+        }
+        if (route.params?.screen) {
+            return getDeepestFocusedScreen({name: route.params.screen, params: route.params.params});
+        }
+        if (route.name) {
+            return {name: route.name};
+        }
+        return undefined;
+    }
+
+    return {
+        navigate: (...args: unknown[]) => {
+            mockNavigate(...args);
+        },
+        getActiveRoute: () => mockActiveRoute,
+        getDeepestFocusedScreen,
+        isTwoFactorSetupScreen: (screen: string | undefined) => (screen ? setupScreens.has(screen) : false),
+    };
+});
 
 describe('MigratedUserWelcomeModalGuard', () => {
     const mockState: NavigationState = {
@@ -53,6 +91,7 @@ describe('MigratedUserWelcomeModalGuard', () => {
         onSessionOrLoadingAppChanged(undefined, true);
         resetSessionFlag();
         mockNavigate.mockClear();
+        mockActiveRoute = ROUTES.HOME;
         await Onyx.clear();
         await waitForBatchedUpdates();
     });
@@ -404,6 +443,71 @@ describe('MigratedUserWelcomeModalGuard', () => {
             const result = MigratedUserWelcomeModalGuard.evaluate(stateWithModalBelowHome, tabSwitchAction, defaultContext);
             expect(result.type).not.toBe('BLOCK');
         });
+
+        const twoFactorSetupAction: NavigationAction = {
+            type: CONST.NAVIGATION.ACTION_TYPE.NAVIGATE,
+            payload: {
+                name: SCREENS.RIGHT_MODAL.TWO_FACTOR_AUTH,
+                params: {
+                    screen: SCREENS.TWO_FACTOR_AUTH.DYNAMIC_ROOT,
+                },
+            },
+        };
+
+        const required2FAAccount = {
+            needsTwoFactorAuthSetup: true,
+            requiresTwoFactorAuth: false,
+            twoFactorAuthSetupInProgress: false,
+        };
+
+        async function redirectToWelcomeModal() {
+            await Onyx.merge(ONYXKEYS.NVP_TRY_NEW_DOT, {
+                nudgeMigration: {
+                    timestamp: new Date(),
+                    cohort: 'test',
+                },
+            });
+            await waitForBatchedUpdates();
+            MigratedUserWelcomeModalGuard.evaluate(mockState, mockAction, defaultContext);
+        }
+
+        it('should allow required 2FA setup navigation when the migrated user modal is on top', async () => {
+            await redirectToWelcomeModal();
+            await Onyx.merge(ONYXKEYS.ACCOUNT, required2FAAccount);
+            await waitForBatchedUpdates();
+
+            const result = MigratedUserWelcomeModalGuard.evaluate(stateWithModalOnTop, twoFactorSetupAction, defaultContext);
+            expect(result.type).not.toBe('BLOCK');
+        });
+
+        it('should still block 2FA setup navigation when required 2FA is not active', async () => {
+            await redirectToWelcomeModal();
+
+            const result = MigratedUserWelcomeModalGuard.evaluate(stateWithModalOnTop, twoFactorSetupAction, defaultContext);
+            expect(result.type).toBe('BLOCK');
+        });
+
+        it('should still block tab switches when required 2FA is active', async () => {
+            await redirectToWelcomeModal();
+            await Onyx.merge(ONYXKEYS.ACCOUNT, required2FAAccount);
+            await waitForBatchedUpdates();
+
+            const result = MigratedUserWelcomeModalGuard.evaluate(stateWithModalOnTop, tabSwitchAction, defaultContext);
+            expect(result.type).toBe('BLOCK');
+        });
+
+        it('should still block navigation when required 2FA is active but the payload is not an object', async () => {
+            await redirectToWelcomeModal();
+            await Onyx.merge(ONYXKEYS.ACCOUNT, required2FAAccount);
+            await waitForBatchedUpdates();
+
+            const nonObjectPayloadAction: NavigationAction = {
+                type: CONST.NAVIGATION.ACTION_TYPE.NAVIGATE,
+            };
+
+            const result = MigratedUserWelcomeModalGuard.evaluate(stateWithModalOnTop, nonObjectPayloadAction, defaultContext);
+            expect(result.type).toBe('BLOCK');
+        });
     });
 
     describe('onSessionOrLoadingAppChanged (proactive navigation)', () => {
@@ -420,8 +524,65 @@ describe('MigratedUserWelcomeModalGuard', () => {
 
             // Now signal that session is ready and app is done loading
             onSessionOrLoadingAppChanged({authToken: 'test-token', accountID: 123}, false);
+            await waitForBatchedUpdates();
 
             expect(mockNavigate).toHaveBeenCalledWith(migratedUserWelcomeRoute);
+        });
+
+        it('should use a valid base when the active route cannot host the modal', async () => {
+            mockActiveRoute = ROUTES.SETTINGS_TROUBLESHOOT;
+            await Onyx.merge(ONYXKEYS.NVP_TRY_NEW_DOT, {
+                nudgeMigration: {
+                    timestamp: new Date(),
+                    cohort: 'test',
+                },
+            });
+            await waitForBatchedUpdates();
+            mockNavigate.mockClear();
+
+            onSessionOrLoadingAppChanged({authToken: 'test-token', accountID: 123}, false);
+            await waitForBatchedUpdates();
+
+            expect(mockNavigate).toHaveBeenCalledWith(migratedUserWelcomeRoute);
+        });
+
+        it('should not navigate while cleared Onyx data is reloading', async () => {
+            // Given an eligible migrated user who dismissed the welcome modal before the app finished loading.
+            const session = {authToken: 'test-token', accountID: 123};
+            mockActiveRoute = ROUTES.SETTINGS_TROUBLESHOOT;
+            await Onyx.merge(ONYXKEYS.NVP_TRY_NEW_DOT, {
+                nudgeMigration: {
+                    timestamp: new Date(),
+                    cohort: 'test',
+                },
+            });
+            await Onyx.merge(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING, {
+                migratedUserWelcomeModal: {
+                    timestamp: new Date().toISOString(),
+                    dismissedMethod: 'click',
+                },
+            });
+            await Onyx.set(ONYXKEYS.IS_LOADING_APP, false);
+            await waitForBatchedUpdates();
+            onSessionOrLoadingAppChanged(session, false);
+            mockNavigate.mockClear();
+
+            const loadingAppConnection = Onyx.connect({
+                key: ONYXKEYS.IS_LOADING_APP,
+                callback: (isLoadingApp) => onSessionOrLoadingAppChanged(session, isLoadingApp ?? true),
+            });
+
+            // When a full reconnect starts and clears the dismissed state. Preserve migration eligibility
+            // so this test isolates whether the helper raises the loading gate before the clear callbacks.
+            try {
+                await clearOnyxAndSeedFullReconnect([ONYXKEYS.IS_LOADING_APP, ONYXKEYS.NVP_TRY_NEW_DOT]);
+                await waitForBatchedUpdates();
+            } finally {
+                Onyx.disconnect(loadingAppConnection);
+            }
+
+            // Then the guard must not navigate using the transient post-clear state.
+            expect(mockNavigate).not.toHaveBeenCalled();
         });
 
         it('should not navigate when app is still loading', async () => {
@@ -435,6 +596,7 @@ describe('MigratedUserWelcomeModalGuard', () => {
             mockNavigate.mockClear();
 
             onSessionOrLoadingAppChanged({authToken: 'test-token', accountID: 123}, true);
+            await waitForBatchedUpdates();
 
             expect(mockNavigate).not.toHaveBeenCalled();
         });
@@ -468,6 +630,7 @@ describe('MigratedUserWelcomeModalGuard', () => {
             mockNavigate.mockClear();
 
             onSessionOrLoadingAppChanged(undefined, false);
+            await waitForBatchedUpdates();
 
             expect(mockNavigate).not.toHaveBeenCalled();
         });
@@ -480,6 +643,7 @@ describe('MigratedUserWelcomeModalGuard', () => {
             mockNavigate.mockClear();
 
             onSessionOrLoadingAppChanged({authToken: 'test-token', accountID: 123}, false);
+            await waitForBatchedUpdates();
 
             expect(mockNavigate).not.toHaveBeenCalled();
         });
@@ -501,6 +665,7 @@ describe('MigratedUserWelcomeModalGuard', () => {
             mockNavigate.mockClear();
 
             onSessionOrLoadingAppChanged({authToken: 'test-token', accountID: 123}, false);
+            await waitForBatchedUpdates();
 
             expect(mockNavigate).not.toHaveBeenCalled();
         });
@@ -517,6 +682,7 @@ describe('MigratedUserWelcomeModalGuard', () => {
 
             onSessionOrLoadingAppChanged({authToken: 'test-token', accountID: 123}, false);
             onSessionOrLoadingAppChanged({authToken: 'test-token', accountID: 123}, false);
+            await waitForBatchedUpdates();
 
             expect(mockNavigate).toHaveBeenCalledTimes(1);
         });
@@ -524,6 +690,7 @@ describe('MigratedUserWelcomeModalGuard', () => {
         it('should navigate via Onyx NVP_DISMISSED_PRODUCT_TRAINING callback when session is already set', async () => {
             // Set session first
             onSessionOrLoadingAppChanged({authToken: 'test-token', accountID: 123}, false);
+            await waitForBatchedUpdates();
             mockNavigate.mockClear();
 
             // Set up nudge migration and dismissed product training (modal not dismissed)

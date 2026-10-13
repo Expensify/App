@@ -11,7 +11,7 @@ import {callFunctionIfActionIsAllowed} from '@userActions/Session';
 
 import type IconAsset from '@src/types/utils/IconAsset';
 
-import type {ReactNode} from 'react';
+import type {ComponentRef, ReactNode, RefObject} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 import type {AnimatedStyle} from 'react-native-reanimated';
 
@@ -56,8 +56,14 @@ type ExpenseFieldRowProps = {
     /** Explanatory message rendered below the row, e.g. the commuter mileage a distance row has already deducted */
     hintText?: string;
 
-    /** Opens the field's selector. The caret is cosmetic: the row opens the same page the push row opened */
-    onPress: () => void;
+    /** Opens the field's list, either in the container anchored to this row or on its own page */
+    onPress?: () => void;
+
+    /** Measured to place the container a dropdown field opens. Sits on the bordered box, not the outer wrapper, so the container lines up with the border. */
+    anchorRef?: RefObject<ComponentRef<typeof View> | null>;
+
+    /** Whether the row's list is open. Reported to assistive technology. */
+    isExpanded?: boolean;
 
     /** Whether the row is pressed-through but visibly inert (e.g. while the expense is being confirmed) */
     isDisabled?: boolean;
@@ -100,6 +106,8 @@ function ExpenseFieldRow({
     errorText = '',
     hintText = '',
     onPress,
+    anchorRef,
+    isExpanded,
     isDisabled = false,
     isInteractive = true,
     backgroundStyle,
@@ -168,24 +176,29 @@ function ExpenseFieldRow({
         </>
     );
 
+    const borderedBox = (
+        <Animated.View style={[styles.moneyRequestFieldRowFill, backgroundStyle]}>
+            <MenuItem.Root
+                style={[styles.moneyRequestFieldRow, !isInteractive && styles.moneyRequestFieldRowDisabled, !!errorText && styles.borderColorDanger]}
+                // A locked field has nothing to open, so it is handed no press handler at all: `MenuItem.Root`
+                // reads that as a non-interactive row and drops the button role and the focus stop with it.
+                // Otherwise the press is guarded like every other `MenuItem` preset, so an anonymous user gets
+                // the sign-in prompt rather than the field's selector.
+                onPress={isInteractive ? callFunctionIfActionIsAllowed(onPress) : undefined}
+                isDisabled={isDisabled}
+                accessibilityLabel={accessibilityLabel}
+                accessibilityState={isExpanded === undefined ? undefined : {expanded: isExpanded}}
+                sentryLabel={sentryLabel}
+                testID={testID}
+            >
+                {row}
+            </MenuItem.Root>
+        </Animated.View>
+    );
+
     return (
         <View style={[styles.mh4, styles.mv2]}>
-            <Animated.View style={[styles.moneyRequestFieldRowFill, backgroundStyle]}>
-                <MenuItem.Root
-                    style={[styles.moneyRequestFieldRow, !isInteractive && styles.moneyRequestFieldRowDisabled, !!errorText && styles.borderColorDanger]}
-                    // A locked field has nothing to open, so it is handed no press handler at all: `MenuItem.Root`
-                    // reads that as a non-interactive row and drops the button role and the focus stop with it.
-                    // Otherwise the press is guarded like every other `MenuItem` preset, so an anonymous user gets
-                    // the sign-in prompt rather than the field's selector.
-                    onPress={isInteractive ? callFunctionIfActionIsAllowed(onPress) : undefined}
-                    isDisabled={isDisabled}
-                    accessibilityLabel={accessibilityLabel}
-                    sentryLabel={sentryLabel}
-                    testID={testID}
-                >
-                    {row}
-                </MenuItem.Root>
-            </Animated.View>
+            {anchorRef ? <View ref={anchorRef}>{borderedBox}</View> : borderedBox}
             {messages}
         </View>
     );
