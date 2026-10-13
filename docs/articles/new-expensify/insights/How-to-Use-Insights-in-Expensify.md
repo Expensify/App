@@ -1,5 +1,5 @@
 ---
-title: Learn about Insights
+title: Learn About Insights
 description: Learn what Insights are in New Expensify, which spend charts the Insights page shows, who can see each chart, and when to use Insights instead of Spend.
 keywords: [New Expensify, Insights, Insights page, Insights tab, spend analytics, spending trends, Spend over time, Top categories, Top merchants, Top spenders, who can see Insights, Insights vs Spend, analytics, Expensify Classic Insights]
 internalScope: Audience is all members. Covers what Insights are, the charts on the Insights page, who can see each chart, and how Insights relates to Spend. Does not cover step-by-step instructions for using filters or opening expenses from a chart, or how each chart is calculated.
@@ -7,9 +7,9 @@ contentType: topic
 platform: new-expensify
 ---
 
-# Learn about Insights
+# Learn About Insights
 
-Insights turn your expense data into charts that show where money goes and how spending changes over time. You find them on the **Insights** page, a top-level tab between **Spend** and **Workspaces**.
+Insights turn your expense data into charts that show where money goes and how spending changes over time. You find them on the **Insights** page. To open it, select **Insights** in the navigation tabs (on the left on web, on the bottom on mobile).
 
 Use Insights to spot trends and see what changed at a glance. When you need to review or act on specific expenses, open them in **Spend** from any chart.
 
@@ -43,27 +43,21 @@ From any chart, you can open the matching expenses in **Spend**. Spend shows eve
 
 ## Who can see Insights
 
-Insights are available on all plans. You only see expenses you already have permission to see in Expensify. For example, Workspace Admins and Auditors see all workspace expenses, approvers see expenses submitted to them, and members see their own expenses.
+Insights are available on all plans. You only see expenses you already have permission to see in Expensify. For example, workspace admins and auditors see all workspace expenses, approvers see expenses submitted to them, and members see their own expenses.
 
 Some charts have extra requirements:
 
-- **Top spenders** appears only if you're a Workspace Admin, Auditor, or approver on a workspace with at least two members.
+- **Top spenders** appears only if you're a workspace admin, auditor, or approver on a workspace with at least two members.
 - **Top categories** appears only if a workspace you can see has categories enabled.
 
 If you don't meet a chart's requirements, that chart doesn't appear on the page.
 
 ---
 
-## Why Insights moved out of Spend
-
-Insights used to appear as suggested searches in the **Insights** section of the **Spend** page. They now have their own page, so analytics have a dedicated home, similar to the **Insights** tab in Expensify Classic. The same spend charts are available on the Insights page.
-
----
-
 ## Related articles
 
 - [Use Insights](/articles/new-expensify/insights/Use-Insights)
-- [Understand Spend over time](/articles/new-expensify/insights/Understand-Spend-over-time)
-- [Understand Top spenders](/articles/new-expensify/insights/View-the-Top-Spenders-report)
-- [Understand Top merchants](/articles/new-expensify/insights/View-the-Top-Merchants-report)
-- [Understand Top categories](/articles/new-expensify/insights/View-the-Top-Categories-report)
+- [Understand Spend Over Time](/articles/new-expensify/insights/Understand-Spend-over-time)
+- [Understand Top Spenders](/articles/new-expensify/insights/View-the-Top-Spenders-report)
+- [Understand Top Merchants](/articles/new-expensify/insights/View-the-Top-Merchants-report)
+- [Understand Top Categories](/articles/new-expensify/insights/View-the-Top-Categories-report)

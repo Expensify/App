@@ -1,5 +1,5 @@
 ---
-title: Understand Top categories
+title: Understand Top Categories
 description: Learn what the Top categories chart on the Insights page shows, who can see it, how categories are ranked, and how to open the expenses in a category.
 keywords: [Top categories, top categories chart, category spending, spend by category, expense categories, where money goes, Insights, donut chart, can't see Top categories]
 internalScope: Audience is all members. Covers what the Top categories chart shows, who can see it, how categories are ranked, and what opens when you select a category. Does not cover the Insights page filters, the other Insights charts, or setting up categories.
@@ -7,7 +7,7 @@ contentType: topic
 platform: new-expensify
 ---
 
-# Understand Top categories
+# Understand Top Categories
 
 **Top categories** is a chart on the **Insights** page that shows how spend splits across your top expense categories in the selected date range. Use it to see which types of expenses, such as Travel or Meals, drive most of your spending.
 
@@ -15,9 +15,9 @@ platform: new-expensify
 
 ## Who can see Top categories
 
-**Top categories** appears only if a workspace you can see has categories enabled. The chart only includes expenses you have permission to see. For example, members see their own expenses, while Workspace Admins and Auditors see all workspace expenses.
+**Top categories** appears only if a workspace you can see has categories enabled. The chart only includes expenses you have permission to see. For example, members see their own expenses, while workspace admins and auditors see all workspace expenses.
 
-If categories aren't enabled, a Workspace Admin can [learn how to create expense categories](/articles/new-expensify/workspaces/Create-expense-categories).
+If categories aren't enabled, a workspace admin can [learn how to create expense categories](/articles/new-expensify/workspaces/Create-expense-categories).
 
 ---
 
@@ -35,7 +35,7 @@ The chart uses the **Date**, **Workspace**, and **Group currency** filters at th
 
 ## How Top categories ranks categories
 
-Categories are ranked from highest to lowest total amount spent in the selected date range. Only the top 5 appear in the chart. To see every category, select the three dots **(⋮)** on the chart, then select **View on Spend**.
+Categories are ranked from highest to lowest total amount spent in the selected date range. Only the top 5 appear in the chart. To see every category, select **More (⋮)** on the chart, then select **View on Spend**.
 
 ---
 
@@ -47,5 +47,5 @@ Select a slice of the donut chart to open **Spend** with a list of the expenses 
 
 ## Related articles
 
-- [Learn about Insights](/articles/new-expensify/insights/How-to-Use-Insights-in-Expensify)
+- [Learn About Insights](/articles/new-expensify/insights/How-to-Use-Insights-in-Expensify)
 - [Use Insights](/articles/new-expensify/insights/Use-Insights)

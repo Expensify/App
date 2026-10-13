@@ -23,7 +23,7 @@ Insights are available to all members on all plans. Each chart only includes exp
 
 In the navigation tabs (on the left on web, on the bottom on mobile), select **Insights**. It sits between **Spend** and **Workspaces**.
 
-You can also open Insights from **Search**. Select **Search** (the magnifying glass icon), type **Insights**, and select the result.
+You can also open Insights from **Search**. Select the **Search** icon, type **Insights**, and select the result.
 
 ---
 
@@ -50,7 +50,7 @@ You can open the expenses behind a whole chart or behind a single data point.
 
 To open all expenses behind a chart:
 
-1. Select the three dots **(⋮)** on the chart.
+1. Select **More (⋮)** on the chart.
 2. Select **View on Spend**.
 
 **Spend** opens in table view with the same filters and grouping as the chart. It shows every result, not only the top 5.
@@ -75,8 +75,8 @@ Charts appear as soon as you have expenses to show.
 
 ## Why can't I see a chart on the Insights page?
 
-Some charts have extra requirements. **Top spenders** appears only if you're a Workspace Admin, Auditor, or approver on a workspace with at least two members. **Top categories** appears only if a workspace you can see has categories enabled.
+Some charts have extra requirements. **Top spenders** appears only if you're a workspace admin, auditor, or approver on a workspace with at least two members. **Top categories** appears only if a workspace you can see has categories enabled.
 
 ## Where did the Insights on the Spend page go?
 
-They moved to the **Insights** page. The same spend charts are available there.
+They moved from the **Insights** section of the **Spend** page to the **Insights** page. In the navigation tabs (on the left on web, on the bottom on mobile), select **Insights** to see the same spend charts.

@@ -1,5 +1,5 @@
 ---
-title: Understand Spend over time
+title: Understand Spend Over Time
 description: Learn what the Spend over time chart on the Insights page shows, how its totals are calculated, and how to read changes in spending across a period.
 keywords: [Spend over time, spending trend, spend chart, Insights, total spend by month, spend by week, spend by quarter, spend by year, Group by, spending trends over time, is spending going up]
 internalScope: Audience is all members. Covers what the Spend over time chart shows, how its totals are calculated, how Group by changes the chart, and how to read it. Does not cover the Insights page filters or the ranking charts.
@@ -7,7 +7,7 @@ contentType: topic
 platform: new-expensify
 ---
 
-# Understand Spend over time
+# Understand Spend Over Time
 
 **Spend over time** is the headline chart on the **Insights** page. It shows your total spend as a line across the selected date range, so you can see whether spending is going up, going down, or holding steady.
 
@@ -52,5 +52,5 @@ The first or last period may be partial if the date range starts or ends partway
 
 ## Related articles
 
-- [Learn about Insights](/articles/new-expensify/insights/How-to-Use-Insights-in-Expensify)
+- [Learn About Insights](/articles/new-expensify/insights/How-to-Use-Insights-in-Expensify)
 - [Use Insights](/articles/new-expensify/insights/Use-Insights)
