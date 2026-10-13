@@ -1,7 +1,7 @@
 import {retireMerchantRuleSuggestion} from '@libs/actions/MerchantRuleSuggestion';
 
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {MerchantRuleSuggestion, MerchantRuleSuggestionConfirmation} from '@src/types/onyx';
+import type {MerchantRuleSuggestion} from '@src/types/onyx';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
@@ -9,8 +9,7 @@ import {useEffect, useRef} from 'react';
 
 import useOnyx from './useOnyx';
 
-const selectSeenInReportID = (suggestion: OnyxEntry<MerchantRuleSuggestion>) => suggestion?.seenInReportID;
-const selectOfferingTransactionID = (confirmation: OnyxEntry<MerchantRuleSuggestionConfirmation>) => confirmation?.transactionID;
+const selectSeen = (suggestion: OnyxEntry<MerchantRuleSuggestion>) => ({reportID: suggestion?.seenInReportID, transactionID: suggestion?.seenTransactionID});
 
 /**
  * Ends the "Create a rule" offer once the user has seen it and left the report showing it.
@@ -21,12 +20,11 @@ const selectOfferingTransactionID = (confirmation: OnyxEntry<MerchantRuleSuggest
  * @param reportID - the report this list belongs to, matched against the one the callout recorded itself in
  */
 function useRetireMerchantRuleSuggestionOnLeave(reportID: string | undefined) {
-    // Selected down to the one field each record contributes. The report actions list hosting this hook re-renders
-    // often, and subscribing to the whole of either would wake it on every write the feature makes, in every report.
+    // Selected down to what the callout recorded about itself. The report actions list hosting this hook re-renders
+    // often, and subscribing to the whole record would wake it on every write the feature makes, in every report.
     //
-    // An offer dismissed on the way out clears `seenInReportID` as it goes, so it is not retired as well.
-    const [seenInReportID] = useOnyx(ONYXKEYS.RAM_ONLY_MERCHANT_RULE_SUGGESTION, {selector: selectSeenInReportID});
-    const [offeringTransactionID] = useOnyx(ONYXKEYS.MERCHANT_RULE_SUGGESTION_CONFIRMATION, {selector: selectOfferingTransactionID});
+    // An offer dismissed on the way out clears both fields as it goes, so it is not retired as well.
+    const [seen] = useOnyx(ONYXKEYS.RAM_ONLY_MERCHANT_RULE_SUGGESTION, {selector: selectSeen});
     const retiringTransactionIDRef = useRef<string | undefined>(undefined);
 
     // Compared against this report rather than taken as a bare flag. Several report screens stay mounted at once, in a
@@ -36,8 +34,8 @@ function useRetireMerchantRuleSuggestionOnLeave(reportID: string | undefined) {
     // The callout reports which report it rendered in, because the report cannot tell: an expense report holding a
     // single expense renders the detail view under its own reportID, not the transaction thread's.
     useEffect(() => {
-        retiringTransactionIDRef.current = !!reportID && seenInReportID === reportID ? offeringTransactionID : undefined;
-    }, [seenInReportID, offeringTransactionID, reportID]);
+        retiringTransactionIDRef.current = !!reportID && seen?.reportID === reportID ? seen.transactionID : undefined;
+    }, [seen?.reportID, seen?.transactionID, reportID]);
 
     useEffect(
         () => () => {

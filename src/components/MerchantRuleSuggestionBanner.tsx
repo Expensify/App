@@ -103,11 +103,11 @@ function MerchantRuleSuggestionBannerContent({reportID, policyID, containerStyle
     // A full-size composer hides the callout, and composer size is remembered per report. Marking it seen there would
     // retire an offer the user never had a chance to read.
     useEffect(() => {
-        if (!isShowing || !reportID || isComposerFullSize || suggestion?.seenInReportID === reportID) {
+        if (!isShowing || !reportID || !offeringTransactionID || isComposerFullSize || (suggestion?.seenInReportID === reportID && suggestion?.seenTransactionID === offeringTransactionID)) {
             return;
         }
-        markMerchantRuleSuggestionSeen(reportID);
-    }, [isShowing, reportID, isComposerFullSize, suggestion?.seenInReportID]);
+        markMerchantRuleSuggestionSeen(reportID, offeringTransactionID);
+    }, [isShowing, reportID, offeringTransactionID, isComposerFullSize, suggestion?.seenInReportID, suggestion?.seenTransactionID]);
 
     if (!suggestion || !policyID || !offeringTransactionID) {
         return null;

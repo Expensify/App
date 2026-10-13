@@ -40,6 +40,15 @@ type MerchantRuleSuggestion = {
     seenInReportID?: string;
 
     /**
+     * The expense whose offer the callout showed, which is the one leaving that report retires.
+     *
+     * Recorded alongside the report rather than read back from the confirmation on the way out, because a verdict for
+     * another expense can land while this one's callout is on screen. Retiring whatever is offering by then would end
+     * an offer the user never saw.
+     */
+    seenTransactionID?: string;
+
+    /**
      * Expenses whose offer was seen and left. Unlike dismissing, editing the expense again offers afresh.
      *
      * Keyed by expense rather than held as one flag, so leaving one expense's offer does not silence the next one

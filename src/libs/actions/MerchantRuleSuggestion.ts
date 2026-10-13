@@ -79,6 +79,7 @@ function trackMerchantRuleSuggestion({transactionID, field, reportID, policy, po
         // Editing this expense again asks afresh, so whatever became of its last offer is behind it now.
         retiredTransactionIDs: {[transactionID]: null},
         seenInReportID: null,
+        seenTransactionID: null,
     });
 
     // A fresh edit of this field answers to its own response, so an earlier confirmation of it must not stand in for
@@ -109,12 +110,16 @@ function setMerchantRuleSuggestionConfirmation(transactionID: string, field: Mer
 }
 
 /**
- * Records the report the callout rendered in, which is what makes leaving that report retire the offer.
+ * Records what the callout showed and where, which is what makes leaving that report retire the offer.
+ *
+ * The expense is recorded here rather than looked up on the way out, so a verdict landing for another expense while
+ * this callout is on screen cannot redirect the retirement onto an offer nobody has seen.
  *
  * @param reportID - the report hosting the expense detail view the callout appeared on
+ * @param transactionID - the expense the callout offered for
  */
-function markMerchantRuleSuggestionSeen(reportID: string) {
-    Onyx.merge(ONYXKEYS.RAM_ONLY_MERCHANT_RULE_SUGGESTION, {seenInReportID: reportID});
+function markMerchantRuleSuggestionSeen(reportID: string, transactionID: string) {
+    Onyx.merge(ONYXKEYS.RAM_ONLY_MERCHANT_RULE_SUGGESTION, {seenInReportID: reportID, seenTransactionID: transactionID});
 }
 
 /**
@@ -124,9 +129,9 @@ function markMerchantRuleSuggestionSeen(reportID: string) {
 function dismissMerchantRuleSuggestion(suggestion: MerchantRuleSuggestion, transactionID: string) {
     Onyx.merge(ONYXKEYS.RAM_ONLY_MERCHANT_RULE_SUGGESTION, {
         dismissedTransactionIDs: [...new Set([...(suggestion.dismissedTransactionIDs ?? []), transactionID])],
-        // Cleared so leaving the report does not also retire what the user has already taken away. The retire hook
-        // reads this alone, which keeps it off the verdict key it would otherwise have to consult.
+        // Cleared so leaving the report does not also retire what the user has already taken away.
         seenInReportID: null,
+        seenTransactionID: null,
     });
 }
 
