@@ -32,7 +32,7 @@ import toDynamicFormValues from './utils/toDynamicFormValues';
 
 /** An answer the user gave, including `false`, which counts as progress when deciding where a visit resumes */
 function hasDraftAnswer(answer: DynamicFormValues[string]): boolean {
-    return answer !== undefined && answer !== '' && !(Array.isArray(answer) && answer.length === 0);
+    return answer !== undefined && answer !== null && answer !== '' && !(Array.isArray(answer) && answer.length === 0);
 }
 
 /** A whole dynamic form: one page per schema page, skipping pages with nothing to ask, then a confirmation page */
@@ -156,6 +156,7 @@ function DynamicFormFlow({
     const nextShownPageName = pageNames.find((pageName, index) => index > pageIndex && !skipPages.includes(pageName));
     const previousShownPageName = pageNames.findLast((pageName, index) => index < pageIndex && !skipPages.includes(pageName));
     const unavailablePageTarget = isOnSkippedPage ? (nextShownPageName ?? previousShownPageName) : subPages.at(startFrom)?.pageName;
+
     useEffect(() => {
         if (!isOnUnavailablePage || !unavailablePageTarget) {
             return;

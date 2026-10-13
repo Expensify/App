@@ -19,16 +19,31 @@ import CONST from '@src/CONST';
 import {View} from 'react-native';
 
 type SummaryItem = {
+    /** Unique key of the row */
     id: string;
+
+    /** The label shown above the answer */
     description: string;
+
+    /** The answer shown in the row */
     title: string;
+
+    /** Whether the chevron is shown on the right of the row */
     shouldShowRightIcon: boolean;
+
+    /** Called when the row is pressed */
     onPress: () => void;
 
     /** False for a row that opens nothing, so it is not announced as a button. Defaults to true. */
     interactive?: boolean;
+
+    /** The brick road indicator shown on the row */
     brickRoadIndicator?: BrickRoad;
+
+    /** The error shown under the row */
     errorText?: string;
+
+    /** The test ID of the row */
     testID?: string;
 };
 
@@ -37,11 +52,13 @@ type SummaryGroupRow = SummaryItem;
 
 /** Answers under one heading. Used instead of `summaryItems` when the confirmation is split by section. */
 type SummaryGroup = {
+    /** Unique key of the group */
     id: string;
 
     /** The heading, left out when empty */
     name: string;
 
+    /** The rows listed under the heading */
     rows: SummaryGroupRow[];
 };
 
