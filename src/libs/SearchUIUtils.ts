@@ -13,6 +13,7 @@ import type {
     ReportActionListItemType,
     SearchListItem,
     TaskListItemType,
+    TransactionApproverGroupListItemType,
     TransactionCardGroupListItemType,
     TransactionCategoryGroupListItemType,
     TransactionDayGroupListItemType,
@@ -24,7 +25,6 @@ import type {
     TransactionQuarterGroupListItemType,
     TransactionReportGroupListItemType,
     TransactionTagGroupListItemType,
-    TransactionViolationApproverGroupListItemType,
     TransactionWeekGroupListItemType,
     TransactionWithdrawalIDGroupListItemType,
     TransactionYearGroupListItemType,
@@ -279,7 +279,7 @@ type TransactionMonthGroupSorting = ColumnSortMapping<TransactionMonthGroupListI
 type TransactionWeekGroupSorting = ColumnSortMapping<TransactionWeekGroupListItemType>;
 type TransactionYearGroupSorting = ColumnSortMapping<TransactionYearGroupListItemType>;
 type TransactionQuarterGroupSorting = ColumnSortMapping<TransactionQuarterGroupListItemType>;
-type TransactionViolationApproverGroupSorting = ColumnSortMapping<TransactionViolationApproverGroupListItemType>;
+type TransactionApproverGroupSorting = ColumnSortMapping<TransactionApproverGroupListItemType>;
 
 type GetReportSectionsParams = {
     data: OnyxTypes.SearchResults['data'];
@@ -449,11 +449,9 @@ const transactionQuarterGroupColumnNamesToSortingProperty: TransactionQuarterGro
     ...transactionGroupBaseSortingProperties,
 };
 
-const transactionViolationApproverGroupColumnNamesToSortingProperty: TransactionViolationApproverGroupSorting = {
+const transactionApproverGroupColumnNamesToSortingProperty: TransactionApproverGroupSorting = {
     [CONST.SEARCH.TABLE_COLUMNS.AVATAR]: null,
-    [CONST.SEARCH.TABLE_COLUMNS.GROUP_VIOLATION_APPROVER]: 'formattedViolationApprover' as const,
-    [CONST.SEARCH.TABLE_COLUMNS.GROUP_APPROVAL_COUNT]: 'approvalCount' as const,
-    [CONST.SEARCH.TABLE_COLUMNS.GROUP_APPROVED_TOTAL]: 'total' as const,
+    [CONST.SEARCH.TABLE_COLUMNS.GROUP_APPROVER]: 'formattedApprover' as const,
     ...transactionGroupBaseSortingProperties,
 };
 
@@ -967,8 +965,8 @@ function isTransactionQuarterGroupListItemType(item: ListItem): item is Transact
     return isTransactionGroupListItemType(item) && 'groupedBy' in item && item.groupedBy === CONST.SEARCH.GROUP_BY.QUARTER;
 }
 
-function isTransactionViolationApproverGroupListItemType(item: ListItem): item is TransactionViolationApproverGroupListItemType {
-    return isTransactionGroupListItemType(item) && 'groupedBy' in item && item.groupedBy === CONST.SEARCH.GROUP_BY.VIOLATION_APPROVER;
+function isTransactionApproverGroupListItemType(item: ListItem): item is TransactionApproverGroupListItemType {
+    return isTransactionGroupListItemType(item) && 'groupedBy' in item && item.groupedBy === CONST.SEARCH.GROUP_BY.APPROVER;
 }
 
 /**
@@ -3030,6 +3028,12 @@ function getSelectedGroupFilterEntry(groupBy: string, groupData: unknown): {key:
     switch (groupBy) {
         case CONST.SEARCH.GROUP_BY.FROM:
             return {key: CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM, value: (groupData as SearchMemberGroup).accountID};
+        case CONST.SEARCH.GROUP_BY.APPROVER: {
+            if (!groupData || typeof groupData !== 'object' || !('accountID' in groupData) || typeof groupData.accountID !== 'number') {
+                return undefined;
+            }
+            return {key: CONST.SEARCH.SYNTAX_FILTER_KEYS.APPROVER, value: groupData.accountID};
+        }
         case CONST.SEARCH.GROUP_BY.CARD:
             return {key: CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID, value: (groupData as SearchCardGroup).cardID};
         case CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID:
@@ -3174,9 +3178,9 @@ function getActiveGroupSearchHashes(data: OnyxTypes.SearchResults['data'] | unde
                 }
                 break;
             }
-            case CONST.SEARCH.GROUP_BY.VIOLATION_APPROVER: {
-                if ('approvalCount' in group && typeof group.accountID === 'number') {
-                    transactionsQueryJSON = buildViolationApproverGroupQuery(queryJSON, group.accountID);
+            case CONST.SEARCH.GROUP_BY.APPROVER: {
+                if ('accountID' in group && typeof group.accountID === 'number') {
+                    transactionsQueryJSON = buildApproverGroupQuery(queryJSON, group.accountID);
                 }
                 break;
             }
@@ -3216,8 +3220,8 @@ function buildDateRangeGroupQuery(queryJSON: SearchQueryJSON, dateRange: {start:
     return {transactionsQueryJSON, start, end};
 }
 
-function buildViolationApproverGroupQuery(queryJSON: SearchQueryJSON, accountID: number): SearchQueryJSON | undefined {
-    return buildSpecificGroupQuery(queryJSON, CONST.SEARCH.SYNTAX_FILTER_KEYS.VIOLATION_APPROVER, accountID);
+function buildApproverGroupQuery(queryJSON: SearchQueryJSON, accountID: number): SearchQueryJSON | undefined {
+    return buildSpecificGroupQuery(queryJSON, CONST.SEARCH.SYNTAX_FILTER_KEYS.APPROVER, accountID);
 }
 
 /**
@@ -3729,43 +3733,43 @@ function getQuarterSections(
 }
 
 /**
- * Organizes data into List Sections grouped by violation approver for display.
+ * Organizes data into List Sections grouped by approver for display.
  *
  * Do not use directly, use only via `getSections()` facade.
  */
-function getViolationApproverSections(
+function getApproverSections(
     data: OnyxTypes.SearchResults['data'],
     queryJSON: SearchQueryJSON | undefined,
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
     translate: LocalizedTranslate,
     onyxPersonalDetailsList?: OnyxTypes.PersonalDetailsList,
-): [TransactionViolationApproverGroupListItemType[], number, boolean] {
-    const violationApproverSections: Record<string, TransactionViolationApproverGroupListItemType> = {};
+): [TransactionApproverGroupListItemType[], number, boolean] {
+    const approverSections: Record<string, TransactionApproverGroupListItemType> = {};
 
     for (const key in data) {
         if (isGroupEntry(key)) {
-            const violationApproverGroup = data[key];
-            if (!('accountID' in violationApproverGroup) || !violationApproverGroup.accountID || !('approvalCount' in violationApproverGroup)) {
+            const approverGroup = data[key];
+            if (!('accountID' in approverGroup) || !approverGroup.accountID) {
                 continue;
             }
 
-            const personalDetails = data.personalDetailsList?.[violationApproverGroup.accountID] ?? onyxPersonalDetailsList?.[violationApproverGroup.accountID] ?? emptyPersonalDetails;
-            const transactionsQueryJSON = queryJSON ? buildViolationApproverGroupQuery(queryJSON, violationApproverGroup.accountID) : undefined;
+            const personalDetails = data.personalDetailsList?.[approverGroup.accountID] ?? onyxPersonalDetailsList?.[approverGroup.accountID] ?? emptyPersonalDetails;
+            const transactionsQueryJSON = queryJSON ? buildApproverGroupQuery(queryJSON, approverGroup.accountID) : undefined;
 
-            violationApproverSections[key] = {
-                groupedBy: CONST.SEARCH.GROUP_BY.VIOLATION_APPROVER,
+            approverSections[key] = {
+                groupedBy: CONST.SEARCH.GROUP_BY.APPROVER,
                 transactions: [],
                 transactionsQueryJSON,
                 ...personalDetails,
-                ...violationApproverGroup,
-                formattedViolationApprover: temporaryGetDisplayNameOrDefault({passedPersonalDetails: personalDetails, translate, formatPhoneNumber}),
+                ...approverGroup,
+                formattedApprover: temporaryGetDisplayNameOrDefault({passedPersonalDetails: personalDetails, translate, formatPhoneNumber}),
                 keyForList: key,
             };
         }
     }
 
-    const violationApproverSectionsValues = Object.values(violationApproverSections);
-    return [violationApproverSectionsValues, violationApproverSectionsValues.length, hasDeletedTransactionInData(data)];
+    const approverSectionsValues = Object.values(approverSections);
+    return [approverSectionsValues, approverSectionsValues.length, hasDeletedTransactionInData(data)];
 }
 
 /**
@@ -3853,8 +3857,8 @@ function getSections({
                 return getYearSections(data, queryJSON);
             case CONST.SEARCH.GROUP_BY.QUARTER:
                 return getQuarterSections(data, queryJSON, dateFnsLocale);
-            case CONST.SEARCH.GROUP_BY.VIOLATION_APPROVER:
-                return getViolationApproverSections(data, queryJSON, formatPhoneNumber, translate, onyxPersonalDetailsList);
+            case CONST.SEARCH.GROUP_BY.APPROVER:
+                return getApproverSections(data, queryJSON, formatPhoneNumber, translate, onyxPersonalDetailsList);
         }
     }
 
@@ -3913,9 +3917,8 @@ const groupBySortFunction: Record<SearchGroupBy, GroupBySortFunction> = {
     [CONST.SEARCH.GROUP_BY.WEEK]: createGroupSortFunction<TransactionWeekGroupListItemType>(transactionWeekGroupColumnNamesToSortingProperty, (a, b, lc) => lc(a.week, b.week)),
     [CONST.SEARCH.GROUP_BY.YEAR]: createGroupSortFunction<TransactionYearGroupListItemType>(transactionYearGroupColumnNamesToSortingProperty, (a, b) => a.year - b.year),
     [CONST.SEARCH.GROUP_BY.QUARTER]: createGroupSortFunction<TransactionQuarterGroupListItemType>(transactionQuarterGroupColumnNamesToSortingProperty, (a, b) => a.sortKey - b.sortKey),
-    [CONST.SEARCH.GROUP_BY.VIOLATION_APPROVER]: createGroupSortFunction<TransactionViolationApproverGroupListItemType>(
-        transactionViolationApproverGroupColumnNamesToSortingProperty,
-        (a, b, lc) => lc(a.formattedViolationApprover ?? '', b.formattedViolationApprover ?? ''),
+    [CONST.SEARCH.GROUP_BY.APPROVER]: createGroupSortFunction<TransactionApproverGroupListItemType>(transactionApproverGroupColumnNamesToSortingProperty, (a, b, lc) =>
+        lc(a.formattedApprover ?? '', b.formattedApprover ?? ''),
     ),
 };
 
@@ -3931,7 +3934,7 @@ const groupByRequiredColumns: Partial<Record<SearchGroupBy, SearchCustomColumnId
     [CONST.SEARCH.GROUP_BY.WEEK]: [CONST.SEARCH.TABLE_COLUMNS.GROUP_WEEK],
     [CONST.SEARCH.GROUP_BY.YEAR]: [CONST.SEARCH.TABLE_COLUMNS.GROUP_YEAR],
     [CONST.SEARCH.GROUP_BY.QUARTER]: [CONST.SEARCH.TABLE_COLUMNS.GROUP_QUARTER],
-    [CONST.SEARCH.GROUP_BY.VIOLATION_APPROVER]: [CONST.SEARCH.TABLE_COLUMNS.GROUP_VIOLATION_APPROVER],
+    [CONST.SEARCH.GROUP_BY.APPROVER]: [CONST.SEARCH.TABLE_COLUMNS.GROUP_APPROVER],
 };
 
 /**
@@ -4480,8 +4483,8 @@ function getCustomColumns(value?: SearchDataTypes | SearchGroupBy): SearchCustom
             return Object.values(CONST.SEARCH.GROUP_CUSTOM_COLUMNS.YEAR);
         case CONST.SEARCH.GROUP_BY.QUARTER:
             return Object.values(CONST.SEARCH.GROUP_CUSTOM_COLUMNS.QUARTER);
-        case CONST.SEARCH.GROUP_BY.VIOLATION_APPROVER:
-            return Object.values(CONST.SEARCH.GROUP_CUSTOM_COLUMNS.VIOLATION_APPROVER);
+        case CONST.SEARCH.GROUP_BY.APPROVER:
+            return Object.values(CONST.SEARCH.GROUP_CUSTOM_COLUMNS.APPROVER);
         default:
             return [];
     }
@@ -4523,8 +4526,8 @@ function getCustomColumnDefault(value?: SearchDataTypes | SearchGroupBy): Search
             return CONST.SEARCH.GROUP_DEFAULT_COLUMNS.YEAR;
         case CONST.SEARCH.GROUP_BY.QUARTER:
             return CONST.SEARCH.GROUP_DEFAULT_COLUMNS.QUARTER;
-        case CONST.SEARCH.GROUP_BY.VIOLATION_APPROVER:
-            return CONST.SEARCH.GROUP_DEFAULT_COLUMNS.VIOLATION_APPROVER;
+        case CONST.SEARCH.GROUP_BY.APPROVER:
+            return CONST.SEARCH.GROUP_DEFAULT_COLUMNS.APPROVER;
         default:
             return [];
     }
@@ -4670,12 +4673,8 @@ function getSearchColumnTranslationKey(column: SearchSortBy, type?: SearchDataTy
             return 'common.year';
         case CONST.SEARCH.TABLE_COLUMNS.GROUP_QUARTER:
             return 'common.quarter';
-        case CONST.SEARCH.TABLE_COLUMNS.GROUP_VIOLATION_APPROVER:
-            return 'search.filters.groupBy.violation-approver';
-        case CONST.SEARCH.TABLE_COLUMNS.GROUP_APPROVAL_COUNT:
-            return 'search.filters.approvalCount';
-        case CONST.SEARCH.TABLE_COLUMNS.GROUP_APPROVED_TOTAL:
-            return 'search.filters.approvedTotal';
+        case CONST.SEARCH.TABLE_COLUMNS.GROUP_APPROVER:
+            return 'search.filters.groupBy.approver';
         case CONST.SEARCH.TABLE_COLUMNS.GROUP_WITHDRAWN:
             return 'search.filters.withdrawn';
         case CONST.SEARCH.TABLE_COLUMNS.GROUP_FEED:
@@ -5409,17 +5408,15 @@ function getSortOrderOptions(translate: LocalizedTranslate) {
     return Object.values(CONST.SEARCH.SORT_ORDER).map<SingleSelectItem<SortOrder>>((value) => ({text: translate(`search.filters.sortOrder.${value}`), value}));
 }
 
-function getGroupBySections(translate: LocalizedTranslate, queryJSON?: SearchQueryJSON): GroupBySection[] {
+function getGroupBySections(translate: LocalizedTranslate): GroupBySection[] {
     const getOption = (groupBy: SearchGroupBy): SingleSelectItem<SearchGroupBy> => ({
         text: translate(`search.filters.groupBy.${groupBy}`),
         value: groupBy,
     });
-    const {value: hasValues, isNegated} = getFilterFromQuery(queryJSON, CONST.SEARCH.SYNTAX_FILTER_KEYS.HAS);
-    const shouldIncludeViolationApprover = !isNegated && !!hasValues?.includes(CONST.SEARCH.HAS_VALUES.APPROVED_VIOLATION);
 
     const sections: Array<Omit<GroupBySection, 'sectionIndex'>> = [
         {
-            options: [getOption(CONST.SEARCH.GROUP_BY.FROM), getOption(CONST.SEARCH.GROUP_BY.CARD)],
+            options: [getOption(CONST.SEARCH.GROUP_BY.FROM), getOption(CONST.SEARCH.GROUP_BY.CARD), getOption(CONST.SEARCH.GROUP_BY.APPROVER)],
         },
         {
             options: [getOption(CONST.SEARCH.GROUP_BY.CATEGORY), getOption(CONST.SEARCH.GROUP_BY.MERCHANT), getOption(CONST.SEARCH.GROUP_BY.TAG)],
@@ -5437,12 +5434,6 @@ function getGroupBySections(translate: LocalizedTranslate, queryJSON?: SearchQue
             options: [getOption(CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID)],
         },
     ];
-
-    if (shouldIncludeViolationApprover) {
-        sections.push({
-            options: [getOption(CONST.SEARCH.GROUP_BY.VIOLATION_APPROVER)],
-        });
-    }
 
     return sections.map((section, sectionIndex) => ({
         ...section,
@@ -6610,7 +6601,7 @@ function getColumnsToShow({
             [CONST.SEARCH.GROUP_BY.WEEK]: CONST.SEARCH.GROUP_CUSTOM_COLUMNS.WEEK,
             [CONST.SEARCH.GROUP_BY.YEAR]: CONST.SEARCH.GROUP_CUSTOM_COLUMNS.YEAR,
             [CONST.SEARCH.GROUP_BY.QUARTER]: CONST.SEARCH.GROUP_CUSTOM_COLUMNS.QUARTER,
-            [CONST.SEARCH.GROUP_BY.VIOLATION_APPROVER]: CONST.SEARCH.GROUP_CUSTOM_COLUMNS.VIOLATION_APPROVER,
+            [CONST.SEARCH.GROUP_BY.APPROVER]: CONST.SEARCH.GROUP_CUSTOM_COLUMNS.APPROVER,
         }[groupBy];
 
         const defaultCustomColumns = {
@@ -6625,7 +6616,7 @@ function getColumnsToShow({
             [CONST.SEARCH.GROUP_BY.WEEK]: CONST.SEARCH.GROUP_DEFAULT_COLUMNS.WEEK,
             [CONST.SEARCH.GROUP_BY.YEAR]: CONST.SEARCH.GROUP_DEFAULT_COLUMNS.YEAR,
             [CONST.SEARCH.GROUP_BY.QUARTER]: CONST.SEARCH.GROUP_DEFAULT_COLUMNS.QUARTER,
-            [CONST.SEARCH.GROUP_BY.VIOLATION_APPROVER]: CONST.SEARCH.GROUP_DEFAULT_COLUMNS.VIOLATION_APPROVER,
+            [CONST.SEARCH.GROUP_BY.APPROVER]: CONST.SEARCH.GROUP_DEFAULT_COLUMNS.APPROVER,
         }[groupBy];
 
         const filteredVisibleColumns = customColumns ? visibleColumns.filter((column) => Object.values(customColumns).includes(column as ValueOf<typeof customColumns>)) : [];
@@ -7415,7 +7406,7 @@ function isTransactionMatchWithGroupItem(transaction: OnyxTypes.Transaction, gro
         const transactionQuarter = Math.floor((transactionMonth - 1) / 3) + 1;
         return transactionYear === quarterGroup.year && transactionQuarter === quarterGroup.quarter;
     }
-    if (groupBy === CONST.SEARCH.GROUP_BY.VIOLATION_APPROVER) {
+    if (groupBy === CONST.SEARCH.GROUP_BY.APPROVER) {
         return !!transaction.transactionID;
     }
     return false;
@@ -7443,7 +7434,7 @@ export {
     isTransactionWeekGroupListItemType,
     isTransactionYearGroupListItemType,
     isTransactionQuarterGroupListItemType,
-    isTransactionViolationApproverGroupListItemType,
+    isTransactionApproverGroupListItemType,
     isGroupedItemArray,
     isGroupEntry,
     isReportEntry,

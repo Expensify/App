@@ -279,13 +279,10 @@ type SearchQuarterGroup = SearchGroupBase & {
     quarter: number;
 };
 
-/** Model of violation-approver grouped search result */
-type SearchViolationApproverGroup = SearchGroupBase & {
-    /** Account ID of the approver who approved the violation */
+/** Model of approver grouped search result */
+type SearchApproverGroup = SearchGroupBase & {
+    /** Account ID of the approver */
     accountID: number;
-
-    /** How many expenses this approver approved */
-    approvalCount: number;
 };
 
 /** SearchResultDataType */
@@ -310,7 +307,7 @@ type SearchResultDataType = PrefixedRecord<typeof ONYXKEYS.COLLECTION.TRANSACTIO
         | SearchWeekGroup
         | SearchYearGroup
         | SearchQuarterGroup
-        | SearchViolationApproverGroup
+        | SearchApproverGroup
     >;
 
 /** Model of search results */
@@ -346,5 +343,5 @@ export type {
     SearchWeekGroup,
     SearchYearGroup,
     SearchQuarterGroup,
-    SearchViolationApproverGroup,
+    SearchApproverGroup,
 };

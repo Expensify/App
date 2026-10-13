@@ -749,19 +749,18 @@ const searchResultsGroupByCategory: OnyxTypes.SearchResults = {
     },
 };
 
-const violationApproverAccountID = 22982540;
-const searchResultsGroupByViolationApprover: OnyxTypes.SearchResults = {
+const groupedApproverAccountID = 22982540;
+const searchResultsGroupByApprover: OnyxTypes.SearchResults = {
     data: {
         personalDetailsList: {
-            [violationApproverAccountID]: {
-                accountID: violationApproverAccountID,
+            [groupedApproverAccountID]: {
+                accountID: groupedApproverAccountID,
                 displayName: 'Approver',
                 login: 'approver@policy.com',
             },
         },
-        [`${CONST.SEARCH.GROUP_PREFIX}${violationApproverAccountID}` as const]: {
-            accountID: violationApproverAccountID,
-            approvalCount: 3,
+        [`${CONST.SEARCH.GROUP_PREFIX}${groupedApproverAccountID}` as const]: {
+            accountID: groupedApproverAccountID,
             count: 3,
             currency: 'USD',
             total: 150,
@@ -3989,56 +3988,47 @@ describe('SearchUIUtils', () => {
             expect(categorySection.transactionsQueryJSON?.inputQuery).not.toContain('limit:');
         });
 
-        it('should build a violationApprover drill-down for a violation-approver group', () => {
-            // Given a violation-approver grouped query whose limit is meant to bound how many groups are shown
-            const parsedQuery = buildSearchQueryJSON(`type:expense has:approved-violation group-by:${CONST.SEARCH.GROUP_BY.VIOLATION_APPROVER} limit:10`);
+        it('should build an approver drill-down for an approver group', () => {
+            // Given an approver-grouped query whose limit is meant to bound how many groups are shown
+            const parsedQuery = buildSearchQueryJSON(`type:expense group-by:${CONST.SEARCH.GROUP_BY.APPROVER} limit:10`);
             if (!parsedQuery) {
-                throw new Error('Failed to parse violation-approver grouped search query');
+                throw new Error('Failed to parse approver grouped search query');
             }
             expect(parsedQuery.limit).toBe(10);
 
-            // When the violation-approver sections are built
+            // When the approver sections are built
             const [sections] = getSectionsByType(
                 SearchUIUtils.getSections({
                     dateFnsLocale: undefined,
                     type: CONST.SEARCH.DATA_TYPES.EXPENSE,
-                    data: searchResultsGroupByViolationApprover.data,
+                    data: searchResultsGroupByApprover.data,
                     currentAccountID: 2074551,
                     currentUserEmail: '',
                     translate: translateLocal,
                     formatPhoneNumber,
                     bankAccountList: {},
                     rules: undefined,
-                    groupBy: CONST.SEARCH.GROUP_BY.VIOLATION_APPROVER,
+                    groupBy: CONST.SEARCH.GROUP_BY.APPROVER,
                     conciergeReportID: undefined,
                     convertToDisplayString,
                     reportAttributesDerivedValue: {},
                     queryJSON: {...parsedQuery},
                 }),
-                SearchUIUtils.isTransactionViolationApproverGroupListItemType,
+                SearchUIUtils.isTransactionApproverGroupListItemType,
             );
 
-            // Then the per-group query drops the grouping and limit, keeps has:approved-violation,
-            // and filters by the approver as a syntax filter
-            const violationApproverSection = sections.at(0);
-            if (!violationApproverSection) {
-                throw new Error('Expected a violation-approver group section');
+            // Then the per-group query drops the grouping and limit, and filters by the approver as a syntax filter
+            const approverSection = sections.at(0);
+            if (!approverSection) {
+                throw new Error('Expected an approver group section');
             }
-            expect(violationApproverSection.transactionsQueryJSON?.groupBy).toBeUndefined();
-            expect(violationApproverSection.transactionsQueryJSON?.limit).toBeUndefined();
-            expect(violationApproverSection.transactionsQueryJSON?.inputQuery).not.toContain('limit:');
-            expect(violationApproverSection.transactionsQueryJSON?.filters).toEqual({
-                operator: CONST.SEARCH.SYNTAX_OPERATORS.AND,
-                left: {
-                    operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO,
-                    left: CONST.SEARCH.SYNTAX_FILTER_KEYS.HAS,
-                    right: CONST.SEARCH.HAS_VALUES.APPROVED_VIOLATION,
-                },
-                right: {
-                    operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO,
-                    left: CONST.SEARCH.SYNTAX_FILTER_KEYS.VIOLATION_APPROVER,
-                    right: String(violationApproverAccountID),
-                },
+            expect(approverSection.transactionsQueryJSON?.groupBy).toBeUndefined();
+            expect(approverSection.transactionsQueryJSON?.limit).toBeUndefined();
+            expect(approverSection.transactionsQueryJSON?.inputQuery).not.toContain('limit:');
+            expect(approverSection.transactionsQueryJSON?.filters).toEqual({
+                operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO,
+                left: CONST.SEARCH.SYNTAX_FILTER_KEYS.APPROVER,
+                right: String(groupedApproverAccountID),
             });
         });
 
@@ -15412,37 +15402,20 @@ describe('hasFilterContentValuesChanged', () => {
 });
 
 describe('getGroupBySections', () => {
-    function getGroupByValues(query: string) {
-        const queryJSON = buildSearchQueryJSON(query);
-        return SearchUIUtils.getGroupBySections(translateLocal, queryJSON)
+    function getGroupByValues() {
+        return SearchUIUtils.getGroupBySections(translateLocal)
             .flatMap((section) => section.options)
             .map((option) => option.value);
     }
 
-    it('offers violation approver only when the query carries a non-negated has:approved-violation', () => {
-        // Given a spend query that includes has:approved-violation
-        // When the Display menu builds its group-by sections
-        const options = getGroupByValues(`type:expense has:${CONST.SEARCH.HAS_VALUES.APPROVED_VIOLATION}`);
+    it('always offers approver grouping alongside from and card', () => {
+        // Given the Display menu group-by sections
+        // When they are built
+        const options = getGroupByValues();
 
-        // Then violation approver is offered because Auth accepts that grouping
-        expect(options).toContain(CONST.SEARCH.GROUP_BY.VIOLATION_APPROVER);
-    });
-
-    it('does not offer violation approver when the query has no approved-violation filter', () => {
-        // Given a spend query without has:approved-violation
-        // When the Display menu builds its group-by sections
-        const options = getGroupByValues('type:expense');
-
-        // Then violation approver is omitted so the UI cannot send a grouping Auth would reject
-        expect(options).not.toContain(CONST.SEARCH.GROUP_BY.VIOLATION_APPROVER);
-    });
-
-    it('does not offer violation approver when has:approved-violation is negated', () => {
-        // Given a spend query that excludes approved violations
-        // When the Display menu builds its group-by sections
-        const options = getGroupByValues(`type:expense -has:${CONST.SEARCH.HAS_VALUES.APPROVED_VIOLATION}`);
-
-        // Then violation approver is omitted because Auth only accepts the positive has filter
-        expect(options).not.toContain(CONST.SEARCH.GROUP_BY.VIOLATION_APPROVER);
+        // Then approver is offered with the other person groupings, with no has-filter requirement
+        expect(options).toContain(CONST.SEARCH.GROUP_BY.FROM);
+        expect(options).toContain(CONST.SEARCH.GROUP_BY.CARD);
+        expect(options).toContain(CONST.SEARCH.GROUP_BY.APPROVER);
     });
 });

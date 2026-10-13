@@ -23,6 +23,7 @@ import type {
 import type {Attendee} from '@src/types/onyx/IOU';
 import type {Errors, Icon} from '@src/types/onyx/OnyxCommon';
 import type {
+    SearchApproverGroup,
     SearchCardGroup,
     SearchCategoryGroup,
     SearchDataTypes,
@@ -34,7 +35,6 @@ import type {
     SearchTagGroup,
     SearchTask,
     SearchTransactionAction,
-    SearchViolationApproverGroup,
     SearchWeekGroup,
     SearchWithdrawalIDGroup,
     SearchYearGroup,
@@ -489,10 +489,10 @@ type TransactionQuarterGroupListItemType = TransactionGroupListItemType & {group
         sortKey: number;
     };
 
-type TransactionViolationApproverGroupListItemType = TransactionGroupListItemType & {groupedBy: typeof CONST.SEARCH.GROUP_BY.VIOLATION_APPROVER} & PersonalDetails &
-    SearchViolationApproverGroup & {
+type TransactionApproverGroupListItemType = TransactionGroupListItemType & {groupedBy: typeof CONST.SEARCH.GROUP_BY.APPROVER} & PersonalDetails &
+    SearchApproverGroup & {
         /** Final and formatted approver name used for displaying and sorting */
-        formattedViolationApprover?: string;
+        formattedApprover?: string;
     };
 
 type TransactionListItemProps<TItem extends ListItem> = ListItemProps<TItem> &
@@ -567,7 +567,7 @@ type GroupHeaderItemType =
     | (TransactionWeekGroupListItemType & GroupHeaderListItemType)
     | (TransactionYearGroupListItemType & GroupHeaderListItemType)
     | (TransactionQuarterGroupListItemType & GroupHeaderListItemType)
-    | (TransactionViolationApproverGroupListItemType & GroupHeaderListItemType)
+    | (TransactionApproverGroupListItemType & GroupHeaderListItemType)
     | (TransactionGroupListItemType & GroupHeaderListItemType);
 
 type GroupChildrenContainerItemType = TransactionGroupListItemType & {
@@ -625,7 +625,7 @@ export type {
     TransactionWeekGroupListItemType,
     TransactionYearGroupListItemType,
     TransactionQuarterGroupListItemType,
-    TransactionViolationApproverGroupListItemType,
+    TransactionApproverGroupListItemType,
     TransactionWithdrawalIDGroupListItemType,
     TransactionGroupListItemProps,
     TransactionGroupListExpandedProps,

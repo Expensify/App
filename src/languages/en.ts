@@ -10348,7 +10348,7 @@ const translations = {
                 [CONST.SEARCH.GROUP_BY.WEEK]: 'Week',
                 [CONST.SEARCH.GROUP_BY.YEAR]: 'Year',
                 [CONST.SEARCH.GROUP_BY.QUARTER]: 'Quarter',
-                [CONST.SEARCH.GROUP_BY.VIOLATION_APPROVER]: 'Violation approver',
+                [CONST.SEARCH.GROUP_BY.APPROVER]: 'Approver',
             },
             feed: 'Feed',
             transactionStatus: {
@@ -10367,8 +10367,6 @@ const translations = {
                 submittedViolation: 'Submitted violation',
                 approvedViolation: 'Approved violation',
             },
-            approvalCount: 'Approval count',
-            approvedTotal: 'Approved total',
             action: {
                 [CONST.SEARCH.ACTION_FILTERS.SUBMIT]: 'Submit',
                 [CONST.SEARCH.ACTION_FILTERS.APPROVE]: 'Approve',
@@ -10414,7 +10412,7 @@ const translations = {
             [CONST.SEARCH.GROUP_BY.WEEK]: 'Weeks',
             [CONST.SEARCH.GROUP_BY.YEAR]: 'Years',
             [CONST.SEARCH.GROUP_BY.QUARTER]: 'Quarters',
-            [CONST.SEARCH.GROUP_BY.VIOLATION_APPROVER]: 'Violation approvers',
+            [CONST.SEARCH.GROUP_BY.APPROVER]: 'Approvers',
         },
         moneyRequestReport: {
             emptyStateTitle: 'No expenses yet',

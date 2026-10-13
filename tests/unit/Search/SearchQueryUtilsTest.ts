@@ -3331,26 +3331,26 @@ describe('SearchQueryUtils', () => {
             expect(queryJSON?.sortOrder).toBe(CONST.SEARCH.SORT_ORDER.DESC);
         });
 
-        test('switching to violation-approver from the Display menu derives sort-by:group-expenses and sort-order:desc', () => {
+        test('switching to approver from the Display menu derives sort-by:group-expenses and sort-order:desc', () => {
             // Given a category grouping whose sort is the category default
-            // When the Display menu switches group by to violation approver
+            // When the Display menu switches group by to approver
             const result = buildFilterQueryWithSortDefaults(
-                {type: 'expense', groupBy: CONST.SEARCH.GROUP_BY.VIOLATION_APPROVER, view: CONST.SEARCH.VIEW.TABLE},
+                {type: 'expense', groupBy: CONST.SEARCH.GROUP_BY.APPROVER, view: CONST.SEARCH.VIEW.TABLE},
                 {view: CONST.SEARCH.VIEW.TABLE, groupBy: CONST.SEARCH.GROUP_BY.CATEGORY},
                 {sortBy: CONST.SEARCH.TABLE_COLUMNS.GROUP_CATEGORY, sortOrder: CONST.SEARCH.SORT_ORDER.ASC},
             );
             const queryJSON = buildSearchQueryJSON(result ?? '');
 
-            // Then the parser re-derives the violation-approver defaults from GROUP_BY_DEFAULT_SORT and GROUP_BY_DEFAULT_SORT_ORDER
+            // Then the parser re-derives the approver defaults from GROUP_BY_DEFAULT_SORT and GROUP_BY_DEFAULT_SORT_ORDER
             expect(queryJSON?.sortBy).toBe(CONST.SEARCH.TABLE_COLUMNS.GROUP_EXPENSES);
             expect(queryJSON?.sortOrder).toBe(CONST.SEARCH.SORT_ORDER.DESC);
         });
     });
 
-    describe('group-by:violation-approver parser round trip', () => {
-        test('round-trips group-by:violation-approver and a customized group column list', () => {
-            // Given a query that groups by violation approver and customizes the new group columns
-            const query = `type:expense group-by:${CONST.SEARCH.GROUP_BY.VIOLATION_APPROVER} columns:group-violation-approver,group-approval-count,group-approved-total`;
+    describe('group-by:approver parser round trip', () => {
+        test('round-trips group-by:approver and a customized group column list', () => {
+            // Given a query that groups by approver and customizes the group columns
+            const query = `type:expense group-by:${CONST.SEARCH.GROUP_BY.APPROVER} columns:group-approver,group-expenses,group-total`;
 
             // When it is parsed and then rebuilt into a query string and parsed again
             const parsed = buildSearchQueryJSON(query);
@@ -3358,12 +3358,8 @@ describe('SearchQueryUtils', () => {
             const roundTripped = buildSearchQueryJSON(rebuilt);
 
             // Then the group by and customized columns survive the round trip
-            expect(roundTripped?.groupBy).toBe(CONST.SEARCH.GROUP_BY.VIOLATION_APPROVER);
-            expect(roundTripped?.columns).toEqual([
-                CONST.SEARCH.TABLE_COLUMNS.GROUP_VIOLATION_APPROVER,
-                CONST.SEARCH.TABLE_COLUMNS.GROUP_APPROVAL_COUNT,
-                CONST.SEARCH.TABLE_COLUMNS.GROUP_APPROVED_TOTAL,
-            ]);
+            expect(roundTripped?.groupBy).toBe(CONST.SEARCH.GROUP_BY.APPROVER);
+            expect(roundTripped?.columns).toEqual([CONST.SEARCH.TABLE_COLUMNS.GROUP_APPROVER, CONST.SEARCH.TABLE_COLUMNS.GROUP_EXPENSES, CONST.SEARCH.TABLE_COLUMNS.GROUP_TOTAL]);
         });
     });
 

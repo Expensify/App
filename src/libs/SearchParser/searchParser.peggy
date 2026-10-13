@@ -40,7 +40,7 @@
     week: "groupweek",
     year: "groupyear",
     quarter: "groupquarter",
-    "violation-approver": "groupExpenses",
+    approver: "groupExpenses",
   };
 
   const GROUP_BY_DEFAULT_SORT_ORDER = {
@@ -55,7 +55,7 @@
     week: "desc",
     year: "desc",
     quarter: "desc",
-    "violation-approver": "desc",
+    approver: "desc",
   };
 
   const TIME_BASED_GROUP_BY = new Set(["day", "week", "month", "year", "quarter"]);
@@ -300,7 +300,7 @@ key "key"
       / submitterUserID
       / submitterPayrollID
       / orderDealNumbers
-      / violationApprover
+      / approver
       / assignee
       / createdBy
       / reimbursable

@@ -7715,7 +7715,7 @@ const CONST = {
             WEEK: 'week',
             YEAR: 'year',
             QUARTER: 'quarter',
-            VIOLATION_APPROVER: 'violation-approver',
+            APPROVER: 'approver',
         },
         /**
          * Single source of truth for which transaction-level columns are available in each column-picker surface:
@@ -8038,12 +8038,11 @@ const CONST = {
                     EXPENSES: this.TABLE_COLUMNS.GROUP_EXPENSES,
                     TOTAL: this.TABLE_COLUMNS.GROUP_TOTAL,
                 },
-                VIOLATION_APPROVER: {
+                APPROVER: {
                     AVATAR: this.TABLE_COLUMNS.AVATAR,
-                    VIOLATION_APPROVER: this.TABLE_COLUMNS.GROUP_VIOLATION_APPROVER,
+                    APPROVER: this.TABLE_COLUMNS.GROUP_APPROVER,
                     EXPENSES: this.TABLE_COLUMNS.GROUP_EXPENSES,
-                    APPROVAL_COUNT: this.TABLE_COLUMNS.GROUP_APPROVAL_COUNT,
-                    APPROVED_TOTAL: this.TABLE_COLUMNS.GROUP_APPROVED_TOTAL,
+                    TOTAL: this.TABLE_COLUMNS.GROUP_TOTAL,
                 },
             };
         },
@@ -8098,13 +8097,7 @@ const CONST = {
                 WEEK: [this.TABLE_COLUMNS.GROUP_WEEK, this.TABLE_COLUMNS.GROUP_EXPENSES, this.TABLE_COLUMNS.GROUP_TOTAL],
                 YEAR: [this.TABLE_COLUMNS.GROUP_YEAR, this.TABLE_COLUMNS.GROUP_EXPENSES, this.TABLE_COLUMNS.GROUP_TOTAL],
                 QUARTER: [this.TABLE_COLUMNS.GROUP_QUARTER, this.TABLE_COLUMNS.GROUP_EXPENSES, this.TABLE_COLUMNS.GROUP_TOTAL],
-                VIOLATION_APPROVER: [
-                    this.TABLE_COLUMNS.AVATAR,
-                    this.TABLE_COLUMNS.GROUP_VIOLATION_APPROVER,
-                    this.TABLE_COLUMNS.GROUP_EXPENSES,
-                    this.TABLE_COLUMNS.GROUP_APPROVAL_COUNT,
-                    this.TABLE_COLUMNS.GROUP_APPROVED_TOTAL,
-                ],
+                APPROVER: [this.TABLE_COLUMNS.AVATAR, this.TABLE_COLUMNS.GROUP_APPROVER, this.TABLE_COLUMNS.GROUP_EXPENSES, this.TABLE_COLUMNS.GROUP_TOTAL],
             };
         },
         BOOLEAN: {
@@ -8224,9 +8217,7 @@ const CONST = {
             GROUP_WITHDRAWAL_STATUS: 'groupWithdrawalStatus',
             GROUP_AMOUNT_DEBITED: 'groupAmountDebited',
             GROUP_AMOUNT_REIMBURSED: 'groupAmountReimbursed',
-            GROUP_VIOLATION_APPROVER: 'groupViolationApprover',
-            GROUP_APPROVAL_COUNT: 'groupApprovalCount',
-            GROUP_APPROVED_TOTAL: 'groupApprovedTotal',
+            GROUP_APPROVER: 'groupApprover',
         },
         SYNTAX_OPERATORS: {
             AND: 'and',
@@ -8319,7 +8310,7 @@ const CONST = {
             SUBMITTER_USER_ID: 'submitterUserID',
             SUBMITTER_PAYROLL_ID: 'submitterPayrollID',
             ORDER_DEAL_NUMBERS: 'orderDealNumbers',
-            VIOLATION_APPROVER: 'violationApprover',
+            APPROVER: 'approver',
         },
         REPORT_FIELD: {
             // All report fields start with this, so use this to check if a search key is a report field
@@ -8403,7 +8394,7 @@ const CONST = {
             SUBMITTER_USER_ID: 'submitter-user-id',
             SUBMITTER_PAYROLL_ID: 'submitter-payroll-id',
             ORDER_DEAL_NUMBERS: 'order-deal-numbers',
-            VIOLATION_APPROVER: 'violation-approver',
+            APPROVER: 'approver',
             COLUMNS: 'columns',
             LIMIT: 'limit',
             COMPARE: 'compare',
@@ -8477,9 +8468,7 @@ const CONST = {
                 [this.TABLE_COLUMNS.GROUP_WITHDRAWAL_STATUS]: 'group-withdrawal-status',
                 [this.TABLE_COLUMNS.GROUP_AMOUNT_DEBITED]: 'group-amount-debited',
                 [this.TABLE_COLUMNS.GROUP_AMOUNT_REIMBURSED]: 'group-amount-reimbursed',
-                [this.TABLE_COLUMNS.GROUP_VIOLATION_APPROVER]: 'group-violation-approver',
-                [this.TABLE_COLUMNS.GROUP_APPROVAL_COUNT]: 'group-approval-count',
-                [this.TABLE_COLUMNS.GROUP_APPROVED_TOTAL]: 'group-approved-total',
+                [this.TABLE_COLUMNS.GROUP_APPROVER]: 'group-approver',
                 [this.TABLE_COLUMNS.AMOUNT_DEBITED]: 'amount-debited',
                 [this.TABLE_COLUMNS.AMOUNT_REIMBURSED]: 'amount-reimbursed',
             };

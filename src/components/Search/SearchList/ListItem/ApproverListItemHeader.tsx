@@ -18,14 +18,14 @@ import type {ReactNode} from 'react';
 import React from 'react';
 import {View} from 'react-native';
 
-import type {TransactionViolationApproverGroupListItemType} from './types';
+import type {TransactionApproverGroupListItemType} from './types';
 
 import ExpandCollapseArrowButton from './ExpandCollapseArrowButton';
 import TextCell from './TextCell';
 import TotalCell from './TotalCell';
 
-type ViolationApproverListItemHeaderProps = {
-    violationApprover: TransactionViolationApproverGroupListItemType;
+type ApproverListItemHeaderProps = {
+    approver: TransactionApproverGroupListItemType;
     onCheckboxPress?: (item: ListItem) => void;
 
     /** Whether this section items disabled for selection */
@@ -55,8 +55,8 @@ type ViolationApproverListItemHeaderProps = {
  * Kept non-generic so OXC's React Compiler can memoize the component.
  * OXC bails on type params inside components ("Unsupported declaration type for hoisting").
  */
-function ViolationApproverListItemHeader({
-    violationApprover: violationApproverItem,
+function ApproverListItemHeader({
+    approver: approverItem,
     onCheckboxPress,
     isDisabled,
     canSelectMultiple,
@@ -66,16 +66,16 @@ function ViolationApproverListItemHeader({
     onDownArrowClick,
     columns,
     isLargeScreenWidth,
-}: ViolationApproverListItemHeaderProps) {
+}: ApproverListItemHeaderProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate, formatPhoneNumber} = useLocalize();
     const formattedDisplayName = temporaryGetDisplayNameOrDefault({
-        passedPersonalDetails: violationApproverItem,
+        passedPersonalDetails: approverItem,
         translate,
         formatPhoneNumber,
     });
-    const formattedLogin = formatPhoneNumber(violationApproverItem.login ?? '');
+    const formattedLogin = formatPhoneNumber(approverItem.login ?? '');
 
     const columnComponents: Partial<Record<SearchColumnType, ReactNode>> = {
         [CONST.SEARCH.TABLE_COLUMNS.AVATAR]: (
@@ -83,21 +83,21 @@ function ViolationApproverListItemHeader({
                 key={CONST.SEARCH.TABLE_COLUMNS.AVATAR}
                 style={StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.AVATAR)}
             >
-                <UserDetailsTooltip accountID={violationApproverItem.accountID}>
+                <UserDetailsTooltip accountID={approverItem.accountID}>
                     <View>
                         <UserAvatar
-                            source={violationApproverItem.avatar}
-                            accountID={violationApproverItem.accountID}
+                            source={approverItem.avatar}
+                            accountID={approverItem.accountID}
                             size={CONST.AVATAR_SIZE.SMALL}
                         />
                     </View>
                 </UserDetailsTooltip>
             </View>
         ),
-        [CONST.SEARCH.TABLE_COLUMNS.GROUP_VIOLATION_APPROVER]: (
+        [CONST.SEARCH.TABLE_COLUMNS.GROUP_APPROVER]: (
             <View
-                key={CONST.SEARCH.TABLE_COLUMNS.GROUP_VIOLATION_APPROVER}
-                style={StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.GROUP_VIOLATION_APPROVER)}
+                key={CONST.SEARCH.TABLE_COLUMNS.GROUP_APPROVER}
+                style={StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.GROUP_APPROVER)}
             >
                 <View style={styles.flexShrink1}>
                     <TextWithTooltip
@@ -116,25 +116,17 @@ function ViolationApproverListItemHeader({
                 key={CONST.SEARCH.TABLE_COLUMNS.GROUP_EXPENSES}
                 style={StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.EXPENSES)}
             >
-                <TextCell text={String(violationApproverItem.count)} />
+                <TextCell text={String(approverItem.count)} />
             </View>
         ),
-        [CONST.SEARCH.TABLE_COLUMNS.GROUP_APPROVAL_COUNT]: (
+        [CONST.SEARCH.TABLE_COLUMNS.GROUP_TOTAL]: (
             <View
-                key={CONST.SEARCH.TABLE_COLUMNS.GROUP_APPROVAL_COUNT}
-                style={StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.GROUP_APPROVAL_COUNT)}
-            >
-                <TextCell text={String(violationApproverItem.approvalCount)} />
-            </View>
-        ),
-        [CONST.SEARCH.TABLE_COLUMNS.GROUP_APPROVED_TOTAL]: (
-            <View
-                key={CONST.SEARCH.TABLE_COLUMNS.GROUP_APPROVED_TOTAL}
-                style={StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.GROUP_APPROVED_TOTAL, {shouldRemoveTotalColumnFlex: true})}
+                key={CONST.SEARCH.TABLE_COLUMNS.GROUP_TOTAL}
+                style={StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TOTAL, {shouldRemoveTotalColumnFlex: true})}
             >
                 <TotalCell
-                    total={violationApproverItem.total}
-                    currency={violationApproverItem.currency}
+                    total={approverItem.total}
+                    currency={approverItem.currency}
                 />
             </View>
         ),
@@ -146,21 +138,21 @@ function ViolationApproverListItemHeader({
                 <View style={[styles.flexRow, styles.alignItemsCenter, styles.mnh40, styles.flex1, styles.gap3]}>
                     {!!canSelectMultiple && (
                         <Checkbox
-                            onPress={() => onCheckboxPress?.(violationApproverItem)}
+                            onPress={() => onCheckboxPress?.(approverItem)}
                             isChecked={isSelectAllChecked}
                             isIndeterminate={isIndeterminate}
-                            disabled={!!isDisabled || violationApproverItem.isDisabledCheckbox}
+                            disabled={!!isDisabled || approverItem.isDisabledCheckbox}
                             accessibilityLabel={translate('common.select')}
                             containerStyle={styles.m0}
                         />
                     )}
                     {!isLargeScreenWidth && (
                         <View style={[styles.flexRow, styles.flex1, styles.gap3]}>
-                            <UserDetailsTooltip accountID={violationApproverItem.accountID}>
+                            <UserDetailsTooltip accountID={approverItem.accountID}>
                                 <View>
                                     <UserAvatar
-                                        source={violationApproverItem.avatar}
-                                        accountID={violationApproverItem.accountID}
+                                        source={approverItem.avatar}
+                                        accountID={approverItem.accountID}
                                     />
                                 </View>
                             </UserDetailsTooltip>
@@ -181,8 +173,8 @@ function ViolationApproverListItemHeader({
                 {!isLargeScreenWidth && (
                     <View style={[styles.flexShrink0, styles.flexRow, styles.alignItemsCenter]}>
                         <TotalCell
-                            total={violationApproverItem.total}
-                            currency={violationApproverItem.currency}
+                            total={approverItem.total}
+                            currency={approverItem.currency}
                         />
                         {!!onDownArrowClick && (
                             <ExpandCollapseArrowButton
@@ -197,4 +189,4 @@ function ViolationApproverListItemHeader({
     );
 }
 
-export default ViolationApproverListItemHeader;
+export default ApproverListItemHeader;

@@ -10104,7 +10104,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                 [CONST.SEARCH.GROUP_BY.WEEK]: 'Woche',
                 [CONST.SEARCH.GROUP_BY.YEAR]: 'Jahr',
                 [CONST.SEARCH.GROUP_BY.QUARTER]: 'Quartal',
-                [CONST.SEARCH.GROUP_BY.VIOLATION_APPROVER]: 'Verstoßgenehmigende Person',
+                [CONST.SEARCH.GROUP_BY.APPROVER]: 'Genehmiger',
             },
             feed: 'Feed',
             withdrawalType: {
@@ -10114,8 +10114,6 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
             },
             is: 'Ist',
             has: {submittedViolation: 'Eingereichter Verstoß', approvedViolation: 'Genehmigter Verstoß'},
-            approvalCount: 'Genehmigungsanzahl',
-            approvedTotal: 'Genehmigte Gesamtsumme',
             action: {
                 [CONST.SEARCH.ACTION_FILTERS.SUBMIT]: 'Senden',
                 [CONST.SEARCH.ACTION_FILTERS.APPROVE]: 'Genehmigen',
@@ -10159,7 +10157,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
             [CONST.SEARCH.GROUP_BY.WEEK]: 'Wochen',
             [CONST.SEARCH.GROUP_BY.YEAR]: 'Jahre',
             [CONST.SEARCH.GROUP_BY.QUARTER]: 'Quartale',
-            [CONST.SEARCH.GROUP_BY.VIOLATION_APPROVER]: 'Verstoßgenehmigende Personen',
+            [CONST.SEARCH.GROUP_BY.APPROVER]: 'Genehmiger',
         },
         moneyRequestReport: {emptyStateTitle: 'Noch keine Ausgaben', accessPlaceHolder: 'Für Details öffnen'},
         noCategory: 'Keine Kategorie',

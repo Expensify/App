@@ -9,7 +9,6 @@ import {markQueryAsRefinement} from '@libs/SearchQueryRefinement';
 import {buildFilterQueryWithSortDefaults, buildSearchQueryJSON} from '@libs/SearchQueryUtils';
 import {filterValidHasValues} from '@libs/SearchUIUtils';
 
-import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {SearchAdvancedFiltersForm} from '@src/types/form';
 import {getEmptyObject} from '@src/types/utils/EmptyObject';
@@ -35,11 +34,6 @@ function useUpdateFilterQuery(queryJSON: SearchQueryJSON | undefined) {
         }
 
         if (updatedFilterFormValues.groupBy !== currentValues.groupBy) {
-            updatedFilterFormValues.columns = [];
-        }
-
-        if (updatedFilterFormValues.groupBy === CONST.SEARCH.GROUP_BY.VIOLATION_APPROVER && !updatedFilterFormValues.has?.includes(CONST.SEARCH.HAS_VALUES.APPROVED_VIOLATION)) {
-            updatedFilterFormValues.groupBy = undefined;
             updatedFilterFormValues.columns = [];
         }
 

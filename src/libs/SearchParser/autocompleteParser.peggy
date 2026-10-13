@@ -131,7 +131,7 @@ autocompleteKey "key"
       / submitterUserID
       / submitterPayrollID
       / orderDealNumbers
-      / violationApprover
+      / approver
       / reportFieldDynamic
       / columns
       / limit

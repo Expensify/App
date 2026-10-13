@@ -849,30 +849,30 @@ const tests = [
         },
     },
     {
-        query: 'type:expense group-by:violation-approver',
+        query: 'type:expense group-by:approver',
         expected: {
             type: CONST.SEARCH.DATA_TYPES.EXPENSE,
             sortBy: CONST.SEARCH.TABLE_COLUMNS.GROUP_EXPENSES,
             sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
             view: 'table',
-            groupBy: CONST.SEARCH.GROUP_BY.VIOLATION_APPROVER,
+            groupBy: CONST.SEARCH.GROUP_BY.APPROVER,
             filters: null,
         },
     },
     {
-        query: 'type:expense group-by:violation-approver columns:group-violation-approver,group-approval-count,group-approved-total',
+        query: 'type:expense group-by:approver columns:group-approver,group-expenses,group-total',
         expected: {
             type: CONST.SEARCH.DATA_TYPES.EXPENSE,
             sortBy: CONST.SEARCH.TABLE_COLUMNS.GROUP_EXPENSES,
             sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
             view: 'table',
-            groupBy: CONST.SEARCH.GROUP_BY.VIOLATION_APPROVER,
-            columns: [CONST.SEARCH.TABLE_COLUMNS.GROUP_VIOLATION_APPROVER, CONST.SEARCH.TABLE_COLUMNS.GROUP_APPROVAL_COUNT, CONST.SEARCH.TABLE_COLUMNS.GROUP_APPROVED_TOTAL],
+            groupBy: CONST.SEARCH.GROUP_BY.APPROVER,
+            columns: [CONST.SEARCH.TABLE_COLUMNS.GROUP_APPROVER, CONST.SEARCH.TABLE_COLUMNS.GROUP_EXPENSES, CONST.SEARCH.TABLE_COLUMNS.GROUP_TOTAL],
             filters: null,
         },
     },
     {
-        query: 'type:expense has:approved-violation violation-approver:22982540',
+        query: 'type:expense has:approved-violation approver:22982540',
         expected: {
             type: CONST.SEARCH.DATA_TYPES.EXPENSE,
             sortBy: CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE,
@@ -887,7 +887,7 @@ const tests = [
                 },
                 right: {
                     operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO,
-                    left: CONST.SEARCH.SYNTAX_FILTER_KEYS.VIOLATION_APPROVER,
+                    left: CONST.SEARCH.SYNTAX_FILTER_KEYS.APPROVER,
                     right: '22982540',
                 },
             },

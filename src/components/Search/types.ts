@@ -28,7 +28,7 @@ import type {
     TransactionMonthGroupListItemType,
     TransactionQuarterGroupListItemType,
     TransactionTagGroupListItemType,
-    TransactionViolationApproverGroupListItemType,
+    TransactionApproverGroupListItemType,
     TransactionWeekGroupListItemType,
     TransactionWithdrawalIDGroupListItemType,
     TransactionYearGroupListItemType,
@@ -470,7 +470,7 @@ type GroupedItem =
     | TransactionWeekGroupListItemType
     | TransactionYearGroupListItemType
     | TransactionQuarterGroupListItemType
-    | TransactionViolationApproverGroupListItemType;
+    | TransactionApproverGroupListItemType;
 
 type SearchChartDataRow = {
     /** The point plotted on the chart */

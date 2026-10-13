@@ -21,7 +21,7 @@ import type {TransactionPreviewData} from '@libs/actions/Search';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import type {ModifiedMouseEvent} from '@libs/Navigation/helpers/openInternalRouteInNewTab';
 import {getLoginByAccountID} from '@libs/PersonalDetailsUtils';
-import {isCashBackWithdrawalGroup, isTransactionDayGroupListItemType} from '@libs/SearchUIUtils';
+import {isCashBackWithdrawalGroup, isTransactionApproverGroupListItemType, isTransactionDayGroupListItemType} from '@libs/SearchUIUtils';
 import {getVisibleTransactionViolations, isTransactionPendingDelete} from '@libs/TransactionUtils';
 
 import variables from '@styles/variables';
@@ -55,9 +55,9 @@ import type {
     TransactionWeekGroupListItemType,
     TransactionWithdrawalIDGroupListItemType,
     TransactionYearGroupListItemType,
-    TransactionViolationApproverGroupListItemType,
 } from './types';
 
+import ApproverListItemHeader from './ApproverListItemHeader';
 import CardListItemHeader from './CardListItemHeader';
 import CategoryListItemHeader from './CategoryListItemHeader';
 import DayListItemHeader from './DayListItemHeader';
@@ -72,7 +72,6 @@ import TransactionGroupListExpandedItem from './TransactionGroupListExpanded';
 import useGroupChildren from './useGroupChildren';
 import useGroupOpenForShiftRange from './useGroupOpenForShiftRange';
 import useLiveRowCapabilities from './useLiveRowCapabilities';
-import ViolationApproverListItemHeader from './ViolationApproverListItemHeader';
 import WeekListItemHeader from './WeekListItemHeader';
 import WithdrawalIDListItemHeader from './WithdrawalIDListItemHeader';
 import YearListItemHeader from './YearListItemHeader';
@@ -473,20 +472,25 @@ function TransactionGroupListItemImpl({
                     isExpanded={isExpanded}
                 />
             ),
-            [CONST.SEARCH.GROUP_BY.VIOLATION_APPROVER]: (
-                <ViolationApproverListItemHeader
-                    violationApprover={groupItem as TransactionViolationApproverGroupListItemType}
-                    onCheckboxPress={handleSelectionButtonPress}
-                    isDisabled={isDisabledOrEmpty}
-                    columns={columns}
-                    canSelectMultiple={canSelectMultiple}
-                    isSelectAllChecked={isSelectAllChecked}
-                    isIndeterminate={isIndeterminate}
-                    onDownArrowClick={onExpandIconPress}
-                    isExpanded={isExpanded}
-                    isLargeScreenWidth={isLargeScreenWidth}
-                />
-            ),
+            [CONST.SEARCH.GROUP_BY.APPROVER]: (() => {
+                if (!isTransactionApproverGroupListItemType(groupItem)) {
+                    return null;
+                }
+                return (
+                    <ApproverListItemHeader
+                        approver={groupItem}
+                        onCheckboxPress={handleSelectionButtonPress}
+                        isDisabled={isDisabledOrEmpty}
+                        columns={columns}
+                        canSelectMultiple={canSelectMultiple}
+                        isSelectAllChecked={isSelectAllChecked}
+                        isIndeterminate={isIndeterminate}
+                        onDownArrowClick={onExpandIconPress}
+                        isExpanded={isExpanded}
+                        isLargeScreenWidth={isLargeScreenWidth}
+                    />
+                );
+            })(),
         };
 
         if (searchType === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT) {

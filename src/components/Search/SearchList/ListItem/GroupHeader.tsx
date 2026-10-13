@@ -44,6 +44,7 @@ import Animated from 'react-native-reanimated';
 
 import type {GroupHeaderItemType, SearchListActionProps, SearchListItem, TransactionListItemType} from './types';
 
+import ApproverListItemHeader from './ApproverListItemHeader';
 import CardListItemHeader from './CardListItemHeader';
 import CategoryListItemHeader from './CategoryListItemHeader';
 import DayListItemHeader from './DayListItemHeader';
@@ -54,7 +55,6 @@ import QuarterListItemHeader from './QuarterListItemHeader';
 import ReportListItemHeader from './ReportListItemHeader';
 import TagListItemHeader from './TagListItemHeader';
 import {useGroupCheckboxState} from './useGroupChildren';
-import ViolationApproverListItemHeader from './ViolationApproverListItemHeader';
 import WeekListItemHeader from './WeekListItemHeader';
 import WithdrawalIDListItemHeader from './WithdrawalIDListItemHeader';
 import YearListItemHeader from './YearListItemHeader';
@@ -321,10 +321,10 @@ function GroupHeader({
                         {...commonProps}
                     />
                 );
-            case CONST.SEARCH.GROUP_BY.VIOLATION_APPROVER:
+            case CONST.SEARCH.GROUP_BY.APPROVER:
                 return (
-                    <ViolationApproverListItemHeader
-                        violationApprover={groupItem}
+                    <ApproverListItemHeader
+                        approver={groupItem}
                         {...commonProps}
                         isLargeScreenWidth={isLargeScreenWidth}
                     />

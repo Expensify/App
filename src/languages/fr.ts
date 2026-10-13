@@ -10128,7 +10128,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                 [CONST.SEARCH.GROUP_BY.WEEK]: 'Semaine',
                 [CONST.SEARCH.GROUP_BY.YEAR]: 'Année',
                 [CONST.SEARCH.GROUP_BY.QUARTER]: 'Trimestre',
-                [CONST.SEARCH.GROUP_BY.VIOLATION_APPROVER]: 'Approbateur des violations',
+                [CONST.SEARCH.GROUP_BY.APPROVER]: 'Approbateur',
             },
             feed: 'Fil',
             withdrawalType: {
@@ -10138,8 +10138,6 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             },
             is: 'Est',
             has: {submittedViolation: 'Infraction soumise', approvedViolation: 'Violation approuvée'},
-            approvalCount: 'Nombre d’approbations',
-            approvedTotal: 'Total approuvé',
             action: {
                 [CONST.SEARCH.ACTION_FILTERS.SUBMIT]: 'Soumettre',
                 [CONST.SEARCH.ACTION_FILTERS.APPROVE]: 'Approuver',
@@ -10183,7 +10181,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             [CONST.SEARCH.GROUP_BY.WEEK]: 'Semaines',
             [CONST.SEARCH.GROUP_BY.YEAR]: 'Années',
             [CONST.SEARCH.GROUP_BY.QUARTER]: 'Trimestres',
-            [CONST.SEARCH.GROUP_BY.VIOLATION_APPROVER]: 'Approbateurs des infractions',
+            [CONST.SEARCH.GROUP_BY.APPROVER]: 'Approbateurs',
         },
         moneyRequestReport: {emptyStateTitle: 'Aucune dépense pour l’instant', accessPlaceHolder: 'Ouvrir pour plus de détails'},
         noCategory: 'Aucune catégorie',
