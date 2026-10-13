@@ -17,6 +17,7 @@
 import {act, renderHook} from '@testing-library/react-native';
 
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useIsTabFocused from '@hooks/useIsTabFocused';
 import useNetwork from '@hooks/useNetwork';
 
 import {search} from '@libs/actions/Search';
@@ -37,6 +38,8 @@ import type {CurrentUserPersonalDetails} from '@src/types/onyx/PersonalDetails';
 import type SearchResults from '@src/types/onyx/SearchResults';
 
 import type {OnyxCollection} from 'react-native-onyx';
+
+import {useIsFocused} from '@react-navigation/native';
 
 import createMock from '../../../utils/createMock';
 
@@ -81,6 +84,13 @@ jest.mock('@react-navigation/native', () => ({
     createNavigationContainerRef: () => ({}),
 }));
 
+// Mandatory: the real hook reads the root navigation state, which is never ready under Jest, so it
+// would report "not focused" and the searches would silently never fire.
+jest.mock('@hooks/useIsTabFocused', () => ({
+    __esModule: true,
+    default: jest.fn(() => true),
+}));
+
 jest.mock('@libs/actions/Search', () => ({
     search: jest.fn(),
 }));
@@ -109,6 +119,8 @@ jest.mock('@libs/PolicyUtils', () => ({
 // Typed references to mocked modules
 
 const mockedUseNetwork = jest.mocked(useNetwork);
+const mockedUseIsTabFocused = jest.mocked(useIsTabFocused);
+const mockedUseIsFocused = jest.mocked(useIsFocused);
 const mockedUseCurrentUserPersonalDetails = jest.mocked(useCurrentUserPersonalDetails);
 const mockedSearch = jest.mocked(search);
 const mockedGetDisplayableExpensifyCards = jest.mocked(getDisplayableExpensifyCards);
@@ -162,6 +174,8 @@ function makeSearchResultsWithCount(count: number): SearchResults {
             hasResults: count > 0,
             isLoading: false,
             count,
+            // Every Search response is stamped with the breakdown its total answers once it lands.
+            footerTotal: CONST.SEARCH.FOOTER_TOTAL.TOTAL,
         },
         data: {},
     };
@@ -210,7 +224,14 @@ function setupCardGroups(groups: CardGroupFixture[], searchOverrides: Partial<Se
 
 /** Builds a fully-populated `CardFeedErrors` value for `onyxData[ONYXKEYS.DERIVED.CARD_FEED_ERRORS]`. */
 function makeCardFeedErrors(overrides: Partial<CardFeedErrors> = {}): CardFeedErrors {
-    const defaultState: CardFeedErrorState = {shouldShowRBR: false, isFeedConnectionBroken: false, shouldPromptBrokenConnection: false, hasFeedErrors: false, hasWorkspaceErrors: false};
+    const defaultState: CardFeedErrorState = {
+        shouldShowRBR: false,
+        isFeedConnectionBroken: false,
+        shouldPromptBrokenConnection: false,
+        hasFeedErrors: false,
+        hasWorkspaceErrors: false,
+        hasFeedConnectionIssue: false,
+    };
     return {
         cardFeedErrors: {},
         cardsWithBrokenFeedConnection: {},
@@ -263,6 +284,8 @@ beforeEach(() => {
     }
     mockUseOnyx.mockClear();
     mockedSearch.mockClear();
+    mockedUseIsTabFocused.mockReturnValue(true);
+    mockedUseIsFocused.mockReturnValue(true);
 
     mockedBuildAwaitingApprovalQuery.mockReturnValue(APPROVAL_QUERY);
     mockedBuildRepaidLast30DaysQuery.mockReturnValue(PAYMENT_QUERY);
@@ -543,6 +566,23 @@ describe('useYourSpendData — search dispatch', () => {
         );
     });
 
+    it('does not replay the set when an RHP opens and closes over Home', () => {
+        // Given Home has already fired its searches
+        mockedIsPaidGroupPolicy.mockReturnValue(true);
+        const {rerender} = renderHook(() => useYourSpendData());
+        const callsAfterFirstRender = mockedSearch.mock.calls.length;
+        expect(callsAfterFirstRender).toBeGreaterThan(0);
+
+        // When an RHP is pushed over Home and popped again, leaving the Home tab active throughout
+        mockedUseIsFocused.mockReturnValue(false);
+        rerender(undefined);
+        mockedUseIsFocused.mockReturnValue(true);
+        rerender(undefined);
+
+        // Then closing it does not refetch a set the account already has
+        expect(mockedSearch).toHaveBeenCalledTimes(callsAfterFirstRender);
+    });
+
     it('does not dispatch search() when offline', () => {
         mockedIsPaidGroupPolicy.mockReturnValue(true);
         mockedUseNetwork.mockReturnValue(networkState(true));
@@ -810,9 +850,94 @@ describe('useYourSpendData — refires search when a relevant report state chang
         return mockedSearch.mock.calls.filter((call) => call.at(0)?.queryJSON?.hash === approvalHash).length;
     }
 
+    function paymentSearchCallCount(): number {
+        const paymentHash = buildSearchQueryJSON(PAYMENT_QUERY)?.hash;
+        return mockedSearch.mock.calls.filter((call) => call.at(0)?.queryJSON?.hash === paymentHash).length;
+    }
+
+    function cardGroupSearchCallCount(): number {
+        const cardGroupHash = buildSearchQueryJSON(CARD_GROUP_QUERY)?.hash;
+        return mockedSearch.mock.calls.filter((call) => call.at(0)?.queryJSON?.hash === cardGroupHash).length;
+    }
+
     beforeEach(() => {
         mockedIsPaidGroupPolicy.mockReturnValue(true);
         setupPolicies([makeCorporatePolicy({id: 'policy_1'})]);
+    });
+
+    it('holds an approval behind an open RHP and refires once it closes', () => {
+        // Given Home has searched with one OUTSTANDING report
+        setupReports([makeReport()]);
+        const {rerender} = renderHook(() => useYourSpendData());
+        const before = approvalSearchCallCount();
+
+        // When the report is approved behind an open RHP, and the RHP is then closed
+        mockedUseIsFocused.mockReturnValue(false);
+        rerender(undefined);
+        setupReports([makeReport({stateNum: CONST.REPORT.STATE_NUM.APPROVED, statusNum: CONST.REPORT.STATUS_NUM.APPROVED})]);
+        rerender(undefined);
+        expect(approvalSearchCallCount()).toBe(before);
+        mockedUseIsFocused.mockReturnValue(true);
+        rerender(undefined);
+
+        // Then the refresh is not lost: it fires once, after Home is visible again
+        expect(approvalSearchCallCount()).toBe(before + 1);
+    });
+
+    it('refires the payment search when an owned report is reimbursed', () => {
+        // Given an owned report that has been approved but not yet paid
+        setupReports([makeReport({stateNum: CONST.REPORT.STATE_NUM.APPROVED, statusNum: CONST.REPORT.STATUS_NUM.APPROVED})]);
+        const {rerender} = renderHook(() => useYourSpendData());
+        const before = paymentSearchCallCount();
+
+        // When the report is reimbursed, which no snapshot update ever patches
+        setupReports([makeReport({stateNum: CONST.REPORT.STATE_NUM.APPROVED, statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED})]);
+        rerender(undefined);
+
+        // Then the repaid row fetches again instead of showing the pre-payment total
+        expect(paymentSearchCallCount()).toBeGreaterThan(before);
+    });
+
+    it('refires the card search when an expense on the user`s card changes', () => {
+        // Given Home has loaded with one displayable card
+        mockedGetDisplayableExpensifyCards.mockReturnValue(makeDisplayableCards([{cardID: CARD_ID_1, lastFourPAN: CARD_LAST_FOUR_1}]));
+        const {rerender} = renderHook(() => useYourSpendData());
+        const before = cardGroupSearchCallCount();
+
+        // When a card expense changes, which moves the derived counter but no query
+        onyxData[ONYXKEYS.DERIVED.SPEND_DATA_SIGNATURE] = {expenses: 1, cardExpenses: 1};
+        rerender(undefined);
+
+        // Then the grouped card totals refetch
+        expect(cardGroupSearchCallCount()).toBeGreaterThan(before);
+    });
+
+    it('does not refire the card search for an expense that is not on the user`s card', () => {
+        // Given Home has loaded with one displayable card
+        mockedGetDisplayableExpensifyCards.mockReturnValue(makeDisplayableCards([{cardID: CARD_ID_1, lastFourPAN: CARD_LAST_FOUR_1}]));
+        const {rerender} = renderHook(() => useYourSpendData());
+        const before = cardGroupSearchCallCount();
+
+        // When an expense changes that is not charged to one of the user's cards
+        onyxData[ONYXKEYS.DERIVED.SPEND_DATA_SIGNATURE] = {expenses: 1, cardExpenses: 0};
+        rerender(undefined);
+
+        // Then the card totals are left alone
+        expect(cardGroupSearchCallCount()).toBe(before);
+    });
+
+    it('refires the approval search when an expense on an outstanding report changes', () => {
+        // Given Home has searched with one OUTSTANDING report
+        setupReports([makeReport()]);
+        const {rerender} = renderHook(() => useYourSpendData());
+        const before = approvalSearchCallCount();
+
+        // When an expense on it is marked non-reimbursable, which keeps the report OUTSTANDING and moves only the expense counter
+        onyxData[ONYXKEYS.DERIVED.SPEND_DATA_SIGNATURE] = {expenses: 1, cardExpenses: 0};
+        rerender(undefined);
+
+        // Then Awaiting approval fetches again instead of still counting the expense
+        expect(approvalSearchCallCount()).toBe(before + 1);
     });
 
     it('refires the approval search when an owned report leaves the OUTSTANDING state', () => {
@@ -906,6 +1031,175 @@ describe('useYourSpendData — drops the approval cache when no outstanding repo
         rerender(undefined);
 
         expect(result.current.approvalRowState).toBe(YOUR_SPEND_ROW_STATE.READY);
+    });
+
+    it('keeps the plain approval total when the Search footer answers a breakdown on the same snapshot', () => {
+        // Given Home showing the plain awaiting-approval total
+        setupReports([makeReport()]);
+        const plainSnapshot = makeSearchResultsWithCount(1);
+        plainSnapshot.search.total = 900;
+        setupApprovalSnapshot(plainSnapshot);
+        const {result, rerender} = renderHook(() => useYourSpendData());
+        expect(result.current.approvalTotals.total).toBe(900);
+
+        // When the Search footer, opened from that row, answers non-reimbursable on the snapshot they share
+        const breakdownSnapshot = makeSearchResultsWithCount(1);
+        breakdownSnapshot.search.total = 0;
+        breakdownSnapshot.search.footerTotal = CONST.SEARCH.FOOTER_TOTAL.NON_REIMBURSABLE;
+        setupApprovalSnapshot(breakdownSnapshot);
+        rerender(undefined);
+
+        // Then Home keeps its own total, which is also the one it replays once offline
+        expect(result.current.approvalRowState).toBe(YOUR_SPEND_ROW_STATE.READY);
+        expect(result.current.approvalTotals.total).toBe(900);
+        mockedUseNetwork.mockReturnValue(networkState(true));
+        rerender(undefined);
+        expect(result.current.approvalTotals.total).toBe(900);
+    });
+
+    it('waits for its own total rather than showing a breakdown one it has nothing cached for', () => {
+        // Given Home first seeing the snapshot after the Search footer answered non-reimbursable on it
+        setupReports([makeReport()]);
+        const breakdownSnapshot = makeSearchResultsWithCount(1);
+        breakdownSnapshot.search.total = 0;
+        breakdownSnapshot.search.footerTotal = CONST.SEARCH.FOOTER_TOTAL.NON_REIMBURSABLE;
+        setupApprovalSnapshot(breakdownSnapshot);
+
+        const {result} = renderHook(() => useYourSpendData());
+
+        // Then the row loads until Home's own search answers the plain total
+        expect(result.current.approvalRowState).toBe(YOUR_SPEND_ROW_STATE.LOADING);
+    });
+
+    it('keeps the plain approval total through a response that lands before its stamp', () => {
+        // Given Home showing the plain awaiting-approval total
+        setupReports([makeReport()]);
+        const plainSnapshot = makeSearchResultsWithCount(1);
+        plainSnapshot.search.total = 900;
+        setupApprovalSnapshot(plainSnapshot);
+        const {result, rerender} = renderHook(() => useYourSpendData());
+        expect(result.current.approvalTotals.total).toBe(900);
+
+        // When a breakdown response replaces the snapshot's search info, wiping the stamp until its success data lands
+        const unstampedSnapshot = makeSearchResultsWithCount(1);
+        unstampedSnapshot.search.total = 0;
+        unstampedSnapshot.search.footerTotal = undefined;
+        setupApprovalSnapshot(unstampedSnapshot);
+        rerender(undefined);
+
+        // Then Home neither shows nor caches that figure, so the stamp arriving later leaves it on its own total
+        expect(result.current.approvalTotals.total).toBe(900);
+        const breakdownSnapshot = makeSearchResultsWithCount(1);
+        breakdownSnapshot.search.total = 0;
+        breakdownSnapshot.search.footerTotal = CONST.SEARCH.FOOTER_TOTAL.NON_REIMBURSABLE;
+        setupApprovalSnapshot(breakdownSnapshot);
+        rerender(undefined);
+        expect(result.current.approvalTotals.total).toBe(900);
+        mockedUseNetwork.mockReturnValue(networkState(true));
+        rerender(undefined);
+        expect(result.current.approvalTotals.total).toBe(900);
+    });
+
+    it('takes a new plain total once it is stamped as one', () => {
+        // Given Home showing the plain awaiting-approval total
+        setupReports([makeReport()]);
+        const plainSnapshot = makeSearchResultsWithCount(1);
+        plainSnapshot.search.total = 900;
+        setupApprovalSnapshot(plainSnapshot);
+        const {result, rerender} = renderHook(() => useYourSpendData());
+
+        // When Home's own search answers a new plain total
+        const nextPlainSnapshot = makeSearchResultsWithCount(2);
+        nextPlainSnapshot.search.total = 1500;
+        setupApprovalSnapshot(nextPlainSnapshot);
+        rerender(undefined);
+
+        // Then the row shows it
+        expect(result.current.approvalTotals.total).toBe(1500);
+    });
+
+    it('hides the row offline rather than loading forever when no plain total is confirmed', () => {
+        // Given Home first seeing, offline, a snapshot whose total answers a breakdown
+        mockedUseNetwork.mockReturnValue(networkState(true));
+        setupReports([makeReport()]);
+        const breakdownSnapshot = makeSearchResultsWithCount(1);
+        breakdownSnapshot.search.total = 0;
+        breakdownSnapshot.search.footerTotal = CONST.SEARCH.FOOTER_TOTAL.NON_REIMBURSABLE;
+        setupApprovalSnapshot(breakdownSnapshot);
+
+        const {result} = renderHook(() => useYourSpendData());
+
+        // Then the row hides, as with no snapshot at all, since nothing can confirm a total until back online
+        expect(result.current.approvalRowState).toBe(YOUR_SPEND_ROW_STATE.HIDDEN_EMPTY);
+    });
+
+    describe('a snapshot cached before the stamp existed', () => {
+        function makeSettledUnstampedSnapshot(total: number): SearchResults {
+            const snapshot = makeSearchResultsWithCount(1);
+            snapshot.search.total = total;
+            snapshot.search.footerTotal = undefined;
+            snapshot.search.state = CONST.SEARCH.SNAPSHOT_STATE.LOADED;
+            return snapshot;
+        }
+
+        it('shows its total online, since only the plain total was asked for before the stamp', () => {
+            // Given an upgrade onto a snapshot that finished loading before the stamp existed
+            setupReports([makeReport()]);
+            setupApprovalSnapshot(makeSettledUnstampedSnapshot(900));
+
+            // When Home renders online, before its own search returns
+            const {result} = renderHook(() => useYourSpendData());
+
+            // Then the cached total shows straight away, as before the upgrade
+            expect(result.current.approvalRowState).toBe(YOUR_SPEND_ROW_STATE.READY);
+            expect(result.current.approvalTotals.total).toBe(900);
+        });
+
+        it('shows its total offline instead of hiding the row', () => {
+            // Given the same upgrade, opened offline with nothing cached in memory
+            mockedUseNetwork.mockReturnValue(networkState(true));
+            setupReports([makeReport()]);
+            setupApprovalSnapshot(makeSettledUnstampedSnapshot(900));
+
+            const {result} = renderHook(() => useYourSpendData());
+
+            // Then the row keeps the cached total
+            expect(result.current.approvalRowState).toBe(YOUR_SPEND_ROW_STATE.READY);
+            expect(result.current.approvalTotals.total).toBe(900);
+        });
+    });
+
+    describe('an unstamped snapshot whose search is still loading', () => {
+        function makeLoadingUnstampedSnapshot(total: number): SearchResults {
+            const snapshot = makeSearchResultsWithCount(1);
+            snapshot.search.total = total;
+            snapshot.search.footerTotal = undefined;
+            snapshot.search.state = CONST.SEARCH.SNAPSHOT_STATE.LOADING;
+            return snapshot;
+        }
+
+        it('does not take its total online, since the breakdown it answers is not known yet', () => {
+            // Given a snapshot with no stamp whose search has not settled, so its total could be any breakdown
+            setupReports([makeReport()]);
+            setupApprovalSnapshot(makeLoadingUnstampedSnapshot(0));
+
+            const {result} = renderHook(() => useYourSpendData());
+
+            // Then the row loads until Home's own search confirms a plain total
+            expect(result.current.approvalRowState).toBe(YOUR_SPEND_ROW_STATE.LOADING);
+        });
+
+        it('hides the row offline with nothing cached', () => {
+            // Given the same snapshot, opened offline with nothing cached in memory
+            mockedUseNetwork.mockReturnValue(networkState(true));
+            setupReports([makeReport()]);
+            setupApprovalSnapshot(makeLoadingUnstampedSnapshot(0));
+
+            const {result} = renderHook(() => useYourSpendData());
+
+            // Then the row hides rather than show a total that may be another breakdown's
+            expect(result.current.approvalRowState).toBe(YOUR_SPEND_ROW_STATE.HIDDEN_EMPTY);
+        });
     });
 });
 

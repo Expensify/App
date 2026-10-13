@@ -1,0 +1,60 @@
+{
+    "$schema": "node_modules/wrangler/config-schema.json",
+    // The top level only configures `wrangler dev`. Deploys always pass `--env staging` or `--env production`.
+    "name": "new-expensify-assets-local",
+    "main": "src/index.ts",
+    "compatibility_date": "2026-09-26",
+    "workers_dev": false,
+    "preview_urls": false,
+    // Runs before `wrangler dev` and `wrangler deploy` (from this directory), so .assetsignore is always applied to the upload.
+    "build": {
+        "command": "./scripts/prepareDist.sh",
+        "watch_dir": "src",
+    },
+    "observability": {
+        "enabled": true,
+    },
+    "assets": {
+        "directory": "../../dist",
+        "binding": "ASSETS",
+        "not_found_handling": "single-page-application",
+        // Serve exact paths, so `/index.html` is not redirected to `/`.
+        "html_handling": "none",
+        // Every response needs security headers, and HTML needs a per-request CSP nonce, including SPA navigations.
+        "run_worker_first": true,
+    },
+    "vars": {
+        "ENVIRONMENT": "staging",
+    },
+    "env": {
+        // Serves a staging build on a hostname nobody else uses, so it can be deployed and tested independently.
+        "test-staging": {
+            "name": "test-staging-new-expensify-assets",
+            "routes": [{"pattern": "test-staging.new.expensify.com/*", "zone_name": "expensify.com"}],
+            "vars": {
+                "ENVIRONMENT": "staging",
+            },
+        },
+        "staging": {
+            "name": "staging-new-expensify-assets",
+            // The Worker runs for every asset, so logging every request would exceed the included Workers Logs volume.
+            "observability": {
+                "enabled": true,
+                "head_sampling_rate": 0.1,
+            },
+            "vars": {
+                "ENVIRONMENT": "staging",
+            },
+        },
+        "production": {
+            "name": "new-expensify-assets",
+            "observability": {
+                "enabled": true,
+                "head_sampling_rate": 0.01,
+            },
+            "vars": {
+                "ENVIRONMENT": "production",
+            },
+        },
+    },
+}
