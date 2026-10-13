@@ -119,6 +119,7 @@ function InSelector({value = [], selectionListTextInputStyle, selectionListStyle
                     reportAttributesDerived,
                     isTrackIntentUser,
                     pendingDeleteMemberAccountIDs: pendingDeleteMemberAccountIDsByReportID?.[id],
+                    formatPhoneNumber,
                 }),
             ),
             isSelected,
@@ -200,6 +201,7 @@ function InSelector({value = [], selectionListTextInputStyle, selectionListStyle
             currentUserAccountID,
         },
         translate,
+        formatPhoneNumber,
         rules,
         activePolicyID,
     });

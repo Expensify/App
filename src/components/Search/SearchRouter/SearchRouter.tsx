@@ -261,6 +261,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
                     },
                     isTrackIntentUser,
                     pendingDeleteMemberAccountIDs: contextualReportPendingDeleteMemberAccountIDs,
+                    formatPhoneNumber,
                 });
                 reportForContextualSearch = option;
             }

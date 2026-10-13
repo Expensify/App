@@ -237,7 +237,6 @@ type GetAlternateTextConfig = {
     localeCompare?: LocaleContextProps['localeCompare'];
     formatPhoneNumber?: LocaleContextProps['formatPhoneNumber'];
     rules: OnyxCollection<Rule>;
-    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
 };
 
 /**
@@ -282,7 +281,6 @@ function getAlternateText(
         localeCompare,
         formatPhoneNumber,
         rules,
-        formatPhoneNumber,
     }: GetAlternateTextConfig,
 ) {
     const report = getReportOrDraftReport(option.reportID);
@@ -1464,6 +1462,7 @@ type CreateOptionFromReportParams = {
     convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'];
     convertToDisplayStringWithoutCurrency?: CurrencyListActionsContextType['convertToDisplayStringWithoutCurrency'];
     pendingDeleteMemberAccountIDs: string[] | undefined;
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
 };
 
 function createOptionFromReport({
@@ -1487,6 +1486,7 @@ function createOptionFromReport({
     convertToDisplayString,
     convertToDisplayStringWithoutCurrency,
     pendingDeleteMemberAccountIDs,
+    formatPhoneNumber,
 }: CreateOptionFromReportParams) {
     const accountIDs = getParticipantsAccountIDsForDisplay(report);
 
@@ -1514,6 +1514,7 @@ function createOptionFromReport({
             currentUserLogin,
             isTrackIntentUser,
             pendingDeleteMemberAccountIDs,
+            formatPhoneNumber,
         }),
     };
 }
@@ -2381,7 +2382,6 @@ function getValidOptions(
         lastActions,
         currentUserLogin,
         localeCompare,
-        formatPhoneNumber,
         isTrackIntentUser,
         isOffline,
         ...config
@@ -2765,7 +2765,6 @@ type SearchOptionsConfig = {
     /** @see GetValidReportsConfig['getReportByID'] */
     getReportByID: GetOptionsConfig['getReportByID'];
     rules: OnyxCollection<Rule>;
-    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
 };
 
 /**
@@ -2808,7 +2807,6 @@ function getSearchOptions({
     convertToDisplayString,
     convertToDisplayStringWithoutCurrency,
     rules,
-    formatPhoneNumber,
 }: SearchOptionsConfig): OptionsResult {
     const optionList = getValidOptions(
         options,
@@ -3355,6 +3353,7 @@ type FilterAndOrderOptionsParams<T extends SearchOptionData> = {
     personalDetails: OnyxEntry<PersonalDetailsList>;
     config: FilterAndOrderConfig;
     translate: LocalizedTranslate;
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
     rules: OnyxCollection<Rule>;
     activePolicyID: OnyxEntry<string>;
 };
@@ -3373,6 +3372,7 @@ function filterAndOrderOptions<T extends SearchOptionData>({
     personalDetails,
     config,
     translate,
+    formatPhoneNumber,
     rules,
     activePolicyID,
 }: FilterAndOrderOptionsParams<T>): Options<T> {
