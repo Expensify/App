@@ -39,25 +39,20 @@ function pathTriggersRun(patterns: string[], filePath: string): boolean {
 const paths = readWorkflow(PERF_WORKFLOW).on.pull_request.paths;
 
 describe('Reassure perf trigger paths', () => {
+    // A wrongly skipped path lets a regression merge unmeasured, so cover each re-include and Jest input
+    // next to an exclusion. A wrongly run path only costs CI time and is not covered.
     describe.each([
         ['src/x.ts', true],
-        ['tests/perf-test/A.perf-test.tsx', true],
         ['tests/unit/A.test.ts', false],
+        ['tests/perf-test/A.perf-test.tsx', true],
+        ['tests/utils/TestHelper.ts', true],
+        ['tests/__mocks__/x.ts', true],
         ['tests/unit/currencyList.json', true],
-        ['ios/Podfile', false],
-        ['Mobile-Expensify', false],
-        ['.github/workflows/reassurePerformanceTests.yml', true],
-        ['.github/workflows/other.yml', false],
-        ['tests/perf-test/README.md', false],
-        ['scripts/postInstall.sh', true],
-        ['.env.example', true],
-        ['jest/setup.ts', true],
-        ['__mocks__/react-native.ts', true],
-        ['web/index.html', false],
-        ['config/rsbuild/rsbuild.common.ts', false],
         ['config/babel/oxcJestTransformer.js', true],
-        ['eslint.config.mjs', false],
-        ['Gemfile.lock', false],
+        ['.github/workflows/reassurePerformanceTests.yml', true],
+        ['.github/workflows/seedJestPerfCache.yml', true],
+        ['.github/actions/javascript/validateReassureOutput/index.js', true],
+        ['.github/actions/composite/setupNode/action.yml', true],
     ])('%s', (filePath, expectedToRun) => {
         it(`${expectedToRun ? 'runs' : 'skips'}`, () => {
             // Given the perf workflow's ordered `paths` list read straight from the committed YAML
