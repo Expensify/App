@@ -3972,6 +3972,10 @@ ${amount} voor ${merchant} - ${date}`,
     },
     dynamicForm: {
         exampleHint: ({example}: {example: string}) => `Voorbeeld: ${example}`,
+        fileCount: ({count}: {count: number}) => ({
+            one: '1 bestand',
+            other: `${count} bestanden`,
+        }),
         error: {
             tooShort: ({minLength}: {minLength: number}) => `Moet minimaal ${minLength} tekens bevatten`,
             invalidFormat: ({example}: {example?: string}) => (example ? `Ongeldige indeling. Voorbeeld: ${example}` : 'Ongeldige indeling'),
