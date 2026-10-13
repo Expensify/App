@@ -1,7 +1,7 @@
 ---
 title: Managing Workspace Members in New Expensify
 description: Learn how to add, remove, filter, and manage user roles in a New Expensify workspace.
-keywords: [New Expensify, workspace members, add user, remove user, user roles, workspace admin, card admin, people admin, payments admin, invite users, filter members, role filter]
+keywords: [New Expensify, workspace members, add user, remove user, user roles, workspace admin, card admin, people admin, payments admin, invite users, filter members, role filter, member display name]
 ---
 
 
@@ -97,6 +97,19 @@ On the web, you can also change a member’s role directly from the members list
 **Note:** People admins can change a member’s role between **Member** and **Auditor** only. Granting or removing the admin role or any scoped admin role (such as Card admin, People admin, or Payments admin) requires a Workspace admin.
 
 **Note:** You can’t change the role of the member set as the workspace’s authorized payer. Their **Role** can’t be edited and role-change options are hidden until you assign a different payer. To change their role, first go to **Workspaces > Workflows**, open **Payments**, and set a different admin as the **Payer**.
+
+---
+
+# How to Set a Member’s Display Name
+
+Workspace admins can set a display name for a member who hasn’t added a name of their own.
+
+1. Go to **Workspaces > [Workspace Name] > Members**.
+2. Click the member’s name.
+3. In the right-hand panel, click **Profile**.
+4. Click **Display name**, enter a first and last name, and click **Save**.
+
+The name applies in every workspace the member belongs to. After it’s saved, only the member can change it.
 
 ---
 
