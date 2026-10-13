@@ -1179,7 +1179,6 @@
 "../../src/pages/ReimbursementAccount/EnterSignerInfo/subSteps/Address.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/ReimbursementAccount/NonUSD/BankInfo/subSteps/AccountHolderDetails.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	7
 "../../src/pages/ReimbursementAccount/NonUSD/BankInfo/subSteps/BankAccountDetails.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	7
-"../../src/pages/ReimbursementAccount/NonUSD/BankInfo/subSteps/Confirmation.tsx"	"@typescript-eslint/no-deprecated/MenuItemWithTopDescription"	1
 "../../src/pages/ReimbursementAccount/NonUSD/BankInfo/subSteps/Confirmation.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/pages/ReimbursementAccount/NonUSD/BeneficialOwnerInfo/BeneficialOwnerDetailsFormSubSteps/Address.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/ReimbursementAccount/NonUSD/BeneficialOwnerInfo/BeneficialOwnerDetailsFormSubSteps/Confirmation.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
