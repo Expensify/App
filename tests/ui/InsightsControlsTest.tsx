@@ -178,7 +178,7 @@ describe('Insights controls', () => {
         expect(screen.queryByText(/^(Quarter|search\.filters\.groupBy\.quarter)$/)).toBeNull();
     });
 
-    it('resets the grouping to the nearest fit for month when the date range rules month out', async () => {
+    it('resets the grouping to month even when the date range rules month out', async () => {
         // Given the headline chart grouped by day over this month, which doesn't offer Month
         const onChange = jest.fn();
         const date: InsightsFilters['date'] = {preset: CONST.SEARCH.DATE_PRESETS.THIS_MONTH};
@@ -195,8 +195,8 @@ describe('Insights controls', () => {
         fireEvent.press(screen.getByText(RESET));
         await waitForBatchedUpdatesWithAct();
 
-        // Then the chart goes to Week, the closest offered grouping to the monthly default
-        expect(onChange).toHaveBeenCalledWith(CONST.SEARCH.GROUP_BY.WEEK);
+        // Then month is saved, so it comes back once the date range fits it
+        expect(onChange).toHaveBeenCalledWith(CONST.SEARCH.GROUP_BY.MONTH);
     });
 
     it('resets Workspace to every workspace', async () => {

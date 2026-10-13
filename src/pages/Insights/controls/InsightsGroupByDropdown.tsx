@@ -8,7 +8,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import type {InsightsFilters} from '@pages/Insights/insightsFilters';
 import DEFAULT_INSIGHTS_FILTERS from '@pages/Insights/insightsFilters';
-import {getFittingGroupBy} from '@pages/Insights/insightsGroupByUtils';
 
 import variables from '@styles/variables';
 
@@ -31,7 +30,6 @@ type InsightsGroupByDropdownProps = {
 function InsightsGroupByDropdown({groupBy, options, onChange}: InsightsGroupByDropdownProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const defaultGroupBy = getFittingGroupBy(DEFAULT_INSIGHTS_FILTERS.groupBy, options);
 
     const items: Array<SingleSelectItem<InsightsFilters['groupBy']>> = options.map((option) => ({
         text: translate(`search.filters.groupBy.${option}`),
@@ -46,9 +44,9 @@ function InsightsGroupByDropdown({groupBy, options, onChange}: InsightsGroupByDr
             label={label}
             items={items}
             value={selectedItem}
-            defaultValue={defaultGroupBy}
+            defaultValue={DEFAULT_INSIGHTS_FILTERS.groupBy}
             closeOverlay={closeOverlay}
-            onChange={(item) => onChange(item?.value ?? defaultGroupBy)}
+            onChange={(item) => onChange(item?.value ?? DEFAULT_INSIGHTS_FILTERS.groupBy)}
         />
     );
 
