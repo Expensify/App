@@ -102,6 +102,10 @@ jest.mock('@libs/Navigation/Navigation', () => ({
 }));
 
 jest.mock('@userActions/CompanyCards', () => ({
+    assignWorkspaceCompanyCard: jest.fn(),
+    clearAssignCardErrors: jest.fn(),
+    clearAssignCardStepAndData: jest.fn(),
+    setAddNewCompanyCardStepAndData: jest.fn(),
     setAssignCardStepAndData: jest.fn(),
 }));
 

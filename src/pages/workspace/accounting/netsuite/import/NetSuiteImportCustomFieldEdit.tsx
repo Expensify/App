@@ -11,7 +11,8 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {updateNetSuiteCustomLists, updateNetSuiteCustomSegments} from '@libs/actions/connections/NetSuiteCommands';
 import {addErrorMessage} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import {isNetSuiteCustomFieldPropertyEditable, isNetSuiteCustomSegmentRecord, settingsPendingAction} from '@libs/PolicyUtils';
+import {isNetSuiteCustomFieldPropertyEditable, isNetSuiteCustomSegmentRecord} from '@libs/NetSuiteUtils';
+import {settingsPendingAction} from '@libs/PolicyUtils';
 
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';

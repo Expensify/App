@@ -3,15 +3,14 @@ import type {SelectorType} from '@components/SelectionScreen';
 import SelectionScreen from '@components/SelectionScreen';
 import Text from '@components/Text';
 
+import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
-import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {updateManyPolicyConnectionConfigs} from '@libs/actions/connections';
 import {clearXeroErrorField} from '@libs/actions/Policy/Policy';
 import {getLatestErrorField} from '@libs/ErrorUtils';
-import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {getXeroSuppliers, isXeroVendorMatchingActive, settingsPendingAction, sortVendors} from '@libs/PolicyUtils';
 import tokenizedSearch from '@libs/tokenizedSearch';
@@ -22,7 +21,7 @@ import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
-import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 
 import React, {useCallback, useMemo, useState} from 'react';
 import {View} from 'react-native';
@@ -35,20 +34,19 @@ const CLEAR_DEFAULT_VENDOR_VALUE = '';
 function DynamicXeroNonReimbursableDefaultContactSelectPage({policy}: WithPolicyConnectionsProps) {
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
-    const {isBetaEnabled} = usePermissions();
     const illustrations = useMemoizedLazyIllustrations(['Telescope']);
 
     const policyID = policy?.id;
     const xeroConfig = policy?.connections?.xero?.config;
     const currentContactID = xeroConfig?.defaultVendor;
 
-    // Match the parent page's gate so direct deep-links (or stale-open tabs after the beta is
-    // revoked) cannot reach the supplier updater. The parent page hides the row when the feature
-    // is off, but the route remains addressable on its own. Gated on Xero specifically being
-    // configured — not the global hasVendorFeature predicate — so dual-connected workspaces mid
-    // Xero tenant switch (config.isConfigured=false with stale data.contacts) cannot persist a
-    // defaultVendor from the prior tenant.
-    const isFeatureAvailable = isBetaEnabled(CONST.BETAS.VENDOR_MATCHING) && isXeroVendorMatchingActive(policy);
+    // Match the parent page's gate so a direct deep link cannot reach the supplier updater. The
+    // parent page hides the row when the feature is off, but the route remains addressable on its
+    // own. The gate checks that Xero itself is configured instead of using the global
+    // hasVendorFeature predicate, so a workspace in the middle of a Xero tenant switch, where
+    // config.isConfigured is false and data.contacts still holds the previous tenant's contacts,
+    // cannot persist a defaultVendor from that tenant.
+    const isFeatureAvailable = isXeroVendorMatchingActive(policy);
 
     const suppliers = useMemo(() => getXeroSuppliers(policy), [policy]);
     const sortedSuppliers = sortVendors(suppliers, localeCompare);
@@ -98,9 +96,11 @@ function DynamicXeroNonReimbursableDefaultContactSelectPage({policy}: WithPolicy
         [shouldShowClearOption, clearOption, filteredSupplierOptions],
     );
 
+    const backPath = useDynamicBackPath(DYNAMIC_ROUTES.POLICY_ACCOUNTING_XERO_NON_REIMBURSABLE_DEFAULT_CONTACT_SELECT.path);
+
     const goBack = useCallback(() => {
-        Navigation.goBack(policyID ? createDynamicRoute(DYNAMIC_ROUTES.POLICY_ACCOUNTING_XERO_EXPORT.path, ROUTES.POLICY_ACCOUNTING.getRoute(policyID)) : undefined);
-    }, [policyID]);
+        Navigation.goBack(backPath);
+    }, [backPath]);
 
     const selectSupplier = useCallback(
         ({value}: SelectorType) => {

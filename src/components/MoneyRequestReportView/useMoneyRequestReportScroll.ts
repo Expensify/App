@@ -153,6 +153,7 @@ function useMoneyRequestReportScroll({
 
     const stickToBottomRef = useRef(false);
     const stickToBottomTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
     // Set when the user taps "Latest messages", cleared once the scroll reaches the bottom or the user scrolls away
     const pendingMarkAsReadRef = useRef(false);
 
@@ -223,11 +224,12 @@ function useMoneyRequestReportScroll({
     const onNewActionEvent = useEffectEvent((isFromCurrentUser: boolean, reportAction?: OnyxTypes.ReportAction) => {
         TransitionTracker.runAfterTransitions({
             callback: () => {
-                setIsFloatingMessageCounterVisible(false);
                 // If a new comment is added from the current user, scroll to the bottom, otherwise leave the user position unchanged
                 if (!isFromCurrentUser || reportAction?.actionName !== CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT) {
                     return;
                 }
+
+                setIsFloatingMessageCounterVisible(false);
 
                 // Delay so the just-sent item has landed in the data before we jump
                 const index = visibleReportActions.findIndex((item) => item.reportActionID === reportAction?.reportActionID);

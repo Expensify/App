@@ -101,6 +101,7 @@ function getUnreadReportsForUnreadIndicator(reports: OnyxCollection<Report>, cur
         const oneTransactionThreadReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${oneTransactionThreadReportID}`];
 
         const derivedIsEmptyReport = report?.reportID ? reportAttributesDerived?.[report.reportID]?.isEmpty : undefined;
+        const requiresAttention = report?.reportID ? reportAttributesDerived?.[report.reportID]?.requiresAttention : undefined;
 
         if (!ReportUtils.isUnread(report, oneTransactionThreadReport, isReportArchived, derivedIsEmptyReport)) {
             return false;
@@ -123,6 +124,7 @@ function getUnreadReportsForUnreadIndicator(reports: OnyxCollection<Report>, cur
             // TODO: Pass guideAccountIDs once callers are fully migrated — PR 33 (https://github.com/Expensify/App/issues/66413); hasExpensifyGuidesEmails falls back to allPersonalDetails
             hasGuidesEmails: ReportUtils.isDefaultRoom(report) ? ReportUtils.hasExpensifyGuidesEmails(Object.keys(report?.participants ?? {}).map(Number), undefined) : false,
             conciergeReportID,
+            requiresAttention,
             derivedIsEmptyReport,
         });
     });

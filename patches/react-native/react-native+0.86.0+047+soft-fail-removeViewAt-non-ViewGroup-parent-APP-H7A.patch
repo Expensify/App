@@ -1,0 +1,21 @@
+diff --git a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/fabric/mounting/SurfaceMountingManager.kt b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/fabric/mounting/SurfaceMountingManager.kt
+--- a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/fabric/mounting/SurfaceMountingManager.kt
++++ b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/fabric/mounting/SurfaceMountingManager.kt
+@@ -442,10 +442,13 @@
+ 
+     val parentView = parentViewState.view
+     if (parentView !is ViewGroup) {
+-      val message =
+-          "Unable to remove a view from a view that is not a ViewGroup. ParentTag: $parentTag - Tag: $tag - Index: $index"
+-      FLog.e(TAG, message)
+-      throw IllegalStateException(message)
++      ReactSoftExceptionLogger.logSoftException(
++          TAG,
++          ReactNoCrashSoftException(
++              "Unable to remove a view from a view that is not a ViewGroup. ParentTag: $parentTag - Tag: $tag - Index: $index - ParentView: ${parentView?.javaClass?.simpleName}"
++          ),
++      )
++      return
+     }
+ 
+     if (SHOW_CHANGED_VIEW_HIERARCHIES) {

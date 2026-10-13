@@ -381,7 +381,7 @@ ___
 ---
 
 ### Compensation
-* **Bounty:** Accepted and merged performance improvements are eligible for a flat **$250 bounty**.
+* **Bounty:** Accepted and merged performance improvements are eligible for a flat **$175 bounty**.
 * **Scope:** We prefer smaller, atomic PRs. However, if multiple proposals are submitted for closely related logic that could have been one PR, we reserve the right to consolidate them.
 
 ___

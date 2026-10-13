@@ -13,10 +13,10 @@ import CONST from '@src/CONST';
 
 import type {ReactNode, RefObject} from 'react';
 import type {LayoutChangeEvent, ViewStyle} from 'react-native';
-import type {GestureType} from 'react-native-gesture-handler';
+import type {TapGesture} from 'react-native-gesture-handler';
 import type {PermissionStatus} from 'react-native-permissions';
 import type {AnimatedStyle} from 'react-native-reanimated';
-import type {Camera, CameraDevice, CameraDeviceFormat} from 'react-native-vision-camera';
+import type {Camera, CameraDevice, CameraDeviceFormat, CameraProps} from 'react-native-vision-camera';
 
 import React from 'react';
 import {StyleSheet, View} from 'react-native';
@@ -49,7 +49,7 @@ type CameraViewportProps = {
     shouldFillPortraitViewport?: boolean;
 
     /** Gesture handler for tap-to-focus */
-    tapGesture: GestureType;
+    tapGesture: TapGesture;
 
     /** Animated style driving the focus indicator ring */
     cameraFocusIndicatorAnimatedStyle: AnimatedStyle<ViewStyle>;
@@ -62,6 +62,9 @@ type CameraViewportProps = {
 
     /** Whether a photo has been captured (forces camera inactive) */
     didCapturePhoto?: boolean;
+
+    /** Whether a full-resolution capture is still running; keeps the camera session active even after didCapturePhoto so the capture is not cancelled */
+    hasPendingPhotoCapture?: boolean;
 
     /** Callback fired when the camera finishes initializing */
     onInitialized?: () => void;
@@ -85,6 +88,9 @@ type CameraViewportProps = {
 
     setFlash: (updater: (prev: boolean) => boolean) => void;
 
+    /** Whether photos follow the device or the preview orientation, defaults to "device" */
+    outputOrientation?: CameraProps['outputOrientation'];
+
     /** Extra content rendered below the viewfinder, inside the camera view */
     children?: ReactNode;
 };
@@ -102,6 +108,7 @@ function CameraViewport({
     blinkStyle,
     isAttachmentPickerActive,
     didCapturePhoto = false,
+    hasPendingPhotoCapture = false,
     onInitialized,
     onLayout,
     shouldShowFlashButton,
@@ -110,6 +117,7 @@ function CameraViewport({
     flash,
     hasFlash,
     setFlash,
+    outputOrientation = 'device',
     children,
 }: CameraViewportProps) {
     const theme = useTheme();
@@ -130,8 +138,10 @@ function CameraViewport({
                         style={styles.flex1}
                         zoom={device.neutralZoom}
                         photo
+                        outputOrientation={outputOrientation}
                         cameraTabIndex={1}
-                        forceInactive={isAttachmentPickerActive || didCapturePhoto}
+                        forceInactive={isAttachmentPickerActive || (didCapturePhoto && !hasPendingPhotoCapture)}
+                        shouldStayActiveWhenBlurred={hasPendingPhotoCapture}
                         onInitialized={onInitialized}
                         onLayout={onLayout}
                         // Use TextureView on Android to fix partially blank images for takeSnapshot()

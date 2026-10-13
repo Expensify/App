@@ -18,12 +18,25 @@ type BasePopupProps = React.PropsWithChildren & {
     applySentryLabel: string;
     resetSentryLabel?: string;
     style?: StyleProp<ViewStyle>;
+    shouldSubmitOnEnter?: boolean;
     onApply: () => void;
     onReset?: () => void;
     onBackButtonPress?: () => void;
 };
 
-function BasePopup({children, label, applySentryLabel, resetSentryLabel, showLabel, shouldShowActionButtons = true, style, onApply, onReset, onBackButtonPress}: BasePopupProps) {
+function BasePopup({
+    children,
+    label,
+    applySentryLabel,
+    resetSentryLabel,
+    showLabel,
+    shouldShowActionButtons = true,
+    shouldSubmitOnEnter,
+    style,
+    onApply,
+    onReset,
+    onBackButtonPress,
+}: BasePopupProps) {
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
     const styles = useThemeStyles();
@@ -50,6 +63,7 @@ function BasePopup({children, label, applySentryLabel, resetSentryLabel, showLab
                     onApply={onApply}
                     applySentryLabel={applySentryLabel}
                     resetSentryLabel={resetSentryLabel}
+                    shouldSubmitOnEnter={shouldSubmitOnEnter}
                 />
             )}
         </View>

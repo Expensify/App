@@ -1,4 +1,4 @@
-import {emailRegex, keysToMask, maskOnyxState, ONYX_KEY_EXPORT_RULES, onyxKeysToMaskFragileData, onyxKeysToRemove, safeOnyxKeys} from '@libs/ExportOnyxState/common';
+import {emailRegex, keysToMask, maskOnyxState, ONYX_KEY_EXPORT_RULES, onyxKeysToMaskFragileData, onyxKeysToRemove, safeOnyxKeys} from '@libs/ExportOnyxState/masking';
 import {isRecord} from '@libs/ObjectUtils';
 
 import CONST from '@src/CONST';
