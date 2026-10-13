@@ -658,7 +658,8 @@ function buildUpdateWorkspaceMembersRoleOnyxData(policy: OnyxEntry<Policy>, sele
                         member[current.email] = {
                             ...(previousEmployeeList[current.email] ?? {}),
                             pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
-                            errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workspace.editor.genericFailureMessage'),
+                            // Failures of the approve-only side-effects request surface through page-level modals, so no inline member error is set.
+                            errors: newRole === CONST.POLICY.ROLE.APPROVE_ONLY ? null : ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workspace.editor.genericFailureMessage'),
                         };
                         return member;
                     }, {}),

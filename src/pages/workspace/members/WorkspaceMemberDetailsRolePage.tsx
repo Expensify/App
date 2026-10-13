@@ -102,7 +102,7 @@ function WorkspaceMemberDetailsRolePage({policy, personalDetails, route}: Worksp
                         showApproveOnlyBlockedModal(blockedReasons);
                         return;
                     }
-                    // The action already set the failure on the member row, so only keep the user here to see the error modal.
+                    // The action already reverted the optimistic role changes on failure, so only surface the error modal here.
                     if (response?.jsonCode !== CONST.JSON_CODE.SUCCESS) {
                         showRoleUpdateErrorModal();
                         return;
