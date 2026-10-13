@@ -17,6 +17,7 @@ import type {ValueOf} from 'type-fest';
 import {CONST as COMMON_CONST, Str} from 'expensify-common';
 
 import type en from './en';
+import type {CompanyCardBalanceParams} from './params';
 import type {AllConnectionName, PolicyConnectionSyncStage} from './TranslationTypes';
 import type {TranslationDeepObject} from './types';
 const translations: TranslationDeepObject<typeof en> = {
@@ -439,6 +440,7 @@ const translations: TranslationDeepObject<typeof en> = {
         leaveWorkspaceReimburser:
             'No puedes salir de este espacio de trabajo como reembolsador. Por favor, establece un nuevo reembolsador en Espacios de trabajo > Realizar o rastrear pagos y luego inténtalo de nuevo.',
         reimbursable: 'Reembolsable',
+        nonReimbursable: 'No reembolsable',
         editYourProfile: 'Edita tu perfil',
         comments: 'Comentarios',
         sharedIn: 'Compartido en',
@@ -619,15 +621,6 @@ const translations: TranslationDeepObject<typeof en> = {
         launching: 'Cargando Expensify',
         expired: 'Tu sesión ha expirado.',
         signIn: 'Por favor, inicia sesión de nuevo.',
-        notValid: 'Enlace no válido.',
-        sessionMismatch: 'El enlace que has pulsado no es válido para tu sesión actual.',
-        switchAccount: {
-            title: '¿Cambiar de cuenta?',
-            prompt: ({newEmail, currentEmail}: {newEmail: string; currentEmail: string}) =>
-                `Has iniciado sesión como ${currentEmail}. Esta acción hará que inicies sesión como ${newEmail} en su lugar.`,
-            confirm: 'Cambiar de cuenta',
-            staySignedIn: 'No cambies de cuenta',
-        },
     },
     multifactorAuthentication: {
         reviewTransaction: {
@@ -1318,7 +1311,7 @@ const translations: TranslationDeepObject<typeof en> = {
         addAdditionalReceipt: 'Añadir recibo adicional',
         scanFailed: 'El recibo no pudo ser escaneado, ya que falta el comerciante, la fecha o el importe.',
         crop: 'Recortar',
-        pageCount: ({pageCount}: {pageCount: number}) => `Página 1 de ${pageCount}`,
+        pageCount: ({page, pageCount}: {page: number; pageCount: number}) => `Página ${page} de ${pageCount}`,
         addAReceipt: {
             phrase1: 'Añade un recibo',
             phrase2: 'o arrastra y suelta uno aquí',
@@ -1648,7 +1641,6 @@ const translations: TranslationDeepObject<typeof en> = {
             other: 'Error inesperado. Por favor, inténtalo más tarde.',
             genericHoldExpenseFailureMessage: 'Error inesperado al retener el gasto. Por favor, inténtalo de nuevo más tarde.',
             genericUnholdExpenseFailureMessage: 'Error inesperado al desbloquear el gasto. Por favor, inténtalo de nuevo más tarde.',
-            payFailedExpenseDeleted: 'El pago falló porque el informe de gastos fue eliminado.',
             genericCreateFailureMessage: 'Error inesperado al enviar este gasto. Por favor, inténtalo más tarde.',
             genericCreateInvoiceFailureMessage: 'Error inesperado al enviar la factura. Por favor, inténtalo de nuevo más tarde.',
             receiptDeleteFailureError: 'Error inesperado al borrar este recibo. Por favor, vuelve a intentarlo más tarde.',
@@ -2220,6 +2212,7 @@ const translations: TranslationDeepObject<typeof en> = {
     displayNamePage: {
         headerTitle: 'Nombre',
         isShownOnProfile: 'Este nombre es visible en tu perfil.',
+        isShownOnMemberProfile: 'El nombre para mostrar aparecerá en el perfil del miembro. Una vez guardado, solo el miembro podrá editarlo.',
     },
     timezonePage: {
         timezone: 'Zona horaria',
@@ -2266,7 +2259,6 @@ const translations: TranslationDeepObject<typeof en> = {
             useProfiling: 'Usar el trazado',
             profileTrace: 'Traza de ejecución',
             results: 'Resultados',
-            releaseOptions: 'Opciones de publicación',
             testingPreferences: 'Preferencias para Tests',
             server: 'Servidor',
             servers: {
@@ -3323,13 +3315,12 @@ ${amount} para ${merchant} - ${date}`,
         errorSelection: 'Selecciona una opción para continuar',
         purpose: {
             title: '¿Qué quieres hacer hoy?',
-            errorContinue: 'Pulsa continuar para configurarte',
-            errorBackButton: 'Por favor, completa las preguntas de configuración para empezar a usar la aplicación',
-            [CONST.ONBOARDING_CHOICES.JOIN_WORKSPACE]: 'Únete al espacio de trabajo de mi empresa',
-            [CONST.ONBOARDING_CHOICES.EMPLOYER]: 'Enviar gastos a mi empresa',
+            errorContinue: 'Por favor, haz click en continuar para configurar tu cuenta',
+            errorBackButton: 'Por favor, finaliza las preguntas de configuración para empezar a utilizar la aplicación',
+            [CONST.ONBOARDING_CHOICES.EMPLOYER]: 'Enviar gastos a mi empleador',
             [CONST.ONBOARDING_CHOICES.MANAGE_TEAM]: 'Gestionar los gastos de mi equipo',
-            [CONST.ONBOARDING_CHOICES.TRACK_BUSINESS]: 'Controla los gastos de mi empresa',
-            [CONST.ONBOARDING_CHOICES.TRACK_PERSONAL]: 'Organiza mis gastos personales',
+            [CONST.ONBOARDING_CHOICES.TRACK_BUSINESS]: 'Controlar gastos de mi negocio',
+            [CONST.ONBOARDING_CHOICES.TRACK_PERSONAL]: 'Organizar mis gastos personales',
             [CONST.ONBOARDING_CHOICES.LOOKING_AROUND]: 'Algo más',
         },
         personalTrackGoal: {
@@ -3386,8 +3377,6 @@ ${amount} para ${merchant} - ${date}`,
         mergeBlockScreen: {
             title: 'No se pudo añadir el correo electrónico de trabajo',
             subtitle: (workEmail) => `No pudimos añadir ${workEmail}. Por favor, inténtalo de nuevo más tarde en Configuración o chatea con Concierge para obtener ayuda.`,
-            validatedPublicDomainSubtitle: (workEmail: string | undefined) =>
-                `No pudimos añadir ${workEmail}. Para fusionar estas cuentas, inicia sesión como ${workEmail} y ve a Cuenta > Seguridad > Fusionar cuentas para completar el proceso.`,
             workAccountClosedSubtitle:
                 'La cuenta de trabajo asociada a este correo electrónico está cerrada. Ponte en contacto con el administrador de tu empresa para reactivarla o regístrate con un correo electrónico diferente.',
             domainControlledSubtitle: (workEmail) => `${workEmail} es un inicio de sesión controlado por dominio de una cuenta de Expensify existente.`,
@@ -3634,34 +3623,6 @@ ${amount} para ${merchant} - ${date}`,
                     ¡Y listo!
                 `),
             },
-            addWorkEmailTask: {
-                title: 'Añade tu correo electrónico del trabajo',
-                description: ({workEmailLink = ''}) =>
-                    Str.dedent(`
-                        1. Abre [Añadir correo electrónico del trabajo](${workEmailLink}).
-                        2. Introduce la dirección de correo electrónico de tu empresa.
-                        3. Introduce el código que te enviamos por correo electrónico.
-                        4. Elige un espacio de trabajo al que unirte o haz clic en *Pedir unirse* para enviar una solicitud a la persona propietaria del espacio de trabajo.
-                    `),
-            },
-            validateEmailTask: {
-                title: 'Valida tu correo electrónico',
-                description: ({validateEmailLink = '', workEmail = ''}) =>
-                    Str.dedent(`
-                        1. Abre [Valida tu cuenta](${validateEmailLink}).
-                        2. Introduce el código que enviamos a ${workEmail}.
-                        3. Elige un espacio de trabajo al que unirte o haz clic en *Pedir unirse* para enviar una solicitud a la persona propietaria del espacio de trabajo.
-                    `),
-            },
-            joinWorkspaceTask: {
-                title: 'Únete al espacio de trabajo de tu empresa',
-                description: ({joinWorkspaceLink = ''}) =>
-                    Str.dedent(`
-                        1. Abre [Unirte a un espacio de trabajo](${joinWorkspaceLink}).
-                        2. Busca a tu equipo en la lista. Cada uno muestra a su propietario y cuántas personas hay en él, empezando por el más grande. Haz clic en *Mostrar más* si no ves el tuyo.
-                        3. Haz clic en *Unirte ahora* o en *Pedir unirse* si necesita aprobación de un administrador.
-                    `),
-            },
         },
         testDrive: {
             name: ({testDriveURL}) => (testDriveURL ? `Haz una [prueba](${testDriveURL})` : 'Haz una prueba'),
@@ -3684,14 +3645,6 @@ ${amount} para ${merchant} - ${date}`,
             onboardingChatSplitMessage: 'Dividir cuentas con amigos es tan fácil como enviar un mensaje. Así se hace.',
             onboardingAdminMessage: 'Aprende a gestionar el espacio de tu equipo como administrador y enviar tus propios gastos.',
             onboardingTestDriveReceiverMessage: '*¡Tienes 3 meses gratis! Empieza abajo.*',
-            onboardingJoinWorkspaceAddWorkEmailMessage:
-                'Como estás intentando unirte al espacio de trabajo de tu empresa, no he creado uno para ti. Añade tu correo electrónico del trabajo y comprobaré a qué espacios de trabajo de tu empresa puedes unirte.',
-            onboardingJoinWorkspaceValidateEmailMessage: ({companyDomain = ''}: {companyDomain?: string}) =>
-                `Como quieres unirte al espacio de trabajo de tu empresa, no he creado uno para ti. Verifica tu correo electrónico y revisaré a qué espacios de trabajo en ${companyDomain} puedes unirte.`,
-            onboardingJoinWorkspaceMessage: ({companyDomain = '', joinWorkspaceLink = ''}: {companyDomain?: string; joinWorkspaceLink?: string}) =>
-                `Como quieres unirte al espacio de trabajo de tu empresa, no he creado uno para ti. Tu equipo en ${companyDomain} ya está en Expensify. [Echa un vistazo a los espacios de trabajo a los que puedes unirte.](${joinWorkspaceLink})`,
-            onboardingJoinWorkspaceEmptyMessage:
-                'Parece que tu empresa no tiene ningún espacio de trabajo al que puedas unirte. Por favor, ponte en contacto con tu administrador y pídele que te invite a su espacio de trabajo.',
         },
         workspace: {
             title: 'Mantente organizado con un espacio de trabajo',
@@ -3949,6 +3902,19 @@ ${amount} para ${merchant} - ${date}`,
         },
         unlockAlreadyRequestedTitle: 'Solicitud ya enviada',
         unlockAlreadyRequestedDescription: 'Tu solicitud para desbloquear esta cuenta bancaria ya ha sido enviada. Concierge se pondrá en contacto contigo si se necesita algo más.',
+    },
+    dynamicForm: {
+        exampleHint: ({example}: {example: string}) => `Ejemplo: ${example}`,
+        fileCount: ({count}: {count: number}) => ({
+            one: '1 archivo',
+            other: `${count} archivos`,
+        }),
+        error: {
+            tooShort: ({minLength}: {minLength: number}) => `Debe tener al menos ${minLength} caracteres`,
+            invalidFormat: ({example}: {example?: string}) => (example ? `Formato inválido. Ejemplo: ${example}` : 'Formato inválido'),
+            invalidOption: 'Elige una de las opciones disponibles',
+            outOfRange: ({min, max}: {min: number; max: number}) => `Introduce un valor entre ${min} y ${max}`,
+        },
     },
     addPersonalBankAccount: {
         swiftBicFormatError: 'El SWIFT/BIC debe tener 8 u 11 caracteres, con 6 letras seguidas de 2 o 5 letras o números.',
@@ -6099,6 +6065,11 @@ ${amount} para ${merchant} - ${date}`,
             syncReimbursedReports: 'Sincronizar informes reembolsados',
             syncReimbursedReportsDescription: 'Cuando un informe se pague mediante ACH, se generará un pago de factura en esta cuenta.',
             billPaymentAccount: {label: 'Cuenta de pago de facturas', description: 'Elige desde dónde pagar las facturas y crearemos el pago en DualEntry.'},
+            fxExpenseAccount: {
+                label: 'Cuenta de comisión por conversión de divisa de DualEntry',
+                description:
+                    'Cuando tu empresa cubra el coste de conversión de divisa en un pago realizado en el extranjero, registraremos ese coste en esta cuenta en DualEntry como un asiento contable.',
+            },
             syncExpensifyCardSettlements: 'Sincronizar liquidaciones de la Tarjeta Expensify',
             settlementAccount: {label: 'Cuenta de liquidación de la Tarjeta Expensify', description: 'Elige tu cuenta de liquidación y crearemos el pago en DualEntry.'},
             syncTravelInvoicingSettlements: 'Sincronizar liquidaciones de facturación de viajes',
@@ -6112,6 +6083,15 @@ ${amount} para ${merchant} - ${date}`,
             submit: 'Enviar',
         },
         companyCards: {
+            balance: {
+                currentBalance: 'Saldo actual',
+                remainingLimit: 'Límite restante',
+                notAvailable: 'No disponible',
+                currentBalanceDescription: ({lastUpdated}: CompanyCardBalanceParams) => `El saldo actual es informado por tu banco y se actualizó por última vez el ${lastUpdated}.`,
+                remainingLimitDescription: ({lastUpdated}: CompanyCardBalanceParams) => `El límite restante lo informa tu banco y se actualizó por última vez el ${lastUpdated}.`,
+                currentBalanceDescriptionNoTimestamp: 'Tu banco informa del saldo actual.',
+                remainingLimitDescriptionNoTimestamp: 'El límite restante lo indica tu banco.',
+            },
             addCards: 'Añadir tarjetas',
             selectCards: 'Seleccionar tarjetas',
             fromOtherWorkspaces: 'De otros espacios de trabajo',
@@ -6808,11 +6788,6 @@ ${amount} para ${merchant} - ${date}`,
             emptySubtitle: 'Los proveedores aparecerán aquí una vez que se complete la sincronización de contabilidad.',
             findVendor: 'Buscar proveedor',
             managedInAccountingSoftware: 'Los proveedores se gestionan en tu',
-            enableVendor: 'Habilitar proveedor',
-            enableVendors: 'Habilitar proveedores',
-            disableVendor: 'Deshabilitar proveedor',
-            disableVendors: 'Deshabilitar proveedores',
-            updateFailureMessage: 'Se ha producido un error al actualizar el proveedor, inténtalo de nuevo por favor',
         },
         tags: {
             tagName: 'Nombre de etiqueta',
@@ -8448,6 +8423,8 @@ ${reportName}`,
                 applyUpdates: 'Aplicar estas actualizaciones:',
                 saveRule: 'Guardar regla',
                 previewMatches: 'Vista previa de coincidencias',
+                previewMatchesDescription: 'Mira cómo se aplica esta regla a tus gastos',
+                preview: 'Vista previa',
                 confirmError: 'Ingresa comerciante y aplica al menos una actualización',
                 confirmErrorMerchant: 'Por favor ingresa comerciante',
                 confirmErrorUpdate: 'Por favor aplica al menos una actualización',
@@ -8757,6 +8734,14 @@ ${reportName}`,
                 requireFieldsDescription: 'Exige campos específicos de gasto o renuncia a exigirlos.',
                 createAgentRule: 'Describir regla de agente',
                 createAgentRuleDescription: 'Crea reglas flexibles que se ejecuten cuando las necesites.',
+                describe: 'Describir',
+                describeRule: 'Describe tu regla con tus propias palabras y Concierge la creará por ti',
+                describeRuleInputLabel: 'Describe la regla',
+                promptErrors: {
+                    unsupported: 'Esa regla aún no es compatible: estamos trabajando en ello. Prueba con otra regla por ahora.',
+                    unintelligible: 'Prueba a formular tu regla así: si los gastos superan los $100, exige un recibo.',
+                    multipleRules: 'Una regla a la vez, por favor. Prueba a describir una sola regla, como: bloquear compras en comercios minoristas en todas las tarjetas.',
+                },
             },
             expenseDefaultsTable: {
                 tableColumnType: 'Tipo',
@@ -9634,6 +9619,8 @@ ${reportName}`,
         customUnitRateDateRangeFrom: (date: string) => `desde ${date}`,
         customUnitRateDateRangeUntilEnd: (date: string) => `hasta ${date}`,
         customUnitRateDateRangeAllDates: () => `para todas las fechas`,
+        updatedMemberDisplayName: (newName: string, oldName: string, editProfileURL: string) =>
+            `actualizó tu nombre para mostrar a ${newName} (previamente «${oldName}»). <a href="${editProfileURL}">Editar en tu perfil</a>`,
         policyCopy: {
             overview: (sourcePolicyName: string, sourcePolicyURL: string) => `copió la descripción general de <a href="${sourcePolicyURL}">${sourcePolicyName}</a>`,
             currency: (sourcePolicyName: string, sourcePolicyURL: string) => `copió la divisa de <a href="${sourcePolicyURL}">${sourcePolicyName}</a>`,
@@ -10085,7 +10072,11 @@ ${reportName}`,
         errors: {
             pleaseSelectDatesForBothFromAndTo: 'Por favor, selecciona fechas para Desde y Hasta',
         },
-        mergeReports: {title: 'Combinar informes', description: 'Selecciona el informe que quieres conservar. Todos los gastos se moverán a él y los demás informes se eliminarán.'},
+        mergeReports: {
+            title: 'Combinar informes',
+            description: 'Selecciona el informe que quieres conservar. Todos los gastos se moverán a él y los demás informes se eliminarán.',
+            listPage: {noEligibleReportsFound: 'No se encontraron informes aptos', noEligibleReportsFoundSubtitle: 'No tienes ningún informe que se pueda combinar.'},
+        },
         periodSoFar: ({period}: {period: string}) => `${period} hasta ahora`,
         weekOf: ({date}: {date: string}) => `Semana del ${date}`,
         saveEdits: {
@@ -10121,12 +10112,7 @@ ${reportName}`,
         },
     },
     settlement: {
-        status: {
-            pending: 'Pendiente',
-            cleared: 'Liquidado',
-            failed: 'Fallido',
-            never: 'Nunca',
-        },
+        status: {pending: 'Pendiente', cleared: 'Liquidado', failed: 'Fallido', never: 'Nunca', cashBack: 'Devolución de dinero'},
         failedError: ({link}: {link: string}) => `Reintentaremos esta liquidación cuando <a href="${link}">desbloquees tu cuenta</a>.`,
         withdrawalInfo: ({date, withdrawalID}: {date: string; withdrawalID: number}) => `${date} • ID de retiro: ${withdrawalID}`,
     },
@@ -10159,6 +10145,10 @@ ${reportName}`,
         genericUpdateReportFieldFailureMessage: 'Error inesperado al actualizar el campo. Por favor, inténtalo más tarde.',
         genericUpdateReportNameEditFailureMessage: 'Error inesperado al cambiar el nombre del informe. Por favor, intentarlo más tarde.',
         noActivityYet: 'Sin actividad todavía',
+        collapsedSystemMessages: () => ({
+            one: 'mostrar 1 actualización',
+            other: (count: number) => `mostrar ${count} actualizaciones`,
+        }),
         connectionSettings: 'Configuración de conexión',
         actions: {
             type: {
@@ -11574,6 +11564,16 @@ ${reportName}`,
                 other: `${count} usuarios activos`,
             }),
             state: {paid: 'Pagado', cleared: 'Borrado', failed: 'Error', refunded: 'Reembolsado', disputed: 'En disputa', balanceTransfer: 'Transferencia de saldo'},
+            details: 'Detalles del pago',
+            badge: {
+                balanceTransferTo: ({email}: {email: string}) => `Transferencia de saldo a ${email}`,
+                balanceTransferFrom: ({email}: {email: string}) => `Transferencia de saldo de ${email}`,
+                disputedPending: ({date}: {date: string}) => `En disputa el ${date} (Pendiente)`,
+                disputedRefunded: ({date}: {date: string}) => `En disputa el ${date} (Reembolsado)`,
+                disputedClosed: ({date}: {date: string}) => `En disputa el ${date} (Cerrado)`,
+                refundedOn: ({date}: {date: string}) => `Reembolsado el ${date}`,
+                refundedAmountOn: ({amount, date}: {amount: string; date: string}) => `Reembolsado ${amount} el ${date}`,
+            },
         },
         subscriptionSettings: {
             title: 'Configuración de suscripción',

@@ -39,6 +39,7 @@ import editedLabelStyles from './utils/editedLabelStyles';
 import emojiDefaultStyles from './utils/emojiDefaultStyles';
 import flex from './utils/flex';
 import FontUtils from './utils/FontUtils';
+import tooltipPlatformStyle from './utils/generators/TooltipStyleUtils/tooltipPlatformStyles';
 import objectFit from './utils/objectFit';
 import optionAlternateTextPlatformStyles from './utils/optionAlternateTextPlatformStyles';
 import overflow from './utils/overflow';
@@ -310,6 +311,13 @@ const compactPopoverMenuItemBaseStyle = {
 // composerSizeButton and the concierge prompt box so its button column stays in sync.
 const COMPOSER_SIZE_BUTTON_SIZE = 40;
 const COMPOSER_SIZE_BUTTON_MARGIN = 3;
+
+// Shared by receiptPageCountBadge and receiptPageNavigator so the two can't drift apart.
+const RECEIPT_PAGE_BADGE_POSITION = {
+    position: 'absolute' as const,
+    bottom: 12,
+    left: 12,
+};
 
 const staticStyles = (theme: ThemeColors) =>
     StyleSheet.create({
@@ -2210,6 +2218,25 @@ const staticStyles = (theme: ThemeColors) =>
             paddingBottom: 12,
         },
 
+        optionRowCompactMinHeight: {
+            minHeight: variables.optionRowHeightCompact,
+        },
+
+        // Sits flush against the right edge of a report field whose input has `noRightBorderRadius`, so the input's
+        // right border reads as a divider and the two look like one segmented field.
+        reportFieldDeleteButton: {
+            width: variables.componentSizeLarge,
+            height: variables.componentSizeLarge,
+            alignItems: 'center',
+            justifyContent: 'center',
+            backgroundColor: theme.appBG,
+            borderWidth: 1,
+            borderLeftWidth: 0,
+            borderTopRightRadius: variables.componentBorderRadiusNormal,
+            borderBottomRightRadius: variables.componentBorderRadiusNormal,
+            borderColor: theme.bordersBold,
+        },
+
         optionsListSectionHeader: {
             marginTop: 8,
             marginBottom: 4,
@@ -2790,6 +2817,10 @@ const staticStyles = (theme: ThemeColors) =>
             borderColor: 'transparent',
         },
 
+        tableColumnResizeIndicator: {
+            backgroundColor: theme.iconMenu,
+        },
+
         tableRowHeightCompact: {
             minHeight: variables.tableRowHeightCompact,
         },
@@ -3334,6 +3365,14 @@ const staticStyles = (theme: ThemeColors) =>
             transform: [{rotate: '180deg'}],
         },
 
+        // Use this instead of `flipUpsideDown` when the element being flipped has asymmetric horizontal padding.
+        // `rotate(180deg)` turns the whole box about its centre, so it mirrors that padding too and the content
+        // visibly slides sideways. Mirroring on the vertical axis leaves the box where it is, and looks identical
+        // for content that is already symmetric left-to-right (a caret, a chevron, a tooltip pointer).
+        flipUpsideDownInPlace: {
+            transform: [{scaleY: -1}],
+        },
+
         navigationScreenCardStyle: {
             height: '100%',
         },
@@ -3873,6 +3912,10 @@ const staticStyles = (theme: ThemeColors) =>
             lineHeight: variables.lineHeightXXLarge,
         },
 
+        cardLabelTooltipContainer: {
+            maxWidth: variables.modalContentMaxWidth,
+        },
+
         longTermsRow: {
             flexDirection: 'row',
             marginTop: 20,
@@ -4164,10 +4207,39 @@ const staticStyles = (theme: ThemeColors) =>
 
         // Float above the receipt to avoid zooming with it.
         receiptPageCountBadge: {
-            position: 'absolute',
-            bottom: 12,
-            left: 12,
+            ...RECEIPT_PAGE_BADGE_POSITION,
             marginLeft: 0,
+        },
+
+        // The pill grows with its label, so longer translations are never clipped and the buttons' focus outlines stay visible.
+        receiptPageNavigator: {
+            ...RECEIPT_PAGE_BADGE_POSITION,
+            flexDirection: 'row',
+            alignItems: 'center',
+            minHeight: variables.componentSizeSmall,
+            paddingHorizontal: 4,
+            borderRadius: variables.componentBorderRadiusRounded,
+            backgroundColor: theme.badgeDefaultBG,
+        },
+
+        receiptPageNavigatorLabelContainer: {
+            alignItems: 'center',
+            justifyContent: 'center',
+        },
+
+        // Overlays the hidden widest label that sizes the pill
+        receiptPageNavigatorCurrentLabel: {
+            ...StyleSheet.absoluteFill,
+            alignItems: 'center',
+            justifyContent: 'center',
+        },
+
+        // A real tap target around the small arrow glyph; react-native-web's Pressable doesn't support hitSlop
+        receiptPageNavigatorButton: {
+            height: 24,
+            width: 24,
+            alignItems: 'center',
+            justifyContent: 'center',
         },
 
         reuseRouteCard: {
@@ -6170,6 +6242,10 @@ const staticStyles = (theme: ThemeColors) =>
             maxHeight: variables.agentRulePromptInputHeight,
         },
 
+        describeRulePromptInput: {
+            height: variables.describeRulePromptInputHeight,
+        },
+
         emptyStateSamlIllustration: {
             width: 183,
             height: 160,
@@ -6865,26 +6941,31 @@ const staticStyles = (theme: ThemeColors) =>
             ...textVariants.textStrong,
             color: theme.text,
         },
-        chartTooltipWrapper: {
-            alignItems: 'center',
-        },
         chartTooltipBox: {
-            backgroundColor: theme.heading,
-            borderRadius: variables.componentBorderRadiusSmall,
-            paddingVertical: 4,
-            paddingHorizontal: 8,
+            backgroundColor: theme.appBG,
+            borderColor: theme.border,
+            borderWidth: 1,
+            borderRadius: variables.componentBorderRadiusNormal,
+            boxShadow: theme.shadow,
+            padding: 12,
+            rowGap: 8,
+        },
+        chartTooltipLayer: {
+            ...tooltipPlatformStyle,
+            zIndex: variables.tooltipZIndex,
+        },
+        chartTooltipOrigin: {
+            position: 'absolute',
+            top: 0,
+            left: 0,
+        },
+        chartTooltipTitle: {
+            ...textVariants.labelStrong,
+            color: theme.text,
         },
         chartTooltipText: {
-            color: theme.textReversed,
-            fontSize: variables.fontSizeSmall,
-            lineHeight: variables.lineHeightSmall,
-            whiteSpace: 'nowrap',
-        },
-        chartTooltipPointer: {
-            width: 0,
-            height: 0,
-            backgroundColor: theme.transparent,
-            borderStyle: 'solid',
+            ...textVariants.label,
+            color: theme.text,
         },
         chartContainer: {
             borderRadius: variables.componentBorderRadiusLarge,
@@ -7329,6 +7410,16 @@ const dynamicStyles = (theme: ThemeColors) =>
                 backgroundColor: theme.componentBG,
             };
         },
+
+        getCardAuthenticationModalInnerView: (shouldUseNarrowLayout: boolean) =>
+            ({
+                flex: 1,
+                margin: shouldUseNarrowLayout ? 0 : 20,
+                borderRadius: shouldUseNarrowLayout ? 0 : variables.componentBorderRadiusLarge,
+                overflow: 'hidden',
+                boxShadow: shouldUseNarrowLayout ? undefined : theme.shadow,
+                backgroundColor: theme.componentBG,
+            }) satisfies ViewStyle,
 
         getTestToolsNavigatorOuterView: (shouldUseNarrowLayout: boolean) => ({
             justifyContent: shouldUseNarrowLayout ? 'flex-end' : 'center',

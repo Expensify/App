@@ -33,7 +33,7 @@ import {Bar, CartesianChart} from 'victory-native';
 
 import type BarChartProps from './types';
 
-function VerticalBarChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPosition = 'left', onBarPress, shouldShowLabels = true}: BarChartProps) {
+function VerticalBarChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPosition = 'left', onBarPress, shouldShowLabels = true, color}: BarChartProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const fontManager = useChartFontManager();
@@ -127,8 +127,8 @@ function VerticalBarChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPosit
         return isWithinX && args.cursorY >= plotTop.get() && args.cursorY <= plotBottom.get();
     };
 
-    const {customGestures, setPointPositions, matchedIndex, isTooltipActive, isCursorOverClickable, initialTooltipPosition} = useChartInteractions({
-        handlePress: handleBarPress,
+    const {customGestures, setPointPositions, matchedIndex, isTooltipActive, isCursorOverClickable, initialTooltipPosition, onChartMoved} = useChartInteractions({
+        handlePress: onBarPress ? handleBarPress : undefined,
         checkIsOver: checkIsOverBar,
         isCursorOverLabel: shouldShowLabels ? isCursorOverLabel : undefined,
         resolveLabelTouchX: shouldShowLabels ? findLabelCursorX : undefined,
@@ -158,7 +158,7 @@ function VerticalBarChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPosit
                 key={`bar-${dataPoint?.label}`}
                 points={[point]}
                 chartBounds={chartBounds}
-                color={VictoryTheme.colors.getColor(dataIndex)}
+                color={color ?? VictoryTheme.colors.getColor(dataIndex)}
                 barWidth={barLayout.barWidth}
                 barCount={data.length}
                 roundedCorners={{topLeft: BAR_CORNER_RADIUS, topRight: BAR_CORNER_RADIUS, bottomLeft: BAR_CORNER_RADIUS, bottomRight: BAR_CORNER_RADIUS}}
@@ -229,7 +229,7 @@ function VerticalBarChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPosit
             touchAction="pan-y"
         >
             <Animated.View
-                style={[styles.chartContent, dynamicChartStyle, cursorStyle]}
+                style={[styles.chartContent, dynamicChartStyle, !!onBarPress && cursorStyle]}
                 onLayout={handleLayout}
             >
                 {chartWidth > 0 && (
@@ -281,6 +281,7 @@ function VerticalBarChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPosit
                     formatValue={formatValue}
                     chartWidth={chartWidth}
                     initialTooltipPosition={initialTooltipPosition}
+                    onChartMoved={onChartMoved}
                 />
             </Animated.View>
         </GestureDetector>
