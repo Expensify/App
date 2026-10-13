@@ -91,6 +91,7 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
     const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
     const [allReportsTransactionsAndViolations] = useOnyx(ONYXKEYS.DERIVED.REPORT_TRANSACTIONS_AND_VIOLATIONS);
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
+    const [reportDrafts] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT);
     const [allReportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS);
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${getNonEmptyStringOnyxID(report?.policyID)}`);
     const [allPolicyRecentlyUsedCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES);
@@ -295,6 +296,7 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
                 getCurrencySymbol,
                 allTransactionsList: allTransactions,
                 allReportsList: allReports,
+                reportDrafts,
                 allReportActionsList: allReportActions,
                 allReportNameValuePairsList: allReportNameValuePairs,
                 allSnapshots,
