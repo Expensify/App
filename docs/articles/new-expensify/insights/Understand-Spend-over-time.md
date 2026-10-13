@@ -1,54 +1,58 @@
 ---
 title: Understand Spend Over Time
-description: Learn what the Spend over time chart on the Insights page shows, how its totals are calculated, and how to read changes in spending across a period.
-keywords: [Spend over time, spending trend, spend chart, Insights, total spend by month, spend by week, spend by quarter, spend by year, Group by, spending trends over time, is spending going up]
-internalScope: Audience is all members. Covers what the Spend over time chart shows, how its totals are calculated, how Group by changes the chart, and how to read it. Does not cover the Insights page filters or the ranking charts.
+description: Learn what the Spend over time insight shows, how totals are calculated, and how to interpret spend trends across different time periods.
+keywords: [Spend over time, spend trends, Insights, total spend, Group by, weekly spend, monthly spend, quarterly spend, yearly spend]
+internalScope: Audience is all members. Covers what the Spend over time insight shows, how totals are calculated, how Group by affects the insight, and how to interpret spend trends. Does not cover Insights filters or ranking insights.
 contentType: topic
 platform: new-expensify
 ---
 
 # Understand Spend Over Time
 
-**Spend over time** is the headline chart on the **Insights** page. It shows your total spend as a line across the selected date range, so you can see whether spending is going up, going down, or holding steady.
+The **Spend over time** insight shows how total spend changes over a selected date range. It helps you identify trends, compare different periods, and spot unusual increases or decreases in spend.
 
----
+## What Spend over time shows
 
-## What the Spend over time chart shows
+Each point on the line represents the total spend during a specific period, such as a week or month.
 
-Each point on the line is the total amount spent in one time period, such as one month. The chart includes every expense that matches the **Date**, **Workspace**, and **Group currency** filters at the top of the Insights page, and only expenses you have permission to see.
+**Spend over time** includes expenses that match the **Date**, **Workspace**, and **Group currency** filters in **Insights**, based on the expenses you have permission to see.
 
----
+<!-- SCREENSHOT:
+Suggestion: Capture the Spend over time insight with Month selected under Group by. Show several months of data with visible increases and decreases in spend.
+Location: After the explanation of what Spend over time shows.
+Purpose: Help members understand how individual points represent spend totals for specific periods and how changes between points reflect spend trends.
+-->
 
 ## How Spend over time totals are calculated
 
-Expenses are grouped into time periods by the date of each expense. Each point adds up all expenses in that period. Amounts in other currencies are converted to the selected **Group currency**, so every point uses the same currency.
+Expenses are grouped into periods based on their expense dates. Each point represents the total amount of expenses within that period.
 
----
+Expenses in different currencies are converted to the selected **Group currency**, so all totals use the same currency.
 
-## How to change the time period in Spend over time
+## How grouping affects Spend over time
 
-Use **Group by** on the chart to choose how expenses are grouped:
+The **Group by** setting determines how expenses are grouped over time:
 
-- **Week**
-- **Month** (the default)
-- **Quarter**
-- **Year**
+- **Week** groups expenses into weekly totals.
+- **Month** groups expenses into monthly totals and is the default.
+- **Quarter** groups expenses into quarterly totals.
+- **Year** groups expenses into yearly totals.
 
-Choose a shorter period, such as **Week**, to see short-term spikes. Choose a longer period, such as **Quarter** or **Year**, to see the overall trend.
+Shorter periods, such as **Week**, make it easier to identify short-term changes in spend. Longer periods, such as **Quarter** or **Year**, provide a broader view of spend trends.
 
----
+Changing **Group by** changes how expenses are grouped, not which expenses are included in the selected date range.
 
-## How to read changes in Spend over time
+## How to interpret spend trends
 
-- **A rising line** means spending increased from one period to the next.
-- **A single high point** usually points to a one-off cost, such as an annual subscription or a large purchase.
-- **A repeating pattern** can show seasonal spending, such as higher travel in certain months.
+The shape of the line can help you identify changes in spend:
 
-To find out what caused a change, select that point on the line. **Spend** opens a list of the expenses from that period, with the newest first.
+- **An upward trend** indicates that spend increased across the periods shown.
+- **A sudden spike** indicates unusually high spend in one period compared with surrounding periods.
+- **A recurring pattern** may indicate seasonal or regularly occurring expenses.
 
-The first or last period may be partial if the date range starts or ends partway through it. For example, with **Year to date** selected, the current month only includes expenses up to today.
+To investigate a specific period, select its point on the line. This opens the matching expenses in **Spend**, with the newest expenses listed first.
 
----
+The first or last period may be incomplete if the selected date range begins or ends partway through it. For example, when **Year to date** is selected, the current month's total only includes expenses through today.
 
 ## Related articles
 
