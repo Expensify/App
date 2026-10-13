@@ -96,23 +96,8 @@ function useReportActionsNewActionLiveTail({
 
     // Scrolling to the user's own comment must also mark the report as read. Otherwise the "New" divider stays, and the
     // unread marker it leaves behind turns the "New messages" pill back on. An effect event keeps it out of effect deps.
-    // Marking read moves lastReadTime to now, so skip it while newer actions are not loaded (e.g. offline, where the
-    // live-tail jump can't run). Otherwise actions the user never saw would come back from the server already read.
     const markAsReadAfterScroll = useEffectEvent(() => {
-        if (!hasNewestReportAction || hasNewerActions) {
-            return;
-        }
         markNewestActionAsRead();
-    });
-
-    // On web a report screen stays mounted after the user switches to another report, so openReport can finish while
-    // this screen is in the background. Only mark read if the user is still looking at it. The side panel's fallback
-    // navigation always reports focused.
-    const markAsReadAfterLiveTailJump = useEffectEvent(() => {
-        if (!navigation.isFocused()) {
-            return;
-        }
-        markAsReadAfterScroll();
     });
 
     const scrollToBottomForCurrentUserAction = useEffectEvent((isFromCurrentUser: boolean, action?: OnyxTypes.ReportAction) => {
@@ -221,7 +206,7 @@ function useReportActionsNewActionLiveTail({
 
         liveTailJumpRef.current = {stage: 'await_prune'};
         setIsFloatingMessageCounterVisible(false);
-        markAsReadAfterLiveTailJump();
+        markAsReadAfterScroll();
         // Defer so this effect does not synchronously chain a second render from setState (eslint react-hooks/set-state-in-effect).
         queueMicrotask(() => {
             setIsScrollToBottomEnabled(true);
