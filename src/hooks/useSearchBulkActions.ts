@@ -158,6 +158,7 @@ import useOnyx from './useOnyx';
 import {getParticipantsInvoiceReport} from './useParticipantsInvoiceReport';
 import usePaymentContext from './usePaymentContext';
 import usePermissions from './usePermissions';
+import {useGetPersonalDetailsByLogin} from './usePersonalDetailByLogin';
 import {useAllPersonalDetails} from './usePersonalDetails';
 import usePersonalPolicy from './usePersonalPolicy';
 import usePolicyForMovingExpenses from './usePolicyForMovingExpenses';
@@ -692,6 +693,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
     const [nonPersonalAndWorkspaceCards] = useOnyx(ONYXKEYS.DERIVED.NON_PERSONAL_AND_WORKSPACE_CARD_LIST);
     // "Auto report" cannot read a card's absence as no access until every card has arrived.
     const {areCardsLoaded: isSearchCardListComplete} = useLoadSearchCardData();
+    const getPersonalDetailsByLogin = useGetPersonalDetailsByLogin();
 
     const isExpenseReportType = queryJSON?.type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT;
     const expensifyIcons = useMemoizedLazyExpensifyIcons([
@@ -2867,6 +2869,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                                             submitterLogin: getLoginByAccountID(snapshotReport.ownerAccountID, personalDetails),
                                             getCurrencyDecimals,
                                             rules,
+                                            personalDetailsByLogins: getPersonalDetailsByLogin(),
                                             currentSearchKey,
                                             managerEmail,
                                             managerAccountID,
@@ -2919,6 +2922,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                                     submitterLogin: getLoginByAccountID(item.ownerAccountID, personalDetails),
                                     getCurrencyDecimals,
                                     rules,
+                                    personalDetailsByLogins: getPersonalDetailsByLogin(),
                                     shouldResolveAcknowledgedViolations: shouldResolveViolations,
                                 });
                             } else {
@@ -2987,7 +2991,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             isBetaEnabled(CONST.BETAS.REPORT_MERGE) &&
             selectedMergeReports.length === selectedReports.length &&
             queryJSON?.type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT &&
-            canMergeReports(selectedMergeReports, currentUserPersonalDetails.accountID, rules)
+            canMergeReports(selectedMergeReports, currentUserPersonalDetails.accountID, rules, allReportNameValuePairs)
         ) {
             options.push({
                 icon: expensifyIcons.ArrowCollapse,
@@ -3107,7 +3111,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             });
         }
 
-        const shouldShowUnholdOption = !isOffline && selectedTransactionsKeys.every((id) => selectedTransactions[id].canUnhold);
+        const shouldShowUnholdOption = selectedTransactionsKeys.every((id) => selectedTransactions[id].canUnhold);
 
         if (shouldShowUnholdOption) {
             options.push({
@@ -3116,11 +3120,6 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 value: CONST.SEARCH.BULK_ACTION_TYPES.UNHOLD,
                 shouldCloseModalOnSelect: true,
                 onSelected: () => {
-                    if (isOffline) {
-                        setIsOfflineModalVisible(true);
-                        return;
-                    }
-
                     if (isDelegateAccessRestricted) {
                         showDelegateNoAccessModal();
                         return;
@@ -3381,7 +3380,9 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         currentSearchResults?.search?.isLoading,
         shouldCalculateTotalsOnRefresh,
         rules,
+        allReportNameValuePairs,
         showReportPDFDownloadModal,
+        getPersonalDetailsByLogin,
     ]);
 
     // When the dropdown surfaces the export options directly there is no "Export" row above them, so on its own the

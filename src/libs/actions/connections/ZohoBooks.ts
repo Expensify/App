@@ -11,8 +11,8 @@ import type {
     UpdateZohoBooksExporterParams,
     UpdateZohoBooksExportToMultipleAccountsParams,
     UpdateZohoBooksFieldMappingParams,
-    UpdateZohoBooksOrganizationParams,
     UpdateZohoBooksSettlementsAccountParams,
+    UpdateZohoBooksSubsidiaryParams,
     UpdateZohoBooksSyncExpensifyCardSettlementsParams,
     UpdateZohoBooksSyncReimbursedReportsParams,
     UpdateZohoBooksSyncTaxRatesParams,
@@ -579,13 +579,13 @@ function prepareZohoBooksCardProgramAccountOnyxData(
     return {optimisticData, successData, failureData};
 }
 
-function updateZohoBooksOrganization(policyID: string, organizationID: ZohoBooksConnectionsConfig['organizationID'], oldSubsidiaryID?: ZohoBooksConnectionsConfig['organizationID']) {
-    const onyxData = prepareZohoBooksOnyxData(policyID, CONST.ZOHO_BOOKS_CONFIG.ORGANIZATION_ID, organizationID, oldSubsidiaryID ?? null);
-    const params: UpdateZohoBooksOrganizationParams = {
+function updateZohoBooksSubsidiary(policyID: string, subsidiaryID: ZohoBooksConnectionsConfig['subsidiaryID'], oldSubsidiaryID?: ZohoBooksConnectionsConfig['subsidiaryID']) {
+    const onyxData = prepareZohoBooksOnyxData(policyID, CONST.ZOHO_BOOKS_CONFIG.SUBSIDIARY_ID, subsidiaryID, oldSubsidiaryID ?? null);
+    const params: UpdateZohoBooksSubsidiaryParams = {
         policyID,
-        organizationID,
+        subsidiaryID,
     };
-    write(WRITE_COMMANDS.UPDATE_ZOHO_BOOKS_ORGANIZATION, params, onyxData);
+    write(WRITE_COMMANDS.UPDATE_ZOHO_BOOKS_SUBSIDIARY, params, onyxData);
 }
 
 function updateZohoBooksEnableNewCategories(policyID: string, enabled: ZohoBooksConnectionsConfig['enableNewCategories'], oldEnabled?: ZohoBooksConnectionsConfig['enableNewCategories']) {
@@ -791,7 +791,7 @@ function updateZohoBooksCardProgramAccount(
 export {
     getZohoBooksSetupLink,
     clearZohoBooksErrorField,
-    updateZohoBooksOrganization,
+    updateZohoBooksSubsidiary,
     updateZohoBooksEnableNewCategories,
     updateZohoBooksSyncTaxRates,
     updateZohoBooksFieldMapping,

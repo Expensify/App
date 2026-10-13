@@ -8,6 +8,7 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
+import {useGetPersonalDetailsByLogin} from '@hooks/usePersonalDetailByLogin';
 import useStrictPolicyRules from '@hooks/useStrictPolicyRules';
 
 import {hasDynamicExternalWorkflow, isSubmitPolicy} from '@libs/PolicyUtils';
@@ -78,6 +79,7 @@ function SubmitActionButtonContent() {
     } = useReportPreviewActionButtonData(iouReportID);
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
+    const getPersonalDetailsByLogin = useGetPersonalDetailsByLogin();
 
     const {transactionViolations} = useReportPreviewTransactionViolations();
 
@@ -169,6 +171,7 @@ function SubmitActionButtonContent() {
                 delegateEmail,
                 delegateAccountID,
                 submitterLogin,
+                personalDetailsByLogins: getPersonalDetailsByLogin(),
                 isTrackIntentUser,
             });
         });
