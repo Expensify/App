@@ -1,5 +1,5 @@
 import getAddressInputKeys from '@components/DynamicForm/utils/getAddressInputKeys';
-import getSubmittedAnswers from '@components/DynamicForm/utils/getSubmittedAnswers';
+import getSubmittedAnswers, {getAnswerKeys} from '@components/DynamicForm/utils/getSubmittedAnswers';
 
 import type {DynamicFormField} from '@src/types/onyx';
 
@@ -44,5 +44,17 @@ describe('getSubmittedAnswers', () => {
 
         // Then the currency is part of the answer, since the amount means nothing without it
         expect(answers).toMatchObject({home: '1 Main St', [cityKey]: 'Austin', fee: '100', feeCurrency: 'EUR'});
+    });
+
+    it('lists every answer key of a compound field', () => {
+        // Given an address field, whose answer is spread over several keys
+        const field: DynamicFormField = {key: 'home', type: 'address', required: true, sensitive: true};
+
+        // When the answer keys are listed
+        const keys = getAnswerKeys(field);
+
+        // Then the address parts are included, so marking the field sensitive covers all of them
+        expect(keys).toContain('home');
+        expect(keys).toContain(cityKey);
     });
 });

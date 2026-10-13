@@ -24,7 +24,7 @@ import DynamicFormShell from './components/DynamicFormShell';
 import getContentFields from './utils/getContentFields';
 import getDynamicFieldErrors from './utils/getDynamicFieldErrors';
 import getPageTitle, {isPageShown} from './utils/getPageTitle';
-import getSubmittedAnswers from './utils/getSubmittedAnswers';
+import getSubmittedAnswers, {getAnswerKeys} from './utils/getSubmittedAnswers';
 import isSensitiveField from './utils/isSensitiveField';
 import isSupportedField from './utils/isSupportedField';
 import {getAllFields, getPages} from './utils/paginate';
@@ -168,7 +168,7 @@ function DynamicFormFlow({
         const currentValues = {...values, ...pageValues};
         const pageFields = getContentFields(page.content).filter(isSupportedField);
         const answers = getSubmittedAnswers(pageFields, currentValues, allFields);
-        const sensitiveKeys = new Set(pageFields.filter((field) => isSensitiveField(field)).map((field) => field.key));
+        const sensitiveKeys = new Set(pageFields.filter((field) => isSensitiveField(field)).flatMap((field) => getAnswerKeys(field)));
         const draftAnswers: DynamicFormValues = {};
         const sensitiveAnswers: DynamicFormValues = {};
         for (const [key, answer] of Object.entries(answers)) {

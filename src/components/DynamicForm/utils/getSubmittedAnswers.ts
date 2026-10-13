@@ -31,3 +31,4 @@ function getSubmittedAnswers(fields: DynamicFormField[], values: DynamicFormValu
 }
 
 export default getSubmittedAnswers;
+export {getAnswerKeys};
