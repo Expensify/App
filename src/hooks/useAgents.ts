@@ -77,14 +77,14 @@ function useAgents() {
         let ownerDisplayName: string | undefined;
         let ownerPolicyID: string | undefined;
         if (agent.ownerType === CONST.AGENTS.OWNER_TYPE.PERSON) {
-            const ownerDetails = personalDetailsList?.[agent.ownerAccountID];
+            const ownerDetails = agent.ownerAccountID ? personalDetailsList?.[agent.ownerAccountID] : undefined;
             ownerDisplayName = ownerDetails?.displayName ?? ownerDetails?.login;
         } else if (agent.ownerType === CONST.AGENTS.OWNER_TYPE.WORKSPACE) {
-            const policy = usingPolicyAccountIDPoliciesSelector(allPolicies, agent.ownerAccountID);
+            const policy = agent.ownerAccountID ? usingPolicyAccountIDPoliciesSelector(allPolicies, agent.ownerAccountID) : undefined;
             ownerDisplayName = policy?.name;
             ownerPolicyID = policy?.id;
         } else if (agent.ownerType === CONST.AGENTS.OWNER_TYPE.DOMAIN) {
-            const ownerDetails = personalDetailsList?.[agent.ownerAccountID];
+            const ownerDetails = agent.ownerAccountID ? personalDetailsList?.[agent.ownerAccountID] : undefined;
             ownerDisplayName = ownerDetails?.login ? Str.extractEmailDomain(ownerDetails.login) : undefined;
         }
 
