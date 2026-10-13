@@ -17,6 +17,7 @@ import type {ValueOf} from 'type-fest';
 import {CONST as COMMON_CONST, Str} from 'expensify-common';
 
 import type en from './en';
+import type {CompanyCardBalanceParams} from './params';
 import type {AllConnectionName, PolicyConnectionSyncStage} from './TranslationTypes';
 import type {TranslationDeepObject} from './types';
 const translations: TranslationDeepObject<typeof en> = {
@@ -439,6 +440,7 @@ const translations: TranslationDeepObject<typeof en> = {
         leaveWorkspaceReimburser:
             'No puedes salir de este espacio de trabajo como reembolsador. Por favor, establece un nuevo reembolsador en Espacios de trabajo > Realizar o rastrear pagos y luego inténtalo de nuevo.',
         reimbursable: 'Reembolsable',
+        nonReimbursable: 'No reembolsable',
         editYourProfile: 'Edita tu perfil',
         comments: 'Comentarios',
         sharedIn: 'Compartido en',
@@ -1309,7 +1311,7 @@ const translations: TranslationDeepObject<typeof en> = {
         addAdditionalReceipt: 'Añadir recibo adicional',
         scanFailed: 'El recibo no pudo ser escaneado, ya que falta el comerciante, la fecha o el importe.',
         crop: 'Recortar',
-        pageCount: ({pageCount}: {pageCount: number}) => `Página 1 de ${pageCount}`,
+        pageCount: ({page, pageCount}: {page: number; pageCount: number}) => `Página ${page} de ${pageCount}`,
         addAReceipt: {
             phrase1: 'Añade un recibo',
             phrase2: 'o arrastra y suelta uno aquí',
@@ -3903,6 +3905,10 @@ ${amount} para ${merchant} - ${date}`,
     },
     dynamicForm: {
         exampleHint: ({example}: {example: string}) => `Ejemplo: ${example}`,
+        fileCount: ({count}: {count: number}) => ({
+            one: '1 archivo',
+            other: `${count} archivos`,
+        }),
         error: {
             tooShort: ({minLength}: {minLength: number}) => `Debe tener al menos ${minLength} caracteres`,
             invalidFormat: ({example}: {example?: string}) => (example ? `Formato inválido. Ejemplo: ${example}` : 'Formato inválido'),
@@ -6077,6 +6083,15 @@ ${amount} para ${merchant} - ${date}`,
             submit: 'Enviar',
         },
         companyCards: {
+            balance: {
+                currentBalance: 'Saldo actual',
+                remainingLimit: 'Límite restante',
+                notAvailable: 'No disponible',
+                currentBalanceDescription: ({lastUpdated}: CompanyCardBalanceParams) => `El saldo actual es informado por tu banco y se actualizó por última vez el ${lastUpdated}.`,
+                remainingLimitDescription: ({lastUpdated}: CompanyCardBalanceParams) => `El límite restante lo informa tu banco y se actualizó por última vez el ${lastUpdated}.`,
+                currentBalanceDescriptionNoTimestamp: 'Tu banco informa del saldo actual.',
+                remainingLimitDescriptionNoTimestamp: 'El límite restante lo indica tu banco.',
+            },
             addCards: 'Añadir tarjetas',
             selectCards: 'Seleccionar tarjetas',
             fromOtherWorkspaces: 'De otros espacios de trabajo',

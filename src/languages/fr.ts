@@ -26,6 +26,7 @@ import {CONST as COMMON_CONST, Str} from 'expensify-common';
 import startCase from 'lodash/startCase';
 
 import type en from './en';
+import type {CompanyCardBalanceParams} from './params';
 import type {TranslationDeepObject} from './types';
 type StateValue = {
     stateISO: string;
@@ -449,6 +450,7 @@ const translations: TranslationDeepObject<typeof en> = {
         leaveWorkspaceReimburser:
             'Vous ne pouvez pas quitter cet espace de travail en tant que rembourseur. Définissez un nouveau rembourseur dans Espaces de travail > Effectuer ou suivre les paiements, puis réessayez.',
         reimbursable: 'Remboursable',
+        nonReimbursable: 'Non remboursable',
         editYourProfile: 'Modifier votre profil',
         comments: 'Commentaires',
         sharedIn: 'Partagé dans',
@@ -1324,7 +1326,7 @@ const translations: TranslationDeepObject<typeof en> = {
             phrase1: 'Ajouter un reçu',
             phrase2: 'ou faites-en glisser un ici',
         },
-        pageCount: ({pageCount}: {pageCount: number}) => `Page 1 sur ${pageCount}`,
+        pageCount: ({page, pageCount}: {page: number; pageCount: number}) => `Page ${page} sur ${pageCount}`,
     },
     quickAction: {
         scanReceipt: 'Scanner le reçu',
@@ -3999,6 +4001,10 @@ ${amount} pour ${merchant} - ${date}`,
     },
     dynamicForm: {
         exampleHint: ({example}: {example: string}) => `Exemple : ${example}`,
+        fileCount: ({count}: {count: number}) => ({
+            one: `${count} fichier`,
+            other: `${count} fichiers`,
+        }),
         error: {
             tooShort: ({minLength}: {minLength: number}) => `Doit contenir au moins ${minLength} caractères`,
             invalidFormat: ({example}: {example?: string}) => (example ? `Format invalide. Exemple : ${example}` : 'Format invalide'),
@@ -6208,6 +6214,17 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
             submit: 'Soumettre',
         },
         companyCards: {
+            balance: {
+                currentBalance: 'Solde actuel',
+                remainingLimit: 'Plafond restant',
+                notAvailable: 'Non disponible',
+                currentBalanceDescription: ({lastUpdated}: CompanyCardBalanceParams) =>
+                    `Le solde actuel est fourni par votre banque et a été mis à jour pour la dernière fois le ${lastUpdated}.`,
+                remainingLimitDescription: ({lastUpdated}: CompanyCardBalanceParams) =>
+                    `La limite restante est indiquée par votre banque et a été mise à jour pour la dernière fois le ${lastUpdated}.`,
+                currentBalanceDescriptionNoTimestamp: 'Le solde actuel est indiqué par votre banque.',
+                remainingLimitDescriptionNoTimestamp: 'La limite restante est indiquée par votre banque.',
+            },
             addCards: 'Ajouter des cartes',
             selectCards: 'Sélectionner des cartes',
             fromOtherWorkspaces: "D'autres espaces de travail",

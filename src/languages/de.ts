@@ -26,6 +26,7 @@ import {CONST as COMMON_CONST, Str} from 'expensify-common';
 import startCase from 'lodash/startCase';
 
 import type en from './en';
+import type {CompanyCardBalanceParams} from './params';
 import type {TranslationDeepObject} from './types';
 type StateValue = {
     stateISO: string;
@@ -450,6 +451,7 @@ const translations: TranslationDeepObject<typeof en> = {
         leaveWorkspaceReimburser:
             'Du kannst diesen Workspace als Erstattungsverantwortliche·r nicht verlassen. Bitte lege unter „Workspaces > Zahlungen senden oder nachverfolgen“ eine·n neue·n Erstattungsverantwortliche·n fest und versuche es erneut.',
         reimbursable: 'Erstattungsfähig',
+        nonReimbursable: 'Nicht erstattungsfähig',
         editYourProfile: 'Profil bearbeiten',
         comments: 'Kommentare',
         sharedIn: 'Geteilt in',
@@ -1319,7 +1321,7 @@ const translations: TranslationDeepObject<typeof en> = {
             phrase1: 'Beleg hinzufügen',
             phrase2: 'oder ziehe eine hierher und lege sie ab',
         },
-        pageCount: ({pageCount}: {pageCount: number}) => `Seite 1 von ${pageCount}`,
+        pageCount: ({page, pageCount}: {page: number; pageCount: number}) => `Seite ${page} von ${pageCount}`,
     },
     quickAction: {
         scanReceipt: 'Beleg scannen',
@@ -3992,6 +3994,10 @@ ${amount} für ${merchant} – ${date}`,
     },
     dynamicForm: {
         exampleHint: ({example}: {example: string}) => `Beispiel: ${example}`,
+        fileCount: ({count}: {count: number}) => ({
+            one: '1 Datei',
+            other: `${count} Dateien`,
+        }),
         error: {
             tooShort: ({minLength}: {minLength: number}) => `Muss mindestens ${minLength} Zeichen lang sein`,
             invalidFormat: ({example}: {example?: string}) => (example ? `Ungültiges Format. Beispiel: ${example}` : 'Ungültiges Format'),
@@ -6203,6 +6209,16 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
             submit: 'Einreichen',
         },
         companyCards: {
+            balance: {
+                currentBalance: 'Aktueller Kontostand',
+                remainingLimit: 'Verbleibendes Limit',
+                notAvailable: 'Nicht verfügbar',
+                currentBalanceDescription: ({lastUpdated}: CompanyCardBalanceParams) => `Der aktuelle Kontostand wird von Ihrer Bank gemeldet und zuletzt am ${lastUpdated} aktualisiert.`,
+                remainingLimitDescription: ({lastUpdated}: CompanyCardBalanceParams) =>
+                    `Der verbleibende Verfügungsrahmen wird von Ihrer Bank gemeldet und zuletzt am ${lastUpdated} aktualisiert.`,
+                currentBalanceDescriptionNoTimestamp: 'Der aktuelle Kontostand wird von Ihrer Bank gemeldet.',
+                remainingLimitDescriptionNoTimestamp: 'Der verbleibende Verfügungsrahmen wird von Ihrer Bank gemeldet.',
+            },
             addCards: 'Karten hinzufügen',
             selectCards: 'Karten auswählen',
             fromOtherWorkspaces: 'Aus anderen Workspaces',
