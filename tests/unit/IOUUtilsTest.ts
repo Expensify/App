@@ -6,8 +6,6 @@ import useReportIsArchived from '@hooks/useReportIsArchived';
 import DateUtils from '@libs/DateUtils';
 import Navigation from '@libs/Navigation/Navigation';
 
-import {canApproveIOU, canSubmitReport} from '@userActions/IOU/ReportWorkflow';
-
 import CONST from '@src/CONST';
 import * as IOUUtils from '@src/libs/IOUUtils';
 import * as ReportUtils from '@src/libs/ReportUtils';
@@ -328,6 +326,57 @@ describe('IOUUtils', () => {
         test('Should fill sparse slots when tagIndex exceeds current array length', () => {
             expect(IOUUtils.insertTagIntoTransactionTagsString('First', 'Third', 2, true)).toBe('First::Third');
         });
+
+        test('Should drop values for tag lists the policy no longer has', () => {
+            // Given an expense tagged while the policy had 3 tag lists, and the policy now has only 2,
+            // so the third value can never be edited and keeps the expense flagged as having an invalid tag
+            const transactionTags = '777 Accounting/Finance:150 CCI:150 CCI';
+            const tagListCount = 2;
+
+            // When the user edits the second tag
+            const result = IOUUtils.insertTagIntoTransactionTagsString(transactionTags, '200 HQ', 1, true, tagListCount);
+
+            // Then only the 2 current tag lists keep a value, which clears the stale third value
+            expect(result).toBe('777 Accounting/Finance:200 HQ');
+        });
+
+        test('Should drop the last value when a middle tag list was removed, leaving the shifted value editable', () => {
+            // Given an expense tagged with lists A:B:C after list B was removed. The tag string is positional,
+            // so B's value now sits in C's slot and C's value sits beyond the 2 remaining lists
+            const transactionTags = 'a:b:c';
+            const tagListCount = 2;
+
+            // When the user edits the first tag
+            const result = IOUUtils.insertTagIntoTransactionTagsString(transactionTags, 'a2', 0, true, tagListCount);
+
+            // Then the value beyond the remaining lists is dropped and the shifted value stays in a visible slot,
+            // where it shows as invalid and the user can replace it
+            expect(result).toBe('a2:b');
+        });
+
+        test('Should keep every value when the tag list count is unknown', () => {
+            // Given a tag string with 3 values and no reliable tag list count, because the policy's tags have not finished loading
+            const transactionTags = 'East:NY:California';
+
+            // When the user edits the second tag without a count, or with a count of 0
+            const resultWithoutCount = IOUUtils.insertTagIntoTransactionTagsString(transactionTags, 'NewTag', 1, true);
+            const resultWithZeroCount = IOUUtils.insertTagIntoTransactionTagsString(transactionTags, 'NewTag', 1, true, 0);
+
+            // Then no value is dropped, since a partial tag collection must not discard valid tags
+            expect(resultWithoutCount).toBe('East:NewTag:California');
+            expect(resultWithZeroCount).toBe('East:NewTag:California');
+        });
+
+        test('Should keep every value when the tag string fits the tag list count', () => {
+            // Given a policy with 3 tag lists and an expense that only has the first 2 set
+            const transactionTags = 'East:NY';
+
+            // When the user sets the third tag
+            const result = IOUUtils.insertTagIntoTransactionTagsString(transactionTags, 'California', 2, true, 3);
+
+            // Then all 3 values are kept, since truncation only applies to values beyond the policy's tag lists
+            expect(result).toBe('East:NY:California');
+        });
     });
 });
 
@@ -486,7 +535,9 @@ describe('canSubmitReport', () => {
 
         await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionIDWithViolation}`, transactionWithViolation);
         await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionIDWithoutViolation}`, transactionWithoutViolation);
-        expect(canSubmitReport(expenseReport, undefined, fakePolicy, [transactionWithViolation, transactionWithoutViolation], violations, false, '', currentUserAccountID)).toBe(true);
+        expect(ReportUtils.canSubmitReport(expenseReport, undefined, fakePolicy, [transactionWithViolation, transactionWithoutViolation], violations, false, '', currentUserAccountID)).toBe(
+            true,
+        );
     });
 
     test('Return true if report can be submitted after being reopened', async () => {
@@ -550,7 +601,9 @@ describe('canSubmitReport', () => {
 
         await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionIDWithViolation}`, transactionWithViolation);
         await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionIDWithoutViolation}`, transactionWithoutViolation);
-        expect(canSubmitReport(expenseReport, undefined, fakePolicy, [transactionWithViolation, transactionWithoutViolation], violations, false, '', currentUserAccountID)).toBe(true);
+        expect(ReportUtils.canSubmitReport(expenseReport, undefined, fakePolicy, [transactionWithViolation, transactionWithoutViolation], violations, false, '', currentUserAccountID)).toBe(
+            true,
+        );
     });
 
     test('Return false if report can not be submitted', async () => {
@@ -569,7 +622,7 @@ describe('canSubmitReport', () => {
             policyID: fakePolicy.id,
         };
 
-        expect(canSubmitReport(expenseReport, undefined, fakePolicy, [], undefined, false, '', currentUserAccountID)).toBe(false);
+        expect(ReportUtils.canSubmitReport(expenseReport, undefined, fakePolicy, [], undefined, false, '', currentUserAccountID)).toBe(false);
     });
 
     it('returns false if the report is archived', async () => {
@@ -594,7 +647,7 @@ describe('canSubmitReport', () => {
 
         // Simulate how components call canModifyTask() by using the hook useReportIsArchived() to see if the report is archived
         const {result: isReportArchived} = renderHook(() => useReportIsArchived(report?.reportID));
-        expect(canSubmitReport(report, undefined, policy, [], undefined, isReportArchived.current, '', currentUserAccountID)).toBe(false);
+        expect(ReportUtils.canSubmitReport(report, undefined, policy, [], undefined, isReportArchived.current, '', currentUserAccountID)).toBe(false);
     });
 
     it('returns false when SmartScan failed with missing fields before violation is written', async () => {
@@ -627,7 +680,7 @@ describe('canSubmitReport', () => {
             amount: 100,
         };
 
-        expect(canSubmitReport(report, undefined, policy, [transaction], undefined, false, '', currentUserAccountID)).toBe(false);
+        expect(ReportUtils.canSubmitReport(report, undefined, policy, [transaction], undefined, false, '', currentUserAccountID)).toBe(false);
     });
 });
 
@@ -785,7 +838,7 @@ describe('canApproveIOU', () => {
 
         // When checking if approve action is available
         // Then it should return true because DEW approval is not in progress
-        expect(canApproveIOU(report, policy, reportMetadata, currentUserAccountID, [transaction])).toBe(true);
+        expect(ReportUtils.canApproveIOU(report, policy, reportMetadata, currentUserAccountID, [transaction])).toBe(true);
     });
 
     it('should return false for DEW policy report with pending approval', async () => {
@@ -820,7 +873,7 @@ describe('canApproveIOU', () => {
 
         // When checking if approve action is available while DEW approval is pending
         // Then it should return false because DEW is already processing an approval
-        expect(canApproveIOU(report, policy, reportMetadata, currentUserAccountID, [transaction])).toBe(false);
+        expect(ReportUtils.canApproveIOU(report, policy, reportMetadata, currentUserAccountID, [transaction])).toBe(false);
     });
 
     it('should return true for Submit workspace report when user is manager', async () => {
@@ -849,7 +902,7 @@ describe('canApproveIOU', () => {
             status: undefined,
         };
 
-        expect(canApproveIOU(report, policy, {}, currentUserAccountID, [transaction])).toBe(true);
+        expect(ReportUtils.canApproveIOU(report, policy, {}, currentUserAccountID, [transaction])).toBe(true);
     });
 
     it('should return false for non-expense report', async () => {
@@ -868,7 +921,7 @@ describe('canApproveIOU', () => {
         const reportMetadata: ReportMetadata = {};
 
         // Then canApproveIOU should return false
-        expect(canApproveIOU(report, policy, reportMetadata, currentUserAccountID)).toBe(false);
+        expect(ReportUtils.canApproveIOU(report, policy, reportMetadata, currentUserAccountID, [])).toBe(false);
     });
 });
 
