@@ -119,7 +119,21 @@ function WalletPage() {
     const activeAdminPolicies = getActiveAdminWorkspaces(allPolicies, currentUserLogin).sort((a, b) => localeCompare(a.name || '', b.name || ''));
     const hasSinglePolicy = activeAdminPolicies.length === 1;
 
-    const icons = useMemoizedLazyExpensifyIcons(['MoneySearch', 'Wallet', 'Transfer', 'Hourglass', 'Exclamation', 'Star', 'Trashcan', 'Globe', 'UserPlus', 'UserMinus', 'Table', 'Plus']);
+    const icons = useMemoizedLazyExpensifyIcons([
+        'MoneySearch',
+        'Wallet',
+        'Transfer',
+        'Hourglass',
+        'Exclamation',
+        'Star',
+        'Trashcan',
+        'Globe',
+        'UserPlus',
+        'UserMinus',
+        'Table',
+        'Plus',
+        'Pencil',
+    ]);
     const illustrations = useMemoizedLazyIllustrations(['VerticalCreditCards']);
     const walletIllustration = useWalletSectionIllustration();
 
@@ -444,6 +458,8 @@ function WalletPage() {
         ) &&
         paymentMethod.selectedPaymentMethod?.state === CONST.BANK_ACCOUNT.STATE.OPEN;
 
+    const shouldShowEditNicknameButton = paymentMethod.selectedPaymentMethod?.state === CONST.BANK_ACCOUNT.STATE.OPEN;
+
     const shouldShowEnableGlobalReimbursementsButton =
         paymentMethod.selectedPaymentMethod?.additionalData?.currency === CONST.CURRENCY.USD &&
         paymentMethod.selectedPaymentMethod.type === CONST.BANK_ACCOUNT.TYPE.BUSINESS &&
@@ -510,6 +526,21 @@ function WalletPage() {
                               makeDefaultPaymentMethod();
                           },
                           numberOfLinesTitle: 0,
+                      },
+                  ]
+                : []),
+            ...(shouldShowEditNicknameButton
+                ? [
+                      {
+                          text: translate('walletPage.editNickname'),
+                          icon: icons.Pencil,
+                          onSelected: () => {
+                              if (isAccountLocked) {
+                                  closeModal(() => showLockedAccountModal());
+                                  return;
+                              }
+                              closeModal(() => Navigation.navigate(ROUTES.SETTINGS_WALLET_EDIT_BANK_ACCOUNT_NICKNAME.getRoute(paymentMethod.selectedPaymentMethod.bankAccountID)));
+                          },
                       },
                   ]
                 : []),
@@ -589,6 +620,8 @@ function WalletPage() {
             icons.UserMinus,
             icons.Trashcan,
             icons.Globe,
+            icons.Pencil,
+            shouldShowEditNicknameButton,
             shouldShowShareButton,
             hasEligibleShareRecipient,
             shouldShowUnshareButton,
