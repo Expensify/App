@@ -1,4 +1,5 @@
 import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
+import type {PersonalDetailsByLogin} from '@components/PersonalDetailsByLoginProvider';
 
 import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
 
@@ -3678,6 +3679,7 @@ function editReportComment(
     isOriginalReportArchived: boolean | undefined,
     currentUserLogin: string,
     personalDetails: OnyxEntry<PersonalDetailsList>,
+    currentUserAccountID: number,
     videoAttributeCache?: Record<string, string>,
     reportIDToName?: Record<string, string>,
 ) {
@@ -3750,7 +3752,14 @@ function editReportComment(
         },
     ];
 
-    const lastVisibleAction = ReportActionsUtils.getLastVisibleAction(originalReportID, canUserPerformWriteAction, optimisticReportActions as ReportActions);
+    const lastVisibleAction = ReportActionsUtils.getLastVisibleAction(
+        originalReportID,
+        canUserPerformWriteAction,
+        optimisticReportActions as ReportActions,
+        undefined,
+        undefined,
+        currentUserAccountID,
+    );
     if (reportActionID === lastVisibleAction?.reportActionID) {
         const lastMessageText = formatReportLastMessageText(reportComment);
         const optimisticReport = {
@@ -8571,6 +8580,7 @@ function changeReportPolicyAndInviteSubmitter({
     getCurrencyDecimals,
     reportTransactions,
     rules,
+    personalDetailsByLogins,
     delegateAccountID,
 }: {
     report: Report;
@@ -8590,6 +8600,7 @@ function changeReportPolicyAndInviteSubmitter({
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
     reportTransactions: Transaction[];
     rules: OnyxCollection<Rule>;
+    personalDetailsByLogins: PersonalDetailsByLogin;
     delegateAccountID: number | undefined;
 }) {
     if (
@@ -8605,7 +8616,7 @@ function changeReportPolicyAndInviteSubmitter({
     }
 
     const {accountID: currentUserAccountID, email: currentUserEmail = ''} = currentUser;
-    const policyMemberAccountIDs = Object.values(getMemberAccountIDsForWorkspace(employeeList, undefined, false, false));
+    const policyMemberAccountIDs = Object.values(getMemberAccountIDsForWorkspace(employeeList, personalDetailsByLogins, false, false));
     const {
         optimisticData: optimisticAddMembersData,
         successData: successAddMembersData,
@@ -8916,6 +8927,8 @@ function mergeReports({
                 pendingFields: {
                     preview: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
                 },
+                errors: null,
+                errorFields: null,
             },
         });
 
@@ -8976,7 +8989,7 @@ function mergeReports({
     const failureData = [...moveFailureData, ...deleteFailureData];
 
     if (hash) {
-        const optimisticSnapshotData: SearchResultDataType = {};
+        const optimisticSnapshotData: NullishDeep<SearchResultDataType> = {};
         const failureSnapshotData: SearchResultDataType = {};
         for (const transaction of transactionsToMove) {
             optimisticSnapshotData[`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`] = {
@@ -8992,7 +9005,8 @@ function mergeReports({
                 optimisticSnapshotData[`${ONYXKEYS.COLLECTION.REPORT}${sourceReportID}`] = {
                     ...sourceReport,
                     pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
-                };
+                    errors: null,
+                } as NullishDeep<Report>;
 
                 failureSnapshotData[`${ONYXKEYS.COLLECTION.REPORT}${sourceReportID}`] = {...sourceReport, pendingAction: sourceReport.pendingAction ?? null};
             }

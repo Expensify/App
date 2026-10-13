@@ -26,6 +26,7 @@ import {CONST as COMMON_CONST, Str} from 'expensify-common';
 import startCase from 'lodash/startCase';
 
 import type en from './en';
+import type {CompanyCardBalanceParams} from './params';
 import type {TranslationDeepObject} from './types';
 type StateValue = {
     stateISO: string;
@@ -96,7 +97,9 @@ const translations: TranslationDeepObject<typeof en> = {
         selectMultiple: 'Wielokrotny wybór',
         saveChanges: 'Zapisz zmiany',
         submit: 'Wyślij',
+        submitAnyway: 'Wyślij mimo to',
         markAsDone: 'Oznacz jako wykonane',
+        markAsDoneAnyway: 'Oznacz jako wykonane mimo to',
         submitted: 'Przesłano',
         markedAsDoneStatus: 'Oznaczone jako ukończone',
         rotate: 'Obróć',
@@ -453,6 +456,7 @@ const translations: TranslationDeepObject<typeof en> = {
         leaveWorkspaceReimburser:
             'Nie możesz opuścić tej przestrzeni roboczej jako osoba rozliczająca wydatki. Ustaw nową osobę rozliczającą w Przestrzenie robocze > Dokonuj lub śledź płatności, a następnie spróbuj ponownie.',
         reimbursable: 'Podlegające zwrotowi',
+        nonReimbursable: 'Nierefundowane',
         editYourProfile: 'Edytuj swój profil',
         comments: 'Komentarze',
         sharedIn: 'Udostępnione w',
@@ -854,7 +858,7 @@ const translations: TranslationDeepObject<typeof en> = {
             } else if (action?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW) {
                 type = 'report';
             }
-            return `Czy na pewno chcesz usunąć ten/ tę ${type}?`;
+            return `Czy na pewno chcesz usunąć ten/ tę ${type}?${action?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW ? ' Wszystkie wydatki w tym raporcie zostaną oznaczone jako nierozliczone.' : ''}`;
         },
         onlyVisible: 'Widoczne tylko dla',
         explain: 'Wyjaśnij',
@@ -1351,7 +1355,7 @@ const translations: TranslationDeepObject<typeof en> = {
             phrase1: 'Dodaj paragon',
             phrase2: 'lub przeciągnij i upuść tutaj',
         },
-        pageCount: ({pageCount}: {pageCount: number}) => `Strona 1 z ${pageCount}`,
+        pageCount: ({page, pageCount}: {page: number; pageCount: number}) => `Strona ${page} z ${pageCount}`,
     },
     quickAction: {
         scanReceipt: 'Zeskanuj paragon',
@@ -1456,8 +1460,15 @@ const translations: TranslationDeepObject<typeof en> = {
         pendingMatch: 'Oczekujące dopasowanie',
         pendingMatchWithCreditCardDescription: 'Oczekuje na dopasowanie paragonu do transakcji kartą. Oznacz jako gotówkę, aby anulować.',
         markAsCash: 'Oznacz jako gotówkę',
-        pendingMatchSubmitTitle: 'Wyślij raport',
-        pendingMatchSubmitDescription: 'Niektóre wydatki oczekują na dopasowanie z transakcją kartą kredytową. Czy chcesz oznaczyć je jako gotówkę?',
+        confirmSubmitReportViolations: {
+            title: 'Wysłać raport?',
+            description: 'Ten raport zawiera naruszenia zasad. Czy na pewno chcesz go wysłać bez wprowadzania zmian?',
+            titleMarkAsDone: 'Oznaczyć jako wykonane?',
+            descriptionMarkAsDone: 'Ten raport zawiera naruszenia zasad. Czy na pewno chcesz oznaczyć go jako wykonany bez wprowadzania zmian?',
+            rejectedExpense: 'Odrzucony wydatek nie oznaczony jako rozwiązany',
+            reportRejected: 'Raport wcześniej odrzucony',
+            pendingCardMatch: 'Wydatek czeka na możliwe dopasowanie z transakcją kartą',
+        },
         routePending: 'Trasa w toku…',
         automaticallyEnterExpenseDetails: 'Concierge uzupełni szczegóły za ciebie.',
         receiptScanning: () => ({
@@ -1516,6 +1527,7 @@ const translations: TranslationDeepObject<typeof en> = {
             one: 'Czy na pewno chcesz usunąć ten raport?',
             other: 'Czy na pewno chcesz usunąć te raporty?',
         }),
+        deleteExpenseReportConfirmation: 'Czy na pewno chcesz usunąć ten raport? Wszystkie wydatki w tym raporcie zostaną oznaczone jako nierozliczone.',
         settledExpensify: 'Zapłacono',
         paidStatusMarkedAsPaid: 'Oznaczono jako zapłacone',
         paidStatusWithdrawing: 'Wypłata',
@@ -1626,6 +1638,7 @@ const translations: TranslationDeepObject<typeof en> = {
         pendingConversionMessage: 'Suma zaktualizuje się, gdy wrócisz do trybu online',
         changedTheExpense: 'zmienił(a) wydatek',
         addedReceipt: 'dodał(a) paragon',
+        removedReceipt: 'usunął(-ęła) paragon',
         setTheRequest: (valueName: string, newValueToDisplay: string) => `${valueName} na ${newValueToDisplay}`,
         setTheDistanceMerchant: (translatedChangedField: string, newMerchant: string, newAmountToDisplay: string) =>
             `ustawiono ${translatedChangedField} na ${newMerchant}, co ustawiło kwotę na ${newAmountToDisplay}`,
@@ -2324,6 +2337,7 @@ const translations: TranslationDeepObject<typeof en> = {
     displayNamePage: {
         headerTitle: 'Wyświetlana nazwa',
         isShownOnProfile: 'Twoja nazwa wyświetlana jest widoczna na Twoim profilu.',
+        isShownOnMemberProfile: 'Wyświetlana nazwa pojawi się w profilu członka. Po zapisaniu tylko ten członek będzie mógł ją edytować.',
     },
     timezonePage: {
         timezone: 'Strefa czasowa',
@@ -2370,7 +2384,6 @@ const translations: TranslationDeepObject<typeof en> = {
             useProfiling: 'Użyj profilowania',
             profileTrace: 'Śledzenie profilu',
             results: 'Wyniki',
-            releaseOptions: 'Opcje wydania',
             testingPreferences: 'Preferencje testowe',
             server: 'Serwer',
             servers: {
@@ -3017,6 +3030,9 @@ ${amount} dla ${merchant} - ${date}`,
             },
         },
         approverInMultipleWorkflows: 'Ten członek należy już do innego procesu zatwierdzania. Wszelkie zmiany wprowadzone tutaj będą widoczne także tam.',
+        approverNotWorkspaceMember: 'Ten zatwierdzający nie jest już członkiem tego workspace’u. Wybierz nowego zatwierdzającego albo usuń ten workflow.',
+        defaultWorkflowApproverNotWorkspaceMember: 'Ten zatwierdzający nie jest już członkiem tego workspace’u. Wybierz nowego zatwierdzającego.',
+        overLimitApproverNotWorkspaceMember: 'Dodatkowy zatwierdzający dla raportów powyżej limitu nie jest już członkiem tego workspace’u. Wybierz nowego dodatkowego zatwierdzającego.',
         approverCircularReference: (name1: string, name2: string) =>
             `<strong>${name1}</strong> już zatwierdza raporty dla <strong>${name2}</strong>. Wybierz innego zatwierdzającego, aby uniknąć zapętlenia przepływu pracy.`,
         emptyContent: {
@@ -4035,6 +4051,21 @@ ${amount} dla ${merchant} - ${date}`,
         unlockAlreadyRequestedTitle: 'Wniosek został już złożony',
         unlockAlreadyRequestedDescription: 'Twoja prośba o odblokowanie tego konta bankowego została już wysłana. Concierge skontaktuje się z tobą, jeśli będzie potrzebne coś jeszcze.',
     },
+    dynamicForm: {
+        exampleHint: ({example}: {example: string}) => `Przykład: ${example}`,
+        fileCount: ({count}: {count: number}) => ({
+            one: '1 plik',
+            few: `${count} pliki`,
+            many: `${count} plików`,
+            other: `${count} pliku`,
+        }),
+        error: {
+            tooShort: ({minLength}: {minLength: number}) => `Musi mieć co najmniej ${minLength} znaków`,
+            invalidFormat: ({example}: {example?: string}) => (example ? `Nieprawidłowy format. Przykład: ${example}` : 'Nieprawidłowy format'),
+            invalidOption: 'Wybierz jedną z dostępnych opcji',
+            outOfRange: ({min, max}: {min: number; max: number}) => `Wprowadź wartość od ${min} do ${max}`,
+        },
+    },
     addPersonalBankAccount: {
         swiftBicFormatError: 'Kod SWIFT/BIC musi mieć długość 8 lub 11 znaków, z 6 literami, po których następują 2 lub 5 liter lub cyfr.',
         countrySelectionStepHeader: 'Gdzie znajduje się Twoje konto bankowe?',
@@ -4964,6 +4995,7 @@ ${amount} dla ${merchant} - ${date}`,
             readOnlyActionTitle: 'Nie tak szybko…',
             readOnlyActionPrompt: 'Twoja rola w przestrzeni roboczej może wyświetlać te ustawienia, ale nie może ich edytować.',
             noAccessActionPrompt: 'Twoja rola w tym zespole nie ma dostępu do tych ustawień. Jeśli go potrzebujesz, poproś administratora.',
+            connections: 'Połączenia',
         },
         createdForClient: {
             title: 'Utworzyłeś przestrzeń roboczą dla swojego klienta!',
@@ -4987,6 +5019,31 @@ ${amount} dla ${merchant} - ${date}`,
                 title: 'ChatGPT',
                 subtitle: 'od OpenAI',
             },
+        },
+        connections: {
+            tabs: {
+                [CONST.TAB.CONNECTIONS.ALL]: 'Wszystko',
+                [CONST.TAB.CONNECTIONS.ACCOUNTING]: 'Księgowość',
+                [CONST.TAB.CONNECTIONS.PEOPLE]: 'HR i ludzie',
+                [CONST.TAB.CONNECTIONS.RECRUITING]: 'Rekrutacja',
+                [CONST.TAB.CONNECTIONS.RECEIPTS]: 'Paragony',
+                [CONST.TAB.CONNECTIONS.AI]: 'AI i MCP',
+            },
+            findConnections: 'Znajdź połączenia',
+            configure: 'Skonfiguruj',
+            fix: 'Napraw',
+            active: 'Aktywne',
+            broken: 'Uszkodzone',
+            brokenConnection: 'Nie można zsynchronizować z powodu przerwanego połączenia',
+            replaceConnectionTitle: 'Zastąpić połączenie?',
+            offer: 'Oferta',
+            replaceConnectionPrompt: (connectionName: string) => `To usunie twoje bieżące połączenie ${connectionName}.`,
+            hrisListing: (providerName: string) => `${providerName} (HRIS)`,
+            atsListing: (providerName: string) => `${providerName} (ATS)`,
+            suggestIntegration: 'Nie widzisz swojej? Zaproponuj integrację, przyjrzymy się temu.',
+            noResultsPrompt: '<muted-text><centered-text>Dostosuj wyszukiwanie lub <a href="#">zaproponuj integrację</a>.</centered-text></muted-text>',
+            allConnectedTitle: 'Wszystko połączone',
+            allConnectedPrompt: '<muted-text><centered-text>Wszystko tutaj jest już połączone. Możesz też <a href="#">zaproponować integrację</a>.</centered-text></muted-text>',
         },
         receiptPartners: {
             uber: {
@@ -5987,10 +6044,10 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
             enterCredentials: 'Wpisz swój klucz API Rillet',
             howToFindAPIKey:
                 '<strong>Znajdowanie klucza API.</strong><ol><li>Zaloguj się do Rillet</li><li>Przejdź do [nazwa organizacji] -> Ustawienia organizacji -> Dostęp API</li><li>Utwórz klucz API</li><li>Wklej klucz API poniżej</li></ol>',
-            subsidiary: 'Spółka zależna',
-            subsidiarySelectDescription: 'Wybierz spółkę zależną w Rillet, z której chcesz zaimportować dane.',
-            noSubsidiariesFound: 'Nie znaleziono spółek zależnych',
-            noSubsidiariesFoundDescription: 'Dodaj proszę spółkę zależną w Rillet i ponownie zsynchronizuj połączenie',
+            entity: 'Jednostka',
+            entitySelectDescription: 'Wybierz jednostkę w Rillet, z której chcesz zaimportować dane.',
+            noEntitiesFound: 'Nie znaleziono żadnych jednostek',
+            noEntitiesFoundDescription: 'Dodaj proszę jednostkę w Rillet i zsynchronizuj połączenie ponownie',
             accountTypesDescription: 'Twoje konta Rillet zostaną zaimportowane jako kategorie.',
             enableNewAccountsTitle: 'Włącz nowo zaimportowane konta',
             enableNewAccountsDescription: 'Nowe konta Rillet będą dostępne jako kategorie.',
@@ -6087,8 +6144,8 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
             enterCredentials: 'Wpisz swój klucz API DualEntry',
             howToFindAPIKey:
                 '<strong>Znajdowanie klucza API.</strong><ol><li>Zaloguj się do DualEntry</li><li>Przejdź do [nazwa organizacji] -> Ustawienia -> Dostęp deweloperski -> Klucze API</li><li>Utwórz klucz API</li><li>Wklej klucz API poniżej</li></ol>',
-            subsidiary: 'Spółka zależna',
-            subsidiarySelectDescription: 'Wybierz jednostkę zależną w DualEntry, z której chcesz zaimportować dane.',
+            company: 'Firma',
+            companySelectDescription: 'Wybierz firmę w DualEntry, z której chcesz zaimportować dane.',
             noCompaniesFound: 'Nie znaleziono firm',
             noCompaniesFoundDescription: 'Dodaj proszę firmę w DualEntry i zsynchronizuj połączenie ponownie',
             noVendorsFound: 'Nie znaleziono dostawców',
@@ -6188,6 +6245,10 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
             syncReimbursedReports: 'Synchronizuj rozliczone raporty',
             syncReimbursedReportsDescription: 'Gdy raport zostanie opłacony przez ACH, w tym koncie zostanie wygenerowana płatność rachunku.',
             billPaymentAccount: {label: 'Konto do płatności rachunków', description: 'Wybierz, z którego konta chcesz opłacać rachunki, a my utworzymy płatność w DualEntry.'},
+            fxExpenseAccount: {
+                label: 'Konto opłaty za przewalutowanie DualEntry',
+                description: 'Gdy twoja firma pokrywa koszt przewalutowania przy płatności dokonanej za granicą, zaksięgujemy ten koszt na tym koncie w DualEntry jako zapis w dzienniku.',
+            },
             syncExpensifyCardSettlements: 'Synchronizuj rozliczenia Karty Expensify',
             settlementAccount: {label: 'Rachunek rozliczeniowy Karty Expensify', description: 'Wybierz swoje konto rozliczeniowe, a my utworzymy płatność w DualEntry.'},
             syncTravelInvoicingSettlements: 'Synchronizuj rozliczenia Travel Invoicing',
@@ -6201,6 +6262,15 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
             submit: 'Prześlij',
         },
         companyCards: {
+            balance: {
+                currentBalance: 'Bieżące saldo',
+                remainingLimit: 'Pozostały limit',
+                notAvailable: 'Niedostępne',
+                currentBalanceDescription: ({lastUpdated}: CompanyCardBalanceParams) => `Aktualne saldo jest zgłaszane przez twój bank i zostało ostatnio zaktualizowane ${lastUpdated}.`,
+                remainingLimitDescription: ({lastUpdated}: CompanyCardBalanceParams) => `Pozostały limit jest zgłaszany przez twój bank, a ostatnia aktualizacja nastąpiła ${lastUpdated}.`,
+                currentBalanceDescriptionNoTimestamp: 'Bieżące saldo jest zgłaszane przez twój bank.',
+                remainingLimitDescriptionNoTimestamp: 'Pozostały limit jest zgłaszany przez twój bank.',
+            },
             addCards: 'Dodaj karty',
             selectCards: 'Wybierz karty',
             fromOtherWorkspaces: 'Z innych przestrzeni roboczych',
@@ -6902,11 +6972,6 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
             emptySubtitle: 'Dostawcy pojawią się tutaj po zakończeniu synchronizacji z księgowością.',
             findVendor: 'Znajdź dostawcę',
             managedInAccountingSoftware: 'Dostawcy są zarządzani w twoim',
-            enableVendor: 'Włącz kontrahenta',
-            enableVendors: 'Włącz dostawców',
-            disableVendor: 'Wyłącz dostawcę',
-            disableVendors: 'Wyłącz dostawców',
-            updateFailureMessage: 'Wystąpił błąd podczas aktualizowania dostawcy, spróbuj ponownie',
         },
         tags: {
             tagName: 'Nazwa tagu',
@@ -8337,6 +8402,8 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
                 applyUpdates: 'Zastosuj te aktualizacje:',
                 saveRule: 'Zapisz regułę',
                 previewMatches: 'Podgląd dopasowań',
+                previewMatchesDescription: 'Zobacz, jak ta reguła stosuje się do Twoich wydatków',
+                preview: 'Podgląd',
                 confirmError: 'Wprowadź sprzedawcę i zastosuj co najmniej jedną zmianę',
                 confirmErrorMerchant: 'Wprowadź sprzedawcę',
                 confirmErrorUpdate: 'Zastosuj co najmniej jedną aktualizację',
@@ -8672,6 +8739,14 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
                 requireFieldsDescription: 'Wymagaj konkretnych pól wydatku lub zrezygnuj z ich wymagania.',
                 createAgentRule: 'Opisz regułę agenta',
                 createAgentRuleDescription: 'Twórz elastyczne reguły, które uruchamiają się wtedy, gdy ich potrzebujesz.',
+                describe: 'Opisz',
+                describeRule: 'Opisz swoją regułę własnymi słowami, a Concierge utworzy ją za Ciebie',
+                describeRuleInputLabel: 'Opisz regułę',
+                promptErrors: {
+                    unsupported: 'Ta reguła nie jest jeszcze obsługiwana — pracujemy nad tym. Na razie spróbuj innej reguły.',
+                    unintelligible: 'Spróbuj sformułować regułę tak: jeśli wydatek przekracza 100 $, wymagaj paragonu.',
+                    multipleRules: 'Jedna reguła naraz — opisz pojedynczą regułę, na przykład: zablokuj zakupy detaliczne na wszystkich kartach.',
+                },
             },
             expenseDefaultsTable: {
                 tableColumnType: 'Typ',
@@ -8834,7 +8909,17 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
             setupIncomplete: (setupLink: string | undefined) =>
                 `<muted-text-label>Połączono. ${setupLink ? `<a href="${setupLink}">Zakończ konfigurację</a>` : 'Zakończ konfigurację'}, aby zaimportować pracowników.</muted-text-label>`,
             mergeHR: {
-                groups: {title: 'Grupy', description: 'Wybierz grupy pracowników, które chcesz zsynchronizować z tą przestrzenią roboczą'},
+                groups: {
+                    title: 'Grupy',
+                    description: 'Wybierz grupy pracowników, które chcesz zsynchronizować z tą przestrzenią roboczą',
+                    staleSelectionError: (providerName: string) =>
+                        `Niektóre z wybranych przez ciebie grup już nie istnieją w ${providerName}, więc ich pracownicy przestali się synchronizować.`,
+                    updateSelectionLink: 'Zaktualizuj swoje grupy.',
+                    noGroupsFound: 'Nie znaleziono grup',
+                    noGroupsFoundDescription:
+                        'Aktualnie nie ma żadnych grup do wyboru. Zapisz bez zaznaczania grup, aby zsynchronizować wszystkich pracowników, albo ponownie zsynchronizuj połączenie, gdy pojawią się nowe grupy.',
+                    unnamedGroup: (groupID: string) => `Grupa bez nazwy (${groupID})`,
+                },
             },
         },
         recruiting: {
@@ -8935,10 +9020,10 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
             enterCredentials: 'Wpisz swój klucz API Campfire',
             howToFindAPIKey:
                 '<strong>Znajdowanie klucza API.</strong><ol><li>Zaloguj się do Campfire</li><li>Przejdź do Ustawienia -> Klucze API</li><li>Utwórz klucz API</li><li>Wklej klucz API poniżej</li></ol>',
-            subsidiary: 'Spółka zależna',
-            subsidiarySelectDescription: 'Wybierz spółkę zależną w Campfire, z której chcesz zaimportować dane.',
-            noSubsidiariesFound: 'Nie znaleziono żadnych spółek zależnych',
-            noSubsidiariesFoundDescription: 'Dodaj proszę jednostkę w Campfire i zsynchronizuj połączenie ponownie',
+            entity: 'Jednostka',
+            entitySelectDescription: 'Wybierz jednostkę w Campfire, z której chcesz zaimportować dane.',
+            noEntitiesFound: 'Nie znaleziono żadnych jednostek',
+            noEntitiesFoundDescription: 'Dodaj proszę jednostkę w Campfire i zsynchronizuj połączenie ponownie',
             noVendorsFound: 'Nie znaleziono dostawców',
             noVendorsFoundDescription: 'Dodaj proszę dostawców w Campfire i zsynchronizuj połączenie ponownie',
             importDescription: 'Wybierz, które konfiguracje kodowania zaimportować z Campfire.',
@@ -9745,6 +9830,8 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
             return `zmienił uczestników kategorii „${categoryName}” na ${newValue ? 'wymagane' : 'niewymagane'} (wcześniej ${newValue ? 'niewymagane' : 'wymagane'})`;
         },
         updatedAutoHarvesting: (enabled: boolean) => `${enabled ? 'włączone' : 'wyłączone'} zgłoszenia`,
+        updatedMemberDisplayName: (newName: string, oldName: string, editProfileURL: string) =>
+            `zaktualizował(-a) twoją wyświetlaną nazwę na ${newName} (poprzednio „${oldName}”). <a href="${editProfileURL}">Edytuj w swoim profilu</a>`,
         changedOverLimitForwardsTo: ({
             member,
             approver,
@@ -10160,7 +10247,11 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
             topMerchants: 'Najważniejsi sprzedawcy',
             violationsBySubmitter: 'Naruszenia przez zgłaszającego',
         },
-        mergeReports: {title: 'Połącz raporty', description: 'Wybierz raport, który chcesz zachować. Wszystkie wydatki zostaną do niego przeniesione, a pozostałe raporty zostaną usunięte.'},
+        mergeReports: {
+            title: 'Połącz raporty',
+            description: 'Wybierz raport, który chcesz zachować. Wszystkie wydatki zostaną do niego przeniesione, a pozostałe raporty zostaną usunięte.',
+            listPage: {noEligibleReportsFound: 'Nie znaleziono kwalifikujących się raportów', noEligibleReportsFoundSubtitle: 'Nie masz żadnych raportów, które można połączyć.'},
+        },
         periodSoFar: ({period}: {period: string}) => `${period} do tej pory`,
         weekOf: ({date}: {date: string}) => `Tydzień od ${date}`,
         saveEdits: {
@@ -10196,12 +10287,7 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
         },
     },
     settlement: {
-        status: {
-            pending: 'Oczekujące',
-            cleared: 'Wyczyszczono',
-            failed: 'Niepowodzenie',
-            never: 'Nigdy',
-        },
+        status: {pending: 'Oczekujące', cleared: 'Wyczyszczono', failed: 'Niepowodzenie', never: 'Nigdy', cashBack: 'Zwrot gotówki'},
         failedError: ({link}: {link: string}) => `Spróbujemy ponownie rozliczyć tę płatność, gdy <a href="${link}">odblokujesz swoje konto</a>.`,
         withdrawalInfo: ({date, withdrawalID}: {date: string; withdrawalID: number}) => `${date} • ID wypłaty: ${withdrawalID}`,
     },
@@ -11269,6 +11355,16 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
                 other: `${count} aktywnych użytkowników`,
             }),
             state: {paid: 'Opłacone', cleared: 'Rozliczono', failed: 'Niepowodzenie', refunded: 'Zwrócono', disputed: 'Kwestionowana', balanceTransfer: 'Przelew salda'},
+            details: 'Szczegóły płatności',
+            badge: {
+                balanceTransferTo: ({email}: {email: string}) => `Przelew salda do ${email}`,
+                balanceTransferFrom: ({email}: {email: string}) => `Przelew salda od ${email}`,
+                disputedPending: ({date}: {date: string}) => `Zakwestionowano ${date} (Oczekujące)`,
+                disputedRefunded: ({date}: {date: string}) => `Zakwestionowano ${date} (Zwrócono)`,
+                disputedClosed: ({date}: {date: string}) => `Zakwestionowano ${date} (Zamknięte)`,
+                refundedOn: ({date}: {date: string}) => `Zwrócono ${date}`,
+                refundedAmountOn: ({amount, date}: {amount: string; date: string}) => `Zwrócono ${amount} ${date}`,
+            },
         },
         subscriptionSettings: {
             title: 'Ustawienia subskrypcji',
@@ -11508,6 +11604,7 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
         markAllAsRead: '<tooltip>Kliknij prawym przyciskiem myszy, aby <strong>oznaczyć wszystko jako przeczytane</strong>.</tooltip>',
         markAllAsReadTouchScreen: '<tooltip>Przytrzymaj, aby <strong>oznaczyć wszystko jako przeczytane</strong>.</tooltip>',
         accountMovedToTopBar: '<tooltip>Uzyskaj dostęp do swojego konta i ustawień osobistych.</tooltip>',
+        connectionsMoved: 'Wszystkie twoje połączenia w jednym miejscu',
     },
     discardChangesConfirmation: {
         title: 'Odrzucić zmiany?',
