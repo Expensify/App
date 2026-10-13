@@ -1,3 +1,6 @@
+/**
+ * Interactive "Your plan" subscription settings card: plan header, badges, type and size rows, and auto-renew and auto-increase toggles.
+ */
 import Badge from '@components/Badge';
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import Icon from '@components/Icon';
@@ -14,8 +17,8 @@ import Tooltip from '@components/Tooltip';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useEnvironment from '@hooks/useEnvironment';
 import useHasTeam2025Pricing from '@hooks/useHasTeam2025Pricing';
-import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLayoutSpacing from '@hooks/useLayoutSpacing';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import {usePersonalDetailsByIDs} from '@hooks/usePersonalDetails';
@@ -28,6 +31,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import {openLink} from '@libs/actions/Link';
 import {convertToShortDisplayString} from '@libs/CurrencyUtils';
+import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import {isPolicyAdmin} from '@libs/PolicyUtils';
 
 import Navigation from '@navigation/Navigation';
@@ -49,11 +53,11 @@ import type IconAsset from '@src/types/utils/IconAsset';
 import type {GestureResponderEvent} from 'react-native';
 
 import {hasSeenTourSelector} from '@selectors/Onboarding';
-import {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
 
 import type {PersonalPolicyTypeExcludedProps} from './SubscriptionPlanCard';
 
+import canEditSubscriptionSettingsInApp from './canEditSubscriptionSettingsInApp';
 import {getAutoRenewToggleAction, getSubscriptionPlanCardView} from './getSubscriptionPlanCardView';
 import SaveWithExpensifyRow from './SaveWithExpensifyRow';
 
@@ -125,7 +129,7 @@ function AnnualSavingsTooltip() {
                 onPress={stopRowPress}
                 accessibilityLabel={translate('subscription.subscriptionSettings.saveWithAnnualSubscription')}
                 role={CONST.ROLE.BUTTON}
-                sentryLabel={CONST.SENTRY_LABEL.SETTINGS_SUBSCRIPTION.SAVE_WITH_EXPENSIFY}
+                sentryLabel={CONST.SENTRY_LABEL.SETTINGS_SUBSCRIPTION.ANNUAL_SAVINGS}
             >
                 <Icon
                     src={icons.Info}
@@ -172,6 +176,8 @@ function SubscriptionPlanSettings({planTitle, planIcon, subscriptionPlan}: Subsc
         isSecretPromoCode,
         isTaxExempt: !!privateTaxExempt,
         isFromComparisonModal: false,
+        canEditInApp: canEditSubscriptionSettingsInApp,
+        isTouchDevice: canUseTouchScreen(),
     });
 
     const subscriptionTypeValue = cardView.subscriptionTypeLabel === 'annual' ? translate('subscription.subscriptionSettings.annual') : translate('subscription.details.payPerUse');
@@ -179,27 +185,27 @@ function SubscriptionPlanSettings({planTitle, planIcon, subscriptionPlan}: Subsc
     const saveUpTo = translate('subscription.subscriptionSettings.saveUpTo', convertToShortDisplayString(possibleCostSavings, preferredCurrency));
     const autoIncreaseSubtitle = `${saveUpTo}. ${translate('subscription.subscriptionSettings.extraSeats')}`;
 
-    const onSubscriptionTypePress = useCallback(() => {
+    const navigateToSubscriptionDetails = () => {
         Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION_SETTINGS_DETAILS);
-    }, []);
+    };
 
-    const onSubscriptionSizePress = useCallback(() => {
+    const navigateToSubscriptionSize = () => {
         if (isActingAsDelegate) {
             showDelegateNoAccessModal();
             return;
         }
         Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION_SIZE.getRoute(CONST.SUBSCRIPTION_SIZE.PAGE_NAME.SIZE));
-    }, [isActingAsDelegate, showDelegateNoAccessModal]);
+    };
 
-    const onExpensifyCodePress = useCallback(() => {
+    const navigateToExpensifyCode = () => {
         if (isActingAsDelegate) {
             showDelegateNoAccessModal();
             return;
         }
         Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION_EXPENSIFY_CODE);
-    }, [isActingAsDelegate, showDelegateNoAccessModal]);
+    };
 
-    const onRequestTaxExempt = useCallback(() => {
+    const requestTaxExemptStatus = () => {
         requestTaxExempt();
         navigateToConciergeChat({
             conciergeReportID,
@@ -209,9 +215,9 @@ function SubscriptionPlanSettings({planTitle, planIcon, subscriptionPlan}: Subsc
             conciergePersonalDetails,
             shouldDismissModal: false,
         });
-    }, [conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, conciergePersonalDetails]);
+    };
 
-    const onAutoRenewToggle = () => {
+    const toggleAutoRenew = () => {
         const action = getAutoRenewToggleAction({
             isActingAsDelegate,
             autoRenew: !!privateSubscription?.autoRenew,
@@ -233,7 +239,7 @@ function SubscriptionPlanSettings({planTitle, planIcon, subscriptionPlan}: Subsc
         updateSubscriptionAutoRenew(false);
     };
 
-    const onAutoIncreaseToggle = () => {
+    const toggleAutoIncrease = () => {
         if (isActingAsDelegate) {
             showDelegateNoAccessModal();
             return;
@@ -241,33 +247,23 @@ function SubscriptionPlanSettings({planTitle, planIcon, subscriptionPlan}: Subsc
         updateSubscriptionAddNewUsersAutomatically(!privateSubscription?.addNewUsersAutomatically);
     };
 
-    const overflowMenu: ThreeDotsMenuProps['menuItems'] = useMemo(() => {
-        const items: ThreeDotsMenuProps['menuItems'] = [];
+    const overflowMenu: ThreeDotsMenuProps['menuItems'] = [];
 
-        if (cardView.expensifyCodeMenu === 'add') {
-            items.push({
-                icon: icons.Tag,
-                text: translate('subscription.subscriptionSettings.addExpensifyCode'),
-                onSelected: onExpensifyCodePress,
-            });
-        } else if (cardView.expensifyCodeMenu === 'edit') {
-            items.push({
-                icon: icons.Tag,
-                text: translate('subscription.subscriptionSettings.editExpensifyCode'),
-                onSelected: onExpensifyCodePress,
-            });
-        }
+    if (cardView.expensifyCodeMenu === 'add') {
+        overflowMenu.push({
+            icon: icons.Tag,
+            text: translate('subscription.subscriptionSettings.addExpensifyCode'),
+            onSelected: navigateToExpensifyCode,
+        });
+    }
 
-        if (cardView.includeRequestTaxExempt) {
-            items.push({
-                icon: icons.Coins,
-                text: translate('subscription.details.taxExempt'),
-                onSelected: onRequestTaxExempt,
-            });
-        }
-
-        return items;
-    }, [cardView.expensifyCodeMenu, cardView.includeRequestTaxExempt, icons.Tag, icons.Coins, translate, onExpensifyCodePress, onRequestTaxExempt]);
+    if (cardView.includeRequestTaxExempt) {
+        overflowMenu.push({
+            icon: icons.Coins,
+            text: translate('subscription.details.taxExempt'),
+            onSelected: requestTaxExemptStatus,
+        });
+    }
 
     if (!privateSubscription || !cardView.showSettings) {
         return null;
@@ -321,7 +317,7 @@ function SubscriptionPlanSettings({planTitle, planIcon, subscriptionPlan}: Subsc
             </View>
             <OfflineWithFeedback pendingAction={privateSubscription.pendingFields?.type}>
                 <MenuItem.Root
-                    onPress={callFunctionIfActionIsAllowed(onSubscriptionTypePress)}
+                    onPress={callFunctionIfActionIsAllowed(navigateToSubscriptionDetails)}
                     testID="SubscriptionPlanSettings-subscriptionType"
                     accessibilityLabel={`${translate('subscription.subscriptionSettings.subscriptionType')}, ${subscriptionTypeValue}`}
                 >
@@ -332,6 +328,9 @@ function SubscriptionPlanSettings({planTitle, planIcon, subscriptionPlan}: Subsc
                                 {cardView.showAnnualSavingsTooltip && <AnnualSavingsTooltip />}
                             </View>
                             <MenuItem.FieldValue>{subscriptionTypeValue}</MenuItem.FieldValue>
+                            {cardView.showAnnualSavingsHint && (
+                                <Text style={[styles.textLabelSupporting, styles.mt1]}>{translate('subscription.subscriptionSettings.saveWithAnnualSubscription')}</Text>
+                            )}
                         </MenuItem.Content>
                         <MenuItem.Trailing>
                             <MenuItem.Chevron />
@@ -348,8 +347,8 @@ function SubscriptionPlanSettings({planTitle, planIcon, subscriptionPlan}: Subsc
                     >
                         <MenuItemField
                             name={translate('subscription.details.subscriptionSize')}
-                            value={translate('subscription.subscriptionSettings.memberCount', cardView.memberCount)}
-                            onPress={onSubscriptionSizePress}
+                            value={translate('subscription.subscriptionSettings.memberCount', {count: cardView.memberCount})}
+                            onPress={cardView.canEditSize ? navigateToSubscriptionSize : undefined}
                             testID="SubscriptionPlanSettings-subscriptionSize"
                         />
                     </OfflineWithFeedback>
@@ -374,8 +373,9 @@ function SubscriptionPlanSettings({planTitle, planIcon, subscriptionPlan}: Subsc
                             title={translate('subscription.subscriptionSettings.autoRenew')}
                             subtitle={autoRenewalDate ? translate('subscription.subscriptionSettings.renewsOn', autoRenewalDate) : undefined}
                             switchAccessibilityLabel={translate('subscription.subscriptionSettings.autoRenew')}
-                            onToggle={onAutoRenewToggle}
+                            onToggle={toggleAutoRenew}
                             isActive={privateSubscription.autoRenew}
+                            disabled={!cardView.canToggleAnnualSettings}
                             pendingAction={privateSubscription.pendingFields?.autoRenew}
                             shouldPlaceSubtitleBelowSwitch
                         />
@@ -388,8 +388,9 @@ function SubscriptionPlanSettings({planTitle, planIcon, subscriptionPlan}: Subsc
                             title={translate('subscription.subscriptionSettings.autoIncrease')}
                             subtitle={autoIncreaseSubtitle}
                             switchAccessibilityLabel={translate('subscription.subscriptionSettings.autoIncrease')}
-                            onToggle={onAutoIncreaseToggle}
+                            onToggle={toggleAutoIncrease}
                             isActive={privateSubscription.addNewUsersAutomatically ?? false}
+                            disabled={!cardView.canToggleAnnualSettings}
                             pendingAction={privateSubscription.pendingFields?.addNewUsersAutomatically}
                             shouldPlaceSubtitleBelowSwitch
                         />

@@ -104,8 +104,6 @@ function SubscriptionPlanCard({subscriptionPlan, isFromComparisonModal = false, 
     const showSubscriptionSettings = shouldShowSubscriptionPlanSettings({
         isFromComparisonModal,
         subscriptionType: privateSubscription?.type,
-        subscriptionPlan,
-        hasTeam2025Pricing,
     });
     const shouldHideSubscriptionSettingsButton = !isFromComparisonModal && !showSubscriptionSettings && !!privateSubscription;
 

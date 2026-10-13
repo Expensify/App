@@ -1,8 +1,8 @@
 import Icon from '@components/Icon';
 import Text from '@components/Text';
 
-import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLayoutSpacing from '@hooks/useLayoutSpacing';
+import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 

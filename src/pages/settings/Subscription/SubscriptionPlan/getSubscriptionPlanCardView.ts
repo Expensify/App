@@ -5,7 +5,7 @@ import type {SubscriptionType} from '@src/CONST';
 
 import type {PersonalPolicyTypeExcludedProps} from './SubscriptionPlanCard';
 
-type ExpensifyCodeMenu = 'add' | 'edit' | 'hidden';
+type ExpensifyCodeMenu = 'add' | 'hidden';
 
 type SubscriptionTypeLabel = 'annual' | 'payPerUse';
 
@@ -20,6 +20,10 @@ type SubscriptionPlanCardViewInput = {
     isSecretPromoCode: boolean;
     isTaxExempt: boolean;
     isFromComparisonModal: boolean;
+    /** False on native, where the size, code, and auto-renew survey screens are Not Found. */
+    canEditInApp: boolean;
+    /** Touch devices cannot open the hover tooltip, so they get an inline hint instead. */
+    isTouchDevice: boolean;
 };
 
 type SubscriptionPlanCardView = {
@@ -27,6 +31,9 @@ type SubscriptionPlanCardView = {
     showSettings: boolean;
     showAnnualControls: boolean;
     showAnnualSavingsTooltip: boolean;
+    showAnnualSavingsHint: boolean;
+    canEditSize: boolean;
+    canToggleAnnualSettings: boolean;
     subscriptionTypeLabel: SubscriptionTypeLabel;
     memberCount: number;
     showSizeNotSetHelper: boolean;
@@ -42,24 +49,17 @@ type AutoRenewToggleInput = {
     hasPurchases: boolean | undefined;
 };
 
-/**
- * Invoiced subscriptions hide the settings block, except New Collect, matching the card's previous gate.
- */
-function shouldHideSubscriptionSettings(subscriptionType: SubscriptionType | undefined, subscriptionPlan: PersonalPolicyTypeExcludedProps | null, hasTeam2025Pricing: boolean): boolean {
-    return isSubscriptionTypeOfInvoicing(subscriptionType) && ((subscriptionPlan === CONST.POLICY.TYPE.TEAM && !hasTeam2025Pricing) || subscriptionPlan !== CONST.POLICY.TYPE.TEAM);
+/** Every invoiced subscription hides the settings block. The details page is Not Found for all invoicing types. */
+function shouldHideSubscriptionSettings(subscriptionType: SubscriptionType | undefined): boolean {
+    return isSubscriptionTypeOfInvoicing(subscriptionType);
 }
 
-function shouldShowSubscriptionPlanSettings({
-    isFromComparisonModal,
-    subscriptionType,
-    subscriptionPlan,
-    hasTeam2025Pricing,
-}: Pick<SubscriptionPlanCardViewInput, 'isFromComparisonModal' | 'subscriptionType' | 'subscriptionPlan' | 'hasTeam2025Pricing'>): boolean {
+function shouldShowSubscriptionPlanSettings({isFromComparisonModal, subscriptionType}: Pick<SubscriptionPlanCardViewInput, 'isFromComparisonModal' | 'subscriptionType'>): boolean {
     if (isFromComparisonModal) {
         return false;
     }
 
-    return !shouldHideSubscriptionSettings(subscriptionType, subscriptionPlan, hasTeam2025Pricing);
+    return !shouldHideSubscriptionSettings(subscriptionType);
 }
 
 /**
@@ -75,30 +75,29 @@ function getSubscriptionPlanCardView({
     isSecretPromoCode,
     isTaxExempt,
     isFromComparisonModal,
+    canEditInApp,
+    isTouchDevice,
 }: SubscriptionPlanCardViewInput): SubscriptionPlanCardView {
     const isNewCollect = shouldUseSimplifiedCollectSubscriptionUI(subscriptionPlan, hasTeam2025Pricing);
     const isAnnual = subscriptionType === CONST.SUBSCRIPTION.TYPE.ANNUAL;
-    const showSettings = shouldShowSubscriptionPlanSettings({isFromComparisonModal, subscriptionType, subscriptionPlan, hasTeam2025Pricing});
+    const showSettings = shouldShowSubscriptionPlanSettings({isFromComparisonModal, subscriptionType});
     const showAnnualControls = showSettings && isAnnual && !isNewCollect;
     const hasVisiblePromoCode = !!promoCode && !isSecretPromoCode;
-
-    let expensifyCodeMenu: ExpensifyCodeMenu = 'add';
-    if (isSecretPromoCode) {
-        expensifyCodeMenu = 'hidden';
-    } else if (hasVisiblePromoCode) {
-        expensifyCodeMenu = 'edit';
-    }
+    const showAnnualSavings = showSettings && subscriptionType === CONST.SUBSCRIPTION.TYPE.PAY_PER_USE && !isNewCollect;
 
     return {
         showSettings,
         showAnnualControls,
-        showAnnualSavingsTooltip: showSettings && subscriptionType === CONST.SUBSCRIPTION.TYPE.PAY_PER_USE && !isNewCollect,
+        showAnnualSavingsTooltip: showAnnualSavings && !isTouchDevice,
+        showAnnualSavingsHint: showAnnualSavings && isTouchDevice,
+        canEditSize: canEditInApp,
+        canToggleAnnualSettings: canEditInApp,
         subscriptionTypeLabel: isNewCollect || !isAnnual ? 'payPerUse' : 'annual',
         memberCount: userCount ?? 0,
         showSizeNotSetHelper: showAnnualControls && !userCount,
         showExpensifyCodeBadge: hasVisiblePromoCode,
         showTaxExemptBadge: isTaxExempt,
-        expensifyCodeMenu,
+        expensifyCodeMenu: showSettings && canEditInApp && !promoCode ? 'add' : 'hidden',
         includeRequestTaxExempt: showSettings,
     };
 }
@@ -124,4 +123,3 @@ function getAutoRenewToggleAction({isActingAsDelegate, autoRenew, hasPurchases}:
 }
 
 export {getAutoRenewToggleAction, getSubscriptionPlanCardView, shouldShowSubscriptionPlanSettings};
-export type {AutoRenewToggleAction, ExpensifyCodeMenu, SubscriptionPlanCardView, SubscriptionPlanCardViewInput};
