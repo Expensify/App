@@ -93,7 +93,9 @@ const translations: TranslationDeepObject<typeof en> = {
         selectMultiple: 'Meerdere selecteren',
         saveChanges: 'Wijzigingen opslaan',
         submit: 'Verzenden',
+        submitAnyway: 'Toch verzenden',
         markAsDone: 'Markeren als voltooid',
+        markAsDoneAnyway: 'Toch markeren als voltooid',
         submitted: 'Ingediend',
         markedAsDoneStatus: 'Als voltooid gemarkeerd',
         rotate: 'Draaien',
@@ -1424,8 +1426,15 @@ const translations: TranslationDeepObject<typeof en> = {
         pendingMatch: 'Overeenkomst in behandeling',
         pendingMatchWithCreditCardDescription: 'Bon wordt nog gekoppeld aan kaarttransactie. Markeer als contant om te annuleren.',
         markAsCash: 'Markeren als contant',
-        pendingMatchSubmitTitle: 'Rapport indienen',
-        pendingMatchSubmitDescription: 'Sommige uitgaven wachten op koppeling met een creditcardtransactie. Wilt u ze als contant markeren?',
+        confirmSubmitReportViolations: {
+            title: 'Rapport verzenden?',
+            description: 'Dit rapport heeft beleidsschendingen. Weet u zeker dat u het wilt verzenden zonder wijzigingen aan te brengen?',
+            titleMarkAsDone: 'Markeren als voltooid?',
+            descriptionMarkAsDone: 'Dit rapport heeft beleidsschendingen. Weet u zeker dat u het wilt markeren als voltooid zonder wijzigingen aan te brengen?',
+            rejectedExpense: 'Afgewezen uitgave niet als opgelost gemarkeerd',
+            reportRejected: 'Rapport eerder afgewezen',
+            pendingCardMatch: 'Uitgave wacht op mogelijke koppeling met een kaarttransactie',
+        },
         routePending: 'Routeren in behandeling...',
         automaticallyEnterExpenseDetails: 'Concierge vult de gegevens voor je in.',
         receiptScanning: () => ({
@@ -1595,6 +1604,7 @@ const translations: TranslationDeepObject<typeof en> = {
         pendingConversionMessage: 'Totaal wordt bijgewerkt zodra je weer online bent',
         changedTheExpense: 'heeft de uitgave gewijzigd',
         addedReceipt: 'heeft een bon toegevoegd',
+        removedReceipt: 'heeft een bon verwijderd',
         setTheRequest: (valueName: string, newValueToDisplay: string) => `de ${valueName} naar ${newValueToDisplay}`,
         setTheDistanceMerchant: (translatedChangedField: string, newMerchant: string, newAmountToDisplay: string) =>
             `stel ${translatedChangedField} in op ${newMerchant}, waarmee het bedrag is ingesteld op ${newAmountToDisplay}`,
@@ -3408,11 +3418,12 @@ ${amount} voor ${merchant} - ${date}`,
         errorSelection: 'Selecteer een optie om verder te gaan',
         purpose: {
             title: 'Wat wil je vandaag doen?',
-            errorContinue: 'Druk op ‘Doorgaan’ om de installatie te voltooien',
-            errorBackButton: 'Beantwoord eerst de instelvragen om de app te kunnen gebruiken',
-            [CONST.ONBOARDING_CHOICES.EMPLOYER]: 'Onkosten indienen bij mijn werkgever',
-            [CONST.ONBOARDING_CHOICES.MANAGE_TEAM]: 'De onkosten van mijn team beheren',
-            [CONST.ONBOARDING_CHOICES.TRACK_BUSINESS]: 'Zakelijke uitgaven bijhouden',
+            errorContinue: 'Druk op doorgaan om alles in te stellen',
+            errorBackButton: 'Beantwoord eerst de installatievragen om de app te gebruiken',
+            [CONST.ONBOARDING_CHOICES.JOIN_WORKSPACE]: 'Word lid van de werkruimte van mijn bedrijf',
+            [CONST.ONBOARDING_CHOICES.EMPLOYER]: 'Declaraties indienen bij mijn werkgever',
+            [CONST.ONBOARDING_CHOICES.MANAGE_TEAM]: 'Beheer de uitgaven van mijn team',
+            [CONST.ONBOARDING_CHOICES.TRACK_BUSINESS]: 'Uitgaven voor mijn bedrijf bijhouden',
             [CONST.ONBOARDING_CHOICES.TRACK_PERSONAL]: 'Mijn persoonlijke uitgaven organiseren',
             [CONST.ONBOARDING_CHOICES.LOOKING_AROUND]: 'Iets anders',
         },
@@ -3470,6 +3481,8 @@ ${amount} voor ${merchant} - ${date}`,
         mergeBlockScreen: {
             title: 'Werkmail kon niet worden toegevoegd',
             subtitle: (workEmail: string | undefined) => `We konden ${workEmail} niet toevoegen. Probeer het later opnieuw in Instellingen of chat met Concierge voor hulp.`,
+            validatedPublicDomainSubtitle: (workEmail: string | undefined) =>
+                `We konden ${workEmail} niet toevoegen. Om deze accounts samen te voegen, log je in als ${workEmail} en ga je naar Account > Beveiliging > Accounts samenvoegen om het proces te voltooien.`,
             workAccountClosedSubtitle:
                 'De zakelijke account die aan dit e-mailadres is gekoppeld, is gesloten. Neem contact op met de beheerder van je bedrijf om het opnieuw te activeren, of meld je aan met een ander e-mailadres.',
             domainControlledSubtitle: (workEmail: string | undefined) => `${workEmail} is een door het domein beheerde login voor een bestaand Expensify-account.`,
@@ -3708,6 +3721,34 @@ ${amount} voor ${merchant} - ${date}`,
                     En je bent klaar!
                 `),
             },
+            addWorkEmailTask: {
+                title: 'Voeg je werk-e-mailadres toe',
+                description: ({workEmailLink = ''}) =>
+                    Str.dedent(`
+                        1. Open [Werkmail toevoegen](${workEmailLink}).
+                        2. Voer je zakelijke e-mailadres in.
+                        3. Voer de code in die we je mailen.
+                        4. Kies een workspace om je bij aan te sluiten, of klik op *Verzoek om lid te worden* om een verzoek naar de eigenaar van de workspace te sturen.
+                    `),
+            },
+            validateEmailTask: {
+                title: 'Bevestig je e-mailadres',
+                description: ({validateEmailLink = '', workEmail = ''}) =>
+                    Str.dedent(`
+                        1. Open [Valideer je account](${validateEmailLink}).
+                        2. Voer de code in die we naar ${workEmail} hebben gestuurd.
+                        3. Kies een workspace om je bij aan te sluiten, of klik op *Verzoek om lid te worden* om een verzoek naar de eigenaar van de workspace te sturen.
+                    `),
+            },
+            joinWorkspaceTask: {
+                title: 'Word lid van de workspace van je bedrijf',
+                description: ({joinWorkspaceLink = ''}) =>
+                    Str.dedent(`
+                        1. Open [Lid worden van een werkruimte](${joinWorkspaceLink}).
+                        2. Zoek je team in de lijst. Bij elk team zie je de eigenaar en hoeveel mensen erin zitten, de grootste eerst. Klik op *Meer weergeven* als je die van jou niet ziet.
+                        3. Klik op *Nu deelnemen*, of op *Verzoek om deelname* als er goedkeuring van een beheerder nodig is.
+                    `),
+            },
         } satisfies Record<string, Pick<OnboardingTask, 'title' | 'description'>>,
         testDrive: {
             name: ({testDriveURL}: {testDriveURL?: string}) => (testDriveURL ? `Maak een [proefrit](${testDriveURL})` : 'Maak een proefrit'),
@@ -3730,6 +3771,14 @@ ${amount} voor ${merchant} - ${date}`,
             onboardingChatSplitMessage: 'Rekeningen splitsen met vrienden is net zo makkelijk als het sturen van een bericht. Zo werkt het.',
             onboardingAdminMessage: 'Leer hoe je als beheerder de werkruimte van je team beheert en je eigen onkosten indient.',
             onboardingTestDriveReceiverMessage: '*Je krijgt 3 maanden gratis! Ga hieronder aan de slag.*',
+            onboardingJoinWorkspaceAddWorkEmailMessage:
+                'Omdat je je wilt aansluiten bij de workspace van je bedrijf, heb ik er geen voor je aangemaakt. Voeg je zakelijke e‑mail toe en dan kijk ik welke workspaces bij jouw bedrijf je kunt joinen.',
+            onboardingJoinWorkspaceValidateEmailMessage: ({companyDomain = ''}: {companyDomain?: string}) =>
+                `Omdat je je bij de workspace van je bedrijf wilt aansluiten, heb ik er geen voor je aangemaakt. Bevestig je e-mailadres, dan kijk ik welke workspaces bij ${companyDomain} je kunt joinen.`,
+            onboardingJoinWorkspaceMessage: ({companyDomain = '', joinWorkspaceLink = ''}: {companyDomain?: string; joinWorkspaceLink?: string}) =>
+                `Omdat je je wilt aansluiten bij de workspace van je bedrijf, heb ik er geen voor je aangemaakt. Je team bij ${companyDomain} zit al op Expensify. [Bekijk de workspaces waarbij je je kunt aansluiten.](${joinWorkspaceLink})`,
+            onboardingJoinWorkspaceEmptyMessage:
+                'Het lijkt er niet op dat je bedrijf joinbare werkruimtes heeft. Neem contact op met je beheerder en vraag of die je wil uitnodigen voor de werkruimte.',
         },
         workspace: {
             title: 'Blijf georganiseerd met een werkruimte',
@@ -4920,6 +4969,7 @@ ${amount} voor ${merchant} - ${date}`,
             readOnlyActionTitle: 'Niet zo snel...',
             readOnlyActionPrompt: 'Je rol in de workspace kan deze instellingen bekijken, maar niet bewerken.',
             noAccessActionPrompt: 'Je rol in deze workspace heeft geen toegang tot deze instellingen. Vraag een admin als je die nodig hebt.',
+            connections: 'Verbindingen',
         },
         createdForClient: {
             title: 'Je hebt een werkruimte voor je klant aangemaakt!',
@@ -4943,6 +4993,31 @@ ${amount} voor ${merchant} - ${date}`,
                 title: 'ChatGPT',
                 subtitle: 'van OpenAI',
             },
+        },
+        connections: {
+            tabs: {
+                [CONST.TAB.CONNECTIONS.ALL]: 'Alles',
+                [CONST.TAB.CONNECTIONS.ACCOUNTING]: 'Boekhouding',
+                [CONST.TAB.CONNECTIONS.PEOPLE]: 'HR & People',
+                [CONST.TAB.CONNECTIONS.RECRUITING]: 'Werving',
+                [CONST.TAB.CONNECTIONS.RECEIPTS]: 'Bonnetjes',
+                [CONST.TAB.CONNECTIONS.AI]: 'AI & MCP',
+            },
+            findConnections: 'Verbindingen zoeken',
+            configure: 'Configureren',
+            fix: 'Oplossen',
+            active: 'Actief',
+            broken: 'Defect',
+            brokenConnection: 'Kan niet synchroniseren vanwege een verbroken verbinding',
+            replaceConnectionTitle: 'Verbinding vervangen?',
+            offer: 'Aanbieding',
+            replaceConnectionPrompt: (connectionName: string) => `Hiermee verwijder je je huidige ${connectionName}-verbinding.`,
+            hrisListing: (providerName: string) => `${providerName} (HRIS)`,
+            atsListing: (providerName: string) => `${providerName} (ATS)`,
+            suggestIntegration: 'Zie je de jouwe niet? Stel een integratie voor, dan kijken we ernaar.',
+            noResultsPrompt: '<muted-text><centered-text>Pas je zoekopdracht aan of <a href="#">stel een integratie voor</a>.</centered-text></muted-text>',
+            allConnectedTitle: 'Je bent helemaal verbonden',
+            allConnectedPrompt: '<muted-text><centered-text>Alles hier is al verbonden. Je kunt ook <a href="#">een integratie voorstellen</a>.</centered-text></muted-text>',
         },
         receiptPartners: {
             uber: {
@@ -10246,10 +10321,6 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
         genericUpdateReportFieldFailureMessage: 'Onverwachte fout bij het bijwerken van het veld. Probeer het later opnieuw.',
         genericUpdateReportNameEditFailureMessage: 'Onverwachte fout bij het hernoemen van het rapport. Probeer het later opnieuw.',
         noActivityYet: 'Nog geen activiteit',
-        collapsedSystemMessages: () => ({
-            one: '1 update tonen',
-            other: (count: number) => `${count} updates tonen`,
-        }),
         connectionSettings: 'Verbindingsinstellingen',
         actions: {
             type: {
@@ -11531,6 +11602,7 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
         markAllAsRead: '<tooltip>Klik met de rechtermuisknop om <strong>alles als gelezen te markeren</strong>.</tooltip>',
         markAllAsReadTouchScreen: '<tooltip>Houd ingedrukt om <strong>alles als gelezen te markeren</strong>.</tooltip>',
         accountMovedToTopBar: '<tooltip>Ga naar je account en persoonlijke instellingen.</tooltip>',
+        connectionsMoved: 'Al je connecties op één plek',
     },
     discardChangesConfirmation: {
         title: 'Wijzigingen negeren?',
