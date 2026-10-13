@@ -4464,6 +4464,7 @@ describe('OptionsListUtils', () => {
                 personalDetails: PERSONAL_DETAILS,
                 sortedActions: undefined,
                 conciergeReportID: undefined,
+                formatPhoneNumber,
             });
             // When we call filterAndOrderOptions with a search value
             const filteredOptions = filterAndOrderOptions({

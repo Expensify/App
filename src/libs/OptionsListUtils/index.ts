@@ -2757,7 +2757,7 @@ type SearchOptionsConfig = {
     lastActions?: Record<string, ReportAction>;
     currentUserLogin?: string;
     localeCompare?: LocaleContextProps['localeCompare'];
-    formatPhoneNumber?: LocaleContextProps['formatPhoneNumber'];
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
     conciergeReportID: string | undefined;
     excludeFromSuggestionsOnly?: Record<string, boolean>;
     isTrackIntentUser?: boolean;
@@ -2849,7 +2849,6 @@ function getSearchOptions({
             lastActions,
             currentUserLogin: currentUserLogin ?? currentUserEmail,
             localeCompare,
-            formatPhoneNumber,
             excludeFromSuggestionsOnly,
             isTrackIntentUser,
             getReportByID,
