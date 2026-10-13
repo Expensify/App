@@ -490,12 +490,16 @@ describe('SearchPageNarrow', () => {
         // Given the page requested the query and that request failed before the server could answer
         const {rerender} = renderPage();
         // A narrow tab switch only sets the route's params, and the search context reads the query from the root state
-        const switchToQuery = (query: string) =>
-            act(async () => {
-                mockSearchQueryParam.mockReturnValue(query);
+        const switchToQuery = async (query: string) => {
+            mockSearchQueryParam.mockReturnValue(query);
+            await act(async () => {
                 navigationRef.dispatch({...CommonActions.setParams({q: query}), source: navigationRef.getCurrentRoute()?.key});
-                rerender(getSearchPage(query));
             });
+            rerender(getSearchPage(query));
+            await act(async () => {
+                jest.runAllTimers();
+            });
+        };
 
         await act(async () => {
             jest.runAllTimers();
@@ -505,14 +509,8 @@ describe('SearchPageNarrow', () => {
 
         // When the user switches to another tab and back, which keeps the page mounted and only remounts Search
         await switchToQuery(EXPENSE_QUERY);
-        await act(async () => {
-            jest.runAllTimers();
-        });
         mockSearch.mockClear();
         await switchToQuery(FAILED_QUERY);
-        await act(async () => {
-            jest.runAllTimers();
-        });
 
         // Then the failed query is requested again instead of staying on the refresh view until tapped
         expect(mockSearch.mock.calls.some(([params]) => params?.queryJSON?.hash === failedQueryJSON?.hash)).toBe(true);

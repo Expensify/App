@@ -433,7 +433,6 @@ function Search({
     }, [lastSearchType, setShouldShowFiltersBarLoading, shouldShowLoadingState, type]);
 
     const shouldRetrySearchWithTotalsOrGroupedRef = useRef(false);
-    // The query hash this instance last requested on its own, so only an error it produced blocks the automatic request.
     const autoSearchedHashRef = useRef<number | undefined>(undefined);
 
     useEffect(() => {
@@ -465,7 +464,7 @@ function Search({
             return;
         }
 
-        // An error left on the snapshot by an earlier request (e.g. from another tab visit) must not block this instance's first request.
+        // A stale error an earlier visit left on this hash must not block this instance's first request.
         if (hasErrors && !shouldRefreshOnReconnect && autoSearchedHashRef.current === queryJSON.hash) {
             return;
         }
@@ -490,7 +489,7 @@ function Search({
 
         // The page already fetched this first page, and that request finished before Search mounts, so search() no longer sees it.
         if (!shouldRefreshOnReconnect && searchRequestOffset === 0 && isDataLoaded && consumePageRequestedSearch(queryJSON.hash, shouldCalculateTotals)) {
-            // That request was made for this mount, so an error it left behind is this instance's own.
+            // That request was made for this mount, so an error it leaves behind is this instance's own.
             autoSearchedHashRef.current = queryJSON.hash;
             return;
         }
