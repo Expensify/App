@@ -176,9 +176,6 @@ function ConciergeFeedbackPrompt({
         </View>
     );
 
-    const selectedEmoji = thumbsUpReactedAt ? thumbsUp : thumbsDown;
-    const selectedFeedbackThumb = getFeedbackThumb(selectedEmoji, true);
-
     // The acknowledgement comes from the reaction, so removing it from the reaction row brings the prompt back right away
     if (!shouldPersistAfterRating && isDisplayedThankMessage) {
         return <Text style={[styles.textLabelSupporting, styles.mt2]}>{translate('concierge.feedback.thanks')}</Text>;
@@ -190,9 +187,9 @@ function ConciergeFeedbackPrompt({
 
     if (shouldPersistAfterRating && hasRated) {
         return (
-            <View style={styles.flexRow}>
+            <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap2]}>
                 {isDisplayedThankMessage && <Text style={styles.textLabelSupporting}>{translate('concierge.feedback.thanks')}</Text>}
-                {selectedFeedbackThumb}
+                {feedbackThumbs}
             </View>
         );
     }
