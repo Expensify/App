@@ -42,6 +42,7 @@ function computeReportVisibility(
         if (shouldSkipCachingAction(action)) {
             continue;
         }
+        // A replacement ticket has its own active survey, so the original ticket's survey is stale.
         if (isSupportTicketReport && reportNameValuePairs?.reopenedAsReportID && isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.SUPPORT_SURVEY)) {
             reportVisibility[action.reportActionID] = false;
             continue;
