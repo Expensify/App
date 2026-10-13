@@ -233,7 +233,7 @@ function PDFView({onToggleKeyboard, fileName, onPress, isFocused, onScaleChanged
         }
 
         return focusPDFScrollerWhenReady(container);
-    },[isFocused, isUsedAsChatAttachment, isUsedInAttachmentModal, shouldUsePDFGestureZoom]);
+    }, [isFocused, isUsedAsChatAttachment, isUsedInAttachmentModal, shouldUsePDFGestureZoom]);
 
     const renderPDFView = () => {
         const outerContainerStyle = [styles.w100, styles.h100, styles.justifyContentCenter, styles.alignItemsCenter];
