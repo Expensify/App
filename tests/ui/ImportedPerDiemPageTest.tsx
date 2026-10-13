@@ -74,7 +74,7 @@ const route: ImportedPerDiemPageScreenProps['route'] = {
     name: SCREENS.WORKSPACE.PER_DIEM_IMPORTED,
     params: {policyID: POLICY_ID},
 };
-// The screen does not read navigation; this inert test double only satisfies the navigator-provided prop.
+// The screen does not read navigation. This inert test double only satisfies the navigator-provided prop.
 // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
 const navigation = {} as ImportedPerDiemPageScreenProps['navigation'];
 
