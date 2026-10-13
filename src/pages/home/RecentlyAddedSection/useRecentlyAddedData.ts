@@ -117,6 +117,7 @@ function useRecentlyAddedData(): RecentlyAddedData {
     // Read by key only, never iterated: the collection holds tens of thousands of entries.
     const [localTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
     const [pendingTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {selector: pendingTransactionIDsSelector});
+    const [localReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
 
     // Holding a just-created expense here keeps it in the slot after `pendingAction` clears on sync but before the
     // refreshed snapshot arrives (otherwise it briefly disappears and reappears).
@@ -185,7 +186,7 @@ function useRecentlyAddedData(): RecentlyAddedData {
             }
         }
 
-        const filtered = snapshotTransactions.filter((transaction): transaction is Transaction & {reportID: string} => {
+        const isOwnedByCurrentUser = (transaction: Transaction | undefined, ownerAccountID: number | undefined): transaction is Transaction & {reportID: string} => {
             if (!transaction?.reportID) {
                 return false;
             }
@@ -193,12 +194,17 @@ function useRecentlyAddedData(): RecentlyAddedData {
             if (transaction.reportID === CONST.REPORT.UNREPORTED_REPORT_ID) {
                 return true;
             }
-            const ownerAccountID = reportByReportID.get(transaction.reportID)?.ownerAccountID;
             return ownerAccountID === undefined || ownerAccountID === accountID;
-        });
+        };
+
+        const filtered = snapshotTransactions.filter((transaction) =>
+            isOwnedByCurrentUser(transaction, transaction.reportID ? reportByReportID.get(transaction.reportID)?.ownerAccountID : undefined),
+        );
 
         // Merge in locally-pending expenses, skipping any already in the snapshot so a row never appears twice.
-        // A local optimistic ADD always belongs to the current user, so no ownership check is needed (unlike the snapshot path).
+        // A local optimistic ADD doesn't always belong to the current user: sending money (Pay someone) creates it on
+        // an IOU report owned by the recipient. Apply the same ownership check as the snapshot path, resolved from the
+        // local report, so such an expense never flashes in the payer's slot.
         const snapshotTransactionIDs = new Set(snapshotTransactions.map((transaction) => transaction.transactionID));
         const nextUnconfirmed = new Set([...unconfirmedTransactionIDs, ...(pendingTransactionIDs?.added ?? [])].filter((transactionID) => !snapshotTransactionIDs.has(transactionID)));
 
@@ -221,7 +227,7 @@ function useRecentlyAddedData(): RecentlyAddedData {
             // have had its `pendingAction` cleared by a sync.
             ...[...nextUnconfirmed]
                 .map((transactionID) => getLocalTransaction(localTransactions, transactionID))
-                .filter((transaction): transaction is Transaction & {reportID: string} => !!transaction?.reportID),
+                .filter((transaction) => isOwnedByCurrentUser(transaction, localReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`]?.ownerAccountID)),
         ].filter((transaction) => {
             const localTransaction = getLocalTransaction(localTransactions, transaction.transactionID);
 
@@ -279,7 +285,7 @@ function useRecentlyAddedData(): RecentlyAddedData {
             });
 
         return {transactions: transactionsList, nextUnconfirmedTransactionIDs: nextUnconfirmed, nextDeletedTransactionIDs: nextDeleted};
-    }, [snapshotData, unconfirmedTransactionIDs, deletedTransactionIDs, accountID, localTransactions, pendingTransactionIDs?.added, pendingTransactionIDs?.deleted, translate]);
+    }, [snapshotData, unconfirmedTransactionIDs, deletedTransactionIDs, accountID, localTransactions, localReports, pendingTransactionIDs?.added, pendingTransactionIDs?.deleted, translate]);
 
     const hasSameUnconfirmedIDs =
         nextUnconfirmedTransactionIDs.size === unconfirmedTransactionIDs.size && [...nextUnconfirmedTransactionIDs].every((id) => unconfirmedTransactionIDs.has(id));
