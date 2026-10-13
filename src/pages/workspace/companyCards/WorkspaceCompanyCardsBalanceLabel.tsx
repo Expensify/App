@@ -20,8 +20,8 @@ type WorkspaceCompanyCardsBalanceLabelProps = {
     /** Datetime the balance was last fetched, formatted as 'yyyy-MM-dd HH:mm:ss', shown in the tooltip */
     lastUpdated: string | null | undefined;
 
-    /** Currency the value is denominated in, or undefined when the bank did not report one, in which case the amount is shown without a currency symbol */
-    currency: string | undefined;
+    /** Currency the value is denominated in, or null/undefined when the bank did not report one, in which case the amount is shown without a currency symbol */
+    currency: string | null | undefined;
 
     /** Style applied to the outer container, set by the parent when the labels share a row */
     containerStyle?: StyleProp<ViewStyle>;
