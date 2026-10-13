@@ -99,7 +99,7 @@ const NETSUITE_OAUTH_WARNING_THRESHOLD_DAYS = 90;
 
 function shouldShowNetSuiteOAuthMigrationNudge(policy?: Policy): boolean {
     const netsuite = policy?.connections?.netsuite;
-    return !!netsuite?.verified && netsuite.config?.authType !== CONST.NETSUITE_CONFIG.TOKEN_INPUT.AUTH_TYPE.OAUTH2 && !!netsuite.tokenID && !!netsuite.tokenSecret;
+    return !!netsuite && netsuite.verified !== false && netsuite.config?.authType !== CONST.NETSUITE_CONFIG.TOKEN_INPUT.AUTH_TYPE.OAUTH2 && !!netsuite.tokenID && !!netsuite.tokenSecret;
 }
 
 function getNetSuiteOAuthMigrationSeverity(): NetSuiteOAuthMigrationSeverity {

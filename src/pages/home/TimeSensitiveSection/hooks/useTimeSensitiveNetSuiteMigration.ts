@@ -1,5 +1,7 @@
 import useOnyx from '@hooks/useOnyx';
 
+import {isArchivedPolicy} from '@libs/PolicyUtils/policyType';
+
 import {shouldShowNetSuiteOAuthMigrationNudge} from '@pages/workspace/accounting/netsuite/utils';
 
 import CONST from '@src/CONST';
@@ -14,7 +16,7 @@ function useTimeSensitiveNetSuiteMigration() {
     const [netSuiteMigrationPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {
         selector: (allPolicies): NetSuiteMigrationPolicy[] =>
             Object.values(allPolicies ?? {}).flatMap((p) => {
-                if (!p || p.role !== CONST.POLICY.ROLE.ADMIN || !shouldShowNetSuiteOAuthMigrationNudge(p)) {
+                if (!p || p.role !== CONST.POLICY.ROLE.ADMIN || isArchivedPolicy(p) || !shouldShowNetSuiteOAuthMigrationNudge(p)) {
                     return [];
                 }
                 return [{policyID: p.id, policyName: p.name}];
