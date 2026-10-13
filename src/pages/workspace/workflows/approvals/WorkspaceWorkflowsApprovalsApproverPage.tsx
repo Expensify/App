@@ -7,17 +7,18 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
+import {usePersonalDetailsByLogins} from '@hooks/usePersonalDetailByLogin';
 import usePersonalDetailsByEmail from '@hooks/usePersonalDetailsByEmail';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {clearApprovalWorkflowApprover, clearApprovalWorkflowApprovers, setApprovalWorkflowApprover} from '@libs/actions/Workflow';
-import {isAnyHRReadOnlyWorkflowMode} from '@libs/merge/HRUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
 import {addSMSDomainIfPhoneNumber} from '@libs/PhoneNumber';
 import {getDefaultApprover, getMemberAccountIDsForWorkspace, isExpensifyTeam, shouldFilterExpensifyTeam, shouldHideDynamicExternalWorkflowPeople} from '@libs/PolicyUtils';
+import {isApprovalWorkflowLockedByIntegration} from '@libs/WorkflowUtils';
 
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import MemberRightIcon from '@pages/workspace/MemberRightIcon';
@@ -28,6 +29,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
+import type {Approver} from '@src/types/onyx/ApprovalWorkflow';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import {useNavigationState} from '@react-navigation/native';
@@ -43,6 +45,7 @@ function WorkspaceWorkflowsApprovalsApproverPage({policy, personalDetails, isLoa
     const [approvalWorkflow, approvalWorkflowMetadata] = useOnyx(ONYXKEYS.APPROVAL_WORKFLOW);
     const isApprovalWorkflowLoading = isLoadingOnyxValue(approvalWorkflowMetadata);
     const personalDetailsByEmail = usePersonalDetailsByEmail();
+    const employeePersonalDetails = usePersonalDetailsByLogins(Object.keys(policy?.employeeList ?? {}));
     const {isBetaEnabled} = usePermissions();
     const isMultipleApproversBetaEnabled = isBetaEnabled(CONST.BETAS.MULTIPLE_APPROVERS);
     const {login: currentUserLogin = ''} = useCurrentUserPersonalDetails();
@@ -53,19 +56,24 @@ function WorkspaceWorkflowsApprovalsApproverPage({policy, personalDetails, isLoa
     // Keep the removed approver visible until navigation finishes.
     // Without this temporary state, clearing the approver immediately causes the empty state to flash
     // while this screen is still mounted during the dismiss animation.
-    const [removingApproverEmail, setRemovingApproverEmail] = useState<string>();
+    const [removingApprover, setRemovingApprover] = useState<Approver>();
 
     const isChangeApproverRoute = route.name === SCREENS.WORKSPACE.WORKFLOWS_APPROVALS_APPROVER_CHANGE;
     const isInitialCreationFlow = approvalWorkflow?.action === CONST.APPROVAL_WORKFLOW.ACTION.CREATE && approvalWorkflow?.isInitialFlow;
     const currentApprover = approvalWorkflow?.approvers[approverIndex];
-    const selectedApproverEmail = currentApprover?.email;
-    const visibleSelectedApproverEmail = removingApproverEmail ?? selectedApproverEmail;
+    const visibleSelectedApprover = removingApprover ?? currentApprover;
+    const visibleSelectedApproverEmail = visibleSelectedApprover?.email;
+
+    // An approver who left the workspace isn't on employeeList, so they get their own selected row the admin can tap
+    // to remove them. It only exists while they hold this slot, so once removed or replaced they can't be picked again.
+    const nonMemberApprover = visibleSelectedApprover?.isNotWorkspaceMember ? visibleSelectedApprover : undefined;
+    const nonMemberApproverAccountID = nonMemberApprover ? personalDetailsByEmail?.[nonMemberApprover.email]?.accountID : undefined;
 
     const employeeList = policy?.employeeList;
     const approversFromWorkflow = approvalWorkflow?.approvers;
     const isDefault = approvalWorkflow?.isDefault;
 
-    const shouldShowNotFoundView = isAnyHRReadOnlyWorkflowMode(policy) || shouldHideDynamicExternalWorkflowPeople(policy);
+    const shouldShowNotFoundView = isApprovalWorkflowLockedByIntegration(policy) || shouldHideDynamicExternalWorkflowPeople(policy);
     const shouldFilterOutExpensifyTeam = shouldFilterExpensifyTeam(policy?.owner, currentUserLogin);
 
     const allApprovers: SelectionListApprover[] = useMemo(() => {
@@ -75,7 +83,7 @@ function WorkspaceWorkflowsApprovalsApproverPage({policy, personalDetails, isLoa
 
         const membersEmail = approvalWorkflow?.members?.map((member) => member.email);
 
-        return Object.values(employeeList)
+        const approvers = Object.values(employeeList)
             .map((employee): SelectionListApprover | null => {
                 const email = employee.email;
 
@@ -105,7 +113,7 @@ function WorkspaceWorkflowsApprovalsApproverPage({policy, personalDetails, isLoa
                     return null;
                 }
 
-                const policyMemberEmailsToAccountIDs = getMemberAccountIDsForWorkspace(employeeList);
+                const policyMemberEmailsToAccountIDs = getMemberAccountIDsForWorkspace(employeeList, employeePersonalDetails);
                 const accountID = Number(policyMemberEmailsToAccountIDs[email] ?? '');
 
                 if (!accountID) {
@@ -132,9 +140,24 @@ function WorkspaceWorkflowsApprovalsApproverPage({policy, personalDetails, isLoa
                 };
             })
             .filter((approver): approver is SelectionListApprover => !!approver);
+
+        if (nonMemberApprover && !approvers.some((approver) => approver.login === nonMemberApprover.email)) {
+            approvers.push({
+                text: nonMemberApprover.displayName,
+                alternateText: nonMemberApprover.email,
+                keyForList: nonMemberApprover.email,
+                isSelected: true,
+                login: nonMemberApprover.email,
+                value: nonMemberApprover.email,
+                icons: [{source: nonMemberApprover.avatar ?? icons.FallbackAvatar, type: CONST.ICON_TYPE_AVATAR, name: nonMemberApprover.displayName, id: nonMemberApproverAccountID}],
+            });
+        }
+
+        return approvers;
     }, [
         isApprovalWorkflowLoading,
         employeeList,
+        employeePersonalDetails,
         isDefault,
         isMultipleApproversBetaEnabled,
         policy?.preventSelfApproval,
@@ -147,9 +170,11 @@ function WorkspaceWorkflowsApprovalsApproverPage({policy, personalDetails, isLoa
         personalDetails,
         icons.FallbackAvatar,
         shouldFilterOutExpensifyTeam,
+        nonMemberApprover,
+        nonMemberApproverAccountID,
     ]);
 
-    const shouldShowListEmptyContent = !!approvalWorkflow && !isApprovalWorkflowLoading && !removingApproverEmail;
+    const shouldShowListEmptyContent = !!approvalWorkflow && !isApprovalWorkflowLoading && !removingApprover;
 
     const goBack = useCallback(() => {
         let backToRoute;
@@ -172,7 +197,7 @@ function WorkspaceWorkflowsApprovalsApproverPage({policy, personalDetails, isLoa
             const isRemovingApprover = approvers.length === 0;
 
             if (isRemovingApprover) {
-                setRemovingApproverEmail(visibleSelectedApproverEmail);
+                setRemovingApprover(visibleSelectedApprover);
                 clearApprovalWorkflowApprover({approverIndex, currentApprovalWorkflow: approvalWorkflow});
                 if (isChangeApproverRoute && approvalWorkflow?.action === CONST.APPROVAL_WORKFLOW.ACTION.EDIT) {
                     // Don't compare params — see goBack above.
@@ -187,7 +212,7 @@ function WorkspaceWorkflowsApprovalsApproverPage({policy, personalDetails, isLoa
             // matches the canonical key the invite writes into employeeList. Without this, a phone approver
             // invited offline stops resolving once online and the workflow disappears. No-op for emails.
             const newSelectedEmail = addSMSDomainIfPhoneNumber(approver?.login ?? '');
-            const policyMemberEmailsToAccountIDs = getMemberAccountIDsForWorkspace(employeeList);
+            const policyMemberEmailsToAccountIDs = getMemberAccountIDsForWorkspace(employeeList, employeePersonalDetails);
             const accountID = Number(newSelectedEmail ? policyMemberEmailsToAccountIDs[newSelectedEmail] : '');
             const {avatar, displayName = newSelectedEmail} = personalDetails?.[accountID] ?? {};
 
@@ -217,6 +242,7 @@ function WorkspaceWorkflowsApprovalsApproverPage({policy, personalDetails, isLoa
             approverIndex,
             approvalWorkflow,
             employeeList,
+            employeePersonalDetails,
             personalDetails,
             policy,
             route.params.policyID,
@@ -224,7 +250,7 @@ function WorkspaceWorkflowsApprovalsApproverPage({policy, personalDetails, isLoa
             personalDetailsByEmail,
             isChangeApproverRoute,
             firstApprover,
-            visibleSelectedApproverEmail,
+            visibleSelectedApprover,
         ],
     );
 

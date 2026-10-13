@@ -17,6 +17,11 @@ jest.mock('@libs/Log', () => ({
     default: {info: jest.fn(), warn: jest.fn(), alert: jest.fn()},
 }));
 
+jest.mock('@libs/getPlatform', () => ({
+    __esModule: true,
+    default: jest.fn(() => 'ios'),
+}));
+
 jest.mock('react-native-fs', () => ({
     DocumentDirectoryPath: '/mock/documents',
     CachesDirectoryPath: '/mock/caches',
@@ -32,6 +37,8 @@ const mockRNFS: {
     moveFile: jest.Mock;
     readDir: jest.Mock;
 } = jest.requireMock('react-native-fs');
+
+const {default: mockGetPlatform}: {default: jest.Mock} = jest.requireMock('@libs/getPlatform');
 
 const OLD_ATTACHMENT_DIR = '/mock/documents/attachments';
 const NEW_ATTACHMENT_DIR = '/mock/caches/attachments';
@@ -49,6 +56,7 @@ describe('MoveFilesOutOfDocuments migration (native)', () => {
         mockRNFS.unlink.mockImplementation(() => Promise.resolve());
         mockRNFS.moveFile.mockImplementation(() => Promise.resolve());
         mockRNFS.readDir.mockImplementation(() => Promise.resolve([]));
+        mockGetPlatform.mockImplementation(() => CONST.PLATFORM.IOS);
         await Onyx.clear();
         await waitForBatchedUpdates();
     });
@@ -157,6 +165,18 @@ describe('MoveFilesOutOfDocuments migration (native)', () => {
         expect(mockRNFS.unlink).toHaveBeenCalledWith(OLD_EXPORT_STAGING_DIR);
     });
 
+    it('keeps the Android share staging directory, which uses the same path as the old iOS export staging directory', async () => {
+        // Given an Android device with a file staged by the share intent handler, which lives at the same path the iOS export staging folder used
+        mockGetPlatform.mockImplementation(() => CONST.PLATFORM.ANDROID);
+        mockRNFS.exists.mockImplementation((existsPath: string) => Promise.resolve(existsPath === OLD_EXPORT_STAGING_DIR));
+
+        // When the migration runs on app launch, possibly before the share screen has read the staged file
+        await MoveFilesOutOfDocuments();
+
+        // Then the directory is kept, because deleting it would lose the file the user is sharing into the app
+        expect(mockRNFS.unlink).not.toHaveBeenCalledWith(OLD_EXPORT_STAGING_DIR);
+    });
+
     it('does not block startup when the cleanup fails', async () => {
         mockRNFS.exists.mockImplementation(() => Promise.resolve(true));
         mockRNFS.moveFile.mockImplementation(() => Promise.reject(new Error('move failed')));
@@ -165,18 +185,10 @@ describe('MoveFilesOutOfDocuments migration (native)', () => {
         await expect(MoveFilesOutOfDocuments()).resolves.toBeUndefined();
     });
 
-    it('keeps the native database migration patch in sync with the database name', () => {
-        const patchDir = path.resolve(__dirname, '../../patches/react-native-nitro-sqlite');
-        const patchFileName = fs.readdirSync(patchDir).find((fileName) => fileName.includes('store-database-outside-documents'));
-        expect(patchFileName).toBeDefined();
-        const patchContent = fs.readFileSync(path.join(patchDir, String(patchFileName)), 'utf8');
+    it('keeps iOS NitroSQLite databases in Application Support', () => {
+        const infoPlist = fs.readFileSync(path.resolve(__dirname, '../../ios/NewExpensify/Info.plist'), 'utf8');
 
-        // The patch migrates database files by name at app startup, before any JS runs, so the
-        // name is hardcoded there. If the database the app opens is ever renamed, the patch (and
-        // this test) must be updated with it, or the migration would silently strand user data.
-        expect(patchContent).toContain(`@"${CONST.DEFAULT_DB_NAME}"`);
-
-        const sqliteProviderContent = fs.readFileSync(path.resolve(__dirname, '../../node_modules/react-native-onyx/dist/storage/providers/SQLiteProvider.js'), 'utf8');
-        expect(sqliteProviderContent).toContain(`'${CONST.DEFAULT_DB_NAME}'`);
+        // Without this opt-in, NitroSQLite stores OnyxDB in the user-visible Documents directory.
+        expect(infoPlist).toMatch(/<key>RNNitroSQLite_DatabaseLocation<\/key>\s*<string>ApplicationSupport<\/string>/);
     });
 });

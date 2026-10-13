@@ -268,3 +268,27 @@ test('[MoneyRequestReportActionsList] should render the unified list with 500 re
     // When the list is mounted
     await measureRenders(<MoneyRequestReportActionsListWrapper />, {scenario});
 });
+
+test('[MoneyRequestReportActionsList] should measure re-renders when a transaction of an unrelated report gets a violation', async () => {
+    // Reassure calls `scenario` once per run while Onyx is seeded once per test, so every run writes violations
+    // under transaction IDs that don't exist yet. Otherwise later runs would merge already-present data and measure a no-op.
+    let run = 0;
+    const scenario = async () => {
+        // Given the unified list is rendered for the seeded report
+        await screen.findByTestId('money-request-report-actions-list');
+
+        // When 5 transactions that don't belong to this report get a violation
+        for (let i = 0; i < 5; i++) {
+            const violationsKey = `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}UNRELATED_TXN_${run}_${i}` as const;
+            await act(async () => {
+                await Onyx.merge(violationsKey, [{name: CONST.VIOLATIONS.MISSING_CATEGORY, type: CONST.VIOLATION_TYPES.VIOLATION, showInReview: true}]);
+                await waitForBatchedUpdates();
+            });
+        }
+        run++;
+    };
+    await waitForBatchedUpdates();
+
+    // Then reassure should measure the re-renders caused by the unrelated violations (ideally none)
+    await measureRenders(<MoneyRequestReportActionsListWrapper />, {scenario});
+});

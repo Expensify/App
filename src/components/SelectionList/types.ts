@@ -1,5 +1,3 @@
-import type {SearchRouterItem} from '@components/Search/SearchAutocompleteList';
-import type {TransactionListItemType} from '@components/Search/SearchList/ListItem/types';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 
 import type CONST from '@src/CONST';
@@ -9,38 +7,16 @@ import type {Ref} from 'react';
 import type {GestureResponderEvent, InputModeOptions, StyleProp, TextStyle, ViewStyle} from 'react-native';
 import type {ValueOf} from 'type-fest';
 
-import type BareUserListItem from './ListItem/BareUserListItem';
-import type InviteMemberListItem from './ListItem/InviteMemberListItem';
-import type MultiSelectListItem from './ListItem/MultiSelectListItem';
-import type SingleSelectListItem from './ListItem/SingleSelectListItem';
-import type SingleSelectWithAvatarListItem from './ListItem/SingleSelectWithAvatarListItem';
-import type SpendCategorySelectorListItem from './ListItem/SpendCategorySelectorListItem';
-import type SplitListItem from './ListItem/SplitListItem';
-import type TravelDomainListItem from './ListItem/TravelDomainListItem';
-import type {ListItem} from './ListItem/types';
-import type UserListItem from './ListItem/UserListItem';
-import type UserSelectionListItem from './ListItem/UserSelectionListItem';
+import type {ListItem, ListItemComponent} from './ListItem/types';
 import type {SelectionListWithSectionsHandle, SelectionListWithSectionsProps} from './SelectionListWithSections/types';
-
-type ValidListItem =
-    | typeof InviteMemberListItem
-    | typeof MultiSelectListItem
-    | typeof SearchRouterItem
-    | typeof SingleSelectListItem
-    | typeof SingleSelectWithAvatarListItem
-    | typeof SpendCategorySelectorListItem
-    | typeof SplitListItem
-    | typeof TravelDomainListItem
-    | typeof BareUserListItem
-    | typeof UserListItem
-    | typeof UserSelectionListItem;
 
 /**
  * Base props shared between SelectionList and SelectionListWithSections.
  * Contains common configuration for list behavior, styling, and callbacks.
  */
 type BaseSelectionListProps<TItem extends ListItem> = {
-    ListItem: ValidListItem;
+    /** Component rendering each row. `NoInfer` keeps the row component from widening `TItem`, which is inferred from `data`/`sections` */
+    ListItem: ListItemComponent<NoInfer<TItem>>;
     initiallyFocusedItemKey?: string;
     onSelectRow: (item: TItem) => void;
     canSelectMultiple?: boolean;
@@ -53,7 +29,6 @@ type BaseSelectionListProps<TItem extends ListItem> = {
     shouldShowLoadingPlaceholder?: boolean;
     shouldShowTooltips?: boolean;
     customListHeaderContent?: React.JSX.Element | null;
-    onSelectionButtonPress?: (item: TItem) => void;
     onDismissError?: (item: TItem) => void;
     shouldPreventDefaultFocusOnSelectRow?: boolean;
 
@@ -118,7 +93,8 @@ type BaseSelectionListProps<TItem extends ListItem> = {
     /** Which side of the row to render the selection button on */
     selectionButtonPosition?: ValueOf<typeof CONST.SELECTION_BUTTON_POSITION>;
 
-    shouldHighlightSelectedItem?: boolean;
+    /** Maximum number of title lines per row. Values above 1 enable wrapping */
+    titleNumberOfLines?: number;
 };
 
 /**
@@ -134,7 +110,7 @@ type SelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> &
         /** Called when "Select All" button is pressed */
         onSelectAll?: () => void;
 
-        onLongPressRow?: (item: TItem, itemTransactions?: TransactionListItemType[]) => void;
+        onSelectionButtonPress?: (item: TItem) => void;
 
         /** Custom header content to render instead of the default select all header */
         customListHeader?: React.ReactNode;
@@ -152,9 +128,6 @@ type SelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> &
 
         /** Whether the layout is narrow */
         isSmallScreenWidth?: boolean;
-
-        /** Whether to wrap long text */
-        isRowMultilineSupported?: boolean;
 
         /** Whether to show the vertical scroll indicator */
         showScrollIndicator?: boolean;
@@ -178,15 +151,11 @@ type SelectionListStyle = {
     listFooterContentStyle?: StyleProp<ViewStyle>;
 
     containerStyle?: StyleProp<ViewStyle>;
-    listItemTitleStyles?: StyleProp<TextStyle>;
-    listItemWrapperStyle?: StyleProp<ViewStyle>;
     listHeaderWrapperStyle?: StyleProp<ViewStyle>;
 
     /** Styles for the default "Select all" label in the list header (merged after textStrong) */
     listHeaderSelectAllTextStyle?: StyleProp<TextStyle>;
 
-    listItemTitleContainerStyles?: StyleProp<ViewStyle>;
-    listItemErrorRowStyles?: StyleProp<ViewStyle>;
     sectionTitleStyles?: StyleProp<TextStyle>;
 };
 

@@ -42,6 +42,7 @@ function TextInputPopup({style, defaultValue, label, placeholder, onBackButtonPr
             onBackButtonPress={onBackButtonPress}
             resetSentryLabel={CONST.SENTRY_LABEL.SEARCH.FILTER_POPUP_RESET_TEXT_INPUT}
             applySentryLabel={CONST.SENTRY_LABEL.SEARCH.FILTER_POPUP_APPLY_TEXT_INPUT}
+            shouldSubmitOnEnter
             style={style}
         >
             <TextInput

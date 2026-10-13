@@ -1,17 +1,19 @@
-import {isActionableWhisperRequiringWritePermission, isConciergeCategoryOptions, shouldReportActionBeVisible} from '@libs/ReportActionsUtils';
+import {isActionableWhisperRequiringWritePermission, isActionOfType, isConciergeCategoryOptions, shouldReportActionBeVisible} from '@libs/ReportActionsUtils';
+import {isSupportTicket} from '@libs/ReportUtils';
 
 import createOnyxDerivedValueConfig from '@userActions/OnyxDerived/createOnyxDerivedValueConfig';
 
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {ReportAction, ReportActions} from '@src/types/onyx';
+import type {Report, ReportAction, ReportActions} from '@src/types/onyx';
 import type {VisibleReportActionsDerivedValue} from '@src/types/onyx/DerivedValues';
 
 /**
  * Returns true if the action's visibility depends on runtime context that can't be cached,
- * such as write permissions or policy settings.
+ * such as write permissions, policy settings, or sibling actions.
  */
 function shouldSkipCachingAction(action: ReportAction): boolean {
-    return isActionableWhisperRequiringWritePermission(action) || isConciergeCategoryOptions(action);
+    return isActionableWhisperRequiringWritePermission(action) || isConciergeCategoryOptions(action) || isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED);
 }
 
 /**
@@ -19,8 +21,9 @@ function shouldSkipCachingAction(action: ReportAction): boolean {
  * actions. Rebuilding the whole map rather than updating individual entries keeps deletions correct:
  * a removed action is absent from `reportActions`, so it drops out of the result.
  */
-function computeReportVisibility(reportActions: ReportActions, currentUserAccountID: number | undefined): Record<string, boolean> {
+function computeReportVisibility(reportActions: ReportActions, currentUserAccountID: number | undefined, report: Report | undefined): Record<string, boolean> {
     const reportVisibility: Record<string, boolean> = {};
+    const isSupportTicketReport = isSupportTicket(report);
 
     for (const [actionID, action] of Object.entries(reportActions)) {
         if (!action) {
@@ -34,7 +37,7 @@ function computeReportVisibility(reportActions: ReportActions, currentUserAccoun
         if (shouldSkipCachingAction(action)) {
             continue;
         }
-        reportVisibility[action.reportActionID] = shouldReportActionBeVisible(action, actionID, undefined, currentUserAccountID);
+        reportVisibility[action.reportActionID] = shouldReportActionBeVisible(action, actionID, undefined, currentUserAccountID, undefined, isSupportTicketReport);
     }
 
     return reportVisibility;
@@ -46,8 +49,8 @@ export default createOnyxDerivedValueConfig({
     // (for UNREPORTED_TRANSACTION/MOVED_TRANSACTION visibility) AND to provide the current
     // report collection to the visibility check, avoiding stale data from global connections.
     // SESSION dependency is needed for whisper targeting when user changes.
-    dependencies: [ONYXKEYS.COLLECTION.REPORT_ACTIONS, ONYXKEYS.SESSION],
-    compute: ([allReportActions, session], {sourceValues, currentValue, triggeredKeys}): VisibleReportActionsDerivedValue => {
+    dependencies: [ONYXKEYS.COLLECTION.REPORT_ACTIONS, ONYXKEYS.SESSION, ONYXKEYS.COLLECTION.REPORT],
+    compute: ([allReportActions, session, allReports], {sourceValues, currentValue, triggeredKeys}): VisibleReportActionsDerivedValue => {
         if (!allReportActions) {
             return {};
         }
@@ -59,7 +62,7 @@ export default createOnyxDerivedValueConfig({
         // recompute everything: on first load, when there's no delta, or on a SESSION change (the
         // user changed, which affects whisper targeting for every report). SESSION is checked via
         // triggeredKeys, not sourceValues, so a session cleared to `undefined` still forces the full recompute.
-        const isIncremental = !!reportActionsUpdates && !triggeredKeys?.has(ONYXKEYS.SESSION) && !!currentValue;
+        const isIncremental = !!reportActionsUpdates && !triggeredKeys?.has(ONYXKEYS.SESSION) && !triggeredKeys?.has(ONYXKEYS.COLLECTION.REPORT) && !!currentValue;
 
         const result: VisibleReportActionsDerivedValue = isIncremental ? {...currentValue} : {};
         const reportActionsKeysToProcess = isIncremental ? Object.keys(reportActionsUpdates) : Object.keys(allReportActions);
@@ -74,7 +77,7 @@ export default createOnyxDerivedValueConfig({
                 continue;
             }
 
-            result[reportID] = computeReportVisibility(reportActions, currentUserAccountID);
+            result[reportID] = computeReportVisibility(reportActions, currentUserAccountID, allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]);
         }
 
         return result;

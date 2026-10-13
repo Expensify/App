@@ -9,7 +9,7 @@ type BeneficialOwnerValues = {
     firstName: string;
     lastName: string;
     dob: string;
-    ssn: string;
+    ssnLast4: string;
     street: string;
     city: string;
     state: string;
@@ -22,7 +22,7 @@ function getValuesForBeneficialOwner(beneficialOwnerBeingModifiedID: string, rei
             firstName: '',
             lastName: '',
             dob: '',
-            ssn: '',
+            ssnLast4: '',
             street: '',
             city: '',
             state: '',
@@ -36,7 +36,7 @@ function getValuesForBeneficialOwner(beneficialOwnerBeingModifiedID: string, rei
         firstName: `${beneficialOwnerPrefix}_${beneficialOwnerBeingModifiedID}_${beneficialOwnerInfoKey.FIRST_NAME}`,
         lastName: `${beneficialOwnerPrefix}_${beneficialOwnerBeingModifiedID}_${beneficialOwnerInfoKey.LAST_NAME}`,
         dob: `${beneficialOwnerPrefix}_${beneficialOwnerBeingModifiedID}_${beneficialOwnerInfoKey.DOB}`,
-        ssn: `${beneficialOwnerPrefix}_${beneficialOwnerBeingModifiedID}_${beneficialOwnerInfoKey.SSN}`,
+        ssnLast4: `${beneficialOwnerPrefix}_${beneficialOwnerBeingModifiedID}_${beneficialOwnerInfoKey.SSN_LAST_4}`,
         street: `${beneficialOwnerPrefix}_${beneficialOwnerBeingModifiedID}_${beneficialOwnerInfoKey.STREET}`,
         city: `${beneficialOwnerPrefix}_${beneficialOwnerBeingModifiedID}_${beneficialOwnerInfoKey.CITY}`,
         state: `${beneficialOwnerPrefix}_${beneficialOwnerBeingModifiedID}_${beneficialOwnerInfoKey.STATE}`,
@@ -47,7 +47,7 @@ function getValuesForBeneficialOwner(beneficialOwnerBeingModifiedID: string, rei
         firstName: SafeString(reimbursementAccountDraft[INPUT_KEYS.firstName]),
         lastName: SafeString(reimbursementAccountDraft[INPUT_KEYS.lastName]),
         dob: SafeString(reimbursementAccountDraft[INPUT_KEYS.dob]),
-        ssn: SafeString(reimbursementAccountDraft[INPUT_KEYS.ssn]),
+        ssnLast4: SafeString(reimbursementAccountDraft[INPUT_KEYS.ssnLast4]),
         street: SafeString(reimbursementAccountDraft[INPUT_KEYS.street]),
         city: SafeString(reimbursementAccountDraft[INPUT_KEYS.city]),
         state: SafeString(reimbursementAccountDraft[INPUT_KEYS.state]),
