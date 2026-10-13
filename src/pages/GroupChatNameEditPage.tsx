@@ -107,7 +107,7 @@ function GroupChatNameEditPage({report}: GroupChatNameEditPageProps) {
                 enabledWhenOffline
                 shouldHideFixErrorsAlert
             >
-                <AutoGrowHeightInputContainer>
+                <AutoGrowHeightInputContainer shouldKeepMinimumHeight>
                     {(maxAutoGrowHeight) => (
                         <InputWrapper
                             InputComponent={TextInput}

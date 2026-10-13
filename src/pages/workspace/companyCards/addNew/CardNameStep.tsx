@@ -80,7 +80,7 @@ function CardNameStep() {
                 addBottomSafeAreaPadding
                 shouldPreventDefaultFocusOnPressSubmit
             >
-                <AutoGrowHeightInputContainer>
+                <AutoGrowHeightInputContainer shouldKeepMinimumHeight>
                     {(maxAutoGrowHeight) => (
                         <InputWrapper
                             InputComponent={TextInput}

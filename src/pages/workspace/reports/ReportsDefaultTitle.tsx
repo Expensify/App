@@ -116,7 +116,7 @@ function ReportsDefaultTitlePage({route}: RulesCustomNamePageProps) {
                     shouldHideFixErrorsAlert
                     addBottomSafeAreaPadding
                 >
-                    <AutoGrowHeightInputContainer>
+                    <AutoGrowHeightInputContainer shouldKeepMinimumHeight>
                         {(maxAutoGrowHeight) => (
                             <OfflineWithFeedback
                                 pendingAction={policy?.fieldList?.[CONST.POLICY.FIELDS.FIELD_LIST_TITLE]?.pendingFields?.defaultValue}

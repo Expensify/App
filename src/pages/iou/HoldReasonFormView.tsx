@@ -60,7 +60,7 @@ function HoldReasonFormView({backTo, validate, onSubmit, expenseCount = 1, isSub
                 shouldHideFixErrorsAlert
             >
                 <Text style={styles.mb6}>{translate(isSubmitter ? 'iou.explainHold' : 'iou.explainHoldApprover', {count: expenseCount})}</Text>
-                <AutoGrowHeightInputContainer>
+                <AutoGrowHeightInputContainer shouldKeepMinimumHeight>
                     {(maxAutoGrowHeight) => (
                         <InputWrapper
                             InputComponent={TextInput}

@@ -102,7 +102,7 @@ function FieldsEditValuePage({policy, policyID, valueIndex, featureName, policyF
                     shouldHideFixErrorsAlert
                     addBottomSafeAreaPadding
                 >
-                    <AutoGrowHeightInputContainer>
+                    <AutoGrowHeightInputContainer shouldKeepMinimumHeight>
                         {(maxAutoGrowHeight) => (
                             <InputWrapper
                                 InputComponent={TextInput}

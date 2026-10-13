@@ -61,7 +61,7 @@ function DynamicNewTaskTitlePage() {
     };
 
     if (isLoadingOnyxValue(taskMetadata)) {
-        return <FullScreenLoadingIndicator />;
+        return <FullScreenLoadingIndicator onGoBack={goBack} />;
     }
 
     return (
@@ -86,7 +86,10 @@ function DynamicNewTaskTitlePage() {
                 enabledWhenOffline
                 shouldHideFixErrorsAlert
             >
-                <AutoGrowHeightInputContainer style={styles.mb5}>
+                <AutoGrowHeightInputContainer
+                    shouldKeepMinimumHeight
+                    style={styles.mb5}
+                >
                     {(maxAutoGrowHeight) => (
                         <InputWrapperWithRef
                             InputComponent={TextInput}

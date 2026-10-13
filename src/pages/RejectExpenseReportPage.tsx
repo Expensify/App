@@ -204,7 +204,10 @@ function RejectExpenseReportPage({route}: RejectExpenseReportPageProps) {
                 <View style={styles.mb3}>
                     <Text>{translate('iou.rejectReport.description')}</Text>
                 </View>
-                <AutoGrowHeightInputContainer style={styles.mb6}>
+                <AutoGrowHeightInputContainer
+                    shouldKeepMinimumHeight
+                    style={styles.mb6}
+                >
                     {(maxAutoGrowHeight) => (
                         <InputWrapper
                             InputComponent={TextInput}

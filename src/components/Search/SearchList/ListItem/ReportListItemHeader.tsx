@@ -19,6 +19,7 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import {useReportPaymentContext} from '@hooks/usePaymentContext';
+import {useGetPersonalDetailsByLogin} from '@hooks/usePersonalDetailByLogin';
 import {useAllPersonalDetailsWithoutSnapshots} from '@hooks/usePersonalDetails';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -279,6 +280,7 @@ function ReportListItemHeaderInner<TItem extends ListItem>({
     );
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
+    const getPersonalDetailsByLogin = useGetPersonalDetailsByLogin();
     const shouldShowMarkAsDoneCopy = shouldShowMarkAsDone({
         policy: parentPolicy,
         report: parentReport,
@@ -301,7 +303,6 @@ function ReportListItemHeaderInner<TItem extends ListItem>({
         delegateEmail,
         delegateAccountID,
         conciergeChat,
-        bankAccountList,
     } = useReportPaymentContext({
         chatReportPolicyID: chatReport?.policyID,
     });
@@ -355,8 +356,8 @@ function ReportListItemHeaderInner<TItem extends ListItem>({
             isTrackIntentUser,
             allViolations,
             rules,
+            personalDetailsByLogins: getPersonalDetailsByLogin(),
             conciergeChat,
-            bankAccountList,
         });
     };
     return !isLargeScreenWidth ? (

@@ -214,7 +214,10 @@ function DynamicIOURequestStepMerchant({
                 shouldHideFixErrorsAlert
                 shouldUseStrictHtmlTagValidation
             >
-                <AutoGrowHeightInputContainer style={styles.mb4}>
+                <AutoGrowHeightInputContainer
+                    shouldKeepMinimumHeight
+                    style={styles.mb4}
+                >
                     {(maxAutoGrowHeight) => (
                         <InputWrapper
                             valueType="string"

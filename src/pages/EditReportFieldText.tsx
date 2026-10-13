@@ -110,7 +110,16 @@ function EditReportFieldTextPage({fieldName, onSubmit, fieldValue, isRequired, f
             enabledWhenOffline
             shouldHideFixErrorsAlert
         >
-            {disabled ? <View style={styles.mb4}>{renderInput()}</View> : <AutoGrowHeightInputContainer style={styles.mb4}>{renderInput}</AutoGrowHeightInputContainer>}
+            {disabled ? (
+                <View style={styles.mb4}>{renderInput()}</View>
+            ) : (
+                <AutoGrowHeightInputContainer
+                    shouldKeepMinimumHeight
+                    style={styles.mb4}
+                >
+                    {renderInput}
+                </AutoGrowHeightInputContainer>
+            )}
         </FormProvider>
     );
 }

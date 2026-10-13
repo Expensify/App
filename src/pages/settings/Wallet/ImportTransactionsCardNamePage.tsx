@@ -73,7 +73,7 @@ function ImportTransactionsCardNamePage() {
                 validate={(values) => validate({...values, [INPUT_IDS.CARD_DISPLAY_NAME]: StringUtils.lineBreaksToSpaces(values[INPUT_IDS.CARD_DISPLAY_NAME])})}
                 shouldHideFixErrorsAlert
             >
-                <AutoGrowHeightInputContainer>
+                <AutoGrowHeightInputContainer shouldKeepMinimumHeight>
                     {(maxAutoGrowHeight) => (
                         <InputWrapper
                             InputComponent={TextInput}

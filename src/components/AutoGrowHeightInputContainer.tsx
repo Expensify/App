@@ -27,6 +27,9 @@ type AutoGrowHeightInputContainerProps = {
 
     /** Style applied to the outer scroll container. */
     style?: StyleProp<ViewStyle>;
+
+    /** Preserves a one-line web input slot inside a constrained form when the viewport is very short. */
+    shouldKeepMinimumHeight?: boolean;
 };
 
 type MeasurementPhase = 'normal' | 'clamp' | 'probe';
@@ -43,7 +46,7 @@ function defaultMeasureContent(content: View | null, callback: (contentHeight: n
     content?.measure((_x, _y, _width, contentHeight) => callback(contentHeight));
 }
 
-function AutoGrowHeightInputContainer({children, measureContent = defaultMeasureContent, style}: AutoGrowHeightInputContainerProps) {
+function AutoGrowHeightInputContainer({children, measureContent = defaultMeasureContent, style, shouldKeepMinimumHeight = false}: AutoGrowHeightInputContainerProps) {
     const styles = useThemeStyles();
     const {windowHeight} = useWindowDimensions();
     const {isKeyboardActive, isKeyboardShown, isKeyboardAnimatingRef, keyboardActiveHeight, keyboardHeight} = useKeyboardState();
@@ -148,7 +151,7 @@ function AutoGrowHeightInputContainer({children, measureContent = defaultMeasure
 
     return (
         <ScrollView
-            style={[styles.flex1, Platform.OS === 'web' && {minHeight: variables.componentSizeLarge}, style]}
+            style={[styles.flex1, Platform.OS === 'web' && shouldKeepMinimumHeight && {minHeight: variables.componentSizeLarge}, style]}
             showsVerticalScrollIndicator={false}
             keyboardShouldPersistTaps="handled"
             nestedScrollEnabled

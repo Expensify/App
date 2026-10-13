@@ -104,7 +104,10 @@ function TextBaseImpl({fieldID, hint, isRequired, title, label, onSubmit, formID
             enabledWhenOffline
             shouldUseStrictHtmlTagValidation
         >
-            <AutoGrowHeightInputContainer style={styles.mb5}>
+            <AutoGrowHeightInputContainer
+                shouldKeepMinimumHeight
+                style={styles.mb5}
+            >
                 {(maxAutoGrowHeight) => (
                     <InputWrapper
                         hint={hint}

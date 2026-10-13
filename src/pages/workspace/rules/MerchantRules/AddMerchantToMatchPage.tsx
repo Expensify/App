@@ -109,7 +109,10 @@ function AddMerchantToMatchPage({route}: AddMerchantToMatchPageProps) {
                 submitButtonStyles={[styles.ph5]}
                 shouldUseStrictHtmlTagValidation
             >
-                <AutoGrowHeightInputContainer style={styles.mb5}>
+                <AutoGrowHeightInputContainer
+                    shouldKeepMinimumHeight
+                    style={styles.mb5}
+                >
                     {(maxAutoGrowHeight) => (
                         <InputWrapper
                             InputComponent={TextInput}

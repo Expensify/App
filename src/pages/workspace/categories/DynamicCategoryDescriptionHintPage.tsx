@@ -82,7 +82,7 @@ function DynamicCategoryDescriptionHintPage({
                 >
                     <View style={[styles.flex1, styles.mb4]}>
                         <Text style={styles.pb5}>{translate('workspace.rules.categoryRules.descriptionHintDescription', decodedCategoryName)}</Text>
-                        <AutoGrowHeightInputContainer>
+                        <AutoGrowHeightInputContainer shouldKeepMinimumHeight>
                             {(maxAutoGrowHeight) => (
                                 <InputWrapper
                                     InputComponent={TextInput}

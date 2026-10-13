@@ -12,7 +12,7 @@ import variables from '@styles/variables';
 import type ReactNative from 'react-native';
 
 import React from 'react';
-import {Platform, View} from 'react-native';
+import {Platform, StyleSheet, View} from 'react-native';
 
 type MeasureContent = NonNullable<React.ComponentProps<typeof AutoGrowHeightInputContainer>['measureContent']>;
 
@@ -66,6 +66,22 @@ describe('AutoGrowHeightInputContainer', () => {
 
     afterEach(() => {
         platformReplaceProperty.restore();
+    });
+
+    it.each([
+        ['web', false, undefined],
+        ['web', true, variables.componentSizeLarge],
+        ['ios', true, undefined],
+        ['android', true, undefined],
+    ] as const)('preserves the default slot and applies the opted-in minimum only on web (%s, %s)', (platform, shouldKeepMinimumHeight, expectedMinimum) => {
+        // Given Search retains the default slot while constrained editor forms opt into a minimum.
+        platformReplaceProperty.replaceValue(platform);
+
+        // When the same container renders on web or a keyboard-resized native screen.
+        render(<AutoGrowHeightInputContainer shouldKeepMinimumHeight={shouldKeepMinimumHeight}>{() => <View />}</AutoGrowHeightInputContainer>);
+
+        // Then only the opted-in web slot gets a minimum; native and default consumers retain intrinsic sizing.
+        expect(StyleSheet.flatten(screen.UNSAFE_getByType(ScrollView).props.style).minHeight).toBe(expectedMinimum);
     });
 
     it('measures reserved content after clamping and tracks layout changes', async () => {

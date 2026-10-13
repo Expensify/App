@@ -98,7 +98,10 @@ function DynamicWorkspaceEditTagsPage({route}: DynamicWorkspaceEditTagsPageProps
                     addBottomSafeAreaPadding
                     shouldUseStrictHtmlTagValidation
                 >
-                    <AutoGrowHeightInputContainer style={styles.mb4}>
+                    <AutoGrowHeightInputContainer
+                        shouldKeepMinimumHeight
+                        style={styles.mb4}
+                    >
                         {(maxAutoGrowHeight) => (
                             <InputWrapper
                                 InputComponent={TextInput}

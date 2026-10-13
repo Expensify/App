@@ -12,6 +12,7 @@ import type {
     SetPolicyDistanceRatesEnabledParams,
     SetPolicyDistanceRatesUnitParams,
     SetPolicyRequireMapOrGPSParams,
+    SetPolicyWorkArrangementParams,
     SetWorkspaceDistanceAutoUpdateParams,
     UpdatePolicyDistanceRateParams,
     UpdatePolicyDistanceRateValueParams,
@@ -20,9 +21,8 @@ import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import DateUtils from '@libs/DateUtils';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
-import Log from '@libs/Log';
 import {rand64} from '@libs/NumberUtils';
-import {buildOnyxDataForPolicyDistanceRateUpdates, getExpectedUnitForCurrency} from '@libs/PolicyDistanceRatesUtils';
+import {buildOnyxDataForGovernmentRateAutoUpdate, buildOnyxDataForPolicyDistanceRateUpdates} from '@libs/PolicyDistanceRatesUtils';
 import {goBackWhenEnableFeature, removePendingFieldsFromCustomUnit} from '@libs/PolicyUtils';
 import {getRoom} from '@libs/ReportUtils';
 import {getWorkArrangementLabel} from '@libs/WorkArrangementUtils';
@@ -38,8 +38,6 @@ import type {NullishDeep, OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-nat
 import type {ValueOf} from 'type-fest';
 
 import Onyx from 'react-native-onyx';
-
-import {generateCustomUnitID} from './Policy';
 
 /**
  * Takes array of customUnitRates and removes pendingFields and errorFields from each rate - we don't want to send those via API
@@ -542,7 +540,8 @@ function updateDistanceTaxRate(policyID: string, customUnit: CustomUnit, customU
  *   - "fixedDistance" - subtracts a fixed distance per claim. `fixedDistance` (> 0) and `fixedDistanceUnit`
  *                       (mirrors the policy's distance custom unit) are required.
  *   - "homeAndOffice" - subtracts each member's home-to-office distance, computed per-claim from the
- *                       member's saved addresses. No client-side distance/unit needed.
+ *                       member's saved addresses. No client-side distance/unit needed. `isOffice` sets the
+ *                       default work arrangement in the same request.
  *
  * Callers should pass the policy's current `commuterExclusions` so the failure path can restore
  * the prior state.
@@ -553,10 +552,15 @@ function setPolicyCommuterExclusions(
     fixedDistance: number | undefined,
     fixedDistanceUnit: string | undefined,
     previousCommuterExclusions: CommuterExclusions | undefined,
+    isOffice?: boolean,
 ) {
     const policyKey = `${ONYXKEYS.COLLECTION.POLICY}${policyID}` as const;
+    const isFixedDistance = method === CONST.POLICY.COMMUTER_EXCLUSION_METHOD.FIXED_DISTANCE;
+    const isSettingWorkArrangement = !isFixedDistance && isOffice !== undefined;
 
-    const optimisticCommuterExclusions: CommuterExclusions = method === CONST.POLICY.COMMUTER_EXCLUSION_METHOD.FIXED_DISTANCE ? {method, fixedDistance, fixedDistanceUnit} : {method};
+    const optimisticCommuterExclusions: CommuterExclusions = isFixedDistance
+        ? {method, fixedDistance, fixedDistanceUnit}
+        : {method, ...(isSettingWorkArrangement ? {isOfficeWorkArrangement: isOffice} : {})};
 
     const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY> = {
         optimisticData: [
@@ -584,7 +588,11 @@ function setPolicyCommuterExclusions(
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: policyKey,
                 value: {
-                    commuterExclusions: previousCommuterExclusions ?? null,
+                    // Merging the previous object back would keep an arrangement it never had, so that field is restored explicitly
+                    commuterExclusions:
+                        previousCommuterExclusions && isSettingWorkArrangement
+                            ? {...previousCommuterExclusions, isOfficeWorkArrangement: previousCommuterExclusions.isOfficeWorkArrangement ?? null}
+                            : (previousCommuterExclusions ?? null),
                     pendingFields: {commuterExclusions: null},
                     errorFields: {commuterExclusions: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')},
                 },
@@ -593,9 +601,58 @@ function setPolicyCommuterExclusions(
     };
 
     // Only send distance when the server actually needs it. HomeAndOffice ignores the field.
-    const parameters: SetPolicyCommuterExclusionsParams =
-        method === CONST.POLICY.COMMUTER_EXCLUSION_METHOD.FIXED_DISTANCE ? {policyID, commuterExclusionMethod: method, distance: fixedDistance} : {policyID, commuterExclusionMethod: method};
+    const parameters: SetPolicyCommuterExclusionsParams = isFixedDistance
+        ? {policyID, commuterExclusionMethod: method, distance: fixedDistance}
+        : {policyID, commuterExclusionMethod: method, ...(isSettingWorkArrangement ? {isOffice} : {})};
     API.write(WRITE_COMMANDS.SET_POLICY_COMMUTER_EXCLUSIONS, parameters, onyxData);
+}
+
+/**
+ * Set the workspace-wide default work arrangement, which only applies while the policy uses the
+ * "homeAndOffice" commuter exclusion method. `isOffice` is true when members commute to an office and
+ * false when they have no regular workplace.
+ *
+ * Callers should pass the policy's current value so the failure path can restore it.
+ */
+function setPolicyWorkArrangement(policyID: string, isOffice: boolean, previousIsOffice: boolean | undefined) {
+    const policyKey = `${ONYXKEYS.COLLECTION.POLICY}${policyID}` as const;
+
+    const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY> = {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: policyKey,
+                value: {
+                    commuterExclusions: {isOfficeWorkArrangement: isOffice},
+                    pendingFields: {commuterExclusions: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
+                    errorFields: {commuterExclusions: null},
+                },
+            },
+        ],
+        successData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: policyKey,
+                value: {
+                    pendingFields: {commuterExclusions: null},
+                },
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: policyKey,
+                value: {
+                    commuterExclusions: {isOfficeWorkArrangement: previousIsOffice ?? null},
+                    pendingFields: {commuterExclusions: null},
+                    errorFields: {commuterExclusions: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')},
+                },
+            },
+        ],
+    };
+
+    const parameters: SetPolicyWorkArrangementParams = {policyID, isOffice};
+    API.write(WRITE_COMMANDS.SET_POLICY_WORK_ARRANGEMENT, parameters, onyxData);
 }
 
 /**
@@ -837,140 +894,35 @@ function clearPolicyRequireMapOrGPSErrors(policyID: string) {
 }
 
 /**
- * Turn the auto-updating of government distance rates on or off for a policy.
- *
- * On enable, government reference rates for `outputCurrency` are copied optimistically. `optimisticRateIDs` sends the
- * client-generated IDs so the persisted rates keep them. The distance unit is corrected in the same write when it doesn't match
- * the country's unit - only the unit, not the rate amounts, same as the manual unit change.
+ * Turns government rate auto-update on or off for a workspace. The rate copying, unit correction and missing `customUnit`
+ * behavior are documented on buildOnyxDataForGovernmentRateAutoUpdate, which provides the Onyx data used here.
  */
 function setWorkspaceDistanceAutoUpdate(
     policyID: string,
-    customUnit: CustomUnit,
+    customUnit: CustomUnit | undefined,
     shouldAutoUpdateGovernmentDistanceRates: boolean,
     governmentMileageRates: GovernmentMileageRate[],
     outputCurrency: string | undefined,
+    countryCode?: string,
+    previousAutoUpdateEnabled?: boolean,
+    previousCountryCode?: string,
 ) {
-    const policyKey = `${ONYXKEYS.COLLECTION.POLICY}${policyID}` as const;
-    const customUnitID = customUnit.customUnitID;
-
-    const optimisticRates: Record<string, Rate> = {};
-    const clearedRatePendingActions: Record<string, NullishDeep<Rate>> = {};
-    const failureRates: Record<string, null> = {};
-    const optimisticRateIDs: Record<string, string> = {};
-
-    if (shouldAutoUpdateGovernmentDistanceRates) {
-        const copiedSourceRateIDs = new Set(Object.values(customUnit.rates ?? {}).map((rate) => rate.attributes?.governmentRate?.sourceRateID));
-
-        for (const governmentMileageRate of governmentMileageRates) {
-            // GOVERNMENT_MILEAGE_RATES is one key shared by every policy, so it can still hold another policy's rates
-            if (governmentMileageRate.currency !== outputCurrency) {
-                Log.warn('[setWorkspaceDistanceAutoUpdate] Skipping a government reference rate loaded for another currency', {
-                    policyID,
-                    outputCurrency,
-                    rateCurrency: governmentMileageRate.currency,
-                    sourceRateID: governmentMileageRate.sourceRateID,
-                });
-                continue;
-            }
-
-            // The server de-dupes by sourceRateID, so skip what the policy already has
-            if (copiedSourceRateIDs.has(governmentMileageRate.sourceRateID)) {
-                continue;
-            }
-
-            const customUnitRateID = generateCustomUnitID();
-            optimisticRateIDs[governmentMileageRate.sourceRateID] = customUnitRateID;
-            optimisticRates[customUnitRateID] = {
-                customUnitRateID,
-                name: governmentMileageRate.name,
-                rate: governmentMileageRate.rate,
-                currency: governmentMileageRate.currency,
-                enabled: governmentMileageRate.enabled ?? true,
-                startDate: governmentMileageRate.startDate,
-                ...(governmentMileageRate.endDate ? {endDate: governmentMileageRate.endDate} : {}),
-                attributes: {
-                    governmentRate: {
-                        sourceRateID: governmentMileageRate.sourceRateID,
-                        rate: governmentMileageRate.rate,
-                        startDate: governmentMileageRate.startDate,
-                        ...(governmentMileageRate.endDate ? {endDate: governmentMileageRate.endDate} : {}),
-                    },
-                },
-                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-            };
-            clearedRatePendingActions[customUnitRateID] = {pendingAction: null};
-            failureRates[customUnitRateID] = null;
-        }
-    }
-
-    const currentUnit = customUnit.attributes?.unit;
-    const expectedUnit = getExpectedUnitForCurrency(outputCurrency);
-    const shouldCorrectUnit = shouldAutoUpdateGovernmentDistanceRates && !!expectedUnit && !!currentUnit && currentUnit !== expectedUnit;
-
-    const optimisticCustomUnit: NullishDeep<CustomUnit> = {
-        ...(Object.keys(optimisticRates).length > 0 ? {rates: optimisticRates} : {}),
-        ...(shouldCorrectUnit ? {attributes: {unit: expectedUnit}, pendingFields: {attributes: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}} : {}),
-    };
-
-    const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY> = {
-        optimisticData: [
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: policyKey,
-                value: {
-                    shouldAutoUpdateGovernmentDistanceRates: shouldAutoUpdateGovernmentDistanceRates ? true : null,
-                    pendingFields: {shouldAutoUpdateGovernmentDistanceRates: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
-                    errorFields: {shouldAutoUpdateGovernmentDistanceRates: null},
-                    ...(Object.keys(optimisticCustomUnit).length > 0 ? {customUnits: {[customUnitID]: optimisticCustomUnit}} : {}),
-                },
-            },
-        ],
-        successData: [
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: policyKey,
-                value: {
-                    pendingFields: {shouldAutoUpdateGovernmentDistanceRates: null},
-                    ...(Object.keys(clearedRatePendingActions).length > 0 || shouldCorrectUnit
-                        ? {
-                              customUnits: {
-                                  [customUnitID]: {
-                                      ...(Object.keys(clearedRatePendingActions).length > 0 ? {rates: clearedRatePendingActions} : {}),
-                                      ...(shouldCorrectUnit ? {pendingFields: {attributes: null}} : {}),
-                                  },
-                              },
-                          }
-                        : {}),
-                },
-            },
-        ],
-        failureData: [
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: policyKey,
-                value: {
-                    shouldAutoUpdateGovernmentDistanceRates: shouldAutoUpdateGovernmentDistanceRates ? null : true,
-                    pendingFields: {shouldAutoUpdateGovernmentDistanceRates: null},
-                    errorFields: {shouldAutoUpdateGovernmentDistanceRates: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')},
-                    ...(Object.keys(failureRates).length > 0 || shouldCorrectUnit
-                        ? {
-                              customUnits: {
-                                  [customUnitID]: {
-                                      ...(Object.keys(failureRates).length > 0 ? {rates: failureRates} : {}),
-                                      ...(shouldCorrectUnit ? {attributes: {unit: currentUnit}, pendingFields: {attributes: null}} : {}),
-                                  },
-                              },
-                          }
-                        : {}),
-                },
-            },
-        ],
-    };
+    const {optimisticRateIDs, onyxData} = buildOnyxDataForGovernmentRateAutoUpdate(
+        policyID,
+        customUnit,
+        shouldAutoUpdateGovernmentDistanceRates,
+        governmentMileageRates,
+        outputCurrency,
+        countryCode,
+        previousAutoUpdateEnabled,
+        previousCountryCode,
+    );
 
     const parameters: SetWorkspaceDistanceAutoUpdateParams = {
         policyID,
         shouldAutoUpdateGovernmentDistanceRates,
         ...(Object.keys(optimisticRateIDs).length > 0 ? {optimisticRateIDs: JSON.stringify(optimisticRateIDs)} : {}),
+        ...(countryCode ? {countryCode} : {}),
     };
 
     API.write(WRITE_COMMANDS.SET_WORKSPACE_DISTANCE_AUTO_UPDATE, parameters, onyxData);
@@ -979,7 +931,7 @@ function setWorkspaceDistanceAutoUpdate(
 function clearWorkspaceDistanceAutoUpdateErrors(policyID: string) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
         errorFields: {shouldAutoUpdateGovernmentDistanceRates: null},
-        pendingFields: {shouldAutoUpdateGovernmentDistanceRates: null},
+        pendingFields: {shouldAutoUpdateGovernmentDistanceRates: null, autoUpdateGovernmentRateCountry: null},
     });
 }
 
@@ -1007,6 +959,7 @@ export {
     updateDistanceTaxClaimableValue,
     updateDistanceTaxRate,
     setPolicyCommuterExclusions,
+    setPolicyWorkArrangement,
     disablePolicyCommuterExclusions,
     clearPolicyCommuterExclusionsErrors,
     setEmployeeWorkArrangement,

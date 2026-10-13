@@ -89,7 +89,7 @@ function TripChatNameEditPage({report}: TripChatNameEditPageProps) {
                 enabledWhenOffline
                 shouldHideFixErrorsAlert
             >
-                <AutoGrowHeightInputContainer>
+                <AutoGrowHeightInputContainer shouldKeepMinimumHeight>
                     {(maxAutoGrowHeight) => (
                         <InputWrapper
                             InputComponent={TextInput}

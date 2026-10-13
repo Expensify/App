@@ -100,7 +100,7 @@ function DomainGroupEditNamePage({route}: DomainGroupEditNamePageProps) {
                     enabledWhenOffline
                     style={[styles.flex1, styles.ph5, styles.pb3]}
                 >
-                    <AutoGrowHeightInputContainer>
+                    <AutoGrowHeightInputContainer shouldKeepMinimumHeight>
                         {(maxAutoGrowHeight) => (
                             <InputWrapper
                                 InputComponent={TextInput}

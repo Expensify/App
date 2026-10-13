@@ -156,7 +156,7 @@ function PrivateNotesEditPageInternal({route, report, accountID, privateNoteDraf
                             : 'privateNotes.personalNoteMessage',
                     )}
                 </Text>
-                <AutoGrowHeightInputContainer>
+                <AutoGrowHeightInputContainer shouldKeepMinimumHeight>
                     {(maxAutoGrowHeight) => (
                         <OfflineWithFeedback
                             errors={{

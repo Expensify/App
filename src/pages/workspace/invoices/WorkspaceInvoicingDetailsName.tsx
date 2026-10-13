@@ -72,7 +72,7 @@ function WorkspaceInvoicingDetailsName({route}: WorkspaceInvoicingDetailsNamePro
                     shouldHideFixErrorsAlert
                     addBottomSafeAreaPadding
                 >
-                    <AutoGrowHeightInputContainer>
+                    <AutoGrowHeightInputContainer shouldKeepMinimumHeight>
                         {(maxAutoGrowHeight) => (
                             <InputWrapper
                                 InputComponent={TextInput}

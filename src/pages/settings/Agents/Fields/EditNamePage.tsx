@@ -61,7 +61,7 @@ function EditNamePage({route}: EditNamePageProps) {
                 enabledWhenOffline
                 shouldHideFixErrorsAlert
             >
-                <AutoGrowHeightInputContainer>
+                <AutoGrowHeightInputContainer shouldKeepMinimumHeight>
                     {(maxAutoGrowHeight) => (
                         <InputWrapper
                             InputComponent={TextInput}

@@ -117,7 +117,10 @@ function RoomDescriptionPage({report, policy}: RoomDescriptionPageProps) {
                     shouldHideFixErrorsAlert
                 >
                     <Text style={[styles.mb5]}>{translate('reportDescriptionPage.explainerText')}</Text>
-                    <AutoGrowHeightInputContainer style={[styles.mb6]}>
+                    <AutoGrowHeightInputContainer
+                        shouldKeepMinimumHeight
+                        style={[styles.mb6]}
+                    >
                         {(maxAutoGrowHeight) => (
                             <InputWrapper
                                 InputComponent={TextInput}

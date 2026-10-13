@@ -59,7 +59,7 @@ function RejectReasonFormView({backTo, validate, onSubmit}: RejectReasonFormView
                 <View style={styles.mb6}>
                     <Text>{translate('iou.reject.reasonPageDescription')}</Text>
                 </View>
-                <AutoGrowHeightInputContainer>
+                <AutoGrowHeightInputContainer shouldKeepMinimumHeight>
                     {(maxAutoGrowHeight) => (
                         <InputWrapper
                             InputComponent={TextInput}
