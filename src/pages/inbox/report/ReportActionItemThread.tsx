@@ -37,9 +37,12 @@ type ReportActionItemThreadProps = {
 
     /** Whether the thread item / message is active */
     isActive?: boolean;
+
+    /** Account IDs of agents (e.g. Concierge) still processing a reply in the thread, if any */
+    processingAgentIDs?: number[];
 };
 
-function ReportActionItemThread({report, reportAction, isHovered, onSecondaryInteraction, isEditingInline, isActive}: ReportActionItemThreadProps) {
+function ReportActionItemThread({report, reportAction, isHovered, onSecondaryInteraction, isEditingInline, isActive, processingAgentIDs}: ReportActionItemThreadProps) {
     const styles = useThemeStyles();
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const {translate, datetimeToCalendarTime} = useLocalize();
@@ -50,18 +53,22 @@ function ReportActionItemThread({report, reportAction, isHovered, onSecondaryInt
     const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
     const personalDetails = usePersonalDetails();
 
-    const numberOfReplies = reportAction.childVisibleActionCount ?? 0;
-    const accountIDs =
+    const isAgentProcessingInThread = !!processingAgentIDs?.length;
+
+    // While an agent is still replying, the server can report zero replies, so count the in-progress reply
+    const numberOfReplies = isAgentProcessingInThread ? Math.max(reportAction.childVisibleActionCount ?? 0, 1) : (reportAction.childVisibleActionCount ?? 0);
+    const childAccountIDs =
         reportAction.childOldestFourAccountIDs
             ?.split(',')
             .map((accountID) => Number(accountID))
             .filter((accountID): accountID is number => typeof accountID === 'number') ?? [];
+    const accountIDs = childAccountIDs.length === 0 && processingAgentIDs ? processingAgentIDs : childAccountIDs;
     const mostRecentReply = `${reportAction.childLastVisibleActionCreated}`;
 
     const numberOfRepliesText = numberOfReplies > CONST.MAX_THREAD_REPLIES_PREVIEW ? `${CONST.MAX_THREAD_REPLIES_PREVIEW}+` : `${numberOfReplies}`;
     const replyText = numberOfReplies === 1 ? translate('threads.reply') : translate('threads.replies');
 
-    const timeStamp = datetimeToCalendarTime(mostRecentReply, false);
+    const timeStamp = reportAction.childLastVisibleActionCreated ? datetimeToCalendarTime(mostRecentReply, false) : '';
     const wrapperStyle = isEditingInline ? styles.chatItemReactionsDraftRight : {};
 
     return (

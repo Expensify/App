@@ -22,6 +22,7 @@ import {CONST as COMMON_CONST, Str} from 'expensify-common';
 import startCase from 'lodash/startCase';
 
 import type en from './en';
+import type {CompanyCardBalanceParams} from './params';
 import type {AllConnectionName, PolicyConnectionSyncStage} from './TranslationTypes';
 import type {TranslationDeepObject} from './types';
 type StateValue = {
@@ -96,7 +97,9 @@ const translations: TranslationDeepObject<typeof en> = {
         selectMultiple: 'Πολλαπλή επιλογή',
         saveChanges: 'Αποθήκευση αλλαγών',
         submit: 'Υποβολή',
+        submitAnyway: 'Υποβολή ούτως ή άλλως',
         markAsDone: 'Σήμανση ως ολοκληρωμένο',
+        markAsDoneAnyway: 'Σήμανση ως ολοκληρωμένο ούτως ή άλλως',
         submitted: 'Υποβλήθηκε',
         markedAsDoneStatus: 'Έχει σημανθεί ως ολοκληρωμένο',
         rotate: 'Περιστροφή',
@@ -449,6 +452,7 @@ const translations: TranslationDeepObject<typeof en> = {
         leaveWorkspaceReimburser:
             'Δεν μπορείτε να αποχωρήσετε από αυτόν τον χώρο εργασίας ως αυτός που πραγματοποιεί τις επιστροφές χρημάτων. Ορίστε νέο υπεύθυνο επιστροφών στο Χώροι εργασίας > Πραγματοποίηση ή παρακολούθηση πληρωμών και δοκιμάστε ξανά.',
         reimbursable: 'Επανεντάξιμο',
+        nonReimbursable: 'Μη επιστρέψιμο',
         editYourProfile: 'Επεξεργαστείτε το προφίλ σας',
         comments: 'Σχόλια',
         sharedIn: 'Κοινοποιήθηκε σε',
@@ -633,15 +637,6 @@ const translations: TranslationDeepObject<typeof en> = {
         launching: 'Εκκίνηση του Expensify',
         expired: 'Η συνεδρία σας έχει λήξει.',
         signIn: 'Παρακαλούμε συνδεθείτε ξανά.',
-        notValid: 'Μη έγκυρος σύνδεσμος.',
-        sessionMismatch: 'Ο σύνδεσμος που κάνατε κλικ δεν είναι έγκυρος για την τρέχουσα συνεδρία σας.',
-        switchAccount: {
-            title: 'Αλλαγή λογαριασμών;',
-            prompt: ({newEmail, currentEmail}: {newEmail: string; currentEmail: string}) =>
-                `Έχετε συνδεθεί ως ${currentEmail}. Αυτή η ενέργεια θα σας συνδέσει ως ${newEmail} αντί για αυτό.`,
-            confirm: 'Αλλαγή λογαριασμών',
-            staySignedIn: 'Να μην αλλάξω λογαριασμούς',
-        },
     },
     multifactorAuthentication: {
         reviewTransaction: {
@@ -876,7 +871,7 @@ const translations: TranslationDeepObject<typeof en> = {
             } else if (action?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW) {
                 type = 'report';
             }
-            return `Είστε βέβαιοι ότι θέλετε να διαγράψετε αυτό το ${type};`;
+            return `Είστε βέβαιοι ότι θέλετε να διαγράψετε αυτό το ${type};${action?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW ? ' Όλες οι δαπάνες σε αυτήν την αναφορά θα γίνουν μη υποβληθείσες.' : ''}`;
         },
         onlyVisible: 'Ορατό μόνο σε',
         explain: 'Εξηγήστε',
@@ -1373,7 +1368,7 @@ const translations: TranslationDeepObject<typeof en> = {
             phrase1: 'Προσθήκη απόδειξης',
             phrase2: 'ή σύρετε και αποθέστε ένα εδώ',
         },
-        pageCount: ({pageCount}: {pageCount: number}) => `Σελίδα 1 από ${pageCount}`,
+        pageCount: ({page, pageCount}: {page: number; pageCount: number}) => `Σελίδα ${page} από ${pageCount}`,
     },
     quickAction: {
         scanReceipt: 'Σαρώστε απόδειξη',
@@ -1478,8 +1473,15 @@ const translations: TranslationDeepObject<typeof en> = {
         pendingMatch: 'Εκκρεμής αντιστοίχιση',
         pendingMatchWithCreditCardDescription: 'Η απόδειξη εκκρεμεί για αντιστοίχιση με συναλλαγή κάρτας. Επισημάνετε την ως μετρητά για ακύρωση.',
         markAsCash: 'Σήμανση ως μετρητά',
-        pendingMatchSubmitTitle: 'Υποβολή αναφοράς',
-        pendingMatchSubmitDescription: 'Κάποιες δαπάνες αναμένουν αντιστοίχιση με συναλλαγή πιστωτικής κάρτας. Θέλετε να τις σημάνετε ως μετρητά;',
+        confirmSubmitReportViolations: {
+            title: 'Υποβολή αναφοράς;',
+            description: 'Αυτή η αναφορά έχει παραβιάσεις πολιτικής. Είστε σίγουροι ότι θέλετε να την υποβάλετε χωρίς αλλαγές;',
+            titleMarkAsDone: 'Σήμανση ως ολοκληρωμένο;',
+            descriptionMarkAsDone: 'Αυτή η αναφορά έχει παραβιάσεις πολιτικής. Είστε σίγουροι ότι θέλετε να τη σημάνετε ως ολοκληρωμένη χωρίς αλλαγές;',
+            rejectedExpense: 'Απορριφθέν έξοδο δεν έχει επισημανθεί ως επιλυμένο',
+            reportRejected: 'Η αναφορά απορρίφθηκε προηγουμένως',
+            pendingCardMatch: 'Έξοδο σε αναμονή πιθανής αντιστοίχισης με συναλλαγή κάρτας',
+        },
         routePending: 'Εκκρεμεί προώθηση διαδρομής...',
         automaticallyEnterExpenseDetails: 'Το Concierge θα συμπληρώσει τις λεπτομέρειες για εσάς.',
         receiptScanning: () => ({
@@ -1541,6 +1543,7 @@ const translations: TranslationDeepObject<typeof en> = {
             one: 'Είστε βέβαιοι ότι θέλετε να διαγράψετε αυτήν την αναφορά;',
             other: 'Είστε βέβαιοι ότι θέλετε να διαγράψετε αυτές τις αναφορές;',
         }),
+        deleteExpenseReportConfirmation: 'Είστε βέβαιοι ότι θέλετε να διαγράψετε αυτήν την αναφορά; Όλες οι δαπάνες σε αυτήν την αναφορά θα γίνουν μη υποβληθείσες.',
         settledExpensify: 'Πληρωμένο',
         paidStatusMarkedAsPaid: 'Επισημάνθηκε ως πληρωμένο',
         paidStatusWithdrawing: 'Ανάληψη',
@@ -1656,6 +1659,7 @@ const translations: TranslationDeepObject<typeof en> = {
         pendingConversionMessage: 'Το σύνολο θα ενημερωθεί όταν είστε ξανά συνδεδεμένοι στο διαδίκτυο',
         changedTheExpense: 'τροποποίησε την δαπάνη',
         addedReceipt: 'πρόσθεσε μια απόδειξη',
+        removedReceipt: 'αφαίρεσε μια απόδειξη',
         setTheRequest: (valueName: string, newValueToDisplay: string) => `η τιμή ${valueName} σε ${newValueToDisplay}`,
         setTheDistanceMerchant: (translatedChangedField: string, newMerchant: string, newAmountToDisplay: string) =>
             `ορίστηκε το ${translatedChangedField} σε ${newMerchant}, το οποίο όρισε το ποσό σε ${newAmountToDisplay}`,
@@ -2356,6 +2360,7 @@ const translations: TranslationDeepObject<typeof en> = {
     displayNamePage: {
         headerTitle: 'Εμφανιζόμενο όνομα',
         isShownOnProfile: 'Το εμφανιζόμενο όνομά σας εμφανίζεται στο προφίλ σας.',
+        isShownOnMemberProfile: 'Το εμφανιζόμενο όνομα θα εμφανίζεται στο προφίλ του μέλους. Μόλις αποθηκευτεί, μόνο το μέλος μπορεί να το επεξεργαστεί.',
     },
     timezonePage: {
         timezone: 'Ζώνη ώρας',
@@ -2402,7 +2407,6 @@ const translations: TranslationDeepObject<typeof en> = {
             useProfiling: 'Χρησιμοποιήστε προφίλωση',
             profileTrace: 'Ίχνος προφίλ',
             results: 'Αποτελέσματα',
-            releaseOptions: 'Επιλογές έκδοσης',
             testingPreferences: 'Προτιμήσεις δοκιμών',
             server: 'Διακομιστής',
             servers: {
@@ -4085,6 +4089,19 @@ ${amount} για ${merchant} - ${date}`,
         unlockAlreadyRequestedDescription:
             'Το αίτημά σας για ξεκλείδωμα αυτού του τραπεζικού λογαριασμού έχει ήδη αποσταλεί. Το Concierge θα επικοινωνήσει μαζί σας αν χρειαστεί οτιδήποτε άλλο.',
     },
+    dynamicForm: {
+        exampleHint: ({example}: {example: string}) => `Παράδειγμα: ${example}`,
+        fileCount: ({count}: {count: number}) => ({
+            one: '1 αρχείο',
+            other: `${count} αρχεία`,
+        }),
+        error: {
+            tooShort: ({minLength}: {minLength: number}) => `Πρέπει να έχει τουλάχιστον ${minLength} χαρακτήρες`,
+            invalidFormat: ({example}: {example?: string}) => (example ? `Μη έγκυρη μορφή. Παράδειγμα: ${example}` : 'Μη έγκυρη μορφή'),
+            invalidOption: 'Επιλέξτε μία από τις διαθέσιμες επιλογές',
+            outOfRange: ({min, max}: {min: number; max: number}) => `Εισαγάγετε μια τιμή μεταξύ ${min} και ${max}`,
+        },
+    },
     addPersonalBankAccount: {
         swiftBicFormatError: 'Το SWIFT/BIC πρέπει να έχει μήκος 8 ή 11 χαρακτήρες, με 6 γράμματα ακολουθούμενα από 2 ή 5 γράμματα ή αριθμούς.',
         countrySelectionStepHeader: 'Πού βρίσκεται ο τραπεζικός σας λογαριασμός;',
@@ -5049,6 +5066,7 @@ ${amount} για ${merchant} - ${date}`,
             deleteTravelInvoicingError: 'Η εταιρεία σας έχει ακόμα ενεργοποιημένη τη συγκεντρωτική χρέωση ταξιδιών.',
             vendors: 'Προμηθευτές',
             noAccessActionPrompt: 'Ο ρόλος σας σε αυτόν τον χώρο εργασίας δεν έχει πρόσβαση σε αυτές τις ρυθμίσεις. Ζητήστε από έναν διαχειριστή να σας δώσει πρόσβαση, αν τη χρειάζεστε.',
+            connections: 'Συνδέσεις',
         },
         createdForClient: {
             title: 'Δημιουργήσατε έναν χώρο εργασίας για τον πελάτη σας!',
@@ -5072,6 +5090,31 @@ ${amount} για ${merchant} - ${date}`,
                 title: 'ChatGPT',
                 subtitle: 'από την OpenAI',
             },
+        },
+        connections: {
+            tabs: {
+                [CONST.TAB.CONNECTIONS.ALL]: 'Όλα',
+                [CONST.TAB.CONNECTIONS.ACCOUNTING]: 'Λογιστική',
+                [CONST.TAB.CONNECTIONS.PEOPLE]: 'ΔΑΔ & ανθρώπινο δυναμικό',
+                [CONST.TAB.CONNECTIONS.RECRUITING]: 'Προσλήψεις',
+                [CONST.TAB.CONNECTIONS.RECEIPTS]: 'Αποδείξεις',
+                [CONST.TAB.CONNECTIONS.AI]: 'ΤΝ & MCP',
+            },
+            findConnections: 'Εύρεση συνδέσεων',
+            configure: 'Ρυθμίστε',
+            fix: 'Διόρθωση',
+            active: 'Ενεργό',
+            broken: 'Χαλασμένο',
+            brokenConnection: 'Δεν είναι δυνατός ο συγχρονισμός λόγω κατεστραμμένης σύνδεσης',
+            replaceConnectionTitle: 'Αντικατάσταση σύνδεσης;',
+            offer: 'Προσφορά',
+            replaceConnectionPrompt: (connectionName: string) => `Αυτό θα καταργήσει την τρέχουσα σύνδεση ${connectionName}.`,
+            hrisListing: (providerName: string) => `${providerName} (HRIS)`,
+            atsListing: (providerName: string) => `${providerName} (ATS)`,
+            suggestIntegration: 'Δεν βλέπετε τη δική σας; Προτείνετε μια ενσωμάτωση και θα το εξετάσουμε.',
+            noResultsPrompt: '<muted-text><centered-text>Παρακαλούμε προσαρμόστε την αναζήτησή σας ή <a href="#">προτείνετε μια ενσωμάτωση</a>.</centered-text></muted-text>',
+            allConnectedTitle: 'Έχετε συνδεθεί πλήρως',
+            allConnectedPrompt: '<muted-text><centered-text>Όλα εδώ είναι ήδη συνδεδεμένα. Μπορείτε επίσης να <a href="#">προτείνετε μια ενσωμάτωση</a>.</centered-text></muted-text>',
         },
         receiptPartners: {
             uber: {
@@ -6321,6 +6364,11 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
             syncReimbursedReports: 'Συγχρονισμός εξοφλημένων αναφορών',
             syncReimbursedReportsDescription: 'Όταν μια αναφορά πληρώνεται μέσω ACH, θα δημιουργηθεί πληρωμή λογαριασμού σε αυτόν τον λογαριασμό.',
             billPaymentAccount: {label: 'Λογαριασμός πληρωμής λογαριασμών', description: 'Επιλέξτε από πού θα πληρώνετε λογαριασμούς και θα δημιουργήσουμε την πληρωμή στο DualEntry.'},
+            fxExpenseAccount: {
+                label: 'Λογαριασμός προμήθειας μετατροπής νομίσματος DualEntry',
+                description:
+                    'Όταν η εταιρεία σας καλύπτει το κόστος μετατροπής νομίσματος για μια πληρωμή στο εξωτερικό, θα καταχωρούμε αυτό το κόστος σε αυτόν τον λογαριασμό στο DualEntry ως λογιστική εγγραφή.',
+            },
             syncExpensifyCardSettlements: 'Συγχρονισμός διακανονισμών κάρτας Expensify',
             settlementAccount: {label: 'λογαριασμός διακανονισμού κάρτας Expensify', description: 'Επιλέξτε τον λογαριασμό εκκαθάρισης και θα δημιουργήσουμε την πληρωμή στο DualEntry.'},
             syncTravelInvoicingSettlements: 'Συγχρονισμός διακανονισμών τιμολόγησης ταξιδιών',
@@ -6523,6 +6571,17 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
             assignNewCards: {
                 title: 'Ανάθεση νέων καρτών',
                 description: 'Λάβετε τις πιο πρόσφατες κάρτες προς ανάθεση από την τράπεζά σας',
+            },
+            balance: {
+                currentBalance: 'Τρέχον υπόλοιπο',
+                remainingLimit: 'Υπόλοιπο ορίου',
+                notAvailable: 'Μη διαθέσιμο',
+                currentBalanceDescription: ({lastUpdated}: CompanyCardBalanceParams) =>
+                    `Το τρέχον υπόλοιπο αναφέρεται από την τράπεζά σας και ενημερώθηκε τελευταία φορά στις ${lastUpdated}.`,
+                remainingLimitDescription: ({lastUpdated}: CompanyCardBalanceParams) =>
+                    `Το υπόλοιπο ορίου αναφέρεται από την τράπεζά σας και ενημερώθηκε τελευταία φορά στις ${lastUpdated}.`,
+                currentBalanceDescriptionNoTimestamp: 'Το τρέχον υπόλοιπο αναφέρεται από την τράπεζά σας.',
+                remainingLimitDescriptionNoTimestamp: 'Το υπόλοιπο ορίου αναφέρεται από την τράπεζά σας.',
             },
         },
         expensifyCard: {
@@ -7836,6 +7895,13 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
                 groups: {
                     title: 'Ομάδες',
                     description: 'Επιλέξτε τις ομάδες υπαλλήλων που θέλετε να συγχρονίσετε με αυτόν τον χώρο εργασίας',
+                    staleSelectionError: (providerName: string) =>
+                        `Ορισμένες από τις ομάδες που επιλέξατε δεν υπάρχουν πλέον στο ${providerName}, επομένως οι εργαζόμενοι τους έχουν σταματήσει να συγχρονίζονται.`,
+                    updateSelectionLink: 'Ενημερώστε τις ομάδες σας.',
+                    noGroupsFound: 'Δεν βρέθηκαν ομάδες',
+                    noGroupsFoundDescription:
+                        'Δεν υπάρχουν ομάδες για επιλογή αυτή τη στιγμή. Αποθηκεύστε χωρίς επιλεγμένες ομάδες για να συγχρονίσετε όλους τους υπαλλήλους ή συγχρονίστε ξανά τη σύνδεση μόλις δημιουργηθούν νέες ομάδες.',
+                    unnamedGroup: (groupID: string) => `Ομάδα χωρίς όνομα (${groupID})`,
                 },
             },
         },
@@ -8746,6 +8812,8 @@ ${reportName}`,
                 applyUpdates: 'Εφαρμόστε αυτές τις ενημερώσεις:',
                 saveRule: 'Αποθήκευση κανόνα',
                 previewMatches: 'Προεπισκόπηση αντιστοιχιών',
+                previewMatchesDescription: 'Δείτε πώς εφαρμόζεται αυτός ο κανόνας στις δαπάνες σας',
+                preview: 'Προεπισκόπηση',
                 confirmError: 'Εισαγάγετε τον έμπορο και εφαρμόστε τουλάχιστον μία ενημέρωση',
                 confirmErrorMerchant: 'Παρακαλούμε εισαγάγετε τον έμπορο',
                 confirmErrorUpdate: 'Παρακαλούμε εφαρμόστε τουλάχιστον μία ενημέρωση',
@@ -8812,6 +8880,14 @@ ${reportName}`,
                 applyExpenseDefaultsDescription: 'Ενημέρωση πεδίων χωρίς να χρειάζεται ο υποβάλλων να κάνει τίποτα',
                 createAgentRule: 'Περιγράψτε τον κανόνα πράκτορα',
                 createAgentRuleDescription: 'Δημιουργήστε ευέλικτους κανόνες που εκτελούνται όταν τους χρειάζεστε.',
+                describe: 'Περιγραφή',
+                describeRule: 'Περιγράψτε τον κανόνα σας με απλά λόγια και ο Concierge θα τον δημιουργήσει για εσάς',
+                describeRuleInputLabel: 'Περιγράψτε τον κανόνα',
+                promptErrors: {
+                    unsupported: 'Αυτός ο κανόνας δεν υποστηρίζεται ακόμη — το δουλεύουμε. Δοκιμάστε προς το παρόν έναν διαφορετικό κανόνα.',
+                    unintelligible: 'Δοκιμάστε να διατυπώσετε τον κανόνα σας έτσι: αν οι δαπάνες ξεπερνούν τα 100 $, να απαιτείται απόδειξη.',
+                    multipleRules: 'Έναν κανόνα τη φορά — δοκιμάστε να περιγράψετε έναν μόνο κανόνα, π.χ.: αποκλεισμός αγορών λιανικής σε όλες τις κάρτες.',
+                },
             },
             expenseDefaultsTable: {
                 tableColumnType: 'Τύπος',
@@ -9160,11 +9236,6 @@ ${reportName}`,
             emptySubtitle: 'Οι προμηθευτές θα εμφανιστούν εδώ μετά την ολοκλήρωση του συγχρονισμού λογιστικής σας.',
             findVendor: 'Εύρεση προμηθευτή',
             managedInAccountingSoftware: 'Οι προμηθευτές διαχειρίζονται στο',
-            enableVendor: 'Ενεργοποίηση προμηθευτή',
-            enableVendors: 'Ενεργοποίηση προμηθευτών',
-            disableVendor: 'Απενεργοποίηση προμηθευτή',
-            disableVendors: 'Απενεργοποίηση προμηθευτών',
-            updateFailureMessage: 'Προέκυψε σφάλμα κατά την ενημέρωση του προμηθευτή, δοκιμάστε ξανά',
         },
         campfire: {
             campfireSetup: 'Ρύθμιση campfire',
@@ -10010,6 +10081,8 @@ ${reportName}`,
         updateAreAttendeesRequired: (categoryName: string, newValue: boolean) => {
             return `άλλαξε τους συμμετέχοντες της κατηγορίας «${categoryName}» σε ${newValue ? 'υποχρεωτικό' : 'μη υποχρεωτικό'} (προηγουμένως ${newValue ? 'μη υποχρεωτικό' : 'υποχρεωτικό'})`;
         },
+        updatedMemberDisplayName: (newName: string, oldName: string, editProfileURL: string) =>
+            `ενημέρωσε το εμφανιζόμενο όνομά σας σε ${newName} (προηγουμένως «${oldName}»). <a href="${editProfileURL}">Επεξεργαστείτε το στο προφίλ σας</a>`,
         changedOverLimitForwardsTo: ({
             member,
             approver,
@@ -10430,6 +10503,7 @@ ${reportName}`,
         mergeReports: {
             title: 'Συγχώνευση αναφορών',
             description: 'Επιλέξτε την αναφορά που θέλετε να κρατήσετε. Όλες οι δαπάνες θα μετακινηθούν σε αυτήν και οι άλλες αναφορές θα διαγραφούν.',
+            listPage: {noEligibleReportsFound: 'Δεν βρέθηκαν κατάλληλες αναφορές', noEligibleReportsFoundSubtitle: 'Δεν έχετε καμία αναφορά που να μπορεί να συγχωνευθεί.'},
         },
         goTo: ({destination}: {destination: string}) => `Μετάβαση στο ${destination}`,
         mySavedSearch: 'Οι δαπάνες μου',
@@ -10472,12 +10546,7 @@ ${reportName}`,
         },
     },
     settlement: {
-        status: {
-            pending: 'Σε εκκρεμότητα',
-            cleared: 'Εκκαθαρισμένο',
-            failed: 'Απέτυχε',
-            never: 'Ποτέ',
-        },
+        status: {pending: 'Σε εκκρεμότητα', cleared: 'Εκκαθαρισμένο', failed: 'Απέτυχε', never: 'Ποτέ', cashBack: 'Επιστροφή μετρητών'},
         failedError: ({link}: {link: string}) => `Θα προσπαθήσουμε ξανά για αυτόν τον διακανονισμό όταν <a href="${link}">ξεκλειδώσετε τον λογαριασμό σας</a>.`,
         withdrawalInfo: ({date, withdrawalID}: {date: string; withdrawalID: number}) => `${date} • Αναγνωριστικό ανάληψης: ${withdrawalID}`,
     },
@@ -11568,6 +11637,16 @@ ${reportName}`,
                 other: `${count} ενεργοί χρήστες`,
             }),
             state: {paid: 'Πληρωμένο', cleared: 'Εκκαθαρισμένο', failed: 'Απέτυχε', refunded: 'Επιστράφηκε', disputed: 'Αμφισβητούμενη', balanceTransfer: 'Μεταφορά υπολοίπου'},
+            details: 'Στοιχεία πληρωμής',
+            badge: {
+                balanceTransferTo: ({email}: {email: string}) => `Μεταφορά υπολοίπου σε ${email}`,
+                balanceTransferFrom: ({email}: {email: string}) => `Μεταφορά υπολοίπου από ${email}`,
+                disputedPending: ({date}: {date: string}) => `Αμφισβητήθηκε στις ${date} (Σε εκκρεμότητα)`,
+                disputedRefunded: ({date}: {date: string}) => `Αμφισβητήθηκε στις ${date} (Επιστράφηκε)`,
+                disputedClosed: ({date}: {date: string}) => `Αμφισβητήθηκε στις ${date} (Έκλεισε)`,
+                refundedOn: ({date}: {date: string}) => `Επιστράφηκε στις ${date}`,
+                refundedAmountOn: ({amount, date}: {amount: string; date: string}) => `Επιστράφηκαν ${amount} στις ${date}`,
+            },
         },
         subscriptionSettings: {
             title: 'Ρυθμίσεις συνδρομής',
@@ -11793,6 +11872,7 @@ ${reportName}`,
         markAllAsRead: '<tooltip>Δεξί κλικ για <strong>επισήμανση όλων ως αναγνωσμένων</strong>.</tooltip>',
         markAllAsReadTouchScreen: '<tooltip>Παρατεταμένο πάτημα για <strong>επισήμανση όλων ως αναγνωσμένων</strong>.</tooltip>',
         accountMovedToTopBar: '<tooltip>Αποκτήστε πρόσβαση στον λογαριασμό και τις προσωπικές σας ρυθμίσεις.</tooltip>',
+        connectionsMoved: 'Όλες οι συνδέσεις σας σε ένα σημείο',
     },
     discardChangesConfirmation: {
         title: 'Απόρριψη αλλαγών;',
