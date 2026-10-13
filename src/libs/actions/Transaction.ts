@@ -8,6 +8,7 @@ import type {
     GetRouteParams,
     MarkAsCashParams,
     TransactionThreadInfo,
+    UndeleteTransactionsParams,
 } from '@libs/API/parameters';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import DateUtils from '@libs/DateUtils';
@@ -33,6 +34,7 @@ import {
     buildOptimisticDismissedViolationReportAction,
     buildOptimisticMovedTransactionAction,
     buildOptimisticSelfDMReport,
+    buildOptimisticUndeletedTransactionAction,
     buildOptimisticUnHoldReportAction,
     buildOptimisticUnreportedTransactionAction,
     buildTransactionThread,
@@ -2250,6 +2252,75 @@ function changeTransactionsReport(props: ChangeTransactionsReportProps) {
 }
 
 /**
+ * Restore trashed card expenses to unreported. Routes through the dedicated UndeleteTransactions
+ * command so the backend records the caller as the actor on the UNDELETEDTRANSACTION action,
+ * even when the caller is a card admin acting on another member's expense. The optimistic action
+ * mirrors that by attributing to the current user.
+ */
+function undeleteTransactions(props: ChangeTransactionsReportProps) {
+    const changeTransactionsReportOnyxData = getChangeTransactionsReportOnyxData(props);
+    if (!changeTransactionsReportOnyxData) {
+        return;
+    }
+    const {optimisticData, successData, failureData, transactionIDToReportActionAndThreadData, movedTransactionIDs} = changeTransactionsReportOnyxData;
+
+    if (movedTransactionIDs.length === 0) {
+        return;
+    }
+
+    // getChangeTransactionsReportOnyxData skips the optimistic move action when the caller does not own the transaction,
+    // which is exactly the admin undelete case. Build an UNDELETED_TRANSACTION action for every moved transaction and
+    // attribute it to the current user so the UI immediately shows the correct actor.
+    for (const transactionID of movedTransactionIDs) {
+        const threadInfo = transactionIDToReportActionAndThreadData[transactionID];
+        const transactionThreadReportID = threadInfo?.transactionThreadReportID;
+        if (!transactionThreadReportID) {
+            continue;
+        }
+
+        // Replace any UNREPORTED_TRANSACTION the shared builder added for an owner-driven undelete,
+        // so there is only one action in the thread.
+        if (threadInfo.movedReportActionID) {
+            optimisticData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`,
+                value: {[threadInfo.movedReportActionID]: null},
+            });
+        }
+
+        const undeletedAction = buildOptimisticUndeletedTransactionAction(transactionThreadReportID);
+        threadInfo.movedReportActionID = undeletedAction.reportActionID;
+
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`,
+            value: {[undeletedAction.reportActionID]: undeletedAction},
+        });
+        successData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`,
+            value: {[undeletedAction.reportActionID]: {pendingAction: null}},
+        });
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`,
+            value: {[undeletedAction.reportActionID]: null},
+        });
+    }
+
+    const parameters: UndeleteTransactionsParams = {
+        transactionList: movedTransactionIDs.join(','),
+        transactionIDToReportActionAndThreadData: JSON.stringify(transactionIDToReportActionAndThreadData),
+    };
+
+    API.write(WRITE_COMMANDS.UNDELETE_TRANSACTIONS, parameters, {
+        optimisticData,
+        successData,
+        failureData,
+    });
+}
+
+/**
  * Reports expenses without naming a destination: the backend puts each one in its owner's latest draft report, or a new
  * report when they have none. Needed when a selection spans submitters, since any report the App picked would belong to
  * just one of them. Carries no optimistic data because every update the normal move builds hangs off a destination only
@@ -2323,6 +2394,7 @@ export {
     revert,
     changeTransactionsReport,
     getChangeTransactionsReportOnyxData,
+    undeleteTransactions,
     setTransactionReport,
     getDefaultP2PMileageRate,
     mergeExpenseAddedGrowlTransactionIDs,
