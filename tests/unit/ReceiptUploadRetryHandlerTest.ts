@@ -376,8 +376,13 @@ describe('buildRetryPayload', () => {
             expect(canRetry).toBe(false);
         });
 
-        it('reuses the failed transaction, IOU action and thread, so the retry does not create a second tracked expense', () => {
-            // Given a failed track in the self-DM
+        it('reuses the failed transaction, IOU action and thread, so the retry does not create a second tracked expense', async () => {
+            // Given a failed track in the self-DM, whose thread still holds the CREATED action of the first attempt
+            const threadCreatedActionID = '1000000000000001';
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${THREAD_REPORT_ID}`, {
+                [threadCreatedActionID]: {reportActionID: threadCreatedActionID, actionName: CONST.REPORT.ACTIONS.TYPE.CREATED, created: '2026-09-01 00:00:00.000'},
+            });
+            await waitForBatchedUpdates();
             const context = buildTrackExpenseContext();
 
             // When the retry payload is rebuilt
@@ -387,6 +392,7 @@ describe('buildRetryPayload', () => {
             expect(payload?.optimisticTransactionID).toBe(TRANSACTION_ID);
             expect(payload?.currentReportActionID).toBe(IOU_ACTION_ID);
             expect(payload?.existingTransactionThreadReportID).toBe(THREAD_REPORT_ID);
+            expect(payload?.existingTransactionThreadCreatedReportActionID).toBe(threadCreatedActionID);
             expect(payload?.report?.reportID).toBe(SELF_DM_REPORT_ID);
             expect(payload?.transactionParams.amount).toBe(1200);
         });
