@@ -25,7 +25,7 @@ const CONTINUATION_DETECTION_SEARCH_FILTER_KEYS: SearchFilterKey[] = [
 type AutocompleteParserRange = Pick<SearchAutocompleteQueryRange, 'value' | 'start' | 'length'> & {key: string};
 type AutocompleteParserResult = {autocomplete: AutocompleteParserRange | null; ranges: AutocompleteParserRange[]};
 
-/** The generated parser also produces noncanonical keys. Only prove the fields used by ordinary query consumers. */
+/** The generated parser also produces non-canonical keys. Only prove the fields used by ordinary query consumers. */
 function isAutocompleteParserResult(value: unknown): value is AutocompleteParserResult {
     'worklet';
 

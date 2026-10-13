@@ -477,7 +477,7 @@ describe('useAutocompleteSuggestions', () => {
         expect(result.current).toEqual([]);
     });
 
-    test.each(['createdBy:alice', 'ReportID:123', 'TAXRATE:20', 'report-field-Custom:value'])('consumes real noncanonical parser keys in %s', (query) => {
+    test.each(['createdBy:alice', 'ReportID:123', 'TAXRATE:20', 'report-field-Custom:value'])('consumes real non-canonical parser keys in %s', (query) => {
         // Given the generated parser rather than the existing scenario stub.
         parseForAutocomplete.mockImplementation(jest.requireActual<typeof SearchAutocompleteUtils>('@libs/SearchAutocompleteUtils').parseForAutocomplete);
         // When the production hook consumes a key without a suggestion branch.
