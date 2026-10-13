@@ -11,6 +11,8 @@ import type {SkParagraph, SkParagraphBuilder, SkTypefaceFontProvider} from '@sho
 import {FontStyle, FontWeight, Skia} from '@shopify/react-native-skia';
 import {scaleLinear} from 'd3-scale';
 
+import getPrimaryValue from './getPrimaryValue';
+
 /** One reusable ParagraphBuilder per fontManager instance. Auto-GC'd when fontManager is released. */
 const builderCache = new WeakMap<SkTypefaceFontProvider, SkParagraphBuilder>();
 
@@ -203,6 +205,7 @@ function findSliceAtPosition(cursorX: number, cursorY: number, centerX: number, 
 
 /**
  * Process raw data into pie chart slices sorted by absolute value descending.
+ * Slices are sized by the primary series only.
  *
  * Points whose share of total spend is too small to draw are left out: the inline table prints their share as
  * `~0%`, and a slice that thin is a sliver nobody can hover or tap. The group is still listed in the table, so
@@ -210,11 +213,18 @@ function findSliceAtPosition(cursorX: number, cursorY: number, centerX: number, 
  */
 function processDataIntoSlices(
     data: ChartDataPoint[],
+    primarySeriesKey: string,
     pieGeometry: {centerX: number; centerY: number; radius: number; innerRadius: number},
     startAngle: number = VictoryTheme.pie.startAngle,
 ): PieSlice[] {
     const visibleSlices = data
-        .map((point, index) => ({label: point.label, absTotal: Math.abs(point.total), originalIndex: index, percentOfTotal: point.percentOfTotal}))
+        .map((point, index) => ({
+            label: point.label,
+            color: point.color,
+            absTotal: Math.abs(getPrimaryValue(point, primarySeriesKey)),
+            originalIndex: index,
+            percentOfTotal: point.percentOfTotal,
+        }))
         .filter((slice) => isShareWorthDrawing(slice.percentOfTotal))
         .sort((a, b) => b.absTotal - a.absTotal);
 
@@ -237,7 +247,7 @@ function processDataIntoSlices(
             acc.slices.push({
                 label: slice.label,
                 value: slice.absTotal,
-                color: VictoryTheme.colors.getColor(index),
+                color: slice.color ?? VictoryTheme.colors.default,
                 percentage: fraction * 100,
                 startAngle: acc.angle,
                 endAngle: acc.angle + sweepAngle,
@@ -468,9 +478,9 @@ function getYAxisLabelWidth(
     if (!fontManager) {
         return 0;
     }
-    const totals = data.map((p) => p.total);
-    const rawDataMax = totals.length ? Math.max(...totals) : 0;
-    const rawDataMin = totals.length ? Math.min(...totals) : 0;
+    const values = data.flatMap((point) => Object.values(point.values));
+    const rawDataMax = values.length ? Math.max(...values) : 0;
+    const rawDataMin = values.length ? Math.min(...values) : 0;
     return Math.max(
         0,
         ...getNiceYAxisTicks(rawDataMax, rawDataMin, VictoryTheme.axis.tickCount, domainPadding.top, domainPadding.bottom).map((tick) =>
@@ -490,6 +500,7 @@ export {
     normalizeAngle,
     isAngleInSlice,
     findSliceAtPosition,
+    getPrimaryValue,
     processDataIntoSlices,
     getXAxisLabel,
     truncateLabel,

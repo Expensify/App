@@ -50,31 +50,17 @@ function hasTransactionBeenRejected(transactionViolations: OnyxEntry<Transaction
 }
 
 /**
- * Check if there is pending rter violation in transactionViolations.
+ * Check if a violation is an RTER card-match still pending (not a broken-connection RTER, which is reported separately).
  */
-function hasPendingRTERViolation(transactionViolations?: TransactionViolations | null): boolean {
-    return !!transactionViolations?.some(
-        (transactionViolation: TransactionViolation) =>
-            transactionViolation.name === CONST.VIOLATIONS.RTER && transactionViolation.data?.pendingPattern && !isBrokenConnectionViolation(transactionViolation),
-    );
+function isPendingRTERViolation(violation: TransactionViolation): boolean {
+    return violation.name === CONST.VIOLATIONS.RTER && !!violation.data?.pendingPattern && !isBrokenConnectionViolation(violation);
 }
 
 /**
- * Check if any of the given transactions have a pending RTER violation that has not been dismissed (e.g. via mark-as-cash).
+ * Check if there is pending rter violation in transactionViolations.
  */
-function hasAnyPendingRTERViolation(
-    transactions: Array<OnyxEntry<Transaction>>,
-    allTransactionViolations: OnyxCollection<TransactionViolations>,
-    currentUserEmail: string,
-    currentUserAccountID: number,
-    report: OnyxEntry<Report>,
-    reportOwnerLogin: string | undefined,
-    policy: OnyxEntry<Policy>,
-): boolean {
-    return transactions.some((t) => {
-        const filteredViolations = getTransactionViolations(t, allTransactionViolations, currentUserEmail, currentUserAccountID, report, reportOwnerLogin, policy);
-        return hasPendingRTERViolation(filteredViolations);
-    });
+function hasPendingRTERViolation(transactionViolations?: TransactionViolations | null): boolean {
+    return !!transactionViolations?.some(isPendingRTERViolation);
 }
 
 /**
@@ -640,7 +626,6 @@ export {
     getTransactionViolations,
     getUnsuppressibleBrokenConnectionTransactionID,
     getVisibleTransactionViolations,
-    hasAnyPendingRTERViolation,
     hasAnyTransactionWithoutRTERViolation,
     hasCustomUnitOutOfPolicyViolation,
     hasDuplicateTransactions,
@@ -655,6 +640,7 @@ export {
     hasWarningTypeViolation,
     isBrokenConnectionViolation,
     isDuplicate,
+    isPendingRTERViolation,
     isTransactionSubmittable,
     isViolationDismissed,
     mergeProhibitedViolations,
