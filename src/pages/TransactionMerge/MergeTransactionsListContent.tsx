@@ -11,7 +11,6 @@ import useLocalize from '@hooks/useLocalize';
 import useMergeTransactions from '@hooks/useMergeTransactions';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
-import {useAllPersonalDetails} from '@hooks/usePersonalDetails';
 import useReportTransactions from '@hooks/useReportTransactions';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -64,7 +63,6 @@ function MergeTransactionsListContent({transactionID, mergeTransaction}: MergeTr
     const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
 
     const [session] = useOnyx(ONYXKEYS.SESSION);
-    const [personalDetails] = useAllPersonalDetails();
     const currentUserLogin = session?.email;
     const [transactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
@@ -222,18 +220,10 @@ function MergeTransactionsListContent({transactionID, mergeTransaction}: MergeTr
         }
 
         const reports = targetTransactionReport && sourceTransactionReport ? [targetTransactionReport, sourceTransactionReport] : undefined;
-        setupMergeTransactionDataAndNavigate(
-            transactionID,
-            [targetTransaction, sourceTransaction],
-            localeCompare,
-            getCurrencyDecimals,
-            reports,
-            true,
-            undefined,
-            [targetTransactionPolicy, sourceTransactionPolicy],
-            session?.accountID,
-            personalDetails,
-        );
+        setupMergeTransactionDataAndNavigate(transactionID, [targetTransaction, sourceTransaction], localeCompare, getCurrencyDecimals, reports, true, undefined, [
+            targetTransactionPolicy,
+            sourceTransactionPolicy,
+        ]);
     };
 
     const confirmButtonOptions = {

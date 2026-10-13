@@ -508,8 +508,6 @@ function useSelectedTransactionsActions({
                             false,
                             isOnSearch,
                             selectedTransactionsList.length > 1 ? [policy, policy] : undefined,
-                            currentUserAccountID,
-                            personalDetails,
                         ),
                 });
             }
