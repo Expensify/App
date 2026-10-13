@@ -1,7 +1,6 @@
 import AmountForm from '@components/AmountForm';
 import CurrencyPicker from '@components/CurrencyPicker';
 import DatePicker from '@components/DatePicker';
-import type {DynamicFormValues} from '@components/DynamicForm/types';
 import getLocalizedText, {getFieldLabel} from '@components/DynamicForm/utils/getLocalizedText';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
@@ -41,16 +40,10 @@ function getTextHint(field: DynamicFormTextField | DynamicFormNumberField, trans
     return translate('dynamicForm.exampleHint', {example: field.example});
 }
 
-/** Sensitive answers are not drafted, so a page the user comes back to is refilled from the answers kept in memory */
-function getSensitiveDefaultValue(field: DynamicFormTextField | DynamicFormNumberField, values: DynamicFormValues): string | undefined {
-    const value = values[field.key];
-    return field.sensitive && typeof value === 'string' ? value : undefined;
-}
-
 function renderTextInput(
     field: DynamicFormTextField | DynamicFormNumberField,
-    {values, translate}: DynamicFieldContext,
-    inputProps: DynamicFieldInputProps,
+    {translate}: DynamicFieldContext,
+    inputProps: DynamicFieldInputProps<string>,
     inputMode: InputModeOptions | undefined,
     isMultiline = false,
 ): DynamicFieldInput {
@@ -61,7 +54,6 @@ function renderTextInput(
             <InputWrapper
                 InputComponent={TextInput}
                 {...inputProps}
-                defaultValue={getSensitiveDefaultValue(field, values)}
                 label={getFieldLabel(field, translate)}
                 hint={getTextHint(field, translate)}
                 maxLength={field.maxLength}
@@ -91,6 +83,7 @@ const TEXT_RENDERERS: Pick<DynamicFieldRendererMap, 'text' | 'number' | 'date' |
     }),
     amount: (field, {values, translate, styles, currency}, inputProps) => {
         const chosenCurrency = field.currencyKey ? values[field.currencyKey] : undefined;
+        const amountCurrency = typeof chosenCurrency === 'string' && chosenCurrency !== '' ? chosenCurrency : currency;
         // AmountForm takes no FullStory class, so the mask goes on a View around it
         const amountInput = (
             <View fsClass={inputProps.forwardedFSClass}>
@@ -98,7 +91,7 @@ const TEXT_RENDERERS: Pick<DynamicFieldRendererMap, 'text' | 'number' | 'date' |
                     InputComponent={AmountForm}
                     {...inputProps}
                     label={getFieldLabel(field, translate)}
-                    currency={typeof chosenCurrency === 'string' && chosenCurrency !== '' ? chosenCurrency : currency}
+                    currency={amountCurrency}
                     displayAsTextInput
                     isCurrencyPressable={false}
                 />
@@ -117,7 +110,8 @@ const TEXT_RENDERERS: Pick<DynamicFieldRendererMap, 'text' | 'number' | 'date' |
                             inputID={field.currencyKey}
                             shouldSaveDraft={inputProps.shouldSaveDraft}
                             forwardedFSClass={inputProps.forwardedFSClass}
-                            defaultValue={currency}
+                            // A sensitive currency is not drafted, so the picker starts from the one kept in memory
+                            defaultValue={amountCurrency}
                             label={translate('common.currency')}
                         />
                     </View>
