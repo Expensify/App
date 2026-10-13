@@ -26,6 +26,7 @@ import {CONST as COMMON_CONST, Str} from 'expensify-common';
 import startCase from 'lodash/startCase';
 
 import type en from './en';
+import type {CompanyCardBalanceParams} from './params';
 import type {TranslationDeepObject} from './types';
 type StateValue = {
     stateISO: string;
@@ -92,7 +93,9 @@ const translations: TranslationDeepObject<typeof en> = {
         selectMultiple: '複数選択',
         saveChanges: '変更を保存',
         submit: '送信',
+        submitAnyway: 'とにかく送信',
         markAsDone: '完了にする',
+        markAsDoneAnyway: 'とにかく完了にする',
         submitted: '送信済み',
         markedAsDoneStatus: '完了済み',
         rotate: '回転',
@@ -449,6 +452,7 @@ const translations: TranslationDeepObject<typeof en> = {
         leaveWorkspaceReimburser:
             '支払担当者であるため、このワークスペースを退出することはできません。［ワークスペース］＞［支払いの作成または追跡］で新しい支払担当者を設定してから、もう一度お試しください。',
         reimbursable: '払い戻し対象',
+        nonReimbursable: '本人精算不可',
         editYourProfile: 'プロフィールを編集',
         comments: 'コメント',
         sharedIn: '共有元',
@@ -1302,7 +1306,7 @@ const translations: TranslationDeepObject<typeof en> = {
             phrase1: '領収書を追加',
             phrase2: 'または、ここにファイルをドラッグ＆ドロップしてください',
         },
-        pageCount: ({pageCount}: {pageCount: number}) => `${pageCount} ページ中 1 ページ`,
+        pageCount: ({page, pageCount}: {page: number; pageCount: number}) => `${pageCount} ページ中 ${page} ページ目`,
     },
     quickAction: {
         scanReceipt: 'レシートをスキャン',
@@ -1407,8 +1411,15 @@ const translations: TranslationDeepObject<typeof en> = {
         pendingMatch: '保留中の照合',
         pendingMatchWithCreditCardDescription: 'レシートはカード取引との照合待ちです。現金としてマークしてキャンセルします。',
         markAsCash: '現金としてマーク',
-        pendingMatchSubmitTitle: 'レポートを提出',
-        pendingMatchSubmitDescription: '一部の経費がクレジットカード取引との照合待ちです。現金としてマークしますか？',
+        confirmSubmitReportViolations: {
+            title: 'レポートを送信しますか？',
+            description: 'このレポートにはポリシー違反があります。変更を加えずに送信してもよろしいですか？',
+            titleMarkAsDone: '完了にしますか？',
+            descriptionMarkAsDone: 'このレポートにはポリシー違反があります。変更を加えずに完了にしてもよろしいですか？',
+            rejectedExpense: '拒否された経費が解決済みとしてマークされていません',
+            reportRejected: 'レポートは以前に拒否されています',
+            pendingCardMatch: '経費がカード取引との一致待ちです',
+        },
         routePending: 'ルート保留中…',
         automaticallyEnterExpenseDetails: 'Concierge が詳細を入力します。',
         receiptScanning: () => ({
@@ -1578,6 +1589,7 @@ const translations: TranslationDeepObject<typeof en> = {
         pendingConversionMessage: 'オンラインに戻ると合計が更新されます',
         changedTheExpense: '経費を変更しました',
         addedReceipt: '領収書を追加しました',
+        removedReceipt: '領収書を削除しました',
         setTheRequest: (valueName: string, newValueToDisplay: string) => `${valueName} を ${newValueToDisplay} に`,
         setTheDistanceMerchant: (translatedChangedField: string, newMerchant: string, newAmountToDisplay: string) =>
             `${translatedChangedField} を ${newMerchant} に設定し、その結果金額が ${newAmountToDisplay} に設定されました`,
@@ -3940,6 +3952,10 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
     },
     dynamicForm: {
         exampleHint: ({example}: {example: string}) => `例：${example}`,
+        fileCount: ({count}: {count: number}) => ({
+            one: `${count} 件のファイル`,
+            other: `${count} 件のファイル`,
+        }),
         error: {
             tooShort: ({minLength}: {minLength: number}) => `${minLength}文字以上で入力してください`,
             invalidFormat: ({example}: {example?: string}) => (example ? `形式が正しくありません。例：${example}` : '形式が正しくありません'),
@@ -6092,6 +6108,15 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
             submit: '提出',
         },
         companyCards: {
+            balance: {
+                currentBalance: '現在残高',
+                remainingLimit: '残りの上限',
+                notAvailable: '利用できません',
+                currentBalanceDescription: ({lastUpdated}: CompanyCardBalanceParams) => `現在残高はご利用の銀行から報告されており、最終更新日は ${lastUpdated} です。`,
+                remainingLimitDescription: ({lastUpdated}: CompanyCardBalanceParams) => `残りの限度額はご利用の銀行から報告され、最終更新日時は${lastUpdated}です。`,
+                currentBalanceDescriptionNoTimestamp: '現在残高は、お使いの銀行から報告されています。',
+                remainingLimitDescriptionNoTimestamp: '残りの限度額は、お客様の銀行から報告されます。',
+            },
             addCards: 'カードを追加',
             selectCards: 'カードを選択',
             fromOtherWorkspaces: '他のワークスペースから',
