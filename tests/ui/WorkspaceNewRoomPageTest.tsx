@@ -55,6 +55,7 @@ let mockRoomForm: FormProviderModule.FormProviderProps<typeof ONYXKEYS.FORMS.NEW
 const mockRoomPickers = new Map<string, ValuePickerProps>();
 
 jest.mock('@components/Form/FormProvider', () => {
+    const ActualReact = jest.requireActual<typeof React>('react');
     const formKeys = jest.requireActual<typeof FormKeysModule>('@src/ONYXKEYS').default;
     const ActualForm = jest.requireActual<typeof FormProviderModule>('@components/Form/FormProvider').default;
     function isRoomForm<TFormID extends FormKeysModule.OnyxFormKey>(
@@ -63,18 +64,24 @@ jest.mock('@components/Form/FormProvider', () => {
         return props.formID === formKeys.FORMS.NEW_ROOM_FORM;
     }
     function ObservedForm<TFormID extends FormKeysModule.OnyxFormKey>(props: FormProviderModule.FormProviderProps<TFormID>) {
-        if (isRoomForm(props)) {
+        ActualReact.useEffect(() => {
+            if (!isRoomForm(props)) {
+                return;
+            }
             mockRoomForm = props;
-        }
+        }, [props]);
         return <ActualForm {...props} />;
     }
     return {__esModule: true, default: ObservedForm};
 });
 
 jest.mock('@components/ValuePicker', () => {
+    const ActualReact = jest.requireActual<typeof React>('react');
     const ActualPicker = jest.requireActual<typeof ValuePickerModule>('@components/ValuePicker').default;
     function ObservedPicker(props: ValuePickerProps) {
-        mockRoomPickers.set(props.label ?? '', props);
+        ActualReact.useEffect(() => {
+            mockRoomPickers.set(props.label ?? '', props);
+        }, [props]);
         return <ActualPicker {...props} />;
     }
     return {__esModule: true, default: ObservedPicker};
