@@ -527,6 +527,7 @@ const translations: TranslationDeepObject<typeof en> = {
         apiKey: 'API キー',
         exportsTo: 'エクスポート先',
         shareReport: 'レポートを共有',
+        reportShared: 'レポートを共有しました',
     },
     socials: {
         podcast: 'ポッドキャストでフォロー',

@@ -527,6 +527,7 @@ const translations: TranslationDeepObject<typeof en> = {
         apiKey: 'Chave de API',
         exportsTo: 'Exportações para',
         shareReport: 'Compartilhar relatório',
+        reportShared: 'Relatório compartilhado',
     },
     socials: {
         podcast: 'Siga-nos no Podcast',

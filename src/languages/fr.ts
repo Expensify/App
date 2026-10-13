@@ -528,6 +528,7 @@ const translations: TranslationDeepObject<typeof en> = {
         apiKey: 'Clé API',
         exportsTo: 'Exports vers',
         shareReport: 'Partager la note de frais',
+        reportShared: 'Note de frais partagée',
     },
     socials: {
         podcast: 'Suivez-nous sur Podcast',

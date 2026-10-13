@@ -516,6 +516,7 @@ const translations: TranslationDeepObject<typeof en> = {
         noResultsFoundSubtitle: 'Sin resultados. Intenta ajustar tus filtros o la búsqueda.',
         exportsTo: 'Exporta a',
         shareReport: 'Compartir informe',
+        reportShared: 'Informe compartido',
     },
     socials: {
         podcast: 'Síguenos en Podcast',
