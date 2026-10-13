@@ -5,7 +5,6 @@ import type {ListItem} from '@components/SelectionList/types';
 import useKeyboardState from '@hooks/useKeyboardState';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
 import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -77,8 +76,7 @@ function CategoryPickerModal({
     const {isKeyboardActive, keyboardActiveHeight} = useKeyboardState();
     const {windowHeight} = useWindowDimensions();
     const viewportOffsetTop = useViewportOffsetTop();
-    const {top: safeAreaTop} = useSafeAreaInsets();
-    const {paddingBottom: safeAreaPaddingBottom} = useSafeAreaPaddings(true);
+    const {paddingTop: safeAreaTop, paddingBottom: safeAreaPaddingBottom} = useSafeAreaPaddings(true);
     const anchorRef = useRef<ComponentRef<typeof View>>(null);
 
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${getNonEmptyStringOnyxID(policyID)}`, {selector: getEnabledCategoriesCount});
