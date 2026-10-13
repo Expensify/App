@@ -1,9 +1,10 @@
-import {getOnboardingInitialPath, getRequired2FAOnboardingResumePath, startOnboardingFlow} from '@libs/actions/Welcome/OnboardingFlow';
+import {getOnboardingInitialPath, getOnboardingMessages, getRequired2FAOnboardingResumePath, startOnboardingFlow} from '@libs/actions/Welcome/OnboardingFlow';
 import type {GetOnboardingInitialPathParamsType} from '@libs/actions/Welcome/OnboardingFlow';
 import getAdaptedStateFromPath from '@libs/Navigation/helpers/getAdaptedStateFromPath';
 import navigationRef from '@libs/Navigation/navigationRef';
 
 import CONST from '@src/CONST';
+import IntlStore from '@src/languages/IntlStore';
 import NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';
 
@@ -17,6 +18,8 @@ jest.mock('@libs/Navigation/navigationRef', () => ({
 jest.mock('@libs/Navigation/helpers/getAdaptedStateFromPath', () => jest.fn());
 
 describe('OnboardingFlow', () => {
+    beforeAll(() => IntlStore.load(CONST.LOCALES.EN));
+
     describe('getOnboardingInitialPath', () => {
         it('should return the onboarding fallback path when the last visited path is null', () => {
             const params: GetOnboardingInitialPathParamsType = {
@@ -230,6 +233,32 @@ describe('OnboardingFlow', () => {
             };
             const path = getOnboardingInitialPath(params);
             expect(path).not.toBe('/onboarding/purpose');
+        });
+    });
+
+    describe('getOnboardingMessages', () => {
+        it('should link the workspace list in the join-workspace message', () => {
+            const joinWorkspaceMessage = getOnboardingMessages(CONST.LOCALES.EN).joinWorkspaceMessages.joinWorkspace.message;
+
+            expect(typeof joinWorkspaceMessage === 'function' && joinWorkspaceMessage({companyDomain: 'example.com', joinWorkspaceLink: 'onboarding/join-workspaces'})).toContain(
+                '[Take a look at the workspaces you can join.](onboarding/join-workspaces)',
+            );
+        });
+
+        it('should not duplicate the join-workspace task marker', () => {
+            const joinWorkspaceTask = getOnboardingMessages(CONST.LOCALES.EN).joinWorkspaceMessages.joinWorkspace.tasks.at(0);
+            const description =
+                typeof joinWorkspaceTask?.description === 'function' && joinWorkspaceTask.description({joinWorkspaceLink: 'onboarding/join-workspaces?isJoinWorkspaceTask=true'});
+
+            expect(description).toContain('[Join a workspace](onboarding/join-workspaces?isJoinWorkspaceTask=true)');
+            expect(description).not.toContain('isJoinWorkspaceTask=true?isJoinWorkspaceTask=true');
+        });
+
+        it('should use the no-workspaces message without a task', () => {
+            const emptyMessage = getOnboardingMessages(CONST.LOCALES.EN).joinWorkspaceMessages.empty;
+
+            expect(emptyMessage.message).toBe("It doesn't look like your company has any joinable workspaces. Please reach out to your admin and have them invite you to their workspace.");
+            expect(emptyMessage.tasks).toEqual([]);
         });
     });
 

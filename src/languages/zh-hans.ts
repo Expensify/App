@@ -26,6 +26,7 @@ import {CONST as COMMON_CONST, Str} from 'expensify-common';
 import startCase from 'lodash/startCase';
 
 import type en from './en';
+import type {CompanyCardBalanceParams} from './params';
 import type {TranslationDeepObject} from './types';
 type StateValue = {
     stateISO: string;
@@ -92,7 +93,9 @@ const translations: TranslationDeepObject<typeof en> = {
         selectMultiple: '多选',
         saveChanges: '保存更改',
         submit: '提交',
+        submitAnyway: '仍然提交',
         markAsDone: '标记为完成',
+        markAsDoneAnyway: '仍然标记为完成',
         submitted: '已提交',
         markedAsDoneStatus: '已标记为完成',
         rotate: '旋转',
@@ -445,6 +448,7 @@ const translations: TranslationDeepObject<typeof en> = {
         leaveWorkspaceConfirmationTechContact: (workspaceOwner: string) => `如果你离开此工作区，你将由工作区所有者 ${workspaceOwner} 接任技术联系人。`,
         leaveWorkspaceReimburser: '作为报销人，您无法离开此工作区。请前往“工作区”>“进行或跟踪付款”中设置新的报销人，然后重试。',
         reimbursable: '可报销',
+        nonReimbursable: '不可报销',
         editYourProfile: '编辑个人资料',
         comments: '评论',
         sharedIn: '共享于',
@@ -1264,7 +1268,7 @@ const translations: TranslationDeepObject<typeof en> = {
             phrase1: '添加收据',
             phrase2: '或将文件拖放到此处',
         },
-        pageCount: ({pageCount}: {pageCount: number}) => `第 1 页，共 ${pageCount} 页`,
+        pageCount: ({page, pageCount}: {page: number; pageCount: number}) => `第 ${page} 页，共 ${pageCount} 页`,
     },
     quickAction: {
         scanReceipt: '扫描收据',
@@ -1369,8 +1373,15 @@ const translations: TranslationDeepObject<typeof en> = {
         pendingMatch: '待匹配',
         pendingMatchWithCreditCardDescription: '收据正在等待与卡片交易匹配。将其标记为现金以取消。',
         markAsCash: '标记为现金',
-        pendingMatchSubmitTitle: '提交报告',
-        pendingMatchSubmitDescription: '部分费用正在等待与信用卡交易匹配。您要将它们标记为现金吗？',
+        confirmSubmitReportViolations: {
+            title: '提交报告？',
+            description: '此报告存在违反政策的情况。您确定要不做任何更改就提交吗？',
+            titleMarkAsDone: '标记为完成？',
+            descriptionMarkAsDone: '此报告存在违反政策的情况。您确定要不做任何更改就标记为完成吗？',
+            rejectedExpense: '被拒绝的费用未标记为已解决',
+            reportRejected: '报告此前已被拒绝',
+            pendingCardMatch: '费用正在等待与卡交易的潜在匹配',
+        },
         routePending: '路由处理中…',
         automaticallyEnterExpenseDetails: 'Concierge 会帮你填写详细信息。',
         receiptScanning: () => ({
@@ -1535,6 +1546,7 @@ const translations: TranslationDeepObject<typeof en> = {
         pendingConversionMessage: '当你重新联网时，总金额会更新',
         changedTheExpense: '更改了报销单',
         addedReceipt: '添加了收据',
+        removedReceipt: '删除了收据',
         setTheRequest: (valueName: string, newValueToDisplay: string) => `将 ${valueName} 更改为 ${newValueToDisplay}`,
         setTheDistanceMerchant: (translatedChangedField: string, newMerchant: string, newAmountToDisplay: string) =>
             `将 ${translatedChangedField} 设置为 ${newMerchant}，这会将金额设置为 ${newAmountToDisplay}`,
@@ -3292,12 +3304,13 @@ ${amount}，商户：${merchant} - 日期：${date}`,
         errorSelection: '选择一个选项以继续',
         purpose: {
             title: '你今天想做什么？',
-            errorContinue: '请按“继续”完成设置',
+            errorContinue: '请点击“继续”完成设置',
             errorBackButton: '请完成设置问题以开始使用此应用程序',
-            [CONST.ONBOARDING_CHOICES.EMPLOYER]: '向雇主提交费用',
+            [CONST.ONBOARDING_CHOICES.JOIN_WORKSPACE]: '加入我的公司工作区',
+            [CONST.ONBOARDING_CHOICES.EMPLOYER]: '向我的雇主提交报销',
             [CONST.ONBOARDING_CHOICES.MANAGE_TEAM]: '管理我团队的报销',
-            [CONST.ONBOARDING_CHOICES.TRACK_BUSINESS]: '跟踪我的商务开销',
-            [CONST.ONBOARDING_CHOICES.TRACK_PERSONAL]: '管理我的个人支出',
+            [CONST.ONBOARDING_CHOICES.TRACK_BUSINESS]: '跟踪我的业务支出',
+            [CONST.ONBOARDING_CHOICES.TRACK_PERSONAL]: '整理我的个人支出',
             [CONST.ONBOARDING_CHOICES.LOOKING_AROUND]: '其他原因',
         },
         personalTrackGoal: {
@@ -3351,6 +3364,8 @@ ${amount}，商户：${merchant} - 日期：${date}`,
         mergeBlockScreen: {
             title: '无法添加工作邮箱',
             subtitle: (workEmail: string | undefined) => `我们无法添加 ${workEmail}。请稍后在设置中重试，或与 Concierge 聊天以获取指导。`,
+            validatedPublicDomainSubtitle: (workEmail: string | undefined) =>
+                `我们无法添加 ${workEmail}。若要合并这些账户，请以 ${workEmail} 身份登录，并前往“账户 > 安全 > 合并账户”以完成此流程。`,
             workAccountClosedSubtitle: '与此邮箱关联的工作账户已被关闭。请联系您公司的管理员以重新激活该账户，或使用其他邮箱注册。',
             domainControlledSubtitle: (workEmail: string | undefined) => `${workEmail} 是现有 Expensify 账户的域控制登录。`,
         },
@@ -3588,6 +3603,34 @@ ${amount}，商户：${merchant} - 日期：${date}`,
                     完成！
                 `),
             },
+            addWorkEmailTask: {
+                title: '添加你的工作邮箱',
+                description: ({workEmailLink = ''}) =>
+                    Str.dedent(`
+                        1. 打开[添加工作邮箱](${workEmailLink})。
+                        2. 输入你的公司邮箱地址。
+                        3. 输入我们发给你的验证码。
+                        4. 选择要加入的工作区，或点击 *请求加入* 向工作区所有者发送请求。
+                    `),
+            },
+            validateEmailTask: {
+                title: '验证你的邮箱',
+                description: ({validateEmailLink = '', workEmail = ''}) =>
+                    Str.dedent(`
+                        1. 打开［验证您的账户］(${validateEmailLink})。
+                        2. 输入我们发送到 ${workEmail} 的验证码。
+                        3. 选择要加入的工作区，或点击 *请求加入* 向该工作区所有者发送请求。
+                    `),
+            },
+            joinWorkspaceTask: {
+                title: '加入你们公司的工作区',
+                description: ({joinWorkspaceLink = ''}) =>
+                    Str.dedent(`
+                        1. 打开［加入工作空间］(${joinWorkspaceLink})。
+                        2. 在列表中找到你的团队。每个团队都会显示其所有者和成员数量，按人数从多到少排序。如果没有看到你的团队，点击 *显示更多*。
+                        3. 点击 *立即加入*，如需管理员审批则点击 *请求加入*。
+                    `),
+            },
         } satisfies Record<string, Pick<OnboardingTask, 'title' | 'description'>>,
         testDrive: {
             name: ({testDriveURL}: {testDriveURL?: string}) => (testDriveURL ? `进行[试用体验](${testDriveURL})` : '试用体验'),
@@ -3610,6 +3653,12 @@ ${amount}，商户：${merchant} - 日期：${date}`,
             onboardingChatSplitMessage: '和朋友分摊账单就像发条消息一样简单。操作方法如下。',
             onboardingAdminMessage: '了解如何以管理员身份管理您团队的工作区，并提交您自己的报销。',
             onboardingTestDriveReceiverMessage: '*您已获得 3 个月的免费使用！请从下面开始。*',
+            onboardingJoinWorkspaceAddWorkEmailMessage: '由于你是想加入你们公司的工作区，所以我没有为你创建新的工作区。请添加你的工作邮箱，我会检查你可以加入你们公司中的哪些工作区。',
+            onboardingJoinWorkspaceValidateEmailMessage: ({companyDomain = ''}: {companyDomain?: string}) =>
+                `由于你想加入你所在公司的工作区，我就不为你创建新的工作区了。请先验证你的邮箱，我会检查你可以加入哪些位于 ${companyDomain} 的工作区。`,
+            onboardingJoinWorkspaceMessage: ({companyDomain = '', joinWorkspaceLink = ''}: {companyDomain?: string; joinWorkspaceLink?: string}) =>
+                `由于你想加入你们公司的工作区，我没有为你创建新的工作区。你在 ${companyDomain} 的团队已经在使用 Expensify 了。[查看你可以加入的工作区](${joinWorkspaceLink})`,
+            onboardingJoinWorkspaceEmptyMessage: '看起来你的公司还没有可加入的工作区。请联系你的管理员，让他们邀请你加入他们的工作区。',
         },
         workspace: {
             title: '使用工作区保持井井有条',
@@ -3848,6 +3897,10 @@ ${amount}，商户：${merchant} - 日期：${date}`,
     },
     dynamicForm: {
         exampleHint: ({example}: {example: string}) => `示例：${example}`,
+        fileCount: ({count}: {count: number}) => ({
+            one: `${count} 个文件`,
+            other: `${count} 个文件`,
+        }),
         error: {
             tooShort: ({minLength}: {minLength: number}) => `至少需要 ${minLength} 个字符`,
             invalidFormat: ({example}: {example?: string}) => (example ? `格式无效。示例：${example}` : '格式无效'),
@@ -4760,6 +4813,7 @@ ${amount}，商户：${merchant} - 日期：${date}`,
             readOnlyActionTitle: '别急……',
             readOnlyActionPrompt: '你的工作区角色可以查看这些设置，但不能编辑。',
             noAccessActionPrompt: '您的工作区角色无权访问这些设置。如需访问，请联系管理员。',
+            connections: '连接',
         },
         createdForClient: {
             title: '您已为客户创建了工作区！',
@@ -4783,6 +4837,31 @@ ${amount}，商户：${merchant} - 日期：${date}`,
                 title: 'ChatGPT',
                 subtitle: '由 OpenAI 提供',
             },
+        },
+        connections: {
+            tabs: {
+                [CONST.TAB.CONNECTIONS.ALL]: '全部',
+                [CONST.TAB.CONNECTIONS.ACCOUNTING]: '会计',
+                [CONST.TAB.CONNECTIONS.PEOPLE]: '人力资源与员工',
+                [CONST.TAB.CONNECTIONS.RECRUITING]: '招聘',
+                [CONST.TAB.CONNECTIONS.RECEIPTS]: '收据',
+                [CONST.TAB.CONNECTIONS.AI]: 'AI 和 MCP',
+            },
+            findConnections: '查找关联',
+            configure: '配置',
+            fix: '修复',
+            active: '有效',
+            broken: '损坏',
+            brokenConnection: '由于连接中断，无法同步',
+            replaceConnectionTitle: '替换连接？',
+            offer: '优惠',
+            replaceConnectionPrompt: (connectionName: string) => `这将移除你当前的 ${connectionName} 连接。`,
+            hrisListing: (providerName: string) => `${providerName}（HRIS）`,
+            atsListing: (providerName: string) => `${providerName}（ATS）`,
+            suggestIntegration: '没找到适合你的？建议一个集成，我们会进行评估。',
+            noResultsPrompt: '<muted-text><centered-text>请调整您的搜索条件或<a href="#">建议一个集成</a>。</centered-text></muted-text>',
+            allConnectedTitle: '全部已连接',
+            allConnectedPrompt: '<muted-text><centered-text>这里的一切都已连接完成。您也可以<a href="#">建议一个集成</a>。</centered-text></muted-text>',
         },
         receiptPartners: {
             uber: {
@@ -5946,6 +6025,15 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
             submit: '提交',
         },
         companyCards: {
+            balance: {
+                currentBalance: '当前余额',
+                remainingLimit: '剩余额度',
+                notAvailable: '不可用',
+                currentBalanceDescription: ({lastUpdated}: CompanyCardBalanceParams) => `当前余额由您的银行提供，上次更新于 ${lastUpdated}。`,
+                remainingLimitDescription: ({lastUpdated}: CompanyCardBalanceParams) => `剩余额度由您的银行提供，并于 ${lastUpdated} 最后更新。`,
+                currentBalanceDescriptionNoTimestamp: '当前余额由您的银行提供。',
+                remainingLimitDescriptionNoTimestamp: '剩余额度由您的银行提供。',
+            },
             addCards: '添加卡片',
             selectCards: '选择卡片',
             fromOtherWorkspaces: '来自其他工作区',
@@ -9818,10 +9906,6 @@ ${reportName}`,
         genericUpdateReportFieldFailureMessage: '更新该字段时发生未知错误。请稍后重试。',
         genericUpdateReportNameEditFailureMessage: '重命名报表时发生意外错误。请稍后重试。',
         noActivityYet: '暂无活动',
-        collapsedSystemMessages: () => ({
-            one: '显示 1 条更新',
-            other: (count: number) => `显示 ${count} 条更新`,
-        }),
         connectionSettings: '连接设置',
         actions: {
             type: {
@@ -10828,6 +10912,16 @@ ${reportName}`,
                 other: `${count} 名活跃用户`,
             }),
             state: {paid: '已支付', cleared: '已清算', failed: '失败', refunded: '已退款', disputed: '有争议', balanceTransfer: '余额转账'},
+            details: '付款详情',
+            badge: {
+                balanceTransferTo: ({email}: {email: string}) => `余额转账至 ${email}`,
+                balanceTransferFrom: ({email}: {email: string}) => `余额转账来自 ${email}`,
+                disputedPending: ({date}: {date: string}) => `${date} 提出争议（待处理）`,
+                disputedRefunded: ({date}: {date: string}) => `${date} 提出争议（已退款）`,
+                disputedClosed: ({date}: {date: string}) => `${date} 提出争议（已关闭）`,
+                refundedOn: ({date}: {date: string}) => `${date} 已退款`,
+                refundedAmountOn: ({amount, date}: {amount: string; date: string}) => `${date} 已退款 ${amount}`,
+            },
         },
         subscriptionSettings: {
             title: '订阅设置',
@@ -11063,6 +11157,7 @@ ${reportName}`,
         markAllAsRead: '<tooltip>右键点击即可<strong>将所有内容标记为已读</strong>。</tooltip>',
         markAllAsReadTouchScreen: '<tooltip>长按即可<strong>将所有内容标记为已读</strong>。</tooltip>',
         accountMovedToTopBar: '<tooltip>访问你的账户和个人设置。</tooltip>',
+        connectionsMoved: '所有连接尽在一处',
     },
     discardChangesConfirmation: {
         title: '放弃更改？',
