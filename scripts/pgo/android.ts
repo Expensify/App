@@ -15,10 +15,10 @@ import {BENCHMARK_SPANS_ENVIRONMENT} from './shared';
 
 const ANDROID_JAVA_NAMESPACE = 'org.me.mobiexpensifyg';
 const PROFILE_BROADCAST_ACTION = 'com.expensify.chat.action.WRITE_PGO_PROFILES';
+const INSTRUMENTED_LIBRARIES = ['libreactnative.so', 'libhermesvm.so', 'libjsi.so', 'libExpensifyNitroUtils.so'];
 
 function createAndroidPgoAdapter(configuredAppID?: string, configuredDeviceIdentifier?: string): PlatformAdapter {
     const releasePipeline = androidReleasePipeline(process.env.PGO_ANDROID_RELEASE_PIPELINE, process.env.PGO_ANDROID_SHRINK);
-    const ndkVersion = '27.1.12297006';
     const profileDirectory = join(rootDirectory, '.pgo/android/arm64-v8a');
     const rawProfileDirectory = join(profileDirectory, 'raw');
     const apkDirectory = join(profileDirectory, releasePipeline.artifactDirectory);
@@ -58,12 +58,7 @@ function createAndroidPgoAdapter(configuredAppID?: string, configuredDeviceIdent
     }
 
     function llvmTool(name: string): string {
-        const androidNdkHome: unknown = process.env.ANDROID_NDK_HOME;
-        const androidNdkRoot: unknown = process.env.ANDROID_NDK_ROOT;
-        const configuredNdkRoot = [androidNdkHome, androidNdkRoot].find((value): value is string => typeof value === 'string');
-        const ndkRoot = configuredNdkRoot ?? join(homedir(), `Library/Android/sdk/ndk/${ndkVersion}`);
-        const hostTag = platform() === 'linux' ? 'linux-x86_64' : 'darwin-x86_64';
-        const toolPath = join(ndkRoot, `toolchains/llvm/prebuilt/${hostTag}/bin/${name}`);
+        const toolPath = androidLlvmToolPath(name);
         if (!existsSync(toolPath)) {
             fail(`Missing ${name} at ${toolPath}. Set ANDROID_NDK_HOME (or ANDROID_NDK_ROOT) to the NDK used by the build.`);
         }
@@ -142,8 +137,13 @@ function createAndroidPgoAdapter(configuredAppID?: string, configuredDeviceIdent
         const deadline = Date.now() + profileDumpTimeoutSeconds * 1000;
         while (Date.now() < deadline) {
             const profileLogs = adbCapture(['logcat', '-d', '-s', 'PgoProfileReceiver:I', '*:S']);
-            const profileCount = /Wrote ([1-9][0-9]*) LLVM PGO profile/.exec(profileLogs)?.[1];
-            if (profileCount) {
+            const profileCount = /Wrote ([0-9]+) LLVM PGO profile/.exec(profileLogs)?.[1];
+            if (profileCount !== undefined && Number(profileCount) !== 0) {
+                if (Number(profileCount) !== INSTRUMENTED_LIBRARIES.length) {
+                    fail(
+                        `The PGO receiver wrote ${profileCount} profiles, but expected ${INSTRUMENTED_LIBRARIES.length}. All instrumented native libraries must write successfully before recording profiles.`,
+                    );
+                }
                 console.log(`Wrote ${profileCount} LLVM PGO profile(s).`);
                 return;
             }
@@ -186,9 +186,8 @@ function createAndroidPgoAdapter(configuredAppID?: string, configuredDeviceIdent
         const llvmReadelf = llvmTool('llvm-readelf');
         const llvmNm = llvmTool('llvm-nm');
         const apkEntries = new Set(capture('zipinfo', ['-1', apkPath]).split('\n'));
-        const libraries = ['libreactnative.so', 'libhermesvm.so', 'libjsi.so', 'libExpensifyNitroUtils.so'];
         try {
-            for (const library of libraries) {
+            for (const library of INSTRUMENTED_LIBRARIES) {
                 const apkEntry = `lib/arm64-v8a/${library}`;
                 if (!apkEntries.has(apkEntry)) {
                     fail(`Missing expected arm64 library in APK: ${apkEntry}`);
@@ -284,6 +283,19 @@ function androidRockBuildArguments(task: string, gradleArguments: string[]): str
     ];
 }
 
+/** Resolve LLVM tools from the build's explicit NDK or host-specific SDK installation. */
+function androidLlvmToolPath(
+    name: string,
+    {hostPlatform = platform(), homeDirectory = homedir(), environment = process.env}: {hostPlatform?: NodeJS.Platform; homeDirectory?: string; environment?: NodeJS.ProcessEnv} = {},
+): string {
+    const configuredNdkRoot = [environment.ANDROID_NDK_HOME, environment.ANDROID_NDK_ROOT].find((value): value is string => typeof value === 'string' && value.length > 0);
+    const configuredSdkRoot = [environment.ANDROID_HOME, environment.ANDROID_SDK_ROOT].find((value): value is string => typeof value === 'string' && value.length > 0);
+    const sdkRoot = configuredSdkRoot ?? join(homeDirectory, hostPlatform === 'linux' ? 'Android/Sdk' : 'Library/Android/sdk');
+    const ndkRoot = configuredNdkRoot ?? join(sdkRoot, 'ndk/27.1.12297006');
+    const hostTag = hostPlatform === 'linux' ? 'linux-x86_64' : 'darwin-x86_64';
+    return join(ndkRoot, `toolchains/llvm/prebuilt/${hostTag}/bin/${name}`);
+}
+
 function androidApplicationID(buildGradle: string, configuredAppID?: string): string {
     if (configuredAppID) {
         return configuredAppID;
@@ -300,4 +312,4 @@ function androidProfileReceiverComponent(appID: string): string {
 }
 
 export default createAndroidPgoAdapter;
-export {PROFILE_BROADCAST_ACTION, androidApplicationID, androidProfileReceiverComponent, androidReleasePipeline, androidRockBuildArguments};
+export {PROFILE_BROADCAST_ACTION, androidApplicationID, androidLlvmToolPath, androidProfileReceiverComponent, androidReleasePipeline, androidRockBuildArguments};
