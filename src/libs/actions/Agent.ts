@@ -44,8 +44,6 @@ function prepareNewAgentOnyxData(
     currentUserAccountID: number,
     currentUserLogin: string | undefined,
     prompt: string,
-    policyID?: string,
-    role?: string,
     firstName?: string,
     customExpensifyAvatarID?: string,
     optimisticAvatarURI?: string,
@@ -168,8 +166,6 @@ function createAgent(
         currentUserAccountID,
         currentUserLogin,
         prompt,
-        policyID,
-        undefined,
         firstName,
         customExpensifyAvatarID,
         optimisticAvatarURI,
@@ -180,6 +176,35 @@ function createAgent(
         // optimisticReportID is the owner<->agent DM's optimistic reportID; CreateAgent creates the DM under this exact ID.
         WRITE_COMMANDS.CREATE_AGENT,
         {firstName, prompt, customExpensifyAvatarID, file, policyID, optimisticAccountID: String(optimisticAccountID), isPersonalAgent: true, optimisticReportID, createdReportActionID},
+        {optimisticData, successData, failureData},
+    );
+
+    return {optimisticAccountID, avatarURI, optimisticReportID, optimisticPersonalDetailPromise};
+}
+
+function createCompanyAgent(
+    currentUserAccountID: number,
+    currentUserLogin: string | undefined,
+    prompt: string,
+    policyID: string,
+    role: string,
+    firstName?: string,
+    customExpensifyAvatarID?: string,
+    file?: File | CustomRNImageManipulatorResult,
+    optimisticAvatarURI?: string,
+) {
+    const {optimisticData, successData, failureData, optimisticAccountID, avatarURI, optimisticReportID, createdReportActionID, optimisticPersonalDetailPromise} = prepareNewAgentOnyxData(
+        currentUserAccountID,
+        currentUserLogin,
+        prompt,
+        firstName,
+        customExpensifyAvatarID,
+        optimisticAvatarURI,
+    );
+
+    write(
+        WRITE_COMMANDS.CREATE_COMPANY_AGENT,
+        {prompt, policyID, role, firstName, customExpensifyAvatarID, file, optimisticAccountID, optimisticReportID, createdReportActionID},
         {optimisticData, successData, failureData},
     );
 
@@ -458,6 +483,7 @@ export {
     openAgentsPage,
     openProfilePage,
     createAgent,
+    createCompanyAgent,
     setNewAgentTemplate,
     clearNewAgentTemplate,
     clearAgentError,
