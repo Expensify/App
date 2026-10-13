@@ -368,7 +368,7 @@ ___
 ## 6. Automated Tests & QA
 *Tests are required by default. If you cannot add them, explain why.*
 - [ ] **Unit Tests:** Added to prevent regression.
-- [ ] **Reassure Tests:** Added (Required for execution time improvements).
+- [ ] **Reassure Tests:** Added (Required for execution time improvements). For `measureFunction` benchmarks (`npm run perf-local`), include the local before/after numbers from one machine in the PR description.
 - [ ] **Exception:** I cannot add automated tests because: _________________
 - [ ] **Manual Verification:** I have included manual verification steps (Required).
 
