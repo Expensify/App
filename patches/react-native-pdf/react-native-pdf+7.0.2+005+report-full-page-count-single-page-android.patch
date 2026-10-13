@@ -1,0 +1,59 @@
+diff --git a/node_modules/react-native-pdf/android/src/main/java/org/wonday/pdf/PdfView.java b/node_modules/react-native-pdf/android/src/main/java/org/wonday/pdf/PdfView.java
+--- a/node_modules/react-native-pdf/android/src/main/java/org/wonday/pdf/PdfView.java
++++ b/node_modules/react-native-pdf/android/src/main/java/org/wonday/pdf/PdfView.java
+@@ -157,9 +157,15 @@ public class PdfView extends PDFView implements OnPageChangeListener,OnLoadCompl
+         this.zoomTo(this.scale);
+         WritableMap event = Arguments.createMap();
+
++        // singlePage loads only one page, so numberOfPages is 1. Report the document's real page count, like iOS does.
++        int documentPageCount = numberOfPages;
++        if (this.singlePage) {
++            documentPageCount = getDocumentPageCount(numberOfPages);
++        }
++
+         //create a new json Object for the TableOfContents
+         Gson gson = new Gson();
+-        event.putString("message", "loadComplete|"+numberOfPages+"|"+width+"|"+height+"|"+gson.toJson(this.getTableOfContents()));
++        event.putString("message", "loadComplete|"+documentPageCount+"|"+width+"|"+height+"|"+gson.toJson(this.getTableOfContents()));
+
+         ThemedReactContext context = (ThemedReactContext) getContext();
+         EventDispatcher dispatcher = UIManagerHelper.getEventDispatcherForReactTag(context, getId());
+@@ -299,6 +305,38 @@ public class PdfView extends PDFView implements OnPageChangeListener,OnLoadCompl
+         return pageCount;
+     }
+
++    private int getDocumentPageCount(int fallbackPageCount) {
++        ParcelFileDescriptor fileDescriptor = null;
++        PdfRenderer renderer = null;
++        try {
++            if (this.path.startsWith("content://")) {
++                fileDescriptor = getContext().getContentResolver().openFileDescriptor(Uri.parse(this.path), "r");
++            } else {
++                fileDescriptor = ParcelFileDescriptor.open(new File(getURI(this.path).getPath()), ParcelFileDescriptor.MODE_READ_ONLY);
++            }
++            if (fileDescriptor == null) {
++                return fallbackPageCount;
++            }
++            renderer = new PdfRenderer(fileDescriptor);
++            return renderer.getPageCount();
++        } catch (Exception e) {
++            // PdfRenderer can't open password-protected files, so keep the loaded page count.
++            Log.e("PdfView", "error while reading PDF page count", e);
++            return fallbackPageCount;
++        } finally {
++            if (renderer != null) {
++                renderer.close();
++            }
++            if (fileDescriptor != null) {
++                try {
++                    fileDescriptor.close();
++                } catch (IOException e) {
++                    Log.e("PdfView", "error while closing PDF", e);
++                }
++            }
++        }
++    }
++
+     public void drawPdf() {
+         showLog(format("drawPdf path:%s %s", this.path, this.page));
+

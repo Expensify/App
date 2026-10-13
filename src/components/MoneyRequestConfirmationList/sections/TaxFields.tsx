@@ -1,5 +1,5 @@
+import MenuItem from '@components/MenuItem';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import {useConfirmationFields} from '@components/MoneyRequestConfirmationFields/context';
 import NumberWithSymbolForm from '@components/NumberWithSymbolForm';
 import type {NumberWithSymbolFormRef} from '@components/NumberWithSymbolForm';
@@ -17,6 +17,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import {getCalculatedTaxAmount, getTaxAmount, getTaxRateTitle} from '@libs/TransactionUtils';
 
 import {setDraftSplitTransaction} from '@userActions/IOU/Split';
+import {callFunctionIfActionIsAllowed} from '@userActions/Session';
 
 import CONST from '@src/CONST';
 import type {IOUAction, IOUType} from '@src/CONST';
@@ -191,21 +192,27 @@ function TaxFields({policy, policyForMovingExpenses, iouCurrencyCode, canModifyT
                     sentryLabel={CONST.SENTRY_LABEL.REQUEST_CONFIRMATION_LIST.TAX_RATE_FIELD}
                 />
             ) : (
-                <MenuItemWithTopDescription
+                <MenuItem.Root
                     key={`${taxRates?.name}_rate`}
-                    pressableTestID={`${taxRates?.name}_rate`}
-                    shouldShowRightIcon={canModifyTaxFields}
-                    title={taxRateTitle}
-                    description={taxRates?.name}
-                    style={[styles.moneyRequestMenuItem]}
-                    titleStyle={styles.flex1}
-                    onPress={openTaxRatePage}
-                    disabled={didConfirm}
-                    interactive={canModifyTaxFields}
-                    brickRoadIndicator={shouldDisplayTaxRateError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-                    errorText={shouldDisplayTaxRateError ? translate(formError as TranslationPaths) : ''}
+                    testID={`${taxRates?.name}_rate`}
+                    onPress={canModifyTaxFields ? callFunctionIfActionIsAllowed(openTaxRatePage) : undefined}
+                    isDisabled={didConfirm}
                     sentryLabel={CONST.SENTRY_LABEL.REQUEST_CONFIRMATION_LIST.TAX_RATE_FIELD}
-                />
+                >
+                    <MenuItemField.Row
+                        name={taxRates?.name ?? ''}
+                        value={taxRateTitle}
+                    >
+                        {shouldDisplayTaxRateError && <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />}
+                        {canModifyTaxFields && <MenuItem.Chevron />}
+                    </MenuItemField.Row>
+                    {shouldDisplayTaxRateError && (
+                        <MenuItem.HelpText
+                            isError
+                            message={translate(formError as TranslationPaths)}
+                        />
+                    )}
+                </MenuItem.Root>
             )}
             {canModifyTaxFields ? (
                 <View style={[styles.mh4, styles.mv2]}>

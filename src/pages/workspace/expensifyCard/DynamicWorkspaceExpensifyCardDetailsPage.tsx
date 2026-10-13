@@ -400,20 +400,16 @@ function DynamicWorkspaceExpensifyCardDetailsPage({route}: DynamicWorkspaceExpen
                             value={card?.nameValuePairs?.cardTitle}
                         />
                     </OfflineWithFeedback>
-                    <MenuItemWithTopDescription
-                        description={translate(isVirtual ? 'cardPage.virtualCardNumber' : 'cardPage.physicalCardNumber')}
-                        title={maskCard(card?.lastFourPAN)}
-                        interactive={false}
-                        titleStyle={styles.walletCardNumber}
+                    <MenuItemField
+                        name={translate(isVirtual ? 'cardPage.virtualCardNumber' : 'cardPage.physicalCardNumber')}
+                        value={maskCard(card?.lastFourPAN)}
                     />
                     {spendRulesSummary.length > 0 && (
-                        <MenuItemWithTopDescription
-                            interactive={false}
-                            description={translate('cardPage.spendRules')}
-                            descriptionTextStyle={[styles.fontSizeLabel]}
-                            titleComponent={spendRulesTitleComponent}
-                            accessibilityLabel={spendRulesSummary.join('. ')}
-                        />
+                        <MenuItem.Root accessibilityLabel={spendRulesSummary.join('. ')}>
+                            <MenuItem.Row>
+                                <MenuItemField.Content name={translate('cardPage.spendRules')}>{spendRulesTitleComponent}</MenuItemField.Content>
+                            </MenuItem.Row>
+                        </MenuItem.Root>
                     )}
                     <OfflineWithFeedback pendingAction={card?.pendingFields?.availableSpend}>
                         <MenuItem.Root>
