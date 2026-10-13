@@ -23,7 +23,7 @@ import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTop
 import Navigation from '@libs/Navigation/Navigation';
 import Parser from '@libs/Parser';
 import * as PolicyUtils from '@libs/PolicyUtils';
-import {getOriginalMessage, getReportAction, isActionOfType, isWhisperAction} from '@libs/ReportActionsUtils';
+import {getOriginalMessage, getReportAction, getSortedReportActions, getSystemMessageDisplayState, isActionOfType, isWhisperAction} from '@libs/ReportActionsUtils';
 // Testing only so it's okay to import computeReportName
 // eslint-disable-next-line no-restricted-imports
 import {buildReportNameFromParticipantNames, computeReportName as computeReportNameOriginal, getGroupChatName, getPolicyExpenseChatName, getReportName} from '@libs/ReportNameUtils';
@@ -309,6 +309,7 @@ import createRandomTransaction from '../utils/collections/transaction';
 import createMock from '../utils/createMock';
 import * as LHNTestUtils from '../utils/LHNTestUtils';
 import {fakePersonalDetails} from '../utils/LHNTestUtils';
+import {buildSystemAction} from '../utils/ReportTestUtils';
 import {
     convertToDisplayString,
     convertToDisplayStringWithoutCurrency,
@@ -10035,6 +10036,35 @@ describe('ReportUtils', () => {
                     type: 'TEXT',
                 },
             ]);
+        });
+    });
+
+    describe('buildOptimisticModifiedExpenseReportAction', () => {
+        afterEach(async () => {
+            jest.useRealTimers();
+            await Onyx.merge(ONYXKEYS.NETWORK, {timeSkew: 0});
+            await waitForBatchedUpdates();
+        });
+
+        it('keeps confirmed updates collapsed and a pending edit visible when the device clock is behind', async () => {
+            // Given a collapsed pair of confirmed updates and a device clock four seconds behind the server
+            await Onyx.merge(ONYXKEYS.SESSION, {email: currentUserEmail, accountID: currentUserAccountID});
+            await Onyx.merge(ONYXKEYS.NETWORK, {timeSkew: 4000});
+            await waitForBatchedUpdates();
+            jest.useFakeTimers();
+            jest.setSystemTime(new Date('2026-10-13T11:44:27.127Z'));
+            const confirmedActions = [
+                buildSystemAction('1', {actorAccountID: currentUserAccountID, created: '2026-10-13 11:44:23.393'}),
+                buildSystemAction('2', {actorAccountID: currentUserAccountID, created: '2026-10-13 11:44:27.303'}),
+            ];
+
+            // When an expense edit is added before the server confirms it
+            const pendingAction = buildOptimisticModifiedExpenseReportAction({reportID: 'thread'}, undefined, {reimbursable: true}, true, undefined, undefined);
+            const state = getSystemMessageDisplayState(getSortedReportActions([...confirmedActions, pendingAction], true), new Set());
+
+            // Then the corrected timestamp keeps the pending edit separate without splitting the confirmed group
+            expect(state.displayReportActions).toEqual([pendingAction, confirmedActions.at(1)]);
+            expect(state.runsByAnchorReportActionID.get('2')).toMatchObject({reportActionIDs: ['1', '2'], isExpanded: false});
         });
     });
 
