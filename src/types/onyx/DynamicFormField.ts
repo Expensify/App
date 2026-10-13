@@ -1,4 +1,7 @@
+import type {FormValue} from '@components/Form/types';
+
 import type {TranslationPaths} from '@src/languages/types';
+import type {OnyxFormKey} from '@src/ONYXKEYS';
 
 import type {InputModeOptions} from 'react-native';
 
@@ -170,6 +173,18 @@ type DynamicFormSchemaField = DynamicFormField | (DynamicFormFieldBase & {type: 
 /** A heading or a field of a page */
 type DynamicFormContentItem = DynamicFormHeading | DynamicFormSchemaField;
 
+/** A page of a multi-page form. It is a heading with its own content, so it can carry a title, a description and a `showWhen`. */
+type DynamicFormPage = DynamicFormHeading & {
+    /** The headings and fields shown on this page */
+    content: DynamicFormContentItem[];
+};
+
+/** What a multi-page form is built from: pages as the server groups them, or a flat list of fields the App paginates */
+type DynamicFormSchema = {pages: DynamicFormPage[]} | {fields: DynamicFormSchemaField[]};
+
+/** Answers to sensitive fields, keyed by form ID, then by field key. Kept in memory only, never in a draft. */
+type DynamicFormSensitiveAnswers = Partial<Record<OnyxFormKey, Partial<Record<string, FormValue>>>>;
+
 /** Every type the renderer and validator handle */
 type DynamicFormFieldType = DynamicFormField['type'];
 
@@ -184,6 +199,9 @@ export type {
     DynamicFormHeading,
     DynamicFormMultiChoiceField,
     DynamicFormNumberField,
+    DynamicFormPage,
+    DynamicFormSchema,
     DynamicFormSchemaField,
+    DynamicFormSensitiveAnswers,
     DynamicFormTextField,
 };
