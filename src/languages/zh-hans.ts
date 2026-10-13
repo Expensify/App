@@ -625,14 +625,6 @@ const translations: TranslationDeepObject<typeof en> = {
         launching: '正在启动 Expensify',
         expired: '您的会话已过期。',
         signIn: '请重新登录。',
-        notValid: '链接无效。',
-        sessionMismatch: '您点击的链接对您当前的会话无效。',
-        switchAccount: {
-            title: '切换账户？',
-            prompt: ({newEmail, currentEmail}: {newEmail: string; currentEmail: string}) => `您当前以 ${currentEmail} 身份登录。此操作将改为以 ${newEmail} 身份登录。`,
-            confirm: '切换账户',
-            staySignedIn: '不要切换账户',
-        },
     },
     multifactorAuthentication: {
         reviewTransaction: {
@@ -2221,6 +2213,7 @@ const translations: TranslationDeepObject<typeof en> = {
     displayNamePage: {
         headerTitle: '显示名称',
         isShownOnProfile: '您的显示名称会显示在您的个人资料中。',
+        isShownOnMemberProfile: '显示名称会出现在该成员的个人资料中。保存后，只有该成员本人可以编辑。',
     },
     timezonePage: {
         timezone: '时区',
@@ -2266,7 +2259,6 @@ const translations: TranslationDeepObject<typeof en> = {
             useProfiling: '使用分析工具',
             profileTrace: '性能追踪',
             results: '结果',
-            releaseOptions: '发布选项',
             testingPreferences: '测试偏好',
             server: '服务器',
             servers: {
@@ -8008,6 +8000,8 @@ ${reportName}`,
                 applyUpdates: '应用这些更新：',
                 saveRule: '保存规则',
                 previewMatches: '预览匹配项',
+                previewMatchesDescription: '查看此规则如何应用于你的费用',
+                preview: '预览',
                 confirmError: '输入商户并应用至少一项更新',
                 confirmErrorMerchant: '请输入商户',
                 confirmErrorUpdate: '请至少应用一个更新',
@@ -8327,6 +8321,14 @@ ${reportName}`,
                 requireFieldsDescription: '要求填写特定报销字段，或免除其必填限制。',
                 createAgentRule: '描述代理规则',
                 createAgentRuleDescription: '创建可按需运行的灵活规则。',
+                describe: '描述',
+                describeRule: '用通俗的语言描述你的规则，Concierge 会为你创建规则',
+                describeRuleInputLabel: '描述规则',
+                promptErrors: {
+                    unsupported: '该规则暂不支持，我们正在开发中。请先尝试其他规则。',
+                    unintelligible: '可以这样描述规则：如果支出超过 100 美元，则需要收据。',
+                    multipleRules: '请一次描述一条规则，例如：在所有卡上阻止零售消费。',
+                },
             },
             expenseDefaultsTable: {
                 tableColumnType: '类型',
@@ -9359,6 +9361,8 @@ ${reportName}`,
             return `将“${categoryName}”类别的出席者更改为 ${newValue ? '必填' : '非必填'}（之前为 ${newValue ? '非必填' : '必填'}）`;
         },
         updatedAutoHarvesting: (enabled: boolean) => `${enabled ? '已启用' : '已禁用'} 次提交`,
+        updatedMemberDisplayName: (newName: string, oldName: string, editProfileURL: string) =>
+            `已将您的显示名称更新为 ${newName}（之前为“${oldName}”）。<a href="${editProfileURL}">在个人资料中编辑</a>`,
         changedOverLimitForwardsTo: ({
             member,
             approver,

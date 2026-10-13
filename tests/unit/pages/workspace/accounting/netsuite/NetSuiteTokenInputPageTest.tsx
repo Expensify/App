@@ -3,6 +3,7 @@ import {render, screen} from '@testing-library/react-native';
 import useEnvironment from '@hooks/useEnvironment';
 
 import {isAuthenticationError} from '@libs/actions/connections';
+import Navigation from '@libs/Navigation/Navigation';
 
 import NetSuiteTokenInputPage from '@pages/workspace/accounting/netsuite/NetSuiteTokenInput/NetSuiteTokenInputPage';
 import type {CustomSubPageTokenInputProps} from '@pages/workspace/accounting/netsuite/types';
@@ -22,6 +23,7 @@ type RouteParams = {
     policyID: string;
     subPage: string;
     authType?: string;
+    isMigration?: string;
 };
 
 type MockStepHeaderProps = {
@@ -36,6 +38,8 @@ const mockRoute: {current: {key: string; name: string; params: RouteParams}} = {
     current: {key: 'test-route', name: 'Workspace_Accounting_NetSuite_Token_Input', params: {policyID: POLICY_ID, subPage: PAGE_NAME.INSTALL}},
 };
 const mockStepNames: {current: readonly string[] | undefined} = {current: undefined};
+const mockCapturedOnNext: {current: (() => void) | undefined} = {current: undefined};
+const mockCapturedShouldBeBlocked: {current: boolean | undefined} = {current: undefined};
 
 jest.mock('@hooks/useLocalize', () => () => ({
     translate: (key: string) => key,
@@ -66,12 +70,10 @@ jest.mock('@react-navigation/native', () => ({
     useNavigation: () => ({setParams: jest.fn()}),
 }));
 jest.mock('@pages/workspace/withPolicyConnections', () => (Component: React.ComponentType) => Component);
-jest.mock(
-    '@components/ConnectionLayout',
-    () =>
-        ({children}: {children: React.ReactNode}) =>
-            children,
-);
+jest.mock('@components/ConnectionLayout', () => ({children, shouldBeBlocked}: {children: React.ReactNode; shouldBeBlocked?: boolean}) => {
+    mockCapturedShouldBeBlocked.current = shouldBeBlocked;
+    return children;
+});
 jest.mock('@components/InteractiveStepSubPageHeader', () => ({stepNames}: MockStepHeaderProps) => {
     mockStepNames.current = stepNames;
     return null;
@@ -86,7 +88,10 @@ jest.mock(
             </>
         ),
 );
-jest.mock('@pages/workspace/accounting/netsuite/NetSuiteTokenInput/subPages/NetSuiteTokenSetupContent', () => () => null);
+jest.mock('@pages/workspace/accounting/netsuite/NetSuiteTokenInput/subPages/NetSuiteTokenSetupContent', () => ({onNext}: CustomSubPageTokenInputProps) => {
+    mockCapturedOnNext.current = onNext;
+    return null;
+});
 
 const mockedUseEnvironment = jest.mocked(useEnvironment);
 const mockedIsAuthenticationError = jest.mocked(isAuthenticationError);
@@ -150,8 +155,8 @@ function buildNetsuitePolicy(tokenID: string): Policy {
     };
 }
 
-function renderPage(subPage: string, authType?: string, policy?: Policy) {
-    mockRoute.current = {...mockRoute.current, params: {policyID: POLICY_ID, subPage, authType}};
+function renderPage(subPage: string, authType?: string, policy?: Policy, isMigration?: boolean) {
+    mockRoute.current = {...mockRoute.current, params: {policyID: POLICY_ID, subPage, authType, ...(isMigration ? {isMigration: 'true'} : {})}};
     render(
         <NetSuiteTokenInputPage
             policy={policy}
@@ -167,6 +172,8 @@ describe('NetSuiteTokenInputPage', () => {
     beforeEach(() => {
         jest.clearAllMocks();
         mockStepNames.current = undefined;
+        mockCapturedOnNext.current = undefined;
+        mockCapturedShouldBeBlocked.current = undefined;
         mockedIsAuthenticationError.mockReturnValue(false);
     });
 
@@ -219,7 +226,7 @@ describe('NetSuiteTokenInputPage', () => {
         expect(mockStepNames.current).toBe(CONST.NETSUITE_CONFIG.TOKEN_INPUT.STEP_INDEX_LIST);
     });
 
-    it('shows the TBA credentials form when reconnecting after an auth error on a TBA connection', () => {
+    it('shows the OAuth credentials form when reconnecting after an auth error on a TBA connection (migration)', () => {
         // Given an existing TBA connection (tokenID present) that has an auth error
         setEnvironment(CONST.ENVIRONMENT.PRODUCTION);
         mockedIsAuthenticationError.mockReturnValue(true);
@@ -228,9 +235,9 @@ describe('NetSuiteTokenInputPage', () => {
         // When the credentials page is rendered for reconnection
         renderPage(PAGE_NAME.CREDENTIALS, undefined, policy);
 
-        // Then the TBA credentials form is shown (OAuth not used for TBA reconnect until Release 5)
-        expect(screen.getByTestId('token-form')).toBeOnTheScreen();
-        expect(mockStepNames.current).toBe(CONST.NETSUITE_CONFIG.TOKEN_INPUT.STEP_INDEX_LIST);
+        // Then the OAuth form is shown. TBA auth errors now migrate through OAuth.
+        expect(screen.getByTestId('oauth-form')).toBeOnTheScreen();
+        expect(mockStepNames.current).toBe(CONST.NETSUITE_CONFIG.TOKEN_INPUT.OAUTH_STEP_INDEX_LIST);
     });
 
     it('shows the OAuth credentials form when reconnecting after an auth error on an OAuth connection', () => {
@@ -245,5 +252,30 @@ describe('NetSuiteTokenInputPage', () => {
         // Then the OAuth credentials form is shown
         expect(screen.getByTestId('oauth-form')).toBeOnTheScreen();
         expect(mockStepNames.current).toBe(CONST.NETSUITE_CONFIG.TOKEN_INPUT.OAUTH_STEP_INDEX_LIST);
+    });
+
+    it('preserves the isMigration param when navigating to the next step', () => {
+        // Given the wizard is opened with isMigration=true in the route (e.g. from a migration nudge)
+        setEnvironment(CONST.ENVIRONMENT.PRODUCTION);
+        renderPage(PAGE_NAME.INSTALL, undefined, undefined, true);
+
+        // When the user advances to the next step
+        mockCapturedOnNext.current?.();
+
+        // Then Navigation.navigate is called with isMigration=true preserved, so later steps can read the flag
+        expect(Navigation.navigate).toHaveBeenCalledWith(expect.stringContaining('isMigration=true'));
+    });
+
+    it('blocks the wizard for a healthy OAuth connection even when isMigration=true is in the URL', () => {
+        // Given a healthy OAuth connection (no tokenID, no auth error)
+        setEnvironment(CONST.ENVIRONMENT.PRODUCTION);
+        mockedIsAuthenticationError.mockReturnValue(false);
+        const policy = buildNetsuitePolicy('');
+
+        // When the page is rendered with isMigration=true in the URL
+        renderPage(PAGE_NAME.CREDENTIALS, undefined, policy, true);
+
+        // Then the page is blocked — isMigration in the URL must not bypass a healthy OAuth connection
+        expect(mockCapturedShouldBeBlocked.current).toBe(true);
     });
 });
