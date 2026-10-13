@@ -57,6 +57,7 @@ function RulesCustomPage({
             >
                 <HeaderWithBackButtonAndTitle title={translate('workspace.rules.customRules.title')} />
                 <FormProvider
+                    shouldConstrainWebContentHeight
                     submitFlexEnabled={false}
                     style={[styles.flexGrow1, styles.ph5]}
                     formID={ONYXKEYS.FORMS.RULES_CUSTOM_FORM}
@@ -81,6 +82,7 @@ function RulesCustomPage({
                                 ref={inputCallbackRef}
                                 type="markdown"
                                 autoGrowHeight
+                                shouldSubmitForm
                                 maxLength={CONST.DESCRIPTION_LIMIT}
                                 maxAutoGrowHeight={maxAutoGrowHeight}
                             />

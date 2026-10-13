@@ -86,6 +86,7 @@ function DynamicWorkspaceEditTagsPage({route}: DynamicWorkspaceEditTagsPageProps
                     onBackButtonPress={goBackToTagsSettings}
                 />
                 <FormProvider
+                    shouldConstrainWebContentHeight
                     submitFlexEnabled={false}
                     style={[styles.flexGrow1, styles.ph5]}
                     formID={ONYXKEYS.FORMS.POLICY_TAG_NAME_FORM}

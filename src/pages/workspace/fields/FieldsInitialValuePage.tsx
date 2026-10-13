@@ -154,6 +154,7 @@ function FieldsInitialValuePage({policy, policyID, reportFieldID, featureName, e
 
                 {(isTextFieldType || isFormulaFieldType) && (
                     <FormProvider
+                        shouldConstrainWebContentHeight={isTextFieldType}
                         submitFlexEnabled={!isTextFieldType}
                         addBottomSafeAreaPadding
                         formID={ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM}

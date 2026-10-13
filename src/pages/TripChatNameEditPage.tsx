@@ -79,6 +79,7 @@ function TripChatNameEditPage({report}: TripChatNameEditPageProps) {
                 onBackButtonPress={() => Navigation.goBack(createDynamicRoute(DYNAMIC_ROUTES.REPORT_DETAILS.path, ROUTES.REPORT_WITH_ID.getRoute(reportID)))}
             />
             <FormProvider
+                shouldConstrainWebContentHeight
                 submitFlexEnabled={false}
                 formID={ONYXKEYS.FORMS.NEW_CHAT_NAME_FORM}
                 onSubmit={(values) => editName({...values, [INPUT_IDS.NEW_CHAT_NAME]: StringUtils.lineBreaksToSpaces(values[INPUT_IDS.NEW_CHAT_NAME])})}

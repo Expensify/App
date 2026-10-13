@@ -106,6 +106,7 @@ function RoomDescriptionPage({report, policy}: RoomDescriptionPageProps) {
             />
             {canEdit && (
                 <FormProvider
+                    shouldConstrainWebContentHeight
                     submitFlexEnabled={false}
                     style={[styles.flexGrow1, styles.ph5]}
                     formID={ONYXKEYS.FORMS.REPORT_DESCRIPTION_FORM}
@@ -125,6 +126,7 @@ function RoomDescriptionPage({report, policy}: RoomDescriptionPageProps) {
                                 accessibilityLabel={translate('reportDescriptionPage.roomDescription')}
                                 role={CONST.ROLE.PRESENTATION}
                                 autoGrowHeight
+                                shouldSubmitForm
                                 maxAutoGrowHeight={maxAutoGrowHeight}
                                 ref={(el: BaseTextInputRef | null): void => {
                                     if (!el) {

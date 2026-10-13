@@ -82,6 +82,7 @@ function DomainGroupEditNamePage({route}: DomainGroupEditNamePageProps) {
                     onBackButtonPress={() => Navigation.goBack(ROUTES.DOMAIN_GROUP_DETAILS.getRoute(domainAccountID, groupID))}
                 />
                 <FormProvider
+                    shouldConstrainWebContentHeight
                     submitFlexEnabled={false}
                     formID={ONYXKEYS.FORMS.EDIT_DOMAIN_GROUP_NAME_FORM}
                     validate={(values) => validate({...values, [INPUT_IDS.NAME]: StringUtils.lineBreaksToSpaces(values[INPUT_IDS.NAME])})}

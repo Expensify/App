@@ -209,6 +209,7 @@ function DynamicIOURequestStepDescription({
             shouldShowNotFoundPage={shouldShowNotFoundPage}
         >
             <FormProvider
+                shouldConstrainWebContentHeight
                 submitFlexEnabled={false}
                 style={[styles.flexGrow1, styles.ph5]}
                 formID={ONYXKEYS.FORMS.MONEY_REQUEST_DESCRIPTION_FORM}

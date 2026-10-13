@@ -111,6 +111,7 @@ function TaskDescriptionPage({report, currentUserPersonalDetails}: TaskDescripti
                     onBackButtonPress={() => Navigation.goBack(backPath)}
                 />
                 <FormProvider
+                    shouldConstrainWebContentHeight
                     submitFlexEnabled={false}
                     style={[styles.flexGrow1, styles.ph5]}
                     formID={ONYXKEYS.FORMS.EDIT_TASK_FORM}

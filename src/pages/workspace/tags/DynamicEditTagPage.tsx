@@ -104,6 +104,7 @@ function DynamicEditTagPage({route}: DynamicEditTagPageProps) {
                     onBackButtonPress={() => Navigation.goBack(backPath)}
                 />
                 <FormProvider
+                    shouldConstrainWebContentHeight
                     submitFlexEnabled={false}
                     formID={ONYXKEYS.FORMS.WORKSPACE_TAG_FORM}
                     onSubmit={(values) => editTag({...values, [INPUT_IDS.TAG_NAME]: StringUtils.lineBreaksToSpaces(values[INPUT_IDS.TAG_NAME])})}

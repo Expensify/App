@@ -94,6 +94,7 @@ function TextBaseImpl({fieldID, hint, isRequired, title, label, onSubmit, formID
 
     return (
         <FormProvider
+            shouldConstrainWebContentHeight
             submitFlexEnabled={false}
             style={[styles.flex1, styles.ph5]}
             formID={formID}

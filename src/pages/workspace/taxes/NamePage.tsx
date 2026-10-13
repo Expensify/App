@@ -90,6 +90,7 @@ function NamePage({
                 />
 
                 <FormProvider
+                    shouldConstrainWebContentHeight
                     submitFlexEnabled={false}
                     formID={ONYXKEYS.FORMS.WORKSPACE_TAX_NAME_FORM}
                     submitButtonText={translate('workspace.editor.save')}

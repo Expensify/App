@@ -102,6 +102,7 @@ function TaskTitlePage({report, currentUserPersonalDetails}: TaskTitlePageProps)
                         onBackButtonPress={() => Navigation.goBack(backPath)}
                     />
                     <FormProvider
+                        shouldConstrainWebContentHeight
                         submitFlexEnabled={false}
                         style={[styles.flexGrow1, styles.ph5]}
                         formID={ONYXKEYS.FORMS.EDIT_TASK_FORM}
@@ -132,7 +133,7 @@ function TaskTitlePage({report, currentUserPersonalDetails}: TaskTitlePageProps)
                                     }}
                                     autoGrowHeight
                                     maxAutoGrowHeight={maxAutoGrowHeight}
-                                    shouldSubmitForm={false}
+                                    shouldSubmitForm
                                     type="markdown"
                                 />
                             )}

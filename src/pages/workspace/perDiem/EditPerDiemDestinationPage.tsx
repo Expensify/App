@@ -95,6 +95,7 @@ function EditPerDiemDestinationPage({route}: EditPerDiemDestinationPageProps) {
                     onBackButtonPress={() => Navigation.goBack(ROUTES.WORKSPACE_PER_DIEM_DETAILS.getRoute(policyID, rateID, subRateID))}
                 />
                 <FormProvider
+                    shouldConstrainWebContentHeight
                     submitFlexEnabled={false}
                     formID={ONYXKEYS.FORMS.WORKSPACE_PER_DIEM_FORM}
                     validate={(values) => validate({...values, [INPUT_IDS.DESTINATION]: StringUtils.lineBreaksToSpaces(values[INPUT_IDS.DESTINATION])})}

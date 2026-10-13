@@ -111,6 +111,7 @@ function FieldsAddListValuePage({policy, policyID, reportFieldID, featureName, p
                     onBackButtonPress={Navigation.goBack}
                 />
                 <FormProvider
+                    shouldConstrainWebContentHeight
                     submitFlexEnabled={false}
                     formID={ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM}
                     onSubmit={(values) => createValue({...values, [INPUT_IDS.VALUE_NAME]: StringUtils.lineBreaksToSpaces(values[INPUT_IDS.VALUE_NAME])})}

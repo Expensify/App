@@ -99,6 +99,7 @@ function EditReportFieldTextPage({fieldName, onSubmit, fieldValue, isRequired, f
 
     return (
         <FormProvider
+            shouldConstrainWebContentHeight={!disabled}
             submitFlexEnabled={disabled}
             style={[styles.flexGrow1, styles.ph5]}
             formID={ONYXKEYS.FORMS.REPORT_FIELDS_EDIT_FORM}

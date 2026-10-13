@@ -45,6 +45,7 @@ function RejectReasonFormView({backTo, validate, onSubmit}: RejectReasonFormView
                 onBackButtonPress={() => Navigation.goBack(backTo)}
             />
             <FormProvider
+                shouldConstrainWebContentHeight
                 formID="moneyRejectReasonForm"
                 submitButtonText={translate('iou.reject.reasonPageTitle')}
                 style={[styles.flexGrow1, styles.ph5]}
@@ -70,6 +71,7 @@ function RejectReasonFormView({backTo, validate, onSubmit}: RejectReasonFormView
                             accessibilityLabel={translate('iou.reject.rejectReason')}
                             ref={inputCallbackRef}
                             autoGrowHeight
+                            shouldSubmitForm
                             maxAutoGrowHeight={maxAutoGrowHeight}
                         />
                     )}

@@ -80,6 +80,7 @@ function WorkspaceTaxesSettingsCustomTaxName({
                 <HeaderWithBackButton title={translate('workspace.taxes.customTaxName')} />
 
                 <FormProvider
+                    shouldConstrainWebContentHeight
                     submitFlexEnabled={false}
                     formID={ONYXKEYS.FORMS.WORKSPACE_TAX_CUSTOM_NAME}
                     submitButtonText={translate('workspace.editor.save')}

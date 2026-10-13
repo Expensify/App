@@ -139,6 +139,7 @@ function PrivateNotesEditPageInternal({route, report, accountID, privateNoteDraf
                 onCloseButtonPress={() => Navigation.dismissModal()}
             />
             <FormProvider
+                shouldConstrainWebContentHeight
                 submitFlexEnabled={false}
                 formID={ONYXKEYS.FORMS.PRIVATE_NOTES_FORM}
                 onSubmit={savePrivateNote}
@@ -173,6 +174,7 @@ function PrivateNotesEditPageInternal({route, report, accountID, privateNoteDraf
                                 autoCompleteType="off"
                                 autoCorrect={false}
                                 autoGrowHeight
+                                shouldSubmitForm
                                 maxAutoGrowHeight={maxAutoGrowHeight}
                                 defaultValue={privateNote}
                                 value={privateNote}

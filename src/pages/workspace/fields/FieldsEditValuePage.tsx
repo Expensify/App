@@ -90,6 +90,7 @@ function FieldsEditValuePage({policy, policyID, valueIndex, featureName, policyF
                     onBackButtonPress={Navigation.goBack}
                 />
                 <FormProvider
+                    shouldConstrainWebContentHeight
                     submitFlexEnabled={false}
                     formID={ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM}
                     onSubmit={(values) => editValue({...values, [INPUT_IDS.NEW_VALUE_NAME]: StringUtils.lineBreaksToSpaces(values[INPUT_IDS.NEW_VALUE_NAME])})}

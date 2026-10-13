@@ -63,6 +63,7 @@ function ImportTransactionsCardNamePage() {
                 onBackButtonPress={() => Navigation.goBack()}
             />
             <FormProvider
+                shouldConstrainWebContentHeight
                 submitFlexEnabled={false}
                 formID={ONYXKEYS.FORMS.IMPORT_TRANSACTIONS_FORM}
                 submitButtonText={translate('common.save')}

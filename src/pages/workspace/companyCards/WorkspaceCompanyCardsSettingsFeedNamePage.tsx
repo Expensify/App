@@ -102,6 +102,7 @@ function WorkspaceCompanyCardsSettingsFeedNamePage({
                     <Text style={[styles.textNormal, styles.colorMuted]}>{translate('workspace.moreFeatures.companyCards.setFeedNameDescription')}</Text>
                 </Text>
                 <FormProvider
+                    shouldConstrainWebContentHeight
                     submitFlexEnabled={false}
                     formID={ONYXKEYS.FORMS.WORKSPACE_COMPANY_CARD_FEED_NAME}
                     submitButtonText={translate('workspace.editor.save')}

@@ -148,7 +148,7 @@ function AutoGrowHeightInputContainer({children, measureContent = defaultMeasure
 
     return (
         <ScrollView
-            style={[styles.flex1, style]}
+            style={[styles.flex1, Platform.OS === 'web' && {minHeight: variables.componentSizeLarge}, style]}
             showsVerticalScrollIndicator={false}
             keyboardShouldPersistTaps="handled"
             nestedScrollEnabled

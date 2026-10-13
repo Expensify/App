@@ -85,6 +85,7 @@ function DynamicExpensifyCardNamePage({route}: DynamicExpensifyCardNamePageProps
                     onBackButtonPress={goBack}
                 />
                 <FormProvider
+                    shouldConstrainWebContentHeight
                     submitFlexEnabled={false}
                     formID={ONYXKEYS.FORMS.EDIT_EXPENSIFY_CARD_NAME_FORM}
                     submitButtonText={translate('common.save')}

@@ -96,6 +96,7 @@ function RoomNamePage({report, navigateBackTo}: RoomNamePageProps) {
                     onBackButtonPress={goBack}
                 />
                 <FormProvider
+                    shouldConstrainWebContentHeight
                     submitFlexEnabled={false}
                     style={[styles.flexGrow1, styles.ph5]}
                     formID={ONYXKEYS.FORMS.ROOM_NAME_FORM}

@@ -86,6 +86,7 @@ function WorkspaceOverviewDescriptionPage({policy}: Props) {
                     <Text>{translate('workspace.common.descriptionHint')}</Text>
                 </View>
                 <FormProvider
+                    shouldConstrainWebContentHeight
                     submitFlexEnabled={false}
                     formID={ONYXKEYS.FORMS.WORKSPACE_DESCRIPTION_FORM}
                     submitButtonText={translate('workspace.editor.save')}
@@ -111,6 +112,7 @@ function WorkspaceOverviewDescriptionPage({policy}: Props) {
                                 autoFocus
                                 onChangeText={setDescription}
                                 autoGrowHeight
+                                shouldSubmitForm
                                 type="markdown"
                                 ref={(el: BaseTextInputRef | null): void => {
                                     if (!isInputInitializedRef.current) {

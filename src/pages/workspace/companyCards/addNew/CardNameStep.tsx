@@ -68,6 +68,7 @@ function CardNameStep() {
             />
             <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mv3]}>{translate('workspace.companyCards.addNewCard.whatBankIssuesCard')}</Text>
             <FormProvider
+                shouldConstrainWebContentHeight
                 submitFlexEnabled={false}
                 formID={ONYXKEYS.FORMS.ADD_NEW_CARD_FEED_FORM}
                 submitButtonText={translate('common.next')}

@@ -97,6 +97,7 @@ function GroupChatNameEditPage({report}: GroupChatNameEditPageProps) {
                 }
             />
             <FormProvider
+                shouldConstrainWebContentHeight
                 submitFlexEnabled={false}
                 formID={ONYXKEYS.FORMS.NEW_CHAT_NAME_FORM}
                 onSubmit={(values) => editName({...values, [INPUT_IDS.NEW_CHAT_NAME]: StringUtils.lineBreaksToSpaces(values[INPUT_IDS.NEW_CHAT_NAME])})}

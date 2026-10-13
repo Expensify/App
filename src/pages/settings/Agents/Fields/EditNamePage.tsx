@@ -52,6 +52,7 @@ function EditNamePage({route}: EditNamePageProps) {
                 onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_AGENTS_EDIT.getRoute(accountID))}
             />
             <FormProvider
+                shouldConstrainWebContentHeight
                 submitFlexEnabled={false}
                 formID={ONYXKEYS.FORMS.EDIT_AGENT_NAME_FORM}
                 onSubmit={(values) => handleSubmit({...values, [INPUT_IDS.FIRST_NAME]: StringUtils.lineBreaksToSpaces(values[INPUT_IDS.FIRST_NAME])})}

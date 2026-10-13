@@ -61,6 +61,7 @@ function WorkspaceInvoicingDetailsName({route}: WorkspaceInvoicingDetailsNamePro
             >
                 <HeaderWithBackButton title={translate('workspace.invoices.companyName')} />
                 <FormProvider
+                    shouldConstrainWebContentHeight
                     submitFlexEnabled={false}
                     formID={ONYXKEYS.FORMS.WORKSPACE_INVOICES_COMPANY_NAME_FORM}
                     submitButtonText={translate('common.save')}

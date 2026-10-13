@@ -76,6 +76,7 @@ function DynamicNewTaskTitlePage() {
                 onBackButtonPress={goBack}
             />
             <FormProvider
+                shouldConstrainWebContentHeight
                 submitFlexEnabled={false}
                 formID={ONYXKEYS.FORMS.NEW_TASK_FORM}
                 submitButtonText={translate('common.next')}
@@ -96,6 +97,7 @@ function DynamicNewTaskTitlePage() {
                             label={translate('task.title')}
                             accessibilityLabel={translate('task.title')}
                             autoGrowHeight
+                            shouldSubmitForm
                             type="markdown"
                             maxAutoGrowHeight={maxAutoGrowHeight}
                         />

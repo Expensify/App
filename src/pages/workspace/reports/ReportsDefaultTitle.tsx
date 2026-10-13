@@ -105,6 +105,7 @@ function ReportsDefaultTitlePage({route}: RulesCustomNamePageProps) {
                     <RenderHTML html={translate('workspace.reports.customNameDescription')} />
                 </View>
                 <FormProvider
+                    shouldConstrainWebContentHeight
                     submitFlexEnabled={false}
                     style={[styles.flexGrow1, styles.mh5]}
                     formID={ONYXKEYS.FORMS.REPORTS_DEFAULT_TITLE_MODAL_FORM}
@@ -134,6 +135,7 @@ function ReportsDefaultTitlePage({route}: RulesCustomNamePageProps) {
                                     spellCheck={false}
                                     autoFocus
                                     autoGrowHeight
+                                    shouldSubmitForm
                                     ref={(el: BaseTextInputRef | null): void => {
                                         if (!isInputInitializedRef.current) {
                                             updateMultilineInputRange(el);

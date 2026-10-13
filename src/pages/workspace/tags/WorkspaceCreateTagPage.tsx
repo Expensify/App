@@ -132,6 +132,7 @@ function WorkspaceCreateTagPage({route}: WorkspaceCreateTagPageProps) {
                     onBackButtonPress={() => Navigation.goBack(isDynamicFlow ? backPath : undefined)}
                 />
                 <FormProvider
+                    shouldConstrainWebContentHeight
                     submitFlexEnabled={false}
                     formID={ONYXKEYS.FORMS.WORKSPACE_TAG_FORM}
                     onSubmit={(values) => createTag({...values, [INPUT_IDS.TAG_NAME]: StringUtils.lineBreaksToSpaces(values[INPUT_IDS.TAG_NAME])})}

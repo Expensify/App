@@ -79,6 +79,7 @@ function CompanyCardLayoutNamePage({route}: CompanyCardLayoutNamePageProps) {
                     onBackButtonPress={() => Navigation.goBack(dynamicAddNewPath)}
                 />
                 <FormProvider
+                    shouldConstrainWebContentHeight
                     submitFlexEnabled={false}
                     formID={ONYXKEYS.FORMS.COMPANY_CARD_LAYOUT_NAME_FORM}
                     submitButtonText={translate('common.save')}

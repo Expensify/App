@@ -187,6 +187,7 @@ function RejectExpenseReportPage({route}: RejectExpenseReportPageProps) {
                 onBackButtonPress={Navigation.goBack}
             />
             <FormProvider
+                shouldConstrainWebContentHeight
                 formID={ONYXKEYS.FORMS.REPORT_REJECT_FORM}
                 submitButtonText={translate('iou.rejectReport.title')}
                 style={[styles.flexGrow1, styles.ph5]}
@@ -215,6 +216,7 @@ function RejectExpenseReportPage({route}: RejectExpenseReportPageProps) {
                             accessibilityLabel={translate('iou.rejectReport.rejectReason')}
                             ref={inputCallbackRef}
                             autoGrowHeight
+                            shouldSubmitForm
                             maxAutoGrowHeight={maxAutoGrowHeight}
                         />
                     )}

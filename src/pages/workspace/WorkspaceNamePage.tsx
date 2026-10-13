@@ -84,6 +84,7 @@ function WorkspaceNamePage({policy}: Props) {
                 />
 
                 <FormProvider
+                    shouldConstrainWebContentHeight
                     submitFlexEnabled={false}
                     formID={ONYXKEYS.FORMS.WORKSPACE_SETTINGS_FORM}
                     submitButtonText={translate('workspace.editor.save')}

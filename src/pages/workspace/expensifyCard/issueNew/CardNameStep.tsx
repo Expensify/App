@@ -110,6 +110,7 @@ function CardNameStep({policyID, stepNames, startStepIndex}: CardNameStepProps) 
         >
             {!isInLandscapeMode && <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mv3]}>{translate('workspace.card.issueNewCard.giveItName')}</Text>}
             <FormProvider
+                shouldConstrainWebContentHeight
                 submitFlexEnabled={false}
                 formID={ONYXKEYS.FORMS.ISSUE_NEW_EXPENSIFY_CARD_FORM}
                 submitButtonText={translate(isEditing ? 'common.confirm' : 'common.next')}

@@ -67,6 +67,7 @@ function DynamicCategoryDescriptionHintPage({
                     onBackButtonPress={() => Navigation.goBack(categorySettingsBackPath)}
                 />
                 <FormProvider
+                    shouldConstrainWebContentHeight
                     submitFlexEnabled={false}
                     style={[styles.flexGrow1, styles.mh5]}
                     formID={ONYXKEYS.FORMS.WORKSPACE_CATEGORY_DESCRIPTION_HINT_FORM}

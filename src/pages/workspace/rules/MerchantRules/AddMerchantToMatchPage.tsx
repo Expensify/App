@@ -98,6 +98,7 @@ function AddMerchantToMatchPage({route}: AddMerchantToMatchPageProps) {
                 onBackButtonPress={goBack}
             />
             <FormProvider
+                shouldConstrainWebContentHeight
                 submitFlexEnabled={false}
                 style={[styles.flex1]}
                 formID={ONYXKEYS.FORMS.MERCHANT_RULE_FORM}

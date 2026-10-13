@@ -101,6 +101,7 @@ function PolicyDistanceRateNameEditPage({route}: PolicyDistanceRateNameEditPageP
                     onBackButtonPress={() => Navigation.goBack()}
                 />
                 <FormProvider
+                    shouldConstrainWebContentHeight
                     submitFlexEnabled={false}
                     formID={ONYXKEYS.FORMS.POLICY_DISTANCE_RATE_NAME_EDIT_FORM}
                     onSubmit={(values) => submit({...values, [INPUT_IDS.RATE_NAME]: StringUtils.lineBreaksToSpaces(values[INPUT_IDS.RATE_NAME])})}

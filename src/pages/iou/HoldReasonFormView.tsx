@@ -49,6 +49,7 @@ function HoldReasonFormView({backTo, validate, onSubmit, expenseCount = 1, isSub
                 onBackButtonPress={() => Navigation.goBack(backTo)}
             />
             <FormProvider
+                shouldConstrainWebContentHeight
                 submitFlexEnabled={false}
                 formID="moneyHoldReasonForm"
                 submitButtonText={translate('iou.holdExpense', {count: expenseCount})}

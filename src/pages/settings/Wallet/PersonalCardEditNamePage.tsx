@@ -85,6 +85,7 @@ function PersonalCardEditNamePage({route}: PersonalCardEditNamePageProps) {
             />
             <Text style={[styles.mh5, styles.mt3, styles.mb5]}>{translate('workspace.moreFeatures.companyCards.giveItNameInstruction')}</Text>
             <FormProvider
+                shouldConstrainWebContentHeight
                 submitFlexEnabled={false}
                 formID={ONYXKEYS.FORMS.EDIT_PERSONAL_CARD_NAME_FORM}
                 submitButtonText={translate('common.save')}
