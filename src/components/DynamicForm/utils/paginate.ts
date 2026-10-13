@@ -24,7 +24,7 @@ function toSlug(key: string): string {
 }
 
 /**
- * Groups a flat list of fields into pages. Fields that need room (addresses, files, multiselects, dependent or large selects) get a page of their own,
+ * Groups a flat list of fields into pages. Fields that need room (addresses, files, multi-selects, dependent or large selects) get a page of their own,
  * and the rest share a page up to `MAX_FIELDS_PER_PAGE` in a row. A field with `showWhen` joins the page of its controller and does not count toward that limit.
  * The pages have no title and no key, `getPages` names them.
  */

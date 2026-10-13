@@ -98,7 +98,7 @@ describe('getPages', () => {
         expect(pages.map((page) => page.key)).toEqual(['page-1', 'page-2']);
     });
 
-    it('slugifies keys, reserves confirm and makes keys unique', () => {
+    it('turns keys into URL-safe slugs, reserves confirm and makes keys unique', () => {
         // Given pages whose keys are not URL-safe, collide, or take the confirmation route
         const content = [text('a')];
         const pages = getPages({
