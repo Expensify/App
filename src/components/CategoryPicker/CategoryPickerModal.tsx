@@ -2,13 +2,18 @@ import PopoverWithMeasuredContent from '@components/PopoverWithMeasuredContent';
 import type PopoverWithMeasuredContentProps from '@components/PopoverWithMeasuredContent/types';
 import type {ListItem} from '@components/SelectionList/types';
 
+import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
 import useKeyboardState from '@hooks/useKeyboardState';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useViewportOffsetTop from '@hooks/useViewportOffsetTop';
+import useWindowDimensions from '@hooks/useWindowDimensions';
 
 import {getEnabledCategoriesCount} from '@libs/CategoryUtils';
+import getBottomSheetHeight from '@libs/getBottomSheetHeight';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import getSelectionListPopoverContentHeight from '@libs/getSelectionListPopoverContentHeight';
 
@@ -69,7 +74,14 @@ function CategoryPickerModal({
     const StyleUtils = useStyleUtils();
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth -- must match PopoverWithMeasuredContent's dock decision (bottom-docked only when isSmallScreenWidth)
     const {isSmallScreenWidth} = useResponsiveLayout();
-    const {isKeyboardActive} = useKeyboardState();
+    const {isKeyboardActive, keyboardActiveHeight} = useKeyboardState();
+    const {windowHeight} = useWindowDimensions();
+    const viewportOffsetTop = useViewportOffsetTop();
+    const {top: safeAreaTop} = useSafeAreaInsets();
+    const bottomSafeAreaPaddingStyle = useBottomSafeSafeAreaPaddingStyle({
+        addBottomSafeAreaPadding: isSmallScreenWidth && !isKeyboardActive,
+        addOfflineIndicatorBottomSafeAreaPadding: false,
+    });
     const anchorRef = useRef<ComponentRef<typeof View>>(null);
 
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${getNonEmptyStringOnyxID(policyID)}`, {selector: getEnabledCategoriesCount});
@@ -79,9 +91,19 @@ function CategoryPickerModal({
     const isSearchable = categoriesCount >= CONST.STANDARD_LIST_ITEM_LIMIT;
     const estimatedContentHeight = getSelectionListPopoverContentHeight({optionCount: Math.max(renderedRowCount ?? categoriesCount, 1), isSearchable});
 
-    // A bottom sheet is sized by the screen, so the content estimate only applies to the pop-over.
-    const resolvedHeight = shouldFitContentHeight && !isSmallScreenWidth ? Math.min(popoverHeight, estimatedContentHeight) : popoverHeight;
+    const bottomSheetHeight = getBottomSheetHeight({
+        preferredHeight: popoverHeight,
+        windowHeight,
+        keyboardHeight: isKeyboardActive ? keyboardActiveHeight : 0,
+        topSafeAreaInset: safeAreaTop,
+        minHeight: getSelectionListPopoverContentHeight({optionCount: 1, isSearchable}),
+    });
+    const popoverContentHeight = shouldFitContentHeight ? Math.min(popoverHeight, estimatedContentHeight) : popoverHeight;
+    const resolvedHeight = isSmallScreenWidth ? bottomSheetHeight : popoverContentHeight;
     const popoverDimensions = {width: popoverWidth, height: resolvedHeight};
+    // Mobile Safari ignores `interactive-widget=resizes-content` and leaves the sheet docked behind the keyboard, so on mobile browsers
+    // the sheet is sized and offset to the visual viewport, which the keyboard does shrink.
+    const outerStyle = isSmallScreenWidth ? {...styles.w100, ...StyleUtils.getOuterModalStyle(windowHeight, viewportOffsetTop)} : undefined;
 
     const handleCategorySelect = (item: ListItem) => {
         // If clicking the same category that's already selected, treat it as deselection
@@ -109,14 +131,15 @@ function CategoryPickerModal({
             shouldSkipRemeasurement
             shouldDisplayBelowModals
             enableEdgeToEdgeBottomSafeAreaPadding
+            avoidKeyboard={isSmallScreenWidth}
+            outerStyle={outerStyle}
         >
-            <View style={[StyleUtils.getHeight(popoverDimensions.height), styles.flexColumn, styles.pt4]}>
+            <View style={[StyleUtils.getHeight(popoverDimensions.height), styles.flexColumn, styles.pt4, bottomSafeAreaPaddingStyle]}>
                 <CategoryPicker
                     onRenderedRowCountChange={setRenderedRowCount}
                     selectedCategory={selectedCategory}
                     policyID={policyID}
                     onSubmit={handleCategorySelect}
-                    addBottomSafeAreaPadding={isSmallScreenWidth && !isKeyboardActive}
                     shouldAutoFocusSearchInput
                 />
             </View>
