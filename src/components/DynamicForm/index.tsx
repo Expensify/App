@@ -14,7 +14,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {DynamicFormPage} from '@src/types/onyx';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
-import React, {useEffect, useRef} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 
 import type {DynamicFormFlowProps, DynamicFormSubPageProps, DynamicFormValues} from './types';
 
@@ -137,14 +137,6 @@ function DynamicFormFlow({
         clearSensitiveAnswers(formID);
     }, [isRedirecting, formID]);
 
-    // Leaving the flow any way other than its Back button (hardware back, swipe, a link) must not leave sensitive answers behind
-    useEffect(
-        () => () => {
-            clearSensitiveAnswers(formID);
-        },
-        [formID],
-    );
-
     // A submission that finishes without an error drops the sensitive answers
     const wasSubmittingRef = useRef(false);
     useEffect(() => {
@@ -210,7 +202,12 @@ function DynamicFormFlow({
     const stepNames = [...shownPages.map((page) => getPageTitle(page, values, translate, allFields)), ...(hasConfirmationPage ? [translate('common.confirm')] : [])];
     const currentShownPageIndex = shownPages.findIndex((page) => page.key === currentPageName);
     const stepIndex = currentShownPageIndex === -1 ? stepNames.length - 1 : currentShownPageIndex;
-    const isStepIndicatorAsked = layout === 'auto' ? shownPages.length >= CONST.DYNAMIC_FORM.STEP_INDICATOR_MIN_PAGES : layout === 'stepper';
+    // The shell swaps its root when the indicator toggles, which remounts the page. So `auto` decides once, from the answers the draft held on arrival, and keeps it while the user types.
+    const [isAutoStepIndicatorAsked, setIsAutoStepIndicatorAsked] = useState<boolean>();
+    if (!isDraftLoading && isAutoStepIndicatorAsked === undefined) {
+        setIsAutoStepIndicatorAsked(shownPages.length >= CONST.DYNAMIC_FORM.STEP_INDICATOR_MIN_PAGES);
+    }
+    const isStepIndicatorAsked = layout === 'auto' ? !!isAutoStepIndicatorAsked : layout === 'stepper';
 
     return (
         <DynamicFormShell

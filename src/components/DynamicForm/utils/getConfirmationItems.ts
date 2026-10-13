@@ -35,6 +35,7 @@ function getConfirmationItems(
                     title: isSensitiveField(field) ? maskSensitiveValue(answer) : answer,
                     shouldShowRightIcon: !field.readonly,
                     onPress: field.readonly ? () => {} : () => onEditPage(pageIndex),
+                    interactive: !field.readonly,
                 };
             }),
         }))

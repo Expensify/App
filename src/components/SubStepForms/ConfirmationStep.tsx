@@ -24,6 +24,9 @@ type SummaryItem = {
     title: string;
     shouldShowRightIcon: boolean;
     onPress: () => void;
+
+    /** False for a row that opens nothing, so it is not announced as a button. Defaults to true. */
+    interactive?: boolean;
     brickRoadIndicator?: BrickRoad;
     errorText?: string;
     testID?: string;
@@ -87,7 +90,7 @@ function ConfirmationStep({
             contentContainerStyle={[styles.flexGrow1, shouldApplySafeAreaPaddingBottom && {paddingBottom: safeAreaInsetPaddingBottom + styles.pb5.paddingBottom}]}
         >
             <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mb3]}>{pageTitle}</Text>
-            {summaryItems.map(({id, description, title, shouldShowRightIcon, onPress, brickRoadIndicator, errorText, testID}) => (
+            {summaryItems.map(({id, description, title, shouldShowRightIcon, onPress, interactive, brickRoadIndicator, errorText, testID}) => (
                 <MenuItemWithTopDescription
                     key={id}
                     pressableTestID={testID ?? id}
@@ -95,6 +98,7 @@ function ConfirmationStep({
                     title={title}
                     shouldShowRightIcon={shouldShowRightIcon}
                     onPress={onPress}
+                    interactive={interactive}
                     brickRoadIndicator={brickRoadIndicator}
                     errorText={errorText}
                     forwardedFSClass={forwardedFSClass}
@@ -105,7 +109,7 @@ function ConfirmationStep({
                 <View key={group.id}>
                     {index > 0 && <View style={[styles.mh5, styles.mt3, styles.borderBottom]} />}
                     {!!group.name && <Text style={[styles.textNormalThemeText, styles.textLineHeightNormal, styles.textStrong, styles.ph5, styles.mt4, styles.mb1]}>{group.name}</Text>}
-                    {group.rows.map(({id, description, title, shouldShowRightIcon, onPress, brickRoadIndicator, errorText, testID}) => (
+                    {group.rows.map(({id, description, title, shouldShowRightIcon, onPress, interactive, brickRoadIndicator, errorText, testID}) => (
                         <MenuItemWithTopDescription
                             key={id}
                             pressableTestID={testID ?? id}
@@ -113,6 +117,7 @@ function ConfirmationStep({
                             title={title}
                             shouldShowRightIcon={shouldShowRightIcon}
                             onPress={onPress}
+                            interactive={interactive}
                             brickRoadIndicator={brickRoadIndicator}
                             errorText={errorText}
                             forwardedFSClass={forwardedFSClass}

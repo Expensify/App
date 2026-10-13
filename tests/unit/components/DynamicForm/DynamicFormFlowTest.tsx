@@ -201,16 +201,16 @@ describe('DynamicFormFlow', () => {
         expect(mockCurrentPage).toHaveBeenCalled();
     });
 
-    it('drops the sensitive answers when the flow unmounts', async () => {
-        // Given a flow that was left by the hardware back button or a link instead of its own Back button
+    it('keeps the sensitive answers when a page of the flow unmounts', async () => {
+        // Given a flow where every page is its own screen, so moving between pages unmounts one instance
         const {unmount} = await renderFlow();
         jest.mocked(clearSensitiveAnswers).mockClear();
 
-        // When the flow unmounts
+        // When a page instance unmounts while the user is still in the flow
         unmount();
 
-        // Then the sensitive answers do not stay in memory for the next visit
-        expect(clearSensitiveAnswers).toHaveBeenCalledWith(FORM_ID);
+        // Then the sensitive answers stay, so Back and Next do not wipe what the user already entered
+        expect(clearSensitiveAnswers).not.toHaveBeenCalled();
     });
 
     it('paginates a flat list of fields', async () => {
