@@ -146,6 +146,10 @@ function init() {
                 try {
                     // @ts-expect-error TypeScript can't confirm the shape of dependencyValues matches the compute function's parameters
                     const newDerivedValue = compute(dependencyValues, context);
+
+                    // A config signals "nothing changed" by handing back the exact `currentValue` reference it was
+                    // given. Writing in that case rewrites the whole value to disk and notifies every subscriber with
+                    // a value equal to the one it already holds, so skip it.
                     if (newDerivedValue === derivedValue) {
                         return;
                     }

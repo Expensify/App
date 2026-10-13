@@ -6363,9 +6363,8 @@ describe('actions/Report', () => {
 
             const reportsCollectionAfter = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}`);
 
-            // Post-init, a known-but-empty collection resolves to the frozen `{}` (the legacy
-            // `undefined`-for-empty-collection shim was removed in Onyx). What we want to assert
-            // here is that no report was created — the collection has zero members.
+            // Onyx resolves a registered collection with no members to the frozen `{}` once init has run.
+            // The assertion here is that no report was created, so the collection has zero members.
             expect(reportsCollectionAfter).toEqual({});
         });
     });

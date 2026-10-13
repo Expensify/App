@@ -697,8 +697,7 @@ describe('actions/IOU', () => {
             resetDraftTransactionsCustomUnit(undefined);
             await waitForBatchedUpdates();
             const allDraftTransactions = await getOnyxValue(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT);
-            // Post-init, a known-but-empty collection resolves to the frozen `{}` (the legacy
-            // `undefined`-for-empty-collection shim was removed in Onyx).
+            // Onyx resolves a registered collection with no members to the frozen `{}` once init has run.
             expect(allDraftTransactions).toEqual({});
         });
         it('should reset custom unit for a transaction', async () => {
