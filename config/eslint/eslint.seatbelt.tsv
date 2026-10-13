@@ -1444,7 +1444,6 @@
 "../../src/pages/workspace/accounting/netsuite/NetSuiteTokenInput/subPages/NetSuiteTokenSetupContent.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/pages/workspace/accounting/PolicyAccountingPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/pages/workspace/accounting/PolicyAccountingPage.tsx"	"no-restricted-imports"	1
-"../../src/pages/workspace/accounting/PolicyAccountingPage.tsx"	"react-hooks/set-state-in-effect"	1
 "../../src/pages/workspace/accounting/qbd/advanced/QuickbooksDesktopAccountingMethodPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/workspace/accounting/qbd/export/DynamicQuickbooksDesktopCompanyCardExpenseAccountSelectCardPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/workspace/accounting/qbd/export/DynamicQuickbooksDesktopOutOfPocketExpenseEntitySelectPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
