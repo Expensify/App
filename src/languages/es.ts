@@ -17,6 +17,7 @@ import type {ValueOf} from 'type-fest';
 import {CONST as COMMON_CONST, Str} from 'expensify-common';
 
 import type en from './en';
+import type {CompanyCardBalanceParams} from './params';
 import type {AllConnectionName, PolicyConnectionSyncStage} from './TranslationTypes';
 import type {TranslationDeepObject} from './types';
 const translations: TranslationDeepObject<typeof en> = {
@@ -439,6 +440,7 @@ const translations: TranslationDeepObject<typeof en> = {
         leaveWorkspaceReimburser:
             'No puedes salir de este espacio de trabajo como reembolsador. Por favor, establece un nuevo reembolsador en Espacios de trabajo > Realizar o rastrear pagos y luego inténtalo de nuevo.',
         reimbursable: 'Reembolsable',
+        nonReimbursable: 'No reembolsable',
         editYourProfile: 'Edita tu perfil',
         comments: 'Comentarios',
         sharedIn: 'Compartido en',
@@ -619,15 +621,6 @@ const translations: TranslationDeepObject<typeof en> = {
         launching: 'Cargando Expensify',
         expired: 'Tu sesión ha expirado.',
         signIn: 'Por favor, inicia sesión de nuevo.',
-        notValid: 'Enlace no válido.',
-        sessionMismatch: 'El enlace que has pulsado no es válido para tu sesión actual.',
-        switchAccount: {
-            title: '¿Cambiar de cuenta?',
-            prompt: ({newEmail, currentEmail}: {newEmail: string; currentEmail: string}) =>
-                `Has iniciado sesión como ${currentEmail}. Esta acción hará que inicies sesión como ${newEmail} en su lugar.`,
-            confirm: 'Cambiar de cuenta',
-            staySignedIn: 'No cambies de cuenta',
-        },
     },
     multifactorAuthentication: {
         reviewTransaction: {
@@ -1318,7 +1311,7 @@ const translations: TranslationDeepObject<typeof en> = {
         addAdditionalReceipt: 'Añadir recibo adicional',
         scanFailed: 'El recibo no pudo ser escaneado, ya que falta el comerciante, la fecha o el importe.',
         crop: 'Recortar',
-        pageCount: ({pageCount}: {pageCount: number}) => `Página 1 de ${pageCount}`,
+        pageCount: ({page, pageCount}: {page: number; pageCount: number}) => `Página ${page} de ${pageCount}`,
         addAReceipt: {
             phrase1: 'Añade un recibo',
             phrase2: 'o arrastra y suelta uno aquí',
@@ -1648,7 +1641,6 @@ const translations: TranslationDeepObject<typeof en> = {
             other: 'Error inesperado. Por favor, inténtalo más tarde.',
             genericHoldExpenseFailureMessage: 'Error inesperado al retener el gasto. Por favor, inténtalo de nuevo más tarde.',
             genericUnholdExpenseFailureMessage: 'Error inesperado al desbloquear el gasto. Por favor, inténtalo de nuevo más tarde.',
-            payFailedExpenseDeleted: 'El pago falló porque el informe de gastos fue eliminado.',
             genericCreateFailureMessage: 'Error inesperado al enviar este gasto. Por favor, inténtalo más tarde.',
             genericCreateInvoiceFailureMessage: 'Error inesperado al enviar la factura. Por favor, inténtalo de nuevo más tarde.',
             receiptDeleteFailureError: 'Error inesperado al borrar este recibo. Por favor, vuelve a intentarlo más tarde.',
@@ -2220,6 +2212,7 @@ const translations: TranslationDeepObject<typeof en> = {
     displayNamePage: {
         headerTitle: 'Nombre',
         isShownOnProfile: 'Este nombre es visible en tu perfil.',
+        isShownOnMemberProfile: 'El nombre para mostrar aparecerá en el perfil del miembro. Una vez guardado, solo el miembro podrá editarlo.',
     },
     timezonePage: {
         timezone: 'Zona horaria',
@@ -2266,7 +2259,6 @@ const translations: TranslationDeepObject<typeof en> = {
             useProfiling: 'Usar el trazado',
             profileTrace: 'Traza de ejecución',
             results: 'Resultados',
-            releaseOptions: 'Opciones de publicación',
             testingPreferences: 'Preferencias para Tests',
             server: 'Servidor',
             servers: {
@@ -3913,6 +3905,10 @@ ${amount} para ${merchant} - ${date}`,
     },
     dynamicForm: {
         exampleHint: ({example}: {example: string}) => `Ejemplo: ${example}`,
+        fileCount: ({count}: {count: number}) => ({
+            one: '1 archivo',
+            other: `${count} archivos`,
+        }),
         error: {
             tooShort: ({minLength}: {minLength: number}) => `Debe tener al menos ${minLength} caracteres`,
             invalidFormat: ({example}: {example?: string}) => (example ? `Formato inválido. Ejemplo: ${example}` : 'Formato inválido'),
@@ -6069,6 +6065,11 @@ ${amount} para ${merchant} - ${date}`,
             syncReimbursedReports: 'Sincronizar informes reembolsados',
             syncReimbursedReportsDescription: 'Cuando un informe se pague mediante ACH, se generará un pago de factura en esta cuenta.',
             billPaymentAccount: {label: 'Cuenta de pago de facturas', description: 'Elige desde dónde pagar las facturas y crearemos el pago en DualEntry.'},
+            fxExpenseAccount: {
+                label: 'Cuenta de comisión por conversión de divisa de DualEntry',
+                description:
+                    'Cuando tu empresa cubra el coste de conversión de divisa en un pago realizado en el extranjero, registraremos ese coste en esta cuenta en DualEntry como un asiento contable.',
+            },
             syncExpensifyCardSettlements: 'Sincronizar liquidaciones de la Tarjeta Expensify',
             settlementAccount: {label: 'Cuenta de liquidación de la Tarjeta Expensify', description: 'Elige tu cuenta de liquidación y crearemos el pago en DualEntry.'},
             syncTravelInvoicingSettlements: 'Sincronizar liquidaciones de facturación de viajes',
@@ -6082,6 +6083,15 @@ ${amount} para ${merchant} - ${date}`,
             submit: 'Enviar',
         },
         companyCards: {
+            balance: {
+                currentBalance: 'Saldo actual',
+                remainingLimit: 'Límite restante',
+                notAvailable: 'No disponible',
+                currentBalanceDescription: ({lastUpdated}: CompanyCardBalanceParams) => `El saldo actual es informado por tu banco y se actualizó por última vez el ${lastUpdated}.`,
+                remainingLimitDescription: ({lastUpdated}: CompanyCardBalanceParams) => `El límite restante lo informa tu banco y se actualizó por última vez el ${lastUpdated}.`,
+                currentBalanceDescriptionNoTimestamp: 'Tu banco informa del saldo actual.',
+                remainingLimitDescriptionNoTimestamp: 'El límite restante lo indica tu banco.',
+            },
             addCards: 'Añadir tarjetas',
             selectCards: 'Seleccionar tarjetas',
             fromOtherWorkspaces: 'De otros espacios de trabajo',
@@ -8398,6 +8408,8 @@ ${reportName}`,
                 applyUpdates: 'Aplicar estas actualizaciones:',
                 saveRule: 'Guardar regla',
                 previewMatches: 'Vista previa de coincidencias',
+                previewMatchesDescription: 'Mira cómo se aplica esta regla a tus gastos',
+                preview: 'Vista previa',
                 confirmError: 'Ingresa comerciante y aplica al menos una actualización',
                 confirmErrorMerchant: 'Por favor ingresa comerciante',
                 confirmErrorUpdate: 'Por favor aplica al menos una actualización',
@@ -8707,6 +8719,14 @@ ${reportName}`,
                 requireFieldsDescription: 'Exige campos específicos de gasto o renuncia a exigirlos.',
                 createAgentRule: 'Describir regla de agente',
                 createAgentRuleDescription: 'Crea reglas flexibles que se ejecuten cuando las necesites.',
+                describe: 'Describir',
+                describeRule: 'Describe tu regla con tus propias palabras y Concierge la creará por ti',
+                describeRuleInputLabel: 'Describe la regla',
+                promptErrors: {
+                    unsupported: 'Esa regla aún no es compatible: estamos trabajando en ello. Prueba con otra regla por ahora.',
+                    unintelligible: 'Prueba a formular tu regla así: si los gastos superan los $100, exige un recibo.',
+                    multipleRules: 'Una regla a la vez, por favor. Prueba a describir una sola regla, como: bloquear compras en comercios minoristas en todas las tarjetas.',
+                },
             },
             expenseDefaultsTable: {
                 tableColumnType: 'Tipo',
@@ -9575,6 +9595,8 @@ ${reportName}`,
         customUnitRateDateRangeFrom: (date: string) => `desde ${date}`,
         customUnitRateDateRangeUntilEnd: (date: string) => `hasta ${date}`,
         customUnitRateDateRangeAllDates: () => `para todas las fechas`,
+        updatedMemberDisplayName: (newName: string, oldName: string, editProfileURL: string) =>
+            `actualizó tu nombre para mostrar a ${newName} (previamente «${oldName}»). <a href="${editProfileURL}">Editar en tu perfil</a>`,
         policyCopy: {
             overview: (sourcePolicyName: string, sourcePolicyURL: string) => `copió la descripción general de <a href="${sourcePolicyURL}">${sourcePolicyName}</a>`,
             currency: (sourcePolicyName: string, sourcePolicyURL: string) => `copió la divisa de <a href="${sourcePolicyURL}">${sourcePolicyName}</a>`,
@@ -10066,12 +10088,7 @@ ${reportName}`,
         },
     },
     settlement: {
-        status: {
-            pending: 'Pendiente',
-            cleared: 'Liquidado',
-            failed: 'Fallido',
-            never: 'Nunca',
-        },
+        status: {pending: 'Pendiente', cleared: 'Liquidado', failed: 'Fallido', never: 'Nunca', cashBack: 'Devolución de dinero'},
         failedError: ({link}: {link: string}) => `Reintentaremos esta liquidación cuando <a href="${link}">desbloquees tu cuenta</a>.`,
         withdrawalInfo: ({date, withdrawalID}: {date: string; withdrawalID: number}) => `${date} • ID de retiro: ${withdrawalID}`,
     },
@@ -10104,6 +10121,10 @@ ${reportName}`,
         genericUpdateReportFieldFailureMessage: 'Error inesperado al actualizar el campo. Por favor, inténtalo más tarde.',
         genericUpdateReportNameEditFailureMessage: 'Error inesperado al cambiar el nombre del informe. Por favor, intentarlo más tarde.',
         noActivityYet: 'Sin actividad todavía',
+        collapsedSystemMessages: () => ({
+            one: 'mostrar 1 actualización',
+            other: (count: number) => `mostrar ${count} actualizaciones`,
+        }),
         connectionSettings: 'Configuración de conexión',
         actions: {
             type: {
@@ -11519,6 +11540,16 @@ ${reportName}`,
                 other: `${count} usuarios activos`,
             }),
             state: {paid: 'Pagado', cleared: 'Borrado', failed: 'Error', refunded: 'Reembolsado', disputed: 'En disputa', balanceTransfer: 'Transferencia de saldo'},
+            details: 'Detalles del pago',
+            badge: {
+                balanceTransferTo: ({email}: {email: string}) => `Transferencia de saldo a ${email}`,
+                balanceTransferFrom: ({email}: {email: string}) => `Transferencia de saldo de ${email}`,
+                disputedPending: ({date}: {date: string}) => `En disputa el ${date} (Pendiente)`,
+                disputedRefunded: ({date}: {date: string}) => `En disputa el ${date} (Reembolsado)`,
+                disputedClosed: ({date}: {date: string}) => `En disputa el ${date} (Cerrado)`,
+                refundedOn: ({date}: {date: string}) => `Reembolsado el ${date}`,
+                refundedAmountOn: ({amount, date}: {amount: string; date: string}) => `Reembolsado ${amount} el ${date}`,
+            },
         },
         subscriptionSettings: {
             title: 'Configuración de suscripción',

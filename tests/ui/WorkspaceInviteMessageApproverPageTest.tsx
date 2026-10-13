@@ -3,6 +3,7 @@ import {act, fireEvent, render, screen, waitFor} from '@testing-library/react-na
 import ComposeProviders from '@components/ComposeProviders';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
+import PersonalDetailsByLoginProvider from '@components/PersonalDetailsByLoginProvider';
 
 import {CurrentReportIDContextProvider} from '@hooks/useCurrentReportID';
 import * as useResponsiveLayoutModule from '@hooks/useResponsiveLayout';
@@ -37,7 +38,7 @@ const Stack = createPlatformStackNavigator<SettingsNavigatorParamList>();
 
 const renderPage = (initialRouteName: typeof SCREENS.WORKSPACE.INVITE_MESSAGE_APPROVER, initialParams: SettingsNavigatorParamList[typeof SCREENS.WORKSPACE.INVITE_MESSAGE_APPROVER]) => {
     return render(
-        <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, CurrentReportIDContextProvider]}>
+        <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, CurrentReportIDContextProvider, PersonalDetailsByLoginProvider]}>
             <PortalProvider>
                 <NavigationContainer>
                     <Stack.Navigator initialRouteName={initialRouteName}>

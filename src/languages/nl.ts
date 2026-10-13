@@ -26,6 +26,7 @@ import {CONST as COMMON_CONST, Str} from 'expensify-common';
 import startCase from 'lodash/startCase';
 
 import type en from './en';
+import type {CompanyCardBalanceParams} from './params';
 import type {TranslationDeepObject} from './types';
 type StateValue = {
     stateISO: string;
@@ -449,6 +450,7 @@ const translations: TranslationDeepObject<typeof en> = {
         leaveWorkspaceReimburser:
             'Je kunt deze workspace niet verlaten als terugbetaler. Stel een nieuwe terugbetaler in via Workspaces > Betalingen doen of volgen en probeer het dan opnieuw.',
         reimbursable: 'Vergoedbaar',
+        nonReimbursable: 'Niet-vergoedbaar',
         editYourProfile: 'Bewerk je profiel',
         comments: 'Opmerkingen',
         sharedIn: 'Gedeeld in',
@@ -628,15 +630,6 @@ const translations: TranslationDeepObject<typeof en> = {
         launching: 'Expensify wordt gestart',
         expired: 'Je sessie is verlopen.',
         signIn: 'Meld je opnieuw aan.',
-        notValid: 'Ongeldige link.',
-        sessionMismatch: 'De link waarop je hebt geklikt is niet geldig voor je huidige sessie.',
-        switchAccount: {
-            title: 'Van account wisselen?',
-            prompt: ({newEmail, currentEmail}: {newEmail: string; currentEmail: string}) =>
-                `Je bent aangemeld als ${currentEmail}. Deze actie meldt je in plaats daarvan aan als ${newEmail}.`,
-            confirm: 'Van account wisselen',
-            staySignedIn: 'Niet van account wisselen',
-        },
     },
     multifactorAuthentication: {
         reviewTransaction: {
@@ -1326,7 +1319,7 @@ const translations: TranslationDeepObject<typeof en> = {
             phrase1: 'Voeg een bon toe',
             phrase2: 'of sleep ze hier naartoe',
         },
-        pageCount: ({pageCount}: {pageCount: number}) => `Pagina 1 van ${pageCount}`,
+        pageCount: ({page, pageCount}: {page: number; pageCount: number}) => `Pagina ${page} van ${pageCount}`,
     },
     quickAction: {
         scanReceipt: 'Bon scannen',
@@ -1634,7 +1627,6 @@ const translations: TranslationDeepObject<typeof en> = {
             invalidSplitYourself: 'Voer een ander bedrag dan nul in voor je verdeling',
             noParticipantSelected: 'Selecteer een deelnemer',
             other: 'Onverwachte fout. Probeer het later opnieuw.',
-            payFailedExpenseDeleted: 'De betaling is mislukt omdat de declaratie is verwijderd.',
             genericCreateFailureMessage: 'Onverwachte fout bij het indienen van deze uitgave. Probeer het later opnieuw.',
             genericCreateInvoiceFailureMessage: 'Onverwachte fout bij het verzenden van deze factuur. Probeer het later opnieuw.',
             genericHoldExpenseFailureMessage: 'Onverwachte fout bij het vasthouden van deze uitgave. Probeer het later opnieuw.',
@@ -2300,6 +2292,7 @@ const translations: TranslationDeepObject<typeof en> = {
     displayNamePage: {
         headerTitle: 'Weergavenaam',
         isShownOnProfile: 'Je weergavenaam wordt weergegeven op je profiel.',
+        isShownOnMemberProfile: 'De schermnaam verschijnt op het profiel van het lid. Zodra die is opgeslagen, kan alleen het lid deze nog wijzigen.',
     },
     timezonePage: {
         timezone: 'Tijdzone',
@@ -2346,7 +2339,6 @@ const translations: TranslationDeepObject<typeof en> = {
             useProfiling: 'Profiling gebruiken',
             profileTrace: 'Profieltracering',
             results: 'Resultaten',
-            releaseOptions: 'Opties voor vrijgeven',
             testingPreferences: 'Testvoorkeuren',
             server: 'Server',
             servers: {
@@ -3982,6 +3974,10 @@ ${amount} voor ${merchant} - ${date}`,
     },
     dynamicForm: {
         exampleHint: ({example}: {example: string}) => `Voorbeeld: ${example}`,
+        fileCount: ({count}: {count: number}) => ({
+            one: '1 bestand',
+            other: `${count} bestanden`,
+        }),
         error: {
             tooShort: ({minLength}: {minLength: number}) => `Moet minimaal ${minLength} tekens bevatten`,
             invalidFormat: ({example}: {example?: string}) => (example ? `Ongeldige indeling. Voorbeeld: ${example}` : 'Ongeldige indeling'),
@@ -6145,6 +6141,11 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
             syncReimbursedReports: 'Terugbetaalde rapporten synchroniseren',
             syncReimbursedReportsDescription: 'Wanneer een rapport via ACH wordt betaald, wordt er een rekeningbetaling in deze rekening gegenereerd.',
             billPaymentAccount: {label: 'Rekening voor rekeningbetalingen', description: 'Kies vanwaar je rekeningen wilt betalen en wij maken de betaling aan in DualEntry.'},
+            fxExpenseAccount: {
+                label: 'DualEntry-valutaconversiekostenrekening',
+                description:
+                    'Wanneer je bedrijf de kosten voor valutaomrekening dekt voor een betaling in het buitenland, boeken we die kosten in DualEntry op deze rekening als een journaalpost.',
+            },
             syncExpensifyCardSettlements: 'Expensify Kaart-afrekeningen synchroniseren',
             settlementAccount: {label: 'Rekening voor afwikkeling van Expensify Kaart', description: 'Kies je afwikkelingsrekening en wij maken de betaling aan in DualEntry.'},
             syncTravelInvoicingSettlements: 'Reisfacturatie-afrekeningen synchroniseren',
@@ -6158,6 +6159,15 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
             submit: 'Indienen',
         },
         companyCards: {
+            balance: {
+                currentBalance: 'Huidige saldo',
+                remainingLimit: 'Resterende limiet',
+                notAvailable: 'Niet beschikbaar',
+                currentBalanceDescription: ({lastUpdated}: CompanyCardBalanceParams) => `Het huidige saldo wordt door je bank doorgegeven en is het laatst bijgewerkt op ${lastUpdated}.`,
+                remainingLimitDescription: ({lastUpdated}: CompanyCardBalanceParams) => `Het resterende limiet wordt door je bank doorgegeven en is het laatst bijgewerkt op ${lastUpdated}.`,
+                currentBalanceDescriptionNoTimestamp: 'De huidige saldo wordt door je bank doorgegeven.',
+                remainingLimitDescriptionNoTimestamp: 'Het resterende limiet wordt door je bank doorgegeven.',
+            },
             addCards: 'Kaarten toevoegen',
             selectCards: 'Kaarten selecteren',
             fromOtherWorkspaces: 'Uit andere workspaces',
@@ -8293,6 +8303,8 @@ Vereis onkostendetails zoals bonnen en beschrijvingen, stel limieten en standaar
                 applyUpdates: 'Pas deze updates toe:',
                 saveRule: 'Regel opslaan',
                 previewMatches: 'Voorbeelden van overeenkomsten bekijken',
+                previewMatchesDescription: 'Bekijk hoe deze regel op je uitgaven wordt toegepast',
+                preview: 'Voorbeeld',
                 confirmError: 'Voer handelaar in en pas minstens één wijziging toe',
                 confirmErrorMerchant: 'Voer handelaar in',
                 confirmErrorUpdate: 'Pas ten minste één wijziging toe',
@@ -8627,6 +8639,14 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
                 requireFieldsDescription: 'Specifieke onkostenvakken verplicht stellen of afzien van het verplicht stellen ervan.',
                 createAgentRule: 'Agentregel beschrijven',
                 createAgentRuleDescription: 'Maak flexibele regels die worden uitgevoerd wanneer jij dat nodig hebt.',
+                describe: 'Beschrijven',
+                describeRule: 'Beschrijf je regel in gewone taal en Concierge maakt de regel voor je',
+                describeRuleInputLabel: 'Beschrijf de regel',
+                promptErrors: {
+                    unsupported: 'Die regel wordt nog niet ondersteund — we werken eraan. Probeer voorlopig een andere regel.',
+                    unintelligible: 'Formuleer je regel bijvoorbeeld zo: als uitgaven hoger zijn dan $100, vraag dan een bon.',
+                    multipleRules: 'Eén regel per keer graag — beschrijf één enkele regel, bijvoorbeeld: retailaankopen op alle kaarten blokkeren.',
+                },
             },
             expenseDefaultsTable: {
                 tableColumnType: 'Type',
@@ -9724,6 +9744,8 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
             return `heeft de deelnemers van categorie "${categoryName}" gewijzigd naar ${newValue ? 'verplicht' : 'niet verplicht'} (voorheen ${newValue ? 'niet verplicht' : 'verplicht'})`;
         },
         updatedAutoHarvesting: (enabled: boolean) => `${enabled ? 'ingeschakeld' : 'uitgeschakeld'} inzendingen`,
+        updatedMemberDisplayName: (newName: string, oldName: string, editProfileURL: string) =>
+            `je schermnaam bijgewerkt naar ${newName} (voorheen "${oldName}"). <a href="${editProfileURL}">Bewerk dit in je profiel</a>`,
         changedOverLimitForwardsTo: ({
             member,
             approver,
@@ -10173,12 +10195,7 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
         },
     },
     settlement: {
-        status: {
-            pending: 'In behandeling',
-            cleared: 'Verrekend',
-            failed: 'Mislukt',
-            never: 'Nooit',
-        },
+        status: {pending: 'In behandeling', cleared: 'Verrekend', failed: 'Mislukt', never: 'Nooit', cashBack: 'Cashback'},
         failedError: ({link}: {link: string}) => `We proberen deze afrekening opnieuw zodra je <a href="${link}">je account ontgrendelt</a>.`,
         withdrawalInfo: ({date, withdrawalID}: {date: string; withdrawalID: number}) => `${date} • Opname-ID: ${withdrawalID}`,
     },
@@ -10211,6 +10228,10 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
         genericUpdateReportFieldFailureMessage: 'Onverwachte fout bij het bijwerken van het veld. Probeer het later opnieuw.',
         genericUpdateReportNameEditFailureMessage: 'Onverwachte fout bij het hernoemen van het rapport. Probeer het later opnieuw.',
         noActivityYet: 'Nog geen activiteit',
+        collapsedSystemMessages: () => ({
+            one: '1 update tonen',
+            other: (count: number) => `${count} updates tonen`,
+        }),
         connectionSettings: 'Verbindingsinstellingen',
         actions: {
             type: {
@@ -11241,6 +11262,16 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
                 other: `${count} actieve gebruikers`,
             }),
             state: {paid: 'Betaald', cleared: 'Afgeboekt', failed: 'Mislukt', refunded: 'Terugbetaald', disputed: 'Betwist', balanceTransfer: 'Saldo-overboeking'},
+            details: 'Betalingsgegevens',
+            badge: {
+                balanceTransferTo: ({email}: {email: string}) => `Saldo-overboeking naar ${email}`,
+                balanceTransferFrom: ({email}: {email: string}) => `Saldo-overboeking van ${email}`,
+                disputedPending: ({date}: {date: string}) => `Betwist op ${date} (In behandeling)`,
+                disputedRefunded: ({date}: {date: string}) => `Betwist op ${date} (Terugbetaald)`,
+                disputedClosed: ({date}: {date: string}) => `Betwist op ${date} (Gesloten)`,
+                refundedOn: ({date}: {date: string}) => `Terugbetaald op ${date}`,
+                refundedAmountOn: ({amount, date}: {amount: string; date: string}) => `${amount} terugbetaald op ${date}`,
+            },
         },
         subscriptionSettings: {
             title: 'Abonnementsinstellingen',
