@@ -79,8 +79,16 @@ function getImportCustomFieldsSettings(importField: ValueOf<typeof CONST.NETSUIT
 }
 
 function getInitialSubPageForNetsuiteTokenInput(policy: OnyxEntry<Policy>) {
+    const netSuiteConnection = policy?.connections?.[CONST.POLICY.CONNECTIONS.NAME.NETSUITE];
+    const isTBAConnection = !!netSuiteConnection?.tokenID;
     const hasAuthError = isAuthenticationError(policy, CONST.POLICY.CONNECTIONS.NAME.NETSUITE);
-    return hasAuthError ? CONST.NETSUITE_CONFIG.TOKEN_INPUT.PAGE_NAME.CREDENTIALS : CONST.NETSUITE_CONFIG.TOKEN_INPUT.PAGE_NAME.INSTALL;
+
+    // TBA connections (with or without auth error) migrate through the OAuth wizard starting at INSTALL.
+    // Only OAuth connections with an auth error jump straight to CREDENTIALS for re-authentication.
+    if (!isTBAConnection && hasAuthError) {
+        return CONST.NETSUITE_CONFIG.TOKEN_INPUT.PAGE_NAME.CREDENTIALS;
+    }
+    return CONST.NETSUITE_CONFIG.TOKEN_INPUT.PAGE_NAME.INSTALL;
 }
 
 export {
