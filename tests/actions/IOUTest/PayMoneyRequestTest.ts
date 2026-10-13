@@ -779,7 +779,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
         });
 
         it('puts the payment failure error on the chat report preview, not only inside the expense report', async () => {
-            // Given an outstanding IOU report that is previewed in the chat the payer is looking at
+            // Given an outstanding IOU report that is previewed in the 1:1 DM the payer is looking at
             const chatReport = {
                 ...createRandomReport(20, undefined),
                 lastReadTime: DateUtils.getDBTime(),
@@ -831,7 +831,65 @@ describe('actions/IOU/PayMoneyRequest', () => {
             // Then the error is on the preview in the chat. The pay action also carries it, but that action lives in
             // the expense report, which the payer can no longer reach once it has been deleted.
             const updatedChatActions = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}` as const);
-            expect(updatedChatActions?.[reportPreviewAction.reportActionID]?.errors).toBeTruthy();
+            expect(updatedChatActions?.[reportPreviewAction.reportActionID]?.errors?.[CONST.IOU.PAY_FAILURE_PREVIEW_ERROR_KEY]).toBeTruthy();
+
+            mockFetch?.succeed?.();
+        });
+
+        it('leaves a workspace expense report preview untouched when the payment fails', async () => {
+            // Given a workspace expense report previewed in its policy expense chat
+            const chatReport = {
+                ...createRandomReport(30, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT),
+                lastReadTime: DateUtils.getDBTime(),
+                lastVisibleActionCreated: DateUtils.getDBTime(),
+            };
+            const iouReport = {
+                ...createRandomReport(31, undefined),
+                chatType: undefined,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                chatReportID: chatReport.reportID,
+                total: 10,
+            };
+            const reportPreviewAction: ReportAction = {
+                ...createRandomReportAction(32),
+                actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
+                originalMessage: {linkedReportID: iouReport.reportID},
+            };
+            const chatReportActions: ReportActions = {[reportPreviewAction.reportActionID]: reportPreviewAction};
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`, chatReport);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`, iouReport);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`, chatReportActions);
+            await waitForBatchedUpdates();
+
+            // When the server rejects the payment, which is what happens to a payment queued offline against an
+            // expense the requestor deleted in the meantime
+            mockFetch?.fail?.();
+            payMoneyRequest({
+                isASAPSubmitBetaEnabled: false,
+                conciergeChat: undefined,
+                paymentType: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
+                chatReport,
+                iouReport,
+                introSelected: undefined,
+                currentUserAccountID: CARLOS_ACCOUNT_ID,
+                currentUserLogin: CARLOS_EMAIL,
+                isSelfTourViewed: false,
+                userBillingGracePeriodEnds: undefined,
+                amountOwed: 0,
+                chatReportPolicy: chatReportPolicyFromChat(chatReport),
+                chatReportActions,
+                delegateAccountID: undefined,
+                isTrackIntentUser: false,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                rules: undefined,
+            });
+            await waitForBatchedUpdates();
+
+            // Then nothing is mirrored onto its preview. The original report only covered a DM IOU report, and a
+            // workspace payment has its own failure handling, e.g. the Corpay modal that deliberately shows no error.
+            const updatedChatActions = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}` as const);
+            expect(Object.keys(updatedChatActions?.[reportPreviewAction.reportActionID]?.errors ?? {})).toHaveLength(0);
 
             mockFetch?.succeed?.();
         });

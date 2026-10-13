@@ -420,12 +420,18 @@ function getPayMoneyRequestParams({
 
     // In case the report preview action is loaded locally, let's update it.
     if (optimisticReportPreviewAction) {
+        // The error above sits in the paid report, which the payer cannot reach once it is deleted, so mirror it onto
+        // the chat's preview. An IOU report is only ever attached to a one-on-one chat, so this stays scoped to the
+        // DM case the original report covered and leaves workspace expense reports untouched.
+        const shouldMirrorPayFailure = isIOUReport(iouReport);
         onyxData.optimisticData?.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`,
             value: {
                 // Clear only our own previous failure so a retry does not keep showing a stale RBR.
-                [optimisticReportPreviewAction.reportActionID]: {...optimisticReportPreviewAction, errors: {[CONST.IOU.PAY_FAILURE_PREVIEW_ERROR_KEY]: null}},
+                [optimisticReportPreviewAction.reportActionID]: shouldMirrorPayFailure
+                    ? {...optimisticReportPreviewAction, errors: {[CONST.IOU.PAY_FAILURE_PREVIEW_ERROR_KEY]: null}}
+                    : optimisticReportPreviewAction,
             },
         });
         onyxData.failureData?.push({
@@ -434,9 +440,8 @@ function getPayMoneyRequestParams({
             value: {
                 [optimisticReportPreviewAction.reportActionID]: {
                     created: optimisticReportPreviewAction.created,
-                    // The error above sits in the expense report, which the payer cannot reach once it is deleted.
-                    // Mirror it here. Only shown once the preview is deleted, see getVisibleReportActionErrors.
-                    errors: getMicroSecondOnyxErrorWithTranslationKey('iou.error.payFailedExpenseDeleted', CONST.IOU.PAY_FAILURE_PREVIEW_ERROR_KEY),
+                    // Only shown once the preview is deleted, see getVisibleReportActionErrors.
+                    ...(shouldMirrorPayFailure ? {errors: getMicroSecondOnyxErrorWithTranslationKey('iou.error.payFailedExpenseDeleted', CONST.IOU.PAY_FAILURE_PREVIEW_ERROR_KEY)} : {}),
                 },
             },
         });
