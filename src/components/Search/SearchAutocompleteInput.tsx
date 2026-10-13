@@ -1,5 +1,4 @@
 import FormHelpMessage from '@components/FormHelpMessage';
-import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import TextInput from '@components/TextInput';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 
@@ -26,7 +25,7 @@ import type {StyleProp, TextInputProps, TextStyle, ViewStyle} from 'react-native
 
 import React, {useEffect, useRef} from 'react';
 import {View} from 'react-native';
-import Animated, {interpolateColor, useAnimatedStyle, useSharedValue} from 'react-native-reanimated';
+import Animated, {convertToRGBA, interpolateColor, processColor, useAnimatedStyle, useSharedValue} from 'react-native-reanimated';
 
 import type {SubstitutionMap} from './SearchRouter/getQueryWithSubstitutions';
 
@@ -99,7 +98,7 @@ function SearchAutocompleteInput({
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-    const inputRef = useRef<AnimatedTextInputRef>(null);
+    const inputRef = useRef<BaseTextInputRef>(null);
     const autoFocusAfterNav = useFocusAfterNav(inputRef, shouldDelayFocus);
     const {currencyList} = useCurrencyListState();
     const currencyAutocompleteList = Object.keys(currencyList).filter((currencyCode) => !currencyList[currencyCode]?.retired);
@@ -132,8 +131,18 @@ function SearchAutocompleteInput({
         return focusedSharedValue.get() ? restWrapperFocusedStyle : (restWrapperStyle ?? {});
     });
     const wrapperBorderColorAnimatedStyle = useAnimatedStyle(() => {
+        const borderColors = [wrapperBorderColor, focusedBorderColor].map((color) => {
+            processColor(color);
+            if (typeof color === 'string') {
+                return color;
+            }
+
+            // Interpolation coerces opaque colors to zero channels. Keep that behavior and the literal transparent marker on string endpoints.
+            const [red, green, blue, alpha] = convertToRGBA(color);
+            return `rgba(${Math.round(red * 255)}, ${Math.round(green * 255)}, ${Math.round(blue * 255)}, ${alpha})`;
+        });
         return {
-            borderColor: interpolateColor(focusedSharedValue.get() ? 1 : 0, [0, 1], [wrapperBorderColor as string, focusedBorderColor as string], 'RGB'),
+            borderColor: interpolateColor(focusedSharedValue.get() ? 1 : 0, [0, 1], borderColors, 'RGB'),
         };
     });
 
@@ -230,7 +239,7 @@ function SearchAutocompleteInput({
                             return;
                         }
 
-                        inputRef.current = element as AnimatedTextInputRef;
+                        inputRef.current = element;
 
                         if (typeof ref === 'function') {
                             ref(element);
