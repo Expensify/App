@@ -436,7 +436,7 @@ function getPayMoneyRequestParams({
                     created: optimisticReportPreviewAction.created,
                     // The error above sits in the expense report, which the payer cannot reach once it is deleted.
                     // Mirror it here. Only shown once the preview is deleted, see getVisibleReportActionErrors.
-                    errors: getMicroSecondOnyxErrorWithTranslationKey('iou.error.other', CONST.IOU.PAY_FAILURE_PREVIEW_ERROR_KEY),
+                    errors: getMicroSecondOnyxErrorWithTranslationKey('iou.error.payFailedExpenseDeleted', CONST.IOU.PAY_FAILURE_PREVIEW_ERROR_KEY),
                 },
             },
         });

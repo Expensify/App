@@ -51,7 +51,6 @@ import {
     isActionOfType,
     isCreatedTaskReportAction,
     isDeletedParentAction as isDeletedParentActionUtils,
-    isDeletedReportPreviewWithError,
     getVisibleReportActionErrors,
     isMessageDeleted,
     isMoneyRequestAction,
@@ -424,14 +423,7 @@ function ReportActionItem({
 
     const isContextMenuDisabled = hasDraft || (hasActionErrors && !hasOnlyReceiptErrors) || !shouldDisplayContextMenuValue;
 
-    const latestActionErrors = getLatestErrorMessageField({...action, errors: visibleActionErrors} as OnyxDataWithErrors);
-
-    // Once the report is deleted there is nothing to retry, so say what happened instead of "try again later".
-    let displayedActionErrors = latestActionErrors;
-    if (isDeletedReportPreviewWithError(action)) {
-        const payFailedMessage = translate('iou.error.payFailedExpenseDeleted');
-        displayedActionErrors = mapValues(latestActionErrors, () => payFailedMessage);
-    }
+    const displayedActionErrors = getLatestErrorMessageField({errors: visibleActionErrors} as OnyxDataWithErrors);
 
     /**
      * Show the ReportActionContextMenu modal popover.
