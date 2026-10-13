@@ -703,14 +703,6 @@ const translations = {
         launching: 'Launching Expensify',
         expired: 'Your session has expired.',
         signIn: 'Please sign in again.',
-        notValid: 'Invalid link.',
-        sessionMismatch: "The link you clicked isn't valid for your current session.",
-        switchAccount: {
-            title: 'Switch accounts?',
-            prompt: ({newEmail, currentEmail}: {newEmail: string; currentEmail: string}) => `You're signed in as ${currentEmail}. This action will sign you in as ${newEmail} instead.`,
-            confirm: 'Switch accounts',
-            staySignedIn: "Don't switch accounts",
-        },
     },
     multifactorAuthentication: {
         reviewTransaction: {
@@ -1781,7 +1773,6 @@ const translations = {
             invalidSplitYourself: 'Please enter a non-zero amount for your split',
             noParticipantSelected: 'Please select a participant',
             other: 'Unexpected error. Please try again later.',
-            payFailedExpenseDeleted: 'The payment failed because the expense report was deleted.',
             genericCreateFailureMessage: 'Unexpected error submitting this expense. Please try again later.',
             genericCreateInvoiceFailureMessage: 'Unexpected error sending this invoice. Please try again later.',
             genericHoldExpenseFailureMessage: 'Unexpected error holding this expense. Please try again later.',
@@ -2453,6 +2444,7 @@ const translations = {
     displayNamePage: {
         headerTitle: 'Display name',
         isShownOnProfile: 'Your display name is shown on your profile.',
+        isShownOnMemberProfile: "The display name will appear on the member's profile. Once saved, only the member can edit it.",
     },
     timezonePage: {
         timezone: 'Timezone',
@@ -2499,7 +2491,6 @@ const translations = {
             useProfiling: 'Use profiling',
             profileTrace: 'Profile trace',
             results: 'Results',
-            releaseOptions: 'Release options',
             testingPreferences: 'Testing preferences',
             server: 'Server',
             servers: {
@@ -6383,6 +6374,10 @@ const translations = {
                 label: 'Bill payment account',
                 description: "Choose where to pay bills from and we'll create the payment in DualEntry.",
             },
+            fxExpenseAccount: {
+                label: 'DualEntry currency conversion fee account',
+                description: "When your company covers the currency conversion cost on a payment made abroad, we'll post that cost to this account in DualEntry as a journal entry.",
+            },
             syncExpensifyCardSettlements: 'Sync Expensify Card settlements',
             settlementAccount: {
                 label: 'Expensify Card settlement account',
@@ -8954,6 +8949,8 @@ const translations = {
                 applyUpdates: 'Apply these updates:',
                 saveRule: 'Save rule',
                 previewMatches: 'Preview matches',
+                previewMatchesDescription: 'See how this rule applies to your expenses',
+                preview: 'Preview',
                 confirmError: 'Enter merchant and apply at least one update',
                 confirmErrorMerchant: 'Please enter merchant',
                 confirmErrorUpdate: 'Please apply at least one update',
@@ -9012,6 +9009,14 @@ const translations = {
                 applyExpenseDefaultsDescription: 'Update fields without submitter doing anything',
                 createAgentRule: 'Describe agent rule',
                 createAgentRuleDescription: 'Create flexible rules that run when you need.',
+                describe: 'Describe',
+                describeRule: 'Describe your rule in plain English and have Concierge build the rule for you',
+                describeRuleInputLabel: 'Describe the rule',
+                promptErrors: {
+                    unsupported: "That rule isn't supported yet — we're working on it. Please try a different rule for now.",
+                    unintelligible: 'Try phrasing your rule like: if expenses have a value over $100, then require a receipt.',
+                    multipleRules: 'One rule at a time, please — try describing a single rule, like: block retail purchases on all cards.',
+                },
             },
             expenseDefaultsTable: {
                 tableColumnType: 'Type',
@@ -10027,6 +10032,8 @@ const translations = {
         setMaxExpenseAge: (newValue: string) => `set max expense age to "${newValue}" days`,
         changedMaxExpenseAge: (oldValue: string, newValue: string) => `changed max expense age to "${newValue}" days (previously "${oldValue}")`,
         removedMaxExpenseAge: (oldValue: string) => `removed max expense age (previously "${oldValue}" days)`,
+        updatedMemberDisplayName: (newName: string, oldName: string, editProfileURL: string) =>
+            `updated your display name to ${newName} (Previously "${oldName}"). <a href="${editProfileURL}">Edit in your profile</a>`,
         policyCopy: {
             overview: (sourcePolicyName: string, sourcePolicyURL: string) => `copied overview from <a href="${sourcePolicyURL}">${sourcePolicyName}</a>`,
             currency: (sourcePolicyName: string, sourcePolicyURL: string) => `copied currency from <a href="${sourcePolicyURL}">${sourcePolicyName}</a>`,
@@ -10516,6 +10523,7 @@ const translations = {
             cleared: 'Cleared',
             failed: 'Failed',
             never: 'Never',
+            cashBack: 'Cash back',
         },
         failedError: ({link}: {link: string}) => `We'll retry this settlement when you <a href="${link}">unlock your account</a>.`,
         withdrawalInfo: ({date, withdrawalID}: {date: string; withdrawalID: number}) => `${date} • Withdrawal ID: ${withdrawalID}`,
@@ -10553,6 +10561,10 @@ const translations = {
         genericUpdateReportFieldFailureMessage: 'Unexpected error updating the field. Please try again later.',
         genericUpdateReportNameEditFailureMessage: 'Unexpected error renaming the report. Please try again later.',
         noActivityYet: 'No activity yet',
+        collapsedSystemMessages: () => ({
+            one: 'show 1 update',
+            other: (count: number) => `show ${count} updates`,
+        }),
         connectionSettings: 'Connection Settings',
         actions: {
             type: {
