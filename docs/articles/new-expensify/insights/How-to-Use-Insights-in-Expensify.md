@@ -9,48 +9,51 @@ platform: new-expensify
 
 # Learn About Insights
 
-Insights turn your expense data into charts that show where money goes and how spending changes over time. You find them on the **Insights** page. To open it, select **Insights** in the navigation tabs (on the left on web, on the bottom on mobile).
-
-Use Insights to spot trends and see what changed at a glance. When you need to review or act on specific expenses, open them in **Spend** from any chart.
+Insights help you understand spending through charts that highlight trends, top merchants, categories, and spenders. They provide a high-level view of expense data, making it easier to identify spending patterns and changes over time.
 
 ---
 
 ## What the Insights page shows
 
-The Insights page shows four spend charts:
+**Insights** shows four charts that help you understand different aspects of your spending:
 
-- **Spend over time** is the headline chart. It shows total spend as a line across the selected date range.
-- **Top spenders** ranks the members who spent the most.
-- **Top merchants** ranks the merchants that received the most spend.
-- **Top categories** shows how spend splits across your top expense categories.
-
-Each ranking chart shows the top 5 results, with a table that lists each result's amount, number of expenses, and share of spend.
+- **Spend over time** shows how total spend changes over a selected period.
+- **Top spenders** shows which members have the highest spend.
+- **Top merchants** shows which merchants account for the most spend.
+- **Top categories** shows which expense categories account for the most spend.
 
 All charts on the page share the same **Date**, **Workspace**, and **Group currency** filters, so you can see the same period and workspaces across every chart.
 
+![ nsights page showing charts: Spend over time, Top spenders, Top merchants]({{site.url}}/assets/images/insights_charts.png){:width="100%"}
 ---
 
-## How Insights relate to Spend
+## How Insights and Spend work together
 
-Insights give you a high-level view, and **Spend** holds the detail behind it.
+Insights and **Spend** offer different ways to explore the same expense data.
 
-- **Insights** answers "What's the trend, and what changed?" Charts summarize your data and show only the top results.
-- **Spend** is where you search, review, and take action on individual expenses and reports.
+- **Insights** summarizes spend in charts, helping you identify trends and see which merchants, categories, or members account for the most spend.
+- **Spend** provides the underlying expense and report details, where you can search, review, and take action on specific expenses.
 
-From any chart, you can open the matching expenses in **Spend**. Spend shows every matching expense, not only the top results.
+From any chart, select **More (⋮)** to open the matching expenses in **Spend**.
 
 ---
 
 ## Who can see Insights
 
-Insights are available on all plans. You only see expenses you already have permission to see in Expensify. For example, workspace admins and auditors see all workspace expenses, approvers see expenses submitted to them, and members see their own expenses.
+Insights are available to all members, but the data you see depends on your permissions in Expensify.
+
+For example:
+
+- Workspace admins and auditors can see all expenses in their workspace.
+- Approvers can see expenses submitted to them.
+- Members can see their own expenses.
 
 Some charts have extra requirements:
 
 - **Top spenders** appears only if you're a workspace admin, auditor, or approver on a workspace with at least two members.
 - **Top categories** appears only if a workspace you can see has categories enabled.
 
-If you don't meet a chart's requirements, that chart doesn't appear on the page.
+Charts that don't meet these requirements won't appear on your Insights page.
 
 ---
 
