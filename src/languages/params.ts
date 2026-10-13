@@ -1,5 +1,9 @@
 import type {ConnectionName} from './TranslationTypes';
 
+type CompanyCardBalanceParams = {
+    lastUpdated: string;
+};
+
 type StepCounterParams = {step: number; total?: number; text?: string};
 
 type ParentNavigationSummaryParams = {reportName?: string; workspaceName?: string};
@@ -43,6 +47,7 @@ type PaymentDetailsBadgeDateParams = {date: string};
 type PaymentDetailsPartialRefundParams = {amount: string; date: string};
 
 export type {
+    CompanyCardBalanceParams,
     ParentNavigationSummaryParams,
     StepCounterParams,
     ChangeFieldParams,

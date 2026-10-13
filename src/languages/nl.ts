@@ -26,6 +26,7 @@ import {CONST as COMMON_CONST, Str} from 'expensify-common';
 import startCase from 'lodash/startCase';
 
 import type en from './en';
+import type {CompanyCardBalanceParams} from './params';
 import type {TranslationDeepObject} from './types';
 type StateValue = {
     stateISO: string;
@@ -449,6 +450,7 @@ const translations: TranslationDeepObject<typeof en> = {
         leaveWorkspaceReimburser:
             'Je kunt deze workspace niet verlaten als terugbetaler. Stel een nieuwe terugbetaler in via Workspaces > Betalingen doen of volgen en probeer het dan opnieuw.',
         reimbursable: 'Vergoedbaar',
+        nonReimbursable: 'Niet-vergoedbaar',
         editYourProfile: 'Bewerk je profiel',
         comments: 'Opmerkingen',
         sharedIn: 'Gedeeld in',
@@ -1317,7 +1319,7 @@ const translations: TranslationDeepObject<typeof en> = {
             phrase1: 'Voeg een bon toe',
             phrase2: 'of sleep ze hier naartoe',
         },
-        pageCount: ({pageCount}: {pageCount: number}) => `Pagina 1 van ${pageCount}`,
+        pageCount: ({page, pageCount}: {page: number; pageCount: number}) => `Pagina ${page} van ${pageCount}`,
     },
     quickAction: {
         scanReceipt: 'Bon scannen',
@@ -3972,6 +3974,10 @@ ${amount} voor ${merchant} - ${date}`,
     },
     dynamicForm: {
         exampleHint: ({example}: {example: string}) => `Voorbeeld: ${example}`,
+        fileCount: ({count}: {count: number}) => ({
+            one: '1 bestand',
+            other: `${count} bestanden`,
+        }),
         error: {
             tooShort: ({minLength}: {minLength: number}) => `Moet minimaal ${minLength} tekens bevatten`,
             invalidFormat: ({example}: {example?: string}) => (example ? `Ongeldige indeling. Voorbeeld: ${example}` : 'Ongeldige indeling'),
@@ -6153,6 +6159,15 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
             submit: 'Indienen',
         },
         companyCards: {
+            balance: {
+                currentBalance: 'Huidige saldo',
+                remainingLimit: 'Resterende limiet',
+                notAvailable: 'Niet beschikbaar',
+                currentBalanceDescription: ({lastUpdated}: CompanyCardBalanceParams) => `Het huidige saldo wordt door je bank doorgegeven en is het laatst bijgewerkt op ${lastUpdated}.`,
+                remainingLimitDescription: ({lastUpdated}: CompanyCardBalanceParams) => `Het resterende limiet wordt door je bank doorgegeven en is het laatst bijgewerkt op ${lastUpdated}.`,
+                currentBalanceDescriptionNoTimestamp: 'De huidige saldo wordt door je bank doorgegeven.',
+                remainingLimitDescriptionNoTimestamp: 'Het resterende limiet wordt door je bank doorgegeven.',
+            },
             addCards: 'Kaarten toevoegen',
             selectCards: 'Kaarten selecteren',
             fromOtherWorkspaces: 'Uit andere workspaces',

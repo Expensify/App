@@ -26,6 +26,7 @@ import {CONST as COMMON_CONST, Str} from 'expensify-common';
 import startCase from 'lodash/startCase';
 
 import type en from './en';
+import type {CompanyCardBalanceParams} from './params';
 import type {TranslationDeepObject} from './types';
 type StateValue = {
     stateISO: string;
@@ -445,6 +446,7 @@ const translations: TranslationDeepObject<typeof en> = {
         leaveWorkspaceConfirmationTechContact: (workspaceOwner: string) => `如果你离开此工作区，你将由工作区所有者 ${workspaceOwner} 接任技术联系人。`,
         leaveWorkspaceReimburser: '作为报销人，您无法离开此工作区。请前往“工作区”>“进行或跟踪付款”中设置新的报销人，然后重试。',
         reimbursable: '可报销',
+        nonReimbursable: '不可报销',
         editYourProfile: '编辑个人资料',
         comments: '评论',
         sharedIn: '共享于',
@@ -1264,7 +1266,7 @@ const translations: TranslationDeepObject<typeof en> = {
             phrase1: '添加收据',
             phrase2: '或将文件拖放到此处',
         },
-        pageCount: ({pageCount}: {pageCount: number}) => `第 1 页，共 ${pageCount} 页`,
+        pageCount: ({page, pageCount}: {page: number; pageCount: number}) => `第 ${page} 页，共 ${pageCount} 页`,
     },
     quickAction: {
         scanReceipt: '扫描收据',
@@ -3848,6 +3850,10 @@ ${amount}，商户：${merchant} - 日期：${date}`,
     },
     dynamicForm: {
         exampleHint: ({example}: {example: string}) => `示例：${example}`,
+        fileCount: ({count}: {count: number}) => ({
+            one: `${count} 个文件`,
+            other: `${count} 个文件`,
+        }),
         error: {
             tooShort: ({minLength}: {minLength: number}) => `至少需要 ${minLength} 个字符`,
             invalidFormat: ({example}: {example?: string}) => (example ? `格式无效。示例：${example}` : '格式无效'),
@@ -5946,6 +5952,15 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
             submit: '提交',
         },
         companyCards: {
+            balance: {
+                currentBalance: '当前余额',
+                remainingLimit: '剩余额度',
+                notAvailable: '不可用',
+                currentBalanceDescription: ({lastUpdated}: CompanyCardBalanceParams) => `当前余额由您的银行提供，上次更新于 ${lastUpdated}。`,
+                remainingLimitDescription: ({lastUpdated}: CompanyCardBalanceParams) => `剩余额度由您的银行提供，并于 ${lastUpdated} 最后更新。`,
+                currentBalanceDescriptionNoTimestamp: '当前余额由您的银行提供。',
+                remainingLimitDescriptionNoTimestamp: '剩余额度由您的银行提供。',
+            },
             addCards: '添加卡片',
             selectCards: '选择卡片',
             fromOtherWorkspaces: '来自其他工作区',
