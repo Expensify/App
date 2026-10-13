@@ -19,8 +19,8 @@
   
     ```
     After updating to v42 the tickCount broke.
-    This was was caused by this commit https://github.com/FormidableLabs/victory-native-xl/pull/664/changes/fcd8affe655878d0bf95ab87c087eab428d4f62d
-    which fixed some bug but caused us another bug. This small patch reverts it. This is a temporarily solution not a real fix.
+    This was caused by this commit https://github.com/FormidableLabs/victory-native-xl/pull/664/changes/fcd8affe655878d0bf95ab87c087eab428d4f62d
+    which fixed some bug but caused us another bug. This small patch reverts it. This is a temporary solution not a real fix.
     The fix should address both bugs.
     ```
   
