@@ -96,10 +96,17 @@ function NavigateGlobalCreateSubscriber({fnRef, iouType, reportID, transactionID
 
     const navigateGlobalCreate: NavigateGlobalCreateFn = (transactionIDs, isMultiScanEnabled) => {
         startScanProcessSpan(isMultiScanEnabled);
-        if (shouldUseDefaultExpensePolicy(iouType, defaultExpensePolicy, amountOwed, userBillingGracePeriodEnds, ownerBillingGracePeriodEnd, currentUserPersonalDetails.accountID)) {
+
+        // Manual's confirmation flips the shared route to TRACK once it lands on the self DM, so a later scan arrives already resolved.
+        const isSelfDMTrackExpense = iouType === CONST.IOU.TYPE.TRACK && !!transaction?.isFromGlobalCreate && !!selfDMReport;
+
+        if (
+            isSelfDMTrackExpense ||
+            shouldUseDefaultExpensePolicy(iouType, defaultExpensePolicy, amountOwed, userBillingGracePeriodEnds, ownerBillingGracePeriodEnd, currentUserPersonalDetails.accountID)
+        ) {
             // Quick-scan entry points (e.g. the bottom-tab camera button) start from the default workspace chat rather than a generated reportID,
             // so the draft isn't flagged as global create yet. Flag it here so the workspace stays editable on the confirmation page, like the FAB scan flow.
-            const shouldAutoReport = !!defaultExpensePolicy?.autoReporting || !!personalPolicy?.autoReporting;
+            const shouldAutoReport = !isSelfDMTrackExpense && (!!defaultExpensePolicy?.autoReporting || !!personalPolicy?.autoReporting);
             const targetReport = shouldAutoReport ? getPolicyExpenseChat(currentUserPersonalDetails.accountID, defaultExpensePolicy?.id) : selfDMReport;
             const transactionReportID = isSelfDM(targetReport) ? CONST.REPORT.UNREPORTED_REPORT_ID : targetReport?.reportID;
             const iouTypeTrackOrSubmit = transactionReportID === CONST.REPORT.UNREPORTED_REPORT_ID ? CONST.IOU.TYPE.TRACK : CONST.IOU.TYPE.SUBMIT;

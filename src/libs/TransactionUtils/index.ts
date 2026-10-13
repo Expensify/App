@@ -18,6 +18,7 @@ import {
     getCommaSeparatedTagNameWithSanitizedColons,
     getPerDiemCustomUnit,
     isAttendeeTrackingEnabled as isAttendeeTrackingEnabledForPolicy,
+    isTimeTrackingEnabled,
 } from '@libs/PolicyUtils';
 import {getOriginalMessage, getReportAction, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {getReportOrDraftReport, getReportTransactions, getTransactionDetails, isInvoiceReport, isIOUReport, isThread} from '@libs/ReportUtils';
@@ -565,7 +566,7 @@ function getPostedDate(transaction: OnyxInputOrEntry<Transaction>): string {
  */
 function getFormattedPostedDate(transaction: OnyxInputOrEntry<Transaction>, dateFormat: MachineDateFormat = CONST.DATE.FNS_FORMAT_STRING): string {
     const postedDate = getPostedDate(transaction);
-    const parsedDate = parse(postedDate, 'yyyyMMdd', new Date());
+    const parsedDate = parse(postedDate.slice(0, 8), 'yyyyMMdd', new Date());
 
     if (isValid(parsedDate)) {
         return DateUtils.formatMachineDateWithUTCTimeZone(format(parsedDate, 'yyyy-MM-dd'), dateFormat);
@@ -1584,6 +1585,7 @@ function getEligibleTransactionsToAdd({
     const isIOU = isIOUReport(report);
     const canSubmitPerDiemExpense = canSubmitPerDiemExpenseFromWorkspace(policy);
     const workspacePerDiemUnitID = getPerDiemCustomUnit(policy)?.customUnitID;
+    const canSubmitTimeExpense = isTimeTrackingEnabled(policy);
 
     return Object.values(transactions).filter((transaction): transaction is Transaction => {
         if (!transaction) {
@@ -1634,6 +1636,11 @@ function getEligibleTransactionsToAdd({
             return canSubmitPerDiemExpense && (!perDiemCustomUnitID || perDiemCustomUnitID === workspacePerDiemUnitID);
         }
 
+        // Only show time expenses if the target workspace has time tracking enabled
+        if (isTimeRequest(transaction)) {
+            return canSubmitTimeExpense;
+        }
+
         return true;
     });
 }
@@ -1665,6 +1672,14 @@ function isUnreportedTransaction(transaction: OnyxEntry<Transaction>): boolean {
 
 function isUnreportedManagedCardTransaction(transaction?: Transaction): boolean {
     return isExpenseUnreported(transaction) && isManagedCardTransaction(transaction);
+}
+
+/**
+ * Whether the expense has no settled value yet: SmartScan is still running, an Expensify Card charge is still pending,
+ * or the scan failed and left required fields empty.
+ */
+function isExpenseValueUnsettled(transaction: Transaction, report: OnyxEntry<Report>, isTransactionScanning: (transactionToCheck: OnyxEntry<Transaction>) => boolean = isScanning): boolean {
+    return isTransactionScanning(transaction) || (isExpensifyCardTransaction(transaction) && isPending(transaction)) || hasSmartScanFailedWithMissingFields([transaction], report);
 }
 
 /**
@@ -1761,7 +1776,8 @@ function getSelectedRouteDistance(transaction: OnyxEntry<Transaction>): number |
     }
 
     const selectedRouteKey = getSelectedRouteKey(transaction);
-    return transaction?.routes?.[selectedRouteKey]?.distance ?? undefined;
+    const reusedRouteDistance = transaction?.isReusedRoute ? transaction.comment?.customUnit?.routeDistanceMeters : undefined;
+    return transaction?.routes?.[selectedRouteKey]?.distance ?? reusedRouteDistance ?? undefined;
 }
 
 /**
@@ -1931,6 +1947,7 @@ export {
     isPerDiemRequest,
     isViolationDismissed,
     isPartialTransaction,
+    isExpenseValueUnsettled,
     isScanningTransaction,
     isScanning,
     isTransactionSubmittable,

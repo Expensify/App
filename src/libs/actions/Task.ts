@@ -15,6 +15,7 @@ import {getDBTimeWithSkew} from '@libs/NetworkState';
 import {addDomainToShortMention} from '@libs/ParsingUtils';
 import {getAllPersonalDetailLogins, getPersonalDetailByLogin} from '@libs/PersonalDetailsStore';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
+import {isPolicyAdmin} from '@libs/PolicyUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import {getReportName} from '@libs/ReportNameUtils';
 import * as ReportUtils from '@libs/ReportUtils';
@@ -35,7 +36,7 @@ import type {OnyxData} from '@src/types/onyx/Request';
 import type {SearchResultDataType} from '@src/types/onyx/SearchResults';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
-import type {NullishDeep, OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
+import type {NullishDeep, OnyxCollection, OnyxEntry, OnyxKey, OnyxUpdate} from 'react-native-onyx';
 
 import {Str} from 'expensify-common';
 import Onyx from 'react-native-onyx';
@@ -638,6 +639,22 @@ function buildTaskData(
 type OnboardingTaskCompletionOnyxData = OnyxData<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS> & {
     completedTaskReportActionID?: string;
 };
+
+/**
+ * Merge the optimistic "Review your workspace settings" onboarding-task completion data into a workspace-settings
+ * command's onyxData, so the task tick shares that command's success and failure fate.
+ */
+function withReviewWorkspaceSettingsTaskData<TKey extends OnyxKey>(
+    onyxData: OnyxData<TKey>,
+    reviewWorkspaceSettingsTaskData: OnyxData<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>,
+) {
+    return {
+        ...onyxData,
+        optimisticData: [...(onyxData.optimisticData ?? []), ...(reviewWorkspaceSettingsTaskData.optimisticData ?? [])],
+        successData: [...(onyxData.successData ?? []), ...(reviewWorkspaceSettingsTaskData.successData ?? [])],
+        failureData: [...(onyxData.failureData ?? []), ...(reviewWorkspaceSettingsTaskData.failureData ?? [])],
+    };
+}
 
 /**
  * Complete a task
@@ -1424,6 +1441,34 @@ function canActionTask(
     return false;
 }
 
+/**
+ * Check if a workspace admin can delete a task in a workspace room, even when they don't own it
+ */
+function canDeleteTaskAsPolicyAdmin(
+    taskReport: OnyxEntry<OnyxTypes.Report>,
+    parentReport: OnyxEntry<OnyxTypes.Report>,
+    policy: OnyxEntry<OnyxTypes.Policy>,
+    guideAccountIDs: OnyxEntry<number[]>,
+    isParentReportArchived = false,
+): boolean {
+    if (!isPolicyAdmin(policy) || policy?.type === CONST.POLICY.TYPE.PERSONAL) {
+        return false;
+    }
+
+    if (!ReportUtils.isUserCreatedPolicyRoom(parentReport) && !ReportUtils.isDefaultRoom(parentReport)) {
+        return false;
+    }
+
+    if (isParentReportArchived) {
+        return false;
+    }
+
+    // Guide/Concierge setup tasks in #admins are completed by the onboarding flow, so admins should not delete them
+    const isTaskOwnedByGuideOrConcierge =
+        taskReport?.ownerAccountID === CONST.ACCOUNT_ID.CONCIERGE || (!!taskReport?.ownerAccountID && !!guideAccountIDs?.includes(taskReport.ownerAccountID));
+    return !(ReportUtils.isAdminRoom(parentReport) && isTaskOwnedByGuideOrConcierge);
+}
+
 /** Onboarding task info resolved by the `useOnboardingTaskInformation` hook. */
 type OnboardingTaskInformation = {
     taskReport: OnyxEntry<OnyxTypes.Report>;
@@ -1529,6 +1574,7 @@ export {
     buildTaskData,
     completeTask,
     getReviewWorkspaceSettingsTaskCompletionData,
+    withReviewWorkspaceSettingsTaskData,
     clearOutTaskInfoAndNavigate,
     startOutCreateTaskQuickAction,
     getAssignee,
@@ -1537,6 +1583,7 @@ export {
     getTaskAssigneeAccountID,
     canModifyTask,
     canActionTask,
+    canDeleteTaskAsPolicyAdmin,
     getFinishOnboardingTaskOnyxData,
     completeTestDriveTask,
 };

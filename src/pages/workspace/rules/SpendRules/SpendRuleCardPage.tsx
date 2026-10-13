@@ -220,7 +220,7 @@ function SpendRuleCardPage({route}: SpendRuleCardPageProps) {
 
     const hasCards = listData.length > 0;
     const hasEligibleCards = eligibleCards.length > 0;
-    const headerMessage = hasEligibleCards ? getHeaderMessage(hasCards, false, inputValue, countryCode, false) : '';
+    const headerMessage = hasEligibleCards ? getHeaderMessage(translate, hasCards, false, inputValue, countryCode, false) : '';
 
     return (
         <AccessOrNotFoundWrapper
@@ -230,7 +230,7 @@ function SpendRuleCardPage({route}: SpendRuleCardPageProps) {
             shouldBeBlocked={!canWriteCardSpendRules}
         >
             {isCardSettingsLoading ? (
-                <FullScreenLoadingIndicator shouldUseGoBackButton />
+                <FullScreenLoadingIndicator />
             ) : (
                 <ScreenWrapper
                     testID="SpendRuleCardPage"
