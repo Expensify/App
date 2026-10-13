@@ -145,7 +145,7 @@ describe('insightsQueries', () => {
             // When its request is built
             const request = buildInsightsJsonQuery(CONST.INSIGHTS.DASHBOARD.SPEND, filters, true);
 
-            // Then the query names that day the same way it names a preset, and its one point is grouped by day since a single date offers no grouping to pick
+            // Then the query names that day the same way it names a preset, and its one point is grouped by day, the only grouping a single date offers
             expect(parsePayload(request)?.inputQuery).toBe('groupBy:month groupCurrency:USD date:2026-03-04');
             expect(parsePayload(request)?.groupBy).toBe(CONST.SEARCH.GROUP_BY.DAY);
             expect(parsePayload(request)).toEqual(expect.objectContaining({insightsHashes: buildExpectedHashes(filters)}));

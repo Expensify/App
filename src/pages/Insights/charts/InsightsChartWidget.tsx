@@ -68,7 +68,7 @@ function InsightsChartWidget({chart, queryJSON, snapshot, filters, onRetry, onGr
     const groupByOptions = getInsightsGroupByOptions(filters.date);
 
     const groupByControl =
-        onGroupByChange && groupByOptions.length > 0 ? (
+        onGroupByChange && groupByOptions.length > 1 ? (
             <InsightsGroupByDropdown
                 groupBy={getQueryGroupBy(filters)}
                 options={groupByOptions}

@@ -173,7 +173,7 @@ describe('useInsightsFilters', () => {
         expect(result.current.filters.groupBy).toBe(CONST.SEARCH.GROUP_BY.QUARTER);
     });
 
-    it('keeps the saved grouping on a single day, which has no grouping to pick', async () => {
+    it('keeps the saved grouping on a single day, which only offers day', async () => {
         // Given a dashboard over the last 12 months grouped by quarter
         await setUpActivePolicy('PLN');
         await storeFilters({date: {preset: CONST.SEARCH.DATE_PRESETS.LAST_12_MONTHS}, policyIDs: [], groupBy: CONST.SEARCH.GROUP_BY.QUARTER, groupCurrency: 'USD'});

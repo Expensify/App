@@ -20,9 +20,8 @@ const MIN_MONTHS_BY_GROUP_BY = {
 
 /** Returns the Group by options that fit the date range, in the dropdown's order */
 function getInsightsGroupByOptions(date: InsightsFilters['date']): InsightsGroupBy[] {
-    // We don't show the group-by filter for "Custom date" date option
     if ('on' in date) {
-        return [];
+        return [CONST.SEARCH.GROUP_BY.DAY];
     }
 
     const boundaries = 'from' in date ? {start: date.from, end: date.to} : getDateRangeForPreset(date.preset);
@@ -59,11 +58,8 @@ function getFittingGroupBy(groupBy: InsightsGroupBy, options: InsightsGroupBy[])
     return options.reduce((nearest, option) => (getDistanceFromSelection(option) < getDistanceFromSelection(nearest) ? option : nearest));
 }
 
-/** Returns the Group by the charts are queried with, fitted to the date range. A single date has no options to pick from, so its one point is grouped by day. */
+/** Returns the Group by the charts are queried with, fitted to the date range. */
 function getQueryGroupBy(filters: InsightsFilters): InsightsGroupBy {
-    if ('on' in filters.date) {
-        return CONST.SEARCH.GROUP_BY.DAY;
-    }
     return getFittingGroupBy(filters.groupBy, getInsightsGroupByOptions(filters.date));
 }
 
