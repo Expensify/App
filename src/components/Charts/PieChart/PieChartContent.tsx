@@ -136,8 +136,9 @@ function PieChartContent({data, isLoading, valueUnit, valueUnitPosition, onSlice
         },
     });
 
-    // Tap gesture for click/tap navigation
+    // Tap gesture for click/tap navigation, disabled without onSlicePress so the chart only reacts to hover
     const tapGesture = useTapGesture({
+        enabled: !!onSlicePress,
         onDeactivate: (e) => {
             'worklet';
 
