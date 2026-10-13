@@ -117,6 +117,7 @@ These options manage syncing behavior, automation preferences, and additional ac
 
    * **Bill payment account**: Select the account for bill payments (defaults to the first option)
    * **Invoice collections account**: Select the account for invoice collections (defaults to the first option)
+   * **FX expense account**: Select the account for currency conversion (FX) fees. If the company pays these fees (set by going to **Workspaces > [workspace name] > Workflows** and changing the **Currency conversion fees** setting), each cross-border reimbursement exports a separate journal entry for the fee alongside the bill payment. This journal entry debits the FX expense account and credits cash, and uses the memo "Foreign Exchange Fees for Expensify report [reportID]". The additional JE only exports if this account is mapped.
 
 ---
 

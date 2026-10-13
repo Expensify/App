@@ -71,6 +71,7 @@ On the Rillet integration, choose **Advanced** to configure:
   - **Accrual** exports reimbursable expenses after final approval.
   - **Cash** exports reimbursable expenses after they are paid.
 - **Sync reimbursed reports** – Automatically create bill payments in Rillet when vendor bills are reimbursed in Expensify.
+- **Rillet currency conversion fee account** – Select the expense account where currency conversion fees are recorded. This setting appears when **Sync reimbursed reports** is enabled. When your workspace's **Currency conversion fees** setting under **Workflows** is set to **Company pays**, a cross-border reimbursement exports an additional journal entry for the conversion cost to this account, alongside the bill payment. This account must be selected for the journal entry to export.
 - **Sync Expensify Card settlements** – Automatically create settlement payments in Rillet for Expensify Card transactions.
 - **Sync Consolidated Travel Billing settlements** – Automatically create settlement payments in Rillet for Consolidated Travel Billing transactions.
 
