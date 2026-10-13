@@ -1,7 +1,7 @@
 import getPageTitle, {isPageShown} from '@components/DynamicForm/utils/getPageTitle';
 import paginate, {getAllFields, getPages} from '@components/DynamicForm/utils/paginate';
 
-import type {DynamicFormField, DynamicFormPage, DynamicFormTextField} from '@src/types/onyx';
+import type {DynamicFormField, DynamicFormPage, DynamicFormSchemaField, DynamicFormTextField} from '@src/types/onyx';
 
 import {translateLocal} from '../../../utils/TestHelper';
 
@@ -49,7 +49,10 @@ describe('paginate', () => {
 
     it('starts a new page after four questions in a row', () => {
         // Given five short questions
-        const pages = paginate([text('a'), text('b'), text('c'), text('d'), text('e')]);
+        const fields = [text('a'), text('b'), text('c'), text('d'), text('e')];
+
+        // When they are split into pages
+        const pages = paginate(fields);
 
         // Then the fifth does not fit the shared page
         expect(keysOf(pages)).toEqual([['a', 'b', 'c', 'd'], ['e']]);
@@ -92,7 +95,10 @@ describe('paginate', () => {
 describe('getPages', () => {
     it('names pages built from fields page-N', () => {
         // Given a flat schema
-        const pages = getPages({fields: [text('a'), {key: 'address', type: 'address', required: true}]});
+        const fields: DynamicFormSchemaField[] = [text('a'), {key: 'address', type: 'address', required: true}];
+
+        // When its pages are built
+        const pages = getPages({fields});
 
         // Then the pages get stable keys
         expect(pages.map((page) => page.key)).toEqual(['page-1', 'page-2']);
@@ -101,14 +107,15 @@ describe('getPages', () => {
     it('turns keys into URL-safe slugs, reserves confirm and makes keys unique', () => {
         // Given pages whose keys are not URL-safe, collide, or take the confirmation route
         const content = [text('a')];
-        const pages = getPages({
-            pages: [
-                {key: 'Bank Info', content},
-                {key: 'bank-info', content},
-                {key: 'confirm', content},
-                {key: '###', content},
-            ],
-        });
+        const schemaPages: DynamicFormPage[] = [
+            {key: 'Bank Info', content},
+            {key: 'bank-info', content},
+            {key: 'confirm', content},
+            {key: '###', content},
+        ];
+
+        // When the schema's pages are read
+        const pages = getPages({pages: schemaPages});
 
         // Then each is a unique route segment
         expect(pages.map((page) => page.key)).toEqual(['bank-info', 'bank-info-2', 'confirm-2', 'page-4']);
@@ -120,8 +127,11 @@ describe('getPageTitle', () => {
         // Given a page with a titleKey
         const page = {key: 'p', titleKey: 'common.next', content: [text('a')]} as DynamicFormPage;
 
+        // When its title is read
+        const title = getPageTitle(page, {}, translateLocal);
+
         // Then the translation is used
-        expect(getPageTitle(page, {}, translateLocal)).toBe(translateLocal('common.next'));
+        expect(title).toBe(translateLocal('common.next'));
     });
 
     it('falls back to the label of the lone question, ignoring a field it reveals', () => {
@@ -139,8 +149,11 @@ describe('getPageTitle', () => {
         // Given an untitled page whose first field is hidden
         const page: DynamicFormPage = {key: 'p', content: [text('a', {label: 'Alpha', showWhen: {key: 'z', equals: ['1']}}), text('b', {label: 'Beta'}), text('c', {label: 'Gamma'})]};
 
+        // When its title is read
+        const title = getPageTitle(page, {}, translateLocal);
+
         // Then the title is the first field the user sees
-        expect(getPageTitle(page, {}, translateLocal)).toBe('Beta');
+        expect(title).toBe('Beta');
     });
 });
 
@@ -151,16 +164,23 @@ describe('isPageShown', () => {
         const page: DynamicFormPage = {key: 'biz', showWhen: {key: 'type', equals: ['BUSINESS']}, content: [text('ein')]};
         const allFields = getAllFields([{key: 'first', content: [type]}, page]);
 
+        // When the user answers private, and then business
+        const isShownForPrivate = isPageShown(page, {type: 'PRIVATE'}, allFields);
+        const isShownForBusiness = isPageShown(page, {type: 'BUSINESS'}, allFields);
+
         // Then it follows the answer
-        expect(isPageShown(page, {type: 'PRIVATE'}, allFields)).toBe(false);
-        expect(isPageShown(page, {type: 'BUSINESS'}, allFields)).toBe(true);
+        expect(isShownForPrivate).toBe(false);
+        expect(isShownForBusiness).toBe(true);
     });
 
     it('hides a page with no visible field', () => {
         // Given a page whose only field is hidden
         const page: DynamicFormPage = {key: 'p', content: [text('a', {showWhen: {key: 'z', equals: ['1']}})]};
 
+        // When the flow checks whether to show it
+        const isShown = isPageShown(page, {}, getAllFields([page]));
+
         // Then the page is skipped
-        expect(isPageShown(page, {}, getAllFields([page]))).toBe(false);
+        expect(isShown).toBe(false);
     });
 });
