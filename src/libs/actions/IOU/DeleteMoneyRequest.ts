@@ -399,6 +399,7 @@ function getNavigationUrlOnMoneyRequestDelete(
  */
 type CleanUpMoneyRequestParams = {
     transactionID: string;
+    currentUserAccountID: number;
     reportAction: OnyxTypes.ReportAction;
     reportID: string;
     transactionThreadReport: OnyxEntry<OnyxTypes.Report>;
@@ -415,6 +416,7 @@ type CleanUpMoneyRequestParams = {
 
 function cleanUpMoneyRequest({
     transactionID,
+    currentUserAccountID,
     reportAction,
     reportID,
     transactionThreadReport,
@@ -585,6 +587,9 @@ function cleanUpMoneyRequest({
             iouReport?.chatReportID,
             canUserPerformWriteAction,
             reportPreviewAction?.reportActionID ? {[reportPreviewAction.reportActionID]: null} : {},
+            undefined,
+            undefined,
+            currentUserAccountID,
         )?.created;
 
         onyxUpdates.push(

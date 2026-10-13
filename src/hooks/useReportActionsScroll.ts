@@ -59,9 +59,6 @@ type UseReportActionsScrollParams = {
     /** Actions actually rendered by the list (may include a synthetic draft), used for mount scroll positioning */
     renderedVisibleReportActions: OnyxTypes.ReportAction[];
 
-    /** Maps hidden canonical actions to the summary row used by the list. */
-    reportActionIDToDisplayIndex?: ReadonlyMap<string, number>;
-
     /** Extracts the list key for an action; used to locate the initial scroll target */
     keyExtractor: (item: OnyxTypes.ReportAction) => string;
 
@@ -149,7 +146,6 @@ function useReportActionsScroll({
     parentReportAction,
     sortedVisibleReportActions,
     renderedVisibleReportActions,
-    reportActionIDToDisplayIndex,
     keyExtractor,
     hasScrolledOverThreshold,
     markNewestActionAsRead,
@@ -453,9 +449,7 @@ function useReportActionsScroll({
     //    of the viewport (viewPosition: 1) with a small offset so the message above is partly visible.
     // 2. Otherwise, if the report should be opened at top (ex: for transaction threads), scroll to the top message and offset by
     //    the window height so we land at top of the top message for sure.
-    const targetIndex = initialScrollKey
-        ? (reportActionIDToDisplayIndex?.get(initialScrollKey) ?? renderedVisibleReportActions.findIndex((item) => keyExtractor(item) === initialScrollKey))
-        : -1;
+    const targetIndex = initialScrollKey ? renderedVisibleReportActions.findIndex((item) => keyExtractor(item) === initialScrollKey) : -1;
     let initialScrollIndex: number | undefined;
     let initialScrollIndexParams: {viewPosition?: number; viewOffset?: number} | undefined;
     if (targetIndex > 0) {
