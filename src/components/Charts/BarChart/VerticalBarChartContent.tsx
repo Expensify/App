@@ -14,7 +14,7 @@ import {
     useLabelHitTesting,
     useReadyCartesianCanvas,
 } from '@components/Charts/hooks';
-import {getBarLayout, getCartesianPlotBounds, getXAxisLabel, getYAxisLabelWidth} from '@components/Charts/utils';
+import {getBarLayout, getCartesianPlotBounds, getPrimaryValue, getXAxisLabel, getYAxisLabelWidth} from '@components/Charts/utils';
 import VictoryTheme, {CARTESIAN_Y_AXIS, CHART_CONTENT_MIN_HEIGHT, GLYPH_PADDING} from '@components/Charts/VictoryTheme';
 
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -35,14 +35,15 @@ import type {BarChartContentProps} from './types';
 
 type VerticalBarChartCanvasProps = Omit<BarChartProps, 'isLoading'> & CartesianCanvasInputs;
 
-function VerticalBarChartCanvas({data, yAxisUnit, yAxisUnitPosition = 'left', onBarPress, shouldShowLabels = true, color, chartWidth, fontManager}: VerticalBarChartCanvasProps) {
+function VerticalBarChartCanvas({data, series, yAxisUnit, yAxisUnitPosition = 'left', onBarPress, shouldShowLabels = true, chartWidth, fontManager}: VerticalBarChartCanvasProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
 
+    const [{key: primarySeriesKey}] = series;
     const chartData = data.map((point, index) => ({
         x: index,
-        y: point.total,
+        y: getPrimaryValue(point, primarySeriesKey),
     }));
 
     const yAxisDomain = useDynamicYDomain(data);
@@ -152,7 +153,7 @@ function VerticalBarChartCanvas({data, yAxisUnit, yAxisUnitPosition = 'left', on
                 key={`bar-${dataPoint?.label}`}
                 points={[point]}
                 chartBounds={chartBounds}
-                color={color ?? VictoryTheme.colors.getColor(dataIndex)}
+                color={dataPoint?.color ?? VictoryTheme.colors.default}
                 barWidth={barLayout.barWidth}
                 barCount={data.length}
                 roundedCorners={{topLeft: BAR_CORNER_RADIUS, topRight: BAR_CORNER_RADIUS, bottomLeft: BAR_CORNER_RADIUS, bottomRight: BAR_CORNER_RADIUS}}
@@ -247,6 +248,7 @@ function VerticalBarChartCanvas({data, yAxisUnit, yAxisUnitPosition = 'left', on
                     matchedIndex={matchedIndex}
                     isTooltipActive={isTooltipActive}
                     data={data}
+                    series={series}
                     formatValue={formatValue}
                     chartWidth={chartWidth}
                     initialTooltipPosition={initialTooltipPosition}

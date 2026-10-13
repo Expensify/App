@@ -16,7 +16,7 @@ import {
     useLabelHitTesting,
     useReadyCartesianCanvas,
 } from '@components/Charts/hooks';
-import {getCartesianPlotBounds, getDomainPaddingForEdgeSpace, getXAxisLabel, getYAxisLabelWidth, labelOverhang} from '@components/Charts/utils';
+import {getCartesianPlotBounds, getDomainPaddingForEdgeSpace, getPrimaryValue, getXAxisLabel, getYAxisLabelWidth, labelOverhang} from '@components/Charts/utils';
 import VictoryTheme, {CARTESIAN_Y_AXIS, CHART_CONTENT_MIN_HEIGHT, DASH_INTERVALS, GLYPH_PADDING, LABEL_PADDING, LABEL_ROTATIONS, SIN_45} from '@components/Charts/VictoryTheme';
 
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -46,7 +46,7 @@ type LineChartContentProps = LineChartProps & {
 
 type LineChartCanvasProps = Omit<LineChartProps, 'isLoading'> & CartesianCanvasInputs;
 
-function LineChartCanvas({data, yAxisUnit, yAxisUnitPosition = 'left', onPointPress, chartWidth, fontManager}: LineChartCanvasProps) {
+function LineChartCanvas({data, series, yAxisUnit, yAxisUnitPosition = 'left', onPointPress, chartWidth, fontManager}: LineChartCanvasProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -56,9 +56,10 @@ function LineChartCanvas({data, yAxisUnit, yAxisUnitPosition = 'left', onPointPr
 
     // A lone point has no line leading into it, so it keeps the regular line's dot instead of a dashed segment.
     const shouldDashLastSegment = isLastPointInProgress && data.length > 1;
+    const [{key: primarySeriesKey}] = series;
     const chartData = data.map((point, index) => ({
         x: index,
-        y: point.total,
+        y: getPrimaryValue(point, primarySeriesKey),
     }));
 
     const handlePointPress = (index: number) => {
@@ -307,6 +308,7 @@ function LineChartCanvas({data, yAxisUnit, yAxisUnitPosition = 'left', onPointPr
                     matchedIndex={matchedIndex}
                     isTooltipActive={isTooltipActive}
                     data={data}
+                    series={series}
                     formatValue={formatValue}
                     chartWidth={chartWidth}
                     initialTooltipPosition={initialTooltipPosition}

@@ -4,8 +4,9 @@ import ActivityIndicator from '@components/ActivityIndicator';
 import BarChart from '@components/Charts/BarChart';
 import LineChart from '@components/Charts/LineChart';
 import PieChart from '@components/Charts/PieChart';
-import type {ChartDataPoint} from '@components/Charts/types';
+import type {ChartDataPoint, ChartProps} from '@components/Charts/types';
 import {CHART_CONTENT_MIN_HEIGHT} from '@components/Charts/VictoryTheme';
+import {CHART_SERIES_KEY} from '@components/Search/buildChartSeries';
 
 import React from 'react';
 import {PolarChart} from 'victory-native';
@@ -13,9 +14,11 @@ import {PolarChart} from 'victory-native';
 const CONTAINER_WIDTH = 320;
 
 const data: ChartDataPoint[] = [
-    {label: 'Amazon', total: 120},
-    {label: 'Uber', total: 80},
+    {label: 'Amazon', values: {[CHART_SERIES_KEY.PRIMARY]: 120}},
+    {label: 'Uber', values: {[CHART_SERIES_KEY.PRIMARY]: 80}},
 ];
+
+const series: ChartProps['series'] = [{key: CHART_SERIES_KEY.PRIMARY}];
 
 function getMeasuredBox() {
     let node = screen.UNSAFE_getByType(ActivityIndicator).parent;
@@ -43,6 +46,7 @@ describe('chart width handoff', () => {
         const loadingChart = (
             <Chart
                 data={data}
+                series={series}
                 isLoading
             />
         );
@@ -60,6 +64,7 @@ describe('chart width handoff', () => {
         const {rerender} = render(
             <PieChart
                 data={data}
+                series={series}
                 isLoading
             />,
         );
@@ -69,6 +74,7 @@ describe('chart width handoff', () => {
         rerender(
             <PieChart
                 data={data}
+                series={series}
                 isLoading={false}
             />,
         );
@@ -83,6 +89,7 @@ describe('chart width handoff', () => {
         render(
             <PieChart
                 data={data}
+                series={series}
                 isLoading={false}
             />,
         );
@@ -97,6 +104,7 @@ describe('chart width handoff', () => {
         render(
             <PieChart
                 data={data}
+                series={series}
                 isLoading={false}
             />,
         );

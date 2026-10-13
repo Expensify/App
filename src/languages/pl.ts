@@ -97,7 +97,9 @@ const translations: TranslationDeepObject<typeof en> = {
         selectMultiple: 'Wielokrotny wybór',
         saveChanges: 'Zapisz zmiany',
         submit: 'Wyślij',
+        submitAnyway: 'Wyślij mimo to',
         markAsDone: 'Oznacz jako wykonane',
+        markAsDoneAnyway: 'Oznacz jako wykonane mimo to',
         submitted: 'Przesłano',
         markedAsDoneStatus: 'Oznaczone jako ukończone',
         rotate: 'Obróć',
@@ -1458,8 +1460,15 @@ const translations: TranslationDeepObject<typeof en> = {
         pendingMatch: 'Oczekujące dopasowanie',
         pendingMatchWithCreditCardDescription: 'Oczekuje na dopasowanie paragonu do transakcji kartą. Oznacz jako gotówkę, aby anulować.',
         markAsCash: 'Oznacz jako gotówkę',
-        pendingMatchSubmitTitle: 'Wyślij raport',
-        pendingMatchSubmitDescription: 'Niektóre wydatki oczekują na dopasowanie z transakcją kartą kredytową. Czy chcesz oznaczyć je jako gotówkę?',
+        confirmSubmitReportViolations: {
+            title: 'Wysłać raport?',
+            description: 'Ten raport zawiera naruszenia zasad. Czy na pewno chcesz go wysłać bez wprowadzania zmian?',
+            titleMarkAsDone: 'Oznaczyć jako wykonane?',
+            descriptionMarkAsDone: 'Ten raport zawiera naruszenia zasad. Czy na pewno chcesz oznaczyć go jako wykonany bez wprowadzania zmian?',
+            rejectedExpense: 'Odrzucony wydatek nie oznaczony jako rozwiązany',
+            reportRejected: 'Raport wcześniej odrzucony',
+            pendingCardMatch: 'Wydatek czeka na możliwe dopasowanie z transakcją kartą',
+        },
         routePending: 'Trasa w toku…',
         automaticallyEnterExpenseDetails: 'Concierge uzupełni szczegóły za ciebie.',
         receiptScanning: () => ({
@@ -1629,6 +1638,7 @@ const translations: TranslationDeepObject<typeof en> = {
         pendingConversionMessage: 'Suma zaktualizuje się, gdy wrócisz do trybu online',
         changedTheExpense: 'zmienił(a) wydatek',
         addedReceipt: 'dodał(a) paragon',
+        removedReceipt: 'usunął(-ęła) paragon',
         setTheRequest: (valueName: string, newValueToDisplay: string) => `${valueName} na ${newValueToDisplay}`,
         setTheDistanceMerchant: (translatedChangedField: string, newMerchant: string, newAmountToDisplay: string) =>
             `ustawiono ${translatedChangedField} na ${newMerchant}, co ustawiło kwotę na ${newAmountToDisplay}`,
@@ -3439,12 +3449,13 @@ ${amount} dla ${merchant} - ${date}`,
         errorSelection: 'Wybierz opcję, aby przejść dalej',
         purpose: {
             title: 'Co chcesz dzisiaj zrobić?',
-            errorContinue: 'Naciśnij „Kontynuuj”, aby się skonfigurować',
-            errorBackButton: 'Dokończ pytania konfiguracyjne, aby zacząć korzystać z aplikacji',
-            [CONST.ONBOARDING_CHOICES.EMPLOYER]: 'Zgłoś wydatki pracodawcy',
+            errorContinue: 'Naciśnij „Dalej”, żeby dokończyć konfigurację',
+            errorBackButton: 'Dokończ pytania konfiguracyjne, żeby zacząć korzystać z aplikacji',
+            [CONST.ONBOARDING_CHOICES.JOIN_WORKSPACE]: 'Dołącz do firmowej przestrzeni roboczej',
+            [CONST.ONBOARDING_CHOICES.EMPLOYER]: 'Przesyłaj wydatki do mojego pracodawcy',
             [CONST.ONBOARDING_CHOICES.MANAGE_TEAM]: 'Zarządzaj wydatkami mojego zespołu',
-            [CONST.ONBOARDING_CHOICES.TRACK_BUSINESS]: 'Śledź wydatki firmowe',
-            [CONST.ONBOARDING_CHOICES.TRACK_PERSONAL]: 'Organizuj swoje wydatki osobiste',
+            [CONST.ONBOARDING_CHOICES.TRACK_BUSINESS]: 'Śledź wydatki mojej firmy',
+            [CONST.ONBOARDING_CHOICES.TRACK_PERSONAL]: 'Porządkuj moje wydatki osobiste',
             [CONST.ONBOARDING_CHOICES.LOOKING_AROUND]: 'Coś innego',
         },
         personalTrackGoal: {
@@ -3501,6 +3512,8 @@ ${amount} dla ${merchant} - ${date}`,
         mergeBlockScreen: {
             title: 'Nie udało się dodać służbowego adresu e-mail',
             subtitle: (workEmail: string | undefined) => `Nie udało się dodać ${workEmail}. Spróbuj ponownie później w Ustawieniach lub porozmawiaj z Concierge, aby uzyskać pomoc.`,
+            validatedPublicDomainSubtitle: (workEmail: string | undefined) =>
+                `Nie udało się dodać ${workEmail}. Żeby scalić te konta, zaloguj się jako ${workEmail} i przejdź do Konto > Zabezpieczenia > Scal konta, aby dokończyć proces.`,
             workAccountClosedSubtitle:
                 'Konto służbowe powiązane z tym adresem e‑mail jest zamknięte. Skontaktuj się z administratorem w swojej firmie, żeby je ponownie aktywować, albo zarejestruj się przy użyciu innego adresu e‑mail.',
             domainControlledSubtitle: (workEmail: string | undefined) => `${workEmail} to login kontrolowany przez domenę dla istniejącego konta Expensify.`,
@@ -3739,6 +3752,34 @@ ${amount} dla ${merchant} - ${date}`,
                     I gotowe!
                 `),
             },
+            addWorkEmailTask: {
+                title: 'Dodaj swój służbowy e‑mail',
+                description: ({workEmailLink = ''}) =>
+                    Str.dedent(`
+                        1. Otwórz [Dodaj służbowy e‑mail](${workEmailLink}).
+                        2. Wpisz swój służbowy adres e‑mail.
+                        3. Wpisz kod, który ci wyślemy e‑mailem.
+                        4. Wybierz przestrzeń roboczą, do której chcesz dołączyć, albo kliknij *Poproś o dołączenie*, żeby wysłać prośbę do właściciela przestrzeni roboczej.
+                    `),
+            },
+            validateEmailTask: {
+                title: 'Zweryfikuj swój e-mail',
+                description: ({validateEmailLink = '', workEmail = ''}) =>
+                    Str.dedent(`
+                        1. Otwórz [Zweryfikuj swoje konto](${validateEmailLink}).
+                        2. Wpisz kod, który wysłaliśmy na adres ${workEmail}.
+                        3. Wybierz przestrzeń roboczą, do której chcesz dołączyć, albo kliknij *Poproś o dołączenie*, żeby wysłać prośbę do właściciela przestrzeni roboczej.
+                    `),
+            },
+            joinWorkspaceTask: {
+                title: 'Dołącz do przestrzeni roboczej swojej firmy',
+                description: ({joinWorkspaceLink = ''}) =>
+                    Str.dedent(`
+                        1. Otwórz [Dołącz do przestrzeni roboczej](${joinWorkspaceLink}).
+                        2. Znajdź swój zespół na liście. Przy każdym widać jego właściciela i liczbę osób, zaczynając od największych. Kliknij *Pokaż więcej*, jeśli nie widzisz swojego.
+                        3. Kliknij *Dołącz teraz* lub *Poproś o dołączenie*, jeśli wymagana jest akceptacja administratora.
+                    `),
+            },
         } satisfies Record<string, Pick<OnboardingTask, 'title' | 'description'>>,
         testDrive: {
             name: ({testDriveURL}: {testDriveURL?: string}) => (testDriveURL ? `Zrób [jazdę próbną](${testDriveURL})` : 'Wypróbuj wersję testową'),
@@ -3761,6 +3802,14 @@ ${amount} dla ${merchant} - ${date}`,
             onboardingChatSplitMessage: 'Dziel się rachunkami ze znajomymi tak łatwo, jak wysyłasz wiadomość. Oto jak to działa.',
             onboardingAdminMessage: 'Dowiedz się, jak zarządzać przestrzenią roboczą swojego zespołu jako administrator i rozliczać własne wydatki.',
             onboardingTestDriveReceiverMessage: '*Masz 3 miesiące za darmo! Zacznij poniżej.*',
+            onboardingJoinWorkspaceAddWorkEmailMessage:
+                'Ponieważ chcesz dołączyć do firmowego obszaru roboczego, nie utworzyłem żadnego dla ciebie. Dodaj swój służbowy e‑mail, a sprawdzę, do których obszarów roboczych w twojej firmie możesz dołączyć.',
+            onboardingJoinWorkspaceValidateEmailMessage: ({companyDomain = ''}: {companyDomain?: string}) =>
+                `Ponieważ chcesz dołączyć do przestrzeni roboczej swojej firmy, nie utworzyłem żadnej dla ciebie. Zweryfikuj swój e‑mail, a ja sprawdzę, do których przestrzeni roboczych w domenie ${companyDomain} możesz dołączyć.`,
+            onboardingJoinWorkspaceMessage: ({companyDomain = '', joinWorkspaceLink = ''}: {companyDomain?: string; joinWorkspaceLink?: string}) =>
+                `Ponieważ chcesz dołączyć do firmowego workspace'u, nie utworzyłem nowego dla ciebie. Twój zespół w ${companyDomain} jest już w Expensify. [Zobacz workspace'y, do których możesz dołączyć.](${joinWorkspaceLink})`,
+            onboardingJoinWorkspaceEmptyMessage:
+                'Wygląda na to, że w twojej firmie nie ma żadnych przestrzeni roboczych, do których możesz dołączyć. Skontaktuj się ze swoim administratorem i poproś go o zaproszenie cię do jego przestrzeni roboczej.',
         },
         workspace: {
             title: 'Zachowaj porządek dzięki przestrzeni roboczej',
@@ -4946,6 +4995,7 @@ ${amount} dla ${merchant} - ${date}`,
             readOnlyActionTitle: 'Nie tak szybko…',
             readOnlyActionPrompt: 'Twoja rola w przestrzeni roboczej może wyświetlać te ustawienia, ale nie może ich edytować.',
             noAccessActionPrompt: 'Twoja rola w tym zespole nie ma dostępu do tych ustawień. Jeśli go potrzebujesz, poproś administratora.',
+            connections: 'Połączenia',
         },
         createdForClient: {
             title: 'Utworzyłeś przestrzeń roboczą dla swojego klienta!',
@@ -4969,6 +5019,31 @@ ${amount} dla ${merchant} - ${date}`,
                 title: 'ChatGPT',
                 subtitle: 'od OpenAI',
             },
+        },
+        connections: {
+            tabs: {
+                [CONST.TAB.CONNECTIONS.ALL]: 'Wszystko',
+                [CONST.TAB.CONNECTIONS.ACCOUNTING]: 'Księgowość',
+                [CONST.TAB.CONNECTIONS.PEOPLE]: 'HR i ludzie',
+                [CONST.TAB.CONNECTIONS.RECRUITING]: 'Rekrutacja',
+                [CONST.TAB.CONNECTIONS.RECEIPTS]: 'Paragony',
+                [CONST.TAB.CONNECTIONS.AI]: 'AI i MCP',
+            },
+            findConnections: 'Znajdź połączenia',
+            configure: 'Skonfiguruj',
+            fix: 'Napraw',
+            active: 'Aktywne',
+            broken: 'Uszkodzone',
+            brokenConnection: 'Nie można zsynchronizować z powodu przerwanego połączenia',
+            replaceConnectionTitle: 'Zastąpić połączenie?',
+            offer: 'Oferta',
+            replaceConnectionPrompt: (connectionName: string) => `To usunie twoje bieżące połączenie ${connectionName}.`,
+            hrisListing: (providerName: string) => `${providerName} (HRIS)`,
+            atsListing: (providerName: string) => `${providerName} (ATS)`,
+            suggestIntegration: 'Nie widzisz swojej? Zaproponuj integrację, przyjrzymy się temu.',
+            noResultsPrompt: '<muted-text><centered-text>Dostosuj wyszukiwanie lub <a href="#">zaproponuj integrację</a>.</centered-text></muted-text>',
+            allConnectedTitle: 'Wszystko połączone',
+            allConnectedPrompt: '<muted-text><centered-text>Wszystko tutaj jest już połączone. Możesz też <a href="#">zaproponować integrację</a>.</centered-text></muted-text>',
         },
         receiptPartners: {
             uber: {
@@ -10244,10 +10319,6 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
         genericUpdateReportFieldFailureMessage: 'Nieoczekiwany błąd podczas aktualizowania pola. Spróbuj ponownie później.',
         genericUpdateReportNameEditFailureMessage: 'Nieoczekiwany błąd podczas zmiany nazwy raportu. Spróbuj ponownie później.',
         noActivityYet: 'Brak aktywności',
-        collapsedSystemMessages: () => ({
-            one: 'pokaż 1 aktualizację',
-            other: (count: number) => `pokaż ${count} ${count % 10 >= 2 && count % 10 <= 4 && (count % 100 < 12 || count % 100 > 14) ? 'aktualizacje' : 'aktualizacji'}`,
-        }),
         connectionSettings: 'Ustawienia połączenia',
         actions: {
             type: {
@@ -11533,6 +11604,7 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
         markAllAsRead: '<tooltip>Kliknij prawym przyciskiem myszy, aby <strong>oznaczyć wszystko jako przeczytane</strong>.</tooltip>',
         markAllAsReadTouchScreen: '<tooltip>Przytrzymaj, aby <strong>oznaczyć wszystko jako przeczytane</strong>.</tooltip>',
         accountMovedToTopBar: '<tooltip>Uzyskaj dostęp do swojego konta i ustawień osobistych.</tooltip>',
+        connectionsMoved: 'Wszystkie twoje połączenia w jednym miejscu',
     },
     discardChangesConfirmation: {
         title: 'Odrzucić zmiany?',
