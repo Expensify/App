@@ -1,6 +1,6 @@
 import type {ListItem} from '@components/SelectionList/types';
 
-import {sortDefaultToTop} from '@libs/ListUtils';
+import {sortDefaultToTop, withClearRow} from '@libs/ListUtils';
 
 import type {ThemeStyles} from '@styles/index';
 
@@ -64,5 +64,31 @@ describe('sortDefaultToTop', () => {
                 footerContent: undefined,
             },
         ]);
+    });
+});
+
+describe('withClearRow', () => {
+    const clearRow: ListItem = {keyForList: 'none', text: 'None'};
+    const vendors: ListItem[] = [
+        {keyForList: 'v1', text: 'Vendor 1', isSelected: true},
+        {keyForList: 'v2', text: 'Vendor 2'},
+    ];
+
+    it('puts the clear row below the selection when it is pinned to the top', () => {
+        // Given a list whose first row is the pinned selection
+        // When the clear row is inserted with isSelectionPinnedToTop = true
+        // Then it sits just below the pinned selection, not above it
+        expect(withClearRow(vendors, clearRow, true)).toStrictEqual([
+            {keyForList: 'v1', text: 'Vendor 1', isSelected: true},
+            {keyForList: 'none', text: 'None'},
+            {keyForList: 'v2', text: 'Vendor 2'},
+        ]);
+    });
+
+    it('puts the clear row first when nothing is pinned to the top', () => {
+        // Given a short/unpinned list
+        // When the clear row is inserted with isSelectionPinnedToTop = false
+        // Then it stays at the very top (natural order is retained below it)
+        expect(withClearRow(vendors, clearRow, false)).toStrictEqual([{keyForList: 'none', text: 'None'}, ...vendors]);
     });
 });

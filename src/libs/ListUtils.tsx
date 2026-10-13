@@ -21,5 +21,11 @@ function sortDefaultToTop<T extends ListItem>(items: T[], isDefault: (item: T) =
         }));
 }
 
-// eslint-disable-next-line import/prefer-default-export
-export {sortDefaultToTop};
+/**
+ * Places the clear row below a pinned selection, otherwise at the top.
+ */
+function withClearRow<T extends ListItem>(items: T[], clearRow: T, isSelectionPinnedToTop: boolean): T[] {
+    return isSelectionPinnedToTop ? [...items.slice(0, 1), clearRow, ...items.slice(1)] : [clearRow, ...items];
+}
+
+export {sortDefaultToTop, withClearRow};

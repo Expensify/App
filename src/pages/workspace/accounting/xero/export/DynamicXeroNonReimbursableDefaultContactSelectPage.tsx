@@ -92,7 +92,7 @@ function DynamicXeroNonReimbursableDefaultContactSelectPage({policy}: WithPolicy
     // update on select doesn't reorder the list for a frame before the page navigates back.
     const initialContactID = useInitialValue(() => currentContactID);
     const allOptions = shouldShowClearOption ? [clearOption, ...supplierOptions] : supplierOptions;
-    const orderedOptions = moveInitialSelectionToTop(allOptions, initialContactID ? [initialContactID] : []);
+    const orderedOptions = shouldShowTextInput ? moveInitialSelectionToTop(allOptions, initialContactID ? [initialContactID] : []) : allOptions;
 
     // Keep the clear row visible regardless of the search term so it stays reachable while filtering.
     const data: SelectorType[] = shouldShowTextInput
