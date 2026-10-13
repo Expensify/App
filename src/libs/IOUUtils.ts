@@ -635,7 +635,7 @@ function isSelfDMParticipant(participant: Participant | undefined, currentUserAc
  * current-user participant (self-DM seeded before the flag is set) and an invoice sender.
  */
 function isP2PRecipient(participant: Participant | undefined, currentUserAccountID: number | undefined): boolean {
-    return isParticipantP2P(participant) && !participant?.isSender && !isSelfDMParticipant(participant, currentUserAccountID);
+    return isParticipantP2P(participant) && !isSelfDMParticipant(participant, currentUserAccountID);
 }
 
 /**
