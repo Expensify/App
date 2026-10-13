@@ -467,6 +467,7 @@ describe('ReportActionsList (body)', () => {
         } as OnyxTypes.ReportAction;
 
         it('keeps the survey action in a resolved ticket after it is replaced', () => {
+            // Given a resolved support ticket that was replaced after its survey was added
             mockUsePaginatedReportActions.mockReturnValue({
                 ...defaultPaginatedReportActionsResult,
                 report: supportTicketReport,
@@ -483,8 +484,10 @@ describe('ReportActionsList (body)', () => {
                 return getMockOnyxValue(key, options);
             });
 
+            // When the report action list renders the original ticket
             renderReportActionsList();
 
+            // Then the survey remains visible so the member can rate the support experience
             expect(getCapturedVisibleActions()).toContain(surveyAction);
         });
     });

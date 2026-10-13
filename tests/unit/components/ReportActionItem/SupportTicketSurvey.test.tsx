@@ -87,6 +87,9 @@ describe('SupportTicketSurvey', () => {
     });
 
     it('keeps the survey visible after the ticket is replaced', () => {
+        // Given a resolved support ticket that points to its replacement ticket
+
+        // When the original ticket's survey renders
         render(
             <SupportTicketSurvey
                 action={surveyAction}
@@ -95,6 +98,7 @@ describe('SupportTicketSurvey', () => {
             />,
         );
 
+        // Then the prompt and reactions remain visible so the member can rate the support experience
         expect(screen.getByText('supportTicket.surveyPrompt')).toBeTruthy();
         expect(screen.getByTestId('support-ticket-survey-reactions')).toBeTruthy();
     });
