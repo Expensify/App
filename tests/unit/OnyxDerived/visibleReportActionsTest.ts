@@ -1,8 +1,9 @@
 import visibleReportActionsConfig from '@libs/actions/OnyxDerived/configs/visibleReportActions';
 
+import CONST from '@src/CONST';
 import type {OnyxKey} from '@src/ONYXKEYS';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Report, ReportActions} from '@src/types/onyx';
+import type {Report, ReportActions, ReportNameValuePairs} from '@src/types/onyx';
 import type {VisibleReportActionsDerivedValue} from '@src/types/onyx/DerivedValues';
 
 import type {OnyxCollection} from 'react-native-onyx';
@@ -12,7 +13,7 @@ describe('visibleReportActions', () => {
         const reportActionsKeyA = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}A`;
         // Only report A has report actions now; report B exists only in the previous derived value (currentValue).
         const allReportActions: OnyxCollection<ReportActions> = {[reportActionsKeyA]: {}};
-        const args: Parameters<typeof visibleReportActionsConfig.compute>[0] = [allReportActions, undefined, {} as OnyxCollection<Report>];
+        const args: Parameters<typeof visibleReportActionsConfig.compute>[0] = [allReportActions, undefined, {} as OnyxCollection<Report>, {} as OnyxCollection<ReportNameValuePairs>];
         const currentValue: VisibleReportActionsDerivedValue = {A: {}, B: {}};
         const sourceValues: Parameters<typeof visibleReportActionsConfig.compute>[1]['sourceValues'] = {[ONYXKEYS.COLLECTION.REPORT_ACTIONS]: {[reportActionsKeyA]: {}}};
 
@@ -30,5 +31,40 @@ describe('visibleReportActions', () => {
             expect(result.B).toBeUndefined();
             expect(result.A).toBeDefined();
         });
+    });
+
+    it('hides a support survey when the ticket has been replaced', () => {
+        // Given a cached support survey that was visible before the replacement ticket arrived
+        const reportID = 'supportTicketReportID';
+        const surveyActionID = 'surveyActionID';
+        const reportActionsKey = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`;
+        const reportKey = `${ONYXKEYS.COLLECTION.REPORT}${reportID}`;
+        const reportNameValuePairsKey = `${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`;
+        const allReportActions: OnyxCollection<ReportActions> = {
+            [reportActionsKey]: {
+                [surveyActionID]: {
+                    reportActionID: surveyActionID,
+                    actionName: CONST.REPORT.ACTIONS.TYPE.SUPPORT_SURVEY,
+                    created: '2026-10-13 12:00:00.000',
+                },
+            },
+        };
+        const args: Parameters<typeof visibleReportActionsConfig.compute>[0] = [
+            allReportActions,
+            undefined,
+            {[reportKey]: {reportID, type: CONST.REPORT.TYPE.SUPPORT_TICKET}},
+            {[reportNameValuePairsKey]: {reopenedAsReportID: 'replacementReportID'}},
+        ];
+        const currentValue: VisibleReportActionsDerivedValue = {[reportID]: {[surveyActionID]: true}};
+
+        // When the replacement report NVP triggers a recompute
+        const result = visibleReportActionsConfig.compute(args, {
+            currentValue,
+            sourceValues: {[ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS]: {[reportNameValuePairsKey]: {reopenedAsReportID: 'replacementReportID'}}},
+            triggeredKeys: new Set<OnyxKey>([ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS]),
+        });
+
+        // Then the shared visibility cache hides the stale survey
+        expect(result[reportID]?.[surveyActionID]).toBe(false);
     });
 });
