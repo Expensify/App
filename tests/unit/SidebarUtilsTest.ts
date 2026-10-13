@@ -1310,6 +1310,92 @@ describe('SidebarUtils', () => {
             expect(result).toStrictEqual({shouldDisplay: false});
         });
 
+        it('returns shouldDisplay as true for an orphaned thread holding an unsent draft', async () => {
+            // Given an expense report whose only expense was deleted, so its IOU action is deleted too
+            const MOCK_EXPENSE_REPORT: Report = {
+                reportID: '10',
+                ownerAccountID: 12345,
+                policyID: '6',
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                type: CONST.REPORT.TYPE.EXPENSE,
+            };
+
+            // And the transaction thread the app built for it, which never reached the server, so it carries a
+            // createChat error the user cannot act on. This is the dead "Fix" row from #100676.
+            const MOCK_ORPHANED_THREAD: Report = {
+                reportID: '11',
+                ownerAccountID: 12345,
+                policyID: '6',
+                parentReportID: MOCK_EXPENSE_REPORT.reportID,
+                parentReportActionID: '20',
+                type: CONST.REPORT.TYPE.CHAT,
+                errorFields: {createChat: {'1772030710775000': 'report.genericCreateReportFailureMessage'}},
+            };
+
+            const MOCK_REPORTS = {
+                [`${ONYXKEYS.COLLECTION.REPORT}${MOCK_EXPENSE_REPORT.reportID}` as const]: MOCK_EXPENSE_REPORT,
+                [`${ONYXKEYS.COLLECTION.REPORT}${MOCK_ORPHANED_THREAD.reportID}` as const]: MOCK_ORPHANED_THREAD,
+            } satisfies ReportCollectionDataSet;
+            const onyxOrphanReports: ReportCollectionDataSet = MOCK_REPORTS;
+
+            const MOCK_REPORT_ACTIONS: ReportActions = {
+                '20': {
+                    reportActionID: '20',
+                    actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                    originalMessage: {
+                        IOUTransactionID: '30',
+                        type: 'create',
+                    },
+                    // An empty html fragment is how a deleted expense action is stored.
+                    message: [{type: 'COMMENT', html: '', text: ''}],
+                    actorAccountID: 12345,
+                    created: '2024-08-08 18:20:44.171',
+                    childReportID: MOCK_ORPHANED_THREAD.reportID,
+                },
+            };
+
+            // The derived attributes surface the createChat error, which is what force-displays the row.
+            const MOCK_REPORT_ATTRIBUTES: ReportAttributesDerivedValue['reports'] = {
+                [MOCK_ORPHANED_THREAD.reportID]: {
+                    reportName: '',
+                    isEmpty: true,
+                    brickRoadStatus: CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR,
+                    requiresAttention: false,
+                    reportErrors: {'1772030710775000': 'Unexpected error creating this report. Please try again later.'},
+                },
+            };
+
+            await act(async () => {
+                await Onyx.multiSet({
+                    ...onyxOrphanReports,
+                    [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${MOCK_EXPENSE_REPORT.reportID}` as const]: MOCK_REPORT_ACTIONS,
+                });
+            });
+
+            // When the LHN decides whether to show the thread
+            const result = SidebarUtils.shouldDisplayReportInLHN({
+                report: MOCK_ORPHANED_THREAD,
+                reports: MOCK_REPORTS,
+                currentReportId: undefined,
+                isInFocusMode: false,
+                isDefaultRoomsBetaEnabled: false,
+                transactionViolations: {},
+                draftComment: 'a draft the user has not sent',
+                transactions: {},
+                isOffline: false,
+                // The derived attributes surface the createChat error, which is what force-displays the row.
+                reportAttributes: MOCK_REPORT_ATTRIBUTES,
+                currentUserLogin: CURRENT_USER_LOGIN,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                hasGuidesEmails: false,
+                conciergeReportID: undefined,
+            });
+
+            // Then it stays, because the row is the only route back to the draft
+            expect(result).toStrictEqual({shouldDisplay: true, hasErrorsOtherThanFailedReceipt: true});
+        });
+
         it('returns shouldDisplay as false for an orphaned thread whose expense report was deleted too', async () => {
             // Given a deleted single expense, which takes its expense report down with it, so neither the
             // report nor its IOU action is left on this client

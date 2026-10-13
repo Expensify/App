@@ -209,7 +209,9 @@ function shouldDisplayReportInLHN({
     }
 
     // An error on a thread nothing links to any more is not actionable, so it must not force an empty LHN row.
+    // An unsent draft counts as content, since the row is the only route back to it.
     const isOrphanedFailedThread =
+        !draftComment &&
         (!!report.errorFields?.createChat || !!report.errorFields?.createChatThread) &&
         !!report.parentReportActionID &&
         (parentReportAction ? isDeletedAction(parentReportAction) : !parentReport) &&
