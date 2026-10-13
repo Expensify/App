@@ -625,14 +625,6 @@ const translations: TranslationDeepObject<typeof en> = {
         launching: '正在启动 Expensify',
         expired: '您的会话已过期。',
         signIn: '请重新登录。',
-        notValid: '链接无效。',
-        sessionMismatch: '您点击的链接对您当前的会话无效。',
-        switchAccount: {
-            title: '切换账户？',
-            prompt: ({newEmail, currentEmail}: {newEmail: string; currentEmail: string}) => `您当前以 ${currentEmail} 身份登录。此操作将改为以 ${newEmail} 身份登录。`,
-            confirm: '切换账户',
-            staySignedIn: '不要切换账户',
-        },
     },
     multifactorAuthentication: {
         reviewTransaction: {
@@ -836,7 +828,7 @@ const translations: TranslationDeepObject<typeof en> = {
             } else if (action?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW) {
                 type = 'report';
             }
-            return `确定要删除此${type}吗？`;
+            return `确定要删除此${type}吗？${action?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW ? '此报告中的所有费用都将变为未报销状态。' : ''}`;
         },
         onlyVisible: '仅对以下对象可见',
         explain: '解释',
@@ -1435,6 +1427,7 @@ const translations: TranslationDeepObject<typeof en> = {
             one: '您确定要删除此报告吗？',
             other: '您确定要删除这些报告吗？',
         }),
+        deleteExpenseReportConfirmation: '您确定要删除此报告吗？此报告中的所有费用都将变为未报销状态。',
         settledExpensify: '已支付',
         paidStatusMarkedAsPaid: '已标记为已支付',
         paidStatusWithdrawing: '提现中',
@@ -2221,6 +2214,7 @@ const translations: TranslationDeepObject<typeof en> = {
     displayNamePage: {
         headerTitle: '显示名称',
         isShownOnProfile: '您的显示名称会显示在您的个人资料中。',
+        isShownOnMemberProfile: '显示名称会出现在该成员的个人资料中。保存后，只有该成员本人可以编辑。',
     },
     timezonePage: {
         timezone: '时区',
@@ -2266,7 +2260,6 @@ const translations: TranslationDeepObject<typeof en> = {
             useProfiling: '使用分析工具',
             profileTrace: '性能追踪',
             results: '结果',
-            releaseOptions: '发布选项',
             testingPreferences: '测试偏好',
             server: '服务器',
             servers: {
@@ -3300,13 +3293,12 @@ ${amount}，商户：${merchant} - 日期：${date}`,
         errorSelection: '选择一个选项以继续',
         purpose: {
             title: '你今天想做什么？',
-            errorContinue: '请点击“继续”完成设置',
+            errorContinue: '请按“继续”完成设置',
             errorBackButton: '请完成设置问题以开始使用此应用程序',
-            [CONST.ONBOARDING_CHOICES.JOIN_WORKSPACE]: '加入我的公司工作区',
-            [CONST.ONBOARDING_CHOICES.EMPLOYER]: '向我的雇主提交报销',
+            [CONST.ONBOARDING_CHOICES.EMPLOYER]: '向雇主提交费用',
             [CONST.ONBOARDING_CHOICES.MANAGE_TEAM]: '管理我团队的报销',
-            [CONST.ONBOARDING_CHOICES.TRACK_BUSINESS]: '跟踪我的业务支出',
-            [CONST.ONBOARDING_CHOICES.TRACK_PERSONAL]: '整理我的个人支出',
+            [CONST.ONBOARDING_CHOICES.TRACK_BUSINESS]: '跟踪我的商务开销',
+            [CONST.ONBOARDING_CHOICES.TRACK_PERSONAL]: '管理我的个人支出',
             [CONST.ONBOARDING_CHOICES.LOOKING_AROUND]: '其他原因',
         },
         personalTrackGoal: {
@@ -3360,8 +3352,6 @@ ${amount}，商户：${merchant} - 日期：${date}`,
         mergeBlockScreen: {
             title: '无法添加工作邮箱',
             subtitle: (workEmail: string | undefined) => `我们无法添加 ${workEmail}。请稍后在设置中重试，或与 Concierge 聊天以获取指导。`,
-            validatedPublicDomainSubtitle: (workEmail: string | undefined) =>
-                `我们无法添加 ${workEmail}。若要合并这些账户，请以 ${workEmail} 身份登录，并前往“账户 > 安全 > 合并账户”以完成此流程。`,
             workAccountClosedSubtitle: '与此邮箱关联的工作账户已被关闭。请联系您公司的管理员以重新激活该账户，或使用其他邮箱注册。',
             domainControlledSubtitle: (workEmail: string | undefined) => `${workEmail} 是现有 Expensify 账户的域控制登录。`,
         },
@@ -3599,34 +3589,6 @@ ${amount}，商户：${merchant} - 日期：${date}`,
                     完成！
                 `),
             },
-            addWorkEmailTask: {
-                title: '添加你的工作邮箱',
-                description: ({workEmailLink = ''}) =>
-                    Str.dedent(`
-                        1. 打开[添加工作邮箱](${workEmailLink})。
-                        2. 输入你的公司邮箱地址。
-                        3. 输入我们发给你的验证码。
-                        4. 选择要加入的工作区，或点击 *请求加入* 向工作区所有者发送请求。
-                    `),
-            },
-            validateEmailTask: {
-                title: '验证你的邮箱',
-                description: ({validateEmailLink = '', workEmail = ''}) =>
-                    Str.dedent(`
-                        1. 打开［验证您的账户］(${validateEmailLink})。
-                        2. 输入我们发送到 ${workEmail} 的验证码。
-                        3. 选择要加入的工作区，或点击 *请求加入* 向该工作区所有者发送请求。
-                    `),
-            },
-            joinWorkspaceTask: {
-                title: '加入你们公司的工作区',
-                description: ({joinWorkspaceLink = ''}) =>
-                    Str.dedent(`
-                        1. 打开［加入工作空间］(${joinWorkspaceLink})。
-                        2. 在列表中找到你的团队。每个团队都会显示其所有者和成员数量，按人数从多到少排序。如果没有看到你的团队，点击 *显示更多*。
-                        3. 点击 *立即加入*，如需管理员审批则点击 *请求加入*。
-                    `),
-            },
         } satisfies Record<string, Pick<OnboardingTask, 'title' | 'description'>>,
         testDrive: {
             name: ({testDriveURL}: {testDriveURL?: string}) => (testDriveURL ? `进行[试用体验](${testDriveURL})` : '试用体验'),
@@ -3649,12 +3611,6 @@ ${amount}，商户：${merchant} - 日期：${date}`,
             onboardingChatSplitMessage: '和朋友分摊账单就像发条消息一样简单。操作方法如下。',
             onboardingAdminMessage: '了解如何以管理员身份管理您团队的工作区，并提交您自己的报销。',
             onboardingTestDriveReceiverMessage: '*您已获得 3 个月的免费使用！请从下面开始。*',
-            onboardingJoinWorkspaceAddWorkEmailMessage: '由于你是想加入你们公司的工作区，所以我没有为你创建新的工作区。请添加你的工作邮箱，我会检查你可以加入你们公司中的哪些工作区。',
-            onboardingJoinWorkspaceValidateEmailMessage: ({companyDomain = ''}: {companyDomain?: string}) =>
-                `由于你想加入你所在公司的工作区，我就不为你创建新的工作区了。请先验证你的邮箱，我会检查你可以加入哪些位于 ${companyDomain} 的工作区。`,
-            onboardingJoinWorkspaceMessage: ({companyDomain = '', joinWorkspaceLink = ''}: {companyDomain?: string; joinWorkspaceLink?: string}) =>
-                `由于你想加入你们公司的工作区，我没有为你创建新的工作区。你在 ${companyDomain} 的团队已经在使用 Expensify 了。[查看你可以加入的工作区](${joinWorkspaceLink})`,
-            onboardingJoinWorkspaceEmptyMessage: '看起来你的公司还没有可加入的工作区。请联系你的管理员，让他们邀请你加入他们的工作区。',
         },
         workspace: {
             title: '使用工作区保持井井有条',
@@ -3890,6 +3846,15 @@ ${amount}，商户：${merchant} - 日期：${date}`,
         },
         unlockAlreadyRequestedTitle: '请求已提交',
         unlockAlreadyRequestedDescription: '您解锁此银行账户的请求已发送。如需其他信息，Concierge 会与您联系。',
+    },
+    dynamicForm: {
+        exampleHint: ({example}: {example: string}) => `示例：${example}`,
+        error: {
+            tooShort: ({minLength}: {minLength: number}) => `至少需要 ${minLength} 个字符`,
+            invalidFormat: ({example}: {example?: string}) => (example ? `格式无效。示例：${example}` : '格式无效'),
+            invalidOption: '请从可用选项中选择',
+            outOfRange: ({min, max}: {min: number; max: number}) => `请输入 ${min} 到 ${max} 之间的值`,
+        },
     },
     addPersonalBankAccount: {
         swiftBicFormatError: 'SWIFT/BIC 必须为 8 或 11 个字符长度，由 6 个字母后接 2 或 5 个字母或数字组成。',
@@ -5968,6 +5933,7 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
             syncReimbursedReports: '同步已报销报表',
             syncReimbursedReportsDescription: '当报表通过 ACH 支付时，将在此账户中生成一笔账单付款。',
             billPaymentAccount: {label: '账单付款账户', description: '选择从哪里支付账单，我们会在 DualEntry 中创建该付款。'},
+            fxExpenseAccount: {label: 'DualEntry 货币转换手续费科目', description: '当您的公司承担一笔境外付款的货币兑换成本时，我们会在 DualEntry 中将该成本作为一条日记账分录记入此科目。'},
             syncExpensifyCardSettlements: '同步 Expensify 卡结算',
             settlementAccount: {label: 'Expensify 卡结算账户', description: '选择您的结算账户，我们会在 DualEntry 中创建这笔付款。'},
             syncTravelInvoicingSettlements: '同步旅行开票结算',
@@ -6646,17 +6612,7 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
             invoiceFieldInitialValueRequiredError: '请选择发票字段的初始值',
             addField: '添加字段',
         },
-        vendors: {
-            emptyTitle: '尚无供应商',
-            emptySubtitle: '会计同步完成后，供应商将显示在此处。',
-            findVendor: '查找供应商',
-            managedInAccountingSoftware: '供应商在您的',
-            enableVendor: '启用供应商',
-            enableVendors: '启用供应商',
-            disableVendor: '停用供应商',
-            disableVendors: '禁用供应商',
-            updateFailureMessage: '更新供应商时出错，请重试',
-        },
+        vendors: {emptyTitle: '尚无供应商', emptySubtitle: '会计同步完成后，供应商将显示在此处。', findVendor: '查找供应商', managedInAccountingSoftware: '供应商在您的'},
         tags: {
             tagName: '标签名称',
             requiresTag: '成员必须为所有报销添加标签',
@@ -8045,6 +8001,8 @@ ${reportName}`,
                 applyUpdates: '应用这些更新：',
                 saveRule: '保存规则',
                 previewMatches: '预览匹配项',
+                previewMatchesDescription: '查看此规则如何应用于你的费用',
+                preview: '预览',
                 confirmError: '输入商户并应用至少一项更新',
                 confirmErrorMerchant: '请输入商户',
                 confirmErrorUpdate: '请至少应用一个更新',
@@ -8364,6 +8322,14 @@ ${reportName}`,
                 requireFieldsDescription: '要求填写特定报销字段，或免除其必填限制。',
                 createAgentRule: '描述代理规则',
                 createAgentRuleDescription: '创建可按需运行的灵活规则。',
+                describe: '描述',
+                describeRule: '用通俗的语言描述你的规则，Concierge 会为你创建规则',
+                describeRuleInputLabel: '描述规则',
+                promptErrors: {
+                    unsupported: '该规则暂不支持，我们正在开发中。请先尝试其他规则。',
+                    unintelligible: '可以这样描述规则：如果支出超过 100 美元，则需要收据。',
+                    multipleRules: '请一次描述一条规则，例如：在所有卡上阻止零售消费。',
+                },
             },
             expenseDefaultsTable: {
                 tableColumnType: '类型',
@@ -8517,7 +8483,15 @@ ${reportName}`,
             setupIncomplete: (setupLink: string | undefined) =>
                 `<muted-text-label>已连接。${setupLink ? `<a href="${setupLink}">完成设置</a>` : '完成设置'} 用于导入员工。</muted-text-label>`,
             mergeHR: {
-                groups: {title: '群组', description: '选择要与此工作区同步的员工分组'},
+                groups: {
+                    title: '群组',
+                    description: '选择要与此工作区同步的员工分组',
+                    staleSelectionError: (providerName: string) => `您选择的部分群组在 ${providerName} 中已不存在，因此其员工已停止同步。`,
+                    updateSelectionLink: '更新你的群组。',
+                    noGroupsFound: '未找到群组',
+                    noGroupsFoundDescription: '目前没有可选择的分组。可在未选择任何分组的情况下保存以同步所有员工，或在新分组创建后再次同步连接。',
+                    unnamedGroup: (groupID: string) => `未命名群组（${groupID}）`,
+                },
             },
         },
         recruiting: {
@@ -9388,6 +9362,8 @@ ${reportName}`,
             return `将“${categoryName}”类别的出席者更改为 ${newValue ? '必填' : '非必填'}（之前为 ${newValue ? '非必填' : '必填'}）`;
         },
         updatedAutoHarvesting: (enabled: boolean) => `${enabled ? '已启用' : '已禁用'} 次提交`,
+        updatedMemberDisplayName: (newName: string, oldName: string, editProfileURL: string) =>
+            `已将您的显示名称更新为 ${newName}（之前为“${oldName}”）。<a href="${editProfileURL}">在个人资料中编辑</a>`,
         changedOverLimitForwardsTo: ({
             member,
             approver,
@@ -9777,7 +9753,11 @@ ${reportName}`,
             topMerchants: '热门商家',
             violationsBySubmitter: '提交人违规',
         },
-        mergeReports: {title: '合并报表', description: '选择要保留的报表。所有费用都将移入该报表，其他报表将被删除。'},
+        mergeReports: {
+            title: '合并报表',
+            description: '选择要保留的报表。所有费用都将移入该报表，其他报表将被删除。',
+            listPage: {noEligibleReportsFound: '未找到符合条件的报表', noEligibleReportsFoundSubtitle: '您没有任何可合并的报表。'},
+        },
         periodSoFar: ({period}: {period: string}) => `目前 ${period}`,
         weekOf: ({date}: {date: string}) => `${date} 当周`,
         saveEdits: {title: '保存编辑', prompt: ({name}: {name: string}) => `要更新对“${name}”的更改，还是创建一个新项？`, createNew: '新建', updateExisting: '更新现有内容'},
@@ -9807,12 +9787,7 @@ ${reportName}`,
         },
     },
     settlement: {
-        status: {
-            pending: '待处理',
-            cleared: '已入账',
-            failed: '失败',
-            never: '从不',
-        },
+        status: {pending: '待处理', cleared: '已入账', failed: '失败', never: '从不', cashBack: '返现'},
         failedError: ({link}: {link: string}) => `当你<a href="${link}">解锁你的账户</a>后，我们会重试此结算。`,
         withdrawalInfo: ({date, withdrawalID}: {date: string; withdrawalID: number}) => `${date} • 提现 ID：${withdrawalID}`,
     },
@@ -9844,6 +9819,10 @@ ${reportName}`,
         genericUpdateReportFieldFailureMessage: '更新该字段时发生未知错误。请稍后重试。',
         genericUpdateReportNameEditFailureMessage: '重命名报表时发生意外错误。请稍后重试。',
         noActivityYet: '暂无活动',
+        collapsedSystemMessages: () => ({
+            one: '显示 1 条更新',
+            other: (count: number) => `显示 ${count} 条更新`,
+        }),
         connectionSettings: '连接设置',
         actions: {
             type: {

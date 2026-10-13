@@ -1,5 +1,6 @@
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 
+import {isLiveWideTabPreMountRouteKey} from '@libs/Navigation/helpers/wideTabPreMountRouteKey';
 import convertToWebNavigationOptions from '@libs/Navigation/PlatformStackNavigation/navigationOptions/convertToWebNavigationOptions';
 import screenLayout from '@libs/Navigation/PlatformStackNavigation/ScreenLayout';
 import type {
@@ -97,8 +98,9 @@ function PlatformNavigatorImpl<RouterOptions extends PlatformStackRouterOptions 
     const mappedState = {
         ...state,
         routes: state.routes.map((route) => {
+            // A wide submit pre-mount sits covered until its reveal, so it stays attached to be laid out and painted by then.
             // eslint-disable-next-line rulesdir/no-negated-variables
-            const dontDetachScreen = persistentScreens?.includes(route.name) ? {dontDetachScreen: true} : {};
+            const dontDetachScreen = persistentScreens?.includes(route.name) || isLiveWideTabPreMountRouteKey(route.key) ? {dontDetachScreen: true} : {};
             return {...route, ...dontDetachScreen};
         }),
     };
