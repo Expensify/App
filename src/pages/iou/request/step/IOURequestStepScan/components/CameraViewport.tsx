@@ -21,8 +21,8 @@ import type {PermissionStatus} from 'react-native-permissions';
 import type {AnimatedStyle} from 'react-native-reanimated';
 import type {CameraDevice, CameraOutput, CameraRef, CameraSessionConfig, Constraint} from 'react-native-vision-camera';
 
-import React from 'react';
-import {StyleSheet, View} from 'react-native';
+import React, {useState} from 'react';
+import {Platform, StyleSheet, View} from 'react-native';
 import {GestureDetector} from 'react-native-gesture-handler';
 import {RESULTS} from 'react-native-permissions';
 import Animated from 'react-native-reanimated';
@@ -127,6 +127,10 @@ function CameraViewport({
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     const lazyIcons = useMemoizedLazyExpensifyIcons(['Bolt']);
+    const [isPreviewLive, setIsPreviewLive] = useState(false);
+    // iOS keeps showing the previous session's last frame until the restarted session delivers a new one. Restarting on the
+    // ultra-wide (zoom 1) also lets close receipts focus at once, instead of waiting on the wide lens to hand over to macro.
+    const shouldHidePreview = Platform.OS === 'ios' && !isPreviewLive;
 
     return (
         <View style={[styles.cameraView, styles.alignItemsCenter]}>
@@ -137,13 +141,15 @@ function CameraViewport({
                         device={device}
                         outputs={outputs}
                         constraints={constraints}
-                        style={styles.flex1}
-                        zoom={getZoomProp(device)}
+                        style={[styles.flex1, shouldHidePreview && styles.opacity0]}
+                        zoom={shouldHidePreview ? 1 : getZoomProp(device)}
                         cameraTabIndex={1}
                         forceInactive={isAttachmentPickerActive || (didCapturePhoto && !hasPendingPhotoCapture)}
                         shouldStayActiveWhenBlurred={hasPendingPhotoCapture}
                         onConfigured={onConfigured}
                         onStarted={onStarted}
+                        onPreviewStarted={() => setIsPreviewLive(true)}
+                        onPreviewStopped={() => setIsPreviewLive(false)}
                         onSessionConfigSelected={onSessionConfigSelected}
                         // VisionCamera's default handler is console.error, which pops LogBox over the camera.
                         onError={(error) => Log.warn('[Camera] VisionCamera error', {code: error.message.split('\n').at(0)?.trim(), message: error.message})}
