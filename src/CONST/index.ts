@@ -1193,6 +1193,7 @@ const CONST = {
         SUPPORT_TICKET: 'supportTicket',
         ANCHORED_FIELD_DROPDOWNS: 'anchoredFieldDropdowns',
         RESIZABLE_TABLE_COLUMNS: 'resizableTableColumns',
+        DESCRIBE_RULE: 'describeRule',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
