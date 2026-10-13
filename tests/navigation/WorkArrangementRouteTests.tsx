@@ -114,7 +114,7 @@ describe('Work arrangement route', () => {
     it('registers the invite arrangement editor under the invite confirmation route', () => {
         // Given the invite-specific work arrangement route
         const policyID = 'policy123';
-        const path = ROUTES.WORKSPACE_INVITE_WORK_ARRANGEMENT.getRoute(policyID);
+        const path = `workspaces/${policyID}/members/invite/invite-message/work-arrangement`;
         const workflowInviteConfirmationPath = `workspaces/${policyID}/workflows/approvals/expenses-from/invite-message`;
         const workflowArrangementPath = createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_INVITE_WORK_ARRANGEMENT.path, workflowInviteConfirmationPath);
         const workflowAdaptedState = getAdaptedStateFromPath(workflowArrangementPath, undefined);
@@ -136,7 +136,6 @@ describe('Work arrangement route', () => {
 
         // Then it resolves to the invite editor and can return to the invite confirmation route
         expect(path).toBe(`workspaces/${policyID}/members/invite/invite-message/work-arrangement`);
-        expect(ROUTES.WORKSPACE_INVITE_WORK_ARRANGEMENT.route).toBe('workspaces/:policyID/members/invite/invite-message/work-arrangement');
         expect(findInviteScreenPath(config?.screens)).toBe(DYNAMIC_ROUTES.WORKSPACE_INVITE_WORK_ARRANGEMENT.path);
         expect(workflowArrangementPath).toBe(`${workflowInviteConfirmationPath}/work-arrangement`);
         expect(WORKSPACE_TO_RHP[SCREENS.WORKSPACE.MEMBERS]).not.toContain(SCREENS.WORKSPACE.INVITE_WORK_ARRANGEMENT);

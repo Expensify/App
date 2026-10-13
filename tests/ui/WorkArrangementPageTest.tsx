@@ -17,6 +17,7 @@ import WorkArrangementPage from '@pages/workspace/members/WorkArrangementPage';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
+import type {Route} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type {PersonalDetails, PersonalDetailsList, Policy} from '@src/types/onyx';
 
@@ -97,7 +98,7 @@ describe('WorkArrangementPage', () => {
         jest.clearAllMocks();
         mockIsWorkArrangementBetaEnabled = true;
         jest.mocked(canMemberWrite).mockReturnValue(true);
-        jest.mocked(useDynamicBackPath).mockReturnValue(ROUTES.WORKSPACE_INVITE_MESSAGE.getRoute(policyID));
+        jest.mocked(useDynamicBackPath).mockReturnValue(`workspaces/${policyID}/members/invite/invite-message` as Route);
         await act(async () => {
             await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetails);
             await Onyx.set(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MEMBERS_DRAFT}${policyID}`, {});
@@ -198,7 +199,7 @@ describe('WorkArrangementPage', () => {
         // Then only the invite arrangement draft changes and the editor returns to confirmation
         expect(await getOnyxValue(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_WORK_ARRANGEMENT_DRAFT}${policyID}`)).toBe(true);
         expect(setEmployeeWorkArrangement).not.toHaveBeenCalled();
-        expect(Navigation.goBack).toHaveBeenCalledWith(ROUTES.WORKSPACE_INVITE_MESSAGE.getRoute(policyID));
+        expect(Navigation.goBack).toHaveBeenCalledWith(`workspaces/${policyID}/members/invite/invite-message`);
     });
 
     it('defaults an invite to office-based when the workspace has no work arrangement default', async () => {
