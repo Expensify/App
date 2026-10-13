@@ -96,6 +96,9 @@ function useAttachmentPicker(reportID: string) {
         const fileObjects = extractedFiles
             .map((item, index) => {
                 const fileObject = cleanFileObject(item);
+                if (fileObject === null) {
+                    return null;
+                }
                 const cleanedFileObject = cleanFileObjectName(fileObject);
                 if (cleanedFileObject !== null) {
                     validIndices.push(index);

@@ -1,5 +1,7 @@
 import {renderHook} from '@testing-library/react-native';
 
+import type useFilesValidation from '@hooks/useFilesValidation';
+
 import Navigation from '@navigation/Navigation';
 
 import useConciergeAttachmentPicker from '@pages/home/ForYouSection/useConciergeAttachmentPicker';
@@ -12,7 +14,7 @@ import React from 'react';
 
 const REPORT_ID = '100';
 
-const mockValidateFiles = jest.fn();
+const mockValidateFiles = jest.fn<ReturnType<ReturnType<typeof useFilesValidation>['validateFiles']>, Parameters<ReturnType<typeof useFilesValidation>['validateFiles']>>();
 const validationHandler: {onFilesValidated?: (files: FileObject[]) => void} = {};
 
 jest.mock('@hooks/useFilesValidation', () => ({
@@ -111,5 +113,23 @@ describe('useConciergeAttachmentPicker', () => {
             expect(mockSetCurrentAttachment).not.toHaveBeenCalled();
             expect(mockNavigate).not.toHaveBeenCalled();
         });
+    });
+});
+
+describe('Concierge nullable extraction orchestration', () => {
+    it.each([true, false])('retains actual null extraction with scalar=%s', (scalar) => {
+        // Given getAsFile publicly admits null and the existing picker does not filter its map.
+        mockValidateFiles.mockClear();
+        const getter: FileObject = {getAsFile: () => null};
+        const {result} = renderPicker(REPORT_ID, jest.fn());
+        const first = FILES.at(0);
+        if (!first) {
+            throw new Error('Expected the first Concierge attachment');
+        }
+        // When cleaning runs in the real picker for either supported input category.
+        expect(result.current.pickAttachments(scalar ? getter : [first, getter, first])).toBeUndefined();
+        // Then the original batch count and null position reach shared validation.
+        expect(mockValidateFiles).toHaveBeenCalledTimes(1);
+        expect(mockValidateFiles).toHaveBeenCalledWith(scalar ? [null] : [first, null, first], undefined, {isValidatingReceipts: false});
     });
 });
