@@ -15,9 +15,12 @@ type UseParentReportActionOptions = {
     shouldIgnoreThreadReplies?: boolean;
 };
 
-function useParentReportAction(report: OnyxEntry<Report>): OnyxEntry<ReportAction>;
-function useParentReportAction(report: OnyxEntry<Report>, options: UseParentReportActionOptions): ReportActionWithoutThreadReplyCounters | undefined;
-function useParentReportAction(report: OnyxEntry<Report>, {shouldIgnoreThreadReplies = false}: UseParentReportActionOptions = {}) {
+/** The only report fields the hook reads, so callers can pass a narrowed report projection. */
+type ParentReportFields = Pick<Report, 'parentReportID' | 'parentReportActionID'>;
+
+function useParentReportAction(report: OnyxEntry<ParentReportFields>): OnyxEntry<ReportAction>;
+function useParentReportAction(report: OnyxEntry<ParentReportFields>, options: UseParentReportActionOptions): ReportActionWithoutThreadReplyCounters | undefined;
+function useParentReportAction(report: OnyxEntry<ParentReportFields>, {shouldIgnoreThreadReplies = false}: UseParentReportActionOptions = {}) {
     const getParentReportAction = useCallback(
         (parentReportActions: OnyxEntry<ReportActions>) =>
             shouldIgnoreThreadReplies
