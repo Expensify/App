@@ -3321,6 +3321,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
         // reverse-split (1 split + existing children) - but the Approved status should be picked up from
         // the search snapshot and block treating it as a reverse split.
         updateSplitTransactionsFromSplitExpensesFlow({
+            reportDrafts: {},
             isVendorMatchingBetaEnabled: false,
             rules: undefined,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
@@ -3418,6 +3419,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
         // at a stale, never-submitted report (e.g. because the split moved reports while the editor was open).
         // The live transaction's Approved report must be used instead of that stale cached field.
         updateSplitTransactionsFromSplitExpensesFlow({
+            reportDrafts: {},
             isVendorMatchingBetaEnabled: false,
             rules: undefined,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
@@ -3527,6 +3529,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
         // at a stale, never-submitted report, and the child transaction itself is only known via the search
         // snapshot (not yet in Onyx). The snapshot transaction's live reportID must still be used.
         updateSplitTransactionsFromSplitExpensesFlow({
+            reportDrafts: {},
             isVendorMatchingBetaEnabled: false,
             rules: undefined,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
