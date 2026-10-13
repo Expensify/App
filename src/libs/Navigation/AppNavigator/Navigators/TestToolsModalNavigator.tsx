@@ -8,16 +8,12 @@ import useIsAuthenticated from '@hooks/useIsAuthenticated';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import useRequire2FAOverlayVisibility, {REQUIRE_2FA_ABOVE_PORTAL_HOST} from '@hooks/useRequire2FAOverlayVisibility';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useStyleUtils from '@hooks/useStyleUtils';
-import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import blurActiveElement from '@libs/Accessibility/blurActiveElement';
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {TestToolsModalModalNavigatorParamList} from '@libs/Navigation/types';
-
-import variables from '@styles/variables';
 
 import toggleTestToolsModal from '@userActions/TestTool';
 
@@ -30,7 +26,7 @@ import {Portal} from '@gorhom/portal';
 import {NavigationContext, NavigationRouteContext, useIsFocused} from '@react-navigation/native';
 import {CardAnimationContext} from '@react-navigation/stack';
 import React, {useCallback, useContext, useRef} from 'react';
-import {Platform, StyleSheet, View} from 'react-native';
+import {Platform, View} from 'react-native';
 
 import Overlay from './Overlay';
 
@@ -85,24 +81,22 @@ function TestToolsModalFrame({children}: TestToolsModalFrameProps) {
 }
 
 /**
- * While the required-2FA overlay covers the root stack, draw this screen in the portal host above it.
- * The nested stack stays in the root navigator so the URL, backTo, and goBack keep working.
- * The host is outside that stack, so the frame gets the screen contexts it reads.
+ * On web, the required-2FA overlay is painted after the root stack, so this screen has to move
+ * into the portal host above it. The nested stack stays in the root navigator so the URL, backTo,
+ * and goBack keep working. The host is outside that stack, so the frame gets the screen contexts it reads.
+ *
+ * Native already presents this navigator as a transparent modal above that overlay. Portaling the
+ * screen out of the modal leaves an empty opaque screen, which covers the tools once the transition ends.
  */
 function withRequire2FAPortal<RouteName extends TestToolsRouteName>(Screen: ComponentType<PlatformStackScreenProps<TestToolsModalModalNavigatorParamList, RouteName>>) {
     function Require2FAPortaledTestToolsScreen(props: PlatformStackScreenProps<TestToolsModalModalNavigatorParamList, RouteName>) {
-        const theme = useTheme();
-        const StyleUtils = useStyleUtils();
         const {isRequire2FAOverlayVisible} = useRequire2FAOverlayVisibility();
         const navigation = useContext(NavigationContext);
         const route = useContext(NavigationRouteContext);
         const cardAnimation = useContext(CardAnimationContext);
         const isFocused = useIsFocused();
-        // Native Overlay renders nothing, and the screen contentStyle stays under the 2FA overlay.
-        // This fill is the dim that travels with the portal. Web already dims via Overlay inside the frame.
-        const nativeScrimStyle = Platform.OS === 'web' ? undefined : StyleUtils.getBackgroundColorWithOpacityStyle(theme.overlay, variables.overlayOpacity);
 
-        if (!isRequire2FAOverlayVisible) {
+        if (!isRequire2FAOverlayVisible || Platform.OS !== 'web') {
             return <Screen {...props} />;
         }
 
@@ -121,15 +115,7 @@ function withRequire2FAPortal<RouteName extends TestToolsRouteName>(Screen: Comp
         return (
             <Portal hostName={REQUIRE_2FA_ABOVE_PORTAL_HOST}>
                 <NavigationContext.Provider value={navigation}>
-                    <NavigationRouteContext.Provider value={route}>
-                        <View
-                            pointerEvents="box-none"
-                            style={[StyleSheet.absoluteFill, nativeScrimStyle]}
-                            testID="Require2FATestToolsScrim"
-                        >
-                            {frame}
-                        </View>
-                    </NavigationRouteContext.Provider>
+                    <NavigationRouteContext.Provider value={route}>{frame}</NavigationRouteContext.Provider>
                 </NavigationContext.Provider>
             </Portal>
         );
@@ -147,7 +133,13 @@ function TestToolsModalNavigator() {
     useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ESCAPE, () => toggleTestToolsModal(), {shouldBubble: false});
 
     const stack = (
-        <Stack.Navigator screenOptions={{headerShown: false}}>
+        <Stack.Navigator
+            screenOptions={{
+                headerShown: false,
+                // The root screen paints the dim. A default opaque screen here is the white sheet that covers the tools after the native modal transition.
+                native: {contentStyle: {backgroundColor: 'transparent'}},
+            }}
+        >
             <Stack.Screen
                 name={SCREENS.TEST_TOOLS_MODAL.ROOT}
                 component={PortaledTestToolsModalPage}
@@ -159,7 +151,8 @@ function TestToolsModalNavigator() {
         </Stack.Navigator>
     );
 
-    if (isRequire2FAOverlayVisible) {
+    // See withRequire2FAPortal. Only web has to lift the screen out of this stack.
+    if (isRequire2FAOverlayVisible && Platform.OS === 'web') {
         return stack;
     }
 

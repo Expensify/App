@@ -5,8 +5,10 @@ import Icon from '@components/Icon';
 import OfflineIndicator from '@components/OfflineIndicator';
 import Text from '@components/Text';
 
+import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useRequire2FAOverlayVisibility from '@hooks/useRequire2FAOverlayVisibility';
 import useSignOut from '@hooks/useSignOut';
@@ -53,6 +55,13 @@ function RequireTwoFactorAuthenticationOverlay() {
     const illustrations = useMemoizedLazyIllustrations(['Encryption']);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const {isOffline} = useNetwork();
+    // OfflineIndicator is a fixed-height row. Safe-area padding has to live on the container around it,
+    // or the home-indicator inset consumes that height and the "You appear to be offline" label clips.
+    const offlineBannerSafeAreaStyle = useBottomSafeSafeAreaPaddingStyle({
+        addBottomSafeAreaPadding: true,
+        addOfflineIndicatorBottomSafeAreaPadding: false,
+    });
     const {getTwoFactorAuthRoute} = useTwoFactorAuthRoute();
     const {signOut, leaveDelegateAccount, isActingAsDelegate, isTrackingGPS} = useSignOut();
     const gpsDraftDetailsRef = useRef<GpsDraftDetails | undefined>(undefined);
@@ -163,11 +172,11 @@ function RequireTwoFactorAuthenticationOverlay() {
                 style={[StyleSheet.absoluteFill, styles.twoFARequiredOfflineBanner]}
                 testID="RequireTwoFactorOfflineBanner"
             >
-                <OfflineIndicator
-                    style={styles.pl5}
-                    containerStyles={[styles.stickToBottom, styles.appBG]}
-                    addBottomSafeAreaPadding
-                />
+                {isOffline && (
+                    <View style={[styles.stickToBottom, styles.appBG, offlineBannerSafeAreaStyle]}>
+                        <OfflineIndicator style={styles.pl5} />
+                    </View>
+                )}
             </View>
         </>
     );

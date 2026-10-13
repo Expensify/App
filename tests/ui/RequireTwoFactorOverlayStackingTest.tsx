@@ -10,6 +10,7 @@ import TestToolsModalNavigator from '@libs/Navigation/AppNavigator/Navigators/Te
 import RequireTwoFactorAuthenticationOverlay from '@pages/RequireTwoFactorAuthenticationOverlay';
 
 import React from 'react';
+import {Platform} from 'react-native';
 
 type Visibility = {
     isRequire2FAOverlayVisible: boolean;
@@ -31,6 +32,11 @@ jest.mock('@hooks/useRequire2FAOverlayVisibility', () => ({
 jest.mock('@hooks/useNetwork', () => ({
     __esModule: true,
     default: () => ({isOffline: mockIsOffline}),
+}));
+
+jest.mock('@hooks/useBottomSafeSafeAreaPaddingStyle', () => ({
+    __esModule: true,
+    default: () => ({paddingBottom: 34}),
 }));
 
 jest.mock('@hooks/useOnyx', () => ({
@@ -295,12 +301,19 @@ describe('RequireTwoFactorAuthenticationOverlay stacking', () => {
 });
 
 describe('TestToolsModalNavigator portal', () => {
+    const originalOS = Platform.OS;
+
     beforeEach(() => {
         mockVisibility = {
             isRequire2FAOverlayVisible: false,
             isTestToolsRouteFocused: false,
         };
         mockFocusedRouteName = 'TestToolsModal_Root';
+        Platform.OS = originalOS;
+    });
+
+    afterEach(() => {
+        Platform.OS = originalOS;
     });
 
     it('keeps test tools in place when the required-2FA overlay is hidden', () => {
@@ -309,15 +322,15 @@ describe('TestToolsModalNavigator portal', () => {
         // When test tools render in the root stack.
         render(<TestToolsModalNavigator />);
 
-        // Then they stay in place, and the portaled scrim is absent so the two dims do not stack.
+        // Then they stay in place, because nothing is covering them.
         expect(screen.getByTestId('test-tools-stack')).toBeOnTheScreen();
         expect(screen.getByTestId('test-tools-page')).toBeOnTheScreen();
         expect(screen.queryByTestId(`portal-${REQUIRE_2FA_ABOVE_PORTAL_HOST}`)).toBeNull();
-        expect(screen.queryByTestId('Require2FATestToolsScrim')).toBeNull();
     });
 
-    it('portals the focused screen above the overlay and keeps its route', () => {
-        // Given required 2FA covers the root stack and the root test-tools screen is focused.
+    it('portals the focused screen above the overlay on web and keeps its route', () => {
+        // Given web, where the overlay is painted after the navigator and would cover an in-place screen.
+        Platform.OS = 'web';
         mockVisibility = {
             isRequire2FAOverlayVisible: true,
             isTestToolsRouteFocused: true,
@@ -326,17 +339,17 @@ describe('TestToolsModalNavigator portal', () => {
         // When test tools render above that overlay.
         render(<TestToolsModalNavigator />);
 
-        // Then that screen is portaled with its route, and the native scrim travels with it so the 2FA screen is dimmed.
+        // Then that screen is portaled with its route. Web dims via Overlay inside the frame.
         const portal = screen.getByTestId(`portal-${REQUIRE_2FA_ABOVE_PORTAL_HOST}`);
 
         expect(screen.getByTestId('test-tools-stack')).toBeOnTheScreen();
         expect(within(portal).getByText('TestToolsModal_Root')).toBeOnTheScreen();
-        expect(within(portal).getByTestId('Require2FATestToolsScrim')).toBeOnTheScreen();
         expect(screen.queryByTestId('test-tools-server-page')).toBeNull();
     });
 
-    it('renders nothing for an unfocused test tools screen', () => {
-        // Given the server page is the focused test-tools screen while required 2FA is showing.
+    it('renders nothing for an unfocused test tools screen on web', () => {
+        // Given the server page is the focused test-tools screen while required 2FA is showing on web.
+        Platform.OS = 'web';
         mockVisibility = {
             isRequire2FAOverlayVisible: true,
             isTestToolsRouteFocused: true,
@@ -351,5 +364,22 @@ describe('TestToolsModalNavigator portal', () => {
 
         expect(within(portal).getByText('TestToolsModal_Server')).toBeOnTheScreen();
         expect(screen.queryByTestId('test-tools-page')).toBeNull();
+    });
+
+    it('keeps test tools inside the native modal while required 2FA is showing', () => {
+        // Given native, where this navigator is already a transparent modal above the overlay.
+        // Portaling the screen out of that modal leaves an empty opaque screen that covers the tools after the transition.
+        Platform.OS = 'ios';
+        mockVisibility = {
+            isRequire2FAOverlayVisible: true,
+            isTestToolsRouteFocused: true,
+        };
+
+        // When test tools render.
+        render(<TestToolsModalNavigator />);
+
+        // Then they stay in the navigator, where the modal can show them, and nothing is portaled behind it.
+        expect(screen.queryByTestId(`portal-${REQUIRE_2FA_ABOVE_PORTAL_HOST}`)).toBeNull();
+        expect(screen.getByTestId('test-tools-page')).toBeOnTheScreen();
     });
 });
