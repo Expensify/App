@@ -9,6 +9,7 @@ import Text from '@components/Text';
 import CONST from '@src/CONST';
 
 import type {ComponentType, ReactNode} from 'react';
+import type {StyleProp, ViewStyle} from 'react-native';
 
 import React from 'react';
 import {StyleSheet, View} from 'react-native';
@@ -92,16 +93,17 @@ function renderLayout({receiptOptions = noReceiptOptions, hasParticipantSection 
     );
 }
 
+function getViewStyles(): ViewStyle[] {
+    return screen.UNSAFE_getAllByType(View).map((view) => StyleSheet.flatten(view.props.style as StyleProp<ViewStyle>) ?? {});
+}
+
 function getDividers() {
-    return screen.UNSAFE_getAllByType(View).filter((view) => StyleSheet.flatten(view.props.style)?.borderBottomWidth === mockStyles.dividerLine.borderBottomWidth);
+    return getViewStyles().filter((style) => style.borderBottomWidth === mockStyles.dividerLine.borderBottomWidth);
 }
 
 /** The wrapper around the receipt preview is the only view styled with just the vertical margin */
 function getReceiptSpacers() {
-    return screen.UNSAFE_getAllByType(View).filter((view) => {
-        const style = StyleSheet.flatten(view.props.style);
-        return style?.marginVertical === mockStyles.mv2.marginVertical && style?.borderBottomWidth === undefined;
-    });
+    return getViewStyles().filter((style) => style.marginVertical === mockStyles.mv2.marginVertical && style.borderBottomWidth === undefined);
 }
 
 describe('ExpenseFormFooterLayout', () => {
