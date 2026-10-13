@@ -35,6 +35,8 @@ const EXTENSION_DENY_URLS = [/^chrome-extension:\/\//i, /^moz-extension:\/\//i, 
  */
 const THIRD_PARTY_NOISE_INTEGRATIONS = [thirdPartyErrorFilterIntegration, classCallCheckNoiseFilterIntegration, googleTranslateRecursionNoiseFilterIntegration];
 
+const TURBO_MODULE_CONTEXT_INTEGRATION = 'TurboModuleContext';
+
 function setupSentry(): void {
     const {semanticVersion, buildNumber} = getAppVersion(pkg.version);
     const integrations = [
@@ -57,7 +59,10 @@ function setupSentry(): void {
         tracesSampleRate: 1.0,
         enableAutoPerformanceTracing: true,
         enableUserInteractionTracing: true,
-        integrations,
+        // TurboModuleContext (default since SDK 8.14) writes context to the scope around every RNSentry call, which on
+        // iOS means a file write each time. Sentry calls RNSentry for frame data on every navigation and tap, and all we
+        // get back is a crash tag naming the Sentry method that was running.
+        integrations: (defaultIntegrations) => [...defaultIntegrations.filter((integration) => integration.name !== TURBO_MODULE_CONTEXT_INTEGRATION), ...integrations],
         environment: CONFIG.ENVIRONMENT,
         release: `${pkg.name}@${semanticVersion}`,
         dist: buildNumber,
