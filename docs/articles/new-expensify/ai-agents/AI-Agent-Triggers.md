@@ -1,11 +1,13 @@
 ---
 title: Agent Trigger Reference
-description: Every event your Agent can react to, with ready-to-copy instruction phrases for your agent's prompt.
+description: Every event your agent can react to, with ready-to-copy instruction phrases for your agent's prompt.
 keywords: [Custom Agent, Agent, agent triggers, report_activity, agent instructions, expense report events, workspace automation, when to trigger agent, report submitted, report approved, Expensify automation]
-internalScope: Audience is workspace admins configuring Agents. Covers all expose-level report_activity events. Does not cover chat message triggers or report-received triggers.
+internalScope: Audience is workspace admins configuring agents. Covers all expose-level report_activity events. Does not cover chat message triggers or report-received triggers.
+contentType: topic
+order: 9
 ---
 
-An Agent reacts to expense report events when its instructions match what happened. This reference lists every event your agent can respond to, along with example phrases you can paste directly into your prompt.
+An agent reacts to expense report events when its instructions match what happened. This reference lists every event your agent can respond to, along with example phrases you can paste directly into your prompt.
 
 # Agent Trigger Reference
 
@@ -348,7 +350,7 @@ To react to this event, include phrases like:
 To react to this event, include phrases like:
 - When someone leaves a comment or message in a report
 - When a user asks a question or leaves a note in the conversation
-- When someone @mentions an Agent in a report
+- When someone @mentions an agent in a report
 
 **An approver at an intermediate step in a multi-level approval chain approved the expense report and forwarded it to the next approver.**
 
@@ -918,4 +920,4 @@ To react to this event, include phrases like:
 
 ---
 
-*This reference covers all 126 events AI Agents can react to.*
+*This reference covers all 126 events AI agents can react to.*
