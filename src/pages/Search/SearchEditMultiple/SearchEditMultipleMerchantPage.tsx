@@ -63,6 +63,7 @@ function SearchEditMultipleMerchantPage() {
                 onBackButtonPress={Navigation.goBack}
             />
             <FormProvider
+                shouldConstrainWebContentHeight
                 submitFlexEnabled={false}
                 style={[styles.flexGrow1, styles.ph5]}
                 formID={ONYXKEYS.FORMS.SEARCH_EDIT_MULTIPLE_MERCHANT_FORM}
@@ -71,7 +72,10 @@ function SearchEditMultipleMerchantPage() {
                 submitButtonText={translate('common.save')}
                 enabledWhenOffline
             >
-                <AutoGrowHeightInputContainer style={styles.mb4}>
+                <AutoGrowHeightInputContainer
+                    shouldKeepMinimumHeight
+                    style={styles.mb4}
+                >
                     {(maxAutoGrowHeight) => (
                         <InputWrapper
                             InputComponent={TextInput}

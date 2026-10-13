@@ -58,6 +58,7 @@ function SearchEditMultipleDescriptionPage() {
                 onBackButtonPress={Navigation.goBack}
             />
             <FormProvider
+                shouldConstrainWebContentHeight
                 submitFlexEnabled={false}
                 style={[styles.flexGrow1, styles.ph5]}
                 formID={ONYXKEYS.FORMS.SEARCH_EDIT_MULTIPLE_DESCRIPTION_FORM}
@@ -66,7 +67,10 @@ function SearchEditMultipleDescriptionPage() {
                 submitButtonText={translate('common.save')}
                 enabledWhenOffline
             >
-                <AutoGrowHeightInputContainer style={styles.mb4}>
+                <AutoGrowHeightInputContainer
+                    shouldKeepMinimumHeight
+                    style={styles.mb4}
+                >
                     {(maxAutoGrowHeight) => (
                         <InputWrapper
                             valueType="string"

@@ -88,6 +88,7 @@ function SavedSearchRenamePage({route}: SavedSearchRenamePageProps) {
             <FullPageNotFoundView shouldShow={!savedSearch}>
                 <HeaderWithBackButton title={translate('common.rename')} />
                 <FormProvider
+                    shouldConstrainWebContentHeight
                     submitFlexEnabled={false}
                     formID={ONYXKEYS.FORMS.SEARCH_SAVED_SEARCH_RENAME_FORM}
                     submitButtonText={translate('common.save')}
@@ -97,7 +98,7 @@ function SavedSearchRenamePage({route}: SavedSearchRenamePageProps) {
                     enabledWhenOffline
                     shouldHideFixErrorsAlert
                 >
-                    <AutoGrowHeightInputContainer>
+                    <AutoGrowHeightInputContainer shouldKeepMinimumHeight>
                         {(maxAutoGrowHeight) => (
                             <InputWrapper
                                 InputComponent={TextInput}
