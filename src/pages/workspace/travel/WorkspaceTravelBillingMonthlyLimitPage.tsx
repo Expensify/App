@@ -16,11 +16,11 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import {updateTravelBillingMonthlyLimit} from '@libs/actions/TravelBilling';
 import {getCardSettings} from '@libs/CardUtils';
-import {convertToBackendAmount, convertToFrontendAmountAsString} from '@libs/CurrencyUtils';
+import {convertToBackendAmount, convertToDisplayString, convertToFrontendAmountAsString} from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
-import {getTravelBillingCardSettingsKey} from '@libs/TravelBillingUtils';
+import {getTravelBillingCardSettingsKey, getTravelLimit} from '@libs/TravelBillingUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -40,6 +40,7 @@ function WorkspaceTravelBillingMonthlyLimitPage({route}: WorkspaceTravelBillingM
     const [cardSettings] = useOnyx(getTravelBillingCardSettingsKey(defaultFundID));
     const travelSettings = getCardSettings(cardSettings, CONST.TRAVEL.PROGRAM_TRAVEL_US);
     const currentLimit = travelSettings?.monthlySpendLimitPerUser ?? 0;
+    const travelLimit = getTravelLimit(travelSettings);
     const defaultValue = convertToFrontendAmountAsString(currentLimit, CONST.DEFAULT_CURRENCY_DECIMALS);
     const {inputCallbackRef} = useAutoFocusInput();
     const {showConfirmModal} = useConfirmModal();
@@ -56,6 +57,10 @@ function WorkspaceTravelBillingMonthlyLimitPage({route}: WorkspaceTravelBillingM
         const parsed = parseFloat(limit);
         if (Number.isNaN(parsed) || parsed < 0) {
             errors[INPUT_IDS.LIMIT] = translate('iou.error.invalidAmount');
+        } else if (travelLimit > 0 && convertToBackendAmount(parsed) > travelLimit) {
+            errors[INPUT_IDS.LIMIT] = translate('workspace.moreFeatures.travel.travelInvoicing.travelInvoicingSection.subsections.limitExceedsTravelLimit', {
+                travelLimit: convertToDisplayString(travelLimit, CONST.CURRENCY.USD),
+            });
         }
         return errors;
     };
