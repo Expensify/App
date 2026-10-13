@@ -489,7 +489,6 @@
 "../../src/hooks/useCardFeedsForDisplay.ts"	"no-restricted-imports"	1
 "../../src/hooks/useCreateReport.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/hooks/useDebounce.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
-"../../src/hooks/useDebouncedState.ts"	"react-hooks/refs"	2
 "../../src/hooks/useDebouncedValue.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/hooks/useDebounceNonReactive.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/hooks/useDragAndDrop/types.ts"	"@typescript-eslint/no-deprecated/React.MutableRefObject"	1
