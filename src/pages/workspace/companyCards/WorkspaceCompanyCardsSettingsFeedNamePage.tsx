@@ -1,3 +1,4 @@
+import CollapsibleHeaderOnKeyboard from '@components/CollapsibleHeaderOnKeyboard';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
@@ -96,10 +97,12 @@ function WorkspaceCompanyCardsSettingsFeedNamePage({
                 testID="WorkspaceCompanyCardsSettingsFeedNamePage"
                 style={styles.defaultModalContainer}
             >
-                <HeaderWithBackButton title={translate('workspace.moreFeatures.companyCards.cardFeedName')} />
-                <Text style={[styles.flexRow, styles.alignItemsCenter, styles.mt3, styles.mh5, styles.mb5]}>
-                    <Text style={[styles.textNormal, styles.colorMuted]}>{translate('workspace.moreFeatures.companyCards.setFeedNameDescription')}</Text>
-                </Text>
+                <CollapsibleHeaderOnKeyboard>
+                    <HeaderWithBackButton title={translate('workspace.moreFeatures.companyCards.cardFeedName')} />
+                    <Text style={[styles.flexRow, styles.alignItemsCenter, styles.mt3, styles.mh5, styles.mb5]}>
+                        <Text style={[styles.textNormal, styles.colorMuted]}>{translate('workspace.moreFeatures.companyCards.setFeedNameDescription')}</Text>
+                    </Text>
+                </CollapsibleHeaderOnKeyboard>
                 <FormProvider
                     formID={ONYXKEYS.FORMS.WORKSPACE_COMPANY_CARD_FEED_NAME}
                     submitButtonText={translate('workspace.editor.save')}
