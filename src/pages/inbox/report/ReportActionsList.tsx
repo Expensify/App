@@ -71,7 +71,7 @@ import {LegendList} from '@legendapp/list/react-native';
 import {useRoute} from '@react-navigation/native';
 import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 import React, {useEffect, useImperativeHandle, useRef, useState} from 'react';
-import {View} from 'react-native';
+import {Platform, View} from 'react-native';
 
 import FloatingMessageCounter from './FloatingMessageCounter';
 import {ReportActionPositionContextProvider} from './ReportActionIndexContext';
@@ -792,9 +792,11 @@ function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportAct
                 isReportArchived={isReportArchived}
             >
                 <LegendList
-                    accessibilityLabel={translate('sidebarScreen.listOfChatMessages')}
+                    accessibilityLabel={Platform.OS === 'web' ? undefined : translate('sidebarScreen.listOfChatMessages')}
+                    aria-label={Platform.OS === 'web' ? translate('sidebarScreen.listOfChatMessages') : undefined}
+                    data-testid={Platform.OS === 'web' ? 'report-actions-list' : undefined}
+                    testID={Platform.OS === 'web' ? undefined : 'report-actions-list'}
                     ref={legendListRef}
-                    testID="report-actions-list"
                     style={styles.overscrollBehaviorContain}
                     data={listData}
                     renderItem={renderItem}
@@ -802,7 +804,8 @@ function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportAct
                     drawDistance={REPORT_ACTIONS_DRAW_DISTANCE}
                     recycleItems
                     experimental_hideItemsUntilMeasured
-                    renderScrollComponent={renderReportActionsScrollView}
+                    renderScrollComponent={Platform.OS === 'web' ? undefined : renderReportActionsScrollView}
+                    scrollEventThrottle={16}
                     contentContainerStyle={[styles.chatContentScrollView, styles.pb0]}
                     onEndReached={loadNewerChatsAfterTransitions}
                     onEndReachedThreshold={PAGINATION_THRESHOLD}
@@ -870,7 +873,5 @@ function ReportActionsList({reportID, conciergeChat, onLayout}: ReportActionsLis
 export default ReportActionsList;
 
 function renderReportActionsScrollView(props: ActionSheetAwareScrollViewProps) {
-    // LegendList passes 0 to custom scroll views. On web that only emits the first and last event,
-    // allowing the hover-suppression timer to expire during a continuous scroll.
     return renderActionSheetAwareScrollView({...props, scrollEventThrottle: 16});
 }
