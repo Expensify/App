@@ -174,9 +174,6 @@ function SearchEditMultiplePage() {
     const areTagsEnabled = areSelectedTransactionsExpenses && !!policy?.areTagsEnabled && hasEnabledTags(policyTagLists);
     const areAttendeesEnabled = areSelectedTransactionsExpenses && isAttendeeTrackingEnabledForSelection;
 
-    // Policy categories and tags are not part of the search snapshot, and this page can be opened straight from Search
-    // before any screen has fully loaded them (e.g. after a cache clear, or on a lazy-loaded account that only holds the
-    // values already on its expenses), so load them here or their rows stay hidden or incomplete.
     useLoadPolicyCategories(policy?.areCategoriesEnabled ? policyID : undefined);
     useLoadPolicyTags(policy?.areTagsEnabled ? policyID : undefined);
 
