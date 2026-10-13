@@ -1,6 +1,6 @@
 # `react-native-screens` patches
 
-### [react-native-screens+4.28.0+001+fix-push-same-view-controller-twice.patch](react-native-screens+4.28.0+001+fix-push-same-view-controller-twice.patch)
+### [react-native-screens+4.28.0+002+fix-push-same-view-controller-twice.patch](react-native-screens+4.28.0+002+fix-push-same-view-controller-twice.patch)
 
 - Reason:
 
