@@ -8774,8 +8774,6 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
                     unsupported: 'Questa regola non è ancora supportata: ci stiamo lavorando. Per ora prova una regola diversa.',
                     unintelligible: 'Prova a formulare la regola così: se le spese superano i 100 $, richiedi una ricevuta.',
                     multipleRules: 'Una regola alla volta, per favore: prova a descrivere una singola regola, ad esempio bloccare gli acquisti al dettaglio su tutte le carte.',
-                    agentRuleAdminOnly:
-                        'Serve una regola agente, e solo gli amministratori dello spazio di lavoro possono crearla. Chiedi a un amministratore dello spazio di lavoro di aggiungerla.',
                 },
             },
             expenseDefaultsTable: {

@@ -446,22 +446,12 @@ function generateRule(policyID: string, prompt: string, ruleType?: GeneratedRule
     return generationID;
 }
 
-/** Stops the loading state of the prompt form and shows the translated error on it */
-function setNewRulePromptErrorMessage(translationKey: TranslationPaths) {
-    Onyx.merge(ONYXKEYS.FORMS.NEW_RULE_PROMPT_FORM, {
-        isLoading: false,
-        errors: getMicroSecondOnyxErrorWithTranslationKey(translationKey),
-    });
-}
-
 /** Shows on the prompt form why a description did not become a rule */
 function setNewRulePromptError(state: GeneratedRuleState) {
-    setNewRulePromptErrorMessage(PROMPT_ERROR_BY_STATE[state] ?? 'common.genericErrorMessage');
-}
-
-/** Shows on the prompt form that the description needs an agent rule, which only a workspace admin can create */
-function setAgentRuleAdminOnlyPromptError() {
-    setNewRulePromptErrorMessage('workspace.rules.newRule.promptErrors.agentRuleAdminOnly');
+    Onyx.merge(ONYXKEYS.FORMS.NEW_RULE_PROMPT_FORM, {
+        isLoading: false,
+        errors: getMicroSecondOnyxErrorWithTranslationKey(PROMPT_ERROR_BY_STATE[state] ?? 'common.genericErrorMessage'),
+    });
 }
 
 function clearGeneratedRule() {
@@ -739,7 +729,6 @@ export {
     addPolicyAgentRule,
     generateRule,
     setNewRulePromptError,
-    setAgentRuleAdminOnlyPromptError,
     clearGeneratedRule,
     clearNewRulePrompt,
     updatePolicyAgentRule,

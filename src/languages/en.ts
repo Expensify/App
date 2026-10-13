@@ -9098,7 +9098,6 @@ const translations = {
                     unsupported: "That rule isn't supported yet — we're working on it. Please try a different rule for now.",
                     unintelligible: 'Try phrasing your rule like: if expenses have a value over $100, then require a receipt.',
                     multipleRules: 'One rule at a time, please — try describing a single rule, like: block retail purchases on all cards.',
-                    agentRuleAdminOnly: 'This needs an agent rule, and only workspace admins can create those. Ask a workspace admin to add it.',
                 },
             },
             expenseDefaultsTable: {

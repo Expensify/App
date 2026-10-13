@@ -1,6 +1,5 @@
 import {act, fireEvent, render, screen} from '@testing-library/react-native';
 
-import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import usePolicy from '@hooks/usePolicy';
 
 import {openPolicyCategoriesPage} from '@libs/actions/Policy/Category';
@@ -25,14 +24,13 @@ import type {GeneratedRule} from '@src/types/onyx';
 import type {GeneratedRuleState, GeneratedRuleType} from '@src/types/onyx/GeneratedRule';
 
 import type * as ReactNavigationNative from '@react-navigation/native';
-import type {ValueOf} from 'type-fest';
 
 import React from 'react';
 import Onyx from 'react-native-onyx';
 
 import createRandomPolicy from '../utils/collections/policies';
 import getOnyxValue from '../utils/getOnyxValue';
-import {buildPersonalDetails, translateLocal} from '../utils/TestHelper';
+import {translateLocal} from '../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
 let mockPrompt = '';
@@ -59,7 +57,6 @@ jest.mock('@libs/actions/Policy/Category', () => ({
     ...jest.requireActual<Record<string, unknown>>('@libs/actions/Policy/Category'),
     openPolicyCategoriesPage: jest.fn(),
 }));
-jest.mock('@hooks/useCurrentUserPersonalDetails', () => jest.fn());
 jest.mock('@hooks/useConfirmModal', () => jest.fn(() => ({showConfirmModal: jest.fn()})));
 jest.mock('@hooks/useResponsiveLayout', () => jest.fn(() => ({isSmallScreenWidth: false, shouldUseNarrowLayout: false})));
 jest.mock('@hooks/useThemeStyles', () =>
@@ -143,15 +140,13 @@ jest.mock('@components/Form/FormProvider', () => {
 type RulesNewPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.RULES_NEW>;
 
 const POLICY_ID = 'policy1';
-const ADMIN_LOGIN = 'admin@example.com';
 
 const mockedUsePolicy = jest.mocked(usePolicy);
-const mockedUseCurrentUserPersonalDetails = jest.mocked(useCurrentUserPersonalDetails);
 
 type WriteSpy = jest.SpiedFunction<typeof API.write>;
 
-function setPolicyRole(role: ValueOf<typeof CONST.POLICY.ROLE>, areCategoriesEnabled = false) {
-    mockedUsePolicy.mockReturnValue({...createRandomPolicy(0, CONST.POLICY.TYPE.CORPORATE), id: POLICY_ID, role, areCategoriesEnabled});
+function setAdminPolicy(areCategoriesEnabled = false) {
+    mockedUsePolicy.mockReturnValue({...createRandomPolicy(0, CONST.POLICY.TYPE.CORPORATE), id: POLICY_ID, role: CONST.POLICY.ROLE.ADMIN, areCategoriesEnabled});
 }
 
 async function renderRulesNewPage() {
@@ -208,8 +203,7 @@ describe('RulesNewPage describe flow', () => {
         jest.clearAllMocks();
         mockPrompt = '';
         writeSpy = jest.spyOn(API, 'write').mockImplementation(() => Promise.resolve());
-        mockedUseCurrentUserPersonalDetails.mockReturnValue(buildPersonalDetails(ADMIN_LOGIN, 1));
-        setPolicyRole(CONST.POLICY.ROLE.ADMIN);
+        setAdminPolicy();
     });
 
     afterEach(async () => {
@@ -309,24 +303,6 @@ describe('RulesNewPage describe flow', () => {
         },
     );
 
-    it.each([CONST.GENERATED_RULE.STATE.UNSUPPORTED, CONST.GENERATED_RULE.STATE.MULTIPLE_RULES])(
-        'tells a member who cannot create agent rules to ask an admin when the answer is %s',
-        async (state: GeneratedRuleState) => {
-            // Given a member with write access to rules who is not a workspace admin
-            setPolicyRole(CONST.POLICY.ROLE.USER);
-            await openDescribeModal();
-            const {generationID} = describeRule(writeSpy, 'Block gift cards');
-
-            // When Concierge answers that it is not one standard rule
-            await answerGeneration({generationID, state});
-
-            // Then the modal shows the admin-only error and nothing opens, because the agent rule page would refuse this member
-            expect(await getPromptErrors()).toEqual([translateLocal('workspace.rules.newRule.promptErrors.agentRuleAdminOnly')]);
-            expect(Navigation.navigate).not.toHaveBeenCalled();
-            expect(await getOnyxValue(ONYXKEYS.FORMS.ADD_AGENT_RULE_FORM_DRAFT)).toBeUndefined();
-        },
-    );
-
     it.each([undefined, 'futureRuleType'])('shows the unsupported error when a rule answer has the rule type %s', async (generatedRuleType) => {
         // Given an admin described a rule from New rule
         await openDescribeModal();
@@ -349,7 +325,7 @@ describe('RulesNewPage describe flow', () => {
 
     it('loads the policy categories when the workspace uses categories and none are loaded', async () => {
         // Given a workspace that uses categories, with no categories loaded
-        setPolicyRole(CONST.POLICY.ROLE.ADMIN, true);
+        setAdminPolicy(true);
 
         // When the New rule page opens
         await renderRulesNewPage();

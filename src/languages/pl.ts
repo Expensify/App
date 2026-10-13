@@ -8773,7 +8773,6 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
                     unsupported: 'Ta reguła nie jest jeszcze obsługiwana — pracujemy nad tym. Na razie spróbuj innej reguły.',
                     unintelligible: 'Spróbuj sformułować regułę tak: jeśli wydatek przekracza 100 $, wymagaj paragonu.',
                     multipleRules: 'Jedna reguła naraz — opisz pojedynczą regułę, na przykład: zablokuj zakupy detaliczne na wszystkich kartach.',
-                    agentRuleAdminOnly: 'To wymaga reguły agenta, a tylko administratorzy przestrzeni roboczej mogą ją utworzyć. Poproś administratora przestrzeni roboczej o jej dodanie.',
                 },
             },
             expenseDefaultsTable: {

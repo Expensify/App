@@ -5,7 +5,6 @@ import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 
 import useConfirmModal from '@hooks/useConfirmModal';
-import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -23,7 +22,6 @@ import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/crea
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
-import {canEditWorkspaceSettings, isControlPolicy} from '@libs/PolicyUtils';
 import {getSpendRuleDraftFromGeneratedValues} from '@libs/SpendRulesUtils';
 
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
@@ -31,7 +29,6 @@ import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import variables from '@styles/variables';
 
 import {close as closeModal} from '@userActions/Modal';
-import {setAgentRuleAdminOnlyPromptError} from '@userActions/Policy/Rules';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -95,7 +92,6 @@ function RulesNewPage({route}: RulesNewPageProps) {
     const isCategoryScopedCreate = isCategorySettingsFlow || !!categoryName;
     const policy = usePolicy(policyID);
     const {showConfirmModal} = useConfirmModal();
-    const {login = ''} = useCurrentUserPersonalDetails();
     const [isDescribeRuleModalVisible, setIsDescribeRuleModalVisible] = useState(false);
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
 
@@ -114,15 +110,7 @@ function RulesNewPage({route}: RulesNewPageProps) {
         fetchPolicyCategories();
     });
 
-    // The agent rule page is open only to workspace admins on a Control workspace. A member with write access to
-    // rules can open this page but not that one.
-    const canCreateAgentRules = canEditWorkspaceSettings(policy, login) && isControlPolicy(policy);
-
     const offerAgentRule = (prompt: string, generationID: string, state: GeneratedRuleState) => {
-        if (!canCreateAgentRules) {
-            setAgentRuleAdminOnlyPromptError();
-            return;
-        }
         Log.info('[GenerateRule] Offered agent rule fallback', false, {policyID, generationID, state});
         setDraftValues(ONYXKEYS.FORMS.ADD_AGENT_RULE_FORM, {[AGENT_RULE_INPUT_IDS.PROMPT]: prompt});
         closeModal(() => Navigation.navigate(ROUTES.RULES_AGENT_NEW.getRoute(policyID, generationID)));
