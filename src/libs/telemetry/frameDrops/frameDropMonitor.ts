@@ -53,6 +53,7 @@ const UNATTRIBUTED_CONTEXT: FrameDropContext = {
     screen: CONST.TELEMETRY.FRAME_DROPS.UNATTRIBUTED,
     interaction: CONST.TELEMETRY.FRAME_DROPS.UNATTRIBUTED,
     operation: CONST.TELEMETRY.FRAME_DROPS.UNATTRIBUTED,
+    concurrentOperations: CONST.TELEMETRY.FRAME_DROPS.UNATTRIBUTED,
     flow: CONST.TELEMETRY.FRAME_DROPS.UNATTRIBUTED,
 };
 
@@ -61,6 +62,7 @@ const STARTUP_CONTEXT: FrameDropContext = {
     screen: CONST.TELEMETRY.FRAME_DROPS.STARTUP,
     interaction: CONST.TELEMETRY.FRAME_DROPS.STARTUP,
     operation: CONST.TELEMETRY.FRAME_DROPS.STARTUP,
+    concurrentOperations: CONST.TELEMETRY.FRAME_DROPS.STARTUP,
     flow: CONST.TELEMETRY.FRAME_DROPS.STARTUP,
 };
 
@@ -68,6 +70,7 @@ const OVERFLOW_CONTEXT: FrameDropContext = {
     screen: CONST.TELEMETRY.FRAME_DROPS.OVERFLOW,
     interaction: CONST.TELEMETRY.FRAME_DROPS.OVERFLOW,
     operation: CONST.TELEMETRY.FRAME_DROPS.OVERFLOW,
+    concurrentOperations: CONST.TELEMETRY.FRAME_DROPS.OVERFLOW,
     flow: CONST.TELEMETRY.FRAME_DROPS.OVERFLOW,
 };
 
@@ -97,7 +100,7 @@ let longTaskObserver: PerformanceObserver | undefined;
 let removeNavigationActionListener: (() => void) | undefined;
 
 function getContextKey(context: FrameDropContext): string {
-    return `${context.screen}|${context.interaction}|${context.operation}|${context.flow}`;
+    return `${context.screen}|${context.interaction}|${context.operation}|${context.concurrentOperations}|${context.flow}`;
 }
 
 /** Aggregates are capped per report period, so a busy period can't turn into a burst of metric calls. */
@@ -114,6 +117,7 @@ function getAggregate(context: FrameDropContext): Aggregate {
         screen: target.screen,
         interaction: target.interaction,
         operation: target.operation,
+        concurrentOperations: target.concurrentOperations,
         flow: target.flow,
         activeTimeMs: 0,
         frameDelayMs: 0,
@@ -406,6 +410,7 @@ function report() {
             [CONST.TELEMETRY.FRAME_DROPS.ATTRIBUTE_SCREEN]: aggregate.screen,
             [CONST.TELEMETRY.FRAME_DROPS.ATTRIBUTE_INTERACTION]: aggregate.interaction,
             [CONST.TELEMETRY.FRAME_DROPS.ATTRIBUTE_OPERATION]: aggregate.operation,
+            [CONST.TELEMETRY.FRAME_DROPS.ATTRIBUTE_CONCURRENT_OPERATIONS]: aggregate.concurrentOperations,
             [CONST.TELEMETRY.FRAME_DROPS.ATTRIBUTE_FLOW]: aggregate.flow,
         };
         if (aggregate.activeTimeMs > 0) {

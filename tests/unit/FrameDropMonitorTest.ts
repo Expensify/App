@@ -62,15 +62,31 @@ function mockDelays(delays: Array<{start: number; end: number; delaySeconds: num
 }
 
 /** Count calls of one metric. Every metric carries the platform and device tier; they are checked here and left out of the returned attributes. */
+/** Concurrent operations are left out, as most tests don't overlap operations; getConcurrentOperations checks them. */
 function getCountCalls(metric: string) {
     return mockCount.mock.calls
         .filter(([name]) => name === metric)
         .map(([, value, options]) => {
-            const {[FRAME_DROPS.ATTRIBUTE_PLATFORM]: platform, [FRAME_DROPS.ATTRIBUTE_DEVICE_TIER]: deviceTier, ...attributes} = options?.attributes ?? {};
+            const {
+                [FRAME_DROPS.ATTRIBUTE_PLATFORM]: platform,
+                [FRAME_DROPS.ATTRIBUTE_DEVICE_TIER]: deviceTier,
+                [FRAME_DROPS.ATTRIBUTE_CONCURRENT_OPERATIONS]: concurrentOperations,
+                ...attributes
+            } = options?.attributes ?? {};
             expect(platform).toBe(PLATFORM);
             expect(deviceTier).toBe(DEVICE_TIER);
             return {value, attributes};
         });
+}
+
+function getConcurrentOperations(metric: string) {
+    return mockCount.mock.calls
+        .filter(([name]) => name === metric)
+        .map(([, value, options]) => ({
+            value,
+            operation: options?.attributes?.[FRAME_DROPS.ATTRIBUTE_OPERATION],
+            concurrentOperations: options?.attributes?.[FRAME_DROPS.ATTRIBUTE_CONCURRENT_OPERATIONS],
+        }));
 }
 
 function sumCounts(metric: string) {
@@ -186,6 +202,29 @@ describe('frameDropMonitor', () => {
         expect(getCountCalls(FRAME_DROPS.METRIC_FRAME_DELAY)).toEqual([
             {value: 50, attributes: {screen: 'Search_Root', interaction: FRAME_DROPS.NONE, operation: FRAME_DROPS.NONE, flow: FRAME_DROPS.NONE}},
             {value: 250, attributes: {screen: 'Search_Root', interaction: FRAME_DROPS.NONE, operation: 'api.Search', flow: FRAME_DROPS.NONE}},
+        ]);
+    });
+
+    it('sends the operations running alongside the one that owns the frames', async () => {
+        // Given a Pusher update still being applied when an API response starts being applied, while frames dropped
+        recordScreen('Search_Root');
+        startOperation(FRAME_DROPS.OPERATION_PUSHER);
+        now = 1_000;
+        startOperation(`${FRAME_DROPS.OPERATION_API_PREFIX}Search`);
+        mockDelays([
+            {start: 0, end: 5_000, delaySeconds: 0.3},
+            {start: 0, end: 1_000, delaySeconds: 0.05},
+        ]);
+
+        // When the window is flushed and reported
+        now = 5_000;
+        await flush(5_000);
+        report();
+
+        // Then each delay keeps one owning operation and lists every operation that was running, so it is counted once
+        expect(getConcurrentOperations(FRAME_DROPS.METRIC_FRAME_DELAY)).toEqual([
+            {value: 50, operation: FRAME_DROPS.OPERATION_PUSHER, concurrentOperations: '[pusher]'},
+            {value: 250, operation: 'api.Search', concurrentOperations: '[api.Search][pusher]'},
         ]);
     });
 

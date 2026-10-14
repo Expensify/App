@@ -13,8 +13,8 @@ function createActiveIntervalTracker<T extends Interval>(intervals: T[]) {
     let nextIndex = 0;
     let active: T[] = [];
 
-    /** Returns the latest-started interval active at `time`, i.e. the most specific thing going on. */
-    return (time: number): T | undefined => {
+    /** Returns the intervals active at `time` in start order, so the last one is the most specific thing going on. */
+    return (time: number): T[] => {
         let next = byStart.at(nextIndex);
         while (next && next.start <= time) {
             active.push(next);
@@ -22,9 +22,22 @@ function createActiveIntervalTracker<T extends Interval>(intervals: T[]) {
             next = byStart.at(nextIndex);
         }
         active = active.filter((interval) => interval.end === undefined || interval.end > time);
-        // `active` is in start order, so the last one started latest.
-        return active.at(-1);
+        return active;
     };
+}
+
+/** Lists the names sorted and deduplicated, each in brackets, e.g. "[api.OpenReport][pusher]", so `*[pusher]*` matches one name exactly in Sentry. */
+function formatConcurrentOperations(names: string[]): string {
+    if (names.length === 0) {
+        return CONST.TELEMETRY.FRAME_DROPS.NONE;
+    }
+    const uniqueNames = [...new Set(names)].sort();
+    const listedNames = uniqueNames.slice(0, CONST.TELEMETRY.FRAME_DROPS.MAX_CONCURRENT_OPERATIONS);
+    const hiddenCount = uniqueNames.length - listedNames.length;
+    if (hiddenCount > 0) {
+        listedNames.push(`+${hiddenCount}`);
+    }
+    return listedNames.map((name) => `[${name}]`).join('');
 }
 
 /**
@@ -68,14 +81,17 @@ function buildSegments(windowStart: number, windowEnd: number, {screens, interac
             nextScreen = screens.at(screenIndex + 1);
         }
         const baseScreen = screens.at(screenIndex)?.screen ?? CONST.TELEMETRY.FRAME_DROPS.NONE;
-        const modal = findModal(start);
+        const modal = findModal(start).at(-1);
         // A shown modal counts as a separate screen, named after the screen it covers so it is still known where it opened.
         const screen = modal ? `${baseScreen}/${modal.name}` : baseScreen;
-        const activeInteraction = findInteraction(start);
+        const activeInteraction = findInteraction(start).at(-1);
         const interaction = activeInteraction?.label ?? CONST.TELEMETRY.FRAME_DROPS.NONE;
         const interactionID = activeInteraction?.id;
-        const operation = findOperation(start)?.name ?? CONST.TELEMETRY.FRAME_DROPS.NONE;
-        const flow = findFlow(start)?.name ?? CONST.TELEMETRY.FRAME_DROPS.NONE;
+        // The latest-started operation owns the frames; the others running alongside it are listed separately.
+        const activeOperations = findOperation(start);
+        const operation = activeOperations.at(-1)?.name ?? CONST.TELEMETRY.FRAME_DROPS.NONE;
+        const concurrentOperations = formatConcurrentOperations(activeOperations.map(({name}) => name));
+        const flow = findFlow(start).at(-1)?.name ?? CONST.TELEMETRY.FRAME_DROPS.NONE;
 
         const previous = segments.at(-1);
         if (
@@ -83,13 +99,14 @@ function buildSegments(windowStart: number, windowEnd: number, {screens, interac
             previous.screen === screen &&
             previous.interaction === interaction &&
             previous.operation === operation &&
+            previous.concurrentOperations === concurrentOperations &&
             previous.flow === flow &&
             previous.interactionID === interactionID
         ) {
             previous.end = end;
             continue;
         }
-        segments.push({start, end, screen, interaction, operation, flow, interactionID});
+        segments.push({start, end, screen, interaction, operation, concurrentOperations, flow, interactionID});
     }
     return segments;
 }

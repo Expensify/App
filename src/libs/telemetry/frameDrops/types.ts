@@ -25,6 +25,11 @@ type FrameDropContext = {
     screen: string;
     interaction: string;
     operation: string;
+    /**
+     * Every operation active at the same time, sorted and deduplicated, e.g. "[api.OpenReport][pusher]". The brackets let
+     * a Sentry filter like `*[pusher]*` match one operation exactly.
+     */
+    concurrentOperations: string;
     /** The user flow (a root telemetry span such as ManualOpenReport) that was running. */
     flow: string;
 };

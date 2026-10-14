@@ -2422,6 +2422,8 @@ const CONST = {
             // A screen change is backdated to the navigation action that caused it, if the action was at most this long ago.
             MAX_NAVIGATION_START_AGE_MS: 2_000,
             MAX_LABEL_LENGTH: 64,
+            // Operations listed in the concurrent_operations attribute, the rest are only counted as "+N".
+            MAX_CONCURRENT_OPERATIONS: 5,
             // Requests that only carry telemetry, so they'd only hide the operation that is actually running.
             IGNORED_COMMANDS: ['Log'],
             NONE: 'none',
@@ -2443,6 +2445,7 @@ const CONST = {
             ATTRIBUTE_INTERACTION: 'interaction',
             ATTRIBUTE_OPERATION: 'operation',
             ATTRIBUTE_FLOW: 'flow',
+            ATTRIBUTE_CONCURRENT_OPERATIONS: 'concurrent_operations',
             ATTRIBUTE_PLATFORM: 'platform',
             ATTRIBUTE_DEVICE_TIER: 'device_tier',
             // Total RAM thresholds of the device tier (see getDeviceTier).

@@ -13,7 +13,7 @@ describe('buildSegments', () => {
         const segments = buildSegments(100, 200, {screens, interactions: [], operations: [], flows: [], modals: []});
 
         // Then the whole window belongs to that screen, so a single native query covers it
-        expect(segments).toEqual([{start: 100, end: 200, screen: 'Home', interaction: NONE, operation: NONE, flow: NONE}]);
+        expect(segments).toEqual([{start: 100, end: 200, screen: 'Home', interaction: NONE, operation: NONE, concurrentOperations: NONE, flow: NONE}]);
     });
 
     it('splits the window at a screen change', () => {
@@ -28,8 +28,8 @@ describe('buildSegments', () => {
 
         // Then frames before and after the navigation belong to different screens
         expect(segments).toEqual([
-            {start: 100, end: 150, screen: 'Home', interaction: NONE, operation: NONE, flow: NONE},
-            {start: 150, end: 200, screen: 'Report', interaction: NONE, operation: NONE, flow: NONE},
+            {start: 100, end: 150, screen: 'Home', interaction: NONE, operation: NONE, concurrentOperations: NONE, flow: NONE},
+            {start: 150, end: 200, screen: 'Report', interaction: NONE, operation: NONE, concurrentOperations: NONE, flow: NONE},
         ]);
     });
 
@@ -43,9 +43,9 @@ describe('buildSegments', () => {
 
         // Then only the press window carries the press label
         expect(segments).toEqual([
-            {start: 100, end: 120, screen: 'Home', interaction: NONE, operation: NONE, flow: NONE},
-            {start: 120, end: 160, screen: 'Home', interaction: 'FAB', operation: NONE, flow: NONE, interactionID: 1},
-            {start: 160, end: 200, screen: 'Home', interaction: NONE, operation: NONE, flow: NONE},
+            {start: 100, end: 120, screen: 'Home', interaction: NONE, operation: NONE, concurrentOperations: NONE, flow: NONE},
+            {start: 120, end: 160, screen: 'Home', interaction: 'FAB', operation: NONE, concurrentOperations: NONE, flow: NONE, interactionID: 1},
+            {start: 160, end: 200, screen: 'Home', interaction: NONE, operation: NONE, concurrentOperations: NONE, flow: NONE},
         ]);
     });
 
@@ -65,6 +65,37 @@ describe('buildSegments', () => {
             {start: 130, end: 170, operation: 'pusher'},
             {start: 170, end: 200, operation: 'api.OpenApp'},
         ]);
+    });
+
+    it('lists every operation running alongside the owning one, sorted and once each', () => {
+        // Given an operation with a different one and two runs of the same command nested inside it
+        const operations = [
+            {id: 1, name: 'pusher', start: 100, end: 200},
+            {id: 2, name: 'api.Search', start: 120, end: 180},
+            {id: 3, name: 'api.Search', start: 130, end: 150},
+        ];
+
+        // When the window is split into segments
+        const segments = buildSegments(100, 200, {screens: [], interactions: [], operations, flows: [], modals: []});
+
+        // Then each segment keeps the latest operation as the owner and lists all running operations in brackets
+        expect(segments.map(({start, end, operation, concurrentOperations}) => ({start, end, operation, concurrentOperations}))).toEqual([
+            {start: 100, end: 120, operation: 'pusher', concurrentOperations: '[pusher]'},
+            {start: 120, end: 180, operation: 'api.Search', concurrentOperations: '[api.Search][pusher]'},
+            {start: 180, end: 200, operation: 'pusher', concurrentOperations: '[pusher]'},
+        ]);
+    });
+
+    it('lists at most the configured number of concurrent operations and counts the rest', () => {
+        // Given more distinct operations running at once than the attribute lists
+        const names = ['op.a', 'op.b', 'op.c', 'op.d', 'op.e', 'op.f', 'op.g'];
+        const operations = names.map((name, index) => ({id: index, name, start: 100, end: 200}));
+
+        // When the window is split into segments
+        const segments = buildSegments(100, 200, {screens: [], interactions: [], operations, flows: [], modals: []});
+
+        // Then the first ones in sort order are listed and the remaining ones are only counted
+        expect(segments.at(0)?.concurrentOperations).toBe('[op.a][op.b][op.c][op.d][op.e][+2]');
     });
 
     it('keeps an interaction that has not ended yet until the end of the window', () => {
