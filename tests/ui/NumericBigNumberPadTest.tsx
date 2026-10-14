@@ -12,12 +12,21 @@ import type * as NativeNavigation from '@react-navigation/native';
 
 import React from 'react';
 
-import findAncestorWithStyle from '../utils/findAncestorWithStyle';
+import findAncestorWithStyle, {getStyleProperty} from '../utils/findAncestorWithStyle';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
 jest.mock('@libs/DeviceCapabilities', () => ({
     ...jest.requireActual<typeof DeviceCapabilities>('@libs/DeviceCapabilities'),
     canUseTouchScreen: () => true,
+}));
+
+const mockUseIsInLandscapeMode = jest.fn(() => false);
+jest.mock('@hooks/useIsInLandscapeMode', () => () => mockUseIsInLandscapeMode());
+
+const BOTTOM_SAFE_AREA_INSET = 21;
+jest.mock('@hooks/useSafeAreaInsets', () => ({
+    __esModule: true,
+    default: () => ({top: 0, right: 0, bottom: BOTTOM_SAFE_AREA_INSET, left: 0}),
 }));
 
 jest.mock('@react-navigation/native', () => ({
@@ -60,6 +69,7 @@ describe('NumericInput number pad', () => {
 
     afterEach(() => {
         jest.clearAllMocks();
+        mockUseIsInLandscapeMode.mockReturnValue(false);
     });
 
     it('renders the number pad buttons when touch screen is available', async () => {
@@ -618,5 +628,36 @@ describe('NumericInput number pad', () => {
         expect(fullWidthView).toBeDefined();
         expect(fullWidthView).not.toBe(screen.getByTestId(PAD_TEST_ID));
         expect(screen.getByTestId(PAD_TEST_ID)).toContainElement(fullWidthView ?? null);
+    });
+
+    it('applies bottom safe-area padding to the two-column scroll view in landscape when footer is omitted', async () => {
+        // Given a phone in landscape mode and an input rendered without a footer
+        mockUseIsInLandscapeMode.mockReturnValue(true);
+        renderInputWithPad();
+        await waitForBatchedUpdatesWithAct();
+
+        // When inspecting the body scroll view content container
+        const bodyScrollView = screen.getByTestId(`${ROOT_TEST_ID}-body`);
+        const contentContainerStyle: unknown = bodyScrollView.props.contentContainerStyle;
+        const paddingBottom = getStyleProperty(contentContainerStyle, 'paddingBottom');
+
+        // Then it includes bottom safe-area padding directly, because there is no footer to provide it
+        expect(typeof paddingBottom).toBe('number');
+        expect(Number(paddingBottom)).toBeGreaterThan(0);
+    });
+
+    it('does not apply bottom safe-area padding to the two-column scroll view in landscape when footer handles it', async () => {
+        // Given a phone in landscape mode and an input rendered with a footer
+        mockUseIsInLandscapeMode.mockReturnValue(true);
+        renderInputWithPad({footer: <NumericInput.FlipButton />});
+        await waitForBatchedUpdatesWithAct();
+
+        // When inspecting the body scroll view content container
+        const bodyScrollView = screen.getByTestId(`${ROOT_TEST_ID}-body`);
+        const contentContainerStyle: unknown = bodyScrollView.props.contentContainerStyle;
+        const paddingBottom = getStyleProperty(contentContainerStyle, 'paddingBottom');
+
+        // Then bottom safe-area padding is not requested on the scroll view, because the footer handles it outside
+        expect(paddingBottom).toBeUndefined();
     });
 });

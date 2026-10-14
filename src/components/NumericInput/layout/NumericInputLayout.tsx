@@ -97,6 +97,7 @@ function NumericInputLayout({children, actions, footer, testID, onEmptyAreaPress
                     testID={getPartTestID(testID, 'body')}
                     contentContainerStyle={[styles.flexGrow1, styles.flexRow]}
                     style={[styles.flex1, styles.ph5]}
+                    addBottomSafeAreaPadding={!footerNode}
                 >
                     {main}
                     {pad}

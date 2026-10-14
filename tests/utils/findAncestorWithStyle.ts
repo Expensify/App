@@ -29,3 +29,4 @@ function findAncestorWithStyle(node: TestInstance, property: string, value: unkn
 }
 
 export default findAncestorWithStyle;
+export {getStyleProperty};
