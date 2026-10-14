@@ -172,16 +172,20 @@ function ConciergeFeedbackPrompt({
 
     // Either rating starts the acknowledgement window, and the zero fallback keeps an unanswered survey undefined.
     const latestReactionTimestamp = Math.max(thumbsUpReactedAt ?? 0, thumbsDownReactedAt ?? 0) || undefined;
-    // Regular Concierge feedback keeps its existing thumbs-up-only acknowledgement, while surveys acknowledge either rating.
-    const acknowledgementTimestamp = shouldPersistAfterRating ? latestReactionTimestamp : thumbsUpReactedAt;
 
-    // The reaction that was already there when this row mounted is an old rating, so only a reaction that lands while the row is open is acknowledged
-    const [mountedWithAcknowledgementTimestamp] = useState(acknowledgementTimestamp);
+    // Regular Concierge feedback preserves its debounced thumbs-up acknowledgement.
+    const [mountedWithThumbsUpReactedAt] = useState(thumbsUpReactedAt);
+    const hasJustReactedWithThumbsUp = thumbsUpReactedAt !== undefined && thumbsUpReactedAt !== mountedWithThumbsUpReactedAt;
+    const hasSettledAfterThumbsUpReaction = useDebouncedValue(hasJustReactedWithThumbsUp, THANKS_VISIBLE_DURATION_MS);
+    const isRegularThankMessageDisplayed = hasJustReactedWithThumbsUp && !hasSettledAfterThumbsUpReaction;
 
-    // The debounced timestamp catches up once the window has passed, and a new reaction restarts that window.
-    const debouncedAcknowledgementTimestamp = useDebouncedValue(acknowledgementTimestamp, THANKS_VISIBLE_DURATION_MS);
-    const isDisplayedThankMessage =
-        acknowledgementTimestamp !== undefined && acknowledgementTimestamp !== mountedWithAcknowledgementTimestamp && acknowledgementTimestamp !== debouncedAcknowledgementTimestamp;
+    // A survey accepts either rating, so its acknowledgement restarts when the selected reaction changes.
+    const [mountedWithLatestReactionTimestamp] = useState(latestReactionTimestamp);
+    const debouncedLatestReactionTimestamp = useDebouncedValue(latestReactionTimestamp, THANKS_VISIBLE_DURATION_MS);
+    const isSurveyThankMessageDisplayed =
+        latestReactionTimestamp !== undefined && latestReactionTimestamp !== mountedWithLatestReactionTimestamp && latestReactionTimestamp !== debouncedLatestReactionTimestamp;
+
+    const isDisplayedThankMessage = shouldPersistAfterRating ? isSurveyThankMessageDisplayed : isRegularThankMessageDisplayed;
 
     const rate = (emoji: Emoji) => {
         // Skin tone is ignored on compare so a user whose preferred tone changed toggles their existing reaction instead of adding a second one

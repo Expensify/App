@@ -3609,6 +3609,12 @@ describe('ReportActionItem', () => {
             });
         }
 
+        async function clearReactions(action: ReportAction) {
+            await act(async () => {
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${action.reportActionID}`, {});
+            });
+        }
+
         it('shows the acknowledgement in a second copy of the chat that did not take the press', async () => {
             // The side panel and the central pane each mount their own copy, and the reaction is what they share
             const action = createConciergeComment();
@@ -3624,6 +3630,32 @@ describe('ReportActionItem', () => {
 
             expect(screen.getByText(translateLocal('concierge.feedback.thanks'))).toBeOnTheScreen();
             expect(screen.queryByText(prompt())).not.toBeOnTheScreen();
+        });
+
+        it('does not show the acknowledgement again when thumbs-up is added shortly after being removed', async () => {
+            jest.useFakeTimers();
+
+            try {
+                const action = createConciergeComment();
+                renderItemWithAction(action, true);
+                await waitForBatchedUpdatesWithAct();
+
+                await reactWithThumbsUp(action, '2025-07-12 09:03:18.000');
+                expect(screen.getByText(translateLocal('concierge.feedback.thanks'))).toBeOnTheScreen();
+
+                await act(async () => {
+                    jest.advanceTimersByTime(4000);
+                });
+                expect(screen.queryByText(translateLocal('concierge.feedback.thanks'))).not.toBeOnTheScreen();
+
+                await clearReactions(action);
+                expect(screen.getByText(prompt())).toBeOnTheScreen();
+
+                await reactWithThumbsUp(action, '2025-07-12 09:03:19.000');
+                expect(screen.queryByText(translateLocal('concierge.feedback.thanks'))).not.toBeOnTheScreen();
+            } finally {
+                jest.useRealTimers();
+            }
         });
 
         it('does not acknowledge a rating that was already there when the chat was opened', async () => {
