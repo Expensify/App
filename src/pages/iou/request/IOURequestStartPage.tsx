@@ -4,7 +4,6 @@ import CollapsibleHeaderOnKeyboardGroupMember from '@components/CollapsibleHeade
 import DragAndDropProvider from '@components/DragAndDrop/Provider';
 import FocusTrapContainerElement from '@components/FocusTrap/FocusTrapContainerElement';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import type {RestoreFocus} from '@components/MoneyRequestConfirmationFields/context';
 import ParticipantPickerOverlayHost from '@components/ParticipantPicker/OverlayHost';
 import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -26,7 +25,6 @@ import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {shouldShowPerDiemTabOption} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import OnyxTabNavigator, {TabScreenWithFocusTrapWrapper, TopTab} from '@libs/Navigation/OnyxTabNavigator';
-import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import {isPerDiemEligiblePolicy, isTimeTrackingEnabled} from '@libs/PolicyUtils';
 import {getPayeeName} from '@libs/ReportUtils';
 import {endSpan} from '@libs/telemetry/activeSpans';
@@ -59,6 +57,7 @@ import IOURequestStepHours from './step/IOURequestStepHours';
 import IOURequestStepPerDiemWorkspace from './step/IOURequestStepPerDiemWorkspace';
 import IOURequestStepScan from './step/IOURequestStepScan';
 import IOURequestStepTimeWorkspace from './step/IOURequestStepTimeWorkspace';
+import useRestoreFocusAfterDiscard from './useRestoreFocusAfterDiscard';
 
 type IOURequestStartPageProps = WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.CREATE> & {
     defaultSelectedTab: SelectedTabRequest;
@@ -263,14 +262,15 @@ function IOURequestStartPage({
     const [isSignDirty, setIsSignDirty] = useState(false);
     const [hasSubmitted, setHasSubmitted] = useState(false);
     const hasSubmittedRef = useRef(false);
-    const lastFocusedInputRef = useRef<RestoreFocus | null>(null);
-    const lastFocusedInputCandidateRef = useRef<RestoreFocus | null>(null);
-    const focusToRestoreAfterDiscardRef = useRef<RestoreFocus | null>(null);
-    const isDiscardModalOpenRef = useRef(false);
-    const isDiscardNavigationPendingRef = useRef(false);
-    const focusTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-    const focusRestoreGenerationRef = useRef(0);
-    const blurCleanupTaskRef = useRef<ReturnType<typeof TransitionTracker.runAfterTransitions> | null>(null);
+    const {
+        clearDiscardFocus,
+        handleInputBlur,
+        handleInputFocus,
+        prepareForDiscardNavigation,
+        reset: resetFocusAfterDiscard,
+        restoreLastFocusedInput,
+        setDiscardModalVisibility,
+    } = useRestoreFocusAfterDiscard();
     const isPayFlow = iouType === CONST.IOU.TYPE.PAY;
     // Older empty drafts did not store a baseline. Treat their standard empty representation as clean, while
     // conservatively treating an older non-empty draft as dirty so an unsaved amount is never silently discarded.
@@ -303,80 +303,6 @@ function IOURequestStartPage({
         [route.params.transactionID],
     );
 
-    const handleInputBlur = () => {
-        if (isDiscardModalOpenRef.current || isDiscardNavigationPendingRef.current) {
-            return;
-        }
-        if (blurCleanupTaskRef.current) {
-            blurCleanupTaskRef.current.cancel();
-        }
-        blurCleanupTaskRef.current = TransitionTracker.runAfterTransitions({
-            // A native keyboard or discard-modal transition can start in the same tick as the blur.
-            // Wait for it to finish before clearing the input that may need focus restored on Cancel.
-            waitForUpcomingTransition: true,
-            callback: () => {
-                blurCleanupTaskRef.current = null;
-                if (isDiscardModalOpenRef.current || isDiscardNavigationPendingRef.current) {
-                    return;
-                }
-                lastFocusedInputRef.current = null;
-                lastFocusedInputCandidateRef.current = null;
-            },
-        });
-    };
-
-    const handleInputFocus = (restoreFocus: RestoreFocus) => {
-        if (blurCleanupTaskRef.current) {
-            blurCleanupTaskRef.current.cancel();
-            blurCleanupTaskRef.current = null;
-        }
-        lastFocusedInputRef.current = restoreFocus;
-        lastFocusedInputCandidateRef.current = restoreFocus;
-    };
-
-    const restoreLastFocusedInput = () => {
-        const restoreFocus = focusToRestoreAfterDiscardRef.current ?? lastFocusedInputRef.current;
-        focusToRestoreAfterDiscardRef.current = null;
-        lastFocusedInputCandidateRef.current = null;
-        if (!restoreFocus) {
-            isDiscardNavigationPendingRef.current = false;
-            return;
-        }
-
-        if (focusTimeoutRef.current) {
-            clearTimeout(focusTimeoutRef.current);
-        }
-
-        const focusRestoreGeneration = ++focusRestoreGenerationRef.current;
-        focusTimeoutRef.current = setTimeout(() => {
-            focusTimeoutRef.current = null;
-            TransitionTracker.runAfterTransitions({
-                callback: () => {
-                    if (focusRestoreGeneration !== focusRestoreGenerationRef.current || isDiscardModalOpenRef.current) {
-                        return;
-                    }
-                    restoreFocus();
-                    isDiscardNavigationPendingRef.current = false;
-                },
-            });
-        }, CONST.ANIMATED_TRANSITION);
-    };
-
-    useEffect(
-        () => () => {
-            if (focusTimeoutRef.current) {
-                clearTimeout(focusTimeoutRef.current);
-            }
-            focusRestoreGenerationRef.current += 1;
-            if (blurCleanupTaskRef.current) {
-                blurCleanupTaskRef.current.cancel();
-            }
-            lastFocusedInputCandidateRef.current = null;
-            focusToRestoreAfterDiscardRef.current = null;
-        },
-        [],
-    );
-
     const {suppressDiscardPrompt} = useDiscardChangesConfirmation({
         getHasUnsavedChanges: getEmbeddedHasUnsavedChanges,
         shouldEnableNewFocusManagement: isEmbeddedConfirmationActive,
@@ -384,26 +310,9 @@ function IOURequestStartPage({
         shouldPromptForNavigationAction: shouldPromptForEmbeddedNavigationAction,
         onConfirmWhenUnfocused: () => Navigation.closeRHPFlow(),
         onCancel: restoreLastFocusedInput,
-        onVisibilityChange: (isVisible) => {
-            isDiscardModalOpenRef.current = isVisible;
-            if (isVisible) {
-                // Native keyboard dismissal can blur an input before React Navigation exposes the blocked action.
-                // Keep the most recently focused input as the restoration target for this discard attempt.
-                focusToRestoreAfterDiscardRef.current = lastFocusedInputCandidateRef.current;
-                if (focusTimeoutRef.current) {
-                    clearTimeout(focusTimeoutRef.current);
-                    focusTimeoutRef.current = null;
-                }
-                focusRestoreGenerationRef.current += 1;
-                if (blurCleanupTaskRef.current) {
-                    blurCleanupTaskRef.current.cancel();
-                    blurCleanupTaskRef.current = null;
-                }
-            }
-        },
+        onVisibilityChange: setDiscardModalVisibility,
         onConfirm: () => {
-            focusToRestoreAfterDiscardRef.current = null;
-            lastFocusedInputCandidateRef.current = null;
+            clearDiscardFocus();
             cleanupPreInsertedDestination();
         },
     });
@@ -416,13 +325,7 @@ function IOURequestStartPage({
 
     const navigateBack = () => {
         if (isEmbeddedDirty) {
-            // Pressing the header button blurs the active field before the discard modal has mounted.
-            // Preserve the field's restore callback through that transition so Cancel can reliably restore focus.
-            isDiscardNavigationPendingRef.current = true;
-            if (blurCleanupTaskRef.current) {
-                blurCleanupTaskRef.current.cancel();
-                blurCleanupTaskRef.current = null;
-            }
+            prepareForDiscardNavigation();
             // Let the discard guard decide whether this navigation may proceed. Cleaning up the pre-insert now
             // would make cancelling the discard prompt destructive.
             Navigation.closeRHPFlow();
@@ -535,14 +438,7 @@ function IOURequestStartPage({
                                         defaultSelectedTab={defaultSelectedTab}
                                         onTabSelected={(newIOUType) => {
                                             setIsSignDirty(false);
-                                            lastFocusedInputRef.current = null;
-                                            lastFocusedInputCandidateRef.current = null;
-                                            focusToRestoreAfterDiscardRef.current = null;
-                                            if (focusTimeoutRef.current) {
-                                                clearTimeout(focusTimeoutRef.current);
-                                                focusTimeoutRef.current = null;
-                                            }
-                                            focusRestoreGenerationRef.current += 1;
+                                            resetFocusAfterDiscard();
                                             resetIOUTypeIfChanged(newIOUType);
                                         }}
                                         onTabSelect={onTabSelectFocusHandler}
