@@ -8723,9 +8723,8 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                 gotIt: 'Verstanden',
                 createRule: 'Regel erstellen',
                 fallbackBanner:
-                    'Das ist keine Standardregel, daher haben wir sie als Agentenregel entworfen. Agentenregeln greifen, nachdem sich eine Ausgabe oder ein Bericht ändert, zum Beispiel indem sie die Ausgabe zurückhalten oder den Bericht ablehnen. Prüfen und speichern Sie die Regel.',
-                fallbackBannerWithExplanation: (explanation: string) =>
-                    `Das ist keine Standardregel, daher haben wir sie als Agentenregel entworfen. ${explanation} Prüfen und speichern Sie die Regel.`,
+                    'Das ist keine Standardregel, daher haben wir sie als Agentenregel entworfen. Agentenregeln greifen, nachdem sich eine Ausgabe oder ein Bericht ändert, zum Beispiel indem sie die Ausgabe zurückhalten oder den Bericht ablehnen.',
+                fallbackBannerWithExplanation: (explanation: string) => `Das ist keine Standardregel, daher haben wir sie als Agentenregel entworfen. ${explanation}`,
             },
             tabs: {
                 general: 'Allgemein',

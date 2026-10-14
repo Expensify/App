@@ -8648,9 +8648,8 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
                 gotIt: 'Begrepen',
                 createRule: 'Regel maken',
                 fallbackBanner:
-                    'Dit is geen standaardregel, dus we hebben er een agentregel van gemaakt. Agentregels treden in werking nadat een uitgave of rapport verandert, bijvoorbeeld door de uitgave vast te houden of het rapport af te wijzen. Controleer de regel en sla hem op.',
-                fallbackBannerWithExplanation: (explanation: string) =>
-                    `Dit is geen standaardregel, dus we hebben er een agentregel van gemaakt. ${explanation} Controleer de regel en sla hem op.`,
+                    'Dit is geen standaardregel, dus we hebben er een agentregel van gemaakt. Agentregels treden in werking nadat een uitgave of rapport verandert, bijvoorbeeld door de uitgave vast te houden of het rapport af te wijzen.',
+                fallbackBannerWithExplanation: (explanation: string) => `Dit is geen standaardregel, dus we hebben er een agentregel van gemaakt. ${explanation}`,
             },
             tabs: {
                 general: 'Algemeen',

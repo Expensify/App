@@ -8673,8 +8673,8 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
                 gotIt: 'Jasne',
                 createRule: 'Utwórz regułę',
                 fallbackBanner:
-                    'To nie jest standardowa reguła, więc przygotowaliśmy ją jako regułę agenta. Reguły agenta działają po zmianie wydatku lub raportu, na przykład wstrzymując wydatek lub odrzucając raport. Sprawdź ją i zapisz.',
-                fallbackBannerWithExplanation: (explanation: string) => `To nie jest standardowa reguła, więc przygotowaliśmy ją jako regułę agenta. ${explanation} Sprawdź ją i zapisz.`,
+                    'To nie jest standardowa reguła, więc przygotowaliśmy ją jako regułę agenta. Reguły agenta działają po zmianie wydatku lub raportu, na przykład wstrzymując wydatek lub odrzucając raport.',
+                fallbackBannerWithExplanation: (explanation: string) => `To nie jest standardowa reguła, więc przygotowaliśmy ją jako regułę agenta. ${explanation}`,
             },
             tabs: {
                 general: 'Ogólne',

@@ -8674,9 +8674,8 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
                 gotIt: 'Capito',
                 createRule: 'Crea regola',
                 fallbackBanner:
-                    'Questa non è una regola standard, quindi l’abbiamo preparata come regola agente. Le regole agente intervengono dopo che una spesa o un rapporto cambia, ad esempio mettendo in sospeso la spesa o rifiutando il rapporto. Controllala e salvala.',
-                fallbackBannerWithExplanation: (explanation: string) =>
-                    `Questa non è una regola standard, quindi l’abbiamo preparata come regola agente. ${explanation} Controllala e salvala.`,
+                    'Questa non è una regola standard, quindi l’abbiamo preparata come regola agente. Le regole agente intervengono dopo che una spesa o un rapporto cambia, ad esempio mettendo in sospeso la spesa o rifiutando il rapporto.',
+                fallbackBannerWithExplanation: (explanation: string) => `Questa non è una regola standard, quindi l’abbiamo preparata come regola agente. ${explanation}`,
             },
             tabs: {
                 general: 'Generale',

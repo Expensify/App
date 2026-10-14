@@ -8655,8 +8655,8 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
                 gotIt: 'Entendi',
                 createRule: 'Criar regra',
                 fallbackBanner:
-                    'Esta não é uma regra padrão, então a redigimos como uma regra de agente. As regras de agente agem depois que uma despesa ou um relatório muda, por exemplo, retendo a despesa ou rejeitando o relatório. Revise e salve.',
-                fallbackBannerWithExplanation: (explanation: string) => `Esta não é uma regra padrão, então a redigimos como uma regra de agente. ${explanation} Revise e salve.`,
+                    'Esta não é uma regra padrão, então a redigimos como uma regra de agente. As regras de agente agem depois que uma despesa ou um relatório muda, por exemplo, retendo a despesa ou rejeitando o relatório.',
+                fallbackBannerWithExplanation: (explanation: string) => `Esta não é uma regra padrão, então a redigimos como uma regra de agente. ${explanation}`,
             },
             tabs: {
                 general: 'Geral',
