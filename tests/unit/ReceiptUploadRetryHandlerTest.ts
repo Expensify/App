@@ -25,6 +25,7 @@ jest.mock('@userActions/IOU/Receipt', () => ({...jest.requireActual<Record<strin
 jest.mock('@userActions/IOU/TrackExpense', () => ({...jest.requireActual<Record<string, unknown>>('@userActions/IOU/TrackExpense'), requestMoney: jest.fn(), trackExpense: jest.fn()}));
 
 const CURRENT_USER_ACCOUNT_ID = 1;
+const OTHER_ACCOUNT_ID = 2;
 const TRANSACTION_ID = '7000000000000001';
 const IOU_REPORT_ID = '8000000000000001';
 const CHAT_REPORT_ID = '9000000000000001';
@@ -231,6 +232,24 @@ describe('buildRetryPayload', () => {
         expect(canRetry).toBe(false);
     });
 
+    it('resolves the DM counterpart and payee from the context user, not the Onyx session', async () => {
+        // Given a 1:1 DM, and an Onyx session that disagrees with the context user
+        await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[OTHER_ACCOUNT_ID]: {accountID: OTHER_ACCOUNT_ID, login: 'other@example.com'}});
+        await Onyx.merge(ONYXKEYS.SESSION, {accountID: 999});
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${CHAT_REPORT_ID}`, {
+            reportID: CHAT_REPORT_ID,
+            participants: {[CURRENT_USER_ACCOUNT_ID]: {}, [OTHER_ACCOUNT_ID]: {}},
+        });
+        await waitForBatchedUpdates();
+
+        // When the retry payload is rebuilt
+        const payload = buildRetryPayload(buildContext(buildFailedTransaction()), receiptFile);
+
+        // Then only the other DM member is the participant and the context user is the payee
+        expect(payload?.participantParams.participant.accountID).toBe(OTHER_ACCOUNT_ID);
+        expect(payload?.participantParams.payeeAccountID).toBe(CURRENT_USER_ACCOUNT_ID);
+    });
+
     describe('retryReceiptUpload', () => {
         beforeEach(() => {
             jest.mocked(resolveReceiptFile).mockResolvedValue(receiptFile);
@@ -303,12 +322,13 @@ describe('buildRetryPayload', () => {
             expect(canRetry).toBe(false);
         });
 
-        it('rebuilds the payload from the stored crop state and action ID, and the current policy and violations', () => {
-            // Given a failed crop with an "added a receipt" action, whose stored retry params hold an old policy
+        it('rebuilds the payload from the stored crop state and action IDs, and the current policy and violations', () => {
+            // Given a failed crop with "removed a receipt" and "added a receipt" actions, whose stored retry params hold an old policy
             const context = buildReplaceReceiptContext({
                 isSameReceipt: true,
                 state: CONST.IOU.RECEIPT_STATE.SCAN_READY,
                 receiptAddedReportActionID: '1234567890',
+                receiptRemovedReportActionID: '1234567891',
                 transactionPolicy: createMock<Policy>({id: POLICY_ID, name: 'Old name'}),
             });
             const currentPolicy = createMock<Policy>({id: POLICY_ID, name: 'New name'});
@@ -318,7 +338,7 @@ describe('buildRetryPayload', () => {
             // When the retry payload is rebuilt
             const payload = buildReplaceReceiptRetryPayload(context, receiptFile);
 
-            // Then the payload keeps the crop state and action ID, and takes the current policy and violations, not the stored ones
+            // Then the payload keeps the crop state and action IDs, and takes the current policy and violations, not the stored ones
             expect(payload).toEqual(
                 expect.objectContaining({
                     file: receiptFile,
@@ -326,6 +346,7 @@ describe('buildRetryPayload', () => {
                     isSameReceipt: true,
                     state: CONST.IOU.RECEIPT_STATE.SCAN_READY,
                     receiptAddedReportActionID: '1234567890',
+                    receiptRemovedReportActionID: '1234567891',
                     transactionPolicy: currentPolicy,
                     transactionViolations: [],
                 }),

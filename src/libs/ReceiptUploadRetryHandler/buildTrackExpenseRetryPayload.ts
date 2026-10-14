@@ -2,7 +2,7 @@
 import {getAllReportActions, isCreatedAction} from '@libs/ReportActionsUtils';
 import {isSelfDM} from '@libs/ReportUtils';
 
-import {getAllReports, getCurrentUserPersonalDetails} from '@userActions/IOU';
+import {getAllReports} from '@userActions/IOU';
 import type {CreateTrackExpenseParams} from '@userActions/IOU/types/CreateTrackExpenseParams';
 
 import CONST from '@src/CONST';
@@ -11,14 +11,14 @@ import type {FileObject} from '@src/types/utils/Attachment';
 
 import type {ReceiptRetryContext} from './types';
 
-import {buildRetryTransactionParams, getCurrentUserAccountID, isRetryableFlow, resolveParticipant} from './buildRetryPayload';
+import {buildRetryTransactionParams, isRetryableFlow, resolveParticipant} from './buildRetryPayload';
 
 function canBuildTrackExpenseRetryPayload(context: ReceiptRetryContext): boolean {
-    const {transaction, iouReport, receiptError} = context;
+    const {transaction, iouReport, receiptError, currentUserPersonalDetails} = context;
     if (receiptError.action !== CONST.IOU.ACTION_PARAMS.TRACK_EXPENSE || !isSelfDM(iouReport)) {
         return false;
     }
-    return isRetryableFlow(context) && !!iouReport?.reportID && !!transaction?.transactionID && !!resolveParticipant(iouReport);
+    return isRetryableFlow(context) && !!iouReport?.reportID && !!transaction?.transactionID && !!resolveParticipant(iouReport, currentUserPersonalDetails.accountID);
 }
 
 /** Rebuilds the `TrackExpense` call behind a failed receipt upload from the records the failure left in Onyx. */
@@ -36,13 +36,13 @@ function buildTrackExpenseRetryPayload(context: ReceiptRetryContext, receiptFile
         introSelected,
         delegateAccountID,
         getCurrencyDecimals,
+        currentUserPersonalDetails: currentUser,
     } = context;
-    const participant = resolveParticipant(iouReport);
+    const participant = resolveParticipant(iouReport, currentUser.accountID);
     if (!canBuildTrackExpenseRetryPayload(context) || !transaction || !iouReport || !participant) {
         return undefined;
     }
 
-    const currentUser = getCurrentUserPersonalDetails();
     const transactionParams = buildRetryTransactionParams(context, receiptFile);
     if (!transactionParams) {
         return undefined;
@@ -53,8 +53,8 @@ function buildTrackExpenseRetryPayload(context: ReceiptRetryContext, receiptFile
         isDraftPolicy: false,
         isDraftChatReport: false,
         participantParams: {
-            payeeEmail: currentUser?.login,
-            payeeAccountID: getCurrentUserAccountID(),
+            payeeEmail: currentUser.login,
+            payeeAccountID: currentUser.accountID,
             participant,
         },
         policyParams,
@@ -66,8 +66,8 @@ function buildTrackExpenseRetryPayload(context: ReceiptRetryContext, receiptFile
         existingTransaction: transaction,
         isASAPSubmitBetaEnabled,
         currentUser: {
-            accountID: getCurrentUserAccountID(),
-            email: currentUser?.login ?? '',
+            accountID: currentUser.accountID,
+            email: currentUser.login ?? '',
         },
         introSelected,
         conciergeChat: conciergeReportID ? getAllReports()?.[`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`] : undefined,
