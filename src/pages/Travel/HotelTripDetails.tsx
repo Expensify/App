@@ -54,14 +54,14 @@ function HotelTripDetails({reservation, personalDetails}: HotelTripDetailsProps)
             >
                 {!!reservation.start.address && <MenuItem.Copy value={reservation.start.address} />}
             </MenuItemField>
-            <MenuItem.Root>
+            <MenuItem.Root accessibilityLabel={`${translate('travel.hotelDetails.checkIn')} ${checkInDate.date}`}>
                 <MenuItem.Row>
                     <MenuItemField.Content name={translate('travel.hotelDetails.checkIn')}>
                         <Text style={[styles.textLarge, styles.textHeadlineH2]}>{checkInDate.date}</Text>
                     </MenuItemField.Content>
                 </MenuItem.Row>
             </MenuItem.Root>
-            <MenuItem.Root>
+            <MenuItem.Root accessibilityLabel={`${translate('travel.hotelDetails.checkOut')} ${checkOutDate.date}`}>
                 <MenuItem.Row>
                     <MenuItemField.Content name={translate('travel.hotelDetails.checkOut')}>
                         <Text style={[styles.textLarge, styles.textHeadlineH2]}>{checkOutDate.date}</Text>
