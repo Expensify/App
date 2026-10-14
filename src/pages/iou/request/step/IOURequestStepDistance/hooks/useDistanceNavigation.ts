@@ -154,6 +154,7 @@ function useDistanceNavigation({
     const [reportDraft] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${reportIDToCheck}`);
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
+    const [reusableDistanceRoutes] = useOnyx(ONYXKEYS.REUSABLE_DISTANCE_ROUTES);
 
     const delegateAccountID = useDelegateAccountID();
     const {formatPhoneNumber, dateFnsLocale} = useLocalize();
@@ -227,6 +228,7 @@ function useDistanceNavigation({
             participants,
             participantsPolicyTags,
             rules,
+            reusableDistanceRoutes,
         });
     };
 }

@@ -1,5 +1,5 @@
 import findFocusedRouteWithOnyxTabGuard from '@libs/Navigation/helpers/findFocusedRouteWithOnyxTabGuard';
-import {getMatchingFullScreenRoute} from '@libs/Navigation/helpers/getAdaptedStateFromPath';
+import getMatchingFullScreenRoute from '@libs/Navigation/helpers/getMatchingFullScreenRoute';
 import getStateFromPath from '@libs/Navigation/helpers/getStateFromPath';
 
 import NAVIGATORS from '@src/NAVIGATORS';
@@ -11,10 +11,6 @@ jest.mock('@libs/Navigation/linkingConfig/config', () => ({
     },
     screensWithOnyxTabNavigator: new Set(),
     dynamicTabPatternToTabPaths: new Map(),
-}));
-
-jest.mock('@libs/ReportUtils', () => ({
-    getReportOrDraftReport: jest.fn(),
 }));
 
 jest.mock('@libs/Navigation/helpers/getStateFromPath', () => jest.fn());

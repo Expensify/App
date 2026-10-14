@@ -19,6 +19,7 @@ function handleWalletStatementNavigation(
     introSelected: OnyxEntry<IntroSelected>,
     currentUserAccountID: number | undefined,
     isSelfTourViewed: boolean | undefined,
+    hasCompletedGuidedSetupFlow: boolean | undefined,
     conciergePersonalDetails: OnyxEntry<PersonalDetailsList>,
     delegateAccountID: number | undefined,
     type?: string,
@@ -34,6 +35,7 @@ function handleWalletStatementNavigation(
             introSelected,
             currentUserAccountID: currentUserAccountID ?? CONST.DEFAULT_NUMBER_ID,
             isSelfTourViewed,
+            hasCompletedGuidedSetupFlow,
             conciergePersonalDetails,
             delegateAccountID,
         });

@@ -17,7 +17,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
-import {hasSeenTourSelector} from '@selectors/Onboarding';
+import {guidedSetupAndTourStatusSelector} from '@selectors/Onboarding';
 import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
 
@@ -32,7 +32,9 @@ function AddPersonalNewCardPage() {
     const [addNewPersonalCardFeed, addNewPersonalCardFeedMetadata] = useOnyx(ONYXKEYS.ADD_NEW_PERSONAL_CARD);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
-    const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
+    const [guidedSetupAndTourStatus] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: guidedSetupAndTourStatusSelector});
+    const isSelfTourViewed = guidedSetupAndTourStatus?.isSelfTourViewed;
+    const hasCompletedGuidedSetupFlow = guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow;
     const [conciergePersonalDetails] = usePersonalDetailsByIDs([CONST.ACCOUNT_ID.CONCIERGE]);
     const {currentStep} = addNewPersonalCardFeed ?? {};
     const [isModalVisible, setIsModalVisible] = useState(false);
@@ -79,7 +81,15 @@ function AddPersonalNewCardPage() {
                                 if (result.action !== ModalActions.CONFIRM) {
                                     return;
                                 }
-                                navigateToConciergeChat({conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, conciergePersonalDetails, delegateAccountID});
+                                navigateToConciergeChat({
+                                    conciergeReportID,
+                                    introSelected,
+                                    currentUserAccountID,
+                                    isSelfTourViewed,
+                                    hasCompletedGuidedSetupFlow,
+                                    conciergePersonalDetails,
+                                    delegateAccountID,
+                                });
                             })
                             .finally(() => {
                                 setIsModalVisible(false);

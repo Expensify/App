@@ -105,6 +105,26 @@ function OnboardingModalNavigatorWithRealWorkspaces() {
     );
 }
 
+// Stands in for the intent list; only whether Back lands on it matters.
+function OnboardingPurposeStub() {
+    return <View testID="onboarding-purpose-stub" />;
+}
+
+function OnboardingModalNavigatorWithPurpose() {
+    return (
+        <OnboardingStack.Navigator screenOptions={{headerShown: false}}>
+            <OnboardingStack.Screen
+                name={SCREENS.ONBOARDING.PURPOSE}
+                component={OnboardingPurposeStub}
+            />
+            <OnboardingStack.Screen
+                name={SCREENS.ONBOARDING.WORK_EMAIL}
+                component={OnboardingWorkEmail}
+            />
+        </OnboardingStack.Navigator>
+    );
+}
+
 // The back button is what is under test in the second-visit case, so that one navigator renders the real screen.
 function OnboardingModalNavigatorWithWorkspaces() {
     return (
@@ -314,6 +334,91 @@ describe('Onboarding work email navigation', () => {
             },
         });
         expect(onboardingValues?.shouldValidate).toBeUndefined();
+    });
+
+    it('should return to the intent list when Back is pressed on the work email screen after a refresh', async () => {
+        await TestHelper.signInWithTestUser();
+
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {
+                hasCompletedGuidedSetupFlow: false,
+            });
+            await Onyx.merge(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED, CONST.ONBOARDING_CHOICES.JOIN_WORKSPACE);
+            await Onyx.merge(ONYXKEYS.ACCOUNT, {validated: false, isFromPublicDomain: true});
+        });
+
+        // Given a refresh rebuilt the stack from the URL, so the intent list is no longer behind the work email screen
+        renderOnboardingStack([SCREENS.ONBOARDING.WORK_EMAIL], OnboardingModalNavigatorWithPurpose);
+
+        await waitForBatchedUpdatesWithAct();
+
+        // When the user presses Back
+        await waitFor(() => {
+            expect(screen.getByLabelText(TestHelper.translateLocal('common.back'))).toBeOnTheScreen();
+        });
+        fireEvent.press(screen.getByLabelText(TestHelper.translateLocal('common.back')));
+
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the explicit ONBOARDING_PURPOSE fallback replaces the work email screen inside the modal instead of
+        // popping the whole onboarding modal
+        await waitFor(() => {
+            expect(getOnboardingRouteNames()).toEqual([SCREENS.ONBOARDING.PURPOSE]);
+        });
+    });
+
+    it('should clear the work email error when Back is pressed so the intent list does not show it', async () => {
+        await TestHelper.signInWithTestUser();
+
+        // Given AddWorkEmail failed with the domain-controlled error while joining a company workspace
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {
+                hasCompletedGuidedSetupFlow: false,
+                isMergingAccountBlocked: true,
+            });
+            await Onyx.merge(ONYXKEYS.ONBOARDING_ERROR_MESSAGE_TRANSLATION_KEY, 'onboarding.mergeBlockScreen.domainControlledSubtitle');
+            await Onyx.merge(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED, CONST.ONBOARDING_CHOICES.JOIN_WORKSPACE);
+            await Onyx.merge(ONYXKEYS.FORMS.ONBOARDING_WORK_EMAIL_FORM, {
+                onboardingWorkEmail: workEmail,
+            });
+            await Onyx.merge(ONYXKEYS.ACCOUNT, {validated: false, isFromPublicDomain: true});
+        });
+
+        renderOnboardingStack([SCREENS.ONBOARDING.PURPOSE, SCREENS.ONBOARDING.WORK_EMAIL], OnboardingModalNavigatorWithPurpose);
+
+        await waitForBatchedUpdatesWithAct();
+
+        // When the user presses Back instead of confirming the blocked screen
+        await waitFor(() => {
+            expect(screen.getByLabelText(TestHelper.translateLocal('common.back'))).toBeOnTheScreen();
+        });
+        fireEvent.press(screen.getByLabelText(TestHelper.translateLocal('common.back')));
+
+        await waitForBatchedUpdatesWithAct();
+
+        await waitFor(() => {
+            expect(getOnboardingRouteNames()).toEqual([SCREENS.ONBOARDING.PURPOSE]);
+        });
+
+        // Then the error is cleared, because the intent list translates it without the work email and would show
+        // "undefined is a domain controlled login"
+        let errorMessageTranslationKey: OnyxEntry<string>;
+        await TestHelper.getOnyxData({
+            key: ONYXKEYS.ONBOARDING_ERROR_MESSAGE_TRANSLATION_KEY,
+            callback: (value) => {
+                errorMessageTranslationKey = value ?? undefined;
+            },
+        });
+        expect(errorMessageTranslationKey).toBeFalsy();
+
+        let onboardingValues: OnyxEntry<Onboarding>;
+        await TestHelper.getOnyxData({
+            key: ONYXKEYS.NVP_ONBOARDING,
+            callback: (value) => {
+                onboardingValues = value;
+            },
+        });
+        expect(onboardingValues?.isMergingAccountBlocked).toBe(false);
     });
 
     it('should keep Back working on a later visit to Join a workspace after the merge', async () => {
