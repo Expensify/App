@@ -761,6 +761,7 @@ describe('actions/Policy', () => {
                 policyID: fakePolicy.id,
                 targetPolicyID: policyID,
                 welcomeNote: 'Join my policy',
+                personalDetailsByLogins: {},
                 parts: {
                     people: false,
                     reports: false,
@@ -778,7 +779,6 @@ describe('actions/Policy', () => {
                 },
                 localCurrency: 'USD',
                 rules: {[`${ONYXKEYS.COLLECTION.RULE}sourceRule`]: sourceRule},
-                personalDetailsByLogins: {},
             });
             await waitForBatchedUpdates();
 

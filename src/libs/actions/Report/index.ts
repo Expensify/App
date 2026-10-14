@@ -3679,6 +3679,7 @@ function editReportComment(
     isOriginalReportArchived: boolean | undefined,
     currentUserLogin: string,
     personalDetails: OnyxEntry<PersonalDetailsList>,
+    currentUserAccountID: number,
     videoAttributeCache?: Record<string, string>,
     reportIDToName?: Record<string, string>,
 ) {
@@ -3751,7 +3752,14 @@ function editReportComment(
         },
     ];
 
-    const lastVisibleAction = ReportActionsUtils.getLastVisibleAction(originalReportID, canUserPerformWriteAction, optimisticReportActions as ReportActions);
+    const lastVisibleAction = ReportActionsUtils.getLastVisibleAction(
+        originalReportID,
+        canUserPerformWriteAction,
+        optimisticReportActions as ReportActions,
+        undefined,
+        undefined,
+        currentUserAccountID,
+    );
     if (reportActionID === lastVisibleAction?.reportActionID) {
         const lastMessageText = formatReportLastMessageText(reportComment);
         const optimisticReport = {
@@ -4106,7 +4114,7 @@ function updateReportField({
     report: Report;
     reportField: PolicyReportField;
     previousReportField: PolicyReportField;
-    policy: OnyxEntry<Policy>;
+    policy: Policy;
     isASAPSubmitBetaEnabled: boolean;
     accountID: number;
     email: string;
