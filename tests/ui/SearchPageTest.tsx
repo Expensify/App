@@ -516,6 +516,21 @@ describe('SearchPageNarrow', () => {
         expect(mockSearch.mock.calls.some(([params]) => params?.queryJSON?.hash === failedQueryJSON?.hash)).toBe(true);
     });
 
+    it('does not request a query again when the persisted response marks it invalid', async () => {
+        // Given a snapshot the server rejected as a malformed query, which no retry can fix
+        await setFailedSnapshot(CONST.JSON_CODE.INVALID_SEARCH_QUERY);
+        mockSearch.mockClear();
+
+        // When the page mounts on that query
+        renderPage();
+        await act(async () => {
+            jest.runAllTimers();
+        });
+
+        // Then the query is not sent again, so the error view stays put instead of flashing a request that cannot succeed
+        expect(mockSearch.mock.calls.some(([params]) => params?.queryJSON?.hash === failedQueryJSON?.hash)).toBe(false);
+    });
+
     it('renders the empty state when a response without data reached the terminal loaded state', async () => {
         await act(async () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.SNAPSHOT}${failedQueryJSON?.hash}`, {

@@ -464,8 +464,10 @@ function Search({
             return;
         }
 
-        // A stale error an earlier visit left on this hash must not block this instance's first request.
-        if (hasErrors && !shouldRefreshOnReconnect && autoSearchedHashRef.current === queryJSON.hash) {
+        // A stale error an earlier visit left on this hash must not block this instance's first request,
+        // except when the server judged the query itself malformed, because re-sending it cannot succeed.
+        const isInvalidQuery = responseStatusCode === CONST.JSON_CODE.INVALID_SEARCH_QUERY;
+        if (hasErrors && !shouldRefreshOnReconnect && (isInvalidQuery || autoSearchedHashRef.current === queryJSON.hash)) {
             return;
         }
 
