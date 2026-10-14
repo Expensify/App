@@ -643,6 +643,22 @@ describe('actions/Transaction', () => {
                 expect(carouselTransactionIDs).toEqual(transactionIDs.slice(1));
             });
 
+            it('puts the expense back into the carousel when the move fails', async () => {
+                // Given a carousel seeded by opening an expense row in the source report
+                await setActiveTransactionIDs(transactionIDs, {source: CAROUSEL_SOURCE.reportRow(sourceReport.reportID)});
+                await waitForBatchedUpdates();
+
+                // When one of the report's expenses is moved but the request fails, which returns the expense to the report
+                const mockFetch = getGlobalFetchMock();
+                mockFetch.fail();
+                global.fetch = mockFetch;
+                await moveFirstTransactionToDestination();
+
+                // Then the expense is back in the carousel too, so the report's arrows page through it again
+                const carouselTransactionIDs = await getOnyxValue(ONYXKEYS.TRANSACTION_THREAD_NAVIGATION_TRANSACTION_IDS);
+                expect(carouselTransactionIDs).toEqual(transactionIDs);
+            });
+
             it('leaves a carousel seeded from another source untouched', async () => {
                 // Given a carousel seeded from search results, which legitimately spans several reports
                 await setActiveTransactionIDs(transactionIDs, {source: CAROUSEL_SOURCE.search(12345)});

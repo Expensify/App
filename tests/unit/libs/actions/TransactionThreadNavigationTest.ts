@@ -4,7 +4,7 @@ import {
     clearActiveTransactionIDsForSource,
     disownActiveTransactionIDs,
     getActiveTransactionIDs,
-    removeActiveTransactionIDsForReport,
+    getRemoveActiveTransactionIDsForReportOnyxData,
     setActiveTransactionIDs,
     shouldRefreshActiveTransactionIDs,
 } from '@libs/actions/TransactionThreadNavigation';
@@ -286,17 +286,20 @@ describe('TransactionThreadNavigation carousel ownership', () => {
      * report left it in the report's carousel, so the report kept its arrows and stepping to the removed expense
      * opened the self-DM.
      */
-    describe('removeActiveTransactionIDsForReport', () => {
+    describe('getRemoveActiveTransactionIDsForReportOnyxData', () => {
         it('clears a report row carousel that drops to one expense', async () => {
             // Given an expense opened from report B's list, seeding the carousel with both of B's expenses
-            await setActiveTransactionIDs(REPORT_B_IDS, {source: CAROUSEL_SOURCE.reportRow('B')});
+            const reportRowSource = CAROUSEL_SOURCE.reportRow('B');
+            await setActiveTransactionIDs(REPORT_B_IDS, {source: reportRowSource});
 
             // When one of them is removed from report B
-            await removeActiveTransactionIDsForReport(['B1'], 'B');
+            await Onyx.update(getRemoveActiveTransactionIDsForReportOnyxData(['B1'], 'B')?.optimisticData ?? []);
 
             // Then there is nothing left to page through, so the carousel is cleared and no arrows show
-            expect(getActiveTransactionIDs()).toEqual({ids: null, descriptors: null, source: null, snapshotHash: null});
             expect((await readCarouselFromOnyx()).ids).toBeUndefined();
+
+            // And the report row still owns it, so it can clear a list a failed move restores
+            expect(getActiveTransactionIDs()).toEqual({ids: null, descriptors: null, source: reportRowSource, snapshotHash: null});
         });
 
         it('keeps paging through the expenses still on the report', async () => {
@@ -304,11 +307,24 @@ describe('TransactionThreadNavigation carousel ownership', () => {
             await setActiveTransactionIDs(['B1', 'B2', 'B3'], {source: REPORT_SOURCE});
 
             // When one expense moves to another report
-            await removeActiveTransactionIDsForReport(['B2'], 'B');
+            await Onyx.update(getRemoveActiveTransactionIDsForReportOnyxData(['B2'], 'B')?.optimisticData ?? []);
 
             // Then the other two stay in the carousel under the same owner
             expect(getActiveTransactionIDs()).toEqual({ids: ['B1', 'B3'], descriptors: null, source: REPORT_SOURCE, snapshotHash: null});
             expect((await readCarouselFromOnyx()).ids).toEqual(['B1', 'B3']);
+        });
+
+        it('restores the expense when the move fails', async () => {
+            // Given report B's own carousel with three expenses, one of which was just moved out
+            await setActiveTransactionIDs(['B1', 'B2', 'B3'], {source: REPORT_SOURCE});
+            const onyxData = getRemoveActiveTransactionIDsForReportOnyxData(['B2'], 'B');
+            await Onyx.update(onyxData?.optimisticData ?? []);
+
+            // When the move request fails, which returns the expense to report B
+            await Onyx.update(onyxData?.failureData ?? []);
+
+            // Then the expense is back in the carousel, so the arrows page through it again
+            expect((await readCarouselFromOnyx()).ids).toEqual(['B1', 'B2', 'B3']);
         });
 
         it('leaves a search carousel alone, since it spans several reports', async () => {
@@ -316,9 +332,10 @@ describe('TransactionThreadNavigation carousel ownership', () => {
             await setActiveTransactionIDs(SPEND_PAGE_IDS, {source: SEARCH_SOURCE, snapshotHash: SEARCH_HASH});
 
             // When an expense is removed from report B
-            await removeActiveTransactionIDsForReport(['B1'], 'B');
+            const onyxData = getRemoveActiveTransactionIDsForReportOnyxData(['B1'], 'B');
 
             // Then the search carousel is untouched, because the expense is still one of its results
+            expect(onyxData).toBeUndefined();
             expect(getActiveTransactionIDs()).toEqual({ids: SPEND_PAGE_IDS, descriptors: null, source: SEARCH_SOURCE, snapshotHash: SEARCH_HASH});
         });
 
@@ -327,9 +344,10 @@ describe('TransactionThreadNavigation carousel ownership', () => {
             await setActiveTransactionIDs(REPORT_B_IDS, {source: REPORT_SOURCE});
 
             // When an expense leaves a different report
-            await removeActiveTransactionIDsForReport(['B1'], 'A');
+            const onyxData = getRemoveActiveTransactionIDsForReportOnyxData(['B1'], 'A');
 
             // Then report B's carousel is untouched
+            expect(onyxData).toBeUndefined();
             expect(getActiveTransactionIDs()).toEqual({ids: REPORT_B_IDS, descriptors: null, source: REPORT_SOURCE, snapshotHash: null});
         });
     });

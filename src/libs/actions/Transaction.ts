@@ -90,7 +90,7 @@ import lodashClone from 'lodash/clone';
 import Onyx from 'react-native-onyx';
 
 import {getSearchOnyxUpdate} from './IOU/SearchUpdate';
-import {removeActiveTransactionIDsForReport} from './TransactionThreadNavigation';
+import {getRemoveActiveTransactionIDsForReportOnyxData} from './TransactionThreadNavigation';
 
 type SaveWaypointProps = {
     transactionID: string;
@@ -2142,13 +2142,22 @@ function getChangeTransactionsReportOnyxData({
 }
 
 /**
- * Drops moved expenses from a carousel seeded from the report they left, so its arrows stop paging to them.
+ * Builds the Onyx updates that drop moved expenses from a carousel seeded from the report they left, so its arrows stop
+ * paging to them. They go in the move's optimistic and failure data, so a failed move puts the expenses back.
  * Every move goes through `changeTransactionsReport`, so doing it here covers all entry points at once.
  */
-function removeMovedTransactionsFromCarousel(movedTransactionIDsByOldReportID: Record<string, string[]> | undefined) {
+function getMovedTransactionsCarouselOnyxData(movedTransactionIDsByOldReportID: Record<string, string[]> | undefined) {
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.TRANSACTION_THREAD_NAVIGATION_TRANSACTION_IDS>> = [];
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.TRANSACTION_THREAD_NAVIGATION_TRANSACTION_IDS>> = [];
     for (const [oldReportID, transactionIDs] of Object.entries(movedTransactionIDsByOldReportID ?? {})) {
-        removeActiveTransactionIDsForReport(transactionIDs, oldReportID);
+        const carouselOnyxData = getRemoveActiveTransactionIDsForReportOnyxData(transactionIDs, oldReportID);
+        if (!carouselOnyxData) {
+            continue;
+        }
+        optimisticData.push(...carouselOnyxData.optimisticData);
+        failureData.push(...carouselOnyxData.failureData);
     }
+    return {optimisticData, failureData};
 }
 
 function changeTransactionsReport(props: ChangeTransactionsReportProps) {
@@ -2202,8 +2211,12 @@ function changeTransactionsReport(props: ChangeTransactionsReportProps) {
             hash: props.hash,
         };
 
-        API.write(WRITE_COMMANDS.CHANGE_TRANSACTIONS_REPORT, queryParameters, {optimisticData, successData, failureData});
-        removeMovedTransactionsFromCarousel(loadedTransactionsOnyxData?.movedTransactionIDsByOldReportID);
+        const carouselOnyxData = getMovedTransactionsCarouselOnyxData(loadedTransactionsOnyxData?.movedTransactionIDsByOldReportID);
+        API.write(WRITE_COMMANDS.CHANGE_TRANSACTIONS_REPORT, queryParameters, {
+            optimisticData: [...optimisticData, ...carouselOnyxData.optimisticData],
+            successData,
+            failureData: [...failureData, ...carouselOnyxData.failureData],
+        });
         return;
     }
 
@@ -2235,14 +2248,15 @@ function changeTransactionsReport(props: ChangeTransactionsReportProps) {
         }),
     };
 
+    const carouselOnyxData = getMovedTransactionsCarouselOnyxData(movedTransactionIDsByOldReportID);
+
     // The all-matching path above already returned after its own API.write, so only one of the two writes ever runs
     // eslint-disable-next-line rulesdir/no-multiple-api-calls
     API.write(WRITE_COMMANDS.CHANGE_TRANSACTIONS_REPORT, parameters, {
-        optimisticData,
+        optimisticData: [...optimisticData, ...carouselOnyxData.optimisticData],
         successData,
-        failureData,
+        failureData: [...failureData, ...carouselOnyxData.failureData],
     });
-    removeMovedTransactionsFromCarousel(movedTransactionIDsByOldReportID);
 }
 
 /**
