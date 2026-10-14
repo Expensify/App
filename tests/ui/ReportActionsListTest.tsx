@@ -484,8 +484,8 @@ describe('ReportActionsList (body)', () => {
             expect(summary?.props.unreadMarkerReportActionID).toBe('system-older');
         });
 
-        it.each([true, false])('keeps the first unread marker with its owner when a CREATED header is present: %s', (hasCreatedHeader) => {
-            // Given two unread updates from another user, with or without the header that owns the first NEW marker
+        it.each([true, false])('keeps the first unread marker with its persisted or synthesized CREATED header (persisted: %s)', (hasPersistedCreatedAction) => {
+            // Given two unread updates whose CREATED header is either persisted or synthesized by expense pagination
             const created = buildSystemAction('created', {
                 actionName: CONST.REPORT.ACTIONS.TYPE.CREATED,
                 created: '2023-01-01 00:00:00.000',
@@ -496,7 +496,7 @@ describe('ReportActionsList (body)', () => {
             mockUseUnreadMarker.mockReturnValue({unreadMarkerReportActionID: 'system-older', unreadMarkerReportActionIndex: 1});
             mockUsePaginatedReportActions.mockReturnValue({
                 ...defaultPaginatedReportActionsResult,
-                reportActions: [getSystemAction(0), getSystemAction(1), ...(hasCreatedHeader ? [created] : [])],
+                reportActions: [getSystemAction(0), getSystemAction(1), ...(hasPersistedCreatedAction ? [created] : [])],
             });
 
             // When the unread pair is collapsed, scrolling still targets the summary
@@ -504,15 +504,21 @@ describe('ReportActionsList (body)', () => {
             const collapsedAnchor = getCapturedListProps()?.renderItem?.({item: getSystemAction(0), index: 0});
             const summary = findRenderedElement<React.ComponentProps<typeof CollapsedSystemMessages>>(collapsedAnchor, CollapsedSystemMessages);
 
-            // Then only the header owns NEW when it exists; without it the summary keeps NEW
+            // Then the visible CREATED header owns NEW in both cases, without changing the collapsed scroll target
             expect(summary).toBeDefined();
-            expect(summary?.props.unreadMarkerReportActionID).toBe(hasCreatedHeader ? undefined : 'system-older');
+            expect(summary?.props.unreadMarkerReportActionID).toBeUndefined();
             expect(mockUseReportActionsScroll.mock.calls.at(-1)?.at(0)).toMatchObject({unreadMarkerReportActionIndex: 0});
             expect(mockUseReportActionsScroll.mock.calls.at(-1)?.at(0)?.reportActionIDToDisplayIndex?.get('system-older')).toBe(0);
-            if (hasCreatedHeader) {
-                const header = getCapturedListProps()?.renderItem?.({item: created, index: 1});
-                expect(findRenderedElement<React.ComponentProps<typeof ReportActionsListItemRenderer>>(header, ReportActionsListItemRenderer)?.props.shouldHideThreadDividerLine).toBe(true);
+            const headerAction = getCapturedVisibleActions()?.find((action) => action.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED);
+            expect(headerAction).toBeDefined();
+            if (!headerAction) {
+                throw new Error('Expected expense pagination to preserve or synthesize a CREATED header');
             }
+            const header = getCapturedListProps()?.renderItem?.({item: headerAction, index: 1});
+            expect(findRenderedElement<React.ComponentProps<typeof ReportActionsListItemRenderer>>(header, ReportActionsListItemRenderer)?.props).toMatchObject({
+                shouldHideThreadDividerLine: true,
+                shouldUseThreadDividerLine: true,
+            });
         });
 
         it('does not collapse passive actions in ordinary chat reports', () => {
