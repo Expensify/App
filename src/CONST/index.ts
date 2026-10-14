@@ -9566,11 +9566,14 @@ const CONST = {
             /** Narrowest drag width. Low enough to hide most content, but wide enough to keep the column's edge reachable. */
             MIN_WIDTH: 48,
 
-            /** Width of the invisible drag strip centred on a column's edge. */
-            HANDLE_HIT_WIDTH: 12,
-
-            /** Width of the line shown while a column's edge is dragged. */
+            /** Width of the line shown while a column's edge is dragged, and of the grip shown while its heading is hovered. */
             INDICATOR_WIDTH: 2,
+
+            /** Share of the heading's height the grip spans, centred vertically. */
+            GRIP_HEIGHT_RATIO: 0.8,
+
+            /** How long, in ms, the grip takes to stretch into the line once its edge is pressed. */
+            INDICATOR_MORPH_DURATION: 150,
         },
     },
 
