@@ -610,7 +610,7 @@ const translations = {
                 topSpender: 'Who spent the most this month?',
                 missingCategory: 'Which expenses are missing a category?',
                 awaitingApproval: 'Which reports are waiting on my approval?',
-                notReimbursed: "What haven't I been reimbursed yet?",
+                notReimbursed: "What haven't I been reimbursed for yet?",
                 unsubmitted: 'Which of my expenses are still unsubmitted?',
                 leftToPay: "What's left to pay this month?",
                 createExpense: 'Create an expense for a $30 lunch',
