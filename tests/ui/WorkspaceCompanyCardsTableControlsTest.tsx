@@ -2,10 +2,6 @@ import {render, screen} from '@testing-library/react-native';
 
 import WorkspaceCompanyCardsTableControls from '@components/Tables/WorkspaceCompanyCardsTable/WorkspaceCompanyCardsTableControls';
 
-import Navigation from '@libs/Navigation/Navigation';
-
-import ROUTES from '@src/ROUTES';
-
 import React from 'react';
 
 type MockDropdownOption = {
