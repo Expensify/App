@@ -255,14 +255,19 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles, route}: BaseOnboardingW
         [addWorkEmailTaskReport, isConciergeTaskFlow, isCurrentPrimaryValidated, onboardingValues, originReportID, sessionEmail],
     );
 
+    const isBackButtonMessage = onboardingErrorMessageTranslationKey === 'onboarding.purpose.errorBackButton';
+
+    // The back button message is about leaving onboarding, not about the email, so it never becomes a field error and never blocks the submit
+    const workEmailErrorTranslationKey = onboardingErrorMessageTranslationKey && !isBackButtonMessage ? onboardingErrorMessageTranslationKey : undefined;
+
     useEffect(() => {
-        if (!onboardingErrorMessageTranslationKey) {
+        if (!workEmailErrorTranslationKey) {
             clearWorkEmailFormErrors();
             return;
         }
 
-        addWorkEmailFormError(translate(onboardingErrorMessageTranslationKey));
-    }, [onboardingErrorMessageTranslationKey, translate]);
+        addWorkEmailFormError(translate(workEmailErrorTranslationKey));
+    }, [workEmailErrorTranslationKey, translate]);
 
     const clearOnboardingErrorMessage = useCallback(() => {
         if (!onboardingErrorMessageTranslationKey) {
@@ -270,6 +275,13 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles, route}: BaseOnboardingW
         }
         setOnboardingErrorMessage(null);
     }, [onboardingErrorMessageTranslationKey]);
+
+    const clearBackButtonMessage = () => {
+        if (!isBackButtonMessage) {
+            return;
+        }
+        setOnboardingErrorMessage(null);
+    };
 
     const handleRegularJoinWorkspaceErrorConfirm = useCallback(() => {
         setOnboardingErrorMessage(null);
@@ -379,6 +391,7 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles, route}: BaseOnboardingW
                     style={[styles.flexGrow1, onboardingIsMediumOrLargerScreenWidth && styles.mt5, onboardingIsMediumOrLargerScreenWidth ? styles.mh8 : styles.mh5]}
                     formID={ONYXKEYS.FORMS.ONBOARDING_WORK_EMAIL_FORM}
                     validate={validate}
+                    onBeforeSubmit={clearBackButtonMessage}
                     onSubmit={submitWorkEmail}
                     submitButtonText={translate('onboarding.workEmail.addWorkEmail')}
                     enabledWhenOffline
