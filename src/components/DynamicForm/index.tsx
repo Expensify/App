@@ -28,6 +28,7 @@ import getContentFields from './utils/getContentFields';
 import getDynamicFieldErrors from './utils/getDynamicFieldErrors';
 import getPageTitle, {isPageShown} from './utils/getPageTitle';
 import getSubmittedAnswers from './utils/getSubmittedAnswers';
+import hasSensitiveAnswer from './utils/hasSensitiveAnswer';
 import isSensitiveField from './utils/isSensitiveField';
 import isSupportedField from './utils/isSupportedField';
 import {getListItemPageName, getListItems, getListItemSensitiveKey, getRemovedListItemSensitiveKeys, parseListItemPageName} from './utils/listItems';
@@ -228,8 +229,14 @@ function DynamicFormFlow({
         if (!listField) {
             return;
         }
+        const items = getListItems(values[listKey]);
+        // The add row is hidden once the list is full, but a stale link can still open the editor of a new entry
+        if (!itemID && listField.maxItems !== undefined && items.length >= listField.maxItems) {
+            closeListItemEditor(listKey);
+            return;
+        }
         const id = itemID ?? Str.guid();
-        const sensitiveKeys = new Set(listField.itemFields.filter(isSensitiveField).flatMap(getAnswerKeys));
+        const sensitiveKeys = new Set(listField.itemFields.filter(hasSensitiveAnswer).flatMap(getAnswerKeys));
         const item: DynamicFormListItem = {id};
         const sensitiveAnswers: DynamicFormValues = {};
         for (const [key, answer] of Object.entries(getSubmittedAnswers(listField.itemFields, itemValues))) {
@@ -239,7 +246,6 @@ function DynamicFormFlow({
                 item[key] = answer;
             }
         }
-        const items = getListItems(values[listKey]);
         const savedItems = itemID ? items.map((existing) => (existing.id === id ? item : existing)) : [...items, item];
         const saveListAnswer = isSensitiveField(listField) ? saveSensitiveAnswers : saveDraftAnswers;
         saveListAnswer(formID, {[listKey]: savedItems});

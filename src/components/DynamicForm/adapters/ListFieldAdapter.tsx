@@ -1,7 +1,7 @@
 import DynamicFormListItemModal from '@components/DynamicForm/components/DynamicFormListItemModal';
 import type {DynamicFormValues} from '@components/DynamicForm/types';
 import getAnswerKeys from '@components/DynamicForm/utils/getAnswerKeys';
-import isSensitiveField from '@components/DynamicForm/utils/isSensitiveField';
+import hasSensitiveAnswer from '@components/DynamicForm/utils/hasSensitiveAnswer';
 import summarizeListItem from '@components/DynamicForm/utils/summarizeListItem';
 import ListField from '@components/ListField';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
@@ -37,10 +37,10 @@ type ListFieldAdapterProps = Pick<ComponentProps<typeof ListField>, 'addTitle' |
         /** Validation error shown under the list */
         errorText?: string;
 
-        /** Titles the modal editor of an entry whose answers give it no name */
+        /** Names an entry whose answers give it no name, when the list has no `itemLabel` */
         label: string;
 
-        /** What one entry is, such as "owner", for the remove confirmation */
+        /** What one entry is, such as "owner", for the remove confirmation and for an entry whose answers give it no name */
         itemLabel?: string;
 
         /** The fields of one entry, which name and describe its row */
@@ -62,7 +62,7 @@ type ListFieldAdapterProps = Pick<ComponentProps<typeof ListField>, 'addTitle' |
         renderFields: (fields: DynamicFormField[], values: DynamicFormValues, isSensitive: boolean) => ReactNode;
     };
 
-/** The entries of a list field as rows. Removing one updates FormProvider's value; adding and editing open the flow's editor page, or a modal outside the flow. */
+/** The entries of a list field as rows. Removing one updates FormProvider's value. Adding and editing open the flow's editor page, or a modal outside the flow. */
 function ListFieldAdapter({
     value,
     onInputChange = () => {},
@@ -85,12 +85,9 @@ function ListFieldAdapter({
     const [editingID, setEditingID] = useState<string>();
     const items = Array.isArray(value) ? value : [];
     const editingItem = items.find((item) => item.id === editingID);
-    const editingTitle = editingItem ? summarizeListItem(editingItem, itemFields, translate).title : '';
-    let modalTitle = addTitle;
-    if (editingItem) {
-        modalTitle = editingTitle === '' ? label : editingTitle;
-    }
-    const sensitiveKeys = new Set(itemFields.filter(isSensitiveField).flatMap(getAnswerKeys));
+    const summarize = (item: DynamicFormListItem) => summarizeListItem(item, itemFields, translate, itemLabel ?? label);
+    const modalTitle = editingItem ? summarize(editingItem).title : addTitle;
+    const sensitiveKeys = new Set(itemFields.filter(hasSensitiveAnswer).flatMap(getAnswerKeys));
     const isKeptOutOfDraft = (key: string) => key !== 'id' && (isSensitive || sensitiveKeys.has(key));
 
     // Sensitive answers are not drafted, so the modal's inputs start from the stored entry instead. Every answer of a sensitive list is.
@@ -124,7 +121,7 @@ function ListFieldAdapter({
             title: itemLabel ? translate('dynamicForm.removeItemTitle', {item: itemLabel}) : translate('common.remove'),
             prompt: (
                 <View fsClass={forwardedFSClass}>
-                    <Text>{translate('dynamicForm.removeItemPrompt', {name: summarizeListItem(item, itemFields, translate).title})}</Text>
+                    <Text>{translate('dynamicForm.removeItemPrompt', {name: summarize(item).title})}</Text>
                 </View>
             ),
             confirmText: translate('common.remove'),
@@ -146,7 +143,7 @@ function ListFieldAdapter({
                 <ListField
                     addTitle={addTitle}
                     addDescription={addDescription}
-                    rows={items.map((item) => ({id: item.id, ...summarizeListItem(item, itemFields, translate)}))}
+                    rows={items.map((item) => ({id: item.id, ...summarize(item)}))}
                     canAddMore={maxItems === undefined || items.length < maxItems}
                     errorText={errorText}
                     onAdd={onAdd ?? (() => openModal())}

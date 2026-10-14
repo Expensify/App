@@ -3,7 +3,7 @@ import type {DynamicFormValues} from '@components/DynamicForm/types';
 import type {DynamicFormListField, DynamicFormListItem} from '@src/types/onyx';
 
 import getAnswerKeys from './getAnswerKeys';
-import isSensitiveField from './isSensitiveField';
+import hasSensitiveAnswer from './hasSensitiveAnswer';
 
 const PAGE_NAME_SEPARATOR = '~';
 const NEW_ITEM_ID = 'new';
@@ -44,7 +44,7 @@ function getListItems(value: unknown): DynamicFormListItem[] {
 function getListItemSensitiveAnswers(field: DynamicFormListField, itemID: string, values: DynamicFormValues): DynamicFormValues {
     return Object.fromEntries(
         field.itemFields
-            .filter(isSensitiveField)
+            .filter(hasSensitiveAnswer)
             .flatMap(getAnswerKeys)
             .flatMap((answerKey) => {
                 const answer = values[getListItemSensitiveKey(field.key, itemID, answerKey)];
@@ -55,7 +55,7 @@ function getListItemSensitiveAnswers(field: DynamicFormListField, itemID: string
 
 /** Memory keys of sensitive answers whose entry the user has removed from the list */
 function getRemovedListItemSensitiveKeys(field: DynamicFormListField, values: DynamicFormValues): string[] {
-    const sensitiveKeys = field.itemFields.filter(isSensitiveField).flatMap(getAnswerKeys);
+    const sensitiveKeys = field.itemFields.filter(hasSensitiveAnswer).flatMap(getAnswerKeys);
     const keptKeys = new Set(getListItems(values[field.key]).flatMap((item) => sensitiveKeys.map((answerKey) => getListItemSensitiveKey(field.key, item.id, answerKey))));
     return Object.keys(values).filter((key) => key.startsWith(`${field.key}${PAGE_NAME_SEPARATOR}`) && !keptKeys.has(key));
 }

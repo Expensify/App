@@ -158,14 +158,19 @@ type DynamicFormListField = DynamicFormFieldBase & {
     /** The noun for one entry, such as "owner", for the add row and the editor title */
     itemLabel?: string;
 
+    /** Translation of `itemLabel`, used instead of it when set */
     itemLabelKey?: TranslationPaths;
 
     /** Hint shown under the add row */
     addItemDescription?: string;
 
+    /** Translation of `addItemDescription`, used instead of it when set */
     addItemDescriptionKey?: TranslationPaths;
 
+    /** Fewest entries the list must hold to pass validation */
     minItems?: number;
+
+    /** Most entries the list can hold. The add row is hidden once it is reached. */
     maxItems?: number;
 };
 

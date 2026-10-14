@@ -4,7 +4,7 @@ import formatDynamicFieldValue from '@components/DynamicForm/utils/formatDynamic
 import getLocalizedText, {getFieldLabel} from '@components/DynamicForm/utils/getLocalizedText';
 import isSensitiveField from '@components/DynamicForm/utils/isSensitiveField';
 import {getListItems} from '@components/DynamicForm/utils/listItems';
-import summarizeListItem from '@components/DynamicForm/utils/summarizeListItem';
+import summarizeListItem, {getListItemFallbackTitle} from '@components/DynamicForm/utils/summarizeListItem';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import Text from '@components/Text';
 
@@ -57,7 +57,7 @@ function DynamicFormFieldRow({
         const readonlyValue =
             field.type === 'list'
                 ? getListItems(values[field.key])
-                      .map((item) => summarizeListItem(item, field.itemFields, translate).title)
+                      .map((item) => summarizeListItem(item, field.itemFields, translate, getListItemFallbackTitle(field, translate)).title)
                       .join(', ')
                 : formatDynamicFieldValue(field, values, translate);
         return (

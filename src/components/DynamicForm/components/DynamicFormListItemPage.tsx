@@ -1,12 +1,12 @@
+import ActivityIndicator from '@components/ActivityIndicator';
 import type {DynamicFormSubPageProps} from '@components/DynamicForm/types';
 import getDynamicFieldErrors from '@components/DynamicForm/utils/getDynamicFieldErrors';
 import getLocalizedText from '@components/DynamicForm/utils/getLocalizedText';
 import isSensitiveField from '@components/DynamicForm/utils/isSensitiveField';
 import {getListItems, getListItemSensitiveAnswers, parseListItemPageName} from '@components/DynamicForm/utils/listItems';
-import summarizeListItem from '@components/DynamicForm/utils/summarizeListItem';
+import summarizeListItem, {getListItemFallbackTitle} from '@components/DynamicForm/utils/summarizeListItem';
 import toDynamicFormValues from '@components/DynamicForm/utils/toDynamicFormValues';
 import FormProvider from '@components/Form/FormProvider';
-import FullscreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import Text from '@components/Text';
 
 import useLocalize from '@hooks/useLocalize';
@@ -19,6 +19,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {DynamicFormListField} from '@src/types/onyx';
 
 import React, {useEffect, useState} from 'react';
+import {View} from 'react-native';
 
 import DynamicFormFields from './DynamicFormFields';
 
@@ -52,16 +53,20 @@ function DynamicFormListItemPage({currentPageName, allFields, values, currency, 
     if (!page || !listField) {
         return null;
     }
+    // The flow's header stays above this page, so a spinner in the page is enough while the editor fills
     if (filledPageName !== currentPageName) {
-        return <FullscreenLoadingIndicator />;
+        return (
+            <View style={[styles.flex1, styles.fullScreenLoading]}>
+                <ActivityIndicator size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE} />
+            </View>
+        );
     }
     const sensitiveAnswers = item ? getListItemSensitiveAnswers(listField, item.id, values) : {};
     const keptAnswers = isSensitiveList ? {...item, ...sensitiveAnswers} : sensitiveAnswers;
     const withInputValues = (inputValues: unknown) => ({...keptAnswers, ...toDynamicFormValues(inputValues)});
     const itemLabel = getLocalizedText(translate, listField.itemLabelKey, listField.itemLabel);
     const addTitle = itemLabel ? translate('dynamicForm.addItem', {item: itemLabel}) : translate('common.add');
-    const itemTitle = item ? summarizeListItem(item, listField.itemFields, translate).title : '';
-    const title = itemTitle === '' ? addTitle : itemTitle;
+    const title = item ? summarizeListItem(item, listField.itemFields, translate, getListItemFallbackTitle(listField, translate)).title : addTitle;
 
     return (
         <FormProvider

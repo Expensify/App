@@ -17,7 +17,7 @@ import isSensitiveField from './isSensitiveField';
 import isSupportedField from './isSupportedField';
 import {getListItems} from './listItems';
 import maskSensitiveValue from './maskSensitiveValue';
-import summarizeListItem from './summarizeListItem';
+import summarizeListItem, {getListItemFallbackTitle} from './summarizeListItem';
 
 /** One avatar row per list entry, which opens the entry. A readonly list gets plain rows that open nothing. */
 function getListItemRows(
@@ -27,7 +27,7 @@ function getListItemRows(
     onEditListItem: (listKey: string, itemID: string) => void,
 ): SummaryGroupRow[] {
     return getListItems(values[field.key]).map((item): SummaryGroupRow => {
-        const {title, description} = summarizeListItem(item, field.itemFields, translate);
+        const {title, description} = summarizeListItem(item, field.itemFields, translate, getListItemFallbackTitle(field, translate));
         if (field.readonly) {
             return {id: `${field.key}-${item.id}`, title, description, shouldShowRightIcon: false, onPress: noop, interactive: false};
         }
@@ -42,7 +42,7 @@ function getListItemRows(
     });
 }
 
-/** One section per shown page holding its visible answers, with each list entry as an avatar row and an empty list as a plain row. Tapping a row opens the page or entry to edit; readonly rows open nothing. */
+/** One section per shown page holding its visible answers, with each list entry as an avatar row and an empty list as a plain row. Tapping a row opens the page or entry to edit. Readonly rows open nothing. */
 function getConfirmationItems(
     pages: DynamicFormPage[],
     allFields: DynamicFormField[],

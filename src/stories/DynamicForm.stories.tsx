@@ -347,14 +347,23 @@ type PresetName = keyof typeof PRESETS;
 
 const PRESET_NAMES = Object.keys(PRESETS).filter((name): name is PresetName => name in PRESETS);
 
-/** Seeds the draft after mount and reports once the write has landed, so the form mounts with the draft as a real page would */
+/** Seeds the draft after mount and reports once the write of these values has landed, so the form mounts with the draft as a real page would, also after the preset changes */
 function useSeededDraft(draftValues: Preset['draftValues']): boolean {
-    const [isSeeded, setIsSeeded] = useState(false);
+    const [seededDraftValues, setSeededDraftValues] = useState<Preset['draftValues']>();
     useEffect(() => {
+        let isCancelled = false;
         clearDraftValues(STORYBOOK_FORM_ID);
-        setDraftValues(STORYBOOK_FORM_ID, draftValues).then(() => setIsSeeded(true));
+        setDraftValues(STORYBOOK_FORM_ID, draftValues).then(() => {
+            if (isCancelled) {
+                return;
+            }
+            setSeededDraftValues(draftValues);
+        });
+        return () => {
+            isCancelled = true;
+        };
     }, [draftValues]);
-    return isSeeded;
+    return seededDraftValues === draftValues;
 }
 
 /** Every page on one screen, for looking at the renderer rather than the flow */

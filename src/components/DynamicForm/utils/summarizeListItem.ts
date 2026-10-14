@@ -1,8 +1,10 @@
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 
-import type {DynamicFormField, DynamicFormListItem} from '@src/types/onyx';
+import type {DynamicFormField, DynamicFormListField, DynamicFormListItem} from '@src/types/onyx';
 
 import formatDynamicFieldValue from './formatDynamicFieldValue';
+import getLocalizedText, {getFieldLabel} from './getLocalizedText';
+import getVisibleFields from './getVisibleFields';
 import isSensitiveField from './isSensitiveField';
 
 const DESCRIPTION_ANSWER_LIMIT = 2;
@@ -10,9 +12,14 @@ const DESCRIPTION_ANSWER_LIMIT = 2;
 /** Long answers, such as a full address, would crowd the row, so they are left out of its description */
 const TYPES_LEFT_OUT_OF_DESCRIPTION = new Set<DynamicFormField['type']>(['date', 'address', 'country', 'file']);
 
-/** The leading run of text answers names the row, as first and last name do. Up to two short remaining answers describe it. */
-function summarizeListItem(item: DynamicFormListItem, itemFields: DynamicFormField[], translate: LocalizedTranslate): {title: string; description: string} {
-    const shownFields = itemFields.filter((field) => !isSensitiveField(field) && formatDynamicFieldValue(field, item, translate) !== '');
+/** The noun for one entry of the list, or the list's label, which names an entry whose answers give it no name */
+function getListItemFallbackTitle(field: DynamicFormListField, translate: LocalizedTranslate): string {
+    return getLocalizedText(translate, field.itemLabelKey, field.itemLabel) ?? getFieldLabel(field, translate);
+}
+
+/** The leading run of text answers names the row, as first and last name do. Up to two short remaining answers describe it. Hidden answers are left out, and an entry with no shown answer is named by `fallbackTitle`. */
+function summarizeListItem(item: DynamicFormListItem, itemFields: DynamicFormField[], translate: LocalizedTranslate, fallbackTitle: string): {title: string; description: string} {
+    const shownFields = getVisibleFields(itemFields, item).filter((field) => !isSensitiveField(field) && formatDynamicFieldValue(field, item, translate) !== '');
     const firstTextIndex = shownFields.findIndex((field) => field.type === 'text');
     const titleFields: DynamicFormField[] = [];
     for (const field of shownFields.slice(Math.max(firstTextIndex, 0))) {
@@ -25,7 +32,7 @@ function summarizeListItem(item: DynamicFormListItem, itemFields: DynamicFormFie
     if (titleFields.length === 0 && firstShownField) {
         titleFields.push(firstShownField);
     }
-    const title = titleFields.map((field) => formatDynamicFieldValue(field, item, translate)).join(' ');
+    const title = titleFields.map((field) => formatDynamicFieldValue(field, item, translate)).join(' ') || fallbackTitle;
     const description = shownFields
         .filter((field) => !titleFields.includes(field) && !TYPES_LEFT_OUT_OF_DESCRIPTION.has(field.type))
         .slice(0, DESCRIPTION_ANSWER_LIMIT)
@@ -35,3 +42,4 @@ function summarizeListItem(item: DynamicFormListItem, itemFields: DynamicFormFie
 }
 
 export default summarizeListItem;
+export {getListItemFallbackTitle};

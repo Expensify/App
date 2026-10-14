@@ -1,5 +1,6 @@
 import ListFieldAdapter from '@components/DynamicForm/adapters/ListFieldAdapter';
 import getLocalizedText, {getFieldLabel} from '@components/DynamicForm/utils/getLocalizedText';
+import hasSensitiveAnswer from '@components/DynamicForm/utils/hasSensitiveAnswer';
 import isSensitiveField from '@components/DynamicForm/utils/isSensitiveField';
 import {getListItems} from '@components/DynamicForm/utils/listItems';
 import InputWrapper from '@components/Form/InputWrapper';
@@ -22,7 +23,7 @@ const renderList: DynamicFieldRenderer<'list'> = (field, {translate, isLoneField
                 InputComponent={ListFieldAdapter}
                 {...inputProps}
                 // Outside the flow sensitive entry answers stay in the list value, which must not reach the draft
-                shouldSaveDraft={inputProps.shouldSaveDraft && (!!onOpenListItemEditor || !field.itemFields.some(isSensitiveField))}
+                shouldSaveDraft={inputProps.shouldSaveDraft && (!!onOpenListItemEditor || !field.itemFields.some(hasSensitiveAnswer))}
                 valueType="listItems"
                 value={isMemoryList ? getListItems(values[field.key]) : undefined}
                 onItemsChange={isMemoryList ? (items: DynamicFormListItem[]) => onListItemsChange?.(field.key, items) : undefined}

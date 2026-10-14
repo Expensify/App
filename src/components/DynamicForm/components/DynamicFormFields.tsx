@@ -34,7 +34,7 @@ type DynamicFormFieldsProps = {
     /** Called when the user changes a field marked `refreshOnChange`, with the draft key that changed, so the screen can fetch the schema again */
     onRefreshRequirements?: (inputID: string, value: FormValue) => void;
 
-    /** Opens the editor page of a list entry, or of a new one without `itemID`. DynamicFormFlow passes it; without it list entries are edited in a modal. */
+    /** Opens the editor page of a list entry, or of a new one without `itemID`. DynamicFormFlow passes it. Without it, list entries are edited in a modal. */
     onOpenListItemEditor?: (listKey: string, itemID?: string) => void;
 
     /** Called with a list's entries after the user removes one, so the flow can keep a sensitive list in memory up to date */
@@ -66,6 +66,7 @@ function DynamicFormFields({
             isSensitive={isItemSensitive}
             currency={currency}
             maxFileSize={maxFileSize}
+            onRefreshRequirements={onRefreshRequirements}
         />
     );
 
