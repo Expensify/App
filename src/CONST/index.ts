@@ -988,7 +988,7 @@ const CONST = {
         CORPAY: 'CORPAY',
     },
     WISE: {
-        // Wise's kyc-review states for the business, passed through unchanged
+        // Our state of the business's Wise onboarding, derived on the server from Wise's review and payment instrument events
         ONBOARDING_STATUS: {
             IN_REVIEW: 'IN_REVIEW',
             ACTION_REQUIRED: 'ACTION_REQUIRED',
