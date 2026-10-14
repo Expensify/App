@@ -49,9 +49,12 @@ type MenuItemRootProps = PropsWithChildren &
 
         /** Accessibility state for the row, e.g. `{expanded}`. Lands on the pressable, which is what a screen reader focuses. */
         accessibilityState?: AccessibilityState;
+
+        /** Whether to group the row for accessibility. Disable it when a nested control must receive focus. */
+        shouldBeAccessible?: boolean;
     };
 
-function MenuItemRoot({children, onPress, isDisabled = false, sentryLabel, testID, accessibilityLabel, style, accessibilityState}: MenuItemRootProps) {
+function MenuItemRoot({children, onPress, isDisabled = false, sentryLabel, testID, accessibilityLabel, style, accessibilityState, shouldBeAccessible = true}: MenuItemRootProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const pressableRef = useRef<ComponentRef<typeof View>>(null);
@@ -114,7 +117,7 @@ function MenuItemRoot({children, onPress, isDisabled = false, sentryLabel, testI
                         accessibilityLabel={rowAccessibilityLabel}
                         accessibilityHint={accessibilityHint}
                         accessibilityState={accessibilityState}
-                        accessible
+                        accessible={shouldBeAccessible}
                         tabIndex={isInteractive ? 0 : -1}
                         sentryLabel={sentryLabel}
                         testID={testID}

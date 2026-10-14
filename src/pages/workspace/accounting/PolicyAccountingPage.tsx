@@ -1,4 +1,6 @@
 import ActivityIndicator from '@components/ActivityIndicator';
+import UserAvatar from '@components/Avatar/UserAvatar';
+import Badge from '@components/Badge';
 import Button from '@components/Button';
 import ButtonDisabledWhenOffline from '@components/Button/composed/ButtonDisabledWhenOffline';
 import CollapsibleSection from '@components/CollapsibleSection';
@@ -47,6 +49,7 @@ import {View} from 'react-native';
 import type {MenuItemData, PolicyAccountingPageProps} from './types';
 
 import {AccountingContextProvider, useAccountingActions, useAccountingState} from './AccountingContext';
+import ExactOnlineWaitlistButton from './ExactOnlineWaitlistButton';
 import useConnectedAccountingIntegration from './useConnectedAccountingIntegration';
 
 type RouteParams = {
@@ -74,7 +77,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
     const shouldDisconnectIntegrationBeforeConnecting = params?.shouldDisconnectIntegrationBeforeConnecting;
     const shouldConnectToIntuitEnterpriseSuite = params?.isIntuitEnterpriseSuite === 'true';
     const policyID = policy?.id;
-    const icons = useMemoizedLazyExpensifyIcons(['QuestionMark']);
+    const icons = useMemoizedLazyExpensifyIcons(['QuestionMark', 'ExactOnlineSquare']);
     const {
         accountingIntegrations,
         connectedIntegration,
@@ -398,6 +401,32 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                                     />
                                 </CollapsibleSection>
                             )}
+                            <MenuItem.Root
+                                accessibilityLabel={`${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY.exactOnline}, ${translate('workspace.accounting.exactOnline.comingSoon')}`}
+                                shouldBeAccessible={getPlatform() !== CONST.PLATFORM.IOS}
+                                style={styles.sectionMenuItemTopDescription}
+                            >
+                                <MenuItem.Row>
+                                    <MenuItem.Leading>
+                                        <UserAvatar
+                                            source={icons.ExactOnlineSquare}
+                                            accountID={CONST.DEFAULT_NUMBER_ID}
+                                        />
+                                    </MenuItem.Leading>
+                                    <MenuItem.Content>
+                                        <View style={[styles.gap1, !shouldUseNarrowLayout && [styles.flexRow, styles.alignItemsCenter, styles.gap3]]}>
+                                            <MenuItem.Title>{CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY.exactOnline}</MenuItem.Title>
+                                            <Badge
+                                                text={translate('workspace.accounting.exactOnline.comingSoon')}
+                                                badgeStyles={styles.alignSelfStart}
+                                            />
+                                        </View>
+                                    </MenuItem.Content>
+                                    <MenuItem.Trailing>
+                                        <ExactOnlineWaitlistButton policy={policy} />
+                                    </MenuItem.Trailing>
+                                </MenuItem.Row>
+                            </MenuItem.Root>
                             {!!account?.guideDetails?.email && !hasAccountingConnections(policy) && canWriteAccounting && (
                                 <View style={[styles.flexRow, styles.alignItemsCenter, styles.mt7]}>
                                     <Icon

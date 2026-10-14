@@ -7228,6 +7228,12 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
             errorODIntegration: (oldDotPolicyConnectionsURL) =>
                 `Hay un error con una conexión que se ha configurado en Expensify Classic. [Ve a Expensify Classic para solucionar este problema.](${oldDotPolicyConnectionsURL})`,
             goToODToSettings: 'Ve a Expensify Classic para gestionar tus configuraciones.',
+            exactOnline: {
+                comingSoon: 'Próximamente',
+                joinWaitlist: 'Unirse a la lista de espera',
+                onWaitlist: 'Estás en la lista de espera',
+                waitlistDescription: 'Concierge te enviará un mensaje para avisarte cuando esta integración esté lista y cómo conectarla.',
+            },
             setup: 'Configurar',
             connectToSandbox: 'Conectar con Sandbox',
             lastSync: (relativeDate) => `Recién sincronizado ${relativeDate}`,

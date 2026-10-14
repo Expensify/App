@@ -7396,6 +7396,12 @@ Plan Control zaczyna się od 9 USD za aktywnego członka miesięcznie.`,
             errorODIntegration: (oldDotPolicyConnectionsURL: string) =>
                 `Wystąpił błąd z połączeniem skonfigurowanym w Expensify Classic. [Przejdź do Expensify Classic, aby rozwiązać ten problem.](${oldDotPolicyConnectionsURL})`,
             goToODToSettings: 'Przejdź do Expensify Classic, aby zarządzać swoimi ustawieniami.',
+            exactOnline: {
+                comingSoon: 'Wkrótce',
+                joinWaitlist: 'Dołącz do listy oczekujących',
+                onWaitlist: 'Jesteś na liście oczekujących',
+                waitlistDescription: 'Concierge wyśle Ci wiadomość, aby poinformować Cię, kiedy ta integracja będzie gotowa i jak ją połączyć.',
+            },
             setup: 'Połącz',
             connectToSandbox: 'Połącz z sandboxem',
             lastSync: (relativeDate: string) => `Ostatnia synchronizacja ${relativeDate}`,

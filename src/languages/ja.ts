@@ -7296,6 +7296,12 @@ Control プランは、アクティブメンバー1人あたり月額 $9 から�
             errorODIntegration: (oldDotPolicyConnectionsURL: string) =>
                 `Expensify Classic で設定されている接続にエラーがあります。[この問題を解決するには Expensify Classic に移動してください。](${oldDotPolicyConnectionsURL})`,
             goToODToSettings: '設定を管理するには、Expensify Classic に移動してください。',
+            exactOnline: {
+                comingSoon: '近日公開',
+                joinWaitlist: 'ウェイトリストに登録',
+                onWaitlist: 'ウェイトリストに登録されています',
+                waitlistDescription: 'この連携の準備が整った際に、Conciergeからお知らせと接続方法についてのメッセージをお送りします。',
+            },
             setup: '接続',
             connectToSandbox: 'Sandbox に接続',
             lastSync: (relativeDate: string) => `最終同期：${relativeDate}`,

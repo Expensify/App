@@ -7430,6 +7430,12 @@ Der Control-Tarif beginnt bei 9 $ pro aktivem Mitglied und Monat.`,
             errorODIntegration: (oldDotPolicyConnectionsURL: string) =>
                 `Bei einer in Expensify Classic eingerichteten Verbindung ist ein Fehler aufgetreten. [Wechsle zu Expensify Classic, um dieses Problem zu beheben.](${oldDotPolicyConnectionsURL})`,
             goToODToSettings: 'Wechsle zu Expensify Classic, um deine Einstellungen zu verwalten.',
+            exactOnline: {
+                comingSoon: 'Demnächst verfügbar',
+                joinWaitlist: 'Zur Warteliste anmelden',
+                onWaitlist: 'Du stehst auf der Warteliste',
+                waitlistDescription: 'Concierge sendet dir eine Nachricht, sobald diese Integration verfügbar ist, und erklärt dir, wie du sie verbindest.',
+            },
             setup: 'Verbinden',
             connectToSandbox: 'Mit Sandbox verbinden',
             lastSync: (relativeDate: string) => `Zuletzt synchronisiert ${relativeDate}`,

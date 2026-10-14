@@ -7113,6 +7113,12 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
             },
             errorODIntegration: (oldDotPolicyConnectionsURL: string) => `Expensify Classic 中已设置的某个连接出错。[前往 Expensify Classic 解决此问题](${oldDotPolicyConnectionsURL})`,
             goToODToSettings: '前往 Expensify Classic 管理您的设置。',
+            exactOnline: {
+                comingSoon: '即将推出',
+                joinWaitlist: '加入等候名单',
+                onWaitlist: '你已加入等候名单',
+                waitlistDescription: '此集成准备就绪后，Concierge 会发送消息通知你，并说明如何连接。',
+            },
             setup: '连接',
             connectToSandbox: '连接到沙盒',
             lastSync: (relativeDate: string) => `上次同步于 ${relativeDate}`,

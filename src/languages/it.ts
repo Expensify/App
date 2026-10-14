@@ -7387,6 +7387,12 @@ Il piano Control parte da 9 $ al mese per ogni membro attivo.`,
             errorODIntegration: (oldDotPolicyConnectionsURL: string) =>
                 `Si è verificato un errore con una connessione configurata in Expensify Classic. [Vai a Expensify Classic per risolvere questo problema.](${oldDotPolicyConnectionsURL})`,
             goToODToSettings: 'Vai a Expensify Classic per gestire le tue impostazioni.',
+            exactOnline: {
+                comingSoon: 'In arrivo',
+                joinWaitlist: 'Iscriviti alla lista d’attesa',
+                onWaitlist: 'Sei nella lista d’attesa',
+                waitlistDescription: 'Concierge ti invierà un messaggio per avvisarti quando questa integrazione sarà pronta e come collegarla.',
+            },
             setup: 'Connetti',
             connectToSandbox: 'Connetti alla sandbox',
             lastSync: (relativeDate: string) => `Ultima sincronizzazione ${relativeDate}`,

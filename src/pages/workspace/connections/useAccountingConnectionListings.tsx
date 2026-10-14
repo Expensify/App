@@ -16,6 +16,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import {getConnectedIntegration, getIntegrationLastSuccessfulDate} from '@libs/PolicyUtils';
 
 import {useAccountingActions, useAccountingState} from '@pages/workspace/accounting/AccountingContext';
+import ExactOnlineWaitlistButton from '@pages/workspace/accounting/ExactOnlineWaitlistButton';
 import {getAccountingIntegrationData, getSynchronizationErrorMessage, isIntuitEnterpriseSuiteConnection} from '@pages/workspace/accounting/utils';
 
 import CONST from '@src/CONST';
@@ -25,6 +26,8 @@ import type {Policy} from '@src/types/onyx';
 import type {ConnectionName} from '@src/types/onyx/Policy';
 
 import type {OnyxEntry} from 'react-native-onyx';
+
+import React from 'react';
 
 import type {ConnectionListing, ConnectionStatus} from './types';
 
@@ -55,6 +58,7 @@ function useAccountingConnectionListings(policy: OnyxEntry<Policy>): ConnectionL
         'DualEntrySquare',
         'CampfireSquare',
         'BusinessCentralSquare',
+        'ExactOnlineSquare',
     ]);
 
     if (!policyID) {
@@ -121,7 +125,7 @@ function useAccountingConnectionListings(policy: OnyxEntry<Policy>): ConnectionL
         ...(name === CONST.POLICY.CONNECTIONS.NAME.QBO ? [{name, isIntuitEnterpriseSuite: true}] : []),
     ]);
 
-    return integrationOptions.flatMap(({name, isIntuitEnterpriseSuite}) => {
+    const listings: ConnectionListing[] = integrationOptions.flatMap(({name, isIntuitEnterpriseSuite}) => {
         const integrationData = getAccountingIntegrationData(name, policyID, translate, NO_REUSABLE_CONNECTIONS, {
             expensifyIcons: accountingIcons,
             isIntuitEnterpriseSuiteOverride: isIntuitEnterpriseSuite,
@@ -156,6 +160,17 @@ function useAccountingConnectionListings(policy: OnyxEntry<Policy>): ConnectionL
             },
         };
     });
+
+    // The connector flow arrives in a later release, so beta users also see the waitlist for now.
+    listings.push({
+        key: CONST.POLICY.CONNECTIONS.NAME.EXACT_ONLINE,
+        category: CONST.TAB.CONNECTIONS.ACCOUNTING,
+        title: CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY.exactOnline,
+        icon: accountingIcons.ExactOnlineSquare,
+        badgeText: translate('workspace.accounting.exactOnline.comingSoon'),
+        rightComponent: <ExactOnlineWaitlistButton policy={policy} />,
+    });
+    return listings;
 }
 
 export default useAccountingConnectionListings;

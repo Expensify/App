@@ -1283,7 +1283,7 @@ function dismissReferralBanner(type: ValueOf<typeof CONST.REFERRAL_PROGRAM.CONTE
     );
 }
 
-function setNameValuePair<TKey extends OnyxKey>(name: TKey, value: SetNameValuePairParams['value'], revertedValue: SetNameValuePairParams['value'], shouldRevertValue = true) {
+function setNameValuePair<TKey extends OnyxKey>(name: TKey, value: SetNameValuePairParams['value'], revertedValue: SetNameValuePairParams['value'] | null, shouldRevertValue = true) {
     const parameters: SetNameValuePairParams = {
         name,
         value: typeof value === 'object' && value != null ? JSON.stringify(value) : value,
@@ -1311,6 +1311,15 @@ function setNameValuePair<TKey extends OnyxKey>(name: TKey, value: SetNameValueP
         optimisticData,
         failureData,
     });
+}
+
+function joinExactOnlineWaitlist(previousSignupTimestamp: OnyxEntry<string>) {
+    if (previousSignupTimestamp) {
+        return;
+    }
+
+    // The queued request keeps this timestamp when it retries, preserving the original signup time.
+    setNameValuePair(ONYXKEYS.NVP_EXACT_ONLINE_WAITLIST, DateUtils.getDBTime(), previousSignupTimestamp ?? null);
 }
 
 function dismissMarketingWindow(updateKey: string) {
@@ -2021,6 +2030,7 @@ export {
     clearDraftCustomStatus,
     requestRefund,
     setNameValuePair,
+    joinExactOnlineWaitlist,
     setSubmitMigrationModalShown,
     clearUnvalidatedNewContactMethodAction,
     clearPendingContactActionErrors,

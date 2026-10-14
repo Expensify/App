@@ -2,7 +2,7 @@ import {fireEvent, render, screen, within} from '@testing-library/react-native';
 
 import ComposeProviders from '@components/ComposeProviders';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
-import type {MenuItemProps} from '@components/MenuItem';
+import type * as MenuItemModule from '@components/MenuItem';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 
 import Navigation from '@libs/Navigation/Navigation';
@@ -117,9 +117,10 @@ jest.mock('@components/HeaderWithBackButton', () => ({__esModule: true, default:
 jest.mock('@components/MenuItemList', () => ({__esModule: true, default: () => null}));
 jest.mock('@components/MenuItem', () => {
     const {View: MockView} = jest.requireActual<{View: typeof View}>('react-native');
+    const {default: ActualMenuItem} = jest.requireActual<typeof MenuItemModule>('@components/MenuItem');
     return {
         __esModule: true,
-        default: ({title, rightComponent}: MenuItemProps) => <MockView testID={title}>{rightComponent}</MockView>,
+        default: Object.assign(({title, rightComponent}: MenuItemModule.MenuItemProps) => <MockView testID={title}>{rightComponent}</MockView>, ActualMenuItem),
     };
 });
 jest.mock('@components/Section', () => ({__esModule: true, default: ({children}: {children: React.ReactNode}) => children}));
@@ -257,5 +258,20 @@ describe('PolicyAccountingPage auto-started connect flow', () => {
         // Then the enrolled integration and Campfire are both available
         expect(screen.getByTestId(CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY.businessCentral)).toBeOnTheScreen();
         expect(screen.getByTestId('Campfire')).toBeOnTheScreen();
+    });
+
+    it.each([{enabledBetas: []}, {enabledBetas: [CONST.BETAS.EXACT_ONLINE]}])('offers the Exact Online waitlist with beta enrollment $enabledBetas', async ({enabledBetas}) => {
+        // Given an eligible workspace and a user who may have the future Exact connector beta
+        mockEnabledBetas = enabledBetas;
+        mockRouteParams = {};
+
+        // When the Accounting page lists its integrations
+        render(<PolicyAccountingPageUnderTest policy={buildPolicy({connections: {}})} />, {wrapper: AccountingTestWrapper});
+        await waitForBatchedUpdates();
+
+        // Then Exact Online offers the waitlist without starting an unimplemented connector flow
+        expect(screen.getByText('Exact Online')).toBeOnTheScreen();
+        expect(screen.getByRole('button', {name: 'Join waitlist'})).toBeOnTheScreen();
+        expect(mockStartIntegrationFlow).not.toHaveBeenCalled();
     });
 });
