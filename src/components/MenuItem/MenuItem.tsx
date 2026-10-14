@@ -58,7 +58,7 @@ import type WithSentryLabel from '@src/types/utils/SentryLabel';
 
 import type {ImageContentFit} from 'expo-image';
 import type {ComponentRef, ReactElement, ReactNode, Ref} from 'react';
-import type {GestureResponderEvent, Role, StyleProp, TextStyle, ViewStyle} from 'react-native';
+import type {GestureResponderEvent, ImageStyle, Role, StyleProp, TextStyle, ViewStyle} from 'react-native';
 import type {AnimatedStyle} from 'react-native-reanimated';
 import type {ValueOf} from 'type-fest';
 
@@ -116,12 +116,9 @@ type MenuItemBaseProps = ForwardedFSClassProps &
 
         outerWrapperStyle?: StyleProp<AnimatedStyle<ViewStyle>>;
         wrapperStyle?: StyleProp<ViewStyle>;
-        titleWrapperStyle?: StyleProp<ViewStyle>;
 
         /** Styles to apply on the inner row containing the icon and text content */
         innerContainerStyle?: StyleProp<ViewStyle>;
-
-        containerStyle?: StyleProp<ViewStyle>;
 
         /** Used to apply styles specifically to the title */
         titleStyle?: StyleProp<TextStyle>;
@@ -177,6 +174,9 @@ type MenuItemBaseProps = ForwardedFSClassProps &
 
         /** Optional component to render before the description text (e.g. a badge pill) */
         descriptionAddon?: ReactNode;
+
+        /** Content shown right after the title, on the same line */
+        titleAddon?: ReactNode;
 
         /** Text to show below menu item. This text is not interactive */
         helperText?: string;
@@ -240,6 +240,9 @@ type MenuItemBaseProps = ForwardedFSClassProps &
 
         /** Prop to represent the size of the avatar images to be shown */
         avatarSize?: ValueOf<typeof CONST.AVATAR_SIZE>;
+
+        /** Additional styles for the avatar image when the icon type is an avatar */
+        avatarImageStyles?: StyleProp<ViewStyle & ImageStyle>;
 
         /** Affects avatar size  */
         viewMode?: ValueOf<typeof CONST.OPTION_MODE>;
@@ -358,6 +361,12 @@ type MenuItemBaseProps = ForwardedFSClassProps &
         /** Whether the tooltip should hide on scroll */
         shouldHideOnScroll?: boolean;
 
+        /** Whether the tooltip should stay hidden on first display when the item starts off screen */
+        shouldCheckTooltipVisibilityOnFirstDisplay?: boolean;
+
+        /** Whether the tooltip should hide when the screen loses navigation focus */
+        shouldHideTooltipOnNavigate?: boolean;
+
         shouldShowLoadingSpinnerIcon?: boolean;
         shouldShowRadioButton?: boolean;
 
@@ -393,8 +402,6 @@ type MenuItemBaseProps = ForwardedFSClassProps &
         /** Whether the screen containing the item is focused */
         isFocused?: boolean;
 
-        rootWrapperStyle?: StyleProp<ViewStyle>;
-
         /** The accessibility role to use for this menu item */
         role?: Role;
 
@@ -407,8 +414,6 @@ type MenuItemBaseProps = ForwardedFSClassProps &
 
         /** Whether item should be focusable with keyboard */
         tabIndex?: 0 | -1;
-
-        rightIconWrapperStyle?: StyleProp<ViewStyle>;
 
         /** Whether to ignore compact popover menu styling for this item */
         shouldIgnoreCompactStyle?: boolean;
@@ -425,6 +430,7 @@ const getSubscriptAvatarBackgroundColor = (isHovered: boolean, isPressed: boolea
     }
 };
 
+/** @deprecated Compose `MenuItem.Root` with its leaves, or use a preset from `@components/MenuItem/presets/`, for new usages. */
 function MenuItem({
     interactive = true,
     onPress,
@@ -439,10 +445,8 @@ function MenuItem({
     shouldShowBadgeBelow = false,
     style,
     wrapperStyle,
-    titleWrapperStyle,
     innerContainerStyle,
     outerWrapperStyle,
-    containerStyle,
     titleStyle,
     labelStyle,
     descriptionTextStyle,
@@ -473,6 +477,7 @@ function MenuItem({
     furtherDetailsComponent,
     description,
     descriptionAddon,
+    titleAddon,
     helperText,
     helperTextStyle,
     errorText,
@@ -503,6 +508,7 @@ function MenuItem({
     leftComponent,
     rightIconReportID,
     avatarSize = CONST.AVATAR_SIZE.DEFAULT,
+    avatarImageStyles,
     isSmallAvatarSubscriptMenu = false,
     brickRoadIndicator,
     shouldRenderAsHTML = false,
@@ -534,6 +540,8 @@ function MenuItem({
     shouldRenderTooltip = false,
     shouldDisplayEducationalTooltip,
     shouldHideOnScroll = false,
+    shouldCheckTooltipVisibilityOnFirstDisplay = false,
+    shouldHideTooltipOnNavigate = true,
     tooltipAnchorAlignment,
     tooltipWrapperStyle = {},
     tooltipShiftHorizontal = 0,
@@ -555,11 +563,9 @@ function MenuItem({
     isFocused,
     shouldUseNativeHoverEvents = false,
     sentryLabel,
-    rootWrapperStyle,
     role = CONST.ROLE.BUTTON,
     shouldBeAccessible = true,
     tabIndex = 0,
-    rightIconWrapperStyle,
     titleAccessibilityRole,
     shouldIgnoreCompactStyle = false,
 }: MenuItemProps) {
@@ -779,10 +785,7 @@ function MenuItem({
     const hasRightIconAccount = !!rightIconAccountID && rightIconAccountIDNumber > 0;
 
     return (
-        <View
-            style={rootWrapperStyle}
-            onBlur={onBlur}
-        >
+        <View onBlur={onBlur}>
             {!!label && !isLabelHoverable && (
                 <View style={[styles.ph5, labelStyle]}>
                     <Text style={StyleUtils.combineStyles([styles.sidebarLinkText, styles.optionAlternateText, styles.textLabelSupporting, styles.pre])}>{label}</Text>
@@ -799,6 +802,8 @@ function MenuItem({
                 shouldTeleportPortalToModalLayer={shouldTeleportPortalToModalLayer}
                 onTooltipPress={onEducationTooltipPress}
                 shouldHideOnScroll={shouldHideOnScroll}
+                shouldCheckVisibilityOnFirstDisplay={shouldCheckTooltipVisibilityOnFirstDisplay}
+                shouldHideOnNavigate={shouldHideTooltipOnNavigate}
             >
                 <View>
                     <Hoverable
@@ -817,7 +822,6 @@ function MenuItem({
                                 testID={pressableTestID}
                                 style={({pressed}) =>
                                     [
-                                        containerStyle,
                                         combinedStyle,
                                         !interactive && styles.cursorDefault,
                                         isCompact && styles.alignItemsCenter,
@@ -944,7 +948,7 @@ function MenuItem({
                                                             )}
                                                             {iconType === CONST.ICON_TYPE_AVATAR && (
                                                                 <UserAvatar
-                                                                    imageStyles={styles.alignSelfCenter}
+                                                                    imageStyles={[styles.alignSelfCenter, avatarImageStyles]}
                                                                     source={icon}
                                                                     accountID={getAccountIDFromAvatarID(avatarID)}
                                                                     fallbackIcon={fallbackIcon ?? icons.FallbackAvatar}
@@ -988,7 +992,7 @@ function MenuItem({
                                                         {shouldShowDescriptionOnTop && renderDescriptionView()}
                                                         {(!!title || !!shouldShowTitleIcon) && (
                                                             <View
-                                                                style={[styles.flexRow, styles.alignItemsCenter, styles.mw100, titleWrapperStyle]}
+                                                                style={[styles.flexRow, styles.alignItemsCenter, styles.mw100]}
                                                                 fsClass={forwardedFSClass}
                                                             >
                                                                 {!!title && (shouldRenderAsHTML || (shouldParseTitle && !!html.length)) && (
@@ -1021,6 +1025,7 @@ function MenuItem({
                                                                         />
                                                                     </View>
                                                                 )}
+                                                                {titleAddon}
                                                             </View>
                                                         )}
                                                         {!shouldShowDescriptionOnTop && renderDescriptionView()}
@@ -1138,7 +1143,6 @@ function MenuItem({
                                                             hasSubMenuItems && styles.pl6,
                                                             !isHovered && shouldDimIconRight && styles.opacitySemiTransparent,
                                                             styles.alignItemsEnd,
-                                                            rightIconWrapperStyle,
                                                         ]}
                                                     >
                                                         <Icon
@@ -1237,4 +1241,5 @@ function MenuItem({
 }
 
 export type {MenuItemBaseProps, MenuItemProps};
+// eslint-disable-next-line @typescript-eslint/no-deprecated -- Exporting the deprecated component itself is not a usage.
 export default MenuItem;

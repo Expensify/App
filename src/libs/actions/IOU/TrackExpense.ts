@@ -670,7 +670,7 @@ type GetDeleteTrackExpenseInformationParams = {
     actionableWhisperReportActionID?: string;
     resolution?: string;
     shouldRemoveIOUTransaction?: boolean;
-    transactionThread?: OnyxEntry<OnyxTypes.Report>;
+    transactionThread: OnyxEntry<OnyxTypes.Report>;
 };
 
 function getDeleteTrackExpenseInformation({
@@ -1046,8 +1046,6 @@ function getTrackExpenseInformation(params: GetTrackExpenseInformationParams): T
             introSelected,
             activePolicy,
             conciergeChat,
-            // hasActiveAdminPolicies is only needed if lastUsedPaymentMethod is passed
-            hasActiveAdminPolicies: undefined,
             // This workspace is created by AddTrackedExpenseToPolicy, which does not apply CreatePolicy's
             // paid-workspace check, so the #admins room keeps starting out pinned here.
             hasOwnedPaidPolicy: undefined,
@@ -1276,6 +1274,7 @@ const getConvertTrackedExpenseInformation = (
         currentUserAccountID,
         // isMovingTransactionFromTrackExpense is true, so the transaction thread is never deleted and these report actions are unused here.
         transactionThreadReportActions: undefined,
+        transactionThread: undefined,
         shouldDeleteTransactionFromOnyx: false,
         isMovingTransactionFromTrackExpense: true,
         actionableWhisperReportActionID,
@@ -1677,6 +1676,7 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
         shouldPlaySound = true,
         optimisticChatReportID,
         optimisticCreatedReportActionID,
+        optimisticIOUCreatedReportActionID,
         optimisticIOUReportID,
         optimisticReportPreviewActionID,
         shouldGenerateTransactionThreadReport,
@@ -1804,6 +1804,7 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
         testDriveCommentReportActionID,
         optimisticChatReportID,
         optimisticCreatedReportActionID,
+        optimisticIOUCreatedReportActionID,
         optimisticIOUReportID,
         optimisticReportPreviewActionID,
         shouldGenerateTransactionThreadReport,
@@ -2406,7 +2407,7 @@ function shareTrackedExpense(trackedExpenseParams: TrackedExpenseParams) {
 
     const policyEmployeeList = policyParams?.policy?.employeeList;
     if (policyParams.policy && !policyEmployeeList?.[accountantEmail]) {
-        const policyMemberAccountIDs = Object.values(getMemberAccountIDsForWorkspace(policyEmployeeList, personalDetailsByLogins, false, false));
+        const policyMemberAccountIDs = Object.values(getMemberAccountIDsForWorkspace(policyEmployeeList, personalDetailsByLogins ?? {}, false, false));
         const {
             optimisticData: addAccountantToWorkspaceOptimisticData,
             successData: addAccountantToWorkspaceSuccessData,
@@ -3059,11 +3060,11 @@ function deleteTrackExpense({
         isSingleTransactionView,
     );
 
+    const allReports = getAllReports();
+    const transactionThreadReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportAction.childReportID}`];
+
     // STEP 1: Get all collections we're updating
     if (!isSelfDM(chatReport)) {
-        const allReports = getAllReports();
-        const transactionThreadReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportAction.childReportID}`];
-
         deleteMoneyRequest({
             transactionID,
             reportAction,
@@ -3094,6 +3095,7 @@ function deleteTrackExpense({
         isChatReportArchived,
         currentUserAccountID,
         transactionThreadReportActions,
+        transactionThread: transactionThreadReport,
         actionableWhisperReportActionID,
         resolution: CONST.REPORT.ACTIONABLE_TRACK_EXPENSE_WHISPER_RESOLUTION.NOTHING,
         shouldRemoveIOUTransaction: false,

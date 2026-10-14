@@ -66,7 +66,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {MoneyRequestNavigatorParamList} from '@libs/Navigation/types';
 import {getParticipantsOption, getReportOption} from '@libs/OptionsListUtils';
 import {getDistanceRateCustomUnit} from '@libs/PolicyUtils';
-import {findSelfDMReportID, generateReportID, getChatByParticipants, getReportOrDraftReport, isMoneyRequestReport, isPolicyExpenseChat as isPolicyExpenseChatUtils} from '@libs/ReportUtils';
+import {findSelfDMReportID, generateReportID, getParticipantsChatKey, getReportOrDraftReport, isMoneyRequestReport, isPolicyExpenseChat as isPolicyExpenseChatUtils} from '@libs/ReportUtils';
 import {cancelTracking, getPendingSubmitFollowUpAction, isTracking} from '@libs/telemetry/submitFollowUpAction';
 import {
     getRequestType,
@@ -94,7 +94,7 @@ import type {IOUType} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
-import type {Policy} from '@src/types/onyx';
+import type {OneOnOneChatReportIDsDerivedValue, Policy} from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import type {Receipt} from '@src/types/onyx/Transaction';
@@ -260,7 +260,6 @@ function IOURequestStepConfirmationContent({
         isOdometerDistanceRequest,
     });
     const isTimeRequest = requestType === CONST.IOU.REQUEST_TYPE.TIME;
-    const [lastLocationPermissionPrompt] = useOnyx(ONYXKEYS.NVP_LAST_LOCATION_PERMISSION_PROMPT);
     const [lastSelectedDistanceRates] = useOnyx(ONYXKEYS.NVP_LAST_SELECTED_DISTANCE_RATES);
     const {policyForMovingExpenses} = usePolicyForMovingExpenses();
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
@@ -339,6 +338,8 @@ function IOURequestStepConfirmationContent({
                           currentUserAccountID: currentUserPersonalDetails.accountID,
                           localize: {translate, dateFnsLocale, convertToDisplayString},
                           rules,
+                          // Passing pendingDeleteMemberAccountIDs as undefined is intentional, isValidReport keeps group chats out of this list because the config here leaves includeMultipleParticipantReports false.
+                          pendingDeleteMemberAccountIDs: undefined,
                       });
             }) ?? [],
         [
@@ -671,7 +672,6 @@ function IOURequestStepConfirmationContent({
         participants,
         iouType,
         action,
-        requestType,
         isDistanceRequest,
         isManualDistanceRequest,
         isOdometerDistanceRequest,
@@ -723,11 +723,11 @@ function IOURequestStepConfirmationContent({
 
     // Read reports reactively: if the chat lands mid-flow the optimistic ID must drop out, or we'd reveal an uncreated report.
     const existingP2PChatSelector = useCallback(
-        (reports: Parameters<typeof getChatByParticipants>[1]) =>
-            isP2PDestination ? getChatByParticipants([p2pRecipientAccountID, currentUserPersonalDetails.accountID], reports)?.reportID : undefined,
+        (chatReportIDs: OnyxEntry<OneOnOneChatReportIDsDerivedValue>) =>
+            isP2PDestination ? chatReportIDs?.reportIDs?.[getParticipantsChatKey([p2pRecipientAccountID, currentUserPersonalDetails.accountID])] : undefined,
         [isP2PDestination, p2pRecipientAccountID, currentUserPersonalDetails.accountID],
     );
-    const [existingP2PDestinationReportID] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: existingP2PChatSelector});
+    const [existingP2PDestinationReportID] = useOnyx(ONYXKEYS.DERIVED.ONE_ON_ONE_CHAT_REPORT_IDS, {selector: existingP2PChatSelector});
     const optimisticP2PDestinationReportID = !existingP2PDestinationReportID && reusableP2PReportID ? reusableP2PReportID : undefined;
     // Trust `report` when it already belongs to this participant (their chat, or an IOU report under it), so a
     // flow started from an IOU report keeps that report as destination instead of falling back to the chat.
@@ -1009,7 +1009,7 @@ function IOURequestStepConfirmationContent({
                 <ActivityIndicator size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE} />
             </View>
         ) : (
-            <FullScreenLoadingIndicator shouldUseGoBackButton />
+            <FullScreenLoadingIndicator onGoBack={navigateBack} />
         );
     }
 
@@ -1162,7 +1162,6 @@ function IOURequestStepConfirmationContent({
                             requestType={requestType}
                             canDismissFromSearch={canDismissFromSearch}
                             gpsRequired={!!gpsRequired}
-                            lastLocationPermissionPrompt={lastLocationPermissionPrompt}
                             isDistanceRequest={isDistanceRequest}
                             isMovingTransactionFromTrackExpense={isMovingTransactionFromTrackExpense}
                             isUnreported={isUnreported}

@@ -8,7 +8,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import {isGroupPolicy} from '@libs/PolicyUtils';
 import {findSelfDMReportID, generateReportID, getReportOrDraftReport, isInvoiceRoomWithID} from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
-import {isDistanceRequest, isManualDistanceRequest, isOdometerDistanceRequest} from '@libs/TransactionUtils';
+import {getCreated, isDistanceRequest, isManualDistanceRequest, isOdometerDistanceRequest} from '@libs/TransactionUtils';
 
 import {
     resetDraftTransactionsCustomUnit,
@@ -67,6 +67,7 @@ type UseParticipantSubmissionParams = {
     isMovingTransactionFromTrackExpense: boolean;
     isFocused: boolean;
     isWorkspacesOnly: boolean;
+    shouldExcludeWorkspaces: boolean;
 };
 
 function useParticipantSubmission({
@@ -80,6 +81,7 @@ function useParticipantSubmission({
     isMovingTransactionFromTrackExpense,
     isFocused,
     isWorkspacesOnly,
+    shouldExcludeWorkspaces,
 }: UseParticipantSubmissionParams) {
     const {getCurrencyDecimals} = useCurrencyListActions();
     const {translate} = useLocalize();
@@ -254,7 +256,7 @@ function useParticipantSubmission({
             return;
         }
 
-        const {allPolicies: policies, lastSelectedDistanceRates: distanceRates, draftTransactions: drafts} = dataRef.current;
+        const {allPolicies: policies, lastSelectedDistanceRates: distanceRates, draftTransactions: drafts, policyForMovingExpenses: movingPolicy} = dataRef.current;
         const firstParticipantReportID = val.at(0)?.reportID;
         const isPolicyExpenseChat = !!firstParticipant?.isPolicyExpenseChat;
         const policy = isPolicyExpenseChat && firstParticipant?.policyID ? policies?.[`${ONYXKEYS.COLLECTION.POLICY}${firstParticipant.policyID}`] : undefined;
@@ -279,7 +281,7 @@ function useParticipantSubmission({
                 return true;
             }
             const currentRateID = transaction?.comment?.customUnit?.customUnitRateID;
-            return currentRateID === CONST.CUSTOM_UNITS.FAKE_P2P_ID || (!!currentRateID && !!destinationRates?.[currentRateID]);
+            return !!currentRateID && !!destinationRates?.[currentRateID];
         };
 
         if (drafts.length > 0) {
@@ -287,14 +289,26 @@ function useParticipantSubmission({
                 if (isMovingToPolicyExpenseChat && shouldKeepTrackExpenseRate(transaction)) {
                     continue;
                 }
-                const rateID = DistanceRequestUtils.getCustomUnitRateID({
-                    reportID: firstParticipantReportID,
-                    isPolicyExpenseChat,
-                    policy,
-                    lastSelectedDistanceRates: distanceRates,
-                    expenseDate: transaction.created,
-                });
-                if (isMovingToPolicyExpenseChat && rateID === CONST.CUSTOM_UNITS.FAKE_P2P_ID) {
+                let rateID;
+                if (isMovingToPolicyExpenseChat) {
+                    rateID = DistanceRequestUtils.getRateIDForMovedTrackExpense({
+                        transaction,
+                        policy,
+                        policyForMovingExpenses: movingPolicy,
+                        policies,
+                        expenseDate: getCreated(transaction),
+                        personalPolicyOutputCurrency: personalPolicy?.outputCurrency,
+                    });
+                } else {
+                    rateID = DistanceRequestUtils.getCustomUnitRateID({
+                        reportID: firstParticipantReportID,
+                        isPolicyExpenseChat,
+                        policy,
+                        lastSelectedDistanceRates: distanceRates,
+                        expenseDate: transaction.created,
+                    });
+                }
+                if (!rateID || (isMovingToPolicyExpenseChat && rateID === CONST.CUSTOM_UNITS.FAKE_P2P_ID)) {
                     continue;
                 }
                 setCustomUnitRateID(transaction.transactionID, rateID, transaction, policy, false, personalPolicy?.outputCurrency);
@@ -438,7 +452,7 @@ function useParticipantSubmission({
 
         // For SUBMIT we reconstruct the backTo rather than snapshotting Navigation.getActiveRoute(): pinning the picker's
         // writable-report guard (its reportID param) to the persistent self DM keeps back writable after goToNextStep moves the
-        // draft off the source report, and carrying isWorkspacesOnly keeps the "Submit to my employer" picker workspaces-only on
+        // draft off the source report, and carrying isWorkspacesOnly and shouldExcludeWorkspaces keeps the employer and friend pickers filtered on
         // back (a positive transaction cannot re-infer that). The base path stays the report the user was viewing (reportID) so
         // back does not swap the visible report. If the self DM is unresolved (cold start) we fall back to the active route. See
         // #99371. SHARE always uses the active route because it routes back through the accountant step, not the picker.
@@ -454,6 +468,7 @@ function useParticipantSubmission({
                         transactionID: initialTransactionID,
                         reportID: currentSelfDMReportID,
                         isWorkspacesOnly,
+                        shouldExcludeWorkspaces,
                     }),
                     ROUTES.REPORT_WITH_ID.getRoute(reportID),
                 );

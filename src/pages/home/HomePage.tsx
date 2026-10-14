@@ -8,6 +8,7 @@ import ScrollView from '@components/ScrollView';
 
 import useDocumentTitle from '@hooks/useDocumentTitle';
 import {useAppLoadSkeletonVisibility} from '@hooks/useInFlightRequests';
+import useLayoutSpacing from '@hooks/useLayoutSpacing';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -27,6 +28,7 @@ import {useFocusEffect} from '@react-navigation/native';
 import {useRef, useState} from 'react';
 import {View} from 'react-native';
 
+import EarlyRenewalOfferSection from './EarlyRenewalOfferSection';
 import ForYouSection from './ForYouSection';
 import FreeTrialSection from './FreeTrialSection';
 import GettingStartedSection from './GettingStartedSection';
@@ -42,6 +44,7 @@ const RIGHT_COLUMN_TEST_ID = 'homePageRightColumn';
 function HomePage() {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const styles = useThemeStyles();
+    const {pageGutter} = useLayoutSpacing();
     const {translate} = useLocalize();
     useDocumentTitle(translate('common.home'));
     const {isOffline} = useNetwork({onReconnect: openHomePage});
@@ -75,7 +78,8 @@ function HomePage() {
     // than replacing the whole layout, which would unmount the Concierge card and interrupt anyone typing in it.
     const homeLayout = shouldUseNarrowLayout ? (
         <>
-            {/* Occupies a slot whether or not it renders, so the card below keeps its index across the swap. */}
+            {/* These occupy slots whether or not they render, so the card below keeps its index across the swap. */}
+            {shouldShowHomeSkeleton ? null : <EarlyRenewalOfferSection />}
             {shouldShowHomeSkeleton ? null : <FreeTrialSection />}
             {forYouSection}
             {shouldShowHomeSkeleton ? (
@@ -117,6 +121,7 @@ function HomePage() {
                     <HomePageSkeletonRowCards />
                 ) : (
                     <>
+                        <EarlyRenewalOfferSection />
                         <FreeTrialSection />
                         <YourSpendSection />
                         <RecentlyAddedSection />
@@ -151,7 +156,7 @@ function HomePage() {
                     />
                     <ScrollView
                         style={styles.homePageScrollView}
-                        contentContainerStyle={styles.homePageContentContainer}
+                        contentContainerStyle={[styles.homePageContentContainer, pageGutter]}
                         addBottomSafeAreaPadding
                         keyboardShouldPersistTaps="handled"
                     >
