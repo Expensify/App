@@ -40,6 +40,8 @@ const getIOUActionsSelector = (actions: OnyxEntry<ReportActions>): ReportAction[
     return Object.values(actions ?? {}).filter(isMoneyRequestAction);
 };
 
+const getLastActorAccountIDSelector = (report: OnyxEntry<Report>): number | undefined => report?.lastActorAccountID;
+
 const getSplitsSelector = (actions: OnyxEntry<ReportActions>): Array<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>> => {
     return Object.values(actions ?? {})
         .filter(isMoneyRequestAction)
@@ -76,12 +78,17 @@ function hasPendingScanStateAndUnknownDirection(transaction: Transaction): boole
     return true;
 }
 
-function getPendingScanActorAccountID(transaction: Transaction, action: OnyxEntry<ReportAction>, iouReport: OnyxEntry<Report>, chatReport: OnyxEntry<Report>): number | undefined {
+function getPendingScanActorAccountID(
+    transaction: Transaction,
+    action: OnyxEntry<ReportAction>,
+    iouReport: OnyxEntry<Report>,
+    chatReportLastActorAccountID: number | undefined,
+): number | undefined {
     if (!hasPendingScanStateAndUnknownDirection(transaction)) {
         return undefined;
     }
 
-    const chatLastActorAccountID = Number(chatReport?.lastActorAccountID);
+    const chatLastActorAccountID = Number(chatReportLastActorAccountID);
     const validPendingScanActorAccountIDs = new Set([action?.childOwnerAccountID, action?.childManagerAccountID, iouReport?.ownerAccountID, iouReport?.managerID].filter(Boolean));
 
     if (
@@ -138,6 +145,7 @@ type GetReportPreviewSenderIDParams = {
     iouReport: OnyxEntry<Report>;
     action: OnyxEntry<ReportAction>;
     chatReport: OnyxEntry<Report>;
+    chatReportLastActorAccountID?: number;
     iouActions: ReportAction[] | undefined;
     transactions: Transaction[] | undefined;
     attendeesPersonalDetails: PersonalDetailsByLogin;
@@ -151,6 +159,7 @@ function getReportPreviewSenderID({
     iouReport,
     action,
     chatReport,
+    chatReportLastActorAccountID,
     iouActions,
     transactions,
     attendeesPersonalDetails,
@@ -192,7 +201,10 @@ function getReportPreviewSenderID({
     }
 
     const transactionActorAccountIDs = transactions?.map((transaction) => {
-        return getIOUActionForTransactionID(activeIOUActions, transaction.transactionID)?.actorAccountID ?? getPendingScanActorAccountID(transaction, action, iouReport, chatReport);
+        return (
+            getIOUActionForTransactionID(activeIOUActions, transaction.transactionID)?.actorAccountID ??
+            getPendingScanActorAccountID(transaction, action, iouReport, chatReportLastActorAccountID)
+        );
     });
     const transactionSigns = transactions?.map((transaction) => getTransactionDirectionSign(transaction)) ?? [];
 
@@ -315,6 +327,12 @@ function useReportPreviewSenderID({iouReport, action, chatReport}: {action: Onyx
         return filteredTransactions;
     }, [reportTransactions, iouActions, shouldFetchData, iouReport?.transactionCount, action?.childMoneyRequestCount]);
 
+    // Only pending scans read the chat's last actor, so other previews skip a subscription that changes on every message.
+    const hasPendingScan = !!transactions?.some(hasPendingScanStateAndUnknownDirection);
+    const [chatReportLastActorAccountID] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(hasPendingScan ? chatReport?.reportID : undefined)}`, {
+        selector: getLastActorAccountIDSelector,
+    });
+
     const [splits] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(shouldFetchData ? chatReport?.reportID : undefined)}`, {
         selector: getSplitsSelector,
     });
@@ -328,6 +346,7 @@ function useReportPreviewSenderID({iouReport, action, chatReport}: {action: Onyx
         iouReport,
         action,
         chatReport,
+        chatReportLastActorAccountID: chatReportLastActorAccountID ?? chatReport?.lastActorAccountID,
         iouActions,
         transactions,
         attendeesPersonalDetails,
