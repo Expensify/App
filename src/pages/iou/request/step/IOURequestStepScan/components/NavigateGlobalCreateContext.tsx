@@ -104,6 +104,8 @@ function NavigateGlobalCreateSubscriber({fnRef, iouType, reportID, transactionID
             isSelfDMTrackExpense ||
             shouldUseDefaultExpensePolicy(iouType, defaultExpensePolicy, amountOwed, userBillingGracePeriodEnds, ownerBillingGracePeriodEnd, currentUserPersonalDetails.accountID)
         ) {
+            // Quick-scan entry points (e.g. the bottom-tab camera button) start from the default workspace chat rather than a generated reportID,
+            // so the draft isn't flagged as global create yet. Flag it here so the workspace stays editable on the confirmation page, like the FAB scan flow.
             const shouldAutoReport = !isSelfDMTrackExpense && (!!defaultExpensePolicy?.autoReporting || !!personalPolicy?.autoReporting);
             const targetReport = shouldAutoReport ? getPolicyExpenseChat(currentUserPersonalDetails.accountID, defaultExpensePolicy?.id) : selfDMReport;
             const transactionReportID = isSelfDM(targetReport) ? CONST.REPORT.UNREPORTED_REPORT_ID : targetReport?.reportID;
@@ -117,6 +119,7 @@ function NavigateGlobalCreateSubscriber({fnRef, iouType, reportID, transactionID
 
                 for (const tid of transactionIDs) {
                     setMoneyRequestParticipants(tid, preservedParticipants);
+                    setTransactionReport(tid, {isFromGlobalCreate: true}, true);
                 }
                 deferNavigate(() => {
                     if (isTrackExpense) {
@@ -130,7 +133,7 @@ function NavigateGlobalCreateSubscriber({fnRef, iouType, reportID, transactionID
             }
 
             for (const tid of transactionIDs) {
-                setTransactionReport(tid, {reportID: transactionReportID}, true);
+                setTransactionReport(tid, {reportID: transactionReportID, isFromGlobalCreate: true}, true);
                 setMoneyRequestParticipantsFromReport(tid, targetReport, currentUserPersonalDetails.accountID);
             }
             deferNavigate(() => {

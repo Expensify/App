@@ -81,7 +81,6 @@ import {
     getTransactionViolations,
     getUnsuppressibleBrokenConnectionTransactionID,
     getVisibleTransactionViolations,
-    hasAnyPendingRTERViolation,
     hasAnyTransactionWithoutRTERViolation,
     hasCustomUnitOutOfPolicyViolation,
     hasDuplicateTransactions,
@@ -96,6 +95,7 @@ import {
     hasWarningTypeViolation,
     isBrokenConnectionViolation,
     isDuplicate,
+    isPendingRTERViolation,
     isTransactionSubmittable,
     isViolationDismissed,
     mergeProhibitedViolations,
@@ -1909,7 +1909,6 @@ export {
     hasMissingSmartscanFieldsForRBR,
     hasPendingRTERViolation,
     getUnsuppressibleBrokenConnectionTransactionID,
-    hasAnyPendingRTERViolation,
     hasValidModifiedAmount,
     getNegatedAmountTransaction,
     allHavePendingRTERViolation,
@@ -1926,6 +1925,7 @@ export {
     hasSubmissionBlockingViolations,
     hasCustomUnitOutOfPolicyViolation,
     isBrokenConnectionViolation,
+    isPendingRTERViolation,
     shouldSuppressBrokenConnectionStatus,
     shouldShowBrokenConnectionViolation,
     shouldShowBrokenConnectionViolationForMultipleTransactions,
@@ -2012,3 +2012,4 @@ export {
 };
 
 export type {ManuallyEnteredScanFields};
+export type {MergeDuplicatesTransactionParams} from './duplicates';
