@@ -3685,11 +3685,11 @@ startDeferredAttachmentEditReplays((deferredEdit, syncedAction) => {
     if (!originalReport) {
         return false;
     }
-    const {textForNewComment, isOriginalReportArchived, currentUserLogin, videoAttributeCache} = deferredEdit;
+    const {textForNewComment, isOriginalReportArchived, currentUserLogin, currentUserAccountID, videoAttributeCache} = deferredEdit;
 
     // Off the current stack so the replay does not re-enter Onyx from inside its own subscriber.
     Promise.resolve().then(() =>
-        editReportComment(originalReport, syncedAction, textForNewComment, isOriginalReportArchived, currentUserLogin, getAllPersonalDetails(), videoAttributeCache),
+        editReportComment(originalReport, syncedAction, textForNewComment, isOriginalReportArchived, currentUserLogin, getAllPersonalDetails(), currentUserAccountID, videoAttributeCache),
     );
     return true;
 });
@@ -3865,7 +3865,15 @@ function editReportComment(
     const hasQueuedAttachmentRequest = getAll().some((request) => addNewMessageWithText.has(request.command) && request.data?.reportActionID === reportActionID);
     if (uploadingAttachmentHtml && !hasQueuedAttachmentRequest) {
         Onyx.update(optimisticData);
-        const deferredEdit: DeferredAttachmentEdit = {reportID: originalReportID, textForNewComment, currentUserLogin, isOriginalReportArchived, originalMessage, videoAttributeCache};
+        const deferredEdit: DeferredAttachmentEdit = {
+            reportID: originalReportID,
+            textForNewComment,
+            currentUserLogin,
+            currentUserAccountID,
+            isOriginalReportArchived,
+            originalMessage,
+            videoAttributeCache,
+        };
         deferAttachmentEdit(reportActionID, deferredEdit);
         return;
     }

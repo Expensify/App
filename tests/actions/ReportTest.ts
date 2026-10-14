@@ -2716,7 +2716,7 @@ describe('actions/Report', () => {
             setHasRadio(false);
             await seedUploadingComment();
 
-            Report.editReportComment({reportID}, await getAction(), editKeepingAttachment, undefined, '', undefined);
+            Report.editReportComment({reportID}, await getAction(), editKeepingAttachment, undefined, '', undefined, 1);
             await waitForBatchedUpdates();
 
             // Then that edit is parked until the upload lands instead of being sent
@@ -2724,7 +2724,7 @@ describe('actions/Report', () => {
             expect((await OnyxUtils.get(ONYXKEYS.DEFERRED_ATTACHMENT_EDITS))?.[reportActionID]?.textForNewComment).toBe(editKeepingAttachment);
 
             // When a second edit removes the attachment
-            Report.editReportComment({reportID}, await getAction(), 'hello removed', undefined, '', undefined);
+            Report.editReportComment({reportID}, await getAction(), 'hello removed', undefined, '', undefined, 1);
             await waitForBatchedUpdates();
 
             // Then the parked edit is dropped
@@ -2747,8 +2747,8 @@ describe('actions/Report', () => {
             // Given a comment whose attachment is still uploading
             // When an edit is deferred on the upload and a second edit removes the attachment before Onyx echoes
             // the deferral back, which is the only thing the clear is allowed to read
-            Report.editReportComment({reportID}, action, editKeepingAttachment, undefined, '', undefined);
-            Report.editReportComment({reportID}, action, 'hello removed', undefined, '', undefined);
+            Report.editReportComment({reportID}, action, editKeepingAttachment, undefined, '', undefined, 1);
+            Report.editReportComment({reportID}, action, 'hello removed', undefined, '', undefined, 1);
             await waitForBatchedUpdates();
 
             // Then the superseded edit is not left armed
@@ -2847,13 +2847,13 @@ describe('actions/Report', () => {
         const getAction = async () => (await OnyxUtils.get(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`))?.[reportActionID];
 
         // When it is renamed while still offline
-        Report.editReportComment({reportID: REPORT_ID}, await getAction(), `hello\n\n[renamed.csv](${localUri})`, undefined, '', undefined);
+        Report.editReportComment({reportID: REPORT_ID}, await getAction(), `hello\n\n[renamed.csv](${localUri})`, undefined, '', undefined, 1);
         await waitForBatchedUpdates();
 
         expect(queuedFileName()).toBe('renamed.csv');
 
         // And then renamed back to the name the picker gave it
-        Report.editReportComment({reportID: REPORT_ID}, await getAction(), `hello\n\n[original.csv](${localUri})`, undefined, '', undefined);
+        Report.editReportComment({reportID: REPORT_ID}, await getAction(), `hello\n\n[original.csv](${localUri})`, undefined, '', undefined, 1);
         await waitForBatchedUpdates();
 
         // Then the file that uploads carries the name the comment now shows
@@ -2878,7 +2878,7 @@ describe('actions/Report', () => {
         };
 
         // When it is renamed to a label whose underscores the parser would read as emphasis
-        Report.editReportComment({reportID}, action, `[_my_report_.csv](${attachmentURL})`, undefined, '', undefined);
+        Report.editReportComment({reportID}, action, `[_my_report_.csv](${attachmentURL})`, undefined, '', undefined, 1);
 
         // Then the queued edit carries the label as plain text inside the anchor
         const request = PersistedRequests.getAll().at(0);

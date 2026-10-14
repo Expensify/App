@@ -11,6 +11,9 @@ type DeferredAttachmentEdit = {
     /** Login of the editor, needed to parse mentions on replay */
     currentUserLogin: string;
 
+    /** Account ID of the editor, needed to pick the last visible action on replay */
+    currentUserAccountID: number;
+
     /** Whether the report was archived when the edit was saved */
     isOriginalReportArchived?: boolean;
 
