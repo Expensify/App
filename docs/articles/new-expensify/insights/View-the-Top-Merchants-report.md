@@ -1,74 +1,119 @@
 ---
-title: Understand Top Merchants
-description: Learn what the Top merchants chart on the Insights page shows, how merchants are ranked, and how to open the expenses for a merchant.
-keywords: [Top merchants, top merchants chart, vendor spending, merchant spending, where we spend the most, spend by merchant, Insights, merchant names look different]
-internalScope: Audience is all members. Covers what the Top merchants chart shows, how merchants are ranked, and what opens when you select a merchant. Does not cover the Insights page filters or the other Insights charts.
+title: Explore the Top Merchants Insight
+description: Learn what the Top merchants insight shows, who can see it, how merchants are ranked, and how to explore merchant expenses.
+keywords: [Top merchants, top merchants chart, vendor spending, merchant spending, highest spending merchants, spend by merchant, Insights, merchant names look different, top vendors]
+internalScope: Audience is all members who can access Insights. Covers what Top merchants shows, who can see it, how merchants are ranked, which expenses are included, and how to explore merchant expenses in Spend. Does not cover detailed filtering instructions, exporting expenses, or other insights.
 contentType: topic
 platform: new-expensify
 ---
 
-# Understand Top Merchants
+# Explore the Top Merchants Insight
 
-**Top merchants** is a chart on the **Insights** page that ranks the merchants that received the most spend in the selected date range. Use it to track vendor spending, find recurring costs, and spot opportunities to negotiate better rates.
+**Top merchants** shows which merchants account for the highest total spending across expenses you have permission to view.
+
+You can use **Top merchants** to:
+
+- Identify merchants with the highest spending.
+- Monitor spending patterns by merchant.
+- Find recurring vendor costs.
+- Spot opportunities to negotiate better rates.
+
+---
+
+## What Top merchants shows
+
+**Top merchants** highlights the five merchants with the highest total spending, ranked from highest to lowest.
+
+Each merchant is represented by a bar, making it easy to compare spending amounts. The table below the chart shows:
+
+- **Number of expenses:** How many expenses contribute to the merchant's total.
+- **Total spend:** The combined amount of expenses for that merchant.
+- **Percentage of total spend:** The merchant's share of overall spending.
+
+This makes it easier to compare spending across merchants and identify where the most money is being spent.
+
+![Insights with Top merchants highlighted]({{site.url}}/assets/images/insights-top-merchant.png){:width="100%"}
 
 ---
 
 ## Who can see Top merchants
 
-Anyone who can open the **Insights** page can see **Top merchants**. The chart only includes expenses you have permission to see. For example, members see their own expenses, while workspace admins and auditors see all workspace expenses.
+**Top merchants** is available to all members. 
+
+The expenses included depend on your permissions:
+
+- **Workspace admins and auditors** can see expenses across their workspace.
+- **Approvers** can see expenses submitted to them.
+- **Members** can see their own expenses.
+
+You won't see expenses you don't have permission to access.
+
+[Learn who can see insights](/articles/new-expensify/insights/Learn-About-Insights#who-can-see-insights).
 
 ---
 
-## What the Top merchants chart shows
+## How Top merchants is calculated
 
-**Top merchants** groups expenses by merchant and shows the top 5 merchants as a bar chart. The table below the chart lists each merchant with:
+**Top merchants** groups expenses by merchant and ranks merchants from highest to lowest total spend.
 
-- The number of expenses
-- The total amount
-- The merchant's share of total spend, as a percentage
+Results include expenses within the selected date range that you have permission to view. Amounts are converted to the selected **Group currency**.
 
-The chart uses the **Date**, **Workspace**, and **Group currency** filters at the top of the Insights page. Amounts are converted to the selected **Group currency**.
+Merchant names come from receipt data and card transactions, so the same vendor may appear under different names. Each merchant name is counted separately.
 
----
+The **Date**, **Workspace**, and **Group currency** filters are shared across all insights, allowing you to adjust which data appears.
 
-## How Top merchants ranks merchants
-
-Merchants are ranked from highest to lowest total amount spent in the selected date range. Only the top 5 appear in the chart. To see every merchant, select **More (⋮)** on the chart, then select **View on Spend**.
+[Learn how to filter insights](/articles/new-expensify/insights/How-to-Use-Insights#how-to-filter-insights).
 
 ---
 
-## What opens when you select a merchant in Top merchants
+## How to explore Top merchants
 
-Select a merchant's bar to open **Spend** with a list of the expenses for that merchant, with the newest first.
+**Top merchants** displays the five merchants with the highest total spend for the selected date range.
+
+To see spending for every merchant, select **More (⋮)** on the visualization, then select **View on Spend**. This opens the related results in **Spend**, where you can explore spending beyond the top five merchants.
+
+You can also select a merchant's bar to open **Spend** with the expenses for that merchant, listed from newest to oldest.
+
+[Learn how to explore expenses from an insight](/articles/new-expensify/insights/How-to-Use-Insights#how-to-explore-expenses-from-an-insight).
 
 ---
 
 ## Related articles
 
-- [Learn About Insights](/articles/new-expensify/insights/How-to-Use-Insights-in-Expensify)
-- [Use Insights](/articles/new-expensify/insights/Use-Insights)
-
----
+- [How to Use Insights](/articles/new-expensify/insights/How-to-Use-Insights)
+- [Learn About Insights](/articles/new-expensify/insights/Learn-About-Insights)
 
 # FAQ
 
-## Why does the same merchant appear more than once in Top merchants?
+## Can you export Top merchants?
 
-Merchant names come from receipts and card transactions, so the same vendor can appear under different names, such as "Amazon.com" and "AMZN Marketplace." Each name is counted separately. Select each merchant to review its expenses.
-Each report provides a different view of your spending:
+Grouped totals and summary data can't be exported directly from **Top merchants**, but you can export the underlying expenses from **Spend**.
+
+[Learn how to export expenses](/articles/new-expensify/reports-and-expenses/How-to-Export-Expenses).
+
+## What other insights are available?
+
+Additional insights help you analyze spending from different perspectives:
 
 - **Spend over time** shows how total expenses change over a date range.
-- **Top Categories** shows the highest-spending expense types (e.g., Travel, Meals).
-- **Top Spenders** shows which members submitted the most expenses.
+- **Top spenders** shows which members have the highest total spending.
+- **Top categories** shows which expense categories account for the most spending.
 
-All reports help identify trends from different perspectives to support better financial decisions.
+[Learn more about the available insights](/articles/new-expensify/insights/Learn-About-Insights#what-insights-are-available).
 
-## How is the Top Merchants report calculated?
+## Why does the same merchant appear more than once in Top merchants?
 
-The report uses all expenses from the previous calendar month and groups them by merchant. It shows the **top 5 merchants** based on total spend.
+Merchant names come from receipts and card transactions, so the same vendor may appear under different names, such as "Amazon.com" and "AMZN Marketplace."
 
-## Why do some merchant names look different?
+Each name is counted separately. Select a merchant to review its expenses in **Spend** and confirm whether the expenses belong to the same vendor.
 
-Merchant names are captured from receipt data and card transactions. The same vendor might appear under different names (e.g., "Amazon.com" vs "AMZN Marketplace"). You may need to review the individual expenses to confirm they're from the same merchant.
+## Why is an expense missing from Top merchants?
 
----
+An expense might not appear if:
+
+- You don't have permission to view it.
+- It falls outside the selected date range.
+- Its merchant isn't among the five highest-spending merchants shown in the visualization.
+- It's recorded under a different merchant name.
+
+To explore spending beyond the top five merchants, select **More (⋮)**, then **View on Spend**.
