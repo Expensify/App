@@ -309,24 +309,29 @@ describe('Session', () => {
         // to Re-Authenticate with the stored credentials. Our next call will be to Authenticate
         // so we will mock that response with a new authToken and then verify that Onyx has our
         // data.
-        jest.mocked(HttpUtils.xhr)
-
-            // This will make the call to OpenApp below return with an expired session code
-            .mockImplementationOnce(() =>
-                Promise.resolve({
-                    jsonCode: CONST.JSON_CODE.NOT_AUTHENTICATED,
-                }),
-            )
-
-            // The next call should be Authenticate since we are re-authenticating
-            .mockImplementationOnce(() =>
-                Promise.resolve({
+        // Key off the command rather than the call order: `openApp()` fires LoadPersonalDetails on the
+        // main queue and OpenApp on the sequential queue, and which of them reaches the network first
+        // is not something this test is about.
+        let hasExpiredASession = false;
+        jest.mocked(HttpUtils.xhr).mockImplementation((command: string) => {
+            // Re-authenticating hands back a fresh authToken
+            if (command === 'Authenticate') {
+                return Promise.resolve({
                     jsonCode: CONST.JSON_CODE.SUCCESS,
                     accountID: TEST_USER_ACCOUNT_ID,
                     authToken: TEST_REFRESHED_AUTH_TOKEN,
                     email: TEST_USER_LOGIN,
-                }),
-            );
+                });
+            }
+
+            // The first app request after signing in finds the session expired
+            if (!hasExpiredASession) {
+                hasExpiredASession = true;
+                return Promise.resolve({jsonCode: CONST.JSON_CODE.NOT_AUTHENTICATED});
+            }
+
+            return Promise.resolve({jsonCode: CONST.JSON_CODE.SUCCESS});
+        });
 
         // When we attempt to fetch the initial app data via the API
         openApp();
@@ -1385,6 +1390,21 @@ describe('Session', () => {
             expect(writeSpy.mock.calls.at(0)?.at(1)).not.toHaveProperty('authToken');
 
             writeSpy.mockRestore();
+        });
+    });
+
+    describe('signInWithSupportAuthToken', () => {
+        test('clears the loading state when the server rejects the support token', async () => {
+            // Given a signed-out agent and a support token that the server rejects as expired
+            jest.mocked(HttpUtils.xhr).mockImplementationOnce(() => Promise.resolve({jsonCode: CONST.JSON_CODE.NOT_AUTHENTICATED}));
+
+            // When the transition page signs in with that token
+            SessionUtil.signInWithSupportAuthToken('expired-support-token');
+            await waitForBatchedUpdates();
+
+            // Then the account stops loading, because there is no session to reauthenticate, so the transition page shows the expired session and not a spinner
+            const account = await getOnyxValue(ONYXKEYS.ACCOUNT);
+            expect(account?.isLoading).toBe(false);
         });
     });
 

@@ -96,6 +96,9 @@ type ExpenseFieldDropdownProps = Omit<ExpenseFieldRowProps, 'onPress' | 'anchorR
     /** Opens the full-page selector in place of the list on a phone in landscape. That page must close itself once the phone is back in portrait, so the list can reopen here. */
     onLandscapePress: () => void;
 
+    /** Height of a header the list shows above its options, e.g. an add button, added to the container's limits so it still fits as many options */
+    listHeaderHeight?: number;
+
     /** Lets the field open its list without a press, e.g. once the user is back from a step the press sent them to */
     ref?: Ref<ExpenseFieldDropdownHandle>;
 };
@@ -114,7 +117,7 @@ type ExpenseFieldDropdownHandle = {
  * the phone is turned while the sheet is open. Knows nothing about any particular field: each passes its own list in
  * through `renderDropdown`.
  */
-function ExpenseFieldDropdown({renderDropdown, shouldOpenInDropdown, onPress, onLandscapePress, ref, ...rowProps}: ExpenseFieldDropdownProps) {
+function ExpenseFieldDropdown({renderDropdown, shouldOpenInDropdown, onPress, onLandscapePress, listHeaderHeight = 0, ref, ...rowProps}: ExpenseFieldDropdownProps) {
     const {windowHeight} = useWindowDimensions();
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth -- must match PopoverWithMeasuredContent's dock decision, which is on isSmallScreenWidth
     const {isSmallScreenWidth, isInLandscapeMode} = useResponsiveLayout();
@@ -131,6 +134,9 @@ function ExpenseFieldDropdown({renderDropdown, shouldOpenInDropdown, onPress, on
         shouldOpenAbove: false,
     });
 
+    const maxContainerHeight = MAX_CONTAINER_HEIGHT + listHeaderHeight;
+    const minUsableHeight = MIN_USABLE_HEIGHT + listHeaderHeight;
+
     const closeDropdown = () => setIsVisible(false);
 
     const openInPlace = () => {
@@ -143,10 +149,10 @@ function ExpenseFieldDropdown({renderDropdown, shouldOpenInDropdown, onPress, on
         anchorRef.current?.measureInWindow((x, y, width, height) => {
             const spaceBelow = windowHeight - (y + height + CONTAINER_GAP);
             const spaceAbove = y - CONTAINER_GAP - (safeAreaTop + contentHeaderHeight);
-            const shouldOpenAbove = spaceBelow < MAX_CONTAINER_HEIGHT && spaceAbove > spaceBelow;
+            const shouldOpenAbove = spaceBelow < maxContainerHeight && spaceAbove > spaceBelow;
             const availableHeight = (shouldOpenAbove ? spaceAbove : spaceBelow) - CONTAINER_BORDER;
 
-            if (availableHeight < MIN_USABLE_HEIGHT) {
+            if (availableHeight < minUsableHeight) {
                 onPress();
                 return;
             }
@@ -155,7 +161,7 @@ function ExpenseFieldDropdown({renderDropdown, shouldOpenInDropdown, onPress, on
                 horizontal: x,
                 vertical: shouldOpenAbove ? y - CONTAINER_GAP : y + height + CONTAINER_GAP,
                 width,
-                height: Math.min(MAX_CONTAINER_HEIGHT, availableHeight),
+                height: Math.min(maxContainerHeight, availableHeight),
                 shouldOpenAbove,
             });
             setHasEverOpened(true);

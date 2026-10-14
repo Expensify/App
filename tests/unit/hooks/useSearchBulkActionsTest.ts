@@ -106,6 +106,12 @@ jest.mock('@hooks/useNetwork', () => ({
     default: () => ({isOffline: mockIsOffline}),
 }));
 
+const mockShowDecisionModal = jest.fn();
+jest.mock('@hooks/useDecisionModal', () => ({
+    __esModule: true,
+    default: () => ({showDecisionModal: mockShowDecisionModal}),
+}));
+
 jest.mock('@hooks/useEnvironment', () => ({
     __esModule: true,
     default: () => ({isProduction: false, isDevelopment: true, environment: 'development'}),
@@ -658,7 +664,7 @@ describe('useSearchBulkActions - CSV export flow', () => {
             expect(mockUnholdRequest).toHaveBeenCalledTimes(2);
             expect(mockUnholdRequest).toHaveBeenCalledWith(expect.objectContaining({transactionID: 'tx1', reportID: 'childReport1', isOffline: true}));
             expect(mockUnholdRequest).toHaveBeenCalledWith(expect.objectContaining({transactionID: 'tx2', reportID: 'childReport2', isOffline: true}));
-            expect(result.current.isOfflineModalVisible).toBe(false);
+            expect(mockShowDecisionModal).not.toHaveBeenCalled();
         });
     });
 });

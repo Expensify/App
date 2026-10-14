@@ -1127,10 +1127,8 @@ function isOnboardingFlow() {
     return isOnboardingFlowName(currentFocusedRoute?.name);
 }
 
-function isValidateLoginFlow() {
-    const state = navigationRef.getRootState();
-    const currentFocusedRoute = findFocusedRoute(state);
-    return currentFocusedRoute?.name === SCREENS.VALIDATE_LOGIN;
+function isValidateLoginFlow(state: NavigationState | undefined) {
+    return !!state && findFocusedRoute(state)?.name === SCREENS.VALIDATE_LOGIN;
 }
 
 function clearPreloadedRoutes() {
