@@ -169,7 +169,18 @@ function LineChartContentBody({data, series, isLoading, yAxisUnit, yAxisUnitPosi
         return isInPlotArea(args) && isCursorOverLabel(args, activeIndex);
     };
 
-    const {customGestures, setPointPositions, matchedIndex, isTooltipActive, isCursorOverClickable, initialTooltipPosition, activePointPosition, onChartMoved} = useChartInteractions({
+    const {
+        customGestures,
+        setPointPositions,
+        matchedIndex,
+        isTooltipActive,
+        isCursorOverClickable,
+        initialTooltipPosition,
+        activePointPosition,
+        onChartMoved,
+        onTooltipDismiss,
+        onChartTouchStart,
+    } = useChartInteractions({
         handlePress: onPointPress ? handlePointPress : undefined,
         checkIsOver: checkIsOverBand,
         isCursorOverLabel: checkIsOverLabelInPlotArea,
@@ -295,6 +306,7 @@ function LineChartContentBody({data, series, isLoading, yAxisUnit, yAxisUnitPosi
             <Animated.View
                 style={[styles.chartContent, dynamicChartStyle, !!onPointPress && cursorStyle]}
                 onLayout={handleLayout}
+                onTouchStart={onChartTouchStart}
             >
                 {chartWidth > 0 && (
                     <CartesianChart
@@ -342,6 +354,7 @@ function LineChartContentBody({data, series, isLoading, yAxisUnit, yAxisUnitPosi
                     chartWidth={chartWidth}
                     initialTooltipPosition={initialTooltipPosition}
                     onChartMoved={onChartMoved}
+                    onDismiss={onTooltipDismiss}
                 />
             </Animated.View>
         </GestureDetector>
