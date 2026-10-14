@@ -4,7 +4,6 @@ import {isCreatedAction, isCurrentUserPendingAddAction} from '@libs/ReportAction
 
 import {useConciergeSessionState} from '@pages/inbox/ConciergeSessionContext';
 
-import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import type {ReportActions} from '@src/types/onyx/ReportAction';
@@ -48,9 +47,9 @@ function useConciergeAskState(reportID: string | undefined): ConciergeAskState {
             return false;
         }
         return Object.values(actions).some((action) => {
-            // A question that opens its own thread is answered there, so it keeps the welcome both while sending and once sent.
+            // An action that opens its own report, like a question's thread or a task, keeps the welcome both while sending and once sent.
             // Otherwise reconnecting would switch this chat to a partial view that `Hide chat history` can't return to.
-            if (action.actorAccountID === currentUserAccountID && !!action.childReportID && action.childType === CONST.REPORT.TYPE.CHAT) {
+            if (action.actorAccountID === currentUserAccountID && !!action.childReportID) {
                 return false;
             }
             return isCurrentUserPendingAddAction(action, currentUserAccountID) || (!isCreatedAction(action) && action.created >= sessionStartTime);

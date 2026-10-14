@@ -116,6 +116,13 @@ describe('useConciergeAskState', () => {
         // Then the question counts as activity, so its error stays visible in this chat
         expect(result.current.shouldShowWelcome).toBe(false);
 
+        // When the current user creates a task in the Concierge chat
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${CONCIERGE_REPORT_ID}`, {[question.reportActionID]: {childReportID: '5', childType: CONST.REPORT.TYPE.TASK}});
+        await waitForBatchedUpdates();
+
+        // Then the welcome stays, like it does for a question
+        expect(result.current.shouldShowWelcome).toBe(true);
+
         await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${CONCIERGE_REPORT_ID}`, null);
         await waitForBatchedUpdates();
     });
