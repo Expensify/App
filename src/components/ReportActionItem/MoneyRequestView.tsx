@@ -343,7 +343,6 @@ function MoneyRequestView({
         originalCurrency: transactionOriginalCurrency,
         postedDate: transactionPostedDate,
         convertedAmount: transactionConvertedAmount,
-        convertedTaxAmount: transactionConvertedTaxAmount,
     } = getTransactionDetails(displayTransaction, undefined, undefined, allowNegativeAmount, false) ?? {};
     const transactionAttendees = useAttendees(transaction);
     const isEmptyMerchant = isInvalidMerchantValue(transactionMerchant);
@@ -377,9 +376,12 @@ function MoneyRequestView({
     const shouldShowCard = isFromCardImport && cardProgramName;
 
     const taxRates = policy?.taxRates;
-    const formattedTaxAmount = convertToDisplayString(transactionTaxAmount ?? 0, actualCurrency);
+    const formattedTaxAmount =
+        updatedTransaction?.taxAmount !== undefined
+            ? convertToDisplayString(Math.abs(updatedTransaction?.taxAmount), actualCurrency)
+            : convertToDisplayString(Math.abs(transactionTaxAmount ?? 0), actualCurrency);
     // Skip a zero converted tax (e.g. tax exempt) so we don't render a redundant "Converted 0.00".
-    const formattedConvertedTaxAmount = transactionConvertedTaxAmount ? convertToDisplayString(transactionConvertedTaxAmount, moneyRequestReport?.currency) : '';
+    const formattedConvertedTaxAmount = transaction?.convertedTaxAmount ? convertToDisplayString(Math.abs(transaction.convertedTaxAmount), moneyRequestReport?.currency) : '';
 
     const taxRatesDescription = taxRates?.name;
 
