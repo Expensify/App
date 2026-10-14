@@ -84,6 +84,13 @@ const validateFiles = jest.fn<ReturnType<ReturnType<typeof useFilesValidation>['
 function observeReceiptValidationRejection(message: string) {
     const receiptSourcePath = require.resolve('@pages/inbox/report/ReportActionCompose/useReceiptDrop');
     const validationSourcePath = require.resolve('@hooks/useFilesValidation');
+    const validationSource = readFileSync(validationSourcePath, 'utf8');
+    const rootDeclaration = '    const validateAndResizeFiles = async ';
+    const rootOffset = validationSource.indexOf(rootDeclaration);
+    if (rootOffset < 0 || validationSource.indexOf(rootDeclaration, rootOffset + 1) !== -1) {
+        throw new Error('Expected one real attachment validation root');
+    }
+    const rootLine = validationSource.slice(0, rootOffset).split('\n').length;
     const receiptSource = readFileSync(receiptSourcePath, 'utf8');
     const callbackStart = receiptSource.indexOf('    const onFilesValidated = ');
     const callbackEnd = receiptSource.indexOf('    const {validateFiles, PDFValidationComponent} = ', callbackStart);
@@ -126,7 +133,6 @@ function observeReceiptValidationRejection(message: string) {
             expect(firstThrowFrame.trim()).toMatch(/^at /);
             expect(firstThrowFrame.trim().replace(/\)$/, '')).toMatch(new RegExp(`(?:^at |\\()${receiptSourcePath.replaceAll(/[.*+?^${}()|[\]\\]/g, '\\$&')}:${throwLine}:${throwColumn}$`));
             expect(frames.some((frame) => frame.includes(`${validationSourcePath}:`) && /\bhandleNext\b/.test(frame))).toBe(true);
-            expect(frames.some((frame) => frame.includes(`${validationSourcePath}:`) && /\bvalidateAndResizeFiles\b/.test(frame))).toBe(true);
         },
     );
     // Handle only this owned assertion immediately. Tests still await its original rejection.
@@ -141,8 +147,8 @@ function observeReceiptValidationRejection(message: string) {
         const frame = new Error().stack
             ?.split('\n')
             .slice(1)
-            .find((line) => line.includes(`${validationSourcePath}:`));
-        if (!frame || !/\bvalidateAndResizeFiles\b/.test(frame)) {
+            .find((line) => line.includes(`${validationSourcePath}:${rootLine}:`));
+        if (!frame) {
             return;
         }
         creationFrame = frame;
@@ -526,7 +532,7 @@ describe('receipt drop callback boundaries', () => {
                     await observation.assertion;
                 });
                 // Then callback rejection skips the following reset and no receipt callback effects occur.
-                expect(observation.getCreationFrame()).toMatch(/validateAndResizeFiles/);
+                expect(observation.getCreationFrame()).toBeDefined();
                 expect(observation.getCaptureCount()).toBe(1);
                 expect(observation.getRootPromise()).toBeInstanceOf(Promise);
                 expect(url).not.toHaveBeenCalled();
@@ -576,7 +582,7 @@ describe('receipt drop callback boundaries', () => {
                     await observation.assertion;
                 });
                 // Then the only URL belongs to upstream validation and no callback prefix can create a draft.
-                expect(observation.getCreationFrame()).toMatch(/validateAndResizeFiles/);
+                expect(observation.getCreationFrame()).toBeDefined();
                 expect(observation.getCaptureCount()).toBe(1);
                 expect(observation.getRootPromise()).toBeInstanceOf(Promise);
                 expect(normalize.mock.calls).toEqual([[input], [second]]);

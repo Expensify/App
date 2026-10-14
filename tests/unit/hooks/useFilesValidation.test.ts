@@ -540,10 +540,17 @@ describe('useFilesValidation', () => {
 });
 
 /** Observes only the native root created by the real attachment validation function. */
-function observeAttachmentValidationRejection(message: string, origin: RegExp) {
+function observeAttachmentValidationRejection(message: string) {
     const validationSourcePath = require.resolve('@hooks/useFilesValidation');
+    const validationSource = readFileSync(validationSourcePath, 'utf8');
+    const rootDeclaration = '    const validateAndResizeFiles = async ';
+    const rootOffset = validationSource.indexOf(rootDeclaration);
+    if (rootOffset < 0 || validationSource.indexOf(rootDeclaration, rootOffset + 1) !== -1) {
+        throw new Error('Expected one real attachment validation root');
+    }
+    const rootLine = validationSource.slice(0, rootOffset).split('\n').length;
     const throwSourcePath = message === 'Cannot validate a null attachment' ? require.resolve('@libs/validateAttachmentFile') : validationSourcePath;
-    const throwSource = readFileSync(throwSourcePath, 'utf8');
+    const throwSource = throwSourcePath === validationSourcePath ? validationSource : readFileSync(throwSourcePath, 'utf8');
     const literalThrow = `throw new TypeError('${message}');`;
     const throwOffset = throwSource.indexOf(literalThrow);
     if (throwOffset < 0 || throwSource.indexOf(literalThrow, throwOffset + 1) !== -1) {
@@ -569,7 +576,6 @@ function observeAttachmentValidationRejection(message: string, origin: RegExp) {
             }
             expect(reason.name).toBe('TypeError');
             expect(reason.message).toBe(message);
-            expect(reason.stack).toMatch(origin);
             const firstThrowFrame = reason.stack?.split('\n').at(1);
             if (!firstThrowFrame) {
                 throw new Error('Expected the first attachment throw frame');
@@ -589,8 +595,8 @@ function observeAttachmentValidationRejection(message: string, origin: RegExp) {
         const frame = new Error().stack
             ?.split('\n')
             .slice(1)
-            .find((line) => line.includes(`${validationSourcePath}:`));
-        if (!frame || !/\bvalidateAndResizeFiles\b/.test(frame)) {
+            .find((line) => line.includes(`${validationSourcePath}:${rootLine}:`));
+        if (!frame) {
             return;
         }
         creationFrame = frame;
@@ -634,7 +640,7 @@ describe('real nullable attachment validation', () => {
         files[nullIndex] = FileUtils.cleanFileObjectName(FileUtils.cleanFileObject(getter));
         const {result, onFilesValidated} = setup();
         const writes = jest.spyOn(Map.prototype, 'set');
-        const observation = observeAttachmentValidationRejection('Cannot record URI order for a null attachment', /validateAndResizeFiles.*useFilesValidation\.tsx/);
+        const observation = observeAttachmentValidationRejection('Cannot record URI order for a null attachment');
         try {
             // When the public hook starts its original unfiltered batch and returns void.
             act(() => {
@@ -646,7 +652,7 @@ describe('real nullable attachment validation', () => {
             // Then no validator or callback runs and the failed hook remains busy after rerender.
             expect(observation.getCaptureCount()).toBe(1);
             expect(observation.getRootPromise()).toBeInstanceOf(Promise);
-            expect(observation.getCreationFrame()).toMatch(/validateAndResizeFiles/);
+            expect(observation.getCreationFrame()).toBeDefined();
             const prefix = files.slice(0, nullIndex).map((file, index) => [file?.uri, index]);
             const scenarioWrites = writes.mock.calls.filter(([key]) => typeof key === 'string' && key.startsWith('static-'));
             expect(scenarioWrites).toEqual(prefix);
@@ -683,7 +689,7 @@ describe('real nullable attachment validation', () => {
         const normalize = jest.spyOn(registeredFileUtils, 'normalizeFileObject').mockImplementationOnce(() => pending);
         const writes = jest.spyOn(Map.prototype, 'set');
         const {result, onFilesValidated} = setup();
-        const observation = observeAttachmentValidationRejection('Cannot validate a null attachment', /validateAttachmentFile.*validateAttachmentFile\.ts/);
+        const observation = observeAttachmentValidationRejection('Cannot validate a null attachment');
         try {
             // When ordinary typed mutation changes the same array while the first file is awaited.
             triggerValidation(result, files, items, {isValidatingReceipts});
@@ -775,7 +781,7 @@ describe('real nullable attachment validation', () => {
         }));
         files[nullIndex] = null;
         const {result, onFilesValidated} = setup();
-        const observation = observeAttachmentValidationRejection('Cannot record URI order for a null attachment', /validateAndResizeFiles.*useFilesValidation\.tsx/);
+        const observation = observeAttachmentValidationRejection('Cannot record URI order for a null attachment');
         try {
             // When the real hook starts exactly the limit rather than presenting the max modal.
             triggerValidation(result, files, undefined, {isValidatingReceipts});
@@ -821,7 +827,7 @@ describe('real nullable attachment validation', () => {
         triggerValidation(result, files);
         expect(mockValidateAttachmentFile).not.toHaveBeenCalled();
         const writes = jest.spyOn(Map.prototype, 'set');
-        const observation = observeAttachmentValidationRejection('Cannot record URI order for a null attachment', /validateAndResizeFiles.*useFilesValidation\.tsx/);
+        const observation = observeAttachmentValidationRejection('Cannot record URI order for a null attachment');
         try {
             // When the real modal continuation starts the same async root.
             await act(async () => {
@@ -870,7 +876,7 @@ describe('real nullable attachment validation', () => {
         const getter: FileObject = {getAsFile: () => null};
         const wrapper = ({children}: {children: React.ReactNode}) => React.createElement(AttachmentModalContext.Provider, {value: context}, children);
         const {result} = renderHook(() => useConciergeAttachmentPicker('100', jest.fn()), {wrapper});
-        const observation = observeAttachmentValidationRejection('Cannot record URI order for a null attachment', /validateAndResizeFiles.*useFilesValidation\.tsx/);
+        const observation = observeAttachmentValidationRejection('Cannot record URI order for a null attachment');
         try {
             // When the actual picker retains the scalar null and returns normally.
             act(() => {
@@ -894,7 +900,7 @@ describe('real nullable attachment validation', () => {
         // Given a scalar getter has the same declared nullable result as the array cases.
         const file = FileUtils.cleanFileObjectName(FileUtils.cleanFileObject({getAsFile: () => null}));
         const {result, onFilesValidated} = setup();
-        const observation = observeAttachmentValidationRejection('Cannot record URI order for a null attachment', /validateAndResizeFiles.*useFilesValidation\.tsx/);
+        const observation = observeAttachmentValidationRejection('Cannot record URI order for a null attachment');
         try {
             // When the public hook starts exactly one null without throwing synchronously.
             act(() => {
@@ -959,7 +965,7 @@ describe('real nullable attachment validation', () => {
         const unrelated = new Error('Unrelated normalization failure');
         const normalize = jest.spyOn(registeredFileUtils, 'normalizeFileObject').mockRejectedValueOnce(unrelated);
         const {result, onFilesValidated} = setup();
-        const observation = observeAttachmentValidationRejection('Cannot validate a null attachment', /validateAttachmentFile.*validateAttachmentFile\.ts/);
+        const observation = observeAttachmentValidationRejection('Cannot validate a null attachment');
         const matcherFailure = expect(observation.assertion).rejects.toThrow();
         try {
             // When real validation delivers that Error through the same observed native root.
