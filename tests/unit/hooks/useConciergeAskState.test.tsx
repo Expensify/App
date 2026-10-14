@@ -52,7 +52,7 @@ describe('useConciergeAskState', () => {
         expect(result.current.isHistoryExpanded).toBe(false);
         expect(result.current.shouldShowWelcome).toBe(true);
 
-        // Given earlier Concierge messages that the user never replied to, such as the onboarding messages on a new account
+        // Given the newest page of earlier Concierge messages, with older pages not loaded yet
         const conciergeMessage = {
             reportActionID: '5',
             actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
@@ -60,6 +60,18 @@ describe('useConciergeAskState', () => {
             created: '2024-06-01 11:00:00.000',
         };
         await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${CONCIERGE_REPORT_ID}`, {[conciergeMessage.reportActionID]: conciergeMessage});
+        await waitForBatchedUpdates();
+
+        // Then the empty state stays, because the user may have replied on an older page
+        expect(result.current.shouldShowWelcome).toBe(true);
+
+        // When the whole chat is loaded and the user never replied, such as the onboarding messages on a new account
+        const createdAction = {
+            reportActionID: '7',
+            actionName: CONST.REPORT.ACTIONS.TYPE.CREATED,
+            created: '2024-06-01 10:00:00.000',
+        };
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${CONCIERGE_REPORT_ID}`, {[createdAction.reportActionID]: createdAction});
         await waitForBatchedUpdates();
 
         // Then the conversation stays on screen, because `View chat history` can't bring it back

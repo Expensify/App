@@ -64,7 +64,13 @@ function useConciergeAskState(reportID: string | undefined): ConciergeAskState {
         if (!actions || !sessionStartTime) {
             return false;
         }
-        const previousActions = Object.values(actions).filter((action) => !isCreatedAction(action) && action.created < sessionStartTime);
+        const allActions = Object.values(actions);
+
+        // Until the chat's first action is loaded, the user's earlier messages may be on an older page.
+        if (!allActions.some((action) => isCreatedAction(action))) {
+            return false;
+        }
+        const previousActions = allActions.filter((action) => !isCreatedAction(action) && action.created < sessionStartTime);
         return previousActions.length > 0 && !previousActions.some((action) => action.actorAccountID === currentUserAccountID);
     };
     const [hasHistoryWithoutUserMessage] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
