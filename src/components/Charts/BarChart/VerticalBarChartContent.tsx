@@ -102,9 +102,6 @@ function VerticalBarChartCanvas({data, series, yAxisUnit, yAxisUnitPosition = 'l
     });
 
     const handleChartBoundsChange = (bounds: ChartBounds) => {
-        const domainWidth = bounds.right - bounds.left;
-        const {barWidth, gap} = getBarLayout(domainWidth, data.length);
-        barHitHalfWidth.set(barWidth > 0 ? barWidth / 2 + gap * BAR_HIT_GAP_RATIO : 0);
         plotTop.set(bounds.top);
         plotBottom.set(bounds.bottom);
         yZero.set(0);
@@ -132,6 +129,7 @@ function VerticalBarChartCanvas({data, series, yAxisUnit, yAxisUnitPosition = 'l
     });
 
     const handleScaleChange = (xScale: Scale, yScale: Scale) => {
+        barHitHalfWidth.set(barLayout.barWidth > 0 ? barLayout.barWidth / 2 + barLayout.gap * BAR_HIT_GAP_RATIO : 0);
         yZero.set(yScale(0));
         updateTickPositions(xScale, data.length);
         setPointPositions(
