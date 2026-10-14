@@ -363,7 +363,7 @@ function useConnectedAccountingIntegration(policy: OnyxEntry<Policy>, {menuItemW
                 return !rilletSubsidiaryList?.length
                     ? {}
                     : {
-                          description: translate('workspace.rillet.subsidiary'),
+                          description: translate('workspace.rillet.entity'),
                           iconRight: icons.ArrowRight,
                           title: rilletSubsidiaryList?.find((subsidiary) => subsidiary.id === policy?.connections?.rillet?.config?.subsidiaryID)?.tradeName ?? '',
                           wrapperStyle: menuItemWrapperStyle,
@@ -382,7 +382,7 @@ function useConnectedAccountingIntegration(policy: OnyxEntry<Policy>, {menuItemW
                 return !dualEntryCompanyList?.length
                     ? {}
                     : {
-                          description: translate('workspace.dualEntry.subsidiary'),
+                          description: translate('workspace.dualEntry.company'),
                           iconRight: icons.ArrowRight,
                           title: dualEntryCompanyList?.find((company) => company.id === policy?.connections?.dualEntry?.config?.subsidiaryID)?.name ?? '',
                           wrapperStyle: menuItemWrapperStyle,
@@ -401,7 +401,7 @@ function useConnectedAccountingIntegration(policy: OnyxEntry<Policy>, {menuItemW
                 return !campfireSubsidiaryList?.length
                     ? {}
                     : {
-                          description: translate('workspace.campfire.subsidiary'),
+                          description: translate('workspace.campfire.entity'),
                           iconRight: icons.ArrowRight,
                           title: campfireSubsidiaryList?.find((subsidiary) => subsidiary.id === policy?.connections?.campfire?.config?.subsidiaryID)?.name ?? '',
                           wrapperStyle: menuItemWrapperStyle,

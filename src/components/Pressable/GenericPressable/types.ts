@@ -153,13 +153,18 @@ type PressableProps = RNPressableProps &
          */
         interactive?: boolean;
 
-        /** Whether descendants can use native text selection inside the pressable */
-        shouldAllowTextSelection?: boolean;
-
         /**
          * Whether the pressable is nested in another one.
          */
         isNested?: boolean;
+
+        /**
+         * Keeps the pressable's content text-selectable and copyable even when it has a button role.
+         * Chat message rows need this: the row is pressable, but its content is user-selectable text
+         * that must survive `SelectionScraper`.
+         * @default false
+         */
+        shouldAllowTextSelection?: boolean;
 
         ref?: PressableRef;
     };
