@@ -6510,6 +6510,8 @@ ${amount} para ${merchant} - ${date}`,
             distanceRates: {
                 title: 'Tasas de distancia',
                 subtitle: 'Añade, actualiza y haz cumplir las tasas.',
+                commuterExclusionsOnTitle: 'Las exclusiones de desplazamiento están activadas',
+                disableLockedByCommuterExclusionsPrompt: 'Para desactivar las tarifas de distancia, primero establece Excluir desplazamientos a “No excluir desplazamientos”.',
             },
             perDiem: {
                 title: 'Per diem',
