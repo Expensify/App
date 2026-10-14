@@ -105,13 +105,13 @@ function ConciergeSessionProvider({children}: PropsWithChildren) {
         [sessionStartTime],
     );
 
-    const resetSession = useCallback(() => {
+    const resetSession = () => {
         sessionCreatedAtRef.current = Date.now();
         isSessionResetByUserRef.current = true;
         setSessionStartTime(getServerAnchoredDBTime());
         setShowFullHistory(false);
         setHadMessagesAtSessionStart(false);
-    }, []);
+    };
 
     const stateValue = useMemo(() => ({sessionStartTime, showFullHistory, hadMessagesAtSessionStart}), [sessionStartTime, showFullHistory, hadMessagesAtSessionStart]);
     const actionsValue = useMemo(() => ({startSession, resetSession, setShowFullHistory, setHadMessagesAtSessionStart}), [startSession, resetSession]);
