@@ -1583,6 +1583,8 @@ const DYNAMIC_ROUTES = {
             SCREENS.SEARCH.ROOT,
             SCREENS.REPORT_DETAILS.DYNAMIC_ROOT,
         ],
+        getRoute: (shouldShowQRCodeOnly?: boolean) => getUrlWithParams('share-code', {shouldShowQRCodeOnly: shouldShowQRCodeOnly ? 'true' : undefined}),
+        queryParams: ['shouldShowQRCodeOnly'],
     },
     REFERRAL_DETAILS: {
         path: 'referral/:contentType',
