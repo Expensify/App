@@ -72,7 +72,7 @@ jest.mock('@libs/getPlatform', () => jest.fn());
 const mockedGetPlatform = jest.mocked(getPlatform);
 
 type AccountMergeUpdate = Extract<OnyxUpdate<typeof ONYXKEYS.ACCOUNT>, {onyxMethod: typeof Onyx.METHOD.MERGE}>;
-type AccountMergeValue = Pick<NonNullable<AccountMergeUpdate['value']>, 'isLoading' | 'errors' | 'twoFactorAuthSecretKey'>;
+type AccountMergeValue = Pick<NonNullable<AccountMergeUpdate['value']>, 'isLoading' | 'errors' | 'twoFactorAuthSecretKey' | 'recoveryCodes'>;
 type AccountMergeObjectUpdate = Omit<AccountMergeUpdate, 'value'> & {value: AccountMergeValue};
 
 function isAccountMergeUpdate(value: unknown): value is AccountMergeObjectUpdate {
@@ -756,6 +756,25 @@ describe('Session', () => {
             expect(mockedOpenAuthSessionAsync).not.toHaveBeenCalled();
             expect(makeRequestSpy).toHaveBeenCalledWith(SIDE_EFFECT_REQUEST_COMMANDS.LOG_OUT, expect.objectContaining({authToken: 'testAuthToken', partnerUserID: 'testLogin'}), {});
             makeRequestSpy.mockRestore();
+        });
+    });
+
+    describe('toggleTwoFactorAuth', () => {
+        test('disable success data clears the pending secret and recovery codes', () => {
+            const writeSpy = jest.spyOn(API, 'write').mockResolvedValue(undefined);
+
+            SessionUtil.toggleTwoFactorAuth(false, '123456');
+
+            const [command, , onyxData] = TestHelper.getRequiredWriteCall(writeSpy.mock.calls, 0);
+            expect(command).toBe(WRITE_COMMANDS.DISABLE_TWO_FACTOR_AUTH);
+            const accountSuccess = TestHelper.getRequiredOnyxUpdate(onyxData, 'successData', ONYXKEYS.ACCOUNT, Onyx.METHOD.MERGE, true);
+            if (!isAccountMergeUpdate(accountSuccess)) {
+                throw new Error('Expected a typed account success update');
+            }
+            expect(accountSuccess.value.recoveryCodes).toBeNull();
+            expect(accountSuccess.value.twoFactorAuthSecretKey).toBeNull();
+
+            writeSpy.mockRestore();
         });
     });
 

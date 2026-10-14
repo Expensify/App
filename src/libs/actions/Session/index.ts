@@ -1441,8 +1441,21 @@ function toggleTwoFactorAuth(enable: boolean, twoFactorAuthCode = '') {
     // A 2FA code is required to disable 2FA
     const params: DisableTwoFactorAuthParams = {twoFactorAuthCode};
 
+    // The secret kept for an unfinished setup is no longer valid once 2FA is turned off.
+    const disableSuccessData: Array<OnyxUpdate<typeof ONYXKEYS.ACCOUNT>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.ACCOUNT,
+            value: {
+                isLoading: false,
+                recoveryCodes: null,
+                twoFactorAuthSecretKey: null,
+            },
+        },
+    ];
+
     // eslint-disable-next-line rulesdir/no-multiple-api-calls
-    API.write(WRITE_COMMANDS.DISABLE_TWO_FACTOR_AUTH, params, {optimisticData, successData, failureData});
+    API.write(WRITE_COMMANDS.DISABLE_TWO_FACTOR_AUTH, params, {optimisticData, successData: disableSuccessData, failureData});
 }
 
 function clearDisableTwoFactorAuthErrors() {
