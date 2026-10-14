@@ -1,10 +1,9 @@
 import getBottomSheetHeight from '@libs/getBottomSheetHeight';
 import getSelectionListPopoverContentHeight from '@libs/getSelectionListPopoverContentHeight';
 
-import useBottomSafeSafeAreaPaddingStyle from './useBottomSafeSafeAreaPaddingStyle';
 import useKeyboardState from './useKeyboardState';
 import useResponsiveLayout from './useResponsiveLayout';
-import useSafeAreaInsets from './useSafeAreaInsets';
+import useSafeAreaPaddings from './useSafeAreaPaddings';
 import useStyleUtils from './useStyleUtils';
 import useThemeStyles from './useThemeStyles';
 import useViewportOffsetTop from './useViewportOffsetTop';
@@ -39,13 +38,12 @@ function useSelectionListPopoverLayout({optionCount, isSearchable, popoverWidth,
     const {isKeyboardActive, keyboardActiveHeight} = useKeyboardState();
     const {windowHeight} = useWindowDimensions();
     const viewportOffsetTop = useViewportOffsetTop();
-    const {top: safeAreaTop} = useSafeAreaInsets();
-    const bottomSafeAreaPaddingStyle = useBottomSafeSafeAreaPaddingStyle({
-        addBottomSafeAreaPadding: isSmallScreenWidth && !isKeyboardActive,
-        addOfflineIndicatorBottomSafeAreaPadding: false,
-    });
+    const {paddingTop: safeAreaTop, paddingBottom: safeAreaPaddingBottom} = useSafeAreaPaddings(true);
 
     const estimatedContentHeight = getSelectionListPopoverContentHeight({optionCount: Math.max(optionCount, 1), isSearchable});
+    // The sheet pads itself above the home indicator, except while the keyboard already covers it. The offline indicator
+    // is drawn on the page behind the sheet, so no room is kept for it.
+    const bottomSafeAreaPadding = isSmallScreenWidth && !isKeyboardActive ? safeAreaPaddingBottom : 0;
     const bottomSheetHeight = getBottomSheetHeight({
         preferredHeight: popoverHeight,
         windowHeight,
@@ -53,8 +51,10 @@ function useSelectionListPopoverLayout({optionCount, isSearchable, popoverWidth,
         topSafeAreaInset: safeAreaTop,
         minHeight: getSelectionListPopoverContentHeight({optionCount: 1, isSearchable}),
     });
+    // A short list gets a sheet only as tall as its rows, still within the room the window and keyboard leave.
+    const fittedSheetHeight = shouldFitContentHeight ? Math.min(bottomSheetHeight, estimatedContentHeight + bottomSafeAreaPadding) : bottomSheetHeight;
     const popoverContentHeight = shouldFitContentHeight ? Math.min(popoverHeight, estimatedContentHeight) : popoverHeight;
-    const height = isSmallScreenWidth ? bottomSheetHeight : popoverContentHeight;
+    const height = isSmallScreenWidth ? fittedSheetHeight : popoverContentHeight;
 
     return {
         popoverDimensions: {width: popoverWidth, height},
@@ -63,7 +63,7 @@ function useSelectionListPopoverLayout({optionCount, isSearchable, popoverWidth,
         // the sheet is sized and offset to the visual viewport, which the keyboard does shrink.
         outerStyle: isSmallScreenWidth ? {...styles.w100, ...StyleUtils.getOuterModalStyle(windowHeight, viewportOffsetTop)} : undefined,
         avoidKeyboard: isSmallScreenWidth,
-        contentStyle: [StyleUtils.getHeight(height), styles.flexColumn, styles.pt4, bottomSafeAreaPaddingStyle],
+        contentStyle: [StyleUtils.getHeight(height), styles.flexColumn, styles.pt4, StyleUtils.getPaddingBottom(bottomSafeAreaPadding)],
     };
 }
 
