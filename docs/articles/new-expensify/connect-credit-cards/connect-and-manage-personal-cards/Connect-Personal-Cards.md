@@ -30,6 +30,8 @@ Anyone with an Expensify account can connect up to two personal cards for free. 
 
 Once your card is connected, it will appear under **Cards** in the **Wallet**, and transactions will begin importing automatically.
 
+If your card is connected through Plaid, pending transactions also import. They're marked as pending and update automatically when they post. Cards connected through your bank's secure login (oAuth) import transactions after they post.
+
 ---
 
 ## What to do if you see a company card warning
