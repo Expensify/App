@@ -8,14 +8,25 @@ import {Alert} from 'react-native';
 type FocusCallbacks = {onFocusStart?: () => void; onFocusCleanup?: () => void};
 
 let mockFocusCallbacks: FocusCallbacks = {};
+const mockIsScreenFocused = {current: false};
 let mockCapturePhoto: (() => void) | undefined;
 let mockRejectCapture: (error: unknown) => void = () => {};
 
 jest.mock('@hooks/useNativeCamera', () => ({
     __esModule: true,
     default: (options: FocusCallbacks) => {
-        mockFocusCallbacks = options;
+        mockFocusCallbacks = {
+            onFocusStart: () => {
+                mockIsScreenFocused.current = true;
+                options.onFocusStart?.();
+            },
+            onFocusCleanup: () => {
+                mockIsScreenFocused.current = false;
+                options.onFocusCleanup?.();
+            },
+        };
         return {
+            isScreenFocused: mockIsScreenFocused,
             camera: {current: {}},
             device: {id: 'back', hasFlash: true},
             cameraPermissionStatus: 'granted',
@@ -133,6 +144,7 @@ describe('Scan camera capture cancelled by leaving the screen', () => {
     beforeEach(() => {
         jest.clearAllMocks();
         mockFocusCallbacks = {};
+        mockIsScreenFocused.current = false;
         mockCapturePhoto = undefined;
         alertSpy = jest.spyOn(Alert, 'alert').mockImplementation(() => {});
     });
@@ -152,10 +164,9 @@ describe('Scan camera capture cancelled by leaving the screen', () => {
         });
         await failCapture();
 
-        // Then no alert appears on the screen the user went to, because the cancellation was expected
+        // Then no alert appears on the screen the user went to, but the failure is still logged so real errors stay visible
         expect(alertSpy).not.toHaveBeenCalled();
-        expect(mockLogWarn).not.toHaveBeenCalled();
-        expect(mockLogInfo).toHaveBeenCalledWith('[Camera] capture cancelled because the scan screen was left', false, expect.anything());
+        expect(mockLogWarn).toHaveBeenCalledWith('Error taking photo', CAMERA_CLOSED_ERROR);
     });
 
     it('still shows the camera error alert when the capture fails while the user is on the scan screen', async () => {

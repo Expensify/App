@@ -10,14 +10,25 @@ import {Alert} from 'react-native';
 type FocusCallbacks = {onFocusStart?: () => void; onFocusCleanup?: () => void};
 
 let mockFocusCallbacks: FocusCallbacks = {};
+const mockIsScreenFocused = {current: false};
 let mockCapturePhoto: (() => void) | undefined;
 let mockRejectCapture: (error: unknown) => void = () => {};
 
 jest.mock('@hooks/useNativeCamera', () => ({
     __esModule: true,
     default: (options: FocusCallbacks) => {
-        mockFocusCallbacks = options;
+        mockFocusCallbacks = {
+            onFocusStart: () => {
+                mockIsScreenFocused.current = true;
+                options.onFocusStart?.();
+            },
+            onFocusCleanup: () => {
+                mockIsScreenFocused.current = false;
+                options.onFocusCleanup?.();
+            },
+        };
         return {
+            isScreenFocused: mockIsScreenFocused,
             camera: {
                 current: {
                     takePhoto: () =>
@@ -107,7 +118,6 @@ const ROUTE_PARAMS = {
 };
 
 function renderFocusedOdometerCamera() {
-    // The screen only reads these route params here; the HOC that provides the rest is mocked out.
     // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
     const props = {route: {params: ROUTE_PARAMS}, transaction: undefined} as unknown as React.ComponentProps<typeof IOURequestStepOdometerImage>;
     render(<IOURequestStepOdometerImage {...props} />);
@@ -117,7 +127,6 @@ function renderFocusedOdometerCamera() {
 }
 
 async function pressShutter() {
-    // The capture starts after an async check that the receipts folder exists.
     await act(async () => {
         mockCapturePhoto?.();
     });
@@ -135,6 +144,7 @@ describe('Odometer camera capture cancelled by leaving the screen', () => {
     beforeEach(() => {
         jest.clearAllMocks();
         mockFocusCallbacks = {};
+        mockIsScreenFocused.current = false;
         mockCapturePhoto = undefined;
         alertSpy = jest.spyOn(Alert, 'alert').mockImplementation(() => {});
     });
@@ -154,10 +164,9 @@ describe('Odometer camera capture cancelled by leaving the screen', () => {
         });
         await failCapture();
 
-        // Then no alert appears on the screen the user went to, because the cancellation was expected
+        // Then no alert appears on the screen the user went to, but the failure is still logged so real errors stay visible
         expect(alertSpy).not.toHaveBeenCalled();
-        expect(mockLogWarn).not.toHaveBeenCalledWith('Error taking photo', expect.anything());
-        expect(mockLogInfo).toHaveBeenCalledWith('[Camera] odometer capture cancelled because the screen was left', false, expect.anything());
+        expect(mockLogWarn).toHaveBeenCalledWith('Error taking photo', CAMERA_CLOSED_ERROR.message);
     });
 
     it('still shows the camera error alert when the capture fails while the user is on the odometer camera', async () => {

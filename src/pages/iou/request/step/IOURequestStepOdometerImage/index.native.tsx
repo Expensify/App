@@ -67,13 +67,13 @@ function IOURequestStepOdometerImage({
     const viewfinderLayout = useRef<LayoutRectangle>(null);
     // Ref for double-tap protection
     const isCapturingPhoto = useRef(false);
-    const isScreenFocused = useRef(false);
     const isTransactionDraft = shouldUseTransactionDraft(action ?? CONST.IOU.ACTION.CREATE, iouType ?? CONST.IOU.TYPE.REQUEST);
 
     const isInLandscapeMode = useIsInLandscapeMode();
 
     const {
         camera,
+        isScreenFocused,
         device,
         cameraPermissionStatus,
         flash,
@@ -88,11 +88,7 @@ function IOURequestStepOdometerImage({
         tapGesture,
         cameraFocusIndicatorAnimatedStyle,
     } = useNativeCamera({
-        onFocusStart: () => {
-            isScreenFocused.current = true;
-        },
         onFocusCleanup: () => {
-            isScreenFocused.current = false;
             isCapturingPhoto.current = false;
             cancelSpan(CONST.TELEMETRY.SPAN_ODOMETER_IMAGE_CAPTURE);
         },
@@ -248,14 +244,11 @@ function IOURequestStepOdometerImage({
                     .catch((error: unknown) => {
                         cancelSpan(CONST.TELEMETRY.SPAN_ODOMETER_IMAGE_CAPTURE);
                         isCapturingPhoto.current = false;
-                        const errorMessage = error instanceof Error ? error.message : String(error);
                         // Leaving the screen closes the camera, which cancels a capture still in flight (e.g. a flash shot).
-                        if (!isScreenFocused.current) {
-                            Log.info('[Camera] odometer capture cancelled because the screen was left', false, {message: errorMessage});
-                            return;
+                        if (isScreenFocused.current) {
+                            showCameraAlert();
                         }
-                        showCameraAlert();
-                        Log.warn('Error taking photo', errorMessage);
+                        Log.warn('Error taking photo', error instanceof Error ? error.message : String(error));
                     });
             });
     };

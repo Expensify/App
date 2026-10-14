@@ -56,15 +56,12 @@ function Camera({onCapture, onPicked, shouldAcceptMultipleFiles = false, onLayou
 
     // Ref for double-tap protection (doesn't trigger re-render)
     const isCapturingPhoto = useRef(false);
-    const isScreenFocused = useRef(false);
 
     const onFocusStart = () => {
         isCapturingPhoto.current = false;
-        isScreenFocused.current = true;
     };
 
     const onFocusCleanup = () => {
-        isScreenFocused.current = false;
         cancelSpan(CONST.TELEMETRY.SPAN_RECEIPT_CAPTURE);
         cancelSpan(CONST.TELEMETRY.SPAN_RECEIPT_PREPARE);
         cancelSpan(CONST.TELEMETRY.SPAN_SHUTTER_TO_CONFIRMATION);
@@ -72,6 +69,7 @@ function Camera({onCapture, onPicked, shouldAcceptMultipleFiles = false, onLayou
 
     const {
         camera,
+        isScreenFocused,
         device,
         cameraPermissionStatus,
         flash,
@@ -218,11 +216,9 @@ function Camera({onCapture, onPicked, shouldAcceptMultipleFiles = false, onLayou
                 maybeCancelShutterSpan();
                 discardPendingPhoto();
                 // Leaving the screen closes the camera, which cancels a capture still in flight (e.g. a flash shot).
-                if (!isScreenFocused.current) {
-                    Log.info('[Camera] capture cancelled because the scan screen was left', false, {message: String(error)});
-                    return;
+                if (isScreenFocused.current) {
+                    showCameraAlert();
                 }
-                showCameraAlert();
                 Log.warn('Error taking photo', error);
             });
 
