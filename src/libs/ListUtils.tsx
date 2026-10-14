@@ -28,4 +28,13 @@ function withClearRow<T extends ListItem>(items: T[], clearRow: T, isSelectionPi
     return isSelectionPinnedToTop ? [...items.slice(0, 1), clearRow, ...items.slice(1)] : [clearRow, ...items];
 }
 
-export {sortDefaultToTop, withClearRow};
+/** Removes the default row's separator when it is the last item in the list. */
+function clearTrailingDefaultSeparator<T extends ListItem>(items: T[], isDefault: (item: T) => boolean): T[] {
+    const lastItem = items.at(-1);
+    if (!lastItem?.footerContent || !isDefault(lastItem)) {
+        return items;
+    }
+    return [...items.slice(0, -1), {...lastItem, footerContent: undefined}];
+}
+
+export {sortDefaultToTop, withClearRow, clearTrailingDefaultSeparator};

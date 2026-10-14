@@ -1,6 +1,6 @@
 import type {ListItem} from '@components/SelectionList/types';
 
-import {sortDefaultToTop, withClearRow} from '@libs/ListUtils';
+import {clearTrailingDefaultSeparator, sortDefaultToTop, withClearRow} from '@libs/ListUtils';
 
 import type {ThemeStyles} from '@styles/index';
 
@@ -90,5 +90,56 @@ describe('withClearRow', () => {
         // When the clear row is inserted with isSelectionPinnedToTop = false
         // Then it stays at the very top (natural order is retained below it)
         expect(withClearRow(vendors, clearRow, false)).toStrictEqual([{keyForList: 'none', text: 'None'}, ...vendors]);
+    });
+});
+
+describe('clearTrailingDefaultSeparator', () => {
+    const separator = <View />;
+    const isDefault = (item: ListItem) => item.keyForList === 'default';
+
+    it('removes the separator when the default row is last in the list', () => {
+        // Given a list whose last row is the default account carrying a baked-in separator (e.g. search left only the default result)
+        const items: ListItem[] = [
+            {keyForList: 'other', text: 'Other'},
+            {keyForList: 'default', text: 'Default', footerContent: separator},
+        ];
+
+        // When the trailing default separator is cleared
+        // Then the default row keeps its place but loses the dangling separator below it
+        expect(clearTrailingDefaultSeparator(items, isDefault)).toStrictEqual([
+            {keyForList: 'other', text: 'Other'},
+            {keyForList: 'default', text: 'Default', footerContent: undefined},
+        ]);
+    });
+
+    it('keeps the separator when the default row is not last', () => {
+        // Given a list where the default row (with separator) is followed by other rows
+        const items: ListItem[] = [
+            {keyForList: 'default', text: 'Default', footerContent: separator},
+            {keyForList: 'other', text: 'Other'},
+        ];
+
+        // When the trailing default separator is cleared
+        // Then nothing changes because the separator still divides the default row from the rows below it
+        expect(clearTrailingDefaultSeparator(items, isDefault)).toStrictEqual(items);
+    });
+
+    it('does nothing when the last row is not the default', () => {
+        // Given a list whose last row is a non-default account without a separator
+        const items: ListItem[] = [
+            {keyForList: 'default', text: 'Default', footerContent: separator},
+            {keyForList: 'other', text: 'Other'},
+        ];
+
+        // When the trailing default separator is cleared
+        // Then the list is returned untouched
+        expect(clearTrailingDefaultSeparator(items, isDefault)).toStrictEqual(items);
+    });
+
+    it('does nothing for an empty list', () => {
+        // Given an empty list
+        // When the trailing default separator is cleared
+        // Then it stays empty without throwing
+        expect(clearTrailingDefaultSeparator([], isDefault)).toStrictEqual([]);
     });
 });
