@@ -1711,7 +1711,7 @@ const footerSelectionTests = [
                     right: 'USD',
                 },
                 right: {
-                    operator: 'eq',
+                    operator: 'contains',
                     left: 'merchant',
                     right: 'Amazon',
                 },

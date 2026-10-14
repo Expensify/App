@@ -2791,7 +2791,8 @@ describe('SearchQueryUtils', () => {
             // Captured before the footer keys existed. These hashes key saved searches and snapshots, so they must not drift.
             expect(buildSearchQueryJSON('type:expense')?.hash).toEqual(959171759);
             expect(buildSearchQueryJSON('type:expense-report')?.hash).toEqual(1657503970);
-            expect(buildSearchQueryJSON('type:expense merchant:Amazon')?.hash).toEqual(1692688529);
+            // `merchant:` parses as contains and hashes as `merchant*:`, so this hash differs from the one before the match type existed.
+            expect(buildSearchQueryJSON('type:expense merchant:Amazon')?.hash).toEqual(1712664595);
         });
     });
 
