@@ -33,6 +33,8 @@ describe('useSelectionListSearch', () => {
     const searchAndSettle = (setSearchValue: (value: string) => void, value: string) => {
         act(() => {
             setSearchValue(value);
+        });
+        act(() => {
             jest.advanceTimersByTime(CONST.TIMING.SEARCH_OPTION_LIST_DEBOUNCE_TIME);
         });
     };

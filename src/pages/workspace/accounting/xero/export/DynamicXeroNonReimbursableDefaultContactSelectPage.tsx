@@ -3,6 +3,7 @@ import type {SelectorType} from '@components/SelectionScreen';
 import SelectionScreen from '@components/SelectionScreen';
 import Text from '@components/Text';
 
+import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useInitialValue from '@hooks/useInitialValue';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -11,7 +12,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {updateManyPolicyConnectionConfigs} from '@libs/actions/connections';
 import {clearXeroErrorField} from '@libs/actions/Policy/Policy';
 import {getLatestErrorField} from '@libs/ErrorUtils';
-import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {getXeroSuppliers, isXeroVendorMatchingActive, settingsPendingAction, sortVendors} from '@libs/PolicyUtils';
 import moveInitialSelectionToTop from '@libs/SelectionListOrderUtils';
@@ -23,7 +23,7 @@ import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
-import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 
 import React, {useCallback, useMemo, useState} from 'react';
 import {View} from 'react-native';
@@ -99,9 +99,11 @@ function DynamicXeroNonReimbursableDefaultContactSelectPage({policy}: WithPolicy
         ? orderedOptions.filter((option) => option.value === CLEAR_DEFAULT_VENDOR_VALUE || tokenizedSearch([option], searchText, (item) => [item.text ?? '']).length > 0)
         : orderedOptions;
 
+    const backPath = useDynamicBackPath(DYNAMIC_ROUTES.POLICY_ACCOUNTING_XERO_NON_REIMBURSABLE_DEFAULT_CONTACT_SELECT.path);
+
     const goBack = useCallback(() => {
-        Navigation.goBack(policyID ? createDynamicRoute(DYNAMIC_ROUTES.POLICY_ACCOUNTING_XERO_EXPORT.path, ROUTES.POLICY_ACCOUNTING.getRoute(policyID)) : undefined);
-    }, [policyID]);
+        Navigation.goBack(backPath);
+    }, [backPath]);
 
     const selectSupplier = useCallback(
         ({value}: SelectorType) => {
