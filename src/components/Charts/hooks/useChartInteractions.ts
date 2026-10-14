@@ -1,13 +1,12 @@
-import {markChartTouch} from '@components/Charts/utils/pinnedChartTooltip';
-
 import type {SharedValue} from 'react-native-reanimated';
 
-import {useCallback, useState} from 'react';
+import {useCallback} from 'react';
 import {Gesture, PointerType} from 'react-native-gesture-handler';
 import {useDerivedValue, useSharedValue} from 'react-native-reanimated';
 import {scheduleOnRN, scheduleOnUI} from 'react-native-worklets';
 
 import useChartInteractionState from './useChartInteractionState';
+import useTouchPinnedTooltip from './useTouchPinnedTooltip';
 
 /** Gap between bar top and tooltip bottom */
 const TOOLTIP_BAR_GAP = 8;
@@ -196,9 +195,6 @@ function useChartInteractions({
     const isCursorOverClickable = useSharedValue(false);
     const isTooltipActive = useSharedValue(false);
 
-    /** True while a tooltip opened by a touch tap is shown, which lets a touch anywhere on the screen hide it */
-    const [isTouchPinned, setIsTouchPinned] = useState(false);
-
     /**
      * Called by chart content from handleScaleChange to populate canvas positions.
      * Must be called with the positions derived from the current d3 scale.
@@ -362,6 +358,11 @@ function useChartInteractions({
         isTooltipActive.set(false);
     };
 
+    const {setIsTouchPinned, dismissTouchTooltip, onTooltipDismiss, onTapFinalize, onChartTouchStart} = useTouchPinnedTooltip(() => {
+        hideTooltip();
+        applyTargetIndex(-1);
+    });
+
     /**
      * Hover gesture to be placed on the full-height outer container (chart + label area).
      * Clamps the y coordinate to chartBottom before passing to Victory so that hovering
@@ -403,12 +404,6 @@ function useChartInteractions({
                 hideTooltip();
             });
 
-    const dismissTouchTooltip = () => {
-        hideTooltip();
-        applyTargetIndex(-1);
-        setIsTouchPinned(false);
-    };
-
     const handleTouchTap = (cursorX: number, cursorY: number) => {
         'worklet';
 
@@ -427,15 +422,7 @@ function useChartInteractions({
      */
     const tapGesture = (onPress?: (index: number) => void) =>
         Gesture.Tap()
-            // A touch on this chart that turns into a scroll leaves the pinned tooltip to the chart, so the chart hides it
-            .onFinalize((e, success) => {
-                'worklet';
-
-                if (success || e.pointerType !== PointerType.TOUCH || !isTouchPinned) {
-                    return;
-                }
-                scheduleOnRN(dismissTouchTooltip);
-            })
+            .onFinalize(onTapFinalize)
             .onEnd((e) => {
                 'worklet';
 
@@ -516,9 +503,9 @@ function useChartInteractions({
         /** Call with how far the chart moved in the window, e.g. on page scroll, to re-check the hover under a still cursor */
         onChartMoved,
         /** Hides the tooltip pinned by a touch tap, undefined while nothing is pinned */
-        onTooltipDismiss: isTouchPinned ? dismissTouchTooltip : undefined,
+        onTooltipDismiss,
         /** Marks a touch on this chart, so the screen's touch start keeps the tooltip and lets the tap switch it */
-        onChartTouchStart: () => markChartTouch(isTouchPinned ? dismissTouchTooltip : undefined),
+        onChartTouchStart,
     };
 }
 

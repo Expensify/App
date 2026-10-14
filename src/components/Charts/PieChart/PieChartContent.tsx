@@ -1,9 +1,8 @@
 import ActivityIndicator from '@components/ActivityIndicator';
 import ChartTooltipLayer from '@components/Charts/components/ChartTooltipLayer';
-import {TOOLTIP_BAR_GAP, useChartLabelFormats} from '@components/Charts/hooks';
+import {TOOLTIP_BAR_GAP, useChartLabelFormats, useTouchPinnedTooltip} from '@components/Charts/hooks';
 import type {ChartDataPoint, ChartProps, PieSlice, UnitPosition} from '@components/Charts/types';
 import {findSliceAtPosition, getPrimaryValue, processDataIntoSlices} from '@components/Charts/utils';
-import {markChartTouch} from '@components/Charts/utils/pinnedChartTooltip';
 import VictoryTheme from '@components/Charts/VictoryTheme';
 import Text from '@components/Text';
 
@@ -41,9 +40,6 @@ function PieChartContent({data, series, isLoading, valueUnit, valueUnitPosition,
     const {translate} = useLocalize();
     const [canvasWidth, setCanvasWidth] = useState(0);
     const [canvasHeight, setCanvasHeight] = useState(0);
-
-    /** True while a slice tooltip opened by a touch tap is shown, which lets a touch anywhere on the screen hide it */
-    const [isTouchPinned, setIsTouchPinned] = useState(false);
     const [isHoveringOverPie, setIsHoveringOverPie] = useState(false);
 
     // Shared values for hover state
@@ -124,11 +120,10 @@ function PieChartContent({data, series, isLoading, valueUnit, valueUnitPosition,
 
     const onChartMoved = (deltaX: number, deltaY: number) => scheduleOnUI(handleChartMoved, deltaX, deltaY);
 
-    const dismissTouchedSlice = () => {
+    const {setIsTouchPinned, onTooltipDismiss, onTapFinalize, onChartTouchStart} = useTouchPinnedTooltip(() => {
         matchedIndex.set(-1);
-        setIsTouchPinned(false);
         setIsHoveringOverPie(false);
-    };
+    });
 
     // Hover gesture
     const hoverGesture = () =>
@@ -165,14 +160,7 @@ function PieChartContent({data, series, isLoading, valueUnit, valueUnitPosition,
     // Tap gesture for click/tap navigation
     const tapGesture = () =>
         Gesture.Tap()
-            .onFinalize((e, success) => {
-                'worklet';
-
-                if (success || e.pointerType !== PointerType.TOUCH || !isTouchPinned) {
-                    return;
-                }
-                scheduleOnRN(dismissTouchedSlice);
-            })
+            .onFinalize(onTapFinalize)
             .onEnd((e) => {
                 'worklet';
 
@@ -234,7 +222,7 @@ function PieChartContent({data, series, isLoading, valueUnit, valueUnitPosition,
                 <Animated.View
                     style={[styles.chartContent, isHoveringOverPie && styles.cursorPointer]}
                     onLayout={handleLayout}
-                    onTouchStart={() => markChartTouch(isTouchPinned ? dismissTouchedSlice : undefined)}
+                    onTouchStart={onChartTouchStart}
                 >
                     {processedSlices.length > 0 && (
                         <PolarChart
@@ -283,7 +271,7 @@ function PieChartContent({data, series, isLoading, valueUnit, valueUnitPosition,
                         chartWidth={canvasWidth}
                         initialTooltipPosition={tooltipPosition}
                         onChartMoved={onChartMoved}
-                        onDismiss={isTouchPinned ? dismissTouchedSlice : undefined}
+                        onDismiss={onTooltipDismiss}
                     />
                 </Animated.View>
             </GestureDetector>
