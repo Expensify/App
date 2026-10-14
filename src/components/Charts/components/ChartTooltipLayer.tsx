@@ -1,7 +1,8 @@
 import {useTooltipData} from '@components/Charts/hooks';
-import type {ChartDataPoint} from '@components/Charts/types';
+import type {ChartDataPoint, ChartSeries} from '@components/Charts/types';
 
 import type {DerivedValue, SharedValue} from 'react-native-reanimated';
+import type {NonEmptyTuple} from 'type-fest';
 
 import React, {useState} from 'react';
 import {useAnimatedReaction, useDerivedValue, useSharedValue} from 'react-native-reanimated';
@@ -17,6 +18,9 @@ type ChartTooltipLayerProps = {
 
     /** Chart data points used to compute tooltip content */
     data: ChartDataPoint[];
+
+    /** Chart series used to compute tooltip content */
+    series: NonEmptyTuple<ChartSeries>;
 
     /** Formats a numeric value for display */
     formatValue: (value: number) => string;
@@ -38,7 +42,7 @@ type ChartTooltipLayerProps = {
  * Renders the chart tooltip in an isolated subtree so that hover-driven state changes
  * (active index, visibility) only re-render this lightweight component, not the chart itself.
  */
-function ChartTooltipLayer({matchedIndex, isTooltipActive, data, formatValue, chartWidth, initialTooltipPosition, onChartMoved, onDismiss}: ChartTooltipLayerProps) {
+function ChartTooltipLayer({matchedIndex, isTooltipActive, data, series, formatValue, chartWidth, initialTooltipPosition, onChartMoved, onDismiss}: ChartTooltipLayerProps) {
     const [activeDataIndex, setActiveDataIndex] = useState(-1);
 
     // Set from the content's layout, since on native a value set during render can reach the UI thread before the new content is mounted
@@ -52,7 +56,7 @@ function ChartTooltipLayer({matchedIndex, isTooltipActive, data, formatValue, ch
     );
 
     const isContentCurrent = useDerivedValue(() => matchedIndex.get() === laidOutIndex.get());
-    const tooltipData = useTooltipData(activeDataIndex, data, formatValue);
+    const tooltipData = useTooltipData(activeDataIndex, data, series, formatValue);
 
     if (!tooltipData) {
         return null;

@@ -500,7 +500,7 @@ function useChartInteractions({
         customGestures,
         /**
          * Call this from handleScaleChange with the canvas x/y positions of each data point.
-         * Derived from the d3 scale: ox[i] = xScale(i), oy[i] = yScale(data[i].total).
+         * Derived from the d3 scale: ox[i] = xScale(i), oy[i] = yScale of the point's primary series value.
          */
         setPointPositions,
         /** SharedValue for the currently matched data index — read on the UI thread or sync via useAnimatedReaction */
