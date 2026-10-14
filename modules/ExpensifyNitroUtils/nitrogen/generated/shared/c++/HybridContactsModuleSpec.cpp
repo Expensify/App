@@ -15,6 +15,7 @@ namespace margelo::nitro::utils {
     // load custom methods/properties
     registerHybrids(this, [](Prototype& prototype) {
       prototype.registerHybridMethod("getAll", &HybridContactsModuleSpec::getAll);
+      prototype.registerHybridMethod("pick", &HybridContactsModuleSpec::pick);
     });
   }
 
