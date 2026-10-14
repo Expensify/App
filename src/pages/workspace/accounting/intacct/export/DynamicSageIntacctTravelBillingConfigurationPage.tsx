@@ -16,7 +16,7 @@ import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnec
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 
 import CONST from '@src/CONST';
-import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 
 import React from 'react';
 
@@ -30,7 +30,6 @@ function DynamicSageIntacctTravelBillingConfigurationPage({policy}: WithPolicyCo
     const config = policy?.connections?.intacct?.config;
     const travelPayableAccount = policy?.connections?.intacct?.data?.creditCards?.find((account) => account.name === config?.export?.travelInvoicingPayableAccountID);
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_TRAVEL_BILLING_CONFIGURATION.path);
-    const travelBillingPath = `${ROUTES.POLICY_ACCOUNTING.getRoute(policyID)}/${DYNAMIC_ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_EXPORT.path}/${DYNAMIC_ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_TRAVEL_BILLING_CONFIGURATION.path}`;
 
     return (
         <ConnectionLayout
@@ -55,7 +54,7 @@ function DynamicSageIntacctTravelBillingConfigurationPage({policy}: WithPolicyCo
             >
                 <MenuItemField
                     name={translate('workspace.sageIntacct.creditCardAccount')}
-                    onPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_TRAVEL_BILLING_PAYABLE_ACCOUNT_SELECT.path, travelBillingPath))}
+                    onPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_TRAVEL_BILLING_PAYABLE_ACCOUNT_SELECT.path))}
                     value={travelPayableAccount?.name}
                 >
                     {areSettingsInErrorFields(payableAccountSetting, config?.errorFields) && <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />}
