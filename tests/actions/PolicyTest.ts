@@ -434,6 +434,7 @@ describe('actions/Policy', () => {
                     exportLayouts: true,
                 },
                 localCurrency: 'USD',
+                personalDetailsByLogins: {},
             };
 
             Policy.duplicateWorkspace(fakePolicy, options);
@@ -624,6 +625,7 @@ describe('actions/Policy', () => {
                     exportLayouts: false,
                 },
                 localCurrency: 'USD',
+                personalDetailsByLogins: {},
             };
 
             Policy.duplicateWorkspace(fakePolicy, options);
@@ -696,6 +698,7 @@ describe('actions/Policy', () => {
                 },
                 localCurrency: 'USD',
                 rules: {[`${ONYXKEYS.COLLECTION.RULE}sourceRule`]: sourceRule},
+                personalDetailsByLogins: {},
             };
 
             Policy.duplicateWorkspace(fakePolicy, options);
@@ -758,6 +761,7 @@ describe('actions/Policy', () => {
                 policyID: fakePolicy.id,
                 targetPolicyID: policyID,
                 welcomeNote: 'Join my policy',
+                personalDetailsByLogins: {},
                 parts: {
                     people: false,
                     reports: false,
@@ -806,11 +810,11 @@ describe('actions/Policy', () => {
             const memberAID = 200;
             const memberBID = 201;
             const memberCID = 202;
-            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
-                [memberAID]: {accountID: memberAID, login: memberAEmail},
-                [memberBID]: {accountID: memberBID, login: memberBEmail},
-                [memberCID]: {accountID: memberCID, login: memberCEmail},
-            });
+            const personalDetailsByLogins = {
+                [memberAEmail]: {accountID: memberAID, login: memberAEmail},
+                [memberBEmail]: {accountID: memberBID, login: memberBEmail},
+                [memberCEmail]: {accountID: memberCID, login: memberCEmail},
+            };
             await waitForBatchedUpdates();
 
             const policyID = Policy.generatePolicyID();
@@ -836,6 +840,7 @@ describe('actions/Policy', () => {
                     exportLayouts: false,
                 },
                 localCurrency: 'USD',
+                personalDetailsByLogins,
             };
 
             Policy.duplicateWorkspace(fakePolicy, options);
@@ -889,6 +894,7 @@ describe('actions/Policy', () => {
                     exportLayouts: false,
                 },
                 localCurrency: 'USD',
+                personalDetailsByLogins: {},
             };
 
             Policy.duplicateWorkspace(fakePolicy, options);
@@ -938,6 +944,7 @@ describe('actions/Policy', () => {
                     exportLayouts: false,
                 },
                 localCurrency: 'USD',
+                personalDetailsByLogins: {},
             };
 
             Policy.duplicateWorkspace(fakePolicy, options);
@@ -1020,6 +1027,7 @@ describe('actions/Policy', () => {
                     exportLayouts: false,
                 },
                 localCurrency: 'USD',
+                personalDetailsByLogins: {},
             };
 
             // Pause the API call so successData (which clears the optimistic source rate IDs) does not
@@ -5740,6 +5748,38 @@ describe('actions/Policy', () => {
 
             // Then no request is sent
             TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.SET_WORKSPACE_REIMBURSEMENT, 0);
+        });
+    });
+
+    describe('enablePolicyFeatureForConnection', () => {
+        it('should turn the feature on when it is off, since the Connections page has no toggle for it', async () => {
+            // Given a workspace with HR off
+            const apiWriteSpy = jest.spyOn(APIModule, 'writeWithNoDuplicatesEnableFeatureConflicts').mockImplementation(() => Promise.resolve());
+            const fakePolicy: PolicyType = {...createRandomPolicy(0, CONST.POLICY.TYPE.CORPORATE), isHREnabled: false, connections: undefined};
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
+            await waitForBatchedUpdates();
+
+            // When an HR provider is connected from the Connections page
+            Policy.enablePolicyFeatureForConnection(fakePolicy, CONST.POLICY.MORE_FEATURES.IS_HR_ENABLED);
+            await waitForBatchedUpdates();
+
+            // Then HR is turned on, so the connection's settings pages are reachable
+            expect(apiWriteSpy).toHaveBeenCalledWith(WRITE_COMMANDS.ENABLE_POLICY_HR, expect.objectContaining({policyID: fakePolicy.id, enabled: true}), expect.anything());
+            apiWriteSpy.mockRestore();
+        });
+
+        it('should not call the API when the feature is already on', async () => {
+            // Given a workspace with HR already on
+            const apiWriteSpy = jest.spyOn(APIModule, 'writeWithNoDuplicatesEnableFeatureConflicts').mockImplementation(() => Promise.resolve());
+            const fakePolicy: PolicyType = {...createRandomPolicy(0, CONST.POLICY.TYPE.CORPORATE), isHREnabled: true};
+
+            // When an HR provider is connected from the Connections page
+            Policy.enablePolicyFeatureForConnection(fakePolicy, CONST.POLICY.MORE_FEATURES.IS_HR_ENABLED);
+            await waitForBatchedUpdates();
+
+            // Then nothing is sent, since there is nothing to turn on
+            expect(apiWriteSpy).not.toHaveBeenCalled();
+            apiWriteSpy.mockRestore();
         });
     });
 

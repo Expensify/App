@@ -69,6 +69,32 @@ describe('SelectionScraper', () => {
         expect(SelectionScraper.getCurrentSelection()).toBe('<div><math><mtext><span></span></mtext></math></div>');
     });
 
+    it('strips copied content when the row wrapper carries the selection-scraper hidden marker', () => {
+        selectFixture(
+            `<div data-${CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT}="true"><div data-testid="text-fragment">first</div></div>` +
+                `<div data-${CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT}="true"><div data-testid="text-fragment">second</div></div>`,
+        );
+
+        expect(window.getSelection()?.toString()).toContain('first');
+        expect(window.getSelection()?.toString()).toContain('second');
+        expect(SelectionScraper.getCurrentSelection().trim()).toBe('');
+    });
+
+    it('preserves copied content when the row wrapper is not marked hidden', () => {
+        selectFixture('<div data-testid="text-fragment">hello</div>');
+
+        expect(SelectionScraper.getCurrentSelection()).toContain('hello');
+    });
+
+    it('normalizes button tags to div in the rendered clipboard HTML', () => {
+        selectFixture('<button><div data-testid="text-fragment">hello</div></button>');
+
+        const selection = SelectionScraper.getCurrentSelection();
+        expect(selection).toContain('hello');
+        expect(selection).not.toContain('<button');
+        expect(selection).toContain('<div');
+    });
+
     it('preserves ordinary HTML transformations', () => {
         selectFixture(
             '<span data-testid="strong" class="discarded">bold &amp; <a href="https://example.com" class="discarded">link</a><br>\n</span>' +
