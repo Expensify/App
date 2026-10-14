@@ -60,7 +60,7 @@ import {View} from 'react-native';
 
 import type {NavigationSuggestionSourceItem} from './SearchRouterHelpers';
 
-import {buildNavigationSuggestions, getGoToText} from './SearchRouterHelpers';
+import {buildNavigationSuggestions, canQueryMatchNavigationSuggestions, getGoToText} from './SearchRouterHelpers';
 import useCreateNavigationSuggestions from './useCreateNavigationSuggestions';
 
 type TopLevelNavigationIcons = Record<'Home' | 'Inbox' | 'ReceiptMultiple' | 'PieChart' | 'Building' | 'Globe' | 'Gear', IconAsset>;
@@ -411,6 +411,12 @@ function useNavigationSuggestions(query: string, shouldWatchForApprovals = true)
     const {clearSelectedTransactions} = useSearchSelectionActions();
     const typeMenuSections = useSearchTypeMenuSectionsForNavigation(shouldWatchForApprovals);
     const {accountMenuItemsData, generalMenuItemsData} = useSettingsNavigationMenuData();
+
+    // The workspace source alone builds the whole settings menu of every workspace, and an empty query would
+    // throw all of it away, which costs the most on the first frame of every Search Router open.
+    if (!canQueryMatchNavigationSuggestions(query)) {
+        return [];
+    }
 
     const topLevelItems = buildTopLevelNavigationItems({
         labels: {

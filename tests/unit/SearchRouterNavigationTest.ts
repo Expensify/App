@@ -851,6 +851,29 @@ describe('Workspace Search Router navigation source', () => {
         expect(mockIsBetaEnabled).toHaveBeenCalledWith(CONST.BETAS.VENDOR_MATCHING);
         expect(mockIsBetaEnabled).toHaveBeenCalledWith(CONST.BETAS.MERGE_ATS);
     });
+
+    it('skips building the Workspace source for the empty query the Search Router opens with', () => {
+        // Given an account with workspaces, whose settings menus are the most expensive navigation source to build
+        const policy = createWorkspacePolicy('1', 'Alpha Workspace');
+        mockUseOnyx.mockImplementation((key) => {
+            if (key === ONYXKEYS.COLLECTION.POLICY) {
+                return [{[`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`]: policy}];
+            }
+            if (key === ONYXKEYS.SESSION) {
+                return [workspaceCurrentUserLogin];
+            }
+            return [undefined];
+        });
+        mockUseMemoizedLazyExpensifyIcons.mockReturnValue({...spendIcons, ...workspaceIcons, Home: mockIcon, Inbox: mockIcon, ReceiptMultiple: mockIcon, Gear: mockIcon});
+        mockUseSearchTypeMenuSections.mockReturnValue([]);
+
+        // When the hook renders with the empty query of a fresh Search Router open
+        const {result} = renderHook(() => useNavigationSuggestions(''));
+
+        // Then no suggestion is returned and no Workspace menu is built, since the result would be discarded anyway
+        expect(result.current).toEqual([]);
+        expect(getWorkspaceMenuItems).not.toHaveBeenCalled();
+    });
 });
 
 describe('Spend Search Router navigation source', () => {
