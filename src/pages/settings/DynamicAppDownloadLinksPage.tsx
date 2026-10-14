@@ -1,11 +1,12 @@
 import expensifyLogo from '@assets/images/expensify-logo-round-transparent.png';
 
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import MenuItem from '@components/MenuItem';
 import QRShare from '@components/QRShare';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 
+import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -16,19 +17,21 @@ import Navigation from '@libs/Navigation/Navigation';
 import {callFunctionIfActionIsAllowed} from '@userActions/Session';
 
 import CONST from '@src/CONST';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 
 import React from 'react';
 
-function AppDownloadLinksPage() {
+function DynamicAppDownloadLinksPage() {
     const icons = useMemoizedLazyExpensifyIcons(['Android', 'Apple']);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const backPath = useDynamicBackPath(DYNAMIC_ROUTES.APP_DOWNLOAD_LINKS.path);
 
     return (
-        <ScreenWrapper testID="AppDownloadLinksPage">
-            <HeaderWithBackButton
+        <ScreenWrapper testID="DynamicAppDownloadLinksPage">
+            <HeaderWithBackButtonAndTitle
                 title={translate('initialSettingsPage.aboutPage.appDownloadLinks')}
-                onBackButtonPress={() => Navigation.goBack()}
+                onBackButtonPress={() => Navigation.goBack(backPath)}
             />
 
             <QRShare
@@ -73,4 +76,4 @@ function AppDownloadLinksPage() {
     );
 }
 
-export default AppDownloadLinksPage;
+export default DynamicAppDownloadLinksPage;

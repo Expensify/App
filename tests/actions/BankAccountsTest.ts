@@ -197,7 +197,7 @@ describe('actions/BankAccounts', () => {
             openPersonalBankAccountSetupView({shouldSetUpUSBankAccount: true});
             await waitForBatchedUpdates();
 
-            expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.SETTINGS_ADD_US_BANK_ACCOUNT.getRoute());
+            expect(Navigation.navigate).toHaveBeenCalledWith(createDynamicRoute(DYNAMIC_ROUTES.ADD_US_BANK_ACCOUNT.getRoute()));
         });
 
         test('carries shouldSetUpUSBankAccount to the verify account page when the user is not validated', async () => {
