@@ -6,6 +6,7 @@ import {useTableContext} from '@components/Table/TableContext';
 
 import type {UseCompanyCardsResult} from '@hooks/useCompanyCards';
 import useConfirmModal from '@hooks/useConfirmModal';
+import useLayoutSpacing from '@hooks/useLayoutSpacing';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -60,6 +61,7 @@ function WorkspaceCompanyCardsTableControls({
     isSelectionModeEnabled,
 }: WorkspaceCompanyCardsTableControlsProps) {
     const styles = useThemeStyles();
+    const {pageGutter} = useLayoutSpacing();
     const {translate, getLocalDateFromDatetime} = useLocalize();
     const {showConfirmModal} = useConfirmModal();
     const icons = useMemoizedLazyExpensifyIcons(['Export', 'MoneySearch', 'RemoveMembers']);
@@ -184,7 +186,7 @@ function WorkspaceCompanyCardsTableControls({
     return (
         <>
             {shouldShowBulkActions && (
-                <View style={[styles.w100, styles.ph5, styles.pb3, !shouldUseNarrowTableLayout && styles.flexRow]}>
+                <View style={[styles.w100, pageGutter, styles.pb3, !shouldUseNarrowTableLayout && styles.flexRow]}>
                     <ButtonWithDropdownMenu<WorkspaceCompanyCardBulkActionType>
                         variant={CONST.BUTTON_VARIANT.SUCCESS}
                         onPress={() => {}}

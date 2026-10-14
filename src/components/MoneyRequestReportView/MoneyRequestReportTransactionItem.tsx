@@ -1,24 +1,24 @@
+import {useEditingCellState} from '@components/EditableCell';
 import ErrorMessageRow from '@components/ErrorMessageRow';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {PressableWithFeedback} from '@components/Pressable';
 import type {SearchColumnType, TableColumnSize} from '@components/Search/types';
 import TransactionItemRow from '@components/TransactionItemRow';
-import {useEditingCellState} from '@components/TransactionItemRow/EditableCell';
 
-import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useResponsiveLayoutOnWideRHP from '@hooks/useResponsiveLayoutOnWideRHP';
+import useRowHighlightAnimation from '@hooks/useRowHighlightAnimation';
 import useStyleUtils from '@hooks/useStyleUtils';
-import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useTransactionInlineEdit from '@hooks/useTransactionInlineEdit';
 
 import ControlSelection from '@libs/ControlSelection';
 import canUseTouchScreen from '@libs/DeviceCapabilities/canUseTouchScreen';
-import {getLatestErrorField, getLatestErrorMessageField} from '@libs/ErrorUtils';
+import {getLatestErrorMessageField} from '@libs/ErrorUtils';
+import {getTransactionRejectErrorKey, isSelectableReportTransaction} from '@libs/MoneyRequestReportUtils';
 import {hasFlexColumn} from '@libs/SearchUIUtils';
-import {getTransactionPendingAction, isTransactionPendingDelete} from '@libs/TransactionUtils';
+import {getTransactionPendingAction} from '@libs/TransactionUtils';
 
 import variables from '@styles/variables';
 
@@ -57,7 +57,7 @@ type MoneyRequestReportTransactionItemProps = {
     isSelectionModeEnabled: boolean;
 
     /** Callback function triggered upon pressing a transaction checkbox. */
-    toggleTransaction: (transactionID: string) => void;
+    toggleTransaction: (transactionID: string, shiftKey?: boolean) => void;
 
     /** Callback function triggered upon pressing a transaction. */
     handleOnPress: (transactionID: string) => void;
@@ -94,7 +94,7 @@ type MoneyRequestReportTransactionItemBodyProps = Omit<MoneyRequestReportTransac
     inlineEdit?: InlineEditValues;
 
     /** Highlight animation style, computed by the parent so its state survives the narrow↔wide swap on resize. */
-    animatedHighlightStyle: ReturnType<typeof useAnimatedHighlightStyle>;
+    animatedHighlightStyle: ReturnType<typeof useRowHighlightAnimation>;
 
     shouldSkipDeferRBR?: boolean;
 };
@@ -145,7 +145,6 @@ function MoneyRequestReportTransactionItemBody({
     } else if (shouldUseMediumNarrowLayout) {
         transactionRowStyle = [styles.p3, styles.pv2, styles.noBorderRadius];
     }
-    const isPendingDelete = isTransactionPendingDelete(transaction);
     const pendingAction = getTransactionPendingAction(transaction);
 
     // `Transaction.errors` also carries receipt errors, which are objects rendered by their own save/delete UI, so
@@ -154,11 +153,10 @@ function MoneyRequestReportTransactionItemBody({
         Object.entries(transaction.errors ?? {}).filter((entry): entry is [string, string | null] => typeof entry[1] === 'string' || entry[1] === null),
     );
 
-    // The backend reports a reject against an expense it has already moved under its own `reject` field rather than
-    // the generic `errors`, so both have to be read to show the message.
-    const rejectErrorKey = Object.keys(getLatestErrorField(transaction, 'reject')).at(0);
-    const hasRejectError = !!rejectErrorKey;
+    const rejectErrorKey = getTransactionRejectErrorKey(transaction);
     const rejectError: TranslationKeyErrors = rejectErrorKey ? {[rejectErrorKey]: {translationKey: 'iou.rejectReport.couldNotRejectExpense'}} : {};
+    // Same check Select All and shift+click ranges use, so this checkbox is disabled exactly for the rows they skip.
+    const isSelectable = isSelectableReportTransaction(transaction);
 
     // A reject error is terminal for this row, so it replaces any other message rather than stacking with it.
     const transactionErrors: Errors | TranslationKeyErrors = rejectErrorKey ? rejectError : getLatestErrorMessageField({errors: messageErrors});
@@ -190,6 +188,10 @@ function MoneyRequestReportTransactionItemBody({
 
     const handleHoverIn = () => setShouldDisableHoverStyle(false);
 
+    // The last row keeps its bottom border but hides it, so the row height stays the same when a row is added below it.
+    // FlashList ignores size changes of 1px or less, so a border that appears later would be covered by the next row.
+    const lastRowBorderStyle = isLastItem && styles.borderTransparent;
+
     return (
         <OfflineWithFeedback
             pendingAction={pendingAction}
@@ -218,8 +220,13 @@ function MoneyRequestReportTransactionItemBody({
                 role={CONST.ROLE.BUTTON}
                 isNested
                 id={transaction.transactionID}
-                style={[styles.transactionListItemStyle, !shouldUseNarrowLayout ? StyleUtils.getSearchTableRowPressableStyle(isLastItem, isSelected) : styles.noBorderRadius]}
-                hoverStyle={[!isPendingDelete && !hasRejectError && !shouldDisableHoverStyle && styles.hoveredComponentBG, isSelected && styles.activeComponentBG]}
+                style={[
+                    styles.transactionListItemStyle,
+                    !shouldUseNarrowLayout
+                        ? [StyleUtils.getSearchTableRowPressableStyle(false, isSelected), isLastItem && styles.tableBottomRadius, lastRowBorderStyle]
+                        : styles.noBorderRadius,
+                ]}
+                hoverStyle={[isSelectable && !shouldDisableHoverStyle && styles.hoveredComponentBG, isSelected && styles.activeComponentBG]}
                 dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
                 onMouseDown={handleMouseDown}
                 onHoverIn={handleHoverIn}
@@ -233,8 +240,8 @@ function MoneyRequestReportTransactionItemBody({
                 onLongPress={() => {
                     handleLongPress(transaction.transactionID);
                 }}
-                disabled={isPendingDelete || hasRejectError}
-                wrapperStyle={[animatedHighlightStyle, styles.userSelectNone, shouldUseNarrowLayout && !isLastItem && StyleUtils.getSelectedBorderBottomStyle(isSelected)]}
+                disabled={!isSelectable}
+                wrapperStyle={[animatedHighlightStyle, styles.userSelectNone, shouldUseNarrowLayout && [StyleUtils.getSelectedBorderBottomStyle(isSelected), lastRowBorderStyle]]}
             >
                 {({hovered}) => (
                     <>
@@ -256,7 +263,7 @@ function MoneyRequestReportTransactionItemBody({
                             shouldShowCheckbox={!!isSelectionModeEnabled || !isSmallScreenWidth}
                             onCheckboxPress={toggleTransaction}
                             columns={columns}
-                            isDisabled={isPendingDelete || hasRejectError}
+                            isDisabled={!isSelectable}
                             style={[transactionRowStyle, hasTransactionErrors && styles.offlineFeedbackPending]}
                             onButtonPress={() => {
                                 handleOnPress(transaction.transactionID);
@@ -311,17 +318,14 @@ function MoneyRequestReportTransactionItem(props: MoneyRequestReportTransactionI
     const {shouldBeHighlighted} = props;
     const {isMediumScreenWidth} = useResponsiveLayout();
     const {shouldUseNarrowLayout} = useResponsiveLayoutOnWideRHP();
-    const theme = useTheme();
     // Mirrors the layout check inside TransactionItemRow so the narrow body never pays for useTransactionInlineEdit.
     const isNarrowLayout = shouldUseNarrowLayout || (isMediumScreenWidth && !props.shouldScrollHorizontally);
 
     // Hoisted out of the body so the highlight animation timeline survives the narrow↔wide
     // component-type swap caused by browser resize.
-    const animatedHighlightStyle = useAnimatedHighlightStyle({
-        borderRadius: shouldUseNarrowLayout ? variables.componentBorderRadius : 0,
+    const animatedHighlightStyle = useRowHighlightAnimation({
         shouldHighlight: shouldBeHighlighted,
-        highlightColor: theme.messageHighlightBG,
-        backgroundColor: theme.highlightBG,
+        borderRadius: shouldUseNarrowLayout ? variables.componentBorderRadius : 0,
         shouldApplyOtherStyles: !shouldUseNarrowLayout,
     });
 

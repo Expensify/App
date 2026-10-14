@@ -307,13 +307,16 @@ export default function linkTo(navigation: NavigationContainerRef<RootNavigatorP
         }
     }
 
-    const {action: minimalAction} = getMinimalAction(action, navigation.getRootState());
-    if (
+    const {action: resolvedAction, isFocusedRouteInDifferentScope} = getMinimalAction(action, navigation.getRootState());
+
+    // The focused split belongs to another workspace or domain, so push a sibling instead of navigating into it.
+    // A forced replace stays a replace.
+    const shouldPushSiblingSplit = isFocusedRouteInDifferentScope && resolvedAction.type === CONST.NAVIGATION.ACTION_TYPE.NAVIGATE;
+    const shouldPushTabNavigator =
         action.type === CONST.NAVIGATION.ACTION_TYPE.NAVIGATE &&
         action.payload.name === NAVIGATORS.TAB_NAVIGATOR &&
-        !isFullScreenName((minimalAction.payload as {name?: string} | undefined)?.name)
-    ) {
-        minimalAction.type = CONST.NAVIGATION.ACTION_TYPE.PUSH;
-    }
+        !isFullScreenName((resolvedAction.payload as {name?: string} | undefined)?.name);
+
+    const minimalAction: NavigationAction = shouldPushSiblingSplit || shouldPushTabNavigator ? {...resolvedAction, type: CONST.NAVIGATION.ACTION_TYPE.PUSH} : resolvedAction;
     navigation.dispatch(shouldSkipInitialSplitNavigatorSidebar ? addSkipInitialSidebarParamToAction(minimalAction) : minimalAction);
 }

@@ -18,7 +18,7 @@ import toggleTestToolsModal from '@userActions/TestTool';
 
 import CONST from '@src/CONST';
 
-import type {ForwardedRef, ReactNode} from 'react';
+import type {ComponentRef, ForwardedRef, ReactNode} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 
 import React, {useContext, useEffect, useMemo, useRef} from 'react';
@@ -83,7 +83,7 @@ type ScreenWrapperContainerProps = ForwardedFSClassProps &
         /** Whether this screen should be hidden from accessibility tree */
         shouldHideFromAccessibility?: boolean;
 
-        ref?: ForwardedRef<View>;
+        ref?: ForwardedRef<ComponentRef<typeof View>>;
     }>;
 
 function ScreenWrapperContainer({

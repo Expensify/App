@@ -7,6 +7,7 @@ import TabSelectorContextProvider from '@components/TabSelector/TabSelectorConte
 import type {TabSelectorBaseItem} from '@components/TabSelector/types';
 
 import useConfirmModal from '@hooks/useConfirmModal';
+import useLayoutSpacing from '@hooks/useLayoutSpacing';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -26,6 +27,7 @@ import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 
+import type {ComponentRef} from 'react';
 import type {ValueOf} from 'type-fest';
 
 import {reportNameValuePairsArchivedSelector} from '@selectors/ReportNameValuePairs';
@@ -44,6 +46,7 @@ function InboxTabSelector() {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const isScreenFocused = useIsSidebarRouteActive(NAVIGATORS.REPORTS_SPLIT_NAVIGATOR, shouldUseNarrowLayout);
     const styles = useThemeStyles();
+    const {pageGutter} = useLayoutSpacing();
     const {activeTab, inboxTabCounts, hasStaleUnreadReport} = useSidebarOrderedReportsState();
     const {setActiveTab, getReportIDsForTab} = useSidebarOrderedReportsActions();
     const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {selector: reportNameValuePairsArchivedSelector});
@@ -57,9 +60,9 @@ function InboxTabSelector() {
     );
 
     // Anchor the popover to the tab it was opened from (not the whole tab row) so it opens at that tab's left edge.
-    const allTabRef = useRef<View | HTMLDivElement>(null);
-    const unreadTabRef = useRef<View | HTMLDivElement>(null);
-    const todoTabRef = useRef<View | HTMLDivElement>(null);
+    const allTabRef = useRef<ComponentRef<typeof View> | HTMLDivElement>(null);
+    const unreadTabRef = useRef<ComponentRef<typeof View> | HTMLDivElement>(null);
+    const todoTabRef = useRef<ComponentRef<typeof View> | HTMLDivElement>(null);
     const tabRefs = {
         [CONST.INBOX_TAB.ALL]: allTabRef,
         [CONST.INBOX_TAB.UNREAD]: unreadTabRef,
@@ -166,6 +169,7 @@ function InboxTabSelector() {
         <View style={styles.pt1}>
             <TabSelectorContextProvider activeTabKey={activeTab}>
                 <TabSelectorBase
+                    contentContainerStyles={pageGutter}
                     tabs={tabs}
                     activeTabKey={activeTab}
                     onTabPress={(key) => {

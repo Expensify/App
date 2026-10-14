@@ -4,11 +4,10 @@ import BaseWidgetItem from '@components/BaseWidgetItem';
 
 import useLocalize from '@hooks/useLocalize';
 
+import {navigateToAddCardToDigitalWallet} from '@libs/actions/Card';
 import {getWalletProviderNameKey} from '@libs/CardUtils';
-import Navigation from '@libs/Navigation/Navigation';
 
 import CONST from '@src/CONST';
-import ROUTES from '@src/ROUTES';
 import type {Card} from '@src/types/onyx';
 
 import React from 'react';
@@ -21,15 +20,15 @@ type ConfirmDigitalWalletAdditionProps = {
 function ConfirmDigitalWalletAddition({card}: ConfirmDigitalWalletAdditionProps) {
     const {translate} = useLocalize();
 
-    const walletName = translate(`homePage.timeSensitiveSection.confirmDigitalWalletAddition.${getWalletProviderNameKey(card.nameValuePairs?.pendingDigitalWalletApproval?.walletProvider)}`);
+    const walletName = translate(`addCardToDigitalWallet.${getWalletProviderNameKey(card.nameValuePairs?.pendingDigitalWalletApproval?.walletProvider, true)}`);
 
     return (
         <BaseWidgetItem
             icon={ExpensifyCardIcon}
-            title={translate('homePage.timeSensitiveSection.confirmDigitalWalletAddition.title', {walletName})}
+            title={translate('addCardToDigitalWallet.approvalNeeded', {walletName})}
             subtitle={translate('homePage.timeSensitiveSection.confirmDigitalWalletAddition.subtitle')}
-            ctaText={translate('homePage.timeSensitiveSection.confirmDigitalWalletAddition.cta')}
-            onCtaPress={() => Navigation.navigate(ROUTES.SETTINGS_WALLET_CARD_ADD_TO_DIGITAL_WALLET.getRoute(String(card.cardID)))}
+            ctaText={translate('addCardToDigitalWallet.review')}
+            onCtaPress={() => navigateToAddCardToDigitalWallet(card.cardID)}
             buttonVariant={CONST.BUTTON_VARIANT.SUCCESS}
         />
     );

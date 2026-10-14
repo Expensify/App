@@ -15,6 +15,7 @@ import {FILTER_VIEW_MAP} from '@libs/SearchUIUtils';
 
 import CONST from '@src/CONST';
 
+import type {ComponentRef} from 'react';
 import type {TextInput as RNTextInput, StyleProp, ViewStyle} from 'react-native';
 import type {ValueOf} from 'type-fest';
 
@@ -32,7 +33,7 @@ type TextInputFilterContentProps = {
     onChange: (value: string | undefined, isNegated: boolean) => void;
 };
 
-function isTextInput(element: BaseTextInputRef | RNTextInput | null): element is RNTextInput {
+function isTextInput(element: BaseTextInputRef | ComponentRef<typeof RNTextInput> | null): element is ComponentRef<typeof RNTextInput> {
     return !!element && 'isFocused' in element;
 }
 

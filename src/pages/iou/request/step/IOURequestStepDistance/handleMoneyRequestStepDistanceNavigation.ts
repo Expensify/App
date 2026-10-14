@@ -35,7 +35,6 @@ import type {TranslationParameters, TranslationPaths} from '@src/languages/types
 import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import type {
-    Beta,
     BillingGraceEndPeriod,
     IntroSelected,
     LastSelectedDistanceRates,
@@ -96,7 +95,6 @@ type MoneyRequestStepDistanceNavigationParams = {
     odometerEnd?: number;
     odometerDistance?: number;
     previousOdometerDraft?: OnyxEntry<OdometerDraft>;
-    betas: OnyxEntry<Beta[]>;
     recentWaypoints: OnyxEntry<RecentWaypoint[]>;
     unit?: Unit;
     personalOutputCurrency?: string;
@@ -202,7 +200,6 @@ function handleMoneyRequestStepDistanceNavigation({
     odometerEnd,
     odometerDistance,
     previousOdometerDraft,
-    betas,
     recentWaypoints,
     unit,
     personalOutputCurrency,
@@ -350,7 +347,6 @@ function handleMoneyRequestStepDistanceNavigation({
                             quickAction,
                             draftTransactionIDs,
                             recentWaypoints,
-                            betas,
                             isSelfTourViewed,
                             previousOdometerDraft,
                             optimisticTransactionID,

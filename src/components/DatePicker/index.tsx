@@ -15,11 +15,11 @@ import {setDraftValues} from '@userActions/FormActions';
 
 import CONST from '@src/CONST';
 
+import type {ComponentRef} from 'react';
 import type {TextInputKeyPressEvent} from 'react-native';
 
-import {format, setYear} from 'date-fns';
 import debounce from 'lodash/debounce';
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {Keyboard, View} from 'react-native';
 
 import type {DateInputWithPickerProps} from './types';
@@ -34,8 +34,8 @@ function DatePicker({
     errorText,
     inputID,
     label,
-    minDate = setYear(new Date(), CONST.CALENDAR_PICKER.MIN_YEAR),
-    maxDate = setYear(new Date(), CONST.CALENDAR_PICKER.MAX_YEAR),
+    minDate,
+    maxDate,
     onInputChange,
     onTouched = () => {},
     placeholder,
@@ -63,7 +63,7 @@ function DatePicker({
     const [selectedDate, setSelectedDate] = useState(() => value ?? defaultValue ?? '');
     const [popoverPosition, setPopoverPosition] = useState({horizontal: 0, vertical: 0});
     const textInputRef = useRef<BaseTextInputRef | null>(null);
-    const anchorRef = useRef<View>(null);
+    const anchorRef = useRef<ComponentRef<typeof View>>(null);
     const [isInverted, setIsInverted] = useState(false);
     // Whether the user currently intends the picker to be open. Lets a deferred measurement skip opening if the
     // picker was dismissed before it resolved.
@@ -215,14 +215,6 @@ function DatePicker({
         [autoFocus],
     );
 
-    const getValidDateForCalendar = useMemo(() => {
-        if (!selectedDate) {
-            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-            return defaultValue || format(new Date(), CONST.DATE.FNS_FORMAT_STRING);
-        }
-        return selectedDate;
-    }, [selectedDate, defaultValue]);
-
     return (
         <>
             <View
@@ -262,7 +254,8 @@ function DatePicker({
                 inputID={inputID}
                 minDate={minDate}
                 maxDate={maxDate}
-                value={getValidDateForCalendar}
+                value={selectedDate}
+                defaultValue={defaultValue}
                 onSelected={handleDateSelected}
                 isVisible={isModalVisible}
                 onClose={closeDatePicker}

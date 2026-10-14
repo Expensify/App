@@ -1,6 +1,7 @@
 import Accordion from '@components/Accordion';
 import ConnectionLayout from '@components/ConnectionLayout';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import MenuItem from '@components/MenuItem';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import RenderHTML from '@components/RenderHTML';
 
@@ -16,6 +17,8 @@ import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {areSettingsInErrorFields, settingsPendingAction} from '@libs/PolicyUtils';
 
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
+
+import {callFunctionIfActionIsAllowed} from '@userActions/Session';
 
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
@@ -112,14 +115,16 @@ function SageIntacctToggleMappingsPage({route}: SageIntacctToggleMappingsPagePro
                 isToggleTriggered={shouldAnimateAccordionSection}
             >
                 <OfflineWithFeedback pendingAction={settingsPendingAction([mappingName], config?.pendingFields)}>
-                    <MenuItemWithTopDescription
-                        title={translationKeys?.titleKey ? translate(translationKeys?.titleKey) : undefined}
-                        description={translate('workspace.common.displayedAs')}
-                        shouldShowRightIcon
-                        onPress={() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_MAPPINGS_TYPE.getRoute(policyID, mappingName))}
-                        brickRoadIndicator={areSettingsInErrorFields([mappingName], config?.errorFields) ? 'error' : undefined}
-                        hintText={translationKeys?.descriptionKey ? translate(translationKeys?.descriptionKey) : undefined}
-                    />
+                    <MenuItem.Root onPress={callFunctionIfActionIsAllowed(() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_MAPPINGS_TYPE.getRoute(policyID, mappingName)))}>
+                        <MenuItemField.Row
+                            name={translate('workspace.common.displayedAs')}
+                            value={translationKeys?.titleKey ? translate(translationKeys?.titleKey) : undefined}
+                        >
+                            {areSettingsInErrorFields([mappingName], config?.errorFields) && <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />}
+                            <MenuItem.Chevron />
+                        </MenuItemField.Row>
+                        {!!translationKeys?.descriptionKey && <MenuItem.HelpText message={translate(translationKeys.descriptionKey)} />}
+                    </MenuItem.Root>
                 </OfflineWithFeedback>
             </Accordion>
         </ConnectionLayout>

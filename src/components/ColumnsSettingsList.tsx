@@ -9,6 +9,8 @@ import {getSearchColumnTranslationKey} from '@libs/SearchUIUtils';
 import CONST from '@src/CONST';
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
 
+import type {ComponentRef} from 'react';
+
 import React, {useRef, useState} from 'react';
 import {View} from 'react-native';
 
@@ -193,7 +195,7 @@ function ColumnsSettingsList({
     const combinedItems = isGrouped ? [...groupColumnsList, ...typeColumnsList] : [];
     const groupLength = groupColumnsList.length;
     const disabledIndexes = combinedItems.flatMap((item, index) => (item.isDisabled ? [index] : []));
-    const containerRef = useRef<View>(null);
+    const containerRef = useRef<ComponentRef<typeof View>>(null);
 
     const {focusedIndex, setFocusedIndex} = useListKeyboardNav({
         containerRef,

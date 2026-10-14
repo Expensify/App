@@ -1,12 +1,13 @@
-import ConfirmModal from '@components/ConfirmModal';
+import {ModalActions} from '@components/Modal/Global/ModalContext';
 
 import Navigation from '@libs/Navigation/Navigation';
 
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 
-import React, {useCallback, useMemo, useState} from 'react';
+import {useCallback} from 'react';
 
+import useConfirmModal from './useConfirmModal';
 import useLocalize from './useLocalize';
 import useOnyx from './useOnyx';
 
@@ -19,46 +20,36 @@ import useOnyx from './useOnyx';
  * @param onModalDismissed - called when the modal is dismissed (either by settling the balance or cancelling)
  * @returns shouldBlockDeletion - function that checks and shows the modal if needed (returns true if blocked)
  * @returns wouldBlockDeletion - pre-computed boolean for popover/menu configuration
- * @returns outstandingBalanceModal - React element to render in the page
  */
 function useOutstandingBalanceGuard(ownedPaidPoliciesCount: number, onModalDismissed?: () => void) {
-    const [isModalOpen, setIsModalOpen] = useState(false);
     const {translate} = useLocalize();
+    const {showConfirmModal} = useConfirmModal();
     const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
 
     const wouldBlockDeletion = (amountOwed ?? 0) > 0 && ownedPaidPoliciesCount === 1;
 
     const shouldBlockDeletion = useCallback(() => {
-        if (wouldBlockDeletion) {
-            setIsModalOpen(true);
-            return true;
+        if (!wouldBlockDeletion) {
+            return false;
         }
-        return false;
-    }, [wouldBlockDeletion]);
 
-    const outstandingBalanceModal = useMemo(
-        () => (
-            <ConfirmModal
-                title={translate('workspace.common.delete')}
-                isVisible={isModalOpen}
-                onConfirm={() => {
-                    setIsModalOpen(false);
-                    Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION.route);
-                    onModalDismissed?.();
-                }}
-                onCancel={() => {
-                    setIsModalOpen(false);
-                    onModalDismissed?.();
-                }}
-                prompt={translate('workspace.common.outstandingBalanceWarning')}
-                confirmText={translate('workspace.common.settleBalance')}
-                cancelText={translate('common.cancel')}
-            />
-        ),
-        [isModalOpen, translate, onModalDismissed],
-    );
+        showConfirmModal({
+            title: translate('workspace.common.delete'),
+            prompt: translate('workspace.common.outstandingBalanceWarning'),
+            confirmText: translate('workspace.common.settleBalance'),
+            cancelText: translate('common.cancel'),
+        }).then((result) => {
+            if (result.action === ModalActions.CONFIRM) {
+                Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION.route);
+            }
 
-    return {shouldBlockDeletion, wouldBlockDeletion, outstandingBalanceModal};
+            onModalDismissed?.();
+        });
+
+        return true;
+    }, [onModalDismissed, showConfirmModal, translate, wouldBlockDeletion]);
+
+    return {shouldBlockDeletion, wouldBlockDeletion};
 }
 
 export default useOutstandingBalanceGuard;

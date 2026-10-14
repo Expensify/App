@@ -1,6 +1,7 @@
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import Log from '@libs/Log';
 import getParamsFromRoute from '@libs/Navigation/helpers/getParamsFromRoute';
+import isSideModalNavigator from '@libs/Navigation/helpers/isSideModalNavigator';
 import navigationRef from '@libs/Navigation/navigationRef';
 
 import CONST from '@src/CONST';
@@ -78,9 +79,12 @@ function adaptStateIfNecessary({state, options: {sidebarScreen, defaultCentralSc
     const routes = [...stateWithoutMarker.routes];
     let modified = stateWithoutMarker !== state;
 
-    // Despite the name, this is true for any navigation while TAB_NAVIGATOR is the only root route, not only during app startup.
+    // A side modal (RHP) is drawn on top of the full screen route instead of replacing it, so it must not be counted as a root route here.
+    const hasSingleFullScreenRootRoute = rootState?.routes.filter((route) => !isSideModalNavigator(route.name)).length === 1;
+
+    // Despite the name, this is true for any navigation while TAB_NAVIGATOR is the only full screen root route, not only during app startup.
     // `shouldSkipInitialSidebar` lets a direct narrow-layout navigation opt out while wide layouts continue to keep the sidebar.
-    const isInitialRoute = !rootState || rootState.routes.length === 1;
+    const isInitialRoute = !rootState || hasSingleFullScreenRootRoute;
     const shouldSplitHaveSidebar = (isInitialRoute && !shouldSkipInitialSidebar) || !isNarrowLayout;
 
     // If the screen is wide, there should be at least two screens inside:

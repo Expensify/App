@@ -72,6 +72,7 @@ type ThemeColors = {
     textBackground: Color;
     textMutedReversed: Color;
     textError: Color;
+    textSuccess: Color;
     offline: Color;
     modalBackground: Color;
     cardBG: Color;
@@ -94,6 +95,8 @@ type ThemeColors = {
     imageCropBackgroundColor: Color;
     fallbackIconColor: Color;
     reactionActiveBackground: Color;
+    /** Background of a selected option among mutually exclusive choices */
+    selectedOptionBG: Color;
     reactionActiveText: Color;
     badgeDefaultBG: Color;
     badgeSuccessBG: Color;
@@ -102,6 +105,8 @@ type ThemeColors = {
     badgeDangerText: Color;
     badgeAdHoc: Color;
     badgeAdHocHover: Color;
+    badgeOfferBG: Color;
+    badgeOfferText: Color;
     bordersBold: Color;
     buttonIcon: Color;
     mentionText: Color;

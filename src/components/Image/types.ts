@@ -3,7 +3,7 @@ import type {FullScreenLoadingIndicatorIconSize} from '@components/FullscreenLoa
 import type CONST from '@src/CONST';
 
 import type {ImagePrefetchOptions, ImageSource} from 'expo-image';
-import type {ImageRequireSource, ImageResizeMode, ImageStyle, ImageURISource, StyleProp, ViewStyle} from 'react-native';
+import type {ImageProps as RNImageProps, ImageRequireSource, ImageStyle, ImageURISource, StyleProp, ViewStyle} from 'react-native';
 import type {ValueOf} from 'type-fest';
 
 type ExpoImageSource = ImageSource | number | ImageSource[];
@@ -44,7 +44,7 @@ type ImageOwnProps = BaseImageProps & {
     isAuthTokenRequired?: boolean;
 
     /** How should the image fit within its container */
-    resizeMode?: ImageResizeMode;
+    resizeMode?: RNImageProps['resizeMode'];
 
     loadingIconSize?: FullScreenLoadingIndicatorIconSize;
     loadingIndicatorStyles?: StyleProp<ViewStyle>;

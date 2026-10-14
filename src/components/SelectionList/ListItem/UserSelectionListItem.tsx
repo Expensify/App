@@ -33,8 +33,6 @@ function UserSelectionListItem<TItem extends ListItem>({
     shouldPreventEnterKeySubmit,
     onFocus,
     shouldSyncFocus,
-    wrapperStyle,
-    pressableStyle,
 }: ListItemProps<TItem>) {
     const styles = useThemeStyles();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
@@ -48,7 +46,7 @@ function UserSelectionListItem<TItem extends ListItem>({
     const userDisplayName = getDisplayNameForParticipant({
         accountID: item.accountID ?? CONST.DEFAULT_NUMBER_ID,
         formatPhoneNumber,
-        translate,
+        hiddenTranslation: translate('common.hidden'),
     });
 
     const icon = item.icons?.at(0);
@@ -56,7 +54,7 @@ function UserSelectionListItem<TItem extends ListItem>({
     return (
         <SelectableListItem
             item={item}
-            wrapperStyle={[styles.flex1, styles.sidebarLinkInner, styles.userSelectNone, wrapperStyle]}
+            wrapperStyle={[styles.flex1, styles.sidebarLinkInner, styles.userSelectNone, item.itemStyle]}
             isFocused={isFocused}
             isFocusVisible={isFocusVisible}
             isDisabled={isDisabled}
@@ -66,7 +64,6 @@ function UserSelectionListItem<TItem extends ListItem>({
             onSelectionButtonPress={onSelectionButtonPress}
             onDismissError={onDismissError}
             shouldPreventEnterKeySubmit={shouldPreventEnterKeySubmit}
-            pressableStyle={pressableStyle}
             onFocus={onFocus}
             shouldSyncFocus={shouldSyncFocus}
         >

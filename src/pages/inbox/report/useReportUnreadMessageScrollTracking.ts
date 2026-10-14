@@ -1,7 +1,8 @@
 import CONST from '@src/CONST';
+import type {ViewToken} from '@src/types/utils/ReactNativeCompat';
 
 import type {RefObject} from 'react';
-import type {NativeScrollEvent, NativeSyntheticEvent, ViewToken} from 'react-native';
+import type {NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
 
 import {useIsFocused} from '@react-navigation/native';
 import {useCallback, useEffect, useRef, useState} from 'react';

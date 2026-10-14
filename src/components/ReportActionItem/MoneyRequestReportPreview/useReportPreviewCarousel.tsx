@@ -3,7 +3,7 @@ import Text from '@components/Text';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useIsFocusedRef from '@hooks/useIsFocusedRef';
 import useLocalize from '@hooks/useLocalize';
-import useOnyx from '@hooks/useOnyx';
+import {usePersonalDetail} from '@hooks/usePersonalDetails';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import shouldAdjustScroll from '@libs/shouldAdjustScroll';
@@ -11,12 +11,11 @@ import {compareByRBR} from '@libs/TransactionPreviewUtils';
 import {getCreated} from '@libs/TransactionUtils';
 
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
-import {personalDetailsLoginSelector} from '@src/selectors/PersonalDetails';
+import {loginSelector} from '@src/selectors/PersonalDetails';
 import type {Policy, Report, Transaction} from '@src/types/onyx';
+import type {ViewToken} from '@src/types/utils/ReactNativeCompat';
 
 import type {FlashListRef, ListRenderItem, ListRenderItemInfo} from '@shopify/flash-list';
-import type {ViewToken} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
@@ -82,7 +81,7 @@ function useReportPreviewCarousel({
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
     const currentUserDetails = useCurrentUserPersonalDetails();
-    const [ownerLogin] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsLoginSelector(iouReport?.ownerAccountID)});
+    const [ownerLogin] = usePersonalDetail(iouReport?.ownerAccountID, loginSelector);
     const isFocusedRef = useIsFocusedRef();
 
     const sortedTransactions = useMemo(() => {
@@ -199,7 +198,7 @@ function useReportPreviewCarousel({
         if (typeof newIndex === 'number') {
             setCurrentIndex(newIndex);
         }
-        const viewableItemsIndexes = viewableItems.map((item) => item.index).filter((item): item is number => item !== null);
+        const viewableItemsIndexes = viewableItems.map((item) => item.index).filter((item): item is number => typeof item === 'number');
         setCurrentVisibleItems(viewableItemsIndexes);
     }, []);
 

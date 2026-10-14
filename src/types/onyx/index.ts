@@ -61,8 +61,10 @@ import type DatabaseSizeMeasurement from './DatabaseSizeMeasurement';
 import type {
     CardFeedErrorsDerivedValue,
     GuideAccountIDsDerivedValue,
+    SpendDataSignatureDerivedValue,
     LoginToAccountIDMapDerivedValue,
     NonPersonalAndWorkspaceCardListDerivedValue,
+    OneOnOneChatReportIDsDerivedValue,
     OutstandingReportsByPolicyIDDerivedValue,
     PersonalAndWorkspaceCardListDerivedValue,
     ReportAttributesDerivedValue,
@@ -80,6 +82,24 @@ import type DomainHighlightItems from './DomainHighlightItems';
 import type DomainPendingActions from './DomainPendingActions';
 import type Download from './Download';
 import type DuplicateWorkspace from './DuplicateWorkspace';
+import type {
+    DynamicFormAddressField,
+    DynamicFormChoiceField,
+    DynamicFormContentItem,
+    DynamicFormCountryField,
+    DynamicFormField,
+    DynamicFormFieldOption,
+    DynamicFormFieldType,
+    DynamicFormHeading,
+    DynamicFormMultiChoiceField,
+    DynamicFormNumberField,
+    DynamicFormPage,
+    DynamicFormSchema,
+    DynamicFormSchemaField,
+    DynamicFormSensitiveAnswers,
+    DynamicFormTextField,
+} from './DynamicFormField';
+import type EarlyRenewalOfferEligibility from './EarlyRenewalOfferEligibility';
 import type ExpenseRule from './ExpenseRule';
 import type ExpensifyCardBankAccountMetadata from './ExpensifyCardBankAccountMetadata';
 import type ExpensifyCardLoadingState from './ExpensifyCardLoadingState';
@@ -91,6 +111,7 @@ import type ExportTemplate from './ExportTemplate';
 import type FrequentlyUsedEmoji from './FrequentlyUsedEmoji';
 import type {FundList} from './Fund';
 import type Fund from './Fund';
+import type GeneratedRule from './GeneratedRule';
 import type GovernmentMileageRate from './GovernmentMileageRate';
 import type GpsDraftDetails from './GpsDraftDetails';
 import type HybridApp from './HybridApp';
@@ -98,7 +119,7 @@ import type ImportedSpreadsheet from './ImportedSpreadsheet';
 import type ImportedSpreadsheetMemberData from './ImportedSpreadsheetMemberData';
 import type InitiatingBankAccountUnlock from './InitiatingBankAccountUnlock';
 import type InsightsDashboard from './InsightsDashboard';
-import type {InsightsDashboardID, InsightsGraphKey} from './InsightsDashboard';
+import type {InsightsDashboardID, InsightsGraphKey, InsightsSearchKey} from './InsightsDashboard';
 import type IntroSelected from './IntroSelected';
 import type InvitedEmailsToAccountIDs from './InvitedEmailsToAccountIDs';
 import type JoinablePolicies from './JoinablePolicies';
@@ -115,6 +136,8 @@ import type Login from './Login';
 import type {Login as NewLogin} from './Logins';
 import type Logins from './Logins';
 import type MapboxAccessToken from './MapboxAccessToken';
+import type MarketingAttribution from './MarketingAttribution';
+import type {StoredMarketingAttribution} from './MarketingAttribution';
 import type MerchantRuleSuggestion from './MerchantRuleSuggestion';
 import type MergeTransaction from './MergeTransaction';
 import type Modal from './Modal';
@@ -138,17 +161,19 @@ import type PlaidData from './PlaidData';
 import type Policy from './Policy';
 import type {AutoReportingOffset, PolicyConnectionName, PolicyConnectionSyncProgress, PolicyReportField, TaxRate, TaxRates, TaxRatesWithDefault} from './Policy';
 import type {PolicyCategories, PolicyCategory} from './PolicyCategory';
+import type PolicyDataLoadingState from './PolicyDataLoadingState';
 import type {PolicyEmployeeList} from './PolicyEmployee';
 import type PolicyEmployee from './PolicyEmployee';
 import type PolicyJoinMember from './PolicyJoinMember';
 import type PolicyOwnershipChangeChecks from './PolicyOwnershipChangeChecks';
 import type PolicyRoomsMetadata from './PolicyRoomsMetadata';
-import type {ParticipantsPolicyTags, PolicyTag, PolicyTagLists, PolicyTags} from './PolicyTag';
+import type {ParticipantsPolicyTags, PolicyTag, PolicyTagLists, PolicyTags, SearchTagFilterItem} from './PolicyTag';
 import type PolicyVendors from './PolicyVendor';
 import type PrivatePersonalDetails from './PrivatePersonalDetails';
 import type PrivatePromoDiscount from './PrivatePromoDiscount';
 import type PrivateSubscription from './PrivateSubscription';
 import type PurchaseList from './PurchaseList';
+import type {Purchases} from './PurchaseList';
 import type QuickAction from './QuickAction';
 import type RecentlyUsedCategories from './RecentlyUsedCategories';
 import type RecentlyUsedReportFields from './RecentlyUsedReportFields';
@@ -174,6 +199,7 @@ import type ReportViolationName from './ReportViolationName';
 import type Request from './Request';
 import type {AnyRequest} from './Request';
 import type Response from './Response';
+import type ReusableDistanceRoute from './ReusableDistanceRoute';
 import type ReviewDuplicates from './ReviewDuplicates';
 import type Rule from './Rule';
 import type {SavedCSVColumnLayoutData, SavedCSVColumnLayoutList} from './SavedCSVColumnLayout';
@@ -185,6 +211,7 @@ import type SearchFilters from './SearchFilters';
 import type SearchFooterConversion from './SearchFooterConversion';
 import type SearchResults from './SearchResults';
 import type SearchSidebar from './SearchSidebar';
+import type SearchTagFiltersPaginationState from './SearchTagFiltersPaginationState';
 import type SecurityGroup from './SecurityGroup';
 import type {DomainSecurityGroupMembership} from './SecurityGroup';
 import type SelectedTabRequest from './SelectedTabRequest';
@@ -197,6 +224,7 @@ import type StripeCustomerID from './StripeCustomerID';
 import type SuggestedAgent from './SuggestedAgent';
 import type SuggestedAgentRule from './SuggestedAgentRule';
 import type SupportalPermissionDenied from './SupportalPermissionDenied';
+import type TableColumnWidths from './TableColumnWidths';
 import type Task from './Task';
 import type Transaction from './Transaction';
 import type TransactionPending3DSReview from './TransactionPending3DSReview';
@@ -252,11 +280,13 @@ export type {
     CurrencyList,
     CustomStatusDraft,
     DatabaseSizeMeasurement,
+    EarlyRenewalOfferEligibility,
     UnshareBankAccount,
     DismissedReferralBanners,
     Domain,
     Download,
     ExportDownload,
+    GeneratedRule,
     DuplicateWorkspace,
     CopyPolicySettingsNVP,
     CopyPolicySettings,
@@ -276,6 +306,7 @@ export type {
     InsightsDashboard,
     InsightsDashboardID,
     InsightsGraphKey,
+    InsightsSearchKey,
     IntroSelected,
     IssueNewCard,
     AssignCardData,
@@ -299,6 +330,8 @@ export type {
     PasskeyTransport,
     PendingContactAction,
     MapboxAccessToken,
+    MarketingAttribution,
+    StoredMarketingAttribution,
     Modal,
     Network,
     OnyxInputOrEntry,
@@ -317,6 +350,7 @@ export type {
     Policy,
     PolicyCategories,
     PolicyCategory,
+    PolicyDataLoadingState,
     PolicyVendors,
     PolicyEmployee,
     PolicyEmployeeList,
@@ -328,6 +362,7 @@ export type {
     PolicyTags,
     PolicyTagLists,
     ParticipantsPolicyTags,
+    SearchTagFilterItem,
     PrivatePersonalDetails,
     QuickAction,
     ShareBankAccount,
@@ -337,6 +372,7 @@ export type {
     RecentlyUsedCategories,
     RecentlyUsedTags,
     ReimbursementAccount,
+    ReusableDistanceRoute,
     Report,
     Rule,
     ReportNameValuePairs,
@@ -362,6 +398,7 @@ export type {
     DomainSecurityGroupMembership,
     SelectedTabRequest,
     Session,
+    TableColumnWidths,
     Task,
     TaxRate,
     TaxRates,
@@ -387,6 +424,7 @@ export type {
     WalletTransfer,
     SupportalPermissionDenied,
     PurchaseList,
+    Purchases,
     ReportUserIsTyping,
     PolicyReportField,
     RecentlyUsedReportFields,
@@ -400,6 +438,7 @@ export type {
     PolicyJoinMember,
     PolicyRoomsMetadata,
     SearchResults,
+    SearchTagFiltersPaginationState,
     ReviewDuplicates,
     PrivateSubscription,
     PrivatePromoDiscount,
@@ -431,6 +470,21 @@ export type {
     ShareTempFile,
     CorpayFields,
     CorpayFormField,
+    DynamicFormAddressField,
+    DynamicFormChoiceField,
+    DynamicFormContentItem,
+    DynamicFormCountryField,
+    DynamicFormField,
+    DynamicFormFieldOption,
+    DynamicFormFieldType,
+    DynamicFormHeading,
+    DynamicFormMultiChoiceField,
+    DynamicFormNumberField,
+    DynamicFormPage,
+    DynamicFormSchema,
+    DynamicFormSchemaField,
+    DynamicFormSensitiveAnswers,
+    DynamicFormTextField,
     JoinablePolicies,
     DismissedProductTraining,
     TravelProvisioning,
@@ -449,6 +503,8 @@ export type {
     CardFeedErrorsDerivedValue,
     LoginToAccountIDMapDerivedValue,
     GuideAccountIDsDerivedValue,
+    SpendDataSignatureDerivedValue,
+    OneOnOneChatReportIDsDerivedValue,
     ScheduleCallDraft,
     ValidateUserAndGetAccessiblePolicies,
     VacationDelegate,

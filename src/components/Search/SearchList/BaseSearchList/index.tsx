@@ -1,6 +1,6 @@
+import {useEditingCellState} from '@components/EditableCell';
 import type {SearchListItem} from '@components/Search/SearchList/ListItem/types';
 import type {ExtendedTargetedEvent} from '@components/SelectionList/ListItem/types';
-import {useEditingCellState} from '@components/TransactionItemRow/EditableCell';
 
 import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
@@ -16,6 +16,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {isModalActiveSelector} from '@src/selectors/Modal';
 
+import type {ComponentRef} from 'react';
 import type {GestureResponderEvent, NativeSyntheticEvent, StyleProp, ViewProps, ViewStyle} from 'react-native';
 
 import {useIsFocused} from '@react-navigation/native';
@@ -29,7 +30,7 @@ import type BaseSearchListProps from './types';
 const AnimatedFlashListComponent = Animated.createAnimatedComponent(FlashList<SearchListItem>);
 
 type CellRendererComponentProps = ViewProps & {
-    ref?: React.Ref<View>;
+    ref?: React.Ref<ComponentRef<typeof View>>;
     style?: StyleProp<ViewStyle>;
 };
 

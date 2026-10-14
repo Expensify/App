@@ -12,8 +12,8 @@ import CONST from '@src/CONST';
  * Both the bar and the list underneath it depend on this: the list has to reserve the space the bar floats over, or its
  * last rows sit behind the bar once you scroll to the bottom. Keeping the rule here stops the two from drifting apart.
  *
- * An expense search asks the selection whether anything is selected rather than counting rows, because selecting every
- * matching item is recorded as a flag instead of a row per item, which a count cannot see.
+ * Expense and expense-report searches ask the selection whether anything is selected rather than counting rows, because
+ * selecting every matching item is recorded as a flag instead of a row per item, which a count cannot see.
  */
 function useShouldShowBulkActionBar(queryJSON: SearchQueryJSON): boolean {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -24,7 +24,8 @@ function useShouldShowBulkActionBar(queryJSON: SearchQueryJSON): boolean {
         return false;
     }
 
-    return queryJSON.type === CONST.SEARCH.DATA_TYPES.EXPENSE ? hasSelectedTransactions : selected > 0;
+    const supportsAllMatchingExclusions = queryJSON.type === CONST.SEARCH.DATA_TYPES.EXPENSE || queryJSON.type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT;
+    return supportsAllMatchingExclusions ? hasSelectedTransactions : selected > 0;
 }
 
 export default useShouldShowBulkActionBar;

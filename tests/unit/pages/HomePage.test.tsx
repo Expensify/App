@@ -29,6 +29,11 @@ jest.mock('@hooks/useLocalize', () =>
     })),
 );
 jest.mock('@hooks/useDocumentTitle', () => jest.fn());
+jest.mock('@react-navigation/native', () => ({
+    ...jest.requireActual<Record<string, unknown>>('@react-navigation/native'),
+    useFocusEffect: jest.fn(),
+}));
+jest.mock('@libs/actions/HomePage', () => jest.fn());
 jest.mock('@hooks/useThemeStyles', () =>
     jest.fn(() => ({
         flex1: {},
@@ -150,7 +155,6 @@ jest.mock('@pages/home/UpcomingTravelSection', () => mockSection('UpcomingTravel
 jest.mock('@pages/home/RecentlyAddedSection', () => mockSection('RecentlyAddedSection'), {virtual: true});
 jest.mock('@pages/home/YourSpendSection', () => mockSection('YourSpendSection'));
 jest.mock('@pages/home/InsightsSection', () => mockSection('InsightsSection'));
-jest.mock('@pages/home/DiscoverSection', () => mockSection('DiscoverSection'));
 
 const mockUseResponsiveLayout = jest.mocked(useResponsiveLayout);
 const mockUseNetwork = jest.mocked(useNetwork);
@@ -374,7 +378,6 @@ describe('HomePage', () => {
                 'section-YourSpendSection',
                 'section-RecentlyAddedSection',
                 'section-InsightsSection',
-                'section-DiscoverSection',
             ]);
         });
 
@@ -398,7 +401,7 @@ describe('HomePage', () => {
 
     // Recently added moves into the right column directly below Your spend on wide layout (PRD-98653 R1/R2).
     describe('wide layout column placement', () => {
-        it('renders Discover and Recently added in the right column, not the left', async () => {
+        it('renders Recently added in the right column, not the left', async () => {
             setWideLayout();
             await waitForBatchedUpdates();
 
@@ -407,8 +410,6 @@ describe('HomePage', () => {
             const leftColumn = screen.getByTestId(LEFT_COLUMN_TEST_ID);
             const rightColumn = screen.getByTestId(RIGHT_COLUMN_TEST_ID);
 
-            expect(within(rightColumn).getByTestId('section-DiscoverSection')).toBeOnTheScreen();
-            expect(within(leftColumn).queryByTestId('section-DiscoverSection')).not.toBeOnTheScreen();
             expect(within(rightColumn).getByTestId('section-RecentlyAddedSection')).toBeOnTheScreen();
             expect(within(leftColumn).queryByTestId('section-RecentlyAddedSection')).not.toBeOnTheScreen();
         });

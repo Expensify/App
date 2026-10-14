@@ -15,7 +15,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 
 type MockUseCreateReportParams = {
-    onCreateReport: (policy: unknown, shouldDismissEmptyReportsConfirmation?: boolean) => void;
+    onCreateReport: (shouldDismissEmptyReportsConfirmation?: boolean) => void;
     groupPoliciesWithChatEnabled: unknown[] | readonly never[];
     onNavigateToWorkspaceSelection: () => void;
     shouldHandleNavigationBack: boolean;
@@ -37,6 +37,7 @@ const mockUseOnyx = jest.fn<unknown[], [key: string, options?: MockOnyxOptions]>
 const isBetaEnabledByDefault = (beta: string) => beta !== CONST.BETAS.PREVENT_SPOTNANA_TRAVEL;
 const mockIsBetaEnabled = jest.fn(isBetaEnabledByDefault);
 const mockCanSendInvoice = jest.fn<boolean, unknown[]>(() => false);
+const mockGetDefaultChatEnabledPolicy = jest.fn((policies: unknown[]) => (policies.length === 1 ? policies.at(0) : undefined));
 const mockGetGroupPoliciesWhereReportCanBeCreated = jest.fn<unknown[], [policies: unknown, currentUserLogin?: string]>();
 const mockShouldShowPolicy = jest.fn<boolean, unknown[]>(() => true);
 const mockHasAcceptedTravelTerms = jest.fn(() => false);
@@ -164,6 +165,7 @@ jest.mock('@libs/openTravelDotLink', () => ({
 
 jest.mock('@libs/PolicyUtils', () => ({
     canSendInvoice: (...args: unknown[]) => mockCanSendInvoice(...args),
+    getDefaultChatEnabledPolicy: (policies: unknown[]) => mockGetDefaultChatEnabledPolicy(policies),
     getGroupPoliciesWhereReportCanBeCreated: (policies: unknown, currentUserLogin?: string) => mockGetGroupPoliciesWhereReportCanBeCreated(policies, currentUserLogin),
     hasAcceptedTravelTerms: () => mockHasAcceptedTravelTerms(),
     isPaidGroupPolicy: () => mockIsPaidGroupPolicy(),
@@ -280,7 +282,7 @@ describe('useCreateNavigationSuggestions', () => {
         renderHook(() => useCreateNavigationSuggestions());
 
         const onCreateReport = mockUseCreateReport.mock.calls.at(0)?.at(0)?.onCreateReport;
-        act(() => onCreateReport?.(undefined));
+        act(() => onCreateReport?.());
 
         expect(createNewReport).not.toHaveBeenCalled();
         expect(Navigation.navigate).not.toHaveBeenCalled();
@@ -419,7 +421,7 @@ describe('useCreateNavigationSuggestions', () => {
         renderHook(() => useCreateNavigationSuggestions());
 
         const onCreateReport = mockUseCreateReport.mock.calls.at(0)?.at(0)?.onCreateReport;
-        act(() => onCreateReport?.(submitPolicy, true));
+        act(() => onCreateReport?.(true));
 
         expect(createNewReport).toHaveBeenCalledWith(expect.anything(), false, true, submitPolicy, false, mockGetCurrencyDecimals, undefined, false, true);
         expect(clearLastSearchParams).not.toHaveBeenCalled();
@@ -435,7 +437,7 @@ describe('useCreateNavigationSuggestions', () => {
         mockIsOnSearchMoneyRequestReportPage.mockReturnValue(true);
 
         const createReportParams = mockUseCreateReport.mock.calls.at(0)?.at(0);
-        act(() => createReportParams?.onCreateReport(submitPolicy));
+        act(() => createReportParams?.onCreateReport());
         act(() => createReportParams?.onNavigateToWorkspaceSelection());
 
         expect(clearLastSearchParams).toHaveBeenCalledTimes(1);

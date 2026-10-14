@@ -14,17 +14,20 @@ import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import {useAllPersonalDetails} from '@hooks/usePersonalDetails';
 import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {resetFailedWorkspaceCompanyCardUnassignment} from '@libs/actions/CompanyCards';
+import {renameCompanyCardInline} from '@libs/actions/Policy/InlineEdit';
 import {formatMaskedCardName, getCompanyCardCustomName, getDefaultCardName} from '@libs/CardUtils';
 import {getConnectedIntegration} from '@libs/PolicyUtils';
 import tokenizedSearch from '@libs/tokenizedSearch';
 
 import {getCardExportAccountTitle, getExportAccountColumn, getPolicyCardExportSettings} from '@pages/workspace/companyCards/utils';
 import WorkspaceCompanyCardPageEmptyState from '@pages/workspace/companyCards/WorkspaceCompanyCardPageEmptyState';
+import WorkspaceCompanyCardsBalanceLabels from '@pages/workspace/companyCards/WorkspaceCompanyCardsBalanceLabels';
 import WorkspaceCompanyCardsFeedPendingPage from '@pages/workspace/companyCards/WorkspaceCompanyCardsFeedPendingPage';
 
 import {fontScale} from '@styles/typography';
@@ -96,7 +99,7 @@ function WorkspaceCompanyCardsTable({
 }: WorkspaceCompanyCardsTableProps) {
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
-    const {translate, localeCompare} = useLocalize();
+    const {translate, localeCompare, formatPhoneNumber} = useLocalize();
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
     const tableRef = useRef<TableHandle<WorkspaceCompanyCardTableItemData, CompanyCardsTableColumnKey>>(null);
 
@@ -127,7 +130,7 @@ function WorkspaceCompanyCardsTable({
     const [selectedCardKeys, setSelectedCardKeys] = useState<string[]>([]);
     const clearCardSelection = () => setSelectedCardKeys([]);
     useImperativeHandle(ref, () => ({clearSelection: clearCardSelection}));
-    const [personalDetails, personalDetailsMetadata] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
+    const [personalDetails, personalDetailsMetadata] = useAllPersonalDetails();
     const [sharedCardCustomNames] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${domainOrWorkspaceAccountID}`, {selector: companyCardCustomNamesSelector});
     const [companyCardsLoadingState] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_COMPANY_CARDS_LOADING_STATE}${domainOrWorkspaceAccountID}`);
 
@@ -189,6 +192,7 @@ function WorkspaceCompanyCardsTable({
     const isGB = countryByIp === CONST.COUNTRY.GB;
     const shouldShowGBDisclaimer = isGB && (isNoFeed || hasNoAssignedCard);
     const shouldUseNarrowTableLayout = shouldUseNarrowLayout || isMediumScreenWidth;
+    const isSelectionModeActive = selectedCardKeys.length > 0 || isSelectionModeEnabled;
 
     // Drives the actions column's dynamic sizing below. Mirrors the row's own Assign button condition rather than
     // isAssigningCardDisabled, since a disabled Assign button still renders and needs the same space as an enabled one.
@@ -240,10 +244,13 @@ function WorkspaceCompanyCardsTable({
             label: translate('workspace.companyCards.cardName'),
             sortable: true,
             styling: {
-                containerStyles: [styles.mnw0],
+                // editableCellHeader matches the padded card name cell so the label and value share an edge.
+                containerStyles: [styles.mnw0, styles.editableCellHeader],
             },
             dynamicSizing: {
                 getContentToMeasure: (item) => (item.customCardName ? [{text: item.customCardName, fontSize: fontScale.text}] : []),
+                // Padding and border sit inside the track. Once a long name sets the column width, that chrome has to be measured or the name clips.
+                extraWidth: variables.editableCellChromeWidth,
             },
         },
         ...(shouldShowExportAccountColumn ? [getExportAccountColumn<WorkspaceCompanyCardTableItemData>(translate('workspace.moreFeatures.companyCards.exportAccount'), styles)] : []),
@@ -273,14 +280,20 @@ function WorkspaceCompanyCardsTable({
         : (companyCardEntries ?? [])
               .map(({cardName, encryptedCardNumber, isAssigned, assignedCard}) => {
                   const cardholder = assignedCard?.accountID ? personalDetails?.[assignedCard.accountID] : undefined;
+                  const isCardDeleted = assignedCard?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
+                  const cardID = assignedCard?.cardID;
+                  // The cell shows a placeholder when the card was never renamed. Rollback uses the stored name so a failed rename does not persist that placeholder.
+                  const storedCardName = getCompanyCardCustomName(cardID, sharedCardCustomNames, customCardNames);
+                  const customCardName = storedCardName ?? getDefaultCardName(cardholder?.displayName ?? '');
+                  const canEditName = canWriteCompanyCards && !!bankName && isAssigned && cardID !== undefined && !isCardDeleted && !isSelectionModeActive;
 
                   return {
                       cardName,
-                      keyForList: `${cardName}_${assignedCard?.cardID ?? 'unassigned'}_${encryptedCardNumber}`,
+                      keyForList: `${cardName}_${cardID ?? 'unassigned'}_${encryptedCardNumber}`,
                       encryptedCardNumber,
-                      customCardName: getCompanyCardCustomName(assignedCard?.cardID, sharedCardCustomNames, customCardNames) ?? getDefaultCardName(cardholder?.displayName ?? ''),
-                      isCardDeleted: assignedCard?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
-                      disabled: assignedCard?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                      customCardName,
+                      isCardDeleted,
+                      disabled: isCardDeleted,
                       isAssigned,
                       assignedCard,
                       cardholder,
@@ -288,6 +301,13 @@ function WorkspaceCompanyCardsTable({
                       exportAccountTitle: shouldShowExportAccountColumn && assignedCard ? getCardExportAccountTitle(cardExportSettings, assignedCard) : undefined,
                       errors: isFeedConnectionBroken || assignedCard?.pendingFields?.lastScrape ? undefined : assignedCard?.errors,
                       pendingAction: assignedCard?.pendingAction,
+                      canEditName,
+                      onRenameName: (newName: string) => {
+                          if (!bankName || cardID === undefined) {
+                              return;
+                          }
+                          renameCompanyCardInline(domainOrWorkspaceAccountID, String(cardID), newName, bankName, customCardName, storedCardName);
+                      },
                       onDismissError: () => resetFailedWorkspaceCompanyCardUnassignment(domainOrWorkspaceAccountID, bankName, assignedCard?.cardID),
                   };
               })
@@ -366,7 +386,13 @@ function WorkspaceCompanyCardsTable({
         const isAssignedCardMatch = assignedKeyword.startsWith(searchLower) && item.isAssigned;
         const isUnassignedCardMatch = unassignedKeyword.startsWith(searchLower) && !item.isAssigned;
 
-        const searchTokens = [item.cardName, item.customCardName ?? '', item.cardholder?.displayName ?? '', item.cardholder?.login ?? ''];
+        const cardholderLogin = item.cardholder?.login ?? '';
+        const searchTokens = [
+            item.cardName,
+            item.customCardName ?? '',
+            item.cardholder?.displayName ?? '',
+            ...(Str.isSMSLogin(cardholderLogin) ? [formatPhoneNumber(cardholderLogin), cardholderLogin] : [cardholderLogin]),
+        ];
 
         const matchingItems = tokenizedSearch([item], searchString, () => searchTokens);
         return matchingItems.length > 0 || isAssignedCardMatch || isUnassignedCardMatch;
@@ -444,7 +470,9 @@ function WorkspaceCompanyCardsTable({
                     isLoading={isLoading}
                     policyID={policyID}
                     feedName={feedName}
+                    domainOrWorkspaceAccountID={domainOrWorkspaceAccountID}
                     canWriteCompanyCards={canWriteCompanyCards}
+                    shouldShowViewTransactions={showCards}
                     CardFeedIcon={cardFeedIcon}
                 />
             </View>
@@ -457,6 +485,12 @@ function WorkspaceCompanyCardsTable({
             canWriteCompanyCards={canWriteCompanyCards}
             clearCardSelection={clearCardSelection}
             isSelectionModeEnabled={isSelectionModeEnabled}
+        />
+    ) : undefined;
+    const balanceLabelsComponent = showCards ? (
+        <WorkspaceCompanyCardsBalanceLabels
+            selectedFeed={selectedFeed}
+            feedName={feedName}
         />
     ) : undefined;
     const shouldShowPendingUnassignmentLoading = showCards && hasPendingUnassignment && cardsData.length === 0;
@@ -473,6 +507,7 @@ function WorkspaceCompanyCardsTable({
             isItemInSearch={isItemInSearch}
             isItemInFilter={isItemInFilter}
             shouldUseDynamicColumns
+            columnResizingID={CONST.TABLES.COLUMN_RESIZING_IDS.WORKSPACE_COMPANY_CARDS}
             initialSortColumn="member"
             selectionEnabled={showTableControls}
             selectedKeys={validSelectedCardKeys}
@@ -480,7 +515,7 @@ function WorkspaceCompanyCardsTable({
             title={translate('workspace.common.companyCards')}
             ListEmptyComponent={shouldShowPendingUnassignmentLoading ? <Table.LoadingState /> : undefined}
         >
-            <Table.ListHeader>{showCards ? composeTableListHeader(headerButtonsComponent, tableControlsComponent) : undefined}</Table.ListHeader>
+            <Table.ListHeader>{showCards ? composeTableListHeader(headerButtonsComponent, balanceLabelsComponent, tableControlsComponent) : undefined}</Table.ListHeader>
             {!showCards && headerButtonsComponent}
 
             {isLoading && <Table.LoadingState />}

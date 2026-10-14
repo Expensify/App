@@ -24,7 +24,7 @@ import {startTestDrive} from '@libs/actions/Tour';
 import DateUtils from '@libs/DateUtils';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import Navigation from '@libs/Navigation/Navigation';
-import {canSendInvoice, getGroupPoliciesWhereReportCanBeCreated} from '@libs/PolicyUtils';
+import {canSendInvoice, getDefaultChatEnabledPolicy, getGroupPoliciesWhereReportCanBeCreated} from '@libs/PolicyUtils';
 import {generateReportID, hasViolations as hasViolationsReportUtils} from '@libs/ReportUtils';
 import {getAllPolicyValues, getFilterFromQuery, isDefaultExpenseReportsQuery, isDefaultExpensesQuery, isSearchBeforeViolationsSnapshotStarted} from '@libs/SearchQueryUtils';
 import {TODO_SEARCH_KEYS} from '@libs/SearchUIUtils';
@@ -157,6 +157,8 @@ function EmptySearchViewContent({
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
 
+    const defaultChatEnabledPolicy = getDefaultChatEnabledPolicy(groupPoliciesWithChatEnabled, activePolicy);
+
     const filteredPolicyID = getFilterFromQuery(queryJSON, CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID);
     let isFilteredWorkspaceAccessible = true;
     if (filteredPolicyID.value) {
@@ -165,8 +167,8 @@ function EmptySearchViewContent({
         isFilteredWorkspaceAccessible = !!filteredPolicy;
     }
 
-    const handleCreateWorkspaceReport = (policy: OnyxEntry<Policy>, shouldDismissEmptyReportsConfirmation?: boolean) => {
-        if (!policy?.id) {
+    const handleCreateWorkspaceReport = (shouldDismissEmptyReportsConfirmation?: boolean) => {
+        if (!defaultChatEnabledPolicy?.id) {
             return;
         }
 
@@ -174,7 +176,7 @@ function EmptySearchViewContent({
             currentUserPersonalDetails,
             hasViolations,
             isASAPSubmitBetaEnabled,
-            policy,
+            defaultChatEnabledPolicy,
             isTrackIntentUser,
             getCurrencyDecimals,
             rules,

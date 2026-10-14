@@ -10,7 +10,7 @@ import Text from '@components/Text';
 
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
-import useOnyx from '@hooks/useOnyx';
+import {usePersonalDetail} from '@hooks/usePersonalDetails';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
@@ -19,14 +19,10 @@ import {temporaryGetDisplayNameOrDefault, getPhoneNumber} from '@libs/PersonalDe
 import Navigation from '@navigation/Navigation';
 
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
-import type {PersonalDetailsList} from '@src/types/onyx';
-
-import type {OnyxEntry} from 'react-native-onyx';
 
 import {Str} from 'expensify-common';
-import React, {useCallback} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 
 import DomainNotFoundPageWrapper from './DomainNotFoundPageWrapper';
@@ -47,10 +43,7 @@ function BaseDomainMemberDetailsComponent({domainAccountID, accountID, children,
     const {translate, formatPhoneNumber} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['Info']);
 
-    const personalDetailsSelector = useCallback((personalDetailsList: OnyxEntry<PersonalDetailsList>) => personalDetailsList?.[accountID], [accountID]);
-    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {
-        selector: personalDetailsSelector,
-    });
+    const [personalDetails] = usePersonalDetail(accountID);
 
     const displayName = temporaryGetDisplayNameOrDefault({passedPersonalDetails: personalDetails, translate, formatPhoneNumber});
     const phoneNumber = getPhoneNumber(personalDetails);
