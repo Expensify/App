@@ -67,7 +67,11 @@ function ListField({rows, addTitle, addDescription, canAddMore = true, errorText
     return (
         <>
             {rows.map((row) => (
-                <MenuItem.Root key={row.id}>
+                // The row itself does nothing, so it stays out of the accessibility tree and screen readers can reach its buttons
+                <MenuItem.Root
+                    key={row.id}
+                    shouldBeAccessible={false}
+                >
                     <MenuItem.Row>
                         <MenuItem.Leading>
                             <UserAvatar
@@ -108,10 +112,7 @@ function ListField({rows, addTitle, addDescription, canAddMore = true, errorText
                 </MenuItem.Root>
             ))}
             {canAddMore && (
-                <MenuItem.Root
-                    onPress={callFunctionIfActionIsAllowed(onAdd)}
-                    accessibilityLabel={addTitle}
-                >
+                <MenuItem.Root onPress={callFunctionIfActionIsAllowed(onAdd)}>
                     <MenuItem.Row>
                         <MenuItem.Leading>
                             <MenuItem.Icon src={icons.Plus} />

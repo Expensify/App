@@ -77,7 +77,12 @@ function DynamicFormListItemPage({currentPageName, allFields, values, currency, 
         >
             {({inputValues}) => (
                 <>
-                    <Text style={[styles.textHeadlineLineHeightXXL, styles.mb3]}>{title}</Text>
+                    <Text
+                        style={[styles.textHeadlineLineHeightXXL, styles.mb3]}
+                        accessibilityRole={CONST.ROLE.HEADER}
+                    >
+                        {title}
+                    </Text>
                     <DynamicFormFields
                         content={listField.itemFields}
                         values={withInputValues(inputValues)}
