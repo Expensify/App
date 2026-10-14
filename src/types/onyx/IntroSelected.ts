@@ -3,7 +3,16 @@ import type {OnboardingInvite} from '@src/CONST';
 import type {OnboardingPurpose} from './index';
 
 /** The tasks of IntroSelected model */
-type IntroSelectedTask = 'viewTour' | 'createWorkspace' | 'setupCategories' | 'setupTags' | 'setupCategoriesAndTags' | 'reviewWorkspaceSettings';
+type IntroSelectedTask =
+    | 'viewTour'
+    | 'createWorkspace'
+    | 'setupCategories'
+    | 'setupTags'
+    | 'setupCategoriesAndTags'
+    | 'reviewWorkspaceSettings'
+    | 'addWorkEmail'
+    | 'validateEmail'
+    | 'joinWorkspace';
 
 /** Model of onboarding */
 type IntroSelected = {
@@ -36,6 +45,18 @@ type IntroSelected = {
 
     /** Task reportID for 'reviewWorkspaceSettings' type */
     reviewWorkspaceSettings?: string;
+
+    /** Task reportID for 'addWorkEmail' type */
+    addWorkEmail?: string;
+
+    /** Task reportID for 'validateEmail' type */
+    validateEmail?: string;
+
+    /** Task reportID for 'joinWorkspace' type */
+    joinWorkspace?: string;
+
+    /** Report action ID for the post-onboarding no-joinable-workspaces message */
+    noJoinableWorkspacesMessage?: string;
 
     previousChoices?: OnboardingPurpose[];
 

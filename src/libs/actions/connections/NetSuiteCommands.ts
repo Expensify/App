@@ -1,5 +1,5 @@
 import * as API from '@libs/API';
-import type {ConnectPolicyToNetSuiteOAuthParams, ConnectPolicyToNetSuiteParams} from '@libs/API/parameters';
+import type {ConnectPolicyToNetSuiteParams} from '@libs/API/parameters';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import {getCommandURL} from '@libs/ApiUtils';
 import * as ErrorUtils from '@libs/ErrorUtils';
@@ -49,10 +49,13 @@ function connectPolicyToNetSuite(policyID: string, credentials: Omit<ConnectPoli
     writeNetSuiteCredentials(WRITE_COMMANDS.CONNECT_POLICY_TO_NETSUITE, policyID, credentials);
 }
 
-const getNetSuiteSetupLink = (policyID: string, accountID: string) => {
-    const params: ConnectPolicyToNetSuiteOAuthParams = {policyID, netSuiteAccountID: accountID};
+const getNetSuiteSetupLink = (policyID: string, accountID: string, isMigration?: boolean) => {
     const commandURL = getCommandURL({command: READ_COMMANDS.CONNECT_POLICY_TO_NETSUITE_OAUTH, shouldSkipWebProxy: true});
-    return commandURL + new URLSearchParams(params).toString();
+    const searchParams = new URLSearchParams({policyID, netSuiteAccountID: accountID});
+    if (isMigration) {
+        searchParams.set('isMigration', 'true');
+    }
+    return commandURL + searchParams.toString();
 };
 
 function updateNetSuiteTokens(policyID: string, credentials: Omit<ConnectPolicyToNetSuiteParams, 'policyID'>) {

@@ -12,7 +12,7 @@ import type {Camera, Point} from 'react-native-vision-camera';
 import {useFocusEffect} from '@react-navigation/core';
 import {useCallback, useRef, useState} from 'react';
 import {AppState} from 'react-native';
-import {Gesture} from 'react-native-gesture-handler';
+import {useTapGesture} from 'react-native-gesture-handler';
 import {RESULTS} from 'react-native-permissions';
 import {useAnimatedStyle, useSharedValue, withDelay, withSequence, withSpring, withTiming} from 'react-native-reanimated';
 import {useCameraDevice} from 'react-native-vision-camera';
@@ -152,9 +152,9 @@ function useTapToFocusGesture(cameraRef: React.RefObject<Camera | null>, support
     // React Compiler memoizes this closure, so no manual useCallback.
     const focusCamera = (point: Point) => focusCameraAtPoint(cameraRef, point);
 
-    const tapGesture = Gesture.Tap()
-        .enabled(supportsFocus)
-        .onStart((ev: {x: number; y: number}) => {
+    const tapGesture = useTapGesture({
+        enabled: supportsFocus,
+        onActivate: (ev) => {
             const point = {x: ev.x, y: ev.y};
 
             focusIndicatorOpacity.set(withSequence(withTiming(0.8, {duration: 250}), withDelay(1000, withTiming(0, {duration: 250}))));
@@ -163,7 +163,8 @@ function useTapToFocusGesture(cameraRef: React.RefObject<Camera | null>, support
             focusIndicatorPosition.set(point);
 
             scheduleOnRN(focusCamera, point);
-        });
+        },
+    });
 
     return {tapGesture, cameraFocusIndicatorAnimatedStyle};
 }

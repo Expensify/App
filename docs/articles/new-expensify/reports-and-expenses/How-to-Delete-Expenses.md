@@ -28,7 +28,7 @@ Most expenses can be deleted directly. If an expense is on a submitted report or
 3. On the selection bar, choose **More**.
 4. Select **Delete**.
 
-**Note:** You can only delete your own Unreported, Draft, and Outstanding expenses. You can’t delete expenses created by other members.
+**Note:** You can only delete your own Unreported, Draft, and Outstanding expenses. You can’t delete expenses created by other members unless you are their copilot. An admin can also delete card transactions that are duplicates.
 
 ---
 
@@ -86,7 +86,7 @@ Deleted expenses are not permanently removed. You can find and restore them from
 4. On the selection bar, choose **More**.
 5. Select **Undelete**.
 
-The restored expenses return to your account. 
+The restored expenses return to your account.
 
 ---
  
@@ -97,6 +97,12 @@ The restored expenses return to your account.
 You can only delete expenses in your own account.
 
 If you need access to another member’s expenses, ask them to [add you as a Copilot](/articles/new-expensify/settings/Copilot-Access). This allows you to manage expenses on their behalf.
+
+## How can a Workspace Admin delete another member's Draft report?
+
+Open the member’s **Draft** report on your workspace and choose **More** > **Delete**.
+
+This deletes the report only. The expenses on it become **Unreported** and stay in the member’s account, so they can be added to a new report. You can’t delete a member’s report after it is submitted, and you can’t delete a member’s individual expenses. [Learn more about report statuses and actions](/articles/new-expensify/reports-and-expenses/Understanding-Report-Statuses-and-Actions).
 
 ## How can a Workspace Admin allow members to delete company card expenses?
 
@@ -112,7 +118,7 @@ To enable this setting on a Workspace feed:
 
 ## How can a Workspace Admin delete company card expenses imported after a certain date? 
 
-Workspace Admins can remove certain imported expenses by unassigning a card.
+Workspace Admins can remove certain imported expenses by deleting them or unassigning a card.
 
 To unassign a company card on a workspace feed: 
 
