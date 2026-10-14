@@ -149,6 +149,7 @@ const actionableIgnoredScrapeStatuses: number[] = [434];
 const cardHiddenFromSearchStates: number[] = [2, 4];
 
 const selectableOnboardingChoices = {
+    JOIN_WORKSPACE: 'newDotJoinWorkspace',
     MANAGE_TEAM: 'newDotManageTeam',
     EMPLOYER: 'newDotEmployer',
     TRACK_BUSINESS: 'newDotTrackWorkspace',
@@ -965,6 +966,23 @@ const CONST = {
         FILE_LIMIT: 1,
         MAX_FILE_SIZE: 2097152,
     },
+    DYNAMIC_FORM_DOCUMENT: {
+        ALLOWED_FILE_TYPES: ['pdf', 'jpg', 'jpeg', 'png'],
+        FILE_LIMIT: 1,
+    },
+    DYNAMIC_FORM: {
+        /** A select with more options than this sits on its own page, since it opens a searchable list */
+        LARGE_SELECT_MIN_OPTIONS: 10,
+
+        /** Most questions sharing a page when pages are built from a flat list of fields */
+        MAX_FIELDS_PER_PAGE: 4,
+
+        /** Pages from which the flow shows a step indicator on its own */
+        STEP_INDICATOR_MIN_PAGES: 3,
+
+        /** Route segment of the confirmation page, which no page may take */
+        CONFIRMATION_PAGE_KEY: 'confirm',
+    },
     NON_USD_BANK_ACCOUNT: {
         PURPOSE_OF_TRANSACTION_ID: 'Intercompany_Payment',
         CURRENT_USER_KEY: 'currentUser',
@@ -1185,9 +1203,12 @@ const CONST = {
         INSIGHTS_PAGE: 'insightsPage',
         INSIGHTS_COMPARE: 'insightsCompare',
         PAYMENT_HISTORY: 'paymentHistory',
+        UNIFIED_CONNECTIONS: 'unifiedConnections',
+        SPEND_FOOTER_SELECTORS: 'spendFooterSelectors',
         SUPPORT_TICKET: 'supportTicket',
         ANCHORED_FIELD_DROPDOWNS: 'anchoredFieldDropdowns',
         RESIZABLE_TABLE_COLUMNS: 'resizableTableColumns',
+        DESCRIBE_RULE: 'describeRule',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
@@ -1646,6 +1667,15 @@ const CONST = {
         // Remote PDFs are rendered at this multiple of their on-screen size so the magnified
         // view shows real pixels instead of an upscaled low-resolution raster.
         HOVER_ZOOM_SCALE: 2.5,
+
+        // react-fast-pdf pads each page by this much. The single-page PDF layer matches it to stay framed the same.
+        PDF_PAGE_BORDER: 9,
+
+        // PDF page numbers are 1-indexed. This is the page a receipt opens on, and the page the static badge always shows.
+        FIRST_PDF_PAGE: 1,
+
+        // Elements with this data attribute pause the hover zoom while the pointer is over them
+        HOVER_ZOOM_EXCLUDED_ELEMENT: 'receipt-hover-zoom-excluded',
     },
     RECEIPT_PREVIEW_TOP_BOTTOM_MARGIN: 120,
     REPORT: {
@@ -2049,7 +2079,6 @@ const CONST = {
             AUTOSCROLL_TO_TOP_THRESHOLD: 250,
             LINKED_MESSAGE_OFFSET: 40,
             MAX_GROUPING_TIME: 300000,
-            MAX_SYSTEM_MESSAGE_COLLAPSE_TIME: 24 * 60 * 60 * 1000,
         },
         CANCEL_PAYMENT_REASONS: {
             ADMIN: 'CANCEL_REASON_ADMIN',
@@ -6955,6 +6984,14 @@ const CONST = {
             FLAG_FOR_REVIEW: 'flagForReview',
             AGENTS: 'agents',
         },
+        CONNECTIONS: {
+            ALL: 'all',
+            ACCOUNTING: 'accounting',
+            PEOPLE: 'people',
+            RECRUITING: 'recruiting',
+            RECEIPTS: 'receipts',
+            AI: 'ai',
+        },
         WORKFLOWS_TAB_TYPE: 'workflowsTabType',
         WORKFLOWS: {
             SUBMISSIONS: 'submissions',
@@ -7422,12 +7459,6 @@ const CONST = {
 
     REPORT_FIELD_TITLE_FIELD_ID: 'text_title',
 
-    /** How many report fields are shown side by side in the report view on a wide layout */
-    REPORT_FIELDS_PER_ROW: 3,
-
-    /** Below this many options, a report field list is short enough to scan without a search input */
-    REPORT_FIELD_LIST_SEARCH_THRESHOLD: 8,
-
     MOBILE_PAGINATION_SIZE: 15,
     WEB_PAGINATION_SIZE: 30,
 
@@ -7447,6 +7478,9 @@ const CONST = {
 
     // Returned when a user tries to add a work email that is a domain-controlled login for an existing account, so we can show a specific error message instead of the generic blocking screen subtitle
     WORK_DOMAIN_CONTROLLED_ERROR: '401 work domain is controlled',
+
+    // Returned when an already validated public-domain account tries to add a work email, so we can show a takeover-protection error message instead of the generic blocking screen subtitle
+    WORK_EMAIL_VALIDATED_PUBLIC_DOMAIN_ERROR: '403 Forbidden',
     REIMBURSEMENT_ACCOUNT: {
         DEFAULT_DATA: {
             achData: {
@@ -8242,6 +8276,19 @@ const CONST = {
             LINE: 'line',
             PIE: 'pie',
         },
+        /** Which of the counts every search returns the Spend footer displays. Applied client-side, so it never retriggers a search. */
+        FOOTER_COUNT: {
+            EXPENSES: 'expenses',
+            REPORTS: 'reports',
+        },
+        /** Which aggregate the Spend footer displays as its total. Changing it retriggers the search, since the backend computes the aggregate. */
+        FOOTER_TOTAL: {
+            TOTAL: 'total',
+            REIMBURSABLE: 'reimbursable',
+            NON_REIMBURSABLE: 'non-reimbursable',
+            BILLABLE: 'billable',
+            NON_BILLABLE: 'non-billable',
+        },
         // Comparison modes for Insights queries, defined by the API.
         COMPARE: {
             PREVIOUS_PERIOD: 'previousPeriod',
@@ -8304,6 +8351,12 @@ const CONST = {
             SUBMITTER_USER_ID: 'submitterUserID',
             SUBMITTER_PAYROLL_ID: 'submitterPayrollID',
             ORDER_DEAL_NUMBERS: 'orderDealNumbers',
+            // The Spend footer's display selections. They travel as filters because that is where the backend reads
+            // them from, but they never narrow the result set: only `footerTotal` changes the response, by swapping
+            // which aggregate comes back as the search total.
+            FOOTER_COUNT: 'footerCount',
+            FOOTER_TOTAL: 'footerTotal',
+            FOOTER_CURRENCY: 'footerCurrency',
         },
         REPORT_FIELD: {
             // All report fields start with this, so use this to check if a search key is a report field
@@ -8389,6 +8442,9 @@ const CONST = {
             ORDER_DEAL_NUMBERS: 'order-deal-numbers',
             COLUMNS: 'columns',
             LIMIT: 'limit',
+            FOOTER_COUNT: 'footer-count',
+            FOOTER_TOTAL: 'footer-total',
+            FOOTER_CURRENCY: 'footer-currency',
             COMPARE: 'compare',
         },
         get SEARCH_USER_FRIENDLY_VALUES_MAP() {
@@ -9282,12 +9338,14 @@ const CONST = {
         MILEAGE_RATE_AUTO_UPDATED: 'mileageRateAutoUpdated',
         MARK_ALL_AS_READ: 'markAllAsRead',
         ACCOUNT_MOVED_TO_TOP_BAR: 'accountMovedToTopBar',
+        CONNECTIONS_MOVED: 'connectionsMoved',
         REQUIRE_FIELDS_RULE_RECEIPT_COUPLING_TOOLTIP: 'requireFieldsRuleReceiptCouplingTooltip',
         REQUIRE_FIELDS_RULE_ITEMIZED_RECEIPT_COUPLING_TOOLTIP: 'requireFieldsRuleItemizedReceiptCouplingTooltip',
     },
     PRODUCT_TRAINING_TOOLTIP_REAPPEAR_WINDOW: {
         SEVEN_DAYS: 7 * 24 * 60 * 60 * 1000,
     },
+
     INBOX_TAB_STALE_UNREAD_MONTHS: 3,
     CHANGE_POLICY_TRAINING_MODAL: 'changePolicyModal',
     AGENTS_RULES_BANNER: 'agentsRulesBanner',
@@ -9435,6 +9493,9 @@ const CONST = {
         REVIEW_WORKSPACE_SETTINGS: 'reviewWorkspaceSettings',
         INVITE_ACCOUNTANT: 'inviteAccountant',
         ADD_EXPENSE_APPROVALS: 'addExpenseApprovals',
+        ADD_WORK_EMAIL: 'addWorkEmail',
+        VALIDATE_EMAIL: 'validateEmail',
+        JOIN_WORKSPACE: 'joinWorkspace',
     },
 
     MODAL_EVENTS: {
@@ -9570,6 +9631,8 @@ const CONST = {
             SHUTTER: 'AttachmentCamera-Shutter',
             FLIP_CAMERA: 'AttachmentCamera-FlipCamera',
             PERMISSION_PROMPT_BUTTON: 'AttachmentCamera-PermissionPromptButton',
+            RETAKE: 'AttachmentCamera-Retake',
+            USE_PHOTO: 'AttachmentCamera-UsePhoto',
         },
         ATTACHMENT_CAROUSEL: {
             PREVIOUS_BUTTON: 'AttachmentCarousel-PreviousButton',
@@ -9625,6 +9688,8 @@ const CONST = {
         },
         RECEIPT: {
             IMAGE: 'Receipt-Image',
+            PREVIOUS_PAGE_BUTTON: 'Receipt-PreviousPageButton',
+            NEXT_PAGE_BUTTON: 'Receipt-NextPageButton',
             ENLARGE_BUTTON: 'Receipt-EnlargeButton',
             ADD_ATTACHMENT_BUTTON: 'Receipt-AddAttachmentButton',
         },
@@ -9656,6 +9721,9 @@ const CONST = {
             FILTER_GROUP_CURRENCY: 'Search-FilterGroupCurrency',
             FILTER_VIEW: 'Search-FilterView',
             FILTER_LIMIT: 'Search-FilterLimit',
+            FOOTER_COUNT: 'Search-FooterCount',
+            FOOTER_TOTAL: 'Search-FooterTotal',
+            FOOTER_CURRENCY: 'Search-FooterCurrency',
             ADVANCED_FILTERS_BUTTON: 'Search-AdvancedFiltersButton',
             COLUMNS_BUTTON: 'Search-ColumnsButton',
             SELECT_ALL_CHECKBOX: 'Search-SelectAllCheckbox',
@@ -9731,11 +9799,9 @@ const CONST = {
             REPORT_ACTION_ITEM_THREAD: 'Report-ReportActionItemThread',
             THREAD_DIVIDER: 'Report-ThreadDivider',
             REPORT_ACTION_ITEM: 'Report-ReportActionItem',
-            COLLAPSED_SYSTEM_MESSAGES: 'Report-CollapsedSystemMessages',
             MODERATION_BUTTON: 'Report-ModerationButton',
             MONEY_REQUEST_REPORT_ACTIONS_LIST_SELECT_ALL: 'MoneyRequestReportActionsList-SelectAll',
             MONEY_REQUEST_REPORT_TRANSACTION_ITEM: 'MoneyRequestReportTransactionItem',
-            REPORT_FIELD_DELETE_BUTTON: 'Report-ReportFieldDeleteButton',
             REPORT_ACTION_AVATAR: 'Report-ReportActionAvatar',
             PARTICIPANTS_ROW: 'Report-ParticipantsRow',
             ROOM_MEMBERS_ROW: 'Report-RoomMembersRow',
@@ -10062,6 +10128,7 @@ const CONST = {
                 HR: 'WorkspaceInitial-HR',
                 RECRUITING: 'WorkspaceInitial-Recruiting',
                 RECEIPT_PARTNERS: 'WorkspaceInitial-ReceiptPartners',
+                CONNECTIONS: 'WorkspaceInitial-Connections',
                 CATEGORIES: 'WorkspaceInitial-Categories',
                 TAGS: 'WorkspaceInitial-Tags',
                 TAXES: 'WorkspaceInitial-Taxes',
@@ -10146,6 +10213,11 @@ const CONST = {
                 SETUP_BUTTON: 'WorkspaceAccounting-SetupButton',
                 CARD_SECTION_ADD_BUTTON: 'WorkspaceAccounting-CardSectionAddButton',
                 THREE_DOT_MENU: 'WorkspaceAccounting-ThreeDotMenu',
+            },
+            CONNECTIONS: {
+                CARD: 'WorkspaceConnections-Card',
+                CONFIGURE_BUTTON: 'WorkspaceConnections-ConfigureButton',
+                SUGGEST_INTEGRATION: 'WorkspaceConnections-SuggestIntegration',
             },
             RULES: {
                 ADD_SPEND_RULE: 'WorkspaceRules-AddSpendRule',
