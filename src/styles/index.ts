@@ -877,9 +877,6 @@ const staticStyles = (theme: ThemeColors) =>
             backgroundColor: theme.appBG,
         },
 
-        // The wordmark's glyphs sit high in its viewBox, so a couple of pixels down optically centers it against the create button.
-        // Nudges the wordmark down to sit optically centred against the collapse icon, without the offset
-        // adding to the header's height.
         // Absolute so the wordmark can stay mounted and fade, without pushing the toggle off the rail's centre.
         flatNavigationBarLogoContainer: {
             position: 'absolute',
@@ -889,6 +886,8 @@ const staticStyles = (theme: ThemeColors) =>
             justifyContent: 'center',
         },
 
+        // The wordmark's glyphs sit high in its viewBox, so it moves down to sit optically centred against the
+        // collapse icon, without the offset adding to the header's height.
         flatNavigationBarLogo: {
             marginTop: 2,
             marginBottom: -2,
@@ -911,7 +910,6 @@ const staticStyles = (theme: ThemeColors) =>
             justifyContent: 'flex-end',
             overflow: 'hidden',
             height: variables.flatNavigationBarHeaderHeight,
-            marginBottom: variables.flatNavigationBarHeaderMarginBottom,
             paddingLeft: 20,
             paddingRight: variables.flatNavigationBarHeaderPaddingRight,
         },
@@ -964,11 +962,6 @@ const staticStyles = (theme: ThemeColors) =>
 
         navigationRowHovered: {
             backgroundColor: theme.highlightBG,
-        },
-
-        // A hovered row reads as active, so its label takes the standard text color instead of the supporting one.
-        navigationRowHoveredText: {
-            color: theme.text,
         },
 
         // Nested rows have no icon, so they indent by the row padding plus the icon's width. Their label then starts

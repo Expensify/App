@@ -4,7 +4,6 @@ import {PressableWithoutFeedback} from '@components/Pressable';
 import SearchButton from '@components/Search/SearchRouter/SearchButton';
 import SidePanelButton from '@components/SidePanel/SidePanelButton';
 import Text from '@components/Text';
-import Tooltip from '@components/Tooltip';
 import {useWideRHPState} from '@components/WideRHPContextProvider';
 
 import useContentHeaderHeight from '@hooks/useContentHeaderHeight';
@@ -41,8 +40,7 @@ type TopBarProps = {
     cancelSearch?: () => void;
     children?: React.ReactNode;
     breadcrumbAnimatedStyle?: StyleProp<AnimatedStyle<ViewStyle>>;
-
-    /** Renders a back arrow before the label. Used where a tab root was reached from another page, such as More. */
+    /** Shows a back arrow before the breadcrumb that calls this when pressed. */
     onBackButtonPress?: () => void;
 };
 
@@ -60,8 +58,8 @@ function TopBar({
 }: TopBarProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
-    const {translate} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['BackArrow']);
+    const {translate} = useLocalize();
     const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     const isAnonymousUser = isAnonymousUserUtil(session);
 
@@ -82,20 +80,18 @@ function TopBar({
             >
                 <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.pr2]}>
                     {!!onBackButtonPress && (
-                        <Tooltip text={translate('common.back')}>
-                            <PressableWithoutFeedback
-                                onPress={onBackButtonPress}
-                                accessibilityLabel={translate('common.back')}
-                                role={CONST.ROLE.BUTTON}
-                                style={[styles.touchableButtonImage]}
-                                sentryLabel={CONST.SENTRY_LABEL.TOP_BAR.BACK_BUTTON}
-                            >
-                                <Icon
-                                    src={icons.BackArrow}
-                                    fill={theme.icon}
-                                />
-                            </PressableWithoutFeedback>
-                        </Tooltip>
+                        <PressableWithoutFeedback
+                            onPress={onBackButtonPress}
+                            style={styles.touchableButtonImage}
+                            role={CONST.ROLE.BUTTON}
+                            accessibilityLabel={translate('common.back')}
+                            sentryLabel={CONST.SENTRY_LABEL.HEADER.BACK_BUTTON}
+                        >
+                            <Icon
+                                src={icons.BackArrow}
+                                fill={theme.icon}
+                            />
+                        </PressableWithoutFeedback>
                     )}
                     <Animated.View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, breadcrumbAnimatedStyle]}>
                         <Text

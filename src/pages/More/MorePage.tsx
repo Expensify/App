@@ -10,23 +10,17 @@ import {useSearchSelectionActions} from '@components/Search/SearchContext';
 
 import useDocumentTitle from '@hooks/useDocumentTitle';
 import useHasTabBeenShown from '@hooks/useHasTabBeenShown';
-import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
+import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useRestoreWorkspacesTabOnNavigate from '@hooks/useRestoreWorkspacesTabOnNavigate';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWorkspacesTabIndicatorStatus from '@hooks/useWorkspacesTabIndicatorStatus';
 
-import clearSelectedText from '@libs/clearSelectedText/clearSelectedText';
-import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import {MORE_DESTINATIONS, setLastVisitedMoreDestination} from '@libs/MoreDestinationHistory';
-import {openLastInsightsDashboard, reopenLastVisitedSearch} from '@libs/MoreNavigationUtils';
-import {savedSearchIDToSearchKey} from '@libs/SearchKeyUtils';
-import navigateToCannedSpendSearch, {navigateToSearch} from '@libs/SearchNavigationUtils';
-import {getValidLastQuery} from '@libs/SearchQueryUtils';
-import {getLastSearchQuery} from '@libs/SearchUIUtils';
+import type {MoreDestination} from '@libs/MoreDestinationHistory';
+import {openFirstSavedSearch, openLastInsightsDashboard, openSearchMenuItem, reopenLastVisitedSearch} from '@libs/MoreNavigationUtils';
 import {ACCOUNTING_GROUP_ID, INSIGHTS_GROUP_ID, SAVED_SEARCHES_GROUP_ID} from '@libs/SpendNavigationGroups';
 
 import variables from '@styles/variables';
@@ -40,28 +34,15 @@ import React from 'react';
 import {View} from 'react-native';
 
 /**
- * The More page's rows. Each row records itself, and resolves where inside that destination the user last was, when it is pressed. The
- * history is plain module state, so a value read during render would be memoized on the first render and never see
- * later visits.
+ * The More page's rows. Each row records itself, and resolves where inside that destination the user last was, when it
+ * is pressed. The history is plain module state, so a value read during render would be memoized on the first render
+ * and never see later visits.
  */
 function MoreMenu() {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {translate, localeCompare} = useLocalize();
     const {isBetaEnabled} = usePermissions();
-    const icons = useMemoizedLazyExpensifyIcons(['Connect', 'Bookmark', 'PieChart', 'Buildings']);
     const illustrations = useMemoizedLazyIllustrations(['Accounting', 'MagnifyingGlassReceipt', 'Chart', 'Building']);
-
-    // On narrow layouts these read as a set of choices rather than a sidebar, so they take the card treatment the
-    // workspace "New rule" flow uses: a filled card, a full-color illustration, and a chevron.
-    const cardProps = shouldUseNarrowLayout
-        ? {
-              shouldShowRightIcon: true,
-              displayInDefaultIconColor: true,
-              iconWidth: variables.iconSizeExtraLarge,
-              iconHeight: variables.iconSizeExtraLarge,
-          }
-        : {};
 
     // Native tabs stay mounted in the background, so the approval watch behind the item list only runs while this is shown.
     const isFocused = useIsFocused();
@@ -79,70 +60,57 @@ function MoreMenu() {
         workspacesBrickRoadIndicator = isWorkspacesIndicatorError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : CONST.BRICK_ROAD_INDICATOR_STATUS.INFO;
     }
 
-    const savedSearchEntries = Object.entries(savedSearches ?? {});
-    const menuItems: MenuItemWithLink[] = [];
+    // The rows read as a set of choices rather than a sidebar, so they take the card treatment the workspace "New rule"
+    // flow uses: a filled card, a full-color illustration, and a chevron.
+    const cardProps = {
+        shouldShowRightIcon: true,
+        displayInDefaultIconColor: true,
+        iconWidth: variables.iconSizeExtraLarge,
+        iconHeight: variables.iconSizeExtraLarge,
+    };
 
-    menuItems.push({
-        key: 'workspaces',
-        ...cardProps,
-        title: translate('common.workspacesTabTitle'),
-        description: shouldUseNarrowLayout ? translate('morePage.workspacesDescription') : undefined,
-        icon: shouldUseNarrowLayout ? illustrations.Building : icons.Buildings,
-        brickRoadIndicator: workspacesBrickRoadIndicator,
-        onPress: () => {
-            setLastVisitedMoreDestination(MORE_DESTINATIONS.WORKSPACES);
-            // This hook already restores the last workspace or domain the user had open.
-            navigateToWorkspaces();
+    const openDestination = (destination: MoreDestination, groupID: string, openFirst: () => void) => {
+        setLastVisitedMoreDestination(destination);
+        if (!reopenLastVisitedSearch(groupID, savedSearches, clearSelectedTransactions)) {
+            openFirst();
+        }
+    };
+
+    const menuItems: MenuItemWithLink[] = [
+        {
+            key: 'workspaces',
+            ...cardProps,
+            title: translate('common.workspacesTabTitle'),
+            description: translate('morePage.workspacesDescription'),
+            icon: illustrations.Building,
+            brickRoadIndicator: workspacesBrickRoadIndicator,
+            onPress: () => {
+                setLastVisitedMoreDestination(MORE_DESTINATIONS.WORKSPACES);
+                // This hook already restores the last workspace or domain the user had open.
+                navigateToWorkspaces();
+            },
         },
-    });
+    ];
 
     if (accounting.length > 0) {
         menuItems.push({
             key: 'accounting',
             ...cardProps,
             title: translate('search.tabs.accounting'),
-            description: shouldUseNarrowLayout ? translate('morePage.accountingDescription') : undefined,
-            icon: shouldUseNarrowLayout ? illustrations.Accounting : icons.Connect,
-            onPress: () => {
-                setLastVisitedMoreDestination(MORE_DESTINATIONS.ACCOUNTING);
-                if (reopenLastVisitedSearch(ACCOUNTING_GROUP_ID, savedSearches, clearSelectedTransactions)) {
-                    return;
-                }
-                const item = accounting.at(0);
-                if (!item) {
-                    return;
-                }
-                clearSelectedText();
-                interceptAnonymousUser(() => {
-                    navigateToCannedSpendSearch(item.key, item.searchQuery, getLastSearchQuery(searchFilters, item.key), clearSelectedTransactions);
-                });
-            },
+            description: translate('morePage.accountingDescription'),
+            icon: illustrations.Accounting,
+            onPress: () => openDestination(MORE_DESTINATIONS.ACCOUNTING, ACCOUNTING_GROUP_ID, () => openSearchMenuItem(accounting.at(0), searchFilters, clearSelectedTransactions)),
         });
     }
 
-    if (savedSearchEntries.length > 0) {
+    if (Object.keys(savedSearches ?? {}).length > 0) {
         menuItems.push({
             key: 'savedSearches',
             ...cardProps,
             title: translate('search.savedSearchesMenuItemTitle'),
-            description: shouldUseNarrowLayout ? translate('morePage.savedSearchesDescription') : undefined,
-            icon: shouldUseNarrowLayout ? illustrations.MagnifyingGlassReceipt : icons.Bookmark,
-            onPress: () => {
-                setLastVisitedMoreDestination(MORE_DESTINATIONS.SAVED_SEARCHES);
-                if (reopenLastVisitedSearch(SAVED_SEARCHES_GROUP_ID, savedSearches, clearSelectedTransactions)) {
-                    return;
-                }
-                const entry = savedSearchEntries.at(0);
-                if (!entry) {
-                    return;
-                }
-                const [savedSearchID, savedSearch] = entry;
-                const searchKey = savedSearchIDToSearchKey(savedSearchID);
-                clearSelectedText();
-                interceptAnonymousUser(() => {
-                    navigateToSearch({query: getValidLastQuery(getLastSearchQuery(searchFilters, searchKey), savedSearch.query), name: savedSearch.name, searchKey});
-                });
-            },
+            description: translate('morePage.savedSearchesDescription'),
+            icon: illustrations.MagnifyingGlassReceipt,
+            onPress: () => openDestination(MORE_DESTINATIONS.SAVED_SEARCHES, SAVED_SEARCHES_GROUP_ID, () => openFirstSavedSearch(savedSearches, searchFilters, localeCompare)),
         });
     }
 
@@ -152,25 +120,15 @@ function MoreMenu() {
             key: 'insights',
             ...cardProps,
             title: translate('common.insights'),
-            description: shouldUseNarrowLayout ? translate('morePage.insightsDescription') : undefined,
-            icon: shouldUseNarrowLayout ? illustrations.Chart : icons.PieChart,
+            description: translate('morePage.insightsDescription'),
+            icon: illustrations.Chart,
             onPress: () => {
-                setLastVisitedMoreDestination(MORE_DESTINATIONS.INSIGHTS);
                 if (isInsightsPageEnabled) {
+                    setLastVisitedMoreDestination(MORE_DESTINATIONS.INSIGHTS);
                     openLastInsightsDashboard();
                     return;
                 }
-                if (reopenLastVisitedSearch(INSIGHTS_GROUP_ID, savedSearches, clearSelectedTransactions)) {
-                    return;
-                }
-                const item = insights.at(0);
-                if (!item) {
-                    return;
-                }
-                clearSelectedText();
-                interceptAnonymousUser(() => {
-                    navigateToCannedSpendSearch(item.key, item.searchQuery, getLastSearchQuery(searchFilters, item.key), clearSelectedTransactions);
-                });
+                openDestination(MORE_DESTINATIONS.INSIGHTS, INSIGHTS_GROUP_ID, () => openSearchMenuItem(insights.at(0), searchFilters, clearSelectedTransactions));
             },
         });
     }
@@ -178,7 +136,7 @@ function MoreMenu() {
     return (
         <MenuItemList
             menuItems={menuItems}
-            wrapperStyle={shouldUseNarrowLayout ? styles.moreMenuCard : styles.sectionMenuItem(shouldUseNarrowLayout)}
+            wrapperStyle={styles.moreMenuCard}
             shouldUseSingleExecution
         />
     );

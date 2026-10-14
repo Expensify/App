@@ -10062,7 +10062,7 @@ ${reportName}`,
         spendOverTime: '時間経過による支出',
         tabs: {
             expenseReports: '経費精算書',
-            allReports: 'すべてのレポート',
+            myReports: 'マイレポート',
             reports: 'レポート',
             expenses: '経費',
             submit: '下書き',

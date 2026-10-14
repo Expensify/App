@@ -1,4 +1,4 @@
-import {getFlatNavigationBarWidth, useSearchSidebarCollapse} from '@components/Navigation/SearchSidebarCollapseStore';
+import {getFlatNavigationBarLayoutWidth, useSearchSidebarCollapse} from '@components/Navigation/SearchSidebarCollapseStore';
 import SkeletonRect from '@components/SkeletonRect';
 
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -61,7 +61,7 @@ function SearchRowSkeleton({
     // Chrome to the left of the Search central pane, used to right-align the skeleton's trailing elements. Search has
     // no sidebar of its own, so on web this is just the global navigation bar, which the user can collapse.
     const {isCollapsed} = useSearchSidebarCollapse();
-    const leftPaneWidth = getPlatform() === CONST.PLATFORM.WEB ? getFlatNavigationBarWidth(isCollapsed ? 1 : 0) : 0;
+    const leftPaneWidth = getPlatform() === CONST.PLATFORM.WEB ? getFlatNavigationBarLayoutWidth(isCollapsed) : 0;
     const {shouldUseNarrowLayout: shouldUseNarrowLayoutResponsive, isLargeScreenWidth} = useResponsiveLayout();
     // The prop lets callers (e.g. SearchStaticList) pin the layout independently of the
     // global responsive breakpoint - useful when the skeleton is rendered in a context

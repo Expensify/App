@@ -63,10 +63,10 @@ const FAB_ANCHOR_ALIGNMENT = {
 } as const;
 
 // Puts the create menu 8px below the Create button and flush with its left edge. The button is the first row under
-// the header, so both edges follow from the header's height and the margin the row sits at.
+// the header, so both edges follow from the header's height.
 const FAB_ANCHOR_POSITION = {
     horizontal: 12,
-    vertical: variables.flatNavigationBarHeaderHeight + variables.flatNavigationBarHeaderMarginBottom + variables.flatNavigationBarCreateButtonHeight + 8,
+    vertical: variables.flatNavigationBarHeaderHeight + variables.flatNavigationBarCreateButtonHeight + 8,
 };
 
 type FlatNavigationBarProps = {

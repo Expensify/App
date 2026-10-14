@@ -7,7 +7,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 
 import {setLastVisitedSearch} from '@libs/MoreDestinationHistory';
 import navigateBackToMore from '@libs/Navigation/helpers/navigateBackToMore';
-import {ACCOUNTING_GROUP_ID, getSpendGroupID, getSpendGroupTranslationPath, INSIGHTS_GROUP_ID, SAVED_SEARCHES_GROUP_ID} from '@libs/SpendNavigationGroups';
+import {getSpendGroupID, getSpendGroupTranslationPath, isSearchBehindMore} from '@libs/SpendNavigationGroups';
 
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
 
@@ -28,7 +28,7 @@ function SearchPageHeaderCommon({queryJSONType, shouldShowLoadingBar, shouldUseG
     const {currentSearchKey, currentSearchQueryJSON, suggestedSearches} = useSearchQueryContext();
     const selectedItem = currentSearchKey ? suggestedSearches[currentSearchKey] : undefined;
     const activeSavedSearch = useActiveSavedSearch();
-    // Remember where the user is inside Accounting or Saved, so the More menu can return them here.
+    // Remembers where the user is inside each group, so the More menu can return them there.
     const groupID = getSpendGroupID(currentSearchKey);
     const currentQuery = currentSearchQueryJSON?.inputQuery;
     const savedSearchName = activeSavedSearch?.name;
@@ -40,8 +40,7 @@ function SearchPageHeaderCommon({queryJSONType, shouldShowLoadingBar, shouldUseG
     }, [groupID, currentSearchKey, currentQuery, savedSearchName]);
 
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    // Accounting, Saved and Insights have no tab of their own on narrow layouts - they are reached through More.
-    const shouldShowBackToMore = shouldUseNarrowLayout && (groupID === ACCOUNTING_GROUP_ID || groupID === SAVED_SEARCHES_GROUP_ID || groupID === INSIGHTS_GROUP_ID);
+    const shouldShowBackToMore = shouldUseNarrowLayout && isSearchBehindMore(currentSearchKey);
     const groupTranslationPath = shouldUseGroupTitle ? getSpendGroupTranslationPath(currentSearchKey) : undefined;
     const title = groupTranslationPath ? translate(groupTranslationPath) : getSearchPageHeaderTitle({translate, type: queryJSONType, activeSavedSearch, selectedItem});
 

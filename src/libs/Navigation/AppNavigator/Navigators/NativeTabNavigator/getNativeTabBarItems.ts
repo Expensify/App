@@ -1,5 +1,4 @@
-import {searchKeyToSavedSearchID} from '@libs/SearchKeyUtils';
-import {ACCOUNTING_KEYS, INSIGHTS_KEYS, REPORTS_KEYS} from '@libs/SpendNavigationGroups';
+import {isSearchBehindMore, REPORTS_KEYS} from '@libs/SpendNavigationGroups';
 
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
@@ -27,7 +26,7 @@ const MORE_DESTINATION_ROUTES = new Set<string>([SCREENS.MORE, SCREENS.INSIGHTS,
 
 /** The slot a Spend search belongs to: its own group's tab, or More for the groups that live behind it. */
 function getSpendSlot(searchKey: string | undefined): SpendSlot {
-    if ([...ACCOUNTING_KEYS, ...INSIGHTS_KEYS].some((key) => key === searchKey) || !!searchKeyToSavedSearchID(searchKey)) {
+    if (isSearchBehindMore(searchKey)) {
         return NATIVE_TAB_ITEM_KINDS.MORE;
     }
     if (REPORTS_KEYS.some((key) => key === searchKey)) {
@@ -84,5 +83,4 @@ function getNativeTabBarItems(focusedRouteName: string | undefined, spendSearchK
 }
 
 export default getNativeTabBarItems;
-export {getSpendSlot};
 export type {NativeTabBarItem};

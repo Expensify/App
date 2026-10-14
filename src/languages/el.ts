@@ -10164,7 +10164,7 @@ ${reportName}`,
     search: {
         tabs: {
             expenseReports: 'Αναφορές εξόδων',
-            allReports: 'Όλες οι αναφορές',
+            myReports: 'Οι αναφορές μου',
             reports: 'Αναφορές',
             expenses: 'Έξοδα',
             submit: 'Πρόχειρα',

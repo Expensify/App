@@ -10181,7 +10181,7 @@ const translations = {
     search: {
         tabs: {
             expenseReports: 'Expense reports',
-            allReports: 'All reports',
+            myReports: 'My reports',
             reports: 'Reports',
             expenses: 'Expenses',
             submit: 'Drafts',

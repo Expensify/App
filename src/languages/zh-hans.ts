@@ -9792,7 +9792,7 @@ ${reportName}`,
         spendOverTime: '随时间支出',
         tabs: {
             expenseReports: '报销报告',
-            allReports: '所有报表',
+            myReports: '我的报表',
             reports: '报表',
             expenses: '报销费用',
             submit: '草稿',

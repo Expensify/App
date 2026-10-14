@@ -10180,7 +10180,7 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
         spendOverTime: 'Uitgaven in de tijd',
         tabs: {
             expenseReports: 'Declaraties',
-            allReports: 'Alle rapporten',
+            myReports: 'Mijn rapporten',
             reports: 'Rapporten',
             expenses: 'Declaraties',
             submit: 'Concepten',

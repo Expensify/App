@@ -11,13 +11,12 @@ import useTodoCounts from '@hooks/useTodoCounts';
 
 import clearSelectedText from '@libs/clearSelectedText/clearSelectedText';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
-import {getLastVisitedSearch} from '@libs/MoreDestinationHistory';
-import {openLastInsightsDashboard} from '@libs/MoreNavigationUtils';
-import {savedSearchIDToSearchKey, searchKeyToSavedSearchID} from '@libs/SearchKeyUtils';
-import navigateToCannedSpendSearch, {navigateToSearch} from '@libs/SearchNavigationUtils';
-import {buildCannedSearchQuery, getValidLastQuery} from '@libs/SearchQueryUtils';
+import {openFirstSavedSearch, openLastInsightsDashboard, openSearchMenuItem, reopenLastVisitedSearch} from '@libs/MoreNavigationUtils';
+import {searchKeyToSavedSearchID} from '@libs/SearchKeyUtils';
+import {navigateToSearch} from '@libs/SearchNavigationUtils';
+import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
 import type {SearchTypeMenuItem} from '@libs/SearchUIUtils';
-import {formatBadgeText, getItemBadgeText, getLastSearchQuery} from '@libs/SearchUIUtils';
+import {formatBadgeText, getItemBadgeText} from '@libs/SearchUIUtils';
 import {ACCOUNTING_KEYS, EXPENSES_KEYS, getGroupedSearchTranslationPath, INSIGHTS_KEYS, REPORTS_KEYS, SAVED_SEARCHES_GROUP_ID} from '@libs/SpendNavigationGroups';
 
 import CONST from '@src/CONST';
@@ -148,12 +147,7 @@ function FlatNavSpendSection({selectedTab, isCollapsed, todoCounts}: FlatNavSpen
     const isTypeSearchSelected = (type: SearchDataTypes) => isSpendTabSelected && !currentSearchKey && currentSearchQueryJSON?.type === type;
     const hasSavedSearches = Object.keys(savedSearches ?? {}).length > 0;
 
-    const navigateToSearchItem = singleExecution((item: SearchTypeMenuItem) => {
-        clearSelectedText();
-        interceptAnonymousUser(() => {
-            navigateToCannedSpendSearch(item.key, item.searchQuery, getLastSearchQuery(searchFilters, item.key), clearSelectedTransactions);
-        });
-    });
+    const navigateToSearchItem = singleExecution((item: SearchTypeMenuItem) => openSearchMenuItem(item, searchFilters, clearSelectedTransactions));
 
     const navigateToTypeSearch = (type: SearchDataTypes) => {
         clearSelectedText();
@@ -169,25 +163,12 @@ function FlatNavSpendSection({selectedTab, isCollapsed, todoCounts}: FlatNavSpen
         openLastInsightsDashboard();
     };
 
-    // Opening the group returns to the saved search the user last had open, or the first one by name. Unnamed saved
-    // searches are titled from their query only once the group is open, so they sort by that query here.
+    // Opening the group returns to the saved search the user last had open, or the first one by name.
     const navigateToSavedSearches = () => {
-        const lastVisited = getLastVisitedSearch(SAVED_SEARCHES_GROUP_ID);
-        const lastVisitedID = searchKeyToSavedSearchID(lastVisited?.searchKey);
-        const [savedSearchID, savedSearch] =
-            Object.entries(savedSearches ?? {}).find(([id]) => id === lastVisitedID) ??
-            Object.entries(savedSearches ?? {})
-                .sort(([, a], [, b]) => localeCompare(a.name, b.name))
-                .at(0) ??
-            [];
-        if (!savedSearchID || !savedSearch) {
+        if (reopenLastVisitedSearch(SAVED_SEARCHES_GROUP_ID, savedSearches, clearSelectedTransactions)) {
             return;
         }
-        const searchKey = savedSearchIDToSearchKey(savedSearchID);
-        clearSelectedText();
-        interceptAnonymousUser(() => {
-            navigateToSearch({query: lastVisited?.query ?? getValidLastQuery(getLastSearchQuery(searchFilters, searchKey), savedSearch.query), name: savedSearch.name, searchKey});
-        });
+        openFirstSavedSearch(savedSearches, searchFilters, localeCompare);
     };
 
     return (

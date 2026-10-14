@@ -25,17 +25,16 @@ describe('tabScreenListeners', () => {
     });
 
     it('leaves to JS only the switches that would land somewhere else than the JS tab buttons', () => {
-        // Given a signed-in user whose Inbox and Workspaces tabs show what their tab buttons open, one whose do not, and an anonymous user
-        const ready = {isAnonymousUser: false, isInboxAtChatList: true, isWorkspacesTabRestored: true};
-        const unrestored = {isAnonymousUser: false, isInboxAtChatList: false, isWorkspacesTabRestored: false};
+        // Given a signed-in user whose Inbox shows what its tab button opens, one whose does not, and an anonymous user.
+        // Workspaces sits behind More, whose taps JS always handles, so only Inbox depends on what the tab shows.
+        const ready = {isAnonymousUser: false, isInboxAtChatList: true};
+        const unrestored = {isAnonymousUser: false, isInboxAtChatList: false};
         const anonymous = {...ready, isAnonymousUser: true};
 
         // When the native selection is decided
-        // Then Inbox and Workspaces are switched natively only when ready, Spend always is, and anonymous users are kept from Spend, Insights, Workspaces and Account
+        // Then Inbox is switched natively only when ready, Spend always is, and anonymous users are kept from Spend, Insights, Workspaces and Account
         expect(isNativeTabSelectionEnabled(NAVIGATORS.REPORTS_SPLIT_NAVIGATOR, ready)).toBe(true);
-        expect(isNativeTabSelectionEnabled(NAVIGATORS.WORKSPACE_NAVIGATOR, ready)).toBe(true);
         expect(isNativeTabSelectionEnabled(NAVIGATORS.REPORTS_SPLIT_NAVIGATOR, unrestored)).toBe(false);
-        expect(isNativeTabSelectionEnabled(NAVIGATORS.WORKSPACE_NAVIGATOR, unrestored)).toBe(false);
         expect(isNativeTabSelectionEnabled(NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR, unrestored)).toBe(true);
         expect(isNativeTabSelectionEnabled(SCREENS.INSIGHTS, anonymous)).toBe(false);
         expect(isNativeTabSelectionEnabled(NAVIGATORS.WORKSPACE_NAVIGATOR, anonymous)).toBe(false);

@@ -199,7 +199,6 @@ export default {
     flatNavigationBarRowInset: 8,
     // Fixed so the header keeps its height whether or not the wordmark is showing.
     flatNavigationBarHeaderHeight: 72,
-    flatNavigationBarHeaderMarginBottom: 0,
     flatNavigationBarCreateRowMarginHorizontal: 14,
     // Shorter than a standard medium button; collapsed, the same value makes it a square.
     flatNavigationBarCreateButtonHeight: 32,

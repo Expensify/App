@@ -9653,7 +9653,6 @@ const CONST = {
         TOP_BAR: {
             CANCEL_BUTTON: 'TopBar-CancelButton',
             ACCOUNT_BUTTON: 'TopBar-AccountButton',
-            BACK_BUTTON: 'TopBar-BackButton',
         },
         COLLAPSIBLE_SECTION: {
             TOGGLE: 'CollapsibleSection-Toggle',

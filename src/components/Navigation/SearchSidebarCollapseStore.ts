@@ -46,14 +46,6 @@ function getSearchSidebarWidth(progress: number) {
     return variables.searchSidebarExpandedWidth + (variables.searchSidebarCollapsedWidth - variables.searchSidebarExpandedWidth) * progress;
 }
 
-/**
- * The flat navigation bar shares this collapsed state, because it replaced the Spend sidebar that owned it.
- * Keeping one store means one peek state and one persisted flag, rather than two that can disagree.
- */
-function getFlatNavigationBarWidth(progress: number) {
-    return variables.flatNavigationBarWidth + (variables.flatNavigationBarCollapsedWidth - variables.flatNavigationBarWidth) * progress;
-}
-
 function setSearchSidebarCollapsed(collapsed: boolean) {
     isPeeking = false;
     notify();
@@ -159,20 +151,22 @@ function getFlatNavigationBarAccountAvatarStyle(isVisuallyCollapsed: boolean): V
     return {...fadeTransitionStyle, transform: [{translateX: isVisuallyCollapsed ? ACCOUNT_AVATAR_COLLAPSED_TRANSLATE_X : 0}]};
 }
 
-/** Layout space the bar reserves. Peeking overlays the content rather than pushing it, so this ignores the peek. */
+/**
+ * Layout space the flat navigation bar reserves. Peeking overlays the content rather than pushing it, so this ignores
+ * the peek. The bar shares the Spend sidebar's collapsed state, so there is one persisted flag rather than two.
+ */
 function getFlatNavigationBarLayoutWidth(isCollapsed: boolean): number {
-    return getFlatNavigationBarWidth(isCollapsed ? 1 : 0);
+    return isCollapsed ? variables.flatNavigationBarCollapsedWidth : variables.flatNavigationBarWidth;
 }
 
 /** What the bar actually draws, which widens back out while the pointer peeks at it. */
 function getFlatNavigationBarVisualWidthStyle(isVisuallyCollapsed: boolean): ViewStyle {
-    return {...layoutTransitionStyle, width: getFlatNavigationBarWidth(isVisuallyCollapsed ? 1 : 0)};
+    return {...layoutTransitionStyle, width: getFlatNavigationBarLayoutWidth(isVisuallyCollapsed)};
 }
 
 export {
     SEARCH_SIDEBAR_COLLAPSE_ANIMATION_DURATION_MS,
     fadeTransitionStyle,
-    getFlatNavigationBarWidth,
     heightTransitionStyle,
     layoutTransitionStyle,
     getCollapseFadeStyle,

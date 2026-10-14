@@ -42,7 +42,7 @@ import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
 
 import NAVIGATION_TABS from './NavigationTabBar/NAVIGATION_TABS';
-import {getFlatNavigationBarWidth, useSearchSidebarCollapse} from './SearchSidebarCollapseStore';
+import {getFlatNavigationBarLayoutWidth, useSearchSidebarCollapse} from './SearchSidebarCollapseStore';
 
 const FULL_WIDTH_TAB_ROOT_SCREENS = new Set<string>([SCREENS.WORKSPACES_LIST, SCREENS.DOMAINS_LIST]);
 
@@ -236,7 +236,7 @@ function DebugTabView({selectedTab}: Props) {
         return null;
     }
 
-    const flatNavigationBarWidth = getFlatNavigationBarWidth(isCollapsed ? 1 : 0);
+    const flatNavigationBarWidth = getFlatNavigationBarLayoutWidth(isCollapsed);
     let positionStyle: {bottom?: number; top?: number; left: number; right?: number; width?: number};
     const verticalAnchor = selectedTab === NAVIGATION_TABS.SETTINGS && !shouldUseNarrowLayout ? {top: 0} : {bottom: 0};
     if (shouldUseNarrowLayout) {

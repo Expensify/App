@@ -10287,7 +10287,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
         spendOverTime: 'Dépenses dans le temps',
         tabs: {
             expenseReports: 'Notes de frais',
-            allReports: 'Toutes les notes de frais',
+            myReports: 'Mes notes de frais',
             reports: 'Notes de frais',
             expenses: 'Dépenses',
             submit: 'Brouillons',

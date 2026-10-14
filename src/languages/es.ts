@@ -9802,7 +9802,7 @@ ${reportName}`,
     search: {
         tabs: {
             expenseReports: 'Informes de gastos',
-            allReports: 'Todos los informes',
+            myReports: 'Mis informes',
             reports: 'Informes',
             expenses: 'Gastos',
             submit: 'Borradores',

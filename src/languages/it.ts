@@ -10214,7 +10214,7 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
         spendOverTime: 'Spesa nel tempo',
         tabs: {
             expenseReports: 'Note spese',
-            allReports: 'Tutti i report',
+            myReports: 'I miei report',
             reports: 'Report',
             expenses: 'Spese',
             submit: 'Bozze',

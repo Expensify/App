@@ -50,12 +50,9 @@ const GROUPS: Array<{keys: SearchKey[]; translationPath: TranslationPaths}> = [
     {keys: INSIGHTS_KEYS, translationPath: 'search.tabs.insights'},
 ];
 
-/**
- * Labels a search as it reads inside its own group. "Reports" is the group's name, so its broadest search spells out
- * that it holds all of them rather than repeating the group's label.
- */
+/** Labels a search as it reads inside its own group, where repeating the group's own label would say nothing. */
 const GROUPED_TRANSLATION_PATH_OVERRIDES: Partial<Record<SearchKey, TranslationPaths>> = {
-    [CONST.SEARCH.SEARCH_KEYS.REPORTS]: 'search.tabs.allReports',
+    [CONST.SEARCH.SEARCH_KEYS.REPORTS]: 'search.tabs.myReports',
 };
 
 /** The searches that sit alongside `searchKey` in navigation, or undefined when it doesn't belong to a group. */
@@ -85,6 +82,23 @@ function shouldHideSpendTabRow(searchKey: SearchKey | undefined): boolean {
     return getSpendGroupKeys(searchKey)?.length === 1;
 }
 
+/**
+ * Whether a search sits behind the More tab on narrow layouts: Accounting, Insights and saved searches have no tab of
+ * their own there, unlike Expenses and Reports.
+ */
+function isSearchBehindMore(searchKey: string | undefined): boolean {
+    return [...ACCOUNTING_KEYS, ...INSIGHTS_KEYS].some((key) => key === searchKey) || !!searchKeyToSavedSearchID(searchKey);
+}
+
+/** The narrow tab row's tabs for the active search: only its own group, matching the rows the wide bar nests under it. */
+function getSpendGroupTabs<T extends {key: SearchKey}>(tabs: T[], activeSearchKey: SearchKey | undefined): T[] {
+    if (searchKeyToSavedSearchID(activeSearchKey)) {
+        return tabs.filter((tab) => !!searchKeyToSavedSearchID(tab.key));
+    }
+    const groupKeys = getSpendGroupKeys(activeSearchKey);
+    return groupKeys ? tabs.filter((tab) => groupKeys.some((key) => key === tab.key)) : tabs;
+}
+
 /** The group's own label, used where the page should read as the group rather than the individual search. */
 function getSpendGroupTranslationPath(searchKey: SearchKey | undefined): TranslationPaths | undefined {
     // Saved searches are a group too, but keyed by prefix rather than a fixed list.
@@ -100,10 +114,11 @@ export {
     EXPENSES_KEYS,
     getGroupedSearchTranslationPath,
     getSpendGroupID,
-    getSpendGroupKeys,
+    getSpendGroupTabs,
     getSpendGroupTranslationPath,
     INSIGHTS_GROUP_ID,
     INSIGHTS_KEYS,
+    isSearchBehindMore,
     REPORTS_KEYS,
     SAVED_SEARCHES_GROUP_ID,
     shouldHideSpendTabRow,

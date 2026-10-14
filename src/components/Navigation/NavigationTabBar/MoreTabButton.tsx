@@ -6,8 +6,7 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWorkspacesTabIndicatorStatus from '@hooks/useWorkspacesTabIndicatorStatus';
 
-import {searchKeyToSavedSearchID} from '@libs/SearchKeyUtils';
-import {ACCOUNTING_KEYS, INSIGHTS_KEYS} from '@libs/SpendNavigationGroups';
+import {isSearchBehindMore} from '@libs/SpendNavigationGroups';
 
 import CONST from '@src/CONST';
 
@@ -39,9 +38,7 @@ function MoreTabButton({selectedTab}: MoreTabButtonProps) {
     const isOnMorePage = selectedTab === NAVIGATION_TABS.MORE;
     // The tab stands for everything behind it, so it stays lit while the user is inside one of its destinations.
     const isInMoreDestination =
-        (selectedTab === NAVIGATION_TABS.SEARCH && ([...ACCOUNTING_KEYS, ...INSIGHTS_KEYS].some((key) => key === currentSearchKey) || !!searchKeyToSavedSearchID(currentSearchKey))) ||
-        selectedTab === NAVIGATION_TABS.INSIGHTS ||
-        selectedTab === NAVIGATION_TABS.WORKSPACES;
+        (selectedTab === NAVIGATION_TABS.SEARCH && isSearchBehindMore(currentSearchKey)) || selectedTab === NAVIGATION_TABS.INSIGHTS || selectedTab === NAVIGATION_TABS.WORKSPACES;
     const isSelected = isOnMorePage || isInMoreDestination;
 
     return (
