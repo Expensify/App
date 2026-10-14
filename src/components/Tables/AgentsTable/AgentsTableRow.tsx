@@ -77,7 +77,7 @@ export default function AgentsTableRow({item, rowIndex, shouldUseNarrowTableLayo
 
     return (
         <Table.Row
-            interactive={item.canManage}
+            interactive
             rowIndex={rowIndex}
             disabled={item.disabled}
             accessibilityLabel={accessibilityLabel}

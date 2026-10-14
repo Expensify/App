@@ -12,6 +12,7 @@ import type Navigation from '@libs/Navigation/Navigation';
 
 import React from 'react';
 
+import {setupGlobalFetchMock} from '../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
 /**
@@ -49,6 +50,9 @@ jest.mock('@react-navigation/native', () => {
         })),
     };
 });
+
+// The pickers fetch categories/tags on mount. Without a mock, that request throws under Jest and fails whichever test is running.
+setupGlobalFetchMock();
 
 function getLastDisableAutoFocus(): boolean | undefined {
     const lastCall = mockSelectionList.mock.calls.at(-1);

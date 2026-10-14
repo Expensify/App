@@ -623,5 +623,42 @@ describe('useSearchBulkActions - CSV export flow', () => {
                 }),
             );
         });
+
+        it('shows the unhold option offline and removes the hold from every selected expense optimistically', async () => {
+            // Given the user is offline with two held expenses selected that they can unhold
+            mockIsOffline = true;
+            mockSelectedTransactions = {
+                tx1: makeSelectedTransaction({
+                    canUnhold: true,
+                    isHeld: true,
+                    policyID: undefined,
+                    reportAction: createMock<ReportAction>({childReportID: 'childReport1'}),
+                }),
+                tx2: makeSelectedTransaction({
+                    canUnhold: true,
+                    isHeld: true,
+                    policyID: undefined,
+                    reportAction: createMock<ReportAction>({childReportID: 'childReport2'}),
+                }),
+            };
+
+            const {result} = renderHook(() => useSearchBulkActions({queryJSON: baseQueryJSON}), {wrapper: OnyxListItemProvider});
+
+            // Then the unhold option is offered, because unholdRequest works offline with optimistic data
+            await waitFor(() => {
+                expect(result.current.headerButtonsOptions.find((option) => option.value === CONST.SEARCH.BULK_ACTION_TYPES.UNHOLD)).toBeDefined();
+            });
+
+            // When the user selects it
+            act(() => {
+                result.current.headerButtonsOptions.find((option) => option.value === CONST.SEARCH.BULK_ACTION_TYPES.UNHOLD)?.onSelected?.();
+            });
+
+            // Then each expense is unheld with the offline flag, and the offline modal is not shown
+            expect(mockUnholdRequest).toHaveBeenCalledTimes(2);
+            expect(mockUnholdRequest).toHaveBeenCalledWith(expect.objectContaining({transactionID: 'tx1', reportID: 'childReport1', isOffline: true}));
+            expect(mockUnholdRequest).toHaveBeenCalledWith(expect.objectContaining({transactionID: 'tx2', reportID: 'childReport2', isOffline: true}));
+            expect(result.current.isOfflineModalVisible).toBe(false);
+        });
     });
 });
