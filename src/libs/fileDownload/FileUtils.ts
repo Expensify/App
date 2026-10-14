@@ -14,6 +14,7 @@ import type {ReactNativeBlobUtilReadStream} from 'react-native-blob-util';
 import type {TupleToUnion, ValueOf} from 'type-fest';
 
 import {Str} from 'expensify-common';
+import mimeDb from 'mime-db';
 import {Alert, Linking, Platform} from 'react-native';
 import ReactNativeBlobUtil from 'react-native-blob-util';
 import ImageSize from 'react-native-image-size';
@@ -174,6 +175,48 @@ function getFileNameWithFallback(fileName: string | null | undefined, uri: strin
     }
 
     return fileNameFromURI;
+}
+
+/**
+ * Extensions to use instead of mime-db's first registered one. mime-db lists `video/quicktime` as
+ * `qt` first, but `Str.isVideo` only recognizes `mov`, so a `.qt` file would render as a generic file.
+ */
+const MIME_TYPE_EXTENSION_OVERRIDES = new Map<string, string>([['video/quicktime', 'mov']]);
+
+/**
+ * Returns the most common file extension registered for a MIME type, e.g. `video/mp4` resolves to `mp4`.
+ * Returns undefined for an empty or unrecognized MIME type so callers can pick their own fallback.
+ */
+function getExtensionFromMimeType(mimeType: string | undefined): string | undefined {
+    if (!mimeType) {
+        return undefined;
+    }
+    return MIME_TYPE_EXTENSION_OVERRIDES.get(mimeType) ?? mimeDb[mimeType]?.extensions?.at(0);
+}
+
+/**
+ * Whether a MIME type says nothing about the file's contents. Web reports `''` for a file it can't
+ * identify, and the Android document picker reports `application/octet-stream` for an extensionless file.
+ */
+function isUnknownMimeType(mimeType: string | undefined): boolean {
+    return !mimeType || mimeType === 'application/octet-stream';
+}
+
+/**
+ * Adds an extension to a file name that has none, recovering it from the file's MIME type.
+ * Some pickers hand us a name with no extension at all (an Android `content://` URI resolves to a bare
+ * numeric segment, and the document picker can return `name: null`), and such a file downloads as a
+ * bare blob the OS treats as a generic document even though the bytes are valid.
+ * The name is returned unchanged when it already has an extension or the MIME type is unknown or can't be
+ * resolved, because a wrong or meaningless extension (such as `.bin`) is worse than no extension.
+ */
+function appendExtensionFromMimeType(fileName: string, mimeType: string | undefined): string {
+    if (!fileName || isUnknownMimeType(mimeType) || splitExtensionFromFileName(fileName).fileExtension) {
+        return fileName;
+    }
+
+    const fileExtension = getExtensionFromMimeType(mimeType);
+    return fileExtension ? `${fileName}.${fileExtension}` : fileName;
 }
 
 /**
@@ -965,6 +1008,9 @@ export {
     showCameraPermissionsAlert,
     splitExtensionFromFileName,
     getMimeType,
+    getExtensionFromMimeType,
+    isUnknownMimeType,
+    appendExtensionFromMimeType,
     getFileName,
     getFileNameWithFallback,
     getFileType,
