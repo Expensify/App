@@ -41,6 +41,17 @@ function Wrapper({children}: {children: React.ReactNode}) {
     return <LocaleContextProvider>{children}</LocaleContextProvider>;
 }
 
+function SelectableHTMLMenuItem({isTitleSelectable = false}: {isTitleSelectable?: boolean}) {
+    return (
+        // eslint-disable-next-line @typescript-eslint/no-deprecated -- This test file verifies behavior that remains supported by the legacy MenuItem implementation.
+        <MenuItem
+            title="<strong>Formatted description</strong>"
+            shouldRenderAsHTML
+            isTitleSelectable={isTitleSelectable}
+        />
+    );
+}
+
 describe('MenuItem', () => {
     beforeEach(() => {
         mockRenderHTML.mockClear();
@@ -53,11 +64,7 @@ describe('MenuItem', () => {
 
         render(
             <Wrapper>
-                <MenuItem
-                    title="<strong>Formatted description</strong>"
-                    shouldRenderAsHTML
-                    isTitleSelectable
-                />
+                <SelectableHTMLMenuItem isTitleSelectable />
             </Wrapper>,
         );
 
@@ -69,10 +76,7 @@ describe('MenuItem', () => {
 
         render(
             <Wrapper>
-                <MenuItem
-                    title="<strong>Formatted description</strong>"
-                    shouldRenderAsHTML
-                />
+                <SelectableHTMLMenuItem />
             </Wrapper>,
         );
 
@@ -82,11 +86,7 @@ describe('MenuItem', () => {
     it('does not override HTML title selection on native', () => {
         render(
             <Wrapper>
-                <MenuItem
-                    title="<strong>Formatted description</strong>"
-                    shouldRenderAsHTML
-                    isTitleSelectable
-                />
+                <SelectableHTMLMenuItem isTitleSelectable />
             </Wrapper>,
         );
 

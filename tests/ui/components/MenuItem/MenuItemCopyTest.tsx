@@ -102,22 +102,23 @@ function Row({isValueSelectable = false}: {isValueSelectable?: boolean}) {
 }
 
 function LegacyRow({isTitleSelectable = false}: {isTitleSelectable?: boolean}) {
-    return (
-        <LocaleContextProvider>
-            <MenuItem
-                title={VALUE}
-                description="Report"
-                copyValue={VALUE}
-                pressableTestID={ROW_TEST_ID}
-                interactive={false}
-                shouldShowRightIcon={false}
-                shouldRenderAsHTML
-                shouldBlockSelection
-                copyable
-                isTitleSelectable={isTitleSelectable}
-            />
-        </LocaleContextProvider>
+    const legacyMenuItem = (
+        // eslint-disable-next-line @typescript-eslint/no-deprecated -- This verifies backward-compatible selection behavior in the legacy MenuItem implementation.
+        <MenuItem
+            title={VALUE}
+            description="Report"
+            copyValue={VALUE}
+            pressableTestID={ROW_TEST_ID}
+            interactive={false}
+            shouldShowRightIcon={false}
+            shouldRenderAsHTML
+            shouldBlockSelection
+            copyable
+            isTitleSelectable={isTitleSelectable}
+        />
     );
+
+    return <LocaleContextProvider>{legacyMenuItem}</LocaleContextProvider>;
 }
 
 function mockCopyableTextHitTest(isPressStartOnCopyableText: (event: unknown) => boolean) {
