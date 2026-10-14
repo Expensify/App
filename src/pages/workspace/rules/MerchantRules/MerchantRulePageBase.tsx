@@ -31,7 +31,7 @@ import {deleteMerchantRule, setMerchantRule} from '@libs/actions/Policy/Rules';
 import {openPolicyTagsPage} from '@libs/actions/Policy/Tag';
 import Tab from '@libs/actions/Tab';
 import {clearDraftMerchantRule, setDraftMerchantRule} from '@libs/actions/User';
-import {getCategoryTaxRuleTaxID, getTaxRateDisplayName, hasUsableTaxRates, isCategoryRuleDraft} from '@libs/CategoryTaxRulesUtils';
+import {categoryHasTaxRule, getCategoryTaxRuleTaxID, getTaxRateDisplayName, hasUsableTaxRates, isCategoryRuleDraft, isSelectableTaxRate} from '@libs/CategoryTaxRulesUtils';
 import {getDecodedCategoryName} from '@libs/CategoryUtils';
 import {canEditMerchantRule, getMerchantRuleFormValues, getPolicyExpenseDefaultRules} from '@libs/ExpenseDefaultRuleUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -679,7 +679,14 @@ function MerchantRulePageBase({
 
     const shouldShowDescribeRule = !isEditingSavedRule && !isCategoryLocked;
     const applyGeneratedRule = (values: GeneratedRuleValues) => {
-        setDraftMerchantRule({...values, ruleType: isScopedToCategory ? CONST.POLICY.EXPENSE_DEFAULT_RULE_TYPE.CATEGORY : CONST.POLICY.EXPENSE_DEFAULT_RULE_TYPE.MERCHANT});
+        if (!isScopedToCategory) {
+            setDraftMerchantRule({...values, ruleType: CONST.POLICY.EXPENSE_DEFAULT_RULE_TYPE.MERCHANT});
+            return;
+        }
+        const {tax, ...categoryValues} = values;
+        const generatedTaxRate = tax ? policy?.taxRates?.taxes?.[tax] : undefined;
+        const isGeneratedTaxSelectable = !!tax && !!generatedTaxRate && isSelectableTaxRate(policy, tax, generatedTaxRate, true);
+        setDraftMerchantRule({...categoryValues, ...(isGeneratedTaxSelectable ? {tax} : {}), ruleType: CONST.POLICY.EXPENSE_DEFAULT_RULE_TYPE.CATEGORY});
     };
 
     const footer = canWriteRules ? (
@@ -818,6 +825,7 @@ function MerchantRulePageBase({
                         policyID={policyID}
                         ruleType={isScopedToCategory ? CONST.GENERATED_RULE.RULE_TYPE.CATEGORY_TAX_RATE : CONST.GENERATED_RULE.RULE_TYPE.EXPENSE_DEFAULTS}
                         onRuleGenerated={applyGeneratedRule}
+                        isCategoryEligible={isScopedToCategory ? (generatedCategory) => !categoryHasTaxRule(policy?.rules?.expenseRules, generatedCategory.name) : undefined}
                     />
                 )}
             </ScreenWrapper>
