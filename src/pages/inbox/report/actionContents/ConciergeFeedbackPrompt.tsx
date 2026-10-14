@@ -145,11 +145,11 @@ function ConciergeFeedbackPrompt({
 
     // The reaction that was already there when this row mounted is an old rating, so only a reaction that lands while the row is open is acknowledged
     const [mountedWithAcknowledgementTimestamp] = useState(acknowledgementTimestamp);
-    const hasJustReacted = acknowledgementTimestamp !== undefined && acknowledgementTimestamp !== mountedWithAcknowledgementTimestamp;
 
-    // The debounced copy catches up once the window has passed, which is what takes the acknowledgement back down
-    const hasSettledAfterReacting = useDebouncedValue(hasJustReacted, THANKS_VISIBLE_DURATION_MS);
-    const isDisplayedThankMessage = hasJustReacted && !hasSettledAfterReacting;
+    // The debounced timestamp catches up once the window has passed, and a new reaction restarts that window.
+    const debouncedAcknowledgementTimestamp = useDebouncedValue(acknowledgementTimestamp, THANKS_VISIBLE_DURATION_MS);
+    const isDisplayedThankMessage =
+        acknowledgementTimestamp !== undefined && acknowledgementTimestamp !== mountedWithAcknowledgementTimestamp && acknowledgementTimestamp !== debouncedAcknowledgementTimestamp;
 
     const rate = (emoji: Emoji) => {
         // Skin tone is ignored on compare so a user whose preferred tone changed toggles their existing reaction instead of adding a second one
