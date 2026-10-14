@@ -418,6 +418,8 @@ function SearchAutocompleteList({
     const [isInitialRender, setIsInitialRender] = useState(true);
 
     const searchResultCount = searchOptions.recentReports.length + searchOptions.personalDetails.length;
+    // Commit the query span in a layout effect (before paint) so the span's end time reflects when the list is laid out
+    // for this query. The initial mount commit is cancelled (via isInitialRender) so open latency stays with ManualOpenSearchRouter.
     useLayoutEffect(() => {
         markSearchRouterQueryCommitted(autocompleteQueryValue, {resultCount: searchResultCount}, isInitialRender);
     }, [autocompleteQueryValue, searchResultCount, isInitialRender]);

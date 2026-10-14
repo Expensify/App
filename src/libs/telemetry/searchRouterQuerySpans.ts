@@ -1,3 +1,8 @@
+/**
+ * Lifecycle for the `ManualSearchRouterQuery` telemetry span: starts a span when a debounced Search Router query is applied,
+ * ends it on the autocomplete list's commit, and cancels it on supersede/clear/close/unmount/timeout. Records only
+ * privacy-preserving attributes, never the raw query text.
+ */
 import {parseForAutocomplete} from '@libs/SearchAutocompleteUtils';
 
 import CONST from '@src/CONST';
