@@ -9,6 +9,7 @@ import useConfirmModal from '@hooks/useConfirmModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDefaultFundID from '@hooks/useDefaultFundID';
 import useIsPolicyConnectedToUberReceiptPartner from '@hooks/useIsPolicyConnectedToUberReceiptPartner';
+import useIsUnifiedConnectionsBetaEnabled from '@hooks/useIsUnifiedConnectionsBetaEnabled';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -102,6 +103,8 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const {showConfirmModal} = useConfirmModal();
     const isRecruitingBetaEnabled = isBetaEnabled(CONST.BETAS.MERGE_ATS);
+    // Connections replaces this section's pages, and turns each feature on as its first integration connects
+    const isUnifiedConnectionsBetaEnabled = useIsUnifiedConnectionsBetaEnabled();
     const illustrations = useMemoizedLazyIllustrations([
         'FolderOpen',
         'Accounting',
@@ -367,151 +370,155 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                 <ScrollView addBottomSafeAreaPadding>
                     <Text style={[styles.ph5, styles.mb5, styles.mt3, styles.textSupporting, styles.workspaceSectionMobile]}>{translate('workspace.moreFeatures.subtitle')}</Text>
 
-                    <MoreFeaturesSection title={translate('workspace.moreFeatures.integrateSection.title')}>
-                        <MoreFeatureToggle
-                            icon={illustrations.Accounting}
-                            title={translate('workspace.moreFeatures.connections.title')}
-                            subtitle={translate('workspace.moreFeatures.connections.subtitle')}
-                            isActive={isAccountingEnabled}
-                            pendingAction={policy?.pendingFields?.areConnectionsEnabled}
-                            disabled={!canWriteMoreFeatures || hasAccountingConnection}
-                            disabledAction={withReadOnlyFallback(warnDisconnectAccountingFirst)}
-                            onToggle={(isEnabled) => {
-                                if (!policyID) {
-                                    return;
-                                }
-                                if (tryNavigateToSubmitWorkspaceUpgrade(policy, isEnabled, CONST.UPGRADE_FEATURE_INTRO_MAPPING.accounting.alias)) {
-                                    return;
-                                }
-                                enablePolicyConnections(policyID, isEnabled);
-                            }}
-                            errors={getLatestErrorField(policy ?? {}, CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED)}
-                            onCloseError={() => {
-                                if (!policyID) {
-                                    return;
-                                }
-                                clearPolicyErrorField(policyID, CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED);
-                            }}
-                            onPress={() => {
-                                if (!policyID) {
-                                    return;
-                                }
-                                Navigation.navigate(ROUTES.POLICY_ACCOUNTING.getRoute(policyID));
-                            }}
-                        />
-                        <MoreFeatureToggle
-                            icon={illustrations.Members}
-                            title={translate('workspace.hr.title')}
-                            subtitle={translate('workspace.hr.subtitle')}
-                            isActive={isPolicyFeatureEnabled(policy, CONST.POLICY.MORE_FEATURES.IS_HR_ENABLED) && canPolicyAccessFeature(policy, CONST.POLICY.MORE_FEATURES.IS_HR_ENABLED)}
-                            pendingAction={policy?.pendingFields?.isHREnabled}
-                            disabled={!canWriteMoreFeatures || isAnyHRConnected(policy)}
-                            disabledAction={withReadOnlyFallback(warnDisconnectHRFirst)}
-                            onToggle={(isEnabled) => {
-                                if (!policyID) {
-                                    return;
-                                }
-                                if (isEnabled && !isControlPolicy(policy)) {
-                                    Navigation.navigate(
-                                        ROUTES.WORKSPACE_UPGRADE.getRoute(policyID, CONST.UPGRADE_FEATURE_INTRO_MAPPING.hr.alias, ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policyID)),
-                                    );
-                                    return;
-                                }
-                                enablePolicyHR(policyID, isEnabled);
-                            }}
-                            onPress={() => {
-                                if (!policyID) {
-                                    return;
-                                }
-                                Navigation.navigate(ROUTES.WORKSPACE_HR.getRoute(policyID));
-                            }}
-                        />
-                        <MoreFeatureToggle
-                            icon={illustrations.ReceiptPartners}
-                            title={translate('workspace.moreFeatures.receiptPartners.title')}
-                            subtitle={translate('workspace.moreFeatures.receiptPartners.subtitle')}
-                            isActive={isPolicyFeatureEnabled(policy, CONST.POLICY.MORE_FEATURES.ARE_RECEIPT_PARTNERS_ENABLED)}
-                            pendingAction={policy?.pendingFields?.receiptPartners}
-                            disabled={!canWriteMoreFeatures || isUberConnected}
-                            disabledAction={withReadOnlyFallback(warnReceiptPartnersStillConnected)}
-                            onToggle={(isEnabled) => {
-                                if (!policyID) {
-                                    return;
-                                }
-                                enablePolicyReceiptPartners(policyID, isEnabled);
-                            }}
-                            errors={getLatestErrorField(policy ?? {}, CONST.POLICY.MORE_FEATURES.ARE_RECEIPT_PARTNERS_ENABLED)}
-                            onCloseError={() => {
-                                if (!policyID) {
-                                    return;
-                                }
-                                clearPolicyErrorField(policyID, CONST.POLICY.MORE_FEATURES.ARE_RECEIPT_PARTNERS_ENABLED);
-                            }}
-                            onPress={() => {
-                                if (!policyID) {
-                                    return;
-                                }
-                                Navigation.navigate(ROUTES.WORKSPACE_RECEIPT_PARTNERS.getRoute(policyID));
-                            }}
-                        />
-                        {isRecruitingBetaEnabled && (
+                    {!isUnifiedConnectionsBetaEnabled && (
+                        <MoreFeaturesSection title={translate('workspace.moreFeatures.integrateSection.title')}>
                             <MoreFeatureToggle
-                                icon={illustrations.NewUser}
-                                title={translate('workspace.recruiting.title')}
-                                subtitle={translate('workspace.recruiting.subtitle')}
+                                icon={illustrations.Accounting}
+                                title={translate('workspace.moreFeatures.connections.title')}
+                                subtitle={translate('workspace.moreFeatures.connections.subtitle')}
+                                isActive={isAccountingEnabled}
+                                pendingAction={policy?.pendingFields?.areConnectionsEnabled}
+                                disabled={!canWriteMoreFeatures || hasAccountingConnection}
+                                disabledAction={withReadOnlyFallback(warnDisconnectAccountingFirst)}
+                                onToggle={(isEnabled) => {
+                                    if (!policyID) {
+                                        return;
+                                    }
+                                    if (tryNavigateToSubmitWorkspaceUpgrade(policy, isEnabled, CONST.UPGRADE_FEATURE_INTRO_MAPPING.accounting.alias)) {
+                                        return;
+                                    }
+                                    enablePolicyConnections(policyID, isEnabled);
+                                }}
+                                errors={getLatestErrorField(policy ?? {}, CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED)}
+                                onCloseError={() => {
+                                    if (!policyID) {
+                                        return;
+                                    }
+                                    clearPolicyErrorField(policyID, CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED);
+                                }}
+                                onPress={() => {
+                                    if (!policyID) {
+                                        return;
+                                    }
+                                    Navigation.navigate(ROUTES.POLICY_ACCOUNTING.getRoute(policyID));
+                                }}
+                            />
+                            <MoreFeatureToggle
+                                icon={illustrations.Members}
+                                title={translate('workspace.hr.title')}
+                                subtitle={translate('workspace.hr.subtitle')}
                                 isActive={
-                                    isPolicyFeatureEnabled(policy, CONST.POLICY.MORE_FEATURES.IS_RECRUITING_ENABLED) &&
-                                    canPolicyAccessFeature(policy, CONST.POLICY.MORE_FEATURES.IS_RECRUITING_ENABLED)
+                                    isPolicyFeatureEnabled(policy, CONST.POLICY.MORE_FEATURES.IS_HR_ENABLED) && canPolicyAccessFeature(policy, CONST.POLICY.MORE_FEATURES.IS_HR_ENABLED)
                                 }
-                                pendingAction={policy?.pendingFields?.isRecruitingEnabled}
-                                disabled={!canWriteMoreFeatures || isAnyRecruitingConnected(policy)}
-                                disabledAction={withReadOnlyFallback(warnDisconnectRecruitingFirst)}
+                                pendingAction={policy?.pendingFields?.isHREnabled}
+                                disabled={!canWriteMoreFeatures || isAnyHRConnected(policy)}
+                                disabledAction={withReadOnlyFallback(warnDisconnectHRFirst)}
                                 onToggle={(isEnabled) => {
                                     if (!policyID) {
                                         return;
                                     }
                                     if (isEnabled && !isControlPolicy(policy)) {
                                         Navigation.navigate(
-                                            ROUTES.WORKSPACE_UPGRADE.getRoute(
-                                                policyID,
-                                                CONST.UPGRADE_FEATURE_INTRO_MAPPING.recruiting.alias,
-                                                ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policyID),
-                                            ),
+                                            ROUTES.WORKSPACE_UPGRADE.getRoute(policyID, CONST.UPGRADE_FEATURE_INTRO_MAPPING.hr.alias, ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policyID)),
                                         );
                                         return;
                                     }
-                                    enablePolicyRecruiting(policyID, isEnabled);
+                                    enablePolicyHR(policyID, isEnabled);
                                 }}
                                 onPress={() => {
                                     if (!policyID) {
                                         return;
                                     }
-                                    Navigation.navigate(ROUTES.WORKSPACE_RECRUITING.getRoute(policyID));
+                                    Navigation.navigate(ROUTES.WORKSPACE_HR.getRoute(policyID));
                                 }}
                             />
-                        )}
-                        <MoreFeatureToggle
-                            icon={illustrations.AiAutomation}
-                            title={translate('workspace.moreFeatures.mcp.title')}
-                            subtitle={translate('workspace.moreFeatures.mcp.subtitle')}
-                            isActive={isMCPEnabled(policy)}
-                            pendingAction={policy?.pendingFields?.isMCPEnabled}
-                            disabled={!canWriteMoreFeatures}
-                            disabledAction={withReadOnlyFallback()}
-                            onToggle={(isEnabled) => {
-                                if (!policyID) {
-                                    return;
-                                }
-                                enablePolicyMCP(policyID, isEnabled);
-                            }}
-                            onPress={() => {
-                                if (!policyID) {
-                                    return;
-                                }
-                                Navigation.navigate(ROUTES.WORKSPACE_MCP.getRoute(policyID));
-                            }}
-                        />
-                    </MoreFeaturesSection>
+                            <MoreFeatureToggle
+                                icon={illustrations.ReceiptPartners}
+                                title={translate('workspace.moreFeatures.receiptPartners.title')}
+                                subtitle={translate('workspace.moreFeatures.receiptPartners.subtitle')}
+                                isActive={isPolicyFeatureEnabled(policy, CONST.POLICY.MORE_FEATURES.ARE_RECEIPT_PARTNERS_ENABLED)}
+                                pendingAction={policy?.pendingFields?.receiptPartners}
+                                disabled={!canWriteMoreFeatures || isUberConnected}
+                                disabledAction={withReadOnlyFallback(warnReceiptPartnersStillConnected)}
+                                onToggle={(isEnabled) => {
+                                    if (!policyID) {
+                                        return;
+                                    }
+                                    enablePolicyReceiptPartners(policyID, isEnabled);
+                                }}
+                                errors={getLatestErrorField(policy ?? {}, CONST.POLICY.MORE_FEATURES.ARE_RECEIPT_PARTNERS_ENABLED)}
+                                onCloseError={() => {
+                                    if (!policyID) {
+                                        return;
+                                    }
+                                    clearPolicyErrorField(policyID, CONST.POLICY.MORE_FEATURES.ARE_RECEIPT_PARTNERS_ENABLED);
+                                }}
+                                onPress={() => {
+                                    if (!policyID) {
+                                        return;
+                                    }
+                                    Navigation.navigate(ROUTES.WORKSPACE_RECEIPT_PARTNERS.getRoute(policyID));
+                                }}
+                            />
+                            {isRecruitingBetaEnabled && (
+                                <MoreFeatureToggle
+                                    icon={illustrations.NewUser}
+                                    title={translate('workspace.recruiting.title')}
+                                    subtitle={translate('workspace.recruiting.subtitle')}
+                                    isActive={
+                                        isPolicyFeatureEnabled(policy, CONST.POLICY.MORE_FEATURES.IS_RECRUITING_ENABLED) &&
+                                        canPolicyAccessFeature(policy, CONST.POLICY.MORE_FEATURES.IS_RECRUITING_ENABLED)
+                                    }
+                                    pendingAction={policy?.pendingFields?.isRecruitingEnabled}
+                                    disabled={!canWriteMoreFeatures || isAnyRecruitingConnected(policy)}
+                                    disabledAction={withReadOnlyFallback(warnDisconnectRecruitingFirst)}
+                                    onToggle={(isEnabled) => {
+                                        if (!policyID) {
+                                            return;
+                                        }
+                                        if (isEnabled && !isControlPolicy(policy)) {
+                                            Navigation.navigate(
+                                                ROUTES.WORKSPACE_UPGRADE.getRoute(
+                                                    policyID,
+                                                    CONST.UPGRADE_FEATURE_INTRO_MAPPING.recruiting.alias,
+                                                    ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policyID),
+                                                ),
+                                            );
+                                            return;
+                                        }
+                                        enablePolicyRecruiting(policyID, isEnabled);
+                                    }}
+                                    onPress={() => {
+                                        if (!policyID) {
+                                            return;
+                                        }
+                                        Navigation.navigate(ROUTES.WORKSPACE_RECRUITING.getRoute(policyID));
+                                    }}
+                                />
+                            )}
+                            <MoreFeatureToggle
+                                icon={illustrations.AiAutomation}
+                                title={translate('workspace.moreFeatures.mcp.title')}
+                                subtitle={translate('workspace.moreFeatures.mcp.subtitle')}
+                                isActive={isMCPEnabled(policy)}
+                                pendingAction={policy?.pendingFields?.isMCPEnabled}
+                                disabled={!canWriteMoreFeatures}
+                                disabledAction={withReadOnlyFallback()}
+                                onToggle={(isEnabled) => {
+                                    if (!policyID) {
+                                        return;
+                                    }
+                                    enablePolicyMCP(policyID, isEnabled);
+                                }}
+                                onPress={() => {
+                                    if (!policyID) {
+                                        return;
+                                    }
+                                    Navigation.navigate(ROUTES.WORKSPACE_MCP.getRoute(policyID));
+                                }}
+                            />
+                        </MoreFeaturesSection>
+                    )}
 
                     <MoreFeaturesSection title={translate('workspace.moreFeatures.organizeSection.title')}>
                         <MoreFeatureToggle

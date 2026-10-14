@@ -23,6 +23,7 @@ import {
     getRequireCompanyCardsEnabledMessage,
     getRequiresCategoryMessage,
     getRequiresTagMessage,
+    getPolicyWorkArrangementMessage,
     getUnassignedCompanyCardMessage,
     getUpdatedAutoHarvestingMessage,
     getUpdatedCardFeedLiabilityMessage,
@@ -1562,6 +1563,39 @@ describe('ReportAlternateTextUtils', () => {
                 currentUserLogin: CURRENT_USER_LOGIN,
             });
             expect(lastMessage).toBe(expectedMessage);
+        });
+        it('UPDATE_POLICY_WORK_ARRANGEMENT action', async () => {
+            // Given a change log for an admin switching the workspace-wide work arrangement
+            const report: Report = createRandomReport(0, undefined);
+            const action: ReportAction = {
+                ...createRandomReportAction(1),
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_POLICY_WORK_ARRANGEMENT,
+                message: [{type: 'COMMENT', text: ''}],
+                originalMessage: {newValue: false, oldValue: true},
+            };
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, {
+                [action.reportActionID]: action,
+            });
+
+            // When the sidebar resolves the report's last message
+            const lastMessage = getLastMessageTextForReport({
+                rules: undefined,
+                dateFnsLocale: undefined,
+                convertToDisplayString,
+                conciergeReportID: undefined,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                personalDetails: undefined,
+                translate: translateLocal,
+                report,
+                lastActorDetails: null,
+                policy: undefined,
+                isReportArchived: false,
+
+                currentUserLogin: CURRENT_USER_LOGIN,
+            });
+
+            // Then the preview reads the same as the in-chat change log rather than the raw stored text
+            expect(lastMessage).toBe(getPolicyWorkArrangementMessage(translateLocal, action));
         });
         it('UPDATE_AUTO_HARVESTING action', async () => {
             const report: Report = createRandomReport(0, undefined);

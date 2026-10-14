@@ -1,4 +1,5 @@
 import MenuItem from '@components/MenuItem';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import UserPills from '@components/UserPills';
 
 import usePersonalDetailByLogin from '@hooks/usePersonalDetailByLogin';
@@ -24,30 +25,24 @@ type MergeATSFinalApproverMenuItemProps = {
 function MergeATSFinalApproverMenuItem({policyID, description}: MergeATSFinalApproverMenuItemProps) {
     const {finalApprover} = useMergeATSApprovalDraftState(policyID);
     const finalApproverDetails = usePersonalDetailByLogin(finalApprover);
-    const finalApproverDisplayName = finalApproverDetails?.displayName ?? finalApprover ?? '';
 
     return (
         <MenuItem.Root onPress={callFunctionIfActionIsAllowed(() => Navigation.navigate(ROUTES.WORKSPACE_RECRUITING_MERGE_FINAL_APPROVER.getRoute(policyID)))}>
             <MenuItem.Row>
-                <MenuItem.Content>
-                    {finalApprover ? (
-                        <>
-                            <MenuItem.FieldName>{description}</MenuItem.FieldName>
-                            <UserPills
-                                users={[
-                                    {
-                                        avatar: finalApproverDetails?.avatar,
-                                        displayName: finalApproverDisplayName,
-                                        accountID: finalApproverDetails?.accountID,
-                                        email: finalApprover,
-                                    },
-                                ]}
-                            />
-                        </>
-                    ) : (
-                        <MenuItem.FieldNamePlaceholder>{description}</MenuItem.FieldNamePlaceholder>
+                <MenuItemField.Content name={description}>
+                    {!!finalApprover && (
+                        <UserPills
+                            users={[
+                                {
+                                    avatar: finalApproverDetails?.avatar,
+                                    displayName: finalApproverDetails?.displayName ?? finalApprover,
+                                    accountID: finalApproverDetails?.accountID,
+                                    email: finalApprover,
+                                },
+                            ]}
+                        />
                     )}
-                </MenuItem.Content>
+                </MenuItemField.Content>
                 <MenuItem.Trailing>
                     <MenuItem.Chevron />
                 </MenuItem.Trailing>
