@@ -5,6 +5,7 @@ keywords: [Top categories, top categories chart, category spending, spend by cat
 internalScope: Audience is members who can access Insights on workspaces with categories enabled. Covers what Top categories shows, who can see it, how categories are ranked, which expenses are included, and how to explore category expenses in Spend. Does not cover detailed filtering instructions, exporting expenses, setting up categories, or other insights.
 contentType: topic
 platform: new-expensify
+order: 6
 ---
 
 # Explore the Top Categories Insight
