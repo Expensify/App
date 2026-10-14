@@ -35,11 +35,13 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 
+import {useRoute} from '@react-navigation/native';
 import {accountIDSelector} from '@selectors/Session';
 import {useCallback, useEffect, useMemo, useState} from 'react';
 import {StyleSheet, View} from 'react-native';
 
 function AddPaymentCard() {
+    const route = useRoute();
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.ADD_PAYMENT_CARD.path);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
