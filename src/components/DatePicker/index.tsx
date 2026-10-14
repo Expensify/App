@@ -330,12 +330,6 @@ function DatePicker({
         };
     }, [inputID, blockingError, setInputValidationError, onValidationErrorChange]);
 
-    // Leaving the field is the point the user is finished with it, which is when a form lets a required error show
-    const runFieldBlur = () => {
-        segmentInput.onFieldBlur();
-        onTouched?.();
-    };
-
     const handleFieldBlur = () => {
         isFieldFocusedRef.current = false;
         setIsFieldFocused(false);
@@ -345,7 +339,7 @@ function DatePicker({
             return;
         }
 
-        runFieldBlur();
+        segmentInput.onFieldBlur();
     };
 
     useEffect(() => {
@@ -354,8 +348,8 @@ function DatePicker({
         }
 
         hasPendingFieldBlurRef.current = false;
-        runFieldBlur();
-        // runFieldBlur is rebuilt on every render, and the refs above are what decide whether it has anything to do
+        segmentInput.onFieldBlur();
+        // The handler is rebuilt on every render, and the refs above are what decide whether it has anything to do
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isModalVisible]);
 
