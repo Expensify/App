@@ -1,5 +1,6 @@
 import {fireEvent, render, renderHook, screen} from '@testing-library/react-native';
 
+import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import ExpenseFieldRow from '@components/MoneyRequestConfirmationList/sections/ExpenseFieldRow';
 
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -15,6 +16,9 @@ import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 const FIELD_NAME = 'Category';
 const FIELD_VALUE = 'Travel';
 const RIGHT_LABEL = 'Automatic';
+const ACCESSIBILITY_LABEL = 'Attendees, John Doe';
+const ERROR_TEXT = 'Multiple attendees required for this category';
+const REVIEW_REQUIRED = 'Your review is required';
 
 // `MenuItem.Root` drops a press it was handed no event for, so every press here carries one.
 const pressRow = () => fireEvent.press(screen.getByTestId('category-row'), {nativeEvent: {}});
@@ -142,6 +146,102 @@ describe('ExpenseFieldRow', () => {
             // form's fields, but reads as a disabled input rather than as something to tap
             expect(onPress).not.toHaveBeenCalled();
             expect(screen.queryByRole('button')).toBeNull();
+        });
+    });
+
+    describe('dropdown state', () => {
+        it('reports expanded on the element a screen reader focuses', () => {
+            // Given a row whose list is open
+            render(
+                <ExpenseFieldRow
+                    name={FIELD_NAME}
+                    value={FIELD_VALUE}
+                    onPress={jest.fn()}
+                    testID="category-row"
+                    isExpanded
+                />,
+            );
+
+            // When the row is read out
+            const row = screen.getByTestId('category-row');
+
+            // Then the state sits on the pressable, which carries the button role and takes screen reader focus.
+            // On a wrapper around it the state is never announced.
+            expect(row).toBeExpanded();
+        });
+
+        it('reports collapsed while the list is closed', () => {
+            // Given a dropdown row whose list is not open
+            render(
+                <ExpenseFieldRow
+                    name={FIELD_NAME}
+                    value={FIELD_VALUE}
+                    onPress={jest.fn()}
+                    testID="category-row"
+                    isExpanded={false}
+                />,
+            );
+
+            // When the row is read out
+            // Then it reads as a dropdown that is closed, rather than as a plain link
+            expect(screen.getByTestId('category-row')).toBeCollapsed();
+        });
+
+        it('says nothing about expansion for a row with no list to open', () => {
+            // Given a row that opens a page rather than a list in place
+            render(
+                <ExpenseFieldRow
+                    name={FIELD_NAME}
+                    value={FIELD_VALUE}
+                    onPress={jest.fn()}
+                    testID="category-row"
+                />,
+            );
+
+            // When the row is read out
+            // Then it is neither expanded nor collapsed: it does not read as a dropdown at all
+            const row = screen.getByTestId('category-row');
+            expect(row).not.toBeExpanded();
+            expect(row).not.toBeCollapsed();
+        });
+    });
+
+    describe('error announcement', () => {
+        it('announces that the row needs a review after the label', async () => {
+            // Given a row in an error state that names itself, the way the Attendees row does
+            render(
+                <LocaleContextProvider>
+                    <ExpenseFieldRow
+                        name={FIELD_NAME}
+                        value={FIELD_VALUE}
+                        accessibilityLabel={ACCESSIBILITY_LABEL}
+                        errorText={ERROR_TEXT}
+                        onPress={jest.fn()}
+                    />
+                </LocaleContextProvider>,
+            );
+
+            // When the row is read out
+            // Then the review prompt follows the label, since the error message sits outside the focusable row
+            expect(await screen.findByLabelText(`${ACCESSIBILITY_LABEL}. ${REVIEW_REQUIRED}`)).toBeOnTheScreen();
+        });
+
+        it('says nothing about a review while the field has no error', async () => {
+            // Given a row with no error
+            render(
+                <LocaleContextProvider>
+                    <ExpenseFieldRow
+                        name={FIELD_NAME}
+                        value={FIELD_VALUE}
+                        accessibilityLabel={ACCESSIBILITY_LABEL}
+                        onPress={jest.fn()}
+                    />
+                </LocaleContextProvider>,
+            );
+
+            // When the row is read out
+            // Then only its label is announced
+            expect(await screen.findByLabelText(ACCESSIBILITY_LABEL)).toBeOnTheScreen();
         });
     });
 

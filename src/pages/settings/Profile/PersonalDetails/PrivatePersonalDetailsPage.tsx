@@ -230,7 +230,7 @@ function PrivatePersonalDetailsPage() {
     };
 
     if (isLoadingApp) {
-        return <FullScreenLoadingIndicator shouldUseGoBackButton />;
+        return <FullScreenLoadingIndicator />;
     }
 
     return (

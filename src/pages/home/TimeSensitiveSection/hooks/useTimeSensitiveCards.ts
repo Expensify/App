@@ -8,7 +8,6 @@ import {
     isCardPendingIssue,
     isCardPendingReplace,
     isCardWithCustomZeroLimit,
-    isCardWithPotentialFraud,
 } from '@libs/CardUtils';
 import {areAddressAndPersonalDetailsMissing} from '@libs/PersonalDetailsUtils';
 import {getUnresolvedCardFraudAlertAction} from '@libs/ReportUtils';
@@ -42,9 +41,8 @@ function useTimeSensitiveCards() {
 
         const fraudAlertReportID = card.nameValuePairs?.possibleFraud?.fraudAlertReportID;
         const reportActions = fraudAlertReportID ? allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${fraudAlertReportID}`] : undefined;
-        const hasUnresolvedFraudAction = !!fraudAlertReportID && !!getUnresolvedCardFraudAlertAction(String(fraudAlertReportID), reportActions);
 
-        if (isCardWithPotentialFraud(card) && !!fraudAlertReportID && hasUnresolvedFraudAction) {
+        if (fraudAlertReportID && !!getUnresolvedCardFraudAlertAction(card, String(fraudAlertReportID), reportActions)) {
             cardsWithFraud.push(card);
         }
 

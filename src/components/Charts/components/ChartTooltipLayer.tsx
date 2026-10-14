@@ -1,10 +1,11 @@
 import {useTooltipData} from '@components/Charts/hooks';
-import type {ChartDataPoint} from '@components/Charts/types';
+import type {ChartDataPoint, ChartSeries} from '@components/Charts/types';
 
 import type {DerivedValue, SharedValue} from 'react-native-reanimated';
+import type {NonEmptyTuple} from 'type-fest';
 
 import React, {useState} from 'react';
-import Animated, {useAnimatedReaction, useAnimatedStyle} from 'react-native-reanimated';
+import {useAnimatedReaction} from 'react-native-reanimated';
 import {scheduleOnRN} from 'react-native-worklets';
 
 import ChartTooltip from './ChartTooltip';
@@ -18,6 +19,9 @@ type ChartTooltipLayerProps = {
     /** Chart data points used to compute tooltip content */
     data: ChartDataPoint[];
 
+    /** Chart series used to compute tooltip content */
+    series: NonEmptyTuple<ChartSeries>;
+
     /** Formats a numeric value for display */
     formatValue: (value: number) => string;
 
@@ -26,13 +30,16 @@ type ChartTooltipLayerProps = {
 
     /** The initial tooltip position (x, y) in canvas coordinates */
     initialTooltipPosition: SharedValue<{x: number; y: number}>;
+
+    /** Called with how far the chart moved in the window while the tooltip is shown */
+    onChartMoved?: (deltaX: number, deltaY: number) => void;
 };
 
 /**
  * Renders the chart tooltip in an isolated subtree so that hover-driven state changes
  * (active index, visibility) only re-render this lightweight component, not the chart itself.
  */
-function ChartTooltipLayer({matchedIndex, isTooltipActive, data, formatValue, chartWidth, initialTooltipPosition}: ChartTooltipLayerProps) {
+function ChartTooltipLayer({matchedIndex, isTooltipActive, data, series, formatValue, chartWidth, initialTooltipPosition, onChartMoved}: ChartTooltipLayerProps) {
     const [activeDataIndex, setActiveDataIndex] = useState(-1);
 
     useAnimatedReaction(
@@ -42,34 +49,23 @@ function ChartTooltipLayer({matchedIndex, isTooltipActive, data, formatValue, ch
         },
     );
 
-    const wrapperStyle = useAnimatedStyle(() => ({
-        position: 'absolute',
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
-        opacity: isTooltipActive.get() ? 1 : 0,
-    }));
-
-    const tooltipData = useTooltipData(activeDataIndex, data, formatValue);
+    const tooltipData = useTooltipData(activeDataIndex, data, series, formatValue);
 
     if (!tooltipData) {
         return null;
     }
 
     return (
-        <Animated.View
-            style={wrapperStyle}
-            pointerEvents="none"
-        >
-            <ChartTooltip
-                label={tooltipData.label}
-                amount={tooltipData.amount}
-                percentage={tooltipData.percentage}
-                chartWidth={chartWidth}
-                initialTooltipPosition={initialTooltipPosition}
-            />
-        </Animated.View>
+        <ChartTooltip
+            label={tooltipData.label}
+            amount={tooltipData.amount}
+            percentage={tooltipData.percentage}
+            expenseCount={tooltipData.expenseCount}
+            chartWidth={chartWidth}
+            initialTooltipPosition={initialTooltipPosition}
+            isVisible={isTooltipActive}
+            onChartMoved={onChartMoved}
+        />
     );
 }
 

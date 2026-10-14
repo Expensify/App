@@ -63,15 +63,15 @@ function RilletSubsidiarySelector({policy}: WithPolicyConnectionsProps) {
             icon={illustrations.Telescope}
             iconWidth={variables.emptyListIconWidth}
             iconHeight={variables.emptyListIconHeight}
-            title={translate('workspace.rillet.noSubsidiariesFound')}
-            subtitle={translate('workspace.rillet.noSubsidiariesFoundDescription')}
+            title={translate('workspace.rillet.noEntitiesFound')}
+            subtitle={translate('workspace.rillet.noEntitiesFoundDescription')}
             containerStyle={styles.pb10}
         />
     );
 
     const listHeaderComponent = (
         <View style={[styles.pb2, styles.ph5]}>
-            <Text style={[styles.pb2, styles.textNormal]}>{translate('workspace.rillet.subsidiarySelectDescription')}</Text>
+            <Text style={[styles.pb2, styles.textNormal]}>{translate('workspace.rillet.entitySelectDescription')}</Text>
         </View>
     );
 
@@ -88,7 +88,7 @@ function RilletSubsidiarySelector({policy}: WithPolicyConnectionsProps) {
             initiallyFocusedOptionKey={rilletConfig?.subsidiaryID}
             headerContent={listHeaderComponent}
             onBackButtonPress={() => Navigation.goBack()}
-            title="workspace.rillet.subsidiary"
+            title="workspace.rillet.entity"
             listEmptyContent={listEmptyContent}
             pendingAction={settingsPendingAction([CONST.RILLET_CONFIG.SUBSIDIARY_ID], rilletConfig?.pendingFields)}
             errors={getLatestErrorField(rilletConfig ?? {}, CONST.RILLET_CONFIG.SUBSIDIARY_ID)}

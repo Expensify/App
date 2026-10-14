@@ -1,15 +1,15 @@
-import type {CustomRNImageManipulatorResult} from '@libs/cropOrRotateImage/types';
-
 import type CONST from '@src/CONST';
+import type {Receipt} from '@src/types/onyx/Transaction';
 
 import type {ValueOf} from 'type-fest';
 
 type ReplaceReceiptParams = {
     transactionID: string;
-    receipt: File | CustomRNImageManipulatorResult;
+    receipt: Receipt;
     receiptState?: ValueOf<typeof CONST.IOU.RECEIPT_STATE>;
     isSameReceipt?: boolean;
     reportActionID?: string;
+    receiptRemovedReportActionID?: string;
 };
 
 export default ReplaceReceiptParams;

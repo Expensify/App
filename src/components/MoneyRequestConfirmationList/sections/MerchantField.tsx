@@ -1,4 +1,5 @@
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import MenuItem from '@components/MenuItem';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import {useConfirmationFields} from '@components/MoneyRequestConfirmationFields/context';
 import TextInput from '@components/TextInput';
 
@@ -9,8 +10,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import {clearMoneyRequestMerchant, setMoneyRequestMerchant} from '@libs/actions/IOU/MoneyRequest';
 import {isConfirmationMerchantMissing} from '@libs/MoneyRequestUtils';
-import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
-import Navigation from '@libs/Navigation/Navigation';
 import {hasAnyManuallyEnteredScanField} from '@libs/TransactionUtils';
 import {isUntypedPlaceholderMerchant, isValidInputLength} from '@libs/ValidationUtils';
 
@@ -18,12 +17,13 @@ import {setDraftSplitTransaction} from '@userActions/IOU/Split';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {DYNAMIC_ROUTES} from '@src/ROUTES';
 
 import React, {useState} from 'react';
 import {View} from 'react-native';
 
 import AutomaticFieldHint from './AutomaticFieldHint';
+import ExpenseFieldRow from './ExpenseFieldRow';
+import {useExpenseFormLayout} from './ExpenseFormLayoutContext';
 import {merchantStateSelector} from './selectors';
 import useTransactionSelector from './useTransactionSelector';
 
@@ -34,7 +34,8 @@ type MerchantFieldProps = {
 };
 
 function MerchantField({isMerchantRequired, shouldDisplayFieldError, formError}: MerchantFieldProps) {
-    const {action, iouType, transactionID, reportID, reportActionID, isReadOnly, didConfirm, isEditingSplitBill, canEnterScanFieldsManually} = useConfirmationFields();
+    const {transactionID, isReadOnly, didConfirm, isEditingSplitBill, canEnterScanFieldsManually} = useConfirmationFields();
+    const {shouldUseDropdownRows} = useExpenseFormLayout();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {getCurrencyDecimals, getCurrencySymbol} = useCurrencyListActions();
@@ -146,28 +147,47 @@ function MerchantField({isMerchantRequired, shouldDisplayFieldError, formError}:
         );
     }
 
-    return (
-        <MenuItemWithTopDescription
-            shouldShowRightIcon={!isReadOnly}
-            title={displayMerchantValue}
-            description={translate('common.merchant')}
-            style={[styles.moneyRequestMenuItem]}
-            titleStyle={styles.flex1}
-            onPress={() => {
-                if (!transactionID) {
-                    return;
-                }
+    // The row hides the label once it has a value, and an error replaces it
+    const shouldShowRequiredLabel = !displayMerchantValue && !!isMerchantRequired && !shouldDisplayMerchantError;
 
-                Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.MONEY_REQUEST_STEP_MERCHANT.getRoute(action, iouType, transactionID, reportID, reportActionID)));
-            }}
-            disabled={didConfirm}
-            interactive={!isReadOnly}
-            brickRoadIndicator={shouldDisplayMerchantError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-            errorText={shouldDisplayMerchantError ? translate('common.error.fieldRequired') : ''}
-            rightLabel={isMerchantRequired && !shouldDisplayMerchantError ? translate('common.required') : ''}
-            numberOfLinesTitle={2}
+    // On the bordered form the editable merchant is a text input, so a locked one has to read as a disabled input
+    // too rather than as a push row, or the same screen answers "this field can't be changed" two different ways.
+    if (shouldUseDropdownRows) {
+        return (
+            <ExpenseFieldRow
+                name={translate('common.merchant')}
+                value={displayMerchantValue}
+                numberOfLinesValue={2}
+                rightLabel={isMerchantRequired ? translate('common.required') : ''}
+                errorText={merchantErrorText}
+                isDisabled={didConfirm}
+                isInteractive={false}
+                sentryLabel={CONST.SENTRY_LABEL.REQUEST_CONFIRMATION_LIST.MERCHANT_FIELD}
+            />
+        );
+    }
+
+    // Only read-only confirmations reach this row, so it never navigates
+    return (
+        <MenuItem.Root
+            isDisabled={didConfirm}
             sentryLabel={CONST.SENTRY_LABEL.REQUEST_CONFIRMATION_LIST.MERCHANT_FIELD}
-        />
+        >
+            <MenuItemField.Row
+                name={translate('common.merchant')}
+                value={displayMerchantValue}
+                numberOfLinesValue={2}
+            >
+                {shouldDisplayMerchantError && <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />}
+                {shouldShowRequiredLabel && <MenuItem.RightLabel>{translate('common.required')}</MenuItem.RightLabel>}
+            </MenuItemField.Row>
+            {shouldDisplayMerchantError && (
+                <MenuItem.HelpText
+                    isError
+                    message={translate('common.error.fieldRequired')}
+                />
+            )}
+        </MenuItem.Root>
     );
 }
 

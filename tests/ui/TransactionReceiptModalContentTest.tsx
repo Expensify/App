@@ -73,6 +73,7 @@ jest.mock('@libs/ReportActionsUtils', () => ({
     getIOUActionForTransactionID: jest.requireActual<typeof ReportActionsUtils>('@libs/ReportActionsUtils').getIOUActionForTransactionID,
     getReportAction: jest.fn(),
     isTrackExpenseAction: () => false,
+    resolveTransactionThreadReport: jest.requireActual<typeof ReportActionsUtils>('@libs/ReportActionsUtils').resolveTransactionThreadReport,
 }));
 // Permissions are fixed here so each case reaches the modal's editing handlers.
 jest.mock('@libs/ReportUtils', () => ({canEditFieldOfMoneyRequest: () => true, isMoneyRequestReport: () => true, isTrackExpenseReport: () => false}));

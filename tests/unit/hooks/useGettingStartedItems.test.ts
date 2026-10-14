@@ -16,6 +16,7 @@ import Onyx from 'react-native-onyx';
 
 import createRandomPolicy from '../../utils/collections/policies';
 import createMock from '../../utils/createMock';
+import {getGlobalFetchMock} from '../../utils/TestHelper';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
 jest.mock('@hooks/useLocalize', () =>
@@ -36,6 +37,7 @@ const useResponsiveLayoutMock = jest.requireMock<jest.Mock>('@hooks/useResponsiv
 jest.mock('@userActions/Policy/Category', () => ({enablePolicyCategories: jest.fn()}));
 jest.mock('@userActions/Policy/Policy', () => ({enableCompanyCards: jest.fn(), enableExpensifyCard: jest.fn(), enablePolicyConnections: jest.fn(), enablePolicyRules: jest.fn()}));
 jest.mock('@libs/actions/IOU/MoneyRequest', () => ({startMoneyRequest: jest.fn()}));
+jest.mock('@libs/actions/Policy/Rules', () => ({getRules: jest.fn(), resetRulesFetchState: jest.fn()}));
 
 const {startMoneyRequest} = jest.requireMock<{startMoneyRequest: jest.Mock}>('@libs/actions/IOU/MoneyRequest');
 
@@ -191,6 +193,8 @@ describe('useGettingStartedItems', () => {
     });
 
     beforeEach(async () => {
+        // When rules are enabled, the hook sends GetRules, so mock fetch to keep that request off the real network.
+        global.fetch = getGlobalFetchMock();
         await Onyx.clear();
         await waitForBatchedUpdates();
     });
