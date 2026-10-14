@@ -7,42 +7,26 @@ import Text from '@components/Text';
 import useConfirmModal from '@hooks/useConfirmModal';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
-import useNetwork from '@hooks/useNetwork';
-import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {setDraftValues} from '@libs/actions/FormActions';
-import {openPolicyCategoriesPage} from '@libs/actions/Policy/Category';
-import {setDraftFlagForReviewRule, setDraftMerchantRule, setDraftRequireFieldsRule, setDraftSpendRule} from '@libs/actions/User';
 import {categoryHasTaxRule, hasSelectableCategoryTaxRate, hasUsableTaxRates} from '@libs/CategoryTaxRulesUtils';
-import {getMerchantRuleDraftFromGeneratedValues} from '@libs/ExpenseDefaultRuleUtils';
-import Log from '@libs/Log';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
-import {getSpendRuleDraftFromGeneratedValues} from '@libs/SpendRulesUtils';
 
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 
 import variables from '@styles/variables';
 
-import {close as closeModal} from '@userActions/Modal';
-
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
-import AGENT_RULE_INPUT_IDS from '@src/types/form/AddAgentRuleForm';
-import type {GeneratedRuleState, GeneratedRuleType, GeneratedRuleValues} from '@src/types/onyx/GeneratedRule';
 import type IconAsset from '@src/types/utils/IconAsset';
 
-import {useFocusEffect} from '@react-navigation/native';
-import React, {useState} from 'react';
+import React from 'react';
 import {View} from 'react-native';
-
-import DescribeRuleModal from './DescribeRuleModal';
 
 type RulesNewPageProps =
     | PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.RULES_NEW>
@@ -59,30 +43,6 @@ type NewRuleOption = {
     isWorkspaceOnly?: boolean;
 };
 
-/** Seeds the draft of the editor for the generated rule type and opens that editor */
-function seedDraftAndNavigate(values: GeneratedRuleValues, ruleType: GeneratedRuleType, policyID: string) {
-    switch (ruleType) {
-        case CONST.GENERATED_RULE.RULE_TYPE.REQUIRE_FIELDS:
-            setDraftRequireFieldsRule(values);
-            Navigation.navigate(ROUTES.RULES_REQUIRE_FIELDS_RULE_NEW.getRoute(policyID));
-            break;
-        case CONST.GENERATED_RULE.RULE_TYPE.FLAG_FOR_REVIEW:
-            setDraftFlagForReviewRule(values);
-            Navigation.navigate(ROUTES.RULES_FLAG_FOR_REVIEW_RULE_NEW.getRoute(policyID));
-            break;
-        case CONST.GENERATED_RULE.RULE_TYPE.RESTRICT_CARD_SPEND:
-            setDraftSpendRule(getSpendRuleDraftFromGeneratedValues(values));
-            Navigation.navigate(ROUTES.RULES_SPEND_NEW.getRoute(policyID));
-            break;
-        case CONST.GENERATED_RULE.RULE_TYPE.EXPENSE_DEFAULTS:
-            setDraftMerchantRule(getMerchantRuleDraftFromGeneratedValues(values));
-            Navigation.navigate(ROUTES.RULES_MERCHANT_NEW.getRoute(policyID));
-            break;
-        default:
-            break;
-    }
-}
-
 function RulesNewPage({route}: RulesNewPageProps) {
     const {policyID, categoryName} = route.params;
     const {translate} = useLocalize();
@@ -92,29 +52,6 @@ function RulesNewPage({route}: RulesNewPageProps) {
     const isCategoryScopedCreate = isCategorySettingsFlow || !!categoryName;
     const policy = usePolicy(policyID);
     const {showConfirmModal} = useConfirmModal();
-    const [isDescribeRuleModalVisible, setIsDescribeRuleModalVisible] = useState(false);
-    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
-
-    // A generated category stays in the draft only when the policy categories contain it. Therefore this page loads
-    // the categories before the answer arrives.
-    const fetchPolicyCategories = () => {
-        if (!policy?.areCategoriesEnabled || policyCategories) {
-            return;
-        }
-        openPolicyCategoriesPage(policyID);
-    };
-
-    useNetwork({onReconnect: fetchPolicyCategories});
-
-    useFocusEffect(() => {
-        fetchPolicyCategories();
-    });
-
-    const offerAgentRule = (prompt: string, generationID: string, state: GeneratedRuleState) => {
-        Log.info('[GenerateRule] Offered agent rule fallback', false, {policyID, generationID, state});
-        setDraftValues(ONYXKEYS.FORMS.ADD_AGENT_RULE_FORM, {[AGENT_RULE_INPUT_IDS.PROMPT]: prompt});
-        closeModal(() => Navigation.navigate(ROUTES.RULES_AGENT_NEW.getRoute(policyID, generationID)));
-    };
 
     // From category settings the only expense default is the category's tax rate, so the type chooser is skipped. It
     // can't be set without a rate to pick, so that case gets the chooser's explainer instead of an empty picker.
@@ -139,7 +76,7 @@ function RulesNewPage({route}: RulesNewPageProps) {
             icon: illustrations.AiBot,
             title: translate('workspace.rules.newRule.describeYourRule'),
             description: translate('workspace.rules.newRule.describeYourRuleDescription'),
-            onPress: () => setIsDescribeRuleModalVisible(true),
+            onPress: () => Navigation.navigate(ROUTES.RULES_DESCRIBE.getRoute(policyID)),
             sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.RULES.NEW_RULE_MENU_ITEM_DESCRIBE_RULE,
             isWorkspaceOnly: true,
         },
@@ -228,15 +165,6 @@ function RulesNewPage({route}: RulesNewPageProps) {
                         ))}
                     </View>
                 </ScrollView>
-                {!isCategoryScopedCreate && (
-                    <DescribeRuleModal
-                        isVisible={isDescribeRuleModalVisible}
-                        onClose={() => setIsDescribeRuleModalVisible(false)}
-                        policyID={policyID}
-                        onRuleGenerated={(values, generatedRuleType) => seedDraftAndNavigate(values, generatedRuleType, policyID)}
-                        onAgentRuleFallback={offerAgentRule}
-                    />
-                )}
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>
     );

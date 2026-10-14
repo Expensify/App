@@ -9071,6 +9071,7 @@ const translations = {
                 applyExpenseDefaultsDescription: 'Update fields without submitter doing anything',
                 describeYourRule: 'Describe your rule',
                 describeYourRuleDescription: 'Tell Concierge what you need and it will build the rule',
+                buildRule: 'Build rule',
                 describe: 'Describe',
                 describeRule: 'Describe your rule in plain English and have Concierge build the rule for you',
                 describeRuleInputLabel: 'Describe the rule',
