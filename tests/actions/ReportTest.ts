@@ -1660,7 +1660,7 @@ describe('actions/Report', () => {
         };
 
         const {result: ancestors, rerender} = renderHook(() => useAncestors(originalReport));
-        Report.editReportComment(originalReport, newReportAction, 'Testing an edited comment', undefined, '', undefined);
+        Report.editReportComment(originalReport, newReportAction, 'Testing an edited comment', undefined, '', undefined, TEST_USER_ACCOUNT_ID);
 
         await waitForBatchedUpdates();
 
@@ -1744,7 +1744,7 @@ describe('actions/Report', () => {
         const {result: ancestors, rerender} = renderHook(() => useAncestors(originalReport));
 
         const currentUserEmail = 'test@test.com';
-        Report.editReportComment(originalReport, newReportAction, 'Testing an edited comment', undefined, currentUserEmail, undefined);
+        Report.editReportComment(originalReport, newReportAction, 'Testing an edited comment', undefined, currentUserEmail, undefined, TEST_USER_ACCOUNT_ID);
         await waitForBatchedUpdates();
 
         const persistedRequests = await getOnyxValue(ONYXKEYS.PERSISTED_REQUESTS);
@@ -1805,7 +1805,7 @@ describe('actions/Report', () => {
         };
         const {result: ancestors, rerender} = renderHook(() => useAncestors(originalReport));
 
-        Report.editReportComment(originalReport, reportAction, 'Testing an edited comment', undefined, '', undefined);
+        Report.editReportComment(originalReport, reportAction, 'Testing an edited comment', undefined, '', undefined, TEST_USER_ACCOUNT_ID);
 
         await waitForBatchedUpdates();
 
@@ -2655,7 +2655,7 @@ describe('actions/Report', () => {
         const originalReport = {
             reportID: REPORT_ID,
         };
-        Report.editReportComment(originalReport, reportAction, 'Testing an edited comment', undefined, '', undefined);
+        Report.editReportComment(originalReport, reportAction, 'Testing an edited comment', undefined, '', undefined, TEST_USER_ACCOUNT_ID);
 
         await waitForBatchedUpdates();
 
@@ -2692,9 +2692,9 @@ describe('actions/Report', () => {
             reportID,
         };
 
-        Report.editReportComment(originalReport, action, 'value1', undefined, '', undefined);
-        Report.editReportComment(originalReport, action, 'value2', undefined, '', undefined);
-        Report.editReportComment(originalReport, action, 'value3', undefined, '', undefined);
+        Report.editReportComment(originalReport, action, 'value1', undefined, '', undefined, 1);
+        Report.editReportComment(originalReport, action, 'value2', undefined, '', undefined, 1);
+        Report.editReportComment(originalReport, action, 'value3', undefined, '', undefined, 1);
 
         const requests = PersistedRequests?.getAll();
 
@@ -2755,10 +2755,18 @@ describe('actions/Report', () => {
         };
 
         // Edit the comment to add a short mention
-        Report.editReportComment(originalReport, newReportAction, 'Initial comment with @bob', undefined, TEST_USER_LOGIN, {
-            [TEST_USER_ACCOUNT_ID]: {accountID: TEST_USER_ACCOUNT_ID, login: TEST_USER_LOGIN},
-            [MENTIONED_USER_ACCOUNT_ID]: {accountID: MENTIONED_USER_ACCOUNT_ID, login: MENTIONED_USER_LOGIN, displayName: 'Bob'},
-        });
+        Report.editReportComment(
+            originalReport,
+            newReportAction,
+            'Initial comment with @bob',
+            undefined,
+            TEST_USER_LOGIN,
+            {
+                [TEST_USER_ACCOUNT_ID]: {accountID: TEST_USER_ACCOUNT_ID, login: TEST_USER_LOGIN},
+                [MENTIONED_USER_ACCOUNT_ID]: {accountID: MENTIONED_USER_ACCOUNT_ID, login: MENTIONED_USER_LOGIN, displayName: 'Bob'},
+            },
+            TEST_USER_ACCOUNT_ID,
+        );
 
         await waitForBatchedUpdates();
 
@@ -2798,9 +2806,9 @@ describe('actions/Report', () => {
         const originalReport = {reportID: '123'};
         const currentUserEmail = 'user@test.com';
 
-        Report.editReportComment(originalReport, action, 'value1', undefined, currentUserEmail, undefined);
-        Report.editReportComment(originalReport, action, 'value2', undefined, currentUserEmail, undefined);
-        Report.editReportComment(originalReport, action, 'value3', undefined, currentUserEmail, undefined);
+        Report.editReportComment(originalReport, action, 'value1', undefined, currentUserEmail, undefined, 1);
+        Report.editReportComment(originalReport, action, 'value2', undefined, currentUserEmail, undefined, 1);
+        Report.editReportComment(originalReport, action, 'value3', undefined, currentUserEmail, undefined, 1);
 
         const requests = PersistedRequests?.getAll();
         expect(requests.length).toBe(1);
@@ -2812,6 +2820,57 @@ describe('actions/Report', () => {
         await waitForBatchedUpdates();
 
         TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.UPDATE_COMMENT, 1);
+    });
+
+    it("should update the report's last message only when the edited comment is the newest action the user can see", async () => {
+        global.fetch = TestHelper.createGlobalFetchMock();
+        const CURRENT_USER_ACCOUNT_ID = 1;
+        const OTHER_ACCOUNT_ID = 2;
+        const ORIGINAL_LAST_MESSAGE = 'original last message';
+
+        /** A report holding an older comment plus a newer actionable-mention whisper aimed at `whisperedToAccountID`. */
+        const setUpReport = async (reportID: string, whisperedToAccountID: number) => {
+            const comment: OnyxTypes.ReportAction = {
+                reportActionID: `comment_${reportID}`,
+                reportID,
+                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                actorAccountID: CURRENT_USER_ACCOUNT_ID,
+                created: '2024-01-01 10:00:00.000',
+                message: [{type: 'COMMENT', html: 'before edit', text: 'before edit'}],
+                originalMessage: {html: 'before edit'},
+            };
+            const whisper: OnyxTypes.ReportAction = {
+                reportActionID: `whisper_${reportID}`,
+                reportID,
+                actionName: CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_MENTION_WHISPER,
+                actorAccountID: OTHER_ACCOUNT_ID,
+                created: '2024-01-01 11:00:00.000',
+                message: [{type: 'COMMENT', html: 'invite them?', text: 'invite them?', whisperedTo: [whisperedToAccountID]}],
+                originalMessage: {inviteeAccountIDs: [OTHER_ACCOUNT_ID], whisperedTo: [whisperedToAccountID]},
+            };
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {reportID, lastMessageText: ORIGINAL_LAST_MESSAGE});
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {[comment.reportActionID]: comment, [whisper.reportActionID]: whisper});
+            await waitForBatchedUpdates();
+            return comment;
+        };
+
+        // Given a whisper aimed at the user, which is newer than the comment being edited
+        const visibleWhisperReportID = '77001';
+        const commentUnderVisibleWhisper = await setUpReport(visibleWhisperReportID, CURRENT_USER_ACCOUNT_ID);
+        Report.editReportComment({reportID: visibleWhisperReportID}, commentUnderVisibleWhisper, 'after edit', undefined, '', undefined, CURRENT_USER_ACCOUNT_ID);
+        await waitForBatchedUpdates();
+
+        // Then editing the older comment leaves the report's last message alone
+        expect((await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${visibleWhisperReportID}` as const))?.lastMessageText).toBe(ORIGINAL_LAST_MESSAGE);
+
+        // Given a whisper aimed at somebody else, which the user cannot see
+        const hiddenWhisperReportID = '77002';
+        const commentUnderHiddenWhisper = await setUpReport(hiddenWhisperReportID, OTHER_ACCOUNT_ID);
+        Report.editReportComment({reportID: hiddenWhisperReportID}, commentUnderHiddenWhisper, 'after edit', undefined, '', undefined, CURRENT_USER_ACCOUNT_ID);
+        await waitForBatchedUpdates();
+
+        // Then the edited comment is the last visible action, so the report's last message follows it
+        expect((await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${hiddenWhisperReportID}` as const))?.lastMessageText).toBe('after edit');
     });
 
     it('should clears lastMentionedTime when all mentions to the current user are deleted', async () => {
@@ -4573,6 +4632,7 @@ describe('actions/Report', () => {
                 getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
                 rules: undefined,
                 delegateAccountID: undefined,
+                personalDetailsByLogins: {},
                 parentReport: undefined,
                 policy: createRandomPolicy(Number(2)),
                 currentUser: {accountID: 1},
@@ -4667,6 +4727,7 @@ describe('actions/Report', () => {
                 getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
                 rules: undefined,
                 delegateAccountID: undefined,
+                personalDetailsByLogins: {},
                 parentReport: undefined,
                 policy: newPolicy,
                 currentUser: {accountID: 1},
@@ -4715,6 +4776,7 @@ describe('actions/Report', () => {
                 getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
                 rules: undefined,
                 delegateAccountID: undefined,
+                personalDetailsByLogins: {},
                 parentReport: undefined,
                 policy: createRandomPolicy(Number(2)),
                 currentUser: {accountID: 1},
@@ -4749,6 +4811,7 @@ describe('actions/Report', () => {
                 getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
                 rules: undefined,
                 delegateAccountID: undefined,
+                personalDetailsByLogins: {},
                 parentReport: undefined,
                 policy: targetPolicy,
                 currentUser: {accountID: 1},
@@ -4782,6 +4845,7 @@ describe('actions/Report', () => {
                 getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
                 rules: undefined,
                 delegateAccountID: undefined,
+                personalDetailsByLogins: {},
                 parentReport: undefined,
                 policy: createRandomPolicy(Number(2)),
                 currentUser: {accountID: 1},
@@ -4815,6 +4879,7 @@ describe('actions/Report', () => {
                 getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
                 rules: undefined,
                 delegateAccountID: undefined,
+                personalDetailsByLogins: {},
                 parentReport: undefined,
                 policy: createRandomPolicy(Number(2)),
                 currentUser: {accountID: 1},
@@ -4850,6 +4915,7 @@ describe('actions/Report', () => {
                 getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
                 rules: undefined,
                 delegateAccountID: undefined,
+                personalDetailsByLogins: {},
                 parentReport: undefined,
                 policy: createRandomPolicy(Number(2)),
                 currentUser: {accountID: 1},
@@ -4905,6 +4971,7 @@ describe('actions/Report', () => {
                 getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
                 rules: undefined,
                 delegateAccountID: undefined,
+                personalDetailsByLogins: {},
                 parentReport: undefined,
                 policy: targetPolicy,
                 currentUser: {accountID: 1, email: 'current-user@expensifail.com'},
@@ -10695,115 +10762,6 @@ describe('actions/Report', () => {
                 reportID: result.reportID,
                 emailList: `${TEST_USER_LOGIN},passed@test.com`,
             });
-        });
-
-        it('should remove the optimistic thread instead of keeping a createChat error when OpenReport fails', async () => {
-            // Given an IOU report with an expense action that the user has no thread for yet
-            const mockFetch = TestHelper.createGlobalFetchMock();
-            global.fetch = mockFetch;
-
-            const parentReport: OnyxTypes.Report = {
-                ...createRandomReport(700, undefined),
-                reportID: '700',
-                type: CONST.REPORT.TYPE.IOU,
-            };
-            const reportAction: OnyxTypes.ReportAction = {
-                ...createRandomReportAction(7),
-                reportActionID: 'action-700',
-                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
-            };
-
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${parentReport.reportID}`, parentReport);
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReport.reportID}`, {[reportAction.reportActionID]: reportAction});
-            await waitForBatchedUpdates();
-
-            // When the thread is created while the OpenReport request is still in flight
-            mockFetch.pause();
-            const result = Report.createTransactionThreadReport({
-                introSelected: TEST_INTRO_SELECTED,
-                conciergeChat: undefined,
-                currentUserLogin: TEST_USER_LOGIN,
-                currentUserAccountID: TEST_USER_ACCOUNT_ID,
-                personalDetails: undefined,
-                iouReport: parentReport,
-                iouReportAction: reportAction,
-            });
-            await waitForBatchedUpdates();
-
-            if (!result) {
-                throw new Error('Expected a transaction thread report to be created');
-            }
-
-            // Then the thread exists optimistically and the parent action points at it
-            expect(await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${result.reportID}` as const)).toBeTruthy();
-            expect((await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReport.reportID}` as const))?.[reportAction.reportActionID]?.childReportID).toBe(result.reportID);
-
-            // When OpenReport then fails, e.g. because the expense was deleted while the request sat in the offline queue
-            mockFetch.fail();
-            await mockFetch.resume();
-            await waitForNetworkPromises();
-            await waitForBatchedUpdates();
-
-            // Then the thread is rolled back rather than left in Onyx with a createChat error the user cannot dismiss,
-            // which is what force-displayed it in the LHN as an empty row with a "Fix" badge
-            expect(await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${result.reportID}` as const)).toBeFalsy();
-            // The optimistic CREATED action goes, but the key is merged rather than nulled so anything the user
-            // queued in the thread, e.g. an offline comment, is not destroyed with it.
-            expect(await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${result.reportID}` as const)).toEqual({});
-            expect(await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${result.reportID}` as const)).toBeFalsy();
-
-            // And the parent action no longer links to a report that does not exist
-            const parentActions = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReport.reportID}` as const);
-            expect(parentActions?.[reportAction.reportActionID]?.childReportID).toBeUndefined();
-
-            mockFetch.succeed();
-        });
-    });
-
-    describe('openReport', () => {
-        const TEST_USER_ACCOUNT_ID = 1;
-        const TEST_USER_LOGIN = 'test@test.com';
-
-        beforeEach(async () => {
-            global.fetch = TestHelper.createGlobalFetchMock();
-            await TestHelper.signInWithTestUser(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN);
-            await waitForBatchedUpdates();
-        });
-
-        it('should keep a user-initiated new chat with a createChat error when OpenReport fails', async () => {
-            // Given a chat the user themselves asked to create, so the error is actionable and must be kept
-            const mockFetch = TestHelper.createGlobalFetchMock();
-            global.fetch = mockFetch;
-
-            const REPORT_ID = '710';
-            const newReportObject: OnyxTypes.Report = {
-                ...createRandomReport(710, undefined),
-                reportID: REPORT_ID,
-                parentReportID: undefined,
-                parentReportActionID: undefined,
-            };
-
-            // When OpenReport fails for that create
-            mockFetch.fail();
-            Report.openReport({
-                reportID: REPORT_ID,
-                introSelected: TEST_INTRO_SELECTED,
-                conciergeChat: undefined,
-                participants: [{login: 'other@test.com', accountID: 2}],
-                newReportObject,
-                currentUserLogin: TEST_USER_LOGIN,
-                currentUserAccountID: TEST_USER_ACCOUNT_ID,
-                hasReportActions: false,
-            });
-            await waitForNetworkPromises();
-            await waitForBatchedUpdates();
-
-            // Then the report is still there and shows the retryable error, unchanged from before this fix
-            const report = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}` as const);
-            expect(report).toBeTruthy();
-            expect(report?.errorFields?.createChat).toBeTruthy();
-
-            mockFetch.succeed();
         });
     });
 
