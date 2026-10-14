@@ -9416,6 +9416,8 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
         updatedWorkspaceFrequencyAction: (oldFrequency: string, newFrequency: string) =>
             `atualizou a frequência de preenchimento automático para "${newFrequency}" (antes "${oldFrequency}")`,
         updateApprovalMode: (newValue: string, oldValue?: string) => `atualizou o modo de aprovação para "${newValue}" (antes "${oldValue}")`,
+        archivedWorkspace: 'arquivou este workspace',
+        unarchivedWorkspace: 'desarquivou este workspace',
         upgradedWorkspace: 'atualizou este workspace para o plano Control',
         forcedCorporateUpgrade: `Este workspace foi atualizado para o plano Control. Clique <a href="${CONST.COLLECT_UPGRADE_HELP_URL}">aqui</a> para mais informações.`,
         downgradedWorkspace: 'rebaixou este espaço de trabalho para o plano Collect',
