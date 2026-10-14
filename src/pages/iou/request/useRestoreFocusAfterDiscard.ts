@@ -120,7 +120,23 @@ function useRestoreFocusAfterDiscard() {
         lastFocusedInputCandidateRef.current = null;
     };
 
-    useEffect(() => reset, []);
+    useEffect(
+        () => () => {
+            if (focusTimeoutRef.current) {
+                clearTimeout(focusTimeoutRef.current);
+                focusTimeoutRef.current = null;
+            }
+            focusRestoreGenerationRef.current += 1;
+            if (blurCleanupTaskRef.current) {
+                blurCleanupTaskRef.current.cancel();
+                blurCleanupTaskRef.current = null;
+            }
+            lastFocusedInputRef.current = null;
+            lastFocusedInputCandidateRef.current = null;
+            focusToRestoreAfterDiscardRef.current = null;
+        },
+        [],
+    );
 
     return {
         clearDiscardFocus,
