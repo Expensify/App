@@ -4553,7 +4553,7 @@ ${amount} pour ${merchant} - ${date}`,
         enterSignerInfo: 'Saisir les informations du signataire',
         thisStep: 'Cette étape a été terminée',
         isConnecting: (bankAccountLastFour: string | undefined, currency: string | undefined) =>
-            `est en train de connecter un compte bancaire professionnel en ${currency} se terminant par ${bankAccountLastFour} à Expensify pour payer des employés en ${currency}. L’étape suivante nécessite les informations de signature d’un directeur.`,
+            `a ajouté un compte bancaire en ${currency} se terminant par ${bankAccountLastFour}. Saisissez vos informations de signataire en tant que directeur afin que ce compte bancaire puisse être utilisé pour payer les employés.`,
         error: {
             emailsMustBeDifferent: 'Les e-mails doivent être différents',
         },
@@ -5108,7 +5108,10 @@ ${amount} pour ${merchant} - ${date}`,
             },
             requestEmptyList: {
                 title: 'Aucun taux de per diem pour le moment',
-                subtitle: 'Cet espace de travail n’a aucun taux de per diem, demandez à votre Administrateur d’en ajouter.',
+                subtitle: (workspaceName?: string) =>
+                    workspaceName
+                        ? `${workspaceName} n’a aucun taux de per diem. Demandez à un administrateur d’en ajouter.`
+                        : 'Cet espace de travail n’a aucun taux de per diem. Demandez à un administrateur d’en ajouter.',
                 adminSubtitle: 'Ajoutez des taux de per diem pour organiser vos dépenses.',
             },
             importPerDiemRates: 'Importer des taux de per diem',
@@ -6659,6 +6662,9 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
             distanceRates: {
                 title: 'Taux de distance',
                 subtitle: 'Ajoutez, mettez à jour et appliquez les taux.',
+                commuterExclusionsOnTitle: 'Les exclusions de trajet domicile-travail sont activées',
+                disableLockedByCommuterExclusionsPrompt:
+                    'Pour désactiver les taux de distance, commencez par définir Exclure les trajets domicile-travail sur « Ne pas exclure les trajets domicile-travail ».',
             },
             perDiem: {
                 title: 'Indemnité journalière',
@@ -7911,6 +7917,21 @@ Le forfait Control commence à 9 $ par Membre actif et par mois.`,
             addressContext: 'Une adresse d’espace de travail est requise pour activer Expensify Travel. Veuillez saisir une adresse associée à votre entreprise.',
             policy: 'Politique de dépenses',
         },
+        officeLocations: {
+            title: 'Sites de bureau',
+            subtitle: 'Ajoutez des bureaux pour les assigner aux membres, par exemple pour le suivi des distances.',
+            addOfficeLocation: 'Ajouter un lieu de travail',
+            editOfficeLocation: 'Modifier le lieu de travail',
+            locationName: 'Nom du lieu',
+            locationNameHint: 'Choisissez un surnom de lieu si vous ajoutez plusieurs sites de bureau',
+            defaultName: ({officeNumber}: {officeNumber: number}) => `Bureau ${officeNumber}`,
+            setAsPrimary: 'Définir comme principal',
+            primary: 'Principal',
+            deleteOfficeLocation: 'Supprimer le site ?',
+            deleteOfficeLocationConfirmation: 'Voulez-vous vraiment supprimer ce bureau ? Les membres seront réassignés au bureau principal.',
+            existingOfficeLocationError: 'Un bureau portant ce nom existe déjà',
+            setCompanyAddressAsPrimaryConfirmation: 'Définir l’adresse de l’entreprise comme bureau principal ?',
+        },
         bankAccount: {
             continueWithSetup: 'Continuer la configuration',
             youAreAlmostDone:
@@ -8817,6 +8838,8 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                 flagForReviewDescription: 'Avertir les approbateurs lorsque les dépenses dépassent les limites de catégorie',
                 requireFields: 'Définir les exigences des champs',
                 requireFieldsDescription: 'Rendre certains champs de dépense obligatoires ou renoncer à les exiger.',
+                createAgentRule: 'Décrire la règle de l’agent',
+                createAgentRuleDescription: 'Créez des règles flexibles qui s’exécutent quand vous en avez besoin.',
                 describeYourRule: 'Décrivez votre règle',
                 describeYourRuleDescription: 'Dites à Concierge ce dont vous avez besoin et il créera la règle',
                 buildRule: 'Créer une règle',
@@ -9751,6 +9774,15 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
         },
         addedProhibitedExpense: ({prohibitedExpense}: {prohibitedExpense: string}) => `a ajouté « ${prohibitedExpense} » aux dépenses interdites`,
         removedProhibitedExpense: ({prohibitedExpense}: {prohibitedExpense: string}) => `a supprimé « ${prohibitedExpense} » des dépenses interdites`,
+        officeLocation: {
+            added: ({name, address}: {name: string; address: string}) => `a ajouté le lieu de bureau « ${name} » (${address})`,
+            renamed: ({oldName, newName}: {oldName: string; newName: string}) => `a renommé le lieu de bureau « ${oldName} » en « ${newName} »`,
+            changedAddress: ({name, newAddress, oldAddress}: {name: string; newAddress: string; oldAddress: string}) =>
+                `a modifié l’adresse du bureau « ${name} » en « ${newAddress} » (auparavant « ${oldAddress} »)`,
+            setAsPrimary: ({name}: {name: string}) => `définir le lieu de travail « ${name} » comme principal`,
+            setCompanyAddressAsPrimary: 'définir l’adresse de l’entreprise comme principale',
+            removed: ({name}: {name: string}) => `a supprimé le lieu de bureau « ${name} »`,
+        },
         workArrangement: {
             set: ({arrangement}: {arrangement: string}) => `définir l’organisation de travail par défaut sur ${arrangement}`,
             changed: ({arrangement, previousArrangement}: {arrangement: string; previousArrangement: string}) =>
@@ -10032,6 +10064,8 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
         fallbackTitle: 'Ticket d’assistance',
         resolved: 'Ce ticket d’assistance est résolu.',
         surveyPrompt: 'Comment s’est passée votre expérience avec l’assistance ?',
+        great: 'Excellente',
+        poor: 'Mauvaise',
         reopenTicket: 'Rouvrir le ticket',
     },
     statementPage: {
@@ -10253,6 +10287,11 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                 [CONST.SEARCH.ACTION_FILTERS.EXPORT]: 'Exporter',
             },
             filterType: {label: 'Type de filtre', has: {positive: 'a', negative: 'n’a pas'}, is: {positive: 'est', negative: 'n’est pas'}},
+            merchant: {
+                matchType: 'Type de correspondance',
+                contains: (merchant?: string) => (merchant ? `Contient "${merchant}"` : 'Contient'),
+                equalTo: (merchant?: string) => (merchant ? `Égal à "${merchant}"` : 'Égal à'),
+            },
             created: 'Créé',
             createdDate: 'Date de création',
             transactionStatus: {

@@ -1979,6 +1979,76 @@ describe('actions/Report', () => {
         TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.DELETE_COMMENT, 0);
     });
 
+    it('resolves Concierge followups only when the Concierge message is the last action the user can see', async () => {
+        const CONCIERGE_ACTION_ID = 'conciergeFollowups';
+        const WHISPER_TARGET_ACCOUNT_ID = 505;
+        const UNRESOLVED_HTML = `<p>Here is some helpful information.</p>\n<followup-list>\n  <followup><followup-text>First?</followup-text></followup>\n</followup-list>`;
+
+        /** Seeds a report whose Concierge message carries unresolved followups, below a newer whisper for one account. */
+        const seedReport = async (reportID: string) => {
+            const conciergeAction: OnyxTypes.ReportAction = {
+                reportActionID: CONCIERGE_ACTION_ID,
+                reportID,
+                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                actorAccountID: CONST.ACCOUNT_ID.CONCIERGE,
+                created: '2026-09-01 10:00:00.000',
+                message: [{type: CONST.REPORT.MESSAGE.TYPE.COMMENT, html: UNRESOLVED_HTML, text: 'Here is some helpful information.'}],
+                originalMessage: {html: UNRESOLVED_HTML},
+            };
+            const whisper: OnyxTypes.ReportAction = {
+                reportActionID: 'conciergeWhisper',
+                reportID,
+                actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
+                actorAccountID: WHISPER_TARGET_ACCOUNT_ID,
+                created: '2026-09-01 11:00:00.000',
+                message: [{type: 'COMMENT', html: 'changed the amount', text: 'changed the amount', whisperedTo: [WHISPER_TARGET_ACCOUNT_ID]}],
+                originalMessage: {whisperedTo: [WHISPER_TARGET_ACCOUNT_ID]},
+            };
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {[CONCIERGE_ACTION_ID]: conciergeAction, [whisper.reportActionID]: whisper});
+            await waitForBatchedUpdates();
+        };
+
+        const getConciergeHtml = async (reportID: string) => {
+            const actions = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}` as const);
+            const message = actions?.[CONCIERGE_ACTION_ID]?.message;
+            return Array.isArray(message) ? message.at(0)?.html : undefined;
+        };
+
+        // Given the whisper is visible to the commenting user, so it outranks the Concierge message
+        const whisperVisibleReportID = '60001';
+        await seedReport(whisperVisibleReportID);
+        Report.addAttachmentWithComment({
+            report: {...createRandomReport(60001, undefined), reportID: whisperVisibleReportID},
+            notifyReportID: whisperVisibleReportID,
+            ancestors: [],
+            attachments: new File([''], 'a.txt', {type: 'text/plain'}),
+            currentUserAccountID: WHISPER_TARGET_ACCOUNT_ID,
+            delegateAccountID: undefined,
+            conciergeReportID: undefined,
+        });
+        await waitForBatchedUpdates();
+
+        // Then the followups stay unresolved, because the Concierge message is not the last action
+        expect(await getConciergeHtml(whisperVisibleReportID)).toContain('<followup-list>');
+
+        // Given the whisper targets somebody else, leaving the Concierge message last
+        const whisperHiddenReportID = '60002';
+        await seedReport(whisperHiddenReportID);
+        Report.addAttachmentWithComment({
+            report: {...createRandomReport(60002, undefined), reportID: whisperHiddenReportID},
+            notifyReportID: whisperHiddenReportID,
+            ancestors: [],
+            attachments: new File([''], 'b.txt', {type: 'text/plain'}),
+            currentUserAccountID: WHISPER_TARGET_ACCOUNT_ID + 1,
+            delegateAccountID: undefined,
+            conciergeReportID: undefined,
+        });
+        await waitForBatchedUpdates();
+
+        // Then the followups are optimistically marked resolved
+        expect(await getConciergeHtml(whisperHiddenReportID)).toContain('<followup-list selected>');
+    });
+
     it('should send not DeleteComment request and remove AddTextAndAttachment accordingly', async () => {
         global.fetch = TestHelper.createGlobalFetchMock({
             headers: new Headers({
@@ -6422,7 +6492,9 @@ describe('actions/Report', () => {
 
             const reportsCollectionAfter = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}`);
 
-            expect(reportsCollectionAfter).toBeUndefined();
+            // Onyx resolves a registered collection with no members to the frozen `{}` once init has run.
+            // The assertion here is that no report was created, so the collection has zero members.
+            expect(reportsCollectionAfter).toEqual({});
         });
     });
 
@@ -6451,6 +6523,7 @@ describe('actions/Report', () => {
                 introSelected: testIntroSelected,
                 currentUserAccountID: TEST_USER_ACCOUNT_ID,
                 isSelfTourViewed: undefined,
+                hasCompletedGuidedSetupFlow: undefined,
                 conciergePersonalDetails: undefined,
                 shouldDismissModal: false,
             });
@@ -6469,6 +6542,7 @@ describe('actions/Report', () => {
                 introSelected: testIntroSelected,
                 currentUserAccountID: TEST_USER_ACCOUNT_ID,
                 isSelfTourViewed: undefined,
+                hasCompletedGuidedSetupFlow: undefined,
                 conciergePersonalDetails: undefined,
                 shouldDismissModal: true,
             });
@@ -6491,6 +6565,7 @@ describe('actions/Report', () => {
                     introSelected: testIntroSelected,
                     currentUserAccountID: TEST_USER_ACCOUNT_ID,
                     isSelfTourViewed: undefined,
+                    hasCompletedGuidedSetupFlow: undefined,
                     conciergePersonalDetails: undefined,
                     shouldDismissModal: false,
                 });
@@ -6507,6 +6582,7 @@ describe('actions/Report', () => {
                 introSelected: testIntroSelected,
                 currentUserAccountID: TEST_USER_ACCOUNT_ID,
                 isSelfTourViewed: undefined,
+                hasCompletedGuidedSetupFlow: undefined,
                 conciergePersonalDetails: undefined,
                 shouldDismissModal: true,
                 reportActionID,
@@ -6530,6 +6606,7 @@ describe('actions/Report', () => {
                 introSelected: testIntroSelected,
                 currentUserAccountID: TEST_USER_ACCOUNT_ID,
                 isSelfTourViewed: undefined,
+                hasCompletedGuidedSetupFlow: undefined,
                 conciergePersonalDetails: undefined,
                 shouldDismissModal: false,
                 linkToOptions,
@@ -6552,6 +6629,7 @@ describe('actions/Report', () => {
                 introSelected: testIntroSelected,
                 currentUserAccountID: TEST_USER_ACCOUNT_ID,
                 isSelfTourViewed: undefined,
+                hasCompletedGuidedSetupFlow: undefined,
                 conciergePersonalDetails: undefined,
                 shouldDismissModal: false,
                 checkIfCurrentPageActive,
@@ -6575,6 +6653,7 @@ describe('actions/Report', () => {
                     introSelected: testIntroSelected,
                     currentUserAccountID: TEST_USER_ACCOUNT_ID,
                     isSelfTourViewed: undefined,
+                    hasCompletedGuidedSetupFlow: undefined,
                     conciergePersonalDetails: undefined,
                     shouldDismissModal: false,
                 });
@@ -6592,6 +6671,7 @@ describe('actions/Report', () => {
                     introSelected: testIntroSelected,
                     currentUserAccountID: TEST_USER_ACCOUNT_ID,
                     isSelfTourViewed: undefined,
+                    hasCompletedGuidedSetupFlow: undefined,
                     conciergePersonalDetails: undefined,
                     shouldDismissModal: false,
                 });
@@ -6611,6 +6691,7 @@ describe('actions/Report', () => {
                 introSelected: testIntroSelected,
                 currentUserAccountID: TEST_USER_ACCOUNT_ID,
                 isSelfTourViewed: undefined,
+                hasCompletedGuidedSetupFlow: undefined,
                 conciergePersonalDetails: undefined,
                 shouldDismissModal: true,
                 checkIfCurrentPageActive,
@@ -6638,6 +6719,7 @@ describe('actions/Report', () => {
                 introSelected: testIntroSelected,
                 currentUserAccountID: TEST_USER_ACCOUNT_ID,
                 isSelfTourViewed: undefined,
+                hasCompletedGuidedSetupFlow: undefined,
                 conciergePersonalDetails: undefined,
                 shouldDismissModal: false,
             });
@@ -6667,6 +6749,7 @@ describe('actions/Report', () => {
                 introSelected: testIntroSelected,
                 currentUserAccountID: TEST_USER_ACCOUNT_ID,
                 isSelfTourViewed: undefined,
+                hasCompletedGuidedSetupFlow: undefined,
                 conciergePersonalDetails: undefined,
                 shouldDismissModal: false,
             });
@@ -6675,6 +6758,76 @@ describe('actions/Report', () => {
             TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.OPEN_REPORT, 1);
         });
 
+        /**
+         * `hasCompletedGuidedSetupFlow` is only read on the branch where `conciergeReportID` is undefined, because that
+         * is the only path reaching `navigateToAndOpenReport`. There the flag decides `isOnboardingPending`, which gates
+         * whether an onboarding `OpenReport` is enqueued for the Concierge chat. The two tests below pin that branch:
+         * identical inputs, only the flag differs, and the request is issued or skipped accordingly.
+         */
+        const setUpExistingConciergeChat = async () => {
+            const TEST_USER_LOGIN = 'test@user.com';
+            const EXISTING_CONCIERGE_CHAT_REPORT_ID = '777888';
+
+            await TestHelper.signInWithTestUser(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN);
+            await TestHelper.setPersonalDetails(TEST_USER_LOGIN, TEST_USER_ACCOUNT_ID);
+            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+                [CONST.ACCOUNT_ID.CONCIERGE]: {
+                    accountID: CONST.ACCOUNT_ID.CONCIERGE,
+                    login: CONST.EMAIL.CONCIERGE,
+                    displayName: 'Concierge',
+                },
+            });
+            // A 1:1 DM with Concierge, so navigateToAndOpenReport takes the existing-chat branch.
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${EXISTING_CONCIERGE_CHAT_REPORT_ID}`, {
+                reportID: EXISTING_CONCIERGE_CHAT_REPORT_ID,
+                type: CONST.REPORT.TYPE.CHAT,
+                participants: {
+                    [TEST_USER_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                    [CONST.ACCOUNT_ID.CONCIERGE]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                },
+            });
+            await waitForBatchedUpdates();
+        };
+
+        it('should enqueue the onboarding OpenReport when conciergeReportID is undefined and hasCompletedGuidedSetupFlow is false', async () => {
+            // Given a signed-in user whose Concierge DM already exists locally, but whose conciergeReportID is not cached
+            await setUpExistingConciergeChat();
+
+            // When navigating to Concierge with onboarding reported as still pending
+            Report.navigateToConciergeChat({
+                conciergeReportID: undefined,
+                introSelected: testIntroSelected,
+                currentUserAccountID: TEST_USER_ACCOUNT_ID,
+                isSelfTourViewed: undefined,
+                hasCompletedGuidedSetupFlow: false,
+                conciergePersonalDetails: undefined,
+                shouldDismissModal: false,
+            });
+            await waitForBatchedUpdates();
+
+            // Then the onboarding OpenReport is enqueued so the server creates the guided setup tasks/messages
+            TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.OPEN_REPORT, 1);
+        });
+
+        it('should skip the onboarding OpenReport when conciergeReportID is undefined and hasCompletedGuidedSetupFlow is true', async () => {
+            // Given the same user and the same locally-known Concierge DM
+            await setUpExistingConciergeChat();
+
+            // When navigating to Concierge with onboarding reported as already completed
+            Report.navigateToConciergeChat({
+                conciergeReportID: undefined,
+                introSelected: testIntroSelected,
+                currentUserAccountID: TEST_USER_ACCOUNT_ID,
+                isSelfTourViewed: undefined,
+                hasCompletedGuidedSetupFlow: true,
+                conciergePersonalDetails: undefined,
+                shouldDismissModal: false,
+            });
+            await waitForBatchedUpdates();
+
+            // Then no onboarding OpenReport is enqueued, proving the flag alone drives this branch
+            TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.OPEN_REPORT, 0);
+        });
         describe('personalDetails', () => {
             const TEST_USER_LOGIN = 'test@user.com';
             const CONCIERGE_PERSONAL_DETAIL: OnyxTypes.PersonalDetails = {
@@ -6698,6 +6851,7 @@ describe('actions/Report', () => {
                     introSelected: testIntroSelected,
                     currentUserAccountID: TEST_USER_ACCOUNT_ID,
                     isSelfTourViewed: undefined,
+                    hasCompletedGuidedSetupFlow: undefined,
                     conciergePersonalDetails: {[CONST.ACCOUNT_ID.CONCIERGE]: CONCIERGE_PERSONAL_DETAIL},
                     shouldDismissModal: false,
                 });
@@ -6717,6 +6871,7 @@ describe('actions/Report', () => {
                     introSelected: testIntroSelected,
                     currentUserAccountID: TEST_USER_ACCOUNT_ID,
                     isSelfTourViewed: undefined,
+                    hasCompletedGuidedSetupFlow: undefined,
                     conciergePersonalDetails: {},
                     shouldDismissModal: false,
                 });
@@ -6739,6 +6894,7 @@ describe('actions/Report', () => {
                     introSelected: testIntroSelected,
                     currentUserAccountID: TEST_USER_ACCOUNT_ID,
                     isSelfTourViewed: true,
+                    hasCompletedGuidedSetupFlow: undefined,
                     conciergePersonalDetails: undefined,
                     shouldDismissModal: false,
                 });
@@ -6750,6 +6906,7 @@ describe('actions/Report', () => {
                     introSelected: testIntroSelected,
                     currentUserAccountID: TEST_USER_ACCOUNT_ID,
                     isSelfTourViewed: false,
+                    hasCompletedGuidedSetupFlow: undefined,
                     conciergePersonalDetails: undefined,
                     shouldDismissModal: false,
                 });
@@ -6761,6 +6918,7 @@ describe('actions/Report', () => {
                     introSelected: testIntroSelected,
                     currentUserAccountID: TEST_USER_ACCOUNT_ID,
                     isSelfTourViewed: undefined,
+                    hasCompletedGuidedSetupFlow: undefined,
                     conciergePersonalDetails: undefined,
                     shouldDismissModal: false,
                 });
@@ -6775,6 +6933,7 @@ describe('actions/Report', () => {
                 introSelected: testIntroSelected,
                 currentUserAccountID: TEST_USER_ACCOUNT_ID,
                 isSelfTourViewed: true,
+                hasCompletedGuidedSetupFlow: undefined,
                 conciergePersonalDetails: undefined,
                 shouldDismissModal: false,
                 checkIfCurrentPageActive,
@@ -6796,6 +6955,7 @@ describe('actions/Report', () => {
                 introSelected: testIntroSelected,
                 currentUserAccountID: TEST_USER_ACCOUNT_ID,
                 isSelfTourViewed: undefined,
+                hasCompletedGuidedSetupFlow: undefined,
                 conciergePersonalDetails: undefined,
                 shouldDismissModal: false,
                 checkIfCurrentPageActive,
@@ -6816,6 +6976,7 @@ describe('actions/Report', () => {
                 introSelected: testIntroSelected,
                 currentUserAccountID: TEST_USER_ACCOUNT_ID,
                 isSelfTourViewed: true,
+                hasCompletedGuidedSetupFlow: undefined,
                 conciergePersonalDetails: undefined,
                 shouldDismissModal: false,
             });
@@ -6835,6 +6996,7 @@ describe('actions/Report', () => {
                 introSelected: testIntroSelected,
                 currentUserAccountID: TEST_USER_ACCOUNT_ID,
                 isSelfTourViewed: undefined,
+                hasCompletedGuidedSetupFlow: undefined,
                 conciergePersonalDetails: undefined,
                 shouldDismissModal: false,
             });
@@ -6854,6 +7016,7 @@ describe('actions/Report', () => {
                 introSelected: testIntroSelected,
                 currentUserAccountID: TEST_USER_ACCOUNT_ID,
                 isSelfTourViewed: true,
+                hasCompletedGuidedSetupFlow: undefined,
                 conciergePersonalDetails: undefined,
                 shouldDismissModal: true,
             });
@@ -9460,7 +9623,7 @@ describe('actions/Report', () => {
             const testIntroSelected: OnyxTypes.IntroSelected = {choice: CONST.ONBOARDING_CHOICES.ADMIN};
             const TEST_USER_ACCOUNT_ID = 1;
             expect(() => {
-                handleWalletStatementNavigation('123', testIntroSelected, TEST_USER_ACCOUNT_ID, undefined, undefined, 'invalidType', undefined);
+                handleWalletStatementNavigation('123', testIntroSelected, TEST_USER_ACCOUNT_ID, undefined, undefined, undefined, 'invalidType', undefined);
             }).not.toThrow();
         });
 
@@ -9471,7 +9634,7 @@ describe('actions/Report', () => {
             const testIntroSelected: OnyxTypes.IntroSelected = {choice: CONST.ONBOARDING_CHOICES.ADMIN};
             const TEST_USER_ACCOUNT_ID = 1;
 
-            handleWalletStatementNavigation('123', testIntroSelected, TEST_USER_ACCOUNT_ID, undefined, undefined, CONST.WALLET.WEB_MESSAGE_TYPE.CONCIERGE, undefined);
+            handleWalletStatementNavigation('123', testIntroSelected, TEST_USER_ACCOUNT_ID, undefined, undefined, undefined, CONST.WALLET.WEB_MESSAGE_TYPE.CONCIERGE, undefined);
 
             await waitForBatchedUpdates();
 
@@ -9482,7 +9645,7 @@ describe('actions/Report', () => {
         it('should not throw with undefined introSelected', () => {
             const TEST_USER_ACCOUNT_ID = 1;
             expect(() => {
-                handleWalletStatementNavigation('123', undefined, TEST_USER_ACCOUNT_ID, undefined, undefined, CONST.WALLET.WEB_MESSAGE_TYPE.CONCIERGE, undefined);
+                handleWalletStatementNavigation('123', undefined, TEST_USER_ACCOUNT_ID, undefined, undefined, undefined, CONST.WALLET.WEB_MESSAGE_TYPE.CONCIERGE, undefined);
             }).not.toThrow();
         });
 
@@ -9503,7 +9666,16 @@ describe('actions/Report', () => {
             const isSelfTourViewed = true;
 
             expect(() => {
-                localHandleWalletStatementNavigation('123', testIntroSelected, TEST_USER_ACCOUNT_ID, isSelfTourViewed, undefined, CONST.WALLET.WEB_MESSAGE_TYPE.CONCIERGE, undefined);
+                localHandleWalletStatementNavigation(
+                    '123',
+                    testIntroSelected,
+                    TEST_USER_ACCOUNT_ID,
+                    isSelfTourViewed,
+                    undefined,
+                    undefined,
+                    CONST.WALLET.WEB_MESSAGE_TYPE.CONCIERGE,
+                    undefined,
+                );
             }).not.toThrow();
         });
 
@@ -9513,7 +9685,7 @@ describe('actions/Report', () => {
             const isSelfTourViewed = false;
 
             expect(() => {
-                handleWalletStatementNavigation('123', testIntroSelected, TEST_USER_ACCOUNT_ID, isSelfTourViewed, undefined, CONST.WALLET.WEB_MESSAGE_TYPE.CONCIERGE, undefined);
+                handleWalletStatementNavigation('123', testIntroSelected, TEST_USER_ACCOUNT_ID, isSelfTourViewed, undefined, undefined, CONST.WALLET.WEB_MESSAGE_TYPE.CONCIERGE, undefined);
             }).not.toThrow();
         });
     });
