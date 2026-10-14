@@ -19,12 +19,12 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 
 import {getDecodedCategoryName} from '@libs/CategoryUtils';
 
-import {clearGeneratedRule, clearNewRulePrompt, generateRule, setNewRulePromptError} from '@userActions/Policy/Rules';
+import {clearGeneratedRule, clearNewRulePrompt, generateRule, setNewRulePromptError, setNewRulePromptErrorMessage} from '@userActions/Policy/Rules';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/NewRulePromptForm';
-import type {PolicyCategories} from '@src/types/onyx';
+import type {PolicyCategories, PolicyCategory} from '@src/types/onyx';
 import type {GeneratedRuleType, GeneratedRuleValues} from '@src/types/onyx/GeneratedRule';
 
 import type {TextInputKeyPressEvent} from 'react-native';
@@ -48,6 +48,9 @@ type DescribeRuleModalProps = {
 
     /** Called with the generated form values once Concierge has built the rule */
     onRuleGenerated: (values: GeneratedRuleValues) => void;
+
+    /** Whether a new rule can use the category, so a generated category that already has this kind of rule is rejected */
+    isCategoryEligible?: (category: PolicyCategory) => boolean;
 };
 
 /** Replaces the generated category with the workspace's own spelling of it, or drops it when the workspace has no such category */
@@ -60,7 +63,7 @@ function withPolicyCategory(values: GeneratedRuleValues, policyCategories: OnyxE
     return policyCategory ? {...rest, category: policyCategory.name} : rest;
 }
 
-function DescribeRuleModal({isVisible, onClose, policyID, ruleType, onRuleGenerated}: DescribeRuleModalProps) {
+function DescribeRuleModal({isVisible, onClose, policyID, ruleType, onRuleGenerated, isCategoryEligible}: DescribeRuleModalProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -101,9 +104,16 @@ function DescribeRuleModal({isVisible, onClose, policyID, ruleType, onRuleGenera
             clearGeneratedRule();
             return;
         }
-        onRuleGenerated(withPolicyCategory(generatedRuleValues ?? {}, policyCategories));
+        const values = withPolicyCategory(generatedRuleValues ?? {}, policyCategories);
+        const generatedCategory = values.category ? policyCategories?.[values.category] : undefined;
+        if (generatedCategory && isCategoryEligible && !isCategoryEligible(generatedCategory)) {
+            setNewRulePromptErrorMessage('workspace.rules.newRule.promptErrors.categoryHasRule');
+            clearGeneratedRule();
+            return;
+        }
+        onRuleGenerated(values);
         close();
-    }, [close, generatedRuleID, generatedRuleState, generatedRuleType, generatedRuleValues, onRuleGenerated, policyCategories, ruleType]);
+    }, [close, generatedRuleID, generatedRuleState, generatedRuleType, generatedRuleValues, isCategoryEligible, onRuleGenerated, policyCategories, ruleType]);
 
     // Focus only after the open animation, because focusing mid-animation blurs the input on mWeb and native
     useFocusEffect(() => {

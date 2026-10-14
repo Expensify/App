@@ -470,6 +470,7 @@ function RequireFieldsRulePageBase({policyID, categoryName, initialCategoryName,
                         ruleType={CONST.GENERATED_RULE.RULE_TYPE.REQUIRE_FIELDS}
                         sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.REQUIRE_FIELDS_RULE_DESCRIBE}
                         onRuleGenerated={applyGeneratedRule}
+                        isCategoryEligible={(generatedCategory) => !categoryHasAnyRequireFieldsRule(generatedCategory)}
                     />
                 )
             }

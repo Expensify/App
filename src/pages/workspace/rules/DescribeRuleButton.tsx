@@ -10,6 +10,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {clearNewRulePrompt} from '@userActions/Policy/Rules';
 
 import CONST from '@src/CONST';
+import type {PolicyCategory} from '@src/types/onyx';
 import type {GeneratedRuleType, GeneratedRuleValues} from '@src/types/onyx/GeneratedRule';
 
 import React, {useState} from 'react';
@@ -28,6 +29,9 @@ type DescribeRuleButtonProps = {
 
           /** Called with the generated form values once Concierge has built the rule */
           onRuleGenerated: (values: GeneratedRuleValues) => void;
+
+          /** Whether a new rule can use the category, so a generated category that already has this kind of rule is rejected */
+          isCategoryEligible?: (category: PolicyCategory) => boolean;
 
           onPress?: never;
       }
@@ -74,6 +78,7 @@ function DescribeRuleButton(props: DescribeRuleButtonProps) {
                     policyID={props.policyID}
                     ruleType={props.ruleType}
                     onRuleGenerated={props.onRuleGenerated}
+                    isCategoryEligible={props.isCategoryEligible}
                 />
             )}
         </>
