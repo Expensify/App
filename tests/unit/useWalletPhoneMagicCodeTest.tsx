@@ -10,6 +10,7 @@ import ROUTES from '@src/ROUTES';
 
 import Onyx from 'react-native-onyx';
 
+import getOnyxValue from '../utils/getOnyxValue';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 const mockUpdatePersonalDetails = jest.fn();
@@ -108,6 +109,38 @@ describe('useWalletPhoneValidateCode', () => {
 
         expect(mockUpdatePersonalDetails).not.toHaveBeenCalled();
         expect(mockNavigate).toHaveBeenCalledWith(ROUTES.SETTINGS_ENABLE_PAYMENTS_CONFIRM_VALIDATE_CODE.getRoute());
+    });
+
+    it('saves every submitted detail to the form draft before routing to the validateCode screen', async () => {
+        // Given a stored phone number and a form draft that only holds the field the user edited, since pre-filled
+        // values (e.g. the legal name) are never drafted
+        await act(async () => {
+            await setStoredPhoneNumber(STORED_PHONE_NUMBER_WITH_COUNTRY_CODE);
+            await Onyx.set(ONYXKEYS.FORMS.WALLET_ADDITIONAL_DETAILS_DRAFT, {phoneNumber: CHANGED_PHONE_NUMBER});
+            await waitForBatchedUpdates();
+        });
+        const {result} = await renderWalletPhoneValidateCode();
+
+        // When the phone number is changed, which holds the submission until the validateCode is entered
+        await act(async () => {
+            result.current.submitPersonalDetails(buildParams({phoneNumber: CHANGED_PHONE_NUMBER}));
+            await waitForBatchedUpdates();
+        });
+
+        // Then the draft holds every submitted detail, so the validateCode screen sends the complete request
+        const draft = await getOnyxValue(ONYXKEYS.FORMS.WALLET_ADDITIONAL_DETAILS_DRAFT);
+        expect(draft).toEqual({
+            legalFirstName: 'Alberta',
+            legalLastName: 'Charleson',
+            addressStreet: '123 Main St',
+            addressCity: 'City',
+            addressState: 'CA',
+            addressZipCode: '90001',
+            dob: '2000-08-08',
+            ssn: '123456789',
+            phoneNumber: CHANGED_PHONE_NUMBER,
+        });
+        expect(mockUpdatePersonalDetails).not.toHaveBeenCalled();
     });
 
     it('routes to the validateCode screen of the calling flow when it provides its own route', async () => {

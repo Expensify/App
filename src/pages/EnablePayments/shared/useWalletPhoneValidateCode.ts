@@ -4,6 +4,7 @@ import type {UpdatePersonalDetailsForWalletParams} from '@libs/API/parameters';
 import Navigation from '@libs/Navigation/Navigation';
 import {parsePhoneNumber} from '@libs/PhoneNumber';
 
+import {setDraftValues} from '@userActions/FormActions';
 import {updatePersonalDetails} from '@userActions/Wallet';
 
 import CONST from '@src/CONST';
@@ -32,6 +33,19 @@ function useWalletPhoneValidateCode(getValidateCodeRoute: () => Route = ROUTES.S
         const normalizedStoredPhoneNumber = (storedPhoneNumber && parsePhoneNumber(storedPhoneNumber, {regionCode: CONST.COUNTRY.US}).number?.significant) ?? '';
         const isSettingPhoneNumber = !!personalDetails.phoneNumber && personalDetails.phoneNumber !== normalizedStoredPhoneNumber;
         if (isSettingPhoneNumber) {
+            // The validateCode screen rebuilds the details from the form draft, which only holds the fields the user
+            // edited. Save everything being submitted so pre-filled values (e.g. the legal name) are not sent empty.
+            setDraftValues(ONYXKEYS.FORMS.WALLET_ADDITIONAL_DETAILS, {
+                legalFirstName: personalDetails.legalFirstName,
+                legalLastName: personalDetails.legalLastName,
+                addressStreet: personalDetails.addressStreet,
+                addressCity: personalDetails.addressCity,
+                addressState: personalDetails.addressState,
+                addressZipCode: personalDetails.addressZip,
+                dob: personalDetails.dob,
+                ssn: personalDetails.ssn,
+                phoneNumber: personalDetails.phoneNumber,
+            });
             Navigation.navigate(getValidateCodeRoute());
             return;
         }
