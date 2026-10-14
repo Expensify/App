@@ -1867,6 +1867,56 @@ describe('TransactionUtils', () => {
             expect(displayTransaction.currency).toBe(CONST.CURRENCY.USD);
         });
 
+        it('keeps the saved transaction when the rate currency has the same symbol', () => {
+            // Given a saved CNY distance expense whose current policy rate uses JPY, which shares the same currency symbol
+            const transaction = generateTransaction({
+                iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MAP,
+                amount: 415,
+                modifiedAmount: 415,
+                currency: 'CNY',
+                merchant: '5.46 mi @ ¥0.76 / mi',
+                modifiedMerchant: '5.46 mi @ ¥0.76 / mi',
+                comment: {
+                    customUnit: {
+                        customUnitRateID: 'rate1',
+                        quantity: 6.46,
+                        reimbursableDistance: 5.46,
+                        commuterExclusion: 1,
+                        distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                    },
+                },
+            });
+            const policyWithMatchingCurrencySymbol: Policy = {
+                ...policyWithDistanceRate,
+                customUnits: {
+                    distance: {
+                        ...policyWithDistanceRate.customUnits?.distance,
+                        name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                        customUnitID: 'distance',
+                        rates: {
+                            rate1: {
+                                customUnitRateID: 'rate1',
+                                currency: 'JPY',
+                                rate: 76,
+                            },
+                        },
+                    },
+                },
+            };
+
+            // When the personal-report display attempts to rebuild the full-route values
+            const displayTransaction = TransactionUtils.getDisplayTransactionWithoutInvalidCommuterExclusion({
+                transaction,
+                isPolicyExpenseChat: false,
+                policy: policyWithMatchingCurrencySymbol,
+                translate,
+                getCurrencySymbol: getCurrencySymbolLocal,
+            });
+
+            // Then it keeps the saved transaction to avoid silently replacing CNY values with JPY values
+            expect(displayTransaction).toBe(transaction);
+        });
+
         it('preserves the saved rate when the workspace rate changes', () => {
             // Given a personal distance expense saved at Af2 per mile before its workspace rate changed to Af3
             const policyWithChangedRate: Policy = {
