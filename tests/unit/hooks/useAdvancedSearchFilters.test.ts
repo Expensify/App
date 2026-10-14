@@ -470,6 +470,103 @@ describe('useAdvancedSearchFilters', () => {
         });
     });
 
+    describe('bank account filter placement (#99090)', () => {
+        const filterableBankAccountList = {
+            42: {
+                accountData: {
+                    bankAccountID: 42,
+                    accountNumber: '123456789012',
+                    type: CONST.BANK_ACCOUNT.TYPE.BUSINESS,
+                    state: CONST.BANK_ACCOUNT.STATE.OPEN,
+                    additionalData: {bankName: CONST.BANK_NAMES.CHASE},
+                },
+            },
+        };
+
+        function getWithdrawalSection(sections: string[][]) {
+            return sections.find((section) => section.includes(CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_ID));
+        }
+
+        it.each([CONST.SEARCH.DATA_TYPES.EXPENSE, CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT, CONST.SEARCH.DATA_TYPES.INVOICE])(
+            'lists the bank account filter in the withdrawal section for %s so it sits with the Bank Reconciliation filters',
+            async (type) => {
+                // Given a user with a filterable business bank account (a VBA that could have paid reimbursements)
+                await Onyx.merge(ONYXKEYS.BANK_ACCOUNT_LIST, filterableBankAccountList);
+
+                // When the advanced filters are built for a type that offers the withdrawal filters
+                const {result} = renderHook(() => useAdvancedSearchFilters(type), {wrapper});
+
+                // Then the bank account filter is in the withdrawal section, next to Withdrawal ID / type / status,
+                // and it is listed exactly once so the filter list never renders two Bank account rows
+                await waitFor(() => {
+                    const withdrawalSection = getWithdrawalSection(result.current);
+                    expect(withdrawalSection).toEqual([
+                        CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_ID,
+                        CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_TYPE,
+                        CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_STATUS,
+                        CONST.SEARCH.SYNTAX_FILTER_KEYS.BANK_ACCOUNT,
+                        CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWN,
+                    ]);
+                    const occurrences = result.current.flat().filter((key) => key === CONST.SEARCH.SYNTAX_FILTER_KEYS.BANK_ACCOUNT);
+                    expect(occurrences).toHaveLength(1);
+                });
+            },
+        );
+
+        it('no longer lists the bank account filter among the expense attributes', async () => {
+            // Given a user with a filterable business bank account
+            await Onyx.merge(ONYXKEYS.BANK_ACCOUNT_LIST, filterableBankAccountList);
+
+            // When the advanced filters are built for the expense type
+            const {result} = renderHook(() => useAdvancedSearchFilters(CONST.SEARCH.DATA_TYPES.EXPENSE), {wrapper});
+
+            // Then the expense attributes section (the one holding Card / Feed) does not carry the bank account row anymore
+            await waitFor(() => {
+                const attributesSection = result.current.find((section) => section.includes(CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT));
+                expect(attributesSection).toBeDefined();
+                expect(attributesSection).not.toContain(CONST.SEARCH.SYNTAX_FILTER_KEYS.BANK_ACCOUNT);
+            });
+        });
+
+        it.each([CONST.SEARCH.DATA_TYPES.EXPENSE, CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT, CONST.SEARCH.DATA_TYPES.INVOICE])(
+            'keeps the other withdrawal filters for %s when there is no filterable bank account',
+            async (type) => {
+                // Given a user without any filterable business bank account (Onyx is cleared before each test)
+
+                // When the advanced filters are built
+                const {result} = renderHook(() => useAdvancedSearchFilters(type), {wrapper});
+
+                // Then the withdrawal section still offers Withdrawal ID / type / status / withdrawn, without a dead Bank account row
+                await waitFor(() => {
+                    expect(getWithdrawalSection(result.current)).toEqual([
+                        CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_ID,
+                        CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_TYPE,
+                        CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_STATUS,
+                        CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWN,
+                    ]);
+                });
+            },
+        );
+
+        it('does not add the bank account filter to the trip withdrawal section', async () => {
+            // Given a user with a filterable business bank account
+            await Onyx.merge(ONYXKEYS.BANK_ACCOUNT_LIST, filterableBankAccountList);
+
+            // When the advanced filters are built for the trip type, which Search does not accept bankAccount for
+            const {result} = renderHook(() => useAdvancedSearchFilters(CONST.SEARCH.DATA_TYPES.TRIP), {wrapper});
+
+            // Then its withdrawal section is left as it was
+            await waitFor(() => {
+                expect(getWithdrawalSection(result.current)).toEqual([
+                    CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_ID,
+                    CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_TYPE,
+                    CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWN,
+                ]);
+                expect(result.current.flat()).not.toContain(CONST.SEARCH.SYNTAX_FILTER_KEYS.BANK_ACCOUNT);
+            });
+        });
+    });
+
     describe('cross-feature interaction', () => {
         it('shows multiple filters when multiple features are enabled', async () => {
             const policy = buildPolicy(1, {
