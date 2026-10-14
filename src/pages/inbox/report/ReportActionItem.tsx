@@ -576,6 +576,7 @@ function ReportActionItem({
                         accessibilityLabel={accessibilityLabel}
                         accessibilityHint={translate('accessibilityHints.chatMessage')}
                         accessibilityRole={isSafari() && hasHoverSupport() ? undefined : CONST.ROLE.BUTTON}
+                        shouldAllowTextSelection={hasHoverSupport()}
                         sentryLabel={CONST.SENTRY_LABEL.REPORT.REPORT_ACTION_ITEM}
                     >
                         <Hoverable
