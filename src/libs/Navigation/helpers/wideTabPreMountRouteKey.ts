@@ -7,8 +7,8 @@ let liveTabRouteKey: string | undefined;
 
 const ROUTE_KEY_INFIX = '-wide-pre-mount-';
 
-// A revealed pre-mount becomes a regular screen but keeps its key, so it must never count as stale.
-const revealedRouteKeys = new Set<string>();
+// A revealed pre-mount becomes a regular screen but keeps its key. Mapped to the route it was mounted under, if any.
+const revealedRouteKeys = new Map<string, string | undefined>();
 
 // Tab route keys a pre-mount marked preloaded, so a saved browser history entry cannot keep a covered tab unfrozen forever.
 const preloadedRouteKeysAddedByPreMount = new Set<string>();
@@ -30,13 +30,23 @@ function isLiveWideTabPreMountTabRouteKey(key: string | undefined): boolean {
     return !!key && key === liveTabRouteKey;
 }
 
-function markWideTabPreMountRouteKeyRevealed(key: string) {
-    revealedRouteKeys.add(key);
+function markWideTabPreMountRouteKeyRevealed(key: string, coveringRouteKey?: string) {
+    revealedRouteKeys.set(key, coveringRouteKey);
 }
 
-/** True for a pre-mount that was neither revealed nor still live, e.g. restored from a saved browser history entry. */
-function isStaleWideTabPreMountRouteKey(key: string | undefined): boolean {
-    return !!key && key.includes(ROUTE_KEY_INFIX) && key !== liveRouteKey && !revealedRouteKeys.has(key);
+/**
+ * True for a pre-mount nobody owns, e.g. restored from a saved browser history entry. That is one neither revealed nor live,
+ * or a revealed one still under the route it was mounted under (`nextRouteKey`), which only an entry saved before the reveal has.
+ */
+function isStaleWideTabPreMountRouteKey(key: string | undefined, nextRouteKey?: string): boolean {
+    if (!key || !key.includes(ROUTE_KEY_INFIX) || key === liveRouteKey) {
+        return false;
+    }
+    if (!revealedRouteKeys.has(key)) {
+        return true;
+    }
+    const coveringRouteKey = revealedRouteKeys.get(key);
+    return !!coveringRouteKey && coveringRouteKey === nextRouteKey;
 }
 
 function setLiveWideTabPreMountPreloadedRouteKey(key: string | undefined) {

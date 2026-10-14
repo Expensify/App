@@ -50,11 +50,12 @@ describe('buildWideTabPreMount', () => {
         // When report B is pre-mounted
         const result = buildWideTabPreMount(tabState, reportTarget('B'), PRE_MOUNT_KEY);
 
-        // Then B is mounted under A, A remains the visible screen, and nothing else is preloaded
+        // Then B is mounted under A, A remains the visible screen, nothing else is preloaded, and A is recorded as the screen B is under
         expect(getNestedKeys(result?.tabState, NAVIGATORS.REPORTS_SPLIT_NAVIGATOR)).toEqual(['inbox-key', PRE_MOUNT_KEY, 'a-key']);
         expect(result?.tabState.routes.at(1)?.state?.index).toBe(2);
         expect(result?.addedPreloadedRouteKey).toBeUndefined();
         expect(result?.routeKey).toBe(PRE_MOUNT_KEY);
+        expect(result?.coveringRouteKey).toBe('a-key');
     });
 
     it('skips a destination that is the screen already shown in the focused tab', () => {
@@ -135,7 +136,7 @@ describe('buildWideTabPreMount', () => {
 
 describe('buildCancelledWideTabPreMount', () => {
     function makeLivePreMount(overrides: Partial<LiveWideTabPreMount> = {}): LiveWideTabPreMount {
-        return {routeKey: PRE_MOUNT_KEY, tabStateKey: 'tab-state', tabName: NAVIGATORS.REPORTS_SPLIT_NAVIGATOR, ...overrides};
+        return {routeKey: PRE_MOUNT_KEY, tabStateKey: 'tab-state', tabName: NAVIGATORS.REPORTS_SPLIT_NAVIGATOR, coveringRouteKey: undefined, ...overrides};
     }
 
     it('takes a screen out from under the current one and keeps the current one focused', () => {

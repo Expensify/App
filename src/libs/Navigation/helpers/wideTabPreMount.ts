@@ -10,12 +10,7 @@ import {CommonActions} from '@react-navigation/native';
 import {deepEqual} from 'fast-equals';
 
 import {isFullScreenName} from './isNavigatorName';
-import {
-    markWideTabPreMountRouteKeyRevealed,
-    setLiveWideTabPreMountPreloadedRouteKey,
-    setLiveWideTabPreMountRouteKey,
-    setLiveWideTabPreMountTabRouteKey,
-} from './wideTabPreMountRouteKey';
+import {markWideTabPreMountRouteKeyRevealed, setLiveWideTabPreMountPreloadedRouteKey, setLiveWideTabPreMountRouteKey, setLiveWideTabPreMountTabRouteKey} from './wideTabPreMountRouteKey';
 
 type TabRoute = NavigationState['routes'][number];
 
@@ -36,14 +31,20 @@ type WideTabPreMount = {
 
     /** Destination tab route as it was, when the pre-mount had to create its stack and cancel must put it back */
     originalTabRoute?: TabRoute;
+
+    /** Key of the screen the pre-mount was mounted under in the focused tab, which only states saved before the reveal hold */
+    coveringRouteKey?: string;
 };
 
-type LiveWideTabPreMount = Omit<WideTabPreMount, 'tabState'> & {
+type LiveWideTabPreMount = Omit<WideTabPreMount, 'tabState' | 'coveringRouteKey'> & {
     /** Key of the TAB_NAVIGATOR state the pre-mount was dispatched to */
     tabStateKey: string;
 
     /** Name of the destination tab route */
     tabName: string;
+
+    /** Key of the screen the pre-mount was mounted under, required so a reveal cannot lose it */
+    coveringRouteKey: string | undefined;
 };
 
 let livePreMount: LiveWideTabPreMount | undefined;
@@ -81,7 +82,11 @@ function buildWideTabPreMount(tabState: TabStateWithPreloads, focusedTargetTab: 
             return undefined;
         }
         const routes = [...nestedState.routes.slice(0, nestedState.index), destinationRoute, ...nestedState.routes.slice(nestedState.index)];
-        return {tabState: {...tabState, routes: withTargetTabRoute({...targetTabRoute, state: {...nestedState, routes, index: nestedState.index + 1}})}, routeKey};
+        return {
+            tabState: {...tabState, routes: withTargetTabRoute({...targetTabRoute, state: {...nestedState, routes, index: nestedState.index + 1}})},
+            routeKey,
+            coveringRouteKey: currentRoute.key,
+        };
     }
 
     const preloadedRouteKeys = tabState.preloadedRouteKeys ?? [];
@@ -166,7 +171,7 @@ function finishWideTabPreMountReveal(routeKey: string) {
     if (livePreMount?.routeKey !== routeKey) {
         return;
     }
-    markWideTabPreMountRouteKeyRevealed(routeKey);
+    markWideTabPreMountRouteKeyRevealed(routeKey, livePreMount.coveringRouteKey);
     livePreMount = undefined;
     setLiveWideTabPreMountRouteKey(undefined);
     setLiveWideTabPreMountPreloadedRouteKey(undefined);

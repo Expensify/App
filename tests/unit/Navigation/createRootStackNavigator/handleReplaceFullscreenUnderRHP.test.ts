@@ -891,6 +891,45 @@ describe('removeStalePreMountsFromResetAction', () => {
         // Then the route survives, or the restored page would lose the report it shows
         expect(removeStalePreMountsFromResetAction(action)).toBe(action);
     });
+
+    it('drops a revealed pre-mount from a history entry saved before the reveal, where it is still under its covering report', () => {
+        // Given a pre-mount of report B mounted under report A and revealed, and browser forward back to an entry saved before that
+        const revealedKey = 'Report-wide-pre-mount-4';
+        markWideTabPreMountRouteKeyRevealed(revealedKey, 'a-key');
+        const action = makeResetWithReportsStack(
+            [
+                makeRoute(SCREENS.INBOX, undefined, undefined, 'inbox-key'),
+                makeRoute(SCREENS.REPORT, {reportID: 'B'}, undefined, revealedKey),
+                makeRoute(SCREENS.REPORT, {reportID: 'A'}, undefined, 'a-key'),
+            ],
+            2,
+        );
+
+        // When the root router sanitizes the RESET
+        const reportsStack = getResetReportsStack(removeStalePreMountsFromResetAction(action));
+
+        // Then report B is gone and report A stays focused, so in-app back from A does not open a report the user never opened there
+        expect(reportsStack?.routes.map((route) => route.key)).toEqual(['inbox-key', 'a-key']);
+        expect(reportsStack?.index).toBe(1);
+    });
+
+    it('keeps a revealed pre-mount that another report was opened on top of after the reveal', () => {
+        // Given a pre-mount of report B mounted under report A and revealed, and report C opened on top of B afterwards
+        const revealedKey = 'Report-wide-pre-mount-5';
+        markWideTabPreMountRouteKeyRevealed(revealedKey, 'a-key');
+        const action = makeResetWithReportsStack(
+            [
+                makeRoute(SCREENS.INBOX, undefined, undefined, 'inbox-key'),
+                makeRoute(SCREENS.REPORT, {reportID: 'B'}, undefined, revealedKey),
+                makeRoute(SCREENS.REPORT, {reportID: 'C'}, undefined, 'c-key'),
+            ],
+            2,
+        );
+
+        // When the root router sanitizes the RESET
+        // Then nothing changes, because only report A right above B marks an entry saved before the reveal
+        expect(removeStalePreMountsFromResetAction(action)).toBe(action);
+    });
 });
 
 describe('handleRemoveFullscreenUnderRHP — Share modal host', () => {

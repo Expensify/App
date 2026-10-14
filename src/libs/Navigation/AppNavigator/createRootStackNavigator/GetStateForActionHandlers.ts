@@ -515,9 +515,11 @@ function withPreMountedDestination(builtTabState: TabStateForReplacement, existi
     // Native keeps the focused report's history, which holds the pre-mount under it, so that copy is dropped to keep keys unique.
     const backRoutes = builtNestedState.routes.slice(0, -1).filter((route) => !('key' in route) || route.key !== preMountedRouteKey);
     const nestedRoutes = [...backRoutes, {...builtDestination, key: preMountedRouteKey}];
+
     // When every screen of the built stack is already mounted, the mounted stack state is kept with only its routes changed.
     // A partial state would be rehydrated under a new key, which makes the navigator re-render all of its screens.
     const mountedNestedState = isRealizedNavigationState(existingTargetTabRoute?.state) ? existingTargetTabRoute.state : undefined;
+
     // Params still come from the built routes, so both branches reveal the destination the action asked for.
     const mountedRoutes = nestedRoutes.map((route) => {
         const existing = mountedNestedState?.routes.find((mountedRoute) => 'key' in route && mountedRoute.key === route.key);
@@ -615,6 +617,7 @@ function handleReplaceFullscreenUnderRHP(
         }
         const {preMountedRouteKey} = action.payload;
         const updatedTabState = preMountedRouteKey ? withPreMountedDestination(builtTabState, existingTabState, preMountedRouteKey) : builtTabState;
+
         // The remount guards against a push-transition flash on narrow layout (#90985). A wide pre-mount reveal keeps the key,
         // because a remount would drop the pre-mounted screen. Wide renders split screens without a push animation.
         let tabStateForReplace = updatedTabState;
@@ -861,19 +864,21 @@ function removeStalePreMountsFromState<S extends ResetPayloadState>(state: S): S
             return route;
         }
         hasChangedNestedState = true;
+
         // A never-visited tab can hold only the pre-mount. Without a state, the navigator builds its initial route again.
         return {...route, state: nestedState.routes.length ? nestedState : undefined};
     });
     const hasStalePreload = !!state.preloadedRouteKeys?.some(isStaleWideTabPreMountPreloadedRouteKey);
     const preloads = hasStalePreload ? {preloadedRouteKeys: state.preloadedRouteKeys?.filter((key) => !isStaleWideTabPreMountPreloadedRouteKey(key))} : {};
-    const isStale = (route: {key?: string}) => isStaleWideTabPreMountRouteKey(route.key);
-    if (!routes.some(isStale)) {
+    const staleFlags = routes.map((route, routeIndex) => isStaleWideTabPreMountRouteKey(route.key, routes.at(routeIndex + 1)?.key));
+    if (!staleFlags.includes(true)) {
         return hasChangedNestedState || hasStalePreload ? {...state, routes, ...preloads} : state;
     }
-    const keptRoutes = routes.filter((route) => !isStale(route));
+    const keptRoutes = routes.filter((route, routeIndex) => !staleFlags.at(routeIndex));
     const focusedIndex = state.index ?? routes.length - 1;
+
     // A stale pre-mount on top of a covered stack was its focused route, so focus falls back to the route under it.
-    const index = Math.max(0, Math.min(focusedIndex - routes.slice(0, focusedIndex).filter(isStale).length, keptRoutes.length - 1));
+    const index = Math.max(0, Math.min(focusedIndex - staleFlags.slice(0, focusedIndex).filter(Boolean).length, keptRoutes.length - 1));
     return {...state, routes: keptRoutes, index, ...preloads};
 }
 
