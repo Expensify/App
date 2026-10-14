@@ -105,6 +105,7 @@ function useConnectedAccountingIntegration(policy: OnyxEntry<Policy>, {menuItemW
         'DualEntrySquare',
         'CampfireSquare',
         'BusinessCentralSquare',
+        'ZohoBooksSquare',
     ]);
     const [cardFeeds] = useCardFeeds(policyID);
     const [cardLists] = useCardsLists();
