@@ -42,7 +42,9 @@
                 ".github/actions/**/index.js",
                 "tests/perf-test/**",
                 "web/snippets/gib.js",
+                "web/cloudflare-worker/**",
                 "src/libs/actions/connections/FinancialForce.ts",
+                "src/libs/actions/connections/ZohoBooks.ts",
                 "src/setup/telemetry/noopExpoUpdates.ts"
             ],
             "eslint": {
@@ -67,14 +69,9 @@
         }
     },
     "ignoreDependencies": [
-        "@expensify/react-native-hybrid-app",
         "focus-trap",
-        "group-ib-fp",
-        "react-native-image-size",
-        "react-native-picker-select",
         "react-native-quick-crypto",
         "react-native-quick-base64",
-        "lodash",
         "@babel/plugin-proposal-private-methods",
         "@babel/plugin-proposal-private-property-in-object",
         "@babel/plugin-transform-export-namespace-from",

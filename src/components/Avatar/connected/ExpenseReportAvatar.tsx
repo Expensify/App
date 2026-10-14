@@ -1,23 +1,15 @@
-import type {AvatarIcon} from '@components/Avatar/types';
-
 import useOnyx from '@hooks/useOnyx';
 
-import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
-import {getDelegateAccountIDFromReportAction} from '@libs/ReportActionsUtils';
-
-import CONST from '@src/CONST';
+import type CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {ReportActions} from '@src/types/onyx';
 
 import type {ColorValue, StyleProp, ViewStyle} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 
 import {reportAvatarFieldsSelector} from '@selectors/Report';
-import {getReportActionByIDSelector} from '@selectors/ReportAction';
 import React from 'react';
 
-import {useSeededAccountIcons} from './useAccountIcons';
+import useReportOwnerAvatar from './useReportOwnerAvatar';
 import WorkspaceSubscriptAvatar from './WorkspaceSubscriptAvatar';
 
 type ExpenseReportAvatarProps = {
@@ -43,15 +35,7 @@ type ExpenseReportAvatarProps = {
  */
 function ExpenseReportAvatar({reportID, size, backdropColor, containerStyle, fallbackDisplayName}: ExpenseReportAvatarProps) {
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {selector: reportAvatarFieldsSelector});
-    const parentReportActionID = report?.parentReportActionID;
-    const delegateAccountIDSelector = (reportActions: OnyxEntry<ReportActions>) => getDelegateAccountIDFromReportAction(getReportActionByIDSelector(reportActions, parentReportActionID));
-    // An optimistic expense report links its workspace chat only through chatReportID.
-    const parentChatReportID = getNonEmptyStringOnyxID(report?.chatReportID) ?? getNonEmptyStringOnyxID(report?.parentReportID);
-    const [delegateAccountID] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentChatReportID}`, {selector: delegateAccountIDSelector});
-    const ownerAccountID = report?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID;
-    const primaryAccountID = delegateAccountID ?? ownerAccountID;
-    const [primaryIcon] = useSeededAccountIcons([primaryAccountID]);
-    const primaryAvatar: AvatarIcon = delegateAccountID ? {...primaryIcon, copilot: {accountID: delegateAccountID, actedForAccountID: ownerAccountID}} : primaryIcon;
+    const primaryAvatar = useReportOwnerAvatar(report);
 
     return (
         <WorkspaceSubscriptAvatar

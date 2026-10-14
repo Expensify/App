@@ -276,7 +276,6 @@ function IndividualExpenseRulesSectionRevamp({policyID, canWriteRules}: Individu
             titleStyles={styles.accountSettingsSectionTitle}
             subtitleMuted
             subtitleStyles={styles.mt0}
-            containerStyles={styles.mh5}
         >
             <View style={styles.mt3}>
                 {renderMenuItems(policyControlItems)}

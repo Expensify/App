@@ -312,6 +312,7 @@ const config = defineConfig([
             'rulesdir/require-a11y-disable-justification': 'error',
             'rulesdir/no-direct-pre-insert-fullscreen-under-rhp': 'error',
             'rulesdir/no-raw-typography': 'error',
+            'rulesdir/no-layout-spacing-conditional': 'error',
             'rulesdir/no-direct-personal-details-list': 'error',
             'rulesdir/require-locale-for-localized-date-format': 'error',
             'rulesdir/prefer-narrow-hook-dependencies': [
@@ -849,6 +850,8 @@ const config = defineConfig([
         '**/vendor',
         'modules/group-ib-fp/**/*',
         'web/snippets/gib.js',
+        // Standalone npm package with its own dependencies and typecheck (see web/cloudflare-worker/README.md)
+        'web/cloudflare-worker/**/*',
         // Generated language files - excluded from ESLint but still type-checked
         'src/languages/de.ts',
         'src/languages/el.ts',
