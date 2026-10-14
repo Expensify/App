@@ -232,6 +232,14 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
         getWorkspaceMembersEvent();
     }, [shouldShowMemberBankAccounts]);
 
+    // Invited members aren't in the loaded bank accounts, so load the members again once they're added.
+    useEffect(() => {
+        if (!shouldShowMemberBankAccounts || !prevAccountIDs.length || accountIDs.every((accountID) => prevAccountIDs.includes(accountID))) {
+            return;
+        }
+        getWorkspaceMembersEvent();
+    }, [accountIDs, prevAccountIDs, shouldShowMemberBankAccounts]);
+
     /**
      * Open the modal to invite a user
      */
