@@ -134,7 +134,9 @@ function DynamicWorkspaceSettlementAccountPage({route}: WorkspaceSettlementAccou
             Log.alert('[WorkspaceSettlementAccountPage] handleSelectAccount called without a detected card program key');
             return;
         }
-        updateSettlementAccountCard(domainName, defaultFundID, policyID, programKey, value, paymentBankAccountID);
+        // Only Travel Billing sets this root pending field, its error must survive for its rollback
+        const isTravelSettlementAccountPending = !!cardSettings?.pendingFields?.paymentBankAccountID;
+        updateSettlementAccountCard(domainName, defaultFundID, policyID, programKey, value, paymentBankAccountID, isTravelSettlementAccountPending);
         Navigation.goBack();
     };
 

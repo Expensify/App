@@ -55,7 +55,7 @@ function useWorkspaceAgents(policy: OnyxEntry<Policy>) {
             login: details.login ?? '',
             role: policyRoles.find((policyRole) => policyRole === policyEmployee.role),
             pendingAction,
-            disabled: isPendingDeletion,
+            disabled: true,
             isSelectionDisabled: true,
             canManage: false,
             action: () => {},

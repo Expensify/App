@@ -2,6 +2,7 @@ import AccountAvatar from '@components/Avatar/connected/AccountAvatar';
 import PolicyAvatar from '@components/Avatar/connected/PolicyAvatar';
 import Button from '@components/Button';
 import Icon from '@components/Icon';
+import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 import UserInfoCell from '@components/Search/SearchList/ListItem/UserInfoCell';
 import type {TableRow} from '@components/Table';
 import Table from '@components/Table';
@@ -36,6 +37,27 @@ type AgentsTableRowProps = {
     shouldShowOwnerColumn?: boolean;
 };
 
+function buildAgentSubtitle(
+    item: TableRow<AgentRowData>,
+    translate: LocalizedTranslate,
+    shouldUseNarrowTableLayout: boolean,
+    shouldShowRoleColumn?: boolean,
+    shouldShowOwnerColumn?: boolean,
+) {
+    const role = item.role ? translate('workspace.common.roleName', item.role) : undefined;
+    const owner = item.ownerDisplayName;
+    const login = item.login;
+    const parts: string[] = [];
+    if (shouldUseNarrowTableLayout && shouldShowRoleColumn && role) {
+        parts.push(role);
+    }
+    if (shouldUseNarrowTableLayout && shouldShowOwnerColumn && owner) {
+        parts.push(`${translate('common.owner')}: ${owner}`);
+    }
+    parts.push(login);
+    return parts.join(' • ');
+}
+
 export default function AgentsTableRow({item, rowIndex, shouldUseNarrowTableLayout, shouldShowRoleColumn = false, shouldShowOwnerColumn = false}: AgentsTableRowProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -51,13 +73,11 @@ export default function AgentsTableRow({item, rowIndex, shouldUseNarrowTableLayo
     const isEditable = item.canManage && !isPendingDeletion;
     const accessibilityLabel = [item.displayName, item.login].filter(Boolean).join(', ');
     const selectedButtonInnerStyle = item.selected ? styles.buttonDefaultHovered : undefined;
-
-    const agentRoleLabel = item.role ? translate('workspace.common.roleName', item.role) : undefined;
-    const agentSubtitle = shouldShowRoleColumn && shouldUseNarrowTableLayout && agentRoleLabel ? `${agentRoleLabel} • ${item.login}` : item.login;
+    const agentSubtitle = buildAgentSubtitle(item, translate, shouldUseNarrowTableLayout, shouldShowRoleColumn, shouldShowOwnerColumn);
 
     return (
         <Table.Row
-            interactive={item.canManage}
+            interactive
             rowIndex={rowIndex}
             disabled={item.disabled}
             accessibilityLabel={accessibilityLabel}
@@ -107,12 +127,12 @@ export default function AgentsTableRow({item, rowIndex, shouldUseNarrowTableLayo
                         </View>
                     )}
 
-                    {!shouldUseNarrowTableLayout && shouldShowOwnerColumn && !!item.ownerAccountID && (
+                    {!shouldUseNarrowTableLayout && shouldShowOwnerColumn && (
                         <View
                             style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}
                             {...getCellAccessibilityProps(isTableSemanticsEnabled)}
                         >
-                            {item.ownerType === CONST.AGENTS.OWNER_TYPE.PERSON && (
+                            {item.ownerType === CONST.AGENTS.OWNER_TYPE.PERSON && !!item.ownerAccountID && (
                                 <AccountAvatar
                                     size={CONST.AVATAR_SIZE.XXX_SMALL}
                                     accountID={item.ownerAccountID}
