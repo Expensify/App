@@ -1,13 +1,11 @@
 import PopoverWithMeasuredContent from '@components/PopoverWithMeasuredContent';
 import type PopoverWithMeasuredContentProps from '@components/PopoverWithMeasuredContent/types';
+import SelectionListPopoverHeader, {SELECTION_LIST_POPOVER_HEADER_HEIGHT} from '@components/SelectionListPopoverHeader';
 
-import useKeyboardState from '@hooks/useKeyboardState';
 import useOnyx from '@hooks/useOnyx';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useStyleUtils from '@hooks/useStyleUtils';
-import useThemeStyles from '@hooks/useThemeStyles';
+import useSelectionListPopoverLayout from '@hooks/useSelectionListPopoverLayout';
 
-import {getTagList} from '@libs/PolicyUtils';
+import {getCountOfEnabledTagsOfList, getTagList} from '@libs/PolicyUtils';
 import type {OptionData} from '@libs/ReportUtils';
 
 import CONST from '@src/CONST';
@@ -15,15 +13,10 @@ import ONYXKEYS from '@src/ONYXKEYS';
 
 import type {ComponentRef} from 'react';
 
-import React, {useRef} from 'react';
+import React, {useRef, useState} from 'react';
 import {View} from 'react-native';
 
 import TagPicker from '.';
-
-const popoverDimensions = {
-    width: CONST.POPOVER_DROPDOWN_WIDTH,
-    height: CONST.POPOVER_DROPDOWN_MAX_HEIGHT,
-};
 
 const DEFAULT_ANCHOR_ALIGNMENT = {
     horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
@@ -49,11 +42,30 @@ type TagPickerModalProps = {
 
     /** Called when the user confirms a tag selection */
     onSelected?: (tag: string) => void;
+
+    /** Index of the tag list to show. Defaults to the first list */
+    tagListIndex?: number;
+
+    /** Width of the pop-over. Defaults to the standard dropdown width, a field row passes its own width instead */
+    popoverWidth?: number;
+
+    /** Height of the pop-over. Defaults to the standard dropdown height, a caller short on room passes a smaller one */
+    popoverHeight?: number;
+
+    /** Whether the pop-over shrinks to the height its list needs, treating `popoverHeight` as a ceiling. */
+    shouldFitContentHeight?: boolean;
+
+    /** Shows a header with the tag list's name and a back button that closes the list */
+    shouldShowHeader?: boolean;
+
+    /** Whether the pop-over may flip to the other side of the anchor when it overflows. It shifts by a whole pop-over height, so a caller that already picked the side turns this off. */
+    shouldSwitchPositionIfOverflow?: boolean;
 } & Omit<PopoverWithMeasuredContentProps, 'anchorRef' | 'children' | 'onClose'>;
 
 function TagPickerModal({
     isVisible,
     onClose,
+    onModalHide,
     anchorPosition,
     policyID,
     selectedTag = '',
@@ -61,19 +73,30 @@ function TagPickerModal({
     hasDependentTags,
     shouldShowGLCode,
     onSelected,
+    tagListIndex = 0,
     anchorAlignment = DEFAULT_ANCHOR_ALIGNMENT,
     shouldMeasureAnchorPositionFromTop = false,
+    popoverWidth = CONST.POPOVER_DROPDOWN_WIDTH,
+    popoverHeight = CONST.POPOVER_DROPDOWN_MAX_HEIGHT,
+    shouldFitContentHeight = false,
+    shouldSwitchPositionIfOverflow = true,
+    shouldShowHeader = false,
 }: TagPickerModalProps) {
-    const styles = useThemeStyles();
-    const StyleUtils = useStyleUtils();
-    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth -- must match PopoverWithMeasuredContent's dock decision (bottom-docked only when isSmallScreenWidth)
-    const {isSmallScreenWidth} = useResponsiveLayout();
-    const {isKeyboardActive} = useKeyboardState();
-
     const anchorRef = useRef<ComponentRef<typeof View>>(null);
 
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`);
-    const tagListName = getTagList(policyTags, 0).name;
+    const [renderedRowCount, setRenderedRowCount] = useState<number>();
+    const policyTagList = getTagList(policyTags, tagListIndex);
+    const tagsCount = getCountOfEnabledTagsOfList(policyTagList.tags);
+
+    const {popoverDimensions, innerContainerStyle, outerStyle, avoidKeyboard, contentStyle} = useSelectionListPopoverLayout({
+        optionCount: renderedRowCount ?? tagsCount,
+        isSearchable: tagsCount >= CONST.STANDARD_LIST_ITEM_LIMIT,
+        popoverWidth,
+        popoverHeight,
+        shouldFitContentHeight,
+        headerHeight: shouldShowHeader ? SELECTION_LIST_POPOVER_HEADER_HEIGHT : 0,
+    });
 
     const handleTagSelected = (item: Partial<OptionData>) => {
         // If clicking the same tag that's already selected, treat it as deselection
@@ -90,29 +113,38 @@ function TagPickerModal({
             anchorRef={anchorRef}
             isVisible={isVisible}
             onClose={onClose}
+            onModalHide={onModalHide}
             anchorPosition={anchorPosition}
             popoverDimensions={popoverDimensions}
             anchorAlignment={anchorAlignment}
-            innerContainerStyle={StyleUtils.getWidthStyle(popoverDimensions.width)}
+            innerContainerStyle={innerContainerStyle}
             restoreFocusType={CONST.MODAL.RESTORE_FOCUS_TYPE.DELETE}
-            shouldSwitchPositionIfOverflow
+            shouldSwitchPositionIfOverflow={shouldSwitchPositionIfOverflow}
             shouldEnableNewFocusManagement
             shouldMeasureAnchorPositionFromTop={shouldMeasureAnchorPositionFromTop}
             shouldSkipRemeasurement
             shouldDisplayBelowModals
             enableEdgeToEdgeBottomSafeAreaPadding
+            avoidKeyboard={avoidKeyboard}
+            outerStyle={outerStyle}
         >
-            <View style={[StyleUtils.getHeight(popoverDimensions.height), styles.flexColumn, styles.pt4]}>
+            <View style={contentStyle}>
+                {shouldShowHeader && (
+                    <SelectionListPopoverHeader
+                        title={policyTagList.name}
+                        onBackButtonPress={onClose}
+                    />
+                )}
                 <TagPicker
+                    onRenderedRowCountChange={setRenderedRowCount}
                     policyID={policyID}
-                    tagListName={tagListName}
-                    tagListIndex={0}
+                    tagListName={policyTagList.name}
+                    tagListIndex={tagListIndex}
                     selectedTag={selectedTag}
                     transactionTag={transactionTag}
                     hasDependentTags={hasDependentTags}
                     shouldShowGLCode={shouldShowGLCode}
                     onSubmit={handleTagSelected}
-                    addBottomSafeAreaPadding={isSmallScreenWidth && !isKeyboardActive}
                     shouldAutoFocusSearchInput
                 />
             </View>

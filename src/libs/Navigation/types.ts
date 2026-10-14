@@ -2459,6 +2459,7 @@ type MoneyRequestNavigatorParamList = {
         transactionID: string;
         reportActionID?: string;
         reportID: string;
+        shouldCloseInPortrait?: boolean;
     };
     [SCREENS.MONEY_REQUEST.STEP_VENDOR]: {
         action: IOUAction;
@@ -2493,6 +2494,7 @@ type MoneyRequestNavigatorParamList = {
         reportID: string;
         reportActionID: string;
         orderWeight: string;
+        shouldCloseInPortrait?: boolean;
     };
     [SCREENS.MONEY_REQUEST.DYNAMIC_STEP_TAX_RATE]: {
         action: IOUAction;

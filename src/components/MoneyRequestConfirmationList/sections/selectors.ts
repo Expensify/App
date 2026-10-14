@@ -4,6 +4,7 @@ import {
     getCreated,
     getCurrency,
     getMerchant,
+    getTag,
     getTagForDisplay,
     hasReceipt,
     isAmountMissing,
@@ -106,6 +107,9 @@ const createTagDisplaySelector = (tagIndex: number) => (t: OnyxEntry<Transaction
     }
     return getTagForDisplay({tag: t.tag}, tagIndex);
 };
+
+// The whole tag string, every list's tag joined, which the tag list needs to filter and write one list's slot
+const transactionTagSelector = (t: OnyxEntry<Transaction>) => (t ? getTag(t) : undefined);
 
 // --- CategoryField ---
 
@@ -389,6 +393,7 @@ export {
     categoryStateSelector,
     createCanUpdateSenderWorkspaceSelector,
     createTagDisplaySelector,
+    transactionTagSelector,
     dateStateSelector,
     derivedFlagsSliceSelector,
     descriptionStateSelector,

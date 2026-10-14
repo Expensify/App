@@ -2,19 +2,11 @@ import PopoverWithMeasuredContent from '@components/PopoverWithMeasuredContent';
 import type PopoverWithMeasuredContentProps from '@components/PopoverWithMeasuredContent/types';
 import type {ListItem} from '@components/SelectionList/types';
 
-import useKeyboardState from '@hooks/useKeyboardState';
 import useOnyx from '@hooks/useOnyx';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
-import useStyleUtils from '@hooks/useStyleUtils';
-import useThemeStyles from '@hooks/useThemeStyles';
-import useViewportOffsetTop from '@hooks/useViewportOffsetTop';
-import useWindowDimensions from '@hooks/useWindowDimensions';
+import useSelectionListPopoverLayout from '@hooks/useSelectionListPopoverLayout';
 
 import {getEnabledCategoriesCount} from '@libs/CategoryUtils';
-import getBottomSheetHeight from '@libs/getBottomSheetHeight';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
-import getSelectionListPopoverContentHeight from '@libs/getSelectionListPopoverContentHeight';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -58,6 +50,7 @@ type CategoryPickerModalProps = {
 function CategoryPickerModal({
     isVisible,
     onClose,
+    onModalHide,
     anchorPosition,
     policyID,
     selectedCategory,
@@ -69,41 +62,19 @@ function CategoryPickerModal({
     shouldFitContentHeight = false,
     shouldSwitchPositionIfOverflow = true,
 }: CategoryPickerModalProps) {
-    const styles = useThemeStyles();
-    const StyleUtils = useStyleUtils();
-    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth -- must match PopoverWithMeasuredContent's dock decision (bottom-docked only when isSmallScreenWidth)
-    const {isSmallScreenWidth} = useResponsiveLayout();
-    const {isKeyboardActive, keyboardActiveHeight} = useKeyboardState();
-    const {windowHeight} = useWindowDimensions();
-    const viewportOffsetTop = useViewportOffsetTop();
-    const {paddingTop: safeAreaTop, paddingBottom: safeAreaPaddingBottom} = useSafeAreaPaddings(true);
     const anchorRef = useRef<ComponentRef<typeof View>>(null);
 
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${getNonEmptyStringOnyxID(policyID)}`, {selector: getEnabledCategoriesCount});
     const [renderedRowCount, setRenderedRowCount] = useState<number>();
 
     const categoriesCount = policyCategories ?? 0;
-    const isSearchable = categoriesCount >= CONST.STANDARD_LIST_ITEM_LIMIT;
-    const estimatedContentHeight = getSelectionListPopoverContentHeight({optionCount: Math.max(renderedRowCount ?? categoriesCount, 1), isSearchable});
-
-    // The sheet pads itself above the home indicator, except while the keyboard already covers it. The offline indicator
-    // is drawn on the page behind the sheet, so no room is kept for it.
-    const bottomSafeAreaPadding = isSmallScreenWidth && !isKeyboardActive ? safeAreaPaddingBottom : 0;
-    const bottomSheetHeight = getBottomSheetHeight({
-        preferredHeight: popoverHeight,
-        windowHeight,
-        keyboardHeight: isKeyboardActive ? keyboardActiveHeight : 0,
-        topSafeAreaInset: safeAreaTop,
-        minHeight: getSelectionListPopoverContentHeight({optionCount: 1, isSearchable}),
+    const {popoverDimensions, innerContainerStyle, outerStyle, avoidKeyboard, contentStyle} = useSelectionListPopoverLayout({
+        optionCount: renderedRowCount ?? categoriesCount,
+        isSearchable: categoriesCount >= CONST.STANDARD_LIST_ITEM_LIMIT,
+        popoverWidth,
+        popoverHeight,
+        shouldFitContentHeight,
     });
-    // A short list gets a sheet only as tall as its rows, still within the room the window and keyboard leave.
-    const fittedSheetHeight = shouldFitContentHeight ? Math.min(bottomSheetHeight, estimatedContentHeight + bottomSafeAreaPadding) : bottomSheetHeight;
-    const popoverContentHeight = shouldFitContentHeight ? Math.min(popoverHeight, estimatedContentHeight) : popoverHeight;
-    const resolvedHeight = isSmallScreenWidth ? fittedSheetHeight : popoverContentHeight;
-    const popoverDimensions = {width: popoverWidth, height: resolvedHeight};
-    // Mobile Safari ignores `interactive-widget=resizes-content` and leaves the sheet docked behind the keyboard, so on mobile browsers
-    // the sheet is sized and offset to the visual viewport, which the keyboard does shrink.
-    const outerStyle = isSmallScreenWidth ? {...styles.w100, ...StyleUtils.getOuterModalStyle(windowHeight, viewportOffsetTop)} : undefined;
 
     const handleCategorySelect = (item: ListItem) => {
         // If clicking the same category that's already selected, treat it as deselection
@@ -120,10 +91,11 @@ function CategoryPickerModal({
             anchorRef={anchorRef}
             isVisible={isVisible}
             onClose={onClose}
+            onModalHide={onModalHide}
             anchorPosition={anchorPosition}
             popoverDimensions={popoverDimensions}
             anchorAlignment={anchorAlignment}
-            innerContainerStyle={isSmallScreenWidth ? undefined : StyleUtils.getWidthStyle(popoverDimensions.width)}
+            innerContainerStyle={innerContainerStyle}
             restoreFocusType={CONST.MODAL.RESTORE_FOCUS_TYPE.DELETE}
             shouldSwitchPositionIfOverflow={shouldSwitchPositionIfOverflow}
             shouldEnableNewFocusManagement
@@ -131,10 +103,10 @@ function CategoryPickerModal({
             shouldSkipRemeasurement
             shouldDisplayBelowModals
             enableEdgeToEdgeBottomSafeAreaPadding
-            avoidKeyboard={isSmallScreenWidth}
+            avoidKeyboard={avoidKeyboard}
             outerStyle={outerStyle}
         >
-            <View style={[StyleUtils.getHeight(popoverDimensions.height), styles.flexColumn, styles.pt4, StyleUtils.getPaddingBottom(bottomSafeAreaPadding)]}>
+            <View style={contentStyle}>
                 <CategoryPicker
                     onRenderedRowCountChange={setRenderedRowCount}
                     selectedCategory={selectedCategory}
