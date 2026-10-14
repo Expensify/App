@@ -2285,6 +2285,7 @@ type ReportDetailsNavigatorParamList = {
     };
     [SCREENS.REPORT_DETAILS.DYNAMIC_SHARE_CODE]: {
         reportID: string;
+        shouldShowQRCodeOnly?: string;
     };
     [SCREENS.REPORT_DETAILS.DYNAMIC_EXPORT]: {
         reportID: string;
