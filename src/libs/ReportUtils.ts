@@ -6754,12 +6754,15 @@ function getReportPreviewMessage(
  * avoids depending on the async-loaded locale bundles. For a localized preview shown in the UI, call
  * {@link getReportPreviewMessage} with the caller's `translate`.
  *
+ * This only covers report preview actions. The wording for IOU actions (split, track, scanning, and bank account
+ * payments) lives only in {@link getReportPreviewMessage}.
+ *
  * IMPORTANT: keep the English strings here in sync with the `iou.*` entries in `en.ts` and with the branching
- * in {@link getReportPreviewMessage}.
+ * in {@link getReportPreviewMessage} that applies to report preview actions.
  */
 function getReportPreviewReportActionMessage(
     // TODO: Remove the `Omit` and make `policy` required once all callers pass it, issue https://github.com/Expensify/App/issues/66415
-    params: Omit<GetReportPreviewMessageBaseParams, 'policy' | 'iouReportAction' | 'originalReportAction'> & {
+    params: Omit<GetReportPreviewMessageBaseParams, 'policy' | 'iouReportAction' | 'originalReportAction' | 'shouldConsiderScanningReceiptOrPendingRoute'> & {
         policy?: OnyxInputOrEntry<Policy>;
         iouReportAction?: OnyxInputOrEntry<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW>>;
         originalReportAction?: OnyxInputOrEntry<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW>>;
@@ -9021,6 +9024,7 @@ function updateReportPreview(
             }
         }
     }
+
     const message = getReportPreviewReportActionMessage({reportOrID: iouReport, iouReportAction: reportPreviewAction}, getCurrencyDecimals);
     const originalMessage = getOriginalMessage(reportPreviewAction);
     return {
