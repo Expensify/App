@@ -559,6 +559,7 @@ function MoneyRequestReceiptView({
                 setDeleteTransactionNavigateBackUrl(backToRoute);
                 cleanUpMoneyRequest({
                     transactionID: transaction?.transactionID ?? linkedTransactionID,
+                    currentUserAccountID,
                     reportAction: parentReportAction,
                     reportID: report.reportID,
                     transactionThreadReport: parentReportActionChildReport,
