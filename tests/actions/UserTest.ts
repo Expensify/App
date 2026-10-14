@@ -1,6 +1,7 @@
 import * as ActiveClientManager from '@libs/ActiveClientManager';
 import * as API from '@libs/API';
 import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
+import {getLatestErrorField} from '@libs/ErrorUtils';
 import Log from '@libs/Log';
 import * as SequentialQueue from '@libs/Network/SequentialQueue';
 import Pusher from '@libs/Pusher';
@@ -676,6 +677,55 @@ describe('actions/User', () => {
                     actionVerified: false,
                 },
             });
+        });
+
+        it('should show the server error over the generic fallback even when the device clock is ahead of the server', async () => {
+            // Given a server error stamped by the server clock and a device clock 3 seconds ahead of it
+            const contactMethod = 'test@example.com';
+            const serverErrorKey = Date.now() * 1000;
+            const serverErrorMessage = 'Cannot add an existing Expensify account as a new contact method.';
+            const dateNowSpy = jest.spyOn(Date, 'now').mockReturnValue(Date.now() + 3000);
+
+            // And a failing request whose server response writes its error before failureData is applied
+            mockAPI.write.mockImplementation((_command, _params, options) => {
+                Onyx.merge(ONYXKEYS.LOGINS, {[`1_${contactMethod}`]: {errorFields: {addedLogin: {[serverErrorKey]: serverErrorMessage}}}});
+                for (const update of options?.failureData ?? []) {
+                    Onyx.merge(update.key, update.value);
+                }
+                return Promise.resolve();
+            });
+
+            // When addNewContactMethod is called
+            UserActions.addNewContactMethod(contactMethod);
+            await waitForBatchedUpdates();
+            dateNowSpy.mockRestore();
+
+            // Then the fallback is keyed with 0, so the server error sorts as the latest error and is shown
+            const logins = await getOnyxValue(ONYXKEYS.LOGINS);
+            const login = logins?.[`1_${contactMethod}`];
+            expect(Object.keys(login?.errorFields?.addedLogin ?? {})).toContain('0');
+            expect(getLatestErrorField(login, 'addedLogin')).toEqual({[serverErrorKey]: serverErrorMessage});
+        });
+
+        it('should show the generic fallback when the server does not send an error', async () => {
+            // Given a contact method and a failing request with no server error
+            const contactMethod = 'test@example.com';
+            mockAPI.write.mockImplementation((_command, _params, options) => {
+                for (const update of options?.failureData ?? []) {
+                    Onyx.merge(update.key, update.value);
+                }
+                return Promise.resolve();
+            });
+
+            // When addNewContactMethod is called
+            UserActions.addNewContactMethod(contactMethod);
+            await waitForBatchedUpdates();
+
+            // Then the fallback is the only error, so it is still shown
+            const logins = await getOnyxValue(ONYXKEYS.LOGINS);
+            const latestError = getLatestErrorField(logins?.[`1_${contactMethod}`], 'addedLogin');
+            expect(Object.keys(latestError)).toEqual(['0']);
+            expect(Object.values(latestError).at(0)).toBeTruthy();
         });
 
         it('should apply optimisticData to Onyx when API.write applies it', async () => {
