@@ -94,7 +94,7 @@ function LineChartContentBody({data, series, isLoading, yAxisUnit, yAxisUnitPosi
     const yAxisLabelWidth = getYAxisLabelWidth(data, formatCompactValue, fontManager, variables.iconSizeExtraSmall, VictoryTheme.line.domainPadding);
 
     const tickSpacing = plotAreaWidth > 0 && data.length > 0 ? plotAreaWidth / data.length : 0;
-    const chartPaddingRight = yAxisLabelWidth + GLYPH_PADDING;
+    const chartPaddingRight = yAxisLabelWidth + GLYPH_PADDING + VictoryTheme.axis.labelGap;
 
     const domainPadding = (() => {
         if (!firstLabelWidth || !lastLabelWidth) {
@@ -112,7 +112,7 @@ function LineChartContentBody({data, series, isLoading, yAxisUnit, yAxisUnitPosi
 
         const edgeSpace = {
             left: Math.max(0, leftOverhang - VictoryTheme.axis.padding.left),
-            right: Math.max(0, rightOverhang - chartPaddingRight - VictoryTheme.axis.labelGap),
+            right: Math.max(0, rightOverhang - chartPaddingRight),
         };
         return {...VictoryTheme.line.domainPadding, ...getDomainPaddingForEdgeSpace(edgeSpace, plotAreaWidth)};
     })();
@@ -336,7 +336,6 @@ function LineChartContentBody({data, series, isLoading, yAxisUnit, yAxisUnitPosi
                                 tickCount: VictoryTheme.axis.tickCount,
                                 axisSide: 'right',
                                 lineWidth: 0,
-                                labelOffset: VictoryTheme.axis.labelGap,
                                 domain: yAxisDomain,
                             },
                         ]}

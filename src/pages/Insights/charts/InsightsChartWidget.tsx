@@ -18,6 +18,7 @@ import {INSIGHTS_CHART_STATE} from '@libs/resolveInsightsChartData';
 import InsightsGroupByDropdown from '@pages/Insights/controls/InsightsGroupByDropdown';
 import type {InsightsChartSpec} from '@pages/Insights/dashboardSpecs';
 import type {InsightsFilters} from '@pages/Insights/insightsFilters';
+import {getInsightsGroupByOptions, getQueryGroupBy} from '@pages/Insights/insightsGroupByUtils';
 import useInsightsChartData from '@pages/Insights/useInsightsChartData';
 
 import CONST from '@src/CONST';
@@ -57,16 +58,20 @@ function InsightsChartWidget({chart, queryJSON, snapshot, filters, onRetry, onGr
     const icons = useMemoizedLazyExpensifyIcons(['Expand']);
 
     const {data, state, comparison} = useInsightsChartData(chart, filters, queryJSON, snapshot);
-    const groupBy = chart.groupBy ?? filters.groupBy;
+    const groupBy = chart.groupBy ?? getQueryGroupBy(filters);
     const isLoading = state === INSIGHTS_CHART_STATE.LOADING;
     const shouldShowTable = chart.view === CONST.SEARCH.VIEW.BAR || chart.view === CONST.SEARCH.VIEW.PIE;
 
-    const groupByControl = onGroupByChange ? (
-        <InsightsGroupByDropdown
-            groupBy={filters.groupBy}
-            onChange={onGroupByChange}
-        />
-    ) : null;
+    const groupByOptions = getInsightsGroupByOptions(filters.date);
+
+    const groupByControl =
+        onGroupByChange && groupByOptions.length > 1 ? (
+            <InsightsGroupByDropdown
+                groupBy={getQueryGroupBy(filters)}
+                options={groupByOptions}
+                onChange={onGroupByChange}
+            />
+        ) : null;
 
     const headerMenu =
         !!queryJSON && (state === INSIGHTS_CHART_STATE.READY || isLoading) ? (
