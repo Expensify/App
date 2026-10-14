@@ -68,6 +68,7 @@ function SupportTicketSurvey({action, report, reportID}: SupportTicketSurveyProp
                     shouldShowPrompt={false}
                     shouldPersistAfterRating
                     shouldRenderSelectedReactionBubble
+                    shouldHideUnselectedThumbAfterRating
                 />
             )}
         </View>
