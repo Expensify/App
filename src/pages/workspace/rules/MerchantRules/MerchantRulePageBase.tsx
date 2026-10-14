@@ -679,7 +679,7 @@ function MerchantRulePageBase({
 
     const shouldShowDescribeRule = !isEditingSavedRule && !isCategoryLocked;
     const applyGeneratedRule = (values: GeneratedRuleValues) => {
-        setDraftMerchantRule({...values, ruleType: CONST.POLICY.EXPENSE_DEFAULT_RULE_TYPE.MERCHANT});
+        setDraftMerchantRule({...values, ruleType: isScopedToCategory ? CONST.POLICY.EXPENSE_DEFAULT_RULE_TYPE.CATEGORY : CONST.POLICY.EXPENSE_DEFAULT_RULE_TYPE.MERCHANT});
     };
 
     const footer = canWriteRules ? (
@@ -816,7 +816,7 @@ function MerchantRulePageBase({
                         isVisible={isDescribeRuleModalVisible}
                         onClose={() => setIsDescribeRuleModalVisible(false)}
                         policyID={policyID}
-                        ruleType={CONST.GENERATED_RULE.RULE_TYPE.EXPENSE_DEFAULTS}
+                        ruleType={isScopedToCategory ? CONST.GENERATED_RULE.RULE_TYPE.CATEGORY_TAX_RATE : CONST.GENERATED_RULE.RULE_TYPE.EXPENSE_DEFAULTS}
                         onRuleGenerated={applyGeneratedRule}
                     />
                 )}
