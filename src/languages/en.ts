@@ -879,18 +879,15 @@ const translations = {
     },
     wiseOnboarding: {
         business: {
-            title: 'Your business details',
-            description: 'Check these are right. They need to match your official registration.',
+            title: 'Enter your business info',
             legalName: 'Legal business name',
-            ein: 'EIN',
-            website: 'Company website',
             companyRole: 'Your role at the company',
             companyRoleOwner: 'Owner',
             companyRoleDirector: 'Director',
             companyRoleOther: 'Other',
-            industryCategories: 'What industry is your business in?',
-            industryCategoriesDescription: 'Pick everything that applies.',
-            businessDescription: 'What the business does',
+            industryCategories: 'Industry',
+            businessDescription: 'Business description',
+            businessDescriptionHint: 'Briefly describe what your company does.',
         },
     },
     videoChatButtonAndMenu: {

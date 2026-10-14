@@ -769,18 +769,15 @@ const translations: TranslationDeepObject<typeof en> = {
     },
     wiseOnboarding: {
         business: {
-            title: 'Datos de tu empresa',
-            description: 'Comprueba que sean correctos. Deben coincidir con tu registro oficial.',
+            title: 'Introduce los datos de tu empresa',
             legalName: 'Nombre legal de la empresa',
-            ein: 'EIN',
-            website: 'Sitio web de la empresa',
             companyRole: 'Tu cargo en la empresa',
             companyRoleOwner: 'Propietario',
             companyRoleDirector: 'Director',
             companyRoleOther: 'Otro',
-            industryCategories: '¿En qué sector opera tu empresa?',
-            industryCategoriesDescription: 'Selecciona todo lo que corresponda.',
-            businessDescription: 'A qué se dedica la empresa',
+            industryCategories: 'Sector',
+            businessDescription: 'Descripción de la empresa',
+            businessDescriptionHint: 'Describe brevemente a qué se dedica tu empresa.',
         },
     },
     videoChatButtonAndMenu: {

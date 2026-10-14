@@ -12,11 +12,8 @@ const US: DynamicFormSchema = {
         {
             key: 'business',
             titleKey: 'wiseOnboarding.business.title',
-            descriptionKey: 'wiseOnboarding.business.description',
             content: [
                 {key: 'companyName', type: 'text', required: true, readonly: true, labelKey: 'wiseOnboarding.business.legalName'},
-                {key: 'companyTaxID', type: 'text', required: true, readonly: true, labelKey: 'wiseOnboarding.business.ein'},
-                {key: 'website', type: 'text', required: true, readonly: true, labelKey: 'wiseOnboarding.business.website'},
                 {
                     key: 'companyRole',
                     type: 'select',
@@ -33,7 +30,6 @@ const US: DynamicFormSchema = {
                     type: 'multiselect',
                     required: true,
                     labelKey: 'wiseOnboarding.business.industryCategories',
-                    descriptionKey: 'wiseOnboarding.business.industryCategoriesDescription',
                     values: getIndustryCategoryOptions(),
                 },
                 {
@@ -43,6 +39,7 @@ const US: DynamicFormSchema = {
                     multiline: true,
                     maxLength: 1000,
                     labelKey: 'wiseOnboarding.business.businessDescription',
+                    descriptionKey: 'wiseOnboarding.business.businessDescriptionHint',
                 },
             ],
         },
