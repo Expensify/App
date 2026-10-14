@@ -69,7 +69,7 @@ import {
 import replaceWithSplitNavigator from './helpers/replaceWithSplitNavigator';
 import runAfterClosingScreenUnmount from './helpers/runAfterClosingScreenUnmount';
 import setNavigationActionToMicrotaskQueue from './helpers/setNavigationActionToMicrotaskQueue';
-import {finishWideTabPreMountReveal} from './helpers/wideTabPreMount';
+import {cancelWideTabPreMount, finishWideTabPreMountReveal} from './helpers/wideTabPreMount';
 import {linkingConfig} from './linkingConfig';
 import {SPLIT_TO_SIDEBAR} from './linkingConfig/RELATIONS';
 import navigationRef from './navigationRef';
@@ -1234,11 +1234,16 @@ function revealRouteBeforeDismissingModal(route: Route, options?: {afterTransiti
             : undefined;
 
     requestAnimationFrame(() => {
+        const stateBeforeReplace = navigationRef.getRootState();
         navigationRef.current?.dispatch({
             type: CONST.NAVIGATION.ACTION_TYPE.REPLACE_FULLSCREEN_UNDER_RHP,
             payload: {route, preMountedRouteKey},
         });
-        if (preMountedRouteKey) {
+
+        // A replace rejected because the RHP was closed first (e.g. Browser Back) would leave the pre-mount hidden in the stack.
+        if (preMountedRouteKey && navigationRef.getRootState() === stateBeforeReplace) {
+            cancelWideTabPreMount();
+        } else if (preMountedRouteKey) {
             finishWideTabPreMountReveal(preMountedRouteKey);
         }
         // Nested rAF: the first frame commits the route insertion, the second
