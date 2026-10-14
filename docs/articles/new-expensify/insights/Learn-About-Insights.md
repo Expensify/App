@@ -5,6 +5,7 @@ keywords: [Insights, spending insights, spending analytics, spending trends, Spe
 internalScope: Audience is all members. Covers what Insights are, the available spending insights, general visibility rules, and how Insights relates to Spend. Does not cover detailed filtering instructions, individual insight calculations, or saved-search and export workflows.
 contentType: topic
 platform: new-expensify
+order: 1
 ---
 
 # Learn About Insights
