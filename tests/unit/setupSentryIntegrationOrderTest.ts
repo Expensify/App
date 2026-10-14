@@ -59,6 +59,15 @@ describe('setupSentry integration order', () => {
         expect(names.indexOf('SearchRouterProfilingSampler')).toBeLessThan(names.indexOf('HermesProfiling'));
     });
 
+    it('leaves profilesSampleRate out of the init options, so the SDK does not add its own profiler ahead of the sampler', () => {
+        // Given the SDK installs a default Hermes profiler, ahead of user integrations, whenever profilesSampleRate is a number at init
+        // When setupSentry initializes Sentry
+        setupSentry();
+
+        // Then the rate is absent, so the only profiler is the one registered after the Search Router sampler
+        expect(sentryMock.init.mock.calls.at(0)?.at(0)).not.toHaveProperty('profilesSampleRate');
+    });
+
     it('drops the integrations that are stubbed out on the current platform', () => {
         expect(initIntegrationNames()).not.toContain(undefined);
     });

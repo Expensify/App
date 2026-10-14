@@ -9,10 +9,10 @@ import {getRootSpan, spanToJSON} from '@sentry/core';
 import {Platform} from 'react-native';
 
 /**
- * Share of Search Router opens that get a Hermes profile. Android carries the metric's tail on a few hundred opens
- * a week, so it needs a high rate to collect enough slow profiles; iOS has several times the volume and no tail.
+ * Share of Search Router opens that get a Hermes profile. Android carries the metric's tail on a few hundred opens a
+ * week, so it gets the higher rate; both stay low because profiled opens pay the profiler's cost inside the measured span.
  */
-const SEARCH_ROUTER_PROFILE_SAMPLE_RATE = Platform.OS === 'android' ? 0.5 : 0.1;
+const SEARCH_ROUTER_PROFILE_SAMPLE_RATE = Platform.OS === 'android' ? 0.2 : 0.05;
 
 const NAVIGATION_SPAN_OP = 'navigation';
 
@@ -27,7 +27,8 @@ type ProfilingClientOptions = ClientOptions & Pick<ReactNativeOptions, 'profiles
  * The rate is therefore 1 only for the navigation span dispatched while `ManualOpenSearchRouter` is open: it is the
  * last root the open starts and outlives the list render. `profiled` on the open span splits out profiler overhead.
  *
- * Must be registered before `hermesProfilingIntegration`, whose `spanStart` listener reads the rate.
+ * Must be registered before `hermesProfilingIntegration`, whose `spanStart` listener reads the rate. Setting
+ * `profilesSampleRate` in `Sentry.init` would break that: the SDK would add its own profiler ahead of this sampler.
  */
 function searchRouterProfilingSampler(): Integration {
     const sampledOpenSpans = new WeakSet<Span>();
