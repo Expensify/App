@@ -3,10 +3,12 @@ import FocusTrapForScreen from '@components/FocusTrap/FocusTrapForScreen';
 import type FocusTrapForScreenProps from '@components/FocusTrap/FocusTrapForScreen/FocusTrapProps';
 import {useInitialURLState} from '@components/InitialURLContextProvider';
 import {MFA_OVERLAY_SCREENS} from '@components/MultifactorAuthentication/mfaNavigation';
+import {getDisplayedRHPRouteWidth, subscribeToRHPRouteKeys} from '@components/WideRHPContextProvider';
 import withNavigationFallback from '@components/withNavigationFallback';
 
 import useAccessibilityFocus from '@hooks/useAccessibilityFocus';
 import useEnvironment from '@hooks/useEnvironment';
+import useIsSidebarOfFocusedSplitNavigator from '@hooks/useIsSidebarOfFocusedSplitNavigator';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -38,12 +40,14 @@ import type {EdgeInsets} from 'react-native-safe-area-context';
 
 import {NavigationRouteContext, useFocusEffect, useIsFocused, useNavigation, usePreventRemove} from '@react-navigation/native';
 import {isSingleNewDotEntrySelector} from '@selectors/HybridApp';
-import React, {createContext, useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
+import React, {createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, useSyncExternalStore} from 'react';
 import {DeviceEventEmitter, Keyboard} from 'react-native';
 
 import type {ScreenWrapperContainerProps} from './ScreenWrapperContainer';
 import type {ScreenWrapperOfflineIndicatorsProps} from './ScreenWrapperOfflineIndicators';
 
+import getIsScreenVisible from './getIsScreenVisible';
+import ScreenVisibilityProvider from './ScreenVisibilityProvider';
 import ScreenWrapperContainer from './ScreenWrapperContainer';
 import ScreenWrapperOfflineIndicatorContext from './ScreenWrapperOfflineIndicatorContext';
 import ScreenWrapperOfflineIndicators from './ScreenWrapperOfflineIndicators';
@@ -200,6 +204,9 @@ function ScreenWrapper({
     // NavigationRouteContext is undefined when tests mock @react-navigation/native without re-exporting it, so fall back to a noop context to keep useContext valid.
     const route = useContext(NavigationRouteContext ?? FallbackRouteContext);
     const isMfaOverlayScreen = !!route && MFA_OVERLAY_SCREENS.has(route.name);
+    const displayedRHPWidth = useSyncExternalStore(subscribeToRHPRouteKeys, () => getDisplayedRHPRouteWidth(route?.key));
+    const isSidebarOfFocusedSplitNavigator = useIsSidebarOfFocusedSplitNavigator(route?.name, navigation);
+    const isScreenVisible = getIsScreenVisible({isFocused, isSmallScreenWidth, isSidebarOfFocusedSplitNavigator, displayedRHPWidth});
 
     usePreventRemove(isSingleNewDotEntry && initialURLMatchesActiveRoute && !shouldBlockSingleEntryOldAppExit && !isMfaOverlayScreen, () => {
         if (!CONFIG.IS_HYBRID_APP) {
@@ -303,19 +310,21 @@ function ScreenWrapper({
             >
                 {isDevelopment && <CustomDevMenu />}
                 <ScreenWrapperStatusContext.Provider value={statusContextValue}>
-                    <ScreenWrapperOfflineIndicatorContext.Provider value={offlineIndicatorContextValue}>
-                        {ChildrenContent}
+                    <ScreenVisibilityProvider isVisible={isScreenVisible}>
+                        <ScreenWrapperOfflineIndicatorContext.Provider value={offlineIndicatorContextValue}>
+                            {ChildrenContent}
 
-                        <ScreenWrapperOfflineIndicators
-                            offlineIndicatorStyle={offlineIndicatorStyle}
-                            shouldShowOfflineIndicator={displaySmallScreenOfflineIndicator}
-                            shouldShowOfflineIndicatorInWideScreen={displayWideScreenOfflineIndicator}
-                            shouldMobileOfflineIndicatorStickToBottom={displayStickySmallScreenOfflineIndicator}
-                            isOfflineIndicatorTranslucent={isOfflineIndicatorTranslucent}
-                            extraContent={bottomContent}
-                            addBottomSafeAreaPadding={addSmallScreenOfflineIndicatorBottomSafeAreaPadding}
-                        />
-                    </ScreenWrapperOfflineIndicatorContext.Provider>
+                            <ScreenWrapperOfflineIndicators
+                                offlineIndicatorStyle={offlineIndicatorStyle}
+                                shouldShowOfflineIndicator={displaySmallScreenOfflineIndicator}
+                                shouldShowOfflineIndicatorInWideScreen={displayWideScreenOfflineIndicator}
+                                shouldMobileOfflineIndicatorStickToBottom={displayStickySmallScreenOfflineIndicator}
+                                isOfflineIndicatorTranslucent={isOfflineIndicatorTranslucent}
+                                extraContent={bottomContent}
+                                addBottomSafeAreaPadding={addSmallScreenOfflineIndicatorBottomSafeAreaPadding}
+                            />
+                        </ScreenWrapperOfflineIndicatorContext.Provider>
+                    </ScreenVisibilityProvider>
                 </ScreenWrapperStatusContext.Provider>
             </ScreenWrapperContainer>
         </FocusTrapForScreen>

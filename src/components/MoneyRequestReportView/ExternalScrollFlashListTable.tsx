@@ -246,4 +246,4 @@ function ExternalScrollFlashListTable<T>({
 
 export default ExternalScrollFlashListTable;
 export {createScrollOffsetStore};
-export type {ExternalScrollFlashListTableHandle};
+export type {ExternalScrollFlashListTableHandle, ScrollOffsetStore};

@@ -89,6 +89,7 @@ import type RequestMoneyParticipantParams from './types/RequestMoneyParticipantP
 import type {GPSPoint} from './types/TrackExpenseTransactionParams';
 
 import {getAllPersonalDetails, getAllReportActionsFromIOU, getAllReportNameValuePairs, getAllReports} from './index';
+import {buildNewTransactionFlagForReportTable, wasReportShowingRowsWhenActionBegan} from './PendingNewTransactions';
 import {getSearchOnyxUpdate} from './SearchUpdate';
 
 type OneOnOneIOUReport = OnyxTypes.Report | undefined | null;
@@ -169,7 +170,7 @@ type RequestMoneyTransactionParams = Omit<BaseTransactionParams, 'comment'> & {
     /** The selfDM report ID for split transactions */
     selfDMReportID?: string;
 
-    /** Keeps this transaction off the `pendingNewTransactionIDs` highlight rail, for flows that never open the expense report */
+    /** Writes no table flag, for a flow that never shows the expense report. */
     shouldSkipReportHighlightRail?: boolean;
 };
 
@@ -470,6 +471,16 @@ function getTransactionWithPreservedLocalReceiptSource(transaction: OnyxTypes.Tr
     return transaction;
 }
 
+/** Whether the report shows rows besides this add, which its `transactionCount` already counts. Only asked on an action's first add. */
+function isReportShowingRowsBesidesThisAdd(report: OnyxInputValue<OnyxTypes.Report>, existingReportTransactions: OnyxTypes.Transaction[]): boolean {
+    const countedBesidesThisAdd = Math.max((report?.transactionCount ?? 0) - 1, 0);
+    // Only a complete cache can subtract pending deletes. A partial one would count too few and drop the flag.
+    if (existingReportTransactions.length < countedBesidesThisAdd) {
+        return true;
+    }
+    return existingReportTransactions.some((reportTransaction) => reportTransaction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
+}
+
 function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyRequestParams): OnyxData<BuildOnyxDataForMoneyRequestKeys> {
     const allReports = getAllReports();
     const {
@@ -729,25 +740,20 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
         });
     }
 
-    // Only flag when the add makes the report multi-tx: on 0→1 the table fresh-mounts with the tx already present, so
-    // nothing consumes the flag and it goes stale. Same reason callers pass shouldSkipReportHighlightRail when the flow
-    // won't open the expense report. No successData - it races the mount.
-    const existingReportTransactions = iou.report?.reportID
-        ? getReportTransactions(iou.report.reportID).filter((reportTransaction) => reportTransaction.transactionID !== transaction.transactionID)
-        : [];
-    const addMakesReportMultiTransaction =
-        isMoneyRequestReport(iou.report) && existingReportTransactions.some((reportTransaction) => reportTransaction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
-    if (iou.report?.reportID && transaction.transactionID && !isSelfDMSplit && !shouldSkipReportHighlightRail && addMakesReportMultiTransaction) {
-        onyxData.optimisticData?.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${iou.report.reportID}`,
-            value: {pendingNewTransactionIDs: {[transaction.transactionID]: true}},
-        });
-        onyxData.failureData?.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${iou.report.reportID}`,
-            value: {pendingNewTransactionIDs: {[transaction.transactionID]: null}},
-        });
+    // Only an insertion into a report that already showed rows is flagged: its first rows are its contents. No successData clear, which would race the list mounting.
+    const reportTransactionsFromCache = iou.report?.reportID ? getReportTransactions(iou.report.reportID) : [];
+    const isTransactionAlreadyOnReport = reportTransactionsFromCache.some((reportTransaction) => reportTransaction.transactionID === transaction.transactionID);
+    const existingReportTransactions = reportTransactionsFromCache.filter((reportTransaction) => reportTransaction.transactionID !== transaction.transactionID);
+    // A row the report already holds inserts nothing, and must not answer for the action: without it the report can look empty.
+    const wasShowingRowsWhenActionBegan =
+        !isTransactionAlreadyOnReport &&
+        !!iou.report?.reportID &&
+        wasReportShowingRowsWhenActionBegan(iou.report.reportID, () => isReportShowingRowsBesidesThisAdd(iou.report, existingReportTransactions));
+    const isInsertionIntoReportTheUserHasSeen = isMoneyRequestReport(iou.report) && wasShowingRowsWhenActionBegan;
+    if (iou.report?.reportID && transaction.transactionID && !isSelfDMSplit && !shouldSkipReportHighlightRail && isInsertionIntoReportTheUserHasSeen) {
+        const {optimisticUpdate, failureUpdate} = buildNewTransactionFlagForReportTable({expenseReportID: iou.report.reportID, transactionID: transaction.transactionID});
+        onyxData.optimisticData?.push(optimisticUpdate);
+        onyxData.failureData?.push(failureUpdate);
     }
 
     if (shouldGenerateTransactionThreadReport && !isSelfDMSplit && !isEmptyObject(transactionThreadCreatedReportAction)) {

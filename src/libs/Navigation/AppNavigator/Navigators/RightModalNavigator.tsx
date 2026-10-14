@@ -1,6 +1,6 @@
 import {DialogLabelProvider, useDialogLabelData} from '@components/DialogLabelContext';
 import NoDropZone from '@components/DragAndDrop/NoDropZone';
-import {expandedRHPProgress, thirdOverlayProgress, useWideRHPActions, useWideRHPState} from '@components/WideRHPContextProvider';
+import {expandedRHPProgress, thirdOverlayProgress, useWideRHPState} from '@components/WideRHPContextProvider';
 
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSidePanelState from '@hooks/useSidePanelState';
@@ -16,7 +16,6 @@ import useRHPScreenOptions from '@libs/Navigation/AppNavigator/useRHPScreenOptio
 import calculateSuperWideRHPWidth from '@libs/Navigation/helpers/calculateSuperWideRHPWidth';
 import calculateWideRHPWidth from '@libs/Navigation/helpers/calculateWideRHPWidth';
 import getSidePanelRHPShrink from '@libs/Navigation/helpers/getSidePanelRHPShrink';
-import {isFullScreenName} from '@libs/Navigation/helpers/isNavigatorName';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import Animations from '@libs/Navigation/PlatformStackNavigation/navigationOptions/animation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -42,7 +41,6 @@ import type {NavigatorScreenParams} from '@react-navigation/native';
 import type {ComponentRef} from 'react';
 import type {View} from 'react-native';
 
-import {useFocusEffect} from '@react-navigation/native';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import {Animated, DeviceEventEmitter} from 'react-native';
@@ -152,7 +150,6 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
         isWideRHPFocused,
         isSuperWideRHPFocused,
     } = useWideRHPState();
-    const {clearWideRHPKeys, syncRHPKeys} = useWideRHPActions();
     const {windowWidth, windowHeight} = useWindowDimensions();
     const modalStackScreenOptions = useModalStackScreenOptions();
     const styles = useThemeStyles();
@@ -262,26 +259,6 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
     const handleFloatingCardGapPress = shouldRenderTertiaryOverlay ? Navigation.dismissToPreviousRHP : handleOverlayPress;
     // The gap on the right stops before the Side Panel, which shares that edge.
     const floatingCardGapRightBandLeft = Animated.subtract(Animated.subtract(windowWidth, sidePanelOffset.current), variables.rhpFloatingCardMargin);
-
-    const clearWideRHPKeysAfterTabChanged = useCallback(() => {
-        const isRhpOpened = navigationRef?.getRootState()?.routes?.some((rootStateRoute) => rootStateRoute.key === route.key);
-        const isFullScreenTopmostRoute = isFullScreenName(navigationRef.getRootState()?.routes?.at(-1)?.name);
-        const hasTabChanged = isRhpOpened && isFullScreenTopmostRoute;
-        if (!hasTabChanged) {
-            return;
-        }
-        clearWideRHPKeys();
-    }, [clearWideRHPKeys, route.key]);
-
-    useFocusEffect(
-        useCallback(() => {
-            // When we open a second RightModalNavigator while the previous one is covered by a fullscreen navigator, we need to synchronize the keys.
-            syncRHPKeys();
-
-            // Super wide and wide route keys have to be cleared when the RightModalNavigator is not closed and a new navigator is opened above it.
-            return () => clearWideRHPKeysAfterTabChanged();
-        }, [syncRHPKeys, clearWideRHPKeysAfterTabChanged]),
-    );
 
     return (
         <NarrowPaneContextProvider>
