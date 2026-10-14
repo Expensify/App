@@ -21811,6 +21811,8 @@ describe('ReportUtils', () => {
         };
 
         beforeAll(async () => {
+            // Earlier describes leave the session on another account, and isReportOwner reads the session rather than a parameter
+            await Onyx.set(ONYXKEYS.SESSION, {email: currentUserEmail, accountID: currentUserAccountID});
             await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
                 [THREADING_MANAGER_ACCOUNT_ID]: {accountID: THREADING_MANAGER_ACCOUNT_ID, login: 'part6-approver-a@test.com'},
                 [THREADING_OTHER_APPROVER_ACCOUNT_ID]: {accountID: THREADING_OTHER_APPROVER_ACCOUNT_ID, login: 'part6-approver-b@test.com'},
@@ -21820,6 +21822,7 @@ describe('ReportUtils', () => {
         });
 
         afterAll(async () => {
+            await Onyx.set(ONYXKEYS.SESSION, {email: currentUserEmail, accountID: currentUserAccountID});
             await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, participantsPersonalDetails);
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${THREADING_POLICY_ID}`, null);
             return waitForBatchedUpdates();
