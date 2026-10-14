@@ -51,6 +51,9 @@ type ConciergeFeedbackPromptProps = {
 
     /** Whether a selected thumb should use the standard selected reaction bubble */
     shouldRenderSelectedReactionBubble?: boolean;
+
+    /** Whether to hide the unselected thumb after the user rates the action */
+    shouldHideUnselectedThumbAfterRating?: boolean;
 };
 
 /** A reaction can be stored under the emoji name or under its hexcode, so both keys are read */
@@ -139,6 +142,7 @@ function ConciergeFeedbackPrompt({
     shouldShowTooltips = true,
     shouldRenderInline = false,
     shouldRenderSelectedReactionBubble = false,
+    shouldHideUnselectedThumbAfterRating = false,
 }: ConciergeFeedbackPromptProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -172,7 +176,10 @@ function ConciergeFeedbackPrompt({
         toggleEmojiReaction(reportID, action, emoji, reactions, preferredSkinTone, currentUserAccountID, reportActions, true, true, emoji.name === thumbsUp.name ? thumbsDown : thumbsUp);
     };
 
-    const hasRated = hasReactedWithEmoji(thumbsUp, reactions, currentUserAccountID) || hasReactedWithEmoji(thumbsDown, reactions, currentUserAccountID);
+    const hasReactedWithThumbsUp = hasReactedWithEmoji(thumbsUp, reactions, currentUserAccountID);
+    const hasReactedWithThumbsDown = hasReactedWithEmoji(thumbsDown, reactions, currentUserAccountID);
+    const hasRated = hasReactedWithThumbsUp || hasReactedWithThumbsDown;
+    const shouldHideUnselectedThumbs = shouldHideUnselectedThumbAfterRating && hasRated;
 
     const getFeedbackThumb = (emoji: Emoji, isSelected: boolean) => (
         <ConciergeFeedbackThumb
@@ -188,8 +195,8 @@ function ConciergeFeedbackPrompt({
 
     const feedbackThumbs = (
         <View style={styles.flexRow}>
-            {getFeedbackThumb(thumbsUp, hasReactedWithEmoji(thumbsUp, reactions, currentUserAccountID))}
-            {getFeedbackThumb(thumbsDown, hasReactedWithEmoji(thumbsDown, reactions, currentUserAccountID))}
+            {(!shouldHideUnselectedThumbs || hasReactedWithThumbsUp) && getFeedbackThumb(thumbsUp, hasReactedWithThumbsUp)}
+            {(!shouldHideUnselectedThumbs || hasReactedWithThumbsDown) && getFeedbackThumb(thumbsDown, hasReactedWithThumbsDown)}
         </View>
     );
 
