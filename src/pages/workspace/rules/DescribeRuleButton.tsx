@@ -7,6 +7,8 @@ import useLocalize from '@hooks/useLocalize';
 import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import {clearNewRulePrompt} from '@userActions/Policy/Rules';
+
 import CONST from '@src/CONST';
 import type {GeneratedRuleType, GeneratedRuleValues} from '@src/types/onyx/GeneratedRule';
 
@@ -46,12 +48,21 @@ function DescribeRuleButton(props: DescribeRuleButtonProps) {
         return null;
     }
 
+    const openModal = () => {
+        clearNewRulePrompt();
+        if (props.onPress) {
+            props.onPress();
+            return;
+        }
+        setIsModalVisible(true);
+    };
+
     return (
         <>
             <Button
                 size={CONST.BUTTON_SIZE.LARGE}
                 style={styles.flex1}
-                onPress={props.onPress ?? (() => setIsModalVisible(true))}
+                onPress={openModal}
                 sentryLabel={props.sentryLabel}
             >
                 <Button.Text>{translate('workspace.rules.newRule.describe')}</Button.Text>
