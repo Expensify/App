@@ -9913,6 +9913,8 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
         fallbackTitle: 'Supportticket',
         resolved: 'Dit supportticket is opgelost.',
         surveyPrompt: 'Hoe was je ervaring met de ondersteuning?',
+        great: 'Geweldig',
+        poor: 'Slecht',
         reopenTicket: 'Ticket opnieuw openen',
     },
     statementPage: {

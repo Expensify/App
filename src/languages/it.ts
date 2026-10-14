@@ -9947,6 +9947,8 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
         fallbackTitle: 'Ticket di supporto',
         resolved: 'Questo ticket di assistenza è risolto.',
         surveyPrompt: 'Com’è stata la tua esperienza con l’assistenza?',
+        great: 'Ottima',
+        poor: 'Scarsa',
         reopenTicket: 'Riapri ticket',
     },
     statementPage: {

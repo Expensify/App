@@ -10175,6 +10175,8 @@ ${reportName}`,
         fallbackTitle: 'Αίτημα υποστήριξης',
         resolved: 'Αυτό το αίτημα υποστήριξης επιλύθηκε.',
         surveyPrompt: 'Πώς ήταν η εμπειρία σας με την υποστήριξη;',
+        great: 'Εξαιρετική',
+        poor: 'Κακή',
         reopenTicket: 'Επανέναρξη αιτήματος',
     },
     statementPage: {
