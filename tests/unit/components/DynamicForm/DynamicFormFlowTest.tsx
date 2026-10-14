@@ -93,6 +93,7 @@ type RenderFlowOptions = {
     isSubmitting?: boolean;
     shouldReplaceRoute?: boolean;
     maxFileSize?: number;
+    onRefreshRequirements?: (inputID: string, value: FormValue) => void;
 };
 
 async function renderFlow({
@@ -107,6 +108,7 @@ async function renderFlow({
     isSubmitting,
     shouldReplaceRoute,
     maxFileSize,
+    onRefreshRequirements,
 }: RenderFlowOptions = {}) {
     await Onyx.set(`${FORM_ID}Draft`, draft);
     await Onyx.set(ONYXKEYS.RAM_ONLY_DYNAMIC_FORM_SENSITIVE_ANSWERS, {[FORM_ID]: sensitiveAnswers});
@@ -140,6 +142,7 @@ async function renderFlow({
             hasConfirmation={hasConfirmation === 'default' ? undefined : hasConfirmation}
             layout={layout}
             maxFileSize={maxFileSize}
+            onRefreshRequirements={onRefreshRequirements}
             isSubmitting={submitting}
         />
     );
@@ -599,6 +602,41 @@ describe('DynamicFormFlow', () => {
             // Then the list goes to memory only, so no director reaches the device's storage
             expect(saveDraftAnswers).not.toHaveBeenCalled();
             expect(getListItems(jest.mocked(saveSensitiveAnswers).mock.lastCall?.[1].directors).map((item) => item.firstName)).toEqual(['John']);
+        });
+
+        it('asks for fresh requirements when the user saves an entry of a list that refreshes them on change', async () => {
+            // Given the editor of a new director, in a list whose entries decide which questions come next
+            const refreshingSchema: DynamicFormSchema = {
+                pages: [
+                    {key: 'directors', content: [{key: 'directors', type: 'list', required: true, refreshOnChange: true, itemFields: [{key: 'firstName', type: 'text', required: true}]}]},
+                ],
+            };
+            const onRefreshRequirements = jest.fn<void, [string, FormValue]>();
+            const {pageProps} = await renderFlow({flowSchema: refreshingSchema, draft: {directors: [jane]}, currentPageName: 'directors~new', onRefreshRequirements});
+
+            // When the user saves the director
+            pageProps?.onListItemSave('directors', undefined, {firstName: 'John'});
+
+            // Then the screen gets the updated list, as it does when an entry is removed, so the requirements match the entries
+            expect(onRefreshRequirements).toHaveBeenCalledTimes(1);
+            const refreshedItems = getListItems(onRefreshRequirements.mock.lastCall?.[1]);
+            expect(onRefreshRequirements.mock.lastCall?.[0]).toBe('directors');
+            expect(refreshedItems.map((item) => item.firstName)).toEqual(['Jane', 'John']);
+        });
+
+        it('gives a readonly list no entry editors', async () => {
+            // Given a readonly list with one entry
+            const readonlySchema: DynamicFormSchema = {
+                pages: [{key: 'directors', content: [{key: 'directors', type: 'list', required: true, readonly: true, itemFields: [{key: 'firstName', type: 'text', required: true}]}]}],
+            };
+
+            // When the flow renders
+            const {subPageOptions} = await renderFlow({flowSchema: readonlySchema, draft: {directors: [jane]}, currentPageName: 'directors'});
+
+            // Then no editor page exists, so a link to one cannot edit an answer the schema locks
+            const pageNames = subPageOptions.pages.map((page) => page.pageName);
+            expect(pageNames).not.toContain('directors~new');
+            expect(pageNames).not.toContain('directors~jane');
         });
 
         it('returns from an entry editor to its list page on back', async () => {

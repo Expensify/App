@@ -74,8 +74,10 @@ function DynamicFormFlow({
 
     // useSubPage needs at least one page, so a form without pages gets the confirmation page
     const hasConfirmationPage = pages.length === 0 || hasConfirmation;
-    // Entry editors come after the confirmation page and are skipped by Next and Back, so only an entry's Add, Edit or row opens them
-    const listItemPageNames = listFields.flatMap((field) => [getListItemPageName(field.key), ...getListItems(values[field.key]).map((item) => getListItemPageName(field.key, item.id))]);
+    // Entry editors come after the confirmation page and are skipped by Next and Back, so only an entry's Add, Edit or row opens them. A readonly list has no editors.
+    const listItemPageNames = listFields
+        .filter((field) => !field.readonly)
+        .flatMap((field) => [getListItemPageName(field.key), ...getListItems(values[field.key]).map((item) => getListItemPageName(field.key, item.id))]);
     const subPages = [
         ...pages.map((page) => ({pageName: page.key, component: DynamicFormFieldsPage})),
         ...(hasConfirmationPage ? [{pageName: CONST.DYNAMIC_FORM.CONFIRMATION_PAGE_KEY, component: DynamicFormConfirmationPage}] : []),
@@ -234,10 +236,15 @@ function DynamicFormFlow({
             }
         }
         const items = getListItems(values[listKey]);
+        const savedItems = itemID ? items.map((existing) => (existing.id === id ? item : existing)) : [...items, item];
         const saveListAnswer = isSensitiveField(listField) ? saveSensitiveAnswers : saveDraftAnswers;
-        saveListAnswer(formID, {[listKey]: itemID ? items.map((existing) => (existing.id === id ? item : existing)) : [...items, item]});
+        saveListAnswer(formID, {[listKey]: savedItems});
         if (Object.keys(sensitiveAnswers).length > 0) {
             saveSensitiveAnswers(formID, sensitiveAnswers);
+        }
+        // The editor saves outside the list's input, so a list that asks for fresh requirements on change asks here, as a removal does through its input
+        if (listField.refreshOnChange) {
+            onRefreshRequirements?.(listKey, savedItems);
         }
         closeListItemEditor(listKey);
     };

@@ -1,5 +1,6 @@
 import DynamicFormListItemModal from '@components/DynamicForm/components/DynamicFormListItemModal';
 import type {DynamicFormValues} from '@components/DynamicForm/types';
+import getAnswerKeys from '@components/DynamicForm/utils/getAnswerKeys';
 import isSensitiveField from '@components/DynamicForm/utils/isSensitiveField';
 import summarizeListItem from '@components/DynamicForm/utils/summarizeListItem';
 import ListField from '@components/ListField';
@@ -85,7 +86,7 @@ function ListFieldAdapter({
     if (editingItem) {
         modalTitle = editingTitle === '' ? label : editingTitle;
     }
-    const sensitiveKeys = new Set(itemFields.filter(isSensitiveField).map((field) => field.key));
+    const sensitiveKeys = new Set(itemFields.filter(isSensitiveField).flatMap(getAnswerKeys));
 
     // Sensitive answers are not drafted, so the modal shows them blank and a blank one keeps the stored answer
     const openModal = (item?: DynamicFormListItem) => {
