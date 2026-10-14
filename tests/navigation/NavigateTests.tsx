@@ -485,7 +485,7 @@ describe('Navigate', () => {
             ['add payment card', () => createDynamicRoute(DYNAMIC_ROUTES.ADD_PAYMENT_CARD.path)],
             ['add US bank account', () => createDynamicRoute(DYNAMIC_ROUTES.ADD_US_BANK_ACCOUNT.getRoute())],
             ['personal card details', () => createDynamicRoute(DYNAMIC_ROUTES.PERSONAL_CARD_DETAILS.getRoute('123'))],
-            ['enter signer info', () => createDynamicRoute(DYNAMIC_ROUTES.ENTER_SIGNER_INFO.getRoute('1', '2', false))],
+            ['enter signer info', () => createDynamicRoute(DYNAMIC_ROUTES.BANK_ACCOUNT_ENTER_SIGNER_INFO.getRoute('1', '2', false))],
             ['app download links', () => createDynamicRoute(DYNAMIC_ROUTES.APP_DOWNLOAD_LINKS.path)],
         ])('keeps Reports behind the %s RHP when opened in-app', (_label, getRoute) => {
             // Given a report open in the Reports tab

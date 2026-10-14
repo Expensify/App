@@ -27,7 +27,7 @@ function EnterSignerInfo({policyID, bankAccountID, bankAccountLastFour}: EnterSi
     const icons = useMemoizedLazyExpensifyIcons(['Bank']);
 
     const handleCtaPress = () => {
-        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.ENTER_SIGNER_INFO.getRoute(policyID, bankAccountID, false)));
+        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.BANK_ACCOUNT_ENTER_SIGNER_INFO.getRoute(policyID, bankAccountID, false)));
     };
 
     return (

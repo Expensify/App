@@ -72,7 +72,7 @@ function ReportActionItemMessage({action, displayAsGroup, reportID, style, isHid
             return;
         }
 
-        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.ENTER_SIGNER_INFO.getRoute(policyID, bankAccountID, isCompleted)));
+        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.BANK_ACCOUNT_ENTER_SIGNER_INFO.getRoute(policyID, bankAccountID, isCompleted)));
     };
     if (isReimbursementDirectionInformationRequiredAction(action)) {
         const {bankAccountLastFour, currency, policyID, bankAccountID, completed} =

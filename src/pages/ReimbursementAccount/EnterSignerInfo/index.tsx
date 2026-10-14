@@ -67,9 +67,9 @@ function EnterSignerInfo({route}: EnterSignerInfoProps) {
         });
     }, [bankAccountID, enterSignerInfoFormDraft, signerEmail]);
 
-    const basePath = useDynamicBackPath(DYNAMIC_ROUTES.ENTER_SIGNER_INFO.path);
+    const basePath = useDynamicBackPath(DYNAMIC_ROUTES.BANK_ACCOUNT_ENTER_SIGNER_INFO.path);
     const buildRoute = (pageName: string, action?: 'edit') =>
-        createDynamicRoute(DYNAMIC_ROUTES.ENTER_SIGNER_INFO.getRoute(policyID, route.params.bankAccountID, route.params.isCompleted === 'true', pageName, action), basePath);
+        createDynamicRoute(DYNAMIC_ROUTES.BANK_ACCOUNT_ENTER_SIGNER_INFO.getRoute(policyID, route.params.bankAccountID, route.params.isCompleted === 'true', pageName, action), basePath);
 
     const {
         CurrentPage: EnterSignerInfoForm,

@@ -1594,12 +1594,12 @@ const DYNAMIC_ROUTES = {
             return `us-bank-account${subPagePart}${actionPart}` as const;
         },
     },
-    ENTER_SIGNER_INFO: {
+    BANK_ACCOUNT_ENTER_SIGNER_INFO: {
         path: 'enter-signer-info/:subPage?/:action?',
         entryScreens: ['*'],
         getRoute: (policyID: string | undefined, bankAccountID: string | undefined, isCompleted: boolean, subPage?: string, action?: 'edit') => {
             if (!policyID) {
-                Log.warn('Invalid policyID is used to build the ENTER_SIGNER_INFO route');
+                Log.warn('Invalid policyID is used to build the BANK_ACCOUNT_ENTER_SIGNER_INFO route');
             }
             const subPagePart = subPage ? `/${subPage}` : '';
             const actionPart = action ? `/${action}` : '';
