@@ -643,7 +643,7 @@ describe('actions/Transaction', () => {
                 expect(carouselTransactionIDs).toEqual(transactionIDs.slice(1));
             });
 
-            it('puts the expense back into the carousel when the move fails', async () => {
+            it('does not write the carousel back when the move fails', async () => {
                 // Given a carousel seeded by opening an expense row in the source report
                 await setActiveTransactionIDs(transactionIDs, {source: CAROUSEL_SOURCE.reportRow(sourceReport.reportID)});
                 await waitForBatchedUpdates();
@@ -654,9 +654,10 @@ describe('actions/Transaction', () => {
                 global.fetch = mockFetch;
                 await moveFirstTransactionToDestination();
 
-                // Then the expense is back in the carousel too, so the report's arrows page through it again
+                // Then the failure leaves the carousel alone, because by the time it lands the screen that owned the list
+                // may already have cleared it, and writing it back would leave an orphaned list that nothing clears
                 const carouselTransactionIDs = await getOnyxValue(ONYXKEYS.TRANSACTION_THREAD_NAVIGATION_TRANSACTION_IDS);
-                expect(carouselTransactionIDs).toEqual(transactionIDs);
+                expect(carouselTransactionIDs).toEqual(transactionIDs.slice(1));
             });
 
             it('leaves a carousel seeded from another source untouched', async () => {

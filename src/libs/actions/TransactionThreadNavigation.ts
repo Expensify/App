@@ -2,8 +2,6 @@ import type {TransactionThreadNavigationDescriptor} from '@libs/TransactionThrea
 
 import ONYXKEYS from '@src/ONYXKEYS';
 
-import type {OnyxUpdate} from 'react-native-onyx';
-
 import Onyx from 'react-native-onyx';
 
 /**
@@ -203,49 +201,33 @@ function clearActiveTransactionIDsForSource(source: string) {
     return clearActiveTransactionIDs();
 }
 
-type RemoveActiveTransactionIDsOnyxData = {
-    optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.TRANSACTION_THREAD_NAVIGATION_TRANSACTION_IDS>>;
-    failureData: Array<OnyxUpdate<typeof ONYXKEYS.TRANSACTION_THREAD_NAVIGATION_TRANSACTION_IDS>>;
-};
-
 /**
- * Builds the Onyx updates that take expenses leaving `reportID` out of a carousel seeded from that report.
- *
- * A report-scoped carousel lists the report's own expenses, so an expense moved or removed from the report no longer
- * belongs in it. Leaving it there kept the arrows on the report's header after it dropped to one expense, and
- * stepping to the moved expense opened it in its new home (for example the self-DM). Carousels from other screens,
- * such as search results, legitimately span several reports and are left alone.
- *
- * The updates ride along with the move request, so a failed move puts the expense back into the carousel together
- * with putting it back into the report. The owner is kept even when the list empties, so it can still clear a list
- * that a failed move restored.
+ * Drops expenses that left `reportID` from a carousel seeded from that report, so its arrows stop paging to them.
+ * Carousels from other screens, such as search results, span several reports and are left alone.
  */
-function getRemoveActiveTransactionIDsForReportOnyxData(transactionIDs: string[], reportID: string | undefined): RemoveActiveTransactionIDsOnyxData | undefined {
+function removeActiveTransactionIDsForReport(transactionIDs: string[], reportID: string | undefined) {
     if (!lastSetIDs?.length || !transactionIDs.length || !reportID) {
-        return undefined;
+        return Promise.resolve();
     }
 
     const reportSources = new Set<string>([CAROUSEL_SOURCE.report(reportID), CAROUSEL_SOURCE.reportRow(reportID), CAROUSEL_SOURCE.reportPreview(reportID)]);
     if (!lastSetSource || !reportSources.has(lastSetSource)) {
-        return undefined;
+        return Promise.resolve();
     }
 
     const removedIDs = new Set(transactionIDs);
     const remainingIDs = lastSetIDs.filter((transactionID) => !removedIDs.has(transactionID));
     if (remainingIDs.length === lastSetIDs.length) {
-        return undefined;
+        return Promise.resolve();
     }
 
-    const previousIDs = lastSetIDs;
-
     // One expense left is nothing to page through.
-    const nextIDs = remainingIDs.length < 2 ? null : remainingIDs;
-    lastSetIDs = nextIDs;
+    if (remainingIDs.length < 2) {
+        return clearActiveTransactionIDs();
+    }
 
-    return {
-        optimisticData: [{onyxMethod: Onyx.METHOD.SET, key: ONYXKEYS.TRANSACTION_THREAD_NAVIGATION_TRANSACTION_IDS, value: nextIDs}],
-        failureData: [{onyxMethod: Onyx.METHOD.SET, key: ONYXKEYS.TRANSACTION_THREAD_NAVIGATION_TRANSACTION_IDS, value: previousIDs}],
-    };
+    lastSetIDs = remainingIDs;
+    return Onyx.set(ONYXKEYS.TRANSACTION_THREAD_NAVIGATION_TRANSACTION_IDS, remainingIDs);
 }
 
 /**
@@ -268,7 +250,7 @@ export {
     setActiveTransactionIDs,
     clearActiveTransactionIDs,
     clearActiveTransactionIDsForSource,
-    getRemoveActiveTransactionIDsForReportOnyxData,
+    removeActiveTransactionIDsForReport,
     disownActiveTransactionIDs,
     getActiveTransactionIDs,
     shouldRefreshActiveTransactionIDs,
