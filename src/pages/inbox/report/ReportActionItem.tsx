@@ -14,6 +14,7 @@ import UnreadActionIndicator from '@components/UnreadActionIndicator';
 
 import useConfirmModal from '@hooks/useConfirmModal';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -56,7 +57,6 @@ import {
     isPendingRemove,
     isTripPreview,
     isWhisperActionTargetedToOthers,
-    shouldHidePayAction,
     useTableReportViewActionRenderConditionals,
 } from '@libs/ReportActionsUtils';
 import {
@@ -191,6 +191,7 @@ function ReportActionItem({
     isHarvestCreatedExpenseReport = false,
 }: ReportActionItemProps) {
     const reportID = report?.reportID ?? action?.reportID;
+    const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const originalReportID = useOriginalReportID(report?.reportID, action);
     const {isOffline} = useNetwork();
     const reportsParentHierarchy = useReportsParentHierarchy();
@@ -282,6 +283,7 @@ function ReportActionItem({
         if (isSendingMoney && transactionIDToDismiss && reportID) {
             cleanUpMoneyRequest({
                 transactionID: transactionIDToDismiss,
+                currentUserAccountID,
                 reportAction: action,
                 reportID,
                 transactionThreadReport,
@@ -515,7 +517,7 @@ function ReportActionItem({
 
     // For the `pay` IOU action on non-pay expense flow, we don't want to render anything if `isWaitingOnBankAccount` is true
     // Otherwise, we will see two system messages informing the payee needs to add a bank account or wallet
-    if (shouldHidePayAction(action, !!report?.isWaitingOnBankAccount)) {
+    if (isMoneyRequestAction(action) && !!report?.isWaitingOnBankAccount && getOriginalMessage(action)?.type === CONST.IOU.REPORT_ACTION_TYPE.PAY && !isSendingMoney) {
         return null;
     }
 
@@ -574,6 +576,7 @@ function ReportActionItem({
                         accessibilityLabel={accessibilityLabel}
                         accessibilityHint={translate('accessibilityHints.chatMessage')}
                         accessibilityRole={isSafari() && hasHoverSupport() ? undefined : CONST.ROLE.BUTTON}
+                        shouldAllowTextSelection={hasHoverSupport()}
                         sentryLabel={CONST.SENTRY_LABEL.REPORT.REPORT_ACTION_ITEM}
                     >
                         <Hoverable

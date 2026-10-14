@@ -581,6 +581,10 @@ const translations: TranslationDeepObject<typeof en> = {
         errorWhileSelectingCorruptedAttachment: 'Si è verificato un errore durante la selezione di un allegato danneggiato. Riprova con un altro file.',
         errorWhileConvertingHeic: 'Non è stato possibile elaborare questa immagine. Riprova o carica la foto in un altro formato.',
         takePhoto: 'Scatta foto',
+        retake: 'Ripeti',
+        usePhoto: 'Usa foto',
+        capturedPhotoPreview: 'Anteprima foto',
+        photoTakenAnnouncement: 'Foto scattata. Scegli Ripeti o Usa foto.',
         chooseFromGallery: 'Scegli dalla galleria',
         chooseDocument: 'Scegli file',
         attachmentTooLarge: 'L’allegato è troppo grande',
@@ -1649,6 +1653,7 @@ const translations: TranslationDeepObject<typeof en> = {
             saveReceipt: 'Salva ricevuta',
             genericDeleteFailureMessage: 'Errore imprevisto durante l’eliminazione di questa spesa. Riprova più tardi.',
             genericEditFailureMessage: 'Errore imprevisto durante la modifica di questa spesa. Riprova più tardi.',
+            genericSplitFailureMessage: 'Errore imprevisto durante la divisione di questa spesa. Riprova più tardi.',
             genericSmartscanFailureMessage: 'Alla transazione mancano dei campi',
             duplicateWaypointsErrorMessage: 'Rimuovi i punti di passaggio duplicati',
             atLeastTwoDifferentWaypoints: 'Inserisci almeno due indirizzi diversi',
@@ -3416,9 +3421,10 @@ ${amount} per ${merchant} - ${date}`,
             title: 'Cosa vuoi fare oggi?',
             errorContinue: 'Premi Continua per completare la configurazione',
             errorBackButton: 'Completa le domande di configurazione per iniziare a usare l’app',
-            [CONST.ONBOARDING_CHOICES.EMPLOYER]: 'Inviare le spese al mio datore di lavoro',
+            [CONST.ONBOARDING_CHOICES.JOIN_WORKSPACE]: 'Unisciti allo spazio di lavoro della mia azienda',
+            [CONST.ONBOARDING_CHOICES.EMPLOYER]: 'Invia le spese al mio datore di lavoro',
             [CONST.ONBOARDING_CHOICES.MANAGE_TEAM]: 'Gestisci le spese del mio team',
-            [CONST.ONBOARDING_CHOICES.TRACK_BUSINESS]: 'Tieni traccia delle spese aziendali',
+            [CONST.ONBOARDING_CHOICES.TRACK_BUSINESS]: 'Tieni traccia delle spese per la mia attività',
             [CONST.ONBOARDING_CHOICES.TRACK_PERSONAL]: 'Organizza le mie spese personali',
             [CONST.ONBOARDING_CHOICES.LOOKING_AROUND]: 'Altro',
         },
@@ -3477,6 +3483,8 @@ ${amount} per ${merchant} - ${date}`,
             title: "Impossibile aggiungere l'email di lavoro",
             subtitle: (workEmail: string | undefined) =>
                 `Non è stato possibile aggiungere ${workEmail}. Riprova più tardi in Impostazioni oppure chatta con Concierge per ricevere assistenza.`,
+            validatedPublicDomainSubtitle: (workEmail: string | undefined) =>
+                `Non siamo riusciti ad aggiungere ${workEmail}. Per unire questi account, accedi come ${workEmail} e vai su Account > Sicurezza > Unisci account per completare la procedura.`,
             workAccountClosedSubtitle:
                 'L’account di lavoro associato a questa email è chiuso. Contatta l’amministratore della tua azienda per riattivarlo oppure registrati con un’altra email.',
             domainControlledSubtitle: (workEmail: string | undefined) => `${workEmail} è un accesso controllato dal dominio per un account Expensify esistente.`,
@@ -3715,6 +3723,34 @@ ${amount} per ${merchant} - ${date}`,
                     E hai finito!
                 `),
             },
+            addWorkEmailTask: {
+                title: 'Aggiungi la tua email di lavoro',
+                description: ({workEmailLink = ''}) =>
+                    Str.dedent(`
+                        1. Apri [Aggiungi email di lavoro](${workEmailLink}).
+                        2. Inserisci l’indirizzo email della tua azienda.
+                        3. Inserisci il codice che ti abbiamo inviato via email.
+                        4. Scegli uno spazio di lavoro a cui unirti oppure fai clic su *Chiedi di unirti* per inviare una richiesta al proprietario dello spazio di lavoro.
+                    `),
+            },
+            validateEmailTask: {
+                title: 'Conferma la tua email',
+                description: ({validateEmailLink = '', workEmail = ''}) =>
+                    Str.dedent(`
+                        1. Apri [Conferma il tuo account](${validateEmailLink}).
+                        2. Inserisci il codice che abbiamo inviato a ${workEmail}.
+                        3. Scegli uno spazio di lavoro a cui unirti oppure fai clic su *Chiedi di unirti* per inviare una richiesta al proprietario dello spazio di lavoro.
+                    `),
+            },
+            joinWorkspaceTask: {
+                title: 'Unisciti allo spazio di lavoro della tua azienda',
+                description: ({joinWorkspaceLink = ''}) =>
+                    Str.dedent(`
+                        1. Apri [Partecipa a uno spazio di lavoro](${joinWorkspaceLink}).
+                        2. Trova il tuo team nell'elenco. Ogni voce mostra il proprietario e quante persone ne fanno parte, dalle più numerose alle più piccole. Clicca su *Mostra di più* se non vedi il tuo.
+                        3. Clicca su *Partecipa ora* o su *Chiedi di partecipare* se è necessaria l’approvazione di un amministratore.
+                    `),
+            },
         } satisfies Record<string, Pick<OnboardingTask, 'title' | 'description'>>,
         testDrive: {
             name: ({testDriveURL}: {testDriveURL?: string}) => (testDriveURL ? `Fai un [giro di prova](${testDriveURL})` : 'Fai un giro di prova'),
@@ -3737,6 +3773,14 @@ ${amount} per ${merchant} - ${date}`,
             onboardingChatSplitMessage: 'Dividere le spese con gli amici è facile come inviare un messaggio. Ecco come fare.',
             onboardingAdminMessage: 'Scopri come gestire lo spazio di lavoro del tuo team come amministratore e inviare le tue spese.',
             onboardingTestDriveReceiverMessage: '*Hai 3 mesi gratis! Inizia qui sotto.*',
+            onboardingJoinWorkspaceAddWorkEmailMessage:
+                'Dato che stai cercando di unirti allo spazio di lavoro della tua azienda, non ne ho creato uno per te. Aggiungi la tua email di lavoro e verificherò a quali spazi di lavoro della tua azienda puoi unirti.',
+            onboardingJoinWorkspaceValidateEmailMessage: ({companyDomain = ''}: {companyDomain?: string}) =>
+                `Dato che vuoi unirti allo spazio di lavoro della tua azienda, non ne ho creato uno per te. Verifica la tua email e controllerò a quali spazi di lavoro su ${companyDomain} puoi unirti.`,
+            onboardingJoinWorkspaceMessage: ({companyDomain = '', joinWorkspaceLink = ''}: {companyDomain?: string; joinWorkspaceLink?: string}) =>
+                `Dato che vuoi entrare nello spazio di lavoro della tua azienda, non ne ho creato uno per te. Il tuo team su ${companyDomain} è già su Expensify. [Dai un'occhiata agli spazi di lavoro a cui puoi unirti.](${joinWorkspaceLink})`,
+            onboardingJoinWorkspaceEmptyMessage:
+                'Sembra che la tua azienda non abbia nessuna workspace a cui puoi unirti. Contatta il tuo amministratore e chiedigli di invitarti nella sua workspace.',
         },
         workspace: {
             title: 'Resta organizzato con uno spazio di lavoro',
@@ -4477,7 +4521,7 @@ ${amount} per ${merchant} - ${date}`,
         enterSignerInfo: 'Inserisci le informazioni del firmatario',
         thisStep: 'Questo passaggio è stato completato',
         isConnecting: (bankAccountLastFour: string | undefined, currency: string | undefined) =>
-            `sta collegando un conto bancario aziendale in ${currency} che termina con ${bankAccountLastFour} a Expensify per pagare i dipendenti in ${currency}. Il prossimo passaggio richiede le informazioni del firmatario da un direttore.`,
+            `ha aggiunto un conto bancario in ${currency} che termina con ${bankAccountLastFour}. Inserisci le tue informazioni di firmatario come direttore in modo che questo conto bancario possa essere utilizzato per pagare i dipendenti.`,
         error: {
             emailsMustBeDifferent: 'Le email devono essere diverse',
         },
@@ -5976,10 +6020,10 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
             enterCredentials: 'Inserisci la tua chiave API Rillet',
             howToFindAPIKey:
                 '<strong>Come trovare la tua chiave API.</strong><ol><li>Accedi a Rillet</li><li>Vai a [nome organizzazione] -> Impostazioni organizzazione -> Accesso API</li><li>Crea una chiave API</li><li>Incolla la chiave API qui sotto</li></ol>',
-            subsidiary: 'Filiale',
-            subsidiarySelectDescription: 'Scegli la consociata in Rillet da cui vuoi importare i dati.',
-            noSubsidiariesFound: 'Nessuna consociata trovata',
-            noSubsidiariesFoundDescription: 'Aggiungi una consociata in Rillet e sincronizza di nuovo la connessione',
+            entity: 'Entità',
+            entitySelectDescription: 'Scegli l’entità in Rillet da cui vuoi importare i dati.',
+            noEntitiesFound: 'Nessuna entità trovata',
+            noEntitiesFoundDescription: "Aggiungi un'entità in Rillet e sincronizza di nuovo la connessione",
             accountTypesDescription: 'I tuoi conti Rillet verranno importati come categorie.',
             enableNewAccountsTitle: 'Abilita i conti appena importati',
             enableNewAccountsDescription: 'I nuovi conti Rillet saranno disponibili come categorie.',
@@ -6080,8 +6124,8 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
             enterCredentials: 'Inserisci la tua chiave API DualEntry',
             howToFindAPIKey:
                 '<strong>Trova la tua chiave API.</strong><ol><li>Accedi a DualEntry</li><li>Vai a [organization name] -> Impostazioni -> Accesso sviluppatore -> Chiavi API</li><li>Crea una chiave API</li><li>Incolla la chiave API qui sotto</li></ol>',
-            subsidiary: 'Consociata',
-            subsidiarySelectDescription: 'Scegli la consociata in DualEntry da cui vuoi importare i dati.',
+            company: 'Azienda',
+            companySelectDescription: "Scegli l'azienda in DualEntry da cui vuoi importare i dati.",
             noCompaniesFound: 'Nessuna azienda trovata',
             noCompaniesFoundDescription: 'Aggiungi un’azienda in DualEntry e sincronizza di nuovo la connessione',
             noVendorsFound: 'Nessun fornitore trovato',
@@ -8988,10 +9032,10 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
             enterCredentials: 'Inserisci la tua chiave API Campfire',
             howToFindAPIKey:
                 '<strong>Trova la tua chiave API.</strong><ol><li>Accedi a Campfire</li><li>Vai a Impostazioni -> Chiavi API</li><li>Crea una chiave API</li><li>Incolla la chiave API qui sotto</li></ol>',
-            subsidiary: 'Consociata',
-            subsidiarySelectDescription: 'Scegli la consociata in Campfire da cui vuoi importare i dati.',
-            noSubsidiariesFound: 'Nessuna consociata trovata',
-            noSubsidiariesFoundDescription: "Aggiungi un'entità in Campfire e sincronizza di nuovo la connessione",
+            entity: 'Entità',
+            entitySelectDescription: 'Scegli l’entità in Campfire da cui vuoi importare i dati.',
+            noEntitiesFound: 'Nessuna entità trovata',
+            noEntitiesFoundDescription: "Aggiungi un'entità in Campfire e sincronizza di nuovo la connessione",
             noVendorsFound: 'Nessun fornitore trovato',
             noVendorsFoundDescription: 'Aggiungi fornitori in Campfire e sincronizza di nuovo la connessione',
             importDescription: 'Scegli quali configurazioni di codifica importare da Campfire.',
@@ -10298,10 +10342,6 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
         genericUpdateReportFieldFailureMessage: "Errore imprevisto durante l'aggiornamento del campo. Riprova più tardi.",
         genericUpdateReportNameEditFailureMessage: 'Errore imprevisto durante la rinomina del report. Riprova più tardi.',
         noActivityYet: 'Ancuna nessuna attività',
-        collapsedSystemMessages: () => ({
-            one: 'mostra 1 aggiornamento',
-            other: (count: number) => `mostra ${count} aggiornamenti`,
-        }),
         connectionSettings: 'Impostazioni di connessione',
         actions: {
             type: {
