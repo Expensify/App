@@ -21,7 +21,7 @@ import {setDraftValues} from '@userActions/FormActions';
 import CONST from '@src/CONST';
 
 import type {ComponentRef} from 'react';
-import type {TextInputKeyPressEvent} from 'react-native';
+import type {TextInput as TextInputRN, TextInputKeyPressEvent} from 'react-native';
 
 import {setYear} from 'date-fns';
 import debounce from 'lodash/debounce';
@@ -154,6 +154,24 @@ function DatePicker({
     const autoFocusCallbackRefRef = useRef(autoFocusCallbackRef);
     autoFocusCallbackRefRef.current = autoFocusCallbackRef;
 
+    // Whether focus is being placed by autofocus rather than by the user
+    const isAutoFocusingRef = useRef(false);
+    const segmentInputRef = useRef(segmentInput);
+    useEffect(() => {
+        segmentInputRef.current = segmentInput;
+    });
+
+    // The field's own ref leads to the year, since that is where typing starts in an empty field. A text field answers
+    // autofocus with the caret where typing would carry on instead, which is what this stands in to do.
+    const autoFocusTargetRef = useRef({
+        focus: () => {
+            isAutoFocusingRef.current = true;
+            segmentInputRef.current.focusFirstUnfilledSegment();
+            isAutoFocusingRef.current = false;
+        },
+        blur: () => textInputRef.current?.blur(),
+    });
+
     useEffect(() => {
         if (shouldSaveDraft && formID) {
             setDraftValues(formID, {[inputID]: selectedDate});
@@ -194,6 +212,11 @@ function DatePicker({
         // Re-opening would remeasure and re-announce a calendar that is already showing. Both a press and a focus can
         // ask for it, and while typing both arrive for a single click.
         if (isModalVisible) {
+            return;
+        }
+
+        // Autofocus is the screen arriving rather than the user asking for a calendar
+        if (isAutoFocusingRef.current) {
             return;
         }
 
@@ -329,13 +352,16 @@ function DatePicker({
     const combinedTextInputRef = useCallback(
         (ref: BaseTextInputRef | null) => {
             textInputRef.current = ref;
-            if (autoFocus) {
-                (autoFocusCallbackRefRef.current as unknown as (ref: BaseTextInputRef | null) => void)(ref);
+            if (!autoFocus) {
+                return;
             }
+
+            const autoFocusTarget = ref && shouldAllowTyping ? autoFocusTargetRef.current : ref;
+            autoFocusCallbackRefRef.current(autoFocusTarget as ComponentRef<typeof TextInputRN> | null);
         },
         // autoFocusCallbackRefRef is a stable ref — its identity never changes, so it's not a dep
 
-        [autoFocus],
+        [autoFocus, shouldAllowTyping],
     );
 
     return (
