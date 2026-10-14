@@ -11,6 +11,8 @@ import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import {usePersonalDetailsByLogins} from '@hooks/usePersonalDetailByLogin';
+import {useAllPersonalDetails} from '@hooks/usePersonalDetails';
 import usePersonalDetailSearchSelector from '@hooks/usePersonalDetailSearchSelector';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -61,10 +63,11 @@ function DynamicWorkspaceInvitePageContent({route, policy, invitedEmailsToAccoun
     const [didScreenTransitionEnd, setDidScreenTransitionEnd] = useState(false);
     const [isSearchingForUsers] = useOnyx(ONYXKEYS.RAM_ONLY_IS_SEARCHING_FOR_USERS);
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
-    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
+    const [personalDetails] = useAllPersonalDetails();
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
+    const employeePersonalDetails = usePersonalDetailsByLogins(Object.keys(policy?.employeeList ?? {}));
     const openWorkspaceInvitePage = () => {
-        const policyMemberEmailsToAccountIDs = getMemberAccountIDsForWorkspace(policy?.employeeList);
+        const policyMemberEmailsToAccountIDs = getMemberAccountIDsForWorkspace(policy?.employeeList, employeePersonalDetails);
         policyOpenWorkspaceInvitePage(route.params.policyID, Object.keys(policyMemberEmailsToAccountIDs));
     };
 
@@ -295,8 +298,9 @@ function DynamicWorkspaceInvitePageContent({route, policy, invitedEmailsToAccoun
 function DynamicWorkspaceInvitePage(props: WorkspaceInvitePageProps) {
     const [policy, policyMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${props.route.params.policyID}`);
     const [invitedEmailsToAccountIDsDraft, invitedEmailsToAccountIDsDraftMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MEMBERS_DRAFT}${props.route.params.policyID}`);
+    const dynamicBackPath = useDynamicBackPath(DYNAMIC_ROUTES.WORKSPACE_INVITE.path);
     if (isLoadingOnyxValue(policyMetadata, invitedEmailsToAccountIDsDraftMetadata)) {
-        return <FullscreenLoadingIndicator />;
+        return <FullscreenLoadingIndicator onGoBack={() => Navigation.goBack(dynamicBackPath)} />;
     }
     return (
         <DynamicWorkspaceInvitePageContent

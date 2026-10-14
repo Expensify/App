@@ -3,29 +3,31 @@
  */
 import WorkspaceAvatar from '@components/Avatar/WorkspaceAvatar';
 import getSearchTabRoute from '@components/Navigation/NavigationTabBar/getSearchTabRoute';
-import {useSearchQueryActions, useSearchSelectionActions} from '@components/Search/SearchContext';
+import {useSearchSelectionActions} from '@components/Search/SearchContext';
 import type {SearchQueryItem} from '@components/Search/SearchList/ListItem/SearchQueryListItem';
 import TextWithIconCell from '@components/Search/SearchList/ListItem/TextWithIconCell';
 import TextWithTooltip from '@components/TextWithTooltip';
 
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useIsUnifiedConnectionsBetaEnabled from '@hooks/useIsUnifiedConnectionsBetaEnabled';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useSearchTypeMenuSections from '@hooks/useSearchTypeMenuSections';
+import {useSearchTypeMenuSectionsForNavigation} from '@hooks/useSearchTypeMenuSections';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import navigateToDomainRouteWithSidebarSync from '@libs/Navigation/helpers/navigateToDomainRouteWithSidebarSync';
 import navigateToWorkspaceSettingsRoute from '@libs/Navigation/helpers/navigateToWorkspaceSettingsRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {shouldShowPolicy} from '@libs/PolicyUtils';
+import type {SearchKey} from '@libs/SearchKeyUtils';
 import navigateToCannedSpendSearch from '@libs/SearchNavigationUtils';
 import {getLastSearchQuery, SEARCH_TYPE_MENU_ICON_NAMES} from '@libs/SearchUIUtils';
-import type {SearchKey, SearchTypeMenuItem, SearchTypeMenuSection} from '@libs/SearchUIUtils';
+import type {SearchTypeMenuItem, SearchTypeMenuSection} from '@libs/SearchUIUtils';
 
 import navigationRef from '@navigation/navigationRef';
 
@@ -77,6 +79,7 @@ const SEARCH_ROUTER_ICON_NAMES = [
     'Users',
     'Hashtag',
     'Sync',
+    'Connect',
     'Briefcase',
     'Tag',
     'Coins',
@@ -141,6 +144,9 @@ type BuildWorkspaceNavigationItemsParams = {
 
     /** Whether the Merge ATS beta gating the Recruiting feature is enabled. */
     isRecruitingBetaEnabled: boolean;
+
+    /** Whether the unified Connections beta replaces the separate connection pages. */
+    isUnifiedConnectionsBetaEnabled: boolean;
 
     /** Whether navigation should use the narrow-layout Workspace flow. */
     shouldUseNarrowLayout: boolean;
@@ -290,6 +296,7 @@ function buildWorkspaceNavigationItems({
     isOffline,
     isVendorMatchingBetaEnabled,
     isRecruitingBetaEnabled,
+    isUnifiedConnectionsBetaEnabled,
     shouldUseNarrowLayout,
     convertToDisplayString,
     getItemText,
@@ -309,6 +316,7 @@ function buildWorkspaceNavigationItems({
                 policyCategories: policyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policy.id}`],
                 isVendorMatchingBetaEnabled,
                 isRecruitingBetaEnabled,
+                isUnifiedConnectionsBetaEnabled,
                 convertToDisplayString,
             });
 
@@ -320,7 +328,11 @@ function buildWorkspaceNavigationItems({
                     action: () => navigateToWorkspaceSettingsRoute(item.getRoute(), policy.id, shouldUseNarrowLayout, item.screenName),
                     keyForList: `workspace_${policy.id}_${item.screenName}`,
                     rightElement: <WorkspaceIdentityCell policy={policy} />,
-                    matchTerms: item.screenName === SCREENS.WORKSPACE.PROFILE ? [itemText, policy.name] : [itemText],
+                    matchTerms: [
+                        itemText,
+                        ...(item.screenName === SCREENS.WORKSPACE.PROFILE ? [policy.name] : []),
+                        ...(item.searchAliasKeys ?? []).map((translationKey) => getItemText({...item, translationKey})),
+                    ],
                     sortText: policy.name,
                 };
             });
@@ -385,6 +397,7 @@ function useNavigationSuggestions(query: string, shouldWatchForApprovals = true)
     const {convertToDisplayString} = useCurrencyListActions();
     const {isOffline} = useNetwork();
     const {isBetaEnabled} = usePermissions();
+    const isUnifiedConnectionsBetaEnabled = useIsUnifiedConnectionsBetaEnabled();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const icons = useMemoizedLazyExpensifyIcons(SEARCH_ROUTER_ICON_NAMES);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
@@ -396,8 +409,7 @@ function useNavigationSuggestions(query: string, shouldWatchForApprovals = true)
     const [policyCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES);
     const [currentUserLogin] = useOnyx(ONYXKEYS.SESSION, {selector: emailSelector});
     const {clearSelectedTransactions} = useSearchSelectionActions();
-    const typeMenuSections = useSearchTypeMenuSections(shouldWatchForApprovals);
-    const {setCurrentSearchKey} = useSearchQueryActions();
+    const typeMenuSections = useSearchTypeMenuSectionsForNavigation(shouldWatchForApprovals);
     const {accountMenuItemsData, generalMenuItemsData} = useSettingsNavigationMenuData();
 
     const topLevelItems = buildTopLevelNavigationItems({
@@ -430,8 +442,7 @@ function useNavigationSuggestions(query: string, shouldWatchForApprovals = true)
         ),
         getItemText: (item) => translate(item.translationPath),
         getDestinationText: (destination) => getGoToText(translate, destination),
-        onSelect: (searchKey, searchQuery) =>
-            navigateToCannedSpendSearch(searchKey, searchQuery, getLastSearchQuery(searchFilters, searchKey), clearSelectedTransactions, setCurrentSearchKey),
+        onSelect: (searchKey, searchQuery) => navigateToCannedSpendSearch(searchKey, searchQuery, getLastSearchQuery(searchFilters, searchKey), clearSelectedTransactions),
     });
 
     const workspaceItems = buildWorkspaceNavigationItems({
@@ -442,6 +453,7 @@ function useNavigationSuggestions(query: string, shouldWatchForApprovals = true)
         isOffline: !!isOffline,
         isVendorMatchingBetaEnabled: isBetaEnabled(CONST.BETAS.VENDOR_MATCHING),
         isRecruitingBetaEnabled: isBetaEnabled(CONST.BETAS.MERGE_ATS),
+        isUnifiedConnectionsBetaEnabled,
         shouldUseNarrowLayout,
         convertToDisplayString,
         getItemText: (item) => translate(item.translationKey),

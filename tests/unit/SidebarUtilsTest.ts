@@ -7,6 +7,7 @@ import type {ReportsToDisplayInLHN} from '@hooks/useSidebarOrderedReports';
 import {generateTransactionID} from '@libs/actions/Transaction';
 import DateUtils from '@libs/DateUtils';
 import type * as PolicyUtils from '@libs/PolicyUtils';
+import {getConnectedIntegration} from '@libs/PolicyUtils';
 import {getOriginalMessage, getReportActionMessageText} from '@libs/ReportActionsUtils';
 import {getLastActorDisplayName} from '@libs/ReportAlternateTextUtils';
 import {
@@ -167,7 +168,7 @@ describe('SidebarUtils', () => {
             const MOCK_TRANSACTION_VIOLATIONS: OnyxCollection<TransactionViolation[]> = {};
 
             const {result: isReportArchived} = renderHook(() => useReportIsArchived(MOCK_REPORT?.reportID));
-            const reportErrors = getAllReportErrors(MOCK_REPORT, MOCK_REPORT_ACTIONS, MOCK_TRANSACTIONS, CURRENT_USER_ACCOUNT_ID);
+            const reportErrors = getAllReportErrors(MOCK_REPORT, MOCK_REPORT_ACTIONS, MOCK_TRANSACTIONS, CURRENT_USER_ACCOUNT_ID, undefined);
             const {reason} =
                 SidebarUtils.getReasonAndReportActionThatHasRedBrickRoad({
                     report: MOCK_REPORT,
@@ -238,7 +239,7 @@ describe('SidebarUtils', () => {
 
             // Simulate how components determined if a report is archived by using this hook
             const {result: isReportArchived} = renderHook(() => useReportIsArchived(MOCK_REPORT?.reportID));
-            const reportErrors = getAllReportErrors(MOCK_REPORT, MOCK_REPORT_ACTIONS, MOCK_TRANSACTIONS, CURRENT_USER_ACCOUNT_ID);
+            const reportErrors = getAllReportErrors(MOCK_REPORT, MOCK_REPORT_ACTIONS, MOCK_TRANSACTIONS, CURRENT_USER_ACCOUNT_ID, undefined);
             const {reason} =
                 SidebarUtils.getReasonAndReportActionThatHasRedBrickRoad({
                     report: MOCK_REPORT,
@@ -268,7 +269,8 @@ describe('SidebarUtils', () => {
             const MOCK_REPORT_ACTIONS: OnyxEntry<ReportActions> = {};
             const MOCK_TRANSACTIONS = {};
             const MOCK_TRANSACTION_VIOLATIONS: OnyxCollection<TransactionViolation[]> = {};
-            const reportErrors = getAllReportErrors(MOCK_REPORT, MOCK_REPORT_ACTIONS, MOCK_TRANSACTIONS, CURRENT_USER_ACCOUNT_ID);
+            // getConnectedIntegration is mocked to return a connected integration, so the export error is kept
+            const reportErrors = getAllReportErrors(MOCK_REPORT, MOCK_REPORT_ACTIONS, MOCK_TRANSACTIONS, CURRENT_USER_ACCOUNT_ID, undefined);
             // Simulate how components determined if a report is archived by using this hook
             const {result: isReportArchived} = renderHook(() => useReportIsArchived(MOCK_REPORT?.reportID));
             const {reason} =
@@ -286,6 +288,40 @@ describe('SidebarUtils', () => {
                 }) ?? {};
 
             expect(reason).toBe(CONST.RBR_REASONS.HAS_ERRORS);
+        });
+
+        it('drops the export error when the policy has no connected integration', () => {
+            const MOCK_REPORT: Report = {
+                reportID: '1',
+                errorFields: {
+                    export: {
+                        error: 'Some error occurred',
+                    },
+                },
+            };
+
+            // When there is no connected accounting integration, the export error is not a real RBR reason
+            jest.mocked(getConnectedIntegration).mockReturnValueOnce(undefined);
+            const reportErrors = getAllReportErrors(MOCK_REPORT, {}, {}, CURRENT_USER_ACCOUNT_ID, undefined);
+
+            expect(Object.keys(reportErrors)).toHaveLength(0);
+        });
+
+        it('keeps the export error when the policy has a connected integration', () => {
+            const MOCK_REPORT: Report = {
+                reportID: '1',
+                errorFields: {
+                    export: {
+                        error: 'Some error occurred',
+                    },
+                },
+            };
+
+            // With a connected accounting integration, the export error is a real error and is preserved
+            jest.mocked(getConnectedIntegration).mockReturnValueOnce(CONST.POLICY.CONNECTIONS.NAME.QBO);
+            const reportErrors = getAllReportErrors(MOCK_REPORT, {}, {}, CURRENT_USER_ACCOUNT_ID, undefined);
+
+            expect(Object.keys(reportErrors)).toHaveLength(1);
         });
 
         it('returns correct report action when report has report action errors', () => {
@@ -312,7 +348,7 @@ describe('SidebarUtils', () => {
             };
             const MOCK_TRANSACTIONS = {};
             const MOCK_TRANSACTION_VIOLATIONS: OnyxCollection<TransactionViolation[]> = {};
-            const reportErrors = getAllReportErrors(MOCK_REPORT, MOCK_REPORT_ACTIONS, MOCK_TRANSACTIONS, CURRENT_USER_ACCOUNT_ID);
+            const reportErrors = getAllReportErrors(MOCK_REPORT, MOCK_REPORT_ACTIONS, MOCK_TRANSACTIONS, CURRENT_USER_ACCOUNT_ID, undefined);
             // Simulate how components determined if a report is archived by using this hook
             const {result: isReportArchived} = renderHook(() => useReportIsArchived(MOCK_REPORT?.reportID));
             const {reportAction} =
@@ -552,7 +588,7 @@ describe('SidebarUtils', () => {
 
             // When: Checking for RBR on the chat report
             const {result: isReportArchived} = renderHook(() => useReportIsArchived(chatReport?.reportID));
-            const reportErrors = getAllReportErrors(chatReport, MOCK_REPORT_ACTIONS, MOCK_TRANSACTIONS, CURRENT_USER_ACCOUNT_ID);
+            const reportErrors = getAllReportErrors(chatReport, MOCK_REPORT_ACTIONS, MOCK_TRANSACTIONS, CURRENT_USER_ACCOUNT_ID, undefined);
 
             const result = SidebarUtils.getReasonAndReportActionThatHasRedBrickRoad({
                 report: chatReport,
@@ -723,7 +759,12 @@ describe('SidebarUtils', () => {
 
             await waitForBatchedUpdatesWithAct();
 
-            const requiresAttention = getReasonAndReportActionThatRequiresAttention(policyExpenseChat, CURRENT_USER_LOGIN, CURRENT_USER_ACCOUNT_ID);
+            const requiresAttention = getReasonAndReportActionThatRequiresAttention({
+                optionOrReport: policyExpenseChat,
+                currentUserLogin: CURRENT_USER_LOGIN,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                transactionViolations: undefined,
+            });
             expect(requiresAttention?.reason).toBe(CONST.REQUIRES_ATTENTION_REASONS.HAS_CHILD_REPORT_AWAITING_ACTION);
 
             const {reason} =
@@ -934,7 +975,7 @@ describe('SidebarUtils', () => {
                     participantAccountIDs: [actorAccountID],
                 },
             };
-            const reportPreviewAction = buildOptimisticReportPreview(chatReport, iouReport, getCurrencyDecimalsLocal, '', transaction);
+            const reportPreviewAction = buildOptimisticReportPreview(chatReport, iouReport, getCurrencyDecimalsLocal, undefined, '', transaction);
 
             await act(async () => {
                 await Onyx.set(ONYXKEYS.SESSION, {accountID: 55555});
@@ -1030,7 +1071,7 @@ describe('SidebarUtils', () => {
                         source: '',
                         filename: 'download.jpeg',
                         action: 'replaceReceipt',
-                        retryParams: {transactionID: '', source: '', transactionPolicy: undefined, transactionPolicyTagList: undefined},
+                        retryParams: {transactionID: '', source: '', transactionPolicy: undefined, transactionPolicyTagList: undefined, isVendorMatchingBetaEnabled: false},
                     },
                 },
                 created: '2024-08-08 18:20:44.171',
@@ -1055,7 +1096,7 @@ describe('SidebarUtils', () => {
                 reports: MOCK_REPORTS,
                 currentReportId: undefined,
                 isInFocusMode: true,
-                betas: undefined,
+                isDefaultRoomsBetaEnabled: false,
                 transactionViolations: {},
                 draftComment: undefined,
                 transactions: MOCK_TRANSACTIONS,
@@ -1132,7 +1173,7 @@ describe('SidebarUtils', () => {
                         source: '',
                         filename: 'download.jpeg',
                         action: 'replaceReceipt',
-                        retryParams: {transactionID: '', source: '', transactionPolicy: undefined, transactionPolicyTagList: undefined},
+                        retryParams: {transactionID: '', source: '', transactionPolicy: undefined, transactionPolicyTagList: undefined, isVendorMatchingBetaEnabled: false},
                     },
                 },
                 created: '2024-08-08 18:20:44.171',
@@ -1169,7 +1210,7 @@ describe('SidebarUtils', () => {
                 reports: MOCK_REPORTS,
                 currentReportId: undefined,
                 isInFocusMode: true,
-                betas: undefined,
+                isDefaultRoomsBetaEnabled: false,
                 transactionViolations: {},
                 draftComment: undefined,
                 transactions: MOCK_TRANSACTIONS,
@@ -1190,7 +1231,6 @@ describe('SidebarUtils', () => {
                 reports: {},
                 currentReportId: undefined,
                 isInFocusMode: false,
-                betas: [],
                 transactionViolations: {},
                 draftComment: undefined,
                 transactions: {},
@@ -1213,7 +1253,7 @@ describe('SidebarUtils', () => {
                 reports: {},
                 currentReportId: undefined,
                 isInFocusMode: false,
-                betas: [],
+                isDefaultRoomsBetaEnabled: false,
                 transactionViolations: {},
                 draftComment: undefined,
                 transactions: {},
@@ -1238,7 +1278,7 @@ describe('SidebarUtils', () => {
                 reports: {[`${ONYXKEYS.COLLECTION.REPORT}1`]: report},
                 currentReportId: '1',
                 isInFocusMode: false,
-                betas: [],
+                isDefaultRoomsBetaEnabled: false,
                 transactionViolations: {},
                 draftComment: undefined,
                 transactions: {},
@@ -1264,7 +1304,7 @@ describe('SidebarUtils', () => {
                 reports: {[`${ONYXKEYS.COLLECTION.REPORT}1`]: report},
                 currentReportId: '1',
                 isInFocusMode: false,
-                betas: [],
+                isDefaultRoomsBetaEnabled: false,
                 transactionViolations: {},
                 draftComment: undefined,
                 transactions: {},
@@ -1312,7 +1352,7 @@ describe('SidebarUtils', () => {
                 reports,
                 currentReportId: undefined,
                 isInFocusMode: false,
-                betas: [],
+                isDefaultRoomsBetaEnabled: false,
                 transactionViolations: {},
                 draftComment: undefined,
                 transactions: {},
@@ -1352,7 +1392,7 @@ describe('SidebarUtils', () => {
                 reports,
                 currentReportId: undefined,
                 isInFocusMode: false,
-                betas: [],
+                isDefaultRoomsBetaEnabled: false,
                 transactionViolations: {},
                 draftComment: undefined,
                 transactions: {},
@@ -1402,7 +1442,7 @@ describe('SidebarUtils', () => {
                     reports,
                     currentReportId: OTHER_FOCUSED_REPORT_ID,
                     isInFocusMode: false,
-                    betas: [],
+                    isDefaultRoomsBetaEnabled: false,
                     transactionViolations: {},
                     draftComment: undefined,
                     transactions: {},
@@ -1434,7 +1474,7 @@ describe('SidebarUtils', () => {
                     reports,
                     currentReportId: OTHER_FOCUSED_REPORT_ID,
                     isInFocusMode: false,
-                    betas: [],
+                    isDefaultRoomsBetaEnabled: false,
                     transactionViolations: {},
                     draftComment: undefined,
                     transactions: {},
@@ -1466,7 +1506,7 @@ describe('SidebarUtils', () => {
                     reports,
                     currentReportId: OTHER_FOCUSED_REPORT_ID,
                     isInFocusMode: false,
-                    betas: [],
+                    isDefaultRoomsBetaEnabled: false,
                     transactionViolations: {},
                     draftComment: undefined,
                     transactions: {},
@@ -4478,7 +4518,7 @@ describe('SidebarUtils', () => {
                     updatedReportsKeys: [`${ONYXKEYS.COLLECTION.REPORT}999`],
                     currentReportId: '1',
                     isInFocusMode: false,
-                    betas: [],
+                    isDefaultRoomsBetaEnabled: false,
                     transactions: {},
                     transactionViolations: {},
                     reportNameValuePairs: {},
@@ -4504,7 +4544,7 @@ describe('SidebarUtils', () => {
                     updatedReportsKeys: ['0'],
                     currentReportId: undefined,
                     isInFocusMode: false,
-                    betas: [],
+                    isDefaultRoomsBetaEnabled: false,
                     transactions: {},
                     transactionViolations: {},
                     reportNameValuePairs: {},
@@ -4527,7 +4567,7 @@ describe('SidebarUtils', () => {
                 const result = SidebarUtils.getReportsToDisplayInLHN({
                     currentReportId: '1',
                     reports: undefined,
-                    betas: [],
+                    isDefaultRoomsBetaEnabled: false,
                     priorityMode: CONST.PRIORITY_MODE.DEFAULT,
                     draftComments: {},
                     transactionViolations: {},
@@ -4548,7 +4588,7 @@ describe('SidebarUtils', () => {
                 const result = SidebarUtils.getReportsToDisplayInLHN({
                     currentReportId: '1',
                     reports: {},
-                    betas: [],
+                    isDefaultRoomsBetaEnabled: false,
                     priorityMode: CONST.PRIORITY_MODE.DEFAULT,
                     draftComments: {},
                     transactionViolations: {},
@@ -4573,7 +4613,7 @@ describe('SidebarUtils', () => {
                 const result = SidebarUtils.getReportsToDisplayInLHN({
                     currentReportId: '1',
                     reports,
-                    betas: [],
+                    isDefaultRoomsBetaEnabled: false,
                     priorityMode: CONST.PRIORITY_MODE.DEFAULT,
                     draftComments: {},
                     transactionViolations: {},
@@ -4602,7 +4642,7 @@ describe('SidebarUtils', () => {
                 const result = SidebarUtils.getReportsToDisplayInLHN({
                     currentReportId: '1',
                     reports,
-                    betas: [],
+                    isDefaultRoomsBetaEnabled: false,
                     priorityMode: CONST.PRIORITY_MODE.DEFAULT,
                     draftComments: {},
                     transactionViolations: {},
@@ -4632,7 +4672,7 @@ describe('SidebarUtils', () => {
                 const result = SidebarUtils.getReportsToDisplayInLHN({
                     currentReportId: '1',
                     reports,
-                    betas: [],
+                    isDefaultRoomsBetaEnabled: false,
                     priorityMode: CONST.PRIORITY_MODE.DEFAULT,
                     draftComments: {},
                     transactionViolations: {},
@@ -4662,7 +4702,7 @@ describe('SidebarUtils', () => {
                 const result = SidebarUtils.getReportsToDisplayInLHN({
                     currentReportId: '1',
                     reports,
-                    betas: [],
+                    isDefaultRoomsBetaEnabled: false,
                     priorityMode: CONST.PRIORITY_MODE.DEFAULT,
                     draftComments: {},
                     transactionViolations: {},
@@ -4702,7 +4742,7 @@ describe('SidebarUtils', () => {
                 const result = SidebarUtils.getReportsToDisplayInLHN({
                     currentReportId: undefined,
                     reports,
-                    betas: [],
+                    isDefaultRoomsBetaEnabled: false,
                     priorityMode: CONST.PRIORITY_MODE.DEFAULT,
                     draftComments,
                     transactionViolations: {},
@@ -4734,7 +4774,7 @@ describe('SidebarUtils', () => {
                     updatedReportsKeys: [`${ONYXKEYS.COLLECTION.REPORT}999`],
                     currentReportId: '1',
                     isInFocusMode: false,
-                    betas: [],
+                    isDefaultRoomsBetaEnabled: false,
                     transactions: {},
                     transactionViolations: {},
                     reportNameValuePairs: {},
@@ -4763,7 +4803,7 @@ describe('SidebarUtils', () => {
                     updatedReportsKeys: [`${ONYXKEYS.COLLECTION.REPORT}999`],
                     currentReportId: '1',
                     isInFocusMode: false,
-                    betas: [],
+                    isDefaultRoomsBetaEnabled: false,
                     transactions: {},
                     transactionViolations: {},
                     reportNameValuePairs: {},
@@ -4790,7 +4830,7 @@ describe('SidebarUtils', () => {
                     updatedReportsKeys: ['0'],
                     currentReportId: undefined,
                     isInFocusMode: false,
-                    betas: [],
+                    isDefaultRoomsBetaEnabled: false,
                     transactions: {},
                     transactionViolations: {},
                     reportNameValuePairs: {},
@@ -4828,7 +4868,7 @@ describe('SidebarUtils', () => {
                     updatedReportsKeys: [`${ONYXKEYS.COLLECTION.REPORT}1`],
                     currentReportId: '1',
                     isInFocusMode: false,
-                    betas: [],
+                    isDefaultRoomsBetaEnabled: false,
                     transactions: {},
                     transactionViolations: {},
                     reportNameValuePairs: {},

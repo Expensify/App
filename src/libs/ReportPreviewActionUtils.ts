@@ -7,6 +7,7 @@ import type {ValueOf} from 'type-fest';
 import {
     arePaymentsEnabled,
     canMemberWrite,
+    getReimbursementChoice,
     getSubmitToAccountID,
     getValidConnectedIntegration,
     hasDynamicExternalWorkflow,
@@ -23,6 +24,7 @@ import {
     getParentReport,
     hasExportError as hasExportErrorUtil,
     hasOnlyNonReimbursableTransactions,
+    hasSettledZeroReimbursableSpend,
     isClosedReport,
     isCurrentUserSubmitter,
     isExpenseReport,
@@ -73,7 +75,10 @@ function canSubmit(
 
     const submitToAccountID = getSubmitToAccountID(policy, report, ownerLogin, rules);
 
-    if (submitToAccountID === report.ownerAccountID && policy?.preventSelfApproval) {
+    // Mirrors the header's isSubmitAction gate: prevented self-approval hides Submit from everyone EXCEPT the submitter,
+    // who still gets the action so SubmitActionButton can mount and render it disabled. Dropping the !isSubmitter
+    // qualifier here would hide the preview's Submit entirely while the header shows a disabled one for the same report.
+    if (submitToAccountID === report.ownerAccountID && policy?.preventSelfApproval && !isSubmitter) {
         return false;
     }
 
@@ -141,7 +146,7 @@ function canPay(
     const canPayReport =
         isReportPayer ||
         (isGroupPolicy(policy) &&
-            policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL &&
+            getReimbursementChoice(policy) === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL &&
             canMemberWrite(policy, currentUserLogin, CONST.POLICY.POLICY_FEATURE.WORKFLOWS_PAYMENTS));
     const isPaymentsEnabled = arePaymentsEnabled(policy);
     const isProcessing = isProcessingReport(report);
@@ -150,7 +155,8 @@ function canPay(
     const isApproved = isReportApproved({report}) || isSubmittedWithoutApprovalsEnabled;
     const isClosed = isClosedReport(report);
     const isReportFinished = (isApproved || isClosed) && !report.isWaitingOnBankAccount;
-    const {reimbursableSpend, nonReimbursableSpend} = getMoneyRequestSpendBreakdown(report);
+    const spendBreakdown = getMoneyRequestSpendBreakdown(report);
+    const {reimbursableSpend, nonReimbursableSpend} = spendBreakdown;
     const isReimbursed = isSettled(report);
 
     const isExported = report.isExportedToIntegration ?? false;
@@ -162,7 +168,9 @@ function canPay(
         canPayReport &&
         isPaymentsEnabled &&
         isReportFinished &&
-        (reimbursableSpend !== 0 || (nonReimbursableSpend !== 0 && hasOnlyNonReimbursableTransactions(report?.reportID, transactions)))
+        (reimbursableSpend !== 0 ||
+            hasSettledZeroReimbursableSpend(spendBreakdown, report, transactions) ||
+            (nonReimbursableSpend !== 0 && hasOnlyNonReimbursableTransactions(report?.reportID, transactions)))
     ) {
         return !didExportFail;
     }

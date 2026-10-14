@@ -71,6 +71,23 @@ You can give any member permission to manage domain settings by promoting them t
 3. Open **Domain Admins**.
 4. Add the member’s email address or phone number.
 
+---
+
+## How to review a Domain Admin request
+
+When someone requests Domain Admin access to a domain you administer, a green dot appears on **Workspaces**, the domain's row on the **Domains** tab, and **Domain admins** for that domain.
+
+1. In the navigation tabs (on the left on web, on the bottom on mobile), select **Workspaces**.
+2. Select the **Domains** tab.
+3. Select the domain.
+4. Select **Domain admins**.
+5. Find the person in the **Requests** section.
+6. Click **Approve** to make them a Domain Admin, or **Deny** to clear the request.
+
+The **Requests** section only appears when a request is waiting. After the last request is approved or denied, the section and green dot disappear.
+
+---
+
 ## How to move a Domain Member to a different domain group
 
 Domain Admins can move a member from one domain group to another to change which domain-level rules apply to them.
@@ -84,6 +101,18 @@ Domain Admins can move a member from one domain group to another to change which
 5. Click **Domain group**.
 6. Select the group you want to move the member to.
 7. Click **Save**.
+
+## How to assign a Vacation Delegate on behalf of a Domain Member
+
+Domain Admins can assign or unassign a vacation delegate on behalf of a domain member.
+
+1. Go to **Workspaces**, then select the **Domains** tab.
+2. Select your domain.
+3. Click **Domain Members**.
+4. Select the member.
+5. Click **Vacation delegate**.
+6. Select the member you want to assign as the delegate.
+7. Click **Confirm**.
 
 ---
 
@@ -104,4 +133,8 @@ Yes. Domain Admins don’t need to use a domain email — they can manage the do
 ## Can I remove a Domain Member without closing their account?
 
 No. To remove a Domain Member, you must deactivate (close) the account. However, you can always reinvite them later.
+
+## Can I add or remove a vacation delegate for a Domain Member?
+
+Yes. As a Domain Admin, you can add or remove a Vacation Delegate on behalf of a domain member. This is a great option if the member is already out of office, but forgot to set their own delegate.
 

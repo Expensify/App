@@ -10,7 +10,7 @@ import type Login from '@src/types/onyx/Login';
 import type Report from '@src/types/onyx/Report';
 
 import type * as NativeNavigation from '@react-navigation/native';
-import type {OnyxEntry} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
 import {rand} from '@ngneat/falso';
 import Onyx from 'react-native-onyx';
@@ -77,8 +77,6 @@ const getMockedPersonalDetails = (length = 500) =>
 const mockedReportsMap = getMockedReports(REPORTS_COUNT) as Record<`${typeof ONYXKEYS.COLLECTION.REPORT}`, Report>;
 const mockedPersonalDetailsMap = getMockedPersonalDetails(PERSONAL_DETAILS_LIST_COUNT);
 
-const mockedBetas = Object.values(CONST.BETAS);
-
 const allPolicies = {
     [`${ONYXKEYS.COLLECTION.POLICY}policy1`]: {
         id: 'policy1',
@@ -119,10 +117,14 @@ const options = createFilteredOptionList(
     undefined,
 );
 
+// Mirrors the `getReportByID` resolver production code passes in (see `useFilteredOptions`).
+const getReportByID = (reportID: string | undefined): OnyxEntry<Report> => (mockedReportsMap as OnyxCollection<Report>)?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
+
 const ValidOptionsConfig = {
     dateFnsLocale: undefined,
+    getReportByID,
     convertToDisplayString,
-    betas: mockedBetas,
+    isDefaultRoomsBetaEnabled: true,
     includeRecentReports: true,
     includeTasks: true,
     includeThreads: true,
@@ -140,6 +142,9 @@ describe('OptionsListUtils', () => {
     beforeAll(() => {
         Onyx.init({
             keys: ONYXKEYS,
+            initialKeyStates: {
+                [ONYXKEYS.NVP_ACTIVE_POLICY_ID]: 'policy1',
+            },
         });
 
         Onyx.multiSet({
@@ -161,7 +166,7 @@ describe('OptionsListUtils', () => {
                 convertToDisplayString,
                 translate: translateLocal,
                 options,
-                betas: mockedBetas,
+                isDefaultRoomsBetaEnabled: true,
                 draftComments: {},
                 loginList,
                 currentUserAccountID: MOCK_CURRENT_USER_ACCOUNT_ID,
@@ -170,6 +175,7 @@ describe('OptionsListUtils', () => {
                 personalDetails,
                 sortedActions: undefined,
                 conciergeReportID: undefined,
+                getReportByID,
                 rules: undefined,
             }),
         );
@@ -191,20 +197,23 @@ describe('OptionsListUtils', () => {
             undefined,
         );
         await measureFunction(() => {
-            filterAndOrderOptions(
-                formattedOptions,
-                SEARCH_VALUE,
-                COUNTRY_CODE,
+            filterAndOrderOptions({
+                options: formattedOptions,
+                searchInputValue: SEARCH_VALUE,
+                countryCode: COUNTRY_CODE,
                 loginList,
-                MOCK_CURRENT_USER_EMAIL,
-                MOCK_CURRENT_USER_ACCOUNT_ID,
+                currentUserEmail: MOCK_CURRENT_USER_EMAIL,
+                currentUserAccountID: MOCK_CURRENT_USER_ACCOUNT_ID,
                 personalDetails,
-                {
+                config: {
                     dateFnsLocale: undefined,
                     convertToDisplayString,
+                    currentUserAccountID: MOCK_CURRENT_USER_ACCOUNT_ID,
                 },
-                undefined,
-            );
+                translate: translateLocal,
+                rules: undefined,
+                activePolicyID: 'policy1',
+            });
         });
     });
     test('[OptionsListUtils] getFilteredOptions with empty search value', async () => {
@@ -222,20 +231,23 @@ describe('OptionsListUtils', () => {
             undefined,
         );
         await measureFunction(() => {
-            filterAndOrderOptions(
-                formattedOptions,
-                '',
-                COUNTRY_CODE,
+            filterAndOrderOptions({
+                options: formattedOptions,
+                searchInputValue: '',
+                countryCode: COUNTRY_CODE,
                 loginList,
-                MOCK_CURRENT_USER_EMAIL,
-                MOCK_CURRENT_USER_ACCOUNT_ID,
+                currentUserEmail: MOCK_CURRENT_USER_EMAIL,
+                currentUserAccountID: MOCK_CURRENT_USER_ACCOUNT_ID,
                 personalDetails,
-                {
+                config: {
                     dateFnsLocale: undefined,
                     convertToDisplayString,
+                    currentUserAccountID: MOCK_CURRENT_USER_ACCOUNT_ID,
                 },
-                undefined,
-            );
+                translate: translateLocal,
+                rules: undefined,
+                activePolicyID: 'policy1',
+            });
         });
     });
 
@@ -253,8 +265,9 @@ describe('OptionsListUtils', () => {
                 undefined,
                 {
                     dateFnsLocale: undefined,
+                    getReportByID,
                     convertToDisplayString,
-                    betas: mockedBetas,
+                    isDefaultRoomsBetaEnabled: true,
                     includeMultipleParticipantReports: true,
                     showChatPreviewLine: true,
                     forcePolicyNamePreview: true,
@@ -322,6 +335,7 @@ describe('OptionsListUtils', () => {
                 translateLocal,
                 convertToDisplayString,
                 undefined,
+                getReportByID,
                 undefined,
                 mockedPersonalDetails,
                 true,
@@ -347,6 +361,7 @@ describe('OptionsListUtils', () => {
                 translateLocal,
                 convertToDisplayString,
                 undefined,
+                getReportByID,
                 undefined,
                 mockedPersonalDetails,
                 true,
@@ -435,20 +450,23 @@ describe('OptionsListUtils', () => {
         );
 
         await measureFunction(() => {
-            filterAndOrderOptions(
-                formattedOptions,
-                'Email Report Five',
-                COUNTRY_CODE,
+            filterAndOrderOptions({
+                options: formattedOptions,
+                searchInputValue: 'Email Report Five',
+                countryCode: COUNTRY_CODE,
                 loginList,
-                MOCK_CURRENT_USER_EMAIL,
-                MOCK_CURRENT_USER_ACCOUNT_ID,
-                largePersonalDetails,
-                {
+                currentUserEmail: MOCK_CURRENT_USER_EMAIL,
+                currentUserAccountID: MOCK_CURRENT_USER_ACCOUNT_ID,
+                personalDetails: largePersonalDetails,
+                config: {
                     dateFnsLocale: undefined,
                     convertToDisplayString,
+                    currentUserAccountID: MOCK_CURRENT_USER_ACCOUNT_ID,
                 },
-                undefined,
-            );
+                translate: translateLocal,
+                rules: undefined,
+                activePolicyID: 'policy1',
+            });
         });
     });
 
@@ -477,7 +495,7 @@ describe('OptionsListUtils', () => {
                 convertToDisplayString,
                 translate: translateLocal,
                 options: optionLists,
-                betas: mockedBetas,
+                isDefaultRoomsBetaEnabled: true,
                 draftComments: {},
                 loginList,
                 currentUserAccountID: MOCK_CURRENT_USER_ACCOUNT_ID,
@@ -487,6 +505,7 @@ describe('OptionsListUtils', () => {
                 maxResults: 20,
                 sortedActions: undefined,
                 conciergeReportID: undefined,
+                getReportByID,
                 rules: undefined,
             }),
         );

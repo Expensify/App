@@ -38,6 +38,14 @@ Object.assign(global, {TextDecoder, TextEncoder});
 // https://reactnavigation.org/docs/testing/#mocking-native-modules
 jest.mock('react-native/src/private/animated/NativeAnimatedHelper');
 
+// Gesture Handler 3 throws in __DEV__ when a GestureDetector has no GestureHandlerRootView above it. In the app every screen
+// renders under the root view in App.tsx, but tests render screens on their own, so the context pretends a root view is always present.
+// Jest resolves the package through `main` (lib/module), so the compiled file is the one to mock.
+jest.mock('react-native-gesture-handler/lib/module/GestureHandlerRootViewContext', () => ({
+    __esModule: true,
+    default: jest.requireActual<typeof React>('react').createContext(true),
+}));
+
 // Mock react-native-onyx storage layer because the SQLite storage layer doesn't work in jest.
 // Mocking this file in __mocks__ does not work because jest doesn't support mocking files that are not directly used in the testing project,
 // and we only want to mock the storage layer, not the whole Onyx module.
@@ -78,6 +86,13 @@ jest.mock('expo-location', () => ({
         High: 4,
         Highest: 5,
         BestForNavigation: 6,
+    },
+    ActivityType: {
+        Other: 1,
+        AutomotiveNavigation: 2,
+        Fitness: 3,
+        OtherNavigation: 4,
+        Airborne: 5,
     },
 }));
 

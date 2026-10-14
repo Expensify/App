@@ -3,13 +3,13 @@
 import {beforeEach, jest, test} from '@jest/globals';
 
 import {openApp, reconnectApp} from '@libs/actions/App';
-import {buildOldDotURL, openExternalLink} from '@libs/actions/Link';
 import OnyxUpdateManager from '@libs/actions/OnyxUpdateManager';
 import {getAll as getAllPersistedRequests} from '@libs/actions/PersistedRequests';
 import {initReconnect} from '@libs/actions/Reconnect';
 import * as SignInRedirect from '@libs/actions/SignInRedirect';
-import {SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
+import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import asyncOpenURL from '@libs/asyncOpenURL';
+import buildOldDotURL from '@libs/buildOldDotURL';
 import getPlatform from '@libs/getPlatform';
 import HttpUtils from '@libs/HttpUtils';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
@@ -17,6 +17,7 @@ import * as NetworkStore from '@libs/Network/NetworkStore';
 import {setHasRadio} from '@libs/NetworkState';
 import PushNotification from '@libs/Notification/PushNotification';
 import {isRecord} from '@libs/ObjectUtils';
+import openExternalLink from '@libs/openExternalLink';
 import reauthenticate from '@libs/Reauthentication';
 
 import CONFIG from '@src/CONFIG';
@@ -28,7 +29,8 @@ import * as SessionUtil from '@src/libs/actions/Session';
 import {KEYS_TO_PRESERVE_SUPPORTAL, signOutAndRedirectToSignIn} from '@src/libs/actions/Session';
 import * as API from '@src/libs/API';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Account, Credentials, Session} from '@src/types/onyx';
+import type {Account, Credentials, MarketingAttribution, Session} from '@src/types/onyx';
+import type {StoredMarketingAttribution} from '@src/types/onyx/MarketingAttribution';
 
 import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 
@@ -55,12 +57,15 @@ jest.mock('expo-web-browser', () => ({
     openAuthSessionAsync: jest.fn(() => Promise.resolve({type: 'success'})),
 }));
 
-jest.mock('@libs/actions/Link', () => {
-    return {
-        buildOldDotURL: jest.fn(() => Promise.resolve('mockOldDotURL')),
-        openExternalLink: jest.fn(),
-    };
-});
+jest.mock('@libs/buildOldDotURL', () => ({
+    __esModule: true,
+    default: jest.fn(() => Promise.resolve('mockOldDotURL')),
+}));
+
+jest.mock('@libs/openExternalLink', () => ({
+    __esModule: true,
+    default: jest.fn(),
+}));
 
 jest.mock('@libs/getPlatform', () => jest.fn());
 
@@ -304,24 +309,29 @@ describe('Session', () => {
         // to Re-Authenticate with the stored credentials. Our next call will be to Authenticate
         // so we will mock that response with a new authToken and then verify that Onyx has our
         // data.
-        jest.mocked(HttpUtils.xhr)
-
-            // This will make the call to OpenApp below return with an expired session code
-            .mockImplementationOnce(() =>
-                Promise.resolve({
-                    jsonCode: CONST.JSON_CODE.NOT_AUTHENTICATED,
-                }),
-            )
-
-            // The next call should be Authenticate since we are re-authenticating
-            .mockImplementationOnce(() =>
-                Promise.resolve({
+        // Key off the command rather than the call order: `openApp()` fires LoadPersonalDetails on the
+        // main queue and OpenApp on the sequential queue, and which of them reaches the network first
+        // is not something this test is about.
+        let hasExpiredASession = false;
+        jest.mocked(HttpUtils.xhr).mockImplementation((command: string) => {
+            // Re-authenticating hands back a fresh authToken
+            if (command === 'Authenticate') {
+                return Promise.resolve({
                     jsonCode: CONST.JSON_CODE.SUCCESS,
                     accountID: TEST_USER_ACCOUNT_ID,
                     authToken: TEST_REFRESHED_AUTH_TOKEN,
                     email: TEST_USER_LOGIN,
-                }),
-            );
+                });
+            }
+
+            // The first app request after signing in finds the session expired
+            if (!hasExpiredASession) {
+                hasExpiredASession = true;
+                return Promise.resolve({jsonCode: CONST.JSON_CODE.NOT_AUTHENTICATED});
+            }
+
+            return Promise.resolve({jsonCode: CONST.JSON_CODE.SUCCESS});
+        });
 
         // When we attempt to fetch the initial app data via the API
         openApp();
@@ -803,6 +813,7 @@ describe('Session', () => {
 
     describe('validateTwoFactorAuth', () => {
         test('forced onboarding path updates auth token before clearing Onyx without openApp', async () => {
+            // Given a user completing forced-onboarding 2FA while the success screen remains open.
             const makeRequestSpy = jest.spyOn(API, 'makeRequestWithSideEffects').mockResolvedValue({
                 authToken: 'newAuthToken',
                 encryptedAuthToken: 'newEncryptedAuthToken',
@@ -812,9 +823,11 @@ describe('Session', () => {
             const clearSpy = jest.spyOn(Onyx, 'clear').mockResolvedValue(undefined);
             const writeWithNoDuplicatesSpy = jest.spyOn(API, 'writeWithNoDuplicatesConflictAction').mockResolvedValue(undefined);
 
+            // When the 2FA validation succeeds.
             SessionUtil.validateTwoFactorAuth('123456', false, {shouldKeepTwoFactorAuthFlowOpen: true});
             await waitForBatchedUpdates();
 
+            // Then the next authenticated state is seeded before Onyx is cleared without entering the global loading state.
             expect(makeRequestSpy).toHaveBeenCalledWith(SIDE_EFFECT_REQUEST_COMMANDS.TWO_FACTOR_AUTH_VALIDATE, {twoFactorAuthCode: '123456'}, expect.any(Object));
             expect(setAuthTokenSpy).toHaveBeenCalledWith('newAuthToken');
             expect(setAuthTokenSpy.mock.invocationCallOrder.at(0)).toBeLessThan(multiSetSpy.mock.invocationCallOrder.at(0) ?? Number.MAX_SAFE_INTEGER);
@@ -829,6 +842,7 @@ describe('Session', () => {
                     [ONYXKEYS.NVP_ONBOARDING]: {
                         hasCompletedGuidedSetupFlow: false,
                     },
+                    [ONYXKEYS.IS_LOADING_APP]: false,
                 }),
             );
             expect(clearSpy).toHaveBeenCalled();
@@ -883,7 +897,7 @@ describe('Session', () => {
                 callback: (val) => (session = val),
             });
 
-            SessionUtil.signInWithShortLivedAuthToken('testAuthToken', true);
+            SessionUtil.signInWithShortLivedAuthToken('testAuthToken', true, undefined, undefined);
             await waitForBatchedUpdates();
 
             expect(session?.signedInWithSAML).toBe(true);
@@ -896,20 +910,56 @@ describe('Session', () => {
                 callback: (val) => (session = val),
             });
 
-            SessionUtil.signInWithShortLivedAuthToken('testAuthToken', false);
+            SessionUtil.signInWithShortLivedAuthToken('testAuthToken', false, undefined, undefined);
             await waitForBatchedUpdates();
 
             expect(session?.signedInWithSAML).toBe(false);
         });
 
+        test('signInWithShortLivedAuthToken sends the token to the API with the SAML auth method', async () => {
+            const readSpy = jest.spyOn(API, 'read').mockImplementation(() => {});
+
+            SessionUtil.signInWithShortLivedAuthToken('testAuthToken', true, undefined, undefined);
+            await waitForBatchedUpdates();
+
+            const call = readSpy.mock.calls.at(0);
+            expect(call?.at(0)).toBe(READ_COMMANDS.SIGN_IN_WITH_SHORT_LIVED_AUTH_TOKEN);
+            expect(call?.at(1)).toEqual(expect.objectContaining({authToken: 'testAuthToken', authMethod: CONST.AUTH_METHOD.SAML, skipReauthentication: true}));
+
+            readSpy.mockRestore();
+        });
+
+        test('signInWithShortLivedAuthToken sends the token to the API with the short-lived-token auth method when it is not a SAML sign in', async () => {
+            const readSpy = jest.spyOn(API, 'read').mockImplementation(() => {});
+
+            SessionUtil.signInWithShortLivedAuthToken('testAuthToken', false, undefined, undefined);
+            await waitForBatchedUpdates();
+
+            expect(readSpy.mock.calls.at(0)?.at(1)).toEqual(expect.objectContaining({authToken: 'testAuthToken', authMethod: CONST.AUTH_METHOD.SHORT_LIVED_AUTH_TOKEN}));
+
+            readSpy.mockRestore();
+        });
+
+        test('signInWithShortLivedAuthToken does not wait on navigation when no exitTo is passed', async () => {
+            const waitForProtectedRoutesSpy = jest.spyOn(Navigation, 'waitForProtectedRoutes').mockResolvedValue(undefined);
+            const resetRootSpy = jest.spyOn(navigationRef, 'resetRoot').mockImplementation(() => {});
+
+            SessionUtil.signInWithShortLivedAuthToken('testAuthToken', true, undefined, 'user@saml.example.com');
+            await waitForBatchedUpdates();
+
+            expect(waitForProtectedRoutesSpy).not.toHaveBeenCalled();
+            expect(resetRootSpy).not.toHaveBeenCalled();
+            jest.restoreAllMocks();
+        });
+
         test('signInWithShortLivedAuthToken rebuilds navigation from exitTo once the same login is signed in', async () => {
-            await Onyx.merge(ONYXKEYS.CREDENTIALS, {login: 'user@saml.example.com'});
+            // CREDENTIALS is empty (cleared in beforeEach), so the restore firing proves the login comes from the param, not the module cache.
             await Onyx.merge(ONYXKEYS.SESSION, {authToken: 'testAuthToken', email: 'User@saml.example.com'});
             await waitForBatchedUpdates();
             jest.spyOn(Navigation, 'waitForProtectedRoutes').mockResolvedValue(undefined);
             const resetRootSpy = jest.spyOn(navigationRef, 'resetRoot').mockImplementation(() => {});
 
-            SessionUtil.signInWithShortLivedAuthToken('testAuthToken', true, '/search?q=status:outstanding');
+            SessionUtil.signInWithShortLivedAuthToken('testAuthToken', true, '/search?q=status:outstanding', 'user@saml.example.com');
             await waitForBatchedUpdates();
 
             expect(resetRootSpy).toHaveBeenCalledTimes(1);
@@ -920,12 +970,14 @@ describe('Session', () => {
         });
 
         test('signInWithShortLivedAuthToken does not navigate to exitTo without a login to compare', async () => {
+            // A login present in the CREDENTIALS Onyx cache must not be used as a fallback when no login is passed.
+            await Onyx.merge(ONYXKEYS.CREDENTIALS, {login: 'user@saml.example.com'});
             await Onyx.merge(ONYXKEYS.SESSION, {authToken: 'testAuthToken', email: 'user@saml.example.com'});
             await waitForBatchedUpdates();
             jest.spyOn(Navigation, 'waitForProtectedRoutes').mockResolvedValue(undefined);
             const resetRootSpy = jest.spyOn(navigationRef, 'resetRoot').mockImplementation(() => {});
 
-            SessionUtil.signInWithShortLivedAuthToken('testAuthToken', true, '/search?q=status:outstanding');
+            SessionUtil.signInWithShortLivedAuthToken('testAuthToken', true, '/search?q=status:outstanding', undefined);
             await waitForBatchedUpdates();
 
             expect(resetRootSpy).not.toHaveBeenCalled();
@@ -933,13 +985,12 @@ describe('Session', () => {
         });
 
         test('signInWithShortLivedAuthToken does not navigate to exitTo when another login signs in', async () => {
-            await Onyx.merge(ONYXKEYS.CREDENTIALS, {login: 'user@saml.example.com'});
             await Onyx.merge(ONYXKEYS.SESSION, {authToken: 'testAuthToken', email: 'other@example.com'});
             await waitForBatchedUpdates();
             jest.spyOn(Navigation, 'waitForProtectedRoutes').mockResolvedValue(undefined);
             const resetRootSpy = jest.spyOn(navigationRef, 'resetRoot').mockImplementation(() => {});
 
-            SessionUtil.signInWithShortLivedAuthToken('testAuthToken', true, '/search?q=status:outstanding');
+            SessionUtil.signInWithShortLivedAuthToken('testAuthToken', true, '/search?q=status:outstanding', 'user@saml.example.com');
             await waitForBatchedUpdates();
 
             expect(resetRootSpy).not.toHaveBeenCalled();
@@ -1342,6 +1393,21 @@ describe('Session', () => {
         });
     });
 
+    describe('signInWithSupportAuthToken', () => {
+        test('clears the loading state when the server rejects the support token', async () => {
+            // Given a signed-out agent and a support token that the server rejects as expired
+            jest.mocked(HttpUtils.xhr).mockImplementationOnce(() => Promise.resolve({jsonCode: CONST.JSON_CODE.NOT_AUTHENTICATED}));
+
+            // When the transition page signs in with that token
+            SessionUtil.signInWithSupportAuthToken('expired-support-token');
+            await waitForBatchedUpdates();
+
+            // Then the account stops loading, because there is no session to reauthenticate, so the transition page shows the expired session and not a spinner
+            const account = await getOnyxValue(ONYXKEYS.ACCOUNT);
+            expect(account?.isLoading).toBe(false);
+        });
+    });
+
     describe('requestUnlinkValidationLink', () => {
         test('sends the login argument as the email param, independent of the CREDENTIALS Onyx cache', async () => {
             const writeSpy = jest.spyOn(API, 'write').mockResolvedValue(undefined);
@@ -1403,6 +1469,100 @@ describe('Session', () => {
 
             expect(writeSpy.mock.calls.at(0)?.at(1)).not.toHaveProperty('authToken');
 
+            writeSpy.mockRestore();
+        });
+    });
+
+    describe('signUpUser', () => {
+        // eslint-disable-next-line @typescript-eslint/naming-convention
+        const googleAdAttribution: MarketingAttribution = {utm_source: 'google', device: 'm', network: 'g', gclid: 'testGclid', wbraid: 'testWbraid'};
+        const storedAttribution: StoredMarketingAttribution = {...googleAdAttribution, capturedAt: Date.now()};
+
+        test('sends the captured marketing attribution and clears it on success', async () => {
+            // Given marketing attribution captured from a Google ad
+            const writeSpy = jest.spyOn(API, 'write').mockImplementation(() => Promise.resolve());
+
+            // When the user signs up with it
+            SessionUtil.signUpUser('new.user@example.com', CONST.LOCALES.EN, undefined, storedAttribution);
+            await waitForBatchedUpdates();
+
+            // Then the attribution is sent with the request params
+            expect(writeSpy).toHaveBeenCalledWith(WRITE_COMMANDS.SIGN_UP_USER, expect.objectContaining({email: 'new.user@example.com', ...googleAdAttribution}), expect.anything());
+            expect(writeSpy.mock.calls.at(0)?.[1]).not.toHaveProperty('capturedAt');
+
+            // And the success data clears it so it isn't sent again
+            const onyxData = writeSpy.mock.calls.at(0)?.[2];
+            expect(onyxData?.successData).toContainEqual({onyxMethod: Onyx.METHOD.SET, key: ONYXKEYS.MARKETING_ATTRIBUTION, value: null});
+            writeSpy.mockRestore();
+        });
+
+        test('sends no attribution params when the stored attribution is expired or has no capture time', async () => {
+            const writeSpy = jest.spyOn(API, 'write').mockImplementation(() => Promise.resolve());
+
+            SessionUtil.signUpUser('a@example.com', CONST.LOCALES.EN, undefined, {...googleAdAttribution, capturedAt: Date.now() - 91 * 24 * 60 * 60 * 1000});
+            SessionUtil.signUpUser('b@example.com', CONST.LOCALES.EN, undefined, googleAdAttribution);
+            await waitForBatchedUpdates();
+
+            expect(writeSpy).toHaveBeenCalledTimes(2);
+            for (const [, params] of writeSpy.mock.calls) {
+                expect(Object.keys(params ?? {}).sort()).toEqual(['deviceInfo', 'email', 'preferredLocale']);
+            }
+            writeSpy.mockRestore();
+        });
+
+        test('sends no attribution params when none were captured', async () => {
+            // Given no captured marketing attribution
+            const writeSpy = jest.spyOn(API, 'write').mockImplementation(() => Promise.resolve());
+
+            // When the user signs up
+            SessionUtil.signUpUser('new.user@example.com', CONST.LOCALES.EN);
+            await waitForBatchedUpdates();
+
+            // Then the request carries only the signup params
+            const params = writeSpy.mock.calls.at(0)?.[1] ?? {};
+            expect(Object.keys(params).sort()).toEqual(['deviceInfo', 'email', 'preferredLocale']);
+            writeSpy.mockRestore();
+        });
+    });
+
+    describe.each([
+        {name: 'beginGoogleSignIn', command: WRITE_COMMANDS.SIGN_IN_WITH_GOOGLE, beginSignIn: SessionUtil.beginGoogleSignIn, tokenParam: 'token'},
+        {name: 'beginAppleSignIn', command: WRITE_COMMANDS.SIGN_IN_WITH_APPLE, beginSignIn: SessionUtil.beginAppleSignIn, tokenParam: 'idToken'},
+    ])('$name', ({command, beginSignIn, tokenParam}) => {
+        // eslint-disable-next-line @typescript-eslint/naming-convention
+        const googleAdAttribution: MarketingAttribution = {utm_source: 'google', gclid: 'testGclid'};
+
+        test('sends the captured marketing attribution and clears it on success', async () => {
+            // Given marketing attribution captured from a Google ad
+            const writeSpy = jest.spyOn(API, 'write').mockImplementation(() => Promise.resolve());
+
+            // When the user signs in with the third party, which can create a new account
+            beginSignIn('testToken', CONST.LOCALES.EN, {...googleAdAttribution, capturedAt: Date.now()});
+            await waitForBatchedUpdates();
+
+            // Then the attribution is sent with the request params
+            expect(writeSpy).toHaveBeenCalledWith(command, expect.objectContaining({[tokenParam]: 'testToken', ...googleAdAttribution}), expect.anything());
+            expect(writeSpy.mock.calls.at(0)?.[1]).not.toHaveProperty('capturedAt');
+
+            // And the success data clears it, while keeping the usual sign in success data
+            const onyxData = writeSpy.mock.calls.at(0)?.[2];
+            expect(onyxData?.successData).toContainEqual({onyxMethod: Onyx.METHOD.SET, key: ONYXKEYS.MARKETING_ATTRIBUTION, value: null});
+            expect(onyxData?.successData).toContainEqual(expect.objectContaining({key: ONYXKEYS.ACCOUNT}));
+            expect(onyxData?.failureData).not.toContainEqual(expect.objectContaining({key: ONYXKEYS.MARKETING_ATTRIBUTION}));
+            writeSpy.mockRestore();
+        });
+
+        test('sends no attribution params when none were captured', async () => {
+            // Given no captured marketing attribution
+            const writeSpy = jest.spyOn(API, 'write').mockImplementation(() => Promise.resolve());
+
+            // When the user signs in with the third party
+            beginSignIn('testToken', CONST.LOCALES.EN);
+            await waitForBatchedUpdates();
+
+            // Then the request carries only the sign in params
+            const params = writeSpy.mock.calls.at(0)?.[1] ?? {};
+            expect(Object.keys(params).sort()).toEqual(['deviceInfo', 'preferredLocale', tokenParam].sort());
             writeSpy.mockRestore();
         });
     });

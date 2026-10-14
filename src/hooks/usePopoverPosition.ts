@@ -4,7 +4,7 @@ import CONST from '@src/CONST';
 import type AnchorAlignment from '@src/types/utils/AnchorAlignment';
 import type {Dimensions} from '@src/types/utils/Layout';
 
-import type {RefObject} from 'react';
+import type {ComponentRef, RefObject} from 'react';
 import type {View} from 'react-native';
 
 import useResponsiveLayout from './useResponsiveLayout';
@@ -15,7 +15,7 @@ const defaultAnchorAlignment = {
 };
 
 /** Web callers may hold an `HTMLDivElement` ref; the runtime `measureInWindow` check guards the cross-platform shape. */
-type MeasurableRef = RefObject<View | HTMLDivElement | null>;
+type MeasurableRef = RefObject<ComponentRef<typeof View> | HTMLDivElement | null>;
 
 type Rect = {x: number; y: number} & Dimensions;
 

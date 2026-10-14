@@ -12,7 +12,7 @@ import CONST from '@src/CONST';
 import React, {useState} from 'react';
 import {View} from 'react-native';
 
-function DateFilterContentPageWrapper({baseFilterKey, value: initialValue, hasFeed, onChange}: DateFilterContentWrapperProps) {
+function DateFilterContentPageWrapper({baseFilterKey, value: initialValue, hasFeed, buttonText, onChange}: DateFilterContentWrapperProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const [value, setValue] = useState(initialValue);
@@ -38,7 +38,7 @@ function DateFilterContentPageWrapper({baseFilterKey, value: initialValue, hasFe
                     onPress={() => onChange(value)}
                 >
                     <Button.KeyboardShortcut />
-                    <Button.Text>{translate('common.confirm')}</Button.Text>
+                    <Button.Text>{buttonText ?? translate('common.confirm')}</Button.Text>
                 </Button>
             )}
         </View>

@@ -1,3 +1,4 @@
+import {useSearchQueryContext} from '@components/Search/SearchContext';
 import type {SearchQueryJSON} from '@components/Search/types';
 import TextInput from '@components/TextInput';
 
@@ -8,7 +9,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import Navigation from '@libs/Navigation/Navigation';
-import {getKeywordQueryWithCurrentSearchContext, getQueryWithUpdatedValues, sanitizeSearchValue} from '@libs/SearchQueryUtils';
+import {getKeywordQueryForSearchInput, getKeywordQueryWithCurrentSearchContext, getQueryWithUpdatedValues} from '@libs/SearchQueryUtils';
 
 import variables from '@styles/variables';
 
@@ -33,11 +34,12 @@ function SearchPageInput({queryJSON, onFocus}: SearchPageInputProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {currentSearchKey} = useSearchQueryContext();
 
     const [textInputValue, setTextInputValue] = useState('');
 
     const keywordFilters = queryJSON.flatFilters.find((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD)?.filters ?? [];
-    const keywordQuery = keywordFilters.reduce((acc, keyword) => `${acc} ${sanitizeSearchValue(keyword.value.toString())}`, '').trim();
+    const keywordQuery = getKeywordQueryForSearchInput(keywordFilters.map((keyword) => keyword.value.toString()));
     const [prevKeywordQuery, setPrevKeywordQuery] = useState('');
 
     if (keywordQuery !== prevKeywordQuery) {
@@ -55,7 +57,8 @@ function SearchPageInput({queryJSON, onFocus}: SearchPageInputProps) {
             return;
         }
 
-        Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: updatedQuery}));
+        // A keyword narrows the current search instead of starting a new one, so it keeps the search key.
+        Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: updatedQuery, searchKey: currentSearchKey}));
     }
 
     return (

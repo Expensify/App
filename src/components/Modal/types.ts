@@ -3,7 +3,7 @@ import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
 import type CONST from '@src/CONST';
 
 import type {FocusTrapProps} from 'focus-trap-react';
-import type {ForwardedRef} from 'react';
+import type {ComponentRef, ForwardedRef} from 'react';
 import type {View, ViewStyle} from 'react-native';
 import type {ValueOf} from 'type-fest';
 
@@ -114,7 +114,7 @@ type BaseModalProps = Partial<ReanimatedModalProps> &
          */
         shouldDisableBottomSafeAreaPadding?: boolean;
 
-        ref?: ForwardedRef<View>;
+        ref?: ForwardedRef<ComponentRef<typeof View>>;
 
         /**
          * Whether the modal should display under the side panel.

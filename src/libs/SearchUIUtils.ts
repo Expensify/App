@@ -15,6 +15,7 @@ import type {
     TaskListItemType,
     TransactionCardGroupListItemType,
     TransactionCategoryGroupListItemType,
+    TransactionDayGroupListItemType,
     TransactionGroupListItemType,
     TransactionListItemType,
     TransactionMemberGroupListItemType,
@@ -40,6 +41,7 @@ import type {
     SearchDateFilterKeys,
     SearchDatePreset,
     SearchFilterKey,
+    SearchFooterTotal,
     SearchGroupBy,
     SearchPaidStatus,
     SearchQueryJSON,
@@ -59,10 +61,9 @@ import type {ListItem} from '@components/SelectionList/types';
 import type {FeedKeysWithAssignedCards} from '@hooks/useFeedKeysWithAssignedCards';
 
 import type {ThemeColors} from '@styles/theme/types';
-import type {ButtonVariant} from '@styles/utils/types';
 import variables from '@styles/variables';
 
-import CONST from '@src/CONST';
+import CONST, {HAS_VALUE_TRANSLATION_KEYS} from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -92,24 +93,24 @@ import type {
     SearchYearGroup,
 } from '@src/types/onyx/SearchResults';
 import type IconAsset from '@src/types/utils/IconAsset';
-import arraysEqual from '@src/utils/arraysEqual';
 
 import type {Locale as DateFnsLocale} from 'date-fns';
 import type {TextStyle, ViewStyle} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
-import type {TupleToUnion, ValueOf} from 'type-fest';
+import type {ValueOf} from 'type-fest';
 
 /* eslint-disable max-lines */
 // TODO: Remove this disable once SearchUIUtils is refactored (see dedicated refactor issue)
-import {addDays, format, parse, subDays} from 'date-fns';
+import {addDays, format, getYear, parse, subDays} from 'date-fns';
 import {deepEqual} from 'fast-equals';
 
 import type {TransactionPreviewData} from './actions/Search';
 import type {CardFeedForDisplay} from './CardFeedUtils';
+import type {SearchKey} from './SearchKeyUtils';
+import type {SearchTypeMenuItem} from './SearchSuggestionUtils';
 
 import {hasSynchronizationErrorMessage} from './actions/connections';
 import {startMoneyRequest} from './actions/IOU/MoneyRequest';
-import {canApproveIOU, canIOUBePaid, canSubmitReport} from './actions/IOU/ReportWorkflow';
 import {createTransactionThreadReport} from './actions/Report';
 import {setOptimisticDataForTransactionThreadPreview} from './actions/Search';
 import {convertAttendeesToArray} from './AttendeeUtils';
@@ -117,6 +118,7 @@ import {getCardFeedsForDisplay} from './CardFeedUtils';
 import {getCardDescriptionForSearchTable, getFeedNameForDisplay, isPersonalCard} from './CardUtils';
 import {getCategoryGLCode, getDecodedCategoryName} from './CategoryUtils';
 import DateUtils from './DateUtils';
+import getIOUPayerAndReceiver from './getIOUPayerAndReceiver';
 import interceptAnonymousUser from './interceptAnonymousUser';
 import memoize from './memoize';
 import isSearchTopmostFullScreenRoute from './Navigation/helpers/isSearchTopmostFullScreenRoute';
@@ -158,9 +160,12 @@ import {
     isSubmittedAndClosedAction,
     isWhisperActionTargetedToOthers,
 } from './ReportActionsUtils';
-import {deprecatedGetReportName} from './ReportNameUtils';
+import {getReportName} from './ReportNameUtils';
 import {isExportAction} from './ReportPrimaryActionUtils';
 import {
+    canApproveIOU,
+    canIOUBePaid,
+    canSubmitReport,
     canDeleteMoneyRequestReport,
     canUserPerformWriteAction,
     findSelfDMReportID,
@@ -178,7 +183,7 @@ import {
     getTransactionDisplayAmount,
     hasHeldExpenses,
     hasInvoiceReports,
-    hasOnlyNonReimbursableTransactions,
+    hasReportBeenRejectedToSubmitter,
     isAllowedToApproveExpenseReport as isAllowedToApproveExpenseReportUtils,
     isArchivedReport,
     isClosedReport,
@@ -190,13 +195,12 @@ import {
     isOneTransactionReport,
     isOpenExpenseReport,
     isOpenReport,
+    isPayOptional,
     isProcessingReport,
     isSettled,
     shouldReportShowSubscript,
 } from './ReportUtils';
 import {
-    buildCannedSearchQuery,
-    buildQueryStringFromFilterFormValues,
     buildSearchQueryJSON,
     buildSearchQueryString,
     getCurrentSearchQueryJSON,
@@ -210,10 +214,9 @@ import {
     isSearchDatePreset,
     removeNegation,
     sortOptionsWithEmptyValue,
-    withExactMatchFilterKeys,
 } from './SearchQueryUtils';
+import {expenseStatusActionMapping, getSuggestedSearches, isEligibleForStatus, SEARCH_TYPE_MENU_ICON_NAMES} from './SearchSuggestionUtils';
 import StringUtils from './StringUtils';
-import {getIOUPayerAndReceiver} from './TransactionPreviewUtils';
 import {
     getAmount,
     getAttendees,
@@ -224,6 +227,7 @@ import {
     getMCCForDisplay,
     getOriginalAmountForDisplay,
     getReceiptTypeTranslationKey,
+    getReimbursable,
     getReportOwnerAccountIDAsAttendee,
     getReportOwnerAsAttendee,
     getTag,
@@ -271,6 +275,7 @@ type TransactionWithdrawalIDGroupSorting = ColumnSortMapping<TransactionWithdraw
 type TransactionCategoryGroupSorting = ColumnSortMapping<TransactionCategoryGroupListItemType>;
 type TransactionMerchantGroupSorting = ColumnSortMapping<TransactionMerchantGroupListItemType>;
 type TransactionTagGroupSorting = ColumnSortMapping<TransactionTagGroupListItemType>;
+type TransactionDayGroupSorting = ColumnSortMapping<TransactionDayGroupListItemType>;
 type TransactionMonthGroupSorting = ColumnSortMapping<TransactionMonthGroupListItemType>;
 type TransactionWeekGroupSorting = ColumnSortMapping<TransactionWeekGroupListItemType>;
 type TransactionYearGroupSorting = ColumnSortMapping<TransactionYearGroupListItemType>;
@@ -320,6 +325,7 @@ const transactionColumnNamesToSortingProperty: TransactionSorting = {
     [CONST.SEARCH.TABLE_COLUMNS.EXPORTED]: 'exported' as const,
     [CONST.SEARCH.TABLE_COLUMNS.TAG]: 'tag' as const,
     [CONST.SEARCH.TABLE_COLUMNS.MERCHANT]: 'formattedMerchant' as const,
+    [CONST.SEARCH.TABLE_COLUMNS.VENDOR]: null,
     [CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT]: 'formattedTotal' as const,
     [CONST.SEARCH.TABLE_COLUMNS.CATEGORY]: 'category' as const,
     [CONST.SEARCH.TABLE_COLUMNS.ORIGINAL_AMOUNT]: 'originalAmount' as const,
@@ -391,7 +397,7 @@ const transactionWithdrawalIDGroupColumnNamesToSortingProperty: TransactionWithd
     [CONST.SEARCH.TABLE_COLUMNS.GROUP_BANK_ACCOUNT]: 'bankName' as const,
     [CONST.SEARCH.TABLE_COLUMNS.GROUP_WITHDRAWN]: 'debitPosted' as const,
     [CONST.SEARCH.TABLE_COLUMNS.WITHDRAWN]: 'debitPosted' as const,
-    [CONST.SEARCH.TABLE_COLUMNS.GROUP_WITHDRAWAL_STATUS]: 'state' as const,
+    [CONST.SEARCH.TABLE_COLUMNS.GROUP_WITHDRAWAL_STATUS]: 'settlementStatusRank' as const,
     [CONST.SEARCH.TABLE_COLUMNS.GROUP_WITHDRAWAL_ID]: 'formattedWithdrawalID' as const,
     // Both the backend page selection and this local sort rank the amounts as stored, without converting between
     // currencies, so a group can outrank one that is worth more in another currency.
@@ -418,6 +424,11 @@ const transactionMerchantGroupColumnNamesToSortingProperty: TransactionMerchantG
     ...transactionGroupBaseSortingProperties,
 };
 
+const transactionDayGroupColumnNamesToSortingProperty: TransactionDayGroupSorting = {
+    [CONST.SEARCH.TABLE_COLUMNS.GROUP_DAY]: 'day' as const,
+    ...transactionGroupBaseSortingProperties,
+};
+
 const transactionMonthGroupColumnNamesToSortingProperty: TransactionMonthGroupSorting = {
     [CONST.SEARCH.TABLE_COLUMNS.GROUP_MONTH]: 'sortKey' as const,
     ...transactionGroupBaseSortingProperties,
@@ -438,20 +449,6 @@ const transactionQuarterGroupColumnNamesToSortingProperty: TransactionQuarterGro
     ...transactionGroupBaseSortingProperties,
 };
 
-type ExpenseStatusPredicate = (expenseReport?: OnyxTypes.Report, transactionReportID?: string) => boolean;
-
-const expenseStatusActionMapping: Record<string, ExpenseStatusPredicate> = {
-    [CONST.SEARCH.STATUS.EXPENSE.DRAFTS]: (expenseReport) => expenseReport?.stateNum === CONST.REPORT.STATE_NUM.OPEN && expenseReport.statusNum === CONST.REPORT.STATUS_NUM.OPEN,
-    [CONST.SEARCH.STATUS.EXPENSE.OUTSTANDING]: (expenseReport) =>
-        expenseReport?.stateNum === CONST.REPORT.STATE_NUM.SUBMITTED && expenseReport.statusNum === CONST.REPORT.STATUS_NUM.SUBMITTED,
-    [CONST.SEARCH.STATUS.EXPENSE.APPROVED]: (expenseReport) => expenseReport?.stateNum === CONST.REPORT.STATE_NUM.APPROVED && expenseReport.statusNum === CONST.REPORT.STATUS_NUM.APPROVED,
-    [CONST.SEARCH.STATUS.EXPENSE.PAID]: (expenseReport) =>
-        (expenseReport?.stateNum ?? 0) >= CONST.REPORT.STATE_NUM.APPROVED && expenseReport?.statusNum === CONST.REPORT.STATUS_NUM.REIMBURSED,
-    [CONST.SEARCH.STATUS.EXPENSE.DONE]: (expenseReport) => expenseReport?.stateNum === CONST.REPORT.STATE_NUM.APPROVED && expenseReport.statusNum === CONST.REPORT.STATUS_NUM.CLOSED,
-    [CONST.SEARCH.STATUS.EXPENSE.UNREPORTED]: (expenseReport, transactionReportID) => !expenseReport && transactionReportID !== CONST.REPORT.TRASH_REPORT_ID,
-    [CONST.SEARCH.STATUS.EXPENSE.DELETED]: (_expenseReport, transactionReportID) => transactionReportID === CONST.REPORT.TRASH_REPORT_ID,
-};
-
 type TaskStatusPredicate = (taskReport?: OnyxTypes.Report | SearchTask) => boolean;
 
 const taskStatusActionMapping: Record<string, TaskStatusPredicate> = {
@@ -467,10 +464,6 @@ const nonSortableColumns = new Set<SearchColumnType>([
     CONST.SEARCH.TABLE_COLUMNS.AVATAR,
     CONST.SEARCH.TABLE_COLUMNS.VIOLATIONS,
 ]);
-
-function isValidExpenseStatus(status: unknown): status is ValueOf<typeof CONST.SEARCH.STATUS.EXPENSE> {
-    return typeof status === 'string' && status in expenseStatusActionMapping;
-}
 
 function isValidTaskStatus(status: unknown): status is ValueOf<typeof CONST.SEARCH.STATUS.TASK> {
     return typeof status === 'string' && status in taskStatusActionMapping;
@@ -577,8 +570,6 @@ type ViolationKey = `${typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${strin
 
 type SearchGroupKey = `${typeof CONST.SEARCH.GROUP_PREFIX}${string}`;
 
-type SearchKey = ValueOf<typeof CONST.SEARCH.SEARCH_KEYS> | `${typeof CONST.SEARCH.SAVED_SEARCH_PREFIX}${string}`;
-
 type SavedSearchMenuItem = MenuItemWithLink & {
     key: string;
     hash: string;
@@ -589,48 +580,6 @@ type SavedSearchMenuItem = MenuItemWithLink & {
 type SearchTypeMenuSection = {
     translationPath: TranslationPaths;
     menuItems: SearchTypeMenuItem[];
-};
-
-const SEARCH_TYPE_MENU_ICON_NAMES = [
-    'Receipt',
-    'MoneyBag',
-    'CreditCard',
-    'MoneyHourglass',
-    'CreditCardHourglass',
-    'Bank',
-    'User',
-    'UserEye',
-    'Folder',
-    'Basket',
-    'CalendarSolid',
-    'Document',
-    'Pencil',
-    'ThumbsUp',
-    'CheckCircle',
-] as const satisfies readonly ExpensifyIconName[];
-
-type SearchTypeMenuItem = {
-    key: SearchKey;
-    translationPath: TranslationPaths;
-    type: SearchDataTypes;
-    icon: TupleToUnion<typeof SEARCH_TYPE_MENU_ICON_NAMES>;
-    searchQuery: string;
-    searchQueryJSON: SearchQueryJSON | undefined;
-    hash: number;
-    similarSearchHash: number;
-    recentSearchHash: number;
-    badgeText?: string;
-    emptyState?: {
-        title: TranslationPaths;
-        subtitle: TranslationPaths;
-        buttons?: Array<{
-            buttonText: TranslationPaths;
-            buttonAction: () => void;
-            buttonVariant?: ButtonVariant;
-            icon?: IconAsset;
-            isDisabled?: boolean;
-        }>;
-    };
 };
 
 type SearchDateModifier = ValueOf<typeof CONST.SEARCH.DATE_MODIFIERS>;
@@ -711,6 +660,10 @@ const SKIPPED_SEARCH_FILTERS = new Set([
     FILTER_KEYS.ACTION,
     FILTER_KEYS.COLUMNS,
     FILTER_KEYS.KEYWORD,
+    FILTER_KEYS.FOOTER_COUNT,
+    FILTER_KEYS.FOOTER_TOTAL,
+    FILTER_KEYS.FOOTER_CURRENCY,
+    FILTER_KEYS.EXPORTER,
 ]);
 
 function doesSearchItemMatchSort(key: SearchKey, itemSortBy: string | undefined, itemSortOrder: string | undefined, currentSortBy: string | undefined, currentSortOrder: string | undefined) {
@@ -720,431 +673,6 @@ function doesSearchItemMatchSort(key: SearchKey, itemSortBy: string | undefined,
 const TODO_SEARCH_KEYS: ReadonlySet<SearchKey> = new Set([CONST.SEARCH.SEARCH_KEYS.SUBMIT, CONST.SEARCH.SEARCH_KEYS.APPROVE, CONST.SEARCH.SEARCH_KEYS.PAY, CONST.SEARCH.SEARCH_KEYS.EXPORT]);
 const MONTHLY_ACCRUAL_SEARCH_KEYS: ReadonlySet<SearchKey> = new Set([CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_CASH, CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_CARD]);
 const RECONCILIATION_SEARCH_KEYS: ReadonlySet<SearchKey> = new Set([CONST.SEARCH.SEARCH_KEYS.STATEMENTS, CONST.SEARCH.SEARCH_KEYS.RECONCILIATION]);
-
-/**
- * Creates a top search menu item with common structure for TOP_SPENDERS, TOP_CATEGORIES, and TOP_MERCHANTS
- */
-function createTopSearchMenuItem(
-    key: SearchKey,
-    translationPath: TranslationPaths,
-    icon: Extract<ExpensifyIconName, 'Receipt' | 'MoneyBag' | 'CreditCard' | 'MoneyHourglass' | 'CreditCardHourglass' | 'Bank' | 'User' | 'Folder' | 'Basket'>,
-    groupBy: ValueOf<typeof CONST.SEARCH.GROUP_BY>,
-    limit?: number,
-    view?: ValueOf<typeof CONST.SEARCH.VIEW>,
-): SearchTypeMenuItem {
-    const defaultSortBy = CONST.SEARCH.TABLE_COLUMNS.GROUP_TOTAL;
-    const defaultSortOrder = CONST.SEARCH.SORT_ORDER.DESC;
-
-    const searchQuery = buildQueryStringFromFilterFormValues(
-        {
-            type: CONST.SEARCH.DATA_TYPES.EXPENSE,
-            groupBy,
-            dateOn: CONST.SEARCH.DATE_PRESETS.LAST_MONTH,
-            ...(view && {view}),
-        },
-        {
-            sortBy: defaultSortBy,
-            sortOrder: defaultSortOrder,
-            ...(limit && {limit}),
-        },
-    );
-
-    return {
-        key,
-        translationPath,
-        type: CONST.SEARCH.DATA_TYPES.EXPENSE,
-        icon,
-        searchQuery,
-        get searchQueryJSON() {
-            return buildSearchQueryJSON(this.searchQuery);
-        },
-        get hash() {
-            return this.searchQueryJSON?.hash ?? CONST.DEFAULT_NUMBER_ID;
-        },
-        get similarSearchHash() {
-            return this.searchQueryJSON?.similarSearchHash ?? CONST.DEFAULT_NUMBER_ID;
-        },
-        get recentSearchHash() {
-            return this.searchQueryJSON?.recentSearchHash ?? CONST.DEFAULT_NUMBER_ID;
-        },
-    };
-}
-
-/**
- * Returns a list of all possible searches in the LHN, along with their query & hash.
- * *NOTE* When rendering the LHN, you should use the "createTypeMenuSections" method, which
- * contains the conditionals for rendering each of these.
- *
- * Keep all suggested search declarations in this object.
- * If you are updating this function, do not add more params unless absolutely necessary for the searches. The amount of data needed to
- * get the list of searches should be as minimal as possible.
- *
- * These searches should be as static as possible, and should not contain conditionals, or any other logic.
- *
- * If you are trying to access data about a specific search, you do NOT need to subscribe to the data (such as feeds) if it does not
- * affect the specific query you are looking for
- */
-function getSuggestedSearches(
-    accountID: number = CONST.DEFAULT_NUMBER_ID,
-    defaultFeedID?: string,
-    shouldShowExpensifyCard?: boolean,
-    activeExpensifyCardFeedID?: string,
-): Record<SearchKey, SearchTypeMenuItem> {
-    // Card accruals (UNAPPROVED_CARD) defaults to the active workspace's Expensify Card when it has one,
-    // falling back to the company/bank feed otherwise. Other feed-based searches keep using `defaultFeedID`.
-    const unapprovedCardFeedID = activeExpensifyCardFeedID ?? defaultFeedID;
-    return {
-        [CONST.SEARCH.SEARCH_KEYS.EXPENSES]: {
-            key: CONST.SEARCH.SEARCH_KEYS.EXPENSES,
-            translationPath: 'search.tabs.expenses',
-            type: CONST.SEARCH.DATA_TYPES.EXPENSE,
-            icon: 'Receipt',
-            searchQuery: buildCannedSearchQuery(),
-            get searchQueryJSON() {
-                return buildSearchQueryJSON(this.searchQuery);
-            },
-            get hash() {
-                return this.searchQueryJSON?.hash ?? CONST.DEFAULT_NUMBER_ID;
-            },
-            get similarSearchHash() {
-                return this.searchQueryJSON?.similarSearchHash ?? CONST.DEFAULT_NUMBER_ID;
-            },
-            get recentSearchHash() {
-                return this.searchQueryJSON?.recentSearchHash ?? CONST.DEFAULT_NUMBER_ID;
-            },
-        },
-        [CONST.SEARCH.SEARCH_KEYS.REPORTS]: {
-            key: CONST.SEARCH.SEARCH_KEYS.REPORTS,
-            translationPath: 'search.tabs.reports',
-            type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
-            icon: 'Document',
-            searchQuery: buildCannedSearchQuery({type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT}),
-            get searchQueryJSON() {
-                return buildSearchQueryJSON(this.searchQuery);
-            },
-            get hash() {
-                return this.searchQueryJSON?.hash ?? CONST.DEFAULT_NUMBER_ID;
-            },
-            get similarSearchHash() {
-                return this.searchQueryJSON?.similarSearchHash ?? CONST.DEFAULT_NUMBER_ID;
-            },
-            get recentSearchHash() {
-                return this.searchQueryJSON?.recentSearchHash ?? CONST.DEFAULT_NUMBER_ID;
-            },
-        },
-        [CONST.SEARCH.SEARCH_KEYS.SUBMIT]: {
-            key: CONST.SEARCH.SEARCH_KEYS.SUBMIT,
-            translationPath: 'search.tabs.submit',
-            type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
-            icon: 'Pencil',
-            searchQuery: buildQueryStringFromFilterFormValues({
-                type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
-                action: CONST.SEARCH.ACTION_FILTERS.SUBMIT,
-                from: [`${accountID}`],
-            }),
-            get searchQueryJSON() {
-                return buildSearchQueryJSON(this.searchQuery);
-            },
-            get hash() {
-                return this.searchQueryJSON?.hash ?? CONST.DEFAULT_NUMBER_ID;
-            },
-            get similarSearchHash() {
-                return this.searchQueryJSON?.similarSearchHash ?? CONST.DEFAULT_NUMBER_ID;
-            },
-            get recentSearchHash() {
-                return this.searchQueryJSON?.recentSearchHash ?? CONST.DEFAULT_NUMBER_ID;
-            },
-        },
-        [CONST.SEARCH.SEARCH_KEYS.APPROVE]: {
-            key: CONST.SEARCH.SEARCH_KEYS.APPROVE,
-            translationPath: 'search.tabs.approve',
-            type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
-            icon: 'ThumbsUp',
-            searchQuery: buildQueryStringFromFilterFormValues({
-                type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
-                action: CONST.SEARCH.ACTION_FILTERS.APPROVE,
-                to: [`${accountID}`],
-            }),
-            get searchQueryJSON() {
-                return buildSearchQueryJSON(this.searchQuery);
-            },
-            get hash() {
-                return this.searchQueryJSON?.hash ?? CONST.DEFAULT_NUMBER_ID;
-            },
-            get similarSearchHash() {
-                return this.searchQueryJSON?.similarSearchHash ?? CONST.DEFAULT_NUMBER_ID;
-            },
-            get recentSearchHash() {
-                return this.searchQueryJSON?.recentSearchHash ?? CONST.DEFAULT_NUMBER_ID;
-            },
-        },
-        [CONST.SEARCH.SEARCH_KEYS.PAY]: {
-            key: CONST.SEARCH.SEARCH_KEYS.PAY,
-            translationPath: 'search.tabs.pay',
-            type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
-            icon: 'MoneyBag',
-            searchQuery: buildQueryStringFromFilterFormValues({
-                type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
-                action: CONST.SEARCH.ACTION_FILTERS.PAY,
-                reimbursable: CONST.SEARCH.BOOLEAN.YES,
-                payer: accountID?.toString(),
-            }),
-            get searchQueryJSON() {
-                return buildSearchQueryJSON(this.searchQuery);
-            },
-            get hash() {
-                return this.searchQueryJSON?.hash ?? CONST.DEFAULT_NUMBER_ID;
-            },
-            get similarSearchHash() {
-                return this.searchQueryJSON?.similarSearchHash ?? CONST.DEFAULT_NUMBER_ID;
-            },
-            get recentSearchHash() {
-                return this.searchQueryJSON?.recentSearchHash ?? CONST.DEFAULT_NUMBER_ID;
-            },
-        },
-        [CONST.SEARCH.SEARCH_KEYS.EXPORT]: {
-            key: CONST.SEARCH.SEARCH_KEYS.EXPORT,
-            translationPath: 'search.tabs.export',
-            type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
-            icon: 'CheckCircle',
-            searchQuery: buildQueryStringFromFilterFormValues({
-                type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
-                action: CONST.SEARCH.ACTION_FILTERS.EXPORT,
-                exporter: [`${accountID}`],
-            }),
-            get searchQueryJSON() {
-                return buildSearchQueryJSON(this.searchQuery);
-            },
-            get hash() {
-                return this.searchQueryJSON?.hash ?? CONST.DEFAULT_NUMBER_ID;
-            },
-            get similarSearchHash() {
-                return this.searchQueryJSON?.similarSearchHash ?? CONST.DEFAULT_NUMBER_ID;
-            },
-            get recentSearchHash() {
-                return this.searchQueryJSON?.recentSearchHash ?? CONST.DEFAULT_NUMBER_ID;
-            },
-        },
-        [CONST.SEARCH.SEARCH_KEYS.STATEMENTS]: {
-            key: CONST.SEARCH.SEARCH_KEYS.STATEMENTS,
-            translationPath: 'search.tabs.statements',
-            type: CONST.SEARCH.DATA_TYPES.EXPENSE,
-            icon: 'CreditCard',
-            searchQuery: buildQueryStringFromFilterFormValues({
-                type: CONST.SEARCH.DATA_TYPES.EXPENSE,
-                feed: defaultFeedID ? [defaultFeedID] : [''],
-                groupBy: CONST.SEARCH.GROUP_BY.CARD,
-                postedOn: CONST.SEARCH.DATE_PRESETS.LAST_STATEMENT,
-            }),
-            get searchQueryJSON() {
-                return buildSearchQueryJSON(this.searchQuery);
-            },
-            get hash() {
-                return this.searchQueryJSON?.hash ?? CONST.DEFAULT_NUMBER_ID;
-            },
-            get similarSearchHash() {
-                return this.searchQueryJSON?.similarSearchHash ?? CONST.DEFAULT_NUMBER_ID;
-            },
-            get recentSearchHash() {
-                return this.searchQueryJSON?.recentSearchHash ?? CONST.DEFAULT_NUMBER_ID;
-            },
-        },
-        [CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_CASH]: {
-            key: CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_CASH,
-            translationPath: 'search.tabs.unapprovedCash',
-            type: CONST.SEARCH.DATA_TYPES.EXPENSE,
-            icon: 'MoneyHourglass',
-            searchQuery: buildQueryStringFromFilterFormValues({
-                type: CONST.SEARCH.DATA_TYPES.EXPENSE,
-                status: [CONST.SEARCH.STATUS.EXPENSE.DRAFTS, CONST.SEARCH.STATUS.EXPENSE.OUTSTANDING],
-                groupBy: CONST.SEARCH.GROUP_BY.FROM,
-                reimbursable: CONST.SEARCH.BOOLEAN.YES,
-            }),
-            get searchQueryJSON() {
-                return buildSearchQueryJSON(this.searchQuery);
-            },
-            get hash() {
-                return this.searchQueryJSON?.hash ?? CONST.DEFAULT_NUMBER_ID;
-            },
-            get similarSearchHash() {
-                return this.searchQueryJSON?.similarSearchHash ?? CONST.DEFAULT_NUMBER_ID;
-            },
-            get recentSearchHash() {
-                return this.searchQueryJSON?.recentSearchHash ?? CONST.DEFAULT_NUMBER_ID;
-            },
-        },
-        [CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_CARD]: {
-            key: CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_CARD,
-            translationPath: 'search.tabs.unapprovedCard',
-            type: CONST.SEARCH.DATA_TYPES.EXPENSE,
-            icon: 'CreditCardHourglass',
-            searchQuery: buildQueryStringFromFilterFormValues({
-                type: CONST.SEARCH.DATA_TYPES.EXPENSE,
-                feed: unapprovedCardFeedID ? [unapprovedCardFeedID] : [''],
-                groupBy: CONST.SEARCH.GROUP_BY.CARD,
-                status: [CONST.SEARCH.STATUS.EXPENSE.UNREPORTED, CONST.SEARCH.STATUS.EXPENSE.DRAFTS, CONST.SEARCH.STATUS.EXPENSE.OUTSTANDING],
-            }),
-            get searchQueryJSON() {
-                return buildSearchQueryJSON(this.searchQuery);
-            },
-            get hash() {
-                return this.searchQueryJSON?.hash ?? CONST.DEFAULT_NUMBER_ID;
-            },
-            get similarSearchHash() {
-                return this.searchQueryJSON?.similarSearchHash ?? CONST.DEFAULT_NUMBER_ID;
-            },
-            get recentSearchHash() {
-                return this.searchQueryJSON?.recentSearchHash ?? CONST.DEFAULT_NUMBER_ID;
-            },
-        },
-        [CONST.SEARCH.SEARCH_KEYS.RECONCILIATION]: {
-            key: CONST.SEARCH.SEARCH_KEYS.RECONCILIATION,
-            translationPath: 'search.tabs.reconciliation',
-            type: CONST.SEARCH.DATA_TYPES.EXPENSE,
-            icon: 'Bank',
-            searchQuery: buildQueryStringFromFilterFormValues(
-                {
-                    type: CONST.SEARCH.DATA_TYPES.EXPENSE,
-                    withdrawalType: shouldShowExpensifyCard ? CONST.SEARCH.WITHDRAWAL_TYPE.EXPENSIFY_CARD : CONST.SEARCH.WITHDRAWAL_TYPE.REIMBURSEMENT,
-                    withdrawnOn: CONST.SEARCH.DATE_PRESETS.LAST_MONTH,
-                    groupBy: CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID,
-                    view: CONST.SEARCH.VIEW.TABLE,
-                },
-                {
-                    sortBy: CONST.SEARCH.TABLE_COLUMNS.GROUP_WITHDRAWN,
-                    sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
-                },
-            ),
-            get searchQueryJSON() {
-                return buildSearchQueryJSON(this.searchQuery);
-            },
-            get hash() {
-                return this.searchQueryJSON?.hash ?? CONST.DEFAULT_NUMBER_ID;
-            },
-            get similarSearchHash() {
-                return this.searchQueryJSON?.similarSearchHash ?? CONST.DEFAULT_NUMBER_ID;
-            },
-            get recentSearchHash() {
-                return this.searchQueryJSON?.recentSearchHash ?? CONST.DEFAULT_NUMBER_ID;
-            },
-        },
-        [CONST.SEARCH.SEARCH_KEYS.TOP_SPENDERS]: {
-            key: CONST.SEARCH.SEARCH_KEYS.TOP_SPENDERS,
-            translationPath: 'search.tabs.topSpenders',
-            type: CONST.SEARCH.DATA_TYPES.EXPENSE,
-            icon: 'User',
-            searchQuery: buildQueryStringFromFilterFormValues(
-                {
-                    type: CONST.SEARCH.DATA_TYPES.EXPENSE,
-                    groupBy: CONST.SEARCH.GROUP_BY.FROM,
-                    dateOn: CONST.SEARCH.DATE_PRESETS.LAST_MONTH,
-                    status: [
-                        CONST.SEARCH.STATUS.EXPENSE.DRAFTS,
-                        CONST.SEARCH.STATUS.EXPENSE.OUTSTANDING,
-                        CONST.SEARCH.STATUS.EXPENSE.APPROVED,
-                        CONST.SEARCH.STATUS.EXPENSE.DONE,
-                        CONST.SEARCH.STATUS.EXPENSE.PAID,
-                    ],
-                },
-                {
-                    sortBy: CONST.SEARCH.TABLE_COLUMNS.GROUP_TOTAL,
-                    sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
-                    limit: CONST.SEARCH.TOP_SEARCH_LIMIT,
-                },
-            ),
-            get searchQueryJSON() {
-                return buildSearchQueryJSON(this.searchQuery);
-            },
-            get hash() {
-                return this.searchQueryJSON?.hash ?? CONST.DEFAULT_NUMBER_ID;
-            },
-            get similarSearchHash() {
-                return this.searchQueryJSON?.similarSearchHash ?? CONST.DEFAULT_NUMBER_ID;
-            },
-            get recentSearchHash() {
-                return this.searchQueryJSON?.recentSearchHash ?? CONST.DEFAULT_NUMBER_ID;
-            },
-        },
-        [CONST.SEARCH.SEARCH_KEYS.TOP_CATEGORIES]: createTopSearchMenuItem(
-            CONST.SEARCH.SEARCH_KEYS.TOP_CATEGORIES,
-            'search.tabs.topCategories',
-            'Folder',
-            CONST.SEARCH.GROUP_BY.CATEGORY,
-            CONST.SEARCH.TOP_SEARCH_LIMIT,
-            CONST.SEARCH.VIEW.BAR,
-        ),
-        [CONST.SEARCH.SEARCH_KEYS.TOP_MERCHANTS]: createTopSearchMenuItem(
-            CONST.SEARCH.SEARCH_KEYS.TOP_MERCHANTS,
-            'search.tabs.topMerchants',
-            'Basket',
-            CONST.SEARCH.GROUP_BY.MERCHANT,
-            CONST.SEARCH.TOP_SEARCH_LIMIT,
-            CONST.SEARCH.VIEW.PIE,
-        ),
-        [CONST.SEARCH.SEARCH_KEYS.VIOLATIONS_BY_SUBMITTER]: {
-            key: CONST.SEARCH.SEARCH_KEYS.VIOLATIONS_BY_SUBMITTER,
-            translationPath: 'search.tabs.violationsBySubmitter',
-            type: CONST.SEARCH.DATA_TYPES.EXPENSE,
-            icon: 'UserEye',
-            searchQuery: buildQueryStringFromFilterFormValues(
-                {
-                    type: CONST.SEARCH.DATA_TYPES.EXPENSE,
-                    groupBy: CONST.SEARCH.GROUP_BY.FROM,
-                    submittedOn: CONST.SEARCH.DATE_PRESETS.LAST_MONTH,
-                    has: [CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION],
-                    view: CONST.SEARCH.VIEW.TABLE,
-                    limit: String(CONST.SEARCH.TOP_SEARCH_LIMIT),
-                },
-                {
-                    sortBy: CONST.SEARCH.TABLE_COLUMNS.GROUP_EXPENSES,
-                    sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
-                },
-            ),
-            get searchQueryJSON() {
-                return buildSearchQueryJSON(this.searchQuery);
-            },
-            get hash() {
-                return this.searchQueryJSON?.hash ?? CONST.DEFAULT_NUMBER_ID;
-            },
-            get similarSearchHash() {
-                return this.searchQueryJSON?.similarSearchHash ?? CONST.DEFAULT_NUMBER_ID;
-            },
-            get recentSearchHash() {
-                return this.searchQueryJSON?.recentSearchHash ?? CONST.DEFAULT_NUMBER_ID;
-            },
-        },
-        [CONST.SEARCH.SEARCH_KEYS.SPEND_OVER_TIME]: {
-            key: CONST.SEARCH.SEARCH_KEYS.SPEND_OVER_TIME,
-            translationPath: 'search.spendOverTime',
-            type: CONST.SEARCH.DATA_TYPES.EXPENSE,
-            icon: 'CalendarSolid',
-            searchQuery: buildQueryStringFromFilterFormValues(
-                {
-                    type: CONST.SEARCH.DATA_TYPES.EXPENSE,
-                    groupBy: CONST.SEARCH.GROUP_BY.MONTH,
-                    dateOn: CONST.SEARCH.DATE_PRESETS.LAST_12_MONTHS,
-                    view: CONST.SEARCH.VIEW.LINE,
-                },
-                {
-                    sortBy: CONST.SEARCH.TABLE_COLUMNS.GROUP_MONTH,
-                    sortOrder: CONST.SEARCH.SORT_ORDER.ASC,
-                },
-            ),
-            get searchQueryJSON() {
-                return buildSearchQueryJSON(this.searchQuery);
-            },
-            get hash() {
-                return this.searchQueryJSON?.hash ?? CONST.DEFAULT_NUMBER_ID;
-            },
-            get similarSearchHash() {
-                return this.searchQueryJSON?.similarSearchHash ?? CONST.DEFAULT_NUMBER_ID;
-            },
-            get recentSearchHash() {
-                return this.searchQueryJSON?.recentSearchHash ?? CONST.DEFAULT_NUMBER_ID;
-            },
-        },
-    };
-}
 
 /**
  * Determines if the current user is eligible for the approve suggestion on a given policy.
@@ -1158,6 +686,15 @@ function isPolicyEligibleForSpendOverTime(policy: OnyxTypes.Policy, currentUserE
     return (
         isGroupPolicy(policy) && (policy.role === CONST.POLICY.ROLE.ADMIN || policy.role === CONST.POLICY.ROLE.AUDITOR || (!!currentUserEmail && isPolicyApprover(policy, currentUserEmail)))
     );
+}
+
+/** Ranking members by spend needs at least two members to compare, and a role allowed to see what other people spend. */
+function isPolicyEligibleForTopSpenders(policy: OnyxTypes.Policy, currentUserEmail: string | undefined): boolean {
+    return isPolicyEligibleForSpendOverTime(policy, currentUserEmail) && Object.keys(policy.employeeList ?? {}).length >= 2;
+}
+
+function isPolicyEligibleForTopCategories(policy: OnyxTypes.Policy): boolean {
+    return isGroupPolicy(policy) && policy.areCategoriesEnabled === true;
 }
 
 /**
@@ -1233,8 +770,8 @@ function getSuggestedSearchesVisibility(
         const isEligibleForExpensifyCardSuggestion = isPaidPolicy && (isAdmin || isAuditor) && isECardEnabled;
         const isEligibleForReimbursementsSuggestion = isPaidPolicy && (isAdmin || isAuditor) && isPaymentEnabled && hasVBBA && hasReimburser;
         const memberCount = Object.keys(policy.employeeList ?? {}).length;
-        const isEligibleForTopSpendersSuggestion = isGroupPolicyEligible && (isAdmin || isAuditor || isUserApprover) && memberCount >= 2;
-        const isEligibleForTopCategoriesSuggestion = isGroupPolicyEligible && policy.areCategoriesEnabled === true;
+        const isEligibleForTopSpendersSuggestion = isPolicyEligibleForTopSpenders(policy, currentUserEmail);
+        const isEligibleForTopCategoriesSuggestion = isPolicyEligibleForTopCategories(policy);
         const isEligibleForTopMerchantsSuggestion = isGroupPolicyEligible;
         const isEligibleForViolationsBySubmitterSuggestion =
             isControlPolicy(policy) &&
@@ -1327,9 +864,6 @@ function getTransactionItemCommonFormattedProperties(
     };
 }
 
-/**
- * @private
- */
 function isReportEntry(key: string): key is ReportKey {
     return key.startsWith(ONYXKEYS.COLLECTION.REPORT);
 }
@@ -1352,9 +886,6 @@ function isReportActionEntry(key: string): key is ReportActionKey {
     return key.startsWith(ONYXKEYS.COLLECTION.REPORT_ACTIONS);
 }
 
-/**
- * @private
- */
 function isTransactionEntry(key: string): key is TransactionKey {
     return key.startsWith(ONYXKEYS.COLLECTION.TRANSACTION);
 }
@@ -1381,6 +912,13 @@ function isTransactionWithdrawalIDGroupListItemType(item: ListItem): item is Tra
 }
 
 /**
+ * Checks if a row is a cash back credit rather than a card settlement withdrawal
+ */
+function isCashBackWithdrawalGroup(item: ListItem): boolean {
+    return isTransactionWithdrawalIDGroupListItemType(item) && !!item.isCashBack;
+}
+
+/**
  * Type guard that checks if something is a TransactionCategoryGroupListItemType
  */
 function isTransactionCategoryGroupListItemType(item: ListItem): item is TransactionCategoryGroupListItemType {
@@ -1399,6 +937,10 @@ function isTransactionMerchantGroupListItemType(item: ListItem): item is Transac
  */
 function isTransactionTagGroupListItemType(item: ListItem): item is TransactionTagGroupListItemType {
     return isTransactionGroupListItemType(item) && 'groupedBy' in item && item.groupedBy === CONST.SEARCH.GROUP_BY.TAG;
+}
+
+function isTransactionDayGroupListItemType(item: ListItem): item is TransactionDayGroupListItemType {
+    return isTransactionGroupListItemType(item) && 'groupedBy' in item && item.groupedBy === CONST.SEARCH.GROUP_BY.DAY;
 }
 
 /**
@@ -2216,28 +1758,6 @@ function hasVisibleViolations(
     return hasActionable && hasUserVisible;
 }
 
-function isEligibleForStatus(currentQueryJSON: SearchQueryJSON | undefined, report: OnyxEntry<OnyxTypes.Report>, transactionItemReportID?: string) {
-    const status = getFilterFromQuery(currentQueryJSON, CONST.SEARCH.SYNTAX_FILTER_KEYS.STATUS);
-    if (!status.value) {
-        return true;
-    }
-
-    if (status.isNegated) {
-        return Object.keys(expenseStatusActionMapping).some((expenseStatus) => {
-            const isExcluded = status.value?.includes(expenseStatus);
-            return !isExcluded && expenseStatusActionMapping[expenseStatus](report, transactionItemReportID);
-        });
-    }
-
-    // Invalid statuses should be treated as if there were no status filter, mirroring backend behaviour.
-    const validStatuses = status.value.filter(isValidExpenseStatus);
-    if (validStatuses.length === 0) {
-        return true;
-    }
-
-    return validStatuses.some((expenseStatus) => expenseStatusActionMapping[expenseStatus](report, transactionItemReportID));
-}
-
 /**
  * Whether a task still belongs under the active `status:` filter, judged against the live report rather than the
  * search snapshot. Completing or reopening a task does not patch the snapshot, so without this a completed task
@@ -2646,10 +2166,15 @@ function getActions(
     }
 
     const policy = getPolicyFromKey(data, report);
-    const isExportAvailable = isExportAction(report, currentUserLogin, policy, reportActions) && !isTransaction;
+    const isExportAvailable = !isTransaction && isExportAction(report, currentUserLogin, policy, reportActions);
 
     if (isSettled(report) && !isExportAvailable) {
         return [CONST.SEARCH.ACTION_TYPES.PAID];
+    }
+
+    // Submit/Approve/Pay are report level actions, so expense rows only offer View.
+    if (isTransaction && !isInvoiceReport(report)) {
+        return [CONST.SEARCH.ACTION_TYPES.VIEW];
     }
 
     // We need to check both options for a falsy value since the transaction might not have an error but the report associated with it might. We return early if there are any errors for performance reasons, so we don't need to compute any other possible actions.
@@ -2673,10 +2198,9 @@ function getActions(
 
     const reportNVP = getReportNameValuePairsFromKey(data, report);
 
-    const chatReportRNVP = data[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.chatReportID}`] ?? undefined;
+    const isChatReportArchived = isArchivedReport(data[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.chatReportID}`]);
 
-    // Submit/Approve/Pay can only be taken on transactions if the transaction is the only one on the report, otherwise `View` is the only option.
-    // If this condition is not met, return early for performance reasons
+    // Only invoice rows reach here. They get report actions only when the invoice has a single line.
     if (isTransaction && !isOneTransactionReport(report)) {
         return allActions.length > 0 ? allActions : [CONST.SEARCH.ACTION_TYPES.VIEW];
     }
@@ -2687,7 +2211,18 @@ function getActions(
             : undefined;
 
     const chatReport = getChatReport(data, report);
-    const canBePaid = canIOUBePaid(report, chatReport, policy, bankAccountList, currentUserLogin, currentUserAccountID, allReportTransactions, false, chatReportRNVP, invoiceReceiverPolicy);
+    const canBePaid = canIOUBePaid(
+        report,
+        chatReport,
+        policy,
+        bankAccountList,
+        currentUserLogin,
+        currentUserAccountID,
+        allReportTransactions,
+        false,
+        isChatReportArchived,
+        invoiceReceiverPolicy,
+    );
     const canOnlyBePaidElsewhere = canIOUBePaid(
         report,
         chatReport,
@@ -2697,7 +2232,7 @@ function getActions(
         currentUserAccountID,
         allReportTransactions,
         true,
-        chatReportRNVP,
+        isChatReportArchived,
         invoiceReceiverPolicy,
     );
     const shouldOnlyShowElsewhere = !canBePaid && canOnlyBePaidElsewhere;
@@ -2797,7 +2332,7 @@ function getPrimaryAction(
     const submitExclusion = getSubmitExclusion(report?.ownerAccountID, currentAccountID);
     if (isReportEntry(key) && report) {
         const allReportTransactions = precomputedTransactionsForReport ?? getTransactionsForReport(data, report.reportID);
-        const shouldHidePayAsPrimaryAction = hasOnlyNonReimbursableTransactions(report.reportID, allReportTransactions);
+        const shouldHidePayAsPrimaryAction = isPayOptional(report, allReportTransactions);
         return getAction(allActions, [...(shouldHidePayAsPrimaryAction ? [CONST.SEARCH.ACTION_TYPES.PAY] : []), ...submitExclusion]);
     }
     return getAction(allActions, submitExclusion);
@@ -2875,7 +2410,7 @@ function getTaskSections(
             if (parentReport && personalDetails) {
                 const policy = data[`${ONYXKEYS.COLLECTION.POLICY}${parentReport.policyID}`];
                 const isParentReportArchived = isArchivedReport(reportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${parentReport?.reportID}`]);
-                const parentReportName = deprecatedGetReportName(parentReport, reportAttributesDerivedValue);
+                const parentReportName = getReportName(parentReport, parentReport?.reportID ? reportAttributesDerivedValue?.[parentReport.reportID]?.reportName : undefined);
                 // The search snapshot does not always carry the report metadata. Pass undefined rather than an empty array in that case,
                 // otherwise getGroupChatName treats it as "nothing is pending delete" and skips its own Onyx fallback.
                 const parentReportMetadata = data[`${ONYXKEYS.COLLECTION.REPORT_METADATA}${parentReport.reportID}`];
@@ -2922,9 +2457,6 @@ type CreateAndOpenSearchTransactionThreadParams = {
     currentUserLogin: string;
     currentUserAccountID: number;
 
-    /** Beta features list */
-    betas: OnyxEntry<OnyxTypes.Beta[]>;
-
     conciergeChat: OnyxEntry<OnyxTypes.Report>;
 
     /** The personal details of the participants */
@@ -2932,6 +2464,8 @@ type CreateAndOpenSearchTransactionThreadParams = {
 
     isSelfTourViewed: boolean | undefined;
     hasCompletedGuidedSetupFlow: boolean | undefined;
+
+    delegateAccountID: number | undefined;
 
     /** Existing transaction thread report ID (childReportID), if any */
     IOUTransactionID?: string;
@@ -2953,24 +2487,30 @@ function createAndOpenSearchTransactionThread({
     backTo,
     currentUserLogin,
     currentUserAccountID,
-    betas,
     personalDetails,
     isSelfTourViewed,
     hasCompletedGuidedSetupFlow,
+    delegateAccountID,
     IOUTransactionID,
     transactionPreviewData,
     shouldNavigate = true,
     getCurrencyDecimals,
     conciergeChat,
 }: CreateAndOpenSearchTransactionThreadParams): string | undefined {
-    const isFromSelfDM = item.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
+    const isUnreportedTransaction = item.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
     const isDeleted = isDeletedTransaction(item);
-    const iouReportAction = getIOUActionForReportID(isFromSelfDM ? findSelfDMReportID() : item.reportID, item.transactionID);
+    const iouReportAction = getIOUActionForReportID(isUnreportedTransaction ? findSelfDMReportID() : item.reportID, item.transactionID);
+    const expenseOwnerAccountID = (iouReportAction ?? item.reportAction)?.actorAccountID;
+    if (isUnreportedTransaction && expenseOwnerAccountID !== currentUserAccountID) {
+        return;
+    }
+
+    const isFromSelfDM = isUnreportedTransaction;
     const moneyRequestReportActionID = item.reportAction?.reportActionID ?? undefined;
     const previewData = transactionPreviewData
         ? {...transactionPreviewData, hasTransactionThreadReport: true}
         : {hasTransaction: false, hasParentReport: false, hasParentReportAction: false, hasTransactionThreadReport: true};
-    setOptimisticDataForTransactionThreadPreview(item, previewData, getCurrencyDecimals, IOUTransactionID);
+    setOptimisticDataForTransactionThreadPreview(item, previewData, getCurrencyDecimals, delegateAccountID, IOUTransactionID);
 
     const hasActualTransactionThread = iouReportAction?.childReportID && iouReportAction?.childReportID !== CONST.FAKE_REPORT_ID;
     let transactionThreadReport;
@@ -2994,7 +2534,6 @@ function createAndOpenSearchTransactionThread({
             conciergeChat,
             currentUserLogin: currentUserLogin ?? '',
             currentUserAccountID,
-            betas,
             iouReport: getReportOrDraftReport(item.reportID) ?? item.report,
             iouReportAction: reportActionToPass,
             transaction,
@@ -3039,7 +2578,8 @@ function getReportActionsSections(
     for (const key in data) {
         if (isReportActionEntry(key)) {
             const reportIDFromKey = key.replace(ONYXKEYS.COLLECTION.REPORT_ACTIONS, '');
-            const reportActions = Object.values(data[key]);
+            const reportActionsCollection = data[key];
+            const reportActions = Object.values(reportActionsCollection);
             n += reportActions.length;
             for (const reportAction of reportActions) {
                 // Always use the container reportID so "In <chat name>" rows open the parent chat, not a child task/thread report.
@@ -3056,7 +2596,7 @@ function getReportActionsSections(
                 const isReportArchived = isArchivedReport(data[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`]);
                 if (
                     !reportID ||
-                    !isReportActionVisible(reportAction, reportID, canUserPerformWriteAction(report, isReportArchived), visibleReportActionsData) ||
+                    !isReportActionVisible(reportAction, reportID, canUserPerformWriteAction(report, isReportArchived), visibleReportActionsData, undefined, reportActionsCollection) ||
                     isDeletedAction(reportAction) ||
                     isResolvedActionableWhisper(reportAction) ||
                     reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.CLOSED ||
@@ -3071,7 +2611,7 @@ function getReportActionsSections(
                     ...reportAction,
                     reportID,
                     from,
-                    reportName: deprecatedGetReportName(report, reportAttributesDerivedValue),
+                    reportName: getReportName(report, report?.reportID ? reportAttributesDerivedValue?.[report.reportID]?.reportName : undefined),
                     formattedFrom: from?.displayName ?? from?.login ?? '',
                     date: reportAction.created,
                     keyForList: reportAction.reportActionID,
@@ -3340,8 +2880,8 @@ function getReportSections({
                 const reportIsArchived = isArchivedReport(getReportNameValuePairsFromKey(data, reportItem));
                 const avatarProps = getSearchReportAvatarProps(reportItem, formatPhoneNumber, translate, mergedPersonalDetails, policy, reportIsArchived, conciergeReportID);
 
-                const isRejectedReport = reportItem.stateNum === CONST.REPORT.STATE_NUM.OPEN && reportItem.nextStep?.messageKey === CONST.NEXT_STEP.MESSAGE_KEY.REJECTED_REPORT;
-                const shouldHidePayAsPrimaryAction = hasOnlyNonReimbursableTransactions(reportItem.reportID, allReportTransactions);
+                const isRejectedReport = hasReportBeenRejectedToSubmitter(reportItem);
+                const shouldHidePayAsPrimaryAction = isPayOptional(reportItem, allReportTransactions);
                 const primaryActionExclusions: SearchTransactionAction[] = [
                     ...(shouldHidePayAsPrimaryAction ? [CONST.SEARCH.ACTION_TYPES.PAY] : []),
                     ...getSubmitExclusion(reportItem.ownerAccountID, currentAccountID),
@@ -3506,12 +3046,17 @@ function getSelectedGroupFilterEntry(groupBy: string, groupData: unknown): {key:
 function buildSpecificGroupQuery(queryJSON: SearchQueryJSON, filterKey: QueryFilterKey, filterValue: string | number): SearchQueryJSON | undefined {
     const newFlatFilters = queryJSON.flatFilters.filter((filter) => filter.key !== filterKey);
     newFlatFilters.push({key: filterKey, filters: [{operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, value: filterValue}]});
-    const newQueryJSON: SearchQueryJSON = {...queryJSON, groupBy: undefined, sortBy: CONST.SEARCH.TABLE_COLUMNS.DATE, sortOrder: CONST.SEARCH.SORT_ORDER.DESC, flatFilters: newFlatFilters};
-    const specificGroupQueryJSON = buildSearchQueryJSON(buildSearchQueryString(newQueryJSON));
-    if (!specificGroupQueryJSON || filterKey !== CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT) {
-        return specificGroupQueryJSON;
-    }
-    return withExactMatchFilterKeys(specificGroupQueryJSON, [filterKey]);
+    // `limit` caps the number of groups on the parent query. Once `groupBy` is dropped it would cap the rows inside this
+    // group instead, so it must not be carried over to the drill-down query.
+    const newQueryJSON: SearchQueryJSON = {
+        ...queryJSON,
+        groupBy: undefined,
+        limit: undefined,
+        sortBy: CONST.SEARCH.TABLE_COLUMNS.DATE,
+        sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
+        flatFilters: newFlatFilters,
+    };
+    return buildSearchQueryJSON(buildSearchQueryString(newQueryJSON));
 }
 
 function getActiveGroupSearchHashes(data: OnyxTypes.SearchResults['data'] | undefined, queryJSON: Readonly<SearchQueryJSON> | undefined): number[] {
@@ -3583,6 +3128,12 @@ function getActiveGroupSearchHashes(data: OnyxTypes.SearchResults['data'] | unde
                 }
                 break;
             }
+            case CONST.SEARCH.GROUP_BY.DAY: {
+                if ('day' in group && typeof group.day === 'string' && group.day) {
+                    transactionsQueryJSON = buildDateRangeGroupQuery(queryJSON, {start: group.day, end: group.day}).transactionsQueryJSON;
+                }
+                break;
+            }
             case CONST.SEARCH.GROUP_BY.MONTH: {
                 const monthGroup = group as SearchMonthGroup;
                 if (monthGroup.year && monthGroup.month) {
@@ -3634,7 +3185,15 @@ function buildDateRangeGroupQuery(queryJSON: SearchQueryJSON, dateRange: {start:
             {operator: CONST.SEARCH.SYNTAX_OPERATORS.LOWER_THAN_OR_EQUAL_TO, value: end},
         ],
     });
-    const newQueryJSON: SearchQueryJSON = {...queryJSON, groupBy: undefined, sortBy: CONST.SEARCH.TABLE_COLUMNS.DATE, sortOrder: CONST.SEARCH.SORT_ORDER.DESC, flatFilters: newFlatFilters};
+    // See buildSpecificGroupQuery: `limit` bounds the group count, so it is dropped along with `groupBy`.
+    const newQueryJSON: SearchQueryJSON = {
+        ...queryJSON,
+        groupBy: undefined,
+        limit: undefined,
+        sortBy: CONST.SEARCH.TABLE_COLUMNS.DATE,
+        sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
+        flatFilters: newFlatFilters,
+    };
     const transactionsQueryJSON = buildSearchQueryJSON(buildSearchQueryString(newQueryJSON));
     return {transactionsQueryJSON, start, end};
 }
@@ -3650,6 +3209,7 @@ function getMemberSections(
     queryJSON: SearchQueryJSON | undefined,
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
     translate: LocalizedTranslate,
+    onyxPersonalDetailsList?: OnyxTypes.PersonalDetailsList,
 ): [TransactionMemberGroupListItemType[], number, boolean] {
     const memberSections: Record<string, TransactionMemberGroupListItemType> = {};
 
@@ -3657,7 +3217,7 @@ function getMemberSections(
         if (isGroupEntry(key)) {
             const memberGroup = data[key] as SearchMemberGroup;
 
-            const personalDetails = data.personalDetailsList?.[memberGroup.accountID] ?? emptyPersonalDetails;
+            const personalDetails = data.personalDetailsList?.[memberGroup.accountID] ?? onyxPersonalDetailsList?.[memberGroup.accountID] ?? emptyPersonalDetails;
             const transactionsQueryJSON = queryJSON && memberGroup.accountID ? buildSpecificGroupQuery(queryJSON, CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM, memberGroup.accountID) : undefined;
 
             memberSections[key] = {
@@ -3765,6 +3325,9 @@ function getCardSections(
     return [cardSectionsValues, cardSectionsValues.length, hasDeletedTransactionInData(data)];
 }
 
+// Cash back is not a settlement state, so it ranks past all of them instead of taking a slot between them.
+const CASH_BACK_STATUS_SORT_RANK = Number.MAX_SAFE_INTEGER;
+
 /**
  * @private
  * Organizes data into List Sections grouped by card for display, for the TransactionWithdrawalIDGroupListItemType of Search Results.
@@ -3792,6 +3355,7 @@ function getWithdrawalIDSections(data: OnyxTypes.SearchResults['data'], queryJSO
                 ...withdrawalIDGroup,
                 shouldShowYearWithdrawn,
                 formattedWithdrawalID: String(withdrawalIDGroup.entryID),
+                settlementStatusRank: withdrawalIDGroup.isCashBack ? CASH_BACK_STATUS_SORT_RANK : withdrawalIDGroup.state,
                 keyForList: key,
             };
         }
@@ -3929,6 +3493,63 @@ function getTagSections(data: OnyxTypes.SearchResults['data'], queryJSON: Search
     return [tagSectionsValues, tagSectionsValues.length, hasDeletedTransactionInData(data)];
 }
 
+/** Whether the day, month or quarter groups fall in more than one year */
+function doGroupsSpanMultipleYears(data: OnyxTypes.SearchResults['data']): boolean {
+    const years = Object.keys(data)
+        .filter(isGroupEntry)
+        .map((key) => {
+            const group = data[key];
+            if ('day' in group) {
+                return getYearOfDate(group.day);
+            }
+            return 'year' in group ? group.year : undefined;
+        })
+        .filter((year) => year !== undefined);
+    return new Set(years).size > 1;
+}
+
+function getYearOfDate(date: string): number {
+    return getYear(parse(date, CONST.DATE.FNS_FORMAT_STRING, new Date()));
+}
+
+/**
+ * Organizes data into list sections grouped by day.
+ */
+function getDaySections(
+    data: OnyxTypes.SearchResults['data'],
+    queryJSON: SearchQueryJSON | undefined,
+    dateFnsLocale: DateFnsLocale | undefined,
+): [TransactionDayGroupListItemType[], number, boolean] {
+    const daySections: Record<string, TransactionDayGroupListItemType> = {};
+    const shouldShowShortLabelYear = doGroupsSpanMultipleYears(data);
+    const currentYear = new Date().getFullYear();
+    for (const key in data) {
+        if (!isGroupEntry(key)) {
+            continue;
+        }
+
+        const dayGroup = data[key];
+        if (!('day' in dayGroup) || typeof dayGroup.day !== 'string') {
+            continue;
+        }
+
+        const transactionsQueryJSON = queryJSON ? buildDateRangeGroupQuery(queryJSON, {start: dayGroup.day, end: dayGroup.day}).transactionsQueryJSON : undefined;
+        daySections[key] = {
+            groupedBy: CONST.SEARCH.GROUP_BY.DAY,
+            transactions: [],
+            transactionsQueryJSON,
+            ...dayGroup,
+            formattedDay: DateUtils.formatToReadableString(dayGroup.day, dateFnsLocale),
+            shortFormattedDay: DateUtils.getShortFormattedDayForSearch(dayGroup.day, dateFnsLocale, shouldShowShortLabelYear),
+            lineChartFormattedDay: DateUtils.getShortFormattedDayForSearch(dayGroup.day, dateFnsLocale, getYearOfDate(dayGroup.day) !== currentYear),
+            keyForList: key,
+        };
+    }
+
+    const daySectionsValues = Object.values(daySections);
+    return [daySectionsValues, daySectionsValues.length, hasDeletedTransactionInData(data)];
+}
+
 /**
  * @private
  * Organizes data into List Sections grouped by month for display, for the TransactionGroupListItemType of Search Results.
@@ -3941,6 +3562,7 @@ function getMonthSections(
     dateFnsLocale: DateFnsLocale | undefined,
 ): [TransactionMonthGroupListItemType[], number, boolean] {
     const monthSections: Record<string, TransactionMonthGroupListItemType> = {};
+    const shouldShowShortLabelYear = doGroupsSpanMultipleYears(data);
     for (const key in data) {
         if (isGroupEntry(key)) {
             const monthGroup = data[key];
@@ -3958,7 +3580,7 @@ function getMonthSections(
                 keyForList: key,
                 ...monthGroup,
                 formattedMonth: DateUtils.getFormattedMonthForSearch(monthGroup.year, monthGroup.month, dateFnsLocale),
-                shortFormattedMonth: DateUtils.getShortFormattedMonthForSearch(monthGroup.year, monthGroup.month, dateFnsLocale),
+                shortFormattedMonth: DateUtils.getShortFormattedMonthForSearch(monthGroup.year, monthGroup.month, dateFnsLocale, shouldShowShortLabelYear),
                 sortKey: monthGroup.year * 100 + monthGroup.month,
             };
         }
@@ -3978,6 +3600,7 @@ function getWeekSections(
     dateFnsLocale: DateFnsLocale | undefined,
 ): [TransactionWeekGroupListItemType[], number, boolean] {
     const weekSections: Record<string, TransactionWeekGroupListItemType> = {};
+    const weeks: Record<string, {weekGroup: SearchWeekGroup; weekStart: string; weekEnd: string; transactionsQueryJSON: SearchQueryJSON | undefined}> = {};
     for (const key in data) {
         if (isGroupEntry(key)) {
             const weekGroup = data[key];
@@ -3986,22 +3609,32 @@ function getWeekSections(
             }
             const rawRange = DateUtils.getWeekDateRange(weekGroup.week);
             const dateResult = queryJSON && weekGroup.week ? buildDateRangeGroupQuery(queryJSON, rawRange) : undefined;
-            const transactionsQueryJSON = dateResult?.transactionsQueryJSON;
-            const weekStart = dateResult?.start ?? rawRange.start;
-            const weekEnd = dateResult?.end ?? rawRange.end;
-            const formattedWeek = DateUtils.getFormattedDateRangeForSearch(weekStart, weekEnd, dateFnsLocale);
-            const shortFormattedWeek = DateUtils.getShortFormattedDateRangeForSearch(weekStart, weekEnd, dateFnsLocale);
-
-            weekSections[key] = {
-                groupedBy: CONST.SEARCH.GROUP_BY.WEEK,
-                transactions: [],
-                transactionsQueryJSON,
-                ...weekGroup,
-                formattedWeek,
-                shortFormattedWeek,
-                keyForList: key,
+            weeks[key] = {
+                weekGroup,
+                weekStart: dateResult?.start ?? rawRange.start,
+                weekEnd: dateResult?.end ?? rawRange.end,
+                transactionsQueryJSON: dateResult?.transactionsQueryJSON,
             };
         }
+    }
+
+    // Years come from the week as trimmed to the date filter, so a filter starting Jan 1 doesn't count the days before it
+    const shouldShowShortLabelYear = new Set(Object.values(weeks).flatMap(({weekStart, weekEnd}) => [getYearOfDate(weekStart), getYearOfDate(weekEnd)])).size > 1;
+    const currentYear = new Date().getFullYear();
+    for (const [key, {weekGroup, weekStart, weekEnd, transactionsQueryJSON}] of Object.entries(weeks)) {
+        const formattedWeek = DateUtils.getFormattedDateRangeForSearch(weekStart, weekEnd, dateFnsLocale);
+        const shortFormattedWeek = DateUtils.getShortFormattedDateRangeForSearch(weekStart, weekEnd, dateFnsLocale, shouldShowShortLabelYear);
+
+        weekSections[key] = {
+            groupedBy: CONST.SEARCH.GROUP_BY.WEEK,
+            transactions: [],
+            transactionsQueryJSON,
+            ...weekGroup,
+            formattedWeek,
+            shortFormattedWeek,
+            lineChartFormattedWeek: DateUtils.getShortFormattedDayForSearch(weekStart, dateFnsLocale, getYearOfDate(weekStart) !== currentYear),
+            keyForList: key,
+        };
     }
 
     const weekSectionsValues = Object.values(weekSections);
@@ -4046,6 +3679,7 @@ function getQuarterSections(
     dateFnsLocale: DateFnsLocale | undefined,
 ): [TransactionQuarterGroupListItemType[], number, boolean] {
     const quarterSections: Record<string, TransactionQuarterGroupListItemType> = {};
+    const shouldShowShortLabelYear = doGroupsSpanMultipleYears(data);
     for (const key in data) {
         if (isGroupEntry(key)) {
             const quarterGroup = data[key];
@@ -4057,7 +3691,7 @@ function getQuarterSections(
                     ? buildDateRangeGroupQuery(queryJSON, DateUtils.getQuarterDateRange(quarterGroup.year, quarterGroup.quarter))?.transactionsQueryJSON
                     : undefined;
             const formattedQuarter = DateUtils.getFormattedQuarterForSearch(quarterGroup.year, quarterGroup.quarter, dateFnsLocale);
-            const shortFormattedQuarter = DateUtils.getShortFormattedQuarterForSearch(quarterGroup.year, quarterGroup.quarter);
+            const shortFormattedQuarter = DateUtils.getShortFormattedQuarterForSearch(quarterGroup.year, quarterGroup.quarter, dateFnsLocale, shouldShowShortLabelYear);
 
             quarterSections[key] = {
                 groupedBy: CONST.SEARCH.GROUP_BY.QUARTER,
@@ -4140,7 +3774,7 @@ function getSections({
         // eslint-disable-next-line default-case
         switch (groupBy) {
             case CONST.SEARCH.GROUP_BY.FROM:
-                return getMemberSections(data, queryJSON, formatPhoneNumber, translate);
+                return getMemberSections(data, queryJSON, formatPhoneNumber, translate, onyxPersonalDetailsList);
             case CONST.SEARCH.GROUP_BY.CARD:
                 return getCardSections(data, queryJSON, translate, cardFeeds, customCardNames, cardList, nonPersonalAndWorkspaceCardList);
             case CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID:
@@ -4151,6 +3785,8 @@ function getSections({
                 return getMerchantSections(data, queryJSON, translate);
             case CONST.SEARCH.GROUP_BY.TAG:
                 return getTagSections(data, queryJSON, translate);
+            case CONST.SEARCH.GROUP_BY.DAY:
+                return getDaySections(data, queryJSON, dateFnsLocale);
             case CONST.SEARCH.GROUP_BY.MONTH:
                 return getMonthSections(data, queryJSON, dateFnsLocale);
             case CONST.SEARCH.GROUP_BY.WEEK:
@@ -4212,6 +3848,7 @@ const groupBySortFunction: Record<SearchGroupBy, GroupBySortFunction> = {
     [CONST.SEARCH.GROUP_BY.TAG]: createGroupSortFunction<TransactionTagGroupListItemType>(transactionTagGroupColumnNamesToSortingProperty, (a, b, lc) =>
         lc(a.formattedTag ?? '', b.formattedTag ?? ''),
     ),
+    [CONST.SEARCH.GROUP_BY.DAY]: createGroupSortFunction<TransactionDayGroupListItemType>(transactionDayGroupColumnNamesToSortingProperty, (a, b, lc) => lc(a.day, b.day)),
     [CONST.SEARCH.GROUP_BY.MONTH]: createGroupSortFunction<TransactionMonthGroupListItemType>(transactionMonthGroupColumnNamesToSortingProperty, (a, b) => a.sortKey - b.sortKey),
     [CONST.SEARCH.GROUP_BY.WEEK]: createGroupSortFunction<TransactionWeekGroupListItemType>(transactionWeekGroupColumnNamesToSortingProperty, (a, b, lc) => lc(a.week, b.week)),
     [CONST.SEARCH.GROUP_BY.YEAR]: createGroupSortFunction<TransactionYearGroupListItemType>(transactionYearGroupColumnNamesToSortingProperty, (a, b) => a.year - b.year),
@@ -4225,6 +3862,7 @@ const groupByRequiredColumns: Partial<Record<SearchGroupBy, SearchColumnType[]>>
     [CONST.SEARCH.GROUP_BY.CATEGORY]: [CONST.SEARCH.TABLE_COLUMNS.GROUP_CATEGORY],
     [CONST.SEARCH.GROUP_BY.MERCHANT]: [CONST.SEARCH.TABLE_COLUMNS.GROUP_MERCHANT],
     [CONST.SEARCH.GROUP_BY.TAG]: [CONST.SEARCH.TABLE_COLUMNS.GROUP_TAG],
+    [CONST.SEARCH.GROUP_BY.DAY]: [CONST.SEARCH.TABLE_COLUMNS.GROUP_DAY],
     [CONST.SEARCH.GROUP_BY.MONTH]: [CONST.SEARCH.TABLE_COLUMNS.GROUP_MONTH],
     [CONST.SEARCH.GROUP_BY.WEEK]: [CONST.SEARCH.TABLE_COLUMNS.GROUP_WEEK],
     [CONST.SEARCH.GROUP_BY.YEAR]: [CONST.SEARCH.TABLE_COLUMNS.GROUP_YEAR],
@@ -4737,6 +4375,10 @@ function insertColumnBeforeTotalAmount<T extends SearchColumnType>(columns: T[],
     columns.splice(totalAmountIndex, 0, columnId);
 }
 
+function isReportDetailsCustomColumn(column: string): column is SearchCustomColumnIds {
+    return Object.values(CONST.SEARCH.REPORT_DETAILS_CUSTOM_COLUMNS).some((customColumn) => customColumn === column);
+}
+
 function getCustomColumns(value?: SearchDataTypes | SearchGroupBy): SearchCustomColumnIds[] {
     switch (value) {
         case CONST.SEARCH.DATA_TYPES.EXPENSE:
@@ -4763,6 +4405,8 @@ function getCustomColumns(value?: SearchDataTypes | SearchGroupBy): SearchCustom
             return Object.values(CONST.SEARCH.GROUP_CUSTOM_COLUMNS.MERCHANT);
         case CONST.SEARCH.GROUP_BY.TAG:
             return Object.values(CONST.SEARCH.GROUP_CUSTOM_COLUMNS.TAG);
+        case CONST.SEARCH.GROUP_BY.DAY:
+            return Object.values(CONST.SEARCH.GROUP_CUSTOM_COLUMNS.DAY);
         case CONST.SEARCH.GROUP_BY.MONTH:
             return Object.values(CONST.SEARCH.GROUP_CUSTOM_COLUMNS.MONTH);
         case CONST.SEARCH.GROUP_BY.WEEK:
@@ -4802,6 +4446,8 @@ function getCustomColumnDefault(value?: SearchDataTypes | SearchGroupBy): Search
             return CONST.SEARCH.GROUP_DEFAULT_COLUMNS.MERCHANT;
         case CONST.SEARCH.GROUP_BY.TAG:
             return CONST.SEARCH.GROUP_DEFAULT_COLUMNS.TAG;
+        case CONST.SEARCH.GROUP_BY.DAY:
+            return CONST.SEARCH.GROUP_DEFAULT_COLUMNS.DAY;
         case CONST.SEARCH.GROUP_BY.MONTH:
             return CONST.SEARCH.GROUP_DEFAULT_COLUMNS.MONTH;
         case CONST.SEARCH.GROUP_BY.WEEK:
@@ -4815,12 +4461,18 @@ function getCustomColumnDefault(value?: SearchDataTypes | SearchGroupBy): Search
     }
 }
 
-function getSearchColumnTranslationKey(column: SearchSortBy): TranslationPaths {
+/** Expense reports and tasks show a non-editable created timestamp in their date column, so it's labelled "Created"/"Created date" instead of "Date". */
+function isCreatedDateType(type?: SearchDataTypes): boolean {
+    return type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT || type === CONST.SEARCH.DATA_TYPES.TASK;
+}
+
+function getSearchColumnTranslationKey(column: SearchSortBy, type?: SearchDataTypes): TranslationPaths {
     switch (column) {
         case CONST.SEARCH.TABLE_COLUMNS.AVATAR:
             return 'common.avatar';
         case CONST.SEARCH.TABLE_COLUMNS.DATE:
-            return 'common.date';
+            // Only the table column header shows the short "Created"; every other label source (Sort by, Edit columns, saved search, CSV) uses the full "Created date".
+            return isCreatedDateType(type) ? 'search.filters.createdDate' : 'common.date';
         case CONST.SEARCH.TABLE_COLUMNS.SUBMITTED:
             return 'common.submitted';
         case CONST.SEARCH.TABLE_COLUMNS.APPROVED:
@@ -4837,6 +4489,8 @@ function getSearchColumnTranslationKey(column: SearchSortBy): TranslationPaths {
             return 'search.filters.exported';
         case CONST.SEARCH.TABLE_COLUMNS.MERCHANT:
             return 'common.merchant';
+        case CONST.SEARCH.TABLE_COLUMNS.VENDOR:
+            return 'common.vendor';
         case CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION:
             return 'common.description';
         case CONST.SEARCH.TABLE_COLUMNS.FROM:
@@ -4937,6 +4591,8 @@ function getSearchColumnTranslationKey(column: SearchSortBy): TranslationPaths {
             return 'common.amountReimbursed';
         case CONST.SEARCH.TABLE_COLUMNS.GROUP_WITHDRAWAL_ID:
             return 'common.withdrawalID';
+        case CONST.SEARCH.TABLE_COLUMNS.GROUP_DAY:
+            return 'search.filters.groupBy.day';
         case CONST.SEARCH.TABLE_COLUMNS.GROUP_MONTH:
             return 'common.month';
         case CONST.SEARCH.TABLE_COLUMNS.GROUP_WEEK:
@@ -5044,22 +4700,14 @@ function getOverflowMenu(
     ];
 }
 
-function savedSearchIDToSearchKey(id: string): SearchKey {
-    return `${CONST.SEARCH.SAVED_SEARCH_PREFIX}${id}`;
-}
-
 /**
  * Returns the last query used for a search key.
  *
  * A filter can also be stored as a string, which is a legacy format, so it's treated as if there is no last query.
  */
-function getLastSearchQuery(searchFilters: OnyxEntry<OnyxTypes.SearchFilters>, searchKey: SearchKey): string | undefined {
+function getLastSearchQuery(searchFilters: OnyxEntry<OnyxTypes.SearchFilters>, searchKey: SearchKey | OnyxTypes.InsightsSearchKey): string | undefined {
     const searchFilter = searchFilters?.[searchKey];
     return typeof searchFilter === 'object' ? searchFilter.query : undefined;
-}
-
-function searchKeyToSavedSearchID(key: SearchKey | undefined) {
-    return key?.startsWith(CONST.SEARCH.SAVED_SEARCH_PREFIX) ? key.replace(CONST.SEARCH.SAVED_SEARCH_PREFIX, '') : undefined;
 }
 
 /**
@@ -5073,10 +4721,51 @@ function isTransactionSearchType(type: string | undefined): boolean {
     return type === CONST.SEARCH.DATA_TYPES.EXPENSE || type === CONST.SEARCH.DATA_TYPES.INVOICE;
 }
 
+/**
+ * The breakdown a snapshot's total answers. A settled snapshot with no stamp predates it, when only the plain total was
+ * asked for. One with neither is a response still landing, whose stamp follows, so it is unknown.
+ */
+function getSnapshotFooterTotal(search: OnyxEntry<OnyxTypes.SearchResults['search']>): SearchFooterTotal | undefined {
+    if (search?.footerTotal) {
+        return search.footerTotal;
+    }
+    return search?.state === CONST.SEARCH.SNAPSHOT_STATE.LOADED ? CONST.SEARCH.FOOTER_TOTAL.TOTAL : undefined;
+}
+
+/**
+ * Whether an expense belongs in the total the Spend footer is showing. Reimbursable is the product default, so only
+ * an explicit `false` makes an expense non-reimbursable — read through `getReimbursable`, the same helper the row's
+ * own Reimbursable column renders. Billable works the other way round. Every consumer of a footer breakdown goes
+ * through this, so a snapshot total, a live to-do total and a selection subtotal classify a row identically.
+ */
+function doesTransactionMatchFooterTotal(transaction: OnyxEntry<OnyxTypes.Transaction>, totalType: SearchFooterTotal | undefined): boolean {
+    switch (totalType) {
+        case CONST.SEARCH.FOOTER_TOTAL.REIMBURSABLE:
+            return !!transaction && getReimbursable(transaction);
+        case CONST.SEARCH.FOOTER_TOTAL.NON_REIMBURSABLE:
+            return !!transaction && !getReimbursable(transaction);
+        case CONST.SEARCH.FOOTER_TOTAL.BILLABLE:
+            return !!transaction && transaction.billable === true;
+        case CONST.SEARCH.FOOTER_TOTAL.NON_BILLABLE:
+            return !!transaction && transaction.billable !== true;
+        default:
+            return true;
+    }
+}
+
 function isTodoSearch(recentSearchHash: number, suggestedSearches: Record<string, SearchTypeMenuItem>) {
     const matchedSearchKey = Object.values(suggestedSearches).find((search) => search.recentSearchHash === recentSearchHash)?.key;
     return !!matchedSearchKey && TODO_SEARCH_KEYS.has(matchedSearchKey);
 }
+
+const SPEND_INSIGHT_KEYS = [
+    CONST.SEARCH.SEARCH_KEYS.SPEND_OVER_TIME,
+    CONST.SEARCH.SEARCH_KEYS.TOP_SPENDERS,
+    CONST.SEARCH.SEARCH_KEYS.TOP_CATEGORIES,
+    CONST.SEARCH.SEARCH_KEYS.TOP_MERCHANTS,
+] as const satisfies SearchKey[];
+
+const insightsPageMenuKeys = new Set<SearchKey>([...SPEND_INSIGHT_KEYS, CONST.SEARCH.SEARCH_KEYS.VIOLATIONS_BY_SUBMITTER]);
 
 type TypeMenuSectionsParams = {
     currentUserEmail: string | undefined;
@@ -5266,13 +4955,7 @@ function createTypeMenuSections(params: TypeMenuSectionsParams): SearchTypeMenuS
             menuItems: [],
         };
 
-        const insightsSearchKeys = [
-            CONST.SEARCH.SEARCH_KEYS.SPEND_OVER_TIME,
-            CONST.SEARCH.SEARCH_KEYS.TOP_SPENDERS,
-            CONST.SEARCH.SEARCH_KEYS.TOP_CATEGORIES,
-            CONST.SEARCH.SEARCH_KEYS.TOP_MERCHANTS,
-            CONST.SEARCH.SEARCH_KEYS.VIOLATIONS_BY_SUBMITTER,
-        ];
+        const insightsSearchKeys = [...SPEND_INSIGHT_KEYS, CONST.SEARCH.SEARCH_KEYS.VIOLATIONS_BY_SUBMITTER];
 
         for (const key of insightsSearchKeys) {
             if (!suggestedSearchesVisibility[key]) {
@@ -5294,6 +4977,16 @@ function createTypeMenuSections(params: TypeMenuSectionsParams): SearchTypeMenuS
     }
 
     return typeMenuSections;
+}
+
+function omitInsightsPageMenuItems(sections: SearchTypeMenuSection[]): SearchTypeMenuSection[] {
+    return sections.flatMap((section) => {
+        const menuItems = section.menuItems.filter((item) => !insightsPageMenuKeys.has(item.key));
+        if (menuItems.length === section.menuItems.length) {
+            return section;
+        }
+        return menuItems.length > 0 ? {...section, menuItems} : [];
+    });
 }
 
 /**
@@ -5385,7 +5078,7 @@ function isSearchDataLoaded(searchResults: SearchResults | undefined, queryJSON:
     const hasResolved = searchResults?.data != null || searchResults?.errors != null || isTerminal;
     const hasResponseSortMetadata = searchResults?.search?.sortBy !== undefined && searchResults.search.sortOrder !== undefined;
     const hasMatchingRequestedHash = searchResults?.search?.hash === queryJSON?.hash;
-    // finallyData stores the requested hash when the request settles, so it remains authoritative even when cached data or old sort metadata remain.
+    // Search's finallyData and GetInsights' successData store the requested hash on response, so it remains authoritative even when cached data or old sort metadata remain.
     const canUseRequestedHash = isTerminal || !hasResponseSortMetadata;
     const hasMatchingHash = (canUseRequestedHash && hasMatchingRequestedHash) || searchResults?.search?.hash === responseAdjustedQueryHash;
 
@@ -5480,27 +5173,31 @@ function getHasOptions(translate: LocalizedTranslate, type: SearchDataTypes, con
             const shouldShowSubmittedViolation = availability.shouldShowSubmittedViolation || !!selectedValues?.includes(CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION);
             const shouldShowApprovedViolation = availability.shouldShowApprovedViolation || !!selectedValues?.includes(CONST.SEARCH.HAS_VALUES.APPROVED_VIOLATION);
             return [
-                {text: translate('common.receipt'), value: CONST.SEARCH.HAS_VALUES.RECEIPT},
-                {text: translate('common.attachment'), value: CONST.SEARCH.HAS_VALUES.ATTACHMENT},
-                ...(shouldShowTag ? [{text: translate('common.tag'), value: CONST.SEARCH.HAS_VALUES.TAG}] : []),
-                ...(shouldShowCategory ? [{text: translate('common.category'), value: CONST.SEARCH.HAS_VALUES.CATEGORY}] : []),
-                ...(shouldShowSubmittedViolation ? [{text: translate('search.filters.has.submittedViolation'), value: CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION}] : []),
-                ...(shouldShowApprovedViolation ? [{text: translate('search.filters.has.approvedViolation'), value: CONST.SEARCH.HAS_VALUES.APPROVED_VIOLATION}] : []),
+                {text: translate(HAS_VALUE_TRANSLATION_KEYS[CONST.SEARCH.HAS_VALUES.RECEIPT]), value: CONST.SEARCH.HAS_VALUES.RECEIPT},
+                {text: translate(HAS_VALUE_TRANSLATION_KEYS[CONST.SEARCH.HAS_VALUES.ATTACHMENT]), value: CONST.SEARCH.HAS_VALUES.ATTACHMENT},
+                ...(shouldShowTag ? [{text: translate(HAS_VALUE_TRANSLATION_KEYS[CONST.SEARCH.HAS_VALUES.TAG]), value: CONST.SEARCH.HAS_VALUES.TAG}] : []),
+                ...(shouldShowCategory ? [{text: translate(HAS_VALUE_TRANSLATION_KEYS[CONST.SEARCH.HAS_VALUES.CATEGORY]), value: CONST.SEARCH.HAS_VALUES.CATEGORY}] : []),
+                ...(shouldShowSubmittedViolation
+                    ? [{text: translate(HAS_VALUE_TRANSLATION_KEYS[CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION]), value: CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION}]
+                    : []),
+                ...(shouldShowApprovedViolation
+                    ? [{text: translate(HAS_VALUE_TRANSLATION_KEYS[CONST.SEARCH.HAS_VALUES.APPROVED_VIOLATION]), value: CONST.SEARCH.HAS_VALUES.APPROVED_VIOLATION}]
+                    : []),
             ];
         }
         case CONST.SEARCH.DATA_TYPES.CHAT:
             return [
-                {text: translate('common.link'), value: CONST.SEARCH.HAS_VALUES.LINK},
-                {text: translate('common.attachment'), value: CONST.SEARCH.HAS_VALUES.ATTACHMENT},
+                {text: translate(HAS_VALUE_TRANSLATION_KEYS[CONST.SEARCH.HAS_VALUES.LINK]), value: CONST.SEARCH.HAS_VALUES.LINK},
+                {text: translate(HAS_VALUE_TRANSLATION_KEYS[CONST.SEARCH.HAS_VALUES.ATTACHMENT]), value: CONST.SEARCH.HAS_VALUES.ATTACHMENT},
             ];
         default:
             return [];
     }
 }
 
-type SubmittedTransactionViolationShortName = ValueOf<typeof CONST.VIOLATIONS>;
+type SubmittedTransactionViolationShortName = Exclude<ValueOf<typeof CONST.VIOLATIONS>, typeof CONST.VIOLATIONS.RULE_VIOLATION>;
 
-const SUBMITTED_TRANSACTION_VIOLATION_SHORT_NAME_SET = new Set<string>(Object.values(CONST.VIOLATIONS));
+const SUBMITTED_TRANSACTION_VIOLATION_SHORT_NAME_SET = new Set<string>(Object.values(CONST.VIOLATIONS).filter((name) => name !== CONST.VIOLATIONS.RULE_VIOLATION));
 
 function isSubmittedTransactionViolationShortName(name: string): name is SubmittedTransactionViolationShortName {
     return SUBMITTED_TRANSACTION_VIOLATION_SHORT_NAME_SET.has(name);
@@ -5511,6 +5208,9 @@ function isSubmittedTransactionViolationShortName(name: string): name is Submitt
  * Falls back to the raw identifier when no short-name translation exists.
  */
 function getViolationDisplayName(violationName: string, translate: LocalizedTranslate): string {
+    if (violationName === CONST.VIOLATIONS.RULE_VIOLATION) {
+        return translate('violations.shortName.customRules');
+    }
     return isSubmittedTransactionViolationShortName(violationName) ? translate(`violations.shortName.${violationName}`) : violationName;
 }
 
@@ -5652,11 +5352,11 @@ function getTypeOptions(translate: LocalizedTranslate, policies: OnyxCollection<
     return shouldHideInvoiceOption ? typeOptions.filter((typeOption) => typeOption.value !== CONST.SEARCH.DATA_TYPES.INVOICE) : typeOptions;
 }
 
-function getSortByOptions(columns: SearchColumnType[], translate: LocalizedTranslate) {
+function getSortByOptions(columns: SearchColumnType[], translate: LocalizedTranslate, type?: SearchDataTypes) {
     const sortableColumns: Array<SingleSelectItem<SearchSortBy>> = [];
     for (const column of columns) {
         if (isColumnSortable(column)) {
-            sortableColumns.push({text: translate(getSearchColumnTranslationKey(column)), value: getSortByForColumn(column)});
+            sortableColumns.push({text: translate(getSearchColumnTranslationKey(column, type)), value: getSortByForColumn(column)});
         }
     }
     return sortableColumns;
@@ -5679,7 +5379,13 @@ function getGroupBySections(translate: LocalizedTranslate): GroupBySection[] {
             options: [getOption(CONST.SEARCH.GROUP_BY.CATEGORY), getOption(CONST.SEARCH.GROUP_BY.MERCHANT), getOption(CONST.SEARCH.GROUP_BY.TAG)],
         },
         {
-            options: [getOption(CONST.SEARCH.GROUP_BY.MONTH), getOption(CONST.SEARCH.GROUP_BY.WEEK), getOption(CONST.SEARCH.GROUP_BY.YEAR), getOption(CONST.SEARCH.GROUP_BY.QUARTER)],
+            options: [
+                getOption(CONST.SEARCH.GROUP_BY.DAY),
+                getOption(CONST.SEARCH.GROUP_BY.MONTH),
+                getOption(CONST.SEARCH.GROUP_BY.WEEK),
+                getOption(CONST.SEARCH.GROUP_BY.YEAR),
+                getOption(CONST.SEARCH.GROUP_BY.QUARTER),
+            ],
         },
         {
             options: [getOption(CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID)],
@@ -5692,6 +5398,22 @@ function getGroupBySections(translate: LocalizedTranslate): GroupBySection[] {
 
 function getViewOptions(translate: LocalizedTranslate) {
     return Object.values(CONST.SEARCH.VIEW).map<SingleSelectItem<SearchView>>((value) => ({text: translate(`search.view.${value}`), value}));
+}
+
+/**
+ * The options the Spend footer's total selector offers, in display order. `Total spend` is the default and always
+ * applies. The four aggregates are computed by the backend, so picking one re-runs the search.
+ */
+function getFooterTotalItems(translate: LocalizedTranslate) {
+    const labels: Record<SearchFooterTotal, string> = {
+        [CONST.SEARCH.FOOTER_TOTAL.TOTAL]: translate('common.spend'),
+        [CONST.SEARCH.FOOTER_TOTAL.REIMBURSABLE]: translate('common.reimbursable'),
+        [CONST.SEARCH.FOOTER_TOTAL.NON_REIMBURSABLE]: translate('common.nonReimbursable'),
+        [CONST.SEARCH.FOOTER_TOTAL.BILLABLE]: translate('common.billable'),
+        [CONST.SEARCH.FOOTER_TOTAL.NON_BILLABLE]: translate('common.nonBillable'),
+    };
+
+    return Object.values(CONST.SEARCH.FOOTER_TOTAL).map<SingleSelectItem<SearchFooterTotal>>((value) => ({text: labels[value], value}));
 }
 
 function getCurrencyOptions(currencyList: OnyxTypes.CurrencyList, getCurrencySymbol: CurrencyListActionsContextType['getCurrencySymbol']) {
@@ -5948,6 +5670,10 @@ const FILTER_VIEW_MAP = {
     [CONST.SEARCH.SYNTAX_FILTER_KEYS.RECEIPT_TYPE]: {
         labelKey: 'search.receiptType',
         icon: 'Receipt',
+    },
+    [CONST.SEARCH.SYNTAX_FILTER_KEYS.TRANSACTION_STATUS]: {
+        labelKey: 'search.filters.transactionStatus.label',
+        icon: 'CreditCardHourglass',
     },
     [CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED_TO]: {
         labelKey: 'search.exportedTo',
@@ -6321,6 +6047,21 @@ function getDisplayValue(
         return form[key]?.map((receiptType) => translate(getReceiptTypeTranslationKey(receiptType))).join(', ');
     }
 
+    if (key === FILTER_KEYS.MERCHANT) {
+        const merchant = form[key];
+        if (!merchant) {
+            return;
+        }
+
+        const matchTypeKey = form[FILTER_KEYS.MERCHANT_OPERATOR] === CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO ? 'search.filters.merchant.equalTo' : 'search.filters.merchant.contains';
+        return translate(matchTypeKey, merchant);
+    }
+
+    if (key === FILTER_KEYS.TRANSACTION_STATUS) {
+        const transactionStatus = form[key];
+        return transactionStatus ? translate(`search.filters.transactionStatus.${transactionStatus}`) : undefined;
+    }
+
     const formValue = form[key];
     return Array.isArray(formValue) ? formValue.join(', ') : formValue;
 }
@@ -6366,6 +6107,11 @@ function hasFilterContentValuesChanged(
 
     if (!deepEqual(getFilterNegatableValue(baseFilterKey, previousValues), getFilterNegatableValue(baseFilterKey, values))) {
         return true;
+    }
+
+    // The Merchant content also reads its match type.
+    if (baseFilterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT) {
+        return previousValues?.[FILTER_KEYS.MERCHANT_OPERATOR] !== values?.[FILTER_KEYS.MERCHANT_OPERATOR];
     }
 
     if (isTextFilterKey(baseFilterKey)) {
@@ -6428,6 +6174,13 @@ function isMappedFilterKey(key: string): key is MappedFilterKey {
     return hasKey(FILTER_VIEW_MAP, removeNegation(key));
 }
 
+function getFilterViewLabelKey(filterKey: keyof typeof FILTER_VIEW_MAP, type?: SearchDataTypes): TranslationPaths {
+    if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE && isCreatedDateType(type)) {
+        return 'search.filters.createdDate';
+    }
+    return FILTER_VIEW_MAP[filterKey].labelKey;
+}
+
 function mapFiltersFormToLabelValueList(
     searchAdvancedFiltersForm: Partial<SearchAdvancedFiltersForm>,
     defaultSearchQueryFilterKeys: Set<SearchFilterKey>,
@@ -6478,7 +6231,7 @@ function mapFiltersFormToLabelValueList(
             const displayValue = isAmountFilterKey(syntax)
                 ? getAmountDisplayValue(syntax, searchAdvancedFiltersForm, translate, convertToDisplayStringWithoutCurrency)
                 : getDateDisplayValue(syntax, searchAdvancedFiltersForm, translate, dateFnsLocale);
-            const label = FILTER_VIEW_MAP[syntax].labelKey;
+            const label = getFilterViewLabelKey(syntax, type);
 
             if (displayValue && label) {
                 addedGroups.add(syntax);
@@ -6530,6 +6283,13 @@ function getSingleSelectFilterOptions(filterKey: SearchAdvancedFiltersKey, trans
 
     if (filterKey === FILTER_KEYS.WITHDRAWAL_TYPE) {
         return getWithdrawalTypeOptions(translate);
+    }
+
+    if (filterKey === FILTER_KEYS.TRANSACTION_STATUS || filterKey === FILTER_KEYS.TRANSACTION_STATUS_NOT) {
+        return Object.values(CONST.SEARCH.TRANSACTION_STATUS).map((transactionStatus) => ({
+            text: translate(`search.filters.transactionStatus.${transactionStatus}`),
+            value: transactionStatus,
+        }));
     }
 
     return [];
@@ -6702,6 +6462,7 @@ function getColumnsToShow({
     fallbackPolicyID,
     sortBy,
     shouldShowViolationsColumn = false,
+    isVendorColumnAvailable = true,
 }: {
     currentAccountID: number | undefined;
     data: OnyxTypes.SearchResults['data'] | OnyxTypes.Transaction[];
@@ -6720,6 +6481,7 @@ function getColumnsToShow({
     fallbackPolicyID?: string;
     sortBy?: SearchSortBy;
     shouldShowViolationsColumn?: boolean;
+    isVendorColumnAvailable?: boolean;
 }): SearchColumnType[] {
     const reportCustomColumns = new Set<SearchColumnType>([
         CONST.SEARCH.TABLE_COLUMNS.SUBMITTER_USER_ID,
@@ -6820,6 +6582,7 @@ function getColumnsToShow({
             [CONST.SEARCH.GROUP_BY.CATEGORY]: CONST.SEARCH.GROUP_CUSTOM_COLUMNS.CATEGORY,
             [CONST.SEARCH.GROUP_BY.MERCHANT]: CONST.SEARCH.GROUP_CUSTOM_COLUMNS.MERCHANT,
             [CONST.SEARCH.GROUP_BY.TAG]: CONST.SEARCH.GROUP_CUSTOM_COLUMNS.TAG,
+            [CONST.SEARCH.GROUP_BY.DAY]: CONST.SEARCH.GROUP_CUSTOM_COLUMNS.DAY,
             [CONST.SEARCH.GROUP_BY.MONTH]: CONST.SEARCH.GROUP_CUSTOM_COLUMNS.MONTH,
             [CONST.SEARCH.GROUP_BY.WEEK]: CONST.SEARCH.GROUP_CUSTOM_COLUMNS.WEEK,
             [CONST.SEARCH.GROUP_BY.YEAR]: CONST.SEARCH.GROUP_CUSTOM_COLUMNS.YEAR,
@@ -6833,6 +6596,7 @@ function getColumnsToShow({
             [CONST.SEARCH.GROUP_BY.CATEGORY]: CONST.SEARCH.GROUP_DEFAULT_COLUMNS.CATEGORY,
             [CONST.SEARCH.GROUP_BY.MERCHANT]: CONST.SEARCH.GROUP_DEFAULT_COLUMNS.MERCHANT,
             [CONST.SEARCH.GROUP_BY.TAG]: CONST.SEARCH.GROUP_DEFAULT_COLUMNS.TAG,
+            [CONST.SEARCH.GROUP_BY.DAY]: CONST.SEARCH.GROUP_DEFAULT_COLUMNS.DAY,
             [CONST.SEARCH.GROUP_BY.MONTH]: CONST.SEARCH.GROUP_DEFAULT_COLUMNS.MONTH,
             [CONST.SEARCH.GROUP_BY.WEEK]: CONST.SEARCH.GROUP_DEFAULT_COLUMNS.WEEK,
             [CONST.SEARCH.GROUP_BY.YEAR]: CONST.SEARCH.GROUP_DEFAULT_COLUMNS.YEAR,
@@ -6874,6 +6638,7 @@ function getColumnsToShow({
               [CONST.SEARCH.TABLE_COLUMNS.DATE]: true,
               [CONST.SEARCH.TABLE_COLUMNS.POSTED]: false,
               [CONST.SEARCH.TABLE_COLUMNS.MERCHANT]: false,
+              [CONST.SEARCH.TABLE_COLUMNS.VENDOR]: false,
               [CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION]: false,
               [CONST.SEARCH.TABLE_COLUMNS.CATEGORY]: false,
               [CONST.SEARCH.TABLE_COLUMNS.CATEGORY_GL_CODE]: false,
@@ -6904,6 +6669,7 @@ function getColumnsToShow({
               [CONST.SEARCH.TABLE_COLUMNS.SUBMITTED]: false,
               [CONST.SEARCH.TABLE_COLUMNS.APPROVED]: false,
               [CONST.SEARCH.TABLE_COLUMNS.MERCHANT]: false,
+              [CONST.SEARCH.TABLE_COLUMNS.VENDOR]: false,
               [CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION]: false,
               [CONST.SEARCH.TABLE_COLUMNS.FROM]: false,
               [CONST.SEARCH.TABLE_COLUMNS.TO]: false,
@@ -6933,9 +6699,13 @@ function getColumnsToShow({
 
     // If the user has set custom columns for the search, we need to respect their preference and order
     const allowedColumns: string[] = isExpenseReportView ? Object.values(CONST.SEARCH.REPORT_DETAILS_CUSTOM_COLUMNS) : Object.values(CONST.SEARCH.TYPE_CUSTOM_COLUMNS.EXPENSE);
-    const filteredVisibleColumns = visibleColumns.filter((column) => allowedColumns.includes(column));
-    const isDefaultExpenseColumnSelection = arraysEqual(Object.values(CONST.SEARCH.TYPE_DEFAULT_COLUMNS.EXPENSE), filteredVisibleColumns);
-    const shouldUseCustomResult = !isDefaultExpenseColumnSelection && filteredVisibleColumns.length > 0;
+    // The saved list outlives the vendor feature, so Vendor is dropped once no workspace has the feature anymore.
+    const filteredVisibleColumns = visibleColumns.filter((column) => allowedColumns.includes(column) && (isVendorColumnAvailable || column !== CONST.SEARCH.TABLE_COLUMNS.VENDOR));
+
+    // An explicit selection always wins, even when it happens to match the default set. Treating a
+    // default-looking selection as "no selection" would hand control back to the data-driven fallback
+    // below, which re-adds columns the user just turned off (e.g. Description on any expense that has one).
+    const shouldUseCustomResult = filteredVisibleColumns.length > 0;
 
     let customResult: SearchColumnType[] | undefined;
 
@@ -7047,6 +6817,10 @@ function getColumnsToShow({
 
             if (transaction.cardName && transaction.cardName !== CONST.EXPENSE.TYPE.CASH_CARD_NAME) {
                 columns[CONST.SEARCH.TABLE_COLUMNS.CARD] = true;
+            }
+
+            if (isVendorColumnAvailable && transaction.comment?.vendor?.externalID) {
+                columns[CONST.SEARCH.TABLE_COLUMNS.VENDOR] = true;
             }
 
             // Only show tax columns when the user explicitly chooses to display them.
@@ -7191,11 +6965,20 @@ function getSettlementStatusBadgeProps(
     state: number | undefined,
     translate: LocaleContextProps['translate'],
     theme: ThemeColors,
+    isCashBack = false,
 ): {
     text: string;
     badgeStyles: ViewStyle;
     textStyles: TextStyle;
 } | null {
+    if (isCashBack) {
+        return {
+            text: translate('settlement.status.cashBack'),
+            badgeStyles: {backgroundColor: theme.reportStatusBadge.paid.backgroundColor},
+            textStyles: {color: theme.reportStatusBadge.paid.textColor},
+        };
+    }
+
     const status = getSettlementStatus(state);
     if (!status) {
         return null;
@@ -7324,7 +7107,7 @@ function getTableMinWidth(
         } else if (column === CONST.SEARCH.TABLE_COLUMNS.ACTION) {
             minWidth += (isActionColumnWide ?? type === CONST.SEARCH.DATA_TYPES.TASK) ? 80 : 68;
         } else if (column === CONST.SEARCH.TABLE_COLUMNS.DATE) {
-            minWidth += 48;
+            minWidth += isCreatedDateType(type) ? 80 : 62;
         } else if (
             column === CONST.SEARCH.TABLE_COLUMNS.SUBMITTED ||
             column === CONST.SEARCH.TABLE_COLUMNS.APPROVED ||
@@ -7474,6 +7257,7 @@ function shouldShowDeleteOption(
     currentSearchResults: SearchResults['data'] | undefined,
     currentUserAccountID: number,
     rules: OnyxCollection<OnyxTypes.Rule>,
+    cardList: OnyxEntry<OnyxTypes.CardList>,
     selectedReports: SelectedReports[] = [],
     searchDataType?: SearchDataTypes,
 ) {
@@ -7498,7 +7282,8 @@ function shouldShowDeleteOption(
                       reportTransactions.push(item);
                   }
               }
-              return canDeleteMoneyRequestReport(fullReport, reportTransactions, reportActionsArray, currentUserAccountID, rules);
+              const reportPolicy = currentSearchResults?.[`${ONYXKEYS.COLLECTION.POLICY}${fullReport.policyID}`];
+              return canDeleteMoneyRequestReport(fullReport, reportTransactions, reportActionsArray, currentUserAccountID, rules, reportPolicy, cardList, true);
           })
         : selectedTransactionsKeys.every((id) => {
               const transaction = currentSearchResults?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${id}`] ?? selectedTransactions[id]?.transaction;
@@ -7512,12 +7297,14 @@ function shouldShowDeleteOption(
                   Object.values(reportActions ?? {}).find((action) => (isMoneyRequestAction(action) ? getOriginalMessage(action)?.IOUTransactionID : undefined) === id) ??
                   selectedTransactions[id].reportAction;
 
-              return canDeleteMoneyRequestReport(parentReport, [transaction], parentReportAction ? [parentReportAction] : [], currentUserAccountID, rules);
+              const parentReportPolicy = currentSearchResults?.[`${ONYXKEYS.COLLECTION.POLICY}${parentReport?.policyID}`];
+              return canDeleteMoneyRequestReport(parentReport, [transaction], parentReportAction ? [parentReportAction] : [], currentUserAccountID, rules, parentReportPolicy, cardList);
           });
 }
 
 const FLEX_COLUMNS = new Set<string>([
     CONST.SEARCH.TABLE_COLUMNS.MERCHANT,
+    CONST.SEARCH.TABLE_COLUMNS.VENDOR,
     CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION,
     CONST.SEARCH.TABLE_COLUMNS.CATEGORY,
     CONST.SEARCH.TABLE_COLUMNS.CATEGORY_GL_CODE,
@@ -7572,6 +7359,10 @@ function isTransactionMatchWithGroupItem(transaction: OnyxTypes.Transaction, gro
     if (groupBy === CONST.SEARCH.GROUP_BY.MERCHANT) {
         return (transaction.merchant ?? '') === ((groupItem as TransactionMerchantGroupListItemType).merchant ?? '');
     }
+    if (groupBy === CONST.SEARCH.GROUP_BY.DAY) {
+        const transactionDateString = getTransactionCreatedDate(transaction);
+        return isTransactionDayGroupListItemType(groupItem) && transactionDateString.substring(0, 10) === groupItem.day;
+    }
     if (groupBy === CONST.SEARCH.GROUP_BY.MONTH) {
         const monthGroup = groupItem as TransactionMonthGroupListItemType;
         const transactionDateString = transaction.modifiedCreated ?? transaction.created ?? '';
@@ -7603,6 +7394,8 @@ function isTransactionMatchWithGroupItem(transaction: OnyxTypes.Transaction, gro
 }
 
 export {
+    doesTransactionMatchFooterTotal,
+    getSnapshotFooterTotal,
     getSearchBulkEditPolicyID,
     getSuggestedSearches,
     getSections,
@@ -7615,29 +7408,33 @@ export {
     isTransactionGroupListItemType,
     isTransactionReportGroupListItemType,
     isTransactionWithdrawalIDGroupListItemType,
+    isCashBackWithdrawalGroup,
     isTransactionCategoryGroupListItemType,
     isTransactionMerchantGroupListItemType,
     isTransactionTagGroupListItemType,
+    isTransactionDayGroupListItemType,
     isTransactionMonthGroupListItemType,
     isTransactionWeekGroupListItemType,
     isTransactionYearGroupListItemType,
     isTransactionQuarterGroupListItemType,
     isGroupedItemArray,
     isGroupEntry,
+    isReportEntry,
+    isTransactionEntry,
     isSearchResultsEmpty,
     isTransactionListItemType,
     isReportActionListItemType,
     shouldShowYear,
     getOverflowMenu,
     getLastSearchQuery,
-    savedSearchIDToSearchKey,
-    searchKeyToSavedSearchID,
     isCorrectSearchUserName,
     isReportActionEntry,
     isTaskListItemType,
     getActions,
     getPrimaryAction,
     createTypeMenuSections,
+    omitInsightsPageMenuItems,
+    SPEND_INSIGHT_KEYS,
     formatBadgeText,
     getSectionBadgeText,
     getItemBadgeText,
@@ -7655,6 +7452,7 @@ export {
     getSortOrderOptions,
     getGroupBySections,
     getViewOptions,
+    getFooterTotalItems,
     getCurrencyOptions,
     getFeedOptions,
     getWideAmountIndicators,
@@ -7665,6 +7463,7 @@ export {
     getWithdrawalStatusOptions,
     getWithdrawalStatusDisplayText,
     getColumnsToShow,
+    isReportDetailsCustomColumn,
     insertColumnBeforeTotalAmount,
     getHasOptions,
     getSubmittedViolationsForTransaction,
@@ -7705,13 +7504,16 @@ export {
     MONTHLY_ACCRUAL_SEARCH_KEYS,
     RECONCILIATION_SEARCH_KEYS,
     FILTER_VIEW_MAP,
+    getFilterViewLabelKey,
+    isCreatedDateType,
     doesSearchItemMatchSort,
     isPolicyEligibleForSpendOverTime,
+    isPolicyEligibleForTopSpenders,
+    isPolicyEligibleForTopCategories,
     hasFlexColumn,
     isTransactionSearchType,
     splitGroupsIntoPairs,
-    isEligibleForStatus,
     SKIPPED_SEARCH_FILTERS,
     SEARCH_TYPE_MENU_ICON_NAMES,
 };
-export type {SavedSearchMenuItem, SearchTypeMenuSection, SearchTypeMenuItem, SearchDateModifier, SearchDateModifierLower, SearchKey, GroupBySection, SearchFilter};
+export type {SavedSearchMenuItem, SearchTypeMenuSection, SearchTypeMenuItem, SearchDateModifier, SearchDateModifierLower, SearchGroupKey, GroupBySection, SearchFilter};

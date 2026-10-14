@@ -26,6 +26,7 @@ import {interpolate} from 'react-native-reanimated';
 
 import type {ThemeColors} from './theme/types';
 
+import layoutSpacing, {menuItemHorizontalPadding} from './layoutSpacing';
 import colors from './theme/colors';
 import {fontFamilyScale, fontScale, lineHeightScale, textVariants} from './typography';
 import addOutlineWidth from './utils/addOutlineWidth';
@@ -38,6 +39,7 @@ import editedLabelStyles from './utils/editedLabelStyles';
 import emojiDefaultStyles from './utils/emojiDefaultStyles';
 import flex from './utils/flex';
 import FontUtils from './utils/FontUtils';
+import tooltipPlatformStyle from './utils/generators/TooltipStyleUtils/tooltipPlatformStyles';
 import objectFit from './utils/objectFit';
 import optionAlternateTextPlatformStyles from './utils/optionAlternateTextPlatformStyles';
 import overflow from './utils/overflow';
@@ -47,6 +49,7 @@ import pointerEventsAuto from './utils/pointerEventsAuto';
 import pointerEventsBoxNone from './utils/pointerEventsBoxNone';
 import pointerEventsNone from './utils/pointerEventsNone';
 import positioning from './utils/positioning';
+import scrollbarGutterStable from './utils/scrollbarGutterStable';
 import sizing from './utils/sizing';
 import spacing from './utils/spacing';
 import textDecorationLine from './utils/textDecorationLine';
@@ -82,6 +85,20 @@ type SelectionListPopover = {
     extraHeight?: number;
 };
 
+// Shared chrome of every RHP card in the stacked report flow, where the frame is invisible and each card draws its own inset bordered modal. Only the width differs.
+const getRHPExtendedCardFrame = (theme: ThemeColors): ViewStyle => ({
+    position: 'absolute',
+    top: variables.rhpFloatingCardMargin,
+    bottom: variables.rhpFloatingCardMargin,
+    right: 0,
+    height: 'auto',
+    borderRadius: variables.componentBorderRadiusLarge,
+    borderWidth: variables.rhpFloatingCardBorderWidth,
+    borderColor: theme.border,
+    overflow: 'hidden',
+    boxShadow: theme.shadow,
+});
+
 const getReceiptDropZoneViewStyle = (theme: ThemeColors, margin: number, paddingVertical: number): ViewStyle => ({
     borderRadius: variables.componentBorderRadiusLarge,
     borderColor: theme.borderFocus,
@@ -96,6 +113,11 @@ const getReceiptDropZoneViewStyle = (theme: ThemeColors, margin: number, padding
     flex: 1,
 });
 
+// Negative margins let a widget header button overflow the header instead of growing it, so all card headers keep the same height
+const getWidgetHeaderButtonOverflowStyle = (buttonSize: number): ViewStyle => ({
+    marginVertical: (variables.widgetHeaderTitleLineHeight - buttonSize) / 2,
+});
+
 type WebViewStyle = {
     tagStyles: MixedStyleRecord;
     baseFontStyle: MixedStyleDeclaration;
@@ -104,6 +126,8 @@ type WebViewStyle = {
 type CustomPickerStyle = PickerStyle & {icon?: ViewStyle};
 
 type OverlayStylesParams = Animated.AnimatedInterpolation<string | number> | Animated.Value;
+
+type OverlayPositionValue = number | Animated.Value | Animated.AnimatedAddition<number> | Animated.AnimatedSubtraction<string | number>;
 
 type TwoFactorAuthCodesBoxParams = {isExtraSmallScreenWidth: boolean; isSmallScreenWidth: boolean};
 type WorkspaceUpgradeIntroBoxParams = {isExtraSmallScreenWidth: boolean};
@@ -126,6 +150,11 @@ type Styles = Record<string, StyleObject | StyleFunction>;
 const touchCalloutNone: Pick<ViewStyle, 'WebkitTouchCallout'> = isMobileSafari() ? {WebkitTouchCallout: 'none'} : {};
 // to prevent vertical text offset in Safari for badges, new lineHeight values have been added
 const lineHeightBadge: Pick<TextStyle, 'lineHeight'> = isSafari() ? {lineHeight: variables.lineHeightXSmall} : {lineHeight: variables.lineHeightNormal};
+
+// The bulk action bar's height, which the space reserved for it at the end of a list has to match. Derived from the
+// bar's own padding and its tallest item, a small button, rather than written down a second time: a written height
+// silently stops matching when either of those changes, and it cannot follow `componentSizeSmall` across pixel ratios.
+const bulkActionBarHeight = variables.componentSizeSmall + variables.bulkActionBarPaddingVertical * 2;
 
 const picker = (theme: ThemeColors) =>
     ({
@@ -185,7 +214,7 @@ const headlineItalicFont = {
 const modalNavigatorContainer = (isSmallScreenWidth: boolean) =>
     ({
         position: 'absolute',
-        width: isSmallScreenWidth ? '100%' : variables.sideBarWidth,
+        width: isSmallScreenWidth ? '100%' : variables.rhpWidth,
         height: '100%',
     }) satisfies ViewStyle;
 
@@ -282,6 +311,13 @@ const compactPopoverMenuItemBaseStyle = {
 // composerSizeButton and the concierge prompt box so its button column stays in sync.
 const COMPOSER_SIZE_BUTTON_SIZE = 40;
 const COMPOSER_SIZE_BUTTON_MARGIN = 3;
+
+// Shared by receiptPageCountBadge and receiptPageNavigator so the two can't drift apart.
+const RECEIPT_PAGE_BADGE_POSITION = {
+    position: 'absolute' as const,
+    bottom: 12,
+    left: 12,
+};
 
 const staticStyles = (theme: ThemeColors) =>
     StyleSheet.create({
@@ -471,6 +507,10 @@ const staticStyles = (theme: ThemeColors) =>
             textAlignVertical: 'top',
         },
 
+        textAlignVerticalCenter: {
+            textAlignVertical: 'center',
+        },
+
         lineHeightUndefined: {
             lineHeight: undefined,
         },
@@ -510,6 +550,11 @@ const staticStyles = (theme: ThemeColors) =>
             color: theme.textSupporting,
             fontSize: fontScale.label,
             lineHeight: lineHeightScale.label,
+        },
+
+        /** Gives every digit the same advance so a counter doesn't shift sideways as its digits change. */
+        tabularNums: {
+            fontVariant: ['tabular-nums'],
         },
 
         mutedNormalTextLabel: {
@@ -692,10 +737,6 @@ const staticStyles = (theme: ThemeColors) =>
 
         opacity1: {
             opacity: 1,
-        },
-
-        textDanger: {
-            color: theme.danger,
         },
 
         borderRadiusNormal: {
@@ -1114,6 +1155,15 @@ const staticStyles = (theme: ThemeColors) =>
             borderColor: theme.badgeDangerBG,
         },
 
+        badgeOffer: {
+            backgroundColor: theme.badgeOfferBG,
+            borderColor: theme.badgeOfferBG,
+        },
+
+        badgeOfferText: {
+            color: theme.badgeOfferText,
+        },
+
         badgeDangerStrong: {
             backgroundColor: theme.danger,
             borderColor: theme.danger,
@@ -1287,18 +1337,18 @@ const staticStyles = (theme: ThemeColors) =>
          * visually aligned with their editable cells.
          */
         editableCellHeader: {
-            borderWidth: 1,
+            borderWidth: variables.editableCellBorderWidth,
             borderRadius: variables.componentBorderRadius,
             borderColor: 'transparent',
-            paddingHorizontal: 4,
+            paddingHorizontal: variables.editableCellPadding,
         },
 
         editableCell: {
             width: '100%',
-            borderWidth: 1,
+            borderWidth: variables.editableCellBorderWidth,
             borderRadius: variables.componentBorderRadius,
             borderColor: 'transparent',
-            padding: 4,
+            padding: variables.editableCellPadding,
             height: 'auto',
             minHeight: variables.editableCellHeight,
             overflow: 'hidden',
@@ -1318,16 +1368,16 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         editableCellEditButtonContainerLeft: {
-            left: 4,
+            left: variables.editableCellPadding,
         },
 
         editableCellEditButtonContainerRight: {
-            right: 4,
+            right: variables.editableCellPadding,
         },
 
         editableCellEditButton: {
-            width: 28,
-            height: 28,
+            width: variables.editableCellEditButtonSize,
+            height: variables.editableCellEditButtonSize,
             borderRadius: variables.componentBorderRadiusCircle,
             backgroundColor: theme.buttonDefaultBG,
             justifyContent: 'center',
@@ -1595,7 +1645,7 @@ const staticStyles = (theme: ThemeColors) =>
             width: '100%',
             zIndex: 1,
             transformOrigin: 'left center',
-        },
+        } satisfies ViewStyle & {transformOrigin?: string},
 
         textInputLabel: {
             fontSize: fontScale.text,
@@ -1916,23 +1966,6 @@ const staticStyles = (theme: ThemeColors) =>
             borderColor: theme.appBG,
         },
 
-        sidebarAvatar: {
-            borderRadius: variables.avatarSizeSmall,
-            height: variables.avatarSizeSmall,
-            width: variables.avatarSizeSmall,
-        },
-
-        selectedAvatarBorder: {
-            padding: 1,
-            borderWidth: 2,
-            borderRadius: 20,
-            height: variables.avatarSizeSmall + 6,
-            width: variables.avatarSizeSmall + 6,
-            borderColor: theme.success,
-            right: -3,
-            top: -3,
-        },
-
         floatingActionButton: {
             backgroundColor: theme.success,
             height: variables.componentSizeLarge,
@@ -2054,7 +2087,7 @@ const staticStyles = (theme: ThemeColors) =>
         popoverMenuItem: {
             flexDirection: 'row',
             borderRadius: 0,
-            paddingHorizontal: 20,
+            paddingHorizontal: menuItemHorizontalPadding,
             paddingVertical: 12,
             justifyContent: 'space-between',
             width: '100%',
@@ -2225,7 +2258,6 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         appContentHeader: {
-            height: variables.contentHeaderHeight,
             justifyContent: 'center',
             display: 'flex',
             paddingRight: 20,
@@ -2238,7 +2270,6 @@ const staticStyles = (theme: ThemeColors) =>
 
         LHNToggle: {
             alignItems: 'center',
-            height: variables.contentHeaderHeight,
             justifyContent: 'center',
             paddingRight: 10,
         },
@@ -2776,6 +2807,10 @@ const staticStyles = (theme: ThemeColors) =>
             borderColor: 'transparent',
         },
 
+        tableColumnResizeIndicator: {
+            backgroundColor: theme.iconMenu,
+        },
+
         tableRowHeightCompact: {
             minHeight: variables.tableRowHeightCompact,
         },
@@ -2908,7 +2943,6 @@ const staticStyles = (theme: ThemeColors) =>
             justifyContent: 'center',
             display: 'flex',
             paddingLeft: 20,
-            height: variables.contentHeaderHeight,
             width: '100%',
         },
 
@@ -2926,6 +2960,10 @@ const staticStyles = (theme: ThemeColors) =>
 
         headerBarHeight: {
             height: variables.contentHeaderHeight,
+        },
+
+        headerBarNarrowHeight: {
+            height: variables.contentHeaderNarrowHeight,
         },
 
         imageViewContainer: {
@@ -3314,11 +3352,28 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         flipUpsideDown: {
-            transform: `rotate(180deg)`,
+            transform: [{rotate: '180deg'}],
         },
 
         navigationScreenCardStyle: {
             height: '100%',
+        },
+
+        // Invisible frame for the stacked report flow. Clipping here would cut off the cards' shadows.
+        RHPCenteredFrame: {
+            right: variables.rhpFloatingCardMargin,
+            height: '100%',
+        },
+
+        // Anchors the floating RHP card on web wide layout in place of `r0` and `h100`. Width comes from the call site.
+        RHPFloatingCard: {
+            top: variables.rhpFloatingCardMargin,
+            right: variables.rhpFloatingCardMargin,
+            bottom: variables.rhpFloatingCardMargin,
+            borderRadius: variables.componentBorderRadiusLarge,
+            borderWidth: variables.rhpFloatingCardBorderWidth,
+            borderColor: theme.border,
+            boxShadow: theme.shadow,
         },
 
         invisible: {
@@ -3507,9 +3562,43 @@ const staticStyles = (theme: ThemeColors) =>
             minHeight: variables.inputHeight + 2 * (variables.formErrorLineHeight + 8),
         },
 
-        requestPreviewBox: {
-            marginTop: 12,
-            maxWidth: variables.reportPreviewMaxWidth,
+        // Bordered container of a confirmation row that picks a value (category, tag, tax, ...), so it reads as
+        // one of the form's fields rather than as a link out of the flow. Mirrors `textInputContainer`, down to
+        // taking its height from the same place the text fields beside it do, so all of them scale together with
+        // the device font size.
+        moneyRequestFieldRow: {
+            minHeight: variables.inputHeight,
+            paddingHorizontal: 8,
+            paddingVertical: 6,
+            borderWidth: 1,
+            borderRadius: variables.componentBorderRadiusNormal,
+            borderColor: theme.bordersBold,
+            overflow: 'hidden',
+        },
+
+        // `moneyRequestFieldRow` for a field the user cannot change. Takes its fill and border straight from
+        // `textInputDisabledContainer`, so a locked row reads as the disabled input it is rather than as a field
+        // still waiting to be filled in.
+        moneyRequestFieldRowDisabled: {
+            backgroundColor: theme.highlightBG,
+            borderColor: theme.borderLighter,
+        },
+
+        // Fill behind `moneyRequestFieldRow`. The row's own background would cover anything drawn under it, so the
+        // fill is a layer of its own for a highlight animation to take over.
+        moneyRequestFieldRowFill: {
+            borderRadius: variables.componentBorderRadiusNormal,
+            backgroundColor: theme.appBG,
+        },
+
+        // Circular icon-only button sitting beside the amount field, standing in for the full-width add-receipt button.
+        moneyRequestAddReceiptButton: {
+            width: variables.inputHeight,
+            height: variables.inputHeight,
+            borderRadius: variables.inputHeight / 2,
+            backgroundColor: theme.buttonDefaultBG,
+            alignItems: 'center',
+            justifyContent: 'center',
         },
 
         moneyRequestPreviewBox: {
@@ -3568,7 +3657,7 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         growlNotificationWrapper: {
-            zIndex: 2,
+            zIndex: variables.growlNotificationZIndex,
         },
 
         growlNotificationContainer: {
@@ -3634,6 +3723,7 @@ const staticStyles = (theme: ThemeColors) =>
         // "View" action rendered as a Medium Link Button on the growl's inverse-colored surface.
         growlNotificationActionText: {
             color: theme.linkReversed,
+            textDecorationLine: theme.isHighContrast ? 'underline' : 'none',
         },
 
         growlNotificationActionHovered: {
@@ -3728,6 +3818,16 @@ const staticStyles = (theme: ThemeColors) =>
             ...spacing.ph5,
         },
 
+        listItemRow: {
+            flex: 1,
+            width: '100%',
+            flexDirection: 'row',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            ...spacing.ph5,
+            ...userSelect.userSelectNone,
+        },
+
         dotIndicatorMessage: {
             display: 'flex',
             flexDirection: 'row',
@@ -3792,6 +3892,10 @@ const staticStyles = (theme: ThemeColors) =>
             color: theme.heading,
             fontSize: variables.fontSizeXLarge,
             lineHeight: variables.lineHeightXXLarge,
+        },
+
+        cardLabelTooltipContainer: {
+            maxWidth: variables.modalContentMaxWidth,
         },
 
         longTermsRow: {
@@ -4085,10 +4189,72 @@ const staticStyles = (theme: ThemeColors) =>
 
         // Float above the receipt to avoid zooming with it.
         receiptPageCountBadge: {
+            ...RECEIPT_PAGE_BADGE_POSITION,
+            marginLeft: 0,
+        },
+
+        // The pill grows with its label, so longer translations are never clipped and the buttons' focus outlines stay visible.
+        receiptPageNavigator: {
+            ...RECEIPT_PAGE_BADGE_POSITION,
+            flexDirection: 'row',
+            alignItems: 'center',
+            minHeight: variables.componentSizeSmall,
+            paddingHorizontal: 4,
+            borderRadius: variables.componentBorderRadiusRounded,
+            backgroundColor: theme.badgeDefaultBG,
+        },
+
+        receiptPageNavigatorLabelContainer: {
+            alignItems: 'center',
+            justifyContent: 'center',
+        },
+
+        // Overlays the hidden widest label that sizes the pill
+        receiptPageNavigatorCurrentLabel: {
+            ...StyleSheet.absoluteFill,
+            alignItems: 'center',
+            justifyContent: 'center',
+        },
+
+        // A real tap target around the small arrow glyph; react-native-web's Pressable doesn't support hitSlop
+        receiptPageNavigatorButton: {
+            height: 24,
+            width: 24,
+            alignItems: 'center',
+            justifyContent: 'center',
+        },
+
+        reuseRouteCard: {
+            ...spacing.mh5,
+            ...spacing.mb3,
+            borderRadius: variables.componentBorderRadiusLarge,
+            backgroundColor: theme.cardBG,
+        },
+
+        reuseRouteThumbnailWrapper: {
+            ...spacing.p1,
+        },
+
+        reuseRouteThumbnail: {
+            width: '100%',
+            aspectRatio: 1.84,
+            borderRadius: 12,
+            overflow: 'hidden',
+            backgroundColor: theme.border,
+        },
+
+        // Floats above the map thumbnail so the date stays readable over the map image.
+        reuseRouteLastUsedBadge: {
             position: 'absolute',
-            bottom: 12,
+            top: 12,
             left: 12,
             marginLeft: 0,
+            backgroundColor: colors.productDark400,
+            borderColor: colors.productDark400,
+        },
+
+        reuseRouteLastUsedBadgeText: {
+            color: colors.productDark900,
         },
 
         receiptActionButton: {
@@ -4181,7 +4347,7 @@ const staticStyles = (theme: ThemeColors) =>
             textAlign: 'left',
             overflow: 'hidden',
             marginBottom: 20,
-            marginHorizontal: variables.sectionMargin,
+            marginHorizontal: layoutSpacing.pageGutter.wide,
         },
 
         widgetContainer: {
@@ -4191,7 +4357,43 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         widgetItemButton: {
-            minWidth: 68,
+            minWidth: variables.widgetItemButtonMinWidth,
+        },
+
+        earlyRenewalOfferBackground: {
+            position: 'absolute',
+            top: variables.contentHeaderHeight + variables.earlyRenewalOfferBackgroundOffsetTop,
+            left: 0,
+            right: 0,
+            alignItems: 'center',
+            overflow: 'hidden',
+        },
+
+        earlyRenewalOfferOption: {
+            flex: 1,
+            alignItems: 'center',
+            gap: 8,
+            paddingTop: 32,
+            paddingBottom: 28,
+            paddingHorizontal: 12,
+            borderRadius: variables.componentBorderRadiusLarge,
+            backgroundColor: theme.highlightBG,
+        },
+
+        earlyRenewalOfferOptionSelected: {
+            backgroundColor: theme.trialBannerBackgroundColor,
+        },
+
+        earlyRenewalOfferOptionRadio: {
+            position: 'absolute',
+            top: 16,
+            left: 16,
+        },
+
+        earlyRenewalOfferOptionBadge: {
+            position: 'absolute',
+            top: 12,
+            right: 12,
         },
 
         gettingStartedRowIconContainer: {
@@ -4211,25 +4413,8 @@ const staticStyles = (theme: ThemeColors) =>
             paddingVertical: 12,
         },
 
-        widgetHeaderMenuButton: {
-            width: variables.componentSizeNormal,
-            height: variables.componentSizeNormal,
-            alignItems: 'center',
-            justifyContent: 'center',
-            borderRadius: variables.buttonBorderRadius,
-        },
-
         widgetHeaderMenuButtonHovered: {
             backgroundColor: theme.hoverComponentBG,
-        },
-
-        widgetHeaderMenuButtonWrapper: {
-            // The 40px ghost button overflows the header instead of growing it: these negative margins shrink its
-            // vertical footprint to the title line-height so every card header keeps the same height. The matching
-            // negative right margin keeps the icon's spacing to the card's right edge equal to its top spacing.
-            marginTop: (variables.widgetHeaderTitleLineHeight - variables.componentSizeNormal) / 2,
-            marginBottom: (variables.widgetHeaderTitleLineHeight - variables.componentSizeNormal) / 2,
-            marginRight: (variables.widgetHeaderTitleLineHeight - variables.componentSizeNormal) / 2,
         },
 
         widgetItemSubtitle: {
@@ -4284,10 +4469,14 @@ const staticStyles = (theme: ThemeColors) =>
             lineHeight: 14,
         },
 
+        // Reserved so the centered home layout does not slide sideways when the scrollbar appears.
+        homePageScrollView: {
+            ...scrollbarGutterStable,
+        },
+
         homePageContentContainer: {
             flexGrow: 1,
             paddingTop: 0,
-            paddingHorizontal: 20,
             paddingBottom: 20,
         },
 
@@ -4373,6 +4562,26 @@ const staticStyles = (theme: ThemeColors) =>
             justifyContent: 'center',
             flexDirection: 'row',
             alignSelf: 'flex-start',
+        },
+
+        conciergeFeedbackThumb: {
+            width: variables.componentSizeSmall,
+            height: variables.componentSizeSmall,
+            borderRadius: variables.buttonBorderRadius,
+            alignItems: 'center',
+            justifyContent: 'center',
+            backgroundColor: theme.transparent,
+        },
+
+        // Matches the add reaction bubble because hoverComponentBG is barely visible on the chat background
+        conciergeFeedbackThumbHovered: {
+            backgroundColor: theme.buttonDefaultBG,
+        },
+
+        // A line height would push the emoji glyph above the center of the thumb
+        conciergeFeedbackThumbEmoji: {
+            fontSize: variables.fontSizeNormal,
+            textAlign: 'center',
         },
 
         emojiReactionListHeader: {
@@ -4562,7 +4771,7 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         textSuccess: {
-            color: theme.success,
+            color: theme.textSuccess,
         },
 
         footerRow: {
@@ -4774,12 +4983,12 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         taskRightIconContainer: {
-            width: variables.componentSizeNormal,
+            width: variables.iconSizeNormal,
             marginLeft: 'auto',
-            ...spacing.mt1,
             ...pointerEventsAuto,
             ...display.dFlex,
-            ...flex.alignItemsCenter,
+            ...flex.justifyContentCenter,
+            ...flex.alignItemsEnd,
         },
 
         shareCodeContainer: {
@@ -4889,6 +5098,26 @@ const staticStyles = (theme: ThemeColors) =>
             justifyContent: 'center',
             borderRadius: variables.buttonBorderRadius,
             scrollMarginInline: variables.tabSelectorScrollMarginInline,
+        },
+
+        // Rows are spaced by each card's top margin so the zero-height fillers add no space. The negative margin cancels the first row's.
+        connectionsGrid: {
+            flexDirection: 'row',
+            flexWrap: 'wrap',
+            columnGap: 12,
+            marginTop: -12,
+        },
+
+        // Cards wrap by their minimum width. Three 26% bases fit a row with the gaps, while a fourth does not.
+        connectionCard: {
+            flexBasis: '26%',
+            minWidth: variables.connectionCardMinWidth,
+        },
+
+        connectionsTabButton: {
+            height: 'auto',
+            paddingVertical: 10,
+            paddingHorizontal: 16,
         },
 
         tabSelector: {
@@ -5117,16 +5346,16 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         rotate90: {
-            transform: 'rotate(90deg)',
+            transform: [{rotate: '90deg'}],
         },
 
         emojiStatusLHN: {
             fontSize: 9,
-            ...(getBrowser() && !isMobile() && {transform: 'scale(.5)', fontSize: 22, overflow: 'visible'}),
+            ...(getBrowser() && !isMobile() && {transform: [{scale: 0.5}], fontSize: 22, overflow: 'visible'}),
             ...(getBrowser() &&
                 isSafari() &&
                 !isMobile() && {
-                    transform: 'scale(0.7)',
+                    transform: [{scale: 0.7}],
                     fontSize: 13,
                     lineHeight: 15,
                     overflow: 'visible',
@@ -5138,23 +5367,11 @@ const staticStyles = (theme: ThemeColors) =>
             backgroundColor: theme.highlightBG,
         },
 
-        onboardingSmallIcon: {
-            padding: 10,
-        },
-
         sidebarStatusAvatarContainer: {
-            height: variables.avatarSizeMedium,
-            width: variables.avatarSizeMedium,
             backgroundColor: theme.componentBG,
             alignItems: 'center',
             justifyContent: 'center',
             borderRadius: variables.avatarSizeMedium / 2,
-        },
-
-        sidebarStatusAvatarWithEmojiContainer: {
-            height: variables.avatarSizeSmall,
-            width: variables.avatarSizeSmall,
-            top: -2,
         },
 
         sidebarStatusAvatar: {
@@ -5494,10 +5711,51 @@ const staticStyles = (theme: ThemeColors) =>
             minHeight: variables.componentSizeSmall,
         },
 
-        // The filter bar row is 34px tall, but the default (larger) bulk-action button is 40px.
-        // To keep the bar from growing, we pull the button up/down by half the difference: (40 - 34) / 2 = 3.
-        searchBulkActionsButton: {
-            marginVertical: -3,
+        // The layer BulkActionBar floats in. It covers its container so the bar can center itself over the table, and
+        // passes touches through everywhere except the bar itself.
+        bulkActionBarLayer: {
+            position: 'absolute',
+            bottom: CONST.BULK_ACTION_BAR.BOTTOM_OFFSET,
+            left: 0,
+            right: 0,
+            alignItems: 'center',
+        },
+
+        // Resolved under the inverted theme BulkActionBar renders its contents in, so `appBG` here is the opposite of
+        // the page's background. Everything inside the bar is colored by that same theme rather than styled specially.
+        bulkActionBar: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            gap: 8,
+            paddingVertical: variables.bulkActionBarPaddingVertical,
+            paddingLeft: 20,
+            paddingRight: 16,
+            borderRadius: variables.componentBorderRadiusLarge,
+            backgroundColor: theme.appBG,
+            boxShadow: theme.shadow,
+        },
+
+        // Reserves the space the bar floats over at the end of the list it covers, so the last rows can still be
+        // scrolled clear of it. Applied to the list's content rather than its container: content grows below the
+        // viewport, so the rows on screen stay where they are when a selection shows or hides the bar.
+        bulkActionBarListSpacing: {
+            paddingBottom: bulkActionBarHeight + CONST.BULK_ACTION_BAR.BOTTOM_OFFSET + CONST.BULK_ACTION_BAR.LIST_GAP,
+        },
+
+        // Wide enough for a three-digit count, so the bar does not resize as the selection grows past 9 or 99. A
+        // selection can cover far more rows than are on screen. Also keeps the width steady while the count loads.
+        bulkActionBarCount: {
+            minWidth: 88,
+            marginRight: 4,
+            justifyContent: 'center',
+        },
+
+        // Matches the height of the bar's buttons: as the tallest item in the row it would otherwise set the bar's height.
+        bulkActionBarCloseButton: {
+            height: variables.componentSizeSmall,
+            width: variables.componentSizeSmall,
+            alignItems: 'center',
+            justifyContent: 'center',
         },
 
         filtersBar: {
@@ -5547,7 +5805,7 @@ const staticStyles = (theme: ThemeColors) =>
             alignSelf: 'flex-start',
         },
 
-        searchFiltersResetButton: {
+        searchFiltersBarButton: {
             flexDirection: 'row',
             gap: 4,
             alignItems: 'center',
@@ -5652,7 +5910,7 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         workspaceSection: {
-            maxWidth: variables.workspaceSectionMaxWidth + variables.sectionMargin * 2,
+            maxWidth: variables.workspaceSectionMaxWidth + layoutSpacing.pageGutter.wide * 2,
         },
 
         workspaceSectionMobile: {
@@ -5673,27 +5931,44 @@ const staticStyles = (theme: ThemeColors) =>
             marginTop: 12,
         },
 
-        onboardingAccountingItem: {
+        onboardingTile: {
             backgroundColor: theme.cardBG,
             borderRadius: variables.componentBorderRadiusNormal,
-            paddingHorizontal: 16,
+            // Keeps "Intuit Enterprise Suite" on one line in narrow tiles.
+            paddingHorizontal: 8,
             paddingVertical: 20,
+            alignItems: 'center',
             flexGrow: 1,
             flexShrink: 1,
-
-            flexBasis: '35%',
         },
 
-        onboardingInterestedFeaturesItem: {
-            backgroundColor: theme.cardBG,
-            borderRadius: variables.componentBorderRadiusNormal,
-            padding: 16,
-            display: 'flex',
-            flexDirection: 'row',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            flexGrow: 1,
-            flexShrink: 1,
+        // Three 32% tiles plus gaps overflow the 576px row, so wrap at 30% and cap the width instead.
+        // Uses width, not flexBasis, since native Yoga caches a flexBasis percentage across rotations.
+        onboardingAccountingItemWide: {
+            width: '30%',
+            maxWidth: '32%',
+        },
+
+        onboardingTileNarrow: {
+            width: '45%',
+            maxWidth: '48.5%',
+        },
+
+        onboardingTileSelected: {
+            backgroundColor: theme.selectedOptionBG,
+        },
+
+        // Positioned via the wrapper, since `SelectionButton` applies `style` to the inner pressable.
+        onboardingTileSelectionButton: {
+            position: 'absolute',
+            top: 12,
+            left: 12,
+        },
+
+        // Four 23.4% tiles plus gaps fill the 576px row exactly, so wrap at 22% to survive the scrollbar.
+        onboardingInterestedFeaturesItemWide: {
+            width: '22%',
+            maxWidth: '23.4%',
         },
 
         checkboxWithLabelCheckboxStyle: {
@@ -5967,6 +6242,10 @@ const staticStyles = (theme: ThemeColors) =>
 
         agentRulePromptInput: {
             maxHeight: variables.agentRulePromptInputHeight,
+        },
+
+        describeRulePromptInput: {
+            height: variables.describeRulePromptInputHeight,
         },
 
         emptyStateSamlIllustration: {
@@ -6408,17 +6687,13 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         wideRHPExtendedCardInterpolatorStyles: {
-            position: 'absolute',
-            height: '100%',
-            right: 0,
+            ...getRHPExtendedCardFrame(theme),
             width: animatedWideRHPWidth,
         },
 
         singleRHPExtendedCardInterpolatorStyles: {
-            position: 'absolute',
-            height: '100%',
-            right: 0,
-            width: variables.sideBarWidth,
+            ...getRHPExtendedCardFrame(theme),
+            width: variables.rhpWidth,
         },
 
         flexibleHeight: {
@@ -6668,32 +6943,34 @@ const staticStyles = (theme: ThemeColors) =>
             ...textVariants.textStrong,
             color: theme.text,
         },
-        chartTooltipWrapper: {
-            alignItems: 'center',
-        },
         chartTooltipBox: {
-            backgroundColor: theme.heading,
-            borderRadius: variables.componentBorderRadiusSmall,
-            paddingVertical: 4,
-            paddingHorizontal: 8,
+            backgroundColor: theme.appBG,
+            borderColor: theme.border,
+            borderWidth: 1,
+            borderRadius: variables.componentBorderRadiusNormal,
+            boxShadow: theme.shadow,
+            padding: 12,
+            rowGap: 8,
+        },
+        chartTooltipLayer: {
+            ...tooltipPlatformStyle,
+            zIndex: variables.tooltipZIndex,
+        },
+        chartTooltipOrigin: {
+            position: 'absolute',
+            top: 0,
+            left: 0,
+        },
+        chartTooltipTitle: {
+            ...textVariants.labelStrong,
+            color: theme.text,
         },
         chartTooltipText: {
-            color: theme.textReversed,
-            fontSize: variables.fontSizeSmall,
-            lineHeight: variables.lineHeightSmall,
-            whiteSpace: 'nowrap',
-        },
-        chartTooltipPointer: {
-            width: 0,
-            height: 0,
-            backgroundColor: theme.transparent,
-            borderStyle: 'solid',
+            ...textVariants.label,
+            color: theme.text,
         },
         chartContainer: {
             borderRadius: variables.componentBorderRadiusLarge,
-        },
-        chartExpandedContent: {
-            transformOrigin: 'top left',
         },
         chartContent: {
             height: CHART_CONTENT_MIN_HEIGHT,
@@ -6711,6 +6988,8 @@ const staticStyles = (theme: ThemeColors) =>
             marginTop: variables.qrShareHorizontalPadding,
             flexDirection: 'row',
             flexWrap: 'wrap',
+            rowGap: 8,
+            columnGap: 16,
         },
         pieChartCenterLabel: {
             position: 'absolute',
@@ -6727,10 +7006,19 @@ const staticStyles = (theme: ThemeColors) =>
             width: 12,
             height: 12,
         },
-        discoverSectionImage: {
-            width: '100%',
-            height: undefined,
-            aspectRatio: 2.2,
+        chartInlineTable: {
+            marginTop: 32,
+            rowGap: 24,
+        },
+        chartInlineTableDot: {
+            borderRadius: '50%',
+            width: 16,
+            height: 16,
+            margin: 2,
+        },
+        chartInlineTableAvatarBorder: {
+            borderWidth: 2,
+            borderRadius: '50%',
         },
         homeWidgetIconContainer: {
             width: variables.iconSizeExtraLarge,
@@ -6754,9 +7042,7 @@ const dynamicStyles = (theme: ThemeColors) =>
         // See https://github.com/Expensify/App/issues/99035
         getSuperWideRHPExtendedCardInterpolatorStyles: (width: Animated.AnimatedSubtraction<number>) =>
             ({
-                position: 'absolute',
-                height: '100%',
-                right: 0,
+                ...getRHPExtendedCardFrame(theme),
                 width,
             }) satisfies ViewStyle,
 
@@ -6811,7 +7097,7 @@ const dynamicStyles = (theme: ThemeColors) =>
 
         modalStackNavigatorContainerWidth: (isSmallScreenWidth: boolean) =>
             ({
-                width: isSmallScreenWidth ? '100%' : variables.sideBarWidth,
+                width: isSmallScreenWidth ? '100%' : variables.rhpWidth,
             }) satisfies ViewStyle,
 
         OnboardingNavigatorInnerView: (shouldUseNarrowLayout: boolean) =>
@@ -6841,18 +7127,26 @@ const dynamicStyles = (theme: ThemeColors) =>
             progress,
             positionLeftValue,
             positionRightValue,
+            positionTopValue,
+            positionBottomValue,
+            maxOpacity,
         }: {
             progress: OverlayStylesParams;
-            positionLeftValue: number | Animated.Value | Animated.AnimatedAddition<number>;
-            positionRightValue: number | Animated.Value | Animated.AnimatedAddition<number>;
+            positionLeftValue: OverlayPositionValue;
+            positionRightValue: OverlayPositionValue;
+            positionTopValue: number;
+            positionBottomValue: number;
+            maxOpacity: number;
         }) =>
             ({
                 // We need to stretch the overlay to cover the sidebar and the translate animation distance.
                 left: positionLeftValue,
                 right: positionRightValue,
+                top: positionTopValue,
+                bottom: positionBottomValue,
                 opacity: progress.interpolate({
                     inputRange: [0, 0.5],
-                    outputRange: [0, variables.overlayOpacity],
+                    outputRange: [0, maxOpacity],
                     extrapolate: 'clamp',
                 }),
             }) satisfies ViewStyle,
@@ -6918,7 +7212,8 @@ const dynamicStyles = (theme: ThemeColors) =>
             } satisfies ViewStyle;
         },
 
-        rootNavigatorContainerStyles: (isSmallScreenWidth: boolean) => ({marginLeft: isSmallScreenWidth ? 0 : variables.sideBarWithLHBWidth, flex: 1}) satisfies ViewStyle,
+        rootNavigatorContainerStyles: (isSmallScreenWidth: boolean, sidebarWidth: number = variables.sideBarWithLHBWidth) =>
+            ({marginLeft: isSmallScreenWidth ? 0 : sidebarWidth, flex: 1}) satisfies ViewStyle,
 
         RHPNavigatorContainerNavigatorContainerStyles: (isSmallScreenWidth: boolean) => ({marginLeft: isSmallScreenWidth ? 0 : variables.sideBarWidth, flex: 1}) satisfies ViewStyle,
 
@@ -7032,7 +7327,7 @@ const dynamicStyles = (theme: ThemeColors) =>
             maxWidth: shouldUseNarrowLayout ? '100%' : 300,
         }),
 
-        getForYouSectionContainerStyle: (shouldUseNarrowLayout: boolean): ViewStyle => ({
+        getWidgetRowGroupStyle: (shouldUseNarrowLayout: boolean): ViewStyle => ({
             flexDirection: 'column',
             marginBottom: shouldUseNarrowLayout ? 8 : 20,
         }),
@@ -7043,6 +7338,11 @@ const dynamicStyles = (theme: ThemeColors) =>
             top: 0,
             bottom: 0,
             width,
+        }),
+
+        getSplashScreenHiderPosition: (left: number, right: number): ViewStyle => ({
+            left: -left,
+            right: -right,
         }),
 
         getSelectionListPopoverHeight: ({
@@ -7057,11 +7357,11 @@ const dynamicStyles = (theme: ThemeColors) =>
             isNegatable,
             extraHeight = 0,
         }: SelectionListPopover) => {
-            const MODAL_VERTICAL_PADDING = 32;
+            const MODAL_VERTICAL_PADDING = variables.popoverVerticalPadding;
             const BUTTON_HEIGHT = hasButton ? 48 : 0;
             const HEADER_HEIGHT = hasHeader ? 48 : 0;
             const TITLE_HEIGHT = hasTitle ? 34 : 0;
-            const SEARCHBAR_HEIGHT = isSearchable ? 64 : 0;
+            const SEARCHBAR_HEIGHT = isSearchable ? variables.popoverSearchInputHeight : 0;
             const NEGATION_TOGGLE_BORDER_WIDTH = 1;
             const NEGATION_TOGGLE_HEIGHT = isNegatable ? variables.componentSizeSmall + NEGATION_TOGGLE_BORDER_WIDTH * 2 + spacing.gap3.gap : 0;
 
@@ -7113,6 +7413,16 @@ const dynamicStyles = (theme: ThemeColors) =>
             };
         },
 
+        getCardAuthenticationModalInnerView: (shouldUseNarrowLayout: boolean) =>
+            ({
+                flex: 1,
+                margin: shouldUseNarrowLayout ? 0 : 20,
+                borderRadius: shouldUseNarrowLayout ? 0 : variables.componentBorderRadiusLarge,
+                overflow: 'hidden',
+                boxShadow: shouldUseNarrowLayout ? undefined : theme.shadow,
+                backgroundColor: theme.componentBG,
+            }) satisfies ViewStyle,
+
         getTestToolsNavigatorOuterView: (shouldUseNarrowLayout: boolean) => ({
             justifyContent: shouldUseNarrowLayout ? 'flex-end' : 'center',
         }),
@@ -7130,6 +7440,7 @@ const dynamicStyles = (theme: ThemeColors) =>
             return {
                 width: shouldUseNarrowLayout ? '100%' : '91%',
                 height,
+                maxHeight: '100%',
                 borderRadius: variables.componentBorderRadiusLarge,
                 borderBottomRightRadius: borderBottomRadius,
                 borderBottomLeftRadius: borderBottomRadius,
@@ -7164,7 +7475,7 @@ const dynamicStyles = (theme: ThemeColors) =>
         }),
 
         // The 40px bulk-actions button swaps in for the table filter bar row (32px search bar on wide layouts, 44px on narrow),
-        // so offset its vertical margin to keep the row height identical and prevent the table from shifting (see searchBulkActionsButton).
+        // so offset its vertical margin to keep the row height identical and prevent the table from shifting.
         tableBulkActionsButton: (shouldUseNarrowTableLayout: boolean) => ({
             marginVertical: shouldUseNarrowTableLayout ? 2 : -4,
         }),
@@ -7327,13 +7638,29 @@ const plainStyles = (theme: ThemeColors) =>
                 color,
             }) satisfies TextStyle,
 
-        getWidgetContainerHeaderStyle: (shouldUseNarrowLayout: boolean) =>
+        getWidgetContainerBottomPaddingStyle: (shouldUseNarrowLayout: boolean): ViewStyle => (shouldUseNarrowLayout ? spacing.pb2 : spacing.pb5),
+
+        getWidgetHeaderButtonOverflowStyle,
+
+        // Negative right margin matches the vertical ones so the icon's spacing to the card edge equals its top spacing
+        getWidgetHeaderMenuButtonStyle: (buttonSize: number) =>
+            ({
+                width: buttonSize,
+                height: buttonSize,
+                alignItems: 'center',
+                justifyContent: 'center',
+                borderRadius: variables.buttonBorderRadius,
+                ...getWidgetHeaderButtonOverflowStyle(buttonSize),
+                marginRight: (variables.widgetHeaderTitleLineHeight - buttonSize) / 2,
+            }) satisfies ViewStyle,
+
+        getWidgetContainerHeaderStyle: (cardPadding: number) =>
             ({
                 flexDirection: 'row',
                 alignItems: 'center',
                 marginBottom: 20,
-                marginHorizontal: shouldUseNarrowLayout ? 20 : 32,
-                marginTop: shouldUseNarrowLayout ? 20 : 32,
+                marginHorizontal: cardPadding,
+                marginTop: cardPadding,
             }) satisfies ViewStyle,
 
         // Grows to fill the "+" column so the button sits at the bottom on multi-line input. On a single
@@ -7364,6 +7691,14 @@ const plainStyles = (theme: ThemeColors) =>
             paddingRight: 24,
         },
 
+        conciergePromptBoxPlaceholderSkeleton: {
+            position: 'absolute',
+            top: 0,
+            bottom: 0,
+            left: variables.composerTextInputPaddingLeft,
+            justifyContent: 'center',
+        },
+
         widgetItemIconContainer: {
             alignItems: 'center',
             justifyContent: 'center',
@@ -7374,7 +7709,7 @@ const plainStyles = (theme: ThemeColors) =>
         homePageMainLayout: (shouldUseNarrowLayout: boolean) =>
             ({
                 flexDirection: shouldUseNarrowLayout ? 'column' : 'row',
-                gap: 20,
+                gap: shouldUseNarrowLayout ? layoutSpacing.cardGap.narrow : layoutSpacing.cardGap.wide,
                 width: '100%',
                 maxWidth: variables.centeredContentMaxWidth,
                 alignSelf: 'center',
@@ -7389,6 +7724,40 @@ const plainStyles = (theme: ThemeColors) =>
         homePageLeftColumn: {flex: 7, flexBasis: '58.333%', maxWidth: variables.homePageLeftColumnMaxWidth, flexDirection: 'column', gap: 20} satisfies ViewStyle,
 
         homePageRightColumn: {flex: 5, flexBasis: '41.667%', flexDirection: 'column', gap: 20} satisfies ViewStyle,
+
+        insightsDashboardLayout: (shouldUseNarrowLayout: boolean) =>
+            ({
+                width: '100%',
+                maxWidth: variables.centeredContentMaxWidth,
+                alignSelf: 'center',
+                gap: shouldUseNarrowLayout ? layoutSpacing.cardGap.narrow : layoutSpacing.cardGap.wide,
+            }) satisfies ViewStyle,
+
+        insightsDashboardScrollView: {
+            ...scrollbarGutterStable,
+        },
+
+        insightsPageControlsContainer: {
+            ...scrollbarGutterStable,
+            overflow: 'hidden',
+        },
+
+        insightsChartGrid: (shouldUseNarrowLayout: boolean) =>
+            ({
+                flexDirection: 'row',
+                alignItems: 'flex-start',
+                gap: shouldUseNarrowLayout ? layoutSpacing.cardGap.narrow : layoutSpacing.cardGap.wide,
+            }) satisfies ViewStyle,
+
+        insightsChartColumn: (shouldUseNarrowLayout: boolean) =>
+            ({
+                gap: shouldUseNarrowLayout ? layoutSpacing.cardGap.narrow : layoutSpacing.cardGap.wide,
+            }) satisfies ViewStyle,
+
+        insightsEmptyStateIllustration: {
+            width: variables.insightsEmptyStateIllustrationSize,
+            height: variables.insightsEmptyStateIllustrationSize,
+        } satisfies ImageStyle,
     }) satisfies Styles;
 
 const styles = (theme: ThemeColors) =>
@@ -7401,4 +7770,4 @@ const styles = (theme: ThemeColors) =>
 type ThemeStyles = ReturnType<typeof styles>;
 
 export default styles;
-export type {ThemeStyles, StatusBarStyle, ColorScheme, AnchorPosition, AnchorDimensions, OverlayStylesParams};
+export type {ThemeStyles, StatusBarStyle, ColorScheme, AnchorPosition, AnchorDimensions, OverlayStylesParams, OverlayPositionValue};

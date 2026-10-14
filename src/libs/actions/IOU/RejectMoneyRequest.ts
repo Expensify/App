@@ -23,7 +23,6 @@ import {
     getDisplayedReportID,
     getParsedComment,
     getReimbursableTotal,
-    getReportTransactions,
     hasOutstandingChildRequest,
     isIOUReport,
     isOpenReport,
@@ -31,7 +30,7 @@ import {
 import {getAmount, getCurrency} from '@libs/TransactionUtils';
 import type {AvatarSource} from '@libs/UserAvatarUtils';
 
-import {notifyNewAction} from '@userActions/Report';
+import {notifyNewAction} from '@userActions/Report/reportActionSubscribers';
 
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
@@ -84,11 +83,6 @@ type RejectMoneyRequestOptions = {
     setExistingRejectedReport?: (report: OnyxEntry<OnyxTypes.Report>) => void;
 };
 
-type RejectMoneyRequestRulesAndOptions = {
-    rules: OnyxCollection<OnyxTypes.Rule>;
-    options?: RejectMoneyRequestOptions;
-};
-
 function dismissRejectUseExplanation() {
     const parameters: SetNameValuePairParams = {
         name: ONYXKEYS.NVP_DISMISSED_REJECT_USE_EXPLANATION,
@@ -124,12 +118,13 @@ type PrepareRejectMoneyRequestDataParams = {
     policy: OnyxEntry<OnyxTypes.Policy>;
     currentUserAccountIDParam: number;
     currentUserLogin: string;
-    betas: OnyxEntry<OnyxTypes.Beta[]>;
+    isASAPSubmitBetaEnabled: boolean;
     delegateAccountID: number | undefined;
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
     rules: OnyxCollection<OnyxTypes.Rule>;
     options?: RejectMoneyRequestOptions;
     shouldUseBulkAction?: boolean;
+    reportTransactionsCollection: Record<string, OnyxTypes.Transaction>;
 };
 
 function prepareRejectMoneyRequestData({
@@ -139,12 +134,13 @@ function prepareRejectMoneyRequestData({
     policy,
     currentUserAccountIDParam,
     currentUserLogin,
-    betas,
+    isASAPSubmitBetaEnabled,
     delegateAccountID,
     getCurrencyDecimals,
     rules,
     options,
     shouldUseBulkAction,
+    reportTransactionsCollection,
 }: PrepareRejectMoneyRequestDataParams): RejectMoneyRequestData | undefined {
     const allTransactions = getAllTransactions();
     const allReports = getAllReports();
@@ -163,7 +159,7 @@ function prepareRejectMoneyRequestData({
     const isUserOnSearchPage = isSearchTopmostFullScreenRoute() && lastRoute?.name === SCREENS.SEARCH.ROOT;
     const isUserOnSearchMoneyRequestReport = isSearchTopmostFullScreenRoute() && lastRoute?.name === SCREENS.SEARCH.MONEY_REQUEST_REPORT;
 
-    if (!report || !transaction) {
+    if (!report || !transaction || transaction.reportID !== report.reportID) {
         return undefined;
     }
 
@@ -178,7 +174,14 @@ function prepareRejectMoneyRequestData({
     let createdIOUReportActionID;
     let expenseCreatedReportActionID;
 
-    const hasMultipleExpenses = getReportTransactions(reportID).length > 1;
+    const hasMultipleExpenses = Object.keys(reportTransactionsCollection ?? {}).length > 1;
+
+    // A reject starts from a clean slate, dropping the error and the report pin left behind by an earlier failed one.
+    const staleRejectErrorCleanup = {
+        errors: null,
+        errorFields: {reject: null},
+        rejectFailedFromReportID: null,
+    };
     const transactionCommentCleanup = (() => {
         if (!transaction?.comment?.dismissedViolations?.[CONST.VIOLATIONS.AUTO_REPORTED_REJECTED_EXPENSE]) {
             return undefined;
@@ -250,6 +253,7 @@ function prepareRejectMoneyRequestData({
                     key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
                     value: {
                         reportID: null,
+                        ...staleRejectErrorCleanup,
                         ...(transactionCommentCleanup ?? {}),
                     },
                 },
@@ -281,6 +285,8 @@ function prepareRejectMoneyRequestData({
                 key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
                 value: {
                     reportID: transaction?.reportID ?? reportID,
+                    errorFields: {reject: getMicroSecondOnyxErrorWithTranslationKey('iou.rejectReport.couldNotRejectExpense')},
+                    rejectFailedFromReportID: reportID,
                 },
             });
 
@@ -304,6 +310,7 @@ function prepareRejectMoneyRequestData({
                     key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
                     value: {
                         reportID: CONST.REPORT.UNREPORTED_REPORT_ID,
+                        ...staleRejectErrorCleanup,
                         ...(transactionCommentCleanup ?? {}),
                     },
                 },
@@ -357,6 +364,8 @@ function prepareRejectMoneyRequestData({
                     key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
                     value: {
                         reportID,
+                        errorFields: {reject: getMicroSecondOnyxErrorWithTranslationKey('iou.rejectReport.couldNotRejectExpense')},
+                        rejectFailedFromReportID: reportID,
                     },
                 },
             );
@@ -501,7 +510,7 @@ function prepareRejectMoneyRequestData({
                 nonReimbursableTotal: transactionAmount,
                 optimisticIOUReportID: rejectedToReportID,
                 reportTransactions,
-                betas,
+                isASAPSubmitBetaEnabled,
                 getCurrencyDecimals,
                 rules,
             });
@@ -521,7 +530,7 @@ function prepareRejectMoneyRequestData({
                 delegateAccountIDParam: delegateAccountID,
             });
 
-            reportPreviewAction = buildOptimisticReportPreview(policyExpenseChat, newExpenseReport, getCurrencyDecimals, undefined, transaction, undefined, undefined, delegateAccountID);
+            reportPreviewAction = buildOptimisticReportPreview(policyExpenseChat, newExpenseReport, getCurrencyDecimals, delegateAccountID, undefined, transaction);
             // The reject action posted below already tells the user this expense left the report,
             // so a MOVED_TRANSACTION action in the same thread would repeat it
             createdIOUReportActionID = iouAction.reportActionID;
@@ -674,6 +683,7 @@ function prepareRejectMoneyRequestData({
                 key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
                 value: {
                     reportID: rejectedToReportID,
+                    ...staleRejectErrorCleanup,
                     ...(transactionCommentCleanup ?? {}),
                 },
             },
@@ -696,6 +706,7 @@ function prepareRejectMoneyRequestData({
             value: {
                 pendingAction: null,
                 errorFields: null,
+                rejectFailedFromReportID: null,
             },
         });
 
@@ -715,6 +726,8 @@ function prepareRejectMoneyRequestData({
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
             value: {
                 reportID: transaction?.reportID ?? reportID,
+                errorFields: {reject: getMicroSecondOnyxErrorWithTranslationKey('iou.rejectReport.couldNotRejectExpense')},
+                rejectFailedFromReportID: reportID,
             },
         });
     } else {
@@ -732,6 +745,7 @@ function prepareRejectMoneyRequestData({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
             value: {
+                ...staleRejectErrorCleanup,
                 ...(transactionCommentCleanup ?? {}),
             },
         });
@@ -749,14 +763,24 @@ function prepareRejectMoneyRequestData({
         });
 
         // Add failure data to revert report state
-        failureData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
-            value: {
-                stateNum: report?.stateNum,
-                statusNum: report?.statusNum,
+        failureData.push(
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+                value: {
+                    stateNum: report?.stateNum,
+                    statusNum: report?.statusNum,
+                },
             },
-        });
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
+                value: {
+                    errorFields: {reject: getMicroSecondOnyxErrorWithTranslationKey('iou.rejectReport.couldNotRejectExpense')},
+                    rejectFailedFromReportID: reportID,
+                },
+            },
+        );
 
         if (isUserOnSearchPage || isUserOnSearchMoneyRequestReport) {
             // Navigate to the existing Reports > Expense view
@@ -934,31 +958,8 @@ function prepareRejectMoneyRequestData({
     return {optimisticData, successData, failureData, parameters, urlToNavigateBack: urlToNavigateBack as Route};
 }
 
-function rejectMoneyRequest(
-    transactionID: string,
-    reportID: string,
-    comment: string,
-    policy: OnyxEntry<OnyxTypes.Policy>,
-    currentUserAccountIDParam: number,
-    currentUserLogin: string,
-    betas: OnyxEntry<OnyxTypes.Beta[]>,
-    delegateAccountID: number | undefined,
-    getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'],
-    {rules, options}: RejectMoneyRequestRulesAndOptions,
-): Route | undefined {
-    const data = prepareRejectMoneyRequestData({
-        transactionID,
-        reportID,
-        comment,
-        policy,
-        currentUserAccountIDParam,
-        currentUserLogin,
-        betas,
-        delegateAccountID,
-        getCurrencyDecimals,
-        rules,
-        options,
-    });
+function rejectMoneyRequest(params: Omit<PrepareRejectMoneyRequestDataParams, 'shouldUseBulkAction'>): Route | undefined {
+    const data = prepareRejectMoneyRequestData(params);
     if (!data) {
         return;
     }

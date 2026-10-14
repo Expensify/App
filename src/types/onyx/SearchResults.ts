@@ -5,7 +5,7 @@ import type {
     TransactionListItemType,
     TransactionReportGroupListItemType,
 } from '@components/Search/SearchList/ListItem/types';
-import type {SearchGroupBy, SearchSortBy, SortOrder} from '@components/Search/types';
+import type {SearchFooterTotal, SearchGroupBy, SearchSortBy, SortOrder} from '@components/Search/types';
 
 import type CONST from '@src/CONST';
 import type ONYXKEYS from '@src/ONYXKEYS';
@@ -14,7 +14,7 @@ import type PrefixedRecord from '@src/types/utils/PrefixedRecord';
 import type {ValueOf} from 'type-fest';
 
 import type {BankName} from './Bank';
-import type * as OnyxCommon from './OnyxCommon';
+import type {PendingAction, Errors} from './OnyxCommon';
 import type PersonalDetails from './PersonalDetails';
 import type Policy from './Policy';
 import type Report from './Report';
@@ -47,6 +47,12 @@ type SearchResultsInfo = {
 
     /** The hash of the current search */
     hash: number;
+
+    /** Client-only query string this snapshot was searched with, used to add optimistic expenses to matching snapshots */
+    inputQuery?: string;
+
+    /** Client-only footer breakdown the snapshot's `total` answers. Written once a response lands, as it can replace `snapshot.search` */
+    footerTotal?: SearchFooterTotal;
 
     /** Whether the user can fetch more search results */
     hasMoreResults: boolean;
@@ -130,10 +136,8 @@ type SearchTask = {
     statusNum: ValueOf<typeof CONST.REPORT.STATUS_NUM>;
 };
 
-/** Model of member grouped search result */
-type SearchMemberGroup = {
-    accountID: number;
-
+/** Fields every grouped search result carries, whatever it is grouped by */
+type SearchGroupBase = {
     /** Number of transactions */
     count: number;
 
@@ -142,24 +146,32 @@ type SearchMemberGroup = {
 
     /** Currency of total value */
     currency: string;
+
+    /** The group's share of `search.total` in percentage points */
+    percentOfTotal?: number;
+
+    /** Set to `delete` while every expense in the group is being deleted, so the row can leave the list before the next Search response drops the group */
+    pendingAction?: PendingAction;
+};
+
+/** Model of member grouped search result */
+type SearchMemberGroup = SearchGroupBase & {
+    /** Account ID */
+    accountID: number;
 };
 
 /** Model of card grouped search result */
-type SearchCardGroup = {
+type SearchCardGroup = SearchGroupBase & {
     /** Cardholder account ID */
     accountID: number;
 
-    /** Number of transactions */
-    count: number;
-
-    /** Total value of transactions */
-    total: number;
-
-    /** Currency of total value */
-    currency: string;
-
+    /** Bank name */
     bank: string;
+
+    /** Card name */
     cardName: string;
+
+    /** Card ID */
     cardID: number;
 
     /** Last four Primary Account Number digits */
@@ -170,18 +182,9 @@ type SearchCardGroup = {
 };
 
 /** Model of withdrawal ID grouped search result */
-type SearchWithdrawalIDGroup = {
+type SearchWithdrawalIDGroup = SearchGroupBase & {
     /** Withdrawal ID */
     entryID: number;
-
-    /** Number of transactions */
-    count: number;
-
-    /** Total value of transactions */
-    total: number;
-
-    /** Currency of total value */
-    currency: string;
 
     /** Masked account number */
     accountNumber: string;
@@ -217,111 +220,66 @@ type SearchWithdrawalIDGroup = {
 
     /** Whether the current user may export this settlement as a statement PDF (set by the backend, which applies the same admin authorization it uses to generate the PDF) */
     canExportStatement?: boolean;
+
+    /** Whether this group is an ACH cash back credit rather than a card settlement withdrawal */
+    isCashBack?: boolean;
+
+    /** The feed a cash back credit was paid through; matches the fundID of that feed's settlements */
+    domainAccountID?: number;
 };
 
 /** Model of category grouped search result */
-type SearchCategoryGroup = {
+type SearchCategoryGroup = SearchGroupBase & {
+    /** Category name */
     category: string;
-
-    /** Number of transactions */
-    count: number;
-
-    /** Total value of transactions */
-    total: number;
-
-    /** Currency of total value */
-    currency: string;
 };
 
 /** Model of merchant grouped search result */
-type SearchMerchantGroup = {
+type SearchMerchantGroup = SearchGroupBase & {
+    /** Merchant name */
     merchant: string;
-
-    /** Number of transactions */
-    count: number;
-
-    /** Total value of transactions */
-    total: number;
-
-    /** Currency of total value */
-    currency: string;
 };
 
 /** Model of tag grouped search result */
-type SearchTagGroup = {
+type SearchTagGroup = SearchGroupBase & {
+    /** Tag name */
     tag: string;
+};
 
-    /** Number of transactions */
-    count: number;
-
-    /** Total value of transactions */
-    total: number;
-
-    /** Currency of total value */
-    currency: string;
+/** Model of day grouped search result */
+type SearchDayGroup = SearchGroupBase & {
+    /** Date in YYYY-MM-DD format */
+    day: string;
 };
 
 /** Model of month grouped search result */
-type SearchMonthGroup = {
+type SearchMonthGroup = SearchGroupBase & {
+    /** Year */
     year: number;
 
     /** Month (1-12) */
     month: number;
-
-    /** Number of transactions */
-    count: number;
-
-    /** Total value of transactions */
-    total: number;
-
-    /** Currency of total value */
-    currency: string;
 };
 
 /** Model of week grouped search result */
-type SearchWeekGroup = {
+type SearchWeekGroup = SearchGroupBase & {
     /** Week start date in YYYY-MM-DD format */
     week: string;
-
-    /** Number of transactions */
-    count: number;
-
-    /** Total value of transactions */
-    total: number;
-
-    /** Currency of total value */
-    currency: string;
 };
 
 /** Model of year grouped search result */
-type SearchYearGroup = {
+type SearchYearGroup = SearchGroupBase & {
+    /** Year */
     year: number;
-
-    /** Number of transactions */
-    count: number;
-
-    /** Total value of transactions */
-    total: number;
-
-    /** Currency of total value */
-    currency: string;
 };
 
 /** Model of quarter grouped search result */
-type SearchQuarterGroup = {
+type SearchQuarterGroup = SearchGroupBase & {
+    /** Year */
     year: number;
 
     /** Quarter (1-4) */
     quarter: number;
-
-    /** Number of transactions */
-    count: number;
-
-    /** Total value of transactions */
-    total: number;
-
-    /** Currency of total value */
-    currency: string;
 };
 
 /** SearchResultDataType */
@@ -341,6 +299,7 @@ type SearchResultDataType = PrefixedRecord<typeof ONYXKEYS.COLLECTION.TRANSACTIO
         | SearchCategoryGroup
         | SearchMerchantGroup
         | SearchTagGroup
+        | SearchDayGroup
         | SearchMonthGroup
         | SearchWeekGroup
         | SearchYearGroup
@@ -356,7 +315,7 @@ type SearchResults = {
     isLoading?: boolean;
 
     /** Whether search data fetch has failed */
-    errors?: OnyxCommon.Errors;
+    errors?: Errors;
 };
 
 export default SearchResults;
@@ -368,12 +327,14 @@ export type {
     SearchDataTypes,
     SearchResultsInfo,
     SearchResultDataType,
+    SearchGroupBase,
     SearchMemberGroup,
     SearchCardGroup,
     SearchWithdrawalIDGroup,
     SearchCategoryGroup,
     SearchMerchantGroup,
     SearchTagGroup,
+    SearchDayGroup,
     SearchMonthGroup,
     SearchWeekGroup,
     SearchYearGroup,

@@ -17,6 +17,8 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
+import usePersonalDetailByLogin, {useGetPersonalDetailsByLogin, usePersonalDetailsByLogins} from '@hooks/usePersonalDetailByLogin';
+import {useAllPersonalDetails} from '@hooks/usePersonalDetails';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchShouldCalculateTotals from '@hooks/useSearchShouldCalculateTotals';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -24,10 +26,11 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {search} from '@libs/actions/Search';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import Navigation from '@libs/Navigation/Navigation';
-import {getSearchValueForPhoneOrEmail, getUserToInviteOption, sortAlphabetically} from '@libs/OptionsListUtils';
-import {getKnownAccountIDByLogin, getPersonalDetailsByID} from '@libs/PersonalDetailsUtils';
+import {getSearchValueForPhoneOrEmail, getUserToInviteOption} from '@libs/OptionsListUtils';
+import {getLoginByAccountID, getPersonalDetailsByID} from '@libs/PersonalDetailsUtils';
 import {getAccountIDForSubmitManagerEmail, getMemberAccountIDsForWorkspace, getSubmitToEmail} from '@libs/PolicyUtils';
 import {hasViolations as hasViolationsReportUtils, isExpenseReport, isMoneyRequestReportPendingDeletion} from '@libs/ReportUtils';
+import sortAlphabetically from '@libs/sortAlphabetically';
 import tokenizedSearch from '@libs/tokenizedSearch';
 import {expensifyLoginsSelector} from '@libs/UserUtils';
 
@@ -38,7 +41,6 @@ import {searchUserInServer} from '@userActions/Report';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {personalDetailsLoginSelector} from '@src/selectors/PersonalDetails';
 import type Policy from '@src/types/onyx/Policy';
 import type Report from '@src/types/onyx/Report';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -63,9 +65,14 @@ type ReportSubmitToContentProps = {
     /** When false, skips closing the RHP stack after submit (e.g. submit-to popover on report screen). */
     shouldDismissRHPAfterSubmit?: boolean;
     /** When set (e.g. Search row submit), called with the selected submit-to email instead of `submitReport`. */
-    onSubmitWithManagerEmail?: (managerEmail: string, managerAccountID?: number) => void;
+    onSubmitWithManagerEmail?: (managerEmail: string, managerAccountID?: number, shouldResolveAcknowledgedViolations?: boolean) => void;
     /** When set, blocks submit after the popover is dismissed (prevents stale confirm / click-through). */
     canSubmitRef?: RefObject<boolean>;
+    /**
+     * Resolved by the caller's own `confirmSubmitReportViolations` call before this popover opened (iOS can't present
+     * the violations modal while this popover is still open), so this component must not run that check itself.
+     */
+    shouldResolveAcknowledgedViolations?: boolean;
 };
 
 function ReportSubmitToContent({
@@ -77,6 +84,7 @@ function ReportSubmitToContent({
     shouldDismissRHPAfterSubmit = true,
     onSubmitWithManagerEmail,
     canSubmitRef,
+    shouldResolveAcknowledgedViolations,
 }: ReportSubmitToContentProps) {
     const styles = useThemeStyles();
     const {translate, localeCompare, dateFnsLocale} = useLocalize();
@@ -93,13 +101,13 @@ function ReportSubmitToContent({
     const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
     const [delegateEmail] = useOnyx(ONYXKEYS.ACCOUNT, {selector: delegateEmailSelector});
     const delegateAccountID = useDelegateAccountID();
-    const [submitterLogin] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsLoginSelector(report?.ownerAccountID)});
     const [loginList] = useOnyx(ONYXKEYS.LOGINS, {selector: expensifyLoginsSelector});
-    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
+    const [personalDetails] = useAllPersonalDetails();
+    const submitterLogin = getLoginByAccountID(report?.ownerAccountID, personalDetails);
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
+    const getPersonalDetailsByLogin = useGetPersonalDetailsByLogin();
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
     const {isOffline} = useNetwork();
     const {currentSearchQueryJSON, currentSearchKey} = useSearchQueryContext();
@@ -110,6 +118,7 @@ function ReportSubmitToContent({
     const hasViolations = hasViolationsReportUtils(report?.reportID, transactionViolations, currentUserDetails.accountID, currentUserDetails.login ?? '');
 
     const prepopulatedEmail = getSubmitToEmail(policy, report, submitterLogin, rules);
+    const prepopulatedAccountID = usePersonalDetailByLogin(prepopulatedEmail?.trim(), (details) => details?.accountID);
 
     const [userSelectedManagerEmail, setUserSelectedManagerEmail] = useState<string | undefined>();
     const [extraSubmitToRecipients, setExtraSubmitToRecipients] = useState<WorkspaceMemberItem[]>([]);
@@ -119,13 +128,15 @@ function ReportSubmitToContent({
     // submitter is no longer pre-picked and the "nothing selected" guard in `handleSubmit` becomes reachable.
     const managerEmail = userSelectedManagerEmail ?? '';
 
+    const employeePersonalDetails = usePersonalDetailsByLogins([...Object.keys(policy?.employeeList ?? {}), managerEmail]);
+
     const workspaceMembers = useMemo((): WorkspaceMemberItem[] => {
         const employeeList = policy?.employeeList;
         if (!employeeList) {
             return [];
         }
         const prepopulatedEmailLower = prepopulatedEmail?.trim().toLowerCase();
-        const emailsToAccountIDs = getMemberAccountIDsForWorkspace(employeeList, true, false);
+        const emailsToAccountIDs = getMemberAccountIDsForWorkspace(employeeList, employeePersonalDetails, true, false);
         return Object.values(employeeList).flatMap((employee): WorkspaceMemberItem[] => {
             const email = employee.email?.trim();
             if (!email || employee.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
@@ -152,7 +163,7 @@ function ReportSubmitToContent({
                 },
             ];
         });
-    }, [policy?.employeeList, personalDetails, managerEmail, currentUserDetails.accountID, prepopulatedEmail]);
+    }, [policy?.employeeList, employeePersonalDetails, personalDetails, managerEmail, currentUserDetails.accountID, prepopulatedEmail]);
 
     const prepopulatedSubmitToRecipient = useMemo((): WorkspaceMemberItem | null => {
         const email = prepopulatedEmail?.trim();
@@ -168,18 +179,17 @@ function ReportSubmitToContent({
             return null;
         }
 
-        const accountID = getKnownAccountIDByLogin(email);
-        const details = getPersonalDetailsByID(accountID, personalDetails);
+        const details = getPersonalDetailsByID(prepopulatedAccountID, personalDetails);
 
         return {
-            accountID,
+            accountID: prepopulatedAccountID,
             text: details?.displayName ?? details?.login ?? email,
             alternateText: email,
             keyForList: `prepopulated:${email}`,
             email,
             isSelected: managerEmail.trim().toLowerCase() === emailLower,
         };
-    }, [prepopulatedEmail, workspaceMembers, extraSubmitToRecipients, managerEmail, personalDetails]);
+    }, [prepopulatedEmail, prepopulatedAccountID, workspaceMembers, extraSubmitToRecipients, managerEmail, personalDetails]);
 
     const combinedSubmitToMembers = useMemo(() => {
         const workspaceEmailSet = new Set(workspaceMembers.map((m) => m.email.toLowerCase()));
@@ -217,6 +227,7 @@ function ReportSubmitToContent({
             personalDetails,
             loginList,
             currentUserEmail: currentUserDetails.email ?? '',
+            currentUserAccountID: currentUserDetails.accountID,
             countryCode,
             selectedOptions: [],
             loginsToExclude: CONST.EXPENSIFY_EMAILS_OBJECT,
@@ -234,7 +245,19 @@ function ReportSubmitToContent({
             keyForList: `nonWorkspace:${login}`,
             isSelected: managerEmail.trim().toLowerCase() === login.trim().toLowerCase(),
         };
-    }, [countryCode, currentUserDetails.email, searchTerm, filteredWorkspaceMembers.length, loginList, managerEmail, personalDetails, dateFnsLocale, convertToDisplayString, rules]);
+    }, [
+        countryCode,
+        currentUserDetails.email,
+        searchTerm,
+        filteredWorkspaceMembers.length,
+        loginList,
+        managerEmail,
+        personalDetails,
+        dateFnsLocale,
+        convertToDisplayString,
+        rules,
+        currentUserDetails.accountID,
+    ]);
 
     const submitToSelectionData = useMemo(() => {
         if (!nonWorkspaceInviteRow) {
@@ -281,10 +304,10 @@ function ReportSubmitToContent({
 
         setHasError(false);
 
-        const resolvedManagerAccountID = selectedSubmitToMember?.accountID ?? getAccountIDForSubmitManagerEmail(trimmed, policy?.employeeList);
+        const resolvedManagerAccountID = selectedSubmitToMember?.accountID ?? getAccountIDForSubmitManagerEmail(trimmed, policy?.employeeList, employeePersonalDetails);
 
         if (onSubmitWithManagerEmail) {
-            onSubmitWithManagerEmail(trimmed, resolvedManagerAccountID);
+            onSubmitWithManagerEmail(trimmed, resolvedManagerAccountID, shouldResolveAcknowledgedViolations);
             if (currentSearchQueryJSON && !isOffline) {
                 search({
                     searchKey: currentSearchKey,
@@ -311,13 +334,14 @@ function ReportSubmitToContent({
             currentUserEmailParam: currentUserDetails.email ?? '',
             hasViolations,
             isASAPSubmitBetaEnabled,
-            betas,
             userBillingGracePeriodEnds,
             amountOwed,
+            shouldResolveAcknowledgedViolations,
             ownerBillingGracePeriodEnd,
             delegateEmail,
             delegateAccountID,
             submitterLogin,
+            personalDetailsByLogins: getPersonalDetailsByLogin(),
             managerEmail: trimmed,
             managerAccountID: resolvedManagerAccountID,
             isTrackIntentUser,
@@ -341,6 +365,7 @@ function ReportSubmitToContent({
     }, [
         hasSelectedSubmitToMember,
         selectedSubmitToMember?.accountID,
+        employeePersonalDetails,
         managerEmail,
         report,
         policy,
@@ -348,13 +373,13 @@ function ReportSubmitToContent({
         currentUserDetails.email,
         hasViolations,
         isASAPSubmitBetaEnabled,
-        betas,
         userBillingGracePeriodEnds,
         amountOwed,
         ownerBillingGracePeriodEnd,
         delegateEmail,
         delegateAccountID,
         submitterLogin,
+        getPersonalDetailsByLogin,
         currentSearchQueryJSON,
         isOffline,
         currentSearchKey,
@@ -368,6 +393,7 @@ function ReportSubmitToContent({
         isTrackIntentUser,
         getCurrencyDecimals,
         rules,
+        shouldResolveAcknowledgedViolations,
     ]);
 
     const onSelectMember = useCallback(

@@ -9,6 +9,7 @@ import type {ParticipantPickerProps} from '@components/ParticipantPicker/types';
 import ScreenWrapper from '@components/ScreenWrapper';
 
 import {startSplitBill} from '@libs/actions/IOU/Split';
+import getCurrentPosition from '@libs/getCurrentPosition';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import * as IOUUtils from '@libs/IOUUtils';
 import * as SubmitWithDismissFirst from '@libs/Navigation/helpers/submitWithDismissFirst';
@@ -32,6 +33,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import React from 'react';
 import Onyx from 'react-native-onyx';
 import OnyxUtils from 'react-native-onyx/dist/OnyxUtils';
+import {check, RESULTS} from 'react-native-permissions';
 
 import * as MoneyRequest from '../../../src/libs/actions/IOU/MoneyRequest';
 import * as Split from '../../../src/libs/actions/IOU/Split';
@@ -90,7 +92,9 @@ jest.mock('@libs/actions/IOU/MoneyRequest', () => {
     };
 });
 jest.mock('@libs/actions/IOU/Split', () => {
+    const actual = jest.requireActual<typeof Split>('@libs/actions/IOU/Split');
     return {
+        ...actual,
         createDistanceRequest: jest.fn(() => ({iouReport: undefined, chatReportID: undefined})),
         startSplitBill: jest.fn(),
     };
@@ -640,6 +644,26 @@ describe('IOURequestStepConfirmationPageTest', () => {
             expect(jest.mocked(TrackExpense.requestMoney).mock.calls.at(0)?.[0].transactionParams).toEqual(
                 expect.objectContaining({amount: 1234, merchant: 'Starbucks', created: '2025-01-15'}),
             );
+        });
+
+        describe('location at submit', () => {
+            it('creates the expense with the position the scan screen cached, without reading the device again', async () => {
+                // Given a scan on the confirm screen, location permission already granted, and a position the scan screen cached when it opened
+                jest.mocked(check).mockResolvedValue(RESULTS.GRANTED);
+                await act(async () => {
+                    await Onyx.merge(ONYXKEYS.USER_LOCATION, {latitude: 40.7128, longitude: -74.006});
+                });
+                await renderScanConfirmation();
+
+                // When the user submits the scan
+                fireEvent.press(screen.getByText(translateLocal('iou.createExpense')));
+                await waitForBatchedUpdatesWithAct();
+
+                // Then the expense is created carrying the cached position, with no location read holding the tap up
+                expect(TrackExpense.requestMoney).toHaveBeenCalledTimes(1);
+                expect(jest.mocked(TrackExpense.requestMoney).mock.calls.at(0)?.[0].gpsPoint).toEqual({lat: 40.7128, long: -74.006});
+                expect(getCurrentPosition).not.toHaveBeenCalled();
+            });
         });
     });
 
@@ -1315,7 +1339,6 @@ describe('IOURequestStepConfirmationPageTest', () => {
             const chatReportID = 'p2p-chat-1';
             const iouReportID = 'p2p-iou-report-1';
             const transactionID = 'tx-from-iou-report';
-            const getChatByParticipantsSpy = jest.spyOn(ReportUtils, 'getChatByParticipants').mockReturnValue({reportID: chatReportID});
             jest.mocked(getIsNarrowLayout).mockReturnValue(true);
 
             try {
@@ -1342,6 +1365,12 @@ describe('IOURequestStepConfirmationPageTest', () => {
                         created: '2025-01-15',
                         iouRequestType: CONST.IOU.REQUEST_TYPE.MANUAL,
                         participants: [{accountID: PARTICIPANT_ACCOUNT_ID, reportID: chatReportID, selected: true}],
+                    });
+                    // The page resolves the participant chat through the derived index, so seed the entry the
+                    // derived value would produce for this chat report.
+                    await Onyx.merge(ONYXKEYS.DERIVED.ONE_ON_ONE_CHAT_REPORT_IDS, {
+                        reportIDs: {[ReportUtils.getParticipantsChatKey([PARTICIPANT_ACCOUNT_ID, ACCOUNT_ID])]: chatReportID},
+                        accountID: ACCOUNT_ID,
                     });
                 });
 
@@ -1373,12 +1402,81 @@ describe('IOURequestStepConfirmationPageTest', () => {
                 await waitForBatchedUpdatesWithAct();
 
                 // Then the IOU report the flow started from is pre-inserted, not the participant chat the lookup resolved
-                expect(getChatByParticipantsSpy).toHaveBeenCalled();
                 await waitFor(() => expect(Navigation.preInsertFullscreenUnderRHP).toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute(iouReportID)), {timeout: 2000});
                 expect(Navigation.preInsertFullscreenUnderRHP).not.toHaveBeenCalledWith(expect.stringContaining(chatReportID));
             } finally {
-                getChatByParticipantsSpy.mockRestore();
                 jest.mocked(getIsNarrowLayout).mockReturnValue(false);
+            }
+        });
+
+        it('skips the P2P chat lookup entirely for a self-DM destination', async () => {
+            // Given a self-DM destination: the sole selected participant resolves to the current user's own self-DM and
+            // carries accountID 0, so a P2P lookup here could only ever scan the whole report collection for a chat with
+            // account 0 that can never exist. The sibling P2P tests above assert the lookup still runs for real recipients.
+            const selfDMReportID = 'self-dm-report-1';
+            const transactionID = 'tx-self-dm';
+            const getChatByParticipantsSpy = jest.spyOn(ReportUtils, 'getChatByParticipants');
+
+            try {
+                await act(async () => {
+                    await Onyx.merge(ONYXKEYS.SELF_DM_REPORT_ID, selfDMReportID);
+                    await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${selfDMReportID}`, {
+                        reportID: selfDMReportID,
+                        type: CONST.REPORT.TYPE.CHAT,
+                        chatType: CONST.REPORT.CHAT_TYPE.SELF_DM,
+                        participants: {[ACCOUNT_ID]: {}},
+                    });
+                    await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {
+                        transactionID,
+                        reportID: CONST.REPORT.UNREPORTED_REPORT_ID,
+                        amount: 1000,
+                        isAmountSet: true,
+                        currency: 'USD',
+                        merchant: 'Test',
+                        created: '2025-01-15',
+                        isFromGlobalCreate: true,
+                        iouRequestType: CONST.IOU.REQUEST_TYPE.MANUAL,
+                        participants: [{accountID: 0, isSelfDM: true, reportID: selfDMReportID, selected: true}],
+                    });
+                });
+
+                render(
+                    <OnyxListItemProvider>
+                        <HTMLProviderWrapper>
+                            <CurrentUserPersonalDetailsProvider>
+                                <LocaleContextProvider>
+                                    <IOURequestStepConfirmationWithWritableReportOrNotFound
+                                        route={{
+                                            key: 'Money_Request_Step_Confirmation',
+                                            name: 'Money_Request_Step_Confirmation',
+                                            params: {
+                                                action: CONST.IOU.ACTION.CREATE,
+                                                iouType: CONST.IOU.TYPE.SUBMIT,
+                                                transactionID,
+                                                reportID: selfDMReportID,
+                                            },
+                                        }}
+                                        navigation={mockNavigation}
+                                    />
+                                </LocaleContextProvider>
+                            </CurrentUserPersonalDetailsProvider>
+                        </HTMLProviderWrapper>
+                    </OnyxListItemProvider>,
+                );
+
+                // When the screen renders and resolves its destination
+                await waitForBatchedUpdatesWithAct();
+
+                // Then it never runs the P2P scan. The screen's reactive selector is the only caller that hands the
+                // report collection in as an argument, so a two-argument call is that selector and nothing else.
+                expect(getChatByParticipantsSpy.mock.calls.filter((call) => call.length > 1)).toHaveLength(0);
+
+                // And it still resolved the destination as a self-DM one, so confirming tracks the expense
+                fireEvent.press(await screen.findByText(getConfirmButtonRegex()));
+
+                await waitFor(() => expect(TrackExpense.trackExpense).toHaveBeenCalled());
+            } finally {
+                getChatByParticipantsSpy.mockRestore();
             }
         });
 
@@ -1874,21 +1972,26 @@ describe('IOURequestStepConfirmationPageTest', () => {
             await waitForBatchedUpdatesWithAct();
             expect(screen.getByLabelText(translateLocal('iou.amount'))).toHaveDisplayValue('43');
 
-            // And confirming raises the required errors, which hold the fields open from here on
+            // And confirming raises the required errors, which hold the first receipt's fields open
             fireEvent.press(screen.getByText(translateLocal('iou.createExpenses', 2)));
             await waitForBatchedUpdatesWithAct();
             expect(screen.getAllByText(translateLocal('common.error.fieldRequired')).length).toBeGreaterThan(0);
 
-            // And the user traverses to the second receipt and back, with the fields never collapsing in between
+            // And the user traverses to the second receipt
             const [, nextButton] = screen.getAllByRole(CONST.ROLE.BUTTON, {name: CONST.ROLE.BUTTON});
             fireEvent.press(nextButton);
             expect(await screen.findByText(`2 ${of} 2`)).toBeOnTheScreen();
-            expect(screen.getByLabelText(translateLocal('iou.amount'))).toHaveDisplayValue('');
+            await waitForBatchedUpdatesWithAct();
 
-            // Then coming back shows the amount that was entered, reseeded from the transaction rather than left blank
+            // Then the second receipt stays collapsed, because the required errors belong to the first receipt (#101146)
+            expect(screen.getByText(translateLocal('common.showMore'))).toBeOnTheScreen();
+            expect(screen.queryByLabelText(translateLocal('iou.amount'))).not.toBeOnTheScreen();
+
+            // And coming back re-opens the first receipt's fields and shows the amount that was entered, reseeded from the transaction rather than left blank
             const [prevButton] = screen.getAllByRole(CONST.ROLE.BUTTON, {name: CONST.ROLE.BUTTON});
             fireEvent.press(prevButton);
             expect(await screen.findByText(`1 ${of} 2`)).toBeOnTheScreen();
+            await waitForBatchedUpdatesWithAct();
             expect(screen.getByLabelText(translateLocal('iou.amount'))).toHaveDisplayValue('43.00');
         });
 

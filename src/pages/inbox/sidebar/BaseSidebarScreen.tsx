@@ -24,7 +24,7 @@ function BaseSidebarScreen() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const {shouldShowSkeleton} = useAppLoadSkeletonState();
+    const shouldShowSkeleton = useAppLoadSkeletonState();
 
     // Tag an in-flight inbox-tab navigation span when the app-loading skeleton is shown instead of the
     // report list, so durations that include the openApp wait can be queried separately in Sentry.

@@ -17,7 +17,7 @@ import RECEIPT_LOG_PREFIX from './receiptLogPrefix';
 type ReceiptSnapshotTrigger = 'signOut' | 'background' | 'foreground';
 
 /** How a receipt entered the app. */
-type ReceiptCaptureSource = 'camera' | 'gallery' | 'file' | 'replace' | 'share';
+type ReceiptCaptureSource = 'camera' | 'gallery' | 'file' | 'replace' | 'share' | 'odometer';
 
 /**
  * Maps the picker capture path to a source. On native the picker is the OS gallery. On web the same callback fires
@@ -69,6 +69,7 @@ const RECEIPT_BEARING_COMMANDS = new Set<string>([
     WRITE_COMMANDS.CATEGORIZE_TRACKED_EXPENSE,
     WRITE_COMMANDS.SHARE_TRACKED_EXPENSE,
     WRITE_COMMANDS.ADD_TRACKED_EXPENSE_TO_POLICY,
+    WRITE_COMMANDS.CREATE_DISTANCE_REQUEST,
 ]);
 
 /** When each receipt was enqueued, keyed by transaction id, so a snapshot can report how long it has waited. */
@@ -178,23 +179,27 @@ function logReceiptEnqueued({receiptTraceId, transactionID, command, persistedQu
 /**
  * Records the dropped milestone: the receipt file was gone when we built the upload payload, so the request goes out
  * without it. Logged at alert level on the [Receipt] spine so it reaches Sentry and joins the capture, submit, and
- * enqueue lines by receiptTraceId. source and fileName are for the raw device log only; they are not whitelisted, so
- * they never reach Sentry.
+ * enqueue lines by receiptTraceId. source, localUri and fileName are for the raw device log only; they are not
+ * whitelisted, so they never reach Sentry.
  */
 function logReceiptDropped({
     receiptTraceId,
     transactionID,
     command,
     source,
+    localUri,
     fileName,
     statError,
+    receiptsFolder,
 }: {
     receiptTraceId: string | undefined;
     transactionID: string | undefined;
     command: string;
     source: string | undefined;
+    localUri: string | undefined;
     fileName: string | undefined;
     statError: {message: string; code?: string} | undefined;
+    receiptsFolder: {exists: boolean; entryCount?: number};
 }) {
     Log.alert(`${RECEIPT_LOG_PREFIX} dropped`, {
         event: 'dropped',
@@ -202,9 +207,12 @@ function logReceiptDropped({
         transactionID,
         command,
         source,
+        localUri,
         fileName,
         statErrorCode: statError?.code,
         statError: statError?.message,
+        receiptsFolderExists: String(receiptsFolder.exists),
+        receiptsFolderEntryCount: receiptsFolder.entryCount,
     });
 }
 
@@ -243,6 +251,23 @@ function logReceiptAdoptFailed({error, captureSource}: {error: unknown; captureS
         event: 'adoptFailed',
         captureSource,
         error: error instanceof Error ? error.message : String(error),
+    });
+}
+
+/** The in-app camera failed to produce a photo, so the user tapped the shutter and got nothing back. */
+function logCameraCaptureFailed(error: unknown) {
+    Log.alert(`${RECEIPT_LOG_PREFIX} camera capture failed`, {
+        event: 'cameraCaptureFailed',
+        error: error instanceof Error ? error.message : String(error),
+    });
+}
+
+/** VisionCamera reported a runtime error, which usually means the preview never became usable. */
+function logCameraRuntimeError({code, message}: {code: string; message: string}) {
+    Log.alert(`${RECEIPT_LOG_PREFIX} camera runtime error`, {
+        event: 'cameraRuntimeError',
+        code,
+        error: message,
     });
 }
 
@@ -371,6 +396,8 @@ export {
     logReceiptGaveUp,
     logReceiptStatFailed,
     logReceiptAdoptFailed,
+    logCameraCaptureFailed,
+    logCameraRuntimeError,
     logReceiptQueueSnapshot,
     getPickerCaptureSource,
     RECEIPT_BEARING_COMMANDS,

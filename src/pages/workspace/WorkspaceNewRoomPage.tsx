@@ -12,6 +12,7 @@ import TextInput from '@components/TextInput';
 import ValuePicker from '@components/ValuePicker';
 
 import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
+import useContentHeaderHeight from '@hooks/useContentHeaderHeight';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -22,7 +23,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {clearRoomIDToHighlightOnRoomsPage, setRoomIDToHighlightOnRoomsPage} from '@libs/actions/Policy/Room';
 import {addErrorMessage} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import {getActivePolicies} from '@libs/PolicyUtils';
+import {getPoliciesForRoomCreation} from '@libs/PolicyUtils';
 import {buildOptimisticChatReport, getCommentLength, getParsedComment, isPolicyAdmin} from '@libs/ReportUtils';
 import {isExistingRoomName, isReservedRoomName, isValidRoomNameWithoutLimits} from '@libs/ValidationUtils';
 
@@ -97,6 +98,7 @@ function WorkspaceNewRoomPage({ref, policyID: lockedPolicyID}: WorkspaceNewRoomP
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to show offline indicator on small screen only
     const {top} = useSafeAreaInsets();
+    const {contentHeaderHeight} = useContentHeaderHeight();
     const [visibility, setVisibility] = useState<ValueOf<typeof CONST.REPORT.VISIBILITY>>(CONST.REPORT.VISIBILITY.RESTRICTED);
     const [writeCapability, setWriteCapability] = useState<ValueOf<typeof CONST.REPORT.WRITE_CAPABILITIES>>(CONST.REPORT.WRITE_CAPABILITIES.ALL);
     const visibilityDescription = useMemo(() => translate(`newRoomPage.${visibility}Description`), [translate, visibility]);
@@ -109,13 +111,12 @@ function WorkspaceNewRoomPage({ref, policyID: lockedPolicyID}: WorkspaceNewRoomP
 
     const workspaceOptions = useMemo(
         () =>
-            getActivePolicies(policies, session?.email)
-                ?.filter((policy) => policy.type !== CONST.POLICY.TYPE.PERSONAL)
+            getPoliciesForRoomCreation(policies, session?.email)
                 .map((policy) => ({
                     label: policy.name,
                     value: policy.id,
                 }))
-                .sort((a, b) => localeCompare(a.label, b.label)) ?? [],
+                .sort((a, b) => localeCompare(a.label, b.label)),
         [policies, session?.email, localeCompare],
     );
     const [policyID, setPolicyID] = useState<string>(() => {
@@ -284,7 +285,7 @@ function WorkspaceNewRoomPage({ref, policyID: lockedPolicyID}: WorkspaceNewRoomP
                       shouldShowOfflineIndicator: true,
                       shouldEnablePickerAvoiding: false,
                       shouldEnableKeyboardAvoidingView: workspaceOptions.length !== 0,
-                      keyboardVerticalOffset: variables.contentHeaderHeight + variables.tabSelectorButtonHeight + variables.tabSelectorButtonPadding + top,
+                      keyboardVerticalOffset: contentHeaderHeight + variables.tabSelectorButtonHeight + variables.tabSelectorButtonPadding + top,
                       // Disable the focus trap of this page to activate the parent focus trap in `NewChatSelectorPage`.
                       focusTrapSettings: {active: false},
                   })}

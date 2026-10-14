@@ -1,8 +1,11 @@
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import MenuItem from '@components/MenuItem';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 
 import useLocalize from '@hooks/useLocalize';
 
 import type {Option} from '@libs/searchOptions';
+
+import {callFunctionIfActionIsAllowed} from '@userActions/Session';
 
 import CONST from '@src/CONST';
 
@@ -39,14 +42,21 @@ function StatePicker({value, errorText, onInputChange = () => {}}: StatePickerPr
 
     return (
         <>
-            <MenuItemWithTopDescription
-                shouldShowRightIcon
-                title={value ? translate(`allStates.${value as State}.stateName`) : undefined}
-                description={translate('common.state')}
-                onPress={() => setIsPickerVisible(true)}
-                brickRoadIndicator={errorText ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-                errorText={errorText}
-            />
+            <MenuItem.Root onPress={callFunctionIfActionIsAllowed(() => setIsPickerVisible(true))}>
+                <MenuItemField.Row
+                    name={translate('common.state')}
+                    value={value ? translate(`allStates.${value as State}.stateName`) : undefined}
+                >
+                    {!!errorText && <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />}
+                    <MenuItem.Chevron />
+                </MenuItemField.Row>
+                {!!errorText && (
+                    <MenuItem.HelpText
+                        isError
+                        message={errorText}
+                    />
+                )}
+            </MenuItem.Root>
             <StateSelectorModal
                 isVisible={isPickerVisible}
                 currentState={value ?? ''}

@@ -3,14 +3,14 @@ import {usePersonalDetails} from '@components/OnyxListItemProvider';
 
 import useDefaultAvatars from '@hooks/useDefaultAvatars';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {getSmallSizeAvatar} from '@libs/UserAvatarUtils';
 
-import CONST from '@src/CONST';
+import type {AvatarSizeName} from '@styles/utils/types';
 
-import type {StyleProp} from 'react-native';
-import type {ViewStyle} from 'react-native/Libraries/StyleSheet/StyleSheetTypes';
+import CONST from '@src/CONST';
 
 import React from 'react';
 import {View} from 'react-native';
@@ -23,12 +23,13 @@ type AvatarWithDelegateAvatarProps = {
 
     isHovered?: boolean;
     isSelected?: boolean;
-    containerStyle?: StyleProp<ViewStyle>;
+    size?: AvatarSizeName;
 };
 
-function AvatarWithDelegateAvatar({delegateEmail, isHovered = false, isSelected = false, containerStyle}: AvatarWithDelegateAvatarProps) {
+function AvatarWithDelegateAvatar({delegateEmail, isHovered = false, isSelected = false, size = CONST.AVATAR_SIZE.SMALL}: AvatarWithDelegateAvatarProps) {
     const defaultAvatars = useDefaultAvatars();
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
 
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to use correct avatar size
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
@@ -37,8 +38,11 @@ function AvatarWithDelegateAvatar({delegateEmail, isHovered = false, isSelected 
     const delegatePersonalDetail = Object.values(personalDetails ?? {}).find((personalDetail) => personalDetail?.login?.toLowerCase() === delegateEmail);
 
     return (
-        <View style={[styles.sidebarStatusAvatarContainer, containerStyle]}>
-            <ProfileAvatarWithIndicator isSelected={isSelected} />
+        <View style={[styles.sidebarStatusAvatarContainer, StyleUtils.getWidthAndHeightStyle(StyleUtils.getAvatarSize(size))]}>
+            <ProfileAvatarWithIndicator
+                isSelected={isSelected}
+                size={size}
+            />
             <View style={[styles.sidebarStatusAvatar, isHovered && styles.sidebarStatusAvatarHovered]}>
                 <View style={styles.emojiStatusLHN}>
                     <UserAvatar

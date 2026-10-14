@@ -23,6 +23,8 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import KeyboardUtils from '@src/utils/keyboard';
 
+import type {ComponentRef} from 'react';
+
 import React, {useCallback, useEffect, useImperativeHandle, useLayoutEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 
@@ -65,7 +67,7 @@ function ThreeDotsMenu({
     const [isPopupMenuVisible, setPopupMenuVisible] = useState(false);
     const [restoreFocusType, setRestoreFocusType] = useState<BaseModalProps['restoreFocusType']>();
     const [position, setPosition] = useState<AnchorPosition>();
-    const buttonRef = useRef<View>(null);
+    const buttonRef = useRef<ComponentRef<typeof View>>(null);
     const {translate} = useLocalize();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['ThreeDots']);
     const isBehindModal = modal?.willAlertModalBecomeVisible && !modal?.isPopover && !shouldOverlay;

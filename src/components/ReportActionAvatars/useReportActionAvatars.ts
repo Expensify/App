@@ -3,6 +3,7 @@ import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import useDefaultAvatars from '@hooks/useDefaultAvatars';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import {useAllPersonalDetails} from '@hooks/usePersonalDetails';
 import usePolicy from '@hooks/usePolicy';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 
@@ -24,6 +25,7 @@ import {
     isInvoiceReport,
     isInvoiceRoom,
     isPolicyExpenseChat,
+    isSupportTicket,
     isTripRoom,
     shouldReportShowSubscript,
 } from '@libs/ReportUtils';
@@ -72,7 +74,7 @@ function useReportActionAvatars({
     const allPersonalDetails = usePersonalDetails();
     const {formatPhoneNumber, translate} = useLocalize();
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
-    const [personalDetailsFromSnapshot] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
+    const [personalDetailsFromSnapshot] = useAllPersonalDetails();
     // When the search hash changes, personalDetails from the snapshot will be undefined if it hasn't been fetched yet.
     // Therefore, we will fall back to allPersonalDetails while the data is being fetched.
     const personalDetails = personalDetailsFromSnapshot ?? allPersonalDetails;
@@ -95,7 +97,8 @@ function useReportActionAvatars({
         selector: (actions) => getReportActionByIDSelector(actions, derivedActionID),
     });
 
-    const action = passedAction ?? derivedAction;
+    // Support tickets use the assigned rep's avatar, not the parent message's author.
+    const action = passedAction ?? (isSupportTicket(report) ? undefined : derivedAction);
 
     const [actionChildReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${action?.childReportID}`);
 
@@ -227,7 +230,7 @@ function useReportActionAvatars({
     const accountID = reportPreviewSenderID || (actorAccountID ?? CONST.DEFAULT_NUMBER_ID);
     const {avatar, fallbackIcon, login} = personalDetails?.[delegatePersonalDetails ? delegatePersonalDetails.accountID : accountID] ?? {};
 
-    const defaultDisplayName = getDisplayNameForParticipant({accountID, personalDetailsData: personalDetails, formatPhoneNumber, translate}) ?? '';
+    const defaultDisplayName = getDisplayNameForParticipant({accountID, personalDetailsData: personalDetails, formatPhoneNumber, hiddenTranslation: translate('common.hidden')}) ?? '';
     const invoiceReport = [iouReport, chatReport, reportChatReport].find((susReport) => isInvoiceReport(susReport) || susReport?.chatType === CONST.REPORT.TYPE.INVOICE);
     const isNestedInInvoiceReport = !!invoiceReport && !isChatThread(report);
     const isInvoiceReportActor = isAInvoiceReport && (!actorAccountID || displayAllActors || isAReportPreviewAction);

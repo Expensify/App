@@ -15,6 +15,7 @@ import SCREENS from '@src/SCREENS';
 
 import React from 'react';
 
+import requireNavigationContainer from '../utils/requireNavigationContainer';
 import TestNavigationContainer from '../utils/TestNavigationContainer';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
@@ -26,15 +27,17 @@ jest.mock('@pages/inbox/sidebar/NavigationTabBarAvatar');
 const mockedGetIsNarrowLayout = jest.mocked(getIsNarrowLayout);
 const mockedUseResponsiveLayout = jest.mocked(useResponsiveLayout);
 
+afterEach(() => {
+    jest.restoreAllMocks();
+});
+
 /**
- * Looks the Workspace navigator up by name rather than by a hardcoded index, so adding a tab to TAB_SCREENS
- * doesn't silently shift the index and make these assertions read `undefined`.
+ * Looks the Tab and Workspace navigators up by name rather than by hardcoded indexes, so adding or reordering routes
+ * doesn't silently shift an index and make these assertions read `undefined`.
  */
 function getWorkspaceNavigatorState() {
-    return navigationRef.current
-        ?.getRootState()
-        .routes.at(0)
-        ?.state?.routes.findLast((route) => route.name === NAVIGATORS.WORKSPACE_NAVIGATOR)?.state;
+    const tabNavigatorState = navigationRef.current?.getRootState().routes.findLast((route) => route.name === NAVIGATORS.TAB_NAVIGATOR)?.state;
+    return tabNavigatorState?.routes.findLast((route) => route.name === NAVIGATORS.WORKSPACE_NAVIGATOR)?.state;
 }
 
 describe('Navigate', () => {
@@ -283,6 +286,7 @@ describe('Navigate', () => {
                                         {name: SCREENS.HOME},
                                         {name: NAVIGATORS.REPORTS_SPLIT_NAVIGATOR},
                                         {name: NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR},
+                                        {name: SCREENS.INSIGHTS},
                                         {name: NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR},
                                         {name: NAVIGATORS.WORKSPACE_NAVIGATOR},
                                     ],
@@ -698,6 +702,103 @@ describe('Navigate', () => {
             // Then side panel should close on narrow screen
             expect(closeSidePanelSpy).toHaveBeenCalledWith(true);
             expect(closeSidePanelSpy).toHaveBeenCalledTimes(1);
+        });
+
+        describe('to a route of another workspace', () => {
+            const policyA = 'policy-a';
+            const policyB = 'policy-b';
+
+            function renderWorkspaceSplit(policyID: string) {
+                render(
+                    <TestNavigationContainer
+                        initialState={{
+                            index: 0,
+                            routes: [
+                                {
+                                    name: NAVIGATORS.TAB_NAVIGATOR,
+                                    state: {
+                                        index: 4,
+                                        routes: [
+                                            {name: SCREENS.HOME},
+                                            {name: NAVIGATORS.REPORTS_SPLIT_NAVIGATOR},
+                                            {name: NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR},
+                                            {name: NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR},
+                                            {
+                                                name: NAVIGATORS.WORKSPACE_NAVIGATOR,
+                                                state: {
+                                                    index: 0,
+                                                    routes: [
+                                                        {
+                                                            name: NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR,
+                                                            state: {
+                                                                index: 1,
+                                                                routes: [
+                                                                    {name: SCREENS.WORKSPACE.INITIAL, params: {policyID}},
+                                                                    {name: SCREENS.WORKSPACE.MEMBERS, params: {policyID}},
+                                                                ],
+                                                            },
+                                                        },
+                                                    ],
+                                                },
+                                            },
+                                        ],
+                                    },
+                                },
+                            ],
+                        }}
+                    />,
+                );
+            }
+
+            function getWorkspaceState() {
+                return navigationRef.current
+                    ?.getRootState()
+                    .routes.at(0)
+                    ?.state?.routes.find((route) => route.name === NAVIGATORS.WORKSPACE_NAVIGATOR)?.state;
+            }
+
+            it('pushes a sibling split instead of reusing the focused one', () => {
+                // Given a workspace split navigator of policy A focused
+                renderWorkspaceSplit(policyA);
+                const splitBeforeNavigate = getWorkspaceState()?.routes.at(0);
+                const dispatchSpy = jest.spyOn(requireNavigationContainer(), 'dispatch');
+
+                // When navigating to a route of policy B
+                act(() => {
+                    Navigation.navigate(ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policyB));
+                });
+
+                // Then the action is pushed so that policy A keeps its own split, sidebar and history
+                expect(dispatchSpy).toHaveBeenCalledWith(expect.objectContaining({type: CONST.NAVIGATION.ACTION_TYPE.PUSH}));
+                const workspaceState = getWorkspaceState();
+                expect(workspaceState?.routes).toHaveLength(2);
+                expect(workspaceState?.routes.at(0)?.key).toBe(splitBeforeNavigate?.key);
+                expect(workspaceState?.routes.at(0)?.state?.routes.at(0)?.params).toMatchObject({policyID: policyA});
+                expect(workspaceState?.routes.at(-1)?.state?.routes.at(-1)).toMatchObject({
+                    name: SCREENS.WORKSPACE.MORE_FEATURES,
+                    params: {policyID: policyB},
+                });
+            });
+
+            it('keeps a forced replace a replace', () => {
+                // Given a workspace split navigator of policy A focused
+                renderWorkspaceSplit(policyA);
+                const dispatchSpy = jest.spyOn(requireNavigationContainer(), 'dispatch');
+
+                // When navigating to a route of policy B with forceReplace
+                act(() => {
+                    Navigation.navigate(ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policyB), {forceReplace: true});
+                });
+
+                // Then the focused split is replaced rather than a sibling being pushed
+                expect(dispatchSpy).not.toHaveBeenCalledWith(expect.objectContaining({type: CONST.NAVIGATION.ACTION_TYPE.PUSH}));
+                const workspaceState = getWorkspaceState();
+                expect(workspaceState?.routes).toHaveLength(1);
+                expect(workspaceState?.routes.at(0)?.state?.routes.at(-1)).toMatchObject({
+                    name: SCREENS.WORKSPACE.MORE_FEATURES,
+                    params: {policyID: policyB},
+                });
+            });
         });
     });
 

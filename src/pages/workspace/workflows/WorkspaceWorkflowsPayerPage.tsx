@@ -13,11 +13,12 @@ import type {ListItem} from '@components/SelectionList/types';
 
 import useConfirmModal from '@hooks/useConfirmModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useInitialSelection from '@hooks/useInitialSelection';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
-import usePersonalDetailByLogin from '@hooks/usePersonalDetailByLogin';
+import usePersonalDetailByLogin, {usePersonalDetailsByLogins} from '@hooks/usePersonalDetailByLogin';
 import usePressLoading from '@hooks/usePressLoading';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -26,7 +27,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {getSearchValueForPhoneOrEmail} from '@libs/OptionsListUtils';
 import {temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
-import {canMemberWrite, getMemberAccountIDsForWorkspace, goBackFromInvalidPolicy, isExpensifyTeam, isPendingDeletePolicy} from '@libs/PolicyUtils';
+import {canMemberWrite, getMemberAccountIDsForWorkspace, getReimbursementChoice, goBackFromInvalidPolicy, isExpensifyTeam, isPendingDeletePolicy} from '@libs/PolicyUtils';
 import tokenizedSearch from '@libs/tokenizedSearch';
 
 import type {SettingsNavigatorParamList} from '@navigation/types';
@@ -81,7 +82,6 @@ function WorkspaceWorkflowsPayerPage({route, policy, personalDetails, isLoadingR
     const bankAccountState = isBankAccountFullySetup ? policyAchAccountState : bankAccountConnectedToWorkspace?.accountData?.state;
     const isAccountInSetupState = isBankAccountPartiallySetup(bankAccountState);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
     const [guidedSetupAndTourStatus] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: guidedSetupAndTourStatusSelector});
@@ -91,19 +91,22 @@ function WorkspaceWorkflowsPayerPage({route, policy, personalDetails, isLoadingR
     const icons = useMemoizedLazyExpensifyIcons(['FallbackAvatar']);
     const [searchTerm, setSearchTerm] = useState('');
     const [sharedBankAccountData] = useOnyx(ONYXKEYS.SHARE_BANK_ACCOUNT);
-    const [selectedPayer, setSelectedPayer] = useState<string | undefined>(policy?.achAccount?.reimburser ?? policy?.owner);
+    const savedPayer = policy?.achAccount?.reimburser ?? policy?.owner;
+    const [selectedPayer, setSelectedPayer] = useState<string | undefined>(savedPayer);
+    const initialPayer = useInitialSelection(savedPayer, {resetOnFocus: true});
     const shouldShowSuccess = sharedBankAccountData?.shouldShowSuccess ?? false;
     const styles = useThemeStyles();
     const {showConfirmModal, closeModal} = useConfirmModal();
     const {isLoading, startWithLoading} = usePressLoading({isLoading: sharedBankAccountData?.isLoading ?? false});
     const [isAlertVisible, setIsAlertVisible] = useState<boolean>(false);
-    const policyMemberEmailsToAccountIDs = getMemberAccountIDsForWorkspace(policy?.employeeList);
+    const employeePersonalDetails = usePersonalDetailsByLogins(Object.keys(policy?.employeeList ?? {}));
+    const policyMemberEmailsToAccountIDs = getMemberAccountIDsForWorkspace(policy?.employeeList, employeePersonalDetails);
     const selectedPayerDisplayName = usePersonalDetailByLogin(selectedPayer, displayNameSelector);
     const ownerDisplayName = usePersonalDetailByLogin(policy?.owner, displayNameSelector);
     const accountID = selectedPayer ? policyMemberEmailsToAccountIDs?.[selectedPayer] : '';
     const authorizedPayerEmail = personalDetails?.[accountID]?.login ?? '';
-    const isManualReimbursement = policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL;
-    const isAutoReimbursement = policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES;
+    const isManualReimbursement = getReimbursementChoice(policy) === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL;
+    const isAutoReimbursement = getReimbursementChoice(policy) === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES;
 
     const isDeletedPolicyEmployee = (policyEmployee: PolicyEmployee) =>
         !isOffline && policyEmployee.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && isEmptyObject(policyEmployee.errors);
@@ -125,6 +128,8 @@ function WorkspaceWorkflowsPayerPage({route, policy, personalDetails, isLoadingR
             }
             const roleBadge = <Badge text={isOwner ? translate('common.owner') : translate('workspace.common.roleName', policyEmployee.role)} />;
             const isAuthorizedPayer = selectedPayer === details?.login;
+            // Section placement is frozen to the initially selected payer so switching payers only moves the checkmark instead of reordering the list.
+            const isInitialPayer = initialPayer === details?.login;
             const formattedMember = {
                 keyForList: String(adminAccountID),
                 accountID: adminAccountID,
@@ -144,7 +149,7 @@ function WorkspaceWorkflowsPayerPage({route, policy, personalDetails, isLoadingR
                 errors: policyEmployee.errors,
                 pendingAction: (policyEmployee.pendingAction ?? isAuthorizedPayer) ? policy?.pendingFields?.reimburser : null,
             };
-            if (isAuthorizedPayer) {
+            if (isInitialPayer) {
                 authorizedPayerDetails.push(formattedMember);
             } else {
                 policyAdminDetails.push(formattedMember);
@@ -159,7 +164,8 @@ function WorkspaceWorkflowsPayerPage({route, policy, personalDetails, isLoadingR
         const sectionsArray: MembersSection[] = [];
         if (searchTerm !== '') {
             const searchValue = getSearchValueForPhoneOrEmail(searchTerm, countryCode);
-            const filteredOptions = tokenizedSearch([...formattedPolicyAdmins, ...formattedAuthorizedPayer], searchValue, (option) => [option.text ?? '', option.login ?? '']);
+            // Keep the frozen initial payer first so it stays pinned to the top of the search results (tokenizedSearch preserves input order).
+            const filteredOptions = tokenizedSearch([...formattedAuthorizedPayer, ...formattedPolicyAdmins], searchValue, (option) => [option.text ?? '', option.login ?? '']);
             return [
                 {
                     title: undefined,
@@ -255,7 +261,6 @@ function WorkspaceWorkflowsPayerPage({route, policy, personalDetails, isLoadingR
                                 introSelected,
                                 guidedSetupAndTourStatus?.isSelfTourViewed,
                                 guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow,
-                                betas,
                                 personalDetails,
                                 conciergeChat,
                             );
@@ -337,7 +342,7 @@ function WorkspaceWorkflowsPayerPage({route, policy, personalDetails, isLoadingR
     const shouldShowBlockingPage =
         (isEmptyObject(policy) && !isLoadingReportData) ||
         isPendingDeletePolicy(policy) ||
-        policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO ||
+        getReimbursementChoice(policy) === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO ||
         isAccountInSetupState;
 
     const totalNumberOfPayerCandidates = Object.entries(policy?.employeeList ?? {}).filter(([email, policyEmployee]) => {
@@ -387,6 +392,7 @@ function WorkspaceWorkflowsPayerPage({route, policy, personalDetails, isLoadingR
                             }}
                             initiallyFocusedItemKey={formattedAuthorizedPayer.at(0)?.keyForList}
                             shouldSingleExecuteRowSelect
+                            shouldUpdateFocusedIndex
                             addBottomSafeAreaPadding
                             footerContent={
                                 <FormAlertWithSubmitButton

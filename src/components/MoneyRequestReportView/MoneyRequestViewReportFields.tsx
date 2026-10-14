@@ -78,7 +78,6 @@ function ReportFieldView(reportField: EnrichedPolicyReportField, report: OnyxEnt
                 shouldGreyOutWhenDisabled={false}
                 numberOfLinesTitle={0}
                 interactive={!reportField.isFieldDisabled}
-                onSecondaryInteraction={() => {}}
                 titleWithTooltips={[]}
                 brickRoadIndicator={reportField.violation ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                 errorText={reportField.violationTranslation}

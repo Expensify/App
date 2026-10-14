@@ -109,7 +109,7 @@ jest.mock('@hooks/useOnyx', () => ({
 
 jest.mock('@hooks/usePermissions', () => ({
     __esModule: true,
-    default: () => ({isBetaEnabled: mockIsBetaEnabled}),
+    default: () => ({isBetaEnabled: mockIsBetaEnabled, isBetaEnabledOrUnknown: mockIsBetaEnabled}),
 }));
 
 jest.mock('@hooks/usePreferredPolicy', () => ({
@@ -423,7 +423,7 @@ describe('useCreateNavigationSuggestions', () => {
         const onCreateReport = mockUseCreateReport.mock.calls.at(0)?.at(0)?.onCreateReport;
         act(() => onCreateReport?.(true));
 
-        expect(createNewReport).toHaveBeenCalledWith(expect.anything(), false, true, submitPolicy, [], false, mockGetCurrencyDecimals, undefined, false, true);
+        expect(createNewReport).toHaveBeenCalledWith(expect.anything(), false, true, submitPolicy, false, mockGetCurrencyDecimals, undefined, false, true);
         expect(clearLastSearchParams).not.toHaveBeenCalled();
         expect(Navigation.navigate).toHaveBeenNthCalledWith(1, 'reports', {forceReplace: false});
         expect(Navigation.navigate).toHaveBeenNthCalledWith(2, 'report/created-report', {forceReplace: false});

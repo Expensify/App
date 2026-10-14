@@ -35,6 +35,7 @@ jest.mock('@react-navigation/native', () => {
     };
 });
 
+jest.mock('@hooks/useBeforeRemove', () => jest.fn());
 jest.mock('@hooks/useCardFeedErrors', () => () => ({shouldShowRbrForWorkspaceAccountID: {}}));
 jest.mock('@hooks/useCurrencyList', () => ({useCurrencyListActions: () => ({convertToDisplayString: jest.fn()})}));
 jest.mock('@hooks/useGetReceiptPartnersIntegrationData', () => () => ({shouldShowEnterCredentialsError: false}));
@@ -45,7 +46,7 @@ jest.mock('@hooks/useLazyAsset', () => ({
 jest.mock('@hooks/useLocalize', () => () => ({translate: (key: string) => key}));
 jest.mock('@hooks/useNetwork', () => jest.fn());
 jest.mock('@hooks/useOnyx', () => () => [undefined]);
-jest.mock('@hooks/usePermissions', () => () => ({isBetaEnabled: () => false}));
+jest.mock('@hooks/usePermissions', () => () => ({isBetaEnabled: () => false, isBetaEnabledOrUnknown: () => false}));
 jest.mock('@hooks/usePolicyConnectionsPrefetch', () => jest.fn());
 jest.mock('@hooks/useResponsiveLayout', () => () => ({shouldUseNarrowLayout: true}));
 jest.mock('@hooks/useSingleExecution', () => () => ({singleExecution: (callback: () => void) => callback, isExecuting: false}));

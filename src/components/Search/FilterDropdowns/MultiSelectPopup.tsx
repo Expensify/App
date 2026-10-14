@@ -65,5 +65,4 @@ function MultiSelectPopup<T extends string>({showLabel, label, loading, value, i
     );
 }
 
-export type {MultiSelectItem};
 export default MultiSelectPopup;

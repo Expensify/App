@@ -15,6 +15,7 @@ import type {OnyxCollection} from 'react-native-onyx';
 
 import {useCallback, useMemo} from 'react';
 
+import useDelegateAccountID from './useDelegateAccountID';
 import useOnboardingWorkspaceCreationState from './useOnboardingWorkspaceCreationState';
 import useOnyx from './useOnyx';
 
@@ -30,7 +31,6 @@ function useAutoCreateSubmitWorkspace() {
         onboardingAdminsChatReportID,
         introSelected,
         isSelfTourViewed,
-        betas,
         currentUserEmail,
         currentUserAccountID,
         localCurrencyCode,
@@ -44,6 +44,7 @@ function useAutoCreateSubmitWorkspace() {
         lastWorkspaceNumber,
         shouldUseNarrowLayout,
     } = useOnboardingWorkspaceCreationState();
+    const delegateAccountID = useDelegateAccountID();
 
     const groupPolicySelector = useMemo(
         () => (policies: OnyxCollection<Policy>) => Object.values(policies ?? {}).some((policy) => isGroupPolicy(policy) && canEditWorkspaceSettings(policy)),
@@ -71,7 +72,7 @@ function useAutoCreateSubmitWorkspace() {
                 ? createWorkspace({
                       policyOwner: undefined,
                       makeMeAdmin: true,
-                      policyName: generateDefaultWorkspaceName(currentUserEmail, lastWorkspaceNumber, translate, displayName),
+                      policyName: generateDefaultWorkspaceName(currentUserEmail, displayName, lastWorkspaceNumber, translate),
                       policyID: generatePolicyID(),
                       engagementChoice: CONST.ONBOARDING_CHOICES.EMPLOYER,
                       currency: localCurrencyCode,
@@ -84,9 +85,9 @@ function useAutoCreateSubmitWorkspace() {
                       currentUserEmailParam: currentUserEmail,
                       shouldAddGuideWelcomeMessage: false,
                       type: CONST.POLICY.TYPE.SUBMIT,
-                      betas,
                       isSelfTourViewed,
                       hasActiveAdminPolicies,
+                      delegateAccountID,
                       hasOwnedPaidPolicy,
                   })
                 : {adminsChatReportID: onboardingAdminsChatReportID, policyID: onboardingPolicyID};
@@ -107,6 +108,8 @@ function useAutoCreateSubmitWorkspace() {
                         // #admins room, so a Concierge DM checklist on top of that is a competing second onboarding
                         // experience. Without a new workspace there is no #admins welcome, so the checklist stays.
                         shouldSkipConciergeOnboarding: shouldCreateWorkspace,
+                        currentUserAccountID,
+                        delegateAccountID,
                     });
                 } catch (error) {
                     // Swallow onboarding completion failures so a network error doesn't block workspace
@@ -146,11 +149,11 @@ function useAutoCreateSubmitWorkspace() {
             activePolicy,
             isSelfTourViewed,
             onboardingMessages,
-            betas,
             hasActiveAdminPolicies,
             hasOwnedPaidPolicy,
             shouldUseNarrowLayout,
             conciergeChat,
+            delegateAccountID,
         ],
     );
 

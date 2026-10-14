@@ -46,6 +46,9 @@ type MoneyReportHeaderKYCDropdownProps = Omit<KYCWallProps, 'children' | 'enable
 
     /** Callback fired when the dropdown menu hides */
     onOptionsMenuHide?: () => void;
+
+    /** Disables the "More" dropdown, e.g. while expenses are selected */
+    isDisabled?: boolean;
 };
 
 function MoneyReportHeaderKYCDropdown({
@@ -60,6 +63,7 @@ function MoneyReportHeaderKYCDropdown({
     shouldShowSuccessStyle,
     dropdownMenuRef,
     onOptionsMenuHide,
+    isDisabled,
     ref,
     headerText = '',
     shouldPutHeaderTextAfterBackButton = false,
@@ -108,6 +112,7 @@ function MoneyReportHeaderKYCDropdown({
                     }}
                     buttonRef={buttonRef}
                     shouldAlwaysShowDropdownMenu
+                    isDisabled={isDisabled}
                     shouldPopoverUseScrollView={shouldPopoverUseScrollView(applicableSecondaryActions)}
                     customText={customText ?? translate('common.more')}
                     options={applicableSecondaryActions}

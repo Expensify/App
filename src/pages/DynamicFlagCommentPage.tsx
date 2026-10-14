@@ -6,9 +6,11 @@ import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import {useWideRHPState} from '@components/WideRHPContextProvider';
 
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -52,6 +54,8 @@ type SeverityItemList = SeverityItem[];
 function DynamicFlagCommentPage({parentReportAction, report, parentReport, reportAction}: DynamicFlagCommentPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const {isOffline} = useNetwork();
+    const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.FLAG_COMMENT.path);
     const isReportArchived = useReportIsArchived(report?.reportID);
     let reportID: string | undefined = report?.reportID;
@@ -61,7 +65,7 @@ function DynamicFlagCommentPage({parentReportAction, report, parentReport, repor
         reportID = parentReport?.reportID;
     }
     const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`);
-    const originalReportID = getOriginalReportID(reportID, reportAction, reportActions);
+    const originalReportID = getOriginalReportID(reportID, reportAction, reportActions, isOffline);
     const [originalReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${originalReportID}`);
     const isOriginalReportArchived = useReportIsArchived(originalReportID);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
@@ -119,7 +123,7 @@ function DynamicFlagCommentPage({parentReportAction, report, parentReport, repor
     ];
 
     const flagComment = (severity: Severity) => {
-        if (reportAction && canFlagReportAction(reportAction, reportID)) {
+        if (reportAction && canFlagReportAction(reportAction, reportID, currentUserAccountID)) {
             flagCommentUtil(reportAction, severity, originalReport, isOriginalReportArchived);
         }
 
@@ -149,7 +153,7 @@ function DynamicFlagCommentPage({parentReportAction, report, parentReport, repor
             testID="DynamicFlagCommentPage"
         >
             {({safeAreaPaddingBottomStyle}) => (
-                <FullPageNotFoundView shouldShow={!shouldShowFlagComment(reportAction, report, conciergeReportID, isReportArchived)}>
+                <FullPageNotFoundView shouldShow={!shouldShowFlagComment(reportAction, report, conciergeReportID, isReportArchived, currentUserAccountID)}>
                     <HeaderWithBackButton
                         title={translate('reportActionContextMenu.flagAsOffensive')}
                         onBackButtonPress={() => Navigation.goBack(backPath)}
