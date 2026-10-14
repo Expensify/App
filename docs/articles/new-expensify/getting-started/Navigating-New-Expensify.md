@@ -28,7 +28,7 @@ You can find additional training resources in [How to Access Expensify Training]
 
 ## How to use the navigation tabs
 
-The **navigation tabs** are your main way to move through the app. They appear on the left on web and on the bottom on mobile.
+The navigation tabs are your main way to move through the app. They appear on the left on web and on the bottom on mobile.
 
 The navigation tabs include:
 
@@ -38,7 +38,7 @@ The navigation tabs include:
 - **Insights**
 - **Workspaces**
 
-You can also select **Account** to access your account settings.
+To access your account settings, select **Account** in the navigation tabs on web, or select your profile icon on mobile.
 
 ---
 
