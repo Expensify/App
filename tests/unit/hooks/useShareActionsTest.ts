@@ -119,6 +119,17 @@ describe('useShareActions', () => {
         expect(Navigation.navigate).toHaveBeenCalledWith(DYNAMIC_ROUTES.REPORT_DETAILS_SHARE_REPORT.path);
     });
 
+    it('opens share code with only the QR code', () => {
+        // Given the share options of a report
+        const options = getShareOptions();
+
+        // When share code is selected
+        options.at(1)?.onSelected?.();
+
+        // Then the share code page opens without the copy and referral rows the share menu already has
+        expect(Navigation.navigate).toHaveBeenCalledWith('share-code?shouldShowQRCodeOnly=true');
+    });
+
     it('copies the report URL', () => {
         // Given the share options of a report
         const options = getShareOptions();
