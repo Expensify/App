@@ -27,7 +27,7 @@ type ChartGroupByConfig = {
     getShortLabel?: (item: GroupedItem) => string | undefined;
 
     /** Returns the line chart axis label, or undefined to fall back to `getShortLabel` */
-    getCompactLabel?: (item: GroupedItem) => string | undefined;
+    getLineChartLabel?: (item: GroupedItem) => string | undefined;
 
     /** Intervals, in groups, the line chart may label its x-axis at; the smallest one that fits is used */
     axisLabelSteps?: readonly number[];
@@ -79,7 +79,7 @@ const CHART_GROUP_BY_CONFIG: Record<SearchGroupBy, ChartGroupByConfig> = {
         titleIconName: 'Calendar',
         getLabel: (item: GroupedItem) => (item.groupedBy === CONST.SEARCH.GROUP_BY.DAY ? item.formattedDay : ''),
         getShortLabel: (item: GroupedItem) => (item.groupedBy === CONST.SEARCH.GROUP_BY.DAY ? item.shortFormattedDay : undefined),
-        getCompactLabel: (item: GroupedItem) => (item.groupedBy === CONST.SEARCH.GROUP_BY.DAY ? item.compactFormattedDay : undefined),
+        getLineChartLabel: (item: GroupedItem) => (item.groupedBy === CONST.SEARCH.GROUP_BY.DAY ? item.lineChartFormattedDay : undefined),
         axisLabelSteps: [1, 2, 7, 14],
         getFilterQuery: (item: GroupedItem) => (item.groupedBy === CONST.SEARCH.GROUP_BY.DAY ? `date>=${item.day} date<=${item.day}` : ''),
         getDateRange: (item: GroupedItem) => (item.groupedBy === CONST.SEARCH.GROUP_BY.DAY ? {start: item.day, end: item.day} : undefined),
@@ -100,7 +100,7 @@ const CHART_GROUP_BY_CONFIG: Record<SearchGroupBy, ChartGroupByConfig> = {
         titleIconName: 'Calendar',
         getLabel: (item: GroupedItem) => (item as TransactionWeekGroupListItemType).formattedWeek ?? '',
         getShortLabel: (item: GroupedItem) => (item.groupedBy === CONST.SEARCH.GROUP_BY.WEEK ? item.shortFormattedWeek : undefined),
-        getCompactLabel: (item: GroupedItem) => (item.groupedBy === CONST.SEARCH.GROUP_BY.WEEK ? item.compactFormattedWeek : undefined),
+        getLineChartLabel: (item: GroupedItem) => (item.groupedBy === CONST.SEARCH.GROUP_BY.WEEK ? item.lineChartFormattedWeek : undefined),
         axisLabelSteps: [1, 2, 4],
         getFilterQuery: (item: GroupedItem) => {
             const weekItem = item as TransactionWeekGroupListItemType;
