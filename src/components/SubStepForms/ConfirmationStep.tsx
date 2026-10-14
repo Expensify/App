@@ -19,14 +19,47 @@ import CONST from '@src/CONST';
 import {View} from 'react-native';
 
 type SummaryItem = {
+    /** Unique key of the row */
     id: string;
+
+    /** The label shown above the answer */
     description: string;
+
+    /** The answer shown in the row */
     title: string;
+
+    /** Whether the chevron is shown on the right of the row */
     shouldShowRightIcon: boolean;
+
+    /** Called when the row is pressed */
     onPress: () => void;
+
+    /** False for a row that opens nothing, so it is not announced as a button. Defaults to true. */
+    interactive?: boolean;
+
+    /** The brick road indicator shown on the row */
     brickRoadIndicator?: BrickRoad;
+
+    /** The error shown under the row */
     errorText?: string;
+
+    /** The test ID of the row */
     testID?: string;
+};
+
+/** One row of a group. A single kind for now, so groups can grow other row kinds without touching their callers. */
+type SummaryGroupRow = SummaryItem;
+
+/** Answers under one heading. Used instead of `summaryItems` when the confirmation is split by section. */
+type SummaryGroup = {
+    /** Unique key of the group */
+    id: string;
+
+    /** The heading, left out when empty */
+    name: string;
+
+    /** The rows listed under the heading */
+    rows: SummaryGroupRow[];
 };
 
 type ConfirmationStepProps = SubPageProps &
@@ -36,7 +69,10 @@ type ConfirmationStepProps = SubPageProps &
         /** Text shown below the page title */
         pageSubtitle?: string;
 
-        summaryItems: SummaryItem[];
+        summaryItems?: SummaryItem[];
+
+        /** Sections with their own heading, each holding field rows */
+        groups?: SummaryGroup[];
 
         /** Whether show additional section with Onfido terms etc. */
         showOnfidoLinks: boolean;
@@ -55,7 +91,8 @@ type ConfirmationStepProps = SubPageProps &
 function ConfirmationStep({
     pageTitle,
     pageSubtitle,
-    summaryItems,
+    summaryItems = [],
+    groups = [],
     showOnfidoLinks,
     onfidoLinksTitle,
     isLoading,
@@ -69,6 +106,21 @@ function ConfirmationStep({
 
     const {paddingBottom: safeAreaInsetPaddingBottom} = useSafeAreaPaddings();
 
+    const renderRow = ({id, description, title, shouldShowRightIcon, onPress, interactive, brickRoadIndicator, errorText, testID}: SummaryItem) => (
+        <MenuItemWithTopDescription
+            key={id}
+            pressableTestID={testID ?? id}
+            description={description}
+            title={title}
+            shouldShowRightIcon={shouldShowRightIcon}
+            onPress={onPress}
+            interactive={interactive}
+            brickRoadIndicator={brickRoadIndicator}
+            errorText={errorText}
+            forwardedFSClass={forwardedFSClass}
+        />
+    );
+
     return (
         <ScrollView
             style={styles.flex1}
@@ -76,18 +128,21 @@ function ConfirmationStep({
         >
             <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mb3]}>{pageTitle}</Text>
             {!!pageSubtitle && <Text style={[styles.textSupporting, styles.ph5, styles.mb5]}>{pageSubtitle}</Text>}
-            {summaryItems.map(({id, description, title, shouldShowRightIcon, onPress, brickRoadIndicator, errorText, testID}) => (
-                <MenuItemWithTopDescription
-                    key={id}
-                    pressableTestID={testID ?? id}
-                    description={description}
-                    title={title}
-                    shouldShowRightIcon={shouldShowRightIcon}
-                    onPress={onPress}
-                    brickRoadIndicator={brickRoadIndicator}
-                    errorText={errorText}
-                    forwardedFSClass={forwardedFSClass}
-                />
+            {summaryItems.map(renderRow)}
+
+            {groups.map((group, index) => (
+                <View key={group.id}>
+                    {index > 0 && <View style={[styles.mh5, styles.mt3, styles.borderBottom]} />}
+                    {!!group.name && (
+                        <Text
+                            style={[styles.textNormalThemeText, styles.textLineHeightNormal, styles.textStrong, styles.ph5, styles.mt4, styles.mb1]}
+                            accessibilityRole={CONST.ROLE.HEADER}
+                        >
+                            {group.name}
+                        </Text>
+                    )}
+                    {group.rows.map(renderRow)}
+                </View>
             ))}
 
             {showOnfidoLinks && (
@@ -119,3 +174,4 @@ function ConfirmationStep({
 }
 
 export default ConfirmationStep;
+export type {SummaryGroup};
