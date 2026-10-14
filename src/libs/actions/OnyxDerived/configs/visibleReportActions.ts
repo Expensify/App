@@ -5,7 +5,7 @@ import createOnyxDerivedValueConfig from '@userActions/OnyxDerived/createOnyxDer
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Report, ReportAction, ReportActions, ReportNameValuePairs} from '@src/types/onyx';
+import type {ReportAction, ReportActions} from '@src/types/onyx';
 import type {VisibleReportActionsDerivedValue} from '@src/types/onyx/DerivedValues';
 
 /**
@@ -24,11 +24,10 @@ function shouldSkipCachingAction(action: ReportAction): boolean {
 function computeReportVisibility(
     reportActions: ReportActions,
     currentUserAccountID: number | undefined,
-    report: Report | undefined,
-    reportNameValuePairs: ReportNameValuePairs | undefined,
+    isSupportTicketReport: boolean,
+    isReplacedSupportTicket: boolean,
 ): Record<string, boolean> {
     const reportVisibility: Record<string, boolean> = {};
-    const isSupportTicketReport = isSupportTicket(report);
 
     for (const [actionID, action] of Object.entries(reportActions)) {
         if (!action) {
@@ -43,7 +42,7 @@ function computeReportVisibility(
             continue;
         }
         // A replacement ticket has its own active survey, so the original ticket's survey is stale.
-        if (isSupportTicketReport && reportNameValuePairs?.reopenedAsReportID && isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.SUPPORT_SURVEY)) {
+        if (isReplacedSupportTicket && isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.SUPPORT_SURVEY)) {
             reportVisibility[action.reportActionID] = false;
             continue;
         }
@@ -80,7 +79,9 @@ export default createOnyxDerivedValueConfig({
         const reportIDsToProcess = isIncremental
             ? new Set([
                   ...Object.keys(reportActionsUpdates ?? {}).map((key) => key.replace(ONYXKEYS.COLLECTION.REPORT_ACTIONS, '')),
-                  ...Object.keys(reportNameValuePairsUpdates ?? {}).map((key) => key.replace(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, '')),
+                  ...Object.keys(reportNameValuePairsUpdates ?? {})
+                      .map((key) => key.replace(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, ''))
+                      .filter((reportID) => isSupportTicket(allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`])),
               ])
             : new Set(Object.keys(allReportActions).map((key) => key.replace(ONYXKEYS.COLLECTION.REPORT_ACTIONS, '')));
 
@@ -94,12 +95,10 @@ export default createOnyxDerivedValueConfig({
                 continue;
             }
 
-            result[reportID] = computeReportVisibility(
-                reportActions,
-                currentUserAccountID,
-                allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`],
-                allReportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`],
-            );
+            const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
+            const isSupportTicketReport = isSupportTicket(report);
+            const isReplacedSupportTicket = isSupportTicketReport && !!allReportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`]?.reopenedAsReportID;
+            result[reportID] = computeReportVisibility(reportActions, currentUserAccountID, isSupportTicketReport, isReplacedSupportTicket);
         }
 
         return result;

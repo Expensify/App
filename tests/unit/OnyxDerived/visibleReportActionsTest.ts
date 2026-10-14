@@ -42,6 +42,8 @@ describe('visibleReportActions', () => {
         const reportNameValuePairsKey = `${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`;
         const unrelatedReportID = 'unrelatedReportID';
         const unrelatedActionID = 'unrelatedActionID';
+        const unrelatedReportKey = `${ONYXKEYS.COLLECTION.REPORT}${unrelatedReportID}`;
+        const unrelatedReportNameValuePairsKey = `${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${unrelatedReportID}`;
         const allReportActions: OnyxCollection<ReportActions> = {
             [reportActionsKey]: {
                 [surveyActionID]: {
@@ -54,7 +56,7 @@ describe('visibleReportActions', () => {
         const args: Parameters<typeof visibleReportActionsConfig.compute>[0] = [
             allReportActions,
             undefined,
-            {[reportKey]: {reportID, type: CONST.REPORT.TYPE.SUPPORT_TICKET}},
+            {[reportKey]: {reportID, type: CONST.REPORT.TYPE.SUPPORT_TICKET}, [unrelatedReportKey]: {reportID: unrelatedReportID, type: CONST.REPORT.TYPE.CHAT}},
             {[reportNameValuePairsKey]: {reopenedAsReportID: 'replacementReportID'}},
         ];
         const currentValue: VisibleReportActionsDerivedValue = {
@@ -62,15 +64,20 @@ describe('visibleReportActions', () => {
             [unrelatedReportID]: {[unrelatedActionID]: true},
         };
 
-        // When the replacement report NVP triggers a recompute
+        // When the replacement and an unrelated report NVP trigger a recompute
         const result = visibleReportActionsConfig.compute(args, {
             currentValue,
-            sourceValues: {[ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS]: {[reportNameValuePairsKey]: {reopenedAsReportID: 'replacementReportID'}}},
+            sourceValues: {
+                [ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS]: {
+                    [reportNameValuePairsKey]: {reopenedAsReportID: 'replacementReportID'},
+                    [unrelatedReportNameValuePairsKey]: {agentZeroProcessingRequestIndicator: 'processing'},
+                },
+            },
             triggeredKeys: new Set<OnyxKey>([ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS]),
         });
 
-        // Then the shared visibility state hides the stale survey
+        // Then the shared visibility state hides the stale survey without recomputing unrelated reports
         expect(result[reportID]?.[surveyActionID]).toBe(false);
-        expect(result[unrelatedReportID]?.[unrelatedActionID]).toBe(true);
+        expect(result[unrelatedReportID]).toBe(currentValue[unrelatedReportID]);
     });
 });
