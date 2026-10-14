@@ -192,9 +192,8 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
 
     const memberBankAccount = isPolicyAdmin(policy) && arePaymentsEnabled(policy) ? memberBankAccounts?.[accountID] : undefined;
     const memberBankIcon = getBankIcon({bankName: memberBankAccount?.bankName, styles});
-    const memberBankName = memberBankAccount?.bankName
-        ? (CONST.BANK_NAMES_USER_FRIENDLY[memberBankAccount.bankName.toLowerCase() as keyof typeof CONST.BANK_NAMES_USER_FRIENDLY] ?? memberBankAccount.bankName)
-        : translate('common.bankAccount');
+    const memberBankNameKey = Object.values(CONST.BANK_NAMES).find((bankName) => bankName === memberBankAccount?.bankName?.toLowerCase());
+    const memberBankName = memberBankNameKey ? CONST.BANK_NAMES_USER_FRIENDLY[memberBankNameKey] : (memberBankAccount?.bankName ?? translate('common.bankAccount'));
 
     const isApprover = isPolicyApprover(policy, memberLogin) || isApproverOfOutstandingPolicyReports(accountID, outstandingReportsForPolicy, privateIsArchivedMap);
     const isTechnicalContact = policy?.technicalContact === details?.login;
