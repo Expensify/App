@@ -128,14 +128,15 @@ function VerticalBarChartContentBody({data, series, isLoading, yAxisUnit, yAxisU
         return isWithinX && args.cursorY >= plotTop.get() && args.cursorY <= plotBottom.get();
     };
 
-    const {customGestures, setPointPositions, matchedIndex, isTooltipActive, isCursorOverClickable, initialTooltipPosition, onChartMoved} = useChartInteractions({
-        handlePress: onBarPress ? handleBarPress : undefined,
-        checkIsOver: checkIsOverBar,
-        isCursorOverLabel: shouldShowLabels ? isCursorOverLabel : undefined,
-        resolveLabelTouchX: shouldShowLabels ? findLabelCursorX : undefined,
-        chartBottom,
-        yZero,
-    });
+    const {customGestures, setPointPositions, matchedIndex, isTooltipActive, isCursorOverClickable, initialTooltipPosition, onChartMoved, onTooltipDismiss, onChartTouchStart} =
+        useChartInteractions({
+            handlePress: onBarPress ? handleBarPress : undefined,
+            checkIsOver: checkIsOverBar,
+            isCursorOverLabel: shouldShowLabels ? isCursorOverLabel : undefined,
+            resolveLabelTouchX: shouldShowLabels ? findLabelCursorX : undefined,
+            chartBottom,
+            yZero,
+        });
 
     const handleScaleChange = (xScale: Scale, yScale: Scale) => {
         yZero.set(yScale(0));
@@ -210,7 +211,7 @@ function VerticalBarChartContentBody({data, series, isLoading, yAxisUnit, yAxisU
     const labelSpace = shouldShowLabels ? VictoryTheme.axis.xAxisLabelGap + (xAxisLabelHeight ?? 0) : 0;
     const dynamicChartStyle = {height: CHART_CONTENT_MIN_HEIGHT + labelSpace};
     const yAxisLabelWidth = getYAxisLabelWidth(data, formatCompactValue, fontManager, variables.iconSizeExtraSmall, VERTICAL_BAR_DOMAIN_PADDING);
-    const chartPadding = {...VictoryTheme.axis.padding, bottom: labelSpace + VictoryTheme.axis.padding.bottom, right: yAxisLabelWidth + GLYPH_PADDING};
+    const chartPadding = {...VictoryTheme.axis.padding, bottom: labelSpace + VictoryTheme.axis.padding.bottom, right: yAxisLabelWidth + GLYPH_PADDING + VictoryTheme.axis.labelGap};
 
     if (isLoading || !fontManager) {
         return (
@@ -232,6 +233,7 @@ function VerticalBarChartContentBody({data, series, isLoading, yAxisUnit, yAxisU
             <Animated.View
                 style={[styles.chartContent, dynamicChartStyle, !!onBarPress && cursorStyle]}
                 onLayout={handleLayout}
+                onTouchStart={onChartTouchStart}
             >
                 {chartWidth > 0 && (
                     <CartesianChart
@@ -255,7 +257,6 @@ function VerticalBarChartContentBody({data, series, isLoading, yAxisUnit, yAxisU
                                 tickCount: VictoryTheme.axis.tickCount,
                                 axisSide: 'right',
                                 lineWidth: 0,
-                                labelOffset: VictoryTheme.axis.labelGap,
                                 domain: yAxisDomain,
                             },
                         ]}
@@ -284,6 +285,7 @@ function VerticalBarChartContentBody({data, series, isLoading, yAxisUnit, yAxisU
                     chartWidth={chartWidth}
                     initialTooltipPosition={initialTooltipPosition}
                     onChartMoved={onChartMoved}
+                    onDismiss={onTooltipDismiss}
                 />
             </Animated.View>
         </GestureDetector>

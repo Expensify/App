@@ -31,6 +31,12 @@ jest.mock('@hooks/useNetwork', () => ({
     default: () => ({isOffline: mockIsOffline}),
 }));
 
+const mockShowDecisionModal = jest.fn();
+jest.mock('@hooks/useDecisionModal', () => ({
+    __esModule: true,
+    default: () => ({showDecisionModal: mockShowDecisionModal}),
+}));
+
 jest.mock('@hooks/useEnvironment', () => ({
     __esModule: true,
     default: () => ({isProduction: false, isDevelopment: true, environment: 'development'}),
@@ -344,7 +350,7 @@ describe('useSearchBulkActions - Download receipts', () => {
             });
 
             expect(exportReceiptsToZip).not.toHaveBeenCalled();
-            expect(result.current.isOfflineModalVisible).toBe(true);
+            expect(mockShowDecisionModal).toHaveBeenCalledWith(expect.objectContaining({title: 'common.youAppearToBeOffline', prompt: 'common.offlinePrompt'}));
         });
     });
 
@@ -451,7 +457,7 @@ describe('useSearchBulkActions - Download receipts', () => {
             });
 
             expect(exportReceiptsToZip).not.toHaveBeenCalled();
-            expect(result.current.isOfflineModalVisible).toBe(true);
+            expect(mockShowDecisionModal).toHaveBeenCalledWith(expect.objectContaining({title: 'common.youAppearToBeOffline', prompt: 'common.offlinePrompt'}));
         });
     });
 });
