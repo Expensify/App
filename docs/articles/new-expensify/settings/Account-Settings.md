@@ -9,7 +9,7 @@ internalScope: Audience is all members. Covers how to update profile, status, pr
 
 Expensify allows you to personalize your experience by customizing your profile, preferences, and notifications. This guide shows you how to update your photo, language, timezone, notification settings, and more—all from **Account**.
 
-To open these settings, select **Account**.
+To open these settings on web, select **Account** in the navigation tabs. On mobile, select your profile icon.
 
 ---
 
@@ -33,9 +33,10 @@ You can update the following profile settings:
 
 To upload or update a profile photo:
 
-1. Select **Account > Profile**.
-2. Select the edit icon next to your profile image.
-3. Select **Upload photo** and choose a new photo.
+1. On web, select **Account** in the navigation tabs. On mobile, select your profile icon.
+2. Select **Profile**.
+3. Select the edit icon next to your profile image.
+4. Select **Upload photo** and choose a new photo.
 
 ---
 
@@ -43,11 +44,12 @@ To upload or update a profile photo:
 
 To use an avatar instead of a profile photo:
 
-1. Select **Account > Profile**.
-2. Select the edit icon next to your profile image.
-3. Scroll down to **Or choose a custom avatar**.
-4. Choose an avatar in your preferred color palette.
-5. Select **Save**.
+1. On web, select **Account** in the navigation tabs. On mobile, select your profile icon.
+2. Select **Profile**.
+3. Select the edit icon next to your profile image.
+4. Scroll down to **Or choose a custom avatar**.
+5. Choose an avatar in your preferred color palette.
+6. Select **Save**.
 
 ---
 
@@ -55,11 +57,12 @@ To use an avatar instead of a profile photo:
 
 To manually set or update your timezone:
 
-1. Select **Account > Profile > Timezone**.
-2. Disable **Automatically determine your location**.
-3. Select **Timezone**.
-4. Choose your timezone from the list.
-5. Select **Save**.
+1. On web, select **Account** in the navigation tabs. On mobile, select your profile icon.
+2. Select **Profile > Time zone**.
+3. Disable **Automatically determine your location**.
+4. Select **Timezone**.
+5. Choose your timezone from the list.
+6. Select **Save**.
 
 ---
 
@@ -67,8 +70,9 @@ To manually set or update your timezone:
 
 To set or change your language:
 
-1. Select **Account > Preferences > Language**.
-2. Choose your preferred language from the list.
+1. On web, select **Account** in the navigation tabs. On mobile, select your profile icon.
+2.  Select **Preferences > Language**.
+3. Choose your preferred language from the list.
 
 A checkmark confirms the selected language, and your account updates automatically to the new language.
 
@@ -98,8 +102,9 @@ Expensify supports the following languages:
 
 To manage notification settings:
 
-1. Select **Account > Preferences**.
-2. Under **App preferences**, enable or disable these toggles:
+1. On web, select **Account** in the navigation tabs. On mobile, select your profile icon.
+2. Select **Preferences**.
+3. Under **App preferences**, enable or disable these toggles:
    - **Receive relevant feature updates and Expensify news**
    - **Mute all sounds from Expensify**
   
@@ -109,10 +114,12 @@ To manage notification settings:
 
 Set your profile status with an emoji and optional message.
 
-1. Select **Account > Profile > Status** and enter your custom message.
-2. (Optional) Add an emoji.
-3. Under **Clear after**, choose when to clear the status, such as **1 hour**, **Today**, or **Never**.
-4. Select **Save**.
+1.On web, select **Account** in the navigation tabs. On mobile, select your profile icon.
+2. Select **Profile > Status**.
+3. Eand enter your custom message.
+4. (Optional) Add an emoji.
+5. Under **Clear after**, choose when to clear the status, such as **1 hour**, **Today**, or **Never**.
+6. Select **Save**.
 
 ---
 
@@ -120,10 +127,11 @@ Set your profile status with an emoji and optional message.
 
 To set or update your pronouns:
 
-1. Select **Account > Profile > Pronouns**.
-2. Type a word or letters into the **Search to see options** field. No pronouns are listed until you type a search term.
-3. Select your pronouns from the search results.
-4. Select **Save**.
+1. On web, select **Account** in the navigation tabs. On mobile, select your profile icon.
+2. Select **Profile > Pronouns**.
+3. Type a word or letters into the **Search to see options** field. No pronouns are listed until you type a search term.
+4. Select your pronouns from the search results.
+5. Select **Save**.
    
 ---
 
@@ -131,9 +139,10 @@ To set or update your pronouns:
 
 To change the app’s appearance:
 
-1. Select **Account > Preferences > Theme**.
-2. Choose **Light**, **Dark**, or **Use device settings**.
-3. Select **Save**.
+1. On web, select **Account** in the navigation tabs. On mobile, select your profile icon.
+2. Select **Preferences > Theme**.
+3. Choose **Light**, **Dark**, or **Use device settings**.
+4. Select **Save**.
 
 ---
 
@@ -141,9 +150,10 @@ To change the app’s appearance:
 
 High contrast mode increases the visual contrast of UI elements, making text and controls easier to distinguish.
 
-1. Select **Account > Preferences > Theme**.
-2. Enable **High contrast mode**.
-3. Select **Save**.
+1. On web, select **Account** in the navigation tabs. On mobile, select your profile icon.
+2. Select **Preferences > Theme**.
+3. Enable **High contrast mode**.
+4. Select **Save**.
 
 You can also enable high contrast mode from the [login page](https://new.expensify.com/) by selecting **Enable high contrast**.
 
@@ -153,12 +163,13 @@ You can also enable high contrast mode from the [login page](https://new.expensi
 
 To update your legal name, date of birth, phone number, or address:
 
-1. Select **Account > Profile**.
-2. Scroll to the **Private** section.
-3. Select **Legal name**, **Date of birth**, **Phone number**, or **Address**.
-4. Enter the updated information.
-5. Select **Save**.
-6. Enter the security code sent to your email or phone to verify the changes.
+1. On web, select **Account** in the navigation tabs. On mobile, select your profile icon.
+2. Select **Profile**.
+3. Scroll to the **Private** section.
+4. Select **Legal name**, **Date of birth**, **Phone number**, or **Address**.
+5. Enter the updated information.
+6. Select **Save**.
+7. Enter the security code sent to your email or phone to verify the changes.
 
 When typing in the **Address line 1** field, a list of address suggestions appears. Select a suggestion to auto-populate the address fields including city, state, ZIP code, and country.
 
@@ -170,15 +181,17 @@ If no address is saved, the **Country** field is pre-filled based on your curren
 
 To edit your display name:
 
-1. Select **Account > Profile > Display name**.
-2. Enter your preferred name and select **Save**.
+1. On web, select **Account** in the navigation tabs. On mobile, select your profile icon.
+2. Select **Profile > Display name**.
+3. Enter your preferred name and select **Save**.
 
 To edit your legal name:
 
-1. Select **Account > Profile**.
-2. Scroll to **Private** and select **Legal name**.
-3. Enter the updated information and select **Save**.
-4. Enter the security code sent to you to verify the change.
+1. On web, select **Account** in the navigation tabs. On mobile, select your profile icon.
+2. Select **Profile**.
+3. Scroll to **Private** and select **Legal name**.
+4. Enter the updated information and select **Save**.
+5, Enter the security code sent to you to verify the change.
 
 ---
 
@@ -191,7 +204,11 @@ Your photo helps teammates identify you easily in chats, reports, and notificati
 No. It only changes the language of your user interface, not the content of your reports.
 
 ## Can I disable all Expensify app notifications?
-Yes. Select **Account > Preferences**, then disable **Receive relevant feature updates and Expensify news** and enable **Mute all sounds from Expensify**.
+Yes. To mute notifications:
+
+1. On web, select **Account** in the navigation tabs. On mobile, select your profile icon.
+2. Select **Preferences**.
+3. Disable **Receive relevant feature updates and Expensify news** and enable **Mute all sounds from Expensify**.
 
 ## Can I disable email notifications for reports that I approve for reimbursement?
 No. To comply with regulations in several US states, Expensify is required to send you an email whenever you send money to another individual.
