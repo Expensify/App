@@ -64,14 +64,14 @@ describe('actions/Report', () => {
             {
                 optimisticData: [
                     {
-                        onyxMethod: Onyx.METHOD.MERGE,
-                        key: `${ONYXKEYS.COLLECTION.REPORT}${newSupportTicketReportID}`,
-                        value: {reportID: newSupportTicketReportID, type: CONST.REPORT.TYPE.SUPPORT_TICKET},
+                        onyxMethod: Onyx.METHOD.SET,
+                        key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${newSupportTicketReportID}`,
+                        value: {isOptimisticReport: true},
                     },
                     {
                         onyxMethod: Onyx.METHOD.MERGE,
-                        key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${newSupportTicketReportID}`,
-                        value: {isOptimisticReport: true},
+                        key: `${ONYXKEYS.COLLECTION.REPORT}${newSupportTicketReportID}`,
+                        value: {reportID: newSupportTicketReportID, type: CONST.REPORT.TYPE.SUPPORT_TICKET},
                     },
                 ],
                 successData: [
@@ -103,6 +103,44 @@ describe('actions/Report', () => {
 
         // And the request does not navigate a second time after the server has created the report
         expect(mockNavigate).toHaveBeenCalledTimes(1);
+    });
+
+    it('marks a new ticket optimistic before publishing its report ID', async () => {
+        // Given a screen observing a ticket that has not been created on the server
+        let isOptimisticReport = false;
+        const reportStates: boolean[] = [];
+        // Observe both keys independently, as the report screen does while creation is pending.
+        const metadataConnection = Onyx.connectWithoutView({
+            key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${newSupportTicketReportID}`,
+            callback: (metadata) => {
+                isOptimisticReport = !!metadata?.isOptimisticReport;
+            },
+        });
+        const reportConnection = Onyx.connectWithoutView({
+            key: `${ONYXKEYS.COLLECTION.REPORT}${newSupportTicketReportID}`,
+            callback: (report) => {
+                if (!report?.reportID) {
+                    return;
+                }
+                reportStates.push(isOptimisticReport);
+            },
+        });
+        await waitForBatchedUpdates();
+        mockMakeRequestWithSideEffects.mockImplementationOnce(async (_command, _parameters, onyxData) => {
+            await Onyx.update(onyxData?.optimisticData ?? []);
+        });
+
+        try {
+            // When optimistic updates make the pending ticket visible
+            await openSupportTicket();
+            await waitForBatchedUpdates();
+
+            // Then the report ID is never observable without its fetch guard
+            expect(reportStates).toEqual([true]);
+        } finally {
+            Onyx.disconnect(reportConnection);
+            Onyx.disconnect(metadataConnection);
+        }
     });
 
     it('removes the pending report when the request fails before receiving a response', async () => {

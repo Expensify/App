@@ -4901,15 +4901,16 @@ function openSupportTicket(resolvedSupportTicketReportID?: string) {
     const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_METADATA> = newSupportTicketReportID
         ? {
               optimisticData: [
+                  // Set the fetch guard before publishing the report ID; merges can wait on storage reads.
+                  {
+                      onyxMethod: Onyx.METHOD.SET,
+                      key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${newSupportTicketReportID}`,
+                      value: {isOptimisticReport: true},
+                  },
                   {
                       onyxMethod: Onyx.METHOD.MERGE,
                       key: `${ONYXKEYS.COLLECTION.REPORT}${newSupportTicketReportID}`,
                       value: {reportID: newSupportTicketReportID, type: CONST.REPORT.TYPE.SUPPORT_TICKET},
-                  },
-                  {
-                      onyxMethod: Onyx.METHOD.MERGE,
-                      key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${newSupportTicketReportID}`,
-                      value: {isOptimisticReport: true},
                   },
               ],
               successData: [
