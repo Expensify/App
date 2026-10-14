@@ -1,8 +1,8 @@
 import MenuItem from '@components/MenuItem';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
+import MenuItemSectionRoot from '@components/MenuItem/presets/MenuItemSectionRoot';
 import Section from '@components/Section';
 
-import useLayoutSpacing from '@hooks/useLayoutSpacing';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -27,26 +27,21 @@ type WorkspaceInvoicingDetailsSectionProps = {
 function WorkspaceInvoicingDetailsSection({policyID, canWriteMoreFeatures}: WorkspaceInvoicingDetailsSectionProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {cardPaddingHorizontal, cardPaddingTop} = useLayoutSpacing();
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
-
-    const horizontalPadding = cardPaddingHorizontal;
 
     return (
         <Section
             title={translate('workspace.invoices.invoicingDetails')}
             subtitle={translate('workspace.invoices.invoicingDetailsDescription')}
-            containerStyles={[styles.ph0, cardPaddingTop]}
-            subtitleStyles={horizontalPadding}
-            titleStyles={[styles.accountSettingsSectionTitle, horizontalPadding]}
+            isCentralPane
+            titleStyles={styles.accountSettingsSectionTitle}
             childrenStyles={styles.pt5}
             subtitleMuted
         >
-            <MenuItem.Root
+            <MenuItemSectionRoot
                 key={translate('workspace.invoices.companyName')}
                 sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.INVOICES.COMPANY_NAME}
                 onPress={canWriteMoreFeatures ? callFunctionIfActionIsAllowed(() => Navigation.navigate(ROUTES.WORKSPACE_INVOICES_COMPANY_NAME.getRoute(policyID))) : undefined}
-                style={horizontalPadding}
             >
                 <MenuItemField.Row
                     name={translate('workspace.invoices.companyName')}
@@ -54,12 +49,11 @@ function WorkspaceInvoicingDetailsSection({policyID, canWriteMoreFeatures}: Work
                 >
                     {canWriteMoreFeatures && <MenuItem.Chevron />}
                 </MenuItemField.Row>
-            </MenuItem.Root>
-            <MenuItem.Root
+            </MenuItemSectionRoot>
+            <MenuItemSectionRoot
                 key={translate('workspace.invoices.companyWebsite')}
                 sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.INVOICES.COMPANY_WEBSITE}
                 onPress={canWriteMoreFeatures ? callFunctionIfActionIsAllowed(() => Navigation.navigate(ROUTES.WORKSPACE_INVOICES_COMPANY_WEBSITE.getRoute(policyID))) : undefined}
-                style={horizontalPadding}
             >
                 <MenuItemField.Row
                     name={translate('workspace.invoices.companyWebsite')}
@@ -67,7 +61,7 @@ function WorkspaceInvoicingDetailsSection({policyID, canWriteMoreFeatures}: Work
                 >
                     {canWriteMoreFeatures && <MenuItem.Chevron />}
                 </MenuItemField.Row>
-            </MenuItem.Root>
+            </MenuItemSectionRoot>
         </Section>
     );
 }

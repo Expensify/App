@@ -1,5 +1,4 @@
 import Button from '@components/Button';
-import MenuItem from '@components/MenuItem';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import Text from '@components/Text';
 
@@ -22,8 +21,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 
-import type {StyleProp, ViewStyle} from 'react-native';
-
 import React, {useMemo} from 'react';
 import {View} from 'react-native';
 
@@ -37,10 +34,9 @@ type SubscriptionPlanCardActionButtonProps = {
 
     isSelected: boolean;
     closeComparisonModal?: () => void;
-    style?: StyleProp<ViewStyle>;
 };
 
-function SubscriptionPlanCardActionButton({subscriptionPlan, isFromComparisonModal, isSelected, closeComparisonModal, style}: SubscriptionPlanCardActionButtonProps) {
+function SubscriptionPlanCardActionButton({subscriptionPlan, isFromComparisonModal, isSelected, closeComparisonModal}: SubscriptionPlanCardActionButtonProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
@@ -92,10 +88,8 @@ function SubscriptionPlanCardActionButton({subscriptionPlan, isFromComparisonMod
     };
 
     const currentPlanLabel = (
-        <View style={style}>
-            <View style={[styles.button, styles.buttonContainer, styles.outlinedButton]}>
-                <Text style={styles.textLabelSupporting}>{translate('subscription.yourPlan.thisIsYourCurrentPlan')}</Text>
-            </View>
+        <View style={[styles.button, styles.buttonContainer, styles.outlinedButton]}>
+            <Text style={styles.textLabelSupporting}>{translate('subscription.yourPlan.thisIsYourCurrentPlan')}</Text>
         </View>
     );
 
@@ -105,10 +99,7 @@ function SubscriptionPlanCardActionButton({subscriptionPlan, isFromComparisonMod
                 return currentPlanLabel;
             }
             return (
-                <Button
-                    style={style}
-                    onPress={() => handlePlanPress(CONST.POLICY.TYPE.TEAM)}
-                >
+                <Button onPress={() => handlePlanPress(CONST.POLICY.TYPE.TEAM)}>
                     <Button.Text>{translate('subscription.yourPlan.downgrade')}</Button.Text>
                 </Button>
             );
@@ -123,7 +114,6 @@ function SubscriptionPlanCardActionButton({subscriptionPlan, isFromComparisonMod
             return (
                 <Button
                     variant={CONST.BUTTON_VARIANT.SUCCESS}
-                    style={style}
                     onPress={() => handlePlanPress(CONST.POLICY.TYPE.CORPORATE)}
                 >
                     <Button.Text>{translate('subscription.yourPlan.upgrade')}</Button.Text>
@@ -144,14 +134,14 @@ function SubscriptionPlanCardActionButton({subscriptionPlan, isFromComparisonMod
 
     return (
         <View>
-            <MenuItem.Root style={style}>
-                <MenuItemField.Row
+            <View style={styles.mhn5}>
+                <MenuItemField
                     name={translate('subscription.subscriptionSettings.title')}
                     value={translate('subscription.subscriptionSettings.summary', subscriptionType, subscriptionSize, expensifyCode, autoRenew, autoIncrease)}
                     numberOfLinesValue={3}
                 />
-            </MenuItem.Root>
-            <View style={[style, styles.mt2]}>
+            </View>
+            <View style={styles.mt2}>
                 <Button
                     onPress={() => Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION_SETTINGS_DETAILS)}
                     style={styles.alignSelfStart}
