@@ -5,7 +5,6 @@ import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {
-    BankAccountList,
     Card,
     CardList,
     PersonalDetails,
@@ -101,6 +100,7 @@ import {
     getPolicyChangeLogMaxExpenseAmountNoItemizedReceiptMessage,
     getPolicyChangeLogMaxExpenseAmountNoReceiptMessage,
     getPolicyChangeLogUpdateEmployee,
+    getPolicyWorkArrangementMessage,
     getReimbursedMessage,
     getReimburserUpdateMessage,
     getRemovedCardFeedMessage,
@@ -503,7 +503,6 @@ function getLastMessageTextForReport({
     oneTransactionThreadReportID,
     lastOriginalAction,
     rules,
-    bankAccountList,
 }: {
     translate: LocalizedTranslate;
     convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'];
@@ -531,9 +530,6 @@ function getLastMessageTextForReport({
     oneTransactionThreadReportID?: string;
     lastOriginalAction?: OnyxEntry<ReportAction>;
     rules: OnyxCollection<Rule>;
-
-    /** The current user's bank accounts, used to name the account a report was paid with in the preview. */
-    bankAccountList?: OnyxEntry<BankAccountList>;
 }): string {
     const reportID = report?.reportID;
     const canUserPerformWrite = canUserPerformWriteAction(report, isReportArchived);
@@ -581,7 +577,8 @@ function getLastMessageTextForReport({
         switch (archiveReason) {
             case CONST.REPORT.ARCHIVE_REASON.ACCOUNT_CLOSED:
             case CONST.REPORT.ARCHIVE_REASON.REMOVED_FROM_POLICY:
-            case CONST.REPORT.ARCHIVE_REASON.POLICY_DELETED: {
+            case CONST.REPORT.ARCHIVE_REASON.POLICY_DELETED:
+            case CONST.REPORT.ARCHIVE_REASON.POLICY_ARCHIVED: {
                 lastMessageTextFromReport = translate(`reportArchiveReasons.${archiveReason}`, {
                     displayName: temporaryGetDisplayNameOrDefault({passedPersonalDetails: lastActorDetails, translate, formatPhoneNumber: formatPhoneNumberPhoneUtils}),
                     policyName: getPolicyName({report, policy, unavailableTranslation: translate('workspace.common.unavailable')}),
@@ -603,7 +600,6 @@ function getLastMessageTextForReport({
             shouldConsiderScanningReceiptOrPendingRoute: true,
             policy,
             isForListPreview: true,
-            bankAccountList,
         });
         lastMessageTextFromReport = formatReportLastMessageText(Parser.htmlToText(properSchemaForMoneyRequestMessage));
     } else if (isReportPreviewAction(lastReportAction)) {
@@ -632,7 +628,6 @@ function getLastMessageTextForReport({
                 policy,
                 isForListPreview: true,
                 originalReportAction: lastReportAction,
-                bankAccountList,
             });
             lastMessageTextFromReport = formatReportLastMessageText(Parser.htmlToText(reportPreviewMessage));
         }
@@ -796,6 +791,8 @@ function getLastMessageTextForReport({
         lastMessageTextFromReport = getRenamedAction(translate, lastReportAction, isExpenseReport(report));
     } else if (isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.DELETED_TRANSACTION)) {
         lastMessageTextFromReport = getDeletedTransactionMessage(translate, lastReportAction, convertToDisplayString);
+    } else if (isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.UNDELETED_TRANSACTION)) {
+        lastMessageTextFromReport = translate('iou.undeletedExpense');
     } else if (
         isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.TAKE_CONTROL) ||
         isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.REROUTE) ||
@@ -856,6 +853,9 @@ function getLastMessageTextForReport({
     }
     if (isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_AUTO_HARVESTING)) {
         lastMessageTextFromReport = getUpdatedAutoHarvestingMessage(translate, lastReportAction);
+    }
+    if (isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_POLICY_WORK_ARRANGEMENT)) {
+        lastMessageTextFromReport = getPolicyWorkArrangementMessage(translate, lastReportAction);
     }
     if (isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_MEMBER_WORK_ARRANGEMENT)) {
         lastMessageTextFromReport = getUpdatedMemberWorkArrangementMessage(translate, lastReportAction);
@@ -978,7 +978,6 @@ function getLastMessageTextForReport({
                                 shouldConsiderScanningReceiptOrPendingRoute: true,
                                 policy,
                                 isForListPreview: true,
-                                bankAccountList,
                             }),
                         ),
                     ) || lastVisibleMessage?.lastMessageText;
@@ -1196,9 +1195,6 @@ type GetReportAlternateTextParams = {
     convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'];
     convertToDisplayStringWithoutCurrency: CurrencyListActionsContextType['convertToDisplayStringWithoutCurrency'];
     rules: OnyxCollection<Rule>;
-
-    /** The current user's bank accounts, used to name the account a report was paid with in the preview. */
-    bankAccountList?: OnyxEntry<BankAccountList>;
 };
 
 /**
@@ -1237,7 +1233,6 @@ function getReportAlternateText({
     convertToDisplayString,
     convertToDisplayStringWithoutCurrency,
     rules,
-    bankAccountList,
 }: GetReportAlternateTextParams): string | undefined {
     let alternateText: string | undefined;
     const isChatRoomReport = isChatRoom(report);
@@ -1302,7 +1297,6 @@ function getReportAlternateText({
             oneTransactionThreadReportID: resolvedOneTransactionThreadReportID,
             lastOriginalAction,
             rules,
-            bankAccountList,
         });
 
     const getLastActorDisplayNamePrefix = () =>
@@ -1618,6 +1612,8 @@ function getReportAlternateText({
             alternateText = translate('iou.retracted');
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.REOPENED) {
             alternateText = translate('iou.reopened');
+        } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.UNDELETED_TRANSACTION) {
+            alternateText = translate('iou.undeletedExpense');
         } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.TRAVEL_UPDATE)) {
             alternateText = getTravelUpdateMessage(translate, lastAction);
         } else if (

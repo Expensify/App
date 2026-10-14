@@ -9,6 +9,7 @@ import UploadFile from '@components/UploadFile';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import {usePersonalDetailsByIDs} from '@hooks/usePersonalDetails';
 import useReimbursementAccountSubmitCallback from '@hooks/useReimbursementAccountSubmitCallback';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -56,6 +57,7 @@ function KYBDocuments({onBackButtonPress, onSubmit}: KYBDocumentsProps) {
     const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
+    const [conciergePersonalDetails] = usePersonalDetailsByIDs([CONST.ACCOUNT_ID.CONCIERGE]);
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const reimbursementAccountVerificationData = reimbursementAccount?.achData?.verifications?.externalApiResponses;
@@ -68,6 +70,7 @@ function KYBDocuments({onBackButtonPress, onSubmit}: KYBDocumentsProps) {
             introSelected,
             currentUserAccountID,
             isSelfTourViewed,
+            conciergePersonalDetails,
             shouldDismissModal: true,
             reportActionID: reimbursementAccount?.achData?.ACHRequestReportActionID,
         });

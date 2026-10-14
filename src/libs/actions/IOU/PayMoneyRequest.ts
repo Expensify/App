@@ -31,7 +31,6 @@ import playSound, {SOUNDS} from '@libs/Sound';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {shouldSplitScanFailedTransactions} from '@libs/TransactionUtils';
 
-import {getBankAccountFromID} from '@userActions/BankAccounts';
 import {buildPolicyData, generatePolicyID} from '@userActions/Policy/Policy';
 import type {BuildPolicyDataKeys} from '@userActions/Policy/Policy';
 import {completeOnboarding} from '@userActions/Report';
@@ -264,13 +263,6 @@ function getPayMoneyRequestParams({
 
     const shouldMoveScanFailedTransactions = !!full && isExpenseReport(iouReport) && shouldSplitScanFailedTransactions(reportTransactions, iouReport);
 
-    // Store the masked account actually paid with on the action itself, so every viewer resolves the same account.
-    // The paying admin may not be the workspace payer, so the account can be their own (looked up in `bankAccountList`)
-    // rather than the policy's ACH account; we fall back to the policy account when it is the one being used.
-    const paidWithBankAccount = getBankAccountFromID(bankAccountID);
-    const paidAccountNumber =
-        paidWithBankAccount?.accountData?.accountNumber ?? (bankAccountID === reportPolicy?.achAccount?.bankAccountID ? reportPolicy?.achAccount?.accountNumber : undefined);
-
     const optimisticIOUReportAction = buildOptimisticIOUReportAction({
         type: CONST.IOU.REPORT_ACTION_TYPE.PAY,
         amount: isExpenseReport(iouReport) ? -total : total,
@@ -283,7 +275,6 @@ function getPayMoneyRequestParams({
         isSettlingUp: true,
         payAsBusiness,
         bankAccountID,
-        accountNumber: paidAccountNumber,
         delegateAccountIDParam: delegateAccountID,
         getCurrencyDecimals,
     });
@@ -961,15 +952,13 @@ function markReportPaymentReceived(
     currentUserEmail: string,
     chatReportActions: OnyxEntry<OnyxTypes.ReportActions>,
     isTrackIntentUser: boolean | undefined,
+    allTransactionViolations: OnyxCollection<OnyxTypes.TransactionViolations>,
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'],
     rules: OnyxCollection<OnyxTypes.Rule>,
 ) {
     if (!chatReport || !iouReport) {
         return;
     }
-    // TODO: https://github.com/Expensify/App/issues/66512
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
-    const allTransactionViolations = getAllTransactionViolations();
     const recipient = {accountID: iouReport.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID};
     const total = getReimbursableTotal(iouReport);
     const optimisticIOUReportAction = buildOptimisticIOUReportAction({

@@ -7,10 +7,11 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useTransactionsAndViolationsForReport from '@hooks/useTransactionsAndViolationsForReport';
 
+import {changeMoneyRequestHoldStatus} from '@libs/actions/IOU/Hold';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getReportAction} from '@libs/ReportActionsUtils';
 import {getAllExpensesToHoldIfApplicable} from '@libs/ReportPrimaryActionUtils';
-import {changeMoneyRequestHoldStatus, getLinkedIOUTransaction} from '@libs/ReportUtils';
+import {getLinkedIOUTransaction} from '@libs/ReportUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -58,6 +59,7 @@ function RemoveHoldPrimaryAction({reportID, chatReportID, isDisabled}: SimpleAct
                         changeMoneyRequestHoldStatus(
                             action,
                             linkedTransaction,
+                            policy,
                             isOffline,
                             currentUserLogin ?? '',
                             currentUserAccountID,
@@ -80,6 +82,7 @@ function RemoveHoldPrimaryAction({reportID, chatReportID, isDisabled}: SimpleAct
                 changeMoneyRequestHoldStatus(
                     moneyRequestAction,
                     linkedTransaction,
+                    policy,
                     isOffline,
                     currentUserLogin ?? '',
                     currentUserAccountID,

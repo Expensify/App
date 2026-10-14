@@ -233,7 +233,6 @@ function StatusPage() {
                         description={translate('statusPage.clearAfter')}
                         shouldShowRightIcon
                         onPress={() => Navigation.navigate(ROUTES.SETTINGS_STATUS_CLEAR_AFTER)}
-                        containerStyle={styles.pr2}
                         brickRoadIndicator={brickRoadIndicator}
                     />
                     {(!!currentUserEmojiCode || !!currentUserStatusText) && (
