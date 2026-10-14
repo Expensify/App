@@ -40,7 +40,7 @@ import {
     getWelcomeMessage,
     shouldShowLastActorDisplayName,
 } from '@libs/ReportAlternateTextUtils';
-import {formatReportLastMessageText, getMovedActionMessage, getMovedTransactionMessage, getReportPreviewReportActionMessage, parseMovedTransactionReportIDs} from '@libs/ReportUtils';
+import {formatReportLastMessageText, getMovedActionMessage, getMovedTransactionMessage, getReportPreviewMessage, parseMovedTransactionReportIDs} from '@libs/ReportUtils';
 import {isScanning} from '@libs/TransactionUtils';
 
 import initOnyxDerivedValues from '@userActions/OnyxDerived';
@@ -58,7 +58,7 @@ import {createRandomReport} from '../utils/collections/reports';
 import createRandomTransaction from '../utils/collections/transaction';
 import createMock from '../utils/createMock';
 import * as LHNTestUtils from '../utils/LHNTestUtils';
-import {convertToDisplayString, convertToDisplayStringWithoutCurrency, formatPhoneNumber, getCurrencyDecimalsLocal, localeCompare, translateLocal} from '../utils/TestHelper';
+import {convertToDisplayString, convertToDisplayStringWithoutCurrency, formatPhoneNumber, localeCompare, translateLocal} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
@@ -557,17 +557,14 @@ describe('ReportAlternateTextUtils', () => {
                     [iouAction.reportActionID]: iouAction,
                 });
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
-                const reportPreviewMessage = getReportPreviewReportActionMessage(
-                    {
-                        reportOrID: iouReport,
-                        iouReportAction: iouAction,
-                        shouldConsiderScanningReceiptOrPendingRoute: true,
-                        policy: null,
-                        isForListPreview: true,
-                        originalReportAction: reportPreviewAction,
-                    },
-                    getCurrencyDecimalsLocal,
-                );
+                const reportPreviewMessage = getReportPreviewMessage(translateLocal, convertToDisplayString, {
+                    reportOrID: iouReport,
+                    iouReportAction: iouAction,
+                    shouldConsiderScanningReceiptOrPendingRoute: true,
+                    policy: null,
+                    isForListPreview: true,
+                    originalReportAction: reportPreviewAction,
+                });
                 const formattedMessage = formatReportLastMessageText(Parser.htmlToText(reportPreviewMessage));
                 expect(formattedMessage).toBe('$1.00 for A A A');
             });
