@@ -1,11 +1,13 @@
 import type {FormOnyxValues} from '@components/Form/types';
 import type {ContinueActionParams, PaymentMethod, PaymentMethodType} from '@components/KYCWall/types';
 import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
+import type {PersonalDetailsByLogin} from '@components/PersonalDetailsByLoginProvider';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import type {HoldMenuCallback} from '@components/Search';
 import type {TransactionListItemType, TransactionReportGroupListItemType} from '@components/Search/SearchList/ListItem/types';
-import type {BankAccountMenuItem, BulkPaySelectionData, PaymentData, SearchQueryJSON, SelectedReports, SelectedTransactions} from '@components/Search/types';
+import type {BankAccountMenuItem, BulkPaySelectionData, PaymentData, SearchFooterTotal, SearchQueryJSON, SelectedReports, SelectedTransactions} from '@components/Search/types';
 
+import type {ConfirmSubmitReportViolationsOnProceed} from '@hooks/useConfirmSubmitReportViolations';
 import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
 import type {ReportSubmitToPopoverOpenOptions} from '@hooks/useReportSubmitToPopover';
 
@@ -18,6 +20,7 @@ import type {
     OpenSearchPageParams,
     OpenSearchTagFiltersPageParams,
     OpenSearchTagFiltersPageResponse,
+    QueueBulkMarkAsExportedParams,
     QueueExportSearchItemsToCSVParams,
     QueueExportSearchWithTemplateParams,
     ReportExportParams,
@@ -38,7 +41,6 @@ import enhanceParameters from '@libs/Network/enhanceParameters';
 import {getIsOffline} from '@libs/NetworkState';
 import {rand64} from '@libs/NumberUtils';
 import {getActivePaymentType} from '@libs/PaymentUtils';
-import {canAccessPolicyBankAccount} from '@libs/PolicyPaymentUtils';
 import {
     getAccountIDForSubmitManagerEmail,
     getSubmitReportManagerAccountID,
@@ -65,7 +67,7 @@ import {
 } from '@libs/ReportUtils';
 import type {SearchKey} from '@libs/SearchKeyUtils';
 import {savedSearchIDToSearchKey} from '@libs/SearchKeyUtils';
-import {buildSearchQueryJSON, buildSearchQueryString, serializeQueryJSONForBackend} from '@libs/SearchQueryUtils';
+import {buildSearchQueryJSON, buildSearchQueryString, getFooterSelectionFromQuery, serializeQueryJSONForBackend} from '@libs/SearchQueryUtils';
 import {isTransactionGroupListItemType} from '@libs/SearchUIUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {cancelSpan, endSpan, startSpan} from '@libs/telemetry/activeSpans';
@@ -263,6 +265,8 @@ type HandleActionButtonPressParams = {
     onUndelete?: () => void;
     onPendingCardTransactionsBlock?: () => void;
     onAllHeldExpensesBlock?: () => void;
+    /** Confirms any unacknowledged report violations before proceeding with the SUBMIT action. */
+    confirmSubmitReportViolations: (onProceed: ConfirmSubmitReportViolationsOnProceed) => void;
     openReportSubmitToPopover?: (options?: ReportSubmitToPopoverOpenOptions) => void;
     shouldDisableSearchSubmitPress?: boolean;
     /** Consumes a one-shot flag set when the submit-to popover dismisses (prevents click-through on the row Submit button). */
@@ -282,9 +286,9 @@ type HandleActionButtonPressParams = {
     isTrackIntentUser: boolean | undefined;
     allViolations: OnyxCollection<TransactionViolations>;
     rules: OnyxCollection<Rule>;
+    personalDetailsByLogins: PersonalDetailsByLogin;
     conciergeChat: OnyxEntry<Report>;
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
-    bankAccountList: OnyxEntry<BankAccountList>;
 };
 
 function handleActionButtonPress({
@@ -307,6 +311,7 @@ function handleActionButtonPress({
     amountOwed,
     onUndelete,
     onAllHeldExpensesBlock,
+    confirmSubmitReportViolations,
     currentUserAccountID,
     openReportSubmitToPopover,
     shouldDisableSearchSubmitPress,
@@ -325,9 +330,9 @@ function handleActionButtonPress({
     isTrackIntentUser,
     allViolations,
     rules,
+    personalDetailsByLogins,
     conciergeChat,
     getCurrencyDecimals,
-    bankAccountList,
 }: HandleActionButtonPressParams) {
     // The transactionIDList is needed to handle actions taken on `status:""` where transactions on single expense reports can be approved/paid.
     // We need the transactionID to display the loading indicator for that list item's action.
@@ -382,7 +387,6 @@ function handleActionButtonPress({
                 conciergeChat,
                 getCurrencyDecimals,
                 rules,
-                bankAccountList,
             });
             return;
         case CONST.SEARCH.ACTION_TYPES.APPROVE:
@@ -438,38 +442,45 @@ function handleActionButtonPress({
             }
             const policyForSubmit = policy ?? snapshotPolicy;
             if (isSubmitPolicy(policyForSubmit) && openReportSubmitToPopover) {
-                openReportSubmitToPopover({
-                    onSubmitWithManagerEmail: (managerEmail, managerAccountID) => {
-                        submitMoneyRequestOnSearch(
-                            hash,
-                            [snapshotReport],
-                            [policyForSubmit],
-                            submitterLogin,
-                            getCurrencyDecimals,
-                            rules,
-                            currentSearchKey,
-                            managerEmail,
-                            managerAccountID,
-                            currentUserAccountID,
-                            delegateEmail,
-                        );
-                    },
+                confirmSubmitReportViolations((shouldResolveViolations) => {
+                    openReportSubmitToPopover({
+                        shouldResolveAcknowledgedViolations: shouldResolveViolations,
+                        onSubmitWithManagerEmail: (managerEmail, managerAccountID, shouldResolveAcknowledgedViolations) => {
+                            submitMoneyRequestOnSearch({
+                                hash,
+                                reportList: [snapshotReport],
+                                policy: [policyForSubmit],
+                                submitterLogin,
+                                getCurrencyDecimals,
+                                rules,
+                                personalDetailsByLogins,
+                                currentSearchKey,
+                                managerEmail,
+                                managerAccountID,
+                                currentUserAccountID,
+                                delegateEmail,
+                                shouldResolveAcknowledgedViolations,
+                            });
+                        },
+                    });
                 });
                 return;
             }
-            submitMoneyRequestOnSearch(
-                hash,
-                [snapshotReport],
-                [policyForSubmit],
-                submitterLogin,
-                getCurrencyDecimals,
-                rules,
-                currentSearchKey,
-                undefined,
-                undefined,
-                currentUserAccountID,
-                delegateEmail,
-            );
+            confirmSubmitReportViolations((shouldResolveAcknowledgedViolations) => {
+                submitMoneyRequestOnSearch({
+                    hash,
+                    reportList: [snapshotReport],
+                    policy: [policyForSubmit],
+                    submitterLogin,
+                    getCurrencyDecimals,
+                    rules,
+                    personalDetailsByLogins,
+                    currentSearchKey,
+                    currentUserAccountID,
+                    delegateEmail,
+                    shouldResolveAcknowledgedViolations,
+                });
+            });
             return;
         }
         case CONST.SEARCH.ACTION_TYPES.EXPORT_TO_ACCOUNTING: {
@@ -625,7 +636,6 @@ type GetPayActionCallbackParams = {
     conciergeChat: OnyxEntry<Report>;
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
     rules: OnyxCollection<Rule>;
-    bankAccountList: OnyxEntry<BankAccountList>;
 };
 
 function getPayActionCallback({
@@ -656,7 +666,6 @@ function getPayActionCallback({
     conciergeChat,
     getCurrencyDecimals,
     rules,
-    bankAccountList,
 }: GetPayActionCallbackParams) {
     if (!item.reportID) {
         Log.info('[SearchPay] Dropping row pay: item has no reportID');
@@ -669,13 +678,9 @@ function getPayActionCallback({
         return;
     }
 
-    const paymentPolicy = snapshotPolicy ?? policy;
-
     if (lastPolicyPaymentMethod !== CONST.IOU.PAYMENT_TYPE.ELSEWHERE) {
-        // One-tap pay here always funds the payment from the workspace bank account, so it's only valid for someone the
-        // account is actually shared with. Anyone else has to pay from an account of their own, so open the report and let
-        // them pick it instead of silently paying with (and reporting) the workspace one.
-        if (!canAccessPolicyBankAccount(paymentPolicy, bankAccountList)) {
+        const hasVBBA = !!snapshotPolicy?.achAccount?.bankAccountID;
+        if (!hasVBBA) {
             goToItem();
             return;
         }
@@ -697,14 +702,14 @@ function getPayActionCallback({
         currentUserAccountID: currentUserAccountID ?? CONST.DEFAULT_NUMBER_ID,
         currentUserLogin: currentUserLogin ?? '',
         activePolicy,
-        policy: paymentPolicy,
+        policy: snapshotPolicy ?? policy,
         chatReportPolicy: chatReportPolicyForPayment,
         isASAPSubmitBetaEnabled,
         isSelfTourViewed,
         userBillingGracePeriodEnds,
         amountOwed,
         ownerBillingGracePeriodEnd,
-        methodID: lastPolicyPaymentMethod === CONST.IOU.PAYMENT_TYPE.VBBA ? paymentPolicy?.achAccount?.bankAccountID : undefined,
+        methodID: lastPolicyPaymentMethod === CONST.IOU.PAYMENT_TYPE.VBBA ? snapshotPolicy?.achAccount?.bankAccountID : undefined,
         additionalOnyxData: getSearchPayOnyxData(hash, item.reportID, currentSearchKey),
         chatReportActions,
         delegateAccountID,
@@ -803,6 +808,12 @@ function getOnyxLoadingData(
     const isSearchRequest = isSearchAPI && !!queryJSON;
     const type = queryJSON?.type;
 
+    // Record the query string on the snapshot itself so IOU optimistic updates can later apply to every loaded
+    // snapshot whose query matches. Living on the snapshot means it is evicted together with it. It is written
+    // optimistically so snapshots first opened offline carry it, and again in finallyData because the SEARCH
+    // response can replace `snapshot.search`.
+    const inputQuery = isSearchRequest ? queryJSON.inputQuery : undefined;
+
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.SNAPSHOT>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -811,6 +822,7 @@ function getOnyxLoadingData(
                 search: {
                     ...(isSearchAPI && shouldShowLoading && {isLoading: true}),
                     ...(isSearchRequest && {state: CONST.SEARCH.SNAPSHOT_STATE.LOADING}),
+                    ...(inputQuery && {inputQuery}),
                     ...(offset !== undefined ? {offset} : {}),
                     ...(shouldClearTotals ? {count: null, reportCount: null, total: null, currency: null} : {}),
                 },
@@ -827,14 +839,6 @@ function getOnyxLoadingData(
         },
     ];
 
-    // Side effect: record this query string under SEARCH_QUERY_BY_HASH so IOU optimistic updates
-    // can later fan to every loaded snapshot whose query matches. Done here (not via optimisticData)
-    // because this function's return type only allows snapshot keys; the matching eviction lives
-    // in the SNAPSHOT subscription in IOU/index.ts.
-    if (queryJSON?.inputQuery) {
-        Onyx.merge(ONYXKEYS.SEARCH_QUERY_BY_HASH, {[hash]: queryJSON.inputQuery});
-    }
-
     // finallyData runs for every HTTP response, including 460 responses that deliberately skip failureData.
     // It owns the terminal request state, while failureData separately records whether the request failed.
     const finallyData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.SNAPSHOT>> = [
@@ -845,6 +849,7 @@ function getOnyxLoadingData(
                 search: {
                     ...(isSearchAPI && {isLoading: false}),
                     ...(isSearchRequest && {state: CONST.SEARCH.SNAPSHOT_STATE.LOADED, type, hash}),
+                    ...(inputQuery && {inputQuery}),
                 },
             },
         },
@@ -1048,7 +1053,16 @@ function openSearchPage(params?: OpenSearchPageParams, hashWithStaleError?: numb
 }
 
 function openSearchCardFiltersPage() {
-    const finallyData: Array<OnyxUpdate<typeof ONYXKEYS.IS_SEARCH_FILTERS_CARD_DATA_LOADED>> = [
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.RAM_ONLY_IS_LOADING_SEARCH_FILTERS_CARD_DATA>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.RAM_ONLY_IS_LOADING_SEARCH_FILTERS_CARD_DATA,
+            value: true,
+        },
+    ];
+
+    // Set on success only. On `finallyData` a failed request would pass for a complete list.
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.IS_SEARCH_FILTERS_CARD_DATA_LOADED>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.IS_SEARCH_FILTERS_CARD_DATA_LOADED,
@@ -1056,7 +1070,15 @@ function openSearchCardFiltersPage() {
         },
     ];
 
-    read(READ_COMMANDS.OPEN_SEARCH_CARD_FILTERS_PAGE, null, {finallyData});
+    const finallyData: Array<OnyxUpdate<typeof ONYXKEYS.RAM_ONLY_IS_LOADING_SEARCH_FILTERS_CARD_DATA>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.RAM_ONLY_IS_LOADING_SEARCH_FILTERS_CARD_DATA,
+            value: false,
+        },
+    ];
+
+    read(READ_COMMANDS.OPEN_SEARCH_CARD_FILTERS_PAGE, null, {optimisticData, successData, finallyData});
 }
 
 function openSearchCategoryFiltersPage() {
@@ -1087,6 +1109,8 @@ function openSearchCategoryFiltersPage() {
     read(READ_COMMANDS.OPEN_SEARCH_CATEGORY_FILTERS_PAGE, null, {optimisticData, successData, finallyData});
 }
 
+const ALL_POLICY_IDS_KEY = 'all';
+
 /**
  * Fetches a page of tag filter search results from the server.
  * Returns pagination metadata (hasMore, nextCursor) for infinite scroll.
@@ -1097,16 +1121,19 @@ function openSearchTagFiltersPage(
     params: OpenSearchTagFiltersPageParams,
     shouldCancelPendingRequests = false,
     currentResults: SearchTagFilterItem[] = [],
-): Promise<{hasMore: boolean; nextCursor: string}> {
+): Promise<{hasMore: boolean; nextCursor: string; tags?: SearchTagFilterItem[]}> {
     if (shouldCancelPendingRequests) {
         HttpUtils.cancelPendingRequests(SIDE_EFFECT_REQUEST_COMMANDS.OPEN_SEARCH_TAG_FILTERS_PAGE);
     }
+
+    const policyIDsKey = !params.policyIDs ? ALL_POLICY_IDS_KEY : params.policyIDs;
+    const resultsKey: `${typeof ONYXKEYS.COLLECTION.RAM_ONLY_SEARCH_TAG_FILTERS_RESULTS}${string}` = `${ONYXKEYS.COLLECTION.RAM_ONLY_SEARCH_TAG_FILTERS_RESULTS}${policyIDsKey}`;
 
     const optimisticData: AnyOnyxUpdate[] = shouldCancelPendingRequests
         ? [
               {
                   onyxMethod: Onyx.METHOD.SET,
-                  key: ONYXKEYS.RAM_ONLY_SEARCH_TAG_FILTERS_RESULTS,
+                  key: resultsKey,
                   value: [],
               },
           ]
@@ -1117,12 +1144,11 @@ function openSearchTagFiltersPage(
         // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- OpenSearchTagFiltersPage response fields are command-specific and not declared on the shared Response type
         const tagFiltersResponse = response as OpenSearchTagFiltersPageResponse | undefined;
         const newTags = tagFiltersResponse?.tags ?? [];
-        if (params.cursor && newTags.length > 0) {
-            Onyx.set(ONYXKEYS.RAM_ONLY_SEARCH_TAG_FILTERS_RESULTS, [...currentResults, ...newTags]);
-        }
+        Onyx.set(resultsKey, params.cursor ? [...currentResults, ...newTags] : newTags);
         return {
             hasMore: !!tagFiltersResponse?.hasMore,
             nextCursor: tagFiltersResponse?.nextCursor ?? '',
+            tags: newTags,
         };
     });
 }
@@ -1131,18 +1157,25 @@ function openSearchTagFiltersPage(
  * Updates the pagination state for tag filter search.
  * Stored in RAM-only Onyx key so it survives component remounts but resets on app restart.
  */
-function setSearchTagFiltersPagination(hasMore: boolean, nextCursor: string, searchQuery: string) {
-    Onyx.set(ONYXKEYS.RAM_ONLY_SEARCH_TAG_FILTERS_PAGINATION, {
+function setSearchTagFiltersPagination(
+    hasMore: boolean,
+    nextCursor: string,
+    searchQuery: string,
+    policyIDs?: string,
+    baseResults?: SearchTagFilterItem[],
+    baseHasMore?: boolean,
+    baseCursor?: string,
+) {
+    const policyIDsKey = !policyIDs ? ALL_POLICY_IDS_KEY : policyIDs;
+    Onyx.set(`${ONYXKEYS.COLLECTION.RAM_ONLY_SEARCH_TAG_FILTERS_PAGINATION}${policyIDsKey}`, {
         hasMore,
         nextCursor,
         searchQuery,
+        policyIDs,
+        baseResults,
+        baseHasMore,
+        baseCursor,
     });
-}
-
-/** Resets tag filter pagination and cached results when the filter closes. */
-function clearSearchTagFiltersState() {
-    setSearchTagFiltersPagination(false, '', '');
-    Onyx.set(ONYXKEYS.RAM_ONLY_SEARCH_TAG_FILTERS_RESULTS, []);
 }
 
 function openBulkChangeApproverPage(reportIDList: OpenBulkChangeApproverPageParams['reportIDList']) {
@@ -1168,6 +1201,10 @@ function openBulkChangeApproverPage(reportIDList: OpenBulkChangeApproverPagePara
 type InFlightSearchRequest = {
     shouldCalculateTotals: boolean;
     shouldSaveRecentSearch: boolean;
+    /** The footer breakdown it asks the total for. Not part of the hash, so it is told apart here. */
+    footerTotal?: SearchFooterTotal;
+    /** The request, including any re-fire chained onto it. */
+    promise?: Promise<string | number | undefined>;
     pendingShouldCalculateTotals?: boolean;
     pendingShouldSaveRecentSearch?: boolean;
     pendingUpgradeRequest?: () => Promise<string | number | undefined> | undefined;
@@ -1228,7 +1265,7 @@ function handlePreventSearchAPI(hash: number | undefined) {
  * columns to a backend-supported date sort.
  */
 function getBackendQueryJSON(queryJSON: Readonly<SearchQueryJSON>) {
-    const {exactMatchFilterKeys, flatFilters, limit, ...queryJSONWithoutFlatFilters} = queryJSON;
+    const {flatFilters, limit, ...queryJSONWithoutFlatFilters} = queryJSON;
     const backendQueryJSON = shouldUseBackendDateSortFallback(queryJSON.sortBy)
         ? {
               ...queryJSONWithoutFlatFilters,
@@ -1242,7 +1279,7 @@ function getBackendQueryJSON(queryJSON: Readonly<SearchQueryJSON>) {
               ),
           }
         : queryJSONWithoutFlatFilters;
-    return {backendQueryJSON, limit, exactMatchFilterKeys};
+    return {backendQueryJSON, limit};
 }
 
 function search({
@@ -1287,6 +1324,7 @@ function search({
     }
 
     const dedupeKey = `${queryJSON.hash}_${offset ?? 0}`;
+    const {footerTotal} = getFooterSelectionFromQuery(queryJSON);
     const inFlightRequest = inFlightSearchRequests.get(dedupeKey);
     if (inFlightRequest) {
         // Not just EXPENSE: any type can now need totals (e.g. EXPENSE_REPORT's reportCount). Gating this
@@ -1296,7 +1334,10 @@ function search({
         // A user-submitted query colliding with an unflagged in-flight request (e.g. a programmatic refresh
         // of the same query) must still reach the backend flagged, or it never enters recent searches.
         const needsSaveRecentSearchUpgrade = shouldSaveRecentSearch && !inFlightRequest.shouldSaveRecentSearch;
-        if (needsTotalsUpgrade || needsSaveRecentSearchUpgrade) {
+        // Another footer breakdown shares the hash but not the total, so it re-fires after the in-flight one, and the
+        // latest breakdown wins without racing it. Its caller gets the chain, so it waits until that total lands.
+        const needsBreakdownRefire = footerTotal !== inFlightRequest.footerTotal;
+        if (needsTotalsUpgrade || needsSaveRecentSearchUpgrade || needsBreakdownRefire) {
             // Accumulate desired flags so a later upgrade for one dimension can't drop an earlier
             // upgrade for the other. Only a single pending re-fire is kept.
             inFlightRequest.pendingShouldCalculateTotals = (inFlightRequest.pendingShouldCalculateTotals ?? inFlightRequest.shouldCalculateTotals) || shouldCalculateTotals;
@@ -1317,13 +1358,13 @@ function search({
                     shouldShowLoading: !inFlightRequest.didSucceed || inFlightRequest.pendingShouldCalculateTotals !== inFlightRequest.shouldCalculateTotals,
                 });
         }
-        return;
+        return needsBreakdownRefire ? inFlightRequest.promise : undefined;
     }
-    const inFlightRequestState: InFlightSearchRequest = {shouldCalculateTotals, shouldSaveRecentSearch};
+    const inFlightRequestState: InFlightSearchRequest = {shouldCalculateTotals, shouldSaveRecentSearch, footerTotal};
     inFlightSearchRequests.set(dedupeKey, inFlightRequestState);
 
     const onyxLoadingData = getOnyxLoadingData(queryJSON.hash, queryJSON, offset, true, shouldCalculateTotals, shouldShowLoading);
-    const {backendQueryJSON, limit, exactMatchFilterKeys} = getBackendQueryJSON(queryJSON);
+    const {backendQueryJSON, limit} = getBackendQueryJSON(queryJSON);
     const query = {
         ...backendQueryJSON,
         searchKey,
@@ -1334,7 +1375,7 @@ function search({
         // Backend expects 'maximumResults' instead of 'limit'
         ...(limit !== undefined && {maximumResults: limit}),
     };
-    const jsonQuery = serializeQueryJSONForBackend(query, exactMatchFilterKeys ? new Set(exactMatchFilterKeys) : undefined);
+    const jsonQuery = serializeQueryJSONForBackend(query);
 
     if (shouldUpdateLastSearchParams) {
         saveLastSearchParams({
@@ -1348,6 +1389,12 @@ function search({
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.SNAPSHOT | typeof ONYXKEYS.SEARCH_FILTERS>> = [...(onyxLoadingData.optimisticData ?? [])];
     const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.SNAPSHOT | typeof ONYXKEYS.SEARCH_FILTERS>> = [...(onyxLoadingData.failureData ?? [])];
     const finallyData = onyxLoadingData.finallyData;
+    // The breakdown the total now answers, so the footer can tell a total for another one apart. A later page without
+    // totals keeps the earlier total, so it leaves the stamp alone.
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.SNAPSHOT>> =
+        shouldCalculateTotals || !offset
+            ? [{onyxMethod: Onyx.METHOD.MERGE, key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${queryJSON.hash}`, value: {search: {footerTotal: footerTotal ?? CONST.SEARCH.FOOTER_TOTAL.TOTAL}}}]
+            : [];
 
     if (searchKey) {
         optimisticData.push({
@@ -1362,7 +1409,7 @@ function search({
     }
 
     const startRequest = () =>
-        makeRequestWithSideEffects(READ_COMMANDS.SEARCH, {hash: queryJSON.hash, jsonQuery}, {optimisticData, finallyData, failureData})
+        makeRequestWithSideEffects(READ_COMMANDS.SEARCH, {hash: queryJSON.hash, jsonQuery}, {optimisticData, successData, finallyData, failureData})
             .then((result) => {
                 const response = result?.onyxData?.[0]?.value as OnyxSearchResponse;
                 inFlightRequestState.didSucceed = result?.jsonCode === CONST.JSON_CODE.SUCCESS;
@@ -1445,7 +1492,8 @@ function search({
     };
 
     if (skipWaitForWrites) {
-        return startRequest().catch(handleSearchError);
+        inFlightRequestState.promise = startRequest().catch(handleSearchError);
+        return inFlightRequestState.promise;
     }
 
     // A search can sit behind the whole write queue here. That wait happens before the request is dispatched, so none of the
@@ -1462,7 +1510,7 @@ function search({
         },
     });
 
-    return waitForWrites(READ_COMMANDS.SEARCH)
+    inFlightRequestState.promise = waitForWrites(READ_COMMANDS.SEARCH)
         .then(() => {
             endSpan(queueSpanId);
             return startRequest();
@@ -1472,6 +1520,7 @@ function search({
             cancelSpan(queueSpanId);
             return handleSearchError(error);
         });
+    return inFlightRequestState.promise;
 }
 
 /**
@@ -1505,15 +1554,12 @@ function getFooterConvertedAmounts({
 
     // searchKey changes what the backend query matches (e.g. unapprovedCash excludes card expenses), so it must be
     // sent exactly as search() sends it or the converted totals cover a different expense set than the snapshot.
-    const {backendQueryJSON, exactMatchFilterKeys} = getBackendQueryJSON(queryJSON);
-    const jsonQuery = serializeQueryJSONForBackend(
-        {
-            ...backendQueryJSON,
-            searchKey,
-            filters: backendQueryJSON.filters ?? null,
-        },
-        exactMatchFilterKeys ? new Set(exactMatchFilterKeys) : undefined,
-    );
+    const {backendQueryJSON} = getBackendQueryJSON(queryJSON);
+    const jsonQuery = serializeQueryJSONForBackend({
+        ...backendQueryJSON,
+        searchKey,
+        filters: backendQueryJSON.filters ?? null,
+    });
 
     read(
         READ_COMMANDS.GET_TRANSACTIONS_CONVERTED_AMOUNT,
@@ -1543,21 +1589,37 @@ function clearFooterConversion() {
     Onyx.set(ONYXKEYS.SEARCH_FOOTER_CONVERSION, null);
 }
 
-// Refactoring this to a params object would touch every call site and is out of scope here.
-// eslint-disable-next-line @typescript-eslint/max-params
-function submitMoneyRequestOnSearch(
-    hash: number,
-    reportList: Report[],
-    policy: Policy[],
-    submitterLogin: string | undefined,
-    getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'],
-    rules: OnyxCollection<Rule>,
-    currentSearchKey?: SearchKey,
-    managerEmail?: string,
-    managerAccountID?: number,
-    currentUserAccountID?: number,
-    delegateEmail?: string,
-) {
+type SubmitMoneyRequestOnSearchParams = {
+    hash: number;
+    reportList: Report[];
+    policy: Policy[];
+    submitterLogin: string | undefined;
+    getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
+    rules: OnyxCollection<Rule>;
+    personalDetailsByLogins: PersonalDetailsByLogin;
+    currentSearchKey?: SearchKey;
+    managerEmail?: string;
+    managerAccountID?: number;
+    currentUserAccountID?: number;
+    delegateEmail?: string;
+    shouldResolveAcknowledgedViolations?: boolean;
+};
+
+function submitMoneyRequestOnSearch({
+    hash,
+    reportList,
+    policy,
+    submitterLogin,
+    getCurrencyDecimals,
+    rules,
+    personalDetailsByLogins,
+    currentSearchKey,
+    managerEmail,
+    managerAccountID,
+    currentUserAccountID,
+    delegateEmail,
+    shouldResolveAcknowledgedViolations,
+}: SubmitMoneyRequestOnSearchParams) {
     const firstReport = (reportList.at(0) ?? {}) as Report;
     const firstPolicy = policy.at(0);
     const isDEWPolicy = hasDynamicExternalWorkflow(firstPolicy);
@@ -1662,8 +1724,8 @@ function submitMoneyRequestOnSearch(
     }
 
     const trimmedManagerEmail = managerEmail?.trim();
-    const managerAccountIDFromEmail = trimmedManagerEmail ? getAccountIDForSubmitManagerEmail(trimmedManagerEmail, firstPolicy?.employeeList) : undefined;
-    const submitReportManagerAccountID = getSubmitReportManagerAccountID(firstPolicy, firstReport, submitterLogin, rules);
+    const managerAccountIDFromEmail = trimmedManagerEmail ? getAccountIDForSubmitManagerEmail(trimmedManagerEmail, firstPolicy?.employeeList, personalDetailsByLogins) : undefined;
+    const submitReportManagerAccountID = getSubmitReportManagerAccountID(firstPolicy, firstReport, submitterLogin, rules, personalDetailsByLogins);
 
     // When an explicit manager email can't be resolved to an accountID, send the email alone rather than a mismatched
     // accountID from the approval chain, which would point the server at someone other than the chosen approver.
@@ -1674,6 +1736,7 @@ function submitMoneyRequestOnSearch(
         reportActionID: optimisticSubmittedReportAction.reportActionID,
         ...(resolvedManagerAccountID !== undefined ? {managerAccountID: resolvedManagerAccountID} : {}),
         ...(trimmedManagerEmail ? {managerEmail: trimmedManagerEmail} : {}),
+        ...(shouldResolveAcknowledgedViolations ? {shouldResolveAcknowledgedViolations} : {}),
     };
 
     // The SubmitReport command is not 1:1:1 yet, which means creating a separate SubmitMoneyRequestOnSearch command is not feasible until https://github.com/Expensify/Expensify/issues/451223 is done.
@@ -1806,6 +1869,7 @@ function rejectMoneyRequestInBulk(
     delegateAccountID: number | undefined,
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'],
     rules: OnyxCollection<Rule>,
+    reportTransactionsCollection: Record<string, Transaction>,
     hash?: number,
 ) {
     const optimisticData: Array<RejectMoneyRequestData['optimisticData'][number] | OnyxUpdate<typeof ONYXKEYS.COLLECTION.SNAPSHOT>> = [];
@@ -1837,6 +1901,7 @@ function rejectMoneyRequestInBulk(
             getCurrencyDecimals,
             rules,
             shouldUseBulkAction: true,
+            reportTransactionsCollection,
         });
         if (data) {
             optimisticData.push(...data.optimisticData);
@@ -1918,11 +1983,10 @@ function rejectMoneyRequestsOnSearch({
             Log.info('[BulkReject] Report is missing from live Onyx', false, {reportID});
         }
         const totalReportTransactions = report?.transactionCount ?? 0;
+        const reportTransactionsCollection = allReportsTransactionsAndViolations?.[reportID]?.transactions ?? {};
 
         // Subtract pending deletes to get accurate count when transactions are deleted offline
-        const pendingDeleteCount = Object.values(allReportsTransactionsAndViolations?.[reportID]?.transactions ?? {}).filter(
-            (transaction) => transaction.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
-        ).length;
+        const pendingDeleteCount = Object.values(reportTransactionsCollection).filter((transaction) => transaction.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE).length;
         const effectiveTransactionCount = totalReportTransactions - pendingDeleteCount;
         const areAllExpensesSelected = selectedTransactionIDs.length === effectiveTransactionCount;
         const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`];
@@ -1939,6 +2003,7 @@ function rejectMoneyRequestsOnSearch({
                 delegateAccountID,
                 getCurrencyDecimals,
                 rules,
+                reportTransactionsCollection,
                 hash,
             );
         } else {
@@ -1949,13 +2014,23 @@ function rejectMoneyRequestsOnSearch({
                 existingRejectedReport = nextRejectedReport;
             };
             for (const transactionID of selectedTransactionIDs) {
-                rejectMoneyRequest(transactionID, reportID, comment, policy, currentUserAccountIDParam, currentUserLogin, isASAPSubmitBetaEnabled, delegateAccountID, getCurrencyDecimals, {
+                rejectMoneyRequest({
+                    transactionID,
+                    reportID,
+                    comment,
+                    policy,
+                    currentUserAccountIDParam,
+                    currentUserLogin,
+                    isASAPSubmitBetaEnabled,
+                    delegateAccountID,
+                    getCurrencyDecimals,
                     rules,
                     options: {
                         sharedRejectedToReportID,
                         existingRejectedReport,
                         setExistingRejectedReport,
                     },
+                    reportTransactionsCollection,
                 });
             }
         }
@@ -2167,6 +2242,17 @@ function queueBulkPayReports(jsonQuery: string) {
     write(WRITE_COMMANDS.QUEUE_BULK_PAY_REPORTS, {jsonQuery});
 }
 
+/**
+ * Queues a manual bulk "Mark as exported" for every report matching the given search query on the given connection.
+ * The backend pages through all matches itself, so this covers reports beyond the currently loaded page(s) when
+ * "Select all" is checked in Search. connectionName scopes the resolved reports to a single accounting connection,
+ * since the button is per-integration and must never mix connections. qboIntegrationAlias further disambiguates an
+ * Intuit Enterprise Suite connection from a regular QBO connection, since both share the same connectionName.
+ */
+function queueBulkMarkAsExported(jsonQuery: string, connectionName: ConnectionName, qboIntegrationAlias?: QueueBulkMarkAsExportedParams['qboIntegrationAlias']) {
+    write(WRITE_COMMANDS.QUEUE_BULK_MARK_AS_EXPORTED, {jsonQuery, connectionName, qboIntegrationAlias});
+}
+
 /** Export templates pre-grouped for the Export menus: each group is sorted alphabetically and rendered with a divider between groups */
 type ExportTemplateGroups = {
     /** Custom templates (custom integrations + account/policy in-app templates) */
@@ -2280,6 +2366,11 @@ function updateAdvancedFilters(values: Nullable<Partial<FormOnyxValues<typeof ON
  */
 function setSearchContext(shouldShowSearchQuery: boolean) {
     Onyx.set(ONYXKEYS.SEARCH_CONTEXT, {shouldShowSearchQuery});
+}
+
+/** Stores the reports selected for the Search Merge Reports flow so the selection survives app refreshes. */
+function setSearchMergeReportIDs(reportIDs: string[] | null) {
+    return Onyx.set(ONYXKEYS.SEARCH_MERGE_REPORT_IDS, reportIDs);
 }
 
 /**
@@ -2602,8 +2693,10 @@ export {
     queueExportSearchItemsToCSV,
     queueExportSearchWithTemplate,
     queueBulkPayReports,
+    queueBulkMarkAsExported,
     updateAdvancedFilters,
     setSearchContext,
+    setSearchMergeReportIDs,
     deleteSavedSearch,
     getSearchPayOnyxData,
     getChatReportWithFallback,
@@ -2627,8 +2720,8 @@ export {
     openSearchCardFiltersPage,
     openSearchCategoryFiltersPage,
     openSearchTagFiltersPage,
+    ALL_POLICY_IDS_KEY,
     setSearchTagFiltersPagination,
-    clearSearchTagFiltersState,
     getPolicyFromSearchSnapshot,
     getReportFromSearchSnapshot,
     getReportActionsFromSearchSnapshot,

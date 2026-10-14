@@ -195,7 +195,7 @@ describe('ExpenseReportRulesSection', () => {
 
             // Then auto-pay is turned off without going through the upgrade page
             expect(Navigation.navigate).not.toHaveBeenCalled();
-            expect(enablePolicyAutoReimbursementLimit).toHaveBeenCalledWith(POLICY_ID, false, true, undefined);
+            expect(enablePolicyAutoReimbursementLimit).toHaveBeenCalledWith(POLICY_ID, false, true, undefined, {});
         });
 
         it('keeps the payments copy and locks the toggle on a Control workspace without a bank account', () => {
@@ -251,7 +251,7 @@ describe('ExpenseReportRulesSection', () => {
 
             // Then auto-pay is enabled directly without going through the upgrade page
             expect(Navigation.navigate).not.toHaveBeenCalled();
-            expect(enablePolicyAutoReimbursementLimit).toHaveBeenCalledWith(POLICY_ID, true, undefined, undefined);
+            expect(enablePolicyAutoReimbursementLimit).toHaveBeenCalledWith(POLICY_ID, true, undefined, undefined, {});
         });
     });
 });

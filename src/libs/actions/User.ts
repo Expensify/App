@@ -310,6 +310,38 @@ function updateNewsletterSubscription(isSubscribed: boolean) {
 }
 
 /**
+ * Request to remove the current user's email from the suppression list.
+ * The backend derives the email from the session, so no params are sent. A backend failure still returns 200, so the
+ * caller decides success vs failure by re-reading `hasEmailDeliveryFailure` once `isUnblockingEmail` clears.
+ */
+function requestEmailUnblock() {
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.ACCOUNT>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.ACCOUNT,
+            value: {isUnblockingEmail: true},
+        },
+    ];
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.ACCOUNT>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.ACCOUNT,
+            value: {isUnblockingEmail: false},
+        },
+    ];
+    // The failure surface is the ConfirmModal driven by hasEmailDeliveryFailure, so we deliberately do not write to account.errors here.
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.ACCOUNT>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.ACCOUNT,
+            value: {isUnblockingEmail: false},
+        },
+    ];
+
+    API.write(WRITE_COMMANDS.USER_UNBLOCK_EMAIL, null, {optimisticData, successData, failureData});
+}
+
+/**
  * Delete a specific contact method
  * @param contactMethod - the contact method being deleted
  * @param loginList
@@ -509,7 +541,8 @@ function addNewContactMethod(contactMethod: string, validateCode = '') {
             value: {
                 [loginKey]: {
                     errorFields: {
-                        addedLogin: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('contacts.genericFailureMessages.addContactMethod'),
+                        // Key 0 so a server-sent error always sorts newer than this fallback, even with device clock skew
+                        addedLogin: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('contacts.genericFailureMessages.addContactMethod', 0),
                     },
                 },
             },
@@ -844,6 +877,26 @@ function subscribeToUserEvents(
     }
 
     PusherUtils.onPrivateUserChannelResubscribe(currentUserAccountID.toString());
+
+    // Temporary labels bypass the reliable update stream, but wait for the current API response so an older snapshot cannot overwrite them.
+    // Keep events in arrival order even when they wait on different queued requests.
+    let processingStatusEventsPromise = Promise.resolve();
+    PusherUtils.subscribeToPrivateUserChannelEvent(Pusher.TYPE.AGENT_ZERO_PROCESSING_STATUS, currentUserAccountID.toString(), (pushJSON) => {
+        processingStatusEventsPromise = processingStatusEventsPromise
+            .then(() => SequentialQueue.getCurrentRequest())
+            .then(() => {
+                if (sessionAccountID !== currentUserAccountID || !ActiveClientManager.isClientTheLeader()) {
+                    return;
+                }
+
+                return Onyx.update(pushJSON.updates);
+            })
+            .catch((error: unknown) => {
+                Log.alert('[subscribeToUserEvents] Applying Agent Zero processing status failed', {
+                    error: error instanceof Error ? error.message : String(error),
+                });
+            });
+    });
 
     // Handles the mega multipleEvents from Pusher which contains an array of single events.
     // Each single event is passed to PusherUtils in order to trigger the callbacks for that event
@@ -1961,6 +2014,7 @@ export {
     resendValidateCode,
     requestContactMethodValidateCode,
     updateNewsletterSubscription,
+    requestEmailUnblock,
     deleteContactMethod,
     clearContactMethodErrors,
     clearContactMethod,

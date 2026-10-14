@@ -1,3 +1,4 @@
+import {buildDeleteApprovalWorkflowRulesOnyxData} from '@libs/actions/Workflow';
 import {write} from '@libs/API';
 import type {ConnectPolicyToMergeParams, UpdateMergeApprovalModeParams} from '@libs/API/parameters';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
@@ -14,8 +15,9 @@ import type {MergeHRProviderSlug} from '@src/CONST/MERGE_HR_PROVIDERS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type Policy from '@src/types/onyx/Policy';
 import type {MergeApprovalMode, MergeATSApproverField} from '@src/types/onyx/Policy';
+import type Rule from '@src/types/onyx/Rule';
 
-import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 
 import Onyx from 'react-native-onyx';
@@ -66,6 +68,9 @@ function syncMerge(policy: OnyxEntry<Policy>, connectionName: MergeConnectionNam
                             syncStatus: CONST.MERGE.SYNC_STATUS.SYNCING,
                             syncType: CONST.MERGE.SYNC_TYPE.MANUAL,
                             manualSyncTimestamps: [DateUtils.getDBTime(), ...(previousLastSync?.manualSyncTimestamps ?? [])],
+                            // A prior failure may have been a configuration error; starting a fresh sync clears
+                            // that flag so a later unrelated failure isn't mistaken for one that's already fixed.
+                            isConfigurationError: false,
                         },
                     },
                 },
@@ -84,6 +89,7 @@ function syncMerge(policy: OnyxEntry<Policy>, connectionName: MergeConnectionNam
                             syncStatus: CONST.MERGE.SYNC_STATUS.FAILED,
                             errorMessage: null,
                             manualSyncTimestamps: previousLastSync?.manualSyncTimestamps ?? null,
+                            isConfigurationError: false,
                         },
                     },
                 },
@@ -106,6 +112,9 @@ type UpdateMergeApprovalModeOptions = {
     approvalMode: MergeApprovalMode;
     currentApprovalMode: MergeApprovalMode | undefined;
 
+    /** The rules collection, which holds the workspace's approval workflow rules that every mode but custom deletes */
+    rules: OnyxCollection<Rule>;
+
     /**
      * Merge ATS only
      */
@@ -124,11 +133,14 @@ function updateMergeApprovalMode({
     connectionName,
     approvalMode,
     currentApprovalMode,
+    rules,
     approverField,
     currentApproverField,
     finalApprover,
     currentFinalApprover,
 }: UpdateMergeApprovalModeOptions) {
+    // In every mode but custom, the provider's syncs set the approvers, so the backend deletes the workspace's approval workflow rules
+    const approvalWorkflowRulesOnyxData = approvalMode === CONST.MERGE.APPROVAL_MODE.CUSTOM ? undefined : buildDeleteApprovalWorkflowRulesOnyxData(policyID, rules);
     const updatedConfig: MergeApprovalConfigUpdate = {approvalMode};
     const rolledBackConfig: MergeApprovalConfigUpdate = {approvalMode: currentApprovalMode ?? null};
 
@@ -139,7 +151,7 @@ function updateMergeApprovalMode({
         rolledBackConfig.finalApprover = currentFinalApprover ?? null;
     }
 
-    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY | typeof ONYXKEYS.COLLECTION.RULE>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
@@ -155,9 +167,10 @@ function updateMergeApprovalMode({
                 },
             },
         },
+        ...(approvalWorkflowRulesOnyxData?.optimisticData ?? []),
     ];
 
-    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY | typeof ONYXKEYS.COLLECTION.RULE>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
@@ -172,9 +185,10 @@ function updateMergeApprovalMode({
                 },
             },
         },
+        ...(approvalWorkflowRulesOnyxData?.successData ?? []),
     ];
 
-    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY | typeof ONYXKEYS.COLLECTION.RULE>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
@@ -190,6 +204,7 @@ function updateMergeApprovalMode({
                 },
             },
         },
+        ...(approvalWorkflowRulesOnyxData?.failureData ?? []),
     ];
 
     const parameters: UpdateMergeApprovalModeParams = {

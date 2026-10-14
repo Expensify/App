@@ -25,6 +25,7 @@ import {
     isInvoiceReport,
     isInvoiceRoom,
     isPolicyExpenseChat,
+    isSupportTicket,
     isTripRoom,
     shouldReportShowSubscript,
 } from '@libs/ReportUtils';
@@ -96,7 +97,8 @@ function useReportActionAvatars({
         selector: (actions) => getReportActionByIDSelector(actions, derivedActionID),
     });
 
-    const action = passedAction ?? derivedAction;
+    // Support tickets use the assigned rep's avatar, not the parent message's author.
+    const action = passedAction ?? (isSupportTicket(report) ? undefined : derivedAction);
 
     const [actionChildReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${action?.childReportID}`);
 

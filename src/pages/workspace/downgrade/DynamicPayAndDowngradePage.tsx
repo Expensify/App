@@ -77,7 +77,7 @@ function DynamicPayAndDowngradePage() {
     }, []);
 
     if (isLoadingOnyxValue(metadata)) {
-        return <FullScreenLoadingIndicator />;
+        return <FullScreenLoadingIndicator onGoBack={() => Navigation.goBack(backPath)} />;
     }
 
     return (

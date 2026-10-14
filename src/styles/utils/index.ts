@@ -15,7 +15,7 @@ import type {Dimensions} from '@src/types/utils/Layout';
 import type Nullable from '@src/types/utils/Nullable';
 
 // eslint-disable-next-line no-restricted-imports
-import type {AnimatableNumericValue, Animated, ColorValue, ImageStyle, PressableStateCallbackType, StyleProp, TextStyle, ViewStyle} from 'react-native';
+import type {AnimatableNumericValue, Animated, ColorValue, DimensionValue, ImageStyle, PressableStateCallbackType, StyleProp, TextStyle, ViewStyle} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {EdgeInsets} from 'react-native-safe-area-context';
 import type {ValueOf} from 'type-fest';
@@ -514,11 +514,12 @@ function getZoomSizingStyle({imageSize, containerSize, zoomScale, isZoomed, isLo
 }
 
 /**
- * Returns a style with width set to the specified number
+ * Returns a style with width set to the specified number, or on web to a CSS expression like `calc()`
  */
-function getWidthStyle(width: number): ViewStyle & ImageStyle {
+function getWidthStyle(width: number | string): ViewStyle & ImageStyle {
     return {
-        width,
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- `DimensionValue` can't type CSS expressions like `calc()`, which react-native-web passes through
+        width: width as DimensionValue,
     };
 }
 
@@ -913,11 +914,12 @@ function getMinimumHeight(minHeight: number): ViewStyle {
 }
 
 /**
- * Get minimum width as style
+ * Get minimum width as style, or on web a CSS expression like `calc()`
  */
-function getMinimumWidth(minWidth: number): ViewStyle & ImageStyle {
+function getMinimumWidth(minWidth: number | string): ViewStyle & ImageStyle {
     return {
-        minWidth,
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- `DimensionValue` can't type CSS expressions like `calc()`, which react-native-web passes through
+        minWidth: minWidth as DimensionValue,
     };
 }
 

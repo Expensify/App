@@ -15,7 +15,7 @@ import {RESULTS} from 'react-native-permissions';
 
 import type * as MockUseConfirmModalUtil from '../utils/mockUseConfirmModal';
 
-import {getShowConfirmModalOption, mockShowConfirmModal, resetMockConfirmModal, resolveShowConfirmModal} from '../utils/mockUseConfirmModal';
+import {getShowConfirmModalOption, mockCloseModal, mockShowConfirmModal, resetMockConfirmModal, resolveShowConfirmModal} from '../utils/mockUseConfirmModal';
 
 const mockGetLocationPermission = jest.fn<ReturnType<typeof LocationPermissionModule.getLocationPermission>, Parameters<typeof LocationPermissionModule.getLocationPermission>>();
 const mockRequestLocationPermission = jest.fn<ReturnType<typeof LocationPermissionModule.requestLocationPermission>, Parameters<typeof LocationPermissionModule.requestLocationPermission>>();
@@ -146,6 +146,7 @@ describe('LocationPermissionModal', () => {
 
             expect(props.resetPermissionFlow).toHaveBeenCalled();
             expect(props.onDeny).not.toHaveBeenCalled();
+            expect(mockCloseModal).not.toHaveBeenCalled();
         });
 
         it('Prompt -> Not Now -> denies (user initiated)', async () => {
@@ -199,7 +200,7 @@ describe('LocationPermissionModal', () => {
             expect(mockRequestLocationPermission).toHaveBeenCalledTimes(1);
         });
 
-        it('Prompt -> Confirm -> still Blocked -> denies without last prompt update', async () => {
+        it('Prompt -> Confirm -> still Blocked -> denies and starts the prompt window', async () => {
             const props = createDefaultProps();
             mockGetLocationPermission.mockResolvedValue(RESULTS.BLOCKED);
             setOpenSettings(undefined);
@@ -216,7 +217,7 @@ describe('LocationPermissionModal', () => {
             });
 
             await waitFor(() => expect(props.onDeny).toHaveBeenCalledWith(false));
-            expect(mockUpdateLastLocationPermissionPrompt).not.toHaveBeenCalled();
+            expect(mockUpdateLastLocationPermissionPrompt).toHaveBeenCalledTimes(1);
             expect(mockRequestLocationPermission).not.toHaveBeenCalled();
         });
     });
@@ -237,6 +238,7 @@ describe('LocationPermissionModal', () => {
 
             expect(props.resetPermissionFlow).toHaveBeenCalled();
             expect(props.onDeny).not.toHaveBeenCalled();
+            expect(mockCloseModal).not.toHaveBeenCalled();
         });
 
         it('Prompt -> Not Now -> denies (user initiated)', async () => {
