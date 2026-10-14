@@ -48,6 +48,7 @@ import useDefaultDragAndDrop from './hooks/useDefaultDragAndDrop';
 import HybridAppHandler from './HybridAppHandler';
 import OnyxUpdateManager from './libs/actions/OnyxUpdateManager';
 import './libs/HybridApp';
+import touchEventBoundaryProps from './libs/telemetry/touchEventBoundaryProps';
 import {ConciergeSessionProvider} from './pages/inbox/ConciergeSessionContext';
 import './setup/backgroundLocationTrackingTask';
 import './setup/backgroundTask';
@@ -148,6 +149,6 @@ function App() {
     );
 }
 
-const WrappedApp = Sentry.wrap(App);
+const WrappedApp = Sentry.wrap(App, {touchEventBoundaryProps});
 WrappedApp.displayName = 'App';
 export default WrappedApp;
