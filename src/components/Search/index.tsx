@@ -164,7 +164,7 @@ function Search({
 
     const {markReportRHPWidth, unmarkReportRHPWidth} = useWideRHPActions();
     const {currentSearchHash, currentSearchKey, shouldResetSearchQuery, suggestedSearches} = useSearchQueryContext();
-    const {lastSearchType, shouldUseLiveData} = useSearchResultsContext();
+    const {lastSearchType, shouldUseLiveData, currentSearchResults} = useSearchResultsContext();
 
     const {setShouldResetSearchQuery} = useSearchQueryActions();
     const {setShouldShowFiltersBarLoading} = useSearchResultsActions();
@@ -225,7 +225,7 @@ function Search({
     const isExpenseAllMatchingSelection = type === CONST.SEARCH.DATA_TYPES.EXPENSE && areAllMatchingItemsSelected;
     const isAllMatchingItemsCountMissing = isExpenseAllMatchingSelection && typeof searchResults?.search?.count !== 'number';
     const shouldCalculateExpenseTotals = useSearchShouldCalculateTotals(currentSearchKey, offset === 0 || isAllMatchingItemsCountMissing, isExpenseAllMatchingSelection);
-    const shouldCalculateTotals = (areAllMatchingItemsSelected && !isExpenseAllMatchingSelection) || shouldCalculateExpenseTotals;
+    const shouldCalculateTotals = (areAllMatchingItemsSelected && !isExpenseAllMatchingSelection && !shouldUseLiveData) || shouldCalculateExpenseTotals;
     const previousShouldCalculateTotals = usePrevious(shouldCalculateTotals);
     const searchRequestOffset = getSearchRequestOffsetForMissingAllMatchingCount(offset, searchResults?.search?.offset, isAllMatchingItemsCountMissing);
     // For an expense-report "select all matching", the total the bulk-actions button waits for is the server
@@ -302,6 +302,7 @@ function Search({
         hasDeletedTransaction,
         columns: computedColumns,
         hasLoadedAllTransactions,
+        hasRowsPastLimit,
         hasCachedOptimisticItem,
         showPendingExpensePlaceholder,
         shouldDeferHeavySearchWork,
@@ -1508,6 +1509,10 @@ function Search({
         isTaxAmountColumnWide: shouldShowTaxAmountInWideColumn,
     };
 
+    // On live searches the server's `hasMoreResults` stays stale until the next fetch, so the row cap decides. Other
+    // searches read the context, because `searchResults` can still be the previous query's while a refinement loads.
+    const hasMoreMatchingItems = shouldUseLiveData ? hasRowsPastLimit : !!currentSearchResults?.search?.hasMoreResults;
+
     const commonViewProps: CommonSearchViewProps = {
         queryJSON,
         data: stableSortedData,
@@ -1526,6 +1531,7 @@ function Search({
         isMobileSelectionModeEnabled,
         newTransactions,
         hasLoadedAllTransactions,
+        hasMoreMatchingItems,
         isActionColumnWide: isTask || hasDeletedTransaction,
         columnSizeOptions,
     };

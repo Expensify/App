@@ -59,6 +59,8 @@ type SearchSnapshotResult = {
     isLoading: boolean;
     /** Whether the server reports more results beyond the current page. */
     hasMore: boolean;
+    /** Whether `visibleRowLimit` is holding back rows the list would otherwise show. */
+    hasRowsPastLimit: boolean;
     /** Whether every transaction (including grouped sub-snapshots) has been loaded. */
     hasLoadedAllTransactions: boolean;
     /** True while the cached optimistic row is being re-injected across a snapshot-replacement gap. */
@@ -92,14 +94,18 @@ const EMPTY_DATA: SearchListItem[] = [];
 const EMPTY_HASHES: string[] = [];
 const EMPTY_GROUP_ITEMS: TransactionGroupListItemType[] = [];
 
+/** Online, a row being deleted is hidden, so the cap neither spends a slot on it nor holds it back. */
+function isRowHiddenWhileOnline(row: SearchListItem, isOffline: boolean): boolean {
+    return !isOffline && row.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
+}
+
 /** How many leading rows the cap keeps: `rowLimit` rows on screen, stretched down to the last ticked row. */
 function getRowLimitEnd(rows: SearchListItem[], rowLimit: number, selectedTransactions: SelectedTransactions | undefined, isOffline: boolean): number {
     const isKeySelected = (key: string | undefined) => !!key && !!selectedTransactions?.[key]?.isSelected;
     let shownRowCount = 0;
     let end = 0;
     for (const [index, row] of rows.entries()) {
-        // online, a row being deleted is hidden, so it doesn't use up the cap
-        if (!isOffline && row.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
+        if (isRowHiddenWhileOnline(row, isOffline)) {
             continue;
         }
         shownRowCount += 1;
@@ -385,6 +391,7 @@ function useSearchSnapshot({queryJSON, searchResults, transactions, reportAction
     const visibleData = isRowLimitApplied ? stableSortedData.slice(0, rowLimitEnd) : stableSortedData;
     // selection runs off this, so cap it too or "select all" reaches rows that were never rendered; live rows are all report groups
     const visibleFilteredData = isRowLimitApplied ? visibleData.filter(isTransactionGroupListItemType) : filteredData;
+    const hasRowsPastLimit = isRowLimitApplied && stableSortedData.slice(rowLimitEnd).some((row) => !isRowHiddenWhileOnline(row, isOffline));
 
     return {
         data: visibleData,
@@ -396,6 +403,7 @@ function useSearchSnapshot({queryJSON, searchResults, transactions, reportAction
         columns,
         isLoading,
         hasMore,
+        hasRowsPastLimit,
         hasLoadedAllTransactions,
         hasCachedOptimisticItem,
         showPendingExpensePlaceholder,

@@ -165,8 +165,7 @@ function SearchBulkActionsButton({queryJSON}: SearchBulkActionsButtonProps) {
 
     const allMatchingItemsCount = currentSearchResults?.search?.count;
     // For expense-report searches `count` is the number of expenses, not reports, so it can't label the Reports tab.
-    // The matching-report total across all pages is server-provided. `selectedTransactions` only holds the loaded
-    // page, so it can't be derived locally. Read it from the snapshot here.
+    // `selectedTransactions` only holds the loaded page, so the matching-report total across all pages can't be derived from it.
     const allMatchingReportsCount = currentSearchResults?.search?.reportCount;
     const relevantAllMatchingCount = isExpenseReportType ? allMatchingReportsCount : allMatchingItemsCount;
     const hasSearchErrors = Object.keys(currentSearchResults?.errors ?? {}).length > 0;

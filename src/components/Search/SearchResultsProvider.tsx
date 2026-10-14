@@ -59,10 +59,11 @@ function SearchResultsProvider({children}: SearchResultsProviderProps) {
     // We do this so the results stay fresh as the user acts on reports, instead of showing a stale server snapshot.
     let currentSearchResults;
     if (shouldUseLiveData) {
-        const liveData = liveTodoData ?? {data: {}, metadata: {count: 0, total: 0, currency: undefined}};
+        const liveData = liveTodoData ?? {data: {}, metadata: {count: 0, reportCount: 0, total: 0, currency: undefined}};
         const searchInfo: SearchResultsInfo = {
             ...(snapshotSearchResults?.search ?? defaultSearchInfo),
             count: liveData.metadata.count,
+            reportCount: liveData.metadata.reportCount,
             total: liveData.metadata.total,
             currency: liveData.metadata.currency,
         };

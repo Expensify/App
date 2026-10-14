@@ -175,6 +175,7 @@ function renderView(data: SearchListItem[]) {
                 isMobileSelectionModeEnabled={false}
                 tableHeaderVisible={false}
                 hasLoadedAllTransactions
+                hasMoreMatchingItems={false}
                 newTransactions={[]}
                 onSelectRow={onSelectRow}
                 onEndReached={onEndReached}

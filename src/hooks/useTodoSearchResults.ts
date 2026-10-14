@@ -21,6 +21,8 @@ type TodoSearchResultsData = SearchResults['data'];
 type TodoMetadata = {
     /** Total number of transactions across all reports */
     count: number;
+    /** Number of reports in the to-do bucket */
+    reportCount: number;
     /** Sum of all report totals (in cents) */
     total: number;
     /** Currency of the first report, used as reference currency */
@@ -58,7 +60,7 @@ function computeMetadata(reports: Report[], transactionsByReportID: Record<strin
         }
     }
 
-    return {count, total, currency};
+    return {count, reportCount: reports.length, total, currency};
 }
 
 /**

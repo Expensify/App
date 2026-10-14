@@ -2,7 +2,7 @@ import Checkbox from '@components/Checkbox';
 import PopoverMenu from '@components/PopoverMenu';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import {PressableWithFeedback} from '@components/Pressable';
-import {useSearchResultsContext, useSearchSelectionActions} from '@components/Search/SearchContext';
+import {useSearchSelectionActions} from '@components/Search/SearchContext';
 import Text from '@components/Text';
 
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -22,22 +22,30 @@ type SearchSelectAllMenuProps = {
     isIndeterminate: boolean;
     selectedItemsLength: number;
     totalItems: number;
+    hasMoreMatchingItems: boolean;
     shouldShowTextButton: boolean;
     onAllCheckboxPress: () => void;
 };
 
-function SearchSelectAllMenu({isSelectAllChecked, isIndeterminate, selectedItemsLength, totalItems, shouldShowTextButton, onAllCheckboxPress}: SearchSelectAllMenuProps) {
+function SearchSelectAllMenu({
+    isSelectAllChecked,
+    isIndeterminate,
+    selectedItemsLength,
+    totalItems,
+    hasMoreMatchingItems,
+    shouldShowTextButton,
+    onAllCheckboxPress,
+}: SearchSelectAllMenuProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Checkmark', 'CheckSquare']);
-    const {currentSearchResults} = useSearchResultsContext();
     const {selectAllMatchingItems} = useSearchSelectionActions();
     const selectAllAnchorRef = useRef<ComponentRef<typeof View>>(null);
     const [isSelectAllMenuVisible, setIsSelectAllMenuVisible] = useState(false);
     const [selectAllMenuPosition, setSelectAllMenuPosition] = useState({horizontal: 0, vertical: 0});
     const {calculatePopoverPosition} = usePopoverPosition();
 
-    const shouldOpenSelectAllMenu = selectedItemsLength === 0 && !!currentSearchResults?.search?.hasMoreResults;
+    const shouldOpenSelectAllMenu = selectedItemsLength === 0 && hasMoreMatchingItems;
 
     const closeSelectAllMenu = useCallback(() => setIsSelectAllMenuVisible(false), []);
 

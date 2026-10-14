@@ -50,6 +50,9 @@ type CommonSearchViewProps = {
     /** Whether everything has been loaded (gates the fully-checked select-all state). */
     hasLoadedAllTransactions?: boolean;
 
+    /** Whether more items match the search than the rows on this page, so select-all offers to select all of them. */
+    hasMoreMatchingItems: boolean;
+
     /** Newly-added transactions (feeds BaseSearchList extraData and the grouped-view child-snapshot refetch). */
     newTransactions: Transaction[];
 

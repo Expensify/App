@@ -24,7 +24,7 @@ jest.mock('@libs/SearchUIUtils', () => ({
 
 jest.mock('@hooks/useTodoSearchResults', () => ({
     __esModule: true,
-    default: () => ({data: {}, metadata: {count: 0, total: 0, currency: undefined}}),
+    default: () => ({data: {}, metadata: {count: 0, reportCount: 0, total: 0, currency: undefined}}),
 }));
 
 jest.mock('@components/Search/SearchContext', () => ({
