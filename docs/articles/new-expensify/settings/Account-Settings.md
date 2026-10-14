@@ -60,9 +60,8 @@ To manually set or update your timezone:
 1. On web, select **Account** in the navigation tabs. On mobile, select your profile icon.
 2. Select **Profile > Time zone**.
 3. Disable **Automatically determine your location**.
-4. Select **Timezone**.
-5. Choose your timezone from the list.
-6. Select **Save**.
+4. Choose your timezone from the list.
+5. Select **Save**.
 
 ---
 
