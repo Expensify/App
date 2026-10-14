@@ -3301,6 +3301,12 @@ ${amount} voor ${merchant} - ${date}`,
         prompt: (priorityModePageUrl: string) =>
             `Blijf op de hoogte door alleen ongelezen chats of chats te zien die je aandacht nodig hebben. Geen zorgen, je kunt dit op elk moment wijzigen in de <a href="${priorityModePageUrl}">instellingen</a>.`,
     },
+    morePage: {
+        accountingDescription: 'Exports, overlopende posten, afschriften en reconciliatie',
+        savedSearchesDescription: 'Ga terug naar een opgeslagen zoekopdracht',
+        insightsDescription: 'Zie waar je uitgaven naartoe gaan',
+        workspacesDescription: 'Beheer je werkruimtes en domeinen',
+    },
     inboxTabs: {
         all: 'Alles',
         todo: 'Te doen',
@@ -10218,6 +10224,7 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
         spendOverTime: 'Uitgaven in de tijd',
         tabs: {
             expenseReports: 'Declaraties',
+            myReports: 'Mijn rapporten',
             reports: 'Rapporten',
             expenses: 'Declaraties',
             submit: 'Concepten',

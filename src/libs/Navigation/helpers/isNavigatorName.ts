@@ -10,6 +10,7 @@ const FULL_SCREENS_SET = new Set([
     NAVIGATORS.TAB_NAVIGATOR,
     SCREENS.HOME,
     SCREENS.INSIGHTS,
+    SCREENS.MORE,
     NAVIGATORS.WORKSPACE_NAVIGATOR,
 ]);
 // Root-level navigators that render as an overlay/modal on top of the current screen. These do NOT go through the

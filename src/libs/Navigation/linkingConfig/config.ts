@@ -2421,6 +2421,9 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         },
                     },
                 },
+                [SCREENS.MORE]: {
+                    path: ROUTES.MORE,
+                },
                 [SCREENS.INSIGHTS]: {
                     path: ROUTES.INSIGHTS.route,
                     exact: true,

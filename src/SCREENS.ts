@@ -17,6 +17,13 @@ const PROTECTED_SCREENS = {
 const SCREENS = {
     ...PROTECTED_SCREENS,
     INSIGHTS: 'Insights',
+    MORE: 'More',
+    // Item-only tabs of the native tab bar. They render nothing; a tap on them opens a Spend search instead.
+    NATIVE_TAB_ITEM: {
+        EXPENSES: 'NativeTabItem_Expenses',
+        REPORTS_BEFORE_SPEND: 'NativeTabItem_ReportsBeforeSpend',
+        REPORTS_AFTER_SPEND: 'NativeTabItem_ReportsAfterSpend',
+    },
     REPORT: 'Report',
     DYNAMIC_PROFILE_AVATAR: 'Dynamic_Profile_Avatar',
     DYNAMIC_CARD_AUTHENTICATION: 'Dynamic_Card_Authentication',

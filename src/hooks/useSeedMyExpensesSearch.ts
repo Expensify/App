@@ -14,7 +14,8 @@ import useOnyx from './useOnyx';
 
 const createIsSubmitterAndApproverSelector = (currentUserEmail: string | undefined) => (policies: OnyxCollection<Policy>) => isSubmitterAndApprover(policies, currentUserEmail);
 
-function useSeedMyExpensesSearch() {
+/** Seeds the default saved search for users who both submit and approve. `isEnabled` holds the seed back until it is false no longer. */
+function useSeedMyExpensesSearch(isEnabled = true) {
     const {translate} = useLocalize();
     const [hasSeededMyExpensesSearch] = useOnyx(ONYXKEYS.NVP_HAS_SEEDED_MY_EXPENSES_SEARCH);
     const [savedSearches, savedSearchesMetadata] = useOnyx(ONYXKEYS.SAVED_SEARCHES);
@@ -28,6 +29,7 @@ function useSeedMyExpensesSearch() {
         // Wait for the saved searches to finish loading before seeding. Their value is `undefined` both while loading and when empty,
         // so gating on the load status (instead of the value) prevents seeding over a pre-existing search that has not synced yet.
         if (
+            !isEnabled ||
             hasSeededRef.current ||
             hasSeededMyExpensesSearch ||
             !currentUserAccountID ||
@@ -42,7 +44,7 @@ function useSeedMyExpensesSearch() {
             hasSeededRef.current = true;
             seedMyExpensesSearch(currentUserAccountID, translate('search.mySavedSearch'), savedSearches);
         }
-    }, [hasSeededMyExpensesSearch, currentUserAccountID, currentUserEmail, isSubmitterAndApproverUser, translate, savedSearches, savedSearchesMetadata.status]);
+    }, [isEnabled, hasSeededMyExpensesSearch, currentUserAccountID, currentUserEmail, isSubmitterAndApproverUser, translate, savedSearches, savedSearchesMetadata.status]);
 }
 
 export default useSeedMyExpensesSearch;

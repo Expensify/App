@@ -1,7 +1,8 @@
 import BlockingView from '@components/BlockingViews/BlockingView';
 import FullPageErrorView from '@components/BlockingViews/FullPageErrorView';
 import NAVIGATION_TABS from '@components/Navigation/NavigationTabBar/NAVIGATION_TABS';
-import TabBarBottomContent from '@components/Navigation/TabBarBottomContent';
+import useTabRootScreenWrapperProps from '@components/Navigation/TabBarBottomContent/useTabRootScreenWrapperProps';
+import useTabRootScrollProps from '@components/Navigation/TabBarBottomContent/useTabRootScrollProps';
 import TopBar from '@components/Navigation/TopBar';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
@@ -19,6 +20,8 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {getInsights} from '@libs/actions/Insights';
+import {setLastVisitedInsightsDashboard} from '@libs/MoreDestinationHistory';
+import navigateBackToMore from '@libs/Navigation/helpers/navigateBackToMore';
 
 import variables from '@styles/variables';
 
@@ -66,6 +69,8 @@ function InsightsDashboardContent({state, headlineChart, supportingCharts, filte
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const icons = useMemoizedLazyExpensifyIcons(['OfflineCloud']);
+    const isEmptyState = state === INSIGHTS_DASHBOARD_STATE.NO_EXPENSES || state === INSIGHTS_DASHBOARD_STATE.EMPTY;
+    const scrollProps = useTabRootScrollProps(isEmptyState ? [styles.flexGrow1, styles.flexShrink0] : [styles.flexGrow1, pageGutter, styles.pb5], true);
 
     const didRequestFail = state === INSIGHTS_DASHBOARD_STATE.ERROR || state === INSIGHTS_DASHBOARD_STATE.STALE;
 
@@ -107,10 +112,10 @@ function InsightsDashboardContent({state, headlineChart, supportingCharts, filte
         );
     }
 
-    if (state === INSIGHTS_DASHBOARD_STATE.NO_EXPENSES || state === INSIGHTS_DASHBOARD_STATE.EMPTY) {
+    if (isEmptyState) {
         return (
             <ScrollView
-                contentContainerStyle={[styles.flexGrow1, styles.flexShrink0]}
+                {...scrollProps}
                 addBottomSafeAreaPadding
             >
                 {state === INSIGHTS_DASHBOARD_STATE.NO_EXPENSES ? <InsightsNoExpensesState /> : <InsightsEmptyState />}
@@ -124,7 +129,7 @@ function InsightsDashboardContent({state, headlineChart, supportingCharts, filte
     return (
         <ScrollView
             style={styles.insightsDashboardScrollView}
-            contentContainerStyle={[styles.flexGrow1, pageGutter, styles.pb5]}
+            {...scrollProps}
             addBottomSafeAreaPadding
         >
             <View style={styles.insightsDashboardLayout(shouldUseNarrowLayout)}>
@@ -163,8 +168,10 @@ function InsightsDashboardContent({state, headlineChart, supportingCharts, filte
 
 function InsightsDashboard({dashboardID}: {dashboardID: InsightsDashboardID}) {
     const {translate} = useLocalize();
+    const tabRootScreenWrapperProps = useTabRootScreenWrapperProps(NAVIGATION_TABS.INSIGHTS);
     const {isOffline} = useNetwork();
     const isFocused = useIsFocused();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {login} = useCurrentUserPersonalDetails();
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const {filters, defaultFilters, isResolved, setFilters} = useInsightsFilters(dashboardID);
@@ -192,6 +199,11 @@ function InsightsDashboard({dashboardID}: {dashboardID: InsightsDashboardID}) {
         onRequestConditionsChanged();
     }, [dashboardID, jsonQuery, hash, isFocused, isOffline]);
 
+    // Remember the dashboard so the More menu can return the user to it.
+    useEffect(() => {
+        setLastVisitedInsightsDashboard(dashboardID);
+    }, [dashboardID]);
+
     const [dashboard] = useOnyx(`${ONYXKEYS.COLLECTION.INSIGHTS}${dashboardID}_${hash}`);
     const {headlineChart: headlineSpec, supportingCharts: supportingSpecs} = INSIGHTS_DASHBOARD_SPECS[dashboardID];
     const eligibleCharts = getVisibleCharts(supportingSpecs, policies, filters.policyIDs, login);
@@ -211,11 +223,13 @@ function InsightsDashboard({dashboardID}: {dashboardID: InsightsDashboardID}) {
         <ScreenWrapper
             shouldShowOfflineIndicatorInWideScreen
             enableEdgeToEdgeBottomSafeAreaPadding={false}
-            bottomContent={<TabBarBottomContent selectedTab={NAVIGATION_TABS.INSIGHTS} />}
+            {...tabRootScreenWrapperProps}
             testID="InsightsPage"
         >
             <TopBar
                 breadcrumbLabel={translate('common.insights')}
+                // Insights has no tab of its own on narrow layouts - it is reached through More.
+                onBackButtonPress={shouldUseNarrowLayout ? navigateBackToMore : undefined}
                 shouldDisplayHelpButton
             />
             {state !== INSIGHTS_DASHBOARD_STATE.NO_EXPENSES && (

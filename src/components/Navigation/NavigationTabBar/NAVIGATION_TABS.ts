@@ -3,6 +3,7 @@ const NAVIGATION_TABS = {
     INBOX: 'INBOX',
     SEARCH: 'SEARCH',
     INSIGHTS: 'INSIGHTS',
+    MORE: 'MORE',
     WORKSPACES: 'WORKSPACES',
     SETTINGS: 'SETTINGS',
 } as const;

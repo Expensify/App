@@ -1,7 +1,9 @@
 import {useFullScreenBlockingViewState} from '@components/FullScreenBlockingViewContextProvider';
+import FlatNavigationBar from '@components/Navigation/FlatNavigationBar';
 import NavigationTabBar from '@components/Navigation/NavigationTabBar';
 import NAVIGATION_TABS from '@components/Navigation/NavigationTabBar/NAVIGATION_TABS';
 import ROUTE_TO_NAVIGATION_TAB from '@components/Navigation/NavigationTabBar/ROUTE_TO_NAVIGATION_TAB';
+import {getFlatNavigationBarLayoutWidth, layoutTransitionStyle, useSearchSidebarCollapse} from '@components/Navigation/SearchSidebarCollapseStore';
 
 import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -10,20 +12,14 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import isTabRouteAtRoot from '@libs/Navigation/helpers/isTabRouteAtRoot';
-import cancelTabNavigationSpans, {INBOX_TAB_SPAN_IDS, REPORTS_TAB_SPAN_IDS} from '@libs/telemetry/cancelTabNavigationSpans';
+import cancelTabNavigationSpans, {NAVIGATION_TAB_TO_SPANS} from '@libs/telemetry/cancelTabNavigationSpans';
 
 import SCREENS from '@src/SCREENS';
 
 import type {BottomTabBarProps} from '@react-navigation/bottom-tabs';
-import type {ValueOf} from 'type-fest';
 
 import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
-
-const NAVIGATION_TAB_TO_SPANS: Partial<Record<ValueOf<typeof NAVIGATION_TABS>, readonly string[]>> = {
-    [NAVIGATION_TABS.INBOX]: INBOX_TAB_SPAN_IDS,
-    [NAVIGATION_TABS.SEARCH]: REPORTS_TAB_SPAN_IDS,
-};
 
 /**
  * Custom tab bar rendered by the BottomTabNavigator. Only receives `state` (not the
@@ -36,11 +32,13 @@ function TabNavigatorBar({state}: Pick<BottomTabBarProps, 'state'>) {
     const {paddingBottom: safeAreaPaddingBottom} = useSafeAreaPaddings(true);
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
+    // The bar's own width drives how far the central pane sits from the left edge, so the container follows it.
+    const {isCollapsed: isFlatNavigationBarCollapsed} = useSearchSidebarCollapse();
     const activeRoute = state.routes[state.index];
     const selectedTab = ROUTE_TO_NAVIGATION_TAB[activeRoute?.name ?? SCREENS.HOME] ?? NAVIGATION_TABS.HOME;
     const isAtRoot = isTabRouteAtRoot(activeRoute);
     // --- Narrow-only animation logic (hooks must run unconditionally per Rules of Hooks) ---
-    // On native, screens also render the tab bar via bottomContent for swipe-back animations.
+    // Screens also render the tab bar via bottomContent for swipe-back animations.
     // Delay showing this navigator's tab bar only when navigating back from a deeper screen
     // (where the tab bar was hidden). Keep it visible during tab switches so it doesn't flash.
     // Guard with shouldUseNarrowLayout so prevShouldHide stays false in wide layout,
@@ -87,10 +85,17 @@ function TabNavigatorBar({state}: Pick<BottomTabBarProps, 'state'>) {
     // When the screen is not blocking the view, we need to raise the tab bar above the screen content so the DebugTabView is visible.
     return (
         <View
-            style={[styles.tabNavigatorBarContainer, !isBlockingViewVisible && {zIndex: 1}]}
+            // The container's width is what holds the central pane off the left edge, so it eases alongside the bar
+            // rather than snapping to the new width while the bar is still animating.
+            style={[
+                styles.tabNavigatorBarContainer,
+                layoutTransitionStyle,
+                StyleUtils.getTabNavigatorBarWidthStyle(getFlatNavigationBarLayoutWidth(isFlatNavigationBarCollapsed)),
+                !isBlockingViewVisible && {zIndex: 1},
+            ]}
             pointerEvents="box-none"
         >
-            <NavigationTabBar selectedTab={selectedTab} />
+            <FlatNavigationBar selectedTab={selectedTab} />
         </View>
     );
 }

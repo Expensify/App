@@ -28,6 +28,7 @@ import {savedSearchIDToSearchKey} from '@libs/SearchKeyUtils';
 import type {SearchKey} from '@libs/SearchKeyUtils';
 import {getValidLastQuery} from '@libs/SearchQueryUtils';
 import {getItemBadgeText, getLastSearchQuery, getOverflowMenu, SAVED_SEARCH_FALLBACK_ICON_NAME, SAVED_SEARCH_ICON_NAMES, SEARCH_TYPE_MENU_ICON_NAMES} from '@libs/SearchUIUtils';
+import {getGroupedSearchTranslationPath, getSpendGroupTabs, shouldHideSpendTabRow} from '@libs/SpendNavigationGroups';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -74,6 +75,7 @@ function SearchTypeMenuNarrowContent({tabs, activeTabKey, onActiveTabPress, onTa
                     contentContainerStyles={pageGutter}
                     tabs={tabs}
                     activeTabKey={activeTabKey}
+                    shouldHugContent
                     onActiveTabPress={onActiveTabPress}
                     onTabPress={onTabPressContent}
                     onLongTabPress={onLongTabPress}
@@ -181,7 +183,7 @@ function SearchTypeMenuNarrow({queryJSON, onTabPress}: SearchTypeMenuNarrowProps
         } else {
             for (const item of section.menuItems) {
                 const badgeText = getItemBadgeText(item.key, reportCounts);
-                const title = translate(item.translationPath);
+                const title = translate(getGroupedSearchTranslationPath(item.key, item.translationPath));
 
                 tabItems.push({
                     key: item.key,
@@ -232,9 +234,13 @@ function SearchTypeMenuNarrow({queryJSON, onTabPress}: SearchTypeMenuNarrowProps
         setSavedSearchToModifyKey(tabKey);
     };
 
+    if (shouldHideSpendTabRow(currentSearchKey)) {
+        return null;
+    }
+
     return (
         <SearchTypeMenuNarrowContent
-            tabs={tabItems}
+            tabs={getSpendGroupTabs(tabItems, currentSearchKey)}
             activeTabKey={currentSearchKey}
             onActiveTabPress={handleActiveTabPress}
             onTabPress={handleTabPress}

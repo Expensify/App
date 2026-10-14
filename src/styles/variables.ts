@@ -11,6 +11,24 @@ function getValueUsingPixelRatio(defaultValue: number, maxValue: number): number
     return PixelRatio.getFontScale() * defaultValue > maxValue ? maxValue : defaultValue * PixelRatio.getFontScale();
 }
 
+/**
+ * Height the narrow Spend tab row occupies: its wrapper's 4px top padding, the tab buttons, and tabSelector's 12px
+ * bottom padding. The search list's top offset subtracts this when the row is hidden.
+ */
+const searchTabRowHeight = 4 + 40 + 12;
+
+/**
+ * How much the narrow Spend header shrinks when the tab row is hidden: the row itself, plus the 4px the search input
+ * gains back by sitting 4px below the header instead of 8px.
+ */
+const searchHiddenTabRowOffset = searchTabRowHeight + 4;
+
+/** Rendered width of the Expensify wordmark in the flat navigation bar's header. */
+const flatNavigationBarLogoWidth = 92;
+
+/** expensify-wordmark.svg has a 78x19 viewBox, so deriving the height keeps the wordmark exactly that wide. */
+const flatNavigationBarLogoHeight = (flatNavigationBarLogoWidth * 19) / 78;
+
 const avatarSizes = {
     avatarSizeXxxxSmall: 12,
     avatarSizeXxxSmall: 16,
@@ -31,6 +49,13 @@ const avatarSizes = {
 
 export default {
     bottomTabHeight: 72,
+    floatingTabBarHeight: 60,
+    floatingTabBarHorizontalInset: 16,
+    // How far the selected pill reaches past its tab on each side, whatever the label's length.
+    floatingTabBarSelectedOverhang: 4,
+    // Space between a label's truncation edge and its tab's edge, so a neighbor's selected pill never reaches the label.
+    floatingTabBarLabelInset: 8,
+    floatingTabBarBottomInset: 8,
     // styles.p3 (12) on each side of the DebugTabView row plus the View button (componentSizeNormal).
     debugTabViewHeight: 64,
     contentHeaderHeight: getValueUsingPixelRatio(72, 100),
@@ -45,6 +70,7 @@ export default {
     spacing2: 8,
     rulesDocumentThumbnailMaxWidth: 368,
     rulesDocumentThumbnailHeight: 200,
+    hairlineBorderWidth: 0.5,
     componentBorderRadius: 8,
     componentBorderRadiusSmall: 4,
     componentBorderRadiusMedium: 6,
@@ -98,6 +124,31 @@ export default {
     iconSizeMegaLarge: 105,
     iconSizeMenuItem: 32,
     iconBottomBar: 24,
+    /** Glyph size in the floating tab bar. */
+    iconFloatingTabBar: 20,
+    /** Account avatar size in the floating tab bar. */
+    avatarFloatingTabBar: avatarSizes.avatarSizeXSmall,
+    /** Glyph size in the iOS native tab bar. */
+    iconNativeTabBarIOS: 22,
+    /** Account avatar size in the iOS native tab bar. */
+    avatarNativeTabBarIOS: 26,
+    /** Radius of the status dot drawn into a native tab bar icon. */
+    nativeTabIconDotRadius: 4,
+    /** Width of the ring cut out of a native tab bar icon around its status dot, as the JS tab bar's dot border does. */
+    nativeTabIconDotCutout: 2,
+    /** Gap between the glyph and the label drawn under it in an iOS native tab bar icon. */
+    nativeTabIconLabelGap: 6,
+    /** Space between the screen edge and the first tab of the iOS 26 floating tab bar. */
+    iosNativeTabBarHorizontalInset: 25,
+    // UITabBar sizes its items to their icons and gives the selected pill a minimum width, so a label as wide as an even
+    // share of the bar lets that pill reach over the label next to it.
+    iosNativeTabBarLabelInset: 8,
+    /** Material's BottomNavigationView row, without the gesture inset under it. */
+    androidNativeTabBarHeight: 80,
+    /** Material's bar row (androidNativeTabBarHeight) plus the 16 dp Material keeps between a FAB and the bar. */
+    androidNativeTabBarFloatingButtonsBottom: 96,
+    /** UITabBar's row above the home indicator inset, plus the gap to the floating buttons. */
+    iosNativeTabBarFloatingButtonsBottom: 50,
     iconHeader: 48,
     iconSection: 68,
     iouAmountTextSize: 40,
@@ -139,6 +190,22 @@ export default {
     searchSidebarExpandedWidth: 260,
     searchSidebarCollapsedWidth: 76,
     navigationTabBarSize: 72,
+    flatNavigationBarWidth: 232,
+    // Collapsed, a row shows only its icon: the row's own margin and padding on each side, around a 20px icon.
+    flatNavigationBarCollapsedWidth: 60,
+    flatNavigationBarItemHeight: 40,
+    flatNavigationBarSubItemMarkerHeight: 20,
+    // Horizontal inset every row's background sits at, inside the bar's own width.
+    flatNavigationBarRowInset: 8,
+    // Fixed so the header keeps its height whether or not the wordmark is showing.
+    flatNavigationBarHeaderHeight: 72,
+    flatNavigationBarCreateRowMarginHorizontal: 14,
+    // Shorter than a standard medium button; collapsed, the same value makes it a square.
+    flatNavigationBarCreateButtonHeight: 32,
+    flatNavigationBarAccountItemHeight: 56,
+    flatNavigationBarHeaderPaddingRight: 20,
+    flatNavigationBarLogoWidth,
+    flatNavigationBarLogoHeight,
     popoverMargin: 18,
     pdfPageMaxWidth: 992,
     tooltipZIndex: 10050,
@@ -251,6 +318,8 @@ export default {
     signInLogoWidthLargeScreen: 144,
     signInLogoHeightLargeScreen: 108,
     signInLogoWidthPill: 132,
+    searchTabRowHeight,
+    searchHiddenTabRowOffset,
     tabSelectorButtonHeight: 40,
     tabSelectorButtonPadding: 12,
     tabSelectorScrollFadeWidth: 32,

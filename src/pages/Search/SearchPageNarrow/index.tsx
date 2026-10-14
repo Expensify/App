@@ -3,18 +3,20 @@ import CollapsibleHeaderOnKeyboardGroup from '@components/CollapsibleHeaderOnKey
 import CollapsibleHeaderOnKeyboardGroupMember from '@components/CollapsibleHeaderOnKeyboard/GroupMember';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import NAVIGATION_TABS from '@components/Navigation/NavigationTabBar/NAVIGATION_TABS';
-import TabBarBottomContent from '@components/Navigation/TabBarBottomContent';
+import useTabBarCoveredHeight from '@components/Navigation/TabBarBottomContent/useTabBarCoveredHeight';
+import useTabRootScreenWrapperProps from '@components/Navigation/TabBarBottomContent/useTabRootScreenWrapperProps';
 import PulsingView from '@components/PulsingView';
 import ReceiptScanDropZone from '@components/ReceiptScanDropZone';
 import ScreenWrapper from '@components/ScreenWrapper';
 import {ScrollOffsetContext} from '@components/ScrollOffsetContextProvider';
 import Search from '@components/Search';
-import {useSearchResultsContext, useSearchSelectionActions} from '@components/Search/SearchContext';
+import {useSearchQueryContext, useSearchResultsContext, useSearchSelectionActions} from '@components/Search/SearchContext';
 import SearchLoadingSkeleton from '@components/Search/SearchLoadingSkeleton';
 import SearchPageHeaderNarrow from '@components/Search/SearchPageHeader/SearchPageHeaderNarrow';
 import SearchSelectionFooter from '@components/Search/SearchSelectionFooter';
 import SearchWithNavigationDeferredMount from '@components/Search/SearchWithNavigationDeferredMount';
 import type {SearchParams, SearchQueryJSON} from '@components/Search/types';
+import SearchRowSkeleton from '@components/Skeletons/SearchRowSkeleton';
 
 import useAndroidBackButtonHandler from '@hooks/useAndroidBackButtonHandler';
 import useEndSubmitNavigationSpans from '@hooks/useEndSubmitNavigationSpans';
@@ -33,6 +35,7 @@ import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import Navigation from '@libs/Navigation/Navigation';
 import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
 import {isSearchDataLoaded, isSearchPending} from '@libs/SearchUIUtils';
+import {shouldHideSpendTabRow} from '@libs/SpendNavigationGroups';
 import {getPendingSubmitFollowUpAction} from '@libs/telemetry/submitFollowUpAction';
 
 import variables from '@styles/variables';
@@ -79,8 +82,6 @@ type SearchPageNarrowProps = {
     isOverlayActive: boolean;
 };
 
-const tabBarContent = <TabBarBottomContent selectedTab={NAVIGATION_TABS.SEARCH} />;
-
 function SearchPageNarrow({
     queryJSON,
     searchResults,
@@ -103,6 +104,10 @@ function SearchPageNarrow({
     const {windowHeight} = useWindowDimensions();
     const styles = useThemeStyles();
     const {pageGutterMargin} = useLayoutSpacing();
+    const tabRootScreenWrapperProps = useTabRootScreenWrapperProps(NAVIGATION_TABS.SEARCH);
+    const tabBarCoveredHeight = useTabBarCoveredHeight();
+    // The footer is shown and hidden by its own selection state, so its height is read from layout.
+    const [footerHeight, setFooterHeight] = useState(0);
     const StyleUtils = useStyleUtils();
     const {clearSelectedTransactions} = useSearchSelectionActions();
     const {shouldUseLiveData} = useSearchResultsContext();
@@ -115,6 +120,10 @@ function SearchPageNarrow({
     const route = useRoute();
     const {saveScrollOffset} = useContext(ScrollOffsetContext);
     const receiptDropTargetRef = useRef<ComponentRef<typeof View>>(null);
+
+    // The header reserves room for the tab row, so the list's offset has to shrink when that row isn't rendered.
+    const {currentSearchKey} = useSearchQueryContext();
+    const isTabRowHidden = shouldHideSpendTabRow(currentSearchKey);
 
     const scrollOffset = useSharedValue(0);
     const topBarOffset = useSharedValue<number>(StyleUtils.searchHeaderDefaultOffset);
@@ -154,7 +163,7 @@ function SearchPageNarrow({
                     topBarOffset.set(
                         clamp(
                             topBarOffset.get() - distanceScrolled,
-                            hasFilterBars ? variables.minimalTopBarWithFiltersOffset : variables.minimalTopBarOffset,
+                            (hasFilterBars ? variables.minimalTopBarWithFiltersOffset : variables.minimalTopBarOffset) + (isTabRowHidden ? variables.searchHiddenTabRowOffset : 0),
                             StyleUtils.searchHeaderDefaultOffset,
                         ),
                     );
@@ -164,7 +173,7 @@ function SearchPageNarrow({
                 scrollOffset.set(currentOffset);
             },
         },
-        [hasFilterBars, windowHeight],
+        [hasFilterBars, isTabRowHidden, windowHeight],
     );
 
     const handleOnBackButtonPress = () => Navigation.goBack(ROUTES.SEARCH_ROOT.getRoute({query: buildCannedSearchQuery(), searchKey: CONST.SEARCH.SEARCH_KEYS.EXPENSES}));
@@ -191,6 +200,8 @@ function SearchPageNarrow({
     });
     const [isInteractive, setIsInteractive] = useState(!useStaticRendering);
     const [isHeaderInteractive, setIsHeaderInteractive] = useState(!useStaticRendering);
+    // A page mounted in the background, as native tabs mount Spend, keeps its skeleton still until it is first shown.
+    const [hasBeenFocused, setHasBeenFocused] = useState(!useStaticRendering);
     const isHeaderInteractiveRef = useRef(isHeaderInteractive);
     const [, startTransition] = useTransition();
     useEffect(() => {
@@ -213,6 +224,7 @@ function SearchPageNarrow({
     // useFocusEffect avoids the extra re-renders that useIsFocused causes on every focus change.
     useFocusEffect(
         useCallback(() => {
+            setHasBeenFocused(true);
             if (isInteractive) {
                 return;
             }
@@ -249,7 +261,7 @@ function SearchPageNarrow({
     const isDataLoaded = shouldUseLiveData || isSearchDataLoaded(searchResults, queryJSON);
     // Use the request state because `isLoading` also covers temporary UI loading that should not keep this bar visible.
     const shouldShowLoadingState = !isOffline && (!isDataLoaded || isSearchPending(searchResults));
-    const contentContainerStyle = !isMobileSelectionModeEnabled ? styles.searchListContentContainerStyles(hasFilterBars) : undefined;
+    const contentContainerStyle = !isMobileSelectionModeEnabled ? styles.searchListContentContainerStyles(hasFilterBars, isTabRowHidden) : undefined;
 
     const shouldRenderLayoutProbe = (isOverlayActive || !isHeaderInteractive) && !searchOverlayContent;
 
@@ -266,10 +278,9 @@ function SearchPageNarrow({
                 <ScreenWrapper
                     testID="SearchPageNarrow"
                     shouldEnableMaxHeight
-                    offlineIndicatorStyle={styles.mtAuto}
                     shouldShowOfflineIndicator={!!searchResults}
-                    bottomContent={tabBarContent}
-                    bottomContentStyle={styles.overflowVisible}
+                    {...tabRootScreenWrapperProps}
+                    offlineIndicatorStyle={[styles.mtAuto, footerHeight > 0 ? styles.offlineIndicatorAboveFooter(footerHeight) : tabRootScreenWrapperProps.offlineIndicatorStyle]}
                 >
                     <View style={[styles.flex1, styles.overflowHidden]}>
                         {!isMobileSelectionModeEnabled ? (
@@ -295,7 +306,7 @@ function SearchPageNarrow({
                                                         queryJSON={queryJSON}
                                                     />
                                                 </CollapsibleHeaderOnKeyboardGroupMember>
-                                                <View style={[styles.flex1, styles.flexRow, styles.pt2, pageGutterMargin, styles.mb3, styles.gap3]}>
+                                                <View style={[styles.flex1, styles.flexRow, isTabRowHidden ? styles.pt1 : styles.pt2, pageGutterMargin, styles.mb3, styles.gap3]}>
                                                     <SearchPageInputSwitch
                                                         showStatic={!isHeaderInteractive}
                                                         queryJSON={queryJSON}
@@ -351,6 +362,12 @@ function SearchPageNarrow({
                                             hasFilterBars={hasFilterBars}
                                         />
                                     )}
+                                    {!isInteractive && !searchOverlayContent && (
+                                        <SearchRowSkeleton
+                                            shouldAnimate={hasBeenFocused}
+                                            containerStyle={styles.searchListContentContainerStyles(hasFilterBars)}
+                                        />
+                                    )}
                                     {shouldRenderLayoutProbe && <View onLayout={onSearchLayout} />}
                                     {!!searchOverlayContent && (
                                         <View
@@ -370,7 +387,7 @@ function SearchPageNarrow({
                                         style={StyleSheet.absoluteFill}
                                     >
                                         {shouldShowLoadingSkeleton ? (
-                                            <SearchLoadingSkeleton containerStyle={styles.searchListContentContainerStyles(hasFilterBars)} />
+                                            <SearchLoadingSkeleton containerStyle={styles.searchListContentContainerStyles(hasFilterBars, isTabRowHidden)} />
                                         ) : (
                                             <SearchWithNavigationDeferredMount
                                                 isReplacingContent={isReplacingPreviousContent}
@@ -398,7 +415,12 @@ function SearchPageNarrow({
                                 </>
                             )}
                         </View>
-                        <SearchSelectionFooter searchResults={searchResults} />
+                        <View onLayout={(event) => setFooterHeight(event.nativeEvent.layout.height)}>
+                            <SearchSelectionFooter
+                                searchResults={searchResults}
+                                style={styles.tabRootFooter(tabBarCoveredHeight)}
+                            />
+                        </View>
                     </View>
                 </ScreenWrapper>
             </ReceiptScanDropZone>

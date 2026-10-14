@@ -3297,6 +3297,12 @@ ${amount} per ${merchant} - ${date}`,
         prompt: (priorityModePageUrl: string) =>
             `Tieniti al passo vedendo solo le chat non lette o quelle che richiedono la tua attenzione. Non preoccuparti, puoi cambiare questa impostazione in qualsiasi momento nelle <a href="${priorityModePageUrl}">impostazioni</a>.`,
     },
+    morePage: {
+        accountingDescription: 'Esportazioni, ratei, estratti conto e riconciliazione',
+        savedSearchesDescription: 'Torna a una ricerca salvata',
+        insightsDescription: 'Scopri dove vanno le tue spese',
+        workspacesDescription: 'Gestisci i tuoi spazi di lavoro e domini',
+    },
     inboxTabs: {
         all: 'Tutti',
         todo: 'Attività da fare',
@@ -10252,6 +10258,7 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
         spendOverTime: 'Spesa nel tempo',
         tabs: {
             expenseReports: 'Note spese',
+            myReports: 'I miei report',
             reports: 'Report',
             expenses: 'Spese',
             submit: 'Bozze',

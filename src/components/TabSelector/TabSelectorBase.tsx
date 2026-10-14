@@ -32,6 +32,7 @@ function TabSelectorBase<K extends string = string>({
     position,
     shouldShowLabelWhenInactive = true,
     equalWidth = false,
+    shouldHugContent = false,
     contentContainerStyles,
     tabButtonStyles,
     shouldShowScrollFade = false,
@@ -159,6 +160,7 @@ function TabSelectorBase<K extends string = string>({
                             sentryLabel={tab.sentryLabel}
                             shouldShowLabelWhenInactive={shouldShowLabelWhenInactive}
                             equalWidth={equalWidth}
+                            shouldHugContent={shouldHugContent}
                             tabButtonStyles={tabButtonStyles}
                             badgeText={tab.badgeText}
                             isBadgeCondensed={tab.isBadgeCondensed}

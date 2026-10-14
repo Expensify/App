@@ -2525,11 +2525,16 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
         }
     },
 
+    // The bar overflows its own width so the debug view and floating buttons are not clipped; the negative margin
+    // cancels that overflow, leaving only the bar's real width as layout space.
+    getTabNavigatorBarWidthStyle: (flatNavigationBarWidth: number): ViewStyle => ({
+        width: flatNavigationBarWidth + variables.sideBarWithLHBWidth,
+    }),
+
     getTabBarNarrowStyle: (safeAreaPaddingBottom: number): ViewStyle => ({
         overflow: 'visible',
-        marginTop: -(variables.bottomTabHeight + safeAreaPaddingBottom),
-        paddingBottom: safeAreaPaddingBottom,
-        backgroundColor: theme.appBG,
+        marginTop: -(variables.floatingTabBarHeight + variables.floatingTabBarBottomInset + safeAreaPaddingBottom),
+        paddingBottom: variables.floatingTabBarBottomInset + safeAreaPaddingBottom,
     }),
 
     getStyleWithEnvSafeAreaPadding: (style: ViewStyle): ViewStyle => ({

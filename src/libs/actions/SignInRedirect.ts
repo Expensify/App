@@ -1,5 +1,6 @@
 import {getMicroSecondOnyxErrorWithMessage} from '@libs/ErrorUtils';
 import Log from '@libs/Log';
+import {resetMoreDestinationHistory} from '@libs/MoreDestinationHistory';
 import {clearSessionStorage} from '@libs/Navigation/helpers/lastVisitedTabPathUtils';
 import {getIsOffline} from '@libs/NetworkState';
 import clearPrefetchOnAppStart from '@libs/Prefetch/clearPrefetchOnAppStart';
@@ -145,6 +146,7 @@ function clearStorageAndRedirect(signOutReason: SignOutReason, errorMessage?: st
 function redirectToSignIn(signOutReason: SignOutReason, errorMessage?: string, isSAMLReauthentication?: boolean): Promise<void> {
     return clearStorageAndRedirect(signOutReason, errorMessage, isSAMLReauthentication).then(() => {
         clearSessionStorage();
+        resetMoreDestinationHistory();
     });
 }
 
