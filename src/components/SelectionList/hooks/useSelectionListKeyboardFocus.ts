@@ -84,8 +84,7 @@ function useSelectionListKeyboardFocus({
         },
         setHasKeyBeenPressed,
         isFocused,
-        // Negative indexes let ArrowUp break out past a disabled section header at index 0
-        disableCyclicTraversal: shouldAllowArrowUpToSearchInput,
+        // Negative indexes let ArrowUp leave the first row (even past a disabled section header at index 0) while ArrowDown still wraps
         allowNegativeIndexes: shouldAllowArrowUpToSearchInput,
         onArrowUpDownCallback: () => {
             setShouldDisableHoverStyle(true);
