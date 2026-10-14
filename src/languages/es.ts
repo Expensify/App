@@ -8748,7 +8748,7 @@ ${reportName}`,
                 gotIt: 'Entendido',
                 createRule: 'Crear regla',
                 fallbackBanner:
-                    'Esta no es una regla estándar, así que la redactamos como regla de agente. Las reglas de agente actúan después de que cambia un gasto o un informe, por ejemplo, reteniendo el gasto o rechazando el informe.',
+                    'Esta no es una regla estándar, así que la redactamos como una regla de agente. Las reglas de agente actúan después de que un gasto o informe cambia, por ejemplo reteniendo el gasto o rechazando el informe.',
             },
             tabs: {
                 general: 'General',

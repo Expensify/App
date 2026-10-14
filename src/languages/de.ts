@@ -8743,7 +8743,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                 gotIt: 'Verstanden',
                 createRule: 'Regel erstellen',
                 fallbackBanner:
-                    'Das ist keine Standardregel, daher haben wir sie als Agentenregel entworfen. Agentenregeln greifen, nachdem sich eine Ausgabe oder ein Bericht ändert, zum Beispiel indem sie die Ausgabe zurückhalten oder den Bericht ablehnen.',
+                    'Dies ist keine Standardregel, daher haben wir sie als Agentenregel erstellt. Agentenregeln greifen, nachdem sich eine Ausgabe oder ein Bericht geändert hat, zum Beispiel indem sie die Ausgabe zurückhalten oder den Bericht ablehnen.',
             },
             tabs: {
                 general: 'Allgemein',
@@ -8814,8 +8814,8 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                 flagForReviewDescription: 'Genehmigende benachrichtigen, wenn Ausgaben Kategorienlimits überschreiten',
                 requireFields: 'Feldanforderungen festlegen',
                 requireFieldsDescription: 'Bestimmte Spesenfelder vorschreiben oder auf ihre Pflicht verzichten.',
-                describeYourRule: 'Beschreibe deine Regel',
-                describeYourRuleDescription: 'Sag Concierge, was du brauchst, und Concierge erstellt die Regel',
+                describeYourRule: 'Beschreiben Sie Ihre Regel',
+                describeYourRuleDescription: 'Sagen Sie Concierge, was Sie brauchen, und es erstellt die Regel',
                 buildRule: 'Regel erstellen',
                 describe: 'Beschreiben',
                 describeRule: 'Beschreibe deine Regel in einfachen Worten und Concierge erstellt sie für dich',

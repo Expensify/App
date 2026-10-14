@@ -8766,7 +8766,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                 gotIt: 'Compris',
                 createRule: 'Créer une règle',
                 fallbackBanner:
-                    'Ce n’est pas une règle standard, nous l’avons donc rédigée comme une règle d’agent. Les règles d’agent agissent après la modification d’une dépense ou d’une note de frais, par exemple en mettant la dépense en attente ou en rejetant la note de frais.',
+                    'Ce n’est pas une règle standard, nous l’avons donc rédigée comme une règle d’agent. Les règles d’agent agissent après la modification d’une dépense ou d’une note de frais, par exemple en bloquant la dépense ou en rejetant la note de frais.',
             },
             tabs: {
                 general: 'Général',
@@ -8839,7 +8839,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                 requireFieldsDescription: 'Rendre certains champs de dépense obligatoires ou renoncer à les exiger.',
                 describeYourRule: 'Décrivez votre règle',
                 describeYourRuleDescription: 'Dites à Concierge ce dont vous avez besoin et il créera la règle',
-                buildRule: 'Créer la règle',
+                buildRule: 'Créer une règle',
                 describe: 'Décrire',
                 describeRule: 'Décrivez votre règle avec vos propres mots et Concierge la créera pour vous',
                 describeRuleInputLabel: 'Décrivez la règle',
