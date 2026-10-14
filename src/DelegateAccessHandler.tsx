@@ -1,3 +1,5 @@
+import usePrevious from '@hooks/usePrevious';
+
 import {useEffect, useRef} from 'react';
 
 import CONST from './CONST';
@@ -28,15 +30,19 @@ function DelegateAccessHandler() {
     useIsLoadingAppRecovery();
 
     // Disconnect delegate when the delegate is no longer in the delegates list
+    const isDelegateInDelegatesList = account?.delegatedAccess?.delegates?.some((d) => d.email === account?.delegatedAccess?.delegate);
+    const wasDelegateInDelegatesList = usePrevious(isDelegateInDelegatesList);
     useEffect(() => {
-        if (!account?.delegatedAccess?.delegate) {
+        if (isDelegateInDelegatesList) {
             return;
         }
-        if (account?.delegatedAccess?.delegates?.some((d) => d.email === account?.delegatedAccess?.delegate)) {
+        // If the delegate was never on the list then do nothing.
+        // This is the case for company-owned agents where managers have implicit delegate access without being in the delegates list.
+        if (!wasDelegateInDelegatesList) {
             return;
         }
         disconnect({stashedCredentials, stashedSession});
-    }, [account?.delegatedAccess?.delegates, account?.delegatedAccess?.delegate, stashedCredentials, stashedSession]);
+    }, [isDelegateInDelegatesList, wasDelegateInDelegatesList, stashedCredentials, stashedSession]);
 
     // Log delegate mismatch after the app has loaded
     useEffect(() => {

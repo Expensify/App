@@ -714,6 +714,7 @@ describe('Workspace Search Router navigation source', () => {
             isOffline,
             isVendorMatchingBetaEnabled: false,
             isRecruitingBetaEnabled: false,
+            isCompanyAgentsBetaEnabled: false,
             isUnifiedConnectionsBetaEnabled,
             shouldUseNarrowLayout: false,
             convertToDisplayString: () => '$0.00',

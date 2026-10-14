@@ -330,7 +330,7 @@ describe('ProfilePage - agent account', () => {
         await setupUser('testbot_123@expensify.ai', true);
 
         await act(async () => {
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${accountID}`, {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.AGENT}${accountID}`, {
                 prompt: 'Reject gambling expenses.',
                 pendingAction: null,
             });
@@ -381,7 +381,7 @@ describe('ProfilePage - agent account', () => {
         await setupUser('testbot_123@expensify.ai', true);
 
         await act(async () => {
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${accountID}`, {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.AGENT}${accountID}`, {
                 prompt: 'Reject gambling expenses.',
                 pendingAction: null,
             });
@@ -404,7 +404,7 @@ describe('ProfilePage - agent account', () => {
         await setupUser('testbot_123@expensify.ai', true);
 
         await act(async () => {
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${accountID}`, {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.AGENT}${accountID}`, {
                 prompt: 'Reject gambling expenses.',
                 pendingAction: 'update',
             });
@@ -423,7 +423,7 @@ describe('ProfilePage - agent account', () => {
         await setupUser('testbot_123@expensify.ai', true);
 
         await act(async () => {
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${accountID}`, {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.AGENT}${accountID}`, {
                 prompt: 'Reject gambling expenses.',
                 pendingAction: null,
             });
@@ -437,7 +437,7 @@ describe('ProfilePage - agent account', () => {
         fireEvent.press(screen.getByTestId('save-prompt-button'));
 
         await act(async () => {
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${accountID}`, {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.AGENT}${accountID}`, {
                 prompt: 'Updated prompt text',
                 pendingAction: 'update',
             });
@@ -456,7 +456,7 @@ describe('ProfilePage - agent account', () => {
         await act(async () => {
             // Simulate a first offline save that is queued but not yet replayed: pendingAction stays 'update',
             // so isSaving is true. The button is intentionally not disabled while offline.
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${accountID}`, {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.AGENT}${accountID}`, {
                 prompt: 'First offline edit.',
                 pendingAction: 'update',
             });
@@ -479,7 +479,7 @@ describe('ProfilePage - agent account', () => {
         await setupUser('testbot_123@expensify.ai', true);
 
         await act(async () => {
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${accountID}`, {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.AGENT}${accountID}`, {
                 prompt: 'Reject gambling expenses.',
                 pendingAction: null,
             });
@@ -495,7 +495,7 @@ describe('ProfilePage - agent account', () => {
 
         // Optimistic write sets pendingAction='update' so the user-initiated save shows the loader.
         await act(async () => {
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${accountID}`, {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.AGENT}${accountID}`, {
                 prompt: 'Updated prompt text',
                 pendingAction: 'update',
             });
@@ -521,7 +521,7 @@ describe('ProfilePage - agent account', () => {
         await setupUser('testbot_123@expensify.ai', true);
 
         await act(async () => {
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${accountID}`, {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.AGENT}${accountID}`, {
                 prompt: 'Reject gambling expenses.',
                 pendingAction: null,
             });

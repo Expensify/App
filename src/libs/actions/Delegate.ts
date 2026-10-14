@@ -139,11 +139,7 @@ type ConnectParams = WithEmail & WithDelegatedAccess & WithOldDotFlag & WithCred
  * Connects the user as a delegate to another account.
  * Returns a Promise that resolves to true on success, false on failure, or undefined if not applicable.
  */
-function connect({email, delegatedAccess, credentials, session, activePolicyID, isFromOldDot = false}: ConnectParams) {
-    if (!delegatedAccess?.delegators && !isFromOldDot) {
-        return;
-    }
-
+function connect({email, delegatedAccess, credentials, session, activePolicyID}: ConnectParams) {
     if (isConnectedAsDelegate({delegatedAccess})) {
         Log.info('[Delegate] Already connected as a delegate, skipping connect');
         return;

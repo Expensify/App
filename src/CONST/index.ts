@@ -1207,6 +1207,7 @@ const CONST = {
         SPEND_FOOTER_SELECTORS: 'spendFooterSelectors',
         SUPPORT_TICKET: 'supportTicket',
         ANCHORED_FIELD_DROPDOWNS: 'anchoredFieldDropdowns',
+        COMPANY_AGENTS: 'companyAgents',
         RESIZABLE_TABLE_COLUMNS: 'resizableTableColumns',
         DESCRIBE_RULE: 'describeRule',
     },
@@ -4696,6 +4697,7 @@ const CONST = {
         POLICY_FEATURE: {
             OVERVIEW: 'overview',
             MEMBERS: 'members',
+            AGENTS: 'agents',
             ROOMS: 'rooms',
             ASSIGN_ELEVATED_ROLES: 'assignElevatedRoles',
             WORKFLOWS: 'workflows',
@@ -10119,6 +10121,7 @@ const CONST = {
             INITIAL: {
                 PROFILE: 'WorkspaceInitial-Profile',
                 MEMBERS: 'WorkspaceInitial-Members',
+                AGENTS: 'WorkspaceInitial-Agents',
                 ROOMS: 'WorkspaceInitial-Rooms',
                 REPORTS: 'WorkspaceInitial-Reports',
                 ACCOUNTING: 'WorkspaceInitial-Accounting',
@@ -10542,6 +10545,11 @@ const CONST = {
     },
 
     AGENTS: {
+        OWNER_TYPE: {
+            PERSON: 'person',
+            WORKSPACE: 'workspace',
+            DOMAIN: 'domain',
+        },
         BULK_ACTION_TYPES: {
             DELETE: 'delete',
         },

@@ -1,6 +1,7 @@
 import RenderHTML from '@components/RenderHTML';
 import type {CompareItemsCallback, IsItemInSearchCallback, TableColumn, TableData, TableHandle} from '@components/Table';
 import Table, {composeTableListHeader} from '@components/Table';
+import compareOptionalValues from '@components/Table/compareOptionalValues';
 
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -12,22 +13,40 @@ import tokenizedSearch from '@libs/tokenizedSearch';
 
 import variables from '@styles/variables';
 
+import type CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {AgentOwnerType} from '@src/types/onyx/Agent';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 
 import type {ListRenderItemInfo} from '@shopify/flash-list';
+import type {ValueOf} from 'type-fest';
 
 import React from 'react';
 import {View} from 'react-native';
 
 import AgentsTableRow from './AgentsTableRow';
 
-type AgentsTableColumnKey = 'agent' | 'actions';
+type AgentsTableColumnKey = 'agent' | 'role' | 'owner' | 'actions';
 
 type AgentRowData = TableData & {
     accountID: number;
     displayName: string;
     login: string;
+    role?: ValueOf<typeof CONST.POLICY.ROLE>;
+
+    /** The accountID of the agent owner */
+    ownerAccountID?: number;
+
+    /** The display name of the agent owner */
+    ownerDisplayName?: string;
+
+    /** The type of the agent owner */
+    ownerType?: AgentOwnerType;
+
+    /** The policy ID of the agent owner, only set if ownerType=workspace */
+    ownerPolicyID?: string;
+
+    canManage: boolean;
     errors?: OnyxCommon.Errors;
     pendingAction?: OnyxCommon.PendingAction;
     action: () => void;
@@ -49,10 +68,16 @@ type AgentsTableProps = {
     /** Keys of the currently selected rows */
     selectedKeys: string[];
 
+    /** Whether to show the role column */
+    shouldShowRoleColumn?: boolean;
+
+    /** Whether to show the owner column */
+    shouldShowOwnerColumn?: boolean;
+
     onRowSelectionChange: (selectedRowKeys: string[]) => void;
 };
 
-export default function AgentsTable({ref, agents, headerComponent, canSelectAgents, selectedKeys, onRowSelectionChange}: AgentsTableProps) {
+export default function AgentsTable({ref, agents, headerComponent, canSelectAgents, selectedKeys, shouldShowRoleColumn, shouldShowOwnerColumn, onRowSelectionChange}: AgentsTableProps) {
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
@@ -62,12 +87,31 @@ export default function AgentsTable({ref, agents, headerComponent, canSelectAgen
 
     const shouldUseNarrowTableLayout = shouldUseNarrowLayout || isMediumScreenWidth;
 
-    const agentsTableColumns: Array<TableColumn<AgentsTableColumnKey>> = [
+    const agentsTableColumns: Array<TableColumn<AgentsTableColumnKey, AgentRowData>> = [
         {
             key: 'agent',
             label: translate('agentsPage.title'),
             sortable: true,
         },
+        ...(shouldShowRoleColumn
+            ? [
+                  {
+                      key: 'role' as const,
+                      label: translate('common.role'),
+                      sortable: true,
+                      width: variables.workspaceMembersRoleColumnWidth,
+                  },
+              ]
+            : []),
+        ...(shouldShowOwnerColumn
+            ? [
+                  {
+                      key: 'owner' as const,
+                      label: translate('common.owner'),
+                      sortable: true,
+                  },
+              ]
+            : []),
         {
             key: 'actions',
             label: '',
@@ -78,7 +122,19 @@ export default function AgentsTable({ref, agents, headerComponent, canSelectAgen
 
     const compareTableItems: CompareItemsCallback<AgentRowData> = (item1, item2, activeSorting) => {
         const orderMultiplier = activeSorting.order === 'asc' ? 1 : -1;
-        return localeCompare(item1.displayName, item2.displayName) * orderMultiplier;
+        const displayNameComparison = localeCompare(item1.displayName, item2.displayName) * orderMultiplier;
+
+        if (activeSorting.columnKey === 'role') {
+            const compareRoleNames = (role1: string, role2: string) => localeCompare(translate('workspace.common.roleName', role1), translate('workspace.common.roleName', role2));
+            return compareOptionalValues(item1.role, item2.role, compareRoleNames, orderMultiplier, displayNameComparison);
+        }
+
+        if (activeSorting.columnKey === 'owner') {
+            const compareOwnerDisplayNames = (ownerDisplayName1: string, ownerDisplayName2: string) => localeCompare(ownerDisplayName1, ownerDisplayName2);
+            return compareOptionalValues(item1.ownerDisplayName, item2.ownerDisplayName, compareOwnerDisplayNames, orderMultiplier, displayNameComparison);
+        }
+
+        return displayNameComparison;
     };
 
     const isTableItemInSearch: IsItemInSearchCallback<AgentRowData> = (item, searchValue) => {
@@ -91,6 +147,8 @@ export default function AgentsTable({ref, agents, headerComponent, canSelectAgen
             item={item}
             rowIndex={index}
             shouldUseNarrowTableLayout={shouldUseNarrowTableLayout}
+            shouldShowRoleColumn={shouldShowRoleColumn}
+            shouldShowOwnerColumn={shouldShowOwnerColumn}
         />
     );
 

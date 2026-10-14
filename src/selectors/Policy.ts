@@ -575,6 +575,9 @@ const createAdminPoliciesSelector =
         }, {});
     };
 
+const usingPolicyAccountIDPoliciesSelector = (policies: OnyxCollection<Policy>, policyAccountID: number) =>
+    Object.values(policies ?? {}).find((policy) => policy?.policyAccountID === policyAccountID);
+
 export type {PolicySelector, TimeSensitiveAdminPolicy};
 export {
     createAllPolicyReportFieldsSelector,
@@ -610,5 +613,6 @@ export {
     isAdminForPolicyByIDSelector,
     isCollectingDepositAccountsSelector,
     createIsInternationalCountrySelector,
+    usingPolicyAccountIDPoliciesSelector,
 };
 export type {ReusablePolicyConnectionName};

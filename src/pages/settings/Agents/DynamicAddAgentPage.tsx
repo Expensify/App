@@ -9,13 +9,17 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
+import ValuePicker from '@components/ValuePicker';
+import {getAssignableWorkspaceMemberRoleItems} from '@components/WorkspaceMemberRoleList';
 
 import useBeforeRemove from '@hooks/useBeforeRemove';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useKeyboardState from '@hooks/useKeyboardState';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import usePolicy from '@hooks/usePolicy';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
@@ -24,16 +28,18 @@ import {buildFileFromAvatarCropResult} from '@libs/AvatarCropUtils';
 import {AGENT_AVATARS} from '@libs/Avatars/AgentAvatarCatalog';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import isInLandscapeModeUtil from '@libs/isInLandscapeMode';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import type {AvatarSource} from '@libs/UserAvatarUtils';
 
-import {clearNewAgentAvatarDraft, clearNewAgentTemplate, createAgent, setNewAgentAvatarPreset} from '@userActions/Agent';
+import {clearNewAgentAvatarDraft, clearNewAgentTemplate, createAgent, createCompanyAgent, setNewAgentAvatarPreset} from '@userActions/Agent';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
+import type {Route} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/AddAgentForm';
 import type NewAgentTemplate from '@src/types/onyx/NewAgentTemplate';
@@ -41,26 +47,28 @@ import type {Errors} from '@src/types/onyx/OnyxCommon';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import type {TextInputKeyPressEvent} from 'react-native';
+import type {ValueOf} from 'type-fest';
 
-import React, {useCallback, useEffect, useRef} from 'react';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {Platform, View} from 'react-native';
 
 import {PROMPT_MAX_AUTO_GROW_HEIGHT, PROMPT_MAX_HEIGHT_ON_KEYBOARD_OPEN_LANDSCAPE_MODE} from './const';
 import scrollToMultilineInput from './scrollToMultilineInput';
 
-type AddAgentPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.AGENTS.ADD>;
+type DynamicAddAgentPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.AGENTS.DYNAMIC_ADD>;
 
-type AddAgentPageContentProps = {
+type DynamicAddAgentPageContentProps = {
     /** Route params (policyID) forwarded from the screen */
-    route: AddAgentPageProps['route'];
+    route: DynamicAddAgentPageProps['route'];
 
     /** Template picked in the "New agent" screen used to pre-fill the fields, or undefined for a blank agent */
     template: NewAgentTemplate | undefined;
 };
 
-function AddAgentPageContent({route, template}: AddAgentPageContentProps) {
+function DynamicAddAgentPageContent({route, template}: DynamicAddAgentPageContentProps) {
     const StyleUtils = useStyleUtils();
     const policyID = route.params?.policyID;
+    const policy = usePolicy(policyID);
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {windowWidth, windowHeight} = useWindowDimensions();
@@ -71,7 +79,7 @@ function AddAgentPageContent({route, template}: AddAgentPageContentProps) {
     const shouldAutoGrowPromptInput = Platform.OS !== 'web' && !isInLandscapeMode;
     const shouldUseScrollableLayout = shouldAutoGrowPromptInput || isInLandscapeMode;
     const shouldShrinkPromptInput = isInLandscapeMode && isKeyboardActive;
-    const {accountID: ownerAccountID, login: ownerLogin, displayName} = useCurrentUserPersonalDetails();
+    const {accountID: currentUserAccountID, login: currentUserLogin, displayName} = useCurrentUserPersonalDetails();
     const defaultAgentName = template?.name ?? (displayName ? translate('addAgentPage.defaultAgentName', displayName) : undefined);
     const defaultPrompt = template?.prompt ?? translate('addAgentPage.defaultPrompt');
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Pencil']);
@@ -80,6 +88,14 @@ function AddAgentPageContent({route, template}: AddAgentPageContentProps) {
     const hasSubmittedRef = useRef(false);
     const hasLeftPageRef = useRef(false);
     const formRef = useRef<FormRef>(null);
+    const availableRoleItems = getAssignableWorkspaceMemberRoleItems(translate, undefined, policy, currentUserLogin ?? '');
+    const [role, setRole] = useState<ValueOf<typeof CONST.POLICY.ROLE>>(availableRoleItems.at(0)?.value ?? CONST.POLICY.ROLE.ADMIN);
+    const roleOptions = availableRoleItems.map((roleItem) => ({
+        label: roleItem.text,
+        value: roleItem.value,
+        description: roleItem.alternateText,
+    }));
+    const backPath = useDynamicBackPath(DYNAMIC_ROUTES.AGENT_ADD.path);
 
     const submitFormOnModEnter = (event: TextInputKeyPressEvent | KeyboardEvent) => {
         if (!('key' in event)) {
@@ -141,12 +157,24 @@ function AddAgentPageContent({route, template}: AddAgentPageContentProps) {
         const firstName = values[INPUT_IDS.FIRST_NAME].trim() || defaultAgentName;
         const prompt = values[INPUT_IDS.PROMPT].trim();
 
-        // Pure optimistic flow: `createAgent` writes the agent and the owner<->agent DM to Onyx under a
-        // reportID it generates client-side, and CreateAgent creates the DM under that exact ID (see
-        // CreateAgent.cpp), so we can navigate to the DM immediately, online or offline, without waiting.
-        const {optimisticReportID, optimisticPersonalDetailPromise} = uploadedAvatar?.uri
-            ? createAgent(firstName, prompt, ownerAccountID, ownerLogin, undefined, buildFileFromAvatarCropResult(uploadedAvatar), uploadedAvatar.uri, policyID)
-            : createAgent(firstName, prompt, ownerAccountID, ownerLogin, selectedPresetID ?? AGENT_AVATARS.getRandomID(), undefined, undefined, policyID);
+        // Pure optimistic flow: `createAgent/createCompanyAgent` writes the agent and the owner<->agent DM to Onyx under a
+        // reportID it generates client-side, and CreateAgent/CreateCompanyAgent creates the DM under that exact ID,
+        // so we can navigate to the DM immediately, online or offline, without waiting.
+        let optimisticReportID: string | undefined;
+        let optimisticPersonalDetailPromise: Promise<void> | undefined;
+        let backToAgentsListRoute: Route | undefined;
+
+        if (policyID) {
+            ({optimisticReportID, optimisticPersonalDetailPromise} = uploadedAvatar?.uri
+                ? createCompanyAgent(currentUserAccountID, currentUserLogin, prompt, policyID, role, firstName, undefined, buildFileFromAvatarCropResult(uploadedAvatar), uploadedAvatar.uri)
+                : createCompanyAgent(currentUserAccountID, currentUserLogin, prompt, policyID, role, firstName, selectedPresetID ?? AGENT_AVATARS.getRandomID()));
+            backToAgentsListRoute = ROUTES.WORKSPACE_AGENTS.getRoute(policyID);
+        } else {
+            ({optimisticReportID, optimisticPersonalDetailPromise} = uploadedAvatar?.uri
+                ? createAgent(firstName, prompt, currentUserAccountID, currentUserLogin, undefined, buildFileFromAvatarCropResult(uploadedAvatar), uploadedAvatar.uri, policyID)
+                : createAgent(firstName, prompt, currentUserAccountID, currentUserLogin, selectedPresetID ?? AGENT_AVATARS.getRandomID(), undefined, undefined, policyID));
+            backToAgentsListRoute = ROUTES.SETTINGS_AGENTS;
+        }
 
         clearNewAgentTemplate();
 
@@ -165,7 +193,7 @@ function AddAgentPageContent({route, template}: AddAgentPageContentProps) {
             if (isNarrowLayout) {
                 // Reveal the DM under the modal before dismissing so we navigate directly to it in one animation,
                 // instead of dismissing to the agents list first and navigating to the DM afterward.
-                Navigation.revealRouteBeforeDismissingModal(ROUTES.REPORT_WITH_ID.getRoute(optimisticReportID, undefined, undefined, ROUTES.SETTINGS_AGENTS), {
+                Navigation.revealRouteBeforeDismissingModal(ROUTES.REPORT_WITH_ID.getRoute(optimisticReportID, undefined, undefined, backToAgentsListRoute), {
                     afterTransition: () => {
                         clearNewAgentAvatarDraft();
                     },
@@ -198,7 +226,7 @@ function AddAgentPageContent({route, template}: AddAgentPageContentProps) {
 
     return (
         <ScreenWrapper
-            testID={AddAgentPage.displayName}
+            testID={DynamicAddAgentPage.displayName}
             includeSafeAreaPaddingBottom
             offlineIndicatorStyle={styles.mtAuto}
             shouldEnableMaxHeight={shouldAutoGrowPromptInput}
@@ -206,7 +234,7 @@ function AddAgentPageContent({route, template}: AddAgentPageContentProps) {
             <CollapsibleHeaderOnKeyboard>
                 <HeaderWithBackButton
                     title={translate('addAgentPage.title')}
-                    onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_AGENTS_NEW.getRoute(policyID ? {policyID} : undefined))}
+                    onBackButtonPress={() => Navigation.goBack(backPath)}
                 />
             </CollapsibleHeaderOnKeyboard>
             <FormProvider
@@ -228,7 +256,7 @@ function AddAgentPageContent({route, template}: AddAgentPageContentProps) {
                         <AvatarButtonWithIcon
                             text={translate('addAgentPage.editAvatar')}
                             avatar={agentAvatar}
-                            onPress={() => Navigation.navigate(ROUTES.SETTINGS_AGENTS_ADD_AVATAR)}
+                            onPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.AGENT_ADD_AVATAR.getRoute()))}
                             editIcon={expensifyIcons.Pencil}
                             editIconStyle={styles.smallEditIconAccount}
                             sentryLabel={CONST.SENTRY_LABEL.ADD_AGENT_PAGE.AVATAR}
@@ -244,6 +272,19 @@ function AddAgentPageContent({route, template}: AddAgentPageContentProps) {
                         spellCheck={false}
                         defaultValue={defaultAgentName}
                     />
+                    {!!policyID && (
+                        <View style={[styles.mhn5]}>
+                            <InputWrapper
+                                InputComponent={ValuePicker}
+                                inputID={INPUT_IDS.ROLE}
+                                label={translate('common.role')}
+                                items={roleOptions}
+                                onValueChange={(value) => setRole(value as typeof role)}
+                                value={role}
+                                shouldShowTooltips={false}
+                            />
+                        </View>
+                    )}
                     <View
                         style={
                             shouldShrinkPromptInput
@@ -280,7 +321,7 @@ function AddAgentPageContent({route, template}: AddAgentPageContentProps) {
     );
 }
 
-function AddAgentPage({route}: AddAgentPageProps) {
+function DynamicAddAgentPage({route}: DynamicAddAgentPageProps) {
     const [template, templateMetadata] = useOnyx(ONYXKEYS.NEW_AGENT_TEMPLATE);
 
     if (isLoadingOnyxValue(templateMetadata)) {
@@ -288,13 +329,13 @@ function AddAgentPage({route}: AddAgentPageProps) {
     }
 
     return (
-        <AddAgentPageContent
+        <DynamicAddAgentPageContent
             route={route}
             template={template}
         />
     );
 }
 
-AddAgentPage.displayName = 'AddAgentPage';
+DynamicAddAgentPage.displayName = 'DynamicAddAgentPage';
 
-export default AddAgentPage;
+export default DynamicAddAgentPage;
