@@ -25,9 +25,6 @@ type LabelHitGeometry = {
     /** Per-label: labelWidth / 2 — half-extent for 0° and 90° hit bounds */
     halfWidths: number[];
 
-    /** Per-label horizontal shift of 0° labels from their tick */
-    xOffsets: number[];
-
     /** rightUpperCorner.x = targetX + cornerAnchorDX */
     cornerAnchorDX: number;
 
@@ -48,8 +45,6 @@ type UseLabelHitTestingParams = {
     truncatedLabelWidths: number[];
     labelRotation: LabelRotation;
     labelSkipInterval: number;
-    /** Per-label horizontal shift (px) of 0° labels from their tick, matching ChartXAxisLabels. */
-    labelXOffsets?: number[];
     chartBottom: SharedValue<number>;
 };
 
@@ -66,7 +61,7 @@ type UseLabelHitTestingParams = {
  * Labels are right-aligned at the tick: the 45° parallelogram's upper-right corner is
  * offset by (iconSize/3 * sinA) left and down, placing the box just below the axis line.
  */
-function useLabelHitTesting({fontManager, fontSize, truncatedLabelWidths, labelRotation, labelSkipInterval, labelXOffsets, chartBottom}: UseLabelHitTestingParams) {
+function useLabelHitTesting({fontManager, fontSize, truncatedLabelWidths, labelRotation, labelSkipInterval, chartBottom}: UseLabelHitTestingParams) {
     const tickXPositions = useSharedValue<number[]>([]);
 
     const angleRad = (Math.abs(labelRotation) * Math.PI) / 180;
@@ -85,7 +80,6 @@ function useLabelHitTesting({fontManager, fontSize, truncatedLabelWidths, labelR
             iconSin: variables.iconSizeExtraSmall * sinA,
             labelSins: truncatedLabelWidths.map((w) => w * sinA),
             halfWidths: truncatedLabelWidths.map((w) => w / 2),
-            xOffsets: truncatedLabelWidths.map((_, i) => (angleRad === 0 ? (labelXOffsets?.at(i) ?? 0) : 0)),
             cornerAnchorDX: -iconThirdSin,
             cornerAnchorDY: iconThirdSin,
             yMin90Offset: padding,
@@ -104,7 +98,7 @@ function useLabelHitTesting({fontManager, fontSize, truncatedLabelWidths, labelR
             return false;
         }
 
-        const {labelYOffset, iconSin, labelSins, halfWidths, xOffsets, cornerAnchorDX, cornerAnchorDY, yMin90Offset, yMax90Offsets} = labelHitGeometry;
+        const {labelYOffset, iconSin, labelSins, halfWidths, cornerAnchorDX, cornerAnchorDY, yMin90Offset, yMax90Offsets} = labelHitGeometry;
         const padding = variables.iconSizeExtraSmall / 2;
         const halfWidth = halfWidths.at(activeIndex) ?? 0;
         const labelY = args.chartBottom + labelYOffset;
@@ -122,7 +116,7 @@ function useLabelHitTesting({fontManager, fontSize, truncatedLabelWidths, labelR
         return isCursorOverChartLabel({
             cursorX: args.cursorX,
             cursorY: args.cursorY,
-            targetX: args.targetX + (xOffsets.at(activeIndex) ?? 0),
+            targetX: args.targetX,
             labelY,
             angleRad,
             halfWidth,
