@@ -221,6 +221,17 @@ describe('WorkArrangementPage', () => {
         expect(getSelectionListProps()?.data.find((option) => option.value)?.isSelected).toBe(true);
     });
 
+    it('defaults a member to office-based when neither the member nor workspace has an arrangement', () => {
+        // Given a home and office workspace with no member override or workspace default
+        const policyWithoutDefault = createMock<Policy>({...policy, commuterExclusions: {method: CONST.POLICY.COMMUTER_EXCLUSION_METHOD.HOME_AND_OFFICE}});
+        renderPage(accountID, personalDetails, policyWithoutDefault);
+
+        // When the member's work arrangement settings load
+        // Then Office-based is selected, matching the member details page and server fallback
+        expect(getSelectionListProps()?.data.find((option) => option.value)?.isSelected).toBe(true);
+        expect(getSelectionListProps()?.data.find((option) => !option.value)?.isSelected).toBe(false);
+    });
+
     it('returns to the workflow invite confirmation after changing an invited approver arrangement', async () => {
         // Given an unsent approver invite that was opened from the workflow expenses-from flow
         const inviteAccountID = 23456;
