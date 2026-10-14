@@ -7,6 +7,7 @@ import type {HoldMenuCallback} from '@components/Search';
 import type {TransactionListItemType, TransactionReportGroupListItemType} from '@components/Search/SearchList/ListItem/types';
 import type {BankAccountMenuItem, BulkPaySelectionData, PaymentData, SearchFooterTotal, SearchQueryJSON, SelectedReports, SelectedTransactions} from '@components/Search/types';
 
+import type {ConfirmSubmitReportViolationsOnProceed} from '@hooks/useConfirmSubmitReportViolations';
 import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
 import type {ReportSubmitToPopoverOpenOptions} from '@hooks/useReportSubmitToPopover';
 
@@ -264,6 +265,8 @@ type HandleActionButtonPressParams = {
     onUndelete?: () => void;
     onPendingCardTransactionsBlock?: () => void;
     onAllHeldExpensesBlock?: () => void;
+    /** Confirms any unacknowledged report violations before proceeding with the SUBMIT action. */
+    confirmSubmitReportViolations: (onProceed: ConfirmSubmitReportViolationsOnProceed) => void;
     openReportSubmitToPopover?: (options?: ReportSubmitToPopoverOpenOptions) => void;
     shouldDisableSearchSubmitPress?: boolean;
     /** Consumes a one-shot flag set when the submit-to popover dismisses (prevents click-through on the row Submit button). */
@@ -308,6 +311,7 @@ function handleActionButtonPress({
     amountOwed,
     onUndelete,
     onAllHeldExpensesBlock,
+    confirmSubmitReportViolations,
     currentUserAccountID,
     openReportSubmitToPopover,
     shouldDisableSearchSubmitPress,
@@ -438,40 +442,45 @@ function handleActionButtonPress({
             }
             const policyForSubmit = policy ?? snapshotPolicy;
             if (isSubmitPolicy(policyForSubmit) && openReportSubmitToPopover) {
-                openReportSubmitToPopover({
-                    onSubmitWithManagerEmail: (managerEmail, managerAccountID) => {
-                        submitMoneyRequestOnSearch(
-                            hash,
-                            [snapshotReport],
-                            [policyForSubmit],
-                            submitterLogin,
-                            getCurrencyDecimals,
-                            rules,
-                            personalDetailsByLogins,
-                            currentSearchKey,
-                            managerEmail,
-                            managerAccountID,
-                            currentUserAccountID,
-                            delegateEmail,
-                        );
-                    },
+                confirmSubmitReportViolations((shouldResolveViolations) => {
+                    openReportSubmitToPopover({
+                        shouldResolveAcknowledgedViolations: shouldResolveViolations,
+                        onSubmitWithManagerEmail: (managerEmail, managerAccountID, shouldResolveAcknowledgedViolations) => {
+                            submitMoneyRequestOnSearch({
+                                hash,
+                                reportList: [snapshotReport],
+                                policy: [policyForSubmit],
+                                submitterLogin,
+                                getCurrencyDecimals,
+                                rules,
+                                personalDetailsByLogins,
+                                currentSearchKey,
+                                managerEmail,
+                                managerAccountID,
+                                currentUserAccountID,
+                                delegateEmail,
+                                shouldResolveAcknowledgedViolations,
+                            });
+                        },
+                    });
                 });
                 return;
             }
-            submitMoneyRequestOnSearch(
-                hash,
-                [snapshotReport],
-                [policyForSubmit],
-                submitterLogin,
-                getCurrencyDecimals,
-                rules,
-                personalDetailsByLogins,
-                currentSearchKey,
-                undefined,
-                undefined,
-                currentUserAccountID,
-                delegateEmail,
-            );
+            confirmSubmitReportViolations((shouldResolveAcknowledgedViolations) => {
+                submitMoneyRequestOnSearch({
+                    hash,
+                    reportList: [snapshotReport],
+                    policy: [policyForSubmit],
+                    submitterLogin,
+                    getCurrencyDecimals,
+                    rules,
+                    personalDetailsByLogins,
+                    currentSearchKey,
+                    currentUserAccountID,
+                    delegateEmail,
+                    shouldResolveAcknowledgedViolations,
+                });
+            });
             return;
         }
         case CONST.SEARCH.ACTION_TYPES.EXPORT_TO_ACCOUNTING: {
@@ -1583,22 +1592,37 @@ function clearFooterConversion() {
     Onyx.set(ONYXKEYS.SEARCH_FOOTER_CONVERSION, null);
 }
 
-// Refactoring this to a params object would touch every call site and is out of scope here.
-// eslint-disable-next-line @typescript-eslint/max-params
-function submitMoneyRequestOnSearch(
-    hash: number,
-    reportList: Report[],
-    policy: Policy[],
-    submitterLogin: string | undefined,
-    getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'],
-    rules: OnyxCollection<Rule>,
-    personalDetailsByLogins: PersonalDetailsByLogin,
-    currentSearchKey?: SearchKey,
-    managerEmail?: string,
-    managerAccountID?: number,
-    currentUserAccountID?: number,
-    delegateEmail?: string,
-) {
+type SubmitMoneyRequestOnSearchParams = {
+    hash: number;
+    reportList: Report[];
+    policy: Policy[];
+    submitterLogin: string | undefined;
+    getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
+    rules: OnyxCollection<Rule>;
+    personalDetailsByLogins: PersonalDetailsByLogin;
+    currentSearchKey?: SearchKey;
+    managerEmail?: string;
+    managerAccountID?: number;
+    currentUserAccountID?: number;
+    delegateEmail?: string;
+    shouldResolveAcknowledgedViolations?: boolean;
+};
+
+function submitMoneyRequestOnSearch({
+    hash,
+    reportList,
+    policy,
+    submitterLogin,
+    getCurrencyDecimals,
+    rules,
+    personalDetailsByLogins,
+    currentSearchKey,
+    managerEmail,
+    managerAccountID,
+    currentUserAccountID,
+    delegateEmail,
+    shouldResolveAcknowledgedViolations,
+}: SubmitMoneyRequestOnSearchParams) {
     const firstReport = (reportList.at(0) ?? {}) as Report;
     const firstPolicy = policy.at(0);
     const isDEWPolicy = hasDynamicExternalWorkflow(firstPolicy);
@@ -1715,6 +1739,7 @@ function submitMoneyRequestOnSearch(
         reportActionID: optimisticSubmittedReportAction.reportActionID,
         ...(resolvedManagerAccountID !== undefined ? {managerAccountID: resolvedManagerAccountID} : {}),
         ...(trimmedManagerEmail ? {managerEmail: trimmedManagerEmail} : {}),
+        ...(shouldResolveAcknowledgedViolations ? {shouldResolveAcknowledgedViolations} : {}),
     };
 
     // The SubmitReport command is not 1:1:1 yet, which means creating a separate SubmitMoneyRequestOnSearch command is not feasible until https://github.com/Expensify/Expensify/issues/451223 is done.
@@ -1847,6 +1872,7 @@ function rejectMoneyRequestInBulk(
     delegateAccountID: number | undefined,
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'],
     rules: OnyxCollection<Rule>,
+    reportTransactionsCollection: Record<string, Transaction>,
     hash?: number,
 ) {
     const optimisticData: Array<RejectMoneyRequestData['optimisticData'][number] | OnyxUpdate<typeof ONYXKEYS.COLLECTION.SNAPSHOT>> = [];
@@ -1878,6 +1904,7 @@ function rejectMoneyRequestInBulk(
             getCurrencyDecimals,
             rules,
             shouldUseBulkAction: true,
+            reportTransactionsCollection,
         });
         if (data) {
             optimisticData.push(...data.optimisticData);
@@ -1959,11 +1986,10 @@ function rejectMoneyRequestsOnSearch({
             Log.info('[BulkReject] Report is missing from live Onyx', false, {reportID});
         }
         const totalReportTransactions = report?.transactionCount ?? 0;
+        const reportTransactionsCollection = allReportsTransactionsAndViolations?.[reportID]?.transactions ?? {};
 
         // Subtract pending deletes to get accurate count when transactions are deleted offline
-        const pendingDeleteCount = Object.values(allReportsTransactionsAndViolations?.[reportID]?.transactions ?? {}).filter(
-            (transaction) => transaction.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
-        ).length;
+        const pendingDeleteCount = Object.values(reportTransactionsCollection).filter((transaction) => transaction.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE).length;
         const effectiveTransactionCount = totalReportTransactions - pendingDeleteCount;
         const areAllExpensesSelected = selectedTransactionIDs.length === effectiveTransactionCount;
         const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`];
@@ -1980,6 +2006,7 @@ function rejectMoneyRequestsOnSearch({
                 delegateAccountID,
                 getCurrencyDecimals,
                 rules,
+                reportTransactionsCollection,
                 hash,
             );
         } else {
@@ -1990,13 +2017,23 @@ function rejectMoneyRequestsOnSearch({
                 existingRejectedReport = nextRejectedReport;
             };
             for (const transactionID of selectedTransactionIDs) {
-                rejectMoneyRequest(transactionID, reportID, comment, policy, currentUserAccountIDParam, currentUserLogin, isASAPSubmitBetaEnabled, delegateAccountID, getCurrencyDecimals, {
+                rejectMoneyRequest({
+                    transactionID,
+                    reportID,
+                    comment,
+                    policy,
+                    currentUserAccountIDParam,
+                    currentUserLogin,
+                    isASAPSubmitBetaEnabled,
+                    delegateAccountID,
+                    getCurrencyDecimals,
                     rules,
                     options: {
                         sharedRejectedToReportID,
                         existingRejectedReport,
                         setExistingRejectedReport,
                     },
+                    reportTransactionsCollection,
                 });
             }
         }

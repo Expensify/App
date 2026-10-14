@@ -7,7 +7,17 @@ import type {PopoverMenuItem} from '@components/PopoverMenu';
 import {useOpenSearchReportSubmitToPopover} from '@components/ReportSubmitToPopoverAnchor';
 import {useSearchQueryContext, useSearchResultsContext, useSearchSelectionActions, useSearchSelectionContext} from '@components/Search/SearchContext';
 import {getSearchGroupCountByKey} from '@components/Search/selectionBuilders';
-import type {BulkPaySelectionData, PaymentData, QueryFilterKey, SearchColumnType, SearchFilterKey, SearchQueryJSON, SelectedReports, SelectedTransactions} from '@components/Search/types';
+import type {
+    BulkPaySelectionData,
+    PaymentData,
+    QueryFilterKey,
+    SearchColumnType,
+    SearchFilterKey,
+    SearchGroupBy,
+    SearchQueryJSON,
+    SelectedReports,
+    SelectedTransactions,
+} from '@components/Search/types';
 
 import {getAccountingIntegrationDisplayName, getExportLabelForConnection, isIntuitEnterpriseSuiteConnection} from '@libs/AccountingUtils';
 import {getExpensifyCardStatementPDF} from '@libs/actions/CompanyCards';
@@ -101,6 +111,7 @@ import {
     getDeleteConfirmationPrompt,
     getDeleteExpenseTitle,
     getOriginalTransactionWithSplitInfo,
+    getTransactionViolations,
     hasCustomUnitOutOfPolicyViolation,
     hasOnlyPendingCardTransactions,
     hasReceipt as hasReceiptTransactionUtils,
@@ -114,6 +125,8 @@ import {
     isPerDiemRequest,
     isScanning,
 } from '@libs/TransactionUtils';
+import confirmSubmitViolationsThenProceed from '@libs/Violations/confirmSubmitViolationsThenProceed';
+import {getReportSubmitViolationSummary, mergeReportSubmitViolationSummaries} from '@libs/Violations/getReportSubmitViolationSummary';
 
 import variables from '@styles/variables';
 
@@ -451,6 +464,19 @@ function getAllMatchingReportQuery(queryJSON: SearchQueryJSON, excludedTransacti
 
 const MERCHANT_GROUP_EXACT_MATCH_FILTER_KEYS = new Set<SearchFilterKey>([CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT]);
 
+/**
+ * The groupings whose selected groups `getSelectedGroupFilterEntry` can turn into a query filter, which a template export needs.
+ * Keep this in sync with that function.
+ */
+const TEMPLATE_EXPORTABLE_GROUP_BYS = new Set<SearchGroupBy>([
+    CONST.SEARCH.GROUP_BY.FROM,
+    CONST.SEARCH.GROUP_BY.CARD,
+    CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID,
+    CONST.SEARCH.GROUP_BY.CATEGORY,
+    CONST.SEARCH.GROUP_BY.MERCHANT,
+    CONST.SEARCH.GROUP_BY.TAG,
+]);
+
 function getGroupExportExactMatchFilterKeys(groupBy: SearchQueryJSON['groupBy']): ReadonlySet<SearchFilterKey> | undefined {
     return groupBy === CONST.SEARCH.GROUP_BY.MERCHANT ? MERCHANT_GROUP_EXACT_MATCH_FILTER_KEYS : undefined;
 }
@@ -607,7 +633,7 @@ function getChatReportForBulkPay(
 type ExportMenuItem = DropdownOption<SearchHeaderOptionValue> & Pick<PopoverMenuItem, 'accessibilityLabel' | 'shouldCallAfterModalHide'>;
 
 function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
-    const {translate, localeCompare} = useLocalize();
+    const {translate, localeCompare, dateFnsLocale} = useLocalize();
     const styles = useThemeStyles();
     const theme = useTheme();
     const {isOffline} = useNetwork();
@@ -2108,14 +2134,9 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
 
             const isReportsTab = isExpenseReportType;
             const includesGroupExport = isGroupedSearch && Object.entries(selectedTransactions).some(([key, selectedTransaction]) => isGroupSelection(key, selectedTransaction));
-            // Group selections are sent as query filters, not report or transaction IDs, so template exports are usually unavailable.
-            // Reconciliation - All Expenses is supported for card-grouped searches because selected card groups become a `cardID:`
-            // filter, which template reports can use to scope card spend.
-            const includesCardGroupExport = includesGroupExport && groupBy === CONST.SEARCH.GROUP_BY.CARD;
-            const customTemplatesToShow = includesCardGroupExport ? [] : availableCustomTemplates;
-            const defaultTemplatesToShow = includesCardGroupExport
-                ? availableDefaultTemplates.filter((template) => template.templateName === CONST.REPORT.EXPORT_OPTIONS.RECONCILIATION_ALL_EXPENSES)
-                : availableDefaultTemplates;
+            // A template export sends a group selection as a filter on the ungrouped query (see `getTemplateGroupExportQuery`), alongside any individually picked expenses.
+            // Groupings with no such filter (the time-based ones) would fail that export, so they keep only "Current view".
+            const canExportGroupWithTemplates = !includesGroupExport || (!!groupBy && TEMPLATE_EXPORTABLE_GROUP_BYS.has(groupBy));
 
             const canReportBeExported = (report: (typeof selectedReports)[0], exportOption: ValueOf<typeof CONST.REPORT.EXPORT_OPTIONS>) => {
                 if (!report.reportID) {
@@ -2403,7 +2424,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 addSeparatorBefore: true,
             });
 
-            if (!allSelectedAreDeleted && (!includesGroupExport || includesCardGroupExport)) {
+            if (!allSelectedAreDeleted && canExportGroupWithTemplates) {
                 // Builds a single export sub-menu item for a template. `isDefaultTemplate` picks the icon and `addSeparatorBefore` draws the divider at the top of each group.
                 const buildExportOption = (template: ExportTemplate, isDefaultTemplate: boolean, addSeparatorBefore: boolean): ExportMenuItem => {
                     // The basic export is a plain CSV download, so it uses its own handler rather than the template export flow
@@ -2427,10 +2448,10 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 };
 
                 // Add each group's templates separately so the icon and the group-boundary divider come from the group itself, not from an index into a combined list.
-                for (const [index, template] of customTemplatesToShow.entries()) {
+                for (const [index, template] of availableCustomTemplates.entries()) {
                     exportOptions.push(buildExportOption(template, false, index === 0));
                 }
-                for (const [index, template] of defaultTemplatesToShow.entries()) {
+                for (const [index, template] of availableDefaultTemplates.entries()) {
                     exportOptions.push(buildExportOption(template, true, index === 0));
                 }
             } else if (!isGroupedSearch) {
@@ -2826,6 +2847,19 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                     }
                     const areAllSelectedReportsBlocked = blockedReportIDs.size > 0 && blockedReportIDs.size === transactionsByReportID.size;
 
+                    const buildReportSubmitViolationSummary = (report: OnyxEntry<Report>, reportID: string | undefined, policyOverride?: OnyxEntry<Policy>) => {
+                        const policy = policyOverride ?? (report?.policyID ? policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`] : undefined);
+                        const reportOwnerLogin = getLoginByAccountID(report?.ownerAccountID, personalDetails);
+                        const reportTransactions = reportID ? (transactionsByReportID.get(reportID) ?? []) : [];
+                        const violationsCollection: OnyxCollection<TransactionViolations> = {};
+                        for (const transaction of reportTransactions) {
+                            const violationsKey = `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`;
+                            violationsCollection[violationsKey] =
+                                getTransactionViolations(transaction, allTransactionViolations, email ?? '', accountID, report, reportOwnerLogin, policy) ?? [];
+                        }
+                        return getReportSubmitViolationSummary(reportTransactions, violationsCollection, report, policy, email ?? '', accountID);
+                    };
+
                     const selectedReportForSubmit = selectedReports.at(0);
                     const reportIDForSubmit = selectedReportForSubmit?.reportID ?? selectedTransactionsKeys.map((id) => selectedTransactions[id]?.reportID).find((id): id is string => !!id);
                     const policyIDForSubmit = selectedReportForSubmit?.policyID ?? selectedTransactionsKeys.map((id) => selectedTransactions[id]?.policyID).find((id): id is string => !!id);
@@ -2840,89 +2874,125 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                         );
 
                         if (snapshotReport) {
-                            openSearchReportSubmitToPopover(reportIDForSubmit, {
-                                onSubmitWithManagerEmail: (managerEmail, managerAccountID) => {
-                                    submitMoneyRequestOnSearch(
-                                        hash,
-                                        [snapshotReport],
-                                        [policyForSubmit],
-                                        getLoginByAccountID(snapshotReport.ownerAccountID, personalDetails),
-                                        getCurrencyDecimals,
-                                        rules,
-                                        getPersonalDetailsByLogin(),
-                                        currentSearchKey,
-                                        managerEmail,
-                                        managerAccountID,
-                                    );
-                                    refreshSearchAfterReportAction({
-                                        currentSearchQueryJSON,
-                                        currentSearchKey,
-                                        shouldCalculateTotals: shouldCalculateTotalsOnRefresh,
-                                        isOffline,
-                                        isLoading: !!currentSearchResults?.search?.isLoading,
-                                    });
-                                    clearSelectedTransactions();
-                                },
+                            const summaryForSubmit = buildReportSubmitViolationSummary(snapshotReport, reportIDForSubmit, policyForSubmit);
+
+                            const openPopoverForSubmit = (shouldResolveViolations?: boolean) => {
+                                openSearchReportSubmitToPopover(reportIDForSubmit, {
+                                    shouldResolveAcknowledgedViolations: shouldResolveViolations,
+                                    onSubmitWithManagerEmail: (managerEmail, managerAccountID, shouldResolveManagerEmailViolations) => {
+                                        submitMoneyRequestOnSearch({
+                                            hash,
+                                            reportList: [snapshotReport],
+                                            policy: [policyForSubmit],
+                                            submitterLogin: getLoginByAccountID(snapshotReport.ownerAccountID, personalDetails),
+                                            getCurrencyDecimals,
+                                            rules,
+                                            personalDetailsByLogins: getPersonalDetailsByLogin(),
+                                            currentSearchKey,
+                                            managerEmail,
+                                            managerAccountID,
+                                            shouldResolveAcknowledgedViolations: shouldResolveManagerEmailViolations,
+                                        });
+                                        refreshSearchAfterReportAction({
+                                            currentSearchQueryJSON,
+                                            currentSearchKey,
+                                            shouldCalculateTotals: shouldCalculateTotalsOnRefresh,
+                                            isOffline,
+                                            isLoading: !!currentSearchResults?.search?.isLoading,
+                                        });
+                                        clearSelectedTransactions();
+                                    },
+                                });
+                            };
+
+                            confirmSubmitViolationsThenProceed({
+                                summary: summaryForSubmit,
+                                showConfirmModal,
+                                translate,
+                                dateFnsLocale,
+                                convertToDisplayString,
+                                shouldShowMarkAsDoneCopy: allReportsShouldMarkAsDone,
+                                onProceed: openPopoverForSubmit,
                             });
                         }
                         return;
                     }
 
-                    const personalDetailsByLogins = getPersonalDetailsByLogin();
-                    for (const item of itemList) {
-                        if (item.reportID && blockedReportIDs.has(item.reportID)) {
-                            continue;
-                        }
-                        const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${item.policyID}`];
-                        if (policy) {
-                            submitMoneyRequestOnSearch(
-                                hash,
-                                [item as Report],
-                                [policy],
-                                getLoginByAccountID(item.ownerAccountID, personalDetails),
-                                getCurrencyDecimals,
-                                rules,
-                                personalDetailsByLogins,
-                            );
-                        } else {
-                            Log.info('[BulkSubmit] Skipping report: policy not found in Onyx', false, {reportID: item?.reportID, policyID: item?.policyID});
-                        }
-                    }
+                    const itemsToSubmit = itemList.filter((item) => !(item.reportID && blockedReportIDs.has(item.reportID)));
+                    const reportIDsToSubmit = new Set(itemsToSubmit.map((item) => item.reportID).filter((id): id is string => !!id));
 
-                    // List the skipped reports by the name the Search rows display.
-                    if (blockedReportIDs.size > 0) {
-                        const blockedReportNames: string[] = [];
-                        for (const reportID of blockedReportIDs) {
-                            const reportName = searchResults?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]?.reportName;
-                            if (reportName) {
-                                blockedReportNames.push(StringUtils.lineBreaksToSpaces(Parser.htmlToText(reportName)));
+                    // One summary per report, each with that report's own report/policy so getReportSubmitViolationSummary
+                    // can apply its usual shouldShowViolation filtering and whole-report-rejection check itself, merged
+                    // afterwards into a single summary for one modal covering every report being submitted.
+                    const perReportSummaries = [...reportIDsToSubmit].map((reportID) =>
+                        buildReportSubmitViolationSummary(getReportFromSearchSnapshot(reportID, searchResults?.data, allReports), reportID),
+                    );
+                    const summary = mergeReportSubmitViolationSummaries(perReportSummaries);
+
+                    const runSubmit = (shouldResolveViolations?: boolean) => {
+                        for (const item of itemsToSubmit) {
+                            const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${item.policyID}`];
+                            if (policy) {
+                                submitMoneyRequestOnSearch({
+                                    hash,
+                                    reportList: [item as Report],
+                                    policy: [policy],
+                                    submitterLogin: getLoginByAccountID(item.ownerAccountID, personalDetails),
+                                    getCurrencyDecimals,
+                                    rules,
+                                    personalDetailsByLogins: getPersonalDetailsByLogin(),
+                                    shouldResolveAcknowledgedViolations: shouldResolveViolations,
+                                });
+                            } else {
+                                Log.info('[BulkSubmit] Skipping report: policy not found in Onyx', false, {reportID: item?.reportID, policyID: item?.policyID});
                             }
                         }
-                        showConfirmModalAfterMoreMenuDismiss(showConfirmModal, {
-                            title: translate(allReportsShouldMarkAsDone ? 'iou.error.reportsNotMarkedAsDoneTitle' : 'iou.error.reportsNotSubmittedTitle'),
-                            subtitle: translate(allReportsShouldMarkAsDone ? 'iou.error.reportsNotMarkedAsDoneDescription' : 'iou.error.reportsNotSubmittedDescription'),
-                            prompt: blockedReportNames.map((reportName) => `${CONST.DOT_SEPARATOR} ${reportName}`).join('\n'),
-                            confirmText: translate('common.buttonConfirm'),
-                            shouldShowCancelButton: false,
-                            shouldEnablePromptScroll: true,
-                        });
 
-                        if (areAllSelectedReportsBlocked) {
-                            return;
+                        // List the skipped reports by the name the Search rows display.
+                        if (blockedReportIDs.size > 0) {
+                            const blockedReportNames: string[] = [];
+                            for (const reportID of blockedReportIDs) {
+                                const reportName = searchResults?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]?.reportName;
+                                if (reportName) {
+                                    blockedReportNames.push(StringUtils.lineBreaksToSpaces(Parser.htmlToText(reportName)));
+                                }
+                            }
+                            showConfirmModalAfterMoreMenuDismiss(showConfirmModal, {
+                                title: translate(allReportsShouldMarkAsDone ? 'iou.error.reportsNotMarkedAsDoneTitle' : 'iou.error.reportsNotSubmittedTitle'),
+                                subtitle: translate(allReportsShouldMarkAsDone ? 'iou.error.reportsNotMarkedAsDoneDescription' : 'iou.error.reportsNotSubmittedDescription'),
+                                prompt: blockedReportNames.map((reportName) => `${CONST.DOT_SEPARATOR} ${reportName}`).join('\n'),
+                                confirmText: translate('common.buttonConfirm'),
+                                shouldShowCancelButton: false,
+                                shouldEnablePromptScroll: true,
+                            });
+
+                            if (areAllSelectedReportsBlocked) {
+                                return;
+                            }
                         }
-                    }
 
-                    // Submitting only changes the report, so the rows keep serving the snapshot's pre-submit report
-                    // context (which still offers Submit) until the snapshot is refetched, the same way approving and
-                    // paying from Search already do.
-                    refreshSearchAfterReportAction({
-                        currentSearchQueryJSON,
-                        currentSearchKey,
-                        shouldCalculateTotals: shouldCalculateTotalsOnRefresh,
-                        isOffline,
-                        isLoading: !!currentSearchResults?.search?.isLoading,
+                        // Submitting only changes the report, so the rows keep serving the snapshot's pre-submit report
+                        // context (which still offers Submit) until the snapshot is refetched, the same way approving and
+                        // paying from Search already do.
+                        refreshSearchAfterReportAction({
+                            currentSearchQueryJSON,
+                            currentSearchKey,
+                            shouldCalculateTotals: shouldCalculateTotalsOnRefresh,
+                            isOffline,
+                            isLoading: !!currentSearchResults?.search?.isLoading,
+                        });
+                        clearSelectedTransactions();
+                    };
+
+                    confirmSubmitViolationsThenProceed({
+                        summary,
+                        showConfirmModal,
+                        translate,
+                        dateFnsLocale,
+                        convertToDisplayString,
+                        shouldShowMarkAsDoneCopy: allReportsShouldMarkAsDone,
+                        onProceed: runSubmit,
                     });
-                    clearSelectedTransactions();
                 },
             });
         }
@@ -2945,6 +3015,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 rules,
                 getLoginByAccountID(selectedMergeReports.at(0)?.ownerAccountID, personalDetails),
                 allReportNameValuePairs,
+                policies?.[`${ONYXKEYS.COLLECTION.POLICY}${selectedMergeReports.at(0)?.policyID}`],
             )
         ) {
             options.push({
@@ -3247,6 +3318,8 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         queryJSON,
         expensifyIcons,
         translate,
+        dateFnsLocale,
+        convertToDisplayString,
         areAllMatchingItemsSelected,
         isExpenseType,
         isOffline,
@@ -3266,6 +3339,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         csvExportLayouts,
         allReports,
         accountID,
+        email,
         currentUserLogin,
         bankAccountList,
         styles.integrationIcon,
