@@ -23,6 +23,8 @@ describe('AskConciergeEmptyState', () => {
     });
 
     it('renders the Ask Concierge prompt', () => {
+        // Given the empty state shown in place of the Concierge chat's messages
+        // When it renders
         render(
             <OnyxListItemProvider>
                 <LocaleContextProvider>
@@ -31,6 +33,7 @@ describe('AskConciergeEmptyState', () => {
             </OnyxListItemProvider>,
         );
 
+        // Then it invites the user to ask Concierge a question
         expect(screen.getByTestId('AskConciergeEmptyState')).toBeTruthy();
         expect(screen.getByText('Ask me anything!')).toBeTruthy();
         expect(screen.getByText('Concierge can answer questions, update expenses, and more.')).toBeTruthy();

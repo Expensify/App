@@ -17,15 +17,17 @@ describe('ConciergeSessionProvider', () => {
     });
 
     it('keeps the New chat boundary when the unread anchor resolves again', () => {
+        // Given a session that starts at the unread boundary
         const {result} = renderHook(() => ({...useConciergeSessionState(), ...useConciergeSessionActions()}), {wrapper});
-
         act(() => result.current.startSession(UNREAD_BOUNDARY));
         expect(result.current.sessionStartTime).toBe(UNREAD_BOUNDARY);
 
+        // When the user presses New chat and the unread boundary resolves again
         act(() => result.current.resetSession());
         const boundaryAfterReset = result.current.sessionStartTime;
-
         act(() => result.current.startSession(UNREAD_BOUNDARY));
+
+        // Then the session keeps the New chat boundary, so earlier messages stay hidden
         expect(result.current.sessionStartTime).toBe(boundaryAfterReset);
     });
 });
