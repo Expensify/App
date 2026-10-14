@@ -290,7 +290,10 @@ function WorkspaceCompanyCardsTable({
                   const transactionStartDateErrors = getLatestErrorField(assignedCard ?? {}, 'scrapeMinDate');
                   const hasTransactionStartDateErrors = !isEmptyObject(transactionStartDateErrors);
                   const hasCardErrors = !isEmptyObject(assignedCard?.errors ?? {});
-                  const rowErrors = isFeedConnectionBroken || assignedCard?.pendingFields?.lastScrape ? undefined : {...assignedCard?.errors, ...transactionStartDateErrors};
+                  // The feed-level prompt owns connection errors, but a failed start-date edit is a separate user action
+                  // and must remain visible and dismissible on the affected row.
+                  const cardErrors = isFeedConnectionBroken || assignedCard?.pendingFields?.lastScrape ? undefined : assignedCard?.errors;
+                  const rowErrors = hasTransactionStartDateErrors ? {...cardErrors, ...transactionStartDateErrors} : cardErrors;
 
                   return {
                       cardName,
