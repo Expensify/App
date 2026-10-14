@@ -7236,6 +7236,19 @@ const dynamicStyles = (theme: ThemeColors) =>
                 backgroundColor: theme.appBG,
             }) satisfies ViewStyle,
 
+        // Fills the screen from the top of the native tab bar down to the bottom edge, so no content shows between
+        // the offline indicator and the bar.
+        nativeTabBarOfflineIndicator: (tabBarHeight: number) =>
+            ({
+                position: 'absolute',
+                right: 0,
+                bottom: 0,
+                left: 0,
+                height: CONST.OFFLINE_INDICATOR_HEIGHT + tabBarHeight,
+                paddingBottom: tabBarHeight,
+                backgroundColor: theme.appBG,
+            }) satisfies ViewStyle,
+
         // Zero-height strip anchored above the native tab bar, so the floating buttons can be positioned
         // against it without taking part in the tab screen's layout.
         nativeTabBarFloatingButtons: (bottom: number) =>
