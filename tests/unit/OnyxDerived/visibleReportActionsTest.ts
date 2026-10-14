@@ -34,7 +34,7 @@ describe('visibleReportActions', () => {
     });
 
     it('hides a support survey when the ticket has been replaced', () => {
-        // Given a cached support survey that was visible before the replacement ticket arrived
+        // Given a support survey that was visible before the replacement ticket arrived
         const reportID = 'supportTicketReportID';
         const surveyActionID = 'surveyActionID';
         const reportActionsKey = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`;
@@ -69,7 +69,7 @@ describe('visibleReportActions', () => {
             triggeredKeys: new Set<OnyxKey>([ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS]),
         });
 
-        // Then the shared visibility cache hides the stale survey
+        // Then the shared visibility state hides the stale survey
         expect(result[reportID]?.[surveyActionID]).toBe(false);
         expect(result[unrelatedReportID]?.[unrelatedActionID]).toBe(true);
     });
