@@ -1,8 +1,3 @@
-import Icon from '@components/Icon';
-import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
-import Text from '@components/Text';
-import Tooltip from '@components/Tooltip';
-
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -17,6 +12,11 @@ import type {ReactNode} from 'react';
 
 import React from 'react';
 import {View} from 'react-native';
+
+import Icon from './Icon';
+import PressableWithFeedback from './Pressable/PressableWithFeedback';
+import Text from './Text';
+import Tooltip from './Tooltip';
 
 /** Height of the header, which callers add to the room they give the list */
 const SELECTION_LIST_POPOVER_HEADER_HEIGHT = variables.componentSizeNormal;
