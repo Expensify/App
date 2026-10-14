@@ -160,6 +160,7 @@ export default defineConfig({
         '**/vendor',
         'modules/group-ib-fp/**/*',
         'web/snippets/gib.js',
+        'web/cloudflare-worker/**/*',
         'src/languages/de.ts',
         'src/languages/el.ts',
         'src/languages/es.ts',
@@ -339,6 +340,7 @@ export default defineConfig({
         'rulesdir/no-negated-variables': 'error',
         'rulesdir/no-onyx-connect': 'error',
         'rulesdir/no-raw-typography': 'error',
+        'rulesdir/no-layout-spacing-conditional': 'error',
         'rulesdir/no-set-or-map-return-in-useOnyx-selector': 'error',
         'rulesdir/no-thenable-actions-in-views': 'error',
         'rulesdir/no-unstable-hook-defaults': 'error',
@@ -1057,6 +1059,19 @@ export default defineConfig({
                 // off, and `no-restricted-imports` above has to stay above the two blocks that re-set
                 // it for 24 files between them.
                 'typescript/no-deprecated': ['error', {allow: ['translateFn']}],
+                // tsgolint misses `<MenuItem />`; see config/oxlint/noDeprecatedSelfClosingJsx.mjs.
+                'hosted/no-deprecated-self-closing-jsx': [
+                    'error',
+                    {
+                        components: [
+                            {
+                                module: 'src/components/MenuItem',
+                                importName: 'default',
+                                reason: 'Compose `MenuItem.Root` with its leaves, or use a preset from `@components/MenuItem/presets/`, for new usages.',
+                            },
+                        ],
+                    },
+                ],
             },
         },
         {files: ['src/**/*'], rules: {'max-lines': ['error', 4000]}},
@@ -1208,8 +1223,9 @@ export default defineConfig({
             ],
             rules: {
                 // tsgolint reports writes to deprecated properties, typescript-eslint does not (typescript-eslint#10643); off
-                // where that would flood. Costs 6 read-site findings ESLint reports in these files.
+                // where that would flood. Costs 5 read-site findings ESLint reports in these files.
                 'typescript/no-deprecated': 'off',
+                'hosted/no-deprecated-self-closing-jsx': 'off',
             },
         },
         {

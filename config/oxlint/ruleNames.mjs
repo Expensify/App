@@ -52,6 +52,11 @@ const HOSTED_RULE_ORIGIN = {
     'use-storybook-testing-library': 'storybook',
 };
 
+// Repo-written hosted rules that report under an existing ESLint rule id.
+const HOSTED_RULE_ESLINT_ID = {
+    'no-deprecated-self-closing-jsx': '@typescript-eslint/no-deprecated',
+};
+
 const REACT_HOOKS_RULES_UNDER_REACT = new Set(['exhaustive-deps', 'rules-of-hooks']);
 
 const OXLINT_DIAGNOSTIC_CODE = /^([\w@/.-]+)\((.+)\)$/;
@@ -76,6 +81,9 @@ function oxlintCodeToESLintRuleID(code) {
         return `react-hooks/${rule}`;
     }
     if (plugin === 'hosted') {
+        if (HOSTED_RULE_ESLINT_ID[rule]) {
+            return HOSTED_RULE_ESLINT_ID[rule];
+        }
         const origin = HOSTED_RULE_ORIGIN[rule];
         if (!origin) {
             throw new Error(`No HOSTED_RULE_ORIGIN entry for hosted rule "${rule}". Add it to config/oxlint/ruleNames.mjs.`);
@@ -88,4 +96,4 @@ function oxlintCodeToESLintRuleID(code) {
     return `${plugin}/${rule}`;
 }
 
-export {HOSTED_RULE_ORIGIN, OXLINT_RULE_RENAMES, hostedRuleNames, oxlintCodeToESLintRuleID};
+export {HOSTED_RULE_ESLINT_ID, HOSTED_RULE_ORIGIN, OXLINT_RULE_RENAMES, hostedRuleNames, oxlintCodeToESLintRuleID};

@@ -138,13 +138,13 @@ _shared_rule_names = None
 
 
 def shared_rule_names():
-    """{'hostedRuleOrigin': {...}, 'oxlintRuleRenames': {...}} from config/oxlint/ruleNames.mjs."""
+    """{'hostedRuleOrigin': {...}, 'hostedRuleEslintId': {...}, 'oxlintRuleRenames': {...}} from config/oxlint/ruleNames.mjs."""
     global _shared_rule_names
     if _shared_rule_names is not None:
         return _shared_rule_names
     script = (
         'const m = await import(process.argv[1]);'
-        'console.log(JSON.stringify({hostedRuleOrigin: m.HOSTED_RULE_ORIGIN, oxlintRuleRenames: m.OXLINT_RULE_RENAMES}));'
+        'console.log(JSON.stringify({hostedRuleOrigin: m.HOSTED_RULE_ORIGIN, hostedRuleEslintId: m.HOSTED_RULE_ESLINT_ID, oxlintRuleRenames: m.OXLINT_RULE_RENAMES}));'
     )
     out = subprocess.run(['node', '--input-type=module', '-e', script, '--', RULE_NAMES_MODULE], capture_output=True, text=True, cwd=ROOT)
     if out.returncode != 0:
@@ -163,6 +163,11 @@ def hosted_rule_origin():
     return shared_rule_names()['hostedRuleOrigin']
 
 
+def hosted_rule_eslint_id():
+    """Hosted rule written in this repo -> the full ESLint rule id it reports under."""
+    return shared_rule_names()['hostedRuleEslintId']
+
+
 def norm_ox(code):
     """Normalize an oxlint diagnostic code -- `plugin(rule)` -- to the ESLint rule name."""
     m = re.match(r'^([\w@/.-]+)\((.+)\)$', code)
@@ -176,6 +181,8 @@ def norm_ox(code):
     if plugin == 'rc' or (plugin == 'react' and rule in ('exhaustive-deps', 'rules-of-hooks')):
         return f'react-hooks/{rule}'
     if plugin == 'hosted':
+        if rule in hosted_rule_eslint_id():
+            return hosted_rule_eslint_id()[rule]
         return f'{hosted_rule_origin()[rule]}/{rule}'
     if plugin == 'jsx_a11y':
         return f'jsx-a11y/{rule}'
@@ -214,6 +221,9 @@ def norm_ox_config(rule_id):
         return 'react-hooks/' + rule_id.split('/', 1)[1]
     if rule_id.startswith('hosted/'):
         rule = rule_id.split('/', 1)[1]
+        if rule in hosted_rule_eslint_id():
+            # Own key, or the drift check sees two oxlint settings for one ESLint rule.
+            return rule_id
         return f'{hosted_rule_origin()[rule]}/{rule}'
     if rule_id in ('react/exhaustive-deps', 'react/rules-of-hooks'):
         return 'react-hooks/' + rule_id.split('/', 1)[1]
