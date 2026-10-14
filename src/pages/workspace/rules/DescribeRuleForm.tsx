@@ -225,4 +225,3 @@ function DescribeRuleForm({
 DescribeRuleForm.displayName = 'DescribeRuleForm';
 
 export default DescribeRuleForm;
-export type {DescribeRuleFormProps};
