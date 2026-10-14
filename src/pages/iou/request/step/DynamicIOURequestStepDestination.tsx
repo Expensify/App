@@ -254,9 +254,7 @@ function DynamicIOURequestStepDestination({
                             icon={illustrations.EmptyStateExpenses}
                             title={translate('workspace.perDiem.requestEmptyList.title')}
                             subtitle={
-                                isPolicyAdmin(policy)
-                                    ? translate('workspace.perDiem.requestEmptyList.adminSubtitle')
-                                    : translate('workspace.perDiem.requestEmptyList.subtitle', policy?.name)
+                                isPolicyAdmin(policy) ? translate('workspace.perDiem.requestEmptyList.adminSubtitle') : translate('workspace.perDiem.requestEmptyList.subtitle', policy?.name)
                             }
                             containerStyle={[styles.flex1, styles.justifyContentCenter]}
                         />
