@@ -530,6 +530,7 @@ function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportAct
                     onLoad={onLoad}
                     onContentSizeChange={() => {
                         trackVerticalScrolling(undefined);
+                        flushPendingScrollToBottom();
                     }}
                 />
             </ReportActionsListPaddingView>

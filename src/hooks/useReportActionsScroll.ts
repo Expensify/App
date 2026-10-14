@@ -113,7 +113,7 @@ type UseReportActionsScrollResult = {
 
     scrollToActionBadgeTarget: () => void;
 
-    /** Completes a live-tail scroll-to-bottom once the list has laid out; call on every list layout */
+    /** Completes a live-tail scroll-to-bottom once the list has laid out; call on every list layout and content size change */
     flushPendingScrollToBottom: () => void;
 
     /** Whether the list should be pinned to the visual top (transaction thread / money request) */
@@ -411,20 +411,6 @@ function useReportActionsScroll({
         setIsScrollToBottomEnabled(false);
         completeLiveTailPruneAfterScrollToBottom();
     };
-
-    const flushPendingScrollToBottomFromEffect = useEffectEvent(() => flushPendingScrollToBottom());
-
-    // In an aligned-to-top report (expense, invoice, transaction thread), the list's onLayout is not enough to flush a
-    // pending scroll: a new comment changes the content size, not the layout size, so onLayout may never fire. Regular
-    // chats don't need this, because their first scrollToBottom already lands. Flush on the next frame so this effect
-    // doesn't chain a synchronous setState.
-    useEffect(() => {
-        if (!shouldBeAlignedToTop || !isScrollToBottomEnabled) {
-            return;
-        }
-        const frame = requestAnimationFrame(() => flushPendingScrollToBottomFromEffect());
-        return () => cancelAnimationFrame(frame);
-    }, [shouldBeAlignedToTop, isScrollToBottomEnabled]);
 
     // Data is ready at the moment FlashList finishes its first render.
     const onLoad = () => {
