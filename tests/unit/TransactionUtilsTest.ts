@@ -5383,9 +5383,10 @@ describe('TransactionUtils', () => {
                 ),
                 duplicates,
                 keptTransaction,
+                keptTransaction,
             );
 
-            expect(params.transactionIDList).toEqual([openDuplicate.transactionID, submittedDuplicate.transactionID]);
+            expect(params.transactionList.map((transaction) => transaction.transactionID)).toEqual([openDuplicate.transactionID, submittedDuplicate.transactionID]);
         });
 
         it('excludes a duplicate on a Submit & Close (approved and closed) report', () => {
@@ -5396,9 +5397,10 @@ describe('TransactionUtils', () => {
                 buildReviewDuplicates(keptTransaction.transactionID, [closedDuplicate.transactionID]),
                 [closedDuplicate],
                 keptTransaction,
+                keptTransaction,
             );
 
-            expect(params.transactionIDList).toEqual([]);
+            expect(params.transactionList).toEqual([]);
         });
 
         it('returns an empty transactionIDList when every duplicate is non-editable', () => {
@@ -5414,9 +5416,10 @@ describe('TransactionUtils', () => {
                 ),
                 duplicates,
                 keptTransaction,
+                keptTransaction,
             );
 
-            expect(params.transactionIDList).toEqual([]);
+            expect(params.transactionList).toEqual([]);
         });
     });
 

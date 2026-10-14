@@ -11,7 +11,7 @@
 import useOnyx from '@hooks/useOnyx';
 
 import {isActionVisibleOnMoneyRequestReport} from '@libs/MoneyRequestReportUtils';
-import {getFirstVisibleReportActionID, isDeletedParentAction, isIOUActionMatchingTransactionList, isReportActionVisible, shouldHidePayAction} from '@libs/ReportActionsUtils';
+import {getFirstVisibleReportActionID, isDeletedParentAction, isIOUActionMatchingTransactionList, isReportActionVisible} from '@libs/ReportActionsUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -37,9 +37,6 @@ type UseMoneyRequestReportVisibleActionsParams = {
 
     /** Whether the network is offline */
     isOffline: boolean;
-
-    /** Whether expense payments are hidden while the payee adds a bank account or wallet */
-    isWaitingOnBankAccount?: boolean;
 };
 
 type UseMoneyRequestReportVisibleActionsResult = {
@@ -68,12 +65,10 @@ function useMoneyRequestReportVisibleActions({
     canPerformWriteAction,
     shouldShowHarvestCreatedAction,
     isOffline,
-    isWaitingOnBankAccount = false,
 }: UseMoneyRequestReportVisibleActionsParams): UseMoneyRequestReportVisibleActionsResult {
     const [visibleReportActionsData] = useOnyx(ONYXKEYS.DERIVED.VISIBLE_REPORT_ACTIONS, {selector: reportVisibleActionsSelector(reportID)});
 
-    const reportActionsWithVisiblePayments = isWaitingOnBankAccount ? reportActions.filter((action) => !shouldHidePayAction(action, true)) : reportActions;
-    const visibleReportActionsNewestFirst = reportActionsWithVisiblePayments.filter((reportAction) => {
+    const visibleReportActionsNewestFirst = reportActions.filter((reportAction) => {
         const isActionVisibleOnMoneyReport = isActionVisibleOnMoneyRequestReport(reportAction, shouldShowHarvestCreatedAction);
         if (!isActionVisibleOnMoneyReport) {
             return false;
@@ -98,7 +93,7 @@ function useMoneyRequestReportVisibleActions({
 
     const visibleReportActions = visibleReportActionsNewestFirst.slice().reverse();
     const lastAction = visibleReportActionsNewestFirst.at(0);
-    const firstVisibleReportActionID = getFirstVisibleReportActionID(reportActionsWithVisiblePayments, isOffline);
+    const firstVisibleReportActionID = getFirstVisibleReportActionID(reportActions, isOffline);
 
     return {
         visibleReportActions,
