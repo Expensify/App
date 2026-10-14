@@ -5,6 +5,8 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import {getLetterAvatarURLForName} from '@libs/UserAvatarUtils';
 
+import {callFunctionIfActionIsAllowed} from '@userActions/Session';
+
 import CONST from '@src/CONST';
 import variables from '@src/styles/variables';
 
@@ -106,12 +108,20 @@ function ListField({rows, addTitle, addDescription, canAddMore = true, errorText
                 </MenuItem.Root>
             ))}
             {canAddMore && (
-                <MenuItem
-                    icon={icons.Plus}
-                    title={addTitle}
-                    description={addDescription}
-                    onPress={onAdd}
-                />
+                <MenuItem.Root
+                    onPress={callFunctionIfActionIsAllowed(onAdd)}
+                    accessibilityLabel={addTitle}
+                >
+                    <MenuItem.Row>
+                        <MenuItem.Leading>
+                            <MenuItem.Icon src={icons.Plus} />
+                        </MenuItem.Leading>
+                        <MenuItem.Content>
+                            <MenuItem.Title>{addTitle}</MenuItem.Title>
+                            {!!addDescription && <MenuItem.Description>{addDescription}</MenuItem.Description>}
+                        </MenuItem.Content>
+                    </MenuItem.Row>
+                </MenuItem.Root>
             )}
             {!!errorText && (
                 <View style={styles.ph5}>

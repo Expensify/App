@@ -16,7 +16,7 @@ import DynamicFormFields from '@components/DynamicForm/components/DynamicFormFie
 import type {DynamicFormValues} from '@components/DynamicForm/types';
 import getAddressInputKeys from '@components/DynamicForm/utils/getAddressInputKeys';
 import type {FormValue} from '@components/Form/types';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import PercentageForm from '@components/PercentageForm';
 import PushRowWithModal from '@components/PushRowWithModal';
 import RadioButtons from '@components/RadioButtons';
@@ -324,7 +324,7 @@ describe('DynamicFormFields', () => {
         // Then no input is drawn, and the row shows the translated country, masked in session recordings since a prefilled answer is still personal
         expect(rendered.size).toBe(0);
         expect(screen.getByText('allCountries.GB')).toBeOnTheScreen();
-        expect(isMasked(screen.UNSAFE_getByType(MenuItemWithTopDescription))).toBe(true);
+        expect(isMasked(screen.UNSAFE_getByType(MenuItemField))).toBe(true);
     });
 
     it('draws a heading with its description above the fields that follow it', () => {
