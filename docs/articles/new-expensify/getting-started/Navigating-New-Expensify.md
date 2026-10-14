@@ -272,11 +272,15 @@ In the navigation tabs (on the left on web, on the bottom on mobile), select **W
 
 ## Where do I update my personal profile or billing information?
 
-Select **Account > Profile** to update your personal profile, or **Account > Subscription** to manage billing.
+On web, select **Account** in the navigation tabs. On mobile, select your profile icon.
+
+Then select **Profile** to update your personal information, or **Subscription** to manage billing.
 
 ## Where did Account go?
 
-On mobile, **Account** moved from the navigation tabs on the bottom to your profile picture in the top-right corner of the screen. Select your profile picture to open **Account**. A tip points to it the first time you see it.
+On mobile, **Account** is now accessed through your profile icon instead of the navigation tabs. Select your profile icon to open **Account**.
+
+A tip highlights the new location the first time you see it.
 
 ## What does the green Scan button do?
 
