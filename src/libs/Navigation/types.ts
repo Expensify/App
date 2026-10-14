@@ -2459,6 +2459,7 @@ type MoneyRequestNavigatorParamList = {
         transactionID: string;
         reportActionID?: string;
         reportID: string;
+        shouldCloseInPortrait?: boolean;
     };
     [SCREENS.MONEY_REQUEST.STEP_VENDOR]: {
         action: IOUAction;
