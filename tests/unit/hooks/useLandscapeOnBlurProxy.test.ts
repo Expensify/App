@@ -13,16 +13,14 @@ let mockIsInLandscapeMode = false;
 jest.mock('@hooks/useKeyboardState', () => () => mockKeyboardState);
 jest.mock('@hooks/useIsInLandscapeMode', () => () => mockIsInLandscapeMode);
 
-const mockKeyboardHideListeners: Array<(e: KeyboardEventData) => void> = [];
-const mockKeyboardHideRemove = jest.fn();
+const mockKeyboardListeners = new Map<string, Array<(e: KeyboardEventData) => void>>();
+const mockKeyboardListenerRemove = jest.fn();
 
 jest.mock('react-native-keyboard-controller', () => ({
     KeyboardEvents: {
         addListener: jest.fn((event: string, handler: (e: KeyboardEventData) => void) => {
-            if (event === 'keyboardDidHide') {
-                mockKeyboardHideListeners.push(handler);
-            }
-            return {remove: mockKeyboardHideRemove};
+            mockKeyboardListeners.set(event, [...(mockKeyboardListeners.get(event) ?? []), handler]);
+            return {remove: mockKeyboardListenerRemove};
         }),
     },
 }));
@@ -42,11 +40,19 @@ function setWindow(window: ScaledSize) {
     mockedDimensionsAddEventListener.mock.calls.at(-1)?.[1]({window, screen: window});
 }
 
-function hideKeyboard(duration: number) {
+function emitKeyboardEvent(event: string, duration: number) {
     const eventData: KeyboardEventData = {height: 0, duration, timestamp: 0, target: -1, type: 'default', appearance: 'light'};
-    for (const handler of mockKeyboardHideListeners) {
+    for (const handler of mockKeyboardListeners.get(event) ?? []) {
         handler(eventData);
     }
+}
+
+function startKeyboardHide(duration: number) {
+    emitKeyboardEvent('keyboardWillHide', duration);
+}
+
+function hideKeyboard(duration: number) {
+    emitKeyboardEvent('keyboardDidHide', duration);
 }
 
 function advance(ms: number) {
@@ -66,8 +72,8 @@ describe('useLandscapeOnBlurProxy', () => {
     beforeEach(() => {
         jest.useFakeTimers();
         mockedDimensionsAddEventListener.mockClear();
-        mockKeyboardHideListeners.length = 0;
-        mockKeyboardHideRemove.mockClear();
+        mockKeyboardListeners.clear();
+        mockKeyboardListenerRemove.mockClear();
         mockKeyboardState.isKeyboardActive = false;
         mockKeyboardState.isKeyboardAnimatingRef.current = false;
         mockIsInLandscapeMode = false;
@@ -170,6 +176,21 @@ describe('useLandscapeOnBlurProxy', () => {
         expect(focus).not.toHaveBeenCalled();
     });
 
+    it('does not re-focus when the input is dismissed right after a rotation and the hide animation is still running', () => {
+        // Given a rotation that just changed the window width
+        const {focus, blur} = renderProxy();
+        setWindow(LANDSCAPE_WINDOW);
+        advance(200);
+
+        // When Keyboard.dismiss() blurs the input first and the animated hide starts, but has not finished, before the re-focus delay passes
+        blur();
+        startKeyboardHide(250);
+        advance(REFOCUS_DELAY_MS);
+
+        // Then the input stays blurred, because the start of an animated hide already marks it as a user dismissal
+        expect(focus).not.toHaveBeenCalled();
+    });
+
     it('still re-focuses when the rotation tears the keyboard down without an animation', () => {
         // Given a rotation that just changed the window width
         const {focus, blur} = renderProxy();
@@ -223,7 +244,7 @@ describe('useLandscapeOnBlurProxy', () => {
         const subscription = mockedDimensionsAddEventListener.mock.results.at(-1);
         // eslint-disable-next-line @typescript-eslint/unbound-method
         expect(subscription?.type === 'return' && subscription.value.remove).toHaveBeenCalledTimes(1);
-        expect(mockKeyboardHideRemove).toHaveBeenCalledTimes(1);
+        expect(mockKeyboardListenerRemove).toHaveBeenCalledTimes(2);
     });
 
     it('cancels a pending re-focus on unmount', () => {

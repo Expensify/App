@@ -38,6 +38,15 @@ const useLandscapeOnBlurProxy: UseLandscapeOnBlurProxy = (inputRef, onBlur) => {
             lastWindowWidthChangeTimeRef.current = Date.now();
         });
 
+        // keyboardWillHide is only emitted for animated hides. It is needed because Keyboard.dismiss() blurs the input
+        // as the hide starts, and keyboardDidHide only arrives once the animation ends, after the re-focus delay.
+        const keyboardWillHideSubscription = KeyboardEvents.addListener('keyboardWillHide', (event) => {
+            if (event.duration === 0) {
+                return;
+            }
+            lastWindowWidthChangeTimeRef.current = 0;
+        });
+
         // Android tears the keyboard down without an animation on rotation, so an animated hide is the user dismissing
         // it (e.g. a back press). Any blur after that is theirs, even if a rotation happened just before.
         const keyboardHideSubscription = KeyboardEvents.addListener('keyboardDidHide', (event) => {
@@ -49,6 +58,7 @@ const useLandscapeOnBlurProxy: UseLandscapeOnBlurProxy = (inputRef, onBlur) => {
 
         return () => {
             subscription.remove();
+            keyboardWillHideSubscription.remove();
             keyboardHideSubscription.remove();
         };
     }, []);
