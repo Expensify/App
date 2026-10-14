@@ -16,6 +16,7 @@ import {getIOUActionForTransactionID, getOriginalMessage, getReportAction, isDel
 import {isMergeActionForSelectedTransactions, isSplitAction} from '@libs/ReportSecondaryActionUtils';
 import {
     canDeleteCardTransaction,
+    canDeleteMoneyRequestReport,
     canDeleteTransaction,
     canEditFieldOfMoneyRequest,
     canEditMultipleTransactions,
@@ -176,6 +177,22 @@ function useSelectedTransactionsActions({
 
     const hasTransactionsFromMultipleOwners = hasUnknownOwner ? knownOwnerIDs.size > 0 || selectedTransactionIDs.length > 1 : knownOwnerIDs.size > 1;
 
+    // The `reportActions` prop is the paginated chain, so it can miss IOU actions that are already in Onyx. Also search the full collection.
+    // Build each report's combined list once per render, because this is called inside several loops over the selected transactions.
+    const combinedReportActionsByReportID = new Map<string | undefined, ReportAction[]>();
+    const getTransactionIOUAction = (transaction: Transaction | undefined, transactionID: string) => {
+        // Unreported expenses keep their IOU action under the self-DM report rather than under `transaction.reportID`
+        const transactionReportID = !transaction?.reportID || transaction.reportID === CONST.REPORT.UNREPORTED_REPORT_ID ? selfDMReportID : transaction.reportID;
+        let combinedReportActions = combinedReportActionsByReportID.get(transactionReportID);
+        if (!combinedReportActions) {
+            const transactionReportActions = Object.values(allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionReportID}`] ?? {});
+            // Search both sources together, so a live action in either one wins over a deleted action in the collection
+            combinedReportActions = [...transactionReportActions, ...reportActions];
+            combinedReportActionsByReportID.set(transactionReportID, combinedReportActions);
+        }
+        return getIOUActionForTransactionID(combinedReportActions, transactionID, true);
+    };
+
     const {translate, localeCompare} = useLocalize();
     const {showConfirmModal} = useConfirmModal();
     const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
@@ -321,7 +338,7 @@ function useSelectedTransactionsActions({
                 canUnholdTransactions = false;
                 continue;
             }
-            const iouReportAction = getIOUActionForTransactionID(reportActions, selectedTransaction.transactionID);
+            const iouReportAction = getTransactionIOUAction(selectedTransaction, selectedTransaction.transactionID);
             const holdReportAction = getReportAction(iouReportAction?.childReportID, `${selectedTransaction?.comment?.hold ?? ''}`);
             const {canHoldRequest, canUnholdRequest} = canHoldUnholdReportAction(report, iouReportAction, holdReportAction, selectedTransaction, policy, currentUserAccountID, rules);
 
@@ -360,14 +377,15 @@ function useSelectedTransactionsActions({
                     }
 
                     for (const transactionID of selectedTransactionIDs) {
-                        const action = getIOUActionForTransactionID(reportActions, transactionID);
+                        const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
+                        const action = getTransactionIOUAction(transaction, transactionID);
                         if (!action?.childReportID) {
                             continue;
                         }
                         const transactionViolations = allTransactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`];
                         unholdRequest({
                             transactionID,
-                            transaction: allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`],
+                            transaction,
                             reportID: action.childReportID,
                             policy,
                             isOffline,
@@ -476,14 +494,17 @@ function useSelectedTransactionsActions({
             if (!transaction) {
                 return false;
             }
-            const iouReportAction = getIOUActionForTransactionID(reportActions, transaction.transactionID);
-            const moneyRequestReportID = iouReportAction?.reportID ?? (isMoneyRequestAction(iouReportAction) ? getOriginalMessage(iouReportAction)?.IOUReportID : undefined);
+            const iouReportAction = getTransactionIOUAction(transaction, transaction.transactionID);
+            const moneyRequestReportID =
+                iouReportAction?.reportID ?? (isMoneyRequestAction(iouReportAction) ? getOriginalMessage(iouReportAction)?.IOUReportID : undefined) ?? transaction.reportID;
             const canMoveExpense = canEditFieldOfMoneyRequest({
                 reportAction: iouReportAction,
                 reportActions: allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${moneyRequestReportID}`],
                 fieldToEdit: CONST.EDIT_REQUEST_FIELD.REPORT,
                 outstandingReportsByPolicyID,
                 transaction,
+                report,
+                policy,
                 reportNameValuePairs: allReportNameValuePairs,
                 rules,
             });
@@ -595,7 +616,14 @@ function useSelectedTransactionsActions({
         }
 
         const canAllSelectedTransactionsBeRemoved = selectedTransactionsList.every((transaction) => {
-            const action = getIOUActionForTransactionID(reportActions, transaction.transactionID);
+            const action = getTransactionIOUAction(transaction, transaction.transactionID);
+
+            // Some reported expenses have no IOU action, and the API still deletes them by transactionID, so the report-level delete rules decide.
+            // Passing no report actions is safe: they only decide ownership on unreported and IOU reports, which then fail closed, while expense reports check the submitter.
+            if (!action) {
+                return !!report && typeof session?.accountID === 'number' && canDeleteMoneyRequestReport(report, [transaction], [], session.accountID, rules, policy, cardList);
+            }
+
             if (isDeletedAction(action)) {
                 return false;
             }
