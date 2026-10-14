@@ -16,7 +16,7 @@ import CONST from '@src/CONST';
 
 import type {ReactNode, RefObject} from 'react';
 import type {LayoutChangeEvent, ViewStyle} from 'react-native';
-import type {GestureType} from 'react-native-gesture-handler';
+import type {TapGesture} from 'react-native-gesture-handler';
 import type {PermissionStatus} from 'react-native-permissions';
 import type {AnimatedStyle} from 'react-native-reanimated';
 import type {CameraDevice, CameraOutput, CameraRef, CameraSessionConfig, Constraint} from 'react-native-vision-camera';
@@ -50,7 +50,7 @@ type CameraViewportProps = {
     shouldFillPortraitViewport?: boolean;
 
     /** Gesture handler for tap-to-focus */
-    tapGesture: GestureType;
+    tapGesture: TapGesture;
 
     /** Animated style driving the focus indicator ring */
     cameraFocusIndicatorAnimatedStyle: AnimatedStyle<ViewStyle>;

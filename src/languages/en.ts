@@ -662,6 +662,10 @@ const translations = {
         errorWhileSelectingCorruptedAttachment: 'An error occurred while selecting a corrupted attachment. Please try another file.',
         errorWhileConvertingHeic: "We couldn't process this image. Please try again, or upload the photo in a different format.",
         takePhoto: 'Take photo',
+        retake: 'Retake',
+        usePhoto: 'Use photo',
+        capturedPhotoPreview: 'Photo preview',
+        photoTakenAnnouncement: 'Photo taken. Choose Retake or Use photo.',
         chooseFromGallery: 'Choose from gallery',
         chooseDocument: 'Choose file',
         attachmentTooLarge: 'Attachment is too large',
@@ -1803,6 +1807,7 @@ const translations = {
             saveReceipt: 'Save receipt',
             genericDeleteFailureMessage: 'Unexpected error deleting this expense. Please try again later.',
             genericEditFailureMessage: 'Unexpected error editing this expense. Please try again later.',
+            genericSplitFailureMessage: 'Unexpected error splitting this expense. Please try again later.',
             genericSmartscanFailureMessage: 'Transaction is missing fields',
             duplicateWaypointsErrorMessage: 'Please remove duplicate waypoints',
             atLeastTwoDifferentWaypoints: 'Please enter at least two different addresses',
@@ -3571,6 +3576,7 @@ const translations = {
             title: 'What do you want to do today?',
             errorContinue: 'Please press continue to get set up',
             errorBackButton: 'Please finish the setup questions to start using the app',
+            [CONST.ONBOARDING_CHOICES.JOIN_WORKSPACE]: 'Join my company workspace',
             [CONST.ONBOARDING_CHOICES.EMPLOYER]: 'Submit expenses to my employer',
             [CONST.ONBOARDING_CHOICES.MANAGE_TEAM]: "Manage my team's expenses",
             [CONST.ONBOARDING_CHOICES.TRACK_BUSINESS]: 'Track expenses for my business',
@@ -3633,6 +3639,8 @@ const translations = {
         mergeBlockScreen: {
             title: 'Couldn’t add work email',
             subtitle: (workEmail: string | undefined) => `We couldn’t add ${workEmail}. Please try again later in Settings or chat with Concierge for guidance.`,
+            validatedPublicDomainSubtitle: (workEmail: string | undefined) =>
+                `We couldn’t add ${workEmail}. To merge these accounts, please log in as ${workEmail} and go to Account > Security > Merge Accounts to complete the process.`,
             workAccountClosedSubtitle: 'The work account associated with this email is closed. Please contact your company admin to reactivate it, or sign up with a different email.',
             domainControlledSubtitle: (workEmail: string | undefined) => `${workEmail} is a domain controlled login for an existing Expensify account.`,
         },
@@ -3884,6 +3892,34 @@ const translations = {
                     And you're done!
                 `),
             },
+            addWorkEmailTask: {
+                title: 'Add your work email',
+                description: ({workEmailLink = ''}) =>
+                    Str.dedent(`
+                        1. Open [Add work email](${workEmailLink}).
+                        2. Enter your company email address.
+                        3. Enter the code we email you.
+                        4. Pick a workspace to join, or click *Ask to join* to send a request to the workspace owner.
+                    `),
+            },
+            validateEmailTask: {
+                title: 'Validate your email',
+                description: ({validateEmailLink = '', workEmail = ''}) =>
+                    Str.dedent(`
+                        1. Open [Validate your account](${validateEmailLink}).
+                        2. Enter the code we sent to ${workEmail}.
+                        3. Pick a workspace to join, or click *Ask to join* to send a request to the workspace owner.
+                    `),
+            },
+            joinWorkspaceTask: {
+                title: "Join your company's workspace",
+                description: ({joinWorkspaceLink = ''}) =>
+                    Str.dedent(`
+                        1. Open [Join a workspace](${joinWorkspaceLink}).
+                        2. Find your team in the list. Each one shows its owner and how many people are on it, largest first. Click *Show more* if you don't see yours.
+                        3. Click *Join now*, or *Ask to join* if it needs admin approval.
+                    `),
+            },
         } satisfies Record<string, Pick<OnboardingTask, 'title' | 'description'>>,
         testDrive: {
             name: ({testDriveURL}: {testDriveURL?: string}) => (testDriveURL ? `Take a [test drive](${testDriveURL})` : 'Take a test drive'),
@@ -3906,6 +3942,13 @@ const translations = {
             onboardingChatSplitMessage: 'Splitting bills with friends is as easy as sending a message. Here’s how.',
             onboardingAdminMessage: "Learn how to manage your team's workspace as an admin and submit your own expenses.",
             onboardingTestDriveReceiverMessage: "*You've got 3 months free! Get started below.*",
+            onboardingJoinWorkspaceAddWorkEmailMessage:
+                "Since you're looking to join your company's workspace, I haven't created one for you. Add your work email and I'll check which workspaces at your company you can join.",
+            onboardingJoinWorkspaceValidateEmailMessage: ({companyDomain = ''}: {companyDomain?: string}) =>
+                `Since you're looking to join your company's workspace, I haven't created one for you. Verify your email, and I'll check which workspaces at ${companyDomain} you can join.`,
+            onboardingJoinWorkspaceMessage: ({companyDomain = '', joinWorkspaceLink = ''}: {companyDomain?: string; joinWorkspaceLink?: string}) =>
+                `Since you're looking to join your company's workspace, I haven't created one for you. Your team at ${companyDomain} is already on Expensify. [Take a look at the workspaces you can join.](${joinWorkspaceLink})`,
+            onboardingJoinWorkspaceEmptyMessage: "It doesn't look like your company has any joinable workspaces. Please reach out to your admin and have them invite you to their workspace.",
         },
         workspace: {
             title: 'Stay organized with a workspace',
@@ -4660,7 +4703,7 @@ const translations = {
         enterSignerInfo: 'Enter signer info',
         thisStep: 'This step has been completed',
         isConnecting: (bankAccountLastFour: string | undefined, currency: string | undefined) =>
-            `is connecting a ${currency} business bank account ending in ${bankAccountLastFour} to Expensify to pay employees in ${currency}. The next step requires signer info from a director.`,
+            `added a ${currency} bank account ending in ${bankAccountLastFour}. Enter your signer information as the director so this bank account can be used to pay employees.`,
         error: {
             emailsMustBeDifferent: 'Emails must be different',
         },
@@ -4989,6 +5032,7 @@ const translations = {
             recruiting: 'Recruiting',
             mcp: 'MCP',
             receiptPartners: 'Receipt partners',
+            connections: 'Connections',
             rules: 'Rules',
             displayedAs: 'Displayed as',
             plan: 'Plan',
@@ -5162,6 +5206,31 @@ const translations = {
                 title: 'ChatGPT',
                 subtitle: 'by OpenAI',
             },
+        },
+        connections: {
+            tabs: {
+                [CONST.TAB.CONNECTIONS.ALL]: 'All',
+                [CONST.TAB.CONNECTIONS.ACCOUNTING]: 'Accounting',
+                [CONST.TAB.CONNECTIONS.PEOPLE]: 'HR & People',
+                [CONST.TAB.CONNECTIONS.RECRUITING]: 'Recruiting',
+                [CONST.TAB.CONNECTIONS.RECEIPTS]: 'Receipts',
+                [CONST.TAB.CONNECTIONS.AI]: 'AI & MCP',
+            },
+            findConnections: 'Find connections',
+            configure: 'Configure',
+            fix: 'Fix',
+            active: 'Active',
+            broken: 'Broken',
+            brokenConnection: 'Cannot sync due to broken connection',
+            replaceConnectionTitle: 'Replace connection?',
+            offer: 'Offer',
+            replaceConnectionPrompt: (connectionName: string) => `This will remove your current ${connectionName} connection.`,
+            hrisListing: (providerName: string) => `${providerName} (HRIS)`,
+            atsListing: (providerName: string) => `${providerName} (ATS)`,
+            suggestIntegration: "Don't see yours? Suggest an integration, we'll look into it.",
+            noResultsPrompt: '<muted-text><centered-text>Please adjust your search or <a href="#">suggest an integration</a>.</centered-text></muted-text>',
+            allConnectedTitle: "You're all connected",
+            allConnectedPrompt: '<muted-text><centered-text>Everything here is already connected. You can also <a href="#">suggest an integration</a>.</centered-text></muted-text>',
         },
         receiptPartners: {
             uber: {
@@ -6128,10 +6197,10 @@ const translations = {
             enterCredentials: 'Enter your Rillet API key',
             howToFindAPIKey:
                 '<strong>Finding your API key.</strong><ol><li>Log in to Rillet</li><li>Navigate to [organization name] -> Organization settings -> API access</li><li>Create API key</li><li>Paste the API key below</li></ol>',
-            subsidiary: 'Subsidiary',
-            subsidiarySelectDescription: "Choose the subsidiary in Rillet that you'd like to import data from.",
-            noSubsidiariesFound: 'No subsidiaries found',
-            noSubsidiariesFoundDescription: 'Please add a subsidiary in Rillet and sync the connection again',
+            entity: 'Entity',
+            entitySelectDescription: "Choose the entity in Rillet that you'd like to import data from.",
+            noEntitiesFound: 'No entities found',
+            noEntitiesFoundDescription: 'Please add an entity in Rillet and sync the connection again',
             noVendorsFound: 'No vendors found',
             noVendorsFoundDescription: 'Please add vendors in Rillet and sync the connection again',
             noAccountsFound: 'No accounts found',
@@ -6254,8 +6323,8 @@ const translations = {
             enterCredentials: 'Enter your DualEntry API key',
             howToFindAPIKey:
                 '<strong>Finding your API key.</strong><ol><li>Log in to DualEntry</li><li>Navigate to [organization name] -> Settings -> Developer access -> API keys</li><li>Create API key</li><li>Paste the API key below</li></ol>',
-            subsidiary: 'Subsidiary',
-            subsidiarySelectDescription: "Choose the subsidiary in DualEntry that you'd like to import data from.",
+            company: 'Company',
+            companySelectDescription: "Choose the company in DualEntry that you'd like to import data from.",
             noCompaniesFound: 'No companies found',
             noCompaniesFoundDescription: 'Please add a company in DualEntry and sync the connection again',
             noVendorsFound: 'No vendors found',
@@ -6381,10 +6450,10 @@ const translations = {
             enterCredentials: 'Enter your Campfire API key',
             howToFindAPIKey:
                 '<strong>Finding your API key.</strong><ol><li>Log in to Campfire</li><li>Navigate to Settings -> API Keys</li><li>Create API key</li><li>Paste the API key below</li></ol>',
-            subsidiary: 'Subsidiary',
-            subsidiarySelectDescription: "Choose the subsidiary in Campfire that you'd like to import data from.",
-            noSubsidiariesFound: 'No subsidiaries found',
-            noSubsidiariesFoundDescription: 'Please add an entity in Campfire and sync the connection again',
+            entity: 'Entity',
+            entitySelectDescription: "Choose the entity in Campfire that you'd like to import data from.",
+            noEntitiesFound: 'No entities found',
+            noEntitiesFoundDescription: 'Please add an entity in Campfire and sync the connection again',
             noVendorsFound: 'No vendors found',
             noVendorsFoundDescription: 'Please add vendors in Campfire and sync the connection again',
             importDescription: 'Choose which coding configurations to import from Campfire.',
@@ -10554,10 +10623,6 @@ const translations = {
         genericUpdateReportFieldFailureMessage: 'Unexpected error updating the field. Please try again later.',
         genericUpdateReportNameEditFailureMessage: 'Unexpected error renaming the report. Please try again later.',
         noActivityYet: 'No activity yet',
-        collapsedSystemMessages: () => ({
-            one: 'show 1 update',
-            other: (count: number) => `show ${count} updates`,
-        }),
         connectionSettings: 'Connection Settings',
         actions: {
             type: {
@@ -11889,6 +11954,7 @@ const translations = {
         markAllAsRead: '<tooltip>Right-click to <strong>mark all as read</strong>.</tooltip>',
         markAllAsReadTouchScreen: '<tooltip>Long-press to <strong>mark all as read</strong>.</tooltip>',
         accountMovedToTopBar: '<tooltip>Access your account and personal settings.</tooltip>',
+        connectionsMoved: 'All your connections in one place',
     },
     discardChangesConfirmation: {
         title: 'Discard changes?',
