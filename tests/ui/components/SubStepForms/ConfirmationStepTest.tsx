@@ -1,4 +1,4 @@
-import {render, screen} from '@testing-library/react-native';
+import {fireEvent, render, screen} from '@testing-library/react-native';
 
 import ConfirmationStep from '@components/SubStepForms/ConfirmationStep';
 
@@ -96,5 +96,39 @@ describe('ConfirmationStep — caller-provided id contract', () => {
         const withoutOptional: SummaryItem[] = [{id: 'address-proof', description: 'Address proof', title: 'utility.pdf', shouldShowRightIcon: true, onPress: () => {}}];
         renderStep(withoutOptional);
         expect(screen.getByTestId('address-proof')).toBeOnTheScreen();
+    });
+});
+
+describe('ConfirmationStep — subtitle and resubmission', () => {
+    it('renders the page subtitle when one is provided', () => {
+        render(
+            <ConfirmationStep
+                isEditing={false}
+                onNext={() => {}}
+                onMove={() => {}}
+                pageTitle="title"
+                pageSubtitle="subtitle"
+                summaryItems={[]}
+                showOnfidoLinks={false}
+            />,
+        );
+        expect(screen.getByText('subtitle')).toBeOnTheScreen();
+    });
+
+    it('calls onNext when Confirm is pressed while an error is shown, so the same details can be resubmitted', () => {
+        const onNext = jest.fn();
+        render(
+            <ConfirmationStep
+                isEditing={false}
+                onNext={onNext}
+                onMove={() => {}}
+                pageTitle="title"
+                summaryItems={[]}
+                showOnfidoLinks={false}
+                error="Bank account details could not be verified"
+            />,
+        );
+        fireEvent.press(screen.getByText('common.confirm'));
+        expect(onNext).toHaveBeenCalledTimes(1);
     });
 });

@@ -118,6 +118,7 @@ function DynamicSplitExpensePage({route}: DynamicSplitExpensePageProps) {
     const [draftTransaction, draftTransactionMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`);
     const isLoadingDraftTransaction = isLoadingOnyxValue(draftTransactionMetadata);
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
+    const [reportDrafts] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT);
     const [allReportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS);
     const draftTransactionReport = useReportOrReportDraft(draftTransaction?.reportID);
     const parentTransactionReport = useReportOrReportDraft(draftTransactionReport?.parentReportID);
@@ -399,6 +400,7 @@ function DynamicSplitExpensePage({route}: DynamicSplitExpensePageProps) {
             getCurrencySymbol,
             allTransactionsList: allTransactions,
             allReportsList: allReports,
+            reportDrafts,
             allReportActionsList: allReportActions,
             allReportNameValuePairsList: allReportNameValuePairs,
             allSnapshots,
@@ -620,7 +622,12 @@ function DynamicSplitExpensePage({route}: DynamicSplitExpensePageProps) {
     };
 
     if (isLoadingDraftTransaction) {
-        return <FullScreenLoadingIndicator style={[styles.opacity1]} />;
+        return (
+            <FullScreenLoadingIndicator
+                style={[styles.opacity1]}
+                onGoBack={() => Navigation.goBack(backPath)}
+            />
+        );
     }
 
     const collapsibleHeaderOffset = isInitialSplit ? TAB_NAVIGATOR_HEIGHT_LANDSCAPE : 0;

@@ -78,6 +78,7 @@ export type {default as UpdateDualEntryAutoSyncParams} from './UpdateDualEntryAu
 export type {default as UpdateDualEntryAccountingMethodParams} from './UpdateDualEntryAccountingMethodParams';
 export type {default as UpdateDualEntrySyncReimbursedReportsParams} from './UpdateDualEntrySyncReimbursedReportsParams';
 export type {default as UpdateDualEntryBillPaymentAccountParams} from './UpdateDualEntryBillPaymentAccountParams';
+export type {default as UpdateDualEntryFxExpenseAccountParams} from './UpdateDualEntryFxExpenseAccountParams';
 export type {default as UpdateDualEntrySyncExpensifyCardSettlementsParams} from './UpdateDualEntrySyncExpensifyCardSettlementsParams';
 export type {default as UpdateDualEntrySettlementsAccountParams} from './UpdateDualEntrySettlementsAccountParams';
 export type {default as UpdateDualEntrySyncTravelInvoicingSettlementsParams} from './UpdateDualEntrySyncTravelInvoicingSettlementsParams';
@@ -104,7 +105,7 @@ export type {default as UpdateCampfireSyncTravelInvoicingSettlementsParams} from
 export type {default as UpdateCampfireTravelInvoicingSettlementsAccountParams} from './UpdateCampfireTravelInvoicingSettlementsAccountParams';
 export type {default as UpdateCampfireTravelInvoicingPayableAccountParams} from './UpdateCampfireTravelInvoicingPayableAccountParams';
 export type {default as SyncPolicyToZohoBooksParams} from './SyncPolicyToZohoBooksParams';
-export type {default as UpdateZohoBooksOrganizationParams} from './UpdateZohoBooksOrganizationParams';
+export type {default as UpdateZohoBooksSubsidiaryParams} from './UpdateZohoBooksSubsidiaryParams';
 export type {default as UpdateZohoBooksFieldMappingParams} from './UpdateZohoBooksFieldMappingParams';
 export type {default as UpdateZohoBooksEnableNewCategoriesParams} from './UpdateZohoBooksEnableNewCategoriesParams';
 export type {default as UpdateZohoBooksSyncTaxRatesParams} from './UpdateZohoBooksSyncTaxRatesParams';
@@ -298,6 +299,7 @@ export type {default as VerifyAddSecondaryLoginCodeParams} from './VerifyAddSeco
 export type {default as OpenDraftWorkspaceRequestParams} from './OpenDraftWorkspaceRequestParams';
 export type {default as OpenDraftPerDiemExpenseParams} from './OpenDraftPerDiemExpenseParams';
 export type {default as CreateWorkspaceFromIOUPaymentParams} from './CreateWorkspaceFromIOUPaymentParams';
+export type {default as UpdatePolicyMemberDisplayNameParams} from './UpdatePolicyMemberDisplayNameParams';
 export type {default as UpdatePolicyMembersCustomFieldsParams} from './UpdatePolicyMembersCustomFieldsParams';
 export type {default as CreateTaskParams} from './CreateTaskParams';
 export type {default as CancelTaskParams} from './CancelTaskParams';
@@ -498,6 +500,7 @@ export type {default as SetPolicyExpenseMaxAmountNoItemizedReceipt} from './SetP
 export type {default as SetPolicyExpenseMaxAmount} from './SetPolicyExpenseMaxAmount';
 export type {default as SetPolicyExpenseMaxAge} from './SetPolicyExpenseMaxAge';
 export type {default as AddPolicyAgentRuleParams} from './AddPolicyAgentRuleParams';
+export type {default as GenerateRuleParams} from './GenerateRuleParams';
 export type {default as UpdatePolicyAgentRuleParams} from './UpdatePolicyAgentRuleParams';
 export type {default as DeletePolicyAgentRuleParams} from './DeletePolicyAgentRuleParams';
 export type {default as UpdateCustomRules} from './UpdateCustomRules';
