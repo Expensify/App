@@ -57,7 +57,7 @@ To display the expense data in a different view:
 2. Select **Display > View**.
 3. Choose the view you want, then select **Apply**.
 
-![Insight with View on Spend highlighted]({{site.url}}/assets/images/image-name.png){:width="100%"}
+![Insight with View on Spend highlighted]({{site.url}}/assets/images/insight-view-on-spend.png){:width="100%"}
 
 ## How to save a customized search from an insight
 
