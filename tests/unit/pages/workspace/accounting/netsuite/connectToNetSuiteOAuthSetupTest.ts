@@ -44,4 +44,13 @@ describe('connectToNetSuiteOAuthSetup (native)', () => {
 
         expect(mockedDismissModal).not.toHaveBeenCalled();
     });
+
+    it('passes isMigration to the setup route when migrating a TBA connection to OAuth', () => {
+        // Given a TBA → OAuth migration
+        // When the OAuth setup is triggered with isMigration: true
+        connectToNetSuiteOAuthSetup(POLICY_ID, ACCOUNT_ID, ENVIRONMENT_URL, true);
+
+        // Then the setup screen is opened with the migration flag so the backend knows to migrate
+        expect(mockedNavigate).toHaveBeenCalledWith(ROUTES.POLICY_ACCOUNTING_NETSUITE_SETUP.getRoute(POLICY_ID, ACCOUNT_ID, true));
+    });
 });

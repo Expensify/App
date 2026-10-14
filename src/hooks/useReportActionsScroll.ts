@@ -5,7 +5,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import REPORT_LINK_ROUTE_PARAMS from '@libs/Navigation/reportLinkRouteParams';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
-import {getVisibleReportActionErrors, isReportPreviewAction} from '@libs/ReportActionsUtils';
+import {isReportPreviewAction} from '@libs/ReportActionsUtils';
 import {getReportLastVisibleActionCreated, shouldReportAlignToTop} from '@libs/ReportUtils';
 
 import type {ReportsSplitNavigatorParamList} from '@navigation/types';
@@ -21,7 +21,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
-import {isEmptyValueObject} from '@src/types/utils/EmptyObject';
 import type {ViewableItemsChanged} from '@src/types/utils/ReactNativeCompat';
 
 import type {NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
@@ -59,9 +58,6 @@ type UseReportActionsScrollParams = {
 
     /** Actions actually rendered by the list (may include a synthetic draft), used for mount scroll positioning */
     renderedVisibleReportActions: OnyxTypes.ReportAction[];
-
-    /** Maps hidden canonical actions to the summary row used by the list. */
-    reportActionIDToDisplayIndex?: ReadonlyMap<string, number>;
 
     /** Extracts the list key for an action; used to locate the initial scroll target */
     keyExtractor: (item: OnyxTypes.ReportAction) => string;
@@ -150,7 +146,6 @@ function useReportActionsScroll({
     parentReportAction,
     sortedVisibleReportActions,
     renderedVisibleReportActions,
-    reportActionIDToDisplayIndex,
     keyExtractor,
     hasScrolledOverThreshold,
     markNewestActionAsRead,
@@ -176,6 +171,7 @@ function useReportActionsScroll({
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const [reportLoadingState] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${reportID}`);
     const [reportActionPages] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_PAGES}${getNonEmptyStringOnyxID(reportID)}`);
+    const [isComposerFullSize = false] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_IS_COMPOSER_FULL_SIZE}${reportID}`);
     const prevIsLoadingInitialReportActions = usePrevious(reportLoadingState?.isLoadingInitialReportActions);
 
     const [actionIdToHighlight, setActionIdToHighlight] = useState('');
@@ -221,21 +217,41 @@ function useReportActionsScroll({
         ...(shouldFocusToTopOnMount ? {autoscrollToBottomThreshold: shouldAutoscrollToBottom ? CONST.REPORT.ACTIONS.ACTION_VISIBLE_THRESHOLD : 0, animateAutoScrollToBottom: false} : {}),
     };
 
-    const {isFloatingMessageCounterVisible, setIsFloatingMessageCounterVisible, isActionBadgeAboveViewport, trackVerticalScrolling, onViewableItemsChanged, updatePillVisibility} =
-        useReportUnreadMessageScrollTracking({
-            reportID,
-            currentVerticalScrollingOffsetRef: scrollOffsetRef,
-            onUnreadActionVisible: completeSkippedMarkAsRead,
-            hasNewerActions,
-            unreadMarkerReportActionIndex,
-            isInverted: true,
-            shouldDisablePillTracking,
-            onTrackScrolling: (event: NativeSyntheticEvent<NativeScrollEvent>) => {
-                scrollOffsetRef.current = event.nativeEvent.contentOffset.y;
-            },
-            actionBadgeTargetIndex,
-            shouldBeAlignedToTop,
-        });
+    const {
+        isFloatingMessageCounterVisible,
+        setIsFloatingMessageCounterVisible,
+        isActionBadgeAboveViewport,
+        setIsActionBadgeAboveViewport,
+        trackVerticalScrolling,
+        onViewableItemsChanged,
+        updatePillVisibility,
+    } = useReportUnreadMessageScrollTracking({
+        reportID,
+        currentVerticalScrollingOffsetRef: scrollOffsetRef,
+        onUnreadActionVisible: completeSkippedMarkAsRead,
+        hasNewerActions,
+        unreadMarkerReportActionIndex,
+        isInverted: true,
+        // The list is hidden behind the expanded composer, so scrolling it must not bring the Latest messages pill back
+        shouldDisablePillTracking: shouldDisablePillTracking || isComposerFullSize,
+        onTrackScrolling: (event: NativeSyntheticEvent<NativeScrollEvent>) => {
+            scrollOffsetRef.current = event.nativeEvent.contentOffset.y;
+        },
+        actionBadgeTargetIndex,
+        shouldBeAlignedToTop,
+    });
+
+    const prevIsComposerFullSize = usePrevious(isComposerFullSize);
+    // Scroll events skipped pill tracking while expanded, so sync the Latest messages pill with the current offset
+    const syncPillAfterComposerCollapse = useEffectEvent(() => {
+        if (!prevIsComposerFullSize || isComposerFullSize || shouldDisablePillTracking) {
+            return;
+        }
+        updatePillVisibility();
+    });
+    useEffect(() => {
+        syncPillAfterComposerCollapse();
+    }, [isComposerFullSize]);
 
     const {isScrollToBottomEnabled, setIsScrollToBottomEnabled, completeLiveTailPruneAfterScrollToBottom} = useReportActionsNewActionLiveTail({
         conciergeChat,
@@ -352,8 +368,7 @@ function useReportActionsScroll({
         return () => clearTimeout(timer);
     }, [actionIdToHighlight]);
 
-    // Only errors the user can actually see should pull the list down to them.
-    const lastIOUActionWithError = sortedVisibleReportActions.find((action) => !isEmptyValueObject(getVisibleReportActionErrors(action)));
+    const lastIOUActionWithError = sortedVisibleReportActions.find((action) => action.errors);
     const prevLastIOUActionWithError = usePrevious(lastIOUActionWithError);
 
     // Scroll to the bottom when a new errored action appears, so the user sees the failed money request. Re-checked
@@ -405,6 +420,11 @@ function useReportActionsScroll({
         if (actionBadgeTargetIndex < 0) {
             return;
         }
+        // The expanded composer covers the list, so the target never becomes viewable to hide the pill
+        if (isComposerFullSize) {
+            setIsActionBadgeAboveViewport(false);
+            setIsFloatingMessageCounterVisible(false);
+        }
         // `animated` is explicit because native defaults to an instant jump, which would teleport the list and lose the user's place.
         reportScrollManager.scrollToIndex(actionBadgeTargetIndex, {animated: true, viewPosition: 1, viewOffset: CONST.REPORT.ACTIONS.LINKED_MESSAGE_OFFSET});
     };
@@ -455,9 +475,7 @@ function useReportActionsScroll({
     //    of the viewport (viewPosition: 1) with a small offset so the message above is partly visible.
     // 2. Otherwise, if the report should be opened at top (ex: for transaction threads), scroll to the top message and offset by
     //    the window height so we land at top of the top message for sure.
-    const targetIndex = initialScrollKey
-        ? (reportActionIDToDisplayIndex?.get(initialScrollKey) ?? renderedVisibleReportActions.findIndex((item) => keyExtractor(item) === initialScrollKey))
-        : -1;
+    const targetIndex = initialScrollKey ? renderedVisibleReportActions.findIndex((item) => keyExtractor(item) === initialScrollKey) : -1;
     let initialScrollIndex: number | undefined;
     let initialScrollIndexParams: {viewPosition?: number; viewOffset?: number} | undefined;
     if (targetIndex > 0) {

@@ -84,8 +84,7 @@ function DateCell({date, showTooltip, isLargeScreenWidth, suffixText, shouldUseL
                     // window edge that the shrinking category/tag pickers leave, instead of sitting flush against it.
                     windowMargin={CONST.MODAL.POPOVER_MENU_PADDING}
                     shouldPositionFromTop={!shouldOpenAbove}
-                    minDate={CONST.CALENDAR_PICKER.MIN_DATE}
-                    maxDate={CONST.CALENDAR_PICKER.MAX_DATE}
+                    isDateSelectable={DateUtils.isWithinCalendarPickerRange}
                     inputID="EditableDateCell"
                     shouldEnableMonthYearBackdropInNarrowPane={isEditing && isInNarrowPaneModal}
                 />

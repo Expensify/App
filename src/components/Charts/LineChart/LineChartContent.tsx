@@ -16,7 +16,7 @@ import {
     useDynamicYDomain,
     useLabelHitTesting,
 } from '@components/Charts/hooks';
-import {getDomainPaddingForEdgeSpace, getXAxisLabel, getYAxisLabelWidth, labelOverhang} from '@components/Charts/utils';
+import {getDomainPaddingForEdgeSpace, getPrimaryValue, getXAxisLabel, getYAxisLabelWidth, labelOverhang} from '@components/Charts/utils';
 import VictoryTheme, {CHART_CONTENT_MIN_HEIGHT, DASH_INTERVALS, GLYPH_PADDING, LABEL_PADDING, LABEL_ROTATIONS, SIN_45} from '@components/Charts/VictoryTheme';
 
 import useTheme from '@hooks/useTheme';
@@ -40,7 +40,7 @@ type LineChartProps = CartesianChartProps & {
     onPointPress?: (dataPoint: ChartDataPoint, index: number) => void;
 };
 
-function LineChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPosition = 'left', onPointPress}: LineChartProps) {
+function LineChartContentBody({data, series, isLoading, yAxisUnit, yAxisUnitPosition = 'left', onPointPress}: LineChartProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const fontManager = useChartFontManager();
@@ -54,9 +54,10 @@ function LineChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPosition = '
 
     // A lone point has no line leading into it, so it keeps the regular line's dot instead of a dashed segment.
     const shouldDashLastSegment = isLastPointInProgress && data.length > 1;
+    const [{key: primarySeriesKey}] = series;
     const chartData = data.map((point, index) => ({
         x: index,
-        y: point.total,
+        y: getPrimaryValue(point, primarySeriesKey),
     }));
 
     const handlePointPress = (index: number) => {
@@ -91,7 +92,7 @@ function LineChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPosition = '
     const yAxisLabelWidth = getYAxisLabelWidth(data, formatCompactValue, fontManager, variables.iconSizeExtraSmall, VictoryTheme.line.domainPadding);
 
     const tickSpacing = plotAreaWidth > 0 && data.length > 0 ? plotAreaWidth / data.length : 0;
-    const chartPaddingRight = yAxisLabelWidth + GLYPH_PADDING;
+    const chartPaddingRight = yAxisLabelWidth + GLYPH_PADDING + VictoryTheme.axis.labelGap;
 
     const domainPadding = (() => {
         if (!firstLabelWidth || !lastLabelWidth) {
@@ -109,7 +110,7 @@ function LineChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPosition = '
 
         const edgeSpace = {
             left: Math.max(0, leftOverhang - VictoryTheme.axis.padding.left),
-            right: Math.max(0, rightOverhang - chartPaddingRight - VictoryTheme.axis.labelGap),
+            right: Math.max(0, rightOverhang - chartPaddingRight),
         };
         return {...VictoryTheme.line.domainPadding, ...getDomainPaddingForEdgeSpace(edgeSpace, plotAreaWidth)};
     })();
@@ -169,7 +170,7 @@ function LineChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPosition = '
     };
 
     const {customGestures, setPointPositions, matchedIndex, isTooltipActive, isCursorOverClickable, initialTooltipPosition, activePointPosition, onChartMoved} = useChartInteractions({
-        handlePress: handlePointPress,
+        handlePress: onPointPress ? handlePointPress : undefined,
         checkIsOver: checkIsOverBand,
         isCursorOverLabel: checkIsOverLabelInPlotArea,
         resolveLabelTouchX: findLabelCursorX,
@@ -292,7 +293,7 @@ function LineChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPosition = '
             touchAction="pan-y"
         >
             <Animated.View
-                style={[styles.chartContent, dynamicChartStyle, cursorStyle]}
+                style={[styles.chartContent, dynamicChartStyle, !!onPointPress && cursorStyle]}
                 onLayout={handleLayout}
             >
                 {chartWidth > 0 && (
@@ -316,7 +317,6 @@ function LineChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPosition = '
                                 tickCount: VictoryTheme.axis.tickCount,
                                 axisSide: 'right',
                                 lineWidth: 0,
-                                labelOffset: VictoryTheme.axis.labelGap,
                                 domain: yAxisDomain,
                             },
                         ]}
@@ -337,6 +337,7 @@ function LineChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPosition = '
                     matchedIndex={matchedIndex}
                     isTooltipActive={isTooltipActive}
                     data={data}
+                    series={series}
                     formatValue={formatValue}
                     chartWidth={chartWidth}
                     initialTooltipPosition={initialTooltipPosition}
