@@ -32,9 +32,10 @@ import type {ValueOf} from 'type-fest';
 
 import {Str} from 'expensify-common';
 
+import {hasAccountingConnections} from './connections';
 import {getPerDiemCustomUnit, isPerDiemEligiblePolicy} from './customUnits';
 import {isTimeTrackingEnabled} from './features';
-import {canMemberWrite, getPolicyRole, isPolicyAdmin, isPolicyApprover, isPolicyOwner, isPolicyUser} from './permissions';
+import {canEditWorkspaceSettings, canMemberWrite, getPolicyRole, isPolicyAdmin, isPolicyApprover, isPolicyOwner, isPolicyUser} from './permissions';
 import {isArchivedPolicy, isCollectPolicy, isControlPolicy, isGroupPolicy, isPaidGroupPolicy, isSubmitPolicy} from './policyType';
 import {getTagApproverRule} from './rules';
 import {isSubmitAndClose} from './workflows';
@@ -123,6 +124,13 @@ function getActivePoliciesWithExpenseChatAndPerDiemEnabled(policies: OnyxCollect
 
 function getActivePoliciesWithExpenseChatAndTimeEnabled(policies: OnyxCollection<Policy> | null, currentUserLogin: string | undefined): Policy[] {
     return getActivePoliciesWithExpenseChat(policies, currentUserLogin).filter(isTimeTrackingEnabled);
+}
+
+/**
+ * Whether the workspace has a company address
+ */
+function hasCompanyAddress(policy: OnyxEntry<Policy>): boolean {
+    return !!policy?.address?.addressStreet?.trim();
 }
 
 /**
@@ -682,6 +690,11 @@ function isSubmitterAndApprover(policies: OnyxCollection<Policy> | null | undefi
 
 function isControlOnAdvancedApprovalMode(policy: OnyxInputOrEntry<Policy>): boolean {
     return policy?.type === CONST.POLICY.TYPE.CORPORATE && getApprovalWorkflow(policy) === CONST.POLICY.APPROVAL_MODE.ADVANCED;
+}
+
+/** Whether the user can add a category to the workspace straight from an expense's category picker */
+function canCreateCategoryInSitu(policy: OnyxEntry<Policy>, login?: string) {
+    return canEditWorkspaceSettings(policy, login) && !hasAccountingConnections(policy) && !!policy?.areCategoriesEnabled;
 }
 
 function goBackFromInvalidPolicy() {
@@ -1470,6 +1483,7 @@ export {
     getExpensifyTeamExclusions,
     filterGuideAndAccountManager,
     goBackFromInvalidPolicy,
+    canCreateCategoryInSitu,
     isExpensifyTeam,
     shouldFilterExpensifyTeam,
     createFilteredMemberCountSelector,
@@ -1495,6 +1509,7 @@ export {
     canSubmitPerDiemExpenseFromWorkspace,
     canSendInvoice,
     getEligibleBankAccountShareRecipientEmails,
+    hasCompanyAddress,
     hasOfficeWorkArrangement,
     getPolicyIDOrDefault,
     sortWorkspacesBySelected,

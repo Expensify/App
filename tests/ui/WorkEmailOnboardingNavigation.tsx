@@ -367,6 +367,60 @@ describe('Onboarding work email navigation', () => {
         });
     });
 
+    it('should clear the work email error when Back is pressed so the intent list does not show it', async () => {
+        await TestHelper.signInWithTestUser();
+
+        // Given AddWorkEmail failed with the domain-controlled error while joining a company workspace
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {
+                hasCompletedGuidedSetupFlow: false,
+                isMergingAccountBlocked: true,
+            });
+            await Onyx.merge(ONYXKEYS.ONBOARDING_ERROR_MESSAGE_TRANSLATION_KEY, 'onboarding.mergeBlockScreen.domainControlledSubtitle');
+            await Onyx.merge(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED, CONST.ONBOARDING_CHOICES.JOIN_WORKSPACE);
+            await Onyx.merge(ONYXKEYS.FORMS.ONBOARDING_WORK_EMAIL_FORM, {
+                onboardingWorkEmail: workEmail,
+            });
+            await Onyx.merge(ONYXKEYS.ACCOUNT, {validated: false, isFromPublicDomain: true});
+        });
+
+        renderOnboardingStack([SCREENS.ONBOARDING.PURPOSE, SCREENS.ONBOARDING.WORK_EMAIL], OnboardingModalNavigatorWithPurpose);
+
+        await waitForBatchedUpdatesWithAct();
+
+        // When the user presses Back instead of confirming the blocked screen
+        await waitFor(() => {
+            expect(screen.getByLabelText(TestHelper.translateLocal('common.back'))).toBeOnTheScreen();
+        });
+        fireEvent.press(screen.getByLabelText(TestHelper.translateLocal('common.back')));
+
+        await waitForBatchedUpdatesWithAct();
+
+        await waitFor(() => {
+            expect(getOnboardingRouteNames()).toEqual([SCREENS.ONBOARDING.PURPOSE]);
+        });
+
+        // Then the error is cleared, because the intent list translates it without the work email and would show
+        // "undefined is a domain controlled login"
+        let errorMessageTranslationKey: OnyxEntry<string>;
+        await TestHelper.getOnyxData({
+            key: ONYXKEYS.ONBOARDING_ERROR_MESSAGE_TRANSLATION_KEY,
+            callback: (value) => {
+                errorMessageTranslationKey = value ?? undefined;
+            },
+        });
+        expect(errorMessageTranslationKey).toBeFalsy();
+
+        let onboardingValues: OnyxEntry<Onboarding>;
+        await TestHelper.getOnyxData({
+            key: ONYXKEYS.NVP_ONBOARDING,
+            callback: (value) => {
+                onboardingValues = value;
+            },
+        });
+        expect(onboardingValues?.isMergingAccountBlocked).toBe(false);
+    });
+
     it('should keep Back working on a later visit to Join a workspace after the merge', async () => {
         await TestHelper.signInWithTestUser();
 
