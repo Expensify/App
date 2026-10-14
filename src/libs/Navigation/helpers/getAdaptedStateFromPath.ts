@@ -6,7 +6,6 @@ import {
     RHP_TO_SEARCH,
     RHP_TO_SEARCH_DEEPLINK,
     RHP_TO_SETTINGS,
-    RHP_TO_SETTINGS_DEEPLINK,
     RHP_TO_SIDEBAR,
     RHP_TO_WORKSPACE,
     RHP_TO_WORKSPACES_LIST,
@@ -84,7 +83,7 @@ function isRouteWithReportID(route: NavigationRoute): route is Route<string, {re
 /**
  * @param route - The (focused) route to find a full screen route for.
  * @param isDeeplink - Whether the state is being built from a path (deeplink / browser refresh / cold
- *   load) as opposed to in-app navigation. When true, deeplink-only relations (the `*_DEEPLINK` variants)
+ *   load) as opposed to in-app navigation. When true, deeplink-only relations (e.g. RHP_TO_SEARCH_DEEPLINK)
  *   are also considered so an RHP can get a sensible default fullscreen underneath it. In-app callers
  *   (linkTo, swapBackgroundTabForRHPTarget) leave this false so the same RHP can open over any fullscreen
  *   without changing the page currently underneath.
@@ -121,8 +120,8 @@ function getMatchingFullScreenRoute(route: NavigationRoute, isDeeplink = false) 
         return getMatchingFullScreenRoute(focusedStateForBackToRoute, isDeeplink);
     }
 
-    // Deeplink-only relations provide a default fullscreen underneath the RHP when the state is built from
-    // a path. They are ignored for in-app navigation so the RHP can open over any fullscreen.
+    // Deeplink-only relations provide a default search screen underneath the RHP when the state is
+    // built from a path. They are ignored for in-app navigation so the RHP can open over any fullscreen.
     const matchingSearchScreen = RHP_TO_SEARCH[route.name];
     const matchingDeeplinkSearchScreen = isDeeplink ? RHP_TO_SEARCH_DEEPLINK[route.name] : undefined;
     const resolvedSearchScreen = matchingSearchScreen ?? matchingDeeplinkSearchScreen;
@@ -194,14 +193,13 @@ function getMatchingFullScreenRoute(route: NavigationRoute, isDeeplink = false) 
         });
     }
 
-    const matchingSettingsScreen = RHP_TO_SETTINGS[route.name] ?? (isDeeplink ? RHP_TO_SETTINGS_DEEPLINK[route.name] : undefined);
-    if (matchingSettingsScreen) {
-        const paramsFromRoute = getParamsFromRoute(matchingSettingsScreen);
+    if (RHP_TO_SETTINGS[route.name]) {
+        const paramsFromRoute = getParamsFromRoute(RHP_TO_SETTINGS[route.name]);
 
         const settingsState = getInitialSplitNavigatorState(
             {name: SCREENS.SETTINGS.ROOT},
             {
-                name: matchingSettingsScreen,
+                name: RHP_TO_SETTINGS[route.name],
                 params: paramsFromRoute.length > 0 ? pick(route.params, paramsFromRoute) : undefined,
             },
         );

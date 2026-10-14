@@ -40,14 +40,14 @@ const Stack = createPlatformStackNavigator<SettingsNavigatorParamList>();
 const userCardID = '1234';
 
 // Renders the ExpensifyCardPage inside a navigation container with necessary providers.
-const renderPage = (initialRouteName: typeof SCREENS.SETTINGS.WALLET.DOMAIN_CARD, initialParams: SettingsNavigatorParamList[typeof SCREENS.SETTINGS.WALLET.DOMAIN_CARD]) => {
+const renderPage = (initialRouteName: typeof SCREENS.SETTINGS.WALLET.DYNAMIC_DOMAIN_CARD, initialParams: SettingsNavigatorParamList[typeof SCREENS.SETTINGS.WALLET.DYNAMIC_DOMAIN_CARD]) => {
     return render(
         <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, CurrentReportIDContextProvider, CurrencyListContextProvider, MultifactorAuthenticationContextProviders]}>
             <PortalProvider>
                 <NavigationContainer>
                     <Stack.Navigator initialRouteName={initialRouteName}>
                         <Stack.Screen
-                            name={SCREENS.SETTINGS.WALLET.DOMAIN_CARD}
+                            name={SCREENS.SETTINGS.WALLET.DYNAMIC_DOMAIN_CARD}
                             component={ExpensifyCardPage}
                             initialParams={initialParams}
                         />
@@ -111,7 +111,7 @@ describe('ExpensifyCardPage', () => {
         });
 
         // Render the page with the specified card ID.
-        const {unmount} = renderPage(SCREENS.SETTINGS.WALLET.DOMAIN_CARD, {cardID: '1234'});
+        const {unmount} = renderPage(SCREENS.SETTINGS.WALLET.DYNAMIC_DOMAIN_CARD, {cardID: '1234'});
 
         await waitForBatchedUpdatesWithAct();
 
@@ -160,7 +160,7 @@ describe('ExpensifyCardPage', () => {
         });
 
         // Render the page with the specified card ID.
-        const {unmount} = renderPage(SCREENS.SETTINGS.WALLET.DOMAIN_CARD, {cardID: '1234'});
+        const {unmount} = renderPage(SCREENS.SETTINGS.WALLET.DYNAMIC_DOMAIN_CARD, {cardID: '1234'});
 
         await waitForBatchedUpdatesWithAct();
 
@@ -204,7 +204,7 @@ describe('ExpensifyCardPage', () => {
         });
 
         // Render the page with the specified card ID.
-        const {unmount} = renderPage(SCREENS.SETTINGS.WALLET.DOMAIN_CARD, {cardID: '1234'});
+        const {unmount} = renderPage(SCREENS.SETTINGS.WALLET.DYNAMIC_DOMAIN_CARD, {cardID: '1234'});
 
         await waitForBatchedUpdatesWithAct();
 
@@ -243,7 +243,7 @@ describe('ExpensifyCardPage', () => {
         });
 
         // Render the page with the specified card ID.
-        const {unmount} = renderPage(SCREENS.SETTINGS.WALLET.DOMAIN_CARD, {cardID: '1234'});
+        const {unmount} = renderPage(SCREENS.SETTINGS.WALLET.DYNAMIC_DOMAIN_CARD, {cardID: '1234'});
 
         await waitForBatchedUpdatesWithAct();
 
@@ -295,7 +295,7 @@ describe('ExpensifyCardPage', () => {
             });
         });
 
-        const {unmount} = renderPage(SCREENS.SETTINGS.WALLET.DOMAIN_CARD, {cardID: '5678'});
+        const {unmount} = renderPage(SCREENS.SETTINGS.WALLET.DYNAMIC_DOMAIN_CARD, {cardID: '5678'});
 
         await waitForBatchedUpdatesWithAct();
 
@@ -331,7 +331,7 @@ describe('ExpensifyCardPage', () => {
         });
 
         // Render the page with the specified card ID.
-        const {unmount} = renderPage(SCREENS.SETTINGS.WALLET.DOMAIN_CARD, {cardID: '1234'});
+        const {unmount} = renderPage(SCREENS.SETTINGS.WALLET.DYNAMIC_DOMAIN_CARD, {cardID: '1234'});
 
         await waitForBatchedUpdatesWithAct();
 
@@ -370,7 +370,7 @@ describe('ExpensifyCardPage', () => {
         });
 
         // Render the page with the specified card ID.
-        const {unmount} = renderPage(SCREENS.SETTINGS.WALLET.DOMAIN_CARD, {cardID: '1234'});
+        const {unmount} = renderPage(SCREENS.SETTINGS.WALLET.DYNAMIC_DOMAIN_CARD, {cardID: '1234'});
 
         await waitForBatchedUpdatesWithAct();
 

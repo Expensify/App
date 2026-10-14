@@ -1,5 +1,9 @@
+import getAdaptedStateFromPath from '@libs/Navigation/helpers/getAdaptedStateFromPath';
+
 import NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';
+
+import {findFocusedRoute} from '@react-navigation/native';
 
 import getFullScreenUnderRHP from '../utils/getFullScreenUnderRHP';
 
@@ -22,6 +26,10 @@ describe('dynamic settings RHP screens on a fresh load', () => {
         ['the wallet, add US bank account', '/settings/wallet/us-bank-account', NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR, SCREENS.SETTINGS.WALLET.ROOT],
         ['a report, enter signer info', '/r/123/enter-signer-info?policyID=1&bankAccountID=2&isCompleted=false', NAVIGATORS.REPORTS_SPLIT_NAVIGATOR, SCREENS.REPORT],
         ['Home, enter signer info', '/home/enter-signer-info?policyID=1&bankAccountID=2&isCompleted=false', SCREENS.HOME, undefined],
+        ['Home, Expensify Card details', '/home/card/777', SCREENS.HOME, undefined],
+        ['Home, activate Expensify Card', '/home/card/777/activate', SCREENS.HOME, undefined],
+        ['the wallet, Expensify Card details', '/settings/wallet/card/777', NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR, SCREENS.SETTINGS.WALLET.ROOT],
+        ['the wallet, activate Expensify Card', '/settings/wallet/card/777/activate', NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR, SCREENS.SETTINGS.WALLET.ROOT],
     ])('keeps the full screen it was opened from: %s', (_label, path, name, central) => {
         // Given an RHP URL that carries the page it was opened from as its base
         // When it is loaded directly or refreshed
@@ -29,5 +37,19 @@ describe('dynamic settings RHP screens on a fresh load', () => {
 
         // Then that page is rebuilt under the RHP, so closing the RHP returns to it
         expect(fullScreen).toEqual({name, central});
+    });
+});
+
+describe('Expensify Card routes that must keep their own page', () => {
+    it.each([
+        ['the domain card detail', '/settings/card/777', SCREENS.DOMAIN_CARD.DOMAIN_CARD_DETAIL],
+        ['the domain card fraud report', '/settings/card/777/report-virtual-fraud', SCREENS.DOMAIN_CARD.DOMAIN_CARD_REPORT_FRAUD],
+    ])('%s is not taken over by the wallet card suffix', (_label, path, screen) => {
+        // Given a Domains card URL that ends the same way as the wallet card suffix, but whose base is not Wallet or Home
+        // When it is loaded directly or refreshed
+        const state = getAdaptedStateFromPath(path, undefined);
+
+        // Then it still resolves to its own Domains screen
+        expect(state ? findFocusedRoute(state)?.name : undefined).toBe(screen);
     });
 });

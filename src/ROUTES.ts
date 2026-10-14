@@ -332,7 +332,7 @@ const DYNAMIC_ROUTES = {
             SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT,
             SCREENS.HOME,
             SCREENS.SETTINGS.WALLET.ROOT,
-            SCREENS.SETTINGS.WALLET.DOMAIN_CARD,
+            SCREENS.SETTINGS.WALLET.DYNAMIC_DOMAIN_CARD,
             SCREENS.DOMAIN_CARD.DOMAIN_CARD_DETAIL,
         ],
         getRoute: (cardID: string, subPage?: string, action?: 'edit') => {
@@ -351,7 +351,7 @@ const DYNAMIC_ROUTES = {
             SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT,
             SCREENS.HOME,
             SCREENS.SETTINGS.WALLET.ROOT,
-            SCREENS.SETTINGS.WALLET.DOMAIN_CARD,
+            SCREENS.SETTINGS.WALLET.DYNAMIC_DOMAIN_CARD,
             SCREENS.DOMAIN_CARD.DOMAIN_CARD_DETAIL,
         ],
         getRoute: (cardID: string) => `missing-personal-details/${cardID}/confirm-validate-code` as const,
@@ -1533,6 +1533,15 @@ const DYNAMIC_ROUTES = {
         path: 'fix-connection',
         entryScreens: [SCREENS.SETTINGS.WALLET.DYNAMIC_PERSONAL_CARD_DETAILS],
     },
+    WALLET_DOMAIN_CARD: {
+        path: 'card/:cardID',
+        entryScreens: [SCREENS.SETTINGS.WALLET.ROOT, SCREENS.HOME],
+        getRoute: (cardID: string) => `card/${cardID}` as const,
+    },
+    WALLET_CARD_ACTIVATE: {
+        path: 'activate',
+        entryScreens: [SCREENS.SETTINGS.WALLET.DYNAMIC_DOMAIN_CARD, SCREENS.DOMAIN_CARD.DOMAIN_CARD_DETAIL],
+    },
     ADD_US_BANK_ACCOUNT: {
         path: 'us-bank-account/:subPage?/:action?',
         entryScreens: ['*'],
@@ -2484,10 +2493,6 @@ const ROUTES = {
     },
     SETTINGS_ABOUT: 'settings/about',
     SETTINGS_WALLET: 'settings/wallet',
-    SETTINGS_WALLET_DOMAIN_CARD: {
-        route: 'settings/wallet/card/:cardID?',
-        getRoute: (cardID: string) => `settings/wallet/card/${cardID}` as const,
-    },
     SETTINGS_WALLET_EXPENSIFY_CARD_SPEND_RULES: {
         route: 'settings/wallet/expensify-card/spend-rules/:policyID/:ruleID',
         getRoute: (policyID: string, ruleID?: string) => `settings/wallet/expensify-card/spend-rules/${policyID}/${ruleID ?? 'new'}` as const,
@@ -2658,10 +2663,6 @@ const ROUTES = {
 
         // eslint-disable-next-line @typescript-eslint/no-deprecated -- Legacy route generation, consistent with other wallet routes
         getRoute: (cardID: string, backTo?: string) => getUrlWithBackToParam(`settings/wallet/card/${cardID}/add-to-digital-wallet`, backTo),
-    },
-    SETTINGS_WALLET_CARD_ACTIVATE: {
-        route: 'settings/wallet/card/:cardID/activate',
-        getRoute: (cardID: string, isFromDomainCardDetail?: boolean) => `settings/wallet/card/${cardID}/activate${isFromDomainCardDetail ? '?isFromDomainCardDetail=true' : ''}` as const,
     },
     SETTINGS_WALLET_CARD_ADDED_TO_WALLET: {
         route: 'settings/wallet/card/:cardID/added-to-wallet',

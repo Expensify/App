@@ -146,7 +146,7 @@ type SettingsNavigatorParamList = {
     [SCREENS.SETTINGS.DYNAMIC_EXIT_SURVEY_REASON]: undefined;
     [SCREENS.SETTINGS.DYNAMIC_EXIT_SURVEY_CONFIRM]: undefined;
     [SCREENS.SETTINGS.WALLET.CARDS_DIGITAL_DETAILS_UPDATE_ADDRESS]: undefined;
-    [SCREENS.SETTINGS.WALLET.DOMAIN_CARD]: {
+    [SCREENS.SETTINGS.WALLET.DYNAMIC_DOMAIN_CARD]: {
         cardID: string;
     };
     [SCREENS.SETTINGS.WALLET.DYNAMIC_PERSONAL_CARD_DETAILS]: {
@@ -175,11 +175,8 @@ type SettingsNavigatorParamList = {
         // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
         backTo?: Routes;
     };
-    [SCREENS.SETTINGS.WALLET.CARD_ACTIVATE]: {
+    [SCREENS.SETTINGS.WALLET.DYNAMIC_CARD_ACTIVATE]: {
         cardID: string;
-
-        /** Whether the flow was launched from the top-level DomainCard route (deep-linked from OldDot) rather than the Settings wallet card route */
-        isFromDomainCardDetail?: string;
     };
     [SCREENS.SETTINGS.WALLET.CARD_ADDED_TO_WALLET]: {
         /** cardID of selected card */

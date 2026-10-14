@@ -498,7 +498,7 @@ function PaymentMethodList({
                     title: cardTitle,
                     description: itemDescription,
                     connectionStatus: cardConnectionStatus,
-                    onPress: () => Navigation.navigate(ROUTES.SETTINGS_WALLET_DOMAIN_CARD.getRoute(String(card.cardID))),
+                    onPress: () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WALLET_DOMAIN_CARD.getRoute(String(card.cardID)))),
                     onThreeDotsMenuPress: (e: GestureResponderEvent | KeyboardEvent | undefined) =>
                         pressHandler({
                             event: e,

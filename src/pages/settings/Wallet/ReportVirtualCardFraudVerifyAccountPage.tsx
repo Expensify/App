@@ -55,7 +55,7 @@ function ReportVirtualCardFraudVerifyAccountPage({
 
         if (replacementCardID || physicalCardForm?.cardTerminatedWithoutReplacement) {
             const confirmationCardID = replacementCardID || cardID;
-            Navigation.removeScreenFromNavigationState(SCREENS.SETTINGS.WALLET.DOMAIN_CARD);
+            Navigation.removeScreenFromNavigationState(SCREENS.SETTINGS.WALLET.DYNAMIC_DOMAIN_CARD);
             Navigation.goBack(ROUTES.SETTINGS_REPORT_FRAUD_CONFIRMATION.getRoute(confirmationCardID));
         }
     }, [cardError, cardID, codeError, formData?.isLoading, physicalCardForm?.cardTerminatedWithoutReplacement, prevIsLoading, replacementCardID]);

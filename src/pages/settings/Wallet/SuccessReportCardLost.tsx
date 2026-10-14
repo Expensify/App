@@ -5,9 +5,10 @@ import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 
 import React from 'react';
 
@@ -26,7 +27,9 @@ function SuccessReportCardLost({cardID, isFromDomainCardDetail = false}: {cardID
             onButtonPress={() => {
                 // Going back with compareParams: false collapses the flow onto the deleted card route and
                 // replaces its cardID with the replacement card instead of a stale/NotFound route.
-                const cardDetailRoute = isFromDomainCardDetail ? ROUTES.SETTINGS_DOMAIN_CARD_DETAIL.getRoute(cardID) : ROUTES.SETTINGS_WALLET_DOMAIN_CARD.getRoute(cardID);
+                const cardDetailRoute = isFromDomainCardDetail
+                    ? ROUTES.SETTINGS_DOMAIN_CARD_DETAIL.getRoute(cardID)
+                    : createDynamicRoute(DYNAMIC_ROUTES.WALLET_DOMAIN_CARD.getRoute(cardID), ROUTES.SETTINGS_WALLET);
                 Navigation.goBack(cardDetailRoute, {compareParams: false});
             }}
             buttonText={translate('common.buttonConfirm')}

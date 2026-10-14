@@ -11,12 +11,13 @@ import {clearCardListErrors, requestReplacementExpensifyCard} from '@libs/action
 import {setErrors} from '@libs/actions/FormActions';
 import {requestValidateCodeAction} from '@libs/actions/User';
 import {getLatestErrorMessageField} from '@libs/ErrorUtils';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
 import {CONST as COMMON_CONST} from 'expensify-common';
@@ -72,9 +73,14 @@ function ReportCardLostConfirmValidateCodePage({
                 <HeaderWithBackButton
                     title={translate('common.success')}
                     onBackButtonPress={() =>
-                        Navigation.goBack(isFromDomainCardDetail ? ROUTES.SETTINGS_DOMAIN_CARD_DETAIL.getRoute(newCardID) : ROUTES.SETTINGS_WALLET_DOMAIN_CARD.getRoute(newCardID), {
-                            compareParams: false,
-                        })
+                        Navigation.goBack(
+                            isFromDomainCardDetail
+                                ? ROUTES.SETTINGS_DOMAIN_CARD_DETAIL.getRoute(newCardID)
+                                : createDynamicRoute(DYNAMIC_ROUTES.WALLET_DOMAIN_CARD.getRoute(newCardID), ROUTES.SETTINGS_WALLET),
+                            {
+                                compareParams: false,
+                            },
+                        )
                     }
                 />
                 <SuccessReportCardLost
