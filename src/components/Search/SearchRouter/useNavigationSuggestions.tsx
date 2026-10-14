@@ -409,12 +409,13 @@ function useNavigationSuggestions(query: string, shouldWatchForApprovals = true)
     const [policyCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES);
     const [currentUserLogin] = useOnyx(ONYXKEYS.SESSION, {selector: emailSelector});
     const {clearSelectedTransactions} = useSearchSelectionActions();
-    const typeMenuSections = useSearchTypeMenuSectionsForNavigation(shouldWatchForApprovals);
+    const canQueryMatch = canQueryMatchNavigationSuggestions(query);
+    const typeMenuSections = useSearchTypeMenuSectionsForNavigation(shouldWatchForApprovals, canQueryMatch);
     const {accountMenuItemsData, generalMenuItemsData} = useSettingsNavigationMenuData();
 
-    // The workspace source alone builds the whole settings menu of every workspace, and an empty query would
-    // throw all of it away, which costs the most on the first frame of every Search Router open.
-    if (!canQueryMatchNavigationSuggestions(query)) {
+    // Every Search Router open starts with an empty query, which matches nothing, so the sources (the Spend sections and
+    // the settings menu of every workspace) are not built on its first frame.
+    if (!canQueryMatch) {
         return [];
     }
 

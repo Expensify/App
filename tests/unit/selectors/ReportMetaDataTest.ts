@@ -94,8 +94,10 @@ describe('pendingDeleteMemberAccountIDsByReportIDSelector', () => {
 
         // When the selector runs for each of them
         // Then both get one shared object, so reference-keyed caches downstream (the Search Router option list) keep hitting
-        expect(pendingDeleteMemberAccountIDsByReportIDSelector(first)).toBe(pendingDeleteMemberAccountIDsByReportIDSelector(second));
-        expect(pendingDeleteMemberAccountIDsByReportIDSelector(undefined)).toEqual({});
+        const shared = pendingDeleteMemberAccountIDsByReportIDSelector(first);
+        expect(pendingDeleteMemberAccountIDsByReportIDSelector(second)).toBe(shared);
+        expect(pendingDeleteMemberAccountIDsByReportIDSelector(undefined)).toBe(shared);
+        expect(shared).toEqual({});
     });
 
     it('maps reports with members pending deletion to their account IDs', () => {
@@ -107,6 +109,10 @@ describe('pendingDeleteMemberAccountIDsByReportIDSelector', () => {
 
         // When the selector runs
         // Then the report is keyed by its ID with the pending account
-        expect(pendingDeleteMemberAccountIDsByReportIDSelector(metadata)).toEqual({[REPORT_ID]: ['5']});
+        const result = pendingDeleteMemberAccountIDsByReportIDSelector(metadata);
+        expect(result).toEqual({[REPORT_ID]: ['5']});
+
+        // And it is a new object rather than the shared empty one, so the option list cache sees the change
+        expect(result).not.toBe(pendingDeleteMemberAccountIDsByReportIDSelector(undefined));
     });
 });
