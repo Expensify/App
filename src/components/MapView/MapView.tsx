@@ -159,6 +159,9 @@ function MapView({
                 return;
             }
 
+            // The camera goes back to its default framing below, so the center button starts the cycle again from the current position.
+            setIsWaypointsNextCenterTarget(false);
+
             if (!waypoints || waypoints.length === 0) {
                 if (currentPositionLongitude === undefined || currentPositionLatitude === undefined) {
                     return;
@@ -238,19 +241,18 @@ function MapView({
         mapHeading.set(e.properties.heading ?? 0);
     };
 
+    const canCenterOnCurrentPosition = currentPositionLongitude !== undefined && currentPositionLatitude !== undefined;
+    const {singleWaypointCoordinate, hasWaypointsTarget} = utils.getCenterTargets(
+        waypoints,
+        allDirectionCoordinates,
+        canCenterOnCurrentPosition ? [currentPositionLongitude, currentPositionLatitude] : undefined,
+    );
+
+    // The waypoints can disappear after the user centered on their location, so the button only offers them while they are still a target.
+    const shouldShowWaypointsCenterIcon = isWaypointsNextCenterTarget && hasWaypointsTarget;
+
     const centerMap = useCallback(() => {
         const waypointCoordinates = waypoints?.map((waypoint) => waypoint.coordinate) ?? [];
-        const hasRoute = waypointCoordinates.length > 1 || (allDirectionCoordinates ?? []).length > 1;
-
-        // With a single waypoint there is no route to fit yet, so that lone waypoint is what the button alternates with.
-        const singleWaypointCoordinate = !hasRoute ? waypointCoordinates.at(0) : undefined;
-        const canCenterOnCurrentPosition = currentPositionLongitude !== undefined && currentPositionLatitude !== undefined;
-
-        // A lone waypoint at the current position is the same target, so there is nothing to alternate with.
-        const isSingleWaypointAtCurrentPosition =
-            !!singleWaypointCoordinate && canCenterOnCurrentPosition && utils.areSameCoordinate(singleWaypointCoordinate, [currentPositionLongitude, currentPositionLatitude]);
-        const hasWaypointsTarget = hasRoute || (!!singleWaypointCoordinate && !isSingleWaypointAtCurrentPosition);
-
         const shouldCenterOnWaypoints = hasWaypointsTarget && (isWaypointsNextCenterTarget || !canCenterOnCurrentPosition);
         setIsWaypointsNextCenterTarget(!shouldCenterOnWaypoints && hasWaypointsTarget && canCenterOnCurrentPosition);
 
@@ -281,7 +283,17 @@ function MapView({
             animationMode: CONST.MAPBOX.CAMERA_ANIMATION_MODE,
             zoomLevel: CONST.MAPBOX.SINGLE_MARKER_ZOOM,
         });
-    }, [allDirectionCoordinates, currentPositionLongitude, currentPositionLatitude, isWaypointsNextCenterTarget, mapPadding, waypoints]);
+    }, [
+        allDirectionCoordinates,
+        canCenterOnCurrentPosition,
+        currentPositionLongitude,
+        currentPositionLatitude,
+        hasWaypointsTarget,
+        isWaypointsNextCenterTarget,
+        mapPadding,
+        singleWaypointCoordinate,
+        waypoints,
+    ]);
 
     const centerCoordinate = useMemo(() => (currentPosition ? [currentPosition.longitude, currentPosition.latitude] : initialState?.location), [currentPosition, initialState?.location]);
 
@@ -421,7 +433,7 @@ function MapView({
                         accessibilityLabel={translate('common.center')}
                     >
                         <Button.Icon
-                            src={isWaypointsNextCenterTarget ? expensifyIcons.Expand : expensifyIcons.Crosshair}
+                            src={shouldShowWaypointsCenterIcon ? expensifyIcons.Expand : expensifyIcons.Crosshair}
                             fill={theme.icon}
                             hoverFill={theme.icon}
                         />

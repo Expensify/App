@@ -1,6 +1,6 @@
 import type {CameraPadding} from '@rnmapbox/maps';
 
-import type {AlternateDirection, Coordinate} from './MapViewTypes';
+import type {AlternateDirection, Coordinate, WayPoint} from './MapViewTypes';
 
 /** A geographic point as a plain longitude/latitude pair. Mapbox's `LngLat` became a class in mapbox-gl 3.x, but these helpers only read `.lng`/`.lat`, so a literal shape is all that's needed. */
 type LngLatLiteral = {lng: number; lat: number};
@@ -247,9 +247,25 @@ function getCameraPadding(padding: number | undefined): CameraPadding | undefine
     return {paddingLeft: padding, paddingRight: padding, paddingTop: padding, paddingBottom: padding};
 }
 
+/** Resolves what the center button can move the camera to: the waypoints (a fitted route or a lone waypoint) and/or the current position */
+function getCenterTargets(waypoints: WayPoint[] | undefined, directionCoordinates: Coordinate[] | undefined, currentPosition: Coordinate | undefined) {
+    const waypointCoordinates = waypoints?.map((waypoint) => waypoint.coordinate) ?? [];
+    const hasRoute = waypointCoordinates.length > 1 || (directionCoordinates ?? []).length > 1;
+
+    // With a single waypoint there is no route to fit yet, so that lone waypoint is what the button alternates with.
+    const singleWaypointCoordinate = !hasRoute ? waypointCoordinates.at(0) : undefined;
+
+    // A lone waypoint at the current position is the same target, so there is nothing to alternate with.
+    const isSingleWaypointAtCurrentPosition = !!singleWaypointCoordinate && !!currentPosition && areSameCoordinate(singleWaypointCoordinate, currentPosition);
+    const hasWaypointsTarget = hasRoute || (!!singleWaypointCoordinate && !isSingleWaypointAtCurrentPosition);
+
+    return {waypointCoordinates, singleWaypointCoordinate, hasWaypointsTarget};
+}
+
 export default {
     getBounds,
     getCameraPadding,
+    getCenterTargets,
     areSameCoordinate,
     areCoordinatesEqual,
     getSinglePointCoordinate,
