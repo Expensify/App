@@ -109,24 +109,20 @@ The **Recently added** section shows your most recently added expenses, so you c
 
 ---
 
-## How the Spend over time chart and insights work on Home
+## How insights work on Home
 
-The chart section on Home shows one spending insight at a time, starting with **Spend over time**, which displays a line chart of your workspace spending trends.
+**Home** displays one insight at a time, with **Spend over time** selected by default.
 
-Select the insight title (with the chevron next to it) to open the insight picker, then choose a different insight to show in the chart. The available insights match the charts you can see on the **Insights** page, and can include:
+To display a different insight, select the insight title and choose another insight, such as:
 
 - **Spend over time**
 - **Top categories**
 - **Top merchants**
 - **Top spenders**
 
-Your selection is saved, so the chart shows the same insight the next time you return to Home, even after you sign out and back in.
+To view all available insights, select **Insights** in the navigation tabs (on the left on web, on the bottom on mobile). 
 
-To see all your charts, select **More (⋮)**, then select **View**. This opens the **Insights** page.
-
-This section is available to anyone on a paid workspace. The chart uses the same filters you last selected on the **Insights** page. If an insight doesn't have enough data yet to draw a chart, the section still appears and shows a **Chart unavailable** message instead.
-
-To learn more about each insight, see [Learn About Insights](/articles/new-expensify/insights/How-to-Use-Insights-in-Expensify).
+To learn more about each insight, see [Learn About Insights](/articles/new-expensify/insights/Learn-About-Insights).
 
 ---
 
