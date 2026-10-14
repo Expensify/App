@@ -369,6 +369,10 @@ jest.mock('@libs/PolicyUtils', () => {
     const isPaidGroupPolicy = jest.fn().mockImplementation((policy?: Policy) => policy?.type === 'corporate' || policy?.type === 'team');
     return {
         ...actualPolicyUtils,
+        // This factory runs while PolicyUtils is still loading inside an import cycle, so the barrel's `export *` helpers
+        // aren't on it yet. Spread them from their own modules, which load fully.
+        ...jest.requireActual<Record<string, unknown>>('@libs/PolicyUtils/customUnits'),
+        ...jest.requireActual<Record<string, unknown>>('@libs/PolicyUtils/tax'),
         isPolicyAdmin: jest.fn().mockImplementation((policy?: Policy) => policy?.role === 'admin'),
         isPaidGroupPolicy,
         // isGroupPolicy delegates to the isPaidGroupPolicy mock so tests that tweak isPaidGroupPolicy still drive group-policy checks
@@ -966,6 +970,103 @@ describe('ReportUtils', () => {
                     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
                     testDriveURL: expect.any(String),
                 }),
+            );
+        });
+
+        it('provides the Concierge report as the base for a join-workspace validation task link', () => {
+            const description = jest.fn(() => '');
+
+            prepareOnboardingOnyxData({
+                introSelected: undefined,
+                engagementChoice: CONST.ONBOARDING_CHOICES.JOIN_WORKSPACE,
+                onboardingMessage: {
+                    message: 'This is a test',
+                    tasks: [{type: CONST.ONBOARDING_TASK_TYPE.VALIDATE_EMAIL, title: '', description, autoCompleted: false}],
+                },
+                companySize: undefined,
+                conciergeChat: {reportID: REPORT_ID},
+                delegateAccountID: undefined,
+            });
+
+            expect(description).toHaveBeenCalledWith(
+                expect.objectContaining<OnboardingTaskLinks>({
+                    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+                    validateEmailLink: expect.stringContaining(`/r/${REPORT_ID}/verify-account?isJoinWorkspaceTask=true`),
+                }),
+            );
+        });
+
+        it('provides the merge-code screen for an account-merge validation task link', () => {
+            const description = jest.fn(() => '');
+
+            prepareOnboardingOnyxData({
+                introSelected: undefined,
+                engagementChoice: CONST.ONBOARDING_CHOICES.JOIN_WORKSPACE,
+                onboardingMessage: {
+                    message: 'This is a test',
+                    tasks: [{type: CONST.ONBOARDING_TASK_TYPE.VALIDATE_EMAIL, title: '', description, autoCompleted: false}],
+                },
+                companySize: undefined,
+                conciergeChat: {reportID: REPORT_ID},
+                delegateAccountID: undefined,
+                shouldResumeAccountMerge: true,
+            });
+
+            expect(description).toHaveBeenCalledWith(
+                expect.objectContaining<OnboardingTaskLinks>({
+                    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+                    validateEmailLink: expect.stringContaining('/onboarding/work-email-validation?isJoinWorkspaceTask=true'),
+                }),
+            );
+        });
+
+        it('persists and rolls back only incremental join-workspace task IDs', () => {
+            const result = prepareOnboardingOnyxData({
+                introSelected: {choice: CONST.ONBOARDING_CHOICES.JOIN_WORKSPACE, createWorkspace: 'existing-task'},
+                engagementChoice: CONST.ONBOARDING_CHOICES.JOIN_WORKSPACE,
+                onboardingMessage: {
+                    message: '',
+                    tasks: [
+                        {type: CONST.ONBOARDING_TASK_TYPE.ADD_WORK_EMAIL, title: 'Add work email', description: '', autoCompleted: false},
+                        {type: CONST.ONBOARDING_TASK_TYPE.VALIDATE_EMAIL, title: 'Validate email', description: '', autoCompleted: false},
+                        {type: CONST.ONBOARDING_TASK_TYPE.JOIN_WORKSPACE, title: 'Join workspace', description: '', autoCompleted: false},
+                    ],
+                },
+                companySize: undefined,
+                conciergeChat: conciergeChatReport,
+                delegateAccountID: undefined,
+                isIncremental: true,
+            });
+
+            const optimisticTaskIDs = result?.optimisticData.find((update) => update.key === ONYXKEYS.NVP_INTRO_SELECTED);
+            expect(optimisticTaskIDs).toEqual(
+                expect.objectContaining({
+                    value: expect.objectContaining({
+                        choice: CONST.ONBOARDING_CHOICES.JOIN_WORKSPACE,
+                        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+                        addWorkEmail: expect.any(String),
+                        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+                        validateEmail: expect.any(String),
+                        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+                        joinWorkspace: expect.any(String),
+                    }),
+                }),
+            );
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+            expect(optimisticTaskIDs).not.toEqual(expect.objectContaining({value: expect.objectContaining({createWorkspace: expect.anything()})}));
+
+            const rollbackTaskIDs = result?.failureData.find((update) => update.key === ONYXKEYS.NVP_INTRO_SELECTED);
+            expect(rollbackTaskIDs).toEqual(
+                expect.objectContaining({
+                    value: {
+                        addWorkEmail: null,
+                        validateEmail: null,
+                        joinWorkspace: null,
+                    },
+                }),
+            );
+            expect(result?.failureData).not.toEqual(
+                expect.arrayContaining([expect.objectContaining({key: ONYXKEYS.NVP_ONBOARDING, value: expect.objectContaining({hasCompletedGuidedSetupFlow: false})})]),
             );
         });
 
@@ -6056,6 +6157,86 @@ describe('ReportUtils', () => {
 
             expect(canHoldUnholdReportAction(expenseReport, expenseCreatedAction, undefined, expenseTransaction, undefined, currentUserAccountID, undefined)).toEqual({
                 canHoldRequest: true,
+                canUnholdRequest: false,
+            });
+        });
+
+        it('should let the submitter hold an expense with no IOU action on their open expense report', () => {
+            // Given an expense with no IOU action on an open expense report the current user submitted
+            const expenseReport = {
+                ...createExpenseReport(1004),
+                policyID: 'policy-4',
+                ownerAccountID: currentUserAccountID,
+                managerID: 99999,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+            };
+            const expenseTransaction = buildOptimisticTransaction({
+                transactionParams: {
+                    amount: 100,
+                    currency: 'USD',
+                    reportID: expenseReport.reportID,
+                },
+            });
+
+            // When checking whether it can be held, Then Hold is available, because HoldRequest creates the missing IOU action and thread
+            expect(canHoldUnholdReportAction(expenseReport, undefined, undefined, expenseTransaction, undefined, currentUserAccountID, undefined)).toEqual({
+                canHoldRequest: true,
+                canUnholdRequest: false,
+            });
+        });
+
+        it('should not let another member hold an expense with no IOU action on an open expense report', () => {
+            // Given an expense with no IOU action on an open expense report another member submitted
+            const expenseReport = {
+                ...createExpenseReport(1005),
+                policyID: 'policy-5',
+                ownerAccountID: 99998,
+                managerID: 99999,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+            };
+            const expenseTransaction = buildOptimisticTransaction({
+                transactionParams: {
+                    amount: 100,
+                    currency: 'USD',
+                    reportID: expenseReport.reportID,
+                },
+            });
+
+            // When checking whether it can be held, Then Hold is unavailable, because only the requester can hold on an open report
+            expect(canHoldUnholdReportAction(expenseReport, undefined, undefined, expenseTransaction, undefined, currentUserAccountID, undefined)).toEqual({
+                canHoldRequest: false,
+                canUnholdRequest: false,
+            });
+        });
+
+        it('should not offer Unhold for a held expense that has no IOU action yet', () => {
+            // Given an admin and an expense held optimistically on an open expense report, before the server returned its new IOU action
+            const expenseReport = {
+                ...createExpenseReport(1006),
+                policyID: 'policy-6',
+                ownerAccountID: currentUserAccountID,
+                managerID: 99999,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+            };
+            const expenseTransaction = buildOptimisticTransaction({
+                transactionParams: {
+                    amount: 100,
+                    currency: 'USD',
+                    reportID: expenseReport.reportID,
+                },
+            });
+            const heldTransaction = {...expenseTransaction, comment: {...expenseTransaction.comment, hold: 'holdActionID'}};
+            const adminPolicy = createMock<Policy>({
+                id: expenseReport.policyID,
+                role: CONST.POLICY.ROLE.ADMIN,
+            });
+
+            // When checking whether it can be unheld, Then Unhold is unavailable, because removing the hold needs the IOU action's transaction thread
+            expect(canHoldUnholdReportAction(expenseReport, undefined, undefined, heldTransaction, adminPolicy, currentUserAccountID, undefined)).toEqual({
+                canHoldRequest: false,
                 canUnholdRequest: false,
             });
         });
@@ -26804,15 +26985,21 @@ describe('ReportUtils', () => {
             });
         }
 
-        const mockPolicy = createMock<Policy>({
+        /** The workspace policy is passed in explicitly, so these fixtures never touch Onyx. */
+        const adminPolicy = createMock<Policy>({
             ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
             id: POLICY_ID,
             role: CONST.POLICY.ROLE.ADMIN,
         });
 
+        const memberPolicy = createMock<Policy>({
+            ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
+            id: POLICY_ID,
+            role: CONST.POLICY.ROLE.USER,
+        });
+
         beforeEach(async () => {
             await Onyx.set(ONYXKEYS.SESSION, {email: ownerEmail, accountID: USER_ID});
-            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, mockPolicy);
             return waitForBatchedUpdates();
         });
 
@@ -26822,67 +27009,67 @@ describe('ReportUtils', () => {
         });
 
         it('returns false for an empty selection', () => {
-            expect(canMergeReports([], USER_ID, undefined, undefined)).toBe(false);
+            expect(canMergeReports([], USER_ID, undefined, undefined, adminPolicy)).toBe(false);
         });
 
         it('returns false when only 1 report is selected', () => {
-            expect(canMergeReports([makeOpenReport()], USER_ID, undefined, undefined)).toBe(false);
+            expect(canMergeReports([makeOpenReport()], USER_ID, undefined, undefined, adminPolicy)).toBe(false);
         });
 
         it('returns false when currentUserAccountID is 0 (falsy)', () => {
-            expect(canMergeReports([makeOpenReport(), makeOpenReport()], 0, undefined, undefined)).toBe(false);
+            expect(canMergeReports([makeOpenReport(), makeOpenReport()], 0, undefined, undefined, adminPolicy)).toBe(false);
         });
 
         // Same ownerAccountID (cross-account not supported)
         it('returns false when reports have different ownerAccountIDs', () => {
             const r1 = makeOpenReport({ownerAccountID: OWNER_ID});
             const r2 = makeOpenReport({ownerAccountID: OWNER_ID + 1});
-            expect(canMergeReports([r1, r2], USER_ID, undefined, undefined)).toBe(false);
+            expect(canMergeReports([r1, r2], USER_ID, undefined, undefined, adminPolicy)).toBe(false);
         });
 
         it('returns false when the first report has no ownerAccountID', () => {
             const r1 = makeOpenReport({ownerAccountID: undefined});
             const r2 = makeOpenReport({ownerAccountID: OWNER_ID});
-            expect(canMergeReports([r1, r2], USER_ID, undefined, undefined)).toBe(false);
+            expect(canMergeReports([r1, r2], USER_ID, undefined, undefined, adminPolicy)).toBe(false);
         });
 
         // Same policyID (cross-workspace not supported)
         it('returns false when reports belong to different workspaces', () => {
             const r1 = makeOpenReport({policyID: 'p1'});
             const r2 = makeOpenReport({policyID: 'p2'});
-            expect(canMergeReports([r1, r2], USER_ID, undefined, undefined)).toBe(false);
+            expect(canMergeReports([r1, r2], USER_ID, undefined, undefined, adminPolicy)).toBe(false);
         });
 
         it('returns false when the first report has no policyID', () => {
             const r1 = makeOpenReport({policyID: undefined});
             const r2 = makeOpenReport({policyID: POLICY_ID});
-            expect(canMergeReports([r1, r2], USER_ID, undefined, undefined)).toBe(false);
+            expect(canMergeReports([r1, r2], USER_ID, undefined, undefined, adminPolicy)).toBe(false);
         });
 
         // Same workflow state
         it('returns false when mixing Open and Processing reports', () => {
             const open = makeOpenReport();
             const processing = makeProcessingReport();
-            expect(canMergeReports([open, processing], USER_ID, undefined, undefined)).toBe(false);
+            expect(canMergeReports([open, processing], USER_ID, undefined, undefined, adminPolicy)).toBe(false);
         });
 
         it('returns false when stateNum matches but statusNum differs', () => {
             const r1 = makeOpenReport({stateNum: CONST.REPORT.STATE_NUM.OPEN, statusNum: CONST.REPORT.STATUS_NUM.OPEN});
             const r2 = makeOpenReport({stateNum: CONST.REPORT.STATE_NUM.OPEN, statusNum: CONST.REPORT.STATUS_NUM.CLOSED});
-            expect(canMergeReports([r1, r2], USER_ID, undefined, undefined)).toBe(false);
+            expect(canMergeReports([r1, r2], USER_ID, undefined, undefined, adminPolicy)).toBe(false);
         });
 
         // Same managerID for Processing reports
         it('returns false when Processing reports have different managerIDs', () => {
             const r1 = makeProcessingReport({managerID: MANAGER_ID});
             const r2 = makeProcessingReport({managerID: MANAGER_ID + 99});
-            expect(canMergeReports([r1, r2], USER_ID, undefined, undefined)).toBe(false);
+            expect(canMergeReports([r1, r2], USER_ID, undefined, undefined, adminPolicy)).toBe(false);
         });
 
         it('returns false when a Processing report has no managerID', () => {
             const r1 = makeProcessingReport({managerID: MANAGER_ID});
             const r2 = makeProcessingReport({managerID: undefined});
-            expect(canMergeReports([r1, r2], USER_ID, undefined, undefined)).toBe(false);
+            expect(canMergeReports([r1, r2], USER_ID, undefined, undefined, adminPolicy)).toBe(false);
         });
 
         /**
@@ -26894,7 +27081,7 @@ describe('ReportUtils', () => {
             const r1 = makeOpenReport({managerID: undefined});
             const r2 = makeOpenReport({managerID: 999});
 
-            expect(canMergeReports([r1, r2], USER_ID, undefined, undefined)).toBe(true);
+            expect(canMergeReports([r1, r2], USER_ID, undefined, undefined, adminPolicy)).toBe(true);
         });
 
         // Terminal states (settled / approved / closed)
@@ -26905,7 +27092,7 @@ describe('ReportUtils', () => {
                 statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED,
                 isWaitingOnBankAccount: false,
             } as Report;
-            expect(canMergeReports([makeOpenReport(), settled], USER_ID, undefined, undefined)).toBe(false);
+            expect(canMergeReports([makeOpenReport(), settled], USER_ID, undefined, undefined, adminPolicy)).toBe(false);
         });
 
         it('returns false when a report is approved', () => {
@@ -26914,7 +27101,7 @@ describe('ReportUtils', () => {
                 stateNum: CONST.REPORT.STATE_NUM.APPROVED,
                 statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
             } as Report;
-            expect(canMergeReports([makeOpenReport(), approved], USER_ID, undefined, undefined)).toBe(false);
+            expect(canMergeReports([makeOpenReport(), approved], USER_ID, undefined, undefined, adminPolicy)).toBe(false);
         });
 
         it('returns false when a report is closed', () => {
@@ -26922,63 +27109,78 @@ describe('ReportUtils', () => {
                 ...makeOpenReport(),
                 statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
             } as Report;
-            expect(canMergeReports([makeOpenReport(), closed], USER_ID, undefined, undefined)).toBe(false);
+            expect(canMergeReports([makeOpenReport(), closed], USER_ID, undefined, undefined, adminPolicy)).toBe(false);
         });
 
         // The user must be able to write to each report
-        it('returns false when the current user is not able to write to each report', async () => {
+        it('returns false when the current user is not able to write to each report', () => {
             const r1 = makeOpenReport({permissions: [CONST.REPORT.PERMISSIONS.READ]});
             const r2 = makeOpenReport();
-            expect(canMergeReports([r1, r2], USER_ID, undefined, undefined)).toBe(false);
+            expect(canMergeReports([r1, r2], USER_ID, undefined, undefined, adminPolicy)).toBe(false);
         });
 
         // The user must be the report owner, a workspace admin, or the current approver.
-        it('returns false when the current user is not owner/admin/approver of a report', async () => {
+        it('returns false when the current user is not owner/admin/approver of a report', () => {
+            // Given two Open reports owned by OWNER_ID with no managerID set, and a policy on which the
+            // current user is only a member, so none of the three merge-eligible roles apply to them
             const STRANGER_ID = 77;
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, {...policy, role: CONST.POLICY.ROLE.USER});
-            await waitForBatchedUpdates();
-
-            // Reports are owned by OWNER_ID=10; managerID is unset (Open reports).
-            // STRANGER_ID is neither admin, owner, nor manager.
             const r1 = makeOpenReport();
             const r2 = makeOpenReport();
-            expect(canMergeReports([r1, r2], STRANGER_ID, undefined, undefined)).toBe(false);
+
+            // When a stranger who is neither the owner, the workspace admin, nor the approver tries to merge them
+            const result = canMergeReports([r1, r2], STRANGER_ID, undefined, undefined, memberPolicy);
+
+            // Then the merge is rejected, because allowing it would let an unrelated user rewrite someone else's reports
+            expect(result).toBe(false);
         });
 
         // Happy paths
-        it('returns true for two valid Open reports when user is the report owner', async () => {
-            // When the current user is the policy admin
+        it('returns true for two valid Open reports when user is the report owner', () => {
+            // Given two Open reports that the current user owns, which is the state a submitter can still edit
             const r1 = makeOpenReport();
             const r2 = makeOpenReport();
-            expect(canMergeReports([r1, r2], USER_ID, undefined, undefined)).toBe(true);
 
-            // When the current user is the submitter
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, {...policy, role: CONST.POLICY.ROLE.USER});
-            await waitForBatchedUpdates();
-            expect(canMergeReports([r1, r2], USER_ID, undefined, undefined)).toBe(true);
+            // When the merge is attempted as the workspace admin, and again as a plain member who owns the reports
+            const asAdmin = canMergeReports([r1, r2], USER_ID, undefined, undefined, adminPolicy);
+            const asMember = canMergeReports([r1, r2], USER_ID, undefined, undefined, memberPolicy);
+
+            // Then both are allowed, because an Open report is editable by its owner regardless of workspace role
+            expect(asAdmin).toBe(true);
+            expect(asMember).toBe(true);
         });
 
-        it('returns true for two valid Processing reports when user is the report owner and approver matches', async () => {
-            // When the current user is the policy admin
+        it('returns true for two valid Processing reports when user is the report owner and approver matches', () => {
+            // Given two submitted reports owned by the current user and already waiting on MANAGER_ID to approve
             const r1 = makeProcessingReport();
             const r2 = makeProcessingReport();
-            expect(canMergeReports([r1, r2], USER_ID, undefined, undefined)).toBe(true);
 
-            // When the current user is the submitter
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, {...policy, role: CONST.POLICY.ROLE.USER});
-            await waitForBatchedUpdates();
-            expect(canMergeReports([r1, r2], USER_ID, undefined, undefined)).toBe(false);
+            // When the merge is attempted as the workspace admin, and again as a plain member who owns the reports
+            const asAdmin = canMergeReports([r1, r2], USER_ID, undefined, undefined, adminPolicy);
+            const asMember = canMergeReports([r1, r2], USER_ID, undefined, undefined, memberPolicy);
+
+            // Then only the admin may merge: a submitter loses edit rights once the report is awaiting approval,
+            // so letting them merge would let them alter a report that is already in an approver's queue
+            expect(asAdmin).toBe(true);
+            expect(asMember).toBe(false);
         });
 
-        it('returns true when the current user is the approver on Processing reports', async () => {
+        it('returns true when the current user is the approver on Processing reports', () => {
+            // Given two submitted reports owned by someone else and waiting on MANAGER_ID to approve them
             const r1 = makeProcessingReport({ownerAccountID: 999, managerID: MANAGER_ID});
             const r2 = makeProcessingReport({ownerAccountID: 999, managerID: MANAGER_ID});
-            expect(canMergeReports([r1, r2], MANAGER_ID, undefined, undefined)).toBe(true);
+
+            // When the approver merges them while holding only a member role, so eligibility can be granted
+            // by the approver branch alone. An admin policy would short-circuit before the manager is checked
+            // and the test would still pass even if that check regressed.
+            const result = canMergeReports([r1, r2], MANAGER_ID, undefined, undefined, memberPolicy);
+
+            // Then the merge is allowed, because the approver owns the decision on reports sitting in their queue
+            expect(result).toBe(true);
         });
 
         it('returns true for three or more valid Open reports', () => {
             const reports = [makeOpenReport(), makeOpenReport(), makeOpenReport()];
-            expect(canMergeReports(reports, USER_ID, undefined, undefined)).toBe(true);
+            expect(canMergeReports(reports, USER_ID, undefined, undefined, adminPolicy)).toBe(true);
         });
 
         it('returns true for two valid Open reports when reportNameValuePairs is provided', () => {
@@ -26987,7 +27189,7 @@ describe('ReportUtils', () => {
             const reportNameValuePairs: OnyxCollection<ReportNameValuePairs> = {
                 [`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${r1.reportID}`]: {},
             };
-            expect(canMergeReports([r1, r2], USER_ID, undefined, reportNameValuePairs)).toBe(true);
+            expect(canMergeReports([r1, r2], USER_ID, undefined, reportNameValuePairs, adminPolicy)).toBe(true);
         });
 
         it('returns false when a report is not writable even when reportNameValuePairs is provided', () => {
@@ -26996,7 +27198,60 @@ describe('ReportUtils', () => {
             const reportNameValuePairs: OnyxCollection<ReportNameValuePairs> = {
                 [`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${r1.reportID}`]: {},
             };
-            expect(canMergeReports([r1, r2], USER_ID, undefined, reportNameValuePairs)).toBe(false);
+            expect(canMergeReports([r1, r2], USER_ID, undefined, reportNameValuePairs, adminPolicy)).toBe(false);
+        });
+
+        /**
+         * The policy must come from the caller rather than the module-level `allPolicies` Onyx cache that
+         * ReportUtils used to read. Merging submitted reports is the discriminating case: admins may do it,
+         * submitters may not, so a stale cached role would flip the result.
+         * See https://github.com/Expensify/App/issues/66415.
+         */
+        describe('reads the policy from the caller, not the Onyx cache', () => {
+            afterEach(async () => {
+                await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, null);
+                return waitForBatchedUpdates();
+            });
+
+            it('rejects the merge when the passed policy is a member even though the cached policy is an admin', async () => {
+                // Given a cached policy that would make the current user an admin of the workspace
+                await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, adminPolicy);
+                await waitForBatchedUpdates();
+                const r1 = makeProcessingReport();
+                const r2 = makeProcessingReport();
+
+                // When the caller passes a policy on which that same user is only a member
+                const result = canMergeReports([r1, r2], USER_ID, undefined, undefined, memberPolicy);
+
+                // Then the passed policy wins and the merge is rejected, so the cache can never widen a user's rights
+                expect(result).toBe(false);
+            });
+
+            it('allows the merge when the passed policy is an admin even though the cached policy is a member', async () => {
+                // Given a cached policy that would demote the current user to a plain member
+                await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, memberPolicy);
+                await waitForBatchedUpdates();
+                const r1 = makeProcessingReport();
+                const r2 = makeProcessingReport();
+
+                // When the caller passes the policy on which that user really is an admin
+                const result = canMergeReports([r1, r2], USER_ID, undefined, undefined, adminPolicy);
+
+                // Then the merge is allowed, so a stale cache can never strip rights the caller's data grants
+                expect(result).toBe(true);
+            });
+
+            it('treats a missing policy as non-admin', () => {
+                // Given submitted reports owned by the current user whose workspace policy has not been loaded yet
+                const r1 = makeProcessingReport();
+                const r2 = makeProcessingReport();
+
+                // When the merge is attempted with no policy available to the caller
+                const result = canMergeReports([r1, r2], USER_ID, undefined, undefined, undefined);
+
+                // Then it is rejected, because admin-only merges must not be granted on the basis of absent data
+                expect(result).toBe(false);
+            });
         });
     });
 });

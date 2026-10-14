@@ -431,8 +431,6 @@ type SearchQueryJSON = {
     similarSearchHash: number;
     flatFilters: QueryFilters;
     isViewExplicitlySet?: boolean;
-    /** Filters generated for a specific group that must keep exact-match semantics when sent to the backend. */
-    exactMatchFilterKeys?: SearchFilterKey[];
 } & SearchQueryAST;
 
 type SearchAutocompleteResult = {
@@ -485,9 +483,6 @@ type SearchChartDataRow = {
 
     /** The grouped search result the point was built from */
     item: GroupedItem;
-
-    /** Palette color the chart assigns this group */
-    color?: string;
 };
 
 type SearchFilterCommonProps<T> = {
