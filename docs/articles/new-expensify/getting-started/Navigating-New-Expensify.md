@@ -95,9 +95,9 @@ From **Spend**, you can:
 
 **Insights** shows charts of your spending, such as **Spend over time**, **Top categories**, **Top merchants**, and **Top spenders**.
 
-Use Insights to see spending trends and what changed at a glance. From any chart, select **More (⋮)* to open matching expenses in **Spend**.
+Use Insights to see spending trends and what changed at a glance. From any chart, select **More (⋮)** to open matching expenses in **Spend**.
 
-Learn more about [Insights](/articles/new-expensify/insights/How-to-Use-Insights-in-Expensify).
+Learn more about [Insights](/articles/new-expensify/insights/Learn-About-Insights).
 
 ---
 
