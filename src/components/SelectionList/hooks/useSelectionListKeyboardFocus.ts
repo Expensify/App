@@ -20,6 +20,9 @@ type UseSelectionListKeyboardFocusParams = {
     debouncedScrollToIndex: ScrollToIndex;
     announceProgrammaticScroll: () => void;
     setShouldDisableHoverStyle: (shouldDisableHoverStyle: boolean) => void;
+
+    /** Whether ArrowUp from the first row moves to index -1 (the search input) instead of wrapping to the last row */
+    shouldAllowArrowUpToSearchInput?: boolean;
 };
 
 type UseSelectionListKeyboardFocusResult = {
@@ -42,6 +45,7 @@ function useSelectionListKeyboardFocus({
     debouncedScrollToIndex,
     announceProgrammaticScroll,
     setShouldDisableHoverStyle,
+    shouldAllowArrowUpToSearchInput = false,
 }: UseSelectionListKeyboardFocusParams): UseSelectionListKeyboardFocusResult {
     const hasKeyBeenPressed = useRef(false);
     const [isKeyboardNavigating, setIsKeyboardNavigating] = useState(false);
@@ -80,6 +84,9 @@ function useSelectionListKeyboardFocus({
         },
         setHasKeyBeenPressed,
         isFocused,
+        // Negative indexes let ArrowUp break out past a disabled section header at index 0
+        disableCyclicTraversal: shouldAllowArrowUpToSearchInput,
+        allowNegativeIndexes: shouldAllowArrowUpToSearchInput,
         onArrowUpDownCallback: () => {
             setShouldDisableHoverStyle(true);
             announceProgrammaticScroll();

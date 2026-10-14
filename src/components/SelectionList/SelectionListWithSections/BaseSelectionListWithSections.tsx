@@ -87,6 +87,7 @@ function BaseSelectionListWithSectionsImpl({
     shouldSingleExecuteRowSelect = false,
     shouldPreventDefaultFocusOnSelectRow = false,
     shouldPreventAutoScrollOnSelect = false,
+    shouldAllowArrowUpToSearchInput = false,
     titleNumberOfLines,
     shouldDisableHoverStyle,
     selectionButtonPosition,
@@ -123,6 +124,7 @@ function BaseSelectionListWithSectionsImpl({
         debouncedScrollToIndex,
         announceProgrammaticScroll: () => listRef.current?.announceProgrammaticScroll(),
         setShouldDisableHoverStyle,
+        shouldAllowArrowUpToSearchInput,
     });
 
     const {innerTextInputRef, isTextInputFocusedRef, focusTextInput, textInputKeyPress} = useSelectionListTextInput(setHasKeyBeenPressed);
@@ -268,6 +270,7 @@ function BaseSelectionListWithSectionsImpl({
                 accessibilityLabel={textInputOptions?.label}
                 options={textInputOptions}
                 onSubmit={selectFocusedItem}
+                onPress={shouldAllowArrowUpToSearchInput ? () => setFocusedIndex(-1) : undefined}
                 dataLength={itemsCount}
                 isLoading={isLoadingNewOptions}
                 onFocusChange={(v: boolean) => (isTextInputFocusedRef.current = v)}
