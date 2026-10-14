@@ -5,6 +5,7 @@ keywords: [Top merchants, top merchants chart, vendor spending, merchant spendin
 internalScope: Audience is all members who can access Insights. Covers what Top merchants shows, who can see it, how merchants are ranked, which expenses are included, and how to explore merchant expenses in Spend. Does not cover detailed filtering instructions, exporting expenses, or other insights.
 contentType: topic
 platform: new-expensify
+order: 5
 ---
 
 # Explore the Top Merchants Insight
