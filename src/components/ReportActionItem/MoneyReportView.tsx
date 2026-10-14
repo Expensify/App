@@ -145,7 +145,7 @@ function MoneyReportView({
     }, [policy?.fieldList, report, reportNameValuePairs]);
 
     const isOnlyTitleFieldEnabled = sortedPolicyReportFields.every(shouldHideSingleReportField);
-    const isClosedExpenseReportWithNoExpenses = isClosedExpenseReportWithNoExpensesReportUtils(report);
+    const isClosedExpenseReportWithNoExpenses = isClosedExpenseReportWithNoExpensesReportUtils(report, transactions);
     const shouldDisplayReportFields = shouldDisplayReportFieldsUtils(report, policy);
     const shouldShowReportField = !isClosedExpenseReportWithNoExpenses && shouldDisplayReportFields && !isOnlyTitleFieldEnabled;
 
