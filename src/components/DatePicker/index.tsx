@@ -34,6 +34,8 @@ import DatePickerModal from './DatePickerModal';
 
 const PADDING_MODAL_DATE_PICKER = 8;
 
+const DELETE_KEY = 'Delete';
+
 function DatePicker({
     defaultValue,
     disabled,
@@ -384,10 +386,12 @@ function DatePicker({
         showDatePickerModal();
     };
 
-    // Autofocus leaves the field focused without a calendar, so typing is what asks for one, as it does on a field
-    // that cannot be typed into
+    // Autofocus leaves the field focused without a calendar, so editing the date is what asks for one, as typing does
+    // on a field that cannot be typed into
     const handleTypingKeyPress = (event: TextInputKeyPressEvent) => {
-        if (!isNumeric(event.nativeEvent.key)) {
+        const key = event.nativeEvent.key;
+
+        if (!isNumeric(key) && key !== CONST.KEYBOARD_SHORTCUTS.BACKSPACE.shortcutKey && key !== DELETE_KEY) {
             return;
         }
 
