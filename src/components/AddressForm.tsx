@@ -258,13 +258,6 @@ function AddressForm<TFormID extends AddressFormID>({
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
-    /**
-     * @param translate - translate function
-     * @param isUSAForm - selected country ISO code is US
-     * @param values - form input values
-     * @returns - An object containing the errors for each inputID
-     */
-
     const validator = useCallback(
         (rawValues: FormOnyxValues<TFormID>): FormInputErrors<TFormID> => {
             // Every form rendered here has the home address fields, so they are validated the same way
