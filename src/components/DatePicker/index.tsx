@@ -357,12 +357,20 @@ function DatePicker({
     const handleMonthOrYearSelected = (newDate: string) => {
         // Picking a month or year revises a date the field already holds. An empty field has no day to go with one,
         // so it waits for the day press rather than being filled with a day nobody chose.
-        if (selectedDate) {
-            commitDate(newDate);
+        if (!selectedDate) {
+            return;
         }
 
-        // The picker is a modal of its own, so it takes focus with it. The calendar is still open, which is the field
-        // still being used, so focus belongs back in it.
+        commitDate(newDate);
+    };
+
+    // The pickers are modals of their own, so they take focus with them, and their focus trap holds on to it until
+    // they are gone. The calendar is still open at that point, which is the field still being used.
+    const handleMonthOrYearPickerClose = () => {
+        if (!isModalVisible) {
+            return;
+        }
+
         segmentInput.focusFirstUnfilledSegment();
     };
 
@@ -484,6 +492,7 @@ function DatePicker({
                 viewDate={segmentInput.viewDate}
                 viewDateVersion={segmentInput.viewDateVersion}
                 onMonthOrYearSelected={shouldAllowTyping ? handleMonthOrYearSelected : undefined}
+                onMonthOrYearPickerClose={shouldAllowTyping ? handleMonthOrYearPickerClose : undefined}
             />
         </>
     );

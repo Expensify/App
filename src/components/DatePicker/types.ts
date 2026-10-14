@@ -154,6 +154,9 @@ type DatePickerProps = {
      * open, so the user can still press a day. Leave it out to have those picks only move the view.
      */
     onMonthOrYearSelected?: (selectedDate: string) => void;
+
+    /** Called once the month or year picker has closed, which is where focus has to be taken back from it */
+    onMonthOrYearPickerClose?: () => void;
 } & Omit<BaseTextInputProps & PopoverWithMeasuredContentProps, 'anchorRef' | 'children'>;
 
 export type {DateInputWithPickerProps, DatePickerProps};

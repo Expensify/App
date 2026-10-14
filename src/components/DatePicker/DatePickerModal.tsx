@@ -57,6 +57,7 @@ function DatePickerModal({
     shouldCloseOnWheel = true,
     viewDate,
     viewDateVersion,
+    onMonthOrYearPickerClose,
 }: DatePickerProps) {
     const [selectedDate, setSelectedDate] = useState(value);
     const fallbackAnchorRef = useRef<ComponentRef<typeof View>>(null);
@@ -141,6 +142,7 @@ function DatePickerModal({
                 shouldEnableMonthYearBackdropInNarrowPane={shouldEnableMonthYearBackdropInNarrowPane}
                 viewDate={viewDate}
                 viewDateVersion={viewDateVersion}
+                onMonthOrYearPickerClose={onMonthOrYearPickerClose}
             />
         </PopoverWithMeasuredContent>
     );

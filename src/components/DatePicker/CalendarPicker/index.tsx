@@ -70,6 +70,12 @@ type CalendarPickerProps = {
 
     /** Changes every time `viewDate` is asserted, including when it repeats the month the calendar already shows */
     viewDateVersion?: number;
+
+    /**
+     * Called once the month or year picker has closed, whether a pick was made or not. Those pickers are modals, so
+     * they take focus with them, which a caller that owns the focused element has to take back.
+     */
+    onMonthOrYearPickerClose?: () => void;
 };
 
 /** A bound can be built from data, such as a time zone or a stored date, so an invalid one falls back to the default like a missing one, instead of making every date invalid. */
@@ -91,6 +97,7 @@ function CalendarPicker({
     shouldEnableMonthYearBackdropInNarrowPane = false,
     viewDate,
     viewDateVersion = 0,
+    onMonthOrYearPickerClose,
 }: CalendarPickerProps) {
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
@@ -422,7 +429,10 @@ function CalendarPicker({
                 maxYear={maxYear}
                 currentYear={currentYearView}
                 onYearChange={onYearSelected}
-                onClose={() => setIsYearPickerVisible(false)}
+                onClose={() => {
+                    setIsYearPickerVisible(false);
+                    onMonthOrYearPickerClose?.();
+                }}
                 shouldEnableBackdropInNarrowPane={shouldEnableMonthYearBackdropInNarrowPane}
             />
             <MonthPickerModal
@@ -431,7 +441,10 @@ function CalendarPicker({
                 minMonth={minMonth}
                 maxMonth={maxMonth}
                 onMonthChange={onMonthSelected}
-                onClose={() => setIsMonthPickerVisible(false)}
+                onClose={() => {
+                    setIsMonthPickerVisible(false);
+                    onMonthOrYearPickerClose?.();
+                }}
                 shouldEnableBackdropInNarrowPane={shouldEnableMonthYearBackdropInNarrowPane}
             />
         </View>
