@@ -11,13 +11,13 @@ import React from 'react';
 
 import type {DynamicFieldRenderer} from './types';
 
-const renderList: DynamicFieldRenderer<'list'> = (field, {translate, isLoneField, values, onOpenListItemEditor, onListItemsChange, renderFields}, inputProps) => {
+const renderList: DynamicFieldRenderer<'list'> = (field, {translate, values, onOpenListItemEditor, onListItemsChange, renderFields}, inputProps) => {
     const itemLabel = getLocalizedText(translate, field.itemLabelKey, field.itemLabel);
     // A sensitive list is not drafted, so inside the flow its entries come from memory, which the editor page and a removal both update
     const isMemoryList = !!onOpenListItemEditor && isSensitiveField(field);
     return {
         isMenuRow: true,
-        labelAbove: isLoneField ? undefined : 'heading',
+        labelAbove: 'heading',
         input: (
             <InputWrapper
                 InputComponent={ListFieldAdapter}

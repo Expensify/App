@@ -90,9 +90,10 @@ type RenderFieldsOptions = {
     currency?: string;
     maxFileSize?: number;
     onRefreshRequirements?: (inputID: string, value: unknown) => void;
+    isTitledByPage?: boolean;
 };
 
-function renderFields(content: DynamicFormContentItem[], values: DynamicFormValues = {}, {currency, maxFileSize, onRefreshRequirements}: RenderFieldsOptions = {}) {
+function renderFields(content: DynamicFormContentItem[], values: DynamicFormValues = {}, {currency, maxFileSize, onRefreshRequirements, isTitledByPage}: RenderFieldsOptions = {}) {
     mockInputWrapper.mockClear();
     render(
         <DynamicFormFields
@@ -101,6 +102,7 @@ function renderFields(content: DynamicFormContentItem[], values: DynamicFormValu
             currency={currency}
             maxFileSize={maxFileSize}
             onRefreshRequirements={onRefreshRequirements}
+            isTitledByPage={isTitledByPage}
         />,
     );
     return new Map(mockInputWrapper.mock.calls.map(([props]) => [props.inputID, props]));
@@ -600,16 +602,28 @@ describe('DynamicFormFields', () => {
         ['countryMultiselect', InlineSelectionListAdapter, {canSelectMultiple: true, valueType: 'stringList', isSearchable: true}],
         ['currency', CurrencyInlineListAdapter, {}],
     ] as const)('draws a %s field alone on its page as the page itself', (type, ExpectedInput, expectedProps) => {
-        // Given the only question on the page
+        // Given the only question on a page without its own title, so the page is titled after the question
         const field: DynamicFormField = {key: 'answer', label: 'The question', type, required: true};
 
         // When it renders
-        const rendered = renderFields([field]);
+        const rendered = renderFields([field], {}, {isTitledByPage: true});
 
         // Then the choice is drawn as the page itself, keeping its kind of answer, and the label is left to the page title instead of repeating it
         expect(rendered.get('answer')?.InputComponent).toBe(ExpectedInput);
         expect(rendered.get('answer')).toMatchObject(expectedProps);
         expect(screen.queryByText('The question')).not.toBeOnTheScreen();
+    });
+
+    it.each(['select', 'multiselect', 'country', 'currency', 'boolean', 'radio', 'list'] as const)('shows the question above a lone %s field on a page with its own title', (type) => {
+        // Given the only question on a page whose own title, such as "Ownership", does not ask it
+        const field: DynamicFormField =
+            type === 'list' ? {key: 'answer', label: 'The question', type, required: true, itemFields: []} : {key: 'answer', label: 'The question', type, required: true};
+
+        // When it renders
+        renderFields([field]);
+
+        // Then the question is drawn as a heading above the answers, since nothing else on the page says what they answer
+        expect(screen.getByRole(CONST.ROLE.HEADING, {name: 'The question'})).toBeOnTheScreen();
     });
 
     it('keeps a lone list as the page when it reveals a follow-up field', () => {
@@ -656,8 +670,8 @@ describe('DynamicFormFields', () => {
         };
         const companyName: DynamicFormField = {key: 'companyName', type: 'text', required: true, showWhen: {key: 'legalType', equals: ['BUSINESS']}};
 
-        // When it renders for a business recipient
-        const rendered = renderFields([legalType, companyName], {legalType: 'BUSINESS'});
+        // When it renders for a business recipient on a page without its own title
+        const rendered = renderFields([legalType, companyName], {legalType: 'BUSINESS'}, {isTitledByPage: true});
 
         // Then it is still a tab row rather than an inline list, since the schema asked for tabs, and the question is left to the page title
         expect(rendered.get('legalType')?.InputComponent).toBe(TabsAdapter);

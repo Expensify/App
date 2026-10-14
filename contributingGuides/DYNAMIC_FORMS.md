@@ -102,7 +102,7 @@ Every type also takes:
 - `showWhen`: shown only while another answer is one of the listed values. A list answer counts when any chosen value matches. A field whose controlling field is hidden stays hidden.
 - `refreshOnChange`: see `onRefreshRequirements` above
 
-A choice or list field that is the only question on its page is drawn as the page itself, as an inline list, and the page title asks the question in place of its label. Fields it reveals, such as an "Other" description, do not count, so the layout stays put when they appear. On a page with several questions, every choice, tabs included, shows its question above it.
+A choice or list field that is the only question on its page is drawn as the page itself, as an inline list, with its question above it. A page without its own title takes the question as its title, so the label is not repeated below it. Fields it reveals, such as an "Other" description, do not count, so the layout stays put when they appear. On a page with several questions, every choice, tabs included, shows its question above it.
 
 `maxFileSize` comes from the field when the schema sets it, else from the `maxFileSize` the screen passes. With neither, files of any size are taken.
 

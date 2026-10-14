@@ -29,7 +29,7 @@ function getChoiceOptionsList(choices: Choice[]): Record<string, string> {
     return Object.fromEntries(choices.map((choice) => [choice.value, choice.label]));
 }
 
-/** A lone choice field is the page itself: its options are listed inline, and the page title asks the question */
+/** A lone choice field is the page itself: its options are listed inline under its question, which a page without its own title shows as its title instead */
 function renderInlineChoice(
     label: string,
     choices: Choice[],
@@ -39,6 +39,7 @@ function renderInlineChoice(
     const listProps = {items: choices, isSearchable, searchInputLabel: label};
     return {
         isMenuRow: true,
+        labelAbove: 'heading',
         input: (
             <InputWrapper
                 InputComponent={InlineSelectionListAdapter}
@@ -54,7 +55,7 @@ function renderInlineChoice(
 function renderTabs(label: string, choices: Choice[], inputProps: DynamicFieldInputProps<string>, isLoneField: boolean): DynamicFieldInput {
     return {
         isMenuRow: false,
-        labelAbove: isLoneField ? undefined : 'prompt',
+        labelAbove: isLoneField ? 'heading' : 'prompt',
         input: (
             <InputWrapper
                 InputComponent={TabsAdapter}
@@ -136,7 +137,7 @@ const CHOICE_RENDERERS: Pick<DynamicFieldRendererMap, 'select' | 'radio' | 'mult
         }
         return {
             isMenuRow: true,
-            labelAbove: isLoneField ? undefined : 'prompt',
+            labelAbove: isLoneField ? 'heading' : 'prompt',
             input: (
                 <InputWrapper
                     InputComponent={RadioButtons}
@@ -169,6 +170,7 @@ const CHOICE_RENDERERS: Pick<DynamicFieldRendererMap, 'select' | 'radio' | 'mult
         if (isLoneField) {
             return {
                 isMenuRow: true,
+                labelAbove: 'heading',
                 input: (
                     <InputWrapper
                         InputComponent={CurrencyInlineListAdapter}
@@ -192,6 +194,7 @@ const CHOICE_RENDERERS: Pick<DynamicFieldRendererMap, 'select' | 'radio' | 'mult
         if (isLoneField) {
             return {
                 isMenuRow: true,
+                labelAbove: 'heading',
                 input: (
                     <InputWrapper
                         InputComponent={YesNoAdapter}
