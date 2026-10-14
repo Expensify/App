@@ -6248,10 +6248,6 @@ const staticStyles = (theme: ThemeColors) =>
             height: variables.describeRulePromptInputHeight,
         },
 
-        describeRuleInlinePromptInput: {
-            height: variables.describeRuleInlinePromptInputHeight,
-        },
-
         emptyStateSamlIllustration: {
             width: 183,
             height: 160,

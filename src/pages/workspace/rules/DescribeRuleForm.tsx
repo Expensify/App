@@ -21,6 +21,7 @@ import INPUT_IDS from '@src/types/form/NewRulePromptForm';
 import type {PolicyCategories} from '@src/types/onyx';
 import type {GeneratedRuleState, GeneratedRuleType, GeneratedRuleValues} from '@src/types/onyx/GeneratedRule';
 
+import type {ReactNode} from 'react';
 import type {StyleProp, TextInputKeyPressEvent, ViewStyle} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 
@@ -50,6 +51,12 @@ type DescribeRuleFormProps = {
     style?: StyleProp<ViewStyle>;
 
     addBottomSafeAreaPadding?: boolean;
+
+    /** Whether the form scrolls and keeps the submit button at the bottom, as on a full page */
+    isFullPage?: boolean;
+
+    /** Content above the input */
+    children?: ReactNode;
 
     /** Called with the generated form values and their rule type after Concierge builds the rule */
     onRuleGenerated: (values: GeneratedRuleValues, generatedRuleType: GeneratedRuleType) => void;
@@ -92,6 +99,8 @@ function DescribeRuleForm({
     inputContainerStyle,
     style,
     addBottomSafeAreaPadding = false,
+    isFullPage = false,
+    children,
     onRuleGenerated,
     onAgentRuleFallback,
     onFinish,
@@ -195,11 +204,12 @@ function DescribeRuleForm({
             submitButtonText={submitButtonText}
             style={style}
             addBottomSafeAreaPadding={addBottomSafeAreaPadding}
-            shouldUseScrollView={false}
-            submitFlexEnabled={false}
+            shouldUseScrollView={isFullPage}
+            submitFlexEnabled={isFullPage}
             shouldHideFixErrorsAlert
             keyboardSubmitBehavior={CONST.KEYBOARD_SUBMIT_BEHAVIOR.SUBMIT_ONLY}
         >
+            {children}
             <View style={inputContainerStyle}>
                 <InputWrapper
                     InputComponent={TextInput}
