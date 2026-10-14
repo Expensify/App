@@ -9079,6 +9079,14 @@ const translations = {
                     unintelligible: 'Try phrasing your rule like: if expenses have a value over $100, then require a receipt.',
                     multipleRules: 'One rule at a time, please — try describing a single rule, like: block retail purchases on all cards.',
                 },
+                impossible: {
+                    noTrigger: "Rules can't start from that event.",
+                    noCapability: "Rules can't do that.",
+                    missingData: "Expensify doesn't have that information.",
+                    retroactive: 'Rules only apply to new activity.',
+                    historyLimit: "Rules can't look back that far.",
+                    tryThisInstead: 'Try this instead',
+                },
             },
             expenseDefaultsTable: {
                 tableColumnType: 'Type',
@@ -9378,6 +9386,7 @@ const translations = {
                 createRule: 'Create rule',
                 fallbackBanner:
                     "This isn't a standard rule, so we drafted it as an agent rule. Agent rules act after an expense or report changes, for example by holding the expense or rejecting the report. Review and save.",
+                fallbackBannerWithExplanation: (explanation: string) => `This isn't a standard rule, so we drafted it as an agent rule. ${explanation} Review and save.`,
                 agentCreatedTitle: 'RuleBot has been added to your workspace!',
                 agentCreatedDescription: (agentsRoute: string) =>
                     `<muted-text>To enforce your agent rules, we’ve created an agent for you and added it as an admin to your workspace.<br><br>Edit your agent’s details in <a href="${agentsRoute}">Account &gt; Agents</a>.</muted-text>`,

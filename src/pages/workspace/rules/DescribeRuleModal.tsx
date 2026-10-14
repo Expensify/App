@@ -1,6 +1,7 @@
 /**
  * Modal where an admin describes a rule in plain English and Concierge fills in the open rule editor's form.
  */
+import Button from '@components/Button';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues, FormRef} from '@components/Form/types';
@@ -15,20 +16,22 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {getDecodedCategoryName} from '@libs/CategoryUtils';
+import Log from '@libs/Log';
 
-import {clearGeneratedRule, clearNewRulePrompt, generateRule, setNewRulePromptError} from '@userActions/Policy/Rules';
+import {clearGeneratedRule, clearNewRulePrompt, generateRule, setNewRulePromptError, stopNewRulePromptLoading} from '@userActions/Policy/Rules';
 
 import CONST from '@src/CONST';
+import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/NewRulePromptForm';
 import type {PolicyCategories} from '@src/types/onyx';
-import type {GeneratedRuleState, GeneratedRuleType, GeneratedRuleValues} from '@src/types/onyx/GeneratedRule';
+import type {GeneratedRuleImpossibleReason, GeneratedRuleState, GeneratedRuleType, GeneratedRuleValues} from '@src/types/onyx/GeneratedRule';
 
 import type {TextInputKeyPressEvent} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 
 import {useFocusEffect} from '@react-navigation/native';
-import React, {useEffect, useRef} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 
 type NewRulePromptFormID = typeof ONYXKEYS.FORMS.NEW_RULE_PROMPT_FORM;
@@ -47,8 +50,8 @@ type DescribeRuleModalProps = {
     onRuleGenerated: (values: GeneratedRuleValues, generatedRuleType: GeneratedRuleType) => void;
 
     /**
-     * Called in place of the inline error when the description is not one standard rule. The modal stays open. The
-     * caller closes it or shows an error.
+     * Called in place of the inline error when the description is not one standard rule. `prompt` is the instruction
+     * for the agent rule. The modal stays open, and the caller closes it.
      */
     onAgentRuleFallback?: (prompt: string, generationID: string, state: GeneratedRuleState) => void;
 };
@@ -60,9 +63,18 @@ type PendingGeneration = {
 
 const GENERATED_RULE_TYPES = new Set<string>(Object.values(CONST.GENERATED_RULE.RULE_TYPE));
 
+// A reason that this app version does not know gets the general title
+const IMPOSSIBLE_TITLE_BY_REASON: Partial<Record<string, TranslationPaths>> = {
+    [CONST.GENERATED_RULE.IMPOSSIBLE_REASON.NO_TRIGGER]: 'workspace.rules.newRule.impossible.noTrigger',
+    [CONST.GENERATED_RULE.IMPOSSIBLE_REASON.NO_CAPABILITY]: 'workspace.rules.newRule.impossible.noCapability',
+    [CONST.GENERATED_RULE.IMPOSSIBLE_REASON.MISSING_DATA]: 'workspace.rules.newRule.impossible.missingData',
+    [CONST.GENERATED_RULE.IMPOSSIBLE_REASON.RETROACTIVE]: 'workspace.rules.newRule.impossible.retroactive',
+    [CONST.GENERATED_RULE.IMPOSSIBLE_REASON.HISTORY_LIMIT]: 'workspace.rules.newRule.impossible.historyLimit',
+} satisfies Record<GeneratedRuleImpossibleReason, TranslationPaths>;
+
 /** Returns whether a description with this answer can become an agent rule */
 function isAgentRuleFallbackState(state: GeneratedRuleState): boolean {
-    return state === CONST.GENERATED_RULE.STATE.UNSUPPORTED || state === CONST.GENERATED_RULE.STATE.MULTIPLE_RULES;
+    return state === CONST.GENERATED_RULE.STATE.UNSUPPORTED || state === CONST.GENERATED_RULE.STATE.MULTIPLE_RULES || state === CONST.GENERATED_RULE.STATE.AGENT_RULE;
 }
 
 /** Replaces the generated category with the workspace's own spelling of it, or drops it when the workspace has no such category */
@@ -84,6 +96,7 @@ function DescribeRuleModal({isVisible, onClose, policyID, ruleType, onRuleGenera
     const formRef = useRef<FormRef>(null);
     const inputRef = useRef<AnimatedTextInputRef>(null);
     const pendingGenerationRef = useRef<PendingGeneration>(undefined);
+    const [submittedGenerationID, setSubmittedGenerationID] = useState<string>();
     const [generatedRule] = useOnyx(ONYXKEYS.GENERATED_RULE);
     const [newRulePromptForm] = useOnyx(ONYXKEYS.FORMS.NEW_RULE_PROMPT_FORM);
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
@@ -91,6 +104,9 @@ function DescribeRuleModal({isVisible, onClose, policyID, ruleType, onRuleGenera
     const generatedRuleState = generatedRule?.state;
     const generatedRuleType = generatedRule?.ruleType;
     const generatedRuleValues = generatedRule?.rule;
+    const generatedAgentRulePrompt = generatedRule?.agentRulePrompt;
+    const refusal = generatedRuleState === CONST.GENERATED_RULE.STATE.IMPOSSIBLE && !!generatedRuleID && generatedRuleID === submittedGenerationID ? generatedRule : undefined;
+    const refusalSuggestedPrompt = refusal?.suggestedPrompt;
     const inputLabel = translate('workspace.rules.newRule.describeRuleInputLabel');
 
     const close = () => {
@@ -99,17 +115,30 @@ function DescribeRuleModal({isVisible, onClose, policyID, ruleType, onRuleGenera
         onClose();
     };
 
+    // The answer stays in Onyx after the modal closes. Forget the description, so a refusal does not show again when the
+    // modal opens.
+    const dismiss = () => {
+        setSubmittedGenerationID(undefined);
+        close();
+    };
+
     useEffect(() => {
         const pendingGeneration = pendingGenerationRef.current;
         if (!generatedRuleID || !generatedRuleState || generatedRuleID !== pendingGeneration?.generationID) {
             return;
         }
         if (onAgentRuleFallback && isAgentRuleFallbackState(generatedRuleState)) {
-            // The effect can run again before Onyx clears the answer. Clear the pending generation first, because the
-            // caller must get the answer one time only.
+            // The answer stays in Onyx, and the effect runs again. Clear the pending generation first, because the caller
+            // must get the answer one time only.
             pendingGenerationRef.current = undefined;
-            clearGeneratedRule();
-            onAgentRuleFallback(pendingGeneration.prompt, generatedRuleID, generatedRuleState);
+            const agentRulePrompt = generatedRuleState === CONST.GENERATED_RULE.STATE.AGENT_RULE && generatedAgentRulePrompt ? generatedAgentRulePrompt : pendingGeneration.prompt;
+            onAgentRuleFallback(agentRulePrompt, generatedRuleID, generatedRuleState);
+            return;
+        }
+        if (generatedRuleState === CONST.GENERATED_RULE.STATE.IMPOSSIBLE) {
+            // The form shows this answer until the next description, so the answer stays in Onyx
+            pendingGenerationRef.current = undefined;
+            stopNewRulePromptLoading();
             return;
         }
         if (generatedRuleState !== CONST.GENERATED_RULE.STATE.RULE) {
@@ -127,7 +156,7 @@ function DescribeRuleModal({isVisible, onClose, policyID, ruleType, onRuleGenera
         }
         onRuleGenerated(withPolicyCategory(generatedRuleValues ?? {}, policyCategories), generatedRuleType);
         close();
-    }, [close, generatedRuleID, generatedRuleState, generatedRuleType, generatedRuleValues, onAgentRuleFallback, onRuleGenerated, policyCategories, ruleType]);
+    }, [close, generatedAgentRulePrompt, generatedRuleID, generatedRuleState, generatedRuleType, generatedRuleValues, onAgentRuleFallback, onRuleGenerated, policyCategories, ruleType]);
 
     useEffect(() => {
         if (!isVisible || !newRulePromptForm?.isLoading || pendingGenerationRef.current) {
@@ -163,15 +192,26 @@ function DescribeRuleModal({isVisible, onClose, policyID, ruleType, onRuleGenera
         return errors;
     };
 
+    const describeRule = (prompt: string) => {
+        const generationID = generateRule(policyID, prompt, ruleType);
+        pendingGenerationRef.current = {generationID, prompt};
+        setSubmittedGenerationID(generationID);
+    };
+
     const submit = (values: FormOnyxValues<NewRulePromptFormID>) => {
-        const prompt = values[INPUT_IDS.PROMPT].trim();
-        pendingGenerationRef.current = {generationID: generateRule(policyID, prompt, ruleType), prompt};
+        describeRule(values[INPUT_IDS.PROMPT].trim());
+    };
+
+    const describeSuggestedRule = (suggestedPrompt: string) => {
+        Log.info('[GenerateRule] Tried the suggested description', false, {policyID, generationID: refusal?.generationID, reason: refusal?.reason});
+        formRef.current?.resetForm({[INPUT_IDS.PROMPT]: suggestedPrompt});
+        describeRule(suggestedPrompt);
     };
 
     return (
         <Modal
             isVisible={isVisible}
-            onClose={close}
+            onClose={dismiss}
             type={isSmallScreenWidth ? CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED : CONST.MODAL.MODAL_TYPE.CONFIRM}
             innerContainerStyle={styles.pv0}
             avoidKeyboard
@@ -210,6 +250,25 @@ function DescribeRuleModal({isVisible, onClose, policyID, ruleType, onRuleGenera
                         inputStyle={[styles.flex1, styles.textAlignVerticalTop]}
                     />
                 </View>
+                {!!refusal && (
+                    <View style={styles.mt4}>
+                        <Text style={styles.textStrong}>{translate(IMPOSSIBLE_TITLE_BY_REASON[refusal.reason ?? ''] ?? 'workspace.rules.newRule.impossible.noCapability')}</Text>
+                        {!!refusal.explanation && <Text style={[styles.textSupporting, styles.mt1]}>{refusal.explanation}</Text>}
+                        {!!refusalSuggestedPrompt && (
+                            <>
+                                <Text style={styles.mt3}>{refusalSuggestedPrompt}</Text>
+                                <Button
+                                    size={CONST.BUTTON_SIZE.SMALL}
+                                    onPress={() => describeSuggestedRule(refusalSuggestedPrompt)}
+                                    style={[styles.mt2, styles.alignSelfStart]}
+                                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.DESCRIBE_RULE_TRY_SUGGESTION}
+                                >
+                                    <Button.Text>{translate('workspace.rules.newRule.impossible.tryThisInstead')}</Button.Text>
+                                </Button>
+                            </>
+                        )}
+                    </View>
+                )}
             </FormProvider>
         </Modal>
     );

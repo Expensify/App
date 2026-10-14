@@ -3,13 +3,14 @@ import {act, fireEvent, render, screen} from '@testing-library/react-native';
 import * as API from '@libs/API';
 import type {GenerateRuleParams} from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
+import Log from '@libs/Log';
 
 import DescribeRuleModal from '@pages/workspace/rules/DescribeRuleModal';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {GeneratedRule} from '@src/types/onyx';
-import type {GeneratedRuleType} from '@src/types/onyx/GeneratedRule';
+import type {GeneratedRuleImpossibleReason, GeneratedRuleState, GeneratedRuleType} from '@src/types/onyx/GeneratedRule';
 
 import type * as ReactNavigationNative from '@react-navigation/native';
 
@@ -59,6 +60,16 @@ jest.mock(
         ({isVisible, children}: {isVisible: boolean; children: React.ReactNode}) =>
             isVisible ? children : null,
 );
+jest.mock('@components/Button', () => {
+    const ReactModule = jest.requireActual<typeof React>('react');
+    const {Pressable, Text} = jest.requireActual<{
+        Pressable: React.ComponentType<{onPress?: () => void; children?: React.ReactNode}>;
+        Text: React.ComponentType<{children?: React.ReactNode}>;
+    }>('react-native');
+    const MockButton = ({onPress, children}: {onPress: () => void; children: React.ReactNode}) => ReactModule.createElement(Pressable, {onPress}, children);
+    MockButton.Text = ({children}: {children: React.ReactNode}) => ReactModule.createElement(Text, null, children);
+    return MockButton;
+});
 jest.mock('@components/Form/InputWrapper', () => () => null);
 jest.mock('@components/Form/FormProvider', () => {
     const ReactModule = jest.requireActual<typeof React>('react');
@@ -80,6 +91,14 @@ jest.mock('@components/Form/FormProvider', () => {
 });
 
 const POLICY_ID = 'policy1';
+
+const IMPOSSIBLE_ANSWER = {
+    generationID: '',
+    state: CONST.GENERATED_RULE.STATE.IMPOSSIBLE,
+    reason: CONST.GENERATED_RULE.IMPOSSIBLE_REASON.NO_CAPABILITY,
+    explanation: 'Rules cannot send text messages.',
+    suggestedPrompt: 'Comment on the report when it is submitted',
+} satisfies GeneratedRule;
 
 type WriteSpy = jest.SpiedFunction<typeof API.write>;
 
@@ -109,6 +128,14 @@ function describeRule(writeSpy: WriteSpy, prompt: string): string {
         throw new Error('The describe modal did not request GenerateRule');
     }
     return parameters.generationID;
+}
+
+/** Returns the parameters of every GenerateRule request, oldest first */
+function getGenerateRuleRequests(writeSpy: WriteSpy): GenerateRuleParams[] {
+    return writeSpy.mock.calls
+        .filter(([command]) => command === WRITE_COMMANDS.GENERATE_RULE)
+        .map(([, parameters]) => parameters)
+        .filter(isGenerateRuleParams);
 }
 
 async function answerGeneration(answer: GeneratedRule) {
@@ -200,19 +227,86 @@ describe('DescribeRuleModal', () => {
         expect(await getPromptErrors()).toEqual([translateLocal('workspace.rules.newRule.promptErrors.unintelligible')]);
     });
 
-    it('shows the unsupported error for an unsupported answer when the caller gives no agent rule fallback', async () => {
-        // Given the flag for review editor asked for a rule, and the editor does not offer the agent rule fallback
+    it.each([CONST.GENERATED_RULE.STATE.UNSUPPORTED, CONST.GENERATED_RULE.STATE.AGENT_RULE])(
+        'shows the unsupported error for an answer of %s when the caller gives no agent rule fallback',
+        async (state: GeneratedRuleState) => {
+            // Given the flag for review editor asked for a rule, and the editor does not offer the agent rule fallback
+            const onRuleGenerated = jest.fn();
+            const onClose = jest.fn();
+            await renderFlagForReviewModal(onRuleGenerated, onClose);
+            const generationID = describeRule(writeSpy, 'Block gift cards');
+
+            // When Concierge answers that no standard rule can do it
+            await answerGeneration({generationID, state, agentRulePrompt: 'Hold gift card expenses'});
+
+            // Then the modal shows the unsupported error, because only a caller with a fallback turns this answer into an agent rule
+            expect(onRuleGenerated).not.toHaveBeenCalled();
+            expect(onClose).not.toHaveBeenCalled();
+            expect(await getPromptErrors()).toEqual([translateLocal('workspace.rules.newRule.promptErrors.unsupported')]);
+        },
+    );
+
+    it('shows why the description cannot be done and keeps the editor form when the answer is impossible', async () => {
+        // Given the flag for review editor asked for a rule
         const onRuleGenerated = jest.fn();
         const onClose = jest.fn();
         await renderFlagForReviewModal(onRuleGenerated, onClose);
-        const generationID = describeRule(writeSpy, 'Block gift cards');
+        const generationID = describeRule(writeSpy, 'Text the approver when a report is submitted');
 
-        // When Concierge answers that the rule is not supported
-        await answerGeneration({generationID, state: CONST.GENERATED_RULE.STATE.UNSUPPORTED});
+        // When Concierge answers that neither a rule nor an agent rule can do it
+        await answerGeneration({...IMPOSSIBLE_ANSWER, generationID});
 
-        // Then the modal shows the unsupported error, because only a caller with a fallback turns this answer into an agent rule
+        // Then the modal stays open with the reason, the explanation and the suggestion, and nothing reaches the editor form
         expect(onRuleGenerated).not.toHaveBeenCalled();
         expect(onClose).not.toHaveBeenCalled();
-        expect(await getPromptErrors()).toEqual([translateLocal('workspace.rules.newRule.promptErrors.unsupported')]);
+        expect(screen.getByText('workspace.rules.newRule.impossible.noCapability')).toBeOnTheScreen();
+        expect(screen.getByText(IMPOSSIBLE_ANSWER.explanation)).toBeOnTheScreen();
+        expect(screen.getByText(IMPOSSIBLE_ANSWER.suggestedPrompt)).toBeOnTheScreen();
+
+        // And the form stops loading without an error, because the answer is shown in the form
+        const form = await getOnyxValue(ONYXKEYS.FORMS.NEW_RULE_PROMPT_FORM);
+        expect(form?.isLoading).toBe(false);
+        expect(await getPromptErrors()).toEqual([]);
+    });
+
+    it('describes the suggested rule when the admin taps Try this instead', async () => {
+        // Given Concierge answered that the description cannot be done and suggested another one
+        const logSpy = jest.spyOn(Log, 'info');
+        await renderFlagForReviewModal(jest.fn(), jest.fn());
+        const generationID = describeRule(writeSpy, 'Text the approver when a report is submitted');
+        await answerGeneration({...IMPOSSIBLE_ANSWER, generationID});
+
+        // When the admin taps Try this instead
+        fireEvent.press(screen.getByText('workspace.rules.newRule.impossible.tryThisInstead'));
+        await waitForBatchedUpdatesWithAct();
+
+        // Then Concierge gets the suggested description for the same editor, so the admin does not retype it
+        const lastRequest = getGenerateRuleRequests(writeSpy).at(-1);
+        expect(lastRequest?.prompt).toBe(IMPOSSIBLE_ANSWER.suggestedPrompt);
+        expect(lastRequest?.ruleType).toBe(CONST.GENERATED_RULE.RULE_TYPE.FLAG_FOR_REVIEW);
+        expect(logSpy).toHaveBeenCalledWith('[GenerateRule] Tried the suggested description', false, {policyID: POLICY_ID, generationID, reason: IMPOSSIBLE_ANSWER.reason});
+
+        // And the refusal goes away, because it belongs to the earlier description
+        expect(screen.queryByText(IMPOSSIBLE_ANSWER.explanation)).toBeNull();
+        logSpy.mockRestore();
+    });
+
+    it('shows the general title and no suggestion when the reason is unknown and nothing is suggested', async () => {
+        // Given the flag for review editor asked for a rule
+        await renderFlagForReviewModal(jest.fn(), jest.fn());
+        const generationID = describeRule(writeSpy, 'Text the approver when a report is submitted');
+
+        // When Concierge answers with a reason that this app version does not know, and with no suggestion
+        await answerGeneration({
+            ...IMPOSSIBLE_ANSWER,
+            generationID,
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- simulates an answer from a server that knows more reasons than this app version
+            reason: 'futureReason' as GeneratedRuleImpossibleReason,
+            suggestedPrompt: '',
+        });
+
+        // Then the modal shows the general title and no Try this instead button, because there is nothing to try
+        expect(screen.getByText('workspace.rules.newRule.impossible.noCapability')).toBeOnTheScreen();
+        expect(screen.queryByText('workspace.rules.newRule.impossible.tryThisInstead')).toBeNull();
     });
 });

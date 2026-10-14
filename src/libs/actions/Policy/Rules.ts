@@ -407,6 +407,7 @@ const PROMPT_ERROR_BY_STATE: Partial<Record<GeneratedRuleState, TranslationPaths
     [CONST.GENERATED_RULE.STATE.UNSUPPORTED]: 'workspace.rules.newRule.promptErrors.unsupported',
     [CONST.GENERATED_RULE.STATE.MULTIPLE_RULES]: 'workspace.rules.newRule.promptErrors.multipleRules',
     [CONST.GENERATED_RULE.STATE.UNINTELLIGIBLE]: 'workspace.rules.newRule.promptErrors.unintelligible',
+    [CONST.GENERATED_RULE.STATE.AGENT_RULE]: 'workspace.rules.newRule.promptErrors.unsupported',
 };
 
 /**
@@ -454,14 +455,22 @@ function setNewRulePromptError(state: GeneratedRuleState) {
     });
 }
 
+/** Stops the loading state of the prompt form when the answer is shown in the form and not as an error */
+function stopNewRulePromptLoading() {
+    Onyx.merge(ONYXKEYS.FORMS.NEW_RULE_PROMPT_FORM, {isLoading: false});
+}
+
 function clearGeneratedRule() {
     Onyx.set(ONYXKEYS.GENERATED_RULE, null);
 }
 
+/**
+ * Clears the prompt form and its draft. The answer stays, because a page that opens after the form closes reads it by
+ * its generationID. The next `generateRule` call clears it.
+ */
 function clearNewRulePrompt() {
     Onyx.set(ONYXKEYS.FORMS.NEW_RULE_PROMPT_FORM, null);
     clearDraftValues(ONYXKEYS.FORMS.NEW_RULE_PROMPT_FORM);
-    clearGeneratedRule();
 }
 
 function addPolicyAgentRule(policyID: string, agentRuleID: string, prompt: string) {
@@ -731,6 +740,7 @@ export {
     setNewRulePromptError,
     clearGeneratedRule,
     clearNewRulePrompt,
+    stopNewRulePromptLoading,
     updatePolicyAgentRule,
     deletePolicyAgentRule,
     clearMerchantRuleErrors,

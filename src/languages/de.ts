@@ -8724,6 +8724,8 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                 createRule: 'Regel erstellen',
                 fallbackBanner:
                     'Das ist keine Standardregel, daher haben wir sie als Agentenregel entworfen. Agentenregeln greifen, nachdem sich eine Ausgabe oder ein Bericht ändert, zum Beispiel indem sie die Ausgabe zurückhalten oder den Bericht ablehnen. Prüfen und speichern Sie die Regel.',
+                fallbackBannerWithExplanation: (explanation: string) =>
+                    `Das ist keine Standardregel, daher haben wir sie als Agentenregel entworfen. ${explanation} Prüfen und speichern Sie die Regel.`,
             },
             tabs: {
                 general: 'Allgemein',
@@ -8803,6 +8805,14 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                     unsupported: 'Diese Regel wird noch nicht unterstützt – wir arbeiten daran. Bitte versuche vorerst eine andere Regel.',
                     unintelligible: 'Formuliere deine Regel etwa so: Wenn Ausgaben über 100 $ liegen, ist ein Beleg erforderlich.',
                     multipleRules: 'Bitte eine Regel nach der anderen – beschreibe eine einzelne Regel, z. B.: Einzelhandelskäufe auf allen Karten blockieren.',
+                },
+                impossible: {
+                    noTrigger: 'Regeln können nicht durch dieses Ereignis ausgelöst werden.',
+                    noCapability: 'Das können Regeln nicht.',
+                    missingData: 'Expensify hat diese Informationen nicht.',
+                    retroactive: 'Regeln gelten nur für neue Aktivitäten.',
+                    historyLimit: 'Regeln können nicht so weit zurückblicken.',
+                    tryThisInstead: 'Stattdessen das versuchen',
                 },
             },
             expenseDefaultsTable: {

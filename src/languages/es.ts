@@ -8729,6 +8729,7 @@ ${reportName}`,
                 createRule: 'Crear regla',
                 fallbackBanner:
                     'Esta no es una regla estándar, así que la redactamos como regla de agente. Las reglas de agente actúan después de que cambia un gasto o un informe, por ejemplo, reteniendo el gasto o rechazando el informe. Revísala y guárdala.',
+                fallbackBannerWithExplanation: (explanation: string) => `Esta no es una regla estándar, así que la redactamos como regla de agente. ${explanation} Revísala y guárdala.`,
             },
             tabs: {
                 general: 'General',
@@ -8808,6 +8809,14 @@ ${reportName}`,
                     unsupported: 'Esa regla aún no es compatible: estamos trabajando en ello. Prueba con otra regla por ahora.',
                     unintelligible: 'Prueba a formular tu regla así: si los gastos superan los $100, exige un recibo.',
                     multipleRules: 'Una regla a la vez, por favor. Prueba a describir una sola regla, como: bloquear compras en comercios minoristas en todas las tarjetas.',
+                },
+                impossible: {
+                    noTrigger: 'Las reglas no pueden empezar a partir de ese evento.',
+                    noCapability: 'Las reglas no pueden hacer eso.',
+                    missingData: 'Expensify no tiene esa información.',
+                    retroactive: 'Las reglas solo se aplican a la actividad nueva.',
+                    historyLimit: 'Las reglas no pueden revisar tan atrás.',
+                    tryThisInstead: 'Prueba esto en su lugar',
                 },
             },
             expenseDefaultsTable: {

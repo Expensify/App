@@ -303,6 +303,27 @@ describe('RulesNewPage describe flow', () => {
         },
     );
 
+    it('drafts the instruction of an agent rule answer instead of the description', async () => {
+        // Given an admin asked for something that an agent rule can only approximate
+        const prompt = 'Block gift cards';
+        const agentRulePrompt = 'Hold any gift card expense and ask the submitter to justify it';
+        await openDescribeModal();
+        const {generationID} = describeRule(writeSpy, prompt);
+
+        // When Concierge answers with an agent rule that says what the agent will do
+        await answerGeneration({generationID, state: CONST.GENERATED_RULE.STATE.AGENT_RULE, agentRulePrompt, explanation: 'Agent rules cannot block a card charge.'});
+        act(() => {
+            onModalDidClose();
+        });
+
+        // Then the draft holds the agent's instruction, because that is the rule the admin reviews and saves
+        expect(await getOnyxValue(ONYXKEYS.FORMS.ADD_AGENT_RULE_FORM_DRAFT)).toEqual({prompt: agentRulePrompt});
+        expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.RULES_AGENT_NEW.getRoute(POLICY_ID, generationID));
+
+        // And the answer stays, because the agent rule page reads its explanation by the generationID
+        expect((await getOnyxValue(ONYXKEYS.GENERATED_RULE))?.generationID).toBe(generationID);
+    });
+
     it.each([undefined, 'futureRuleType'])('shows the unsupported error when a rule answer has the rule type %s', async (generatedRuleType) => {
         // Given an admin described a rule from New rule
         await openDescribeModal();

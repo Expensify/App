@@ -8649,6 +8649,8 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
                 createRule: 'Regel maken',
                 fallbackBanner:
                     'Dit is geen standaardregel, dus we hebben er een agentregel van gemaakt. Agentregels treden in werking nadat een uitgave of rapport verandert, bijvoorbeeld door de uitgave vast te houden of het rapport af te wijzen. Controleer de regel en sla hem op.',
+                fallbackBannerWithExplanation: (explanation: string) =>
+                    `Dit is geen standaardregel, dus we hebben er een agentregel van gemaakt. ${explanation} Controleer de regel en sla hem op.`,
             },
             tabs: {
                 general: 'Algemeen',
@@ -8728,6 +8730,14 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
                     unsupported: 'Die regel wordt nog niet ondersteund — we werken eraan. Probeer voorlopig een andere regel.',
                     unintelligible: 'Formuleer je regel bijvoorbeeld zo: als uitgaven hoger zijn dan $100, vraag dan een bon.',
                     multipleRules: 'Eén regel per keer graag — beschrijf één enkele regel, bijvoorbeeld: retailaankopen op alle kaarten blokkeren.',
+                },
+                impossible: {
+                    noTrigger: 'Regels kunnen niet starten vanaf die gebeurtenis.',
+                    noCapability: 'Regels kunnen dat niet doen.',
+                    missingData: 'Expensify heeft die informatie niet.',
+                    retroactive: 'Regels gelden alleen voor nieuwe activiteit.',
+                    historyLimit: 'Regels kunnen niet zo ver terugkijken.',
+                    tryThisInstead: 'Probeer dit in plaats daarvan',
                 },
             },
             expenseDefaultsTable: {

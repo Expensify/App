@@ -8675,6 +8675,8 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
                 createRule: 'Crea regola',
                 fallbackBanner:
                     'Questa non è una regola standard, quindi l’abbiamo preparata come regola agente. Le regole agente intervengono dopo che una spesa o un rapporto cambia, ad esempio mettendo in sospeso la spesa o rifiutando il rapporto. Controllala e salvala.',
+                fallbackBannerWithExplanation: (explanation: string) =>
+                    `Questa non è una regola standard, quindi l’abbiamo preparata come regola agente. ${explanation} Controllala e salvala.`,
             },
             tabs: {
                 general: 'Generale',
@@ -8754,6 +8756,14 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
                     unsupported: 'Questa regola non è ancora supportata: ci stiamo lavorando. Per ora prova una regola diversa.',
                     unintelligible: 'Prova a formulare la regola così: se le spese superano i 100 $, richiedi una ricevuta.',
                     multipleRules: 'Una regola alla volta, per favore: prova a descrivere una singola regola, ad esempio bloccare gli acquisti al dettaglio su tutte le carte.',
+                },
+                impossible: {
+                    noTrigger: 'Le regole non possono partire da questo evento.',
+                    noCapability: 'Le regole non possono farlo.',
+                    missingData: 'Expensify non dispone di queste informazioni.',
+                    retroactive: 'Le regole si applicano solo alle nuove attività.',
+                    historyLimit: 'Le regole non possono risalire così indietro.',
+                    tryThisInstead: 'Prova invece questo',
                 },
             },
             expenseDefaultsTable: {
