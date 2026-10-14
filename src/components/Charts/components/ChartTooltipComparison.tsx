@@ -37,7 +37,7 @@ function ChartTooltipComparison({rows, change}: ChartTooltipComparisonProps) {
                         key={row.key}
                         style={[styles.flexRow, styles.alignItemsCenter, styles.gap2]}
                     >
-                        <View style={[styles.pieChartLegendDot, StyleUtils.getBackgroundColorStyle(row.color)]} />
+                        <View style={[styles.chartTooltipDot, StyleUtils.getBackgroundColorStyle(row.color)]} />
                         <Text style={styles.chartTooltipText}>{row.label ? `${row.label}: ${amountContent}` : amountContent}</Text>
                     </View>
                 );
