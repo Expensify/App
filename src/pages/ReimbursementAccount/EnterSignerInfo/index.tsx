@@ -122,7 +122,7 @@ function EnterSignerInfo({route}: EnterSignerInfoProps) {
     });
 
     if (isRedirecting) {
-        return <FullScreenLoadingIndicator shouldUseGoBackButton />;
+        return <FullScreenLoadingIndicator />;
     }
 
     return (

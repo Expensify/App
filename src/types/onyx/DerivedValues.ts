@@ -136,6 +136,13 @@ type CardFeedErrorState = {
      * unresolved past the grace period, so we stop nagging without taking away the ability to fix it.
      */
     shouldPromptBrokenConnection: boolean;
+
+    /**
+     * Whether a card on the feed reports something its holder has to act on, which covers the scrape statuses
+     * `isFeedConnectionBroken` ignores (e.g. 434, the bank changing the account number). The wallet sends those
+     * cards to the Company cards page, so that page has to offer the same fix for them.
+     */
+    hasFeedConnectionIssue: boolean;
 };
 
 /**
@@ -219,6 +226,17 @@ type LoginToAccountIDMapDerivedValue = Record<string, number>;
 type GuideAccountIDsDerivedValue = number[];
 
 /**
+ * Counters that move when spend data changes, used by the Home cards to know a refetch is owed.
+ */
+type SpendDataSignatureDerivedValue = {
+    /** Moves on every change to any expense */
+    expenses: number;
+
+    /** Moves only on changes to expenses charged to one of the user's cards */
+    cardExpenses: number;
+};
+
+/**
  * Maps a participant set to the reportID of its 1:1 (or system) chat, for the accountID it was built for.
  */
 type OneOnOneChatReportIDsDerivedValue = {
@@ -239,6 +257,7 @@ export type {
     CardFeedErrorsDerivedValue,
     LoginToAccountIDMapDerivedValue,
     GuideAccountIDsDerivedValue,
+    SpendDataSignatureDerivedValue,
     OneOnOneChatReportIDsDerivedValue,
     CardFeedErrorsObject,
     CardFeedErrorState,

@@ -1,7 +1,7 @@
-import {navigateAfterOnboarding, setDeepLinkToOpenAfterOnboarding} from '@libs/navigateAfterOnboarding';
+import {navigateAfterOnboarding, navigateAfterOnboardingWithMicrotaskQueue} from '@libs/navigateAfterOnboarding';
+import dismissOnboardingModalBeforeExit from '@libs/Navigation/helpers/OnboardingNavigationUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type * as ReportUtils from '@libs/ReportUtils';
-import {runSessionCleanupCallbacks} from '@libs/SessionCleanup';
 
 import initOnyxDerivedValues from '@userActions/OnyxDerived';
 import SidePanelActions from '@userActions/SidePanel';
@@ -74,6 +74,11 @@ jest.mock('@libs/Navigation/helpers/shouldOpenOnAdminRoom', () => ({
     default: () => mockShouldOpenOnAdminRoom(),
 }));
 
+jest.mock('@libs/Navigation/helpers/OnboardingNavigationUtils', () => ({
+    __esModule: true,
+    default: jest.fn(),
+}));
+
 jest.mock('@libs/Navigation/helpers/isReportTopmostSplitNavigator', () => ({
     __esModule: true,
     default: () => mockIsReportTopmostSplitNavigator(),
@@ -92,11 +97,6 @@ describe('navigateAfterOnboarding', () => {
         return Onyx.clear();
     });
 
-    afterEach(() => {
-        // The parked link lives in a module-level variable, so a test that parks without consuming would leak into the next one.
-        runSessionCleanupCallbacks();
-    });
-
     it('should navigate to the admin room report if onboardingAdminsChatReportID is provided', () => {
         const navigate = jest.spyOn(Navigation, 'navigate');
         const testSession = {email: 'realaccount@gmail.com'};
@@ -111,6 +111,24 @@ describe('navigateAfterOnboarding', () => {
         navigateAfterOnboarding(false, true, '', {}, undefined, undefined);
         // Without an admins chat report, we fall back to HOME to trigger guard evaluation instead of opening a report.
         expect(navigate).not.toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute(ONBOARDING_ADMINS_CHAT_REPORT_ID));
+        expect(navigate).toHaveBeenCalledWith(ROUTES.HOME, undefined);
+    });
+
+    it('should dismiss onboarding before navigating away from the final screen', () => {
+        const navigate = jest.spyOn(Navigation, 'navigate');
+        jest.spyOn(Navigation, 'setNavigationActionToMicrotaskQueue').mockImplementation((navigationAction) => navigationAction());
+        let finishDismissal: (() => void) | undefined;
+        jest.mocked(dismissOnboardingModalBeforeExit).mockImplementation((afterTransition) => {
+            finishDismissal = afterTransition;
+        });
+
+        navigateAfterOnboardingWithMicrotaskQueue(false, true, '', {});
+
+        expect(dismissOnboardingModalBeforeExit).toHaveBeenCalledTimes(1);
+        expect(navigate).not.toHaveBeenCalled();
+
+        finishDismissal?.();
+
         expect(navigate).toHaveBeenCalledWith(ROUTES.HOME, undefined);
     });
 
@@ -194,73 +212,6 @@ describe('navigateAfterOnboarding', () => {
     it('should navigate to the admin room when the inboxAdminsBespoke variant is assigned', () => {
         const navigate = jest.spyOn(Navigation, 'navigate');
         navigateAfterOnboarding(false, true, '', {}, undefined, ONBOARDING_ADMINS_CHAT_REPORT_ID, false, {variantOverride: CONST.ONBOARDING_RHP_VARIANT.INBOX_ADMINS_BESPOKE});
-        expect(navigate).toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute(ONBOARDING_ADMINS_CHAT_REPORT_ID), undefined);
-    });
-
-    it('should open a deep link parked before onboarding instead of the default destination', () => {
-        // Given a deep link that was captured before the account finished onboarding
-        const navigate = jest.spyOn(Navigation, 'navigate');
-        const openDeepLink = jest.fn(() => true);
-        setDeepLinkToOpenAfterOnboarding(openDeepLink);
-
-        // When onboarding finishes
-        navigateAfterOnboarding(false, true, '', {}, undefined, ONBOARDING_ADMINS_CHAT_REPORT_ID);
-
-        // Then the parked link wins and no default destination is used
-        expect(openDeepLink).toHaveBeenCalledTimes(1);
-        expect(navigate).not.toHaveBeenCalled();
-    });
-
-    it('should open a parked deep link even when the trackExpensesWithConcierge variant would send the user to Concierge', () => {
-        // Given an account assigned the variant whose branch returns before the default destination is chosen
-        const navigate = jest.spyOn(Navigation, 'navigate');
-        const openDeepLink = jest.fn(() => true);
-        setDeepLinkToOpenAfterOnboarding(openDeepLink);
-
-        navigateAfterOnboarding(true, true, REPORT_ID, {}, undefined, ONBOARDING_ADMINS_CHAT_REPORT_ID, false, {
-            variantOverride: CONST.ONBOARDING_RHP_VARIANT.TRACK_EXPENSES_WITH_CONCIERGE,
-        });
-
-        expect(openDeepLink).toHaveBeenCalledTimes(1);
-        expect(navigate).not.toHaveBeenCalled();
-    });
-
-    it('should still use the default destination when the parked deep link throws', () => {
-        // Given a parked link that fails to open, after the onboarding modal is already dismissed
-        const navigate = jest.spyOn(Navigation, 'navigate');
-        const openDeepLink = jest.fn(() => {
-            throw new Error('boom');
-        });
-        setDeepLinkToOpenAfterOnboarding(openDeepLink);
-
-        navigateAfterOnboarding(false, true, '', {}, undefined, ONBOARDING_ADMINS_CHAT_REPORT_ID);
-
-        expect(openDeepLink).toHaveBeenCalledTimes(1);
-        expect(navigate).toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute(ONBOARDING_ADMINS_CHAT_REPORT_ID), undefined);
-    });
-
-    it('should fall back to the default destination when the parked deep link cannot be opened', () => {
-        // Given a parked link that reports it did not navigate
-        const navigate = jest.spyOn(Navigation, 'navigate');
-        const openDeepLink = jest.fn(() => false);
-        setDeepLinkToOpenAfterOnboarding(openDeepLink);
-
-        navigateAfterOnboarding(false, true, '', {}, undefined, ONBOARDING_ADMINS_CHAT_REPORT_ID);
-
-        expect(openDeepLink).toHaveBeenCalledTimes(1);
-        expect(navigate).toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute(ONBOARDING_ADMINS_CHAT_REPORT_ID), undefined);
-    });
-
-    it('should only replay a parked deep link once', () => {
-        // Given a link parked once and two onboarding exits
-        const navigate = jest.spyOn(Navigation, 'navigate');
-        const openDeepLink = jest.fn(() => true);
-        setDeepLinkToOpenAfterOnboarding(openDeepLink);
-
-        navigateAfterOnboarding(false, true, '', {}, undefined, ONBOARDING_ADMINS_CHAT_REPORT_ID);
-        navigateAfterOnboarding(false, true, '', {}, undefined, ONBOARDING_ADMINS_CHAT_REPORT_ID);
-
-        expect(openDeepLink).toHaveBeenCalledTimes(1);
         expect(navigate).toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute(ONBOARDING_ADMINS_CHAT_REPORT_ID), undefined);
     });
 

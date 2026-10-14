@@ -2,6 +2,7 @@ import {renderHook} from '@testing-library/react-native';
 
 import useChartLabelFormats from '@components/Charts/hooks/useChartLabelFormats';
 import type {ChartDataPoint, UnitPosition, UnitWithFallback} from '@components/Charts/types';
+import {CHART_SERIES_KEY} from '@components/Search/buildChartSeries';
 
 let mockNumberFormat = (n: number, options?: Intl.NumberFormatOptions) => n.toLocaleString('en-US', options);
 
@@ -12,8 +13,8 @@ jest.mock('@hooks/useLocalize', () =>
 );
 
 const SAMPLE_DATA: ChartDataPoint[] = [
-    {label: 'Jan', total: 100},
-    {label: 'Feb', total: 200},
+    {label: 'Jan', values: {[CHART_SERIES_KEY.PRIMARY]: 100}},
+    {label: 'Feb', values: {[CHART_SERIES_KEY.PRIMARY]: 200}},
 ];
 
 beforeEach(() => {
@@ -37,6 +38,28 @@ describe('useChartLabelFormats', () => {
         mockNumberFormat = (n: number) => n.toLocaleString('de-DE');
         rerender({unit: {value: '€', fallback: 'EUR'}, position: 'right'});
         expect(result.current.formatValue(1000)).toBe('1.000€');
+    });
+
+    it('puts a leading unit after the minus sign', () => {
+        // Given a currency unit on the left
+        const {result} = renderHook(() => useChartLabelFormats({data: SAMPLE_DATA, unit: {value: '$', fallback: 'USD'}, unitPosition: 'left'}));
+
+        // When formatting negative values
+        const formatted = [result.current.formatValue(-1000), result.current.formatCompactValue(-50000)];
+
+        // Then the sign comes first, the way negative amounts are written, rather than sitting between the unit and the number
+        expect(formatted).toEqual(['-$1,000', '-$50k']);
+    });
+
+    it('keeps the minus sign in front of the number when the unit trails it', () => {
+        // Given a currency unit on the right
+        const {result} = renderHook(() => useChartLabelFormats({data: SAMPLE_DATA, unit: {value: '€', fallback: 'EUR'}, unitPosition: 'right'}));
+
+        // When formatting a negative value
+        const formatted = result.current.formatValue(-1000);
+
+        // Then nothing moves, since the sign already leads
+        expect(formatted).toBe('-1,000€');
     });
 
     it('abbreviates axis values while keeping the unit', () => {

@@ -23,7 +23,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import {getActiveServer} from '@libs/ApiUtils';
 import navigateToCardTransactions from '@libs/CardNavigationUtils';
-import {getCardFeedIcon, getPlaidInstitutionIconUrl, isPersonalCard, isPersonalCardBrokenConnection} from '@libs/CardUtils';
+import {getCardFeedIcon, getPlaidInstitutionIconUrl, hasCardConnectionIssue, isPersonalCard} from '@libs/CardUtils';
 import {getLatestErrorField} from '@libs/ErrorUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -77,7 +77,8 @@ function PersonalCardDetailsPage({route}: PersonalCardDetailsPageProps) {
 
     const card = cardList?.[cardID];
     const cardBank = card?.bank ?? '';
-    const isCardBroken = isPersonalCardBrokenConnection(card);
+    // Matches the wallet row, so a card the wallet says to fix also offers the fix here.
+    const isCardBroken = card ? hasCardConnectionIssue(card) : false;
     const isUserPersonalCard = !!(card && isPersonalCard(card));
 
     const [cardholderPersonalDetails] = usePersonalDetail(card?.accountID);

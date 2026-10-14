@@ -1,7 +1,7 @@
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
-import MenuItem from '@components/MenuItem';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
@@ -118,14 +118,10 @@ function WorkspaceAutoReportingFrequencyPage({policy, route}: WorkspaceAutoRepor
             onClose={() => clearPolicyErrorField(policy?.id, CONST.POLICY.COLLECTION_KEYS.AUTOREPORTING_OFFSET)}
             errorRowStyles={[styles.ml7]}
         >
-            <MenuItem
-                title={translate('workflowsPage.submissionFrequencyDateOfMonth')}
-                titleStyle={styles.textLabelSupportingNormal}
-                description={getDescriptionText()}
-                descriptionTextStyle={styles.textNormalThemeText}
-                wrapperStyle={styles.pr3}
+            <MenuItemField
+                name={translate('workflowsPage.submissionFrequencyDateOfMonth')}
+                value={getDescriptionText()}
                 onPress={() => Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_AUTOREPORTING_MONTHLY_OFFSET.getRoute(policy?.id))}
-                shouldShowRightIcon
             />
         </OfflineWithFeedback>
     );

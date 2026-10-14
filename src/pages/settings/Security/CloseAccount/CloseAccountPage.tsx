@@ -14,6 +14,7 @@ import useOnyx from '@hooks/useOnyx';
 import useRuleBotGuardModal from '@hooks/useRuleBotGuardModal';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import {clearDraftValues, setDraftValues} from '@libs/actions/FormActions';
 import {getRuleBotEnforcedPolicy} from '@libs/AgentRulesUtils';
 import {formatE164PhoneNumber, getPhoneNumberWithoutSpecialChars, sanitizePhoneOrEmail} from '@libs/LoginUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -61,9 +62,15 @@ function CloseAccountPage() {
     // nothing runs on mount and we pass empty dependencies to prevent this from running on every re-render.
     // TODO: We should refactor this so that the data in instead passed directly as a prop instead of "side loading" the data
     // here, we left this as is during refactor to limit the breaking changes.
-    useEffect(() => () => clearError(), []);
+    useEffect(
+        () => () => {
+            clearError();
+            clearDraftValues(ONYXKEYS.FORMS.CLOSE_ACCOUNT_FORM);
+        },
+        [],
+    );
 
-    const onSubmit = () => {
+    const onSubmit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.CLOSE_ACCOUNT_FORM>) => {
         if (ruleBotEnforcedPolicy) {
             showRuleBotGuardModal('closeAccount', ruleBotEnforcedPolicy.id);
             return;
@@ -72,7 +79,12 @@ function CloseAccountPage() {
             if (result.action !== ModalActions.CONFIRM) {
                 return;
             }
-            Navigation.navigate(ROUTES.SETTINGS_CLOSE_ACCOUNT_CONFIRM_VALIDATE_CODE);
+            setDraftValues(ONYXKEYS.FORMS.CLOSE_ACCOUNT_FORM, {
+                reasonForLeaving: values.reasonForLeaving,
+                phoneOrEmail: values.phoneOrEmail,
+            }).then(() => {
+                Navigation.navigate(ROUTES.SETTINGS_CLOSE_ACCOUNT_CONFIRM_VALIDATE_CODE);
+            });
         });
     };
 
@@ -136,8 +148,6 @@ function CloseAccountPage() {
                         <InputWrapper
                             InputComponent={TextInput}
                             inputID={INPUT_IDS.REASON_FOR_LEAVING}
-                            // The validateCode page reads the reason from the draft, so it has to survive navigating there
-                            shouldSaveDraft
                             autoGrowHeight
                             maxAutoGrowHeight={variables.textInputAutoGrowMaxHeight}
                             label={translate('closeAccountPage.enterMessageHere')}
