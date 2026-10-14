@@ -176,12 +176,15 @@ function WorkspaceCompanyCardFeedSelectorPage({route}: WorkspaceCompanyCardFeedS
             });
     };
 
+    // Other-workspace feeds are selected by the key they get in the main list once linked, so the checkmark follows the feed when it moves there on Save.
+    const getSelectionValue = (feed: CardFeedListItem) => feed.selectionValue ?? feed.value;
+
     const selectFeed = (feed: CardFeedListItem) => {
         setFeedWithError(undefined);
-        setDraftFeed(feed.value);
+        setDraftFeed(getSelectionValue(feed));
     };
 
-    const stagedOtherWorkspaceFeed = otherFeeds.find((feed) => feed.value === currentSelectedFeed);
+    const stagedOtherWorkspaceFeed = otherFeeds.find((feed) => getSelectionValue(feed) === currentSelectedFeed);
     const isStagedFeedOnPage = !!stagedOtherWorkspaceFeed || feeds.some((feed) => feed.value === currentSelectedFeed);
 
     const saveFeed = () => {
@@ -228,7 +231,7 @@ function WorkspaceCompanyCardFeedSelectorPage({route}: WorkspaceCompanyCardFeedS
                         const item = {
                             ...feed,
                             // The hook marks the committed feed as selected, but the checkmark has to follow the staged one.
-                            isSelected: feed.value === currentSelectedFeed,
+                            isSelected: getSelectionValue(feed) === currentSelectedFeed,
                             errors: feedWithError?.feed === feed.value ? feedWithError.error : undefined,
                         };
                         return (
