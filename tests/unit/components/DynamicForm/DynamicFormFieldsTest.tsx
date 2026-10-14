@@ -268,6 +268,18 @@ describe('DynamicFormFields', () => {
         expect(Object.keys(rendered.get('industry')?.optionsList ?? {})).toHaveLength(options.length);
     });
 
+    it('keeps a select as a picker up to the number of options a shared page takes', () => {
+        // Given a select with as many options as pagination still lets share a page, next to another question
+        const options = Array.from({length: CONST.DYNAMIC_FORM.LARGE_SELECT_MIN_OPTIONS}, (_, index) => ({key: `option${index}`, label: `Option ${index}`}));
+        const accountType: DynamicFormField = {key: 'accountType', label: 'Account type', type: 'select', required: true, values: options};
+
+        // When the fields render
+        const rendered = renderFields([accountType, otherQuestion]);
+
+        // Then it stays a picker, since a searchable list is kept for selects that pagination puts on their own page
+        expect(rendered.get('accountType')?.InputComponent).toBe(ValuePicker);
+    });
+
     it('hints a text field with its example when it has no description', () => {
         // Given a text field with an example and no description
         const accountNumber: DynamicFormField = {key: 'accountNumber', type: 'text', required: true, example: '12345678'};

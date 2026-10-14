@@ -34,8 +34,11 @@ const FLOW_ROUTE_PREFIX = 'settings/wallet/add-bank-account';
 /** A fixture field with the title of the page it is asked on */
 type GroupedField = DynamicFormSchemaField & {group: string};
 
-/** Each run of fields sharing a group becomes one page titled by it, as the server sends pages */
-function toSchema(fields: GroupedField[]): DynamicFormSchema {
+/** Each run of fields sharing a group becomes one page titled by it, as the server sends pages. A flat schema drops the groups and lets the form build untitled pages. */
+function toSchema(fields: GroupedField[], isFlat = false): DynamicFormSchema {
+    if (isFlat) {
+        return {fields: fields.map(({group, ...field}) => field)};
+    }
     const pages: DynamicFormPage[] = [];
     for (const {group, ...field} of fields) {
         const lastPage = pages.at(-1);
@@ -54,6 +57,9 @@ type Preset = {
 
     /** Answers seeded into the form draft before the first render */
     draftValues: Record<string, string | boolean | string[] | DynamicFormListItem[]>;
+
+    /** Sends the fields as a flat `{fields}` schema, ignoring `group`, so the form paginates them itself */
+    isFlat?: boolean;
 };
 
 /** A bank account form spread over several pages */
@@ -304,6 +310,16 @@ const PRESETS = {
         fields: [...accountDetails, ...accountHolder],
         draftValues: {legalType: 'PRIVATE', numberOfEmployees: '25'},
     },
+    flatFields: {
+        // The address is alone on its page, so its question heads that page
+        fields: [
+            ...accountDetails,
+            ...accountHolder.map((field) => (field.key === 'address' ? {...field, question: "What's your home address?"} : field)),
+            {key: 'ownsQuarter', label: 'Do you own 25% or more?', group: 'Account holder', type: 'boolean', required: true},
+        ],
+        draftValues: {legalType: 'PRIVATE', numberOfEmployees: '25'},
+        isFlat: true,
+    },
     businessOnboarding: {
         fields: [...businessInfo, ...dueDiligence, owners],
         draftValues: {legalBusinessName: 'Boulder Development Inc.'},
@@ -367,11 +383,12 @@ function useSeededDraft(draftValues: Preset['draftValues']): boolean {
 }
 
 /** Every page on one screen, for looking at the renderer rather than the flow */
-function SinglePage({fields, draftValues}: Preset) {
+function SinglePage({fields, draftValues, isFlat}: Preset) {
     const {translate} = useLocalize();
     const isDraftReady = useSeededDraft(draftValues);
     // List entries are edited on flow pages, so this screen leaves lists out
-    const pages = getPages(toSchema(fields.filter((field) => field.type !== 'list')));
+    const pageFields = fields.filter((field) => field.type !== 'list');
+    const pages = getPages(toSchema(pageFields, isFlat));
     const allFields = getAllFields(pages);
 
     if (!isDraftReady) {
@@ -414,7 +431,7 @@ type FlowProps = Preset & {
 };
 
 /** The whole flow on a story-owned route stack: pages, resume, the entry editor pages and the confirmation are all clickable */
-function Flow({fields, draftValues, layout, confirmation, resetKey}: FlowProps) {
+function Flow({fields, draftValues, isFlat, layout, confirmation, resetKey}: FlowProps) {
     const isDraftReady = useSeededDraft(draftValues);
     if (!isDraftReady) {
         return <View />;
@@ -429,7 +446,7 @@ function Flow({fields, draftValues, layout, confirmation, resetKey}: FlowProps) 
             routePrefix={FLOW_ROUTE_PREFIX}
         >
             <DynamicFormFlow
-                schema={toSchema(fields)}
+                schema={toSchema(fields, isFlat)}
                 formID={STORYBOOK_FORM_ID}
                 headerTitle="Add bank account"
                 confirmationTitle="Let’s double check that everything looks right"
@@ -450,12 +467,13 @@ type FlowStoryProps = Pick<FlowProps, 'layout' | 'confirmation'> & {
 };
 
 function FlowFromPreset({preset, layout, confirmation}: FlowStoryProps) {
-    const {fields, draftValues} = PRESETS[preset];
+    const presetValues: Preset = PRESETS[preset];
     return (
         <Flow
             resetKey={preset}
-            fields={fields}
-            draftValues={draftValues}
+            fields={presetValues.fields}
+            draftValues={presetValues.draftValues}
+            isFlat={presetValues.isFlat}
             layout={layout}
             confirmation={confirmation}
         />
@@ -499,7 +517,7 @@ type PlaygroundProps = Preset & {
 };
 
 /** Editable schema: pick a preset, then change the field JSON in the Controls panel and watch the form follow */
-function Playground({preset, fields, draftValues, layout}: PlaygroundProps) {
+function Playground({preset, fields, draftValues, isFlat, layout}: PlaygroundProps) {
     const [, updateArgs] = useArgs();
     useEffect(() => {
         updateArgs(PRESETS[preset]);
@@ -513,6 +531,7 @@ function Playground({preset, fields, draftValues, layout}: PlaygroundProps) {
                 key={resetKey}
                 fields={schema}
                 draftValues={draftValues ?? {}}
+                isFlat={isFlat}
             />
         );
     }
@@ -521,6 +540,7 @@ function Playground({preset, fields, draftValues, layout}: PlaygroundProps) {
             resetKey={resetKey}
             fields={schema}
             draftValues={draftValues ?? {}}
+            isFlat={isFlat}
             layout="auto"
             confirmation="auto"
         />
@@ -537,6 +557,7 @@ PlaygroundStory.argTypes = {
     preset: {options: PRESET_NAMES, control: {type: 'select'}},
     fields: {control: {type: 'object'}},
     draftValues: {control: {type: 'object'}},
+    isFlat: {control: {type: 'boolean'}},
     layout: {options: ['flow', 'single'], control: {type: 'radio'}},
 };
 
@@ -544,6 +565,7 @@ const AllFieldTypes: StoryFn<Preset> = SinglePage.bind({});
 AllFieldTypes.args = {fields: [...accountDetails, ...accountHolder, ...businessInfo], draftValues: {legalType: 'BUSINESS', legalBusinessName: 'Boulder Development Inc.'}};
 
 const BankAccount = presetFlowStory('bankAccount');
+const FlatFields = presetFlowStory('flatFields');
 const BusinessOnboarding = presetFlowStory('businessOnboarding');
 const OwnersList = presetFlowStory('owners');
 const LoneMultiselect = presetFlowStory('loneMultiselect');
@@ -554,4 +576,18 @@ const AmountWithCurrency = presetFlowStory('amountWithCurrency');
 const UnknownType = presetFlowStory('unknownType');
 
 export default story;
-export {FlowStory, PlaygroundStory, AllFieldTypes, BankAccount, BusinessOnboarding, OwnersList, LoneMultiselect, YesNoQuestion, LoneCountry, LoneCurrency, AmountWithCurrency, UnknownType};
+export {
+    FlowStory,
+    PlaygroundStory,
+    AllFieldTypes,
+    BankAccount,
+    FlatFields,
+    BusinessOnboarding,
+    OwnersList,
+    LoneMultiselect,
+    YesNoQuestion,
+    LoneCountry,
+    LoneCurrency,
+    AmountWithCurrency,
+    UnknownType,
+};
