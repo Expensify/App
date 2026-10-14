@@ -4,7 +4,7 @@ import ListFieldAdapter from '@components/DynamicForm/adapters/ListFieldAdapter'
 import type {ListFieldRow} from '@components/ListField';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 
-import {clearListItemEdit} from '@userActions/DynamicForm';
+import {clearListItemEdit, startListItemEdit} from '@userActions/DynamicForm';
 
 import type {DynamicFormField, DynamicFormListItem} from '@src/types/onyx';
 
@@ -20,6 +20,7 @@ type CapturedListFieldProps = {
 
 type CapturedModalProps = {
     isVisible: boolean;
+    isSensitive: boolean;
     keptAnswers: Record<string, unknown>;
     onSave: (answers: Record<string, string>) => void;
     onClose: () => void;
@@ -111,19 +112,45 @@ describe('ListFieldAdapter', () => {
         expect(onInputChange).not.toHaveBeenCalled();
     });
 
-    it('edits an entry in a modal outside the flow, keeping a stored sensitive answer the user leaves blank', async () => {
+    it('edits an entry in a modal outside the flow, filling a stored sensitive answer from the entry instead of the draft', async () => {
         // Given a director with a stored SSN, in a list that no flow opens editor pages for
         const onInputChange = jest.fn();
         const {onEdit} = renderAdapter([{...jane, ssn: '123456789'}], onInputChange, undefined, false);
 
-        // When the user edits the director, renames them and saves with the SSN left blank
+        // When the user edits the director, renames them and saves with the SSN they were shown
         await act(async () => onEdit('jane'));
         const modal = mockModal.mock.lastCall?.[0];
-        act(() => modal?.onSave({fullName: 'Jane Smith', ...modal.keptAnswers}));
+        act(() => modal?.onSave({...modal.keptAnswers, fullName: 'Jane Smith'}));
 
-        // Then the modal opened over the page, and the list holds the renamed director with the SSN still in place
+        // Then the modal opened over the page with the SSN kept out of the editor draft, and the list holds the renamed director with the SSN still in place
         expect(modal?.isVisible).toBe(true);
+        expect(startListItemEdit).toHaveBeenLastCalledWith({fullName: 'Jane Doe'});
+        expect(modal?.keptAnswers).toEqual({ssn: '123456789'});
         expect(onInputChange).toHaveBeenCalledWith([{id: 'jane', fullName: 'Jane Smith', ssn: '123456789'}]);
+    });
+
+    it('drafts none of the answers of an entry of a sensitive list edited in the modal', async () => {
+        // Given a director in a list marked sensitive, which no flow opens editor pages for
+        render(
+            <ListFieldAdapter
+                value={[jane]}
+                onInputChange={jest.fn()}
+                itemFields={itemFields}
+                isSensitive
+                label="Directors"
+                addTitle="Add director"
+                renderFields={jest.fn()}
+            />,
+        );
+
+        // When the user opens the director in the modal
+        await act(async () => mockListField.mock.lastCall?.[0].onEdit('jane'));
+        const modal = mockModal.mock.lastCall?.[0];
+
+        // Then the editor draft starts empty and the director's answers fill the inputs from the entry, so nothing of a sensitive list reaches the device
+        expect(startListItemEdit).toHaveBeenLastCalledWith({});
+        expect(modal?.keptAnswers).toEqual({fullName: 'Jane Doe'});
+        expect(modal?.isSensitive).toBe(true);
     });
 
     it('empties the editor draft when the modal closes', async () => {

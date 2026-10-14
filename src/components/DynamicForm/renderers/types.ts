@@ -20,7 +20,7 @@ type DynamicFieldContext = Pick<DynamicFormFieldsProps, 'values' | 'maxFileSize'
         isLoneField: boolean;
 
         /** Draws a list entry's fields in the modal editor used outside DynamicFormFlow */
-        renderFields: (fields: DynamicFormField[], values: DynamicFormValues) => ReactNode;
+        renderFields: (fields: DynamicFormField[], values: DynamicFormValues, isSensitive: boolean) => ReactNode;
     };
 
 /** The answer each field type's input holds. An address holds its street, and its other parts sit under their own keys. */

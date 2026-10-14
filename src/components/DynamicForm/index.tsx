@@ -215,6 +215,10 @@ function DynamicFormFlow({
 
     const openListItemEditor = (listKey: string, itemID?: string) => {
         const editorIndex = subPages.findIndex((page) => page.pageName === getListItemPageName(listKey, itemID));
+        // moveTo(-1) would open the last sub-page, which is another entry's editor
+        if (editorIndex === -1) {
+            return;
+        }
         moveTo(editorIndex, isEditing || currentPageName === CONST.DYNAMIC_FORM.CONFIRMATION_PAGE_KEY);
     };
 

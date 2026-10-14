@@ -59,10 +59,11 @@ function DynamicFormFields({
 }: DynamicFormFieldsProps) {
     const visibleContent = getVisibleContent(content, values, allFields);
     const loneField = getLoneField(getContentFields(visibleContent));
-    const renderFields = (itemFields: DynamicFormField[], itemValues: DynamicFormValues) => (
+    const renderFields = (itemFields: DynamicFormField[], itemValues: DynamicFormValues, isItemSensitive: boolean) => (
         <DynamicFormFields
             content={itemFields}
             values={itemValues}
+            isSensitive={isItemSensitive}
             currency={currency}
             maxFileSize={maxFileSize}
         />

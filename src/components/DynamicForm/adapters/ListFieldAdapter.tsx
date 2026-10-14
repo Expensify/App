@@ -46,6 +46,9 @@ type ListFieldAdapterProps = Pick<ComponentProps<typeof ListField>, 'addTitle' |
         /** The fields of one entry, which name and describe its row */
         itemFields: DynamicFormField[];
 
+        /** The list is marked `sensitive`, so none of its entries' answers is drafted while the modal edits one */
+        isSensitive?: boolean;
+
         /** Hides the add row once the list holds this many entries */
         maxItems?: number;
 
@@ -56,7 +59,7 @@ type ListFieldAdapterProps = Pick<ComponentProps<typeof ListField>, 'addTitle' |
         onEdit?: (itemID: string) => void;
 
         /** Draws the entry's fields inside the modal editor */
-        renderFields: (fields: DynamicFormField[], values: DynamicFormValues) => ReactNode;
+        renderFields: (fields: DynamicFormField[], values: DynamicFormValues, isSensitive: boolean) => ReactNode;
     };
 
 /** The entries of a list field as rows. Removing one updates FormProvider's value; adding and editing open the flow's editor page, or a modal outside the flow. */
@@ -68,6 +71,7 @@ function ListFieldAdapter({
     label,
     itemLabel,
     itemFields,
+    isSensitive = false,
     maxItems,
     addTitle,
     addDescription,
@@ -87,10 +91,11 @@ function ListFieldAdapter({
         modalTitle = editingTitle === '' ? label : editingTitle;
     }
     const sensitiveKeys = new Set(itemFields.filter(isSensitiveField).flatMap(getAnswerKeys));
+    const isKeptOutOfDraft = (key: string) => key !== 'id' && (isSensitive || sensitiveKeys.has(key));
 
-    // Sensitive answers are not drafted, so the modal shows them blank and a blank one keeps the stored answer
+    // Sensitive answers are not drafted, so the modal's inputs start from the stored entry instead. Every answer of a sensitive list is.
     const openModal = (item?: DynamicFormListItem) => {
-        const answers = Object.fromEntries(Object.entries(item ?? {}).filter(([key]) => key !== 'id' && !sensitiveKeys.has(key)));
+        const answers = Object.fromEntries(Object.entries(item ?? {}).filter(([key]) => key !== 'id' && !isKeptOutOfDraft(key)));
         startListItemEdit(answers).then(() => setEditingID(item?.id ?? Str.guid()));
     };
 
@@ -155,7 +160,8 @@ function ListFieldAdapter({
                     title={modalTitle}
                     itemFields={itemFields}
                     forwardedFSClass={forwardedFSClass}
-                    keptAnswers={Object.fromEntries(Object.entries(editingItem ?? {}).filter(([key]) => sensitiveKeys.has(key)))}
+                    keptAnswers={Object.fromEntries(Object.entries(editingItem ?? {}).filter(([key]) => isKeptOutOfDraft(key)))}
+                    isSensitive={isSensitive}
                     renderFields={renderFields}
                     onSave={saveItem}
                     onClose={closeModal}

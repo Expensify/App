@@ -31,11 +31,14 @@ type DynamicFormListItemModalProps = ForwardedFSClassProps & {
     /** The fields of one entry */
     itemFields: DynamicFormField[];
 
-    /** Answers the form cannot show, such as stored sensitive ones, used when the user leaves them blank */
+    /** Stored answers that are not drafted, such as sensitive ones, which the inputs start from */
     keptAnswers: DynamicFormValues;
 
+    /** Every answer of the entry is sensitive, as in a list marked `sensitive`: none is drafted */
+    isSensitive: boolean;
+
     /** Draws the entry's fields inside the modal's form */
-    renderFields: (fields: DynamicFormField[], values: DynamicFormValues) => ReactNode;
+    renderFields: (fields: DynamicFormField[], values: DynamicFormValues, isSensitive: boolean) => ReactNode;
 
     /** Called with the entry's answers when the user saves */
     onSave: (answers: DynamicFormValues) => void;
@@ -45,15 +48,12 @@ type DynamicFormListItemModalProps = ForwardedFSClassProps & {
 };
 
 /** The editor of one list entry outside DynamicFormFlow, as a modal over the page holding the list */
-function DynamicFormListItemModal({isVisible, title, itemFields, keptAnswers, renderFields, onSave, onClose, forwardedFSClass}: DynamicFormListItemModalProps) {
+function DynamicFormListItemModal({isVisible, title, itemFields, keptAnswers, isSensitive, renderFields, onSave, onClose, forwardedFSClass}: DynamicFormListItemModalProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const [, itemDraftMetadata] = useOnyx(ONYXKEYS.FORMS.DYNAMIC_FORM_LIST_ITEM_FORM_DRAFT);
-    const withKeptAnswers = (inputValues: unknown): DynamicFormValues => {
-        const answers = toDynamicFormValues(inputValues);
-        const keptBlankAnswers = Object.entries(keptAnswers).filter(([key]) => (answers[key] ?? '') === '');
-        return {...answers, ...Object.fromEntries(keptBlankAnswers)};
-    };
+    // Kept answers fill the inputs, so clearing one in the form clears it on save, as on the flow's editor page
+    const withInputValues = (inputValues: unknown): DynamicFormValues => ({...keptAnswers, ...toDynamicFormValues(inputValues)});
 
     return (
         <Modal
@@ -77,13 +77,13 @@ function DynamicFormListItemModal({isVisible, title, itemFields, keptAnswers, re
                     <FormProvider
                         formID={ONYXKEYS.FORMS.DYNAMIC_FORM_LIST_ITEM_FORM}
                         submitButtonText={translate('common.save')}
-                        validate={(inputValues) => getDynamicFieldErrors(itemFields, withKeptAnswers(inputValues), translate)}
-                        onSubmit={(inputValues) => onSave(withKeptAnswers(inputValues))}
+                        validate={(inputValues) => getDynamicFieldErrors(itemFields, withInputValues(inputValues), translate)}
+                        onSubmit={(inputValues) => onSave(withInputValues(inputValues))}
                         style={[styles.mh5, styles.flexGrow1]}
                         submitButtonStyles={styles.mb0}
                         enabledWhenOffline
                     >
-                        {({inputValues}) => renderFields(itemFields, toDynamicFormValues(inputValues))}
+                        {({inputValues}) => renderFields(itemFields, withInputValues(inputValues), isSensitive)}
                     </FormProvider>
                 )}
             </ScreenWrapper>

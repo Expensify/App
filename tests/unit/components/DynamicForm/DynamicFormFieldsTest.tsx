@@ -566,6 +566,33 @@ describe('DynamicFormFields', () => {
         expect(screen.getByText('25%')).toBeOnTheScreen();
     });
 
+    it('shows a readonly list as the names of its entries', () => {
+        // Given a readonly list of owners holding two entries
+        const owners: DynamicFormField = {
+            key: 'owners',
+            type: 'list',
+            required: true,
+            readonly: true,
+            itemFields: [
+                {key: 'firstName', type: 'text', required: true},
+                {key: 'lastName', type: 'text', required: true},
+            ],
+        };
+        const values = {
+            owners: [
+                {id: 'jane', firstName: 'Jane', lastName: 'Doe'},
+                {id: 'john', firstName: 'John', lastName: 'Roe'},
+            ],
+        } as DynamicFormValues;
+
+        // When it renders
+        const rendered = renderFields([owners], values);
+
+        // Then no input is drawn, and the row names every owner, since a readonly list cannot be opened to see them
+        expect(rendered.size).toBe(0);
+        expect(screen.getByText('Jane Doe, John Roe')).toBeOnTheScreen();
+    });
+
     it.each([
         ['select', InlineSelectionListAdapter, {valueType: 'string'}],
         ['multiselect', InlineSelectionListAdapter, {canSelectMultiple: true, valueType: 'stringList'}],

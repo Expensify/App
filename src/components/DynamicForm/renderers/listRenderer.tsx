@@ -29,6 +29,7 @@ const renderList: DynamicFieldRenderer<'list'> = (field, {translate, isLoneField
                 label={getFieldLabel(field, translate)}
                 itemLabel={itemLabel}
                 itemFields={field.itemFields}
+                isSensitive={isSensitiveField(field)}
                 maxItems={field.maxItems}
                 addTitle={itemLabel ? translate('dynamicForm.addItem', {item: itemLabel}) : translate('common.add')}
                 addDescription={getLocalizedText(translate, field.addItemDescriptionKey, field.addItemDescription)}

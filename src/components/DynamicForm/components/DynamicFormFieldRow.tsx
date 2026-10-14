@@ -3,6 +3,8 @@ import type {DynamicFieldContext} from '@components/DynamicForm/renderers/types'
 import formatDynamicFieldValue from '@components/DynamicForm/utils/formatDynamicFieldValue';
 import getLocalizedText, {getFieldLabel} from '@components/DynamicForm/utils/getLocalizedText';
 import isSensitiveField from '@components/DynamicForm/utils/isSensitiveField';
+import {getListItems} from '@components/DynamicForm/utils/listItems';
+import summarizeListItem from '@components/DynamicForm/utils/summarizeListItem';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import Text from '@components/Text';
 
@@ -51,6 +53,13 @@ function DynamicFormFieldRow({
     const label = getFieldLabel(field, translate);
 
     if (field.readonly) {
+        // A list's answer is its entries, which formatDynamicFieldValue cannot name, so they are listed by their titles
+        const readonlyValue =
+            field.type === 'list'
+                ? getListItems(values[field.key])
+                      .map((item) => summarizeListItem(item, field.itemFields, translate).title)
+                      .join(', ')
+                : formatDynamicFieldValue(field, values, translate);
         return (
             <View
                 style={[styles.mhn5, styles.pv1]}
@@ -58,7 +67,7 @@ function DynamicFormFieldRow({
             >
                 <MenuItemField
                     name={label}
-                    value={formatDynamicFieldValue(field, values, translate)}
+                    value={readonlyValue}
                 />
             </View>
         );

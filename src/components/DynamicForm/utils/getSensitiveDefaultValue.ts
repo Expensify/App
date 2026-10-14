@@ -6,6 +6,7 @@ import type {DynamicFormFieldType, DynamicFormListItem} from '@src/types/onyx';
 import type {FileObject} from '@src/types/utils/Attachment';
 
 import isSensitiveField from './isSensitiveField';
+import {isListItem} from './listItems';
 
 type AnswerGuards = {[TType in DynamicFormFieldType]: (answer: FormValue) => answer is DynamicFieldAnswerMap[TType]};
 
@@ -26,7 +27,7 @@ function isFileList(answer: FormValue): answer is FileObject[] {
 }
 
 function isListItems(answer: FormValue): answer is DynamicFormListItem[] {
-    return Array.isArray(answer) && answer.every((item) => typeof item === 'object' && 'id' in item);
+    return Array.isArray(answer) && answer.every(isListItem);
 }
 
 const ANSWER_GUARDS: AnswerGuards = {
