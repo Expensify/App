@@ -192,6 +192,9 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
 
     const memberBankAccount = isPolicyAdmin(policy) && arePaymentsEnabled(policy) ? memberBankAccounts?.[accountID] : undefined;
     const memberBankIcon = getBankIcon({bankName: memberBankAccount?.bankName, styles});
+    const memberBankName = memberBankAccount?.bankName
+        ? (CONST.BANK_NAMES_USER_FRIENDLY[memberBankAccount.bankName.toLowerCase() as keyof typeof CONST.BANK_NAMES_USER_FRIENDLY] ?? memberBankAccount.bankName)
+        : translate('common.bankAccount');
 
     const isApprover = isPolicyApprover(policy, memberLogin) || isApproverOfOutstandingPolicyReports(accountID, outstandingReportsForPolicy, privateIsArchivedMap);
     const isTechnicalContact = policy?.technicalContact === details?.login;
@@ -528,7 +531,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
                                         </Text>
                                     </View>
                                     <MenuItem
-                                        title={memberBankAccount.bankName ? memberBankAccount.bankName : translate('common.bankAccount')}
+                                        title={memberBankName}
                                         description={memberBankAccount.bankAccountLastFour}
                                         icon={memberBankIcon.icon}
                                         iconHeight={memberBankIcon.iconSize}
