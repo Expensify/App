@@ -1,3 +1,5 @@
+import FullscreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
+
 import useCardFeeds from '@hooks/useCardFeeds';
 import useCardsList from '@hooks/useCardsList';
 import useLocalize from '@hooks/useLocalize';
@@ -17,6 +19,7 @@ import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {CompanyCardFeedWithDomainID} from '@src/types/onyx';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import {format, parseISO} from 'date-fns';
 import React from 'react';
@@ -34,22 +37,24 @@ function WorkspaceCompanyCardsBulkEditTransactionStartDatePage({route}: Workspac
     // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- decoding preserves the company-feed shape guaranteed by this route
     const feedName = decodeURIComponent(route.params.feed) as CompanyCardFeedWithDomainID;
     const cardIDs = (route.params.cardIDs ?? '').split(',').filter(Boolean);
-    const firstCardID = cardIDs.at(0);
     const bank = getCompanyCardFeed(feedName);
 
     const {translate} = useLocalize();
     const policy = usePolicy(policyID);
     const workspaceAccountID = policy?.policyAccountID ?? CONST.DEFAULT_NUMBER_ID;
 
-    const [cardFeeds] = useCardFeeds(policyID);
+    const [cardFeeds, cardFeedsMetadata] = useCardFeeds(policyID);
     const companyFeeds = getCompanyFeeds(cardFeeds);
     const domainOrWorkspaceAccountID = getDomainOrWorkspaceAccountID(workspaceAccountID, companyFeeds[feedName]);
-    const [allBankCards] = useCardsList(feedName);
-    const singleCardStartDate = firstCardID && allBankCards?.[firstCardID]?.scrapeMinDate;
-    const areScrapeDateEqual = !!singleCardStartDate && (cardIDs.length === 1 || cardIDs.every((cardID) => allBankCards?.[cardID]?.scrapeMinDate === singleCardStartDate));
-    const initialDateOption =
-        !areScrapeDateEqual && !singleCardStartDate ? CONST.COMPANY_CARD.TRANSACTION_START_DATE_OPTIONS.FROM_BEGINNING : CONST.COMPANY_CARD.TRANSACTION_START_DATE_OPTIONS.CUSTOM;
-    const initialStartDate = areScrapeDateEqual ? format(parseISO(singleCardStartDate), CONST.DATE.FNS_FORMAT_STRING) : '';
+    const [allBankCards, cardsMetadata] = useCardsList(feedName);
+    const isLoading = isLoadingOnyxValue(cardFeedsMetadata, cardsMetadata);
+    const hasMissingCards = cardIDs.some((cardID) => !allBankCards?.[cardID]);
+    const selectedDates = cardIDs.map((cardID) => allBankCards?.[cardID]?.scrapeMinDate ?? '');
+    const uniqueDates = new Set(selectedDates);
+    const areAllFromBeginning = selectedDates.every((date) => !date);
+    const sharedStartDate = uniqueDates.size === 1 ? selectedDates.at(0) : undefined;
+    const initialDateOption = areAllFromBeginning ? CONST.COMPANY_CARD.TRANSACTION_START_DATE_OPTIONS.FROM_BEGINNING : CONST.COMPANY_CARD.TRANSACTION_START_DATE_OPTIONS.CUSTOM;
+    const initialStartDate = sharedStartDate ? format(parseISO(sharedStartDate), CONST.DATE.FNS_FORMAT_STRING) : '';
 
     const goBackToCompanyCards = () => Navigation.goBack(ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID));
 
@@ -72,17 +77,22 @@ function WorkspaceCompanyCardsBulkEditTransactionStartDatePage({route}: Workspac
             featureName={CONST.POLICY.MORE_FEATURES.ARE_COMPANY_CARDS_ENABLED}
             policyFeature={CONST.POLICY.POLICY_FEATURE.COMPANY_CARDS}
             policyFeatureAccess={CONST.POLICY.POLICY_FEATURE_ACCESS.WRITE}
+            shouldBeBlocked={!isLoading && hasMissingCards}
         >
-            <CompanyCardTransactionStartDateForm
-                testID="WorkspaceCompanyCardsBulkEditTransactionStartDatePage"
-                description={translate('workspace.companyCards.bulkEditStartDateDescription')}
-                initialDateOption={initialDateOption}
-                initialStartDate={initialStartDate}
-                onBackButtonPress={goBackToCompanyCards}
-                onSubmit={submit}
-                isSaveDisabled={cardIDs.length === 0}
-                shouldResetStartDateOnCustomSelection={!!firstCardID && !singleCardStartDate}
-            />
+            {isLoading ? (
+                <FullscreenLoadingIndicator onGoBack={goBackToCompanyCards} />
+            ) : (
+                <CompanyCardTransactionStartDateForm
+                    testID="WorkspaceCompanyCardsBulkEditTransactionStartDatePage"
+                    description={translate('workspace.companyCards.bulkEditStartDateDescription')}
+                    initialDateOption={initialDateOption}
+                    initialStartDate={initialStartDate}
+                    onBackButtonPress={goBackToCompanyCards}
+                    onSubmit={submit}
+                    isSaveDisabled={cardIDs.length === 0 || hasMissingCards}
+                    shouldResetStartDateOnCustomSelection={areAllFromBeginning}
+                />
+            )}
         </AccessOrNotFoundWrapper>
     );
 }
