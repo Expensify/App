@@ -21771,6 +21771,11 @@ describe('ReportUtils', () => {
             ...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE, 'Part 6 threading policy'),
             id: THREADING_POLICY_ID,
             role: CONST.POLICY.ROLE.USER,
+            // createRandomPolicy picks a random approvalMode, and only ADVANCED routes through employeeList submitsTo
+            approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
+            owner: 'part6-owner@test.com',
+            // Neither submitter routes here, so a fallback to the default approver fails the test rather than passing it
+            approver: 'part6-default-approver@test.com',
             employeeList: {
                 [THREADING_SUBMITTER_TO_MANAGER]: {
                     email: THREADING_SUBMITTER_TO_MANAGER,
