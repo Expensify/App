@@ -541,7 +541,8 @@ function addNewContactMethod(contactMethod: string, validateCode = '') {
             value: {
                 [loginKey]: {
                     errorFields: {
-                        addedLogin: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('contacts.genericFailureMessages.addContactMethod'),
+                        // Key 0 so a server-sent error always sorts newer than this fallback, even with device clock skew
+                        addedLogin: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('contacts.genericFailureMessages.addContactMethod', 0),
                     },
                 },
             },

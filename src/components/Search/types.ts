@@ -170,6 +170,8 @@ type TaskSearchStatus = ValueOf<typeof CONST.SEARCH.STATUS.TASK>;
 type SingularSearchStatus = ExpenseSearchStatus | ExpenseReportSearchStatus | InvoiceSearchStatus | TripSearchStatus | TaskSearchStatus;
 type SearchGroupBy = ValueOf<typeof CONST.SEARCH.GROUP_BY>;
 type SearchView = ValueOf<typeof CONST.SEARCH.VIEW>;
+type SearchFooterCount = ValueOf<typeof CONST.SEARCH.FOOTER_COUNT>;
+type SearchFooterTotal = ValueOf<typeof CONST.SEARCH.FOOTER_TOTAL>;
 type SearchCompareMode = ValueOf<typeof CONST.SEARCH.COMPARE>;
 // PieChart is not implemented so we exclude it here to prevent TypeScript errors in `SearchChartView.tsx`.
 type ChartView = Exclude<SearchView, 'table'>;
@@ -478,9 +480,6 @@ type SearchChartDataRow = {
 
     /** The grouped search result the point was built from */
     item: GroupedItem;
-
-    /** Palette color the chart assigns this group */
-    color?: string;
 };
 
 type SearchFilterCommonProps<T> = {
@@ -538,6 +537,8 @@ export type {
     TableColumnSize,
     SearchGroupBy,
     SearchView,
+    SearchFooterCount,
+    SearchFooterTotal,
     SearchCompareMode,
     ChartView,
     SingularSearchStatus,

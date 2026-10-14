@@ -2,11 +2,10 @@ import PopoverWithMeasuredContent from '@components/PopoverWithMeasuredContent';
 import type PopoverWithMeasuredContentProps from '@components/PopoverWithMeasuredContent/types';
 import type {ListItem} from '@components/SelectionList/types';
 
-import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
 import useKeyboardState from '@hooks/useKeyboardState';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
+import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useViewportOffsetTop from '@hooks/useViewportOffsetTop';
@@ -77,11 +76,7 @@ function CategoryPickerModal({
     const {isKeyboardActive, keyboardActiveHeight} = useKeyboardState();
     const {windowHeight} = useWindowDimensions();
     const viewportOffsetTop = useViewportOffsetTop();
-    const {top: safeAreaTop} = useSafeAreaInsets();
-    const bottomSafeAreaPaddingStyle = useBottomSafeSafeAreaPaddingStyle({
-        addBottomSafeAreaPadding: isSmallScreenWidth && !isKeyboardActive,
-        addOfflineIndicatorBottomSafeAreaPadding: false,
-    });
+    const {paddingTop: safeAreaTop, paddingBottom: safeAreaPaddingBottom} = useSafeAreaPaddings(true);
     const anchorRef = useRef<ComponentRef<typeof View>>(null);
 
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${getNonEmptyStringOnyxID(policyID)}`, {selector: getEnabledCategoriesCount});
@@ -91,6 +86,9 @@ function CategoryPickerModal({
     const isSearchable = categoriesCount >= CONST.STANDARD_LIST_ITEM_LIMIT;
     const estimatedContentHeight = getSelectionListPopoverContentHeight({optionCount: Math.max(renderedRowCount ?? categoriesCount, 1), isSearchable});
 
+    // The sheet pads itself above the home indicator, except while the keyboard already covers it. The offline indicator
+    // is drawn on the page behind the sheet, so no room is kept for it.
+    const bottomSafeAreaPadding = isSmallScreenWidth && !isKeyboardActive ? safeAreaPaddingBottom : 0;
     const bottomSheetHeight = getBottomSheetHeight({
         preferredHeight: popoverHeight,
         windowHeight,
@@ -98,8 +96,10 @@ function CategoryPickerModal({
         topSafeAreaInset: safeAreaTop,
         minHeight: getSelectionListPopoverContentHeight({optionCount: 1, isSearchable}),
     });
+    // A short list gets a sheet only as tall as its rows, still within the room the window and keyboard leave.
+    const fittedSheetHeight = shouldFitContentHeight ? Math.min(bottomSheetHeight, estimatedContentHeight + bottomSafeAreaPadding) : bottomSheetHeight;
     const popoverContentHeight = shouldFitContentHeight ? Math.min(popoverHeight, estimatedContentHeight) : popoverHeight;
-    const resolvedHeight = isSmallScreenWidth ? bottomSheetHeight : popoverContentHeight;
+    const resolvedHeight = isSmallScreenWidth ? fittedSheetHeight : popoverContentHeight;
     const popoverDimensions = {width: popoverWidth, height: resolvedHeight};
     // Mobile Safari ignores `interactive-widget=resizes-content` and leaves the sheet docked behind the keyboard, so on mobile browsers
     // the sheet is sized and offset to the visual viewport, which the keyboard does shrink.
@@ -134,7 +134,7 @@ function CategoryPickerModal({
             avoidKeyboard={isSmallScreenWidth}
             outerStyle={outerStyle}
         >
-            <View style={[StyleUtils.getHeight(popoverDimensions.height), styles.flexColumn, styles.pt4, bottomSafeAreaPaddingStyle]}>
+            <View style={[StyleUtils.getHeight(popoverDimensions.height), styles.flexColumn, styles.pt4, StyleUtils.getPaddingBottom(bottomSafeAreaPadding)]}>
                 <CategoryPicker
                     onRenderedRowCountChange={setRenderedRowCount}
                     selectedCategory={selectedCategory}

@@ -21,6 +21,7 @@ import type {PlatformStackScreenProps} from '@navigation/PlatformStackNavigation
 import type {WorkspaceSplitNavigatorParamList} from '@navigation/types';
 
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
+import withUnifiedConnectionsBeta from '@pages/workspace/connections/withUnifiedConnectionsBeta';
 
 import variables from '@styles/variables';
 
@@ -125,4 +126,4 @@ function WorkspaceMCPPage({route}: WorkspaceMCPPageProps) {
     );
 }
 
-export default WorkspaceMCPPage;
+export default withUnifiedConnectionsBeta(WorkspaceMCPPage);
