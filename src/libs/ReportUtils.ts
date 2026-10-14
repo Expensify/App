@@ -9001,7 +9001,7 @@ function buildOptimisticModifiedExpenseReportAction(
         actorAccountID: deprecatedCurrentUserAccountID,
         automatic: false,
         avatar: getCurrentUserAvatar(),
-        created: DateUtils.getDBTime(),
+        created: getServerAnchoredDBTime('', transactionThread?.lastVisibleActionCreated),
         isAttachmentOnly: false,
         message: [
             {
