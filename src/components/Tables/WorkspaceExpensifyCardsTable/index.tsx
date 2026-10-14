@@ -331,7 +331,6 @@ export default function WorkspaceExpensifyCardsTable({
             shouldUseDynamicColumns
             columnResizingID={CONST.TABLES.COLUMN_RESIZING_IDS.WORKSPACE_EXPENSIFY_CARDS}
             initialSortColumn="name"
-            narrowLayoutSortColumn="name"
             title={translate('workspace.common.expensifyCard')}
             keyExtractor={(item) => item.keyForList}
             selectionEnabled={selectionEnabled}

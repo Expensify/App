@@ -28,6 +28,7 @@ import {
     rendersColumnHeaderAsStickyRow,
     rendersColumnHeaderInListHeader,
 } from './buildTableListData';
+import dismissKeyboardOnDrag from './dismissKeyboardOnDrag';
 import {getRowGroupAccessibilityProps, getTableContainerAccessibilityProps, getVirtualizedRowSemanticID, shouldUseTableSemantics} from './tableAccessibility';
 import {TableRowSemanticIDContext, useTableContext} from './TableContext';
 
@@ -181,6 +182,7 @@ function TableBodyList({contentContainerStyle, emptyMessage, onLayout, style, ..
         onLoad,
         onChangeStickyIndex,
         onScroll,
+        onScrollBeginDrag,
         onStartReached,
         onViewableItemsChanged,
         overrideItemLayout,
@@ -190,6 +192,12 @@ function TableBodyList({contentContainerStyle, emptyMessage, onLayout, style, ..
         viewabilityConfigCallbackPairs,
         ...restListProps
     } = listProps ?? {};
+
+    const handleScrollBeginDrag: NonNullable<typeof onScrollBeginDrag> = (event) => {
+        // Match native SelectionList behavior so a focused search cannot be dragged offscreen with the keyboard open.
+        dismissKeyboardOnDrag();
+        onScrollBeginDrag?.(event);
+    };
 
     const tableBodyContentContainerStyle = useBottomSafeSafeAreaPaddingStyle({
         addBottomSafeAreaPadding: true,
@@ -366,6 +374,7 @@ function TableBodyList({contentContainerStyle, emptyMessage, onLayout, style, ..
                         style={[styles.flex1, styles.mnh0]}
                         contentContainerStyle={[styles.flexGrow1, tableBodyContentContainerStyle]}
                         keyboardShouldPersistTaps="handled"
+                        onScrollBeginDrag={handleScrollBeginDrag}
                     >
                         <View style={[styles.flexGrow1, styles.justifyContentCenter]}>{emptyStateContent}</View>
                         {!!footerElement && <View style={emptyStateFooterStyle}>{footerElement}</View>}
@@ -496,6 +505,7 @@ function TableBodyList({contentContainerStyle, emptyMessage, onLayout, style, ..
                         },
                 ]}
                 keyboardShouldPersistTaps="handled"
+                onScrollBeginDrag={handleScrollBeginDrag}
                 renderItem={renderListItem}
                 keyExtractor={keyExtractorForList}
                 getItemType={getItemTypeForList}

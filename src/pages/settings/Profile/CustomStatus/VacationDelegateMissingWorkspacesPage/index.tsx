@@ -11,6 +11,7 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import {useGetPersonalDetailsByLogin} from '@hooks/usePersonalDetailByLogin';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {openWorkspaceMembersPage} from '@libs/actions/Policy/Member';
@@ -45,6 +46,7 @@ function VacationDelegateMissingWorkspacesPage() {
     const {translate, formatPhoneNumber} = useLocalize();
     const navigation = useNavigation();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const getPersonalDetailsByLogin = useGetPersonalDetailsByLogin();
 
     const [vacationDelegate, vacationDelegateMetadata] = useOnyx(ONYXKEYS.NVP_PRIVATE_VACATION_DELEGATE);
 
@@ -121,6 +123,7 @@ function VacationDelegateMissingWorkspacesPage() {
                     email: currentUserPersonalDetails.email,
                     avatar: currentUserPersonalDetails.avatar,
                 },
+                personalDetailsByLogins: getPersonalDetailsByLogin(),
                 translate,
                 formatPhoneNumber,
             });

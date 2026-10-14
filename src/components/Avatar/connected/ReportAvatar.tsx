@@ -20,6 +20,7 @@ import DefaultReportAvatar from './DefaultReportAvatar';
 import ExpenseReportAvatar from './ExpenseReportAvatar';
 import GroupChatAvatar from './GroupChatAvatar';
 import PolicyExpenseChatAvatar from './PolicyExpenseChatAvatar';
+import RoomAvatar from './RoomAvatar';
 import TaskReportAvatar from './TaskReportAvatar';
 
 type SortingOption = ValueOf<typeof CONST.REPORT_ACTION_AVATARS.SORT_BY>;
@@ -130,6 +131,20 @@ function ReportAvatar({
                     fallbackDisplayName={fallbackDisplayName}
                 />
             );
+        case CONST.REPORT_AVATAR_KIND.ROOM:
+            return (
+                <RoomAvatar
+                    reportID={reportID}
+                    size={size}
+                    backdropColor={backdropColor}
+                    // Only a single layout reads the container styles, and inside a horizontal stack it renders without them.
+                    containerStyle={horizontalStacking ? [] : singleAvatarContainerStyle}
+                    subscriptContainerStyle={subscriptAvatarContainerStyle}
+                    horizontalStacking={horizontalStacking}
+                    sort={sort}
+                    fallbackDisplayName={fallbackDisplayName}
+                />
+            );
         case CONST.REPORT_AVATAR_KIND.DEFAULT:
             return (
                 <DefaultReportAvatar
@@ -146,7 +161,6 @@ function ReportAvatar({
         // dedicated wrapper per kind, one PR at a time. The last of those deletes the ReportActionAvatars import and simplifies props.
         case CONST.REPORT_AVATAR_KIND.IOU:
         case CONST.REPORT_AVATAR_KIND.INVOICE:
-        case CONST.REPORT_AVATAR_KIND.ROOM:
         default:
             return (
                 <ReportActionAvatars
