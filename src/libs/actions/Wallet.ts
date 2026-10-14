@@ -1,7 +1,6 @@
 import * as API from '@libs/API';
 import type {AcceptWalletTermsParams, AnswerQuestionsForWalletParams, UpdatePersonalDetailsForWalletParams, VerifyIdentityParams} from '@libs/API/parameters';
 import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
-import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import Log from '@libs/Log';
 
 import CONST from '@src/CONST';
@@ -87,18 +86,6 @@ function updatePersonalDetails(personalDetails: UpdatePersonalDetailsForWalletPa
         },
     ];
 
-    // Some failures (e.g. a missing field) come back without any Onyx data, so set an error here to keep the flow from
-    // treating the request as successful.
-    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.WALLET_ADDITIONAL_DETAILS>> = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.WALLET_ADDITIONAL_DETAILS,
-            value: {
-                errors: getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
-            },
-        },
-    ];
-
     const finallyData: Array<OnyxUpdate<typeof ONYXKEYS.FORMS.WALLET_ADDITIONAL_DETAILS>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -111,7 +98,6 @@ function updatePersonalDetails(personalDetails: UpdatePersonalDetailsForWalletPa
 
     API.write(WRITE_COMMANDS.UPDATE_PERSONAL_DETAILS_FOR_WALLET, personalDetails, {
         optimisticData,
-        failureData,
         finallyData,
     });
 }
