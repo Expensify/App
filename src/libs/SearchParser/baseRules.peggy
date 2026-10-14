@@ -29,7 +29,6 @@ groupCurrency
   / "group-currency"i { return "groupCurrency"; }
 tag = "tag"i { return "tag"; }
 category = "category"i { return "category"; }
-vendor = "vendor"i { return "vendor"; }
 to = "to"i { return "to"; }
 exporter = "exporter"i { return "exporter"; }
 payer = "payer"i { return "payer"; }
@@ -253,3 +252,8 @@ validClosingCondition
 wordBoundary
   = [ \t\n\r\xA0,]  // whitespace or comma
   / !.              // or end of input
+
+// Spend footer display selections. Root keys, not filters: they change what the footer shows, never which rows match.
+footerCount = ("footerCount"i / "footer-count"i) { return "footerCount"; }
+footerCurrency = ("footerCurrency"i / "footer-currency"i) { return "footerCurrency"; }
+footerTotal = ("footerTotal"i / "footer-total"i) { return "footerTotal"; }

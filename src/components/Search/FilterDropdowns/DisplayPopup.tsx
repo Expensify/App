@@ -1,5 +1,5 @@
 import CompactMenuContext from '@components/CompactMenuContext';
-import MenuItemAction from '@components/MenuItem/presets/MenuItemAction';
+import MenuItem from '@components/MenuItem';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import ScrollView from '@components/ScrollView';
 import useUpdateFilterQuery from '@components/Search/hooks/useUpdateFilterQuery';
@@ -14,6 +14,8 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {close} from '@libs/actions/Modal';
 import Navigation from '@libs/Navigation/Navigation';
 import {getGroupBySections, getSearchColumnTranslationKey, getValidGroupBy, getViewOptions} from '@libs/SearchUIUtils';
+
+import {callFunctionIfActionIsAllowed} from '@userActions/Session';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -43,7 +45,7 @@ type DisplayPopupProps = {
 function DisplayPopup({queryJSON, searchResults, closeOverlay, onSort}: DisplayPopupProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const {isLargeScreenWidth} = useResponsiveLayout();
+    const {isLargeScreenWidth, isSmallScreenWidth} = useResponsiveLayout(); // eslint-disable-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Columns']);
     const {updateFilterQueryParams} = useUpdateFilterQuery(queryJSON);
     const [searchAdvancedFilters = getEmptyObject<SearchAdvancedFiltersForm>()] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
@@ -121,15 +123,23 @@ function DisplayPopup({queryJSON, searchResults, closeOverlay, onSort}: DisplayP
                 )}
                 {shouldShowColumnsButton && (
                     <CompactMenuContext.Provider value>
-                        <MenuItemAction
-                            icon={expensifyIcons.Columns}
-                            title={translate('search.editColumns')}
-                            onPress={() => {
+                        <MenuItem.Root
+                            onPress={callFunctionIfActionIsAllowed(() => {
                                 closeOverlay();
                                 openSearchColumns();
-                            }}
+                            })}
+                            accessibilityLabel={translate('search.editColumns')}
                             sentryLabel={CONST.SENTRY_LABEL.SEARCH.COLUMNS_BUTTON}
-                        />
+                        >
+                            <MenuItem.Row>
+                                <MenuItem.Leading>
+                                    {isSmallScreenWidth ? <MenuItem.Icon src={expensifyIcons.Columns} /> : <MenuItem.IconNarrow src={expensifyIcons.Columns} />}
+                                </MenuItem.Leading>
+                                <MenuItem.Content>
+                                    <MenuItem.Title>{translate('search.editColumns')}</MenuItem.Title>
+                                </MenuItem.Content>
+                            </MenuItem.Row>
+                        </MenuItem.Root>
                     </CompactMenuContext.Provider>
                 )}
             </ScrollView>

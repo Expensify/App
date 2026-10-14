@@ -18,6 +18,8 @@ import {getTransactionPendingAction} from '@libs/TransactionUtils';
 
 import Navigation from '@navigation/Navigation';
 
+import {resolveLayoutSpacing} from '@styles/layoutSpacing';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -204,6 +206,7 @@ function MoneyRequestReportTransactionList({
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
     const {shouldUseNarrowLayout} = useResponsiveLayoutOnWideRHP();
+    const {pageGutter} = resolveLayoutSpacing(shouldUseNarrowLayout);
     const navigateToTransactionThread = useNavigateToTransactionThread();
     const longPressModalRef = useRef<MoneyRequestReportTransactionLongPressModalHandle>(null);
     const {isOffline} = useNetwork();
@@ -312,7 +315,7 @@ function MoneyRequestReportTransactionList({
                 pendingAction: undefined,
             };
             return (
-                <View style={styles.ph5}>
+                <View style={pageGutter}>
                     <View style={narrowSectionWrapperStyle}>
                         <MoneyRequestReportGroupHeader
                             group={item.group}
@@ -333,7 +336,7 @@ function MoneyRequestReportTransactionList({
         }
         const transaction = item.transaction;
         return (
-            <View style={styles.ph5}>
+            <View style={pageGutter}>
                 <View style={narrowSectionWrapperStyle}>
                     <MoneyRequestReportTransactionItem
                         transaction={transaction}
@@ -382,7 +385,7 @@ function MoneyRequestReportTransactionList({
         </>
     ) : (
         <View onLayout={onLayout}>
-            <View style={[styles.flexRow, styles.gap2, styles.alignItemsCenter, styles.ph5, shouldUseNarrowLayout ? styles.pb3 : styles.pb2]}>
+            <View style={[styles.flexRow, styles.gap2, styles.alignItemsCenter, pageGutter, shouldUseNarrowLayout ? styles.pb3 : styles.pb2]}>
                 {shouldShowGroupedTransactions && (
                     <MoneyRequestReportGroupByButton
                         currentSelection={currentSelection}

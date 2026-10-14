@@ -15,6 +15,8 @@ import type {
     SearchDateKey,
     SearchDatePreset,
     SearchFilterKey,
+    SearchFooterCount,
+    SearchFooterTotal,
     SearchQueryJSON,
     SearchQueryString,
     SearchWithdrawalType,
@@ -94,6 +96,7 @@ type NavigationRouteLike = {
 const operatorToCharMap = {
     [CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO]: ':' as const,
     [CONST.SEARCH.SYNTAX_OPERATORS.CONTAINS]: '*:' as const,
+    [CONST.SEARCH.SYNTAX_OPERATORS.NOT_CONTAINS]: '*:' as const,
     [CONST.SEARCH.SYNTAX_OPERATORS.LOWER_THAN]: '<' as const,
     [CONST.SEARCH.SYNTAX_OPERATORS.LOWER_THAN_OR_EQUAL_TO]: '<=' as const,
     [CONST.SEARCH.SYNTAX_OPERATORS.GREATER_THAN]: '>' as const,
@@ -111,6 +114,22 @@ const VALID_IS_TYPES = new Set(Object.values(CONST.SEARCH.IS_VALUES));
 const VALID_WITHDRAWAL_TYPES = new Set(Object.values(CONST.SEARCH.WITHDRAWAL_TYPE));
 const VALID_WITHDRAWAL_STATUSES = new Set<string>(Object.values(CONST.SEARCH.SETTLEMENT_STATUS));
 const VALID_PAID_STATUSES = new Set<string>(Object.values(CONST.SEARCH.PAID_STATUS));
+const VALID_FOOTER_COUNTS = new Set<string>(Object.values(CONST.SEARCH.FOOTER_COUNT));
+const VALID_FOOTER_TOTALS = new Set<string>(Object.values(CONST.SEARCH.FOOTER_TOTAL));
+const FOOTER_FILTER_KEYS = new Set<SearchFilterKey>([
+    CONST.SEARCH.SYNTAX_FILTER_KEYS.FOOTER_COUNT,
+    CONST.SEARCH.SYNTAX_FILTER_KEYS.FOOTER_TOTAL,
+    CONST.SEARCH.SYNTAX_FILTER_KEYS.FOOTER_CURRENCY,
+]);
+
+function isFooterCount(value: string): value is SearchFooterCount {
+    return VALID_FOOTER_COUNTS.has(value);
+}
+
+function isFooterTotal(value: string): value is SearchFooterTotal {
+    return VALID_FOOTER_TOTALS.has(value);
+}
+
 const VALID_GROUP_BYS = new Set<string>(Object.values(CONST.SEARCH.GROUP_BY));
 // Create reverse lookup maps for O(1) performance
 const createKeyToUserFriendlyMap = () => {
@@ -588,6 +607,8 @@ function buildFilterValuesString(filterName: string, queryFilters: QueryFilter[]
             filterValueString += `${delimiter}${sanitizeSearchValue(queryFilter.value.toString())}`;
         } else if (queryFilter.operator === CONST.SEARCH.SYNTAX_OPERATORS.NOT_EQUAL_TO) {
             filterValueString += ` ${CONST.SEARCH.NOT_PREFIX}${filterName}:${sanitizeSearchValue(queryFilter.value.toString())}`;
+        } else if (queryFilter.operator === CONST.SEARCH.SYNTAX_OPERATORS.NOT_CONTAINS) {
+            filterValueString += ` ${CONST.SEARCH.NOT_PREFIX}${filterName}${operatorToCharMap[CONST.SEARCH.SYNTAX_OPERATORS.NOT_CONTAINS]}${sanitizeSearchValue(queryFilter.value.toString())}`;
         } else if (queryFilter.operator === CONST.SEARCH.SYNTAX_OPERATORS.RANGE) {
             const rangeBoundaries = parseRangeQueryValue(queryFilter.value.toString());
             if (rangeBoundaries.from) {
@@ -668,11 +689,72 @@ function getFilters(queryJSON: SearchQueryJSON) {
 }
 
 function getFilterFromQuery(queryJSON: SearchQueryJSON | undefined, filterKey: SearchAdvancedFiltersKey): Filter {
-    const filters = queryJSON?.flatFilters.find((filter) => filter.key === filterKey)?.filters;
+    const filters = queryJSON?.flatFilters?.find((filter) => filter.key === filterKey)?.filters;
     const isNegated = filters?.at(0)?.operator === CONST.SEARCH.SYNTAX_OPERATORS.NOT_EQUAL_TO;
     const value = filters?.map((filter) => filter.value.toString());
 
     return {value, isNegated};
+}
+
+/**
+ * The Spend footer's display selections, read off the query the footer is showing. A value the footer cannot render is
+ * dropped rather than displayed, so a hand-typed one behaves like no selection at all. The currency is upper-cased so
+ * `footerCurrency:eur` and `footerCurrency:EUR` are one selection rather than two.
+ */
+function getFooterSelectionFromQuery(queryJSON: SearchQueryJSON | undefined) {
+    const count = getFilterFromQuery(queryJSON, CONST.SEARCH.SYNTAX_FILTER_KEYS.FOOTER_COUNT).value?.at(0);
+    const total = getFilterFromQuery(queryJSON, CONST.SEARCH.SYNTAX_FILTER_KEYS.FOOTER_TOTAL).value?.at(0);
+    const currency = getFilterFromQuery(queryJSON, CONST.SEARCH.SYNTAX_FILTER_KEYS.FOOTER_CURRENCY).value?.at(0);
+
+    return {
+        footerCount: count && isFooterCount(count) ? count : undefined,
+        footerTotal: total && isFooterTotal(total) ? total : undefined,
+        footerCurrency: currency ? currency.toUpperCase() : undefined,
+    };
+}
+
+function getQueryWithoutFooterSelections(queryJSON: SearchQueryJSON | Readonly<SearchQueryJSON>) {
+    return buildSearchQueryString({...queryJSON, flatFilters: queryJSON.flatFilters.filter((filter) => !FOOTER_FILTER_KEYS.has(filter.key))});
+}
+
+function hasFooterSelections(queryJSON: SearchQueryJSON | Readonly<SearchQueryJSON>) {
+    return queryJSON.flatFilters.some((filter) => FOOTER_FILTER_KEYS.has(filter.key));
+}
+
+/**
+ * The query the Spend footer's selections produce, built from the query the footer is showing. Only `footerTotal`
+ * changes what the backend returns. The other two ride along so the selection is restored with the search.
+ */
+/** The count a footer with no selection shows: reports on the Reports search, expenses everywhere else. */
+function getDefaultFooterCount(type: SearchDataTypes | undefined): SearchFooterCount {
+    return type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT ? CONST.SEARCH.FOOTER_COUNT.REPORTS : CONST.SEARCH.FOOTER_COUNT.EXPENSES;
+}
+
+function getQueryWithFooterSelection(
+    queryJSON: SearchQueryJSON | Readonly<SearchQueryJSON>,
+    selection: {footerCount?: SearchFooterCount; footerTotal?: SearchFooterTotal; footerCurrency?: string},
+) {
+    const flatFilters = queryJSON.flatFilters.filter((filter) => !FOOTER_FILTER_KEYS.has(filter.key));
+    const nextSelection = {...getFooterSelectionFromQuery(queryJSON), ...selection};
+
+    for (const [key, value] of [
+        [CONST.SEARCH.SYNTAX_FILTER_KEYS.FOOTER_COUNT, nextSelection.footerCount],
+        [CONST.SEARCH.SYNTAX_FILTER_KEYS.FOOTER_TOTAL, nextSelection.footerTotal],
+        [CONST.SEARCH.SYNTAX_FILTER_KEYS.FOOTER_CURRENCY, nextSelection.footerCurrency],
+    ] as const) {
+        // The plain total and the type's own count are what a query with no selection already shows, so they are left
+        // out rather than spelled out: going back to them returns the query to what it was before the footer was
+        // touched, in the URL and in a saved search alike.
+        const isDefaultSelection =
+            (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.FOOTER_TOTAL && value === CONST.SEARCH.FOOTER_TOTAL.TOTAL) ||
+            (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.FOOTER_COUNT && value === getDefaultFooterCount(queryJSON.type));
+        if (!value || isDefaultSelection) {
+            continue;
+        }
+        flatFilters.push({key, filters: [{operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, value}]});
+    }
+
+    return buildSearchQueryString({...queryJSON, flatFilters});
 }
 
 /**
@@ -883,6 +965,12 @@ function getQueryHashes(query: SearchQueryJSON) {
             continue;
         }
 
+        // The Spend footer's selections ride along as filters but match no rows, so they must not make a query look
+        // like a different (or a less similar) search, or key a snapshot of its own.
+        if (FOOTER_FILTER_KEYS.has(filterKey)) {
+            continue;
+        }
+
         if (!similarSearchIgnoredFilters.has(filterKey)) {
             filterSet.add(filterKey);
         }
@@ -908,6 +996,7 @@ function getQueryHashes(query: SearchQueryJSON) {
     if (query.limit !== undefined) {
         orderedQuery += ` ${CONST.SEARCH.SYNTAX_ROOT_KEYS.LIMIT}:${query.limit}`;
     }
+
     if (query.compare) {
         orderedQuery += ` ${CONST.SEARCH.SYNTAX_ROOT_KEYS.COMPARE}:${query.compare}`;
     }
@@ -1081,7 +1170,17 @@ function buildSearchQueryString(queryJSON?: SearchQueryJSON | Readonly<SearchQue
     return queryParts.join(' ');
 }
 
-const NON_FILTER_CHIP_KEYS = new Set<SearchFilterKey>([CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD, CONST.SEARCH.SYNTAX_FILTER_KEYS.GROUP_CURRENCY]);
+// Filters that are not row filters, so they neither light up the Reset button nor get cleared by it. The Spend footer's
+// selections belong here for the same reason the group currency does: they change what the footer displays, not which
+// rows the search matches.
+const NON_FILTER_CHIP_KEYS = new Set<SearchFilterKey>([
+    CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD,
+    CONST.SEARCH.SYNTAX_FILTER_KEYS.GROUP_CURRENCY,
+    CONST.SEARCH.SYNTAX_FILTER_KEYS.FOOTER_COUNT,
+    CONST.SEARCH.SYNTAX_FILTER_KEYS.FOOTER_TOTAL,
+    CONST.SEARCH.SYNTAX_FILTER_KEYS.FOOTER_CURRENCY,
+]);
+const NON_SAVABLE_FILTER_KEYS = new Set<SearchFilterKey>([CONST.SEARCH.SYNTAX_FILTER_KEYS.GROUP_CURRENCY]);
 
 function buildQueryStringWithResetFilters(currentQueryJSON: SearchQueryJSON, defaultQueryJSON: SearchQueryJSON | undefined) {
     const resetFilters = (defaultQueryJSON?.flatFilters ?? []).filter((filter) => !NON_FILTER_CHIP_KEYS.has(filter.key));
@@ -1094,8 +1193,22 @@ function buildQueryStringWithResetFilters(currentQueryJSON: SearchQueryJSON, def
     });
 }
 
-function hasFiltersChangedFromDefault(currentQueryJSON: SearchQueryJSON, defaultQueryJSON: SearchQueryJSON) {
-    return getQueryHashWithoutFilters(currentQueryJSON, NON_FILTER_CHIP_KEYS) !== getQueryHashWithoutFilters(defaultQueryJSON, NON_FILTER_CHIP_KEYS);
+function hasFiltersChangedFromDefault(currentQueryJSON: SearchQueryJSON, defaultQueryJSON: SearchQueryJSON, ignoredFilterKeys: ReadonlySet<SearchFilterKey> = NON_FILTER_CHIP_KEYS) {
+    return getQueryHashWithoutFilters(currentQueryJSON, ignoredFilterKeys) !== getQueryHashWithoutFilters(defaultQueryJSON, ignoredFilterKeys);
+}
+
+function isSearchQuerySavable(currentQueryJSON: SearchQueryJSON | undefined, defaultQueryJSON: SearchQueryJSON | undefined) {
+    if (!currentQueryJSON) {
+        return false;
+    }
+
+    // A query without a default query isn't bound to any suggested or saved search
+    // (e.g. a trip or chat type query), so it's savable as is, even without filters or a keyword.
+    if (!defaultQueryJSON) {
+        return true;
+    }
+
+    return hasFiltersChangedFromDefault(currentQueryJSON, defaultQueryJSON, NON_SAVABLE_FILTER_KEYS);
 }
 
 function getSanitizedRawFilters(queryJSON: SearchQueryJSON): RawQueryFilter[] | undefined {
@@ -1192,7 +1305,7 @@ function buildQueryStringFromFilterFormValues(filterValues: Partial<SearchAdvanc
     }
 
     // We separate type and status filters from other filters to maintain hashes consistency for saved searches
-    const {type, groupBy, view, columns, limit, ...otherFilters} = supportedFilterValues;
+    const {type, groupBy, view, columns, limit, footerCount, footerTotal, footerCurrency, ...otherFilters} = supportedFilterValues;
     const filtersString: string[] = [];
 
     if (options?.sortBy) {
@@ -1225,6 +1338,20 @@ function buildQueryStringFromFilterFormValues(filterValues: Partial<SearchAdvanc
         if (filterValueArray.length) {
             filtersString.push(`${CONST.SEARCH.SYNTAX_ROOT_KEYS.COLUMNS}:${filterValueArray.map((value) => sanitizeSearchValue(value)).join(',')}`);
         }
+    }
+
+    // The Spend footer's display selections. They are filters as far as the query goes, because that is where the
+    // backend reads them, but they match no rows. Only `footerTotal` changes anything, by swapping the total returned.
+    if (footerCount) {
+        filtersString.push(`${CONST.SEARCH.SYNTAX_FILTER_KEYS.FOOTER_COUNT}:${sanitizeSearchValue(footerCount)}`);
+    }
+
+    if (footerTotal) {
+        filtersString.push(`${CONST.SEARCH.SYNTAX_FILTER_KEYS.FOOTER_TOTAL}:${sanitizeSearchValue(footerTotal)}`);
+    }
+
+    if (footerCurrency) {
+        filtersString.push(`${CONST.SEARCH.SYNTAX_FILTER_KEYS.FOOTER_CURRENCY}:${sanitizeSearchValue(footerCurrency)}`);
     }
 
     const mappedFilters = Object.entries(otherFilters)
@@ -1333,7 +1460,6 @@ function buildQueryStringFromFilterFormValues(filterValues: Partial<SearchAdvanc
                     filterKey === FILTER_KEYS.EXPENSE_TYPE ||
                     filterKey === FILTER_KEYS.RECEIPT_TYPE ||
                     filterKey === FILTER_KEYS.TAG ||
-                    filterKey === FILTER_KEYS.VENDOR ||
                     filterKey === FILTER_KEYS.CURRENCY ||
                     filterKey === FILTER_KEYS.PURCHASE_CURRENCY ||
                     filterKey === FILTER_KEYS.FROM ||
@@ -1398,20 +1524,31 @@ function buildQueryStringFromFilterFormValues(filterValues: Partial<SearchAdvanc
     return filtersString.filter(Boolean).join(' ').trim();
 }
 
+function isPolicyCollection(key: OnyxCollectionKey, data: unknown): data is OnyxCollection<OnyxTypes.Policy> {
+    if (key !== ONYXKEYS.COLLECTION.POLICY) {
+        return false;
+    }
+    return !!data;
+}
+
 function getAllPolicyValues<T extends OnyxCollectionKey>(
     policyID: Filter | undefined,
     key: T,
     policyData: OnyxCollection<OnyxCollectionValuesMapping[T]>,
+    policies?: OnyxCollection<OnyxTypes.Policy>,
 ): Array<OnyxCollectionValuesMapping[T]> {
     if (!policyData || !policyID || !policyID.value) {
         return Object.values(policyData ?? {}).filter((data): data is NonNullable<typeof data> => !!data);
     }
 
+    const policiesForResolution = policies ?? (isPolicyCollection(key, policyData) ? policyData : undefined);
+    const resolvedValues = policiesForResolution ? policyID.value.map((id) => resolvePolicyIDFromName(id, policiesForResolution)) : policyID.value;
+
     if (policyID.isNegated) {
         return Object.keys(policyData).reduce(
             (acc, curr) => {
                 const id = curr.replace(key, '');
-                if (!policyID.value?.includes(id) && policyData[curr]) {
+                if (!resolvedValues.includes(id) && policyData[curr]) {
                     acc.push(policyData[curr]);
                 }
                 return acc;
@@ -1420,23 +1557,27 @@ function getAllPolicyValues<T extends OnyxCollectionKey>(
         );
     }
 
-    return policyID.value.map((id) => policyData?.[`${key}${id}`]).filter((data): data is NonNullable<typeof data> => !!data);
+    return resolvedValues.map((id) => policyData?.[`${key}${id}`]).filter((data): data is NonNullable<typeof data> => !!data);
 }
 
 function getAllPolicyValuesMap<T extends OnyxCollectionKey>(
     policyID: Filter | undefined,
     key: T,
     policyData: OnyxCollection<OnyxCollectionValuesMapping[T]>,
+    policies?: OnyxCollection<OnyxTypes.Policy>,
 ): OnyxCollection<OnyxCollectionValuesMapping[T]> {
     if (!policyData || !policyID || !policyID.value) {
         return {};
     }
 
+    const policiesForResolution = policies ?? (isPolicyCollection(key, policyData) ? policyData : undefined);
+    const resolvedValues = policiesForResolution ? policyID.value.map((id) => resolvePolicyIDFromName(id, policiesForResolution)) : policyID.value;
+
     if (policyID.isNegated) {
         return Object.keys(policyData).reduce(
             (acc, curr) => {
                 const id = curr.replace(key, '');
-                if (!policyID.value?.includes(id) && policyData[curr]) {
+                if (!resolvedValues.includes(id) && policyData[curr]) {
                     acc[curr] = policyData[curr];
                 }
                 return acc;
@@ -1445,7 +1586,7 @@ function getAllPolicyValuesMap<T extends OnyxCollectionKey>(
         );
     }
 
-    return policyID.value.reduce(
+    return resolvedValues.reduce(
         (acc, curr) => {
             if (policyData?.[`${key}${curr}`]) {
                 acc[`${key}${curr}`] = policyData?.[`${key}${curr}`];
@@ -1780,10 +1921,6 @@ function buildFilterFormValuesFromQuery(
                 .filter((name) => uniqueCategories.has(name))
                 .concat(hasEmptyCategoriesInFilter ? [CONST.SEARCH.CATEGORY_EMPTY_VALUE] : []);
         }
-        if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.VENDOR) {
-            // Vendor names are matched by text on the server and the synced vendor lists load lazily, so the typed values are kept as-is.
-            filtersForm[addNegation(filterKey, isNegated)] = filterValues;
-        }
         if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD) {
             filtersForm[filterKey] = filterValues
                 ?.map((filter) => {
@@ -1965,6 +2102,19 @@ function buildFilterFormValuesFromQuery(
 
     if (queryJSON.limit !== undefined) {
         filtersForm[FILTER_KEYS.LIMIT] = queryJSON.limit.toString();
+    }
+
+    const footerSelection = getFooterSelectionFromQuery(queryJSON);
+    if (footerSelection.footerCount) {
+        filtersForm[FILTER_KEYS.FOOTER_COUNT] = footerSelection.footerCount;
+    }
+
+    if (footerSelection.footerTotal) {
+        filtersForm[FILTER_KEYS.FOOTER_TOTAL] = footerSelection.footerTotal;
+    }
+
+    if (footerSelection.footerCurrency) {
+        filtersForm[FILTER_KEYS.FOOTER_CURRENCY] = footerSelection.footerCurrency;
     }
 
     if (queryJSON.compare) {
@@ -2451,12 +2601,16 @@ function buildCannedSearchQuery({
     return buildSearchQueryString(normalizedQueryJSON);
 }
 
+function hasNonFooterFilters(queryJSON: SearchQueryJSON | Readonly<SearchQueryJSON>) {
+    return !!queryJSON.filters && queryJSON.flatFilters.some((filter) => !FOOTER_FILTER_KEYS.has(filter.key));
+}
+
 function isDefaultExpensesQuery(queryJSON: SearchQueryJSON | Readonly<SearchQueryJSON>) {
-    return queryJSON.type === CONST.SEARCH.DATA_TYPES.EXPENSE && !queryJSON.filters && !queryJSON.groupBy;
+    return queryJSON.type === CONST.SEARCH.DATA_TYPES.EXPENSE && !hasNonFooterFilters(queryJSON) && !queryJSON.groupBy;
 }
 
 function isDefaultExpenseReportsQuery(queryJSON: SearchQueryJSON | Readonly<SearchQueryJSON>) {
-    return queryJSON.type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT && !queryJSON.filters && !queryJSON.groupBy;
+    return queryJSON.type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT && !hasNonFooterFilters(queryJSON) && !queryJSON.groupBy;
 }
 
 /**
@@ -2878,7 +3032,7 @@ function serializeQueryJSONForBackend<T extends {filters?: ASTNode | null; rawFi
               return filter;
           })
         : queryData.rawFilterList;
-    return JSON.stringify({...queryData, filters: normalizedFilters, rawFilterList: normalizedRawFilterList, status: ''});
+    return JSON.stringify({...queryData, filters: normalizedFilters, rawFilterList: normalizedRawFilterList});
 }
 
 function addNegation<T extends string>(filterKey: T, isNegated: boolean): T | `${T}${typeof CONST.SEARCH.NOT_MODIFIER}` {
@@ -2957,7 +3111,13 @@ export {
     getRangeQueryValue,
     getQueryHashWithoutFilters,
     getQueryHashes,
+    getDefaultFooterCount,
+    getFooterSelectionFromQuery,
+    getQueryWithFooterSelection,
+    getQueryWithoutFooterSelections,
+    hasFooterSelections,
     hasFiltersChangedFromDefault,
+    isSearchQuerySavable,
     withExactMatchFilterKeys,
     isSearchDatePreset,
     getDateRangeForPreset,

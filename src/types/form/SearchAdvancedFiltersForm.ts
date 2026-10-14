@@ -6,6 +6,8 @@ import type {
     SearchAmountFilterKeys,
     SearchCustomColumnIds,
     SearchDateFilterKeys,
+    SearchFooterCount,
+    SearchFooterTotal,
     SearchGroupBy,
     SearchTextFilterKeys,
     SearchPaidStatus,
@@ -139,9 +141,6 @@ const FILTER_KEYS = {
     CATEGORY_NOT: 'categoryNot',
     CATEGORY: 'category',
 
-    VENDOR_NOT: 'vendorNot',
-    VENDOR: 'vendor',
-
     CARD_ID_NOT: 'cardIDNot',
     CARD_ID: 'cardID',
 
@@ -267,6 +266,10 @@ const FILTER_KEYS = {
 
     COLUMNS: 'columns',
     LIMIT: 'limit',
+
+    FOOTER_COUNT: 'footerCount',
+    FOOTER_TOTAL: 'footerTotal',
+    FOOTER_CURRENCY: 'footerCurrency',
     COMPARE: 'compare',
 } as const;
 
@@ -310,8 +313,6 @@ const ALLOWED_TYPE_FILTERS: Record<string, Set<string>> = {
         FILTER_KEYS.CATEGORY_NOT,
         FILTER_KEYS.TAG,
         FILTER_KEYS.TAG_NOT,
-        FILTER_KEYS.VENDOR,
-        FILTER_KEYS.VENDOR_NOT,
         FILTER_KEYS.PAYER,
         FILTER_KEYS.PAYER_NOT,
         FILTER_KEYS.PAID_BY,
@@ -397,6 +398,9 @@ const ALLOWED_TYPE_FILTERS: Record<string, Set<string>> = {
         FILTER_KEYS.ATTENDEE_NOT,
         FILTER_KEYS.COLUMNS,
         FILTER_KEYS.LIMIT,
+        FILTER_KEYS.FOOTER_COUNT,
+        FILTER_KEYS.FOOTER_TOTAL,
+        FILTER_KEYS.FOOTER_CURRENCY,
     ]),
     [CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT]: new Set([
         FILTER_KEYS.TYPE,
@@ -483,6 +487,9 @@ const ALLOWED_TYPE_FILTERS: Record<string, Set<string>> = {
         FILTER_KEYS.ORDER_DEAL_NUMBERS_NOT,
         FILTER_KEYS.REPORT_FIELD,
         FILTER_KEYS.COLUMNS,
+        FILTER_KEYS.FOOTER_COUNT,
+        FILTER_KEYS.FOOTER_TOTAL,
+        FILTER_KEYS.FOOTER_CURRENCY,
     ]),
     [CONST.SEARCH.DATA_TYPES.INVOICE]: new Set([
         FILTER_KEYS.TYPE,
@@ -798,9 +805,6 @@ type SearchAdvancedFiltersForm = Form<
         [FILTER_KEYS.CATEGORY]: string[];
         [FILTER_KEYS.CATEGORY_NOT]: string[];
 
-        [FILTER_KEYS.VENDOR]: string[];
-        [FILTER_KEYS.VENDOR_NOT]: string[];
-
         [FILTER_KEYS.POLICY_ID]: string[];
         [FILTER_KEYS.POLICY_ID_NOT]: string[];
 
@@ -927,6 +931,10 @@ type SearchAdvancedFiltersForm = Form<
         [FILTER_KEYS.ATTENDEE_NOT]: string[];
         [FILTER_KEYS.REPORT_FIELD]: string;
         [FILTER_KEYS.LIMIT]: string;
+
+        [FILTER_KEYS.FOOTER_COUNT]: SearchFooterCount;
+        [FILTER_KEYS.FOOTER_TOTAL]: SearchFooterTotal;
+        [FILTER_KEYS.FOOTER_CURRENCY]: string;
         [FILTER_KEYS.COMPARE]: string;
     } & Record<ReportFieldTextKey, string> &
         Record<ReportFieldDateKey, string> &

@@ -24,6 +24,10 @@ import {
     getFilterDisplayValue,
     getFilterFormValues,
     getFilterFromQuery,
+    getFooterSelectionFromQuery,
+    getQueryWithFooterSelection,
+    getQueryWithoutFooterSelections,
+    hasFooterSelections,
     queryHasViolationFilter,
     hasValuesIncludeViolationFilter,
     getDateFilterRange,
@@ -39,6 +43,7 @@ import {
     getSearchRootParamsFromRootState,
     getValidLastQuery,
     hasFiltersChangedFromDefault,
+    isSearchQuerySavable,
     isFilterNegated,
     isDefaultExpenseReportsQuery,
     isDefaultExpensesQuery,
@@ -71,6 +76,13 @@ import createRandomPolicy from '../../utils/collections/policies';
 import {formatPhoneNumber, localeCompare, translateLocal} from '../../utils/TestHelper';
 
 const mockGetRootState = jest.fn();
+
+jest.mock('@expensify/react-native-hybrid-app', () => ({
+    __esModule: true,
+    default: {
+        isHybridApp: jest.fn(() => false),
+    },
+}));
 
 jest.mock('@libs/Navigation/navigationRef', () => ({
     __esModule: true,
@@ -458,6 +470,15 @@ describe('SearchQueryUtils', () => {
             expect(result).toEqual(`${defaultQuery} amount:2000000 foo test`);
         });
 
+        test('keeps the Spend footer selections when a typed query is rebuilt', () => {
+            const result = getQueryWithUpdatedValues('type:expense footer-count:reports footer-total:reimbursable footer-currency:eur');
+
+            expect(result).toContain('footerCount:reports');
+            expect(result).toContain('footerTotal:reimbursable');
+            // The currency is read back upper-cased. The query keeps whatever case was typed, which nothing depends on.
+            expect(result).toContain('footerCurrency:eur');
+        });
+
         test('rebuilds a single value containing a comma as one value', () => {
             expect(getQueryWithUpdatedValues(String.raw`merchant:Globex\,Ltd`)).toEqual(`${defaultQuery} merchant:"Globex,Ltd"`);
             expect(getQueryWithUpdatedValues('merchant:"Globex,Ltd"')).toEqual(`${defaultQuery} merchant:"Globex,Ltd"`);
@@ -552,31 +573,6 @@ describe('SearchQueryUtils', () => {
             const result = buildQueryStringFromFilterFormValues(filterValues);
 
             expect(result).toEqual('type:expense policyID:12345 amount<100');
-        });
-
-        test('vendor filter value', () => {
-            const filterValues: Partial<SearchAdvancedFiltersForm> = {
-                type: 'expense',
-                vendor: ['Acme', 'none'],
-            };
-
-            const result = buildQueryStringFromFilterFormValues(filterValues);
-
-            expect(result).toEqual('type:expense vendor:Acme,none');
-        });
-
-        test('negated vendor filter value', () => {
-            // Given a filter form that excludes a vendor
-            const filterValues: Partial<SearchAdvancedFiltersForm> = {
-                type: 'expense',
-                vendorNot: ['Acme'],
-            };
-
-            // When the query string is built from the form
-            const result = buildQueryStringFromFilterFormValues(filterValues);
-
-            // Then the vendor filter keeps its negation so the exclusion is not turned into a match
-            expect(result).toEqual('type:expense -vendor:Acme');
         });
 
         test('receipt type filter value', () => {
@@ -1066,6 +1062,45 @@ describe('SearchQueryUtils', () => {
             });
         });
 
+        describe('Spend footer selections', () => {
+            test('includes every footer selection in the query string', () => {
+                const filterValues: Partial<SearchAdvancedFiltersForm> = {
+                    type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
+                    footerCount: CONST.SEARCH.FOOTER_COUNT.REPORTS,
+                    footerTotal: CONST.SEARCH.FOOTER_TOTAL.NON_REIMBURSABLE,
+                    footerCurrency: 'EUR',
+                };
+
+                const result = buildQueryStringFromFilterFormValues(filterValues);
+
+                expect(result).toEqual('type:expense-report footerCount:reports footerTotal:non-reimbursable footerCurrency:EUR');
+            });
+
+            test('omits footer selections that are not set', () => {
+                const filterValues: Partial<SearchAdvancedFiltersForm> = {
+                    type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                    footerTotal: CONST.SEARCH.FOOTER_TOTAL.BILLABLE,
+                };
+
+                const result = buildQueryStringFromFilterFormValues(filterValues);
+
+                expect(result).toEqual('type:expense footerTotal:billable');
+            });
+
+            test('drops footer selections for a type that has no Spend footer', () => {
+                const filterValues: Partial<SearchAdvancedFiltersForm> = {
+                    type: CONST.SEARCH.DATA_TYPES.TRIP,
+                    footerCount: CONST.SEARCH.FOOTER_COUNT.EXPENSES,
+                    footerTotal: CONST.SEARCH.FOOTER_TOTAL.REIMBURSABLE,
+                    footerCurrency: 'EUR',
+                };
+
+                const result = buildQueryStringFromFilterFormValues(filterValues);
+
+                expect(result).toEqual('type:trip');
+            });
+        });
+
         describe('compare option', () => {
             test('includes valid compare mode in query string when provided in form values', () => {
                 // Given form values carrying a valid compare mode
@@ -1392,6 +1427,33 @@ describe('SearchQueryUtils', () => {
             expect(merchantFilter?.value).toBe('Lyft');
         });
 
+        test('renders the Spend footer selections in their user-friendly spelling, so an edited query keeps them', () => {
+            const queryJSON = buildSearchQueryJSON('type:expense footerCount:reports footerTotal:non-reimbursable footerCurrency:EUR');
+
+            if (!queryJSON) {
+                throw new Error('Failed to parse query string');
+            }
+
+            const result = buildUserReadableQueryString({
+                queryJSON,
+                PersonalDetails: undefined,
+                reports: emptyReports,
+                taxRates: emptyTaxRates,
+                cardList: emptyCardList,
+                cardFeeds: emptyCardFeeds,
+                policies: emptyPolicies,
+                currentUserAccountID,
+                autoCompleteWithSpace: false,
+                translate: translateLocal,
+                formatPhoneNumber,
+                reportAttributes: undefined,
+            });
+
+            expect(result).toContain('footer-count:reports');
+            expect(result).toContain('footer-total:non-reimbursable');
+            expect(result).toContain('footer-currency:EUR');
+        });
+
         test('includes limit in readable query string when present', () => {
             const queryJSON = buildSearchQueryJSON('type:expense limit:25');
 
@@ -1509,40 +1571,6 @@ describe('SearchQueryUtils', () => {
             });
         });
 
-        test('vendor filter keeps the typed names and the empty value', () => {
-            const queryString = 'sortBy:date sortOrder:desc type:expense vendor:"Acme Tools",none';
-            const queryJSON = buildSearchQueryJSON(queryString);
-
-            if (!queryJSON) {
-                throw new Error('Failed to parse query string');
-            }
-
-            const result = buildFilterFormValuesFromQuery(queryJSON, {}, {}, {}, {}, {}, {});
-
-            expect(result).toEqual({
-                type: 'expense',
-                vendor: ['Acme Tools', 'none'],
-            });
-        });
-
-        test('negated vendor filter is kept in the negated form key', () => {
-            // Given a typed query that excludes a vendor
-            const queryJSON = buildSearchQueryJSON('sortBy:date sortOrder:desc type:expense -vendor:"Acme Tools"');
-
-            if (!queryJSON) {
-                throw new Error('Failed to parse query string');
-            }
-
-            // When the filter form is built from the query
-            const result = buildFilterFormValuesFromQuery(queryJSON, {}, {}, {}, {}, {}, {});
-
-            // Then the exclusion lands in vendorNot so applying the form keeps it an exclusion
-            expect(result).toEqual({
-                type: 'expense',
-                vendorNot: ['Acme Tools'],
-            });
-        });
-
         test('action filter should be set to undefined if the input value is invalid', () => {
             const policyCategories = {};
             const currencyList = {};
@@ -1578,6 +1606,22 @@ describe('SearchQueryUtils', () => {
             expect(result).toEqual({
                 type: 'expense',
                 action: undefined,
+            });
+        });
+
+        test('reads the Spend footer selections back into the filter form', () => {
+            const queryJSON = buildSearchQueryJSON('type:expense-report footerCount:reports footerTotal:reimbursable footerCurrency:EUR');
+
+            if (!queryJSON) {
+                throw new Error('Failed to parse query string');
+            }
+
+            const result = buildFilterFormValuesFromQuery(queryJSON, {}, {}, {}, {}, {}, {});
+
+            expect(result).toMatchObject({
+                footerCount: CONST.SEARCH.FOOTER_COUNT.REPORTS,
+                footerTotal: CONST.SEARCH.FOOTER_TOTAL.REIMBURSABLE,
+                footerCurrency: 'EUR',
             });
         });
 
@@ -2538,6 +2582,163 @@ describe('SearchQueryUtils', () => {
             expect(resetQuery).not.toContain('tea');
         });
     });
+    describe('Spend footer selection hashing', () => {
+        it('gives the footer count selection no effect on any hash, so switching it needs no new search', () => {
+            const expenses = buildSearchQueryJSON('type:expense-report footerCount:expenses');
+            const reports = buildSearchQueryJSON('type:expense-report footerCount:reports');
+            const noSelection = buildSearchQueryJSON('type:expense-report');
+
+            expect(getFooterSelectionFromQuery(expenses).footerCount).toEqual(CONST.SEARCH.FOOTER_COUNT.EXPENSES);
+            expect(getFooterSelectionFromQuery(reports).footerCount).toEqual(CONST.SEARCH.FOOTER_COUNT.REPORTS);
+            expect(expenses?.hash).toEqual(reports?.hash);
+            expect(expenses?.hash).toEqual(noSelection?.hash);
+            expect(expenses?.recentSearchHash).toEqual(noSelection?.recentSearchHash);
+            expect(expenses?.similarSearchHash).toEqual(noSelection?.similarSearchHash);
+        });
+
+        it('leaves the plain total out of the query, so switching back to it returns the query to what it was', () => {
+            const queryJSON = buildSearchQueryJSON('type:expense footerTotal:billable footerCurrency:EUR');
+            if (!queryJSON) {
+                throw new Error('Failed to parse query string');
+            }
+
+            const backToPlainTotal = getQueryWithFooterSelection(queryJSON, {footerTotal: CONST.SEARCH.FOOTER_TOTAL.TOTAL});
+
+            expect(backToPlainTotal).not.toContain('footerTotal');
+            // The currency rides along untouched.
+            expect(backToPlainTotal).toContain('footerCurrency:EUR');
+        });
+
+        it("leaves the type's own count out of the query, so resetting it returns the query to what it was", () => {
+            // Given an Expenses and a Reports search each switched to the other count
+            const expensesQueryJSON = buildSearchQueryJSON('type:expense footerCount:reports');
+            const reportsQueryJSON = buildSearchQueryJSON('type:expense-report footerCount:expenses');
+            if (!expensesQueryJSON || !reportsQueryJSON) {
+                throw new Error('Failed to parse query string');
+            }
+
+            // When each is reset to the count its type shows by default
+            const expensesReset = getQueryWithFooterSelection(expensesQueryJSON, {footerCount: CONST.SEARCH.FOOTER_COUNT.EXPENSES});
+            const reportsReset = getQueryWithFooterSelection(reportsQueryJSON, {footerCount: CONST.SEARCH.FOOTER_COUNT.REPORTS});
+
+            // Then neither spells the default out
+            expect(expensesReset).not.toContain('footerCount');
+            expect(reportsReset).not.toContain('footerCount');
+        });
+
+        it('still writes the count that is not the type default', () => {
+            // Given an Expenses search with no count selection
+            const queryJSON = buildSearchQueryJSON('type:expense');
+            if (!queryJSON) {
+                throw new Error('Failed to parse query string');
+            }
+
+            // When the footer switches it to reports
+            const result = getQueryWithFooterSelection(queryJSON, {footerCount: CONST.SEARCH.FOOTER_COUNT.REPORTS});
+
+            // Then the choice is kept in the query
+            expect(result).toContain('footerCount:reports');
+        });
+
+        it('leaves every hash alone for the footer total, so one search keeps one snapshot', () => {
+            const noSelection = buildSearchQueryJSON('type:expense');
+            const reimbursable = buildSearchQueryJSON('type:expense footerTotal:reimbursable');
+            const billable = buildSearchQueryJSON('type:expense footerTotal:billable');
+
+            // The breakdown is a different aggregate over the same rows, so it keys nothing: the list keeps its
+            // snapshot, its pages and its selection across a switch, and the footer refreshes the figures itself.
+            expect(reimbursable?.hash).toEqual(noSelection?.hash);
+            expect(billable?.hash).toEqual(noSelection?.hash);
+            expect(reimbursable?.recentSearchHash).toEqual(noSelection?.recentSearchHash);
+            expect(reimbursable?.similarSearchHash).toEqual(noSelection?.similarSearchHash);
+        });
+
+        it('leaves every hash alone for the footer currency, which Search ignores and a separate command converts', () => {
+            const noSelection = buildSearchQueryJSON('type:expense');
+            const usd = buildSearchQueryJSON('type:expense footerCurrency:USD');
+            const eur = buildSearchQueryJSON('type:expense footerCurrency:EUR');
+
+            expect(usd?.hash).toEqual(eur?.hash);
+            expect(usd?.hash).toEqual(noSelection?.hash);
+        });
+
+        it('leaves a query carrying only footer selections the default one, since they filter nothing', () => {
+            const isDefaultExpenses = (query: string) => {
+                const queryJSON = buildSearchQueryJSON(query);
+                return queryJSON ? isDefaultExpensesQuery(queryJSON) : undefined;
+            };
+            const isDefaultExpenseReports = (query: string) => {
+                const queryJSON = buildSearchQueryJSON(query);
+                return queryJSON ? isDefaultExpenseReportsQuery(queryJSON) : undefined;
+            };
+
+            expect(isDefaultExpenses('type:expense footerTotal:billable footerCurrency:EUR')).toBe(true);
+            expect(isDefaultExpenses('type:expense footerTotal:billable category:Travel')).toBe(false);
+            expect(isDefaultExpenseReports('type:expense-report footerCount:expenses')).toBe(true);
+            expect(isDefaultExpenseReports('type:expense-report groupBy:report')).toBe(false);
+        });
+
+        it('keeps every footer selection out of the recent and similar search hashes, since none of them changes a result', () => {
+            const noSelection = buildSearchQueryJSON('type:expense');
+            const withSelections = buildSearchQueryJSON('type:expense footerCount:reports footerTotal:billable footerCurrency:EUR');
+
+            expect(withSelections?.recentSearchHash).toEqual(noSelection?.recentSearchHash);
+            expect(withSelections?.similarSearchHash).toEqual(noSelection?.similarSearchHash);
+        });
+
+        it('drops a footer selection the footer cannot render, so it hashes as no selection at all', () => {
+            const noSelection = buildSearchQueryJSON('type:expense');
+            const junk = buildSearchQueryJSON('type:expense footerCount:pandas footerTotal:whatever');
+
+            expect(getFooterSelectionFromQuery(junk).footerCount).toBeUndefined();
+            expect(getFooterSelectionFromQuery(junk).footerTotal).toBeUndefined();
+            expect(junk?.hash).toEqual(noSelection?.hash);
+        });
+
+        it('strips every footer selection back out, landing on the snapshot the plain query keys', () => {
+            const carried = buildSearchQueryJSON('type:expense status:all footerCount:reports footerTotal:reimbursable footerCurrency:EUR');
+            const stripped = carried ? buildSearchQueryJSON(getQueryWithoutFooterSelections(carried)) : undefined;
+            const plain = buildSearchQueryJSON('type:expense status:all');
+
+            // The same search, so the same snapshot: a reader that ignores the selections asks for nothing of its own
+            expect(stripped?.hash).toEqual(plain?.hash);
+            expect(getFooterSelectionFromQuery(stripped).footerCount).toBeUndefined();
+            expect(getFooterSelectionFromQuery(stripped).footerTotal).toBeUndefined();
+            expect(getFooterSelectionFromQuery(stripped).footerCurrency).toBeUndefined();
+        });
+
+        it('keeps the rest of the query when the footer selections are stripped', () => {
+            const carried = buildSearchQueryJSON('type:expense sortBy:amount sortOrder:asc category:Travel footerTotal:billable');
+            const stripped = carried ? buildSearchQueryJSON(getQueryWithoutFooterSelections(carried)) : undefined;
+
+            expect(stripped?.sortBy).toEqual(CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT);
+            expect(stripped?.sortOrder).toEqual(CONST.SEARCH.SORT_ORDER.ASC);
+            expect(stripped?.flatFilters.map((filter) => filter.key)).toEqual([CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY]);
+        });
+
+        it('tells a query carrying footer selections from one that is not', () => {
+            const carried = buildSearchQueryJSON('type:expense footerTotal:billable');
+            const plain = buildSearchQueryJSON('type:expense category:Travel');
+
+            expect(carried ? hasFooterSelections(carried) : undefined).toBe(true);
+            expect(plain ? hasFooterSelections(plain) : undefined).toBe(false);
+        });
+
+        it('reads the footer currency back in upper case, so the same currency in either case is one selection', () => {
+            const lower = buildSearchQueryJSON('type:expense footerCurrency:eur');
+            const upper = buildSearchQueryJSON('type:expense footerCurrency:EUR');
+
+            expect(getFooterSelectionFromQuery(lower).footerCurrency).toEqual('EUR');
+            expect(getFooterSelectionFromQuery(upper).footerCurrency).toEqual('EUR');
+        });
+
+        it('leaves the hashes of a query carrying no footer selection unchanged, so existing saved searches keep theirs', () => {
+            // Captured before the footer keys existed. These hashes key saved searches and snapshots, so they must not drift.
+            expect(buildSearchQueryJSON('type:expense')?.hash).toEqual(959171759);
+            expect(buildSearchQueryJSON('type:expense-report')?.hash).toEqual(1657503970);
+            expect(buildSearchQueryJSON('type:expense merchant:Amazon')?.hash).toEqual(1692688529);
+        });
+    });
 
     describe('getQueryHashWithoutFilters', () => {
         const noExcludedFilters = new Set<SearchFilterKey>();
@@ -2676,6 +2877,78 @@ describe('SearchQueryUtils', () => {
             }
 
             expect(hasFiltersChangedFromDefault(currentQueryJSON, defaultQueryJSON)).toBe(true);
+        });
+
+        it('returns true when the current query only differs by a filter that is no longer ignored', () => {
+            // Given a query that only adds a keyword to the default query
+            const defaultQueryJSON = buildSearchQueryJSON('type:expense category:travel');
+            const currentQueryJSON = buildSearchQueryJSON('type:expense category:travel hello');
+
+            if (!defaultQueryJSON || !currentQueryJSON) {
+                throw new Error('Failed to parse query string');
+            }
+
+            // When only the group currency is ignored, as when checking whether there's something to save
+            const onlyGroupCurrencyIgnored = new Set<SearchFilterKey>([CONST.SEARCH.SYNTAX_FILTER_KEYS.GROUP_CURRENCY]);
+
+            // Then the keyword counts as a change
+            expect(hasFiltersChangedFromDefault(currentQueryJSON, defaultQueryJSON, onlyGroupCurrencyIgnored)).toBe(true);
+        });
+
+        it('returns false when the current query only differs by the given ignored filters', () => {
+            // Given a query that only adds a group currency to the default query
+            const defaultQueryJSON = buildSearchQueryJSON('type:expense category:travel');
+            const currentQueryJSON = buildSearchQueryJSON('type:expense category:travel group-currency:USD');
+
+            if (!defaultQueryJSON || !currentQueryJSON) {
+                throw new Error('Failed to parse query string');
+            }
+
+            // When the group currency is ignored
+            const onlyGroupCurrencyIgnored = new Set<SearchFilterKey>([CONST.SEARCH.SYNTAX_FILTER_KEYS.GROUP_CURRENCY]);
+
+            // Then the group currency doesn't count as a change
+            expect(hasFiltersChangedFromDefault(currentQueryJSON, defaultQueryJSON, onlyGroupCurrencyIgnored)).toBe(false);
+        });
+    });
+
+    describe('isSearchQuerySavable', () => {
+        it('returns true when there is no default query, even without filters or a keyword', () => {
+            // Given a query that isn't bound to any suggested or saved search
+            const currentQueryJSON = buildSearchQueryJSON('type:trip');
+
+            // When checking whether it can be saved without a default query to compare against
+            // Then it's savable because nothing in the LHN already covers it
+            expect(isSearchQuerySavable(currentQueryJSON, undefined)).toBe(true);
+        });
+
+        it('returns false when there is no current query', () => {
+            // Given no current query
+            const defaultQueryJSON = buildSearchQueryJSON('type:expense');
+
+            // When checking whether it can be saved
+            // Then there is nothing to save
+            expect(isSearchQuerySavable(undefined, defaultQueryJSON)).toBe(false);
+        });
+
+        it('returns false when the query equals the default query', () => {
+            // Given a query that matches its default
+            const defaultQueryJSON = buildSearchQueryJSON('type:expense category:travel');
+            const currentQueryJSON = buildSearchQueryJSON('type:expense category:travel');
+
+            // When checking whether it can be saved
+            // Then there is nothing new to save
+            expect(isSearchQuerySavable(currentQueryJSON, defaultQueryJSON)).toBe(false);
+        });
+
+        it('returns true when only a keyword is added to the default query', () => {
+            // Given a query that only adds a keyword to its default
+            const defaultQueryJSON = buildSearchQueryJSON('type:expense category:travel');
+            const currentQueryJSON = buildSearchQueryJSON('type:expense category:travel hello');
+
+            // When checking whether it can be saved
+            // Then the keyword makes it a new search worth saving
+            expect(isSearchQuerySavable(currentQueryJSON, defaultQueryJSON)).toBe(true);
         });
     });
 
@@ -3007,6 +3280,27 @@ describe('SearchQueryUtils', () => {
             const result = buildSearchQueryString(queryJSON);
 
             expect(result).toContain('view:table');
+        });
+
+        test('round-trips the Spend footer selections, normalizing the user-friendly spellings', () => {
+            const queryJSON = buildSearchQueryJSON('type:expense footer-count:reports footer-total:non-billable footer-currency:EUR');
+
+            const result = buildSearchQueryString(queryJSON);
+
+            expect(result).toContain('footerCount:reports');
+            expect(result).toContain('footerTotal:non-billable');
+            expect(result).toContain('footerCurrency:EUR');
+            expect(buildSearchQueryJSON(result)?.hash).toEqual(queryJSON?.hash);
+        });
+
+        test('omits the Spend footer selections a query does not carry', () => {
+            const queryJSON = buildSearchQueryJSON('type:expense');
+
+            const result = buildSearchQueryString(queryJSON);
+
+            expect(result).not.toContain('footerCount:');
+            expect(result).not.toContain('footerTotal:');
+            expect(result).not.toContain('footerCurrency:');
         });
 
         test('preserves view along with other filters', () => {
@@ -4086,6 +4380,61 @@ describe('SearchQueryUtils', () => {
         return null;
     }
 
+    describe('Spend footer selections and the filters Reset button', () => {
+        it('does not count a footer selection as a filter change, so Reset stays hidden', () => {
+            const defaultFooterQuery = buildSearchQueryJSON('type:expense');
+            const withFooterSelections = buildSearchQueryJSON('type:expense footerCount:reports footerTotal:billable footerCurrency:EUR');
+
+            if (!defaultFooterQuery || !withFooterSelections) {
+                throw new Error('Failed to parse query string');
+            }
+
+            expect(hasFiltersChangedFromDefault(withFooterSelections, defaultFooterQuery)).toBe(false);
+        });
+
+        it('still counts a real filter as a change', () => {
+            const defaultFooterQuery = buildSearchQueryJSON('type:expense');
+            const withFilter = buildSearchQueryJSON('type:expense merchant:Amazon footerTotal:billable');
+
+            if (!defaultFooterQuery || !withFilter) {
+                throw new Error('Failed to parse query string');
+            }
+
+            expect(hasFiltersChangedFromDefault(withFilter, defaultFooterQuery)).toBe(true);
+        });
+
+        it('keeps the footer selections when the filters are reset', () => {
+            const defaultFooterQuery = buildSearchQueryJSON('type:expense');
+            const current = buildSearchQueryJSON('type:expense merchant:Amazon footerCount:reports footerTotal:billable');
+
+            if (!current || !defaultFooterQuery) {
+                throw new Error('Failed to parse query string');
+            }
+
+            const reset = buildQueryStringWithResetFilters(current, defaultFooterQuery);
+
+            expect(reset).not.toContain('merchant');
+            expect(reset).toContain('footerCount:reports');
+            expect(reset).toContain('footerTotal:billable');
+        });
+    });
+
+    describe('Spend footer selections sent to the backend', () => {
+        it('serializes the footer selections inside the filters, which is where the backend reads them', () => {
+            const queryJSON = buildSearchQueryJSON('type:expense footerCount:reports footerTotal:billable footerCurrency:EUR');
+
+            if (!queryJSON) {
+                throw new Error('Failed to parse query string');
+            }
+
+            const serialized = serializeQueryJSONForBackend(queryJSON);
+
+            expect(serialized).toContain('"left":"footerTotal","right":"billable"');
+            expect(serialized).toContain('"left":"footerCount","right":"reports"');
+            expect(serialized).toContain('"left":"footerCurrency","right":"EUR"');
+        });
+    });
+
     describe('applyContainsOperatorToTextFields', () => {
         it('should transform merchant eq to contains', () => {
             const queryJSON = buildSearchQueryJSON('type:expense merchant:coffee');
@@ -4168,7 +4517,7 @@ describe('SearchQueryUtils', () => {
                 throw new Error('Expected queryJSON to be defined');
             }
             const normalizedFilters = applyContainsOperatorToTextFields(queryJSON.filters);
-            expect(serializeQueryJSONForBackend(queryJSON)).toBe(JSON.stringify({...queryJSON, filters: normalizedFilters, status: ''}));
+            expect(serializeQueryJSONForBackend(queryJSON)).toBe(JSON.stringify({...queryJSON, filters: normalizedFilters}));
             const merchantNode = findNode(normalizedFilters, 'merchant');
             if (!merchantNode) {
                 throw new Error('Expected merchant node to be found in AST');
@@ -4179,7 +4528,7 @@ describe('SearchQueryUtils', () => {
         it('should apply contains to merchant in rawFilterList', () => {
             const rawFilterList = [{key: CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT, operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, value: 'coffee'}];
             const normalizedRawFilterList = rawFilterList.map((filter) => ({...filter, operator: CONST.SEARCH.SYNTAX_OPERATORS.CONTAINS}));
-            expect(serializeQueryJSONForBackend({filters: undefined, rawFilterList})).toBe(JSON.stringify({filters: undefined, rawFilterList: normalizedRawFilterList, status: ''}));
+            expect(serializeQueryJSONForBackend({filters: undefined, rawFilterList})).toBe(JSON.stringify({filters: undefined, rawFilterList: normalizedRawFilterList}));
         });
 
         it('should preserve exact merchant matches in AST filters', () => {
@@ -4188,7 +4537,7 @@ describe('SearchQueryUtils', () => {
                 throw new Error('Expected queryJSON to be defined');
             }
             const exactMatchFilterKeys = new Set<SearchFilterKey>([CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT]);
-            expect(serializeQueryJSONForBackend(queryJSON, exactMatchFilterKeys)).toBe(JSON.stringify({...queryJSON, status: ''}));
+            expect(serializeQueryJSONForBackend(queryJSON, exactMatchFilterKeys)).toBe(JSON.stringify(queryJSON));
             const merchantNode = findNode(queryJSON.filters, 'merchant');
             if (!merchantNode) {
                 throw new Error('Expected merchant node to be found in AST');
@@ -4199,7 +4548,7 @@ describe('SearchQueryUtils', () => {
         it('should preserve exact merchant matches in rawFilterList', () => {
             const rawFilterList = [{key: CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT, operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, value: 'coffee'}];
             const exactMatchFilterKeys = new Set<SearchFilterKey>([CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT]);
-            expect(serializeQueryJSONForBackend({filters: undefined, rawFilterList}, exactMatchFilterKeys)).toBe(JSON.stringify({filters: undefined, rawFilterList, status: ''}));
+            expect(serializeQueryJSONForBackend({filters: undefined, rawFilterList}, exactMatchFilterKeys)).toBe(JSON.stringify({filters: undefined, rawFilterList}));
         });
 
         it('should preserve multiple exact merchant matches while keeping description as contains', () => {
@@ -4209,7 +4558,7 @@ describe('SearchQueryUtils', () => {
             }
             const exactMatchFilterKeys = new Set<SearchFilterKey>([CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT]);
             const normalizedFilters = applyContainsOperatorToTextFields(queryJSON.filters, exactMatchFilterKeys);
-            expect(serializeQueryJSONForBackend(queryJSON, exactMatchFilterKeys)).toBe(JSON.stringify({...queryJSON, filters: normalizedFilters, status: ''}));
+            expect(serializeQueryJSONForBackend(queryJSON, exactMatchFilterKeys)).toBe(JSON.stringify({...queryJSON, filters: normalizedFilters}));
             const merchantNode = findNode(normalizedFilters, 'merchant');
             const descriptionNode = findNode(normalizedFilters, 'description');
             if (!merchantNode || !descriptionNode) {
@@ -4222,7 +4571,7 @@ describe('SearchQueryUtils', () => {
 
         it('should not affect non-text fields in rawFilterList', () => {
             const rawFilterList = [{key: CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY, operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, value: 'food'}];
-            expect(serializeQueryJSONForBackend({filters: undefined, rawFilterList})).toBe(JSON.stringify({filters: undefined, rawFilterList, status: ''}));
+            expect(serializeQueryJSONForBackend({filters: undefined, rawFilterList})).toBe(JSON.stringify({filters: undefined, rawFilterList}));
         });
     });
 
@@ -4798,6 +5147,34 @@ describe('SearchQueryUtils', () => {
             expect(result).toEqual([policy1]);
         });
 
+        test('resolves workspace names to policy IDs when filtering policies', () => {
+            const result = getAllPolicyValues({value: ['Workspace 1', 'Workspace 2'], isNegated: false}, ONYXKEYS.COLLECTION.POLICY, policyData);
+
+            expect(result).toEqual([policy1, policy2]);
+        });
+
+        test('resolves negated workspace names to policy IDs when filtering policies', () => {
+            const result = getAllPolicyValues({value: ['Workspace 1'], isNegated: true}, ONYXKEYS.COLLECTION.POLICY, policyData);
+
+            expect(result).toEqual([policy2, policy3]);
+        });
+
+        test('resolves workspace names using provided policies collection for other collections', () => {
+            const tagList1: OnyxTypes.PolicyTagLists = {
+                TagList: {name: 'TagList', required: false, orderWeight: 0, tags: {Tag1: {name: 'Tag1', enabled: true}}},
+            };
+            const tagList2: OnyxTypes.PolicyTagLists = {
+                TagList: {name: 'TagList', required: false, orderWeight: 0, tags: {Tag2: {name: 'Tag2', enabled: true}}},
+            };
+            const policyTagsData = {
+                [`${ONYXKEYS.COLLECTION.POLICY_TAGS}1`]: tagList1,
+                [`${ONYXKEYS.COLLECTION.POLICY_TAGS}2`]: tagList2,
+            };
+            const result = getAllPolicyValues({value: ['Workspace 1'], isNegated: false}, ONYXKEYS.COLLECTION.POLICY_TAGS, policyTagsData, policyData);
+
+            expect(result).toEqual([tagList1]);
+        });
+
         test('returns every policy value when the filter is undefined', () => {
             expect(getAllPolicyValues(undefined, ONYXKEYS.COLLECTION.POLICY, policyData)).toEqual([policy1, policy2, policy3]);
         });
@@ -4832,6 +5209,23 @@ describe('SearchQueryUtils', () => {
 
         test('returns every policy value except the excluded ones for a negated filter', () => {
             const result = getAllPolicyValuesMap({value: ['1'], isNegated: true}, ONYXKEYS.COLLECTION.POLICY, policyData);
+
+            expect(result).toEqual({
+                [`${ONYXKEYS.COLLECTION.POLICY}2`]: policy2,
+                [`${ONYXKEYS.COLLECTION.POLICY}3`]: policy3,
+            });
+        });
+
+        test('resolves workspace names to policy IDs when filtering policies', () => {
+            const result = getAllPolicyValuesMap({value: ['Workspace 1'], isNegated: false}, ONYXKEYS.COLLECTION.POLICY, policyData);
+
+            expect(result).toEqual({
+                [`${ONYXKEYS.COLLECTION.POLICY}1`]: policy1,
+            });
+        });
+
+        test('resolves negated workspace names to policy IDs when filtering policies', () => {
+            const result = getAllPolicyValuesMap({value: ['Workspace 1'], isNegated: true}, ONYXKEYS.COLLECTION.POLICY, policyData);
 
             expect(result).toEqual({
                 [`${ONYXKEYS.COLLECTION.POLICY}2`]: policy2,

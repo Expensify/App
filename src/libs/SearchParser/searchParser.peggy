@@ -72,7 +72,7 @@
 
   // List fields where you cannot prefix it with "-" to negate it
   const nonNegatableKeys = new Set([
-    "type", "keyword", "groupCurrency", "groupBy", "columns", "limit", "view", "compare"
+    "type", "keyword", "groupCurrency", "groupBy", "columns", "limit", "view", "footerCount", "footerTotal", "footerCurrency", "compare"
   ]);
 
   function isDefaultSortValue(sortBy) {
@@ -272,7 +272,6 @@ key "key"
       / groupCurrency
       / tag
       / category
-      / vendor
       / to
       / taxRate
       / cardID
@@ -312,6 +311,9 @@ key "key"
       / purchaseAmount
       / policyID
       / status
+      / footerCount
+      / footerCurrency
+      / footerTotal
       / reportFieldDynamic
     )
 

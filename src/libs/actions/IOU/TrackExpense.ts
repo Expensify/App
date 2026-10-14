@@ -1676,6 +1676,7 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
         shouldPlaySound = true,
         optimisticChatReportID,
         optimisticCreatedReportActionID,
+        optimisticIOUCreatedReportActionID,
         optimisticIOUReportID,
         optimisticReportPreviewActionID,
         shouldGenerateTransactionThreadReport,
@@ -1803,6 +1804,7 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
         testDriveCommentReportActionID,
         optimisticChatReportID,
         optimisticCreatedReportActionID,
+        optimisticIOUCreatedReportActionID,
         optimisticIOUReportID,
         optimisticReportPreviewActionID,
         shouldGenerateTransactionThreadReport,
@@ -2414,7 +2416,7 @@ function shareTrackedExpense(trackedExpenseParams: TrackedExpenseParams) {
 
     const policyEmployeeList = policyParams?.policy?.employeeList;
     if (policyParams.policy && !policyEmployeeList?.[accountantEmail]) {
-        const policyMemberAccountIDs = Object.values(getMemberAccountIDsForWorkspace(policyEmployeeList, personalDetailsByLogins, false, false));
+        const policyMemberAccountIDs = Object.values(getMemberAccountIDsForWorkspace(policyEmployeeList, personalDetailsByLogins ?? {}, false, false));
         const {
             optimisticData: addAccountantToWorkspaceOptimisticData,
             successData: addAccountantToWorkspaceSuccessData,
