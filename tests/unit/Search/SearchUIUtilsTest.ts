@@ -7261,6 +7261,19 @@ describe('SearchUIUtils', () => {
                     expect(item?.from.accountID).toBe(adminAccountID);
                 });
 
+                it('should not use the cardholder for an unreported card expense', () => {
+                    // Given an unreported card expense, which also has no report or IOU action but isn't deleted
+                    const data = makeFilterTestData({}, {reportID: CONST.REPORT.UNREPORTED_REPORT_ID, cardID: deletedCardID});
+
+                    // When the sections are built with the card list
+                    const [sections] = callGetTransactionsSections(data, {cardList});
+
+                    // Then From stays empty, because the cardholder fallback only applies to deleted expenses
+                    const item = sections.find((s) => s.transactionID === filterTestTxID);
+                    expect(item).toBeDefined();
+                    expect(item?.from.accountID).toBe(CONST.REPORT.OWNER_ACCOUNT_ID_FAKE);
+                });
+
                 it('should read the cardholder from Onyx personal details when the snapshot does not include them', () => {
                     // Given a deleted card expense whose cardholder is missing from the snapshot's personal details
                     const outsiderAccountID = 555555;

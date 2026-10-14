@@ -1902,8 +1902,9 @@ function getTransactionsSections({
                 policy,
             );
             // Use Map.get() for faster lookups with default values
-            // Deleted expenses have no report or IOU action, so fall back to the holder of the card they were charged to
-            const cardHolderAccountID = transactionItem.cardID ? cardList?.[transactionItem.cardID]?.accountID : undefined;
+            // Deleted expenses have no report or IOU action, so fall back to the holder of the card they were charged to.
+            // Only deleted rows use it, so unreported expenses keep their current From.
+            const cardHolderAccountID = isDeletedTransaction(transactionItem) && transactionItem.cardID ? cardList?.[transactionItem.cardID]?.accountID : undefined;
             const fromAccountID = reportAction?.actorAccountID ?? report?.ownerAccountID ?? cardHolderAccountID;
             const from = fromAccountID ? (personalDetailsMap.get(fromAccountID.toString()) ?? onyxPersonalDetailsList?.[fromAccountID] ?? emptyPersonalDetails) : emptyPersonalDetails;
             const to = getToFieldValueForTransaction(transactionItem, report, data.personalDetailsList, reportAction);
