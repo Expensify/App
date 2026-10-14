@@ -9,14 +9,14 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import CONST from '@src/CONST';
-import type {DynamicFormField} from '@src/types/onyx';
+import type {DynamicFormField, DynamicFormFieldType} from '@src/types/onyx';
 
 import React from 'react';
 import {View} from 'react-native';
 
 import type {DynamicFormFieldsProps} from './DynamicFormFields';
 
-type DynamicFormFieldRowProps = Pick<DynamicFormFieldsProps, 'values' | 'onRefreshRequirements'> &
+type DynamicFormFieldRowProps = Pick<DynamicFormFieldsProps, 'values' | 'maxFileSize' | 'onRefreshRequirements'> &
     Required<Pick<DynamicFormFieldsProps, 'currency'>> & {
         field: DynamicFormField;
 
@@ -25,12 +25,10 @@ type DynamicFormFieldRowProps = Pick<DynamicFormFieldsProps, 'values' | 'onRefre
     };
 
 /** Typed answers change on every keystroke, so they ask for new requirements when the user leaves the input instead */
-function isTypedField(field: DynamicFormField): boolean {
-    return field.type === 'text' || field.type === 'number';
-}
+const TYPED_FIELD_TYPES = new Set<DynamicFormFieldType>(['text', 'number', 'amount', 'percent']);
 
 /** One field of a schema-driven form: its input, or its value when the field is readonly */
-function DynamicFormFieldRow({field, values, currency, isLoneField, onRefreshRequirements}: DynamicFormFieldRowProps) {
+function DynamicFormFieldRow({field, values, currency, maxFileSize, isLoneField, onRefreshRequirements}: DynamicFormFieldRowProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const label = getFieldLabel(field, translate);
@@ -54,11 +52,12 @@ function DynamicFormFieldRow({field, values, currency, isLoneField, onRefreshReq
         }
     };
 
-    const shouldRefreshOnBlur = !!field.refreshOnChange && isTypedField(field);
-    const shouldRefreshOnChange = !!field.refreshOnChange && !isTypedField(field);
+    const isTypedField = TYPED_FIELD_TYPES.has(field.type);
+    const shouldRefreshOnBlur = !!field.refreshOnChange && isTypedField;
+    const shouldRefreshOnChange = !!field.refreshOnChange && !isTypedField;
     const {input, isMenuRow, labelAbove, showsDescription} = renderDynamicField(
         field,
-        {values, translate, styles, currency, isLoneField},
+        {values, translate, styles, currency, maxFileSize, isLoneField},
         {
             inputID: field.key,
             shouldSaveDraft: !isSensitiveField(field),
@@ -71,7 +70,14 @@ function DynamicFormFieldRow({field, values, currency, isLoneField, onRefreshReq
 
     return (
         <View style={isMenuRow ? [styles.mhn5, styles.pv1] : styles.pv2}>
-            {!!labelAbove && <Text style={[labelAbove === 'prompt' ? styles.mt3 : [styles.textStrong, styles.mb3], isMenuRow && styles.ph5]}>{label}</Text>}
+            {!!labelAbove && (
+                <Text
+                    style={[labelAbove === 'prompt' ? styles.mt3 : [styles.textStrong, styles.mb3], isMenuRow && styles.ph5]}
+                    role={labelAbove === 'heading' ? CONST.ROLE.HEADING : undefined}
+                >
+                    {label}
+                </Text>
+            )}
             {!!description && <Text style={[styles.textSupporting, styles.mb3, isMenuRow && styles.ph5]}>{description}</Text>}
             {input}
         </View>
