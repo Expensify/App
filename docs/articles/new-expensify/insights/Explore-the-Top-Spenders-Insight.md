@@ -31,6 +31,8 @@ Each member is represented by a bar, making it easy to compare spending amounts.
 
 This makes it easier to compare spending across members and identify expenses that may need further review.
 
+![Insights with Top spenders highlighted]({{site.url}}/assets/images/insights-top-spender.png){:width="100%"}
+
 ---
 
 ## Who can see Top spenders
@@ -44,6 +46,8 @@ The expenses included depend on your permissions:
 
 Members without these permissions won't see **Top spenders**.
 
+[Learn who can see insights](/articles/new-expensify/insights/Learn-About-Insights#who-can-see-insights).
+
 ---
 
 ## How Top spenders is calculated 
@@ -54,6 +58,8 @@ Results include expenses within the selected date range from workspaces where yo
 
 The **Date**, **Workspace**, and **Group currency** filters are shared across all insights, allowing you to adjust which data appears.
 
+[Learn how to filter insights](/articles/new-expensify/insights/How-to-Use-Insights#how-to-filter-insights). 
+
 ---
 
 ## How to explore Top spenders
@@ -62,12 +68,14 @@ The **Date**, **Workspace**, and **Group currency** filters are shared across al
 
 To see spend for every member, select **More (⋮)** on the visualization, then select **View on Spend**. This opens the related results in **Spend**, where you can explore spend beyond the top five members.
 
+[Learn how to explore expenses from an insight](do/articles/new-expensify/insights/How-to-Use-Insights#how-to-explore-expenses-from-an-insight).
+
 ---
 
 ## Related articles
 
-- [Learn About Insights](/articles/new-expensify/insights/How-to-Use-Insights-in-Expensify)
-- [Use Insights](/articles/new-expensify/insights/Use-Insights)
+- [How to Use Insights](/articles/new-expensify/insights/How-to-Use-Insights)
+- [Learn About Insights](/articles/new-expensify/insights/Learn-About-Insights)
 
 # FAQ
 
@@ -85,7 +93,7 @@ Additional insights help you analyze spending from different perspectives:
 - **Top Merchants** shows which vendors received the most payments.
 - **Top Categories** shows the highest-spending expense types (e.g., Travel, Meals).
 
-[Learn more about the available insights](https://help.expensify.com/articles/new-expensify/insights/How-to-Use-Insights-in-Expensify)
+[Learn more about the available insights](/articles/new-expensify/insights/Learn-About-Insights#what-insights-are-available)
 
 ## Why is an expense missing from Top spenders?
 
