@@ -971,7 +971,7 @@ type NetSuiteMappingValues = 'NETSUITE_DEFAULT' | 'REPORT_FIELD' | 'TAG';
 type NetSuiteInvoiceItemPreferenceValues = 'create' | 'select';
 
 /** NetSuite export destination values */
-type NetSuiteExportDestinationValues = 'EXPENSE_REPORT' | 'VENDOR_BILL' | 'JOURNAL_ENTRY';
+type NetSuiteExportDestinationValues = 'CREDIT_CARD_CHARGE' | 'EXPENSE_REPORT' | 'VENDOR_BILL' | 'JOURNAL_ENTRY';
 
 /** NetSuite expense report approval level values */
 type NetSuiteExpenseReportApprovalLevels = 'REPORTS_APPROVED_NONE' | 'REPORTS_SUPERVISOR_APPROVED' | 'REPORTS_ACCOUNTING_APPROVED' | 'REPORTS_APPROVED_BOTH';
@@ -1173,6 +1173,12 @@ type NetSuiteConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** The default vendor to use for Transactions in NetSuite */
         defaultVendor?: string;
 
+        /** Credit card account used when exporting company card expenses as credit card charges */
+        creditCardAccount?: string;
+
+        /** OAuth2 REST connections set authType to oauth2. SOAP connections omit this field. */
+        authType?: string;
+
         /** The payable account to use for Expensify Travel expenses when exporting to NetSuite */
         travelInvoicingPayableAccountID?: string;
 
@@ -1241,8 +1247,11 @@ type NetSuiteConnection = {
 
     lastSync?: ConnectionLastSync;
 
-    /** Config object used solely to store autosync settings */
+    /** Connection-level config (OAuth credentials and autosync) */
     config: OnyxCommon.OnyxValueWithOfflineFeedback<{
+        /** OAuth2 REST connections set authType to oauth2. SOAP connections omit this field. */
+        authType?: string;
+
         /** NetSuite auto synchronization configs */
         autoSync: {
             /** Whether data should be automatically synched between the app and NetSuite */

@@ -514,6 +514,34 @@ describe('getExportMenuItem - NetSuite', () => {
         expect(result?.shouldShowMenuItem).toBe(false);
         expect(result?.data).toEqual([]);
     });
+
+    it('resolves a credit card charge export against credit card accounts only', () => {
+        const policy = createBasePolicy({
+            netsuite: {
+                options: {
+                    config: {
+                        nonreimbursableExpensesExportDestination: CONST.NETSUITE_EXPORT_DESTINATION.CREDIT_CARD_CHARGE,
+                        creditCardAccount: 'ns-cc-1',
+                    },
+                    data: {
+                        vendors: NETSUITE_VENDORS,
+                        payableList: [
+                            ...NETSUITE_PAYABLE_ACCOUNTS,
+                            {id: 'ns-cc-1', name: 'Corporate Card', type: CONST.NETSUITE_ACCOUNT_TYPE.CREDIT_CARD},
+                            {id: 'ns-cc-2', name: 'Team Card', type: CONST.NETSUITE_ACCOUNT_TYPE.CREDIT_CARD},
+                        ],
+                    },
+                },
+            },
+        });
+        const card = createCardWithExportNVP(CONST.COMPANY_CARDS.EXPORT_CARD_TYPES.NVP_NETSUITE_EXPORT_ACCOUNT, 'ns-cc-2');
+
+        const result = getExportMenuItem(CONST.POLICY.CONNECTIONS.NAME.NETSUITE, MOCK_POLICY_ID, translate, themeStyles, policy, card);
+
+        expect(result?.shouldShowMenuItem).toBe(true);
+        expect(result?.title).toBe('Team Card');
+        expect(result?.data).toHaveLength(3);
+    });
 });
 
 describe('getExportMenuItem - Sage Intacct', () => {

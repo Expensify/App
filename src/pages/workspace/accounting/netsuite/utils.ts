@@ -2,7 +2,7 @@ import {isAuthenticationError} from '@libs/actions/connections';
 import {canUseProvincialTaxNetSuite, canUseTaxNetSuite} from '@libs/NetSuiteUtils';
 
 import CONST from '@src/CONST';
-import type {NetSuiteConnectionConfig, NetSuiteSubsidiary} from '@src/types/onyx/Policy';
+import type {NetSuiteConnection, NetSuiteConnectionConfig, NetSuiteSubsidiary} from '@src/types/onyx/Policy';
 import type Policy from '@src/types/onyx/Policy';
 
 import type {OnyxEntry} from 'react-native-onyx';
@@ -38,8 +38,28 @@ function exportExpensesDestinationSettingName(isReimbursable: boolean) {
     return isReimbursable ? CONST.NETSUITE_CONFIG.REIMBURSABLE_EXPENSES_EXPORT_DESTINATION : CONST.NETSUITE_CONFIG.NON_REIMBURSABLE_EXPENSES_EXPORT_DESTINATION;
 }
 
+function getNetSuiteConnectionAuthType(config?: NetSuiteConnectionConfig, connection?: NetSuiteConnection) {
+    return config?.authType ?? connection?.config?.authType;
+}
+
+function isNetSuiteRestConnection(config?: NetSuiteConnectionConfig, connection?: NetSuiteConnection) {
+    return getNetSuiteConnectionAuthType(config, connection) === CONST.NETSUITE_CONFIG.AUTH_TYPE.OAUTH2;
+}
+
+function isNonReimbursableCreditCardChargeExport(config?: NetSuiteConnectionConfig) {
+    return config?.nonreimbursableExpensesExportDestination === CONST.NETSUITE_EXPORT_DESTINATION.CREDIT_CARD_CHARGE;
+}
+
 function shouldHideReimbursableDefaultVendor(isReimbursable: boolean, config?: NetSuiteConnectionConfig) {
-    return isReimbursable || config?.nonreimbursableExpensesExportDestination !== CONST.NETSUITE_EXPORT_DESTINATION.VENDOR_BILL;
+    if (isReimbursable) {
+        return true;
+    }
+    const destination = config?.nonreimbursableExpensesExportDestination;
+    return destination !== CONST.NETSUITE_EXPORT_DESTINATION.VENDOR_BILL && destination !== CONST.NETSUITE_EXPORT_DESTINATION.CREDIT_CARD_CHARGE;
+}
+
+function shouldHideNonReimbursableCreditCardAccount(isReimbursable: boolean, config?: NetSuiteConnectionConfig) {
+    return isReimbursable || !isNonReimbursableCreditCardChargeExport(config);
 }
 
 function shouldHideNonReimbursableJournalPostingAccount(isReimbursable: boolean, config?: NetSuiteConnectionConfig) {
@@ -91,6 +111,14 @@ function getInitialSubPageForNetsuiteTokenInput(policy: OnyxEntry<Policy>) {
     return CONST.NETSUITE_CONFIG.TOKEN_INPUT.PAGE_NAME.INSTALL;
 }
 
+function getNonReimbursableNetSuiteExportDestinations(config?: NetSuiteConnectionConfig, connection?: NetSuiteConnection) {
+    const destinations = Object.values(CONST.NETSUITE_EXPORT_DESTINATION);
+    if (isNetSuiteRestConnection(config, connection)) {
+        return destinations;
+    }
+    return destinations.filter((destination) => destination !== CONST.NETSUITE_EXPORT_DESTINATION.CREDIT_CARD_CHARGE);
+}
+
 export {
     shouldHideReimbursedReportsSection,
     shouldHideReportsExportTo,
@@ -98,7 +126,10 @@ export {
     shouldHideExportJournalsTo,
     shouldHideCustomFormIDOptions,
     exportExpensesDestinationSettingName,
+    isNetSuiteRestConnection,
+    isNonReimbursableCreditCardChargeExport,
     shouldHideReimbursableDefaultVendor,
+    shouldHideNonReimbursableCreditCardAccount,
     shouldHideNonReimbursableJournalPostingAccount,
     shouldHideReimbursableJournalPostingAccount,
     shouldHideJournalPostingPreference,
@@ -106,6 +137,7 @@ export {
     shouldHideProvincialTaxPostingAccountSelect,
     shouldHideTaxPostingAccountSelect,
     shouldHideExportForeignCurrencyAmount,
+    getNonReimbursableNetSuiteExportDestinations,
     getImportCustomFieldsSettings,
     getInitialSubPageForNetsuiteTokenInput,
 };

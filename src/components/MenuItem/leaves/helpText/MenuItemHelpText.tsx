@@ -7,7 +7,7 @@ import type {MenuItemHelpTextProps} from './types';
 import BaseMenuItemHelpText from './BaseMenuItemHelpText';
 
 /** The help line of a `MenuItem.Root`, rendered under `MenuItem.Row` and inside the row's press target */
-function MenuItemHelpText({message, isError = false}: MenuItemHelpTextProps) {
+function MenuItemHelpText({message, isError = false, shouldRenderMessageAsHTML = false}: MenuItemHelpTextProps) {
     const styles = useThemeStyles();
 
     return (
@@ -15,6 +15,7 @@ function MenuItemHelpText({message, isError = false}: MenuItemHelpTextProps) {
             isError={isError}
             message={message}
             style={styles.menuItemError}
+            shouldRenderMessageAsHTML={shouldRenderMessageAsHTML}
         />
     );
 }
