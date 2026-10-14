@@ -53,7 +53,7 @@ function DynamicReportParticipantsInvitePage({report}: DynamicReportParticipants
     const {translate, formatPhoneNumber} = useLocalize();
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
     const [reportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${report?.reportID}`, {selector: pendingChatMembersSelector});
-    const participantAccountIDs = getParticipantsAccountIDsForDisplay(report, false, true, false, reportMetadata);
+    const participantAccountIDs = getParticipantsAccountIDsForDisplay(report, reportMetadata, false, true);
     const [participantLogins = getEmptyArray<string>()] = usePersonalDetailsByIDs(participantAccountIDs, personalDetailsLoginsSelector(participantAccountIDs));
     const pendingDeleteMemberAccountIDs = getPendingDeleteMemberAccountIDs(reportMetadata?.pendingChatMembers);
     const [didScreenTransitionEnd, setDidScreenTransitionEnd] = useState(false);

@@ -100,7 +100,7 @@ function ReportDetailsMenuLeaveItem({reportID}: ReportDetailsMenuLeaveItemProps)
             title={translate('common.leave')}
             icon={expensifyIcons.Exit}
             onPress={() => {
-                if (getParticipantsAccountIDsForDisplay(report, false, true, false, reportMetadata).length === 1 && isRootGroupChat) {
+                if (getParticipantsAccountIDsForDisplay(report, reportMetadata, false, true).length === 1 && isRootGroupChat) {
                     showLastMemberLeavingModal();
                     return;
                 }

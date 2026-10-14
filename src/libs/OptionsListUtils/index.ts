@@ -636,7 +636,7 @@ function getReportOption({
 }: GetReportOptionParams): OptionData {
     const {translate, dateFnsLocale, convertToDisplayString} = localize;
     const report = getReportOrDraftReport(participant.reportID, undefined, undefined, reportDraft);
-    const visibleParticipantAccountIDs = getParticipantsAccountIDsForDisplay(report, true);
+    const visibleParticipantAccountIDs = getParticipantsAccountIDsForDisplay(report, undefined, true);
     const reportPolicyTags = policyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${getNonEmptyStringOnyxID(report?.policyID)}`];
 
     const option = createOption({
@@ -728,7 +728,7 @@ function getReportDisplayOption({
     visibleReportActionsData = {},
     pendingDeleteMemberAccountIDs,
 }: GetReportDisplayOptionParams): OptionData {
-    const visibleParticipantAccountIDs = getParticipantsAccountIDsForDisplay(report, true);
+    const visibleParticipantAccountIDs = getParticipantsAccountIDsForDisplay(report, undefined, true);
 
     const option = createOption({
         dateFnsLocale,
@@ -973,7 +973,7 @@ function processReport(
     }
 
     const isOneOnOneChat = reportUtilsIsOneOnOneChat(report);
-    const accountIDs = getParticipantsAccountIDsForDisplay(report);
+    const accountIDs = getParticipantsAccountIDsForDisplay(report, undefined);
     const isChatRoom = reportUtilsIsChatRoom(report);
 
     if ((!accountIDs || accountIDs.length === 0) && !isChatRoom) {
@@ -1309,7 +1309,7 @@ function createFilteredOptionList(
             const is1on1DM = reportUtilsIsOneOnOneChat(report);
 
             if (is1on1DM) {
-                const accountIDs = getParticipantsAccountIDsForDisplay(report);
+                const accountIDs = getParticipantsAccountIDsForDisplay(report, undefined);
                 for (const accountID of accountIDs) {
                     // ALWAYS set 1:1 DMs - prioritize them over policy/group chats
                     // This ensures proper avatar display for personal details
@@ -1460,7 +1460,7 @@ function createOptionFromReport({
     convertToDisplayStringWithoutCurrency,
     pendingDeleteMemberAccountIDs,
 }: CreateOptionFromReportParams) {
-    const accountIDs = getParticipantsAccountIDsForDisplay(report);
+    const accountIDs = getParticipantsAccountIDsForDisplay(report, undefined);
 
     return {
         item: report,
@@ -1960,7 +1960,7 @@ function isValidReport(
     const isMoneyRequestReport = option.isMoneyRequestReport;
     const isSelfDM = option.isSelfDM;
     const isChatRoom = option.isChatRoom;
-    const accountIDs = getParticipantsAccountIDsForDisplay(option.item);
+    const accountIDs = getParticipantsAccountIDsForDisplay(option.item, undefined);
 
     if (excludeNonAdminWorkspaces && !isPolicyAdmin(policy)) {
         return false;

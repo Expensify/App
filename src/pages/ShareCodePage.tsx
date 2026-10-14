@@ -126,7 +126,7 @@ function ShareCodePage({report, policy, backTo}: ShareCodePageProps) {
             if (isMoneyRequestReport(report)) {
                 // generate subtitle from participants; resolve the translation once, not per participant
                 const hiddenText = translate('common.hidden');
-                return getParticipantsAccountIDsForDisplay(report, true)
+                return getParticipantsAccountIDsForDisplay(report, undefined, true)
                     .map((accountID) => getDisplayNameForParticipant({accountID, formatPhoneNumber, hiddenTranslation: hiddenText}))
                     .join(' & ');
             }
