@@ -18,7 +18,7 @@ import withReportOrNotFound from './withReportOrNotFound';
 
 type DynamicReportDetailsShareCodePageProps = WithReportOrNotFoundProps & PlatformStackScreenProps<ReportDetailsNavigatorParamList, typeof SCREENS.REPORT_DETAILS.DYNAMIC_SHARE_CODE>;
 
-function DynamicReportDetailsShareCodePage({report, policy}: DynamicReportDetailsShareCodePageProps) {
+function DynamicReportDetailsShareCodePage({report, policy, route}: DynamicReportDetailsShareCodePageProps) {
     const navigateBackRoute = useDynamicBackPath(DYNAMIC_ROUTES.REPORT_DETAILS_SHARE_CODE.path);
 
     if (isSelfDM(report)) {
@@ -30,6 +30,7 @@ function DynamicReportDetailsShareCodePage({report, policy}: DynamicReportDetail
             backTo={navigateBackRoute}
             report={report}
             policy={policy}
+            shouldShowQRCodeOnly={route.params?.shouldShowQRCodeOnly === 'true'}
         />
     );
 }
