@@ -299,6 +299,8 @@ type MoneyRequestOptimisticParams = {
 
 type BuildOnyxDataForMoneyRequestParams = {
     isNewChatReport: boolean;
+    /** Preserve earlier actions for this initialized chat. */
+    shouldMergeIntoNewChat?: boolean;
     shouldCreateNewMoneyRequestReport: boolean;
     isOneOnOneSplit?: boolean;
     isReverseSplitOperation?: boolean;
@@ -474,6 +476,7 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
     const allReports = getAllReports();
     const {
         isNewChatReport,
+        shouldMergeIntoNewChat = false,
         shouldCreateNewMoneyRequestReport,
         isOneOnOneSplit = false,
         existingTransactionThreadReportID,
@@ -613,8 +616,8 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
     } else {
         if (chat.report) {
             onyxData.optimisticData?.push({
-                // Use SET for new reports because it doesn't exist yet, is faster and we need the data to be available when we navigate to the chat page
-                onyxMethod: isNewChatReport ? Onyx.METHOD.SET : Onyx.METHOD.MERGE,
+                // Only the first batch item initializes a new chat; later writes must preserve earlier optimistic data.
+                onyxMethod: isNewChatReport && !shouldMergeIntoNewChat ? Onyx.METHOD.SET : Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT}${chat.report.reportID}`,
                 value: {
                     ...chat.report,
@@ -645,7 +648,7 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
                 key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`,
                 value: getTransactionWithPreservedLocalReceiptSource(transaction, isScanRequest),
             },
-            isNewChatReport
+            isNewChatReport && !shouldMergeIntoNewChat
                 ? {
                       onyxMethod: Onyx.METHOD.SET,
                       key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chat.report?.reportID}`,
@@ -658,6 +661,7 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
                       onyxMethod: Onyx.METHOD.MERGE,
                       key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chat.report?.reportID}`,
                       value: {
+                          ...(isNewChatReport ? {[chat.createdAction.reportActionID]: chat.createdAction} : {}),
                           [chat.reportPreviewAction.reportActionID]: chat.reportPreviewAction,
                       },
                   },
@@ -1761,6 +1765,9 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
     const {optimisticData, successData, failureData} = buildOnyxDataForMoneyRequest({
         participant,
         isNewChatReport,
+        // The carried report proves this chat was initialized by an earlier item even when deferred writes
+        // have not reached the Onyx cache. A different destination chat must still be initialized normally.
+        shouldMergeIntoNewChat: !!existingIOUReport && existingIOUReport.parentReportID === chatReport.reportID,
         shouldCreateNewMoneyRequestReport,
         shouldGenerateTransactionThreadReport,
         isOneOnOneSplit: isSplitExpense,
