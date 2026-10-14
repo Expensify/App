@@ -4,7 +4,7 @@ on:
   pull_request:
     types: [opened, synchronize]
     branches-ignore: [staging, production]
-    # Ordered: later patterns override earlier matches. Exclude unread trees, re-include what's measured, exclude docs.
+    # Ordered: the last matching pattern wins.
     paths:
       - '**'
       # Native and OldDot: Jest never loads these.
@@ -54,6 +54,7 @@ on:
       - '.github/actions/javascript/validateReassureOutput/**'
       - '.github/actions/composite/setupNode/**'
       - '!**.md'
+      - '!**.sh'
 
 # Cancel a run still measuring an earlier push to the same PR. pull_request-only, so github.ref is
 # refs/pull/<n>/merge and the group is one PR.

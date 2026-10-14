@@ -17,9 +17,14 @@ function readWorkflow(path: string): Workflow {
     return Bun.YAML.parse(fs.readFileSync(path, 'utf8')) as Workflow;
 }
 
-// Only `**` appears here (never a bare `*`), so any run of `*` can become `.*`.
+// Mirrors GitHub's filter patterns: `**` crosses `/`, a lone `*` and `?` do not.
 function globToRegExp(glob: string): RegExp {
-    const escaped = glob.replaceAll(/[.+^${}()|[\]\\]/g, '\\$&').replaceAll(/\*+/g, '.*');
+    const escaped = glob.replaceAll(/[.+^${}()|[\]\\]/g, '\\$&').replaceAll(/\*\*|\*|\?/g, (token) => {
+        if (token === '**') {
+            return '.*';
+        }
+        return token === '*' ? '[^/]*' : '[^/]';
+    });
     return new RegExp(`^${escaped}$`);
 }
 
@@ -41,7 +46,7 @@ const paths = readWorkflow(PERF_WORKFLOW).on.pull_request.paths;
 describe('Reassure perf trigger paths', () => {
     // A wrongly skipped path lets a regression merge unmeasured, so cover each re-include and Jest input
     // next to an exclusion. A wrongly run path only costs CI time and is not covered.
-    describe.each([
+    it.each([
         ['src/x.ts', true],
         ['tests/unit/A.test.ts', false],
         ['tests/perf-test/A.perf-test.tsx', true],
@@ -49,17 +54,19 @@ describe('Reassure perf trigger paths', () => {
         ['tests/__mocks__/x.ts', true],
         ['tests/unit/currencyList.json', true],
         ['config/babel/oxcJestTransformer.js', true],
+        ['config/proxyConfig.ts', true],
+        ['scripts/x.sh', false],
+        ['src/x.sh', false],
+        ['README.md', false],
         ['.github/workflows/reassurePerformanceTests.yml', true],
         ['.github/workflows/seedJestPerfCache.yml', true],
         ['.github/actions/javascript/validateReassureOutput/index.js', true],
         ['.github/actions/composite/setupNode/action.yml', true],
-    ])('%s', (filePath, expectedToRun) => {
-        it(`${expectedToRun ? 'runs' : 'skips'}`, () => {
-            // Given the perf workflow's ordered `paths` list read straight from the committed YAML
-            // When a PR touches only this one path
-            // Then whether the check is created must match what the measurement can actually observe,
-            // not an incidental side effect of exclusion order
-            expect(pathTriggersRun(paths, filePath)).toBe(expectedToRun);
-        });
+    ])('%s triggers the check: %p', (filePath, expectedToRun) => {
+        // Given the perf workflow's ordered `paths` list read straight from the committed YAML
+        // When a PR touches only this one path
+        // Then whether the check is created must match what the measurement can actually observe,
+        // not an incidental side effect of exclusion order
+        expect(pathTriggersRun(paths, filePath)).toBe(expectedToRun);
     });
 });
