@@ -15,7 +15,7 @@ function getCameraCapabilityAttributes(device: CameraCapabilities | undefined, a
 
     return {
         [CONST.TELEMETRY.ATTRIBUTE_SELECTED_FORMAT_AF_SYSTEM]: autoFocusSystem,
-        // v5 reports no physical devices for a single-lens device; v4 reported itself.
+        // v5 reports no physical devices for a single-lens device. v4 reported itself.
         [CONST.TELEMETRY.ATTRIBUTE_PHYSICAL_DEVICE_COUNT]: Math.max(device.physicalDevices.length, 1),
         [CONST.TELEMETRY.ATTRIBUTE_NEUTRAL_ZOOM]: getWideLensZoom(device),
     };
