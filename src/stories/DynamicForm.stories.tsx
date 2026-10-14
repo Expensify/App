@@ -387,16 +387,19 @@ function SinglePage({fields, draftValues}: Preset) {
             style={defaultStyles.ph5}
         >
             {({inputValues}) =>
-                pages.map((page) => (
-                    <View key={page.key}>
-                        <Text style={[defaultStyles.textHeadlineLineHeightXXL, defaultStyles.mt5, defaultStyles.mb3]}>{getPageTitle(page, inputValues, translate, allFields)}</Text>
-                        <DynamicFormFields
-                            content={page.content}
-                            allFields={allFields}
-                            values={inputValues}
-                        />
-                    </View>
-                ))
+                pages.map((page) => {
+                    const title = getPageTitle(page, inputValues, translate, allFields);
+                    return (
+                        <View key={page.key}>
+                            {!!title && <Text style={[defaultStyles.textHeadlineLineHeightXXL, defaultStyles.mt5, defaultStyles.mb3]}>{title}</Text>}
+                            <DynamicFormFields
+                                content={page.content}
+                                allFields={allFields}
+                                values={inputValues}
+                            />
+                        </View>
+                    );
+                })
             }
         </FormProvider>
     );

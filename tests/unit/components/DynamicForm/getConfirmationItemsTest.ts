@@ -58,6 +58,26 @@ describe('getConfirmationItems', () => {
         expect(groups.map((group) => group.id)).toEqual(['identity']);
     });
 
+    it('leaves the section of an untitled page with several questions unnamed', () => {
+        // Given a page the form built from a flat list, so it has no title, asking an account number and a currency
+        const untitledPages: DynamicFormPage[] = [
+            {
+                key: 'page-1',
+                content: [
+                    {key: 'accountNumber', type: 'text', required: true, label: 'Account number'},
+                    {key: 'currency', type: 'currency', required: true, label: 'Settlement currency'},
+                ],
+            },
+        ];
+
+        // When the confirmation sections are built
+        const [group] = getConfirmationItems(untitledPages, getAllFields(untitledPages), {accountNumber: '12345678', currency: 'GBP'}, translateLocal, jest.fn(), jest.fn());
+
+        // Then the section has no name, since naming it after its first answer would mislabel the others
+        expect(group.name).toBe('');
+        expect(group.rows.map((row) => row.id)).toEqual(['accountNumber', 'currency']);
+    });
+
     it('shows each list entry as its own row that opens the entry', () => {
         // Given a page with a list of directors holding one entry
         const directorsPages: DynamicFormPage[] = [

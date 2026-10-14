@@ -51,6 +51,11 @@ type DynamicFormFieldBase = {
 
     descriptionKey?: TranslationPaths;
 
+    /** The headline of a page with no title of its own where this is the only question, such as "What's your account number?". It also names that page's section on the confirmation page. */
+    question?: string;
+
+    questionKey?: TranslationPaths;
+
     required: boolean;
 
     /** Never written to the form draft, for SSNs and account numbers */

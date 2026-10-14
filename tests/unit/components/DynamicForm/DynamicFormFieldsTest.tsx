@@ -90,10 +90,10 @@ type RenderFieldsOptions = {
     currency?: string;
     maxFileSize?: number;
     onRefreshRequirements?: (inputID: string, value: unknown) => void;
-    isTitledByPage?: boolean;
+    isLoneFieldInHeadline?: boolean;
 };
 
-function renderFields(content: DynamicFormContentItem[], values: DynamicFormValues = {}, {currency, maxFileSize, onRefreshRequirements, isTitledByPage}: RenderFieldsOptions = {}) {
+function renderFields(content: DynamicFormContentItem[], values: DynamicFormValues = {}, {currency, maxFileSize, onRefreshRequirements, isLoneFieldInHeadline}: RenderFieldsOptions = {}) {
     mockInputWrapper.mockClear();
     render(
         <DynamicFormFields
@@ -102,7 +102,7 @@ function renderFields(content: DynamicFormContentItem[], values: DynamicFormValu
             currency={currency}
             maxFileSize={maxFileSize}
             onRefreshRequirements={onRefreshRequirements}
-            isTitledByPage={isTitledByPage}
+            isLoneFieldInHeadline={isLoneFieldInHeadline}
         />,
     );
     return new Map(mockInputWrapper.mock.calls.map(([props]) => [props.inputID, props]));
@@ -606,7 +606,7 @@ describe('DynamicFormFields', () => {
         const field: DynamicFormField = {key: 'answer', label: 'The question', type, required: true};
 
         // When it renders
-        const rendered = renderFields([field], {}, {isTitledByPage: true});
+        const rendered = renderFields([field], {}, {isLoneFieldInHeadline: true});
 
         // Then the choice is drawn as the page itself, keeping its kind of answer, and the label is left to the page title instead of repeating it
         expect(rendered.get('answer')?.InputComponent).toBe(ExpectedInput);
@@ -671,7 +671,7 @@ describe('DynamicFormFields', () => {
         const companyName: DynamicFormField = {key: 'companyName', type: 'text', required: true, showWhen: {key: 'legalType', equals: ['BUSINESS']}};
 
         // When it renders for a business recipient on a page without its own title
-        const rendered = renderFields([legalType, companyName], {legalType: 'BUSINESS'}, {isTitledByPage: true});
+        const rendered = renderFields([legalType, companyName], {legalType: 'BUSINESS'}, {isLoneFieldInHeadline: true});
 
         // Then it is still a tab row rather than an inline list, since the schema asked for tabs, and the question is left to the page title
         expect(rendered.get('legalType')?.InputComponent).toBe(TabsAdapter);

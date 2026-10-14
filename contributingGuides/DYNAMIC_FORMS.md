@@ -68,7 +68,7 @@ When the schema is a flat `{fields}` list, the App builds the pages:
 - Other fields share a page, up to 4 in a row.
 - A field with `showWhen` joins the page of its controller and does not count toward that limit.
 
-A page is shown while its own `showWhen` matches and it has a visible field; a page that is not shown is skipped, and its fields are neither asked nor submitted. A page without a title is named after its only question, else after its first visible field. Page keys become route segments, so they are made URL-safe and unique, and `confirm` is reserved for the confirmation page.
+A page is shown while its own `showWhen` matches and it has a visible field; a page that is not shown is skipped, and its fields are neither asked nor submitted. A page without a title is headed by its only question: the field's `question` or `questionKey` when it has one, else its label. An untitled page with several questions has no headline and no section name on the confirmation page, since no one question names it. A label never names a confirmation section, since the label is already on the row below it. Page keys become route segments, so they are made URL-safe and unique, and `confirm` is reserved for the confirmation page.
 
 ## The field format
 
@@ -96,13 +96,14 @@ Every type also takes:
 
 - `key`: unique within the form, and the field's draft key. A field without one is left out and logged.
 - `label` or `labelKey`, and the same pair for `description`. A `*Key` is our translation and wins over the server's wording.
+- `question` or `questionKey`: the headline of an untitled page where this is the only question, such as "What's your account number?". Without one, that page is headed by the label, which a text input then repeats.
 - `required`. An optional address the user has started filling in is checked like a required one, so it is never sent in part.
 - `readonly`: shown as a row with its value, never edited or validated
 - `sensitive`: kept out of the form draft, see below
 - `showWhen`: shown only while another answer is one of the listed values. A list answer counts when any chosen value matches. A field whose controlling field is hidden stays hidden.
 - `refreshOnChange`: see `onRefreshRequirements` above
 
-A choice or list field that is the only question on its page is drawn as the page itself, as an inline list, with its question above it. A page without its own title takes the question as its title, so the label is not repeated below it. Fields it reveals, such as an "Other" description, do not count, so the layout stays put when they appear. On a page with several questions, every choice, tabs included, shows its question above it.
+A choice or list field that is the only question on its page is drawn as the page itself, as an inline list, with its question above it. A page without its own title takes the question as its headline, so the label is not repeated below it. Fields it reveals, such as an "Other" description, do not count, so the layout stays put when they appear. On a page with several questions, every choice, tabs included, shows its question above it.
 
 `maxFileSize` comes from the field when the schema sets it, else from the `maxFileSize` the screen passes. With neither, files of any size are taken.
 

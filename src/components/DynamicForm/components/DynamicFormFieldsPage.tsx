@@ -82,7 +82,7 @@ function DynamicFormFieldsPage({
                         <DynamicFormFields
                             content={page.content}
                             allFields={allFields}
-                            isTitledByPage={!hasOwnTitle}
+                            isLoneFieldInHeadline={!hasOwnTitle}
                             values={currentValues}
                             currency={currency}
                             maxFileSize={maxFileSize}

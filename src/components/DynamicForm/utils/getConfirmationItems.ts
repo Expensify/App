@@ -11,7 +11,7 @@ import noop from 'lodash/noop';
 import formatDynamicFieldValue from './formatDynamicFieldValue';
 import getContentFields from './getContentFields';
 import {getFieldLabel} from './getLocalizedText';
-import getPageTitle, {isPageShown} from './getPageTitle';
+import {getPageSectionName, isPageShown} from './getPageTitle';
 import getVisibleFields from './getVisibleFields';
 import isSensitiveField from './isSensitiveField';
 import isSupportedField from './isSupportedField';
@@ -67,7 +67,7 @@ function getConfirmationItems(
         return [
             {
                 id: page.key,
-                name: getPageTitle(page, values, translate, allFields),
+                name: getPageSectionName(page, values, translate, allFields),
                 rows: fields.flatMap((field): SummaryGroupRow[] => {
                     const listItemRows = field.type === 'list' ? getListItemRows(field, values, translate, onEditListItem) : [];
                     if (listItemRows.length > 0) {

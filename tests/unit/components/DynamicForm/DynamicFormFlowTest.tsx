@@ -260,25 +260,29 @@ describe('DynamicFormFlow', () => {
         mockStepWrapper.mockClear();
         await renderFlow({draft, layout: 'pages'});
 
-        // Then the default layout names every page and highlights the current one, and plain pages have no indicator
-        expect(autoLayout).toEqual(expect.objectContaining({stepNames: ['Personal details', 'Recipient', 'Company'], startStepIndex: 1}));
+        // Then the default layout has a step per page and highlights the current one, and plain pages have no indicator
+        expect(autoLayout).toEqual(expect.objectContaining({stepNames: ['personal-details', 'recipient', 'company'], startStepIndex: 1}));
         expect(mockStepWrapper).not.toHaveBeenCalled();
     });
 
-    it('names the step of a page with no title after its field', async () => {
-        // Given pages built from a flat list, which carry no title, shown with the stepper
+    it('keys the steps of pages with no title by their page keys', async () => {
+        // Given pages built from a flat list, which carry no title, where two pages ask several questions and so have no headline either
         const flowSchema: DynamicFormSchema = {
             fields: [
                 {key: 'home', type: 'address', required: true, label: 'Home address'},
+                {key: 'firstName', type: 'text', required: true, label: 'First name'},
+                {key: 'lastName', type: 'text', required: true, label: 'Last name'},
                 {key: 'work', type: 'address', required: true, label: 'Work address'},
+                {key: 'company', type: 'text', required: true, label: 'Company'},
+                {key: 'role', type: 'text', required: true, label: 'Role'},
             ],
         };
 
-        // When the flow renders
+        // When the flow renders with the stepper
         await renderFlow({flowSchema, layout: 'stepper', currentPageName: 'page-1'});
 
-        // Then no step is blank
-        expect(mockStepWrapper.mock.lastCall?.[0].stepNames).toEqual(['Home address', 'Work address']);
+        // Then every step has a distinct name, since the indicator keys its steps by them
+        expect(mockStepWrapper.mock.lastCall?.[0].stepNames).toEqual(['page-1', 'page-2', 'page-3', 'page-4']);
     });
 
     it('starts a new form on its first page that has something to ask', async () => {

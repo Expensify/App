@@ -22,8 +22,8 @@ type DynamicFormFieldsProps = {
     /** The whole form when `content` is one page of it, since a field's `showWhen` can name a controller on another page */
     allFields?: DynamicFormField[];
 
-    /** The page's title is that question's label, so the label is not drawn again above its input. False when the page has its own title, since the label then still says what the inputs are for. */
-    isTitledByPage?: boolean;
+    /** The page's headline comes from its lone question, so that question's label is not drawn again above its input. False when the page has its own title, since the label then still says what the inputs are for. */
+    isLoneFieldInHeadline?: boolean;
 
     /** Currency of amount fields that let the user pick none */
     currency?: string;
@@ -49,7 +49,7 @@ function DynamicFormFields({
     content,
     values,
     allFields,
-    isTitledByPage = false,
+    isLoneFieldInHeadline = false,
     currency = CONST.CURRENCY.USD,
     maxFileSize,
     onRefreshRequirements,
@@ -85,7 +85,7 @@ function DynamicFormFields({
                 currency={currency}
                 maxFileSize={maxFileSize}
                 isLoneField={item === loneField}
-                shouldHideLabel={isTitledByPage && item === loneField}
+                shouldHideLabel={isLoneFieldInHeadline && item === loneField}
                 onRefreshRequirements={onRefreshRequirements}
                 onOpenListItemEditor={onOpenListItemEditor}
                 onListItemsChange={onListItemsChange}

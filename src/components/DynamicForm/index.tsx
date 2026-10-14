@@ -26,7 +26,7 @@ import DynamicFormShell from './components/DynamicFormShell';
 import getAnswerKeys from './utils/getAnswerKeys';
 import getContentFields from './utils/getContentFields';
 import getDynamicFieldErrors from './utils/getDynamicFieldErrors';
-import getPageTitle, {isPageShown} from './utils/getPageTitle';
+import {isPageShown} from './utils/getPageTitle';
 import getSubmittedAnswers from './utils/getSubmittedAnswers';
 import hasSensitiveAnswer from './utils/hasSensitiveAnswer';
 import isSensitiveField from './utils/isSensitiveField';
@@ -291,7 +291,8 @@ function DynamicFormFlow({
 
     // An entry editor highlights its list's step, and the confirmation page the last one
     const stepPage = shownPages.find((page) => page.key === currentPageName) ?? (listItemPage && findListPage(listItemPage.listKey));
-    const stepNames = [...shownPages.map((page) => getPageTitle(page, values, translate, allFields)), ...(hasConfirmationPage ? [translate('common.confirm')] : [])];
+    // The indicator draws no names and keys its steps by them, so the unique page keys stand in for titles an untitled page does not have
+    const stepNames = [...shownPages.map((page) => page.key), ...(hasConfirmationPage ? [CONST.DYNAMIC_FORM.CONFIRMATION_PAGE_KEY] : [])];
     const stepPageIndex = stepPage ? shownPages.indexOf(stepPage) : -1;
     const stepIndex = stepPageIndex === -1 ? stepNames.length - 1 : stepPageIndex;
     // The shell swaps its root when the indicator toggles, which remounts the page. So `auto` decides once, from the answers the draft held on arrival, and keeps it while the user types.
