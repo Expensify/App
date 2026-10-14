@@ -7,7 +7,7 @@ import type {PopoverMenuItem} from '@components/PopoverMenu';
 import {useOpenSearchReportSubmitToPopover} from '@components/ReportSubmitToPopoverAnchor';
 import {useSearchQueryContext, useSearchResultsContext, useSearchSelectionActions, useSearchSelectionContext} from '@components/Search/SearchContext';
 import {getSearchGroupCountByKey} from '@components/Search/selectionBuilders';
-import type {BulkPaySelectionData, PaymentData, QueryFilterKey, SearchColumnType, SearchQueryJSON, SelectedReports, SelectedTransactions} from '@components/Search/types';
+import type {BulkPaySelectionData, PaymentData, QueryFilterKey, SearchColumnType, SearchGroupBy, SearchQueryJSON, SelectedReports, SelectedTransactions} from '@components/Search/types';
 
 import {getAccountingIntegrationDisplayName, getExportLabelForConnection, isIntuitEnterpriseSuiteConnection} from '@libs/AccountingUtils';
 import {getExpensifyCardStatementPDF} from '@libs/actions/CompanyCards';
@@ -451,6 +451,19 @@ function getAllMatchingReportQuery(queryJSON: SearchQueryJSON, excludedTransacti
 
     return buildSearchQueryJSON(buildSearchQueryString({...queryJSON, flatFilters}));
 }
+
+/**
+ * The groupings whose selected groups `getSelectedGroupFilterEntry` can turn into a query filter, which a template export needs.
+ * Keep this in sync with that function.
+ */
+const TEMPLATE_EXPORTABLE_GROUP_BYS = new Set<SearchGroupBy>([
+    CONST.SEARCH.GROUP_BY.FROM,
+    CONST.SEARCH.GROUP_BY.CARD,
+    CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID,
+    CONST.SEARCH.GROUP_BY.CATEGORY,
+    CONST.SEARCH.GROUP_BY.MERCHANT,
+    CONST.SEARCH.GROUP_BY.TAG,
+]);
 
 type ShouldShowBulkDuplicateParams = {
     selectedTransactionsKeys: string[];
@@ -2102,14 +2115,9 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
 
             const isReportsTab = isExpenseReportType;
             const includesGroupExport = isGroupedSearch && Object.entries(selectedTransactions).some(([key, selectedTransaction]) => isGroupSelection(key, selectedTransaction));
-            // Group selections are sent as query filters, not report or transaction IDs, so template exports are usually unavailable.
-            // Reconciliation - All Expenses is supported for card-grouped searches because selected card groups become a `cardID:`
-            // filter, which template reports can use to scope card spend.
-            const includesCardGroupExport = includesGroupExport && groupBy === CONST.SEARCH.GROUP_BY.CARD;
-            const customTemplatesToShow = includesCardGroupExport ? [] : availableCustomTemplates;
-            const defaultTemplatesToShow = includesCardGroupExport
-                ? availableDefaultTemplates.filter((template) => template.templateName === CONST.REPORT.EXPORT_OPTIONS.RECONCILIATION_ALL_EXPENSES)
-                : availableDefaultTemplates;
+            // A template export sends a group selection as a filter on the ungrouped query (see `getTemplateGroupExportQuery`), alongside any individually picked expenses.
+            // Groupings with no such filter (the time-based ones) would fail that export, so they keep only "Current view".
+            const canExportGroupWithTemplates = !includesGroupExport || (!!groupBy && TEMPLATE_EXPORTABLE_GROUP_BYS.has(groupBy));
 
             const canReportBeExported = (report: (typeof selectedReports)[0], exportOption: ValueOf<typeof CONST.REPORT.EXPORT_OPTIONS>) => {
                 if (!report.reportID) {
@@ -2397,7 +2405,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 addSeparatorBefore: true,
             });
 
-            if (!allSelectedAreDeleted && (!includesGroupExport || includesCardGroupExport)) {
+            if (!allSelectedAreDeleted && canExportGroupWithTemplates) {
                 // Builds a single export sub-menu item for a template. `isDefaultTemplate` picks the icon and `addSeparatorBefore` draws the divider at the top of each group.
                 const buildExportOption = (template: ExportTemplate, isDefaultTemplate: boolean, addSeparatorBefore: boolean): ExportMenuItem => {
                     // The basic export is a plain CSV download, so it uses its own handler rather than the template export flow
@@ -2421,10 +2429,10 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 };
 
                 // Add each group's templates separately so the icon and the group-boundary divider come from the group itself, not from an index into a combined list.
-                for (const [index, template] of customTemplatesToShow.entries()) {
+                for (const [index, template] of availableCustomTemplates.entries()) {
                     exportOptions.push(buildExportOption(template, false, index === 0));
                 }
-                for (const [index, template] of defaultTemplatesToShow.entries()) {
+                for (const [index, template] of availableDefaultTemplates.entries()) {
                     exportOptions.push(buildExportOption(template, true, index === 0));
                 }
             } else if (!isGroupedSearch) {
