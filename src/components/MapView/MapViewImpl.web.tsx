@@ -194,6 +194,7 @@ function MapViewImpl({
         resetBoundariesRef.current = resetBoundaries;
     }, [resetBoundaries]);
 
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     useEffect(resetBoundaries, [resetBoundaries]);
 
     useEffect(() => {
