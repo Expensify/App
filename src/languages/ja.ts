@@ -5033,7 +5033,10 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
             },
             requestEmptyList: {
                 title: '日当レートがまだありません',
-                subtitle: 'このワークスペースには日当レートがありません。管理者に追加してもらってください。',
+                subtitle: (workspaceName?: string) =>
+                    workspaceName
+                        ? `${workspaceName} には日当レートがありません。管理者に追加してもらってください。`
+                        : 'このワークスペースには日当レートがありません。管理者に追加してもらってください。',
                 adminSubtitle: '日当額を追加して、支出を整理しましょう。',
             },
             importPerDiemRates: '日当レートをインポート',
