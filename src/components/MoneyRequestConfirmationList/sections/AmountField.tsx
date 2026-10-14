@@ -91,9 +91,11 @@ function AmountField({
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const amountInputRef = useRef<BaseTextInputRef | null>(null);
     const focusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-    const baselineIsNegativeRef = useRef(amount < 0);
 
     const transactionSlice = useTransactionSelector(transactionID, amountSliceSelector);
+    // Keep the sign baseline aligned with the persisted amount baseline. Falling back to `amount` supports
+    // drafts created before `initialAmount` was introduced without allowing later user edits to overwrite it.
+    const baselineIsNegativeRef = useRef((transactionSlice?.initialAmount ?? amount) < 0);
 
     const transactionForHandlers = transactionSlice as OnyxEntry<OnyxTypes.Transaction>;
     const amountIsMissing = transactionSlice?.isAmountMissing ?? false;
