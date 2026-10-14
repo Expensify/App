@@ -35,7 +35,6 @@ type ReceiptCropViewProps = {
     isAuthTokenRequired?: boolean;
 };
 
-type CornerPosition = 'topLeft' | 'topRight' | 'bottomLeft' | 'bottomRight';
 type EdgePosition = 'top' | 'bottom' | 'left' | 'right';
 
 function ReceiptCropView({imageUri, onCropChange, initialCrop, isAuthTokenRequired}: ReceiptCropViewProps) {
@@ -323,9 +322,9 @@ function ReceiptCropView({imageUri, onCropChange, initialCrop, isAuthTokenRequir
     );
 
     /**
-     * Resize the crop area when an edge handle is dragged
+     * Resize the crop area when a handle is dragged. Edge handles move one edge, corner handles move the two edges that meet at the corner.
      */
-    const updateEdge = (edge: EdgePosition, event: PanGestureActiveEvent) => {
+    const resizeCrop = (edges: EdgePosition[], event: PanGestureActiveEvent) => {
         const currentX = cropX.get();
         const currentY = cropY.get();
         const currentWidth = cropWidth.get();
@@ -344,73 +343,25 @@ function ReceiptCropView({imageUri, onCropChange, initialCrop, isAuthTokenRequir
         const imageTop = imageOffsetYSV.get();
         const imageBottom = imageTop + imgDisplayHeight;
 
-        switch (edge) {
-            case 'top':
-                newY = clamp(currentY + event.changeY, imageTop, currentY + currentHeight - minSize);
-                newHeight = currentHeight - (newY - currentY);
-                break;
-            case 'bottom':
-                newHeight = clamp(currentHeight + event.changeY, minSize, imageBottom - currentY);
-                break;
-            case 'left':
-                newX = clamp(currentX + event.changeX, imageLeft, currentX + currentWidth - minSize);
-                newWidth = currentWidth - (newX - currentX);
-                break;
-            case 'right':
-                newWidth = clamp(currentWidth + event.changeX, minSize, imageRight - currentX);
-                break;
-            default:
-                break;
-        }
-
-        applyCropBoundsAndNotify(newX, newY, newWidth, newHeight, imageLeft, imageRight, imageTop, imageBottom);
-    };
-
-    /**
-     * Resize the crop area when a corner handle is dragged
-     */
-    const updateCorner = (corner: CornerPosition, event: PanGestureActiveEvent) => {
-        const currentX = cropX.get();
-        const currentY = cropY.get();
-        const currentWidth = cropWidth.get();
-        const currentHeight = cropHeight.get();
-
-        let newX = currentX;
-        let newY = currentY;
-        let newWidth = currentWidth;
-        let newHeight = currentHeight;
-
-        const minSize = variables.cornerHandleSize * 2;
-        const imgDisplayWidth = displayWidthSV.get();
-        const imgDisplayHeight = displayHeightSV.get();
-        const imageLeft = imageOffsetXSV.get();
-        const imageRight = imageLeft + imgDisplayWidth;
-        const imageTop = imageOffsetYSV.get();
-        const imageBottom = imageTop + imgDisplayHeight;
-
-        switch (corner) {
-            case 'topLeft':
-                newX = clamp(currentX + event.changeX, imageLeft, currentX + currentWidth - minSize);
-                newY = clamp(currentY + event.changeY, imageTop, currentY + currentHeight - minSize);
-                newWidth = currentWidth - (newX - currentX);
-                newHeight = currentHeight - (newY - currentY);
-                break;
-            case 'topRight':
-                newY = clamp(currentY + event.changeY, imageTop, currentY + currentHeight - minSize);
-                newWidth = clamp(currentWidth + event.changeX, minSize, imageRight - currentX);
-                newHeight = currentHeight - (newY - currentY);
-                break;
-            case 'bottomLeft':
-                newX = clamp(currentX + event.changeX, imageLeft, currentX + currentWidth - minSize);
-                newWidth = currentWidth - (newX - currentX);
-                newHeight = clamp(currentHeight + event.changeY, minSize, imageBottom - currentY);
-                break;
-            case 'bottomRight':
-                newWidth = clamp(currentWidth + event.changeX, minSize, imageRight - currentX);
-                newHeight = clamp(currentHeight + event.changeY, minSize, imageBottom - currentY);
-                break;
-            default:
-                break;
+        for (const edge of edges) {
+            switch (edge) {
+                case 'top':
+                    newY = clamp(currentY + event.changeY, imageTop, currentY + currentHeight - minSize);
+                    newHeight = currentHeight - (newY - currentY);
+                    break;
+                case 'bottom':
+                    newHeight = clamp(currentHeight + event.changeY, minSize, imageBottom - currentY);
+                    break;
+                case 'left':
+                    newX = clamp(currentX + event.changeX, imageLeft, currentX + currentWidth - minSize);
+                    newWidth = currentWidth - (newX - currentX);
+                    break;
+                case 'right':
+                    newWidth = clamp(currentWidth + event.changeX, minSize, imageRight - currentX);
+                    break;
+                default:
+                    break;
+            }
         }
 
         applyCropBoundsAndNotify(newX, newY, newWidth, newHeight, imageLeft, imageRight, imageTop, imageBottom);
@@ -418,14 +369,14 @@ function ReceiptCropView({imageUri, onCropChange, initialCrop, isAuthTokenRequir
 
     // One gesture per handle, since a gesture can only be attached to a single GestureDetector.
     // The callbacks run on the JS thread because they report the new crop through onCropChange.
-    const topEdgeGesture = usePanGesture({runOnJS: true, onUpdate: (event) => updateEdge('top', event)});
-    const bottomEdgeGesture = usePanGesture({runOnJS: true, onUpdate: (event) => updateEdge('bottom', event)});
-    const leftEdgeGesture = usePanGesture({runOnJS: true, onUpdate: (event) => updateEdge('left', event)});
-    const rightEdgeGesture = usePanGesture({runOnJS: true, onUpdate: (event) => updateEdge('right', event)});
-    const topLeftCornerGesture = usePanGesture({runOnJS: true, onUpdate: (event) => updateCorner('topLeft', event)});
-    const topRightCornerGesture = usePanGesture({runOnJS: true, onUpdate: (event) => updateCorner('topRight', event)});
-    const bottomLeftCornerGesture = usePanGesture({runOnJS: true, onUpdate: (event) => updateCorner('bottomLeft', event)});
-    const bottomRightCornerGesture = usePanGesture({runOnJS: true, onUpdate: (event) => updateCorner('bottomRight', event)});
+    const topEdgeGesture = usePanGesture({runOnJS: true, onUpdate: (event) => resizeCrop(['top'], event)});
+    const bottomEdgeGesture = usePanGesture({runOnJS: true, onUpdate: (event) => resizeCrop(['bottom'], event)});
+    const leftEdgeGesture = usePanGesture({runOnJS: true, onUpdate: (event) => resizeCrop(['left'], event)});
+    const rightEdgeGesture = usePanGesture({runOnJS: true, onUpdate: (event) => resizeCrop(['right'], event)});
+    const topLeftCornerGesture = usePanGesture({runOnJS: true, onUpdate: (event) => resizeCrop(['top', 'left'], event)});
+    const topRightCornerGesture = usePanGesture({runOnJS: true, onUpdate: (event) => resizeCrop(['top', 'right'], event)});
+    const bottomLeftCornerGesture = usePanGesture({runOnJS: true, onUpdate: (event) => resizeCrop(['bottom', 'left'], event)});
+    const bottomRightCornerGesture = usePanGesture({runOnJS: true, onUpdate: (event) => resizeCrop(['bottom', 'right'], event)});
 
     const borderStyle = useAnimatedStyle(() => {
         'worklet';
