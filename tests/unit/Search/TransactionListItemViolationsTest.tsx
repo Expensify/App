@@ -104,6 +104,8 @@ describe('TransactionListItem violations', () => {
 
     it('shows the violations from the search snapshot when they are not in live Onyx', async () => {
         // Given an expense the user never opened, so its violations exist only in the search snapshot
+
+        // When the Search row for that expense renders
         renderRow();
         await waitForBatchedUpdatesWithAct();
 
@@ -114,6 +116,8 @@ describe('TransactionListItem violations', () => {
     it('prefers the live Onyx violations over the search snapshot', async () => {
         // Given violations in live Onyx, which are fresher than the snapshot (e.g. after opening or editing the expense)
         await Onyx.set(TRANSACTION_VIOLATIONS_KEY, [liveViolation]);
+
+        // When the Search row for that expense renders
         renderRow();
         await waitForBatchedUpdatesWithAct();
 
