@@ -25,6 +25,7 @@ jest.mock('@react-navigation/native', () => {
 
     return {
         ...actualNavigation,
+        useIsFocused: jest.fn(() => true),
         useFocusEffect: jest.fn((callback: () => void) => {
             mockFocusEffectCallbacks.push(callback);
         }),

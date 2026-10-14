@@ -24,6 +24,7 @@ jest.mock('@userActions/IOU/Receipt', () => ({...jest.requireActual<Record<strin
 jest.mock('@userActions/IOU/TrackExpense', () => ({...jest.requireActual<Record<string, unknown>>('@userActions/IOU/TrackExpense'), requestMoney: jest.fn()}));
 
 const CURRENT_USER_ACCOUNT_ID = 1;
+const OTHER_ACCOUNT_ID = 2;
 const TRANSACTION_ID = '7000000000000001';
 const IOU_REPORT_ID = '8000000000000001';
 const CHAT_REPORT_ID = '9000000000000001';
@@ -109,39 +110,135 @@ describe('buildRetryPayload', () => {
     });
 
     it('reuses the original transaction ID, which is the only thing stopping a re-send from creating a second expense', () => {
-        const payload = buildRetryPayload(buildContext(buildFailedTransaction()), receiptFile);
+        // Given a RequestMoney whose upload failed after its transaction was built
+        const context = buildContext(buildFailedTransaction());
+
+        // When the retry payload is rebuilt from what the failure left in Onyx
+        const payload = buildRetryPayload(context, receiptFile);
+
+        // Then the original transaction ID is kept, because that's what lets the server recognize a re-send it already processed
         expect(payload?.optimisticTransactionID).toBe(TRANSACTION_ID);
     });
 
     it('offers a retry for a failed expense as the create path really leaves it, with no participants and a manual request type', () => {
-        expect(canBuildRetryPayload(buildContext(buildFailedTransaction()))).toBe(true);
+        // Given a failed expense with no participants and a manual request type, the way the requestMoney failure leaves it
+        const context = buildContext(buildFailedTransaction());
+
+        // When the view asks whether Try again can be shown
+        const canRetry = canBuildRetryPayload(context);
+
+        // Then it is offered, because the participant can still be resolved from the report
+        expect(canRetry).toBe(true);
     });
 
     it('reuses the IOU report action and transaction thread, so the retry does not add a second expense to the report', () => {
-        const payload = buildRetryPayload(buildContext(buildFailedTransaction()), receiptFile);
+        // Given a failed expense whose IOU action and transaction thread already exist locally
+        const context = buildContext(buildFailedTransaction());
+
+        // When the retry payload is rebuilt
+        const payload = buildRetryPayload(context, receiptFile);
+
+        // Then both IDs are reused, which lets requestMoney overwrite the failed records instead of adding a second expense
         expect(payload?.currentReportActionID).toBe(IOU_ACTION_ID);
         expect(payload?.existingTransactionThreadReportID).toBe(THREAD_REPORT_ID);
     });
 
+    it('reuses the report preview and CREATED action of the first attempt, so the retry does not add a second expense card to the chat', async () => {
+        // Given the first attempt left its preview in the chat and its CREATED action on the IOU report
+        const previewActionID = '4000000000000001';
+        const createdActionID = '3000000000000001';
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${CHAT_REPORT_ID}`, {
+            [previewActionID]: {
+                reportActionID: previewActionID,
+                actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
+                created: '2026-09-01 00:00:00.000',
+                originalMessage: {linkedReportID: IOU_REPORT_ID},
+            },
+        });
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${IOU_REPORT_ID}`, {
+            [createdActionID]: {reportActionID: createdActionID, actionName: CONST.REPORT.ACTIONS.TYPE.CREATED, created: '2026-09-01 00:00:00.000'},
+        });
+        await waitForBatchedUpdates();
+
+        // When the retry payload is rebuilt
+        const payload = buildRetryPayload(buildContext(buildFailedTransaction()), receiptFile);
+
+        // Then it carries both IDs, so the rebuilt report overwrites them instead of creating new ones
+        expect(payload?.optimisticReportPreviewActionID).toBe(previewActionID);
+        expect(payload?.optimisticIOUCreatedReportActionID).toBe(createdActionID);
+    });
+
     it('offers no retry for a distance expense, whose waypoints the transaction alone cannot restore', () => {
-        const transaction = buildFailedTransaction({comment: {waypoints: {waypoint0: {address: 'Berlin'}}}});
-        expect(canBuildRetryPayload(buildContext(transaction))).toBe(false);
+        // Given a failed expense with waypoints, which a RequestMoney retry would have to send again
+        const context = buildContext(buildFailedTransaction({comment: {waypoints: {waypoint0: {address: 'Berlin'}}}}));
+
+        // When the view asks whether Try again can be shown
+        const canRetry = canBuildRetryPayload(context);
+
+        // Then it is hidden, because the transaction alone cannot restore the waypoints
+        expect(canRetry).toBe(false);
     });
 
     it('does not rebuild a replaceReceipt failure as a RequestMoney call, because replace has its own builder', () => {
-        expect(canBuildRetryPayload(buildContext(buildFailedTransaction(), {action: CONST.IOU.ACTION_PARAMS.REPLACE_RECEIPT}))).toBe(false);
+        // Given a failed ReplaceReceipt on an existing expense
+        const context = buildContext(buildFailedTransaction(), {action: CONST.IOU.ACTION_PARAMS.REPLACE_RECEIPT});
+
+        // When the RequestMoney builder is asked whether it can rebuild it
+        const canRetry = canBuildRetryPayload(context);
+
+        // Then it refuses, because replaying it as RequestMoney would create a new expense instead of updating the receipt
+        expect(canRetry).toBe(false);
     });
 
     it('offers no retry for a trackExpense failure, whose convert-and-submit path the handler does not replay', () => {
-        expect(canBuildRetryPayload(buildContext(buildFailedTransaction(), {action: CONST.IOU.ACTION_PARAMS.TRACK_EXPENSE}))).toBe(false);
+        // Given a failed TrackExpense
+        const context = buildContext(buildFailedTransaction(), {action: CONST.IOU.ACTION_PARAMS.TRACK_EXPENSE});
+
+        // When the RequestMoney builder is asked whether it can rebuild it
+        const canRetry = canBuildRetryPayload(context);
+
+        // Then it refuses, because the track flow is not a RequestMoney call
+        expect(canRetry).toBe(false);
     });
 
     it('offers no retry for the report-creation fallback error, which carries no action to replay', () => {
-        expect(canBuildRetryPayload(buildContext(buildFailedTransaction(), {action: undefined}))).toBe(false);
+        // Given the fallback receipt error the view builds for a report-creation failure, which has no action
+        const context = buildContext(buildFailedTransaction(), {action: undefined});
+
+        // When the view asks whether Try again can be shown
+        const canRetry = canBuildRetryPayload(context);
+
+        // Then it is hidden, because there is no call to replay
+        expect(canRetry).toBe(false);
     });
 
     it('offers no retry once the receipt source is no longer a local file, so there is nothing left on the device to resend', () => {
-        expect(canBuildRetryPayload(buildContext(buildFailedTransaction(), {source: 'https://example.com/receipt.jpg'}))).toBe(false);
+        // Given a failed expense whose receipt source is a remote URL
+        const context = buildContext(buildFailedTransaction(), {source: 'https://example.com/receipt.jpg'});
+
+        // When the view asks whether Try again can be shown
+        const canRetry = canBuildRetryPayload(context);
+
+        // Then it is hidden, because nothing is left on the device to resend
+        expect(canRetry).toBe(false);
+    });
+
+    it('resolves the DM counterpart and payee from the context user, not the Onyx session', async () => {
+        // Given a 1:1 DM, and an Onyx session that disagrees with the context user
+        await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[OTHER_ACCOUNT_ID]: {accountID: OTHER_ACCOUNT_ID, login: 'other@example.com'}});
+        await Onyx.merge(ONYXKEYS.SESSION, {accountID: 999});
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${CHAT_REPORT_ID}`, {
+            reportID: CHAT_REPORT_ID,
+            participants: {[CURRENT_USER_ACCOUNT_ID]: {}, [OTHER_ACCOUNT_ID]: {}},
+        });
+        await waitForBatchedUpdates();
+
+        // When the retry payload is rebuilt
+        const payload = buildRetryPayload(buildContext(buildFailedTransaction()), receiptFile);
+
+        // Then only the other DM member is the participant and the context user is the payee
+        expect(payload?.participantParams.participant.accountID).toBe(OTHER_ACCOUNT_ID);
+        expect(payload?.participantParams.payeeAccountID).toBe(CURRENT_USER_ACCOUNT_ID);
     });
 
     describe('retryReceiptUpload', () => {
@@ -151,22 +248,28 @@ describe('buildRetryPayload', () => {
         });
 
         it('keeps the receipt error when the dispatch throws, so Try again and Save stay available', async () => {
+            // Given a retryable failure whose dispatch throws
             jest.mocked(requestMoney).mockImplementation(() => {
                 throw new Error('dispatch failed');
             });
             const clearReceiptError = jest.fn(() => Promise.resolve());
 
+            // When Try again is pressed
             const outcome = await retryReceiptUpload(buildContext(buildFailedTransaction()), clearReceiptError);
 
+            // Then the error stays, so the user still has Try again and Save
             expect(outcome).toBe('dispatchFailed');
             expect(clearReceiptError).not.toHaveBeenCalled();
         });
 
         it('clears the receipt error only after the retry is dispatched', async () => {
+            // Given a retryable failure
             const clearReceiptError = jest.fn(() => Promise.resolve());
 
+            // When Try again is pressed
             const outcome = await retryReceiptUpload(buildContext(buildFailedTransaction()), clearReceiptError);
 
+            // Then the error is cleared only after requestMoney is called, so a failed dispatch can't hide the buttons
             expect(outcome).toBe('dispatched');
             expect(clearReceiptError).toHaveBeenCalledTimes(1);
             expect(jest.mocked(requestMoney).mock.invocationCallOrder.at(0)).toBeLessThan(clearReceiptError.mock.invocationCallOrder.at(0) ?? 0);
@@ -181,11 +284,18 @@ describe('buildRetryPayload', () => {
         });
 
         it('offers a retry for a failed replaceReceipt, including on a distance expense', () => {
+            // Given a failed ReplaceReceipt, once on a plain expense and once on a distance expense
+            const context = buildReplaceReceiptContext();
             const distanceContext = buildReplaceReceiptContext();
             distanceContext.transaction = buildFailedTransaction({receipt: undefined, comment: {waypoints: {waypoint0: {address: 'Berlin'}}}});
 
-            expect(canRetryReceiptUpload(buildReplaceReceiptContext())).toBe(true);
-            expect(canRetryReceiptUpload(distanceContext)).toBe(true);
+            // When the view asks whether Try again can be shown
+            const canRetry = canRetryReceiptUpload(context);
+            const canRetryDistance = canRetryReceiptUpload(distanceContext);
+
+            // Then it is offered for both, because replace only sends the receipt again and never touches waypoints
+            expect(canRetry).toBe(true);
+            expect(canRetryDistance).toBe(true);
         });
 
         it.each([
@@ -194,22 +304,32 @@ describe('buildRetryPayload', () => {
             ['the retry params are not valid JSON', buildReplaceReceiptContext({}, {retryParams: '{not json'})],
             ['there are no retry params', buildReplaceReceiptContext({}, {retryParams: undefined})],
         ])('offers no retry when %s', (_, context) => {
-            expect(canRetryReceiptUpload(context)).toBe(false);
+            // Given a ReplaceReceipt error that can't be replayed for the reason in the test name
+
+            // When the view asks whether Try again can be shown
+            const canRetry = canRetryReceiptUpload(context);
+
+            // Then it is hidden, so pressing it can't do nothing or upload the receipt to the wrong expense
+            expect(canRetry).toBe(false);
         });
 
-        it('rebuilds the payload from the stored crop state and action ID, and the current policy and violations', () => {
+        it('rebuilds the payload from the stored crop state and action IDs, and the current policy and violations', () => {
+            // Given a failed crop with "removed a receipt" and "added a receipt" actions, whose stored retry params hold an old policy
             const context = buildReplaceReceiptContext({
                 isSameReceipt: true,
                 state: CONST.IOU.RECEIPT_STATE.SCAN_READY,
                 receiptAddedReportActionID: '1234567890',
+                receiptRemovedReportActionID: '1234567891',
                 transactionPolicy: createMock<Policy>({id: POLICY_ID, name: 'Old name'}),
             });
             const currentPolicy = createMock<Policy>({id: POLICY_ID, name: 'New name'});
             context.policyParams = {policy: currentPolicy};
             context.transactionViolations = [];
 
+            // When the retry payload is rebuilt
             const payload = buildReplaceReceiptRetryPayload(context, receiptFile);
 
+            // Then the payload keeps the crop state and action IDs, and takes the current policy and violations, not the stored ones
             expect(payload).toEqual(
                 expect.objectContaining({
                     file: receiptFile,
@@ -217,6 +337,7 @@ describe('buildRetryPayload', () => {
                     isSameReceipt: true,
                     state: CONST.IOU.RECEIPT_STATE.SCAN_READY,
                     receiptAddedReportActionID: '1234567890',
+                    receiptRemovedReportActionID: '1234567891',
                     transactionPolicy: currentPolicy,
                     transactionViolations: [],
                 }),
@@ -224,10 +345,13 @@ describe('buildRetryPayload', () => {
         });
 
         it('dispatches replaceReceipt and clears the error after it', async () => {
+            // Given a retryable ReplaceReceipt failure
             const clearReceiptError = jest.fn(() => Promise.resolve());
 
+            // When Try again is pressed
             const outcome = await retryReceiptUpload(buildReplaceReceiptContext(), clearReceiptError);
 
+            // Then replaceReceipt is called instead of requestMoney, before the error is cleared, so the expense is updated rather than created again
             expect(outcome).toBe('dispatched');
             expect(jest.mocked(replaceReceipt)).toHaveBeenCalledTimes(1);
             expect(jest.mocked(requestMoney)).not.toHaveBeenCalled();

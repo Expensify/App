@@ -151,6 +151,7 @@ import SageIntacctExport from '@assets/images/integrationicons/export/sage-intac
 import XeroExport from '@assets/images/integrationicons/export/xero-icon.svg';
 import GustoSquare from '@assets/images/integrationicons/gusto-icon-square.svg';
 import IntuitSquare from '@assets/images/integrationicons/intuit-icon-square.svg';
+import MCPSquare from '@assets/images/integrationicons/mcp-icon-square.svg';
 import MicrosoftDynamicsSquare from '@assets/images/integrationicons/microsoft-dynamics-icon-square.svg';
 import NetSuiteSquare from '@assets/images/integrationicons/netsuite-icon-square.svg';
 import OracleSquare from '@assets/images/integrationicons/oracle-icon-square.svg';
@@ -165,6 +166,7 @@ import Uber from '@assets/images/integrationicons/uber.svg';
 import XeroCircle from '@assets/images/integrationicons/xero-icon-circle.svg';
 import XeroSquare from '@assets/images/integrationicons/xero-icon-square.svg';
 import ZenefitsSquare from '@assets/images/integrationicons/zenefits-icon-square.svg';
+import ZohoBooksSquare from '@assets/images/integrationicons/zoho-books-icon-square.svg';
 import InvoiceBookmark from '@assets/images/invoice-bookmark.svg';
 import InvoiceGeneric from '@assets/images/invoice-generic.svg';
 import Invoice from '@assets/images/invoice.svg';
@@ -542,6 +544,7 @@ const Expensicons = {
     ChatGPTSquare,
     ClaudeSquare,
     CursorSquare,
+    MCPSquare,
     IntacctSquare: SageIntacctSquare,
     AdvancedApprovalsSquare,
     Zoom,
@@ -609,6 +612,7 @@ const Expensicons = {
     ApplePayMark,
     Contactless,
     CampfireSquare,
+    ZohoBooksSquare,
 };
 
 // Create the ExpensifyIcons object from the imported Expensicons
