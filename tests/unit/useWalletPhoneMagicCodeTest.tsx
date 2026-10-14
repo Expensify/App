@@ -5,6 +5,7 @@ import type {UpdatePersonalDetailsForWalletParams} from '@libs/API/parameters';
 import useWalletPhoneValidateCode from '@pages/EnablePayments/shared/useWalletPhoneValidateCode';
 
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 
 import Onyx from 'react-native-onyx';
@@ -107,6 +108,24 @@ describe('useWalletPhoneValidateCode', () => {
 
         expect(mockUpdatePersonalDetails).not.toHaveBeenCalled();
         expect(mockNavigate).toHaveBeenCalledWith(ROUTES.SETTINGS_ENABLE_PAYMENTS_CONFIRM_VALIDATE_CODE.getRoute());
+    });
+
+    it('routes to the validateCode screen of the calling flow when it provides its own route', async () => {
+        // Given the IOU pay flow, which must open the validateCode screen on top of itself rather than the Settings wallet one
+        const payFlowRoute: Route = ROUTES.ENABLE_PAYMENTS;
+        const {result} = renderHook(() => useWalletPhoneValidateCode(() => payFlowRoute));
+        await act(async () => {
+            await waitForBatchedUpdates();
+        });
+
+        // When a phone number is set
+        act(() => {
+            result.current.submitPersonalDetails(buildParams());
+        });
+
+        // Then the submission is held and the user is sent to the flow's own validateCode route
+        expect(mockUpdatePersonalDetails).not.toHaveBeenCalled();
+        expect(mockNavigate).toHaveBeenCalledWith(payFlowRoute);
     });
 
     it('submits directly without routing to the validateCode screen when no phone number is provided', async () => {
