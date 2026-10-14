@@ -223,7 +223,7 @@ function ConciergeFeedbackPrompt({
 
     if (shouldPersistAfterRating && hasRated) {
         return (
-            <View style={[styles.flexColumn, styles.alignItemsStart, styles.gap2, styles.mt2]}>
+            <View style={[styles.flexColumn, styles.alignItemsStart, styles.gap2, shouldRenderInline ? styles.mtn1 : styles.mt2]}>
                 {shouldRenderInline && shouldShowPrompt && <Text style={styles.textSupporting}>{promptText ?? translate('concierge.feedback.prompt')}</Text>}
                 {isDisplayedThankMessage && <Text style={styles.textLabelSupporting}>{translate('concierge.feedback.thanks')}</Text>}
                 {feedbackThumbs}
@@ -233,7 +233,7 @@ function ConciergeFeedbackPrompt({
 
     if (shouldRenderInline) {
         return (
-            <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap2]}>
+            <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap2, styles.mtn1, styles.mbn1]}>
                 {shouldShowPrompt && <Text style={[styles.textSupporting, styles.flexShrink1]}>{promptText ?? translate('concierge.feedback.prompt')}</Text>}
                 {feedbackThumbs}
             </View>
