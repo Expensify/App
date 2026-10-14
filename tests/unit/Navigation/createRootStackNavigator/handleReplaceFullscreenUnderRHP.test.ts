@@ -425,6 +425,40 @@ describe('handleReplaceFullscreenUnderRHP — focused Reports stack preservation
         expect(getReportsSplitState(result)?.routes.at(-1)?.params).toEqual({reportID: 'B'});
     });
 
+    it('rebuilds the route snapshot history of the mounted stack from the revealed routes', () => {
+        // Given a wide layout with a mounted stack whose route snapshot history still holds report A and an older params snapshot
+        mockGetPlatform.mockReturnValue(CONST.PLATFORM.WEB);
+        mockStubbedParsedState = makeReportsParsedState('B');
+        const state = makeExistingReportsState(
+            [
+                makeRoute(SCREENS.INBOX, undefined, undefined, 'inbox-key'),
+                makeRoute(SCREENS.REPORT, {reportID: 'B', reportActionID: 'old-action'}, undefined, 'Report-wide-pre-mount-7'),
+                makeRoute(SCREENS.REPORT, {reportID: 'A'}, undefined, 'report-a-key'),
+            ],
+            2,
+        );
+        const reportsSplitState = getReportsSplitState(state);
+        if (reportsSplitState) {
+            Object.assign(reportsSplitState, {
+                stale: false,
+                key: 'reports-split-state-key',
+                history: [
+                    {key: 'inbox-key', name: SCREENS.INBOX},
+                    {key: 'Report-wide-pre-mount-7', name: SCREENS.REPORT, params: {reportID: 'B', reportActionID: 'old-action'}},
+                    {key: 'report-a-key', name: SCREENS.REPORT, params: {reportID: 'A'}},
+                ],
+            });
+        }
+        const action: ReplaceFullscreenUnderRHPActionType = {...makeReportsAction('B'), payload: {...makeReportsAction('B').payload, preMountedRouteKey: 'Report-wide-pre-mount-7'}};
+
+        // When report B is revealed under the RHP
+        const result = handleReplaceFullscreenUnderRHP(state, action, CONFIG_OPTIONS, stackRouter);
+
+        // Then the history matches the revealed routes one to one, like a rehydrated stack, so back cannot land on the dropped report A
+        const resultHistory: unknown[] = getReportsSplitState(result)?.history ?? [];
+        expect(resultHistory).toEqual([expect.objectContaining({key: 'inbox-key'}), expect.objectContaining({key: 'Report-wide-pre-mount-7', params: {reportID: 'B'}})]);
+    });
+
     it('drops the pre-mount kept in the preserved native history, so the revealed destination is its only copy', () => {
         // Given a wide native layout with the Reports tab focused on report A and report B pre-mounted under it
         mockGetPlatform.mockReturnValue(CONST.PLATFORM.IOS);

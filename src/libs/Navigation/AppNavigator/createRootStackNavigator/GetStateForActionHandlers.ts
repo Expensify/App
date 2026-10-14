@@ -122,7 +122,7 @@ type TabNavigatorPushPayloadParams = {
 };
 
 type TabRouteForReplacement = NavigationState['routes'][number] | NavigationPartialRoute;
-type TabStateForReplacement = Omit<NavigationState, 'routes' | 'stale'> & {routes: TabRouteForReplacement[]; stale?: true | false};
+type TabStateForReplacement = Omit<NavigationState, 'routes' | 'stale'> & {routes: TabRouteForReplacement[]; stale?: true | false; preloadedRouteKeys?: string[]};
 type StaleTabStateOverrides = {routes: TabRouteForReplacement[]; index: number; routeNames?: string[]};
 
 function toStaleTabState(existingTabState: NavigationState | PartialState<NavigationState> | undefined, overrides: StaleTabStateOverrides): TabStateForReplacement {
@@ -497,6 +497,52 @@ function withFocusedTabInHistory(tabState: TabStateForReplacement): TabStateForR
 }
 
 /**
+ * Puts the wide pre-mounted destination screen in place of the freshly built one, so the reveal shows the mounted instance.
+ * Everything else comes from the regular replace, so the stack, tab history and back navigation end up the same as without it.
+ */
+function withPreMountedDestination(builtTabState: TabStateForReplacement, existingTabState: NavigationState | undefined, preMountedRouteKey: string): TabStateForReplacement {
+    const targetTabRoute = builtTabState.routes[builtTabState.index];
+    const existingTargetTabRoute = existingTabState?.routes.find((route) => route.name === targetTabRoute?.name);
+    const existingNestedState = isNavigationStateWithRoutes(existingTargetTabRoute?.state) ? existingTargetTabRoute.state : undefined;
+    const preMountedRoute = existingNestedState?.routes.find((route) => route.key === preMountedRouteKey);
+    const builtNestedState = isNavigationStateWithRoutes(targetTabRoute?.state) ? targetTabRoute.state : undefined;
+    const builtDestination = builtNestedState?.routes.at(-1);
+    if (!targetTabRoute || !preMountedRoute || !builtNestedState || builtDestination?.name !== preMountedRoute.name) {
+        Log.hmmm('[Navigation] Wide pre-mount does not match the revealed destination, replacing without it', {preMountedRouteKey});
+        return withoutFocusedTabPreload(builtTabState);
+    }
+
+    // Native keeps the focused report's history, which holds the pre-mount under it, so that copy is dropped to keep keys unique.
+    const backRoutes = builtNestedState.routes.slice(0, -1).filter((route) => !('key' in route) || route.key !== preMountedRouteKey);
+    const nestedRoutes = [...backRoutes, {...builtDestination, key: preMountedRouteKey}];
+    // When every screen of the built stack is already mounted, the mounted stack state is kept with only its routes changed.
+    // A partial state would be rehydrated under a new key, which makes the navigator re-render all of its screens.
+    const mountedNestedState = isRealizedNavigationState(existingTargetTabRoute?.state) ? existingTargetTabRoute.state : undefined;
+    // Params still come from the built routes, so both branches reveal the destination the action asked for.
+    const mountedRoutes = nestedRoutes.map((route) => {
+        const existing = mountedNestedState?.routes.find((mountedRoute) => 'key' in route && mountedRoute.key === route.key);
+        return existing ? {...existing, params: route.params} : undefined;
+    });
+    const routes = [...builtTabState.routes];
+    if (mountedNestedState && mountedRoutes.every((route): route is NonNullable<typeof route> => !!route) && 'key' in targetTabRoute && typeof targetTabRoute.key === 'string') {
+        // Route snapshots added by addPushParamsRouterExtension are rebuilt from the routes, the same as a rehydrated stack gets them.
+        const history = mountedNestedState.history ? {history: mountedRoutes.map((route) => ({...route}))} : {};
+        routes[builtTabState.index] = {...targetTabRoute, key: targetTabRoute.key, state: {...mountedNestedState, routes: mountedRoutes, index: mountedRoutes.length - 1, ...history}};
+    } else {
+        routes[builtTabState.index] = {...targetTabRoute, state: {...builtNestedState, routes: nestedRoutes, index: nestedRoutes.length - 1}};
+    }
+    return withoutFocusedTabPreload({...builtTabState, routes});
+}
+
+/** The pre-mount kept a covered tab unfrozen. It is focused from here, so it no longer needs that. */
+function withoutFocusedTabPreload(tabState: TabStateForReplacement): TabStateForReplacement {
+    const {preloadedRouteKeys} = tabState;
+    const focusedTabRoute = tabState.routes[tabState.index];
+    const focusedTabRouteKey = focusedTabRoute && 'key' in focusedTabRoute ? focusedTabRoute.key : undefined;
+    return {...tabState, ...(preloadedRouteKeys ? {preloadedRouteKeys: preloadedRouteKeys.filter((key) => key !== focusedTabRouteKey)} : {})};
+}
+
+/**
  * Handles the REPLACE_FULLSCREEN_UNDER_RHP action.
  *
  * Pre-inserts a destination screen underneath the currently open RHP so that dismissing
@@ -571,15 +617,15 @@ function handleReplaceFullscreenUnderRHP(
         const updatedTabState = preMountedRouteKey ? withPreMountedDestination(builtTabState, existingTabState, preMountedRouteKey) : builtTabState;
         // The remount guards against a push-transition flash on narrow layout (#90985). A wide pre-mount reveal keeps the key,
         // because a remount would drop the pre-mounted screen. Wide renders split screens without a push animation.
-        let staleTabState = updatedTabState;
+        let tabStateForReplace = updatedTabState;
         if (preMountedRouteKey && !getIsNarrowLayout()) {
-            staleTabState = withFocusedTabInHistory(updatedTabState);
+            tabStateForReplace = withFocusedTabInHistory(updatedTabState);
         } else if (existingTabState) {
-            staleTabState = markFocusedTabRouteForRemount(updatedTabState, existingTabState);
+            tabStateForReplace = markFocusedTabRouteForRemount(updatedTabState, existingTabState);
         }
 
         // Drop consumed deep-link hints before remounting, or React Navigation can replay the old target over the new state.
-        const updatedTabRoute = {...withSanitizedDeepLinkParams(existingTabRoute, undefined), state: staleTabState} as StackNavigationState<ParamListBase>['routes'][number];
+        const updatedTabRoute = {...withSanitizedDeepLinkParams(existingTabRoute, undefined), state: tabStateForReplace} as StackNavigationState<ParamListBase>['routes'][number];
         // Save original route so handleRemoveFullscreenUnderRHP can fully restore it on cancel.
         // In the cold-start fallback the tab navigator has no nested state yet, so saving the raw
         // route would leave it stateless and the dismiss-restore path (removePreInsertedFullscreenIfNeeded)
@@ -838,51 +884,6 @@ function removeStalePreMountsFromResetAction(action: RootStackNavigatorAction): 
     }
     const payload = removeStalePreMountsFromState(action.payload);
     return payload === action.payload ? action : ({...action, payload} as RootStackNavigatorAction);
-}
-
-/**
- * Puts the wide pre-mounted destination screen in place of the freshly built one, so the reveal shows the mounted instance.
- * Everything else comes from the regular replace, so the stack, tab history and back navigation end up the same as without it.
- */
-function withPreMountedDestination(builtTabState: TabStateForReplacement, existingTabState: NavigationState | undefined, preMountedRouteKey: string): TabStateForReplacement {
-    const targetTabRoute = builtTabState.routes[builtTabState.index];
-    const existingTargetTabRoute = existingTabState?.routes.find((route) => route.name === targetTabRoute?.name);
-    const existingNestedState = isNavigationStateWithRoutes(existingTargetTabRoute?.state) ? existingTargetTabRoute.state : undefined;
-    const preMountedRoute = existingNestedState?.routes.find((route) => route.key === preMountedRouteKey);
-    const builtNestedState = isNavigationStateWithRoutes(targetTabRoute?.state) ? targetTabRoute.state : undefined;
-    const builtDestination = builtNestedState?.routes.at(-1);
-    if (!targetTabRoute || !preMountedRoute || !builtNestedState || builtDestination?.name !== preMountedRoute.name) {
-        Log.hmmm('[Navigation] Wide pre-mount does not match the revealed destination, replacing without it', {preMountedRouteKey});
-        return withoutFocusedTabPreload(builtTabState);
-    }
-
-    // Native keeps the focused report's history, which holds the pre-mount under it, so that copy is dropped to keep keys unique.
-    const backRoutes = builtNestedState.routes.slice(0, -1).filter((route) => !('key' in route) || route.key !== preMountedRouteKey);
-    const nestedRoutes = [...backRoutes, {...builtDestination, key: preMountedRouteKey}];
-    // When every screen of the built stack is already mounted, the mounted stack state is kept with only its routes changed.
-    // A partial state would be rehydrated under a new key, which makes the navigator re-render all of its screens.
-    const mountedNestedState = isRealizedNavigationState(existingTargetTabRoute?.state) ? existingTargetTabRoute.state : undefined;
-    // Params still come from the built routes, so both branches reveal the destination the action asked for.
-    const mountedRoutes = mountedNestedState
-        ? nestedRoutes.flatMap((route) =>
-              mountedNestedState.routes.filter((existing) => 'key' in route && existing.key === route.key).map((existing) => ({...existing, params: route.params})),
-          )
-        : [];
-    const routes = [...builtTabState.routes];
-    if (mountedNestedState && mountedRoutes.length === nestedRoutes.length && 'key' in targetTabRoute && typeof targetTabRoute.key === 'string') {
-        routes[builtTabState.index] = {...targetTabRoute, key: targetTabRoute.key, state: {...mountedNestedState, routes: mountedRoutes, index: mountedRoutes.length - 1}};
-    } else {
-        routes[builtTabState.index] = {...targetTabRoute, state: {...builtNestedState, routes: nestedRoutes, index: nestedRoutes.length - 1}};
-    }
-    return withoutFocusedTabPreload({...builtTabState, routes});
-}
-
-/** The pre-mount kept a covered tab unfrozen. It is focused from here, so it no longer needs that. */
-function withoutFocusedTabPreload(tabState: TabStateForReplacement): TabStateForReplacement {
-    const {preloadedRouteKeys} = tabState as TabStateForReplacement & {preloadedRouteKeys?: string[]};
-    const focusedTabRoute = tabState.routes[tabState.index];
-    const focusedTabRouteKey = focusedTabRoute && 'key' in focusedTabRoute ? focusedTabRoute.key : undefined;
-    return {...tabState, ...(preloadedRouteKeys ? {preloadedRouteKeys: preloadedRouteKeys.filter((key) => key !== focusedTabRouteKey)} : {})};
 }
 
 export {
