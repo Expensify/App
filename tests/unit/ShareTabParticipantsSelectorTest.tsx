@@ -26,6 +26,7 @@ import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct'
 
 type GetPolicyExpenseChatFn = typeof getPolicyExpenseChat;
 type ReportUtilsActual = Record<string, unknown> & {getPolicyExpenseChat: GetPolicyExpenseChatFn};
+let mockSelectedParticipant: Participant = {};
 
 jest.mock('@hooks/useCurrentUserPersonalDetails');
 jest.mock('@hooks/useDefaultExpensePolicy');
@@ -63,15 +64,7 @@ jest.mock('@pages/iou/request/MoneyRequestParticipantsSelector', () => {
         default: ({onParticipantsAdded, initiallySelectedReportID}: {onParticipantsAdded: (participants: Participant[]) => void; initiallySelectedReportID?: string}) => (
             <MockPressable
                 testID="mock-select-participant"
-                onPress={() =>
-                    onParticipantsAdded([
-                        {
-                            reportID: 'selected-report-1',
-                            accountID: 2,
-                            selected: true,
-                        },
-                    ])
-                }
+                onPress={() => onParticipantsAdded([mockSelectedParticipant])}
             >
                 <MockText>{`Selected: ${initiallySelectedReportID ?? 'none'}`}</MockText>
             </MockPressable>
@@ -102,6 +95,12 @@ describe('ShareTabParticipantsSelector', () => {
         jest.mocked(useDefaultExpensePolicy).mockReturnValue(undefined);
         jest.mocked(shouldUseDefaultExpensePolicy).mockReturnValue(false);
         jest.mocked(getPolicyExpenseChat).mockReturnValue(undefined);
+        mockSelectedParticipant = {
+            reportID: 'selected-report-1',
+            accountID: 2,
+            policyID: 'policy-1',
+            selected: true,
+        };
     });
 
     it('auto-navigates to the default group workspace when eligible and configured for auto-reporting', async () => {
@@ -177,26 +176,54 @@ describe('ShareTabParticipantsSelector', () => {
         expect(Navigation.navigate).not.toHaveBeenCalled();
     });
 
-    it('clears draft transaction on fresh manual participant selection and clears policy fields on subsequent re-selections', async () => {
+    it('clears the draft on the initial selection but preserves every field when reselecting the same destination', async () => {
+        // Given the participant picker has no previously selected destination
         render(<ShareTabParticipantsSelector detailsPageRouteObject={ROUTES.SHARE_SUBMIT_DETAILS} />);
         await waitForBatchedUpdatesWithAct();
 
-        // Initial manual selection -> clears leftover draft
+        // When the user makes the initial selection
         fireEvent.press(screen.getByTestId('mock-select-participant'));
         await waitForBatchedUpdatesWithAct();
 
+        // Then stale draft data is cleared before opening confirmation
         expect(clearMoneyRequest).toHaveBeenCalledTimes(1);
         expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.SHARE_SUBMIT_DETAILS.getRoute('selected-report-1'));
 
         jest.clearAllMocks();
 
-        // Subsequent selection keeps general draft data but clears fields tied to the previous destination policy.
+        // When the user selects that exact destination again
         fireEvent.press(screen.getByTestId('mock-select-participant'));
         await waitForBatchedUpdatesWithAct();
 
+        // Then no draft or policy fields are cleared
         expect(clearMoneyRequest).not.toHaveBeenCalled();
-        expect(clearMoneyRequestPolicyFields).toHaveBeenCalledWith(CONST.IOU.OPTIMISTIC_TRANSACTION_ID);
+        expect(clearMoneyRequestPolicyFields).not.toHaveBeenCalled();
         expect(clearUnknownUserDetails).toHaveBeenCalled();
         expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.SHARE_SUBMIT_DETAILS.getRoute('selected-report-1'));
+    });
+
+    it('clears policy fields only when the selected destination belongs to another policy', async () => {
+        // Given the user initially selected a destination in policy 1
+        render(<ShareTabParticipantsSelector detailsPageRouteObject={ROUTES.SHARE_SUBMIT_DETAILS} />);
+        await waitForBatchedUpdatesWithAct();
+        fireEvent.press(screen.getByTestId('mock-select-participant'));
+        await waitForBatchedUpdatesWithAct();
+        jest.clearAllMocks();
+
+        // When they select a different report in the same policy
+        mockSelectedParticipant = {...mockSelectedParticipant, reportID: 'selected-report-2'};
+        fireEvent.press(screen.getByTestId('mock-select-participant'));
+        await waitForBatchedUpdatesWithAct();
+
+        // Then policy-owned fields remain valid and are preserved
+        expect(clearMoneyRequestPolicyFields).not.toHaveBeenCalled();
+
+        // When they select a report belonging to another policy
+        mockSelectedParticipant = {...mockSelectedParticipant, reportID: 'selected-report-3', policyID: 'policy-2'};
+        fireEvent.press(screen.getByTestId('mock-select-participant'));
+        await waitForBatchedUpdatesWithAct();
+
+        // Then fields owned by the previous policy are cleared
+        expect(clearMoneyRequestPolicyFields).toHaveBeenCalledWith(CONST.IOU.OPTIMISTIC_TRANSACTION_ID);
     });
 });

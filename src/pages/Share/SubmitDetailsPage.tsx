@@ -191,6 +191,19 @@ function SubmitDetailsPage({
     // Latch the currency rather than reading it live: clearing the amount resets `isAmountSet` while the picked
     // currency stays on the draft, so a live read would let the next re-seed swap it for the policy's currency.
     const enteredCurrencyRef = useRef<string | undefined>(undefined);
+    const initialReportIDRef = useRef<string | undefined>(undefined);
+    const hasCapturedInitialReportIDRef = useRef(false);
+    const hasAppliedDestinationDefaultsRef = useRef(false);
+
+    // Capture the draft destination before initMoneyRequest updates it. This makes the comparison independent of
+    // effect ordering and Onyx update timing when the confirmation page remounts after participant selection.
+    useEffect(() => {
+        if (isLoadingTransaction || hasCapturedInitialReportIDRef.current) {
+            return;
+        }
+        initialReportIDRef.current = transaction?.reportID;
+        hasCapturedInitialReportIDRef.current = true;
+    }, [isLoadingTransaction, transaction?.reportID]);
 
     useEffect(() => {
         if (isLoadingTransaction) {
@@ -283,13 +296,21 @@ function SubmitDetailsPage({
 
     const defaultBillable = !!policy?.defaultBillable;
     useEffect(() => {
-        setMoneyRequestBillable(CONST.IOU.OPTIMISTIC_TRANSACTION_ID, defaultBillable);
-    }, [defaultBillable]);
+        if (
+            !hasCapturedInitialReportIDRef.current ||
+            (initialReportIDRef.current && initialReportIDRef.current === reportOrAccountID) ||
+            hasAppliedDestinationDefaultsRef.current ||
+            !report?.reportID ||
+            ((isPolicyExpenseChat || isCreatingTrackExpense) && !policy?.id)
+        ) {
+            return;
+        }
+        hasAppliedDestinationDefaultsRef.current = true;
 
-    useEffect(() => {
         const defaultReimbursable = (isPolicyExpenseChat && isGroupPolicy(policy)) || isCreatingTrackExpense ? (policy?.defaultReimbursable ?? true) : true;
+        setMoneyRequestBillable(CONST.IOU.OPTIMISTIC_TRANSACTION_ID, defaultBillable);
         setMoneyRequestReimbursable(CONST.IOU.OPTIMISTIC_TRANSACTION_ID, defaultReimbursable);
-    }, [policy, isPolicyExpenseChat, isCreatingTrackExpense]);
+    }, [defaultBillable, isPolicyExpenseChat, isCreatingTrackExpense, policy?.defaultReimbursable, policy?.id, policy?.type, report?.reportID, reportOrAccountID]);
 
     const setBillable = useCallback((billable: boolean) => {
         setMoneyRequestBillable(CONST.IOU.OPTIMISTIC_TRANSACTION_ID, billable);

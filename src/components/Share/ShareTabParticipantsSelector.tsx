@@ -33,6 +33,7 @@ function ShareTabParticipantsSelectorComponent({detailsPageRouteObject}: ShareTa
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftIDsSelector});
     const [selectedReportID, setSelectedReportID] = useState<string | number | undefined>();
+    const [selectedPolicyID, setSelectedPolicyID] = useState<string | undefined>();
 
     const isSubmitFlow = detailsPageRouteObject === ROUTES.SHARE_SUBMIT_DETAILS;
 
@@ -66,6 +67,7 @@ function ShareTabParticipantsSelectorComponent({detailsPageRouteObject}: ShareTa
     const defaultExpenseChatReportID =
         canUseDefaultPolicy && defaultExpensePolicy?.autoReporting ? getPolicyExpenseChat(currentUserAccountID, defaultExpensePolicy?.id)?.reportID : undefined;
     const autoNavigateReportID = lockedExpenseChatReportID ?? defaultExpenseChatReportID;
+    const autoNavigatePolicyID = lockedExpenseChatReportID ? preferredPolicyID : defaultExpensePolicy?.id;
     const shouldWaitForDestination = isSubmitFlow && (isLoadingSecurityGroup || !isDestinationReady);
 
     // Synchronous one-shot guard for the auto-navigation effect. A ref (rather than the render state below) is used so
@@ -123,10 +125,11 @@ function ShareTabParticipantsSelectorComponent({detailsPageRouteObject}: ShareTa
         Navigation.navigate(detailsPageRouteObject.getRoute(autoNavigateReportID.toString()), {
             afterTransition: () => {
                 setSelectedReportID(autoNavigateReportID);
+                setSelectedPolicyID(autoNavigatePolicyID);
                 setHasAutoNavigatedToReport(true);
             },
         });
-    }, [autoNavigateReportID, detailsPageRouteObject, draftTransactionIDs, hasCommittedToPicker, shouldWaitForDestination]);
+    }, [autoNavigatePolicyID, autoNavigateReportID, detailsPageRouteObject, draftTransactionIDs, hasCommittedToPicker, shouldWaitForDestination]);
 
     // Render null while waiting for initial destination resolution, or while actively auto-navigating to the details page.
     // Afterwards we fall through to the picker so backing out of the details page lands on a usable screen rather than a blank tab.
@@ -139,17 +142,28 @@ function ShareTabParticipantsSelectorComponent({detailsPageRouteObject}: ShareTa
             iouType={CONST.IOU.TYPE.SUBMIT}
             initiallySelectedReportID={typeof selectedReportID === 'string' ? selectedReportID : undefined}
             onParticipantsAdded={(value) => {
-                // Start fresh on the initial pick. On a destination change retain the general draft while clearing fields
-                // that belong to the previous workspace's policy, so they cannot be submitted to the new destination.
-                if (!hasAutoNavigatedToReport && !selectedReportID) {
-                    clearMoneyRequest(CONST.IOU.OPTIMISTIC_TRANSACTION_ID, draftTransactionIDs);
-                } else {
-                    clearMoneyRequestPolicyFields(CONST.IOU.OPTIMISTIC_TRANSACTION_ID);
-                }
-
                 const participant = value.at(0);
                 let reportID = participant?.reportID ?? CONST.DEFAULT_NUMBER_ID;
                 const accountID = participant?.accountID;
+                let optimisticReport: ReturnType<typeof getOptimisticChatReport> | undefined;
+
+                // Resolve new-email recipients before comparing destinations so the stable optimistic report ID is used.
+                if (accountID && !reportID) {
+                    optimisticReport = getOptimisticChatReport(accountID, currentUserAccountID);
+                    reportID = optimisticReport.reportID;
+                }
+
+                const hasSelectedDestination = hasAutoNavigatedToReport || selectedReportID !== undefined;
+                const isSameDestination = selectedReportID !== undefined && selectedReportID.toString() === reportID.toString();
+                const isSamePolicy = !!selectedPolicyID && selectedPolicyID === participant?.policyID;
+
+                // Start fresh on the initial pick. When the destination changes, clear workspace-owned fields only if
+                // the underlying policy changed; selecting the same destination must preserve every draft edit.
+                if (!hasSelectedDestination) {
+                    clearMoneyRequest(CONST.IOU.OPTIMISTIC_TRANSACTION_ID, draftTransactionIDs);
+                } else if (!isSameDestination && !isSamePolicy) {
+                    clearMoneyRequestPolicyFields(CONST.IOU.OPTIMISTIC_TRANSACTION_ID);
+                }
 
                 if (isSubmitFlow) {
                     startSpan(CONST.TELEMETRY.SPAN_SHARE_EXTENSION_OPEN_SUBMIT_FLOW, {
@@ -163,22 +177,22 @@ function ShareTabParticipantsSelectorComponent({detailsPageRouteObject}: ShareTa
                     });
                 }
 
-                if (accountID && !reportID) {
+                if (optimisticReport) {
                     saveUnknownUserDetails(participant);
-                    const optimisticReport = getOptimisticChatReport(accountID, currentUserAccountID);
-                    reportID = optimisticReport.reportID;
 
                     if (isSubmitFlow) {
                         getSpan(CONST.TELEMETRY.SPAN_SHARE_EXTENSION_OPEN_SUBMIT_FLOW)?.setAttribute(CONST.TELEMETRY.ATTRIBUTE_REPORT_ID, reportID.toString());
                     }
 
                     setSelectedReportID(reportID);
+                    setSelectedPolicyID(participant?.policyID);
                     saveReportDraft(reportID, optimisticReport).then(() => {
                         Navigation.navigate(detailsPageRouteObject.getRoute(reportID.toString()));
                     });
                 } else {
                     clearUnknownUserDetails();
                     setSelectedReportID(reportID);
+                    setSelectedPolicyID(participant?.policyID);
                     Navigation.navigate(detailsPageRouteObject.getRoute(reportID.toString()));
                 }
             }}
