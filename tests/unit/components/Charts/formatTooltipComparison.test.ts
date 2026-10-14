@@ -39,6 +39,17 @@ describe('formatTooltipComparison', () => {
         expect(comparison).toBeUndefined();
     });
 
+    it('leaves the tooltip as it is when the compared series has nothing at the point', () => {
+        // Given April's spend, compared against an average that has no value for April
+        const point: ChartDataPoint = {label: 'April', values: {[CHART_SERIES_KEY.PRIMARY]: 300}};
+
+        // When the tooltip for that point is built
+        const comparison = formatTooltipComparison(point, COMPARED_SERIES, formatAmount, 'en');
+
+        // Then there is no comparison, so the tooltip shows April's amount and expense count rather than one unlabeled row
+        expect(comparison).toBeUndefined();
+    });
+
     it('shows how much the primary series grew against the compared one', () => {
         // Given April spend three times the average
         const point: ChartDataPoint = {label: 'April', values: {[CHART_SERIES_KEY.PRIMARY]: 300, [CHART_SERIES_KEY.COMPARISON]: 100}};

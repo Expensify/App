@@ -42,8 +42,8 @@ type TooltipComparison = {
 };
 
 /** Formats how much the primary value rose or fell against the compared one. */
-function formatChange(primaryValue: number | undefined, comparedValue: number | undefined, formatAmount: (value: number) => string, locale: Locale | undefined): TooltipChange | undefined {
-    if (primaryValue === undefined || comparedValue === undefined || primaryValue === comparedValue) {
+function formatChange(primaryValue: number, comparedValue: number, formatAmount: (value: number) => string, locale: Locale | undefined): TooltipChange | undefined {
+    if (primaryValue === comparedValue) {
         return undefined;
     }
 
@@ -62,11 +62,13 @@ function formatTooltipComparison(
     formatAmount: (value: number) => string,
     locale: Locale | undefined,
 ): TooltipComparison | undefined {
-    if (series.length < 2) {
+    const [{key: primarySeriesKey}, comparedSeries] = series;
+    const primaryValue = dataPoint.values[primarySeriesKey];
+    const comparedValue = comparedSeries && dataPoint.values[comparedSeries.key];
+    if (primaryValue === undefined || comparedValue === undefined) {
         return undefined;
     }
 
-    const [{key: primarySeriesKey}, comparedSeries] = series;
     const rows = series.flatMap(({key, color = VictoryTheme.colors.default, label}) => {
         const value = dataPoint.values[key];
         if (value === undefined) {
@@ -82,8 +84,7 @@ function formatTooltipComparison(
         };
     });
 
-    const change = formatChange(dataPoint.values[primarySeriesKey], comparedSeries && dataPoint.values[comparedSeries.key], formatAmount, locale);
-    return {rows, change};
+    return {rows, change: formatChange(primaryValue, comparedValue, formatAmount, locale)};
 }
 
 export default formatTooltipComparison;
