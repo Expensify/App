@@ -95,7 +95,6 @@ const CARTESIAN_Y_AXIS = {
     tickCount: VictoryTheme.axis.tickCount,
     axisSide: 'right',
     lineWidth: 0,
-    labelOffset: VictoryTheme.axis.labelGap,
 } as const;
 
 /** Minimum height for the chart content area (bars, Y-axis, grid lines) */

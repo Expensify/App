@@ -755,15 +755,14 @@ describe('getBarLayout', () => {
 });
 
 describe('getCartesianPlotBounds', () => {
-    const LABEL_GAP = VictoryTheme.axis.labelGap;
     const PADDING_LEFT = VictoryTheme.axis.padding.left;
 
     it('reserves the right gutter for labels and the left base padding', () => {
         // Given a 300px container with a 30px right gutter
         // When computing the plot bounds
-        // Then the plot spans from the left padding to the label gap before the gutter, where victory-native puts it,
+        // Then the plot spans from the left padding to the gutter, where victory-native puts it,
         // so labels laid out before the chart mounts line up with the plot it draws
-        expect(getCartesianPlotBounds(300, 30)).toEqual({left: PADDING_LEFT, right: 300 - 30 - LABEL_GAP, width: 300 - 30 - LABEL_GAP - PADDING_LEFT});
+        expect(getCartesianPlotBounds(300, 30)).toEqual({left: PADDING_LEFT, right: 300 - 30, width: 300 - 30 - PADDING_LEFT});
     });
 
     it('clamps to a zero-width plot when the container is too small for the gutters', () => {

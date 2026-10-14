@@ -461,7 +461,7 @@ function getBarLayout(plotWidth: number, barCount: number): {barWidth: number; g
  */
 function getCartesianPlotBounds(chartWidth: number, paddingRight: number): {left: number; right: number; width: number} {
     const left = VictoryTheme.axis.padding.left;
-    const right = Math.max(left, chartWidth - paddingRight - VictoryTheme.axis.labelGap);
+    const right = Math.max(left, chartWidth - paddingRight);
     return {left, right, width: right - left};
 }
 

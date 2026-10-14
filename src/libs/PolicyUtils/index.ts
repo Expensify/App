@@ -40,9 +40,9 @@ import type {ValueOf} from 'type-fest';
 
 import {Str} from 'expensify-common';
 
-import {getAccountingConnectionNames, hasAccountingFeatureConnection} from './connections';
+import {getAccountingConnectionNames, hasAccountingConnections, hasAccountingFeatureConnection} from './connections';
 import {getPerDiemCustomUnit, isPerDiemEligiblePolicy} from './customUnits';
-import {canMemberWrite, getPolicyRole, isPolicyAdmin, isPolicyApprover, isPolicyOwner, isPolicyUser} from './permissions';
+import {canEditWorkspaceSettings, canMemberWrite, getPolicyRole, isPolicyAdmin, isPolicyApprover, isPolicyOwner, isPolicyUser} from './permissions';
 import {canPolicyAccessFeature, isArchivedPolicy, isCollectPolicy, isControlPolicy, isGroupPolicy, isPaidGroupPolicy, isSubmitPolicy} from './policyType';
 
 type MemberEmailsToAccountIDs = Record<string, number>;
@@ -191,6 +191,13 @@ function shouldShowPolicyError(policy: OnyxEntry<Policy>): boolean {
  */
 function shouldShowCustomUnitsError(policy: OnyxEntry<Policy>): boolean {
     return isPolicyAdmin(policy) && Object.keys(policy?.customUnits?.errors ?? {}).length > 0;
+}
+
+/**
+ * Whether the workspace has a company address
+ */
+function hasCompanyAddress(policy: OnyxEntry<Policy>): boolean {
+    return !!policy?.address?.addressStreet?.trim();
 }
 
 /**
@@ -941,6 +948,11 @@ function hasDynamicExternalWorkflow(policy: OnyxEntry<Policy>): boolean {
  */
 function shouldHideDynamicExternalWorkflowPeople(policy: OnyxEntry<Policy>): boolean {
     return hasDynamicExternalWorkflow(policy) && !!policy?.dynamicExternalWorkflowHidePeople;
+}
+
+/** Whether the user can add a category to the workspace straight from an expense's category picker */
+function canCreateCategoryInSitu(policy: OnyxEntry<Policy>, login?: string) {
+    return canEditWorkspaceSettings(policy, login) && !hasAccountingConnections(policy) && !!policy?.areCategoriesEnabled;
 }
 
 function goBackFromInvalidPolicy() {
@@ -1872,6 +1884,7 @@ export {
     hasConfiguredRules,
     isMaxExpenseAmountSet,
     goBackFromInvalidPolicy,
+    canCreateCategoryInSitu,
     shouldShowSyncError,
     shouldShowCustomUnitsError,
     shouldShowEmployeeListError,
@@ -1910,6 +1923,7 @@ export {
     canSubmitPerDiemExpenseFromWorkspace,
     canSendInvoice,
     getEligibleBankAccountShareRecipientEmails,
+    hasCompanyAddress,
     hasOfficeWorkArrangement,
     getPolicyIDOrDefault,
     sortWorkspacesBySelected,
