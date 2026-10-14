@@ -191,10 +191,10 @@ const CHOICE_RENDERERS: Pick<DynamicFieldRendererMap, 'select' | 'radio' | 'mult
         };
     },
     boolean: (field, {translate, isLoneField}, inputProps) => {
-        if (isLoneField) {
+        if (field.presentation !== 'checkbox') {
             return {
                 isMenuRow: true,
-                labelAbove: 'heading',
+                labelAbove: isLoneField ? 'heading' : 'prompt',
                 input: (
                     <InputWrapper
                         InputComponent={YesNoAdapter}

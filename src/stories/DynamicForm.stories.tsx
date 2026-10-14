@@ -131,7 +131,7 @@ const originalBankAccountFields: GroupedField[] = [
             {key: 'TRANSFER_WITHIN_COMPANY_OR_GROUP', label: 'Transfers within the company or group'},
         ],
     },
-    {key: 'isSourceOfFund', label: 'This source funds the account', group: 'Account holder details', type: 'boolean', required: false},
+    {key: 'isSourceOfFund', label: 'This source funds the account', group: 'Account holder details', type: 'boolean', required: false, presentation: 'checkbox'},
 ];
 
 const accountDetails: GroupedField[] = [
@@ -200,7 +200,7 @@ const accountHolder: GroupedField[] = [
     {key: 'address', label: 'Address', group: 'Account holder', type: 'address', required: true, rule: 'zipCode'},
     {key: 'operatingCountries', label: 'Countries you operate in', group: 'Account holder', type: 'countryMultiselect', required: true},
     {key: 'ownershipPercentage', label: 'Your ownership percentage', group: 'Account holder', type: 'percent', required: true},
-    {key: 'acceptTerms', label: 'I confirm the details above are correct', group: 'Account holder', type: 'boolean', required: true},
+    {key: 'acceptTerms', label: 'I confirm the details above are correct', group: 'Account holder', type: 'boolean', required: true, presentation: 'checkbox'},
 ];
 
 const businessInfo: GroupedField[] = [

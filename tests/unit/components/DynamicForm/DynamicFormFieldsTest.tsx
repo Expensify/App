@@ -117,7 +117,7 @@ const EXPECTED_INPUT_BY_TYPE: Record<DynamicFormFieldType, ComponentType<never>>
     select: ValuePicker,
     radio: RadioButtons,
     date: DatePicker,
-    boolean: CheckboxWithLabel,
+    boolean: YesNoAdapter,
     country: CountryPicker,
     currency: CurrencyPicker,
     address: AddressSearch,
@@ -694,18 +694,20 @@ describe('DynamicFormFields', () => {
         expect(lonePage.get('hasOtherOwners')?.accessibilityLabel).toBe('Does anyone else own 25% or more?');
     });
 
-    it('asks a lone boolean as Yes/No, and a boolean among other fields as a checkbox', () => {
-        // Given a consent boolean next to another question, and a boolean alone on its page
-        const acceptTerms: DynamicFormField = {key: 'acceptTerms', type: 'boolean', required: true};
-        const isUSCitizen: DynamicFormField = {key: 'isUSCitizen', type: 'boolean', required: true};
+    it('asks a boolean as Yes/No wherever it sits, and as a checkbox only when the schema asks for one', () => {
+        // Given a question next to another field, the same question alone on its page, and a consent checkbox
+        const ownsQuarter: DynamicFormField = {key: 'ownsQuarter', label: 'Do you own 25% or more?', type: 'boolean', required: true};
+        const acceptTerms: DynamicFormField = {key: 'acceptTerms', type: 'boolean', required: true, presentation: 'checkbox'};
 
         // When each renders
+        const sharedPage = renderFields([ownsQuarter, otherQuestion]);
+        const lonePage = renderFields([ownsQuarter]);
         const consent = renderFields([acceptTerms, otherQuestion]);
-        const question = renderFields([isUSCitizen]);
 
-        // Then the consent is a checkbox the user must tick, and the lone question offers No as an answer
+        // Then the question offers No as an answer on both pages, since how the fields are grouped into pages must not change what it asks, while the consent is a checkbox to tick
+        expect(sharedPage.get('ownsQuarter')?.InputComponent).toBe(YesNoAdapter);
+        expect(lonePage.get('ownsQuarter')?.InputComponent).toBe(YesNoAdapter);
         expect(consent.get('acceptTerms')?.InputComponent).toBe(CheckboxWithLabel);
-        expect(question.get('isUSCitizen')?.InputComponent).toBe(YesNoAdapter);
     });
 
     it('asks for the state only in countries the state picker covers', () => {

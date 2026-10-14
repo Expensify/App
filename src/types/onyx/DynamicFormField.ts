@@ -143,9 +143,12 @@ type DynamicFormCountryField = DynamicFormFieldBase & {
     type: 'country' | 'countryMultiselect';
 };
 
-/** A Yes/No question when it is the only question on its page, where No is an answer too. Among other fields, a checkbox that must be ticked when required. */
+/** A Yes/No question, where No is an answer too, or a checkbox that must be ticked when required */
 type DynamicFormBooleanField = DynamicFormFieldBase & {
     type: 'boolean';
+
+    /** `yesNo`, the default, asks a question that No answers. `checkbox` asks for consent, such as accepting terms, which only a tick gives. */
+    presentation?: 'yesNo' | 'checkbox';
 };
 
 /** Repeated entries, such as a company's owners, each answered with its own fields on an editor page */

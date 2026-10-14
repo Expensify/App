@@ -49,7 +49,7 @@ describe('getDynamicFieldErrors', () => {
 
     it('treats an unchecked checkbox as unanswered', () => {
         // Given a required consent checkbox left unchecked, next to another question
-        const acceptTerms: DynamicFormField = {key: 'acceptTerms', type: 'boolean', required: true};
+        const acceptTerms: DynamicFormField = {key: 'acceptTerms', type: 'boolean', required: true, presentation: 'checkbox'};
         const companyName: DynamicFormField = {key: 'companyName', type: 'text', required: false};
 
         // When the form is validated
@@ -354,20 +354,22 @@ describe('getDynamicFieldErrors', () => {
         expect(incompleteErrors).toEqual({phone: translateLocal('common.error.phoneNumber')});
     });
 
-    it('accepts No as the answer to a lone boolean, but not to a checkbox among other fields', () => {
-        // Given a required boolean alone on its page, asked as Yes/No, and a required checkbox next to another question
-        const hasOtherOwners: DynamicFormField = {key: 'hasOtherOwners', type: 'boolean', required: true};
-        const acceptTerms: DynamicFormField = {key: 'acceptTerms', type: 'boolean', required: true};
+    it('accepts No as the answer to a Yes/No question wherever it sits, but not to a consent checkbox', () => {
+        // Given a required Yes/No question and a required consent checkbox, sharing a page with another question
+        const ownsQuarter: DynamicFormField = {key: 'ownsQuarter', type: 'boolean', required: true};
+        const acceptTerms: DynamicFormField = {key: 'acceptTerms', type: 'boolean', required: true, presentation: 'checkbox'};
         const fullName: DynamicFormField = {key: 'fullName', type: 'text', required: false};
 
-        // When the question is answered No or not at all, and the checkbox is left empty
-        const noErrors = getDynamicFieldErrors([hasOtherOwners], {hasOtherOwners: false}, translateLocal);
-        const unansweredErrors = getDynamicFieldErrors([hasOtherOwners], {hasOtherOwners: ''}, translateLocal);
+        // When the question is answered No, alone and among other fields, or not at all, and the checkbox is left empty
+        const loneNoErrors = getDynamicFieldErrors([ownsQuarter], {ownsQuarter: false}, translateLocal);
+        const sharedNoErrors = getDynamicFieldErrors([ownsQuarter, fullName], {ownsQuarter: false}, translateLocal);
+        const unansweredErrors = getDynamicFieldErrors([ownsQuarter, fullName], {ownsQuarter: ''}, translateLocal);
         const consentErrors = getDynamicFieldErrors([acceptTerms, fullName], {acceptTerms: false}, translateLocal);
 
-        // Then No answers the question, while an unanswered question and an empty checkbox are flagged
-        expect(noErrors).toEqual({});
-        expect(unansweredErrors).toEqual({hasOtherOwners: translateLocal('common.error.fieldRequired')});
+        // Then No answers the question however the page is grouped, while an unanswered question and an empty checkbox are flagged
+        expect(loneNoErrors).toEqual({});
+        expect(sharedNoErrors).toEqual({});
+        expect(unansweredErrors).toEqual({ownsQuarter: translateLocal('common.error.fieldRequired')});
         expect(consentErrors).toEqual({acceptTerms: translateLocal('common.error.fieldRequired')});
     });
 

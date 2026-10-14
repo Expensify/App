@@ -27,7 +27,7 @@ import type {
 
 import getAddressInputKeys, {getAddressCountry, isStateAsked} from './getAddressInputKeys';
 import getFieldOptions from './getFieldOptions';
-import getVisibleFields, {getLoneField} from './getVisibleFields';
+import getVisibleFields from './getVisibleFields';
 import isSupportedField from './isSupportedField';
 import {getListItems, getListItemSensitiveAnswers} from './listItems';
 import logSchemaProblem from './logSchemaProblem';
@@ -215,12 +215,11 @@ function validateField<TType extends DynamicFormFieldType>(field: DynamicFormFie
 
 /**
  * Errors for the fields the user can see, keyed by draft key, in the shape FormProvider's `validate` returns.
- * `fields` must be exactly one page's fields, since the lone-field check has to match what the page renders. Pass the whole form as `allFields` when a `showWhen` can name a field on another page.
+ * Pass the whole form as `allFields` when a `showWhen` can name a field on another page.
  */
 function getDynamicFieldErrors(fields: DynamicFormSchemaField[], values: DynamicFormValues, translate: LocalizedTranslate, allFields?: DynamicFormField[]): Record<string, string> {
     const errors: Record<string, string> = {};
     const visibleFields = getVisibleFields(fields.filter(isSupportedField), values, allFields);
-    const loneField = getLoneField(visibleFields);
     for (const field of visibleFields) {
         if (field.readonly) {
             continue;
@@ -230,7 +229,7 @@ function getDynamicFieldErrors(fields: DynamicFormSchemaField[], values: Dynamic
                 addErrorMessage(errors, inputID, message);
             }
         }
-        if (!isAnswered(values[field.key], field.type === 'boolean' && field === loneField)) {
+        if (!isAnswered(values[field.key], field.type === 'boolean' && field.presentation !== 'checkbox')) {
             if (field.type === 'address' ? isAddressRequired(field, values) : field.required) {
                 addErrorMessage(errors, field.key, translate('common.error.fieldRequired'));
             }
