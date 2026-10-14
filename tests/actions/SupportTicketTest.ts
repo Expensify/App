@@ -65,8 +65,8 @@ describe('actions/Report', () => {
                 optimisticData: [
                     {
                         onyxMethod: Onyx.METHOD.SET,
-                        key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${newSupportTicketReportID}`,
-                        value: {isOptimisticReport: true},
+                        key: `${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${newSupportTicketReportID}`,
+                        value: {isCreatingSupportTicket: true},
                     },
                     {
                         onyxMethod: Onyx.METHOD.MERGE,
@@ -77,8 +77,8 @@ describe('actions/Report', () => {
                 successData: [
                     {
                         onyxMethod: Onyx.METHOD.MERGE,
-                        key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${newSupportTicketReportID}`,
-                        value: {isOptimisticReport: false},
+                        key: `${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${newSupportTicketReportID}`,
+                        value: {isCreatingSupportTicket: false},
                     },
                 ],
                 failureData: [
@@ -89,7 +89,7 @@ describe('actions/Report', () => {
                     },
                     {
                         onyxMethod: Onyx.METHOD.SET,
-                        key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${newSupportTicketReportID}`,
+                        key: `${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${newSupportTicketReportID}`,
                         value: null,
                     },
                 ],
@@ -107,13 +107,13 @@ describe('actions/Report', () => {
 
     it('marks a new ticket optimistic before publishing its report ID', async () => {
         // Given a screen observing a ticket that has not been created on the server
-        let isOptimisticReport = false;
+        let isCreatingSupportTicket = false;
         const reportStates: boolean[] = [];
         // Observe both keys independently, as the report screen does while creation is pending.
-        const metadataConnection = Onyx.connectWithoutView({
-            key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${newSupportTicketReportID}`,
-            callback: (metadata) => {
-                isOptimisticReport = !!metadata?.isOptimisticReport;
+        const loadingStateConnection = Onyx.connectWithoutView({
+            key: `${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${newSupportTicketReportID}`,
+            callback: (loadingState) => {
+                isCreatingSupportTicket = !!loadingState?.isCreatingSupportTicket;
             },
         });
         const reportConnection = Onyx.connectWithoutView({
@@ -122,7 +122,7 @@ describe('actions/Report', () => {
                 if (!report?.reportID) {
                     return;
                 }
-                reportStates.push(isOptimisticReport);
+                reportStates.push(isCreatingSupportTicket);
             },
         });
         await waitForBatchedUpdates();
@@ -139,7 +139,7 @@ describe('actions/Report', () => {
             expect(reportStates).toEqual([true]);
         } finally {
             Onyx.disconnect(reportConnection);
-            Onyx.disconnect(metadataConnection);
+            Onyx.disconnect(loadingStateConnection);
         }
     });
 
@@ -150,7 +150,7 @@ describe('actions/Report', () => {
             reportID: newSupportTicketReportID,
             type: CONST.REPORT.TYPE.SUPPORT_TICKET,
         });
-        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${newSupportTicketReportID}`, {isOptimisticReport: true});
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${newSupportTicketReportID}`, {isCreatingSupportTicket: true});
         mockMakeRequestWithSideEffects.mockRejectedValueOnce(networkError);
 
         // When the customer asks to talk to a human
@@ -159,33 +159,49 @@ describe('actions/Report', () => {
         // Then the App removes the pending report and preserves the request failure
         await expect(request).rejects.toBe(networkError);
         await expect(getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${newSupportTicketReportID}`)).resolves.toBeUndefined();
+        await expect(getOnyxValue(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${newSupportTicketReportID}`)).resolves.toBeUndefined();
+    });
+
+    it('keeps the report and releases its fetch guard after creation succeeds', async () => {
+        // Given a new ticket whose server response applies the API's success updates
+        mockMakeRequestWithSideEffects.mockImplementationOnce(async (_command, _parameters, onyxData) => {
+            await Onyx.update(onyxData?.optimisticData ?? []);
+            await expect(getOnyxValue(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${newSupportTicketReportID}`)).resolves.toEqual({isCreatingSupportTicket: true});
+            await Onyx.update(onyxData?.successData ?? []);
+            return {jsonCode: CONST.JSON_CODE.SUCCESS};
+        });
+
+        // When the server accepts the creation request
+        await openSupportTicket();
+
+        // Then the ticket remains available and can be fetched
+        await expect(getOnyxValue(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${newSupportTicketReportID}`)).resolves.toEqual({isCreatingSupportTicket: false});
+        await expect(getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${newSupportTicketReportID}`)).resolves.toEqual({
+            reportID: newSupportTicketReportID,
+            type: CONST.REPORT.TYPE.SUPPORT_TICKET,
+        });
         await expect(getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${newSupportTicketReportID}`)).resolves.toBeUndefined();
     });
 
-    it.each([CONST.JSON_CODE.SUCCESS, CONST.JSON_CODE.EXP_ERROR])('settles the optimistic ticket after server response %s', async (jsonCode) => {
-        // Given a new ticket whose creation response applies the API's success or failure updates
+    it('removes the pending report and loading state when the server rejects creation', async () => {
+        // Given a new ticket whose server response applies the API's failure updates
         mockMakeRequestWithSideEffects.mockImplementationOnce(async (_command, _parameters, onyxData) => {
             await Onyx.update(onyxData?.optimisticData ?? []);
             await expect(getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${newSupportTicketReportID}`)).resolves.toEqual({
                 reportID: newSupportTicketReportID,
                 type: CONST.REPORT.TYPE.SUPPORT_TICKET,
             });
-            await expect(getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${newSupportTicketReportID}`)).resolves.toEqual({isOptimisticReport: true});
-            await Onyx.update((jsonCode === CONST.JSON_CODE.SUCCESS ? onyxData?.successData : onyxData?.failureData) ?? []);
-            return {jsonCode};
+            await expect(getOnyxValue(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${newSupportTicketReportID}`)).resolves.toEqual({isCreatingSupportTicket: true});
+            await Onyx.update(onyxData?.failureData ?? []);
+            return {jsonCode: CONST.JSON_CODE.EXP_ERROR};
         });
 
-        // When the server accepts or rejects the creation request
+        // When the server rejects the creation request
         await openSupportTicket();
 
-        // Then a successful ticket can be fetched, while a rejected ticket leaves no optimistic data behind
-        if (jsonCode === CONST.JSON_CODE.SUCCESS) {
-            await expect(getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${newSupportTicketReportID}`)).resolves.toEqual({isOptimisticReport: false});
-            await expect(getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${newSupportTicketReportID}`)).resolves.toMatchObject({reportID: newSupportTicketReportID});
-        } else {
-            await expect(getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${newSupportTicketReportID}`)).resolves.toBeUndefined();
-            await expect(getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${newSupportTicketReportID}`)).resolves.toBeUndefined();
-        }
+        // Then neither the pending ticket nor its fetch guard remains
+        await expect(getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${newSupportTicketReportID}`)).resolves.toBeUndefined();
+        await expect(getOnyxValue(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${newSupportTicketReportID}`)).resolves.toBeUndefined();
     });
 
     it('does not update Onyx when reopening a support ticket fails', async () => {

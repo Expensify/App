@@ -4898,14 +4898,15 @@ function isNoSupportRepAvailableResponse(response: {jsonCode?: number | string; 
 function openSupportTicket(resolvedSupportTicketReportID?: string) {
     const newSupportTicketReportID = resolvedSupportTicketReportID ? undefined : generateReportID();
     const parameters: CreateSupportTicketParams = resolvedSupportTicketReportID ? {resolvedSupportTicketReportID, idempotencyKey: Str.guid()} : {newSupportTicketReportID};
-    const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_METADATA> = newSupportTicketReportID
+    const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE> = newSupportTicketReportID
         ? {
               optimisticData: [
-                  // Set the fetch guard before publishing the report ID; merges can wait on storage reads.
+                  // The request does not survive reloads, so its fetch guard must stay in RAM.
+                  // Set it before publishing the report ID; merges can wait on storage reads.
                   {
                       onyxMethod: Onyx.METHOD.SET,
-                      key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${newSupportTicketReportID}`,
-                      value: {isOptimisticReport: true},
+                      key: `${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${newSupportTicketReportID}`,
+                      value: {isCreatingSupportTicket: true},
                   },
                   {
                       onyxMethod: Onyx.METHOD.MERGE,
@@ -4916,8 +4917,8 @@ function openSupportTicket(resolvedSupportTicketReportID?: string) {
               successData: [
                   {
                       onyxMethod: Onyx.METHOD.MERGE,
-                      key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${newSupportTicketReportID}`,
-                      value: {isOptimisticReport: false},
+                      key: `${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${newSupportTicketReportID}`,
+                      value: {isCreatingSupportTicket: false},
                   },
               ],
               failureData: [
@@ -4928,7 +4929,7 @@ function openSupportTicket(resolvedSupportTicketReportID?: string) {
                   },
                   {
                       onyxMethod: Onyx.METHOD.SET,
-                      key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${newSupportTicketReportID}`,
+                      key: `${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${newSupportTicketReportID}`,
                       value: null,
                   },
               ],
