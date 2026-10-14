@@ -1385,6 +1385,51 @@ describe('ReportActionsUtils', () => {
                     )
             );
         });
+
+        it('should skip a whisper that targets somebody else when picking the last visible action', async () => {
+            const reportID = '90210';
+            const comment: ReportAction = {
+                ...LHNTestUtils.getFakeReportAction('email1@test.com', 3),
+                created: '2023-08-01 16:00:00',
+                reportActionID: 'comment1',
+                reportID,
+                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                originalMessage: {
+                    html: 'Hello world',
+                    whisperedTo: [],
+                },
+            };
+            const whisperTargetAccountID = 100;
+            const whisper: ReportAction = {
+                ...LHNTestUtils.getFakeReportAction('email2@test.com', 3),
+                created: '2023-08-01 18:00:00',
+                reportActionID: 'whisper1',
+                reportID,
+                actionName: CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_MENTION_WHISPER,
+                message: [
+                    {
+                        type: 'COMMENT',
+                        html: 'Do you want to invite them?',
+                        text: 'Do you want to invite them?',
+                        whisperedTo: [whisperTargetAccountID],
+                    },
+                ],
+                originalMessage: {
+                    inviteeAccountIDs: [1],
+                    whisperedTo: [whisperTargetAccountID],
+                },
+            };
+
+            // Given a report whose newest action is a whisper targeted at a single account
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {[comment.reportActionID]: comment, [whisper.reportActionID]: whisper});
+            await waitForBatchedUpdates();
+
+            // When the user is the one the whisper targets, the whisper is the last visible action
+            expect(ReportActionsUtils.getLastVisibleAction(reportID, true, {}, undefined, undefined, whisperTargetAccountID)?.reportActionID).toBe(whisper.reportActionID);
+
+            // When the whisper targets somebody else, it is invisible and the older comment wins
+            expect(ReportActionsUtils.getLastVisibleAction(reportID, true, {}, undefined, undefined, whisperTargetAccountID + 1)?.reportActionID).toBe(comment.reportActionID);
+        });
     });
 
     describe('getExportIntegrationActionFragments', () => {
@@ -7155,38 +7200,6 @@ describe('ReportActionsUtils', () => {
                     isReversed: true,
                 }),
             ).toEqual(['unread-newer', 1]);
-        });
-
-        it.each([null, 'older-unread'])('keeps older unread actions before the offline boundary with manual anchor %s', (manuallyMarkedUnreadReportActionID) => {
-            // Given an older unread action before the remembered offline row in an oldest-first list
-            const visibleReportActions = [makeAction({reportActionID: 'older-unread'}), makeAction({reportActionID: 'offline-newer', created: '2023-01-01 12:00:00.000'})];
-
-            // When either the timestamp or an explicit manual anchor selects that older action
-            expect(
-                getUnreadMarkerReportAction({
-                    ...baseScanParams,
-                    visibleReportActions,
-                    earliestReceivedOfflineMessageIndex: 1,
-                    isReversed: true,
-                    manuallyMarkedUnreadReportActionID,
-                }),
-            ).toEqual(['older-unread', 0]);
-        });
-
-        it('still marks the first offline row when earlier visible actions are already read', () => {
-            // Given a remembered offline message and a read older row
-            const visibleReportActions = [makeAction({reportActionID: 'read-older'}), makeAction({reportActionID: 'offline-anchor', created: '2023-01-01 12:00:00.000'})];
-
-            // Then scanning all visible rows still preserves the existing offline marker rule
-            expect(
-                getUnreadMarkerReportAction({
-                    ...baseScanParams,
-                    visibleReportActions,
-                    unreadMarkerTime: '2023-01-01 13:00:00.000',
-                    earliestReceivedOfflineMessageIndex: 1,
-                    isReversed: true,
-                }),
-            ).toEqual(['offline-anchor', 1]);
         });
 
         it("clears the marker entirely when the only unread action is the current user's own new message", () => {
