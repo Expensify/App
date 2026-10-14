@@ -87,4 +87,4 @@ function formatTooltipComparison(
 }
 
 export default formatTooltipComparison;
-export type {TooltipChange, TooltipComparison, TooltipRow};
+export type {TooltipChange, TooltipRow};
