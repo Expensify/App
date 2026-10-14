@@ -87,6 +87,10 @@ type SummaryGroup = {
 type ConfirmationStepProps = SubPageProps &
     ForwardedFSClassProps & {
         pageTitle: string;
+
+        /** Text shown below the page title */
+        pageSubtitle?: string;
+
         summaryItems?: SummaryItem[];
 
         /** Sections with their own heading, each holding field rows and avatar rows for repeated entries */
@@ -108,6 +112,7 @@ type ConfirmationStepProps = SubPageProps &
 
 function ConfirmationStep({
     pageTitle,
+    pageSubtitle,
     summaryItems = [],
     groups = [],
     showOnfidoLinks,
@@ -123,26 +128,50 @@ function ConfirmationStep({
 
     const {paddingBottom: safeAreaInsetPaddingBottom} = useSafeAreaPaddings();
 
+    const renderRow = (row: SummaryGroupRow) => {
+        if ('kind' in row) {
+            // MenuItemAvatarNavigation takes no FullStory class, so the mask goes on a View around it
+            return (
+                <View
+                    key={row.id}
+                    fsClass={forwardedFSClass}
+                >
+                    <MenuItemAvatarNavigation
+                        testID={row.id}
+                        title={row.title}
+                        description={row.description}
+                        accountID={CONST.DEFAULT_NUMBER_ID}
+                        avatarSource={row.avatarSource}
+                        onPress={row.onPress}
+                    />
+                </View>
+            );
+        }
+        const {id, description, title, shouldShowRightIcon, onPress, interactive, brickRoadIndicator, errorText, testID} = row;
+        return (
+            <MenuItemWithTopDescription
+                key={id}
+                pressableTestID={testID ?? id}
+                description={description}
+                title={title}
+                shouldShowRightIcon={shouldShowRightIcon}
+                onPress={onPress}
+                interactive={interactive}
+                brickRoadIndicator={brickRoadIndicator}
+                errorText={errorText}
+                forwardedFSClass={forwardedFSClass}
+            />
+        );
+    };
+
     return (
         <ScrollView
             style={styles.flex1}
             contentContainerStyle={[styles.flexGrow1, shouldApplySafeAreaPaddingBottom && {paddingBottom: safeAreaInsetPaddingBottom + styles.pb5.paddingBottom}]}
         >
             <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mb3]}>{pageTitle}</Text>
-            {summaryItems.map(({id, description, title, shouldShowRightIcon, onPress, interactive, brickRoadIndicator, errorText, testID}) => (
-                <MenuItemWithTopDescription
-                    key={id}
-                    pressableTestID={testID ?? id}
-                    description={description}
-                    title={title}
-                    shouldShowRightIcon={shouldShowRightIcon}
-                    onPress={onPress}
-                    interactive={interactive}
-                    brickRoadIndicator={brickRoadIndicator}
-                    errorText={errorText}
-                    forwardedFSClass={forwardedFSClass}
-                />
-            ))}
+            {!!pageSubtitle && <Text style={[styles.textSupporting, styles.ph5, styles.mb5]}>{pageSubtitle}</Text>}
+            {summaryItems.map(renderRow)}
 
             {groups.map((group, index) => (
                 <View key={group.id}>
@@ -155,37 +184,7 @@ function ConfirmationStep({
                             {group.name}
                         </Text>
                     )}
-                    {group.rows.map((row) =>
-                        'kind' in row ? (
-                            // MenuItemAvatarNavigation takes no FullStory class, so the mask goes on a View around it
-                            <View
-                                key={row.id}
-                                fsClass={forwardedFSClass}
-                            >
-                                <MenuItemAvatarNavigation
-                                    testID={row.id}
-                                    title={row.title}
-                                    description={row.description}
-                                    accountID={CONST.DEFAULT_NUMBER_ID}
-                                    avatarSource={row.avatarSource}
-                                    onPress={row.onPress}
-                                />
-                            </View>
-                        ) : (
-                            <MenuItemWithTopDescription
-                                key={row.id}
-                                pressableTestID={row.testID ?? row.id}
-                                description={row.description}
-                                title={row.title}
-                                shouldShowRightIcon={row.shouldShowRightIcon}
-                                onPress={row.onPress}
-                                interactive={row.interactive}
-                                brickRoadIndicator={row.brickRoadIndicator}
-                                errorText={row.errorText}
-                                forwardedFSClass={forwardedFSClass}
-                            />
-                        ),
-                    )}
+                    {group.rows.map(renderRow)}
                 </View>
             ))}
 

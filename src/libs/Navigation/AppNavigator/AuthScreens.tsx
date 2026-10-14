@@ -34,7 +34,6 @@ import setFullscreenVisibility from '@libs/actions/setFullscreenVisibility';
 import {READ_COMMANDS} from '@libs/API/types';
 import HttpUtils from '@libs/HttpUtils';
 import NavBarManager from '@libs/NavBarManager';
-import Navigation from '@libs/Navigation/Navigation';
 import Animations, {InternalPlatformAnimations} from '@libs/Navigation/PlatformStackNavigation/navigationOptions/animation';
 import type {AuthScreensParamList} from '@libs/Navigation/types';
 
@@ -137,7 +136,7 @@ function AuthScreens() {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const rootNavigatorScreenOptions = useRootNavigatorScreenOptions();
     const modalCardStyleInterpolator = useModalCardStyleInterpolator();
-    const {isOnboardingCompleted} = useOnboardingFlowRouter();
+    const {isVisitingSecureLink} = useOnboardingFlowRouter();
     const shouldSuppressPromotionalUI = useShouldSuppressPromotionalUI();
     useGPSTripStateChecker();
     useGPSInProgressModal();
@@ -353,7 +352,12 @@ function AuthScreens() {
                             component={FeatureTrainingModalNavigator}
                             listeners={modalScreenListeners}
                         />
-                        {isOnboardingCompleted === false && !shouldSuppressPromotionalUI && !Navigation.isValidateLoginFlow() && (
+                        {/*
+                         * Always registered, like the other modal navigators below, so entering onboarding never toggles this
+                         * screen in and out of the RootStack mid-session (which resets the navigator's state to its initial
+                         * route). OnboardingGuard and useOnboardingFlowRouter gate whether/when a user actually lands here.
+                         */}
+                        {!shouldSuppressPromotionalUI && !isVisitingSecureLink && (
                             <RootStack.Screen
                                 name={NAVIGATORS.ONBOARDING_MODAL_NAVIGATOR}
                                 options={{...rootNavigatorScreenOptions.basicModalNavigator, gestureEnabled: false}}

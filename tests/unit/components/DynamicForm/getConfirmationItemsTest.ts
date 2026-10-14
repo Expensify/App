@@ -49,7 +49,10 @@ describe('getConfirmationItems', () => {
 
     it('has no group for a page that is not shown', () => {
         // Given a private recipient, so the business page is skipped
-        const groups = getConfirmationItems(pages, getAllFields(pages), {type: 'PRIVATE', name: 'Ada', ein: '1'}, translateLocal, jest.fn(), jest.fn());
+        const values = {type: 'PRIVATE', name: 'Ada', ein: '1'};
+
+        // When the confirmation page lists the answers
+        const groups = getConfirmationItems(pages, getAllFields(pages), values, translateLocal, jest.fn(), jest.fn());
 
         // Then only the identity page is summarized
         expect(groups.map((group) => group.id)).toEqual(['identity']);

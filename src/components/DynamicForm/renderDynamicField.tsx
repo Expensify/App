@@ -8,6 +8,7 @@ import CHOICE_RENDERERS from './renderers/choiceRenderers';
 import renderFile from './renderers/fileRenderer';
 import renderList from './renderers/listRenderer';
 import TEXT_RENDERERS from './renderers/textRenderers';
+import getSensitiveDefaultValue from './utils/getSensitiveDefaultValue';
 
 const RENDERERS: DynamicFieldRendererMap = {
     ...TEXT_RENDERERS,
@@ -20,7 +21,7 @@ const RENDERERS: DynamicFieldRendererMap = {
 /** The input for one field, and how the renderer lays it out */
 function renderDynamicField<TType extends DynamicFormFieldType>(field: DynamicFormFieldOfType<TType>, context: DynamicFieldContext, inputProps: DynamicFieldInputProps): DynamicFieldInput {
     const render: DynamicFieldRenderer<TType> = RENDERERS[field.type];
-    return render(field, context, inputProps);
+    return render(field, context, {...inputProps, defaultValue: getSensitiveDefaultValue(field, context.values)});
 }
 
 export default renderDynamicField;

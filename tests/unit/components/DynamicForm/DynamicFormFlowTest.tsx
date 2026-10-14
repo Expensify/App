@@ -178,7 +178,8 @@ describe('DynamicFormFlow', () => {
     });
 
     it('asks for a confirmation page unless the screen turns it off', async () => {
-        // Given the same schema rendered with the default and with the confirmation page turned off
+        // Given the same schema, once with the default and once with the confirmation page turned off
+        // When each flow renders
         const defaultFlow = await renderFlow({hasConfirmation: 'default'});
         const withoutConfirmation = await renderFlow({hasConfirmation: false});
 
