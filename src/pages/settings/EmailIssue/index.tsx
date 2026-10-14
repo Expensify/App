@@ -9,6 +9,7 @@ import Text from '@components/Text';
 
 import useConfirmModal from '@hooks/useConfirmModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -48,6 +49,7 @@ function EmailIssuePage() {
     const hasEmailDeliveryFailure = !!account?.hasEmailDeliveryFailure;
     const isUnblockingEmail = !!account?.isUnblockingEmail;
     const prevIsUnblockingEmail = usePrevious(isUnblockingEmail);
+    const delegateAccountID = useDelegateAccountID();
 
     // Leave whenever the flag is false while this page is mounted. This covers both a successful unblock
     // (the flag clears, so we dismiss) and landing here via a stale deep link when there was never a failure.
@@ -122,7 +124,15 @@ function EmailIssuePage() {
                 <Button
                     size={CONST.BUTTON_SIZE.LARGE}
                     onPress={() => {
-                        navigateToConciergeChat({conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, conciergePersonalDetails, shouldDismissModal: false});
+                        navigateToConciergeChat({
+                            conciergeReportID,
+                            introSelected,
+                            currentUserAccountID,
+                            isSelfTourViewed,
+                            conciergePersonalDetails,
+                            shouldDismissModal: false,
+                            delegateAccountID,
+                        });
                     }}
                 >
                     <Button.Text>{translate('emailIssuePage.getHelpFromConcierge')}</Button.Text>

@@ -3,6 +3,7 @@ import ReportHeaderSkeletonView from '@components/ReportHeaderSkeletonView';
 import ScreenWrapper from '@components/ScreenWrapper';
 
 import useContentHeaderHeight from '@hooks/useContentHeaderHeight';
+import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useOnyx from '@hooks/useOnyx';
 import {usePersonalDetailsByIDs} from '@hooks/usePersonalDetails';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -34,6 +35,7 @@ function ConciergePage() {
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [conciergePersonalDetails] = usePersonalDetailsByIDs([CONST.ACCOUNT_ID.CONCIERGE]);
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
+    const delegateAccountID = useDelegateAccountID();
 
     useFocusEffect(
         useCallback(() => {
@@ -51,12 +53,13 @@ function ConciergePage() {
                         conciergePersonalDetails,
                         shouldDismissModal: true,
                         checkIfCurrentPageActive: () => !isUnmounted.current,
+                        delegateAccountID,
                     });
                 });
             } else {
                 Navigation.navigate(ROUTES.INBOX);
             }
-        }, [session, isLoadingReportData, conciergeReportID, introSelected, isSelfTourViewed, conciergePersonalDetails]),
+        }, [session, isLoadingReportData, conciergeReportID, introSelected, isSelfTourViewed, conciergePersonalDetails, delegateAccountID]),
     );
 
     useEffect(() => {
