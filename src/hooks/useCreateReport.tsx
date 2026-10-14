@@ -60,8 +60,7 @@ export default function useCreateReport({
     shouldSkipEmptyReportConfirmation = false,
 }: UseCreateReportParams): UseCreateReportResult {
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
-    // Policies are read live: inside SearchScopeProvider (Reports empty view) the App useOnyx would serve them from the
-    // search snapshot, which can hold a partial or missing policy and silently skip the preferred-workspace lock.
+    // Read live: under SearchScopeProvider (Reports empty view) useOnyx would serve stale snapshot policies.
     const [activePolicy] = useOnyxWithoutSnapshots(`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`);
     const {accountID, login} = useCurrentUserPersonalDetails();
     const defaultChatEnabledPolicySelector = (policies: OnyxCollection<OnyxTypes.Policy>) => getDefaultChatEnabledPolicySelection(policies, login, activePolicyID);
@@ -71,20 +70,13 @@ export default function useCreateReport({
     const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
     const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
     const {isRestrictedToPreferredPolicy, preferredPolicyID, isLoadingPreferredPolicy} = usePreferredPolicy();
-    // Read the preferred workspace by key rather than searching the caller's list, so the lock does not depend on
-    // how (or whether) a caller filtered its candidates. Same pattern as useDefaultExpensePolicy.
     const [preferredPolicy, preferredPolicyLoadStatus] = useOnyxWithoutSnapshots(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(preferredPolicyID)}`);
 
-    // Gate visibility and routing on policy hydration. Without this, during Onyx cold-start
-    // the selection would report no eligible workspace even for users who actually have
-    // workspaces, sending them to MONEY_REQUEST_UPGRADE as if they had none. The security group and the
-    // preferred workspace are part of that gate: until they resolve, a domain lock would silently read as "not restricted".
+    // Wait for policies and security group to load, or a cold start reads as "no workspaces" / "not restricted".
     const arePoliciesLoaded = !isLoadingOnyxValue(policiesLoadStatus, preferredPolicyLoadStatus) && !isLoadingPreferredPolicy;
     const isVisible = arePoliciesLoaded;
     const shouldNavigateToUpgradePath = !defaultChatEnabledPolicySelection?.hasChatEnabledPolicies;
 
-    // A domain security group can lock members to a preferred workspace. When that workspace can take reports it wins over
-    // the active policy and the selector is skipped. An ineligible preferred workspace (not a member, wrong type) falls back to the normal rules.
     const isLockedToPreferredPolicy = isRestrictedToPreferredPolicy && canCreateReportOnPolicy(preferredPolicy, login);
     const defaultChatEnabledPolicy = isLockedToPreferredPolicy ? preferredPolicy : defaultChatEnabledPolicyByKey;
     const defaultChatEnabledPolicyID = defaultChatEnabledPolicy?.id;
