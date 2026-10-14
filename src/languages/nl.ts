@@ -5070,7 +5070,10 @@ ${amount} voor ${merchant} - ${date}`,
             },
             requestEmptyList: {
                 title: 'Nog geen dagvergoedingen',
-                subtitle: (workspaceName: string) => `${workspaceName} heeft geen dagvergoedingen. Vraag een beheerder om er een paar toe te voegen.`,
+                subtitle: (workspaceName?: string) =>
+                    workspaceName
+                        ? `${workspaceName} heeft geen dagvergoedingen. Vraag een beheerder om er een paar toe te voegen.`
+                        : 'Deze workspace heeft geen dagvergoedingen. Vraag een beheerder om er een paar toe te voegen.',
                 adminSubtitle: 'Voeg dagvergoedingen toe om je uitgaven te organiseren.',
             },
             importPerDiemRates: 'Daggeldtarieven importeren',

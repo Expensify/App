@@ -5024,7 +5024,10 @@ ${amount} para ${merchant} - ${date}`,
             },
             requestEmptyList: {
                 title: 'Aún no hay tasas de Per diem',
-                subtitle: (workspaceName: string) => `${workspaceName} no tiene ninguna tasa de per diem. Pídele a un administrador que añada alguna.`,
+                subtitle: (workspaceName?: string) =>
+                    workspaceName
+                        ? `${workspaceName} no tiene ninguna tasa de per diem. Pídele a un administrador que añada alguna.`
+                        : 'Este espacio de trabajo no tiene ninguna tasa de per diem. Pídele a un administrador que añada alguna.',
                 adminSubtitle: 'Añade tasas de per diem para organizar tus gastos.',
             },
             importPerDiemRates: 'Importar tasas de per diem',
