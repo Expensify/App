@@ -130,7 +130,7 @@ The **Agents** tab holds agent rules, which are written in plain language and ru
 1. In the navigation tabs (on the left on web, on the bottom on mobile), select **Workspaces > [workspace name]**.
 2. Select **Rules**.
 3. Select **Agents**.
-4. Select **Add AI rule**.
+4. Select **Add AI rule**, or **Add agent rule** if the workspace already has agent rules.
 
 [Learn how to create agent rules](/articles/new-expensify/ai-agents/Automate-Workflows-with-Agent-Rules).
 

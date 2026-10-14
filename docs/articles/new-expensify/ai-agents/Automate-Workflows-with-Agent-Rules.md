@@ -40,7 +40,7 @@ To create an agent rule:
 
 If Concierge can build your description as a standard rule, such as a card restriction or a field requirement, it opens that rule's form instead.
 
-If the workspace has no agent rules yet, you can also select **Agents > Add AI rule**. Then choose a pre-written rule from the **Suggested** list and select **Next**, or select **Edit** to write your own rule.
+You can also start from the **Agents** tab. Select **Add AI rule**, or **Add agent rule** if the workspace already has agent rules. Then choose a pre-written rule from the **Suggested** list and select **Next**, or select **Edit** to write your own rule.
 
 For a list of the available suggested rules, see [Use Suggested Agent Rules](/articles/new-expensify/ai-agents/Use-Suggested-Agent-Rules).
 
