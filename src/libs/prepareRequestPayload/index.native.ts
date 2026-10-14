@@ -46,6 +46,12 @@ const prepareRequestPayload: PrepareRequestPayload = (command, data, initiatedOf
                 return Promise.resolve();
             }
 
+            // The assertion is FormData's signature being narrower than what request data can hold.
+            const appendValueAsIs = () => {
+                validateFormDataParameter(command, key, value);
+                formData.append(key, value as string | Blob);
+            };
+
             if (key === 'receipt') {
                 const {source, name, type, receiptTraceId} = value as Omit<File, 'source'> & Pick<Receipt, 'receiptTraceId' | 'source'>;
 
@@ -55,13 +61,12 @@ const prepareRequestPayload: PrepareRequestPayload = (command, data, initiatedOf
                         return Promise.resolve();
                     }
 
-                    const localUri = ReceiptStorage.resolve(source) ?? source;
-
-                    return checkFileExistsWithReason(localUri).then(({exists, error}) => {
-                        if (!exists) {
+                    return ReceiptStorage.locate(source).then((localUri) => {
+                        if (!localUri) {
                             const transactionID = typeof data.transactionID === 'string' ? data.transactionID : undefined;
-                            return getReceiptsFolderState().then((receiptsFolder) => {
-                                logReceiptDropped({receiptTraceId, transactionID, command, source, localUri, fileName: name, statError: error, receiptsFolder});
+                            const resolvedUri = ReceiptStorage.resolve(source) ?? source;
+                            return Promise.all([checkFileExistsWithReason(resolvedUri), getReceiptsFolderState()]).then(([{error}, receiptsFolder]) => {
+                                logReceiptDropped({receiptTraceId, transactionID, command, source, localUri: resolvedUri, fileName: name, statError: error, receiptsFolder});
                             });
                         }
                         const receiptFormData = {
@@ -72,6 +77,10 @@ const prepareRequestPayload: PrepareRequestPayload = (command, data, initiatedOf
                         validateFormDataParameter(command, key, receiptFormData);
                         formData.append(key, receiptFormData as File);
                     });
+                }
+
+                if (name) {
+                    return ReceiptStorage.settle(name).then(appendValueAsIs);
                 }
             }
 
@@ -95,8 +104,7 @@ const prepareRequestPayload: PrepareRequestPayload = (command, data, initiatedOf
                 });
             }
 
-            validateFormDataParameter(command, key, value);
-            formData.append(key, value as string | Blob);
+            appendValueAsIs();
 
             return Promise.resolve();
         });
