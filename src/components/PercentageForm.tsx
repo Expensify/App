@@ -84,6 +84,7 @@ function PercentageForm({
         <TextInput
             label={label}
             value={formattedAmount}
+            errorText={errorText}
             onChangeText={setNewAmount}
             placeholder={numberFormat(0)}
             ref={(newRef: BaseTextInputRef | null) => {

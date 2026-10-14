@@ -34,6 +34,8 @@ import {
     getDefaultApprover,
     getMemberAccountIDsForWorkspace,
     goBackFromInvalidPolicy,
+    hasDynamicExternalWorkflow,
+    isControlPolicy,
     isSubmitPolicy,
     shouldHideDynamicExternalWorkflowPeople,
     tryNavigateToSubmitWorkspaceUpgrade,
@@ -127,7 +129,9 @@ function WorkspaceInviteMessageComponent({
     // `approvalMode` can drift from the actual workflow structure because it is updated optimistically.
     // Dynamic external workflows that hide people also have no selectable approver.
     const {isAdvanceApproval, rulesCollection} = useApprovalWorkflows(policy);
-    const shouldShowApproverRow = isAdvanceApproval && !!policy?.areWorkflowsEnabled && !shouldHideDynamicExternalWorkflowPeople(policy);
+    // Dynamic External Workflow also routes by each member's approver, even when the derived workflows look basic.
+    const isDynamicExternalApproval = hasDynamicExternalWorkflow(policy) && isControlPolicy(policy);
+    const shouldShowApproverRow = (isAdvanceApproval || isDynamicExternalApproval) && !!policy?.areWorkflowsEnabled && !shouldHideDynamicExternalWorkflowPeople(policy);
 
     const isApproverValid = !!workspaceInviteApproverDraft && workspaceInviteApproverDraft in (policy?.employeeList ?? {});
     const validatedApprover = isApproverValid ? workspaceInviteApproverDraft : undefined;
