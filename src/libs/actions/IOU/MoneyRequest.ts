@@ -11,6 +11,7 @@ import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import {getParticipantsOption, getReportOption} from '@libs/OptionsListUtils';
 import {getCustomUnitID} from '@libs/PerDiemRequestUtils';
+import {getPersonalDetail} from '@libs/PersonalDetailsStore';
 import {getDistanceRateCustomUnit, isTaxTrackingEnabled, resolveCurrentTaxCode} from '@libs/PolicyUtils';
 import {
     getReportOrDraftReport,
@@ -640,7 +641,12 @@ function getMoneyRequestParticipantsFromReport(report: OnyxEntry<Report>, curren
  * @param participantsAutoAssigned whether participants were auto assigned
  */
 function setMoneyRequestParticipantsFromReport(transactionID: string, report: OnyxEntry<Report>, currentUserAccountID?: number, participantsAutoAssigned = true) {
-    const participants = getMoneyRequestParticipantsFromReport(report, currentUserAccountID);
+    // Keep each participant's login with their accountID. A recipient created offline has an optimistic accountID that is
+    // dropped from personal details once the request syncs, and getParticipantsOption needs the login to find the real account.
+    const participants = getMoneyRequestParticipantsFromReport(report, currentUserAccountID).map((participant) => {
+        const login = participant.login ?? getPersonalDetail(participant.accountID)?.login;
+        return login ? {...participant, login} : participant;
+    });
     return Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {
         participants,
         participantsAutoAssigned,

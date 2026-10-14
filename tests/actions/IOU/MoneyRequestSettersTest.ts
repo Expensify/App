@@ -8,6 +8,7 @@ import {
     setMoneyRequestDateAttribute,
     setMoneyRequestDistanceRate,
     setMoneyRequestMerchant,
+    setMoneyRequestParticipantsFromReport,
     setMoneyRequestTag,
 } from '@libs/actions/IOU/MoneyRequest';
 import initOnyxDerivedValues from '@libs/actions/OnyxDerived';
@@ -748,6 +749,30 @@ describe('actions/IOU', () => {
             expect(draft?.amount).toBe(500);
             expect(draft?.currency).toBe('EUR');
             expect(draft?.shouldShowOriginalAmount).toBe(true);
+        });
+
+        it('setMoneyRequestParticipantsFromReport should store the login of a 1:1 chat participant with their accountID', async () => {
+            // Given a 1:1 chat with a recipient whose personal details have a login, like an optimistic account created offline
+            const recipientAccountID = 9999995;
+            const recipientLogin = 'new.login@expensifail.com';
+            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[recipientAccountID]: {accountID: recipientAccountID, login: recipientLogin}});
+            await waitForBatchedUpdates();
+            const chatReport = {
+                reportID: 'chatReport123',
+                type: CONST.REPORT.TYPE.CHAT,
+                participants: {
+                    [RORY_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                    [recipientAccountID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                },
+            } as Report;
+
+            // When the draft's participants are set from that chat
+            await setMoneyRequestParticipantsFromReport(transactionID, chatReport, RORY_ACCOUNT_ID);
+            await waitForBatchedUpdates();
+
+            // Then the login is stored too, so the recipient can still be resolved by login if the accountID is replaced on sync
+            const draft = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`);
+            expect(draft?.participants).toEqual([{accountID: recipientAccountID, login: recipientLogin, selected: true}]);
         });
 
         it('setMoneyRequestCreated should set created on transaction draft', async () => {
