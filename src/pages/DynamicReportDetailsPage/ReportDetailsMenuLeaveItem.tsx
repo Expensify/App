@@ -103,6 +103,7 @@ function ReportDetailsMenuLeaveItem({reportID}: ReportDetailsMenuLeaveItemProps)
 
                 leaveChat();
             }}
+            accessibilityLabel={translate('common.leave')}
         >
             <MenuItem.Row>
                 <MenuItem.Leading>

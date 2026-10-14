@@ -96,6 +96,7 @@ function ReportDetailsMenuMembersOrInviteItem({reportID}: ReportDetailsMenuMembe
                         Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.REPORT_PARTICIPANTS.path));
                     }
                 })}
+                accessibilityLabel={translate('common.members')}
             >
                 <MenuItem.Row>
                     <MenuItem.Leading>

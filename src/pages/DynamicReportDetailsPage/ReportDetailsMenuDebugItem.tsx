@@ -26,7 +26,10 @@ function ReportDetailsMenuDebugItem({reportID}: ReportDetailsMenuDebugItemProps)
     }
 
     return (
-        <MenuItem.Root onPress={() => Navigation.navigate(ROUTES.DEBUG_REPORT.getRoute(report.reportID))}>
+        <MenuItem.Root
+            onPress={() => Navigation.navigate(ROUTES.DEBUG_REPORT.getRoute(report.reportID))}
+            accessibilityLabel={translate('debug.debug')}
+        >
             <MenuItem.Row>
                 <MenuItem.Leading>
                     <MenuItem.Icon src={expensifyIcons.Bug} />

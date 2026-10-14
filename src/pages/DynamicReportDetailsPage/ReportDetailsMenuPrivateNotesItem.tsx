@@ -45,7 +45,10 @@ function ReportDetailsMenuPrivateNotesItem({reportID}: ReportDetailsMenuPrivateN
     }
 
     return (
-        <MenuItem.Root onPress={callFunctionIfActionIsAllowed(() => navigateToPrivateNotes(report, currentUserAccountID))}>
+        <MenuItem.Root
+            onPress={callFunctionIfActionIsAllowed(() => navigateToPrivateNotes(report, currentUserAccountID))}
+            accessibilityLabel={translate('privateNotes.title')}
+        >
             <MenuItem.Row>
                 <MenuItem.Leading>
                     <MenuItem.Icon src={expensifyIcons.Pencil} />
