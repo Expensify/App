@@ -9650,6 +9650,9 @@ const CONST = {
             IMAGE_THUMBNAIL: 'AttachmentPreview-ImageThumbnail',
             PDF_THUMBNAIL: 'AttachmentPreview-PDFThumbnail',
         },
+        SELECTION_LIST_POPOVER_HEADER: {
+            BACK_BUTTON: 'SelectionListPopoverHeader-BackButton',
+        },
         HEADER: {
             BACK_BUTTON: 'Header-BackButton',
             DOWNLOAD_BUTTON: 'Header-DownloadButton',

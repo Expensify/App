@@ -1,5 +1,6 @@
 import HighlightableMenuItemWithTopDescription from '@components/HighlightableMenuItemWithTopDescription';
 import {useConfirmationFields} from '@components/MoneyRequestConfirmationFields/context';
+import {SELECTION_LIST_POPOVER_HEADER_HEIGHT} from '@components/SelectionListPopoverHeader';
 
 import useLocalize from '@hooks/useLocalize';
 import usePermissions from '@hooks/usePermissions';
@@ -116,6 +117,7 @@ function TagFields({
                 onPress={openTagPage}
                 onLandscapePress={openTagPageInLandscape}
                 shouldOpenInDropdown={shouldOpenInDropdown && !isReadOnly && !didConfirm}
+                listHeaderHeight={SELECTION_LIST_POPOVER_HEADER_HEIGHT}
                 renderDropdown={(dropdownProps) =>
                     !!transactionID && (
                         <TagFieldDropdown

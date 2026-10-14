@@ -1,5 +1,6 @@
 import PopoverWithMeasuredContent from '@components/PopoverWithMeasuredContent';
 import type PopoverWithMeasuredContentProps from '@components/PopoverWithMeasuredContent/types';
+import SelectionListPopoverHeader, {SELECTION_LIST_POPOVER_HEADER_HEIGHT} from '@components/SelectionListPopoverHeader';
 
 import useOnyx from '@hooks/useOnyx';
 import useSelectionListPopoverLayout from '@hooks/useSelectionListPopoverLayout';
@@ -54,6 +55,9 @@ type TagPickerModalProps = {
     /** Whether the pop-over shrinks to the height its list needs, treating `popoverHeight` as a ceiling. */
     shouldFitContentHeight?: boolean;
 
+    /** Shows a header with the tag list's name and a back button that closes the list */
+    shouldShowHeader?: boolean;
+
     /** Whether the pop-over may flip to the other side of the anchor when it overflows. It shifts by a whole pop-over height, so a caller that already picked the side turns this off. */
     shouldSwitchPositionIfOverflow?: boolean;
 } & Omit<PopoverWithMeasuredContentProps, 'anchorRef' | 'children' | 'onClose'>;
@@ -76,6 +80,7 @@ function TagPickerModal({
     popoverHeight = CONST.POPOVER_DROPDOWN_MAX_HEIGHT,
     shouldFitContentHeight = false,
     shouldSwitchPositionIfOverflow = true,
+    shouldShowHeader = false,
 }: TagPickerModalProps) {
     const anchorRef = useRef<ComponentRef<typeof View>>(null);
 
@@ -90,6 +95,7 @@ function TagPickerModal({
         popoverWidth,
         popoverHeight,
         shouldFitContentHeight,
+        headerHeight: shouldShowHeader ? SELECTION_LIST_POPOVER_HEADER_HEIGHT : 0,
     });
 
     const handleTagSelected = (item: Partial<OptionData>) => {
@@ -123,6 +129,12 @@ function TagPickerModal({
             outerStyle={outerStyle}
         >
             <View style={contentStyle}>
+                {shouldShowHeader && (
+                    <SelectionListPopoverHeader
+                        title={policyTagList.name}
+                        onBackButtonPress={onClose}
+                    />
+                )}
                 <TagPicker
                     onRenderedRowCountChange={setRenderedRowCount}
                     policyID={policyID}

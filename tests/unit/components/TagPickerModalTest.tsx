@@ -1,6 +1,7 @@
-import {render} from '@testing-library/react-native';
+import {fireEvent, render, screen} from '@testing-library/react-native';
 
 import type PopoverWithMeasuredContentProps from '@components/PopoverWithMeasuredContent/types';
+import {SELECTION_LIST_POPOVER_HEADER_HEIGHT} from '@components/SelectionListPopoverHeader';
 import type {TagPickerProps} from '@components/TagPicker';
 import TagPickerModal from '@components/TagPicker/TagPickerModal';
 
@@ -37,6 +38,8 @@ jest.mock('@hooks/useKeyboardState', () => jest.fn(() => ({isKeyboardActive: moc
 // The home indicator area the sheet pads itself above, and no top inset.
 const SAFE_AREA_PADDING_BOTTOM = 34;
 jest.mock('@hooks/useSafeAreaPaddings', () => jest.fn(() => ({paddingTop: 0, paddingBottom: SAFE_AREA_PADDING_BOTTOM})));
+
+jest.mock('@hooks/useLocalize', () => () => ({translate: (key: string) => key}));
 
 // The list itself is covered elsewhere; here only what the modal hands it matters.
 let mockTagPickerProps: TagPickerProps | undefined;
@@ -182,5 +185,47 @@ describe('TagPickerModal', () => {
         // Then the sheet shrinks to the room the keyboard leaves and rises above it, so no tag sits behind the keyboard
         expect(mockPopoverProps?.popoverDimensions?.height).toBe(expectedHeight);
         expect(mockPopoverProps?.avoidKeyboard).toBe(true);
+    });
+
+    it("shows a header with the tag list's name whose back button closes the list", () => {
+        // Given the expense form's row for the second tag list
+        const onClose = jest.fn();
+        render(
+            <TagPickerModal
+                isVisible
+                onClose={onClose}
+                policyID={POLICY_ID}
+                anchorPosition={{horizontal: 0, vertical: 0}}
+                tagListIndex={1}
+                shouldShowHeader
+                shouldFitContentHeight
+            />,
+        );
+
+        // When the back button in its header is pressed
+        expect(screen.getByText('Project')).toBeOnTheScreen();
+        fireEvent.press(screen.getByLabelText('common.back'));
+
+        // Then the list closes, and the sheet had grown by the header so it still fits the list's one row
+        expect(onClose).toHaveBeenCalledTimes(1);
+        expect(mockPopoverProps?.popoverDimensions?.height).toBe(
+            getSelectionListPopoverContentHeight({optionCount: 1, isSearchable: false}) + SELECTION_LIST_POPOVER_HEADER_HEIGHT + SAFE_AREA_PADDING_BOTTOM,
+        );
+    });
+
+    it('leaves out the header by default', () => {
+        // Given a caller that does not ask for a header, like the Search table's tag cell
+        // When the tag list opens
+        render(
+            <TagPickerModal
+                isVisible
+                onClose={jest.fn()}
+                policyID={POLICY_ID}
+                anchorPosition={{horizontal: 0, vertical: 0}}
+            />,
+        );
+
+        // Then there is no back button
+        expect(screen.queryByLabelText('common.back')).not.toBeOnTheScreen();
     });
 });

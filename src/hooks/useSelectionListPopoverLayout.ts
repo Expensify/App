@@ -24,13 +24,16 @@ type UseSelectionListPopoverLayoutParams = {
 
     /** Whether the pop-over shrinks to the height its list needs, treating `popoverHeight` as a ceiling */
     shouldFitContentHeight: boolean;
+
+    /** Height of a header shown above the list */
+    headerHeight?: number;
 };
 
 /**
  * Sizes a selection list shown in `PopoverWithMeasuredContent`: a pop-over on a wide layout, and on a narrow one a
  * bottom sheet that fits the window, rises above the keyboard and pads itself for the bottom safe area.
  */
-function useSelectionListPopoverLayout({optionCount, isSearchable, popoverWidth, popoverHeight, shouldFitContentHeight}: UseSelectionListPopoverLayoutParams) {
+function useSelectionListPopoverLayout({optionCount, isSearchable, popoverWidth, popoverHeight, shouldFitContentHeight, headerHeight = 0}: UseSelectionListPopoverLayoutParams) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth -- must match PopoverWithMeasuredContent's dock decision (bottom-docked only when isSmallScreenWidth)
@@ -40,7 +43,7 @@ function useSelectionListPopoverLayout({optionCount, isSearchable, popoverWidth,
     const viewportOffsetTop = useViewportOffsetTop();
     const {paddingTop: safeAreaTop, paddingBottom: safeAreaPaddingBottom} = useSafeAreaPaddings(true);
 
-    const estimatedContentHeight = getSelectionListPopoverContentHeight({optionCount: Math.max(optionCount, 1), isSearchable});
+    const estimatedContentHeight = getSelectionListPopoverContentHeight({optionCount: Math.max(optionCount, 1), isSearchable}) + headerHeight;
     // The sheet pads itself above the home indicator, except while the keyboard already covers it. The offline indicator
     // is drawn on the page behind the sheet, so no room is kept for it.
     const bottomSafeAreaPadding = isSmallScreenWidth && !isKeyboardActive ? safeAreaPaddingBottom : 0;
@@ -49,7 +52,7 @@ function useSelectionListPopoverLayout({optionCount, isSearchable, popoverWidth,
         windowHeight,
         keyboardHeight: isKeyboardActive ? keyboardActiveHeight : 0,
         topSafeAreaInset: safeAreaTop,
-        minHeight: getSelectionListPopoverContentHeight({optionCount: 1, isSearchable}),
+        minHeight: getSelectionListPopoverContentHeight({optionCount: 1, isSearchable}) + headerHeight,
     });
     // A short list gets a sheet only as tall as its rows, still within the room the window and keyboard leave.
     const fittedSheetHeight = shouldFitContentHeight ? Math.min(bottomSheetHeight, estimatedContentHeight + bottomSafeAreaPadding) : bottomSheetHeight;

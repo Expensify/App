@@ -60,6 +60,7 @@ function TagFieldDropdown({transactionID, policy, tagListIndex, onClose, ...popo
             {...popoverProps}
             onClose={onClose}
             shouldFitContentHeight
+            shouldShowHeader
             policyID={policy?.id}
             tagListIndex={tagListIndex}
             selectedTag={getTag({tag: transactionTag}, tagListIndex)}
