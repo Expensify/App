@@ -10,6 +10,7 @@ import {
     SearchSelectionClearGenerationContext,
     SearchSelectionContext,
     SearchShiftRangeGroupsContext,
+    SearchSnapshotHashContext,
 } from './SearchContextDefinitions';
 
 // Lightweight public surface for search contexts.
@@ -60,6 +61,7 @@ export {
     SearchResultsActionsContext,
     SearchSelectionContext,
     SearchSelectionActionsContext,
+    SearchSnapshotHashContext,
     useSearchQueryContext,
     useSearchQueryActions,
     useSearchResultsContext,

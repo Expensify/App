@@ -100,6 +100,8 @@ const SearchRowSelectionActionsContext = React.createContext<SearchRowSelectionA
 const SearchShiftRangeGroupsContext = React.createContext<SearchShiftRangeGroupsActions>(defaultSearchShiftRangeGroupsActions);
 /** Incremented whenever a clear empties the Search selection, so the shift+click range session knows to reset */
 const SearchSelectionClearGenerationContext = React.createContext(0);
+/** Hash of the active snapshot, or undefined when snapshot keys are read live. A number, so consumers re-render only when the active snapshot changes */
+const SearchSnapshotHashContext = React.createContext<number | undefined>(undefined);
 
 export {
     EMPTY_TRANSACTIONS_BY_REPORT_ID,
@@ -112,4 +114,5 @@ export {
     SearchRowSelectionActionsContext,
     SearchShiftRangeGroupsContext,
     SearchSelectionClearGenerationContext,
+    SearchSnapshotHashContext,
 };
