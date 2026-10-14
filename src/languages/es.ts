@@ -9812,6 +9812,8 @@ ${reportName}`,
         fallbackTitle: 'Ticket de soporte',
         resolved: 'Este ticket de soporte está resuelto.',
         surveyPrompt: '¿Cómo fue tu experiencia con el soporte?',
+        great: 'Excelente',
+        poor: 'Mala',
         reopenTicket: 'Reabrir ticket',
     },
     statementPage: {

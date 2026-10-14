@@ -40,11 +40,20 @@ type ConciergeFeedbackPromptProps = {
     /** Whether to show the generic feedback prompt alongside the thumbs */
     shouldShowPrompt?: boolean;
 
+    /** Custom prompt text shown alongside the thumbs */
+    promptText?: string;
+
     /** Whether the thumbs should remain available after the user rates the action */
     shouldPersistAfterRating?: boolean;
 
     /** Whether hovering a thumb should show its tooltip */
     shouldShowTooltips?: boolean;
+
+    /** Tooltip text for the positive feedback option */
+    positiveTooltipText?: string;
+
+    /** Tooltip text for the negative feedback option */
+    negativeTooltipText?: string;
 
     /** Whether to place only the thumbs inline with surrounding content */
     shouldRenderInline?: boolean;
@@ -138,8 +147,11 @@ function ConciergeFeedbackPrompt({
     action,
     reportID,
     shouldShowPrompt = true,
+    promptText,
     shouldPersistAfterRating = false,
     shouldShowTooltips = true,
+    positiveTooltipText,
+    negativeTooltipText,
     shouldRenderInline = false,
     shouldRenderSelectedReactionBubble = false,
     shouldHideUnselectedThumbAfterRating = false,
@@ -184,7 +196,7 @@ function ConciergeFeedbackPrompt({
     const getFeedbackThumb = (emoji: Emoji, isSelected: boolean) => (
         <ConciergeFeedbackThumb
             emoji={emoji}
-            label={translate(emoji.name === thumbsUp.name ? 'common.yes' : 'common.no')}
+            label={emoji.name === thumbsUp.name ? (positiveTooltipText ?? translate('common.yes')) : (negativeTooltipText ?? translate('common.no'))}
             accessibilityLabel={translate(emoji.name === thumbsUp.name ? 'concierge.feedback.useful' : 'concierge.feedback.notUseful')}
             onPress={callFunctionIfActionIsAllowed(() => rate(emoji))}
             shouldShowTooltip={shouldShowTooltips}
@@ -212,6 +224,7 @@ function ConciergeFeedbackPrompt({
     if (shouldPersistAfterRating && hasRated) {
         return (
             <View style={[styles.flexColumn, styles.alignItemsStart, styles.gap2, styles.mt2]}>
+                {shouldRenderInline && shouldShowPrompt && <Text style={styles.textSupporting}>{promptText ?? translate('concierge.feedback.prompt')}</Text>}
                 {isDisplayedThankMessage && <Text style={styles.textLabelSupporting}>{translate('concierge.feedback.thanks')}</Text>}
                 {feedbackThumbs}
             </View>
@@ -219,7 +232,12 @@ function ConciergeFeedbackPrompt({
     }
 
     if (shouldRenderInline) {
-        return feedbackThumbs;
+        return (
+            <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap2]}>
+                {shouldShowPrompt && <Text style={[styles.textSupporting, styles.flexShrink1]}>{promptText ?? translate('concierge.feedback.prompt')}</Text>}
+                {feedbackThumbs}
+            </View>
+        );
     }
 
     return (
@@ -227,7 +245,7 @@ function ConciergeFeedbackPrompt({
             layout="horizontal"
             style={styles.alignItemsCenter}
         >
-            {shouldShowPrompt && <Text style={[styles.textLabelSupporting, styles.flexShrink1]}>{translate('concierge.feedback.prompt')}</Text>}
+            {shouldShowPrompt && <Text style={[styles.textLabelSupporting, styles.flexShrink1]}>{promptText ?? translate('concierge.feedback.prompt')}</Text>}
             {feedbackThumbs}
         </ActionableItemButtons>
     );

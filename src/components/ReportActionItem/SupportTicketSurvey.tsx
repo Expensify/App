@@ -1,5 +1,3 @@
-import Text from '@components/Text';
-
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -60,13 +58,15 @@ function SupportTicketSurvey({action, report, reportID}: SupportTicketSurveyProp
 
     return (
         <View style={styles.chatItemMessage}>
-            <Text style={styles.textSupporting}>{translate('supportTicket.surveyPrompt')}</Text>
             {canRateSurvey && (
                 <ConciergeFeedbackPrompt
                     action={action}
                     reportID={reportID}
-                    shouldShowPrompt={false}
+                    promptText={translate('supportTicket.surveyPrompt')}
                     shouldPersistAfterRating
+                    positiveTooltipText={translate('supportTicket.great')}
+                    negativeTooltipText={translate('supportTicket.poor')}
+                    shouldRenderInline
                     shouldRenderSelectedReactionBubble
                     shouldHideUnselectedThumbAfterRating
                 />

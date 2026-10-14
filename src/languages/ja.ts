@@ -9803,6 +9803,8 @@ ${reportName}`,
         fallbackTitle: 'サポートチケット',
         resolved: 'このサポートチケットは解決済みです。',
         surveyPrompt: 'サポートの対応はいかがでしたか？',
+        great: '素晴らしい',
+        poor: '悪い',
         reopenTicket: 'チケットを再開',
     },
     statementPage: {

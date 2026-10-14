@@ -10190,6 +10190,8 @@ const translations = {
         fallbackTitle: 'Support ticket',
         resolved: 'This support ticket is resolved.',
         surveyPrompt: 'How was your support experience?',
+        great: 'Great',
+        poor: 'Poor',
         reopenTicket: 'Reopen ticket',
     },
     statementPage: {

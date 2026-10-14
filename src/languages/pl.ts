@@ -9923,6 +9923,8 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
         fallbackTitle: 'Zgłoszenie do pomocy technicznej',
         resolved: 'To zgłoszenie do pomocy technicznej zostało rozwiązane.',
         surveyPrompt: 'Jak oceniasz swoje doświadczenie ze wsparciem?',
+        great: 'Świetne',
+        poor: 'Słabe',
         reopenTicket: 'Otwórz zgłoszenie ponownie',
     },
     statementPage: {
