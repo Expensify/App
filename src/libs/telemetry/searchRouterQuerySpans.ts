@@ -86,6 +86,16 @@ function cancelSearchRouterQuerySpan(reason: SearchRouterQueryCancelReason) {
     cancelSpan(CONST.TELEMETRY.SPAN_SEARCH_ROUTER_QUERY);
 }
 
+function getAutocompleteKey(key: string | undefined): string {
+    if (!key) {
+        return 'none';
+    }
+    if (key.startsWith(CONST.SEARCH.REPORT_FIELD.GLOBAL_PREFIX)) {
+        return CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_FIELD;
+    }
+    return key;
+}
+
 function startSearchRouterQuerySpan(debouncedQuery: string) {
     if (!debouncedQuery.trim()) {
         cancelSearchRouterQuerySpan(CONST.TELEMETRY.SEARCH_ROUTER_QUERY_CANCEL_REASON.CLEARED);
@@ -110,7 +120,7 @@ function startSearchRouterQuerySpan(debouncedQuery: string) {
         attributes: {
             [CONST.TELEMETRY.ATTRIBUTE_QUERY_LENGTH_BUCKET]: getSearchRouterQueryLengthBucket([...freeText.trim()].length),
             [CONST.TELEMETRY.ATTRIBUTE_HAS_FILTER]: filterRanges.length > 0 || !!parsedQuery?.autocomplete,
-            [CONST.TELEMETRY.ATTRIBUTE_AUTOCOMPLETE_KEY]: parsedQuery?.autocomplete?.key ?? 'none',
+            [CONST.TELEMETRY.ATTRIBUTE_AUTOCOMPLETE_KEY]: getAutocompleteKey(parsedQuery?.autocomplete?.key),
             [CONST.TELEMETRY.ATTRIBUTE_QUERY_ORDINAL]: measuredCount,
         },
     });

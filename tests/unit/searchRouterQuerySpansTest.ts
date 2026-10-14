@@ -210,6 +210,21 @@ describe('searchRouterQuerySpans', () => {
         expect(attributes?.[CONST.TELEMETRY.ATTRIBUTE_QUERY_LENGTH_BUCKET]).toBe(CONST.TELEMETRY.SEARCH_ROUTER_QUERY_LENGTH_BUCKET.EMPTY);
     });
 
+    it('normalizes dynamic report field keys to reportField in telemetry', () => {
+        // Given a query autocompleting a custom report field with sensitive workspace data
+        const sensitiveFieldName = 'secret-client-deal';
+        const query = `report-field-${sensitiveFieldName}:acme`;
+        startSearchRouterQuerySpan(query);
+        markSearchRouterQueryCommitted(query);
+
+        // Then the key is normalized to prevent user data leaks and tag cardinality explosion
+        const attributes = getRootAttributes();
+        expect(attributes?.[CONST.TELEMETRY.ATTRIBUTE_AUTOCOMPLETE_KEY]).toBe(CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_FIELD);
+        const serialized = JSON.stringify(mockEnded.map((span) => span.attributes)).toLowerCase();
+        expect(serialized).not.toContain(sensitiveFieldName);
+        expect(serialized).not.toContain('acme');
+    });
+
     it.each([
         ['an operator filter', 'amount>100 taxi', CONST.TELEMETRY.SEARCH_ROUTER_QUERY_LENGTH_BUCKET.MEDIUM],
         ['a negated filter', '-date<2024-01-01 x', CONST.TELEMETRY.SEARCH_ROUTER_QUERY_LENGTH_BUCKET.SHORT],
