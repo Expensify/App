@@ -115,7 +115,7 @@ function ExpenseReportListItemRowWide({
             </View>
         ),
         [CONST.SEARCH.TABLE_COLUMNS.PAID]: (
-            <View style={[getSearchColumnStyles(CONST.SEARCH.TABLE_COLUMNS.PAID)]}>
+            <View style={[getSearchColumnStyles(CONST.SEARCH.TABLE_COLUMNS.PAID, {isPaidColumnWide: item.shouldShowYearPaid})]}>
                 <DateCell
                     date={paidDate}
                     showTooltip

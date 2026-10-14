@@ -1076,6 +1076,7 @@ type ShouldShowYearResult = {
     shouldShowYearApproved: boolean;
     shouldShowYearPosted: boolean;
     shouldShowYearExported: boolean;
+    shouldShowYearPaid: boolean;
     shouldShowYearWithdrawn: boolean;
 };
 
@@ -1158,6 +1159,7 @@ function shouldShowYear(
         shouldShowYearApproved: false,
         shouldShowYearPosted: false,
         shouldShowYearExported: false,
+        shouldShowYearPaid: false,
         shouldShowYearWithdrawn: false,
     };
 
@@ -1259,6 +1261,10 @@ function shouldShowYear(
             if (exportedAction?.created && DateUtils.doesDateBelongToAPastYear(exportedAction.created)) {
                 result.shouldShowYearExported = true;
             }
+
+            if (!result.shouldShowYearPaid && isPaidDateFromAPastYear(item, data[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${item.reportID}`])) {
+                result.shouldShowYearPaid = true;
+            }
         } else if (!result.shouldShowYearWithdrawn && isGroupEntry(key)) {
             const group = data[key];
             if ('debitPosted' in group && group.debitPosted && DateUtils.doesDateBelongToAPastYear(group.debitPosted)) {
@@ -1273,6 +1279,7 @@ function shouldShowYear(
             result.shouldShowYearApproved &&
             result.shouldShowYearPosted &&
             result.shouldShowYearExported &&
+            result.shouldShowYearPaid &&
             result.shouldShowYearWithdrawn
         ) {
             return result;
@@ -1424,6 +1431,7 @@ type PreprocessingContext = {
     shouldShowYearSubmittedReport: boolean;
     shouldShowYearApprovedReport: boolean;
     shouldShowYearExportedReport: boolean;
+    shouldShowYearPaidReport: boolean;
     shouldShowAmountInWideColumn: boolean;
     shouldShowTaxAmountInWideColumn: boolean;
     hasDeletedTransaction: boolean;
@@ -1452,6 +1460,7 @@ function createPreprocessingContext(): PreprocessingContext {
         shouldShowYearSubmittedReport: false,
         shouldShowYearApprovedReport: false,
         shouldShowYearExportedReport: false,
+        shouldShowYearPaidReport: false,
         shouldShowAmountInWideColumn: false,
         shouldShowTaxAmountInWideColumn: false,
         hasDeletedTransaction: false,
@@ -1541,6 +1550,10 @@ function processReportActionEntry(ctx: PreprocessingContext, key: string, action
 
     if (lastReimbursedAction) {
         ctx.lastReimbursedActionByReportID.set(reportID, lastReimbursedAction);
+    }
+
+    if (!ctx.shouldShowYearPaidReport && report && isPaidDateFromAPastYear(report, actions)) {
+        ctx.shouldShowYearPaidReport = true;
     }
 }
 
@@ -2727,6 +2740,15 @@ function getPaidDate(reportItem: OnyxTypes.Report, snapshotPaidAction: OnyxTypes
 }
 
 /**
+ * Whether the report's paid date, taken from the snapshot's report actions, is from a past year, so the Paid column
+ * needs the wide width to fit the year.
+ */
+function isPaidDateFromAPastYear(report: OnyxTypes.Report, actions: Record<string, OnyxTypes.ReportAction> | undefined): boolean {
+    const paidDate = getPaidDate(report, undefined, Object.values(actions ?? {}));
+    return !!paidDate && DateUtils.doesDateBelongToAPastYear(paidDate);
+}
+
+/**
  * Returns the report's approved date or the latest APPROVED action's created time, whichever is newer — an offline
  * re-approve leaves a stale `approved` on the report. A report back to Draft/Outstanding is not approved anymore
  * even when its `approved` date is still set, so those statuses return blank.
@@ -2811,6 +2833,7 @@ function getReportSections({
         shouldShowYearSubmittedReport,
         shouldShowYearApprovedReport,
         shouldShowYearExportedReport,
+        shouldShowYearPaidReport,
         shouldShowAmountInWideColumn,
         shouldShowTaxAmountInWideColumn,
         hasDeletedTransaction,
@@ -2939,6 +2962,7 @@ function getReportSections({
                     shouldShowYearSubmitted: shouldShowYearSubmittedReport,
                     shouldShowYearApproved: shouldShowYearApprovedReport,
                     shouldShowYearExported: shouldShowYearExportedReport,
+                    shouldShowYearPaid: shouldShowYearPaidReport,
                     hasVisibleViolations: hasVisibleViolationsForReport,
                     isRejectedReport,
                     totalDisplaySpend,

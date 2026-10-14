@@ -1195,6 +1195,7 @@ const transactionReportGroupListItems = createMock<Array<TransactionReportGroupL
         shouldShowYearSubmitted: true,
         shouldShowYearApproved: false,
         shouldShowYearExported: false,
+        shouldShowYearPaid: false,
         firstApproved: '',
         paid: '',
         firstApproverAvatar: undefined,
@@ -1328,6 +1329,7 @@ const transactionReportGroupListItems = createMock<Array<TransactionReportGroupL
         shouldShowYearSubmitted: true,
         shouldShowYearApproved: false,
         shouldShowYearExported: false,
+        shouldShowYearPaid: false,
         firstApproved: '',
         paid: '',
         firstApproverAvatar: undefined,
@@ -1467,6 +1469,7 @@ const transactionReportGroupListItems = createMock<Array<TransactionReportGroupL
         shouldShowYearSubmitted: true,
         shouldShowYearApproved: false,
         shouldShowYearExported: false,
+        shouldShowYearPaid: false,
         firstApproved: '',
         paid: '',
         firstApproverAvatar: undefined,
@@ -1692,6 +1695,7 @@ const transactionReportGroupListItems = createMock<Array<TransactionReportGroupL
         shouldShowYearSubmitted: true,
         shouldShowYearApproved: false,
         shouldShowYearExported: false,
+        shouldShowYearPaid: false,
         firstApproved: '',
         paid: '',
         firstApproverAvatar: undefined,
@@ -8035,6 +8039,60 @@ describe('SearchUIUtils', () => {
 
                 // Then the paid date is blank, because only a report in the Paid status has a paid date
                 expect(item?.paid).toBe('');
+            });
+
+            it('should widen the Paid column when a report was paid in a past year', () => {
+                // Given a report paid in a past year
+                const data = makeReportFilterTestData(
+                    {type: CONST.REPORT.TYPE.EXPENSE, stateNum: CONST.REPORT.STATE_NUM.APPROVED, statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED},
+                    {},
+                    {
+                        [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${rptFilterReportID}`]: {
+                            'reimbursed-1': {
+                                reportActionID: 'reimbursed-1',
+                                actionName: CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED,
+                                actorAccountID: approverAccountID,
+                                created: '2024-12-22 09:30:00',
+                            },
+                        },
+                    },
+                );
+
+                // When the report sections and the header's year flags are built
+                const [sections] = callGetReportSections(data);
+                const item = sections.find((s) => s.keyForList === rptFilterReportID);
+                const yearFlags = SearchUIUtils.shouldShowYear(data, true);
+
+                // Then both the row and the header use the wide Paid column, so the date has room for its year
+                expect(item?.shouldShowYearPaid).toBe(true);
+                expect(yearFlags.shouldShowYearPaid).toBe(true);
+            });
+
+            it('should keep the Paid column narrow when every report was paid this year', () => {
+                // Given a report paid this year
+                const data = makeReportFilterTestData(
+                    {type: CONST.REPORT.TYPE.EXPENSE, stateNum: CONST.REPORT.STATE_NUM.APPROVED, statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED},
+                    {},
+                    {
+                        [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${rptFilterReportID}`]: {
+                            'reimbursed-1': {
+                                reportActionID: 'reimbursed-1',
+                                actionName: CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED,
+                                actorAccountID: approverAccountID,
+                                created: `${new Date().getFullYear()}-01-02 09:30:00`,
+                            },
+                        },
+                    },
+                );
+
+                // When the report sections and the header's year flags are built
+                const [sections] = callGetReportSections(data);
+                const item = sections.find((s) => s.keyForList === rptFilterReportID);
+                const yearFlags = SearchUIUtils.shouldShowYear(data, true);
+
+                // Then the row and the header keep the narrow Paid column, matching the other date columns
+                expect(item?.shouldShowYearPaid).toBe(false);
+                expect(yearFlags.shouldShowYearPaid).toBe(false);
             });
 
             it('should use the first approval after the latest UNAPPROVED action when the report was re-approved', () => {

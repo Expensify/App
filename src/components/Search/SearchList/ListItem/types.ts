@@ -305,6 +305,12 @@ type TransactionReportGroupListItemType = TransactionGroupListItemType & {groupe
          */
         shouldShowYearExported: boolean;
 
+        /**
+         * Whether we should show the year for the paid date.
+         * This is true if at least one report in the dataset was paid in past years
+         */
+        shouldShowYearPaid?: boolean;
+
         /** The main action that can be performed for the report */
         action: SearchTransactionAction | undefined;
 
