@@ -37,6 +37,7 @@ const useResponsiveLayoutMock = jest.requireMock<jest.Mock>('@hooks/useResponsiv
 jest.mock('@userActions/Policy/Category', () => ({enablePolicyCategories: jest.fn()}));
 jest.mock('@userActions/Policy/Policy', () => ({enableCompanyCards: jest.fn(), enableExpensifyCard: jest.fn(), enablePolicyConnections: jest.fn(), enablePolicyRules: jest.fn()}));
 jest.mock('@libs/actions/IOU/MoneyRequest', () => ({startMoneyRequest: jest.fn()}));
+jest.mock('@libs/actions/Policy/Rules', () => ({getRules: jest.fn(), resetRulesFetchState: jest.fn()}));
 
 const {startMoneyRequest} = jest.requireMock<{startMoneyRequest: jest.Mock}>('@libs/actions/IOU/MoneyRequest');
 

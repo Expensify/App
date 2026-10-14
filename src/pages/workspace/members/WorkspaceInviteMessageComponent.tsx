@@ -34,6 +34,8 @@ import {
     getDefaultApprover,
     getMemberAccountIDsForWorkspace,
     goBackFromInvalidPolicy,
+    hasDynamicExternalWorkflow,
+    isControlPolicy,
     isSubmitPolicy,
     shouldHideDynamicExternalWorkflowPeople,
     tryNavigateToSubmitWorkspaceUpgrade,
@@ -135,6 +137,10 @@ function WorkspaceInviteMessageComponent({
     const defaultOfficeName = officeLocations.find((office) => office.isDefault)?.name;
     const selectedWorkArrangementLabel = translate(selectedHasOfficeWorkArrangement ? 'workspace.people.officeBased' : 'workspace.people.noRegularWorkspace');
     const defaultOfficeLabel = officeLocations.length > 1 ? defaultOfficeName : undefined;
+
+    // Dynamic External Workflow also routes by each member's approver, even when the derived workflows look basic.
+    const isDynamicExternalApproval = hasDynamicExternalWorkflow(policy) && isControlPolicy(policy);
+    const shouldShowApproverRow = (isAdvanceApproval || isDynamicExternalApproval) && !!policy?.areWorkflowsEnabled && !shouldHideDynamicExternalWorkflowPeople(policy);
 
     const isApproverValid = !!workspaceInviteApproverDraft && workspaceInviteApproverDraft in (policy?.employeeList ?? {});
     const validatedApprover = isApproverValid ? workspaceInviteApproverDraft : undefined;

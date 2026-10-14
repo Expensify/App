@@ -27,8 +27,7 @@ function MoneyRequestReportEmptyStateView({report, policy, onLayout}: MoneyReque
     const styles = useThemeStyles();
 
     return (
-        // `pt5` matches the 20px the unified list puts between the report header and its first row.
-        <ScrollView contentContainerStyle={[styles.flexGrow1, styles.pt5]}>
+        <ScrollView contentContainerStyle={styles.flexGrow1}>
             <MoneyRequestViewReportFields
                 report={report}
                 policy={policy}
