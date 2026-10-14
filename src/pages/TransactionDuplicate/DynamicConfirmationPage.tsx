@@ -76,10 +76,11 @@ function DynamicConfirmationPage() {
 
     const [duplicates] = useTransactionsByID(reviewDuplicates?.duplicates);
     const transactionsMergeParams = useMemo(
-        () => TransactionUtils.buildMergeDuplicatesParams(reviewDuplicates, duplicates ?? [], newTransaction),
-        [duplicates, reviewDuplicates, newTransaction],
+        () => TransactionUtils.buildMergeDuplicatesParams(reviewDuplicates, duplicates ?? [], newTransaction, duplicatedTransaction),
+        [duplicates, reviewDuplicates, newTransaction, duplicatedTransaction],
     );
-    const transactionThreadReportIDMap = useTransactionThreadReportIDs(transactionsMergeParams.transactionIDList);
+    const transactionIDList = transactionsMergeParams.transactionList.map((transaction) => transaction.transactionID);
+    const transactionThreadReportIDMap = useTransactionThreadReportIDs(transactionIDList);
     const reviewDuplicatesTaxCode = reviewDuplicates?.taxCode;
     const reviewDuplicatesTaxAmount = reviewDuplicates?.taxAmount;
     const duplicatedTransactionTaxCode = duplicatedTransaction?.taxCode;
@@ -224,7 +225,7 @@ function DynamicConfirmationPage() {
                                 // With every duplicate filtered out (e.g. all on approved/closed/reimbursed reports) there
                                 // is nothing to act on: merging would be rejected by Auth and resolving would only clear
                                 // the kept transaction, leaving the duplicate violation one-sided. Guard both paths.
-                                if (transactionsMergeParams.transactionIDList.length === 0) {
+                                if (transactionsMergeParams.transactionList.length === 0) {
                                     setMergeErrorMessage(translate('violations.cannotMergeDuplicates'));
                                     return;
                                 }
@@ -236,7 +237,7 @@ function DynamicConfirmationPage() {
                                 }
                                 // Auth's MergeTransactions also rejects a merge when the kept expense's report is no
                                 // longer editable, so block it here and explain rather than failing server-side.
-                                if (!TransactionUtils.canMergeDuplicates(iouReport, transactionsMergeParams.transactionIDList)) {
+                                if (!TransactionUtils.canMergeDuplicates(iouReport, transactionIDList)) {
                                     setMergeErrorMessage(translate('violations.cannotMergeDuplicates'));
                                     return;
                                 }

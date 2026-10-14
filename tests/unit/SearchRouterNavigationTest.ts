@@ -204,6 +204,7 @@ const workspaceIcons = {
     Hashtag: mockIcon,
     Document: mockIcon,
     Sync: mockIcon,
+    Connect: mockIcon,
     Receipt: mockIcon,
     Briefcase: mockIcon,
     Folder: mockIcon,
@@ -704,7 +705,7 @@ describe('Workspace Search Router navigation source', () => {
         jest.clearAllMocks();
     });
 
-    const buildItems = (policies: Policy[], isOffline = false) =>
+    const buildItems = (policies: Policy[], isOffline = false, isUnifiedConnectionsBetaEnabled = false) =>
         buildWorkspaceNavigationItems({
             policies: Object.fromEntries(policies.map((policy) => [`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy])),
             policyCategories: undefined,
@@ -713,6 +714,7 @@ describe('Workspace Search Router navigation source', () => {
             isOffline,
             isVendorMatchingBetaEnabled: false,
             isRecruitingBetaEnabled: false,
+            isUnifiedConnectionsBetaEnabled,
             shouldUseNarrowLayout: false,
             convertToDisplayString: () => '$0.00',
             getItemText: (item) => {
@@ -721,6 +723,7 @@ describe('Workspace Search Router navigation source', () => {
                     ['workspace.common.members', 'Members'],
                     ['workspace.common.rooms', 'Rooms'],
                     ['workspace.common.workflows', 'Workflows'],
+                    ['workspace.common.connections', 'Connections'],
                     ['workspace.common.hr', 'HR'],
                 ]);
                 return labels.get(item.translationKey) ?? item.translationKey;
@@ -755,6 +758,17 @@ describe('Workspace Search Router navigation source', () => {
             `workspace_2_${SCREENS.WORKSPACE.HR}`,
             `workspace_1_${SCREENS.WORKSPACE.HR}`,
         ]);
+    });
+
+    it('matches the Connections row by the name of a page it replaced when the unified Connections beta is on', () => {
+        // Given a workspace with the HR feature on, viewed with the beta on so HR has no row of its own
+        const items = buildItems([createWorkspacePolicy('1', 'Alpha Workspace', {isHREnabled: true})], false, true);
+
+        // When searching for the old HR page by its short name
+        const suggestions = buildNavigationSuggestions('hr', [items], localeCompare);
+
+        // Then the Connections row is suggested, because HR moved onto the Connections page
+        expect(suggestions.map((item) => item.keyForList)).toEqual([`workspace_1_${SCREENS.WORKSPACE.CONNECTIONS}`]);
     });
 
     it('includes workspace identity and navigates through the Workspace synchronization helper', () => {
