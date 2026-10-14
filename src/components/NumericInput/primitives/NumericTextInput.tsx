@@ -1,6 +1,6 @@
+import {useNumericPressSelection} from '@components/NumericEditingController';
 import type {NumericEditingKeyPressEvent} from '@components/NumericEditingController';
 import {useNumericInputActions, useNumericInputState} from '@components/NumericInput/context';
-import useNumericPressSelection from '@components/NumericInput/hooks/useNumericPressSelection';
 import type {NumericTextInputProps} from '@components/NumericInput/types';
 import TextInput from '@components/TextInput';
 
@@ -48,19 +48,12 @@ function NumericTextInput({
     const {setMouseDown, setMouseUp} = useMouseActions();
     const styles = useThemeStyles();
     const navigation = useNavigation();
-    const {formattedNumber, inputRef, isNegative, selection} = useNumericInputState();
-    const {clearSign, handleKeyPress, handleSelectionChange, setNumber} = useNumericInputActions();
+    const {formattedNumber, inputRef, selection} = useNumericInputState();
+    const {handleKeyPress, handleSelectionChange, setNumber} = useNumericInputActions();
 
-    const handlePress = useNumericPressSelection(onPress);
+    const handlePress = useNumericPressSelection({inputRef, handleSelectionChange, onPress});
 
     const handleInputKeyPress = (event: NumericEditingKeyPressEvent) => {
-        const key = event.nativeEvent.key.toLowerCase();
-        const isCaretAtStart = selection.start === 0 && selection.end === 0;
-
-        if ((!formattedNumber || isCaretAtStart) && key === 'backspace' && isNegative) {
-            clearSign();
-        }
-
         handleKeyPress(event);
         onKeyPress?.(event);
     };

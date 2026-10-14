@@ -2,7 +2,7 @@ import ActivityIndicator from '@components/ActivityIndicator';
 import ChartTooltip from '@components/Charts/components/ChartTooltip';
 import {TOOLTIP_BAR_GAP, useChartLabelFormats, useTooltipData} from '@components/Charts/hooks';
 import type {ChartDataPoint, ChartProps, PieSlice, UnitPosition} from '@components/Charts/types';
-import {findSliceAtPosition, processDataIntoSlices} from '@components/Charts/utils';
+import {findSliceAtPosition, getPrimaryValue, processDataIntoSlices} from '@components/Charts/utils';
 import VictoryTheme from '@components/Charts/VictoryTheme';
 import Text from '@components/Text';
 
@@ -34,7 +34,7 @@ type PieChartProps = ChartProps & {
     shouldShowLegend?: boolean;
 };
 
-function PieChartContent({data, isLoading, valueUnit, valueUnitPosition, onSlicePress, shouldShowLegend = true}: PieChartProps) {
+function PieChartContent({data, series, isLoading, valueUnit, valueUnitPosition, onSlicePress, shouldShowLegend = true}: PieChartProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
@@ -62,11 +62,12 @@ function PieChartContent({data, isLoading, valueUnit, valueUnitPosition, onSlice
     // Slices are sorted by absolute value (largest first) for color assignment,
     // so slice indices don't match the original data array. We map back via
     // originalIndex so the tooltip can display the original (possibly negative) value.
-    const processedSlices = processDataIntoSlices(data, pieGeometry);
+    const [{key: primarySeriesKey}] = series;
+    const processedSlices = processDataIntoSlices(data, primarySeriesKey, pieGeometry);
     const activeOriginalDataIndex = activeSliceIndex >= 0 ? (processedSlices.at(activeSliceIndex)?.originalIndex ?? -1) : -1;
 
     const {formatValue} = useChartLabelFormats({data, unit: valueUnit, unitPosition: valueUnitPosition});
-    const tooltipData = useTooltipData(activeOriginalDataIndex, data, formatValue);
+    const tooltipData = useTooltipData(activeOriginalDataIndex, data, series, formatValue);
 
     // Handle hover state updates
     const updateActiveSlice = (x: number, y: number) => {
@@ -225,7 +226,7 @@ function PieChartContent({data, isLoading, valueUnit, valueUnitPosition, onSlice
                                 adjustsFontSizeToFit
                                 style={[styles.textHeadlineH1, styles.textAlignCenter]}
                             >
-                                {formatValue(data.reduce((sum, point) => sum + point.total, 0))}
+                                {formatValue(data.reduce((sum, point) => sum + getPrimaryValue(point, primarySeriesKey), 0))}
                             </Text>
                         </View>
                     )}
