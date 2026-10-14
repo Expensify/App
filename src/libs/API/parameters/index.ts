@@ -277,6 +277,7 @@ export type {default as ArchivePolicyParams} from './ArchivePolicyParams';
 export type {default as UnarchivePolicyParams} from './UnarchivePolicyParams';
 export type {default as ShareBankAccountAndSetPayerParams} from './ShareBankAccountAndSetPayerParams';
 export type {default as CreateWorkspaceParams} from './CreateWorkspaceParams';
+export type {default as CreateJoinWorkspaceOnboardingContentParams} from './CreateJoinWorkspaceOnboardingContentParams';
 export type {default as UpdateWorkspaceGeneralSettingsParams} from './UpdateWorkspaceGeneralSettingsParams';
 export type {default as DeleteWorkspaceAvatarParams} from './DeleteWorkspaceAvatarParams';
 export type {default as UpdateWorkspaceAvatarParams} from './UpdateWorkspaceAvatarParams';
@@ -298,6 +299,7 @@ export type {default as VerifyAddSecondaryLoginCodeParams} from './VerifyAddSeco
 export type {default as OpenDraftWorkspaceRequestParams} from './OpenDraftWorkspaceRequestParams';
 export type {default as OpenDraftPerDiemExpenseParams} from './OpenDraftPerDiemExpenseParams';
 export type {default as CreateWorkspaceFromIOUPaymentParams} from './CreateWorkspaceFromIOUPaymentParams';
+export type {default as UpdatePolicyMemberDisplayNameParams} from './UpdatePolicyMemberDisplayNameParams';
 export type {default as UpdatePolicyMembersCustomFieldsParams} from './UpdatePolicyMembersCustomFieldsParams';
 export type {default as CreateTaskParams} from './CreateTaskParams';
 export type {default as CancelTaskParams} from './CancelTaskParams';
