@@ -5,6 +5,7 @@ keywords: [Insights, how to use Insights, filter Insights, customize Insights, s
 internalScope: Audience is members who can access Insights. Covers how to access and interact with Insights, adjust shared filters, explore underlying expenses, and use related reporting capabilities. Does not cover individual insight calculations, detailed search operators, or step-by-step export and saved-search workflows.
 contentType: topic
 platform: new-expensify
+order: 2
 ---
 
 # How to Use Insights
