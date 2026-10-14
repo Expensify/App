@@ -6,9 +6,8 @@ import type PDFThumbnailProps from '@components/PDFThumbnail/types';
 
 import useFilesValidation from '@hooks/useFilesValidation';
 
-import * as FileUtils from '@libs/fileDownload/FileUtils';
 import type * as FileUtilsModule from '@libs/fileDownload/FileUtils';
-import {resizeImageIfNeeded} from '@libs/fileDownload/FileUtils';
+import {cleanFileObject, cleanFileObjectName, resizeImageIfNeeded} from '@libs/fileDownload/FileUtils';
 import convertHeicImage from '@libs/fileDownload/heicConverter';
 import validateAttachmentFile from '@libs/validateAttachmentFile';
 
@@ -637,7 +636,7 @@ describe('real nullable attachment validation', () => {
             {uri: 'static-middle', name: 'middle.text', type: 'text/plain', size: 240},
             {uri: 'static-last', name: 'last.text', type: 'text/plain', size: 240},
         ];
-        files[nullIndex] = FileUtils.cleanFileObjectName(FileUtils.cleanFileObject(getter));
+        files[nullIndex] = cleanFileObjectName(cleanFileObject(getter));
         const {result, onFilesValidated} = setup();
         const writes = jest.spyOn(Map.prototype, 'set');
         const observation = observeAttachmentValidationRejection('Cannot record URI order for a null attachment');
@@ -898,7 +897,7 @@ describe('real nullable attachment validation', () => {
     });
     it('keeps a single extracted null on the ignored outer async failure boundary', async () => {
         // Given a scalar getter has the same declared nullable result as the array cases.
-        const file = FileUtils.cleanFileObjectName(FileUtils.cleanFileObject({getAsFile: () => null}));
+        const file = cleanFileObjectName(cleanFileObject({getAsFile: () => null}));
         const {result, onFilesValidated} = setup();
         const observation = observeAttachmentValidationRejection('Cannot record URI order for a null attachment');
         try {

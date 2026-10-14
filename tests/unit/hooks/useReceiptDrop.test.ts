@@ -8,7 +8,8 @@ import useFilesValidation from '@hooks/useFilesValidation';
 import usePermissions from '@hooks/usePermissions';
 import usePersonalPolicy from '@hooks/usePersonalPolicy';
 
-import * as FileUtils from '@libs/fileDownload/FileUtils';
+import type * as FileUtilsModule from '@libs/fileDownload/FileUtils';
+import {getFilesFromClipboardEvent} from '@libs/fileDownload/FileUtils';
 import type ReportUtilsModule = require('@libs/ReportUtils');
 import {isSelfDM} from '@libs/ReportUtils';
 import type * as SnapshotPickedFileModule from '@libs/snapshotPickedFile';
@@ -55,7 +56,7 @@ jest.mock('@components/Modal/Global/ModalContext', () => jest.requireActual<type
 jest.mock('@navigation/Navigation', () => ({navigate: jest.fn()}));
 jest.mock('@libs/SubscriptionUtils', () => ({...jest.requireActual<typeof SubscriptionUtilsModule>('@libs/SubscriptionUtils'), shouldRestrictUserBillableActions: jest.fn()}));
 jest.mock('@libs/ReportUtils', () => ({...jest.requireActual<typeof ReportUtilsModule>('@libs/ReportUtils'), isSelfDM: jest.fn()}));
-jest.mock('@libs/fileDownload/FileUtils', () => ({...jest.requireActual<typeof FileUtils>('@libs/fileDownload/FileUtils'), getFilesFromClipboardEvent: jest.fn()}));
+jest.mock('@libs/fileDownload/FileUtils', () => ({...jest.requireActual<typeof FileUtilsModule>('@libs/fileDownload/FileUtils'), getFilesFromClipboardEvent: jest.fn()}));
 jest.mock('@userActions/IOU/MoneyRequest', () => ({
     ...jest.requireActual<typeof MoneyRequestModule>('@userActions/IOU/MoneyRequest'),
     initMoneyRequest: jest.fn(),
@@ -71,7 +72,7 @@ jest.mock('@userActions/TransactionEdit', () => ({
     buildOptimisticTransactionAndCreateDraft: jest.fn(),
 }));
 
-const registeredFileUtils = jest.requireMock<typeof FileUtils>('@libs/fileDownload/FileUtils');
+const registeredFileUtils = jest.requireMock<typeof FileUtilsModule>('@libs/fileDownload/FileUtils');
 
 const realFilesValidation = jest.requireActual<{default: typeof useFilesValidation}>('@hooks/useFilesValidation').default;
 const realInitMoneyRequest = jest.requireActual<typeof MoneyRequestModule>('@userActions/IOU/MoneyRequest').initMoneyRequest;
@@ -426,7 +427,7 @@ describe('receipt drop callback boundaries', () => {
         // Given the normal browser drop producer supplies ordered Files and DataTransfer items.
         const first = new File(['a'], 'first.text');
         const second = new File(['b'], 'second.text');
-        jest.mocked(FileUtils.getFilesFromClipboardEvent).mockReturnValue([first, second]);
+        jest.mocked(getFilesFromClipboardEvent).mockReturnValue([first, second]);
         const items = [createMock<DataTransferItem>({kind: 'file'}), createMock<DataTransferItem>({kind: 'file'})];
         const event = createMock<DragEvent>({dataTransfer: {items}});
         const {result} = renderHook(() => useReceiptDrop({reportID: '100', report, transactionID: 'tx', shouldAddOrReplaceReceipt: true}));
@@ -504,7 +505,7 @@ describe('receipt drop callback boundaries', () => {
         // Then the existing restricted route is selected without any extraction or callback effects.
         expect(shouldRestrictUserBillableActions).toHaveBeenCalled();
         expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.RESTRICTED_ACTION.getRoute('policy-1'));
-        expect(FileUtils.getFilesFromClipboardEvent).not.toHaveBeenCalled();
+        expect(getFilesFromClipboardEvent).not.toHaveBeenCalled();
         expect(validateFiles).not.toHaveBeenCalled();
         expect(initMoneyRequest).not.toHaveBeenCalled();
         expect(replaceReceipt).not.toHaveBeenCalled();
@@ -518,7 +519,7 @@ describe('receipt drop callback boundaries', () => {
         it('delivers unsupported replacement metadata as the actual outer async rejection', async () => {
             // Given metadata is injected below clipboard extraction, without claiming FileList byte provenance.
             // @ts-expect-error Deliberately inject URI metadata outside the clipboard File producer to exercise real validation delivery.
-            jest.mocked(FileUtils.getFilesFromClipboardEvent).mockReturnValue([metadata]);
+            jest.mocked(getFilesFromClipboardEvent).mockReturnValue([metadata]);
             const validator = jest.spyOn(jest.requireActual<{default: typeof validateAttachmentFile}>('@libs/validateAttachmentFile'), 'default');
             const {result} = renderHook(() => useReceiptDrop({reportID: '100', report, transactionID: 'tx', shouldAddOrReplaceReceipt: true}));
             const url = jest.spyOn(URL, 'createObjectURL');
@@ -544,11 +545,11 @@ describe('receipt drop callback boundaries', () => {
                 expect(buildOptimisticTransactionAndCreateDraft).not.toHaveBeenCalled();
                 expect(validator).toHaveBeenCalledTimes(1);
                 expect(validator).toHaveBeenCalledWith(metadata, undefined, true);
-                const count = jest.mocked(FileUtils.getFilesFromClipboardEvent).mock.calls.length;
+                const count = jest.mocked(getFilesFromClipboardEvent).mock.calls.length;
                 act(() => {
                     result.current.onReceiptDropped(createMock<DragEvent>({dataTransfer: {items: []}}));
                 });
-                expect(FileUtils.getFilesFromClipboardEvent).toHaveBeenCalledTimes(count + 1);
+                expect(getFilesFromClipboardEvent).toHaveBeenCalledTimes(count + 1);
                 expect(validator).toHaveBeenCalledTimes(1);
                 expect(url).not.toHaveBeenCalled();
             } finally {
@@ -566,7 +567,7 @@ describe('receipt drop callback boundaries', () => {
             const input: FileObject = {uri: 'blob:validation-first', name: 'first.text', type: 'text/plain', size: 240};
             const second: FileObject = {...metadata, uri: 'file://normalization-second'};
             // @ts-expect-error Deliberately inject URI metadata outside the clipboard File producer to exercise real validation delivery.
-            jest.mocked(FileUtils.getFilesFromClipboardEvent).mockReturnValue([input, second]);
+            jest.mocked(getFilesFromClipboardEvent).mockReturnValue([input, second]);
             const normalize = jest.spyOn(registeredFileUtils, 'normalizeFileObject').mockResolvedValueOnce(first);
             const snapshot = jest.spyOn(jest.requireActual<{default: typeof SnapshotPickedFileModule.default}>('@libs/snapshotPickedFile'), 'default').mockResolvedValue(first);
             const url = jest.spyOn(URL, 'createObjectURL').mockReturnValue('blob:validation-first');
@@ -633,7 +634,7 @@ describe('receipt drop callback boundaries', () => {
             const firstInput: FileObject = {uri: first.uri, name: first.name, type: first.type, size: first.size};
             const secondInput: FileObject = {uri: second.uri, name: second.name, type: second.type, size: second.size};
             // @ts-expect-error Deliberately inject URI metadata outside the clipboard File producer to exercise real validation delivery.
-            jest.mocked(FileUtils.getFilesFromClipboardEvent).mockReturnValue([firstInput, secondInput]);
+            jest.mocked(getFilesFromClipboardEvent).mockReturnValue([firstInput, secondInput]);
             const normalize = jest
                 .spyOn(registeredFileUtils, 'normalizeFileObject')
                 .mockResolvedValueOnce(first)
@@ -700,7 +701,7 @@ describe('receipt drop callback boundaries', () => {
         it('refuses an unrelated validation error as receipt guard evidence', async () => {
             // Given normalization can fail before the real receipt callback without proving its guard ran.
             // @ts-expect-error Deliberately inject URI metadata outside the clipboard File producer to exercise real validation delivery.
-            jest.mocked(FileUtils.getFilesFromClipboardEvent).mockReturnValue([metadata]);
+            jest.mocked(getFilesFromClipboardEvent).mockReturnValue([metadata]);
             const unrelated = new Error('Unrelated receipt normalization failure');
             const normalize = jest.spyOn(registeredFileUtils, 'normalizeFileObject').mockRejectedValueOnce(unrelated);
             const {result} = renderHook(() => useReceiptDrop({reportID: '100', report, transactionID: 'tx', shouldAddOrReplaceReceipt: true}));
