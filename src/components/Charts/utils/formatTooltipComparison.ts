@@ -14,12 +14,12 @@ type TooltipRow = {
     /** The series' color, shown as a dot before the row */
     color: string;
 
-    /** Names the series, like "Average" */
+    /** Names the series, like "Average", or the dates its amount covers, like "2025" */
     label?: string;
 
     amount: string;
 
-    /** The amount's share of total spend */
+    /** The amount's share of its own period's total spend */
     percentage?: string;
 };
 
@@ -74,13 +74,17 @@ function formatTooltipComparison(
         if (value === undefined) {
             return [];
         }
-        const isPrimary = key === primarySeriesKey;
+        // Periods compared bucket by bucket each carry their own share. Otherwise only the primary amount has one.
+        let share = key === primarySeriesKey ? dataPoint.percentOfTotal : undefined;
+        if (dataPoint.seriesPercentOfTotal) {
+            share = dataPoint.seriesPercentOfTotal[key];
+        }
         return {
             key,
             color,
-            label,
+            label: dataPoint.seriesLabels?.[key] ?? label,
             amount: formatAmount(value),
-            percentage: isPrimary && dataPoint.percentOfTotal !== undefined ? formatPercentOfTotal(dataPoint.percentOfTotal, value, locale) : undefined,
+            percentage: share === undefined ? undefined : formatPercentOfTotal(share, value, locale),
         };
     });
 

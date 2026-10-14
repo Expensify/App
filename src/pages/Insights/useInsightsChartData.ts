@@ -22,6 +22,7 @@ import type {ValueOf} from 'type-fest';
 import type {InsightsChartSpec} from './dashboardSpecs';
 import type {InsightsFilters} from './insightsFilters';
 
+import resolveComparisonWindows from './insightsCompare';
 import {applyInsightsFilters} from './insightsQueries';
 
 type InsightsChartState = ValueOf<typeof INSIGHTS_CHART_STATE>;
@@ -52,28 +53,29 @@ function useInsightsChartData(chart: InsightsChartSpec, filters: InsightsFilters
     const sortedData = useGroupedItems(snapshot, queryJSON);
     const current = resolveInsightsChartData({snapshot, queryJSON, sortedData, isOffline});
 
-    const isComparing = isBetaEnabled(CONST.BETAS.INSIGHTS_COMPARE) && filters.compare === CONST.SEARCH.COMPARE.AVERAGE && chart.view === CONST.SEARCH.VIEW.LINE;
-    const averageQueryJSON = isComparing ? buildSearchQueryJSON(applyInsightsFilters(chart, filters, CONST.SEARCH.COMPARE.AVERAGE)) : undefined;
-    const [averageSnapshot] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${averageQueryJSON?.hash}`);
-    const averageSortedData = useGroupedItems(averageSnapshot, queryJSON);
+    const compare = isBetaEnabled(CONST.BETAS.INSIGHTS_COMPARE) && chart.view === CONST.SEARCH.VIEW.LINE ? filters.compare : undefined;
+    const windows = compare === CONST.SEARCH.COMPARE.PREVIOUS_PERIOD ? resolveComparisonWindows(filters.date) : undefined;
+    const isComparing = compare === CONST.SEARCH.COMPARE.AVERAGE || !!windows;
+    const comparedQueryJSON = isComparing ? buildSearchQueryJSON(applyInsightsFilters(chart, filters, compare)) : undefined;
+    const [comparedSnapshot] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${comparedQueryJSON?.hash}`);
+    const comparedSortedData = useGroupedItems(comparedSnapshot, queryJSON);
 
     if (!isComparing || current.state !== INSIGHTS_CHART_STATE.READY) {
         return {...current, comparison: undefined};
     }
 
-    const average = resolveInsightsChartData({snapshot: averageSnapshot, queryJSON: averageQueryJSON, sortedData: averageSortedData, isOffline});
+    const compared = resolveInsightsChartData({snapshot: comparedSnapshot, queryJSON: comparedQueryJSON, sortedData: comparedSortedData, isOffline});
     // A compared chart waits for both sets of rows.
-    if (BLOCKING_STATES.has(average.state)) {
-        return {data: current.data, state: average.state, comparison: undefined};
+    if (BLOCKING_STATES.has(compared.state)) {
+        return {data: current.data, state: compared.state, comparison: undefined};
     }
 
+    const color = VictoryTheme.colors.getComparisonColor(VictoryTheme.colors.default, theme.colorScheme);
     return {
         ...current,
-        comparison: {
-            data: average.data,
-            label: translate('insightsPage.compare.average'),
-            color: VictoryTheme.colors.getComparisonColor(VictoryTheme.colors.default, theme.colorScheme),
-        },
+        comparison: windows
+            ? {data: compared.data, color, periods: {primary: windows.current, comparison: windows.previous}}
+            : {data: compared.data, color, label: translate('insightsPage.compare.average')},
     };
 }
 

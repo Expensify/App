@@ -28,6 +28,29 @@ describe('formatTooltipComparison', () => {
         ]);
     });
 
+    it("names each period's row by its dates and gives it its own period's share", () => {
+        // Given April plotted for two years, each with its share of that year's spend
+        const point: ChartDataPoint = {
+            label: 'April',
+            values: {[CHART_SERIES_KEY.PRIMARY]: 300, [CHART_SERIES_KEY.COMPARISON]: 100},
+            seriesLabels: {[CHART_SERIES_KEY.PRIMARY]: '2026', [CHART_SERIES_KEY.COMPARISON]: '2025'},
+            seriesPercentOfTotal: {[CHART_SERIES_KEY.PRIMARY]: 34.2, [CHART_SERIES_KEY.COMPARISON]: 16.1},
+        };
+        const series: NonEmptyTuple<ChartSeries> = [
+            {key: CHART_SERIES_KEY.PRIMARY, color: colors.green400},
+            {key: CHART_SERIES_KEY.COMPARISON, color: colors.green200},
+        ];
+
+        // When the tooltip comparison for that point is built
+        const comparison = formatTooltipComparison(point, series, formatAmount, 'en');
+
+        // Then each year gets a row named by its year, since a previous period has no single name, and each carries its own year's share
+        expect(comparison?.rows).toEqual([
+            {key: CHART_SERIES_KEY.PRIMARY, color: colors.green400, label: '2026', amount: '$300', percentage: '34.2%'},
+            {key: CHART_SERIES_KEY.COMPARISON, color: colors.green200, label: '2025', amount: '$100', percentage: '16.1%'},
+        ]);
+    });
+
     it('leaves the tooltip as it is when a single series is plotted', () => {
         // Given a point of a chart that compares nothing
         const point: ChartDataPoint = {label: 'April', values: {[CHART_SERIES_KEY.PRIMARY]: 300}};

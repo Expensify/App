@@ -89,10 +89,13 @@ function SearchChartView({
     const {series, rows} = buildChartSeries({
         data,
         comparison: isSinglePointBar ? undefined : comparison,
+        groupBy,
         view,
         getLabel,
         getShortLabel,
         getCurrencyDecimals,
+        translate,
+        dateFnsLocale,
         getInProgressLabel: (item) => getInProgressBucketLabel({groupBy, item, today, dateFnsLocale, dateFilterRange, translate}),
     });
     const points = rows.map((row) => row.point);

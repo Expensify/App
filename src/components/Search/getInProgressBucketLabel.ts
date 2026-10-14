@@ -39,7 +39,7 @@ const PERIOD_FORMATS: Partial<Record<SearchGroupBy, string>> = {
  * Returns undefined for every other group, including groups that aren't time-based.
  */
 function getInProgressBucketLabel({groupBy, item, today, dateFnsLocale, dateFilterRange, translate}: GetInProgressBucketLabelParams): string | undefined {
-    const range = CHART_GROUP_BY_CONFIG[groupBy].getDateRange?.(item);
+    const range = CHART_GROUP_BY_CONFIG[groupBy].getBucketRange?.(item);
     if (!range || today < range.start || today > range.end) {
         return undefined;
     }
