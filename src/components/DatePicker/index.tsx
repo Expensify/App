@@ -80,6 +80,10 @@ function DatePicker({
     // Whether the user currently intends the picker to be open. Lets a deferred measurement skip opening if the
     // picker was dismissed before it resolved.
     const openIntentRef = useRef(false);
+    // Focus moving out of the segments while the calendar is open is the user reaching for the calendar rather than
+    // leaving the field, so what a blur settles waits for the calendar to close.
+    const isFieldFocusedRef = useRef(false);
+    const hasPendingFieldBlurRef = useRef(false);
 
     // Touch devices keep the calendar on its own, so the soft keyboard does not cover it. A narrow window has no room
     // to show the calendar beside the field either, so it covers what is being typed.
@@ -323,9 +327,37 @@ function DatePicker({
     }, [inputID, blockingError, setInputValidationError, onValidationErrorChange]);
 
     // Leaving the field is the point the user is finished with it, which is when a form lets a required error show
-    const handleFieldBlur = () => {
+    const runFieldBlur = () => {
         segmentInput.onFieldBlur();
         onTouched?.();
+    };
+
+    const handleFieldBlur = () => {
+        isFieldFocusedRef.current = false;
+
+        if (isModalVisible) {
+            hasPendingFieldBlurRef.current = true;
+            return;
+        }
+
+        runFieldBlur();
+    };
+
+    useEffect(() => {
+        if (isModalVisible || !hasPendingFieldBlurRef.current || isFieldFocusedRef.current) {
+            return;
+        }
+
+        hasPendingFieldBlurRef.current = false;
+        runFieldBlur();
+        // runFieldBlur is rebuilt on every render, and the refs above are what decide whether it has anything to do
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [isModalVisible]);
+
+    const handleFieldFocus = () => {
+        isFieldFocusedRef.current = true;
+        hasPendingFieldBlurRef.current = false;
+        showDatePickerModal();
     };
 
     const handleClear = () => {
@@ -408,7 +440,7 @@ function DatePicker({
                     onPress={shouldDismissKeyboardBeforeShow || shouldAllowTyping ? handlePress : () => showDatePickerModal()}
                     onSubmitEditing={shouldAllowTyping ? undefined : () => showDatePickerModal()}
                     // Reaching the field by keyboard never fires a press, so focus is what opens the calendar
-                    onFocus={shouldAllowTyping ? showDatePickerModal : undefined}
+                    onFocus={shouldAllowTyping ? handleFieldFocus : undefined}
                     onKeyPress={shouldAllowTyping ? undefined : handleInputKeyPress}
                     textInputContainerStyles={isModalVisible ? styles.borderColorFocus : {}}
                     shouldHideClearButton={shouldHideClearButton}
