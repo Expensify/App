@@ -1,0 +1,90 @@
+import type {ChartDataPoint, ChartSeries} from '@components/Charts/types';
+import VictoryTheme from '@components/Charts/VictoryTheme';
+
+import {formatPercentOfTotal} from '@libs/PercentageUtils';
+
+import type Locale from '@src/types/onyx/Locale';
+
+import type {NonEmptyTuple} from 'type-fest';
+
+/** One compared series' amount at the active point */
+type TooltipRow = {
+    key: string;
+
+    /** The series' color, shown as a dot before the row */
+    color: string;
+
+    /** Names the series, like "Average" */
+    label?: string;
+
+    amount: string;
+
+    /** The amount's share of total spend */
+    percentage?: string;
+};
+
+/** How the primary series changed against the one it is compared with */
+type TooltipChange = {
+    /** The difference, without its sign */
+    amount: string;
+
+    /** The difference relative to the compared amount, absent when that amount is zero */
+    percentage?: string;
+
+    isIncrease: boolean;
+};
+
+type TooltipComparison = {
+    /** One row per series that has an amount at the point */
+    rows: TooltipRow[];
+
+    change?: TooltipChange;
+};
+
+/** Formats how much the primary value rose or fell against the compared one. */
+function formatChange(primaryValue: number | undefined, comparedValue: number | undefined, formatAmount: (value: number) => string, locale: Locale | undefined): TooltipChange | undefined {
+    if (primaryValue === undefined || comparedValue === undefined || primaryValue === comparedValue) {
+        return undefined;
+    }
+
+    const difference = primaryValue - comparedValue;
+    return {
+        amount: formatAmount(Math.abs(difference)),
+        percentage: comparedValue === 0 ? undefined : formatPercentOfTotal((Math.abs(difference) / Math.abs(comparedValue)) * 100, difference, locale),
+        isIncrease: difference > 0,
+    };
+}
+
+/** Formats each series' amount at the point and the primary series' change against the second */
+function formatTooltipComparison(
+    dataPoint: ChartDataPoint,
+    series: NonEmptyTuple<ChartSeries>,
+    formatAmount: (value: number) => string,
+    locale: Locale | undefined,
+): TooltipComparison | undefined {
+    if (series.length < 2) {
+        return undefined;
+    }
+
+    const [{key: primarySeriesKey}, comparedSeries] = series;
+    const rows = series.flatMap(({key, color = VictoryTheme.colors.default, label}) => {
+        const value = dataPoint.values[key];
+        if (value === undefined) {
+            return [];
+        }
+        const isPrimary = key === primarySeriesKey;
+        return {
+            key,
+            color,
+            label,
+            amount: formatAmount(value),
+            percentage: isPrimary && dataPoint.percentOfTotal !== undefined ? formatPercentOfTotal(dataPoint.percentOfTotal, value, locale) : undefined,
+        };
+    });
+
+    const change = formatChange(dataPoint.values[primarySeriesKey], comparedSeries && dataPoint.values[comparedSeries.key], formatAmount, locale);
+    return {rows, change};
+}
+
+export default formatTooltipComparison;
+export type {TooltipChange, TooltipComparison, TooltipRow};

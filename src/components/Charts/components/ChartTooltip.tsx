@@ -8,7 +8,7 @@ import PopoverWithMeasuredContentUtils from '@libs/PopoverWithMeasuredContentUti
 
 import variables from '@styles/variables';
 
-import type {ComponentRef} from 'react';
+import type {ComponentRef, ReactNode} from 'react';
 import type {LayoutChangeEvent} from 'react-native';
 import type {DerivedValue, SharedValue} from 'react-native-reanimated';
 
@@ -24,14 +24,8 @@ type ChartTooltipProps = {
     /** Label text (e.g., "Airfare", "Amazon") */
     label: string;
 
-    /** Formatted amount (e.g., "$1,820.00") */
-    amount: string;
-
-    /** Optional percentage to display (e.g., "12%") */
-    percentage?: string;
-
-    /** Optional translated expense count (e.g., "841 expenses") */
-    expenseCount?: string;
+    /** Shown under the label, like ChartTooltipSummary */
+    children: ReactNode;
 
     /** The width of the chart container as displayed in the window */
     chartWidth: number;
@@ -45,15 +39,7 @@ type ChartTooltipProps = {
     onChartMoved?: (deltaX: number, deltaY: number) => void;
 };
 
-function getAmountContent(amount: string, percentage?: string): string {
-    if (!amount || !percentage) {
-        return amount;
-    }
-
-    return `${amount} (${percentage})`;
-}
-
-function ChartTooltip({label, amount, percentage, expenseCount, chartWidth, initialTooltipPosition, isVisible, onChartMoved}: ChartTooltipProps) {
+function ChartTooltip({label, children, chartWidth, initialTooltipPosition, isVisible, onChartMoved}: ChartTooltipProps) {
     const styles = useThemeStyles();
     const {windowWidth, windowHeight} = useWindowDimensions();
 
@@ -72,9 +58,6 @@ function ChartTooltip({label, amount, percentage, expenseCount, chartWidth, init
     /** JS mirror of isVisible, which turns the anchor's position tracking on and off */
     const [isShown, setIsShown] = useState(false);
 
-    const amountContent = getAmountContent(amount, percentage);
-    const content = [label, amountContent, expenseCount].join('|');
-
     const tooltipWrapperRef = useRef<ComponentRef<typeof View>>(null);
 
     useLayoutEffect(() => {
@@ -85,7 +68,7 @@ function ChartTooltip({label, amount, percentage, expenseCount, chartWidth, init
             tooltipMeasuredWidth.set(width);
             tooltipMeasuredHeight.set(height);
         });
-    }, [content, chartWidth, tooltipMeasuredWidth, tooltipMeasuredHeight]);
+    }, [label, children, chartWidth, tooltipMeasuredWidth, tooltipMeasuredHeight]);
 
     const updateMeasuredSize = (event: LayoutChangeEvent) => {
         const {width, height} = event.nativeEvent.layout;
@@ -166,8 +149,7 @@ function ChartTooltip({label, amount, percentage, expenseCount, chartWidth, init
                 >
                     <View style={[styles.chartTooltipBox, {minWidth: Math.min(variables.chartTooltipMinWidth, chartWidth), maxWidth: chartWidth}]}>
                         <Text style={styles.chartTooltipTitle}>{label}</Text>
-                        {!!amountContent && <Text style={styles.chartTooltipText}>{amountContent}</Text>}
-                        {!!expenseCount && <Text style={styles.chartTooltipText}>{expenseCount}</Text>}
+                        {children}
                     </View>
                 </Animated.View>
             </ChartTooltipPortal>

@@ -4,6 +4,8 @@ import {buildChartSeries, CHART_SERIES_KEY, getSliceColorsByDataIndex} from '@co
 import type {TransactionMerchantGroupListItemType, TransactionQuarterGroupListItemType} from '@components/Search/SearchList/ListItem/types';
 import type {GroupedItem} from '@components/Search/types';
 
+import themeColors from '@styles/theme/colors';
+
 import CONST from '@src/CONST';
 
 /** A grouped merchant result, carrying the fields the series is built from. */
@@ -188,6 +190,42 @@ describe('buildChartSeries', () => {
         // Then there is nothing to plot, because the empty state is the view's job and the chart must not be handed
         // placeholder rows to draw
         expect(rows).toEqual([]);
+    });
+
+    it('plots each compared row against the group stored under the same key', () => {
+        // Given three quarters and the average the search returned for each of them, as cents, out of order
+        const data = [quarterGroup(1, 30000), quarterGroup(2, 60000), quarterGroup(3, 0)];
+        const averages = [quarterGroup(3, 30000), quarterGroup(1, 30000), quarterGroup(2, 30000)];
+
+        // When the series is built for a line chart compared against the average
+        const {series, rows} = buildChartSeries({
+            data,
+            comparison: {data: averages, label: 'Average', color: themeColors.green200},
+            view: CONST.SEARCH.VIEW.LINE,
+            getLabel,
+            getCurrencyDecimals,
+        });
+
+        // Then each point carries its own quarter's average in dollars, and the compared series is named for the tooltip
+        expect(rows.map((row) => row.point.values[CHART_SERIES_KEY.COMPARISON])).toEqual([300, 300, 300]);
+        expect(series).toEqual([{key: CHART_SERIES_KEY.PRIMARY}, {key: CHART_SERIES_KEY.COMPARISON, color: themeColors.green200, label: 'Average'}]);
+    });
+
+    it('leaves the compared value off a group the compared rows have nothing for', () => {
+        // Given two quarters, where the compared rows hold only the first
+        const data = [quarterGroup(1, 30000), quarterGroup(2, 60000)];
+
+        // When the series is built for a line chart compared against those rows
+        const {rows} = buildChartSeries({
+            data,
+            comparison: {data: [quarterGroup(1, 45000)], label: 'Average', color: themeColors.green200},
+            view: CONST.SEARCH.VIEW.LINE,
+            getLabel,
+            getCurrencyDecimals,
+        });
+
+        // Then the second quarter has no compared value, so the tooltip leaves its row out
+        expect(rows.map((row) => row.point.values[CHART_SERIES_KEY.COMPARISON])).toEqual([450, undefined]);
     });
 
     it('relabels the group still collecting expenses, keeping its axis label', () => {

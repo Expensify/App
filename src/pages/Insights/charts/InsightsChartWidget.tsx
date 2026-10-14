@@ -2,7 +2,6 @@ import {buildViewOnSpendQuery} from '@components/Search/chartDrillDown';
 import ChartEmptyState from '@components/Search/ChartEmptyState';
 import ChartErrorState from '@components/Search/ChartErrorState';
 import ChartOfflineState from '@components/Search/ChartOfflineState';
-import useGroupedItems from '@components/Search/hooks/useGroupedItems';
 import SearchChartView from '@components/Search/SearchChartView';
 import type {SearchQueryJSON} from '@components/Search/types';
 import WidgetContainer from '@components/WidgetContainer';
@@ -11,15 +10,15 @@ import WidgetHeaderMenu from '@components/WidgetHeaderMenu';
 import useLayoutSpacing from '@hooks/useLayoutSpacing';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
-import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import Navigation from '@libs/Navigation/Navigation';
-import {INSIGHTS_CHART_STATE, resolveInsightsChartData} from '@libs/resolveInsightsChartData';
+import {INSIGHTS_CHART_STATE} from '@libs/resolveInsightsChartData';
 
 import InsightsGroupByDropdown from '@pages/Insights/controls/InsightsGroupByDropdown';
 import type {InsightsChartSpec} from '@pages/Insights/dashboardSpecs';
 import type {InsightsFilters} from '@pages/Insights/insightsFilters';
+import useInsightsChartData from '@pages/Insights/useInsightsChartData';
 
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
@@ -57,9 +56,7 @@ function InsightsChartWidget({chart, queryJSON, snapshot, filters, onRetry, onGr
     const {cardPaddingHorizontal, cardPaddingBottom} = useLayoutSpacing();
     const icons = useMemoizedLazyExpensifyIcons(['Expand']);
 
-    const {isOffline} = useNetwork();
-    const sortedData = useGroupedItems(snapshot, queryJSON);
-    const {data, state} = resolveInsightsChartData({snapshot, queryJSON, sortedData, isOffline});
+    const {data, state, comparison} = useInsightsChartData(chart, filters, queryJSON, snapshot);
     const groupBy = chart.groupBy ?? filters.groupBy;
     const isLoading = state === INSIGHTS_CHART_STATE.LOADING;
     const shouldShowTable = chart.view === CONST.SEARCH.VIEW.BAR || chart.view === CONST.SEARCH.VIEW.PIE;
@@ -111,6 +108,7 @@ function InsightsChartWidget({chart, queryJSON, snapshot, filters, onRetry, onGr
                         groupBy={groupBy}
                         data={data}
                         isLoading={isLoading}
+                        comparison={comparison}
                         chartContainerStyle={cardPaddingHorizontal}
                         shouldShowSinglePointAsBar
                         shouldShowGroupLabels={false}

@@ -1,5 +1,6 @@
 import ActivityIndicator from '@components/ActivityIndicator';
 import ChartTooltip from '@components/Charts/components/ChartTooltip';
+import ChartTooltipSummary from '@components/Charts/components/ChartTooltipSummary';
 import {TOOLTIP_BAR_GAP, useChartLabelFormats, useTooltipData} from '@components/Charts/hooks';
 import type {ChartDataPoint, ChartProps, PieSlice, UnitPosition} from '@components/Charts/types';
 import {findSliceAtPosition, getPrimaryValue, processDataIntoSlices} from '@components/Charts/utils';
@@ -235,13 +236,16 @@ function PieChartContent({data, series, isLoading, valueUnit, valueUnitPosition,
                     {activeSliceIndex >= 0 && !!tooltipData && (
                         <ChartTooltip
                             label={tooltipData.label}
-                            amount={tooltipData.amount}
-                            percentage={tooltipData.percentage}
-                            expenseCount={tooltipData.expenseCount}
                             chartWidth={canvasWidth}
                             initialTooltipPosition={tooltipPosition}
                             onChartMoved={onChartMoved}
-                        />
+                        >
+                            <ChartTooltipSummary
+                                amount={tooltipData.amount}
+                                percentage={tooltipData.percentage}
+                                expenseCount={tooltipData.expenseCount}
+                            />
+                        </ChartTooltip>
                     )}
                 </Animated.View>
             </GestureDetector>
