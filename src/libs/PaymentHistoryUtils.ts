@@ -315,5 +315,46 @@ function getBadgeText(badge: PaymentDetailsBadge, state: PaymentHistoryState, tr
     }
 }
 
-export {formatDate, getBadgeAppearance, getBadgeText, getPaymentDetailsBadge, getPaymentHistoryRow, getPaymentHistoryRows, getStateTranslationKey};
+/**
+ * Resolves the receipt source URL for a purchase, walking the failedPurchaseID chain for cleared bills.
+ */
+function getReceiptSource(purchases: Purchases | null | undefined, purchaseID: number): string | null {
+    if (!purchases) {
+        return null;
+    }
+    const purchase = purchases[String(purchaseID)];
+    if (!purchase) {
+        return null;
+    }
+    if (purchase.receipt?.source) {
+        return purchase.receipt.source;
+    }
+
+    if (!isClear(purchase) || !purchase.message.failedPurchaseID) {
+        return null;
+    }
+
+    const visited = new Set<number>([purchaseID]);
+    let currentID: number | undefined = purchase.message.failedPurchaseID;
+    while (currentID !== undefined && !visited.has(currentID)) {
+        visited.add(currentID);
+        const current: Purchase | undefined = purchases[String(currentID)];
+        if (!current) {
+            return null;
+        }
+        if (current.receipt?.source) {
+            return current.receipt.source;
+        }
+        currentID = current.message.failedPurchaseID;
+    }
+
+    return null;
+}
+
+function isInvoiceBilling(purchases: Purchases | null | undefined, purchaseID: number): boolean {
+    const purchase = purchases?.[String(purchaseID)];
+    return purchase?.message.billingType === CONST.BILLING.TYPE_INVOICING;
+}
+
+export {formatDate, getBadgeAppearance, getBadgeText, getPaymentDetailsBadge, getPaymentHistoryRow, getPaymentHistoryRows, getReceiptSource, getStateTranslationKey, isInvoiceBilling};
 export type {PaymentHistoryRow};

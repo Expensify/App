@@ -3380,6 +3380,10 @@ const ROUTES = {
         route: 'workspaces/:policyID/document',
         getRoute: (policyID: string) => `workspaces/${policyID}/document` as const,
     },
+    BILLING_RECEIPT: {
+        route: 'settings/subscription/payment-history/:purchaseID/receipt',
+        getRoute: (purchaseID: number, source: string) => `settings/subscription/payment-history/${purchaseID}/receipt?source=${encodeURIComponent(source)}` as const,
+    },
     WORKSPACE_JOIN_USER: {
         route: 'workspaces/:policyID/join',
         getRoute: (policyID: string, inviterEmail: string) => `workspaces/${policyID}/join?email=${inviterEmail}` as const,

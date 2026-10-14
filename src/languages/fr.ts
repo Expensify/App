@@ -11463,6 +11463,9 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                 refundedOn: ({date}: {date: string}) => `Remboursé le ${date}`,
                 refundedAmountOn: ({amount, date}: {amount: string; date: string}) => `${amount} remboursé le ${date}`,
             },
+            billedTo: 'Facturé à',
+            viewReceipt: 'Voir le reçu',
+            viewInvoice: 'Voir la facture',
         },
         subscriptionSettings: {
             title: 'Paramètres d’abonnement',

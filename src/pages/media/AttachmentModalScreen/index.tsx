@@ -7,6 +7,7 @@ import React, {useContext, useMemo} from 'react';
 import type {AttachmentModalScreenProps, AttachmentModalScreenType} from './types';
 
 import AttachmentModalContext from './AttachmentModalContext';
+import BillingReceiptModalContent from './routes/BillingReceiptModalContent';
 import ProfileAvatarModalContent from './routes/ProfileAvatarModalContent';
 import ReportAddAttachmentModalContent from './routes/report/ReportAddAttachmentModalContent';
 import ReportAttachmentModalContent from './routes/report/ReportAttachmentModalContent';
@@ -84,6 +85,15 @@ function AttachmentModalScreen<Screen extends AttachmentModalScreenType>({route,
             <WorkspaceDocumentModalContent
                 route={routeWithContext as RouteType<typeof SCREENS.WORKSPACE_DOCUMENT>}
                 navigation={navigation as NavigationType<typeof SCREENS.WORKSPACE_DOCUMENT>}
+            />
+        );
+    }
+
+    if (route.name === SCREENS.BILLING_RECEIPT) {
+        return (
+            <BillingReceiptModalContent
+                route={routeWithContext as RouteType<typeof SCREENS.BILLING_RECEIPT>}
+                navigation={navigation as NavigationType<typeof SCREENS.BILLING_RECEIPT>}
             />
         );
     }
