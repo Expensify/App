@@ -305,7 +305,7 @@ function WorkspaceCompanyCardsTable({
                       // Unassigned cards have no details page and so no Accounting section to match, hence no title.
                       exportAccountTitle: shouldShowExportAccountColumn && assignedCard ? getCardExportAccountTitle(cardExportSettings, assignedCard) : undefined,
                       errors: rowErrors,
-                      pendingAction: assignedCard?.pendingFields?.scrapeMinDate ?? assignedCard?.pendingAction,
+                      pendingAction: assignedCard?.pendingAction ?? assignedCard?.pendingFields?.scrapeMinDate,
                       canEditName,
                       onRenameName: (newName: string) => {
                           if (!bankName || cardID === undefined) {

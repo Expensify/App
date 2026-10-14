@@ -167,7 +167,6 @@ function WorkspaceCompanyCardsTableControls({
         }
 
         Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_BULK_EDIT_TRANSACTION_START_DATE.getRoute(policyID, feedName, selectedCardIDs));
-        clearCardSelection();
     };
 
     const getBulkActionOptions = (): Array<DropdownOption<WorkspaceCompanyCardBulkActionType>> => {
@@ -182,6 +181,14 @@ function WorkspaceCompanyCardsTableControls({
                     shouldSkipFocusRestore: !!bankName,
                     onSelected: confirmBulkUnassign,
                 });
+            }
+            options.push({
+                icon: icons.MoneySearch,
+                text: translate('workspace.common.viewTransactions'),
+                value: 'viewTransactions',
+                onSelected: viewSelectedCardTransactions,
+            });
+            if (canWriteCompanyCards) {
                 options.push({
                     icon: icons.CalendarSolid,
                     text: translate('workspace.moreFeatures.companyCards.bulkUpdateTransactionStartDate'),
@@ -189,13 +196,6 @@ function WorkspaceCompanyCardsTableControls({
                     onSelected: editSelectedCardTransactionStartDates,
                 });
             }
-
-            options.push({
-                icon: icons.MoneySearch,
-                text: translate('workspace.common.viewTransactions'),
-                value: 'viewTransactions',
-                onSelected: viewSelectedCardTransactions,
-            });
         }
 
         options.push({

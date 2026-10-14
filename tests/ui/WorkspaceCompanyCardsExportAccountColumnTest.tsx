@@ -353,6 +353,21 @@ describe('WorkspaceCompanyCardsTable row feedback', () => {
         expect(capturedData.at(0)?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
     });
 
+    it('prioritizes card deletion over a pending transaction start date update', async () => {
+        // Given a card that is being unassigned while its transaction start date update is still pending
+        const card = buildAssignedCard({
+            pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+            pendingFields: {scrapeMinDate: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
+        });
+
+        // When the company cards table builds its row data
+        renderTable(buildCompanyCards(card));
+        await waitForBatchedUpdates();
+
+        // Then the root deletion remains authoritative and the row is filtered from the online table
+        expect(capturedData).toHaveLength(0);
+    });
+
     it('hides row errors while the feed-level connection error is displayed', async () => {
         // Given a broken feed and a card with both root and start-date errors
         mockCardFeedErrors = {[FEED_NAME]: {shouldPromptBrokenConnection: true}};
