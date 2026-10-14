@@ -52,8 +52,9 @@ type DescribeRuleFormProps = {
 
     addBottomSafeAreaPadding?: boolean;
 
-    /** Whether the form scrolls and keeps the submit button at the bottom, as on a full page */
-    isFullPage?: boolean;
+    shouldUseScrollView?: boolean;
+
+    submitFlexEnabled?: boolean;
 
     /** Content above the input */
     children?: ReactNode;
@@ -99,7 +100,8 @@ function DescribeRuleForm({
     inputContainerStyle,
     style,
     addBottomSafeAreaPadding = false,
-    isFullPage = false,
+    shouldUseScrollView = false,
+    submitFlexEnabled = false,
     children,
     onRuleGenerated,
     onAgentRuleFallback,
@@ -204,8 +206,8 @@ function DescribeRuleForm({
             submitButtonText={submitButtonText}
             style={style}
             addBottomSafeAreaPadding={addBottomSafeAreaPadding}
-            shouldUseScrollView={isFullPage}
-            submitFlexEnabled={isFullPage}
+            shouldUseScrollView={shouldUseScrollView}
+            submitFlexEnabled={submitFlexEnabled}
             shouldHideFixErrorsAlert
             keyboardSubmitBehavior={CONST.KEYBOARD_SUBMIT_BEHAVIOR.SUBMIT_ONLY}
         >
