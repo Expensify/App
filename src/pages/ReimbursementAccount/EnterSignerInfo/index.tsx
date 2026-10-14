@@ -1,7 +1,6 @@
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
 
-import useAndroidBackButtonHandler from '@hooks/useAndroidBackButtonHandler';
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -80,7 +79,7 @@ function EnterSignerInfo({route}: EnterSignerInfoProps) {
         prevPage,
         moveTo,
         isRedirecting,
-    } = useSubPage<EnterSignerInfoFormSubPageProps>({pages, startFrom: 0, onFinished: submit, buildRoute, shouldReplaceRoute: true});
+    } = useSubPage<EnterSignerInfoFormSubPageProps>({pages, startFrom: 0, onFinished: submit, buildRoute});
 
     useEffect(() => {
         if (enterSignerInfoForm?.errors || enterSignerInfoForm?.isSavingSignerInformation || !enterSignerInfoForm?.isSuccess) {
@@ -114,12 +113,6 @@ function EnterSignerInfo({route}: EnterSignerInfoProps) {
             Navigation.goBack(basePath);
         }
     }, [isEditing, moveTo, pageIndex, prevPage, basePath]);
-
-    // Sub-pages replace each other in the stack, so the default hardware back would close the whole flow.
-    useAndroidBackButtonHandler(() => {
-        handleBackButtonPress();
-        return true;
-    });
 
     if (isRedirecting) {
         return <FullScreenLoadingIndicator />;
