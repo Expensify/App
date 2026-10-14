@@ -194,6 +194,13 @@ function shouldShowCustomUnitsError(policy: OnyxEntry<Policy>): boolean {
 }
 
 /**
+ * Whether the workspace has a company address
+ */
+function hasCompanyAddress(policy: OnyxEntry<Policy>): boolean {
+    return !!policy?.address?.addressStreet?.trim();
+}
+
+/**
  * The workspace-wide work arrangement, which members follow unless they were given one of their own.
  */
 function hasOfficeWorkArrangement(commuterExclusions: CommuterExclusions | undefined): boolean {
@@ -1916,6 +1923,7 @@ export {
     canSubmitPerDiemExpenseFromWorkspace,
     canSendInvoice,
     getEligibleBankAccountShareRecipientEmails,
+    hasCompanyAddress,
     hasOfficeWorkArrangement,
     getPolicyIDOrDefault,
     sortWorkspacesBySelected,
