@@ -51,7 +51,6 @@ function DatePicker({
     forwardedFSClass,
     shouldDeferShowUntilPositioned = false,
     shouldDismissKeyboardBeforeShow = false,
-    wrapperStyle,
     rightHandSideComponent,
     onPickerVisibilityChange,
     shouldHideCalendarIcon = false,
@@ -223,7 +222,7 @@ function DatePicker({
         <>
             <View
                 ref={anchorRef}
-                style={[styles.mv2, wrapperStyle]}
+                style={styles.mv2}
             >
                 <TextInput
                     ref={combinedTextInputRef}
