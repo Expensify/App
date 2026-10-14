@@ -2393,14 +2393,16 @@ const CONST = {
             // A flush waits for the JS thread to be idle, but not longer than this.
             IDLE_FLUSH_TIMEOUT_MS: 5_000,
             // Share of app launches that measure frame drops. Sentry metrics are billed by volume, and a ranking of
-            // interactions needs thousands of sessions, not all of them.
-            SESSION_SAMPLE_RATE: 0.1,
+            // interactions needs thousands of sessions, not all of them. Starts low and goes up once the real volume is known.
+            SESSION_SAMPLE_RATE: 0.05,
             // Frame metrics reach the native store asynchronously, so the newest part of the timeline is left for the next flush.
             SETTLE_MS: 1_000,
             // Aggregates are sent this often, and whenever the app goes to the background.
             REPORT_INTERVAL_MS: 5 * 60_000,
             // How long after a press its frames are attributed to it (the same idle window Sentry uses for ui.action spans).
             PRESS_WINDOW_MS: 1_000,
+            // A list counts as scrolling until it sends no scroll event for this long (the same delay useScrollEventEmitter uses).
+            SCROLL_END_DELAY_MS: 250,
             // Upper bound of native queries per flush. On iOS each one runs on the UI thread (a sub-millisecond lookup), so a
             // very busy window must not turn into a long burst of them; delay that can't be split within the budget is
             // reported as unattributed. 20 resolved every press and scroll of a dense post-launch window on a simulator.
