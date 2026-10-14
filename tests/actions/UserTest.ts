@@ -1,5 +1,6 @@
 import * as API from '@libs/API';
 import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
+import {getLatestErrorField} from '@libs/ErrorUtils';
 import Pusher from '@libs/Pusher';
 import PusherUtils from '@libs/PusherUtils';
 
@@ -15,6 +16,7 @@ import * as DeviceActions from '../../src/libs/actions/Device';
 import redirectToSignIn from '../../src/libs/actions/SignInRedirect';
 import * as UserActions from '../../src/libs/actions/User';
 import createMock from '../utils/createMock';
+import getOnyxValue from '../utils/getOnyxValue';
 import {anyArray, anyObject, anyString, formatPhoneNumber} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
@@ -406,6 +408,54 @@ describe('actions/User', () => {
         });
     });
 
+    describe('requestEmailUnblock', () => {
+        it('should call API.write with USER_UNBLOCK_EMAIL and no params', async () => {
+            // Given the user is on the email issue page
+
+            // When requestEmailUnblock is called
+            UserActions.requestEmailUnblock();
+            await waitForBatchedUpdates();
+
+            // Then API.write targets USER_UNBLOCK_EMAIL with null params, since the backend derives the email from the session
+            expect(mockAPI.write).toHaveBeenCalledWith(
+                WRITE_COMMANDS.USER_UNBLOCK_EMAIL,
+                null,
+                expect.objectContaining({
+                    optimisticData: anyArray,
+                    successData: anyArray,
+                    failureData: anyArray,
+                }),
+            );
+        });
+
+        it('should set isUnblockingEmail optimistically', async () => {
+            // When requestEmailUnblock is called
+            UserActions.requestEmailUnblock();
+            await waitForBatchedUpdates();
+
+            // Then the optimistic update flags the account as unblocking
+            const onyxData = mockAPI.write.mock.calls.at(0)?.[2];
+            const optimisticUpdate = onyxData?.optimisticData?.find((update) => update.key === ONYXKEYS.ACCOUNT);
+
+            expect(optimisticUpdate?.value).toEqual({isUnblockingEmail: true});
+        });
+
+        it('should clear isUnblockingEmail on both success and failure without writing to account.errors', async () => {
+            // When requestEmailUnblock is called
+            UserActions.requestEmailUnblock();
+            await waitForBatchedUpdates();
+
+            // Then both branches clear the loading flag, and neither writes account.errors: the ConfirmModal on
+            // EmailIssuePage is the only failure surface (deliberate deviation from the generic-error spec).
+            const onyxData = mockAPI.write.mock.calls.at(0)?.[2];
+            const successUpdate = onyxData?.successData?.find((update) => update.key === ONYXKEYS.ACCOUNT);
+            const failureUpdate = onyxData?.failureData?.find((update) => update.key === ONYXKEYS.ACCOUNT);
+
+            expect(successUpdate?.value).toEqual({isUnblockingEmail: false});
+            expect(failureUpdate?.value).toEqual({isUnblockingEmail: false});
+        });
+    });
+
     describe('validateSecondaryLogin', () => {
         beforeEach(() => {
             jest.spyOn(DeviceActions, 'getDeviceInfoWithID').mockResolvedValue('{"deviceID":"test-device"}');
@@ -619,6 +669,55 @@ describe('actions/User', () => {
                     actionVerified: false,
                 },
             });
+        });
+
+        it('should show the server error over the generic fallback even when the device clock is ahead of the server', async () => {
+            // Given a server error stamped by the server clock and a device clock 3 seconds ahead of it
+            const contactMethod = 'test@example.com';
+            const serverErrorKey = Date.now() * 1000;
+            const serverErrorMessage = 'Cannot add an existing Expensify account as a new contact method.';
+            const dateNowSpy = jest.spyOn(Date, 'now').mockReturnValue(Date.now() + 3000);
+
+            // And a failing request whose server response writes its error before failureData is applied
+            mockAPI.write.mockImplementation((_command, _params, options) => {
+                Onyx.merge(ONYXKEYS.LOGINS, {[`1_${contactMethod}`]: {errorFields: {addedLogin: {[serverErrorKey]: serverErrorMessage}}}});
+                for (const update of options?.failureData ?? []) {
+                    Onyx.merge(update.key, update.value);
+                }
+                return Promise.resolve();
+            });
+
+            // When addNewContactMethod is called
+            UserActions.addNewContactMethod(contactMethod);
+            await waitForBatchedUpdates();
+            dateNowSpy.mockRestore();
+
+            // Then the fallback is keyed with 0, so the server error sorts as the latest error and is shown
+            const logins = await getOnyxValue(ONYXKEYS.LOGINS);
+            const login = logins?.[`1_${contactMethod}`];
+            expect(Object.keys(login?.errorFields?.addedLogin ?? {})).toContain('0');
+            expect(getLatestErrorField(login, 'addedLogin')).toEqual({[serverErrorKey]: serverErrorMessage});
+        });
+
+        it('should show the generic fallback when the server does not send an error', async () => {
+            // Given a contact method and a failing request with no server error
+            const contactMethod = 'test@example.com';
+            mockAPI.write.mockImplementation((_command, _params, options) => {
+                for (const update of options?.failureData ?? []) {
+                    Onyx.merge(update.key, update.value);
+                }
+                return Promise.resolve();
+            });
+
+            // When addNewContactMethod is called
+            UserActions.addNewContactMethod(contactMethod);
+            await waitForBatchedUpdates();
+
+            // Then the fallback is the only error, so it is still shown
+            const logins = await getOnyxValue(ONYXKEYS.LOGINS);
+            const latestError = getLatestErrorField(logins?.[`1_${contactMethod}`], 'addedLogin');
+            expect(Object.keys(latestError)).toEqual(['0']);
+            expect(Object.values(latestError).at(0)).toBeTruthy();
         });
 
         it('should apply optimisticData to Onyx when API.write applies it', async () => {

@@ -8,6 +8,8 @@ import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
 
+import useThemeStyles from '@hooks/useThemeStyles';
+
 import {openLink} from '@libs/actions/Link';
 import DateUtils from '@libs/DateUtils';
 import {setHasRadio} from '@libs/NetworkState';
@@ -34,6 +36,7 @@ import type ReportActionName from '@src/types/onyx/ReportActionName';
 import {PortalProvider} from '@gorhom/portal';
 import * as NativeNavigation from '@react-navigation/native';
 import React from 'react';
+import {StyleSheet} from 'react-native';
 import Onyx from 'react-native-onyx';
 
 import createMock from '../utils/createMock';
@@ -1303,6 +1306,27 @@ describe('ReportActionItem', () => {
             expect(textElement).toHaveStyle({color: colors.productDark800});
         });
 
+        it('AGENT_PROMPT_UPDATED action shows the modifier and prompt diff', async () => {
+            const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.AGENT_PROMPT_UPDATED, {
+                previousPrompt: 'Categorize coffee as Meals.',
+                newPrompt: 'Categorize coffee as Meals and taxi trips as Travel.',
+                updatedByAccountID: ACTOR_ACCOUNT_ID,
+                updatedBy: actorEmail,
+            });
+            action.message = [];
+            renderItemWithAction(action);
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.getByTestId('mention-user')).toHaveTextContent(`@${actorEmail}`);
+            const promptDiff = ` updated this agent's instructions.\nPrevious instructions:\nCategorize coffee as Meals.\nNew instructions:\nCategorize coffee as Meals and taxi trips as Travel.`;
+            expect(screen.getByText(promptDiff)).toBeOnTheScreen();
+            expect(
+                screen.getByLabelText(
+                    /test@test\.com updated this agent's instructions\.[\s\S]*Previous instructions:[\s\S]*Categorize coffee as Meals\.[\s\S]*New instructions:[\s\S]*taxi trips as Travel\./,
+                ),
+            ).toBeOnTheScreen();
+        });
+
         it('DELETED_TRANSACTION action shows deleted transaction message', async () => {
             const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.DELETED_TRANSACTION, {
                 amount: 1500,
@@ -1313,6 +1337,16 @@ describe('ReportActionItem', () => {
             await waitForBatchedUpdatesWithAct();
 
             expect(screen.getByText(/deleted/i)).toBeOnTheScreen();
+        });
+
+        it('UNDELETED_TRANSACTION action shows undeleted transaction message', async () => {
+            const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.UNDELETED_TRANSACTION, {
+                fromReportID: '123',
+            });
+            renderItemWithAction(action);
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.getByText(/undeleted/i)).toBeOnTheScreen();
         });
 
         it('MARKED_REIMBURSED action from OldDot shows reimbursement message', async () => {
@@ -1629,6 +1663,52 @@ describe('ReportActionItem', () => {
             await waitForBatchedUpdatesWithAct();
 
             expect(screen.getByText(/QuickBooks Online/)).toBeOnTheScreen();
+        });
+
+        it('INTEGRATION_SYNC_FAILED action lets an unbreakable token in the error wrap instead of overflowing', async () => {
+            // Given a sync failure whose error names an address long enough to exceed the RHP message column
+            const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.INTEGRATION_SYNC_FAILED, {
+                label: 'QuickBooks Online',
+                errorMessage: 'We were unable to find a vendor/supplier for applausetester+bp3108od@applause.expensifail.com',
+            });
+            let renderHTMLStyle: ReturnType<typeof useThemeStyles>['renderHTML'] | undefined;
+            function StyleProbe() {
+                renderHTMLStyle = useThemeStyles().renderHTML;
+                return null;
+            }
+
+            // When the action renders through the children branch of ReportActionItemBasicMessage
+            render(
+                <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, HTMLEngineProvider]}>
+                    <ScreenWrapper testID="test">
+                        <PortalProvider>
+                            <StyleProbe />
+                            <ReportActionItem
+                                chatReport={undefined}
+                                report={{reportID: 'testReport', policyID: 'pol123'}}
+                                transactionThreadReport={undefined}
+                                parentReportAction={undefined}
+                                action={action}
+                                displayAsGroup={false}
+                                shouldDisplayNewMarker={false}
+                                isFirstVisibleReportAction={false}
+                            />
+                        </PortalProvider>
+                    </ScreenWrapper>
+                </ComposeProviders>,
+            );
+            await waitForBatchedUpdatesWithAct();
+
+            // Then a wrapper carries the wrapping styles, which the children branch gets from nowhere else.
+            // `styles.renderHTML` also holds wordBreak/whiteSpace, but both resolve to {} under the native
+            // style variants Jest loads, so the width constraint is all that is observable here.
+            const ancestorStyles: unknown[] = [];
+            let ancestor = screen.getByText(/there was a problem syncing with/).parent;
+            while (ancestor) {
+                ancestorStyles.push(StyleSheet.flatten(ancestor.props.style));
+                ancestor = ancestor.parent;
+            }
+            expect(ancestorStyles).toEqual(expect.arrayContaining([StyleSheet.flatten(renderHTMLStyle)]));
         });
 
         it('INTEGRATION_SYNC_FAILED action keeps the stored IES label after switching to QBO', async () => {
@@ -2996,6 +3076,57 @@ describe('ReportActionItem', () => {
             await waitForBatchedUpdatesWithAct();
 
             expect(screen.getByText(assertion)).toBeOnTheScreen();
+        });
+
+        describe('isActionableCardFraudAlert buttons', () => {
+            const CARD_ID = 1;
+            const FRAUD_REPORT_ID = '111';
+            const fraudAlertMessage = {cardID: CARD_ID, maskedCardNumber: '****1234', triggerMerchant: 'SuspiciousShop', triggerAmount: 5000, currency: 'USD'};
+            const fraudAlertAction = {...createReportAction(CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_CARD_FRAUD_ALERT, fraudAlertMessage), reportID: FRAUD_REPORT_ID};
+
+            it('shows the buttons to the cardholder while the fraud is live', async () => {
+                // Given the current user's card has live fraud pointing at the report that holds the alert
+                await act(async () => {
+                    await Onyx.merge(ONYXKEYS.CARD_LIST, {[CARD_ID]: {cardID: CARD_ID, nameValuePairs: {possibleFraud: {fraudAlertReportID: Number(FRAUD_REPORT_ID)}}}});
+                });
+                await waitForBatchedUpdatesWithAct();
+
+                // When the fraud alert renders
+                renderItemWithAction(fraudAlertAction);
+                await waitForBatchedUpdatesWithAct();
+
+                // Then the cardholder can resolve it
+                expect(screen.getByText('Yes, I do')).toBeOnTheScreen();
+                expect(screen.getByText("No, it wasn't me")).toBeOnTheScreen();
+            });
+
+            it('hides the buttons from a user who is not the cardholder', async () => {
+                // Given a workspace admin whose card list does not contain the flagged card
+                // When the fraud alert renders
+                renderItemWithAction(fraudAlertAction);
+                await waitForBatchedUpdatesWithAct();
+
+                // Then the admin sees the alert but no buttons, since the backend rejects anyone but the cardholder
+                expect(screen.getByText(/suspicious activity/i)).toBeOnTheScreen();
+                expect(screen.queryByText('Yes, I do')).not.toBeOnTheScreen();
+                expect(screen.queryByText("No, it wasn't me")).not.toBeOnTheScreen();
+            });
+
+            it('hides the buttons from the cardholder once the fraud is cleared on the card', async () => {
+                // Given the backend cleared possibleFraud on the cardholder's card without resolving the alert
+                await act(async () => {
+                    await Onyx.merge(ONYXKEYS.CARD_LIST, {[CARD_ID]: {cardID: CARD_ID, nameValuePairs: {}}});
+                });
+                await waitForBatchedUpdatesWithAct();
+
+                // When the fraud alert renders
+                renderItemWithAction(fraudAlertAction);
+                await waitForBatchedUpdatesWithAct();
+
+                // Then there is nothing left to resolve
+                expect(screen.queryByText('Yes, I do')).not.toBeOnTheScreen();
+                expect(screen.queryByText("No, it wasn't me")).not.toBeOnTheScreen();
+            });
         });
 
         it('isCardBrokenConnectionAction falls back to card.cardName from CARD_LIST when originalMessage has no cardName', async () => {

@@ -12,7 +12,8 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {updateNetSuiteFxExpenseAccount} from '@libs/actions/connections/NetSuiteCommands';
 import {getLatestErrorField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import {getNetSuiteExpenseAccountOptions, settingsPendingAction} from '@libs/PolicyUtils';
+import {getNetSuiteExpenseAccountOptions} from '@libs/NetSuiteUtils';
+import {settingsPendingAction} from '@libs/PolicyUtils';
 
 import {shouldHideReimbursedReportsSection} from '@pages/workspace/accounting/netsuite/utils';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';

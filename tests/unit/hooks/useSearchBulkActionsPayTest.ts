@@ -36,6 +36,7 @@ jest.mock('@libs/deferModalPresentationAfterPopoverDismiss', () => ({
 jest.mock('@libs/actions/Search', () => {
     const actualSearch = jest.requireActual<typeof SearchActions>('@libs/actions/Search');
     return {
+        openSearchCardFiltersPage: jest.fn(),
         getExportTemplates: jest.fn(() => ({customTemplates: [], defaultTemplates: []})),
         exportSearchItemsToCSV: jest.fn(),
         queueExportSearchItemsToCSV: jest.fn(),

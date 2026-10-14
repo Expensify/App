@@ -52,6 +52,8 @@ function TextInputMeasurement({
                             autoGrowHeight && styles.autoGrowHeightHiddenInput(width ?? 0, typeof maxAutoGrowHeight === 'number' ? maxAutoGrowHeight : undefined),
                             {width: contentWidth},
                         ]}
+                        // Match the input's line breaking on Android.
+                        textBreakStrategy="simple"
                         accessible={false}
                         accessibilityElementsHidden
                         importantForAccessibility="no"
@@ -82,6 +84,8 @@ function TextInputMeasurement({
                             styles.hiddenElementOutsideOfWindow,
                             styles.visibilityHidden,
                         ]}
+                        // Match the input's line breaking on Android.
+                        textBreakStrategy="simple"
                         accessible={false}
                         accessibilityElementsHidden
                         importantForAccessibility="no"
