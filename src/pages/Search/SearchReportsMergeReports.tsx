@@ -157,8 +157,8 @@ function SearchMergeReports() {
           }, [] as string[])
         : [];
 
-    const reportsForValidation = selectedReports
-        .map(({reportID}) => {
+    const reportsForValidation = (selectedReportIDs ?? [])
+        .map((reportID) => {
             const reportKey = `${ONYXKEYS.COLLECTION.REPORT}${reportID}` as const;
             const liveReport = allReports?.[reportKey];
             const snapshotReport = currentSearchResults?.data?.[reportKey];
@@ -177,7 +177,7 @@ function SearchMergeReports() {
     const selectedPolicyID = reportsForValidation.at(0)?.policyID;
     const selectedPolicy = selectedPolicyID ? allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${selectedPolicyID}`] : undefined;
     const hasReportFieldMismatch =
-        reportsForValidation.length > 1 && reportsForValidation.length === selectedReports.length && !doReportsHaveMatchingReportFieldValues(reportsForValidation, selectedPolicy);
+        reportsForValidation.length > 1 && reportsForValidation.length === selectedReportIDs?.length && !doReportsHaveMatchingReportFieldValues(reportsForValidation, selectedPolicy);
 
     // Ensure `allReports` and `allReportActions` are fully hydrated before merging reports.
     const isValidForMerge =
@@ -186,8 +186,8 @@ function SearchMergeReports() {
         !!destinationReportID &&
         !!destinationReport &&
         sourceReportIDs.length > 0 &&
-        reportItems.length === selectedReports.length &&
-        reportsForValidation.length === selectedReports.length &&
+        reportItems.length === selectedReportIDs?.length &&
+        reportsForValidation.length === selectedReportIDs?.length &&
         !hasReportFieldMismatch &&
         canMergeReports(
             reportsForValidation,

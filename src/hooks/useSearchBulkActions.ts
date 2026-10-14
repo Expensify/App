@@ -2995,9 +2995,9 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 selectedMergeReports,
                 currentUserPersonalDetails.accountID,
                 rules,
-                false,
                 allReportNameValuePairs,
                 policies?.[`${ONYXKEYS.COLLECTION.POLICY}${selectedMergeReports.at(0)?.policyID}`],
+                false,
             )
         ) {
             options.push({
