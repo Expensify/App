@@ -5070,7 +5070,7 @@ ${amount} per ${merchant} - ${date}`,
             },
             requestEmptyList: {
                 title: 'Ancuna nessuna tariffa di diaria',
-                subtitle: 'Questo spazio di lavoro non ha nessuna diaria, chiedi al tuo amministratore di aggiungerne.',
+                subtitle: (workspaceName: string) => `${workspaceName} non ha nessuna diaria. Chiedi a un amministratore di aggiungerne.`,
                 adminSubtitle: 'Aggiungi le tariffe giornaliere per organizzare le tue spese.',
             },
             importPerDiemRates: 'Importa tariffe di diaria',
