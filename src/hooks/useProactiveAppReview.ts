@@ -36,7 +36,7 @@ function useProactiveAppReview(): UseProactiveAppReviewReturn {
     const [localPromptRecord] = useOnyx(ONYXKEYS.APP_REVIEW_LAST_PROMPT);
     const [sessionAccountID] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector});
     // The record survives sign-out, so it only counts for the account that wrote it.
-    const localLastPrompt = localPromptRecord && localPromptRecord.accountID === sessionAccountID ? localPromptRecord.lastPrompt : undefined;
+    const localLastPrompt = !!sessionAccountID && localPromptRecord?.accountID === sessionAccountID ? localPromptRecord.lastPrompt : undefined;
     const shouldSuppressPromotionalUI = useShouldSuppressPromotionalUI();
 
     // Capture once so render stays pure (Date.now is impure). Fine for a 30-day cool-down gate.

@@ -34,7 +34,10 @@ jest.mock('@components/ProactiveAppReviewModal', () => {
 });
 jest.mock('@libs/actions/StoreReview');
 jest.mock('@libs/API');
-jest.mock('@hooks/useCurrentUserPersonalDetails', () => () => ({accountID: 1, email: 'test@expensify.com'}));
+// The prompt renders before the personal details list hydrates, so the hook still returns the
+// CONST.DEFAULT_NUMBER_ID placeholder when the user answers. That is the state the reported loop
+// happens in, so the tests must run against it rather than a conveniently populated account.
+jest.mock('@hooks/useCurrentUserPersonalDetails', () => () => ({accountID: 0, email: undefined}));
 
 const mockAPI = jest.mocked(API);
 
@@ -148,6 +151,36 @@ describe('ProactiveAppReviewModalManager', () => {
             // Then the modal must not come back
             expect(getModalProps()?.isVisible).toBe(false);
         }
+    });
+
+    it('stamps the prompt record with the signed-in account even before personal details hydrate (#99564)', async () => {
+        // Given an account that is eligible for the 30-day re-prompt and whose personal details have not loaded yet
+        await Onyx.set(ONYXKEYS.NVP_APP_REVIEW, STALE_SERVER_NVP);
+        await waitForBatchedUpdates();
+
+        renderManager();
+        await waitForBatchedUpdates();
+
+        expect(getModalProps()?.isVisible).toBe(true);
+
+        // When the user answers the prompt
+        await act(async () => {
+            getModalProps()?.onNegative();
+            await waitForBatchedUpdates();
+        });
+
+        // Then the record is scoped to the session's account, not the CONST.DEFAULT_NUMBER_ID placeholder,
+        // so the gate can still recognise it after the next sign-in
+        const record = await new Promise<{accountID: number; lastPrompt: string} | undefined>((resolve) => {
+            const connection = Onyx.connectWithoutView({
+                key: ONYXKEYS.APP_REVIEW_LAST_PROMPT,
+                callback: (value) => {
+                    Onyx.disconnect(connection);
+                    resolve(value);
+                },
+            });
+        });
+        expect(record?.accountID).toBe(ACCOUNT_ID);
     });
 
     it('does not re-open on the next sign-in after the user already answered on this device (#99564)', async () => {
