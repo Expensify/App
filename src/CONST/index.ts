@@ -995,6 +995,13 @@ const CONST = {
             APPROVED: 'APPROVED',
             NOT_APPROVED: 'NOT_APPROVED',
         },
+        // State of one KYC requirement on the review, Wise's values passed through unchanged
+        KYC_REQUIREMENT_STATE: {
+            NOT_PROVIDED: 'NOT_PROVIDED',
+            IN_REVIEW: 'IN_REVIEW',
+            VERIFIED: 'VERIFIED',
+            REJECTED: 'REJECTED',
+        },
         // Wise's companyRole values on the business profile
         COMPANY_ROLE: {
             OWNER: 'OWNER',
