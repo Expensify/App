@@ -471,10 +471,11 @@ describe('useAdvancedSearchFilters', () => {
     });
 
     describe('bank account filter placement (#99090)', () => {
+        const filterableBankAccountID = 42;
         const filterableBankAccountList = {
-            42: {
+            [filterableBankAccountID]: {
                 accountData: {
-                    bankAccountID: 42,
+                    bankAccountID: filterableBankAccountID,
                     accountNumber: '123456789012',
                     type: CONST.BANK_ACCOUNT.TYPE.BUSINESS,
                     state: CONST.BANK_ACCOUNT.STATE.OPEN,
