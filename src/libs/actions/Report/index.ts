@@ -224,6 +224,7 @@ import CONFIG from '@src/CONFIG';
 import type {OnboardingAccounting} from '@src/CONST';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {OnyxData} from '@src/types/onyx/Request';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/NewRoomForm';
@@ -4897,10 +4898,7 @@ function isNoSupportRepAvailableResponse(response: {jsonCode?: number | string; 
 function openSupportTicket(resolvedSupportTicketReportID?: string) {
     const newSupportTicketReportID = resolvedSupportTicketReportID ? undefined : generateReportID();
     const parameters: CreateSupportTicketParams = resolvedSupportTicketReportID ? {resolvedSupportTicketReportID, idempotencyKey: Str.guid()} : {newSupportTicketReportID};
-    const onyxData: {
-        optimisticData?: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT>>;
-        failureData?: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT>>;
-    } = newSupportTicketReportID
+    const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_METADATA> = newSupportTicketReportID
         ? {
               optimisticData: [
                   {
