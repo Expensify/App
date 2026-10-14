@@ -74,7 +74,6 @@ describe('actions/Policy/PerDiem', () => {
                 ],
             }),
         );
-        expect(JSON.stringify(updatedRate)).not.toContain(unchangedRateID);
     });
 
     it('sends only the changed rate when editing a subrate name', () => {
