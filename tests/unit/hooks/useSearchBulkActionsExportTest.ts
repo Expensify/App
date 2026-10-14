@@ -1428,7 +1428,10 @@ describe('useSearchBulkActions - export options', () => {
         });
     });
 
-    it('hides templates when a full group is selected in an explicitly grouped search', async () => {
+    it('shows templates when a full group is selected in an explicitly grouped search', async () => {
+        // Regression test for https://github.com/Expensify/App/issues/100074: selecting a group row used to leave
+        // "Current view" as the only export option, so the templates were only reachable by ticking every line item
+        // in the group one by one. A group selection exports through a query filter, so the templates apply to it too.
         mockSelectedTransactions = {
             tx1: makeSelectedTransaction({
                 groupKey: `${CONST.SEARCH.GROUP_PREFIX}category`,
@@ -1438,6 +1441,101 @@ describe('useSearchBulkActions - export options', () => {
 
         const {result} = renderHook(() => useSearchBulkActions({queryJSON: groupedExpenseQueryJSON}), {wrapper: OnyxListItemProvider});
 
+        await waitFor(() => {
+            expect(getExportOptionTexts(result.current.headerButtonsOptions)).toEqual(
+                expect.arrayContaining(['export.currentView', 'Custom template', 'export.expenseLevelExport', 'export.reportLevelExport']),
+            );
+        });
+
+        // The basic export stays hidden on a grouped search because it carries fewer columns than "Current view".
+        expect(getExportOptionTexts(result.current.headerButtonsOptions)).not.toContain('export.basicExport');
+    });
+
+    it('shows templates when a collapsed group is selected before its children have loaded', async () => {
+        // The other selection shape for the same user action: a group selected while collapsed is stored under a
+        // single `group_` stub instead of one entry per child, and it must offer the same templates.
+        mockSelectedTransactions = {
+            [`${CONST.SEARCH.GROUP_PREFIX}category`]: makeSelectedTransaction(),
+        };
+
+        const {result} = renderHook(() => useSearchBulkActions({queryJSON: groupedExpenseQueryJSON}), {wrapper: OnyxListItemProvider});
+
+        await waitFor(() => {
+            expect(getExportOptionTexts(result.current.headerButtonsOptions)).toEqual(
+                expect.arrayContaining(['export.currentView', 'Custom template', 'export.expenseLevelExport', 'export.reportLevelExport']),
+            );
+        });
+    });
+
+    it('exports an expanded group through the group query when a template is picked', async () => {
+        // Given an expanded group selected through its header, stored as one entry per loaded child rather than a `group_` stub
+        mockSelectedTransactions = {
+            tx1: makeSelectedTransaction({
+                groupKey: `${CONST.SEARCH.GROUP_PREFIX}category`,
+                isSelectedViaGroup: true,
+            }),
+        };
+
+        // Given the group row as it arrives in the search snapshot, which the group's filter entry is derived from
+        const searchResults = makeSearchResults([]);
+        Object.assign(searchResults.data, {[`${CONST.SEARCH.GROUP_PREFIX}category`]: {category: 'Travel'}});
+        mockCurrentSearchResults = searchResults;
+        jest.mocked(getSelectedGroupFilterEntry).mockReturnValue({key: CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY, value: 'Travel'});
+
+        const {result} = renderHook(() => useSearchBulkActions({queryJSON: groupedExpenseQueryJSON}), {wrapper: OnyxListItemProvider});
+
+        await waitFor(() => {
+            expect(getExportOptionByText(result.current.headerButtonsOptions, 'Custom template')).toBeDefined();
+        });
+
+        // When a template is picked
+        getExportOptionByText(result.current.headerButtonsOptions, 'Custom template')?.onSelected?.();
+
+        // Then it exports through a query filtered to the group instead of the loaded IDs, so children that `limit:` left unloaded are not dropped
+        expect(queueExportSearchWithTemplate).toHaveBeenCalledTimes(1);
+        const [parameters] = jest.mocked(queueExportSearchWithTemplate).mock.calls.at(0) ?? [];
+        expect(parameters?.transactionIDList).toEqual([]);
+        expect(parameters?.reportIDList).toEqual([]);
+        const query: unknown = JSON.parse(parameters?.jsonQuery ?? '{}');
+
+        // Then the query is ungrouped, because the template export has no group mode and would otherwise return one row per group
+        expect(query).not.toHaveProperty('groupBy');
+        expect(JSON.stringify(query)).toContain('Travel');
+    });
+
+    it('shows templates when a group selection is mixed with individually picked expenses', async () => {
+        // Given a group selected through its header alongside an expense picked on its own from another group
+        mockSelectedTransactions = {
+            [`${CONST.SEARCH.GROUP_PREFIX}category`]: makeSelectedTransaction(),
+            tx2: makeSelectedTransaction(),
+        };
+
+        // When the export options are built
+        const {result} = renderHook(() => useSearchBulkActions({queryJSON: groupedExpenseQueryJSON}), {wrapper: OnyxListItemProvider});
+
+        // Then the templates are offered, because a template export sends the group as a query filter and the picked expense as an ID, so neither side is dropped
+        await waitFor(() => {
+            expect(getExportOptionTexts(result.current.headerButtonsOptions)).toEqual(
+                expect.arrayContaining(['export.currentView', 'Custom template', 'export.expenseLevelExport', 'export.reportLevelExport']),
+            );
+        });
+    });
+
+    it('keeps only Current view for a group selection on a time-based grouping', async () => {
+        // Given a group selected on a search grouped by month, which has no filter a selected group can be turned into
+        mockSelectedTransactions = {
+            [`${CONST.SEARCH.GROUP_PREFIX}2026-10`]: makeSelectedTransaction(),
+        };
+        const monthGroupedExpenseQueryJSON: SearchQueryJSON = {
+            ...groupedExpenseQueryJSON,
+            inputQuery: `type:expense groupBy:${CONST.SEARCH.GROUP_BY.MONTH}`,
+            groupBy: CONST.SEARCH.GROUP_BY.MONTH,
+        };
+
+        // When the export options are built
+        const {result} = renderHook(() => useSearchBulkActions({queryJSON: monthGroupedExpenseQueryJSON}), {wrapper: OnyxListItemProvider});
+
+        // Then no template is offered, because the template export could not scope the group and would only show the download error
         await waitFor(() => {
             expect(getExportOptionTexts(result.current.headerButtonsOptions)).toEqual(['export.currentView']);
         });
@@ -1453,7 +1551,7 @@ describe('useSearchBulkActions - export options', () => {
             mockGetExportTemplates.mockImplementation(defaultExportTemplates);
         });
 
-        /** Offer the Reconciliation template alongside the templates that stay hidden for a group selection. */
+        /** Offer the Reconciliation template alongside the other templates. */
         function mockTemplatesIncludingReconciliation() {
             mockGetExportTemplates.mockReturnValue({
                 customTemplates: [{name: 'Custom template', templateName: 'customTemplate', type: 'in-app', policyID: undefined, description: ''}],
@@ -1488,8 +1586,8 @@ describe('useSearchBulkActions - export options', () => {
             };
         }
 
-        it('offers the Reconciliation template, and only that template, for a card group selection', async () => {
-            // Given a user who qualifies for the Reconciliation template, offered alongside the templates that stay hidden for a group selection
+        it('offers every template, including Reconciliation, for a card group selection', async () => {
+            // Given a user who qualifies for the Reconciliation template, offered alongside the other templates
             mockTemplatesIncludingReconciliation();
 
             // Given a ticked card group row, because selecting the card group rather than the individual expenses is how an admin reconciles a statement
@@ -1498,9 +1596,14 @@ describe('useSearchBulkActions - export options', () => {
             // When the export menu is built for a search grouped by card
             const {result} = renderHook(() => useSearchBulkActions({queryJSON: cardGroupedExpenseQueryJSON}), {wrapper: OnyxListItemProvider});
 
-            // Then Reconciliation is the one template still offered, because the selected card groups can be expressed as a `cardID:` filter while the other templates have no way to describe a group
+            // Then every template is offered, because the selected card groups become a `cardID:` filter on an ungrouped query that any template can export
             await waitFor(() => {
-                expect(getExportOptionTexts(result.current.headerButtonsOptions)).toEqual(['export.currentView', 'export.reconciliationAllExpenses']);
+                expect(getExportOptionTexts(result.current.headerButtonsOptions)).toEqual([
+                    'export.currentView',
+                    'Custom template',
+                    'export.expenseLevelExport',
+                    'export.reconciliationAllExpenses',
+                ]);
             });
         });
 
@@ -1514,25 +1617,14 @@ describe('useSearchBulkActions - export options', () => {
             // When the export menu is built for a search grouped by card
             const {result} = renderHook(() => useSearchBulkActions({queryJSON: cardGroupedExpenseQueryJSON}), {wrapper: OnyxListItemProvider});
 
-            // Then the template is offered just the same, because both shapes a card group selection can take have to reach the card group exception or the option would come and go with how far the list happened to be scrolled
+            // Then the templates are offered just the same, because both shapes a card group selection can take have to be treated alike or the options would come and go with how far the list happened to be scrolled
             await waitFor(() => {
-                expect(getExportOptionTexts(result.current.headerButtonsOptions)).toEqual(['export.currentView', 'export.reconciliationAllExpenses']);
-            });
-        });
-
-        it('keeps every template hidden when the group selection is grouped by something other than card', async () => {
-            // Given a user who qualifies for the Reconciliation template
-            mockTemplatesIncludingReconciliation();
-
-            // Given a ticked group row
-            selectCardGroup();
-
-            // When the export menu is built for a search grouped by category instead of by card
-            const {result} = renderHook(() => useSearchBulkActions({queryJSON: groupedExpenseQueryJSON}), {wrapper: OnyxListItemProvider});
-
-            // Then no template is offered at all, because the exception is limited to card groups and every other grouping keeps the existing rule that a group cannot be scoped
-            await waitFor(() => {
-                expect(getExportOptionTexts(result.current.headerButtonsOptions)).toEqual(['export.currentView']);
+                expect(getExportOptionTexts(result.current.headerButtonsOptions)).toEqual([
+                    'export.currentView',
+                    'Custom template',
+                    'export.expenseLevelExport',
+                    'export.reconciliationAllExpenses',
+                ]);
             });
         });
 
@@ -1545,10 +1637,11 @@ describe('useSearchBulkActions - export options', () => {
             // When the export menu is built for a search grouped by card
             const {result} = renderHook(() => useSearchBulkActions({queryJSON: cardGroupedExpenseQueryJSON}), {wrapper: OnyxListItemProvider});
 
-            // Then only Current view is offered, because the card group exception only narrows the templates the user was already entitled to and must never hand out one they were not
+            // Then Reconciliation is not offered, because a card group selection only shows the templates the user was already entitled to and must never hand out one they were not
             await waitFor(() => {
-                expect(getExportOptionTexts(result.current.headerButtonsOptions)).toEqual(['export.currentView']);
+                expect(getExportOptionTexts(result.current.headerButtonsOptions)).toEqual(['export.currentView', 'Custom template', 'export.expenseLevelExport', 'export.reportLevelExport']);
             });
+            expect(getExportOptionTexts(result.current.headerButtonsOptions)).not.toContain('export.reconciliationAllExpenses');
         });
 
         // Regression test for detecting the group export from the child metadata: with only `isSelectedViaGroup`
@@ -1760,16 +1853,12 @@ describe('useSearchBulkActions - export options', () => {
     });
 
     it('keeps the Export entry as a submenu even when only one export option is available', async () => {
-        // Regression test for https://github.com/Expensify/App/issues/98779: a full group selection offers a single
-        // export option ('export.currentView'). While other bulk actions sit alongside it (Hold here), the Export
-        // entry must still open the Export submenu (keeping its generic label and subMenuItems) rather than
-        // collapsing straight into that single option.
+        // Regression test for https://github.com/Expensify/App/issues/98779: a deleted selection on a grouped search
+        // offers a single export option ('export.currentView'). While other bulk actions sit alongside it (Undelete
+        // here), the Export entry must still open the Export submenu (keeping its generic label and subMenuItems)
+        // rather than collapsing straight into that single option.
         mockSelectedTransactions = {
-            tx1: makeSelectedTransaction({
-                groupKey: `${CONST.SEARCH.GROUP_PREFIX}category`,
-                isSelectedViaGroup: true,
-                canHold: true,
-            }),
+            tx1: makeSelectedTransaction({reportID: CONST.REPORT.TRASH_REPORT_ID}),
         };
 
         const {result} = renderHook(() => useSearchBulkActions({queryJSON: groupedExpenseQueryJSON}), {wrapper: OnyxListItemProvider});
@@ -1793,10 +1882,7 @@ describe('useSearchBulkActions - export options', () => {
         // keeps the nested shape regardless.
         mockAreAllMatchingItemsSelected = true;
         mockSelectedTransactions = {
-            tx1: makeSelectedTransaction({
-                groupKey: `${CONST.SEARCH.GROUP_PREFIX}category`,
-                isSelectedViaGroup: true,
-            }),
+            tx1: makeSelectedTransaction({reportID: CONST.REPORT.TRASH_REPORT_ID}),
         };
 
         const {result} = renderHook(() => useSearchBulkActions({queryJSON: groupedExpenseQueryJSON}), {wrapper: OnyxListItemProvider});
