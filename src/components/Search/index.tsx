@@ -47,6 +47,7 @@ import {
     doesSearchItemMatchSort,
     getValidGroupBy,
     getWideAmountIndicators,
+    isCashBackWithdrawalGroup,
     isGroupedItemArray,
     isReportActionListItemType,
     isSearchDataLoaded,
@@ -638,7 +639,8 @@ function Search({
 
     const onSelectRow = useCallback(
         (item: SearchListItem, transactionPreviewData?: TransactionPreviewData, event?: ModifiedMouseEvent) => {
-            if (item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
+            // A cash back row has no expenses to open, and Enter on a focused row still lands here.
+            if (item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || isCashBackWithdrawalGroup(item)) {
                 return;
             }
 

@@ -82,6 +82,23 @@ import type DomainHighlightItems from './DomainHighlightItems';
 import type DomainPendingActions from './DomainPendingActions';
 import type Download from './Download';
 import type DuplicateWorkspace from './DuplicateWorkspace';
+import type {
+    DynamicFormAddressField,
+    DynamicFormChoiceField,
+    DynamicFormContentItem,
+    DynamicFormCountryField,
+    DynamicFormField,
+    DynamicFormFieldOption,
+    DynamicFormFieldType,
+    DynamicFormHeading,
+    DynamicFormMultiChoiceField,
+    DynamicFormNumberField,
+    DynamicFormPage,
+    DynamicFormSchema,
+    DynamicFormSchemaField,
+    DynamicFormSensitiveAnswers,
+    DynamicFormTextField,
+} from './DynamicFormField';
 import type EarlyRenewalOfferEligibility from './EarlyRenewalOfferEligibility';
 import type ExpenseRule from './ExpenseRule';
 import type ExpensifyCardBankAccountMetadata from './ExpensifyCardBankAccountMetadata';
@@ -94,6 +111,7 @@ import type ExportTemplate from './ExportTemplate';
 import type FrequentlyUsedEmoji from './FrequentlyUsedEmoji';
 import type {FundList} from './Fund';
 import type Fund from './Fund';
+import type GeneratedRule from './GeneratedRule';
 import type GovernmentMileageRate from './GovernmentMileageRate';
 import type GpsDraftDetails from './GpsDraftDetails';
 import type HybridApp from './HybridApp';
@@ -151,7 +169,6 @@ import type PolicyOwnershipChangeChecks from './PolicyOwnershipChangeChecks';
 import type PolicyRoomsMetadata from './PolicyRoomsMetadata';
 import type {ParticipantsPolicyTags, PolicyTag, PolicyTagLists, PolicyTags, SearchTagFilterItem} from './PolicyTag';
 import type PolicyVendors from './PolicyVendor';
-import type {PolicyVendor} from './PolicyVendor';
 import type PrivatePersonalDetails from './PrivatePersonalDetails';
 import type PrivatePromoDiscount from './PrivatePromoDiscount';
 import type PrivateSubscription from './PrivateSubscription';
@@ -269,6 +286,7 @@ export type {
     Domain,
     Download,
     ExportDownload,
+    GeneratedRule,
     DuplicateWorkspace,
     CopyPolicySettingsNVP,
     CopyPolicySettings,
@@ -333,7 +351,6 @@ export type {
     PolicyCategories,
     PolicyCategory,
     PolicyDataLoadingState,
-    PolicyVendor,
     PolicyVendors,
     PolicyEmployee,
     PolicyEmployeeList,
@@ -453,6 +470,21 @@ export type {
     ShareTempFile,
     CorpayFields,
     CorpayFormField,
+    DynamicFormAddressField,
+    DynamicFormChoiceField,
+    DynamicFormContentItem,
+    DynamicFormCountryField,
+    DynamicFormField,
+    DynamicFormFieldOption,
+    DynamicFormFieldType,
+    DynamicFormHeading,
+    DynamicFormMultiChoiceField,
+    DynamicFormNumberField,
+    DynamicFormPage,
+    DynamicFormSchema,
+    DynamicFormSchemaField,
+    DynamicFormSensitiveAnswers,
+    DynamicFormTextField,
     JoinablePolicies,
     DismissedProductTraining,
     TravelProvisioning,
