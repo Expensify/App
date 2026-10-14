@@ -216,6 +216,12 @@ type ACHData = Partial<BeneficialOwnersStepProps & CompanyStepProps & RequestorS
 
     corpay: Corpay;
 
+    /** The provider the account's global reimbursements go through, derived by the server and never stored */
+    globalReimbursementProvider?: ValueOf<typeof CONST.GLOBAL_REIMBURSEMENT_PROVIDER>;
+
+    /** The business's Wise onboarding, only on the admin's own copy */
+    wise?: WiseBusinessOnboarding;
+
     /** Date the corpay bank account was created */
     created?: string;
 
@@ -252,6 +258,28 @@ type ACHData = Partial<BeneficialOwnersStepProps & CompanyStepProps & RequestorS
                 };
             };
         };
+    };
+};
+
+/** The business's Wise onboarding, as the server stores it under additionalData.wise. Pages are keyed by the step of the form file that saved them; later pages are typed as they are added. */
+type WiseBusinessOnboarding = {
+    /** Wise's review state, passed through unchanged */
+    status?: ValueOf<typeof CONST.WISE.ONBOARDING_STATUS>;
+
+    /** The bank account's currency */
+    currency?: string;
+
+    /** The last page saved, so a resume on another device lands after it */
+    step?: string;
+
+    /** Set with the business page: a chosen industry is one Wise treats as high risk, so the source-of-wealth page is asked before Submit */
+    requiresSourceOfWealth?: boolean;
+
+    /** The business page's answers */
+    business?: {
+        companyRole: ValueOf<typeof CONST.WISE.COMPANY_ROLE>;
+        industryCategories: string[];
+        description: string;
     };
 };
 
@@ -332,4 +360,4 @@ type ReimbursementAccount = OnyxCommon.OnyxValueWithOfflineFeedback<{
 }>;
 
 export default ReimbursementAccount;
-export type {Corpay, BankAccountStep, BankAccountSubStep, ACHData, ReimbursementAccountStep, ReimbursementAccountSubStep, ACHDataReimbursementAccount};
+export type {Corpay, WiseBusinessOnboarding, BankAccountStep, BankAccountSubStep, ACHData, ReimbursementAccountStep, ReimbursementAccountSubStep, ACHDataReimbursementAccount};
