@@ -263,6 +263,7 @@ import type {CurrentUserPersonalDetails, Timezone} from '@src/types/onyx/Persona
 import type {ConnectionName} from '@src/types/onyx/Policy';
 import type {NotificationPreference, Participants, Participant as ReportParticipant, RoomVisibility, WriteCapability} from '@src/types/onyx/Report';
 import type {Message, ReportActions} from '@src/types/onyx/ReportAction';
+import type {OnyxData} from '@src/types/onyx/Request';
 import type {SearchResultDataType} from '@src/types/onyx/SearchResults';
 import type {FileObject} from '@src/types/utils/Attachment';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -4897,18 +4898,64 @@ function isNoSupportRepAvailableResponse(response: {jsonCode?: number | string; 
 function openSupportTicket(resolvedSupportTicketReportID?: string) {
     const newSupportTicketReportID = resolvedSupportTicketReportID ? undefined : generateReportID();
     const parameters: CreateSupportTicketParams = resolvedSupportTicketReportID ? {resolvedSupportTicketReportID, idempotencyKey: Str.guid()} : {newSupportTicketReportID};
+    const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE> = newSupportTicketReportID
+        ? {
+              optimisticData: [
+                  // The request does not survive reloads, so its fetch guard must stay in RAM.
+                  // Set it before publishing the report ID; merges can wait on storage reads.
+                  {
+                      onyxMethod: Onyx.METHOD.SET,
+                      key: `${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${newSupportTicketReportID}`,
+                      value: {isCreatingSupportTicket: true},
+                  },
+                  {
+                      onyxMethod: Onyx.METHOD.MERGE,
+                      key: `${ONYXKEYS.COLLECTION.REPORT}${newSupportTicketReportID}`,
+                      value: {reportID: newSupportTicketReportID, type: CONST.REPORT.TYPE.SUPPORT_TICKET},
+                  },
+              ],
+              successData: [
+                  {
+                      onyxMethod: Onyx.METHOD.MERGE,
+                      key: `${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${newSupportTicketReportID}`,
+                      value: {isCreatingSupportTicket: false},
+                  },
+              ],
+              failureData: [
+                  {
+                      onyxMethod: Onyx.METHOD.SET,
+                      key: `${ONYXKEYS.COLLECTION.REPORT}${newSupportTicketReportID}`,
+                      value: null,
+                  },
+                  {
+                      onyxMethod: Onyx.METHOD.SET,
+                      key: `${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${newSupportTicketReportID}`,
+                      value: null,
+                  },
+              ],
+          }
+        : {};
 
-    if (!resolvedSupportTicketReportID) {
+    // Start the request before navigating so the optimistic support-ticket metadata is available for the pending LHN title.
+    // eslint-disable-next-line rulesdir/no-api-side-effects-method -- Reopening must wait for the server-selected report ID before navigating.
+    const request = API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.CREATE_SUPPORT_TICKET, parameters, onyxData);
+    if (newSupportTicketReportID) {
         Navigation.navigate(getReportRouteForCurrentContext({reportID: newSupportTicketReportID, isPendingCreation: true}));
     }
 
-    // eslint-disable-next-line rulesdir/no-api-side-effects-method -- reopening must wait for the server-selected report ID before navigating.
-    return API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.CREATE_SUPPORT_TICKET, parameters).then((response) => {
-        if (resolvedSupportTicketReportID && response?.reportID) {
-            Navigation.navigate(getReportRouteForCurrentContext({reportID: response.reportID}));
-        }
-        return response;
-    });
+    return request
+        .then((response) => {
+            if (resolvedSupportTicketReportID && response?.reportID) {
+                Navigation.navigate(getReportRouteForCurrentContext({reportID: response.reportID}));
+            }
+            return response;
+        })
+        .catch(async (error: unknown) => {
+            if (onyxData.failureData) {
+                await Onyx.update(onyxData.failureData);
+            }
+            throw error;
+        });
 }
 
 function dismissFailedSupportTicket(supportTicketReportID: string, parentReportID: string, parentReportActionID: string) {
