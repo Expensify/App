@@ -7828,6 +7828,21 @@ Het Control-abonnement begint bij $9 per actieve deelnemer per maand.`,
             addressContext: 'Een werkruimte-adres is vereist om Expensify Travel in te schakelen. Voer een adres in dat bij uw bedrijf hoort.',
             policy: 'Declaratiebeleid',
         },
+        officeLocations: {
+            title: 'Kantoorlokaties',
+            subtitle: 'Voeg kantoorlocaties toe om aan leden toe te wijzen voor zaken als afstandsregistratie.',
+            addOfficeLocation: 'Kantoorlokatie toevoegen',
+            editOfficeLocation: 'Kantoorlocatie bewerken',
+            locationName: 'Locatienaam',
+            locationNameHint: 'Kies een bijnaam voor de locatie als je meerdere kantoorlocaties toevoegt',
+            defaultName: ({officeNumber}: {officeNumber: number}) => `Kantoorlocatie ${officeNumber}`,
+            setAsPrimary: 'Als primair instellen',
+            primary: 'Primair',
+            deleteOfficeLocation: 'Kantoorlocatie verwijderen?',
+            deleteOfficeLocationConfirmation: 'Wil je deze kantoorlocatie echt verwijderen? Leden worden opnieuw toegewezen aan het hoofdkantoor.',
+            existingOfficeLocationError: 'Er bestaat al een kantoorlocatie met deze naam',
+            setCompanyAddressAsPrimaryConfirmation: 'Het bedrijfsadres instellen als hoofdvestiging?',
+        },
         bankAccount: {
             continueWithSetup: 'Setup voortzetten',
             youAreAlmostDone:
@@ -9638,6 +9653,15 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
         },
         addedProhibitedExpense: ({prohibitedExpense}: {prohibitedExpense: string}) => `heeft ‘${prohibitedExpense}’ toegevoegd aan verboden uitgaven`,
         removedProhibitedExpense: ({prohibitedExpense}: {prohibitedExpense: string}) => `heeft „${prohibitedExpense}” verwijderd uit verboden uitgaven`,
+        officeLocation: {
+            added: ({name, address}: {name: string; address: string}) => `heeft de kantoorlocatie "${name}" (${address}) toegevoegd`,
+            renamed: ({oldName, newName}: {oldName: string; newName: string}) => `heeft de kantoorlokatie “${oldName}” gewijzigd in “${newName}”`,
+            changedAddress: ({name, newAddress, oldAddress}: {name: string; newAddress: string; oldAddress: string}) =>
+                `heeft het adres van kantoorlocatie "${name}" gewijzigd naar "${newAddress}" (voorheen "${oldAddress}")`,
+            setAsPrimary: ({name}: {name: string}) => `stel de kantoorlocatie "${name}" in als primair`,
+            setCompanyAddressAsPrimary: 'stel het bedrijfsadres in als primair',
+            removed: ({name}: {name: string}) => `heeft de kantoorlocatie "${name}" verwijderd`,
+        },
         workArrangement: {
             set: ({arrangement}: {arrangement: string}) => `stel de standaard werkregeling in op ${arrangement}`,
             changed: ({arrangement, previousArrangement}: {arrangement: string; previousArrangement: string}) =>
