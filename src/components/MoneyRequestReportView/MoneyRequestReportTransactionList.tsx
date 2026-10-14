@@ -25,11 +25,12 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {StableReport} from '@src/selectors/Report';
 import type * as OnyxTypes from '@src/types/onyx';
+import {getEmptyObject} from '@src/types/utils/EmptyObject';
 import type {ViewableItemsChanged} from '@src/types/utils/ReactNativeCompat';
 
 import type {LayoutChangeEvent, NativeScrollEvent, NativeSyntheticEvent, StyleProp, ViewStyle} from 'react-native';
 
-import React, {useRef} from 'react';
+import React, {useEffect, useRef} from 'react';
 import {View} from 'react-native';
 
 import type {MoneyRequestReportTransactionLongPressModalHandle} from './MoneyRequestReportTransactionLongPressModal';
@@ -49,7 +50,7 @@ import useMoneyRequestReportColumns from './useMoneyRequestReportColumns';
 import useMoneyRequestReportGroupedTransactions from './useMoneyRequestReportGroupedTransactions';
 import useMoneyRequestReportLayout from './useMoneyRequestReportLayout';
 import useMoneyRequestReportPendingExpense from './useMoneyRequestReportPendingExpense';
-import useMoneyRequestReportSortedTransactions, {EMPTY_VIOLATIONS} from './useMoneyRequestReportSortedTransactions';
+import useMoneyRequestReportSortedTransactions from './useMoneyRequestReportSortedTransactions';
 import useMoneyRequestReportTransactionSelection from './useMoneyRequestReportTransactionSelection';
 
 /**
@@ -217,7 +218,7 @@ function MoneyRequestReportTransactionList({
     const reportID = report?.reportID;
     const showPendingExpensePlaceholder = useMoneyRequestReportPendingExpense(reportID, transactions);
 
-    const {sortBy, sortOrder, onSortPress, sortedTransactions, resolvedTransactions, highlightedTransactionIDs, transactionThreadReportIDByTransactionID, violationsByTransactionID} =
+    const {sortBy, sortOrder, onSortPress, sortedTransactions, resolvedTransactions, highlightedTransactionIDs, transactionThreadReportIDByTransactionID, ownerLogin} =
         useMoneyRequestReportSortedTransactions({
             report,
             policy,
@@ -274,12 +275,25 @@ function MoneyRequestReportTransactionList({
         });
     };
 
+    // Rows only call this on press, so they read the latest version through a ref instead of re-rendering whenever the data it closes over changes
+    const navigateToTransactionRef = useRef(navigateToTransaction);
+    useEffect(() => {
+        navigateToTransactionRef.current = navigateToTransaction;
+    });
+
+    // Same for selection: the toggle is rebuilt whenever the ordered transactions change, which would otherwise re-render every row
+    const toggleTransactionRef = useRef(toggleTransaction);
+    useEffect(() => {
+        toggleTransactionRef.current = toggleTransaction;
+    });
+    const toggleRowTransaction = (transactionID: string, shiftKey?: boolean) => toggleTransactionRef.current(transactionID, shiftKey);
+
     const handleLongPress = (transactionID: string) => {
         if (!isSmallScreenWidth) {
             return;
         }
         if (isMobileSelectionModeEnabled) {
-            toggleTransaction(transactionID);
+            toggleRowTransaction(transactionID);
             return;
         }
         longPressModalRef.current?.show(transactionID);
@@ -287,15 +301,15 @@ function MoneyRequestReportTransactionList({
 
     const handleOnPress = (transactionID: string) => {
         if (isMobileSelectionModeEnabled) {
-            toggleTransaction(transactionID);
+            toggleRowTransaction(transactionID);
             return;
         }
 
-        navigateToTransaction(transactionID);
+        navigateToTransactionRef.current(transactionID);
     };
 
     const handleArrowRightPress = (transactionID: string) => {
-        navigateToTransaction(transactionID);
+        navigateToTransactionRef.current(transactionID);
     };
 
     const openColumnsPage = () => {
@@ -339,8 +353,8 @@ function MoneyRequestReportTransactionList({
             <View style={pageGutter}>
                 <View style={narrowSectionWrapperStyle}>
                     <MoneyRequestReportTransactionItem
-                        transaction={transaction}
-                        violations={violationsByTransactionID.get(transaction.transactionID) ?? EMPTY_VIOLATIONS}
+                        transactionID={transaction.transactionID}
+                        reportOwnerLogin={ownerLogin}
                         shouldBeHighlighted={isReportVisible && highlightedTransactionIDs.has(transaction.transactionID)}
                         columns={columnsToShow}
                         report={report}
@@ -348,7 +362,7 @@ function MoneyRequestReportTransactionList({
                         policyCategories={policyCategories}
                         policyTagLists={policyTagLists}
                         isSelectionModeEnabled={isMobileSelectionModeEnabled}
-                        toggleTransaction={toggleTransaction}
+                        toggleTransaction={toggleRowTransaction}
                         isSelected={isTransactionSelected(transaction.transactionID)}
                         handleOnPress={handleOnPress}
                         handleLongPress={handleLongPress}
@@ -357,7 +371,7 @@ function MoneyRequestReportTransactionList({
                         amountColumnSize={amountColumnSize}
                         taxAmountColumnSize={taxAmountColumnSize}
                         onArrowRightPress={handleArrowRightPress}
-                        nonPersonalAndWorkspaceCards={nonPersonalAndWorkspaceCards ?? {}}
+                        nonPersonalAndWorkspaceCards={nonPersonalAndWorkspaceCards ?? getEmptyObject<OnyxTypes.CardList>()}
                         isLastItem={!showPendingExpensePlaceholder && transaction.transactionID === lastTransactionID}
                         shouldScrollHorizontally={shouldScrollHorizontally}
                         transactionThreadReportID={transactionThreadReportIDByTransactionID.get(transaction.transactionID)}
