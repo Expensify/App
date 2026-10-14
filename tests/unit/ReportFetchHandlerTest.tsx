@@ -171,8 +171,10 @@ describe('ReportFetchHandler', () => {
         await waitForBatchedUpdates();
         expect(mockOpenReport).not.toHaveBeenCalled();
 
-        // When the app reloads, the report and URL survive but RAM-only state and the in-flight request do not
+        // When the app reloads, the report, URL, and stale persisted metadata survive.
+        // RAM-only state and the in-flight request do not.
         unmount();
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${REPORT_ID}`, {isOptimisticReport: true});
         await Onyx.set(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${REPORT_ID}`, null);
         await waitForBatchedUpdates();
         const {rerender} = renderHandler();
