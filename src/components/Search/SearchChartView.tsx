@@ -93,6 +93,7 @@ function SearchChartView({
     });
     const points = rows.map((row) => row.point);
 
+    // On narrow layout, a single step spanning the whole axis labels only the first and last points
     const labelSteps = shouldUseNarrowLayout && axisLabelSteps ? [Math.max(1, points.length - 1)] : axisLabelSteps;
 
     const handleItemPress = (dataPoint: ChartDataPoint, index: number) => {

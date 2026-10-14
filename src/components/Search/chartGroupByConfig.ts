@@ -29,7 +29,7 @@ type ChartGroupByConfig = {
     /** Returns the line chart axis label, or undefined to fall back to `getShortLabel` */
     getLineChartLabel?: (item: GroupedItem) => string | undefined;
 
-    /** Intervals, in groups, the line chart may label its x-axis at; the smallest one that fits is used */
+    /** Intervals, in groups, the line chart may label its x-axis at. The smallest one that fits is used. */
     axisLabelSteps?: readonly number[];
 
     /** Builds the query fragment appended to the current query to drill into a group's transactions */

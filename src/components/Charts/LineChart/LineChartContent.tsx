@@ -126,7 +126,8 @@ function LineChartContentBody({data, series, isLoading, yAxisUnit, yAxisUnitPosi
         fontManager,
         fontSize: variables.iconSizeExtraSmall,
         tickSpacing,
-        labelAreaWidth: plotAreaWidth,
+        // Stepped labels never rotate, so a zero width makes this hook return early instead of computing a rotation
+        labelAreaWidth: labelSteps ? 0 : plotAreaWidth,
         firstTickLeftSpace: boundsLeft + domainPadding.left * paddingScale,
         lastTickRightSpace: chartWidth > 0 ? chartWidth - boundsRight + domainPadding.right * paddingScale : 0,
         measurements,
@@ -141,7 +142,6 @@ function LineChartContentBody({data, series, isLoading, yAxisUnit, yAxisUnitPosi
         const pointXs = data.map((_, index) => (data.length > 1 ? firstPointX + (index * (lastPointX - firstPointX)) / (data.length - 1) : (firstPointX + lastPointX) / 2));
         const step = getAxisLabelStep({labelWidths, pointXs, steps: labelSteps, minGap: X_AXIS_LABEL_MIN_GAP});
         return {
-            ...rotatingLabelLayout,
             labelRotation: LABEL_ROTATIONS.HORIZONTAL,
             labelSkipInterval: step,
             truncatedLabelWidths: labelWidths,
@@ -149,6 +149,7 @@ function LineChartContentBody({data, series, isLoading, yAxisUnit, yAxisUnitPosi
             regularLabelMaxWidth: Infinity,
             firstLabelMaxWidth: Infinity,
             lastLabelMaxWidth: Infinity,
+            ellipsisWidth: measurements.ellipsisWidth,
         };
     })();
 
