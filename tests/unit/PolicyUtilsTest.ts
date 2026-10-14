@@ -1,6 +1,8 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 import {renderHook} from '@testing-library/react-native';
 
+import type {PersonalDetailsByLogin} from '@components/PersonalDetailsByLoginProvider';
+
 import useDefaultFundID from '@hooks/useDefaultFundID';
 
 import DateUtils from '@libs/DateUtils';
@@ -38,6 +40,7 @@ import {
     getExpensifyTeamExclusions,
     getForwardsToAccount,
     getForwardsToFromRules,
+    getIntegrationLastSuccessfulDate,
     getManagerAccountID,
     getActiveVendorMatchingIntegration,
     getMatchingVendorByID,
@@ -79,6 +82,7 @@ import {
     getXeroExpenseAccounts,
     getXeroSupplierByID,
     getXeroSuppliers,
+    hasAccountingConnections,
     hasConfiguredRules,
     hasDependentTags,
     hasDynamicExternalWorkflow,
@@ -125,7 +129,16 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {PersonalDetailsList, Policy, PolicyEmployeeList, PolicyTags, PolicyTagLists, Report, Transaction} from '@src/types/onyx';
 import type {ApprovalWorkflowRule} from '@src/types/onyx/ApprovalWorkflowRules';
-import type {Connections, DualEntryVendor, FinancialForceSyncedEntity, QBONonReimbursableExportAccountType, SageIntacctExportConfig, TaxRates} from '@src/types/onyx/Policy';
+import type {
+    Connections,
+    DualEntryVendor,
+    FinancialForceSyncedEntity,
+    PolicyConnectionSyncProgress,
+    PolicyConnectionSyncStage,
+    QBONonReimbursableExportAccountType,
+    SageIntacctExportConfig,
+    TaxRates,
+} from '@src/types/onyx/Policy';
 import type Rule from '@src/types/onyx/Rule';
 import type {TransactionCollectionDataSet} from '@src/types/onyx/Transaction';
 
@@ -252,6 +265,10 @@ const personalDetails: PersonalDetailsList = {
         login: guideEmail,
     },
 };
+
+const personalDetailsByLogins: PersonalDetailsByLogin = Object.fromEntries(
+    Object.values(personalDetails).flatMap((personalDetail) => (personalDetail?.login ? [[personalDetail.login, personalDetail]] : [])),
+);
 
 const rules = {
     approvalRules: [
@@ -934,303 +951,357 @@ describe('PolicyUtils', () => {
             expect(result.at(0)?.id).toBe(activePolicy.id);
         });
     });
-    describe('getCustomUnitsForDuplication', () => {
-        const perDiemUnit = {
-            customUnitID: '123',
+
+    describe('customUnits', () => {
+        const perDiemCustomUnit = {
             name: CONST.CUSTOM_UNITS.NAME_PER_DIEM_INTERNATIONAL,
+            customUnitID: 'ABCDEF',
             enabled: true,
-            rates: {},
-        };
-        const otherUnit = {
-            customUnitID: '456',
-            name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
-            enabled: true,
-            rates: {},
-        };
-        const policy: Policy = {
-            ...createRandomPolicy(0),
-            customUnits: {
-                [perDiemUnit.customUnitID]: perDiemUnit,
-                [otherUnit.customUnitID]: otherUnit,
+            rates: {
+                London: {
+                    customUnitRateID: 'London',
+                    name: 'London',
+                },
             },
         };
 
-        const policyWithoutCustomUnits: Policy = {
-            ...createRandomPolicy(0),
-        };
-
-        it('returns undefined if neither option is selected', () => {
-            expect(getCustomUnitsForDuplication(policy, false, false, {distanceCustomUnitID: otherUnit.customUnitID, perDiemCustomUnitID: perDiemUnit.customUnitID})).toBeUndefined();
-        });
-
-        it('returns all custom units if both options are selected', () => {
-            const result = getCustomUnitsForDuplication(policy, true, true, {distanceCustomUnitID: otherUnit.customUnitID, perDiemCustomUnitID: perDiemUnit.customUnitID});
-            expect(result).toEqual(policy.customUnits);
-        });
-        it('returns only non-per-diem units if only custom units option is selected', () => {
-            const result = getCustomUnitsForDuplication(policy, true, false, {distanceCustomUnitID: otherUnit.customUnitID, perDiemCustomUnitID: perDiemUnit.customUnitID});
-            expect(result).toEqual({[otherUnit.customUnitID]: otherUnit});
-        });
-
-        it('returns only per diem unit if only per diem option is selected', () => {
-            const result = getCustomUnitsForDuplication(policy, false, true, {distanceCustomUnitID: otherUnit.customUnitID, perDiemCustomUnitID: perDiemUnit.customUnitID});
-            expect(result).toEqual({[perDiemUnit.customUnitID]: perDiemUnit});
-        });
-
-        it('returns undefined if customUnits is empty', () => {
-            expect(
-                getCustomUnitsForDuplication(policyWithoutCustomUnits, true, true, {distanceCustomUnitID: otherUnit.customUnitID, perDiemCustomUnitID: perDiemUnit.customUnitID}),
-            ).toBeUndefined();
-        });
-
-        it('rebinds the default rate to the API-known customUnitRateID and keeps non-default rates with their source IDs', () => {
-            const distanceUnitWithMultipleRates = {
-                customUnitID: 'srcDist',
+        describe('getCustomUnitsForDuplication', () => {
+            const perDiemUnit = {
+                customUnitID: '123',
+                name: CONST.CUSTOM_UNITS.NAME_PER_DIEM_INTERNATIONAL,
+                enabled: true,
+                rates: {},
+            };
+            const otherUnit = {
+                customUnitID: '456',
                 name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
                 enabled: true,
-                attributes: {unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES, taxEnabled: true},
-                rates: {
-                    rateB: {customUnitRateID: 'rateB', name: 'New Rate 1', rate: 100, currency: 'USD', enabled: true, index: 1, attributes: {taxRateExternalID: 'tax_other'}},
-                    rateA: {customUnitRateID: 'rateA', name: 'Default Rate', rate: 70, currency: 'USD', enabled: true, index: 0, attributes: {taxRateExternalID: 'tax_default'}},
+                rates: {},
+            };
+            const policy: Policy = {
+                ...createRandomPolicy(0),
+                customUnits: {
+                    [perDiemUnit.customUnitID]: perDiemUnit,
+                    [otherUnit.customUnitID]: otherUnit,
                 },
             };
-            const policyWithMultipleRates: Policy = {
+
+            const policyWithoutCustomUnits: Policy = {
                 ...createRandomPolicy(0),
-                customUnits: {[distanceUnitWithMultipleRates.customUnitID]: distanceUnitWithMultipleRates},
             };
-            const result = getCustomUnitsForDuplication(policyWithMultipleRates, true, false, {
-                distanceCustomUnitID: 'newDist',
-                perDiemCustomUnitID: 'newPerDiem',
-                customUnitRateID: 'newRate',
+
+            it('returns undefined if neither option is selected', () => {
+                expect(getCustomUnitsForDuplication(policy, false, false, {distanceCustomUnitID: otherUnit.customUnitID, perDiemCustomUnitID: perDiemUnit.customUnitID})).toBeUndefined();
             });
-            expect(result).toEqual({
-                newDist: {
-                    ...distanceUnitWithMultipleRates,
-                    customUnitID: 'newDist',
+
+            it('returns all custom units if both options are selected', () => {
+                const result = getCustomUnitsForDuplication(policy, true, true, {distanceCustomUnitID: otherUnit.customUnitID, perDiemCustomUnitID: perDiemUnit.customUnitID});
+                expect(result).toEqual(policy.customUnits);
+            });
+            it('returns only non-per-diem units if only custom units option is selected', () => {
+                const result = getCustomUnitsForDuplication(policy, true, false, {distanceCustomUnitID: otherUnit.customUnitID, perDiemCustomUnitID: perDiemUnit.customUnitID});
+                expect(result).toEqual({[otherUnit.customUnitID]: otherUnit});
+            });
+
+            it('returns only per diem unit if only per diem option is selected', () => {
+                const result = getCustomUnitsForDuplication(policy, false, true, {distanceCustomUnitID: otherUnit.customUnitID, perDiemCustomUnitID: perDiemUnit.customUnitID});
+                expect(result).toEqual({[perDiemUnit.customUnitID]: perDiemUnit});
+            });
+
+            it('returns undefined if customUnits is empty', () => {
+                expect(
+                    getCustomUnitsForDuplication(policyWithoutCustomUnits, true, true, {distanceCustomUnitID: otherUnit.customUnitID, perDiemCustomUnitID: perDiemUnit.customUnitID}),
+                ).toBeUndefined();
+            });
+
+            it('rebinds the default rate to the API-known customUnitRateID and keeps non-default rates with their source IDs', () => {
+                const distanceUnitWithMultipleRates = {
+                    customUnitID: 'srcDist',
+                    name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                    enabled: true,
+                    attributes: {unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES, taxEnabled: true},
                     rates: {
                         rateB: {customUnitRateID: 'rateB', name: 'New Rate 1', rate: 100, currency: 'USD', enabled: true, index: 1, attributes: {taxRateExternalID: 'tax_other'}},
-                        newRate: {customUnitRateID: 'newRate', name: 'Default Rate', rate: 70, currency: 'USD', enabled: true, index: 0, attributes: {taxRateExternalID: 'tax_default'}},
+                        rateA: {customUnitRateID: 'rateA', name: 'Default Rate', rate: 70, currency: 'USD', enabled: true, index: 0, attributes: {taxRateExternalID: 'tax_default'}},
                     },
-                },
+                };
+                const policyWithMultipleRates: Policy = {
+                    ...createRandomPolicy(0),
+                    customUnits: {[distanceUnitWithMultipleRates.customUnitID]: distanceUnitWithMultipleRates},
+                };
+                const result = getCustomUnitsForDuplication(policyWithMultipleRates, true, false, {
+                    distanceCustomUnitID: 'newDist',
+                    perDiemCustomUnitID: 'newPerDiem',
+                    customUnitRateID: 'newRate',
+                });
+                expect(result).toEqual({
+                    newDist: {
+                        ...distanceUnitWithMultipleRates,
+                        customUnitID: 'newDist',
+                        rates: {
+                            rateB: {customUnitRateID: 'rateB', name: 'New Rate 1', rate: 100, currency: 'USD', enabled: true, index: 1, attributes: {taxRateExternalID: 'tax_other'}},
+                            newRate: {customUnitRateID: 'newRate', name: 'Default Rate', rate: 70, currency: 'USD', enabled: true, index: 0, attributes: {taxRateExternalID: 'tax_default'}},
+                        },
+                    },
+                });
             });
-        });
 
-        it('keeps source rates with their source IDs when no enabled rate exists', () => {
-            const distanceUnitAllDisabled = {
-                customUnitID: 'srcDist',
-                name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
-                enabled: true,
-                attributes: {unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES},
-                rates: {
+            it('keeps source rates with their source IDs when no enabled rate exists', () => {
+                const distanceUnitAllDisabled = {
+                    customUnitID: 'srcDist',
+                    name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                    enabled: true,
+                    attributes: {unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES},
+                    rates: {
+                        rateA: {customUnitRateID: 'rateA', name: 'Disabled', rate: 50, currency: 'USD', enabled: false, index: 0},
+                    },
+                };
+                const policyAllDisabled: Policy = {
+                    ...createRandomPolicy(0),
+                    customUnits: {[distanceUnitAllDisabled.customUnitID]: distanceUnitAllDisabled},
+                };
+                const result = getCustomUnitsForDuplication(policyAllDisabled, true, false, {
+                    distanceCustomUnitID: 'newDist',
+                    perDiemCustomUnitID: 'newPerDiem',
+                    customUnitRateID: 'newRate',
+                });
+                expect(result?.newDist.rates).toEqual({
                     rateA: {customUnitRateID: 'rateA', name: 'Disabled', rate: 50, currency: 'USD', enabled: false, index: 0},
-                },
-            };
-            const policyAllDisabled: Policy = {
-                ...createRandomPolicy(0),
-                customUnits: {[distanceUnitAllDisabled.customUnitID]: distanceUnitAllDisabled},
-            };
-            const result = getCustomUnitsForDuplication(policyAllDisabled, true, false, {
-                distanceCustomUnitID: 'newDist',
-                perDiemCustomUnitID: 'newPerDiem',
-                customUnitRateID: 'newRate',
-            });
-            expect(result?.newDist.rates).toEqual({
-                rateA: {customUnitRateID: 'rateA', name: 'Disabled', rate: 50, currency: 'USD', enabled: false, index: 0},
-            });
-        });
-
-        it('treats missing index as 0 when picking the default rate', () => {
-            const distanceUnitWithMissingIndex = {
-                customUnitID: 'srcDist',
-                name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
-                enabled: true,
-                attributes: {unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES},
-                rates: {
-                    rateB: {customUnitRateID: 'rateB', name: 'Indexed Rate', rate: 100, currency: 'USD', enabled: true, index: 1},
-                    rateA: {customUnitRateID: 'rateA', name: 'No-Index Rate', rate: 70, currency: 'USD', enabled: true},
-                },
-            };
-            const policyWithMissingIndex: Policy = {
-                ...createRandomPolicy(0),
-                customUnits: {[distanceUnitWithMissingIndex.customUnitID]: distanceUnitWithMissingIndex},
-            };
-            const result = getCustomUnitsForDuplication(policyWithMissingIndex, true, false, {
-                distanceCustomUnitID: 'newDist',
-                perDiemCustomUnitID: 'newPerDiem',
-                customUnitRateID: 'newRate',
-            });
-            expect(result?.newDist.rates).toEqual({
-                rateB: {customUnitRateID: 'rateB', name: 'Indexed Rate', rate: 100, currency: 'USD', enabled: true, index: 1},
-                newRate: {customUnitRateID: 'newRate', name: 'No-Index Rate', rate: 70, currency: 'USD', enabled: true},
-            });
-        });
-
-        it('preserves source iteration order so getDefaultMileageRate still picks the original default when a non-default rate has a missing index', () => {
-            // Source has 3 rates: Default (index 0), Indexed (index 1), and No-Index (no index field).
-            // No-Index ties with Default at the index-0 sort key after `?? CONST.DEFAULT_NUMBER_ID`.
-            // The optimistic clone must keep the source's iteration order so JavaScript's stable
-            // sort still places Default before No-Index — otherwise getDefaultMileageRate would
-            // pick whichever tied rate appeared first in iteration order, swapping the default.
-            const sourceUnit = {
-                customUnitID: 'srcDist',
-                name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
-                enabled: true,
-                attributes: {unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES},
-                rates: {
-                    rateA: {customUnitRateID: 'rateA', name: 'Default Rate', rate: 72.5, currency: 'USD', enabled: true, index: 0},
-                    rateB: {customUnitRateID: 'rateB', name: 'Indexed Rate', rate: 100, currency: 'USD', enabled: true, index: 1},
-                    rateC: {customUnitRateID: 'rateC', name: 'No-Index Rate', rate: 200, currency: 'USD', enabled: true},
-                },
-            };
-            const policyWithTiedIndex: Policy = {
-                ...createRandomPolicy(0),
-                customUnits: {[sourceUnit.customUnitID]: sourceUnit},
-            };
-            const result = getCustomUnitsForDuplication(policyWithTiedIndex, true, false, {
-                distanceCustomUnitID: 'newDist',
-                perDiemCustomUnitID: 'newPerDiem',
-                customUnitRateID: 'newRate',
+                });
             });
 
-            const cloned = result?.newDist;
-            if (!cloned) {
-                throw new Error('Expected cloned distance unit');
-            }
-            // Iteration order: the rebound default should still be first, before the No-Index rate.
-            const orderedKeys = Object.keys(cloned.rates);
-            expect(orderedKeys).toEqual(['newRate', 'rateB', 'rateC']);
-
-            // Sanity-check that getDefaultMileageRate's selection (enabled, sorted by index ?? 0,
-            // first) lands on the rebound default and not on No-Index Rate.
-            const pickedDefault = Object.values(cloned.rates)
-                .filter((rate) => rate.enabled !== false)
-                .sort((a, b) => (a.index ?? CONST.DEFAULT_NUMBER_ID) - (b.index ?? CONST.DEFAULT_NUMBER_ID))
-                .at(0);
-            expect(pickedDefault?.customUnitRateID).toBe('newRate');
-            expect(pickedDefault?.name).toBe('Default Rate');
-        });
-    });
-    describe('getRateDisplayValue', () => {
-        it('should return an empty string for NaN', () => {
-            // This deliberately malformed string exercises the runtime NaN guard while preserving the production return type.
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- The invalid string is the scenario under test.
-            const rate = getRateDisplayValue('invalid' as unknown as Parameters<typeof getRateDisplayValue>[0], toLocaleDigitMock);
-            expect(rate).toEqual('');
-        });
-
-        describe('withDecimals = false', () => {
-            it('should return integer value as is', () => {
-                const rate = getRateDisplayValue(100, toLocaleDigitMock);
-                expect(rate).toEqual('100');
-            });
-
-            it('should return non-integer value as is', () => {
-                const rate = getRateDisplayValue(10.5, toLocaleDigitMock);
-                expect(rate).toEqual('10.5');
-            });
-        });
-
-        describe('withDecimals = true', () => {
-            it('should return integer value with 2 trailing zeros', () => {
-                const rate = getRateDisplayValue(10, toLocaleDigitMock, true);
-                expect(rate).toEqual('10.00');
-            });
-
-            it('should return non-integer value with up to 2 trailing zeros', () => {
-                const rate = getRateDisplayValue(10.5, toLocaleDigitMock, true);
-                expect(rate).toEqual('10.50');
-            });
-
-            it('should return non-integer value with 4 decimals as is', () => {
-                const rate = getRateDisplayValue(10.5312, toLocaleDigitMock, true);
-                expect(rate).toEqual('10.5312');
-            });
-
-            it('should return non-integer value with 3 decimals as is', () => {
-                const rate = getRateDisplayValue(10.531, toLocaleDigitMock, true);
-                expect(rate).toEqual('10.531');
-            });
-
-            it('should return non-integer value with 4+ decimals cut to 4', () => {
-                const rate = getRateDisplayValue(10.53135, toLocaleDigitMock, true);
-                expect(rate).toEqual('10.5313');
-            });
-        });
-    });
-
-    describe('getUberConnectionErrorDirectlyFromPolicy', () => {
-        it('should return true if Uber connection is enabled and has an error', () => {
-            const policy: Policy = {
-                ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
-                receiptPartners: {
-                    uber: {
-                        enabled: true,
-                        error: 'Some error',
-                        connectFormData: 'Some data',
+            it('treats missing index as 0 when picking the default rate', () => {
+                const distanceUnitWithMissingIndex = {
+                    customUnitID: 'srcDist',
+                    name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                    enabled: true,
+                    attributes: {unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES},
+                    rates: {
+                        rateB: {customUnitRateID: 'rateB', name: 'Indexed Rate', rate: 100, currency: 'USD', enabled: true, index: 1},
+                        rateA: {customUnitRateID: 'rateA', name: 'No-Index Rate', rate: 70, currency: 'USD', enabled: true},
                     },
-                },
-            };
+                };
+                const policyWithMissingIndex: Policy = {
+                    ...createRandomPolicy(0),
+                    customUnits: {[distanceUnitWithMissingIndex.customUnitID]: distanceUnitWithMissingIndex},
+                };
+                const result = getCustomUnitsForDuplication(policyWithMissingIndex, true, false, {
+                    distanceCustomUnitID: 'newDist',
+                    perDiemCustomUnitID: 'newPerDiem',
+                    customUnitRateID: 'newRate',
+                });
+                expect(result?.newDist.rates).toEqual({
+                    rateB: {customUnitRateID: 'rateB', name: 'Indexed Rate', rate: 100, currency: 'USD', enabled: true, index: 1},
+                    newRate: {customUnitRateID: 'newRate', name: 'No-Index Rate', rate: 70, currency: 'USD', enabled: true},
+                });
+            });
 
-            expect(getUberConnectionErrorDirectlyFromPolicy(policy)).toBe(true);
-        });
-
-        it('should return false if Uber connection is enabled but has no error', () => {
-            const policy: Policy = {
-                ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
-                receiptPartners: {
-                    uber: {
-                        enabled: true,
-                        error: undefined,
-                        connectFormData: 'Some data',
+            it('preserves source iteration order so getDefaultMileageRate still picks the original default when a non-default rate has a missing index', () => {
+                // Source has 3 rates: Default (index 0), Indexed (index 1), and No-Index (no index field).
+                // No-Index ties with Default at the index-0 sort key after `?? CONST.DEFAULT_NUMBER_ID`.
+                // The optimistic clone must keep the source's iteration order so JavaScript's stable
+                // sort still places Default before No-Index — otherwise getDefaultMileageRate would
+                // pick whichever tied rate appeared first in iteration order, swapping the default.
+                const sourceUnit = {
+                    customUnitID: 'srcDist',
+                    name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                    enabled: true,
+                    attributes: {unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES},
+                    rates: {
+                        rateA: {customUnitRateID: 'rateA', name: 'Default Rate', rate: 72.5, currency: 'USD', enabled: true, index: 0},
+                        rateB: {customUnitRateID: 'rateB', name: 'Indexed Rate', rate: 100, currency: 'USD', enabled: true, index: 1},
+                        rateC: {customUnitRateID: 'rateC', name: 'No-Index Rate', rate: 200, currency: 'USD', enabled: true},
                     },
-                },
+                };
+                const policyWithTiedIndex: Policy = {
+                    ...createRandomPolicy(0),
+                    customUnits: {[sourceUnit.customUnitID]: sourceUnit},
+                };
+                const result = getCustomUnitsForDuplication(policyWithTiedIndex, true, false, {
+                    distanceCustomUnitID: 'newDist',
+                    perDiemCustomUnitID: 'newPerDiem',
+                    customUnitRateID: 'newRate',
+                });
+
+                const cloned = result?.newDist;
+                if (!cloned) {
+                    throw new Error('Expected cloned distance unit');
+                }
+                // Iteration order: the rebound default should still be first, before the No-Index rate.
+                const orderedKeys = Object.keys(cloned.rates);
+                expect(orderedKeys).toEqual(['newRate', 'rateB', 'rateC']);
+
+                // Sanity-check that getDefaultMileageRate's selection (enabled, sorted by index ?? 0,
+                // first) lands on the rebound default and not on No-Index Rate.
+                const pickedDefault = Object.values(cloned.rates)
+                    .filter((rate) => rate.enabled !== false)
+                    .sort((a, b) => (a.index ?? CONST.DEFAULT_NUMBER_ID) - (b.index ?? CONST.DEFAULT_NUMBER_ID))
+                    .at(0);
+                expect(pickedDefault?.customUnitRateID).toBe('newRate');
+                expect(pickedDefault?.name).toBe('Default Rate');
+            });
+        });
+        describe('getRateDisplayValue', () => {
+            it('should return an empty string for NaN', () => {
+                // This deliberately malformed string exercises the runtime NaN guard while preserving the production return type.
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- The invalid string is the scenario under test.
+                const rate = getRateDisplayValue('invalid' as unknown as Parameters<typeof getRateDisplayValue>[0], toLocaleDigitMock);
+                expect(rate).toEqual('');
+            });
+
+            describe('withDecimals = false', () => {
+                it('should return integer value as is', () => {
+                    const rate = getRateDisplayValue(100, toLocaleDigitMock);
+                    expect(rate).toEqual('100');
+                });
+
+                it('should return non-integer value as is', () => {
+                    const rate = getRateDisplayValue(10.5, toLocaleDigitMock);
+                    expect(rate).toEqual('10.5');
+                });
+            });
+
+            describe('withDecimals = true', () => {
+                it('should return integer value with 2 trailing zeros', () => {
+                    const rate = getRateDisplayValue(10, toLocaleDigitMock, true);
+                    expect(rate).toEqual('10.00');
+                });
+
+                it('should return non-integer value with up to 2 trailing zeros', () => {
+                    const rate = getRateDisplayValue(10.5, toLocaleDigitMock, true);
+                    expect(rate).toEqual('10.50');
+                });
+
+                it('should return non-integer value with 4 decimals as is', () => {
+                    const rate = getRateDisplayValue(10.5312, toLocaleDigitMock, true);
+                    expect(rate).toEqual('10.5312');
+                });
+
+                it('should return non-integer value with 3 decimals as is', () => {
+                    const rate = getRateDisplayValue(10.531, toLocaleDigitMock, true);
+                    expect(rate).toEqual('10.531');
+                });
+
+                it('should return non-integer value with 4+ decimals cut to 4', () => {
+                    const rate = getRateDisplayValue(10.53135, toLocaleDigitMock, true);
+                    expect(rate).toEqual('10.5313');
+                });
+            });
+        });
+
+        describe('getUnitRateValue', () => {
+            it('should return an empty string for NaN', () => {
+                // This deliberately malformed string exercises the runtime NaN guard while preserving the production return type.
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- The invalid rate is the scenario under test.
+                const rate = getUnitRateValue(toLocaleDigitMock, {rate: 'invalid' as unknown as NonNullable<Parameters<typeof getUnitRateValue>[1]>['rate']});
+                expect(rate).toEqual('');
+            });
+
+            describe('withDecimals = false', () => {
+                it('should return value divisible by 100 with no decimal places', () => {
+                    const rate = getUnitRateValue(toLocaleDigitMock, {rate: 100});
+                    expect(rate).toEqual('1');
+                });
+
+                it('should return non-integer value as is divided by 100', () => {
+                    const rate = getUnitRateValue(toLocaleDigitMock, {rate: 11.11});
+                    expect(rate).toEqual('0.1111');
+                });
+            });
+
+            describe('withDecimals = true', () => {
+                it('should return value divisible by 100 with 2 decimal places', () => {
+                    const rate = getUnitRateValue(toLocaleDigitMock, {rate: 100}, true);
+                    expect(rate).toEqual('1.00');
+                });
+
+                it('should return non-integer value as is divided by 100', () => {
+                    const rate = getUnitRateValue(toLocaleDigitMock, {rate: 11.11}, true);
+                    expect(rate).toEqual('0.1111');
+                });
+            });
+        });
+
+        describe('isPerDiemEnabled', () => {
+            it('returns true when arePerDiemRatesEnabled is explicitly true', () => {
+                const policy = {...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE), arePerDiemRatesEnabled: true, customUnits: {}};
+                expect(isPerDiemEnabled(policy)).toBe(true);
+            });
+
+            it('returns false when arePerDiemRatesEnabled is explicitly false, ignoring the configured custom unit', () => {
+                const policy = {...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE), arePerDiemRatesEnabled: false, customUnits: {ABCDEF: perDiemCustomUnit}};
+                expect(isPerDiemEnabled(policy)).toBe(false);
+            });
+
+            it('infers true from an enabled per diem custom unit when the flag is missing', () => {
+                const policy = {...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE), arePerDiemRatesEnabled: undefined, customUnits: {ABCDEF: perDiemCustomUnit}};
+                expect(isPerDiemEnabled(policy)).toBe(true);
+            });
+
+            it('returns false when the flag is missing and the per diem custom unit is disabled', () => {
+                const policy = {
+                    ...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE),
+                    arePerDiemRatesEnabled: undefined,
+                    customUnits: {ABCDEF: {...perDiemCustomUnit, enabled: false}},
+                };
+                expect(isPerDiemEnabled(policy)).toBe(false);
+            });
+
+            it('returns false when the flag is missing and there is no per diem custom unit', () => {
+                const policy = {...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE), arePerDiemRatesEnabled: undefined, customUnits: {}};
+                expect(isPerDiemEnabled(policy)).toBe(false);
+            });
+        });
+
+        describe('isPerDiemEligiblePolicy', () => {
+            it('returns true for a control policy with arePerDiemRatesEnabled explicitly true', () => {
+                const policy = {...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE), arePerDiemRatesEnabled: true, customUnits: {}};
+                expect(isPerDiemEligiblePolicy(policy)).toBe(true);
+            });
+
+            it('returns true for a control policy whose flag is missing but has an enabled per diem custom unit', () => {
+                const policy = {...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE), arePerDiemRatesEnabled: undefined, customUnits: {ABCDEF: perDiemCustomUnit}};
+                expect(isPerDiemEligiblePolicy(policy)).toBe(true);
+            });
+
+            it('returns false for a collect policy even when per diem is enabled', () => {
+                const policy = {...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM), arePerDiemRatesEnabled: true, customUnits: {ABCDEF: perDiemCustomUnit}};
+                expect(isPerDiemEligiblePolicy(policy)).toBe(false);
+            });
+
+            it('returns false for a submit policy even when per diem is enabled', () => {
+                const policy = {...createRandomPolicy(1, CONST.POLICY.TYPE.SUBMIT), arePerDiemRatesEnabled: true, customUnits: {ABCDEF: perDiemCustomUnit}};
+                expect(isPerDiemEligiblePolicy(policy)).toBe(false);
+            });
+
+            it('returns false for a control policy with per diem explicitly disabled', () => {
+                const policy = {...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE), arePerDiemRatesEnabled: false, customUnits: {ABCDEF: perDiemCustomUnit}};
+                expect(isPerDiemEligiblePolicy(policy)).toBe(false);
+            });
+
+            it('returns false for an undefined policy', () => {
+                expect(isPerDiemEligiblePolicy(undefined)).toBe(false);
+            });
+        });
+
+        describe('getPolicyByCustomUnitID', () => {
+            const transactionWithPerDiemUnit: Transaction = {
+                ...createRandomTransaction(0),
+                comment: {customUnit: {customUnitID: 'ABCDEF'}},
             };
 
-            expect(getUberConnectionErrorDirectlyFromPolicy(policy)).toBe(false);
-        });
-
-        it('should return false if Uber connection does not exist', () => {
-            const policy: Policy = {
-                ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
-            };
-
-            expect(getUberConnectionErrorDirectlyFromPolicy(policy)).toBe(false);
-        });
-
-        it('should return false if policy is undefined', () => {
-            expect(getUberConnectionErrorDirectlyFromPolicy(undefined)).toBe(false);
-        });
-    });
-
-    describe('getUnitRateValue', () => {
-        it('should return an empty string for NaN', () => {
-            // This deliberately malformed string exercises the runtime NaN guard while preserving the production return type.
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- The invalid rate is the scenario under test.
-            const rate = getUnitRateValue(toLocaleDigitMock, {rate: 'invalid' as unknown as NonNullable<Parameters<typeof getUnitRateValue>[1]>['rate']});
-            expect(rate).toEqual('');
-        });
-
-        describe('withDecimals = false', () => {
-            it('should return value divisible by 100 with no decimal places', () => {
-                const rate = getUnitRateValue(toLocaleDigitMock, {rate: 100});
-                expect(rate).toEqual('1');
+            it('resolves the policy with the matching custom unit when arePerDiemRatesEnabled is missing', () => {
+                const policies: OnyxCollection<Policy> = {
+                    corporate: {...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE), arePerDiemRatesEnabled: undefined, customUnits: {ABCDEF: perDiemCustomUnit}},
+                };
+                expect(getPolicyByCustomUnitID(transactionWithPerDiemUnit, policies)?.id).toBe('1');
             });
 
-            it('should return non-integer value as is divided by 100', () => {
-                const rate = getUnitRateValue(toLocaleDigitMock, {rate: 11.11});
-                expect(rate).toEqual('0.1111');
-            });
-        });
-
-        describe('withDecimals = true', () => {
-            it('should return value divisible by 100 with 2 decimal places', () => {
-                const rate = getUnitRateValue(toLocaleDigitMock, {rate: 100}, true);
-                expect(rate).toEqual('1.00');
-            });
-
-            it('should return non-integer value as is divided by 100', () => {
-                const rate = getUnitRateValue(toLocaleDigitMock, {rate: 11.11}, true);
-                expect(rate).toEqual('0.1111');
+            it('does not resolve a policy where per diem was explicitly disabled', () => {
+                const policies: OnyxCollection<Policy> = {
+                    corporate: {...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE), arePerDiemRatesEnabled: false, customUnits: {ABCDEF: perDiemCustomUnit}},
+                };
+                expect(getPolicyByCustomUnitID(transactionWithPerDiemUnit, policies)).toBeUndefined();
             });
         });
     });
@@ -1535,7 +1606,7 @@ describe('PolicyUtils', () => {
                 managerID: categoryApprover1AccountID,
                 type: CONST.REPORT.TYPE.EXPENSE,
             };
-            expect(getSubmitReportManagerAccountID(policy, expenseReport, employeeEmail, undefined)).toBeUndefined();
+            expect(getSubmitReportManagerAccountID(policy, expenseReport, employeeEmail, undefined, personalDetailsByLogins)).toBeUndefined();
         });
         it('should return the known approver accountID when the policy route is reliable', () => {
             const policy: Policy = {
@@ -1552,7 +1623,7 @@ describe('PolicyUtils', () => {
                 managerID: categoryApprover1AccountID,
                 type: CONST.REPORT.TYPE.EXPENSE,
             };
-            expect(getSubmitReportManagerAccountID(policy, expenseReport, employeeEmail, undefined)).toBe(adminAccountID);
+            expect(getSubmitReportManagerAccountID(policy, expenseReport, employeeEmail, undefined, personalDetailsByLogins)).toBe(adminAccountID);
         });
         it('should return undefined instead of a generated accountID when the approver is missing from personal details', () => {
             const policy: Policy = {
@@ -1580,7 +1651,7 @@ describe('PolicyUtils', () => {
                 managerID: categoryApprover1AccountID,
                 type: CONST.REPORT.TYPE.EXPENSE,
             };
-            expect(getSubmitReportManagerAccountID(policy, expenseReport, employeeEmail, undefined)).toBeUndefined();
+            expect(getSubmitReportManagerAccountID(policy, expenseReport, employeeEmail, undefined, personalDetailsByLogins)).toBeUndefined();
         });
     });
     describe('shouldShowPolicy', () => {
@@ -1964,7 +2035,7 @@ describe('PolicyUtils', () => {
                 ownerAccountID: employeeAccountID,
                 type: CONST.REPORT.TYPE.EXPENSE,
             };
-            expect(getSubmitReportManagerAccountID(policy, expenseReport, employeeEmail, undefined)).toBe(ownerAccountID);
+            expect(getSubmitReportManagerAccountID(policy, expenseReport, employeeEmail, undefined, personalDetailsByLogins)).toBe(ownerAccountID);
         });
         it('should keep the submitsTo approver that is not a policy member when the policy uses HR advanced (manager) mode', () => {
             const policy: Policy = {
@@ -1996,7 +2067,7 @@ describe('PolicyUtils', () => {
                 ownerAccountID: employeeAccountID,
                 type: CONST.REPORT.TYPE.EXPENSE,
             };
-            expect(getSubmitReportManagerAccountID(policy, expenseReport, employeeEmail, undefined)).toBe(adminAccountID);
+            expect(getSubmitReportManagerAccountID(policy, expenseReport, employeeEmail, undefined, personalDetailsByLogins)).toBe(adminAccountID);
         });
     });
 
@@ -3907,64 +3978,6 @@ describe('PolicyUtils', () => {
         });
     });
 
-    describe('hasPolicyWithXeroConnection', () => {
-        it('should return false when no admin policies are provided', () => {
-            const result = hasPolicyWithXeroConnection(undefined);
-            expect(result).toBe(false);
-        });
-
-        it('should return false when no admin policies have Xero connection', () => {
-            const adminPolicies: Policy[] = [
-                {
-                    ...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE),
-                    connections: createMock<Connections>({
-                        [CONST.POLICY.CONNECTIONS.NAME.NETSUITE]: {
-                            verified: true,
-                            lastSync: {
-                                errorDate: '',
-                                errorMessage: '',
-                                isAuthenticationError: false,
-                                isConnected: true,
-                                isSuccessful: true,
-                                source: 'NEWEXPENSIFY',
-                                successfulDate: '',
-                            },
-                        },
-                    }),
-                },
-                {...createRandomPolicy(2, CONST.POLICY.TYPE.TEAM), pendingAction: undefined},
-            ];
-            const result = hasPolicyWithXeroConnection(adminPolicies);
-            expect(result).toBe(false);
-        });
-
-        it('should return true when at least one admin policy has Xero connection', () => {
-            const adminPolicies: Policy[] = [
-                {
-                    ...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE),
-                    connections: createMock<Connections>({
-                        [CONST.POLICY.CONNECTIONS.NAME.XERO]: {
-                            lastSync: {
-                                errorDate: '',
-                                errorMessage: '',
-                                isAuthenticationError: false,
-                                isConnected: true,
-                                isSuccessful: true,
-                                source: 'NEWEXPENSIFY',
-                                successfulDate: '',
-                            },
-                            config: createMock<Connections[typeof CONST.POLICY.CONNECTIONS.NAME.XERO]['config']>({}),
-                            data: createMock<Connections[typeof CONST.POLICY.CONNECTIONS.NAME.XERO]['data']>({}),
-                        },
-                    }),
-                },
-                {...createRandomPolicy(2, CONST.POLICY.TYPE.TEAM), pendingAction: undefined},
-            ];
-            const result = hasPolicyWithXeroConnection(adminPolicies);
-            expect(result).toBe(true);
-        });
-    });
-
     describe('getTagApproverRule', () => {
         it('should return undefined when no approval rules are present', () => {
             const policy: Policy = {
@@ -3978,299 +3991,301 @@ describe('PolicyUtils', () => {
         });
     });
 
-    describe('getAllTaxRatesNamesAndValues', () => {
-        it('returns empty object when there are no policies or no tax rates', () => {
-            expect(getAllTaxRatesNamesAndValues(undefined)).toEqual({});
-            expect(getAllTaxRatesNamesAndValues({})).toEqual({});
-            const policiesWithoutTaxes: OnyxCollection<Policy> = {
-                policy1: {
-                    ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
-                    taxRates: undefined,
-                },
-            };
-            expect(getAllTaxRatesNamesAndValues(policiesWithoutTaxes)).toEqual({});
+    describe('tax', () => {
+        describe('getAllTaxRatesNamesAndValues', () => {
+            it('returns empty object when there are no policies or no tax rates', () => {
+                expect(getAllTaxRatesNamesAndValues(undefined)).toEqual({});
+                expect(getAllTaxRatesNamesAndValues({})).toEqual({});
+                const policiesWithoutTaxes: OnyxCollection<Policy> = {
+                    policy1: {
+                        ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
+                        taxRates: undefined,
+                    },
+                };
+                expect(getAllTaxRatesNamesAndValues(policiesWithoutTaxes)).toEqual({});
+            });
+
+            it('aggregates tax rates across policies', () => {
+                const policies: OnyxCollection<Policy> = {
+                    p1: {
+                        ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
+                        taxRates: {
+                            taxes: {
+                                TAX_A: {name: 'A', value: '5'},
+                                TAX_B: {name: 'B', value: '10'},
+                            },
+                            name: '',
+                            defaultExternalID: '',
+                            defaultValue: '',
+                            foreignTaxDefault: '',
+                        },
+                    },
+                    p2: {
+                        ...createRandomPolicy(2, CONST.POLICY.TYPE.TEAM),
+                        taxRates: {
+                            taxes: {
+                                TAX_C: {name: 'C', value: '15'},
+                            },
+                            name: '',
+                            defaultExternalID: '',
+                            defaultValue: '',
+                            foreignTaxDefault: '',
+                        },
+                    },
+                };
+                const result = getAllTaxRatesNamesAndValues(policies);
+                expect(Object.keys(result).sort()).toEqual(['TAX_A', 'TAX_B', 'TAX_C']);
+                expect(result.TAX_B).toEqual({name: 'B', value: '10'});
+            });
+
+            it('preserves the first occurrence when duplicate tax keys appear in multiple policies', () => {
+                const policies: OnyxCollection<Policy> = {
+                    first: {
+                        ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
+                        taxRates: {
+                            taxes: {
+                                DUP_TAX: {name: 'First', value: '1'},
+                            },
+                            name: '',
+                            defaultExternalID: '',
+                            defaultValue: '',
+                            foreignTaxDefault: '',
+                        },
+                    },
+                    second: {
+                        ...createRandomPolicy(2, CONST.POLICY.TYPE.TEAM),
+                        taxRates: {
+                            taxes: {
+                                DUP_TAX: {name: 'Second', value: '2'},
+                            },
+                            name: '',
+                            defaultExternalID: '',
+                            defaultValue: '',
+                            foreignTaxDefault: '',
+                        },
+                    },
+                };
+                const result = getAllTaxRatesNamesAndValues(policies);
+                expect(result.DUP_TAX).toEqual({name: 'First', value: '1'});
+            });
         });
 
-        it('aggregates tax rates across policies', () => {
-            const policies: OnyxCollection<Policy> = {
-                p1: {
+        describe('getCurrentTaxID', () => {
+            function buildPolicyWithTaxes(taxes: TaxRates): Policy {
+                return {
                     ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
                     taxRates: {
-                        taxes: {
-                            TAX_A: {name: 'A', value: '5'},
-                            TAX_B: {name: 'B', value: '10'},
-                        },
+                        taxes,
                         name: '',
                         defaultExternalID: '',
                         defaultValue: '',
                         foreignTaxDefault: '',
                     },
-                },
-                p2: {
-                    ...createRandomPolicy(2, CONST.POLICY.TYPE.TEAM),
-                    taxRates: {
-                        taxes: {
-                            TAX_C: {name: 'C', value: '15'},
-                        },
-                        name: '',
-                        defaultExternalID: '',
-                        defaultValue: '',
-                        foreignTaxDefault: '',
-                    },
-                },
-            };
-            const result = getAllTaxRatesNamesAndValues(policies);
-            expect(Object.keys(result).sort()).toEqual(['TAX_A', 'TAX_B', 'TAX_C']);
-            expect(result.TAX_B).toEqual({name: 'B', value: '10'});
+                };
+            }
+
+            it('returns the tax code itself when a rate still owns it', () => {
+                const policy = buildPolicyWithTaxes({id_A: {name: 'VAT', value: '20%'}});
+
+                expect(getCurrentTaxID(policy, 'id_A')).toBe('id_A');
+            });
+
+            it('prefers the rate that currently owns the code over a rate that was renamed away from it', () => {
+                const policy = buildPolicyWithTaxes({
+                    id_B: {name: 'Renamed tax', value: '5%', previousTaxCode: 'id_A', previousTaxCodes: ['id_A']},
+                    id_A: {name: 'Reused tax code', value: '10%'},
+                });
+
+                expect(getCurrentTaxID(policy, 'id_A')).toBe('id_A');
+            });
+
+            it('resolves every code in the rename chain to the current key', () => {
+                const policy = buildPolicyWithTaxes({
+                    id_D: {name: 'VAT', value: '20%', previousTaxCode: 'id_C', previousTaxCodes: ['id_A', 'id_B', 'id_C']},
+                });
+
+                expect(getCurrentTaxID(policy, 'id_A')).toBe('id_D');
+                expect(getCurrentTaxID(policy, 'id_B')).toBe('id_D');
+                expect(getCurrentTaxID(policy, 'id_C')).toBe('id_D');
+            });
+
+            it('resolves from previousTaxCode for rates renamed before the back-end returned the full chain', () => {
+                const policy = buildPolicyWithTaxes({id_B: {name: 'VAT', value: '20%', previousTaxCode: 'id_A'}});
+
+                expect(getCurrentTaxID(policy, 'id_A')).toBe('id_B');
+            });
+
+            it('resolves from optimisticPreviousTaxCode while a rename is still in flight', () => {
+                const policy = buildPolicyWithTaxes({id_B: {name: 'VAT', value: '20%', optimisticPreviousTaxCode: 'id_A'}});
+
+                expect(getCurrentTaxID(policy, 'id_A')).toBe('id_B');
+            });
+
+            it('returns undefined for a code that was never used by any rate', () => {
+                const policy = buildPolicyWithTaxes({id_A: {name: 'VAT', value: '20%'}});
+
+                expect(getCurrentTaxID(policy, 'id_UNKNOWN')).toBeUndefined();
+            });
         });
 
-        it('preserves the first occurrence when duplicate tax keys appear in multiple policies', () => {
-            const policies: OnyxCollection<Policy> = {
-                first: {
-                    ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
-                    taxRates: {
-                        taxes: {
-                            DUP_TAX: {name: 'First', value: '1'},
-                        },
-                        name: '',
-                        defaultExternalID: '',
-                        defaultValue: '',
-                        foreignTaxDefault: '',
+        describe('getAllTaxRates (getAllTaxRatesNamesAndKeys)', () => {
+            it('returns empty object when there are no policies or no tax rates', () => {
+                expect(getAllTaxRates(undefined)).toEqual({});
+                expect(getAllTaxRates({})).toEqual({});
+                const policiesWithoutTaxes: OnyxCollection<Policy> = {
+                    policy1: {
+                        ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
+                        taxRates: undefined,
                     },
-                },
-                second: {
-                    ...createRandomPolicy(2, CONST.POLICY.TYPE.TEAM),
-                    taxRates: {
-                        taxes: {
-                            DUP_TAX: {name: 'Second', value: '2'},
-                        },
-                        name: '',
-                        defaultExternalID: '',
-                        defaultValue: '',
-                        foreignTaxDefault: '',
-                    },
-                },
-            };
-            const result = getAllTaxRatesNamesAndValues(policies);
-            expect(result.DUP_TAX).toEqual({name: 'First', value: '1'});
-        });
-    });
+                };
+                expect(getAllTaxRates(policiesWithoutTaxes)).toEqual({});
+            });
 
-    describe('getCurrentTaxID', () => {
-        function buildPolicyWithTaxes(taxes: TaxRates): Policy {
-            return {
+            it('maps tax rate names to their keys across policies', () => {
+                const policies: OnyxCollection<Policy> = {
+                    p1: {
+                        ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
+                        taxRates: {
+                            taxes: {
+                                id_vat: {name: 'VAT', value: '20'},
+                                id_gst: {name: 'GST', value: '10'},
+                            },
+                            name: '',
+                            defaultExternalID: '',
+                            defaultValue: '',
+                            foreignTaxDefault: '',
+                        },
+                    },
+                    p2: {
+                        ...createRandomPolicy(2, CONST.POLICY.TYPE.TEAM),
+                        taxRates: {
+                            taxes: {
+                                id_sales: {name: 'Sales Tax', value: '8'},
+                            },
+                            name: '',
+                            defaultExternalID: '',
+                            defaultValue: '',
+                            foreignTaxDefault: '',
+                        },
+                    },
+                };
+                const result = getAllTaxRates(policies);
+                expect(result).toEqual({
+                    VAT: ['id_vat'],
+                    GST: ['id_gst'],
+                    'Sales Tax': ['id_sales'],
+                });
+            });
+
+            it('groups different keys under the same tax name', () => {
+                const policies: OnyxCollection<Policy> = {
+                    p1: {
+                        ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
+                        taxRates: {
+                            taxes: {
+                                key_a: {name: 'VAT', value: '20'},
+                            },
+                            name: '',
+                            defaultExternalID: '',
+                            defaultValue: '',
+                            foreignTaxDefault: '',
+                        },
+                    },
+                    p2: {
+                        ...createRandomPolicy(2, CONST.POLICY.TYPE.TEAM),
+                        taxRates: {
+                            taxes: {
+                                key_b: {name: 'VAT', value: '15'},
+                            },
+                            name: '',
+                            defaultExternalID: '',
+                            defaultValue: '',
+                            foreignTaxDefault: '',
+                        },
+                    },
+                };
+                const result = getAllTaxRates(policies);
+                expect(result.VAT).toEqual(['key_a', 'key_b']);
+            });
+
+            it('deduplicates identical keys for the same tax name', () => {
+                const policies: OnyxCollection<Policy> = {
+                    p1: {
+                        ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
+                        taxRates: {
+                            taxes: {
+                                same_key: {name: 'VAT', value: '20'},
+                            },
+                            name: '',
+                            defaultExternalID: '',
+                            defaultValue: '',
+                            foreignTaxDefault: '',
+                        },
+                    },
+                    p2: {
+                        ...createRandomPolicy(2, CONST.POLICY.TYPE.TEAM),
+                        taxRates: {
+                            taxes: {
+                                same_key: {name: 'VAT', value: '20'},
+                            },
+                            name: '',
+                            defaultExternalID: '',
+                            defaultValue: '',
+                            foreignTaxDefault: '',
+                        },
+                    },
+                };
+                const result = getAllTaxRates(policies);
+                expect(result.VAT).toEqual(['same_key']);
+            });
+
+            it('skips undefined policy entries', () => {
+                const policies: OnyxCollection<Policy> = {
+                    p1: {
+                        ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
+                        taxRates: {
+                            taxes: {id_vat: {name: 'VAT', value: '20'}},
+                            name: '',
+                            defaultExternalID: '',
+                            defaultValue: '',
+                            foreignTaxDefault: '',
+                        },
+                    },
+                    p2: undefined,
+                };
+                const result = getAllTaxRates(policies);
+                expect(result).toEqual({VAT: ['id_vat']});
+            });
+        });
+
+        describe('isTaxCodeCustomized', () => {
+            const policy: Policy = {
                 ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
                 taxRates: {
-                    taxes,
+                    taxes: {
+                        id_vat: {name: 'VAT', value: '20'},
+                        id_gst: {name: 'GST', value: '10', previousTaxCode: 'id_gst_prev'},
+                        id_sales: {name: 'Sales Tax', value: '8', previousTaxCode: ''},
+                    },
                     name: '',
                     defaultExternalID: '',
                     defaultValue: '',
                     foreignTaxDefault: '',
                 },
             };
-        }
 
-        it('returns the tax code itself when a rate still owns it', () => {
-            const policy = buildPolicyWithTaxes({id_A: {name: 'VAT', value: '20%'}});
-
-            expect(getCurrentTaxID(policy, 'id_A')).toBe('id_A');
-        });
-
-        it('prefers the rate that currently owns the code over a rate that was renamed away from it', () => {
-            const policy = buildPolicyWithTaxes({
-                id_B: {name: 'Renamed tax', value: '5%', previousTaxCode: 'id_A', previousTaxCodes: ['id_A']},
-                id_A: {name: 'Reused tax code', value: '10%'},
+            it('returns false when there is no policy, tax code, or tax rate', () => {
+                expect(isTaxCodeCustomized(undefined, policy)).toEqual(false);
+                expect(isTaxCodeCustomized('', policy)).toEqual(false);
+                expect(isTaxCodeCustomized('id_vat', undefined)).toEqual(false);
+                expect(isTaxCodeCustomized('id_INVALID', policy)).toEqual(false);
             });
 
-            expect(getCurrentTaxID(policy, 'id_A')).toBe('id_A');
-        });
-
-        it('resolves every code in the rename chain to the current key', () => {
-            const policy = buildPolicyWithTaxes({
-                id_D: {name: 'VAT', value: '20%', previousTaxCode: 'id_C', previousTaxCodes: ['id_A', 'id_B', 'id_C']},
+            it('returns true only when the tax rate has a non-empty `previousTaxCode` value', () => {
+                expect(isTaxCodeCustomized('id_vat', policy)).toEqual(false);
+                expect(isTaxCodeCustomized('id_gst', policy)).toEqual(true);
+                expect(isTaxCodeCustomized('id_sales', policy)).toEqual(false);
             });
-
-            expect(getCurrentTaxID(policy, 'id_A')).toBe('id_D');
-            expect(getCurrentTaxID(policy, 'id_B')).toBe('id_D');
-            expect(getCurrentTaxID(policy, 'id_C')).toBe('id_D');
-        });
-
-        it('resolves from previousTaxCode for rates renamed before the back-end returned the full chain', () => {
-            const policy = buildPolicyWithTaxes({id_B: {name: 'VAT', value: '20%', previousTaxCode: 'id_A'}});
-
-            expect(getCurrentTaxID(policy, 'id_A')).toBe('id_B');
-        });
-
-        it('resolves from optimisticPreviousTaxCode while a rename is still in flight', () => {
-            const policy = buildPolicyWithTaxes({id_B: {name: 'VAT', value: '20%', optimisticPreviousTaxCode: 'id_A'}});
-
-            expect(getCurrentTaxID(policy, 'id_A')).toBe('id_B');
-        });
-
-        it('returns undefined for a code that was never used by any rate', () => {
-            const policy = buildPolicyWithTaxes({id_A: {name: 'VAT', value: '20%'}});
-
-            expect(getCurrentTaxID(policy, 'id_UNKNOWN')).toBeUndefined();
-        });
-    });
-
-    describe('getAllTaxRates (getAllTaxRatesNamesAndKeys)', () => {
-        it('returns empty object when there are no policies or no tax rates', () => {
-            expect(getAllTaxRates(undefined)).toEqual({});
-            expect(getAllTaxRates({})).toEqual({});
-            const policiesWithoutTaxes: OnyxCollection<Policy> = {
-                policy1: {
-                    ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
-                    taxRates: undefined,
-                },
-            };
-            expect(getAllTaxRates(policiesWithoutTaxes)).toEqual({});
-        });
-
-        it('maps tax rate names to their keys across policies', () => {
-            const policies: OnyxCollection<Policy> = {
-                p1: {
-                    ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
-                    taxRates: {
-                        taxes: {
-                            id_vat: {name: 'VAT', value: '20'},
-                            id_gst: {name: 'GST', value: '10'},
-                        },
-                        name: '',
-                        defaultExternalID: '',
-                        defaultValue: '',
-                        foreignTaxDefault: '',
-                    },
-                },
-                p2: {
-                    ...createRandomPolicy(2, CONST.POLICY.TYPE.TEAM),
-                    taxRates: {
-                        taxes: {
-                            id_sales: {name: 'Sales Tax', value: '8'},
-                        },
-                        name: '',
-                        defaultExternalID: '',
-                        defaultValue: '',
-                        foreignTaxDefault: '',
-                    },
-                },
-            };
-            const result = getAllTaxRates(policies);
-            expect(result).toEqual({
-                VAT: ['id_vat'],
-                GST: ['id_gst'],
-                'Sales Tax': ['id_sales'],
-            });
-        });
-
-        it('groups different keys under the same tax name', () => {
-            const policies: OnyxCollection<Policy> = {
-                p1: {
-                    ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
-                    taxRates: {
-                        taxes: {
-                            key_a: {name: 'VAT', value: '20'},
-                        },
-                        name: '',
-                        defaultExternalID: '',
-                        defaultValue: '',
-                        foreignTaxDefault: '',
-                    },
-                },
-                p2: {
-                    ...createRandomPolicy(2, CONST.POLICY.TYPE.TEAM),
-                    taxRates: {
-                        taxes: {
-                            key_b: {name: 'VAT', value: '15'},
-                        },
-                        name: '',
-                        defaultExternalID: '',
-                        defaultValue: '',
-                        foreignTaxDefault: '',
-                    },
-                },
-            };
-            const result = getAllTaxRates(policies);
-            expect(result.VAT).toEqual(['key_a', 'key_b']);
-        });
-
-        it('deduplicates identical keys for the same tax name', () => {
-            const policies: OnyxCollection<Policy> = {
-                p1: {
-                    ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
-                    taxRates: {
-                        taxes: {
-                            same_key: {name: 'VAT', value: '20'},
-                        },
-                        name: '',
-                        defaultExternalID: '',
-                        defaultValue: '',
-                        foreignTaxDefault: '',
-                    },
-                },
-                p2: {
-                    ...createRandomPolicy(2, CONST.POLICY.TYPE.TEAM),
-                    taxRates: {
-                        taxes: {
-                            same_key: {name: 'VAT', value: '20'},
-                        },
-                        name: '',
-                        defaultExternalID: '',
-                        defaultValue: '',
-                        foreignTaxDefault: '',
-                    },
-                },
-            };
-            const result = getAllTaxRates(policies);
-            expect(result.VAT).toEqual(['same_key']);
-        });
-
-        it('skips undefined policy entries', () => {
-            const policies: OnyxCollection<Policy> = {
-                p1: {
-                    ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
-                    taxRates: {
-                        taxes: {id_vat: {name: 'VAT', value: '20'}},
-                        name: '',
-                        defaultExternalID: '',
-                        defaultValue: '',
-                        foreignTaxDefault: '',
-                    },
-                },
-                p2: undefined,
-            };
-            const result = getAllTaxRates(policies);
-            expect(result).toEqual({VAT: ['id_vat']});
-        });
-    });
-
-    describe('isTaxCodeCustomized', () => {
-        const policy: Policy = {
-            ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
-            taxRates: {
-                taxes: {
-                    id_vat: {name: 'VAT', value: '20'},
-                    id_gst: {name: 'GST', value: '10', previousTaxCode: 'id_gst_prev'},
-                    id_sales: {name: 'Sales Tax', value: '8', previousTaxCode: ''},
-                },
-                name: '',
-                defaultExternalID: '',
-                defaultValue: '',
-                foreignTaxDefault: '',
-            },
-        };
-
-        it('returns false when there is no policy, tax code, or tax rate', () => {
-            expect(isTaxCodeCustomized(undefined, policy)).toEqual(false);
-            expect(isTaxCodeCustomized('', policy)).toEqual(false);
-            expect(isTaxCodeCustomized('id_vat', undefined)).toEqual(false);
-            expect(isTaxCodeCustomized('id_INVALID', policy)).toEqual(false);
-        });
-
-        it('returns true only when the tax rate has a non-empty `previousTaxCode` value', () => {
-            expect(isTaxCodeCustomized('id_vat', policy)).toEqual(false);
-            expect(isTaxCodeCustomized('id_gst', policy)).toEqual(true);
-            expect(isTaxCodeCustomized('id_sales', policy)).toEqual(false);
         });
     });
 
@@ -4492,68 +4507,6 @@ describe('PolicyUtils', () => {
             expect(getActivePoliciesWithExpenseChatAndPerDiemEnabled(policies, undefined)).toHaveLength(0);
         });
 
-        describe('isPerDiemEnabled', () => {
-            it('returns true when arePerDiemRatesEnabled is explicitly true', () => {
-                const policy = {...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE), arePerDiemRatesEnabled: true, customUnits: {}};
-                expect(isPerDiemEnabled(policy)).toBe(true);
-            });
-
-            it('returns false when arePerDiemRatesEnabled is explicitly false, ignoring the configured custom unit', () => {
-                const policy = {...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE), arePerDiemRatesEnabled: false, customUnits: {ABCDEF: perDiemCustomUnit}};
-                expect(isPerDiemEnabled(policy)).toBe(false);
-            });
-
-            it('infers true from an enabled per diem custom unit when the flag is missing', () => {
-                const policy = {...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE), arePerDiemRatesEnabled: undefined, customUnits: {ABCDEF: perDiemCustomUnit}};
-                expect(isPerDiemEnabled(policy)).toBe(true);
-            });
-
-            it('returns false when the flag is missing and the per diem custom unit is disabled', () => {
-                const policy = {
-                    ...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE),
-                    arePerDiemRatesEnabled: undefined,
-                    customUnits: {ABCDEF: {...perDiemCustomUnit, enabled: false}},
-                };
-                expect(isPerDiemEnabled(policy)).toBe(false);
-            });
-
-            it('returns false when the flag is missing and there is no per diem custom unit', () => {
-                const policy = {...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE), arePerDiemRatesEnabled: undefined, customUnits: {}};
-                expect(isPerDiemEnabled(policy)).toBe(false);
-            });
-        });
-
-        describe('isPerDiemEligiblePolicy', () => {
-            it('returns true for a control policy with arePerDiemRatesEnabled explicitly true', () => {
-                const policy = {...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE), arePerDiemRatesEnabled: true, customUnits: {}};
-                expect(isPerDiemEligiblePolicy(policy)).toBe(true);
-            });
-
-            it('returns true for a control policy whose flag is missing but has an enabled per diem custom unit', () => {
-                const policy = {...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE), arePerDiemRatesEnabled: undefined, customUnits: {ABCDEF: perDiemCustomUnit}};
-                expect(isPerDiemEligiblePolicy(policy)).toBe(true);
-            });
-
-            it('returns false for a collect policy even when per diem is enabled', () => {
-                const policy = {...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM), arePerDiemRatesEnabled: true, customUnits: {ABCDEF: perDiemCustomUnit}};
-                expect(isPerDiemEligiblePolicy(policy)).toBe(false);
-            });
-
-            it('returns false for a submit policy even when per diem is enabled', () => {
-                const policy = {...createRandomPolicy(1, CONST.POLICY.TYPE.SUBMIT), arePerDiemRatesEnabled: true, customUnits: {ABCDEF: perDiemCustomUnit}};
-                expect(isPerDiemEligiblePolicy(policy)).toBe(false);
-            });
-
-            it('returns false for a control policy with per diem explicitly disabled', () => {
-                const policy = {...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE), arePerDiemRatesEnabled: false, customUnits: {ABCDEF: perDiemCustomUnit}};
-                expect(isPerDiemEligiblePolicy(policy)).toBe(false);
-            });
-
-            it('returns false for an undefined policy', () => {
-                expect(isPerDiemEligiblePolicy(undefined)).toBe(false);
-            });
-        });
-
         describe('isInvoiceFieldsEnabled', () => {
             it('returns true for a control policy with areInvoiceFieldsEnabled explicitly true', () => {
                 const policy = {...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE), areInvoiceFieldsEnabled: true};
@@ -4589,27 +4542,6 @@ describe('PolicyUtils', () => {
             it('returns false for a control policy with invoice fields disabled', () => {
                 const policy = {...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE), areInvoiceFieldsEnabled: false};
                 expect(isPolicyFeatureEnabled(policy, CONST.POLICY.MORE_FEATURES.ARE_INVOICE_FIELDS_ENABLED)).toBe(false);
-            });
-        });
-
-        describe('getPolicyByCustomUnitID', () => {
-            const transactionWithPerDiemUnit: Transaction = {
-                ...createRandomTransaction(0),
-                comment: {customUnit: {customUnitID: 'ABCDEF'}},
-            };
-
-            it('resolves the policy with the matching custom unit when arePerDiemRatesEnabled is missing', () => {
-                const policies: OnyxCollection<Policy> = {
-                    corporate: {...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE), arePerDiemRatesEnabled: undefined, customUnits: {ABCDEF: perDiemCustomUnit}},
-                };
-                expect(getPolicyByCustomUnitID(transactionWithPerDiemUnit, policies)?.id).toBe('1');
-            });
-
-            it('does not resolve a policy where per diem was explicitly disabled', () => {
-                const policies: OnyxCollection<Policy> = {
-                    corporate: {...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE), arePerDiemRatesEnabled: false, customUnits: {ABCDEF: perDiemCustomUnit}},
-                };
-                expect(getPolicyByCustomUnitID(transactionWithPerDiemUnit, policies)).toBeUndefined();
             });
         });
     });
@@ -4660,65 +4592,6 @@ describe('PolicyUtils', () => {
             const result = sortPoliciesByName(policies, localeCompare);
 
             expect(result).not.toBe(policies);
-        });
-    });
-
-    describe('getSageIntacctVendors', () => {
-        const localeCompare = (a: string, b: string) => a.localeCompare(b);
-
-        it('sorts Intacct vendors alphabetically by value using localeCompare', () => {
-            const policy = createMock<Policy>({
-                connections: createMock<Connections>({
-                    [CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT]: {
-                        data: {
-                            vendors: [
-                                {id: '1', name: '1', value: 'Zebra'},
-                                {id: '2', name: '2', value: 'Apple'},
-                                {id: '3', name: '3', value: 'Banana'},
-                            ],
-                        },
-                    },
-                }),
-            });
-
-            const result = getSageIntacctVendors(policy, undefined, localeCompare);
-            expect(result.map((v) => v.text)).toEqual(['Apple', 'Banana', 'Zebra']);
-        });
-
-        it('breaks value ties using vendor id', () => {
-            const policy = createMock<Policy>({
-                connections: createMock<Connections>({
-                    [CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT]: {
-                        data: {
-                            vendors: [
-                                {id: 'vendor_b', name: 'b', value: 'Acme'},
-                                {id: 'vendor_a', name: 'a', value: 'Acme'},
-                            ],
-                        },
-                    },
-                }),
-            });
-
-            const result = getSageIntacctVendors(policy, undefined, localeCompare);
-            expect(result.map((v) => v.value)).toEqual(['vendor_a', 'vendor_b']);
-        });
-
-        it('returns unsorted vendors when localeCompare is not provided', () => {
-            const policy = createMock<Policy>({
-                connections: createMock<Connections>({
-                    [CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT]: {
-                        data: {
-                            vendors: [
-                                {id: '1', name: '1', value: 'Zebra'},
-                                {id: '2', name: '2', value: 'Apple'},
-                            ],
-                        },
-                    },
-                }),
-            });
-
-            const result = getSageIntacctVendors(policy, undefined);
-            expect(result.map((v) => v.text)).toEqual(['Zebra', 'Apple']);
         });
     });
 
@@ -6313,36 +6186,6 @@ describe('PolicyUtils', () => {
         });
     });
 
-    describe('getXeroExpenseAccounts', () => {
-        const XERO_EXPENSE_ACCOUNTS = [
-            {id: 'acc1', name: 'Travel Expenses', currency: 'USD'},
-            {id: 'acc2', name: 'Bank Fees', currency: 'USD'},
-        ];
-
-        it('maps the expense accounts to selector options', () => {
-            expect(getXeroExpenseAccounts(XERO_EXPENSE_ACCOUNTS, undefined)).toEqual([
-                {value: 'acc1', text: 'Travel Expenses', keyForList: 'acc1', isSelected: false},
-                {value: 'acc2', text: 'Bank Fees', keyForList: 'acc2', isSelected: false},
-            ]);
-        });
-
-        it('marks only the selected account as selected', () => {
-            const options = getXeroExpenseAccounts(XERO_EXPENSE_ACCOUNTS, 'acc2');
-            expect(options.map(({keyForList, isSelected}) => ({keyForList, isSelected}))).toEqual([
-                {keyForList: 'acc1', isSelected: false},
-                {keyForList: 'acc2', isSelected: true},
-            ]);
-        });
-
-        it('selects nothing when the stored account is no longer in the synced list', () => {
-            expect(getXeroExpenseAccounts(XERO_EXPENSE_ACCOUNTS, 'acc-archived').every(({isSelected}) => !isSelected)).toBe(true);
-        });
-
-        it('returns an empty array when Xero expense accounts have not synced yet', () => {
-            expect(getXeroExpenseAccounts(undefined, 'acc1')).toEqual([]);
-        });
-    });
-
     describe('hasPolicyRulesError', () => {
         // Whether a merchant rule failed is reduced by the caller's selector and covered in
         // ExpenseDefaultRuleUtilsTest, so only the agent rules and the pass-through are checked here.
@@ -6483,6 +6326,386 @@ describe('PolicyUtils', () => {
         it('returns true when sync is done, groups exist, and setup is not yet complete', () => {
             const policy = buildMergeHRPolicy(5, mergeHRBase);
             expect(isMergeHRCompleteSetupNeededSelector(policy)).toBe(true);
+        });
+    });
+
+    describe('connections', () => {
+        describe('getUberConnectionErrorDirectlyFromPolicy', () => {
+            it('should return true if Uber connection is enabled and has an error', () => {
+                const policy: Policy = {
+                    ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
+                    receiptPartners: {
+                        uber: {
+                            enabled: true,
+                            error: 'Some error',
+                            connectFormData: 'Some data',
+                        },
+                    },
+                };
+
+                expect(getUberConnectionErrorDirectlyFromPolicy(policy)).toBe(true);
+            });
+
+            it('should return false if Uber connection is enabled but has no error', () => {
+                const policy: Policy = {
+                    ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
+                    receiptPartners: {
+                        uber: {
+                            enabled: true,
+                            error: undefined,
+                            connectFormData: 'Some data',
+                        },
+                    },
+                };
+
+                expect(getUberConnectionErrorDirectlyFromPolicy(policy)).toBe(false);
+            });
+
+            it('should return false if Uber connection does not exist', () => {
+                const policy: Policy = {
+                    ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
+                };
+
+                expect(getUberConnectionErrorDirectlyFromPolicy(policy)).toBe(false);
+            });
+
+            it('should return false if policy is undefined', () => {
+                expect(getUberConnectionErrorDirectlyFromPolicy(undefined)).toBe(false);
+            });
+        });
+
+        describe('hasAccountingConnections', () => {
+            it('returns false when the policy is undefined', () => {
+                expect(hasAccountingConnections(undefined)).toBe(false);
+            });
+
+            it('returns false when the policy has no connections', () => {
+                // Given a workspace without any connection
+                const policy = createMock<Policy>({...createRandomPolicy(0), connections: {}});
+
+                // When we check for an accounting connection
+                const result = hasAccountingConnections(policy);
+
+                // Then nothing is reported as connected
+                expect(result).toBe(false);
+            });
+
+            it('returns true when the policy has an accounting integration supported in NewDot', () => {
+                // Given a workspace connected to QuickBooks Online
+                const policy = createMock<Policy>({...createRandomPolicy(0), connections: {quickbooksOnline: {config: {credentials: {scope: ''}}}}});
+
+                // When we check for an accounting connection
+                const result = hasAccountingConnections(policy);
+
+                // Then the QuickBooks Online connection counts as an accounting connection
+                expect(result).toBe(true);
+            });
+
+            it('ignores non-accounting connections (e.g. HR integrations)', () => {
+                // Given a workspace connected only to an HR integration
+                const policy = createMock<Policy>({...createRandomPolicy(0), connections: {gusto: {data: {}}}});
+
+                // When we check for an accounting connection
+                const result = hasAccountingConnections(policy);
+
+                // Then the HR integration is not treated as an accounting connection
+                expect(result).toBe(false);
+            });
+
+            it('ignores unsupported integrations', () => {
+                // Given a workspace connected only to an integration that NewDot does not support
+                const policy: Policy = Object.assign(createRandomPolicy(0), {connections: {[CONST.POLICY.CONNECTIONS.UNSUPPORTED_NAMES.GENERIC_INDIRECT_CONNECTION]: {}}});
+
+                // When we check for an accounting connection
+                const result = hasAccountingConnections(policy);
+
+                // Then the unsupported integration is not counted, because only hasAccountingFeatureConnection includes it
+                expect(result).toBe(false);
+            });
+        });
+
+        describe('getIntegrationLastSuccessfulDate', () => {
+            // Parses the ISO date strings as-is, so the results do not depend on the machine's timezone
+            const getLocalDateFromDatetime = (datetime?: string) => (datetime ? new Date(datetime) : new Date());
+            const storedSuccessfulDate = '2026-01-01T10:00:00.000Z';
+            const buildSyncProgress = (stageInProgress: PolicyConnectionSyncStage, timestamp: string): PolicyConnectionSyncProgress => ({
+                stageInProgress,
+                connectionName: CONST.POLICY.CONNECTIONS.NAME.QBO,
+                timestamp,
+            });
+            const qboConnection = createMock<Connections[typeof CONST.POLICY.CONNECTIONS.NAME.QBO]>({lastSync: {successfulDate: storedSuccessfulDate}});
+
+            it('returns undefined when there is no connection', () => {
+                expect(getIntegrationLastSuccessfulDate(getLocalDateFromDatetime, undefined)).toBeUndefined();
+            });
+
+            it('returns the last successful sync date of the connection', () => {
+                // Given a QuickBooks Online connection with a stored successful sync date and no sync in progress
+                // When we read the last successful date
+                const result = getIntegrationLastSuccessfulDate(getLocalDateFromDatetime, qboConnection);
+
+                // Then the stored successful date is returned
+                expect(result).toBe(storedSuccessfulDate);
+            });
+
+            it('returns lastSyncDate for a NetSuite connection', () => {
+                // Given a NetSuite connection, which stores its sync date in lastSyncDate instead of lastSync
+                const netSuiteConnection = createMock<Connections[typeof CONST.POLICY.CONNECTIONS.NAME.NETSUITE]>({lastSyncDate: storedSuccessfulDate});
+
+                // When we read the last successful date
+                const result = getIntegrationLastSuccessfulDate(getLocalDateFromDatetime, netSuiteConnection);
+
+                // Then the NetSuite lastSyncDate is returned
+                expect(result).toBe(storedSuccessfulDate);
+            });
+
+            it('returns the sync progress timestamp when a newer sync has just finished', () => {
+                // Given a sync that finished after the stored successful date
+                const newerTimestamp = '2026-01-02T10:00:00.000Z';
+
+                // When we read the last successful date
+                const result = getIntegrationLastSuccessfulDate(
+                    getLocalDateFromDatetime,
+                    qboConnection,
+                    buildSyncProgress(CONST.POLICY.CONNECTIONS.SYNC_STAGE_NAME.JOB_DONE, newerTimestamp),
+                );
+
+                // Then the finished sync's timestamp is shown, so the user sees the sync that just completed
+                expect(result).toBe(newerTimestamp);
+            });
+
+            it('keeps the stored date when the finished sync is older', () => {
+                // Given a finished sync whose timestamp is older than the stored successful date
+                const olderTimestamp = '2025-12-31T10:00:00.000Z';
+
+                // When we read the last successful date
+                const result = getIntegrationLastSuccessfulDate(
+                    getLocalDateFromDatetime,
+                    qboConnection,
+                    buildSyncProgress(CONST.POLICY.CONNECTIONS.SYNC_STAGE_NAME.JOB_DONE, olderTimestamp),
+                );
+
+                // Then the stored successful date is kept
+                expect(result).toBe(storedSuccessfulDate);
+            });
+
+            it('keeps the stored date while a newer sync is still in progress', () => {
+                // Given a sync with a newer timestamp that has not finished yet
+                const newerTimestamp = '2026-01-02T10:00:00.000Z';
+
+                // When we read the last successful date
+                const result = getIntegrationLastSuccessfulDate(
+                    getLocalDateFromDatetime,
+                    qboConnection,
+                    buildSyncProgress(CONST.POLICY.CONNECTIONS.SYNC_STAGE_NAME.STARTING_IMPORT_QBO, newerTimestamp),
+                );
+
+                // Then the stored successful date is kept, because the in-progress sync may still fail
+                expect(result).toBe(storedSuccessfulDate);
+            });
+
+            it('returns undefined when the connection has never synced successfully', () => {
+                // Given a connection without a successful sync date and a finished sync
+                const neverSyncedConnection = createMock<Connections[typeof CONST.POLICY.CONNECTIONS.NAME.QBO]>({lastSync: {}});
+
+                // When we read the last successful date
+                const result = getIntegrationLastSuccessfulDate(
+                    getLocalDateFromDatetime,
+                    neverSyncedConnection,
+                    buildSyncProgress(CONST.POLICY.CONNECTIONS.SYNC_STAGE_NAME.JOB_DONE, '2026-01-02T10:00:00.000Z'),
+                );
+
+                // Then no date is returned, because the sync timestamp only replaces an existing successful date
+                expect(result).toBeUndefined();
+            });
+        });
+
+        describe('getConnectedIntegration', () => {
+            it('returns the connected accounting integration when present on the policy', () => {
+                const policy = createMock<Policy>({connections: {quickbooksOnline: {config: {credentials: {scope: ''}}}}});
+                expect(getConnectedIntegration(policy)).toBe(CONST.POLICY.CONNECTIONS.NAME.QBO);
+            });
+
+            it('returns undefined when there is no connected integration', () => {
+                expect(getConnectedIntegration(undefined)).toBeUndefined();
+                expect(getConnectedIntegration(createMock<Policy>({connections: {}}))).toBeUndefined();
+            });
+
+            it('ignores non-accounting connections (e.g. HR integrations)', () => {
+                const policy = createMock<Policy>({connections: {gusto: {data: {}}}});
+                expect(getConnectedIntegration(policy)).toBeUndefined();
+            });
+        });
+
+        describe('getConnectionExporters', () => {
+            it('includes the Business Central preferred exporter', () => {
+                // Given a workspace connected to Business Central with a preferred exporter
+                const policy = createMock<Policy>({
+                    ...createRandomPolicy(0),
+                    connections: {
+                        [CONST.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL]: {
+                            config: {export: {exporter: 'exporter@example.com'}},
+                        },
+                    },
+                });
+
+                // When the workspace's connection exporters are read
+                const exporters = getConnectionExporters(policy);
+
+                // Then the Business Central exporter is listed, so that member can export reports to Business Central
+                expect(exporters).toContain('exporter@example.com');
+            });
+        });
+    });
+
+    describe('xero', () => {
+        describe('hasPolicyWithXeroConnection', () => {
+            it('should return false when no admin policies are provided', () => {
+                const result = hasPolicyWithXeroConnection(undefined);
+                expect(result).toBe(false);
+            });
+
+            it('should return false when no admin policies have Xero connection', () => {
+                const adminPolicies: Policy[] = [
+                    {
+                        ...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE),
+                        connections: createMock<Connections>({
+                            [CONST.POLICY.CONNECTIONS.NAME.NETSUITE]: {
+                                verified: true,
+                                lastSync: {
+                                    errorDate: '',
+                                    errorMessage: '',
+                                    isAuthenticationError: false,
+                                    isConnected: true,
+                                    isSuccessful: true,
+                                    source: 'NEWEXPENSIFY',
+                                    successfulDate: '',
+                                },
+                            },
+                        }),
+                    },
+                    {...createRandomPolicy(2, CONST.POLICY.TYPE.TEAM), pendingAction: undefined},
+                ];
+                const result = hasPolicyWithXeroConnection(adminPolicies);
+                expect(result).toBe(false);
+            });
+
+            it('should return true when at least one admin policy has Xero connection', () => {
+                const adminPolicies: Policy[] = [
+                    {
+                        ...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE),
+                        connections: createMock<Connections>({
+                            [CONST.POLICY.CONNECTIONS.NAME.XERO]: {
+                                lastSync: {
+                                    errorDate: '',
+                                    errorMessage: '',
+                                    isAuthenticationError: false,
+                                    isConnected: true,
+                                    isSuccessful: true,
+                                    source: 'NEWEXPENSIFY',
+                                    successfulDate: '',
+                                },
+                                config: createMock<Connections[typeof CONST.POLICY.CONNECTIONS.NAME.XERO]['config']>({}),
+                                data: createMock<Connections[typeof CONST.POLICY.CONNECTIONS.NAME.XERO]['data']>({}),
+                            },
+                        }),
+                    },
+                    {...createRandomPolicy(2, CONST.POLICY.TYPE.TEAM), pendingAction: undefined},
+                ];
+                const result = hasPolicyWithXeroConnection(adminPolicies);
+                expect(result).toBe(true);
+            });
+        });
+
+        describe('getXeroExpenseAccounts', () => {
+            const XERO_EXPENSE_ACCOUNTS = [
+                {id: 'acc1', name: 'Travel Expenses', currency: 'USD'},
+                {id: 'acc2', name: 'Bank Fees', currency: 'USD'},
+            ];
+
+            it('maps the expense accounts to selector options', () => {
+                expect(getXeroExpenseAccounts(XERO_EXPENSE_ACCOUNTS, undefined)).toEqual([
+                    {value: 'acc1', text: 'Travel Expenses', keyForList: 'acc1', isSelected: false},
+                    {value: 'acc2', text: 'Bank Fees', keyForList: 'acc2', isSelected: false},
+                ]);
+            });
+
+            it('marks only the selected account as selected', () => {
+                const options = getXeroExpenseAccounts(XERO_EXPENSE_ACCOUNTS, 'acc2');
+                expect(options.map(({keyForList, isSelected}) => ({keyForList, isSelected}))).toEqual([
+                    {keyForList: 'acc1', isSelected: false},
+                    {keyForList: 'acc2', isSelected: true},
+                ]);
+            });
+
+            it('selects nothing when the stored account is no longer in the synced list', () => {
+                expect(getXeroExpenseAccounts(XERO_EXPENSE_ACCOUNTS, 'acc-archived').every(({isSelected}) => !isSelected)).toBe(true);
+            });
+
+            it('returns an empty array when Xero expense accounts have not synced yet', () => {
+                expect(getXeroExpenseAccounts(undefined, 'acc1')).toEqual([]);
+            });
+        });
+    });
+
+    describe('sageIntacct', () => {
+        describe('getSageIntacctVendors', () => {
+            const localeCompare = (a: string, b: string) => a.localeCompare(b);
+
+            it('sorts Intacct vendors alphabetically by value using localeCompare', () => {
+                const policy = createMock<Policy>({
+                    connections: createMock<Connections>({
+                        [CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT]: {
+                            data: {
+                                vendors: [
+                                    {id: '1', name: '1', value: 'Zebra'},
+                                    {id: '2', name: '2', value: 'Apple'},
+                                    {id: '3', name: '3', value: 'Banana'},
+                                ],
+                            },
+                        },
+                    }),
+                });
+
+                const result = getSageIntacctVendors(policy, undefined, localeCompare);
+                expect(result.map((v) => v.text)).toEqual(['Apple', 'Banana', 'Zebra']);
+            });
+
+            it('breaks value ties using vendor id', () => {
+                const policy = createMock<Policy>({
+                    connections: createMock<Connections>({
+                        [CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT]: {
+                            data: {
+                                vendors: [
+                                    {id: 'vendor_b', name: 'b', value: 'Acme'},
+                                    {id: 'vendor_a', name: 'a', value: 'Acme'},
+                                ],
+                            },
+                        },
+                    }),
+                });
+
+                const result = getSageIntacctVendors(policy, undefined, localeCompare);
+                expect(result.map((v) => v.value)).toEqual(['vendor_a', 'vendor_b']);
+            });
+
+            it('returns unsorted vendors when localeCompare is not provided', () => {
+                const policy = createMock<Policy>({
+                    connections: createMock<Connections>({
+                        [CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT]: {
+                            data: {
+                                vendors: [
+                                    {id: '1', name: '1', value: 'Zebra'},
+                                    {id: '2', name: '2', value: 'Apple'},
+                                ],
+                            },
+                        },
+                    }),
+                });
+
+                const result = getSageIntacctVendors(policy, undefined);
+                expect(result.map((v) => v.text)).toEqual(['Zebra', 'Apple']);
+            });
         });
     });
 });
@@ -6766,23 +6989,6 @@ describe('hasActiveExpensifyCard', () => {
     });
 });
 
-describe('getConnectedIntegration', () => {
-    it('returns the connected accounting integration when present on the policy', () => {
-        const policy = createMock<Policy>({connections: {quickbooksOnline: {config: {credentials: {scope: ''}}}}});
-        expect(getConnectedIntegration(policy)).toBe(CONST.POLICY.CONNECTIONS.NAME.QBO);
-    });
-
-    it('returns undefined when there is no connected integration', () => {
-        expect(getConnectedIntegration(undefined)).toBeUndefined();
-        expect(getConnectedIntegration(createMock<Policy>({connections: {}}))).toBeUndefined();
-    });
-
-    it('ignores non-accounting connections (e.g. HR integrations)', () => {
-        const policy = createMock<Policy>({connections: {gusto: {data: {}}}});
-        expect(getConnectedIntegration(policy)).toBeUndefined();
-    });
-});
-
 describe('isMemberInHomeAndOfficeWorkspace', () => {
     it('only allows members of home and office workspaces', () => {
         // Given a workspace whose employee list contains one member
@@ -6824,25 +7030,5 @@ describe('shouldHideDynamicExternalWorkflowPeople', () => {
     it('returns false when a stale flag is left on a policy that no longer uses a Dynamic External Workflow', () => {
         const policy: Policy = {...createRandomPolicy(0), approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED, dynamicExternalWorkflowHidePeople: true};
         expect(shouldHideDynamicExternalWorkflowPeople(policy)).toBe(false);
-    });
-});
-
-describe('getConnectionExporters', () => {
-    it('includes the Business Central preferred exporter', () => {
-        // Given a workspace connected to Business Central with a preferred exporter
-        const policy = createMock<Policy>({
-            ...createRandomPolicy(0),
-            connections: {
-                [CONST.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL]: {
-                    config: {export: {exporter: 'exporter@example.com'}},
-                },
-            },
-        });
-
-        // When the workspace's connection exporters are read
-        const exporters = getConnectionExporters(policy);
-
-        // Then the Business Central exporter is listed, so that member can export reports to Business Central
-        expect(exporters).toContain('exporter@example.com');
     });
 });
