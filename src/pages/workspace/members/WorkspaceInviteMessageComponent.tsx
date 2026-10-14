@@ -129,7 +129,10 @@ function WorkspaceInviteMessageComponent({
     // `approvalMode` can drift from the actual workflow structure because it is updated optimistically.
     // Dynamic external workflows that hide people also have no selectable approver.
     const {isAdvanceApproval, rulesCollection} = useApprovalWorkflows(policy);
-    const shouldShowApproverRow = isAdvanceApproval && !!policy?.areWorkflowsEnabled && !shouldHideDynamicExternalWorkflowPeople(policy);
+
+    // Dynamic External Workflow also routes by each member's approver, even when the derived workflows look basic.
+    const isDynamicExternalApproval = hasDynamicExternalWorkflow(policy) && isControlPolicy(policy);
+    const shouldShowApproverRow = (isAdvanceApproval || isDynamicExternalApproval) && !!policy?.areWorkflowsEnabled && !shouldHideDynamicExternalWorkflowPeople(policy);
     const shouldShowWorkArrangement =
         isBetaEnabled(CONST.BETAS.COMMUTER_EXCLUSIONS_ARRANGEMENTS) && policy?.commuterExclusions?.method === CONST.POLICY.COMMUTER_EXCLUSION_METHOD.HOME_AND_OFFICE;
     const selectedHasOfficeWorkArrangement = workspaceInviteWorkArrangementDraft ?? policy?.commuterExclusions?.isOfficeWorkArrangement ?? true;
@@ -137,10 +140,6 @@ function WorkspaceInviteMessageComponent({
     const defaultOfficeName = officeLocations.find((office) => office.isDefault)?.name;
     const selectedWorkArrangementLabel = translate(selectedHasOfficeWorkArrangement ? 'workspace.people.officeBased' : 'workspace.people.noRegularWorkspace');
     const defaultOfficeLabel = officeLocations.length > 1 ? defaultOfficeName : undefined;
-
-    // Dynamic External Workflow also routes by each member's approver, even when the derived workflows look basic.
-    const isDynamicExternalApproval = hasDynamicExternalWorkflow(policy) && isControlPolicy(policy);
-    const shouldShowApproverRow = (isAdvanceApproval || isDynamicExternalApproval) && !!policy?.areWorkflowsEnabled && !shouldHideDynamicExternalWorkflowPeople(policy);
 
     const isApproverValid = !!workspaceInviteApproverDraft && workspaceInviteApproverDraft in (policy?.employeeList ?? {});
     const validatedApprover = isApproverValid ? workspaceInviteApproverDraft : undefined;
