@@ -214,6 +214,7 @@ type SettingsNavigatorParamList = {
         action?: 'edit';
     };
     [SCREENS.SETTINGS.WALLET.ENABLE_PAYMENTS_CONFIRM_VALIDATE_CODE]: undefined;
+    [SCREENS.SETTINGS.WALLET.DYNAMIC_ENABLE_PAYMENTS_CONFIRM_VALIDATE_CODE]: undefined;
     [SCREENS.SETTINGS.WALLET.UNSHARE_BANK_ACCOUNT]: {
         bankAccountID: string;
     };
@@ -371,6 +372,15 @@ type SettingsNavigatorParamList = {
         country?: Country | '';
     };
     [SCREENS.WORKSPACE.NAME]: undefined;
+    [SCREENS.WORKSPACE.OFFICE_LOCATION_ADD]: {
+        policyID: string;
+        country?: Country | '';
+    };
+    [SCREENS.WORKSPACE.OFFICE_LOCATION_EDIT]: {
+        policyID: string;
+        officeID: string;
+        country?: Country | '';
+    };
     [SCREENS.WORKSPACE.DESCRIPTION]: undefined;
     [SCREENS.WORKSPACE.CLIENT_ID]: undefined;
     [SCREENS.WORKSPACE.SHARE]: undefined;
@@ -697,6 +707,9 @@ type SettingsNavigatorParamList = {
     };
     [SCREENS.SETTINGS.SUBSCRIPTION.EXPENSIFY_CODE]: undefined;
     [SCREENS.SETTINGS.SUBSCRIPTION.PAYMENT_HISTORY]: undefined;
+    [SCREENS.SETTINGS.SUBSCRIPTION.PAYMENT_DETAILS]: {
+        purchaseID: string;
+    };
     [SCREENS.SETTINGS.SUBSCRIPTION.SETTINGS_DETAILS]: undefined;
     [SCREENS.SETTINGS.SUBSCRIPTION.ADD_PAYMENT_CARD]: undefined;
     [SCREENS.SETTINGS.SUBSCRIPTION.EARLY_RENEWAL]: undefined;
@@ -836,6 +849,18 @@ type SettingsNavigatorParamList = {
         policyID: string;
     };
     [SCREENS.WORKSPACE.DISTANCE_RATES_COMMUTER_EXCLUSIONS]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.CONNECTIONS_ACCOUNTING]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.CONNECTIONS_HR]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.CONNECTIONS_RECRUITING]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.CONNECTIONS_RECEIPT_PARTNERS]: {
         policyID: string;
     };
     [SCREENS.WORKSPACE.DISTANCE_RATES_WORK_ARRANGEMENT]: {
@@ -1101,10 +1126,12 @@ type SettingsNavigatorParamList = {
         policyID: string;
         subPage?: string;
         authType?: string;
+        isMigration?: string;
     };
     [SCREENS.WORKSPACE.ACCOUNTING.NETSUITE_SETUP]: {
         policyID: string;
         accountID?: string;
+        isMigration?: string;
     };
     [SCREENS.WORKSPACE.ACCOUNTING.NETSUITE_IMPORT]: {
         policyID: string;
@@ -1455,6 +1482,9 @@ type SettingsNavigatorParamList = {
         policyID: string;
     };
     [SCREENS.WORKSPACE.ACCOUNTING.DUALENTRY_BILL_PAYMENT_ACCOUNT]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.ACCOUNTING.DUALENTRY_FX_EXPENSE_ACCOUNT]: {
         policyID: string;
     };
     [SCREENS.WORKSPACE.ACCOUNTING.DUALENTRY_EXPENSIFY_CARD_SETTLEMENT_ACCOUNT]: {
@@ -2276,6 +2306,11 @@ type ProfileNavigatorParamList = {
         accountID: string;
         reportID: string;
         login?: string;
+        policyID?: string;
+    };
+    [SCREENS.DYNAMIC_PROFILE_DISPLAY_NAME]: {
+        memberAccountID: string;
+        policyID: string;
     };
 };
 
@@ -3228,6 +3263,13 @@ type WorkspaceSplitNavigatorParamList = {
     [SCREENS.WORKSPACE.RECEIPT_PARTNERS]: {
         policyID: string;
     };
+    [SCREENS.WORKSPACE.CONNECTIONS]: {
+        policyID: string;
+        newConnectionName?: ConnectionName;
+        integrationToDisconnect?: ConnectionName;
+        shouldDisconnectIntegrationBeforeConnecting?: boolean;
+        isIntuitEnterpriseSuite?: string;
+    };
     [SCREENS.WORKSPACE.DYNAMIC_RECEIPT_PARTNERS_INVITE]: {
         policyID: string;
         integration: string;
@@ -3646,6 +3688,9 @@ type AuthScreensParamList = SharedScreensParamList &
         [SCREENS.CONNECTION_COMPLETE]: undefined;
         [NAVIGATORS.SHARE_MODAL_NAVIGATOR]: NavigatorScreenParams<ShareNavigatorParamList>;
         [SCREENS.BANK_CONNECTION_COMPLETE]: undefined;
+        [SCREENS.DYNAMIC_CARD_AUTHENTICATION]: {
+            policyID?: string;
+        };
         [NAVIGATORS.TEST_TOOLS_MODAL_NAVIGATOR]: NavigatorScreenParams<TestToolsModalModalNavigatorParamList>;
         [SCREENS.PRE_MOUNT_BUFFER]: undefined;
     };

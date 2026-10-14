@@ -24,6 +24,14 @@ const isPolicyAdmin = (policy: OnyxInputOrEntry<Policy>, login?: string, shouldC
     getPolicyRole(policy, login, shouldCheckGlobalPolicyRole) === CONST.POLICY.ROLE.ADMIN;
 
 /**
+ * Checks if the current user is an auditor of the policy.
+ *
+ * When `login` belongs to somebody other than the current user, pass `shouldCheckGlobalPolicyRole = false` (see `isPolicyAdmin`).
+ */
+const isPolicyAuditor = (policy: OnyxInputOrEntry<Policy>, login?: string, shouldCheckGlobalPolicyRole = true): boolean =>
+    getPolicyRole(policy, login, shouldCheckGlobalPolicyRole) === CONST.POLICY.ROLE.AUDITOR;
+
+/**
  * Checks if the given account is the owner (creator) of the policy.
  *
  * The account is whoever you pass in, not necessarily the current user — callers resolving another member's role rely
@@ -36,8 +44,9 @@ const isPolicyOwner = (policy: OnyxInputOrEntry<Pick<Policy, 'ownerAccountID'>>,
  *
  * Only a member who was invited to the chat can be removed from it. Everybody else is there by virtue of the
  * workspace configuration, so their membership is governed by that configuration and not by this screen — see the
- * expense chat rules in `contributingGuides/philosophies/SECURITY.md`. That covers admins, the policy owner and
- * approvers, who are auto-added to the chats of everybody who submits to them.
+ * expense chat rules in `contributingGuides/philosophies/SECURITY.md`. That covers admins, the policy owner,
+ * approvers, who are auto-added to the chats of everybody who submits to them, and auditors, who are default members
+ * of every workspace chat.
  *
  * Fails closed on a missing `login`: without one we cannot resolve the member's role, and offering removal for a
  * member whose role is unknown could remove a workspace admin. Both the member list and the member details page must
@@ -56,7 +65,7 @@ const isPolicyOwner = (policy: OnyxInputOrEntry<Pick<Policy, 'ownerAccountID'>>,
  * protection, so every caller must state it even when it is `undefined`.
  */
 const isRoomMemberProtectedByPolicyRole = (policy: OnyxInputOrEntry<Policy>, login: string | undefined, accountID: number | undefined): boolean =>
-    isPolicyOwner(policy, accountID) || !login || isPolicyAdmin(policy, login, false) || isPolicyApprover(policy, login);
+    isPolicyOwner(policy, accountID) || !login || isPolicyAdmin(policy, login, false) || isPolicyAuditor(policy, login, false) || isPolicyApprover(policy, login);
 
 const ALL_POLICY_FEATURES = Object.values(CONST.POLICY.POLICY_FEATURE);
 
@@ -149,6 +158,11 @@ function canMemberWrite(policy: OnyxInputOrEntry<Policy>, login: string, feature
 
 function canMemberAssignRole(policy: OnyxInputOrEntry<Policy>, login: string, role: string | undefined): boolean {
     if (!role) {
+        return false;
+    }
+
+    // Guest role assignment is temporarily disabled until the remaining guest issues are fixed.
+    if (role === CONST.POLICY.ROLE.GUEST) {
         return false;
     }
 
@@ -251,12 +265,6 @@ const isPolicyUser = (policy: OnyxInputOrEntry<Policy>, currentUserLogin?: strin
  * Checks if the current user is a guest of the policy.
  */
 const isPolicyGuest = (policy: OnyxInputOrEntry<Policy>, currentUserLogin?: string): boolean => getPolicyRole(policy, currentUserLogin) === CONST.POLICY.ROLE.GUEST;
-
-/**
- * Checks if the current user is an auditor of the policy
- */
-const isPolicyAuditor = (policy: OnyxInputOrEntry<Policy>, currentUserLogin?: string): boolean =>
-    (policy?.role ?? (currentUserLogin && policy?.employeeList?.[currentUserLogin]?.role)) === CONST.POLICY.ROLE.AUDITOR;
 
 /**
  * Checks if the current user is a workspace or card admin of the policy and the policy has a card product enabled.
