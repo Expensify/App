@@ -64,11 +64,20 @@ function OnboardingPersonalDetailsStub() {
     return <View testID="onboarding-personal-details-stub" />;
 }
 
+// Stands in for the intent list; only whether back lands on it matters.
+function OnboardingPurposeStub() {
+    return <View testID="onboarding-purpose-stub" />;
+}
+
 // The native (`index.native.tsx`) screens are imported directly: only those register the hardware back handler under
 // test, and Jest resolves the web `index.tsx` for a bare `@pages/...` import.
 function OnboardingModalNavigator() {
     return (
         <OnboardingStack.Navigator screenOptions={{headerShown: false}}>
+            <OnboardingStack.Screen
+                name={SCREENS.ONBOARDING.PURPOSE}
+                component={OnboardingPurposeStub}
+            />
             <OnboardingStack.Screen
                 name={SCREENS.ONBOARDING.WORK_EMAIL}
                 component={OnboardingWorkEmail}
@@ -400,9 +409,9 @@ describe('Onboarding work email validation (Android system back)', () => {
         expect(errorMessage).toBe('onboarding.purpose.errorBackButton');
     });
 
-    it('should let a system back press through when the join workspace intent opened work email', async () => {
-        // Given the intent list sent the user to work email after they picked "Join my company workspace", so there
-        // is a real screen behind this one
+    it('should go back to the intent list when the join workspace intent opened work email', async () => {
+        // Given the intent list sent the user to work email after they picked "Join my company workspace", so the
+        // intent list is behind this screen
         await TestHelper.signInWithTestUser();
 
         await act(async () => {
@@ -411,7 +420,7 @@ describe('Onboarding work email validation (Android system back)', () => {
             await Onyx.set(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED, CONST.ONBOARDING_CHOICES.JOIN_WORKSPACE);
         });
 
-        renderOnboardingStack([SCREENS.ONBOARDING.PERSONAL_DETAILS]);
+        renderOnboardingStack([SCREENS.ONBOARDING.PURPOSE]);
 
         await waitForBatchedUpdatesWithAct();
 
@@ -423,7 +432,7 @@ describe('Onboarding work email validation (Android system back)', () => {
 
         await waitForBatchedUpdatesWithAct();
 
-        expect(getOnboardingRouteNames()).toEqual([SCREENS.ONBOARDING.PERSONAL_DETAILS, SCREENS.ONBOARDING.WORK_EMAIL]);
+        expect(getOnboardingRouteNames()).toEqual([SCREENS.ONBOARDING.PURPOSE, SCREENS.ONBOARDING.WORK_EMAIL]);
 
         // Given adding the work email failed, leaving errors that the intent list would render if they followed the user back
         await act(async () => {
@@ -435,13 +444,14 @@ describe('Onboarding work email validation (Android system back)', () => {
         await waitForBatchedUpdatesWithAct();
 
         // When Android's system back button is pressed
-        pressHardwareBack();
+        const consumed = pressHardwareBack();
 
         await waitForBatchedUpdatesWithAct();
 
-        // Then no handler swallows it, the onboarding stack pops as normal, and no error is left behind
+        // Then the screen handles the press like the header back button: it returns to the intent list and no error is left behind
+        expect(consumed).toBe(true);
         await waitFor(() => {
-            expect(getOnboardingRouteNames()).toEqual([SCREENS.ONBOARDING.PERSONAL_DETAILS]);
+            expect(getOnboardingRouteNames()).toEqual([SCREENS.ONBOARDING.PURPOSE]);
         });
         let errorMessage: OnyxEntry<string>;
         await TestHelper.getOnyxData({
@@ -453,5 +463,45 @@ describe('Onboarding work email validation (Android system back)', () => {
         expect(errorMessage).toBeUndefined();
         expect((await getOnboardingValues())?.isMergingAccountBlocked).toBe(false);
         expect((await getOnyxValue(ONYXKEYS.FORMS.ONBOARDING_WORK_EMAIL_FORM))?.errors).toBeFalsy();
+    });
+
+    it('should replace work email with the intent list when the join workspace intent is saved but work email is the only route', async () => {
+        // Given the user picked "Join my company workspace" and then reopened the app, which rebuilds the onboarding
+        // stack with work email as its only route
+        await TestHelper.signInWithTestUser();
+
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {hasCompletedGuidedSetupFlow: false});
+            await Onyx.merge(ONYXKEYS.ACCOUNT, {validated: false});
+            await Onyx.set(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED, CONST.ONBOARDING_CHOICES.JOIN_WORKSPACE);
+        });
+
+        renderOnboardingStack([SCREENS.ONBOARDING.WORK_EMAIL]);
+
+        await waitForBatchedUpdatesWithAct();
+
+        expect(getOnboardingRouteNames()).toEqual([SCREENS.ONBOARDING.WORK_EMAIL]);
+
+        // When Android's system back button is pressed
+        const consumed = pressHardwareBack();
+
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the press is handled here so it cannot close the onboarding modal, and the intent list replaces work
+        // email, matching the header back button
+        expect(consumed).toBe(true);
+        await waitFor(() => {
+            expect(getOnboardingRouteNames()).toEqual([SCREENS.ONBOARDING.PURPOSE]);
+        });
+
+        // Then the "finish setup" error is not shown, because the user had somewhere to go back to
+        let errorMessage: OnyxEntry<string>;
+        await TestHelper.getOnyxData({
+            key: ONYXKEYS.ONBOARDING_ERROR_MESSAGE_TRANSLATION_KEY,
+            callback: (value) => {
+                errorMessage = value ?? undefined;
+            },
+        });
+        expect(errorMessage).toBeUndefined();
     });
 });
