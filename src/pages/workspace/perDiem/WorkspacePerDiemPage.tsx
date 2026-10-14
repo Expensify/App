@@ -38,13 +38,13 @@ import {canMemberWrite, getPerDiemCustomUnit} from '@libs/PolicyUtils';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 
 import {close} from '@userActions/Modal';
-import {deleteWorkspacePerDiemRates, downloadPerDiemCSV, openPolicyPerDiemPage} from '@userActions/Policy/PerDiem';
+import {clearPerDiemRateError, deleteWorkspacePerDiemRates, downloadPerDiemCSV, openPolicyPerDiemPage} from '@userActions/Policy/PerDiem';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {PendingAction} from '@src/types/onyx/OnyxCommon';
+import type {Errors, PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {Rate} from '@src/types/onyx/Policy';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
 
@@ -54,6 +54,7 @@ import {View} from 'react-native';
 
 type SubRateData = {
     pendingAction?: PendingAction;
+    errors?: Errors | null;
     destination: string;
     subRateName: string;
     rate: number;
@@ -74,6 +75,7 @@ function getSubRatesData(customUnitRates: Rate[]) {
             for (const subRate of subRates) {
                 subRatesData.push({
                     pendingAction: rate.pendingAction,
+                    errors: rate.errors,
                     destination: rate.name ?? '',
                     subRateName: subRate.name,
                     rate: subRate.rate,
@@ -200,6 +202,7 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
                         formattedAmount: convertAmountToDisplayString(subRate.rate, subRate.currency),
                         disabled: isDeleting,
                         pendingAction: subRate.pendingAction,
+                        errors: subRate.errors,
                         canEditDestination: canEdit,
                         canEditSubrate: canEdit,
                         canEditAmount: canEdit,
@@ -207,6 +210,7 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
                         onRenameDestination: (newName: string) => renamePerDiemDestinationInline(policyID, subRate.rateID, customUnit, subRate.destination, newName),
                         onRenameSubrate: (newName: string) => renamePerDiemSubrateInline(policyID, subRate.rateID, subRate.subRateID, customUnit, subRate.subRateName, newName),
                         onChangeAmount: (newAmount: string) => updatePerDiemAmountInline(policyID, subRate.rateID, subRate.subRateID, customUnit, subRate.rate, newAmount),
+                        dismissError: () => clearPerDiemRateError(policyID, customUnit?.customUnitID ?? '', subRate.rateID),
                     };
                 }),
         [allSubRates, isOffline, openSubRateDetails, canWritePerDiem, isSelectionModeActive, policyID, customUnit],
