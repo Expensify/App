@@ -11,7 +11,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {getCardDetailsPathForCard} from '@libs/CardUtils';
+import getCardDetailsPathForCard from '@libs/Navigation/helpers/getCardDetailsPathForCard';
 
 import Navigation from '@navigation/Navigation';
 import type {PlatformStackScreenProps} from '@navigation/PlatformStackNavigation/types';
