@@ -512,6 +512,9 @@ function clearMoneyRequestPolicyFields(transactionID: string) {
         taxCode: '',
         taxAmount: null,
         taxValue: null,
+        comment: {
+            attendees: null,
+        },
     });
 }
 
