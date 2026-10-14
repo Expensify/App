@@ -14,7 +14,6 @@ import CONST from '@src/CONST';
 import type {GeneratedRuleType, GeneratedRuleValues} from '@src/types/onyx/GeneratedRule';
 
 import React, {useState} from 'react';
-import {View} from 'react-native';
 
 import DescribeRuleForm from './DescribeRuleForm';
 
@@ -65,21 +64,21 @@ function DescribeRuleModal({isVisible, onClose, policyID, ruleType, onRuleGenera
             shouldHandleNavigationBack
             enableEdgeToEdgeBottomSafeAreaPadding
         >
-            <View style={[styles.mt5, styles.mh5]}>
+            <DescribeRuleForm
+                key={formKey}
+                policyID={policyID}
+                ruleType={ruleType}
+                isActive={isVisible}
+                shouldFocusInput
+                submitButtonText={translate('common.next')}
+                inputContainerStyle={styles.describeRulePromptInput}
+                style={[styles.mt5, styles.mh5]}
+                addBottomSafeAreaPadding={isSmallScreenWidth}
+                onRuleGenerated={onRuleGenerated}
+                onFinish={onClose}
+            >
                 <Text style={[styles.textNormal, styles.textSupporting, styles.mb5]}>{translate('workspace.rules.newRule.describeRule')}</Text>
-                <DescribeRuleForm
-                    key={formKey}
-                    policyID={policyID}
-                    ruleType={ruleType}
-                    isActive={isVisible}
-                    shouldFocusInput
-                    submitButtonText={translate('common.next')}
-                    inputContainerStyle={styles.describeRulePromptInput}
-                    addBottomSafeAreaPadding={isSmallScreenWidth}
-                    onRuleGenerated={onRuleGenerated}
-                    onFinish={onClose}
-                />
-            </View>
+            </DescribeRuleForm>
         </Modal>
     );
 }

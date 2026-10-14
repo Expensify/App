@@ -11,6 +11,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 
+import DescribeRulePage from '@pages/workspace/rules/DescribeRulePage';
 import RulesNewPage from '@pages/workspace/rules/RulesNewPage';
 
 import CONST from '@src/CONST';
@@ -126,6 +127,7 @@ jest.mock('@components/Form/FormProvider', () => {
 });
 
 type RulesNewPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.RULES_NEW>;
+type DescribeRulePageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.RULES_DESCRIBE>;
 
 const POLICY_ID = 'policy1';
 
@@ -144,6 +146,16 @@ async function renderRulesNewPage() {
         navigation: {},
     } as unknown as RulesNewPageProps;
     render(<RulesNewPage {...props} />);
+    await waitForBatchedUpdatesWithAct();
+}
+
+async function renderDescribeRulePage() {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- test-only screen props. The page reads only route.params.
+    const props = {
+        route: {key: 'Rules_Describe', name: SCREENS.WORKSPACE.RULES_DESCRIBE, params: {policyID: POLICY_ID}},
+        navigation: {},
+    } as unknown as DescribeRulePageProps;
+    render(<DescribeRulePage {...props} />);
     await waitForBatchedUpdatesWithAct();
 }
 
@@ -178,7 +190,7 @@ function getAddPolicyAgentRuleCalls(writeSpy: WriteSpy) {
     return writeSpy.mock.calls.filter(([command]) => command === WRITE_COMMANDS.ADD_POLICY_AGENT_RULE);
 }
 
-describe('RulesNewPage describe flow', () => {
+describe('Describe your rule', () => {
     let writeSpy: WriteSpy;
 
     beforeEach(() => {
@@ -195,33 +207,34 @@ describe('RulesNewPage describe flow', () => {
         });
     });
 
-    it('shows the describe form above the rule types', async () => {
+    it('lists Describe your rule first, and it opens its own page', async () => {
         // Given an admin on the New rule page
-
-        // When the page renders
         await renderRulesNewPage();
 
-        // Then the admin can describe the rule, or start from one of the rule types below the form
-        expect(screen.getByText('workspace.rules.newRule.buildUsingAI')).toBeOnTheScreen();
-        expect(screen.getByLabelText('workspace.rules.newRule.buildRule')).toBeOnTheScreen();
-        expect(screen.getByText('workspace.rules.newRule.startFromScratch')).toBeOnTheScreen();
+        // When the admin looks at the options
         const options = screen.getAllByRole('button');
+
+        // Then describing comes first, before the four rule types, so the admin can describe the rule before picking a rule type
         const expectedOptionNames = [
+            'workspace.rules.newRule.describeYourRule',
             'workspace.rules.newRule.restrictCardSpend',
             'workspace.rules.newRule.flagForReview',
             'workspace.rules.newRule.requireFields',
             'workspace.rules.newRule.applyExpenseDefaults',
-            'workspace.rules.newRule.createAgentRule',
         ];
         expect(options).toHaveLength(expectedOptionNames.length);
         for (const [index, name] of expectedOptionNames.entries()) {
             expect(options.at(index)).toHaveAccessibleName(name);
         }
+
+        // And it opens the describe page in the RHP
+        fireEvent.press(screen.getByLabelText('workspace.rules.newRule.describeYourRule'));
+        expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.RULES_DESCRIBE.getRoute(POLICY_ID));
     });
 
     it('seeds the draft of the generated rule type and opens its editor', async () => {
-        // Given the admin described a flag for review rule from New rule, so the request lets Concierge pick the rule type
-        await renderRulesNewPage();
+        // Given the admin described a flag for review rule on the describe page, so the request lets Concierge pick the rule type
+        await renderDescribeRulePage();
         const {generationID, ruleType} = describeRule(writeSpy, 'Flag expenses over $500');
         expect(ruleType).toBeUndefined();
 
@@ -240,7 +253,7 @@ describe('RulesNewPage describe flow', () => {
 
     it('scopes an expense defaults draft to a merchant rule', async () => {
         // Given the admin described an expense default for a merchant
-        await renderRulesNewPage();
+        await renderDescribeRulePage();
         const {generationID} = describeRule(writeSpy, 'Set Uber expenses to not billable');
 
         // When Concierge answers with an expense defaults rule
@@ -262,7 +275,7 @@ describe('RulesNewPage describe flow', () => {
             // Given an admin described something no standard rule can do
             const logSpy = jest.spyOn(Log, 'info');
             const prompt = 'Block gift cards and require receipts over $50';
-            await renderRulesNewPage();
+            await renderDescribeRulePage();
             const {generationID} = describeRule(writeSpy, prompt);
 
             // When Concierge answers that it is not one standard rule
@@ -280,8 +293,8 @@ describe('RulesNewPage describe flow', () => {
     );
 
     it.each([undefined, 'futureRuleType'])('shows the unsupported error when a rule answer has the rule type %s', async (generatedRuleType) => {
-        // Given an admin described a rule from New rule
-        await renderRulesNewPage();
+        // Given an admin described a rule on the describe page
+        await renderDescribeRulePage();
         const {generationID} = describeRule(writeSpy, 'Flag expenses over $500');
 
         // When Concierge answers with a rule but with no rule type, or with a rule type that this app version does not know
@@ -299,29 +312,12 @@ describe('RulesNewPage describe flow', () => {
         expect(Navigation.navigate).not.toHaveBeenCalled();
     });
 
-    it('shows that the rule is building in place of the rule types', async () => {
-        // Given the admin described a rule from New rule
-        await renderRulesNewPage();
-        describeRule(writeSpy, 'Flag expenses over $500');
-
-        // When the form waits for the answer
-        await act(async () => {
-            await Onyx.merge(ONYXKEYS.FORMS.NEW_RULE_PROMPT_FORM, {isLoading: true});
-        });
-        await waitForBatchedUpdatesWithAct();
-
-        // Then the page says the rule is building and hides the rule types, so the admin does not start a second rule
-        expect(screen.getByText('workspace.rules.newRule.buildingRule')).toBeOnTheScreen();
-        expect(screen.queryByText('workspace.rules.newRule.startFromScratch')).toBeNull();
-        expect(screen.queryByLabelText('workspace.rules.newRule.flagForReview')).toBeNull();
-    });
-
     it('loads the policy categories when the workspace uses categories and none are loaded', async () => {
         // Given a workspace that uses categories, with no categories loaded
         setAdminPolicy(true);
 
-        // When the New rule page opens
-        await renderRulesNewPage();
+        // When the describe page opens
+        await renderDescribeRulePage();
 
         // Then the page requests the categories, because the describe form keeps only a category that the workspace has
         expect(openPolicyCategoriesPage).toHaveBeenCalledWith(POLICY_ID);
@@ -329,7 +325,7 @@ describe('RulesNewPage describe flow', () => {
 
     it('keeps the inline error for an unintelligible description', async () => {
         // Given an admin typed something Concierge cannot read
-        await renderRulesNewPage();
+        await renderDescribeRulePage();
         const {generationID} = describeRule(writeSpy, 'asdf qwerty zxcv');
 
         // When Concierge answers that the description is unintelligible
