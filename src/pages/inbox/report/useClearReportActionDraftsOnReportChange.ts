@@ -1,4 +1,5 @@
 import useIsInSidePanel from '@hooks/useIsInSidePanel';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 
 import {clearAllReportActionDrafts, clearReportActionDrafts} from '@libs/actions/Report';
 
@@ -7,10 +8,12 @@ import {useEffect} from 'react';
 // When the report screen is navigated away from or the report changes, clear all report action edit drafts
 function useClearReportActionDraftsOnReportChange(reportID: string | undefined) {
     const isInSidePanel = useIsInSidePanel();
+    const {isExtraLargeScreenWidth} = useResponsiveLayout();
+    // Only the docked panel sits beside a usable chat, the narrow modal covers it like a new page on native
+    const isDockedSidePanel = isInSidePanel && isExtraLargeScreenWidth;
 
     useEffect(() => {
-        // The side panel report renders next to the central report, so opening or closing it only discards the side panel report's own edit draft
-        if (isInSidePanel) {
+        if (isDockedSidePanel) {
             clearReportActionDrafts(reportID);
 
             return () => {
@@ -23,7 +26,7 @@ function useClearReportActionDraftsOnReportChange(reportID: string | undefined) 
         return () => {
             clearAllReportActionDrafts();
         };
-    }, [reportID, isInSidePanel]);
+    }, [reportID, isDockedSidePanel]);
 }
 
 export default useClearReportActionDraftsOnReportChange;
