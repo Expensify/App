@@ -241,11 +241,13 @@ function MapView({
         mapHeading.set(e.properties.heading ?? 0);
     };
 
-    const canCenterOnCurrentPosition = currentPositionLongitude !== undefined && currentPositionLatitude !== undefined;
+    // Only a real, displayed user location is something to alternate with. currentPosition falls back to initialState
+    // (e.g. the first waypoint), which would otherwise make the first press zoom into that waypoint instead of framing the route.
+    const canCenterOnCurrentPosition = shouldDisplayCurrentLocation && !!userLocation;
     const {singleWaypointCoordinate, hasWaypointsTarget} = utils.getCenterTargets(
         waypoints,
         allDirectionCoordinates,
-        canCenterOnCurrentPosition ? [currentPositionLongitude, currentPositionLatitude] : undefined,
+        canCenterOnCurrentPosition ? [userLocation.longitude, userLocation.latitude] : undefined,
     );
 
     // The waypoints can disappear after the user centered on their location, so the button only offers them while they are still a target.

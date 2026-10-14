@@ -1,4 +1,4 @@
-import type {AlternateDirection, Coordinate} from '@components/MapView/MapViewTypes';
+import type {AlternateDirection, Coordinate, WayPoint} from '@components/MapView/MapViewTypes';
 import utils from '@components/MapView/utils';
 
 const SINGLE_SEGMENT: Coordinate[] = [
@@ -184,6 +184,40 @@ describe('MapView utils', () => {
 
         it('returns nothing when there are no coordinates', () => {
             expect(utils.getSinglePointCoordinate([], undefined)).toBeUndefined();
+        });
+    });
+
+    describe('getCenterTargets', () => {
+        const START: WayPoint = {id: 'start', coordinate: [10, 10], markerType: 'START_WAYPOINT'};
+        const STOP: WayPoint = {id: 'stop', coordinate: [20, 20], markerType: 'STOP_WAYPOINT'};
+
+        it('offers the route when there is no real user location to alternate with', () => {
+            // Given a route with two waypoints and no user location (e.g. location access was never granted)
+            // When resolving what the center button can target
+            const targets = utils.getCenterTargets([START, STOP], undefined, undefined);
+
+            // Then the route is a target, so the first press frames it instead of zooming into the initialState fallback
+            expect(targets.hasWaypointsTarget).toBe(true);
+            expect(targets.singleWaypointCoordinate).toBeUndefined();
+        });
+
+        it('offers a lone waypoint when there is no real user location', () => {
+            // Given a single waypoint and no user location
+            // When resolving what the center button can target
+            const targets = utils.getCenterTargets([START], undefined, undefined);
+
+            // Then the lone waypoint is the target the button centers on
+            expect(targets.hasWaypointsTarget).toBe(true);
+            expect(targets.singleWaypointCoordinate).toEqual(START.coordinate);
+        });
+
+        it('does not offer a lone waypoint that sits on the user location', () => {
+            // Given a single waypoint placed exactly at the user's location
+            // When resolving what the center button can target
+            const targets = utils.getCenterTargets([START], undefined, START.coordinate);
+
+            // Then there is nothing to alternate with, as both targets are the same spot
+            expect(targets.hasWaypointsTarget).toBe(false);
         });
     });
 
