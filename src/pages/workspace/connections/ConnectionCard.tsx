@@ -134,6 +134,7 @@ function ConnectionCard({listing, shouldUseFullWidth}: ConnectionCardProps) {
                 onPress={status ? onConfigure : onConnect}
                 sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.CONNECTIONS.CARD}
                 interactive={!rightComponent}
+                // On iOS, disable row grouping when a custom action needs its own VoiceOver focus.
                 shouldBeAccessible={rightComponent ? getPlatform() !== CONST.PLATFORM.IOS : undefined}
                 accessibilityLabel={badgeText ? `${title}, ${badgeText}` : undefined}
                 disabled={!rightComponent && !status && (isOffline || !!isLoading)}

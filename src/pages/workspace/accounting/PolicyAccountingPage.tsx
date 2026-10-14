@@ -403,6 +403,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                             )}
                             <MenuItem.Root
                                 accessibilityLabel={`${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY.exactOnline}, ${translate('workspace.accounting.exactOnline.comingSoon')}`}
+                                // On iOS, disable row grouping so VoiceOver can focus the nested waitlist button.
                                 shouldBeAccessible={getPlatform() !== CONST.PLATFORM.IOS}
                                 style={styles.sectionMenuItemTopDescription}
                             >
