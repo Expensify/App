@@ -211,7 +211,7 @@ function ConciergeFeedbackPrompt({
 
     if (shouldPersistAfterRating && hasRated) {
         return (
-            <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap2, styles.mt2]}>
+            <View style={[styles.flexColumn, styles.alignItemsStart, styles.gap2, styles.mt2]}>
                 {isDisplayedThankMessage && <Text style={styles.textLabelSupporting}>{translate('concierge.feedback.thanks')}</Text>}
                 {feedbackThumbs}
             </View>
