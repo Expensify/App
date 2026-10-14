@@ -8768,7 +8768,6 @@ function buildOptimisticReportPreview(
     reportActionID?: string,
 ): ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW> {
     const hasReceipt = hasReceiptTransactionUtils(transaction);
-    // Don't need
     const message = getReportPreviewReportActionMessage({reportOrID: iouReport}, getCurrencyDecimals);
     const created = DateUtils.getDBTime();
     const reportActorAccountID = (isInvoiceReport(iouReport) || isExpenseReport(iouReport) ? iouReport?.ownerAccountID : iouReport?.managerID) ?? -1;
@@ -9022,7 +9021,6 @@ function updateReportPreview(
             }
         }
     }
-    // Implement
     const message = getReportPreviewReportActionMessage({reportOrID: iouReport, iouReportAction: reportPreviewAction}, getCurrencyDecimals);
     const originalMessage = getOriginalMessage(reportPreviewAction);
     return {
