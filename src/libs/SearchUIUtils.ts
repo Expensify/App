@@ -41,6 +41,7 @@ import type {
     SearchDateFilterKeys,
     SearchDatePreset,
     SearchFilterKey,
+    SearchFooterTotal,
     SearchGroupBy,
     SearchPaidStatus,
     SearchQueryJSON,
@@ -182,6 +183,7 @@ import {
     getTransactionDisplayAmount,
     hasHeldExpenses,
     hasInvoiceReports,
+    hasReportBeenRejectedToSubmitter,
     isAllowedToApproveExpenseReport as isAllowedToApproveExpenseReportUtils,
     isArchivedReport,
     isClosedReport,
@@ -212,7 +214,6 @@ import {
     isSearchDatePreset,
     removeNegation,
     sortOptionsWithEmptyValue,
-    withExactMatchFilterKeys,
 } from './SearchQueryUtils';
 import {expenseStatusActionMapping, getSuggestedSearches, isEligibleForStatus, SEARCH_TYPE_MENU_ICON_NAMES} from './SearchSuggestionUtils';
 import StringUtils from './StringUtils';
@@ -226,6 +227,7 @@ import {
     getMCCForDisplay,
     getOriginalAmountForDisplay,
     getReceiptTypeTranslationKey,
+    getReimbursable,
     getReportOwnerAccountIDAsAttendee,
     getReportOwnerAsAttendee,
     getTag,
@@ -658,6 +660,9 @@ const SKIPPED_SEARCH_FILTERS = new Set([
     FILTER_KEYS.ACTION,
     FILTER_KEYS.COLUMNS,
     FILTER_KEYS.KEYWORD,
+    FILTER_KEYS.FOOTER_COUNT,
+    FILTER_KEYS.FOOTER_TOTAL,
+    FILTER_KEYS.FOOTER_CURRENCY,
     FILTER_KEYS.EXPORTER,
 ]);
 
@@ -2573,7 +2578,8 @@ function getReportActionsSections(
     for (const key in data) {
         if (isReportActionEntry(key)) {
             const reportIDFromKey = key.replace(ONYXKEYS.COLLECTION.REPORT_ACTIONS, '');
-            const reportActions = Object.values(data[key]);
+            const reportActionsCollection = data[key];
+            const reportActions = Object.values(reportActionsCollection);
             n += reportActions.length;
             for (const reportAction of reportActions) {
                 // Always use the container reportID so "In <chat name>" rows open the parent chat, not a child task/thread report.
@@ -2590,7 +2596,7 @@ function getReportActionsSections(
                 const isReportArchived = isArchivedReport(data[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`]);
                 if (
                     !reportID ||
-                    !isReportActionVisible(reportAction, reportID, canUserPerformWriteAction(report, isReportArchived), visibleReportActionsData) ||
+                    !isReportActionVisible(reportAction, reportID, canUserPerformWriteAction(report, isReportArchived), visibleReportActionsData, undefined, reportActionsCollection) ||
                     isDeletedAction(reportAction) ||
                     isResolvedActionableWhisper(reportAction) ||
                     reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.CLOSED ||
@@ -2874,7 +2880,7 @@ function getReportSections({
                 const reportIsArchived = isArchivedReport(getReportNameValuePairsFromKey(data, reportItem));
                 const avatarProps = getSearchReportAvatarProps(reportItem, formatPhoneNumber, translate, mergedPersonalDetails, policy, reportIsArchived, conciergeReportID);
 
-                const isRejectedReport = reportItem.stateNum === CONST.REPORT.STATE_NUM.OPEN && reportItem.nextStep?.messageKey === CONST.NEXT_STEP.MESSAGE_KEY.REJECTED_REPORT;
+                const isRejectedReport = hasReportBeenRejectedToSubmitter(reportItem);
                 const shouldHidePayAsPrimaryAction = isPayOptional(reportItem, allReportTransactions);
                 const primaryActionExclusions: SearchTransactionAction[] = [
                     ...(shouldHidePayAsPrimaryAction ? [CONST.SEARCH.ACTION_TYPES.PAY] : []),
@@ -3050,11 +3056,7 @@ function buildSpecificGroupQuery(queryJSON: SearchQueryJSON, filterKey: QueryFil
         sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
         flatFilters: newFlatFilters,
     };
-    const specificGroupQueryJSON = buildSearchQueryJSON(buildSearchQueryString(newQueryJSON));
-    if (!specificGroupQueryJSON || filterKey !== CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT) {
-        return specificGroupQueryJSON;
-    }
-    return withExactMatchFilterKeys(specificGroupQueryJSON, [filterKey]);
+    return buildSearchQueryJSON(buildSearchQueryString(newQueryJSON));
 }
 
 function getActiveGroupSearchHashes(data: OnyxTypes.SearchResults['data'] | undefined, queryJSON: Readonly<SearchQueryJSON> | undefined): number[] {
@@ -4715,6 +4717,38 @@ function isTransactionSearchType(type: string | undefined): boolean {
     return type === CONST.SEARCH.DATA_TYPES.EXPENSE || type === CONST.SEARCH.DATA_TYPES.INVOICE;
 }
 
+/**
+ * The breakdown a snapshot's total answers. A settled snapshot with no stamp predates it, when only the plain total was
+ * asked for. One with neither is a response still landing, whose stamp follows, so it is unknown.
+ */
+function getSnapshotFooterTotal(search: OnyxEntry<OnyxTypes.SearchResults['search']>): SearchFooterTotal | undefined {
+    if (search?.footerTotal) {
+        return search.footerTotal;
+    }
+    return search?.state === CONST.SEARCH.SNAPSHOT_STATE.LOADED ? CONST.SEARCH.FOOTER_TOTAL.TOTAL : undefined;
+}
+
+/**
+ * Whether an expense belongs in the total the Spend footer is showing. Reimbursable is the product default, so only
+ * an explicit `false` makes an expense non-reimbursable — read through `getReimbursable`, the same helper the row's
+ * own Reimbursable column renders. Billable works the other way round. Every consumer of a footer breakdown goes
+ * through this, so a snapshot total, a live to-do total and a selection subtotal classify a row identically.
+ */
+function doesTransactionMatchFooterTotal(transaction: OnyxEntry<OnyxTypes.Transaction>, totalType: SearchFooterTotal | undefined): boolean {
+    switch (totalType) {
+        case CONST.SEARCH.FOOTER_TOTAL.REIMBURSABLE:
+            return !!transaction && getReimbursable(transaction);
+        case CONST.SEARCH.FOOTER_TOTAL.NON_REIMBURSABLE:
+            return !!transaction && !getReimbursable(transaction);
+        case CONST.SEARCH.FOOTER_TOTAL.BILLABLE:
+            return !!transaction && transaction.billable === true;
+        case CONST.SEARCH.FOOTER_TOTAL.NON_BILLABLE:
+            return !!transaction && transaction.billable !== true;
+        default:
+            return true;
+    }
+}
+
 function isTodoSearch(recentSearchHash: number, suggestedSearches: Record<string, SearchTypeMenuItem>) {
     const matchedSearchKey = Object.values(suggestedSearches).find((search) => search.recentSearchHash === recentSearchHash)?.key;
     return !!matchedSearchKey && TODO_SEARCH_KEYS.has(matchedSearchKey);
@@ -5362,6 +5396,22 @@ function getViewOptions(translate: LocalizedTranslate) {
     return Object.values(CONST.SEARCH.VIEW).map<SingleSelectItem<SearchView>>((value) => ({text: translate(`search.view.${value}`), value}));
 }
 
+/**
+ * The options the Spend footer's total selector offers, in display order. `Total spend` is the default and always
+ * applies. The four aggregates are computed by the backend, so picking one re-runs the search.
+ */
+function getFooterTotalItems(translate: LocalizedTranslate) {
+    const labels: Record<SearchFooterTotal, string> = {
+        [CONST.SEARCH.FOOTER_TOTAL.TOTAL]: translate('common.spend'),
+        [CONST.SEARCH.FOOTER_TOTAL.REIMBURSABLE]: translate('common.reimbursable'),
+        [CONST.SEARCH.FOOTER_TOTAL.NON_REIMBURSABLE]: translate('common.nonReimbursable'),
+        [CONST.SEARCH.FOOTER_TOTAL.BILLABLE]: translate('common.billable'),
+        [CONST.SEARCH.FOOTER_TOTAL.NON_BILLABLE]: translate('common.nonBillable'),
+    };
+
+    return Object.values(CONST.SEARCH.FOOTER_TOTAL).map<SingleSelectItem<SearchFooterTotal>>((value) => ({text: labels[value], value}));
+}
+
 function getCurrencyOptions(currencyList: OnyxTypes.CurrencyList, getCurrencySymbol: CurrencyListActionsContextType['getCurrencySymbol']) {
     return Object.keys(currencyList).reduce(
         (options, currencyCode) => {
@@ -5993,6 +6043,16 @@ function getDisplayValue(
         return form[key]?.map((receiptType) => translate(getReceiptTypeTranslationKey(receiptType))).join(', ');
     }
 
+    if (key === FILTER_KEYS.MERCHANT) {
+        const merchant = form[key];
+        if (!merchant) {
+            return;
+        }
+
+        const matchTypeKey = form[FILTER_KEYS.MERCHANT_OPERATOR] === CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO ? 'search.filters.merchant.equalTo' : 'search.filters.merchant.contains';
+        return translate(matchTypeKey, merchant);
+    }
+
     if (key === FILTER_KEYS.TRANSACTION_STATUS) {
         const transactionStatus = form[key];
         return transactionStatus ? translate(`search.filters.transactionStatus.${transactionStatus}`) : undefined;
@@ -6043,6 +6103,11 @@ function hasFilterContentValuesChanged(
 
     if (!deepEqual(getFilterNegatableValue(baseFilterKey, previousValues), getFilterNegatableValue(baseFilterKey, values))) {
         return true;
+    }
+
+    // The Merchant content also reads its match type.
+    if (baseFilterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT) {
+        return previousValues?.[FILTER_KEYS.MERCHANT_OPERATOR] !== values?.[FILTER_KEYS.MERCHANT_OPERATOR];
     }
 
     if (isTextFilterKey(baseFilterKey)) {
@@ -7325,6 +7390,8 @@ function isTransactionMatchWithGroupItem(transaction: OnyxTypes.Transaction, gro
 }
 
 export {
+    doesTransactionMatchFooterTotal,
+    getSnapshotFooterTotal,
     getSearchBulkEditPolicyID,
     getSuggestedSearches,
     getSections,
@@ -7381,6 +7448,7 @@ export {
     getSortOrderOptions,
     getGroupBySections,
     getViewOptions,
+    getFooterTotalItems,
     getCurrencyOptions,
     getFeedOptions,
     getWideAmountIndicators,

@@ -579,6 +579,10 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.WORKSPACE.ACCOUNTING.INTUIT_ENTERPRISE_SUITE_ENTITY_SELECTOR]: {
                             path: ROUTES.POLICY_ACCOUNTING_INTUIT_ENTERPRISE_SUITE_ENTITY_SELECTOR.route,
                         },
+                        [SCREENS.WORKSPACE.CONNECTIONS_ACCOUNTING]: {path: ROUTES.WORKSPACE_CONNECTIONS_ACCOUNTING.route},
+                        [SCREENS.WORKSPACE.CONNECTIONS_HR]: {path: ROUTES.WORKSPACE_CONNECTIONS_HR.route},
+                        [SCREENS.WORKSPACE.CONNECTIONS_RECRUITING]: {path: ROUTES.WORKSPACE_CONNECTIONS_RECRUITING.route},
+                        [SCREENS.WORKSPACE.CONNECTIONS_RECEIPT_PARTNERS]: {path: ROUTES.WORKSPACE_CONNECTIONS_RECEIPT_PARTNERS.route},
                         [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_ONLINE_IMPORT]: {path: ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_IMPORT.route},
                         [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_ONLINE_CHART_OF_ACCOUNTS]: {path: ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_CHART_OF_ACCOUNTS.route},
                         [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_ONLINE_CLASSES]: {path: ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_CLASSES.route},
@@ -1318,6 +1322,8 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.SETTINGS.DYNAMIC_KEYBOARD_SHORTCUTS]: DYNAMIC_ROUTES.KEYBOARD_SHORTCUTS.path,
                         [SCREENS.SETTINGS.DYNAMIC_BETA_OVERRIDES]: DYNAMIC_ROUTES.BETA_OVERRIDES.path,
                         [SCREENS.WORKSPACE.NAME]: ROUTES.WORKSPACE_OVERVIEW_NAME.route,
+                        [SCREENS.WORKSPACE.OFFICE_LOCATION_ADD]: ROUTES.WORKSPACE_OVERVIEW_OFFICE_LOCATION_ADD.route,
+                        [SCREENS.WORKSPACE.OFFICE_LOCATION_EDIT]: ROUTES.WORKSPACE_OVERVIEW_OFFICE_LOCATION_EDIT.route,
                         [SCREENS.SETTINGS.SHARE_CODE]: {
                             path: ROUTES.SETTINGS_SHARE_CODE,
                         },
@@ -2497,6 +2503,9 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                                 },
                                 [SCREENS.WORKSPACE.RECEIPT_PARTNERS]: {
                                     path: ROUTES.WORKSPACE_RECEIPT_PARTNERS.route,
+                                },
+                                [SCREENS.WORKSPACE.CONNECTIONS]: {
+                                    path: ROUTES.WORKSPACE_CONNECTIONS.route,
                                 },
                                 [SCREENS.WORKSPACE.WORKFLOWS]: {
                                     path: ROUTES.WORKSPACE_WORKFLOWS.route,
