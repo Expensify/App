@@ -122,18 +122,19 @@ This document lists all implemented telemetry metrics in the Expensify App.
 **Constant**: `CONST.TELEMETRY.SPAN_SEARCH_ROUTER_QUERY`
 **Sentry Name**: `ManualSearchRouterQuery`
 **Threshold**: None yet. P90 is set after about 2 weeks of baseline data, per `SIZE_TIER`.
-**What's Measured**: Time from a debounced query being applied to the autocomplete list committing that query while the Search Router is open. The 300ms debounce delay is excluded from the span, and rapid keystrokes within that window coalesce into a single measured query evaluation. At most `CONST.TELEMETRY.SEARCH_ROUTER_MAX_MEASURED_QUERIES_PER_OPEN` query attempts are started per open session (cancelled attempts also count towards this cap).
-**Start**: Debounce timer fires with a new value, before React renders it ([`src/hooks/useDebouncedState.ts`](https://github.com/Expensify/App/blob/main/src/hooks/useDebouncedState.ts), [`src/components/Search/SearchRouter/SearchRouter.tsx`](https://github.com/Expensify/App/blob/main/src/components/Search/SearchRouter/SearchRouter.tsx), [`src/libs/telemetry/searchRouterQuerySpans.ts`](https://github.com/Expensify/App/blob/main/src/libs/telemetry/searchRouterQuerySpans.ts))
+**What's Measured**: Time from an input keystroke that produced a query to the autocomplete list committing updated suggestions while the Search Router is open. Rapid keystrokes coalesce so that each evaluation is measured from the keystroke that actually produced the query. At most `CONST.TELEMETRY.SEARCH_ROUTER_MAX_MEASURED_QUERIES_PER_OPEN` query attempts are started per open session.
+**Start**: The input keystroke that produced the query, recorded in `onSearchQueryChange`. The span starts at that input timestamp once the query settles for evaluation ([`src/components/Search/SearchRouter/SearchRouter.tsx`](https://github.com/Expensify/App/blob/main/src/components/Search/SearchRouter/SearchRouter.tsx), [`src/libs/telemetry/searchRouterQuerySpans.ts`](https://github.com/Expensify/App/blob/main/src/libs/telemetry/searchRouterQuerySpans.ts))
 **End**:
 - User sees: Autocomplete list updated for the typed query
 - Technical: Layout effect after the commit for that query via `markSearchRouterQueryCommitted()` ([`src/components/Search/SearchAutocompleteList.tsx`](https://github.com/Expensify/App/blob/main/src/components/Search/SearchAutocompleteList.tsx), [`src/libs/telemetry/searchRouterQuerySpans.ts`](https://github.com/Expensify/App/blob/main/src/libs/telemetry/searchRouterQuerySpans.ts)). The list's initial mount commit cancels the span as `list_mount` so initial open latency is left to `ManualOpenSearchRouter`.
 **Attributes**:
-- `query_length_bucket`: bucketed free-text length (`0-empty`, `1-short`, `2-medium`, `3-long`, `4-very-long`) with syntax filters stripped; query text is never recorded
-- `has_filter`: boolean indicating whether the query contains syntax filters or autocomplete tokens
-- `autocomplete_key`: syntax filter key being autocompleted (e.g. `to`, `in`) or `'none'`
+- `query_length_bucket`: bucketed free-text character length with syntax filters stripped (`0-empty`: 0 chars, `1-short`: 1–2 chars, `2-medium`: 3–5 chars, `3-long`: 6–12 chars, `4-very-long`: >12 chars). Prefixed with numbers so Sentry sorts them in order; query text is never recorded
+- `has_filter`: boolean indicating whether the query contains syntax filters or autocomplete tokens (even when multiple filters like `from:` and `in:` are combined in the same query)
+- `autocomplete_key`: single syntax filter key currently being actively autocompleted under the cursor (e.g. `to`, `in`, normalized `reportField` for dynamic fields) or `'none'`. Only one filter can be actively autocompleted at a time; queries combining multiple filters are captured by `has_filter`
 - `query_ordinal`: 1-indexed attempt number in the current session (up to `CONST.TELEMETRY.SEARCH_ROUTER_MAX_MEASURED_QUERIES_PER_OPEN`)
 - `result_count`: number of matching suggestions (`recentReports` + `personalDetails`)
-- `cancel_reason`: cancellation reason when cancelled (`superseded`, `cleared`, `closed`, `unmounted`, `list_mount`, `timed_out`). A span running longer than `CONST.TELEMETRY.SEARCH_ROUTER_QUERY_MAX_DURATION_MS` is cancelled as `timed_out`.
+- `render_duration_ms`: duration in milliseconds spent strictly in JavaScript filtering and React layout commit, isolating execution time from any input settling / debounce delay
+- `cancel_reason`: cancellation reason when cancelled (`superseded`, `cleared`, `closed`, `unmounted`, `list_mount`, `timed_out`). A span running longer than `CONST.TELEMETRY.SEARCH_ROUTER_QUERY_MAX_DURATION_MS`, measured from its input start, is cancelled as `timed_out`.
 
 ### Open Create Expense
 

@@ -2564,6 +2564,7 @@ const CONST = {
         ATTRIBUTE_AUTOCOMPLETE_KEY: 'autocomplete_key',
         ATTRIBUTE_QUERY_ORDINAL: 'query_ordinal',
         ATTRIBUTE_RESULT_COUNT: 'result_count',
+        ATTRIBUTE_RENDER_DURATION_MS: 'render_duration_ms',
         ATTRIBUTE_CANCEL_REASON: 'cancel_reason',
         ATTRIBUTE_IS_STARTUP: 'is_startup',
         ATTRIBUTE_LAZY_TAB_FALLBACK_SHOWN: 'lazy_tab_fallback_shown',

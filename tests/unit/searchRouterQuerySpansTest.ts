@@ -13,6 +13,7 @@ import CONST from '@src/CONST';
 type FakeSpan = {
     op?: string;
     parentSpan?: FakeSpan;
+    startTime?: number;
     attributes: Record<string, unknown>;
     setAttribute: (key: string, value: unknown) => void;
     setAttributes: (attrs: Record<string, unknown>) => void;
@@ -20,29 +21,45 @@ type FakeSpan = {
     end: () => void;
 };
 
+const mockStarted: FakeSpan[] = [];
 const mockEnded: FakeSpan[] = [];
 
+// Sentry caches its clock on first use, which breaks once Jest swaps `performance` for each test's fake timers.
+jest.mock('@sentry/core', () => ({
+    ...jest.requireActual<Record<string, unknown>>('@sentry/core'),
+    timestampInSeconds: () => performance.now() / 1000,
+}));
+
 jest.mock('@sentry/react-native', () => ({
-    startInactiveSpan: (options: {op?: string; parentSpan?: FakeSpan; attributes?: Record<string, unknown>}): FakeSpan => ({
-        op: options.op,
-        parentSpan: options.parentSpan,
-        attributes: {...options.attributes},
-        setAttribute(key: string, value: unknown) {
-            this.attributes[key] = value;
-        },
-        setAttributes(attrs: Record<string, unknown>) {
-            Object.assign(this.attributes, attrs);
-        },
-        setStatus() {},
-        end() {
-            mockEnded.push(this);
-        },
-    }),
+    startInactiveSpan: (options: {op?: string; parentSpan?: FakeSpan; startTime?: number; attributes?: Record<string, unknown>}): FakeSpan => {
+        const span: FakeSpan = {
+            op: options.op,
+            parentSpan: options.parentSpan,
+            startTime: options.startTime,
+            attributes: {...options.attributes},
+            setAttribute(key: string, value: unknown) {
+                this.attributes[key] = value;
+            },
+            setAttributes(attrs: Record<string, unknown>) {
+                Object.assign(this.attributes, attrs);
+            },
+            setStatus() {},
+            end() {
+                mockEnded.push(this);
+            },
+        };
+        mockStarted.push(span);
+        return span;
+    },
     spanToJSON: (span: FakeSpan) => ({data: span.attributes}),
 }));
 
 const ROOT = CONST.TELEMETRY.SPAN_SEARCH_ROUTER_QUERY;
 const CANCEL_REASON = CONST.TELEMETRY.SEARCH_ROUTER_QUERY_CANCEL_REASON;
+
+function getLastRootStartTime() {
+    return mockStarted.findLast((span) => span.op === ROOT)?.startTime;
+}
 
 function getRootAttributes() {
     const root = mockEnded.find((span) => span.op === ROOT);
@@ -52,6 +69,7 @@ function getRootAttributes() {
 describe('searchRouterQuerySpans', () => {
     beforeEach(() => {
         jest.useFakeTimers();
+        mockStarted.length = 0;
         mockEnded.length = 0;
         beginSearchRouterQuerySession();
     });
@@ -178,6 +196,57 @@ describe('searchRouterQuerySpans', () => {
         // Then it is cancelled as timed_out
         expect(getSpan(ROOT)).toBeUndefined();
         expect(mockEnded.at(0)?.attributes[CONST.TELEMETRY.ATTRIBUTE_CANCEL_REASON]).toBe(CANCEL_REASON.TIMED_OUT);
+    });
+
+    it('backdates the span start to the input change that produced the query', () => {
+        // Given the input changed and the debounce delay then passed
+        const changedAt = performance.now();
+        jest.advanceTimersByTime(CONST.TIMING.SEARCH_OPTION_LIST_DEBOUNCE_TIME);
+
+        // When the debounced query starts its span
+        startSearchRouterQuerySpan('abc', changedAt);
+
+        // Then the span starts at the input change, so the debounce delay is part of the measured latency
+        expect(getLastRootStartTime()).toBeCloseTo((performance.now() - CONST.TIMING.SEARCH_OPTION_LIST_DEBOUNCE_TIME) / 1000, 3);
+    });
+
+    it('starts the span now when the input change time is unknown', () => {
+        // Given no input change time
+        // When the debounced query starts its span
+        startSearchRouterQuerySpan('abc');
+
+        // Then the span starts at the current time
+        expect(getLastRootStartTime()).toBeCloseTo(performance.now() / 1000, 3);
+    });
+
+    it('counts the max duration from the backdated start', () => {
+        // Given a span backdated to an input change one debounce delay ago
+        const changedAt = performance.now();
+        jest.advanceTimersByTime(CONST.TIMING.SEARCH_OPTION_LIST_DEBOUNCE_TIME);
+        startSearchRouterQuerySpan('abc', changedAt);
+
+        // When the max duration since the input change passes
+        jest.advanceTimersByTime(CONST.TELEMETRY.SEARCH_ROUTER_QUERY_MAX_DURATION_MS - CONST.TIMING.SEARCH_OPTION_LIST_DEBOUNCE_TIME);
+
+        // Then it is cancelled as timed_out, since the span's duration is measured from that input change
+        expect(getSpan(ROOT)).toBeUndefined();
+        expect(mockEnded.at(0)?.attributes[CONST.TELEMETRY.ATTRIBUTE_CANCEL_REASON]).toBe(CANCEL_REASON.TIMED_OUT);
+    });
+
+    it('records render_duration_ms measuring the post-debounce commit latency', () => {
+        // Given an active query span
+        const changedAt = performance.now();
+        jest.advanceTimersByTime(CONST.TIMING.SEARCH_OPTION_LIST_DEBOUNCE_TIME);
+        startSearchRouterQuerySpan('abc', changedAt);
+
+        // When the query commits after some rendering time
+        const renderTimeMs = 35;
+        jest.advanceTimersByTime(renderTimeMs);
+        markSearchRouterQueryCommitted('abc');
+
+        // Then render_duration_ms is recorded on the ended span
+        const attributes = getRootAttributes();
+        expect(attributes?.[CONST.TELEMETRY.ATTRIBUTE_RENDER_DURATION_MS]).toBe(renderTimeMs);
     });
 
     it('cancels with the given reason on close and on session end', () => {
