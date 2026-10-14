@@ -59,7 +59,9 @@ export default function WorkspaceMembersTableRow({
 
     const avatarSize = shouldUseNarrowTableLayout ? CONST.AVATAR_SIZE.DEFAULT : CONST.AVATAR_SIZE.SMALL;
     const roleLabel = translate('workspace.common.roleName', item.role);
-    const accessibilityLabel = `${item.name}, ${item.email}, ${roleLabel}`;
+    const bankAccountLabel =
+        !shouldUseNarrowTableLayout && shouldShowBankAccountColumn && item.bankAccountLastFour ? `${translate('paymentMethodList.accountLastFour')} ${item.bankAccountLastFour}` : '';
+    const accessibilityLabel = [item.name, item.email, bankAccountLabel, roleLabel].filter(Boolean).join(', ');
     const memberSubtitle = !shouldUseNarrowTableLayout ? item.email : `${roleLabel} • ${item.email}`;
 
     return (
@@ -145,7 +147,7 @@ export default function WorkspaceMembersTableRow({
                                 <TextWithTooltip
                                     shouldShowTooltip
                                     numberOfLines={1}
-                                    text={`${translate('paymentMethodList.accountLastFour')} ${item.bankAccountLastFour}`}
+                                    text={bankAccountLabel}
                                     style={[styles.lh16, styles.optionDisplayName, styles.pre]}
                                 />
                             )}
