@@ -522,7 +522,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
                             )}
                             {!!memberBankAccount?.bankAccountLastFour && (
                                 <>
-                                    <View style={[styles.ph5, styles.pv3]}>
+                                    <View style={[styles.ph5, styles.pt3, styles.pb1]}>
                                         <Text style={StyleUtils.combineStyles([styles.sidebarLinkText, styles.optionAlternateText, styles.textLabelSupporting])}>
                                             {translate('common.bankAccounts')}
                                         </Text>
