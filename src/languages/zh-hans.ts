@@ -578,6 +578,10 @@ const translations: TranslationDeepObject<typeof en> = {
         errorWhileSelectingCorruptedAttachment: '选择已损坏的附件时发生错误。请尝试另一个文件。',
         errorWhileConvertingHeic: '我们无法处理此图片。请重试，或以其他格式上传照片。',
         takePhoto: '拍照',
+        retake: '重拍',
+        usePhoto: '使用照片',
+        capturedPhotoPreview: '照片预览',
+        photoTakenAnnouncement: '照片已拍摄。请选择“重拍”或“使用照片”。',
         chooseFromGallery: '从相册中选择',
         chooseDocument: '选择文件',
         attachmentTooLarge: '附件过大',
@@ -1590,6 +1594,7 @@ const translations: TranslationDeepObject<typeof en> = {
             saveReceipt: '保存收据',
             genericDeleteFailureMessage: '删除此报销时发生意外错误。请稍后重试。',
             genericEditFailureMessage: '编辑此报销时发生意外错误。请稍后再试。',
+            genericSplitFailureMessage: '拆分此报销时发生意外错误。请稍后再试。',
             genericSmartscanFailureMessage: '交易缺少字段',
             duplicateWaypointsErrorMessage: '请移除重复的途经点',
             atLeastTwoDifferentWaypoints: '请输入至少两个不同的地址',
@@ -3304,12 +3309,13 @@ ${amount}，商户：${merchant} - 日期：${date}`,
         errorSelection: '选择一个选项以继续',
         purpose: {
             title: '你今天想做什么？',
-            errorContinue: '请按“继续”完成设置',
+            errorContinue: '请点击“继续”完成设置',
             errorBackButton: '请完成设置问题以开始使用此应用程序',
-            [CONST.ONBOARDING_CHOICES.EMPLOYER]: '向雇主提交费用',
+            [CONST.ONBOARDING_CHOICES.JOIN_WORKSPACE]: '加入我的公司工作区',
+            [CONST.ONBOARDING_CHOICES.EMPLOYER]: '向我的雇主提交报销',
             [CONST.ONBOARDING_CHOICES.MANAGE_TEAM]: '管理我团队的报销',
-            [CONST.ONBOARDING_CHOICES.TRACK_BUSINESS]: '跟踪我的商务开销',
-            [CONST.ONBOARDING_CHOICES.TRACK_PERSONAL]: '管理我的个人支出',
+            [CONST.ONBOARDING_CHOICES.TRACK_BUSINESS]: '跟踪我的业务支出',
+            [CONST.ONBOARDING_CHOICES.TRACK_PERSONAL]: '整理我的个人支出',
             [CONST.ONBOARDING_CHOICES.LOOKING_AROUND]: '其他原因',
         },
         personalTrackGoal: {
@@ -3363,6 +3369,8 @@ ${amount}，商户：${merchant} - 日期：${date}`,
         mergeBlockScreen: {
             title: '无法添加工作邮箱',
             subtitle: (workEmail: string | undefined) => `我们无法添加 ${workEmail}。请稍后在设置中重试，或与 Concierge 聊天以获取指导。`,
+            validatedPublicDomainSubtitle: (workEmail: string | undefined) =>
+                `我们无法添加 ${workEmail}。若要合并这些账户，请以 ${workEmail} 身份登录，并前往“账户 > 安全 > 合并账户”以完成此流程。`,
             workAccountClosedSubtitle: '与此邮箱关联的工作账户已被关闭。请联系您公司的管理员以重新激活该账户，或使用其他邮箱注册。',
             domainControlledSubtitle: (workEmail: string | undefined) => `${workEmail} 是现有 Expensify 账户的域控制登录。`,
         },
@@ -3600,6 +3608,34 @@ ${amount}，商户：${merchant} - 日期：${date}`,
                     完成！
                 `),
             },
+            addWorkEmailTask: {
+                title: '添加你的工作邮箱',
+                description: ({workEmailLink = ''}) =>
+                    Str.dedent(`
+                        1. 打开[添加工作邮箱](${workEmailLink})。
+                        2. 输入你的公司邮箱地址。
+                        3. 输入我们发给你的验证码。
+                        4. 选择要加入的工作区，或点击 *请求加入* 向工作区所有者发送请求。
+                    `),
+            },
+            validateEmailTask: {
+                title: '验证你的邮箱',
+                description: ({validateEmailLink = '', workEmail = ''}) =>
+                    Str.dedent(`
+                        1. 打开［验证您的账户］(${validateEmailLink})。
+                        2. 输入我们发送到 ${workEmail} 的验证码。
+                        3. 选择要加入的工作区，或点击 *请求加入* 向该工作区所有者发送请求。
+                    `),
+            },
+            joinWorkspaceTask: {
+                title: '加入你们公司的工作区',
+                description: ({joinWorkspaceLink = ''}) =>
+                    Str.dedent(`
+                        1. 打开［加入工作空间］(${joinWorkspaceLink})。
+                        2. 在列表中找到你的团队。每个团队都会显示其所有者和成员数量，按人数从多到少排序。如果没有看到你的团队，点击 *显示更多*。
+                        3. 点击 *立即加入*，如需管理员审批则点击 *请求加入*。
+                    `),
+            },
         } satisfies Record<string, Pick<OnboardingTask, 'title' | 'description'>>,
         testDrive: {
             name: ({testDriveURL}: {testDriveURL?: string}) => (testDriveURL ? `进行[试用体验](${testDriveURL})` : '试用体验'),
@@ -3622,6 +3658,12 @@ ${amount}，商户：${merchant} - 日期：${date}`,
             onboardingChatSplitMessage: '和朋友分摊账单就像发条消息一样简单。操作方法如下。',
             onboardingAdminMessage: '了解如何以管理员身份管理您团队的工作区，并提交您自己的报销。',
             onboardingTestDriveReceiverMessage: '*您已获得 3 个月的免费使用！请从下面开始。*',
+            onboardingJoinWorkspaceAddWorkEmailMessage: '由于你是想加入你们公司的工作区，所以我没有为你创建新的工作区。请添加你的工作邮箱，我会检查你可以加入你们公司中的哪些工作区。',
+            onboardingJoinWorkspaceValidateEmailMessage: ({companyDomain = ''}: {companyDomain?: string}) =>
+                `由于你想加入你所在公司的工作区，我就不为你创建新的工作区了。请先验证你的邮箱，我会检查你可以加入哪些位于 ${companyDomain} 的工作区。`,
+            onboardingJoinWorkspaceMessage: ({companyDomain = '', joinWorkspaceLink = ''}: {companyDomain?: string; joinWorkspaceLink?: string}) =>
+                `由于你想加入你们公司的工作区，我没有为你创建新的工作区。你在 ${companyDomain} 的团队已经在使用 Expensify 了。[查看你可以加入的工作区](${joinWorkspaceLink})`,
+            onboardingJoinWorkspaceEmptyMessage: '看起来你的公司还没有可加入的工作区。请联系你的管理员，让他们邀请你加入他们的工作区。',
         },
         workspace: {
             title: '使用工作区保持井井有条',
@@ -4347,7 +4389,7 @@ ${amount}，商户：${merchant} - 日期：${date}`,
         enterSignerInfo: '输入签署人信息',
         thisStep: '此步骤已完成',
         isConnecting: (bankAccountLastFour: string | undefined, currency: string | undefined) =>
-            `正在连接一 个以 ${bankAccountLastFour} 结尾的 ${currency} 企业银行账户到 Expensify，以便以 ${currency} 支付员工。下一步需要一位董事的签署人信息。`,
+            `添加了一个以 ${bankAccountLastFour} 结尾的 ${currency} 银行账户。请以董事身份输入您的签署人信息，以便此银行账户可用于支付员工工资。`,
         error: {
             emailsMustBeDifferent: '电子邮箱地址必须不同',
         },
@@ -4776,6 +4818,7 @@ ${amount}，商户：${merchant} - 日期：${date}`,
             readOnlyActionTitle: '别急……',
             readOnlyActionPrompt: '你的工作区角色可以查看这些设置，但不能编辑。',
             noAccessActionPrompt: '您的工作区角色无权访问这些设置。如需访问，请联系管理员。',
+            connections: '连接',
         },
         createdForClient: {
             title: '您已为客户创建了工作区！',
@@ -4799,6 +4842,31 @@ ${amount}，商户：${merchant} - 日期：${date}`,
                 title: 'ChatGPT',
                 subtitle: '由 OpenAI 提供',
             },
+        },
+        connections: {
+            tabs: {
+                [CONST.TAB.CONNECTIONS.ALL]: '全部',
+                [CONST.TAB.CONNECTIONS.ACCOUNTING]: '会计',
+                [CONST.TAB.CONNECTIONS.PEOPLE]: '人力资源与员工',
+                [CONST.TAB.CONNECTIONS.RECRUITING]: '招聘',
+                [CONST.TAB.CONNECTIONS.RECEIPTS]: '收据',
+                [CONST.TAB.CONNECTIONS.AI]: 'AI 和 MCP',
+            },
+            findConnections: '查找关联',
+            configure: '配置',
+            fix: '修复',
+            active: '有效',
+            broken: '损坏',
+            brokenConnection: '由于连接中断，无法同步',
+            replaceConnectionTitle: '替换连接？',
+            offer: '优惠',
+            replaceConnectionPrompt: (connectionName: string) => `这将移除你当前的 ${connectionName} 连接。`,
+            hrisListing: (providerName: string) => `${providerName}（HRIS）`,
+            atsListing: (providerName: string) => `${providerName}（ATS）`,
+            suggestIntegration: '没找到适合你的？建议一个集成，我们会进行评估。',
+            noResultsPrompt: '<muted-text><centered-text>请调整您的搜索条件或<a href="#">建议一个集成</a>。</centered-text></muted-text>',
+            allConnectedTitle: '全部已连接',
+            allConnectedPrompt: '<muted-text><centered-text>这里的一切都已连接完成。您也可以<a href="#">建议一个集成</a>。</centered-text></muted-text>',
         },
         receiptPartners: {
             uber: {
@@ -5753,10 +5821,10 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
             enterCredentials: '输入你的 Rillet API 密钥',
             howToFindAPIKey:
                 '<strong>查找您的 API 密钥。</strong><ol><li>登录 Rillet</li><li>依次前往 [organization name] -> Organization settings -> API access</li><li>创建 API 密钥</li><li>将 API 密钥粘贴到下方</li></ol>',
-            subsidiary: '子公司',
-            subsidiarySelectDescription: '请选择要从中导入数据的 Rillet 子公司。',
-            noSubsidiariesFound: '未找到子公司',
-            noSubsidiariesFoundDescription: '请在 Rillet 中添加一个子公司，然后再次同步连接',
+            entity: '实体',
+            entitySelectDescription: '选择要从中导入数据的 Rillet 实体。',
+            noEntitiesFound: '未找到实体',
+            noEntitiesFoundDescription: '请在 Rillet 中添加一个实体，然后再次同步连接',
             accountTypesDescription: '您的 Rillet 账户将被导入为类别。',
             enableNewAccountsTitle: '启用新导入的账户',
             enableNewAccountsDescription: '新的 Rillet 账户将可作为类别使用。',
@@ -5847,8 +5915,8 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
             enterCredentials: '输入你的 DualEntry API 密钥',
             howToFindAPIKey:
                 '<strong>查找您的 API 密钥。</strong><ol><li>登录 DualEntry</li><li>导航到 [组织名称] -> 设置 -> 开发者访问 -> API 密钥</li><li>创建 API 密钥</li><li>将 API 密钥粘贴到下方</li></ol>',
-            subsidiary: '子公司',
-            subsidiarySelectDescription: '请选择要从中导入数据的 DualEntry 子公司。',
+            company: '公司',
+            companySelectDescription: '选择要从中导入数据的 DualEntry 公司。',
             noCompaniesFound: '未找到公司',
             noCompaniesFoundDescription: '请在 DualEntry 中添加一家公司，然后再次同步连接',
             noVendorsFound: '未找到供应商',
@@ -8602,10 +8670,10 @@ ${reportName}`,
             campfireSetup: '营火设置',
             enterCredentials: '输入你的 Campfire API 密钥',
             howToFindAPIKey: '<strong>查找您的 API 密钥。</strong><ol><li>登录 Campfire</li><li>前往“设置” -> “API 密钥”</li><li>创建 API 密钥</li><li>将 API 密钥粘贴到下方</li></ol>',
-            subsidiary: '子公司',
-            subsidiarySelectDescription: '选择要从中导入数据的 Campfire 子公司。',
-            noSubsidiariesFound: '未找到子公司',
-            noSubsidiariesFoundDescription: '请在 Campfire 中添加一个实体，然后再次同步连接',
+            entity: '实体',
+            entitySelectDescription: '选择要从中导入数据的 Campfire 实体。',
+            noEntitiesFound: '未找到实体',
+            noEntitiesFoundDescription: '请在 Campfire 中添加一个实体，然后再次同步连接',
             noVendorsFound: '未找到供应商',
             noVendorsFoundDescription: '请在 Campfire 中添加供应商，然后再次同步连接',
             importDescription: '选择要从 Campfire 导入的编码配置。',
@@ -9843,10 +9911,6 @@ ${reportName}`,
         genericUpdateReportFieldFailureMessage: '更新该字段时发生未知错误。请稍后重试。',
         genericUpdateReportNameEditFailureMessage: '重命名报表时发生意外错误。请稍后重试。',
         noActivityYet: '暂无活动',
-        collapsedSystemMessages: () => ({
-            one: '显示 1 条更新',
-            other: (count: number) => `显示 ${count} 条更新`,
-        }),
         connectionSettings: '连接设置',
         actions: {
             type: {
@@ -11098,6 +11162,7 @@ ${reportName}`,
         markAllAsRead: '<tooltip>右键点击即可<strong>将所有内容标记为已读</strong>。</tooltip>',
         markAllAsReadTouchScreen: '<tooltip>长按即可<strong>将所有内容标记为已读</strong>。</tooltip>',
         accountMovedToTopBar: '<tooltip>访问你的账户和个人设置。</tooltip>',
+        connectionsMoved: '所有连接尽在一处',
     },
     discardChangesConfirmation: {
         title: '放弃更改？',
