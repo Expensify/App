@@ -336,6 +336,8 @@ describe('getReportPreviewSenderID', () => {
         const dmChat = createMock<Report>({
             reportID: 'dm-1',
             type: CONST.REPORT.TYPE.CHAT,
+            // Contradicts `chatReportLastActorAccountID` below, so the test fails if the lookup reads it off `chatReport` again.
+            lastActorAccountID: OWNER_ACCOUNT_ID,
             participants: {
                 [OWNER_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
                 [MANAGER_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},

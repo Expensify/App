@@ -13,6 +13,7 @@ import {isDM, isIOUReport} from '@libs/ReportUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {StableReport} from '@src/selectors/Report';
 import {hasOnceLoadedReportActionsSelector, isLoadingInitialReportActionsSelector} from '@src/selectors/ReportMetaData';
 import type {OriginalMessageIOU, Policy, Report, ReportAction, ReportActions, Transaction} from '@src/types/onyx';
 
@@ -144,7 +145,7 @@ function isExplicitlyDeletedIOUAction(iouAction: ReportAction): boolean {
 type GetReportPreviewSenderIDParams = {
     iouReport: OnyxEntry<Report>;
     action: OnyxEntry<ReportAction>;
-    chatReport: OnyxEntry<Report>;
+    chatReport: OnyxEntry<StableReport>;
     chatReportLastActorAccountID?: number;
     iouActions: ReportAction[] | undefined;
     transactions: Transaction[] | undefined;
@@ -346,7 +347,7 @@ function useReportPreviewSenderID({iouReport, action, chatReport}: {action: Onyx
         iouReport,
         action,
         chatReport,
-        chatReportLastActorAccountID: chatReportLastActorAccountID ?? chatReport?.lastActorAccountID,
+        chatReportLastActorAccountID,
         iouActions,
         transactions,
         attendeesPersonalDetails,
