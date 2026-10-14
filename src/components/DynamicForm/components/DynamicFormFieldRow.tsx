@@ -22,13 +22,16 @@ type DynamicFormFieldRowProps = Pick<DynamicFormFieldsProps, 'values' | 'maxFile
 
         /** The field is the page's only question, so a choice is drawn as the page itself instead of as a row */
         isLoneField: boolean;
+
+        /** The page title already says what the field asks, so its label is not drawn above the input. Inputs keep their own accessibility name. */
+        shouldHideLabel?: boolean;
     };
 
 /** Typed answers change on every keystroke, so they ask for new requirements when the user leaves the input instead */
 const TYPED_FIELD_TYPES = new Set<DynamicFormFieldType>(['text', 'number', 'amount', 'percent']);
 
 /** One field of a schema-driven form: its input, or its value when the field is readonly */
-function DynamicFormFieldRow({field, values, currency, maxFileSize, isLoneField, onRefreshRequirements}: DynamicFormFieldRowProps) {
+function DynamicFormFieldRow({field, values, currency, maxFileSize, isLoneField, shouldHideLabel = false, onRefreshRequirements}: DynamicFormFieldRowProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const label = getFieldLabel(field, translate);
@@ -69,7 +72,7 @@ function DynamicFormFieldRow({field, values, currency, maxFileSize, isLoneField,
 
     return (
         <View style={isMenuRow ? [styles.mhn5, styles.pv1] : styles.pv2}>
-            {!!labelAbove && (
+            {!!labelAbove && !shouldHideLabel && (
                 <Text
                     style={[labelAbove === 'prompt' ? styles.mt3 : [styles.textStrong, styles.mb3], isMenuRow && styles.ph5]}
                     role={labelAbove === 'heading' ? CONST.ROLE.HEADING : undefined}

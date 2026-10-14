@@ -116,7 +116,7 @@ function InsightsChartWidget({chart, queryJSON, snapshot, filters, onRetry, onGr
                         shouldShowGroupLabels={false}
                         renderDetails={
                             shouldShowTable
-                                ? (rows) => (
+                                ? ({rows}) => (
                                       <InsightsDataTable
                                           rows={rows}
                                           isLoading={isLoading}

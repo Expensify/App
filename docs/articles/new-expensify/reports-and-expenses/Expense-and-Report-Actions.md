@@ -92,6 +92,7 @@ Use this guide to understand:
 
 **Workspace Admin**
 - Export reports
+- Reject reports
 - Delete Draft reports on their workspace, including Draft reports submitted by other members
 - Mark reports as exported
 - Change approver
