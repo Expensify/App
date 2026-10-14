@@ -84,8 +84,6 @@ The **Date**, **Workspace**, and **Group currency** filters are shared across al
 
 [Learn how to filter insights](/articles/new-expensify/insights/How-to-Use-Insights#how-to-filter-insights).
 
-![Spend over time visualization with Group by Week selected]({{site.url}}/assets/images/insights_spend-over-time-by-week.png){:width="100%"}
-
 ---
 
 ## How to explore Spend over time
