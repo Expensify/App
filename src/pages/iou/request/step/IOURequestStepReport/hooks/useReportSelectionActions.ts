@@ -10,7 +10,6 @@ import usePermissions from '@hooks/usePermissions';
 import {setCustomUnitID, setCustomUnitRateID} from '@libs/actions/IOU/MoneyRequest';
 import {clearSubrates} from '@libs/actions/IOU/PerDiem';
 import {changeTransactionsReport, setTransactionReport} from '@libs/actions/Transaction';
-import {removeActiveTransactionIDsForReport} from '@libs/actions/TransactionThreadNavigation';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
@@ -228,7 +227,6 @@ function useReportSelectionActions({
                         getCurrencyDecimals,
                         getCurrencySymbol,
                     });
-                    removeActiveTransactionIDsForReport(targetTransactionIDs, transaction.reportID);
                     removeTransaction(transaction.transactionID);
                 }
             },
@@ -262,7 +260,6 @@ function useReportSelectionActions({
                     getCurrencyDecimals,
                     getCurrencySymbol,
                 });
-                removeActiveTransactionIDsForReport(targetTransactionIDs, transaction.reportID);
                 removeTransaction(transaction.transactionID);
             },
         });
