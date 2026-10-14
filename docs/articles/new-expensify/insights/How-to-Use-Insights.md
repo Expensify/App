@@ -12,7 +12,7 @@ order: 2
 
 Insights help you analyze spending to spot changes and understand patterns. You can adjust which expenses are included, explore spending trends from different perspectives, and open the underlying expenses in **Spend** for further review.
 
-For an introduction to the available insights and what they show, see [Learn About Insights](/articles/new-expensify/insights/How-to-Use-Insights-in-Expensify).
+For an introduction to the available insights and what they show, see [Learn About Insights](/articles/new-expensify/insights/Learn-About-Insights).
 
 ## Where to find Insights
 
