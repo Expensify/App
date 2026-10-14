@@ -45,7 +45,7 @@ const paths = readWorkflow(PERF_WORKFLOW).on.pull_request.paths;
 
 describe('Reassure perf trigger paths', () => {
     // A wrongly skipped path lets a regression merge unmeasured, so cover each re-include and Jest input
-    // next to an exclusion. A wrongly run path only costs CI time and is not covered.
+    // next to an exclusion.
     it.each([
         ['src/x.ts', true],
         ['tests/unit/A.test.ts', false],
