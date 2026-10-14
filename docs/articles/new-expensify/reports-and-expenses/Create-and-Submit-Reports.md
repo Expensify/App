@@ -231,7 +231,7 @@ The **Submit** button only appears once your report includes at least one valid 
 
 ## Why can’t I submit a report with pending card transactions?
 
-If all transactions on your report are pending card transactions, the report can't be submitted yet. This applies to the Expensify Card and to company or personal cards connected through Plaid. The **Submit** button won't appear, and the report isn't counted in your **Submit** to-do. Pending transactions may take a few days to post. After at least one transaction has posted, the **Submit** button appears again and you can submit the report.
+If all transactions on your report are pending card transactions, the report can't be submitted yet. This applies to the Expensify Card and to company or personal cards connected through Plaid. The **Submit** button still appears, but if you select it, a message explains that the report can't be submitted because all transactions are pending. The report also isn't counted in your **Submit** to-do. Pending transactions may take a few days to post. After at least one transaction has posted, you can submit the report.
 
 ## What happens to held expenses when I submit a report?
 
