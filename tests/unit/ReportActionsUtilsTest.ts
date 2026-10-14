@@ -1381,6 +1381,51 @@ describe('ReportActionsUtils', () => {
                     )
             );
         });
+
+        it('should skip a whisper that targets somebody else when picking the last visible action', async () => {
+            const reportID = '90210';
+            const comment: ReportAction = {
+                ...LHNTestUtils.getFakeReportAction('email1@test.com', 3),
+                created: '2023-08-01 16:00:00',
+                reportActionID: 'comment1',
+                reportID,
+                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                originalMessage: {
+                    html: 'Hello world',
+                    whisperedTo: [],
+                },
+            };
+            const whisperTargetAccountID = 100;
+            const whisper: ReportAction = {
+                ...LHNTestUtils.getFakeReportAction('email2@test.com', 3),
+                created: '2023-08-01 18:00:00',
+                reportActionID: 'whisper1',
+                reportID,
+                actionName: CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_MENTION_WHISPER,
+                message: [
+                    {
+                        type: 'COMMENT',
+                        html: 'Do you want to invite them?',
+                        text: 'Do you want to invite them?',
+                        whisperedTo: [whisperTargetAccountID],
+                    },
+                ],
+                originalMessage: {
+                    inviteeAccountIDs: [1],
+                    whisperedTo: [whisperTargetAccountID],
+                },
+            };
+
+            // Given a report whose newest action is a whisper targeted at a single account
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {[comment.reportActionID]: comment, [whisper.reportActionID]: whisper});
+            await waitForBatchedUpdates();
+
+            // When the user is the one the whisper targets, the whisper is the last visible action
+            expect(ReportActionsUtils.getLastVisibleAction(reportID, true, {}, undefined, undefined, whisperTargetAccountID)?.reportActionID).toBe(whisper.reportActionID);
+
+            // When the whisper targets somebody else, it is invisible and the older comment wins
+            expect(ReportActionsUtils.getLastVisibleAction(reportID, true, {}, undefined, undefined, whisperTargetAccountID + 1)?.reportActionID).toBe(comment.reportActionID);
+        });
     });
 
     describe('getExportIntegrationActionFragments', () => {
@@ -3061,6 +3106,62 @@ describe('ReportActionsUtils', () => {
                 previousMessage: [],
             };
             expect(ReportActionsUtils.isDeletedAction(action)).toBe(false);
+        });
+
+        it('should return false for a policy copy action with an empty message', () => {
+            // Given a policy copy action, which has an empty message by design and would otherwise look like a legacy deleted comment
+            const action = createMock<ReportAction>({
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.COPY_OVERVIEW,
+                reportActionID: '1',
+                message: [],
+            });
+
+            // When we check whether it is deleted
+            const isDeleted = ReportActionsUtils.isDeletedAction(action);
+
+            // Then it is not treated as deleted, because policy copy actions are excluded from the deleted message check
+            expect(isDeleted).toBe(false);
+        });
+
+        it('should return true when only the original message is marked as deleted', () => {
+            // Given a comment whose message still has html but whose original message is marked as deleted
+            const action = createMock<ReportAction>({
+                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                reportActionID: '1',
+                message: [{type: CONST.REPORT.MESSAGE.TYPE.COMMENT, html: 'Hello', text: 'Hello'}],
+                originalMessage: {html: 'Hello', deleted: '2025-01-01 00:00:00.000'},
+            });
+
+            // When we check whether it is deleted
+            const isDeleted = ReportActionsUtils.isDeletedAction(action);
+
+            // Then it is treated as deleted, because the original message deletion flag is still checked after the message fragment checks
+            expect(isDeleted).toBe(true);
+        });
+    });
+
+    describe('getFilteredReportActionsForReportView', () => {
+        it('should filter out only money request actions whose parent action is deleted', () => {
+            // Given an IOU action and a comment, both flagged as deleted parent actions with visible children
+            const deletedParentMessage = [{type: CONST.REPORT.MESSAGE.TYPE.COMMENT, html: '', text: '', isDeletedParentAction: true}];
+            const moneyRequestAction = createMock<ReportAction>({
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                reportActionID: '1',
+                childVisibleActionCount: 2,
+                message: deletedParentMessage,
+            });
+            const commentAction = createMock<ReportAction>({
+                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                reportActionID: '2',
+                childVisibleActionCount: 2,
+                message: deletedParentMessage,
+            });
+
+            // When we filter the actions for the report view
+            const filteredActions = ReportActionsUtils.getFilteredReportActionsForReportView([moneyRequestAction, commentAction]);
+
+            // Then only the comment remains, because the deleted parent filter applies to money request actions only
+            expect(filteredActions).toEqual([commentAction]);
         });
     });
 
