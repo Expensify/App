@@ -6422,7 +6422,9 @@ describe('actions/Report', () => {
 
             const reportsCollectionAfter = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}`);
 
-            expect(reportsCollectionAfter).toBeUndefined();
+            // Onyx resolves a registered collection with no members to the frozen `{}` once init has run.
+            // The assertion here is that no report was created, so the collection has zero members.
+            expect(reportsCollectionAfter).toEqual({});
         });
     });
 

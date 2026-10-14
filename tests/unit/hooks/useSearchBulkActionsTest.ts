@@ -6,7 +6,7 @@ import type {SearchQueryJSON, SelectedReports, SelectedTransactions} from '@comp
 import useSearchBulkActions from '@hooks/useSearchBulkActions';
 
 import {unholdRequest} from '@libs/actions/IOU/Hold';
-import {getExportTemplates, queueExportSearchItemsToCSV, queueExportSearchWithTemplate} from '@libs/actions/Search';
+import {exportSearchItemsToCSV, getExportTemplates, queueExportSearchItemsToCSV, queueExportSearchWithTemplate} from '@libs/actions/Search';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -19,6 +19,7 @@ import createMock from '../../utils/createMock';
 
 const mockQueueExportSearchItemsToCSV = jest.mocked(queueExportSearchItemsToCSV);
 const mockQueueExportSearchWithTemplate = jest.mocked(queueExportSearchWithTemplate);
+const mockExportSearchItemsToCSV = jest.mocked(exportSearchItemsToCSV);
 const mockGetExportTemplates = jest.mocked(getExportTemplates);
 const mockUnholdRequest = jest.mocked(unholdRequest);
 
@@ -104,6 +105,12 @@ let mockIsOffline = false;
 jest.mock('@hooks/useNetwork', () => ({
     __esModule: true,
     default: () => ({isOffline: mockIsOffline}),
+}));
+
+const mockShowDecisionModal = jest.fn();
+jest.mock('@hooks/useDecisionModal', () => ({
+    __esModule: true,
+    default: () => ({showDecisionModal: mockShowDecisionModal}),
 }));
 
 jest.mock('@hooks/useEnvironment', () => ({
@@ -371,6 +378,38 @@ describe('useSearchBulkActions - CSV export flow', () => {
         expect(exportPayload?.jsonQuery).toContain('Excluded merchant');
         expect(exportPayload?.jsonQuery).toContain(`"operator":"${CONST.SEARCH.SYNTAX_OPERATORS.NOT_EQUAL_TO}"`);
         expect(exportPayload?.jsonQuery).not.toContain('group_123');
+    });
+
+    it('exports a selected merchant group with an exact merchant match', async () => {
+        // Given a merchant-grouped search where the user ticked the "Amazon" group, so its loaded child is stamped with the group key
+        const merchantGroupKey = `${CONST.SEARCH.GROUP_PREFIX}123` as const;
+        mockSelectedTransactions = {tx1: makeSelectedTransaction({groupKey: merchantGroupKey, isSelectedViaGroup: true})};
+        mockCurrentSearchResults = {
+            search: {type: CONST.SEARCH.DATA_TYPES.EXPENSE},
+            data: {
+                [merchantGroupKey]: {merchant: 'Amazon', count: 3, total: 300, currency: 'USD'},
+            },
+        };
+
+        const {result} = renderHook(() => useSearchBulkActions({queryJSON: groupedExpenseQueryJSON}), {wrapper: OnyxListItemProvider});
+
+        await waitFor(() => {
+            expect(result.current.headerButtonsOptions.length).toBeGreaterThan(0);
+        });
+
+        // When the user exports the current view of that group selection
+        const onSelected = getExportMenuItems(result.current.headerButtonsOptions).find((item) => item.text === 'export.currentView')?.onSelected;
+
+        await act(async () => {
+            onSelected?.();
+        });
+
+        // Then the backend receives the merchant filter as `eq`, because a `contains` match on "Amazon" would also
+        // export "Amazon Marketplace" expenses that are not in the selected group
+        const [exportPayload] = mockExportSearchItemsToCSV.mock.calls.at(-1) ?? [];
+        expect(exportPayload?.isGroupExport).toBe(true);
+        expect(exportPayload?.jsonQuery).toContain(`"operator":"${CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO}","left":"${CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT}","right":"Amazon"`);
+        expect(exportPayload?.jsonQuery).not.toContain(`"operator":"${CONST.SEARCH.SYNTAX_OPERATORS.CONTAINS}"`);
     });
 
     it('preserves excluded group negations when the query already filters the grouped field', async () => {
@@ -658,7 +697,7 @@ describe('useSearchBulkActions - CSV export flow', () => {
             expect(mockUnholdRequest).toHaveBeenCalledTimes(2);
             expect(mockUnholdRequest).toHaveBeenCalledWith(expect.objectContaining({transactionID: 'tx1', reportID: 'childReport1', isOffline: true}));
             expect(mockUnholdRequest).toHaveBeenCalledWith(expect.objectContaining({transactionID: 'tx2', reportID: 'childReport2', isOffline: true}));
-            expect(result.current.isOfflineModalVisible).toBe(false);
+            expect(mockShowDecisionModal).not.toHaveBeenCalled();
         });
     });
 });
