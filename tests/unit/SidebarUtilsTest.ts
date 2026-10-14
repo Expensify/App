@@ -1581,14 +1581,18 @@ describe('SidebarUtils', () => {
         });
 
         /**
-         * Builds a chat whose only comment sits after lastReadTime, with lastActorAccountID populated. The server
-         * does not reset lastVisibleActionCreated when a message is deleted, so the deleted variant is the case the
-         * removed lastActorAccountID guard used to catch. Returns the LHN option data for it.
+         * Builds a chat whose only comment sits after lastReadTime. The server does not reset
+         * lastVisibleActionCreated when a message is deleted, so the deleted variant is the case the removed
+         * lastActorAccountID guard used to catch. Returns the LHN option data for it.
+         *
+         * lastActorAccountID defaults to a real account on purpose: with it populated the removed guard would have
+         * been a no-op, so a `false` result can only come from the empty-report check inside isUnread. Pass 0 to
+         * cover the shape the server actually writes on delete.
          *
          * createRandomReportAction assigns random shouldShow and originalMessage.whisperedTo values, either of which
          * hides the comment from the last-visible-message scan, so both are pinned here.
          */
-        const getOptionDataForSoleComment = async (reportSeed: number, deleted: string) => {
+        const getOptionDataForSoleComment = async (reportSeed: number, deleted: string, overrides: Partial<Report> = {}) => {
             const report: Report = {
                 ...createRandomReport(reportSeed, undefined),
                 type: CONST.REPORT.TYPE.CHAT,
@@ -1600,6 +1604,7 @@ describe('SidebarUtils', () => {
                     [CURRENT_USER_ACCOUNT_ID]: {notificationPreference: 'always'},
                     18921695: {notificationPreference: 'always'},
                 },
+                ...overrides,
             };
             const createdAction: ReportAction = {
                 ...createRandomReportAction(1),
@@ -1673,6 +1678,16 @@ describe('SidebarUtils', () => {
 
             // Then the row is bold, so the deleted case above is driven by the delete and nothing else
             expect(result?.isUnread).toBe(true);
+        });
+
+        it('does not return isUnread for a never-read chat whose only message was deleted', async () => {
+            // Given the shape the server actually writes on delete: lastActorAccountID zeroed and the chat never
+            // read, so the timestamp comparison alone would call it unread
+            // When the LHN option data is built
+            const result = await getOptionDataForSoleComment(7104, '2025-01-20 12:31:00.000', {lastReadTime: undefined, lastActorAccountID: 0});
+
+            // Then the row is not bold
+            expect(result?.isUnread).toBe(false);
         });
 
         it('returns the last action message as an alternate text if the action is POLICY_CHANGE_LOG.LEAVE_ROOM type', async () => {
@@ -4828,6 +4843,72 @@ describe('SidebarUtils', () => {
 
                 // Then it belongs in the Unread tab
                 expect(result[`${ONYXKEYS.COLLECTION.REPORT}1`]?.isUnreadReport).toBe(true);
+            });
+
+            it('should keep a never-read chat whose only message was deleted out of the Unread tab', async () => {
+                // Given a never-read chat whose sole comment was deleted, with lastActorAccountID zeroed the way the
+                // server writes it on delete, so the timestamp comparison alone would call it unread
+                const report: Report = {
+                    ...createRandomReport(2, undefined),
+                    type: CONST.REPORT.TYPE.CHAT,
+                    lastMessageText: '',
+                    lastReadTime: undefined,
+                    lastActorAccountID: 0,
+                    lastVisibleActionCreated: '2025-01-20 12:30:03.784',
+                    participants: {
+                        [CURRENT_USER_ACCOUNT_ID]: {notificationPreference: 'always'},
+                        18921695: {notificationPreference: 'always'},
+                    },
+                };
+                const createdAction: ReportAction = {
+                    ...createRandomReportAction(1),
+                    reportID: report.reportID,
+                    actionName: CONST.REPORT.ACTIONS.TYPE.CREATED,
+                    created: '2025-01-20 12:29:00.000',
+                    shouldShow: true,
+                    originalMessage: {html: '', lastModified: '2025-01-20 12:29:00.000'},
+                };
+                const deletedComment: ReportAction = {
+                    ...createRandomReportAction(2),
+                    reportID: report.reportID,
+                    actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                    actorAccountID: 18921695,
+                    created: '2025-01-20 12:30:03.784',
+                    shouldShow: true,
+                    originalMessage: {html: '<p>hi</p>', lastModified: '2025-01-20 12:30:03.784'},
+                    message: [{type: 'COMMENT', html: '<p>hi</p>', text: 'hi', isDeletedParentAction: false, deleted: '2025-01-20 12:31:00.000'}],
+                };
+                await act(async () => {
+                    await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
+                    await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, {
+                        [createdAction.reportActionID]: createdAction,
+                        [deletedComment.reportActionID]: deletedComment,
+                    });
+                });
+
+                // When the LHN report set is built without derived attributes, so the emptiness check resolves the
+                // last visible message from the report actions itself
+                const result = SidebarUtils.getReportsToDisplayInLHN({
+                    currentReportId: report.reportID,
+                    reports: {[`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`]: report},
+                    isDefaultRoomsBetaEnabled: false,
+                    priorityMode: CONST.PRIORITY_MODE.DEFAULT,
+                    draftComments: {},
+                    transactionViolations: {},
+                    transactions: {},
+                    isOffline: false,
+                    currentUserLogin: CURRENT_USER_LOGIN,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                    reportNameValuePairs: {},
+                    reportAttributes: undefined,
+                    guideAccountIDs: [],
+                    conciergeReportID: undefined,
+                });
+
+                // Then it is still displayed, but not flagged for the Unread tab. Asserting it is displayed matters:
+                // without it a report missing from the set entirely would satisfy the isUnreadReport check.
+                expect(result[`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`]).toBeDefined();
+                expect(result[`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`]?.isUnreadReport).toBeFalsy();
             });
 
             it('should pass isOffline=false to shouldDisplayReportInLHN', () => {
