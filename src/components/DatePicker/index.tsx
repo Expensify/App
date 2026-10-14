@@ -70,6 +70,8 @@ function DatePicker({
     const {setInputValidationError} = useContext(FormContext);
 
     const [isModalVisible, setIsModalVisible] = useState(false);
+    // The field is drawn as focused by its own input, which is only one of the segments, so the other two report it here
+    const [isFieldFocused, setIsFieldFocused] = useState(false);
     const announcementMessage = label ? `${label}, ${translate('common.calendarOpened')}` : translate('common.calendarOpened');
     useAccessibilityAnnouncement(announcementMessage, isModalVisible, {shouldAnnounceOnNative: true, shouldAnnounceOnWeb: true});
     const [selectedDate, setSelectedDate] = useState(() => value ?? defaultValue ?? '');
@@ -334,6 +336,7 @@ function DatePicker({
 
     const handleFieldBlur = () => {
         isFieldFocusedRef.current = false;
+        setIsFieldFocused(false);
 
         if (isModalVisible) {
             hasPendingFieldBlurRef.current = true;
@@ -376,7 +379,18 @@ function DatePicker({
 
     const handleFieldFocus = () => {
         isFieldFocusedRef.current = true;
+        setIsFieldFocused(true);
         hasPendingFieldBlurRef.current = false;
+        showDatePickerModal();
+    };
+
+    // Autofocus leaves the field focused without a calendar, so typing is what asks for one, as it does on a field
+    // that cannot be typed into
+    const handleTypingKeyPress = (event: TextInputKeyPressEvent) => {
+        if (!isNumeric(event.nativeEvent.key)) {
+            return;
+        }
+
         showDatePickerModal();
     };
 
@@ -461,8 +475,8 @@ function DatePicker({
                     onSubmitEditing={shouldAllowTyping ? undefined : () => showDatePickerModal()}
                     // Reaching the field by keyboard never fires a press, so focus is what opens the calendar
                     onFocus={shouldAllowTyping ? handleFieldFocus : undefined}
-                    onKeyPress={shouldAllowTyping ? undefined : handleInputKeyPress}
-                    textInputContainerStyles={isModalVisible ? styles.borderColorFocus : {}}
+                    onKeyPress={shouldAllowTyping ? handleTypingKeyPress : handleInputKeyPress}
+                    textInputContainerStyles={isModalVisible || isFieldFocused ? styles.borderColorFocus : {}}
                     shouldHideClearButton={shouldHideClearButton}
                     onClearInput={handleClear}
                     forwardedFSClass={forwardedFSClass}

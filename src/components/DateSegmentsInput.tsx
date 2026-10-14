@@ -43,6 +43,7 @@ function DateSegmentsInput({
     onPressOut,
     onFocus,
     onBlur,
+    onKeyPress,
     readOnly,
     forwardedFSClass,
     accessibilityLabel,
@@ -132,7 +133,10 @@ function DateSegmentsInput({
                                     ref={mergeRefs(part.name === 'year' ? ref : undefined, (element: AnimatedTextInputRef | null) => setSegmentRef(part.name, element))}
                                     style={[style, styles.ph0, styles.w100]}
                                     value={segmentProps.value}
-                                    onKeyPress={segmentProps.onKeyPress}
+                                    onKeyPress={(event) => {
+                                        onKeyPress?.(event);
+                                        segmentProps.onKeyPress(event);
+                                    }}
                                     onChangeText={segmentProps.onChangeText}
                                     onFocus={(event) => {
                                         segmentProps.onFocus();
