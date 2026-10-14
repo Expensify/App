@@ -46,9 +46,9 @@ function WorkspaceCompanyCardsBulkEditTransactionStartDatePage({route}: Workspac
     const domainOrWorkspaceAccountID = getDomainOrWorkspaceAccountID(workspaceAccountID, companyFeeds[feedName]);
     const [allBankCards] = useCardsList(feedName);
     const singleCardStartDate = firstCardID && allBankCards?.[firstCardID]?.scrapeMinDate;
-    const areScrapeDateEqual = singleCardStartDate && (cardIDs.length === 1 || cardIDs.every((cardID) => allBankCards?.[cardID]?.scrapeMinDate === singleCardStartDate));
+    const areScrapeDateEqual = !!singleCardStartDate && (cardIDs.length === 1 || cardIDs.every((cardID) => allBankCards?.[cardID]?.scrapeMinDate === singleCardStartDate));
     const initialDateOption =
-        areScrapeDateEqual && !singleCardStartDate ? CONST.COMPANY_CARD.TRANSACTION_START_DATE_OPTIONS.FROM_BEGINNING : CONST.COMPANY_CARD.TRANSACTION_START_DATE_OPTIONS.CUSTOM;
+        !areScrapeDateEqual && !singleCardStartDate ? CONST.COMPANY_CARD.TRANSACTION_START_DATE_OPTIONS.FROM_BEGINNING : CONST.COMPANY_CARD.TRANSACTION_START_DATE_OPTIONS.CUSTOM;
     const initialStartDate = areScrapeDateEqual ? format(parseISO(singleCardStartDate), CONST.DATE.FNS_FORMAT_STRING) : '';
 
     const goBackToCompanyCards = () => Navigation.goBack(ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID));
