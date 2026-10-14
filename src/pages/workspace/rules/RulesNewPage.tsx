@@ -1,3 +1,4 @@
+import ActivityIndicator from '@components/ActivityIndicator';
 import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import MenuItem from '@components/MenuItem';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -28,7 +29,7 @@ import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 
 import variables from '@styles/variables';
 
-import {close as closeModal} from '@userActions/Modal';
+import {clearNewRulePrompt} from '@userActions/Policy/Rules';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -38,11 +39,11 @@ import AGENT_RULE_INPUT_IDS from '@src/types/form/AddAgentRuleForm';
 import type {GeneratedRuleState, GeneratedRuleType, GeneratedRuleValues} from '@src/types/onyx/GeneratedRule';
 import type IconAsset from '@src/types/utils/IconAsset';
 
-import {useFocusEffect} from '@react-navigation/native';
-import React, {useState} from 'react';
+import {useFocusEffect, useIsFocused} from '@react-navigation/native';
+import React from 'react';
 import {View} from 'react-native';
 
-import DescribeRuleModal from './DescribeRuleModal';
+import DescribeRuleForm from './DescribeRuleForm';
 
 type RulesNewPageProps =
     | PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.RULES_NEW>
@@ -92,8 +93,9 @@ function RulesNewPage({route}: RulesNewPageProps) {
     const isCategoryScopedCreate = isCategorySettingsFlow || !!categoryName;
     const policy = usePolicy(policyID);
     const {showConfirmModal} = useConfirmModal();
-    const [isDescribeRuleModalVisible, setIsDescribeRuleModalVisible] = useState(false);
+    const isFocused = useIsFocused();
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
+    const [isBuildingRule = false] = useOnyx(ONYXKEYS.FORMS.NEW_RULE_PROMPT_FORM, {selector: (form) => form?.isLoading});
 
     // A generated category stays in the draft only when the policy categories contain it. Therefore this page loads
     // the categories before the answer arrives.
@@ -108,12 +110,15 @@ function RulesNewPage({route}: RulesNewPageProps) {
 
     useFocusEffect(() => {
         fetchPolicyCategories();
+        // The Describe modal of the rule editors uses the same form. Clear it when this page loses focus, so the modal
+        // does not open with the description or the error of this page.
+        return () => clearNewRulePrompt();
     });
 
     const offerAgentRule = (prompt: string, generationID: string, state: GeneratedRuleState) => {
         Log.info('[GenerateRule] Offered agent rule fallback', false, {policyID, generationID, state});
         setDraftValues(ONYXKEYS.FORMS.ADD_AGENT_RULE_FORM, {[AGENT_RULE_INPUT_IDS.PROMPT]: prompt});
-        closeModal(() => Navigation.navigate(ROUTES.RULES_AGENT_NEW.getRoute(policyID, generationID)));
+        Navigation.navigate(ROUTES.RULES_AGENT_NEW.getRoute(policyID, generationID));
     };
 
     // From category settings the only expense default is the category's tax rate, so the type chooser is skipped. It
@@ -134,15 +139,6 @@ function RulesNewPage({route}: RulesNewPageProps) {
     };
 
     const newRuleOptions: NewRuleOption[] = [
-        {
-            key: 'describeRule',
-            icon: illustrations.AiBot,
-            title: translate('workspace.rules.newRule.describeYourRule'),
-            description: translate('workspace.rules.newRule.describeYourRuleDescription'),
-            onPress: () => setIsDescribeRuleModalVisible(true),
-            sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.RULES.NEW_RULE_MENU_ITEM_DESCRIBE_RULE,
-            isWorkspaceOnly: true,
-        },
         {
             key: 'restrictCardSpend',
             icon: illustrations.CardReaderAlt,
@@ -188,6 +184,15 @@ function RulesNewPage({route}: RulesNewPageProps) {
             // Only category settings can scope the editor to its category, so a category passed any other way drops it.
             isWorkspaceOnly: !isCategorySettingsFlow,
         },
+        {
+            key: 'createAgentRule',
+            icon: illustrations.AiBot,
+            title: translate('workspace.rules.newRule.createAgentRule'),
+            description: translate('workspace.rules.newRule.createAgentRuleDescription'),
+            onPress: () => Navigation.navigate(ROUTES.RULES_AGENT_NEW.getRoute(policyID)),
+            sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.RULES.NEW_RULE_MENU_ITEM_CREATE_AGENT_RULE,
+            isWorkspaceOnly: true,
+        },
     ];
 
     const visibleNewRuleOptions = isCategoryScopedCreate ? newRuleOptions.filter((option) => !option.isWorkspaceOnly) : newRuleOptions;
@@ -209,34 +214,50 @@ function RulesNewPage({route}: RulesNewPageProps) {
                     style={[styles.flexGrow1]}
                     addBottomSafeAreaPadding
                 >
-                    <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mv3]}>{translate('workspace.rules.newRule.subtitle')}</Text>
-                    <View style={styles.mh5}>
-                        {visibleNewRuleOptions.map((option) => (
-                            <MenuItem
-                                key={option.key}
-                                icon={option.icon}
-                                title={option.title}
-                                description={option.description}
-                                shouldShowRightIcon
-                                onPress={option.onPress}
-                                displayInDefaultIconColor
-                                iconWidth={variables.iconSizeExtraLarge}
-                                iconHeight={variables.iconSizeExtraLarge}
-                                wrapperStyle={styles.rulesNewMenuItem}
-                                sentryLabel={option.sentryLabel}
+                    {isCategoryScopedCreate ? (
+                        <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mv3]}>{translate('workspace.rules.newRule.subtitle')}</Text>
+                    ) : (
+                        <>
+                            <Text style={[styles.textLabel, styles.textStrong, styles.ph5, styles.mt3, styles.mb3]}>{translate('workspace.rules.newRule.buildUsingAI')}</Text>
+                            <DescribeRuleForm
+                                policyID={policyID}
+                                isActive={isFocused}
+                                submitButtonText={translate('workspace.rules.newRule.buildRule')}
+                                inputContainerStyle={styles.describeRuleInlinePromptInput}
+                                style={styles.mh5}
+                                onRuleGenerated={(values, generatedRuleType) => seedDraftAndNavigate(values, generatedRuleType, policyID)}
+                                onAgentRuleFallback={offerAgentRule}
                             />
-                        ))}
-                    </View>
+                        </>
+                    )}
+                    {isBuildingRule && !isCategoryScopedCreate ? (
+                        <View style={[styles.alignItemsCenter, styles.mt8]}>
+                            <ActivityIndicator />
+                            <Text style={[styles.textSupporting, styles.mt3]}>{translate('workspace.rules.newRule.buildingRule')}</Text>
+                        </View>
+                    ) : (
+                        <View style={styles.mh5}>
+                            {!isCategoryScopedCreate && (
+                                <Text style={[styles.textLabel, styles.textStrong, styles.mt6, styles.mb3]}>{translate('workspace.rules.newRule.startFromScratch')}</Text>
+                            )}
+                            {visibleNewRuleOptions.map((option) => (
+                                <MenuItem
+                                    key={option.key}
+                                    icon={option.icon}
+                                    title={option.title}
+                                    description={option.description}
+                                    shouldShowRightIcon
+                                    onPress={option.onPress}
+                                    displayInDefaultIconColor
+                                    iconWidth={variables.iconSizeExtraLarge}
+                                    iconHeight={variables.iconSizeExtraLarge}
+                                    wrapperStyle={styles.rulesNewMenuItem}
+                                    sentryLabel={option.sentryLabel}
+                                />
+                            ))}
+                        </View>
+                    )}
                 </ScrollView>
-                {!isCategoryScopedCreate && (
-                    <DescribeRuleModal
-                        isVisible={isDescribeRuleModalVisible}
-                        onClose={() => setIsDescribeRuleModalVisible(false)}
-                        policyID={policyID}
-                        onRuleGenerated={(values, generatedRuleType) => seedDraftAndNavigate(values, generatedRuleType, policyID)}
-                        onAgentRuleFallback={offerAgentRule}
-                    />
-                )}
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>
     );

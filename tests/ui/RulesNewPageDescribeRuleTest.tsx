@@ -13,9 +13,6 @@ import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 
 import RulesNewPage from '@pages/workspace/rules/RulesNewPage';
 
-import type * as ModalActions from '@userActions/Modal';
-import {onModalDidClose} from '@userActions/Modal';
-
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -42,6 +39,7 @@ jest.mock('@react-navigation/native', () => {
         useFocusEffect: (callback: () => void) => {
             callback();
         },
+        useIsFocused: () => true,
     };
 });
 jest.mock('@hooks/useLazyAsset', () => ({
@@ -107,16 +105,6 @@ jest.mock('@components/MenuItem', () => {
     return ({title, onPress}: {title: string; onPress: () => void}) =>
         ReactModule.createElement(Pressable, {accessibilityLabel: title, accessibilityRole: 'button', onPress}, ReactModule.createElement(Text, null, title));
 });
-jest.mock('@components/Modal', () => {
-    const ReactModule = jest.requireActual<typeof React>('react');
-    const {setCloseModal} = jest.requireActual<typeof ModalActions>('@userActions/Modal');
-    // Register the close callback the same as BaseModal does, because the `close` action in `@userActions/Modal` must close this modal.
-    function MockModal({isVisible, onClose, children}: {isVisible: boolean; onClose: () => void; children: React.ReactNode}) {
-        ReactModule.useEffect(() => (isVisible ? setCloseModal(onClose) : undefined), [isVisible, onClose]);
-        return isVisible ? children : null;
-    }
-    return MockModal;
-});
 jest.mock('@components/Form/InputWrapper', () => () => null);
 jest.mock('@components/Form/FormProvider', () => {
     const ReactModule = jest.requireActual<typeof React>('react');
@@ -159,23 +147,17 @@ async function renderRulesNewPage() {
     await waitForBatchedUpdatesWithAct();
 }
 
-async function openDescribeModal() {
-    await renderRulesNewPage();
-    fireEvent.press(screen.getByLabelText('workspace.rules.newRule.describeYourRule'));
-    await waitForBatchedUpdatesWithAct();
-}
-
 function isGenerateRuleParams(parameters: unknown): parameters is GenerateRuleParams {
     return typeof parameters === 'object' && parameters !== null && 'generationID' in parameters && 'prompt' in parameters;
 }
 
-/** Submits the prompt through the describe modal and returns the parameters of the GenerateRule request */
+/** Submits the prompt through the describe form and returns the parameters of the GenerateRule request */
 function describeRule(writeSpy: WriteSpy, prompt: string): GenerateRuleParams {
     mockPrompt = prompt;
-    fireEvent.press(screen.getByLabelText('common.next'));
+    fireEvent.press(screen.getByLabelText('workspace.rules.newRule.buildRule'));
     const parameters = writeSpy.mock.calls.find(([command]) => command === WRITE_COMMANDS.GENERATE_RULE)?.at(1);
     if (!isGenerateRuleParams(parameters)) {
-        throw new Error('The describe modal did not request GenerateRule');
+        throw new Error('The describe form did not request GenerateRule');
     }
     return parameters;
 }
@@ -213,20 +195,23 @@ describe('RulesNewPage describe flow', () => {
         });
     });
 
-    it('lists Describe your rule first, before the four rule types', async () => {
+    it('shows the describe form above the rule types', async () => {
         // Given an admin on the New rule page
 
         // When the page renders
         await renderRulesNewPage();
 
-        // Then describing comes first, so the admin can describe the rule before picking a rule type
+        // Then the admin can describe the rule, or start from one of the rule types below the form
+        expect(screen.getByText('workspace.rules.newRule.buildUsingAI')).toBeOnTheScreen();
+        expect(screen.getByLabelText('workspace.rules.newRule.buildRule')).toBeOnTheScreen();
+        expect(screen.getByText('workspace.rules.newRule.startFromScratch')).toBeOnTheScreen();
         const options = screen.getAllByRole('button');
         const expectedOptionNames = [
-            'workspace.rules.newRule.describeYourRule',
             'workspace.rules.newRule.restrictCardSpend',
             'workspace.rules.newRule.flagForReview',
             'workspace.rules.newRule.requireFields',
             'workspace.rules.newRule.applyExpenseDefaults',
+            'workspace.rules.newRule.createAgentRule',
         ];
         expect(options).toHaveLength(expectedOptionNames.length);
         for (const [index, name] of expectedOptionNames.entries()) {
@@ -236,7 +221,7 @@ describe('RulesNewPage describe flow', () => {
 
     it('seeds the draft of the generated rule type and opens its editor', async () => {
         // Given the admin described a flag for review rule from New rule, so the request lets Concierge pick the rule type
-        await openDescribeModal();
+        await renderRulesNewPage();
         const {generationID, ruleType} = describeRule(writeSpy, 'Flag expenses over $500');
         expect(ruleType).toBeUndefined();
 
@@ -255,7 +240,7 @@ describe('RulesNewPage describe flow', () => {
 
     it('scopes an expense defaults draft to a merchant rule', async () => {
         // Given the admin described an expense default for a merchant
-        await openDescribeModal();
+        await renderRulesNewPage();
         const {generationID} = describeRule(writeSpy, 'Set Uber expenses to not billable');
 
         // When Concierge answers with an expense defaults rule
@@ -277,24 +262,15 @@ describe('RulesNewPage describe flow', () => {
             // Given an admin described something no standard rule can do
             const logSpy = jest.spyOn(Log, 'info');
             const prompt = 'Block gift cards and require receipts over $50';
-            await openDescribeModal();
+            await renderRulesNewPage();
             const {generationID} = describeRule(writeSpy, prompt);
 
             // When Concierge answers that it is not one standard rule
             await answerGeneration({generationID, state});
 
-            // Then the modal closes with the prompt as an agent rule draft, and nothing opens while the modal hides
-            expect(screen.queryByLabelText('common.next')).toBeNull();
+            // Then the prompt becomes the agent rule draft, and the agent rule page opens, joined to the description by its generationID
             expect(await getOnyxValue(ONYXKEYS.FORMS.ADD_AGENT_RULE_FORM_DRAFT)).toEqual({prompt});
             expect(logSpy).toHaveBeenCalledWith('[GenerateRule] Offered agent rule fallback', false, {policyID: POLICY_ID, generationID, state});
-            expect(Navigation.navigate).not.toHaveBeenCalled();
-
-            // When the modal finishes its hide transition
-            act(() => {
-                onModalDidClose();
-            });
-
-            // Then the agent rule page opens, joined to the description by its generationID
             expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.RULES_AGENT_NEW.getRoute(POLICY_ID, generationID));
 
             // And nothing is saved, because the admin must still review the draft and press Create
@@ -305,7 +281,7 @@ describe('RulesNewPage describe flow', () => {
 
     it.each([undefined, 'futureRuleType'])('shows the unsupported error when a rule answer has the rule type %s', async (generatedRuleType) => {
         // Given an admin described a rule from New rule
-        await openDescribeModal();
+        await renderRulesNewPage();
         const {generationID} = describeRule(writeSpy, 'Flag expenses over $500');
 
         // When Concierge answers with a rule but with no rule type, or with a rule type that this app version does not know
@@ -317,10 +293,27 @@ describe('RulesNewPage describe flow', () => {
             rule: {maxExpenseAmount: '500'},
         });
 
-        // Then the modal stays open with the unsupported error, because no editor can show these values
+        // Then the form shows the unsupported error, because no editor can show these values
         expect(await getPromptErrors()).toEqual([translateLocal('workspace.rules.newRule.promptErrors.unsupported')]);
-        expect(screen.getByLabelText('common.next')).toBeOnTheScreen();
+        expect(screen.getByLabelText('workspace.rules.newRule.buildRule')).toBeOnTheScreen();
         expect(Navigation.navigate).not.toHaveBeenCalled();
+    });
+
+    it('shows that the rule is building in place of the rule types', async () => {
+        // Given the admin described a rule from New rule
+        await renderRulesNewPage();
+        describeRule(writeSpy, 'Flag expenses over $500');
+
+        // When the form waits for the answer
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.FORMS.NEW_RULE_PROMPT_FORM, {isLoading: true});
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the page says the rule is building and hides the rule types, so the admin does not start a second rule
+        expect(screen.getByText('workspace.rules.newRule.buildingRule')).toBeOnTheScreen();
+        expect(screen.queryByText('workspace.rules.newRule.startFromScratch')).toBeNull();
+        expect(screen.queryByLabelText('workspace.rules.newRule.flagForReview')).toBeNull();
     });
 
     it('loads the policy categories when the workspace uses categories and none are loaded', async () => {
@@ -330,19 +323,19 @@ describe('RulesNewPage describe flow', () => {
         // When the New rule page opens
         await renderRulesNewPage();
 
-        // Then the page requests the categories, because the describe modal keeps only a category that the workspace has
+        // Then the page requests the categories, because the describe form keeps only a category that the workspace has
         expect(openPolicyCategoriesPage).toHaveBeenCalledWith(POLICY_ID);
     });
 
     it('keeps the inline error for an unintelligible description', async () => {
         // Given an admin typed something Concierge cannot read
-        await openDescribeModal();
+        await renderRulesNewPage();
         const {generationID} = describeRule(writeSpy, 'asdf qwerty zxcv');
 
         // When Concierge answers that the description is unintelligible
         await answerGeneration({generationID, state: CONST.GENERATED_RULE.STATE.UNINTELLIGIBLE});
 
-        // Then the modal asks for a clearer description, because an agent rule needs a prompt that makes sense
+        // Then the form asks for a clearer description, because an agent rule needs a prompt that makes sense
         expect(await getPromptErrors()).toEqual([translateLocal('workspace.rules.newRule.promptErrors.unintelligible')]);
         expect(Navigation.navigate).not.toHaveBeenCalled();
         expect(await getOnyxValue(ONYXKEYS.FORMS.ADD_AGENT_RULE_FORM_DRAFT)).toBeUndefined();
