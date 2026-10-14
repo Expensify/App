@@ -65,11 +65,14 @@ let pusherEventsPromise = Promise.resolve();
 
 let airshipEventsPromise = Promise.resolve();
 
-function isImmediateScanResponse<TKey extends OnyxKey>(request: Request<TKey>, response: Response<TKey>): boolean {
+function isEligibleScanResponse<TKey extends OnyxKey>(request: Request<TKey>, response: Response<TKey>): boolean {
     return request.command === WRITE_COMMANDS.REQUEST_MONEY && request.shouldApplyScanResponseImmediately === true && response.jsonCode === CONST.JSON_CODE.SUCCESS;
 }
 
 function getScanReportReplacement<TKey extends OnyxKey>(request: Request<TKey>, response: Response<TKey>) {
+    if (!isEligibleScanResponse(request, response)) {
+        return undefined;
+    }
     const reportID = request.data?.iouReportID;
     const previewActionID = request.data?.reportPreviewReportActionID;
     const chatReportID = request.data?.chatReportID;
@@ -95,6 +98,10 @@ function getScanReportReplacement<TKey extends OnyxKey>(request: Request<TKey>, 
     return {reportID, actualReportID, previewActionID, chatReportID};
 }
 
+function isImmediateScanResponse<TKey extends OnyxKey>(request: Request<TKey>, response: Response<TKey>, replacement = getScanReportReplacement(request, response)): boolean {
+    return isEligibleScanResponse(request, response) && !!replacement;
+}
+
 function applyScanResponse<TKey extends OnyxKey>(request: Request<TKey>, response: Response<TKey>, replacement = getScanReportReplacement(request, response)) {
     // This batch combines the request's generic keys with report-cleanup keys, just like QueuedOnyxUpdates.
     const updates: AnyOnyxUpdate[] = [...(response.onyxData ?? []), ...(request.successData ?? []), ...(request.finallyData ?? [])];
@@ -114,8 +121,11 @@ function applyScanResponse<TKey extends OnyxKey>(request: Request<TKey>, respons
 
 function applyHTTPSOnyxUpdates<TKey extends OnyxKey>(request: Request<TKey>, response: Response<TKey>, lastUpdateID: number, scanReplacement?: ReturnType<typeof getScanReportReplacement>) {
     Log.info('[OnyxUpdateManager] Applying https update', false, {lastUpdateID});
-    if (isImmediateScanResponse(request, response)) {
-        return applyScanResponse(request, response, scanReplacement);
+    const replacement = scanReplacement ?? getScanReportReplacement(request, response);
+    // Only confirmed replacement must outrun live receipt movement. Ordinary scan responses stay deferred
+    // so server-created timestamps cannot reorder previews while other uploads are still optimistic.
+    if (isImmediateScanResponse(request, response, replacement)) {
+        return applyScanResponse(request, response, replacement);
     }
     // For most requests we can immediately update Onyx. For write requests we queue the updates and apply them after the sequential queue has flushed to prevent a replay effect in
     // the UI. See https://github.com/Expensify/App/issues/12775 for more info.
@@ -124,7 +134,14 @@ function applyHTTPSOnyxUpdates<TKey extends OnyxKey>(request: Request<TKey>, res
     // First apply any onyx data updates that are being sent back from the API. We wait for this to complete and then
     // apply successData or failureData. This ensures that we do not update any pending, loading, or other UI states contained
     // in successData/failureData until after the component has received and API data.
-    const onyxDataUpdatePromise = response.onyxData ? updateHandler(response.onyxData) : Promise.resolve();
+    const shouldGuardDeferredScan = isEligibleScanResponse(request, response) && request.data?.apiRequestType === CONST.API_REQUEST_TYPE.WRITE;
+    const onyxDataUpdatePromise = response.onyxData
+        ? shouldGuardDeferredScan
+            ? // A later replacement or live scan can advance the client before this response reaches the flush.
+              // Recheck freshness there; success/finally cleanup remains unconditional and is queued separately.
+              queueOnyxUpdates(response.onyxData, () => !lastUpdateID || lastUpdateID > getPersistedLastUpdateID())
+            : updateHandler(response.onyxData)
+        : Promise.resolve();
 
     return onyxDataUpdatePromise
         .then(() => {
@@ -237,8 +254,7 @@ function apply<TKey extends OnyxKey>({lastUpdateID, previousUpdateID, type, requ
 
         // In this case, we're already received the OnyxUpdate included in the response, so we don't need to apply it again.
         // However, we do need to apply the successData and failureData from the request
-        const scanReplacement =
-            type === CONST.ONYX_UPDATE_TYPES.HTTPS && request && response && isImmediateScanResponse(request, response) ? getScanReportReplacement(request, response) : undefined;
+        const scanReplacement = type === CONST.ONYX_UPDATE_TYPES.HTTPS && request && response ? getScanReportReplacement(request, response) : undefined;
         if (
             type === CONST.ONYX_UPDATE_TYPES.HTTPS &&
             request &&
@@ -326,12 +342,13 @@ function apply<TKey extends OnyxKey>({lastUpdateID, previousUpdateID, type, requ
             });
 
     if (type === CONST.ONYX_UPDATE_TYPES.HTTPS && request && response) {
-        const applyPromise = applyHTTPSOnyxUpdates(request, response, Number(lastUpdateID));
+        const scanReplacement = getScanReportReplacement(request, response);
+        const applyPromise = applyHTTPSOnyxUpdates(request, response, Number(lastUpdateID), scanReplacement);
 
         // WRITE requests only stage their updates in memory here — the real Onyx write happens later in
         // QueuedOnyxUpdates.flushQueue(). Gate the watermark on that flush, but detached from the returned promise:
         // SequentialQueue only flushes after this promise settles, so awaiting the flush here would deadlock.
-        if (request.data?.apiRequestType === CONST.API_REQUEST_TYPE.WRITE && !isImmediateScanResponse(request, response)) {
+        if (request.data?.apiRequestType === CONST.API_REQUEST_TYPE.WRITE && !isImmediateScanResponse(request, response, scanReplacement)) {
             if (shouldAdvanceLastUpdateID) {
                 lastUpdateIDPendingWriteFlush = Math.max(lastUpdateIDPendingWriteFlush, Number(lastUpdateID));
             }
@@ -366,7 +383,24 @@ function saveUpdateInformation<TKey extends OnyxKey>(updateParams: OnyxUpdatesFr
     // We don't want to store the data in the updateParams if it's a HTTPS update since it is useless anyways
     // and it causes serialization issues when storing in Onyx
     if (updateParams.type === CONST.ONYX_UPDATE_TYPES.HTTPS && updateParams.request) {
-        modifiedUpdateParams = {...modifiedUpdateParams, request: {...updateParams.request, data: {apiRequestType: updateParams.request?.data?.apiRequestType}}};
+        modifiedUpdateParams = {
+            ...modifiedUpdateParams,
+            request: {
+                ...updateParams.request,
+                data: {
+                    apiRequestType: updateParams.request.data?.apiRequestType,
+                    // Gap recovery needs these identifiers to replay replacement cleanup. Do not retain receipt files.
+                    ...(updateParams.request.shouldApplyScanResponseImmediately
+                        ? {
+                              iouReportID: updateParams.request.data?.iouReportID,
+                              chatReportID: updateParams.request.data?.chatReportID,
+                              reportPreviewReportActionID: updateParams.request.data?.reportPreviewReportActionID,
+                              transactionID: updateParams.request.data?.transactionID,
+                          }
+                        : {}),
+                },
+            },
+        };
     }
     // Always use set() here so that the updateParams are never merged and always unique to the request that came in
 
