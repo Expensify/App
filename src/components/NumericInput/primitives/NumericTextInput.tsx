@@ -10,13 +10,18 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import mergeRefs from '@libs/mergeRefs';
 
+import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
 
 import type {MouseEvent} from 'react';
 import type {TextInputSelectionChangeEvent} from 'react-native';
 
 import {useNavigation} from '@react-navigation/native';
-/** Renders the number itself, displaying and editing the canonical value owned by the root. */
+/**
+ * Renders the number itself, displaying and editing the magnitude of the canonical value owned by the root. It carries the
+ * full-screen amount styles. The caller's styles are appended to them.
+ */
 function NumericTextInput({
     style,
     ref,
@@ -25,7 +30,7 @@ function NumericTextInput({
     accessibilityLabel,
     autoFocus,
     autoGrow = true,
-    autoGrowExtraSpace,
+    autoGrowExtraSpace = variables.w80,
     autoGrowMarginSide,
     containerStyle,
     disabled,
@@ -48,7 +53,7 @@ function NumericTextInput({
     const {setMouseDown, setMouseUp} = useMouseActions();
     const styles = useThemeStyles();
     const navigation = useNavigation();
-    const {formattedNumber, inputRef, selection} = useNumericInputState();
+    const {dynamicAmountStyle, formattedNumber, inputRef, selection} = useNumericInputState();
     const {handleKeyPress, handleSelectionChange, setNumber} = useNumericInputActions();
 
     const handlePress = useNumericPressSelection({inputRef, handleSelectionChange, onPress});
@@ -86,7 +91,7 @@ function NumericTextInput({
             disableKeyboardShortcuts
             hideFocusedState={hideFocusedState}
             inputMode={!keyboardType ? CONST.INPUT_MODE.DECIMAL : undefined}
-            inputStyle={[styles.pr1, style]}
+            inputStyle={[styles.pr1, styles.iouAmountTextInput, style, dynamicAmountStyle]}
             keyboardType={keyboardType}
             // The navigation prop keeps disableKeyboard working when the app returns from the background.
             navigation={navigation}
@@ -114,8 +119,8 @@ function NumericTextInput({
             spellCheck={false}
             submitBehavior="submit"
             testID={testID}
-            textInputContainerStyles={containerStyle}
-            touchableInputWrapperStyle={touchableInputWrapperStyle}
+            textInputContainerStyles={[styles.iouAmountTextInputContainer, containerStyle]}
+            touchableInputWrapperStyle={[styles.heightUndefined, touchableInputWrapperStyle]}
             value={formattedNumber}
         />
     );
