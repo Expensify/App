@@ -91,8 +91,8 @@ To see spend for every member, select **More (⋮)** on the visualization, then 
 Additional insights help you analyze spending from different perspectives:
 
 - **Spend over time** shows how total expenses change over a date range.
-- **Top Merchants** shows which vendors received the most payments.
-- **Top Categories** shows the highest-spending expense types (e.g., Travel, Meals).
+- **Top merchants** shows which vendors received the most payments.
+- **Top categories** shows the highest-spending expense types (e.g., Travel, Meals).
 
 [Learn more about the available insights](/articles/new-expensify/insights/Learn-About-Insights#what-insights-are-available)
 
