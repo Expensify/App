@@ -29,7 +29,7 @@ import {convertToBackendAmount} from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {rand64} from '@libs/NumberUtils';
 import {temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
-import {getSpendRuleFormValuesFromCardRule, getTruncatedSpendRuleSummary} from '@libs/SpendRulesUtils';
+import {getEligibleSpendRuleCards, getSpendRuleFormValuesFromCardRule, getTruncatedSpendRuleSummary} from '@libs/SpendRulesUtils';
 
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
@@ -107,9 +107,10 @@ function SpendRulePageBase({policyID, ruleID, testID, upgradeBackTo}: SpendRuleP
 
     useEffect(() => () => clearDraftSpendRule(), []);
 
-    const applyGeneratedRule = (values: GeneratedRuleValues) => {
+    const applyGeneratedRule = ({isAllCards, ...values}: GeneratedRuleValues) => {
         const generatedCategories = values.categories?.filter(isSpendRuleCategory);
-        setDraftSpendRule(generatedCategories ? {...values, categories: generatedCategories} : values);
+        const generatedCardIDs = isAllCards ? getEligibleSpendRuleCards(cardsList, expensifyCardSettings).map((card) => String(card.cardID)) : spendRuleForm?.cardIDs;
+        setDraftSpendRule({...values, cardIDs: generatedCardIDs, categories: generatedCategories});
         setIsRestrictMerchantsOff(!generatedCategories?.length && !values.merchantNames?.length);
     };
 
