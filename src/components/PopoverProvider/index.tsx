@@ -1,3 +1,5 @@
+import {isTopCloseModal} from '@userActions/Modal';
+
 import type {ComponentRef, RefObject} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import type {Text, View} from 'react-native';
@@ -96,6 +98,13 @@ function PopoverContextProvider(props: PopoverContextProps) {
             if (e.key !== 'Escape') {
                 return;
             }
+
+            // A modal opened above the popover answers Escape itself, and this listener runs before it does. The
+            // modal is rendered from the popover's own content, so closing the popover here would take both away.
+            if (activePopoverRef.current && !isTopCloseModal(activePopoverRef.current.close)) {
+                return;
+            }
+
             if (closePopover()) {
                 e.stopImmediatePropagation();
             }
