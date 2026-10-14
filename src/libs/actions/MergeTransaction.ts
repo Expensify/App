@@ -555,7 +555,7 @@ function mergeTransactionRequest({
         };
 
         const transactionToDelete = mergeTransaction.reportID === targetTransaction.reportID ? sourceTransaction : targetTransaction;
-        const transactionsOfDeletableReport = Object.values(transactionsOfDeletableReportCollection ?? {});
+        const transactionsOfDeletableReport = Object.values(transactionsOfDeletableReportCollection);
         const deletableReport = getReportOrDraftReport(transactionToDelete.reportID);
         const reportPreviewActionIDOfDeletableReport = deletableReport?.parentReportActionID;
         const optimisticReportDeletionData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> =
