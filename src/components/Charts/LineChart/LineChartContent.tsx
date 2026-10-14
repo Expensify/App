@@ -101,7 +101,6 @@ function LineChartContentBody({data, series, isLoading, yAxisUnit, yAxisUnitPosi
         if (!firstLabelWidth || !lastLabelWidth) {
             return VictoryTheme.line.domainPadding;
         }
-        // Stepped labels are always horizontal, so they never take the diagonal overhang.
         const labelsExceedTickSpacing = !labelSteps && tickSpacing > 0 && maxLabelWidth + LABEL_PADDING > tickSpacing;
         let leftOverhang = firstLabelWidth / 2;
         let rightOverhang = lastLabelWidth / 2;
