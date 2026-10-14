@@ -662,6 +662,10 @@ const translations = {
         errorWhileSelectingCorruptedAttachment: 'An error occurred while selecting a corrupted attachment. Please try another file.',
         errorWhileConvertingHeic: "We couldn't process this image. Please try again, or upload the photo in a different format.",
         takePhoto: 'Take photo',
+        retake: 'Retake',
+        usePhoto: 'Use photo',
+        capturedPhotoPreview: 'Photo preview',
+        photoTakenAnnouncement: 'Photo taken. Choose Retake or Use photo.',
         chooseFromGallery: 'Choose from gallery',
         chooseDocument: 'Choose file',
         attachmentTooLarge: 'Attachment is too large',
@@ -1803,6 +1807,7 @@ const translations = {
             saveReceipt: 'Save receipt',
             genericDeleteFailureMessage: 'Unexpected error deleting this expense. Please try again later.',
             genericEditFailureMessage: 'Unexpected error editing this expense. Please try again later.',
+            genericSplitFailureMessage: 'Unexpected error splitting this expense. Please try again later.',
             genericSmartscanFailureMessage: 'Transaction is missing fields',
             duplicateWaypointsErrorMessage: 'Please remove duplicate waypoints',
             atLeastTwoDifferentWaypoints: 'Please enter at least two different addresses',
@@ -4698,7 +4703,7 @@ const translations = {
         enterSignerInfo: 'Enter signer info',
         thisStep: 'This step has been completed',
         isConnecting: (bankAccountLastFour: string | undefined, currency: string | undefined) =>
-            `is connecting a ${currency} business bank account ending in ${bankAccountLastFour} to Expensify to pay employees in ${currency}. The next step requires signer info from a director.`,
+            `added a ${currency} bank account ending in ${bankAccountLastFour}. Enter your signer information as the director so this bank account can be used to pay employees.`,
         error: {
             emailsMustBeDifferent: 'Emails must be different',
         },

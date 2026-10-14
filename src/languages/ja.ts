@@ -583,6 +583,10 @@ const translations: TranslationDeepObject<typeof en> = {
         errorWhileSelectingCorruptedAttachment: '破損した添付ファイルを選択した際にエラーが発生しました。別のファイルをお試しください。',
         errorWhileConvertingHeic: 'この画像を処理できませんでした。もう一度お試しいただくか、別の形式で写真をアップロードしてください。',
         takePhoto: '写真を撮る',
+        retake: '再撮影',
+        usePhoto: '写真を使用',
+        capturedPhotoPreview: '写真のプレビュー',
+        photoTakenAnnouncement: '写真を撮影しました。「再撮影」または「写真を使用」を選択してください。',
         chooseFromGallery: 'ギャラリーから選択',
         chooseDocument: 'ファイルを選択',
         attachmentTooLarge: '添付ファイルが大きすぎます',
@@ -1634,6 +1638,7 @@ const translations: TranslationDeepObject<typeof en> = {
             saveReceipt: '領収書を保存',
             genericDeleteFailureMessage: 'この経費の削除中に予期しないエラーが発生しました。しばらくしてからもう一度お試しください。',
             genericEditFailureMessage: 'この経費の編集中に予期しないエラーが発生しました。後でもう一度お試しください。',
+            genericSplitFailureMessage: 'この経費の分割中に予期しないエラーが発生しました。後でもう一度お試しください。',
             genericSmartscanFailureMessage: '取引に未入力の項目があります',
             duplicateWaypointsErrorMessage: '重複した経由地を削除してください',
             atLeastTwoDifferentWaypoints: '少なくとも2つの異なる住所を入力してください',
@@ -4482,7 +4487,7 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
         enterSignerInfo: '署名者情報を入力',
         thisStep: 'このステップは完了しました',
         isConnecting: (bankAccountLastFour: string | undefined, currency: string | undefined) =>
-            `は、従業員への支払いを${currency}で行うため、末尾が${bankAccountLastFour}の${currency}建てビジネス銀行口座をExpensifyに接続しようとしています。次のステップでは、取締役の署名者情報が必要です。`,
+            `は、末尾が${bankAccountLastFour}の${currency}建て銀行口座を追加しました。この銀行口座を従業員への支払いに使用できるように、取締役として署名者情報を入力してください。`,
         error: {
             emailsMustBeDifferent: 'メールアドレスは異なる必要があります',
         },

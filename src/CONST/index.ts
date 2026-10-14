@@ -9644,6 +9644,8 @@ const CONST = {
             SHUTTER: 'AttachmentCamera-Shutter',
             FLIP_CAMERA: 'AttachmentCamera-FlipCamera',
             PERMISSION_PROMPT_BUTTON: 'AttachmentCamera-PermissionPromptButton',
+            RETAKE: 'AttachmentCamera-Retake',
+            USE_PHOTO: 'AttachmentCamera-UsePhoto',
         },
         ATTACHMENT_CAROUSEL: {
             PREVIOUS_BUTTON: 'AttachmentCarousel-PreviousButton',
