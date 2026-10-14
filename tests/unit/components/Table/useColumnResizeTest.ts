@@ -275,6 +275,27 @@ describe('useColumnResize', () => {
         expect(readGripHover()).toBe('0');
     });
 
+    it('hides the grip when the pointer capture is lost off the heading', () => {
+        // Given a hovered heading whose edge is being dragged off the heading
+        const {headingElement, handleElement, getHandleProps, readGripHover, mountHandle} = renderColumnResize();
+
+        mountHandle();
+        headingElement.dispatchEvent(new Event('pointerenter'));
+
+        act(() => {
+            getHandleProps().onPointerDown?.(createPointerEvent(handleElement, {clientX: 190, clientY: 20}));
+            getHandleProps().onPointerMove?.(createPointerEvent(handleElement, {clientX: 400, clientY: 300}));
+        });
+
+        // When the browser takes the pointer capture back there, e.g. because the window lost focus
+        act(() => {
+            getHandleProps().onLostPointerCapture?.(createPointerEvent(handleElement, {clientX: 400, clientY: 300}));
+        });
+
+        // Then the grip hides, the same as a release there, rather than lingering on a heading the pointer isn't over
+        expect(readGripHover()).toBe('0');
+    });
+
     it('keeps the grip when a drag is released on the heading', () => {
         // Given a hovered heading whose edge is being dragged
         const {headingElement, handleElement, getHandleProps, readGripHover, mountHandle} = renderColumnResize();

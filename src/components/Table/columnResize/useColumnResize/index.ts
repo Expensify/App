@@ -70,6 +70,13 @@ function useColumnResize({columnResizingID, resizableColumnKeys, resolvedColumnW
         setTableColumnWidth(columnResizingID, drag.columnKey, width);
     };
 
+    // Releasing or losing capture doesn't reliably fire boundary events, so hit-test the heading, including the handle overhanging it.
+    const syncGripHover = (event: React.PointerEvent<HTMLDivElement>) => {
+        const isPointerOnHeading = !!event.currentTarget.parentElement?.contains(document.elementFromPoint(event.clientX, event.clientY));
+
+        setGripHovered(event.currentTarget, isPointerOnHeading);
+    };
+
     const handlePointerDown = (columnKey: string, event: React.PointerEvent<HTMLDivElement>) => {
         // Secondary buttons open context menus rather than dragging.
         if (event.button !== 0) {
@@ -117,15 +124,11 @@ function useColumnResize({columnResizingID, resizableColumnKeys, resolvedColumnW
         }
 
         endDrag(drag);
-
-        // Releasing capture doesn't reliably fire boundary events, so hit-test the heading, including the handle overhanging it.
-        const isPointerOnHeading = !!event.currentTarget.parentElement?.contains(document.elementFromPoint(event.clientX, event.clientY));
-
-        setGripHovered(event.currentTarget, isPointerOnHeading);
+        syncGripHover(event);
     };
 
     /** Ends a drag whose pointer capture the browser reclaimed. Also fires after a normal pointerup, when it's a no-op. */
-    const handleLostPointerCapture = () => {
+    const handleLostPointerCapture = (event: React.PointerEvent<HTMLDivElement>) => {
         const drag = dragRef.current;
 
         if (!drag) {
@@ -133,6 +136,7 @@ function useColumnResize({columnResizingID, resizableColumnKeys, resolvedColumnW
         }
 
         endDrag(drag);
+        syncGripHover(event);
     };
 
     // Unmounting mid-drag would otherwise leave the resize cursor on the document and a dangling drag.
