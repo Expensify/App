@@ -14,6 +14,7 @@ import YesNoAdapter from '@components/DynamicForm/adapters/YesNoAdapter';
 import DynamicFormFields from '@components/DynamicForm/components/DynamicFormFields';
 import type {DynamicFormValues} from '@components/DynamicForm/types';
 import getAddressInputKeys from '@components/DynamicForm/utils/getAddressInputKeys';
+import type {FormValue} from '@components/Form/types';
 import PercentageForm from '@components/PercentageForm';
 import PushRowWithModal from '@components/PushRowWithModal';
 import RadioButtons from '@components/RadioButtons';
@@ -44,7 +45,7 @@ type CapturedInputProps = {
     maxFileSize?: number;
     accessibilityLabel?: string;
     currency?: string;
-    defaultValue?: string;
+    defaultValue?: unknown;
     onValueChange?: (value: string, key: string) => void;
     onBlur?: () => void;
 };
@@ -111,6 +112,23 @@ const EXPECTED_INPUT_BY_TYPE: Record<DynamicFormFieldType, ComponentType<never>>
 
 const FIELD_TYPES = Object.keys(EXPECTED_INPUT_BY_TYPE).filter((type): type is DynamicFormFieldType => Object.hasOwn(EXPECTED_INPUT_BY_TYPE, type));
 
+const SENSITIVE_ANSWER_BY_TYPE: Record<DynamicFormFieldType, FormValue> = {
+    text: 'Jane',
+    number: '123456789',
+    select: 'SAVINGS',
+    radio: 'SAVINGS',
+    multiselect: ['RETAIL'],
+    date: '1990-05-01',
+    address: '1 Main St',
+    file: [{name: 'passport.pdf', uri: 'file://passport.pdf'}],
+    amount: '1000',
+    country: 'PL',
+    countryMultiselect: ['PL', 'DE'],
+    boolean: true,
+    currency: 'EUR',
+    percent: '25',
+};
+
 describe('DynamicFormFields', () => {
     it.each(FIELD_TYPES)('renders a %s field with its input', (type) => {
         // Given a field of one type with nothing but the required properties, next to another question so it is drawn as a row
@@ -140,6 +158,58 @@ describe('DynamicFormFields', () => {
         // Then only the regular field saves its draft
         expect(rendered.get('ssn')?.shouldSaveDraft).toBe(false);
         expect(rendered.get('nationality')?.shouldSaveDraft).toBe(true);
+    });
+
+    it.each(FIELD_TYPES)('refills a sensitive %s field from the answer kept in memory', (type) => {
+        // Given a sensitive field of one type, whose answer is kept in memory instead of in the draft
+        const field: DynamicFormField = {key: 'answer', type, required: true, sensitive: true};
+        const answer = SENSITIVE_ANSWER_BY_TYPE[type];
+
+        // When the user comes back to its page
+        const rendered = renderFields([field, otherQuestion], {answer});
+
+        // Then the input starts from that answer, so the user does not have to give it again
+        expect(rendered.get('answer')?.defaultValue).toEqual(answer);
+    });
+
+    it('leaves a regular field to its draft when the user comes back to its page', () => {
+        // Given a regular field with an answer, which FormProvider refills from the draft
+        const nationality: DynamicFormField = {key: 'nationality', type: 'country', required: true};
+
+        // When its page renders
+        const rendered = renderFields([nationality, otherQuestion], {nationality: 'PL'});
+
+        // Then the input gets no default of its own, so the draft stays the one source of its answer
+        expect(rendered.get('nationality')?.defaultValue).toBeUndefined();
+    });
+
+    it('refills every part of a sensitive address from memory', () => {
+        // Given a sensitive address whose parts are kept in memory
+        const homeAddress: DynamicFormField = {key: 'homeAddress', type: 'address', required: true, sensitive: true};
+        const keys = getAddressInputKeys('homeAddress');
+        const values = {homeAddress: '1 Main St', [keys.city]: 'Austin', [keys.state]: 'TX', [keys.zipCode]: '78701', [keys.country]: CONST.COUNTRY.US};
+
+        // When the user comes back to its page
+        const rendered = renderFields([homeAddress], values);
+
+        // Then every part starts from its answer, so none of them is asked again
+        expect(rendered.get(keys.street)?.defaultValue).toBe('1 Main St');
+        expect(rendered.get(keys.city)?.defaultValue).toBe('Austin');
+        expect(rendered.get(keys.state)?.defaultValue).toBe('TX');
+        expect(rendered.get(keys.zipCode)?.defaultValue).toBe('78701');
+        expect(rendered.get(keys.country)?.defaultValue).toBe(CONST.COUNTRY.US);
+    });
+
+    it('refills the currency of a sensitive amount from memory', () => {
+        // Given a sensitive amount whose currency the user picked, both kept in memory
+        const expectedVolume: DynamicFormField = {key: 'expectedVolume', type: 'amount', required: true, sensitive: true, currencyKey: 'expectedVolumeCurrency'};
+
+        // When the user comes back to its page
+        const rendered = renderFields([expectedVolume], {expectedVolume: '1000', expectedVolumeCurrency: CONST.CURRENCY.EUR}, {currency: CONST.CURRENCY.GBP});
+
+        // Then the picker starts from the picked currency rather than the screen currency
+        expect(rendered.get('expectedVolumeCurrency')?.defaultValue).toBe(CONST.CURRENCY.EUR);
+        expect(rendered.get('expectedVolume')?.defaultValue).toBe('1000');
     });
 
     it('offers the options picked by the answer a select depends on', () => {

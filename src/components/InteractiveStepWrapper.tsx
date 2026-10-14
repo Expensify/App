@@ -26,6 +26,9 @@ type InteractiveStepWrapperProps = {
     startStepIndex?: number;
 
     stepNames?: readonly string[];
+
+    /** Remounts the sub header when `startStepIndex` changes, for flows that move between steps on one screen. Other flows drive the sub header through its own state. */
+    shouldRemountSubHeaderOnStepChange?: boolean;
     shouldEnableMaxHeight?: boolean;
     shouldShowOfflineIndicator?: boolean;
     shouldShowOfflineIndicatorInWideScreen?: boolean;
@@ -59,6 +62,7 @@ function InteractiveStepWrapper({
     headerSubtitle,
     startStepIndex,
     stepNames,
+    shouldRemountSubHeaderOnStepChange = false,
     shouldEnableMaxHeight,
     shouldShowOfflineIndicator,
     shouldShowOfflineIndicatorInWideScreen,
@@ -94,6 +98,8 @@ function InteractiveStepWrapper({
                 {!!stepNames && (
                     <View style={[styles.ph5, styles.mb5, styles.mt3, {height: CONST.BANK_ACCOUNT.STEPS_HEADER_HEIGHT}]}>
                         <InteractiveStepSubHeader
+                            // The sub header keeps its own step state, so a new start index has to remount it for flows that move between steps on one screen
+                            key={shouldRemountSubHeaderOnStepChange ? startStepIndex : undefined}
                             startStepIndex={startStepIndex}
                             stepNames={stepNames}
                             currentStepAccessibilityDescription={headerTitle}

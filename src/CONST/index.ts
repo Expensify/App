@@ -970,6 +970,19 @@ const CONST = {
         ALLOWED_FILE_TYPES: ['pdf', 'jpg', 'jpeg', 'png'],
         FILE_LIMIT: 1,
     },
+    DYNAMIC_FORM: {
+        /** A select with more options than this sits on its own page, since it opens a searchable list */
+        LARGE_SELECT_MIN_OPTIONS: 10,
+
+        /** Most questions sharing a page when pages are built from a flat list of fields */
+        MAX_FIELDS_PER_PAGE: 4,
+
+        /** Pages from which the flow shows a step indicator on its own */
+        STEP_INDICATOR_MIN_PAGES: 3,
+
+        /** Route segment of the confirmation page, which no page may take */
+        CONFIRMATION_PAGE_KEY: 'confirm',
+    },
     NON_USD_BANK_ACCOUNT: {
         PURPOSE_OF_TRANSACTION_ID: 'Intercompany_Payment',
         CURRENT_USER_KEY: 'currentUser',
