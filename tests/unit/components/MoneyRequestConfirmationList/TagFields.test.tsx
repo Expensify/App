@@ -88,9 +88,10 @@ type RenderParams = {
     action?: IOUAction;
     isReadOnly?: boolean;
     didConfirm?: boolean;
+    hasDependentTags?: boolean;
 };
 
-const renderTagRow = ({tagIndex = 0, tags = independentTags, action = CONST.IOU.ACTION.CREATE, isReadOnly = false, didConfirm = false}: RenderParams = {}) => {
+const renderTagRow = ({tagIndex = 0, tags = independentTags, action = CONST.IOU.ACTION.CREATE, isReadOnly = false, didConfirm = false, hasDependentTags = false}: RenderParams = {}) => {
     const policyTagList = Object.values(tags).at(tagIndex);
     if (!policyTagList) {
         throw new Error('Missing tag list for the test');
@@ -106,6 +107,7 @@ const renderTagRow = ({tagIndex = 0, tags = independentTags, action = CONST.IOU.
                 <TagFields
                     tagIndex={tagIndex}
                     policy={policy}
+                    hasDependentTags={hasDependentTags}
                     policyTagList={policyTagList}
                     isTagRequired={false}
                     previousShouldShow
@@ -174,8 +176,8 @@ describe('TagFields', () => {
         // Given a workspace whose second tag level depends on the first, which the full page walks through level by level
         await givenPolicyTags(dependentTags);
 
-        // When the form renders a tag row
-        renderTagRow();
+        // When the form renders a tag row for those lists
+        renderTagRow({tags: dependentTags, hasDependentTags: true});
 
         // Then the row keeps opening the full-page selector
         await waitFor(() => {

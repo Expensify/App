@@ -27,7 +27,6 @@ jest.mock('@hooks/useAllTransactionViolations', () => jest.fn(() => undefined));
 jest.mock('@hooks/usePersonalDetails', () => ({usePersonalDetail: jest.fn(() => [undefined])}));
 jest.mock('@hooks/usePermissions', () => jest.fn(() => ({isBetaEnabled: jest.fn(() => false), isBetaEnabledOrUnknown: jest.fn(() => false)})));
 jest.mock('@hooks/useNetwork', () => jest.fn(() => ({isOffline: false})));
-jest.mock('@hooks/useLoadPolicyTags', () => jest.fn(() => ({isLoadingPolicyTags: false, hasLoadedPolicyTags: true})));
 
 const TRANSACTION_ID = 'txn1';
 
@@ -63,6 +62,8 @@ describe('useUpdateTransactionTag', () => {
     beforeEach(async () => {
         jest.clearAllMocks();
         await Onyx.clear();
+        // The picker beside the updater has finished reading the workspace's tags.
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.RAM_ONLY_POLICY_TAGS_LOADING_STATE}${policy.id}`, {hasOnceLoaded: true});
         await waitForBatchedUpdates();
     });
 

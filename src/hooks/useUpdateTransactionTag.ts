@@ -22,7 +22,6 @@ import useAllTransactionViolations from './useAllTransactionViolations';
 import {useCurrencyListActions} from './useCurrencyList';
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useDelegateAccountID from './useDelegateAccountID';
-import useLoadPolicyTags from './useLoadPolicyTags';
 import useNetwork from './useNetwork';
 import useOnyx from './useOnyx';
 import usePermissions from './usePermissions';
@@ -91,8 +90,10 @@ function useUpdateTransactionTag({
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
     const allTransactionViolations = useAllTransactionViolations(transactionID);
-    // Only a completed read guarantees every tag list is known, which the dependent-tag write needs to count them.
-    const {hasLoadedPolicyTags} = useLoadPolicyTags(policyID);
+    // Only a completed read guarantees every tag list is known, which the dependent-tag write needs to count them. The
+    // picker beside this owns that read, so this only watches it rather than starting another.
+    const [policyTagsLoadingState] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_POLICY_TAGS_LOADING_STATE}${getNonEmptyStringOnyxID(policyID)}`);
+    const hasLoadedPolicyTags = !!policyTagsLoadingState?.hasOnceLoaded;
 
     const currentTransaction = isEditingSplit && !isEmptyObject(splitDraftTransaction) ? splitDraftTransaction : transaction;
 

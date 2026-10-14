@@ -1,6 +1,5 @@
 import HighlightableMenuItemWithTopDescription from '@components/HighlightableMenuItemWithTopDescription';
 import {useConfirmationFields} from '@components/MoneyRequestConfirmationFields/context';
-import usePolicyTagsForConfirmation from '@components/MoneyRequestConfirmationList/hooks/usePolicyTagsForConfirmation';
 
 import useLocalize from '@hooks/useLocalize';
 import usePermissions from '@hooks/usePermissions';
@@ -8,7 +7,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
-import {getCountOfEnabledTagsOfList, hasDependentTags} from '@libs/PolicyUtils';
+import {getCountOfEnabledTagsOfList} from '@libs/PolicyUtils';
 
 import CONST from '@src/CONST';
 import type {IOUAction, IOUType} from '@src/CONST';
@@ -46,6 +45,9 @@ type TagFieldsProps = {
 
     /** Policy the tags belong to */
     policy: OnyxEntry<OnyxTypes.Policy>;
+
+    /** Whether each tag level's options depend on the level above */
+    hasDependentTags: boolean;
 };
 
 function TagFields({
@@ -62,11 +64,11 @@ function TagFields({
     formError,
     tagIndex,
     policy,
+    hasDependentTags,
 }: TagFieldsProps) {
     const {shouldUseDropdownRows} = useExpenseFormLayout();
     const {isEditingSplitBill} = useConfirmationFields();
     const {isBetaEnabled} = usePermissions();
-    const {policyTags} = usePolicyTagsForConfirmation(policy?.id);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const shouldDisplayTagError = formError === 'violations.tagOutOfPolicy';
@@ -82,8 +84,7 @@ function TagFields({
     const isCreatingExpense = action === CONST.IOU.ACTION.CREATE;
     const canShowTags = isCreatingExpense || getCountOfEnabledTagsOfList(policyTagList.tags) > 0;
     // Dependent tags keep the full page: each level's options depend on the level above, which that page walks through.
-    const shouldOpenInDropdown =
-        isBetaEnabled(CONST.BETAS.ANCHORED_FIELD_DROPDOWNS) && !!transactionID && !!policy && canSaveFromThisForm && !hasDependentTags(policy, policyTags) && canShowTags;
+    const shouldOpenInDropdown = isBetaEnabled(CONST.BETAS.ANCHORED_FIELD_DROPDOWNS) && !!transactionID && !!policy && canSaveFromThisForm && !hasDependentTags && canShowTags;
 
     const getTagStepRoute = (currentTransactionID: string, shouldCloseInPortrait?: boolean) =>
         createDynamicRoute(DYNAMIC_ROUTES.MONEY_REQUEST_STEP_TAG.getRoute(action, iouType, tagIndex, currentTransactionID, reportID, reportActionID, shouldCloseInPortrait));
