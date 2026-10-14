@@ -2206,6 +2206,23 @@ describe('ReportActionsUtils', () => {
             expect(ReportActionsUtils.isDeletedAction(reportAction)).toBe(false);
         });
 
+        it('should return false for POLICY_CHANGE_LOG.UPDATE_EMPLOYEE_DISPLAY_NAME action with an empty message html', () => {
+            // Given the display name whisper as the backend sends it after a reaction, with an empty message html
+            const reportAction: ReportAction = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_EMPLOYEE_DISPLAY_NAME,
+                reportActionID: '1',
+                created: '2026-10-13 12:00:03.573',
+                message: [{html: '', text: '', type: CONST.REPORT.MESSAGE.TYPE.COMMENT, whisperedTo: [590]}],
+                originalMessage: {oldValue: 'cathy@boulderdev.com', newValue: 'Cathy Miller', whisperedTo: [590]},
+            };
+
+            // When checking whether it is deleted
+            const isDeleted = ReportActionsUtils.isDeletedAction(reportAction);
+
+            // Then it is not, because its text comes from originalMessage
+            expect(isDeleted).toBe(false);
+        });
+
         it('should return false for CARDFROZEN action with a backend-provided message fragment', () => {
             const reportAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.CARD_FROZEN> = {
                 actionName: CONST.REPORT.ACTIONS.TYPE.CARD_FROZEN,
