@@ -135,13 +135,16 @@ function applyHTTPSOnyxUpdates<TKey extends OnyxKey>(request: Request<TKey>, res
     // apply successData or failureData. This ensures that we do not update any pending, loading, or other UI states contained
     // in successData/failureData until after the component has received and API data.
     const shouldGuardDeferredScan = isEligibleScanResponse(request, response) && request.data?.apiRequestType === CONST.API_REQUEST_TYPE.WRITE;
-    const onyxDataUpdatePromise = response.onyxData
-        ? shouldGuardDeferredScan
-            ? // A later replacement or live scan can advance the client before this response reaches the flush.
-              // Recheck freshness there; success/finally cleanup remains unconditional and is queued separately.
-              queueOnyxUpdates(response.onyxData, () => !lastUpdateID || lastUpdateID > getPersistedLastUpdateID())
-            : updateHandler(response.onyxData)
-        : Promise.resolve();
+    let onyxDataUpdatePromise: Promise<unknown> = Promise.resolve();
+    if (response.onyxData) {
+        if (shouldGuardDeferredScan) {
+            // A later replacement or live scan can advance the client before this response reaches the flush.
+            // Recheck freshness there; success/finally cleanup remains unconditional and is queued separately.
+            onyxDataUpdatePromise = queueOnyxUpdates(response.onyxData, () => !lastUpdateID || lastUpdateID > getPersistedLastUpdateID());
+        } else {
+            onyxDataUpdatePromise = updateHandler(response.onyxData);
+        }
+    }
 
     return onyxDataUpdatePromise
         .then(() => {

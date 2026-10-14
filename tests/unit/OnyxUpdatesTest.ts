@@ -349,12 +349,16 @@ describe('OnyxUpdatesTest', () => {
         await waitForBatchedUpdates();
         expect((await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`))?.receipt?.state).toBe(CONST.IOU.RECEIPT_STATE.SCAN_COMPLETE);
 
+        // Given the first request's pending state still awaits its queued success cleanup
+        expect((await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`))?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
+
         // Then queue flushing cannot replay the earlier receipt state, but pending cleanup still completes
         await flushQueue();
         await waitForBatchedUpdates();
         const transaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
         expect(transaction?.receipt?.state).toBe(CONST.IOU.RECEIPT_STATE.SCAN_COMPLETE);
-        expect(transaction?.pendingAction).toBeNull();
+        // Onyx removes nested fields merged with null rather than retaining a literal null value.
+        expect(transaction?.pendingAction).toBeUndefined();
         expect(await getOnyxValue(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT)).toBe(30);
     });
 
