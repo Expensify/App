@@ -5102,7 +5102,7 @@ ${amount} dla ${merchant} - ${date}`,
             },
             requestEmptyList: {
                 title: 'Nie ma jeszcze stawek diet',
-                subtitle: (workspaceName: string) => `W ${workspaceName} nie ma żadnych stawek diet. Poproś administratora o dodanie kilku.`,
+                subtitle: (workspaceName: string) => `${workspaceName} nie ma żadnych stawek diet. Poproś administratora, żeby je dodał.`,
                 adminSubtitle: 'Dodaj stawki diet, żeby uporządkować swoje wydatki.',
             },
             importPerDiemRates: 'Zaimportuj stawki diet',

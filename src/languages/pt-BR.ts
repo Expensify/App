@@ -5062,7 +5062,7 @@ ${amount} para ${merchant} - ${date}`,
             },
             requestEmptyList: {
                 title: 'Ainda não há diárias',
-                subtitle: (workspaceName: string) => `${workspaceName} não tem nenhuma diária definida. Peça a um administrador para adicionar algumas.`,
+                subtitle: (workspaceName: string) => `${workspaceName} não tem nenhuma taxa de diária. Peça para um administrador adicionar algumas.`,
                 adminSubtitle: 'Adicione diárias para organizar seus gastos.',
             },
             importPerDiemRates: 'Importar tarifas de diária',
