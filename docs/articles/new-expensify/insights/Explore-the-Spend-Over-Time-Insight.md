@@ -5,6 +5,7 @@ keywords: [Spend over time, spending trends, spending over time, expense trends,
 internalScope: Audience is members who can access Insights. Covers what Spend over time shows, who can see it, how expenses are grouped by time period, and how to explore the underlying expenses in Spend. Does not cover detailed shared filtering instructions, exporting expenses, or other insights.
 contentType: topic
 platform: new-expensify
+order: 3
 ---
 
 # Explore the Spend Over Time Insight
