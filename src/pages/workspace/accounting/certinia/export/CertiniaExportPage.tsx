@@ -26,7 +26,6 @@ type ExportRow = {
     title?: string;
     helperText?: string;
     onPress?: () => void;
-    interactive?: boolean;
     subscribedSettings: string[];
 };
 
@@ -70,14 +69,12 @@ function CertiniaExportPage({policy}: WithPolicyConnectionsProps) {
             description: translate('workspace.certinia.exportReimbursable.label'),
             title: translate('workspace.certinia.expenseReports'),
             helperText: translate('workspace.certinia.exportReimbursableExpenseReports.helperText'),
-            interactive: false,
             subscribedSettings: [CONST.CERTINIA_CONFIG.REIMBURSABLE],
         },
         {
             description: translate('workspace.certinia.exportNonReimbursable.label'),
             title: translate('workspace.certinia.expenseReports'),
             helperText: translate('workspace.certinia.exportNonReimbursableExpenseReports.helperText'),
-            interactive: false,
             subscribedSettings: [CONST.CERTINIA_CONFIG.NON_REIMBURSABLE],
         },
     ];
@@ -100,13 +97,11 @@ function CertiniaExportPage({policy}: WithPolicyConnectionsProps) {
             description: translate('workspace.certinia.exportReimbursable.label'),
             title: translate('workspace.certinia.payableInvoices'),
             helperText: translate('workspace.certinia.exportReimbursable.helperText'),
-            interactive: false,
             subscribedSettings: [CONST.CERTINIA_CONFIG.REIMBURSABLE],
         },
         {
             description: translate('workspace.certinia.exportNonReimbursable.label'),
             title: translate('workspace.certinia.payableInvoices'),
-            interactive: false,
             subscribedSettings: [CONST.CERTINIA_CONFIG.NON_REIMBURSABLE],
         },
         {

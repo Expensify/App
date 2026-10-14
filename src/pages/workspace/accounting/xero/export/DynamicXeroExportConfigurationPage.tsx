@@ -65,8 +65,6 @@ function DynamicXeroExportConfigurationPage({policy}: WithPolicyConnectionsProps
         {
             description: translate('workspace.accounting.exportOutOfPocket'),
             title: translate('workspace.xero.purchaseBill'),
-            interactive: false,
-            shouldShowRightIcon: false,
             helperText: translate('workspace.xero.exportExpensesDescription'),
         },
         {
@@ -84,8 +82,6 @@ function DynamicXeroExportConfigurationPage({policy}: WithPolicyConnectionsProps
         {
             description: translate('workspace.xero.exportInvoices'),
             title: translate('workspace.xero.salesInvoice'),
-            interactive: false,
-            shouldShowRightIcon: false,
             helperText: translate('workspace.xero.exportInvoicesDescription'),
         },
         ...(isTravelBillingEnabled
@@ -101,8 +97,6 @@ function DynamicXeroExportConfigurationPage({policy}: WithPolicyConnectionsProps
         {
             description: translate('workspace.accounting.exportCompanyCard'),
             title: translate('workspace.xero.bankTransactions'),
-            shouldShowRightIcon: false,
-            interactive: false,
             helperText: translate('workspace.xero.exportDeepDiveCompanyCard'),
         },
         {
