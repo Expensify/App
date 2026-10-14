@@ -114,9 +114,9 @@ To manage notification settings:
 
 Set your profile status with an emoji and optional message.
 
-1.On web, select **Account** in the navigation tabs. On mobile, select your profile icon.
+1. On web, select **Account** in the navigation tabs. On mobile, select your profile icon.
 2. Select **Profile > Status**.
-3. Eand enter your custom message.
+3. Enter your custom message.
 4. (Optional) Add an emoji.
 5. Under **Clear after**, choose when to clear the status, such as **1 hour**, **Today**, or **Never**.
 6. Select **Save**.
@@ -191,7 +191,7 @@ To edit your legal name:
 2. Select **Profile**.
 3. Scroll to **Private** and select **Legal name**.
 4. Enter the updated information and select **Save**.
-5, Enter the security code sent to you to verify the change.
+5. Enter the security code sent to you to verify the change.
 
 ---
 
