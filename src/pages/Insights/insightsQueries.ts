@@ -1,4 +1,4 @@
-import type {SearchCompareMode, SearchQueryString} from '@components/Search/types';
+import type {SearchCompareMode, SearchQueryJSON, SearchQueryString} from '@components/Search/types';
 
 import {buildQueryStringFromFilterFormValues, buildSearchQueryJSON, getRangeQueryValue} from '@libs/SearchQueryUtils';
 
@@ -47,6 +47,11 @@ function applyInsightsFilters(chart: InsightsChartSpec, filters: InsightsFilters
     );
 }
 
+type InsightsChartQuery = {
+    chart: InsightsChartSpec;
+    queryJSON: Readonly<SearchQueryJSON> | undefined;
+};
+
 type InsightsGraphHashes = {
     snapshotHash: number;
     previousPeriodSnapshotHash?: number;
@@ -55,8 +60,8 @@ type InsightsGraphHashes = {
 type InsightsGraphHashEntry = [InsightsGraphKey, InsightsGraphHashes];
 
 /** Returns the chart's graph slot paired with the hashes its current period, previous period and average are stored under. */
-function buildSnapshotHashEntry(chart: InsightsChartSpec, filters: InsightsFilters, shouldIncludeComparisons: boolean): InsightsGraphHashEntry | undefined {
-    const snapshotHash = buildSearchQueryJSON(applyInsightsFilters(chart, filters))?.hash;
+function buildSnapshotHashEntry({chart, queryJSON}: InsightsChartQuery, filters: InsightsFilters, shouldIncludeComparisons: boolean): InsightsGraphHashEntry | undefined {
+    const snapshotHash = queryJSON?.hash;
     if (!snapshotHash) {
         return undefined;
     }
@@ -82,9 +87,12 @@ type InsightsQuery = {
 
     /** Hashes of the snapshots the graphs are stored under. */
     snapshotHashes: number[];
+
+    headlineChart: InsightsChartQuery;
+    supportingCharts: InsightsChartQuery[];
 };
 
-/** Builds one request for the whole dashboard: the shared filters query plus the snapshot hash each graph's data is stored under. */
+/** Builds one request for the whole dashboard, naming each graph's snapshots by its chart's query hashes, and returns those chart queries to read the snapshots back with. */
 function buildInsightsJsonQuery(dashboard: InsightsDashboardID, filters: InsightsFilters, shouldIncludeComparisons: boolean): InsightsQuery | undefined {
     const inputQuery = buildInsightsQueryString({...filters, compare: undefined});
     const queryJSON = buildSearchQueryJSON(inputQuery);
@@ -92,9 +100,12 @@ function buildInsightsJsonQuery(dashboard: InsightsDashboardID, filters: Insight
         return undefined;
     }
 
-    const {searchKey, headlineChart, supportingCharts} = INSIGHTS_DASHBOARD_SPECS[dashboard];
+    const spec = INSIGHTS_DASHBOARD_SPECS[dashboard];
+    const buildChartQuery = (chart: InsightsChartSpec): InsightsChartQuery => ({chart, queryJSON: buildSearchQueryJSON(applyInsightsFilters(chart, filters))});
+    const headlineChart = buildChartQuery(spec.headlineChart);
+    const supportingCharts = spec.supportingCharts.map(buildChartQuery);
     const graphEntries = [headlineChart, ...supportingCharts]
-        .map((chart) => buildSnapshotHashEntry(chart, filters, shouldIncludeComparisons))
+        .map((chartQuery) => buildSnapshotHashEntry(chartQuery, filters, shouldIncludeComparisons))
         .filter((entry): entry is InsightsGraphHashEntry => !!entry);
     const insightsHashes: InsightsDashboard['graphs'] = Object.fromEntries(graphEntries);
 
@@ -104,15 +115,17 @@ function buildInsightsJsonQuery(dashboard: InsightsDashboardID, filters: Insight
             groupBy: queryJSON.groupBy,
             filters: queryJSON.filters,
             inputQuery,
-            searchKey,
+            searchKey: spec.searchKey,
             insightsHashes,
             numberOfPeriods: shouldIncludeComparisons ? COMPARE_TYPICAL_PERIOD_COUNT : undefined,
         }),
         hash: queryJSON.hash,
         snapshotHashes: graphEntries.flatMap(([, hashes]) => Object.values(hashes).filter((hash): hash is number => hash !== undefined)),
+        headlineChart,
+        supportingCharts,
     };
 }
 
 export {applyInsightsFilters, buildDateFormValues, buildInsightsQueryString};
-export type {InsightsQuery};
+export type {InsightsChartQuery, InsightsQuery};
 export default buildInsightsJsonQuery;

@@ -26,6 +26,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
+import type Beta from '@src/types/onyx/Beta';
 
 import {PortalProvider} from '@gorhom/portal';
 import {NavigationContainer} from '@react-navigation/native';
@@ -307,6 +308,8 @@ describe('WorkspaceMoreFeaturesPage', () => {
             await TestHelper.signInWithTestUser();
             hasAccountingConnectionsMock.mockReturnValue(true);
             await act(async () => {
+                // The test user is on the 'all' beta, which includes the unified Connections beta that hides this toggle
+                await Onyx.merge(ONYXKEYS.BETAS, []);
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, buildPolicy({id: POLICY_ID}));
             });
 
@@ -320,6 +323,8 @@ describe('WorkspaceMoreFeaturesPage', () => {
             await TestHelper.signInWithTestUser();
             hasAccountingConnectionsMock.mockReturnValue(true);
             await act(async () => {
+                // The test user is on the 'all' beta, which includes the unified Connections beta that hides this toggle
+                await Onyx.merge(ONYXKEYS.BETAS, []);
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, buildPolicy({id: POLICY_ID}));
             });
 
@@ -388,6 +393,8 @@ describe('WorkspaceMoreFeaturesPage', () => {
             await TestHelper.signInWithTestUser();
             useIsUberConnectedMock.mockReturnValue(true);
             await act(async () => {
+                // The test user is on the 'all' beta, which includes the unified Connections beta that hides this toggle
+                await Onyx.merge(ONYXKEYS.BETAS, []);
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, buildPolicy({id: POLICY_ID}));
             });
 
@@ -405,6 +412,39 @@ describe('WorkspaceMoreFeaturesPage', () => {
 
             expect(navigateSpy).not.toHaveBeenCalled();
             expect(navigateToConciergeChatSpy).not.toHaveBeenCalled();
+        });
+    });
+
+    describe('Integrate section', () => {
+        const renderWithBetas = async (betas: Beta[]) => {
+            await TestHelper.signInWithTestUser();
+            await act(async () => {
+                await Onyx.merge(ONYXKEYS.BETAS, betas);
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, buildPolicy({id: POLICY_ID}));
+            });
+            renderPage({policyID: POLICY_ID});
+            await waitForBatchedUpdatesWithAct();
+        };
+
+        const accountingSwitchQuery = () =>
+            screen.queryByRole(CONST.ROLE.SWITCH, {name: new RegExp(escapeRegExp(TestHelper.translateLocal('workspace.moreFeatures.connections.subtitle')), 'i')});
+
+        it('shows the Accounting toggle without the unified Connections beta', async () => {
+            // Given a workspace
+            // When More Features renders without the beta
+            await renderWithBetas([]);
+
+            // Then the integration features can still be turned on here, since their pages are only reachable once they are on
+            expect(accountingSwitchQuery()).toBeOnTheScreen();
+        });
+
+        it('hides the integration toggles with the unified Connections beta', async () => {
+            // Given a workspace
+            // When More Features renders with the beta
+            await renderWithBetas([CONST.BETAS.UNIFIED_CONNECTIONS]);
+
+            // Then the toggles are gone, because Connections turns each feature on as its first integration connects
+            expect(accountingSwitchQuery()).toBeNull();
         });
     });
 
@@ -526,9 +566,61 @@ describe('WorkspaceMoreFeaturesPage', () => {
             await expect(findLockedSwitch('workspace.moreFeatures.vendors.subtitle')).resolves.toBeOnTheScreen();
         });
 
-        // Xero (R3) is still beta-gated, so it stays hidden when the beta is off.
-        it('hides the Vendors row for a beta-gated integration (Xero) when the beta is disabled', async () => {
-            await renderWithVendorMatching({[CONST.POLICY.CONNECTIONS.NAME.XERO]: {config: {}}}, false);
+        // Xero (R3) is GA, so a connected Xero workspace shows the row regardless of the vendorMatching beta.
+        it('shows the Vendors row locked ON for Xero scoping vendors even with the beta disabled (Xero is GA)', async () => {
+            // Given a configured Xero connection
+            const connections = {[CONST.POLICY.CONNECTIONS.NAME.XERO]: {config: {isConfigured: true}}};
+
+            // When the More features page renders without the vendorMatching beta
+            await renderWithVendorMatching(connections, false);
+
+            // Then the Vendors row is visible because Xero does not depend on the beta
+            await expect(findLockedSwitch('workspace.moreFeatures.vendors.subtitle')).resolves.toBeOnTheScreen();
+        });
+
+        it('shows the Vendors row locked OFF for Xero not scoping vendors even with the beta disabled (discovery state, Xero is GA)', async () => {
+            // Given a Xero connection that is not configured yet, so it does not scope vendors
+            const connections = {[CONST.POLICY.CONNECTIONS.NAME.XERO]: {config: {}}};
+
+            // When the More features page renders without the vendorMatching beta
+            await renderWithVendorMatching(connections, false);
+
+            // Then the Vendors row is still visible so admins can discover the feature
+            await expect(findLockedSwitch('workspace.moreFeatures.vendors.subtitle')).resolves.toBeOnTheScreen();
+        });
+
+        it.each([
+            {isConfigured: true, isBetaEnabled: false, isVendorsActive: true},
+            {isConfigured: true, isBetaEnabled: true, isVendorsActive: true},
+            {isConfigured: false, isBetaEnabled: false, isVendorsActive: false},
+            {isConfigured: false, isBetaEnabled: true, isVendorsActive: false},
+            {isConfigured: undefined, isBetaEnabled: false, isVendorsActive: false},
+            {isConfigured: undefined, isBetaEnabled: true, isVendorsActive: false},
+        ])('shows the Campfire Vendors row with active=$isVendorsActive for configured=$isConfigured and beta=$isBetaEnabled', async ({isConfigured, isBetaEnabled, isVendorsActive}) => {
+            // Given a Campfire connection whose configuration determines whether vendor matching is active
+            const connections = {[CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE]: {config: {isConfigured}}};
+
+            // When the More features page renders with the selected beta state
+            await renderWithVendorMatching(connections, isBetaEnabled);
+
+            // Then the locked row shows without the beta so admins can discover it, and is only on once Campfire is configured
+            const vendorsSwitch = await findLockedSwitch('workspace.moreFeatures.vendors.subtitle');
+            if (isVendorsActive) {
+                expect(vendorsSwitch).toBeChecked();
+            } else {
+                expect(vendorsSwitch).not.toBeChecked();
+            }
+        });
+
+        // Business Central is still beta-gated, so it stays hidden when the beta is off.
+        it('hides the Vendors row for a beta-gated integration (Business Central) when the beta is disabled', async () => {
+            // Given a configured Business Central connection
+            const connections = {[CONST.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL]: {config: {isConfigured: true}}};
+
+            // When the More features page renders without the vendorMatching beta
+            await renderWithVendorMatching(connections, false);
+
+            // Then the Vendors row is hidden because Business Central still depends on the beta
             expect(vendorsSwitchQuery()).toBeNull();
         });
 

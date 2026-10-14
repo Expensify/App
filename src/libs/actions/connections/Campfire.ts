@@ -4,11 +4,13 @@ import type {
     UpdateCampfireAccountingMethodParams,
     UpdateCampfireAutoSyncParams,
     UpdateCampfireBillPaymentAccountParams,
+    UpdateCampfireCardProgramAccountParams,
     UpdateCampfireCreditCardAccountParams,
     UpdateCampfireDefaultVendorParams,
     UpdateCampfireEnableNewCategoriesParams,
     UpdateCampfireExportDateParams,
     UpdateCampfireExporterParams,
+    UpdateCampfireExportToMultipleAccountsParams,
     UpdateCampfireFieldMappingParams,
     UpdateCampfireSettlementsAccountParams,
     UpdateCampfireSubsidiaryParams,
@@ -509,6 +511,88 @@ function prepareCampfireSyncOnyxData<TSettingName extends keyof CampfireSync>(
     return {optimisticData, successData, failureData};
 }
 
+function prepareCampfireCardProgramAccountOnyxData(
+    policyID: string,
+    feedKey: keyof CampfireExport['cardProgramAccounts'],
+    accountID: ValueOf<CampfireExport['cardProgramAccounts']>,
+    oldAccountID?: ValueOf<CampfireExport['cardProgramAccounts']> | null,
+) {
+    const cardProgramAccountOfflineFeedbackKey = `${CONST.CAMPFIRE_CONFIG.CARD_PROGRAM_ACCOUNT_PREFIX}${feedKey}`;
+
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                connections: {
+                    campfire: {
+                        config: {
+                            export: {
+                                cardProgramAccounts: {
+                                    // An empty accountID string implies clearing the custom account
+                                    [feedKey]: accountID || null,
+                                },
+                            },
+                            pendingFields: {
+                                [cardProgramAccountOfflineFeedbackKey]: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                            },
+                            errorFields: {
+                                [cardProgramAccountOfflineFeedbackKey]: null,
+                            },
+                        },
+                    },
+                },
+            },
+        },
+    ];
+
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                connections: {
+                    campfire: {
+                        config: {
+                            pendingFields: {
+                                [cardProgramAccountOfflineFeedbackKey]: null,
+                            },
+                        },
+                    },
+                },
+            },
+        },
+    ];
+
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                connections: {
+                    campfire: {
+                        config: {
+                            export: {
+                                cardProgramAccounts: {
+                                    [feedKey]: oldAccountID ?? null,
+                                },
+                            },
+                            pendingFields: {
+                                [cardProgramAccountOfflineFeedbackKey]: null,
+                            },
+                            errorFields: {
+                                [cardProgramAccountOfflineFeedbackKey]: getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
+                            },
+                        },
+                    },
+                },
+            },
+        },
+    ];
+
+    return {optimisticData, successData, failureData};
+}
+
 function updateCampfireSubsidiary(policyID: string, subsidiaryID: CampfireConnectionsConfig['subsidiaryID'], oldSubsidiaryID?: CampfireConnectionsConfig['subsidiaryID']) {
     const onyxData = prepareCampfireOnyxData(policyID, CONST.CAMPFIRE_CONFIG.SUBSIDIARY_ID, subsidiaryID, oldSubsidiaryID ?? null);
     const params: UpdateCampfireSubsidiaryParams = {
@@ -694,6 +778,30 @@ function updateCampfireTravelInvoicingPayableAccount(
     write(WRITE_COMMANDS.UPDATE_CAMPFIRE_TRAVEL_INVOICING_PAYABLE_ACCOUNT, parameters, onyxData);
 }
 
+function updateCampfireExportToMultipleAccounts(policyID: string, enabled: CampfireExport['exportToMultipleAccounts'], oldEnabled?: CampfireExport['exportToMultipleAccounts']) {
+    const onyxData = prepareCampfireExportOnyxData(policyID, CONST.CAMPFIRE_CONFIG.EXPORT_TO_MULTIPLE_ACCOUNTS, enabled, oldEnabled ?? null);
+    const parameters: UpdateCampfireExportToMultipleAccountsParams = {
+        policyID,
+        enabled,
+    };
+    write(WRITE_COMMANDS.UPDATE_CAMPFIRE_EXPORT_TO_MULTIPLE_ACCOUNTS, parameters, onyxData);
+}
+
+function updateCampfireCardProgramAccount(
+    policyID: string,
+    feedKey: keyof CampfireExport['cardProgramAccounts'],
+    cardProgramAccountID: ValueOf<CampfireExport['cardProgramAccounts']>,
+    oldCardProgramAccountID?: ValueOf<CampfireExport['cardProgramAccounts']>,
+) {
+    const onyxData = prepareCampfireCardProgramAccountOnyxData(policyID, feedKey, cardProgramAccountID, oldCardProgramAccountID ?? null);
+    const parameters: UpdateCampfireCardProgramAccountParams = {
+        policyID,
+        feedKey,
+        cardProgramAccountID,
+    };
+    write(WRITE_COMMANDS.UPDATE_CAMPFIRE_CARD_PROGRAM_ACCOUNT, parameters, onyxData);
+}
+
 export {
     connectToCampfire,
     clearCampfireErrorField,
@@ -714,4 +822,6 @@ export {
     updateCampfireSyncTravelInvoicingSettlements,
     updateCampfireTravelInvoicingSettlementsAccount,
     updateCampfireTravelInvoicingPayableAccount,
+    updateCampfireExportToMultipleAccounts,
+    updateCampfireCardProgramAccount,
 };

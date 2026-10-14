@@ -128,7 +128,7 @@ Only Workspace Admins, Approvers, and Auditors can view a workspace's **Top Spen
 
 ## How is the Top Spenders report calculated?
 
-The Top Spenders report uses expenses from the previous calendar month that belong to the workspaces where you're a Workspace Admin, Approver, or Auditor, and groups them by submitter (employee). It shows the top 10 people by total amount spent.
+The Top Spenders report uses expenses from the previous calendar month that belong to the workspaces where you're a Workspace Admin, Approver, or Auditor, and groups them by submitter (employee). It shows the top 5 people by total amount spent.
 
 ## Why is an expense missing from the Top Spenders report?
 

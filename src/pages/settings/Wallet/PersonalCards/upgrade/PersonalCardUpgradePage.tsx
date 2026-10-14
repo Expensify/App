@@ -15,13 +15,12 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import Navigation from '@navigation/Navigation';
 
-import {createWorkspaceWithPolicyDraft} from '@userActions/App';
-import {generateDefaultWorkspaceName, generatePolicyID} from '@userActions/Policy/Policy';
+import {createWorkspaceWithPolicyDraft} from '@userActions/Policy/CreateWorkspaceFlow';
+import {generateDefaultWorkspaceName, generatePolicyID} from '@userActions/Policy/PolicyDraft';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {LastPaymentMethodType} from '@src/types/onyx';
 
 import {hasSeenTourSelector} from '@selectors/Onboarding';
 import React, {useState} from 'react';
@@ -37,7 +36,6 @@ function PersonalCardUpgradePage() {
     const {isOffline} = useNetwork();
     const [isUpgraded, setIsUpgraded] = useState(false);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
-    const [lastPaymentMethod] = useOnyx(ONYXKEYS.NVP_LAST_PAYMENT_METHOD);
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
@@ -58,7 +56,6 @@ function PersonalCardUpgradePage() {
             transitionFromOldDot: false,
             makeMeAdmin: false,
             policyID,
-            lastUsedPaymentMethod: lastPaymentMethod?.[policyID] as LastPaymentMethodType,
             activePolicy,
             conciergeChat,
             currentUserAccountIDParam: accountID,

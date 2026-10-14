@@ -6,7 +6,7 @@ import {convertToBackendAmount} from '@libs/CurrencyUtils';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import * as NumberUtils from '@libs/NumberUtils';
 import {getLoginByAccountID} from '@libs/PersonalDetailsUtils';
-import {getDistanceRateCustomUnitRate, getPolicyForDistanceRateID, hasDependentTags} from '@libs/PolicyUtils';
+import {getDistanceRateCustomUnitRate, getPolicyForDistanceRateID, getTagLists, hasDependentTags} from '@libs/PolicyUtils';
 import {getIOUActionForTransactionID} from '@libs/ReportActionsUtils';
 import type {TransactionDetails} from '@libs/ReportUtils';
 import {
@@ -33,6 +33,7 @@ import {
     getTaxValue,
     getUpdatedTransaction,
     isDistanceRequest,
+    isFailedScanAmountPlaceholder,
     isOnHold,
     isSplitChildTransaction,
     shouldShowAttendees,
@@ -129,7 +130,12 @@ function removeUnchangedBulkEditFields(
         const currentValue = currentDetails[field as keyof TransactionDetails];
 
         const hasChanged = field === CONST.EDIT_REQUEST_FIELD.ATTENDEES ? !deepEqual(nextValue, currentValue) : nextValue !== currentValue;
-        if (hasChanged) {
+        // A failed-scan placeholder amount must always be treated as changed so that bulk-confirming the same
+        // displayed value (e.g. re-entering 0) still submits and clears the scan-failure error, mirroring the
+        // no-op bypass already used in IOUAmountSubmission.ts and TotalCell.tsx.
+        const isFailedScanAmountEdit = field === 'amount' && isFailedScanAmountPlaceholder(transaction);
+
+        if (isFailedScanAmountEdit || hasChanged) {
             filteredChanges = {
                 ...filteredChanges,
                 [field]: nextValue,
@@ -151,6 +157,8 @@ type UpdateMultipleMoneyRequestsParams = {
     reportActions: OnyxCollection<OnyxTypes.ReportActions>;
     policyCategories: OnyxCollection<OnyxTypes.PolicyCategories>;
     policyTags: OnyxCollection<OnyxTypes.PolicyTagLists>;
+    /** Per-policy tags read state. A policy's tag list count is only trusted once its tags have fully loaded. */
+    policyTagsLoadingStates?: OnyxCollection<OnyxTypes.PolicyDataLoadingState>;
     violations: OnyxCollection<OnyxTypes.TransactionViolations>;
     reportNameValuePairs?: OnyxCollection<OnyxTypes.ReportNameValuePairs>;
     hash?: number;
@@ -198,6 +206,7 @@ function updateMultipleMoneyRequests({
     reportActions,
     policyCategories,
     policyTags,
+    policyTagsLoadingStates,
     violations,
     reportNameValuePairs,
     hash,
@@ -337,6 +346,10 @@ function updateMultipleMoneyRequests({
             const transactionPolicyTagList = policyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${transactionPolicy?.id}`];
             const transactionHasDependentTags = hasDependentTags(transactionPolicy, transactionPolicyTagList);
             const transactionHasMultipleTagLists = transactionPolicy?.hasMultipleTagLists ?? false;
+            // A partially loaded tag collection can hold fewer tag lists than the policy, so only drop values for removed
+            // tag lists once this policy's tags have fully loaded
+            const hasLoadedTransactionPolicyTags = !!policyTagsLoadingStates?.[`${ONYXKEYS.COLLECTION.RAM_ONLY_POLICY_TAGS_LOADING_STATE}${transactionPolicy?.id}`]?.hasOnceLoaded;
+            const transactionTagListCount = hasLoadedTransactionPolicyTags ? getTagLists(transactionPolicyTagList).length : undefined;
             let reconstructedTag = transaction.tag ?? '';
             for (const editedIndex of editedTagIndexes.map(Number).sort((first, second) => first - second)) {
                 reconstructedTag = getUpdatedTransactionTag({
@@ -347,6 +360,7 @@ function updateMultipleMoneyRequests({
                     policyTags: transactionPolicyTagList,
                     hasDependentTags: transactionHasDependentTags,
                     hasMultipleTagLists: transactionHasMultipleTagLists,
+                    tagListCount: transactionTagListCount,
                 });
             }
             transactionChanges.tag = reconstructedTag;

@@ -1,7 +1,7 @@
 import Button from '@components/Button';
 import FixedFooter from '@components/FixedFooter';
 import FormHelpMessage from '@components/FormHelpMessage';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -101,7 +101,7 @@ function MergeATSFiltersPage({
                 enableEdgeToEdgeBottomSafeAreaPadding
                 testID="MergeATSFiltersPage"
             >
-                <HeaderWithBackButton title={translate('workspace.recruiting.importSettings')} />
+                <HeaderWithBackButtonAndTitle title={translate('workspace.recruiting.importSettings')} />
                 <ScrollView contentContainerStyle={styles.flexGrow1}>
                     <Text style={[styles.ph5, styles.mb5, styles.textSupporting]}>{translate('workspace.recruiting.filters.description', providerName)}</Text>
                     <OfflineWithFeedback

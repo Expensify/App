@@ -34,4 +34,12 @@ describe('getReportRouteForCurrentContext', () => {
             }),
         );
     });
+
+    it('keeps a pending report on the standard report route', () => {
+        mockIsSearchTopmostFullScreenRoute.mockReturnValue(true);
+
+        expect(getReportRouteForCurrentContext({reportID: '42', isPendingCreation: true})).toBe(
+            ROUTES.REPORT_WITH_ID.getRoute('42', undefined, undefined, 'search?q=type:chat', undefined, true),
+        );
+    });
 });

@@ -9,6 +9,7 @@ import {deleteTrackExpense} from '@libs/actions/IOU/TrackExpense';
 import initSplitExpense from '@libs/actions/SplitExpenses';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {calculateAmount as calculateIOUAmount} from '@libs/IOUUtils';
+import Log from '@libs/Log';
 import {getOriginalMessage, isActionableTrackExpense, isMoneyRequestAction, isTrackExpenseAction} from '@libs/ReportActionsUtils';
 import {isArchivedReport, isExpenseReport, isInvoiceReport, isIOUReport, isSelfDM} from '@libs/ReportUtils';
 import type {SearchGroupKey} from '@libs/SearchUIUtils';
@@ -90,6 +91,7 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
     const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
     const [allReportsTransactionsAndViolations] = useOnyx(ONYXKEYS.DERIVED.REPORT_TRANSACTIONS_AND_VIOLATIONS);
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
+    const [reportDrafts] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT);
     const [allReportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS);
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${getNonEmptyStringOnyxID(report?.policyID)}`);
     const [allPolicyRecentlyUsedCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES);
@@ -294,6 +296,7 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
                 getCurrencySymbol,
                 allTransactionsList: allTransactions,
                 allReportsList: allReports,
+                reportDrafts,
                 allReportActionsList: allReportActions,
                 allReportNameValuePairsList: allReportNameValuePairs,
                 allSnapshots,
@@ -329,11 +332,13 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
             });
         }
 
-        for (const {transactionID, action} of nonSplitTransactions) {
+        for (const {transactionID, action, transaction} of nonSplitTransactions) {
+            // Some expenses can have no IOU action, but the API can still delete them by transactionID
             if (!action) {
-                continue;
+                Log.info('[useDeleteTransactions] Deleting expense without an IOU action', false, {transactionID, reportID: transaction?.reportID});
             }
-            const iouReportID = isMoneyRequestAction(action) ? action?.reportID : undefined;
+
+            const iouReportID = isMoneyRequestAction(action) ? action?.reportID : transaction?.reportID;
             const candidateIOUReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`];
             // For self-DM tracks and split bills, action.reportID resolves to a chat report, not an IOU/expense report.
             // Invoice reports also carry the money request action; without them the optimistic delete would run with an
@@ -413,7 +418,7 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
                 getCurrencyDecimals,
             });
             deletedTransactionIDs.push(transactionID);
-            if (action.childReportID) {
+            if (action?.childReportID) {
                 deletedTransactionThreadReportIDs.add(action.childReportID);
             }
         }

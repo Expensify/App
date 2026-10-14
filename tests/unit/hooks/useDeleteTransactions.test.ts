@@ -4,6 +4,7 @@ import OnyxListItemProvider from '@components/OnyxListItemProvider';
 
 import useDeleteTransactions from '@hooks/useDeleteTransactions';
 
+import {WRITE_COMMANDS} from '@libs/API/types';
 import {buildOptimisticIOUReportAction} from '@libs/ReportUtils';
 
 import CONST from '@src/CONST';
@@ -15,9 +16,9 @@ import type Transaction from '@src/types/onyx/Transaction';
 
 import Onyx from 'react-native-onyx';
 
-import {createSelfDM} from '../../utils/collections/reports';
+import {createExpenseReport, createSelfDM} from '../../utils/collections/reports';
 import getOnyxValue from '../../utils/getOnyxValue';
-import {getCurrencyDecimalsLocal, getGlobalFetchMock} from '../../utils/TestHelper';
+import {expectAPICommandToHaveBeenCalled, expectAPICommandToHaveBeenCalledWith, getCurrencyDecimalsLocal, getGlobalFetchMock} from '../../utils/TestHelper';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
 jest.mock('@libs/Navigation/Navigation', () => ({
@@ -106,5 +107,40 @@ describe('useDeleteTransactions', () => {
 
         // And the report actions are keyed on the self-DM report, not on a missing IOU report
         await expect(getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}undefined`)).resolves.toBeFalsy();
+    });
+
+    it('deletes an expense that has no IOU action instead of silently skipping it', async () => {
+        // Given an expense on an expense report whose IOU action was never created
+        const expenseReport = createExpenseReport(1);
+        const transactionID = 'transaction';
+        const transaction: Transaction = {
+            transactionID,
+            amount: -10000,
+            currency: 'USD',
+            merchant: 'Test Merchant',
+            comment: {comment: 'Test comment'},
+            created: DateUtils.getDBTime(),
+            reportID: expenseReport.reportID,
+        };
+
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`, expenseReport);
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, transaction);
+        await waitForBatchedUpdates();
+
+        const {result} = renderHook(() => useDeleteTransactions({report: expenseReport, reportActions: []}), {wrapper: OnyxListItemProvider});
+        await waitForBatchedUpdates();
+
+        // When the expense is bulk-deleted from Search
+        act(() => {
+            result.current.deleteTransactions([transactionID], {}, {});
+        });
+        await waitForBatchedUpdates();
+
+        // Then DeleteMoneyRequest is sent with the transaction ID, since the API deletes expenses without an IOU action
+        expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.DELETE_MONEY_REQUEST, 1);
+        expectAPICommandToHaveBeenCalledWith(WRITE_COMMANDS.DELETE_MONEY_REQUEST, 0, {transactionID});
+
+        // And the expense is removed from Onyx once the request succeeds
+        await expect(getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`)).resolves.toBeFalsy();
     });
 });

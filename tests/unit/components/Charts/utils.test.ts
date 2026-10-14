@@ -1,12 +1,14 @@
+import BAR_INNER_PADDING, {BAR_MAX_WIDTH, VERTICAL_BAR_DOMAIN_PADDING} from '@components/Charts/barChartConstants';
 import type {ChartDataPoint, PieSlice} from '@components/Charts/types';
 import {
-    calculateMinDomainPadding,
     edgeLabelsFit,
     edgeMaxLabelWidth,
     effectiveHeight,
     effectiveWidth,
     findSliceAtPosition,
+    getBarLayout,
     getAdditionalOffset,
+    getDomainPaddingForEdgeSpace,
     getNiceYAxisTicks,
     isAngleInSlice,
     isCursorInSkewedLabel,
@@ -20,6 +22,7 @@ import {
     truncateLabel,
 } from '@components/Charts/utils';
 import VictoryTheme, {CHART_Y_SCALE_HEIGHT, DIAGONAL_ANGLE_RADIAN_THRESHOLD, LABEL_ROTATIONS, SIN_45} from '@components/Charts/VictoryTheme';
+import {CHART_SERIES_KEY} from '@components/Search/buildChartSeries';
 
 const LINE_HEIGHT = 16;
 
@@ -261,20 +264,20 @@ describe('findSliceAtPosition', () => {
 
 describe('processDataIntoSlices', () => {
     it('returns empty array for empty data', () => {
-        expect(processDataIntoSlices([], {centerX: 0, centerY: 0, radius: 0, innerRadius: 0})).toEqual([]);
+        expect(processDataIntoSlices([], CHART_SERIES_KEY.PRIMARY, {centerX: 0, centerY: 0, radius: 0, innerRadius: 0})).toEqual([]);
     });
 
     it('returns empty array when all values are zero', () => {
         const data: ChartDataPoint[] = [
-            {label: 'A', total: 0},
-            {label: 'B', total: 0},
+            {label: 'A', values: {[CHART_SERIES_KEY.PRIMARY]: 0}},
+            {label: 'B', values: {[CHART_SERIES_KEY.PRIMARY]: 0}},
         ];
-        expect(processDataIntoSlices(data, {centerX: 0, centerY: 0, radius: 0, innerRadius: 0})).toEqual([]);
+        expect(processDataIntoSlices(data, CHART_SERIES_KEY.PRIMARY, {centerX: 0, centerY: 0, radius: 0, innerRadius: 0})).toEqual([]);
     });
 
     it('creates a single slice covering 360 degrees for one data point', () => {
-        const data: ChartDataPoint[] = [{label: 'Only', total: 100}];
-        const slices = processDataIntoSlices(data, {centerX: 0, centerY: 0, radius: 0, innerRadius: 0}, -90);
+        const data: ChartDataPoint[] = [{label: 'Only', values: {[CHART_SERIES_KEY.PRIMARY]: 100}}];
+        const slices = processDataIntoSlices(data, CHART_SERIES_KEY.PRIMARY, {centerX: 0, centerY: 0, radius: 0, innerRadius: 0}, -90);
 
         expect(slices).toHaveLength(1);
         expect(slices.at(0)?.label).toBe('Only');
@@ -286,26 +289,26 @@ describe('processDataIntoSlices', () => {
     });
 
     it('uses the provided startAngle for the first slice', () => {
-        const data: ChartDataPoint[] = [{label: 'Only', total: 100}];
-        const slices = processDataIntoSlices(data, {centerX: 0, centerY: 0, radius: 0, innerRadius: 0}, 45);
+        const data: ChartDataPoint[] = [{label: 'Only', values: {[CHART_SERIES_KEY.PRIMARY]: 100}}];
+        const slices = processDataIntoSlices(data, CHART_SERIES_KEY.PRIMARY, {centerX: 0, centerY: 0, radius: 0, innerRadius: 0}, 45);
 
         expect(slices.at(0)?.startAngle).toBe(45);
         expect(slices.at(0)?.endAngle).toBe(405);
     });
 
     it('defaults to VictoryTheme.pie.startAngle when no startAngle is provided', () => {
-        const data: ChartDataPoint[] = [{label: 'Only', total: 100}];
-        const slices = processDataIntoSlices(data, {centerX: 0, centerY: 0, radius: 0, innerRadius: 0});
+        const data: ChartDataPoint[] = [{label: 'Only', values: {[CHART_SERIES_KEY.PRIMARY]: 100}}];
+        const slices = processDataIntoSlices(data, CHART_SERIES_KEY.PRIMARY, {centerX: 0, centerY: 0, radius: 0, innerRadius: 0});
 
         expect(slices.at(0)?.startAngle).toBe(VictoryTheme.pie.startAngle);
     });
 
     it('sorts slices by absolute value descending', () => {
         const data: ChartDataPoint[] = [
-            {label: 'Small', total: 10},
-            {label: 'Large', total: 90},
+            {label: 'Small', values: {[CHART_SERIES_KEY.PRIMARY]: 10}},
+            {label: 'Large', values: {[CHART_SERIES_KEY.PRIMARY]: 90}},
         ];
-        const slices = processDataIntoSlices(data, {centerX: 0, centerY: 0, radius: 0, innerRadius: 0});
+        const slices = processDataIntoSlices(data, CHART_SERIES_KEY.PRIMARY, {centerX: 0, centerY: 0, radius: 0, innerRadius: 0});
 
         expect(slices.at(0)?.label).toBe('Large');
         expect(slices.at(1)?.label).toBe('Small');
@@ -313,10 +316,10 @@ describe('processDataIntoSlices', () => {
 
     it('treats negative values as positive for slice sizing', () => {
         const data: ChartDataPoint[] = [
-            {label: 'Positive', total: 75},
-            {label: 'Negative', total: -25},
+            {label: 'Positive', values: {[CHART_SERIES_KEY.PRIMARY]: 75}},
+            {label: 'Negative', values: {[CHART_SERIES_KEY.PRIMARY]: -25}},
         ];
-        const slices = processDataIntoSlices(data, {centerX: 0, centerY: 0, radius: 0, innerRadius: 0});
+        const slices = processDataIntoSlices(data, CHART_SERIES_KEY.PRIMARY, {centerX: 0, centerY: 0, radius: 0, innerRadius: 0});
 
         expect(slices).toHaveLength(2);
         expect(slices.at(0)?.value).toBe(75);
@@ -327,11 +330,11 @@ describe('processDataIntoSlices', () => {
 
     it('preserves originalIndex mapping after sorting', () => {
         const data: ChartDataPoint[] = [
-            {label: 'Small', total: 10},
-            {label: 'Medium', total: 50},
-            {label: 'Large', total: 100},
+            {label: 'Small', values: {[CHART_SERIES_KEY.PRIMARY]: 10}},
+            {label: 'Medium', values: {[CHART_SERIES_KEY.PRIMARY]: 50}},
+            {label: 'Large', values: {[CHART_SERIES_KEY.PRIMARY]: 100}},
         ];
-        const slices = processDataIntoSlices(data, {centerX: 0, centerY: 0, radius: 0, innerRadius: 0});
+        const slices = processDataIntoSlices(data, CHART_SERIES_KEY.PRIMARY, {centerX: 0, centerY: 0, radius: 0, innerRadius: 0});
 
         expect(slices.at(0)?.originalIndex).toBe(2); // Large was at index 2
         expect(slices.at(1)?.originalIndex).toBe(1); // Medium was at index 1
@@ -340,11 +343,11 @@ describe('processDataIntoSlices', () => {
 
     it('produces angles that sum to 360 degrees', () => {
         const data: ChartDataPoint[] = [
-            {label: 'A', total: 33},
-            {label: 'B', total: 33},
-            {label: 'C', total: 34},
+            {label: 'A', values: {[CHART_SERIES_KEY.PRIMARY]: 33}},
+            {label: 'B', values: {[CHART_SERIES_KEY.PRIMARY]: 33}},
+            {label: 'C', values: {[CHART_SERIES_KEY.PRIMARY]: 34}},
         ];
-        const slices = processDataIntoSlices(data, {centerX: 0, centerY: 0, radius: 0, innerRadius: 0});
+        const slices = processDataIntoSlices(data, CHART_SERIES_KEY.PRIMARY, {centerX: 0, centerY: 0, radius: 0, innerRadius: 0});
 
         const totalSweep = slices.reduce((sum, s) => sum + (s.endAngle - s.startAngle), 0);
         expect(totalSweep).toBeCloseTo(360, 5);
@@ -352,39 +355,42 @@ describe('processDataIntoSlices', () => {
 
     it('chains consecutive angles without gaps', () => {
         const data: ChartDataPoint[] = [
-            {label: 'A', total: 50},
-            {label: 'B', total: 30},
-            {label: 'C', total: 20},
+            {label: 'A', values: {[CHART_SERIES_KEY.PRIMARY]: 50}},
+            {label: 'B', values: {[CHART_SERIES_KEY.PRIMARY]: 30}},
+            {label: 'C', values: {[CHART_SERIES_KEY.PRIMARY]: 20}},
         ];
-        const slices = processDataIntoSlices(data, {centerX: 0, centerY: 0, radius: 0, innerRadius: 0});
+        const slices = processDataIntoSlices(data, CHART_SERIES_KEY.PRIMARY, {centerX: 0, centerY: 0, radius: 0, innerRadius: 0});
 
         for (let i = 1; i < slices.length; i++) {
             expect(slices.at(i)?.startAngle).toBeCloseTo(slices.at(i - 1)?.endAngle ?? 0, 10);
         }
     });
 
-    it('assigns distinct colors from the chart palette', () => {
+    it('draws each slice in the color of its point', () => {
+        // Given points that each carry the color their slice is drawn in
         const data: ChartDataPoint[] = [
-            {label: 'A', total: 40},
-            {label: 'B', total: 30},
-            {label: 'C', total: 20},
-            {label: 'D', total: 10},
+            {label: 'A', values: {[CHART_SERIES_KEY.PRIMARY]: 10}, color: '#111'},
+            {label: 'B', values: {[CHART_SERIES_KEY.PRIMARY]: 30}, color: '#222'},
         ];
-        const slices = processDataIntoSlices(data, {centerX: 0, centerY: 0, radius: 0, innerRadius: 0});
-        const colors = slices.map((s) => s.color);
-        const uniqueColors = new Set(colors);
 
-        expect(uniqueColors.size).toBe(4);
+        // When the data is turned into slices
+        const slices = processDataIntoSlices(data, CHART_SERIES_KEY.PRIMARY, {centerX: 0, centerY: 0, radius: 0, innerRadius: 0});
+
+        // Then each slice keeps its point's color, even after the slices are sorted by size
+        expect(slices.map((slice) => [slice.label, slice.color])).toEqual([
+            ['B', '#222'],
+            ['A', '#111'],
+        ]);
     });
 
     it('places tooltipPosition at the ring midpoint along each slice mid-angle', () => {
         // Two equal slices from -90° produce mid-angles 0° (right) and 180° (left).
         // tooltipRadius = (innerRadius + radius) / 2 = (60 + 100) / 2 = 80.
         const data: ChartDataPoint[] = [
-            {label: 'Right', total: 50},
-            {label: 'Left', total: 50},
+            {label: 'Right', values: {[CHART_SERIES_KEY.PRIMARY]: 50}},
+            {label: 'Left', values: {[CHART_SERIES_KEY.PRIMARY]: 50}},
         ];
-        const slices = processDataIntoSlices(data, {centerX: 200, centerY: 150, radius: 100, innerRadius: 60}, -90);
+        const slices = processDataIntoSlices(data, CHART_SERIES_KEY.PRIMARY, {centerX: 200, centerY: 150, radius: 100, innerRadius: 60}, -90);
 
         expect(slices.at(0)?.tooltipPosition.x).toBeCloseTo(280, 5);
         expect(slices.at(0)?.tooltipPosition.y).toBeCloseTo(150, 5);
@@ -635,40 +641,7 @@ describe('rotatedLabelYOffset', () => {
     });
 });
 
-describe('calculateMinDomainPadding', () => {
-    it('returns 0 for a single data point', () => {
-        expect(calculateMinDomainPadding(400, 1)).toBe(0);
-    });
-
-    it('returns 0 for zero data points', () => {
-        expect(calculateMinDomainPadding(400, 0)).toBe(0);
-    });
-
-    it('returns half the chart width for 2 points with no inner padding (line chart)', () => {
-        // minPaddingRatio = 1 / (2 * (1 + 0)) = 0.5 → ceil(100 * 0.5) = 50
-        expect(calculateMinDomainPadding(100, 2, 0)).toBe(50);
-    });
-
-    it('returns correct padding for multiple equally spaced points', () => {
-        // 5 points, no innerPadding: ratio = 1 / (2 * 4) = 0.125 → ceil(400 * 0.125) = 50
-        expect(calculateMinDomainPadding(400, 5, 0)).toBe(50);
-    });
-
-    it('uses innerPadding=0 as default', () => {
-        expect(calculateMinDomainPadding(400, 5)).toBe(calculateMinDomainPadding(400, 5, 0));
-    });
-
-    it('produces a smaller padding with inner padding (bar chart)', () => {
-        // innerPadding reduces the effective spacing between bars
-        const withoutPadding = calculateMinDomainPadding(400, 5, 0);
-        const withPadding = calculateMinDomainPadding(400, 5, 0.3);
-        expect(withPadding).toBeLessThan(withoutPadding);
-    });
-});
-
-// Bar chart domain padding constants, mirrored from BarChartContent.
-const BAR_PAD_TOP = 32;
-const BAR_PAD_BOTTOM = 1;
+const {top: BAR_PAD_TOP, bottom: BAR_PAD_BOTTOM} = VERTICAL_BAR_DOMAIN_PADDING;
 
 describe('getNiceYAxisTicks', () => {
     it('expands a flat series by ±1 and runs D3 nice/ticks so results are always nice values', () => {
@@ -680,7 +653,7 @@ describe('getNiceYAxisTicks', () => {
     });
 
     it('treats flat positive series as range [0, value] using bar chart padding', () => {
-        expect(getNiceYAxisTicks(3, 3, 5, BAR_PAD_TOP, BAR_PAD_BOTTOM, CHART_Y_SCALE_HEIGHT)).toEqual([0, 1, 2, 3]);
+        expect(getNiceYAxisTicks(3, 3, 5, BAR_PAD_TOP, BAR_PAD_BOTTOM, CHART_Y_SCALE_HEIGHT)).toEqual([0, 0.5, 1, 1.5, 2, 2.5, 3, 3.5]);
     });
 
     it('returns correct ticks for varied positive data with bar chart padding', () => {
@@ -704,10 +677,101 @@ describe('getNiceYAxisTicks', () => {
     });
 
     it('returns correct ticks for varied negative data with bar chart padding', () => {
-        expect(getNiceYAxisTicks(-10, -90, 5, BAR_PAD_TOP, BAR_PAD_BOTTOM, CHART_Y_SCALE_HEIGHT)).toEqual([-100, -80, -60, -40, -20, 0]);
+        expect(getNiceYAxisTicks(-10, -90, 5, BAR_PAD_TOP, BAR_PAD_BOTTOM, CHART_Y_SCALE_HEIGHT)).toEqual([-80, -60, -40, -20, 0]);
     });
 
     it('rounds intermediate ticks to eliminate floating-point noise', () => {
         expect(getNiceYAxisTicks(0, -1.11, 5)).toEqual([-1.2, -1, -0.8, -0.6, -0.4, -0.2, 0]);
+    });
+});
+
+describe('getBarLayout', () => {
+    it('keeps a 16px gap and fills the rest of the plot with bars', () => {
+        // Given a 300px plot with 4 bars, wide enough for the full gap
+        // When computing the bar layout
+        const layout = getBarLayout(300, 4);
+
+        // Then the gaps take 3 * 16px and the bars split the remaining width evenly
+        expect(layout.gap).toBe(16);
+        expect(layout.barWidth).toBe((300 - 3 * 16) / 4);
+    });
+
+    it('puts the outer bars flush with the plot edges', () => {
+        // Given a 300px plot with 4 bars
+        const plotWidth = 300;
+        const {barWidth, xDomain} = getBarLayout(plotWidth, 4);
+
+        // When mapping the x-domain onto the plot width
+        const pxPerUnit = plotWidth / (xDomain[1] - xDomain[0]);
+
+        // Then the first bar starts at the left edge and the last one ends at the right edge
+        expect((0 - xDomain[0]) * pxPerUnit - barWidth / 2).toBeCloseTo(0, 5);
+        expect((3 - xDomain[0]) * pxPerUnit + barWidth / 2).toBeCloseTo(plotWidth, 5);
+    });
+
+    it('caps the bar width and centers the bars when there are only a few', () => {
+        // Given 2 bars in a plot wide enough that, uncapped, each would be well over BAR_MAX_WIDTH
+        const plotWidth = 4 * BAR_MAX_WIDTH;
+
+        // When computing the bar layout
+        const {barWidth, gap, edgeSpace, xDomain} = getBarLayout(plotWidth, 2);
+
+        // Then the bars stop at BAR_MAX_WIDTH, keep the 16px gap, and the leftover width is split evenly on both sides
+        expect(barWidth).toBe(BAR_MAX_WIDTH);
+        expect(gap).toBe(16);
+        expect(edgeSpace).toBe((plotWidth - 2 * BAR_MAX_WIDTH - 16) / 2 + BAR_MAX_WIDTH / 2);
+        const pxPerUnit = plotWidth / (xDomain[1] - xDomain[0]);
+        expect((0 - xDomain[0]) * pxPerUnit).toBeCloseTo(edgeSpace, 5);
+        expect((xDomain[1] - 1) * pxPerUnit).toBeCloseTo(edgeSpace, 5);
+    });
+
+    it('shrinks the gap when there are too many bars for it', () => {
+        // Given 50 bars in a 300px plot, where 16px gaps alone would be wider than the plot
+        // When computing the bar layout
+        const layout = getBarLayout(300, 50);
+
+        // Then the gap takes the same share of each slot as BAR_INNER_PADDING, so bars keep a positive width
+        expect(layout.gap).toBeCloseTo((300 / 50) * BAR_INNER_PADDING, 5);
+        expect(layout.barWidth).toBeGreaterThan(0);
+    });
+
+    it('does not count a gap when there is only one bar', () => {
+        // Given one bar, which has no neighbor to keep a gap from
+        // When computing the bar layout
+        const layout = getBarLayout(300, 1);
+
+        // Then the gap is 0, so the bar stays centered in the plot instead of being offset by a gap that isn't drawn
+        expect(layout.gap).toBe(0);
+        expect(layout.xDomain[0]).toBeCloseTo(-layout.xDomain[1], 5);
+    });
+
+    it('keeps every bar inside the plot before the plot is measured', () => {
+        // Given a plot width of 0 (chart not yet laid out)
+        // When computing the bar layout
+        // Then barWidth is 0 so victory-native sizes the bars itself, and the domain gives each bar a slot centered on its x value
+        expect(getBarLayout(0, 3)).toEqual({barWidth: 0, gap: 0, edgeSpace: 0, xDomain: [-0.5, 2.5]});
+    });
+});
+
+describe('getDomainPaddingForEdgeSpace', () => {
+    it('returns the padding victory-native shrinks back to the requested edge space', () => {
+        // Given a 200px plot and the space wanted before the first and after the last point
+        const plotWidth = 200;
+        const edgeSpace = {left: 40, right: 10};
+
+        // When converting it to domain padding
+        const padding = getDomainPaddingForEdgeSpace(edgeSpace, plotWidth);
+
+        // Then victory-native's scaling (padding * plotWidth / (plotWidth + both paddings)) lands back on the requested space
+        const scale = plotWidth / (plotWidth + padding.left + padding.right);
+        expect(padding.left * scale).toBeCloseTo(edgeSpace.left, 5);
+        expect(padding.right * scale).toBeCloseTo(edgeSpace.right, 5);
+    });
+
+    it('returns the edge space unchanged when it leaves no room for the points', () => {
+        // Given edge space that covers the whole plot (or a plot that is not measured yet)
+        // When converting it to domain padding
+        // Then it is returned as is instead of dividing by zero or going negative
+        expect(getDomainPaddingForEdgeSpace({left: 30, right: 0}, 0)).toEqual({left: 30, right: 0});
     });
 });

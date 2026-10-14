@@ -82,6 +82,7 @@ function CategorySettingsPage({route: {params, name}, navigation}: CategorySetti
         ? []
         : getCategoryContextualRules({
               policy,
+              policyCategories,
               category: policyCategory,
               categoryName: policyCategory.name,
               translate,
