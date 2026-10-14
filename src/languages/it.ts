@@ -5070,7 +5070,10 @@ ${amount} per ${merchant} - ${date}`,
             },
             requestEmptyList: {
                 title: 'Ancuna nessuna tariffa di diaria',
-                subtitle: 'Questo spazio di lavoro non ha nessuna diaria, chiedi al tuo amministratore di aggiungerne.',
+                subtitle: (workspaceName?: string) =>
+                    workspaceName
+                        ? `${workspaceName} non ha nessuna tariffa di diaria. Chiedi a un amministratore di aggiungerne.`
+                        : 'Questo spazio di lavoro non ha nessuna tariffa di diaria. Chiedi a un amministratore di aggiungerne.',
                 adminSubtitle: 'Aggiungi le tariffe giornaliere per organizzare le tue spese.',
             },
             importPerDiemRates: 'Importa tariffe di diaria',
@@ -7845,6 +7848,21 @@ Il piano Control parte da 9 $ al mese per ogni membro attivo.`,
             addressContext: 'Per abilitare Expensify Travel è necessario un indirizzo dell’area di lavoro. Inserisci un indirizzo associato alla tua azienda.',
             policy: 'Politica di spesa',
         },
+        officeLocations: {
+            title: 'Sedi degli uffici',
+            subtitle: 'Aggiungi sedi dell’ufficio da assegnare ai membri per attività come il monitoraggio delle distanze.',
+            addOfficeLocation: 'Aggiungi sede dell’ufficio',
+            editOfficeLocation: 'Modifica sede ufficio',
+            locationName: 'Nome località',
+            locationNameHint: 'Scegli un nome abbreviato per la sede se stai aggiungendo più sedi di ufficio',
+            defaultName: ({officeNumber}: {officeNumber: number}) => `Sede ${officeNumber}`,
+            setAsPrimary: 'Imposta come principale',
+            primary: 'Principale',
+            deleteOfficeLocation: 'Eliminare la sede?',
+            deleteOfficeLocationConfirmation: 'Vuoi davvero eliminare questa sede? I membri verranno riassegnati alla sede principale.',
+            existingOfficeLocationError: 'Esiste già una sede con questo nome',
+            setCompanyAddressAsPrimaryConfirmation: 'Impostare l’indirizzo dell’azienda come sede principale?',
+        },
         bankAccount: {
             continueWithSetup: 'Continua configurazione',
             youAreAlmostDone: 'Hai quasi finito di configurare il tuo conto bancario, che ti permetterà di emettere carte aziendali, rimborsare spese, incassare fatture e pagare bollette.',
@@ -9664,6 +9682,15 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
         },
         addedProhibitedExpense: ({prohibitedExpense}: {prohibitedExpense: string}) => `ha aggiunto "${prohibitedExpense}" alle spese vietate`,
         removedProhibitedExpense: ({prohibitedExpense}: {prohibitedExpense: string}) => `ha rimosso "${prohibitedExpense}" dalle spese vietate`,
+        officeLocation: {
+            added: ({name, address}: {name: string; address: string}) => `ha aggiunto la sede "${name}" (${address})`,
+            renamed: ({oldName, newName}: {oldName: string; newName: string}) => `ha rinominato la sede "${oldName}" in "${newName}"`,
+            changedAddress: ({name, newAddress, oldAddress}: {name: string; newAddress: string; oldAddress: string}) =>
+                `ha modificato l’indirizzo della sede "${name}" in "${newAddress}" (in precedenza "${oldAddress}")`,
+            setAsPrimary: ({name}: {name: string}) => `imposta la sede "${name}" come principale`,
+            setCompanyAddressAsPrimary: 'imposta l’indirizzo aziendale come principale',
+            removed: ({name}: {name: string}) => `ha rimosso la sede "${name}"`,
+        },
         workArrangement: {
             set: ({arrangement}: {arrangement: string}) => `imposta la modalità di lavoro predefinita su ${arrangement}`,
             changed: ({arrangement, previousArrangement}: {arrangement: string; previousArrangement: string}) =>
@@ -10168,6 +10195,11 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
                 [CONST.SEARCH.ACTION_FILTERS.EXPORT]: 'Esporta',
             },
             filterType: {label: 'Tipo di filtro', has: {positive: 'ha', negative: 'non ha'}, is: {positive: 'è', negative: 'non è'}},
+            merchant: {
+                matchType: 'Tipo di corrispondenza',
+                contains: (merchant?: string) => (merchant ? `Contiene "${merchant}"` : 'Contiene'),
+                equalTo: (merchant?: string) => (merchant ? `Uguale a "${merchant}"` : 'Uguale a'),
+            },
             created: 'Creato',
             createdDate: 'Data di creazione',
             transactionStatus: {
