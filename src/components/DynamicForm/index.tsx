@@ -23,10 +23,11 @@ import DynamicFormConfirmationPage from './components/DynamicFormConfirmationPag
 import DynamicFormFieldsPage from './components/DynamicFormFieldsPage';
 import DynamicFormListItemPage from './components/DynamicFormListItemPage';
 import DynamicFormShell from './components/DynamicFormShell';
+import getAnswerKeys from './utils/getAnswerKeys';
 import getContentFields from './utils/getContentFields';
 import getDynamicFieldErrors from './utils/getDynamicFieldErrors';
 import getPageTitle, {isPageShown} from './utils/getPageTitle';
-import getSubmittedAnswers, {getAnswerKeys} from './utils/getSubmittedAnswers';
+import getSubmittedAnswers from './utils/getSubmittedAnswers';
 import isSensitiveField from './utils/isSensitiveField';
 import isSupportedField from './utils/isSupportedField';
 import {getListItemPageName, getListItems, getListItemSensitiveKey, getRemovedListItemSensitiveKeys, parseListItemPageName} from './utils/listItems';
@@ -222,7 +223,7 @@ function DynamicFormFlow({
             return;
         }
         const id = itemID ?? Str.guid();
-        const sensitiveKeys = new Set(listField.itemFields.filter(isSensitiveField).map((field) => field.key));
+        const sensitiveKeys = new Set(listField.itemFields.filter(isSensitiveField).flatMap(getAnswerKeys));
         const item: DynamicFormListItem = {id};
         const sensitiveAnswers: DynamicFormValues = {};
         for (const [key, answer] of Object.entries(getSubmittedAnswers(listField.itemFields, itemValues))) {
@@ -239,6 +240,19 @@ function DynamicFormFlow({
             saveSensitiveAnswers(formID, sensitiveAnswers);
         }
         closeListItemEditor(listKey);
+    };
+
+    /** A sensitive list is kept in memory, so removing an entry is saved right away for the next entry added to build on. A drafted list is saved as it changes. */
+    const changeListItems = (listKey: string, items: DynamicFormListItem[]) => {
+        const listField = listFields.find((field) => field.key === listKey);
+        if (!listField || !isSensitiveField(listField)) {
+            return;
+        }
+        saveSensitiveAnswers(formID, {[listKey]: items});
+        const removedSensitiveKeys = getRemovedListItemSensitiveKeys(listField, {...values, [listKey]: items});
+        if (removedSensitiveKeys.length > 0) {
+            forgetSensitiveAnswers(formID, removedSensitiveKeys);
+        }
     };
 
     const goBack = () => {
@@ -299,6 +313,7 @@ function DynamicFormFlow({
                     onPageSubmit={handlePageSubmit}
                     onOpenListItemEditor={openListItemEditor}
                     onListItemSave={saveListItem}
+                    onListItemsChange={changeListItems}
                     confirmationTitle={confirmationTitle}
                     isSubmitting={isSubmitting}
                     submitError={submitError}

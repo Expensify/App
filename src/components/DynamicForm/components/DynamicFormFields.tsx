@@ -5,7 +5,7 @@ import isHeading from '@components/DynamicForm/utils/isHeading';
 import type {FormValue} from '@components/Form/types';
 
 import CONST from '@src/CONST';
-import type {DynamicFormContentItem, DynamicFormField} from '@src/types/onyx';
+import type {DynamicFormContentItem, DynamicFormField, DynamicFormListItem} from '@src/types/onyx';
 
 import React from 'react';
 
@@ -36,6 +36,12 @@ type DynamicFormFieldsProps = {
 
     /** Opens the editor page of a list entry, or of a new one without `itemID`. DynamicFormFlow passes it; without it list entries are edited in a modal. */
     onOpenListItemEditor?: (listKey: string, itemID?: string) => void;
+
+    /** Called with a list's entries after the user removes one, so the flow can keep a sensitive list in memory up to date */
+    onListItemsChange?: (listKey: string, items: DynamicFormListItem[]) => void;
+
+    /** Every answer here is sensitive, as in the editor of an entry of a sensitive list: none is drafted, and each starts from the answer in `values` */
+    isSensitive?: boolean;
 };
 
 /** The inputs of a schema-driven form. Render it inside a FormProvider and validate the fields of the same content with getDynamicFieldErrors. */
@@ -48,6 +54,8 @@ function DynamicFormFields({
     maxFileSize,
     onRefreshRequirements,
     onOpenListItemEditor,
+    onListItemsChange,
+    isSensitive = false,
 }: DynamicFormFieldsProps) {
     const visibleContent = getVisibleContent(content, values, allFields);
     const loneField = getLoneField(getContentFields(visibleContent));
@@ -78,6 +86,8 @@ function DynamicFormFields({
                 shouldHideLabel={isTitledByPage && item === loneField}
                 onRefreshRequirements={onRefreshRequirements}
                 onOpenListItemEditor={onOpenListItemEditor}
+                onListItemsChange={onListItemsChange}
+                isSensitive={isSensitive}
                 renderFields={renderFields}
             />
         ),

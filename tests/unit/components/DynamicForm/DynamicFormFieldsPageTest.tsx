@@ -28,6 +28,7 @@ function renderPage(isLastPage: boolean) {
             values={{}}
             onPageSubmit={jest.fn()}
             onOpenListItemEditor={jest.fn()}
+            onListItemsChange={jest.fn()}
             onListItemSave={jest.fn()}
             confirmationTitle="Confirm"
         />,

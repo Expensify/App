@@ -30,6 +30,9 @@ type ListFieldAdapterProps = Pick<ComponentProps<typeof ListField>, 'addTitle' |
         /** Called with every entry after one is added, edited or removed */
         onInputChange?: (value: DynamicFormListItem[]) => void;
 
+        /** Called with the remaining entries after one is removed, for a list the flow keeps in memory */
+        onItemsChange?: (value: DynamicFormListItem[]) => void;
+
         /** Validation error shown under the list */
         errorText?: string;
 
@@ -59,6 +62,7 @@ type ListFieldAdapterProps = Pick<ComponentProps<typeof ListField>, 'addTitle' |
 function ListFieldAdapter({
     value,
     onInputChange = () => {},
+    onItemsChange,
     errorText,
     label,
     itemLabel,
@@ -123,7 +127,9 @@ function ListFieldAdapter({
             if (action !== ModalActions.CONFIRM) {
                 return;
             }
-            onInputChange(items.filter((candidate) => candidate.id !== id));
+            const remainingItems = items.filter((candidate) => candidate.id !== id);
+            onInputChange(remainingItems);
+            onItemsChange?.(remainingItems);
         });
     };
 

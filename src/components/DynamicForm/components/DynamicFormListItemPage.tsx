@@ -1,6 +1,7 @@
 import type {DynamicFormSubPageProps} from '@components/DynamicForm/types';
 import getDynamicFieldErrors from '@components/DynamicForm/utils/getDynamicFieldErrors';
 import getLocalizedText from '@components/DynamicForm/utils/getLocalizedText';
+import isSensitiveField from '@components/DynamicForm/utils/isSensitiveField';
 import {getListItems, getListItemSensitiveAnswers, parseListItemPageName} from '@components/DynamicForm/utils/listItems';
 import summarizeListItem from '@components/DynamicForm/utils/summarizeListItem';
 import toDynamicFormValues from '@components/DynamicForm/utils/toDynamicFormValues';
@@ -29,11 +30,13 @@ function DynamicFormListItemPage({currentPageName, allFields, values, currency, 
     const listField = allFields.find((field): field is DynamicFormListField => field.type === 'list' && field.key === page?.listKey);
     const item = listField ? getListItems(values[listField.key]).find((candidate) => candidate.id === page?.itemID) : undefined;
     const [filledPageName, setFilledPageName] = useState<string>();
+    // The entries of a sensitive list are never drafted, so the editor starts empty and its inputs take the entry's answers from memory
+    const isSensitiveList = !!listField && isSensitiveField(listField);
 
     // The editor form is shared by every entry, so it is filled with this entry's answers before its inputs mount
     useEffect(() => {
         let isCancelled = false;
-        startListItemEdit(item ?? {}).then(() => {
+        startListItemEdit(isSensitiveList ? {} : (item ?? {})).then(() => {
             if (isCancelled) {
                 return;
             }
@@ -42,7 +45,7 @@ function DynamicFormListItemPage({currentPageName, allFields, values, currency, 
         return () => {
             isCancelled = true;
         };
-    }, [currentPageName, item]);
+    }, [currentPageName, item, isSensitiveList]);
 
     useEffect(() => clearListItemEdit, []);
 
@@ -53,7 +56,8 @@ function DynamicFormListItemPage({currentPageName, allFields, values, currency, 
         return <FullscreenLoadingIndicator />;
     }
     const sensitiveAnswers = item ? getListItemSensitiveAnswers(listField, item.id, values) : {};
-    const withInputValues = (inputValues: unknown) => ({...sensitiveAnswers, ...toDynamicFormValues(inputValues)});
+    const keptAnswers = isSensitiveList ? {...item, ...sensitiveAnswers} : sensitiveAnswers;
+    const withInputValues = (inputValues: unknown) => ({...keptAnswers, ...toDynamicFormValues(inputValues)});
     const itemLabel = getLocalizedText(translate, listField.itemLabelKey, listField.itemLabel);
     const addTitle = itemLabel ? translate('dynamicForm.addItem', {item: itemLabel}) : translate('common.add');
     const itemTitle = item ? summarizeListItem(item, listField.itemFields, translate).title : '';
@@ -77,6 +81,7 @@ function DynamicFormListItemPage({currentPageName, allFields, values, currency, 
                     <DynamicFormFields
                         content={listField.itemFields}
                         values={withInputValues(inputValues)}
+                        isSensitive={isSensitiveList}
                         currency={currency}
                         maxFileSize={maxFileSize}
                     />

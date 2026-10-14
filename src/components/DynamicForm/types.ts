@@ -75,6 +75,8 @@ type DynamicFormSubPageProps = SubPageProps &
 
         onOpenListItemEditor: NonNullable<DynamicFormFieldsProps['onOpenListItemEditor']>;
 
+        onListItemsChange: NonNullable<DynamicFormFieldsProps['onListItemsChange']>;
+
         /** The last page submits the form, since no confirmation page follows */
         isLastPage: boolean;
 

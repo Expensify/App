@@ -19,15 +19,18 @@ import {getListItems} from './listItems';
 import maskSensitiveValue from './maskSensitiveValue';
 import summarizeListItem from './summarizeListItem';
 
-/** One avatar row per list entry, which opens the entry */
+/** One avatar row per list entry, which opens the entry. A readonly list gets plain rows that open nothing. */
 function getListItemRows(
     field: DynamicFormListField,
     values: DynamicFormValues,
     translate: LocalizedTranslate,
     onEditListItem: (listKey: string, itemID: string) => void,
 ): SummaryGroupRow[] {
-    return getListItems(values[field.key]).map((item) => {
+    return getListItems(values[field.key]).map((item): SummaryGroupRow => {
         const {title, description} = summarizeListItem(item, field.itemFields, translate);
+        if (field.readonly) {
+            return {id: `${field.key}-${item.id}`, title, description, shouldShowRightIcon: false, onPress: noop, interactive: false};
+        }
         return {
             kind: 'avatar',
             id: `${field.key}-${item.id}`,

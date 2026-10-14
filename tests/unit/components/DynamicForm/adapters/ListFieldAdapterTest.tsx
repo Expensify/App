@@ -42,7 +42,7 @@ jest.mock('@components/DynamicForm/components/DynamicFormListItemModal', () => (
     __esModule: true,
     default: (props: CapturedModalProps) => mockModal(props),
 }));
-jest.mock('@hooks/useLocalize', () => jest.fn(() => ({translate: (key: string) => key})));
+jest.mock('@hooks/useLocalize', () => jest.fn(() => ({translate: (key: string, params?: unknown) => (params === undefined ? key : `${key} ${JSON.stringify(params)}`)})));
 jest.mock('@hooks/useConfirmModal', () => jest.fn(() => ({showConfirmModal: mockShowConfirmModal})));
 jest.mock('@userActions/DynamicForm', () => ({startListItemEdit: jest.fn(() => Promise.resolve()), clearListItemEdit: jest.fn()}));
 

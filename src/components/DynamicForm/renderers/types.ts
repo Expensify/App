@@ -11,7 +11,7 @@ import type {FileObject} from '@src/types/utils/Attachment';
 
 import type {ReactElement, ReactNode} from 'react';
 
-type DynamicFieldContext = Pick<DynamicFormFieldsProps, 'values' | 'maxFileSize' | 'onOpenListItemEditor'> &
+type DynamicFieldContext = Pick<DynamicFormFieldsProps, 'values' | 'maxFileSize' | 'onOpenListItemEditor' | 'onListItemsChange' | 'isSensitive'> &
     Required<Pick<DynamicFormFieldsProps, 'currency'>> & {
         translate: LocalizedTranslate;
         styles: ThemeStyles;

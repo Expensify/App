@@ -2,6 +2,7 @@ import type {DynamicFormValues} from '@components/DynamicForm/types';
 
 import type {DynamicFormListField, DynamicFormListItem} from '@src/types/onyx';
 
+import getAnswerKeys from './getAnswerKeys';
 import isSensitiveField from './isSensitiveField';
 
 const PAGE_NAME_SEPARATOR = '~';
@@ -42,17 +43,20 @@ function getListItems(value: unknown): DynamicFormListItem[] {
 /** An entry's sensitive answers, keyed by field key, from the answers kept in memory */
 function getListItemSensitiveAnswers(field: DynamicFormListField, itemID: string, values: DynamicFormValues): DynamicFormValues {
     return Object.fromEntries(
-        field.itemFields.filter(isSensitiveField).flatMap((itemField) => {
-            const answer = values[getListItemSensitiveKey(field.key, itemID, itemField.key)];
-            return answer === undefined ? [] : [[itemField.key, answer]];
-        }),
+        field.itemFields
+            .filter(isSensitiveField)
+            .flatMap(getAnswerKeys)
+            .flatMap((answerKey) => {
+                const answer = values[getListItemSensitiveKey(field.key, itemID, answerKey)];
+                return answer === undefined ? [] : [[answerKey, answer]];
+            }),
     );
 }
 
 /** Memory keys of sensitive answers whose entry the user has removed from the list */
 function getRemovedListItemSensitiveKeys(field: DynamicFormListField, values: DynamicFormValues): string[] {
-    const sensitiveFields = field.itemFields.filter(isSensitiveField);
-    const keptKeys = new Set(getListItems(values[field.key]).flatMap((item) => sensitiveFields.map((itemField) => getListItemSensitiveKey(field.key, item.id, itemField.key))));
+    const sensitiveKeys = field.itemFields.filter(isSensitiveField).flatMap(getAnswerKeys);
+    const keptKeys = new Set(getListItems(values[field.key]).flatMap((item) => sensitiveKeys.map((answerKey) => getListItemSensitiveKey(field.key, item.id, answerKey))));
     return Object.keys(values).filter((key) => key.startsWith(`${field.key}${PAGE_NAME_SEPARATOR}`) && !keptKeys.has(key));
 }
 

@@ -21,7 +21,7 @@ const RENDERERS: DynamicFieldRendererMap = {
 /** The input for one field, and how the renderer lays it out */
 function renderDynamicField<TType extends DynamicFormFieldType>(field: DynamicFormFieldOfType<TType>, context: DynamicFieldContext, inputProps: DynamicFieldInputProps): DynamicFieldInput {
     const render: DynamicFieldRenderer<TType> = RENDERERS[field.type];
-    return render(field, context, {...inputProps, defaultValue: getSensitiveDefaultValue(field, context.values)});
+    return render(field, context, {...inputProps, defaultValue: getSensitiveDefaultValue(field, context.values, context.isSensitive)});
 }
 
 export default renderDynamicField;

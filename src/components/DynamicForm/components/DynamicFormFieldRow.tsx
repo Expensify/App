@@ -17,7 +17,7 @@ import {View} from 'react-native';
 
 import type {DynamicFormFieldsProps} from './DynamicFormFields';
 
-type DynamicFormFieldRowProps = Pick<DynamicFormFieldsProps, 'values' | 'maxFileSize' | 'onRefreshRequirements' | 'onOpenListItemEditor'> &
+type DynamicFormFieldRowProps = Pick<DynamicFormFieldsProps, 'values' | 'maxFileSize' | 'onRefreshRequirements' | 'onOpenListItemEditor' | 'onListItemsChange' | 'isSensitive'> &
     Required<Pick<DynamicFormFieldsProps, 'currency'>> &
     Pick<DynamicFieldContext, 'renderFields'> & {
         field: DynamicFormField;
@@ -42,6 +42,8 @@ function DynamicFormFieldRow({
     shouldHideLabel = false,
     onRefreshRequirements,
     onOpenListItemEditor,
+    onListItemsChange,
+    isSensitive = false,
     renderFields,
 }: DynamicFormFieldRowProps) {
     const {translate} = useLocalize();
@@ -74,10 +76,10 @@ function DynamicFormFieldRow({
     const shouldRefreshOnChange = !!field.refreshOnChange && !isTypedField;
     const {input, isMenuRow, labelAbove, showsDescription} = renderDynamicField(
         field,
-        {values, translate, styles, currency, maxFileSize, isLoneField, onOpenListItemEditor, renderFields},
+        {values, translate, styles, currency, maxFileSize, isLoneField, onOpenListItemEditor, onListItemsChange, isSensitive, renderFields},
         {
             inputID: field.key,
-            shouldSaveDraft: !isSensitiveField(field),
+            shouldSaveDraft: !isSensitive && !isSensitiveField(field),
             forwardedFSClass: CONST.FULLSTORY.CLASS.MASK,
             onValueChange: shouldRefreshOnChange ? (value, key) => onRefreshRequirements?.(key, value) : undefined,
             onBlur: shouldRefreshOnBlur ? refreshRequirements : undefined,

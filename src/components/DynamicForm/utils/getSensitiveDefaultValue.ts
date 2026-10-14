@@ -47,11 +47,15 @@ const ANSWER_GUARDS: AnswerGuards = {
     list: isListItems,
 };
 
-/** Sensitive answers are not drafted, so a page the user comes back to is refilled from the answers kept in memory */
-function getSensitiveDefaultValue<TType extends DynamicFormFieldType>(field: DynamicFormFieldOfType<TType>, values: DynamicFormValues): DynamicFieldAnswerMap[TType] | undefined {
+/** Sensitive answers are not drafted, so a page the user comes back to is refilled from the answers kept in memory. `isInSensitiveForm` treats every field as sensitive. */
+function getSensitiveDefaultValue<TType extends DynamicFormFieldType>(
+    field: DynamicFormFieldOfType<TType>,
+    values: DynamicFormValues,
+    isInSensitiveForm = false,
+): DynamicFieldAnswerMap[TType] | undefined {
     const answer = values[field.key];
     const isAnswer: AnswerGuards[TType] = ANSWER_GUARDS[field.type];
-    return isSensitiveField(field) && answer !== undefined && isAnswer(answer) ? answer : undefined;
+    return (isInSensitiveForm || isSensitiveField(field)) && answer !== undefined && isAnswer(answer) ? answer : undefined;
 }
 
 export default getSensitiveDefaultValue;
