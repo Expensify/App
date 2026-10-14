@@ -73,7 +73,7 @@ function DebugReportPage({
     const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`);
     const [transactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
-    const [reportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`, {selector: pendingExpenseActionSelector});
+    const [pendingExpenseActionMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`, {selector: pendingExpenseActionSelector});
     const {isOffline} = useNetwork();
     const [reportAttributes] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {
         selector: (attributes: OnyxEntry<ReportAttributesDerivedValue>) => attributes?.reports?.[reportID],
@@ -105,7 +105,8 @@ function DebugReportPage({
         const shouldDisplayViolations = !!getViolatingReportIDForRBRInLHN(report, transactionViolations);
         const hasViolations = !!shouldDisplayViolations;
         const {reason: reasonGBR, reportAction: reportActionGBR} =
-            DebugUtils.getReasonAndReportActionForGBRInLHNRow(report, currentUserLogin ?? '', currentUserAccountID, isReportArchived, transactionViolations, reportMetadata) ?? {};
+            DebugUtils.getReasonAndReportActionForGBRInLHNRow(report, currentUserLogin ?? '', currentUserAccountID, isReportArchived, transactionViolations, pendingExpenseActionMetadata) ??
+            {};
         const {reason: reasonRBR, reportAction: reportActionRBR} =
             DebugUtils.getReasonAndReportActionForRBRInLHNRow(
                 report,
@@ -187,7 +188,7 @@ function DebugReportPage({
         currentUserLogin,
         currentUserAccountID,
         isReportArchived,
-        reportMetadata,
+        pendingExpenseActionMetadata,
         chatReport,
         reportActions,
         transactions,
