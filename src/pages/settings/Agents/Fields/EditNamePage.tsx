@@ -7,7 +7,7 @@ import TextInput from '@components/TextInput';
 
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
-import useOnyx from '@hooks/useOnyx';
+import {usePersonalDetail} from '@hooks/usePersonalDetails';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {updateAgentName} from '@libs/actions/Agent';
@@ -29,7 +29,7 @@ function EditNamePage({route}: EditNamePageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const accountID = route.params.accountID;
-    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: (list) => list?.[accountID]});
+    const [personalDetails] = usePersonalDetail(accountID);
 
     const {inputCallbackRef} = useAutoFocusInput();
 

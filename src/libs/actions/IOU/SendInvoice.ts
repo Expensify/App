@@ -45,9 +45,9 @@ import type BasePolicyParams from './types/BasePolicyParams';
 
 import {getAllPersonalDetails} from '.';
 import {getReceiptError, mergePolicyRecentlyUsedCategories, mergePolicyRecentlyUsedCurrencies} from './MoneyRequestBuilder';
-import {highlightTransactionOnSearchRouteIfNeeded} from './NavigationHelpers';
 import resolveWriteBarrier from './resolveWriteBarrier';
 import {getSearchOnyxUpdate} from './SearchUpdate';
+import signalExpenseAddedGrowl from './signalExpenseAddedGrowl';
 
 type SendInvoiceInformation = {
     senderWorkspaceID: string | undefined;
@@ -876,7 +876,9 @@ function sendInvoice({
         onWriteStarted: () => notifyNewAction(invoiceRoom.reportID, undefined, true),
     });
 
-    highlightTransactionOnSearchRouteIfNeeded(isFromGlobalCreate, transactionID, CONST.SEARCH.DATA_TYPES.INVOICE);
+    if (isFromGlobalCreate) {
+        signalExpenseAddedGrowl(transactionID, CONST.SEARCH.DATA_TYPES.INVOICE);
+    }
 }
 
 export {getReceiverType, getSendInvoiceInformation, sendInvoice};

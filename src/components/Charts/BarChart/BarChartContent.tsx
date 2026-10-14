@@ -1,12 +1,17 @@
 import {ChartFontsProvider} from '@components/Charts/hooks';
 
-import type {BarChartContentProps} from './types';
+import React from 'react';
 
-import HorizontalBarChartContentBody from './HorizontalBarChartContent';
+import type BarChartProps from './types';
+
 import VerticalBarChartContentBody from './VerticalBarChartContent';
 
-function BarChartContent({isHorizontal = false, ...props}: BarChartContentProps) {
-    return <ChartFontsProvider>{isHorizontal ? <HorizontalBarChartContentBody {...props} /> : <VerticalBarChartContentBody {...props} />}</ChartFontsProvider>;
+function BarChartContent(props: BarChartProps) {
+    return (
+        <ChartFontsProvider>
+            <VerticalBarChartContentBody {...props} />
+        </ChartFontsProvider>
+    );
 }
 
 export default BarChartContent;

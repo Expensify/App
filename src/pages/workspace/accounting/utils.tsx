@@ -16,9 +16,12 @@ import {getAccountingIntegrationDisplayName, getQuickbooksOnlineIntegrationName,
 import {isAuthenticationError} from '@libs/actions/connections';
 import {getCardsCustomExportPendingAction, areCardsCustomExportInErrorFields} from '@libs/CardFeedUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
-import {canUseTaxNetSuite, getCurrentConnectionName} from '@libs/PolicyUtils';
+import {canUseTaxNetSuite} from '@libs/NetSuiteUtils';
+import {getCurrentConnectionName} from '@libs/PolicyUtils';
 
 import Navigation from '@navigation/Navigation';
+
+import {getAccountingConnectionsRoute} from '@pages/workspace/connections/utils';
 
 import type {ThemeStyles} from '@styles/index';
 
@@ -55,60 +58,81 @@ import {
     shouldHideTaxPostingAccountSelect,
     shouldShowInvoiceItemMenuItem,
 } from './netsuite/utils';
-import getQuickbooksDesktopSetupEntryRoute from './qbd/utils';
+import getQuickbooksDesktopSetupEntryRoute, {isQBDExportingOnPayment} from './qbd/utils';
 
 function getCurrentAccountingIntegrationName(policy: OnyxEntry<Policy>, translate: LocaleContextProps['translate']): string | undefined {
     const currentConnectionName = getCurrentConnectionName(policy);
     return currentConnectionName === CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY.quickbooksOnline ? getQuickbooksOnlineIntegrationName(policy, translate) : currentConnectionName;
 }
 
-// eslint-disable-next-line @typescript-eslint/max-params
+type AccountingIntegrationIcons = Record<
+    | 'IntacctSquare'
+    | 'IntuitSquare'
+    | 'QBOSquare'
+    | 'XeroSquare'
+    | 'NetSuiteSquare'
+    | 'QBDSquare'
+    | 'CertiniaSquare'
+    | 'RilletSquare'
+    | 'DualEntrySquare'
+    | 'CampfireSquare'
+    | 'BusinessCentralSquare',
+    IconAsset
+>;
+
+type GetAccountingIntegrationDataOptions = {
+    policy?: Policy;
+    key?: number;
+    integrationToDisconnect?: ConnectionName;
+    shouldDisconnectIntegrationBeforeConnecting?: boolean;
+    canUseNetSuiteUSATax?: boolean;
+    expensifyIcons?: AccountingIntegrationIcons;
+    cardFeeds?: CombinedCardFeeds;
+    cardList?: Record<string, WorkspaceCardsList | undefined>;
+
+    /** Picks QBO or Intuit Enterprise Suite explicitly instead of following the existing connection */
+    isIntuitEnterpriseSuiteOverride?: boolean;
+
+    /** Routes the connect flows through the Connections page instead of the Accounting page */
+    isUnifiedConnectionsBetaEnabled?: boolean;
+};
+
 function getAccountingIntegrationData(
     connectionName: PolicyConnectionName,
     policyID: string,
     translate: LocaleContextProps['translate'],
     existingConnections: {sageIntacct: boolean; qbd: boolean; certinia: boolean; rillet: boolean; dualEntry: boolean; campfire: boolean},
-    policy?: Policy,
-    key?: number,
-    integrationToDisconnect?: ConnectionName,
-    shouldDisconnectIntegrationBeforeConnecting?: boolean,
-    canUseNetSuiteUSATax?: boolean,
-    expensifyIcons?: Record<
-        | 'IntacctSquare'
-        | 'IntuitSquare'
-        | 'QBOSquare'
-        | 'XeroSquare'
-        | 'NetSuiteSquare'
-        | 'QBDSquare'
-        | 'CertiniaSquare'
-        | 'RilletSquare'
-        | 'DualEntrySquare'
-        | 'CampfireSquare'
-        | 'BusinessCentralSquare',
-        IconAsset
-    >,
-    cardFeeds?: CombinedCardFeeds,
-    cardList?: Record<string, WorkspaceCardsList | undefined>,
-    isIntuitEnterpriseSuiteOverride?: boolean,
+    {
+        policy,
+        key,
+        integrationToDisconnect,
+        shouldDisconnectIntegrationBeforeConnecting,
+        canUseNetSuiteUSATax,
+        expensifyIcons,
+        cardFeeds,
+        cardList,
+        isIntuitEnterpriseSuiteOverride,
+        isUnifiedConnectionsBetaEnabled = false,
+    }: GetAccountingIntegrationDataOptions = {},
 ): AccountingIntegration | undefined {
-    const basePath = ROUTES.POLICY_ACCOUNTING.getRoute(policyID);
     const qboConfig = policy?.connections?.quickbooksOnline?.config;
+    const qbdConfig = policy?.connections?.quickbooksDesktop?.config;
     // An explicit QBO or IES selection must take precedence over the existing connection identity.
     const shouldUseIntuitEnterpriseSuite = isIntuitEnterpriseSuiteOverride ?? isIntuitEnterpriseSuiteConnection(policy);
     const netsuiteConfig = policy?.connections?.netsuite?.options?.config;
     const netsuiteSelectedSubsidiary = (policy?.connections?.netsuite?.options?.data?.subsidiaryList ?? []).find((subsidiary) => subsidiary.internalID === netsuiteConfig?.subsidiaryID);
     const getBackToAfterWorkspaceUpgradeRouteForIntacct = () => {
         if (integrationToDisconnect) {
-            return ROUTES.POLICY_ACCOUNTING.getRoute(policyID, connectionName, integrationToDisconnect, shouldDisconnectIntegrationBeforeConnecting);
+            return getAccountingConnectionsRoute(isUnifiedConnectionsBetaEnabled, policyID, connectionName, integrationToDisconnect, shouldDisconnectIntegrationBeforeConnecting);
         }
         if (existingConnections.sageIntacct) {
             return ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_EXISTING_CONNECTIONS.getRoute(policyID);
         }
-        return createDynamicRoute(DYNAMIC_ROUTES.SAGE_INTACCT_PREREQUISITES.path, basePath);
+        return createDynamicRoute(DYNAMIC_ROUTES.SAGE_INTACCT_PREREQUISITES.path, getAccountingConnectionsRoute(isUnifiedConnectionsBetaEnabled, policyID));
     };
     const getBackToAfterWorkspaceUpgradeRouteForQBD = () => {
         if (integrationToDisconnect) {
-            return ROUTES.POLICY_ACCOUNTING.getRoute(policyID, connectionName, integrationToDisconnect, shouldDisconnectIntegrationBeforeConnecting);
+            return getAccountingConnectionsRoute(isUnifiedConnectionsBetaEnabled, policyID, connectionName, integrationToDisconnect, shouldDisconnectIntegrationBeforeConnecting);
         }
         if (existingConnections.qbd) {
             return ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_EXISTING_CONNECTIONS.getRoute(policyID);
@@ -117,7 +141,7 @@ function getAccountingIntegrationData(
     };
     const getBackToAfterWorkspaceUpgradeRouteForCertinia = () => {
         if (integrationToDisconnect) {
-            return ROUTES.POLICY_ACCOUNTING.getRoute(policyID, connectionName, integrationToDisconnect, shouldDisconnectIntegrationBeforeConnecting);
+            return getAccountingConnectionsRoute(isUnifiedConnectionsBetaEnabled, policyID, connectionName, integrationToDisconnect, shouldDisconnectIntegrationBeforeConnecting);
         }
         if (existingConnections.certinia) {
             return ROUTES.POLICY_ACCOUNTING_CERTINIA_EXISTING_CONNECTIONS.getRoute(policyID);
@@ -126,7 +150,7 @@ function getAccountingIntegrationData(
     };
     const getBackToAfterWorkspaceUpgradeRouteForRillet = () => {
         if (integrationToDisconnect) {
-            return ROUTES.POLICY_ACCOUNTING.getRoute(policyID, connectionName, integrationToDisconnect, shouldDisconnectIntegrationBeforeConnecting);
+            return getAccountingConnectionsRoute(isUnifiedConnectionsBetaEnabled, policyID, connectionName, integrationToDisconnect, shouldDisconnectIntegrationBeforeConnecting);
         }
         if (existingConnections.rillet) {
             return ROUTES.POLICY_ACCOUNTING_RILLET_EXISTING_CONNECTIONS.getRoute(policyID);
@@ -135,7 +159,7 @@ function getAccountingIntegrationData(
     };
     const getBackToAfterWorkspaceUpgradeRouteForDualEntry = () => {
         if (integrationToDisconnect) {
-            return ROUTES.POLICY_ACCOUNTING.getRoute(policyID, connectionName, integrationToDisconnect, shouldDisconnectIntegrationBeforeConnecting);
+            return getAccountingConnectionsRoute(isUnifiedConnectionsBetaEnabled, policyID, connectionName, integrationToDisconnect, shouldDisconnectIntegrationBeforeConnecting);
         }
         if (existingConnections.dualEntry) {
             return ROUTES.POLICY_ACCOUNTING_DUALENTRY_EXISTING_CONNECTIONS.getRoute(policyID);
@@ -144,7 +168,7 @@ function getAccountingIntegrationData(
     };
     const getBackToAfterWorkspaceUpgradeRouteForCampfire = () => {
         if (integrationToDisconnect) {
-            return ROUTES.POLICY_ACCOUNTING.getRoute(policyID, connectionName, integrationToDisconnect, shouldDisconnectIntegrationBeforeConnecting);
+            return getAccountingConnectionsRoute(isUnifiedConnectionsBetaEnabled, policyID, connectionName, integrationToDisconnect, shouldDisconnectIntegrationBeforeConnecting);
         }
         if (existingConnections.campfire) {
             return ROUTES.POLICY_ACCOUNTING_CAMPFIRE_EXISTING_CONNECTIONS.getRoute(policyID);
@@ -173,7 +197,7 @@ function getAccountingIntegrationData(
                     CONST.QUICKBOOKS_CONFIG.SYNC_TAX,
                     CONST.QUICKBOOKS_CONFIG.SYNC_ITEMS,
                 ],
-                onExportPagePress: () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_EXPORT.path, basePath)),
+                onExportPagePress: () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_EXPORT.path)),
                 subscribedExportSettings: [
                     CONST.QUICKBOOKS_CONFIG.EXPORT,
                     CONST.QUICKBOOKS_CONFIG.EXPORT_DATE,
@@ -209,7 +233,8 @@ function getAccountingIntegrationData(
                     ? {
                           workspaceUpgradeNavigationDetails: {
                               integrationAlias: CONST.UPGRADE_FEATURE_INTRO_MAPPING.intuitEnterpriseSuite.alias,
-                              backToAfterWorkspaceUpgradeRoute: ROUTES.POLICY_ACCOUNTING.getRoute(
+                              backToAfterWorkspaceUpgradeRoute: getAccountingConnectionsRoute(
+                                  isUnifiedConnectionsBetaEnabled,
                                   policyID,
                                   connectionName,
                                   integrationToDisconnect,
@@ -238,7 +263,7 @@ function getAccountingIntegrationData(
                     CONST.XERO_CONFIG.IMPORT_TAX_RATES,
                     ...getTrackingCategories(policy).map((category) => `${CONST.XERO_CONFIG.TRACKING_CATEGORY_PREFIX}${category.id}`),
                 ],
-                onExportPagePress: () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.POLICY_ACCOUNTING_XERO_EXPORT.path, basePath)),
+                onExportPagePress: () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.POLICY_ACCOUNTING_XERO_EXPORT.path)),
                 subscribedExportSettings: [
                     CONST.XERO_CONFIG.EXPORTER,
                     CONST.XERO_CONFIG.BILL_DATE,
@@ -326,7 +351,7 @@ function getAccountingIntegrationData(
                 workspaceUpgradeNavigationDetails: {
                     integrationAlias: CONST.UPGRADE_FEATURE_INTRO_MAPPING.netsuite.alias,
                     backToAfterWorkspaceUpgradeRoute: integrationToDisconnect
-                        ? ROUTES.POLICY_ACCOUNTING.getRoute(policyID, connectionName, integrationToDisconnect, shouldDisconnectIntegrationBeforeConnecting)
+                        ? getAccountingConnectionsRoute(isUnifiedConnectionsBetaEnabled, policyID, connectionName, integrationToDisconnect, shouldDisconnectIntegrationBeforeConnecting)
                         : ROUTES.POLICY_ACCOUNTING_NETSUITE_TOKEN_INPUT.getRoute(policyID, getInitialSubPageForNetsuiteTokenInput(policy)),
                 },
                 pendingFields: {...netsuiteConfig?.pendingFields, ...policy?.connections?.netsuite?.config?.pendingFields, ...policy?.connections?.netsuite?.options?.config?.pendingFields},
@@ -349,7 +374,7 @@ function getAccountingIntegrationData(
                     CONST.SAGE_INTACCT_CONFIG.TAX,
                     ...(policy?.connections?.intacct?.config?.mappings?.dimensions ?? []).map((dimension) => `${CONST.SAGE_INTACCT_CONFIG.DIMENSION_PREFIX}${dimension.dimension}`),
                 ],
-                onExportPagePress: () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_EXPORT.path, ROUTES.POLICY_ACCOUNTING.getRoute(policyID))),
+                onExportPagePress: () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_EXPORT.path)),
                 subscribedExportSettings: [
                     CONST.SAGE_INTACCT_CONFIG.EXPORTER,
                     CONST.SAGE_INTACCT_CONFIG.EXPORT_DATE,
@@ -390,8 +415,7 @@ function getAccountingIntegrationData(
                 ),
                 onImportPagePress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_IMPORT.getRoute(policyID)),
                 onExportPagePress: () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_EXPORT.path)),
-                onAdvancedPagePress: () =>
-                    Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_ACCOUNTING_QUICKBOOKS_DESKTOP_ADVANCED.path, ROUTES.POLICY_ACCOUNTING.getRoute(policyID))),
+                onAdvancedPagePress: () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_ACCOUNTING_QUICKBOOKS_DESKTOP_ADVANCED.path)),
                 subscribedImportSettings: [
                     CONST.QUICKBOOKS_DESKTOP_CONFIG.ENABLE_NEW_CATEGORIES,
                     CONST.QUICKBOOKS_DESKTOP_CONFIG.MAPPINGS.CLASSES,
@@ -406,14 +430,27 @@ function getAccountingIntegrationData(
                     CONST.QUICKBOOKS_DESKTOP_CONFIG.MARK_CHECKS_TO_BE_PRINTED,
                     CONST.QUICKBOOKS_DESKTOP_CONFIG.NON_REIMBURSABLE,
                     CONST.QUICKBOOKS_DESKTOP_CONFIG.NON_REIMBURSABLE_ACCOUNT,
-                    CONST.QUICKBOOKS_DESKTOP_CONFIG.NON_REIMBURSABLE_BILL_DEFAULT_VENDOR,
-                    CONST.QUICKBOOKS_DESKTOP_CONFIG.SHOULD_AUTO_CREATE_VENDOR,
+                    // Matching the Export page, which only counts these while company cards export as a vendor bill,
+                    // or a failed save leaves a dot on a row the app can no longer reach
+                    ...(qbdConfig?.export?.nonReimbursable === CONST.QUICKBOOKS_DESKTOP_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.VENDOR_BILL
+                        ? [
+                              CONST.QUICKBOOKS_DESKTOP_CONFIG.SHOULD_AUTO_CREATE_VENDOR,
+                              ...(qbdConfig?.shouldAutoCreateVendor ? [CONST.QUICKBOOKS_DESKTOP_CONFIG.NON_REIMBURSABLE_BILL_DEFAULT_VENDOR] : []),
+                          ]
+                        : []),
                 ],
-                subscribedAdvancedSettings: [CONST.QUICKBOOKS_DESKTOP_CONFIG.SHOULD_AUTO_CREATE_VENDOR, CONST.QUICKBOOKS_DESKTOP_CONFIG.AUTO_SYNC],
+                subscribedAdvancedSettings: [
+                    CONST.QUICKBOOKS_DESKTOP_CONFIG.SHOULD_AUTO_CREATE_VENDOR,
+                    CONST.QUICKBOOKS_DESKTOP_CONFIG.AUTO_SYNC,
+                    // Only where the Advanced page shows the row, or a failed save would leave a dot nothing can clear
+                    ...(isQBDExportingOnPayment(qbdConfig) ? [CONST.QUICKBOOKS_DESKTOP_CONFIG.FX_EXPENSE_ACCOUNT] : []),
+                ],
                 workspaceUpgradeNavigationDetails: {
                     integrationAlias: CONST.UPGRADE_FEATURE_INTRO_MAPPING.quickbooksDesktop.alias,
                     backToAfterWorkspaceUpgradeRoute: getBackToAfterWorkspaceUpgradeRouteForQBD(),
                 },
+                pendingFields: qbdConfig?.pendingFields,
+                errorFields: qbdConfig?.errorFields,
             };
         case CONST.POLICY.CONNECTIONS.NAME.CERTINIA: {
             const certiniaConnection = policy?.connections?.[CONST.POLICY.CONNECTIONS.NAME.CERTINIA];
@@ -460,9 +497,9 @@ function getAccountingIntegrationData(
                 ),
                 onImportPagePress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_CERTINIA_IMPORT.getRoute(policyID)),
                 subscribedImportSettings: certiniaSubscribedImportSettings,
-                onExportPagePress: () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.POLICY_ACCOUNTING_CERTINIA_EXPORT.path, ROUTES.POLICY_ACCOUNTING.getRoute(policyID))),
+                onExportPagePress: () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.POLICY_ACCOUNTING_CERTINIA_EXPORT.path)),
                 subscribedExportSettings: certiniaSubscribedExportSettings,
-                onAdvancedPagePress: () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.POLICY_ACCOUNTING_CERTINIA_ADVANCED.path, ROUTES.POLICY_ACCOUNTING.getRoute(policyID))),
+                onAdvancedPagePress: () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.POLICY_ACCOUNTING_CERTINIA_ADVANCED.path)),
                 subscribedAdvancedSettings: certiniaSubscribedAdvancedSettings,
                 onCardReconciliationPagePress: () => Navigation.navigate(ROUTES.WORKSPACE_ACCOUNTING_CARD_RECONCILIATION.getRoute(policyID, CONST.POLICY.CONNECTIONS.ROUTE.CERTINIA)),
                 pendingFields: certiniaConfig?.pendingFields,
@@ -516,6 +553,7 @@ function getAccountingIntegrationData(
                     CONST.RILLET_CONFIG.AUTO_SYNC,
                     CONST.RILLET_CONFIG.SYNC_REIMBURSED_REPORTS,
                     CONST.RILLET_CONFIG.BILL_PAYMENT_ACCOUNT_CODE,
+                    CONST.RILLET_CONFIG.FX_EXPENSE_ACCOUNT_CODE,
                     CONST.RILLET_CONFIG.SYNC_EXPENSIFY_CARD_SETTLEMENTS,
                     CONST.RILLET_CONFIG.SETTLEMENTS_BANK_ACCOUNT_ID,
                     CONST.RILLET_CONFIG.SYNC_TRAVEL_BILLING_SETTLEMENTS,
@@ -572,6 +610,7 @@ function getAccountingIntegrationData(
                     CONST.DUALENTRY_CONFIG.AUTO_SYNC,
                     CONST.DUALENTRY_CONFIG.SYNC_REIMBURSED_REPORTS,
                     CONST.DUALENTRY_CONFIG.BILL_PAYMENT_ACCOUNT_ID,
+                    CONST.DUALENTRY_CONFIG.FX_EXPENSE_ACCOUNT_ID,
                     CONST.DUALENTRY_CONFIG.SYNC_EXPENSIFY_CARD_SETTLEMENTS,
                     CONST.DUALENTRY_CONFIG.SETTLEMENTS_BANK_ACCOUNT_ID,
                     CONST.DUALENTRY_CONFIG.SYNC_TRAVEL_BILLING_SETTLEMENTS,
@@ -658,16 +697,27 @@ function getAccountingIntegrationData(
                     CONST.BUSINESS_CENTRAL_CONFIG.ENABLE_NEW_CATEGORIES,
                     CONST.BUSINESS_CENTRAL_CONFIG.SYNC_ITEMS,
                     CONST.BUSINESS_CENTRAL_CONFIG.SYNC_TAX_RATES,
+                    CONST.BUSINESS_CENTRAL_FIELD_MAPPING.CUSTOMERS,
+                    CONST.BUSINESS_CENTRAL_FIELD_MAPPING.PROJECTS,
                     ...(policy?.connections?.businessCentral?.data?.dimensions?.map((dimension) => `${CONST.BUSINESS_CENTRAL_CONFIG.FIELD_MAPPING_PREFIX}${dimension.id}`) ?? []),
                 ],
-                onExportPagePress: () => null,
-                subscribedExportSettings: [],
+                onExportPagePress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_BUSINESS_CENTRAL_EXPORT.getRoute(policyID)),
+                subscribedExportSettings: [
+                    CONST.BUSINESS_CENTRAL_CONFIG.EXPORTER,
+                    CONST.BUSINESS_CENTRAL_CONFIG.EXPORT_DATE,
+                    CONST.BUSINESS_CENTRAL_CONFIG.REIMBURSABLE,
+                    CONST.BUSINESS_CENTRAL_CONFIG.REIMBURSABLE_ACCOUNT,
+                    CONST.BUSINESS_CENTRAL_CONFIG.NON_REIMBURSABLE,
+                    CONST.BUSINESS_CENTRAL_CONFIG.DEFAULT_VENDOR_ID,
+                    CONST.BUSINESS_CENTRAL_CONFIG.NON_REIMBURSABLE_ACCOUNT,
+                    CONST.BUSINESS_CENTRAL_CONFIG.PAYMENT_METHOD_CODE,
+                ],
                 onAdvancedPagePress: () => null,
                 subscribedAdvancedSettings: [],
                 workspaceUpgradeNavigationDetails: {
                     integrationAlias: CONST.UPGRADE_FEATURE_INTRO_MAPPING.businessCentral.alias,
                     backToAfterWorkspaceUpgradeRoute: integrationToDisconnect
-                        ? ROUTES.POLICY_ACCOUNTING.getRoute(policyID, connectionName, integrationToDisconnect, shouldDisconnectIntegrationBeforeConnecting)
+                        ? getAccountingConnectionsRoute(isUnifiedConnectionsBetaEnabled, policyID, connectionName, integrationToDisconnect, shouldDisconnectIntegrationBeforeConnecting)
                         : ROUTES.POLICY_ACCOUNTING_BUSINESS_CENTRAL_PREREQUISITES.getRoute(policyID),
                 },
                 pendingFields: policy?.connections?.businessCentral?.config?.pendingFields,

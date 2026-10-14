@@ -12,6 +12,7 @@ import type {
     UpdateDualEntryExporterParams,
     UpdateDualEntryExportToMultipleAccountsParams,
     UpdateDualEntryFieldMappingParams,
+    UpdateDualEntryFxExpenseAccountParams,
     UpdateDualEntrySettlementsAccountParams,
     UpdateDualEntrySubsidiaryParams,
     UpdateDualEntrySyncExpensifyCardSettlementsParams,
@@ -26,7 +27,7 @@ import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {DualEntryAutoSync, DualEntryCoding, DualEntryConnectionsConfig, DualEntryExport, DualEntrySync} from '@src/types/onyx/Policy';
+import type {DualEntryAccount, DualEntryAutoSync, DualEntryCoding, DualEntryConnectionsConfig, DualEntryExport, DualEntrySync} from '@src/types/onyx/Policy';
 
 import type {OnyxUpdate} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
@@ -707,6 +708,15 @@ function updateDualEntryBillPaymentAccount(policyID: string, billPaymentAccountI
     write(WRITE_COMMANDS.UPDATE_DUALENTRY_BILL_PAYMENT_ACCOUNT, parameters, onyxData);
 }
 
+function updateDualEntryFxExpenseAccount(policyID: string, fxExpenseAccountID: DualEntryAccount['id'], oldFxExpenseAccountID?: DualEntrySync['fxExpenseAccountID']) {
+    const onyxData = prepareDualEntrySyncOnyxData(policyID, CONST.DUALENTRY_CONFIG.FX_EXPENSE_ACCOUNT_ID, fxExpenseAccountID, oldFxExpenseAccountID ?? null);
+    const parameters: UpdateDualEntryFxExpenseAccountParams = {
+        policyID,
+        fxExpenseAccountID,
+    };
+    write(WRITE_COMMANDS.UPDATE_DUALENTRY_FX_EXPENSE_ACCOUNT, parameters, onyxData);
+}
+
 function updateDualEntrySyncExpensifyCardSettlements(policyID: string, enabled: DualEntrySync['syncExpensifyCardSettlements'], oldEnabled?: DualEntrySync['syncExpensifyCardSettlements']) {
     const onyxData = prepareDualEntrySyncOnyxData(policyID, CONST.DUALENTRY_CONFIG.SYNC_EXPENSIFY_CARD_SETTLEMENTS, enabled, oldEnabled ?? null);
     const parameters: UpdateDualEntrySyncExpensifyCardSettlementsParams = {
@@ -817,6 +827,7 @@ export {
     updateDualEntryAccountingMethod,
     updateDualEntrySyncReimbursedReports,
     updateDualEntryBillPaymentAccount,
+    updateDualEntryFxExpenseAccount,
     updateDualEntrySyncExpensifyCardSettlements,
     updateDualEntrySettlementsAccount,
     updateDualEntrySyncTravelInvoicingSettlements,

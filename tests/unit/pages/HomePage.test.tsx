@@ -29,6 +29,11 @@ jest.mock('@hooks/useLocalize', () =>
     })),
 );
 jest.mock('@hooks/useDocumentTitle', () => jest.fn());
+jest.mock('@react-navigation/native', () => ({
+    ...jest.requireActual<Record<string, unknown>>('@react-navigation/native'),
+    useFocusEffect: jest.fn(),
+}));
+jest.mock('@libs/actions/HomePage', () => jest.fn());
 jest.mock('@hooks/useThemeStyles', () =>
     jest.fn(() => ({
         flex1: {},

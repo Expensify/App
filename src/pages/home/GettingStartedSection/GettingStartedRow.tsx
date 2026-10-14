@@ -4,9 +4,9 @@ import Checkbox from '@components/Checkbox';
 import {PressableWithoutFeedback} from '@components/Pressable';
 import Text from '@components/Text';
 
+import useLayoutSpacing from '@hooks/useLayoutSpacing';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import Navigation from '@libs/Navigation/Navigation';
@@ -25,7 +25,7 @@ type GettingStartedRowProps = {
 function GettingStartedRow({item}: GettingStartedRowProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {cardPaddingHorizontal} = useLayoutSpacing();
     const icons = useMemoizedLazyExpensifyIcons(['Checkmark']);
 
     const navigateToItem = () => {
@@ -47,7 +47,7 @@ function GettingStartedRow({item}: GettingStartedRowProps) {
             sentryLabel={CONST.SENTRY_LABEL.HOME_PAGE.GETTING_STARTED_ROW}
         >
             {({hovered}) => (
-                <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap3, shouldUseNarrowLayout ? styles.ph5 : styles.ph8, styles.pv3, hovered && styles.hoveredComponentBG]}>
+                <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap3, cardPaddingHorizontal, styles.pv3, hovered && styles.hoveredComponentBG]}>
                     <View style={styles.gettingStartedRowIconContainer}>
                         <Checkbox
                             isChecked={item.isComplete}

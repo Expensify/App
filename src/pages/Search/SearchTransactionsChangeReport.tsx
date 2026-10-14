@@ -9,6 +9,7 @@ import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useHasPerDiemTransactions from '@hooks/useHasPerDiemTransactions';
 import useHydrateReportsFromSnapshot from '@hooks/useHydrateReportsFromSnapshot';
+import useLoadSearchCardData from '@hooks/useLoadSearchCardData';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -19,6 +20,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 
 import {createNewReport} from '@libs/actions/Report';
 import {autoReportTransactions, changeTransactionsReport} from '@libs/actions/Transaction';
+import {canResolveTransactionCard} from '@libs/CardUtils';
 import getAllMatchingQueryParams from '@libs/getAllMatchingQueryParams';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
@@ -28,7 +30,6 @@ import {generateReportID, getPersonalDetailsForAccountID, getReportOrDraftReport
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {
     isDistanceRequest as isDistanceRequestUtil,
-    isManagedCardTransaction,
     isManualDistanceRequest as isManualDistanceRequestUtil,
     isOdometerDistanceRequest as isOdometerDistanceRequestUtil,
     isUnreportedManagedCardTransaction,
@@ -90,9 +91,13 @@ function SearchTransactionsChangeReport() {
     const managedCardTransactionID = transactions.find((transaction) => isUnreportedManagedCardTransaction(transaction))?.transactionID;
     const hasUnreportedManagedCardTransactions = !!managedCardTransactionID;
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
+    const [nonPersonalAndWorkspaceCards] = useOnyx(ONYXKEYS.DERIVED.NON_PERSONAL_AND_WORKSPACE_CARD_LIST);
+    // Asked for here too, so opening this screen retries a fetch that failed earlier.
+    const {areCardsLoaded: isSearchCardListComplete} = useLoadSearchCardData();
     const reports = useChangeTransactionsReportReports(transactions, undefined);
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
+    const [cardList] = useOnyx(ONYXKEYS.CARD_LIST);
     const {isBetaEnabled, isBetaEnabledOrUnknown} = usePermissions();
     const isVendorMatchingBetaEnabled = isBetaEnabledOrUnknown(CONST.BETAS.VENDOR_MATCHING);
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
@@ -145,9 +150,12 @@ function SearchTransactionsChangeReport() {
     // Only distinct resolved owners count. An owner we cannot resolve must not stand in for a second submitter: for an
     // unreported expense the report lookup can never resolve one (its reportID is `0`), so a search snapshot missing
     // the money-request action would otherwise file one cardholder's bulk selection as mixed and strip its report list.
-    // "Auto report" has the backend resolve each destination through the expense's card, so one expense without a card
-    // fails the whole request with "404 Card not found".
-    const areAllManagedCardTransactions = selectedTransactionsKeys.length > 0 && transactions.length === selectedTransactionsKeys.length && transactions.every(isManagedCardTransaction);
+    // "Auto report" resolves each destination through the expense's card. A card this user cannot resolve, because
+    // it is missing or on a feed they do not administer, fails the whole request.
+    const areAllManagedCardsResolvable =
+        selectedTransactionsKeys.length > 0 &&
+        transactions.length === selectedTransactionsKeys.length &&
+        transactions.every((transaction) => canResolveTransactionCard(transaction, nonPersonalAndWorkspaceCards, isSearchCardListComplete));
     const hasMultipleSubmitters = useMemo(() => {
         const ownerAccountIDs = new Set<number>();
 
@@ -200,6 +208,7 @@ function SearchTransactionsChangeReport() {
                 allTransactionViolation: transactionViolations,
                 reports: reportsForCall,
                 rules,
+                cardList,
                 isTrackIntentUser,
                 personalPolicyOutputCurrency: personalPolicy?.outputCurrency,
                 selfDMReportActions,
@@ -303,6 +312,7 @@ function SearchTransactionsChangeReport() {
             allTransactionViolation: transactionViolations,
             reports: reportsForCall,
             rules,
+            cardList,
             isTrackIntentUser,
             personalPolicyOutputCurrency: personalPolicy?.outputCurrency,
             selfDMReportActions,
@@ -343,6 +353,7 @@ function SearchTransactionsChangeReport() {
             allTransactionViolation: transactionViolations,
             reports,
             rules,
+            cardList,
             isTrackIntentUser,
             personalPolicyOutputCurrency: personalPolicy?.outputCurrency,
             selfDMReportActions,
@@ -374,7 +385,7 @@ function SearchTransactionsChangeReport() {
                 isPerDiemRequest={hasPerDiemTransactions}
                 isUnreportedManagedCardTransaction={hasUnreportedManagedCardTransactions}
                 hasMultipleSubmitters={hasMultipleSubmitters}
-                areAllManagedCardTransactions={areAllManagedCardTransactions}
+                areAllManagedCardsResolvable={areAllManagedCardsResolvable}
                 autoReport={autoReport}
             />
             <DecisionModal

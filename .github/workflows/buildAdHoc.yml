@@ -136,6 +136,7 @@ jobs:
           BUCKET="s3://ad-hoc-expensify-cash/web/${{ inputs.APP_PR_NUMBER }}"
 
           aws s3 sync dist "$BUCKET" --delete --acl public-read \
+            --exclude "*.br" \
             --exclude "index.html" \
             --exclude "service-worker.js" \
             --exclude "workbox-*.js" \

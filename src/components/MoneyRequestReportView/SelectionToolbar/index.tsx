@@ -2,6 +2,7 @@ import DecisionModal from '@components/DecisionModal';
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import HoldOrRejectEducationalModal from '@components/HoldOrRejectEducationalModal';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
+import useShouldShowReportBulkActionBar from '@components/MoneyRequestReportView/useShouldShowReportBulkActionBar';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ProcessMoneyReportHoldMenu from '@components/ProcessMoneyReportHoldMenu';
 import {ReportSubmitToPopoverAnchor} from '@components/ReportSubmitToPopoverAnchor';
@@ -22,9 +23,10 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {dismissRejectUseExplanation} from '@libs/actions/IOU/RejectMoneyRequest';
 import {queueExportSearchWithTemplate} from '@libs/actions/Search';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
+import {isEveryReportTransactionSelected, isSelectableReportTransaction} from '@libs/MoneyRequestReportUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
-import type {ReportsSplitNavigatorParamList} from '@libs/Navigation/types';
+import type {ReportsSplitNavigatorParamList, RightModalNavigatorParamList} from '@libs/Navigation/types';
 import {getReportOfflinePendingActionAndErrors} from '@libs/ReportUtils';
 import shouldPopoverUseScrollView from '@libs/shouldPopoverUseScrollView';
 import {getDeleteConfirmationPrompt, getDeleteExpenseTitle, isPending, isTransactionPendingDelete} from '@libs/TransactionUtils';
@@ -33,7 +35,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
-import type SCREENS from '@src/SCREENS';
+import SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
 
 import type {ValueOf} from 'type-fest';
@@ -43,6 +45,7 @@ import React, {useState} from 'react';
 import {View} from 'react-native';
 
 import SelectAllCheckbox from './SelectAllCheckbox';
+import SelectionBulkActionBar from './SelectionBulkActionBar';
 import SelectionDropdown from './SelectionDropdown';
 
 type SelectionToolbarProps = {
@@ -60,7 +63,15 @@ function SelectionToolbar({reportID, transactions, reportActions}: SelectionTool
     const {translate} = useLocalize();
     const {isOffline} = useNetworkWithOfflineStatus();
     const {shouldUseNarrowLayout, isInLandscapeMode} = useResponsiveLayoutOnWideRHP();
-    const route = useRoute<PlatformStackRouteProp<ReportsSplitNavigatorParamList, typeof SCREENS.REPORT>>();
+    const shouldShowBulkActionBar = useShouldShowReportBulkActionBar();
+    const route = useRoute<
+        | PlatformStackRouteProp<ReportsSplitNavigatorParamList, typeof SCREENS.REPORT>
+        | PlatformStackRouteProp<RightModalNavigatorParamList, typeof SCREENS.RIGHT_MODAL.SEARCH_REPORT>
+        | PlatformStackRouteProp<RightModalNavigatorParamList, typeof SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT>
+    >();
+    // Deleting from a report opened out of a search has to update the search results behind it, which needs the hash of
+    // the search that is showing.
+    const isReportInSearch = route.name === SCREENS.RIGHT_MODAL.SEARCH_REPORT || route.name === SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT;
 
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(report?.policyID)}`);
@@ -86,6 +97,8 @@ function SelectionToolbar({reportID, transactions, reportActions}: SelectionTool
     const [rejectModalAction, setRejectModalAction] = useState<ValueOf<typeof CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.REJECT_BULK> | null>(null);
 
     const transactionsWithoutPendingDelete = transactions.filter((t) => !isTransactionPendingDelete(t));
+    // Select All skips rejected expenses as well as ones being deleted, since their checkboxes are disabled. The list header and group headers use the same filter.
+    const selectableTransactions = transactions.filter(isSelectableReportTransaction);
 
     const beginExportWithTemplate = (templateName: string, templateType: string, transactionIDList: string[], exportName: string) => {
         if (isOffline) {
@@ -156,6 +169,7 @@ function SelectionToolbar({reportID, transactions, reportActions}: SelectionTool
         policy,
         beginExportWithTemplate: (templateName, templateType, transactionIDList, exportName) => beginExportWithTemplate(templateName, templateType, transactionIDList, exportName),
         onDeleteSelected,
+        isOnSearch: isReportInSearch,
     });
 
     const {
@@ -233,7 +247,8 @@ function SelectionToolbar({reportID, transactions, reportActions}: SelectionTool
     };
 
     const {reportPendingAction} = getReportOfflinePendingActionAndErrors(report);
-    const isSelectAllChecked = selectedTransactionIDs.length > 0 && selectedTransactionIDs.length === transactionsWithoutPendingDelete.length;
+    // Same check that decides whether Submit, Approve and Pay are offered, so the checkbox reads fully checked exactly when they are.
+    const isSelectAllChecked = isEveryReportTransactionSelected(transactions, selectedTransactionIDs);
 
     return (
         <>
@@ -270,13 +285,26 @@ function SelectionToolbar({reportID, transactions, reportActions}: SelectionTool
 
                         <SelectAllCheckbox
                             isSelectAllChecked={isSelectAllChecked}
-                            isIndeterminate={selectedTransactionIDs.length > 0 && selectedTransactionIDs.length !== transactionsWithoutPendingDelete.length}
+                            isIndeterminate={selectedTransactionIDs.length > 0 && !isSelectAllChecked}
                             hasAnySelected={selectedTransactionIDs.length > 0}
-                            onSelectAll={() => setSelectedTransactions(transactionsWithoutPendingDelete.map((t) => t.transactionID))}
+                            onSelectAll={() => setSelectedTransactions(selectableTransactions.map((t) => t.transactionID))}
                             onClearAll={() => clearSelectedTransactions(true)}
                         />
                     </View>
                 </OfflineWithFeedback>
+            )}
+            {shouldShowBulkActionBar && (
+                <SelectionBulkActionBar
+                    chatReport={chatReport}
+                    report={report}
+                    selectedTransactionsOptions={selectedTransactionsOptions}
+                    selectedTransactionIDs={selectedTransactionIDs}
+                    onSelectionModePaymentSelect={onSelectionModePaymentSelect}
+                    selectionModeKYCSuccess={selectionModeKYCSuccess}
+                    onWorkspacePolicySelect={handleWorkspaceSelected}
+                    kycWallRef={kycWallRef}
+                    onClearSelection={() => clearSelectedTransactions(true)}
+                />
             )}
             <DecisionModal
                 title={translate('common.downloadFailedTitle')}

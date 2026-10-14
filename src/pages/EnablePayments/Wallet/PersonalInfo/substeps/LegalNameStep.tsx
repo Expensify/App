@@ -5,6 +5,8 @@ import useOnyx from '@hooks/useOnyx';
 import type {SubPageProps} from '@hooks/useSubPage/types';
 import useWalletAdditionalDetailsStepFormSubmit from '@hooks/useWalletAdditionalDetailsStepFormSubmit';
 
+import {getBankAccountOwnerDetails} from '@pages/EnablePayments/Wallet/utils/getBankAccountOwnerDetails';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/WalletAdditionalDetailsForm';
@@ -17,14 +19,16 @@ const STEP_FIELDS = [PERSONAL_INFO_STEP_KEY.FIRST_NAME, PERSONAL_INFO_STEP_KEY.L
 function LegalNameStep({onNext, onMove, isEditing}: SubPageProps) {
     const {translate} = useLocalize();
     const [walletAdditionalDetails] = useOnyx(ONYXKEYS.WALLET_ADDITIONAL_DETAILS);
+    const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS);
 
-    const defaultValues = useMemo(
-        () => ({
-            firstName: walletAdditionalDetails?.[PERSONAL_INFO_STEP_KEY.FIRST_NAME] ?? '',
-            lastName: walletAdditionalDetails?.[PERSONAL_INFO_STEP_KEY.LAST_NAME] ?? '',
-        }),
-        [walletAdditionalDetails],
-    );
+    // Draft is applied by the form itself, so defaults stay on saved wallet details and the profile.
+    const defaultValues = useMemo(() => {
+        const owner = getBankAccountOwnerDetails({walletAdditionalDetails, privatePersonalDetails});
+        return {
+            firstName: owner.legalFirstName,
+            lastName: owner.legalLastName,
+        };
+    }, [privatePersonalDetails, walletAdditionalDetails]);
 
     const handleSubmit = useWalletAdditionalDetailsStepFormSubmit({
         fieldIds: STEP_FIELDS,

@@ -11,7 +11,7 @@ import type {AnimationIn, AnimationOut} from './types';
 
 const easing = Easing.bezier(0.76, 0.0, 0.24, 1.0).factory();
 
-function getModalInAnimation(animationType: AnimationIn): ValidKeyframeProps {
+function getModalInAnimation(animationType: AnimationIn, fadeOpacity: number = variables.overlayOpacity): ValidKeyframeProps {
     switch (animationType) {
         case 'slideInRight':
             return {
@@ -33,7 +33,7 @@ function getModalInAnimation(animationType: AnimationIn): ValidKeyframeProps {
             return {
                 from: {opacity: 0},
                 to: {
-                    opacity: variables.overlayOpacity,
+                    opacity: fadeOpacity,
                     easing,
                 },
             };
@@ -69,7 +69,7 @@ function getModalInAnimationStyle(animationType: AnimationIn): (progress: number
     }
 }
 
-function getModalOutAnimation(animationType: AnimationOut): ValidKeyframeProps {
+function getModalOutAnimation(animationType: AnimationOut, fadeOpacity: number = variables.overlayOpacity): ValidKeyframeProps {
     switch (animationType) {
         case 'slideOutRight':
             return {
@@ -89,7 +89,7 @@ function getModalOutAnimation(animationType: AnimationOut): ValidKeyframeProps {
             };
         case 'fadeOut':
             return {
-                from: {opacity: variables.overlayOpacity},
+                from: {opacity: fadeOpacity},
                 to: {
                     opacity: 0,
                     easing,

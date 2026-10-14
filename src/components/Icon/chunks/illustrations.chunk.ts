@@ -77,6 +77,7 @@ import SortingMachine from '@assets/images/product-illustrations/illustration-so
 import CardReplacementSuccess from '@assets/images/product-illustrations/illustration__card-replacement-success.svg';
 import Copilots from '@assets/images/product-illustrations/illustration__copilots.svg';
 import AgentsIceCream from '@assets/images/product-illustrations/illustration_agents-ice-cream.svg';
+import IceCreamMenu from '@assets/images/product-illustrations/illustration_ice-cream-menu.svg';
 import ModalHoldOrReject from '@assets/images/product-illustrations/modal-hold-or-reject.svg';
 import MushroomTopHat from '@assets/images/product-illustrations/mushroom-top-hat.svg';
 import PaymentHands from '@assets/images/product-illustrations/payment-hands.svg';
@@ -117,6 +118,7 @@ import ShareBank from '@assets/images/simple-illustrations/simple-illustration__
 import BankCoin from '@assets/images/simple-illustrations/simple-illustration__bankcoin.svg';
 import Binoculars from '@assets/images/simple-illustrations/simple-illustration__binoculars.svg';
 import BlueShield from '@assets/images/simple-illustrations/simple-illustration__blueshield.svg';
+import BriefcaseHandshake from '@assets/images/simple-illustrations/simple-illustration__briefcase-handshake.svg';
 import Briefcase from '@assets/images/simple-illustrations/simple-illustration__briefcase.svg';
 import Broom from '@assets/images/simple-illustrations/simple-illustration__broom.svg';
 import Building from '@assets/images/simple-illustrations/simple-illustration__building.svg';
@@ -132,6 +134,7 @@ import CardReaderAlt from '@assets/images/simple-illustrations/simple-illustrati
 import Chair from '@assets/images/simple-illustrations/simple-illustration__chair.svg';
 import Chalkboard from '@assets/images/simple-illustrations/simple-illustration__chalkboard.svg';
 import Chart from '@assets/images/simple-illustrations/simple-illustration__chart.svg';
+import ChartSync from '@assets/images/simple-illustrations/simple-illustration__chartsync.svg';
 import ChatBubbles from '@assets/images/simple-illustrations/simple-illustration__chatbubbles.svg';
 import CheckboxText from '@assets/images/simple-illustrations/simple-illustration__checkboxtext.svg';
 import CheckmarkCircle from '@assets/images/simple-illustrations/simple-illustration__checkmarkcircle.svg';
@@ -180,6 +183,7 @@ import MagnifyingGlassReceipt from '@assets/images/simple-illustrations/simple-i
 import Mailbox from '@assets/images/simple-illustrations/simple-illustration__mailbox.svg';
 import ExpensifyMobileApp from '@assets/images/simple-illustrations/simple-illustration__mobileapp.svg';
 import MoneyReceipts from '@assets/images/simple-illustrations/simple-illustration__money-receipts.svg';
+import MoneyBadge from '@assets/images/simple-illustrations/simple-illustration__moneybadge.svg';
 import MoneyIntoWallet from '@assets/images/simple-illustrations/simple-illustration__moneyintowallet.svg';
 import MoneyWings from '@assets/images/simple-illustrations/simple-illustration__moneywings.svg';
 import MonitorSyncNo from '@assets/images/simple-illustrations/simple-illustration__monitorsync-no.svg';
@@ -321,6 +325,7 @@ const Illustrations = {
     SmartScan,
     SortingMachine,
     AgentsIceCream,
+    IceCreamMenu,
     TeleScope,
     Telescope: TeleScope, // Alias for consistency
     ThreeLeggedLaptopWoman,
@@ -358,6 +363,7 @@ const Illustrations = {
     CreditCardsNew,
     FolderOpen,
     FolderSync,
+    ChartSync,
     HandCard,
     Hashtag,
     InvoiceBlue,
@@ -365,6 +371,7 @@ const Illustrations = {
     MagnifyingGlassMoney,
     MagnifyingGlassReceipt,
     MoneyReceipts,
+    MoneyBadge,
     MoneyWings,
     MoneyIntoWallet,
     MonitorSyncNo,
@@ -403,6 +410,7 @@ const Illustrations = {
     CarIce,
     BlueShield,
     Briefcase,
+    BriefcaseHandshake,
     Pencil,
     ShareBank,
     Luggage,
