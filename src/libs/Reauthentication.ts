@@ -214,8 +214,7 @@ function reauthenticate(command = ''): Promise<ReauthenticationResult> {
 
     return hasReadRequiredDataFromStorage().then(() => {
         // While connected as a delegate, ONYXKEYS.CREDENTIALS is wiped by clearOnyxForDelegateTransition; the original user's creds live in stashedCredentials.
-        // ACCOUNT can lose the `delegate` field once the copilot's access is revoked, while SESSION still holds the revoked
-        // restricted token, so the token type also marks a delegate session. See Expensify/App#93458.
+        // ACCOUNT can lose `delegate` once access is revoked while SESSION still holds the restricted token
         const isDelegate =
             isDelegateTokenSession ||
             isConnectedAsDelegate({

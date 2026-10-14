@@ -21,7 +21,7 @@ import type {Delegate, DelegatedAccess, DelegateRole} from '@src/types/onyx/Acco
 import type Credentials from '@src/types/onyx/Credentials';
 import type Session from '@src/types/onyx/Session';
 
-import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
+import type {OnyxEntry, OnyxMultiSetInput, OnyxUpdate} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 
 import HybridAppModule from '@expensify/react-native-hybrid-app';
@@ -40,6 +40,7 @@ const KEYS_TO_PRESERVE_DELEGATE_ACCESS = [
     ONYXKEYS.STASHED_SESSION,
     ONYXKEYS.HAS_LOADED_APP,
     ONYXKEYS.STASHED_CREDENTIALS,
+    ONYXKEYS.PENDING_SELF_COPILOT_REMOVAL,
     ONYXKEYS.HYBRID_APP,
 
     // Otherwise it's wiped and refetched by OpenApp, letting the product-marketing window flash back in
@@ -62,9 +63,37 @@ const KEYS_TO_PRESERVE_DELEGATE_ACCESS = [
     ONYXKEYS.PERSONAL_DETAILS_LIST,
 ];
 
-/** Atomically reset Onyx for a delegate-access transition. */
-function clearOnyxForDelegateTransition(): Promise<void> {
-    return clearOnyxAndSeedFullReconnect(KEYS_TO_PRESERVE_DELEGATE_ACCESS);
+/** Atomically reset Onyx for a delegate-access transition. `extraSeeds` are written in the same step as the clear. */
+function clearOnyxForDelegateTransition(extraSeeds?: OnyxMultiSetInput): Promise<void> {
+    return clearOnyxAndSeedFullReconnect(KEYS_TO_PRESERVE_DELEGATE_ACCESS, extraSeeds);
+}
+
+type LoadAccountAfterDelegateTransitionParams = {
+    /** Account to reinitialize Pusher for */
+    accountID: number | undefined;
+
+    /** Email to reinitialize Pusher for */
+    email: string | undefined;
+
+    /** Account to switch OldDot to, omitted to leave OldDot as is */
+    hybridAppAccount?: Parameters<typeof HybridAppModule.switchAccount>[0];
+};
+
+/**
+ * Loads the account after a delegate-access transition and syncs OldDot to it. Pusher is not awaited: on Android it can
+ * stall right after the transition's disconnect, which would block the switch. See Expensify/App#93458.
+ */
+function loadAccountAfterDelegateTransition({accountID, email, hybridAppAccount}: LoadAccountAfterDelegateTransitionParams): Promise<void> {
+    return openApp().then(() => {
+        requestPusherReinitialize({accountID, email}).catch((error: unknown) => {
+            Log.hmmm('[Delegate] Failed to reinitialize Pusher after a delegate-access transition', {error: ErrorUtils.getErrorMessage(error)});
+        });
+
+        if (!CONFIG.IS_HYBRID_APP || !hybridAppAccount) {
+            return;
+        }
+        HybridAppModule.switchAccount(hybridAppAccount);
+    });
 }
 
 type WithDelegatedAccess = {
@@ -116,19 +145,16 @@ type WithActivePolicyID = {
 type DisconnectParams = WithStashedCredentials & WithStashedSession;
 
 const DISCONNECT_RESULT = {
-    /** The server ended the copilot session and the original session was restored with fresh tokens */
+    /** Session ended, original session restored with fresh tokens */
     RESTORED: 'restored',
 
-    /** The server response was incomplete, so the original session was restored from the stash */
+    /** Incomplete response, original session restored from the stash */
     RESTORED_FROM_STASH: 'restoredFromStash',
 
-    /**
-     * The server ended the copilot session, but restoring the original session threw partway. SESSION is written first,
-     * so it most likely holds the original account already. If not, the next request reauthenticates with the stash.
-     */
+    /** Session ended but the restore threw partway. SESSION is written first, so it is most likely restored. */
     RESTORE_INTERRUPTED: 'restoreInterrupted',
 
-    /** The request failed, so the copilot session is still active */
+    /** Request failed, copilot session still active */
     FAILED: 'failed',
 } as const;
 
@@ -258,22 +284,20 @@ function connect({email, delegatedAccess, credentials, session, activePolicyID, 
                     Pusher.disconnect();
                     return clearOnyxForDelegateTransition();
                 })
-                .then(() => {
-                    return openApp()
-                        .then(() => requestPusherReinitialize({accountID: response.accountID, email: response.email}))
-                        .then(() => {
-                            if (!CONFIG.IS_HYBRID_APP || !policyID) {
-                                return true;
-                            }
-                            HybridAppModule.switchAccount({
-                                newDotCurrentAccountEmail: email,
-                                authToken: restrictedToken,
-                                policyID,
-                                accountID: String(session?.accountID ?? CONST.DEFAULT_NUMBER_ID),
-                            });
-                            return true;
-                        });
-                });
+                .then(() =>
+                    loadAccountAfterDelegateTransition({
+                        accountID: response.accountID,
+                        email: response.email,
+                        hybridAppAccount: policyID
+                            ? {
+                                  newDotCurrentAccountEmail: email,
+                                  authToken: restrictedToken,
+                                  policyID,
+                                  accountID: String(session?.accountID ?? CONST.DEFAULT_NUMBER_ID),
+                              }
+                            : undefined,
+                    }).then(() => true),
+                );
         })
         .catch((error) => {
             Log.alert('[Delegate] Error connecting as delegate', {error});
@@ -322,8 +346,7 @@ function disconnect({stashedCredentials, stashedSession}: DisconnectParams): Pro
     ];
 
     // We need to access the authToken directly from the response to update the session
-    // The promise resolves to a DISCONNECT_RESULT once the flow settles, so callers can gate follow-up work that
-    // must run under the original user's identity (e.g. deleting the agent) on how the session was restored.
+    // Resolves to a DISCONNECT_RESULT so callers can gate work that must run as the original user (e.g. deleting the agent)
     // eslint-disable-next-line rulesdir/no-api-side-effects-method
     return API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.DISCONNECT_AS_DELEGATE, {}, {optimisticData, successData, failureData}).then(
         (response) => {
@@ -372,7 +395,7 @@ function disconnect({stashedCredentials, stashedSession}: DisconnectParams): Pro
                 return DISCONNECT_RESULT.RESTORE_INTERRUPTED;
             });
         },
-        // Only a failed request leaves the copilot session untouched. Errors thrown while restoring are handled above.
+        // Only a failed request leaves the copilot session active
         (error) => {
             Log.alert('[Delegate] Error disconnecting as a delegate', {error});
             return DISCONNECT_RESULT.FAILED;
@@ -719,78 +742,123 @@ function removeDelegator({email, delegatedAccess}: RemoveDelegateParams) {
 
 type RemoveSelfAsDelegateParams = WithStashedCredentials &
     WithStashedSession & {
-        /** Email of the delegator the copilot is currently acting as */
+        /** Delegator the copilot is acting as */
         delegatorEmail: string;
 
-        /** Email of the acting copilot, whose row shows the error when the copilot session cannot be ended */
+        /** Acting copilot, whose row shows the error if the session can't be ended */
         delegateEmail: string;
     };
 
-/**
- * Removes the acting copilot from the delegator's copilots. The original session is restored before the access is
- * revoked: revoking first invalidates the restricted token the app is running on, and killing the app before the
- * restore completes persists that revoked token in both NewDot and OldDot. See Expensify/App#93458.
- */
-function removeSelfAsDelegate({delegatorEmail, delegateEmail, stashedCredentials, stashedSession}: RemoveSelfAsDelegateParams) {
-    return disconnect({stashedCredentials, stashedSession}).then((disconnectResult) => {
-        // Restoring from the stash still returns the copilot to their own account, so only a failed request blocks the removal
-        if (disconnectResult === DISCONNECT_RESULT.FAILED) {
-            Log.alert('[Delegate] Unable to restore the original session, skipping copilot removal');
+// Set while removeSelfAsDelegate runs, so resuming a pending removal can't queue it twice
+let isRemovingSelfAsDelegate = false;
 
-            // The copilot is still acting as the delegator, so the error goes on their own row in the delegator's copilots list
-            Onyx.merge(ONYXKEYS.ACCOUNT, {
+/** Queues the restored copilot's removal from the delegator's copilots, clearing the pending removal with it */
+function queueSelfRemovalFromDelegator(delegatorEmail: string) {
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.ACCOUNT | typeof ONYXKEYS.PENDING_SELF_COPILOT_REMOVAL>> = [
+        {
+            onyxMethod: Onyx.METHOD.SET,
+            key: ONYXKEYS.PENDING_SELF_COPILOT_REMOVAL,
+            value: null,
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.ACCOUNT,
+            value: {
                 delegatedAccess: {
                     errorFields: {
-                        removeDelegate: {
-                            [delegateEmail]: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('delegate.genericError'),
-                        },
-                    },
-                },
-            });
-            return;
-        }
-
-        const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.ACCOUNT>> = [
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: ONYXKEYS.ACCOUNT,
-                value: {
-                    delegatedAccess: {
-                        errorFields: {
-                            removeDelegator: {
-                                [delegatorEmail]: null,
-                            },
+                        removeDelegator: {
+                            [delegatorEmail]: null,
                         },
                     },
                 },
             },
-        ];
+        },
+    ];
 
-        const failureData: Array<OnyxUpdate<typeof ONYXKEYS.ACCOUNT>> = [
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: ONYXKEYS.ACCOUNT,
-                value: {
-                    delegatedAccess: {
-                        errorFields: {
-                            removeDelegator: {
-                                [delegatorEmail]: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('delegate.genericError'),
-                            },
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.ACCOUNT>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.ACCOUNT,
+            value: {
+                delegatedAccess: {
+                    errorFields: {
+                        removeDelegator: {
+                            [delegatorEmail]: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('delegate.genericError'),
                         },
                     },
                 },
             },
-        ];
+        },
+    ];
 
-        const parameters: APIRemoveDelegatorParams = {delegatorEmail};
+    const parameters: APIRemoveDelegatorParams = {delegatorEmail};
 
-        // The delegators list of the restored account is not known here, so it is refreshed from the server once the removal is written
-        API.write(WRITE_COMMANDS.REMOVE_DELEGATOR, parameters, {
-            optimisticData,
-            failureData,
-        });
-        openSecuritySettingsPage();
+    // The restored account's delegators aren't known here, so refetch them after the removal
+    API.write(WRITE_COMMANDS.REMOVE_DELEGATOR, parameters, {
+        optimisticData,
+        failureData,
     });
+    openSecuritySettingsPage();
+}
+
+/**
+ * Removes the acting copilot from the delegator's copilots, restoring the original session first: revoking first
+ * invalidates the token the app runs on, and a kill before the restore persists it. See Expensify/App#93458.
+ * The removal is saved as pending first, so a kill before it is queued doesn't lose it.
+ */
+function removeSelfAsDelegate({delegatorEmail, delegateEmail, stashedCredentials, stashedSession}: RemoveSelfAsDelegateParams) {
+    isRemovingSelfAsDelegate = true;
+    return Onyx.set(ONYXKEYS.PENDING_SELF_COPILOT_REMOVAL, delegatorEmail)
+        .then(() => disconnect({stashedCredentials, stashedSession}))
+        .then((disconnectResult) => {
+            // Only a failed request leaves the copilot on the delegator's account
+            if (disconnectResult === DISCONNECT_RESULT.FAILED) {
+                Log.alert('[Delegate] Unable to restore the original session, skipping copilot removal');
+                Onyx.set(ONYXKEYS.PENDING_SELF_COPILOT_REMOVAL, null);
+
+                // Still acting as the delegator, so show the error on the copilot's own row
+                Onyx.merge(ONYXKEYS.ACCOUNT, {
+                    delegatedAccess: {
+                        errorFields: {
+                            removeDelegate: {
+                                [delegateEmail]: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('delegate.genericError'),
+                            },
+                        },
+                    },
+                });
+                return;
+            }
+
+            queueSelfRemovalFromDelegator(delegatorEmail);
+        })
+        .finally(() => {
+            isRemovingSelfAsDelegate = false;
+        });
+}
+
+type ResumeSelfRemovalAsDelegateParams = {
+    /** Delegator saved as pending by an interrupted removeSelfAsDelegate */
+    delegatorEmail: string;
+
+    /** Whether the session still holds the delegator's restricted token */
+    isDelegateSession: boolean;
+};
+
+/**
+ * Finishes a removeSelfAsDelegate a kill interrupted. Back on their own account, the copilot's removal is queued;
+ * still acting as the delegator, the restore never happened, so the removal counts as cancelled.
+ */
+function resumeSelfRemovalAsDelegate({delegatorEmail, isDelegateSession}: ResumeSelfRemovalAsDelegateParams) {
+    if (isRemovingSelfAsDelegate) {
+        return;
+    }
+
+    if (isDelegateSession) {
+        Onyx.set(ONYXKEYS.PENDING_SELF_COPILOT_REMOVAL, null);
+        return;
+    }
+
+    queueSelfRemovalFromDelegator(delegatorEmail);
 }
 
 function clearDelegateErrorsByField({email, fieldName, delegatedAccess}: ClearDelegateErrorsByFieldParams) {
@@ -941,55 +1009,41 @@ function restoreDelegateSession({authToken, encryptedAuthToken, accountID, email
     // Write SESSION before the clear: SESSION is in KEYS_TO_PRESERVE_DELEGATE_ACCESS, so clearing
     // preserves the value at clear time. If we cleared first, an interrupted flow would leave
     // SESSION holding the prior delegate-restricted auth token. See Expensify/App#80073.
-    return (
-        Onyx.set(ONYXKEYS.SESSION, {
-            ...(stashedSession ?? {}),
-            accountID,
-            email,
-            authToken,
-            encryptedAuthToken,
-            creationDate,
-        })
-            .then(() => {
-                NetworkStore.setAuthToken(authToken ?? null);
-                // Disconnect Pusher before the transition so it cannot keep pushing updates for the delegate
-                // account; it is reinitialized for the restored account after `openApp()`. See Expensify/App#93265.
-                Pusher.disconnect();
-                return clearOnyxForDelegateTransition();
-            })
-            .then(() => {
-                Onyx.set(ONYXKEYS.CREDENTIALS, {
+    return Onyx.set(ONYXKEYS.SESSION, {
+        ...(stashedSession ?? {}),
+        accountID,
+        email,
+        authToken,
+        encryptedAuthToken,
+        creationDate,
+    })
+        .then(() => {
+            NetworkStore.setAuthToken(authToken ?? null);
+            // Disconnect Pusher before the transition so it cannot keep pushing updates for the delegate
+            // account; it is reinitialized for the restored account after `openApp()`. See Expensify/App#93265.
+            Pusher.disconnect();
+
+            // Seeded with the clear: written after it, an interrupted restore would leave the session without credentials
+            return clearOnyxForDelegateTransition({
+                [ONYXKEYS.CREDENTIALS]: {
                     ...(stashedCredentials ?? {}),
                     accountID,
-                });
-                Onyx.set(ONYXKEYS.STASHED_CREDENTIALS, {});
-                Onyx.set(ONYXKEYS.STASHED_SESSION, {});
+                },
+                [ONYXKEYS.STASHED_CREDENTIALS]: {},
+                [ONYXKEYS.STASHED_SESSION]: {},
+            });
+        })
+        .then(() => {
+            NetworkStore.setIsAuthenticating(false);
 
-                NetworkStore.setIsAuthenticating(false);
-
-                return openApp();
-            })
-            // Reinitialize Pusher for the restored account so realtime updates resume on the correct session.
-            .then(() => {
-                // Not awaited: Pusher.init only resolves once the socket reports connected, which can stall right after the
-                // disconnect above (on Android), and the account switch below must not wait on it. See Expensify/App#93458.
-                requestPusherReinitialize({accountID, email}).catch((error: unknown) => {
-                    Log.hmmm('[Delegate] Failed to reinitialize Pusher after restoring the original session', {error: ErrorUtils.getErrorMessage(error)});
-                });
-
-                // Sync the account switch to the classic mobile app experience of HybridApp; otherwise the
-                // two experiences disagree about which account is active after a reauth-driven restoration.
-                if (!CONFIG.IS_HYBRID_APP || !email || !authToken) {
-                    return;
-                }
-                HybridAppModule.switchAccount({
-                    newDotCurrentAccountEmail: email,
-                    authToken,
-                    policyID: '',
-                    accountID: '',
-                });
-            })
-    );
+            // Sync the account switch to the classic mobile app experience of HybridApp; otherwise the
+            // two experiences disagree about which account is active after a reauth-driven restoration.
+            return loadAccountAfterDelegateTransition({
+                accountID,
+                email,
+                hybridAppAccount: email && authToken ? {newDotCurrentAccountEmail: email, authToken, policyID: '', accountID: ''} : undefined,
+            });
+        });
 }
 
 function openSecuritySettingsPage() {
@@ -1010,6 +1064,7 @@ export {
     removeDelegate,
     removeDelegator,
     removeSelfAsDelegate,
+    resumeSelfRemovalAsDelegate,
     openSecuritySettingsPage,
     clearOnyxForDelegateTransition,
 };

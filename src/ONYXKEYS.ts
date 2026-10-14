@@ -170,6 +170,9 @@ const ONYXKEYS = {
     SESSION: 'session',
     STASHED_SESSION: 'stashedSession',
 
+    /** Delegator the acting copilot is removing themselves from, kept until the removal is queued so a kill can't lose it */
+    PENDING_SELF_COPILOT_REMOVAL: 'pendingSelfCopilotRemoval',
+
     BETAS: 'betas',
     BETA_CONFIGURATION: 'betaConfiguration',
 
@@ -1709,6 +1712,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.SESSION]: OnyxTypes.Session;
     [ONYXKEYS.USER_METADATA]: OnyxTypes.UserMetadata;
     [ONYXKEYS.STASHED_SESSION]: OnyxTypes.Session;
+    [ONYXKEYS.PENDING_SELF_COPILOT_REMOVAL]: string;
     [ONYXKEYS.BETAS]: OnyxTypes.Beta[];
     [ONYXKEYS.AGENT_RULE_SUGGESTIONS]: OnyxTypes.SuggestedAgentRule[];
     [ONYXKEYS.AGENT_TEMPLATES]: OnyxTypes.SuggestedAgent[];

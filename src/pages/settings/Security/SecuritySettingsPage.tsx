@@ -227,7 +227,7 @@ function SecuritySettingsPage() {
                     // The DeleteAgent command must be issued by the agent's owner, but while copiloting the session is
                     // authenticated as the agent itself. So capture the agent's identity, end the copilot session
                     // (which restores the owner's session and auth token), and only then delete the agent as the
-                    // owner. Unless the server ended the session and restored the owner with fresh tokens, skip the delete.
+                    // owner. Skip the delete unless the owner was restored with fresh tokens.
                     const agentAccountID = session?.accountID ?? CONST.DEFAULT_NUMBER_ID;
                     const agentLogin = currentUserPersonalDetails.login;
                     const disconnectResult = await disconnect({stashedCredentials, stashedSession});
