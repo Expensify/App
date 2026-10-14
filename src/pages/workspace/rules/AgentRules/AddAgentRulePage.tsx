@@ -141,7 +141,7 @@ function AddAgentRulePage({
     };
 
     const handleBackButtonPress = () => {
-        if (!generationID && activeTab === CONST.TAB.AGENT_RULE.WRITE) {
+        if (!isDraftFromFallback && activeTab === CONST.TAB.AGENT_RULE.WRITE) {
             setActiveTab(CONST.TAB.AGENT_RULE.SUGGESTIONS);
             return;
         }
