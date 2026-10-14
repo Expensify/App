@@ -476,25 +476,30 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
                             />
                             {isApprovalsEnabled && !shouldHideApprovalWorkflows && (
                                 <OfflineWithFeedback pendingAction={approverPendingActionByMemberEmail[memberLogin]}>
-                                    <MenuItemWithTopDescription
-                                        description={approverLabel}
-                                        titleComponent={
-                                            memberFirstApprover ? (
-                                                <View style={styles.pr3}>
-                                                    <UserPill
-                                                        avatar={memberFirstApprover.avatar}
-                                                        displayName={memberFirstApprover.displayName}
-                                                        email={memberFirstApprover.email}
-                                                        style={styles.userPillStandalone}
-                                                    />
-                                                </View>
-                                            ) : undefined
-                                        }
-                                        shouldShowRightIcon={shouldAllowApproverEdit}
-                                        interactive={shouldAllowApproverEdit}
-                                        onPress={openMemberApprovalWorkflow}
-                                        pressableTestID="member-approver-menu-item"
-                                    />
+                                    <MenuItem.Root
+                                        onPress={shouldAllowApproverEdit ? openMemberApprovalWorkflow : undefined}
+                                        testID="member-approver-menu-item"
+                                    >
+                                        <MenuItem.Row>
+                                            <MenuItemField.Content name={approverLabel}>
+                                                {!!memberFirstApprover && (
+                                                    <View style={styles.pr3}>
+                                                        <UserPill
+                                                            avatar={memberFirstApprover.avatar}
+                                                            displayName={memberFirstApprover.displayName}
+                                                            email={memberFirstApprover.email}
+                                                            style={styles.userPillStandalone}
+                                                        />
+                                                    </View>
+                                                )}
+                                            </MenuItemField.Content>
+                                            {shouldAllowApproverEdit && (
+                                                <MenuItem.Trailing>
+                                                    <MenuItem.Chevron />
+                                                </MenuItem.Trailing>
+                                            )}
+                                        </MenuItem.Row>
+                                    </MenuItem.Root>
                                 </OfflineWithFeedback>
                             )}
                             {policy?.commuterExclusions?.method === CONST.POLICY.COMMUTER_EXCLUSION_METHOD.HOME_AND_OFFICE && isWorkArrangementBetaEnabled && (
