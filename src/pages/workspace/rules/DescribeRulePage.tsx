@@ -121,7 +121,8 @@ function DescribeRulePage({route}: DescribeRulePageProps) {
                     inputContainerStyle={styles.describeRulePromptInput}
                     style={[styles.flexGrow1, styles.mh5]}
                     addBottomSafeAreaPadding
-                    isFullPage
+                    shouldUseScrollView
+                    submitFlexEnabled
                     onRuleGenerated={(values, generatedRuleType) => seedDraftAndNavigate(values, generatedRuleType, policyID)}
                     onAgentRuleFallback={offerAgentRule}
                 >

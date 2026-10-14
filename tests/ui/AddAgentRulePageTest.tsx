@@ -303,6 +303,24 @@ describe('AddAgentRulePage', () => {
         logSpy.mockRestore();
     });
 
+    it('switches from the Write tab to Suggestions on Back after the admin picks a suggestion in the fallback flow', async () => {
+        // Given the describe flow opened the page with a generationID and the admin picked a suggestion
+        await setAgentRuleDraft(PROMPT);
+        renderAddAgentRulePage(GENERATION_ID);
+        await waitForBatchedUpdatesWithAct();
+        fireEvent.press(screen.getByLabelText('workspace.rules.agentRules.suggestionsTab'));
+        fireEvent.press(screen.getByLabelText('PickSuggestion'));
+        await waitForBatchedUpdatesWithAct();
+        expect(screen.getByText('WriteTab')).toBeOnTheScreen();
+
+        // When the admin presses Back
+        fireEvent.press(screen.getByLabelText('Back'));
+
+        // Then the page returns to Suggestions and stays open, because picking a suggestion leaves the fallback flow
+        expect(Navigation.goBack).not.toHaveBeenCalled();
+        expect(screen.queryByText('WriteTab')).toBeNull();
+    });
+
     it('logs the generationID with the saved agent rule when the page opens with a generationID', async () => {
         // Given the describe flow opened the page with a generationID
         const logSpy = jest.spyOn(Log, 'info');
