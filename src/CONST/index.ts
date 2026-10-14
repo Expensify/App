@@ -10429,6 +10429,7 @@ const CONST = {
             DISPLAY_NAME: 'SettingsProfile-DisplayName',
             CONTACT_METHODS: 'SettingsProfile-ContactMethods',
             STATUS: 'SettingsProfile-Status',
+            VACATION_DELEGATE: 'SettingsProfile-VacationDelegate',
             PRONOUNS: 'SettingsProfile-Pronouns',
             TIMEZONE: 'SettingsProfile-Timezone',
             SHARE_CODE: 'SettingsProfile-ShareCode',
