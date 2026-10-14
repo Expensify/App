@@ -28,7 +28,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import type {HardwareBackPressEvent} from 'react-native/Libraries/Utilities/BackHandler';
 
 import {PortalProvider} from '@gorhom/portal';
-import {NavigationContainer} from '@react-navigation/native';
+import {NavigationContainer, StackActions} from '@react-navigation/native';
 import React from 'react';
 import {BackHandler, View} from 'react-native';
 import Onyx from 'react-native-onyx';
@@ -321,5 +321,80 @@ describe('Onboarding work email validation (Android system back)', () => {
         await waitFor(() => {
             expect(getOnboardingRouteNames()).toEqual([SCREENS.ONBOARDING.PERSONAL_DETAILS]);
         });
+    });
+
+    it('should swallow a system back press and show the error when work email is the first onboarding screen', async () => {
+        // Given work email is the only onboarding route, which is where a public-domain account starts onboarding
+        await TestHelper.signInWithTestUser();
+
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {hasCompletedGuidedSetupFlow: false});
+            await Onyx.merge(ONYXKEYS.ACCOUNT, {validated: false});
+        });
+
+        renderOnboardingStack([SCREENS.ONBOARDING.WORK_EMAIL]);
+
+        await waitForBatchedUpdatesWithAct();
+
+        // When Android's system back button is pressed
+        const consumed = pressHardwareBack();
+
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the press is consumed so it cannot pop the onboarding modal, and the user is told to finish setup
+        expect(consumed).toBe(true);
+        expect(getOnboardingRouteNames()).toEqual([SCREENS.ONBOARDING.WORK_EMAIL]);
+        let errorMessage: OnyxEntry<string>;
+        await TestHelper.getOnyxData({
+            key: ONYXKEYS.ONBOARDING_ERROR_MESSAGE_TRANSLATION_KEY,
+            callback: (value) => {
+                errorMessage = value ?? undefined;
+            },
+        });
+        expect(errorMessage).toBe('onboarding.purpose.errorBackButton');
+    });
+
+    it('should let a system back press through when the join workspace intent opened work email', async () => {
+        // Given the intent list sent the user to work email after they picked "Join my company workspace", so there
+        // is a real screen behind this one
+        await TestHelper.signInWithTestUser();
+
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {hasCompletedGuidedSetupFlow: false});
+            await Onyx.merge(ONYXKEYS.ACCOUNT, {validated: false});
+            await Onyx.set(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED, CONST.ONBOARDING_CHOICES.JOIN_WORKSPACE);
+        });
+
+        renderOnboardingStack([SCREENS.ONBOARDING.PERSONAL_DETAILS]);
+
+        await waitForBatchedUpdatesWithAct();
+
+        // Push work email after mount like the intent list does, so its back handler subscribes after the
+        // NavigationContainer's one and gets the press first, as it does in the app
+        act(() => {
+            navigationRef.dispatch(StackActions.push(SCREENS.ONBOARDING.WORK_EMAIL));
+        });
+
+        await waitForBatchedUpdatesWithAct();
+
+        expect(getOnboardingRouteNames()).toEqual([SCREENS.ONBOARDING.PERSONAL_DETAILS, SCREENS.ONBOARDING.WORK_EMAIL]);
+
+        // When Android's system back button is pressed
+        pressHardwareBack();
+
+        await waitForBatchedUpdatesWithAct();
+
+        // Then no handler swallows it, the onboarding stack pops as normal, and no error is left behind
+        await waitFor(() => {
+            expect(getOnboardingRouteNames()).toEqual([SCREENS.ONBOARDING.PERSONAL_DETAILS]);
+        });
+        let errorMessage: OnyxEntry<string>;
+        await TestHelper.getOnyxData({
+            key: ONYXKEYS.ONBOARDING_ERROR_MESSAGE_TRANSLATION_KEY,
+            callback: (value) => {
+                errorMessage = value ?? undefined;
+            },
+        });
+        expect(errorMessage).toBeUndefined();
     });
 });
