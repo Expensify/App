@@ -4919,7 +4919,8 @@ ${amount}，商户：${merchant} - 日期：${date}`,
             },
             requestEmptyList: {
                 title: '尚未设置每日津贴费率',
-                subtitle: (workspaceName?: string) => (workspaceName ? `${workspaceName} 没有任何日津贴标准。请联系管理员添加一些。` : '此工作区没有任何日津贴标准。请联系管理员添加一些。'),
+                subtitle: (workspaceName?: string) =>
+                    workspaceName ? `${workspaceName} 没有任何每日津贴标准。请联系管理员添加一些。` : '此工作区没有任何每日津贴标准。请联系管理员添加一些。',
                 adminSubtitle: '添加每日津贴标准，以整理您的支出。',
             },
             importPerDiemRates: '导入每日津贴费率',
