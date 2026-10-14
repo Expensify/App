@@ -5,6 +5,7 @@ keywords: [Top spenders, top spenders chart, visualization, highest spenders, em
 internalScope: Audience is workspace admins, auditors, and approvers. Covers what Top spenders shows, who can see it, how members are ranked, which expenses are included, and how to view all members in Spend. Does not cover detailed filtering instructions, exporting expenses, or other insights.
 contentType: topic
 platform: new-expensify
+order: 4
 ---
 
 # Explore the Top Spenders Insight
