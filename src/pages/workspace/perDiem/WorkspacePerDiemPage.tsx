@@ -72,10 +72,11 @@ function getSubRatesData(customUnitRates: Rate[]) {
     for (const rate of customUnitRates) {
         const subRates = rate.subRates;
         if (subRates) {
-            for (const subRate of subRates) {
+            for (const [index, subRate] of subRates.entries()) {
                 subRatesData.push({
                     pendingAction: rate.pendingAction,
-                    errors: rate.errors,
+                    // Errors are stored on the rate, so show them on only one of its subrate rows
+                    errors: index === 0 ? rate.errors : undefined,
                     destination: rate.name ?? '',
                     subRateName: subRate.name,
                     rate: subRate.rate,
