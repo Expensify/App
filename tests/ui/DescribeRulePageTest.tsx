@@ -32,6 +32,7 @@ import {translateLocal} from '../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
 let mockPrompt = '';
+let mockIsDescribeRuleBetaEnabled = true;
 
 jest.mock('@react-navigation/native', () => {
     const actualNavigation = jest.requireActual<typeof ReactNavigationNative>('@react-navigation/native');
@@ -49,6 +50,11 @@ jest.mock('@hooks/useLazyAsset', () => ({
 jest.mock('@hooks/useLocalize', () =>
     jest.fn(() => ({
         translate: (key: string) => key,
+    })),
+);
+jest.mock('@hooks/usePermissions', () =>
+    jest.fn(() => ({
+        isBetaEnabled: (beta: string) => beta === jest.requireActual<{default: typeof CONST}>('@src/CONST').default.BETAS.DESCRIBE_RULE && mockIsDescribeRuleBetaEnabled,
     })),
 );
 jest.mock('@hooks/usePolicy', () => jest.fn());
@@ -196,6 +202,7 @@ describe('Describe your rule', () => {
     beforeEach(() => {
         jest.clearAllMocks();
         mockPrompt = '';
+        mockIsDescribeRuleBetaEnabled = true;
         writeSpy = jest.spyOn(API, 'write').mockImplementation(() => Promise.resolve());
         setAdminPolicy();
     });
@@ -208,7 +215,7 @@ describe('Describe your rule', () => {
     });
 
     it('lists Describe your rule first, and it opens its own page', async () => {
-        // Given an admin on the New rule page
+        // Given an admin with the describeRule beta on the New rule page
         await renderRulesNewPage();
 
         // When the admin looks at the options
@@ -230,6 +237,32 @@ describe('Describe your rule', () => {
         // And it opens the describe page in the RHP
         fireEvent.press(screen.getByLabelText('workspace.rules.newRule.describeYourRule'));
         expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.RULES_DESCRIBE.getRoute(POLICY_ID));
+    });
+
+    it('keeps Describe agent rule in place of Describe your rule without the beta', async () => {
+        // Given an admin without the describeRule beta, who must see the New rule options that exist without the feature
+        mockIsDescribeRuleBetaEnabled = false;
+        await renderRulesNewPage();
+
+        // When the admin looks at the options
+        const options = screen.getAllByRole('button');
+
+        // Then the four rule types come first and Describe agent rule comes last, with no Describe your rule
+        const expectedOptionNames = [
+            'workspace.rules.newRule.restrictCardSpend',
+            'workspace.rules.newRule.flagForReview',
+            'workspace.rules.newRule.requireFields',
+            'workspace.rules.newRule.applyExpenseDefaults',
+            'workspace.rules.newRule.createAgentRule',
+        ];
+        expect(options).toHaveLength(expectedOptionNames.length);
+        for (const [index, name] of expectedOptionNames.entries()) {
+            expect(options.at(index)).toHaveAccessibleName(name);
+        }
+
+        // And Describe agent rule opens the agent rule page
+        fireEvent.press(screen.getByLabelText('workspace.rules.newRule.createAgentRule'));
+        expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.RULES_AGENT_NEW.getRoute(POLICY_ID));
     });
 
     it('seeds the draft of the generated rule type and opens its editor', async () => {

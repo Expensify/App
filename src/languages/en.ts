@@ -9089,6 +9089,8 @@ const translations = {
                 requireFieldsDescription: 'Require specific expense fields or waive requiring them.',
                 applyExpenseDefaults: 'Apply expense defaults',
                 applyExpenseDefaultsDescription: 'Update fields without submitter doing anything',
+                createAgentRule: 'Describe agent rule',
+                createAgentRuleDescription: 'Create flexible rules that run when you need.',
                 describeYourRule: 'Describe your rule',
                 describeYourRuleDescription: 'Tell Concierge what you need and it will build the rule',
                 buildRule: 'Build rule',

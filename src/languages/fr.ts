@@ -8837,6 +8837,8 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                 flagForReviewDescription: 'Avertir les approbateurs lorsque les dépenses dépassent les limites de catégorie',
                 requireFields: 'Définir les exigences des champs',
                 requireFieldsDescription: 'Rendre certains champs de dépense obligatoires ou renoncer à les exiger.',
+                createAgentRule: 'Décrire la règle de l’agent',
+                createAgentRuleDescription: 'Créez des règles flexibles qui s’exécutent quand vous en avez besoin.',
                 describeYourRule: 'Décrivez votre règle',
                 describeYourRuleDescription: 'Dites à Concierge ce dont vous avez besoin et il créera la règle',
                 buildRule: 'Créer une règle',

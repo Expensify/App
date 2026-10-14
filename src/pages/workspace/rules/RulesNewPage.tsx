@@ -7,6 +7,7 @@ import Text from '@components/Text';
 import useConfirmModal from '@hooks/useConfirmModal';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -52,6 +53,8 @@ function RulesNewPage({route}: RulesNewPageProps) {
     const isCategoryScopedCreate = isCategorySettingsFlow || !!categoryName;
     const policy = usePolicy(policyID);
     const {showConfirmModal} = useConfirmModal();
+    const {isBetaEnabled} = usePermissions();
+    const isDescribeRuleBetaEnabled = isBetaEnabled(CONST.BETAS.DESCRIBE_RULE);
 
     // From category settings the only expense default is the category's tax rate, so the type chooser is skipped. It
     // can't be set without a rate to pick, so that case gets the chooser's explainer instead of an empty picker.
@@ -71,15 +74,19 @@ function RulesNewPage({route}: RulesNewPageProps) {
     };
 
     const newRuleOptions: NewRuleOption[] = [
-        {
-            key: 'describeRule',
-            icon: illustrations.AiBot,
-            title: translate('workspace.rules.newRule.describeYourRule'),
-            description: translate('workspace.rules.newRule.describeYourRuleDescription'),
-            onPress: () => Navigation.navigate(ROUTES.RULES_DESCRIBE.getRoute(policyID)),
-            sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.RULES.NEW_RULE_MENU_ITEM_DESCRIBE_RULE,
-            isWorkspaceOnly: true,
-        },
+        ...(isDescribeRuleBetaEnabled
+            ? [
+                  {
+                      key: 'describeRule',
+                      icon: illustrations.AiBot,
+                      title: translate('workspace.rules.newRule.describeYourRule'),
+                      description: translate('workspace.rules.newRule.describeYourRuleDescription'),
+                      onPress: () => Navigation.navigate(ROUTES.RULES_DESCRIBE.getRoute(policyID)),
+                      sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.RULES.NEW_RULE_MENU_ITEM_DESCRIBE_RULE,
+                      isWorkspaceOnly: true,
+                  },
+              ]
+            : []),
         {
             key: 'restrictCardSpend',
             icon: illustrations.CardReaderAlt,
@@ -125,6 +132,20 @@ function RulesNewPage({route}: RulesNewPageProps) {
             // Only category settings can scope the editor to its category, so a category passed any other way drops it.
             isWorkspaceOnly: !isCategorySettingsFlow,
         },
+        // Describe your rule drafts an agent rule when it cannot build a standard rule. Therefore it replaces this option.
+        ...(isDescribeRuleBetaEnabled
+            ? []
+            : [
+                  {
+                      key: 'createAgentRule',
+                      icon: illustrations.AiBot,
+                      title: translate('workspace.rules.newRule.createAgentRule'),
+                      description: translate('workspace.rules.newRule.createAgentRuleDescription'),
+                      onPress: () => Navigation.navigate(ROUTES.RULES_AGENT_NEW.getRoute(policyID)),
+                      sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.RULES.NEW_RULE_MENU_ITEM_CREATE_AGENT_RULE,
+                      isWorkspaceOnly: true,
+                  },
+              ]),
     ];
 
     const visibleNewRuleOptions = isCategoryScopedCreate ? newRuleOptions.filter((option) => !option.isWorkspaceOnly) : newRuleOptions;

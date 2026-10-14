@@ -8814,6 +8814,8 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                 flagForReviewDescription: 'Genehmigende benachrichtigen, wenn Ausgaben Kategorienlimits überschreiten',
                 requireFields: 'Feldanforderungen festlegen',
                 requireFieldsDescription: 'Bestimmte Spesenfelder vorschreiben oder auf ihre Pflicht verzichten.',
+                createAgentRule: 'Agentenregel beschreiben',
+                createAgentRuleDescription: 'Erstellen Sie flexible Regeln, die ausgeführt werden, wenn Sie sie benötigen.',
                 describeYourRule: 'Beschreiben Sie Ihre Regel',
                 describeYourRuleDescription: 'Sagen Sie Concierge, was Sie brauchen, und es erstellt die Regel',
                 buildRule: 'Regel erstellen',
