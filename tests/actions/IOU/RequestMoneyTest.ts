@@ -1,3 +1,5 @@
+import {waitFor} from '@testing-library/react-native';
+
 import type {SearchQueryJSON} from '@components/Search/types';
 
 import {clearAllRelatedReportActionErrors} from '@libs/actions/ClearReportActionErrors';
@@ -401,28 +403,21 @@ describe('actions/IOU', () => {
                                     Onyx.disconnect(connection);
 
                                     // Snapshot data shouldn't be updated optimistically for requestMoney when the current search query type is invoice.
-                                    expect(snapshotData).toBeUndefined();
+                                    expect(snapshotData).toEqual({});
                                     resolve();
                                 },
                             });
                         }),
                 )
                 .then(mockFetch?.resume)
-                .then(
-                    () =>
-                        new Promise<void>((resolve) => {
-                            const connection = Onyx.connect({
-                                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReportID}`,
-                                callback: (reportActionsForIOUReport) => {
-                                    Onyx.disconnect(connection);
-                                    expect(Object.values(reportActionsForIOUReport ?? {}).length).toBe(2);
-                                    for (const reportAction of Object.values(reportActionsForIOUReport ?? {})) {
-                                        expect(reportAction?.pendingAction).toBeFalsy();
-                                    }
-                                    resolve();
-                                },
-                            });
-                        }),
+                .then(() =>
+                    waitFor(async () => {
+                        const reportActionsForIOUReport = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReportID}`);
+                        expect(Object.values(reportActionsForIOUReport ?? {}).length).toBe(2);
+                        for (const reportAction of Object.values(reportActionsForIOUReport ?? {})) {
+                            expect(reportAction?.pendingAction).toBeFalsy();
+                        }
+                    }),
                 )
                 .then(
                     () =>
@@ -603,21 +598,14 @@ describe('actions/IOU', () => {
                 )
                 .then(mockFetch?.resume)
                 .then(waitForBatchedUpdates)
-                .then(
-                    () =>
-                        new Promise<void>((resolve) => {
-                            const connection = Onyx.connect({
-                                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReportID}`,
-                                callback: (reportActionsForIOUReport) => {
-                                    Onyx.disconnect(connection);
-                                    expect(Object.values(reportActionsForIOUReport ?? {}).length).toBe(2);
-                                    for (const reportAction of Object.values(reportActionsForIOUReport ?? {})) {
-                                        expect(reportAction?.pendingAction).toBeFalsy();
-                                    }
-                                    resolve();
-                                },
-                            });
-                        }),
+                .then(() =>
+                    waitFor(async () => {
+                        const reportActionsForIOUReport = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReportID}`);
+                        expect(Object.values(reportActionsForIOUReport ?? {}).length).toBe(2);
+                        for (const reportAction of Object.values(reportActionsForIOUReport ?? {})) {
+                            expect(reportAction?.pendingAction).toBeFalsy();
+                        }
+                    }),
                 )
                 .then(
                     () =>
@@ -825,21 +813,14 @@ describe('actions/IOU', () => {
                 )
                 .then(mockFetch?.resume)
                 .then(waitForNetworkPromises)
-                .then(
-                    () =>
-                        new Promise<void>((resolve) => {
-                            const connection = Onyx.connect({
-                                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReportID}`,
-                                callback: (reportActionsForIOUReport) => {
-                                    Onyx.disconnect(connection);
-                                    expect(Object.values(reportActionsForIOUReport ?? {}).length).toBe(3);
-                                    for (const reportAction of Object.values(reportActionsForIOUReport ?? {})) {
-                                        expect(reportAction?.pendingAction).toBeFalsy();
-                                    }
-                                    resolve();
-                                },
-                            });
-                        }),
+                .then(() =>
+                    waitFor(async () => {
+                        const reportActionsForIOUReport = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReportID}`);
+                        expect(Object.values(reportActionsForIOUReport ?? {}).length).toBe(3);
+                        for (const reportAction of Object.values(reportActionsForIOUReport ?? {})) {
+                            expect(reportAction?.pendingAction).toBeFalsy();
+                        }
+                    }),
                 )
                 .then(
                     () =>
@@ -1047,20 +1028,13 @@ describe('actions/IOU', () => {
                                 });
                             }),
                     )
-                    .then(
-                        () =>
-                            new Promise<void>((resolve) => {
-                                const connection = Onyx.connect({
-                                    key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
-                                    callback: (transaction) => {
-                                        Onyx.disconnect(connection);
-                                        expect(transaction?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
-                                        expect(transaction?.errors).toBeTruthy();
-                                        expect(Object.values(transaction?.errors ?? {}).at(0)).toEqual(translateLocal('iou.error.genericCreateFailureMessage'));
-                                        resolve();
-                                    },
-                                });
-                            }),
+                    .then(() =>
+                        waitFor(async () => {
+                            const transaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
+                            expect(transaction?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
+                            expect(transaction?.errors).toBeTruthy();
+                            expect(Object.values(transaction?.errors ?? {}).at(0)).toEqual(translateLocal('iou.error.genericCreateFailureMessage'));
+                        }),
                     )
 
                     // If the user clears the errors on the IOU action
@@ -1380,14 +1354,14 @@ describe('actions/IOU', () => {
             mockFetch?.fail?.();
             await (mockFetch?.resume?.() as Promise<unknown>);
 
-            // Verify error handling after failure - focus on workspace invitation error
-            const policyData = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`);
-
-            // The new accountant should have been added to the employee list with error
-            const accountantEmployee = policyData?.employeeList?.[accountant.email];
-            expect(accountantEmployee).toBeTruthy();
-            expect(accountantEmployee?.errors).toBeTruthy();
-            expect(Object.values(accountantEmployee?.errors ?? {}).at(0)).toEqual(translateLocal('workspace.people.error.genericAdd'));
+            // Then the failed request adds the workspace invitation error to the new accountant
+            await waitFor(async () => {
+                const policyData = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`);
+                const accountantEmployee = policyData?.employeeList?.[accountant.email];
+                expect(accountantEmployee).toBeTruthy();
+                expect(accountantEmployee?.errors).toBeTruthy();
+                expect(Object.values(accountantEmployee?.errors ?? {}).at(0)).toEqual(translateLocal('workspace.people.error.genericAdd'));
+            });
 
             // Cleanup
             mockFetch?.succeed?.();
@@ -3287,8 +3261,10 @@ describe('actions/IOU', () => {
             createTransaction(buildCreateTransactionParams(CONST.IOU.TYPE.TRACK, selfDMReport));
             await waitForBatchedUpdates();
 
-            expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.TRACK_EXPENSE, 1);
-            expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.REQUEST_MONEY, 0);
+            await waitFor(() => {
+                expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.TRACK_EXPENSE, 1);
+                expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.REQUEST_MONEY, 0);
+            });
         });
 
         it('routes the submit flow through requestMoney', async () => {
@@ -3302,8 +3278,10 @@ describe('actions/IOU', () => {
             createTransaction(buildCreateTransactionParams(CONST.IOU.TYPE.SUBMIT, chatReport));
             await waitForBatchedUpdates();
 
-            expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.REQUEST_MONEY, 1);
-            expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.TRACK_EXPENSE, 0);
+            await waitFor(() => {
+                expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.REQUEST_MONEY, 1);
+                expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.TRACK_EXPENSE, 0);
+            });
         });
     });
 });

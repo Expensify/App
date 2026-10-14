@@ -38,6 +38,10 @@ jest.mock('@components/SelectionList/SelectionListWithSections', () => ({
 jest.mock('@libs/canFocusInputOnScreenFocus');
 const mockedCanFocusInputOnScreenFocus = jest.mocked(canFocusInputOnScreenFocus);
 
+// Keep the autofocus test independent of the pickers' background policy fetches.
+jest.mock('@hooks/useLoadPolicyCategories', () => jest.fn(() => ({isLoadingPolicyCategories: false})));
+jest.mock('@hooks/useLoadPolicyTags', () => jest.fn(() => ({isLoadingPolicyTags: false, hasLoadedPolicyTags: true})));
+
 // `useAutoFocusInput` (still wired into both pickers) pulls in navigation. Stub it like the closest existing
 // precedent, tests/unit/BaseSelectionListSectionsTest.tsx, so the effect never runs in jsdom.
 jest.mock('@react-navigation/native', () => {

@@ -1,13 +1,14 @@
 /*  eslint-disable rulesdir/no-multiple-api-calls */
 // cspell:ignore SOMESECRETKEY
 import {beforeEach, jest, test} from '@jest/globals';
+import {waitFor} from '@testing-library/react-native';
 
 import {openApp, reconnectApp} from '@libs/actions/App';
 import OnyxUpdateManager from '@libs/actions/OnyxUpdateManager';
 import {getAll as getAllPersistedRequests} from '@libs/actions/PersistedRequests';
 import {initReconnect} from '@libs/actions/Reconnect';
 import * as SignInRedirect from '@libs/actions/SignInRedirect';
-import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
+import {AUTHENTICATION_COMMAND, READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import asyncOpenURL from '@libs/asyncOpenURL';
 import buildOldDotURL from '@libs/buildOldDotURL';
 import getPlatform from '@libs/getPlatform';
@@ -304,37 +305,34 @@ describe('Session', () => {
         expect(session?.accountID).toBe(TEST_USER_ACCOUNT_ID);
         expect(session?.email).toBe(TEST_USER_LOGIN);
 
-        // At this point we have an authToken. To simulate it expiring we'll just make another
-        // request and mock the response so it returns 407. Once this happens we should attempt
-        // to Re-Authenticate with the stored credentials. Our next call will be to Authenticate
-        // so we will mock that response with a new authToken and then verify that Onyx has our
-        // data.
-        jest.mocked(HttpUtils.xhr)
-
-            // This will make the call to OpenApp below return with an expired session code
-            .mockImplementationOnce(() =>
-                Promise.resolve({
-                    jsonCode: CONST.JSON_CODE.NOT_AUTHENTICATED,
-                }),
-            )
-
-            // The next call should be Authenticate since we are re-authenticating
-            .mockImplementationOnce(() =>
-                Promise.resolve({
+        // Expire the next OpenApp response, then refresh the token through Authenticate.
+        // Match by command so background requests cannot consume those responses.
+        let hasExpiredSession = false;
+        jest.mocked(HttpUtils.xhr).mockImplementation((command) => {
+            if (command === WRITE_COMMANDS.OPEN_APP && !hasExpiredSession) {
+                hasExpiredSession = true;
+                return Promise.resolve({jsonCode: CONST.JSON_CODE.NOT_AUTHENTICATED});
+            }
+            if (command === AUTHENTICATION_COMMAND) {
+                return Promise.resolve({
                     jsonCode: CONST.JSON_CODE.SUCCESS,
                     accountID: TEST_USER_ACCOUNT_ID,
                     authToken: TEST_REFRESHED_AUTH_TOKEN,
                     email: TEST_USER_LOGIN,
-                }),
-            );
+                });
+            }
+            return Promise.resolve({jsonCode: CONST.JSON_CODE.SUCCESS});
+        });
 
-        // When we attempt to fetch the initial app data via the API
-        openApp();
-        await waitForBatchedUpdates();
+        try {
+            // When we attempt to fetch the initial app data via the API
+            openApp();
 
-        // Then it should fail and reauthenticate the user adding the new authToken to the session
-        // data in Onyx
-        expect(session?.authToken).toBe(TEST_REFRESHED_AUTH_TOKEN);
+            // Then reauthentication updates the session with the refreshed token
+            await waitFor(() => expect(session?.authToken).toBe(TEST_REFRESHED_AUTH_TOKEN));
+        } finally {
+            jest.mocked(HttpUtils.xhr).mockReset();
+        }
     });
 
     test('Push notifications are subscribed after signing in', async () => {

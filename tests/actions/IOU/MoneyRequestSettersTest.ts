@@ -697,12 +697,13 @@ describe('actions/IOU', () => {
 
     describe('resetDraftTransactionsCustomUnit', () => {
         it('should do nothing if transaction is not passed', async () => {
-            // Call the reset function without a transaction
+            // Given an empty draft collection
+            // When the reset function is called without a transaction
             resetDraftTransactionsCustomUnit(undefined);
             await waitForBatchedUpdates();
             const allDraftTransactions = await getOnyxValue(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT);
-            // Assuming there are no draft transactions, this should be undefined or an empty object
-            expect(allDraftTransactions).toBeUndefined();
+            // Then no draft transaction is created
+            expect(allDraftTransactions).toEqual({});
         });
         it('should reset custom unit for a transaction', async () => {
             const transactionID = 'transaction_reset_001';

@@ -16,6 +16,7 @@ import createRandomTransaction from '../utils/collections/transaction';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
 jest.mock('@sentry/react-native', () => ({
+    setUser: jest.fn(),
     setTag: jest.fn(),
     setContext: jest.fn(),
 }));

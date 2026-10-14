@@ -1617,6 +1617,7 @@ describe('IOURequestStepConfirmationPageTest', () => {
         });
 
         it('should use the transaction report when it is allowed, even if it differs from the route', async () => {
+            // Given an allowed transaction report that differs from the route report
             const routeReportID = '102';
             const transactionReportID = '202';
             const transactionID = 'tx-3';
@@ -1627,7 +1628,7 @@ describe('IOURequestStepConfirmationPageTest', () => {
                 harvesting: {enabled: false},
             };
 
-            const canAddTransactionSpy = jest.spyOn(require('@libs/ReportUtils'), 'canAddTransaction').mockReturnValue(true);
+            const canAddTransactionSpy = jest.spyOn(ReportUtils, 'canAddTransaction').mockReturnValue(true);
 
             try {
                 await act(async () => {
@@ -1682,9 +1683,13 @@ describe('IOURequestStepConfirmationPageTest', () => {
                     </OnyxListItemProvider>,
                 );
 
-                await waitForBatchedUpdatesWithAct();
+                // When the transaction report has reached the selector, confirm the expense
+                await waitFor(() => {
+                    expect(canAddTransactionSpy.mock.calls.some(([candidate]) => candidate?.reportID === transactionReportID)).toBe(true);
+                });
                 fireEvent.press(await screen.findByText(getConfirmButtonRegex()));
 
+                // Then the request uses the allowed transaction report instead of the route report
                 await waitFor(() => expect(TrackExpense.requestMoney).toHaveBeenCalled());
                 const requestMoneyMock = jest.mocked(TrackExpense.requestMoney);
                 const params = requestMoneyMock.mock.calls.at(0)?.at(0);

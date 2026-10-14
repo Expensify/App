@@ -1821,7 +1821,7 @@ describe('getTransactionsForMerging', () => {
 
         // Then no merge transaction entry is written for the empty key
         const mergeTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.MERGE_TRANSACTION}${targetTransaction.transactionID}`);
-        expect(mergeTransaction).toBeUndefined();
+        expect(mergeTransaction).toEqual({});
     });
 
     it('builds the eligible list from reportTransactions when a workspace approver merges from a report they did not submit', async () => {
