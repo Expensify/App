@@ -1,4 +1,4 @@
-import {render} from '@testing-library/react-native';
+import {fireEvent, render, screen} from '@testing-library/react-native';
 
 import CategoryPickerModal from '@components/CategoryPicker/CategoryPickerModal';
 import type PopoverWithMeasuredContentProps from '@components/PopoverWithMeasuredContent/types';
@@ -14,6 +14,8 @@ import React from 'react';
 import Onyx from 'react-native-onyx';
 
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
+
+jest.mock('@hooks/useLocalize', () => () => ({translate: (key: string) => key}));
 
 // Only mobile browsers dock the sheet behind the keyboard, so the tests flip this to cover both.
 let mockIsMobileBrowser = true;
@@ -40,13 +42,14 @@ jest.mock('@hooks/useKeyboardState', () => jest.fn(() => ({isKeyboardActive: moc
 const SAFE_AREA_PADDING_BOTTOM = 34;
 jest.mock('@hooks/useSafeAreaPaddings', () => jest.fn(() => ({paddingTop: 0, paddingBottom: SAFE_AREA_PADDING_BOTTOM})));
 
-// The list is covered by CategoryPickerTest; here only the sheet around it matters.
+// The list is covered by CategoryPickerTest; here only the sheet around it and its header matter.
 jest.mock('@components/CategoryPicker', () => () => null);
 
+// Records what the sheet is handed and renders its content, so both the container props and the header can be checked.
 let mockPopoverProps: PopoverWithMeasuredContentProps | undefined;
 jest.mock('@components/PopoverWithMeasuredContent', () => (props: PopoverWithMeasuredContentProps) => {
     mockPopoverProps = props;
-    return null;
+    return props.children;
 });
 
 const POLICY_ID = 'policyID';
@@ -59,16 +62,55 @@ describe('CategoryPickerModal', () => {
         mockKeyboardHeight = 0;
     });
 
-    const renderSheet = (shouldFitContentHeight = false) =>
+    const renderSheet = ({onAddCategory, onClose = jest.fn(), shouldFitContentHeight = false}: {onAddCategory?: () => void; onClose?: () => void; shouldFitContentHeight?: boolean} = {}) =>
         render(
             <CategoryPickerModal
                 isVisible
-                onClose={jest.fn()}
+                onClose={onClose}
                 policyID={POLICY_ID}
                 anchorPosition={{horizontal: 0, vertical: 0}}
+                onAddCategory={onAddCategory}
                 shouldFitContentHeight={shouldFitContentHeight}
             />,
         );
+
+    it('shows an add button that adds a category for users who can create one', () => {
+        // Given a user who can add categories to the workspace, as the full-page selector's "+" allows
+        const onAddCategory = jest.fn();
+        renderSheet({onAddCategory});
+        expect(screen.getByText('common.category')).toBeOnTheScreen();
+
+        // When they press the add button in the pop-over's header
+        fireEvent.press(screen.getByLabelText('workspace.categories.addCategory'));
+
+        // Then the pop-over hands over to the add-category flow, so the pop-over offers the same action the full page does
+        expect(onAddCategory).toHaveBeenCalledTimes(1);
+    });
+
+    it('closes the pop-over from the back button in its header', () => {
+        // Given the pop-over showing its header, for a user who can add categories
+        const onClose = jest.fn();
+        const onAddCategory = jest.fn();
+        renderSheet({onAddCategory, onClose});
+
+        // When they press the back button on the top left of the header
+        fireEvent.press(screen.getByLabelText('common.back'));
+
+        // Then the pop-over closes without starting the add-category flow, like the full page's back button leaves the step
+        expect(onClose).toHaveBeenCalledTimes(1);
+        expect(onAddCategory).not.toHaveBeenCalled();
+    });
+
+    it('shows no header for users who cannot create a category', () => {
+        // Given a user who cannot add categories, e.g. a member or a workspace synced with an accounting integration
+        // When the pop-over opens
+        renderSheet();
+
+        // Then there is no back button, add button or header, matching the full page that hides its "+" for them
+        expect(screen.queryByLabelText('workspace.categories.addCategory')).toBeNull();
+        expect(screen.queryByLabelText('common.back')).toBeNull();
+        expect(screen.queryByText('common.category')).toBeNull();
+    });
 
     it('docks the sheet to the visual viewport on a mobile browser', () => {
         // Given a mobile browser whose keyboard shrank and panned the visual viewport, which the bottom-docked modal
@@ -127,7 +169,7 @@ describe('CategoryPickerModal', () => {
         it('fits the bottom sheet to the list instead of opening at the window height', async () => {
             // Given a phone, where the list opens as a bottom sheet, and a workspace with a single category
             // When the expense form's category list opens
-            renderSheet(true);
+            renderSheet({shouldFitContentHeight: true});
             await waitForBatchedUpdates();
 
             // Then the sheet is one row tall plus the bottom safe area it pads itself with, leaving no empty space below the row
@@ -139,7 +181,7 @@ describe('CategoryPickerModal', () => {
             mockIsSmallScreenWidth = false;
 
             // When the expense form's category list opens
-            renderSheet(true);
+            renderSheet({shouldFitContentHeight: true});
             await waitForBatchedUpdates();
 
             // Then the pop-over is exactly one row tall
@@ -151,7 +193,7 @@ describe('CategoryPickerModal', () => {
             mockKeyboardHeight = 200;
 
             // When the expense form's category list opens
-            renderSheet(true);
+            renderSheet({shouldFitContentHeight: true});
             await waitForBatchedUpdates();
 
             // Then the sheet is exactly one row tall, with no padding for a home indicator the keyboard already hides
@@ -187,7 +229,7 @@ describe('CategoryPickerModal', () => {
             expect(getSelectionListPopoverContentHeight({optionCount: CATEGORY_COUNT, isSearchable: false}) + SAFE_AREA_PADDING_BOTTOM).toBeGreaterThan(windowCap);
 
             // When the expense form's category list opens
-            renderSheet(true);
+            renderSheet({shouldFitContentHeight: true});
             await waitForBatchedUpdates();
 
             // Then the sheet stops at the window cap instead of growing to fit every row and running off the screen

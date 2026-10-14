@@ -5178,7 +5178,10 @@ ${amount} για ${merchant} - ${date}`,
             editCurrencySubtitle: (destination: string) => `Η ενημέρωση αυτού του νομίσματος θα το αλλάξει για όλες τις υποτιμές ημερήσιας αποζημίωσης ${destination}.`,
             requestEmptyList: {
                 title: 'Δεν υπάρχουν ακόμη ημερήσια επιδόματα',
-                subtitle: 'Αυτός ο χώρος εργασίας δεν έχει ημερήσια επιδόματα· ζητήστε από τον διαχειριστή σας να προσθέσει κάποια.',
+                subtitle: (workspaceName?: string) =>
+                    workspaceName
+                        ? `Το ${workspaceName} δεν έχει ημερήσιες αποζημιώσεις. Ζητήστε από έναν διαχειριστή να προσθέσει μερικές.`
+                        : 'Αυτός ο χώρος εργασίας δεν έχει ημερήσιες αποζημιώσεις. Ζητήστε από έναν διαχειριστή να προσθέσει μερικές.',
                 adminSubtitle: 'Προσθέστε ημερήσια επιδόματα για να οργανώσετε τις δαπάνες σας.',
             },
         },
@@ -6760,6 +6763,9 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
             distanceRates: {
                 title: 'Τιμές χιλιομετρικής αποζημίωσης',
                 subtitle: 'Προσθέστε, ενημερώστε και εφαρμόστε τιμές.',
+                commuterExclusionsOnTitle: 'Οι εξαιρέσεις μετακίνησης είναι ενεργές',
+                disableLockedByCommuterExclusionsPrompt:
+                    'Για να απενεργοποιήσετε τις χρεώσεις απόστασης, πρώτα ορίστε την επιλογή «Εξαίρεση μετακινήσεων από και προς την εργασία» σε «Να μην εξαιρούνται οι μετακινήσεις από και προς την εργασία».',
             },
             perDiem: {
                 title: 'Ημερήσια αποζημίωση',
@@ -8189,6 +8195,21 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
             addressContext:
                 'Απαιτείται μια διεύθυνση χώρου εργασίας για να ενεργοποιήσετε το Expensify Travel. Παρακαλούμε εισαγάγετε μια διεύθυνση που να σχετίζεται με την επιχείρησή σας.',
             policy: 'Πολιτική εξόδων',
+        },
+        officeLocations: {
+            title: 'Τοποθεσίες γραφείων',
+            subtitle: 'Προσθέστε τοποθεσίες γραφείων για να τις αντιστοιχίσετε στα μέλη για λειτουργίες όπως η παρακολούθηση αποστάσεων.',
+            addOfficeLocation: 'Προσθήκη τοποθεσίας γραφείου',
+            editOfficeLocation: 'Επεξεργασία τοποθεσίας γραφείου',
+            locationName: 'Όνομα τοποθεσίας',
+            locationNameHint: 'Επιλέξτε ένα ψευδώνυμο τοποθεσίας αν προσθέτετε πολλές τοποθεσίες γραφείου',
+            defaultName: ({officeNumber}: {officeNumber: number}) => `Τοποθεσία γραφείου ${officeNumber}`,
+            setAsPrimary: 'Ορισμός ως κύριο',
+            primary: 'Κύριο',
+            deleteOfficeLocation: 'Να διαγραφεί η τοποθεσία γραφείου;',
+            deleteOfficeLocationConfirmation: 'Θέλετε σίγουρα να διαγράψετε αυτήν την τοποθεσία γραφείου; Τα μέλη θα επαναχωριστούν στο κύριο γραφείο.',
+            existingOfficeLocationError: 'Υπάρχει ήδη τοποθεσία γραφείου με αυτό το όνομα',
+            setCompanyAddressAsPrimaryConfirmation: 'Να οριστεί η διεύθυνση της εταιρείας ως κύριο γραφείο;',
         },
         bankAccount: {
             continueWithSetup: 'Συνεχίστε τη ρύθμιση',
@@ -9839,6 +9860,15 @@ ${reportName}`,
         },
         addedProhibitedExpense: ({prohibitedExpense}: {prohibitedExpense: string}) => `προστέθηκε το "${prohibitedExpense}" στις απαγορευμένες δαπάνες`,
         removedProhibitedExpense: ({prohibitedExpense}: {prohibitedExpense: string}) => `αφαιρέσατε το «${prohibitedExpense}» από τις απαγορευμένες δαπάνες`,
+        officeLocation: {
+            added: ({name, address}: {name: string; address: string}) => `πρόσθεσε την τοποθεσία γραφείου «${name}» (${address})`,
+            renamed: ({oldName, newName}: {oldName: string; newName: string}) => `μετονομάστηκε η τοποθεσία γραφείου «${oldName}» σε «${newName}»`,
+            changedAddress: ({name, newAddress, oldAddress}: {name: string; newAddress: string; oldAddress: string}) =>
+                `άλλαξε τη διεύθυνση της τοποθεσίας γραφείου «${name}» σε «${newAddress}» (προηγουμένως «${oldAddress}»)`,
+            setAsPrimary: ({name}: {name: string}) => `ορίστε την τοποθεσία γραφείου «${name}» ως κύρια`,
+            setCompanyAddressAsPrimary: 'ορίστε τη διεύθυνση της εταιρείας ως κύρια',
+            removed: ({name}: {name: string}) => `αφαίρεσε την τοποθεσία γραφείου «${name}»`,
+        },
         workArrangement: {
             set: ({arrangement}: {arrangement: string}) => `ορίστε την προεπιλεγμένη εργασιακή ρύθμιση σε ${arrangement}`,
             changed: ({arrangement, previousArrangement}: {arrangement: string; previousArrangement: string}) =>
@@ -10421,6 +10451,11 @@ ${reportName}`,
                 label: 'Τύπος φίλτρου',
                 has: {positive: 'έχει', negative: 'δεν έχει'},
                 is: {positive: 'είναι', negative: 'δεν είναι'},
+            },
+            merchant: {
+                matchType: 'Τύπος αντιστοίχισης',
+                contains: (merchant?: string) => (merchant ? `Περιέχει "${merchant}"` : 'Περιέχει'),
+                equalTo: (merchant?: string) => (merchant ? `Ίσο με "${merchant}"` : 'Ίσο με'),
             },
             created: 'Δημιουργήθηκε',
             createdDate: 'Ημερομηνία δημιουργίας',
