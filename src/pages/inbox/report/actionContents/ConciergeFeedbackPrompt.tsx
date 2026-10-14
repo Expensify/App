@@ -1,6 +1,7 @@
 import type {Emoji} from '@assets/emojis/types';
 
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
+import EmojiReactionBubble from '@components/Reactions/EmojiReactionBubble';
 import ActionableItemButtons from '@components/ReportActionItem/ActionableItemButtons';
 import Text from '@components/Text';
 import Tooltip from '@components/Tooltip/PopoverAnchorTooltip';
@@ -47,6 +48,9 @@ type ConciergeFeedbackPromptProps = {
 
     /** Whether to place only the thumbs inline with surrounding content */
     shouldRenderInline?: boolean;
+
+    /** Whether a selected thumb should use the standard selected reaction bubble */
+    shouldRenderSelectedReactionBubble?: boolean;
 };
 
 /** A reaction can be stored under the emoji name or under its hexcode, so both keys are read */
@@ -90,28 +94,39 @@ type ConciergeFeedbackThumbProps = {
 
     /** Whether the current user selected this rating */
     isSelected: boolean;
+
+    /** Whether a selected thumb should use the standard selected reaction bubble */
+    shouldRenderSelectedReactionBubble: boolean;
 };
 
-function ConciergeFeedbackThumb({emoji, label, accessibilityLabel, onPress, shouldShowTooltip, isSelected}: ConciergeFeedbackThumbProps) {
+function ConciergeFeedbackThumb({emoji, label, accessibilityLabel, onPress, shouldShowTooltip, isSelected, shouldRenderSelectedReactionBubble}: ConciergeFeedbackThumbProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const theme = useTheme();
 
-    const thumb = (
-        <PressableWithFeedback
-            style={[styles.conciergeFeedbackThumb, isSelected && StyleUtils.getBackgroundColorStyle(theme.reactionActiveBackground), styles.userSelectNone]}
-            hoverStyle={styles.conciergeFeedbackThumbHovered}
-            pressStyle={styles.conciergeFeedbackThumbHovered}
-            onPress={onPress}
-            accessibilityLabel={accessibilityLabel}
-            role={CONST.ROLE.BUTTON}
-            pressDimmingValue={1}
-            dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
-            sentryLabel={CONST.SENTRY_LABEL.CONCIERGE_FEEDBACK.THUMB}
-        >
-            <Text style={styles.conciergeFeedbackThumbEmoji}>{emoji.code}</Text>
-        </PressableWithFeedback>
-    );
+    const thumb =
+        isSelected && shouldRenderSelectedReactionBubble ? (
+            <EmojiReactionBubble
+                emojiCodes={[emoji.code]}
+                count={1}
+                hasUserReacted
+                onPress={onPress}
+            />
+        ) : (
+            <PressableWithFeedback
+                style={[styles.conciergeFeedbackThumb, isSelected && StyleUtils.getBackgroundColorStyle(theme.reactionActiveBackground), styles.userSelectNone]}
+                hoverStyle={styles.conciergeFeedbackThumbHovered}
+                pressStyle={styles.conciergeFeedbackThumbHovered}
+                onPress={onPress}
+                accessibilityLabel={accessibilityLabel}
+                role={CONST.ROLE.BUTTON}
+                pressDimmingValue={1}
+                dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
+                sentryLabel={CONST.SENTRY_LABEL.CONCIERGE_FEEDBACK.THUMB}
+            >
+                <Text style={styles.conciergeFeedbackThumbEmoji}>{emoji.code}</Text>
+            </PressableWithFeedback>
+        );
 
     return shouldShowTooltip ? <Tooltip text={label}>{thumb}</Tooltip> : thumb;
 }
@@ -123,6 +138,7 @@ function ConciergeFeedbackPrompt({
     shouldPersistAfterRating = false,
     shouldShowTooltips = true,
     shouldRenderInline = false,
+    shouldRenderSelectedReactionBubble = false,
 }: ConciergeFeedbackPromptProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -166,6 +182,7 @@ function ConciergeFeedbackPrompt({
             onPress={callFunctionIfActionIsAllowed(() => rate(emoji))}
             shouldShowTooltip={shouldShowTooltips}
             isSelected={isSelected}
+            shouldRenderSelectedReactionBubble={shouldRenderSelectedReactionBubble}
         />
     );
 
