@@ -34,7 +34,7 @@ function WorkspaceCompanyCardsBulkEditTransactionStartDatePage({route}: Workspac
     // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- decoding preserves the company-feed shape guaranteed by this route
     const feedName = decodeURIComponent(route.params.feed) as CompanyCardFeedWithDomainID;
     const cardIDs = (route.params.cardIDs ?? '').split(',').filter(Boolean);
-    const singleCardID = cardIDs.length === 1 ? cardIDs.at(0) : undefined;
+    const firstCardID = cardIDs.at(0);
     const bank = getCompanyCardFeed(feedName);
 
     const {translate} = useLocalize();
@@ -45,11 +45,11 @@ function WorkspaceCompanyCardsBulkEditTransactionStartDatePage({route}: Workspac
     const companyFeeds = getCompanyFeeds(cardFeeds);
     const domainOrWorkspaceAccountID = getDomainOrWorkspaceAccountID(workspaceAccountID, companyFeeds[feedName]);
     const [allBankCards] = useCardsList(feedName);
-    const singleCardStartDate = singleCardID ? allBankCards?.[singleCardID]?.scrapeMinDate : undefined;
-    const areScrapeDateEqual = cardIDs.length === 1 || cardIDs.every((cardID) => allBankCards?.[cardID]?.scrapeMinDate === singleCardStartDate);
+    const singleCardStartDate = firstCardID && allBankCards?.[firstCardID]?.scrapeMinDate;
+    const areScrapeDateEqual = singleCardStartDate && (cardIDs.length === 1 || cardIDs.every((cardID) => allBankCards?.[cardID]?.scrapeMinDate === singleCardStartDate));
     const initialDateOption =
         areScrapeDateEqual && !singleCardStartDate ? CONST.COMPANY_CARD.TRANSACTION_START_DATE_OPTIONS.FROM_BEGINNING : CONST.COMPANY_CARD.TRANSACTION_START_DATE_OPTIONS.CUSTOM;
-    const initialStartDate = areScrapeDateEqual ? format(parseISO(singleCardStartDate), CONST.DATE.FNS_FORMAT_STRING) : null;
+    const initialStartDate = areScrapeDateEqual ? format(parseISO(singleCardStartDate), CONST.DATE.FNS_FORMAT_STRING) : '';
 
     const goBackToCompanyCards = () => Navigation.goBack(ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID));
 
@@ -81,7 +81,7 @@ function WorkspaceCompanyCardsBulkEditTransactionStartDatePage({route}: Workspac
                 onBackButtonPress={goBackToCompanyCards}
                 onSubmit={submit}
                 isSaveDisabled={cardIDs.length === 0}
-                shouldResetStartDateOnCustomSelection={!!singleCardID && !singleCardStartDate}
+                shouldResetStartDateOnCustomSelection={!!firstCardID && !singleCardStartDate}
             />
         </AccessOrNotFoundWrapper>
     );
