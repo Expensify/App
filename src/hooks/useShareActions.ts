@@ -45,7 +45,7 @@ function useShareActions({reportID, policy}: UseShareActionsParams): UseShareAct
             text: translate('common.shareCode'),
             icon: expensifyIcons.QrCode,
             sentryLabel: CONST.SENTRY_LABEL.MORE_MENU.SHARE_CODE,
-            onSelected: () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.REPORT_DETAILS_SHARE_CODE.path)),
+            onSelected: () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.REPORT_DETAILS_SHARE_CODE.getRoute(true))),
         },
         {
             text: translate(`referralProgram.${CONST.REFERRAL_PROGRAM.CONTENT_TYPES.REFER_FRIEND}.header`),
