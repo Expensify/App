@@ -6599,6 +6599,8 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
             distanceRates: {
                 title: 'Kilometertarieven',
                 subtitle: 'Tarieven toevoegen, bijwerken en afdwingen.',
+                commuterExclusionsOnTitle: 'Woon-werkuitzonderingen zijn ingeschakeld',
+                disableLockedByCommuterExclusionsPrompt: 'Om afstandstarieven uit te schakelen, stel je eerst Woon-werkverkeer uitsluiten in op ‘Woon-werkverkeer niet uitsluiten’.',
             },
             perDiem: {
                 title: 'Dagvergoeding',
@@ -9940,6 +9942,8 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
         fallbackTitle: 'Supportticket',
         resolved: 'Dit supportticket is opgelost.',
         surveyPrompt: 'Hoe was je ervaring met de ondersteuning?',
+        great: 'Geweldig',
+        poor: 'Slecht',
         reopenTicket: 'Ticket opnieuw openen',
     },
     statementPage: {

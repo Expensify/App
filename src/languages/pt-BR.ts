@@ -6597,6 +6597,8 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
             distanceRates: {
                 title: 'Taxas de distância',
                 subtitle: 'Adicione, atualize e aplique tarifas.',
+                commuterExclusionsOnTitle: 'Exclusões de deslocamento estão ativadas',
+                disableLockedByCommuterExclusionsPrompt: 'Para desativar as tarifas de distância, primeiro defina Excluir deslocamentos como “Não excluir deslocamentos”.',
             },
             perDiem: {
                 title: 'Diária',
@@ -9938,6 +9940,8 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
         fallbackTitle: 'Chamado de suporte',
         resolved: 'Este chamado de suporte foi resolvido.',
         surveyPrompt: 'Como foi sua experiência com o suporte?',
+        great: 'Ótima',
+        poor: 'Ruim',
         reopenTicket: 'Reabrir chamado',
     },
     statementPage: {

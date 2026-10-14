@@ -6607,6 +6607,8 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
             distanceRates: {
                 title: 'Tariffe chilometriche',
                 subtitle: 'Aggiungi, aggiorna e applica le tariffe.',
+                commuterExclusionsOnTitle: 'Le esclusioni del tragitto casa-lavoro sono attive',
+                disableLockedByCommuterExclusionsPrompt: 'Per disattivare le tariffe distanza, prima imposta Escludi spostamenti casa-lavoro su “Non escludere spostamenti casa-lavoro”.',
             },
             perDiem: {
                 title: 'Diaria',
@@ -9974,6 +9976,8 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
         fallbackTitle: 'Ticket di supporto',
         resolved: 'Questo ticket di assistenza è risolto.',
         surveyPrompt: 'Com’è stata la tua esperienza con l’assistenza?',
+        great: 'Ottima',
+        poor: 'Scarsa',
         reopenTicket: 'Riapri ticket',
     },
     statementPage: {
