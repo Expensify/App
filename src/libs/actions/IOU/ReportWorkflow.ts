@@ -91,8 +91,6 @@ type ApproveMoneyRequestFunctionParams = {
 
 type SubmitReportFunctionParams = {
     expenseReport: OnyxEntry<OnyxTypes.Report>;
-
-    /** Expenses currently on expenseReport, used to find held expenses before submitting. */
     expenseReportTransactions: OnyxTypes.Transaction[];
     policy: OnyxEntry<OnyxTypes.Policy>;
     rules: OnyxCollection<OnyxTypes.Rule>;
