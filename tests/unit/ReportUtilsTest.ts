@@ -27340,7 +27340,7 @@ describe('ReportUtils', () => {
             await waitForBatchedUpdates();
             const approved = makeApprovedReport();
             const approved2 = makeApprovedReport();
-            expect(canMergeReports([approved, approved2], USER_ID, undefined, undefined, adminPolicy)).toBe(false);
+            expect(canMergeReports([approved, approved2], USER_ID, undefined, undefined, memberPolicy)).toBe(false);
         });
 
         it('returns false when approved and processing reports are mixed', () => {
