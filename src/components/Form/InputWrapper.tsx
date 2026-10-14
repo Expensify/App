@@ -15,6 +15,7 @@ import React, {useContext} from 'react';
 import type {InputComponentBaseProps, InputComponentValueProps, ValidInputs, ValueTypeKey} from './types';
 
 import FormContext from './FormContext';
+import FormDraftPersistenceContext from './FormDraftPersistenceContext';
 
 type TextInputBasedComponents = Set<ComponentType<BaseTextInputProps> | ComponentType<RoomNameInputProps>>;
 
@@ -87,9 +88,17 @@ type InputWrapperProps<TInput extends ValidInputs, TValue extends ValueTypeKey =
 function InputWrapper<TInput extends ValidInputs, TValue extends ValueTypeKey>({ref, ...props}: InputWrapperProps<TInput, TValue>) {
     const {InputComponent, inputID, valueType = 'string', shouldSubmitForm: propShouldSubmitForm, ...rest} = props as InputComponentBaseProps;
     const {registerInput} = useContext(FormContext);
+    const shouldPersistDraft = useContext(FormDraftPersistenceContext);
 
     const {shouldSetTouchedOnBlurOnly, submitBehavior, shouldSubmitForm} = computeComponentSpecificRegistrationParams(props as InputComponentBaseProps);
-    const {key, ...registerInputProps} = registerInput(inputID, shouldSubmitForm, {ref, valueType, ...rest, shouldSetTouchedOnBlurOnly, submitBehavior});
+    const {key, ...registerInputProps} = registerInput(inputID, shouldSubmitForm, {
+        ref,
+        valueType,
+        ...rest,
+        ...(shouldPersistDraft ? {shouldSaveDraft: true} : {}),
+        shouldSetTouchedOnBlurOnly,
+        submitBehavior,
+    });
 
     return (
         <InputComponent

@@ -151,6 +151,24 @@ describe('useSubPage hook', () => {
             expect(mockSetParams).toHaveBeenCalledWith({subPage: 'page3'});
         });
 
+        it('restores edit mode with the starting page', () => {
+            const pages = createMockPages();
+            const buildRoute = createBuildRoute();
+
+            const {result} = renderHook(() =>
+                useSubPage({
+                    pages,
+                    onFinished: mockOnFinished,
+                    startFrom: 1,
+                    startAction: 'edit',
+                    buildRoute,
+                }),
+            );
+
+            expect(mockSetParams).toHaveBeenCalledWith({subPage: 'page2', action: 'edit'});
+            expect(result.current.isEditing).toBe(true);
+        });
+
         it('returns isRedirecting true when no subPage param is present in URL', () => {
             const pages = createMockPages();
             const buildRoute = createBuildRoute();
@@ -160,6 +178,22 @@ describe('useSubPage hook', () => {
                     pages,
                     onFinished: mockOnFinished,
                     startFrom: 1,
+                    buildRoute,
+                }),
+            );
+
+            expect(result.current.isRedirecting).toBe(true);
+        });
+
+        it('returns isRedirecting true while the starting page is loading', () => {
+            const pages = createMockPages();
+            const buildRoute = createBuildRoute();
+
+            const {result} = renderHook(() =>
+                useSubPage({
+                    pages,
+                    onFinished: mockOnFinished,
+                    startFrom: -1,
                     buildRoute,
                 }),
             );
