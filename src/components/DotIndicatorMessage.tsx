@@ -8,6 +8,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import {isReceiptError, isTranslationKeyError} from '@libs/ErrorUtils';
 import fileDownload from '@libs/fileDownload';
+import getPlatform from '@libs/getPlatform';
 
 import CONST from '@src/CONST';
 import type {TranslationKeyError} from '@src/types/onyx/OnyxCommon';
@@ -76,9 +77,12 @@ function DotIndicatorMessage({messages = {}, style, type, textStyles, isSelectab
     const isErrorMessage = type === 'error';
     const receiptError = uniqueMessages.find(isReceiptError);
 
-    const isTextSelectable = isSelectable ?? (!canUseTouchScreen() || !shouldUseNarrowLayout);
+    const isWeb = getPlatform() === CONST.PLATFORM.WEB;
+    const defaultTextSelectable = !canUseTouchScreen() || !shouldUseNarrowLayout;
+    const isTextSelectable = isWeb ? (isSelectable ?? defaultTextSelectable) : defaultTextSelectable;
+    const shouldDisableTextSelection = isWeb && isSelectable === false;
     const selectionDataSet = isTextSelectable ? undefined : {[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true};
-    const receiptSelectionDataSet = isSelectable === false ? selectionDataSet : undefined;
+    const receiptSelectionDataSet = shouldDisableTextSelection ? selectionDataSet : undefined;
 
     const renderMessage = (message: string | ReceiptError | ReactElement, index: number) => {
         if (isReceiptError(message)) {
@@ -129,7 +133,7 @@ function DotIndicatorMessage({messages = {}, style, type, textStyles, isSelectab
         const messageRow = (
             <View style={[styles.dotIndicatorMessage, isStackedLayout && styles.alignItemsStart, styles.flex1]}>
                 <Text
-                    style={[StyleUtils.getDotIndicatorTextStyles(isErrorMessage), textStyles, styles.flex1, isSelectable === false && styles.userSelectNone]}
+                    style={[StyleUtils.getDotIndicatorTextStyles(isErrorMessage), textStyles, styles.flex1, shouldDisableTextSelection && styles.userSelectNone]}
                     accessibilityRole={isErrorMessage ? CONST.ROLE.ALERT : undefined}
                     accessibilityLiveRegion={isErrorMessage ? 'assertive' : undefined}
                 >
