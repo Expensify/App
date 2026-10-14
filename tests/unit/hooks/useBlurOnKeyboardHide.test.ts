@@ -28,7 +28,7 @@ const LANDSCAPE_WINDOW: ScaledSize = {...PORTRAIT_WINDOW, width: PORTRAIT_WINDOW
 
 const appStateListeners: Array<(state: AppStateStatus) => void> = [];
 
-function emitKeyboardEvent(event: 'keyboardDidShow' | 'keyboardDidHide', height: number, duration = ANIMATED_DURATION) {
+function emitKeyboardEvent(event: 'keyboardWillShow' | 'keyboardDidShow' | 'keyboardDidHide', height: number, duration = ANIMATED_DURATION) {
     const eventData: KeyboardEventData = {height, duration, timestamp: 0, target: -1, type: 'default', appearance: 'light'};
     for (const handler of mockKeyboardListeners[event] ?? []) {
         handler(eventData);
@@ -46,12 +46,14 @@ function setWindow(window: ScaledSize) {
     mockedDimensionsAddEventListener.mock.calls.at(-1)?.[1]({window, screen: window});
 }
 
-type Step = {appState: AppStateStatus} | {show: true} | {hide: number; duration?: number} | {window: ScaledSize} | {wait: number};
+type Step = {appState: AppStateStatus} | {willShow: true} | {show: true} | {hide: number; duration?: number} | {window: ScaledSize} | {wait: number};
 
 function runSteps(steps: Step[]) {
     for (const step of steps) {
         if ('appState' in step) {
             setAppState(step.appState);
+        } else if ('willShow' in step) {
+            emitKeyboardEvent('keyboardWillShow', 300);
         } else if ('show' in step) {
             emitKeyboardEvent('keyboardDidShow', 300);
         } else if ('window' in step) {
@@ -102,6 +104,7 @@ describe('useBlurOnKeyboardHide', () => {
         ['does not blur when a rotation just preceded the instant hide', [{window: LANDSCAPE_WINDOW}, {wait: 50}, {hide: 0, duration: 0}, {wait: 300}], 0],
         ['blurs an instant hide that comes long after a rotation', [{window: LANDSCAPE_WINDOW}, {wait: 1000}, {hide: 0, duration: 0}, {wait: 300}], 1],
         ['does not blur when the keyboard comes back after an instant hide', [{hide: 0, duration: 0}, {show: true}, {wait: 300}], 0],
+        ['does not blur when the keyboard starts coming back before the rotation delay has passed', [{hide: 0, duration: 0}, {wait: 100}, {willShow: true}, {wait: 300}], 0],
         ['does not blur when the app is backgrounded after an instant hide', [{hide: 0, duration: 0}, {appState: 'background'}, {wait: 300}], 0],
         ['does not treat a height-only window change as a rotation', [{hide: 0, duration: 0}, {window: {...PORTRAIT_WINDOW, height: 500}}, {wait: 300}], 1],
     ])('%s', (_name, steps, expectedBlurCalls) => {
@@ -128,7 +131,7 @@ describe('useBlurOnKeyboardHide', () => {
         const dimensionsSubscription = mockedDimensionsAddEventListener.mock.results.at(-1);
         // eslint-disable-next-line @typescript-eslint/unbound-method
         expect(dimensionsSubscription?.type === 'return' && dimensionsSubscription.value.remove).toHaveBeenCalledTimes(1);
-        expect(mockRemove).toHaveBeenCalledTimes(2);
+        expect(mockRemove).toHaveBeenCalledTimes(3);
     });
 
     it('cancels a pending instant-hide blur on unmount', () => {

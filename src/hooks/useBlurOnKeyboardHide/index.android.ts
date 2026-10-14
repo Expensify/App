@@ -42,6 +42,9 @@ const useBlurOnKeyboardHide: UseBlurOnKeyboardHide = (ref) => {
             cancelPendingBlur();
         });
 
+        // keyboardDidShow only fires once the show animation ends, which can be after the pending blur fires.
+        const willShowSubscription = KeyboardEvents.addListener('keyboardWillShow', cancelPendingBlur);
+
         const showSubscription = KeyboardEvents.addListener('keyboardDidShow', () => {
             shouldSkipNextHide = false;
             cancelPendingBlur();
@@ -82,6 +85,7 @@ const useBlurOnKeyboardHide: UseBlurOnKeyboardHide = (ref) => {
             cancelPendingBlur();
             appStateSubscription.remove();
             dimensionsSubscription.remove();
+            willShowSubscription.remove();
             showSubscription.remove();
             hideSubscription.remove();
         };
