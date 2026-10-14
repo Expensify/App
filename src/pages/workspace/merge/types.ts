@@ -29,6 +29,9 @@ type MergeProviderConfigRow = {
     /** Optional icon shown at the start of the row. */
     icon?: MenuItemProps['icon'];
 
+    /** Maximum number of lines the row title can span before it is truncated */
+    numberOfLinesTitle?: MenuItemProps['numberOfLinesTitle'];
+
     /** Renders the row as a plain `MenuItem` instead of the default `MenuItemWithTopDescription`. Use it for rows that are a plain label rather than a labelled value. */
     shouldRenderAsMenuItem?: boolean;
 
@@ -40,6 +43,9 @@ type MergeProviderConfigRow = {
 
     /** Errors for this field when the last update failed. */
     errors?: Errors | null;
+
+    /** Whether the saved value itself is no longer valid, as opposed to the last update having failed. */
+    hasInvalidValue?: boolean;
 };
 
 /** Everything `MergeProviderCard` needs to render one integration, on either the HR or the Recruiting page. */
@@ -73,6 +79,9 @@ type MergeProviderCardDescriptor = {
 
     /** Navigation route to the post-connect setup RHP. Set only while the admin still needs to finish setup. */
     completeSetupRoute?: Route;
+
+    /** Navigation route to the group selector. Set only while the saved Merge HR group selection points at groups the HR system no longer has. */
+    staleGroupsRoute?: Route;
 
     /** ISO date string of the last successful sync, used for "last synced" display. */
     successfulDate?: string;

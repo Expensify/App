@@ -49,6 +49,11 @@ function skipNextFocusRestore(): void {
     skipNextRestore = true;
 }
 
+/** Undo `skipNextFocusRestore` when its goBack never happened. */
+function cancelSkipNextFocusRestore(): void {
+    skipNextRestore = false;
+}
+
 function registerPressable(routeKey: string, identifier: string, ref: RefObject<ComponentRef<typeof View> | null>): () => void {
     let routeMap = pressableRegistry.get(routeKey);
     if (!routeMap) {
@@ -352,6 +357,7 @@ export {
     notifyPushParamsBackward,
     cancelPendingFocusRestore,
     skipNextFocusRestore,
+    cancelSkipNextFocusRestore,
     isFocusRestoreInProgress,
     shouldSkipAutoFocusDueToExistingFocus,
     resetForTests,

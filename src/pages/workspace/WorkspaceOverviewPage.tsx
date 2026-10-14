@@ -6,6 +6,9 @@ import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import MentionReportContext from '@components/HTMLEngineProvider/HTMLRenderers/MentionReportRenderer/MentionReportContext';
 import {useLockedAccountActions, useLockedAccountState} from '@components/LockedAccountModalProvider';
+import MenuItem from '@components/MenuItem';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
+import MenuItemSectionRoot from '@components/MenuItem/presets/MenuItemSectionRoot';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -22,10 +25,12 @@ import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDefaultFundID from '@hooks/useDefaultFundID';
 import useIsApproverOfOutstandingPolicyReports from '@hooks/useIsApproverOfOutstandingPolicyReports';
+import useLayoutSpacing from '@hooks/useLayoutSpacing';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
 import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useScreenBoundDynamicRoute from '@hooks/useScreenBoundDynamicRoute';
@@ -35,6 +40,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useWorkspaceDocumentTitle from '@hooks/useWorkspaceDocumentTitle';
 
 import {close} from '@libs/actions/Modal';
+import {clearOfficeLocationErrors, updateOfficeLocation} from '@libs/actions/Policy/DistanceRate';
 import {clearInviteDraft, clearWorkspaceOwnerChangeFlow, requestWorkspaceOwnerChange} from '@libs/actions/Policy/Member';
 import {
     clearAvatarErrors,
@@ -52,7 +58,17 @@ import {getLatestErrorField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
-import {canEditWorkspaceSettings, getRulesDocumentSourceURL, getUserFriendlyWorkspaceType, goBackFromInvalidPolicy, isPendingDeletePolicy, isPolicyOwner} from '@libs/PolicyUtils';
+import {
+    canEditWorkspaceSettings,
+    canUnarchivePolicy,
+    getRulesDocumentSourceURL,
+    getUserFriendlyWorkspaceType,
+    goBackFromInvalidPolicy,
+    hasCompanyAddress,
+    isArchivedPolicy,
+    isPendingDeletePolicy,
+    isPolicyOwner,
+} from '@libs/PolicyUtils';
 import {formatAddressToString} from '@libs/ReportActionsUtils';
 import shouldRenderTransferOwnerButton from '@libs/shouldRenderTransferOwnerButton';
 import StringUtils from '@libs/StringUtils';
@@ -77,6 +93,8 @@ import {View} from 'react-native';
 
 import type {WithPolicyProps} from './withPolicy';
 
+import ArchiveWorkspaceFlow from './archiveWorkspace/ArchiveWorkspaceFlow';
+import UnarchiveWorkspaceFlow from './archiveWorkspace/UnarchiveWorkspaceFlow';
 import DeleteWorkspaceFlow from './deleteWorkspace/DeleteWorkspaceFlow';
 import withPolicy from './withPolicy';
 import WorkspacePageWithSections from './WorkspacePageWithSections';
@@ -88,13 +106,16 @@ const rulesDocumentMenuPositionStyle = {top: variables.spacing2, right: variable
 
 function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: WorkspaceOverviewPageProps) {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate, localeCompare} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {cardPadding, pageGutter} = useLayoutSpacing();
     const shouldDisplayButtonsInSeparateLine = useShouldDisplayButtonsInSeparateLine();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const {getCurrencySymbol} = useCurrencyListActions();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Exit', 'ImageCropSquareMask', 'QrCode', 'Transfer', 'Trashcan', 'Upload', 'UserPlus']);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['ArrowCircleClockwise', 'Box', 'Exit', 'ImageCropSquareMask', 'Plus', 'QrCode', 'Transfer', 'Trashcan', 'Upload', 'UserPlus']);
     const buildDynamicRoute = useScreenBoundDynamicRoute();
+    const {isBetaEnabled} = usePermissions();
+    const canArchivePolicies = isBetaEnabled(CONST.BETAS.ARCHIVE_POLICIES);
 
     const backTo = route.params.backTo;
     const routePolicyID = route.params.policyID;
@@ -103,6 +124,8 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
     const [isComingFromGlobalReimbursementsFlow] = useOnyx(ONYXKEYS.IS_COMING_FROM_GLOBAL_REIMBURSEMENTS_FLOW);
     const {showConfirmModal} = useConfirmModal();
     const [isDeleteWorkspaceFlowVisible, setIsDeleteWorkspaceFlowVisible] = useState(false);
+    const [isArchiveWorkspaceFlowVisible, setIsArchiveWorkspaceFlowVisible] = useState(false);
+    const [isUnarchiveWorkspaceFlowVisible, setIsUnarchiveWorkspaceFlowVisible] = useState(false);
 
     // Primitive-valued subscriptions configuring the Delete menu item (popover behavior and the loading spinner)
     // before a deletion starts. The deletion itself is handled by DeleteWorkspaceFlow, mounted on demand below.
@@ -110,7 +133,9 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
     const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
     const [isLoadingBill] = useOnyx(ONYXKEYS.IS_LOADING_BILL_WHEN_DOWNGRADE);
     const [ownedPaidPoliciesCounts] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: createOwnedPaidPoliciesCountsSelector(currentUserPersonalDetails.accountID)});
-    const shouldCalculateBillNewDot = !!canDowngrade && ownedPaidPoliciesCounts?.total === 1;
+    // Archiving doesn't change the subscription or bill the user, so the final bill is only calculated when deleting.
+    const shouldCalculateBillNewDot = !canArchivePolicies && !!canDowngrade && ownedPaidPoliciesCounts?.total === 1;
+    const isLoadingDeleteBill = !canArchivePolicies && !!isLoadingBill;
     const wouldBlockDeletion = (amountOwed ?? 0) > 0 && ownedPaidPoliciesCounts?.active === 1;
 
     // When we create a new workspace, the policy prop will be empty on the first render. Therefore, we have to use policyDraft until policy has been set in Onyx.
@@ -178,7 +203,9 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
     const policyCurrency = policy?.outputCurrency ?? '';
     const readOnly = !canEditWorkspaceSettings(policy);
     const currencyReadOnly = readOnly || isBankAccountVerified;
+    const isCurrencyInteractive = !shouldBlockCurrencyChange && !currencyReadOnly;
     const isOwner = isPolicyOwner(policy, currentUserPersonalDetails.accountID);
+    const canUnarchive = canUnarchivePolicy(isArchivedPolicy(policy), policy?.ownerAccountID, currentUserPersonalDetails.accountID, canArchivePolicies);
     const shouldShowAddress = !readOnly || !!formattedAddress;
     const {isAccountLocked} = useLockedAccountState();
     const {showLockedAccountModal} = useLockedAccountActions();
@@ -233,6 +260,33 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
         [translate, expensifyIcons, handleRulesDocumentPicked, policyID, rulesDocumentURL],
     );
     const shouldShowExpensePolicySection = isPolicyAdmin || hasRulesDocument || hasCustomRulesText;
+
+    // The primary office is listed first and the rest by name, since the server returns them keyed by random officeIDs
+    const officeLocationEntries = Object.entries(policy?.officeLocations ?? {}).sort(
+        ([, officeLocation], [, otherOfficeLocation]) =>
+            Number(!!otherOfficeLocation.isDefault) - Number(!!officeLocation.isDefault) || localeCompare(officeLocation.name, otherOfficeLocation.name),
+    );
+    const shouldShowCompanyAddressOffice = hasCompanyAddress(policy);
+
+    // The company address is the workspace's default office while no office is
+    const defaultOfficeID = officeLocationEntries.find(([, officeLocation]) => officeLocation.isDefault && officeLocation.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE)?.[0];
+    const isCompanyAddressPrimary = !defaultOfficeID;
+
+    // Taking the primary flag off the primary office makes the company address the primary one
+    const setCompanyAddressAsPrimary = () => {
+        showConfirmModal({
+            title: translate('common.companyAddress'),
+            prompt: translate('workspace.officeLocations.setCompanyAddressAsPrimaryConfirmation'),
+            confirmText: translate('workspace.officeLocations.setAsPrimary'),
+            cancelText: translate('common.cancel'),
+        }).then((result) => {
+            if (result.action !== ModalActions.CONFIRM || !defaultOfficeID) {
+                return;
+            }
+            updateOfficeLocation(routePolicyID, policy?.officeLocations, defaultOfficeID, {isDefault: false});
+        });
+    };
+    const shouldShowOfficeLocationsSection = isBetaEnabled(CONST.BETAS.COMMUTER_EXCLUSIONS_ARRANGEMENTS) && (!readOnly || shouldShowCompanyAddressOffice || officeLocationEntries.length > 0);
     const shouldShowRulesDocumentSubSection = isPolicyAdmin || hasRulesDocument;
 
     const personalDetails = usePersonalDetails();
@@ -357,6 +411,15 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
     const secondaryActions: Array<DropdownOption<string>> = [];
 
     if (readOnly) {
+        if (canUnarchive) {
+            secondaryActions.push({
+                value: 'unarchive',
+                text: translate('workspace.common.unarchive'),
+                icon: expensifyIcons.ArrowCircleClockwise,
+                // The confirmation modal is handled by UnarchiveWorkspaceFlow, which mounts when this is set.
+                onSelected: () => setIsUnarchiveWorkspaceFlowVisible(true),
+            });
+        }
         if (canLeave) {
             secondaryActions.push({
                 value: 'leave',
@@ -375,10 +438,16 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
         });
         if (isOwner) {
             secondaryActions.push({
-                value: 'delete',
-                text: translate('common.delete'),
-                icon: expensifyIcons.Trashcan,
+                value: canArchivePolicies ? 'archive' : 'delete',
+                text: translate(canArchivePolicies ? 'workspace.common.archive' : 'common.delete'),
+                icon: canArchivePolicies ? expensifyIcons.Box : expensifyIcons.Trashcan,
                 onSelected: () => {
+                    // The confirmation modal is handled by ArchiveWorkspaceFlow, which mounts when this is set.
+                    if (canArchivePolicies) {
+                        setIsArchiveWorkspaceFlowVisible(true);
+                        return;
+                    }
+
                     if (isLoadingBill) {
                         return;
                     }
@@ -386,8 +455,8 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
                     // All the pre-deletion checks and the confirmation modal are handled by DeleteWorkspaceFlow, which mounts when this is set.
                     setIsDeleteWorkspaceFlowVisible(true);
                 },
-                disabled: isLoadingBill,
-                shouldShowLoadingSpinnerIcon: isLoadingBill,
+                disabled: isLoadingDeleteBill,
+                shouldShowLoadingSpinnerIcon: isLoadingDeleteBill,
                 shouldCloseModalOnSelect: !shouldCalculateBillNewDot || wouldBlockDeletion,
             });
         }
@@ -455,6 +524,21 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
                     onDeleteComplete={goBackFromInvalidPolicy}
                 />
             )}
+            {isArchiveWorkspaceFlowVisible && !!policyID && (
+                <ArchiveWorkspaceFlow
+                    key={`archive-${policyID}`}
+                    policyID={policyID}
+                    onDismiss={() => setIsArchiveWorkspaceFlowVisible(false)}
+                    onArchiveComplete={goBackFromInvalidPolicy}
+                />
+            )}
+            {isUnarchiveWorkspaceFlowVisible && !!policyID && (
+                <UnarchiveWorkspaceFlow
+                    key={`unarchive-${policyID}`}
+                    policyID={policyID}
+                    onDismiss={() => setIsUnarchiveWorkspaceFlowVisible(false)}
+                />
+            )}
             {!!pendingRulesDocumentFile && (
                 <PDFThumbnail
                     style={styles.invisiblePDF}
@@ -504,7 +588,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
             modals={modals}
         >
             <View style={[styles.flex1, styles.mt3, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
-                {shouldDisplayButtonsInSeparateLine && <View style={[styles.pl5, styles.pr5, styles.pb5]}>{headerButtons}</View>}
+                {shouldDisplayButtonsInSeparateLine && <View style={[pageGutter, styles.pb5]}>{headerButtons}</View>}
                 <Section
                     isCentralPane
                     title=""
@@ -600,14 +684,14 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
                                 clearPolicyErrorField(policy.id, 'clientID');
                             }}
                         >
-                            <MenuItemWithTopDescription
-                                title={policy?.clientID}
-                                description={translate('workspace.common.clientID')}
-                                shouldShowRightIcon={!readOnly}
-                                interactive={!readOnly}
-                                wrapperStyle={styles.sectionMenuItemTopDescription}
-                                onPress={onPressClientID}
-                            />
+                            <MenuItemSectionRoot onPress={readOnly ? undefined : onPressClientID}>
+                                <MenuItemField.Row
+                                    name={translate('workspace.common.clientID')}
+                                    value={policy?.clientID}
+                                >
+                                    {!readOnly && <MenuItem.Chevron />}
+                                </MenuItemField.Row>
+                            </MenuItemSectionRoot>
                         </OfflineWithFeedback>
                     )}
                     <OfflineWithFeedback
@@ -622,36 +706,45 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
                         errorRowStyles={[styles.mt2]}
                     >
                         <View>
-                            <MenuItemWithTopDescription
-                                title={formattedCurrency}
-                                description={translate('workspace.editor.currencyInputLabel')}
+                            <MenuItemSectionRoot
+                                onPress={isCurrencyInteractive ? onPressCurrency : undefined}
                                 sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.OVERVIEW.CURRENCY}
-                                shouldShowRightIcon={shouldBlockCurrencyChange ? false : !currencyReadOnly}
-                                interactive={shouldBlockCurrencyChange ? false : !currencyReadOnly}
-                                wrapperStyle={styles.sectionMenuItemTopDescription}
-                                onPress={onPressCurrency}
-                                hintText={
-                                    shouldBlockCurrencyChange || isBankAccountVerified
-                                        ? translate('workspace.editor.currencyInputDisabledText', policyCurrency)
-                                        : translate('workspace.editor.currencyInputHelpText')
-                                }
-                            />
+                            >
+                                <MenuItemField.Row
+                                    name={translate('workspace.editor.currencyInputLabel')}
+                                    value={formattedCurrency}
+                                >
+                                    {isCurrencyInteractive && <MenuItem.Chevron />}
+                                </MenuItemField.Row>
+                                <MenuItem.HelpText
+                                    message={
+                                        shouldBlockCurrencyChange || isBankAccountVerified
+                                            ? translate('workspace.editor.currencyInputDisabledText', policyCurrency)
+                                            : translate('workspace.editor.currencyInputHelpText')
+                                    }
+                                />
+                            </MenuItemSectionRoot>
                         </View>
                     </OfflineWithFeedback>
                     {shouldShowAddress && (
                         <OfflineWithFeedback pendingAction={policy?.pendingFields?.address}>
                             <View>
-                                <MenuItemWithTopDescription
-                                    title={formattedAddress}
-                                    description={translate('common.companyAddress')}
+                                <MenuItemSectionRoot
+                                    onPress={readOnly ? undefined : onPressAddress}
                                     sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.OVERVIEW.ADDRESS}
-                                    shouldShowRightIcon={!readOnly}
-                                    interactive={!readOnly}
-                                    wrapperStyle={styles.sectionMenuItemTopDescription}
-                                    onPress={onPressAddress}
-                                    copyValue={readOnly ? formattedAddress : undefined}
-                                    copyable={readOnly && !!formattedAddress}
-                                />
+                                >
+                                    <MenuItemField.Row
+                                        name={translate('common.companyAddress')}
+                                        value={formattedAddress}
+                                    >
+                                        {(!readOnly || !!formattedAddress) && (
+                                            <>
+                                                {readOnly && !!formattedAddress && <MenuItem.Copy value={formattedAddress} />}
+                                                {!readOnly && <MenuItem.Chevron />}
+                                            </>
+                                        )}
+                                    </MenuItemField.Row>
+                                </MenuItemSectionRoot>
                             </View>
                         </OfflineWithFeedback>
                     )}
@@ -659,18 +752,93 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
                     {!readOnly && !!policy?.type && (
                         <OfflineWithFeedback pendingAction={policy?.pendingFields?.type}>
                             <View>
-                                <MenuItemWithTopDescription
-                                    title={getUserFriendlyWorkspaceType(policy.type, translate)}
-                                    description={translate('workspace.common.planType')}
-                                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.OVERVIEW.PLAN_TYPE}
-                                    shouldShowRightIcon
-                                    wrapperStyle={styles.sectionMenuItemTopDescription}
+                                <MenuItemSectionRoot
                                     onPress={onPressPlanType}
-                                />
+                                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.OVERVIEW.PLAN_TYPE}
+                                >
+                                    <MenuItemField.Row
+                                        name={translate('workspace.common.planType')}
+                                        value={getUserFriendlyWorkspaceType(policy.type, translate)}
+                                    >
+                                        <MenuItem.Chevron />
+                                    </MenuItemField.Row>
+                                </MenuItemSectionRoot>
                             </View>
                         </OfflineWithFeedback>
                     )}
                 </Section>
+                {shouldShowOfficeLocationsSection && (
+                    <Section
+                        isCentralPane
+                        title={translate('workspace.officeLocations.title')}
+                        titleStyles={[styles.textHeadline, styles.cardSectionTitle, styles.accountSettingsSectionTitle, styles.textLarge, styles.mb0]}
+                        subtitle={translate('workspace.officeLocations.subtitle')}
+                        subtitleStyles={[styles.mb5]}
+                        subtitleTextStyles={[styles.textNormal, styles.colorMuted, styles.mr5]}
+                        containerStyles={cardPadding}
+                    >
+                        {shouldShowCompanyAddressOffice && (
+                            <OfflineWithFeedback pendingAction={policy?.pendingFields?.address}>
+                                <MenuItemSectionRoot
+                                    onPress={readOnly || isCompanyAddressPrimary ? undefined : setCompanyAddressAsPrimary}
+                                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.OVERVIEW.COMPANY_ADDRESS_OFFICE_LOCATION}
+                                >
+                                    <MenuItem.Row>
+                                        <MenuItem.Content>
+                                            <MenuItem.Title>{translate('common.companyAddress')}</MenuItem.Title>
+                                            <MenuItem.Description>{formattedAddress}</MenuItem.Description>
+                                        </MenuItem.Content>
+                                        <MenuItem.Trailing>
+                                            {isCompanyAddressPrimary && <MenuItem.RightLabel>{translate('workspace.officeLocations.primary')}</MenuItem.RightLabel>}
+                                        </MenuItem.Trailing>
+                                    </MenuItem.Row>
+                                </MenuItemSectionRoot>
+                            </OfflineWithFeedback>
+                        )}
+                        {officeLocationEntries.map(([officeID, officeLocation]) => {
+                            const isEditable = !readOnly && officeLocation.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
+                            return (
+                                <OfflineWithFeedback
+                                    key={officeID}
+                                    pendingAction={officeLocation.pendingAction}
+                                    errors={officeLocation.errors}
+                                    onClose={() => clearOfficeLocationErrors(routePolicyID, officeID, officeLocation.pendingAction)}
+                                >
+                                    <MenuItemSectionRoot
+                                        onPress={isEditable ? () => Navigation.navigate(ROUTES.WORKSPACE_OVERVIEW_OFFICE_LOCATION_EDIT.getRoute(routePolicyID, officeID)) : undefined}
+                                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.OVERVIEW.OFFICE_LOCATION}
+                                    >
+                                        <MenuItem.Row>
+                                            <MenuItem.Content>
+                                                <MenuItem.Title>{officeLocation.name}</MenuItem.Title>
+                                                <MenuItem.Description>{formatAddressToString(officeLocation.address)}</MenuItem.Description>
+                                            </MenuItem.Content>
+                                            <MenuItem.Trailing>
+                                                {!!officeLocation.isDefault && <MenuItem.RightLabel>{translate('workspace.officeLocations.primary')}</MenuItem.RightLabel>}
+                                                {isEditable && <MenuItem.Chevron />}
+                                            </MenuItem.Trailing>
+                                        </MenuItem.Row>
+                                    </MenuItemSectionRoot>
+                                </OfflineWithFeedback>
+                            );
+                        })}
+                        {!readOnly && (
+                            <MenuItemSectionRoot
+                                onPress={() => Navigation.navigate(ROUTES.WORKSPACE_OVERVIEW_OFFICE_LOCATION_ADD.getRoute(routePolicyID))}
+                                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.OVERVIEW.ADD_OFFICE_LOCATION}
+                            >
+                                <MenuItem.Row>
+                                    <MenuItem.Leading>
+                                        <MenuItem.Icon src={expensifyIcons.Plus} />
+                                    </MenuItem.Leading>
+                                    <MenuItem.Content>
+                                        <MenuItem.Title>{translate('workspace.officeLocations.addOfficeLocation')}</MenuItem.Title>
+                                    </MenuItem.Content>
+                                </MenuItem.Row>
+                            </MenuItemSectionRoot>
+                        )}
+                    </Section>
+                )}
                 {shouldShowExpensePolicySection ? (
                     <Section
                         isCentralPane
@@ -679,7 +847,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
                         subtitle={translate('workspace.rules.customRules.cardSubtitle')}
                         subtitleStyles={[shouldShowRulesDocumentSubSection ? styles.mb6 : styles.mb2]}
                         subtitleTextStyles={[styles.textNormal, styles.colorMuted, styles.mr5]}
-                        containerStyles={shouldUseNarrowLayout ? styles.p5 : styles.p8}
+                        containerStyles={cardPadding}
                     >
                         {shouldShowRulesDocumentSubSection && (
                             <OfflineWithFeedback

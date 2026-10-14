@@ -12,6 +12,7 @@ import MERGE_ATS_PROVIDERS from '@src/CONST/MERGE_ATS_PROVIDERS';
 import type {MergeATSProviderSlug} from '@src/CONST/MERGE_ATS_PROVIDERS';
 import ROUTES from '@src/ROUTES';
 import type Policy from '@src/types/onyx/Policy';
+import type {MergeATSApproverField} from '@src/types/onyx/Policy';
 import type IconAsset from '@src/types/utils/IconAsset';
 import ObjectUtils from '@src/types/utils/ObjectUtils';
 
@@ -26,16 +27,19 @@ type GetRecruitingCardsParams = {
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
 };
 
-function getApproverFieldLabel(policy: OnyxEntry<Policy>, translate: LocaleContextProps['translate']): string {
-    const approverField = getMergeATSApproverField(policy);
+function getApproverFieldName(approverField: MergeATSApproverField | undefined, translate: LocaleContextProps['translate']): string | undefined {
     switch (approverField) {
         case CONST.MERGE.ATS_APPROVER_FIELD.RECRUITER:
             return translate('workspace.recruiting.approverFields.recruiter');
         case CONST.MERGE.ATS_APPROVER_FIELD.RECRUITING_COORDINATOR:
             return translate('workspace.recruiting.approverFields.recruitingCoordinator');
         default:
-            return approverField ?? translate('workspace.merge.notSet');
+            return undefined;
     }
+}
+
+function getApproverFieldLabel(policy: OnyxEntry<Policy>, translate: LocaleContextProps['translate']): string {
+    return getApproverFieldName(getMergeATSApproverField(policy), translate) ?? translate('workspace.merge.notSet');
 }
 
 function getDefaultApproverLabel(
@@ -111,6 +115,7 @@ function getConfigRows(
             field: 'approvalMode',
             description: translate('workspace.recruiting.defaultApprover'),
             title: getDefaultApproverLabel(policy, policyEmployeePersonalDetails, translate, formatPhoneNumber),
+            numberOfLinesTitle: 2,
             route: ROUTES.WORKSPACE_RECRUITING_MERGE_APPROVAL_MODE.getRoute(policyID),
             pendingAction: config?.pendingFields?.approvalMode,
             errors: config?.errorFields?.approvalMode,
@@ -140,5 +145,4 @@ function getRecruitingCards({policy, policyEmployeePersonalDetails, policyID, ic
     });
 }
 
-// eslint-disable-next-line import/prefer-default-export
-export {getRecruitingCards};
+export {getApproverFieldName, getRecruitingCards};

@@ -13,10 +13,10 @@ import {setDisableDismissOnEscape} from './actions/Modal';
 import SidePanelActions from './actions/SidePanel';
 import {setOnboardingRHPVariant} from './actions/Welcome';
 import isReportTopmostSplitNavigator from './Navigation/helpers/isReportTopmostSplitNavigator';
-import {dismissOnboardingModalBeforeExit} from './Navigation/helpers/OnboardingNavigationUtils';
+import dismissOnboardingModalBeforeExit from './Navigation/helpers/OnboardingNavigationUtils';
 import shouldOpenOnAdminRoom from './Navigation/helpers/shouldOpenOnAdminRoom';
 import Navigation from './Navigation/Navigation';
-import {findLastAccessedReport, isConciergeChatReport, isSelfDM} from './ReportUtils';
+import {findLastAccessedReport} from './ReportUtils';
 import {buildCannedSearchQuery} from './SearchQueryUtils';
 
 let onboardingRHPVariant: OnyxEntry<OnboardingRHPVariant>;
@@ -62,7 +62,12 @@ function getReportIDAfterOnboarding(
 
     // When the user goes through the onboarding flow, a workspace can be created if the user selects specific options. The user should be taken to the #admins room for that workspace because it is the most natural place for them to start their experience in the app.
     // The user should never go to the self DM or the Concierge chat if a workspace was created during the onboarding flow.
-    if (lastAccessedReportID && lastAccessedReport.policyID !== onboardingPolicyID && !isConciergeChatReport(lastAccessedReport, conciergeReportID) && !isSelfDM(lastAccessedReport)) {
+    if (
+        lastAccessedReportID &&
+        lastAccessedReport.policyID !== onboardingPolicyID &&
+        lastAccessedReport.reportID !== conciergeReportID &&
+        lastAccessedReport.chatType !== CONST.REPORT.CHAT_TYPE.SELF_DM
+    ) {
         return lastAccessedReportID;
     }
 
@@ -88,6 +93,16 @@ function navigateAfterOnboarding(
     const navigationOptions = options?.afterTransition ? {afterTransition: options.afterTransition} : undefined;
     const variantOverride = options?.variantOverride;
     const variant = variantOverride ?? onboardingRHPVariant;
+
+    // The homePageNoRHP arm of the onboarding experiment lands on Home without opening the side panel, at every company size,
+    // so it is handled before the variants that are limited to micro companies or that open the side panel.
+    if (variant === CONST.ONBOARDING_RHP_VARIANT.HOME_PAGE_NO_RHP) {
+        if (!isReportTopmostSplitNavigator()) {
+            Navigation.navigate(ROUTES.HOME, navigationOptions);
+        }
+        return;
+    }
+
     if (isSmallScreenWidth && variant === CONST.ONBOARDING_RHP_VARIANT.TRACK_EXPENSES_WITH_CONCIERGE) {
         Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(conciergeReportID), navigationOptions);
         return;
@@ -125,18 +140,19 @@ function navigateAfterOnboardingWithMicrotaskQueue(
     shouldPreventOpenAdminRoom = false,
     options?: NavigateAfterOnboardingOptions,
 ) {
-    dismissOnboardingModalBeforeExit();
-    Navigation.setNavigationActionToMicrotaskQueue(() => {
-        navigateAfterOnboarding(
-            isSmallScreenWidth,
-            canUseDefaultRooms,
-            conciergeReportID,
-            reportNameValuePairs,
-            onboardingPolicyID,
-            onboardingAdminsChatReportID,
-            shouldPreventOpenAdminRoom,
-            options,
-        );
+    dismissOnboardingModalBeforeExit(() => {
+        Navigation.setNavigationActionToMicrotaskQueue(() => {
+            navigateAfterOnboarding(
+                isSmallScreenWidth,
+                canUseDefaultRooms,
+                conciergeReportID,
+                reportNameValuePairs,
+                onboardingPolicyID,
+                onboardingAdminsChatReportID,
+                shouldPreventOpenAdminRoom,
+                options,
+            );
+        });
     });
 }
 
@@ -158,9 +174,10 @@ function navigateToSubmitWorkspaceAfterOnboarding(policyID?: string, shouldUseNa
 }
 
 function navigateToSubmitWorkspaceAfterOnboardingWithMicrotaskQueue(policyID?: string, shouldUseNarrowLayout = false) {
-    dismissOnboardingModalBeforeExit();
-    Navigation.setNavigationActionToMicrotaskQueue(() => {
-        navigateToSubmitWorkspaceAfterOnboarding(policyID, shouldUseNarrowLayout);
+    dismissOnboardingModalBeforeExit(() => {
+        Navigation.setNavigationActionToMicrotaskQueue(() => {
+            navigateToSubmitWorkspaceAfterOnboarding(policyID, shouldUseNarrowLayout);
+        });
     });
 }
 

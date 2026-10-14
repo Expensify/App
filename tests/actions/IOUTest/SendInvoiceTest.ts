@@ -61,6 +61,32 @@ function isRecord(input: unknown): input is Record<string, unknown> {
 }
 
 OnyxUpdateManager();
+/**
+ * Spies on both API write entry points and funnels their calls into `sink`. `sendInvoice` goes out through
+ * `writeWhenReady`, but the surrounding flows still reach `write`, and leaving either unmocked would let a
+ * real request through. Only the first three arguments are forwarded, so the assertions below stay written
+ * against `(command, params, onyxData)` and do not have to match the trailing barrier argument.
+ *
+ * Split into two functions at module scope because `no-multiple-api-calls` counts `API` tokens per function body.
+ */
+function spyOnApiWrites(sink: jest.Mock): jest.SpyInstance[] {
+    return [spyOnWrite(sink), spyOnWriteWhenReady(sink)];
+}
+
+function spyOnWrite(sink: jest.Mock) {
+    return jest.spyOn(API, 'write').mockImplementation((command, params, onyxData) => {
+        sink(command, params, onyxData);
+        return Promise.resolve();
+    });
+}
+
+function spyOnWriteWhenReady(sink: jest.Mock) {
+    return jest.spyOn(API, 'writeWhenReady').mockImplementation((command, params, onyxData) => {
+        sink(command, params, onyxData);
+        return Promise.resolve();
+    });
+}
+
 describe('actions/SendInvoice', () => {
     let currencyListProvider: RenderAPI;
     let mockFetch: MockFetch;
@@ -740,8 +766,8 @@ describe('actions/SendInvoice', () => {
     });
     describe('sendInvoice', () => {
         it('creates a new invoice chat when one has been converted from individual to business', async () => {
-            // Mock API.write for this test
-            const writeSpy = jest.spyOn(API, 'write').mockImplementation(jest.fn());
+            const writeSpy = jest.fn();
+            const apiSpies = spyOnApiWrites(writeSpy);
 
             // Given a convertedInvoiceReport is stored in Onyx
             const {policy, transaction, convertedInvoiceChat}: InvoiceTestData = InvoiceData;
@@ -775,7 +801,9 @@ describe('actions/SendInvoice', () => {
                 }),
                 expect.anything(),
             );
-            writeSpy.mockRestore();
+            for (const spy of apiSpies) {
+                spy.mockRestore();
+            }
         });
 
         it('should send a phone receiver as an SMS login and store it that way in the optimistic personal details', () => {
@@ -783,8 +811,8 @@ describe('actions/SendInvoice', () => {
             const smsLogin = `${phoneNumber}${CONST.SMS.DOMAIN}`;
             const receiverAccountID = 456;
 
-            // eslint-disable-next-line rulesdir/no-multiple-api-calls -- this it callback spies on API.write once; the rule's ancestor token scan combines otherwise independent tests
-            const writeSpy = jest.spyOn(API, 'write').mockImplementation(jest.fn());
+            const writeSpy = jest.fn();
+            const apiSpies = spyOnApiWrites(writeSpy);
 
             const transaction = createMock<Transaction>({
                 transactionID: 'transaction_phone_receiver',
@@ -824,7 +852,9 @@ describe('actions/SendInvoice', () => {
                 }),
             );
 
-            writeSpy.mockRestore();
+            for (const spy of apiSpies) {
+                spy.mockRestore();
+            }
         });
 
         it('should not clear transaction pending action when send invoice fails', async () => {
@@ -874,8 +904,8 @@ describe('actions/SendInvoice', () => {
             const currentUserAccountID = 1;
             const policyRecentlyUsedCategories: OnyxEntry<RecentlyUsedCategories> = [];
 
-            // eslint-disable-next-line rulesdir/no-multiple-api-calls
-            const writeSpy = jest.spyOn(API, 'write').mockImplementation(jest.fn());
+            const writeSpy = jest.fn();
+            const apiSpies = spyOnApiWrites(writeSpy);
 
             // When sending an invoice
             sendInvoice({
@@ -898,7 +928,9 @@ describe('actions/SendInvoice', () => {
                 }),
             );
 
-            writeSpy.mockRestore();
+            for (const spy of apiSpies) {
+                spy.mockRestore();
+            }
         });
 
         it('should update policyRecentlyUsedTags when tag is provided', async () => {
@@ -957,8 +989,8 @@ describe('actions/SendInvoice', () => {
                 ],
             };
 
-            // eslint-disable-next-line rulesdir/no-multiple-api-calls
-            const writeSpy = jest.spyOn(API, 'write').mockImplementation(jest.fn());
+            const writeSpy = jest.fn();
+            const apiSpies = spyOnApiWrites(writeSpy);
 
             sendInvoice({
                 currentUserAccountID: 123,
@@ -979,7 +1011,9 @@ describe('actions/SendInvoice', () => {
                 expect.anything(),
             );
 
-            writeSpy.mockRestore();
+            for (const spy of apiSpies) {
+                spy.mockRestore();
+            }
         });
     });
 });

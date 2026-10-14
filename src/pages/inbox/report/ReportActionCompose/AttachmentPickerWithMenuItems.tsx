@@ -168,13 +168,12 @@ function AttachmentPickerWithMenuItems({
     const {setIsLoaderVisible} = useFullScreenLoaderActions();
     const isReportArchived = useReportIsArchived(report?.reportID);
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
     const {isBetaEnabled} = usePermissions();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const {accountID} = currentUserPersonalDetails;
     const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
     const hasViolations = hasViolationsReportUtils(undefined, transactionViolations, accountID, '');
-    const shouldShowEmptyReportConfirmation = useShouldShowEmptyReportConfirmation(report?.policyID);
+    const shouldShowEmptyReportConfirmation = useShouldShowEmptyReportConfirmation(report?.policyID, !isMenuVisible);
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
     const {getCurrencyDecimals} = useCurrencyListActions();
@@ -313,7 +312,7 @@ function AttachmentPickerWithMenuItems({
             ],
         };
 
-        const moneyRequestOptionsList = temporary_getMoneyRequestOptions(report, policy, reportParticipantIDs ?? [], betas, rules, isReportArchived, isRestrictedToPreferredPolicy).map(
+        const moneyRequestOptionsList = temporary_getMoneyRequestOptions(report, policy, reportParticipantIDs ?? [], rules, isReportArchived, isRestrictedToPreferredPolicy).map(
             (option) => options[option],
         );
 
@@ -333,7 +332,6 @@ function AttachmentPickerWithMenuItems({
         showDelegateNoAccessModal,
         translate,
         icons,
-        betas,
         draftTransactionIDs,
         rules,
     ]);

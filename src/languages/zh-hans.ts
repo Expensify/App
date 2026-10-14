@@ -26,6 +26,7 @@ import {CONST as COMMON_CONST, Str} from 'expensify-common';
 import startCase from 'lodash/startCase';
 
 import type en from './en';
+import type {CompanyCardBalanceParams} from './params';
 import type {TranslationDeepObject} from './types';
 type StateValue = {
     stateISO: string;
@@ -92,7 +93,9 @@ const translations: TranslationDeepObject<typeof en> = {
         selectMultiple: '多选',
         saveChanges: '保存更改',
         submit: '提交',
+        submitAnyway: '仍然提交',
         markAsDone: '标记为完成',
+        markAsDoneAnyway: '仍然标记为完成',
         submitted: '已提交',
         markedAsDoneStatus: '已标记为完成',
         rotate: '旋转',
@@ -225,6 +228,7 @@ const translations: TranslationDeepObject<typeof en> = {
             invalidDateShouldBeFuture: '请选择今天或将来的日期',
             invalidTimeShouldBeFuture: '请选择一个至少比当前时间晚一分钟的时间',
             invalidCharacter: '字符无效',
+            invalidField: (fieldName) => `无效字段：${fieldName}`,
             enterMerchant: '输入商户名称',
             enterAmount: '输入金额',
             missingMerchantName: '缺少商家名称',
@@ -412,8 +416,6 @@ const translations: TranslationDeepObject<typeof en> = {
         minuteAbbreviation: 'm',
         secondAbbreviation: '秒',
         skip: '跳过',
-        chatWithAccountManager: (accountManagerDisplayName: string) => `有具体需求吗？请联系您的客户经理 ${accountManagerDisplayName}。`,
-        chatNow: '立即聊天',
         workEmail: '工作邮箱',
         destination: '目的地',
         subrate: '次级费率',
@@ -446,6 +448,7 @@ const translations: TranslationDeepObject<typeof en> = {
         leaveWorkspaceConfirmationTechContact: (workspaceOwner: string) => `如果你离开此工作区，你将由工作区所有者 ${workspaceOwner} 接任技术联系人。`,
         leaveWorkspaceReimburser: '作为报销人，您无法离开此工作区。请前往“工作区”>“进行或跟踪付款”中设置新的报销人，然后重试。',
         reimbursable: '可报销',
+        nonReimbursable: '不可报销',
         editYourProfile: '编辑个人资料',
         comments: '评论',
         sharedIn: '共享于',
@@ -510,6 +513,7 @@ const translations: TranslationDeepObject<typeof en> = {
         previousYear: '上一年',
         nextYear: '明年',
         avatar: '头像',
+        currentOfTotal: ({current, total}: {current: number; total: number}) => `第 ${current} 项（共 ${total} 项）`,
         editor: '编辑',
         restrictions: '限制',
         tryAgain: '重试',
@@ -519,6 +523,7 @@ const translations: TranslationDeepObject<typeof en> = {
         noResultsFoundSubtitle: '无结果。请尝试调整筛选条件或搜索内容',
         unableToDisplayChart: '无法显示图表',
         webGLNotSupported: '您的浏览器不支持 WebGL。请启用该功能或更换浏览器。',
+        chartFailedToLoad: '无法加载图表。请刷新页面后重试。',
         apiKey: 'API 密钥',
         exportsTo: '导出到',
     },
@@ -573,6 +578,10 @@ const translations: TranslationDeepObject<typeof en> = {
         errorWhileSelectingCorruptedAttachment: '选择已损坏的附件时发生错误。请尝试另一个文件。',
         errorWhileConvertingHeic: '我们无法处理此图片。请重试，或以其他格式上传照片。',
         takePhoto: '拍照',
+        retake: '重拍',
+        usePhoto: '使用照片',
+        capturedPhotoPreview: '照片预览',
+        photoTakenAnnouncement: '照片已拍摄。请选择“重拍”或“使用照片”。',
         chooseFromGallery: '从相册中选择',
         chooseDocument: '选择文件',
         attachmentTooLarge: '附件过大',
@@ -619,10 +628,6 @@ const translations: TranslationDeepObject<typeof en> = {
         problemGettingImageYouPasted: '获取您粘贴的图片时出错',
         commentExceededMaxLength: (formattedMaxLength: string) => `评论的最大长度为 ${formattedMaxLength} 个字符。`,
         taskTitleExceededMaxLength: (formattedMaxLength: string) => `任务标题最长为 ${formattedMaxLength} 个字符。`,
-    },
-    baseUpdateAppModal: {
-        updateApp: '更新应用',
-        updatePrompt: '此应用有新版本可用。\n现在更新，或稍后重启应用以下载最新更改。',
     },
     deeplinkWrapper: {
         launching: '正在启动 Expensify',
@@ -831,7 +836,7 @@ const translations: TranslationDeepObject<typeof en> = {
             } else if (action?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW) {
                 type = 'report';
             }
-            return `确定要删除此${type}吗？`;
+            return `确定要删除此${type}吗？${action?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW ? '此报告中的所有费用都将变为未报销状态。' : ''}`;
         },
         onlyVisible: '仅对以下对象可见',
         explain: '解释',
@@ -910,6 +915,7 @@ const translations: TranslationDeepObject<typeof en> = {
         [CONST.REPORT.ARCHIVE_REASON.REMOVED_FROM_POLICY]: ({displayName, policyName, shouldUseYou = false}: {displayName: string; policyName: string; shouldUseYou?: boolean}) =>
             shouldUseYou ? `此聊天已不再活跃，因为<strong>你</strong>已不再是 ${policyName} 工作区的成员。` : `此聊天已不再活动，因为${displayName}已不再是${policyName}工作区的成员。`,
         [CONST.REPORT.ARCHIVE_REASON.POLICY_DELETED]: ({policyName}: {policyName: string}) => `此聊天已不再活动，因为 ${policyName} 已不再是一个活跃的工作区。`,
+        [CONST.REPORT.ARCHIVE_REASON.POLICY_ARCHIVED]: ({policyName}: {policyName: string}) => `此聊天已不再活动，因为 ${policyName} 是已归档的工作区。`,
         [CONST.REPORT.ARCHIVE_REASON.INVOICE_RECEIVER_POLICY_DELETED]: ({policyName}: {policyName: string}) => `此聊天已不再活动，因为 ${policyName} 已不再是一个活跃的工作区。`,
         [CONST.REPORT.ARCHIVE_REASON.BOOKING_END_DATE_HAS_PASSED]: '此预订已归档。',
     },
@@ -942,12 +948,7 @@ const translations: TranslationDeepObject<typeof en> = {
             addBankAccount: {title: '添加银行账户以接收报销'},
             activateCard: {title: '激活你的 Expensify 卡', subtitle: '验证您的银行卡并开始消费。', cta: '启用'},
             confirmDigitalWalletAddition: {
-                title: ({walletName}: {walletName: string}) => `${walletName} 卡添加需要您的批准`,
                 subtitle: 'Expensify 卡',
-                cta: '审核',
-                appleWallet: 'Apple 钱包',
-                googleWallet: 'Google 钱包',
-                digitalWallet: '数字钱包',
             },
             reviewCardFraud: {
                 title: '审查您 Expensify 卡上的潜在欺诈交易',
@@ -967,7 +968,6 @@ const translations: TranslationDeepObject<typeof en> = {
                 defaultSubtitle: '工作区',
                 subtitle: ({policyName}: {policyName: string}) => `${policyName} > 会计`,
             },
-            validateAccount: {title: '验证您的账户', subtitle: '账户', cta: '验证'},
             addHomeAddress: {title: '添加您的家庭住址以进行距离跟踪', subtitle: '账户', cta: '添加'},
             fixFailedBilling: {title: '我们无法向您档案中的银行卡收费', subtitle: '订阅'},
             unlockBankAccount: {
@@ -983,12 +983,12 @@ const translations: TranslationDeepObject<typeof en> = {
                 dueSoonTitle: ({date}: {date: string}) => `请在 ${date} 前支付您的发票，以避免服务中断`,
                 overdueTitle: '您的付款已逾期，请支付您的发票',
             },
-        },
-        discoverSection: {
-            title: '发现',
-            menuItemTitleNonAdmin: '了解如何创建报销和提交报表。',
-            menuItemTitleAdmin: '了解如何邀请成员、编辑审批流程以及对公司卡进行对账。',
-            menuItemDescription: '了解 Expensify 的强大功能，只需 2 分钟',
+            renewSubscription: {
+                title: '开启自动续订以保留您当前的价格',
+                subtitle: ({date}: {date: string}) => `订阅将于 ${date} 结束`,
+                cta: '管理',
+            },
+            emailDeliveryFailure: {title: '我们无法向你发送电子邮件通知', subtitle: '账户'},
         },
         forYouSection: {
             submit: ({count}: {count: number}) => ({
@@ -1127,6 +1127,7 @@ const translations: TranslationDeepObject<typeof en> = {
         viewOnSpend: '在支出中查看',
         emptyState: {title: '没有可显示的内容', subtitle: '请尝试调整上面的条件'},
         noExpensesState: {title: '查看你的资金流向', subtitle: '添加报销后，您就能查看消费趋势、主要商家等更多信息。'},
+        compare: {label: '比较', previousPeriod: '上一期', average: '平均'},
     },
     allSettingsScreen: {
         subscription: '订阅',
@@ -1156,6 +1157,8 @@ const translations: TranslationDeepObject<typeof en> = {
         fieldNotMapped: (fieldName: string) => `哎呀！有一个必填字段（“${fieldName}”）尚未映射。请检查后重试。`,
         singleFieldMultipleColumns: (fieldName: string) => `哎呀！你已将单个字段（“${fieldName}”）映射到多个列。请检查后重试。`,
         emptyMappedField: (fieldName: string) => `哎呀！字段（“${fieldName}”）包含一个或多个空值。请检查后重试。`,
+        invalidApprovalLimit: '审批限额必须是工作区币种的有效金额。',
+        fieldValueTooLong: (fieldName: string, limit: number) => `哎呀！字段（“${fieldName}”）包含一个或多个超过 ${limit} 个字符的值。请检查后重试。`,
         importSuccessfulTitle: '导入成功',
         importCategoriesNoneAddedOrUpdated: '尚未添加或更新任何类别。',
         importCategoriesAdded: ({count}: {count: number}) => ({
@@ -1269,7 +1272,7 @@ const translations: TranslationDeepObject<typeof en> = {
             phrase1: '添加收据',
             phrase2: '或将文件拖放到此处',
         },
-        pageCount: ({pageCount}: {pageCount: number}) => `第 1 页，共 ${pageCount} 页`,
+        pageCount: ({page, pageCount}: {page: number; pageCount: number}) => `第 ${page} 页，共 ${pageCount} 页`,
     },
     quickAction: {
         scanReceipt: '扫描收据',
@@ -1296,6 +1299,8 @@ const translations: TranslationDeepObject<typeof en> = {
                     : '在开始记录里程之前，您需要在个人资料中添加您的家庭住址。此工作区会使用该地址计算通勤扣除。',
             cta: '添加家庭住址',
         },
+        expenseAdded: '已添加支出',
+        invoiceSent: '已发送发票',
         amount: '金额',
         percent: '百分比',
         date: '日期',
@@ -1372,8 +1377,15 @@ const translations: TranslationDeepObject<typeof en> = {
         pendingMatch: '待匹配',
         pendingMatchWithCreditCardDescription: '收据正在等待与卡片交易匹配。将其标记为现金以取消。',
         markAsCash: '标记为现金',
-        pendingMatchSubmitTitle: '提交报告',
-        pendingMatchSubmitDescription: '部分费用正在等待与信用卡交易匹配。您要将它们标记为现金吗？',
+        confirmSubmitReportViolations: {
+            title: '提交报告？',
+            description: '此报告存在违反政策的情况。您确定要不做任何更改就提交吗？',
+            titleMarkAsDone: '标记为完成？',
+            descriptionMarkAsDone: '此报告存在违反政策的情况。您确定要不做任何更改就标记为完成吗？',
+            rejectedExpense: '被拒绝的费用未标记为已解决',
+            reportRejected: '报告此前已被拒绝',
+            pendingCardMatch: '费用正在等待与卡交易的潜在匹配',
+        },
         routePending: '路由处理中…',
         automaticallyEnterExpenseDetails: 'Concierge 会帮你填写详细信息。',
         receiptScanning: () => ({
@@ -1429,6 +1441,7 @@ const translations: TranslationDeepObject<typeof en> = {
             one: '您确定要删除此报告吗？',
             other: '您确定要删除这些报告吗？',
         }),
+        deleteExpenseReportConfirmation: '您确定要删除此报告吗？此报告中的所有费用都将变为未报销状态。',
         settledExpensify: '已支付',
         paidStatusMarkedAsPaid: '已标记为已支付',
         paidStatusWithdrawing: '提现中',
@@ -1453,6 +1466,7 @@ const translations: TranslationDeepObject<typeof en> = {
         businessBankAccount: (amount?: string, last4Digits?: string) => (amount ? `使用银行账户尾号为 ${last4Digits} 支付了 ${amount}` : `通过银行账户 ${last4Digits} 支付`),
         automaticallyPaidWithBusinessBankAccount: (amount?: string, last4Digits?: string) =>
             `已通过<a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">工作区规则</a>使用尾号为 ${last4Digits} 的银行账户支付了 ${amount ? `${amount} ` : ''}`,
+        paymentWithExpectedDate: ({paymentMessage, expectedDateMessage}: {paymentMessage: string; expectedDateMessage: string}) => `${paymentMessage}。${expectedDateMessage}`,
         invoicePersonalBank: (lastFour: string) => `个人账户 • ${lastFour}`,
         invoiceBusinessBank: (lastFour: string) => `企业账户 • ${lastFour}`,
         nextStep: '后续步骤',
@@ -1535,6 +1549,8 @@ const translations: TranslationDeepObject<typeof en> = {
         noReimbursableExpenses: '此报表的金额无效',
         pendingConversionMessage: '当你重新联网时，总金额会更新',
         changedTheExpense: '更改了报销单',
+        addedReceipt: '添加了收据',
+        removedReceipt: '删除了收据',
         setTheRequest: (valueName: string, newValueToDisplay: string) => `将 ${valueName} 更改为 ${newValueToDisplay}`,
         setTheDistanceMerchant: (translatedChangedField: string, newMerchant: string, newAmountToDisplay: string) =>
             `将 ${translatedChangedField} 设置为 ${newMerchant}，这会将金额设置为 ${newAmountToDisplay}`,
@@ -1574,10 +1590,11 @@ const translations: TranslationDeepObject<typeof en> = {
             receiptDeleteFailureError: '删除此收据时发生意外错误。请稍后再试。',
             receiptFailureMessage: '<rbr>上传您的收据时出错。请<a href="download">保存收据</a>并在稍后<a href="retry">重试</a>。</rbr>',
             receiptFailureMessageShort: '上传您的收据时出错。',
-            receiptUploadFailedMessage: '收据上传失败。保存收据，或删除该支出并失去它。',
+            receiptUploadFailedMessage: '上传失败。请重试或稍后保存。',
             saveReceipt: '保存收据',
             genericDeleteFailureMessage: '删除此报销时发生意外错误。请稍后重试。',
             genericEditFailureMessage: '编辑此报销时发生意外错误。请稍后再试。',
+            genericSplitFailureMessage: '拆分此报销时发生意外错误。请稍后再试。',
             genericSmartscanFailureMessage: '交易缺少字段',
             duplicateWaypointsErrorMessage: '请移除重复的途经点',
             atLeastTwoDifferentWaypoints: '请输入至少两个不同的地址',
@@ -1604,6 +1621,7 @@ const translations: TranslationDeepObject<typeof en> = {
             reportsNotMarkedAsDoneDescription: '无法将这些报销报告标记为已完成。请检查报销是否未被保留或待处理，然后重试。',
             stitchOdometerImagesFailed: '合并里程表图片失败。请稍后重试。',
             failedToSaveOdometerDraft: '无法保存你的里程表草稿。请重试。',
+            receiptUploadFailedSaveOnlyMessage: '上传失败。请保存收据以保留副本。',
         },
         dismissReceiptError: '忽略错误',
         dismissReceiptErrorConfirmation: '提醒：关闭此错误将彻底删除你上传的收据。确定要继续吗？',
@@ -1769,12 +1787,20 @@ const translations: TranslationDeepObject<typeof en> = {
             title: '更改审批人',
             header: (workflowSettingLink: string) => `选择一个选项来更改此报表的审批人。（更新你的<a href="${workflowSettingLink}">工作区设置</a>，以将其永久应用于所有报表。）`,
             changedApproverMessage: (managerID: number) => `已将审批人更改为 <mention-user accountID="${managerID}"/>`,
+            changedFinalApproverMessage: (managerID: number) => `已将最终审批人更改为 <mention-user accountID="${managerID}"/>`,
             reassignedApproverMessage: (managerID: number) => `已通过工作流更新将审批人重新分配给 <mention-user accountID="${managerID}"/>`,
+            reassignedApprovalMessage: (newApproverID: number, previousApproverID?: number) =>
+                previousApproverID
+                    ? `已将审批人更改为 <mention-user accountID="${newApproverID}"/>，跳过了 <mention-user accountID="${previousApproverID}"/>`
+                    : `已将审批人更改为 <mention-user accountID="${newApproverID}"/>`,
             actions: {
                 addApprover: '添加审批人',
                 addApproverSubtitle: '向现有工作流程添加额外审批人。',
                 bypassApprovers: '跳过审批人',
                 bypassApproversSubtitle: '将自己设为最终批准人并跳过所有剩余批准人。',
+                reassignApprover: '重新指派审批人',
+                reassignApproverSubtitle: '跳过当前审批人并指派新的审批人。',
+                reassignApproverPageHeader: '选择一位替代审批人，然后按剩余的审批流程进行。',
             },
             addApprover: {
                 subtitle: '在将此报表提交到其余审批流程之前，请选择一位额外的审批人。',
@@ -1834,6 +1860,7 @@ const translations: TranslationDeepObject<typeof en> = {
         deleteConfirmationSomePendingBYOC: '您确定要删除这些报销吗？其中一些处于待处理状态，如果入账后，我们可能会再次导入。',
         categoryDisabledAlert: {title: '类别已禁用', prompt: '在工作区中启用类别，以编辑报销详情或从此报销中删除该类别。', confirmText: '删除类别'},
         tagDisabledAlert: {title: '标签已停用', prompt: '请在工作区中启用标签，以便编辑该报销的详细信息或从此报销中删除该标签。', confirmText: '删除标签'},
+        undeletedExpense: '恢复了此报销单',
         conciergeAutoSelectedDistanceRates: ({policyName}: {policyName: string}) => `已为新工作区更新里程报销标准 - ${policyName}`,
     },
     transactionMerge: {
@@ -1958,6 +1985,12 @@ const translations: TranslationDeepObject<typeof en> = {
                 _eta?: string,
                 _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
             ) => `无需执行其他操作！`,
+            [CONST.NEXT_STEP.MESSAGE_KEY.CHANGE_WORKSPACE]: (
+                _actor: string,
+                _actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
+                _eta?: string,
+                _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
+            ) => `请更改报告的工作区以执行进一步操作。`,
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_SUBMITTER_ACCOUNT]: (
                 actor: string,
                 actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
@@ -2115,7 +2148,7 @@ const translations: TranslationDeepObject<typeof en> = {
         profileAvatar: '个人头像',
         customInstructions: '自定义指令',
         copilotIntoAccount: 'Copilot 到账户',
-        viewUserHistory: '查看用户历史记录',
+        seeChatHistory: '查看聊天记录',
         viewAgentHistory: '查看代理历史记录',
         publicSection: {
             title: '公开',
@@ -2197,6 +2230,7 @@ const translations: TranslationDeepObject<typeof en> = {
     displayNamePage: {
         headerTitle: '显示名称',
         isShownOnProfile: '您的显示名称会显示在您的个人资料中。',
+        isShownOnMemberProfile: '显示名称会出现在该成员的个人资料中。保存后，只有该成员本人可以编辑。',
     },
     timezonePage: {
         timezone: '时区',
@@ -2242,9 +2276,14 @@ const translations: TranslationDeepObject<typeof en> = {
             useProfiling: '使用分析工具',
             profileTrace: '性能追踪',
             results: '结果',
-            releaseOptions: '发布选项',
             testingPreferences: '测试偏好',
-            useStagingServer: '使用预备服务器',
+            server: '服务器',
+            servers: {
+                production: {label: '生产', description: '真实用户所使用的线上环境'},
+                staging: {label: '预备', description: '生产环境的镜像，用于最终验证'},
+                qa: {label: 'QA', description: '用于测试的实验环境'},
+            },
+            serverPinnedDescription: '此版本始终连接到单一服务器，因此无法在此处更改。',
             forceOffline: '强制离线',
             simulatePoorConnection: '模拟较差的互联网连接',
             simulateFailingNetworkRequests: '模拟失败的网络请求',
@@ -2313,9 +2352,11 @@ const translations: TranslationDeepObject<typeof en> = {
         accountSettings: '账户设置',
         account: '账户',
         general: '常规',
+        talkToAHuman: '与人工客服联系',
         helpPage: {
             title: '帮助与支持',
             description: '我们全天候为您提供帮助。',
+            talkToAHumanDescription: '获取真人客服的帮助',
             helpSite: '帮助网站',
             helpSiteDescription: '文章、教程等',
             conciergeChat: 'Concierge',
@@ -2463,7 +2504,7 @@ const translations: TranslationDeepObject<typeof en> = {
         twoFactorAuthIsRequiredForAdminsHeader: '需要启用双重身份验证',
         twoFactorAuthIsRequiredForAdminsTitle: '请启用双重身份验证',
         twoFactorAuthIsRequiredXero: '您的 Xero 会计连接需要启用双重身份验证。',
-        twoFactorAuthIsRequiredCompany: '您的公司要求使用双重身份验证。',
+        twoFactorAuthIsRequiredCompany: '您的公司要求使用双重身份验证（2FA）。',
         twoFactorAuthCannotDisable: '无法禁用双重验证',
         twoFactorAuthRequired: '您的 Xero 连接需要启用双重身份验证（2FA），且无法将其禁用。',
         replaceDevice: '更换设备',
@@ -2475,6 +2516,7 @@ const translations: TranslationDeepObject<typeof en> = {
         verifyNewDeviceDescription: '使用新设备扫描二维码，然后输入代码完成设置。',
         downloadCodes: '下载代码',
         copyCodes: '复制代码',
+        enable2FA: '启用',
     },
     recoveryCodeForm: {
         error: {
@@ -2602,6 +2644,9 @@ const translations: TranslationDeepObject<typeof en> = {
         setDefaultSuccess: '已设置默认付款方式！',
         deleteAccount: '删除账户',
         deleteConfirmation: '确定要删除此账户吗？',
+        editNickname: '编辑昵称',
+        nickname: '昵称',
+        editNicknameInstruction: '为此银行账户起一个昵称，以便与其他账户区分开来。',
         deleteCard: '删除卡片',
         deleteCardConfirmation: '所有未提交的银行卡交易（包括在未关闭报表中的交易）都将被移除。确定要删除此银行卡吗？此操作无法撤销。',
         error: {
@@ -2660,6 +2705,7 @@ const translations: TranslationDeepObject<typeof en> = {
             fixConnectionIn: (companyCardsRoute: string) => `请在<a href="${companyCardsRoute}">公司卡</a>中修复此连接`,
             askAdminToFixConnection: '请联系管理员修复此连接',
             reconnectBank: '您的银行连接需要重新验证',
+            pending: '待处理',
         },
         bankAccountStatus: {
             active: '活跃',
@@ -2679,6 +2725,9 @@ const translations: TranslationDeepObject<typeof en> = {
         appleWallet: 'Apple 钱包',
         googleWallet: 'Google 钱包',
         digitalWallet: '数字钱包',
+        digitalWalletCapitalized: '数字钱包',
+        approvalNeeded: ({walletName}: {walletName: string}) => `${walletName} 卡添加需要您的批准`,
+        review: '审核',
         confirmHeading: '确认你的请求',
         confirmDescription: ({walletName, lastFourDigits}: {walletName: string; lastFourDigits: string}) => `是否要将尾号为 ${lastFourDigits} 的 Expensify 卡添加到您的 ${walletName}？`,
         deny: '拒绝',
@@ -2852,6 +2901,9 @@ ${amount}，商户：${merchant} - 日期：${date}`,
             },
         },
         approverInMultipleWorkflows: '此成员已属于另一个审批流程。此处的任何更新也会在那边同步生效。',
+        approverNotWorkspaceMember: '此审批人已不再是工作区成员。请选择新的审批人或删除此工作流程。',
+        defaultWorkflowApproverNotWorkspaceMember: '此审批人已不再是工作区成员。请选择新的审批人。',
+        overLimitApproverNotWorkspaceMember: '超出限额报告的额外审批人已不再是工作区成员。请选择新的额外审批人。',
         approverCircularReference: (name1: string, name2: string) => `<strong>${name1}</strong> 已经将报表提交给 <strong>${name2}</strong> 审批。请选择其他审批人以避免形成循环审批流程。`,
         emptyContent: {
             title: '没有可显示的成员',
@@ -2859,9 +2911,9 @@ ${amount}，商户：${merchant} - 日期：${date}`,
             approverSubtitle: '所有审批人都属于一个现有的工作流。',
             bulkApproverSubtitle: '所选报表中没有符合条件的审批人。',
         },
-        configureViaHR: ({provider}: {provider: string}) => `通过 ${provider} 配置。`,
-        hrApprovalWorkflowLockedPrompt: ({provider}: {provider: string}) => `审批由你的 ${provider} 集成管理。若要更新审批流程，请前往 ${provider} 连接设置。`,
-        goToHRSettings: ({provider}: {provider: string}) => `前往 ${provider} 设置`,
+        configureViaProvider: ({provider}: {provider: string}) => `通过 ${provider} 配置。`,
+        integrationApprovalWorkflowLockedPrompt: ({provider}: {provider: string}) => `审批由你的 ${provider} 集成管理。若要更新审批流程，请前往 ${provider} 连接设置。`,
+        goToProviderSettings: ({provider}: {provider: string}) => `前往 ${provider} 设置`,
         approverFromProvider: ({provider}: {provider: string}) => `来自 ${provider}`,
         finalApprover: '最终审批人',
         manager: '经理',
@@ -2894,6 +2946,8 @@ ${amount}，商户：${merchant} - 日期：${date}`,
         memberAlreadyInWorkflowTitle: '成员已在工作流中',
         memberAlreadyInWorkflowPrompt: ({memberName, approverName}: {memberName: string; approverName: string}) =>
             `${memberName}已在提交给${approverName}的审批流程中。在此处添加将把该成员移动到此工作流。`,
+        moveEveryoneToThisWorkflowTitle: '将所有人移至此工作流程',
+        moveEveryoneToThisWorkflowPrompt: '您即将将所有人迁移到此新审批流程。保存后，所有其他审批流程都将被删除。此操作无法撤销。',
     },
     workflowsApproverPage: {
         genericErrorMessage: '无法更改审批人。请重试或联系支持。',
@@ -3024,6 +3078,8 @@ ${amount}，商户：${merchant} - 日期：${date}`,
             updateAvatar: '更新此代理的头像时出现问题',
         },
     },
+    agentPromptUpdated: ({updatedBy, previousPrompt, newPrompt}: {updatedBy: string; previousPrompt: string; newPrompt: string}) =>
+        `${updatedBy} 更新了此智能体的指令。\n之前的指令：\n${previousPrompt}\n新的指令：\n${newPrompt}`,
     newAgentPage: {
         title: '新代理',
         buildCustomAgent: '构建自定义代理',
@@ -3197,7 +3253,12 @@ ${amount}，商户：${merchant} - 日期：${date}`,
             other: `剩余时间：${count} 秒`,
         }),
         timeExpiredAnnouncement: '时间已到期',
-        error: {pleaseFillSecurityCode: '请输入您的安全码', incorrectSecurityCode: '安全码不正确或无效。请重试或请求新代码。', pleaseFillTwoFactorAuth: '请输入您的双重身份验证代码'},
+        error: {
+            pleaseFillSecurityCode: '请输入您的安全码',
+            tooManyAttempts: '尝试次数过多。请稍后再试。',
+            incorrectSecurityCode: '安全码不正确或无效。请重试或请求新代码。',
+            pleaseFillTwoFactorAuth: '请输入您的双重身份验证代码',
+        },
     },
     passwordForm: {
         pleaseFillOutAllFields: '请填写所有字段',
@@ -3248,12 +3309,13 @@ ${amount}，商户：${merchant} - 日期：${date}`,
         errorSelection: '选择一个选项以继续',
         purpose: {
             title: '你今天想做什么？',
-            errorContinue: '请按“继续”完成设置',
+            errorContinue: '请点击“继续”完成设置',
             errorBackButton: '请完成设置问题以开始使用此应用程序',
-            [CONST.ONBOARDING_CHOICES.EMPLOYER]: '向雇主提交费用',
+            [CONST.ONBOARDING_CHOICES.JOIN_WORKSPACE]: '加入我的公司工作区',
+            [CONST.ONBOARDING_CHOICES.EMPLOYER]: '向我的雇主提交报销',
             [CONST.ONBOARDING_CHOICES.MANAGE_TEAM]: '管理我团队的报销',
-            [CONST.ONBOARDING_CHOICES.TRACK_BUSINESS]: '跟踪我的商务开销',
-            [CONST.ONBOARDING_CHOICES.TRACK_PERSONAL]: '管理我的个人支出',
+            [CONST.ONBOARDING_CHOICES.TRACK_BUSINESS]: '跟踪我的业务支出',
+            [CONST.ONBOARDING_CHOICES.TRACK_PERSONAL]: '整理我的个人支出',
             [CONST.ONBOARDING_CHOICES.LOOKING_AROUND]: '其他原因',
         },
         personalTrackGoal: {
@@ -3278,13 +3340,12 @@ ${amount}，商户：${merchant} - 日期：${date}`,
         },
         accounting: {
             title: '你是否使用任何会计软件？',
-            none: '无',
-            otherAccountingSoftware: '你的会计软件',
+            otherAccountingSoftware: '软件名称',
         },
         interestedFeatures: {
-            title: '你对哪些功能感兴趣？',
-            featuresAlreadyEnabled: '以下是我们最受欢迎的功能：',
-            featureYouMayBeInterestedIn: '启用更多功能：',
+            title: '选择你想要的功能',
+            featuresAlreadyEnabled: '您的工作区已启用以下功能：',
+            featureYouMayBeInterestedIn: '启用您可能感兴趣的其他功能：',
         },
         error: {
             requiredFirstName: '请输入您的名以继续',
@@ -3308,6 +3369,8 @@ ${amount}，商户：${merchant} - 日期：${date}`,
         mergeBlockScreen: {
             title: '无法添加工作邮箱',
             subtitle: (workEmail: string | undefined) => `我们无法添加 ${workEmail}。请稍后在设置中重试，或与 Concierge 聊天以获取指导。`,
+            validatedPublicDomainSubtitle: (workEmail: string | undefined) =>
+                `我们无法添加 ${workEmail}。若要合并这些账户，请以 ${workEmail} 身份登录，并前往“账户 > 安全 > 合并账户”以完成此流程。`,
             workAccountClosedSubtitle: '与此邮箱关联的工作账户已被关闭。请联系您公司的管理员以重新激活该账户，或使用其他邮箱注册。',
             domainControlledSubtitle: (workEmail: string | undefined) => `${workEmail} 是现有 Expensify 账户的域控制登录。`,
         },
@@ -3545,6 +3608,34 @@ ${amount}，商户：${merchant} - 日期：${date}`,
                     完成！
                 `),
             },
+            addWorkEmailTask: {
+                title: '添加你的工作邮箱',
+                description: ({workEmailLink = ''}) =>
+                    Str.dedent(`
+                        1. 打开[添加工作邮箱](${workEmailLink})。
+                        2. 输入你的公司邮箱地址。
+                        3. 输入我们发给你的验证码。
+                        4. 选择要加入的工作区，或点击 *请求加入* 向工作区所有者发送请求。
+                    `),
+            },
+            validateEmailTask: {
+                title: '验证你的邮箱',
+                description: ({validateEmailLink = '', workEmail = ''}) =>
+                    Str.dedent(`
+                        1. 打开［验证您的账户］(${validateEmailLink})。
+                        2. 输入我们发送到 ${workEmail} 的验证码。
+                        3. 选择要加入的工作区，或点击 *请求加入* 向该工作区所有者发送请求。
+                    `),
+            },
+            joinWorkspaceTask: {
+                title: '加入你们公司的工作区',
+                description: ({joinWorkspaceLink = ''}) =>
+                    Str.dedent(`
+                        1. 打开［加入工作空间］(${joinWorkspaceLink})。
+                        2. 在列表中找到你的团队。每个团队都会显示其所有者和成员数量，按人数从多到少排序。如果没有看到你的团队，点击 *显示更多*。
+                        3. 点击 *立即加入*，如需管理员审批则点击 *请求加入*。
+                    `),
+            },
         } satisfies Record<string, Pick<OnboardingTask, 'title' | 'description'>>,
         testDrive: {
             name: ({testDriveURL}: {testDriveURL?: string}) => (testDriveURL ? `进行[试用体验](${testDriveURL})` : '试用体验'),
@@ -3567,6 +3658,12 @@ ${amount}，商户：${merchant} - 日期：${date}`,
             onboardingChatSplitMessage: '和朋友分摊账单就像发条消息一样简单。操作方法如下。',
             onboardingAdminMessage: '了解如何以管理员身份管理您团队的工作区，并提交您自己的报销。',
             onboardingTestDriveReceiverMessage: '*您已获得 3 个月的免费使用！请从下面开始。*',
+            onboardingJoinWorkspaceAddWorkEmailMessage: '由于你是想加入你们公司的工作区，所以我没有为你创建新的工作区。请添加你的工作邮箱，我会检查你可以加入你们公司中的哪些工作区。',
+            onboardingJoinWorkspaceValidateEmailMessage: ({companyDomain = ''}: {companyDomain?: string}) =>
+                `由于你想加入你所在公司的工作区，我就不为你创建新的工作区了。请先验证你的邮箱，我会检查你可以加入哪些位于 ${companyDomain} 的工作区。`,
+            onboardingJoinWorkspaceMessage: ({companyDomain = '', joinWorkspaceLink = ''}: {companyDomain?: string; joinWorkspaceLink?: string}) =>
+                `由于你想加入你们公司的工作区，我没有为你创建新的工作区。你在 ${companyDomain} 的团队已经在使用 Expensify 了。[查看你可以加入的工作区](${joinWorkspaceLink})`,
+            onboardingJoinWorkspaceEmptyMessage: '看起来你的公司还没有可加入的工作区。请联系你的管理员，让他们邀请你加入他们的工作区。',
         },
         workspace: {
             title: '使用工作区保持井井有条',
@@ -3800,8 +3897,24 @@ ${amount}，商户：${merchant} - 日期：${date}`,
             deletePaymentBankAccount: '此银行账户无法删除，因为它被用于 Expensify 卡付款。如果您仍希望删除此账户，请联系 Concierge。',
             sameDepositAndWithdrawalAccount: '存款账户和取款账户相同。',
         },
+        unlockAlreadyRequestedTitle: '请求已提交',
+        unlockAlreadyRequestedDescription: '您解锁此银行账户的请求已发送。如需其他信息，Concierge 会与您联系。',
+    },
+    dynamicForm: {
+        exampleHint: ({example}: {example: string}) => `示例：${example}`,
+        fileCount: ({count}: {count: number}) => ({
+            one: `${count} 个文件`,
+            other: `${count} 个文件`,
+        }),
+        error: {
+            tooShort: ({minLength}: {minLength: number}) => `至少需要 ${minLength} 个字符`,
+            invalidFormat: ({example}: {example?: string}) => (example ? `格式无效。示例：${example}` : '格式无效'),
+            invalidOption: '请从可用选项中选择',
+            outOfRange: ({min, max}: {min: number; max: number}) => `请输入 ${min} 到 ${max} 之间的值`,
+        },
     },
     addPersonalBankAccount: {
+        swiftBicFormatError: 'SWIFT/BIC 必须为 8 或 11 个字符长度，由 6 个字母后接 2 或 5 个字母或数字组成。',
         countrySelectionStepHeader: '您的银行账户位于哪个国家/地区？',
         accountDetailsStepHeader: '你的账户详情是什么？',
         accountTypeStepHeader: '这是哪种类型的账户？',
@@ -4136,7 +4249,7 @@ ${amount}，商户：${merchant} - 日期：${date}`,
         legalFirstName: '法定名（名）',
         legalLastName: '法定姓氏',
         enterTheDateOfBirthOfTheOwner: '所有者的出生日期是什么？',
-        enterTheSSN: '所有者的社会安全号码是多少？',
+        enterTheSSN: '所有者的社会安全号码后4位数字是多少？',
         dontWorry: '别担心，我们不会进行任何个人信用检查！',
         enterTheOwnersAddress: '所有者的地址是什么？',
         letsDoubleCheck: '让我们再仔细检查一下，确保一切都正确。',
@@ -4276,7 +4389,7 @@ ${amount}，商户：${merchant} - 日期：${date}`,
         enterSignerInfo: '输入签署人信息',
         thisStep: '此步骤已完成',
         isConnecting: (bankAccountLastFour: string | undefined, currency: string | undefined) =>
-            `正在连接一 个以 ${bankAccountLastFour} 结尾的 ${currency} 企业银行账户到 Expensify，以便以 ${currency} 支付员工。下一步需要一位董事的签署人信息。`,
+            `添加了一个以 ${bankAccountLastFour} 结尾的 ${currency} 银行账户。请以董事身份输入您的签署人信息，以便此银行账户可用于支付员工工资。`,
         error: {
             emailsMustBeDifferent: '电子邮箱地址必须不同',
         },
@@ -4505,15 +4618,20 @@ ${amount}，商户：${merchant} - 日期：${date}`,
             error: {required: '请输入您的法人税号。'},
         },
         nudge: {
-            airfareManual: '你知道吗？你可以直接在 Expensify 中预订和管理机票！下次无需再手动创建报销，只需通过 <a href="https://travel.expensify.com">Expensify Travel</a> 预订即可 ✈️',
-            airfareCard: '你知道吗？你可以直接在 Expensify 预订和管理机票，而且还能自动为你上传收据。下次只需通过 <a href="https://travel.expensify.com">Expensify Travel</a> 预订即可 ✈️',
+            airfareManual:
+                '你知道吗？你可以直接在 Expensify 预订机票，同时照常累积常旅客计划的里程！下次无需手动创建报销，只需通过 <a href="https://travel.expensify.com">Expensify Travel</a> 预订即可 ✈️',
+            airfareCard:
+                '你知道吗？你可以直接在 Expensify 中预订机票，同时照常累积常旅客里程！系统还会自动为你上传收据。下次只需通过 <a href="https://travel.expensify.com">Expensify Travel</a> 预订即可 ✈️',
             hotelManual:
-                '你知道吗？你可以直接在 Expensify 中预订和管理酒店住宿！下次无需再手动创建报销，只需通过 <a href="https://travel.expensify.com">Expensify Travel</a> 完成预订即可 🏨',
-            hotelCard: '你知道吗？你可以直接在 Expensify 中预订和管理酒店住宿！下次只需通过 <a href="https://travel.expensify.com">Expensify Travel</a> 预订即可 🏨',
-            carManual: '你知道吗？你可以直接在 Expensify 中预订和管理租车服务。下次就不用再手动创建报销了，只需通过 <a href="https://travel.expensify.com">Expensify Travel</a> 预订即可 🚗',
-            carCard: '你知道吗？你可以直接在 Expensify 中预订和管理租车！下次只需通过 <a href="https://travel.expensify.com">Expensify Travel</a> 预订即可 🚗',
-            railManual: '你知道吗？你可以直接在 Expensify 中预订和管理火车行程！下次无需再手动创建报销，只需通过 <a href="https://travel.expensify.com">Expensify Travel</a> 预订即可 🚂',
-            railCard: '你知道吗？你可以直接在 Expensify 中预订和管理火车行程，而且还会自动为你上传收据。下次只需通过 <a href="https://travel.expensify.com">Expensify Travel</a> 预订即可 🚂',
+                '你知道吗？你可以直接在 Expensify 预订酒店入住，同时照常累积酒店会员积分！下次无需再手动创建报销，只需通过 <a href="https://travel.expensify.com">Expensify Travel</a> 预订即可。',
+            hotelCard: '你知道吗？你可以直接在 Expensify 预订酒店住宿，同时照常累积酒店会员积分。下次只需通过 <a href="https://travel.expensify.com">Expensify Travel</a> 预订即可 🏨',
+            carManual:
+                '你知道吗？你可以直接在 Expensify 预订租车，同时照常使用你的租车会员计划！下次只需通过 <a href="https://travel.expensify.com">Expensify Travel</a> 预订，就能省去手动创建报销的麻烦。',
+            carCard: '你知道吗？你可以直接在 Expensify 预订租车，并且照样使用你的租车会员计划。下次只需通过 <a href="https://travel.expensify.com">Expensify Travel</a> 进行预订 🚗',
+            railManual:
+                '你知道吗？你可以直接在 Expensify 中预订火车行程，同时照常使用你的铁路会员计划和铁路卡。下次就不用再手动创建报销了，只需通过 <a href="https://travel.expensify.com">Expensify Travel</a> 预订即可。',
+            railCard:
+                '你知道吗？你可以直接在 Expensify 预订火车行程，同时照常使用铁路常旅客计划和铁路卡！系统还会自动为你上传收据。下次只需通过 <a href="https://travel.expensify.com">Expensify Travel</a> 预订即可。',
             hotelBlockManual:
                 '你知道吗？你可以直接在 Expensify 中预订和管理像这样的团队行程。下次就不用再费心了，试试我们的 <a href="https://help.expensify.com/travel/hubs/event-management/">Travel Events</a> 工具吧。',
             hotelBlockCard:
@@ -4576,6 +4694,13 @@ ${amount}，商户：${merchant} - 日期：${date}`,
             settlementFrequency: '结算频率',
             setAsDefault: '设为默认工作区',
             defaultNote: `发送到 ${CONST.EMAIL.RECEIPTS} 的收据将显示在此工作区中。`,
+            archive: '归档工作区',
+            archiveConfirmation: '确定要归档此工作区吗？',
+            archiveWithThirdPartyCardsConfirmation: '确定要归档此工作区吗？这将取消所有用户的信用卡分配，并永久删除所有未提交的卡片报销。',
+            archiveWithExpensifyCardsConfirmation: '确定要归档此工作区吗？这将把所有 Expensify 卡的限额设为 $0，并自动拒绝任何新的消费尝试。',
+            unarchive: '取消归档',
+            unarchiveWorkspace: '取消归档工作区',
+            unarchiveConfirmation: '确定要取消归档此工作区吗？',
             deleteWorkspaceTitle: (workspaceName: string) => `删除 ${workspaceName}？`,
             deleteConfirmation: '确定要删除此工作区吗？',
             deleteWithCardsConfirmation: '确定要删除此工作区吗？这将移除所有卡片数据源和已分配的卡片。',
@@ -4632,6 +4757,7 @@ ${amount}，商户：${merchant} - 日期：${date}`,
             memberAlternateText: '提交并审批报销报告。',
             adminAlternateText: '管理报表和工作区设置。',
             auditorAlternateText: '查看并评论报表。',
+            guestAlternateText: '提交可见性受限的报表。',
             roleName: (role?: string) => {
                 switch (role) {
                     case CONST.POLICY.ROLE.OWNER:
@@ -4640,12 +4766,14 @@ ${amount}，商户：${merchant} - 日期：${date}`,
                         return '工作区管理员';
                     case CONST.POLICY.ROLE.AUDITOR:
                         return '审计员';
+                    case CONST.POLICY.ROLE.GUEST:
+                        return '访客';
                     case CONST.POLICY.ROLE.EDITOR:
-                        return '编辑者';
+                        return '编辑';
                     case CONST.POLICY.ROLE.CARD_ADMIN:
-                        return '卡片管理员';
+                        return '卡管理员';
                     case CONST.POLICY.ROLE.PEOPLE_ADMIN:
-                        return '人员管理员';
+                        return '人员管理';
                     case CONST.POLICY.ROLE.PAYMENTS_ADMIN:
                         return '付款管理员';
                     case CONST.POLICY.ROLE.USER:
@@ -4690,6 +4818,7 @@ ${amount}，商户：${merchant} - 日期：${date}`,
             readOnlyActionTitle: '别急……',
             readOnlyActionPrompt: '你的工作区角色可以查看这些设置，但不能编辑。',
             noAccessActionPrompt: '您的工作区角色无权访问这些设置。如需访问，请联系管理员。',
+            connections: '连接',
         },
         createdForClient: {
             title: '您已为客户创建了工作区！',
@@ -4713,6 +4842,31 @@ ${amount}，商户：${merchant} - 日期：${date}`,
                 title: 'ChatGPT',
                 subtitle: '由 OpenAI 提供',
             },
+        },
+        connections: {
+            tabs: {
+                [CONST.TAB.CONNECTIONS.ALL]: '全部',
+                [CONST.TAB.CONNECTIONS.ACCOUNTING]: '会计',
+                [CONST.TAB.CONNECTIONS.PEOPLE]: '人力资源与员工',
+                [CONST.TAB.CONNECTIONS.RECRUITING]: '招聘',
+                [CONST.TAB.CONNECTIONS.RECEIPTS]: '收据',
+                [CONST.TAB.CONNECTIONS.AI]: 'AI 和 MCP',
+            },
+            findConnections: '查找关联',
+            configure: '配置',
+            fix: '修复',
+            active: '有效',
+            broken: '损坏',
+            brokenConnection: '由于连接中断，无法同步',
+            replaceConnectionTitle: '替换连接？',
+            offer: '优惠',
+            replaceConnectionPrompt: (connectionName: string) => `这将移除你当前的 ${connectionName} 连接。`,
+            hrisListing: (providerName: string) => `${providerName}（HRIS）`,
+            atsListing: (providerName: string) => `${providerName}（ATS）`,
+            suggestIntegration: '没找到适合你的？建议一个集成，我们会进行评估。',
+            noResultsPrompt: '<muted-text><centered-text>请调整您的搜索条件或<a href="#">建议一个集成</a>。</centered-text></muted-text>',
+            allConnectedTitle: '全部已连接',
+            allConnectedPrompt: '<muted-text><centered-text>这里的一切都已连接完成。您也可以<a href="#">建议一个集成</a>。</centered-text></muted-text>',
         },
         receiptPartners: {
             uber: {
@@ -4763,7 +4917,12 @@ ${amount}，商户：${merchant} - 日期：${date}`,
                 title: '每日津贴',
                 subtitle: '设置每日津贴标准以控制员工每日支出。可从电子表格导入标准以开始使用。',
             },
-            requestEmptyList: {title: '尚未设置每日津贴费率', subtitle: '此工作区尚未设置任何每日津贴费率，请联系管理员添加。', adminSubtitle: '添加每日津贴标准，以整理您的支出。'},
+            requestEmptyList: {
+                title: '尚未设置每日津贴费率',
+                subtitle: (workspaceName?: string) =>
+                    workspaceName ? `${workspaceName} 没有任何每日津贴标准。请联系管理员添加一些。` : '此工作区没有任何每日津贴标准。请联系管理员添加一些。',
+                adminSubtitle: '添加每日津贴标准，以整理您的支出。',
+            },
             importPerDiemRates: '导入每日津贴费率',
             editPerDiemRate: '编辑每日补贴费率',
             editPerDiemRates: '编辑每日津贴费率',
@@ -4857,6 +5016,8 @@ ${amount}，商户：${merchant} - 日期：${date}`,
                 autoSyncDescription: 'Expensify 将每天自动与 QuickBooks Desktop 同步。',
                 createEntities: '自动创建实体',
                 createEntitiesDescription: '如果供应商尚未在 QuickBooks Desktop 中存在，Expensify 将自动创建这些供应商。',
+                fxExpenseAccount: '货币兑换费用科目',
+                fxExpenseAccountDescription: '当您的公司承担一笔支付到海外的报销所产生的货币兑换费用时，我们会在导出内容中额外添加一行，将其归入此科目。',
             },
             itemsDescription: '选择如何在 Expensify 中处理 QuickBooks Desktop 项目。',
             accountingMethods: {
@@ -5102,11 +5263,11 @@ ${amount}，商户：${merchant} - 日期：${date}`,
                         label: '上次报销日期',
                         description: '报表中最近一笔报销的日期。',
                     },
-                    [CONST.SAGE_INTACCT_EXPORT_DATE.EXPORTED]: {
+                    [CONST.SAGE_INTACCT_EXPORT_DATE.REPORT_EXPORTED]: {
                         label: '导出日期',
                         description: '报表导出到 Sage Intacct 的日期。',
                     },
-                    [CONST.SAGE_INTACCT_EXPORT_DATE.SUBMITTED]: {
+                    [CONST.SAGE_INTACCT_EXPORT_DATE.REPORT_SUBMITTED]: {
                         label: '提交日期',
                         description: '报表提交审批的日期。',
                     },
@@ -5246,6 +5407,10 @@ ${amount}，商户：${merchant} - 日期：${date}`,
                     [CONST.CERTINIA_PARENT_TAG_MAPPING.PARENT_TAG_ASSIGNMENTS]: '任务',
                 },
             },
+            fxExpenseAccount: '货币兑换手续费科目',
+            fxExpenseAccountDescription: '当您的公司承担一笔境外付款的货币兑换成本时，我们会将该成本作为一行添加到应付发票中，并记入此科目。',
+            noExpenseAccountsFound: '未找到账户',
+            noExpenseAccountsFoundDescription: '在 Certinia 中添加总账科目后，请再次同步连接。',
         },
         netsuite: {
             subsidiary: '子公司',
@@ -5256,6 +5421,9 @@ ${amount}，商户：${merchant} - 日期：${date}`,
             journalEntriesProvTaxPostingAccount: '日记账分录省税过账科目',
             foreignCurrencyAmount: '导出外币金额',
             exportToNextOpenPeriod: '导出到下一个未结会计期间',
+            exportToNextOpenPeriodLockedSubtitle: '要禁用导出到下一个未结会计期间，请先禁用按期间拆分不可报销导出。',
+            splitExportsByPostingPeriod: '按过账期间拆分导出',
+            splitExportsByPostingPeriodSubtitle: '启用导出到下一个未结会计期间，以在 NetSuite 中启用按期间拆分不可报销导出',
             nonReimbursableJournalPostingAccount: '不可报销日记账入账科目',
             reimbursableJournalPostingAccount: '可报销日记账过账科目',
             journalPostingPreference: {
@@ -5658,10 +5826,10 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
             enterCredentials: '输入你的 Rillet API 密钥',
             howToFindAPIKey:
                 '<strong>查找您的 API 密钥。</strong><ol><li>登录 Rillet</li><li>依次前往 [organization name] -> Organization settings -> API access</li><li>创建 API 密钥</li><li>将 API 密钥粘贴到下方</li></ol>',
-            subsidiary: '子公司',
-            subsidiarySelectDescription: '请选择要从中导入数据的 Rillet 子公司。',
-            noSubsidiariesFound: '未找到子公司',
-            noSubsidiariesFoundDescription: '请在 Rillet 中添加一个子公司，然后再次同步连接',
+            entity: '实体',
+            entitySelectDescription: '选择要从中导入数据的 Rillet 实体。',
+            noEntitiesFound: '未找到实体',
+            noEntitiesFoundDescription: '请在 Rillet 中添加一个实体，然后再次同步连接',
             accountTypesDescription: '您的 Rillet 账户将被导入为类别。',
             enableNewAccountsTitle: '启用新导入的账户',
             enableNewAccountsDescription: '新的 Rillet 账户将可作为类别使用。',
@@ -5745,14 +5913,15 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                     return `${customAccountsCount} 张带有自定义账户的卡`;
                 },
             },
+            fxExpenseAccount: {label: 'Rillet 货币转换手续费科目', description: '当您的公司承担一笔境外付款的货币兑换成本时，我们会在 Rillet 中将该成本作为一条日记账分录记入此科目。'},
         },
         dualEntry: {
             dualEntrySetup: 'DualEntry 设置',
             enterCredentials: '输入你的 DualEntry API 密钥',
             howToFindAPIKey:
                 '<strong>查找您的 API 密钥。</strong><ol><li>登录 DualEntry</li><li>导航到 [组织名称] -> 设置 -> 开发者访问 -> API 密钥</li><li>创建 API 密钥</li><li>将 API 密钥粘贴到下方</li></ol>',
-            subsidiary: '子公司',
-            subsidiarySelectDescription: '请选择要从中导入数据的 DualEntry 子公司。',
+            company: '公司',
+            companySelectDescription: '选择要从中导入数据的 DualEntry 公司。',
             noCompaniesFound: '未找到公司',
             noCompaniesFoundDescription: '请在 DualEntry 中添加一家公司，然后再次同步连接',
             noVendorsFound: '未找到供应商',
@@ -5852,6 +6021,7 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
             syncReimbursedReports: '同步已报销报表',
             syncReimbursedReportsDescription: '当报表通过 ACH 支付时，将在此账户中生成一笔账单付款。',
             billPaymentAccount: {label: '账单付款账户', description: '选择从哪里支付账单，我们会在 DualEntry 中创建该付款。'},
+            fxExpenseAccount: {label: 'DualEntry 货币转换手续费科目', description: '当您的公司承担一笔境外付款的货币兑换成本时，我们会在 DualEntry 中将该成本作为一条日记账分录记入此科目。'},
             syncExpensifyCardSettlements: '同步 Expensify 卡结算',
             settlementAccount: {label: 'Expensify 卡结算账户', description: '选择您的结算账户，我们会在 DualEntry 中创建这笔付款。'},
             syncTravelInvoicingSettlements: '同步旅行开票结算',
@@ -5865,6 +6035,15 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
             submit: '提交',
         },
         companyCards: {
+            balance: {
+                currentBalance: '当前余额',
+                remainingLimit: '剩余额度',
+                notAvailable: '不可用',
+                currentBalanceDescription: ({lastUpdated}: CompanyCardBalanceParams) => `当前余额由您的银行提供，上次更新于 ${lastUpdated}。`,
+                remainingLimitDescription: ({lastUpdated}: CompanyCardBalanceParams) => `剩余额度由您的银行提供，并于 ${lastUpdated} 最后更新。`,
+                currentBalanceDescriptionNoTimestamp: '当前余额由您的银行提供。',
+                remainingLimitDescriptionNoTimestamp: '剩余额度由您的银行提供。',
+            },
             addCards: '添加卡片',
             selectCards: '选择卡片',
             fromOtherWorkspaces: '来自其他工作区',
@@ -6133,6 +6312,8 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
             csvColumnType: '类型',
             csvColumnLimitType: '限额类型',
             csvColumnLimit: '限额',
+            noCardFeedsAvailable: '没有可用的卡片流水',
+            noCardFeedsAvailableDescription: '此工作区暂无可用的卡片流水。',
         },
         categories: {
             deleteCategories: '删除类别',
@@ -6148,6 +6329,7 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
             deleteFailureMessage: '删除类别时出错，请重试',
             categoryName: '类别名称',
             requiresCategory: '成员必须为所有报销分类',
+            autoCategorizeNewExpenses: '自动为新报销分类',
             showCategoryGLCodes: '在分类报销时显示总账科目代码',
             needCategoryForExportToIntegration: (connectionName: string) => `要导出到 ${connectionName}，所有报销都必须先进行分类。`,
             subtitle: '更好地了解资金的支出去向。使用我们的默认类别或添加你自己的类别。',
@@ -6202,6 +6384,8 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
             distanceRates: {
                 title: '距离费率',
                 subtitle: '添加、更新并执行费率。',
+                commuterExclusionsOnTitle: '通勤排除已开启',
+                disableLockedByCommuterExclusionsPrompt: '若要关闭距离费率，首先将“排除通勤”设置为“不要排除通勤”。',
             },
             perDiem: {
                 title: '每日津贴',
@@ -6348,7 +6532,7 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                 corporate: '限制删除交易',
                 personal: '允许删除交易',
                 setFeedNameDescription: '为该卡片流水命名一个唯一名称，以便与其他区分',
-                setTransactionLiabilityDescription: '启用后，持卡人可以删除卡片交易。新的交易将遵循此规则。',
+                setTransactionLiabilityDescription: '持卡人可以删除交易。仅适用于新交易。',
                 emptyAddedFeedTitle: '此订阅源中没有卡片',
                 emptyAddedFeedDescription: '请确保在您银行的卡片交易流水中有可用的卡片。',
                 pendingFeedTitle: `我们正在审核你的请求…`,
@@ -6617,6 +6801,7 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                 other: (count: number) => `${count} 个标签`,
             }),
             showTagGLCodes: '在选择标签时显示总账科目代码',
+            showTagGLCodesSubtitle: '如果某个总账科目代码未显示，则说明此标签在您的会计系统中不可用。',
         },
         taxes: {
             subtitle: '添加税种名称、税率，并设置默认值。',
@@ -6769,6 +6954,10 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                 one: '设为审计员',
                 other: '创建审计员',
             }),
+            makeGuest: () => ({
+                one: '设为访客',
+                other: '设为访客',
+            }),
             makePeopleAdmin: () => ({
                 one: '设为人员管理员',
                 other: '设为人员管理员',
@@ -6790,6 +6979,8 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
             removeMemberPromptApprover: (approver: string, workspaceOwner: string) => `如果你将 ${approver} 从此工作区中移除，我们会在审批流程中用工作区所有者 ${workspaceOwner} 替换 TA。`,
             removeMemberPromptPendingApproval: (memberName: string) => `${memberName} 还有待审批的报销报告。请先让 TA 审批，或在将其从工作区中移除之前接管 TA 的报告。`,
             removeMemberPromptReimburser: ({memberName}: {memberName: string}) => `您无法将${memberName}从此工作区中移除。请在“工作流”>“进行或跟踪付款”中设置新的报销人，然后重试。`,
+            removeMemberPromptExpensifyCard: ({memberName}: {memberName: string}) =>
+                `在 ${memberName} 仍持有 Expensify 卡时，您无法将其从此工作区中移除。请在“工作区 > Expensify 卡”中停用其卡片后重试。`,
             removeMemberPromptExporter: ({memberName, workspaceOwner}: {memberName: string; workspaceOwner: string}) =>
                 `如果您将 ${memberName} 从此工作区中移除，我们会将其首选导出人替换为工作区所有者 ${workspaceOwner}。`,
             removeMemberPromptTechContact: ({memberName, workspaceOwner}: {memberName: string; workspaceOwner: string}) =>
@@ -6799,6 +6990,7 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
             admins: '工作区管理员',
             approvers: '审批人',
             auditors: '审计员',
+            guests: '访客',
             editors: '编辑者',
             emptyRoleFilter: {title: '没有成员符合此筛选条件', subtitle: '邀请成员或更改上方的筛选条件。'},
             configureHRSync: (providerName: string) => `配置 ${providerName} 同步。`,
@@ -6808,6 +7000,15 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
             peopleAdmins: '人员管理员',
             paymentsAdmins: '付款管理员',
             members: '成员',
+            workArrangement: '工作安排',
+            officeBased: '以办公室为基地',
+            noRegularWorkspace: '远程或移动',
+            workArrangementPage: {
+                title: '工作安排',
+                optionOfficeBasedHelp: '成员通勤前往办公室。日常通勤不予报销。',
+                optionNoRegularWorkspaceHelp: '成员在家办公或在各地点之间出差，没有固定办公地点，因此通勤规则不适用。',
+                futureOnlyNote: '更改仅适用于未来的里程计算，现有的里程报销将不会重新计算。',
+            },
         },
         card: {
             getStartedIssuing: '从发放您的第一张虚拟卡或实体卡开始使用。',
@@ -6908,6 +7109,8 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                         return 'DualEntry';
                     case CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE:
                         return 'Campfire';
+                    case CONST.POLICY.CONNECTIONS.NAME.ZOHO_BOOKS:
+                        return 'Zoho Books';
                     case CONST.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL:
                         return 'Dynamics 365 Business Central';
                     default: {
@@ -7134,6 +7337,8 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                             return '正在同步 Campfire 数据';
                         case 'campfireSyncConnection':
                             return '正在初始化与 Campfire 的连接';
+                        case 'zohoBooksSyncConnection':
+                            return '正在初始化与 Zoho Books 的连接';
                         case 'campfireSyncImportData':
                             return '正在加载数据';
                         case 'campfireSyncPayments':
@@ -7186,7 +7391,11 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
             syncTravelInvoicingSettlementsNoAccountTooltip: '要解锁，请为导出设置一个账户。',
             syncTravelInvoicingSettlementsNoAutoSyncTooltip: '若要解锁，请启用自动同步。',
             campfire: 'Campfire',
+            zohoBooks: 'Zoho Books',
+            continuousReconciliationFeedSelection: '<muted-text-label>按卡片流水单独配置持续对账。选择一个流水以更改您正在配置的流水。</muted-text-label>',
             businessCentral: 'Dynamics 365 Business Central',
+            qboConnectionExpiring: ({date}: {date: string}) => `您的 QuickBooks Online 连接将于 ${date} 过期。`,
+            qboConnectionExpired: ({date}: {date: string}) => `您与 QuickBooks Online 的连接已于 ${date} 过期。`,
         },
         export: {
             notReadyHeading: '尚未准备好导出',
@@ -7256,6 +7465,20 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                     cta: '知道了',
                 },
                 errors: {distanceMustBePositive: '距离必须是一个正整数。', invalidAddress: '请输入有效地址', distanceTooLarge: '距离过大。'},
+                workArrangement: {
+                    title: '默认工作安排',
+                    officeBasedTitle: '办公室办公',
+                    officeBasedHelp: '成员通勤前往办公室。正常通勤不在报销范围内。',
+                    noRegularWorkplaceTitle: '远程或移动',
+                    noRegularWorkplaceHelp: '成员在家办公或在各地点之间出差，没有固定办公室，因此通勤规则不适用。',
+                    startingPrompt: {
+                        title: '设置常规工作安排',
+                        prompt: '选择最适用于当前大多数成员的安排。您稍后可以单独或批量更新成员。',
+                        officeBasedHelp: '大多数成员通勤到办公室。日常通勤不在报销范围内。',
+                        noRegularWorkplaceHelp: '大多数成员远程工作，因此通常不适用“从家到工作地点”的排除条款。',
+                        confirm: '应用',
+                    },
+                },
             },
             distance: '距离',
             centrallyManage: '集中管理费率，以英里或公里跟踪，并设置默认类别。',
@@ -7300,9 +7523,30 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
             startDate: '开始日期',
             endDate: '结束日期',
             autoGeneratedRateTooltip: '此费率为自动生成。',
+            automaticRates: '自动费率',
             autoUpdateGovernmentRate: '自动更新政府费率',
-            autoUpdateGovernmentRateDescription: (countryPhrase: string) => `当${countryPhrase}发布新指引时自动创建新费率。`,
-            governmentRateCountries: {US: '美国', CA: '加拿大', GB: '英国', AU: '澳大利亚'},
+            autoUpdateGovernmentRateDescription: (countryPhrase: string) => `当${countryPhrase}发布新指引时自动创建新费率。不会修改现有费率。`,
+            governmentRateCountries: {
+                US: '美国',
+                CA: '加拿大',
+                GB: '英国',
+                AU: '澳大利亚',
+                AT: '奥地利',
+                BE: '比利时',
+                FI: '芬兰',
+                DE: '德国',
+                NL: '荷兰',
+                PT: '葡萄牙',
+                ES: '西班牙',
+                NO: '挪威',
+                SE: '瑞典',
+                ZA: '南非',
+            },
+            governmentRateCountryGeneric: '您的国家',
+            governmentRateSourceCountry: '里程费率来源国家',
+            governmentRateCountrySelectionPrompt: '要继续使用政府里程费率自动更新功能，请确认您以后要使用的国家。',
+            currencyChangeGovernmentRateWarning: (currency: string, countryPhrase: string) =>
+                `注意！将工作区货币更改为${currency}后，将改用${countryPhrase}发布的政府里程费率。确定要继续吗？`,
         },
         editor: {
             descriptionInputLabel: '描述',
@@ -7319,6 +7563,21 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
             avatarUploadFailureMessage: '上传头像时出错。请重试。',
             addressContext: '要启用 Expensify Travel，需要填写一个工作区地址。请输入与您企业关联的地址。',
             policy: '报销政策',
+        },
+        officeLocations: {
+            title: '办公地点',
+            subtitle: '添加办公地点，以便为成员分配用于里程跟踪等用途。',
+            addOfficeLocation: '添加办公地点',
+            editOfficeLocation: '编辑办公室位置',
+            locationName: '位置名称',
+            locationNameHint: '如果你要添加多个办公地点，请为每个地点选择一个昵称',
+            defaultName: ({officeNumber}: {officeNumber: number}) => `办公室位置 ${officeNumber}`,
+            setAsPrimary: '设为主要',
+            primary: '主要',
+            deleteOfficeLocation: '删除办公地点？',
+            deleteOfficeLocationConfirmation: '你确定要删除此办公地点吗？成员将被重新分配到主办公地点。',
+            existingOfficeLocationError: '已存在同名的办公地点',
+            setCompanyAddressAsPrimaryConfirmation: '将公司地址设为主要办公室？',
         },
         bankAccount: {
             continueWithSetup: '继续设置',
@@ -7829,6 +8088,7 @@ ${reportName}`,
                 autoPayApprovedReportsSubtitle: '配置哪些报销报告符合自动付款条件。',
                 autoPayApprovedReportsLimitError: (currency?: string) => `请输入小于 ${currency ?? ''}20,000 的金额`,
                 autoPayApprovedReportsLockedSubtitle: '前往“更多功能”并启用“工作流”，然后添加“付款”以解锁此功能。',
+                autoPayApprovedReportsControlPlanSubtitle: (upgradeLink: string) => `自动付款仅适用于 Control 方案。[升级](${upgradeLink})以解锁此功能。`,
                 autoPayReportsUnderTitle: '自动支付报销单于',
                 autoPayReportsUnderDescription: '在此金额以下且完全合规的报销单将被自动支付。',
                 unlockFeatureEnableWorkflowsSubtitle: (featureName: string) => `添加 ${featureName} 以解锁此功能。`,
@@ -7855,6 +8115,8 @@ ${reportName}`,
                 applyUpdates: '应用这些更新：',
                 saveRule: '保存规则',
                 previewMatches: '预览匹配项',
+                previewMatchesDescription: '查看此规则如何应用于你的费用',
+                preview: '预览',
                 confirmError: '输入商户并应用至少一项更新',
                 confirmErrorMerchant: '请输入商户',
                 confirmErrorUpdate: '请至少应用一个更新',
@@ -7911,6 +8173,7 @@ ${reportName}`,
                 flagAmountsOver: '标记超过此金额的费用',
                 flagAmountsOverDescription: (categoryName: string) => `适用于类别“${categoryName}”。`,
                 flagAmountsOverSubtitle: '这将覆盖所有报销的最高金额限制。',
+                expenseLimitType: '报销限额类型',
                 expenseLimitTypes: {
                     expense: '单笔报销',
                     expenseSubtitle: '按类别标记报销金额。此规则会覆盖工作区的一般最高报销金额规则。多天预订将按每晚平均金额进行评估。',
@@ -7976,7 +8239,6 @@ ${reportName}`,
                 matchTypeContains: '包含',
                 matchTypeExact: '完全匹配',
                 maxAmount: '最高金额',
-                maxAmountHelp: '无论商家或消费类别限制如何，任何超过此金额的消费都会被拒绝。',
                 maxAmountCurrencyMismatchTitle: '货币不匹配',
                 maxAmountCurrencyMismatchPrompt: '要设置最高金额，请选择以相同货币结算的卡片。',
                 reviewSelectedCards: '检查所选卡片',
@@ -8054,9 +8316,6 @@ ${reportName}`,
                     cta: '获取此卡',
                 },
                 restrictCardSpendTitle: '限制卡片支出',
-                restrictCardSpendSubtitle: '在销售点阻止或限制消费。',
-                ifAnyCardMatches: '如果任何卡片符合条件：',
-                thenDoThisAtPointOfSale: '然后在销售点执行以下操作：',
                 setRestrictions: '设置限制',
                 merchantRestrictions: '商户限制',
                 blockedMerchant: '已屏蔽商家',
@@ -8070,13 +8329,9 @@ ${reportName}`,
                 currencies: '货币',
                 permittedCurrencies: '允许的货币',
                 allCurrencies: '所有货币',
-                permittedCurrenciesSubtitle: '选择允许所有货币或特定货币',
                 settlementCurrencyPermittedSubtitle: '始终允许使用该卡的结算货币',
                 currenciesCurrencyMismatchTitle: '货币不匹配',
                 currenciesCurrencyMismatchPrompt: '要设置首选货币，请选择以同一货币结算的卡片。',
-                restrictMerchantsOffSubtitle: '在允许的货币中，核准不超过最高金额的消费',
-                restrictMerchantsAllowSubtitle: '会批准符合条件的交易：使用允许的货币、未超过最高金额，并且商户或商户类型匹配。',
-                restrictMerchantsBlockSubtitle: '对于允许的币种中，若消费金额未超过最高限额，或商户或商户类型匹配，则该笔消费将被批准。',
                 summaryCurrencies: ({currencies, hiddenCount, shownCount}: {currencies: string; hiddenCount: number; shownCount: number}) =>
                     `已允许 ${shownCount > 1 ? '货币' : '货币'}：${currencies}${hiddenCount > 0 ? `，还有 +${hiddenCount} 项` : ''}`,
                 defaultRulesCannotBeDeleted: '默认规则无法删除',
@@ -8181,6 +8436,14 @@ ${reportName}`,
                 requireFieldsDescription: '要求填写特定报销字段，或免除其必填限制。',
                 createAgentRule: '描述代理规则',
                 createAgentRuleDescription: '创建可按需运行的灵活规则。',
+                describe: '描述',
+                describeRule: '用通俗的语言描述你的规则，Concierge 会为你创建规则',
+                describeRuleInputLabel: '描述规则',
+                promptErrors: {
+                    unsupported: '该规则暂不支持，我们正在开发中。请先尝试其他规则。',
+                    unintelligible: '可以这样描述规则：如果支出超过 100 美元，则需要收据。',
+                    multipleRules: '请一次描述一条规则，例如：在所有卡上阻止零售消费。',
+                },
             },
             expenseDefaultsTable: {
                 tableColumnType: '类型',
@@ -8293,10 +8556,6 @@ ${reportName}`,
             providerFinalApprover: (providerName: string) => `${providerName} 最终审批人`,
             syncing: '正在同步员工',
             approvalModeDescription: (providerName: string) => `成员和管理员已设置为与 ${providerName} 同步。`,
-            approvalModeWarningTitle: '更改审批模式？',
-            approvalModeWarningPrompt: (providerName: string, helpSiteURL: string) =>
-                `您确定要更改此工作区的审批模式吗？在我们的<a href="${helpSiteURL}">帮助网站</a>中了解更多关于不同 ${providerName} 启用的工作流模式的信息。`,
-            approvalModeWarningConfirm: '更改审批模式',
             approvalModeDescriptions: {
                 basic: '所有用户都提交给同一个人进行处理和审批。',
                 manager: (providerName: string) => `员工会将报销单提交给在 ${providerName} 中配置的直属经理。`,
@@ -8338,7 +8597,15 @@ ${reportName}`,
             setupIncomplete: (setupLink: string | undefined) =>
                 `<muted-text-label>已连接。${setupLink ? `<a href="${setupLink}">完成设置</a>` : '完成设置'} 用于导入员工。</muted-text-label>`,
             mergeHR: {
-                groups: {title: '群组', description: '选择要与此工作区同步的员工分组'},
+                groups: {
+                    title: '群组',
+                    description: '选择要与此工作区同步的员工分组',
+                    staleSelectionError: (providerName: string) => `您选择的部分群组在 ${providerName} 中已不存在，因此其员工已停止同步。`,
+                    updateSelectionLink: '更新你的群组。',
+                    noGroupsFound: '未找到群组',
+                    noGroupsFoundDescription: '目前没有可选择的分组。可在未选择任何分组的情况下保存以同步所有员工，或在新分组创建后再次同步连接。',
+                    unnamedGroup: (groupID: string) => `未命名群组（${groupID}）`,
+                },
             },
         },
         recruiting: {
@@ -8353,6 +8620,18 @@ ${reportName}`,
             importSettings: '导入设置',
             defaultApprover: '默认审批人',
             approverFields: {recruiter: '招聘人员', recruitingCoordinator: '招聘协调员'},
+            filters: {
+                description: (providerName: string) => `选择要从 ${providerName} 导入的成员。您可以按工作阶段、标签和办公室进行选择。`,
+                stages: {
+                    title: '职位阶段',
+                    description: '选择你希望与此工作区同步的候选人职位阶段',
+                    toggleTitle: '工作阶段',
+                    allSelected: '所有职位阶段',
+                },
+                tags: {title: '标签', description: '选择要与此工作区同步的候选人标签', toggleTitle: '标签', allSelected: '所有标签'},
+                offices: {title: '办公室', description: '选择你想与此工作区同步的候选人办公地点', toggleTitle: '办公室', allSelected: '所有办公室'},
+                enableJobStagesOrTags: '启用职位阶段或标签以继续',
+            },
             subtitle: '连接招聘工具并保持候选人审批同步。',
             syncResults: {
                 importedCount: () => ({
@@ -8360,6 +8639,12 @@ ${reportName}`,
                     other: (count: number) => `${count} 名候选人`,
                 }),
             },
+            approverField: `首位审批人`,
+            finalApprover: `最终审批人`,
+            finalApproverOptional: '最终审批人（可选）',
+            approvalModeDescription: (providerName: string) => `为从 ${providerName} 导入到 Expensify 的新成员设置审批人。`,
+            approverFieldDescription: (providerName: string) => `为候选人选择第一位审批人：可以是他们在 ${providerName} 中指定的招聘人员或协调员。`,
+            approvalModeDescriptions: {basic: '选择单个审批人', advanced: `候选人的招聘人员或协调人将成为其报销审批人`, custom: '在 Expensify 中手动设置审批人'},
         },
         merge: {
             connections: '连接',
@@ -8385,6 +8670,12 @@ ${reportName}`,
                 custom: '自定义审批',
                 advanced: '高级审批',
             },
+            approvalModeWarningTitle: '更改审批模式？',
+            approvalModeWarningPrompt: (providerName: string, helpSiteURL: string) =>
+                `您确定要更改此工作区的审批模式吗？在我们的<a href="${helpSiteURL}">帮助网站</a>中了解更多关于不同 ${providerName} 启用的工作流模式的信息。`,
+            approvalModeDeleteWorkflowsWarningPrompt: (providerName: string, helpSiteURL: string) =>
+                `更改审批模式将清除所有现有的审批流程。请在我们的<a href="${helpSiteURL}">帮助中心</a>中了解更多关于不同 ${providerName} 启用的流程模式的信息。`,
+            approvalModeWarningConfirm: '更改审批模式',
             syncingModalTitle: '您的连接正在同步',
             syncingModalDescription: '首次连接可能需要一些时间。若发生任何错误，我们会通知你。',
             syncLimitReached: {title: '请明天再试', prompt: '您已达到今日的同步上限。'},
@@ -8401,15 +8692,83 @@ ${reportName}`,
             campfireSetup: '营火设置',
             enterCredentials: '输入你的 Campfire API 密钥',
             howToFindAPIKey: '<strong>查找您的 API 密钥。</strong><ol><li>登录 Campfire</li><li>前往“设置” -> “API 密钥”</li><li>创建 API 密钥</li><li>将 API 密钥粘贴到下方</li></ol>',
-            subsidiary: '子公司',
-            subsidiarySelectDescription: '选择要从中导入数据的 Campfire 子公司。',
-            noSubsidiariesFound: '未找到子公司',
-            noSubsidiariesFoundDescription: '请在 Campfire 中添加一个实体，然后再次同步连接',
+            entity: '实体',
+            entitySelectDescription: '选择要从中导入数据的 Campfire 实体。',
+            noEntitiesFound: '未找到实体',
+            noEntitiesFoundDescription: '请在 Campfire 中添加一个实体，然后再次同步连接',
+            noVendorsFound: '未找到供应商',
+            noVendorsFoundDescription: '请在 Campfire 中添加供应商，然后再次同步连接',
             importDescription: '选择要从 Campfire 导入的编码配置。',
             accountTypesDescription: '您的 Campfire 账户将会作为类别导入。',
             enableNewAccountsTitle: '启用新导入的账户',
             enableNewAccountsDescription: '新的 Campfire 账户将可用作类别。',
             dimensionsImport: '所有 Campfire 维度都会作为标签导入',
+            exportDescription: '配置 Expensify 数据导出到 Campfire 的方式。',
+            exportReimbursable: {label: '导出可报销费用为', values: {VENDOR_BILL: {label: '供应商账单'}}},
+            exportDate: {
+                label: '供应商账单日期',
+                description: '导出报表到 Campfire 时使用此日期。',
+                values: {
+                    LAST_EXPENSE: {label: '上次报销日期', description: '报表中最新报销的日期。'},
+                    REPORT_EXPORTED: {label: '导出日期', description: '报表导出到 Campfire 的日期。'},
+                    REPORT_SUBMITTED: {label: '提交日期', description: '报表提交审批的日期。'},
+                },
+            },
+            exportNonReimbursable: {label: '导出公司卡消费为', values: {JOURNAL_ENTRY: {label: '日记账分录'}}},
+            defaultCompanyCardVendor: {label: '所有公司卡的默认供应商', description: '为未自动匹配的报销选择一个默认的 Campfire 供应商。'},
+            companyCardAccount: {label: '公司信用卡账户', description: '选择公司卡交易的导出位置。'},
+            noAccountsFound: '未找到账户',
+            noAccountsFoundDescription: '请在 Campfire 中添加账户，然后再次同步连接',
+            autoSyncDescription: '每天自动同步 Campfire 和 Expensify。报告实时同步。',
+            accountingMethods: {
+                label: '导出方式',
+                description: '选择何时导出报销。',
+                values: {
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: '应计',
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: '现金',
+                },
+                alternateText: {
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: '自掏腰包的报销将在最终批准后导出',
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: '自付费用将在报销后导出',
+                },
+            },
+            syncReimbursedReports: '同步已报销报表',
+            syncReimbursedReportsDescription: '当报表通过 ACH 支付时，将在此账户中生成一笔账单付款。',
+            billPaymentAccount: {label: '账单付款账户', description: '当 Expensify 将账单标记为已支付时，选择用于 Campfire 贷记的清算账户。'},
+            syncExpensifyCardSettlements: '同步 Expensify 卡结算',
+            settlementAccount: {label: 'Expensify 卡结算账户', description: '选择您的结算账户，我们会在 Campfire 中创建这笔付款。'},
+            syncTravelInvoicingSettlements: '同步差旅开票结算',
+            travelInvoicingSettlementAccount: {label: '差旅开票结算账户', description: '选择您的结算账户，我们会在 Campfire 中创建这笔付款。'},
+            travelInvoicingPayableAccount: {label: '差旅开票应付账户'},
+            exportToMultipleAccounts: '配置导出到多个账户',
+            cardProgramAccount: {
+                label: '卡计划账户',
+                description: '为这些卡计划覆盖工作区账户。',
+                descriptionLevel2: '覆盖此卡计划的工作区账户。',
+                countInfo: (customAccountsCount: number) => {
+                    if (!customAccountsCount) {
+                        return '所有方案使用默认账户';
+                    }
+                    if (customAccountsCount === 1) {
+                        return `${customAccountsCount} 个自定义账户的项目`;
+                    }
+                    return `${customAccountsCount} 个具有自定义科目的项目`;
+                },
+            },
+            cardAccount: {
+                label: '按卡计费账户',
+                description: '为单张卡片覆盖默认项目账户。',
+                descriptionLevel2: '为这些卡片覆盖默认项目账户。',
+                countInfo: (customAccountsCount: number) => {
+                    if (!customAccountsCount) {
+                        return '所有卡都使用项目账户';
+                    }
+                    if (customAccountsCount === 1) {
+                        return `${customAccountsCount} 张带有自定义账户的卡`;
+                    }
+                    return `${customAccountsCount} 张带有自定义账户的卡`;
+                },
+            },
         },
         businessCentral: {
             businessCentralSetup: 'Dynamics 365 Business Central 设置',
@@ -8423,6 +8782,61 @@ ${reportName}`,
             noCompaniesFoundDescription: '请在 Dynamics 365 Business Central 中添加一家公司并重新同步连接',
             noVendorsFound: '未找到供应商',
             noVendorsFoundDescription: '请在 Business Central 中添加供应商，然后再次同步连接',
+            importDescription: '选择要从 Dynamics 365 Business Central 导入的编码配置。',
+            items: '项目',
+            enableNewCategories: '启用新导入的类别',
+            exportDescription: '配置 Expensify 数据导出到 Dynamics 365 Business Central 的方式。',
+            exportDate: {
+                label: '交易日期',
+                description: '将报表导出到 Dynamics 365 Business Central 时使用此日期。',
+                values: {
+                    [CONST.BUSINESS_CENTRAL_EXPORT_DATE.LAST_EXPENSE]: {
+                        label: '最新支出日期',
+                        description: '报告中最近一次支出的日期。',
+                    },
+                    [CONST.BUSINESS_CENTRAL_EXPORT_DATE.REPORT_EXPORTED]: {
+                        label: '导出日期',
+                        description: '报告导出至 Dynamics 365 Business Central 的日期。',
+                    },
+                    [CONST.BUSINESS_CENTRAL_EXPORT_DATE.REPORT_SUBMITTED]: {
+                        label: '提交日期',
+                        description: '报告提交审批的日期。',
+                    },
+                },
+            },
+            exportReimbursable: '将可报销费用导出为',
+            exportNonReimbursable: '导出公司卡费用为',
+            exportDestination: {
+                [CONST.BUSINESS_CENTRAL_EXPORT_DESTINATION.JOURNAL_ENTRY]: '普通日记账',
+                [CONST.BUSINESS_CENTRAL_EXPORT_DESTINATION.PURCHASE_INVOICE]: '采购发票',
+            },
+            reimbursableAccount: {
+                label: '可报销费用账户',
+                description: '选择可报销费用的导出位置。',
+            },
+            defaultCompanyCardVendor: {
+                label: '默认公司卡供应商',
+                description: '为未自动匹配的费用选择默认的 Dynamics 365 Business Central 供应商。',
+            },
+            companyCardAccount: {
+                label: '公司卡账户',
+                description: '选择公司卡交易的导出位置。',
+            },
+            paymentMethod: {
+                label: '付款方式',
+                description: '为采购发票选择付款方式，以便 Dynamics 365 Business Central 将其与您的银行进行对账。',
+            },
+            noBankAccountsFound: '未找到银行账户',
+            noBankAccountsFoundDescription: '请在 Dynamics 365 Business Central 中添加银行账户，然后重新同步连接',
+            noPaymentMethodsFound: '未找到付款方式',
+            noPaymentMethodsFoundDescription: '请在 Dynamics 365 Business Central 中添加付款方式，然后重新同步连接',
+            accountsDescription: '您的 Dynamics 365 Business Central 账户将作为类别导入。',
+            dimensionsImportAsTags: '所有 Dynamics 365 Business Central 维度都会作为标签导入',
+            customers: '客户',
+            projects: '项目',
+            projectsAndCustomersCannotBeEnabled: '无法启用项目和客户',
+            projectsAndCustomersCannotBeEnabledDescription: '仅当导出选项为“采购发票”时，才能启用项目和客户',
+            enableNewCategoriesDescription: '新的 Dynamics 365 Business Central 科目将可作为类别使用。',
         },
     },
     getAssistancePage: {
@@ -8884,6 +9298,19 @@ ${reportName}`,
         },
         addedProhibitedExpense: ({prohibitedExpense}: {prohibitedExpense: string}) => `已将“${prohibitedExpense}”添加到禁止报销的费用中`,
         removedProhibitedExpense: ({prohibitedExpense}: {prohibitedExpense: string}) => `已从禁用报销类别中移除“${prohibitedExpense}”`,
+        officeLocation: {
+            added: ({name, address}: {name: string; address: string}) => `已添加办公地点“${name}”（${address}）`,
+            renamed: ({oldName, newName}: {oldName: string; newName: string}) => `已将办公地点名称从“${oldName}”重命名为“${newName}”`,
+            changedAddress: ({name, newAddress, oldAddress}: {name: string; newAddress: string; oldAddress: string}) =>
+                `已将办公地点“${name}”的地址更改为“${newAddress}”（原为“${oldAddress}”）`,
+            setAsPrimary: ({name}: {name: string}) => `将办公地点“${name}”设为主要地点`,
+            setCompanyAddressAsPrimary: '将公司地址设为主要地址',
+            removed: ({name}: {name: string}) => `已移除办公室地点“${name}”`,
+        },
+        workArrangement: {
+            set: ({arrangement}: {arrangement: string}) => `将默认工作安排设置为 ${arrangement}`,
+            changed: ({arrangement, previousArrangement}: {arrangement: string; previousArrangement: string}) => `将默认工作安排更改为 ${arrangement}（之前为 ${previousArrangement}）`,
+        },
         commuterExclusions: {
             changedToFixedDistance: ({previousMethod}: {previousMethod: string}) => `将排除通勤方式更改为按每次报销的固定距离（先前为 ${previousMethod}）`,
             changedToHomeAndOffice: ({previousMethod}: {previousMethod: string}) => `已将排除通勤的计算方式更改为按家庭和办公室计算（此前为 ${previousMethod}）`,
@@ -9050,6 +9477,7 @@ ${reportName}`,
             invoices: (sourcePolicyName: string, sourcePolicyURL: string) => `已从 <a href="${sourcePolicyURL}">${sourcePolicyName}</a> 复制发票设置`,
             travel: (sourcePolicyName: string, sourcePolicyURL: string) => `已从 <a href="${sourcePolicyURL}">${sourcePolicyName}</a> 复制出差设置`,
         },
+        updatedAutoCategorizeNewExpenses: ({enabled}: {enabled: boolean}) => `${enabled ? '已启用' : '已禁用'} 新报销自动分类`,
         updatedRequiresCategory: ({enabled}: {enabled: boolean}) => `${enabled ? '已启用' : '已禁用'} 费用分类要求`,
         updatedRequiresTag: ({enabled}: {enabled: boolean}) => `${enabled ? '已启用' : '已禁用'} 费用标签要求`,
         updatedCurrencyConversionFee: ({preferenceLabel}: {preferenceLabel: string}) => `将货币转换费用设置更新为“${preferenceLabel}”`,
@@ -9057,6 +9485,8 @@ ${reportName}`,
             return `将“${categoryName}”类别的出席者更改为 ${newValue ? '必填' : '非必填'}（之前为 ${newValue ? '非必填' : '必填'}）`;
         },
         updatedAutoHarvesting: (enabled: boolean) => `${enabled ? '已启用' : '已禁用'} 次提交`,
+        updatedMemberDisplayName: (newName: string, oldName: string, editProfileURL: string) =>
+            `已将您的显示名称更新为 ${newName}（之前为“${oldName}”）。<a href="${editProfileURL}">在个人资料中编辑</a>`,
         changedOverLimitForwardsTo: ({
             member,
             approver,
@@ -9086,6 +9516,10 @@ ${reportName}`,
                 : `已更改 ${member} 的审批流程，停止转发超过 ${previousLimit} 的报销报告`,
         changedApprovalLimit: ({member, limit, previousLimit}: {member: string; limit: string; previousLimit: string}) =>
             `已将 ${member} 的审批流程更改为：转交超过 ${limit} 的报销单（之前为 ${previousLimit}）`,
+        updatedMemberWorkArrangement: ({displayName, newArrangement, oldArrangement}: {displayName: string; newArrangement: string; oldArrangement: string}) =>
+            `已将 ${displayName} 的工作安排更改为 ${newArrangement}（之前为 ${oldArrangement}）`,
+        updatedDefaultWorkArrangement: ({newArrangement, oldArrangement}: {newArrangement: string; oldArrangement: string}) =>
+            `已将默认工作安排更改为 ${newArrangement}（之前为 ${oldArrangement}）`,
     },
     roomMembersPage: {
         memberNotFound: '未找到成员。',
@@ -9129,6 +9563,18 @@ ${reportName}`,
         genericCreateTaskFailureMessage: '创建此任务时出错。请稍后重试。',
         deleteTask: '删除任务',
         deleteConfirmation: '确定要删除此任务吗？',
+    },
+    supportTicket: {
+        title: ({date, customer, supportRep}: {date: string; customer: string; supportRep: string}) => `支持工单，${date}：${customer} 与 ${supportRep}`,
+        description: ({supportRep}: {supportRep: string}) =>
+            `您好，我是 ${supportRep}，我会一直协助您，直到问题完全解决。如果您已经和我们分享了详细信息，我会在回复前先行查看，您无需重复说明。如果这是一个新问题，请告诉我您需要什么帮助。`,
+        checkboxTooltip: '问题解决后，您的客服代表会勾选此项。',
+        genericCreateSupportTicketFailureMessage: '我们无法创建此支持工单。请关闭此错误后重试。',
+        noSupportRepAvailable: '目前没有可用的支持代表。您仍可向 Concierge 发送消息以获取帮助。',
+        fallbackTitle: '支持工单',
+        resolved: '此支持工单已解决。',
+        surveyPrompt: '您对支持服务的体验如何？',
+        reopenTicket: '重新打开工单',
     },
     statementPage: {
         title: (year: number | string, monthName: string) => `${year}年${monthName}对账单`,
@@ -9217,6 +9663,11 @@ ${reportName}`,
         bulkActions: {
             editMultiple: '批量编辑',
             editMultipleTitle: '编辑多个费用',
+            editFinalizedExpensesTitle: '编辑已完成的费用？',
+            editFinalizedExpensesConfirmation: ({count, total}: {count: number; total: number}) => ({
+                one: `您选择的 ${total} 笔费用中有 1 笔位于已批准或已支付的报表中。您即将编辑已完成的费用。您确定吗？`,
+                other: `您选择的 ${total} 笔费用中有 ${count} 笔位于已批准或已支付的报表中。您即将编辑已完成的费用。您确定吗？`,
+            }),
             editMultipleDescription: '更改将应用于所有选中的报销，并覆盖任何先前设置的值。',
             approve: '批准',
             pay: '支付',
@@ -9255,6 +9706,7 @@ ${reportName}`,
                     [CONST.SEARCH.DATE_PRESETS.LAST_12_MONTHS]: '过去 12 个月',
                     [CONST.SEARCH.DATE_PRESETS.LAST_STATEMENT]: '上一期对账单',
                 },
+                customDay: '自定义日期',
             },
             status: '状态',
             keyword: '关键词',
@@ -9333,6 +9785,11 @@ ${reportName}`,
                 [CONST.SEARCH.ACTION_FILTERS.EXPORT]: '导出',
             },
             filterType: {label: '筛选类型', has: {positive: '有', negative: '没有'}, is: {positive: '是', negative: '不是'}},
+            merchant: {
+                matchType: '匹配类型',
+                contains: (merchant?: string) => (merchant ? `包含 "${merchant}"` : '包含'),
+                equalTo: (merchant?: string) => (merchant ? `等于 "${merchant}"` : '等于'),
+            },
             created: '已创建',
             createdDate: '创建日期',
             transactionStatus: {
@@ -9424,7 +9881,14 @@ ${reportName}`,
             topMerchants: '热门商家',
             violationsBySubmitter: '提交人违规',
         },
-        mergeReports: {title: '合并报表', description: '选择要保留的报表。所有费用都将移入该报表，其他报表将被删除。'},
+        mergeReports: {
+            title: '合并报表',
+            description: '选择要保留的报表。所有费用都将移入该报表，其他报表将被删除。',
+            listPage: {noEligibleReportsFound: '未找到符合条件的报表', noEligibleReportsFoundSubtitle: '您没有任何可合并的报表。'},
+        },
+        periodSoFar: ({period}: {period: string}) => `目前 ${period}`,
+        weekOf: ({date}: {date: string}) => `${date} 当周`,
+        saveEdits: {title: '保存编辑', prompt: ({name}: {name: string}) => `要更新对“${name}”的更改，还是创建一个新项？`, createNew: '新建', updateExisting: '更新现有内容'},
     },
     genericErrorPage: {
         title: '哎呀，出错了！',
@@ -9451,12 +9915,7 @@ ${reportName}`,
         },
     },
     settlement: {
-        status: {
-            pending: '待处理',
-            cleared: '已入账',
-            failed: '失败',
-            never: '从不',
-        },
+        status: {pending: '待处理', cleared: '已入账', failed: '失败', never: '从不', cashBack: '返现'},
         failedError: ({link}: {link: string}) => `当你<a href="${link}">解锁你的账户</a>后，我们会重试此结算。`,
         withdrawalInfo: ({date, withdrawalID}: {date: string; withdrawalID: number}) => `${date} • 提现 ID：${withdrawalID}`,
     },
@@ -9779,6 +10238,12 @@ ${reportName}`,
     distance: {
         addStop: '添加站点',
         address: '地址',
+        reuseRoute: '复用路线',
+        reusePriorRoute: '复用之前的路线',
+        choosePreviousRoute: '在下方选择一个之前的路线：',
+        findARoute: '查找路线',
+        lastUsed: ({date}: {date: string}) => `上次使用时间：${date}`,
+        end: '结束',
         waypointDescription: {
             start: '开始',
             stop: '停止',
@@ -10174,6 +10639,40 @@ ${reportName}`,
             taxRateChanged: '税率已修改',
             taxRequired: '缺少税率',
         },
+        ruleViolation: {
+            fallback: '违反报销政策',
+            anyExpense: '任何报销费用',
+            expense: (adjectives: string) => (adjectives ? `${adjectives} 报销费用` : '报销费用'),
+            perDiem: '每日津贴',
+            notExpenseType: (expenseType: string) => `不是 ${expenseType}`,
+            billable: {enabled: '可计费', disabled: '不可计费'},
+            reimbursable: {enabled: '可报销', disabled: '不可报销'},
+            withoutCategory: '无类别',
+            fromMerchant: (merchant: string) => `来自 ${merchant}`,
+            notFromMerchant: (merchant: string) => `非来自 ${merchant}`,
+            fromMerchantsContaining: (merchant: string) => `来自包含 ${merchant} 的商家`,
+            notFromMerchantsContaining: (merchant: string) => `不来自包含 ${merchant} 的商家`,
+            withVendor: (vendor: string) => `与商家 ${vendor}`,
+            withoutVendor: (vendor: string) => `无供应商 ${vendor}`,
+            fromVendor: (vendor: string) => `来自 ${vendor}`,
+            notFromVendor: (vendor: string) => `非来自 ${vendor}`,
+            overAmount: (amount: string) => `超过 ${amount}`,
+            amountOrMore: (amount: string) => `${amount} 或更多`,
+            underAmount: (amount: string) => `低于 ${amount}`,
+            amountOrLess: (amount: string) => `${amount} 或以下`,
+            withoutTag: '没有标签',
+            tagged: (tag: string) => `已添加标签 ${tag}`,
+            inCurrency: (currency: string) => `以 ${currency} 计`,
+            notInCurrency: (currency: string) => `不是以 ${currency} 为单位`,
+            paidInCurrency: (currency: string) => `以 ${currency} 支付`,
+            notPaidInCurrency: (currency: string) => `未以 ${currency} 支付`,
+            attachment: '一个附件',
+            attribute: (attribute: string) => `一个 ${attribute}`,
+            withAttributes: (attributes: string) => `带有 ${attributes}`,
+            withoutAttributes: (attributes: string) => `不含 ${attributes}`,
+            merchantCode: (code: string) => `MCC ${code}`,
+            atMerchantCode: (merchantCode: string) => `在 ${merchantCode}`,
+        },
     },
     reportViolations: {
         [CONST.REPORT_VIOLATIONS.FIELD_REQUIRED]: (fieldName: string) => `${fieldName} 为必填项`,
@@ -10313,6 +10812,11 @@ ${reportName}`,
                 title: '您的免费试用已结束',
                 subtitle: '添加一张付款卡片以继续使用您所有喜爱的功能。',
             },
+            subscriptionExpiringSoon: {
+                title: ({date}: {date: string}) => `您的订阅将于 ${date} 结束`,
+                subtitle: '开启自动续订以保留您当前的价格。',
+                manage: '管理',
+            },
             earlyDiscount: {
                 claimOffer: '领取优惠',
                 subscriptionPageTitle: (discountType: number) => `<strong>首年立减 ${discountType}%！</strong> 只需添加一张支付卡并开始年度订阅。`,
@@ -10438,6 +10942,28 @@ ${reportName}`,
                 invalid: '此代码无效',
             },
         },
+        paymentHistory: {
+            title: '查看付款记录',
+            subtitle: '此账户每月全部付款记录。',
+            payments: '付款',
+            inclTax: '含税',
+            empty: '尚无付款。',
+            activeUsers: ({count}: {count: number}) => ({
+                one: '1 位活跃用户',
+                other: `${count} 名活跃用户`,
+            }),
+            state: {paid: '已支付', cleared: '已清算', failed: '失败', refunded: '已退款', disputed: '有争议', balanceTransfer: '余额转账'},
+            details: '付款详情',
+            badge: {
+                balanceTransferTo: ({email}: {email: string}) => `余额转账至 ${email}`,
+                balanceTransferFrom: ({email}: {email: string}) => `余额转账来自 ${email}`,
+                disputedPending: ({date}: {date: string}) => `${date} 提出争议（待处理）`,
+                disputedRefunded: ({date}: {date: string}) => `${date} 提出争议（已退款）`,
+                disputedClosed: ({date}: {date: string}) => `${date} 提出争议（已关闭）`,
+                refundedOn: ({date}: {date: string}) => `${date} 已退款`,
+                refundedAmountOn: ({amount, date}: {amount: string; date: string}) => `${date} 已退款 ${amount}`,
+            },
+        },
         subscriptionSettings: {
             title: '订阅设置',
             summary: (subscriptionType: string, subscriptionSize: string, expensifyCode: string, autoRenew: string, autoIncrease: string) =>
@@ -10545,6 +11071,8 @@ ${reportName}`,
         removeCopilotAccessConfirmation: (delegatorName: string) => `您确定要移除对${delegatorName}的 Expensify 账户的副驾驶访问权限吗？此操作无法撤销。`,
         removeCopilotAccessConfirm: '移除访问权限',
         copilotAccess: 'Copilot 访问',
+        leaveAccount: '退出账户',
+        leaveAccountConfirmationText: '您将返回到您自己的账户。您不会完全登出。',
     },
     debug: {
         debug: '调试',
@@ -10656,18 +11184,8 @@ ${reportName}`,
         },
     },
     productMarketingWindow: {
-        roleTypes: {
-            admin: {
-                heading: '增强型供应商映射',
-                body: '创建供应商和自定义规则，轻松映射到主流会计软件。',
-                cta: '试一试',
-            },
-            member: {
-                heading: '为你预构建的代理',
-                body: '使用预构建或自定义智能代理，代表你自动编写、拆分并提交报销费用。',
-                cta: '试用',
-            },
-        },
+        heading: '将 Expensify 连接到 Claude',
+        body: '直接在 Claude 中搜索、分析和总结费用数据。',
     },
     productTrainingTooltip: {
         conciergeLHNGBR: '<tooltip>从<strong>这里</strong>开始！</tooltip>',
@@ -10680,6 +11198,7 @@ ${reportName}`,
         markAllAsRead: '<tooltip>右键点击即可<strong>将所有内容标记为已读</strong>。</tooltip>',
         markAllAsReadTouchScreen: '<tooltip>长按即可<strong>将所有内容标记为已读</strong>。</tooltip>',
         accountMovedToTopBar: '<tooltip>访问你的账户和个人设置。</tooltip>',
+        connectionsMoved: '所有连接尽在一处',
     },
     discardChangesConfirmation: {
         title: '放弃更改？',
@@ -10996,6 +11515,46 @@ ${reportName}`,
             title: '构建你自己的代理',
             description: `<muted-text>创建自定义代理，根据你设置的规则审核、批准和分配报销。<a href="${CONST.AI_FEATURES_PROMO_LEARN_MORE_URLS.BUILD_AGENTS}">了解更多</a>。</muted-text>`,
         },
+    },
+    emailIssuePage: {
+        title: '邮件问题',
+        intro: (login: string) => `由于投递问题，我们的邮件服务提供商已暂停向 <strong>${login}</strong> 发送邮件。要解决此问题：`,
+        confirmEmailTitle: '确认您的邮箱地址',
+        confirmEmailDescription: (login: string) =>
+            `请确保 <strong>${login}</strong> 拼写正确且是一个真实存在的收件箱。像“expenses@domain.com”这样的别名也需要有各自可正常使用的收件箱才能登录 Expensify。`,
+        allowlistTitle: '将 expensify.com 加入允许列表',
+        allowlistDescription: `将 <strong>expensify.com</strong> 添加到您的邮箱客户端的允许列表中。您可能需要 IT 通过<a href="${CONST.SET_NOTIFICATION_LINK}">这些说明</a>调整服务器设置。`,
+        getHelpFromConcierge: '向 Concierge 寻求帮助',
+        completedSteps: '我已完成以上步骤',
+        errorTitle: '出现问题。请重试',
+        errorPrompt: '好像出了点问题。请重试。如果问题仍然存在，请联系 Concierge。',
+    },
+    earlyRenewal: {
+        confirmationDescription: ({startDate, endDate}: {startDate: string; endDate: string}) => `将您的订阅续订为 12 个月期限，自 ${startDate} 至 ${endDate}。`,
+        title: '续订您的 Expensify 订阅',
+        subtitle: '在新年到来前又少了一件要做的事。',
+        confirmTitle: '确认续订',
+        renew: '续订',
+        incentivizedTitle: '提前续订，最多可享 2 个月免费',
+        incentivizedSubtitle: '领取年度订阅折扣。',
+        claim: '报销申请',
+        offer: {
+            heading: '选择你的折扣',
+            subtitle: '两种超值优惠供你选择：',
+            oneYear: '续订 1 年，赠送 1 个月',
+            twoYears: '续订 2 年，赠送 2 个月',
+            bestDeal: '最优惠',
+            disclaimer: '上述优惠将作为您年度订阅的 9% 折扣予以应用。超额费用不包括在内。',
+            renewAndClaim: '续订并领取折扣',
+            chooseOptionError: '请选择一个选项。',
+        },
+        adminTitle: '请联系您的账单负责人提前续订',
+        adminSubtitle: '通过你的年度订阅，他们最多可享受 2 个月的免费使用。',
+        adminCTA: '提醒',
+        draftMessage: ({billingOwnerEmail, subscriptionURL}: {billingOwnerEmail: string; subscriptionURL: string}) =>
+            `@${billingOwnerEmail}，你能提前续订我们的 Expensify 订阅吗？我们最多可以免费使用 2 个月。在这里领取：［订阅页面］(${subscriptionURL})`,
+        mobileRenewPrompt: '请在网页浏览器中访问 Expensify 以提前续订。',
+        mobileClaimPrompt: '请在网页浏览器中访问 Expensify 以领取您的续订折扣。',
     },
 };
 export default translations;

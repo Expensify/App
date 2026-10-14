@@ -23,7 +23,6 @@ import {getIOUActionForReportID, getReportAction, getTrackExpenseActionableWhisp
 import {
     buildOptimisticIOUReportAction,
     getReportOrDraftReport,
-    getReportTransactions,
     getTransactionDetails,
     isCurrentUserSubmitter,
     isMoneyRequestReportEligibleForMerge,
@@ -223,6 +222,7 @@ function getTransactionsForMerging({
     isOffline,
     targetTransaction,
     transactions,
+    reportTransactions,
     policy,
     report,
     currentUserLogin,
@@ -231,6 +231,7 @@ function getTransactionsForMerging({
     isOffline: boolean;
     targetTransaction: Transaction;
     transactions: OnyxCollection<Transaction>;
+    reportTransactions: Transaction[];
     policy: OnyxEntry<Policy>;
     report: OnyxEntry<Report>;
     currentUserLogin: string | undefined;
@@ -252,7 +253,6 @@ function getTransactionsForMerging({
     const isManager = isReportManager(report);
 
     if (isPaidGroupPolicy(policy) && (isAdmin || isManager) && !isCurrentUserSubmitter(report)) {
-        const reportTransactions = getReportTransactions(report?.reportID);
         const eligibleTransactions = reportTransactions.filter((transaction): transaction is Transaction => {
             if (!transaction || transaction.transactionID === transactionID) {
                 return false;
@@ -411,6 +411,7 @@ type MergeTransactionRequestParams = {
     targetTransaction: Transaction;
     allTransactionViolations: OnyxCollection<TransactionViolations>;
     sourceTransaction: Transaction;
+    transactionsOfDeletableReportCollection: Record<string, Transaction>;
     targetTransactionThreadReport: OnyxEntry<Report>;
     targetTransactionThreadParentReport: OnyxEntry<Report>;
     iouReportOwnerLogin: string | undefined;
@@ -430,6 +431,8 @@ type MergeTransactionRequestParams = {
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
     getCurrencySymbol: CurrencyListActionsContextType['getCurrencySymbol'];
     sourceIOUActionThreadReport: OnyxEntry<Report>;
+    sourceActionIOUReport: OnyxEntry<Report>;
+    sourceActionChatReport: OnyxEntry<Report>;
     rules: OnyxCollection<Rule>;
     isVendorMatchingBetaEnabled: boolean | undefined;
 };
@@ -447,6 +450,7 @@ function mergeTransactionRequest({
     mergeTransaction,
     targetTransaction,
     sourceTransaction,
+    transactionsOfDeletableReportCollection,
     targetTransactionThreadReport,
     targetTransactionThreadParentReport,
     iouReportOwnerLogin,
@@ -467,6 +471,8 @@ function mergeTransactionRequest({
     getCurrencyDecimals,
     getCurrencySymbol,
     sourceIOUActionThreadReport,
+    sourceActionIOUReport,
+    sourceActionChatReport,
     rules,
     isVendorMatchingBetaEnabled,
 }: MergeTransactionRequestParams) {
@@ -549,7 +555,7 @@ function mergeTransactionRequest({
         };
 
         const transactionToDelete = mergeTransaction.reportID === targetTransaction.reportID ? sourceTransaction : targetTransaction;
-        const transactionsOfDeletableReport = getReportTransactions(transactionToDelete.reportID);
+        const transactionsOfDeletableReport = Object.values(transactionsOfDeletableReportCollection);
         const deletableReport = getReportOrDraftReport(transactionToDelete.reportID);
         const reportPreviewActionIDOfDeletableReport = deletableReport?.parentReportActionID;
         const optimisticReportDeletionData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> =
@@ -642,6 +648,8 @@ function mergeTransactionRequest({
                 shouldDeleteTransactionThread,
                 reportAction: sourceIOUAction,
                 currentUserAccountID: currentUserAccountIDParam,
+                iouReport: sourceActionIOUReport,
+                chatReport: sourceActionChatReport,
                 transactionThread: sourceIOUActionThreadReport,
                 transactionThreadReportActionsParam: sourceTransactionThreadReportActions,
             });
@@ -737,8 +745,7 @@ function mergeTransactionRequest({
             participants: [],
             transactionID: mergeTransaction.targetTransactionID,
             iouReportID: mergeTransaction.reportID,
-            // delegateAccountIDParam: will be threaded in PR 11; buildOptimisticIOUReportAction falls back to module-level Onyx.connect value (https://github.com/Expensify/App/issues/66425)
-            delegateAccountIDParam: undefined,
+            delegateAccountIDParam: delegateAccountID,
             getCurrencyDecimals,
         });
 

@@ -1435,16 +1435,25 @@ function clearDomainMemberError(domainAccountID: number, accountID: number, emai
  * @param domainAccountID Account ID of a domain
  * @param domain Domain name
  * @param targetEmail Email of a user to be removed
+ * @param targetAccountID Account ID of the removed user, which their adminship request is keyed by
  * @param securityGroupsData Data of a security group user is in
  * @param overrideProcessingReports "Force" flag. If true user will be removed regardless of if they have outstanding reports
  */
-function closeUserAccount(domainAccountID: number, domain: string, targetEmail: string, securityGroupsData: UserSecurityGroupData, overrideProcessingReports = false) {
+function closeUserAccount(
+    domainAccountID: number,
+    domain: string,
+    targetEmail: string,
+    targetAccountID: number,
+    securityGroupsData: UserSecurityGroupData,
+    overrideProcessingReports = false,
+) {
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS | typeof ONYXKEYS.COLLECTION.DOMAIN_ERRORS>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`,
             value: {
                 member: {[targetEmail]: {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}},
+                adminshipRequester: {[targetAccountID]: {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}},
             },
         },
         {
@@ -1458,12 +1467,21 @@ function closeUserAccount(domainAccountID: number, domain: string, targetEmail: 
         },
     ];
 
-    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS | typeof ONYXKEYS.COLLECTION.DOMAIN_ERRORS>> = [
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.DOMAIN | typeof ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS | typeof ONYXKEYS.COLLECTION.DOMAIN_ERRORS>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`,
             value: {
                 member: {[targetEmail]: null},
+                adminshipRequester: {[targetAccountID]: null},
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`,
+            value: {
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                domain_adminRequesters: {[targetAccountID]: null},
             },
         },
         {
@@ -1472,6 +1490,9 @@ function closeUserAccount(domainAccountID: number, domain: string, targetEmail: 
             value: {
                 memberErrors: {
                     [targetEmail]: null,
+                },
+                adminshipRequesterErrors: {
+                    [targetAccountID]: null,
                 },
             },
         },
@@ -1492,6 +1513,7 @@ function closeUserAccount(domainAccountID: number, domain: string, targetEmail: 
             key: `${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`,
             value: {
                 member: {[targetEmail]: null},
+                adminshipRequester: {[targetAccountID]: null},
             },
         },
         {

@@ -15,6 +15,21 @@
 # Use functions and variables from the utils script
 source scripts/shellUtils.sh
 
+launch_simulator_ios() {
+  local device_id="$1"
+  local active_developer_dir
+  active_developer_dir=$(xcode-select -p 2>/dev/null)
+  local simulator_app="$active_developer_dir/Applications/Simulator.app"
+
+  if [ -d "$simulator_app" ]; then
+    open "$simulator_app" --args -CurrentDeviceUDID "$device_id"
+  else
+    open "devices://device/open?id=$device_id"
+  fi
+
+  xcrun simctl boot "$device_id" 2>/dev/null || true
+}
+
 select_device_ios()
 {
   # shellcheck disable=SC2124
@@ -44,7 +59,7 @@ select_device_ios()
   if [ ${#device_names[@]} -eq 1 ]; then
     device_identifier="${device_identifiers[0]}"
     success "Single device detected, launching ${device_names[0]}"
-    open -a Simulator --args -CurrentDeviceUDID "$device_identifier"
+    launch_simulator_ios "$device_identifier"
     return
   fi
   info "Multiple devices detected, please select one from the list."
@@ -60,12 +75,14 @@ select_device_ios()
   fi
   done
   success "Launching $device_name_for_display"
-  open -a Simulator --args -CurrentDeviceUDID "$device_identifier"
+  launch_simulator_ios "$device_identifier"
 }
 
 kill_all_emulators_ios() {
   # kill all the emulators
-  killall Simulator
+  killall DeviceHub 2>/dev/null || true
+  killall Simulator 2>/dev/null || true
+  xcrun simctl shutdown all 2>/dev/null || true
 }
 
 restart_adb_server() {

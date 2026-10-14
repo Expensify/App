@@ -134,10 +134,45 @@ describe('canEditMultipleTransactions', () => {
     });
 
     it('returns false when any selected transaction has no editable fields', () => {
-        const {transaction1, transaction2, reports, policies, reportActions} = buildTestData({disableSecondAction: true});
+        // Given a second expense on another member's open report, in a workspace where the current user isn't an admin
+        const {transaction1, transaction2, reports, policies, reportActions, report2, policy2, reportAction2} = buildTestData();
+        report2.ownerAccountID = 999;
+        report2.managerID = 999;
+        reportAction2.actorAccountID = 999;
+        policy2.role = CONST.POLICY.ROLE.USER;
 
+        // When checking whether both expenses can be bulk edited
         const result = canEditMultipleTransactions([transaction1, transaction2], reportActions, reports, policies, undefined);
 
+        // Then bulk edit is unavailable, because the current user can't edit the second expense
+        expect(result).toBe(false);
+    });
+
+    it('returns true when a selected expense on a report the current user submitted has no IOU action', () => {
+        // Given a second expense with no IOU action, on an open report the current user submitted, in a workspace where they aren't an admin
+        const {transaction1, transaction2, reports, policies, reportActions, report2, policy2} = buildTestData({disableSecondAction: true});
+        report2.ownerAccountID = currentUserAccountID;
+        report2.managerID = 999;
+        policy2.role = CONST.POLICY.ROLE.USER;
+
+        // When checking whether both expenses can be bulk edited
+        const result = canEditMultipleTransactions([transaction1, transaction2], reportActions, reports, policies, undefined);
+
+        // Then bulk edit is available, because the report's submitter stands in for the missing action's requester
+        expect(result).toBe(true);
+    });
+
+    it('returns false when a selected expense on a report another member submitted has no IOU action', () => {
+        // Given a second expense with no IOU action, on another member's open report, in a workspace where the current user isn't an admin
+        const {transaction1, transaction2, reports, policies, reportActions, report2, policy2} = buildTestData({disableSecondAction: true});
+        report2.ownerAccountID = 999;
+        report2.managerID = 999;
+        policy2.role = CONST.POLICY.ROLE.USER;
+
+        // When checking whether both expenses can be bulk edited
+        const result = canEditMultipleTransactions([transaction1, transaction2], reportActions, reports, policies, undefined);
+
+        // Then bulk edit is unavailable, because the missing action doesn't make the current user the requester
         expect(result).toBe(false);
     });
 
@@ -184,10 +219,44 @@ describe('canEditMultipleTransactions', () => {
         expect(result).toBe(false);
     });
 
-    it('returns false when any selected transaction belongs to a reimbursed report', () => {
+    it('returns true for an admin when a selected transaction belongs to a reimbursed report', () => {
         const {transaction1, transaction2, reports, policies, reportActions, report2} = buildTestData();
 
         report2.statusNum = CONST.REPORT.STATUS_NUM.REIMBURSED;
+
+        const result = canEditMultipleTransactions([transaction1, transaction2], reportActions, reports, policies, undefined);
+
+        expect(result).toBe(true);
+    });
+
+    it('returns false for a non-admin when a selected transaction belongs to a reimbursed report', () => {
+        const {transaction1, transaction2, reports, policies, reportActions, report2, policy2} = buildTestData();
+
+        report2.statusNum = CONST.REPORT.STATUS_NUM.REIMBURSED;
+        policy2.role = CONST.POLICY.ROLE.USER;
+
+        const result = canEditMultipleTransactions([transaction1, transaction2], reportActions, reports, policies, undefined);
+
+        expect(result).toBe(false);
+    });
+
+    it('returns true for an admin when a selected transaction belongs to an approved report', () => {
+        const {transaction1, transaction2, reports, policies, reportActions, report2} = buildTestData();
+
+        report2.stateNum = CONST.REPORT.STATE_NUM.APPROVED;
+        report2.statusNum = CONST.REPORT.STATUS_NUM.APPROVED;
+
+        const result = canEditMultipleTransactions([transaction1, transaction2], reportActions, reports, policies, undefined);
+
+        expect(result).toBe(true);
+    });
+
+    it('returns false for a non-admin when a selected transaction belongs to an approved report', () => {
+        const {transaction1, transaction2, reports, policies, reportActions, report2, policy2} = buildTestData();
+
+        report2.stateNum = CONST.REPORT.STATE_NUM.APPROVED;
+        report2.statusNum = CONST.REPORT.STATUS_NUM.APPROVED;
+        policy2.role = CONST.POLICY.ROLE.USER;
 
         const result = canEditMultipleTransactions([transaction1, transaction2], reportActions, reports, policies, undefined);
 
@@ -255,7 +324,7 @@ describe('canEditMultipleTransactions', () => {
         expect(resultReversed).toBe(true);
     });
 
-    it('returns false when selecting an unreported expense and an approved expense', () => {
+    it('returns true for an admin when selecting an unreported expense and an approved expense', () => {
         const {transaction1, transaction2, reports, policies, reportActions, report2} = buildTestData();
 
         const unreportedTransaction: Transaction = {...transaction1, reportID: CONST.REPORT.UNREPORTED_REPORT_ID};
@@ -263,7 +332,7 @@ describe('canEditMultipleTransactions', () => {
         report2.statusNum = CONST.REPORT.STATUS_NUM.APPROVED;
 
         const result = canEditMultipleTransactions([unreportedTransaction, transaction2], reportActions, reports, policies, undefined);
-        expect(result).toBe(false);
+        expect(result).toBe(true);
     });
 
     it('considers workflow actions that exist only in the search snapshot when checking edit permissions', async () => {

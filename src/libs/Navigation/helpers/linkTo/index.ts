@@ -1,8 +1,9 @@
-import {getMatchingFullScreenRoute, isFullScreenName} from '@libs/Navigation/helpers/getAdaptedStateFromPath';
+import getMatchingFullScreenRoute from '@libs/Navigation/helpers/getMatchingFullScreenRoute';
 import getStateFromPath from '@libs/Navigation/helpers/getStateFromPath';
+import {isFullScreenName} from '@libs/Navigation/helpers/isNavigatorName';
 import normalizePath from '@libs/Navigation/helpers/normalizePath';
 import {getTabState} from '@libs/Navigation/helpers/tabNavigatorUtils';
-import {linkingConfig} from '@libs/Navigation/linkingConfig';
+import {config as linkingConfig} from '@libs/Navigation/linkingConfig/config';
 import type {PlatformStackNavigationState} from '@libs/Navigation/PlatformStackNavigation/types';
 import {shallowCompare} from '@libs/ObjectUtils';
 
@@ -204,7 +205,7 @@ export default function linkTo(navigation: NavigationContainerRef<RootNavigatorP
         return;
     }
 
-    const action: StackNavigationAction = getActionFromState(stateFromPath, linkingConfig.config);
+    const action: StackNavigationAction = getActionFromState(stateFromPath, linkingConfig);
 
     // If there is no action, just reset the whole state.
     if (!action) {
@@ -307,13 +308,16 @@ export default function linkTo(navigation: NavigationContainerRef<RootNavigatorP
         }
     }
 
-    const {action: minimalAction} = getMinimalAction(action, navigation.getRootState());
-    if (
+    const {action: resolvedAction, isFocusedRouteInDifferentScope} = getMinimalAction(action, navigation.getRootState());
+
+    // The focused split belongs to another workspace or domain, so push a sibling instead of navigating into it.
+    // A forced replace stays a replace.
+    const shouldPushSiblingSplit = isFocusedRouteInDifferentScope && resolvedAction.type === CONST.NAVIGATION.ACTION_TYPE.NAVIGATE;
+    const shouldPushTabNavigator =
         action.type === CONST.NAVIGATION.ACTION_TYPE.NAVIGATE &&
         action.payload.name === NAVIGATORS.TAB_NAVIGATOR &&
-        !isFullScreenName((minimalAction.payload as {name?: string} | undefined)?.name)
-    ) {
-        minimalAction.type = CONST.NAVIGATION.ACTION_TYPE.PUSH;
-    }
+        !isFullScreenName((resolvedAction.payload as {name?: string} | undefined)?.name);
+
+    const minimalAction: NavigationAction = shouldPushSiblingSplit || shouldPushTabNavigator ? {...resolvedAction, type: CONST.NAVIGATION.ACTION_TYPE.PUSH} : resolvedAction;
     navigation.dispatch(shouldSkipInitialSplitNavigatorSidebar ? addSkipInitialSidebarParamToAction(minimalAction) : minimalAction);
 }

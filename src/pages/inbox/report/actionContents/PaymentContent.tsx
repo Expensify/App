@@ -5,7 +5,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 
 import getBankAccountLastFourDigits from '@libs/getBankAccountLastFourDigits';
-import {getCrossBorderReimbursedMessage, getElsewherePaymentReportActionMessage, getOriginalMessage} from '@libs/ReportActionsUtils';
+import {getCrossBorderReimbursedMessage, getElsewherePaymentReportActionMessage, getOriginalMessage, getPaymentMessageWithExpectedDate} from '@libs/ReportActionsUtils';
 
 import ReportActionItemBasicMessage from '@pages/inbox/report/ReportActionItemBasicMessage';
 
@@ -18,13 +18,14 @@ import React from 'react';
 
 type PaymentContentProps = {
     action: OnyxTypes.ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>;
+    expectedDate: string | undefined;
     policyID: string | undefined;
 };
 
-function PaymentContent({action, policyID}: PaymentContentProps) {
+function PaymentContent({action, expectedDate, policyID}: PaymentContentProps) {
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const [policyACHAccountNumber] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {selector: policyACHAccountNumberSelector});
-    const {translate} = useLocalize();
+    const {translate, dateFnsLocale} = useLocalize();
     const {convertToDisplayString} = useCurrencyListActions();
     const originalMessage = getOriginalMessage(action);
 
@@ -42,15 +43,16 @@ function PaymentContent({action, policyID}: PaymentContentProps) {
     if (paymentType === CONST.IOU.PAYMENT_TYPE.VBBA) {
         const last4Digits = originalMessage.accountNumber?.slice(-4) ?? getBankAccountLastFourDigits(originalMessage.bankAccountID, bankAccountList, policyACHAccountNumber);
         const crossBorderMessage = getCrossBorderReimbursedMessage(translate, originalMessage, convertToDisplayString, last4Digits);
+        const paymentMessage = crossBorderMessage ?? translate(wasAutoPaid ? 'iou.automaticallyPaidWithBusinessBankAccount' : 'iou.businessBankAccount', '', last4Digits);
+        const translation = getPaymentMessageWithExpectedDate(translate, dateFnsLocale, paymentMessage, expectedDate);
         if (wasAutoPaid) {
-            const translation = crossBorderMessage ?? translate('iou.automaticallyPaidWithBusinessBankAccount', '', last4Digits);
             return (
                 <ReportActionItemBasicMessage>
                     <RenderHTML html={`<comment><muted-text>${translation}</muted-text></comment>`} />
                 </ReportActionItemBasicMessage>
             );
         }
-        return <ReportActionItemBasicMessage message={crossBorderMessage ?? translate('iou.businessBankAccount', '', last4Digits)} />;
+        return <ReportActionItemBasicMessage message={translation} />;
     }
 
     if (wasAutoPaid) {

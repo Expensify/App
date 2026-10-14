@@ -41,6 +41,9 @@ type UseSelectionProps<DataType extends TableData> = {
 
     /** Whether the selection survives a change to the search string or the filters */
     shouldPreserveSelectionOnSearchAndFilter?: boolean;
+
+    /** Whether selection is always on, so there is no selection mode for the user to leave */
+    shouldAlwaysEnableSelection?: boolean;
 };
 
 type SelectionMethods = {
@@ -76,6 +79,7 @@ export default function useSelection<DataType extends TableData>({
     isSelectionModeEnabled,
     setSelectionModeEnabled,
     shouldPreserveSelectionOnSearchAndFilter,
+    shouldAlwaysEnableSelection,
 }: UseSelectionProps<DataType>): UseSelectionResult<DataType> {
     // When a table opts into selection inside a narrow pane modal (RHP), the selection-mode auto-sync keys off the real
     // screen size (isSmallScreenWidth) so it behaves correctly there (shouldUseNarrowLayout is always true in an RHP).
@@ -105,16 +109,17 @@ export default function useSelection<DataType extends TableData>({
         onRowSelectionChange?.([]);
     }, [onRowSelectionChange]);
 
-    // Disable selection mode when the Android hardware back button is pressed
+    // Disable selection mode when the Android hardware back button is pressed. A table that is always in selection mode
+    // has none to leave, so the press has to fall through to navigation instead.
     const androidBackButtonDisableSelectionMode = useCallback(() => {
-        if (!isSelectionModeEnabled) {
+        if (!isSelectionModeEnabled || shouldAlwaysEnableSelection) {
             return false;
         }
 
         clearSelection();
         setSelectionModeEnabled(false);
         return true;
-    }, [isSelectionModeEnabled, clearSelection, setSelectionModeEnabled]);
+    }, [isSelectionModeEnabled, shouldAlwaysEnableSelection, clearSelection, setSelectionModeEnabled]);
 
     useAndroidBackButtonHandler(androidBackButtonDisableSelectionMode);
 

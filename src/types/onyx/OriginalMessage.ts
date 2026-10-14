@@ -7,7 +7,7 @@ import type {CardID} from './Card';
 import type {PolicyRuleTaxRate} from './ExpenseRule';
 import type {Attendee} from './IOU';
 import type {OldDotOriginalMessageMap} from './OldDotAction';
-import type {AllConnectionName} from './Policy';
+import type {AllConnectionName, CompanyAddress} from './Policy';
 import type {PolicyChangeLogCopyReportActionNames} from './ReportAction';
 import type ReportActionName from './ReportActionName';
 import type {Reservation, TransactionCommentVendor} from './Transaction';
@@ -78,6 +78,9 @@ type OriginalMessageIOU = {
 
     /** Masked number (e.g., 'XXXXXX1234') of the bank account used to fund the payment */
     accountNumber?: string;
+
+    /** Estimated date the reimbursement will reach the recipient's bank account */
+    expectedDate?: string;
 
     /** True when the submitter marked the report as payment received outside Expensify */
     isSubmitterMarkedPaymentReceived?: boolean;
@@ -333,6 +336,11 @@ type OriginalMessageClosed = {
     message?: string;
 };
 
+/** Model of a support ticket survey report action */
+type OriginalMessageSupportSurvey = {
+    html: string;
+};
+
 /** Model of `renamed` report action, created when chat rooms get renamed */
 type OriginalMessageRenamed = {
     /** Renamed room comment */
@@ -542,6 +550,9 @@ type OriginalMessagePolicyChangeLog = {
     /** Report field type */
     fieldType?: string;
 
+    /** Account ID of the workspace member named in a member-scoped change log */
+    accountID?: number;
+
     field?: string;
 
     /** Array of field changes for consolidated employee updates */
@@ -570,6 +581,9 @@ type OriginalMessagePolicyChangeLog = {
      * commuter-exclusion change logs.
      */
     unit?: string;
+
+    /** Previous distance unit when a commuter-exclusion distance changes units */
+    oldUnit?: string;
 
     /** Start date of the custom unit rate (yyyy-MM-dd), used in ADD actions */
     startDate?: string;
@@ -851,6 +865,36 @@ type OriginalMessageAgentRuleChangeLog = {
     prompt?: string;
 };
 
+/** Model of a workspace office location change log action (add, update, or delete) */
+type OriginalMessageOfficeLocationChangeLog = {
+    /** ID of the office that changed */
+    officeID?: string;
+
+    /** Nickname of the office */
+    name?: string;
+
+    /** Address of the added office */
+    address?: CompanyAddress;
+
+    /** Whether the added office is the workspace default */
+    isDefault?: boolean;
+
+    /** Field of the office that was updated */
+    updatedField?: ValueOf<typeof CONST.POLICY.OFFICE_LOCATION_FIELD>;
+
+    /** Name or default flag of the office after the change */
+    newValue?: string | boolean;
+
+    /** Name or default flag of the office before the change */
+    oldValue?: string | boolean;
+
+    /** Address of the office after an address change */
+    newAddress?: CompanyAddress;
+
+    /** Address of the office before an address change */
+    oldAddress?: CompanyAddress;
+};
+
 /** Model of a policy copy change log action */
 type OriginalMessagePolicyChangeCopyLog = {
     /** The ID of the source policy from which the user copied settings */
@@ -971,6 +1015,15 @@ type OriginalMessageModifiedExpense = {
 
     /** The Concierge reasoning for the action */
     reasoning?: string;
+
+    /** The transaction that was modified */
+    transactionID?: string;
+
+    /** Whether a receipt was added to the expense */
+    receiptAdded?: boolean;
+
+    /** Whether a receipt was removed. A replacement writes this, then an added-receipt action. */
+    receiptRemoved?: boolean;
 };
 
 /** Model of `concierge auto match vendor` report action — emitted on the transaction thread when the PHP fuzzy matcher auto-matches a non-reimbursable expense to a QBO vendor. */
@@ -1518,14 +1571,25 @@ type OriginalMessageTakeControl = {
     mentionedAccountIDs: number[];
     /** Whether this action was triggered automatically (e.g., during auto-pay) */
     automaticAction?: boolean;
+    /** Whether the new approver became the final approver, bypassing the remaining approvers in the chain */
+    isFinalApprover?: boolean;
+    /** Account ID of the new approver. Absent on OldDot take control actions, where the actor is the new approver */
+    newApproverID?: number;
+    /** Whether the new approver replaced the report's current approver instead of being added to the workflow */
+    isReassignment?: boolean;
+    /** Account ID of the approver the new one replaced. Only recorded for a reassignment */
+    previousApproverID?: number;
 };
 
 /**
  * Model of Reassign Approver action original message (system-generated when approval workflow changes)
  */
 type OriginalMessageReassignApprover = {
-    /** Account ID of the new approver assigned by the system */
+    /** Account ID of the new approver */
     newApproverID: number;
+
+    /** Account ID of the approver the new one replaced */
+    previousApproverID?: number;
 };
 
 /**
@@ -1609,6 +1673,21 @@ type OriginalMessageTravelNudge = {
     origination: ValueOf<typeof CONST.TRAVEL_NUDGE.ORIGINATION>;
 };
 
+/** Prompt values and modifier identity recorded when an agent's instructions change. */
+type OriginalMessageAgentPromptUpdated = {
+    /** Agent instructions stored before the update */
+    previousPrompt: string;
+
+    /** Agent instructions stored after the update */
+    newPrompt: string;
+
+    /** Account ID of the user who changed the instructions */
+    updatedByAccountID: number;
+
+    /** Login of the user who changed the instructions, displayed in the audit message */
+    updatedBy: string;
+};
+
 /** The map type of original message */
 /* eslint-disable jsdoc/require-jsdoc */
 type OriginalMessageMap = {
@@ -1620,6 +1699,7 @@ type OriginalMessageMap = {
     [CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_MENTION_INVITE_TO_SUBMIT_EXPENSE_CONFIRM_WHISPER]: OriginalMessageActionableMentionInviteToSubmitExpenseConfirmWhisper;
     [CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_REPORT_MENTION_WHISPER]: OriginalMessageActionableReportMentionWhisper;
     [CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_TRACK_EXPENSE_WHISPER]: OriginalMessageActionableTrackedExpenseWhisper;
+    [CONST.REPORT.ACTIONS.TYPE.AGENT_PROMPT_UPDATED]: OriginalMessageAgentPromptUpdated;
     [CONST.REPORT.ACTIONS.TYPE.POLICY_EXPENSE_CHAT_WELCOME_WHISPER]: OriginalMessagePolicyExpenseChatWelcomeWhisper;
     [CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT]: OriginalMessageAddComment;
     [CONST.REPORT.ACTIONS.TYPE.APPROVED]: OriginalMessageApproved;
@@ -1674,6 +1754,7 @@ type OriginalMessageMap = {
     [CONST.REPORT.ACTIONS.TYPE.STRIPE_PAID]: never;
     [CONST.REPORT.ACTIONS.TYPE.SUBMITTED]: OriginalMessageSubmitted;
     [CONST.REPORT.ACTIONS.TYPE.SUBMITTED_AND_CLOSED]: OriginalMessageSubmitted;
+    [CONST.REPORT.ACTIONS.TYPE.SUPPORT_SURVEY]: OriginalMessageSupportSurvey;
     [CONST.REPORT.ACTIONS.TYPE.ADD_EXPENSE_ON_SUBMITTED]: OriginalMessageAddExpenseOnSubmitted;
     [CONST.REPORT.ACTIONS.TYPE.TASK_CANCELLED]: never;
     [CONST.REPORT.ACTIONS.TYPE.TASK_COMPLETED]: never;
@@ -1706,6 +1787,7 @@ type OriginalMessageMap = {
     [CONST.REPORT.ACTIONS.TYPE.PERSONAL_CARD_CONNECTION_BROKEN_30_DAYS]: OriginalPersonalCard;
     [CONST.REPORT.ACTIONS.TYPE.INTEGRATION_SYNC_FAILED]: OriginalMessageIntegrationSyncFailed;
     [CONST.REPORT.ACTIONS.TYPE.DELETED_TRANSACTION]: OriginalMessageDeletedTransaction;
+    [CONST.REPORT.ACTIONS.TYPE.UNDELETED_TRANSACTION]: OriginalMessageUnreportedTransaction;
     [CONST.REPORT.ACTIONS.TYPE.DEW_SUBMIT_FAILED]: OriginalMessageDEWFailed;
     [CONST.REPORT.ACTIONS.TYPE.DEW_APPROVE_FAILED]: OriginalMessageDEWFailed;
     [CONST.REPORT.ACTIONS.TYPE.CONCIERGE_CATEGORY_OPTIONS]: OriginalMessageConciergeCategoryOptions;
@@ -1733,6 +1815,9 @@ type OriginalMessageMap = {
         [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_AGENT_RULE]: OriginalMessageAgentRuleChangeLog;
         [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_AGENT_RULE]: OriginalMessageAgentRuleChangeLog;
         [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_AGENT_RULE]: OriginalMessageAgentRuleChangeLog;
+        [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_OFFICE_LOCATION]: OriginalMessageOfficeLocationChangeLog;
+        [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_OFFICE_LOCATION]: OriginalMessageOfficeLocationChangeLog;
+        [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_OFFICE_LOCATION]: OriginalMessageOfficeLocationChangeLog;
     } & Record<ValueOf<typeof CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG>, OriginalMessageChangeLog>;
 
 type OriginalMessage<T extends ReportActionName> = T extends keyof OriginalMessageMap ? OriginalMessageMap[T] : never;

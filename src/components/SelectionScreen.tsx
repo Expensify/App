@@ -16,8 +16,8 @@ import type {StyleProp, ViewStyle} from 'react-native';
 import isEmpty from 'lodash/isEmpty';
 import React from 'react';
 
-import type SingleSelectWithAvatarListItem from './SelectionList/ListItem/SingleSelectWithAvatarListItem';
-import type {ListItem} from './SelectionList/types';
+import type {ListItemComponent} from './SelectionList/ListItem/types';
+import type {ConfirmButtonOptions, ListItem} from './SelectionList/types';
 
 import ErrorMessageRow from './ErrorMessageRow';
 import HeaderWithBackButton from './HeaderWithBackButton';
@@ -39,15 +39,16 @@ type SelectionScreenProps<T = string> = {
     title?: TranslationPaths;
     headerContent?: React.ReactNode;
     listEmptyContent?: React.JSX.Element | null;
+
+    /** Skip listEmptyContent when the list is empty because of search, not a missing dataset. */
+    shouldShowListEmptyContent?: boolean;
     listFooterContent?: React.JSX.Element | null;
 
     /** Sections for the section list */
     data: Array<SelectorType<T>>;
 
     /** Renderer for every item in the list. Defaults to SingleSelectListItem. */
-    ListItem?: typeof SingleSelectListItem | typeof SingleSelectWithAvatarListItem;
-
-    listItemWrapperStyle?: StyleProp<ViewStyle>;
+    ListItem?: ListItemComponent<SelectorType<T>>;
 
     /** Item `keyForList` to focus initially */
     initiallyFocusedOptionKey?: string | undefined;
@@ -87,8 +88,8 @@ type SelectionScreenProps<T = string> = {
 
     shouldShowTextInput?: boolean;
 
-    /** Whether to allow each row's title to wrap onto multiple lines instead of truncating */
-    isRowMultilineSupported?: boolean;
+    /** Maximum number of title lines per row. Values above 1 let the title wrap instead of truncating */
+    titleNumberOfLines?: number;
 
     textInputOptions?: {
         /** Label for the text input */
@@ -99,7 +100,13 @@ type SelectionScreenProps<T = string> = {
 
         /** Callback to fire when the text input changes */
         onChangeText?: (text: string) => void;
+
+        /** Message shown above the list, e.g. when a search matches nothing */
+        headerMessage?: string;
     };
+
+    /** Footer save button. When omitted, tapping a row still commits immediately. */
+    confirmButtonOptions?: ConfirmButtonOptions<SelectorType<T>>;
 };
 
 function SelectionScreen<T = string>({
@@ -107,10 +114,10 @@ function SelectionScreen<T = string>({
     title,
     headerContent,
     listEmptyContent,
+    shouldShowListEmptyContent,
     listFooterContent,
     data,
     ListItem = SingleSelectListItem,
-    listItemWrapperStyle,
     initiallyFocusedOptionKey,
     onSelectRow,
     onBackButtonPress,
@@ -128,7 +135,8 @@ function SelectionScreen<T = string>({
     shouldShowTextInput,
     textInputOptions,
     shouldUpdateFocusedIndex = false,
-    isRowMultilineSupported = false,
+    titleNumberOfLines,
+    confirmButtonOptions,
 }: SelectionScreenProps<T>) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
@@ -167,14 +175,15 @@ function SelectionScreen<T = string>({
                         initiallyFocusedItemKey={initiallyFocusedOptionKey}
                         textInputOptions={textInputOptions}
                         listEmptyContent={listEmptyContent}
+                        shouldShowListEmptyContent={shouldShowListEmptyContent}
                         shouldShowTextInput={shouldShowTextInput}
                         listFooterContent={listFooterContent}
-                        style={{listItemWrapperStyle}}
                         shouldSingleExecuteRowSelect={shouldSingleExecuteRowSelect}
                         shouldUpdateFocusedIndex={shouldUpdateFocusedIndex}
                         alternateNumberOfSupportedLines={2}
-                        isRowMultilineSupported={isRowMultilineSupported}
+                        titleNumberOfLines={titleNumberOfLines}
                         addBottomSafeAreaPadding
+                        confirmButtonOptions={confirmButtonOptions}
                     >
                         <ErrorMessageRow
                             errors={errors}
