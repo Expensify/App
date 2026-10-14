@@ -133,7 +133,6 @@ This document lists all implemented telemetry metrics in the Expensify App.
 - `autocomplete_key`: syntax filter key being autocompleted (e.g. `to`, `in`) or `'none'`
 - `query_ordinal`: 1-indexed attempt number in the current session (up to `CONST.TELEMETRY.SEARCH_ROUTER_MAX_MEASURED_QUERIES_PER_OPEN`)
 - `result_count`: number of matching suggestions (`recentReports` + `personalDetails`)
-- `search_path`: query execution path (`legacy`, with `index` reserved for indexed search rollout)
 - `cancel_reason`: cancellation reason when cancelled (`superseded`, `cleared`, `closed`, `unmounted`, `list_mount`, `timed_out`). A span running longer than `CONST.TELEMETRY.SEARCH_ROUTER_QUERY_MAX_DURATION_MS` is cancelled as `timed_out`.
 
 ### Open Create Expense

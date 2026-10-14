@@ -101,11 +101,10 @@ describe('searchRouterQuerySpans', () => {
         // When that query commits
         markSearchRouterQueryCommitted('abc', {resultCount: 7});
 
-        // Then the span ends with the result count and the default legacy path
+        // Then the span ends with the result count
         expect(getSpan(ROOT)).toBeUndefined();
         const attributes = getRootAttributes();
         expect(attributes?.[CONST.TELEMETRY.ATTRIBUTE_RESULT_COUNT]).toBe(7);
-        expect(attributes?.[CONST.TELEMETRY.ATTRIBUTE_SEARCH_PATH]).toBe(CONST.TELEMETRY.SEARCH_ROUTER_SEARCH_PATH.LEGACY);
         expect(attributes?.[CONST.TELEMETRY.ATTRIBUTE_QUERY_ORDINAL]).toBe(1);
     });
 

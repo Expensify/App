@@ -2478,10 +2478,6 @@ const CONST = {
             LONG: '3-long',
             VERY_LONG: '4-very-long',
         },
-        SEARCH_ROUTER_SEARCH_PATH: {
-            LEGACY: 'legacy',
-            INDEX: 'index',
-        },
         SEARCH_ROUTER_MAX_MEASURED_QUERIES_PER_OPEN: 5,
         SEARCH_ROUTER_QUERY_MAX_DURATION_MS: 10_000,
         SPAN_OPEN_CREATE_EXPENSE: 'ManualOpenCreateExpense',
@@ -2568,7 +2564,6 @@ const CONST = {
         ATTRIBUTE_AUTOCOMPLETE_KEY: 'autocomplete_key',
         ATTRIBUTE_QUERY_ORDINAL: 'query_ordinal',
         ATTRIBUTE_RESULT_COUNT: 'result_count',
-        ATTRIBUTE_SEARCH_PATH: 'search_path',
         ATTRIBUTE_CANCEL_REASON: 'cancel_reason',
         ATTRIBUTE_IS_STARTUP: 'is_startup',
         ATTRIBUTE_LAZY_TAB_FALLBACK_SHOWN: 'lazy_tab_fallback_shown',

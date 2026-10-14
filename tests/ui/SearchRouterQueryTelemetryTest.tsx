@@ -177,11 +177,10 @@ describe('SearchAutocompleteList query telemetry', () => {
         rerender(renderList('abc'));
         await waitForBatchedUpdatesWithAct();
 
-        // Then the span ends with the legacy path and the option count
+        // Then the span ends with the option count
         expect(getSpan(ROOT)).toBeUndefined();
         const attributes = mockEnded.find((span) => span.op === ROOT)?.attributes;
         expect(attributes?.[CONST.TELEMETRY.ATTRIBUTE_CANCELED]).toBeUndefined();
-        expect(attributes?.[CONST.TELEMETRY.ATTRIBUTE_SEARCH_PATH]).toBe(CONST.TELEMETRY.SEARCH_ROUTER_SEARCH_PATH.LEGACY);
         expect(attributes?.[CONST.TELEMETRY.ATTRIBUTE_RESULT_COUNT]).toBe(0);
     });
 });

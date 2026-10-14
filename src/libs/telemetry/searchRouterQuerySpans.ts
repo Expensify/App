@@ -13,11 +13,9 @@ import {cancelSpan, endSpan, getSpan, startSpan} from './activeSpans';
 
 type SearchRouterQueryCancelReason = ValueOf<typeof CONST.TELEMETRY.SEARCH_ROUTER_QUERY_CANCEL_REASON>;
 type SearchRouterQueryLengthBucket = ValueOf<typeof CONST.TELEMETRY.SEARCH_ROUTER_QUERY_LENGTH_BUCKET>;
-type SearchRouterSearchPath = ValueOf<typeof CONST.TELEMETRY.SEARCH_ROUTER_SEARCH_PATH>;
 
 type SearchRouterQueryCommitAttributes = {
     resultCount?: number;
-    searchPath?: SearchRouterSearchPath;
 };
 
 const SHORT_QUERY_MAX_LENGTH = 2;
@@ -133,10 +131,9 @@ function markSearchRouterQueryCommitted(query: string, attributes?: SearchRouter
         return;
     }
     const rootSpan = getSpan(CONST.TELEMETRY.SPAN_SEARCH_ROUTER_QUERY);
-    rootSpan?.setAttributes({
-        [CONST.TELEMETRY.ATTRIBUTE_SEARCH_PATH]: attributes?.searchPath ?? CONST.TELEMETRY.SEARCH_ROUTER_SEARCH_PATH.LEGACY,
-        ...(attributes?.resultCount === undefined ? {} : {[CONST.TELEMETRY.ATTRIBUTE_RESULT_COUNT]: attributes.resultCount}),
-    });
+    if (attributes?.resultCount !== undefined) {
+        rootSpan?.setAttribute(CONST.TELEMETRY.ATTRIBUTE_RESULT_COUNT, attributes.resultCount);
+    }
     clearActiveQuery();
     endSpan(CONST.TELEMETRY.SPAN_SEARCH_ROUTER_QUERY);
 }
