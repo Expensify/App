@@ -43,6 +43,14 @@
 - PR Updating Patch: [#32087](https://github.com/Expensify/App/pull/32087) [#42465](https://github.com/Expensify/App/pull/42465) [#64155](https://github.com/Expensify/App/pull/64155) [#103346](https://github.com/Expensify/App/pull/103346) [#101715](https://github.com/Expensify/App/issues/101715)
 - Note: Re-ported onto 7.4.1. `createMemoryHistory` and `useLinking` were refactored upstream (`getPathWithoutHash`, `getHistoryLength`, `pendingPopStateDelta`, `isPoppingLastEntry`), so the hunks were re-anchored instead of applied verbatim: `backIndex` keeps upstream's hash handling and adds the focused-route-key match, and `useLinking` keeps upstream's `pendingPopStateDelta` guard and `getHistoryLength` delta while re-adding `historyDeltaByKeys`/`getStaleHistoryDiff`. Two parts of the old patch became redundant and were dropped: the `findFocusedRouteKey` helper file now matches upstream's own module, and the extra `history.replace` right after `history.go(nextIndex - currentIndex)` duplicated the replace that upstream already runs at the end of the same `try` block.
 
+### [@react-navigation+native+7.4.1+003+modal-history-entry-back.patch](@react-navigation+native+7.4.1+003+modal-history-entry-back.patch)
+
+- Reason: Browser Back on an open modal should close only the modal. A modal adds a string entry to the root history. When Back pops that entry, `useLinking` dispatched `goBack()`, which the focused right panel stack handled by popping its page. The patch resets to the saved state for that entry instead, so only the modal closes.
+- Upstream PR/issue: N/A
+- E/App issue: [#103878](https://github.com/Expensify/App/issues/103878)
+- PR Introducing Patch: TBD
+- PR Updating Patch: N/A
+
 ### [@react-navigation+stack+7.11.2+001+edge-drag-gesture.patch](@react-navigation+stack+7.11.2+001+edge-drag-gesture.patch)
 
 - Reason: Adds `edgeDragGestureMonitor` implementation
