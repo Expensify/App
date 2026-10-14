@@ -9,6 +9,7 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useRemeasureOnScroll from '@hooks/useRemeasureOnScroll';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 
@@ -60,9 +61,14 @@ function DatePicker({
     onPickerVisibilityChange,
     shouldHideCalendarIcon = false,
     onValidationErrorChange,
+    icon,
 }: DateInputWithPickerProps) {
     const icons = useMemoizedLazyExpensifyIcons(['Calendar']);
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
+    // The clear button takes the calendar icon's place once a date is picked, so it gets the same horizontal padding as the icon's
+    // container instead of its own margins. Otherwise the X sits in a different spot than the icon it replaces.
+    const {paddingHorizontal: iconPaddingHorizontal} = StyleUtils.getTextInputIconContainerStyles(true);
     const {windowHeight, windowWidth} = useWindowDimensions();
     // The window's own width, and not the narrow layout, which a right hand pane reports even on a wide screen. Most
     // date fields sit in one, and there is room to type beside them there.
@@ -440,7 +446,7 @@ function DatePicker({
                     inputID={inputID}
                     forceActiveLabel
                     // A date part way through being typed reads as no date at all, so typed digits count as a value here
-                    icon={selectedDate || segmentInput.hasTypedDigits || shouldHideCalendarIcon ? null : icons.Calendar}
+                    icon={selectedDate || segmentInput.hasTypedDigits || shouldHideCalendarIcon ? null : (icon ?? icons.Calendar)}
                     iconContainerStyle={styles.pr0}
                     label={label}
                     accessibilityLabel={label}
@@ -477,6 +483,7 @@ function DatePicker({
                     textInputContainerStyles={isModalVisible || isFieldFocused ? styles.borderColorFocus : {}}
                     shouldHideClearButton={shouldHideClearButton}
                     onClearInput={handleClear}
+                    clearButtonStyle={[styles.mh0, {paddingHorizontal: iconPaddingHorizontal}]}
                     forwardedFSClass={forwardedFSClass}
                     autoComplete={autoComplete}
                     disableKeyboard={!shouldAllowTyping}
