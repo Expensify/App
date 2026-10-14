@@ -32,6 +32,10 @@ type SummaryItem = {
 type ConfirmationStepProps = SubPageProps &
     ForwardedFSClassProps & {
         pageTitle: string;
+
+        /** Text shown below the page title */
+        pageSubtitle?: string;
+
         summaryItems: SummaryItem[];
 
         /** Whether show additional section with Onfido terms etc. */
@@ -50,6 +54,7 @@ type ConfirmationStepProps = SubPageProps &
 
 function ConfirmationStep({
     pageTitle,
+    pageSubtitle,
     summaryItems,
     showOnfidoLinks,
     onfidoLinksTitle,
@@ -70,6 +75,7 @@ function ConfirmationStep({
             contentContainerStyle={[styles.flexGrow1, shouldApplySafeAreaPaddingBottom && {paddingBottom: safeAreaInsetPaddingBottom + styles.pb5.paddingBottom}]}
         >
             <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mb3]}>{pageTitle}</Text>
+            {!!pageSubtitle && <Text style={[styles.textSupporting, styles.ph5, styles.mb5]}>{pageSubtitle}</Text>}
             {summaryItems.map(({id, description, title, shouldShowRightIcon, onPress, brickRoadIndicator, errorText, testID}) => (
                 <MenuItemWithTopDescription
                     key={id}

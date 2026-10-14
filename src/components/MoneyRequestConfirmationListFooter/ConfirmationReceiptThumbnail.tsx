@@ -226,7 +226,7 @@ function ConfirmationReceiptThumbnail({
                 ))}
             {shouldShowReceiptPageCount && (
                 <Badge
-                    text={translate('receipt.pageCount', {pageCount: effectiveReceiptPageCount})}
+                    text={translate('receipt.pageCount', {page: CONST.RECEIPT.FIRST_PDF_PAGE, pageCount: effectiveReceiptPageCount})}
                     badgeStyles={[styles.receiptPageCountBadge, styles.pointerEventsNone]}
                 />
             )}
