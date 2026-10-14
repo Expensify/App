@@ -69,7 +69,7 @@ The **Date**, **Workspace**, and **Group currency** filters are shared across al
 
 To see spend for every member, select **More (⋮)** on the visualization, then select **View on Spend**. This opens the related results in **Spend**, where you can explore spend beyond the top five members.
 
-[Learn how to explore expenses from an insight](do/articles/new-expensify/insights/How-to-Use-Insights#how-to-explore-expenses-from-an-insight).
+[Learn how to explore expenses from an insight](/articles/new-expensify/insights/How-to-Use-Insights#how-to-explore-expenses-from-an-insight).
 
 ---
 
@@ -82,7 +82,7 @@ To see spend for every member, select **More (⋮)** on the visualization, then 
 
 ## Can you export Top spenders?
 
-Not directly — top spenders can’t be exported with their grouped totals or summary data. However, if you expand each group to reveal the individual expenses, you can then select those expenses and use Export to CSV to download the raw data. 
+**Top spenders** totals can't be exported directly. However, if you expand each group to reveal the individual expenses, you can then select those expenses and use Export to CSV to download the raw data. 
 
 [Learn how to export expenses](/articles/new-expensify/reports-and-expenses/How-to-Export-Expenses).
 
