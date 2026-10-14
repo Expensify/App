@@ -374,7 +374,11 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles, route}: BaseOnboardingW
             {/* This screen normally opens onboarding, so there is nothing to go back to unless the intent list sent us here. */}
             <OnboardingHeader
                 shouldShowBackButton={isJoiningCompanyWorkspace && !isConciergeTaskFlow}
-                onBackButtonPress={() => Navigation.goBack(ROUTES.ONBOARDING_PURPOSE.getRoute())}
+                onBackButtonPress={() => {
+                    // Clear any work email error so the purpose screen doesn't render it without its translation params.
+                    clearOnboardingMergeAccountBlocked();
+                    Navigation.goBack(ROUTES.ONBOARDING_PURPOSE.getRoute());
+                }}
                 shouldShowCloseButton={isConciergeTaskFlow}
                 onCloseButtonPress={onboardingValues?.isMergingAccountBlocked ? handleConciergeTaskErrorConfirm : returnToOriginReport}
             />
