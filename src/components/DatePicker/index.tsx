@@ -40,8 +40,8 @@ function DatePicker({
     errorText,
     inputID,
     label,
-    minDate = setYear(new Date(), CONST.CALENDAR_PICKER.MIN_YEAR),
-    maxDate = setYear(new Date(), CONST.CALENDAR_PICKER.MAX_YEAR),
+    minDate,
+    maxDate,
     onInputChange,
     onTouched = () => {},
     placeholder,
@@ -54,14 +54,10 @@ function DatePicker({
     forwardedFSClass,
     shouldDeferShowUntilPositioned = false,
     shouldDismissKeyboardBeforeShow = false,
-    wrapperStyle,
-    onBlur,
     rightHandSideComponent,
     onPickerVisibilityChange,
     shouldHideCalendarIcon = false,
     onValidationErrorChange,
-    shouldEnableMonthYearBackdropInNarrowPane = false,
-    textInputContainerStyles,
 }: DateInputWithPickerProps) {
     const icons = useMemoizedLazyExpensifyIcons(['Calendar']);
     const styles = useThemeStyles();
@@ -90,9 +86,13 @@ function DatePicker({
     const shouldAllowTyping = !canUseTouchScreen() && !isSmallScreenWidth;
     const dateMask = translate('common.dateFormat');
 
+    // The calendar falls back to these bounds when it is given none, so validation follows the range it offers
+    const rangeMinDate = minDate ?? setYear(new Date(), CONST.CALENDAR_PICKER.MIN_YEAR);
+    const rangeMaxDate = maxDate ?? setYear(new Date(), CONST.CALENDAR_PICKER.MAX_YEAR);
+
     // A date the calendar could never have offered is one nothing downstream expects, and typing is what makes those
     // reachable. Returns an empty string when the date is fine, which is how the form reads "no error".
-    const getRangeError = (date: string) => (date ? getDateRangeError(translate, date, minDate, maxDate) : '');
+    const getRangeError = (date: string) => (date ? getDateRangeError(translate, date, rangeMinDate, rangeMaxDate) : '');
 
     // Updates the field without ending the selection, so the calendar stays open for whatever the user does next
     const commitDate = (newDate: string) => {
@@ -137,8 +137,8 @@ function DatePicker({
     const segmentInput = useDateSegmentInput({
         value: selectedDate,
         isEnabled: shouldAllowTyping,
-        minDate,
-        maxDate,
+        minDate: rangeMinDate,
+        maxDate: rangeMaxDate,
         onCommit: commitDate,
         // Tabbing away leaves a calendar nothing has been pressed outside of, which is what otherwise dismisses it
         onLeaveByKeyboard: () => {
@@ -338,26 +338,19 @@ function DatePicker({
         [autoFocus],
     );
 
-    // Standing today in for a field holding nothing would both mark today as the chosen day and send the calendar to a
-    // month it may have no business opening on. An empty value leaves it to work out where to start on its own.
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const calendarValue = selectedDate || defaultValue || '';
-
     return (
         <>
             <View
                 ref={anchorRef}
                 onLayout={handleAnchorLayout}
-                style={[styles.mv2, wrapperStyle]}
+                style={styles.mv2}
             >
                 <TextInput
                     ref={combinedTextInputRef}
                     inputID={inputID}
                     forceActiveLabel
-                    // The icon, the clear button and any `rightHandSideComponent` share the right-hand slot. The icon
-                    // gives way when the caller asks for the slot outright, or to a clear button that will actually render.
-                    // A date part way through being typed reads as no date at all, so typed digits count as a value here.
-                    icon={shouldHideCalendarIcon || ((selectedDate || segmentInput.hasTypedDigits) && !shouldHideClearButton) ? null : icons.Calendar}
+                    // A date part way through being typed reads as no date at all, so typed digits count as a value here
+                    icon={selectedDate || segmentInput.hasTypedDigits || shouldHideCalendarIcon ? null : icons.Calendar}
                     iconContainerStyle={styles.pr0}
                     label={label}
                     accessibilityLabel={label}
@@ -387,12 +380,11 @@ function DatePicker({
                     disabled={disabled}
                     hideFocusedState={shouldDismissKeyboardBeforeShow && !shouldAllowTyping}
                     onPress={shouldDismissKeyboardBeforeShow || shouldAllowTyping ? handlePress : () => showDatePickerModal()}
-                    onBlur={onBlur}
                     onSubmitEditing={shouldAllowTyping ? undefined : () => showDatePickerModal()}
                     // Reaching the field by keyboard never fires a press, so focus is what opens the calendar
                     onFocus={shouldAllowTyping ? showDatePickerModal : undefined}
                     onKeyPress={shouldAllowTyping ? undefined : handleInputKeyPress}
-                    textInputContainerStyles={[textInputContainerStyles, isModalVisible && styles.borderColorFocus]}
+                    textInputContainerStyles={isModalVisible ? styles.borderColorFocus : {}}
                     shouldHideClearButton={shouldHideClearButton}
                     onClearInput={handleClear}
                     forwardedFSClass={forwardedFSClass}
@@ -406,7 +398,8 @@ function DatePicker({
                 inputID={inputID}
                 minDate={minDate}
                 maxDate={maxDate}
-                value={calendarValue}
+                value={selectedDate}
+                defaultValue={defaultValue}
                 onSelected={handleDateSelected}
                 isVisible={isModalVisible}
                 onClose={closeDatePicker}
@@ -423,7 +416,6 @@ function DatePicker({
                 // Picking a month or year revises a date the field already holds. An empty field has no day to go with
                 // one, so it waits for the day press rather than being filled with a day nobody chose.
                 onMonthOrYearSelected={shouldAllowTyping && selectedDate ? commitDate : undefined}
-                shouldEnableMonthYearBackdropInNarrowPane={shouldEnableMonthYearBackdropInNarrowPane}
             />
         </>
     );

@@ -4,6 +4,8 @@ import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddi
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import DateUtils from '@libs/DateUtils';
+
 import {setDraftValues} from '@userActions/FormActions';
 
 import CONST from '@src/CONST';
@@ -11,7 +13,7 @@ import CONST from '@src/CONST';
 import type {ComponentRef} from 'react';
 import type {View} from 'react-native';
 
-import {setYear} from 'date-fns';
+import {format} from 'date-fns';
 import React, {useEffect, useRef, useState} from 'react';
 
 import type {DatePickerProps} from './types';
@@ -32,8 +34,9 @@ function DatePickerModal({
     value,
     defaultValue,
     inputID,
-    minDate = setYear(new Date(), CONST.CALENDAR_PICKER.MIN_YEAR),
-    maxDate = setYear(new Date(), CONST.CALENDAR_PICKER.MAX_YEAR),
+    minDate,
+    maxDate,
+    isDateSelectable,
     onInputChange,
     onTouched,
     shouldSaveDraft = false,
@@ -55,7 +58,7 @@ function DatePickerModal({
     viewDate,
     viewDateVersion,
 }: DatePickerProps) {
-    const [selectedDate, setSelectedDate] = useState(value ?? defaultValue ?? undefined);
+    const [selectedDate, setSelectedDate] = useState(value);
     const fallbackAnchorRef = useRef<ComponentRef<typeof View>>(null);
     // PopoverProvider treats a click inside the anchor as "not outside", so the caller's own anchor has to be used
     // or clicking the date input while the calendar is open would dismiss it.
@@ -81,7 +84,8 @@ function DatePickerModal({
         setSelectedDate(newValue);
     };
 
-    const handleDateSelection = (newValue: string) => {
+    const handleDateSelection = (date: Date) => {
+        const newValue = format(date, CONST.DATE.FNS_FORMAT_STRING);
         onSelected?.(newValue);
         applySelection(newValue);
     };
@@ -122,7 +126,9 @@ function DatePickerModal({
             <CalendarPicker
                 minDate={minDate}
                 maxDate={maxDate}
-                value={selectedDate}
+                isDateSelectable={isDateSelectable}
+                value={DateUtils.parseCalendarDate(selectedDate)}
+                defaultMonth={DateUtils.parseCalendarDate(defaultValue)}
                 onSelected={handleDateSelection}
                 onMonthOrYearSelected={onMonthOrYearSelected ? handleMonthOrYearSelection : undefined}
                 containerStyle={bottomSafeAreaPaddingStyle}

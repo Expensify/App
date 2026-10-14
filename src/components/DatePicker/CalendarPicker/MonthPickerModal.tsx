@@ -14,14 +14,23 @@ import CONST from '@src/CONST';
 
 import type {View} from 'react-native';
 
+import {Str} from 'expensify-common';
 import React, {useEffect, useRef, useState} from 'react';
 import {Keyboard} from 'react-native';
+
+import type CalendarPickerListItem from './types';
 
 type MonthPickerModalProps = {
     isVisible: boolean;
 
-    /** Currently selected month (0-indexed) */
-    currentMonth?: number;
+    /** The month (0-indexed) the calendar shows, which the list marks as selected */
+    currentMonth: number;
+
+    /** The first month (0-indexed) of the shown year that can be picked. Earlier months are greyed out. */
+    minMonth: number;
+
+    /** The last month (0-indexed) of the shown year that can be picked. Later months are greyed out. */
+    maxMonth: number;
 
     onMonthChange?: (month: number) => void;
 
@@ -32,14 +41,20 @@ type MonthPickerModalProps = {
     shouldEnableBackdropInNarrowPane?: boolean;
 };
 
-function MonthPickerModal({isVisible, currentMonth, onMonthChange, onClose, shouldEnableBackdropInNarrowPane = false}: MonthPickerModalProps) {
+function MonthPickerModal({isVisible, currentMonth, minMonth, maxMonth, onMonthChange, onClose, shouldEnableBackdropInNarrowPane = false}: MonthPickerModalProps) {
     const styles = useThemeStyles();
     const {translate, dateFnsLocale} = useLocalize();
     const {setActivePopoverExtraAnchorRef} = usePopoverActions();
     const contentRef = useRef<View>(null);
     const [searchText, setSearchText] = useState('');
-    const resolvedCurrentMonth = currentMonth ?? new Date().getMonth();
-    const monthNames = DateUtils.getMonthNames(dateFnsLocale);
+    // The rows are built here from numbers, so the compiler can cache them across the calendar's re-renders.
+    const months: CalendarPickerListItem[] = DateUtils.getMonthNames(dateFnsLocale).map((month, index) => ({
+        text: Str.UCFirst(month),
+        value: index,
+        keyForList: index.toString(),
+        isSelected: index === currentMonth,
+        isDisabled: index < minMonth || index > maxMonth,
+    }));
 
     useEffect(() => {
         if (!isVisible) {
@@ -51,9 +66,7 @@ function MonthPickerModal({isVisible, currentMonth, onMonthChange, onClose, shou
         setActivePopoverExtraAnchorRef(contentRef);
     }, [isVisible, setActivePopoverExtraAnchorRef]);
 
-    const allMonths = DateUtils.getFilteredMonthItems(monthNames, resolvedCurrentMonth);
-
-    const filteredMonths = searchText === '' ? allMonths : allMonths.filter((month) => month.text.toLowerCase().includes(searchText.toLowerCase()));
+    const filteredMonths = searchText === '' ? months : months.filter((month) => month.text?.toLowerCase().includes(searchText.toLowerCase()));
     const headerMessage = !filteredMonths.length ? translate('common.noResultsFound') : '';
     const data = filteredMonths;
 
@@ -102,7 +115,7 @@ function MonthPickerModal({isVisible, currentMonth, onMonthChange, onClose, shou
                         onMonthChange?.(option.value);
                     }}
                     textInputOptions={textInputOptions}
-                    initiallyFocusedItemKey={resolvedCurrentMonth.toString()}
+                    initiallyFocusedItemKey={currentMonth.toString()}
                     disableMaintainingScrollPosition
                     addBottomSafeAreaPadding
                     shouldStopPropagation
