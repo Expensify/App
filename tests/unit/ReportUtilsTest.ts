@@ -21101,6 +21101,102 @@ describe('ReportUtils', () => {
             });
         });
 
+        describe('linkedTransaction', () => {
+            const englishTranslate: LocalizedTranslate = (path, ...parameters) => translate(CONST.LOCALES.EN, path, ...parameters);
+
+            const groupChat: Report = {
+                ...LHNTestUtils.getFakeReport(),
+                reportID: 'linked-transaction-group-chat',
+                type: CONST.REPORT.TYPE.CHAT,
+                chatType: CONST.REPORT.CHAT_TYPE.GROUP,
+            };
+
+            const buildTransaction = (transactionID: string, reportID: string, merchant: string): Transaction => ({
+                transactionID,
+                reportID,
+                amount: 1000,
+                currency: CONST.CURRENCY.USD,
+                merchant,
+                modifiedMerchant: '',
+                created: '2026-10-14',
+                comment: {comment: ''},
+            });
+
+            const buildIOUAction = (transactionID: string, type: typeof CONST.IOU.REPORT_ACTION_TYPE.SPLIT | typeof CONST.IOU.REPORT_ACTION_TYPE.TRACK): ReportAction => ({
+                ...createRandomReportAction(Number(transactionID)),
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                originalMessage: {
+                    IOUTransactionID: transactionID,
+                    type,
+                    amount: 1000,
+                    currency: CONST.CURRENCY.USD,
+                    comment: '',
+                    participantAccountIDs: [currentUserAccountID],
+                },
+            });
+
+            it('uses the passed transaction for a split action in a group chat', async () => {
+                // Given a split action in a group chat whose transaction is stored outside the chat (split transactions use SPLIT_REPORT_ID)
+                // and is not in Onyx, so only the passed transaction can produce the split preview
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${groupChat.reportID}`, groupChat);
+                const splitAction = buildIOUAction('710001', CONST.IOU.REPORT_ACTION_TYPE.SPLIT);
+                const splitTransaction = buildTransaction('710001', CONST.REPORT.SPLIT_REPORT_ID, 'Lunch');
+
+                // When the preview is built with the transaction passed in
+                const result = getReportPreviewMessage(englishTranslate, convertToDisplayString, {
+                    reportOrID: groupChat,
+                    iouReportAction: splitAction,
+                    policy: undefined,
+                    linkedTransaction: splitTransaction,
+                });
+
+                // Then the preview shows the split amount and merchant from that transaction
+                expect(result).toBe(englishTranslate('iou.didSplitAmount', convertToDisplayString(1000, CONST.CURRENCY.USD), 'Lunch'));
+            });
+
+            it('reads the transaction from Onyx when none is passed', async () => {
+                // Given a split action whose transaction is in Onyx, and a caller (e.g. Search) that does not pass `linkedTransaction` yet
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${groupChat.reportID}`, groupChat);
+                const splitAction = buildIOUAction('710002', CONST.IOU.REPORT_ACTION_TYPE.SPLIT);
+                await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}710002`, buildTransaction('710002', CONST.REPORT.SPLIT_REPORT_ID, 'Dinner'));
+                await waitForBatchedUpdates();
+
+                // When the preview is built without a transaction
+                const result = getReportPreviewMessage(englishTranslate, convertToDisplayString, {
+                    reportOrID: groupChat,
+                    iouReportAction: splitAction,
+                    policy: undefined,
+                });
+
+                // Then the preview still shows the split amount and merchant, so Search keeps working until it passes the transaction
+                expect(result).toBe(englishTranslate('iou.didSplitAmount', convertToDisplayString(1000, CONST.CURRENCY.USD), 'Dinner'));
+            });
+
+            it('uses the passed transaction for a track action in a self DM', async () => {
+                // Given a track action in a self DM whose unreported transaction is not in Onyx, so only the passed transaction can produce the preview
+                const selfDM: Report = {
+                    ...LHNTestUtils.getFakeReport(),
+                    reportID: 'linked-transaction-self-dm',
+                    type: CONST.REPORT.TYPE.CHAT,
+                    chatType: CONST.REPORT.CHAT_TYPE.SELF_DM,
+                };
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${selfDM.reportID}`, selfDM);
+                const trackAction = buildIOUAction('710003', CONST.IOU.REPORT_ACTION_TYPE.TRACK);
+                const trackTransaction = buildTransaction('710003', CONST.REPORT.UNREPORTED_REPORT_ID, 'Taxi');
+
+                // When the preview is built with the transaction passed in
+                const result = getReportPreviewMessage(englishTranslate, convertToDisplayString, {
+                    reportOrID: selfDM,
+                    iouReportAction: trackAction,
+                    policy: undefined,
+                    linkedTransaction: trackTransaction,
+                });
+
+                // Then the preview shows the tracked amount and merchant from that transaction
+                expect(result).toBe(englishTranslate('iou.trackedAmount', convertToDisplayString(1000, CONST.CURRENCY.USD), 'Taxi'));
+            });
+        });
+
         describe('getReportPreviewReportActionMessage (hardcoded English)', () => {
             it('returns the English "owes" message for an expense report and matches en.ts', async () => {
                 const report: Report = {
