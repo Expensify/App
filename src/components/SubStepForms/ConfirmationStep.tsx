@@ -106,6 +106,21 @@ function ConfirmationStep({
 
     const {paddingBottom: safeAreaInsetPaddingBottom} = useSafeAreaPaddings();
 
+    const renderRow = ({id, description, title, shouldShowRightIcon, onPress, interactive, brickRoadIndicator, errorText, testID}: SummaryItem) => (
+        <MenuItemWithTopDescription
+            key={id}
+            pressableTestID={testID ?? id}
+            description={description}
+            title={title}
+            shouldShowRightIcon={shouldShowRightIcon}
+            onPress={onPress}
+            interactive={interactive}
+            brickRoadIndicator={brickRoadIndicator}
+            errorText={errorText}
+            forwardedFSClass={forwardedFSClass}
+        />
+    );
+
     return (
         <ScrollView
             style={styles.flex1}
@@ -113,20 +128,7 @@ function ConfirmationStep({
         >
             <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mb3]}>{pageTitle}</Text>
             {!!pageSubtitle && <Text style={[styles.textSupporting, styles.ph5, styles.mb5]}>{pageSubtitle}</Text>}
-            {summaryItems.map(({id, description, title, shouldShowRightIcon, onPress, interactive, brickRoadIndicator, errorText, testID}) => (
-                <MenuItemWithTopDescription
-                    key={id}
-                    pressableTestID={testID ?? id}
-                    description={description}
-                    title={title}
-                    shouldShowRightIcon={shouldShowRightIcon}
-                    onPress={onPress}
-                    interactive={interactive}
-                    brickRoadIndicator={brickRoadIndicator}
-                    errorText={errorText}
-                    forwardedFSClass={forwardedFSClass}
-                />
-            ))}
+            {summaryItems.map(renderRow)}
 
             {groups.map((group, index) => (
                 <View key={group.id}>
@@ -139,20 +141,7 @@ function ConfirmationStep({
                             {group.name}
                         </Text>
                     )}
-                    {group.rows.map(({id, description, title, shouldShowRightIcon, onPress, interactive, brickRoadIndicator, errorText, testID}) => (
-                        <MenuItemWithTopDescription
-                            key={id}
-                            pressableTestID={testID ?? id}
-                            description={description}
-                            title={title}
-                            shouldShowRightIcon={shouldShowRightIcon}
-                            onPress={onPress}
-                            interactive={interactive}
-                            brickRoadIndicator={brickRoadIndicator}
-                            errorText={errorText}
-                            forwardedFSClass={forwardedFSClass}
-                        />
-                    ))}
+                    {group.rows.map(renderRow)}
                 </View>
             ))}
 
