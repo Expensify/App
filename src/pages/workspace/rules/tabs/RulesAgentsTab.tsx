@@ -114,7 +114,7 @@ function RulesAgentsTab({policyID, canWriteRules, showReadOnlyModal, headerCompo
                         menuItemWrapperStyle={styles.justifyContentCenter}
                     />
                     {/* The row stays pressable when the user cannot write rules. Pressing it explains why, so it only looks disabled. */}
-                    <View style={[styles.mt2, !canWriteRules && styles.buttonOpacityDisabled]}>
+                    <View style={[styles.mt2, styles.mbn3, !canWriteRules && styles.buttonOpacityDisabled]}>
                         <MenuItemSectionRoot
                             onPress={handleAddAgentRule}
                             sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.ADD_AGENT_RULE}
