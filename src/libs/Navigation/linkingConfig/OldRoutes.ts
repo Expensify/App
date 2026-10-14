@@ -29,7 +29,6 @@ const oldRoutes: Record<string, string> = {
     '/workspaces/downgrade': '/settings/subscription/downgrade',
     '/settings/workspaces/*': '/workspaces/$1',
     '/settings/workspaces': '/workspaces',
-    '/settings/wallet/add-us-bank-account': '/settings/wallet/us-bank-account',
     '/settings/wallet/personal-card/*/edit/name': '/settings/wallet/personal-card/$1/edit-card-name',
     '/settings/wallet/personal-card/*/edit/transaction-start-date': '/settings/wallet/personal-card/$1/edit-transaction-start-date',
     '/settings/wallet/card/*/activate': '/settings/wallet/card/$1/activate/$1',

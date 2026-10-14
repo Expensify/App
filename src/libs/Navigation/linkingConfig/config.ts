@@ -315,10 +315,6 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                             path: ROUTES.SETTINGS_COLLECT_DEPOSIT_ACCOUNT.route,
                             exact: true,
                         },
-                        [SCREENS.SETTINGS.ADD_US_BANK_ACCOUNT_ENTRY_POINT]: {
-                            path: ROUTES.SETTINGS_ADD_US_BANK_ACCOUNT_ENTRY_POINT,
-                            exact: true,
-                        },
                         [SCREENS.SETTINGS.UPDATE_PERSONAL_BANK_ACCOUNT]: {
                             path: ROUTES.SETTINGS_UPDATE_PERSONAL_BANK_ACCOUNT.route,
                         },
@@ -1266,6 +1262,7 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.SETTINGS.DYNAMIC_APP_DOWNLOAD_LINKS]: DYNAMIC_ROUTES.APP_DOWNLOAD_LINKS.path,
                         [SCREENS.SETTINGS.SUBSCRIPTION.DYNAMIC_ADD_PAYMENT_CARD]: DYNAMIC_ROUTES.ADD_PAYMENT_CARD.path,
                         [SCREENS.SETTINGS.DYNAMIC_ADD_US_BANK_ACCOUNT]: DYNAMIC_ROUTES.ADD_US_BANK_ACCOUNT.path,
+                        [SCREENS.SETTINGS.DYNAMIC_ADD_US_BANK_ACCOUNT_ENTRY_POINT]: DYNAMIC_ROUTES.ADD_US_BANK_ACCOUNT_ENTRY_POINT.path,
                         [SCREENS.SETTINGS.DYNAMIC_BETA_OVERRIDES]: DYNAMIC_ROUTES.BETA_OVERRIDES.path,
                         [SCREENS.WORKSPACE.NAME]: ROUTES.WORKSPACE_OVERVIEW_NAME.route,
                         [SCREENS.SETTINGS.SHARE_CODE]: {

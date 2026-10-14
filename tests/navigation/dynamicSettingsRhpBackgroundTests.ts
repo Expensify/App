@@ -22,8 +22,9 @@ describe('dynamic settings RHP screens on a fresh load', () => {
         ['Home, personal card details', '/home/personal-card/456', SCREENS.HOME, undefined],
         ['the wallet, personal card details', '/settings/wallet/personal-card/456', NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR, SCREENS.SETTINGS.WALLET.ROOT],
         ['the wallet, personal card start date', '/settings/wallet/personal-card/456/edit-transaction-start-date', NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR, SCREENS.SETTINGS.WALLET.ROOT],
-        ['a report, add US bank account', '/r/123/us-bank-account', NAVIGATORS.REPORTS_SPLIT_NAVIGATOR, SCREENS.REPORT],
-        ['the wallet, add US bank account', '/settings/wallet/us-bank-account', NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR, SCREENS.SETTINGS.WALLET.ROOT],
+        ['a report, add US bank account', '/r/123/add-us-bank-account', NAVIGATORS.REPORTS_SPLIT_NAVIGATOR, SCREENS.REPORT],
+        ['the wallet, add US bank account', '/settings/wallet/add-us-bank-account', NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR, SCREENS.SETTINGS.WALLET.ROOT],
+        ['the wallet, add US bank account entry point', '/settings/wallet/add-us-bank-account/entry-point', NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR, SCREENS.SETTINGS.WALLET.ROOT],
         ['a report, enter signer info', '/r/123/enter-signer-info?policyID=1&bankAccountID=2&isCompleted=false', NAVIGATORS.REPORTS_SPLIT_NAVIGATOR, SCREENS.REPORT],
         ['Home, enter signer info', '/home/enter-signer-info?policyID=1&bankAccountID=2&isCompleted=false', SCREENS.HOME, undefined],
         ['Home, Expensify Card details', '/home/card/777', SCREENS.HOME, undefined],
@@ -96,5 +97,22 @@ describe('Expensify Card child routes', () => {
         const focusedRoute = state ? findFocusedRoute(state) : undefined;
         expect(focusedRoute?.name).toBe(SCREENS.SETTINGS.WALLET.DYNAMIC_REPORT_VIRTUAL_CARD_FRAUD);
         expect((focusedRoute?.params as Record<string, unknown> | undefined)?.cardID).toBe('778');
+    });
+});
+
+describe('add US bank account routes', () => {
+    it.each([
+        ['the entry point', '/settings/wallet/add-us-bank-account/entry-point', SCREENS.SETTINGS.DYNAMIC_ADD_US_BANK_ACCOUNT_ENTRY_POINT, undefined],
+        ['a flow step', '/settings/wallet/add-us-bank-account/manual', SCREENS.SETTINGS.DYNAMIC_ADD_US_BANK_ACCOUNT, 'manual'],
+        ['a flow step opened from the entry point', '/settings/wallet/add-us-bank-account/entry-point/add-us-bank-account/manual', SCREENS.SETTINGS.DYNAMIC_ADD_US_BANK_ACCOUNT, 'manual'],
+    ])('resolves %s to its own screen', (_label, path, screen, subPage) => {
+        // Given the entry point and the flow, whose URLs share the add-us-bank-account prefix
+        // When the URL is loaded directly or refreshed
+        const state = getAdaptedStateFromPath(path, undefined);
+        const focusedRoute = state ? findFocusedRoute(state) : undefined;
+
+        // Then the entry point is not read as a flow step called "entry-point", and a flow step keeps its sub page
+        expect(focusedRoute?.name).toBe(screen);
+        expect((focusedRoute?.params as Record<string, unknown> | undefined)?.subPage).toBe(subPage);
     });
 });

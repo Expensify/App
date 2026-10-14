@@ -704,11 +704,10 @@ describe('getBestMatchingPath', () => {
         expect(getMatchingNewRoute('/create/submit/waypoint/123/456')).toBe(undefined);
     });
 
-    it('redirects the legacy wallet bank account and personal card edit links to their dynamic routes', () => {
+    it('redirects the legacy personal card edit links to their dynamic routes', () => {
         // Given links saved before these screens became dynamic routes
         // When they are opened
         // Then they land on the dynamic route with the wallet as the base
-        expect(getMatchingNewRoute('/settings/wallet/add-us-bank-account')).toBe('/settings/wallet/us-bank-account');
         expect(getMatchingNewRoute('/settings/wallet/personal-card/123/edit/name')).toBe('/settings/wallet/personal-card/123/edit-card-name');
         expect(getMatchingNewRoute('/settings/wallet/personal-card/123/edit/transaction-start-date')).toBe('/settings/wallet/personal-card/123/edit-transaction-start-date');
     });
@@ -725,12 +724,12 @@ describe('getBestMatchingPath', () => {
         );
     });
 
-    it('does not redirect the wallet bank account entry point or the new dynamic routes', () => {
-        // Given the static entry point, which shares the legacy prefix, and URLs already on the dynamic routes
+    it('does not redirect the wallet bank account links or the new dynamic routes', () => {
+        // Given the bank account links, which kept their URLs when they became dynamic routes, and URLs already on the dynamic routes
         // When they are matched against the legacy patterns
         // Then none of them is rewritten
         expect(getMatchingNewRoute('/settings/wallet/add-us-bank-account/entry-point')).toBe(undefined);
-        expect(getMatchingNewRoute('/settings/wallet/us-bank-account')).toBe(undefined);
+        expect(getMatchingNewRoute('/settings/wallet/add-us-bank-account')).toBe(undefined);
         expect(getMatchingNewRoute('/settings/wallet/personal-card/123/edit-card-name')).toBe(undefined);
         expect(getMatchingNewRoute('/r/1/enter-signer-info/name?policyID=A')).toBe(undefined);
     });

@@ -1586,13 +1586,17 @@ const DYNAMIC_ROUTES = {
         getRoute: (reason: ReplacementReason) => `replace-validate-code/${reason}` as const,
     },
     ADD_US_BANK_ACCOUNT: {
-        path: 'us-bank-account/:subPage?/:action?',
+        path: 'add-us-bank-account/:subPage?/:action?',
         entryScreens: ['*'],
         getRoute: (subPage?: string, action?: 'edit') => {
             const subPagePart = subPage ? `/${subPage}` : '';
             const actionPart = action ? `/${action}` : '';
-            return `us-bank-account${subPagePart}${actionPart}` as const;
+            return `add-us-bank-account${subPagePart}${actionPart}` as const;
         },
+    },
+    ADD_US_BANK_ACCOUNT_ENTRY_POINT: {
+        path: 'add-us-bank-account/entry-point',
+        entryScreens: [SCREENS.SETTINGS.WALLET.ROOT],
     },
     BANK_ACCOUNT_ENTER_SIGNER_INFO: {
         path: 'enter-signer-info/:subPage?/:action?',
@@ -2575,7 +2579,6 @@ const ROUTES = {
             return `settings/wallet/collect-deposit-account${subPagePart}${actionPart}` as const;
         },
     },
-    SETTINGS_ADD_US_BANK_ACCOUNT_ENTRY_POINT: 'settings/wallet/add-us-bank-account/entry-point',
     SETTINGS_UPDATE_PERSONAL_BANK_ACCOUNT: {
         route: 'settings/wallet/update-personal-bank-account/:subPage?',
         getRoute: (subPage?: string) => {

@@ -85,7 +85,7 @@ const SCREENS = {
         ADD_BANK_ACCOUNT: 'Settings_Add_Bank_Account',
         DYNAMIC_ADD_US_BANK_ACCOUNT: 'Dynamic_Settings_Add_US_Bank_Account',
         COLLECT_DEPOSIT_ACCOUNT: 'Settings_Collect_Deposit_Account',
-        ADD_US_BANK_ACCOUNT_ENTRY_POINT: 'Settings_Add_US_Bank_Account_Entry_Point',
+        DYNAMIC_ADD_US_BANK_ACCOUNT_ENTRY_POINT: 'Dynamic_Settings_Add_US_Bank_Account_Entry_Point',
         UPDATE_PERSONAL_BANK_ACCOUNT: 'Settings_Update_Personal_Bank_Account',
         BANK_ACCOUNT_PURPOSE: 'Settings_Bank_Account_Purpose',
         DEVICE_MANAGEMENT: 'Settings_Device_Management',
