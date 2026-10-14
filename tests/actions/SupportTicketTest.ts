@@ -11,6 +11,9 @@ import ONYXKEYS from '@src/ONYXKEYS';
 
 import Onyx from 'react-native-onyx';
 
+import getOnyxValue from '../utils/getOnyxValue';
+import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
+
 jest.mock('@libs/API');
 jest.mock('@libs/Navigation/helpers/getReportRouteForCurrentContext');
 jest.mock('@libs/Navigation/Navigation');
@@ -26,7 +29,13 @@ const mockGenerateReportID = jest.mocked(generateReportID);
 const newSupportTicketReportID = 'optimisticSupportTicketReportID';
 
 describe('actions/Report', () => {
-    beforeEach(() => {
+    beforeAll(() => {
+        Onyx.init({keys: ONYXKEYS});
+    });
+
+    beforeEach(async () => {
+        await Onyx.clear();
+        await waitForBatchedUpdates();
         mockMakeRequestWithSideEffects.mockResolvedValue({jsonCode: CONST.JSON_CODE.SUCCESS});
         mockGetReportRouteForCurrentContext.mockReturnValue(`r/${newSupportTicketReportID}`);
         mockGenerateReportID.mockReturnValue(newSupportTicketReportID);
@@ -80,9 +89,12 @@ describe('actions/Report', () => {
     });
 
     it('removes the pending report when the request fails before receiving a response', async () => {
-        // Given a request that fails before the API can apply its failure data
+        // Given an optimistic support ticket in Onyx and a request that fails before the API can apply its failure data
         const networkError = new Error('Network request failed');
-        const onyxUpdateSpy = jest.spyOn(Onyx, 'update').mockResolvedValue(undefined);
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${newSupportTicketReportID}`, {
+            reportID: newSupportTicketReportID,
+            type: CONST.REPORT.TYPE.SUPPORT_TICKET,
+        });
         mockMakeRequestWithSideEffects.mockRejectedValueOnce(networkError);
 
         // When the customer asks to talk to a human
@@ -90,13 +102,21 @@ describe('actions/Report', () => {
 
         // Then the App removes the pending report and preserves the request failure
         await expect(request).rejects.toBe(networkError);
-        expect(onyxUpdateSpy).toHaveBeenCalledWith([
-            {
-                onyxMethod: Onyx.METHOD.SET,
-                key: `${ONYXKEYS.COLLECTION.REPORT}${newSupportTicketReportID}`,
-                value: null,
-            },
-        ]);
+        await expect(getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${newSupportTicketReportID}`)).resolves.toBeUndefined();
+    });
+
+    it('does not update Onyx when reopening a support ticket fails', async () => {
+        // Given a resolved ticket and a failed reassignment request
+        const resolvedSupportTicketReportID = 'resolvedSupportTicketReportID';
+        const networkError = new Error('Network request failed');
+        const onyxUpdateSpy = jest.spyOn(Onyx, 'update');
+        mockMakeRequestWithSideEffects.mockRejectedValueOnce(networkError);
+
+        // When the customer reopens the ticket
+        await expect(openSupportTicket(resolvedSupportTicketReportID)).rejects.toBe(networkError);
+
+        // Then no optimistic report exists to remove
+        expect(onyxUpdateSpy).not.toHaveBeenCalled();
     });
 
     it('navigates to a newly reassigned support ticket', async () => {
