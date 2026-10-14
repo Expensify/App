@@ -210,7 +210,12 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
                         onRenameDestination: (newName: string) => renamePerDiemDestinationInline(policyID, subRate.rateID, customUnit, subRate.destination, newName),
                         onRenameSubrate: (newName: string) => renamePerDiemSubrateInline(policyID, subRate.rateID, subRate.subRateID, customUnit, subRate.subRateName, newName),
                         onChangeAmount: (newAmount: string) => updatePerDiemAmountInline(policyID, subRate.rateID, subRate.subRateID, customUnit, subRate.rate, newAmount),
-                        dismissError: () => clearPerDiemRateError(policyID, customUnit?.customUnitID ?? '', subRate.rateID),
+                        dismissError: () => {
+                            if (!customUnit) {
+                                return;
+                            }
+                            clearPerDiemRateError(policyID, customUnit.customUnitID, subRate.rateID);
+                        },
                     };
                 }),
         [allSubRates, isOffline, openSubRateDetails, canWritePerDiem, isSelectionModeActive, policyID, customUnit],
