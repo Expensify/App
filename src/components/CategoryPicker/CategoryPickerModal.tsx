@@ -39,6 +39,12 @@ type CategoryPickerModalProps = {
 
     selectedCategory?: string;
 
+    /** Whether to show GL codes under each category regardless of the workspace setting */
+    shouldAlwaysShowGLCode?: boolean;
+
+    /** Number of enabled categories at which the search input appears. The content height estimate uses the same value. */
+    searchInputThreshold?: number;
+
     /** Called when the user confirms a category selection */
     onSelected?: (item: ListItem) => void;
 
@@ -61,6 +67,8 @@ function CategoryPickerModal({
     anchorPosition,
     policyID,
     selectedCategory,
+    shouldAlwaysShowGLCode = false,
+    searchInputThreshold = CONST.STANDARD_LIST_ITEM_LIMIT,
     onSelected,
     anchorAlignment = DEFAULT_ANCHOR_ALIGNMENT,
     shouldMeasureAnchorPositionFromTop = false,
@@ -83,7 +91,7 @@ function CategoryPickerModal({
     const [renderedRowCount, setRenderedRowCount] = useState<number>();
 
     const categoriesCount = policyCategories ?? 0;
-    const isSearchable = categoriesCount >= CONST.STANDARD_LIST_ITEM_LIMIT;
+    const isSearchable = categoriesCount >= searchInputThreshold;
     const estimatedContentHeight = getSelectionListPopoverContentHeight({optionCount: Math.max(renderedRowCount ?? categoriesCount, 1), isSearchable});
 
     // The sheet pads itself above the home indicator, except while the keyboard already covers it. The offline indicator
@@ -141,6 +149,8 @@ function CategoryPickerModal({
                     policyID={policyID}
                     onSubmit={handleCategorySelect}
                     shouldAutoFocusSearchInput
+                    shouldAlwaysShowGLCode={shouldAlwaysShowGLCode}
+                    searchInputThreshold={searchInputThreshold}
                 />
             </View>
         </PopoverWithMeasuredContent>
