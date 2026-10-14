@@ -1,9 +1,10 @@
-import {navigateAfterOnboarding, navigateAfterOnboardingWithMicrotaskQueue} from '@libs/navigateAfterOnboarding';
+import {navigateAfterOnboarding, navigateAfterOnboardingWithMicrotaskQueue, navigateToSubmitWorkspaceAfterOnboardingWithMicrotaskQueue} from '@libs/navigateAfterOnboarding';
 import dismissOnboardingModalBeforeExit from '@libs/Navigation/helpers/OnboardingNavigationUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type * as ReportUtils from '@libs/ReportUtils';
 
 import initOnyxDerivedValues from '@userActions/OnyxDerived';
+import {clearPendingNativeShare, deferPendingNativeShareUntilOnboardingExit, openPendingNativeShare, setPendingNativeShare} from '@userActions/Share';
 import SidePanelActions from '@userActions/SidePanel';
 
 import CONST from '@src/CONST';
@@ -93,6 +94,7 @@ describe('navigateAfterOnboarding', () => {
 
     beforeEach(async () => {
         jest.clearAllMocks();
+        clearPendingNativeShare();
         mockIsReportTopmostSplitNavigator.mockReturnValue(false);
         return Onyx.clear();
     });
@@ -274,5 +276,76 @@ describe('navigateAfterOnboarding', () => {
         // Then the stored variant still applies and the user lands on Home rather than the admin room
         expect(navigate).toHaveBeenCalledWith(ROUTES.HOME, undefined);
         expect(navigate).not.toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute(ONBOARDING_ADMINS_CHAT_REPORT_ID), undefined);
+    });
+
+    describe('native share captured while signed out', () => {
+        function exitOnboarding(exit: () => void) {
+            jest.spyOn(Navigation, 'setNavigationActionToMicrotaskQueue').mockImplementation((navigationAction) => navigationAction());
+            let finishDismissal: (() => void) | undefined;
+            jest.mocked(dismissOnboardingModalBeforeExit).mockImplementation((afterTransition) => {
+                finishDismissal = afterTransition;
+            });
+            exit();
+            finishDismissal?.();
+        }
+
+        it('opens a share deferred by onboarding on top of the landing screen', () => {
+            // Given a photo was shared to the app while signed out and the new account went through onboarding
+            const navigate = jest.spyOn(Navigation, 'navigate');
+            setPendingNativeShare();
+            deferPendingNativeShareUntilOnboardingExit();
+
+            // When onboarding completes and the exit runs
+            exitOnboarding(() => navigateAfterOnboardingWithMicrotaskQueue(false, true, '', {}));
+
+            // Then the landing navigation still happens first (its side effects must not be replaced, see #102954) and the share flow is pushed on top of it
+            expect(navigate).toHaveBeenNthCalledWith(1, ROUTES.HOME, undefined);
+            expect(navigate).toHaveBeenNthCalledWith(2, ROUTES.SHARE_ROOT, {waitForTransition: true});
+            expect(navigate).toHaveBeenCalledTimes(2);
+        });
+
+        it('opens a share deferred by onboarding after the Submit-workspace exit as well', () => {
+            // Given a photo was shared to the app while signed out and the new account exits onboarding through the Submit-workspace path
+            const navigate = jest.spyOn(Navigation, 'navigate');
+            setPendingNativeShare();
+            deferPendingNativeShareUntilOnboardingExit();
+
+            // When that exit runs
+            exitOnboarding(() => navigateToSubmitWorkspaceAfterOnboardingWithMicrotaskQueue(undefined));
+
+            // Then the share flow is pushed after the landing navigation
+            expect(navigate).toHaveBeenNthCalledWith(1, ROUTES.HOME);
+            expect(navigate).toHaveBeenNthCalledWith(2, ROUTES.SHARE_ROOT, {waitForTransition: true});
+        });
+
+        it('opens a deferred share only once', () => {
+            // Given a deferred share was already opened by one onboarding exit
+            const navigate = jest.spyOn(Navigation, 'navigate');
+            setPendingNativeShare();
+            deferPendingNativeShareUntilOnboardingExit();
+            exitOnboarding(() => navigateAfterOnboardingWithMicrotaskQueue(false, true, '', {}));
+
+            // When another exit runs (e.g. a join-workspace task finishing later)
+            navigate.mockClear();
+            exitOnboarding(() => navigateAfterOnboardingWithMicrotaskQueue(false, true, '', {}));
+
+            // Then only the landing navigation happens
+            expect(navigate).toHaveBeenCalledTimes(1);
+            expect(navigate).toHaveBeenCalledWith(ROUTES.HOME, undefined);
+        });
+
+        it('leaves a share that onboarding never deferred to the onboarding router', () => {
+            // Given a share is pending for an account that did not need onboarding
+            const navigate = jest.spyOn(Navigation, 'navigate');
+            setPendingNativeShare();
+
+            // When an onboarding exit runs anyway
+            exitOnboarding(() => navigateAfterOnboardingWithMicrotaskQueue(false, true, '', {}));
+
+            // Then the exit does not consume it; the router (useOnboardingFlowRouter) still can
+            expect(navigate).toHaveBeenCalledTimes(1);
+            expect(navigate).toHaveBeenCalledWith(ROUTES.HOME, undefined);
+            expect(openPendingNativeShare()).toBe(true);
+        });
     });
 });

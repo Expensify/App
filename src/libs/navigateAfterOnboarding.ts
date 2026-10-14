@@ -10,6 +10,7 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 
 import {setDisableDismissOnEscape} from './actions/Modal';
+import {openPendingNativeShare} from './actions/Share';
 import SidePanelActions from './actions/SidePanel';
 import {setOnboardingRHPVariant} from './actions/Welcome';
 import isReportTopmostSplitNavigator from './Navigation/helpers/isReportTopmostSplitNavigator';
@@ -152,6 +153,9 @@ function navigateAfterOnboardingWithMicrotaskQueue(
                 shouldPreventOpenAdminRoom,
                 options,
             );
+            // A native share that arrived while signed out opens on top of the landing screen, after its own side effects
+            // ran: replacing the landing with a parked deep link is what regressed #102954.
+            openPendingNativeShare({afterOnboarding: true});
         });
     });
 }
@@ -177,6 +181,7 @@ function navigateToSubmitWorkspaceAfterOnboardingWithMicrotaskQueue(policyID?: s
     dismissOnboardingModalBeforeExit(() => {
         Navigation.setNavigationActionToMicrotaskQueue(() => {
             navigateToSubmitWorkspaceAfterOnboarding(policyID, shouldUseNarrowLayout);
+            openPendingNativeShare({afterOnboarding: true});
         });
     });
 }
