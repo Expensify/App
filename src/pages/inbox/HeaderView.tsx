@@ -158,7 +158,7 @@ function HeaderView({onNavigationMenuButtonClicked, reportID}: HeaderViewProps) 
     const isConciergeChat = isConciergeChatReport(report, conciergeReportID);
     const {resetSession: resetConciergeSession} = useConciergeSessionActions();
     const isAskConciergeEnabled = !isInSidePanel;
-    const isConciergeThread = !!conciergeReportID && isChatThreadReportUtils(report) && report.parentReportID === conciergeReportID;
+    const isConciergeThread = !!conciergeReportID && report?.parentReportID === conciergeReportID;
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [onboarding] = useOnyx(ONYXKEYS.NVP_ONBOARDING);
     const allParticipants = getParticipantsAccountIDsForDisplay(report, false, true, undefined, reportMetadata);
