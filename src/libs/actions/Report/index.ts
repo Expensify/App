@@ -4904,13 +4904,30 @@ function openSupportTicket(resolvedSupportTicketReportID?: string) {
                   {
                       onyxMethod: Onyx.METHOD.MERGE,
                       key: `${ONYXKEYS.COLLECTION.REPORT}${newSupportTicketReportID}`,
-                      value: {type: CONST.REPORT.TYPE.SUPPORT_TICKET},
+                      value: {reportID: newSupportTicketReportID, type: CONST.REPORT.TYPE.SUPPORT_TICKET},
+                  },
+                  {
+                      onyxMethod: Onyx.METHOD.MERGE,
+                      key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${newSupportTicketReportID}`,
+                      value: {isOptimisticReport: true},
+                  },
+              ],
+              successData: [
+                  {
+                      onyxMethod: Onyx.METHOD.MERGE,
+                      key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${newSupportTicketReportID}`,
+                      value: {isOptimisticReport: false},
                   },
               ],
               failureData: [
                   {
                       onyxMethod: Onyx.METHOD.SET,
                       key: `${ONYXKEYS.COLLECTION.REPORT}${newSupportTicketReportID}`,
+                      value: null,
+                  },
+                  {
+                      onyxMethod: Onyx.METHOD.SET,
+                      key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${newSupportTicketReportID}`,
                       value: null,
                   },
               ],

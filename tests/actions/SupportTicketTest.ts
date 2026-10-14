@@ -66,13 +66,30 @@ describe('actions/Report', () => {
                     {
                         onyxMethod: Onyx.METHOD.MERGE,
                         key: `${ONYXKEYS.COLLECTION.REPORT}${newSupportTicketReportID}`,
-                        value: {type: CONST.REPORT.TYPE.SUPPORT_TICKET},
+                        value: {reportID: newSupportTicketReportID, type: CONST.REPORT.TYPE.SUPPORT_TICKET},
+                    },
+                    {
+                        onyxMethod: Onyx.METHOD.MERGE,
+                        key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${newSupportTicketReportID}`,
+                        value: {isOptimisticReport: true},
+                    },
+                ],
+                successData: [
+                    {
+                        onyxMethod: Onyx.METHOD.MERGE,
+                        key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${newSupportTicketReportID}`,
+                        value: {isOptimisticReport: false},
                     },
                 ],
                 failureData: [
                     {
                         onyxMethod: Onyx.METHOD.SET,
                         key: `${ONYXKEYS.COLLECTION.REPORT}${newSupportTicketReportID}`,
+                        value: null,
+                    },
+                    {
+                        onyxMethod: Onyx.METHOD.SET,
+                        key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${newSupportTicketReportID}`,
                         value: null,
                     },
                 ],
@@ -95,6 +112,7 @@ describe('actions/Report', () => {
             reportID: newSupportTicketReportID,
             type: CONST.REPORT.TYPE.SUPPORT_TICKET,
         });
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${newSupportTicketReportID}`, {isOptimisticReport: true});
         mockMakeRequestWithSideEffects.mockRejectedValueOnce(networkError);
 
         // When the customer asks to talk to a human
@@ -103,6 +121,33 @@ describe('actions/Report', () => {
         // Then the App removes the pending report and preserves the request failure
         await expect(request).rejects.toBe(networkError);
         await expect(getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${newSupportTicketReportID}`)).resolves.toBeUndefined();
+        await expect(getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${newSupportTicketReportID}`)).resolves.toBeUndefined();
+    });
+
+    it.each([CONST.JSON_CODE.SUCCESS, CONST.JSON_CODE.EXP_ERROR])('settles the optimistic ticket after server response %s', async (jsonCode) => {
+        // Given a new ticket whose creation response applies the API's success or failure updates
+        mockMakeRequestWithSideEffects.mockImplementationOnce(async (_command, _parameters, onyxData) => {
+            await Onyx.update(onyxData?.optimisticData ?? []);
+            await expect(getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${newSupportTicketReportID}`)).resolves.toEqual({
+                reportID: newSupportTicketReportID,
+                type: CONST.REPORT.TYPE.SUPPORT_TICKET,
+            });
+            await expect(getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${newSupportTicketReportID}`)).resolves.toEqual({isOptimisticReport: true});
+            await Onyx.update((jsonCode === CONST.JSON_CODE.SUCCESS ? onyxData?.successData : onyxData?.failureData) ?? []);
+            return {jsonCode};
+        });
+
+        // When the server accepts or rejects the creation request
+        await openSupportTicket();
+
+        // Then a successful ticket can be fetched, while a rejected ticket leaves no optimistic data behind
+        if (jsonCode === CONST.JSON_CODE.SUCCESS) {
+            await expect(getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${newSupportTicketReportID}`)).resolves.toEqual({isOptimisticReport: false});
+            await expect(getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${newSupportTicketReportID}`)).resolves.toMatchObject({reportID: newSupportTicketReportID});
+        } else {
+            await expect(getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${newSupportTicketReportID}`)).resolves.toBeUndefined();
+            await expect(getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${newSupportTicketReportID}`)).resolves.toBeUndefined();
+        }
     });
 
     it('does not update Onyx when reopening a support ticket fails', async () => {

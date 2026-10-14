@@ -190,9 +190,8 @@ function ReportFetchHandler() {
 
         // isPendingCreationFromRoute means reportIDFromRoute is a client-generated ID that doesn't exist
         // on the server yet. Calling openReport for it would 403 and show the not-found page instead.
-        // Once the real submit creates the report under this ID, reportOnyx?.reportID becomes truthy
-        // and normal fetching resumes.
-        if (isPendingCreationFromRoute && !reportOnyx?.reportID) {
+        // Wait until the report exists locally and is no longer optimistic before fetching it.
+        if (isPendingCreationFromRoute && (!reportOnyx?.reportID || reportMetadata.isOptimisticReport)) {
             return;
         }
 
@@ -387,15 +386,15 @@ function ReportFetchHandler() {
         navigation.setParams({secureKey: undefined});
     }, [secureKeyFromRoute, reportIDFromRoute, report?.reportID, report?.errorFields?.notFound, navigation]);
 
-    // isPendingCreation is only needed before the report exists. Clear it from the route params once it
+    // isPendingCreation is only needed before the report exists on the server. Clear it from the route params once it
     // does, so a copied URL, restored navigation state, or reload doesn't carry the stale flag and skip
     // fetching again later.
     useEffect(() => {
-        if (!isPendingCreationFromRoute || !reportOnyx?.reportID) {
+        if (!isPendingCreationFromRoute || !reportOnyx?.reportID || reportMetadata.isOptimisticReport) {
             return;
         }
         navigation.setParams({isPendingCreation: undefined});
-    }, [isPendingCreationFromRoute, reportOnyx?.reportID, navigation]);
+    }, [isPendingCreationFromRoute, reportOnyx?.reportID, reportMetadata.isOptimisticReport, navigation]);
 
     // A restored or shared route can carry isPendingCreation with no submit behind it. The owning submit writes the
     // report row within the dismiss transition budget (about 2s) after this screen gains focus, so a focused screen
