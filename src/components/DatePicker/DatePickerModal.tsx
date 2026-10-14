@@ -92,6 +92,12 @@ function DatePickerModal({
 
     const handleMonthOrYearSelection = (newValue: string) => {
         onMonthOrYearSelected?.(newValue);
+
+        // An empty field has no day to mark as selected, so the pick only moves the calendar
+        if (!value) {
+            return;
+        }
+
         applySelection(newValue);
     };
 

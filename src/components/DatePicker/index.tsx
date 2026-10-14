@@ -354,6 +354,18 @@ function DatePicker({
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isModalVisible]);
 
+    const handleMonthOrYearSelected = (newDate: string) => {
+        // Picking a month or year revises a date the field already holds. An empty field has no day to go with one,
+        // so it waits for the day press rather than being filled with a day nobody chose.
+        if (selectedDate) {
+            commitDate(newDate);
+        }
+
+        // The picker is a modal of its own, so it takes focus with it. The calendar is still open, which is the field
+        // still being used, so focus belongs back in it.
+        segmentInput.focusFirstUnfilledSegment();
+    };
+
     const handleFieldFocus = () => {
         isFieldFocusedRef.current = true;
         hasPendingFieldBlurRef.current = false;
@@ -471,9 +483,7 @@ function DatePicker({
                 shouldCloseOnWheel={!shouldAllowTyping}
                 viewDate={segmentInput.viewDate}
                 viewDateVersion={segmentInput.viewDateVersion}
-                // Picking a month or year revises a date the field already holds. An empty field has no day to go with
-                // one, so it waits for the day press rather than being filled with a day nobody chose.
-                onMonthOrYearSelected={shouldAllowTyping && selectedDate ? commitDate : undefined}
+                onMonthOrYearSelected={shouldAllowTyping ? handleMonthOrYearSelected : undefined}
             />
         </>
     );
