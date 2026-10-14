@@ -1,7 +1,7 @@
 import type {SharedValue} from 'react-native-reanimated';
 
 import {useCallback} from 'react';
-import {Gesture} from 'react-native-gesture-handler';
+import {useCompetingGestures, useHoverGesture, useTapGesture} from 'react-native-gesture-handler';
 import {useDerivedValue, useSharedValue} from 'react-native-reanimated';
 import {scheduleOnRN, scheduleOnUI} from 'react-native-worklets';
 
@@ -345,42 +345,44 @@ function useChartInteractions({
      * customGestures prop, because Victory's internal GestureHandler view only covers
      * the plot area and would drop events from the label area.
      */
-    const hoverGesture = () =>
-        Gesture.Hover()
-            .onBegin((e) => {
-                'worklet';
+    const hoverGesture = useHoverGesture({
+        onBegin: (e) => {
+            'worklet';
 
-                const cursorX = normalizeChartCoordinate(e.x, coordinateScale);
-                const cursorY = normalizeChartCoordinate(e.y, coordinateScale);
-                chartInteractionState.isActive.set(true);
-                chartInteractionState.cursor.x.set(cursorX);
-                chartInteractionState.cursor.y.set(cursorY);
-                const bottom = chartBottom?.get() ?? cursorY;
-                const touchX = cursorY >= bottom && resolveLabelTouchX ? resolveLabelTouchX(cursorX, cursorY) : cursorX;
-                const targetIndex = getResolvedTargetIndex(cursorX, cursorY, touchX);
-                applyTargetIndex(targetIndex);
-                updateInteractionFlags(targetIndex, cursorX, cursorY, bottom);
-            })
-            .onUpdate((e) => {
-                'worklet';
+            const cursorX = normalizeChartCoordinate(e.x, coordinateScale);
+            const cursorY = normalizeChartCoordinate(e.y, coordinateScale);
+            chartInteractionState.isActive.set(true);
+            chartInteractionState.cursor.x.set(cursorX);
+            chartInteractionState.cursor.y.set(cursorY);
+            const bottom = chartBottom?.get() ?? cursorY;
+            const touchX = cursorY >= bottom && resolveLabelTouchX ? resolveLabelTouchX(cursorX, cursorY) : cursorX;
+            const targetIndex = getResolvedTargetIndex(cursorX, cursorY, touchX);
+            applyTargetIndex(targetIndex);
+            updateInteractionFlags(targetIndex, cursorX, cursorY, bottom);
+        },
+        onUpdate: (e) => {
+            'worklet';
 
-                updateHoverAt(normalizeChartCoordinate(e.x, coordinateScale), normalizeChartCoordinate(e.y, coordinateScale));
-            })
-            .onEnd(() => {
-                'worklet';
+            updateHoverAt(normalizeChartCoordinate(e.x, coordinateScale), normalizeChartCoordinate(e.y, coordinateScale));
+        },
+        onDeactivate: () => {
+            'worklet';
 
-                chartInteractionState.isActive.set(false);
-                isCursorOverTarget.set(false);
-                isCursorOverClickable.set(false);
-                isTooltipActive.set(false);
-            });
+            chartInteractionState.isActive.set(false);
+            isCursorOverTarget.set(false);
+            isCursorOverClickable.set(false);
+            isTooltipActive.set(false);
+        },
+    });
 
     /**
      * Tap gesture. Resolves the nearest data point entirely on the UI thread,
-     * then schedules onPress on the JS thread if the cursor is over the target.
+     * then schedules handlePress on the JS thread if the cursor is over the target.
+     * Disabled without handlePress, so the chart only reacts to hover.
      */
-    const tapGesture = (onPress: (index: number) => void) =>
-        Gesture.Tap().onEnd((e) => {
+    const tapGesture = useTapGesture({
+        enabled: !!handlePress,
+        onDeactivate: (e) => {
             'worklet';
 
             const cursorX = normalizeChartCoordinate(e.x, coordinateScale);
@@ -400,10 +402,11 @@ function useChartInteractions({
             const hitTestArgs = getHitTestArgs(idx, cursorX, cursorY, targetX, targetY, currentChartBottom);
             const isClickable = (checkIsClickable ?? checkIsOver)(hitTestArgs);
             updateInteractionFlags(idx, cursorX, cursorY, currentChartBottom);
-            if (isClickable) {
-                scheduleOnRN(onPress, idx);
+            if (isClickable && handlePress) {
+                scheduleOnRN(handlePress, idx);
             }
-        });
+        },
+    });
 
     /**
      * Raw tooltip positioning data.
@@ -430,7 +433,7 @@ function useChartInteractions({
         y: chartInteractionState.y.y.position.get(),
     }));
 
-    const customGestures = handlePress ? Gesture.Race(hoverGesture(), tapGesture(handlePress)) : hoverGesture();
+    const customGestures = useCompetingGestures(hoverGesture, tapGesture);
 
     return {
         /** Custom gestures to be passed to CartesianChart */
