@@ -12,7 +12,10 @@ import TextInput from '@components/TextInput';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useViewportOffsetTop from '@hooks/useViewportOffsetTop';
+import useWindowDimensions from '@hooks/useWindowDimensions';
 
 import {getDecodedCategoryName} from '@libs/CategoryUtils';
 
@@ -60,6 +63,9 @@ function withPolicyCategory(values: GeneratedRuleValues, policyCategories: OnyxE
 function DescribeRuleModal({isVisible, onClose, policyID, ruleType, onRuleGenerated}: DescribeRuleModalProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
+    const {windowHeight} = useWindowDimensions();
+    const viewportOffsetTop = useViewportOffsetTop();
     // We need to use isSmallScreenWidth here because the Modal breaks in RHP with shouldUseNarrowLayout.
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
@@ -144,6 +150,7 @@ function DescribeRuleModal({isVisible, onClose, policyID, ruleType, onRuleGenera
             onClose={close}
             type={isSmallScreenWidth ? CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED : CONST.MODAL.MODAL_TYPE.CONFIRM}
             innerContainerStyle={styles.pv0}
+            outerStyle={isSmallScreenWidth ? StyleUtils.getOuterModalStyle(windowHeight, viewportOffsetTop) : undefined}
             avoidKeyboard
             shouldHandleNavigationBack
             enableEdgeToEdgeBottomSafeAreaPadding
@@ -156,13 +163,13 @@ function DescribeRuleModal({isVisible, onClose, policyID, ruleType, onRuleGenera
                 submitButtonText={translate('common.next')}
                 style={[styles.mt5, styles.mh5]}
                 addBottomSafeAreaPadding={isSmallScreenWidth}
-                shouldUseScrollView={false}
+                shouldUseScrollView={isSmallScreenWidth}
                 submitFlexEnabled={false}
                 shouldHideFixErrorsAlert
                 keyboardSubmitBehavior={CONST.KEYBOARD_SUBMIT_BEHAVIOR.SUBMIT_ONLY}
             >
                 <Text style={[styles.textNormal, styles.textSupporting, styles.mb5]}>{translate('workspace.rules.newRule.describeRule')}</Text>
-                <View style={styles.describeRulePromptInput}>
+                <View style={isSmallScreenWidth ? styles.describeRulePromptInputNarrow : styles.describeRulePromptInput}>
                     <InputWrapper
                         InputComponent={TextInput}
                         ref={inputRef}
