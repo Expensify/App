@@ -65,9 +65,14 @@ type ReportSubmitToContentProps = {
     /** When false, skips closing the RHP stack after submit (e.g. submit-to popover on report screen). */
     shouldDismissRHPAfterSubmit?: boolean;
     /** When set (e.g. Search row submit), called with the selected submit-to email instead of `submitReport`. */
-    onSubmitWithManagerEmail?: (managerEmail: string, managerAccountID?: number) => void;
+    onSubmitWithManagerEmail?: (managerEmail: string, managerAccountID?: number, shouldResolveAcknowledgedViolations?: boolean) => void;
     /** When set, blocks submit after the popover is dismissed (prevents stale confirm / click-through). */
     canSubmitRef?: RefObject<boolean>;
+    /**
+     * Resolved by the caller's own `confirmSubmitReportViolations` call before this popover opened (iOS can't present
+     * the violations modal while this popover is still open), so this component must not run that check itself.
+     */
+    shouldResolveAcknowledgedViolations?: boolean;
 };
 
 function ReportSubmitToContent({
@@ -79,6 +84,7 @@ function ReportSubmitToContent({
     shouldDismissRHPAfterSubmit = true,
     onSubmitWithManagerEmail,
     canSubmitRef,
+    shouldResolveAcknowledgedViolations,
 }: ReportSubmitToContentProps) {
     const styles = useThemeStyles();
     const {translate, localeCompare, dateFnsLocale} = useLocalize();
@@ -301,7 +307,7 @@ function ReportSubmitToContent({
         const resolvedManagerAccountID = selectedSubmitToMember?.accountID ?? getAccountIDForSubmitManagerEmail(trimmed, policy?.employeeList, employeePersonalDetails);
 
         if (onSubmitWithManagerEmail) {
-            onSubmitWithManagerEmail(trimmed, resolvedManagerAccountID);
+            onSubmitWithManagerEmail(trimmed, resolvedManagerAccountID, shouldResolveAcknowledgedViolations);
             if (currentSearchQueryJSON && !isOffline) {
                 search({
                     searchKey: currentSearchKey,
@@ -330,6 +336,7 @@ function ReportSubmitToContent({
             isASAPSubmitBetaEnabled,
             userBillingGracePeriodEnds,
             amountOwed,
+            shouldResolveAcknowledgedViolations,
             ownerBillingGracePeriodEnd,
             delegateEmail,
             delegateAccountID,
@@ -386,6 +393,7 @@ function ReportSubmitToContent({
         isTrackIntentUser,
         getCurrencyDecimals,
         rules,
+        shouldResolveAcknowledgedViolations,
     ]);
 
     const onSelectMember = useCallback(
