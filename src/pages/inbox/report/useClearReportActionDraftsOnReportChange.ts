@@ -1,6 +1,6 @@
 import useIsInSidePanel from '@hooks/useIsInSidePanel';
 
-import {clearAllReportActionDrafts} from '@libs/actions/Report';
+import {clearAllReportActionDrafts, clearReportActionDrafts} from '@libs/actions/Report';
 
 import {useEffect} from 'react';
 
@@ -9,9 +9,13 @@ function useClearReportActionDraftsOnReportChange(reportID: string | undefined) 
     const isInSidePanel = useIsInSidePanel();
 
     useEffect(() => {
-        // The side panel report renders next to the central report, so opening or closing it must not discard the central report's edit draft
+        // The side panel report renders next to the central report, so opening or closing it only discards the side panel report's own edit draft
         if (isInSidePanel) {
-            return;
+            clearReportActionDrafts(reportID);
+
+            return () => {
+                clearReportActionDrafts(reportID);
+            };
         }
 
         clearAllReportActionDrafts();
