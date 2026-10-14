@@ -432,9 +432,22 @@ function RequireFieldsRulePageBase({policyID, categoryName, initialCategoryName,
     }
 
     const applyGeneratedRule = (values: GeneratedRuleValues) => {
-        setDraftRequireFieldsRule(values);
+        let generatedForm: GeneratedRuleValues = values;
+        const generatedFieldKeys = new Set<RequireFieldsRuleSettingFieldKey>();
+        for (const fieldKey of SETTING_FIELD_KEYS) {
+            const setting = values[fieldKey];
+            if (setting === undefined) {
+                continue;
+            }
+            const {formUpdate, touchedFieldKeys} = getRequireFieldsFieldSettingUpdate(fieldKey, setting);
+            generatedForm = {...generatedForm, ...formUpdate};
+            for (const touchedFieldKey of touchedFieldKeys) {
+                generatedFieldKeys.add(touchedFieldKey);
+            }
+        }
+        setDraftRequireFieldsRule(generatedForm);
         setGeneratedCategoryName(values.category);
-        setTouchedFields(new Set(SETTING_FIELD_KEYS.filter((fieldKey) => values[fieldKey] !== undefined)));
+        setTouchedFields(generatedFieldKeys);
     };
 
     const footer = canWriteRules ? (
