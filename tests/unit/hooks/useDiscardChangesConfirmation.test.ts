@@ -348,6 +348,48 @@ describe('useDiscardChangesConfirmation (web)', () => {
         });
     });
 
+    describe('confirmNavigation', () => {
+        it('runs the navigation callback immediately when the form is clean', () => {
+            const navigationCallback = jest.fn();
+            const {result} = renderDiscardHook(() => false);
+
+            act(() => result.current.confirmNavigation(navigationCallback));
+
+            expect(navigationCallback).toHaveBeenCalledTimes(1);
+            expect(mockShowConfirmModal).not.toHaveBeenCalled();
+        });
+
+        it('defers the navigation callback until discard is confirmed when the form is dirty', async () => {
+            const navigationCallback = jest.fn();
+            const {result} = renderDiscardHook(() => true);
+
+            act(() => result.current.confirmNavigation(navigationCallback));
+
+            expect(navigationCallback).not.toHaveBeenCalled();
+            expect(mockShowConfirmModal).toHaveBeenCalledTimes(1);
+
+            await resolveModalWith('CONFIRM');
+
+            expect(navigationCallback).toHaveBeenCalledTimes(1);
+        });
+
+        it('does not replace the pending navigation callback while the discard modal is open', async () => {
+            const firstNavigationCallback = jest.fn();
+            const secondNavigationCallback = jest.fn();
+            const {result} = renderDiscardHook(() => true);
+
+            act(() => result.current.confirmNavigation(firstNavigationCallback));
+            act(() => result.current.confirmNavigation(secondNavigationCallback));
+
+            expect(mockShowConfirmModal).toHaveBeenCalledTimes(1);
+
+            await resolveModalWith('CONFIRM');
+
+            expect(firstNavigationCallback).toHaveBeenCalledTimes(1);
+            expect(secondNavigationCallback).not.toHaveBeenCalled();
+        });
+    });
+
     describe('popstate guards', () => {
         it('does nothing on a popstate without a preceding prevented reset', () => {
             renderDiscardHook(() => true);
