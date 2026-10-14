@@ -176,7 +176,7 @@ describe('ShareTabParticipantsSelector', () => {
         expect(Navigation.navigate).not.toHaveBeenCalled();
     });
 
-    it('clears the draft on the initial selection but preserves every field when reselecting the same destination', async () => {
+    it('clears the draft on the initial selection but preserves every field when selecting the same destination again', async () => {
         // Given the participant picker has no previously selected destination
         render(<ShareTabParticipantsSelector detailsPageRouteObject={ROUTES.SHARE_SUBMIT_DETAILS} />);
         await waitForBatchedUpdatesWithAct();

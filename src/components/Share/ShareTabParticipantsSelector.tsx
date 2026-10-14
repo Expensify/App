@@ -143,6 +143,9 @@ function ShareTabParticipantsSelectorComponent({detailsPageRouteObject}: ShareTa
             initiallySelectedReportID={typeof selectedReportID === 'string' ? selectedReportID : undefined}
             onParticipantsAdded={(value) => {
                 const participant = value.at(0);
+                if (!participant) {
+                    return;
+                }
                 let reportID = participant?.reportID ?? CONST.DEFAULT_NUMBER_ID;
                 const accountID = participant?.accountID;
                 let optimisticReport: ReturnType<typeof getOptimisticChatReport> | undefined;
@@ -178,21 +181,22 @@ function ShareTabParticipantsSelectorComponent({detailsPageRouteObject}: ShareTa
                 }
 
                 if (optimisticReport) {
+                    const optimisticReportID = optimisticReport.reportID;
                     saveUnknownUserDetails(participant);
 
                     if (isSubmitFlow) {
-                        getSpan(CONST.TELEMETRY.SPAN_SHARE_EXTENSION_OPEN_SUBMIT_FLOW)?.setAttribute(CONST.TELEMETRY.ATTRIBUTE_REPORT_ID, reportID.toString());
+                        getSpan(CONST.TELEMETRY.SPAN_SHARE_EXTENSION_OPEN_SUBMIT_FLOW)?.setAttribute(CONST.TELEMETRY.ATTRIBUTE_REPORT_ID, optimisticReportID);
                     }
 
-                    setSelectedReportID(reportID);
-                    setSelectedPolicyID(participant?.policyID);
-                    saveReportDraft(reportID, optimisticReport).then(() => {
-                        Navigation.navigate(detailsPageRouteObject.getRoute(reportID.toString()));
+                    setSelectedReportID(optimisticReportID);
+                    setSelectedPolicyID(participant.policyID);
+                    saveReportDraft(optimisticReportID, optimisticReport).then(() => {
+                        Navigation.navigate(detailsPageRouteObject.getRoute(optimisticReportID));
                     });
                 } else {
                     clearUnknownUserDetails();
                     setSelectedReportID(reportID);
-                    setSelectedPolicyID(participant?.policyID);
+                    setSelectedPolicyID(participant.policyID);
                     Navigation.navigate(detailsPageRouteObject.getRoute(reportID.toString()));
                 }
             }}

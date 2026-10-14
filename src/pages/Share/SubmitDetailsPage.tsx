@@ -293,6 +293,7 @@ function SubmitDetailsPage({
     const policyExpenseChatPolicyID = participants?.find((participant) => participant.isPolicyExpenseChat)?.policyID;
     const senderPolicyID = participants?.find((participant) => !!participant && 'isSender' in participant && participant.isSender)?.policyID;
     const isCreatingTrackExpense = iouType === CONST.IOU.TYPE.TRACK;
+    const isGroupPolicyExpenseChat = isPolicyExpenseChat && isGroupPolicy(policy);
 
     const defaultBillable = !!policy?.defaultBillable;
     useEffect(() => {
@@ -307,10 +308,10 @@ function SubmitDetailsPage({
         }
         hasAppliedDestinationDefaultsRef.current = true;
 
-        const defaultReimbursable = (isPolicyExpenseChat && isGroupPolicy(policy)) || isCreatingTrackExpense ? (policy?.defaultReimbursable ?? true) : true;
+        const defaultReimbursable = isGroupPolicyExpenseChat || isCreatingTrackExpense ? (policy?.defaultReimbursable ?? true) : true;
         setMoneyRequestBillable(CONST.IOU.OPTIMISTIC_TRANSACTION_ID, defaultBillable);
         setMoneyRequestReimbursable(CONST.IOU.OPTIMISTIC_TRANSACTION_ID, defaultReimbursable);
-    }, [defaultBillable, isPolicyExpenseChat, isCreatingTrackExpense, policy?.defaultReimbursable, policy?.id, policy?.type, report?.reportID, reportOrAccountID]);
+    }, [defaultBillable, isGroupPolicyExpenseChat, isPolicyExpenseChat, isCreatingTrackExpense, policy?.defaultReimbursable, policy?.id, report?.reportID, reportOrAccountID]);
 
     const setBillable = useCallback((billable: boolean) => {
         setMoneyRequestBillable(CONST.IOU.OPTIMISTIC_TRANSACTION_ID, billable);
