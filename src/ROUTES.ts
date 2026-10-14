@@ -1006,7 +1006,7 @@ const DYNAMIC_ROUTES = {
             SCREENS.SETTINGS.PROFILE.ADDRESS,
             SCREENS.SETTINGS.PROFILE.PRIVATE_PERSONAL_DETAILS,
             SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_OVERVIEW_ADDRESS,
-            SCREENS.SETTINGS.WALLET.CARDS_DIGITAL_DETAILS_UPDATE_ADDRESS,
+            SCREENS.SETTINGS.WALLET.DYNAMIC_CARDS_DIGITAL_DETAILS_UPDATE_ADDRESS,
             SCREENS.DOMAIN_CARD.DOMAIN_CARD_UPDATE_ADDRESS,
             SCREENS.TRAVEL.ENABLE,
             SCREENS.SETTINGS.DYNAMIC_ADD_US_BANK_ACCOUNT,
@@ -1022,7 +1022,7 @@ const DYNAMIC_ROUTES = {
             SCREENS.SETTINGS.PROFILE.ADDRESS,
             SCREENS.SETTINGS.PROFILE.PRIVATE_PERSONAL_DETAILS,
             SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_OVERVIEW_ADDRESS,
-            SCREENS.SETTINGS.WALLET.CARDS_DIGITAL_DETAILS_UPDATE_ADDRESS,
+            SCREENS.SETTINGS.WALLET.DYNAMIC_CARDS_DIGITAL_DETAILS_UPDATE_ADDRESS,
             SCREENS.DOMAIN_CARD.DOMAIN_CARD_UPDATE_ADDRESS,
             SCREENS.TRAVEL.ENABLE,
             SCREENS.SETTINGS.DYNAMIC_ADD_US_BANK_ACCOUNT,
@@ -1539,8 +1539,51 @@ const DYNAMIC_ROUTES = {
         getRoute: (cardID: string) => `card/${cardID}` as const,
     },
     WALLET_CARD_ACTIVATE: {
-        path: 'activate',
+        path: 'activate/:cardID',
         entryScreens: [SCREENS.SETTINGS.WALLET.DYNAMIC_DOMAIN_CARD, SCREENS.DOMAIN_CARD.DOMAIN_CARD_DETAIL],
+        getRoute: (cardID: string) => `activate/${cardID}` as const,
+    },
+    WALLET_CARD_REVEAL_VALIDATE_CODE: {
+        path: 'reveal-validate-code/:cardID',
+        entryScreens: [SCREENS.SETTINGS.WALLET.DYNAMIC_DOMAIN_CARD],
+        getRoute: (cardID: string) => `reveal-validate-code/${cardID}` as const,
+    },
+    WALLET_CARD_DIGITAL_DETAILS_UPDATE_ADDRESS: {
+        path: 'digital-details/update-address',
+        entryScreens: [SCREENS.SETTINGS.WALLET.DYNAMIC_DOMAIN_CARD],
+    },
+    WALLET_CARD_CHANGE_PIN: {
+        path: 'change-pin/:cardID',
+        entryScreens: [SCREENS.SETTINGS.WALLET.DYNAMIC_DOMAIN_CARD, SCREENS.DOMAIN_CARD.DOMAIN_CARD_DETAIL],
+        getRoute: (cardID: string) => `change-pin/${cardID}` as const,
+    },
+    WALLET_CARD_CHANGE_PIN_ATM: {
+        path: 'change-pin-atm',
+        entryScreens: [SCREENS.SETTINGS.WALLET.DYNAMIC_DOMAIN_CARD, SCREENS.DOMAIN_CARD.DOMAIN_CARD_DETAIL],
+    },
+    WALLET_CARD_REPORT_FRAUD: {
+        path: 'report-virtual-fraud/:cardID',
+        entryScreens: [SCREENS.SETTINGS.WALLET.DYNAMIC_DOMAIN_CARD, SCREENS.DOMAIN_CARD.DOMAIN_CARD_DETAIL],
+        getRoute: (cardID: string) => `report-virtual-fraud/${cardID}` as const,
+    },
+    WALLET_CARD_REPORT_FRAUD_VERIFY_ACCOUNT: {
+        path: 'fraud-validate-code',
+        entryScreens: [SCREENS.SETTINGS.WALLET.DYNAMIC_REPORT_VIRTUAL_CARD_FRAUD, SCREENS.DOMAIN_CARD.DOMAIN_CARD_REPORT_FRAUD],
+    },
+    WALLET_CARD_REPORT_FRAUD_CONFIRMATION: {
+        path: 'report-virtual-fraud-confirm/:cardID',
+        entryScreens: [SCREENS.SETTINGS.WALLET.DYNAMIC_DOMAIN_CARD, SCREENS.DOMAIN_CARD.DOMAIN_CARD_DETAIL],
+        getRoute: (cardID: string) => `report-virtual-fraud-confirm/${cardID}` as const,
+    },
+    WALLET_CARD_REPORT_LOST_OR_DAMAGED: {
+        path: 'report-card-lost-or-damaged/:cardID',
+        entryScreens: [SCREENS.SETTINGS.WALLET.DYNAMIC_DOMAIN_CARD, SCREENS.DOMAIN_CARD.DOMAIN_CARD_DETAIL],
+        getRoute: (cardID: string) => `report-card-lost-or-damaged/${cardID}` as const,
+    },
+    WALLET_CARD_REPLACE_VALIDATE_CODE: {
+        path: 'replace-validate-code/:reason',
+        entryScreens: [SCREENS.SETTINGS.DYNAMIC_REPORT_CARD_LOST_OR_DAMAGED],
+        getRoute: (reason: ReplacementReason) => `replace-validate-code/${reason}` as const,
     },
     ADD_US_BANK_ACCOUNT: {
         path: 'us-bank-account/:subPage?/:action?',
@@ -2497,10 +2540,6 @@ const ROUTES = {
         route: 'settings/wallet/expensify-card/spend-rules/:policyID/:ruleID',
         getRoute: (policyID: string, ruleID?: string) => `settings/wallet/expensify-card/spend-rules/${policyID}/${ruleID ?? 'new'}` as const,
     },
-    SETTINGS_WALLET_DOMAIN_CARD_CONFIRM_VALIDATE_CODE: {
-        route: 'settings/wallet/card/:cardID/confirm-validate-code',
-        getRoute: (cardID: string) => `settings/wallet/card/${cardID}/confirm-validate-code` as const,
-    },
     SETTINGS_DOMAIN_CARD_DETAIL: {
         route: 'settings/card/:cardID?',
         getRoute: (cardID: string) => `settings/card/${cardID}` as const,
@@ -2512,18 +2551,6 @@ const ROUTES = {
     SETTINGS_DOMAIN_CARD_CONFIRM_VALIDATE_CODE: {
         route: 'settings/card/:cardID/confirm-validate-code',
         getRoute: (cardID: string) => `settings/card/${cardID}/confirm-validate-code` as const,
-    },
-    SETTINGS_REPORT_FRAUD: {
-        route: 'settings/wallet/card/:cardID/report-virtual-fraud',
-        getRoute: (cardID: string) => `settings/wallet/card/${cardID}/report-virtual-fraud` as const,
-    },
-    SETTINGS_REPORT_FRAUD_VERIFY_ACCOUNT: {
-        route: `settings/wallet/card/:cardID/report-virtual-fraud/${VERIFY_ACCOUNT}`,
-        getRoute: (cardID: string) => `settings/wallet/card/${cardID}/report-virtual-fraud/${VERIFY_ACCOUNT}` as const,
-    },
-    SETTINGS_REPORT_FRAUD_CONFIRMATION: {
-        route: 'settings/wallet/card/:cardID/report-virtual-fraud-confirm',
-        getRoute: (cardID: string) => `settings/wallet/card/${cardID}/report-virtual-fraud-confirm` as const,
     },
     SETTINGS_DOMAIN_CARD_REPORT_FRAUD: {
         route: 'settings/card/:cardID/report-virtual-fraud',
@@ -2613,10 +2640,6 @@ const ROUTES = {
     SETTINGS_WALLET_PERSONAL_CARD_ADD_NEW: 'settings/wallet/add-personal-card',
     SETTINGS_WALLET_PERSONAL_CARD_UPGRADE: 'settings/wallet/add-personal-card/upgrade',
     SETTINGS_WALLET_PERSONAL_CARD_WARNING: 'settings/wallet/add-personal-card/warning',
-    SETTINGS_WALLET_CARD_DIGITAL_DETAILS_UPDATE_ADDRESS: {
-        route: 'settings/wallet/card/:domain/digital-details/update-address',
-        getRoute: (domain: string) => `settings/wallet/card/${domain}/digital-details/update-address` as const,
-    },
     SETTINGS_WALLET_TRANSFER_BALANCE: 'settings/wallet/transfer-balance',
     SETTINGS_WALLET_CHOOSE_TRANSFER_ACCOUNT: 'settings/wallet/choose-transfer-account',
     SETTINGS_WALLET_IMPORT_TRANSACTIONS: 'settings/wallet/import-transactions',
@@ -2639,24 +2662,6 @@ const ROUTES = {
             }
             return 'settings/wallet/transactions-imported' as const;
         },
-    },
-    SETTINGS_WALLET_REPORT_CARD_LOST_OR_DAMAGED: {
-        route: 'settings/wallet/card/:cardID/report-card-lost-or-damaged',
-        getRoute: (cardID: string, isFromDomainCardDetail?: boolean) =>
-            `settings/wallet/card/${cardID}/report-card-lost-or-damaged${isFromDomainCardDetail ? '?isFromDomainCardDetail=true' : ''}` as const,
-    },
-    SETTINGS_WALLET_REPORT_CARD_LOST_OR_DAMAGED_CONFIRM_VALIDATE_CODE: {
-        route: 'settings/wallet/card/:cardID/report-card-lost-or-damaged/:reason/confirm-validate-code',
-        getRoute: (cardID: string, reason: ReplacementReason, isFromDomainCardDetail?: boolean) =>
-            `settings/wallet/card/${cardID}/report-card-lost-or-damaged/${reason}/confirm-validate-code${isFromDomainCardDetail ? '?isFromDomainCardDetail=true' : ''}` as const,
-    },
-    SETTINGS_WALLET_CARD_CHANGE_PIN: {
-        route: 'settings/wallet/card/:cardID/change-pin',
-        getRoute: (cardID: string) => `settings/wallet/card/${cardID}/change-pin` as const,
-    },
-    SETTINGS_WALLET_CARD_CHANGE_PIN_ATM: {
-        route: 'settings/wallet/card/:cardID/change-pin-atm',
-        getRoute: (cardID: string) => `settings/wallet/card/${cardID}/change-pin-atm` as const,
     },
     SETTINGS_WALLET_CARD_ADD_TO_DIGITAL_WALLET: {
         route: 'settings/wallet/card/:cardID/add-to-digital-wallet',

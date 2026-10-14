@@ -196,22 +196,6 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                             path: ROUTES.SETTINGS_WALLET_EXPENSIFY_CARD_SPEND_RULES.route,
                             exact: true,
                         },
-                        [SCREENS.SETTINGS.WALLET.DOMAIN_CARD_CONFIRM_VALIDATE_CODE]: {
-                            path: ROUTES.SETTINGS_WALLET_DOMAIN_CARD_CONFIRM_VALIDATE_CODE.route,
-                            exact: true,
-                        },
-                        [SCREENS.SETTINGS.WALLET.REPORT_VIRTUAL_CARD_FRAUD]: {
-                            path: ROUTES.SETTINGS_REPORT_FRAUD.route,
-                            exact: true,
-                        },
-                        [SCREENS.SETTINGS.WALLET.REPORT_VIRTUAL_CARD_FRAUD_CONFIRMATION]: {
-                            path: ROUTES.SETTINGS_REPORT_FRAUD_CONFIRMATION.route,
-                            exact: true,
-                        },
-                        [SCREENS.SETTINGS.WALLET.REPORT_VIRTUAL_CARD_FRAUD_CONFIRM_VALIDATE_CODE]: {
-                            path: ROUTES.SETTINGS_REPORT_FRAUD_VERIFY_ACCOUNT.route,
-                            exact: true,
-                        },
                         [SCREENS.SETTINGS.WALLET.ENABLE_PAYMENTS]: {
                             path: ROUTES.SETTINGS_ENABLE_PAYMENTS.route,
                             exact: true,
@@ -241,6 +225,15 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.SETTINGS.WALLET.DYNAMIC_ENABLE_GLOBAL_REIMBURSEMENTS_AGREEMENTS]: DYNAMIC_ROUTES.ENABLE_GLOBAL_REIMBURSEMENTS_AGREEMENTS.path,
                         [SCREENS.SETTINGS.WALLET.DYNAMIC_DOMAIN_CARD]: DYNAMIC_ROUTES.WALLET_DOMAIN_CARD.path,
                         [SCREENS.SETTINGS.WALLET.DYNAMIC_CARD_ACTIVATE]: DYNAMIC_ROUTES.WALLET_CARD_ACTIVATE.path,
+                        [SCREENS.SETTINGS.WALLET.DYNAMIC_DOMAIN_CARD_CONFIRM_VALIDATE_CODE]: DYNAMIC_ROUTES.WALLET_CARD_REVEAL_VALIDATE_CODE.path,
+                        [SCREENS.SETTINGS.WALLET.DYNAMIC_CARDS_DIGITAL_DETAILS_UPDATE_ADDRESS]: DYNAMIC_ROUTES.WALLET_CARD_DIGITAL_DETAILS_UPDATE_ADDRESS.path,
+                        [SCREENS.SETTINGS.WALLET.DYNAMIC_CARD_CHANGE_PIN]: DYNAMIC_ROUTES.WALLET_CARD_CHANGE_PIN.path,
+                        [SCREENS.SETTINGS.WALLET.DYNAMIC_CARD_CHANGE_PIN_ATM]: DYNAMIC_ROUTES.WALLET_CARD_CHANGE_PIN_ATM.path,
+                        [SCREENS.SETTINGS.WALLET.DYNAMIC_REPORT_VIRTUAL_CARD_FRAUD]: DYNAMIC_ROUTES.WALLET_CARD_REPORT_FRAUD.path,
+                        [SCREENS.SETTINGS.WALLET.DYNAMIC_REPORT_VIRTUAL_CARD_FRAUD_CONFIRM_VALIDATE_CODE]: DYNAMIC_ROUTES.WALLET_CARD_REPORT_FRAUD_VERIFY_ACCOUNT.path,
+                        [SCREENS.SETTINGS.WALLET.DYNAMIC_REPORT_VIRTUAL_CARD_FRAUD_CONFIRMATION]: DYNAMIC_ROUTES.WALLET_CARD_REPORT_FRAUD_CONFIRMATION.path,
+                        [SCREENS.SETTINGS.DYNAMIC_REPORT_CARD_LOST_OR_DAMAGED]: DYNAMIC_ROUTES.WALLET_CARD_REPORT_LOST_OR_DAMAGED.path,
+                        [SCREENS.SETTINGS.DYNAMIC_REPORT_CARD_LOST_OR_DAMAGED_CONFIRM_VALIDATE_CODE]: DYNAMIC_ROUTES.WALLET_CARD_REPLACE_VALIDATE_CODE.path,
                         [SCREENS.SETTINGS.WALLET.DYNAMIC_PERSONAL_CARD_DETAILS]: DYNAMIC_ROUTES.PERSONAL_CARD_DETAILS.path,
                         [SCREENS.SETTINGS.WALLET.DYNAMIC_PERSONAL_CARD_EDIT_NAME]: DYNAMIC_ROUTES.PERSONAL_CARD_EDIT_NAME.path,
                         [SCREENS.SETTINGS.WALLET.DYNAMIC_PERSONAL_CARD_EDIT_TRANSACTION_START_DATE]: DYNAMIC_ROUTES.PERSONAL_CARD_EDIT_TRANSACTION_START_DATE.path,
@@ -294,32 +287,12 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                             path: ROUTES.SETTINGS_WALLET_TRANSACTIONS_IMPORTED.route,
                             exact: true,
                         },
-                        [SCREENS.SETTINGS.REPORT_CARD_LOST_OR_DAMAGED]: {
-                            path: ROUTES.SETTINGS_WALLET_REPORT_CARD_LOST_OR_DAMAGED.route,
-                            exact: true,
-                        },
-                        [SCREENS.SETTINGS.REPORT_CARD_LOST_OR_DAMAGED_CONFIRM_VALIDATE_CODE]: {
-                            path: ROUTES.SETTINGS_WALLET_REPORT_CARD_LOST_OR_DAMAGED_CONFIRM_VALIDATE_CODE.route,
-                            exact: true,
-                        },
                         [SCREENS.SETTINGS.WALLET.CARD_ADD_TO_DIGITAL_WALLET]: {
                             path: ROUTES.SETTINGS_WALLET_CARD_ADD_TO_DIGITAL_WALLET.route,
                             exact: true,
                         },
                         [SCREENS.SETTINGS.WALLET.CARD_ADDED_TO_WALLET]: {
                             path: ROUTES.SETTINGS_WALLET_CARD_ADDED_TO_WALLET.route,
-                            exact: true,
-                        },
-                        [SCREENS.SETTINGS.WALLET.CARD_CHANGE_PIN]: {
-                            path: ROUTES.SETTINGS_WALLET_CARD_CHANGE_PIN.route,
-                            exact: true,
-                        },
-                        [SCREENS.SETTINGS.WALLET.CARD_CHANGE_PIN_ATM]: {
-                            path: ROUTES.SETTINGS_WALLET_CARD_CHANGE_PIN_ATM.route,
-                            exact: true,
-                        },
-                        [SCREENS.SETTINGS.WALLET.CARDS_DIGITAL_DETAILS_UPDATE_ADDRESS]: {
-                            path: ROUTES.SETTINGS_WALLET_CARD_DIGITAL_DETAILS_UPDATE_ADDRESS.route,
                             exact: true,
                         },
                         [SCREENS.SETTINGS.WALLET.TRAVEL_CVV]: {

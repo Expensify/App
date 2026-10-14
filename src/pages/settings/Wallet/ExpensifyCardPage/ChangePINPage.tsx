@@ -6,12 +6,12 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import ValidateCodeInput from '@components/ValidateCodeInput';
 
+import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
@@ -21,13 +21,13 @@ import {PINContextProvider, usePINActions, usePINState} from '@pages/MissingPers
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
 import React, {useCallback, useState} from 'react';
 import {View} from 'react-native';
 
-type ChangePINPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.WALLET.CARD_CHANGE_PIN>;
+type ChangePINPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.WALLET.DYNAMIC_CARD_CHANGE_PIN>;
 
 function ChangePINPageContent({cardID, wasPINBlocked}: {cardID: string; wasPINBlocked: boolean}) {
     const styles = useThemeStyles();
@@ -36,6 +36,7 @@ function ChangePINPageContent({cardID, wasPINBlocked}: {cardID: string; wasPINBl
     const {executeScenario} = useMultifactorAuthentication();
     const {isConfirmStep, isPINHidden} = usePINState();
     const {setIsConfirmStep, togglePINVisibility} = usePINActions();
+    const backPath = useDynamicBackPath(DYNAMIC_ROUTES.WALLET_CARD_CHANGE_PIN.path);
 
     const [enteredPIN, setEnteredPIN] = useState('');
     const [confirmPIN, setConfirmPIN] = useState('');
@@ -99,7 +100,7 @@ function ChangePINPageContent({cardID, wasPINBlocked}: {cardID: string; wasPINBl
                 title={translate(wasPINBlocked ? 'cardPage.unblockCard' : 'cardPage.changePin')}
                 onBackButtonPress={() => {
                     if (!isConfirmStep) {
-                        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WALLET_DOMAIN_CARD.getRoute(String(cardID)), ROUTES.SETTINGS_WALLET));
+                        Navigation.goBack(backPath);
                         return;
                     }
                     setIsConfirmStep(false);

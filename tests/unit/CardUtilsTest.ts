@@ -10,6 +10,7 @@ import IntlStore from '@src/languages/IntlStore';
 import type * as CardArtworkColorsModule from '@src/libs/CardArtworkColors';
 import {
     canResolveTransactionCard,
+    getCardDetailsPathForCard,
     checkIfNewFeedConnected,
     doesCardFeedExist,
     feedHasCards,
@@ -5754,5 +5755,18 @@ describe('canResolveTransactionCard', () => {
 
         // Then it cannot, since a move the backend refuses costs the whole batch
         expect(canResolve).toBe(false);
+    });
+});
+
+describe('getCardDetailsPathForCard', () => {
+    it.each([
+        ['the wallet', 'settings/wallet/card/111', 'settings/wallet/card/222'],
+        ['Home', 'home/card/111', 'home/card/222'],
+        ['the Domains page', 'settings/card/111', 'settings/card/222'],
+    ])('points a card page opened from %s at the replacement card', (_label, cardDetailsPath, expected) => {
+        // Given the page of a card that was just reported and replaced
+        // When it is pointed at the replacement card
+        // Then it keeps the page it was opened from
+        expect(getCardDetailsPathForCard(cardDetailsPath as Route, '222')).toBe(expected);
     });
 });

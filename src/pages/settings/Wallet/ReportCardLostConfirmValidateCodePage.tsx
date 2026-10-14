@@ -2,6 +2,7 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ValidateCodeActionContent from '@components/ValidateCodeActionModal/ValidateCodeActionContent';
 
+import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useInitialOnyxValue from '@hooks/useInitialOnyxValue';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -10,14 +11,15 @@ import usePrimaryContactMethod from '@hooks/usePrimaryContactMethod';
 import {clearCardListErrors, requestReplacementExpensifyCard} from '@libs/actions/Card';
 import {setErrors} from '@libs/actions/FormActions';
 import {requestValidateCodeAction} from '@libs/actions/User';
+import {getCardDetailsPathForCard} from '@libs/CardUtils';
 import {getLatestErrorMessageField} from '@libs/ErrorUtils';
-import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
+import removeDynamicRouteFromPath from '@libs/Navigation/helpers/dynamicRoutesUtils/removeDynamicRouteFromPath';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
 import {CONST as COMMON_CONST} from 'expensify-common';
@@ -26,11 +28,11 @@ import React, {useEffect} from 'react';
 
 import SuccessReportCardLost from './SuccessReportCardLost';
 
-type ReportCardLostConfirmValidateCodePageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.REPORT_CARD_LOST_OR_DAMAGED_CONFIRM_VALIDATE_CODE>;
+type ReportCardLostConfirmValidateCodePageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.DYNAMIC_REPORT_CARD_LOST_OR_DAMAGED_CONFIRM_VALIDATE_CODE>;
 
 function ReportCardLostConfirmValidateCodePage({
     route: {
-        params: {cardID = '', reason = 'damaged', isFromDomainCardDetail},
+        params: {cardID = '', reason = 'damaged'},
     },
 }: ReportCardLostConfirmValidateCodePageProps) {
     const {translate} = useLocalize();
@@ -43,6 +45,8 @@ function ReportCardLostConfirmValidateCodePage({
     const validateError = getLatestErrorMessageField(physicalCard);
 
     const newCardID = Object.keys(cardList ?? {}).find((key) => !Object.hasOwn(initialCardList ?? {}, key) && cardList?.[key]?.cardID) ?? '';
+    const backPath = useDynamicBackPath(DYNAMIC_ROUTES.WALLET_CARD_REPLACE_VALIDATE_CODE.path);
+    const newCardDetailsPath = getCardDetailsPathForCard(removeDynamicRouteFromPath(backPath, DYNAMIC_ROUTES.WALLET_CARD_REPORT_LOST_OR_DAMAGED.path) ?? backPath, newCardID);
 
     useEffect(() => {
         if (formData?.isLoading) {
@@ -72,21 +76,9 @@ function ReportCardLostConfirmValidateCodePage({
             >
                 <HeaderWithBackButton
                     title={translate('common.success')}
-                    onBackButtonPress={() =>
-                        Navigation.goBack(
-                            isFromDomainCardDetail
-                                ? ROUTES.SETTINGS_DOMAIN_CARD_DETAIL.getRoute(newCardID)
-                                : createDynamicRoute(DYNAMIC_ROUTES.WALLET_DOMAIN_CARD.getRoute(newCardID), ROUTES.SETTINGS_WALLET),
-                            {
-                                compareParams: false,
-                            },
-                        )
-                    }
+                    onBackButtonPress={() => Navigation.goBack(newCardDetailsPath, {compareParams: false})}
                 />
-                <SuccessReportCardLost
-                    cardID={newCardID}
-                    isFromDomainCardDetail={!!isFromDomainCardDetail}
-                />
+                <SuccessReportCardLost cardDetailsPath={newCardDetailsPath} />
             </ScreenWrapper>
         );
     }
@@ -107,7 +99,7 @@ function ReportCardLostConfirmValidateCodePage({
                 clearCardListErrors(physicalCard?.cardID);
             }}
             onClose={() => {
-                Navigation.goBack(ROUTES.SETTINGS_WALLET_REPORT_CARD_LOST_OR_DAMAGED.getRoute(cardID));
+                Navigation.goBack(backPath);
             }}
         />
     );

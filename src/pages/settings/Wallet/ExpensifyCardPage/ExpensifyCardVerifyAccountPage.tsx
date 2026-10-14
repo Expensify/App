@@ -1,5 +1,6 @@
 import ValidateCodeActionContent from '@components/ValidateCodeActionModal/ValidateCodeActionContent';
 
+import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePrimaryContactMethod from '@hooks/usePrimaryContactMethod';
@@ -7,7 +8,6 @@ import usePrimaryContactMethod from '@hooks/usePrimaryContactMethod';
 import {buildSetPersonalDetailsAndShipExpensifyCardsParams, setPersonalDetailsAndRevealExpensifyCard} from '@libs/actions/PersonalDetails';
 import {requestValidateCodeAction} from '@libs/actions/User';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
-import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {DomainCardNavigatorParamList, SettingsNavigatorParamList} from '@libs/Navigation/types';
@@ -26,7 +26,7 @@ import {CONST as COMMON_CONST} from 'expensify-common';
 import React, {useState} from 'react';
 
 type ExpensifyCardVerifyAccountPageProps =
-    | PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.WALLET.DOMAIN_CARD_CONFIRM_VALIDATE_CODE>
+    | PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.WALLET.DYNAMIC_DOMAIN_CARD_CONFIRM_VALIDATE_CODE>
     | PlatformStackScreenProps<DomainCardNavigatorParamList, typeof SCREENS.DOMAIN_CARD.DOMAIN_CARD_CONFIRM_VALIDATE_CODE>;
 
 function ExpensifyCardVerifyAccountPage({route}: ExpensifyCardVerifyAccountPageProps) {
@@ -36,13 +36,15 @@ function ExpensifyCardVerifyAccountPage({route}: ExpensifyCardVerifyAccountPageP
     const primaryLogin = usePrimaryContactMethod();
     const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS);
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
+    const isDomainCardRoute = route.name === SCREENS.DOMAIN_CARD.DOMAIN_CARD_CONFIRM_VALIDATE_CODE;
+    const backPath = useDynamicBackPath(DYNAMIC_ROUTES.WALLET_CARD_REVEAL_VALIDATE_CODE.path, !isDomainCardRoute);
 
     const navigateBack = () => {
-        if (route.name === SCREENS.DOMAIN_CARD.DOMAIN_CARD_CONFIRM_VALIDATE_CODE) {
+        if (isDomainCardRoute) {
             Navigation.goBack(ROUTES.SETTINGS_DOMAIN_CARD_DETAIL.getRoute(cardID));
             return;
         }
-        Navigation.goBack(createDynamicRoute(DYNAMIC_ROUTES.WALLET_DOMAIN_CARD.getRoute(cardID), ROUTES.SETTINGS_WALLET));
+        Navigation.goBack(backPath);
     };
 
     const handleRevealCardDetails = (validateCode: string) => {

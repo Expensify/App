@@ -27,7 +27,12 @@ function ActivateCard({card}: ActivateCardProps) {
             subtitle={translate('homePage.timeSensitiveSection.activateCard.subtitle')}
             ctaText={translate('homePage.timeSensitiveSection.activateCard.cta')}
             onCtaPress={() =>
-                Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WALLET_CARD_ACTIVATE.path, createDynamicRoute(DYNAMIC_ROUTES.WALLET_DOMAIN_CARD.getRoute(String(card.cardID)))))
+                Navigation.navigate(
+                    createDynamicRoute(
+                        DYNAMIC_ROUTES.WALLET_CARD_ACTIVATE.getRoute(String(card.cardID)),
+                        createDynamicRoute(DYNAMIC_ROUTES.WALLET_DOMAIN_CARD.getRoute(String(card.cardID))),
+                    ),
+                )
             }
             buttonVariant={CONST.BUTTON_VARIANT.SUCCESS}
         />

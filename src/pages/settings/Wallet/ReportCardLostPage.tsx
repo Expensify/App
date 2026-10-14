@@ -5,6 +5,7 @@ import RadioButtons from '@components/RadioButtons';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 
+import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
 import useNonPersonalCardList from '@hooks/useNonPersonalCardList';
 import useOnyx from '@hooks/useOnyx';
@@ -24,7 +25,7 @@ import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
@@ -53,11 +54,11 @@ const OPTIONS: Option[] = [
     },
 ];
 
-type ReportCardLostPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.REPORT_CARD_LOST_OR_DAMAGED>;
+type ReportCardLostPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.DYNAMIC_REPORT_CARD_LOST_OR_DAMAGED>;
 
 function ReportCardLostPage({
     route: {
-        params: {cardID = '', isFromDomainCardDetail},
+        params: {cardID = ''},
     },
 }: ReportCardLostPageProps) {
     const styles = useThemeStyles();
@@ -75,6 +76,7 @@ function ReportCardLostPage({
     const {isLoading, startWithLoading} = usePressLoading({isLoading: formData?.isLoading});
 
     const physicalCard = cardList?.[cardID];
+    const backPath = useDynamicBackPath(DYNAMIC_ROUTES.WALLET_CARD_REPORT_LOST_OR_DAMAGED.path);
 
     const {paddingBottom} = useSafeAreaPaddings();
 
@@ -109,7 +111,7 @@ function ReportCardLostPage({
             return;
         }
         startWithLoading(() => {
-            Navigation.navigate(ROUTES.SETTINGS_WALLET_REPORT_CARD_LOST_OR_DAMAGED_CONFIRM_VALIDATE_CODE.getRoute(cardID, reason?.key ?? OPTIONS_KEYS.DAMAGED, !!isFromDomainCardDetail));
+            Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WALLET_CARD_REPLACE_VALIDATE_CODE.getRoute(reason?.key ?? OPTIONS_KEYS.DAMAGED)));
         });
     };
 
@@ -127,10 +129,7 @@ function ReportCardLostPage({
             return;
         }
 
-        const cardDetailRoute = isFromDomainCardDetail
-            ? ROUTES.SETTINGS_DOMAIN_CARD_DETAIL.getRoute(cardID)
-            : createDynamicRoute(DYNAMIC_ROUTES.WALLET_DOMAIN_CARD.getRoute(cardID), ROUTES.SETTINGS_WALLET);
-        Navigation.goBack(cardDetailRoute, {compareParams: false});
+        Navigation.goBack(backPath);
     };
 
     const isDamaged = reason?.key === OPTIONS_KEYS.DAMAGED;

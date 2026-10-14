@@ -27,9 +27,20 @@ describe('dynamic settings RHP screens on a fresh load', () => {
         ['a report, enter signer info', '/r/123/enter-signer-info?policyID=1&bankAccountID=2&isCompleted=false', NAVIGATORS.REPORTS_SPLIT_NAVIGATOR, SCREENS.REPORT],
         ['Home, enter signer info', '/home/enter-signer-info?policyID=1&bankAccountID=2&isCompleted=false', SCREENS.HOME, undefined],
         ['Home, Expensify Card details', '/home/card/777', SCREENS.HOME, undefined],
-        ['Home, activate Expensify Card', '/home/card/777/activate', SCREENS.HOME, undefined],
+        ['Home, activate Expensify Card', '/home/card/777/activate/778', SCREENS.HOME, undefined],
+        ['Home, reveal Expensify Card details', '/home/card/777/reveal-validate-code/778', SCREENS.HOME, undefined],
+        ['Home, update Expensify Card address', '/home/card/777/digital-details/update-address', SCREENS.HOME, undefined],
+        ['Home, change Expensify Card PIN', '/home/card/777/change-pin/778', SCREENS.HOME, undefined],
+        ['Home, change Expensify Card PIN at an ATM', '/home/card/777/change-pin-atm', SCREENS.HOME, undefined],
+        ['Home, report virtual card fraud', '/home/card/777/report-virtual-fraud/778', SCREENS.HOME, undefined],
+        ['Home, verify virtual card fraud report', '/home/card/777/report-virtual-fraud/778/fraud-validate-code', SCREENS.HOME, undefined],
+        ['Home, virtual card fraud confirmation', '/home/card/777/report-virtual-fraud-confirm/779', SCREENS.HOME, undefined],
+        ['Home, report card lost or damaged', '/home/card/777/report-card-lost-or-damaged/778', SCREENS.HOME, undefined],
+        ['Home, verify card replacement', '/home/card/777/report-card-lost-or-damaged/778/replace-validate-code/damaged', SCREENS.HOME, undefined],
         ['the wallet, Expensify Card details', '/settings/wallet/card/777', NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR, SCREENS.SETTINGS.WALLET.ROOT],
-        ['the wallet, activate Expensify Card', '/settings/wallet/card/777/activate', NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR, SCREENS.SETTINGS.WALLET.ROOT],
+        ['the wallet, activate Expensify Card', '/settings/wallet/card/777/activate/778', NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR, SCREENS.SETTINGS.WALLET.ROOT],
+        ['the wallet, report virtual card fraud', '/settings/wallet/card/777/report-virtual-fraud/778', NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR, SCREENS.SETTINGS.WALLET.ROOT],
+        ['the wallet, report card lost or damaged', '/settings/wallet/card/777/report-card-lost-or-damaged/778', NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR, SCREENS.SETTINGS.WALLET.ROOT],
     ])('keeps the full screen it was opened from: %s', (_label, path, name, central) => {
         // Given an RHP URL that carries the page it was opened from as its base
         // When it is loaded directly or refreshed
@@ -51,5 +62,39 @@ describe('Expensify Card routes that must keep their own page', () => {
 
         // Then it still resolves to its own Domains screen
         expect(state ? findFocusedRoute(state)?.name : undefined).toBe(screen);
+    });
+});
+
+describe('Expensify Card child routes', () => {
+    it.each([
+        ['activate', '/settings/wallet/card/777/activate/778', SCREENS.SETTINGS.WALLET.DYNAMIC_CARD_ACTIVATE],
+        ['change PIN', '/home/card/777/change-pin/778', SCREENS.SETTINGS.WALLET.DYNAMIC_CARD_CHANGE_PIN],
+        ['report virtual card fraud', '/home/card/777/report-virtual-fraud/778', SCREENS.SETTINGS.WALLET.DYNAMIC_REPORT_VIRTUAL_CARD_FRAUD],
+        ['verify virtual card fraud report', '/home/card/777/report-virtual-fraud/778/fraud-validate-code', SCREENS.SETTINGS.WALLET.DYNAMIC_REPORT_VIRTUAL_CARD_FRAUD_CONFIRM_VALIDATE_CODE],
+        [
+            'verify card replacement',
+            '/home/card/777/report-card-lost-or-damaged/778/replace-validate-code/damaged',
+            SCREENS.SETTINGS.DYNAMIC_REPORT_CARD_LOST_OR_DAMAGED_CONFIRM_VALIDATE_CODE,
+        ],
+    ])('%s acts on the card in its own suffix', (_label, path, screen) => {
+        // Given a card page opened for one card of a combo card (777) whose child acts on the other card (778)
+        // When the child URL is loaded directly or refreshed
+        const state = getAdaptedStateFromPath(path, undefined);
+        const focusedRoute = state ? findFocusedRoute(state) : undefined;
+
+        // Then the child screen gets the card from its own suffix rather than the page's card
+        expect(focusedRoute?.name).toBe(screen);
+        expect((focusedRoute?.params as Record<string, unknown> | undefined)?.cardID).toBe('778');
+    });
+
+    it('stacks the Domains travel fraud report on the Domains card detail', () => {
+        // Given a travel card fraud report opened from the Domains card detail page
+        // When it is loaded directly or refreshed
+        const state = getAdaptedStateFromPath('/settings/card/777/report-virtual-fraud/778', undefined);
+
+        // Then it opens the wallet fraud report for the travel card, not the Domains one for the page's card
+        const focusedRoute = state ? findFocusedRoute(state) : undefined;
+        expect(focusedRoute?.name).toBe(SCREENS.SETTINGS.WALLET.DYNAMIC_REPORT_VIRTUAL_CARD_FRAUD);
+        expect((focusedRoute?.params as Record<string, unknown> | undefined)?.cardID).toBe('778');
     });
 });

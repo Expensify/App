@@ -145,7 +145,7 @@ type SettingsNavigatorParamList = {
         | undefined;
     [SCREENS.SETTINGS.DYNAMIC_EXIT_SURVEY_REASON]: undefined;
     [SCREENS.SETTINGS.DYNAMIC_EXIT_SURVEY_CONFIRM]: undefined;
-    [SCREENS.SETTINGS.WALLET.CARDS_DIGITAL_DETAILS_UPDATE_ADDRESS]: undefined;
+    [SCREENS.SETTINGS.WALLET.DYNAMIC_CARDS_DIGITAL_DETAILS_UPDATE_ADDRESS]: undefined;
     [SCREENS.SETTINGS.WALLET.DYNAMIC_DOMAIN_CARD]: {
         cardID: string;
     };
@@ -158,15 +158,16 @@ type SettingsNavigatorParamList = {
     [SCREENS.SETTINGS.WALLET.DYNAMIC_PERSONAL_CARD_EDIT_TRANSACTION_START_DATE]: {
         cardID: string;
     };
-    [SCREENS.SETTINGS.WALLET.DOMAIN_CARD_CONFIRM_VALIDATE_CODE]: {
+    [SCREENS.SETTINGS.WALLET.DYNAMIC_DOMAIN_CARD_CONFIRM_VALIDATE_CODE]: {
         cardID: string;
     };
-    [SCREENS.SETTINGS.WALLET.REPORT_VIRTUAL_CARD_FRAUD]: {
+    [SCREENS.SETTINGS.WALLET.DYNAMIC_REPORT_VIRTUAL_CARD_FRAUD]: {
         cardID: string;
-        // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
-        backTo?: Routes;
     };
-    [SCREENS.SETTINGS.WALLET.REPORT_VIRTUAL_CARD_FRAUD_CONFIRMATION]: {
+    [SCREENS.SETTINGS.WALLET.DYNAMIC_REPORT_VIRTUAL_CARD_FRAUD_CONFIRM_VALIDATE_CODE]: {
+        cardID: string;
+    };
+    [SCREENS.SETTINGS.WALLET.DYNAMIC_REPORT_VIRTUAL_CARD_FRAUD_CONFIRMATION]: {
         cardID: string;
     };
     [SCREENS.SETTINGS.WALLET.CARD_ADD_TO_DIGITAL_WALLET]: {
@@ -182,12 +183,10 @@ type SettingsNavigatorParamList = {
         /** cardID of selected card */
         cardID: string;
     };
-    [SCREENS.SETTINGS.WALLET.CARD_CHANGE_PIN]: {
+    [SCREENS.SETTINGS.WALLET.DYNAMIC_CARD_CHANGE_PIN]: {
         cardID: string;
     };
-    [SCREENS.SETTINGS.WALLET.CARD_CHANGE_PIN_ATM]: {
-        cardID: string;
-    };
+    [SCREENS.SETTINGS.WALLET.DYNAMIC_CARD_CHANGE_PIN_ATM]: undefined;
     [SCREENS.SETTINGS.WALLET.EXPENSIFY_CARD_SPEND_RULES]: {
         policyID: string;
         ruleID: string;
@@ -1621,20 +1620,14 @@ type SettingsNavigatorParamList = {
         login: string;
         role: string;
     };
-    [SCREENS.SETTINGS.REPORT_CARD_LOST_OR_DAMAGED]: {
+    [SCREENS.SETTINGS.DYNAMIC_REPORT_CARD_LOST_OR_DAMAGED]: {
         cardID: string;
-
-        /** Whether the flow was launched from the top-level DomainCard route (deep-linked from OldDot) rather than the Settings wallet card route */
-        isFromDomainCardDetail?: string;
     };
-    [SCREENS.SETTINGS.REPORT_CARD_LOST_OR_DAMAGED_CONFIRM_VALIDATE_CODE]: {
+    [SCREENS.SETTINGS.DYNAMIC_REPORT_CARD_LOST_OR_DAMAGED_CONFIRM_VALIDATE_CODE]: {
         cardID: string;
 
         /** Reason for replacing the card */
         reason: ReplacementReason;
-
-        /** Whether the flow was launched from the top-level DomainCard route (deep-linked from OldDot) rather than the Settings wallet card route */
-        isFromDomainCardDetail?: string;
     };
     [SCREENS.SETTINGS.DYNAMIC_KEYBOARD_SHORTCUTS]: undefined;
     [SCREENS.SETTINGS.DYNAMIC_APP_DOWNLOAD_LINKS]: undefined;

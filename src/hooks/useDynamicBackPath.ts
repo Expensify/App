@@ -1,5 +1,4 @@
-import findAllMatchingDynamicSuffixes from '@libs/Navigation/helpers/dynamicRoutesUtils/findAllMatchingDynamicSuffixes';
-import getPathWithoutDynamicSuffix from '@libs/Navigation/helpers/dynamicRoutesUtils/getPathWithoutDynamicSuffix';
+import removeDynamicRouteFromPath from '@libs/Navigation/helpers/dynamicRoutesUtils/removeDynamicRouteFromPath';
 import getPathFromState from '@libs/Navigation/helpers/getPathFromState';
 import type {State} from '@libs/Navigation/types';
 
@@ -34,13 +33,7 @@ function useDynamicBackPath(dynamicRouteSuffix: DynamicRouteSuffix, isEnabled = 
         return ROUTES.HOME;
     }
 
-    const pathWithoutLeadingSlash = path.replaceAll(/^\/+/g, '');
-    const match = findAllMatchingDynamicSuffixes(pathWithoutLeadingSlash).find((m) => m.pattern === dynamicRouteSuffix);
-    if (match) {
-        return getPathWithoutDynamicSuffix(match.pathUsedForMatching, match.actualSuffix, match.pattern);
-    }
-
-    return pathWithoutLeadingSlash as Route;
+    return removeDynamicRouteFromPath(path, dynamicRouteSuffix) ?? (path.replaceAll(/^\/+/g, '') as Route);
 }
 
 export default useDynamicBackPath;

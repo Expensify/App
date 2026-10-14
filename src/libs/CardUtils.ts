@@ -2564,7 +2564,16 @@ function resolveTransactionCardFields<T extends Transaction>(transactions: T[], 
     });
 }
 
+/**
+ * Points a card details path at another card, keeping the page it was opened on (Wallet, Home or Domains).
+ * Used when reporting a card hands the user a replacement card.
+ */
+function getCardDetailsPathForCard(cardDetailsPath: Route, cardID: string): Route {
+    return `${cardDetailsPath.slice(0, cardDetailsPath.lastIndexOf('/') + 1)}${cardID}` as Route;
+}
+
 export {
+    getCardDetailsPathForCard,
     canResolveTransactionCard,
     getAssignedCardSortKey,
     getCardFeedBackgroundColor,

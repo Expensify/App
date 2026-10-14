@@ -1,4 +1,4 @@
-import {act, render, screen, waitFor} from '@testing-library/react-native';
+import {act, fireEvent, render, screen, waitFor} from '@testing-library/react-native';
 
 import ComposeProviders from '@components/ComposeProviders';
 import {CurrencyListContextProvider} from '@components/CurrencyListContextProvider';
@@ -10,6 +10,7 @@ import {CurrentReportIDContextProvider} from '@hooks/useCurrentReportID';
 import * as useResponsiveLayoutModule from '@hooks/useResponsiveLayout';
 import type ResponsiveLayoutResult from '@hooks/useResponsiveLayout/types';
 
+import Navigation from '@libs/Navigation/Navigation';
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
 import {clearRevealedVirtualCardDetails, setRevealedVirtualCardDetails} from '@libs/RevealedCardSecretsStore';
 
@@ -304,6 +305,53 @@ describe('ExpensifyCardPage', () => {
             expect(screen.getByText(TestHelper.translateLocal('cardPage.physicalCardNumber'))).toBeOnTheScreen();
         });
 
+        unmount();
+        await waitForBatchedUpdatesWithAct();
+    });
+
+    it('should activate the physical card when opening a combo card page via the virtual card ID', async () => {
+        // Given a combo card whose physical card still needs activating, opened from the virtual card's row
+        await TestHelper.signInWithTestUser();
+        const navigateSpy = jest.spyOn(Navigation, 'navigate').mockImplementation(() => {});
+
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.CARD_LIST, {
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                1234: {
+                    cardID: 1234,
+                    state: CONST.EXPENSIFY_CARD.STATE.NOT_ACTIVATED,
+                    domainName: 'combo-domain',
+                    fundID: '12345',
+                    nameValuePairs: {isVirtual: false, cardTitle: 'Combo Physical Card'},
+                    availableSpend: 50000,
+                    fraud: null,
+                    lastFourPAN: '1234',
+                },
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                5678: {
+                    cardID: 5678,
+                    state: CONST.EXPENSIFY_CARD.STATE.OPEN,
+                    domainName: 'combo-domain',
+                    fundID: '12345',
+                    nameValuePairs: {isVirtual: true, cardTitle: 'Combo Virtual Card'},
+                    availableSpend: 50000,
+                    fraud: null,
+                    lastFourPAN: '5678',
+                },
+            });
+        });
+
+        const {unmount} = renderPage(SCREENS.SETTINGS.WALLET.DYNAMIC_DOMAIN_CARD, {cardID: '5678'});
+        await waitForBatchedUpdatesWithAct();
+
+        // When the activate button is pressed
+        const activateButton = await screen.findByText(TestHelper.translateLocal('activateCardPage.activatePhysicalCard'));
+        fireEvent.press(activateButton);
+
+        // Then the activate route carries the physical card, not the virtual card the page was opened with
+        expect(navigateSpy).toHaveBeenCalledWith(expect.stringMatching(/activate\/1234$/));
+
+        navigateSpy.mockRestore();
         unmount();
         await waitForBatchedUpdatesWithAct();
     });

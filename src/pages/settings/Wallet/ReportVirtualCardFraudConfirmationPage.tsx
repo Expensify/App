@@ -5,12 +5,13 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 
+import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
+import {getCardDetailsPathForCard} from '@libs/CardUtils';
 
 import Navigation from '@navigation/Navigation';
 import type {PlatformStackScreenProps} from '@navigation/PlatformStackNavigation/types';
@@ -18,13 +19,13 @@ import type {SettingsNavigatorParamList} from '@navigation/types';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
 import React, {useCallback} from 'react';
 import {View} from 'react-native';
 
-type ReportVirtualCardFraudConfirmationPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.WALLET.REPORT_VIRTUAL_CARD_FRAUD_CONFIRMATION>;
+type ReportVirtualCardFraudConfirmationPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.WALLET.DYNAMIC_REPORT_VIRTUAL_CARD_FRAUD_CONFIRMATION>;
 
 function ReportVirtualCardFraudConfirmationPage({
     route: {
@@ -37,15 +38,17 @@ function ReportVirtualCardFraudConfirmationPage({
     const [physicalCardForm] = useOnyx(ONYXKEYS.FORMS.REPORT_PHYSICAL_CARD_FORM);
     const isCardTerminatedWithoutReplacement = !!physicalCardForm?.cardTerminatedWithoutReplacement;
     const description = isCardTerminatedWithoutReplacement ? 'reportFraudConfirmationPage.descriptionCardNotReplaced' : 'reportFraudConfirmationPage.description';
+    const cardDetailsPath = useDynamicBackPath(DYNAMIC_ROUTES.WALLET_CARD_REPORT_FRAUD_CONFIRMATION.path);
 
     const close = useCallback(() => {
         if (isCardTerminatedWithoutReplacement) {
-            Navigation.goBack(ROUTES.SETTINGS_WALLET);
+            Navigation.dismissModal();
             return;
         }
 
-        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WALLET_DOMAIN_CARD.getRoute(cardID), ROUTES.SETTINGS_WALLET));
-    }, [cardID, isCardTerminatedWithoutReplacement]);
+        // Collapses the flow onto the reported card's page and points it at the replacement card.
+        Navigation.goBack(getCardDetailsPathForCard(cardDetailsPath, cardID), {compareParams: false});
+    }, [cardDetailsPath, cardID, isCardTerminatedWithoutReplacement]);
 
     return (
         <ScreenWrapper
