@@ -1,7 +1,7 @@
 ---
 title: Explore the Top Spenders Insight
 description: Learn what the Top spenders insight shows, who can see it, how members are ranked, and how to open a member's expenses.
-keywords: [Top apenders, top spenders chart, visualization, highest spenders, employee spending, who spent the most, spend by member, Insights, workspace admin, auditor, approver, can't see Top spenders]
+keywords: [Top spenders, top spenders chart, visualization, highest spenders, employee spending, who spent the most, spend by member, Insights, workspace admin, auditor, approver, can't see Top spenders]
 internalScope: Audience is workspace admins, auditors, and approvers. Covers what Top spenders shows, who can see it, how members are ranked, which expenses are included, and how to view all members in Spend. Does not cover detailed filtering instructions, exporting expenses, or other insights.
 contentType: topic
 platform: new-expensify
