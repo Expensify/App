@@ -1,4 +1,4 @@
-import MenuItem from '@components/MenuItem';
+import MenuItemAction from '@components/MenuItem/presets/MenuItemAction';
 
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
@@ -47,14 +47,13 @@ function ReportDetailsMenuMarkAsIncompleteItem({reportID}: ReportDetailsMenuMark
     }
 
     return (
-        <MenuItem
+        <MenuItemAction
             title={translate('task.markAsIncomplete')}
             icon={expensifyIcons.Checkmark}
             onPress={callFunctionIfActionIsAllowed(() => {
                 Navigation.goBack(navigateBackFromReportDetailsPath);
                 reopenTask(report, parentReport, currentUserAccountID, delegateEmail);
             })}
-            isAnonymousAction={false}
         />
     );
 }

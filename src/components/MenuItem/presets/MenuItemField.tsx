@@ -81,6 +81,7 @@ function MenuItemFieldPreset({name, value, numberOfLinesValue, children, onPress
             isDisabled={isDisabled}
             sentryLabel={sentryLabel}
             testID={testID}
+            accessibilityLabel={[name, value].filter(Boolean).join(', ')}
         >
             <MenuItemFieldRow
                 name={name}

@@ -94,9 +94,7 @@ function ReportDetailsMenuLeaveItem({reportID}: ReportDetailsMenuLeaveItemProps)
     };
 
     return (
-        <MenuItem
-            title={translate('common.leave')}
-            icon={expensifyIcons.Exit}
+        <MenuItem.Root
             onPress={() => {
                 if (getParticipantsAccountIDsForDisplay(report, false, true).length === 1 && isRootGroupChat) {
                     showLastMemberLeavingModal();
@@ -105,8 +103,17 @@ function ReportDetailsMenuLeaveItem({reportID}: ReportDetailsMenuLeaveItemProps)
 
                 leaveChat();
             }}
-            isAnonymousAction
-        />
+            accessibilityLabel={translate('common.leave')}
+        >
+            <MenuItem.Row>
+                <MenuItem.Leading>
+                    <MenuItem.Icon src={expensifyIcons.Exit} />
+                </MenuItem.Leading>
+                <MenuItem.Content>
+                    <MenuItem.Title>{translate('common.leave')}</MenuItem.Title>
+                </MenuItem.Content>
+            </MenuItem.Row>
+        </MenuItem.Root>
     );
 }
 

@@ -2,7 +2,7 @@ import renderDynamicField from '@components/DynamicForm/renderDynamicField';
 import formatDynamicFieldValue from '@components/DynamicForm/utils/formatDynamicFieldValue';
 import getLocalizedText, {getFieldLabel} from '@components/DynamicForm/utils/getLocalizedText';
 import isSensitiveField from '@components/DynamicForm/utils/isSensitiveField';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import Text from '@components/Text';
 
 import useLocalize from '@hooks/useLocalize';
@@ -39,10 +39,9 @@ function DynamicFormFieldRow({field, values, currency, maxFileSize, isLoneField,
     if (field.readonly) {
         return (
             <View style={[styles.mhn5, styles.pv1]}>
-                <MenuItemWithTopDescription
-                    interactive={false}
-                    description={label}
-                    title={formatDynamicFieldValue(field, values, translate)}
+                <MenuItemField
+                    name={label}
+                    value={formatDynamicFieldValue(field, values, translate)}
                 />
             </View>
         );

@@ -1,4 +1,4 @@
-import MenuItem from '@components/MenuItem';
+import MenuItemNavigation from '@components/MenuItem/presets/MenuItemNavigation';
 
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -41,7 +41,7 @@ function ReportDetailsMenuGoToWorkspaceItem({reportID}: ReportDetailsMenuGoToWor
     }
 
     return (
-        <MenuItem
+        <MenuItemNavigation
             title={translate('workspace.common.goToWorkspace')}
             icon={expensifyIcons.Building}
             onPress={() => {
@@ -54,8 +54,6 @@ function ReportDetailsMenuGoToWorkspaceItem({reportID}: ReportDetailsMenuGoToWor
                     Navigation.navigate(ROUTES.WORKSPACE_OVERVIEW.getRoute(report?.policyID));
                 }
             }}
-            isAnonymousAction={false}
-            shouldShowRightIcon
         />
     );
 }

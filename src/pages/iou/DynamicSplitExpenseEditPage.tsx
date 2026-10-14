@@ -5,7 +5,7 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import HighlightableMenuItemWithTopDescription from '@components/HighlightableMenuItemWithTopDescription';
 import MenuItem from '@components/MenuItem';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import MenuItemFieldHTML from '@components/MenuItem/presets/MenuItemFieldHTML';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
@@ -438,12 +438,10 @@ function DynamicSplitExpenseEditPage({route}: DynamicSplitExpenseEditPageProps) 
                         onBackButtonPress={() => Navigation.goBack(backTo)}
                     />
                     <ScrollView>
-                        <MenuItemWithTopDescription
-                            shouldShowRightIcon
-                            shouldRenderAsHTML
+                        <MenuItemFieldHTML
                             key={translate('common.description')}
-                            description={translate('common.description')}
-                            title={currentDescription}
+                            name={translate('common.description')}
+                            value={currentDescription}
                             onPress={() => {
                                 Navigation.navigate(
                                     createDynamicRoute(
@@ -456,10 +454,9 @@ function DynamicSplitExpenseEditPage({route}: DynamicSplitExpenseEditPageProps) 
                                     ),
                                 );
                             }}
-                            style={[styles.moneyRequestMenuItem]}
-                            numberOfLinesTitle={2}
-                            rightLabel={isDescriptionRequired ? translate('common.required') : ''}
-                        />
+                        >
+                            {!currentDescription && isDescriptionRequired && <MenuItem.RightLabel>{translate('common.required')}</MenuItem.RightLabel>}
+                        </MenuItemFieldHTML>
                         {distanceRequestFields}
                         {shouldShowCategory && (
                             <MenuItemField
