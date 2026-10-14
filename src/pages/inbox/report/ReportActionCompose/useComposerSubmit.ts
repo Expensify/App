@@ -17,6 +17,7 @@ import getSendMessageSource from '@libs/telemetry/getSendMessageSource';
 import {getSendMessageVisibleSpanID} from '@libs/telemetry/sendMessageSpans';
 
 import {useActionListContext} from '@pages/inbox/ActionListContext';
+import {useConciergeSessionActions} from '@pages/inbox/ConciergeSessionContext';
 
 import {setIsComposerFullSize} from '@userActions/Report';
 
@@ -46,6 +47,7 @@ function useComposerSubmit(reportID: string) {
     const {isEditingInComposer, effectiveDraft, didResetComposerHeightWhileEditing, editingState} = useComposerEditState();
     const {publishDraft, setDidResetComposerHeightWhileEditing} = useComposerEditActions();
     const {scrollOffsetRef} = useActionListContext();
+    const {setShowFullHistory} = useConciergeSessionActions();
 
     const {report, effectiveTransactionThreadReportID} = useComposerReportData(reportID);
     const [targetReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${effectiveTransactionThreadReportID ?? reportID}`);
@@ -108,6 +110,9 @@ function useComposerSubmit(reportID: string) {
         }
 
         if (createTaskFromMarkdown({text: draftMessageTrimmed, parentReport: report, currentUserPersonalDetails, quickAction, delegateAccountID, ancestors: reportAncestors})) {
+            if (shouldRespondInThread && !isInSidePanel) {
+                setShowFullHistory(true);
+            }
             return;
         }
 
