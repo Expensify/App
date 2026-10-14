@@ -2494,6 +2494,7 @@ type MoneyRequestNavigatorParamList = {
         reportID: string;
         reportActionID: string;
         orderWeight: string;
+        shouldCloseInPortrait?: boolean;
     };
     [SCREENS.MONEY_REQUEST.DYNAMIC_STEP_TAX_RATE]: {
         action: IOUAction;

@@ -85,12 +85,22 @@ function TagFields({
     const shouldOpenInDropdown =
         isBetaEnabled(CONST.BETAS.ANCHORED_FIELD_DROPDOWNS) && !!transactionID && !!policy && canSaveFromThisForm && !hasDependentTags(policy, policyTags) && canShowTags;
 
+    const getTagStepRoute = (currentTransactionID: string, shouldCloseInPortrait?: boolean) =>
+        createDynamicRoute(DYNAMIC_ROUTES.MONEY_REQUEST_STEP_TAG.getRoute(action, iouType, tagIndex, currentTransactionID, reportID, reportActionID, shouldCloseInPortrait));
+
     const openTagPage = () => {
         if (!transactionID) {
             return;
         }
 
-        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.MONEY_REQUEST_STEP_TAG.getRoute(action, iouType, tagIndex, transactionID, reportID, reportActionID)));
+        Navigation.navigate(getTagStepRoute(transactionID));
+    };
+
+    const openTagPageInLandscape = () => {
+        if (!transactionID) {
+            return;
+        }
+        Navigation.navigate(getTagStepRoute(transactionID, true));
     };
 
     if (shouldUseDropdownRows) {
@@ -103,6 +113,7 @@ function TagFields({
                 rightLabel={isTagRequired ? translate('common.required') : ''}
                 errorText={shouldDisplayTagError && !!displayedTag ? translate(formError as TranslationPaths) : ''}
                 onPress={openTagPage}
+                onLandscapePress={openTagPageInLandscape}
                 shouldOpenInDropdown={shouldOpenInDropdown && !isReadOnly && !didConfirm}
                 renderDropdown={(dropdownProps) =>
                     !!transactionID && (

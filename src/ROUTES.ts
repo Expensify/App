@@ -527,9 +527,18 @@ const DYNAMIC_ROUTES = {
             SCREENS.MONEY_REQUEST.DYNAMIC_SPLIT_EXPENSE_EDIT,
         ],
         // `orderWeight` is stringified explicitly because the first tag list has index 0, which `getUrlWithParams` would drop as falsy.
-        getRoute: (action: IOUAction, iouType: IOUType, orderWeight: number, transactionID: string, reportID?: string, reportActionID?: string) =>
-            getUrlWithParams('expense-tag', {action, iouType, orderWeight: String(orderWeight), transactionID, reportID, reportActionID}),
-        queryParams: ['action', 'iouType', 'orderWeight', 'transactionID', 'reportID', 'reportActionID'],
+        // `shouldCloseInPortrait` is set when the page stands in for the form's list on a phone in landscape, so it closes itself in portrait.
+        getRoute: (action: IOUAction, iouType: IOUType, orderWeight: number, transactionID: string, reportID?: string, reportActionID?: string, shouldCloseInPortrait?: boolean) =>
+            getUrlWithParams('expense-tag', {
+                action,
+                iouType,
+                orderWeight: String(orderWeight),
+                transactionID,
+                reportID,
+                reportActionID,
+                shouldCloseInPortrait: shouldCloseInPortrait ? 'true' : undefined,
+            }),
+        queryParams: ['action', 'iouType', 'orderWeight', 'transactionID', 'reportID', 'reportActionID', 'shouldCloseInPortrait'],
     },
     SPLIT_EXPENSE_EDIT: {
         // `editSplitExpenseTransactionID` is deliberately not named `splitExpenseTransactionID` so this path param cannot be

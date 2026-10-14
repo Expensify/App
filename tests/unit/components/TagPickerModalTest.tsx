@@ -30,6 +30,14 @@ const mockViewportOffsetTop = 40;
 jest.mock('@hooks/useWindowDimensions', () => jest.fn(() => ({windowWidth: 390, windowHeight: mockWindowHeight})));
 jest.mock('@hooks/useViewportOffsetTop', () => jest.fn(() => mockViewportOffsetTop));
 
+// The keyboard is closed by default. A test can open it to cover the sheet sitting above it.
+let mockKeyboardHeight = 0;
+jest.mock('@hooks/useKeyboardState', () => jest.fn(() => ({isKeyboardActive: mockKeyboardHeight > 0, keyboardActiveHeight: mockKeyboardHeight})));
+
+// The home indicator area the sheet pads itself above, and no top inset.
+const SAFE_AREA_PADDING_BOTTOM = 34;
+jest.mock('@hooks/useSafeAreaPaddings', () => jest.fn(() => ({paddingTop: 0, paddingBottom: SAFE_AREA_PADDING_BOTTOM})));
+
 // The list itself is covered elsewhere; here only what the modal hands it matters.
 let mockTagPickerProps: TagPickerProps | undefined;
 jest.mock('@components/TagPicker', () => (props: TagPickerProps) => {
@@ -59,6 +67,7 @@ describe('TagPickerModal', () => {
         mockPopoverProps = undefined;
         mockTagPickerProps = undefined;
         mockIsSmallScreenWidth = true;
+        mockKeyboardHeight = 0;
         await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${POLICY_ID}`, policyTags);
         await waitForBatchedUpdates();
     });
@@ -130,5 +139,48 @@ describe('TagPickerModal', () => {
         expect(mockTagPickerProps?.tagListIndex).toBe(0);
         expect(mockPopoverProps?.popoverDimensions).toEqual({width: CONST.POPOVER_DROPDOWN_WIDTH, height: CONST.POPOVER_DROPDOWN_MAX_HEIGHT});
         expect(mockPopoverProps?.shouldSwitchPositionIfOverflow).toBe(true);
+    });
+
+    it('fits the sheet to a short tag list', () => {
+        // Given a phone, and a tag list with a single tag
+        // When the expense form's tag list opens
+        render(
+            <TagPickerModal
+                isVisible
+                onClose={jest.fn()}
+                policyID={POLICY_ID}
+                anchorPosition={{horizontal: 0, vertical: 0}}
+                shouldFitContentHeight
+            />,
+        );
+
+        // Then the sheet is one row tall plus the bottom safe area, the same as the category sheet, leaving no empty space below the row
+        expect(mockPopoverProps?.popoverDimensions?.height).toBe(getSelectionListPopoverContentHeight({optionCount: 1, isSearchable: false}) + SAFE_AREA_PADDING_BOTTOM);
+    });
+
+    it('keeps the sheet above an open keyboard', () => {
+        // Given a phone whose keyboard is open
+        mockKeyboardHeight = 300;
+        const expectedHeight = getBottomSheetHeight({
+            preferredHeight: CONST.POPOVER_DROPDOWN_MAX_HEIGHT,
+            windowHeight: mockWindowHeight,
+            keyboardHeight: mockKeyboardHeight,
+            topSafeAreaInset: 0,
+            minHeight: getSelectionListPopoverContentHeight({optionCount: 1, isSearchable: false}),
+        });
+
+        // When the tag list opens
+        render(
+            <TagPickerModal
+                isVisible
+                onClose={jest.fn()}
+                policyID={POLICY_ID}
+                anchorPosition={{horizontal: 0, vertical: 0}}
+            />,
+        );
+
+        // Then the sheet shrinks to the room the keyboard leaves and rises above it, so no tag sits behind the keyboard
+        expect(mockPopoverProps?.popoverDimensions?.height).toBe(expectedHeight);
+        expect(mockPopoverProps?.avoidKeyboard).toBe(true);
     });
 });

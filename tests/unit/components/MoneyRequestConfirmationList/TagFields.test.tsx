@@ -5,6 +5,8 @@ import type {ExpenseFieldDropdownRenderProps} from '@components/MoneyRequestConf
 import ExpenseFormLayoutContext, {dropdownRowsExpenseFormLayout} from '@components/MoneyRequestConfirmationList/sections/ExpenseFormLayoutContext';
 import TagFields from '@components/MoneyRequestConfirmationList/sections/TagFields';
 
+import Navigation from '@libs/Navigation/Navigation';
+
 import CONST from '@src/CONST';
 import type {IOUAction} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -20,6 +22,7 @@ import waitForBatchedUpdates from '../../../utils/waitForBatchedUpdates';
 
 jest.mock('@hooks/useLocalize', () => () => ({translate: (key: string) => key}));
 jest.mock('@hooks/useThemeStyles', () => () => ({}));
+jest.mock('@libs/Navigation/Navigation', () => ({navigate: jest.fn()}));
 // The new-row flash needs a screen's transition context, which the row is rendered without here.
 jest.mock('@components/MoneyRequestConfirmationList/sections/useFieldRowHighlightStyle', () => () => ({}));
 
@@ -30,12 +33,23 @@ jest.mock('@hooks/usePermissions', () => () => ({
 
 // Records what the row decided and renders its list straight away, so each test can read both without pressing anything.
 let mockShouldOpenInDropdown: boolean | undefined;
+let mockOnLandscapePress: (() => void) | undefined;
 jest.mock('@components/MoneyRequestConfirmationList/sections/ExpenseFieldDropdown', () => {
-    return ({shouldOpenInDropdown, renderDropdown}: {shouldOpenInDropdown: boolean; renderDropdown: (props: ExpenseFieldDropdownRenderProps) => ReactNode}) => {
+    return ({
+        shouldOpenInDropdown,
+        onLandscapePress,
+        renderDropdown,
+    }: {
+        shouldOpenInDropdown: boolean;
+        onLandscapePress: () => void;
+        renderDropdown: (props: ExpenseFieldDropdownRenderProps) => ReactNode;
+    }) => {
         mockShouldOpenInDropdown = shouldOpenInDropdown;
+        mockOnLandscapePress = onLandscapePress;
         return renderDropdown({
             isVisible: true,
             onClose: () => {},
+            onModalHide: () => {},
             anchorPosition: {horizontal: 0, vertical: 0},
             anchorAlignment: {horizontal: 'left', vertical: 'top'},
             shouldMeasureAnchorPositionFromTop: true,
@@ -117,7 +131,9 @@ describe('TagFields', () => {
     beforeEach(async () => {
         mockIsAnchoredDropdownsBetaEnabled = true;
         mockShouldOpenInDropdown = undefined;
+        mockOnLandscapePress = undefined;
         mockTagListIndexes.length = 0;
+        jest.mocked(Navigation.navigate).mockClear();
         await Onyx.clear();
         await waitForBatchedUpdates();
     });
@@ -209,5 +225,24 @@ describe('TagFields', () => {
         await waitFor(() => {
             expect(mockShouldOpenInDropdown).toBe(false);
         });
+    });
+
+    it('opens the tag page marked to close itself in portrait when the phone is in landscape', async () => {
+        // Given the row for the second tag list, whose list would open in place, on a phone held in landscape
+        await givenPolicyTags(independentTags);
+        renderTagRow({tagIndex: 1});
+        await waitFor(() => {
+            expect(mockOnLandscapePress).toBeDefined();
+        });
+
+        // When the row hands over to the full page because there is no room for the sheet
+        mockOnLandscapePress?.();
+
+        // Then that list's Tag step opens for this expense, flagged so it goes back to the form, and its list, in portrait
+        const route = jest.mocked(Navigation.navigate).mock.calls.at(0)?.at(0);
+        expect(route).toContain('expense-tag');
+        expect(route).toContain('orderWeight=1');
+        expect(route).toContain(`transactionID=${TRANSACTION_ID}`);
+        expect(route).toContain('shouldCloseInPortrait=true');
     });
 });
