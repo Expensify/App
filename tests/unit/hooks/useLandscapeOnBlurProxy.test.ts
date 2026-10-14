@@ -2,15 +2,30 @@ import {act, renderHook} from '@testing-library/react-native';
 
 import useLandscapeOnBlurProxy from '@hooks/useLandscapeOnBlurProxy/index.android';
 
-import type {FocusEvent, ScaledSize} from 'react-native';
+import type {FocusEvent, HostInstance, ScaledSize} from 'react-native';
+import type {KeyboardEventData} from 'react-native-keyboard-controller';
 
-import {Dimensions} from 'react-native';
+import {Dimensions, TextInput} from 'react-native';
 
 const mockKeyboardState = {isKeyboardActive: false, isKeyboardAnimatingRef: {current: false}};
 let mockIsInLandscapeMode = false;
 
 jest.mock('@hooks/useKeyboardState', () => () => mockKeyboardState);
 jest.mock('@hooks/useIsInLandscapeMode', () => () => mockIsInLandscapeMode);
+
+const mockKeyboardHideListeners: Array<(e: KeyboardEventData) => void> = [];
+const mockKeyboardHideRemove = jest.fn();
+
+jest.mock('react-native-keyboard-controller', () => ({
+    KeyboardEvents: {
+        addListener: jest.fn((event: string, handler: (e: KeyboardEventData) => void) => {
+            if (event === 'keyboardDidHide') {
+                mockKeyboardHideListeners.push(handler);
+            }
+            return {remove: mockKeyboardHideRemove};
+        }),
+    },
+}));
 
 // The react-native manual mock (__mocks__/react-native.ts) replaces Dimensions with an inert addEventListener,
 // so the tests fire the window changes through the handler the hook registers there.
@@ -25,6 +40,13 @@ const blurEvent = {} as FocusEvent;
 
 function setWindow(window: ScaledSize) {
     mockedDimensionsAddEventListener.mock.calls.at(-1)?.[1]({window, screen: window});
+}
+
+function hideKeyboard(duration: number) {
+    const eventData: KeyboardEventData = {height: 0, duration, timestamp: 0, target: -1, type: 'default', appearance: 'light'};
+    for (const handler of mockKeyboardHideListeners) {
+        handler(eventData);
+    }
 }
 
 function advance(ms: number) {
@@ -44,6 +66,8 @@ describe('useLandscapeOnBlurProxy', () => {
     beforeEach(() => {
         jest.useFakeTimers();
         mockedDimensionsAddEventListener.mockClear();
+        mockKeyboardHideListeners.length = 0;
+        mockKeyboardHideRemove.mockClear();
         mockKeyboardState.isKeyboardActive = false;
         mockKeyboardState.isKeyboardAnimatingRef.current = false;
         mockIsInLandscapeMode = false;
@@ -51,6 +75,7 @@ describe('useLandscapeOnBlurProxy', () => {
 
     afterEach(() => {
         jest.useRealTimers();
+        jest.restoreAllMocks();
     });
 
     it('forwards every blur to the caller and does not re-focus a plain blur', () => {
@@ -110,6 +135,55 @@ describe('useLandscapeOnBlurProxy', () => {
         expect(focus).not.toHaveBeenCalled();
     });
 
+    it('does not take focus back from another input the user moved to right after a rotation', () => {
+        // Given an input that a rotation blurred and that got its focus back
+        const {focus, blur} = renderProxy();
+        setWindow(LANDSCAPE_WINDOW);
+        advance(50);
+        blur();
+        advance(REFOCUS_DELAY_MS);
+        expect(focus).toHaveBeenCalledTimes(1);
+
+        // When the user taps another input while the rotation is still recent
+        advance(150);
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- only its presence matters to the proxy
+        jest.spyOn(TextInput.State, 'currentlyFocusedInput').mockReturnValue({} as HostInstance);
+        blur();
+        advance(REFOCUS_DELAY_MS);
+
+        // Then the other input keeps its focus, because the user moved it there on purpose
+        expect(focus).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not re-focus after the user dismisses the keyboard right after a rotation', () => {
+        // Given a rotation that just changed the window width
+        const {focus, blur} = renderProxy();
+        setWindow(LANDSCAPE_WINDOW);
+        advance(200);
+
+        // When the user dismisses the keyboard with a back press, which hides it with an animation and blurs the input
+        hideKeyboard(250);
+        blur();
+        advance(REFOCUS_DELAY_MS);
+
+        // Then the input stays blurred, because the dismissal, not the rotation, explains this blur
+        expect(focus).not.toHaveBeenCalled();
+    });
+
+    it('still re-focuses when the rotation tears the keyboard down without an animation', () => {
+        // Given a rotation that just changed the window width
+        const {focus, blur} = renderProxy();
+        setWindow(LANDSCAPE_WINDOW);
+
+        // When the keyboard disappears instantly, as it does on rotation, and the input is blurred
+        hideKeyboard(0);
+        blur();
+        advance(REFOCUS_DELAY_MS);
+
+        // Then the input is re-focused, because an instant hide is part of the rotation rather than a user dismissal
+        expect(focus).toHaveBeenCalledTimes(1);
+    });
+
     it('does not treat a height-only window change as a rotation', () => {
         // Given a blurred input
         const {focus, blur} = renderProxy();
@@ -138,17 +212,18 @@ describe('useLandscapeOnBlurProxy', () => {
         expect(focus).toHaveBeenCalledTimes(1);
     });
 
-    it('removes the Dimensions listener on unmount', () => {
+    it('removes the Dimensions and keyboard listeners on unmount', () => {
         // Given a mounted proxy
         const {unmount} = renderProxy();
 
         // When it unmounts
         unmount();
 
-        // Then its window listener is detached
+        // Then its window and keyboard listeners are detached
         const subscription = mockedDimensionsAddEventListener.mock.results.at(-1);
         // eslint-disable-next-line @typescript-eslint/unbound-method
         expect(subscription?.type === 'return' && subscription.value.remove).toHaveBeenCalledTimes(1);
+        expect(mockKeyboardHideRemove).toHaveBeenCalledTimes(1);
     });
 
     it('cancels a pending re-focus on unmount', () => {

@@ -2,7 +2,8 @@ import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
 import useKeyboardState from '@hooks/useKeyboardState';
 
 import {useEffect, useRef} from 'react';
-import {Dimensions} from 'react-native';
+import {Dimensions, TextInput} from 'react-native';
+import {KeyboardEvents} from 'react-native-keyboard-controller';
 
 import type {UseLandscapeOnBlurProxy} from './types';
 
@@ -37,7 +38,19 @@ const useLandscapeOnBlurProxy: UseLandscapeOnBlurProxy = (inputRef, onBlur) => {
             lastWindowWidthChangeTimeRef.current = Date.now();
         });
 
-        return () => subscription.remove();
+        // Android tears the keyboard down without an animation on rotation, so an animated hide is the user dismissing
+        // it (e.g. a back press). Any blur after that is theirs, even if a rotation happened just before.
+        const keyboardHideSubscription = KeyboardEvents.addListener('keyboardDidHide', (event) => {
+            if (event.height !== 0 || event.duration === 0) {
+                return;
+            }
+            lastWindowWidthChangeTimeRef.current = 0;
+        });
+
+        return () => {
+            subscription.remove();
+            keyboardHideSubscription.remove();
+        };
     }, []);
 
     return (e) => {
@@ -49,6 +62,11 @@ const useLandscapeOnBlurProxy: UseLandscapeOnBlurProxy = (inputRef, onBlur) => {
             pendingRefocusTimeoutIDRef.current = undefined;
             const isRotationBlur = lastWindowWidthChangeTimeRef.current > blurTime - ROTATION_BLUR_WINDOW_MS;
             if (!isRotationBlur && !(isKeyboardOpening && isInLandscapeMode)) {
+                return;
+            }
+
+            // Focus that moved to another input on purpose (e.g. the user tapped it) must not be taken back.
+            if (TextInput.State.currentlyFocusedInput()) {
                 return;
             }
 
