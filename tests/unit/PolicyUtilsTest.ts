@@ -9,6 +9,8 @@ import DateUtils from '@libs/DateUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {
     arePolicyRulesEnabled,
+    areSettingsInErrorFields,
+    canCreateCategoryInSitu,
     canEditWorkspaceSettings,
     canMemberAssignRole,
     canMemberManageMemberWithRole,
@@ -19,6 +21,7 @@ import {
     evaluateApprovalWorkflowRule,
     findVendorByID,
     getVendorDisplayName,
+    hasCompanyAddress,
     hasVendorFeatureOnAnyPolicy,
     getActivePolicies,
     getActivePoliciesWithExpenseChat,
@@ -115,6 +118,7 @@ import {
     isTaxCodeCustomized,
     isXeroActiveMatchingSource,
     isXeroVendorMatchingActive,
+    settingsPendingAction,
     shouldHideDynamicExternalWorkflowPeople,
     shouldShowPolicy,
     sortPoliciesByName,
@@ -528,6 +532,45 @@ describe('PolicyUtils', () => {
                 const policy = {...buildPolicy(CONST.POLICY.ROLE.ADMIN), archivedDate: '2024-01-01'};
 
                 expect(canEditWorkspaceSettings(policy, memberLogin)).toBe(false);
+            });
+        });
+
+        describe('canCreateCategoryInSitu', () => {
+            const categoriesPolicy = (role: ValueOf<typeof CONST.POLICY.ROLE>, areCategoriesEnabled = true): Policy => ({
+                ...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE),
+                role,
+                areCategoriesEnabled,
+                connections: undefined,
+            });
+
+            it('lets an admin add a category from the picker when the workspace uses categories', () => {
+                // Given an admin of a workspace with categories on and no accounting integration
+                // When we check whether the category picker can offer to add one
+                // Then it can, as the full-page selector's "+" does
+                expect(canCreateCategoryInSitu(categoriesPolicy(CONST.POLICY.ROLE.ADMIN))).toBe(true);
+            });
+
+            it('does not let a member add a category', () => {
+                // Given a member, who cannot change workspace settings
+                // When we check whether the category picker can offer to add one
+                // Then it cannot, so the pop-over hides its add button
+                expect(canCreateCategoryInSitu(categoriesPolicy(CONST.POLICY.ROLE.USER))).toBe(false);
+            });
+
+            it('does not offer to add a category when the workspace has categories turned off', () => {
+                // Given an admin of a workspace that has turned categories off
+                // When we check whether the category picker can offer to add one
+                // Then it cannot, because a new category would have nowhere to show
+                expect(canCreateCategoryInSitu(categoriesPolicy(CONST.POLICY.ROLE.ADMIN, false))).toBe(false);
+            });
+
+            it('does not offer to add a category when the workspace syncs with an accounting integration', () => {
+                // Given an admin of a workspace whose categories come from an accounting integration
+                const policy = {...categoriesPolicy(CONST.POLICY.ROLE.ADMIN), connections: createMock<Connections>({[CONST.POLICY.CONNECTIONS.NAME.NETSUITE]: {}})};
+
+                // When we check whether the category picker can offer to add one
+                // Then it cannot, because new categories have to be created in the integration
+                expect(canCreateCategoryInSitu(policy)).toBe(false);
             });
         });
 
@@ -3222,148 +3265,40 @@ describe('PolicyUtils', () => {
         });
     });
 
-    describe('getPolicyBrickRoadIndicatorStatus', () => {
-        const baseAdminPolicy: OnyxEntry<Policy> = createMock<OnyxEntry<Policy>>({
-            id: 'ABC123',
-            name: 'Test Workspace',
-            type: CONST.POLICY.TYPE.TEAM,
-            role: CONST.POLICY.ROLE.ADMIN,
-            employeeList: {},
-            connections: {},
-            errors: {},
-            errorFields: {},
-        });
-
-        const baseUserPolicy: OnyxEntry<Policy> = createMock<OnyxEntry<Policy>>({
-            id: 'DEF456',
-            name: 'User Workspace',
-            type: CONST.POLICY.TYPE.TEAM,
-            role: CONST.POLICY.ROLE.USER,
-            employeeList: {},
-            connections: {},
-            errors: {},
-            errorFields: {},
-        });
-
-        it('does return an ERROR RBR when a sync error exists for an admin', () => {
-            const policyWithConnectionFailures = createMock<OnyxEntry<Policy>>({
-                ...baseAdminPolicy,
-                // Failed sync
-                connections: createMock<Connections>({
-                    [CONST.POLICY.CONNECTIONS.NAME.NETSUITE]: {
-                        verified: false,
-                        lastSync: {
-                            errorDate: new Date().toISOString(),
-                            errorMessage: 'Error',
-                            isAuthenticationError: true,
-                            isConnected: false,
-                            isSuccessful: false,
-                            source: 'NEWEXPENSIFY',
-                            successfulDate: '',
-                        },
-                    },
-                }),
+    describe('errors', () => {
+        describe('getPolicyBrickRoadIndicatorStatus', () => {
+            const baseAdminPolicy: OnyxEntry<Policy> = createMock<OnyxEntry<Policy>>({
+                id: 'ABC123',
+                name: 'Test Workspace',
+                type: CONST.POLICY.TYPE.TEAM,
+                role: CONST.POLICY.ROLE.ADMIN,
+                employeeList: {},
+                connections: {},
+                errors: {},
+                errorFields: {},
             });
 
-            const result = getPolicyBrickRoadIndicatorStatus(policyWithConnectionFailures, false);
-            expect(result).toEqual(CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR);
-        });
-
-        it('does not return an ERROR RBR when a sync error exists for a user', () => {
-            const policyWithConnectionFailures = createMock<OnyxEntry<Policy>>({
-                ...baseUserPolicy,
-                // Failed sync
-                connections: createMock<Connections>({
-                    [CONST.POLICY.CONNECTIONS.NAME.NETSUITE]: {
-                        verified: false,
-                        lastSync: {
-                            errorDate: new Date().toISOString(),
-                            errorMessage: 'Error',
-                            isAuthenticationError: true,
-                            isConnected: false,
-                            isSuccessful: false,
-                            source: 'NEWEXPENSIFY',
-                            successfulDate: '',
-                        },
-                    },
-                }),
+            const baseUserPolicy: OnyxEntry<Policy> = createMock<OnyxEntry<Policy>>({
+                id: 'DEF456',
+                name: 'User Workspace',
+                type: CONST.POLICY.TYPE.TEAM,
+                role: CONST.POLICY.ROLE.USER,
+                employeeList: {},
+                connections: {},
+                errors: {},
+                errorFields: {},
             });
 
-            const result = getPolicyBrickRoadIndicatorStatus(policyWithConnectionFailures, false);
-            expect(result).toBeUndefined();
-        });
-
-        it('does not return an ERROR RBR when no sync errors exist for an admin', () => {
-            const policyWithoutConnections = createMock<OnyxEntry<Policy>>({
-                ...baseAdminPolicy,
-                connections: createMock<Connections>({}),
-            });
-
-            const policyWithoutConnectionFailures = createMock<OnyxEntry<Policy>>({
-                ...baseAdminPolicy,
-                connections: createMock<Connections>({
-                    [CONST.POLICY.CONNECTIONS.NAME.NETSUITE]: {
-                        verified: true,
-                        lastSync: {
-                            errorDate: '',
-                            errorMessage: '',
-                            isAuthenticationError: false,
-                            isConnected: true,
-                            isSuccessful: true,
-                            source: 'NEWEXPENSIFY',
-                            successfulDate: '',
-                        },
-                    },
-                }),
-            });
-
-            const result = getPolicyBrickRoadIndicatorStatus(policyWithoutConnectionFailures, false);
-            expect(result).toBeUndefined();
-
-            const result2 = getPolicyBrickRoadIndicatorStatus(policyWithoutConnections, false);
-            expect(result2).toBeUndefined();
-        });
-
-        it('does not return an ERROR RBR when no sync error exists for a user', () => {
-            const policyWithoutConnections = createMock<OnyxEntry<Policy>>({
-                ...baseUserPolicy,
-                connections: createMock<Connections>({}),
-            });
-
-            const policyWithoutConnectionFailures = createMock<OnyxEntry<Policy>>({
-                ...baseUserPolicy,
-                connections: createMock<Connections>({
-                    [CONST.POLICY.CONNECTIONS.NAME.NETSUITE]: {
-                        verified: true,
-                        lastSync: {
-                            errorDate: '',
-                            errorMessage: '',
-                            isAuthenticationError: false,
-                            isConnected: true,
-                            isSuccessful: true,
-                            source: 'NEWEXPENSIFY',
-                            successfulDate: '',
-                        },
-                    },
-                }),
-            });
-
-            const result = getPolicyBrickRoadIndicatorStatus(policyWithoutConnections, false);
-            expect(result).toBeUndefined();
-
-            const result2 = getPolicyBrickRoadIndicatorStatus(policyWithoutConnectionFailures, false);
-            expect(result2).toBeUndefined();
-        });
-
-        describe('QBO Export Errors', () => {
-            it('does return an ERROR RBR when a QBO sync error exists for an admin', () => {
-                const policyWithQBOSyncError = createMock<OnyxEntry<Policy>>({
+            it('does return an ERROR RBR when a sync error exists for an admin', () => {
+                const policyWithConnectionFailures = createMock<OnyxEntry<Policy>>({
                     ...baseAdminPolicy,
+                    // Failed sync
                     connections: createMock<Connections>({
-                        [CONST.POLICY.CONNECTIONS.NAME.QBO]: {
+                        [CONST.POLICY.CONNECTIONS.NAME.NETSUITE]: {
+                            verified: false,
                             lastSync: {
                                 errorDate: new Date().toISOString(),
-                                errorMessage: 'QBO sync failed',
+                                errorMessage: 'Error',
                                 isAuthenticationError: true,
                                 isConnected: false,
                                 isSuccessful: false,
@@ -3374,18 +3309,20 @@ describe('PolicyUtils', () => {
                     }),
                 });
 
-                const result = getPolicyBrickRoadIndicatorStatus(policyWithQBOSyncError, false);
+                const result = getPolicyBrickRoadIndicatorStatus(policyWithConnectionFailures, false);
                 expect(result).toEqual(CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR);
             });
 
-            it('does not return an ERROR RBR when a QBO sync error exists for a user', () => {
-                const policyWithQBOSyncError = createMock<OnyxEntry<Policy>>({
+            it('does not return an ERROR RBR when a sync error exists for a user', () => {
+                const policyWithConnectionFailures = createMock<OnyxEntry<Policy>>({
                     ...baseUserPolicy,
+                    // Failed sync
                     connections: createMock<Connections>({
-                        [CONST.POLICY.CONNECTIONS.NAME.QBO]: {
+                        [CONST.POLICY.CONNECTIONS.NAME.NETSUITE]: {
+                            verified: false,
                             lastSync: {
                                 errorDate: new Date().toISOString(),
-                                errorMessage: 'QBO sync failed',
+                                errorMessage: 'Error',
                                 isAuthenticationError: true,
                                 isConnected: false,
                                 isSuccessful: false,
@@ -3396,15 +3333,21 @@ describe('PolicyUtils', () => {
                     }),
                 });
 
-                const result = getPolicyBrickRoadIndicatorStatus(policyWithQBOSyncError, false);
+                const result = getPolicyBrickRoadIndicatorStatus(policyWithConnectionFailures, false);
                 expect(result).toBeUndefined();
             });
 
-            it('does not return an ERROR RBR when no QBO sync errors exist for an admin', () => {
-                const policyWithSuccessfulQBOSync = createMock<OnyxEntry<Policy>>({
+            it('does not return an ERROR RBR when no sync errors exist for an admin', () => {
+                const policyWithoutConnections = createMock<OnyxEntry<Policy>>({
+                    ...baseAdminPolicy,
+                    connections: createMock<Connections>({}),
+                });
+
+                const policyWithoutConnectionFailures = createMock<OnyxEntry<Policy>>({
                     ...baseAdminPolicy,
                     connections: createMock<Connections>({
-                        [CONST.POLICY.CONNECTIONS.NAME.QBO]: {
+                        [CONST.POLICY.CONNECTIONS.NAME.NETSUITE]: {
+                            verified: true,
                             lastSync: {
                                 errorDate: '',
                                 errorMessage: '',
@@ -3412,27 +3355,36 @@ describe('PolicyUtils', () => {
                                 isConnected: true,
                                 isSuccessful: true,
                                 source: 'NEWEXPENSIFY',
-                                successfulDate: new Date().toISOString(),
+                                successfulDate: '',
                             },
                         },
                     }),
                 });
 
-                const result = getPolicyBrickRoadIndicatorStatus(policyWithSuccessfulQBOSync, false);
+                const result = getPolicyBrickRoadIndicatorStatus(policyWithoutConnectionFailures, false);
                 expect(result).toBeUndefined();
+
+                const result2 = getPolicyBrickRoadIndicatorStatus(policyWithoutConnections, false);
+                expect(result2).toBeUndefined();
             });
 
-            it('does not return an ERROR RBR when QBO sync is in progress for an admin', () => {
-                const policyWithQBOSyncError = createMock<OnyxEntry<Policy>>({
-                    ...baseAdminPolicy,
+            it('does not return an ERROR RBR when no sync error exists for a user', () => {
+                const policyWithoutConnections = createMock<OnyxEntry<Policy>>({
+                    ...baseUserPolicy,
+                    connections: createMock<Connections>({}),
+                });
+
+                const policyWithoutConnectionFailures = createMock<OnyxEntry<Policy>>({
+                    ...baseUserPolicy,
                     connections: createMock<Connections>({
-                        [CONST.POLICY.CONNECTIONS.NAME.QBO]: {
+                        [CONST.POLICY.CONNECTIONS.NAME.NETSUITE]: {
+                            verified: true,
                             lastSync: {
-                                errorDate: new Date().toISOString(),
-                                errorMessage: 'QBO sync failed',
-                                isAuthenticationError: true,
-                                isConnected: false,
-                                isSuccessful: false,
+                                errorDate: '',
+                                errorMessage: '',
+                                isAuthenticationError: false,
+                                isConnected: true,
+                                isSuccessful: true,
                                 source: 'NEWEXPENSIFY',
                                 successfulDate: '',
                             },
@@ -3440,140 +3392,431 @@ describe('PolicyUtils', () => {
                     }),
                 });
 
-                // When sync is in progress (second parameter is true), should not show error
-                const result = getPolicyBrickRoadIndicatorStatus(policyWithQBOSyncError, true);
+                const result = getPolicyBrickRoadIndicatorStatus(policyWithoutConnections, false);
                 expect(result).toBeUndefined();
+
+                const result2 = getPolicyBrickRoadIndicatorStatus(policyWithoutConnectionFailures, false);
+                expect(result2).toBeUndefined();
             });
 
-            it('does return an ERROR RBR when QBO reimbursable export destination account is missing for an admin', () => {
-                const policyWithMissingQBOAccount = createMock<OnyxEntry<Policy>>({
-                    ...baseAdminPolicy,
-                    connections: createMock<Connections>({
-                        [CONST.POLICY.CONNECTIONS.NAME.QBO]: {
-                            config: {
-                                reimbursableExpensesExportDestination: CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.VENDOR_BILL,
-                                reimbursableExpensesAccount: undefined,
+            describe('QBO Export Errors', () => {
+                it('does return an ERROR RBR when a QBO sync error exists for an admin', () => {
+                    const policyWithQBOSyncError = createMock<OnyxEntry<Policy>>({
+                        ...baseAdminPolicy,
+                        connections: createMock<Connections>({
+                            [CONST.POLICY.CONNECTIONS.NAME.QBO]: {
+                                lastSync: {
+                                    errorDate: new Date().toISOString(),
+                                    errorMessage: 'QBO sync failed',
+                                    isAuthenticationError: true,
+                                    isConnected: false,
+                                    isSuccessful: false,
+                                    source: 'NEWEXPENSIFY',
+                                    successfulDate: '',
+                                },
                             },
-                        },
-                    }),
+                        }),
+                    });
+
+                    const result = getPolicyBrickRoadIndicatorStatus(policyWithQBOSyncError, false);
+                    expect(result).toEqual(CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR);
                 });
 
-                const result = getPolicyBrickRoadIndicatorStatus(policyWithMissingQBOAccount, false);
-                expect(result).toEqual(CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR);
-            });
-
-            it('does not return an ERROR RBR when QBO reimbursable export destination account is missing for a user', () => {
-                const policyWithMissingQBOAccount = createMock<OnyxEntry<Policy>>({
-                    ...baseUserPolicy,
-                    connections: createMock<Connections>({
-                        [CONST.POLICY.CONNECTIONS.NAME.QBO]: {
-                            config: {
-                                reimbursableExpensesExportDestination: CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.VENDOR_BILL,
-                                reimbursableExpensesAccount: undefined,
+                it('does not return an ERROR RBR when a QBO sync error exists for a user', () => {
+                    const policyWithQBOSyncError = createMock<OnyxEntry<Policy>>({
+                        ...baseUserPolicy,
+                        connections: createMock<Connections>({
+                            [CONST.POLICY.CONNECTIONS.NAME.QBO]: {
+                                lastSync: {
+                                    errorDate: new Date().toISOString(),
+                                    errorMessage: 'QBO sync failed',
+                                    isAuthenticationError: true,
+                                    isConnected: false,
+                                    isSuccessful: false,
+                                    source: 'NEWEXPENSIFY',
+                                    successfulDate: '',
+                                },
                             },
-                        },
-                    }),
+                        }),
+                    });
+
+                    const result = getPolicyBrickRoadIndicatorStatus(policyWithQBOSyncError, false);
+                    expect(result).toBeUndefined();
                 });
 
-                const result = getPolicyBrickRoadIndicatorStatus(policyWithMissingQBOAccount, false);
-                expect(result).toBeUndefined();
-            });
-
-            it('does not return an ERROR RBR when QBO reimbursable export destination account is configured for an admin', () => {
-                const policyWithQBOConfigured = createMock<OnyxEntry<Policy>>({
-                    ...baseAdminPolicy,
-                    connections: createMock<Connections>({
-                        [CONST.POLICY.CONNECTIONS.NAME.QBO]: {
-                            config: {
-                                reimbursableExpensesExportDestination: CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.VENDOR_BILL,
-                                reimbursableExpensesAccount: {id: '123', name: 'Test Account'},
+                it('does not return an ERROR RBR when no QBO sync errors exist for an admin', () => {
+                    const policyWithSuccessfulQBOSync = createMock<OnyxEntry<Policy>>({
+                        ...baseAdminPolicy,
+                        connections: createMock<Connections>({
+                            [CONST.POLICY.CONNECTIONS.NAME.QBO]: {
+                                lastSync: {
+                                    errorDate: '',
+                                    errorMessage: '',
+                                    isAuthenticationError: false,
+                                    isConnected: true,
+                                    isSuccessful: true,
+                                    source: 'NEWEXPENSIFY',
+                                    successfulDate: new Date().toISOString(),
+                                },
                             },
-                        },
-                    }),
+                        }),
+                    });
+
+                    const result = getPolicyBrickRoadIndicatorStatus(policyWithSuccessfulQBOSync, false);
+                    expect(result).toBeUndefined();
                 });
 
-                const result = getPolicyBrickRoadIndicatorStatus(policyWithQBOConfigured, false);
-                expect(result).toBeUndefined();
-            });
-
-            it('does not return an ERROR RBR when QBO connection does not exist for an admin', () => {
-                const policyWithoutQBOConnection = createMock<OnyxEntry<Policy>>({
-                    ...baseAdminPolicy,
-                    connections: {},
-                });
-
-                const result = getPolicyBrickRoadIndicatorStatus(policyWithoutQBOConnection, false);
-                expect(result).toBeUndefined();
-            });
-
-            it('does not return an ERROR RBR when QBO reimbursable export destination is not set for an admin', () => {
-                const policyWithQBONoExportDestination = createMock<OnyxEntry<Policy>>({
-                    ...baseAdminPolicy,
-                    connections: createMock<Connections>({
-                        [CONST.POLICY.CONNECTIONS.NAME.QBO]: {
-                            config: {
-                                reimbursableExpensesExportDestination: undefined,
-                                reimbursableExpensesAccount: undefined,
+                it('does not return an ERROR RBR when QBO sync is in progress for an admin', () => {
+                    const policyWithQBOSyncError = createMock<OnyxEntry<Policy>>({
+                        ...baseAdminPolicy,
+                        connections: createMock<Connections>({
+                            [CONST.POLICY.CONNECTIONS.NAME.QBO]: {
+                                lastSync: {
+                                    errorDate: new Date().toISOString(),
+                                    errorMessage: 'QBO sync failed',
+                                    isAuthenticationError: true,
+                                    isConnected: false,
+                                    isSuccessful: false,
+                                    source: 'NEWEXPENSIFY',
+                                    successfulDate: '',
+                                },
                             },
-                        },
-                    }),
+                        }),
+                    });
+
+                    // When sync is in progress (second parameter is true), should not show error
+                    const result = getPolicyBrickRoadIndicatorStatus(policyWithQBOSyncError, true);
+                    expect(result).toBeUndefined();
                 });
 
-                const result = getPolicyBrickRoadIndicatorStatus(policyWithQBONoExportDestination, false);
+                it('does return an ERROR RBR when QBO reimbursable export destination account is missing for an admin', () => {
+                    const policyWithMissingQBOAccount = createMock<OnyxEntry<Policy>>({
+                        ...baseAdminPolicy,
+                        connections: createMock<Connections>({
+                            [CONST.POLICY.CONNECTIONS.NAME.QBO]: {
+                                config: {
+                                    reimbursableExpensesExportDestination: CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.VENDOR_BILL,
+                                    reimbursableExpensesAccount: undefined,
+                                },
+                            },
+                        }),
+                    });
+
+                    const result = getPolicyBrickRoadIndicatorStatus(policyWithMissingQBOAccount, false);
+                    expect(result).toEqual(CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR);
+                });
+
+                it('does not return an ERROR RBR when QBO reimbursable export destination account is missing for a user', () => {
+                    const policyWithMissingQBOAccount = createMock<OnyxEntry<Policy>>({
+                        ...baseUserPolicy,
+                        connections: createMock<Connections>({
+                            [CONST.POLICY.CONNECTIONS.NAME.QBO]: {
+                                config: {
+                                    reimbursableExpensesExportDestination: CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.VENDOR_BILL,
+                                    reimbursableExpensesAccount: undefined,
+                                },
+                            },
+                        }),
+                    });
+
+                    const result = getPolicyBrickRoadIndicatorStatus(policyWithMissingQBOAccount, false);
+                    expect(result).toBeUndefined();
+                });
+
+                it('does not return an ERROR RBR when QBO reimbursable export destination account is configured for an admin', () => {
+                    const policyWithQBOConfigured = createMock<OnyxEntry<Policy>>({
+                        ...baseAdminPolicy,
+                        connections: createMock<Connections>({
+                            [CONST.POLICY.CONNECTIONS.NAME.QBO]: {
+                                config: {
+                                    reimbursableExpensesExportDestination: CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.VENDOR_BILL,
+                                    reimbursableExpensesAccount: {id: '123', name: 'Test Account'},
+                                },
+                            },
+                        }),
+                    });
+
+                    const result = getPolicyBrickRoadIndicatorStatus(policyWithQBOConfigured, false);
+                    expect(result).toBeUndefined();
+                });
+
+                it('does not return an ERROR RBR when QBO connection does not exist for an admin', () => {
+                    const policyWithoutQBOConnection = createMock<OnyxEntry<Policy>>({
+                        ...baseAdminPolicy,
+                        connections: {},
+                    });
+
+                    const result = getPolicyBrickRoadIndicatorStatus(policyWithoutQBOConnection, false);
+                    expect(result).toBeUndefined();
+                });
+
+                it('does not return an ERROR RBR when QBO reimbursable export destination is not set for an admin', () => {
+                    const policyWithQBONoExportDestination = createMock<OnyxEntry<Policy>>({
+                        ...baseAdminPolicy,
+                        connections: createMock<Connections>({
+                            [CONST.POLICY.CONNECTIONS.NAME.QBO]: {
+                                config: {
+                                    reimbursableExpensesExportDestination: undefined,
+                                    reimbursableExpensesAccount: undefined,
+                                },
+                            },
+                        }),
+                    });
+
+                    const result = getPolicyBrickRoadIndicatorStatus(policyWithQBONoExportDestination, false);
+                    expect(result).toBeUndefined();
+                });
+            });
+        });
+
+        describe('hasPolicyRulesError', () => {
+            // Whether a merchant rule failed is reduced by the caller's selector and covered in
+            // ExpenseDefaultRuleUtilsTest, so only the agent rules and the pass-through are checked here.
+            const POLICY_ID = 'policy-with-rules';
+
+            it('returns false for an undefined policy', () => {
+                expect(hasPolicyRulesError(undefined, false)).toBe(false);
+            });
+
+            it('returns false when no merchant or agent rules exist', () => {
+                const policy: Policy = {...createRandomPolicy(0), id: POLICY_ID, rules: {}};
+                expect(hasPolicyRulesError(policy, false)).toBe(false);
+            });
+
+            it('returns false when agent rules exist but none have errors', () => {
+                const policy: Policy = {
+                    ...createRandomPolicy(0),
+                    id: POLICY_ID,
+                    rules: {agentRules: {ai1: {ruleID: 'ai1', prompt: 'p', created: '2026-06-08'}}},
+                };
+                expect(hasPolicyRulesError(policy, false)).toBe(false);
+            });
+
+            it('returns true when a merchant rule has errors', () => {
+                const policy: Policy = {...createRandomPolicy(0), id: POLICY_ID, rules: {}};
+                expect(hasPolicyRulesError(policy, true)).toBe(true);
+            });
+
+            it('returns true when an agent rule has errors', () => {
+                const policy: Policy = {
+                    ...createRandomPolicy(0),
+                    id: POLICY_ID,
+                    rules: {
+                        agentRules: {ai1: {ruleID: 'ai1', prompt: 'p', created: '2026-06-08', errors: {123: 'boom'}}},
+                    },
+                };
+                expect(hasPolicyRulesError(policy, false)).toBe(true);
+            });
+        });
+
+        describe('isQBORefreshTokenExpiringSoonSelector', () => {
+            const buildQBOPolicy = (role: string, refreshTokenExpiresAt: number): Policy =>
+                Object.assign(createRandomPolicy(1), {
+                    role,
+                    connections: {quickbooksOnline: {config: {credentials: {companyID: '12345', refreshTokenExpiresAt}}, lastSync: {isAuthenticationError: false}}},
+                });
+            const expiringSoon = Math.floor(Date.now() / 1000) + 3 * 86400;
+
+            it('returns true for an admin whose QBO refresh token expires within the warning window', () => {
+                expect(isQBORefreshTokenExpiringSoonSelector(buildQBOPolicy(CONST.POLICY.ROLE.ADMIN, expiringSoon))).toBe(true);
+            });
+
+            it('returns false for a member, since only admins can reconnect', () => {
+                expect(isQBORefreshTokenExpiringSoonSelector(buildQBOPolicy(CONST.POLICY.ROLE.USER, expiringSoon))).toBe(false);
+            });
+
+            it('returns false when the token is still far from expiring or the policy is undefined', () => {
+                expect(isQBORefreshTokenExpiringSoonSelector(buildQBOPolicy(CONST.POLICY.ROLE.ADMIN, Math.floor(Date.now() / 1000) + 60 * 86400))).toBe(false);
+                expect(isQBORefreshTokenExpiringSoonSelector(undefined)).toBe(false);
+            });
+        });
+
+        describe('isMergeHRCompleteSetupNeededSelector', () => {
+            // Only the fields read by the selector are modeled here; `Object.assign` attaches the connection
+            // to a real policy without an unsafe cast.
+            type MergeHRTestConnection = {
+                lastSync?: {syncStatus?: string};
+                data?: {groups?: unknown[]};
+                config?: {groups?: unknown[] | null};
+            };
+            const buildMergeHRPolicy = (seed: number, mergeHR: MergeHRTestConnection): Policy => Object.assign(createRandomPolicy(seed), {connections: {merge_hris: mergeHR}});
+            const mergeHRBase = {
+                lastSync: {syncStatus: CONST.MERGE.SYNC_STATUS.DONE},
+                data: {groups: [{id: 'g1', name: 'Engineering'}]},
+            };
+
+            it('returns false when policy is undefined', () => {
+                expect(isMergeHRCompleteSetupNeededSelector(undefined)).toBe(false);
+            });
+
+            it('returns false when policy has no merge_hris connection', () => {
+                const policy = createRandomPolicy(1);
+                expect(isMergeHRCompleteSetupNeededSelector(policy)).toBe(false);
+            });
+
+            it('returns false when sync is not done', () => {
+                const policy = buildMergeHRPolicy(2, {...mergeHRBase, lastSync: {syncStatus: CONST.MERGE.SYNC_STATUS.SYNCING}});
+                expect(isMergeHRCompleteSetupNeededSelector(policy)).toBe(false);
+            });
+
+            it('returns false when sync is done but there are no groups', () => {
+                const policy = buildMergeHRPolicy(3, {...mergeHRBase, data: {groups: []}});
+                expect(isMergeHRCompleteSetupNeededSelector(policy)).toBe(false);
+            });
+
+            it('returns false when setup is already complete (groups configured)', () => {
+                const policy = buildMergeHRPolicy(4, {...mergeHRBase, config: {groups: ['g1']}});
+                expect(isMergeHRCompleteSetupNeededSelector(policy)).toBe(false);
+            });
+
+            it('returns true when sync is done, groups exist, and setup is not yet complete', () => {
+                const policy = buildMergeHRPolicy(5, mergeHRBase);
+                expect(isMergeHRCompleteSetupNeededSelector(policy)).toBe(true);
+            });
+        });
+
+        describe('areSettingsInErrorFields', () => {
+            it('returns false when the settings or the error fields are undefined', () => {
+                // Given settings without error fields, and error fields without settings
+                const errorFields = {autoSync: {error: 'Sync failed'}};
+
+                // When checking either incomplete input
+                // Then there is nothing to match, so no error is reported
+                expect(areSettingsInErrorFields(undefined, errorFields)).toBe(false);
+                expect(areSettingsInErrorFields(['autoSync'], undefined)).toBe(false);
+            });
+
+            it('returns true when one of the settings has an error field', () => {
+                // Given error fields where only one of the requested settings has an error
+                const errorFields = {exporter: {error: 'Invalid exporter'}};
+
+                // When checking a list of settings that includes it
+                const result = areSettingsInErrorFields(['autoSync', 'exporter'], errorFields);
+
+                // Then the error is reported because a single matching setting is enough
+                expect(result).toBe(true);
+            });
+
+            it('returns false when none of the settings has an error field', () => {
+                // Given error fields for a setting that was not requested
+                const errorFields = {exporter: {error: 'Invalid exporter'}};
+
+                // When checking unrelated settings
+                const result = areSettingsInErrorFields(['autoSync', 'syncReimbursedReports'], errorFields);
+
+                // Then no error is reported for those settings
+                expect(result).toBe(false);
+            });
+        });
+
+        describe('settingsPendingAction', () => {
+            it('returns null when the settings or the pending fields are undefined', () => {
+                // Given settings without pending fields, and pending fields without settings
+                const pendingFields = {autoSync: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE};
+
+                // When reading the pending action from either incomplete input
+                // Then null is returned to signal there is no pending action to show
+                expect(settingsPendingAction(undefined, pendingFields)).toBeNull();
+                expect(settingsPendingAction(['autoSync'], undefined)).toBeNull();
+            });
+
+            it('returns the pending action of the setting that has one', () => {
+                // Given pending fields where one of the requested settings is being updated
+                const pendingFields = {exporter: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE};
+
+                // When reading the pending action for a list of settings that includes it
+                const result = settingsPendingAction(['autoSync', 'exporter'], pendingFields);
+
+                // Then that setting's pending action is returned so the UI can show it as pending
+                expect(result).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
+            });
+
+            it('returns undefined when none of the settings has a pending field', () => {
+                // Given pending fields for a setting that was not requested
+                const pendingFields = {exporter: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE};
+
+                // When reading the pending action for unrelated settings
+                const result = settingsPendingAction(['autoSync', 'syncReimbursedReports'], pendingFields);
+
+                // Then no pending action is returned
                 expect(result).toBeUndefined();
             });
         });
     });
 
-    describe('hasDynamicExternalWorkflow', () => {
-        it('should return true when policy has DYNAMICEXTERNAL approval mode', () => {
-            const policy: Policy = {
-                ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
-                approvalMode: CONST.POLICY.APPROVAL_MODE.DYNAMICEXTERNAL,
-            };
-            const result = hasDynamicExternalWorkflow(policy);
-            expect(result).toBe(true);
+    describe('workflows', () => {
+        describe('hasDynamicExternalWorkflow', () => {
+            it('should return true when policy has DYNAMICEXTERNAL approval mode', () => {
+                const policy: Policy = {
+                    ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
+                    approvalMode: CONST.POLICY.APPROVAL_MODE.DYNAMICEXTERNAL,
+                };
+                const result = hasDynamicExternalWorkflow(policy);
+                expect(result).toBe(true);
+            });
+
+            it('should return false when policy has BASIC approval mode', () => {
+                const policy: Policy = {
+                    ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
+                    approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
+                };
+                const result = hasDynamicExternalWorkflow(policy);
+                expect(result).toBe(false);
+            });
+
+            it('should return false when policy has ADVANCED approval mode', () => {
+                const policy: Policy = {
+                    ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
+                    approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
+                };
+                const result = hasDynamicExternalWorkflow(policy);
+                expect(result).toBe(false);
+            });
+
+            it('should return false when policy has OPTIONAL approval mode', () => {
+                const policy: Policy = {
+                    ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
+                    approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
+                };
+                const result = hasDynamicExternalWorkflow(policy);
+                expect(result).toBe(false);
+            });
+
+            it('should return false when policy is undefined', () => {
+                const result = hasDynamicExternalWorkflow(undefined);
+                expect(result).toBe(false);
+            });
+
+            it('should return false when policy has no approvalMode', () => {
+                const policy: Policy = {
+                    ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
+                    approvalMode: undefined,
+                };
+                const result = hasDynamicExternalWorkflow(policy);
+                expect(result).toBe(false);
+            });
         });
 
-        it('should return false when policy has BASIC approval mode', () => {
-            const policy: Policy = {
-                ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
-                approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
-            };
-            const result = hasDynamicExternalWorkflow(policy);
-            expect(result).toBe(false);
-        });
+        describe('shouldHideDynamicExternalWorkflowPeople', () => {
+            it('returns false when the policy is undefined', () => {
+                expect(shouldHideDynamicExternalWorkflowPeople(undefined)).toBe(false);
+            });
 
-        it('should return false when policy has ADVANCED approval mode', () => {
-            const policy: Policy = {
-                ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
-                approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
-            };
-            const result = hasDynamicExternalWorkflow(policy);
-            expect(result).toBe(false);
-        });
+            it('returns true for a Dynamic External Workflow policy with the flag set', () => {
+                const policy: Policy = {...createRandomPolicy(0), approvalMode: CONST.POLICY.APPROVAL_MODE.DYNAMICEXTERNAL, dynamicExternalWorkflowHidePeople: true};
+                expect(shouldHideDynamicExternalWorkflowPeople(policy)).toBe(true);
+            });
 
-        it('should return false when policy has OPTIONAL approval mode', () => {
-            const policy: Policy = {
-                ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
-                approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
-            };
-            const result = hasDynamicExternalWorkflow(policy);
-            expect(result).toBe(false);
-        });
+            // The backend only returns the flag when it is `true`, so an absent flag is the normal DEW case.
+            it('returns false for a Dynamic External Workflow policy without the flag', () => {
+                const policy: Policy = {...createRandomPolicy(0), approvalMode: CONST.POLICY.APPROVAL_MODE.DYNAMICEXTERNAL};
+                expect(shouldHideDynamicExternalWorkflowPeople(policy)).toBe(false);
+            });
 
-        it('should return false when policy is undefined', () => {
-            const result = hasDynamicExternalWorkflow(undefined);
-            expect(result).toBe(false);
-        });
-
-        it('should return false when policy has no approvalMode', () => {
-            const policy: Policy = {
-                ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
-                approvalMode: undefined,
-            };
-            const result = hasDynamicExternalWorkflow(policy);
-            expect(result).toBe(false);
+            it('returns false when a stale flag is left on a policy that no longer uses a Dynamic External Workflow', () => {
+                const policy: Policy = {...createRandomPolicy(0), approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED, dynamicExternalWorkflowHidePeople: true};
+                expect(shouldHideDynamicExternalWorkflowPeople(policy)).toBe(false);
+            });
         });
     });
 
@@ -3978,19 +4221,6 @@ describe('PolicyUtils', () => {
         });
     });
 
-    describe('getTagApproverRule', () => {
-        it('should return undefined when no approval rules are present', () => {
-            const policy: Policy = {
-                ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
-                rules: {
-                    approvalRules: [],
-                },
-            };
-            const result = getTagApproverRule(policy, '');
-            expect(result).toBeUndefined();
-        });
-    });
-
     describe('tax', () => {
         describe('getAllTaxRatesNamesAndValues', () => {
             it('returns empty object when there are no policies or no tax rates', () => {
@@ -4305,93 +4535,130 @@ describe('PolicyUtils', () => {
         });
     });
 
-    it('should return undefined when no tag approver rule is present', () => {
-        const policy: Policy = {
-            ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
-            rules: {
-                approvalRules: [
-                    {
-                        id: 'rule-1',
-                        applyWhen: [
-                            {
-                                field: CONST.POLICY.FIELDS.TAG,
-                                condition: CONST.POLICY.RULE_CONDITIONS.MATCHES,
-                                value: 'Fake tag',
-                            },
-                        ],
-                        approver: 'lol@hhh.com',
+    describe('features', () => {
+        describe('getDefaultTimeTrackingRate', () => {
+            it('should return rate in subunits', () => {
+                const policy: Policy = {
+                    ...createRandomPolicy(1),
+                    units: {
+                        time: {
+                            enabled: true,
+                            rate: 20,
+                        },
                     },
-                ],
-            },
-        };
-        const result = getTagApproverRule(policy, 'NonExistentTag');
-        expect(result).toBeUndefined();
-    });
+                };
+                expect(getDefaultTimeTrackingRate(policy)).toBe(2000);
+            });
 
-    it('should return the tag approver rule when present', () => {
-        const tagName = 'ImportantTag';
-        const policy: Policy = {
-            ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
-            rules: {
-                approvalRules: [
-                    {
-                        id: 'rule-1',
-                        applyWhen: [
-                            {
-                                field: CONST.POLICY.FIELDS.TAG,
-                                condition: CONST.POLICY.RULE_CONDITIONS.MATCHES,
-                                value: tagName,
-                            },
-                        ],
-                        approver: 'approver@example.com',
+            it('should return 0 when the rate is 0, not undefined', () => {
+                const policy: Policy = {
+                    ...createRandomPolicy(1),
+                    units: {
+                        time: {
+                            enabled: true,
+                            rate: 0,
+                        },
                     },
-                ],
-            },
-        };
-        const result = getTagApproverRule(policy, tagName);
-        expect(result).toEqual({
-            id: 'rule-1',
-            applyWhen: [
-                {
-                    field: CONST.POLICY.FIELDS.TAG,
-                    condition: CONST.POLICY.RULE_CONDITIONS.MATCHES,
-                    value: tagName,
-                },
-            ],
-            approver: 'approver@example.com',
-        });
-    });
+                };
+                expect(getDefaultTimeTrackingRate(policy)).toBe(0);
+            });
 
-    describe('getDefaultTimeTrackingRate', () => {
-        it('should return rate in subunits', () => {
-            const policy: Policy = {
-                ...createRandomPolicy(1),
-                units: {
-                    time: {
-                        enabled: true,
-                        rate: 20,
-                    },
-                },
-            };
-            expect(getDefaultTimeTrackingRate(policy)).toBe(2000);
+            it('should return undefined when the rate is not defined on the policy', () => {
+                const policy = createRandomPolicy(1);
+                expect(getDefaultTimeTrackingRate(policy)).toBeUndefined();
+            });
         });
 
-        it('should return 0 when the rate is 0, not undefined', () => {
-            const policy: Policy = {
-                ...createRandomPolicy(1),
-                units: {
-                    time: {
-                        enabled: true,
-                        rate: 0,
-                    },
-                },
-            };
-            expect(getDefaultTimeTrackingRate(policy)).toBe(0);
+        describe('isInvoiceFieldsEnabled', () => {
+            it('returns true for a control policy with areInvoiceFieldsEnabled explicitly true', () => {
+                const policy = {...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE), areInvoiceFieldsEnabled: true};
+                expect(isInvoiceFieldsEnabled(policy)).toBe(true);
+            });
+
+            it('returns false for a control policy with areInvoiceFieldsEnabled explicitly false', () => {
+                const policy = {...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE), areInvoiceFieldsEnabled: false};
+                expect(isInvoiceFieldsEnabled(policy)).toBe(false);
+            });
+
+            it('returns false for a collect policy even when areInvoiceFieldsEnabled is true', () => {
+                const policy = {...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM), areInvoiceFieldsEnabled: true};
+                expect(isInvoiceFieldsEnabled(policy)).toBe(false);
+            });
+
+            it('returns false for an undefined policy', () => {
+                expect(isInvoiceFieldsEnabled(undefined)).toBe(false);
+            });
         });
 
-        it('should return undefined when the rate is not defined on the policy', () => {
-            const policy = createRandomPolicy(1);
-            expect(getDefaultTimeTrackingRate(policy)).toBeUndefined();
+        describe('isPolicyFeatureEnabled for ARE_INVOICE_FIELDS_ENABLED', () => {
+            it('returns true for a control policy with invoice fields enabled', () => {
+                const policy = {...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE), areInvoiceFieldsEnabled: true};
+                expect(isPolicyFeatureEnabled(policy, CONST.POLICY.MORE_FEATURES.ARE_INVOICE_FIELDS_ENABLED)).toBe(true);
+            });
+
+            it('returns false for a collect policy even with areInvoiceFieldsEnabled true', () => {
+                const policy = {...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM), areInvoiceFieldsEnabled: true};
+                expect(isPolicyFeatureEnabled(policy, CONST.POLICY.MORE_FEATURES.ARE_INVOICE_FIELDS_ENABLED)).toBe(false);
+            });
+
+            it('returns false for a control policy with invoice fields disabled', () => {
+                const policy = {...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE), areInvoiceFieldsEnabled: false};
+                expect(isPolicyFeatureEnabled(policy, CONST.POLICY.MORE_FEATURES.ARE_INVOICE_FIELDS_ENABLED)).toBe(false);
+            });
+        });
+
+        describe('arePolicyRulesEnabled', () => {
+            const corporateBase = createMock<Policy>({id: 'policy1', type: CONST.POLICY.TYPE.CORPORATE});
+            const teamBase = createMock<Policy>({id: 'policy2', type: CONST.POLICY.TYPE.TEAM});
+
+            it('returns true for a corporate policy with areRulesEnabled explicitly true', () => {
+                expect(arePolicyRulesEnabled({...corporateBase, areRulesEnabled: true})).toBe(true);
+            });
+
+            it('returns false for a corporate policy with areRulesEnabled explicitly false', () => {
+                expect(arePolicyRulesEnabled({...corporateBase, areRulesEnabled: false})).toBe(false);
+            });
+
+            it('returns false for a corporate policy with areRulesEnabled undefined and no categories', () => {
+                expect(arePolicyRulesEnabled({...corporateBase, areRulesEnabled: undefined})).toBe(false);
+            });
+
+            it('returns false for a corporate policy with areRulesEnabled undefined and categories with no rule fields', () => {
+                const categories = {Advertising: {name: 'Advertising', enabled: true, 'GL Code': '1234'}};
+                expect(arePolicyRulesEnabled({...corporateBase, areRulesEnabled: undefined}, categories)).toBe(false);
+            });
+
+            it('returns true for a corporate policy with areRulesEnabled undefined and a category with maxExpenseAmount set', () => {
+                const categories = {Advertising: {name: 'Advertising', enabled: true, maxExpenseAmount: 50000}};
+                expect(arePolicyRulesEnabled({...corporateBase, areRulesEnabled: undefined}, categories)).toBe(true);
+            });
+
+            it('returns true for a corporate policy with areRulesEnabled undefined and a category with maxAmountNoReceipt = 0', () => {
+                const categories = {Travel: {name: 'Travel', enabled: true, maxAmountNoReceipt: 0}};
+                expect(arePolicyRulesEnabled({...corporateBase, areRulesEnabled: undefined}, categories)).toBe(true);
+            });
+
+            it('returns true for a corporate policy with areRulesEnabled undefined and a category with areCommentsRequired = true', () => {
+                const categories = {Meals: {name: 'Meals', enabled: true, areCommentsRequired: true}};
+                expect(arePolicyRulesEnabled({...corporateBase, areRulesEnabled: undefined}, categories)).toBe(true);
+            });
+
+            it('returns true for a corporate policy with areRulesEnabled undefined and a category with commentHint set', () => {
+                const categories = {Car: {name: 'Car', enabled: true, commentHint: 'Enter purpose'}};
+                expect(arePolicyRulesEnabled({...corporateBase, areRulesEnabled: undefined}, categories)).toBe(true);
+            });
+
+            it('returns false for a team policy with areRulesEnabled undefined', () => {
+                expect(arePolicyRulesEnabled({...teamBase, areRulesEnabled: undefined})).toBe(false);
+            });
+
+            it('returns true for a team policy with areRulesEnabled explicitly true', () => {
+                expect(arePolicyRulesEnabled({...teamBase, areRulesEnabled: true}, undefined)).toBe(true);
+            });
+
+            it('returns false for a team policy with areRulesEnabled explicitly false', () => {
+                expect(arePolicyRulesEnabled({...teamBase, areRulesEnabled: false})).toBe(false);
+            });
         });
     });
 
@@ -4506,44 +4773,6 @@ describe('PolicyUtils', () => {
 
             expect(getActivePoliciesWithExpenseChatAndPerDiemEnabled(policies, undefined)).toHaveLength(0);
         });
-
-        describe('isInvoiceFieldsEnabled', () => {
-            it('returns true for a control policy with areInvoiceFieldsEnabled explicitly true', () => {
-                const policy = {...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE), areInvoiceFieldsEnabled: true};
-                expect(isInvoiceFieldsEnabled(policy)).toBe(true);
-            });
-
-            it('returns false for a control policy with areInvoiceFieldsEnabled explicitly false', () => {
-                const policy = {...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE), areInvoiceFieldsEnabled: false};
-                expect(isInvoiceFieldsEnabled(policy)).toBe(false);
-            });
-
-            it('returns false for a collect policy even when areInvoiceFieldsEnabled is true', () => {
-                const policy = {...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM), areInvoiceFieldsEnabled: true};
-                expect(isInvoiceFieldsEnabled(policy)).toBe(false);
-            });
-
-            it('returns false for an undefined policy', () => {
-                expect(isInvoiceFieldsEnabled(undefined)).toBe(false);
-            });
-        });
-
-        describe('isPolicyFeatureEnabled for ARE_INVOICE_FIELDS_ENABLED', () => {
-            it('returns true for a control policy with invoice fields enabled', () => {
-                const policy = {...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE), areInvoiceFieldsEnabled: true};
-                expect(isPolicyFeatureEnabled(policy, CONST.POLICY.MORE_FEATURES.ARE_INVOICE_FIELDS_ENABLED)).toBe(true);
-            });
-
-            it('returns false for a collect policy even with areInvoiceFieldsEnabled true', () => {
-                const policy = {...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM), areInvoiceFieldsEnabled: true};
-                expect(isPolicyFeatureEnabled(policy, CONST.POLICY.MORE_FEATURES.ARE_INVOICE_FIELDS_ENABLED)).toBe(false);
-            });
-
-            it('returns false for a control policy with invoice fields disabled', () => {
-                const policy = {...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE), areInvoiceFieldsEnabled: false};
-                expect(isPolicyFeatureEnabled(policy, CONST.POLICY.MORE_FEATURES.ARE_INVOICE_FIELDS_ENABLED)).toBe(false);
-            });
-        });
     });
 
     describe('sortPoliciesByName', () => {
@@ -4595,198 +4824,288 @@ describe('PolicyUtils', () => {
         });
     });
 
-    describe('hasConfiguredRules', () => {
-        it('returns false when policy is undefined', () => {
-            expect(hasConfiguredRules(undefined, undefined, false)).toBe(false);
-        });
-
-        it('returns false when policy has no rules configured', () => {
-            expect(hasConfiguredRules(createMock<Policy>({}), undefined, false)).toBe(false);
-        });
-
-        describe('customRules', () => {
-            it('returns true when customRules is non-empty', () => {
-                expect(hasConfiguredRules(createMock<Policy>({customRules: 'some rule'}), undefined, false)).toBe(true);
-            });
-
-            it('returns false when customRules is an empty string', () => {
-                expect(hasConfiguredRules(createMock<Policy>({customRules: ''}), undefined, false)).toBe(false);
-            });
-
-            it('returns false when customRules is only whitespace', () => {
-                expect(hasConfiguredRules(createMock<Policy>({customRules: '   '}), undefined, false)).toBe(false);
-            });
-        });
-
-        describe('rules.approvalRules', () => {
-            it('returns true when approvalRules has items', () => {
-                const policy = createMock<Policy>({rules: {approvalRules: [{id: '1', applyWhen: [], approver: 'approver@test.com'}]}});
-                expect(hasConfiguredRules(policy, undefined, false)).toBe(true);
-            });
-
-            it('returns false when approvalRules is empty', () => {
-                expect(hasConfiguredRules(createMock<Policy>({rules: {approvalRules: []}}), undefined, false)).toBe(false);
-            });
-        });
-
-        describe('rules.expenseRules', () => {
-            it('returns true when expenseRules has items', () => {
-                const policy = createMock<Policy>({
+    describe('rules', () => {
+        describe('getTagApproverRule', () => {
+            it('should return undefined when no approval rules are present', () => {
+                const policy: Policy = {
+                    ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
                     rules: {
-                        expenseRules: [
+                        approvalRules: [],
+                    },
+                };
+                const result = getTagApproverRule(policy, '');
+                expect(result).toBeUndefined();
+            });
+
+            it('should return undefined when no tag approver rule is present', () => {
+                const policy: Policy = {
+                    ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
+                    rules: {
+                        approvalRules: [
                             {
-                                id: '1',
-                                applyWhen: [],
-                                tax: {field_id_TAX: {externalID: 'TAX_US'}},
+                                id: 'rule-1',
+                                applyWhen: [
+                                    {
+                                        field: CONST.POLICY.FIELDS.TAG,
+                                        condition: CONST.POLICY.RULE_CONDITIONS.MATCHES,
+                                        value: 'Fake tag',
+                                    },
+                                ],
+                                approver: 'lol@hhh.com',
                             },
                         ],
                     },
+                };
+                const result = getTagApproverRule(policy, 'NonExistentTag');
+                expect(result).toBeUndefined();
+            });
+
+            it('should return the tag approver rule when present', () => {
+                const tagName = 'ImportantTag';
+                const policy: Policy = {
+                    ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
+                    rules: {
+                        approvalRules: [
+                            {
+                                id: 'rule-1',
+                                applyWhen: [
+                                    {
+                                        field: CONST.POLICY.FIELDS.TAG,
+                                        condition: CONST.POLICY.RULE_CONDITIONS.MATCHES,
+                                        value: tagName,
+                                    },
+                                ],
+                                approver: 'approver@example.com',
+                            },
+                        ],
+                    },
+                };
+                const result = getTagApproverRule(policy, tagName);
+                expect(result).toEqual({
+                    id: 'rule-1',
+                    applyWhen: [
+                        {
+                            field: CONST.POLICY.FIELDS.TAG,
+                            condition: CONST.POLICY.RULE_CONDITIONS.MATCHES,
+                            value: tagName,
+                        },
+                    ],
+                    approver: 'approver@example.com',
                 });
-                expect(hasConfiguredRules(policy, undefined, false)).toBe(true);
-            });
-
-            it('returns false when expenseRules is empty', () => {
-                expect(hasConfiguredRules(createMock<Policy>({rules: {expenseRules: []}}), undefined, false)).toBe(false);
             });
         });
 
-        describe('merchant rules', () => {
-            // Which rules count towards this is decided by the caller's selector and covered in
-            // ExpenseDefaultRuleUtilsTest, so only the pass-through is checked here.
-            const policy = createMock<Policy>({id: 'policy1', rules: {}});
-
-            it('returns true when the policy has a merchant rule', () => {
-                expect(hasConfiguredRules(policy, undefined, true)).toBe(true);
+        describe('hasConfiguredRules', () => {
+            it('returns false when policy is undefined', () => {
+                expect(hasConfiguredRules(undefined, undefined, false)).toBe(false);
             });
 
-            it('returns false when it has none', () => {
-                expect(hasConfiguredRules(policy, undefined, false)).toBe(false);
+            it('returns false when policy has no rules configured', () => {
+                expect(hasConfiguredRules(createMock<Policy>({}), undefined, false)).toBe(false);
+            });
+
+            describe('customRules', () => {
+                it('returns true when customRules is non-empty', () => {
+                    expect(hasConfiguredRules(createMock<Policy>({customRules: 'some rule'}), undefined, false)).toBe(true);
+                });
+
+                it('returns false when customRules is an empty string', () => {
+                    expect(hasConfiguredRules(createMock<Policy>({customRules: ''}), undefined, false)).toBe(false);
+                });
+
+                it('returns false when customRules is only whitespace', () => {
+                    expect(hasConfiguredRules(createMock<Policy>({customRules: '   '}), undefined, false)).toBe(false);
+                });
+            });
+
+            describe('rules.approvalRules', () => {
+                it('returns true when approvalRules has items', () => {
+                    const policy = createMock<Policy>({rules: {approvalRules: [{id: '1', applyWhen: [], approver: 'approver@test.com'}]}});
+                    expect(hasConfiguredRules(policy, undefined, false)).toBe(true);
+                });
+
+                it('returns false when approvalRules is empty', () => {
+                    expect(hasConfiguredRules(createMock<Policy>({rules: {approvalRules: []}}), undefined, false)).toBe(false);
+                });
+            });
+
+            describe('rules.expenseRules', () => {
+                it('returns true when expenseRules has items', () => {
+                    const policy = createMock<Policy>({
+                        rules: {
+                            expenseRules: [
+                                {
+                                    id: '1',
+                                    applyWhen: [],
+                                    tax: {field_id_TAX: {externalID: 'TAX_US'}},
+                                },
+                            ],
+                        },
+                    });
+                    expect(hasConfiguredRules(policy, undefined, false)).toBe(true);
+                });
+
+                it('returns false when expenseRules is empty', () => {
+                    expect(hasConfiguredRules(createMock<Policy>({rules: {expenseRules: []}}), undefined, false)).toBe(false);
+                });
+            });
+
+            describe('merchant rules', () => {
+                // Which rules count towards this is decided by the caller's selector and covered in
+                // ExpenseDefaultRuleUtilsTest, so only the pass-through is checked here.
+                const policy = createMock<Policy>({id: 'policy1', rules: {}});
+
+                it('returns true when the policy has a merchant rule', () => {
+                    expect(hasConfiguredRules(policy, undefined, true)).toBe(true);
+                });
+
+                it('returns false when it has none', () => {
+                    expect(hasConfiguredRules(policy, undefined, false)).toBe(false);
+                });
+            });
+
+            describe('maxExpenseAmount', () => {
+                it('returns true when maxExpenseAmount is set to a non-default value', () => {
+                    expect(hasConfiguredRules(createMock<Policy>({maxExpenseAmount: 500000}), undefined, false)).toBe(true);
+                });
+
+                it('returns false when maxExpenseAmount is the default value', () => {
+                    expect(hasConfiguredRules(createMock<Policy>({maxExpenseAmount: CONST.POLICY.DEFAULT_MAX_EXPENSE_AMOUNT}), undefined, false)).toBe(false);
+                });
+
+                it('returns false when maxExpenseAmount is the disabled value', () => {
+                    expect(hasConfiguredRules(createMock<Policy>({maxExpenseAmount: CONST.DISABLED_MAX_EXPENSE_VALUE}), undefined, false)).toBe(false);
+                });
+            });
+
+            describe('maxExpenseAge', () => {
+                it('returns true when maxExpenseAge is set to a non-default value', () => {
+                    expect(hasConfiguredRules(createMock<Policy>({maxExpenseAge: 30}), undefined, false)).toBe(true);
+                });
+
+                it('returns false when maxExpenseAge is the default value', () => {
+                    expect(hasConfiguredRules(createMock<Policy>({maxExpenseAge: CONST.POLICY.DEFAULT_MAX_EXPENSE_AGE}), undefined, false)).toBe(false);
+                });
+
+                it('returns false when maxExpenseAge is the disabled value', () => {
+                    expect(hasConfiguredRules(createMock<Policy>({maxExpenseAge: CONST.DISABLED_MAX_EXPENSE_VALUE}), undefined, false)).toBe(false);
+                });
+            });
+
+            describe('maxExpenseAmountNoReceipt', () => {
+                it('returns true when maxExpenseAmountNoReceipt is set to a non-default value', () => {
+                    expect(hasConfiguredRules(createMock<Policy>({maxExpenseAmountNoReceipt: 5000}), undefined, false)).toBe(true);
+                });
+
+                it('returns false when maxExpenseAmountNoReceipt is the default value', () => {
+                    expect(hasConfiguredRules(createMock<Policy>({maxExpenseAmountNoReceipt: CONST.POLICY.DEFAULT_MAX_AMOUNT_NO_RECEIPT}), undefined, false)).toBe(false);
+                });
+
+                it('returns false when maxExpenseAmountNoReceipt is the disabled value', () => {
+                    expect(hasConfiguredRules(createMock<Policy>({maxExpenseAmountNoReceipt: CONST.DISABLED_MAX_EXPENSE_VALUE}), undefined, false)).toBe(false);
+                });
+            });
+
+            describe('maxExpenseAmountNoItemizedReceipt', () => {
+                it('returns true when maxExpenseAmountNoItemizedReceipt is set to a non-default value', () => {
+                    expect(hasConfiguredRules(createMock<Policy>({maxExpenseAmountNoItemizedReceipt: 10000}), undefined, false)).toBe(true);
+                });
+
+                it('returns false when maxExpenseAmountNoItemizedReceipt is the default value', () => {
+                    expect(hasConfiguredRules(createMock<Policy>({maxExpenseAmountNoItemizedReceipt: CONST.POLICY.DEFAULT_MAX_AMOUNT_NO_ITEMIZED_RECEIPT}), undefined, false)).toBe(false);
+                });
+
+                it('returns false when maxExpenseAmountNoItemizedReceipt is the disabled value', () => {
+                    expect(hasConfiguredRules(createMock<Policy>({maxExpenseAmountNoItemizedReceipt: CONST.DISABLED_MAX_EXPENSE_VALUE}), undefined, false)).toBe(false);
+                });
+            });
+
+            describe('defaultBillable', () => {
+                it('returns true when defaultBillable is true', () => {
+                    expect(hasConfiguredRules(createMock<Policy>({defaultBillable: true}), undefined, false)).toBe(true);
+                });
+
+                it('returns false when defaultBillable is false', () => {
+                    expect(hasConfiguredRules(createMock<Policy>({defaultBillable: false}), undefined, false)).toBe(false);
+                });
+            });
+
+            describe('defaultReimbursable', () => {
+                it('returns true when defaultReimbursable is false', () => {
+                    expect(hasConfiguredRules(createMock<Policy>({defaultReimbursable: false}), undefined, false)).toBe(true);
+                });
+
+                it('returns false when defaultReimbursable is true', () => {
+                    expect(hasConfiguredRules(createMock<Policy>({defaultReimbursable: true}), undefined, false)).toBe(false);
+                });
+            });
+
+            describe('eReceipts', () => {
+                it('returns true when eReceipts is true', () => {
+                    expect(hasConfiguredRules(createMock<Policy>({eReceipts: true}), undefined, false)).toBe(true);
+                });
+
+                it('returns false when eReceipts is false', () => {
+                    expect(hasConfiguredRules(createMock<Policy>({eReceipts: false}), undefined, false)).toBe(false);
+                });
+            });
+
+            describe('requireCompanyCardsEnabled', () => {
+                it('returns true when requireCompanyCardsEnabled is true', () => {
+                    expect(hasConfiguredRules(createMock<Policy>({requireCompanyCardsEnabled: true}), undefined, false)).toBe(true);
+                });
+
+                it('returns false when requireCompanyCardsEnabled is false', () => {
+                    expect(hasConfiguredRules(createMock<Policy>({requireCompanyCardsEnabled: false}), undefined, false)).toBe(false);
+                });
+            });
+
+            describe('prohibitedExpenses', () => {
+                it('returns true when a prohibitedExpenses value differs from its default', () => {
+                    // alcohol defaults to false — setting it to true triggers the rule
+                    expect(hasConfiguredRules(createMock<Policy>({prohibitedExpenses: {alcohol: true}}), undefined, false)).toBe(true);
+                });
+
+                it('returns true when gambling is disabled (differs from default true)', () => {
+                    expect(hasConfiguredRules(createMock<Policy>({prohibitedExpenses: {gambling: false}}), undefined, false)).toBe(true);
+                });
+
+                it('returns false when prohibitedExpenses matches all defaults', () => {
+                    expect(hasConfiguredRules(createMock<Policy>({prohibitedExpenses: {...CONST.POLICY.DEFAULT_PROHIBITED_EXPENSES}}), undefined, false)).toBe(false);
+                });
+
+                it('returns false when prohibitedExpenses is an empty object', () => {
+                    expect(hasConfiguredRules(createMock<Policy>({prohibitedExpenses: {}}), undefined, false)).toBe(false);
+                });
+            });
+
+            it('returns true when only Classic category rules exist', () => {
+                const categories = {Travel: {name: 'Travel', enabled: true, maxAmountNoReceipt: 0}};
+                expect(hasConfiguredRules(createMock<Policy>({}), categories, false)).toBe(true);
+            });
+
+            it('returns false when categories have no active rule fields', () => {
+                const categories = {Advertising: {name: 'Advertising', enabled: true, 'GL Code': '1234'}};
+                expect(hasConfiguredRules(createMock<Policy>({}), categories, false)).toBe(false);
             });
         });
 
-        describe('maxExpenseAmount', () => {
-            it('returns true when maxExpenseAmount is set to a non-default value', () => {
-                expect(hasConfiguredRules(createMock<Policy>({maxExpenseAmount: 500000}), undefined, false)).toBe(true);
+        describe('isMaxExpenseAmountSet', () => {
+            it('returns false when the amount was never set', () => {
+                expect(isMaxExpenseAmountSet(undefined)).toBe(false);
             });
 
-            it('returns false when maxExpenseAmount is the default value', () => {
-                expect(hasConfiguredRules(createMock<Policy>({maxExpenseAmount: CONST.POLICY.DEFAULT_MAX_EXPENSE_AMOUNT}), undefined, false)).toBe(false);
+            it('returns false when the amount is explicitly disabled', () => {
+                expect(isMaxExpenseAmountSet(CONST.DISABLED_MAX_EXPENSE_VALUE)).toBe(false);
             });
 
-            it('returns false when maxExpenseAmount is the disabled value', () => {
-                expect(hasConfiguredRules(createMock<Policy>({maxExpenseAmount: CONST.DISABLED_MAX_EXPENSE_VALUE}), undefined, false)).toBe(false);
-            });
-        });
-
-        describe('maxExpenseAge', () => {
-            it('returns true when maxExpenseAge is set to a non-default value', () => {
-                expect(hasConfiguredRules(createMock<Policy>({maxExpenseAge: 30}), undefined, false)).toBe(true);
+            it('returns true for an explicit 0, which means the receipt is always required', () => {
+                expect(isMaxExpenseAmountSet(0)).toBe(true);
             });
 
-            it('returns false when maxExpenseAge is the default value', () => {
-                expect(hasConfiguredRules(createMock<Policy>({maxExpenseAge: CONST.POLICY.DEFAULT_MAX_EXPENSE_AGE}), undefined, false)).toBe(false);
+            it('returns true for a positive amount', () => {
+                expect(isMaxExpenseAmountSet(5000)).toBe(true);
             });
-
-            it('returns false when maxExpenseAge is the disabled value', () => {
-                expect(hasConfiguredRules(createMock<Policy>({maxExpenseAge: CONST.DISABLED_MAX_EXPENSE_VALUE}), undefined, false)).toBe(false);
-            });
-        });
-
-        describe('maxExpenseAmountNoReceipt', () => {
-            it('returns true when maxExpenseAmountNoReceipt is set to a non-default value', () => {
-                expect(hasConfiguredRules(createMock<Policy>({maxExpenseAmountNoReceipt: 5000}), undefined, false)).toBe(true);
-            });
-
-            it('returns false when maxExpenseAmountNoReceipt is the default value', () => {
-                expect(hasConfiguredRules(createMock<Policy>({maxExpenseAmountNoReceipt: CONST.POLICY.DEFAULT_MAX_AMOUNT_NO_RECEIPT}), undefined, false)).toBe(false);
-            });
-
-            it('returns false when maxExpenseAmountNoReceipt is the disabled value', () => {
-                expect(hasConfiguredRules(createMock<Policy>({maxExpenseAmountNoReceipt: CONST.DISABLED_MAX_EXPENSE_VALUE}), undefined, false)).toBe(false);
-            });
-        });
-
-        describe('maxExpenseAmountNoItemizedReceipt', () => {
-            it('returns true when maxExpenseAmountNoItemizedReceipt is set to a non-default value', () => {
-                expect(hasConfiguredRules(createMock<Policy>({maxExpenseAmountNoItemizedReceipt: 10000}), undefined, false)).toBe(true);
-            });
-
-            it('returns false when maxExpenseAmountNoItemizedReceipt is the default value', () => {
-                expect(hasConfiguredRules(createMock<Policy>({maxExpenseAmountNoItemizedReceipt: CONST.POLICY.DEFAULT_MAX_AMOUNT_NO_ITEMIZED_RECEIPT}), undefined, false)).toBe(false);
-            });
-
-            it('returns false when maxExpenseAmountNoItemizedReceipt is the disabled value', () => {
-                expect(hasConfiguredRules(createMock<Policy>({maxExpenseAmountNoItemizedReceipt: CONST.DISABLED_MAX_EXPENSE_VALUE}), undefined, false)).toBe(false);
-            });
-        });
-
-        describe('defaultBillable', () => {
-            it('returns true when defaultBillable is true', () => {
-                expect(hasConfiguredRules(createMock<Policy>({defaultBillable: true}), undefined, false)).toBe(true);
-            });
-
-            it('returns false when defaultBillable is false', () => {
-                expect(hasConfiguredRules(createMock<Policy>({defaultBillable: false}), undefined, false)).toBe(false);
-            });
-        });
-
-        describe('defaultReimbursable', () => {
-            it('returns true when defaultReimbursable is false', () => {
-                expect(hasConfiguredRules(createMock<Policy>({defaultReimbursable: false}), undefined, false)).toBe(true);
-            });
-
-            it('returns false when defaultReimbursable is true', () => {
-                expect(hasConfiguredRules(createMock<Policy>({defaultReimbursable: true}), undefined, false)).toBe(false);
-            });
-        });
-
-        describe('eReceipts', () => {
-            it('returns true when eReceipts is true', () => {
-                expect(hasConfiguredRules(createMock<Policy>({eReceipts: true}), undefined, false)).toBe(true);
-            });
-
-            it('returns false when eReceipts is false', () => {
-                expect(hasConfiguredRules(createMock<Policy>({eReceipts: false}), undefined, false)).toBe(false);
-            });
-        });
-
-        describe('requireCompanyCardsEnabled', () => {
-            it('returns true when requireCompanyCardsEnabled is true', () => {
-                expect(hasConfiguredRules(createMock<Policy>({requireCompanyCardsEnabled: true}), undefined, false)).toBe(true);
-            });
-
-            it('returns false when requireCompanyCardsEnabled is false', () => {
-                expect(hasConfiguredRules(createMock<Policy>({requireCompanyCardsEnabled: false}), undefined, false)).toBe(false);
-            });
-        });
-
-        describe('prohibitedExpenses', () => {
-            it('returns true when a prohibitedExpenses value differs from its default', () => {
-                // alcohol defaults to false — setting it to true triggers the rule
-                expect(hasConfiguredRules(createMock<Policy>({prohibitedExpenses: {alcohol: true}}), undefined, false)).toBe(true);
-            });
-
-            it('returns true when gambling is disabled (differs from default true)', () => {
-                expect(hasConfiguredRules(createMock<Policy>({prohibitedExpenses: {gambling: false}}), undefined, false)).toBe(true);
-            });
-
-            it('returns false when prohibitedExpenses matches all defaults', () => {
-                expect(hasConfiguredRules(createMock<Policy>({prohibitedExpenses: {...CONST.POLICY.DEFAULT_PROHIBITED_EXPENSES}}), undefined, false)).toBe(false);
-            });
-
-            it('returns false when prohibitedExpenses is an empty object', () => {
-                expect(hasConfiguredRules(createMock<Policy>({prohibitedExpenses: {}}), undefined, false)).toBe(false);
-            });
-        });
-
-        it('returns true when only Classic category rules exist', () => {
-            const categories = {Travel: {name: 'Travel', enabled: true, maxAmountNoReceipt: 0}};
-            expect(hasConfiguredRules(createMock<Policy>({}), categories, false)).toBe(true);
-        });
-
-        it('returns false when categories have no active rule fields', () => {
-            const categories = {Advertising: {name: 'Advertising', enabled: true, 'GL Code': '1234'}};
-            expect(hasConfiguredRules(createMock<Policy>({}), categories, false)).toBe(false);
         });
     });
 
@@ -6186,46 +6505,6 @@ describe('PolicyUtils', () => {
         });
     });
 
-    describe('hasPolicyRulesError', () => {
-        // Whether a merchant rule failed is reduced by the caller's selector and covered in
-        // ExpenseDefaultRuleUtilsTest, so only the agent rules and the pass-through are checked here.
-        const POLICY_ID = 'policy-with-rules';
-
-        it('returns false for an undefined policy', () => {
-            expect(hasPolicyRulesError(undefined, false)).toBe(false);
-        });
-
-        it('returns false when no merchant or agent rules exist', () => {
-            const policy: Policy = {...createRandomPolicy(0), id: POLICY_ID, rules: {}};
-            expect(hasPolicyRulesError(policy, false)).toBe(false);
-        });
-
-        it('returns false when agent rules exist but none have errors', () => {
-            const policy: Policy = {
-                ...createRandomPolicy(0),
-                id: POLICY_ID,
-                rules: {agentRules: {ai1: {ruleID: 'ai1', prompt: 'p', created: '2026-06-08'}}},
-            };
-            expect(hasPolicyRulesError(policy, false)).toBe(false);
-        });
-
-        it('returns true when a merchant rule has errors', () => {
-            const policy: Policy = {...createRandomPolicy(0), id: POLICY_ID, rules: {}};
-            expect(hasPolicyRulesError(policy, true)).toBe(true);
-        });
-
-        it('returns true when an agent rule has errors', () => {
-            const policy: Policy = {
-                ...createRandomPolicy(0),
-                id: POLICY_ID,
-                rules: {
-                    agentRules: {ai1: {ruleID: 'ai1', prompt: 'p', created: '2026-06-08', errors: {123: 'boom'}}},
-                },
-            };
-            expect(hasPolicyRulesError(policy, false)).toBe(true);
-        });
-    });
-
     describe('getExcludedUsers', () => {
         it('marks every active policy member as excluded', () => {
             const result = getExcludedUsers(employeeList);
@@ -6260,72 +6539,6 @@ describe('PolicyUtils', () => {
         it('returns only Expensify emails when the employee list is undefined', () => {
             const result = getExcludedUsers(undefined);
             expect(Object.keys(result)).toEqual([...CONST.EXPENSIFY_EMAILS]);
-        });
-    });
-
-    describe('isQBORefreshTokenExpiringSoonSelector', () => {
-        const buildQBOPolicy = (role: string, refreshTokenExpiresAt: number): Policy =>
-            Object.assign(createRandomPolicy(1), {
-                role,
-                connections: {quickbooksOnline: {config: {credentials: {companyID: '12345', refreshTokenExpiresAt}}, lastSync: {isAuthenticationError: false}}},
-            });
-        const expiringSoon = Math.floor(Date.now() / 1000) + 3 * 86400;
-
-        it('returns true for an admin whose QBO refresh token expires within the warning window', () => {
-            expect(isQBORefreshTokenExpiringSoonSelector(buildQBOPolicy(CONST.POLICY.ROLE.ADMIN, expiringSoon))).toBe(true);
-        });
-
-        it('returns false for a member, since only admins can reconnect', () => {
-            expect(isQBORefreshTokenExpiringSoonSelector(buildQBOPolicy(CONST.POLICY.ROLE.USER, expiringSoon))).toBe(false);
-        });
-
-        it('returns false when the token is still far from expiring or the policy is undefined', () => {
-            expect(isQBORefreshTokenExpiringSoonSelector(buildQBOPolicy(CONST.POLICY.ROLE.ADMIN, Math.floor(Date.now() / 1000) + 60 * 86400))).toBe(false);
-            expect(isQBORefreshTokenExpiringSoonSelector(undefined)).toBe(false);
-        });
-    });
-
-    describe('isMergeHRCompleteSetupNeededSelector', () => {
-        // Only the fields read by the selector are modeled here; `Object.assign` attaches the connection
-        // to a real policy without an unsafe cast.
-        type MergeHRTestConnection = {
-            lastSync?: {syncStatus?: string};
-            data?: {groups?: unknown[]};
-            config?: {groups?: unknown[] | null};
-        };
-        const buildMergeHRPolicy = (seed: number, mergeHR: MergeHRTestConnection): Policy => Object.assign(createRandomPolicy(seed), {connections: {merge_hris: mergeHR}});
-        const mergeHRBase = {
-            lastSync: {syncStatus: CONST.MERGE.SYNC_STATUS.DONE},
-            data: {groups: [{id: 'g1', name: 'Engineering'}]},
-        };
-
-        it('returns false when policy is undefined', () => {
-            expect(isMergeHRCompleteSetupNeededSelector(undefined)).toBe(false);
-        });
-
-        it('returns false when policy has no merge_hris connection', () => {
-            const policy = createRandomPolicy(1);
-            expect(isMergeHRCompleteSetupNeededSelector(policy)).toBe(false);
-        });
-
-        it('returns false when sync is not done', () => {
-            const policy = buildMergeHRPolicy(2, {...mergeHRBase, lastSync: {syncStatus: CONST.MERGE.SYNC_STATUS.SYNCING}});
-            expect(isMergeHRCompleteSetupNeededSelector(policy)).toBe(false);
-        });
-
-        it('returns false when sync is done but there are no groups', () => {
-            const policy = buildMergeHRPolicy(3, {...mergeHRBase, data: {groups: []}});
-            expect(isMergeHRCompleteSetupNeededSelector(policy)).toBe(false);
-        });
-
-        it('returns false when setup is already complete (groups configured)', () => {
-            const policy = buildMergeHRPolicy(4, {...mergeHRBase, config: {groups: ['g1']}});
-            expect(isMergeHRCompleteSetupNeededSelector(policy)).toBe(false);
-        });
-
-        it('returns true when sync is done, groups exist, and setup is not yet complete', () => {
-            const policy = buildMergeHRPolicy(5, mergeHRBase);
-            expect(isMergeHRCompleteSetupNeededSelector(policy)).toBe(true);
         });
     });
 
@@ -6710,78 +6923,6 @@ describe('PolicyUtils', () => {
     });
 });
 
-describe('isMaxExpenseAmountSet', () => {
-    it('returns false when the amount was never set', () => {
-        expect(isMaxExpenseAmountSet(undefined)).toBe(false);
-    });
-
-    it('returns false when the amount is explicitly disabled', () => {
-        expect(isMaxExpenseAmountSet(CONST.DISABLED_MAX_EXPENSE_VALUE)).toBe(false);
-    });
-
-    it('returns true for an explicit 0, which means the receipt is always required', () => {
-        expect(isMaxExpenseAmountSet(0)).toBe(true);
-    });
-
-    it('returns true for a positive amount', () => {
-        expect(isMaxExpenseAmountSet(5000)).toBe(true);
-    });
-});
-
-describe('arePolicyRulesEnabled', () => {
-    const corporateBase = createMock<Policy>({id: 'policy1', type: CONST.POLICY.TYPE.CORPORATE});
-    const teamBase = createMock<Policy>({id: 'policy2', type: CONST.POLICY.TYPE.TEAM});
-
-    it('returns true for a corporate policy with areRulesEnabled explicitly true', () => {
-        expect(arePolicyRulesEnabled({...corporateBase, areRulesEnabled: true})).toBe(true);
-    });
-
-    it('returns false for a corporate policy with areRulesEnabled explicitly false', () => {
-        expect(arePolicyRulesEnabled({...corporateBase, areRulesEnabled: false})).toBe(false);
-    });
-
-    it('returns false for a corporate policy with areRulesEnabled undefined and no categories', () => {
-        expect(arePolicyRulesEnabled({...corporateBase, areRulesEnabled: undefined})).toBe(false);
-    });
-
-    it('returns false for a corporate policy with areRulesEnabled undefined and categories with no rule fields', () => {
-        const categories = {Advertising: {name: 'Advertising', enabled: true, 'GL Code': '1234'}};
-        expect(arePolicyRulesEnabled({...corporateBase, areRulesEnabled: undefined}, categories)).toBe(false);
-    });
-
-    it('returns true for a corporate policy with areRulesEnabled undefined and a category with maxExpenseAmount set', () => {
-        const categories = {Advertising: {name: 'Advertising', enabled: true, maxExpenseAmount: 50000}};
-        expect(arePolicyRulesEnabled({...corporateBase, areRulesEnabled: undefined}, categories)).toBe(true);
-    });
-
-    it('returns true for a corporate policy with areRulesEnabled undefined and a category with maxAmountNoReceipt = 0', () => {
-        const categories = {Travel: {name: 'Travel', enabled: true, maxAmountNoReceipt: 0}};
-        expect(arePolicyRulesEnabled({...corporateBase, areRulesEnabled: undefined}, categories)).toBe(true);
-    });
-
-    it('returns true for a corporate policy with areRulesEnabled undefined and a category with areCommentsRequired = true', () => {
-        const categories = {Meals: {name: 'Meals', enabled: true, areCommentsRequired: true}};
-        expect(arePolicyRulesEnabled({...corporateBase, areRulesEnabled: undefined}, categories)).toBe(true);
-    });
-
-    it('returns true for a corporate policy with areRulesEnabled undefined and a category with commentHint set', () => {
-        const categories = {Car: {name: 'Car', enabled: true, commentHint: 'Enter purpose'}};
-        expect(arePolicyRulesEnabled({...corporateBase, areRulesEnabled: undefined}, categories)).toBe(true);
-    });
-
-    it('returns false for a team policy with areRulesEnabled undefined', () => {
-        expect(arePolicyRulesEnabled({...teamBase, areRulesEnabled: undefined})).toBe(false);
-    });
-
-    it('returns true for a team policy with areRulesEnabled explicitly true', () => {
-        expect(arePolicyRulesEnabled({...teamBase, areRulesEnabled: true}, undefined)).toBe(true);
-    });
-
-    it('returns false for a team policy with areRulesEnabled explicitly false', () => {
-        expect(arePolicyRulesEnabled({...teamBase, areRulesEnabled: false})).toBe(false);
-    });
-});
-
 describe('getDefaultChatEnabledPolicy', () => {
     const submitPolicy = {...createRandomPolicy(1, CONST.POLICY.TYPE.SUBMIT), id: 'submit1'};
     const teamPolicy = {...createRandomPolicy(2, CONST.POLICY.TYPE.TEAM), id: 'team1'};
@@ -7011,24 +7152,19 @@ describe('isMemberInHomeAndOfficeWorkspace', () => {
     });
 });
 
-describe('shouldHideDynamicExternalWorkflowPeople', () => {
-    it('returns false when the policy is undefined', () => {
-        expect(shouldHideDynamicExternalWorkflowPeople(undefined)).toBe(false);
-    });
+describe('hasCompanyAddress', () => {
+    it('only counts a company address that has a street, the same way Auth does', () => {
+        // Given workspaces without an address, with a blank street, and with a street
+        const policy = createRandomPolicy(0);
+        const address = {city: 'San Francisco', state: 'CA', zipCode: '94108', country: 'US' as const};
+        const withoutAddress: Policy = {...policy, address: undefined};
+        const withBlankStreet: Policy = {...policy, address: {...address, addressStreet: '  '}};
+        const withStreet: Policy = {...policy, address: {...address, addressStreet: '88 Kearny St'}};
 
-    it('returns true for a Dynamic External Workflow policy with the flag set', () => {
-        const policy: Policy = {...createRandomPolicy(0), approvalMode: CONST.POLICY.APPROVAL_MODE.DYNAMICEXTERNAL, dynamicExternalWorkflowHidePeople: true};
-        expect(shouldHideDynamicExternalWorkflowPeople(policy)).toBe(true);
-    });
-
-    // The backend only returns the flag when it is `true`, so an absent flag is the normal DEW case.
-    it('returns false for a Dynamic External Workflow policy without the flag', () => {
-        const policy: Policy = {...createRandomPolicy(0), approvalMode: CONST.POLICY.APPROVAL_MODE.DYNAMICEXTERNAL};
-        expect(shouldHideDynamicExternalWorkflowPeople(policy)).toBe(false);
-    });
-
-    it('returns false when a stale flag is left on a policy that no longer uses a Dynamic External Workflow', () => {
-        const policy: Policy = {...createRandomPolicy(0), approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED, dynamicExternalWorkflowHidePeople: true};
-        expect(shouldHideDynamicExternalWorkflowPeople(policy)).toBe(false);
+        // When checking whether each has a company address
+        // Then only the one with a street has one, since that's when Auth counts the company address as an office
+        expect(hasCompanyAddress(withoutAddress)).toBe(false);
+        expect(hasCompanyAddress(withBlankStreet)).toBe(false);
+        expect(hasCompanyAddress(withStreet)).toBe(true);
     });
 });

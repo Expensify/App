@@ -1,6 +1,6 @@
 import useBackfillWhenNoVisibleActions from '@hooks/useBackfillWhenNoVisibleActions';
 import useConciergeAskState from '@hooks/useConciergeAskState';
-import useCopySelectionHelper from '@hooks/useCopySelectionHelper';
+import useCopySelectionEvent from '@hooks/useCopySelectionEvent';
 import {useIsReportLoadPending} from '@hooks/useInFlightRequests';
 import usePendingConciergeResponse from '@hooks/usePendingConciergeResponse';
 import useReportActionsListModel from '@hooks/useReportActionsListModel';
@@ -53,7 +53,7 @@ function ReportActionsSkeletonGuard({reportID, children}: ReportActionsSkeletonG
     } = readinessSignals;
 
     // Side effects that must run whenever the chat list is shown, including while the skeleton renders.
-    useCopySelectionHelper();
+    useCopySelectionEvent();
     usePendingConciergeResponse(reportID);
 
     useStartConciergeSession({
