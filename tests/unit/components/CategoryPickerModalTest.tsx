@@ -62,11 +62,11 @@ describe('CategoryPickerModal', () => {
         mockKeyboardHeight = 0;
     });
 
-    const renderSheet = ({onAddCategory, shouldFitContentHeight = false}: {onAddCategory?: () => void; shouldFitContentHeight?: boolean} = {}) =>
+    const renderSheet = ({onAddCategory, onClose = jest.fn(), shouldFitContentHeight = false}: {onAddCategory?: () => void; onClose?: () => void; shouldFitContentHeight?: boolean} = {}) =>
         render(
             <CategoryPickerModal
                 isVisible
-                onClose={jest.fn()}
+                onClose={onClose}
                 policyID={POLICY_ID}
                 anchorPosition={{horizontal: 0, vertical: 0}}
                 onAddCategory={onAddCategory}
@@ -87,13 +87,28 @@ describe('CategoryPickerModal', () => {
         expect(onAddCategory).toHaveBeenCalledTimes(1);
     });
 
+    it('closes the pop-over from the back button in its header', () => {
+        // Given the pop-over showing its header, for a user who can add categories
+        const onClose = jest.fn();
+        const onAddCategory = jest.fn();
+        renderSheet({onAddCategory, onClose});
+
+        // When they press the back button on the top left of the header
+        fireEvent.press(screen.getByLabelText('common.back'));
+
+        // Then the pop-over closes without starting the add-category flow, like the full page's back button leaves the step
+        expect(onClose).toHaveBeenCalledTimes(1);
+        expect(onAddCategory).not.toHaveBeenCalled();
+    });
+
     it('shows no header for users who cannot create a category', () => {
         // Given a user who cannot add categories, e.g. a member or a workspace synced with an accounting integration
         // When the pop-over opens
         renderSheet();
 
-        // Then there is no add button or header, matching the full page that hides its "+" for them
+        // Then there is no back button, add button or header, matching the full page that hides its "+" for them
         expect(screen.queryByLabelText('workspace.categories.addCategory')).toBeNull();
+        expect(screen.queryByLabelText('common.back')).toBeNull();
         expect(screen.queryByText('common.category')).toBeNull();
     });
 

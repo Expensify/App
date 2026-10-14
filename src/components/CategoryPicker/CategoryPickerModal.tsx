@@ -63,7 +63,7 @@ type CategoryPickerModalProps = {
     /** Whether the pop-over shrinks to the height its list needs, treating `popoverHeight` as a ceiling. */
     shouldFitContentHeight?: boolean;
 
-    /** Shows a header with an add button, for users who can add a category to the workspace */
+    /** Shows a header with a back button and an add button, for users who can add a category to the workspace */
     onAddCategory?: () => void;
 
     /** Sentry label for the add button, so each caller's presses are attributed to it */
@@ -92,7 +92,7 @@ function CategoryPickerModal({
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
-    const icons = useMemoizedLazyExpensifyIcons(['Plus']);
+    const icons = useMemoizedLazyExpensifyIcons(['BackArrow', 'Plus']);
     const StyleUtils = useStyleUtils();
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth -- must match PopoverWithMeasuredContent's dock decision (bottom-docked only when isSmallScreenWidth)
     const {isSmallScreenWidth} = useResponsiveLayout();
@@ -161,7 +161,25 @@ function CategoryPickerModal({
             <View style={[StyleUtils.getHeight(popoverDimensions.height), styles.flexColumn, styles.pt4, StyleUtils.getPaddingBottom(bottomSafeAreaPadding)]}>
                 {!!onAddCategory && (
                     <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, styles.ph5, styles.pt1, styles.pb4, StyleUtils.getHeight(headerHeight)]}>
-                        <Text style={styles.textLabelSupporting}>{translate('common.category')}</Text>
+                        <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap3]}>
+                            <Tooltip text={translate('common.back')}>
+                                <PressableWithFeedback
+                                    accessibilityLabel={translate('common.back')}
+                                    role={CONST.ROLE.BUTTON}
+                                    onPress={onClose}
+                                    shouldUseAutoHitSlop
+                                    sentryLabel={CONST.SENTRY_LABEL.CATEGORY_PICKER_MODAL.BACK_BUTTON}
+                                >
+                                    <Icon
+                                        src={icons.BackArrow}
+                                        fill={theme.icon}
+                                        width={variables.iconSizeNormal}
+                                        height={variables.iconSizeNormal}
+                                    />
+                                </PressableWithFeedback>
+                            </Tooltip>
+                            <Text style={styles.textLabelSupporting}>{translate('common.category')}</Text>
+                        </View>
                         <Tooltip text={translate('workspace.categories.addCategory')}>
                             <PressableWithFeedback
                                 accessibilityLabel={translate('workspace.categories.addCategory')}

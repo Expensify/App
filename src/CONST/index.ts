@@ -9966,6 +9966,9 @@ const CONST = {
             GETTING_STARTED_ROW: 'HomePage-GettingStartedRow',
             GETTING_STARTED_FOOTER_HELP: 'HomePage-GettingStartedFooterHelp',
         },
+        CATEGORY_PICKER_MODAL: {
+            BACK_BUTTON: 'CategoryPickerModal-BackButton',
+        },
         CALENDAR_PICKER: {
             YEAR_PICKER: 'CalendarPicker-YearPicker',
             MONTH_PICKER: 'CalendarPicker-MonthPicker',
