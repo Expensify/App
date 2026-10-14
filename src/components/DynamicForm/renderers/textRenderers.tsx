@@ -14,6 +14,7 @@ import type {DynamicFormNumberField, DynamicFormTextField} from '@src/types/onyx
 
 import type {InputModeOptions} from 'react-native';
 
+import {subYears} from 'date-fns';
 import React from 'react';
 import {View} from 'react-native';
 
@@ -70,17 +71,23 @@ function renderTextInput(
 const TEXT_RENDERERS: Pick<DynamicFieldRendererMap, 'text' | 'number' | 'date' | 'amount' | 'percent'> = {
     text: (field, context, inputProps) => renderTextInput(field, context, inputProps, getTextInputMode(field), field.multiline),
     number: (field, context, inputProps) => renderTextInput(field, context, inputProps, CONST.INPUT_MODE.NUMERIC),
-    date: (field, {translate}, inputProps) => ({
-        isMenuRow: false,
-        input: (
-            <InputWrapper
-                InputComponent={DatePicker}
-                {...inputProps}
-                label={getFieldLabel(field, translate)}
-                placeholder={translate('common.dateFormat')}
-            />
-        ),
-    }),
+    date: (field, {translate}, inputProps) => {
+        const isDateOfBirth = field.rule === 'dateOfBirth';
+        return {
+            isMenuRow: false,
+            input: (
+                <InputWrapper
+                    InputComponent={DatePicker}
+                    {...inputProps}
+                    label={getFieldLabel(field, translate)}
+                    placeholder={translate('common.dateFormat')}
+                    // A date of birth can only be picked within the ages getDynamicFieldErrors accepts
+                    minDate={isDateOfBirth ? subYears(new Date(), CONST.DATE_BIRTH.MAX_AGE) : undefined}
+                    maxDate={isDateOfBirth ? subYears(new Date(), CONST.DATE_BIRTH.MIN_AGE_FOR_PAYMENT) : undefined}
+                />
+            ),
+        };
+    },
     amount: (field, {values, translate, styles, currency}, inputProps) => {
         const chosenCurrency = field.currencyKey ? values[field.currencyKey] : undefined;
         const amountCurrency = typeof chosenCurrency === 'string' && chosenCurrency !== '' ? chosenCurrency : currency;
