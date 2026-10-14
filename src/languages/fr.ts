@@ -8766,7 +8766,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                 gotIt: 'Compris',
                 createRule: 'Créer une règle',
                 fallbackBanner:
-                    'Ce n’est pas une règle standard, nous l’avons donc rédigée comme une règle d’agent. Les règles d’agent agissent après la modification d’une dépense ou d’une note de frais, par exemple en mettant la dépense en attente ou en rejetant la note de frais. Vérifiez-la et enregistrez-la.',
+                    'Ce n’est pas une règle standard, nous l’avons donc rédigée comme une règle d’agent. Les règles d’agent agissent après la modification d’une dépense ou d’une note de frais, par exemple en mettant la dépense en attente ou en rejetant la note de frais.',
             },
             tabs: {
                 general: 'Général',

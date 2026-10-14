@@ -8371,7 +8371,7 @@ ${reportName}`,
                 describeRuleForConcierge: '描述你的规则，Concierge 会帮你创建',
                 gotIt: '知道了',
                 createRule: '创建规则',
-                fallbackBanner: '这不是标准规则，因此我们将其起草为代理规则。代理规则会在报销或报表发生变化后执行操作，例如暂挂该报销或拒绝该报表。请检查并保存。',
+                fallbackBanner: '这不是标准规则，因此我们将其起草为代理规则。代理规则会在报销或报表发生变化后执行操作，例如暂挂该报销或拒绝该报表。',
             },
             tabs: {general: '常规', cardRestrictions: '卡片限制', expenseDefaults: '报销默认设置', requireFields: '字段要求', flagForReview: '标记以供审核', agents: '代理人'},
             bulkActions: {

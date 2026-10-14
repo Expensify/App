@@ -9397,7 +9397,7 @@ const translations = {
                 disclaimer: 'AI agents can make mistakes.',
                 createRule: 'Create rule',
                 fallbackBanner:
-                    "This isn't a standard rule, so we drafted it as an agent rule. Agent rules act after an expense or report changes, for example by holding the expense or rejecting the report. Review and save.",
+                    "This isn't a standard rule, so we drafted it as an agent rule. Agent rules act after an expense or report changes, for example by holding the expense or rejecting the report.",
                 agentCreatedTitle: 'RuleBot has been added to your workspace!',
                 agentCreatedDescription: (agentsRoute: string) =>
                     `<muted-text>To enforce your agent rules, we’ve created an agent for you and added it as an admin to your workspace.<br><br>Edit your agent’s details in <a href="${agentsRoute}">Account &gt; Agents</a>.</muted-text>`,

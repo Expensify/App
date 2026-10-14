@@ -8668,7 +8668,7 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
                 gotIt: 'Begrepen',
                 createRule: 'Regel maken',
                 fallbackBanner:
-                    'Dit is geen standaardregel, dus we hebben er een agentregel van gemaakt. Agentregels treden in werking nadat een uitgave of rapport verandert, bijvoorbeeld door de uitgave vast te houden of het rapport af te wijzen. Controleer de regel en sla hem op.',
+                    'Dit is geen standaardregel, dus we hebben er een agentregel van gemaakt. Agentregels treden in werking nadat een uitgave of rapport verandert, bijvoorbeeld door de uitgave vast te houden of het rapport af te wijzen.',
             },
             tabs: {
                 general: 'Algemeen',
