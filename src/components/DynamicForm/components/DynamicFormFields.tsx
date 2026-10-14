@@ -5,7 +5,7 @@ import isHeading from '@components/DynamicForm/utils/isHeading';
 import type {FormValue} from '@components/Form/types';
 
 import CONST from '@src/CONST';
-import type {DynamicFormContentItem} from '@src/types/onyx';
+import type {DynamicFormContentItem, DynamicFormField} from '@src/types/onyx';
 
 import React from 'react';
 
@@ -19,6 +19,12 @@ type DynamicFormFieldsProps = {
     /** Current answers, from FormProvider's render-prop `inputValues`, so showWhen and dependsOn follow the user's typing */
     values: DynamicFormValues;
 
+    /** The whole form when `content` is one page of it, since a field's `showWhen` can name a controller on another page */
+    allFields?: DynamicFormField[];
+
+    /** The page's title is that question's label, so the label is not drawn again above its input. False when the page has its own title, since the label then still says what the inputs are for. */
+    isTitledByPage?: boolean;
+
     /** Currency of amount fields that let the user pick none */
     currency?: string;
 
@@ -30,8 +36,8 @@ type DynamicFormFieldsProps = {
 };
 
 /** The inputs of a schema-driven form. Render it inside a FormProvider and validate the fields of the same content with getDynamicFieldErrors. */
-function DynamicFormFields({content, values, currency = CONST.CURRENCY.USD, maxFileSize, onRefreshRequirements}: DynamicFormFieldsProps) {
-    const visibleContent = getVisibleContent(content, values);
+function DynamicFormFields({content, values, allFields, isTitledByPage = false, currency = CONST.CURRENCY.USD, maxFileSize, onRefreshRequirements}: DynamicFormFieldsProps) {
+    const visibleContent = getVisibleContent(content, values, allFields);
     const loneField = getLoneField(getContentFields(visibleContent));
 
     return visibleContent.map((item, index) =>
@@ -49,6 +55,7 @@ function DynamicFormFields({content, values, currency = CONST.CURRENCY.USD, maxF
                 currency={currency}
                 maxFileSize={maxFileSize}
                 isLoneField={item === loneField}
+                shouldHideLabel={isTitledByPage && item === loneField}
                 onRefreshRequirements={onRefreshRequirements}
             />
         ),

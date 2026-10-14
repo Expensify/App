@@ -127,6 +127,8 @@ const DYNAMIC_ROUTES = {
             SCREENS.WORKSPACE.TRAVEL,
             SCREENS.WORKSPACES_ADD_DOMAIN,
         ],
+        getRoute: (isJoinWorkspaceTask?: boolean) => getUrlWithParams('verify-account', {isJoinWorkspaceTask: isJoinWorkspaceTask ? 'true' : undefined}),
+        queryParams: ['isJoinWorkspaceTask'],
     },
     CONTACT_METHODS: {
         path: 'contact-methods',
@@ -1014,6 +1016,8 @@ const DYNAMIC_ROUTES = {
             SCREENS.SETTINGS.PROFILE.ADDRESS,
             SCREENS.SETTINGS.PROFILE.PRIVATE_PERSONAL_DETAILS,
             SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_OVERVIEW_ADDRESS,
+            SCREENS.WORKSPACE.OFFICE_LOCATION_ADD,
+            SCREENS.WORKSPACE.OFFICE_LOCATION_EDIT,
             SCREENS.SETTINGS.WALLET.CARDS_DIGITAL_DETAILS_UPDATE_ADDRESS,
             SCREENS.DOMAIN_CARD.DOMAIN_CARD_UPDATE_ADDRESS,
             SCREENS.TRAVEL.ENABLE,
@@ -1030,6 +1034,8 @@ const DYNAMIC_ROUTES = {
             SCREENS.SETTINGS.PROFILE.ADDRESS,
             SCREENS.SETTINGS.PROFILE.PRIVATE_PERSONAL_DETAILS,
             SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_OVERVIEW_ADDRESS,
+            SCREENS.WORKSPACE.OFFICE_LOCATION_ADD,
+            SCREENS.WORKSPACE.OFFICE_LOCATION_EDIT,
             SCREENS.SETTINGS.WALLET.CARDS_DIGITAL_DETAILS_UPDATE_ADDRESS,
             SCREENS.DOMAIN_CARD.DOMAIN_CARD_UPDATE_ADDRESS,
             SCREENS.TRAVEL.ENABLE,
@@ -2105,7 +2111,9 @@ const DYNAMIC_ROUTES = {
     },
     MONEY_REQUEST_STEP_CATEGORY_CREATE: {
         path: 'add-category',
-        entryScreens: [SCREENS.MONEY_REQUEST.DYNAMIC_STEP_CATEGORY],
+        entryScreens: [SCREENS.MONEY_REQUEST.DYNAMIC_STEP_CATEGORY, SCREENS.MONEY_REQUEST.STEP_CONFIRMATION, SCREENS.MONEY_REQUEST.CREATE, SCREENS.SHARE.SUBMIT_DETAILS],
+        getRoute: (params: {action: IOUAction; iouType: IOUType; transactionID: string; reportID: string | undefined}) => getUrlWithParams('add-category', params),
+        queryParams: ['action', 'iouType', 'transactionID', 'reportID'],
     },
     MONEY_REQUEST_ATTENDEE: {
         path: 'attendees',
@@ -3370,6 +3378,14 @@ const ROUTES = {
         route: 'workspaces/:policyID/overview/share',
         getRoute: (policyID: string) => `workspaces/${policyID}/overview/share` as const,
     },
+    WORKSPACE_OVERVIEW_OFFICE_LOCATION_ADD: {
+        route: 'workspaces/:policyID/overview/office-locations/new',
+        getRoute: (policyID: string) => `workspaces/${policyID}/overview/office-locations/new` as const,
+    },
+    WORKSPACE_OVERVIEW_OFFICE_LOCATION_EDIT: {
+        route: 'workspaces/:policyID/overview/office-locations/:officeID',
+        getRoute: (policyID: string, officeID: string) => `workspaces/${policyID}/overview/office-locations/${officeID}` as const,
+    },
     WORKSPACE_AVATAR: {
         route: 'workspaces/:policyID/avatar',
         getRoute: (policyID: string, fallbackLetter?: UpperCaseCharacters) => `workspaces/${policyID}/avatar${fallbackLetter ? `?letter=${fallbackLetter}` : ''}` as const,
@@ -4539,7 +4555,8 @@ const ROUTES = {
     ONBOARDING_PRIVATE_DOMAIN: {
         route: 'onboarding/private-domain',
 
-        getRoute: (backTo?: string) => getUrlWithBackToParam(`onboarding/private-domain`, backTo),
+        getRoute: (backTo?: string, isJoinWorkspaceTask = false, reportID?: string) =>
+            getUrlWithParams(getUrlWithBackToParam(`onboarding/private-domain`, backTo), {isJoinWorkspaceTask: isJoinWorkspaceTask ? 'true' : undefined, reportID}),
     },
     ONBOARDING_EMPLOYEES: {
         route: 'onboarding/employees',
@@ -4564,17 +4581,22 @@ const ROUTES = {
     ONBOARDING_WORKSPACES: {
         route: 'onboarding/join-workspaces',
 
-        getRoute: (backTo?: string) => getUrlWithBackToParam(`onboarding/join-workspaces`, backTo),
+        getRoute: (backTo?: string, isJoinWorkspaceTask = false, shouldCreateJoinWorkspaceTaskOnExit = false) =>
+            getUrlWithParams(getUrlWithBackToParam(`onboarding/join-workspaces`, backTo), {
+                isJoinWorkspaceTask: isJoinWorkspaceTask ? 'true' : undefined,
+                shouldCreateJoinWorkspaceTaskOnExit: shouldCreateJoinWorkspaceTaskOnExit ? 'true' : undefined,
+            }),
     },
     ONBOARDING_WORK_EMAIL: {
         route: 'onboarding/work-email',
 
-        getRoute: () => 'onboarding/work-email' as const,
+        getRoute: (isJoinWorkspaceTask = false, reportID?: string) => getUrlWithParams('onboarding/work-email', {isJoinWorkspaceTask: isJoinWorkspaceTask ? 'true' : undefined, reportID}),
     },
     ONBOARDING_WORK_EMAIL_VALIDATION: {
         route: 'onboarding/work-email-validation',
 
-        getRoute: () => 'onboarding/work-email-validation' as const,
+        getRoute: (isJoinWorkspaceTask = false, reportID?: string) =>
+            getUrlWithParams('onboarding/work-email-validation', {isJoinWorkspaceTask: isJoinWorkspaceTask ? 'true' : undefined, reportID}),
     },
     ONBOARDING_PERSONAL_TRACK_GOAL: {
         route: 'onboarding/personaltrackcase',
