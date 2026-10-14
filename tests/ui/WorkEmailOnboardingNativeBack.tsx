@@ -425,6 +425,15 @@ describe('Onboarding work email validation (Android system back)', () => {
 
         expect(getOnboardingRouteNames()).toEqual([SCREENS.ONBOARDING.PERSONAL_DETAILS, SCREENS.ONBOARDING.WORK_EMAIL]);
 
+        // Given adding the work email failed, leaving errors that the intent list would render if they followed the user back
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {isMergingAccountBlocked: true});
+            await Onyx.set(ONYXKEYS.ONBOARDING_ERROR_MESSAGE_TRANSLATION_KEY, 'onboarding.purpose.errorBackButton');
+            await Onyx.merge(ONYXKEYS.FORMS.ONBOARDING_WORK_EMAIL_FORM, {errors: {error: 'Work email error'}});
+        });
+
+        await waitForBatchedUpdatesWithAct();
+
         // When Android's system back button is pressed
         pressHardwareBack();
 
@@ -442,5 +451,7 @@ describe('Onboarding work email validation (Android system back)', () => {
             },
         });
         expect(errorMessage).toBeUndefined();
+        expect((await getOnboardingValues())?.isMergingAccountBlocked).toBe(false);
+        expect((await getOnyxValue(ONYXKEYS.FORMS.ONBOARDING_WORK_EMAIL_FORM))?.errors).toBeFalsy();
     });
 });

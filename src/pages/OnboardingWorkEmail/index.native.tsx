@@ -1,4 +1,4 @@
-import {setOnboardingErrorMessage} from '@userActions/Welcome';
+import {clearOnboardingMergeAccountBlocked, setOnboardingErrorMessage} from '@userActions/Welcome';
 
 import {useFocusEffect} from '@react-navigation/native';
 import React, {useCallback} from 'react';
@@ -14,13 +14,15 @@ function OnboardingWorkEmail(props: OnboardingWorkEmailProps) {
     // To block android native back button behavior
     useFocusEffect(
         useCallback(() => {
-            // We don't want to block the back button if this is not the first route, e.g. when the intent list sent us here
-            if (routeIndex !== 0) {
-                return;
-            }
-
-            // Return true to indicate that the back button press is handled here
             const backAction = () => {
+                // We don't want to block the back button if this is not the first route, e.g. when the intent list sent us here.
+                // Clear any work email error like the header back button does, and return false so navigation still pops the screen.
+                if (routeIndex !== 0) {
+                    clearOnboardingMergeAccountBlocked();
+                    return false;
+                }
+
+                // Return true to indicate that the back button press is handled here
                 setOnboardingErrorMessage('onboarding.purpose.errorBackButton');
                 return true;
             };
