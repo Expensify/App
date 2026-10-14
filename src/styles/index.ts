@@ -7096,27 +7096,27 @@ const staticStyles = (theme: ThemeColors) =>
 
 const dynamicStyles = (theme: ThemeColors) =>
     ({
-        // The tab bar is laid over the bottom of a tab root screen, so the offline indicator floats above it without
-        // shrinking the content that runs under the bar.
-        tabBarOfflineIndicator: (bottom: number) =>
+        // Floats the offline indicator above a footer laid over the bottom of a tab root screen, without shrinking the
+        // content that runs under the footer.
+        offlineIndicatorAboveFooter: (footerHeight: number) =>
             ({
                 position: 'absolute',
                 right: 0,
-                bottom,
+                bottom: footerHeight,
                 left: 0,
                 backgroundColor: theme.appBG,
             }) satisfies ViewStyle,
 
-        // Fills the screen from the top of the native tab bar down to the bottom edge, so no content shows between
-        // the offline indicator and the bar.
-        nativeTabBarOfflineIndicator: (tabBarHeight: number) =>
+        // Fills the screen from the top of the tab bar down to the bottom edge, so no content shows between the
+        // offline indicator and the bar.
+        tabBarOfflineIndicator: (tabBarCoveredHeight: number) =>
             ({
                 position: 'absolute',
                 right: 0,
                 bottom: 0,
                 left: 0,
-                height: CONST.OFFLINE_INDICATOR_HEIGHT + tabBarHeight,
-                paddingBottom: tabBarHeight,
+                height: CONST.OFFLINE_INDICATOR_HEIGHT + tabBarCoveredHeight,
+                paddingBottom: tabBarCoveredHeight,
                 backgroundColor: theme.appBG,
             }) satisfies ViewStyle,
 

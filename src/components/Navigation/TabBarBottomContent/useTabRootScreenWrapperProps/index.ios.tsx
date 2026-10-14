@@ -26,7 +26,7 @@ function useTabRootScreenWrapperProps(selectedTab: TabBarBottomContentProps['sel
 
     return {
         enableEdgeToEdgeBottomSafeAreaPadding: false,
-        offlineIndicatorStyle: styles.nativeTabBarOfflineIndicator(tabBarCoveredHeight),
+        offlineIndicatorStyle: styles.tabBarOfflineIndicator(tabBarCoveredHeight),
     };
 }
 

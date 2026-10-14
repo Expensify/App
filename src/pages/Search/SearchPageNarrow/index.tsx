@@ -275,7 +275,7 @@ function SearchPageNarrow({
                     shouldEnableMaxHeight
                     shouldShowOfflineIndicator={!!searchResults}
                     {...tabRootScreenWrapperProps}
-                    offlineIndicatorStyle={[styles.mtAuto, footerHeight > 0 ? styles.tabBarOfflineIndicator(footerHeight) : tabRootScreenWrapperProps.offlineIndicatorStyle]}
+                    offlineIndicatorStyle={[styles.mtAuto, footerHeight > 0 ? styles.offlineIndicatorAboveFooter(footerHeight) : tabRootScreenWrapperProps.offlineIndicatorStyle]}
                 >
                     <View style={[styles.flex1, styles.overflowHidden]}>
                         {!isMobileSelectionModeEnabled ? (
