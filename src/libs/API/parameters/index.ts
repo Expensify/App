@@ -298,6 +298,7 @@ export type {default as VerifyAddSecondaryLoginCodeParams} from './VerifyAddSeco
 export type {default as OpenDraftWorkspaceRequestParams} from './OpenDraftWorkspaceRequestParams';
 export type {default as OpenDraftPerDiemExpenseParams} from './OpenDraftPerDiemExpenseParams';
 export type {default as CreateWorkspaceFromIOUPaymentParams} from './CreateWorkspaceFromIOUPaymentParams';
+export type {default as UpdatePolicyMemberDisplayNameParams} from './UpdatePolicyMemberDisplayNameParams';
 export type {default as UpdatePolicyMembersCustomFieldsParams} from './UpdatePolicyMembersCustomFieldsParams';
 export type {default as CreateTaskParams} from './CreateTaskParams';
 export type {default as CancelTaskParams} from './CancelTaskParams';
@@ -498,6 +499,7 @@ export type {default as SetPolicyExpenseMaxAmountNoItemizedReceipt} from './SetP
 export type {default as SetPolicyExpenseMaxAmount} from './SetPolicyExpenseMaxAmount';
 export type {default as SetPolicyExpenseMaxAge} from './SetPolicyExpenseMaxAge';
 export type {default as AddPolicyAgentRuleParams} from './AddPolicyAgentRuleParams';
+export type {default as GenerateRuleParams} from './GenerateRuleParams';
 export type {default as UpdatePolicyAgentRuleParams} from './UpdatePolicyAgentRuleParams';
 export type {default as DeletePolicyAgentRuleParams} from './DeletePolicyAgentRuleParams';
 export type {default as UpdateCustomRules} from './UpdateCustomRules';

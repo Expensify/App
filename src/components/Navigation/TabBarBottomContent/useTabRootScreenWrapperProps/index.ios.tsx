@@ -1,12 +1,10 @@
 import NAVIGATION_TABS from '@components/Navigation/NavigationTabBar/NAVIGATION_TABS';
 import type TabBarBottomContentProps from '@components/Navigation/TabBarBottomContent/types';
+import useTabBarCoveredHeight from '@components/Navigation/TabBarBottomContent/useTabBarCoveredHeight';
 
 import useIsSettingsDrawnOverTabs from '@hooks/useIsSettingsDrawnOverTabs';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
 import useThemeStyles from '@hooks/useThemeStyles';
-
-import {getFloatingButtonsBottom} from '@libs/Navigation/AppNavigator/Navigators/NativeTabNavigator/useNativeTabBarOptions';
 
 import type TabRootScreenWrapperProps from './types';
 
@@ -20,7 +18,7 @@ function useTabRootScreenWrapperProps(selectedTab: TabBarBottomContentProps['sel
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const isSettingsDrawnOverTabs = useIsSettingsDrawnOverTabs();
     const styles = useThemeStyles();
-    const {bottom: bottomInset} = useSafeAreaInsets();
+    const tabBarCoveredHeight = useTabBarCoveredHeight();
 
     if (!shouldUseNarrowLayout || (selectedTab === NAVIGATION_TABS.SETTINGS && isSettingsDrawnOverTabs)) {
         return {};
@@ -28,7 +26,7 @@ function useTabRootScreenWrapperProps(selectedTab: TabBarBottomContentProps['sel
 
     return {
         enableEdgeToEdgeBottomSafeAreaPadding: false,
-        offlineIndicatorStyle: styles.nativeTabBarOfflineIndicator(getFloatingButtonsBottom(bottomInset)),
+        offlineIndicatorStyle: styles.tabBarOfflineIndicator(tabBarCoveredHeight),
     };
 }
 

@@ -1886,6 +1886,73 @@ describe('actions/Duplicate', () => {
             expect(duplicatedTransaction?.transactionID).not.toBe(mockCashExpenseTransaction.transactionID);
         });
 
+        it('should add the duplicate to the open expense report passed as targetReport', async () => {
+            // Given an open expense report on a workspace, while the workspace chat points at a different report
+            const sourcePolicy: Policy = {...createRandomPolicy(42), type: CONST.POLICY.TYPE.TEAM, role: CONST.POLICY.ROLE.USER, pendingAction: null, autoReporting: false};
+            const sourceChatReport: Report = {
+                ...createRandomReport(42, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT),
+                policyID: sourcePolicy.id,
+                ownerAccountID: RORY_ACCOUNT_ID,
+                iouReportID: 'another-report',
+                hasOutstandingChildRequest: false,
+            };
+            const sourceExpenseReport: Report = {
+                ...createRandomReport(43, undefined),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                policyID: sourcePolicy.id,
+                chatReportID: sourceChatReport.reportID,
+                ownerAccountID: RORY_ACCOUNT_ID,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                errorFields: undefined,
+                pendingFields: undefined,
+            };
+            const {waypoints, ...restOfComment} = mockTransaction.comment ?? {};
+            const sourceTransaction: Transaction = {...mockTransaction, reportID: sourceExpenseReport.reportID, amount: mockTransaction.amount * -1, comment: restOfComment};
+
+            await Onyx.set(ONYXKEYS.SESSION, {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL});
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${sourcePolicy.id}`, sourcePolicy);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${sourceChatReport.reportID}`, sourceChatReport);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${sourceExpenseReport.reportID}`, sourceExpenseReport);
+            await waitForBatchedUpdates();
+
+            // When the expense is duplicated with that expense report as the target
+            duplicateExpenseTransaction({
+                isVendorMatchingBetaEnabled: false,
+                dateFnsLocale: undefined,
+                conciergeChat: undefined,
+                transaction: sourceTransaction,
+                optimisticChatReportID: mockOptimisticChatReportID,
+                optimisticIOUReportID: mockOptimisticIOUReportID,
+                isASAPSubmitBetaEnabled: mockIsASAPSubmitBetaEnabled,
+                introSelected: undefined,
+                quickAction: undefined,
+                policyRecentlyUsedCurrencies: [],
+                isSelfTourViewed: false,
+                customUnitPolicyID: sourcePolicy.id,
+                targetPolicy: sourcePolicy,
+                targetPolicyCategories: fakePolicyCategories,
+                targetReport: sourceExpenseReport,
+                existingTransactionDraft: undefined,
+                personalDetails: mockPersonalDetails,
+                recentWaypoints,
+                targetPolicyTags: {},
+                policyTagList: {},
+                currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
+                currentUserLocalCurrency: undefined,
+                delegateAccountID: undefined,
+                isTrackIntentUser: false,
+                formatPhoneNumber,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                participantsPolicyTags: {},
+                rules: undefined,
+            });
+            await waitForBatchedUpdates();
+
+            // Then the duplicate is requested on the source expense report, not on the report the workspace chat points at
+            expect(writeSpy).toHaveBeenCalledWith(WRITE_COMMANDS.REQUEST_MONEY, expect.objectContaining({iouReportID: sourceExpenseReport.reportID}), expect.objectContaining({}));
+        });
+
         it('should create a duplicate time expense successfully', async () => {
             const transactionID = 'time-1';
             const HOURLY_RATE = 9.99;

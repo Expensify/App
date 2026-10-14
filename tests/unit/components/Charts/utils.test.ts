@@ -1,4 +1,4 @@
-import BAR_INNER_PADDING, {BAR_MAX_WIDTH} from '@components/Charts/barChartConstants';
+import BAR_INNER_PADDING, {BAR_MAX_WIDTH, VERTICAL_BAR_DOMAIN_PADDING} from '@components/Charts/barChartConstants';
 import type {ChartDataPoint, PieSlice} from '@components/Charts/types';
 import {
     edgeLabelsFit,
@@ -637,9 +637,7 @@ describe('rotatedLabelYOffset', () => {
     });
 });
 
-// Bar chart domain padding constants, mirrored from BarChartContent.
-const BAR_PAD_TOP = 32;
-const BAR_PAD_BOTTOM = 1;
+const {top: BAR_PAD_TOP, bottom: BAR_PAD_BOTTOM} = VERTICAL_BAR_DOMAIN_PADDING;
 
 describe('getNiceYAxisTicks', () => {
     it('expands a flat series by ±1 and runs D3 nice/ticks so results are always nice values', () => {
@@ -651,7 +649,7 @@ describe('getNiceYAxisTicks', () => {
     });
 
     it('treats flat positive series as range [0, value] using bar chart padding', () => {
-        expect(getNiceYAxisTicks(3, 3, 5, BAR_PAD_TOP, BAR_PAD_BOTTOM, CHART_Y_SCALE_HEIGHT)).toEqual([0, 1, 2, 3]);
+        expect(getNiceYAxisTicks(3, 3, 5, BAR_PAD_TOP, BAR_PAD_BOTTOM, CHART_Y_SCALE_HEIGHT)).toEqual([0, 0.5, 1, 1.5, 2, 2.5, 3, 3.5]);
     });
 
     it('returns correct ticks for varied positive data with bar chart padding', () => {
@@ -675,7 +673,7 @@ describe('getNiceYAxisTicks', () => {
     });
 
     it('returns correct ticks for varied negative data with bar chart padding', () => {
-        expect(getNiceYAxisTicks(-10, -90, 5, BAR_PAD_TOP, BAR_PAD_BOTTOM, CHART_Y_SCALE_HEIGHT)).toEqual([-100, -80, -60, -40, -20, 0]);
+        expect(getNiceYAxisTicks(-10, -90, 5, BAR_PAD_TOP, BAR_PAD_BOTTOM, CHART_Y_SCALE_HEIGHT)).toEqual([-80, -60, -40, -20, 0]);
     });
 
     it('rounds intermediate ticks to eliminate floating-point noise', () => {

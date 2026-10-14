@@ -26,6 +26,7 @@ import {CONST as COMMON_CONST, Str} from 'expensify-common';
 import startCase from 'lodash/startCase';
 
 import type en from './en';
+import type {CompanyCardBalanceParams} from './params';
 import type {TranslationDeepObject} from './types';
 type StateValue = {
     stateISO: string;
@@ -92,7 +93,9 @@ const translations: TranslationDeepObject<typeof en> = {
         selectMultiple: '複数選択',
         saveChanges: '変更を保存',
         submit: '送信',
+        submitAnyway: 'とにかく送信',
         markAsDone: '完了にする',
+        markAsDoneAnyway: 'とにかく完了にする',
         submitted: '送信済み',
         markedAsDoneStatus: '完了済み',
         rotate: '回転',
@@ -449,6 +452,7 @@ const translations: TranslationDeepObject<typeof en> = {
         leaveWorkspaceReimburser:
             '支払担当者であるため、このワークスペースを退出することはできません。［ワークスペース］＞［支払いの作成または追跡］で新しい支払担当者を設定してから、もう一度お試しください。',
         reimbursable: '払い戻し対象',
+        nonReimbursable: '本人精算不可',
         editYourProfile: 'プロフィールを編集',
         comments: 'コメント',
         sharedIn: '共有元',
@@ -630,15 +634,6 @@ const translations: TranslationDeepObject<typeof en> = {
         launching: 'Expensify を起動中',
         expired: 'セッションの有効期限が切れました。',
         signIn: 'もう一度サインインしてください。',
-        notValid: '無効なリンクです。',
-        sessionMismatch: 'クリックされたリンクは現在のセッションでは有効ではありません。',
-        switchAccount: {
-            title: 'アカウントを切り替えますか？',
-            prompt: ({newEmail, currentEmail}: {newEmail: string; currentEmail: string}) =>
-                `現在は ${currentEmail} としてサインインしています。この操作を行うと、代わりに ${newEmail} としてサインインします。`,
-            confirm: 'アカウントを切り替える',
-            staySignedIn: 'アカウントを切り替えないでください',
-        },
     },
     multifactorAuthentication: {
         reviewTransaction: {
@@ -1311,7 +1306,7 @@ const translations: TranslationDeepObject<typeof en> = {
             phrase1: '領収書を追加',
             phrase2: 'または、ここにファイルをドラッグ＆ドロップしてください',
         },
-        pageCount: ({pageCount}: {pageCount: number}) => `${pageCount} ページ中 1 ページ`,
+        pageCount: ({page, pageCount}: {page: number; pageCount: number}) => `${pageCount} ページ中 ${page} ページ目`,
     },
     quickAction: {
         scanReceipt: 'レシートをスキャン',
@@ -1416,8 +1411,15 @@ const translations: TranslationDeepObject<typeof en> = {
         pendingMatch: '保留中の照合',
         pendingMatchWithCreditCardDescription: 'レシートはカード取引との照合待ちです。現金としてマークしてキャンセルします。',
         markAsCash: '現金としてマーク',
-        pendingMatchSubmitTitle: 'レポートを提出',
-        pendingMatchSubmitDescription: '一部の経費がクレジットカード取引との照合待ちです。現金としてマークしますか？',
+        confirmSubmitReportViolations: {
+            title: 'レポートを送信しますか？',
+            description: 'このレポートにはポリシー違反があります。変更を加えずに送信してもよろしいですか？',
+            titleMarkAsDone: '完了にしますか？',
+            descriptionMarkAsDone: 'このレポートにはポリシー違反があります。変更を加えずに完了にしてもよろしいですか？',
+            rejectedExpense: '拒否された経費が解決済みとしてマークされていません',
+            reportRejected: 'レポートは以前に拒否されています',
+            pendingCardMatch: '経費がカード取引との一致待ちです',
+        },
         routePending: 'ルート保留中…',
         automaticallyEnterExpenseDetails: 'Concierge が詳細を入力します。',
         receiptScanning: () => ({
@@ -1587,6 +1589,7 @@ const translations: TranslationDeepObject<typeof en> = {
         pendingConversionMessage: 'オンラインに戻ると合計が更新されます',
         changedTheExpense: '経費を変更しました',
         addedReceipt: '領収書を追加しました',
+        removedReceipt: '領収書を削除しました',
         setTheRequest: (valueName: string, newValueToDisplay: string) => `${valueName} を ${newValueToDisplay} に`,
         setTheDistanceMerchant: (translatedChangedField: string, newMerchant: string, newAmountToDisplay: string) =>
             `${translatedChangedField} を ${newMerchant} に設定し、その結果金額が ${newAmountToDisplay} に設定されました`,
@@ -1619,7 +1622,6 @@ const translations: TranslationDeepObject<typeof en> = {
             invalidSplitYourself: '分割する金額は 0 以外の数値を入力してください',
             noParticipantSelected: '参加者を選択してください',
             other: '予期しないエラーが発生しました。しばらくしてからもう一度お試しください。',
-            payFailedExpenseDeleted: 'この支払いは、経費精算書が削除されたため失敗しました。',
             genericCreateFailureMessage: 'この経費の送信中に予期しないエラーが発生しました。後でもう一度お試しください。',
             genericCreateInvoiceFailureMessage: 'この請求書の送信中に予期しないエラーが発生しました。後でもう一度お試しください。',
             genericHoldExpenseFailureMessage: 'この経費を保留中に予期しないエラーが発生しました。後でもう一度お試しください。',
@@ -2283,6 +2285,7 @@ const translations: TranslationDeepObject<typeof en> = {
     displayNamePage: {
         headerTitle: '表示名',
         isShownOnProfile: '表示名はあなたのプロフィールに表示されます。',
+        isShownOnMemberProfile: '表示名はメンバーのプロフィールに表示されます。保存後は、そのメンバー本人のみが編集できます。',
     },
     timezonePage: {
         timezone: 'タイムゾーン',
@@ -2329,7 +2332,6 @@ const translations: TranslationDeepObject<typeof en> = {
             useProfiling: 'プロファイリングを使用',
             profileTrace: 'プロファイルトレース',
             results: '結果',
-            releaseOptions: 'リリースオプション',
             testingPreferences: 'テスト設定',
             server: 'サーバー',
             servers: {
@@ -3955,6 +3957,10 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
     },
     dynamicForm: {
         exampleHint: ({example}: {example: string}) => `例：${example}`,
+        fileCount: ({count}: {count: number}) => ({
+            one: `${count} 件のファイル`,
+            other: `${count} 件のファイル`,
+        }),
         error: {
             tooShort: ({minLength}: {minLength: number}) => `${minLength}文字以上で入力してください`,
             invalidFormat: ({example}: {example?: string}) => (example ? `形式が正しくありません。例：${example}` : '形式が正しくありません'),
@@ -4889,6 +4895,7 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
             readOnlyActionTitle: 'ちょっと待ってください…',
             readOnlyActionPrompt: 'このワークスペースでのあなたのロールは、これらの設定を表示できますが、編集することはできません。',
             noAccessActionPrompt: 'このワークスペースでのあなたのロールでは、これらの設定にアクセスできません。必要な場合は管理者に依頼してください。',
+            connections: '連携',
         },
         createdForClient: {
             title: 'クライアントのワークスペースを作成しました！',
@@ -4912,6 +4919,31 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
                 title: 'ChatGPT',
                 subtitle: 'OpenAI 提供',
             },
+        },
+        connections: {
+            tabs: {
+                [CONST.TAB.CONNECTIONS.ALL]: 'すべて',
+                [CONST.TAB.CONNECTIONS.ACCOUNTING]: '会計',
+                [CONST.TAB.CONNECTIONS.PEOPLE]: '人事・人材',
+                [CONST.TAB.CONNECTIONS.RECRUITING]: '採用',
+                [CONST.TAB.CONNECTIONS.RECEIPTS]: '領収書',
+                [CONST.TAB.CONNECTIONS.AI]: 'AI と MCP',
+            },
+            findConnections: '連携先を見つける',
+            configure: '設定',
+            fix: '修正',
+            active: '有効',
+            broken: '壊れています',
+            brokenConnection: '接続が切断されているため同期できません',
+            replaceConnectionTitle: '接続を置き換えますか？',
+            offer: 'オファー',
+            replaceConnectionPrompt: (connectionName: string) => `現在の ${connectionName} 接続が削除されます。`,
+            hrisListing: (providerName: string) => `${providerName}（HRIS）`,
+            atsListing: (providerName: string) => `${providerName}（ATS）`,
+            suggestIntegration: 'お探しのものが見つかりませんか？連携を提案してください、こちらで検討します。',
+            noResultsPrompt: '<muted-text><centered-text>検索条件を調整するか、<a href="#">連携を提案</a>してください。</centered-text></muted-text>',
+            allConnectedTitle: 'すべて接続されました',
+            allConnectedPrompt: '<muted-text><centered-text>ここにあるものはすべてすでに連携されています。<a href="#">連携を提案</a>することもできます。</centered-text></muted-text>',
         },
         receiptPartners: {
             uber: {
@@ -6107,6 +6139,15 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
             submit: '提出',
         },
         companyCards: {
+            balance: {
+                currentBalance: '現在残高',
+                remainingLimit: '残りの上限',
+                notAvailable: '利用できません',
+                currentBalanceDescription: ({lastUpdated}: CompanyCardBalanceParams) => `現在残高はご利用の銀行から報告されており、最終更新日は ${lastUpdated} です。`,
+                remainingLimitDescription: ({lastUpdated}: CompanyCardBalanceParams) => `残りの限度額はご利用の銀行から報告され、最終更新日時は${lastUpdated}です。`,
+                currentBalanceDescriptionNoTimestamp: '現在残高は、お使いの銀行から報告されています。',
+                remainingLimitDescriptionNoTimestamp: '残りの限度額は、お客様の銀行から報告されます。',
+            },
             addCards: 'カードを追加',
             selectCards: 'カードを選択',
             fromOtherWorkspaces: '他のワークスペースから',
@@ -8222,6 +8263,8 @@ ${reportName}`,
                 applyUpdates: 'これらの更新を適用する',
                 saveRule: 'ルールを保存',
                 previewMatches: 'プレビュー候補を表示',
+                previewMatchesDescription: 'このルールが経費にどう適用されるかを確認',
+                preview: 'プレビュー',
                 confirmError: '店舗名を入力し、少なくとも1つの更新を適用してください',
                 confirmErrorMerchant: '加盟店を入力してください',
                 confirmErrorUpdate: '少なくとも 1 つの更新を適用してください',
@@ -8554,6 +8597,14 @@ ${reportName}`,
                 requireFieldsDescription: '特定の経費項目フィールドを必須にするか、必須条件を免除します。',
                 createAgentRule: 'エージェントルールの説明',
                 createAgentRuleDescription: '必要なときに実行される柔軟なルールを作成できます。',
+                describe: '説明する',
+                describeRule: 'ルールを自然な言葉で説明すると、Concierge がルールを作成します',
+                describeRuleInputLabel: 'ルールを説明',
+                promptErrors: {
+                    unsupported: 'そのルールはまだ対応していません。現在対応を進めています。ほかのルールをお試しください。',
+                    unintelligible: '「経費が100ドルを超える場合は領収書を必須にする」のように書いてみてください。',
+                    multipleRules: '一度に1つのルールのみです。「すべてのカードで小売店での購入をブロックする」のように、1つのルールを説明してください。',
+                },
             },
             expenseDefaultsTable: {
                 tableColumnType: '種類',
@@ -9627,6 +9678,8 @@ ${reportName}`,
             return `「${categoryName}」カテゴリの出席者を${newValue ? '必須' : '必須ではありません'}に変更しました（以前は${newValue ? '必須ではありません' : '必須'}）`;
         },
         updatedAutoHarvesting: (enabled: boolean) => `${enabled ? '有効' : '無効'} 件の提出`,
+        updatedMemberDisplayName: (newName: string, oldName: string, editProfileURL: string) =>
+            `表示名を ${newName} に更新しました（以前は「${oldName}」でした）。<a href="${editProfileURL}">プロフィールで編集</a>`,
         changedOverLimitForwardsTo: ({
             member,
             approver,
@@ -11127,6 +11180,16 @@ ${reportName}`,
                 other: `アクティブユーザー ${count} 名`,
             }),
             state: {paid: '支払い済み', cleared: '決済済み', failed: '失敗しました', refunded: '返金済み', disputed: '異議あり', balanceTransfer: '残高振替'},
+            details: '支払いの詳細',
+            badge: {
+                balanceTransferTo: ({email}: {email: string}) => `${email} への残高振替`,
+                balanceTransferFrom: ({email}: {email: string}) => `${email} からの残高振替`,
+                disputedPending: ({date}: {date: string}) => `${date} に異議申立（保留中）`,
+                disputedRefunded: ({date}: {date: string}) => `${date} に異議申立（返金済み）`,
+                disputedClosed: ({date}: {date: string}) => `${date} に異議申立（終了）`,
+                refundedOn: ({date}: {date: string}) => `${date} に返金`,
+                refundedAmountOn: ({amount, date}: {amount: string; date: string}) => `${date} に ${amount} を返金`,
+            },
         },
         subscriptionSettings: {
             title: 'サブスクリプション設定',
@@ -11364,6 +11427,7 @@ ${reportName}`,
         markAllAsRead: '<tooltip>右クリックで<strong>すべて既読にする</strong>ことができます。</tooltip>',
         markAllAsReadTouchScreen: '<tooltip>長押しで<strong>すべて既読にする</strong>ことができます。</tooltip>',
         accountMovedToTopBar: '<tooltip>アカウントと個人設定にアクセスします。</tooltip>',
+        connectionsMoved: 'すべての連携をひとまとめに',
     },
     discardChangesConfirmation: {
         title: '変更を破棄しますか？',

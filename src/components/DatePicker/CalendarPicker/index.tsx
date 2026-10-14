@@ -239,15 +239,66 @@ function CalendarPicker({
     });
 
     const webOnlyMarginStyle = isSmallScreenWidth ? {} : styles.mh1;
-    const calendarContainerStyle = isSmallScreenWidth ? [webOnlyMarginStyle, themeStyles.calendarBodyContainer] : [webOnlyMarginStyle, animatedStyle];
     const headerPaddingStyle = headerContainerStyle ?? themeStyles.ph3;
-    // On mobile (isSmallScreenWidth is always true on native), the height animation is skipped
-    // so using Animated.View is unnecessary. Using a plain View with collapsable={false} avoids
-    // activating Reanimated's Fabric commit hook, which on Android can interfere with React's
-    // reconciliation of child view styles and prevent day-selection background changes from painting.
-    const CalendarBody = isSmallScreenWidth ? View : Animated.View;
 
     const getAccessibilityState = useCallback((isSelected: boolean) => ({selected: isSelected}), []);
+
+    const calendarWeeks = calendarDaysMatrix?.map((week) => (
+        <View
+            key={`week-${week.toString()}`}
+            collapsable={false}
+            style={[themeStyles.flexRow, themeStyles.calendarWeekContainer]}
+        >
+            {week.map((day, index) => {
+                const currentDate = new Date(currentYearView, currentMonthView, day);
+                const isBeforeMinDate = currentDate < startOfDay(new Date(minDate));
+                const isAfterMaxDate = currentDate > startOfDay(new Date(maxDate));
+                const isSelectable = selectableDates ? selectableDates?.some((date) => isSameDay(parseISO(date), currentDate)) : true;
+                const isDisabled = !day || isBeforeMinDate || isAfterMaxDate || !isSelectable;
+                const isSelected = !!day && isSameDay(parseISO(value.toString()), new Date(currentYearView, currentMonthView, day));
+                const handleOnPress = () => {
+                    if (!day || isDisabled) {
+                        return;
+                    }
+
+                    onDayPressed(day);
+                };
+                const key = `${index}_day-${day}`;
+                const fullDate = day ? new Date(currentYearView, currentMonthView, day) : null;
+                const accessibilityDateLabel = fullDate ? DateUtils.formatToLongDateWithWeekday(fullDate, dateFnsLocale) : '';
+                return (
+                    <PressableWithoutFeedback
+                        key={key}
+                        disabled={isDisabled}
+                        onPress={handleOnPress}
+                        style={themeStyles.calendarDayRoot}
+                        accessibilityLabel={accessibilityDateLabel}
+                        accessibilityHint=""
+                        accessibilityState={getAccessibilityState(isSelected)}
+                        aria-selected={isSelected}
+                        tabIndex={day ? 0 : -1}
+                        accessible={!!day}
+                        accessibilityElementsHidden={!day}
+                        importantForAccessibility={day ? 'auto' : 'no-hide-descendants'}
+                        dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
+                        role={CONST.ROLE.BUTTON}
+                        sentryLabel={CONST.SENTRY_LABEL.CALENDAR_PICKER.DAY}
+                    >
+                        {({hovered, pressed}) => (
+                            <DayComponent
+                                selected={isSelected}
+                                disabled={isDisabled}
+                                hovered={hovered}
+                                pressed={pressed}
+                            >
+                                {day}
+                            </DayComponent>
+                        )}
+                    </PressableWithoutFeedback>
+                );
+            })}
+        </View>
+    ));
 
     return (
         <View style={[themeStyles.pb4, themeStyles.pt1, containerStyle]}>
@@ -372,67 +423,25 @@ function CalendarPicker({
                     </View>
                 ))}
             </View>
-            <CalendarBody
-                collapsable={false}
-                style={calendarContainerStyle}
-            >
-                {calendarDaysMatrix?.map((week) => (
-                    <View
-                        key={`week-${week.toString()}`}
-                        collapsable={false}
-                        style={[themeStyles.flexRow, themeStyles.calendarWeekContainer]}
-                    >
-                        {week.map((day, index) => {
-                            const currentDate = new Date(currentYearView, currentMonthView, day);
-                            const isBeforeMinDate = currentDate < startOfDay(new Date(minDate));
-                            const isAfterMaxDate = currentDate > startOfDay(new Date(maxDate));
-                            const isSelectable = selectableDates ? selectableDates?.some((date) => isSameDay(parseISO(date), currentDate)) : true;
-                            const isDisabled = !day || isBeforeMinDate || isAfterMaxDate || !isSelectable;
-                            const isSelected = !!day && isSameDay(parseISO(value.toString()), new Date(currentYearView, currentMonthView, day));
-                            const handleOnPress = () => {
-                                if (!day || isDisabled) {
-                                    return;
-                                }
-
-                                onDayPressed(day);
-                            };
-                            const key = `${index}_day-${day}`;
-                            const fullDate = day ? new Date(currentYearView, currentMonthView, day) : null;
-                            const accessibilityDateLabel = fullDate ? DateUtils.formatToLongDateWithWeekday(fullDate, dateFnsLocale) : '';
-                            return (
-                                <PressableWithoutFeedback
-                                    key={key}
-                                    disabled={isDisabled}
-                                    onPress={handleOnPress}
-                                    style={themeStyles.calendarDayRoot}
-                                    accessibilityLabel={accessibilityDateLabel}
-                                    accessibilityHint=""
-                                    accessibilityState={getAccessibilityState(isSelected)}
-                                    aria-selected={isSelected}
-                                    tabIndex={day ? 0 : -1}
-                                    accessible={!!day}
-                                    accessibilityElementsHidden={!day}
-                                    importantForAccessibility={day ? 'auto' : 'no-hide-descendants'}
-                                    dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
-                                    role={CONST.ROLE.BUTTON}
-                                    sentryLabel={CONST.SENTRY_LABEL.CALENDAR_PICKER.DAY}
-                                >
-                                    {({hovered, pressed}) => (
-                                        <DayComponent
-                                            selected={isSelected}
-                                            disabled={isDisabled}
-                                            hovered={hovered}
-                                            pressed={pressed}
-                                        >
-                                            {day}
-                                        </DayComponent>
-                                    )}
-                                </PressableWithoutFeedback>
-                            );
-                        })}
-                    </View>
-                ))}
-            </CalendarBody>
+            {/* On mobile (isSmallScreenWidth is always true on native), the height animation is skipped
+                so using Animated.View is unnecessary. Using a plain View with collapsable={false} avoids
+                activating Reanimated's Fabric commit hook, which on Android can interfere with React's
+                reconciliation of child view styles and prevent day-selection background changes from painting. */}
+            {isSmallScreenWidth ? (
+                <View
+                    collapsable={false}
+                    style={[webOnlyMarginStyle, themeStyles.calendarBodyContainer]}
+                >
+                    {calendarWeeks}
+                </View>
+            ) : (
+                <Animated.View
+                    collapsable={false}
+                    style={[webOnlyMarginStyle, animatedStyle]}
+                >
+                    {calendarWeeks}
+                </Animated.View>
+            )}
             <YearPickerModal
                 isVisible={isYearPickerVisible}
                 years={years}

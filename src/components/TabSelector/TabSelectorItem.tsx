@@ -57,6 +57,7 @@ function TabSelectorItem({
     disabledAction,
     pendingAction,
     badgeEducationalTooltipProps,
+    tabButtonStyles,
 }: TabSelectorItemProps) {
     const {isOffline} = useNetwork();
 
@@ -85,6 +86,7 @@ function TabSelectorItem({
                 styles.tabBackground(isHovered, isActive, isDisabled, backgroundColor),
                 styles.userSelectNone,
                 isOfflineWithPendingAction ? styles.offlineFeedbackPending : undefined,
+                tabButtonStyles,
             ]}
             wrapperStyle={getTabWrapperStyle(equalWidth, shouldHugContent, styles)}
             onSecondaryInteraction={isPressableDisabled ? undefined : onLongPress}

@@ -1,4 +1,4 @@
-import type {LocalizedTranslate} from '@components/LocaleContextProvider';
+import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
 
 import {getImportFailedFinalModal} from '@libs/actions/ImportSpreadsheet';
 import * as API from '@libs/API';
@@ -8,6 +8,7 @@ import type {
     OpenPolicyMemberProfilePageParams,
     OpenWorkspaceMembersPageParams,
     RequestWorkspaceOwnerChangeParams,
+    UpdatePolicyMemberDisplayNameParams,
     UpdateWorkspaceMembersRoleParams,
 } from '@libs/API/parameters';
 import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
@@ -26,6 +27,8 @@ import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 
 import * as FormActions from '@userActions/FormActions';
+import type {DisplayNamePersonalDetails} from '@userActions/PersonalDetails';
+import {buildOptimisticDisplayNameDetails} from '@userActions/PersonalDetails';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -1451,6 +1454,52 @@ function setImportedSpreadsheetMemberRole(role: ValueOf<typeof CONST.POLICY.ROLE
     Onyx.set(ONYXKEYS.IMPORTED_SPREADSHEET_MEMBER_ROLE, role);
 }
 
+/**
+ * Set the display name of a workspace member who doesn't have one. The name is stored on their account,
+ * so it applies on every workspace they belong to.
+ */
+function updatePolicyMemberDisplayName(
+    policyID: string,
+    firstName: string,
+    lastName: string,
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
+    memberPersonalDetails: DisplayNamePersonalDetails,
+) {
+    if (!memberPersonalDetails.accountID || !memberPersonalDetails.email) {
+        return;
+    }
+
+    const optimisticDetails = buildOptimisticDisplayNameDetails(firstName, lastName, formatPhoneNumber, memberPersonalDetails);
+    const parameters: UpdatePolicyMemberDisplayNameParams = {policyID, email: memberPersonalDetails.email, firstName, lastName};
+
+    API.write(WRITE_COMMANDS.UPDATE_POLICY_MEMBER_DISPLAY_NAME, parameters, {
+        optimisticData: [
+            buildPersonalDetailsUpdate({
+                [memberPersonalDetails.accountID]: {
+                    ...optimisticDetails,
+                    pendingFields: {displayName: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
+                },
+            }),
+        ],
+        successData: [
+            buildPersonalDetailsUpdate({
+                [memberPersonalDetails.accountID]: {pendingFields: {displayName: null}},
+            }),
+        ],
+        failureData: [
+            buildPersonalDetailsUpdate({
+                [memberPersonalDetails.accountID]: {
+                    firstName: memberPersonalDetails.firstName ?? null,
+                    lastName: memberPersonalDetails.lastName ?? null,
+                    displayName: memberPersonalDetails.displayName ?? null,
+                    ...(optimisticDetails.avatar && {avatar: memberPersonalDetails.avatar}),
+                    pendingFields: {displayName: null},
+                },
+            }),
+        ],
+    });
+}
+
 function clearImportedSpreadsheetMemberData() {
     Onyx.set(ONYXKEYS.IMPORTED_SPREADSHEET_MEMBER_DATA, null);
     Onyx.set(ONYXKEYS.IMPORTED_SPREADSHEET_MEMBER_ROLE, null);
@@ -1486,4 +1535,5 @@ export {
     setImportedSpreadsheetMemberData,
     setImportedSpreadsheetMemberRole,
     clearImportedSpreadsheetMemberData,
+    updatePolicyMemberDisplayName,
 };

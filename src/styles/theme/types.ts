@@ -110,6 +110,8 @@ type ThemeColors = {
     badgeDangerText: Color;
     badgeAdHoc: Color;
     badgeAdHocHover: Color;
+    badgeOfferBG: Color;
+    badgeOfferText: Color;
     bordersBold: Color;
     buttonIcon: Color;
     mentionText: Color;

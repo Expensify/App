@@ -26,6 +26,7 @@ import {CONST as COMMON_CONST, Str} from 'expensify-common';
 import startCase from 'lodash/startCase';
 
 import type en from './en';
+import type {CompanyCardBalanceParams} from './params';
 import type {TranslationDeepObject} from './types';
 type StateValue = {
     stateISO: string;
@@ -92,7 +93,9 @@ const translations: TranslationDeepObject<typeof en> = {
         selectMultiple: 'Seleção múltipla',
         saveChanges: 'Salvar alterações',
         submit: 'Enviar',
+        submitAnyway: 'Enviar mesmo assim',
         markAsDone: 'Marcar como concluído',
+        markAsDoneAnyway: 'Marcar como concluído mesmo assim',
         submitted: 'Enviado',
         markedAsDoneStatus: 'Marcado como concluído',
         rotate: 'Girar',
@@ -448,6 +451,7 @@ const translations: TranslationDeepObject<typeof en> = {
             `Se você sair deste workspace, você será substituído como contato técnico por ${workspaceOwner}, o proprietário do workspace.`,
         leaveWorkspaceReimburser: 'Você não pode sair deste workspace sendo o reembolsador. Defina um novo reembolsador em Workspaces > Fazer ou acompanhar pagamentos e tente novamente.',
         reimbursable: 'Reembolsável',
+        nonReimbursable: 'Não reembolsável',
         editYourProfile: 'Editar seu perfil',
         comments: 'Comentários',
         sharedIn: 'Compartilhado em',
@@ -627,15 +631,6 @@ const translations: TranslationDeepObject<typeof en> = {
         launching: 'Iniciando Expensify',
         expired: 'Sua sessão expirou.',
         signIn: 'Faça login novamente.',
-        notValid: 'Link inválido.',
-        sessionMismatch: 'O link em que você clicou não é válido para a sua sessão atual.',
-        switchAccount: {
-            title: 'Trocar de conta?',
-            prompt: ({newEmail, currentEmail}: {newEmail: string; currentEmail: string}) =>
-                `Você está conectado como ${currentEmail}. Esta ação fará com que você entre como ${newEmail} em vez disso.`,
-            confirm: 'Alterar contas',
-            staySignedIn: 'Não trocar de conta',
-        },
     },
     multifactorAuthentication: {
         reviewTransaction: {
@@ -1325,7 +1320,7 @@ const translations: TranslationDeepObject<typeof en> = {
             phrase1: 'Adicionar um recibo',
             phrase2: 'ou arraste e solte um aqui',
         },
-        pageCount: ({pageCount}: {pageCount: number}) => `Página 1 de ${pageCount}`,
+        pageCount: ({page, pageCount}: {page: number; pageCount: number}) => `Página ${page} de ${pageCount}`,
     },
     quickAction: {
         scanReceipt: 'Digitalizar recibo',
@@ -1430,8 +1425,15 @@ const translations: TranslationDeepObject<typeof en> = {
         pendingMatch: 'Correspondência pendente',
         pendingMatchWithCreditCardDescription: 'Recibo aguardando correspondência com transação do cartão. Marque como dinheiro para cancelar.',
         markAsCash: 'Marcar como dinheiro',
-        pendingMatchSubmitTitle: 'Enviar relatório',
-        pendingMatchSubmitDescription: 'Algumas despesas estão pendentes de correspondência com uma transação de cartão de crédito. Deseja marcá-las como dinheiro?',
+        confirmSubmitReportViolations: {
+            title: 'Enviar relatório?',
+            description: 'Este relatório tem violações de política. Tem certeza de que deseja enviá-lo sem fazer alterações?',
+            titleMarkAsDone: 'Marcar como concluído?',
+            descriptionMarkAsDone: 'Este relatório tem violações de política. Tem certeza de que deseja marcá-lo como concluído sem fazer alterações?',
+            rejectedExpense: 'Despesa rejeitada não marcada como resolvida',
+            reportRejected: 'Relatório rejeitado anteriormente',
+            pendingCardMatch: 'Despesa aguardando uma possível correspondência com uma transação de cartão',
+        },
         routePending: 'Rota pendente...',
         automaticallyEnterExpenseDetails: 'O Concierge vai preencher os detalhes para você.',
         receiptScanning: () => ({
@@ -1600,6 +1602,7 @@ const translations: TranslationDeepObject<typeof en> = {
         pendingConversionMessage: 'O total será atualizado quando você voltar a ficar online',
         changedTheExpense: 'alterou a despesa',
         addedReceipt: 'adicionou um recibo',
+        removedReceipt: 'removeu um recibo',
         setTheRequest: (valueName: string, newValueToDisplay: string) => `o(a) ${valueName} para ${newValueToDisplay}`,
         setTheDistanceMerchant: (translatedChangedField: string, newMerchant: string, newAmountToDisplay: string) =>
             `definiu ${translatedChangedField} como ${newMerchant}, o que definiu o valor como ${newAmountToDisplay}`,
@@ -1632,7 +1635,6 @@ const translations: TranslationDeepObject<typeof en> = {
             invalidSplitYourself: 'Insira um valor diferente de zero para a sua divisão',
             noParticipantSelected: 'Selecione um participante',
             other: 'Erro inesperado. Tente novamente mais tarde.',
-            payFailedExpenseDeleted: 'O pagamento falhou porque o relatório de despesas foi excluído.',
             genericCreateFailureMessage: 'Erro inesperado ao enviar esta despesa. Tente novamente mais tarde.',
             genericCreateInvoiceFailureMessage: 'Erro inesperado ao enviar esta fatura. Tente novamente mais tarde.',
             genericHoldExpenseFailureMessage: 'Erro inesperado ao reter esta despesa. Tente novamente mais tarde.',
@@ -2292,6 +2294,7 @@ const translations: TranslationDeepObject<typeof en> = {
     displayNamePage: {
         headerTitle: 'Nome de exibição',
         isShownOnProfile: 'Seu nome de exibição é exibido no seu perfil.',
+        isShownOnMemberProfile: 'O nome de exibição aparecerá no perfil do membro. Depois de salvo, somente o membro poderá editá-lo.',
     },
     timezonePage: {
         timezone: 'Fuso horário',
@@ -2338,7 +2341,6 @@ const translations: TranslationDeepObject<typeof en> = {
             useProfiling: 'Usar profiling',
             profileTrace: 'Rastreamento de perfil',
             results: 'Resultados',
-            releaseOptions: 'Opções de lançamento',
             testingPreferences: 'Preferências de teste',
             server: 'Servidor',
             servers: {
@@ -3975,6 +3977,10 @@ ${amount} para ${merchant} - ${date}`,
     },
     dynamicForm: {
         exampleHint: ({example}: {example: string}) => `Exemplo: ${example}`,
+        fileCount: ({count}: {count: number}) => ({
+            one: `${count} arquivo`,
+            other: `${count} arquivos`,
+        }),
         error: {
             tooShort: ({minLength}: {minLength: number}) => `Deve ter pelo menos ${minLength} caracteres`,
             invalidFormat: ({example}: {example?: string}) => (example ? `Formato inválido. Exemplo: ${example}` : 'Formato inválido'),
@@ -4916,6 +4922,7 @@ ${amount} para ${merchant} - ${date}`,
             readOnlyActionTitle: 'Calma aí...',
             readOnlyActionPrompt: 'Sua função no workspace pode ver essas configurações, mas não pode editá-las.',
             noAccessActionPrompt: 'Sua função no espaço de trabalho não tem acesso a essas configurações. Peça a um administrador se você precisar disso.',
+            connections: 'Conexões',
         },
         createdForClient: {
             title: 'Você criou um espaço de trabalho para seu cliente!',
@@ -4939,6 +4946,31 @@ ${amount} para ${merchant} - ${date}`,
                 title: 'ChatGPT',
                 subtitle: 'da OpenAI',
             },
+        },
+        connections: {
+            tabs: {
+                [CONST.TAB.CONNECTIONS.ALL]: 'Tudo',
+                [CONST.TAB.CONNECTIONS.ACCOUNTING]: 'Contabilidade',
+                [CONST.TAB.CONNECTIONS.PEOPLE]: 'RH e Pessoas',
+                [CONST.TAB.CONNECTIONS.RECRUITING]: 'Recrutamento',
+                [CONST.TAB.CONNECTIONS.RECEIPTS]: 'Recibos',
+                [CONST.TAB.CONNECTIONS.AI]: 'IA e MCP',
+            },
+            findConnections: 'Encontrar conexões',
+            configure: 'Configurar',
+            fix: 'Corrigir',
+            active: 'Ativo',
+            broken: 'Quebrado',
+            brokenConnection: 'Não é possível sincronizar devido à conexão interrompida',
+            replaceConnectionTitle: 'Substituir conexão?',
+            offer: 'Oferta',
+            replaceConnectionPrompt: (connectionName: string) => `Isso vai remover sua conexão atual com ${connectionName}.`,
+            hrisListing: (providerName: string) => `${providerName} (RHIS)`,
+            atsListing: (providerName: string) => `${providerName} (ATS)`,
+            suggestIntegration: 'Não encontrou a sua? Sugira uma integração e nós vamos analisar.',
+            noResultsPrompt: '<muted-text><centered-text>Ajuste sua pesquisa ou <a href="#">sugira uma integração</a>.</centered-text></muted-text>',
+            allConnectedTitle: 'Tudo conectado',
+            allConnectedPrompt: '<muted-text><centered-text>Tudo aqui já está conectado. Você também pode <a href="#">sugerir uma integração</a>.</centered-text></muted-text>',
         },
         receiptPartners: {
             uber: {
@@ -6170,6 +6202,15 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
             submit: 'Enviar',
         },
         companyCards: {
+            balance: {
+                currentBalance: 'Saldo atual',
+                remainingLimit: 'Limite restante',
+                notAvailable: 'Indisponível',
+                currentBalanceDescription: ({lastUpdated}: CompanyCardBalanceParams) => `O saldo atual é informado pelo seu banco e foi atualizado pela última vez em ${lastUpdated}.`,
+                remainingLimitDescription: ({lastUpdated}: CompanyCardBalanceParams) => `O limite restante é informado pelo seu banco e foi atualizado pela última vez em ${lastUpdated}.`,
+                currentBalanceDescriptionNoTimestamp: 'O saldo atual é informado pelo seu banco.',
+                remainingLimitDescriptionNoTimestamp: 'O limite restante é informado pelo seu banco.',
+            },
             addCards: 'Adicionar cartões',
             selectCards: 'Selecionar cartões',
             fromOtherWorkspaces: 'De outros workspaces',
@@ -8310,6 +8351,8 @@ Exija dados de despesas como recibos e descrições, defina limites e padrões e
                 applyUpdates: 'Aplicar estas atualizações:',
                 saveRule: 'Salvar regra',
                 previewMatches: 'Pré-visualizar correspondências',
+                previewMatchesDescription: 'Veja como esta regra se aplica às suas despesas',
+                preview: 'Pré-visualizar',
                 confirmError: 'Insira o comerciante e aplique pelo menos uma atualização',
                 confirmErrorMerchant: 'Insira o comerciante',
                 confirmErrorUpdate: 'Aplicar pelo menos uma atualização',
@@ -8645,6 +8688,14 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
                 requireFieldsDescription: 'Exigir campos específicos de despesa ou dispensar a exigência deles.',
                 createAgentRule: 'Descrever regra do agente',
                 createAgentRuleDescription: 'Crie regras flexíveis que sejam executadas quando você precisar.',
+                describe: 'Descrever',
+                describeRule: 'Descreva sua regra em linguagem simples e o Concierge criará a regra para você',
+                describeRuleInputLabel: 'Descreva a regra',
+                promptErrors: {
+                    unsupported: 'Essa regra ainda não tem suporte — estamos trabalhando nisso. Tente uma regra diferente por enquanto.',
+                    unintelligible: 'Tente formular sua regra assim: se a despesa for maior que $100, exija um recibo.',
+                    multipleRules: 'Uma regra por vez, por favor — tente descrever uma única regra, como: bloquear compras no varejo em todos os cartões.',
+                },
             },
             expenseDefaultsTable: {
                 tableColumnType: 'Tipo',
@@ -9733,6 +9784,8 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
             return `alterou os participantes da categoria "${categoryName}" para ${newValue ? 'obrigatório' : 'não obrigatório'} (antes ${newValue ? 'não obrigatório' : 'obrigatório'})`;
         },
         updatedAutoHarvesting: (enabled: boolean) => `${enabled ? 'ativado' : 'desativado'} envios`,
+        updatedMemberDisplayName: (newName: string, oldName: string, editProfileURL: string) =>
+            `atualizou seu nome de exibição para ${newName} (Antes "${oldName}"). <a href="${editProfileURL}">Editar no seu perfil</a>`,
         changedOverLimitForwardsTo: ({
             member,
             approver,
@@ -11246,6 +11299,16 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
                 other: `${count} usuários ativos`,
             }),
             state: {paid: 'Pago', cleared: 'Compensado', failed: 'Falhou', refunded: 'Reembolsado', disputed: 'Contestado', balanceTransfer: 'Transferência de saldo'},
+            details: 'Detalhes do pagamento',
+            badge: {
+                balanceTransferTo: ({email}: {email: string}) => `Transferência de saldo para ${email}`,
+                balanceTransferFrom: ({email}: {email: string}) => `Transferência de saldo de ${email}`,
+                disputedPending: ({date}: {date: string}) => `Contestado em ${date} (Pendente)`,
+                disputedRefunded: ({date}: {date: string}) => `Contestado em ${date} (Reembolsado)`,
+                disputedClosed: ({date}: {date: string}) => `Contestado em ${date} (Fechado)`,
+                refundedOn: ({date}: {date: string}) => `Reembolsado em ${date}`,
+                refundedAmountOn: ({amount, date}: {amount: string; date: string}) => `${amount} reembolsado em ${date}`,
+            },
         },
         subscriptionSettings: {
             title: 'Configurações de assinatura',
@@ -11486,6 +11549,7 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
         markAllAsRead: '<tooltip>Clique com o botão direito para <strong>marcar tudo como lido</strong>.</tooltip>',
         markAllAsReadTouchScreen: '<tooltip>Mantenha pressionado para <strong>marcar tudo como lido</strong>.</tooltip>',
         accountMovedToTopBar: '<tooltip>Acesse sua conta e configurações pessoais.</tooltip>',
+        connectionsMoved: 'Todas as suas conexões em um só lugar',
     },
     discardChangesConfirmation: {
         title: 'Descartar alterações?',

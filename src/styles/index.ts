@@ -324,6 +324,13 @@ const compactPopoverMenuItemBaseStyle = {
 const COMPOSER_SIZE_BUTTON_SIZE = 40;
 const COMPOSER_SIZE_BUTTON_MARGIN = 3;
 
+// Shared by receiptPageCountBadge and receiptPageNavigator so the two can't drift apart.
+const RECEIPT_PAGE_BADGE_POSITION = {
+    position: 'absolute' as const,
+    bottom: 12,
+    left: 12,
+};
+
 const staticStyles = (theme: ThemeColors) =>
     StyleSheet.create({
         ...spacing,
@@ -1396,6 +1403,15 @@ const staticStyles = (theme: ThemeColors) =>
             borderColor: theme.badgeDangerBG,
         },
 
+        badgeOffer: {
+            backgroundColor: theme.badgeOfferBG,
+            borderColor: theme.badgeOfferBG,
+        },
+
+        badgeOfferText: {
+            color: theme.badgeOfferText,
+        },
+
         badgeDangerStrong: {
             backgroundColor: theme.danger,
             borderColor: theme.danger,
@@ -2457,6 +2473,25 @@ const staticStyles = (theme: ThemeColors) =>
             minHeight: variables.optionRowHeightCompact,
             paddingTop: 12,
             paddingBottom: 12,
+        },
+
+        optionRowCompactMinHeight: {
+            minHeight: variables.optionRowHeightCompact,
+        },
+
+        // Sits flush against the right edge of a report field whose input has `noRightBorderRadius`, so the input's
+        // right border reads as a divider and the two look like one segmented field.
+        reportFieldDeleteButton: {
+            width: variables.componentSizeLarge,
+            height: variables.componentSizeLarge,
+            alignItems: 'center',
+            justifyContent: 'center',
+            backgroundColor: theme.appBG,
+            borderWidth: 1,
+            borderLeftWidth: 0,
+            borderTopRightRadius: variables.componentBorderRadiusNormal,
+            borderBottomRightRadius: variables.componentBorderRadiusNormal,
+            borderColor: theme.bordersBold,
         },
 
         optionsListSectionHeader: {
@@ -3587,6 +3622,14 @@ const staticStyles = (theme: ThemeColors) =>
             transform: [{rotate: '180deg'}],
         },
 
+        // Use this instead of `flipUpsideDown` when the element being flipped has asymmetric horizontal padding.
+        // `rotate(180deg)` turns the whole box about its centre, so it mirrors that padding too and the content
+        // visibly slides sideways. Mirroring on the vertical axis leaves the box where it is, and looks identical
+        // for content that is already symmetric left-to-right (a caret, a chevron, a tooltip pointer).
+        flipUpsideDownInPlace: {
+            transform: [{scaleY: -1}],
+        },
+
         navigationScreenCardStyle: {
             height: '100%',
         },
@@ -4126,6 +4169,10 @@ const staticStyles = (theme: ThemeColors) =>
             lineHeight: variables.lineHeightXXLarge,
         },
 
+        cardLabelTooltipContainer: {
+            maxWidth: variables.modalContentMaxWidth,
+        },
+
         longTermsRow: {
             flexDirection: 'row',
             marginTop: 20,
@@ -4417,10 +4464,39 @@ const staticStyles = (theme: ThemeColors) =>
 
         // Float above the receipt to avoid zooming with it.
         receiptPageCountBadge: {
-            position: 'absolute',
-            bottom: 12,
-            left: 12,
+            ...RECEIPT_PAGE_BADGE_POSITION,
             marginLeft: 0,
+        },
+
+        // The pill grows with its label, so longer translations are never clipped and the buttons' focus outlines stay visible.
+        receiptPageNavigator: {
+            ...RECEIPT_PAGE_BADGE_POSITION,
+            flexDirection: 'row',
+            alignItems: 'center',
+            minHeight: variables.componentSizeSmall,
+            paddingHorizontal: 4,
+            borderRadius: variables.componentBorderRadiusRounded,
+            backgroundColor: theme.badgeDefaultBG,
+        },
+
+        receiptPageNavigatorLabelContainer: {
+            alignItems: 'center',
+            justifyContent: 'center',
+        },
+
+        // Overlays the hidden widest label that sizes the pill
+        receiptPageNavigatorCurrentLabel: {
+            ...StyleSheet.absoluteFill,
+            alignItems: 'center',
+            justifyContent: 'center',
+        },
+
+        // A real tap target around the small arrow glyph; react-native-web's Pressable doesn't support hitSlop
+        receiptPageNavigatorButton: {
+            height: 24,
+            width: 24,
+            alignItems: 'center',
+            justifyContent: 'center',
         },
 
         reuseRouteCard: {
@@ -5297,6 +5373,26 @@ const staticStyles = (theme: ThemeColors) =>
             justifyContent: 'center',
             borderRadius: variables.buttonBorderRadius,
             scrollMarginInline: variables.tabSelectorScrollMarginInline,
+        },
+
+        // Rows are spaced by each card's top margin so the zero-height fillers add no space. The negative margin cancels the first row's.
+        connectionsGrid: {
+            flexDirection: 'row',
+            flexWrap: 'wrap',
+            columnGap: 12,
+            marginTop: -12,
+        },
+
+        // Cards wrap by their minimum width. Three 26% bases fit a row with the gaps, while a fourth does not.
+        connectionCard: {
+            flexBasis: '26%',
+            minWidth: variables.connectionCardMinWidth,
+        },
+
+        connectionsTabButton: {
+            height: 'auto',
+            paddingVertical: 10,
+            paddingHorizontal: 16,
         },
 
         tabSelector: {
@@ -6434,6 +6530,10 @@ const staticStyles = (theme: ThemeColors) =>
             maxHeight: variables.agentRulePromptInputHeight,
         },
 
+        describeRulePromptInput: {
+            height: variables.describeRulePromptInputHeight,
+        },
+
         emptyStateSamlIllustration: {
             width: 183,
             height: 160,
@@ -7225,27 +7325,35 @@ const staticStyles = (theme: ThemeColors) =>
 
 const dynamicStyles = (theme: ThemeColors) =>
     ({
-        // The tab bar is laid over the bottom of a tab root screen, so the offline indicator floats above it without
-        // shrinking the content that runs under the bar.
-        tabBarOfflineIndicator: (bottom: number) =>
+        // Floats the offline indicator above a footer laid over the bottom of a tab root screen, without shrinking the
+        // content that runs under the footer.
+        offlineIndicatorAboveFooter: (footerHeight: number) =>
             ({
                 position: 'absolute',
                 right: 0,
-                bottom,
+                bottom: footerHeight,
                 left: 0,
                 backgroundColor: theme.appBG,
             }) satisfies ViewStyle,
 
-        // Fills the screen from the top of the native tab bar down to the bottom edge, so no content shows between
-        // the offline indicator and the bar.
-        nativeTabBarOfflineIndicator: (tabBarHeight: number) =>
+        // Fills the screen from the top of the tab bar down to the bottom edge, so no content shows between the
+        // offline indicator and the bar.
+        tabBarOfflineIndicator: (tabBarCoveredHeight: number) =>
             ({
                 position: 'absolute',
                 right: 0,
                 bottom: 0,
                 left: 0,
-                height: CONST.OFFLINE_INDICATOR_HEIGHT + tabBarHeight,
-                paddingBottom: tabBarHeight,
+                height: CONST.OFFLINE_INDICATOR_HEIGHT + tabBarCoveredHeight,
+                paddingBottom: tabBarCoveredHeight,
+                backgroundColor: theme.appBG,
+            }) satisfies ViewStyle,
+
+        // Runs a footer's background down under the tab bar that covers the bottom of a tab root screen, so the
+        // footer's content sits above the bar.
+        tabRootFooter: (tabBarCoveredHeight: number) =>
+            ({
+                paddingBottom: tabBarCoveredHeight,
                 backgroundColor: theme.appBG,
             }) satisfies ViewStyle,
 
@@ -7652,6 +7760,16 @@ const dynamicStyles = (theme: ThemeColors) =>
                 backgroundColor: theme.componentBG,
             };
         },
+
+        getCardAuthenticationModalInnerView: (shouldUseNarrowLayout: boolean) =>
+            ({
+                flex: 1,
+                margin: shouldUseNarrowLayout ? 0 : 20,
+                borderRadius: shouldUseNarrowLayout ? 0 : variables.componentBorderRadiusLarge,
+                overflow: 'hidden',
+                boxShadow: shouldUseNarrowLayout ? undefined : theme.shadow,
+                backgroundColor: theme.componentBG,
+            }) satisfies ViewStyle,
 
         getTestToolsNavigatorOuterView: (shouldUseNarrowLayout: boolean) => ({
             justifyContent: shouldUseNarrowLayout ? 'flex-end' : 'center',
