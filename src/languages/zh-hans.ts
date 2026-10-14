@@ -9574,6 +9574,8 @@ ${reportName}`,
         fallbackTitle: '支持工单',
         resolved: '此支持工单已解决。',
         surveyPrompt: '您对支持服务的体验如何？',
+        great: '很好',
+        poor: '很差',
         reopenTicket: '重新打开工单',
     },
     statementPage: {
