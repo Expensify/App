@@ -2,7 +2,7 @@ import {isGroupPolicy} from '@libs/PolicyUtils';
 import {getPolicyExpenseChat} from '@libs/ReportUtils';
 import shouldUseDefaultExpensePolicy from '@libs/shouldUseDefaultExpensePolicy';
 
-import {getMoneyRequestParticipantsFromReport} from '@userActions/IOU/MoneyRequest';
+import {addLoginsToParticipants, getMoneyRequestParticipantsFromReport} from '@userActions/IOU/MoneyRequest';
 
 import type {IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
@@ -75,7 +75,8 @@ function useDefaultParticipants({sourceReport, transaction, iouType}: UseDefault
         isLoadingOnyxValue(activePolicyIDResult, policyCollectionResult, amountOwedResult, userBillingGracePeriodEndsResult, ownerBillingGracePeriodEndResult);
 
     const participants = useMemo(() => {
-        const reportParticipants = getMoneyRequestParticipantsFromReport(sourceReport, accountID).filter((participant) => participant.selected);
+        // These participants get stored in the draft (for example by the FAB quick action), so keep their logins too
+        const reportParticipants = addLoginsToParticipants(getMoneyRequestParticipantsFromReport(sourceReport, accountID).filter((participant) => participant.selected));
         if (reportParticipants.length > 0) {
             return reportParticipants;
         }

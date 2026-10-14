@@ -635,18 +635,25 @@ function getMoneyRequestParticipantsFromReport(report: OnyxEntry<Report>, curren
 }
 
 /**
+ * Adds each participant's login from personal details, for participants that are stored in a draft. A recipient created
+ * offline has an optimistic accountID that is dropped from personal details once the request syncs, and
+ * getParticipantsOption needs the login to find the real account.
+ */
+function addLoginsToParticipants(participants: Participant[]): Participant[] {
+    return participants.map((participant) => {
+        const login = participant.login ?? getPersonalDetail(participant.accountID)?.login;
+        return login ? {...participant, login} : participant;
+    });
+}
+
+/**
  * Sets the participants for an IOU based on the attached report
  * @param transactionID of the transaction to set the participants of
  * @param report attached to the transaction
  * @param participantsAutoAssigned whether participants were auto assigned
  */
 function setMoneyRequestParticipantsFromReport(transactionID: string, report: OnyxEntry<Report>, currentUserAccountID?: number, participantsAutoAssigned = true) {
-    // Keep each participant's login with their accountID. A recipient created offline has an optimistic accountID that is
-    // dropped from personal details once the request syncs, and getParticipantsOption needs the login to find the real account.
-    const participants = getMoneyRequestParticipantsFromReport(report, currentUserAccountID).map((participant) => {
-        const login = participant.login ?? getPersonalDetail(participant.accountID)?.login;
-        return login ? {...participant, login} : participant;
-    });
+    const participants = addLoginsToParticipants(getMoneyRequestParticipantsFromReport(report, currentUserAccountID));
     return Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {
         participants,
         participantsAutoAssigned,
@@ -1148,6 +1155,7 @@ export {
     startMoneyRequest,
     startDistanceRequest,
     setMoneyRequestParticipants,
+    addLoginsToParticipants,
     getMoneyRequestParticipantsFromReport,
     setMoneyRequestParticipantsFromReport,
     getIOURequestPolicyID,

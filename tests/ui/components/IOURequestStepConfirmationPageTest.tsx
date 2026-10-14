@@ -1671,6 +1671,99 @@ describe('IOURequestStepConfirmationPageTest', () => {
                 canAddTransactionSpy.mockRestore();
             }
         });
+
+        it('sends a quick-action expense started before an offline recipient synced to the existing chat with the real account', async () => {
+            // Given a chat with a recipient created offline, who still has an optimistic accountID
+            const chatReportID = '7001';
+            const realAccountID = 50;
+            const optimisticAccountID = 40;
+            const login = 'new.login@example.com';
+            const transactionID = 'tx-quick-action';
+            await act(async () => {
+                await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+                    [optimisticAccountID]: {accountID: optimisticAccountID, login, displayName: login, isOptimisticPersonalDetail: true},
+                });
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`, {
+                    reportID: chatReportID,
+                    type: CONST.REPORT.TYPE.CHAT,
+                    participants: {
+                        [ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                        [optimisticAccountID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                    },
+                });
+
+                // And a second expense started from the FAB quick action for that chat, whose recipient the page fills in from the chat
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {
+                    transactionID,
+                    reportID: chatReportID,
+                    amount: 2000,
+                    isAmountSet: true,
+                    currency: 'USD',
+                    merchant: 'Test',
+                    created: '2025-01-15',
+                    isFromGlobalCreate: true,
+                    isFromFloatingActionButton: true,
+                    iouRequestType: CONST.IOU.REQUEST_TYPE.MANUAL,
+                });
+            });
+
+            render(
+                <OnyxListItemProvider>
+                    <HTMLProviderWrapper>
+                        <CurrentUserPersonalDetailsProvider>
+                            <LocaleContextProvider>
+                                <IOURequestStepConfirmationWithWritableReportOrNotFound
+                                    route={{
+                                        key: 'Money_Request_Step_Confirmation',
+                                        name: 'Money_Request_Step_Confirmation',
+                                        params: {
+                                            action: CONST.IOU.ACTION.CREATE,
+                                            iouType: CONST.IOU.TYPE.SUBMIT,
+                                            transactionID,
+                                            reportID: chatReportID,
+                                        },
+                                    }}
+                                    navigation={mockNavigation}
+                                />
+                            </LocaleContextProvider>
+                        </CurrentUserPersonalDetailsProvider>
+                    </HTMLProviderWrapper>
+                </OnyxListItemProvider>,
+            );
+
+            await waitForBatchedUpdatesWithAct();
+
+            // When the first expense syncs while the page is open, replacing the optimistic accountID with the real one
+            await act(async () => {
+                await Onyx.update([
+                    {
+                        onyxMethod: Onyx.METHOD.MERGE,
+                        key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+                        value: {[realAccountID]: {accountID: realAccountID, login, displayName: login}},
+                    },
+                    {
+                        onyxMethod: Onyx.METHOD.MERGE,
+                        key: `${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`,
+                        value: {participants: {[realAccountID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS}}},
+                    },
+                ]);
+                await Onyx.update([
+                    {onyxMethod: Onyx.METHOD.MERGE, key: ONYXKEYS.PERSONAL_DETAILS_LIST, value: {[optimisticAccountID]: null}},
+                    {onyxMethod: Onyx.METHOD.MERGE, key: `${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`, value: {participants: {[optimisticAccountID]: null}}},
+                ]);
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            // And the user submits the second expense
+            fireEvent.press(await screen.findByText(getConfirmButtonRegex()));
+
+            // Then the expense goes to the existing chat with the real account, so the chat isn't rebuilt as a new one
+            await waitFor(() => expect(TrackExpense.requestMoney).toHaveBeenCalled());
+            const params = jest.mocked(TrackExpense.requestMoney).mock.calls.at(0)?.at(0);
+            expect(params?.participantParams.participant.accountID).toBe(realAccountID);
+            expect(params?.participantParams.participant.login).toBe(login);
+            expect(params?.report?.reportID).toBe(chatReportID);
+        });
     });
 
     describe('Unreported transaction tests', () => {
