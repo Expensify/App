@@ -385,6 +385,7 @@ export default {
     rulesNewMenuItemMinHeight: 84,
     agentRulePromptInputHeight: 340,
     describeRulePromptInputHeight: 312,
+    describeRuleInlinePromptInputHeight: 115,
     cardPreviewWidth: 235,
     cardDetailsActionButtonMinWidth: 140,
     cardScarfOverlayWidth: 264,
