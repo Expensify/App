@@ -21,6 +21,9 @@ const useLandscapeOnBlurProxy: UseLandscapeOnBlurProxy = (inputRef, onBlur) => {
     // The orientation is tracked outside of render, because the blur of a rotation lands before (or right around) the
     // re-render that would report the new orientation, so values read during render still describe the old one.
     const lastWindowWidthChangeTimeRef = useRef(0);
+    const pendingRefocusTimeoutIDRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+
+    useEffect(() => () => clearTimeout(pendingRefocusTimeoutIDRef.current), []);
 
     useEffect(() => {
         let lastWindowWidth = Dimensions.get('window').width;
@@ -41,7 +44,9 @@ const useLandscapeOnBlurProxy: UseLandscapeOnBlurProxy = (inputRef, onBlur) => {
         const isKeyboardOpening = isKeyboardAnimatingRef.current && isKeyboardActive;
         const blurTime = Date.now();
 
-        setTimeout(() => {
+        clearTimeout(pendingRefocusTimeoutIDRef.current);
+        pendingRefocusTimeoutIDRef.current = setTimeout(() => {
+            pendingRefocusTimeoutIDRef.current = undefined;
             const isRotationBlur = lastWindowWidthChangeTimeRef.current > blurTime - ROTATION_BLUR_WINDOW_MS;
             if (!isRotationBlur && !(isKeyboardOpening && isInLandscapeMode)) {
                 return;

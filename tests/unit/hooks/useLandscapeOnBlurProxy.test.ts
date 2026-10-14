@@ -150,4 +150,18 @@ describe('useLandscapeOnBlurProxy', () => {
         // eslint-disable-next-line @typescript-eslint/unbound-method
         expect(subscription?.type === 'return' && subscription.value.remove).toHaveBeenCalledTimes(1);
     });
+
+    it('cancels a pending re-focus on unmount', () => {
+        // Given an input blurred by a rotation, with its re-focus still pending
+        const {focus, blur, unmount} = renderProxy();
+        setWindow(LANDSCAPE_WINDOW);
+        blur();
+
+        // When the proxy unmounts before the re-focus delay passes
+        unmount();
+        advance(REFOCUS_DELAY_MS);
+
+        // Then the re-focus never runs, because the input it targets is gone
+        expect(focus).not.toHaveBeenCalled();
+    });
 });
