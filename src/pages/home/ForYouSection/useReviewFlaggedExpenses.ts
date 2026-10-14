@@ -116,7 +116,7 @@ function getFlaggedExpenses(
 
         const report = allReports[`${ONYXKEYS.COLLECTION.REPORT}${transaction.reportID}`];
         const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`];
-        const hasBeenForwardedSinceLastSubmit = forwardedSinceLastSubmitReportIDs && Boolean(forwardedSinceLastSubmitReportIDs[transaction.reportID]);
+        const hasBeenForwardedSinceLastSubmit = !!forwardedSinceLastSubmitReportIDs?.[transaction.reportID];
         if (!isCurrentUserReportEligibleForViolationFix(report, policy, currentUserAccountID, hasBeenForwardedSinceLastSubmit)) {
             continue;
         }
