@@ -5,6 +5,8 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import addEncryptedAuthTokenToURL from '@libs/addEncryptedAuthTokenToURL';
 
+import {useReportActionItemState} from '@pages/inbox/report/ReportActionIndexContext';
+
 import variables from '@styles/variables';
 
 import {retrieveMaxCanvasArea, retrieveMaxCanvasHeight, retrieveMaxCanvasWidth} from '@userActions/CanvasSize';
@@ -12,7 +14,7 @@ import {retrieveMaxCanvasArea, retrieveMaxCanvasHeight, retrieveMaxCanvasWidth} 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
-import React, {useEffect, useState} from 'react';
+import React, {useEffect} from 'react';
 import {PDFPreviewer} from 'react-fast-pdf';
 import {View} from 'react-native';
 
@@ -125,7 +127,7 @@ function ReceiptPDFOverlay({sourceURL, isAuthTokenRequired = true, onLoadFailure
 
     // Track which URL failed so hasFailed resets automatically when fileURL changes (e.g. after auth token refresh),
     // mirroring the pattern in ThumbnailImage. No useEffect needed — the comparison runs synchronously during render.
-    const [failedURL, setFailedURL] = useState<string | null>(null);
+    const [failedURL, setFailedURL] = useReportActionItemState<string | null>(null);
     const hasFailed = failedURL !== null && failedURL === fileURL;
 
     // The page last drawn stays on screen while the next one renders, so the thumbnail underneath never flashes

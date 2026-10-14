@@ -20,6 +20,7 @@ let mockCurrentPermission: NotificationPermissionStatus = 'default';
 jest.mock('@libs/Notification/notificationPermission', () => ({
     __esModule: true,
     default: {
+        getStatusSync: () => mockCurrentPermission,
         getStatus: () => Promise.resolve(mockCurrentPermission),
         request: () => Promise.resolve(mockCurrentPermission),
     },
@@ -68,5 +69,16 @@ describe('useShouldShowEnableNotificationsBanner', () => {
     it('returns true in the Concierge report when permission is default and not dismissed', async () => {
         const {result} = renderHook(() => useShouldShowEnableNotificationsBanner(conciergeReport));
         await waitFor(() => expect(result.current).toBe(true));
+    });
+
+    it('shows the Concierge banner on the initial render so the chat opens with its final viewport height', () => {
+        // Given notification permission has not been decided and the Concierge report is already known.
+        mockCurrentPermission = 'default';
+
+        // When Concierge opens, the list and footer measure their initial layout together.
+        const {result} = renderHook(() => useShouldShowEnableNotificationsBanner(conciergeReport));
+
+        // Then the banner must occupy space before the list positions itself at the latest message.
+        expect(result.current).toBe(true);
     });
 });

@@ -346,7 +346,7 @@ function MoneyRequestReportActionsListContent({reportIDFromRoute, onLayout}: Mon
                         contentContainerStyle={[shouldUseNarrowLayout ? styles.pt4 : styles.pt3, shouldReserveBulkActionBarSpace && styles.bulkActionBarListSpacing]}
                         isLoadingInitialActions={isInitialReportLoadPending}
                         /* This list is not inverted, so the footer is the bottom of the message feed —
-                           the same position the indicator occupies in the inverted ReportActionsList. */
+                           the same position the indicator occupies in ReportActionsList. */
                         listFooterComponent={<ConciergeThinkingMessage reportID={report.reportID} />}
                     />
                 )}
