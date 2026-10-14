@@ -19,7 +19,6 @@ const ADMINS_ROOM_REPORT_ID = '200';
 
 let mockSidePanelReportID: string | undefined;
 let mockIsInSidePanel = false;
-let mockIsBetaEnabled = false;
 const mockOpenConciergeAnywhere = jest.fn();
 
 jest.mock('@hooks/useSidePanelReportID', () => ({
@@ -40,11 +39,6 @@ jest.mock('@hooks/useCurrentUserPersonalDetails', () => ({
 jest.mock('@hooks/useDelegateAccountID', () => ({
     __esModule: true,
     default: () => '99',
-}));
-
-jest.mock('@hooks/usePermissions', () => ({
-    __esModule: true,
-    default: () => ({isBetaEnabled: () => mockIsBetaEnabled, isBetaEnabledOrUnknown: () => mockIsBetaEnabled}),
 }));
 
 jest.mock('@userActions/Report', () => ({
@@ -80,7 +74,6 @@ describe('useAskConcierge', () => {
     beforeEach(async () => {
         mockSidePanelReportID = undefined;
         mockIsInSidePanel = false;
-        mockIsBetaEnabled = false;
         jest.clearAllMocks();
         await Onyx.clear();
     });
@@ -126,7 +119,8 @@ describe('useAskConcierge', () => {
 
     describe('askConcierge', () => {
         it('opens Concierge and sends the trimmed message to the resolved report', async () => {
-            // Given a loaded Concierge report
+            // Given web, with a loaded Concierge report
+            mockIsInSidePanel = true;
             await seedReports();
             const {result} = renderAskConcierge({forceConcierge: true});
             expect(result.current.shouldShowAskConcierge).toBe(true);
@@ -134,8 +128,10 @@ describe('useAskConcierge', () => {
             // When a padded message is sent
             result.current.askConcierge('  Where is my expense?  ');
 
-            // Then Concierge is opened and the trimmed text is added as a comment
-            expect(mockOpenConciergeAnywhere).toHaveBeenCalledWith({forceConcierge: true});
+            // Then Concierge is opened on the new thread and the trimmed text is added as a comment
+            const conciergeThreadReportID = mockAddComment.mock.calls.at(0)?.at(0)?.conciergeThreadReportID;
+            expect(conciergeThreadReportID).toEqual(expect.any(String));
+            expect(mockOpenConciergeAnywhere).toHaveBeenCalledWith({forceConcierge: true, reportID: conciergeThreadReportID});
             expect(mockAddComment).toHaveBeenCalledWith(
                 expect.objectContaining({
                     report: CONCIERGE_REPORT,
@@ -144,7 +140,7 @@ describe('useAskConcierge', () => {
                     currentUserAccountID: ACCOUNT_ID,
                     timezoneParam: {selected: TIMEZONE},
                     shouldPlaySound: true,
-                    isInSidePanel: false,
+                    isInSidePanel: true,
                     delegateAccountID: DELEGATE_ACCOUNT_ID,
                     conciergeReportID: CONCIERGE_REPORT_ID,
                 }),
@@ -201,7 +197,8 @@ describe('useAskConcierge', () => {
         const FILES: FileObject[] = [{name: 'receipt.jpg', type: 'image/jpeg', uri: 'file://receipt.jpg'}];
 
         it('opens Concierge and sends the attachments with the trimmed text', async () => {
-            // Given a loaded Concierge report
+            // Given web, with a loaded Concierge report
+            mockIsInSidePanel = true;
             await seedReports();
             const {result} = renderAskConcierge({forceConcierge: true});
             expect(result.current.shouldShowAskConcierge).toBe(true);
@@ -209,8 +206,10 @@ describe('useAskConcierge', () => {
             // When attachments are sent with a padded caption
             result.current.askConciergeWithAttachment(FILES, '  Here it is  ');
 
-            // Then Concierge is opened and the attachments are added with the trimmed text
-            expect(mockOpenConciergeAnywhere).toHaveBeenCalledWith({forceConcierge: true});
+            // Then Concierge is opened on the new thread and the attachments are added with the trimmed text
+            const conciergeThreadReportID = mockAddAttachmentWithComment.mock.calls.at(0)?.at(0)?.conciergeThreadReportID;
+            expect(conciergeThreadReportID).toEqual(expect.any(String));
+            expect(mockOpenConciergeAnywhere).toHaveBeenCalledWith({forceConcierge: true, reportID: conciergeThreadReportID});
             expect(mockAddAttachmentWithComment).toHaveBeenCalledWith(
                 expect.objectContaining({
                     report: CONCIERGE_REPORT,
@@ -220,7 +219,7 @@ describe('useAskConcierge', () => {
                     currentUserAccountID: ACCOUNT_ID,
                     timezone: {selected: TIMEZONE},
                     shouldPlaySound: true,
-                    isInSidePanel: false,
+                    isInSidePanel: true,
                     delegateAccountID: DELEGATE_ACCOUNT_ID,
                     conciergeReportID: CONCIERGE_REPORT_ID,
                 }),
@@ -265,7 +264,6 @@ describe('useAskConcierge', () => {
         it('shows the new thread in the side panel instead of sending the user to the Inbox', async () => {
             // Given web, where Concierge answers each question in its own thread
             mockIsInSidePanel = true;
-            mockIsBetaEnabled = true;
             await seedReports();
             const {result} = renderAskConcierge({forceConcierge: true});
             expect(result.current.shouldShowAskConcierge).toBe(true);
@@ -284,7 +282,6 @@ describe('useAskConcierge', () => {
 
         it('sends the user to the thread on native, where there is no side panel', async () => {
             // Given native, where Concierge answers each question in its own thread
-            mockIsBetaEnabled = true;
             await seedReports();
             const {result} = renderAskConcierge({forceConcierge: true});
             expect(result.current.shouldShowAskConcierge).toBe(true);
@@ -298,25 +295,9 @@ describe('useAskConcierge', () => {
             expect(mockOpenConciergeAnywhere).not.toHaveBeenCalled();
         });
 
-        it('opens the Concierge chat itself when the beta is off', async () => {
-            // Given web without the thread beta
-            mockIsInSidePanel = true;
-            await seedReports();
-            const {result} = renderAskConcierge({forceConcierge: true});
-            expect(result.current.shouldShowAskConcierge).toBe(true);
-
-            // When a question is asked
-            result.current.askConcierge('Where is my expense?');
-
-            // Then no thread is created and the side panel falls back to the Concierge chat
-            expect(mockAddComment).toHaveBeenCalledWith(expect.objectContaining({conciergeThreadReportID: undefined}));
-            expect(mockOpenConciergeAnywhere).toHaveBeenCalledWith({forceConcierge: true, reportID: undefined});
-        });
-
         it('shows the thread in the side panel for a single attachment', async () => {
             // Given web, where Concierge answers each question in its own thread
             mockIsInSidePanel = true;
-            mockIsBetaEnabled = true;
             await seedReports();
             const {result} = renderAskConcierge({forceConcierge: true});
             expect(result.current.shouldShowAskConcierge).toBe(true);
@@ -333,7 +314,6 @@ describe('useAskConcierge', () => {
         it('keeps several attachments in the Concierge chat', async () => {
             // Given web, where Concierge answers each question in its own thread
             mockIsInSidePanel = true;
-            mockIsBetaEnabled = true;
             await seedReports();
             const {result} = renderAskConcierge({forceConcierge: true});
             expect(result.current.shouldShowAskConcierge).toBe(true);

@@ -1388,6 +1388,21 @@ describe('Session', () => {
         });
     });
 
+    describe('signInWithSupportAuthToken', () => {
+        test('clears the loading state when the server rejects the support token', async () => {
+            // Given a signed-out agent and a support token that the server rejects as expired
+            jest.mocked(HttpUtils.xhr).mockImplementationOnce(() => Promise.resolve({jsonCode: CONST.JSON_CODE.NOT_AUTHENTICATED}));
+
+            // When the transition page signs in with that token
+            SessionUtil.signInWithSupportAuthToken('expired-support-token');
+            await waitForBatchedUpdates();
+
+            // Then the account stops loading, because there is no session to reauthenticate, so the transition page shows the expired session and not a spinner
+            const account = await getOnyxValue(ONYXKEYS.ACCOUNT);
+            expect(account?.isLoading).toBe(false);
+        });
+    });
+
     describe('requestUnlinkValidationLink', () => {
         test('sends the login argument as the email param, independent of the CREDENTIALS Onyx cache', async () => {
             const writeSpy = jest.spyOn(API, 'write').mockResolvedValue(undefined);
