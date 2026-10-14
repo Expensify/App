@@ -1,7 +1,7 @@
 import {render, screen} from '@testing-library/react-native';
 
 import ActivityIndicator from '@components/ActivityIndicator';
-import ChartReveal from '@components/Charts/components/ChartReveal';
+import ChartReveal, {useReportChartLoading} from '@components/Charts/components/ChartReveal';
 import SkiaWebChart from '@components/Charts/SkiaWebChart';
 import isSkiaWebSupported from '@components/Charts/SkiaWebChart/isSkiaWebSupported';
 import {getCartesianChartHeight} from '@components/Charts/utils/chartHeights';
@@ -9,6 +9,7 @@ import {getCartesianChartHeight} from '@components/Charts/utils/chartHeights';
 import * as Sentry from '@sentry/react-native';
 import {WithSkiaWeb} from '@shopify/react-native-skia/lib/module/web';
 import React from 'react';
+import {View} from 'react-native';
 
 jest.mock('@components/Charts/SkiaWebChart/isSkiaWebSupported', () => jest.fn());
 
@@ -36,8 +37,25 @@ const mockIsSkiaWebSupported = jest.mocked(isSkiaWebSupported);
 const mockWithSkiaWeb = jest.mocked(WithSkiaWeb);
 const mockCaptureException = jest.mocked(Sentry.captureException);
 
+function ReadyChart() {
+    useReportChartLoading(false);
+    return null;
+}
+
 describe('SkiaWebChart', () => {
     const getComponent = () => Promise.resolve({default: () => null});
+
+    const renderRevealedChart = () => (
+        <ChartReveal
+            loadingHeight={CHART_LOADING_HEIGHT}
+            isCardMeasured
+        >
+            <SkiaWebChart
+                getComponent={getComponent}
+                componentProps={{}}
+            />
+        </ChartReveal>
+    );
 
     afterEach(() => {
         jest.clearAllMocks();
@@ -58,23 +76,38 @@ describe('SkiaWebChart', () => {
         expect(mockWithSkiaWeb).not.toHaveBeenCalled();
     });
 
-    it('should show the unavailable message under a reveal without holding its spinner', () => {
-        // Given a browser without WebGL
-        mockIsSkiaWebSupported.mockReturnValue(false);
+    it('should show the failed-to-load message under a reveal without holding its spinner', () => {
+        // Given a chart under a reveal whose spinner is up while Skia loads
+        mockIsSkiaWebSupported.mockReturnValue(true);
+        mockWithSkiaWeb.mockImplementation(({fallback}) => <View>{fallback}</View>);
+        const {rerender} = render(renderRevealedChart());
 
-        // When the chart renders under a reveal
-        render(
-            <ChartReveal loadingHeight={CHART_LOADING_HEIGHT}>
-                <SkiaWebChart
-                    getComponent={getComponent}
-                    componentProps={{}}
-                />
-            </ChartReveal>,
-        );
+        // When CanvasKit fails to load. React logs caught render errors to console.error, so mock it to keep the test output clean.
+        mockWithSkiaWeb.mockImplementation(() => {
+            throw new Error('CanvasKit initialized without its bindings');
+        });
+        const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+        rerender(renderRevealedChart());
 
         // Then the message replaces the spinner in the same render, because the hold waits for a Skia draw this state never makes
         expect(screen.UNSAFE_queryByType(ActivityIndicator)).toBeNull();
         expect(screen.getByText('common.unableToDisplayChart')).toBeTruthy();
+
+        consoleErrorSpy.mockRestore();
+    });
+
+    it('should hold the reveal spinner when the chart was still loading Skia at mount', () => {
+        // Given a browser with WebGL where Skia has not loaded yet, so the chart shows its fallback under a reveal
+        mockIsSkiaWebSupported.mockReturnValue(true);
+        mockWithSkiaWeb.mockImplementation(({fallback}) => <View>{fallback}</View>);
+        const {rerender} = render(renderRevealedChart());
+
+        // When Skia loads and the chart reports it is ready
+        mockWithSkiaWeb.mockImplementation(() => <ReadyChart />);
+        rerender(renderRevealedChart());
+
+        // Then the spinner the fallback put up stays for the hold, because taking it down before Skia draws would show an empty card
+        expect(screen.UNSAFE_queryByType(ActivityIndicator)).not.toBeNull();
     });
 
     it('should mount Skia when WebGL is supported', () => {

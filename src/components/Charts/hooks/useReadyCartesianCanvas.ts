@@ -11,11 +11,10 @@ type CartesianCanvasInputs = {
 function useReadyCartesianCanvas(isLoading: boolean, chartWidth: number | null): CartesianCanvasInputs | null {
     const fontManager = useChartFontManager();
 
-    // Until the width is measured there is no canvas for Skia to draw, so the reveal must not start counting frames yet
-    const isChartLoading = isLoading || !fontManager || chartWidth === null;
+    const isChartLoading = isLoading || !fontManager;
     useReportChartLoading(isChartLoading);
 
-    if (isChartLoading) {
+    if (isChartLoading || chartWidth === null) {
         return null;
     }
 

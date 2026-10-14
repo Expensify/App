@@ -22,7 +22,18 @@ function ChartFrame({isLoading = false, hasData, loadingHeight, children}: Chart
         return null;
     }
 
-    return <ChartWidthBox>{(chartWidth) => <ChartReveal loadingHeight={loadingHeight}>{children(chartWidth)}</ChartReveal>}</ChartWidthBox>;
+    return (
+        <ChartWidthBox>
+            {(chartWidth) => (
+                <ChartReveal
+                    loadingHeight={loadingHeight}
+                    isCardMeasured={chartWidth !== null}
+                >
+                    {children(chartWidth)}
+                </ChartReveal>
+            )}
+        </ChartWidthBox>
+    );
 }
 
 export default ChartFrame;

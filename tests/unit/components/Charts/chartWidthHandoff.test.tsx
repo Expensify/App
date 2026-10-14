@@ -110,7 +110,7 @@ describe('chart width handoff', () => {
         expect(PolarChart).toHaveBeenCalledWith(expect.objectContaining({explicitSize: {width: CONTAINER_WIDTH, height: CHART_CONTENT_MIN_HEIGHT}}), undefined);
     });
 
-    it('should keep the pie chart under the spinner until a width has been measured', () => {
+    it('should wait for the pie chart width without a spinner when its data is already in memory', () => {
         // Given a pie chart whose box has not reported a layout yet
         // When it renders with its data
         render(
@@ -121,23 +121,31 @@ describe('chart width handoff', () => {
             />,
         );
 
-        // Then the chart waits for the width instead of measuring itself, because the reveal counts its held frames
-        // from the render the chart reports ready in, and a chart that measures itself draws later than that
+        // Then the chart waits for the width instead of measuring itself, because the reveal starts the fade in the render
+        // the card is measured in, and a chart that measures itself draws later than that. Nothing covers the card meanwhile,
+        // since the width lands within a frame or two and a spinner would only flash.
         expect(PolarChart).not.toHaveBeenCalled();
-        expect(screen.UNSAFE_queryByType(ActivityIndicator)).not.toBeNull();
+        expect(screen.UNSAFE_queryByType(ActivityIndicator)).toBeNull();
     });
 
     it('should keep the pie chart mounted when its box reports a width of 0', () => {
-        // Given a pie chart that has mounted at its measured width
-        render(
+        // Given a pie chart that has mounted at the width measured while it was loading
+        const {rerender} = render(
+            <PieChart
+                data={data}
+                series={series}
+                isLoading
+            />,
+        );
+        const measuredBox = getMeasuredBox();
+        fireEvent(measuredBox, 'layout', {nativeEvent: {layout: {width: CONTAINER_WIDTH, height: CHART_CONTENT_MIN_HEIGHT}}});
+        rerender(
             <PieChart
                 data={data}
                 series={series}
                 isLoading={false}
             />,
         );
-        const measuredBox = getMeasuredBox();
-        fireEvent(measuredBox, 'layout', {nativeEvent: {layout: {width: CONTAINER_WIDTH, height: CHART_CONTENT_MIN_HEIGHT}}});
 
         // When its card is hidden and the box reports a width of 0
         fireEvent(measuredBox, 'layout', {nativeEvent: {layout: {width: 0, height: 0}}});

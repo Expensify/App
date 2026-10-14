@@ -66,6 +66,15 @@ function ChartUnavailable({description = 'common.webGLNotSupported'}: ChartUnava
     );
 }
 
+/**
+ * Draws nothing, so an enclosing ChartReveal keeps its spinner up while Skia loads.
+ * Reports loading so the reveal also holds that spinner until Skia has drawn the chart that replaces this.
+ */
+function ChartSkiaLoading() {
+    useReportChartLoading(true);
+    return null;
+}
+
 function ChartFailedToLoad() {
     return <ChartUnavailable description="common.chartFailedToLoad" />;
 }
@@ -113,7 +122,9 @@ function SkiaWebChart<TProps extends object>({getComponent, componentProps}: Ski
         return <ChartUnavailable />;
     }
 
-    const fallback = isInsideChartReveal ? null : (
+    const fallback = isInsideChartReveal ? (
+        <ChartSkiaLoading />
+    ) : (
         <View style={styles.chartWebFallback}>
             <ActivityIndicator size="large" />
         </View>

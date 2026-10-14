@@ -270,11 +270,9 @@ function PieChartCanvas({data, series, valueUnit, valueUnitPosition, onSlicePres
 }
 
 function PieChartContent({isLoading = false, chartWidth, ...canvasProps}: PieChartContentProps) {
-    // Until the width is measured there is no canvas for Skia to draw, so the reveal must not start counting frames yet
-    const isChartLoading = isLoading || chartWidth === null;
-    useReportChartLoading(isChartLoading);
+    useReportChartLoading(isLoading);
 
-    if (isChartLoading) {
+    if (isLoading || chartWidth === null) {
         return null;
     }
 

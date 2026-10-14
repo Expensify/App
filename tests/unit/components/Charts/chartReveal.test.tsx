@@ -38,9 +38,12 @@ function EngineDownloading() {
     return null;
 }
 
-function renderChart(isLoading: boolean, label = 'chart') {
+function renderChart(isLoading: boolean, label = 'chart', isCardMeasured = true) {
     return (
-        <ChartReveal loadingHeight={LOADING_HEIGHT}>
+        <ChartReveal
+            loadingHeight={LOADING_HEIGHT}
+            isCardMeasured={isCardMeasured}
+        >
             <ChartBody
                 isLoading={isLoading}
                 label={label}
@@ -69,9 +72,26 @@ describe('ChartReveal', () => {
         jest.restoreAllMocks();
     });
 
+    it('should fade the chart in without a spinner when it is only waiting for its card to be measured', () => {
+        // Given a chart whose data and fonts are already in memory, mounted before its card has been measured
+        const {rerender} = render(renderChart(false, 'chart', false));
+
+        // Then nothing covers the card, because the width lands within a frame or two and a spinner would only flash
+        expect(screen.UNSAFE_queryByType(ActivityIndicator)).toBeNull();
+
+        // When the card is measured
+        rerender(renderChart(false));
+
+        // Then the chart starts fading in at once rather than after a hold, since there is no spinner to keep up while Skia draws
+        expect(screen.getByText('chart')).toBeTruthy();
+        expect(screen.UNSAFE_queryByType(ActivityIndicator)).toBeNull();
+        expect(pendingFrames.size).toBe(0);
+    });
+
     it('should keep the spinner over the mounted chart until the last held frame', () => {
-        // Given a chart whose data has just become ready
-        render(renderChart(false));
+        // Given a chart that was loading and whose data has just become ready
+        const {rerender} = render(renderChart(true));
+        rerender(renderChart(false));
 
         // When every held frame but the last passes
         runFrames(HOLD_FRAMES - 1);
@@ -90,7 +110,10 @@ describe('ChartReveal', () => {
     it('should keep one spinner from the engine download until the reveal', () => {
         // Given a chart whose engine is still downloading, so nothing below has reported yet
         const {rerender} = render(
-            <ChartReveal loadingHeight={LOADING_HEIGHT}>
+            <ChartReveal
+                loadingHeight={LOADING_HEIGHT}
+                isCardMeasured
+            >
                 <EngineDownloading />
             </ChartReveal>,
         );
@@ -109,8 +132,9 @@ describe('ChartReveal', () => {
     });
 
     it('should not hold again when a revealed chart gets new data', () => {
-        // Given a chart that has been revealed
-        const {rerender} = render(renderChart(false));
+        // Given a chart that has been revealed after loading
+        const {rerender} = render(renderChart(true));
+        rerender(renderChart(false));
         runFrames(HOLD_FRAMES);
 
         // When its data changes without it loading again
@@ -121,10 +145,10 @@ describe('ChartReveal', () => {
         expect(screen.UNSAFE_queryByType(ActivityIndicator)).toBeNull();
     });
 
-    it('should hold again when a revealed chart reloads', () => {
-        // Given a chart that has been revealed
-        const {rerender} = render(renderChart(false));
-        runFrames(HOLD_FRAMES);
+    it('should hold when a chart that faded in without a spinner reloads', () => {
+        // Given a chart that faded in as soon as its card was measured
+        const {rerender} = render(renderChart(false, 'chart', false));
+        rerender(renderChart(false));
 
         // When it loads again and its new data arrives
         rerender(renderChart(true));
@@ -136,8 +160,9 @@ describe('ChartReveal', () => {
     });
 
     it('should restart the hold when a chart reloads before its hold ends', () => {
-        // Given a chart partway through its hold
-        const {rerender} = render(renderChart(false));
+        // Given a chart partway through its hold after loading
+        const {rerender} = render(renderChart(true));
+        rerender(renderChart(false));
         runFrames(HOLD_FRAMES - 2);
 
         // When it loads again and its new data arrives
@@ -157,8 +182,9 @@ describe('ChartReveal', () => {
     });
 
     it('should stop counting frames when the chart unmounts during its hold', () => {
-        // Given a chart partway through its hold
-        const {unmount} = render(renderChart(false));
+        // Given a chart partway through its hold after loading
+        const {rerender, unmount} = render(renderChart(true));
+        rerender(renderChart(false));
         runFrames(1);
 
         // When it unmounts, as it does when the user leaves the page
