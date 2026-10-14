@@ -11,6 +11,7 @@ import getCurrentPosition from '@libs/getCurrentPosition';
 import type {GeolocationErrorCallback} from '@libs/getCurrentPosition/getCurrentPosition.types';
 import {GeolocationErrorCode} from '@libs/getCurrentPosition/getCurrentPosition.types';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
+import type {CancelHandle} from '@libs/Navigation/TransitionTracker';
 
 import CONST from '@src/CONST';
 import useLocalize from '@src/hooks/useLocalize';
@@ -35,6 +36,10 @@ import PendingMapView from './PendingMapView';
 import responder from './responder';
 import useAccessToken from './useAccessToken';
 import utils from './utils';
+
+// Default is 1000ms which feels a bit too long for the animations when coming back from waypoints
+// selection screen. 300ms is much lower and animations still trigger correctly
+const MAX_WAIT_FOR_TRANSITION_TIME_FOR_CAMERA_MOVEMENTS_MS = 300;
 
 function MapView({
     accessToken,
@@ -62,6 +67,7 @@ function MapView({
     const theme = useTheme();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Crosshair', 'Expand', 'MapCurrentLocation']);
     const cameraRef = useRef<Mapbox.Camera>(null);
+    const pendingFramingRef = useRef<CancelHandle | null>(null);
     const [isIdle, setIsIdle] = useState(false);
     const initialLocation = useMemo(() => initialState && {longitude: initialState.location[0], latitude: initialState.location[1]}, [initialState]);
     const currentPosition = userLocation ?? initialLocation;
@@ -167,7 +173,7 @@ function MapView({
                     return;
                 }
 
-                TransitionTracker.runAfterTransitions({
+                pendingFramingRef.current = TransitionTracker.runAfterTransitions({
                     callback: () =>
                         cameraRef.current?.setCamera({
                             zoomLevel: CONST.MAPBOX.DEFAULT_ZOOM,
@@ -176,12 +182,13 @@ function MapView({
                             centerCoordinate: [currentPositionLongitude, currentPositionLatitude],
                         }),
                     waitForUpcomingTransition: true,
+                    maxWaitForUpcomingTransitionMs: MAX_WAIT_FOR_TRANSITION_TIME_FOR_CAMERA_MOVEMENTS_MS,
                 });
-                return;
+                return () => pendingFramingRef.current?.cancel();
             }
 
             if (waypoints.length === 1) {
-                TransitionTracker.runAfterTransitions({
+                pendingFramingRef.current = TransitionTracker.runAfterTransitions({
                     callback: () =>
                         cameraRef.current?.setCamera({
                             zoomLevel: CONST.MAPBOX.SINGLE_MARKER_ZOOM,
@@ -190,6 +197,7 @@ function MapView({
                             centerCoordinate: waypoints.at(0)?.coordinate,
                         }),
                     waitForUpcomingTransition: true,
+                    maxWaitForUpcomingTransitionMs: MAX_WAIT_FOR_TRANSITION_TIME_FOR_CAMERA_MOVEMENTS_MS,
                 });
             } else {
                 const {southWest, northEast} = utils.getBounds(
@@ -197,7 +205,7 @@ function MapView({
                     allDirectionCoordinates,
                 );
 
-                TransitionTracker.runAfterTransitions({
+                pendingFramingRef.current = TransitionTracker.runAfterTransitions({
                     callback: () =>
                         cameraRef.current?.setCamera({
                             bounds: {ne: northEast, sw: southWest},
@@ -206,8 +214,11 @@ function MapView({
                             animationMode: CONST.MAPBOX.CAMERA_ANIMATION_MODE,
                         }),
                     waitForUpcomingTransition: true,
+                    maxWaitForUpcomingTransitionMs: MAX_WAIT_FOR_TRANSITION_TIME_FOR_CAMERA_MOVEMENTS_MS,
                 });
             }
+
+            return () => pendingFramingRef.current?.cancel();
         }, [mapPadding, waypoints, isIdle, allDirectionCoordinates, currentPositionLongitude, currentPositionLatitude]),
     );
 
@@ -254,6 +265,7 @@ function MapView({
     const shouldShowWaypointsCenterIcon = isWaypointsNextCenterTarget && hasWaypointsTarget;
 
     const centerMap = useCallback(() => {
+        pendingFramingRef.current?.cancel();
         const waypointCoordinates = waypoints?.map((waypoint) => waypoint.coordinate) ?? [];
         const shouldCenterOnWaypoints = hasWaypointsTarget && (isWaypointsNextCenterTarget || !canCenterOnCurrentPosition);
         setIsWaypointsNextCenterTarget(!shouldCenterOnWaypoints && hasWaypointsTarget && canCenterOnCurrentPosition);
@@ -355,6 +367,7 @@ function MapView({
                 onMapIdle={setMapIdle}
                 onCameraChanged={onCameraChanged}
                 onTouchStart={() => {
+                    pendingFramingRef.current?.cancel();
                     setUserInteractedWithMap(true);
                     setIsWaypointsNextCenterTarget(false);
                 }}
