@@ -23,6 +23,9 @@ type UseSelectionListKeyboardFocusParams = {
 
     /** Whether ArrowUp from the first row moves to index -1 (the search input) instead of wrapping to the last row */
     shouldAllowArrowUpToSearchInput?: boolean;
+
+    /** Called when ArrowUp leaves the first row for the search input, so DOM focus can follow */
+    onArrowUpToSearchInput?: () => void;
 };
 
 type UseSelectionListKeyboardFocusResult = {
@@ -46,6 +49,7 @@ function useSelectionListKeyboardFocus({
     announceProgrammaticScroll,
     setShouldDisableHoverStyle,
     shouldAllowArrowUpToSearchInput = false,
+    onArrowUpToSearchInput,
 }: UseSelectionListKeyboardFocusParams): UseSelectionListKeyboardFocusResult {
     const hasKeyBeenPressed = useRef(false);
     const [isKeyboardNavigating, setIsKeyboardNavigating] = useState(false);
@@ -76,6 +80,11 @@ function useSelectionListKeyboardFocus({
         disabledIndexes,
         isActive,
         onFocusedIndexChange: (index, shouldScrollHint) => {
+            // Only an arrow-key move sets shouldScrollHint, so a press on the search input (which already holds focus) is skipped
+            if (shouldAllowArrowUpToSearchInput && shouldScrollHint && index < 0) {
+                onArrowUpToSearchInput?.();
+            }
+
             if (!shouldScrollHint || !shouldScrollToFocusedIndex) {
                 return;
             }

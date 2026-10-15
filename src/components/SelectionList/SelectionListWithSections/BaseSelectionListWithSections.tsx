@@ -125,9 +125,15 @@ function BaseSelectionListWithSectionsImpl({
         announceProgrammaticScroll: () => listRef.current?.announceProgrammaticScroll(),
         setShouldDisableHoverStyle,
         shouldAllowArrowUpToSearchInput,
+        onArrowUpToSearchInput: focusSearchInputFromList,
     });
 
     const {innerTextInputRef, isTextInputFocusedRef, focusTextInput, textInputKeyPress} = useSelectionListTextInput(setHasKeyBeenPressed);
+
+    // A Tab-focused row keeps DOM focus after ArrowUp clears the focused index, so move it back to the search input
+    function focusSearchInputFromList() {
+        focusTextInput();
+    }
 
     const getFocusedItem = useCallback((): ListItem | undefined => {
         if (focusedIndex < 0 || focusedIndex >= flattenedData.length) {

@@ -38,7 +38,7 @@ type TextInputProps = {
     /** Callback function called when the text input is submitted */
     onSubmit?: () => void;
 
-    /** Callback function called when the text input is pressed */
+    /** Lets a list clear its focused row on press, so plain Enter in the search input reaches the confirm button instead of toggling a row */
     onPress?: () => void;
 
     onKeyPress?: (event: TextInputKeyPressEvent) => void;
