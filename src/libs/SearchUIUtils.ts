@@ -41,6 +41,7 @@ import type {
     SearchDateFilterKeys,
     SearchDatePreset,
     SearchFilterKey,
+    SearchFooterCount,
     SearchFooterTotal,
     SearchGroupBy,
     SearchPaidStatus,
@@ -5400,6 +5401,14 @@ function getViewOptions(translate: LocalizedTranslate) {
     return Object.values(CONST.SEARCH.VIEW).map<SingleSelectItem<SearchView>>((value) => ({text: translate(`search.view.${value}`), value}));
 }
 
+/** The options the Spend footer's count selector offers, in display order. */
+function getFooterCountItems(translate: LocalizedTranslate) {
+    return [
+        {text: translate('common.expenses'), value: CONST.SEARCH.FOOTER_COUNT.EXPENSES},
+        {text: translate('common.reports'), value: CONST.SEARCH.FOOTER_COUNT.REPORTS},
+    ] satisfies Array<SingleSelectItem<SearchFooterCount>>;
+}
+
 /**
  * The options the Spend footer's total selector offers, in display order. `Total spend` is the default and always
  * applies. The four aggregates are computed by the backend, so picking one re-runs the search.
@@ -7452,6 +7461,7 @@ export {
     getSortOrderOptions,
     getGroupBySections,
     getViewOptions,
+    getFooterCountItems,
     getFooterTotalItems,
     getCurrencyOptions,
     getFeedOptions,
