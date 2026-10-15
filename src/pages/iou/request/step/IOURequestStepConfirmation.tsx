@@ -80,10 +80,12 @@ import {
 
 import {
     getIOURequestPolicyID,
+    getSyncedParticipantAccountIDs,
     setCustomUnitRateID,
     setMoneyRequestCategory,
     setMoneyRequestParticipants,
     setMoneyRequestParticipantsFromReport,
+    setMoneyRequestParticipantsSyncedAccountIDs,
     setMoneyRequestTag,
 } from '@userActions/IOU/MoneyRequest';
 import {setMoneyRequestReceipt} from '@userActions/IOU/Receipt';
@@ -309,6 +311,25 @@ function IOURequestStepConfirmationContent({
         }
         setMoneyRequestParticipantsFromReport(transaction.transactionID, transactionReport, currentUserPersonalDetails.accountID);
     }, [transactionReport, currentUserPersonalDetails.accountID, transaction?.transactionID, iouType]);
+
+    // A recipient created offline keeps an optimistic accountID in the draft until the request that created them syncs.
+    // Move the draft to the real accountID then, so the existing chat is found and split shares stay on the shown row.
+    // The chat's participants are remembered across the sync, which drops the optimistic accountID from the chat.
+    const chatAccountIDsBeforeSyncRef = useRef(new Set<number>());
+    useEffect(() => {
+        const chatReport = participantReport ?? transactionReport;
+        for (const accountID of Object.keys(chatReport?.participants ?? {})) {
+            chatAccountIDsBeforeSyncRef.current.add(Number(accountID));
+        }
+        const syncedParticipantAccountIDs = getSyncedParticipantAccountIDs(
+            optimisticTransaction?.participants,
+            personalDetails,
+            chatReport,
+            [...chatAccountIDsBeforeSyncRef.current],
+            currentUserPersonalDetails.accountID,
+        );
+        setMoneyRequestParticipantsSyncedAccountIDs(optimisticTransaction, syncedParticipantAccountIDs);
+    }, [optimisticTransaction, personalDetails, participantReport, transactionReport, currentUserPersonalDetails.accountID]);
 
     const participantsPolicies = useParticipantsPolicies(transaction?.participants ?? []);
 

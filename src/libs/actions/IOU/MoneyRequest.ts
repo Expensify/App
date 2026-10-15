@@ -12,11 +12,14 @@ import Navigation from '@libs/Navigation/Navigation';
 import {getParticipantsOption, getReportOption} from '@libs/OptionsListUtils';
 import {getCustomUnitID} from '@libs/PerDiemRequestUtils';
 import {getPersonalDetail} from '@libs/PersonalDetailsStore';
+import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
+import {addSMSDomainIfPhoneNumber} from '@libs/PhoneNumber';
 import {getDistanceRateCustomUnit, isTaxTrackingEnabled, resolveCurrentTaxCode} from '@libs/PolicyUtils';
 import {
     getReportOrDraftReport,
     isInvoiceRoom,
     isMoneyRequestReport as isMoneyRequestReportReportUtils,
+    isOneOnOneChat,
     isPolicyExpenseChat as isPolicyExpenseChatReportUtil,
     isSelfDM,
 } from '@libs/ReportUtils';
@@ -59,7 +62,7 @@ import type {
 import type {ReportAttributesDerivedValue} from '@src/types/onyx/DerivedValues';
 import type {Accountant, Attendee, Participant} from '@src/types/onyx/IOU';
 import type {Unit} from '@src/types/onyx/Policy';
-import type {Comment, Receipt} from '@src/types/onyx/Transaction';
+import type {Comment, Receipt, SplitShares} from '@src/types/onyx/Transaction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import type {Locale as DateFnsLocale} from 'date-fns';
@@ -647,6 +650,66 @@ function addLoginsToParticipants(participants: Participant[]): Participant[] {
 }
 
 /**
+ * Maps each draft participant whose optimistic accountID was dropped from personal details, once the request that
+ * created the recipient synced, to the real accountID. The login finds the real account when the server returns it with
+ * a login. The server can leave the login off an existing Expensify account, so a lone recipient falls back to the other
+ * participant of the 1:1 chat the draft points to, which now lists the real account. That fallback only applies when the
+ * chat listed the recipient's optimistic accountID before the sync, so a newly picked recipient is never swapped for the
+ * chat's recipient.
+ */
+function getSyncedParticipantAccountIDs(
+    participants: Participant[] | undefined,
+    personalDetails: OnyxEntry<PersonalDetailsList>,
+    chatReport: OnyxEntry<Report>,
+    chatAccountIDsBeforeSync: number[],
+    currentUserAccountID: number,
+): Record<number, number> {
+    const chatAccountIDs = Object.keys(chatReport?.participants ?? {}).map(Number);
+    const accountIDFromChat =
+        participants?.length === 1 && isOneOnOneChat(chatReport, currentUserAccountID) ? chatAccountIDs.find((accountID) => accountID !== currentUserAccountID) : undefined;
+    const syncedAccountIDs: Record<number, number> = {};
+    for (const participant of participants ?? []) {
+        if (!participant.accountID || personalDetails?.[participant.accountID]) {
+            continue;
+        }
+        const accountIDFromLogin = participant.login ? getPersonalDetailByEmail(addSMSDomainIfPhoneNumber(participant.login))?.accountID : undefined;
+        const syncedAccountID = accountIDFromLogin ?? (chatAccountIDsBeforeSync.includes(participant.accountID) ? accountIDFromChat : undefined);
+        if (!syncedAccountID || syncedAccountID === participant.accountID || !personalDetails?.[syncedAccountID]) {
+            continue;
+        }
+        syncedAccountIDs[participant.accountID] = syncedAccountID;
+    }
+    return syncedAccountIDs;
+}
+
+/**
+ * Moves the draft's participants and split shares from optimistic accountIDs to the real ones found by
+ * getSyncedParticipantAccountIDs, so the confirmation page shows, validates and submits against the same accountID.
+ */
+function setMoneyRequestParticipantsSyncedAccountIDs(transaction: OnyxEntry<Transaction>, syncedAccountIDs: Record<number, number>) {
+    if (!transaction?.transactionID || isEmptyObject(syncedAccountIDs)) {
+        return;
+    }
+    const participants = transaction.participants?.map((participant) => {
+        const syncedAccountID = participant.accountID ? syncedAccountIDs[participant.accountID] : undefined;
+        return syncedAccountID ? {...participant, accountID: syncedAccountID} : participant;
+    });
+    const splitShares: SplitShares = {};
+    for (const [staleAccountID, syncedAccountID] of Object.entries(syncedAccountIDs)) {
+        const splitShare = transaction.splitShares?.[Number(staleAccountID)];
+        if (!splitShare) {
+            continue;
+        }
+        splitShares[Number(staleAccountID)] = null;
+        splitShares[syncedAccountID] = splitShare;
+    }
+    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transaction.transactionID}`, {
+        participants,
+        ...(isEmptyObject(splitShares) ? {} : {splitShares}),
+    });
+}
+
+/**
  * Sets the participants for an IOU based on the attached report
  * @param transactionID of the transaction to set the participants of
  * @param report attached to the transaction
@@ -1156,6 +1219,8 @@ export {
     startDistanceRequest,
     setMoneyRequestParticipants,
     addLoginsToParticipants,
+    getSyncedParticipantAccountIDs,
+    setMoneyRequestParticipantsSyncedAccountIDs,
     getMoneyRequestParticipantsFromReport,
     setMoneyRequestParticipantsFromReport,
     getIOURequestPolicyID,
