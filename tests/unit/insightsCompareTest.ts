@@ -44,11 +44,11 @@ describe('resolveComparisonPeriods', () => {
         expect(periods).toEqual({primary: {start: '2026-03-11', end: '2026-03-20'}, comparison: {start: '2026-03-01', end: '2026-03-10'}});
     });
 
-    it('compares a custom range that covers whole months against the same number of months before it', () => {
-        // When the page reports on a quarter
-        const periods = resolveComparisonPeriods({from: '2026-04-01', to: '2026-06-30'});
+    it('compares a custom range of whole months against the same number of days before it', () => {
+        // When the page reports on October as a custom range
+        const periods = resolveComparisonPeriods({from: '2026-10-01', to: '2026-10-31'});
 
-        // Then the compared period is the quarter before it, rather than the 91 days before it
-        expect(periods?.comparison).toEqual({start: '2026-01-01', end: '2026-03-31'});
+        // Then the compared period is the 31 days before it, which starts on August 31st rather than September 1st
+        expect(periods?.comparison).toEqual({start: '2026-08-31', end: '2026-09-30'});
     });
 });

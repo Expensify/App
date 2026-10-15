@@ -4,7 +4,7 @@ import {getDateRangeForPreset} from '@libs/SearchQueryUtils';
 
 import CONST from '@src/CONST';
 
-import {differenceInCalendarDays, differenceInCalendarMonths, endOfMonth, format, isSameDay, parseISO, startOfMonth, startOfYear, subDays, subMonths, subYears} from 'date-fns';
+import {differenceInCalendarDays, differenceInCalendarMonths, format, parseISO, startOfYear, subDays, subMonths, subYears} from 'date-fns';
 
 import type {InsightsFilters} from './insightsFilters';
 
@@ -36,13 +36,8 @@ function resolveComparisonPeriods(dateFilter: InsightsFilters['date']): ChartCom
         return {primary, comparison: formatPeriod(startOfYear(sameDayLastYear), sameDayLastYear)};
     }
 
-    // Whole-month ranges compare month for month.
-    const coversWholeMonths = isSameDay(start, startOfMonth(start)) && isSameDay(end, endOfMonth(end));
-    const monthCount = differenceInCalendarMonths(end, start) + 1;
-    const dayCount = differenceInCalendarDays(end, start) + 1;
-
-    // Other ranges compare against the same-length range just before.
-    const previousStart = coversWholeMonths ? subMonths(start, monthCount) : subDays(start, dayCount);
+    // The other presets cover whole months and compare month for month, while a custom range compares against the same number of days just before.
+    const previousStart = 'preset' in dateFilter ? subMonths(start, differenceInCalendarMonths(end, start) + 1) : subDays(start, differenceInCalendarDays(end, start) + 1);
 
     return {primary, comparison: formatPeriod(previousStart, subDays(start, 1))};
 }
