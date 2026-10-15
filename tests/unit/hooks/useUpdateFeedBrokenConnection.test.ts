@@ -122,4 +122,16 @@ describe('useUpdateFeedBrokenConnection', () => {
         expect(updateWorkspaceCompanyCard).toHaveBeenCalledTimes(2);
         expect(updateWorkspaceCompanyCard).toHaveBeenCalledWith(MOCK_WORKSPACE_ACCOUNT_ID, 'other', expect.anything(), undefined);
     });
+
+    it('does not sync any card while the feed data has not loaded', () => {
+        // Given feed data that has not loaded yet
+        mockCardFeeds = {};
+
+        // When updating the broken connection
+        const {result} = renderHook(() => useUpdateFeedBrokenConnection({policyID: 'P1', feed: MOCK_FEED}));
+        result.current.updateBrokenConnection();
+
+        // Then no card is synced
+        expect(updateWorkspaceCompanyCard).not.toHaveBeenCalled();
+    });
 });

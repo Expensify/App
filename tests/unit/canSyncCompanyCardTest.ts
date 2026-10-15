@@ -24,12 +24,25 @@ describe('canSyncCompanyCard', () => {
         const card = createCard(OTHER_USER_ID);
 
         // When checking whether a non-owner, non-domain-admin can sync it
-        const withFeedData = canSyncCompanyCard(card, createFeedData(), WORKSPACE_ACCOUNT_ID, CURRENT_USER_ID, false);
-        const withoutFeedData = canSyncCompanyCard(card, undefined, WORKSPACE_ACCOUNT_ID, CURRENT_USER_ID, false);
+        const canSync = canSyncCompanyCard(card, createFeedData(), WORKSPACE_ACCOUNT_ID, CURRENT_USER_ID, false);
 
         // Then syncing is allowed
-        expect(withFeedData).toBe(true);
-        expect(withoutFeedData).toBe(true);
+        expect(canSync).toBe(true);
+    });
+
+    it('denies syncing while the feed data is unknown, even for a domain admin or the card owner', () => {
+        // Given feed data that has not loaded yet
+        const feedData = undefined;
+
+        // When checking whether a non-owner, an admin and an owner can sync
+        const forNonOwner = canSyncCompanyCard(createCard(OTHER_USER_ID), feedData, WORKSPACE_ACCOUNT_ID, CURRENT_USER_ID, false);
+        const forAdmin = canSyncCompanyCard(createCard(OTHER_USER_ID), feedData, WORKSPACE_ACCOUNT_ID, CURRENT_USER_ID, true);
+        const forOwner = canSyncCompanyCard(createCard(CURRENT_USER_ID), feedData, WORKSPACE_ACCOUNT_ID, CURRENT_USER_ID, false);
+
+        // Then syncing is denied until the feed is known
+        expect(forNonOwner).toBe(false);
+        expect(forAdmin).toBe(false);
+        expect(forOwner).toBe(false);
     });
 
     it('allows syncing a workspace feed whose domainID equals the workspace account ID', () => {
