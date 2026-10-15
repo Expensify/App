@@ -877,6 +877,19 @@ const translations = {
             subtitleText: "Want your team to use Expensify, too? Just submit an expense to them and we'll take care of the rest.",
         },
     },
+    wiseOnboarding: {
+        business: {
+            title: 'Enter your business info',
+            legalName: 'Legal business name',
+            companyRole: 'Your role at the company',
+            companyRoleOwner: 'Owner',
+            companyRoleDirector: 'Director',
+            companyRoleOther: 'Other',
+            industryCategories: 'Industry',
+            businessDescription: 'Business description',
+            businessDescriptionHint: 'Briefly describe what your company does.',
+        },
+    },
     videoChatButtonAndMenu: {
         tooltip: 'Book a call',
     },

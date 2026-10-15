@@ -216,6 +216,12 @@ type ACHData = Partial<BeneficialOwnersStepProps & CompanyStepProps & RequestorS
 
     corpay: Corpay;
 
+    /** The provider the account's global reimbursements go through, derived by the server and never stored */
+    globalReimbursementProvider?: ValueOf<typeof CONST.GLOBAL_REIMBURSEMENT_PROVIDER>;
+
+    /** The business's Wise onboarding, only on the admin's own copy */
+    wise?: WiseBusinessOnboarding;
+
     /** Date the corpay bank account was created */
     created?: string;
 
@@ -253,6 +259,59 @@ type ACHData = Partial<BeneficialOwnersStepProps & CompanyStepProps & RequestorS
             };
         };
     };
+};
+
+/** The business's Wise onboarding, as the server stores it under additionalData.wise. Pages are keyed by the step of the form file that saved them; later pages are typed as they are added. */
+type WiseBusinessOnboarding = {
+    /** Wise's review state, passed through unchanged */
+    status?: ValueOf<typeof CONST.WISE.ONBOARDING_STATUS>;
+
+    /** The bank account's currency */
+    currency?: string;
+
+    /** The last page saved, so a resume on another device lands after it */
+    step?: string;
+
+    /** Set with the business page: a chosen industry is one Wise treats as high risk, so the source-of-wealth page is asked before Submit */
+    requiresSourceOfWealth?: boolean;
+
+    /** The business page's answers */
+    business?: {
+        companyRole: ValueOf<typeof CONST.WISE.COMPANY_ROLE>;
+        industryCategories: string[];
+        description: string;
+    };
+
+    /** The representative page's answers the client may hold. The full SSN is stored encrypted on the server and never sent */
+    representative?: {
+        /** Last four digits of the SSN, for the confirmation page */
+        ssnLast4?: string;
+
+        /** The representative has no SSN or ITIN, so Wise's hosted page collects their ID and liveness */
+        noSSN?: boolean;
+    };
+
+    /** Answers to Wise's KYC requirements, by requirement and then by the page's field key, which is Wise's field name. The pages are authored by the server, before the review for the ones below and from the live review after, and Submit shapes each answer into Wise's payload. Name a requirement here once a page collects it */
+    requirements?: {
+        /** Asked before Submit when a chosen industry is high risk. Submit wraps the one choice into Wise's list with isSourceOfFund true */
+        BUSINESS_SOURCE_OF_WEALTH_INFO?: {
+            businessSourceOfWealthInfo: string;
+        };
+
+        /** The proof file is under documents. Submit adds the source chosen on the page before */
+        BUSINESS_SOURCE_OF_WEALTH_PROOF?: {
+            documentType: string;
+        };
+
+        /** Collected at intake, submitted once the review opens. The files are under documents */
+        ID_DOCUMENT?: {
+            issuingCountry: string;
+            documentType: string;
+        };
+    } & Record<string, Record<string, unknown>>;
+
+    /** S3 keys of the files we collected ourselves, by requirement and then by the file field each answers */
+    documents?: Record<string, Record<string, string[]>>;
 };
 
 /** The step in an reimbursement account's ach data */
@@ -332,4 +391,4 @@ type ReimbursementAccount = OnyxCommon.OnyxValueWithOfflineFeedback<{
 }>;
 
 export default ReimbursementAccount;
-export type {Corpay, BankAccountStep, BankAccountSubStep, ACHData, ReimbursementAccountStep, ReimbursementAccountSubStep, ACHDataReimbursementAccount};
+export type {Corpay, WiseBusinessOnboarding, BankAccountStep, BankAccountSubStep, ACHData, ReimbursementAccountStep, ReimbursementAccountSubStep, ACHDataReimbursementAccount};

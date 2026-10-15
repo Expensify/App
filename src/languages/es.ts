@@ -767,6 +767,19 @@ const translations: TranslationDeepObject<typeof en> = {
             subtitleText: '¿Quieres que tu equipo también use Expensify? Simplemente envíale un gasto y nosotros nos encargaremos del resto.',
         },
     },
+    wiseOnboarding: {
+        business: {
+            title: 'Introduce los datos de tu empresa',
+            legalName: 'Nombre legal de la empresa',
+            companyRole: 'Tu cargo en la empresa',
+            companyRoleOwner: 'Propietario',
+            companyRoleDirector: 'Director',
+            companyRoleOther: 'Otro',
+            industryCategories: 'Sector',
+            businessDescription: 'Descripción de la empresa',
+            businessDescriptionHint: 'Describe brevemente a qué se dedica tu empresa.',
+        },
+    },
     videoChatButtonAndMenu: {
         tooltip: 'Programar una llamada',
     },

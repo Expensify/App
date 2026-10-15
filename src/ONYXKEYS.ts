@@ -813,6 +813,12 @@ const ONYXKEYS = {
     /** Corpay fields to be used in the bank account creation setup */
     CORPAY_FIELDS: 'corpayFields',
 
+    /** What Wise still needs on the business's KYC review, one item per requirement */
+    WISE_KYC_REQUIREMENTS: 'wiseKYCRequirements',
+
+    /** A fresh link to Wise's embedded KYC page */
+    WISE_KYC_REVIEW_EMBEDDED_LINK: 'wiseKYCReviewEmbeddedLink',
+
     /** The user's session that will be preserved when using imported state */
     PRESERVED_USER_SESSION: 'preservedUserSession',
 
@@ -1222,6 +1228,8 @@ const ONYXKEYS = {
         COLLECT_DEPOSIT_ACCOUNT_FORM_DRAFT: 'collectDepositAccountFormDraft',
         INTERNATIONAL_BANK_ACCOUNT_FORM: 'internationalBankAccountForm',
         INTERNATIONAL_BANK_ACCOUNT_FORM_DRAFT: 'internationalBankAccountFormDraft',
+        WISE_BUSINESS_ONBOARDING_FORM: 'wiseBusinessOnboardingForm',
+        WISE_BUSINESS_ONBOARDING_FORM_DRAFT: 'wiseBusinessOnboardingFormDraft',
         NEW_ROOM_FORM: 'newRoomForm',
         NEW_ROOM_FORM_DRAFT: 'newRoomFormDraft',
         NEW_TASK_FORM: 'newTaskForm',
@@ -1566,6 +1574,7 @@ type OnyxFormValuesMapping = {
     [ONYXKEYS.FORMS.MERGE_ACCOUNT_DETAILS_FORM]: FormTypes.MergeAccountDetailsForm;
     [ONYXKEYS.FORMS.COLLECT_DEPOSIT_ACCOUNT_FORM]: FormTypes.CollectDepositAccountForm;
     [ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM]: FormTypes.InternationalBankAccountForm;
+    [ONYXKEYS.FORMS.WISE_BUSINESS_ONBOARDING_FORM]: FormTypes.WiseBusinessOnboardingForm;
     [ONYXKEYS.FORMS.WORKSPACE_PER_DIEM_FORM]: FormTypes.WorkspacePerDiemForm;
     [ONYXKEYS.FORMS.ENABLE_GLOBAL_REIMBURSEMENTS]: FormTypes.EnableGlobalReimbursementsForm;
     [ONYXKEYS.FORMS.SEARCH_EDIT_MULTIPLE_DESCRIPTION_FORM]: FormTypes.SearchEditMultipleDescriptionForm;
@@ -1966,6 +1975,8 @@ type OnyxValuesMapping = {
     [ONYXKEYS.SHARE_TEMP_FILE]: OnyxTypes.ShareTempFile;
     [ONYXKEYS.VALIDATED_FILE_OBJECT]: OnyxTypes.FileObject | undefined;
     [ONYXKEYS.CORPAY_FIELDS]: OnyxTypes.CorpayFields;
+    [ONYXKEYS.WISE_KYC_REQUIREMENTS]: OnyxTypes.WiseKYCRequirement[];
+    [ONYXKEYS.WISE_KYC_REVIEW_EMBEDDED_LINK]: OnyxTypes.WiseKYCReviewEmbeddedLink;
     [ONYXKEYS.PRESERVED_USER_SESSION]: OnyxTypes.Session;
     [ONYXKEYS.PRESERVED_ACCOUNT]: OnyxTypes.Account;
     [ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING]: OnyxTypes.DismissedProductTraining;
