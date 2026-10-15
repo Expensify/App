@@ -5,9 +5,8 @@ import {exportedToPoliciesSelector} from '@hooks/useExportedToFilterOptions';
 import {policiesSelector, policyCategoriesSelector} from '@hooks/useFilterFormValues';
 
 import {getAllTaxRates} from '@libs/PolicyUtils';
-import {buildFilterFormValuesFromQuery, buildSearchQueryJSON} from '@libs/SearchQueryUtils';
+import {buildFilterFormValuesFromQuery} from '@libs/SearchQueryUtils';
 
-import type {SearchQueryJSON} from '@src/components/Search/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, PolicyCategories, Report} from '@src/types/onyx';
 
@@ -16,18 +15,7 @@ import {measureFunction} from 'reassure';
 import createCollection from '../utils/collections/createCollection';
 import createRandomPolicy from '../utils/collections/policies';
 import createMock from '../utils/createMock';
-
-function buildSearchQueryJSONOrThrow(query: string): SearchQueryJSON {
-    const result = buildSearchQueryJSON(query);
-    if (!result) {
-        throw new Error(`Failed to parse query string: ${query}`);
-    }
-    return result;
-}
-
-const POLICY_COUNT = 500;
-const REPORT_COUNT = 500;
-const CATEGORY_COUNT = 500;
+import {buildSearchQueryJSONOrThrow, CATEGORY_COUNT, POLICY_COUNT, REPORT_COUNT} from '../utils/FilterFormValuesPerfTestUtils';
 
 describe('useFilterFormValues', () => {
     describe('selector execution', () => {
