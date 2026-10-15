@@ -33,6 +33,8 @@ const touchEventBoundaryProps: TouchEventBoundaryProps = {
     extractTextFromChildren: false,
     // Skip elements whose label is not in `CONST.SENTRY_LABEL` and keep looking at their parents.
     // If no parent has a valid label, the tap is not reported.
+    // Sentry checks component names against this too. It works because the views that carry `sentryLabel` have no
+    // component name, so adding Sentry's component annotation Babel plugin would make every label get skipped.
     ignoreNames: [UNKNOWN_LABEL],
 };
 
