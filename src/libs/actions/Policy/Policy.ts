@@ -187,8 +187,9 @@ import {
     generateCustomUnitID,
     generateDefaultWorkspaceName,
     generatePolicyID,
+    getApprovalModeForNewWorkspace,
     getDisplayNameForWorkspace,
-    getWorkflowSettingsForNewWorkspace,
+    shouldEnableWorkflowsByDefaultForNewWorkspace,
 } from './PolicyDraft';
 
 type ReportCreationData = Record<
@@ -2753,7 +2754,13 @@ function buildPolicyData(options: BuildPolicyDataOptions): OnyxData<BuildPolicyD
     const optimisticMccGroupData = buildOptimisticMccGroup();
 
     const isSubmitWorkspace = type === CONST.POLICY.TYPE.SUBMIT;
-    const workflowSettings = getWorkflowSettingsForNewWorkspace({
+    const shouldEnableWorkflowsByDefault =
+        isSubmitWorkspace ||
+        !engagementChoice ||
+        engagementChoice === CONST.ONBOARDING_CHOICES.MANAGE_TEAM ||
+        engagementChoice === CONST.ONBOARDING_CHOICES.LOOKING_AROUND ||
+        isTrackOnboardingChoice(engagementChoice);
+    const isWorkflowFeatureEnabled = shouldEnableWorkflowsByDefaultForNewWorkspace({
         isSubmitWorkspace,
         workflowsFeatureEnabled: featuresMap?.find((feature) => feature.id === CONST.POLICY.MORE_FEATURES.ARE_WORKFLOWS_ENABLED)?.enabled,
         introSelectedChoice: introSelected?.choice,
@@ -2800,7 +2807,12 @@ function buildPolicyData(options: BuildPolicyDataOptions): OnyxData<BuildPolicyD
                 pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                 autoReporting: true,
                 approver: currentUserEmailParam,
-                ...workflowSettings,
+                autoReportingFrequency: shouldEnableWorkflowsByDefault ? CONST.POLICY.AUTO_REPORTING_FREQUENCIES.IMMEDIATE : CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT,
+                approvalMode: getApprovalModeForNewWorkspace(isSubmitWorkspace, shouldEnableWorkflowsByDefault, engagementChoice),
+                harvesting: {
+                    enabled: !shouldEnableWorkflowsByDefault,
+                },
+                areWorkflowsEnabled: isWorkflowFeatureEnabled,
                 reimbursementChoice:
                     isTrackOnboardingChoice(engagementChoice) || type === CONST.POLICY.TYPE.SUBMIT
                         ? CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO
@@ -3282,7 +3294,16 @@ function createDraftWorkspace({
         currentUserEmail,
     );
 
-    const workflowSettings = getWorkflowSettingsForNewWorkspace({isSubmitWorkspace, introSelectedChoice: introSelected?.choice});
+    const shouldEnableWorkflowsByDefault =
+        !introSelected?.choice || introSelected.choice === CONST.ONBOARDING_CHOICES.MANAGE_TEAM || introSelected.choice === CONST.ONBOARDING_CHOICES.LOOKING_AROUND;
+
+    let draftApprovalMode: ValueOf<typeof CONST.POLICY.APPROVAL_MODE> = CONST.POLICY.APPROVAL_MODE.OPTIONAL;
+    if (isSubmitWorkspace) {
+        draftApprovalMode = CONST.POLICY.APPROVAL_MODE.ADVANCED;
+    } else if (shouldEnableWorkflowsByDefault) {
+        draftApprovalMode = CONST.POLICY.APPROVAL_MODE.BASIC;
+    }
+    const isWorkflowFeatureEnabled = shouldEnableWorkflowsByDefaultForNewWorkspace({isSubmitWorkspace, introSelectedChoice: introSelected?.choice});
 
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY_DRAFTS | typeof ONYXKEYS.COLLECTION.REPORT_DRAFT | typeof ONYXKEYS.COLLECTION.POLICY_CATEGORIES_DRAFT>> = [
         {
@@ -3299,7 +3320,13 @@ function createDraftWorkspace({
                 pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                 autoReporting: true,
                 approver: currentUserEmail,
-                ...workflowSettings,
+                autoReportingFrequency:
+                    shouldEnableWorkflowsByDefault || isSubmitWorkspace ? CONST.POLICY.AUTO_REPORTING_FREQUENCIES.IMMEDIATE : CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT,
+                harvesting: {
+                    enabled: !shouldEnableWorkflowsByDefault && !isSubmitWorkspace,
+                },
+                approvalMode: draftApprovalMode,
+                areWorkflowsEnabled: isWorkflowFeatureEnabled,
                 customUnits,
                 areCategoriesEnabled: true,
                 areCompanyCardsEnabled: true,

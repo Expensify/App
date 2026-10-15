@@ -5,7 +5,6 @@
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 
 import {generateHexadecimalValue} from '@libs/NumberUtils';
-import {isTrackOnboardingChoice} from '@libs/OnboardingUtils';
 
 import type {OnboardingPurpose} from '@userActions/Welcome/OnboardingFlow';
 
@@ -171,28 +170,6 @@ function getApprovalModeForNewWorkspace(
     return CONST.POLICY.APPROVAL_MODE.OPTIONAL;
 }
 
-/**
- * The workflow related defaults a new workspace is created with. Delayed submission is not tied to the Workflows
- * feature server side, so it is resolved separately: a workspace can come back with areWorkflowsEnabled false
- * alongside an immediate autoReportingFrequency.
- */
-function getWorkflowSettingsForNewWorkspace({isSubmitWorkspace, workflowsFeatureEnabled, introSelectedChoice, engagementChoice}: NewWorkspaceWorkflowsOptions) {
-    const areWorkflowsEnabled = shouldEnableWorkflowsByDefaultForNewWorkspace({isSubmitWorkspace, workflowsFeatureEnabled, introSelectedChoice, engagementChoice});
-    const shouldEnableDelayedSubmission =
-        isSubmitWorkspace ||
-        !engagementChoice ||
-        engagementChoice === CONST.ONBOARDING_CHOICES.MANAGE_TEAM ||
-        engagementChoice === CONST.ONBOARDING_CHOICES.LOOKING_AROUND ||
-        isTrackOnboardingChoice(engagementChoice);
-
-    return {
-        areWorkflowsEnabled,
-        autoReportingFrequency: shouldEnableDelayedSubmission ? CONST.POLICY.AUTO_REPORTING_FREQUENCIES.IMMEDIATE : CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT,
-        approvalMode: getApprovalModeForNewWorkspace(isSubmitWorkspace, areWorkflowsEnabled, engagementChoice),
-        harvesting: {enabled: !shouldEnableDelayedSubmission},
-    };
-}
-
 type CreateDraftInitialWorkspaceParams = {
     introSelected: OnyxEntry<IntroSelected>;
     workspaceName: string;
@@ -222,7 +199,9 @@ function createDraftInitialWorkspace({
     isAnnualSubscription = false,
 }: CreateDraftInitialWorkspaceParams) {
     const {customUnits, outputCurrency} = buildOptimisticDistanceRateCustomUnits(currency);
-    const workflowSettings = getWorkflowSettingsForNewWorkspace({isSubmitWorkspace: type === CONST.POLICY.TYPE.SUBMIT, introSelectedChoice: introSelected?.choice});
+    const shouldEnableWorkflowsByDefault =
+        !introSelected?.choice || introSelected.choice === CONST.ONBOARDING_CHOICES.MANAGE_TEAM || introSelected.choice === CONST.ONBOARDING_CHOICES.LOOKING_AROUND;
+    const isWorkflowFeatureEnabled = shouldEnableWorkflowsByDefaultForNewWorkspace({isSubmitWorkspace: type === CONST.POLICY.TYPE.SUBMIT, introSelectedChoice: introSelected?.choice});
 
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY_DRAFTS>> = [
         {
@@ -244,8 +223,11 @@ function createDraftInitialWorkspace({
                 customUnits,
                 makeMeAdmin,
                 autoReporting: true,
-                ...workflowSettings,
+                autoReportingFrequency: shouldEnableWorkflowsByDefault ? CONST.POLICY.AUTO_REPORTING_FREQUENCIES.IMMEDIATE : CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT,
                 avatarURL: file?.uri ?? null,
+                harvesting: {
+                    enabled: !shouldEnableWorkflowsByDefault,
+                },
                 originalFileName: file?.name,
                 employeeList: {
                     [currentUserEmail]: {
@@ -255,11 +237,13 @@ function createDraftInitialWorkspace({
                         errors: {},
                     },
                 },
+                approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
                 pendingFields: {
                     autoReporting: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                     approvalMode: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                     reimbursementChoice: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                 },
+                areWorkflowsEnabled: isWorkflowFeatureEnabled,
                 defaultBillable: false,
                 defaultReimbursable: true,
                 disabledFields: {defaultBillable: true, reimbursable: false},
@@ -278,6 +262,7 @@ export {
     generateCustomUnitID,
     generateDefaultWorkspaceName,
     generatePolicyID,
+    getApprovalModeForNewWorkspace,
     getDisplayNameForWorkspace,
-    getWorkflowSettingsForNewWorkspace,
+    shouldEnableWorkflowsByDefaultForNewWorkspace,
 };
