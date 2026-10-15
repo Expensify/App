@@ -31,6 +31,7 @@ import getVisibleFields from './getVisibleFields';
 import isSupportedField from './isSupportedField';
 import {getListItems, getListItemSensitiveAnswers} from './listItems';
 import logSchemaProblem from './logSchemaProblem';
+import summarizeListItem, {getListItemFallbackTitle} from './summarizeListItem';
 
 /** Checks a field the user has answered. Unanswered fields only get the required check. */
 type FieldValidator<TType extends DynamicFormFieldType> = (field: DynamicFormFieldOfType<TType>, values: DynamicFormValues, translate: LocalizedTranslate) => string[];
@@ -102,7 +103,7 @@ function getMultiChoiceErrors(field: DynamicFormFieldOfType<'multiselect' | 'cou
     return !hasNonStringEntry && keys.every((key) => offeredKeys.has(key)) ? [] : [translate('dynamicForm.error.invalidOption')];
 }
 
-/** The list shows one error, so the first entry with a problem names it. The flow keeps sensitive answers in memory apart from their entry, so one lost with the memory is asked for again. */
+/** The list shows one error, so the first entry with a problem gives it, prefixed by the entry title so the user knows which one to open. The flow keeps sensitive answers in memory apart from their entry, so one lost with the memory is asked for again. */
 function getListErrors(field: DynamicFormListField, values: DynamicFormValues, translate: LocalizedTranslate): string[] {
     const items = getListItems(values[field.key]);
     const messages: string[] = [];
@@ -112,11 +113,13 @@ function getListErrors(field: DynamicFormListField, values: DynamicFormValues, t
     if (field.maxItems !== undefined && items.length > field.maxItems) {
         messages.push(translate('dynamicForm.error.tooManyItems', {max: field.maxItems}));
     }
-    const firstItemError = items
-        .map((item) => Object.values(getDynamicFieldErrors(field.itemFields, {...item, ...getListItemSensitiveAnswers(field, item.id, values)}, translate)).at(0))
-        .find(Boolean);
-    if (firstItemError) {
-        messages.push(firstItemError);
+    const fallbackTitle = getListItemFallbackTitle(field, translate);
+    for (const item of items) {
+        const error = Object.values(getDynamicFieldErrors(field.itemFields, {...item, ...getListItemSensitiveAnswers(field, item.id, values)}, translate)).at(0);
+        if (error) {
+            messages.push(translate('dynamicForm.error.itemError', {item: summarizeListItem(item, field.itemFields, translate, fallbackTitle).title, error}));
+            break;
+        }
     }
     return messages;
 }

@@ -4014,6 +4014,7 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
             outOfRange: ({min, max}: {min: number; max: number}) => `${min}から${max}の間の値を入力してください`,
             tooFewItems: ({min}: {min: number}) => `${min}件以上追加してください`,
             tooManyItems: ({max}: {max: number}) => `${max}件以内で追加してください`,
+            itemError: ({item, error}: {item: string; error: string}) => `${item}：${error}`,
         },
         addItem: ({item}: {item: string}) => `${item}を追加`,
         removeItemTitle: ({item}: {item: string}) => `${item}を削除しますか？`,

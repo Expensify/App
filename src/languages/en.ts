@@ -4232,6 +4232,7 @@ const translations = {
             outOfRange: ({min, max}: {min: number; max: number}) => `Enter a value between ${min} and ${max}`,
             tooFewItems: ({min}: {min: number}) => `Add at least ${min}`,
             tooManyItems: ({max}: {max: number}) => `Add at most ${max}`,
+            itemError: ({item, error}: {item: string; error: string}) => `${item}: ${error}`,
         },
         addItem: ({item}: {item: string}) => `Add ${item}`,
         removeItemTitle: ({item}: {item: string}) => `Remove ${item}?`,
