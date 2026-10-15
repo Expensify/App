@@ -47,12 +47,6 @@ type NumericInputProps = {
 
     /** Whether to dynamically scale the font size down when the amount is long. */
     shouldUseDynamicFontSize?: boolean;
-
-    /**
-     * Symbol counted in the total display length when dynamic font sizing is enabled. Only this prop's length is counted, not
-     * the children of `NumericInput.Symbol`, so it must match the text the composition renders there.
-     */
-    symbol?: string;
 };
 
 type NumericTextInputProps = {
@@ -92,8 +86,8 @@ type NumericTextInputProps = {
 >;
 
 type NumericSymbolProps = {
-    /** Symbol (currency or unit) rendered beside the number. */
-    children: ReactNode;
+    /** Symbol (currency or unit) rendered beside the number. Its length counts toward the dynamic font size. */
+    children: string;
 
     /** Style applied to the symbol text, appended to the primitive's defaults. */
     textStyle?: StyleProp<TextStyle>;

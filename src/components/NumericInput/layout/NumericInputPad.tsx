@@ -6,7 +6,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {useEffect, useRef} from 'react';
 import {View} from 'react-native';
 
-import type {NumericInputLayoutPartProps} from './types';
+import type NumericInputLayoutPartProps from './types';
 
 /** Number pad connected to the root value and selection. The layout renders it only on touch screens. */
 function NumericInputPad({isTwoColumn, testID}: NumericInputLayoutPartProps) {

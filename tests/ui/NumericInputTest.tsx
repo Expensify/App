@@ -471,7 +471,7 @@ describe('NumericInput', () => {
 
         it('scales font size down across input and symbol when shouldUseDynamicFontSize is enabled', () => {
             // Given a NumericInput with dynamic font size enabled and a short amount
-            renderNumericInput({value: '12', shouldUseDynamicFontSize: true, symbol: '$', allowNegative: true});
+            renderNumericInput({value: '12', shouldUseDynamicFontSize: true, allowNegative: true});
             // When inspecting font sizes for a short amount
             const shortInputFontSize = getElementFontSize(screen.getByTestId(INPUT_TEST_ID));
             const shortSymbolFontSize = getElementFontSize(screen.getByText('$'));
@@ -483,7 +483,7 @@ describe('NumericInput', () => {
             screen.unmount();
 
             // When rendered with a long amount that requires scaling
-            renderNumericInput({value: '1234567890123', shouldUseDynamicFontSize: true, symbol: '$', allowNegative: true});
+            renderNumericInput({value: '1234567890123', shouldUseDynamicFontSize: true, allowNegative: true});
             const longInputFontSize = getElementFontSize(screen.getByTestId(INPUT_TEST_ID));
             const longSymbolFontSize = getElementFontSize(screen.getByText('$'));
 
@@ -498,13 +498,13 @@ describe('NumericInput', () => {
 
         it('accounts for minus sign and symbol length when calculating dynamic font size', () => {
             // Given a positive value with dynamic font size enabled
-            renderNumericInput({value: '1234567890', shouldUseDynamicFontSize: true, symbol: '$', allowNegative: true});
+            renderNumericInput({value: '1234567890', shouldUseDynamicFontSize: true, allowNegative: true});
             const positiveFontSize = getElementFontSize(screen.getByTestId(INPUT_TEST_ID));
 
             screen.unmount();
 
             // When the value is negative and the minus sign is shown
-            renderNumericInput({value: '-1234567890', shouldUseDynamicFontSize: true, symbol: '$', allowNegative: true});
+            renderNumericInput({value: '-1234567890', shouldUseDynamicFontSize: true, allowNegative: true});
             const negativeFontSize = getElementFontSize(screen.getByTestId(INPUT_TEST_ID));
             const minusSignFontSize = getElementFontSize(screen.getByText(MINUS_SIGN));
 
@@ -519,7 +519,13 @@ describe('NumericInput', () => {
             screen.unmount();
 
             // When a longer symbol is provided
-            renderNumericInput({value: '1234567890', shouldUseDynamicFontSize: true, symbol: 'PLN', allowNegative: true});
+            renderNumericInput(
+                {value: '1234567890', shouldUseDynamicFontSize: true, allowNegative: true},
+                <>
+                    <NumericInput.Symbol>PLN</NumericInput.Symbol>
+                    <NumericInput.TextInput testID={INPUT_TEST_ID} />
+                </>,
+            );
             const longSymbolFontSize = getElementFontSize(screen.getByTestId(INPUT_TEST_ID));
 
             // Then font size is further reduced to fit the longer symbol
@@ -529,10 +535,98 @@ describe('NumericInput', () => {
             }
         });
 
+        it('does not count a symbol that the composition does not render', () => {
+            // Given a ten-digit amount with dynamic font size enabled and a symbol composed beside it
+            renderNumericInput({value: '1234567890', shouldUseDynamicFontSize: true});
+            const withSymbolFontSize = getElementFontSize(screen.getByTestId(INPUT_TEST_ID));
+
+            screen.unmount();
+
+            // When the same amount is composed without a symbol
+            renderNumericInput({value: '1234567890', shouldUseDynamicFontSize: true}, <NumericInput.TextInput testID={INPUT_TEST_ID} />);
+            const withoutSymbolFontSize = getElementFontSize(screen.getByTestId(INPUT_TEST_ID));
+
+            // Then the amount keeps a larger font, because only symbols that are actually shown take up space in the row
+            expect(withSymbolFontSize).toBeDefined();
+            expect(withoutSymbolFontSize).toBeDefined();
+            if (withSymbolFontSize !== undefined && withoutSymbolFontSize !== undefined) {
+                expect(withoutSymbolFontSize).toBeGreaterThan(withSymbolFontSize);
+            }
+        });
+
+        it('rescales the amount when the composed symbol changes', () => {
+            // Given a ten-digit amount with dynamic font size enabled and a one-character symbol
+            const renderWithSymbol = (symbol: string) =>
+                buildNumericInput(
+                    {value: '1234567890', shouldUseDynamicFontSize: true},
+                    <>
+                        <NumericInput.Symbol>{symbol}</NumericInput.Symbol>
+                        <NumericInput.TextInput testID={INPUT_TEST_ID} />
+                    </>,
+                );
+            render(renderWithSymbol('$'));
+            const shortSymbolFontSize = getElementFontSize(screen.getByTestId(INPUT_TEST_ID));
+
+            // When the composition swaps it for a longer symbol, as after picking another currency
+            screen.rerender(renderWithSymbol('PLN'));
+            const longSymbolFontSize = getElementFontSize(screen.getByTestId(INPUT_TEST_ID));
+
+            // Then the amount and the symbol shrink together, because the symbol reports its new length instead of keeping the old one
+            expect(shortSymbolFontSize).toBeDefined();
+            expect(longSymbolFontSize).toBeDefined();
+            if (shortSymbolFontSize !== undefined && longSymbolFontSize !== undefined) {
+                expect(longSymbolFontSize).toBeLessThan(shortSymbolFontSize);
+            }
+            expect(getElementFontSize(screen.getByText('PLN'))).toBe(longSymbolFontSize);
+        });
+
+        it('counts a symbol wrapped in another component and stops counting it once removed', () => {
+            // Given a ten-digit amount whose symbol is rendered by a screen-level wrapper rather than as a direct child, as a
+            // pressable currency symbol would be
+            function CurrencySymbol({symbol}: {symbol: string}) {
+                return <NumericInput.Symbol>{symbol}</NumericInput.Symbol>;
+            }
+            const renderAmount = (row: React.ReactNode) => buildNumericInput({value: '1234567890', shouldUseDynamicFontSize: true}, row);
+            render(
+                renderAmount(
+                    <>
+                        <NumericInput.Symbol>PLN</NumericInput.Symbol>
+                        <NumericInput.TextInput testID={INPUT_TEST_ID} />
+                    </>,
+                ),
+            );
+            const directSymbolFontSize = getElementFontSize(screen.getByTestId(INPUT_TEST_ID));
+
+            // When the same symbol is rendered through the wrapper
+            screen.rerender(
+                renderAmount(
+                    <>
+                        <CurrencySymbol symbol="PLN" />
+                        <NumericInput.TextInput testID={INPUT_TEST_ID} />
+                    </>,
+                ),
+            );
+            const wrappedSymbolFontSize = getElementFontSize(screen.getByTestId(INPUT_TEST_ID));
+
+            // Then it is sized exactly like the direct symbol, because the symbol registers itself wherever it is rendered
+            expect(wrappedSymbolFontSize).toBeDefined();
+            expect(wrappedSymbolFontSize).toBe(directSymbolFontSize);
+
+            // When the wrapper is removed from the composition
+            screen.rerender(renderAmount(<NumericInput.TextInput testID={INPUT_TEST_ID} />));
+            const withoutSymbolFontSize = getElementFontSize(screen.getByTestId(INPUT_TEST_ID));
+
+            // Then the amount grows back, because the unmounted symbol no longer counts toward the row length
+            expect(withoutSymbolFontSize).toBeDefined();
+            if (withoutSymbolFontSize !== undefined && wrappedSymbolFontSize !== undefined) {
+                expect(withoutSymbolFontSize).toBeGreaterThan(wrappedSymbolFontSize);
+            }
+        });
+
         it('ensures dynamic font size takes precedence over static fontSize in style prop', () => {
             // Given a NumericInput with dynamic font size enabled and a custom style with static fontSize (like styles.iouAmountTextInput)
             renderNumericInput(
-                {value: '0', shouldUseDynamicFontSize: true, symbol: 'hrs'},
+                {value: '0', shouldUseDynamicFontSize: true},
                 <>
                     <NumericInput.TextInput
                         testID={INPUT_TEST_ID}

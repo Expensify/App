@@ -2,7 +2,6 @@ import type {NumericEditingKeyPressEvent, NumericEditingSelection} from '@compon
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 
 import type {RefObject} from 'react';
-import type {TextStyle} from 'react-native';
 
 type NumericInputStateContextValue = {
     /** The canonical signed value owned by the root. */
@@ -26,8 +25,8 @@ type NumericInputStateContextValue = {
     /** Underlying text input, filled in by the text input primitive and read by focus handling and the web caret sync. */
     inputRef: RefObject<BaseTextInputRef | null>;
 
-    /** Dynamic font-size style calculated for the amount, symbol, and minus sign when scaling is enabled. */
-    dynamicAmountStyle?: TextStyle;
+    /** Whether to dynamically scale the font size down when the amount is long. */
+    shouldUseDynamicFontSize?: boolean;
 };
 
 type NumericInputActionsContextValue = {

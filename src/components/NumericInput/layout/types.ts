@@ -1,5 +1,3 @@
-import type {ReactNode} from 'react';
-
 type NumericInputLayoutPartProps = {
     /** Whether the layout splits into two columns (amount on the left, number pad on the right). True only on phones in landscape. */
     isTwoColumn: boolean;
@@ -8,8 +6,4 @@ type NumericInputLayoutPartProps = {
     testID?: string;
 };
 
-type NumericInputLayoutSlotProps = NumericInputLayoutPartProps & {
-    children: ReactNode;
-};
-
-export type {NumericInputLayoutPartProps, NumericInputLayoutSlotProps};
+export default NumericInputLayoutPartProps;

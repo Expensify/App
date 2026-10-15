@@ -1,6 +1,6 @@
 import {useNumericPressSelection} from '@components/NumericEditingController';
 import type {NumericEditingKeyPressEvent} from '@components/NumericEditingController';
-import {useNumericInputActions, useNumericInputState} from '@components/NumericInput/context';
+import {useNumericAmount, useNumericInputActions, useNumericInputState} from '@components/NumericInput/context';
 import type {NumericTextInputProps} from '@components/NumericInput/types';
 import TextInput from '@components/TextInput';
 
@@ -52,7 +52,8 @@ function NumericTextInput({
     const {setMouseDown, setMouseUp} = useMouseActions();
     const styles = useThemeStyles();
     const navigation = useNavigation();
-    const {dynamicAmountStyle, formattedNumber, inputRef, selection} = useNumericInputState();
+    const {formattedNumber, inputRef, selection} = useNumericInputState();
+    const {dynamicAmountStyle} = useNumericAmount();
     const {handleKeyPress, handleSelectionChange, setNumber} = useNumericInputActions();
 
     const handlePress = useNumericPressSelection({inputRef, handleSelectionChange, onPress});

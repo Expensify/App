@@ -2,8 +2,6 @@ import {useDetachedSignEditingController} from '@components/NumericEditingContro
 import isTextInputFocused from '@components/TextInput/BaseTextInput/isTextInputFocused';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 
-import useStyleUtils from '@hooks/useStyleUtils';
-
 import {useImperativeHandle, useRef} from 'react';
 
 import type {NumericInputActionsContextValue, NumericInputStateContextValue} from './context/types';
@@ -25,10 +23,8 @@ function NumericInput({
     footer,
     testID,
     shouldUseDynamicFontSize = false,
-    symbol = '',
 }: NumericInputProps) {
     const inputRef = useRef<BaseTextInputRef | null>(null);
-    const StyleUtils = useStyleUtils();
 
     const controller = useDetachedSignEditingController({value, onInputChange, allowNegative, decimals, maxLength});
 
@@ -46,8 +42,6 @@ function NumericInput({
         inputRef.current?.focus();
     };
 
-    const dynamicAmountStyle = shouldUseDynamicFontSize ? StyleUtils.getAmountInputFontSize(controller.formattedNumber.length + symbol.length + (controller.isNegative ? 1 : 0)) : undefined;
-
     const stateContextValue: NumericInputStateContextValue = {
         value: controller.value,
         formattedNumber: controller.formattedNumber,
@@ -56,7 +50,7 @@ function NumericInput({
         allowNegative,
         errorText,
         inputRef,
-        dynamicAmountStyle,
+        shouldUseDynamicFontSize,
     };
 
     const actionsContextValue: NumericInputActionsContextValue = {

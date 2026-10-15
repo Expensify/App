@@ -44,7 +44,7 @@ const NumericInput = Object.assign(NumericInputComponent, {
     /** Toggles the sign of the value. Renders only on touch screens, when the root allows negative values. */
     FlipButton: NumericFlipButton,
 
-    /** Renders its children as the symbol (currency or unit) displayed beside the number. */
+    /** Renders its children as the symbol (currency or unit) beside the number, counting them in the dynamic font size. */
     Symbol: NumericSymbol,
 
     /** Renders the number itself, displaying and editing the magnitude of the canonical value. */
