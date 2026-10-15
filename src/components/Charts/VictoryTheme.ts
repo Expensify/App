@@ -115,6 +115,9 @@ const SIN_45 = Math.sin(Math.PI / 4);
 /** Minimum gap between adjacent labels (px) */
 const LABEL_PADDING = 4;
 
+/** Minimum clear space between adjacent horizontal x-axis labels on stepped axes (px) */
+const X_AXIS_LABEL_MIN_GAP = 24;
+
 const ELLIPSIS = '...';
 
 /** Minimum visible characters (excluding ellipsis) for truncation to be worthwhile */
@@ -139,6 +142,7 @@ const GLYPH_PADDING = 4;
 export {
     CARTESIAN_Y_AXIS,
     CHART_CONTENT_MIN_HEIGHT,
+    X_AXIS_LABEL_MIN_GAP,
     CHART_Y_SCALE_HEIGHT,
     LABEL_ROTATIONS,
     SIN_45,

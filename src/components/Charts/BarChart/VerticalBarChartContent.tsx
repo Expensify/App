@@ -119,14 +119,15 @@ function VerticalBarChartCanvas({data, series, yAxisUnit, yAxisUnitPosition = 'l
         return isWithinX && args.cursorY >= plotTop.get() && args.cursorY <= plotBottom.get();
     };
 
-    const {customGestures, setPointPositions, matchedIndex, isTooltipActive, isCursorOverClickable, initialTooltipPosition, onChartMoved} = useChartInteractions({
-        handlePress: onBarPress ? handleBarPress : undefined,
-        checkIsOver: checkIsOverBar,
-        isCursorOverLabel: shouldShowLabels ? isCursorOverLabel : undefined,
-        resolveLabelTouchX: shouldShowLabels ? findLabelCursorX : undefined,
-        chartBottom,
-        yZero,
-    });
+    const {customGestures, setPointPositions, matchedIndex, isTooltipActive, isCursorOverClickable, initialTooltipPosition, onChartMoved, onTooltipDismiss, onChartTouchStart} =
+        useChartInteractions({
+            handlePress: onBarPress ? handleBarPress : undefined,
+            checkIsOver: checkIsOverBar,
+            isCursorOverLabel: shouldShowLabels ? isCursorOverLabel : undefined,
+            resolveLabelTouchX: shouldShowLabels ? findLabelCursorX : undefined,
+            chartBottom,
+            yZero,
+        });
 
     const handleScaleChange = (xScale: Scale, yScale: Scale) => {
         barHitHalfWidth.set(barLayout.barWidth > 0 ? barLayout.barWidth / 2 + barLayout.gap * BAR_HIT_GAP_RATIO : 0);
@@ -208,7 +209,10 @@ function VerticalBarChartCanvas({data, series, yAxisUnit, yAxisUnitPosition = 'l
             gesture={customGestures}
             touchAction="pan-y"
         >
-            <Animated.View style={[styles.chartContent, StyleUtils.getHeight(chartHeight), !!onBarPress && cursorStyle]}>
+            <Animated.View
+                style={[styles.chartContent, StyleUtils.getHeight(chartHeight), !!onBarPress && cursorStyle]}
+                onTouchStart={onChartTouchStart}
+            >
                 <CartesianChart
                     explicitSize={{width: chartWidth, height: chartHeight}}
                     xKey="x"
@@ -251,6 +255,7 @@ function VerticalBarChartCanvas({data, series, yAxisUnit, yAxisUnitPosition = 'l
                     chartWidth={chartWidth}
                     initialTooltipPosition={initialTooltipPosition}
                     onChartMoved={onChartMoved}
+                    onDismiss={onTooltipDismiss}
                 />
             </Animated.View>
         </GestureDetector>

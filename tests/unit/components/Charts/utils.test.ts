@@ -6,6 +6,7 @@ import {
     effectiveHeight,
     effectiveWidth,
     findSliceAtPosition,
+    getAxisLabelStep,
     getBarLayout,
     getAdditionalOffset,
     getDomainPaddingForEdgeSpace,
@@ -797,5 +798,97 @@ describe('getDomainPaddingForEdgeSpace', () => {
         // When converting it to domain padding
         // Then it is returned as is instead of dividing by zero or going negative
         expect(getDomainPaddingForEdgeSpace({left: 30, right: 0}, 0)).toEqual({left: 30, right: 0});
+    });
+});
+
+describe('getAxisLabelStep', () => {
+    const MIN_GAP = 24;
+
+    const getEvenPointXs = (count: number, spacing: number) => Array.from({length: count}, (_, index) => index * spacing);
+
+    it('labels every point when neighboring labels keep the minimum gap', () => {
+        // Given 20px labels on points 50px apart, which leaves a 30px gap between neighbors
+        const pointXs = getEvenPointXs(5, 50);
+
+        // When picking the label step
+        const step = getAxisLabelStep({labelWidths: Array<number>(5).fill(20), pointXs, steps: [1, 2, 7, 14], minGap: MIN_GAP});
+
+        // Then the smallest step is used, so no label is hidden needlessly
+        expect(step).toBe(1);
+    });
+
+    it('moves to the next listed step when neighboring labels are too close', () => {
+        // Given 30px labels on points 50px apart, which leaves only a 20px gap between neighbors
+        const pointXs = getEvenPointXs(5, 50);
+
+        // When picking the label step
+        const step = getAxisLabelStep({labelWidths: Array<number>(5).fill(30), pointXs, steps: [1, 2, 7, 14], minGap: MIN_GAP});
+
+        // Then every other point is labeled, which widens the gap to 70px
+        expect(step).toBe(2);
+    });
+
+    it('accepts a gap exactly equal to the minimum gap', () => {
+        // Given 26px labels on points 50px apart, which leaves exactly a 24px gap between neighbors
+        const pointXs = getEvenPointXs(5, 50);
+
+        // When picking the label step
+        const step = getAxisLabelStep({labelWidths: Array<number>(5).fill(26), pointXs, steps: [1, 2], minGap: MIN_GAP});
+
+        // Then the minimum gap counts as enough room, so every point stays labeled
+        expect(step).toBe(1);
+    });
+
+    it('tries multiples of the last listed step when no listed step fits', () => {
+        // Given 30px labels on points 10px apart, too dense for steps 1 and 2
+        const pointXs = getEvenPointXs(10, 10);
+
+        // When picking the label step
+        const step = getAxisLabelStep({labelWidths: Array<number>(10).fill(30), pointXs, steps: [1, 2], minGap: MIN_GAP});
+
+        // Then 4 is still too tight (10px gap), and 6 is the first multiple of 2 that leaves a 30px gap
+        expect(step).toBe(6);
+    });
+
+    it('labels only the first point when no step fits', () => {
+        // Given 3 points 10px apart with 30px labels, where even the first and last labels overlap
+        const pointXs = getEvenPointXs(3, 10);
+
+        // When picking the label step
+        const step = getAxisLabelStep({labelWidths: Array<number>(3).fill(30), pointXs, steps: [1], minGap: MIN_GAP});
+
+        // Then the step reaches past the last point, so only the first label is drawn instead of overlapping ones
+        expect(step).toBe(3);
+    });
+
+    it('labels only the first and last points when the only step spans the whole axis', () => {
+        // Given 5 points and the single step the narrow layout passes, points.length - 1
+        const pointXs = getEvenPointXs(5, 50);
+
+        // When picking the label step
+        const step = getAxisLabelStep({labelWidths: Array<number>(5).fill(30), pointXs, steps: [4], minGap: MIN_GAP});
+
+        // Then that step is used, so the first and last points are labeled
+        expect(step).toBe(4);
+    });
+
+    it("checks each label's own width", () => {
+        // Given a wide first label that reaches the second label but clears the third
+        const pointXs = [0, 50, 100];
+
+        // When picking the label step
+        const step = getAxisLabelStep({labelWidths: [80, 20, 20], pointXs, steps: [1, 2], minGap: MIN_GAP});
+
+        // Then step 1 is rejected because of the first label's width, even though the narrow labels would fit
+        expect(step).toBe(2);
+    });
+
+    it('labels a single point with the smallest step', () => {
+        // Given one point, which has no neighbor its label could overlap
+        // When picking the label step
+        const step = getAxisLabelStep({labelWidths: [30], pointXs: [0], steps: [1, 2], minGap: MIN_GAP});
+
+        // Then the smallest step is used and the point stays labeled
+        expect(step).toBe(1);
     });
 });

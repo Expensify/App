@@ -16,8 +16,17 @@ import {
     useLabelHitTesting,
     useReadyCartesianCanvas,
 } from '@components/Charts/hooks';
-import {getCartesianPlotBounds, getDomainPaddingForEdgeSpace, getPrimaryValue, getXAxisLabel, getYAxisLabelWidth, labelOverhang} from '@components/Charts/utils';
-import VictoryTheme, {CARTESIAN_Y_AXIS, CHART_CONTENT_MIN_HEIGHT, DASH_INTERVALS, GLYPH_PADDING, LABEL_PADDING, LABEL_ROTATIONS, SIN_45} from '@components/Charts/VictoryTheme';
+import {getAxisLabelStep, getCartesianPlotBounds, getDomainPaddingForEdgeSpace, getPrimaryValue, getXAxisLabel, getYAxisLabelWidth, labelOverhang} from '@components/Charts/utils';
+import VictoryTheme, {
+    CARTESIAN_Y_AXIS,
+    CHART_CONTENT_MIN_HEIGHT,
+    DASH_INTERVALS,
+    GLYPH_PADDING,
+    LABEL_PADDING,
+    LABEL_ROTATIONS,
+    SIN_45,
+    X_AXIS_LABEL_MIN_GAP,
+} from '@components/Charts/VictoryTheme';
 
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
@@ -37,6 +46,9 @@ import type {CartesianChartProps, ChartDataPoint} from '..';
 
 type LineChartProps = CartesianChartProps & {
     onPointPress?: (dataPoint: ChartDataPoint, index: number) => void;
+
+    /** Steps the x-axis may label points at, ascending. When set, labels stay horizontal and only every Nth point is labeled. */
+    labelSteps?: readonly number[];
 };
 
 type LineChartContentProps = LineChartProps & {
@@ -46,7 +58,7 @@ type LineChartContentProps = LineChartProps & {
 
 type LineChartCanvasProps = Omit<LineChartProps, 'isLoading'> & CartesianCanvasInputs;
 
-function LineChartCanvas({data, series, yAxisUnit, yAxisUnitPosition = 'left', onPointPress, chartWidth, fontManager}: LineChartCanvasProps) {
+function LineChartCanvas({data, series, yAxisUnit, yAxisUnitPosition = 'left', onPointPress, labelSteps, chartWidth, fontManager}: LineChartCanvasProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -97,7 +109,7 @@ function LineChartCanvas({data, series, yAxisUnit, yAxisUnitPosition = 'left', o
         if (!firstLabelWidth || !lastLabelWidth) {
             return VictoryTheme.line.domainPadding;
         }
-        const labelsExceedTickSpacing = tickSpacing > 0 && maxLabelWidth + LABEL_PADDING > tickSpacing;
+        const labelsExceedTickSpacing = !labelSteps && tickSpacing > 0 && maxLabelWidth + LABEL_PADDING > tickSpacing;
         let leftOverhang = firstLabelWidth / 2;
         let rightOverhang = lastLabelWidth / 2;
 
@@ -117,16 +129,40 @@ function LineChartCanvas({data, series, yAxisUnit, yAxisUnitPosition = 'left', o
     const totalDomainPadding = domainPadding.left + domainPadding.right;
     const paddingScale = plotAreaWidth > 0 ? plotAreaWidth / (plotAreaWidth + totalDomainPadding) : 0;
 
-    const {labelRotation, labelSkipInterval, truncatedLabelWidths, xAxisLabelHeight, regularLabelMaxWidth, firstLabelMaxWidth, lastLabelMaxWidth, ellipsisWidth} = useChartLabelLayout({
+    const rotatingLabelLayout = useChartLabelLayout({
         data,
         fontManager,
         fontSize: variables.iconSizeExtraSmall,
         tickSpacing,
-        labelAreaWidth: plotAreaWidth,
+        // Stepped labels never rotate, so a zero width makes this hook return early instead of computing a rotation
+        labelAreaWidth: labelSteps ? 0 : plotAreaWidth,
         firstTickLeftSpace: boundsLeft + domainPadding.left * paddingScale,
         lastTickRightSpace: chartWidth - boundsRight + domainPadding.right * paddingScale,
         measurements,
     });
+
+    const steppedLabelLayout = (() => {
+        if (!labelSteps || plotAreaWidth <= 0) {
+            return undefined;
+        }
+        const firstPointX = boundsLeft + domainPadding.left * paddingScale;
+        const lastPointX = boundsRight - domainPadding.right * paddingScale;
+        const pointXs = data.map((_, index) => (data.length > 1 ? firstPointX + (index * (lastPointX - firstPointX)) / (data.length - 1) : (firstPointX + lastPointX) / 2));
+        const step = getAxisLabelStep({labelWidths, pointXs, steps: labelSteps, minGap: X_AXIS_LABEL_MIN_GAP});
+        return {
+            labelRotation: LABEL_ROTATIONS.HORIZONTAL,
+            labelSkipInterval: step,
+            truncatedLabelWidths: labelWidths,
+            xAxisLabelHeight: lineHeight,
+            regularLabelMaxWidth: Infinity,
+            firstLabelMaxWidth: Infinity,
+            lastLabelMaxWidth: Infinity,
+            ellipsisWidth: measurements.ellipsisWidth,
+        };
+    })();
+
+    const {labelRotation, labelSkipInterval, truncatedLabelWidths, xAxisLabelHeight, regularLabelMaxWidth, firstLabelMaxWidth, lastLabelMaxWidth, ellipsisWidth} =
+        steppedLabelLayout ?? rotatingLabelLayout;
 
     const originalLabels = data.map(getXAxisLabel);
 
@@ -165,7 +201,18 @@ function LineChartCanvas({data, series, yAxisUnit, yAxisUnitPosition = 'left', o
         return isInPlotArea(args) && isCursorOverLabel(args, activeIndex);
     };
 
-    const {customGestures, setPointPositions, matchedIndex, isTooltipActive, isCursorOverClickable, initialTooltipPosition, activePointPosition, onChartMoved} = useChartInteractions({
+    const {
+        customGestures,
+        setPointPositions,
+        matchedIndex,
+        isTooltipActive,
+        isCursorOverClickable,
+        initialTooltipPosition,
+        activePointPosition,
+        onChartMoved,
+        onTooltipDismiss,
+        onChartTouchStart,
+    } = useChartInteractions({
         handlePress: onPointPress ? handlePointPress : undefined,
         checkIsOver: checkIsOverBand,
         isCursorOverLabel: checkIsOverLabelInPlotArea,
@@ -274,7 +321,10 @@ function LineChartCanvas({data, series, yAxisUnit, yAxisUnitPosition = 'left', o
             gesture={customGestures}
             touchAction="pan-y"
         >
-            <Animated.View style={[styles.chartContent, StyleUtils.getHeight(chartHeight), !!onPointPress && cursorStyle]}>
+            <Animated.View
+                style={[styles.chartContent, StyleUtils.getHeight(chartHeight), !!onPointPress && cursorStyle]}
+                onTouchStart={onChartTouchStart}
+            >
                 <CartesianChart
                     explicitSize={{width: chartWidth, height: chartHeight}}
                     xKey="x"
@@ -313,6 +363,7 @@ function LineChartCanvas({data, series, yAxisUnit, yAxisUnitPosition = 'left', o
                     chartWidth={chartWidth}
                     initialTooltipPosition={initialTooltipPosition}
                     onChartMoved={onChartMoved}
+                    onDismiss={onTooltipDismiss}
                 />
             </Animated.View>
         </GestureDetector>
