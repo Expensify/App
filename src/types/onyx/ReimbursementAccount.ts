@@ -291,19 +291,15 @@ type WiseBusinessOnboarding = {
         noSSN?: boolean;
     };
 
-    /** Answers to Wise's KYC requirements, by requirement and in Wise's field names so Submit forwards them as they are. The pages come from the server as wiseKYCRequirements, before the review for the ones below and from the live review after. Name a requirement here once a page collects it */
+    /** Answers to Wise's KYC requirements, by requirement and then by the page's field key, which is Wise's field name. The pages are authored by the server, before the review for the ones below and from the live review after, and Submit shapes each answer into Wise's payload. Name a requirement here once a page collects it */
     requirements?: {
-        /** Asked before Submit when a chosen industry is high risk. One choice on the page is stored as a one-item list with isSourceOfFund true */
+        /** Asked before Submit when a chosen industry is high risk. Submit wraps the one choice into Wise's list with isSourceOfFund true */
         BUSINESS_SOURCE_OF_WEALTH_INFO?: {
-            sourceOfWealthList: Array<{
-                businessSourceOfWealthInfo: string;
-                isSourceOfFund: boolean;
-            }>;
+            businessSourceOfWealthInfo: string;
         };
 
-        /** The proof file is under documents; the answers say which source and which kind of document it is */
+        /** The proof file is under documents. Submit adds the source chosen on the page before */
         BUSINESS_SOURCE_OF_WEALTH_PROOF?: {
-            sourceOfWealthType: string;
             documentType: string;
         };
 
