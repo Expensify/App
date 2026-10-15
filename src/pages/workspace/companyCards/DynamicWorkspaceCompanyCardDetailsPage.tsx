@@ -15,6 +15,7 @@ import useCardFeeds from '@hooks/useCardFeeds';
 import useCardsList from '@hooks/useCardsList';
 import {useCompanyCardFeedIcons} from '@hooks/useCompanyCardIcons';
 import useConfirmModal from '@hooks/useConfirmModal';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -29,6 +30,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {getActiveServer} from '@libs/ApiUtils';
 import navigateToCardTransactions from '@libs/CardNavigationUtils';
 import {
+    canSyncCompanyCard,
     getCardFeedIcon,
     getCardFeedTextColor,
     getCompanyCardCustomName,
@@ -66,6 +68,7 @@ import type {CompanyCardFeedWithDomainID} from '@src/types/onyx';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import {companyCardCustomNamesSelector} from '@selectors/Card';
+import {isAdminSelector} from '@selectors/Domain';
 import {format, parseISO} from 'date-fns';
 import React, {useState} from 'react';
 import {View} from 'react-native';
@@ -136,6 +139,11 @@ function DynamicWorkspaceCompanyCardDetailsPage({route}: DynamicWorkspaceCompany
     const companyFeeds = getCompanyFeeds(cardFeeds);
     const domainOrWorkspaceAccountID = getDomainOrWorkspaceAccountID(workspaceAccountID, companyFeeds[feedName]);
     const [sharedCardCustomNames] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${domainOrWorkspaceAccountID}`, {selector: companyCardCustomNamesSelector});
+    const currentUserAccountID = useCurrentUserPersonalDetails().accountID;
+    const domainID = companyFeeds[feedName]?.domainID;
+    const [domain] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainID}`);
+    const isDomainAdmin = isAdminSelector(currentUserAccountID)(domain);
+    const canSyncCard = canSyncCompanyCard(card, companyFeeds[feedName], currentUserAccountID, isDomainAdmin);
     const plaidUrl = getPlaidInstitutionIconUrl(feedName);
 
     // Show "Break connection" only when Mock Bank requests target non-production APIs.
@@ -220,7 +228,7 @@ function DynamicWorkspaceCompanyCardDetailsPage({route}: DynamicWorkspaceCompany
                         onClose={() => clearCompanyCardErrorField(domainOrWorkspaceAccountID, cardID, bank, 'lastScrape', true)}
                     >
                         <CardDetailsActionButtons>
-                            {canWriteCompanyCards && (
+                            {canWriteCompanyCards && canSyncCard && (
                                 <CardDetailsActionButton
                                     onPress={updateCard}
                                     isDisabled={isOffline || card?.isLoadingLastUpdated}
@@ -239,6 +247,11 @@ function DynamicWorkspaceCompanyCardDetailsPage({route}: DynamicWorkspaceCompany
                                 <CardDetailsActionButton.Text>{translate('workspace.common.viewTransactions')}</CardDetailsActionButton.Text>
                             </CardDetailsActionButton>
                         </CardDetailsActionButtons>
+                        {canWriteCompanyCards && !canSyncCard && (
+                            <Text style={[styles.textLabelSupporting, styles.textAlignCenter, styles.ph5, styles.mt3]}>
+                                {translate('workspace.moreFeatures.companyCards.contactDomainAdminToUpdateCard')}
+                            </Text>
+                        )}
                     </OfflineWithFeedback>
                     <OfflineWithFeedback
                         pendingAction={card?.nameValuePairs?.pendingFields?.cardTitle}

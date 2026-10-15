@@ -6674,6 +6674,7 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
                 lastUpdated: '最終更新日時',
                 transactionStartDate: '取引開始日',
                 updateCard: 'カードを更新',
+                contactDomainAdminToUpdateCard: 'このカードを更新するには、ドメイン管理者にお問い合わせください。',
                 unassignCard: 'カードの割り当てを解除',
                 unassignCards: 'カードの割り当てを解除',
                 unassign: '割り当てを解除',

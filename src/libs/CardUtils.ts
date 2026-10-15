@@ -1213,6 +1213,18 @@ function getDomainOrWorkspaceAccountID(workspaceAccountID: number, cardFeedData:
     return cardFeedData?.domainID ?? workspaceAccountID;
 }
 
+/**
+ * Whether the current user can sync (scrape) a company card. Workspace feeds are authorized by workspace write access, which callers check separately.
+ * Domain feeds are only allowed for the card owner or a domain admin.
+ */
+function canSyncCompanyCard(card: OnyxEntry<Card>, cardFeedData: CardFeedData | undefined, currentUserAccountID: number, isDomainAdmin: boolean): boolean {
+    const isDomainFeed = !!cardFeedData?.domainID;
+    if (!isDomainFeed) {
+        return true;
+    }
+    return isDomainAdmin || (!!card?.accountID && card.accountID === currentUserAccountID);
+}
+
 function getPlaidCountry(outputCurrency?: string, currencyList?: CurrencyList, countryByIp?: string) {
     const selectedCurrency = outputCurrency ? currencyList?.[outputCurrency] : null;
     const countries = selectedCurrency?.countries;
@@ -2627,6 +2639,7 @@ export {
     getCardAssignmentDateOption,
     getCardAssignmentStartDate,
     getDomainOrWorkspaceAccountID,
+    canSyncCompanyCard,
     mergeCardListWithWorkspaceFeeds,
     isCard,
     getAllCardsForWorkspace,

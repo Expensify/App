@@ -6821,6 +6821,7 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
                 lastUpdated: 'Dernière mise à jour',
                 transactionStartDate: 'Date de début de la transaction',
                 updateCard: 'Mettre à jour la carte',
+                contactDomainAdminToUpdateCard: 'Contactez votre administrateur de domaine pour mettre à jour cette carte.',
                 unassignCard: 'Retirer l’assignation de la carte',
                 unassignCards: 'Retirer l’assignation des cartes',
                 unassign: "Retirer l'assignation",

@@ -6752,6 +6752,7 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
                 lastUpdated: 'Última atualização',
                 transactionStartDate: 'Data de início da transação',
                 updateCard: 'Atualizar cartão',
+                contactDomainAdminToUpdateCard: 'Entre em contato com o administrador do seu domínio para atualizar este cartão.',
                 unassignCard: 'Remover cartão',
                 unassignCards: 'Remover cartões',
                 unassign: 'Desatribuir',
