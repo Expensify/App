@@ -7,4 +7,5 @@
     <color name="gray4">#7D8B8F</color>
     <color name="card_highlight_bg">#07271F</color>
     <color name="card_alternate_bg">#1A3D32</color>
+    <color name="brand_dark_green">#FF002E22</color>
 </resources>

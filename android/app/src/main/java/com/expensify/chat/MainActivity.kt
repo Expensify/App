@@ -1,19 +1,15 @@
 package com.expensify.chat
 
-import android.app.Activity
-import android.app.ActivityManager
 import android.content.Intent
 import android.content.pm.ActivityInfo
 import android.content.res.Resources
-import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import android.view.KeyEvent
 import android.view.View
 import android.view.WindowInsets
-import android.view.WindowManager
 import com.expensify.chat.bootsplash.BootSplash
-import com.expensify.chat.bootsplash.BootSplashDialog
+import com.expensify.chat.bootsplash.PrivacyCover
 import com.expensify.chat.intenthandler.IntentHandlerFactory
 import com.expensify.reactnativekeycommand.KeyCommandModule
 import com.facebook.react.ReactActivity
@@ -25,19 +21,6 @@ import expo.modules.ReactActivityDelegateWrapper
 class MainActivity : ReactActivity() {
     companion object {
         private const val APP_START_TIME_PREFERENCES = "AppStartTime"
-
-        // Recents shows this card instead of a snapshot, since snapshots are disabled for privacy.
-        fun applyTaskDescription(activity: Activity) {
-            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
-                return
-            }
-            activity.setTaskDescription(
-                ActivityManager.TaskDescription.Builder()
-                    .setBackgroundColor(activity.getColor(R.color.bootsplash_background))
-                    .setStatusBarColor(activity.getColor(R.color.bootsplash_background))
-                    .build()
-            )
-        }
     }
 
     /**
@@ -141,12 +124,29 @@ class MainActivity : ReactActivity() {
         super.onStart()
     }
 
-    // It lets us tell "leaving the app" from "internal window"
+    // It lets us tell "leaving the app" from "internal window", i.e. a window we own that
+    // takes focus on top of this activity (Dialog, PopupWindow, IME) while we stay top resumed.
     private var isTopResumed = true
+
+    // It lets us tell "leaving the app" from "another activity we opened ourselves" (e.g. Plaid)
+    private var startedActivityOurselves = false
+
+    // Overridden, not called: intercepts every activity start
+    @Deprecated("Deprecated in Java")
+    override fun startActivityForResult(intent: Intent, requestCode: Int, options: Bundle?) {
+        startedActivityOurselves = true
+        try {
+            super.startActivityForResult(intent, requestCode, options)
+        } catch (e: RuntimeException) {
+            startedActivityOurselves = false
+            throw e
+        }
+    }
 
     override fun onWindowFocusChanged(hasFocus: Boolean) {
         super.onWindowFocusChanged(hasFocus)
         if (hasFocus) {
+            startedActivityOurselves = false
             hidePrivacyDialog()
         } else if (!isTopResumed) {
             showPrivacyDialog()
@@ -157,6 +157,7 @@ class MainActivity : ReactActivity() {
         super.onTopResumedActivityChanged(isTopResumedActivity)
         isTopResumed = isTopResumedActivity
         if (isTopResumedActivity) {
+            startedActivityOurselves = false
             hidePrivacyDialog()
         } else if (!hasWindowFocus()) {
             // Backgrounding with an in-app dialog open: this callback is the only "leaving the app" signal.
@@ -166,7 +167,7 @@ class MainActivity : ReactActivity() {
 
     override fun onApplyThemeResource(theme: Resources.Theme, resid: Int, first: Boolean) {
         super.onApplyThemeResource(theme, resid, first)
-        applyTaskDescription(this)
+        PrivacyCover.applyTaskDescription(this)
     }
 
     override fun onDestroy() {
@@ -174,26 +175,14 @@ class MainActivity : ReactActivity() {
         super.onDestroy()
     }
 
-    private var privacyDialog: BootSplashDialog? = null
-
     private fun showPrivacyDialog() {
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU || privacyDialog != null || isFinishing || isDestroyed) {
+        if (startedActivityOurselves) {
             return
         }
-        val dialog = BootSplashDialog(this, R.style.BootTheme)
-        // When the user comes back the activity underneath regains focus
-        dialog.window?.setFlags(
-            WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE,
-            WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE
-        )
-        // The default dialog fade-in would let the snapshot see the content underneath
-        dialog.window?.setWindowAnimations(0)
-        dialog.show()
-        privacyDialog = dialog
+        PrivacyCover.show(this)
     }
 
     private fun hidePrivacyDialog() {
-        privacyDialog?.dismiss()
-        privacyDialog = null
+        PrivacyCover.hide(this)
     }
 }

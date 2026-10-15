@@ -13,6 +13,7 @@ import android.os.Bundle
 import android.os.Process
 import androidx.multidex.MultiDexApplication
 import com.expensify.chat.bootsplash.BootSplashPackage
+import com.expensify.chat.bootsplash.PrivacyCover
 import com.expensify.chat.navbar.NavBarManagerPackage
 import com.expensify.chat.shortcutManagerModule.ShortcutManagerPackage
 import com.margelo.nitro.nitrofetch.AutoPrefetcher
@@ -58,7 +59,8 @@ class MainApplication : MultiDexApplication(), ReactApplication {
                     activity.setRecentsScreenshotEnabled(false)
                     // Third-party activities (e.g. Plaid) don't set our TaskDescription, so their recents fallback card would be black.
                     if (!activity.javaClass.name.startsWith("com.expensify.")) {
-                        MainActivity.applyTaskDescription(activity)
+                        PrivacyCover.applyTaskDescription(activity)
+                        PrivacyCover.observeWindowFocus(activity)
                     }
                 }
                 if (activity.javaClass.name == "com.plaid.internal.link.LinkActivity") {
@@ -70,7 +72,9 @@ class MainApplication : MultiDexApplication(), ReactApplication {
             override fun onActivityPaused(activity: Activity) {}
             override fun onActivityStopped(activity: Activity) {}
             override fun onActivitySaveInstanceState(activity: Activity, outState: Bundle) {}
-            override fun onActivityDestroyed(activity: Activity) {}
+            override fun onActivityDestroyed(activity: Activity) {
+                PrivacyCover.hide(activity)
+            }
         })
 
         ReactFontManager.getInstance().addCustomFont(this, "Custom Emoji Font", R.font.custom_emoji_font)
