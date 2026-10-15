@@ -5,7 +5,7 @@ import type SCREENS from '@src/SCREENS';
 
 import React from 'react';
 
-import MerchantRulePageBase from './MerchantRulePageBase';
+import ExpenseDefaultRulePageBase from './ExpenseDefaultRulePageBase';
 
 type AddMerchantRulePageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.RULES_MERCHANT_NEW | typeof SCREENS.WORKSPACE.DYNAMIC_RULES_MERCHANT_NEW>;
 
@@ -13,7 +13,7 @@ function AddMerchantRulePage({route}: AddMerchantRulePageProps) {
     const {policyID} = route.params;
 
     return (
-        <MerchantRulePageBase
+        <ExpenseDefaultRulePageBase
             policyID={policyID}
             initialCategoryName={route.params.categoryName}
             testID="AddMerchantRulePage"

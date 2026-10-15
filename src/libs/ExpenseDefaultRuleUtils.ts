@@ -25,7 +25,7 @@ import Parser from './Parser';
 import {fromIndexMap, getRuleFilterLeaves, isExpenseDefaultRule, isRuleFilterComparison, isRuleFilterNode, toIndexMap} from './RuleUtils';
 
 /** The form shape the merchant rule editor round-trips a rule through. */
-type MerchantRuleFormValues = {
+type ExpenseDefaultFormValues = {
     /** The merchant string an expense has to match */
     merchantToMatch?: string;
 
@@ -109,13 +109,13 @@ const STRING_ACTION_FIELD_TO_FORM_KEY = {
     [FIELD.TAG]: 'tag',
     [FIELD.VENDOR_ID]: 'vendorID',
     [FIELD.COMMENT]: 'comment',
-} as const satisfies Partial<Record<ExpenseDefaultActionField, keyof MerchantRuleFormValues>>;
+} as const satisfies Partial<Record<ExpenseDefaultActionField, keyof ExpenseDefaultFormValues>>;
 
 /** See `STRING_ACTION_FIELD_TO_FORM_KEY`. */
 const BOOLEAN_ACTION_FIELD_TO_FORM_KEY = {
     [FIELD.REIMBURSABLE]: 'reimbursable',
     [FIELD.BILLABLE]: 'billable',
-} as const satisfies Partial<Record<ExpenseDefaultActionField, keyof MerchantRuleFormValues>>;
+} as const satisfies Partial<Record<ExpenseDefaultActionField, keyof ExpenseDefaultFormValues>>;
 
 function isStringActionField(field: ExpenseDefaultActionField): field is keyof typeof STRING_ACTION_FIELD_TO_FORM_KEY {
     return field in STRING_ACTION_FIELD_TO_FORM_KEY;
@@ -208,7 +208,7 @@ function buildAmountActionValue(amount: string | undefined): number | undefined 
 }
 
 /** A merchant rule as this editor builds it, which is the stored shape minus the fields the server fills in. */
-type BuiltMerchantRule = Omit<ExpenseDefaultRule, 'filters'> & {
+type BuiltExpenseDefaultRule = Omit<ExpenseDefaultRule, 'filters'> & {
     /** The conditions the expense has to meet, ANDed together. */
     filters: RuleFilterNode;
 };
@@ -224,7 +224,7 @@ function nonEmptyValues(values: string[] | undefined): string[] {
  * The tree is left nested, so three conditions become `and(and(a, b), c)`. Each node only takes two children,
  * and nesting to the left keeps the order the form reads them back in.
  */
-function buildMerchantRuleFilters(formValues: Partial<MerchantRuleFormValues>): RuleFilterNode | undefined {
+function buildExpenseDefaultFilters(formValues: Partial<ExpenseDefaultFormValues>): RuleFilterNode | undefined {
     const comparisons: RuleFilterComparison[] = [];
 
     const merchantToMatch = formValues.merchantToMatch?.trim();
@@ -251,8 +251,8 @@ function buildMerchantRuleFilters(formValues: Partial<MerchantRuleFormValues>): 
 }
 
 /** Whether the form matches on anything. A rule with no conditions would apply to every expense, and the API rejects it. */
-function hasExpenseDefaultConditions(formValues: Partial<MerchantRuleFormValues>): boolean {
-    return !!buildMerchantRuleFilters(formValues);
+function hasExpenseDefaultConditions(formValues: Partial<ExpenseDefaultFormValues>): boolean {
+    return !!buildExpenseDefaultFilters(formValues);
 }
 
 /** Compares two multi-select conditions, which are ORed lists rather than ordered ones. */
@@ -264,7 +264,7 @@ function haveSameConditionValues(first: string[] | undefined, second: string[] |
 }
 
 /** Whether two rules match on the same expenses, which is what makes one a duplicate of the other. */
-function haveSameConditions(first: Partial<MerchantRuleFormValues>, second: Partial<MerchantRuleFormValues>): boolean {
+function haveSameConditions(first: Partial<ExpenseDefaultFormValues>, second: Partial<ExpenseDefaultFormValues>): boolean {
     const firstMerchant = first.merchantToMatch?.trim().toLowerCase() ?? '';
     const secondMerchant = second.merchantToMatch?.trim().toLowerCase() ?? '';
 
@@ -281,7 +281,7 @@ function haveSameConditions(first: Partial<MerchantRuleFormValues>, second: Part
 }
 
 /** Builds the `Set` actions for a merchant rule, keyed by a stringified index in a fixed field order. */
-function buildMerchantRuleActions(formValues: Partial<MerchantRuleFormValues>, policy: Policy | undefined): ExpenseDefaultActions {
+function buildExpenseDefaultActions(formValues: Partial<ExpenseDefaultFormValues>, policy: Policy | undefined): ExpenseDefaultActions {
     const comment = emptyToUndefined(formValues.comment);
     const valuesByField: Partial<Record<ExpenseDefaultActionField, ExpenseDefaultAction['value'] | undefined>> = {
         [FIELD.MERCHANT]: emptyToUndefined(formValues.merchant),
@@ -313,9 +313,9 @@ function buildMerchantRuleActions(formValues: Partial<MerchantRuleFormValues>, p
  * as the `value` param of `SetRule`.
  * Returns undefined when the form has nothing to match on or nothing to set, which the API rejects.
  */
-function buildMerchantRule(formValues: Partial<MerchantRuleFormValues>, policy: Policy | undefined): BuiltMerchantRule | undefined {
-    const filters = buildMerchantRuleFilters(formValues);
-    const actions = buildMerchantRuleActions(formValues, policy);
+function buildExpenseDefaultRule(formValues: Partial<ExpenseDefaultFormValues>, policy: Policy | undefined): BuiltExpenseDefaultRule | undefined {
+    const filters = buildExpenseDefaultFilters(formValues);
+    const actions = buildExpenseDefaultActions(formValues, policy);
 
     if (!filters || Object.keys(actions).length === 0) {
         return undefined;
@@ -343,7 +343,7 @@ function areTriggersEditable(triggers: Record<string, string> | undefined): bool
 }
 
 /** The conditions the editor renders, read back off a rule's filter tree. */
-type EditableConditions = Pick<MerchantRuleFormValues, 'matchType' | 'merchantToMatch' | 'categoriesToMatch' | 'tagsToMatch'>;
+type EditableConditions = Pick<ExpenseDefaultFormValues, 'matchType' | 'merchantToMatch' | 'categoriesToMatch' | 'tagsToMatch'>;
 
 /**
  * Reads one leaf comparison into the conditions it sets.
@@ -426,7 +426,7 @@ function getEditableConditions(filters: RuleFilterNode | undefined): EditableCon
  * Callers MUST treat undefined as "show this rule read-only": rendering a partial form and saving it back
  * would silently drop everything the form couldn't represent.
  */
-function getMerchantRuleFormValues(rule: Rule | ExpenseDefaultRule | undefined): MerchantRuleFormValues | undefined {
+function getExpenseDefaultFormValues(rule: Rule | ExpenseDefaultRule | undefined): ExpenseDefaultFormValues | undefined {
     if (!rule || !areTriggersEditable(rule.triggers)) {
         return undefined;
     }
@@ -436,7 +436,7 @@ function getMerchantRuleFormValues(rule: Rule | ExpenseDefaultRule | undefined):
         return undefined;
     }
 
-    const formValues: MerchantRuleFormValues = {...conditions};
+    const formValues: ExpenseDefaultFormValues = {...conditions};
 
     const actions = getRuleActions(rule);
     if (actions.length === 0) {
@@ -495,21 +495,6 @@ function getMerchantRuleFormValues(rule: Rule | ExpenseDefaultRule | undefined):
     return formValues;
 }
 
-/**
- * Summarizes the merchants a rule matches on, for the condition text and the search index.
- *
- * Derived from the filter tree rather than from `getMerchantRuleFormValues`, so a rule the editor can't
- * represent still shows what it matches and can still be found by merchant while staying read-only.
- */
-function getRuleMerchantMatchSummary(filters: RuleFilterNode | undefined): {merchants: string; isExactMatch: boolean} {
-    const merchantLeaves = getRuleFilterLeaves(filters).filter((leaf) => leaf.left === FIELD.MERCHANT);
-
-    return {
-        merchants: merchantLeaves.flatMap((leaf) => [leaf.right].flat()).join(', '),
-        isExactMatch: merchantLeaves.length > 0 && merchantLeaves.every((leaf) => leaf.operator === EQUAL_TO),
-    };
-}
-
 /** The values a rule matches on, grouped by field. */
 type ExpenseDefaultConditionSummary = {
     /** The merchants the rule matches on */
@@ -525,7 +510,7 @@ type ExpenseDefaultConditionSummary = {
 /**
  * Groups a rule's conditions by field, for the rules table's condition text and its search tokens.
  *
- * Derived from the filter tree rather than from `getMerchantRuleFormValues`, so a rule the editor can't
+ * Derived from the filter tree rather than from `getExpenseDefaultFormValues`, so a rule the editor can't
  * represent still shows what it matches and can still be found by it while staying read-only.
  */
 function getExpenseDefaultConditionSummary(filters: RuleFilterNode | undefined): ExpenseDefaultConditionSummary {
@@ -655,9 +640,9 @@ function hasExpenseDefaultRuleErrors(rules: OnyxCollection<Rule> | undefined, po
     return getPolicyExpenseDefaultRules(rules, policyID).some(({rule}) => Object.keys(rule.errors ?? {}).length > 0);
 }
 
-/** Whether the merchant rule editor can safely open this rule. See `getMerchantRuleFormValues`. */
-function isEditableMerchantRule(rule: Rule | ExpenseDefaultRule | undefined): boolean {
-    return !!getMerchantRuleFormValues(rule);
+/** Whether the merchant rule editor can safely open this rule. See `getExpenseDefaultFormValues`. */
+function isEditableExpenseDefaultRule(rule: Rule | ExpenseDefaultRule | undefined): boolean {
+    return !!getExpenseDefaultFormValues(rule);
 }
 
 /**
@@ -669,26 +654,26 @@ function isEditableMerchantRule(rule: Rule | ExpenseDefaultRule | undefined): bo
  * refused rather than opened. A rule the form can edit is already an expense default rule, because the form only
  * accepts `CreateTransaction` triggers and `Set` actions.
  */
-function canEditMerchantRule(rule: Rule | undefined, policyID: string | undefined): boolean {
-    return isPolicyScopedRule(rule, policyID) && isEditableMerchantRule(rule);
+function canEditExpenseDefaultRule(rule: Rule | undefined, policyID: string | undefined): boolean {
+    return isPolicyScopedRule(rule, policyID) && isEditableExpenseDefaultRule(rule);
 }
 
-export type {MerchantRuleFormValues};
+export type {ExpenseDefaultFormValues};
 export {
     buildCopiedExpenseDefaultRules,
-    buildMerchantRule,
-    canEditMerchantRule,
+    buildExpenseDefaultFilters,
+    buildExpenseDefaultRule,
+    canEditExpenseDefaultRule,
     getCategoryTaxDefaultID,
     getCategoryTaxDefaultRule,
     getExpenseDefaultConditionSummary,
     getExpenseDefaultRuleCount,
     getExpenseDefaultRuleSummaryFields,
-    getMerchantRuleFormValues,
+    getExpenseDefaultFormValues,
     getPolicyExpenseDefaultRules,
-    getRuleMerchantMatchSummary,
     hasExpenseDefaultConditions,
     hasExpenseDefaultRuleErrors,
     haveSameConditions,
-    isEditableMerchantRule,
+    isEditableExpenseDefaultRule,
     isExpenseDefaultTaxValue,
 };

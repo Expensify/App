@@ -11,7 +11,7 @@ import type SCREENS from '@src/SCREENS';
 
 import React from 'react';
 
-import MerchantRulePageBase from './MerchantRulePageBase';
+import ExpenseDefaultRulePageBase from './ExpenseDefaultRulePageBase';
 
 type AddCategoryTaxRulePageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.DYNAMIC_CATEGORY_TAX_RULE_NEW>;
 
@@ -25,7 +25,7 @@ function AddCategoryTaxRulePage({route}: AddCategoryTaxRulePageProps) {
     const existingRuleID = getCategoryTaxDefaultRule(rules, policyID, categoryName)?.ruleID;
 
     return (
-        <MerchantRulePageBase
+        <ExpenseDefaultRulePageBase
             policyID={policyID}
             ruleID={existingRuleID}
             initialCategoryToMatch={existingRuleID ? undefined : categoryName}

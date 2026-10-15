@@ -9,7 +9,7 @@ import SCREENS from '@src/SCREENS';
 
 import React from 'react';
 
-import MerchantRulePageBase from './MerchantRulePageBase';
+import ExpenseDefaultRulePageBase from './ExpenseDefaultRulePageBase';
 
 type EditCategoryTaxRulePageProps =
     | PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.RULES_CATEGORY_TAX_EDIT>
@@ -22,7 +22,7 @@ function EditCategoryTaxRulePage({route}: EditCategoryTaxRulePageProps) {
     const ruleID = getCategoryTaxDefaultRule(rules, policyID, categoryName)?.ruleID;
 
     return (
-        <MerchantRulePageBase
+        <ExpenseDefaultRulePageBase
             policyID={policyID}
             ruleID={ruleID}
             initialCategoryToMatch={ruleID ? undefined : categoryName}

@@ -35,14 +35,14 @@ import {getTaxRateDisplayName, hasUsableTaxRates} from '@libs/CategoryTaxRulesUt
 import {getDecodedCategoryName} from '@libs/CategoryUtils';
 import {convertAmountToDisplayString} from '@libs/CurrencyUtils';
 import {
-    buildMerchantRule,
-    canEditMerchantRule,
-    getMerchantRuleFormValues,
+    buildExpenseDefaultRule,
+    canEditExpenseDefaultRule,
+    getExpenseDefaultFormValues,
     getPolicyExpenseDefaultRules,
     hasExpenseDefaultConditions,
     haveSameConditions,
 } from '@libs/ExpenseDefaultRuleUtils';
-import type {MerchantRuleFormValues} from '@libs/ExpenseDefaultRuleUtils';
+import type {ExpenseDefaultFormValues} from '@libs/ExpenseDefaultRuleUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {hasEnabledOptions} from '@libs/OptionsListUtils';
 import Parser from '@libs/Parser';
@@ -78,7 +78,7 @@ import {View} from 'react-native';
 
 import useMerchantRuleRoute from './useMerchantRuleRoute';
 
-type MerchantRulePageBaseProps = {
+type ExpenseDefaultRulePageBaseProps = {
     policyID: string;
     ruleID?: string;
     /** Pre-scopes the category default when creating a rule (e.g. from the category details RHP). */
@@ -145,7 +145,15 @@ const getErrorMessage = (translate: LocalizedTranslate, form?: MerchantRuleForm)
     return translate('workspace.rules.merchantRules.confirmErrorConditionAndDefault');
 };
 
-function MerchantRulePageBase({policyID, ruleID, initialCategoryName, initialCategoryToMatch, isCategoryLocked = false, categorySettingsBackPath, testID}: MerchantRulePageBaseProps) {
+function ExpenseDefaultRulePageBase({
+    policyID,
+    ruleID,
+    initialCategoryName,
+    initialCategoryToMatch,
+    isCategoryLocked = false,
+    categorySettingsBackPath,
+    testID,
+}: ExpenseDefaultRulePageBaseProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const policy = usePolicy(policyID);
@@ -212,7 +220,7 @@ function MerchantRulePageBase({policyID, ruleID, initialCategoryName, initialCat
 
         // An undefined result means the rule uses parts of the format this form can't show. Saving it back would
         // drop them, so the editor stays empty and the rules list keeps such rules read-only.
-        const formValues = getMerchantRuleFormValues(existingRule);
+        const formValues = getExpenseDefaultFormValues(existingRule);
         if (!formValues) {
             return;
         }
@@ -308,7 +316,7 @@ function MerchantRulePageBase({policyID, ruleID, initialCategoryName, initialCat
      * Checks if another rule already matches on the same conditions.
      * When editing, we exclude the current rule from the comparison.
      */
-    const checkForDuplicateRule = (formValues: Partial<MerchantRuleFormValues>): boolean => {
+    const checkForDuplicateRule = (formValues: Partial<ExpenseDefaultFormValues>): boolean => {
         if (!hasExpenseDefaultConditions(formValues)) {
             return false;
         }
@@ -320,7 +328,7 @@ function MerchantRulePageBase({policyID, ruleID, initialCategoryName, initialCat
             }
 
             // A rule this form can't represent can't be a duplicate of what this form is about to save.
-            const existingFormValues = getMerchantRuleFormValues(rule);
+            const existingFormValues = getExpenseDefaultFormValues(rule);
             if (!existingFormValues) {
                 return false;
             }
@@ -354,7 +362,7 @@ function MerchantRulePageBase({policyID, ruleID, initialCategoryName, initialCat
             return;
         }
 
-        setRule(policyID, buildMerchantRule(form, policy), CONST.RULES.EXPENSE_DEFAULT.PRIORITY, ruleID, existingRule, shouldUpdateMatchingTransactions);
+        setRule(policyID, buildExpenseDefaultRule(form, policy), CONST.RULES.EXPENSE_DEFAULT.PRIORITY, ruleID, existingRule, shouldUpdateMatchingTransactions);
         if (isCreatedFromExpense) {
             // Opened from the callout, so this page is a suffix on the expense's path. Dropping it returns to the
             // expense instead of the workspace Rules page.
@@ -557,7 +565,7 @@ function MerchantRulePageBase({policyID, ruleID, initialCategoryName, initialCat
     ];
 
     const previewMatches = () => {
-        if (!form?.merchantToMatch?.trim()) {
+        if (!hasExpenseDefaultConditions(form ?? {})) {
             setShouldShowError(true);
             return;
         }
@@ -579,7 +587,7 @@ function MerchantRulePageBase({policyID, ruleID, initialCategoryName, initialCat
 
     // The rules collection is shared across workspaces and rule kinds, so a stale link can resolve a ruleID that
     // this editor must not write to. Saving would replace it with a merchant rule and drop whatever it holds.
-    if (ruleID && !!existingRule && !isClosing && !canEditMerchantRule(existingRule, policyID)) {
+    if (ruleID && !!existingRule && !isClosing && !canEditExpenseDefaultRule(existingRule, policyID)) {
         return <NotFoundPage />;
     }
 
@@ -732,6 +740,6 @@ function MerchantRulePageBase({policyID, ruleID, initialCategoryName, initialCat
     );
 }
 
-MerchantRulePageBase.displayName = 'MerchantRulePageBase';
+ExpenseDefaultRulePageBase.displayName = 'ExpenseDefaultRulePageBase';
 
-export default MerchantRulePageBase;
+export default ExpenseDefaultRulePageBase;

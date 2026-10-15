@@ -20,7 +20,7 @@ import {
     getExpenseDefaultConditionSummary,
     getExpenseDefaultRuleSummaryFields,
     getPolicyExpenseDefaultRules,
-    isEditableMerchantRule,
+    isEditableExpenseDefaultRule,
     isExpenseDefaultTaxValue,
 } from './ExpenseDefaultRuleUtils';
 import {getMccGroupDisplayName} from './PolicyRulesUtils';
@@ -222,9 +222,9 @@ function getMerchantRulesTableData({
                 const pendingAction = rule.pendingAction;
 
                 // A rule the editor can't represent would lose whatever the form can't show if it were saved back,
-                // so the row summarizes it but doesn't open it. See `getMerchantRuleFormValues`. It stays selectable
+                // so the row summarizes it but doesn't open it. See `getExpenseDefaultFormValues`. It stays selectable
                 // either way, because deleting it is the only thing an admin can still do with it.
-                const isEditable = isEditableMerchantRule(rule);
+                const isEditable = isEditableExpenseDefaultRule(rule);
                 const openEditor = () => {
                     if (!isEditable) {
                         return;

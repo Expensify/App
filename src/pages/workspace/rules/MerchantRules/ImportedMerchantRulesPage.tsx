@@ -17,8 +17,8 @@ import type {ImportedMerchantRule} from '@libs/actions/Policy/Rules';
 import {importMerchantRulesSpreadsheet} from '@libs/actions/Policy/Rules';
 import Tab from '@libs/actions/Tab';
 import {getDecodedCategoryName} from '@libs/CategoryUtils';
-import {getMerchantRuleFormValues, getPolicyExpenseDefaultRules} from '@libs/ExpenseDefaultRuleUtils';
-import type {MerchantRuleFormValues} from '@libs/ExpenseDefaultRuleUtils';
+import {getExpenseDefaultFormValues, getPolicyExpenseDefaultRules} from '@libs/ExpenseDefaultRuleUtils';
+import type {ExpenseDefaultFormValues} from '@libs/ExpenseDefaultRuleUtils';
 import {findDuplicate, generateColumnNames} from '@libs/importSpreadsheetUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -62,7 +62,7 @@ const ACTION_COLUMNS: string[] = [
  * spreadsheet rows that would recreate a rule the policy already has (e.g. the same spreadsheet
  * imported twice) as well as duplicate rows within the same spreadsheet.
  */
-function getRuleContentKey(formValues: Partial<MerchantRuleFormValues>): string {
+function getRuleContentKey(formValues: Partial<ExpenseDefaultFormValues>): string {
     return JSON.stringify([
         formValues.matchType ?? CONST.SEARCH.SYNTAX_OPERATORS.CONTAINS,
         formValues.merchantToMatch?.toLowerCase() ?? '',
@@ -200,7 +200,7 @@ function parseSpreadsheetRules(
     const seenRuleKeys = new Set(
         getPolicyExpenseDefaultRules(existingRules, policy?.id)
             .filter(({rule}) => rule.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE)
-            .map(({rule}) => getMerchantRuleFormValues(rule))
+            .map(({rule}) => getExpenseDefaultFormValues(rule))
             .filter((formValues) => !!formValues)
             .map(getRuleContentKey),
     );
@@ -244,7 +244,7 @@ function parseSpreadsheetRules(
             continue;
         }
 
-        const formValues: Partial<MerchantRuleFormValues> = {
+        const formValues: Partial<ExpenseDefaultFormValues> = {
             merchantToMatch,
             matchType: merchantIsValue ? CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO : CONST.SEARCH.SYNTAX_OPERATORS.CONTAINS,
             ...(updatedMerchant && {merchant: updatedMerchant}),
