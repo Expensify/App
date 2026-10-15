@@ -20,6 +20,7 @@ import {setWorkspaceInviteMembersDraft} from '@libs/actions/Policy/Member';
 import {clearErrors, openWorkspaceInvitePage as policyOpenWorkspaceInvitePage} from '@libs/actions/Policy/Policy';
 import {searchUserInServer} from '@libs/actions/Report';
 import {READ_COMMANDS} from '@libs/API/types';
+import {extractCollectionItemID} from '@libs/CollectionUtils';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import getPlatform from '@libs/getPlatform';
 import HttpUtils from '@libs/HttpUtils';
@@ -35,14 +36,14 @@ import {getIneligibleInvitees, getMemberAccountIDsForWorkspace, getSoftExclusion
 import type {SettingsNavigatorParamList} from '@navigation/types';
 
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
+import ONYXKEYS, {OnyxCollectionKey} from '@src/ONYXKEYS';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {InvitedEmailsToAccountIDs, Policy} from '@src/types/onyx';
+import type {Agent, InvitedEmailsToAccountIDs, Policy} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
-import type {OnyxEntry} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {Keyboard} from 'react-native';
@@ -66,6 +67,9 @@ function DynamicWorkspaceInvitePageContent({route, policy, invitedEmailsToAccoun
     const [personalDetails] = useAllPersonalDetails();
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const employeePersonalDetails = usePersonalDetailsByLogins(Object.keys(policy?.employeeList ?? {}));
+    const [managedAgentsAccountIDs] = useOnyx(ONYXKEYS.COLLECTION.AGENT, {
+        selector: (agents: OnyxCollection<Agent>) => new Set(Object.keys(agents ?? {}).map((key) => Number(extractCollectionItemID(key as `${OnyxCollectionKey}${string}`)))),
+    });
     const openWorkspaceInvitePage = () => {
         const policyMemberEmailsToAccountIDs = getMemberAccountIDsForWorkspace(policy?.employeeList, employeePersonalDetails);
         policyOpenWorkspaceInvitePage(route.params.policyID, Object.keys(policyMemberEmailsToAccountIDs));
@@ -139,6 +143,7 @@ function DynamicWorkspaceInvitePageContent({route, policy, invitedEmailsToAccoun
             initialSelected,
             initialExtraOptions,
             shouldKeepSelectedInAvailableOptions: true,
+            includeAgentsOnly: managedAgentsAccountIDs,
         });
 
     const sections: Array<Section<OptionData>> = useMemo(() => {
