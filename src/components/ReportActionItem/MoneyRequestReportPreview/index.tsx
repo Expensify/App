@@ -117,9 +117,9 @@ function MoneyRequestReportPreview({
         selector: isLoadingInitialReportActionsSelector,
     });
     const cascadeTimerRef = useRef<{timer: ReturnType<typeof setTimeout>; release: () => void} | null>(null);
-    const transactionsWithReceipts = getTransactionsWithReceipts(iouReportID, allReportTransactions);
+    const transactionsWithReceipts = getTransactionsWithReceipts(allReportTransactions);
     const hasNonReimbursableTransactions = hasNonReimbursableTransactionsTransactionUtils(allReportTransactions);
-    const areAllRequestsBeingSmartScanned = areAllRequestsBeingSmartScannedReportUtils(iouReportID, action, allReportTransactions);
+    const areAllRequestsBeingSmartScanned = areAllRequestsBeingSmartScannedReportUtils(action, allReportTransactions);
     const policy = usePolicy(policyID);
     const lastTransaction = transactions?.at(0);
     const lastTransactionViolations = useTransactionViolations(lastTransaction?.transactionID);
