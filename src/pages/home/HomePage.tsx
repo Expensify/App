@@ -48,7 +48,7 @@ function HomePage() {
     const styles = useThemeStyles();
     const {pageGutter} = useLayoutSpacing();
     const tabRootScreenWrapperProps = useTabRootScreenWrapperProps(NAVIGATION_TABS.HOME);
-    const tabRootScrollProps = useTabRootScrollProps([styles.homePageContentContainer, pageGutter], true);
+    const tabRootScrollProps = useTabRootScrollProps([styles.homePageContentContainer, pageGutter], {hasBottomSafeAreaPadding: true, hasOfflineIndicatorPadding: true});
     const {translate} = useLocalize();
     const triggerScrollEvent = useScrollEventEmitter();
     useDocumentTitle(translate('common.home'));
