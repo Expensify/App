@@ -13843,7 +13843,7 @@ describe('ReportUtils', () => {
 
             // When it's checked if the description can be edited
             const {result: isReportArchived} = renderHook(() => useReportIsArchived(report?.reportID));
-            const result = canEditReportDescription(report, {...policy, role}, isReportArchived.current);
+            const result = canEditReportDescription(report, {...policy, type: CONST.POLICY.TYPE.CORPORATE, role}, isReportArchived.current);
 
             // Then it cannot be edited, because effective chat write access doesn't include room administration
             expect(result).toBeFalsy();
@@ -13865,7 +13865,7 @@ describe('ReportUtils', () => {
             };
 
             // When it's checked if the report's workspace can be changed
-            const result = canEditReportPolicy(invoiceReport, {...policy, role});
+            const result = canEditReportPolicy(invoiceReport, {...policy, type: CONST.POLICY.TYPE.CORPORATE, role});
 
             // Then only a role that can administer reports may change it
             expect(result).toBe(expected);

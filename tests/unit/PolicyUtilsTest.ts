@@ -502,6 +502,15 @@ describe('PolicyUtils', () => {
                 expect(hasReadOnlyAllReportsAccess(policy, memberLogin)).toBe(expected);
             });
 
+            it.each([CONST.POLICY.ROLE.AUDITOR, CONST.POLICY.ROLE.PAYMENTS_ADMIN])('hasReadOnlyAllReportsAccess is false for a %s after the workspace is downgraded to Team', (role) => {
+                // Given a member whose control-only role is still stored after the policy type changed to Team
+                const policy = {...buildPolicy(role), type: CONST.POLICY.TYPE.TEAM};
+
+                // When we check whether they can only read all reports
+                // Then the role no longer applies, matching the other permission helpers
+                expect(hasReadOnlyAllReportsAccess(policy, memberLogin)).toBe(false);
+            });
+
             it('allows auditors to read every policy feature but write only rooms', () => {
                 const policy = buildPolicy(CONST.POLICY.ROLE.AUDITOR);
 

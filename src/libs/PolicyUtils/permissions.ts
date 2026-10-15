@@ -166,7 +166,16 @@ function canMemberWrite(policy: OnyxInputOrEntry<Policy>, login: string, feature
  */
 function hasReadOnlyAllReportsAccess(policy: OnyxInputOrEntry<Policy>, login?: string, shouldCheckGlobalPolicyRole = true): boolean {
     const role = getPolicyRole(policy, login, shouldCheckGlobalPolicyRole);
-    return !!role && ROLE_PERMISSION_BUNDLES[role]?.[CONST.POLICY.POLICY_FEATURE.ALL_REPORTS] === CONST.POLICY.POLICY_FEATURE_ACCESS.READ;
+    if (!role) {
+        return false;
+    }
+
+    // Downgrading to Team changes the policy type before the stale role is cleared, so the type must be checked too.
+    if (isControlPolicyOnlyRole(role) && (!policy || !isControlPolicy(policy))) {
+        return false;
+    }
+
+    return ROLE_PERMISSION_BUNDLES[role]?.[CONST.POLICY.POLICY_FEATURE.ALL_REPORTS] === CONST.POLICY.POLICY_FEATURE_ACCESS.READ;
 }
 
 function canMemberAssignRole(policy: OnyxInputOrEntry<Policy>, login: string, role: string | undefined): boolean {
