@@ -23,7 +23,7 @@ public final class PrivacyCover {
 
   public static void show(Activity activity) {
     if (!isSupported() || activity.isFinishing() || activity.isDestroyed()
-        || covers.get(activity) != null) {
+        || activity.isInMultiWindowMode() || covers.get(activity) != null) {
       return;
     }
     BootSplashDialog dialog = new BootSplashDialog(activity, R.style.BootTheme);
@@ -53,9 +53,6 @@ public final class PrivacyCover {
       return;
     }
     activity.setTaskDescription(new ActivityManager.TaskDescription.Builder()
-        .setLabel(activity.getString(R.string.app_name))
-        .setIcon(R.mipmap.ic_launcher)
-        .setPrimaryColor(activity.getColor(R.color.brand_dark_green))
         .setBackgroundColor(activity.getColor(R.color.bootsplash_background))
         .setStatusBarColor(activity.getColor(R.color.bootsplash_background))
         .build());

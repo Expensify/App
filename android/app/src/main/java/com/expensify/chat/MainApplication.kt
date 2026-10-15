@@ -72,9 +72,7 @@ class MainApplication : MultiDexApplication(), ReactApplication {
             override fun onActivityPaused(activity: Activity) {}
             override fun onActivityStopped(activity: Activity) {}
             override fun onActivitySaveInstanceState(activity: Activity, outState: Bundle) {}
-            override fun onActivityDestroyed(activity: Activity) {
-                PrivacyCover.hide(activity)
-            }
+            override fun onActivityDestroyed(activity: Activity) {}
         })
 
         ReactFontManager.getInstance().addCustomFont(this, "Custom Emoji Font", R.font.custom_emoji_font)
