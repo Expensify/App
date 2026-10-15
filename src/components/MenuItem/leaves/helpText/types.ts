@@ -1,5 +1,5 @@
 import type {ReactNode} from 'react';
-import type {StyleProp, ViewStyle} from 'react-native';
+import type {StyleProp, TextStyle, ViewProps, ViewStyle} from 'react-native';
 
 /** Props shared by the help line leaves */
 type MenuItemHelpTextSharedProps = {
@@ -29,6 +29,12 @@ type BaseMenuItemHelpTextProps = MenuItemHelpTextSharedProps & {
 
     /** Spacing of the line, which depends on where the leaf sits */
     style?: StyleProp<ViewStyle>;
+
+    /** Style applied to the help message text */
+    messageStyle?: StyleProp<TextStyle>;
+
+    /** Data attributes applied to the help text container */
+    dataSet?: ViewProps['dataSet'];
 };
 
 export type {BaseMenuItemHelpTextProps, MenuItemHelpTextHTMLProps, MenuItemHelpTextProps};
