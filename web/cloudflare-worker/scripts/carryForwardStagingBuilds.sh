@@ -11,6 +11,8 @@ fi
 RELEASE_COUNT="$1"
 WORKER_DIR="$(cd "$(dirname "$0")/.." && pwd)"
 DIST_DIR="$WORKER_DIR/../../dist"
+# A retried deploy, or one whose release is published while this runs, would otherwise count its own release.
+CURRENT_TAG="$(jq -r .version "$DIST_DIR/version.json")-staging"
 DOWNLOAD_DIR="$(mktemp -d)"
 trap 'rm -rf "$DOWNLOAD_DIR"' EXIT
 
@@ -23,7 +25,7 @@ while read -r TAG; do
         echo "::warning::Could not download the web build from release $TAG, so its files are not carried forward."
     fi
 done < <(gh release list --repo Expensify/App --exclude-drafts --limit 50 --json tagName \
-    --jq "[.[] | select(.tagName | test(\"-staging$\"))][:$RELEASE_COUNT][].tagName")
+    --jq "[.[] | select((.tagName | test(\"-staging$\")) and .tagName != \"$CURRENT_TAG\")][:$RELEASE_COUNT][].tagName")
 
 if [[ ${#PREVIOUS_BUILDS[@]} -eq 0 ]]; then
     echo "::warning::No previous staging builds were downloaded, so open tabs may fail to load chunks after this deploy."
