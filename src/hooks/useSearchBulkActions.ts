@@ -1754,6 +1754,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 }
 
                 const isItemInvoice = isInvoiceReport(iouReport);
+                const iouReportTransactions = Object.values(allReportsTransactionsAndViolations?.[item.reportID]?.transactions ?? {});
                 const fallbackChatReportID = item.chatReportID ?? iouReport.chatReportID ?? iouReport.parentReportID;
                 const fallbackPolicyID = iouReport.policyID ?? item.policyID;
                 const {chatReport, isFallbackChatReport} = getChatReportWithFallback(
@@ -1820,6 +1821,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                         paymentMethodType: paymentItem.paymentType as PaymentMethodType,
                         chatReport,
                         invoiceReport: iouReport,
+                        invoiceReportTransactions: iouReportTransactions,
                         introSelected,
                         currentUserAccountIDParam: accountID,
                         currentUserEmailParam: email ?? '',
@@ -1849,6 +1851,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                     paymentType: paymentItem.paymentType as PaymentMethodType,
                     chatReport,
                     iouReport,
+                    iouReportTransactions,
                     introSelected,
                     currentUserAccountID: accountID,
                     currentUserLogin: currentUserLogin ?? '',
@@ -1906,6 +1909,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             personalPolicyID,
             lastPaymentMethods,
             allTransactions,
+            allReportsTransactionsAndViolations,
             policyIDsWithVBBA,
             clearSelectedTransactions,
             accountID,
