@@ -109,5 +109,28 @@ describe('AddWorkEmail', () => {
 
             expect(await getOnyxValue(ONYXKEYS.ONBOARDING_ERROR_MESSAGE_TRANSLATION_KEY)).toBe('onboarding.workEmail2FAError');
         });
+
+        it('does not complete an onboarding task before an existing work account is merged', async () => {
+            const taskReportID = '123';
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${taskReportID}`, {
+                reportID: taskReportID,
+                type: CONST.REPORT.TYPE.TASK,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+            });
+            const taskReport = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${taskReportID}`);
+            const originalXhr = HttpUtils.xhr;
+            HttpUtils.xhr = jest.fn().mockResolvedValue({jsonCode: 200});
+
+            AddWorkEmail(workEmail, taskReport);
+            await waitForBatchedUpdates();
+
+            expect(await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${taskReportID}`)).toEqual(
+                expect.objectContaining({stateNum: CONST.REPORT.STATE_NUM.OPEN, statusNum: CONST.REPORT.STATUS_NUM.OPEN}),
+            );
+            expect((await getOnyxValue(ONYXKEYS.FORMS.ONBOARDING_WORK_EMAIL_FORM))?.completedTaskReportActionID).toEqual(expect.any(String));
+
+            HttpUtils.xhr = originalXhr;
+        });
     });
 });
