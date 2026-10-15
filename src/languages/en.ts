@@ -10755,7 +10755,7 @@ const translations = {
                     `the Plaid connection to your business bank account is broken. Please <a href='${walletRoute}'>reconnect your bank account ${maskedAccountNumber}</a> so you can continue to use your Expensify Cards.`,
                 addEmployee: (email: string, role: string, didJoinPolicy?: boolean) => {
                     const translatedRole = String(translations.workspace.common.roleName(role)).toLowerCase();
-                    const article = role === CONST.POLICY.ROLE.AUDITOR ? 'an' : 'a';
+                    const article = role === CONST.POLICY.ROLE.AUDITOR || role === CONST.POLICY.ROLE.APPROVE_ONLY ? 'an' : 'a';
                     return didJoinPolicy ? `${email} joined via the workspace invite link` : `added ${email} as ${article} ${translatedRole}`;
                 },
                 updateRole: (email: string, currentRole: string, newRole: string) => `updated the role of ${email} to ${newRole} (previously ${currentRole})`,

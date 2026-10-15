@@ -7,7 +7,6 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 
 import {getDistanceExpenseTypeForPolicy} from '@libs/PolicyDistanceRatesUtils';
-import {canCreateExpensesOnPolicy} from '@libs/PolicyUtils';
 
 import {getAddExpenseDropdownOptions} from '@userActions/IOU/StartExpenseFlows';
 
@@ -35,10 +34,6 @@ function AddExpenseActionButton() {
         policyID: policy?.id,
         isDistanceRequest: true,
     });
-
-    if (!canCreateExpensesOnPolicy(policy)) {
-        return null;
-    }
 
     return (
         <ButtonWithDropdownMenu

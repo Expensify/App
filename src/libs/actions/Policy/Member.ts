@@ -1280,11 +1280,8 @@ function clearUpdateMemberRoleError(policyID: string, login: string) {
     });
 }
 
-function clearBlockedRoleChange(policyID?: string, login?: string) {
+function clearBlockedRoleChange() {
     Onyx.set(ONYXKEYS.BLOCKED_ROLE_CHANGE, null);
-    if (policyID && login) {
-        clearUpdateMemberRoleError(policyID, login);
-    }
 }
 
 function openWorkspaceMembersPage(policyID: string, clientMemberEmails: string[]) {

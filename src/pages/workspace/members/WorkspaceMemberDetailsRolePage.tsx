@@ -56,22 +56,21 @@ function WorkspaceMemberDetailsRolePage({policy, personalDetails, route}: Worksp
     });
 
     const saveRole = () => {
-        const value = selectedRole;
-        if (!value || value === member?.role) {
+        if (!selectedRole || selectedRole === member?.role) {
             return;
         }
-        if (!canMemberAssignRole(policy, currentUserLogin, value)) {
+        if (!canMemberAssignRole(policy, currentUserLogin, selectedRole)) {
             return;
         }
         // Guard the direct-navigation path: a reimburser must stay a valid payer, so reject any role that cannot pay.
-        if (isReimburser && !canRolePay(value)) {
+        if (isReimburser && !canRolePay(selectedRole)) {
             return;
         }
-        if (value !== CONST.POLICY.ROLE.ADMIN && isRuleBotEnforcingRules(accountID, policy)) {
+        if (selectedRole !== CONST.POLICY.ROLE.ADMIN && isRuleBotEnforcingRules(accountID, policy)) {
             showRuleBotGuardModal('changeRole', policyID);
             return;
         }
-        updateWorkspaceMembersRole(policy, [memberLogin], [accountID], value);
+        updateWorkspaceMembersRole(policy, [memberLogin], [accountID], selectedRole);
         Navigation.goBack(ROUTES.WORKSPACE_MEMBER_DETAILS.getRoute(policyID, accountID));
     };
 

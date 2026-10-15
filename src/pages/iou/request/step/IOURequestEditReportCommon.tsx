@@ -20,7 +20,7 @@ import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import useReportTransactions from '@hooks/useReportTransactions';
 
 import Navigation from '@libs/Navigation/Navigation';
-import {canSubmitPerDiemExpenseFromWorkspace, isPerDiemEnabled, isPolicyAdmin, isTimeTrackingEnabled} from '@libs/PolicyUtils';
+import {canCreateExpensesOnPolicy, canSubmitPerDiemExpenseFromWorkspace, isPerDiemEnabled, isPolicyAdmin, isTimeTrackingEnabled} from '@libs/PolicyUtils';
 import {canAddTransaction, getIconsForExpenseReport, isIOUReport, isOpenReport, isReportOwner, isSelfDM, sortOutstandingReportsBySelected} from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {isPerDiemRequest as isPerDiemRequestUtil} from '@libs/TransactionUtils';
@@ -172,6 +172,10 @@ function IOURequestEditReportCommon({
             .filter((report) => {
                 const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`];
 
+                if (!canCreateExpensesOnPolicy(policy, personalDetails?.[resolvedReportOwnerAccountID]?.login)) {
+                    return false;
+                }
+
                 if (isTimeRequest && !isTimeTrackingEnabled(policy)) {
                     return false;
                 }
@@ -210,6 +214,7 @@ function IOURequestEditReportCommon({
         localeCompare,
         allPolicies,
         currentUserPersonalDetails.accountID,
+        resolvedReportOwnerAccountID,
         hasMultipleSubmitters,
         isPerDiemRequest,
         isTimeRequest,

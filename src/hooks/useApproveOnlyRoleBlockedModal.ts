@@ -57,27 +57,17 @@ function useApproveOnlyRoleBlockedModal() {
             [CONST.POLICY.APPROVE_ONLY_BLOCKED_REASONS.IS_DEFAULT_POLICY]: 'workspace.people.approveOnlyRoleBlockedReasons.isDefaultPolicy',
         };
         const reasonLines = blockedReasons.filter((reason) => reason in reasonTranslationKeys).map((reason) => `• ${translate(reasonTranslationKeys[reason])}`);
+        const hasReasonLines = reasonLines.length > 0;
 
-        const modalPromise =
-            reasonLines.length === 0
-                ? showConfirmModal({
-                      id: APPROVE_ONLY_ROLE_BLOCKED_MODAL_ID,
-                      title: translate('workspace.people.approveOnlyRoleBlockedTitle'),
-                      prompt: translate('common.genericErrorMessage'),
-                      confirmText: translate('common.buttonConfirm'),
-                      shouldShowCancelButton: false,
-                  })
-                : showConfirmModal({
-                      id: APPROVE_ONLY_ROLE_BLOCKED_MODAL_ID,
-                      title: translate('workspace.people.approveOnlyRoleBlockedTitle'),
-                      prompt: [translate('workspace.people.approveOnlyRoleBlockedDescription'), '', ...reasonLines].join('\n'),
-                      confirmText: translate('workspace.people.approveOnlyRoleBlockedConfirm'),
-                      shouldShowCancelButton: false,
-                  });
-
-        modalPromise.then(() => {
+        showConfirmModal({
+            id: APPROVE_ONLY_ROLE_BLOCKED_MODAL_ID,
+            title: translate('workspace.people.approveOnlyRoleBlockedTitle'),
+            prompt: hasReasonLines ? [translate('workspace.people.approveOnlyRoleBlockedDescription'), '', ...reasonLines].join('\n') : translate('common.genericErrorMessage'),
+            confirmText: translate(hasReasonLines ? 'workspace.people.approveOnlyRoleBlockedConfirm' : 'common.buttonConfirm'),
+            shouldShowCancelButton: false,
+        }).then(() => {
             isModalOpenRef.current = false;
-            clearBlockedRoleChange(policyID, email);
+            clearBlockedRoleChange();
         });
     }, [blockedRoleChange, closeModalByID, showConfirmModal, translate]);
 }

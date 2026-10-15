@@ -139,7 +139,6 @@ type UsePopoverEditStateOptionsGeneric<T> = {
  *   - Value comparison to prevent no-op saves
  */
 function usePopoverEditState<T>(options: UsePopoverEditStateOptionsGeneric<T>) {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- the impl is non-generic for React Compiler hoisting
     return usePopoverEditStateImpl(options as UsePopoverEditStateOptions) as ReturnType<typeof usePopoverEditStateImpl> & {
         handleSave: (newValue: T) => void;
     };
