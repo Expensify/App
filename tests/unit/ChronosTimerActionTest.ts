@@ -29,17 +29,18 @@ function getWriteOptions(): OnyxData<OnyxKey> {
     return options;
 }
 
-/** Reads back the last message the report update restores, narrowing instead of asserting the Onyx value's type. */
-function getRestoredLastMessageText(updates: Array<OnyxUpdate<OnyxKey>> | undefined, reportID: string): string | undefined {
+/** Reads back the last-visible-action fields the report update restores, narrowing instead of asserting the Onyx value's type. */
+function getRestoredLastAction(updates: Array<OnyxUpdate<OnyxKey>> | undefined, reportID: string) {
     const update = updates?.find((u) => u.key === `${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     if (!update || !('value' in update) || typeof update.value !== 'object' || update.value === null) {
         return undefined;
     }
     const {value} = update;
-    if ('lastMessageText' in value && typeof value.lastMessageText === 'string') {
-        return value.lastMessageText;
-    }
-    return undefined;
+    return {
+        lastMessageText: 'lastMessageText' in value && typeof value.lastMessageText === 'string' ? value.lastMessageText : undefined,
+        lastVisibleActionCreated: 'lastVisibleActionCreated' in value && typeof value.lastVisibleActionCreated === 'string' ? value.lastVisibleActionCreated : undefined,
+        lastActorAccountID: 'lastActorAccountID' in value && typeof value.lastActorAccountID === 'number' ? value.lastActorAccountID : undefined,
+    };
 }
 
 function getChronosNVPStartTime(updates: Array<OnyxUpdate<OnyxKey>> | undefined): string | undefined {
@@ -78,7 +79,7 @@ describe('startOrStopChronosTimer', () => {
         expect(getChronosNVPStartTime(failureData)).toBe('');
     });
 
-    it('restores the last message the acting user could see when the send fails', async () => {
+    it('restores the last visible action that the acting user could see when the send fails', async () => {
         const WHISPER_TARGET_ACCOUNT_ID = 777;
         const COMMENT_ACTOR_ACCOUNT_ID = 888;
 
@@ -110,16 +111,24 @@ describe('startOrStopChronosTimer', () => {
         // When the whispered-to account starts the timer
         startOrStopChronosTimer(TEST_REPORT, WHISPER_TARGET_ACCOUNT_ID, null);
 
-        // Then the failure data restores the whisper's message, the newest that account can see
-        expect(getRestoredLastMessageText(getWriteOptions().failureData, TEST_REPORT.reportID)).toBe('changed the amount');
+        // Then the failure data restores the whisper, which is the newest action that account can see
+        expect(getRestoredLastAction(getWriteOptions().failureData, TEST_REPORT.reportID)).toEqual({
+            lastMessageText: 'changed the amount',
+            lastVisibleActionCreated: whisper.created,
+            lastActorAccountID: WHISPER_TARGET_ACCOUNT_ID,
+        });
 
         jest.clearAllMocks();
 
         // When somebody the whisper does not target starts the timer
         startOrStopChronosTimer(TEST_REPORT, COMMENT_ACTOR_ACCOUNT_ID, null);
 
-        // Then the whisper is invisible to them, so the older comment's message is restored instead
-        expect(getRestoredLastMessageText(getWriteOptions().failureData, TEST_REPORT.reportID)).toBe('Older comment');
+        // Then the whisper is invisible to them, so the older comment is restored instead
+        expect(getRestoredLastAction(getWriteOptions().failureData, TEST_REPORT.reportID)).toEqual({
+            lastMessageText: 'Older comment',
+            lastVisibleActionCreated: comment.created,
+            lastActorAccountID: COMMENT_ACTOR_ACCOUNT_ID,
+        });
     });
 
     it('optimistically stops the timer when one is running', () => {
