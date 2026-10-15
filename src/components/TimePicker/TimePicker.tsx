@@ -705,11 +705,14 @@ function TimePicker({defaultValue = '', onSubmit, onInputChange = () => {}, shou
         }
     };
 
+    // In landscape, the AM/PM buttons match the currency and Flip buttons on the amount page
     const renderedAmPmButtons = (
-        <View style={styles.timePickerSwitcherContainer}>
+        <View style={isInLandscapeMode ? [styles.flexRow, styles.justifyContentCenter, styles.gap2] : styles.timePickerSwitcherContainer}>
             <Button
                 enableHapticFeedback
                 innerStyles={styleForAM}
+                style={isInLandscapeMode && styles.minWidth18}
+                contentContainerStyle={isInLandscapeMode && styles.justifyContentCenter}
                 size={CONST.BUTTON_SIZE.SMALL}
                 onLongPress={() => {}}
                 onPress={() => {
@@ -722,7 +725,9 @@ function TimePicker({defaultValue = '', onSubmit, onInputChange = () => {}, shou
             </Button>
             <Button
                 enableHapticFeedback
-                innerStyles={[styleForPM, styles.ml1]}
+                innerStyles={[styleForPM, !isInLandscapeMode && styles.ml1]}
+                style={isInLandscapeMode && styles.minWidth18}
+                contentContainerStyle={isInLandscapeMode && styles.justifyContentCenter}
                 size={CONST.BUTTON_SIZE.SMALL}
                 onLongPress={() => {}}
                 onPress={() => {
@@ -739,7 +744,7 @@ function TimePicker({defaultValue = '', onSubmit, onInputChange = () => {}, shou
     const renderedInputs = (
         <View
             nativeID={AMOUNT_VIEW_ID}
-            style={[styles.flexRow, !isInLandscapeMode && styles.w100, styles.justifyContentCenter, styles.timePickerInputsContainer, styles.mb2]}
+            style={[styles.flexRow, styles.justifyContentCenter, styles.timePickerInputsContainer, isInLandscapeMode ? styles.alignItemsCenter : [styles.w100, styles.mb2]]}
         >
             <AmountTextInput
                 placeholder={numberFormat(0)}
@@ -850,7 +855,7 @@ function TimePicker({defaultValue = '', onSubmit, onInputChange = () => {}, shou
         <Button
             variant={CONST.BUTTON_VARIANT.SUCCESS}
             size={isExtraSmallScreenHeight ? CONST.BUTTON_SIZE.MEDIUM : CONST.BUTTON_SIZE.LARGE}
-            style={[styles.mb5, styles.mh5]}
+            style={isInLandscapeMode ? [styles.w100, canUseTouchScreen ? styles.mt5 : styles.mt0] : [styles.mb5, styles.mh5]}
             onPress={handleSubmit}
         >
             <Button.KeyboardShortcut />
@@ -858,8 +863,8 @@ function TimePicker({defaultValue = '', onSubmit, onInputChange = () => {}, shou
         </Button>
     );
 
-    // In landscape there isn't enough height to stack the inputs, number pad and Save button, so place the inputs next to
-    // the number pad inside a ScrollView and keep the Save button pinned below it.
+    // In landscape there isn't enough height to stack the inputs, number pad and Save button, so use the same layout as the
+    // amount page (NumberWithSymbolForm): inputs and AM/PM buttons next to the number pad, with the Save button pinned below.
     if (isInLandscapeMode) {
         return (
             <View style={styles.flex1}>
@@ -869,8 +874,14 @@ function TimePicker({defaultValue = '', onSubmit, onInputChange = () => {}, shou
                 >
                     <View style={[styles.justifyContentCenter, styles.alignItemsCenter, styles.numberWithSymbolFormInputContainerLandscape]}>
                         {renderedInputs}
-                        {renderedErrorMessage}
                         {renderedAmPmButtons}
+                        {isError && (
+                            <FormHelpMessage
+                                style={[styles.ph5, styles.w100]}
+                                isError
+                                message={errorMessage}
+                            />
+                        )}
                     </View>
                     {canUseTouchScreen && (
                         <View
@@ -881,7 +892,7 @@ function TimePicker({defaultValue = '', onSubmit, onInputChange = () => {}, shou
                         </View>
                     )}
                 </ScrollView>
-                {renderedSaveButton}
+                <View style={[styles.w100, styles.justifyContentEnd, styles.pageWrapper, styles.pt0]}>{renderedSaveButton}</View>
             </View>
         );
     }
