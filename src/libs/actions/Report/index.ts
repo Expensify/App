@@ -3010,13 +3010,17 @@ function explain({
     } else {
         Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(report.reportID, undefined, undefined, Navigation.getActiveRoute()));
     }
+    // The explanation thread is a direct child of the explained action, so that action is its only ancestor.
+    // addComment needs it to bump the parent's reply count, which drives the Replies link.
+    const ancestors: Ancestor[] = [{report: originalReport, reportAction, shouldDisplayNewMarker: false}];
+
     // Schedule adding the explanation comment on the next animation frame
     // so it runs immediately after navigation completes.
     requestAnimationFrame(() => {
         addComment({
             report,
             notifyReportID: report.reportID,
-            ancestors: [],
+            ancestors,
             text: translate('reportActionContextMenu.explainMessage'),
             timezoneParam: timezone,
             currentUserAccountID,
