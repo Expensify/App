@@ -219,14 +219,16 @@ describe('OnboardingFlow', () => {
             expect(path).toBe('/onboarding/private-domain');
         });
 
-        it.each([
-            {shouldValidate: false, isAccountValidated: false, expectedPath: savedPrivateDomainPath},
-            {shouldValidate: undefined, isAccountValidated: false, expectedPath: '/onboarding/work-email'},
-            {shouldValidate: true, isAccountValidated: false, expectedPath: '/onboarding/work-email'},
-            {shouldValidate: false, isAccountValidated: true, expectedPath: '/onboarding/purpose'},
-        ])(
-            'resumes at $expectedPath after resetting merge flags with shouldValidate=$shouldValidate and validated=$isAccountValidated',
-            ({shouldValidate, isAccountValidated, expectedPath}) => {
+        it.each(
+            [savedPrivateDomainPath, `/${ROUTES.ONBOARDING_PERSONAL_DETAILS.getRoute()}`, `/${ROUTES.ONBOARDING_PURPOSE.getRoute()}`].flatMap((savedPath) => [
+                {savedPath, shouldValidate: false, isAccountValidated: false, expectedPath: savedPath},
+                {savedPath, shouldValidate: undefined, isAccountValidated: false, expectedPath: '/onboarding/work-email'},
+                {savedPath, shouldValidate: true, isAccountValidated: false, expectedPath: '/onboarding/work-email'},
+                {savedPath, shouldValidate: false, isAccountValidated: true, expectedPath: savedPath === savedPrivateDomainPath ? '/onboarding/purpose' : savedPath},
+            ]),
+        )(
+            'resumes $savedPath at $expectedPath after resetting merge flags with shouldValidate=$shouldValidate and validated=$isAccountValidated',
+            ({savedPath, shouldValidate, isAccountValidated, expectedPath}) => {
                 // Given a previously skipped work email was resubmitted, clearing its merge flags, while the domain flag is stale
                 const onboardingValues = {
                     hasCompletedGuidedSetupFlow: false,
@@ -243,16 +245,40 @@ describe('OnboardingFlow', () => {
                     onboardingValues,
                     currentOnboardingPurposeSelected: CONST.ONBOARDING_CHOICES.JOIN_WORKSPACE,
                     currentOnboardingCompanySize: undefined,
-                    onboardingInitialPath: savedPrivateDomainPath,
+                    onboardingInitialPath: savedPath,
                 };
 
                 // When refreshing restores the saved onboarding route
                 const path = getOnboardingInitialPath(params);
 
-                // Then only a successful direct add for an unvalidated account resumes the exact validation route
+                // Then a successful direct add preserves validation and downstream progress, while pending retries still require work email
                 expect(path).toBe(expectedPath);
             },
         );
+
+        it.each(['/', '/r/123'])('does not bypass work email for a non-onboarding saved path %s after a direct add', (savedPath) => {
+            // Given a direct-add result with a stale public-domain flag, but no saved onboarding progress
+            const params: GetOnboardingInitialPathParamsType = {
+                isUserFromPublicDomain: true,
+                isAccountValidated: false,
+                hasAccessiblePolicies: false,
+                onboardingValuesParam: {
+                    hasCompletedGuidedSetupFlow: false,
+                    signupQualifier: CONST.ONBOARDING_SIGNUP_QUALIFIERS.INDIVIDUAL,
+                    shouldValidate: false,
+                },
+                onboardingValues: undefined,
+                currentOnboardingPurposeSelected: CONST.ONBOARDING_CHOICES.JOIN_WORKSPACE,
+                currentOnboardingCompanySize: undefined,
+                onboardingInitialPath: savedPath,
+            };
+
+            // When choosing the initial onboarding step
+            const path = getOnboardingInitialPath(params);
+
+            // Then unrelated routes do not count as saved onboarding progress
+            expect(path).toBe('/onboarding/work-email');
+        });
 
         it('should not redirect away from a work-email-validation URL for a public-domain user', () => {
             const params: GetOnboardingInitialPathParamsType = {
