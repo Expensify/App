@@ -1155,6 +1155,15 @@ const staticStyles = (theme: ThemeColors) =>
             borderColor: theme.badgeDangerBG,
         },
 
+        badgeOffer: {
+            backgroundColor: theme.badgeOfferBG,
+            borderColor: theme.badgeOfferBG,
+        },
+
+        badgeOfferText: {
+            color: theme.badgeOfferText,
+        },
+
         badgeDangerStrong: {
             backgroundColor: theme.danger,
             borderColor: theme.danger,
@@ -2216,25 +2225,6 @@ const staticStyles = (theme: ThemeColors) =>
             minHeight: variables.optionRowHeightCompact,
             paddingTop: 12,
             paddingBottom: 12,
-        },
-
-        optionRowCompactMinHeight: {
-            minHeight: variables.optionRowHeightCompact,
-        },
-
-        // Sits flush against the right edge of a report field whose input has `noRightBorderRadius`, so the input's
-        // right border reads as a divider and the two look like one segmented field.
-        reportFieldDeleteButton: {
-            width: variables.componentSizeLarge,
-            height: variables.componentSizeLarge,
-            alignItems: 'center',
-            justifyContent: 'center',
-            backgroundColor: theme.appBG,
-            borderWidth: 1,
-            borderLeftWidth: 0,
-            borderTopRightRadius: variables.componentBorderRadiusNormal,
-            borderBottomRightRadius: variables.componentBorderRadiusNormal,
-            borderColor: theme.bordersBold,
         },
 
         optionsListSectionHeader: {
@@ -3365,14 +3355,6 @@ const staticStyles = (theme: ThemeColors) =>
             transform: [{rotate: '180deg'}],
         },
 
-        // Use this instead of `flipUpsideDown` when the element being flipped has asymmetric horizontal padding.
-        // `rotate(180deg)` turns the whole box about its centre, so it mirrors that padding too and the content
-        // visibly slides sideways. Mirroring on the vertical axis leaves the box where it is, and looks identical
-        // for content that is already symmetric left-to-right (a caret, a chevron, a tooltip pointer).
-        flipUpsideDownInPlace: {
-            transform: [{scaleY: -1}],
-        },
-
         navigationScreenCardStyle: {
             height: '100%',
         },
@@ -3910,6 +3892,10 @@ const staticStyles = (theme: ThemeColors) =>
             color: theme.heading,
             fontSize: variables.fontSizeXLarge,
             lineHeight: variables.lineHeightXXLarge,
+        },
+
+        cardLabelTooltipContainer: {
+            maxWidth: variables.modalContentMaxWidth,
         },
 
         longTermsRow: {
@@ -5112,6 +5098,26 @@ const staticStyles = (theme: ThemeColors) =>
             justifyContent: 'center',
             borderRadius: variables.buttonBorderRadius,
             scrollMarginInline: variables.tabSelectorScrollMarginInline,
+        },
+
+        // Rows are spaced by each card's top margin so the zero-height fillers add no space. The negative margin cancels the first row's.
+        connectionsGrid: {
+            flexDirection: 'row',
+            flexWrap: 'wrap',
+            columnGap: 12,
+            marginTop: -12,
+        },
+
+        // Cards wrap by their minimum width. Three 26% bases fit a row with the gaps, while a fourth does not.
+        connectionCard: {
+            flexBasis: '26%',
+            minWidth: variables.connectionCardMinWidth,
+        },
+
+        connectionsTabButton: {
+            height: 'auto',
+            paddingVertical: 10,
+            paddingHorizontal: 16,
         },
 
         tabSelector: {
