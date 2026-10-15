@@ -181,7 +181,7 @@ describe('SearchAutocompleteList query telemetry', () => {
         expect(getSpan(ROOT)).toBeUndefined();
         const attributes = mockEnded.find((span) => span.op === ROOT)?.attributes;
         expect(attributes?.[CONST.TELEMETRY.ATTRIBUTE_CANCELED]).toBeUndefined();
-        expect(attributes?.[CONST.TELEMETRY.ATTRIBUTE_RESULT_COUNT]).toBe(0);
+        expect(attributes?.[CONST.TELEMETRY.ATTRIBUTE_LOCAL_RESULT_COUNT]).toBe(0);
     });
 
     it('ends the span with the result count when the query commits after the list mounted but before onLayout fires', async () => {
@@ -198,6 +198,6 @@ describe('SearchAutocompleteList query telemetry', () => {
         expect(getSpan(ROOT)).toBeUndefined();
         const attributes = mockEnded.find((span) => span.op === ROOT)?.attributes;
         expect(attributes?.[CONST.TELEMETRY.ATTRIBUTE_CANCEL_REASON]).toBeUndefined();
-        expect(attributes?.[CONST.TELEMETRY.ATTRIBUTE_RESULT_COUNT]).toBe(0);
+        expect(attributes?.[CONST.TELEMETRY.ATTRIBUTE_LOCAL_RESULT_COUNT]).toBe(0);
     });
 });

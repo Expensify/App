@@ -117,12 +117,12 @@ describe('searchRouterQuerySpans', () => {
         startSearchRouterQuerySpan('abc');
 
         // When that query commits
-        markSearchRouterQueryCommitted('abc', {resultCount: 7});
+        markSearchRouterQueryCommitted('abc', {localResultCount: 7});
 
         // Then the span ends with the result count
         expect(getSpan(ROOT)).toBeUndefined();
         const attributes = getRootAttributes();
-        expect(attributes?.[CONST.TELEMETRY.ATTRIBUTE_RESULT_COUNT]).toBe(7);
+        expect(attributes?.[CONST.TELEMETRY.ATTRIBUTE_LOCAL_RESULT_COUNT]).toBe(7);
         expect(attributes?.[CONST.TELEMETRY.ATTRIBUTE_QUERY_ORDINAL]).toBe(1);
     });
 
@@ -320,7 +320,7 @@ describe('searchRouterQuerySpans', () => {
 
         // When the whole lifecycle runs
         startSearchRouterQuerySpan(query);
-        markSearchRouterQueryCommitted(query, {resultCount: 3});
+        markSearchRouterQueryCommitted(query, {localResultCount: 3});
 
         // Then no ended span exposes either piece of the query
         const serialized = JSON.stringify(mockEnded.map((span) => span.attributes)).toLowerCase();

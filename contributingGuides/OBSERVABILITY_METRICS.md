@@ -132,7 +132,7 @@ This document lists all implemented telemetry metrics in the Expensify App.
 - `has_filter`: boolean indicating whether the query contains syntax filters or autocomplete tokens (even when multiple filters like `from:` and `in:` are combined in the same query)
 - `autocomplete_key`: single syntax filter key currently being actively autocompleted under the cursor (e.g. `to`, `in`, normalized `reportField` for dynamic fields) or `'none'`. Only one filter can be actively autocompleted at a time; queries combining multiple filters are captured by `has_filter`
 - `query_ordinal`: 1-indexed attempt number in the current session (up to `CONST.TELEMETRY.SEARCH_ROUTER_MAX_MEASURED_QUERIES_PER_OPEN`)
-- `result_count`: number of matching suggestions (`recentReports` + `personalDetails`)
+- `local_result_count`: number of local matches from `getSearchOptions` before ordering (`recentReports` + `personalDetails`); excludes autocomplete suggestions, `userToInvite` and server search results, so it can differ from the rows shown
 - `render_duration_ms`: duration in milliseconds spent strictly in JavaScript filtering and React layout commit, isolating execution time from any input settling / debounce delay
 - `cancel_reason`: cancellation reason when cancelled (`superseded`, `cleared`, `closed`, `unmounted`, `list_mount`, `timed_out`, `options_not_ready`). A span running longer than `CONST.TELEMETRY.SEARCH_ROUTER_QUERY_MAX_DURATION_MS`, measured from its input start, is cancelled as `timed_out`.
 

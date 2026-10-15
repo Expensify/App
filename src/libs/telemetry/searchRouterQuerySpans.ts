@@ -18,7 +18,7 @@ type SearchRouterQueryCancelReason = ValueOf<typeof CONST.TELEMETRY.SEARCH_ROUTE
 type SearchRouterQueryLengthBucket = ValueOf<typeof CONST.TELEMETRY.SEARCH_ROUTER_QUERY_LENGTH_BUCKET>;
 
 type SearchRouterQueryCommitAttributes = {
-    resultCount?: number;
+    localResultCount?: number;
 };
 
 const SHORT_QUERY_MAX_LENGTH = 2;
@@ -153,8 +153,8 @@ function markSearchRouterQueryCommitted(query: string, attributes?: SearchRouter
         return;
     }
     const rootSpan = getSpan(CONST.TELEMETRY.SPAN_SEARCH_ROUTER_QUERY);
-    if (attributes?.resultCount !== undefined) {
-        rootSpan?.setAttribute(CONST.TELEMETRY.ATTRIBUTE_RESULT_COUNT, attributes.resultCount);
+    if (attributes?.localResultCount !== undefined) {
+        rootSpan?.setAttribute(CONST.TELEMETRY.ATTRIBUTE_LOCAL_RESULT_COUNT, attributes.localResultCount);
     }
     if (activeQueryDebouncedAt !== undefined) {
         const renderDurationMs = Math.round(performance.now() - activeQueryDebouncedAt);

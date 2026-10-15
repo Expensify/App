@@ -417,7 +417,7 @@ function SearchAutocompleteList({
 
     const [isInitialRender, setIsInitialRender] = useState(true);
 
-    const searchResultCount = searchOptions.recentReports.length + searchOptions.personalDetails.length;
+    const localResultCount = searchOptions.recentReports.length + searchOptions.personalDetails.length;
     const hasCommittedListRef = useRef(false);
     // Commit the query span in a layout effect so the span's end time reflects when the list is laid out
     // for this query before paint. The list's first commit after the loading skeleton is cancelled so open latency
@@ -434,8 +434,8 @@ function SearchAutocompleteList({
             cancelSearchRouterQuerySpan(CONST.TELEMETRY.SEARCH_ROUTER_QUERY_CANCEL_REASON.OPTIONS_NOT_READY);
             return;
         }
-        markSearchRouterQueryCommitted(autocompleteQueryValue, {resultCount: searchResultCount}, isListMountCommit);
-    }, [autocompleteQueryValue, searchResultCount, isRecentSearchesDataLoaded, isLoadingOptions]);
+        markSearchRouterQueryCommitted(autocompleteQueryValue, {localResultCount}, isListMountCommit);
+    }, [autocompleteQueryValue, localResultCount, isRecentSearchesDataLoaded, isLoadingOptions]);
     const prevQueryRef = useRef(effectiveInputQueryValue);
     const innerListRef = useRef<SelectionListWithSectionsHandle | null>(null);
     const hasSetInitialFocusRef = useRef(false);
