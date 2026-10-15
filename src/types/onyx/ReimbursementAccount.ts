@@ -298,8 +298,9 @@ type WiseBusinessOnboarding = {
             businessSourceOfWealthInfo: string;
         };
 
-        /** The proof file is under documents. Submit adds the source chosen on the page before */
+        /** The proof page asks the source again so its document kinds can depend on it. The file is under documents */
         BUSINESS_SOURCE_OF_WEALTH_PROOF?: {
+            sourceOfWealthType: string;
             documentType: string;
         };
 
