@@ -125,7 +125,7 @@ CI also adds Storybook to `dist/docs` before deploying, so it is served at `/doc
 
 ### Files from previous builds
 
-Each Worker version only contains the files uploaded with it, but a tab still running an older build keeps requesting that build's chunks after a deploy. So every staging deploy also uploads its build (without `*.br`, `*.map` and Storybook) to the R2 bucket `new-expensify-web-assets-staging`, skipping files already there. When the current build doesn't have a file that a script or image requests, the `test-staging` and `staging` Workers look it up in that bucket (the `PREVIOUS_BUILDS` binding) and return `404` only if it isn't there either. The current build always takes priority, and navigations never read from the bucket.
+Each Worker version only contains the files uploaded with it, but a tab still running an older build keeps requesting that build's chunks after a deploy. So every staging deploy also uploads its build (without `*.br`, `*.map` and Storybook) to the R2 bucket `new-expensify-web-assets-staging`. Every file is re-uploaded each time, so a file still used by recent builds never reaches the bucket's 60-day expiry. When the current build doesn't have a file that a script or image requests, the `test-staging` and `staging` Workers look it up in that bucket (the `PREVIOUS_BUILDS` binding) and return `404` only if it isn't there either. The current build always takes priority, and navigations never read from the bucket.
 
 The bucket and its 60-day lifecycle rule are managed in Terraform. The upload uses `CLOUDFLARE_R2_WEB_ASSETS_ACCESS_KEY_ID` and `CLOUDFLARE_R2_WEB_ASSETS_SECRET_ACCESS_KEY`, an R2 token that can only read and write that bucket. `wrangler dev` uses an empty local bucket.
 
