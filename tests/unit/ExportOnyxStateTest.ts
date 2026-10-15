@@ -283,6 +283,36 @@ describe('maskOnyxState', () => {
         expect(vendors[externalID].name).not.toBe('Acme Supplies');
     });
 
+    it.each([true, false])('should keep a parked attachment edit out of the export verbatim, with fragile masking %s', (isMaskingFragileDataEnabled) => {
+        // Given a parked edit holding the comment the author typed and the message it replaces
+        const draft = 'lunch receipt for the Tokyo trip';
+        const originalHtml = '<a href="https://www.expensify.com/chat-attachments/1/w_a.csv">receipt.csv</a>';
+        const reportActionID = '9876';
+        const input = {
+            [ONYXKEYS.DEFERRED_ATTACHMENT_EDITS]: {
+                [reportActionID]: {
+                    reportID: '1234',
+                    textForNewComment: draft,
+                    currentUserLogin: 'author@example.com',
+                    currentUserAccountID: 42,
+                    isOriginalReportArchived: false,
+                    originalMessage: {type: 'COMMENT', html: originalHtml, text: 'receipt.csv'},
+                },
+            },
+        };
+
+        // When the state is exported, in either masking mode
+        const exported = JSON.stringify(maskOnyxState(input, isMaskingFragileDataEnabled));
+
+        // Then none of the text the author wrote or the message it replaces survives, and the fields that only
+        // identify the parked edit are still readable
+        expect(exported).not.toContain(draft);
+        expect(exported).not.toContain('receipt.csv');
+        expect(exported).not.toContain('author@example.com');
+        expect(exported).toContain('"reportID":"1234"');
+        expect(exported).toContain('"currentUserAccountID":42');
+    });
+
     describe('full pass-through safe collection keys', () => {
         it('should pass through data as-is for safe collection keys', () => {
             const mockViolations = [
