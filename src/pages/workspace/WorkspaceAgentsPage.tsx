@@ -56,7 +56,7 @@ function WorkspaceAgentsPage({route}: WorkspaceAgentsPageProps) {
     useWorkspaceDocumentTitle(policy?.name, 'agentsPage.title');
 
     // The new agent functionality will be added after CreateCompanyAgent is exposed
-    const newAgentButton = canWriteAgents ? null : null;
+    const newAgentButton = canWriteAgents && hasAgents ? null : null;
 
     const bulkActionsButtonOptions: Array<DropdownOption<DeepValueOf<typeof CONST.AGENTS.BULK_ACTION_TYPES>>> = [
         {

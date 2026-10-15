@@ -43,7 +43,7 @@ function AgentsPage() {
 
     useDocumentTitle(translate('agentsPage.title'));
 
-    const newAgentButton = (
+    const newAgentButton = hasAgents ? (
         <Button
             variant="success"
             onPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.AGENT_NEW.getRoute()))}
@@ -51,7 +51,7 @@ function AgentsPage() {
             <Button.Icon src={icons.Plus} />
             <Button.Text>{translate('agentsPage.newAgent')}</Button.Text>
         </Button>
-    );
+    ) : null;
 
     const bulkActionsButtonOptions: Array<DropdownOption<DeepValueOf<typeof CONST.AGENTS.BULK_ACTION_TYPES>>> = [
         {
