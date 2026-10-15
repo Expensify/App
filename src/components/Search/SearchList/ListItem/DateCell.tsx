@@ -1,7 +1,7 @@
 import DatePickerModal from '@components/DatePicker/DatePickerModal';
+import {EditableCell, usePopoverEditState} from '@components/EditableCell';
+import type {EditableProps} from '@components/EditableCell/types';
 import TextWithTooltip from '@components/TextWithTooltip';
-import {EditableCell, usePopoverEditState} from '@components/TransactionItemRow/EditableCell';
-import type {EditableProps} from '@components/TransactionItemRow/EditableCell/types';
 
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -57,6 +57,7 @@ function DateCell({date, showTooltip, isLargeScreenWidth, suffixText, shouldUseL
             text={displayText}
             shouldShowTooltip={showTooltip}
             style={[styles.lineHeightLarge, styles.pre, styles.justifyContentCenter, isLargeScreenWidth ? undefined : styles.mutedNormalTextLabel, !!suffixText && styles.flexShrink1]}
+            isSelectable
         />
     );
 
@@ -78,8 +79,7 @@ function DateCell({date, showTooltip, isLargeScreenWidth, suffixText, shouldUseL
                         vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
                     }}
                     shouldPositionFromTop={!isInverted}
-                    minDate={CONST.CALENDAR_PICKER.MIN_DATE}
-                    maxDate={CONST.CALENDAR_PICKER.MAX_DATE}
+                    isDateSelectable={DateUtils.isWithinCalendarPickerRange}
                     inputID="EditableDateCell"
                     shouldEnableMonthYearBackdropInNarrowPane={isEditing && isInNarrowPaneModal}
                 />

@@ -92,8 +92,9 @@ function WithdrawalIDListItemHeaderImpl({
     );
     const {debitedAmount, debitedCurrency, creditedAmount, creditedCurrency} = withdrawalIDItem;
 
-    const badgeProps = getSettlementStatusBadgeProps(withdrawalIDItem.state, translate, theme);
-    const settlementStatus = getSettlementStatus(withdrawalIDItem.state);
+    const isCashBack = !!withdrawalIDItem.isCashBack;
+    const badgeProps = getSettlementStatusBadgeProps(withdrawalIDItem.state, translate, theme, isCashBack);
+    const settlementStatus = isCashBack ? undefined : getSettlementStatus(withdrawalIDItem.state);
     const statusBadge = !!badgeProps && (
         <StatusBadge
             text={badgeProps.text}
@@ -133,6 +134,7 @@ function WithdrawalIDListItemHeaderImpl({
                 <TextWithTooltip
                     text={accountLabel}
                     style={[styles.optionDisplayName, styles.lineHeightLarge, styles.pre]}
+                    isSelectable
                 />
             </View>
         ),
@@ -146,6 +148,7 @@ function WithdrawalIDListItemHeaderImpl({
                 <TextWithTooltip
                     text={formattedWithdrawalDate}
                     style={[styles.optionDisplayName, styles.lineHeightLarge, styles.pre]}
+                    isSelectable
                 />
             </View>
         ),
@@ -165,6 +168,7 @@ function WithdrawalIDListItemHeaderImpl({
                 <TextWithTooltip
                     text={withdrawalIDItem.entryID?.toString() ?? ''}
                     style={[styles.optionDisplayName, styles.lineHeightLarge, styles.pre]}
+                    isSelectable
                 />
             </View>
         ),
@@ -173,7 +177,7 @@ function WithdrawalIDListItemHeaderImpl({
                 key={CONST.SEARCH.TABLE_COLUMNS.EXPENSES}
                 style={StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.EXPENSES)}
             >
-                <TextCell text={String(withdrawalIDItem.count)} />
+                <TextCell text={isCashBack ? '' : String(withdrawalIDItem.count)} />
             </View>
         ),
         // A settlement that did not convert currencies reports neither amount, and an amount says nothing without the currency it moved in.
@@ -242,12 +246,14 @@ function WithdrawalIDListItemHeaderImpl({
                                 <TextWithTooltip
                                     text={`${formattedBankName} xx${withdrawalIDItem.accountNumber.slice(-4)}`}
                                     style={[styles.optionDisplayName, styles.sidebarLinkTextBold, styles.pre, styles.fontWeightNormal]}
+                                    isSelectable
                                 />
                                 <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap1]}>
                                     {statusBadge}
                                     <TextWithTooltip
                                         text={withdrawalInfoText}
                                         style={[styles.textLabelSupporting, styles.lh16, styles.pre, styles.flexShrink1]}
+                                        isSelectable
                                     />
                                 </View>
                             </View>
@@ -267,6 +273,13 @@ function WithdrawalIDListItemHeaderImpl({
                                 onPress={onDownArrowClick}
                             />
                         )}
+                        {!onDownArrowClick &&
+                            isCashBack && (
+                                // Reserves the arrow's footprint so the total stays aligned with the settlement rows.
+                                <View style={[styles.pl3, styles.justifyContentCenter, styles.alignItemsEnd]}>
+                                    <View style={StyleUtils.getWidthAndHeightStyle(variables.iconSizeNormal)} />
+                                </View>
+                            )}
                     </View>
                 )}
             </View>
