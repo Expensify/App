@@ -1,5 +1,6 @@
 import Button from '@components/Button';
 import DatePicker from '@components/DatePicker';
+import FormHelpMessage from '@components/FormHelpMessage';
 import Header from '@components/Header';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
@@ -26,7 +27,7 @@ type CompanyCardTransactionStartDateFormProps = {
     description: string;
 
     /** Date option selected before the user makes a local selection */
-    initialDateOption: DateOption;
+    initialDateOption: DateOption | '';
 
     /** Date shown by the custom date picker on initial render */
     initialStartDate: string;
@@ -74,6 +75,11 @@ function CompanyCardTransactionStartDateForm({
     };
 
     const submit = () => {
+        if (!isRequiredFulfilled(dateOptionSelected)) {
+            setErrorText(translate('common.error.fieldRequired'));
+            return;
+        }
+
         if (dateOptionSelected === CONST.COMPANY_CARD.TRANSACTION_START_DATE_OPTIONS.CUSTOM && !isRequiredFulfilled(startDate)) {
             setErrorText(translate('common.error.fieldRequired'));
             return;
@@ -142,7 +148,12 @@ function CompanyCardTransactionStartDateForm({
                                     errorText={errorText}
                                 />
                             </View>
-                        ) : null
+                        ) : (
+                            <FormHelpMessage
+                                message={errorText}
+                                style={styles.ph5}
+                            />
+                        )
                     }
                 />
             </View>

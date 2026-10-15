@@ -53,7 +53,8 @@ function WorkspaceCompanyCardsBulkEditTransactionStartDatePage({route}: Workspac
     const uniqueDates = new Set(selectedDates);
     const areAllFromBeginning = selectedDates.every((date) => !date);
     const sharedStartDate = uniqueDates.size === 1 ? selectedDates.at(0) : undefined;
-    const initialDateOption = areAllFromBeginning ? CONST.COMPANY_CARD.TRANSACTION_START_DATE_OPTIONS.FROM_BEGINNING : CONST.COMPANY_CARD.TRANSACTION_START_DATE_OPTIONS.CUSTOM;
+    const sharedDateOption = areAllFromBeginning ? CONST.COMPANY_CARD.TRANSACTION_START_DATE_OPTIONS.FROM_BEGINNING : CONST.COMPANY_CARD.TRANSACTION_START_DATE_OPTIONS.CUSTOM;
+    const initialDateOption = uniqueDates.size > 1 ? '' : sharedDateOption;
     const initialStartDate = sharedStartDate ? format(parseISO(sharedStartDate), CONST.DATE.FNS_FORMAT_STRING) : '';
 
     const goBackToCompanyCards = () => Navigation.goBack(ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID));
