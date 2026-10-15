@@ -404,6 +404,29 @@ function reportsParentHierarchySelector(reports: OnyxCollection<Report>): OnyxCo
 }
 
 /**
+ * Returns the report without the fields that change on every read or new message (last read time, last message
+ * preview), so consumers that only need the report's identity and structure keep the same value across those writes.
+ */
+function reportWithoutLastActivitySelector(report: OnyxEntry<Report>): OnyxEntry<Report> {
+    if (!report) {
+        return undefined;
+    }
+    const {
+        lastReadTime,
+        lastReadSequenceNumber,
+        lastMentionedTime,
+        lastVisibleActionCreated,
+        lastVisibleActionLastModified,
+        lastMessageText,
+        lastMessageHtml,
+        lastActorAccountID,
+        lastActionType,
+        ...reportWithoutLastActivity
+    } = report;
+    return reportWithoutLastActivity;
+}
+
+/**
  * Returns the parent hierarchy links of the given report and its ancestors only, which is all that walking up an
  * ancestor chain reads, so the output stays the same when unrelated reports are added or removed.
  */
@@ -464,6 +487,7 @@ const reportsByIDsSelector =
 
 export {
     getReportAncestorKeys,
+    reportWithoutLastActivitySelector,
     reportAncestorsHierarchySelector,
     getArchiveReason,
     getReportChatType,
