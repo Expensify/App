@@ -6764,7 +6764,6 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
                 lastUpdated: 'Ultimo aggiornamento',
                 transactionStartDate: 'Data di inizio transazione',
                 updateCard: 'Aggiorna carta',
-                contactDomainAdminToUpdateCard: 'Contatta l’amministratore del tuo dominio per aggiornare questa carta.',
                 unassignCard: 'Rimuovi carta',
                 unassignCards: 'Rimuovi carte',
                 unassign: 'Rimuovi assegnazione',

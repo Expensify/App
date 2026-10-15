@@ -246,11 +246,6 @@ function DynamicWorkspaceCompanyCardDetailsPage({route}: DynamicWorkspaceCompany
                                 <CardDetailsActionButton.Text>{translate('workspace.common.viewTransactions')}</CardDetailsActionButton.Text>
                             </CardDetailsActionButton>
                         </CardDetailsActionButtons>
-                        {canWriteCompanyCards && !canSyncCard && (
-                            <Text style={[styles.textLabelSupporting, styles.textAlignCenter, styles.ph5, styles.mt3]}>
-                                {translate('workspace.moreFeatures.companyCards.contactDomainAdminToUpdateCard')}
-                            </Text>
-                        )}
                     </OfflineWithFeedback>
                     <OfflineWithFeedback
                         pendingAction={card?.nameValuePairs?.pendingFields?.cardTitle}

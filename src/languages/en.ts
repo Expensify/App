@@ -7141,7 +7141,6 @@ const translations = {
                 lastUpdated: 'Last updated',
                 transactionStartDate: 'Transaction start date',
                 updateCard: 'Update card',
-                contactDomainAdminToUpdateCard: 'Contact your domain admin to update this card.',
                 unassignCard: 'Unassign card',
                 unassignCards: 'Unassign cards',
                 unassign: 'Unassign',

@@ -6512,7 +6512,6 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                 lastUpdated: '最近更新',
                 transactionStartDate: '交易开始日期',
                 updateCard: '更新卡片',
-                contactDomainAdminToUpdateCard: '请联系您的域管理员以更新此卡片。',
                 unassignCard: '取消分配卡片',
                 unassignCards: '取消分配卡片',
                 unassign: '取消分配',

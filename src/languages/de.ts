@@ -6803,7 +6803,6 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
                 lastUpdated: 'Zuletzt aktualisiert',
                 transactionStartDate: 'Transaktionsstartdatum',
                 updateCard: 'Karte aktualisieren',
-                contactDomainAdminToUpdateCard: 'Wende dich an deinen Domain-Admin, um diese Karte zu aktualisieren.',
                 unassignCard: 'Karte zuweisen aufheben',
                 unassignCards: 'Kartenzuweisung aufheben',
                 unassign: 'Zuweisung aufheben',
