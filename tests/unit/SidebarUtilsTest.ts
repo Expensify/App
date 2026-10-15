@@ -140,6 +140,7 @@ describe('SidebarUtils', () => {
             const {reason} =
                 SidebarUtils.getReasonAndReportActionThatHasRedBrickRoad({
                     report: MOCK_REPORT,
+                    policy: undefined,
                     chatReport: chatReportR14932,
                     reportActions: MOCK_REPORT_ACTIONS,
                     hasViolations: false,
@@ -172,6 +173,7 @@ describe('SidebarUtils', () => {
             const {reason} =
                 SidebarUtils.getReasonAndReportActionThatHasRedBrickRoad({
                     report: MOCK_REPORT,
+                    policy: undefined,
                     chatReport: chatReportR14932,
                     reportActions: MOCK_REPORT_ACTIONS,
                     hasViolations: false,
@@ -199,6 +201,7 @@ describe('SidebarUtils', () => {
             const {reason} =
                 SidebarUtils.getReasonAndReportActionThatHasRedBrickRoad({
                     report: MOCK_REPORT,
+                    policy: undefined,
                     chatReport: chatReportR14932,
                     reportActions: MOCK_REPORT_ACTIONS,
                     hasViolations: true,
@@ -243,6 +246,7 @@ describe('SidebarUtils', () => {
             const {reason} =
                 SidebarUtils.getReasonAndReportActionThatHasRedBrickRoad({
                     report: MOCK_REPORT,
+                    policy: undefined,
                     chatReport: chatReportR14932,
                     reportActions: MOCK_REPORT_ACTIONS,
                     hasViolations: false,
@@ -276,6 +280,7 @@ describe('SidebarUtils', () => {
             const {reason} =
                 SidebarUtils.getReasonAndReportActionThatHasRedBrickRoad({
                     report: MOCK_REPORT,
+                    policy: undefined,
                     chatReport: chatReportR14932,
                     reportActions: MOCK_REPORT_ACTIONS,
                     hasViolations: false,
@@ -354,6 +359,7 @@ describe('SidebarUtils', () => {
             const {reportAction} =
                 SidebarUtils.getReasonAndReportActionThatHasRedBrickRoad({
                     report: MOCK_REPORT,
+                    policy: undefined,
                     chatReport: chatReportR14932,
                     reportActions: MOCK_REPORT_ACTIONS,
                     hasViolations: false,
@@ -380,6 +386,7 @@ describe('SidebarUtils', () => {
             const {result: isReportArchived} = renderHook(() => useReportIsArchived(MOCK_REPORT?.reportID));
             const result = SidebarUtils.getReasonAndReportActionThatHasRedBrickRoad({
                 report: MOCK_REPORT,
+                policy: undefined,
                 chatReport: chatReportR14932,
                 reportActions: MOCK_REPORT_ACTIONS,
                 hasViolations: false,
@@ -503,6 +510,7 @@ describe('SidebarUtils', () => {
             const {result: isReportArchived} = renderHook(() => useReportIsArchived(MOCK_REPORT?.reportID));
             const result = SidebarUtils.getReasonAndReportActionThatHasRedBrickRoad({
                 report: MOCK_REPORT,
+                policy: undefined,
                 chatReport: chatReportR14932,
                 reportActions: MOCK_REPORT_ACTIONS,
                 hasViolations: false,
@@ -592,6 +600,7 @@ describe('SidebarUtils', () => {
 
             const result = SidebarUtils.getReasonAndReportActionThatHasRedBrickRoad({
                 report: chatReport,
+                policy: undefined,
                 chatReport,
                 reportActions: MOCK_REPORT_ACTIONS,
                 hasViolations: false,
@@ -671,6 +680,7 @@ describe('SidebarUtils', () => {
             const {result: isReportArchived} = renderHook(() => useReportIsArchived(MOCK_REPORT?.reportID));
             const result = SidebarUtils.getReasonAndReportActionThatHasRedBrickRoad({
                 report: MOCK_REPORT,
+                policy: undefined,
                 chatReport: chatReportR14932,
                 reportActions: MOCK_REPORT_ACTIONS,
                 hasViolations: false,
@@ -770,6 +780,7 @@ describe('SidebarUtils', () => {
             const {reason} =
                 SidebarUtils.getReasonAndReportActionThatHasRedBrickRoad({
                     report: policyExpenseChat,
+                    policy: undefined,
                     chatReport: policyExpenseChat,
                     reportActions: {} as OnyxEntry<ReportActions>,
                     hasViolations: true,
@@ -844,6 +855,7 @@ describe('SidebarUtils', () => {
             // When: called with isOffline=false — the pending-delete action is skipped, leaving the live one as the single thread.
             const onlineResult = SidebarUtils.getReasonAndReportActionThatHasRedBrickRoad({
                 report: MOCK_REPORT,
+                policy: undefined,
                 chatReport: MOCK_CHAT_REPORT,
                 reportActions: MOCK_REPORT_ACTIONS,
                 hasViolations: false,
@@ -917,6 +929,7 @@ describe('SidebarUtils', () => {
             // When: called with isOffline=true — the pending-delete action is included, making 2 IOU actions.
             const offlineResult = SidebarUtils.getReasonAndReportActionThatHasRedBrickRoad({
                 report: MOCK_REPORT,
+                policy: undefined,
                 chatReport: MOCK_CHAT_REPORT,
                 reportActions: MOCK_REPORT_ACTIONS,
                 hasViolations: false,
@@ -996,6 +1009,7 @@ describe('SidebarUtils', () => {
             // When: the passed currentUserAccountID matches the action's actor, the smartscan action is flagged as requiring attention.
             const matchingResult = SidebarUtils.getReasonAndReportActionThatHasRedBrickRoad({
                 report: chatReport,
+                policy: undefined,
                 chatReport,
                 reportActions,
                 hasViolations: false,
@@ -1013,6 +1027,7 @@ describe('SidebarUtils', () => {
             // When: the passed currentUserAccountID does NOT match, the action is not attributed to the current user, so no smartscan action is returned.
             const nonMatchingResult = SidebarUtils.getReasonAndReportActionThatHasRedBrickRoad({
                 report: chatReport,
+                policy: undefined,
                 chatReport,
                 reportActions,
                 hasViolations: false,
@@ -1093,6 +1108,7 @@ describe('SidebarUtils', () => {
 
             const result = SidebarUtils.shouldDisplayReportInLHN({
                 report: MOCK_REPORT,
+                policy: undefined,
                 reports: MOCK_REPORTS,
                 currentReportId: undefined,
                 isInFocusMode: true,
@@ -1207,6 +1223,7 @@ describe('SidebarUtils', () => {
 
             const result = SidebarUtils.shouldDisplayReportInLHN({
                 report: MOCK_TRANSACTION_THREAD_REPORT,
+                policy: undefined,
                 reports: MOCK_REPORTS,
                 currentReportId: undefined,
                 isInFocusMode: true,
@@ -1246,6 +1263,7 @@ describe('SidebarUtils', () => {
 
         it('returns shouldDisplay as false for unsupported report type', () => {
             const result = SidebarUtils.shouldDisplayReportInLHN({
+                policy: undefined,
                 report: {
                     ...createRandomReport(1, undefined),
                     type: CONST.REPORT.UNSUPPORTED_TYPE.PAYCHECK,
@@ -1275,6 +1293,7 @@ describe('SidebarUtils', () => {
 
             const result = SidebarUtils.shouldDisplayReportInLHN({
                 report,
+                policy: undefined,
                 reports: {[`${ONYXKEYS.COLLECTION.REPORT}1`]: report},
                 currentReportId: '1',
                 isInFocusMode: false,
@@ -1301,6 +1320,7 @@ describe('SidebarUtils', () => {
 
             const result = SidebarUtils.shouldDisplayReportInLHN({
                 report,
+                policy: undefined,
                 reports: {[`${ONYXKEYS.COLLECTION.REPORT}1`]: report},
                 currentReportId: '1',
                 isInFocusMode: false,
@@ -1349,6 +1369,7 @@ describe('SidebarUtils', () => {
             // When the empty chat is identified as the Concierge chat, it should be displayed
             const result = SidebarUtils.shouldDisplayReportInLHN({
                 report,
+                policy: undefined,
                 reports,
                 currentReportId: undefined,
                 isInFocusMode: false,
@@ -1389,6 +1410,7 @@ describe('SidebarUtils', () => {
             // When a non-matching conciergeReportID is supplied, the empty chat is excluded from the LHN
             const result = SidebarUtils.shouldDisplayReportInLHN({
                 report,
+                policy: undefined,
                 reports,
                 currentReportId: undefined,
                 isInFocusMode: false,
@@ -1439,6 +1461,7 @@ describe('SidebarUtils', () => {
 
                 const result = SidebarUtils.shouldDisplayReportInLHN({
                     report,
+                    policy: undefined,
                     reports,
                     currentReportId: OTHER_FOCUSED_REPORT_ID,
                     isInFocusMode: false,
@@ -1471,6 +1494,7 @@ describe('SidebarUtils', () => {
 
                 const result = SidebarUtils.shouldDisplayReportInLHN({
                     report,
+                    policy: undefined,
                     reports,
                     currentReportId: OTHER_FOCUSED_REPORT_ID,
                     isInFocusMode: false,
@@ -1503,6 +1527,7 @@ describe('SidebarUtils', () => {
 
                 const result = SidebarUtils.shouldDisplayReportInLHN({
                     report,
+                    policy: undefined,
                     reports,
                     currentReportId: OTHER_FOCUSED_REPORT_ID,
                     isInFocusMode: false,
@@ -4514,6 +4539,7 @@ describe('SidebarUtils', () => {
 
                 const result = SidebarUtils.updateReportsToDisplayInLHN({
                     displayedReports,
+                    policies: {},
                     reports,
                     updatedReportsKeys: [`${ONYXKEYS.COLLECTION.REPORT}999`],
                     currentReportId: '1',
@@ -4540,6 +4566,7 @@ describe('SidebarUtils', () => {
 
                 const result = SidebarUtils.updateReportsToDisplayInLHN({
                     displayedReports,
+                    policies: {},
                     reports,
                     updatedReportsKeys: ['0'],
                     currentReportId: undefined,
@@ -4566,6 +4593,7 @@ describe('SidebarUtils', () => {
             it('should return an empty object when reports is undefined', () => {
                 const result = SidebarUtils.getReportsToDisplayInLHN({
                     currentReportId: '1',
+                    policies: {},
                     reports: undefined,
                     isDefaultRoomsBetaEnabled: false,
                     priorityMode: CONST.PRIORITY_MODE.DEFAULT,
@@ -4587,6 +4615,7 @@ describe('SidebarUtils', () => {
             it('should return an empty object when reports is empty', () => {
                 const result = SidebarUtils.getReportsToDisplayInLHN({
                     currentReportId: '1',
+                    policies: {},
                     reports: {},
                     isDefaultRoomsBetaEnabled: false,
                     priorityMode: CONST.PRIORITY_MODE.DEFAULT,
@@ -4612,6 +4641,7 @@ describe('SidebarUtils', () => {
 
                 const result = SidebarUtils.getReportsToDisplayInLHN({
                     currentReportId: '1',
+                    policies: {},
                     reports,
                     isDefaultRoomsBetaEnabled: false,
                     priorityMode: CONST.PRIORITY_MODE.DEFAULT,
@@ -4641,6 +4671,7 @@ describe('SidebarUtils', () => {
 
                 const result = SidebarUtils.getReportsToDisplayInLHN({
                     currentReportId: '1',
+                    policies: {},
                     reports,
                     isDefaultRoomsBetaEnabled: false,
                     priorityMode: CONST.PRIORITY_MODE.DEFAULT,
@@ -4671,6 +4702,7 @@ describe('SidebarUtils', () => {
 
                 const result = SidebarUtils.getReportsToDisplayInLHN({
                     currentReportId: '1',
+                    policies: {},
                     reports,
                     isDefaultRoomsBetaEnabled: false,
                     priorityMode: CONST.PRIORITY_MODE.DEFAULT,
@@ -4701,6 +4733,7 @@ describe('SidebarUtils', () => {
 
                 const result = SidebarUtils.getReportsToDisplayInLHN({
                     currentReportId: '1',
+                    policies: {},
                     reports,
                     isDefaultRoomsBetaEnabled: false,
                     priorityMode: CONST.PRIORITY_MODE.DEFAULT,
@@ -4741,6 +4774,7 @@ describe('SidebarUtils', () => {
 
                 const result = SidebarUtils.getReportsToDisplayInLHN({
                     currentReportId: undefined,
+                    policies: {},
                     reports,
                     isDefaultRoomsBetaEnabled: false,
                     priorityMode: CONST.PRIORITY_MODE.DEFAULT,
@@ -4770,6 +4804,7 @@ describe('SidebarUtils', () => {
 
                 const result = SidebarUtils.updateReportsToDisplayInLHN({
                     displayedReports,
+                    policies: {},
                     reports,
                     updatedReportsKeys: [`${ONYXKEYS.COLLECTION.REPORT}999`],
                     currentReportId: '1',
@@ -4799,6 +4834,7 @@ describe('SidebarUtils', () => {
 
                 const result = SidebarUtils.updateReportsToDisplayInLHN({
                     displayedReports,
+                    policies: {},
                     reports,
                     updatedReportsKeys: [`${ONYXKEYS.COLLECTION.REPORT}999`],
                     currentReportId: '1',
@@ -4826,6 +4862,7 @@ describe('SidebarUtils', () => {
 
                 const result = SidebarUtils.updateReportsToDisplayInLHN({
                     displayedReports,
+                    policies: {},
                     reports,
                     updatedReportsKeys: ['0'],
                     currentReportId: undefined,
@@ -4864,6 +4901,7 @@ describe('SidebarUtils', () => {
 
                 const result = SidebarUtils.updateReportsToDisplayInLHN({
                     displayedReports,
+                    policies: {},
                     reports,
                     updatedReportsKeys: [`${ONYXKEYS.COLLECTION.REPORT}1`],
                     currentReportId: '1',
