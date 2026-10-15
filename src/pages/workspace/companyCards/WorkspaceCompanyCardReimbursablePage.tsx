@@ -1,5 +1,6 @@
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
+import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
@@ -11,7 +12,7 @@ import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWorkspaceAccountID from '@hooks/useWorkspaceAccountID';
 
-import {setFeedReimbursable} from '@libs/actions/CompanyCards';
+import {clearErrorField, setFeedReimbursable} from '@libs/actions/CompanyCards';
 import {getCompanyCardFeed, getCompanyFeeds, getDomainOrWorkspaceAccountID, getSelectedFeed} from '@libs/CardUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -93,6 +94,13 @@ function WorkspaceCompanyCardReimbursablePage({
         [saveAndGoBack, translate],
     );
 
+    const clearError = () => {
+        if (!feed) {
+            return;
+        }
+        clearErrorField(feed, domainOrWorkspaceAccountID, 'forceReimbursable');
+    };
+
     if (isLoadingOnyxValue(cardFeedsResult) || isLoadingOnyxValue(lastSelectedFeedResult)) {
         return <FullScreenLoadingIndicator />;
     }
@@ -117,16 +125,25 @@ function WorkspaceCompanyCardReimbursablePage({
                 <Text style={[styles.flexRow, styles.alignItemsCenter, styles.mt3, styles.mh5, styles.mb5]}>
                     <Text style={[styles.textNormal, styles.colorMuted]}>{translate('workspace.companyCards.reimbursable.description')}</Text>
                 </Text>
-                <SelectionList
-                    data={options}
-                    ListItem={SingleSelectListItem}
-                    onSelectRow={(item) => setDraftValue(item.value)}
-                    confirmButtonOptions={confirmButtonOptions}
-                    shouldSingleExecuteRowSelect
-                    style={{containerStyle: styles.pt3}}
-                    initiallyFocusedItemKey={currentValue}
-                    addBottomSafeAreaPadding
-                />
+                <OfflineWithFeedback
+                    pendingAction={selectedFeedData?.pendingFields?.forceReimbursable}
+                    errors={selectedFeedData?.errorFields?.forceReimbursable}
+                    onClose={clearError}
+                    errorRowStyles={[styles.mh5, styles.mb3]}
+                    style={styles.flex1}
+                    contentContainerStyle={styles.flex1}
+                >
+                    <SelectionList
+                        data={options}
+                        ListItem={SingleSelectListItem}
+                        onSelectRow={(item) => setDraftValue(item.value)}
+                        confirmButtonOptions={confirmButtonOptions}
+                        shouldSingleExecuteRowSelect
+                        style={{containerStyle: styles.pt3}}
+                        initiallyFocusedItemKey={currentValue}
+                        addBottomSafeAreaPadding
+                    />
+                </OfflineWithFeedback>
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>
     );
