@@ -3910,6 +3910,7 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
             removeDelegate: '休暇代理人を削除',
         },
     },
+    completedStep: (stepLabel: string) => `${stepLabel}、完了`,
     stepCounter: (step: number, total?: number, text?: string) => {
         let result = `ステップ ${step}`;
         if (total) {
@@ -4014,11 +4015,14 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
             outOfRange: ({min, max}: {min: number; max: number}) => `${min}から${max}の間の値を入力してください`,
             tooFewItems: ({min}: {min: number}) => `${min}件以上追加してください`,
             tooManyItems: ({max}: {max: number}) => `${max}件以内で追加してください`,
-            itemError: ({item, error}: {item: string; error: string}) => `${item}：${error}`,
+            itemError: ({item, field, error}: {item: string; field: string; error: string}) => `${item}、${field}：${error}`,
         },
         addItem: ({item}: {item: string}) => `${item}を追加`,
         removeItemTitle: ({item}: {item: string}) => `${item}を削除しますか？`,
         removeItemPrompt: ({name}: {name: string}) => `本当に${name}を削除しますか？`,
+        maskedValueLabel: ({label, ending}: {label: string; ending: string}) => `末尾が ${ending} の${label}`,
+        numberedItem: ({item, number}: {item: string; number: number}) => `${item}${number}`,
+        questionsChanged: 'このページの質問が変更されました',
     },
     addPersonalBankAccount: {
         swiftBicFormatError: 'SWIFT/BIC は 8 文字または 11 文字で、最初の 6 文字はアルファベット、続く 2 文字または 5 文字はアルファベットまたは数字である必要があります。',

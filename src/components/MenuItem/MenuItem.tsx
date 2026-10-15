@@ -192,6 +192,9 @@ type MenuItemBaseProps = ForwardedFSClassProps &
         /** Error to display at the bottom of the component */
         errorText?: string | ReactNode;
 
+        /** Whether screen readers hear the error with the row's name, since the row hides the error line from them on native */
+        shouldReadErrorWithLabel?: boolean;
+
         errorTextStyle?: StyleProp<ViewStyle>;
 
         /** Hint to display at the bottom of the component */
@@ -490,6 +493,7 @@ function MenuItem({
     helperText,
     helperTextStyle,
     errorText,
+    shouldReadErrorWithLabel = false,
     errorTextStyle,
     shouldShowRedDotIndicator,
     hintText,
@@ -621,7 +625,13 @@ function MenuItem({
         enhancedAccessibilityLabel = `${enhancedAccessibilityLabel}. ${translate('common.opensInNewTab')}`;
     }
 
-    const combinedAccessibilityLabel = [enhancedAccessibilityLabel, brickRoadIndicator ? translate('common.yourReviewIsRequired') : ''].filter(Boolean).join('. ');
+    const combinedAccessibilityLabel = [
+        enhancedAccessibilityLabel,
+        brickRoadIndicator ? translate('common.yourReviewIsRequired') : '',
+        shouldReadErrorWithLabel && typeof errorText === 'string' ? errorText : '',
+    ]
+        .filter(Boolean)
+        .join('. ');
     const contextMenuHint = shouldShowContextMenuHint ? getContextMenuAccessibilityHint({translate}) : undefined;
     const {accessibilityLabel: accessibilityLabelWithContextMenuHint, accessibilityHint} = getContextMenuAccessibilityProps({
         accessibilityLabel: combinedAccessibilityLabel,

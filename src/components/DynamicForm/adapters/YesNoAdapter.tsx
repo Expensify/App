@@ -4,6 +4,9 @@ import useLocalize from '@hooks/useLocalize';
 
 import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
 
+import type {ComponentRef, Ref} from 'react';
+import type {View} from 'react-native';
+
 import React from 'react';
 
 const YES = 'yes';
@@ -21,10 +24,13 @@ type YesNoAdapterProps = ForwardedFSClassProps & {
 
     /** The question, read out by screen readers as the name of the Yes/No group */
     accessibilityLabel?: string;
+
+    /** Lets FormProvider scroll to the field when the user asks to fix the errors */
+    ref?: Ref<ComponentRef<typeof View>>;
 };
 
 /** A boolean asked as a Yes/No question, where No is an answer too */
-function YesNoAdapter({value, onInputChange = () => {}, errorText, forwardedFSClass, accessibilityLabel}: YesNoAdapterProps) {
+function YesNoAdapter({value, onInputChange = () => {}, errorText, forwardedFSClass, accessibilityLabel, ref}: YesNoAdapterProps) {
     const {translate} = useLocalize();
     let checkedValue = '';
     if (value === true) {
@@ -35,6 +41,7 @@ function YesNoAdapter({value, onInputChange = () => {}, errorText, forwardedFSCl
 
     return (
         <RadioButtons
+            ref={ref}
             items={[
                 {label: translate('common.yes'), value: YES},
                 {label: translate('common.no'), value: NO},
