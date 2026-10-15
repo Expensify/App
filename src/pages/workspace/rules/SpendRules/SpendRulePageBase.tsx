@@ -109,7 +109,8 @@ function SpendRulePageBase({policyID, ruleID, testID, upgradeBackTo}: SpendRuleP
 
     const applyGeneratedRule = ({isAllCards, ...values}: GeneratedRuleValues) => {
         const generatedCategories = values.categories?.filter(isSpendRuleCategory);
-        const generatedCardIDs = isAllCards ? getEligibleSpendRuleCards(cardsList, expensifyCardSettings).map((card) => String(card.cardID)) : spendRuleForm?.cardIDs;
+        const generatedCardIDs =
+            isAllCards && expensifyCardSettings ? getEligibleSpendRuleCards(cardsList, expensifyCardSettings).map((card) => String(card.cardID)) : spendRuleForm?.cardIDs;
         setDraftSpendRule({...values, cardIDs: generatedCardIDs, categories: generatedCategories});
         setIsRestrictMerchantsOff(!generatedCategories?.length && !values.merchantNames?.length);
     };
