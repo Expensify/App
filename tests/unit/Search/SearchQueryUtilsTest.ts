@@ -5808,8 +5808,10 @@ describe('SearchQueryUtils', () => {
 
         describe('with the Spend footer selections', () => {
             it('keeps a last query switched back to the default total, which leaves the total out', () => {
-                // Given a saved search on the reimbursable total, then switched back to the plain total
+                // Given a saved search on the reimbursable total
                 const savedQuery = 'type:expense status:all footerTotal:reimbursable';
+
+                // When it is switched back to the plain total, which leaves the total out of the last query
                 const lastQuery = 'type:expense status:all';
 
                 // Then the last choice comes back, the same as when switching to any other total
@@ -5818,8 +5820,10 @@ describe('SearchQueryUtils', () => {
             });
 
             it('keeps a last query switched back to the default count, which leaves the count out', () => {
-                // Given a saved search on the report count, then switched back to the expense count
+                // Given a saved search on the report count
                 const savedQuery = 'type:expense status:all footerCount:reports';
+
+                // When it is switched back to the expense count, which leaves the count out of the last query
                 const lastQuery = 'type:expense status:all';
 
                 // Then the last choice comes back
@@ -5827,8 +5831,10 @@ describe('SearchQueryUtils', () => {
             });
 
             it('still drops a last query that lost a real filter', () => {
-                // Given a saved search with a footer total, whose last query dropped the status filter
+                // Given a saved search with a footer total
                 const savedQuery = 'type:expense status:all footerTotal:reimbursable';
+
+                // When its last query drops the status filter
                 const lastQuery = 'type:expense footerTotal:reimbursable';
 
                 // Then the saved query comes back, since a row filter still decides

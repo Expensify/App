@@ -42,6 +42,9 @@ type FooterCurrencyState = {
 
     /** The query's currency when the pick was made. Once the query moves off it, the query's own currency wins */
     queryCurrency: string | undefined;
+
+    /** The currency the pick wrote into the query. The default is left out, so a Reset writes none */
+    writtenQueryCurrency: string | undefined;
 };
 
 const EMPTY_FOOTER_SELECTION = {footerCount: undefined, footerTotal: undefined, footerCurrency: undefined};
@@ -166,6 +169,7 @@ function SearchSelectionFooter({searchResults}: SearchSelectionFooterProps) {
         selectedCurrency: undefined,
         defaultCurrency: undefined,
         queryCurrency: undefined,
+        writtenQueryCurrency: undefined,
     });
     // Whether the backend is still answering the breakdown the footer asked for. The request keys no hash of its own —
     // it refreshes the figures of the search already on screen — so the wait is held here and ends with the response.
@@ -178,9 +182,10 @@ function SearchSelectionFooter({searchResults}: SearchSelectionFooterProps) {
     const pendingReportConversionSources = useRef<Record<string, Record<string, number>>>({});
     const isCurrentFooterState = footerCurrencyState.searchHash === currentSearchHash;
     // The query carries the currency across a reload and into a saved search, so it is what an untouched footer starts
-    // from. This session's own pick bridges the moment until the query catches up with it. Once the query's currency
-    // moves (the pick landing, an edit, or a saved search on the same hash), the query wins.
-    const isPickAheadOfQuery = isCurrentFooterState && footerCurrencyState.queryCurrency === footerSelection.footerCurrency;
+    // from. This session's own pick holds while the query is on the currency it was made on or the one it wrote. Once
+    // the query moves anywhere else (an edit, or a saved search on the same hash), the query wins.
+    const isPickAheadOfQuery =
+        isCurrentFooterState && (footerCurrencyState.queryCurrency === footerSelection.footerCurrency || footerCurrencyState.writtenQueryCurrency === footerSelection.footerCurrency);
     const selectedCurrency = (isPickAheadOfQuery ? footerCurrencyState.selectedCurrency : undefined) ?? footerSelection.footerCurrency;
     const defaultFooterCurrency = isCurrentFooterState ? footerCurrencyState.defaultCurrency : undefined;
 
@@ -662,15 +667,15 @@ function SearchSelectionFooter({searchResults}: SearchSelectionFooterProps) {
     };
 
     const handleFooterCurrencyChange = (currency: string) => {
+        const writtenQueryCurrency = currency === searchTargetCurrency ? undefined : currency;
         setFooterCurrencyState({
             searchHash: currentSearchHash,
             selectedCurrency: currency,
             defaultCurrency: effectiveDefaultCurrency,
             queryCurrency: footerSelection.footerCurrency,
+            writtenQueryCurrency,
         });
-        // The search already shows the default currency when the query names none, so picking it, as Reset does, leaves
-        // the currency out and the query back to what it was.
-        applyFooterSelection({footerCurrency: currency === searchTargetCurrency ? undefined : currency});
+        applyFooterSelection({footerCurrency: writtenQueryCurrency});
     };
 
     const handleFooterTotalChange = (nextTotalType: SearchFooterTotal) => {

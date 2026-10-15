@@ -1066,6 +1066,29 @@ describe('SearchSelectionFooter', () => {
             expect(isSearchQuerySavable(buildSearchQueryJSON(nextQuery), buildSearchQueryJSON('type:expense'))).toBe(false);
         });
 
+        it('keeps converting to the reset currency once the query lands without one', async () => {
+            // Given a search on EUR whose snapshot is still in another currency than the default it resets to
+            setSearchQuery(`type:expense footerCurrency:${CONST.CURRENCY.EUR}`);
+            mockSelectedTransactions.current = {};
+            const {rerender} = render(<SearchSelectionFooter searchResults={buildSearchResults(CONST.CURRENCY.USD, 10, 36000)} />);
+            await waitForBatchedUpdates();
+            const defaultCurrency = mockCapturedFooterProps.current?.defaultCurrency ?? '';
+            expect(defaultCurrency).not.toBe(CONST.CURRENCY.USD);
+
+            // When the currency is reset and the query, now carrying no currency, lands
+            await act(async () => {
+                mockCapturedFooterProps.current?.onCurrencyChange?.(defaultCurrency);
+                await waitForBatchedUpdates();
+            });
+            jest.mocked(getFooterConvertedAmounts).mockClear();
+            setSearchQuery(mockSetParams.mock.calls.at(-1)?.at(0)?.q ?? '');
+            rerender(<SearchSelectionFooter searchResults={buildSearchResults(CONST.CURRENCY.USD, 10, 36000)} />);
+            await waitForBatchedUpdates();
+
+            // Then the footer still converts to the reset currency instead of falling back to the snapshot's
+            expect(getFooterConvertedAmounts).toHaveBeenCalledWith(expect.objectContaining({targetCurrency: defaultCurrency}));
+        });
+
         it('still writes a currency other than the default into the query', async () => {
             // Given a search with no footer currency
             setSearchQuery('type:expense');
