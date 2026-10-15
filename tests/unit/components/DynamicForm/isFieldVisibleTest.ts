@@ -96,4 +96,19 @@ describe('isFieldVisible', () => {
         // Then it falls back to the controlling answer alone
         expect(isFieldVisible(first, {first: 'yes', second: 'yes'}, [first, second])).toBe(true);
     });
+
+    it('shows a field controlled by a multiselect when any chosen value matches', () => {
+        // Given a source of wealth question shown only for high risk industries, chosen in a multiselect
+        const industries: DynamicFormField = {key: 'industries', type: 'multiselect', required: true};
+        const sourceOfWealth: DynamicFormField = {key: 'sourceOfWealth', type: 'text', required: true, showWhen: {key: 'industries', equals: ['GAMBLING']}};
+        const fields = [industries, sourceOfWealth];
+
+        // When the chosen industries include a high risk one, and when they do not
+        const isShownWithHighRisk = isFieldVisible(sourceOfWealth, {industries: ['RETAIL', 'GAMBLING']}, fields);
+        const isShownWithoutHighRisk = isFieldVisible(sourceOfWealth, {industries: ['RETAIL']}, fields);
+
+        // Then the question shows only in the first case
+        expect(isShownWithHighRisk).toBe(true);
+        expect(isShownWithoutHighRisk).toBe(false);
+    });
 });

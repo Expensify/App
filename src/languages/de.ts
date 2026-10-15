@@ -26,6 +26,7 @@ import {CONST as COMMON_CONST, Str} from 'expensify-common';
 import startCase from 'lodash/startCase';
 
 import type en from './en';
+import type {CompanyCardBalanceParams} from './params';
 import type {TranslationDeepObject} from './types';
 type StateValue = {
     stateISO: string;
@@ -92,7 +93,9 @@ const translations: TranslationDeepObject<typeof en> = {
         selectMultiple: 'Mehrfachauswahl',
         saveChanges: 'Änderungen speichern',
         submit: 'Senden',
+        submitAnyway: 'Trotzdem senden',
         markAsDone: 'Als erledigt markieren',
+        markAsDoneAnyway: 'Trotzdem als erledigt markieren',
         submitted: 'Übermittelt',
         markedAsDoneStatus: 'Als erledigt markiert',
         rotate: 'Drehen',
@@ -450,6 +453,7 @@ const translations: TranslationDeepObject<typeof en> = {
         leaveWorkspaceReimburser:
             'Du kannst diesen Workspace als Erstattungsverantwortliche·r nicht verlassen. Bitte lege unter „Workspaces > Zahlungen senden oder nachverfolgen“ eine·n neue·n Erstattungsverantwortliche·n fest und versuche es erneut.',
         reimbursable: 'Erstattungsfähig',
+        nonReimbursable: 'Nicht erstattungsfähig',
         editYourProfile: 'Profil bearbeiten',
         comments: 'Kommentare',
         sharedIn: 'Geteilt in',
@@ -578,6 +582,10 @@ const translations: TranslationDeepObject<typeof en> = {
         errorWhileSelectingCorruptedAttachment: 'Beim Auswählen eines beschädigten Anhangs ist ein Fehler aufgetreten. Bitte versuchen Sie es mit einer anderen Datei.',
         errorWhileConvertingHeic: 'Wir konnten dieses Bild nicht verarbeiten. Bitte versuchen Sie es erneut oder laden Sie das Foto in einem anderen Format hoch.',
         takePhoto: 'Foto aufnehmen',
+        retake: 'Wiederholen',
+        usePhoto: 'Foto verwenden',
+        capturedPhotoPreview: 'Fotovorschau',
+        photoTakenAnnouncement: 'Foto aufgenommen. Wähle Wiederholen oder Foto verwenden.',
         chooseFromGallery: 'Aus Galerie wählen',
         chooseDocument: 'Datei auswählen',
         attachmentTooLarge: 'Anhang ist zu groß',
@@ -629,15 +637,6 @@ const translations: TranslationDeepObject<typeof en> = {
         launching: 'Expensify wird gestartet',
         expired: 'Ihre Sitzung ist abgelaufen.',
         signIn: 'Bitte melde dich erneut an.',
-        notValid: 'Ungültiger Link.',
-        sessionMismatch: 'Der Link, den Sie angeklickt haben, ist für Ihre aktuelle Sitzung nicht gültig.',
-        switchAccount: {
-            title: 'Konten wechseln?',
-            prompt: ({newEmail, currentEmail}: {newEmail: string; currentEmail: string}) =>
-                `Sie sind als ${currentEmail} angemeldet. Diese Aktion meldet Sie stattdessen als ${newEmail} an.`,
-            confirm: 'Konten wechseln',
-            staySignedIn: 'Nicht das Konto wechseln',
-        },
     },
     multifactorAuthentication: {
         reviewTransaction: {
@@ -1328,7 +1327,7 @@ const translations: TranslationDeepObject<typeof en> = {
             phrase1: 'Beleg hinzufügen',
             phrase2: 'oder ziehe eine hierher und lege sie ab',
         },
-        pageCount: ({pageCount}: {pageCount: number}) => `Seite 1 von ${pageCount}`,
+        pageCount: ({page, pageCount}: {page: number; pageCount: number}) => `Seite ${page} von ${pageCount}`,
     },
     quickAction: {
         scanReceipt: 'Beleg scannen',
@@ -1433,8 +1432,15 @@ const translations: TranslationDeepObject<typeof en> = {
         pendingMatch: 'Ausstehende Zuordnung',
         pendingMatchWithCreditCardDescription: 'Beleg wartet auf Abgleich mit Kartenumsatz. Als Barzahlung markieren, um abzubrechen.',
         markAsCash: 'Als Bar markieren',
-        pendingMatchSubmitTitle: 'Bericht einreichen',
-        pendingMatchSubmitDescription: 'Einige Ausgaben warten auf die Zuordnung mit einer Kreditkartentransaktion. Möchten Sie sie als Bar markieren?',
+        confirmSubmitReportViolations: {
+            title: 'Bericht einreichen?',
+            description: 'Dieser Bericht enthält Richtlinienverstöße. Möchten Sie ihn wirklich ohne Änderungen einreichen?',
+            titleMarkAsDone: 'Als erledigt markieren?',
+            descriptionMarkAsDone: 'Dieser Bericht enthält Richtlinienverstöße. Möchten Sie ihn wirklich ohne Änderungen als erledigt markieren?',
+            rejectedExpense: 'Abgelehnte Ausgabe nicht als gelöst markiert',
+            reportRejected: 'Bericht zuvor abgelehnt',
+            pendingCardMatch: 'Ausgabe wartet auf mögliche Zuordnung zu einer Kartentransaktion',
+        },
         routePending: 'Routing ausstehend ...',
         automaticallyEnterExpenseDetails: 'Concierge füllt die Details für Sie aus.',
         receiptScanning: () => ({
@@ -1606,6 +1612,7 @@ const translations: TranslationDeepObject<typeof en> = {
         pendingConversionMessage: 'Die Gesamtsumme wird aktualisiert, sobald du wieder online bist',
         changedTheExpense: 'hat die Ausgabe geändert',
         addedReceipt: 'hat einen Beleg hinzugefügt',
+        removedReceipt: 'hat einen Beleg entfernt',
         setTheRequest: (valueName: string, newValueToDisplay: string) => `den Wert ${valueName} auf ${newValueToDisplay}`,
         setTheDistanceMerchant: (translatedChangedField: string, newMerchant: string, newAmountToDisplay: string) =>
             `lege ${translatedChangedField} auf ${newMerchant} fest, wodurch der Betrag auf ${newAmountToDisplay} gesetzt wurde`,
@@ -1638,7 +1645,6 @@ const translations: TranslationDeepObject<typeof en> = {
             invalidSplitYourself: 'Bitte gib für deine Aufteilung einen von null verschiedenen Betrag ein',
             noParticipantSelected: 'Bitte wählen Sie eine:n Teilnehmende:n aus',
             other: 'Unerwarteter Fehler. Bitte versuchen Sie es später erneut.',
-            payFailedExpenseDeleted: 'Die Zahlung ist fehlgeschlagen, weil die Spesenabrechnung gelöscht wurde.',
             genericCreateFailureMessage: 'Unerwarteter Fehler beim Einreichen dieser Ausgabe. Bitte versuche es später noch einmal.',
             genericCreateInvoiceFailureMessage: 'Unerwarteter Fehler beim Senden dieser Rechnung. Bitte versuche es später noch einmal.',
             genericHoldExpenseFailureMessage: 'Unerwarteter Fehler beim Zurückhalten dieser Ausgabe. Bitte versuche es später erneut.',
@@ -1651,6 +1657,7 @@ const translations: TranslationDeepObject<typeof en> = {
             saveReceipt: 'Beleg speichern',
             genericDeleteFailureMessage: 'Unerwarteter Fehler beim Löschen dieses Belegs. Bitte versuche es später erneut.',
             genericEditFailureMessage: 'Unerwarteter Fehler beim Bearbeiten dieser Ausgabe. Bitte versuche es später noch einmal.',
+            genericSplitFailureMessage: 'Unerwarteter Fehler beim Aufteilen dieser Ausgabe. Bitte versuche es später noch einmal.',
             genericSmartscanFailureMessage: 'Der Transaktion fehlen Felder',
             duplicateWaypointsErrorMessage: 'Bitte entferne doppelte Wegpunkte',
             atLeastTwoDifferentWaypoints: 'Bitte gib mindestens zwei verschiedene Adressen ein',
@@ -2309,6 +2316,7 @@ const translations: TranslationDeepObject<typeof en> = {
     displayNamePage: {
         headerTitle: 'Anzeigename',
         isShownOnProfile: 'Dein Anzeigename wird in deinem Profil angezeigt.',
+        isShownOnMemberProfile: 'Der Anzeigename wird im Profil des Mitglieds angezeigt. Sobald er gespeichert ist, kann ihn nur noch das Mitglied bearbeiten.',
     },
     timezonePage: {
         timezone: 'Zeitzone',
@@ -2355,7 +2363,6 @@ const translations: TranslationDeepObject<typeof en> = {
             useProfiling: 'Profiling verwenden',
             profileTrace: 'Profil-Trace',
             results: 'Ergebnisse',
-            releaseOptions: 'Release-Optionen',
             testingPreferences: 'Testeinstellungen',
             server: 'Server',
             servers: {
@@ -3427,12 +3434,13 @@ ${amount} für ${merchant} – ${date}`,
         whereYouWork: 'Wo arbeitest du?',
         errorSelection: 'Wähle eine Option, um fortzufahren',
         purpose: {
-            title: 'Was möchtest du heute tun?',
-            errorContinue: 'Bitte auf „Weiter“ drücken, um die Einrichtung abzuschließen',
-            errorBackButton: 'Bitte beantworte die Einrichtungsfragen, um die App verwenden zu können',
-            [CONST.ONBOARDING_CHOICES.EMPLOYER]: 'Ausgaben bei meinem Arbeitgeber einreichen',
-            [CONST.ONBOARDING_CHOICES.MANAGE_TEAM]: 'Verwalte die Ausgaben meines Teams',
-            [CONST.ONBOARDING_CHOICES.TRACK_BUSINESS]: 'Geschäftsausgaben nachverfolgen',
+            title: 'Was möchten Sie heute tun?',
+            errorContinue: 'Bitte drücken Sie auf „Weiter“, um die Einrichtung abzuschließen',
+            errorBackButton: 'Bitte beantworten Sie die Einrichtungsfragen, um die App verwenden zu können',
+            [CONST.ONBOARDING_CHOICES.JOIN_WORKSPACE]: 'Treten Sie dem Unternehmensarbeitsbereich bei',
+            [CONST.ONBOARDING_CHOICES.EMPLOYER]: 'Spesen bei meinem Arbeitgeber einreichen',
+            [CONST.ONBOARDING_CHOICES.MANAGE_TEAM]: 'Ausgaben meines Teams verwalten',
+            [CONST.ONBOARDING_CHOICES.TRACK_BUSINESS]: 'Ausgaben für mein Unternehmen erfassen',
             [CONST.ONBOARDING_CHOICES.TRACK_PERSONAL]: 'Meine persönlichen Ausgaben organisieren',
             [CONST.ONBOARDING_CHOICES.LOOKING_AROUND]: 'Etwas anderes',
         },
@@ -3491,6 +3499,8 @@ ${amount} für ${merchant} – ${date}`,
             title: 'Arbeits-E-Mail konnte nicht hinzugefügt werden',
             subtitle: (workEmail: string | undefined) =>
                 `Wir konnten ${workEmail} nicht hinzufügen. Bitte versuche es später in den Einstellungen erneut oder chatte mit Concierge, um Unterstützung zu erhalten.`,
+            validatedPublicDomainSubtitle: (workEmail: string | undefined) =>
+                `Wir konnten ${workEmail} nicht hinzufügen. Um diese Konten zusammenzuführen, melden Sie sich bitte als ${workEmail} an und gehen Sie zu Konto > Sicherheit > Konten zusammenführen, um den Vorgang abzuschließen.`,
             workAccountClosedSubtitle:
                 'Das Arbeitskonto, das mit dieser E-Mail-Adresse verknüpft ist, wurde geschlossen. Bitte wenden Sie sich an Ihre Unternehmensadministratorin bzw. Ihren Unternehmensadministrator, um es zu reaktivieren, oder registrieren Sie sich mit einer anderen E-Mail-Adresse.',
             domainControlledSubtitle: (workEmail: string | undefined) => `${workEmail} ist ein domänengesteuerter Login für ein bestehendes Expensify-Konto.`,
@@ -3729,6 +3739,34 @@ ${amount} für ${merchant} – ${date}`,
                     Und schon bist du fertig!
                 `),
             },
+            addWorkEmailTask: {
+                title: 'Fügen Sie Ihre Arbeits-E-Mail hinzu',
+                description: ({workEmailLink = ''}) =>
+                    Str.dedent(`
+                        1. Öffnen Sie [Arbeits-E-Mail hinzufügen](${workEmailLink}).
+                        2. Geben Sie Ihre geschäftliche E-Mail-Adresse ein.
+                        3. Geben Sie den Code ein, den wir Ihnen per E-Mail schicken.
+                        4. Wählen Sie einen Arbeitsbereich, dem Sie beitreten möchten, oder klicken Sie auf *Beitritt anfragen*, um eine Anfrage an die Eigentümerin bzw. den Eigentümer des Arbeitsbereichs zu senden.
+                    `),
+            },
+            validateEmailTask: {
+                title: 'Bestätigen Sie Ihre E-Mail-Adresse',
+                description: ({validateEmailLink = '', workEmail = ''}) =>
+                    Str.dedent(`
+                        1. Öffnen Sie [Bestätigen Sie Ihr Konto](${validateEmailLink}).
+                        2. Geben Sie den Code ein, den wir an ${workEmail} gesendet haben.
+                        3. Wählen Sie einen Workspace zum Beitreten aus oder klicken Sie auf *Beitritt anfragen*, um eine Anfrage an den Workspace-Inhaber zu senden.
+                    `),
+            },
+            joinWorkspaceTask: {
+                title: 'Treten Sie dem Arbeitsbereich Ihres Unternehmens bei',
+                description: ({joinWorkspaceLink = ''}) =>
+                    Str.dedent(`
+                        1. Öffnen Sie [Einem Arbeitsbereich beitreten](${joinWorkspaceLink}).
+                        2. Suchen Sie Ihr Team in der Liste. Jedes zeigt die:nen Besitzer:in und die Anzahl der Personen an, die darin sind, die größten zuerst. Klicken Sie auf *Mehr anzeigen*, wenn Sie Ihres nicht sehen.
+                        3. Klicken Sie auf *Jetzt beitreten* oder auf *Beitritt anfragen*, wenn eine Admin-Genehmigung erforderlich ist.
+                    `),
+            },
         } satisfies Record<string, Pick<OnboardingTask, 'title' | 'description'>>,
         testDrive: {
             name: ({testDriveURL}: {testDriveURL?: string}) => (testDriveURL ? `Machen Sie eine [Probefahrt](${testDriveURL})` : 'Mach eine Probefahrt'),
@@ -3751,6 +3789,14 @@ ${amount} für ${merchant} – ${date}`,
             onboardingChatSplitMessage: 'Rechnungen mit Freund*innen zu teilen ist so einfach wie das Senden einer Nachricht. So geht’s.',
             onboardingAdminMessage: 'Erfahre, wie du als Admin den Arbeitsbereich deines Teams verwaltest und deine eigenen Ausgaben einreichst.',
             onboardingTestDriveReceiverMessage: '*Du erhältst 3 Monate gratis! Leg unten los.*',
+            onboardingJoinWorkspaceAddWorkEmailMessage:
+                'Da Sie dem Workspace Ihres Unternehmens beitreten möchten, habe ich keinen eigenen für Sie erstellt. Fügen Sie Ihre geschäftliche E-Mail-Adresse hinzu, und ich prüfe, welchen Workspaces Ihres Unternehmens Sie beitreten können.',
+            onboardingJoinWorkspaceValidateEmailMessage: ({companyDomain = ''}: {companyDomain?: string}) =>
+                `Da Sie dem Workspace Ihres Unternehmens beitreten möchten, habe ich keinen eigenen für Sie erstellt. Bestätigen Sie Ihre E-Mail-Adresse, und ich prüfe, welchen Workspaces bei ${companyDomain} Sie beitreten können.`,
+            onboardingJoinWorkspaceMessage: ({companyDomain = '', joinWorkspaceLink = ''}: {companyDomain?: string; joinWorkspaceLink?: string}) =>
+                `Da Sie dem Workspace Ihres Unternehmens beitreten möchten, habe ich keinen eigenen für Sie erstellt. Ihr Team bei ${companyDomain} ist bereits auf Expensify. [Sehen Sie sich die Workspaces an, denen Sie beitreten können.](${joinWorkspaceLink})`,
+            onboardingJoinWorkspaceEmptyMessage:
+                'Es sieht nicht so aus, als hätte Ihr Unternehmen beitretbare Arbeitsbereiche. Bitte wenden Sie sich an Ihre Verwaltungsperson und lassen Sie sich in deren Arbeitsbereich einladen.',
         },
         workspace: {
             title: 'Bleib mit einem Workspace organisiert',
@@ -3908,6 +3954,11 @@ ${amount} für ${merchant} – ${date}`,
                 `<strong>${delegate}</strong> ist kein Mitglied der unten aufgeführten Arbeitsbereiche. Admins der Arbeitsbereiche, die Sie nicht verwalten, werden gebeten, die Person hinzuzufügen. Möchten Sie die Person jetzt zu den Arbeitsbereichen einladen, in denen Sie Admin sind?`,
             youAreAMemberOf: 'Sie sind Mitglied dieser Arbeitsbereiche:',
             youAreAnAdminOf: 'Sie sind Admin dieser Arbeitsbereiche:',
+            chooseDelegate: 'Vertretung auswählen',
+            clearAfterRecommended: 'Löschen nach (empfohlen)',
+            willClearOn: (date: string) => `Die Urlaubsvertretung wird am ${date} entfernt`,
+            until: (date: string) => `Bis ${date}`,
+            removeDelegate: 'Urlaubsvertretung entfernen',
         },
     },
     stepCounter: (step: number, total?: number, text?: string) => {
@@ -4002,6 +4053,10 @@ ${amount} für ${merchant} – ${date}`,
     },
     dynamicForm: {
         exampleHint: ({example}: {example: string}) => `Beispiel: ${example}`,
+        fileCount: ({count}: {count: number}) => ({
+            one: '1 Datei',
+            other: `${count} Dateien`,
+        }),
         error: {
             tooShort: ({minLength}: {minLength: number}) => `Muss mindestens ${minLength} Zeichen lang sein`,
             invalidFormat: ({example}: {example?: string}) => (example ? `Ungültiges Format. Beispiel: ${example}` : 'Ungültiges Format'),
@@ -4495,7 +4550,7 @@ ${amount} für ${merchant} – ${date}`,
         enterSignerInfo: 'Unterzeichnerinformationen eingeben',
         thisStep: 'Dieser Schritt wurde abgeschlossen',
         isConnecting: (bankAccountLastFour: string | undefined, currency: string | undefined) =>
-            `verknüpft ein ${currency}-Geschäftskonto mit der Endung ${bankAccountLastFour} mit Expensify, um Mitarbeitende in ${currency} zu bezahlen. Der nächste Schritt erfordert Unterzeichnungsinformationen von einer Führungsperson.`,
+            `hat ein ${currency}-Bankkonto mit der Endung ${bankAccountLastFour} hinzugefügt. Gib deine Unterzeichnungsinformationen als Führungsperson ein, damit dieses Bankkonto zur Bezahlung von Mitarbeitenden verwendet werden kann.`,
         error: {
             emailsMustBeDifferent: 'E-Mail-Adressen müssen unterschiedlich sein',
         },
@@ -4949,6 +5004,7 @@ ${amount} für ${merchant} – ${date}`,
             readOnlyActionTitle: 'Nicht so schnell …',
             readOnlyActionPrompt: 'Ihre Arbeitsbereichsrolle kann diese Einstellungen anzeigen, aber nicht bearbeiten.',
             noAccessActionPrompt: 'Ihre Arbeitsbereichsrolle hat keinen Zugriff auf diese Einstellungen. Bitten Sie eine/n Admin, falls Sie Zugriff benötigen.',
+            connections: 'Verknüpfungen',
         },
         createdForClient: {
             title: 'Du hast einen Workspace für deinen Kunden erstellt!',
@@ -4972,6 +5028,31 @@ ${amount} für ${merchant} – ${date}`,
                 title: 'ChatGPT',
                 subtitle: 'von OpenAI',
             },
+        },
+        connections: {
+            tabs: {
+                [CONST.TAB.CONNECTIONS.ALL]: 'Alle',
+                [CONST.TAB.CONNECTIONS.ACCOUNTING]: 'Buchhaltung',
+                [CONST.TAB.CONNECTIONS.PEOPLE]: 'Personalwesen & Mitarbeitende',
+                [CONST.TAB.CONNECTIONS.RECRUITING]: 'Personalbeschaffung',
+                [CONST.TAB.CONNECTIONS.RECEIPTS]: 'Belege',
+                [CONST.TAB.CONNECTIONS.AI]: 'KI & MCP',
+            },
+            findConnections: 'Verbindungen finden',
+            configure: 'Konfigurieren',
+            fix: 'Beheben',
+            active: 'Aktiv',
+            broken: 'Defekt',
+            brokenConnection: 'Kann aufgrund einer unterbrochenen Verbindung nicht synchronisieren',
+            replaceConnectionTitle: 'Verbindung ersetzen?',
+            offer: 'Angebot',
+            replaceConnectionPrompt: (connectionName: string) => `Dadurch wird Ihre aktuelle ${connectionName}-Verbindung entfernt.`,
+            hrisListing: (providerName: string) => `${providerName} (HRIS)`,
+            atsListing: (providerName: string) => `${providerName} (ATS)`,
+            suggestIntegration: 'Sie sehen Ihre nicht? Schlagen Sie eine Integration vor, wir schauen sie uns an.',
+            noResultsPrompt: '<muted-text><centered-text>Bitte passen Sie Ihre Suche an oder <a href="#">schlagen Sie eine Integration vor</a>.</centered-text></muted-text>',
+            allConnectedTitle: 'Sie sind vollständig verbunden',
+            allConnectedPrompt: '<muted-text><centered-text>Hier ist bereits alles verbunden. Sie können auch <a href="#">eine Integration vorschlagen</a>.</centered-text></muted-text>',
         },
         receiptPartners: {
             uber: {
@@ -5026,7 +5107,10 @@ ${amount} für ${merchant} – ${date}`,
             },
             requestEmptyList: {
                 title: 'Noch keine Pauschalbeträge',
-                subtitle: 'In diesem Workspace sind keine Pauschalen hinterlegt, bitten Sie Ihre Admin, welche hinzuzufügen.',
+                subtitle: (workspaceName?: string) =>
+                    workspaceName
+                        ? `${workspaceName} hat keine Pauschalspesensätze. Bitten Sie eine Adminperson, einige hinzuzufügen.`
+                        : 'Dieser Workspace hat keine Pauschalspesensätze. Bitten Sie eine Adminperson, einige hinzuzufügen.',
                 adminSubtitle: 'Fügen Sie Pauschalen hinzu, um Ihre Ausgaben zu organisieren.',
             },
             importPerDiemRates: 'Tagespauschalen importieren',
@@ -5984,10 +6068,10 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
             enterCredentials: 'Geben Sie Ihren Rillet-API-Schlüssel ein',
             howToFindAPIKey:
                 '<strong>So finden Sie Ihren API-Schlüssel.</strong><ol><li>Melden Sie sich bei Rillet an</li><li>Navigieren Sie zu [Organisationsname] -> Organisationseinstellungen -> API-Zugriff</li><li>Erstellen Sie einen API-Schlüssel</li><li>Fügen Sie den API-Schlüssel unten ein</li></ol>',
-            subsidiary: 'Tochtergesellschaft',
-            subsidiarySelectDescription: 'Wählen Sie die Tochtergesellschaft in Rillet aus, aus der Sie Daten importieren möchten.',
-            noSubsidiariesFound: 'Keine Tochtergesellschaften gefunden',
-            noSubsidiariesFoundDescription: 'Bitte fügen Sie eine Tochtergesellschaft in Rillet hinzu und synchronisieren Sie die Verbindung erneut.',
+            entity: 'Entität',
+            entitySelectDescription: 'Wählen Sie die Entität in Rillet aus, aus der Sie Daten importieren möchten.',
+            noEntitiesFound: 'Keine Entitäten gefunden',
+            noEntitiesFoundDescription: 'Bitte fügen Sie eine Entität in Rillet hinzu und synchronisieren Sie die Verbindung erneut.',
             accountTypesDescription: 'Ihre Rillet-Konten werden als Kategorien importiert.',
             enableNewAccountsTitle: 'Neu importierte Konten aktivieren',
             enableNewAccountsDescription: 'Neue Rillet-Konten werden als Kategorien verfügbar sein.',
@@ -6088,8 +6172,8 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
             enterCredentials: 'Geben Sie Ihren DualEntry-API-Schlüssel ein',
             howToFindAPIKey:
                 '<strong>So finden Sie Ihren API-Schlüssel.</strong><ol><li>Melden Sie sich bei DualEntry an</li><li>Navigieren Sie zu [Organisationsname] -> Einstellungen -> Entwicklerzugriff -> API-Schlüssel</li><li>Erstellen Sie einen API-Schlüssel</li><li>Fügen Sie den API-Schlüssel unten ein</li></ol>',
-            subsidiary: 'Tochtergesellschaft',
-            subsidiarySelectDescription: 'Wählen Sie die Tochtergesellschaft in DualEntry aus, aus der Sie Daten importieren möchten.',
+            company: 'Unternehmen',
+            companySelectDescription: 'Wählen Sie das Unternehmen in DualEntry aus, aus dem Sie Daten importieren möchten.',
             noCompaniesFound: 'Keine Unternehmen gefunden',
             noCompaniesFoundDescription: 'Bitte fügen Sie ein Unternehmen in DualEntry hinzu und synchronisieren Sie die Verbindung erneut',
             noVendorsFound: 'Keine Anbieter gefunden',
@@ -6192,6 +6276,11 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
                 label: 'Konto für Rechnungszahlungen',
                 description: 'Wählen Sie aus, von wo aus Rechnungen bezahlt werden sollen, und wir erstellen die Zahlung in DualEntry.',
             },
+            fxExpenseAccount: {
+                label: 'DualEntry-Konto für Währungsumrechnungsgebühren',
+                description:
+                    'Wenn Ihr Unternehmen die Währungumrechnungskosten für eine im Ausland getätigte Zahlung übernimmt, buchen wir diese Kosten in DualEntry auf dieses Konto als Buchungssatz.',
+            },
             syncExpensifyCardSettlements: 'Expensify Karten-Abrechnungen synchronisieren',
             settlementAccount: {label: 'Expensify Karte Verrechnungskonto', description: 'Wählen Sie Ihr Verrechnungskonto, und wir erstellen die Zahlung in DualEntry.'},
             syncTravelInvoicingSettlements: 'Abstimmungen der Reiseabrechnungen synchronisieren',
@@ -6208,6 +6297,16 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
             submit: 'Einreichen',
         },
         companyCards: {
+            balance: {
+                currentBalance: 'Aktueller Kontostand',
+                remainingLimit: 'Verbleibendes Limit',
+                notAvailable: 'Nicht verfügbar',
+                currentBalanceDescription: ({lastUpdated}: CompanyCardBalanceParams) => `Der aktuelle Kontostand wird von Ihrer Bank gemeldet und zuletzt am ${lastUpdated} aktualisiert.`,
+                remainingLimitDescription: ({lastUpdated}: CompanyCardBalanceParams) =>
+                    `Der verbleibende Verfügungsrahmen wird von Ihrer Bank gemeldet und zuletzt am ${lastUpdated} aktualisiert.`,
+                currentBalanceDescriptionNoTimestamp: 'Der aktuelle Kontostand wird von Ihrer Bank gemeldet.',
+                remainingLimitDescriptionNoTimestamp: 'Der verbleibende Verfügungsrahmen wird von Ihrer Bank gemeldet.',
+            },
             addCards: 'Karten hinzufügen',
             selectCards: 'Karten auswählen',
             fromOtherWorkspaces: 'Aus anderen Workspaces',
@@ -6561,6 +6660,8 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
             distanceRates: {
                 title: 'Kilometersätze',
                 subtitle: 'Sätze Tarife fest, aktualisiere sie und setze sie durch.',
+                commuterExclusionsOnTitle: 'Pendlerfahrten-Ausschlüsse sind aktiviert',
+                disableLockedByCommuterExclusionsPrompt: 'Um Entfernungsraten zu deaktivieren, stellen Sie zuerst „Arbeitswege ausschließen“ auf „Arbeitswege nicht ausschließen“.',
             },
             perDiem: {
                 title: 'Tagegeld',
@@ -7799,6 +7900,21 @@ Der Control-Tarif beginnt bei 9 $ pro aktivem Mitglied und Monat.`,
             addressContext: 'Für die Aktivierung von Expensify Travel ist eine Workspace-Adresse erforderlich. Bitte gib eine Adresse ein, die deinem Unternehmen zugeordnet ist.',
             policy: 'Spesenrichtlinie',
         },
+        officeLocations: {
+            title: 'Bürostandorte',
+            subtitle: 'Fügen Sie Bürostandorte hinzu, die Sie Mitgliedern für Dinge wie die Entfernungserfassung zuweisen können.',
+            addOfficeLocation: 'Bürostandort hinzufügen',
+            editOfficeLocation: 'Standort des Büros bearbeiten',
+            locationName: 'Standortname',
+            locationNameHint: 'Wählen Sie einen Standort-Spitznamen, wenn Sie mehrere Bürostandorte hinzufügen',
+            defaultName: ({officeNumber}: {officeNumber: number}) => `Bürostandort ${officeNumber}`,
+            setAsPrimary: 'Als primär festlegen',
+            primary: 'Primär',
+            deleteOfficeLocation: 'Bürostandort löschen?',
+            deleteOfficeLocationConfirmation: 'Möchten Sie diesen Bürostandort wirklich löschen? Mitglieder werden dem Hauptbüro neu zugewiesen.',
+            existingOfficeLocationError: 'Ein Bürostandort mit diesem Namen existiert bereits',
+            setCompanyAddressAsPrimaryConfirmation: 'Unternehmensadresse als Hauptbüro festlegen?',
+        },
         bankAccount: {
             continueWithSetup: 'Einrichtung fortsetzen',
             youAreAlmostDone:
@@ -8365,6 +8481,8 @@ Fordern Sie Spesendetails wie Belege und Beschreibungen an, legen Sie Limits und
                 applyUpdates: 'Diese Aktualisierungen anwenden:',
                 saveRule: 'Regel speichern',
                 previewMatches: 'Übereinstimmungen anzeigen',
+                previewMatchesDescription: 'Sieh dir an, wie diese Regel auf deine Ausgaben angewendet wird',
+                preview: 'Vorschau',
                 confirmError: 'Gib ein Händlerunternehmen ein und nimm mindestens eine Aktualisierung vor',
                 confirmErrorMerchant: 'Bitte Händler eingeben',
                 confirmErrorUpdate: 'Bitte wende mindestens ein Update an',
@@ -8701,6 +8819,14 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                 requireFieldsDescription: 'Bestimmte Spesenfelder vorschreiben oder auf ihre Pflicht verzichten.',
                 createAgentRule: 'Agentenregel beschreiben',
                 createAgentRuleDescription: 'Erstellen Sie flexible Regeln, die ausgeführt werden, wenn Sie sie benötigen.',
+                describe: 'Beschreiben',
+                describeRule: 'Beschreibe deine Regel in einfachen Worten und Concierge erstellt sie für dich',
+                describeRuleInputLabel: 'Beschreibe die Regel',
+                promptErrors: {
+                    unsupported: 'Diese Regel wird noch nicht unterstützt – wir arbeiten daran. Bitte versuche vorerst eine andere Regel.',
+                    unintelligible: 'Formuliere deine Regel etwa so: Wenn Ausgaben über 100 $ liegen, ist ein Beleg erforderlich.',
+                    multipleRules: 'Bitte eine Regel nach der anderen – beschreibe eine einzelne Regel, z. B.: Einzelhandelskäufe auf allen Karten blockieren.',
+                },
             },
             expenseDefaultsTable: {
                 tableColumnType: 'Typ',
@@ -8988,10 +9114,10 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
             enterCredentials: 'Geben Sie Ihren Campfire-API-Schlüssel ein',
             howToFindAPIKey:
                 '<strong>So finden Sie Ihren API-Schlüssel.</strong><ol><li>Melden Sie sich bei Campfire an</li><li>Navigieren Sie zu Einstellungen -> API-Schlüssel</li><li>Erstellen Sie einen API-Schlüssel</li><li>Fügen Sie den API-Schlüssel unten ein</li></ol>',
-            subsidiary: 'Tochtergesellschaft',
-            subsidiarySelectDescription: 'Wählen Sie die Tochtergesellschaft in Campfire aus, von der Sie Daten importieren möchten.',
-            noSubsidiariesFound: 'Keine Tochtergesellschaften gefunden',
-            noSubsidiariesFoundDescription: 'Bitte fügen Sie eine Entität in Campfire hinzu und synchronisieren Sie die Verbindung erneut',
+            entity: 'Entität',
+            entitySelectDescription: 'Wählen Sie die Entität in Campfire aus, von der Sie Daten importieren möchten.',
+            noEntitiesFound: 'Keine Entitäten gefunden',
+            noEntitiesFoundDescription: 'Bitte fügen Sie eine Entität in Campfire hinzu und synchronisieren Sie die Verbindung erneut',
             noVendorsFound: 'Keine Anbieter gefunden',
             noVendorsFoundDescription: 'Bitte fügen Sie Lieferanten in Campfire hinzu und synchronisieren Sie die Verbindung erneut',
             importDescription: 'Wählen Sie aus, welche Kodierungskonfigurationen aus Campfire importiert werden sollen.',
@@ -9616,6 +9742,15 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
         },
         addedProhibitedExpense: ({prohibitedExpense}: {prohibitedExpense: string}) => `„${prohibitedExpense}“ zu verbotenen Ausgaben hinzugefügt`,
         removedProhibitedExpense: ({prohibitedExpense}: {prohibitedExpense: string}) => `„${prohibitedExpense}“ aus verbotenen Ausgaben entfernt`,
+        officeLocation: {
+            added: ({name, address}: {name: string; address: string}) => `hat den Bürostandort „${name}“ (${address}) hinzugefügt`,
+            renamed: ({oldName, newName}: {oldName: string; newName: string}) => `hat den Bürostandort „${oldName}“ in „${newName}“ umbenannt`,
+            changedAddress: ({name, newAddress, oldAddress}: {name: string; newAddress: string; oldAddress: string}) =>
+                `hat die Adresse des Bürostandorts „${name}“ in „${newAddress}“ geändert (zuvor „${oldAddress}“)`,
+            setAsPrimary: ({name}: {name: string}) => `Legen Sie den Bürositz „${name}“ als primär fest`,
+            setCompanyAddressAsPrimary: 'Firmenadresse als primär festlegen',
+            removed: ({name}: {name: string}) => `hat den Bürostandort „${name}“ entfernt`,
+        },
         workArrangement: {
             set: ({arrangement}: {arrangement: string}) => `Standard-Arbeitsmodell auf ${arrangement} festlegen`,
             changed: ({arrangement, previousArrangement}: {arrangement: string; previousArrangement: string}) =>
@@ -9804,6 +9939,8 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
             return `hat die Kategorie „${categoryName}“ für Teilnehmende auf ${newValue ? 'erforderlich' : 'nicht erforderlich'} geändert (zuvor ${newValue ? 'nicht erforderlich' : 'erforderlich'})`;
         },
         updatedAutoHarvesting: (enabled: boolean) => `${enabled ? 'aktiviert' : 'deaktiviert'} Einreichungen`,
+        updatedMemberDisplayName: (newName: string, oldName: string, editProfileURL: string) =>
+            `hat Ihren Anzeigenamen in ${newName} geändert (zuvor „${oldName}“). <a href="${editProfileURL}">Im Profil bearbeiten</a>`,
         changedOverLimitForwardsTo: ({
             member,
             approver,
@@ -9891,6 +10028,8 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
         fallbackTitle: 'Support-Ticket',
         resolved: 'Dieses Support-Ticket ist gelöst.',
         surveyPrompt: 'Wie war Ihre Erfahrung mit dem Support?',
+        great: 'Großartig',
+        poor: 'Schlecht',
         reopenTicket: 'Ticket erneut öffnen',
     },
     statementPage: {
@@ -10113,6 +10252,11 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                 [CONST.SEARCH.ACTION_FILTERS.EXPORT]: 'Export',
             },
             filterType: {label: 'Filtertyp', has: {positive: 'hat', negative: 'hat nicht'}, is: {positive: 'ist', negative: 'ist nicht'}},
+            merchant: {
+                matchType: 'Übereinstimmungstyp',
+                contains: (merchant?: string) => (merchant ? `Enthält "${merchant}"` : 'Enthält'),
+                equalTo: (merchant?: string) => (merchant ? `Gleich "${merchant}"` : 'Gleich'),
+            },
             created: 'Erstellt',
             createdDate: 'Erstellungsdatum',
             transactionStatus: {
@@ -11325,6 +11469,16 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                 other: `${count} aktive Benutzer`,
             }),
             state: {paid: 'Bezahlt', cleared: 'Ausgeglichen', failed: 'Fehlgeschlagen', refunded: 'Erstattet', disputed: 'Angefochten', balanceTransfer: 'Saldoübertrag'},
+            details: 'Zahlungsdetails',
+            badge: {
+                balanceTransferTo: ({email}: {email: string}) => `Saldoübertrag an ${email}`,
+                balanceTransferFrom: ({email}: {email: string}) => `Saldoübertrag von ${email}`,
+                disputedPending: ({date}: {date: string}) => `Angefochten am ${date} (Ausstehend)`,
+                disputedRefunded: ({date}: {date: string}) => `Angefochten am ${date} (Erstattet)`,
+                disputedClosed: ({date}: {date: string}) => `Angefochten am ${date} (Abgeschlossen)`,
+                refundedOn: ({date}: {date: string}) => `Erstattet am ${date}`,
+                refundedAmountOn: ({amount, date}: {amount: string; date: string}) => `${amount} erstattet am ${date}`,
+            },
         },
         subscriptionSettings: {
             title: 'Abonnementeinstellungen',
@@ -11565,6 +11719,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
         markAllAsRead: '<tooltip>Rechtsklick, um <strong>alles als gelesen zu markieren</strong>.</tooltip>',
         markAllAsReadTouchScreen: '<tooltip>Lange drücken, um <strong>alles als gelesen zu markieren</strong>.</tooltip>',
         accountMovedToTopBar: '<tooltip>Greifen Sie auf Ihr Konto und Ihre persönlichen Einstellungen zu.</tooltip>',
+        connectionsMoved: 'Alle Ihre Verbindungen an einem Ort',
     },
     discardChangesConfirmation: {
         title: 'Änderungen verwerfen?',

@@ -11,6 +11,8 @@ import * as API from '@libs/API';
 import type {WriteCommand} from '@libs/API/types';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 
+import {getInitialSubPageForNetsuiteTokenInput} from '@pages/workspace/accounting/netsuite/utils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy} from '@src/types/onyx';
@@ -43,12 +45,13 @@ function getFirstWriteCall(): {command: WriteCommand; onyxData?: AnyOnyxData} {
     return {command, onyxData};
 }
 
-function createPolicy(options: {isAuthError?: boolean; verified?: boolean}): OnyxEntry<Policy> {
+function createPolicy(options: {isAuthError?: boolean; verified?: boolean; tokenID?: string}): OnyxEntry<Policy> {
     return createMock<Policy>({
         id: MOCK_POLICY_ID,
         connections: {
             netsuite: {
                 verified: options.verified ?? false,
+                tokenID: options.tokenID,
                 lastSync: {
                     isAuthenticationError: options.isAuthError ?? false,
                 },
@@ -84,6 +87,28 @@ describe('actions/connections/NetSuite', () => {
             getNetSuiteSetupLink(MOCK_POLICY_ID, MOCK_CREDENTIALS.netSuiteAccountID);
 
             expect(writeSpy).not.toHaveBeenCalled();
+        });
+
+        it('appends isMigration=true to the URL when migrating a TBA connection to OAuth', () => {
+            // Given a migration scenario
+            const setupLink = getNetSuiteSetupLink(MOCK_POLICY_ID, MOCK_CREDENTIALS.netSuiteAccountID, true);
+
+            // When we inspect the URL params
+            const params = new URLSearchParams(setupLink.slice(setupLink.indexOf('?') + 1));
+
+            // Then isMigration is present
+            expect(params.get('isMigration')).toBe('true');
+        });
+
+        it('omits isMigration from the URL for a fresh connection', () => {
+            // Given a fresh (non-migration) connection
+            const setupLink = getNetSuiteSetupLink(MOCK_POLICY_ID, MOCK_CREDENTIALS.netSuiteAccountID);
+
+            // When we inspect the URL params
+            const params = new URLSearchParams(setupLink.slice(setupLink.indexOf('?') + 1));
+
+            // Then isMigration is absent
+            expect(params.has('isMigration')).toBe(false);
         });
     });
 
@@ -344,6 +369,54 @@ describe('actions/connections/NetSuite', () => {
                     }),
                 }),
             );
+        });
+    });
+
+    describe('getInitialSubPageForNetsuiteTokenInput', () => {
+        const PAGE_NAME = CONST.NETSUITE_CONFIG.TOKEN_INPUT.PAGE_NAME;
+
+        it('lands on INSTALL for a fresh connection (no existing connection)', () => {
+            // Given a policy with no NetSuite connection
+            // When determining the initial sub-page
+            // Then the wizard starts at the beginning
+            expect(getInitialSubPageForNetsuiteTokenInput(undefined)).toBe(PAGE_NAME.INSTALL);
+        });
+
+        it('lands on INSTALL for a TBA connection without an auth error', () => {
+            // Given an existing TBA connection (tokenID present) that is healthy
+            const policy = createPolicy({tokenID: 'encrypted-token', isAuthError: false});
+
+            // When determining the initial sub-page
+            // Then the migration wizard starts at INSTALL so the user installs the OAuth bundle
+            expect(getInitialSubPageForNetsuiteTokenInput(policy)).toBe(PAGE_NAME.INSTALL);
+        });
+
+        it('lands on INSTALL for a TBA connection with an auth error', () => {
+            // Given an existing TBA connection (tokenID present) that has an auth error
+            const policy = createPolicy({tokenID: 'encrypted-token', isAuthError: true});
+
+            // When determining the initial sub-page
+            // Then the migration wizard still starts at INSTALL, not CREDENTIALS,
+            // because TBA reconnects migrate through the full OAuth wizard
+            expect(getInitialSubPageForNetsuiteTokenInput(policy)).toBe(PAGE_NAME.INSTALL);
+        });
+
+        it('lands on CREDENTIALS for an OAuth connection with an auth error', () => {
+            // Given an existing OAuth connection (no tokenID) that has an auth error
+            const policy = createPolicy({tokenID: '', isAuthError: true});
+
+            // When determining the initial sub-page
+            // Then the user is sent directly to re-enter their credentials
+            expect(getInitialSubPageForNetsuiteTokenInput(policy)).toBe(PAGE_NAME.CREDENTIALS);
+        });
+
+        it('lands on INSTALL for an OAuth connection without an auth error', () => {
+            // Given a healthy OAuth connection (no tokenID, no auth error)
+            const policy = createPolicy({tokenID: '', isAuthError: false});
+
+            // When determining the initial sub-page
+            // Then the wizard starts from the beginning
+            expect(getInitialSubPageForNetsuiteTokenInput(policy)).toBe(PAGE_NAME.INSTALL);
         });
     });
 });
