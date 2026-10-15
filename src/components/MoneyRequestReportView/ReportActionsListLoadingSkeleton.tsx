@@ -5,7 +5,12 @@ import type {StyleProp, ViewStyle} from 'react-native';
 import React from 'react';
 import Animated, {FadeIn, FadeOut} from 'react-native-reanimated';
 
-function ReportActionsListLoadingSkeleton({style}: {style?: StyleProp<ViewStyle>}) {
+type ReportActionsListLoadingSkeletonProps = {
+    /** Optional style applied to the skeleton wrapper. */
+    style?: StyleProp<ViewStyle>;
+};
+
+function ReportActionsListLoadingSkeleton({style}: ReportActionsListLoadingSkeletonProps) {
     return (
         <Animated.View
             entering={FadeIn}

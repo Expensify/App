@@ -15,7 +15,7 @@ import type {FlashListProps, ListRenderItemInfo} from '@shopify/flash-list';
 import type {LayoutChangeEvent, NativeScrollEvent, NativeSyntheticEvent, StyleProp, ViewStyle} from 'react-native';
 
 import React, {memo, useEffect, useRef, useState} from 'react';
-import {Platform, View} from 'react-native';
+import {View} from 'react-native';
 
 import type {ExternalScrollFlashListTableHandle} from './ExternalScrollFlashListTable';
 import type {MoneyRequestReportTransactionListController, TransactionListItemData} from './MoneyRequestReportTransactionList';
@@ -348,7 +348,6 @@ function MoneyRequestReportUnifiedList({
     );
 
     const shouldShowActionsLoadingSkeletonInFooter = shouldInlineTransactions && shouldShowActionsLoadingSkeleton;
-    const shouldConstrainLoadingSkeletonToAvailableHeight = Platform.OS === 'web' && shouldShowActionsLoadingSkeletonInFooter;
 
     return (
         <MoneyRequestReportFlashList
@@ -405,15 +404,13 @@ function MoneyRequestReportUnifiedList({
             onScroll={handleScroll}
             onScrollBeginDrag={onScrollBeginDrag}
             onContentSizeChange={onContentSizeChange}
-            contentContainerStyle={[contentContainerStyle, shouldConstrainLoadingSkeletonToAvailableHeight && styles.flexGrow1]}
-            ListFooterComponentStyle={shouldConstrainLoadingSkeletonToAvailableHeight ? [styles.flexGrow1, styles.flexShrink1, styles.flexBasis0, styles.mnh0] : undefined}
+            contentContainerStyle={[contentContainerStyle, shouldShowActionsLoadingSkeletonInFooter && styles.flexGrow1]}
+            ListFooterComponentStyle={shouldShowActionsLoadingSkeletonInFooter ? [styles.flexGrow1, styles.flexShrink1, styles.flexBasis0, styles.mnh0] : undefined}
             ListEmptyComponent={shouldShowActionsLoadingSkeleton ? <ReportActionsListLoadingSkeleton /> : undefined}
             ListFooterComponent={
                 <>
                     {shouldShowActionsLoadingSkeletonInFooter && (
-                        <ReportActionsListLoadingSkeleton
-                            style={shouldConstrainLoadingSkeletonToAvailableHeight && [styles.flexGrow1, styles.flexShrink1, styles.flexBasis0, styles.mnh0, styles.overflowHidden]}
-                        />
+                        <ReportActionsListLoadingSkeleton style={[styles.flexGrow1, styles.flexShrink1, styles.flexBasis0, styles.mnh0, styles.overflowHidden]} />
                     )}
                     {listFooterComponent}
                 </>
