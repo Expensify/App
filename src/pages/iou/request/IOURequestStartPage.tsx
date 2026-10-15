@@ -260,8 +260,8 @@ function IOURequestStartPage({
     const isEmbeddedConfirmationActive = shouldEmbedConfirmation && (!shouldUseTab || selectedTab === CONST.TAB_REQUEST.MANUAL);
 
     const [isSignDirty, setIsSignDirty] = useState(false);
-    const [hasSubmitted, setHasSubmitted] = useState(false);
-    const hasSubmittedRef = useRef(false);
+    const [isSubmitted, setIsSubmitted] = useState(false);
+    const isSubmittedRef = useRef(false);
     const {
         clearDiscardFocus,
         handleInputBlur,
@@ -276,19 +276,19 @@ function IOURequestStartPage({
     // conservatively treating an older non-empty draft as dirty so an unsaved amount is never silently discarded.
     const initialPayAmount = transaction?.initialAmount ?? (transaction?.isAmountSet === true ? undefined : 0);
     const initialPayIsAmountSet = transaction?.initialIsAmountSet === true;
-    const hasAmountChanged = isPayFlow
+    const isAmountChanged = isPayFlow
         ? !!transaction?.transactionID && ((transaction.isAmountSet === true) !== initialPayIsAmountSet || transaction.amount !== initialPayAmount)
         : transaction?.isAmountSet === true;
 
     useFocusEffect(
         useCallback(() => {
-            hasSubmittedRef.current = false;
-            setHasSubmitted(false);
+            isSubmittedRef.current = false;
+            setIsSubmitted(false);
         }, []),
     );
 
-    const getEmbeddedHasUnsavedChanges = () => isEmbeddedConfirmationActive && !hasSubmittedRef.current && (isSignDirty || hasAmountChanged);
-    const isEmbeddedDirty = isEmbeddedConfirmationActive && !hasSubmitted && (isSignDirty || hasAmountChanged);
+    const getEmbeddedHasUnsavedChanges = () => isEmbeddedConfirmationActive && !isSubmittedRef.current && (isSignDirty || isAmountChanged);
+    const isEmbeddedDirty = isEmbeddedConfirmationActive && !isSubmitted && (isSignDirty || isAmountChanged);
 
     const shouldPromptForEmbeddedNavigationAction = useCallback(
         (action: NavigationAction) => {
@@ -318,8 +318,8 @@ function IOURequestStartPage({
     });
 
     const suppressEmbeddedDiscardPrompt = () => {
-        hasSubmittedRef.current = true;
-        setHasSubmitted(true);
+        isSubmittedRef.current = true;
+        setIsSubmitted(true);
         suppressDiscardPrompt();
     };
 
