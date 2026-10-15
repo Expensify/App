@@ -104,11 +104,12 @@ function extractAttachments(
         },
         ontext: (text) => {
             const innerText = text.trim();
-            if (!videoAwaitingFileName?.file || !innerText) {
+            if (!videoAwaitingFileName || !innerText) {
                 return;
             }
 
-            videoAwaitingFileName.file.name = innerText;
+            const videoIndex = attachments.indexOf(videoAwaitingFileName);
+            attachments[videoIndex] = {...videoAwaitingFileName, file: {...videoAwaitingFileName.file, name: innerText}};
             videoAwaitingFileName = undefined;
         },
         onclosetag: (name) => {
