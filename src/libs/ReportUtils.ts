@@ -14188,8 +14188,6 @@ function isExported(reportActions: OnyxEntry<ReportActions> | ReportAction[], re
 function isExportInProgress(reportActions: OnyxEntry<ReportActions> | ReportAction[]): boolean {
     const reportActionList = Array.isArray(reportActions) ? reportActions : Object.values(reportActions ?? {});
 
-    // Callers pass an array that is empty until the actions load, so an empty list means "not loaded yet" rather than
-    // "nothing started" - a report with an export under way always carries the action that started it.
     if (reportActionList.length === 0) {
         return false;
     }
