@@ -23,7 +23,9 @@ function VideoRenderer({tnode, key}: VideoRendererProps) {
     const htmlAttribs = tnode.attributes;
     const attrHref = htmlAttribs[CONST.ATTACHMENT_SOURCE_ATTRIBUTE] || htmlAttribs.src || htmlAttribs.href || '';
     const sourceURL = tryResolveUrlFromApiRoot(attrHref);
-    const fileName = getFileName(`${sourceURL}`);
+    // Prefer the stored file name, like ImageRenderer does: deriving it from the URL yields the raw storage
+    // key, which has no extension and so downloads as a file the OS treats as a generic document.
+    const fileName = htmlAttribs[CONST.ATTACHMENT_ORIGINAL_FILENAME_ATTRIBUTE] || getFileName(`${sourceURL}`);
     const thumbnailUrl = tryResolveUrlFromApiRoot(htmlAttribs[CONST.ATTACHMENT_THUMBNAIL_URL_ATTRIBUTE]);
     const width = Number(htmlAttribs[CONST.ATTACHMENT_THUMBNAIL_WIDTH_ATTRIBUTE]);
     const height = Number(htmlAttribs[CONST.ATTACHMENT_THUMBNAIL_HEIGHT_ATTRIBUTE]);

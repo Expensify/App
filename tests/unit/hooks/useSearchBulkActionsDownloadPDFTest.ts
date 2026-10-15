@@ -65,6 +65,12 @@ jest.mock('@hooks/useNetwork', () => ({
     default: () => ({isOffline: mockIsOffline}),
 }));
 
+const mockShowDecisionModal = jest.fn();
+jest.mock('@hooks/useDecisionModal', () => ({
+    __esModule: true,
+    default: () => ({showDecisionModal: mockShowDecisionModal}),
+}));
+
 jest.mock('@hooks/useEnvironment', () => ({
     __esModule: true,
     default: () => ({isProduction: false, isDevelopment: true, environment: 'development'}),
@@ -614,7 +620,7 @@ describe('useSearchBulkActions - Download report', () => {
 
         // Then no incomplete export is started and the existing download error is shown
         expect(exportReportsToPDF).not.toHaveBeenCalled();
-        expect(result.current.isDownloadErrorModalVisible).toBe(true);
+        expect(mockShowDecisionModal).toHaveBeenCalledWith(expect.objectContaining({title: 'common.downloadFailedTitle', prompt: 'common.downloadFailedDescription'}));
     });
 
     it('should show Export as PDF for selected Expensify Card settlement groups', async () => {
@@ -708,12 +714,18 @@ describe('useSearchBulkActions - Download report', () => {
 
         // Then the loading modal is closed and the download-error modal is shown instead of hanging on "waiting"
         await waitFor(() => {
-            expect(result.current.isDownloadErrorModalVisible).toBe(true);
+            expect(mockShowDecisionModal).toHaveBeenCalledWith(expect.objectContaining({title: 'common.downloadFailedTitle', prompt: 'common.downloadFailedDescription'}));
         });
         expect(mockCloseExpensifyCardStatementPDFDownloadModal).toHaveBeenCalledTimes(1);
 
-        // And the selection is kept, so the error modal inside the selection-gated bar stays mounted
-        expect(mockClearSelectedTransactions).not.toHaveBeenCalled();
+        // When the closed modal finishes hiding
+        await act(async () => {
+            mockResolveStatementModal();
+            await Promise.resolve();
+        });
+
+        // Then the selection is cleared, since the error modal lives on the global stack and no longer needs the bar mounted
+        expect(mockClearSelectedTransactions).toHaveBeenCalled();
     });
 
     it('should not let a stale failed request close the modal for a newer export', async () => {
@@ -765,7 +777,7 @@ describe('useSearchBulkActions - Download report', () => {
         });
 
         // Then it neither closes the second export's modal nor shows an error
-        expect(result.current.isDownloadErrorModalVisible).toBe(false);
+        expect(mockShowDecisionModal).not.toHaveBeenCalled();
         expect(mockCloseExpensifyCardStatementPDFDownloadModal).not.toHaveBeenCalled();
         expect(mockShowExpensifyCardStatementPDFDownloadModal.mock.calls.at(-1)?.[0].statementParams).toEqual(expect.objectContaining({entryIDs: [456], statementKey: 'statement-key-456'}));
     });
@@ -807,7 +819,7 @@ describe('useSearchBulkActions - Download report', () => {
 
         // Then the modal is not shown again, because a show call with the same id after close would open a new one
         expect(mockShowExpensifyCardStatementPDFDownloadModal).toHaveBeenCalledTimes(1);
-        expect(result.current.isDownloadErrorModalVisible).toBe(false);
+        expect(mockShowDecisionModal).not.toHaveBeenCalled();
     });
 
     it('should open the multi-feed alert instead of requesting a statement PDF', async () => {
@@ -835,7 +847,9 @@ describe('useSearchBulkActions - Download report', () => {
         });
 
         expect(getExpensifyCardStatementPDF).not.toHaveBeenCalled();
-        expect(result.current.isExpensifyCardStatementMultiFeedAlertVisible).toBe(true);
+        expect(mockShowDecisionModal).toHaveBeenCalledWith(
+            expect.objectContaining({title: 'search.expensifyCardStatementPDF.title', prompt: 'search.expensifyCardStatementPDF.oneFeedAtATime'}),
+        );
     });
 
     it('should export a cross-workspace settlement as the whole settlement (no policyID)', async () => {

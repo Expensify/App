@@ -5,6 +5,7 @@ import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import MenuItem from '@components/MenuItem';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
+import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import WorkspaceEmptyStateSection from '@components/WorkspaceEmptyStateSection';
@@ -125,26 +126,38 @@ function NetSuiteImportCustomFieldPage({
             contentContainerStyle={[styles.flex1]}
             titleStyle={styles.ph5}
             connectionName={CONST.POLICY.CONNECTIONS.NAME.NETSUITE}
+            shouldUseScrollView={false}
             onBackButtonPress={() => Navigation.goBack(ROUTES.POLICY_ACCOUNTING_NETSUITE_IMPORT.getRoute(policyID))}
         >
-            {data.length === 0 ? listEmptyComponent : listHeaderComponent}
-            {data.map((record, index) => (
-                <OfflineWithFeedback
-                    // eslint-disable-next-line react/no-array-index-key
-                    key={`${record.internalID}-${index}`}
-                    pendingAction={settingsPendingAction([`${importCustomField}_${index}`], config?.pendingFields)}
-                >
-                    <MenuItemField
-                        name={translate(`workspace.netsuite.import.importCustomFields.${importCustomField}.recordTitle`)}
-                        onPress={() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_IMPORT_CUSTOM_FIELD_VIEW.getRoute(policyID, importCustomField, index))}
-                        value={'listName' in record ? record.listName : record.segmentName}
-                    >
-                        {areSettingsInErrorFields([`${importCustomField}_${index}`], config?.errorFields) && <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />}
-                    </MenuItemField>
-                </OfflineWithFeedback>
-            ))}
+            {data.length === 0 ? (
+                listEmptyComponent
+            ) : (
+                <ScrollView addBottomSafeAreaPadding>
+                    {listHeaderComponent}
+                    {data.map((record, index) => (
+                        <OfflineWithFeedback
+                            // eslint-disable-next-line react/no-array-index-key
+                            key={`${record.internalID}-${index}`}
+                            pendingAction={settingsPendingAction([`${importCustomField}_${index}`], config?.pendingFields)}
+                        >
+                            <MenuItemField
+                                name={translate(`workspace.netsuite.import.importCustomFields.${importCustomField}.recordTitle`)}
+                                onPress={() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_IMPORT_CUSTOM_FIELD_VIEW.getRoute(policyID, importCustomField, index))}
+                                value={'listName' in record ? record.listName : record.segmentName}
+                            >
+                                {areSettingsInErrorFields([`${importCustomField}_${index}`], config?.errorFields) && (
+                                    <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />
+                                )}
+                            </MenuItemField>
+                        </OfflineWithFeedback>
+                    ))}
+                </ScrollView>
+            )}
 
-            <FixedFooter style={[styles.mtAuto, styles.pt3]}>
+            <FixedFooter
+                style={[styles.pt3]}
+                addBottomSafeAreaPadding
+            >
                 <Button
                     variant={CONST.BUTTON_VARIANT.SUCCESS}
                     size={CONST.BUTTON_SIZE.LARGE}
