@@ -1,5 +1,6 @@
 /** Read-only report columns reuse the table's value and formatting helpers. */
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import MenuItem from '@components/MenuItem';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import type {SearchColumnType} from '@components/Search/types';
 
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
@@ -110,15 +111,14 @@ function MoneyRequestViewAdditionalField({column, transaction, report, policy, p
     }
 
     return (
-        <MenuItemWithTopDescription
-            description={translate(getSearchColumnTranslationKey(column))}
-            title={value ?? ''}
-            interactive={false}
-            shouldShowRightIcon={false}
-            copyable={!!value}
-            copyValue={value}
-            numberOfLinesTitle={2}
-        />
+        <MenuItemField
+            name={translate(getSearchColumnTranslationKey(column))}
+            value={value ?? ''}
+            isValueSelectable={!!value}
+            numberOfLinesValue={2}
+        >
+            {!!value && <MenuItem.Copy value={value} />}
+        </MenuItemField>
     );
 }
 

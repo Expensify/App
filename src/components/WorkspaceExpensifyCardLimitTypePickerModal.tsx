@@ -67,6 +67,7 @@ function useWorkspaceExpensifyCardLimitTypePickerPopover({card, policy}: Pick<Wo
     const styles = useThemeStyles();
     const {windowHeight} = useWindowDimensions();
     const {isInLandscapeMode} = useResponsiveLayout();
+    const areApprovalsConfigured = getApprovalWorkflow(policy) !== CONST.POLICY.APPROVAL_MODE.OPTIONAL;
 
     // Padding sits outside the list, matching workspace member roles, so it is not clipped into a scrollbar.
     const listHeight = styles.getSelectionListPopoverHeight({
@@ -75,8 +76,9 @@ function useWorkspaceExpensifyCardLimitTypePickerPopover({card, policy}: Pick<Wo
         windowHeight,
         isInLandscapeMode,
         hasButton: false,
-        // One extra line so a wrapping Smart Limit description is not clipped.
-        extraHeight: variables.lineHeightNormal,
+        // One extra line keeps the wrapping Smart Limit subtitle from being clipped.
+        // With approvals off that description is HTML and wraps once more, and a short menu opens scrolled to the selected type.
+        extraHeight: variables.lineHeightNormal * (areApprovalsConfigured ? 1 : 2),
     }).height;
     const popoverHeight = listHeight + styles.pt4.paddingTop + styles.pb4.paddingBottom;
 
@@ -192,6 +194,8 @@ function WorkspaceExpensifyCardLimitTypePickerModal({
                     shouldSingleExecuteRowSelect
                     shouldStopPropagation
                     initiallyFocusedItemKey={availableLimitTypeItems.find((item) => item.isSelected)?.keyForList}
+                    // At most four rows, so stay at the top. Scrolling to the selected row is the jump when the height estimate is still short.
+                    shouldScrollToFocusedIndexOnMount={false}
                     alternateNumberOfSupportedLines={2}
                     style={{contentContainerStyle: [styles.pb0]}}
                 />

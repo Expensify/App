@@ -7,33 +7,55 @@ import type {OfflineWithFeedbackProps} from '@components/OfflineWithFeedback';
 
 import CONST from '@src/CONST';
 
-import type {PropsWithChildren} from 'react';
+import type {PropsWithChildren, ReactNode} from 'react';
 
 import React from 'react';
 
 type EditableFieldProps = PropsWithChildren<
     Pick<OfflineWithFeedbackProps, 'pendingAction'> &
-        Pick<MenuItemRootProps, 'onPress'> & {
+        Pick<MenuItemRootProps, 'onPress' | 'accessibilityLabel'> & {
             name: string;
             value?: string;
+            isValueSelectable?: boolean;
             /** Validation or policy violation message to display below the field. */
-            error?: string;
+            error?: ReactNode;
+            valueComponent?: ReactNode;
+            hintText?: ReactNode;
+            footer?: ReactNode;
         }
 >;
 
-function EditableField({pendingAction, name, value, onPress, error, children}: EditableFieldProps) {
+function EditableField({pendingAction, name, value, onPress, error, children, isValueSelectable, valueComponent, accessibilityLabel, hintText, footer}: EditableFieldProps) {
     return (
         <OfflineWithFeedback pendingAction={pendingAction}>
-            <MenuItem.Root onPress={onPress}>
-                <MenuItemField.Row
-                    name={name}
-                    value={value}
-                    numberOfLinesValue={2}
-                >
-                    {!!error && <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />}
-                    {!!onPress && <MenuItem.Chevron />}
-                    {children}
-                </MenuItemField.Row>
+            <MenuItem.Root
+                onPress={onPress}
+                accessibilityLabel={accessibilityLabel}
+                shouldAllowTextSelection={isValueSelectable}
+            >
+                {valueComponent ? (
+                    <MenuItem.Row>
+                        <MenuItemField.Content name={name}>{valueComponent}</MenuItemField.Content>
+                        <MenuItem.Trailing>
+                            {!!error && <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />}
+                            {!!onPress && <MenuItem.Chevron />}
+                            {children}
+                        </MenuItem.Trailing>
+                    </MenuItem.Row>
+                ) : (
+                    <MenuItemField.Row
+                        name={name}
+                        value={value}
+                        numberOfLinesValue={2}
+                        isValueSelectable={isValueSelectable}
+                    >
+                        {!!error && <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />}
+                        {!!onPress && <MenuItem.Chevron />}
+                        {children}
+                    </MenuItemField.Row>
+                )}
+                {!!hintText && <MenuItem.HelpText message={hintText} />}
+                {footer}
                 {!!error && (
                     <MenuItem.HelpText
                         isError

@@ -1,6 +1,6 @@
 import {render} from '@testing-library/react-native';
 
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import MoneyRequestViewAdditionalField from '@components/ReportActionItem/MoneyRequestViewAdditionalField';
 import type {SearchColumnType} from '@components/Search/types';
 
@@ -11,7 +11,7 @@ import React from 'react';
 
 import createMock from '../utils/createMock';
 
-jest.mock('@components/MenuItemWithTopDescription', () => jest.fn(() => null));
+jest.mock('@components/MenuItem/presets/MenuItemField', () => jest.fn(() => null));
 jest.mock('@hooks/useLocalize', () => jest.fn(() => ({translate: (key: string) => key})));
 jest.mock('@hooks/useCurrencyList', () => ({
     useCurrencyListActions: () => ({convertToDisplayString: (amount: number, currency: string) => `${currency}:${amount}`}),
@@ -35,7 +35,7 @@ function renderField(
             attendeeCount={attendeeCount}
         />,
     );
-    return jest.mocked(MenuItemWithTopDescription).mock.calls.at(-1)?.at(0);
+    return jest.mocked(MenuItemField).mock.calls.at(-1)?.at(0);
 }
 
 describe('additional expense field values', () => {
@@ -53,7 +53,7 @@ describe('additional expense field values', () => {
             const field = renderField(CONST.SEARCH.TABLE_COLUMNS.TOTAL_PER_ATTENDEE, transaction, options);
 
             // Then neither an amount nor a scanning placeholder is shown or offered for copying.
-            expect(field).toEqual(expect.objectContaining({title: '', copyable: false, copyValue: ''}));
+            expect(field).toEqual(expect.objectContaining({value: '', isValueSelectable: false}));
         }
     });
 
@@ -70,7 +70,7 @@ describe('additional expense field values', () => {
         const field = renderField(CONST.SEARCH.TABLE_COLUMNS.TOTAL, transaction);
 
         // Then missing conversion falls back to the transaction currency while zero and refund signs are preserved.
-        expect(field).toEqual(expect.objectContaining({title: expected, copyValue: expected, interactive: false, shouldShowRightIcon: false}));
+        expect(field).toEqual(expect.objectContaining({value: expected, isValueSelectable: true}));
     });
 
     it('displays the original purchase currency separately from the report currency', () => {
@@ -81,7 +81,7 @@ describe('additional expense field values', () => {
         const field = renderField(CONST.SEARCH.TABLE_COLUMNS.ORIGINAL_AMOUNT, transaction);
 
         // Then the field retains the actual purchase amount and currency.
-        expect(field?.title).toBe('GBP:800');
+        expect(field?.value).toBe('GBP:800');
     });
 
     it('uses the modified expense amount when dividing the total among attendees', () => {
@@ -92,7 +92,7 @@ describe('additional expense field values', () => {
         const field = renderField(CONST.SEARCH.TABLE_COLUMNS.TOTAL_PER_ATTENDEE, transaction);
 
         // Then the field agrees with the updated expense amount.
-        expect(field?.title).toBe('EUR:900');
+        expect(field?.value).toBe('EUR:900');
     });
 
     it.each([CONST.IOU.RECEIPT_STATE.SCAN_READY, CONST.IOU.RECEIPT_STATE.SCANNING])('shows the scanning status instead of a per-attendee amount for %s receipts', (state) => {
@@ -103,7 +103,7 @@ describe('additional expense field values', () => {
         const field = renderField(CONST.SEARCH.TABLE_COLUMNS.TOTAL_PER_ATTENDEE, transaction);
 
         // Then the field matches the table's scanning status instead of presenting a zero expense.
-        expect(field?.title).toBe('iou.receiptStatusTitle');
+        expect(field?.value).toBe('iou.receiptStatusTitle');
     });
 
     it.each([
@@ -116,7 +116,7 @@ describe('additional expense field values', () => {
         const field = renderField(CONST.SEARCH.TABLE_COLUMNS.TOTAL_PER_ATTENDEE, transaction);
 
         // Then the scanning placeholder does not hide a known amount.
-        expect(field?.title).toBe(expected);
+        expect(field?.value).toBe(expected);
     });
 
     it('reads payroll information from the parent report', () => {
@@ -127,6 +127,6 @@ describe('additional expense field values', () => {
         const field = renderField(column);
 
         // Then the value comes from the parent report and remains read-only.
-        expect(field).toEqual(expect.objectContaining({title: 'payroll-123', interactive: false}));
+        expect(field).toEqual(expect.objectContaining({value: 'payroll-123', isValueSelectable: true}));
     });
 });

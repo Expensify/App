@@ -2,6 +2,7 @@ import {useRowSelection} from '@components/Search/SearchSelectionProvider';
 import ListItemComposed from '@components/SelectionList/ListItemComposed';
 import type {ListItem} from '@components/SelectionList/types';
 
+import useLayoutSpacing from '@hooks/useLayoutSpacing';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -49,6 +50,7 @@ function TaskListItem<TItem extends ListItem>({
     const liveTaskItem: TaskListItemType =
         liveParentReportAttributeName && liveParentReportAttributeName !== taskItem.parentReportName ? {...taskItem, parentReportName: liveParentReportAttributeName} : taskItem;
     const styles = useThemeStyles();
+    const {pageGutterMargin} = useLayoutSpacing();
     const StyleUtils = useStyleUtils();
 
     const {isLargeScreenWidth} = useResponsiveLayout();
@@ -76,6 +78,7 @@ function TaskListItem<TItem extends ListItem>({
     return (
         <ListItemComposed
             item={item}
+            shouldAllowTextSelection
             pressableStyle={listItemPressableStyle}
             containerStyle={!isLargeScreenWidth && styles.mb2}
             isFocused={isFocused}
@@ -88,7 +91,7 @@ function TaskListItem<TItem extends ListItem>({
             shouldSyncFocus={shouldSyncFocus}
             hoverStyle={isSelected && styles.activeComponentBG}
             pressableWrapperStyle={[
-                styles.mh5,
+                pageGutterMargin,
                 StyleUtils.getSearchRowBackgroundStyle(isSelected),
                 !isLargeScreenWidth && styles.br2,
                 isLargeScreenWidth && isLastItem && [styles.tableBottomRadius, styles.overflowHidden],

@@ -1,8 +1,7 @@
 // Displays the merchant and lets users look up the original card merchant when available.
 import Icon from '@components/Icon';
 import type {MenuItemProps} from '@components/MenuItem';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
-import OfflineWithFeedback from '@components/OfflineWithFeedback';
+import MenuItem from '@components/MenuItem';
 import type {OfflineWithFeedbackProps} from '@components/OfflineWithFeedback';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import Text from '@components/Text';
@@ -19,6 +18,8 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 
 import React from 'react';
+
+import EditableField from './EditableField';
 
 type MerchantFieldProps = Pick<OfflineWithFeedbackProps, 'pendingAction'> &
     Pick<MenuItemProps, 'title' | 'errorText' | 'copyValue' | 'onPress'> & {
@@ -57,27 +58,20 @@ function GoogleMerchantSearchLink({merchant}: {merchant: string}) {
 }
 
 function MerchantField({pendingAction, title, errorText, copyValue, onPress, canEdit, googleSearchMerchant}: MerchantFieldProps) {
-    const styles = useThemeStyles();
     const {translate} = useLocalize();
 
     return (
-        <OfflineWithFeedback pendingAction={pendingAction}>
-            <MenuItemWithTopDescription
-                description={translate('common.merchant')}
-                title={title}
-                interactive={canEdit}
-                shouldShowRightIcon={canEdit}
-                titleStyle={styles.flex1}
-                onPress={onPress}
-                wrapperStyle={[styles.taskDescriptionMenuItem]}
-                furtherDetailsComponent={googleSearchMerchant ? <GoogleMerchantSearchLink merchant={googleSearchMerchant} /> : undefined}
-                brickRoadIndicator={errorText ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-                errorText={errorText}
-                numberOfLinesTitle={0}
-                copyValue={copyValue}
-                copyable={!!copyValue}
-            />
-        </OfflineWithFeedback>
+        <EditableField
+            pendingAction={pendingAction}
+            name={translate('common.merchant')}
+            value={title}
+            onPress={canEdit ? onPress : undefined}
+            isValueSelectable={!!copyValue}
+            error={errorText}
+            footer={googleSearchMerchant ? <GoogleMerchantSearchLink merchant={googleSearchMerchant} /> : undefined}
+        >
+            {!canEdit && !!copyValue && <MenuItem.Copy value={copyValue} />}
+        </EditableField>
     );
 }
 

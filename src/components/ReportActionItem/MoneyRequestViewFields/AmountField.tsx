@@ -1,15 +1,19 @@
+import Icon from '@components/Icon';
 // Displays the expense amount with its payment status and editing feedback.
 import type {MenuItemProps} from '@components/MenuItem';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
-import OfflineWithFeedback from '@components/OfflineWithFeedback';
+import MenuItem from '@components/MenuItem';
 import type {OfflineWithFeedbackProps} from '@components/OfflineWithFeedback';
+import Text from '@components/Text';
 
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import CONST from '@src/CONST';
+import {COPYABLE_TEXT_DATA_SET} from '@libs/SelectionScraper';
 
 import React from 'react';
+import {View} from 'react-native';
+
+import EditableField from './EditableField';
 
 type AmountFieldProps = Pick<OfflineWithFeedbackProps, 'pendingAction'> &
     Pick<MenuItemProps, 'title' | 'description' | 'hintText' | 'errorText' | 'copyValue' | 'onPress'> & {
@@ -22,24 +26,31 @@ function AmountField({pendingAction, title, description, hintText, errorText, co
     const icons = useMemoizedLazyExpensifyIcons(['Checkmark']);
 
     return (
-        <OfflineWithFeedback pendingAction={pendingAction}>
-            <MenuItemWithTopDescription
-                title={title}
-                shouldShowTitleIcon={shouldShowPaid}
-                titleIcon={icons.Checkmark}
-                description={description}
-                hintText={hintText}
-                titleStyle={styles.textHeadlineH2}
-                numberOfLinesTitle={2}
-                interactive={canEdit}
-                shouldShowRightIcon={canEdit}
-                onPress={onPress}
-                brickRoadIndicator={errorText ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-                errorText={errorText}
-                copyValue={copyValue}
-                copyable={!!copyValue}
-            />
-        </OfflineWithFeedback>
+        <EditableField
+            pendingAction={pendingAction}
+            name={description ?? ''}
+            accessibilityLabel={`${description ?? ''}, ${title ?? ''}`}
+            onPress={canEdit ? onPress : undefined}
+            isValueSelectable={!!copyValue}
+            hintText={hintText}
+            error={errorText}
+            valueComponent={
+                title ? (
+                    <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap2]}>
+                        <Text
+                            variant="h2"
+                            numberOfLines={2}
+                            dataSet={copyValue ? COPYABLE_TEXT_DATA_SET : undefined}
+                        >
+                            {title}
+                        </Text>
+                        {!!shouldShowPaid && <Icon src={icons.Checkmark} />}
+                    </View>
+                ) : undefined
+            }
+        >
+            {!canEdit && !!copyValue && <MenuItem.Copy value={copyValue} />}
+        </EditableField>
     );
 }
 

@@ -127,6 +127,27 @@ describe('TagUtils', () => {
             expect(error).toBeUndefined();
         });
 
+        it('flags an HTML-like name the Name page already rejects', () => {
+            // Given a tag the admin is renaming from the table
+            // When the new name is an HTML-like token such as </>
+            // Then the name is invalid, because the Name page blocks it and the table must not save it
+            expect(getTagNameError(tags, '</>', 'Engineering')).toBe(CONST.INPUT_VALIDATION_ERRORS.INVALID);
+        });
+
+        it('flags a non-standard angle-bracket name the Name page rejects', () => {
+            // Given a tag the admin is renaming from the table
+            // When the new name is a non-standard angle-bracket token such as <✓>
+            // Then the name is invalid, because tag name pages use strict HTML checks and the table must not save it
+            expect(getTagNameError(tags, '<\u2713>', 'Engineering')).toBe(CONST.INPUT_VALIDATION_ERRORS.INVALID);
+        });
+
+        it('allows a whitelisted angle-bracket token', () => {
+            // Given a tag the admin is renaming
+            // When the new name is a harmless token the Name page already allows, such as <>
+            // Then the name is valid, so the table and the Name page stay in agreement
+            expect(getTagNameError(tags, '<>', 'Engineering')).toBeUndefined();
+        });
+
         it('accepts a name with a colon when the escaped length is still within the limit', () => {
             // Given 254 characters including one colon, which stores as 255 characters
             const nameWithColon = `${'a'.repeat(CONST.API_TRANSACTION_TAG_MAX_LENGTH - 2)}:`;

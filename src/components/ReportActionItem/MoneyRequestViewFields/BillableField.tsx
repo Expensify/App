@@ -5,16 +5,35 @@ import type {ViolationMessagesProps} from '@components/ViolationMessages';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import CONST from '@src/CONST';
+
 import React from 'react';
+import {View} from 'react-native';
 
 import type {ToggleFieldProps} from './ToggleField';
 
 import ToggleField from './ToggleField';
 
 type BillableFieldProps = Pick<ToggleFieldProps, 'pendingAction' | 'isOn' | 'onToggle'> &
-    Pick<ViolationMessagesProps, 'violations' | 'canEdit' | 'isMarkAsCash' | 'companyCardPageURL' | 'connectionLink' | 'routeDistanceMeters' | 'distanceUnit'>;
+    Pick<
+        ViolationMessagesProps,
+        'violations' | 'canEdit' | 'isMarkAsCash' | 'companyCardPageURL' | 'connectionLink' | 'routeDistanceMeters' | 'distanceUnit' | 'policyVendors' | 'transactionCurrency'
+    >;
 
-function BillableField({pendingAction, isOn, onToggle, violations, canEdit, isMarkAsCash, companyCardPageURL, connectionLink, routeDistanceMeters, distanceUnit}: BillableFieldProps) {
+function BillableField({
+    pendingAction,
+    isOn,
+    onToggle,
+    violations,
+    canEdit,
+    isMarkAsCash,
+    companyCardPageURL,
+    connectionLink,
+    routeDistanceMeters,
+    distanceUnit,
+    policyVendors,
+    transactionCurrency,
+}: BillableFieldProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
@@ -27,18 +46,22 @@ function BillableField({pendingAction, isOn, onToggle, violations, canEdit, isMa
             disabled={!canEdit}
         >
             {violations.length > 0 && (
-                <ViolationMessages
-                    violations={violations}
-                    containerStyle={[styles.mt1]}
-                    textStyle={[styles.ph0]}
-                    isLast
-                    isMarkAsCash={isMarkAsCash}
-                    canEdit={canEdit}
-                    companyCardPageURL={companyCardPageURL}
-                    connectionLink={connectionLink}
-                    routeDistanceMeters={routeDistanceMeters}
-                    distanceUnit={distanceUnit}
-                />
+                <View dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}>
+                    <ViolationMessages
+                        violations={violations}
+                        containerStyle={[styles.mt1, styles.userSelectNone]}
+                        textStyle={[styles.ph0]}
+                        isLast
+                        isMarkAsCash={isMarkAsCash}
+                        canEdit={canEdit}
+                        companyCardPageURL={companyCardPageURL}
+                        connectionLink={connectionLink}
+                        routeDistanceMeters={routeDistanceMeters}
+                        distanceUnit={distanceUnit}
+                        policyVendors={policyVendors}
+                        transactionCurrency={transactionCurrency}
+                    />
+                </View>
             )}
         </ToggleField>
     );

@@ -40,12 +40,19 @@ jest.mock('@hooks/useNetwork', () => ({
     default: () => ({isOffline: mockIsOffline}),
 }));
 
+const mockShowDecisionModal = jest.fn();
+jest.mock('@hooks/useDecisionModal', () => ({
+    __esModule: true,
+    default: () => ({showDecisionModal: mockShowDecisionModal}),
+}));
+
 jest.mock('@hooks/useEnvironment', () => ({
     __esModule: true,
     default: () => ({isProduction: false, isDevelopment: true, environment: 'development'}),
 }));
 
 jest.mock('@libs/actions/Search', () => ({
+    openSearchCardFiltersPage: jest.fn(),
     getExportTemplates: jest.fn(() => ({customTemplates: [], defaultTemplates: []})),
     exportSearchItemsToCSV: jest.fn(),
     queueExportSearchItemsToCSV: jest.fn(),
@@ -586,7 +593,7 @@ describe('useSearchBulkActions - Download report', () => {
 
         // Then no incomplete export is started and the existing download error is shown
         expect(exportReportsToPDF).not.toHaveBeenCalled();
-        expect(result.current.isDownloadErrorModalVisible).toBe(true);
+        expect(mockShowDecisionModal).toHaveBeenCalledWith(expect.objectContaining({title: 'common.downloadFailedTitle', prompt: 'common.downloadFailedDescription'}));
     });
 
     it('should show Export as PDF for selected Expensify Card settlement groups', async () => {
@@ -665,7 +672,7 @@ describe('useSearchBulkActions - Download report', () => {
 
         // The loading modal is dismissed and the download-error modal is shown instead of hanging on "waiting".
         await waitFor(() => {
-            expect(result.current.isDownloadErrorModalVisible).toBe(true);
+            expect(mockShowDecisionModal).toHaveBeenCalledWith(expect.objectContaining({title: 'common.downloadFailedTitle', prompt: 'common.downloadFailedDescription'}));
         });
         expect(result.current.isExpensifyCardStatementPDFModalVisible).toBe(false);
         expect(result.current.expensifyCardStatementPDFParams).toBeUndefined();
@@ -717,7 +724,7 @@ describe('useSearchBulkActions - Download report', () => {
             await Promise.resolve();
         });
 
-        expect(result.current.isDownloadErrorModalVisible).toBe(false);
+        expect(mockShowDecisionModal).not.toHaveBeenCalled();
         expect(result.current.isExpensifyCardStatementPDFModalVisible).toBe(true);
         expect(result.current.expensifyCardStatementPDFParams?.entryIDs).toEqual([456]);
     });
@@ -747,7 +754,9 @@ describe('useSearchBulkActions - Download report', () => {
         });
 
         expect(getExpensifyCardStatementPDF).not.toHaveBeenCalled();
-        expect(result.current.isExpensifyCardStatementMultiFeedAlertVisible).toBe(true);
+        expect(mockShowDecisionModal).toHaveBeenCalledWith(
+            expect.objectContaining({title: 'search.expensifyCardStatementPDF.title', prompt: 'search.expensifyCardStatementPDF.oneFeedAtATime'}),
+        );
     });
 
     it('should export a cross-workspace settlement as the whole settlement (no policyID)', async () => {

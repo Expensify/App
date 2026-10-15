@@ -7,6 +7,8 @@ import Text from '@components/Text';
 
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import {COPYABLE_TEXT_DATA_SET} from '@libs/SelectionScraper';
+
 import type {PropsWithChildren} from 'react';
 
 import React from 'react';
@@ -26,6 +28,7 @@ function ToggleField({pendingAction, accessibilityLabel, isOn, onToggle, disable
                 <Text
                     accessible={false}
                     aria-hidden
+                    dataSet={COPYABLE_TEXT_DATA_SET}
                 >
                     {accessibilityLabel}
                 </Text>
