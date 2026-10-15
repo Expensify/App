@@ -94,4 +94,15 @@ describe('formatTooltipComparison', () => {
         // Then the change is the unsigned difference, marked as a decrease
         expect(comparison?.change).toEqual({amount: '$50', percentage: '50%', isIncrease: false});
     });
+
+    it('shows spend that is new against nothing as an infinite increase', () => {
+        // Given April spend for a group with no spend in the compared period
+        const point: ChartDataPoint = {label: 'April', values: {[CHART_SERIES_KEY.PRIMARY]: 300, [CHART_SERIES_KEY.COMPARISON]: 0}};
+
+        // When the tooltip comparison for that point is built
+        const comparison = formatTooltipComparison(point, COMPARED_SERIES, formatAmount, 'en');
+
+        // Then the change has no finite share of nothing, so it reads as an infinite increase
+        expect(comparison?.change).toEqual({amount: '$300', percentage: '∞%', isIncrease: true});
+    });
 });

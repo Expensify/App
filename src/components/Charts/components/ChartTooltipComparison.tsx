@@ -50,7 +50,7 @@ function ChartTooltipComparison({rows, change}: ChartTooltipComparisonProps) {
                         width={variables.iconSizeXXSmall}
                         height={variables.iconSizeXXSmall}
                     />
-                    <Text style={[styles.chartTooltipText, StyleUtils.getColorStyle(changeColor)]}>{change.percentage ? `${change.amount} (${change.percentage})` : change.amount}</Text>
+                    <Text style={[styles.chartTooltipText, StyleUtils.getColorStyle(changeColor)]}>{`${change.amount} (${change.percentage})`}</Text>
                 </View>
             )}
         </>

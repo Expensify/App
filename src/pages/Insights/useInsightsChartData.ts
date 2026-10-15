@@ -22,7 +22,7 @@ import type {ValueOf} from 'type-fest';
 import type {InsightsChartSpec} from './dashboardSpecs';
 import type {InsightsFilters} from './insightsFilters';
 
-import resolveComparisonWindows from './insightsCompare';
+import resolveComparisonPeriods from './insightsCompare';
 import {applyInsightsFilters} from './insightsQueries';
 
 type InsightsChartState = ValueOf<typeof INSIGHTS_CHART_STATE>;
@@ -51,8 +51,8 @@ function useInsightsChartData(chart: InsightsChartSpec, filters: InsightsFilters
     const current = resolveInsightsChartData({snapshot, queryJSON, sortedData, isOffline});
 
     const compare = isBetaEnabled(CONST.BETAS.INSIGHTS_COMPARE) && chart.view === CONST.SEARCH.VIEW.LINE ? filters.compare : undefined;
-    const windows = compare === CONST.SEARCH.COMPARE.PREVIOUS_PERIOD ? resolveComparisonWindows(filters.date) : undefined;
-    const isComparing = compare === CONST.SEARCH.COMPARE.AVERAGE || !!windows;
+    const periods = compare === CONST.SEARCH.COMPARE.PREVIOUS_PERIOD ? resolveComparisonPeriods(filters.date) : undefined;
+    const isComparing = compare === CONST.SEARCH.COMPARE.AVERAGE || !!periods;
     const comparedQueryJSON = isComparing ? buildSearchQueryJSON(applyInsightsFilters(chart, filters, compare)) : undefined;
     const [comparedSnapshot] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${comparedQueryJSON?.hash}`);
     const comparedSortedData = useGroupedItems(comparedSnapshot, queryJSON);
@@ -70,9 +70,7 @@ function useInsightsChartData(chart: InsightsChartSpec, filters: InsightsFilters
     const color = VictoryTheme.colors.getComparisonColor(VictoryTheme.colors.default, theme.colorScheme);
     return {
         ...current,
-        comparison: windows
-            ? {data: compared.data, color, periods: {primary: windows.current, comparison: windows.previous}}
-            : {data: compared.data, color, label: translate('insightsPage.compare.average')},
+        comparison: periods ? {data: compared.data, color, periods} : {data: compared.data, color, label: translate('insightsPage.compare.average')},
     };
 }
 

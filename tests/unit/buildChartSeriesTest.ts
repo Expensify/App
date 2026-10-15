@@ -456,11 +456,11 @@ describe('buildChartSeries labels for compared time buckets', () => {
     }
 
     function weekGroup(week: string): TransactionWeekGroupListItemType {
-        return {...BUCKET_BASE, groupedBy: CONST.SEARCH.GROUP_BY.WEEK, week, formattedWeek: week, shortFormattedWeek: week, keyForList: `week_${week}`};
+        return {...BUCKET_BASE, groupedBy: CONST.SEARCH.GROUP_BY.WEEK, week, formattedWeek: week, shortFormattedWeek: week, lineChartFormattedWeek: week, keyForList: `week_${week}`};
     }
 
     function dayGroup(day: string): TransactionDayGroupListItemType {
-        return {...BUCKET_BASE, groupedBy: CONST.SEARCH.GROUP_BY.DAY, day, formattedDay: day, shortFormattedDay: day, keyForList: `day_${day}`};
+        return {...BUCKET_BASE, groupedBy: CONST.SEARCH.GROUP_BY.DAY, day, formattedDay: day, shortFormattedDay: day, lineChartFormattedDay: day, keyForList: `day_${day}`};
     }
 
     /** Builds the labels of a chart plotting the window on screen against the one before it. */

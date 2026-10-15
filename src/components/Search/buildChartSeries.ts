@@ -83,10 +83,13 @@ const BUCKET_NAME_LABEL = {
     year: 'common.year',
 } as const satisfies Record<ChartBucketUnit, string>;
 
+/** A period's first and last day */
+type ChartPeriod = {start: string; end: string};
+
 /** The two periods being compared, whose buckets pair up by their offset from each period's start */
 type ChartComparisonPeriods = {
-    primary: ChartBucketRange;
-    comparison: ChartBucketRange;
+    primary: ChartPeriod;
+    comparison: ChartPeriod;
 };
 
 /** Rows drawn as a second series against the primary one */
@@ -94,12 +97,13 @@ type ChartComparison = {
     /** The compared rows, each paired with the plotted group stored under the same key, or with its bucket's counterpart when `periods` is set */
     data: GroupedItem[];
 
-    color: string;
-
     /** Names the series in the tooltip, like "Average". Left out, each row names the dates it covers. */
     label?: string;
 
-    /** Set when the rows are another period's time buckets */
+    /** Color of the compared line */
+    color: string;
+
+    /** Set when the rows are another period's */
     periods?: ChartComparisonPeriods;
 };
 
@@ -128,6 +132,7 @@ type BuildChartSeriesParams = {
     /** Formats labels shared by paired time buckets */
     translate: LocaleContextProps['translate'];
 
+    /** Locale the names of compared periods are formatted in */
     dateFnsLocale: LocaleContextProps['dateFnsLocale'];
 
     /** Returns the label of a group whose period hasn't ended yet, or undefined for a finished one */
@@ -240,21 +245,21 @@ function clipToPeriod(range: ChartBucketRange, period: ChartBucketRange): ChartB
 }
 
 /** Names a range of dates, by its calendar name when it spans a whole one, like "October 2026", or else by its dates */
-function formatDates({start, end}: ChartBucketRange, dateFnsLocale: LocaleContextProps['dateFnsLocale']): string {
+function formatDates({start, end}: ChartPeriod, dateFnsLocale: LocaleContextProps['dateFnsLocale']): string {
     const startDate = parseISO(start);
     const endDate = parseISO(end);
-    const spans = (toStart: (date: Date) => Date, toEnd: (date: Date) => Date) => isSameDay(startDate, toStart(startDate)) && isSameDay(endDate, toEnd(startDate));
+    const isWholeUnit = (toStart: (date: Date) => Date, toEnd: (date: Date) => Date) => isSameDay(startDate, toStart(startDate)) && isSameDay(endDate, toEnd(startDate));
 
     if (isSameDay(startDate, endDate)) {
         return format(startDate, 'MMM d, yyyy', {locale: dateFnsLocale});
     }
-    if (spans(startOfYear, endOfYear)) {
+    if (isWholeUnit(startOfYear, endOfYear)) {
         return format(startDate, 'yyyy', {locale: dateFnsLocale});
     }
-    if (spans(startOfQuarter, endOfQuarter)) {
+    if (isWholeUnit(startOfQuarter, endOfQuarter)) {
         return format(startDate, 'QQQ yyyy', {locale: dateFnsLocale});
     }
-    if (spans(startOfMonth, endOfMonth)) {
+    if (isWholeUnit(startOfMonth, endOfMonth)) {
         return format(startDate, 'LLLL yyyy', {locale: dateFnsLocale});
     }
     return DateUtils.getFormattedDateRangeForSearch(start, end, dateFnsLocale);
@@ -379,4 +384,4 @@ function buildChartSeries({
 }
 
 export {buildChartSeries, getSliceColorsByDataIndex, CHART_SERIES_KEY};
-export type {ChartComparison, SearchChartModel};
+export type {ChartComparison, ChartComparisonPeriods, ChartPeriod, SearchChartModel};
