@@ -8,6 +8,8 @@ import type {ValueOf} from 'type-fest';
 
 import {useEffect, useRef, useState} from 'react';
 
+import type {InlineEditSaveResult} from './types';
+
 type PopoverPosition = {
     horizontal: number;
     vertical: number;
@@ -21,7 +23,7 @@ type UsePopoverEditStateOptions = {
     value?: unknown;
 
     /** Callback when the value is saved */
-    onSave?: (value: unknown) => void;
+    onSave?: (value: unknown) => InlineEditSaveResult;
 
     /** Custom equality function. If not provided, Object.is is used. */
     isEqual?: (newValue: unknown, originalValue: unknown) => boolean;
@@ -116,7 +118,7 @@ function usePopoverEditStateImpl({
 type UsePopoverEditStateOptionsGeneric<T> = {
     canEdit: boolean | undefined;
     value?: T;
-    onSave?: (value: T) => void;
+    onSave?: (value: T) => InlineEditSaveResult;
     isEqual?: (newValue: T, originalValue: T) => boolean;
     popoverHeight?: number;
     padding?: number;

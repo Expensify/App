@@ -7,7 +7,6 @@ import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleCon
 import type PolicyData from '@hooks/usePolicyData/types';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 
-import * as HoldUtils from '@libs/actions/IOU/Hold';
 import {putOnHold} from '@libs/actions/IOU/Hold';
 import type {TaskForParameters} from '@libs/actions/Report';
 import type {OnboardingTaskLinks} from '@libs/actions/Welcome/OnboardingFlow';
@@ -59,8 +58,11 @@ import {
     buildParticipantsFromAccountIDs,
     buildTransactionThread,
     canAddTransaction,
+    canDuplicateExpenseIntoSourceReport,
     canBeAutoReimbursed,
     canCreateRequest,
+    canCreateTaskInReport,
+    canDeleteCardTransaction,
     canDeleteMoneyRequestReport,
     canDeleteReportAction,
     canDeleteTransaction,
@@ -83,7 +85,6 @@ import {
     canRequestMoney,
     canSeeDefaultRoom,
     canUserPerformWriteAction,
-    changeMoneyRequestHoldStatus,
     doesReportBelongToWorkspace,
     excludeParticipantsForDisplay,
     findLastAccessedReport,
@@ -128,6 +129,7 @@ import {
     getParticipantsList,
     getPayeeName,
     getPendingChatMembers,
+    getUpdateEmployeeDisplayNameMessage,
     getPendingDeleteMemberAccountIDs,
     getPolicyChangeLogCopyMessage,
     getPolicyExpenseChat,
@@ -197,6 +199,7 @@ import {
     isReportManager,
     isReportOutstanding,
     isReportPendingDelete,
+    isResolvedSupportTicket,
     isRootGroupChat,
     isSelfDMOrSelfDMThread,
     isSortableColumnName,
@@ -216,6 +219,7 @@ import {
     shouldDisableRename,
     shouldDisableThread,
     shouldDisplayReportFields,
+    shouldDisplayThreadReplies,
     shouldEnableNegative,
     shouldExcludeAncestorReportAction,
     shouldCreateNewMoneyRequestReport,
@@ -365,6 +369,10 @@ jest.mock('@libs/PolicyUtils', () => {
     const isPaidGroupPolicy = jest.fn().mockImplementation((policy?: Policy) => policy?.type === 'corporate' || policy?.type === 'team');
     return {
         ...actualPolicyUtils,
+        // This factory runs while PolicyUtils is still loading inside an import cycle, so the barrel's `export *` helpers
+        // aren't on it yet. Spread them from their own modules, which load fully.
+        ...jest.requireActual<Record<string, unknown>>('@libs/PolicyUtils/customUnits'),
+        ...jest.requireActual<Record<string, unknown>>('@libs/PolicyUtils/tax'),
         isPolicyAdmin: jest.fn().mockImplementation((policy?: Policy) => policy?.role === 'admin'),
         isPaidGroupPolicy,
         // isGroupPolicy delegates to the isPaidGroupPolicy mock so tests that tweak isPaidGroupPolicy still drive group-policy checks
@@ -407,6 +415,7 @@ const computeReportName = (
         conciergeReportID,
         reportTransactions: buildTransactionsByReportID(transactions),
         isTrackIntentUser: false,
+        formatPhoneNumber,
         rules: undefined,
     });
 const participantsPersonalDetails: PersonalDetailsList = {
@@ -1671,7 +1680,7 @@ describe('ReportUtils', () => {
                 reportName: 'Fallback Report Name',
             });
 
-            const name = getPolicyExpenseChatName({report, personalDetailsList: participantsPersonalDetails, translate: translateLocal});
+            const name = getPolicyExpenseChatName({report, personalDetailsList: participantsPersonalDetails, translate: translateLocal, formatPhoneNumber});
             expect(name).toBe(translate(CONST.LOCALES.EN, 'workspace.common.policyExpenseChatName', 'Ragnar Lothbrok'));
         });
 
@@ -1681,7 +1690,7 @@ describe('ReportUtils', () => {
                 reportName: 'Fallback Report Name',
             });
 
-            const name = getPolicyExpenseChatName({report, personalDetailsList: participantsPersonalDetails, translate: translateLocal});
+            const name = getPolicyExpenseChatName({report, personalDetailsList: participantsPersonalDetails, translate: translateLocal, formatPhoneNumber});
             expect(name).toBe(translate(CONST.LOCALES.EN, 'workspace.common.policyExpenseChatName', 'floki'));
         });
 
@@ -1691,7 +1700,7 @@ describe('ReportUtils', () => {
                 reportName: 'Fallback Report Name',
             });
 
-            const name = getPolicyExpenseChatName({report, personalDetailsList: {}, translate: translateLocal});
+            const name = getPolicyExpenseChatName({report, personalDetailsList: {}, translate: translateLocal, formatPhoneNumber});
             expect(name).toBe('Fallback Report Name');
         });
     });
@@ -3866,13 +3875,13 @@ describe('ReportUtils', () => {
         });
 
         it('should return the correct parent navigation subtitle for the archived invoice report', () => {
-            const actual = getParentNavigationSubtitle(baseArchivedPolicyExpenseChat, undefined, undefined, translateLocal, undefined, true);
+            const actual = getParentNavigationSubtitle(baseArchivedPolicyExpenseChat, undefined, undefined, translateLocal, formatPhoneNumber, undefined, true);
             const normalizedActual = {...actual, reportName: actual.reportName?.replaceAll('\u00A0', ' ')};
             expect(normalizedActual).toEqual({reportName: 'A workspace & Ragnar Lothbrok (archived)'});
         });
 
         it('should return the correct parent navigation subtitle for the non archived invoice report', () => {
-            const actual = getParentNavigationSubtitle(baseArchivedPolicyExpenseChat, undefined, undefined, translateLocal, undefined, false);
+            const actual = getParentNavigationSubtitle(baseArchivedPolicyExpenseChat, undefined, undefined, translateLocal, formatPhoneNumber, undefined, false);
             const normalizedActual = {...actual, reportName: actual.reportName?.replaceAll('\u00A0', ' ')};
             expect(normalizedActual).toEqual({reportName: 'A workspace & Ragnar Lothbrok'});
         });
@@ -3891,7 +3900,7 @@ describe('ReportUtils', () => {
                 role: CONST.POLICY.ROLE.ADMIN,
             });
 
-            const actual = getParentNavigationSubtitle(expenseReport, testPolicy, undefined, translateLocal, undefined);
+            const actual = getParentNavigationSubtitle(expenseReport, testPolicy, undefined, translateLocal, formatPhoneNumber, undefined);
             expect(actual.workspaceName).toBe('Direct Policy Name');
         });
 
@@ -3919,14 +3928,14 @@ describe('ReportUtils', () => {
             };
 
             return Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}200`, parentInvoiceRoom).then(() => {
-                const actual = getParentNavigationSubtitle(invoiceReport, testPolicy, undefined, translateLocal, undefined);
+                const actual = getParentNavigationSubtitle(invoiceReport, testPolicy, undefined, translateLocal, formatPhoneNumber, undefined);
                 const normalizedActual = {...actual, reportName: actual.reportName?.replaceAll('\u00A0', ' ')};
                 expect(normalizedActual.reportName).toContain('Invoice Policy');
             });
         });
 
         it('should fall back to allPolicies when policy parameter is undefined', () => {
-            const actual = getParentNavigationSubtitle(baseArchivedPolicyExpenseChat, undefined, undefined, translateLocal, undefined);
+            const actual = getParentNavigationSubtitle(baseArchivedPolicyExpenseChat, undefined, undefined, translateLocal, formatPhoneNumber, undefined);
             const normalizedActual = {...actual, reportName: actual.reportName?.replaceAll('\u00A0', ' ')};
             // Should still resolve via Onyx-connected allPolicies or report.policyName
             expect(normalizedActual.reportName).toContain('A workspace');
@@ -3939,7 +3948,7 @@ describe('ReportUtils', () => {
                 reportName: 'Chat Report',
                 type: CONST.REPORT.TYPE.CHAT,
             };
-            const actual = getParentNavigationSubtitle(chatReport, undefined, undefined, translateLocal, undefined);
+            const actual = getParentNavigationSubtitle(chatReport, undefined, undefined, translateLocal, formatPhoneNumber, undefined);
             expect(actual).toEqual({});
         });
 
@@ -3966,13 +3975,13 @@ describe('ReportUtils', () => {
             })
                 .then(waitForBatchedUpdates)
                 .then(() => {
-                    const actual = getParentNavigationSubtitle(childReport, undefined, conciergeReportID, translateLocal, 'Concierge');
+                    const actual = getParentNavigationSubtitle(childReport, undefined, conciergeReportID, translateLocal, formatPhoneNumber, 'Concierge');
                     expect(actual.reportName).toBe('Concierge');
                 });
         });
 
         it('should return reportName and workspaceName when parent report exists and conciergeReportID is undefined', () => {
-            const actual = getParentNavigationSubtitle(baseArchivedPolicyExpenseChat, undefined, undefined, translateLocal, undefined);
+            const actual = getParentNavigationSubtitle(baseArchivedPolicyExpenseChat, undefined, undefined, translateLocal, formatPhoneNumber, undefined);
             expect(actual).toHaveProperty('reportName');
         });
 
@@ -3984,7 +3993,7 @@ describe('ReportUtils', () => {
             const expenseReport = {reportID: '780051', type: CONST.REPORT.TYPE.EXPENSE, ownerAccountID: hiddenOwnerAccountID};
             const translateWithHiddenMarker: LocalizedTranslate = (path, ...parameters) => (path === 'common.hidden' ? 'HiddenMarker' : translateLocal(path, ...parameters));
 
-            const actual = getParentNavigationSubtitle(expenseReport, undefined, undefined, translateWithHiddenMarker, undefined);
+            const actual = getParentNavigationSubtitle(expenseReport, undefined, undefined, translateWithHiddenMarker, formatPhoneNumber, undefined);
             expect(actual.reportName).toContain('HiddenMarker');
         });
     });
@@ -4073,7 +4082,7 @@ describe('ReportUtils', () => {
         });
 
         it('returns false when there is no report', () => {
-            expect(requiresAttentionFromCurrentUser(undefined, currentUserEmail, currentUserAccountID)).toBe(false);
+            expect(requiresAttentionFromCurrentUser(undefined, currentUserEmail, currentUserAccountID, undefined)).toBe(false);
         });
 
         it('returns false when the matched IOU report does not have an owner accountID', () => {
@@ -4081,7 +4090,7 @@ describe('ReportUtils', () => {
                 ...LHNTestUtils.getFakeReport(),
                 ownerAccountID: undefined,
             };
-            expect(requiresAttentionFromCurrentUser(report, currentUserEmail, currentUserAccountID)).toBe(false);
+            expect(requiresAttentionFromCurrentUser(report, currentUserEmail, currentUserAccountID, undefined)).toBe(false);
         });
 
         it('returns false when the linked iou report has an outstanding IOU', () => {
@@ -4093,7 +4102,7 @@ describe('ReportUtils', () => {
                 reportID: '1',
                 ownerAccountID: 99,
             }).then(() => {
-                expect(requiresAttentionFromCurrentUser(report, currentUserEmail, currentUserAccountID)).toBe(false);
+                expect(requiresAttentionFromCurrentUser(report, currentUserEmail, currentUserAccountID, undefined)).toBe(false);
             });
         });
 
@@ -4103,7 +4112,7 @@ describe('ReportUtils', () => {
                 ownerAccountID: currentUserAccountID,
                 isWaitingOnBankAccount: true,
             };
-            expect(requiresAttentionFromCurrentUser(report, currentUserEmail, currentUserAccountID)).toBe(false);
+            expect(requiresAttentionFromCurrentUser(report, currentUserEmail, currentUserAccountID, undefined)).toBe(false);
         });
 
         it('returns false when the report has outstanding IOU and is not waiting for a bank account and the logged user is the report owner', () => {
@@ -4112,7 +4121,7 @@ describe('ReportUtils', () => {
                 ownerAccountID: currentUserAccountID,
                 isWaitingOnBankAccount: false,
             };
-            expect(requiresAttentionFromCurrentUser(report, currentUserEmail, currentUserAccountID)).toBe(false);
+            expect(requiresAttentionFromCurrentUser(report, currentUserEmail, currentUserAccountID, undefined)).toBe(false);
         });
 
         it('returns false when the report has no outstanding IOU but is waiting for a bank account and the logged user is not the report owner', () => {
@@ -4121,7 +4130,7 @@ describe('ReportUtils', () => {
                 ownerAccountID: 97,
                 isWaitingOnBankAccount: true,
             };
-            expect(requiresAttentionFromCurrentUser(report, currentUserEmail, currentUserAccountID)).toBe(false);
+            expect(requiresAttentionFromCurrentUser(report, currentUserEmail, currentUserAccountID, undefined)).toBe(false);
         });
 
         it('returns true when the report has an unread mention', () => {
@@ -4129,7 +4138,7 @@ describe('ReportUtils', () => {
                 ...LHNTestUtils.getFakeReport(),
                 isUnreadWithMention: true,
             };
-            expect(requiresAttentionFromCurrentUser(report, currentUserEmail, currentUserAccountID)).toBe(true);
+            expect(requiresAttentionFromCurrentUser(report, currentUserEmail, currentUserAccountID, undefined)).toBe(true);
         });
 
         it('returns true for @here mention in an admin room', () => {
@@ -4139,7 +4148,7 @@ describe('ReportUtils', () => {
                 lastReadTime: '2024-03-01 12:00:00.000',
                 lastMentionedTime: '2024-03-01 12:00:01.000',
             };
-            expect(requiresAttentionFromCurrentUser(report, currentUserEmail, currentUserAccountID)).toBe(true);
+            expect(requiresAttentionFromCurrentUser(report, currentUserEmail, currentUserAccountID, undefined)).toBe(true);
         });
 
         it('returns false for @here in an admin room when user already read after mention', () => {
@@ -4149,7 +4158,7 @@ describe('ReportUtils', () => {
                 lastReadTime: '2024-03-01 12:00:02.000',
                 lastMentionedTime: '2024-03-01 12:00:01.000',
             };
-            expect(requiresAttentionFromCurrentUser(report, currentUserEmail, currentUserAccountID)).toBe(false);
+            expect(requiresAttentionFromCurrentUser(report, currentUserEmail, currentUserAccountID, undefined)).toBe(false);
         });
 
         it('returns true when the report is an outstanding task', () => {
@@ -4162,7 +4171,7 @@ describe('ReportUtils', () => {
                 statusNum: CONST.REPORT.STATUS_NUM.OPEN,
                 hasParentAccess: false,
             };
-            expect(requiresAttentionFromCurrentUser(report, currentUserEmail, currentUserAccountID)).toBe(true);
+            expect(requiresAttentionFromCurrentUser(report, currentUserEmail, currentUserAccountID, undefined)).toBe(true);
         });
 
         it('returns true when the report has outstanding child expense', () => {
@@ -4172,7 +4181,7 @@ describe('ReportUtils', () => {
                 hasOutstandingChildRequest: true,
                 isWaitingOnBankAccount: false,
             };
-            expect(requiresAttentionFromCurrentUser(report, currentUserEmail, currentUserAccountID)).toBe(true);
+            expect(requiresAttentionFromCurrentUser(report, currentUserEmail, currentUserAccountID, undefined)).toBe(true);
         });
 
         it('returns false if the user is not on free trial', async () => {
@@ -4186,7 +4195,7 @@ describe('ReportUtils', () => {
                 chatType: CONST.REPORT.CHAT_TYPE.SYSTEM,
             };
 
-            expect(requiresAttentionFromCurrentUser(report, currentUserEmail, currentUserAccountID)).toBe(false);
+            expect(requiresAttentionFromCurrentUser(report, currentUserEmail, currentUserAccountID, undefined)).toBe(false);
         });
 
         it("returns false if the user free trial hasn't ended yet", async () => {
@@ -4200,7 +4209,7 @@ describe('ReportUtils', () => {
                 chatType: CONST.REPORT.CHAT_TYPE.SYSTEM,
             };
 
-            expect(requiresAttentionFromCurrentUser(report, currentUserEmail, currentUserAccountID)).toBe(false);
+            expect(requiresAttentionFromCurrentUser(report, currentUserEmail, currentUserAccountID, undefined)).toBe(false);
         });
 
         it('returns true when expense report is awaiting current user approval without parent access', () => {
@@ -4213,7 +4222,7 @@ describe('ReportUtils', () => {
                 statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
             };
 
-            expect(requiresAttentionFromCurrentUser(report, currentUserEmail, currentUserAccountID)).toBe(true);
+            expect(requiresAttentionFromCurrentUser(report, currentUserEmail, currentUserAccountID, undefined)).toBe(true);
         });
 
         it('returns false when awaiting approval but parent accessible or user is not approver', () => {
@@ -4226,7 +4235,7 @@ describe('ReportUtils', () => {
                 statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
             };
 
-            expect(requiresAttentionFromCurrentUser(reportWithParentAccess, currentUserEmail, currentUserAccountID)).toBe(false);
+            expect(requiresAttentionFromCurrentUser(reportWithParentAccess, currentUserEmail, currentUserAccountID, undefined)).toBe(false);
 
             const reportWithDifferentManager = {
                 ...LHNTestUtils.getFakeReport(),
@@ -4237,7 +4246,7 @@ describe('ReportUtils', () => {
                 statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
             };
 
-            expect(requiresAttentionFromCurrentUser(reportWithDifferentManager, currentUserEmail, currentUserAccountID)).toBe(false);
+            expect(requiresAttentionFromCurrentUser(reportWithDifferentManager, currentUserEmail, currentUserAccountID, undefined)).toBe(false);
         });
 
         it('returns false when expense report is awaiting user submission, delayed submission on > daily', async () => {
@@ -4249,7 +4258,7 @@ describe('ReportUtils', () => {
 
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}1`, {reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL});
 
-            expect(requiresAttentionFromCurrentUser(report, currentUserEmail, currentUserAccountID)).toBe(false);
+            expect(requiresAttentionFromCurrentUser(report, currentUserEmail, currentUserAccountID, undefined)).toBe(false);
         });
 
         it('returns false when expense report is awaiting user submission, delayed submission on > manually', async () => {
@@ -4261,7 +4270,7 @@ describe('ReportUtils', () => {
 
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}1`, {reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL});
 
-            expect(requiresAttentionFromCurrentUser(report, currentUserEmail, currentUserAccountID)).toBe(true);
+            expect(requiresAttentionFromCurrentUser(report, currentUserEmail, currentUserAccountID, undefined)).toBe(true);
         });
 
         it('returns true for expense report awaiting submission with manual submit', async () => {
@@ -4284,8 +4293,8 @@ describe('ReportUtils', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}1`, {reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL});
 
             // The GBR should appear on the policy expense chat but not on the report itself
-            expect(requiresAttentionFromCurrentUser(report, currentUserEmail, currentUserAccountID)).toBe(false);
-            expect(requiresAttentionFromCurrentUser(policyExpenseChat, currentUserEmail, currentUserAccountID)).toBe(true);
+            expect(requiresAttentionFromCurrentUser(report, currentUserEmail, currentUserAccountID, undefined)).toBe(false);
+            expect(requiresAttentionFromCurrentUser(policyExpenseChat, currentUserEmail, currentUserAccountID, undefined)).toBe(true);
         });
 
         it('returns false when the outstanding child expense only has pending card transactions', async () => {
@@ -4323,7 +4332,7 @@ describe('ReportUtils', () => {
             await waitForBatchedUpdates();
 
             // Even though the chat carries an outstanding-child flag, an all-pending card report can't be actioned yet.
-            expect(requiresAttentionFromCurrentUser(policyExpenseChat, currentUserEmail, currentUserAccountID)).toBe(false);
+            expect(requiresAttentionFromCurrentUser(policyExpenseChat, currentUserEmail, currentUserAccountID, undefined)).toBe(false);
         });
 
         describe('when the outstanding child expense is all on hold', () => {
@@ -4400,14 +4409,14 @@ describe('ReportUtils', () => {
                 const policyExpenseChat = await seedHeldChildExpense(otherUserAccountID);
 
                 // An all-held report can't move to its next state, so it isn't a to-do when someone else placed the hold.
-                expect(requiresAttentionFromCurrentUser(policyExpenseChat, currentUserEmail, currentUserAccountID)).toBe(false);
+                expect(requiresAttentionFromCurrentUser(policyExpenseChat, currentUserEmail, currentUserAccountID, undefined)).toBe(false);
             });
 
             it('still requires attention when the current user placed the hold', async () => {
                 const policyExpenseChat = await seedHeldChildExpense(currentUserAccountID);
 
                 // Only the person who placed the hold can remove it, so the report stays in their to-do queue.
-                expect(requiresAttentionFromCurrentUser(policyExpenseChat, currentUserEmail, currentUserAccountID)).toBe(true);
+                expect(requiresAttentionFromCurrentUser(policyExpenseChat, currentUserEmail, currentUserAccountID, undefined)).toBe(true);
             });
 
             it('does not require attention for an open report the current user owns and placed the hold on', async () => {
@@ -4420,7 +4429,7 @@ describe('ReportUtils', () => {
                 // Only the owner can hold on an open report, and that owner is the one who submits, so the hold placer
                 // exception never applies there. This holds on the fallback path too, where the chat carries an
                 // outstanding-child flag but no report preview action is loaded yet, so there is no action badge.
-                expect(requiresAttentionFromCurrentUser(policyExpenseChat, currentUserEmail, currentUserAccountID)).toBe(false);
+                expect(requiresAttentionFromCurrentUser(policyExpenseChat, currentUserEmail, currentUserAccountID, undefined)).toBe(false);
             });
         });
 
@@ -4534,13 +4543,19 @@ describe('ReportUtils', () => {
                 const policyExpenseChat = await seedTwoChildExpenses();
 
                 // The all-held report can't move to its next state, but it must not hide the sibling that can.
-                expect(requiresAttentionFromCurrentUser(policyExpenseChat, currentUserEmail, currentUserAccountID)).toBe(true);
+                expect(requiresAttentionFromCurrentUser(policyExpenseChat, currentUserEmail, currentUserAccountID, undefined)).toBe(true);
             });
 
             it('surfaces the approvable sibling as the badge action instead of the all-held report', async () => {
                 const policyExpenseChat = await seedTwoChildExpenses();
 
-                const {reportAction, actionBadge} = getReasonAndReportActionThatRequiresAttention(policyExpenseChat, currentUserEmail, currentUserAccountID) ?? {};
+                const {reportAction, actionBadge} =
+                    getReasonAndReportActionThatRequiresAttention({
+                        optionOrReport: policyExpenseChat,
+                        currentUserLogin: currentUserEmail,
+                        currentUserAccountID,
+                        transactionViolations: undefined,
+                    }) ?? {};
 
                 expect(reportAction?.childReportID).toBe(approvableExpenseReportID);
                 expect(actionBadge).toBe(CONST.REPORT.ACTION_BADGE.APPROVE);
@@ -4565,8 +4580,8 @@ describe('ReportUtils', () => {
             };
 
             // The GBR should appear on the policy expense chat but not on the report itself
-            expect(requiresAttentionFromCurrentUser(report, currentUserEmail, currentUserAccountID)).toBe(false);
-            expect(requiresAttentionFromCurrentUser(policyExpenseChat, currentUserEmail, currentUserAccountID)).toBe(true);
+            expect(requiresAttentionFromCurrentUser(report, currentUserEmail, currentUserAccountID, undefined)).toBe(false);
+            expect(requiresAttentionFromCurrentUser(policyExpenseChat, currentUserEmail, currentUserAccountID, undefined)).toBe(true);
         });
 
         it('returns false and does not surface GBR when expense report is approved and reimbursement is enabled', async () => {
@@ -4590,7 +4605,7 @@ describe('ReportUtils', () => {
             await waitForBatchedUpdates();
 
             // When we evaluate if the report requires attention from the current user
-            const requiresAttention = requiresAttentionFromCurrentUser(report, currentUserEmail, currentUserAccountID);
+            const requiresAttention = requiresAttentionFromCurrentUser(report, currentUserEmail, currentUserAccountID, undefined);
 
             // Then it should return false because the report is already approved and reimbursement is enabled
             expect(requiresAttention).toBe(false);
@@ -6145,6 +6160,86 @@ describe('ReportUtils', () => {
                 canUnholdRequest: false,
             });
         });
+
+        it('should let the submitter hold an expense with no IOU action on their open expense report', () => {
+            // Given an expense with no IOU action on an open expense report the current user submitted
+            const expenseReport = {
+                ...createExpenseReport(1004),
+                policyID: 'policy-4',
+                ownerAccountID: currentUserAccountID,
+                managerID: 99999,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+            };
+            const expenseTransaction = buildOptimisticTransaction({
+                transactionParams: {
+                    amount: 100,
+                    currency: 'USD',
+                    reportID: expenseReport.reportID,
+                },
+            });
+
+            // When checking whether it can be held, Then Hold is available, because HoldRequest creates the missing IOU action and thread
+            expect(canHoldUnholdReportAction(expenseReport, undefined, undefined, expenseTransaction, undefined, currentUserAccountID, undefined)).toEqual({
+                canHoldRequest: true,
+                canUnholdRequest: false,
+            });
+        });
+
+        it('should not let another member hold an expense with no IOU action on an open expense report', () => {
+            // Given an expense with no IOU action on an open expense report another member submitted
+            const expenseReport = {
+                ...createExpenseReport(1005),
+                policyID: 'policy-5',
+                ownerAccountID: 99998,
+                managerID: 99999,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+            };
+            const expenseTransaction = buildOptimisticTransaction({
+                transactionParams: {
+                    amount: 100,
+                    currency: 'USD',
+                    reportID: expenseReport.reportID,
+                },
+            });
+
+            // When checking whether it can be held, Then Hold is unavailable, because only the requester can hold on an open report
+            expect(canHoldUnholdReportAction(expenseReport, undefined, undefined, expenseTransaction, undefined, currentUserAccountID, undefined)).toEqual({
+                canHoldRequest: false,
+                canUnholdRequest: false,
+            });
+        });
+
+        it('should not offer Unhold for a held expense that has no IOU action yet', () => {
+            // Given an admin and an expense held optimistically on an open expense report, before the server returned its new IOU action
+            const expenseReport = {
+                ...createExpenseReport(1006),
+                policyID: 'policy-6',
+                ownerAccountID: currentUserAccountID,
+                managerID: 99999,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+            };
+            const expenseTransaction = buildOptimisticTransaction({
+                transactionParams: {
+                    amount: 100,
+                    currency: 'USD',
+                    reportID: expenseReport.reportID,
+                },
+            });
+            const heldTransaction = {...expenseTransaction, comment: {...expenseTransaction.comment, hold: 'holdActionID'}};
+            const adminPolicy = createMock<Policy>({
+                id: expenseReport.policyID,
+                role: CONST.POLICY.ROLE.ADMIN,
+            });
+
+            // When checking whether it can be unheld, Then Unhold is unavailable, because removing the hold needs the IOU action's transaction thread
+            expect(canHoldUnholdReportAction(expenseReport, undefined, undefined, heldTransaction, adminPolicy, currentUserAccountID, undefined)).toEqual({
+                canHoldRequest: false,
+                canUnholdRequest: false,
+            });
+        });
     });
 
     describe('isAdminOwnerApproverOrReportOwner uses explicit currentUserAccountID', () => {
@@ -6187,118 +6282,6 @@ describe('ReportUtils', () => {
             expect(canLeaveChat(report, undefined, unrelatedAccountID)).toBe(true);
             expect(canLeaveChat(report, undefined, ownerAccountID)).toBe(false);
             expect(canLeaveChat(report, undefined, managerAccountID)).toBe(false);
-        });
-    });
-
-    describe('changeMoneyRequestHoldStatus', () => {
-        afterEach(() => {
-            jest.restoreAllMocks();
-        });
-
-        it('should unhold request when transaction is already on hold', async () => {
-            // Given a money request report, report action, and transaction that is on hold
-            const reportID = '101';
-            const policyID = '102';
-            const transactionID = '123';
-            const childReportID = '555';
-            const moneyRequestReport = createMock<Report>({
-                ...createExpenseReport(101),
-                reportID,
-                policyID,
-            });
-            const reportAction = buildOptimisticIOUReportAction({
-                getCurrencyDecimals: getCurrencyDecimalsLocal,
-                type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
-                amount: 123,
-                currency: 'USD',
-                comment: '',
-                participants: [],
-                transactionID,
-                iouReportID: moneyRequestReport.reportID,
-            });
-            reportAction.childReportID = childReportID;
-
-            const iouTransaction = createMock<Transaction>({
-                ...createRandomTransaction(123),
-                transactionID,
-                reportID: moneyRequestReport.reportID,
-                comment: {
-                    hold: '999',
-                },
-            });
-
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${moneyRequestReport.reportID}`, moneyRequestReport);
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${moneyRequestReport.policyID}`, {
-                id: moneyRequestReport.policyID,
-                type: CONST.POLICY.TYPE.TEAM,
-            });
-            await waitForBatchedUpdates();
-
-            const unholdRequestSpy = jest.spyOn(HoldUtils, 'unholdRequest').mockImplementation(() => undefined);
-
-            // When changeMoneyRequestHoldStatus is called
-            changeMoneyRequestHoldStatus(reportAction, iouTransaction, false, currentUserEmail, currentUserAccountID, undefined, false, undefined, undefined);
-
-            // Then unholdRequest should be called with the correct parameters and navigation should not be called
-            expect(unholdRequestSpy).toHaveBeenCalledWith({
-                transactionID,
-                transaction: iouTransaction,
-                reportID: childReportID,
-                policy: expect.objectContaining({id: policyID}),
-                isOffline: false,
-                currentUserLogin: currentUserEmail,
-                currentUserAccountID,
-                transactionViolations: undefined,
-                isTrackIntentUser: false,
-                delegateAccountID: undefined,
-                rules: undefined,
-            });
-            expect(Navigation.navigate).not.toHaveBeenCalled();
-        });
-
-        it('should navigate to hold reason when transaction is not on hold', async () => {
-            // Given a money request report, report action, and transaction that is not on hold
-            const reportID = '201';
-            const policyID = '202';
-            const transactionID = '456';
-            const childReportID = '777';
-            const moneyRequestReport = createMock<Report>({
-                ...createExpenseReport(201),
-                reportID,
-                policyID,
-            });
-
-            const reportAction = buildOptimisticIOUReportAction({
-                getCurrencyDecimals: getCurrencyDecimalsLocal,
-                type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
-                amount: 123,
-                currency: 'USD',
-                comment: '',
-                participants: [],
-                transactionID,
-                iouReportID: moneyRequestReport.reportID,
-            });
-            reportAction.childReportID = childReportID;
-
-            const iouTransaction = createMock<Transaction>({
-                ...createRandomTransaction(456),
-                transactionID,
-                reportID: moneyRequestReport.reportID,
-                comment: {},
-            });
-
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${moneyRequestReport.reportID}`, moneyRequestReport);
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${moneyRequestReport.policyID}`, {
-                id: moneyRequestReport.policyID,
-                type: CONST.POLICY.TYPE.TEAM,
-            });
-            await waitForBatchedUpdates();
-
-            // When changeMoneyRequestHoldStatus is called
-            changeMoneyRequestHoldStatus(reportAction, iouTransaction, false, currentUserEmail, currentUserAccountID, undefined, false, undefined, undefined);
-
-            // Then navigation should be called with the correct parameters
-            expect(Navigation.navigate).toHaveBeenCalledWith(createDynamicRoute(DYNAMIC_ROUTES.MONEY_REQUEST_HOLD_REASON.getRoute(transactionID, childReportID), 'mock-route'));
         });
     });
 
@@ -6435,16 +6418,70 @@ describe('ReportUtils', () => {
                 expect(canDeleteMoneyRequestReport(draftReport, [transaction], [iouAction], currentUserAccountID, undefined, memberPolicy, undefined)).toBe(false);
             });
 
-            it('should allow an admin to delete a draft report holding a card transaction with restricted liability, since the expenses become unreported rather than deleted', () => {
-                const transaction = {
-                    ...createRandomTransaction(904),
+            it('should allow an admin to delete a draft report holding cash and third-party card expenses regardless of liability', () => {
+                const cashTransaction = {...createRandomTransaction(904), reportID: draftReport.reportID, managedCard: false};
+                const cardTransaction = {
+                    ...createRandomTransaction(905),
                     reportID: draftReport.reportID,
                     managedCard: true,
+                    bank: 'third-party-bank',
                     comment: {liabilityType: CONST.TRANSACTION.LIABILITY_TYPE.RESTRICT},
                 };
-                const iouAction = buildIOUActionForTransaction(draftReport.reportID, transaction.transactionID, currentUserAccountID);
+                const cashIOUAction = buildIOUActionForTransaction(draftReport.reportID, cashTransaction.transactionID, 777);
+                const cardIOUAction = buildIOUActionForTransaction(draftReport.reportID, cardTransaction.transactionID, 777);
 
-                expect(canDeleteMoneyRequestReport(draftReport, [transaction], [iouAction], currentUserAccountID, undefined, adminPolicy, undefined, true)).toBe(true);
+                expect(
+                    canDeleteMoneyRequestReport(
+                        draftReport,
+                        [cashTransaction, cardTransaction],
+                        [cashIOUAction, cardIOUAction],
+                        currentUserAccountID,
+                        undefined,
+                        adminPolicy,
+                        undefined,
+                        true,
+                    ),
+                ).toBe(true);
+            });
+
+            it('should not allow an admin to delete a draft report containing an Expensify Card transaction', () => {
+                const cashTransaction = {...createRandomTransaction(906), reportID: draftReport.reportID, managedCard: false};
+                const expensifyCardTransaction = {
+                    ...createRandomTransaction(907),
+                    reportID: draftReport.reportID,
+                    managedCard: true,
+                    bank: CONST.EXPENSIFY_CARD.BANK,
+                    comment: {liabilityType: CONST.TRANSACTION.LIABILITY_TYPE.RESTRICT},
+                };
+                const cashIOUAction = buildIOUActionForTransaction(draftReport.reportID, cashTransaction.transactionID, 777);
+                const cardIOUAction = buildIOUActionForTransaction(draftReport.reportID, expensifyCardTransaction.transactionID, 777);
+
+                expect(
+                    canDeleteMoneyRequestReport(
+                        draftReport,
+                        [cashTransaction, expensifyCardTransaction],
+                        [cashIOUAction, cardIOUAction],
+                        currentUserAccountID,
+                        undefined,
+                        adminPolicy,
+                        undefined,
+                        true,
+                    ),
+                ).toBe(false);
+            });
+
+            it('should not allow a member to delete their own draft report containing an Expensify Card transaction', () => {
+                const ownDraftReport = {...draftReport, ownerAccountID: currentUserAccountID};
+                const expensifyCardTransaction = {
+                    ...createRandomTransaction(908),
+                    reportID: ownDraftReport.reportID,
+                    managedCard: false,
+                    bank: CONST.EXPENSIFY_CARD.BANK,
+                    comment: {liabilityType: CONST.TRANSACTION.LIABILITY_TYPE.RESTRICT},
+                };
+                const iouAction = buildIOUActionForTransaction(ownDraftReport.reportID, expensifyCardTransaction.transactionID, currentUserAccountID);
+
+                expect(canDeleteMoneyRequestReport(ownDraftReport, [expensifyCardTransaction], [iouAction], currentUserAccountID, undefined, memberPolicy, undefined, true)).toBe(false);
             });
         });
 
@@ -7061,7 +7098,51 @@ describe('ReportUtils', () => {
         });
     });
 
+    describe('shouldDisplayThreadReplies', () => {
+        it.each([
+            [CONST.REPORT.TYPE.SUPPORT_TICKET, false],
+            [CONST.REPORT.TYPE.CHAT, true],
+            [CONST.REPORT.TYPE.TASK, true],
+        ] as const)('child report type %s shows the replies footer: %s', (childType, expected) => {
+            // Given a parent action whose child report has comments
+            const reportAction: ReportAction = {
+                ...createRandomReportAction(89018),
+                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                childType,
+                childVisibleActionCount: 5,
+                childCommenterCount: 2,
+            };
+
+            // When the parent action is displayed in its original conversation
+            const shouldShowReplies = shouldDisplayThreadReplies(reportAction, false);
+
+            // Then support-ticket previews omit the footer, while other threads keep it
+            expect(shouldShowReplies).toBe(expected);
+        });
+    });
+
     describe('canEditReportAction', () => {
+        it.each([
+            [CONST.REPORT.TYPE.SUPPORT_TICKET, false],
+            [CONST.REPORT.TYPE.CHAT, true],
+            [undefined, true],
+        ] as const)('comment with childType %s has edit permission %s', (childType, expected) => {
+            // Given an action attributed to the current user, with or without a child report
+            const reportAction: ReportAction = {
+                ...createRandomReportAction(89019),
+                actorAccountID: currentUserAccountID,
+                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                childType,
+                message: [{type: 'COMMENT', html: 'Support ticket', text: 'Support ticket'}],
+            };
+
+            // When edit permission is checked for menus or the keyboard shortcut
+            const canEdit = canEditReportAction(reportAction, undefined, undefined, undefined);
+
+            // Then support-ticket previews are read-only, while ordinary comments remain editable
+            expect(canEdit).toBe(expected);
+        });
+
         it('should use the passed reportActions to determine whether the money request report was forwarded since the last submit', async () => {
             const reportID = '89020';
             const transactionID = '89020-transaction';
@@ -9992,6 +10073,50 @@ describe('ReportUtils', () => {
         });
     });
 
+    describe('getUpdateEmployeeDisplayNameMessage', () => {
+        function buildDisplayNameAction(originalMessage: {oldValue?: string; newValue?: string}): ReportAction {
+            return createMock<ReportAction>({
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_EMPLOYEE_DISPLAY_NAME,
+                reportActionID: '1',
+                reportID: '123',
+                created: '2026-05-15 10:00:00.000',
+                message: [],
+                originalMessage,
+            });
+        }
+
+        it('names the member and what they were shown as before', async () => {
+            const environmentURL = await getEnvironmentURL();
+            const action = buildDisplayNameAction({oldValue: 'cathy@boulderdev.com', newValue: 'Cathy Miller'});
+
+            expect(getUpdateEmployeeDisplayNameMessage(translateLocal, action)).toBe(
+                `updated your display name to Cathy Miller (Previously "cathy@boulderdev.com"). <a href="${environmentURL}/${ROUTES.SETTINGS_DISPLAY_NAME}">Edit in your profile</a>`,
+            );
+        });
+
+        it('encodes a name an admin filled with markup', async () => {
+            const environmentURL = await getEnvironmentURL();
+            const action = buildDisplayNameAction({oldValue: 'cathy@boulderdev.com', newValue: '<b>Cathy</b>'});
+
+            expect(getUpdateEmployeeDisplayNameMessage(translateLocal, action)).toBe(
+                `updated your display name to &lt;b&gt;Cathy&lt;/b&gt; (Previously "cathy@boulderdev.com"). <a href="${environmentURL}/${ROUTES.SETTINGS_DISPLAY_NAME}">Edit in your profile</a>`,
+            );
+        });
+
+        it('returns nothing for another action', () => {
+            const action = createMock<ReportAction>({
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_EMPLOYEE,
+                reportActionID: '1',
+                reportID: '123',
+                created: '2026-05-15 10:00:00.000',
+                message: [],
+                originalMessage: {oldValue: 'user', newValue: 'admin'},
+            });
+
+            expect(getUpdateEmployeeDisplayNameMessage(translateLocal, action)).toBe('');
+        });
+    });
+
     describe('getPolicyChangeLogCopyMessage', () => {
         const sourcePolicyID = 'sourcePolicy1';
         const sourcePolicyName = 'Acme HQ Workspace';
@@ -10312,6 +10437,22 @@ describe('ReportUtils', () => {
     });
 
     describe('canDeleteReportAction', () => {
+        it('should not allow an Expensify Card transaction to be deleted when managedCard is missing', () => {
+            // Given an Expensify Card transaction whose managed-card metadata is unavailable
+            const transaction = {
+                ...createRandomTransaction(1000),
+                managedCard: false,
+                bank: CONST.EXPENSIFY_CARD.BANK,
+                comment: {liabilityType: CONST.TRANSACTION.LIABILITY_TYPE.RESTRICT},
+            };
+
+            // When checking whether the transaction can be deleted
+            const canDeleteTransactionByLiability = canDeleteCardTransaction(transaction, undefined, undefined);
+
+            // Then the bank identifies it as an Expensify Card transaction and deletion stays blocked
+            expect(canDeleteTransactionByLiability).toBe(false);
+        });
+
         it('should return false for delete button visibility if transaction is not allowed to be deleted', async () => {
             // Given a restricted managed-card expense on an open expense report owned by the current user
             const expenseReport = {
@@ -11044,7 +11185,7 @@ describe('ReportUtils', () => {
             expect(shouldReportShowSubscript(report)).toBe(true);
         });
 
-        it('should return true for workspace task report', async () => {
+        it('should return false for workspace task report', async () => {
             // Given a parent report that is a policy expense chat
             const parentReport = createPolicyExpenseChat(1);
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${parentReport.reportID}`, parentReport);
@@ -11053,8 +11194,8 @@ describe('ReportUtils', () => {
             const report = createWorkspaceTaskReport(2, [currentUserAccountID, 1], parentReport.reportID);
 
             // When we check if the report should show a subscript
-            // Then it should return true because isWorkspaceTaskReport() returns true
-            expect(shouldReportShowSubscript(report)).toBe(true);
+            // Then it should return false because a task always shows its owner alone, even when assigned in a workspace chat
+            expect(shouldReportShowSubscript(report)).toBe(false);
         });
 
         it('should return true for invoice room', () => {
@@ -12264,7 +12405,13 @@ describe('ReportUtils', () => {
 
             // When the reason is retrieved
             const {result: isReportArchived} = renderHook(() => useReportIsArchived(report?.reportID));
-            const result = getReasonAndReportActionThatRequiresAttention(report, currentUserEmail, currentUserAccountID, undefined, isReportArchived.current);
+            const result = getReasonAndReportActionThatRequiresAttention({
+                optionOrReport: report,
+                currentUserLogin: currentUserEmail,
+                currentUserAccountID,
+                transactionViolations: undefined,
+                isReportArchived: isReportArchived.current,
+            });
 
             // There should be some kind of a reason (any reason is fine)
             expect(result).toHaveProperty('reason');
@@ -12293,18 +12440,15 @@ describe('ReportUtils', () => {
             });
 
             const getReason = (cardList: CardList | undefined, isReportArchived = false, reportActions = fraudReportActions) =>
-                getReasonAndReportActionThatRequiresAttention(
-                    fraudReport,
-                    currentUserEmail,
+                getReasonAndReportActionThatRequiresAttention({
+                    optionOrReport: fraudReport,
+                    currentUserLogin: currentUserEmail,
                     currentUserAccountID,
-                    undefined,
+                    transactionViolations: undefined,
                     isReportArchived,
-                    reportActions,
-                    undefined,
-                    undefined,
-                    undefined,
+                    allReportActions: reportActions,
                     cardList,
-                );
+                });
 
             it('should return HAS_UNRESOLVED_CARD_FRAUD_ALERT for the cardholder while the fraud is live', () => {
                 // Given the current user's card has live fraud pointing at a report with an unresolved alert
@@ -12395,7 +12539,13 @@ describe('ReportUtils', () => {
 
             // When the reason is retrieved
             const {result: isReportArchived} = renderHook(() => useReportIsArchived(report?.reportID));
-            const result = getReasonAndReportActionThatRequiresAttention(report, currentUserEmail, currentUserAccountID, undefined, isReportArchived.current);
+            const result = getReasonAndReportActionThatRequiresAttention({
+                optionOrReport: report,
+                currentUserLogin: currentUserEmail,
+                currentUserAccountID,
+                transactionViolations: undefined,
+                isReportArchived: isReportArchived.current,
+            });
 
             // Then the result is null
             expect(result).toBe(null);
@@ -12436,7 +12586,13 @@ describe('ReportUtils', () => {
             await waitForBatchedUpdates();
 
             const {result: isReportArchived} = renderHook(() => useReportIsArchived(expenseReport?.reportID));
-            const result = getReasonAndReportActionThatRequiresAttention(expenseReport, currentUserEmail, currentUserAccountID, undefined, isReportArchived.current);
+            const result = getReasonAndReportActionThatRequiresAttention({
+                optionOrReport: expenseReport,
+                currentUserLogin: currentUserEmail,
+                currentUserAccountID,
+                transactionViolations: undefined,
+                isReportArchived: isReportArchived.current,
+            });
 
             // Should return IS_WAITING_FOR_ASSIGNEE_TO_COMPLETE_ACTION (from getActionTypeForAssigneeToComplete)
             // AND include actionBadge (APPROVE) since it's a processing expense report the user can approve
@@ -12473,11 +12629,24 @@ describe('ReportUtils', () => {
             const {result: isReportArchived} = renderHook(() => useReportIsArchived(report?.reportID));
 
             // Without the param, the function should NOT find DEW_APPROVE_FAILED (since it's not in Onyx)
-            const resultWithout = getReasonAndReportActionThatRequiresAttention(report, currentUserEmail, currentUserAccountID, undefined, isReportArchived.current);
+            const resultWithout = getReasonAndReportActionThatRequiresAttention({
+                optionOrReport: report,
+                currentUserLogin: currentUserEmail,
+                currentUserAccountID,
+                transactionViolations: undefined,
+                isReportArchived: isReportArchived.current,
+            });
             expect(resultWithout?.reason).not.toBe(CONST.REQUIRES_ATTENTION_REASONS.HAS_DEW_APPROVE_FAILED);
 
             // With the param, the function should find DEW_APPROVE_FAILED from the passed param
-            const resultWith = getReasonAndReportActionThatRequiresAttention(report, currentUserEmail, currentUserAccountID, undefined, isReportArchived.current, allReportActionsParam);
+            const resultWith = getReasonAndReportActionThatRequiresAttention({
+                optionOrReport: report,
+                currentUserLogin: currentUserEmail,
+                currentUserAccountID,
+                transactionViolations: undefined,
+                isReportArchived: isReportArchived.current,
+                allReportActions: allReportActionsParam,
+            });
             expect(resultWith).toHaveProperty('reason', CONST.REQUIRES_ATTENTION_REASONS.HAS_DEW_APPROVE_FAILED);
         });
 
@@ -12519,22 +12688,36 @@ describe('ReportUtils', () => {
                 const {result: isReportArchived} = renderHook(() => useReportIsArchived(report?.reportID));
 
                 // When the reason is retrieved for the approver
-                const approverResult = getReasonAndReportActionThatRequiresAttention(
-                    report,
-                    currentUserEmail,
+                const approverResult = getReasonAndReportActionThatRequiresAttention({
+                    optionOrReport: report,
+                    currentUserLogin: currentUserEmail,
                     currentUserAccountID,
-                    undefined,
-                    isReportArchived.current,
-                    allReportActionsParam,
-                );
+                    transactionViolations: undefined,
+                    isReportArchived: isReportArchived.current,
+                    allReportActions: allReportActionsParam,
+                });
 
                 // Then the approver gets the DEW reason, carrying the failure action so the row deep-links to it
                 expect(approverResult?.reason).toBe(CONST.REQUIRES_ATTENTION_REASONS.HAS_DEW_APPROVE_FAILED);
                 expect(approverResult?.reportAction?.actionName).toBe(CONST.REPORT.ACTIONS.TYPE.DEW_APPROVE_FAILED);
 
                 // When the same report is viewed by the owner and by an unrelated participant
-                const ownerResult = getReasonAndReportActionThatRequiresAttention(report, currentUserEmail, ownerA, undefined, isReportArchived.current, allReportActionsParam);
-                const bystanderResult = getReasonAndReportActionThatRequiresAttention(report, currentUserEmail, bystanderC, undefined, isReportArchived.current, allReportActionsParam);
+                const ownerResult = getReasonAndReportActionThatRequiresAttention({
+                    optionOrReport: report,
+                    currentUserLogin: currentUserEmail,
+                    currentUserAccountID: ownerA,
+                    transactionViolations: undefined,
+                    isReportArchived: isReportArchived.current,
+                    allReportActions: allReportActionsParam,
+                });
+                const bystanderResult = getReasonAndReportActionThatRequiresAttention({
+                    optionOrReport: report,
+                    currentUserLogin: currentUserEmail,
+                    currentUserAccountID: bystanderC,
+                    transactionViolations: undefined,
+                    isReportArchived: isReportArchived.current,
+                    allReportActions: allReportActionsParam,
+                });
 
                 // Then neither gets the DEW reason, so they get no green dot and no pinned LHN row
                 expect(ownerResult?.reason).not.toBe(CONST.REQUIRES_ATTENTION_REASONS.HAS_DEW_APPROVE_FAILED);
@@ -12549,16 +12732,30 @@ describe('ReportUtils', () => {
                 const {result: isReportArchived} = renderHook(() => useReportIsArchived(report?.reportID));
 
                 // When the reason is retrieved for the approver, the owner and a bystander
-                const approverResult = getReasonAndReportActionThatRequiresAttention(
-                    report,
-                    currentUserEmail,
+                const approverResult = getReasonAndReportActionThatRequiresAttention({
+                    optionOrReport: report,
+                    currentUserLogin: currentUserEmail,
                     currentUserAccountID,
-                    undefined,
-                    isReportArchived.current,
-                    allReportActionsParam,
-                );
-                const ownerResult = getReasonAndReportActionThatRequiresAttention(report, currentUserEmail, ownerA, undefined, isReportArchived.current, allReportActionsParam);
-                const bystanderResult = getReasonAndReportActionThatRequiresAttention(report, currentUserEmail, bystanderC, undefined, isReportArchived.current, allReportActionsParam);
+                    transactionViolations: undefined,
+                    isReportArchived: isReportArchived.current,
+                    allReportActions: allReportActionsParam,
+                });
+                const ownerResult = getReasonAndReportActionThatRequiresAttention({
+                    optionOrReport: report,
+                    currentUserLogin: currentUserEmail,
+                    currentUserAccountID: ownerA,
+                    transactionViolations: undefined,
+                    isReportArchived: isReportArchived.current,
+                    allReportActions: allReportActionsParam,
+                });
+                const bystanderResult = getReasonAndReportActionThatRequiresAttention({
+                    optionOrReport: report,
+                    currentUserLogin: currentUserEmail,
+                    currentUserAccountID: bystanderC,
+                    transactionViolations: undefined,
+                    isReportArchived: isReportArchived.current,
+                    allReportActions: allReportActionsParam,
+                });
 
                 // Then the approver still gets the dot, and nobody else does
                 expect(approverResult?.reason).toBe(CONST.REQUIRES_ATTENTION_REASONS.HAS_DEW_APPROVE_FAILED);
@@ -12574,7 +12771,14 @@ describe('ReportUtils', () => {
 
                 // When the reason is retrieved for each account
                 const results = [currentUserAccountID, ownerA, bystanderC].map((accountID) =>
-                    getReasonAndReportActionThatRequiresAttention(report, currentUserEmail, accountID, undefined, isReportArchived.current, allReportActionsParam),
+                    getReasonAndReportActionThatRequiresAttention({
+                        optionOrReport: report,
+                        currentUserLogin: currentUserEmail,
+                        currentUserAccountID: accountID,
+                        transactionViolations: undefined,
+                        isReportArchived: isReportArchived.current,
+                        allReportActions: allReportActionsParam,
+                    }),
                 );
 
                 // Then the gate fails closed, so nobody gets a dot rather than everybody getting one
@@ -12591,7 +12795,14 @@ describe('ReportUtils', () => {
                 const {result: isReportArchived} = renderHook(() => useReportIsArchived(report?.reportID));
 
                 // When the reason is retrieved for the approver
-                const result = getReasonAndReportActionThatRequiresAttention(report, currentUserEmail, currentUserAccountID, undefined, isReportArchived.current, allReportActionsParam);
+                const result = getReasonAndReportActionThatRequiresAttention({
+                    optionOrReport: report,
+                    currentUserLogin: currentUserEmail,
+                    currentUserAccountID,
+                    transactionViolations: undefined,
+                    isReportArchived: isReportArchived.current,
+                    allReportActions: allReportActionsParam,
+                });
 
                 // Then no reason is returned
                 expect(result).toBe(null);
@@ -12626,14 +12837,14 @@ describe('ReportUtils', () => {
 
                 // When the reason is retrieved for the approver
                 const {result: isReportArchived} = renderHook(() => useReportIsArchived(expenseReport?.reportID));
-                const result = getReasonAndReportActionThatRequiresAttention(
-                    expenseReport,
-                    currentUserEmail,
+                const result = getReasonAndReportActionThatRequiresAttention({
+                    optionOrReport: expenseReport,
+                    currentUserLogin: currentUserEmail,
                     currentUserAccountID,
-                    undefined,
-                    isReportArchived.current,
-                    allReportActionsParam,
-                );
+                    transactionViolations: undefined,
+                    isReportArchived: isReportArchived.current,
+                    allReportActions: allReportActionsParam,
+                });
 
                 // Then the DEW reason still wins over the assignee badge
                 expect(result?.reason).toBe(CONST.REQUIRES_ATTENTION_REASONS.HAS_DEW_APPROVE_FAILED);
@@ -12659,7 +12870,13 @@ describe('ReportUtils', () => {
 
             // When the reason is retrieved
             const {result: isReportArchived} = renderHook(() => useReportIsArchived(adminReport?.reportID));
-            const result = getReasonAndReportActionThatRequiresAttention(adminReport, currentUserEmail, currentUserAccountID, undefined, isReportArchived.current);
+            const result = getReasonAndReportActionThatRequiresAttention({
+                optionOrReport: adminReport,
+                currentUserLogin: currentUserEmail,
+                currentUserAccountID,
+                transactionViolations: undefined,
+                isReportArchived: isReportArchived.current,
+            });
 
             // Then the result is null
             expect(result).toBe(null);
@@ -12690,7 +12907,13 @@ describe('ReportUtils', () => {
             await waitForBatchedUpdates();
 
             const {result: isReportArchived} = renderHook(() => useReportIsArchived(workspaceChat.reportID));
-            const result = getReasonAndReportActionThatRequiresAttention(workspaceChat, currentUserEmail, currentUserAccountID, undefined, isReportArchived.current);
+            const result = getReasonAndReportActionThatRequiresAttention({
+                optionOrReport: workspaceChat,
+                currentUserLogin: currentUserEmail,
+                currentUserAccountID,
+                transactionViolations: undefined,
+                isReportArchived: isReportArchived.current,
+            });
 
             expect(result?.reason).toBe(CONST.REQUIRES_ATTENTION_REASONS.IS_WAITING_FOR_ASSIGNEE_TO_COMPLETE_ACTION);
             expect(result?.reportAction?.reportActionID).toBe(cardMissingAddressAction.reportActionID);
@@ -12738,7 +12961,13 @@ describe('ReportUtils', () => {
             await waitForBatchedUpdates();
 
             const {result: isReportArchived} = renderHook(() => useReportIsArchived(workspaceChat.reportID));
-            const result = getReasonAndReportActionThatRequiresAttention(workspaceChat, currentUserEmail, currentUserAccountID, undefined, isReportArchived.current);
+            const result = getReasonAndReportActionThatRequiresAttention({
+                optionOrReport: workspaceChat,
+                currentUserLogin: currentUserEmail,
+                currentUserAccountID,
+                transactionViolations: undefined,
+                isReportArchived: isReportArchived.current,
+            });
 
             expect(result?.reason).toBe(CONST.REQUIRES_ATTENTION_REASONS.IS_WAITING_FOR_ASSIGNEE_TO_COMPLETE_ACTION);
             // Should skip the completed task and return the incomplete one
@@ -12785,7 +13014,13 @@ describe('ReportUtils', () => {
             await waitForBatchedUpdates();
 
             const {result: isReportArchived} = renderHook(() => useReportIsArchived(workspaceChat.reportID));
-            const result = getReasonAndReportActionThatRequiresAttention(workspaceChat, currentUserEmail, currentUserAccountID, undefined, isReportArchived.current);
+            const result = getReasonAndReportActionThatRequiresAttention({
+                optionOrReport: workspaceChat,
+                currentUserLogin: currentUserEmail,
+                currentUserAccountID,
+                transactionViolations: undefined,
+                isReportArchived: isReportArchived.current,
+            });
 
             expect(result?.reason).toBe(CONST.REQUIRES_ATTENTION_REASONS.IS_WAITING_FOR_ASSIGNEE_TO_COMPLETE_ACTION);
             // Should return the earliest created incomplete task
@@ -12836,7 +13071,13 @@ describe('ReportUtils', () => {
             await waitForBatchedUpdates();
 
             const {result: isReportArchived} = renderHook(() => useReportIsArchived(workspaceChat.reportID));
-            const result = getReasonAndReportActionThatRequiresAttention(workspaceChat, currentUserEmail, currentUserAccountID, undefined, isReportArchived.current);
+            const result = getReasonAndReportActionThatRequiresAttention({
+                optionOrReport: workspaceChat,
+                currentUserLogin: currentUserEmail,
+                currentUserAccountID,
+                transactionViolations: undefined,
+                isReportArchived: isReportArchived.current,
+            });
 
             expect(result?.reason).toBe(CONST.REQUIRES_ATTENTION_REASONS.IS_WAITING_FOR_ASSIGNEE_TO_COMPLETE_ACTION);
             // All tasks completed, so no matching reportAction
@@ -12885,7 +13126,13 @@ describe('ReportUtils', () => {
             await waitForBatchedUpdates();
 
             const {result: isReportArchived} = renderHook(() => useReportIsArchived(workspaceChat.reportID));
-            const result = getReasonAndReportActionThatRequiresAttention(workspaceChat, currentUserEmail, currentUserAccountID, undefined, isReportArchived.current);
+            const result = getReasonAndReportActionThatRequiresAttention({
+                optionOrReport: workspaceChat,
+                currentUserLogin: currentUserEmail,
+                currentUserAccountID,
+                transactionViolations: undefined,
+                isReportArchived: isReportArchived.current,
+            });
 
             expect(result?.reason).toBe(CONST.REQUIRES_ATTENTION_REASONS.IS_WAITING_FOR_ASSIGNEE_TO_COMPLETE_ACTION);
             // Should only return the task where childManagerAccountID matches the current user
@@ -12933,7 +13180,13 @@ describe('ReportUtils', () => {
             await waitForBatchedUpdates();
 
             const {result: isReportArchived} = renderHook(() => useReportIsArchived(workspaceChat.reportID));
-            const result = getReasonAndReportActionThatRequiresAttention(workspaceChat, currentUserEmail, currentUserAccountID, undefined, isReportArchived.current);
+            const result = getReasonAndReportActionThatRequiresAttention({
+                optionOrReport: workspaceChat,
+                currentUserLogin: currentUserEmail,
+                currentUserAccountID,
+                transactionViolations: undefined,
+                isReportArchived: isReportArchived.current,
+            });
 
             // The IOU action is older, so its badge should take priority over the task badge
             expect(result?.reason).toBe(CONST.REQUIRES_ATTENTION_REASONS.HAS_CHILD_REPORT_AWAITING_ACTION);
@@ -12982,7 +13235,13 @@ describe('ReportUtils', () => {
             // Without a policies param, resolution falls back to the deprecated module-level policy cache, which
             // was never populated with this policyID in this test - canApproveIOU bails out on the missing policy,
             // so the GBR shows without an Approve badge, exactly like a client whose policy merge hasn't landed yet
-            const resultWithoutParam = getReasonAndReportActionThatRequiresAttention(expenseReport, currentUserEmail, currentUserAccountID, undefined, isReportArchived.current);
+            const resultWithoutParam = getReasonAndReportActionThatRequiresAttention({
+                optionOrReport: expenseReport,
+                currentUserLogin: currentUserEmail,
+                currentUserAccountID,
+                transactionViolations: undefined,
+                isReportArchived: isReportArchived.current,
+            });
             expect(resultWithoutParam?.reason).toBe(CONST.REQUIRES_ATTENTION_REASONS.IS_WAITING_FOR_ASSIGNEE_TO_COMPLETE_ACTION);
             expect(resultWithoutParam?.actionBadge).toBeUndefined();
 
@@ -12992,16 +13251,14 @@ describe('ReportUtils', () => {
             const policiesParam: OnyxCollection<Policy> = {
                 [`${ONYXKEYS.COLLECTION.POLICY}${policyID}`]: fakePolicy,
             };
-            const resultWithParam = getReasonAndReportActionThatRequiresAttention(
-                expenseReport,
-                currentUserEmail,
+            const resultWithParam = getReasonAndReportActionThatRequiresAttention({
+                optionOrReport: expenseReport,
+                currentUserLogin: currentUserEmail,
                 currentUserAccountID,
-                undefined,
-                isReportArchived.current,
-                undefined,
-                undefined,
-                policiesParam,
-            );
+                transactionViolations: undefined,
+                isReportArchived: isReportArchived.current,
+                policies: policiesParam,
+            });
             expect(resultWithParam?.reason).toBe(CONST.REQUIRES_ATTENTION_REASONS.IS_WAITING_FOR_ASSIGNEE_TO_COMPLETE_ACTION);
             expect(resultWithParam?.actionBadge).toBe(CONST.REPORT.ACTION_BADGE.APPROVE);
         });
@@ -13047,7 +13304,13 @@ describe('ReportUtils', () => {
             await waitForBatchedUpdates();
 
             const {result: isReportArchived} = renderHook(() => useReportIsArchived(workspaceChat.reportID));
-            const result = getReasonAndReportActionThatRequiresAttention(workspaceChat, currentUserEmail, currentUserAccountID, undefined, isReportArchived.current);
+            const result = getReasonAndReportActionThatRequiresAttention({
+                optionOrReport: workspaceChat,
+                currentUserLogin: currentUserEmail,
+                currentUserAccountID,
+                transactionViolations: undefined,
+                isReportArchived: isReportArchived.current,
+            });
 
             // The task action is older, so the task badge should take priority
             expect(result?.reason).toBe(CONST.REQUIRES_ATTENTION_REASONS.IS_WAITING_FOR_ASSIGNEE_TO_COMPLETE_ACTION);
@@ -13103,7 +13366,12 @@ describe('ReportUtils', () => {
                 await waitForBatchedUpdates();
 
                 // When the reason is retrieved
-                const result = getReasonAndReportActionThatRequiresAttention(workspaceChat, currentUserEmail, currentUserAccountID);
+                const result = getReasonAndReportActionThatRequiresAttention({
+                    optionOrReport: workspaceChat,
+                    currentUserLogin: currentUserEmail,
+                    currentUserAccountID,
+                    transactionViolations: undefined,
+                });
 
                 // Then the action badge wins over the mention, even though the mention came first
                 expect(result?.reason).toBe(CONST.REQUIRES_ATTENTION_REASONS.IS_WAITING_FOR_ASSIGNEE_TO_COMPLETE_ACTION);
@@ -13139,7 +13407,12 @@ describe('ReportUtils', () => {
                 await waitForBatchedUpdates();
 
                 // When the reason is retrieved
-                const result = getReasonAndReportActionThatRequiresAttention(workspaceChat, currentUserEmail, currentUserAccountID);
+                const result = getReasonAndReportActionThatRequiresAttention({
+                    optionOrReport: workspaceChat,
+                    currentUserLogin: currentUserEmail,
+                    currentUserAccountID,
+                    transactionViolations: undefined,
+                });
 
                 // Then the Pay badge is shown and links to the IOU preview
                 expect(result?.reason).toBe(CONST.REQUIRES_ATTENTION_REASONS.HAS_CHILD_REPORT_AWAITING_ACTION);
@@ -13172,7 +13445,12 @@ describe('ReportUtils', () => {
                 await waitForBatchedUpdates();
 
                 // When the reason is retrieved
-                const result = getReasonAndReportActionThatRequiresAttention(report, currentUserEmail, currentUserAccountID);
+                const result = getReasonAndReportActionThatRequiresAttention({
+                    optionOrReport: report,
+                    currentUserLogin: currentUserEmail,
+                    currentUserAccountID,
+                    transactionViolations: undefined,
+                });
 
                 // Then the mention reason is returned with the oldest unread mention, so the LHN can deep link to it
                 expect(result?.reason).toBe(CONST.REQUIRES_ATTENTION_REASONS.IS_UNREAD_WITH_MENTION);
@@ -13196,7 +13474,12 @@ describe('ReportUtils', () => {
                 await waitForBatchedUpdates();
 
                 // When the reason is retrieved
-                const result = getReasonAndReportActionThatRequiresAttention(workspaceChat, currentUserEmail, currentUserAccountID);
+                const result = getReasonAndReportActionThatRequiresAttention({
+                    optionOrReport: workspaceChat,
+                    currentUserLogin: currentUserEmail,
+                    currentUserAccountID,
+                    transactionViolations: undefined,
+                });
 
                 // Then the IOU action still wins over the mention, even though no badge could be computed for it
                 expect(result?.reason).toBe(CONST.REQUIRES_ATTENTION_REASONS.HAS_CHILD_REPORT_AWAITING_ACTION);
@@ -13219,7 +13502,12 @@ describe('ReportUtils', () => {
                 await waitForBatchedUpdates();
 
                 // When the reason is retrieved
-                const result = getReasonAndReportActionThatRequiresAttention(invoiceRoom, currentUserEmail, currentUserAccountID);
+                const result = getReasonAndReportActionThatRequiresAttention({
+                    optionOrReport: invoiceRoom,
+                    currentUserLogin: currentUserEmail,
+                    currentUserAccountID,
+                    transactionViolations: undefined,
+                });
 
                 // Then the mention still returns a reason instead of the invoice room branch returning null
                 expect(result?.reason).toBe(CONST.REQUIRES_ATTENTION_REASONS.IS_UNREAD_WITH_MENTION);
@@ -13262,7 +13550,12 @@ describe('ReportUtils', () => {
                 await waitForBatchedUpdates();
 
                 // When the reason is retrieved
-                const result = getReasonAndReportActionThatRequiresAttention(report, currentUserEmail, currentUserAccountID);
+                const result = getReasonAndReportActionThatRequiresAttention({
+                    optionOrReport: report,
+                    currentUserLogin: currentUserEmail,
+                    currentUserAccountID,
+                    transactionViolations: undefined,
+                });
 
                 // Then the green dot links to the only mention the user can see and act on
                 expect(result?.reason).toBe(CONST.REQUIRES_ATTENTION_REASONS.IS_UNREAD_WITH_MENTION);
@@ -13288,7 +13581,12 @@ describe('ReportUtils', () => {
                 await waitForBatchedUpdates();
 
                 // When the reason is retrieved
-                const result = getReasonAndReportActionThatRequiresAttention(report, currentUserEmail, currentUserAccountID);
+                const result = getReasonAndReportActionThatRequiresAttention({
+                    optionOrReport: report,
+                    currentUserLogin: currentUserEmail,
+                    currentUserAccountID,
+                    transactionViolations: undefined,
+                });
 
                 // Then @here counts as a mention of the current user, so the green dot links to it
                 expect(result?.reason).toBe(CONST.REQUIRES_ATTENTION_REASONS.IS_UNREAD_WITH_MENTION);
@@ -13316,7 +13614,12 @@ describe('ReportUtils', () => {
                 await waitForBatchedUpdates();
 
                 // When the reason is retrieved with that account ID
-                const result = getReasonAndReportActionThatRequiresAttention(report, 'someone-else@example.com', passedAccountID);
+                const result = getReasonAndReportActionThatRequiresAttention({
+                    optionOrReport: report,
+                    currentUserLogin: 'someone-else@example.com',
+                    currentUserAccountID: passedAccountID,
+                    transactionViolations: undefined,
+                });
 
                 // Then the mention is found through the passed account ID
                 expect(result?.reason).toBe(CONST.REQUIRES_ATTENTION_REASONS.IS_UNREAD_WITH_MENTION);
@@ -13346,7 +13649,12 @@ describe('ReportUtils', () => {
                 await waitForBatchedUpdates();
 
                 // When the reason is retrieved
-                const result = getReasonAndReportActionThatRequiresAttention(expenseReport, currentUserEmail, currentUserAccountID);
+                const result = getReasonAndReportActionThatRequiresAttention({
+                    optionOrReport: expenseReport,
+                    currentUserLogin: currentUserEmail,
+                    currentUserAccountID,
+                    transactionViolations: undefined,
+                });
 
                 // Then the assignee expense action still wins over the mention, even without a badge
                 expect(result?.reason).toBe(CONST.REQUIRES_ATTENTION_REASONS.IS_WAITING_FOR_ASSIGNEE_TO_COMPLETE_ACTION);
@@ -13396,7 +13704,13 @@ describe('ReportUtils', () => {
             await waitForBatchedUpdates();
 
             const {result: isReportArchived} = renderHook(() => useReportIsArchived(workspaceChat.reportID));
-            const result = getReasonAndReportActionThatRequiresAttention(workspaceChat, currentUserEmail, currentUserAccountID, undefined, isReportArchived.current);
+            const result = getReasonAndReportActionThatRequiresAttention({
+                optionOrReport: workspaceChat,
+                currentUserLogin: currentUserEmail,
+                currentUserAccountID,
+                transactionViolations: undefined,
+                isReportArchived: isReportArchived.current,
+            });
 
             // When oldestTaskAction is undefined (no childManagerAccountID), IOU badge should be returned
             expect(result?.reason).toBe(CONST.REQUIRES_ATTENTION_REASONS.HAS_CHILD_REPORT_AWAITING_ACTION);
@@ -13470,7 +13784,13 @@ describe('ReportUtils', () => {
             await waitForBatchedUpdates();
 
             const {result: isReportArchived} = renderHook(() => useReportIsArchived(invoiceRoomID));
-            const result = getReasonAndReportActionThatRequiresAttention(invoiceRoom, currentUserEmail, currentUserAccountID, undefined, isReportArchived.current);
+            const result = getReasonAndReportActionThatRequiresAttention({
+                optionOrReport: invoiceRoom,
+                currentUserLogin: currentUserEmail,
+                currentUserAccountID,
+                transactionViolations: undefined,
+                isReportArchived: isReportArchived.current,
+            });
 
             // Currently returns null because hasMissingInvoiceBankAccount requires isSettled=true
             // but the outer condition filters out settled reports with isSettled check.
@@ -17985,6 +18305,29 @@ describe('ReportUtils', () => {
             expect(expenseReport.reportName).toBe(`${fakePolicy.name} owes ${convertToDisplayString(-total, currency)}`);
         });
 
+        it('should keep the English workspace fallback in the report name when another locale is loaded', async () => {
+            // Given a chat report that cannot be resolved, so the report name falls back to the "unavailable workspace" copy
+            const chatReportID = '9999';
+            const total = 100;
+
+            // When the report is built while Spanish is the loaded locale
+            await IntlStore.load(CONST.LOCALES.ES).then(waitForBatchedUpdates);
+            const expenseReport = buildOptimisticExpenseReport({
+                rules: undefined,
+                chatReportID,
+                policyID: undefined,
+                payeeAccountID: 1,
+                total,
+                currency: CONST.CURRENCY.USD,
+                isASAPSubmitBetaEnabled: true,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+            });
+
+            // Then the name stays English, because it is persisted on the report and read back by every viewer regardless of their locale
+            expect(expenseReport.reportName).toContain(`${translate(CONST.LOCALES.EN, 'workspace.common.unavailable')} owes `);
+            expect(expenseReport.reportName).not.toContain(translate(CONST.LOCALES.ES, 'workspace.common.unavailable'));
+        });
+
         it('should set reportName to "New Report" when policy field list is empty', async () => {
             // Given a policy with an empty field list
             const policyID = '200';
@@ -18102,6 +18445,105 @@ describe('ReportUtils', () => {
             const result = shouldCreateNewMoneyRequestReport(report, report, true, false, undefined);
 
             // Then the existing report is reused
+            expect(result).toBe(false);
+        });
+    });
+
+    describe('canDuplicateExpenseIntoSourceReport', () => {
+        const sourcePolicy: Policy = {
+            ...createRandomPolicy(30001),
+            type: CONST.POLICY.TYPE.TEAM,
+            role: CONST.POLICY.ROLE.USER,
+            pendingAction: null,
+            autoReporting: false,
+        };
+        const sourceChatReport: Report = {
+            ...createRandomReport(30002, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT),
+            policyID: sourcePolicy.id,
+            ownerAccountID: currentUserAccountID,
+            hasOutstandingChildRequest: false,
+        };
+
+        // An open expense report the current user submitted on an accessible workspace
+        const buildOpenSourceReport = async (overrides: Partial<Report> = {}) => {
+            const report: Report = {
+                ...createRandomReport(30003, undefined),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                policyID: sourcePolicy.id,
+                chatReportID: sourceChatReport.reportID,
+                ownerAccountID: currentUserAccountID,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                errorFields: undefined,
+                ...overrides,
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${sourcePolicy.id}`, sourcePolicy);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
+            return report;
+        };
+
+        const buildParams = (sourceReport: Report, overrides: Partial<Parameters<typeof canDuplicateExpenseIntoSourceReport>[0]> = {}) => ({
+            sourceReport,
+            chatReport: sourceChatReport,
+            policy: sourcePolicy,
+            currentUserLogin: currentUserEmail,
+            isSourceReportArchived: false,
+            isChatReportArchived: false,
+            isASAPSubmitBetaEnabled: false,
+            rules: undefined,
+            ...overrides,
+        });
+
+        it('returns true for an open expense report the current user can add to', async () => {
+            // Given an open expense report the current user submitted on an accessible workspace
+            const sourceReport = await buildOpenSourceReport();
+
+            // When it's checked whether a duplicate can stay on that report
+            const result = canDuplicateExpenseIntoSourceReport(buildParams(sourceReport));
+
+            // Then the duplicate targets the source report
+            expect(result).toBe(true);
+        });
+
+        it('returns false for an approved expense report so a locked report is not reopened', async () => {
+            // Given an approved expense report
+            const sourceReport = await buildOpenSourceReport({stateNum: CONST.REPORT.STATE_NUM.APPROVED, statusNum: CONST.REPORT.STATUS_NUM.APPROVED});
+
+            // When it's checked whether a duplicate can stay on that report
+            const result = canDuplicateExpenseIntoSourceReport(buildParams(sourceReport));
+
+            // Then the duplicate falls back to the default workspace routing
+            expect(result).toBe(false);
+        });
+
+        it('returns false when the source report is archived', async () => {
+            // Given an open expense report that is archived
+            const sourceReport = await buildOpenSourceReport();
+
+            // When it's checked whether a duplicate can stay on that report
+            const result = canDuplicateExpenseIntoSourceReport(buildParams(sourceReport, {isSourceReportArchived: true}));
+
+            // Then the duplicate falls back to the default workspace routing
+            expect(result).toBe(false);
+        });
+
+        it('returns false when the source report workspace is not accessible', async () => {
+            // Given an open expense report whose workspace is pending delete
+            const sourceReport = await buildOpenSourceReport();
+
+            // When it's checked whether a duplicate can stay on that report
+            const result = canDuplicateExpenseIntoSourceReport(buildParams(sourceReport, {policy: {...sourcePolicy, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}}));
+
+            // Then the duplicate falls back to the default workspace routing
+            expect(result).toBe(false);
+        });
+
+        it('returns false when the source is not an expense report', () => {
+            // Given a source that is a chat rather than an expense report, like a self-DM tracked expense
+            // When it's checked whether a duplicate can stay on that source
+            const result = canDuplicateExpenseIntoSourceReport(buildParams(sourceChatReport));
+
+            // Then the duplicate keeps its current routing
             expect(result).toBe(false);
         });
     });
@@ -18629,10 +19071,16 @@ describe('ReportUtils', () => {
 
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`, expenseReport);
 
-            const reasonForAttention = getReasonAndReportActionThatRequiresAttention(expenseReport, currentUserEmail, currentUserAccountID, undefined, false);
+            const reasonForAttention = getReasonAndReportActionThatRequiresAttention({
+                optionOrReport: expenseReport,
+                currentUserLogin: currentUserEmail,
+                currentUserAccountID,
+                transactionViolations: undefined,
+                isReportArchived: false,
+            });
             expect(reasonForAttention?.reason).toBe(CONST.REQUIRES_ATTENTION_REASONS.HAS_CHILD_REPORT_AWAITING_ACTION);
 
-            const requiresAttention = requiresAttentionFromCurrentUser(expenseReport, currentUserEmail, currentUserAccountID, undefined, false);
+            const requiresAttention = requiresAttentionFromCurrentUser(expenseReport, currentUserEmail, currentUserAccountID, undefined, undefined, false);
             expect(requiresAttention).toBe(true);
 
             const reasonForOptionList = reasonForReportToBeInOptionList({
@@ -18676,10 +19124,16 @@ describe('ReportUtils', () => {
 
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`, expenseReport);
 
-            const reasonForAttention = getReasonAndReportActionThatRequiresAttention(expenseReport, currentUserEmail, currentUserAccountID, undefined, false);
+            const reasonForAttention = getReasonAndReportActionThatRequiresAttention({
+                optionOrReport: expenseReport,
+                currentUserLogin: currentUserEmail,
+                currentUserAccountID,
+                transactionViolations: undefined,
+                isReportArchived: false,
+            });
             expect(reasonForAttention?.reason).toBe(undefined);
 
-            const requiresAttention = requiresAttentionFromCurrentUser(expenseReport, currentUserEmail, currentUserAccountID, undefined, false);
+            const requiresAttention = requiresAttentionFromCurrentUser(expenseReport, currentUserEmail, currentUserAccountID, undefined, undefined, false);
             expect(requiresAttention).toBe(false);
 
             const reasonForOptionList = reasonForReportToBeInOptionList({
@@ -20051,7 +20505,13 @@ describe('ReportUtils', () => {
 
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`, expenseReport);
 
-        const reasonForAttention = getReasonAndReportActionThatRequiresAttention(expenseReport, currentUserEmail, currentUserAccountID, undefined, false);
+        const reasonForAttention = getReasonAndReportActionThatRequiresAttention({
+            optionOrReport: expenseReport,
+            currentUserLogin: currentUserEmail,
+            currentUserAccountID,
+            transactionViolations: undefined,
+            isReportArchived: false,
+        });
         expect(reasonForAttention?.reason).toBe(CONST.REQUIRES_ATTENTION_REASONS.HAS_CHILD_REPORT_AWAITING_ACTION);
     });
 
@@ -20629,11 +21089,7 @@ describe('ReportUtils', () => {
                 // The localized preview differs between English and Spanish...
                 expect(getReportPreviewMessage(spanishTranslate, convertToDisplayString, params)).not.toBe(getReportPreviewMessage(englishTranslate, convertToDisplayString, params));
                 // ...but the report-action-message variant is always the English text, regardless of the loaded locale
-
-                // TODO: Re-enable this assertion once getReportPreviewReportActionMessage is refactored
-                // This will be done in the next PR https://github.com/Expensify/App/issues/66430.
-
-                // expect(getReportPreviewReportActionMessage(params, getCurrencyDecimalsLocal)).toBe(getReportPreviewMessage(englishTranslate, convertToDisplayString, params));
+                expect(getReportPreviewReportActionMessage(params, getCurrencyDecimalsLocal)).toBe(getReportPreviewMessage(englishTranslate, convertToDisplayString, params));
             });
 
             it('routes the participant display name through the injected translate function', async () => {
@@ -20682,6 +21138,30 @@ describe('ReportUtils', () => {
                 // The hardcoded English string must match the en.ts translation produced by the localized function
                 expect(result).toBe(getReportPreviewMessage(englishTranslate, convertToDisplayString, {reportOrID: report, policy: undefined}));
                 expect(result).toContain('owes');
+            });
+
+            it('names a participant with no display name using the English "Hidden" copy when another locale is loaded', async () => {
+                // Given an IOU report whose payer has no name, so the payer resolves to the "hidden" copy
+                const hiddenManagerAccountID = 5544332;
+                const report: Report = {
+                    ...LHNTestUtils.getFakeReport(),
+                    reportID: 'preview-en-hidden-report',
+                    type: CONST.REPORT.TYPE.IOU,
+                    currency: CONST.CURRENCY.USD,
+                    managerID: hiddenManagerAccountID,
+                    stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                    statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                };
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
+                await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[hiddenManagerAccountID]: {accountID: hiddenManagerAccountID, login: '', displayName: ''}});
+
+                // When the message is built while Spanish is the loaded locale, which the cached module-level translation used to follow
+                await IntlStore.load(CONST.LOCALES.ES).then(waitForBatchedUpdates);
+                const result = getReportPreviewReportActionMessage({reportOrID: report}, getCurrencyDecimalsLocal);
+
+                // Then the message stored on the report action names the participant in English, like the rest of its copy
+                expect(result).toContain(translate(CONST.LOCALES.EN, 'common.hidden'));
+                expect(result).not.toContain(translate(CONST.LOCALES.ES, 'common.hidden'));
             });
 
             it('returns the English "spent" message when the report contains a non-reimbursable transaction, and matches en.ts', async () => {
@@ -21091,7 +21571,7 @@ describe('ReportUtils', () => {
     });
 
     describe('getReportFieldMaps', () => {
-        it('returns persisted invoice fields when the receiver has no policy field list', async () => {
+        it('returns persisted invoice fields when the receiver has no policy field list', () => {
             const report = createMock<Report>({
                 reportID: 'invoiceReceiverWithoutPolicyFields',
                 type: CONST.REPORT.TYPE.INVOICE,
@@ -21105,22 +21585,18 @@ describe('ReportUtils', () => {
                 value: 'Acme',
             });
 
-            await Onyx.merge(
-                `${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`,
-                Object.fromEntries([
-                    ['expensify_invoice_field', invoiceField],
-                    ['invoice_field', invoiceField],
-                ]),
-            );
-            await waitForBatchedUpdates();
+            const reportNameValuePairs = Object.fromEntries([
+                ['expensify_invoice_field', invoiceField],
+                ['invoice_field', invoiceField],
+            ]);
 
-            const {fieldValues, fieldsByName} = getReportFieldMaps(report, {});
+            const {fieldValues, fieldsByName} = getReportFieldMaps(report, {}, reportNameValuePairs);
 
             expect(fieldValues).toEqual({client: 'Acme'});
             expect(fieldsByName).toEqual({client: invoiceField});
         });
 
-        it('does not use persisted invoice fields for an expense report', async () => {
+        it('does not use persisted invoice fields for an expense report', () => {
             const report = createMock<Report>({
                 reportID: 'expenseReportWithoutPolicyFields',
                 type: CONST.REPORT.TYPE.EXPENSE,
@@ -21134,10 +21610,9 @@ describe('ReportUtils', () => {
                 value: 'Acme',
             });
 
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`, Object.fromEntries([['invoice_field', invoiceField]]));
-            await waitForBatchedUpdates();
+            const reportNameValuePairs = Object.fromEntries([['invoice_field', invoiceField]]);
 
-            expect(getReportFieldMaps(report, {})).toEqual({fieldValues: {}, fieldsByName: {}});
+            expect(getReportFieldMaps(report, {}, reportNameValuePairs)).toEqual({fieldValues: {}, fieldsByName: {}});
         });
     });
 
@@ -21414,6 +21889,43 @@ describe('ReportUtils', () => {
             // When checking whether the field should be hidden
             // Then it is hidden, because no value can be selected
             expect(shouldHideSingleReportField(reportField)).toBe(true);
+        });
+    });
+    describe('shouldDisplayThreadReplies', () => {
+        it('returns true when the action has replies', () => {
+            // Given a parent action whose thread has a reply from one commenter
+            const reportAction = createMock<ReportAction>({childVisibleActionCount: 1, childCommenterCount: 1});
+
+            // When it is not the parent action of the thread being viewed
+            // Then the thread row is shown
+            expect(shouldDisplayThreadReplies(reportAction, false)).toBe(true);
+        });
+
+        it('returns false when the server zeroed the reply counts and no agent is processing', () => {
+            // Given a parent action whose reply counts were zeroed by the server
+            const reportAction = createMock<ReportAction>({childVisibleActionCount: 0, childCommenterCount: 0});
+
+            // When no agent is processing a reply in the thread
+            // Then the thread row is hidden
+            expect(shouldDisplayThreadReplies(reportAction, false)).toBe(false);
+        });
+
+        it('returns true when the reply counts are zeroed but an agent is still processing in the thread', () => {
+            // Given a Concierge question whose thread has no persisted replies yet, so the server returned zeroed counts
+            const reportAction = createMock<ReportAction>({childVisibleActionCount: 0, childCommenterCount: 0});
+
+            // When Concierge is still processing a reply in the thread
+            // Then the thread row stays visible so it doesn't disappear while Concierge is thinking
+            expect(shouldDisplayThreadReplies(reportAction, false, true)).toBe(true);
+        });
+
+        it('returns false for the parent action of the thread being viewed, even while an agent is processing', () => {
+            // Given the parent action shown at the top of its own thread
+            const reportAction = createMock<ReportAction>({childVisibleActionCount: 0, childCommenterCount: 0});
+
+            // When an agent is processing a reply in that thread
+            // Then the thread row is still hidden, because the user is already in the thread
+            expect(shouldDisplayThreadReplies(reportAction, true, true)).toBe(false);
         });
     });
     describe('shouldDisplayReportFields', () => {
@@ -22981,6 +23493,10 @@ describe('ReportUtils', () => {
     });
 
     describe('getPolicyName', () => {
+        // `unavailableTranslation` is required. The cases below all resolve a real policy name, so this is only the copy that
+        // must not surface in their assertions.
+        const unavailableTranslation = 'Unavailable workspace';
+
         const testPolicy: Policy = {
             ...createRandomPolicy(1),
             id: 'policy123',
@@ -23013,6 +23529,7 @@ describe('ReportUtils', () => {
             const result = getPolicyName({
                 report: testReport,
                 policy: testPolicy,
+                unavailableTranslation,
             });
             expect(result).toBe('Test Policy Name');
         });
@@ -23027,6 +23544,7 @@ describe('ReportUtils', () => {
                 report: testReport,
                 policy: testPolicy,
                 policies: [otherPolicy],
+                unavailableTranslation,
             });
             expect(result).toBe('Test Policy Name');
         });
@@ -23043,6 +23561,7 @@ describe('ReportUtils', () => {
             const result = getPolicyName({
                 report: reportWithoutPolicyName,
                 policy: testPolicy,
+                unavailableTranslation,
             });
             expect(result).toBe('Test Policy Name');
         });
@@ -23056,6 +23575,7 @@ describe('ReportUtils', () => {
             const result = getPolicyName({
                 report: testReport,
                 policies,
+                unavailableTranslation,
             });
             expect(result).toBe('Found In Array');
         });
@@ -23068,6 +23588,7 @@ describe('ReportUtils', () => {
             const result = getPolicyName({
                 report: testReport,
                 policies,
+                unavailableTranslation,
             });
             expect(result).toBe('Report Policy Name');
         });
@@ -23078,7 +23599,7 @@ describe('ReportUtils', () => {
                 policyID: 'nonexistent',
                 policyName: 'Fallback Policy Name',
             };
-            const result = getPolicyName({report});
+            const result = getPolicyName({report, unavailableTranslation});
             expect(result).toBe('Fallback Policy Name');
         });
 
@@ -23089,7 +23610,7 @@ describe('ReportUtils', () => {
                 policyName: undefined,
                 oldPolicyName: 'Old Fallback Name',
             };
-            const result = getPolicyName({report});
+            const result = getPolicyName({report, unavailableTranslation});
             expect(result).toBe('Old Fallback Name');
         });
 
@@ -23109,6 +23630,7 @@ describe('ReportUtils', () => {
             const result = getPolicyName({
                 report: childReport,
                 reports: [parentReport, childReport],
+                unavailableTranslation,
             });
             expect(result).toBe('Parent Policy Name');
         });
@@ -23117,6 +23639,7 @@ describe('ReportUtils', () => {
             const result = getPolicyName({
                 report: testReport,
                 policies: [],
+                unavailableTranslation,
             });
             expect(result).toBe('Report Policy Name');
         });
@@ -23125,6 +23648,7 @@ describe('ReportUtils', () => {
             const result = getPolicyName({
                 report: testReport,
                 policy: testPolicy,
+                unavailableTranslation,
             });
             expect(result).toBe('Test Policy Name');
         });
@@ -23144,7 +23668,7 @@ describe('ReportUtils', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${onyxPolicy.id}`, onyxPolicy);
             await waitForBatchedUpdates();
 
-            const result = getPolicyName({report});
+            const result = getPolicyName({report, unavailableTranslation});
             expect(result).toBe('Policy From Onyx');
 
             // Cleanup
@@ -23161,6 +23685,7 @@ describe('ReportUtils', () => {
             const result = getPolicyName({
                 report,
                 policies: [],
+                unavailableTranslation,
             });
             expect(result).toBe('Report Fallback Name');
         });
@@ -23197,7 +23722,7 @@ describe('ReportUtils', () => {
             };
 
             // No policy or policies passed, but allPolicies has the policy via Onyx
-            const result = getPolicyName({report});
+            const result = getPolicyName({report, unavailableTranslation});
             expect(result).toBe('Guard Test Policy');
 
             // Cleanup
@@ -23215,9 +23740,25 @@ describe('ReportUtils', () => {
             expect(result).toBe('Custom Unavailable');
         });
 
-        it('should prefer unavailableTranslation param over cached module-level translation', () => {
+        it('should use unavailableTranslation param when the report is missing entirely', () => {
             const result = getPolicyName({report: null, unavailableTranslation: 'Passed In'});
             expect(result).toBe('Passed In');
+        });
+
+        it('should return the passed copy rather than the loaded locale, now that the module-level cache is gone', async () => {
+            // Given a report whose policy cannot be resolved, so the fallback copy is what gets returned
+            const report: Report = {
+                ...createRandomReport(1, undefined),
+                policyID: 'nonexistent',
+                policyName: undefined,
+                oldPolicyName: undefined,
+            };
+
+            // When Spanish is the loaded locale, which used to drive the cached module-level translation
+            await IntlStore.load(CONST.LOCALES.ES).then(waitForBatchedUpdates);
+
+            // Then the caller's string is returned untouched: the fallback no longer reads translations behind the caller's back
+            expect(getPolicyName({report, unavailableTranslation: translate(CONST.LOCALES.EN, 'workspace.common.unavailable')})).toBe('Unavailable workspace');
         });
 
         it('should not use unavailableTranslation when returnEmptyIfNotFound is true', () => {
@@ -23658,7 +24199,7 @@ describe('ReportUtils', () => {
         it('should return false when policy does not have areReportFieldsEnabled enabled', () => {
             const policyWithFieldsDisabled = {...basePolicy, areReportFieldsEnabled: false};
 
-            expect(hasVisibleReportFieldViolations(expenseReport, policyWithFieldsDisabled, currentUserAccountID, undefined)).toBe(false);
+            expect(hasVisibleReportFieldViolations(expenseReport, policyWithFieldsDisabled, currentUserAccountID, undefined, undefined)).toBe(false);
         });
 
         it('should return false when the report is not an expense report or invoice report', () => {
@@ -23668,7 +24209,7 @@ describe('ReportUtils', () => {
                 policyID,
             };
 
-            expect(hasVisibleReportFieldViolations(chatReport, basePolicy, currentUserAccountID, undefined)).toBe(false);
+            expect(hasVisibleReportFieldViolations(chatReport, basePolicy, currentUserAccountID, undefined, undefined)).toBe(false);
         });
 
         it('should return true when expense report has a required field with no value', async () => {
@@ -23686,7 +24227,7 @@ describe('ReportUtils', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policyWithEmptyField);
             await waitForBatchedUpdates();
 
-            expect(hasVisibleReportFieldViolations(expenseReport, policyWithEmptyField, currentUserAccountID, undefined)).toBe(true);
+            expect(hasVisibleReportFieldViolations(expenseReport, policyWithEmptyField, currentUserAccountID, undefined, undefined)).toBe(true);
         });
 
         it('should return true when an unpaid invoice report has a required field with no value', async () => {
@@ -23716,7 +24257,7 @@ describe('ReportUtils', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policyWithEmptyInvoiceField);
             await waitForBatchedUpdates();
 
-            expect(hasVisibleReportFieldViolations(unpaidInvoiceReport, policyWithEmptyInvoiceField, currentUserAccountID, undefined)).toBe(true);
+            expect(hasVisibleReportFieldViolations(unpaidInvoiceReport, policyWithEmptyInvoiceField, currentUserAccountID, undefined, undefined)).toBe(true);
         });
 
         it('should return false when a paid invoice report has a required field with no value', async () => {
@@ -23746,7 +24287,41 @@ describe('ReportUtils', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policyWithEmptyInvoiceField);
             await waitForBatchedUpdates();
 
-            expect(hasVisibleReportFieldViolations(paidInvoiceReport, policyWithEmptyInvoiceField, currentUserAccountID, undefined)).toBe(false);
+            expect(hasVisibleReportFieldViolations(paidInvoiceReport, policyWithEmptyInvoiceField, currentUserAccountID, undefined, undefined)).toBe(false);
+        });
+
+        it('should return false when an unpaid invoice report required field has value in reportNameValuePairs', () => {
+            const fieldWithNoValue: PolicyReportField = {
+                ...baseField,
+                target: CONST.REPORT.TYPE.INVOICE,
+                value: null,
+                defaultValue: '',
+            };
+
+            const policyWithEmptyInvoiceField = {
+                ...basePolicy,
+                areReportFieldsEnabled: false,
+                areInvoiceFieldsEnabled: true,
+                fieldList: {[`expensify_${fieldWithNoValue.fieldID}`]: fieldWithNoValue},
+            };
+
+            const unpaidInvoiceReport: Report = {
+                reportID: 'invoice-report-field-violations-unpaid-filled',
+                type: CONST.REPORT.TYPE.INVOICE,
+                policyID,
+                ownerAccountID: currentUserAccountID,
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+            };
+
+            const reportNameValuePairs: ReportNameValuePairs = {
+                [`expensify_${fieldWithNoValue.fieldID}`]: {
+                    ...fieldWithNoValue,
+                    value: 'Sample Value',
+                },
+            };
+
+            expect(hasVisibleReportFieldViolations(unpaidInvoiceReport, policyWithEmptyInvoiceField, currentUserAccountID, undefined, reportNameValuePairs)).toBe(false);
         });
     });
 
@@ -24044,7 +24619,7 @@ describe('ReportUtils', () => {
             expect(getOutstandingChildRequest(expenseReport).hasOutstandingChildRequest).toBe(true);
 
             // GBR shows on the workspace chat
-            expect(requiresAttentionFromCurrentUser(policyExpenseChat, currentUserEmail, currentUserAccountID)).toBe(true);
+            expect(requiresAttentionFromCurrentUser(policyExpenseChat, currentUserEmail, currentUserAccountID, undefined)).toBe(true);
 
             const reason = reasonForReportToBeInOptionList({
                 report: policyExpenseChat,
@@ -24117,7 +24692,7 @@ describe('ReportUtils', () => {
             expect(getOutstandingChildRequest(expenseReport)).toEqual({});
 
             // The workspace chat still has hasOutstandingChildRequest: true, so GBR persists
-            expect(requiresAttentionFromCurrentUser(policyExpenseChat, currentUserEmail, currentUserAccountID)).toBe(true);
+            expect(requiresAttentionFromCurrentUser(policyExpenseChat, currentUserEmail, currentUserAccountID, undefined)).toBe(true);
 
             const reason = reasonForReportToBeInOptionList({
                 report: policyExpenseChat,
@@ -24605,7 +25180,17 @@ describe('ReportUtils', () => {
             await waitForBatchedUpdates();
 
             const action = {...createRandomReportAction(1)};
-            const result = getChatListItemReportName(action, conciergeReport, undefined, conciergeReportID, [], translateLocal, convertToDisplayString, undefined, undefined);
+            const result = getChatListItemReportName(
+                action,
+                conciergeReport,
+                undefined,
+                conciergeReportID,
+                [],
+                {translate: translateLocal, formatPhoneNumber},
+                convertToDisplayString,
+                undefined,
+                undefined,
+            );
             expect(result).toBe(CONST.CONCIERGE_DISPLAY_NAME);
         });
 
@@ -24619,7 +25204,17 @@ describe('ReportUtils', () => {
             await waitForBatchedUpdates();
 
             const action = {...createRandomReportAction(2)};
-            const result = getChatListItemReportName(action, regularReport, undefined, conciergeReportID, [], translateLocal, convertToDisplayString, undefined, undefined);
+            const result = getChatListItemReportName(
+                action,
+                regularReport,
+                undefined,
+                conciergeReportID,
+                [],
+                {translate: translateLocal, formatPhoneNumber},
+                convertToDisplayString,
+                undefined,
+                undefined,
+            );
             expect(result).not.toBe(CONST.CONCIERGE_DISPLAY_NAME);
         });
 
@@ -24629,7 +25224,17 @@ describe('ReportUtils', () => {
                 type: CONST.REPORT.TYPE.CHAT,
             };
             const action = {...createRandomReportAction(3), reportName: 'Custom Action Name'};
-            const result = getChatListItemReportName(action, conciergeReport, undefined, conciergeReportID, [], translateLocal, convertToDisplayString, undefined, undefined);
+            const result = getChatListItemReportName(
+                action,
+                conciergeReport,
+                undefined,
+                conciergeReportID,
+                [],
+                {translate: translateLocal, formatPhoneNumber},
+                convertToDisplayString,
+                undefined,
+                undefined,
+            );
             expect(result).toBe('Custom Action Name');
         });
 
@@ -24639,7 +25244,17 @@ describe('ReportUtils', () => {
                 type: CONST.REPORT.TYPE.CHAT,
             };
             const action = {...createRandomReportAction(4)};
-            const result = getChatListItemReportName(action, conciergeReport, undefined, conciergeReportID, [], translateLocal, convertToDisplayString, undefined, undefined);
+            const result = getChatListItemReportName(
+                action,
+                conciergeReport,
+                undefined,
+                conciergeReportID,
+                [],
+                {translate: translateLocal, formatPhoneNumber},
+                convertToDisplayString,
+                undefined,
+                undefined,
+            );
             expect(result).toBe(CONST.CONCIERGE_DISPLAY_NAME);
         });
 
@@ -24660,7 +25275,17 @@ describe('ReportUtils', () => {
             const translateWithMarker: LocalizedTranslate = (path, ...parameters) => (path === 'iou.payerOwesAmount' ? 'PayerOwesMarker' : translateLocal(path, ...parameters));
 
             const action = {...createRandomReportAction(5)};
-            const result = getChatListItemReportName(action, invoiceReport, parentChatReport, undefined, [], translateWithMarker, convertToDisplayString, undefined, undefined);
+            const result = getChatListItemReportName(
+                action,
+                invoiceReport,
+                parentChatReport,
+                undefined,
+                [],
+                {translate: translateWithMarker, formatPhoneNumber},
+                convertToDisplayString,
+                undefined,
+                undefined,
+            );
 
             expect(result).toBe('PayerOwesMarker');
         });
@@ -24680,7 +25305,17 @@ describe('ReportUtils', () => {
             };
 
             const action = {...createRandomReportAction(6)};
-            const result = getChatListItemReportName(action, invoiceReport, parentChatReport, undefined, [], translateLocal, convertToDisplayString, undefined, undefined);
+            const result = getChatListItemReportName(
+                action,
+                invoiceReport,
+                parentChatReport,
+                undefined,
+                [],
+                {translate: translateLocal, formatPhoneNumber},
+                convertToDisplayString,
+                undefined,
+                undefined,
+            );
 
             expect(result).toBe('Invoice #42');
         });
@@ -24696,8 +25331,28 @@ describe('ReportUtils', () => {
             const action = {...createRandomReportAction(7)};
             const derivedName = 'Derived Report Name';
 
-            const resultWithDerived = getChatListItemReportName(action, chatReport, undefined, undefined, [], translateLocal, convertToDisplayString, undefined, derivedName);
-            const resultWithoutDerived = getChatListItemReportName(action, chatReport, undefined, undefined, [], translateLocal, convertToDisplayString, undefined, undefined);
+            const resultWithDerived = getChatListItemReportName(
+                action,
+                chatReport,
+                undefined,
+                undefined,
+                [],
+                {translate: translateLocal, formatPhoneNumber},
+                convertToDisplayString,
+                undefined,
+                derivedName,
+            );
+            const resultWithoutDerived = getChatListItemReportName(
+                action,
+                chatReport,
+                undefined,
+                undefined,
+                [],
+                {translate: translateLocal, formatPhoneNumber},
+                convertToDisplayString,
+                undefined,
+                undefined,
+            );
 
             expect(resultWithDerived).toBe(derivedName);
             expect(resultWithDerived).not.toBe(resultWithoutDerived);
@@ -24706,7 +25361,17 @@ describe('ReportUtils', () => {
         it('should return empty string when report is undefined even with derivedReportName', () => {
             const action = {...createRandomReportAction(8)};
 
-            const result = getChatListItemReportName(action, undefined, undefined, undefined, [], translateLocal, convertToDisplayString, undefined, 'Derived Name');
+            const result = getChatListItemReportName(
+                action,
+                undefined,
+                undefined,
+                undefined,
+                [],
+                {translate: translateLocal, formatPhoneNumber},
+                convertToDisplayString,
+                undefined,
+                'Derived Name',
+            );
             expect(result).toBe('');
         });
 
@@ -24743,7 +25408,17 @@ describe('ReportUtils', () => {
                 };
 
                 const action = {...createRandomReportAction(7)};
-                const result = getChatListItemReportName(action, invoiceReport, nonInvoiceParent, undefined, [], translateWithMarker, convertToDisplayString, undefined, undefined);
+                const result = getChatListItemReportName(
+                    action,
+                    invoiceReport,
+                    nonInvoiceParent,
+                    undefined,
+                    [],
+                    {translate: translateWithMarker, formatPhoneNumber},
+                    convertToDisplayString,
+                    undefined,
+                    undefined,
+                );
 
                 expect(result).toBe('PayerOwesMarker');
             });
@@ -24758,7 +25433,17 @@ describe('ReportUtils', () => {
                 };
 
                 const action = {...createRandomReportAction(8)};
-                const result = getChatListItemReportName(action, invoiceReport, invoiceRoom, undefined, [], translateWithMarker, convertToDisplayString, undefined, undefined);
+                const result = getChatListItemReportName(
+                    action,
+                    invoiceReport,
+                    invoiceRoom,
+                    undefined,
+                    [],
+                    {translate: translateWithMarker, formatPhoneNumber},
+                    convertToDisplayString,
+                    undefined,
+                    undefined,
+                );
 
                 expect(result).toBe('PayerOwesMarker');
             });
@@ -24772,7 +25457,17 @@ describe('ReportUtils', () => {
                 };
 
                 const action = {...createRandomReportAction(9)};
-                getChatListItemReportName(action, invoiceReport, invoiceRoom, undefined, [], translateWithMarker, convertToDisplayString, undefined, undefined);
+                getChatListItemReportName(
+                    action,
+                    invoiceReport,
+                    invoiceRoom,
+                    undefined,
+                    [],
+                    {translate: translateWithMarker, formatPhoneNumber},
+                    convertToDisplayString,
+                    undefined,
+                    undefined,
+                );
 
                 expect(invoiceReport.chatReportID).toBeUndefined();
             });
@@ -24798,7 +25493,17 @@ describe('ReportUtils', () => {
                 };
 
                 const action = {...createRandomReportAction(10)};
-                const result = getChatListItemReportName(action, invoiceThread, parentInvoiceReport, undefined, [], translateWithMarker, convertToDisplayString, undefined, undefined);
+                const result = getChatListItemReportName(
+                    action,
+                    invoiceThread,
+                    parentInvoiceReport,
+                    undefined,
+                    [],
+                    {translate: translateWithMarker, formatPhoneNumber},
+                    convertToDisplayString,
+                    undefined,
+                    undefined,
+                );
 
                 expect(result).toBe('PayerOwesMarker');
             });
@@ -26352,15 +27057,21 @@ describe('ReportUtils', () => {
             });
         }
 
-        const mockPolicy = createMock<Policy>({
+        /** The workspace policy is passed in explicitly, so these fixtures never touch Onyx. */
+        const adminPolicy = createMock<Policy>({
             ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
             id: POLICY_ID,
             role: CONST.POLICY.ROLE.ADMIN,
         });
 
+        const memberPolicy = createMock<Policy>({
+            ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
+            id: POLICY_ID,
+            role: CONST.POLICY.ROLE.USER,
+        });
+
         beforeEach(async () => {
             await Onyx.set(ONYXKEYS.SESSION, {email: ownerEmail, accountID: USER_ID});
-            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, mockPolicy);
             return waitForBatchedUpdates();
         });
 
@@ -26370,67 +27081,67 @@ describe('ReportUtils', () => {
         });
 
         it('returns false for an empty selection', () => {
-            expect(canMergeReports([], USER_ID, undefined)).toBe(false);
+            expect(canMergeReports([], USER_ID, undefined, undefined, adminPolicy)).toBe(false);
         });
 
         it('returns false when only 1 report is selected', () => {
-            expect(canMergeReports([makeOpenReport()], USER_ID, undefined)).toBe(false);
+            expect(canMergeReports([makeOpenReport()], USER_ID, undefined, undefined, adminPolicy)).toBe(false);
         });
 
         it('returns false when currentUserAccountID is 0 (falsy)', () => {
-            expect(canMergeReports([makeOpenReport(), makeOpenReport()], 0, undefined)).toBe(false);
+            expect(canMergeReports([makeOpenReport(), makeOpenReport()], 0, undefined, undefined, adminPolicy)).toBe(false);
         });
 
         // Same ownerAccountID (cross-account not supported)
         it('returns false when reports have different ownerAccountIDs', () => {
             const r1 = makeOpenReport({ownerAccountID: OWNER_ID});
             const r2 = makeOpenReport({ownerAccountID: OWNER_ID + 1});
-            expect(canMergeReports([r1, r2], USER_ID, undefined)).toBe(false);
+            expect(canMergeReports([r1, r2], USER_ID, undefined, undefined, adminPolicy)).toBe(false);
         });
 
         it('returns false when the first report has no ownerAccountID', () => {
             const r1 = makeOpenReport({ownerAccountID: undefined});
             const r2 = makeOpenReport({ownerAccountID: OWNER_ID});
-            expect(canMergeReports([r1, r2], USER_ID, undefined)).toBe(false);
+            expect(canMergeReports([r1, r2], USER_ID, undefined, undefined, adminPolicy)).toBe(false);
         });
 
         // Same policyID (cross-workspace not supported)
         it('returns false when reports belong to different workspaces', () => {
             const r1 = makeOpenReport({policyID: 'p1'});
             const r2 = makeOpenReport({policyID: 'p2'});
-            expect(canMergeReports([r1, r2], USER_ID, undefined)).toBe(false);
+            expect(canMergeReports([r1, r2], USER_ID, undefined, undefined, adminPolicy)).toBe(false);
         });
 
         it('returns false when the first report has no policyID', () => {
             const r1 = makeOpenReport({policyID: undefined});
             const r2 = makeOpenReport({policyID: POLICY_ID});
-            expect(canMergeReports([r1, r2], USER_ID, undefined)).toBe(false);
+            expect(canMergeReports([r1, r2], USER_ID, undefined, undefined, adminPolicy)).toBe(false);
         });
 
         // Same workflow state
         it('returns false when mixing Open and Processing reports', () => {
             const open = makeOpenReport();
             const processing = makeProcessingReport();
-            expect(canMergeReports([open, processing], USER_ID, undefined)).toBe(false);
+            expect(canMergeReports([open, processing], USER_ID, undefined, undefined, adminPolicy)).toBe(false);
         });
 
         it('returns false when stateNum matches but statusNum differs', () => {
             const r1 = makeOpenReport({stateNum: CONST.REPORT.STATE_NUM.OPEN, statusNum: CONST.REPORT.STATUS_NUM.OPEN});
             const r2 = makeOpenReport({stateNum: CONST.REPORT.STATE_NUM.OPEN, statusNum: CONST.REPORT.STATUS_NUM.CLOSED});
-            expect(canMergeReports([r1, r2], USER_ID, undefined)).toBe(false);
+            expect(canMergeReports([r1, r2], USER_ID, undefined, undefined, adminPolicy)).toBe(false);
         });
 
         // Same managerID for Processing reports
         it('returns false when Processing reports have different managerIDs', () => {
             const r1 = makeProcessingReport({managerID: MANAGER_ID});
             const r2 = makeProcessingReport({managerID: MANAGER_ID + 99});
-            expect(canMergeReports([r1, r2], USER_ID, undefined)).toBe(false);
+            expect(canMergeReports([r1, r2], USER_ID, undefined, undefined, adminPolicy)).toBe(false);
         });
 
         it('returns false when a Processing report has no managerID', () => {
             const r1 = makeProcessingReport({managerID: MANAGER_ID});
             const r2 = makeProcessingReport({managerID: undefined});
-            expect(canMergeReports([r1, r2], USER_ID, undefined)).toBe(false);
+            expect(canMergeReports([r1, r2], USER_ID, undefined, undefined, adminPolicy)).toBe(false);
         });
 
         /**
@@ -26442,7 +27153,7 @@ describe('ReportUtils', () => {
             const r1 = makeOpenReport({managerID: undefined});
             const r2 = makeOpenReport({managerID: 999});
 
-            expect(canMergeReports([r1, r2], USER_ID, undefined)).toBe(true);
+            expect(canMergeReports([r1, r2], USER_ID, undefined, undefined, adminPolicy)).toBe(true);
         });
 
         // Terminal states (settled / approved / closed)
@@ -26453,7 +27164,7 @@ describe('ReportUtils', () => {
                 statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED,
                 isWaitingOnBankAccount: false,
             } as Report;
-            expect(canMergeReports([makeOpenReport(), settled], USER_ID, undefined)).toBe(false);
+            expect(canMergeReports([makeOpenReport(), settled], USER_ID, undefined, undefined, adminPolicy)).toBe(false);
         });
 
         it('returns false when a report is approved', () => {
@@ -26462,7 +27173,7 @@ describe('ReportUtils', () => {
                 stateNum: CONST.REPORT.STATE_NUM.APPROVED,
                 statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
             } as Report;
-            expect(canMergeReports([makeOpenReport(), approved], USER_ID, undefined)).toBe(false);
+            expect(canMergeReports([makeOpenReport(), approved], USER_ID, undefined, undefined, adminPolicy)).toBe(false);
         });
 
         it('returns false when a report is closed', () => {
@@ -26470,63 +27181,149 @@ describe('ReportUtils', () => {
                 ...makeOpenReport(),
                 statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
             } as Report;
-            expect(canMergeReports([makeOpenReport(), closed], USER_ID, undefined)).toBe(false);
+            expect(canMergeReports([makeOpenReport(), closed], USER_ID, undefined, undefined, adminPolicy)).toBe(false);
         });
 
         // The user must be able to write to each report
-        it('returns false when the current user is not able to write to each report', async () => {
+        it('returns false when the current user is not able to write to each report', () => {
             const r1 = makeOpenReport({permissions: [CONST.REPORT.PERMISSIONS.READ]});
             const r2 = makeOpenReport();
-            expect(canMergeReports([r1, r2], USER_ID, undefined)).toBe(false);
+            expect(canMergeReports([r1, r2], USER_ID, undefined, undefined, adminPolicy)).toBe(false);
         });
 
         // The user must be the report owner, a workspace admin, or the current approver.
-        it('returns false when the current user is not owner/admin/approver of a report', async () => {
+        it('returns false when the current user is not owner/admin/approver of a report', () => {
+            // Given two Open reports owned by OWNER_ID with no managerID set, and a policy on which the
+            // current user is only a member, so none of the three merge-eligible roles apply to them
             const STRANGER_ID = 77;
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, {...policy, role: CONST.POLICY.ROLE.USER});
-            await waitForBatchedUpdates();
-
-            // Reports are owned by OWNER_ID=10; managerID is unset (Open reports).
-            // STRANGER_ID is neither admin, owner, nor manager.
             const r1 = makeOpenReport();
             const r2 = makeOpenReport();
-            expect(canMergeReports([r1, r2], STRANGER_ID, undefined)).toBe(false);
+
+            // When a stranger who is neither the owner, the workspace admin, nor the approver tries to merge them
+            const result = canMergeReports([r1, r2], STRANGER_ID, undefined, undefined, memberPolicy);
+
+            // Then the merge is rejected, because allowing it would let an unrelated user rewrite someone else's reports
+            expect(result).toBe(false);
         });
 
         // Happy paths
-        it('returns true for two valid Open reports when user is the report owner', async () => {
-            // When the current user is the policy admin
+        it('returns true for two valid Open reports when user is the report owner', () => {
+            // Given two Open reports that the current user owns, which is the state a submitter can still edit
             const r1 = makeOpenReport();
             const r2 = makeOpenReport();
-            expect(canMergeReports([r1, r2], USER_ID, undefined)).toBe(true);
 
-            // When the current user is the submitter
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, {...policy, role: CONST.POLICY.ROLE.USER});
-            await waitForBatchedUpdates();
-            expect(canMergeReports([r1, r2], USER_ID, undefined)).toBe(true);
+            // When the merge is attempted as the workspace admin, and again as a plain member who owns the reports
+            const asAdmin = canMergeReports([r1, r2], USER_ID, undefined, undefined, adminPolicy);
+            const asMember = canMergeReports([r1, r2], USER_ID, undefined, undefined, memberPolicy);
+
+            // Then both are allowed, because an Open report is editable by its owner regardless of workspace role
+            expect(asAdmin).toBe(true);
+            expect(asMember).toBe(true);
         });
 
-        it('returns true for two valid Processing reports when user is the report owner and approver matches', async () => {
-            // When the current user is the policy admin
+        it('returns true for two valid Processing reports when user is the report owner and approver matches', () => {
+            // Given two submitted reports owned by the current user and already waiting on MANAGER_ID to approve
             const r1 = makeProcessingReport();
             const r2 = makeProcessingReport();
-            expect(canMergeReports([r1, r2], USER_ID, undefined)).toBe(true);
 
-            // When the current user is the submitter
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, {...policy, role: CONST.POLICY.ROLE.USER});
-            await waitForBatchedUpdates();
-            expect(canMergeReports([r1, r2], USER_ID, undefined)).toBe(false);
+            // When the merge is attempted as the workspace admin, and again as a plain member who owns the reports
+            const asAdmin = canMergeReports([r1, r2], USER_ID, undefined, undefined, adminPolicy);
+            const asMember = canMergeReports([r1, r2], USER_ID, undefined, undefined, memberPolicy);
+
+            // Then only the admin may merge: a submitter loses edit rights once the report is awaiting approval,
+            // so letting them merge would let them alter a report that is already in an approver's queue
+            expect(asAdmin).toBe(true);
+            expect(asMember).toBe(false);
         });
 
-        it('returns true when the current user is the approver on Processing reports', async () => {
+        it('returns true when the current user is the approver on Processing reports', () => {
+            // Given two submitted reports owned by someone else and waiting on MANAGER_ID to approve them
             const r1 = makeProcessingReport({ownerAccountID: 999, managerID: MANAGER_ID});
             const r2 = makeProcessingReport({ownerAccountID: 999, managerID: MANAGER_ID});
-            expect(canMergeReports([r1, r2], MANAGER_ID, undefined)).toBe(true);
+
+            // When the approver merges them while holding only a member role, so eligibility can be granted
+            // by the approver branch alone. An admin policy would short-circuit before the manager is checked
+            // and the test would still pass even if that check regressed.
+            const result = canMergeReports([r1, r2], MANAGER_ID, undefined, undefined, memberPolicy);
+
+            // Then the merge is allowed, because the approver owns the decision on reports sitting in their queue
+            expect(result).toBe(true);
         });
 
         it('returns true for three or more valid Open reports', () => {
             const reports = [makeOpenReport(), makeOpenReport(), makeOpenReport()];
-            expect(canMergeReports(reports, USER_ID, undefined)).toBe(true);
+            expect(canMergeReports(reports, USER_ID, undefined, undefined, adminPolicy)).toBe(true);
+        });
+
+        it('returns true for two valid Open reports when reportNameValuePairs is provided', () => {
+            const r1 = makeOpenReport();
+            const r2 = makeOpenReport();
+            const reportNameValuePairs: OnyxCollection<ReportNameValuePairs> = {
+                [`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${r1.reportID}`]: {},
+            };
+            expect(canMergeReports([r1, r2], USER_ID, undefined, reportNameValuePairs, adminPolicy)).toBe(true);
+        });
+
+        it('returns false when a report is not writable even when reportNameValuePairs is provided', () => {
+            const r1 = makeOpenReport({permissions: [CONST.REPORT.PERMISSIONS.READ]});
+            const r2 = makeOpenReport();
+            const reportNameValuePairs: OnyxCollection<ReportNameValuePairs> = {
+                [`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${r1.reportID}`]: {},
+            };
+            expect(canMergeReports([r1, r2], USER_ID, undefined, reportNameValuePairs, adminPolicy)).toBe(false);
+        });
+
+        /**
+         * The policy must come from the caller rather than the module-level `allPolicies` Onyx cache that
+         * ReportUtils used to read. Merging submitted reports is the discriminating case: admins may do it,
+         * submitters may not, so a stale cached role would flip the result.
+         * See https://github.com/Expensify/App/issues/66415.
+         */
+        describe('reads the policy from the caller, not the Onyx cache', () => {
+            afterEach(async () => {
+                await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, null);
+                return waitForBatchedUpdates();
+            });
+
+            it('rejects the merge when the passed policy is a member even though the cached policy is an admin', async () => {
+                // Given a cached policy that would make the current user an admin of the workspace
+                await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, adminPolicy);
+                await waitForBatchedUpdates();
+                const r1 = makeProcessingReport();
+                const r2 = makeProcessingReport();
+
+                // When the caller passes a policy on which that same user is only a member
+                const result = canMergeReports([r1, r2], USER_ID, undefined, undefined, memberPolicy);
+
+                // Then the passed policy wins and the merge is rejected, so the cache can never widen a user's rights
+                expect(result).toBe(false);
+            });
+
+            it('allows the merge when the passed policy is an admin even though the cached policy is a member', async () => {
+                // Given a cached policy that would demote the current user to a plain member
+                await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, memberPolicy);
+                await waitForBatchedUpdates();
+                const r1 = makeProcessingReport();
+                const r2 = makeProcessingReport();
+
+                // When the caller passes the policy on which that user really is an admin
+                const result = canMergeReports([r1, r2], USER_ID, undefined, undefined, adminPolicy);
+
+                // Then the merge is allowed, so a stale cache can never strip rights the caller's data grants
+                expect(result).toBe(true);
+            });
+
+            it('treats a missing policy as non-admin', () => {
+                // Given submitted reports owned by the current user whose workspace policy has not been loaded yet
+                const r1 = makeProcessingReport();
+                const r2 = makeProcessingReport();
+
+                // When the merge is attempted with no policy available to the caller
+                const result = canMergeReports([r1, r2], USER_ID, undefined, undefined, undefined);
+
+                // Then it is rejected, because admin-only merges must not be granted on the basis of absent data
+                expect(result).toBe(false);
+            });
         });
     });
 });
@@ -27030,6 +27827,34 @@ describe('getPendingChatMembers', () => {
         const result = getPendingChatMembers(accountIDs, previousPendingChatMembers, CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
 
         expect(result).toEqual(previousPendingChatMembers);
+    });
+});
+
+describe('support tickets', () => {
+    const openSupportTicket: Report = {
+        reportID: 'support-ticket',
+        type: CONST.REPORT.TYPE.SUPPORT_TICKET,
+        stateNum: CONST.REPORT.STATE_NUM.OPEN,
+        statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+    };
+
+    it('uses the resolved parent preview when the ticket is not loaded', () => {
+        // Given a support ticket that has not loaded yet
+        expect(
+            isResolvedSupportTicket(null, {
+                ...createRandomReportAction(1),
+                childType: CONST.REPORT.TYPE.SUPPORT_TICKET,
+                childStateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                childStatusNum: CONST.REPORT.STATUS_NUM.CLOSED,
+            }),
+        ).toBe(true);
+    });
+
+    it('does not allow task creation in support tickets', () => {
+        // Given an open support ticket
+        // When task availability is checked
+        // Then task creation is unavailable
+        expect(canCreateTaskInReport(openSupportTicket)).toBe(false);
     });
 });
 

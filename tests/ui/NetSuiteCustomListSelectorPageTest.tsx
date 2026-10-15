@@ -1,5 +1,6 @@
 import {act, render} from '@testing-library/react-native';
 
+import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 
 import {setDraftValues} from '@libs/actions/FormActions';
@@ -79,15 +80,31 @@ jest.mock('@libs/Navigation/Navigation', () => ({
 
 describe('NetSuiteCustomListSelectorPage', () => {
     const mockedSelectionList = jest.mocked(SelectionList<CustomListSelectorType>);
+    const mockedScreenWrapper = jest.mocked(ScreenWrapper);
     const mockedSetDraftValues = jest.mocked(setDraftValues);
     const mockedNavigationGoBack = jest.mocked(Navigation.goBack);
 
     beforeEach(() => {
         mockedSelectionList.mockClear();
+        mockedScreenWrapper.mockClear();
         mockedSetDraftValues.mockClear();
         mockedNavigationGoBack.mockClear();
         mockFormDraft = undefined;
         mockPolicy = buildPolicy(DEFAULT_CUSTOM_LISTS);
+    });
+
+    it('keeps the default top safe-area padding so the header is not drawn under the status bar', () => {
+        render(
+            <NetSuiteCustomListSelectorPage
+                route={createMock<NetSuiteCustomListSelectorPageProps['route']>({params: {policyID: 'P1'}})}
+                navigation={createMock<NetSuiteCustomListSelectorPageProps['navigation']>({})}
+            />,
+        );
+
+        // `includePaddingTop` defaults to true, so `ScreenWrapper` applies the top safe-area inset and
+        // `HeaderWithBackButton` renders below the status bar. This page has no full-bleed header, so it must not
+        // opt out.
+        expect(mockedScreenWrapper.mock.lastCall?.[0].includePaddingTop).not.toBe(false);
     });
 
     it('builds option rows from the policy custom lists and marks the draft value as selected', () => {
