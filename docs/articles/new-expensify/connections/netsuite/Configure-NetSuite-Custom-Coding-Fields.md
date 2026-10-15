@@ -7,42 +7,46 @@ internalScope: Workspace Admins configuring the NetSuite accounting integration.
 
 # Configure NetSuite custom coding fields
 
-Expensify lets you import NetSuite custom accounting fields so members can code expenses with additional accounting dimensions.
+You can import custom lists, records and segments from NetSuite so members can code expenses with custom accounting dimensions.
 
-You can import:
+Custom records, segments and fields are configured in NetSuite, and then can be imported into Expensify as tags to be applied to individual expenses, or as report fields to be applied across entire reports. When reports containing custom coded expenses are exported to NetSuite, the selected value will populate on the NetSuite record in the transaction line field you set up. 
 
-- **Custom segments**
-- **Custom records** (through their associated custom segment)
-- **Custom lists**
+## Who can configure NetSuite custom coding fields
 
-Imported fields can be displayed as either:
+To configure custom segments, custom records or custom lists you must: 
+ - Be a workspace admin on a workspace connected to NetSuite.
+ - Know the NetSuite Internal ID of the custom record you are importing. [Learn how to show Internal IDs in NetSuite]([url](https://docs.oracle.com/en/cloud/saas/netsuite/ns-online-help/section_N3420345.html#To-set-the-Show-Internal-IDs-preference%3A)).
 
-- **Tags** (line-item level)
-- **Report fields** (report level)
+## Where NetSuite custom coding fields are configured
 
-## Who can configure NetSuite custom segments, custom records, and custom lists
+1. In the navigation tabs (on the left on web, on the bottom on mobile), select **workspaces > workspace name**.
+2. Select **Accounting**.
+3. Under **NetSuite**, select **Import**.
 
-Workspace Admins who are connected to a NetSuite integration can configire custom coding. 
-
-Click the navigation tabs (on the left on web, on the bottom on mobile), then select **Workspaces** > **[Workspace Name]** > **Accounting** > **Configure** > **Import**.
-
-## How to configure a NetSuite custom segment or custom record
+## How to import a NetSuite custom custom record
 
 Although the setup wizard lets you choose **Custom segment** or **Custom record**, both options require the same NetSuite information because custom records are imported through their associated custom segment.
 
-1. Under **Accounting** > **Configure** > **Import**, click **Add custom segment/record**.
-2. Choose **Custom segment** or **Custom record**.
-3. Enter the custom segment **Name**.
-4. Enter the custom segment **Internal ID**.
-5. Enter the custom segment **Script ID**.
-6. Choose whether the field should appear as **Tags** or **Report fields**.
-7. Complete the wizard.
+1. In the navigation tabs (on the left on web, on the bottom on mobile), select **workspaces > workspace name**.
+2. Select **Accounting**.
+3. Under **NetSuite**, select **Import**.
+4. Select **Custom segments/records**.
+3. Choose **Custom record**.
+4. Enter the name of the custom record in the **Name** field.
+5. Enter the NetSuite internal ID of the custom record in the **Internal ID** field.
+7. Enter the custom segment **Script ID**.
+8. Choose whether the field should appear as **Tags** or **Report fields**.
+9. Complete the wizard.
 
 <!-- SCREENSHOT:
 Suggestion: Step 1 of the Add custom segment/record wizard showing the Custom segment and Custom record options.
 Location: After step 2.
 Purpose: Show where admins begin the workflow.
 -->
+
+## How can I find the internal ID of a custom segment in NetSuite? 
+
+
 
 ## How to find the custom segment name in NetSuite
 
