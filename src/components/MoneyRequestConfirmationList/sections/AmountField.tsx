@@ -297,11 +297,11 @@ function AmountField({
 
         // A standalone minus sign is dirty, but deleting a previously entered negative amount back to
         // that sign clears the field and must reset the discard-confirmation state.
-        onSignDirtyChange?.(!shouldResetSignDirty && isNegative !== baselineIsNegativeRef.current);
-
         if (!transactionID) {
             return;
         }
+
+        onSignDirtyChange?.(!shouldResetSignDirty && isNegative !== baselineIsNegativeRef.current);
 
         if (parsedAmount === null) {
             // User cleared the field — mark amount as unset so the field stays empty
