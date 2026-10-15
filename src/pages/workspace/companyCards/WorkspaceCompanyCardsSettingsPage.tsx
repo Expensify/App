@@ -84,16 +84,13 @@ function WorkspaceCompanyCardsSettingsPage({
         return translate(`workspace.companyCards.statementCloseDate.${selectedFeedData.statementPeriodEndDay}`);
     }, [translate, selectedFeedData?.statementPeriodEndDay]);
 
-    const reimbursable = useMemo(() => {
-        const storedValue = selectedFeedData?.forceReimbursable;
-        if (!storedValue) {
-            return translate(`workspace.companyCards.reimbursable.${CONST.COMPANY_CARDS.FEED_REIMBURSABLE.FORCE_NO}`);
-        }
-        if (storedValue === CONST.COMPANY_CARDS.FEED_REIMBURSABLE_LEGACY_NONE) {
-            return translate(`workspace.companyCards.reimbursable.${CONST.COMPANY_CARDS.FEED_REIMBURSABLE.DEFAULT_NO}`);
-        }
-        return translate(`workspace.companyCards.reimbursable.${storedValue}`);
-    }, [translate, selectedFeedData?.forceReimbursable]);
+    const storedReimbursable = selectedFeedData?.forceReimbursable;
+    let reimbursable = translate(`workspace.companyCards.reimbursable.${CONST.COMPANY_CARDS.FEED_REIMBURSABLE.FORCE_NO}`);
+    if (storedReimbursable === CONST.COMPANY_CARDS.FEED_REIMBURSABLE_LEGACY_NONE) {
+        reimbursable = translate(`workspace.companyCards.reimbursable.${CONST.COMPANY_CARDS.FEED_REIMBURSABLE.DEFAULT_NO}`);
+    } else if (storedReimbursable) {
+        reimbursable = translate(`workspace.companyCards.reimbursable.${storedReimbursable}`);
+    }
 
     const navigateToChangeFeedName = () => {
         Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_SETTINGS_FEED_NAME.getRoute(policyID));

@@ -27,7 +27,7 @@ import type SCREENS from '@src/SCREENS';
 import type {FeedReimbursable} from '@src/types/onyx/CardFeeds';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
-import React, {useCallback, useMemo, useState} from 'react';
+import React, {useState} from 'react';
 
 type WorkspaceCompanyCardReimbursablePageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.COMPANY_CARDS_SETTINGS_REIMBURSABLE>;
 
@@ -73,26 +73,23 @@ function WorkspaceCompanyCardReimbursablePage({
         keyForList: value,
     }));
 
-    const goBack = useCallback(() => {
+    const goBack = () => {
         Navigation.goBack(ROUTES.WORKSPACE_COMPANY_CARDS_SETTINGS.getRoute(policyID));
-    }, [policyID]);
+    };
 
-    const saveAndGoBack = useCallback(() => {
+    const saveAndGoBack = () => {
         // Don't rewrite the stored value (including legacy `none`) unless the admin picked a different option
         if (feed && selectedValue !== currentValue) {
             setFeedReimbursable(policyID, feed, domainOrWorkspaceAccountID, selectedValue, storedValue);
         }
         goBack();
-    }, [feed, selectedValue, currentValue, policyID, domainOrWorkspaceAccountID, storedValue, goBack]);
+    };
 
-    const confirmButtonOptions = useMemo(
-        () => ({
-            showButton: true,
-            text: translate('common.save'),
-            onConfirm: saveAndGoBack,
-        }),
-        [saveAndGoBack, translate],
-    );
+    const confirmButtonOptions = {
+        showButton: true,
+        text: translate('common.save'),
+        onConfirm: saveAndGoBack,
+    };
 
     const clearError = () => {
         if (!feed) {
