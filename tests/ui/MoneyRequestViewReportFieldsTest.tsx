@@ -185,7 +185,6 @@ const buildReport = (reportOnlyFields: OnyxTypes.PolicyReportField[] = []): Onyx
 const renderReportFields = async (
     fieldCount: number,
     extraFields: OnyxTypes.PolicyReportField[] = [],
-    shouldUseSingleColumn = false,
     reportOnlyFields: OnyxTypes.PolicyReportField[] = [],
 ) => {
     const policy = buildPolicy(fieldCount, extraFields);
@@ -202,7 +201,6 @@ const renderReportFields = async (
             <MoneyRequestViewReportFields
                 report={report}
                 policy={policy}
-                shouldUseSingleColumn={shouldUseSingleColumn}
             />
         </ComposeProviders>,
     );
@@ -254,17 +252,6 @@ describe('MoneyRequestViewReportFields', () => {
         await renderReportFields(4);
 
         // Then each one gets its own row, so the column count drops to 1 rather than staying at 3
-        expect(screen.getAllByTestId('reportFieldsRow')).toHaveLength(4);
-    });
-
-    it('shows one field per row on a wide layout when a single column is requested', async () => {
-        // Given a wide layout and a caller asking for a single column, which is how the one-expense report view
-        // renders its fields inside a container too narrow for the grid
-        // When 4 fields are laid out
-        await renderReportFields(4, [], true);
-
-        // Then each one gets its own row, proving `shouldUseSingleColumn` overrides the wide layout rather than only
-        // taking effect when the layout is already narrow
         expect(screen.getAllByTestId('reportFieldsRow')).toHaveLength(4);
     });
 
@@ -558,7 +545,7 @@ describe('MoneyRequestViewReportFields', () => {
     it('shows a delete button only on a field that was deleted from the workspace', async () => {
         // Given a report holding one field that is still on the workspace and one the admin has since deleted. Both
         // are `deletable`, so the button has to be decided by the field being gone from the workspace
-        await renderReportFields(1, [], false, [buildDeletedField()]);
+        await renderReportFields(1, [], [buildDeletedField()]);
 
         // When the fields are rendered
         // Then the deleted field still shows its value and carries a delete button, because the editor page with its
@@ -573,7 +560,7 @@ describe('MoneyRequestViewReportFields', () => {
     it('shows a delete button on a deleted date field even when its copy on the report is not deletable', async () => {
         // Given a report holding a date field the admin has since deleted from the workspace, whose copy on the report
         // is flagged as not deletable
-        await renderReportFields(1, [], false, [
+        await renderReportFields(1, [], [
             {...buildDeletedField(), name: 'DeletedDateField', fieldID: 'deletedDateField', type: CONST.REPORT_FIELD_TYPES.DATE, value: '2026-10-01', deletable: false},
         ]);
 
@@ -585,7 +572,7 @@ describe('MoneyRequestViewReportFields', () => {
 
     it('deletes the field from the report once the delete is confirmed', async () => {
         // Given a report holding a field that was deleted from the workspace
-        await renderReportFields(1, [], false, [buildDeletedField()]);
+        await renderReportFields(1, [], [buildDeletedField()]);
 
         // When its delete button is pressed and the confirmation is accepted
         fireEvent.press(screen.getByLabelText('workspace.reportFields.delete, DeletedField'));
@@ -599,7 +586,7 @@ describe('MoneyRequestViewReportFields', () => {
 
     it('keeps the field when the delete is cancelled', async () => {
         // Given a report holding a field that was deleted from the workspace
-        await renderReportFields(1, [], false, [buildDeletedField()]);
+        await renderReportFields(1, [], [buildDeletedField()]);
 
         // When its delete button is pressed but the confirmation is dismissed
         mockShowConfirmModal.mockImplementationOnce(() => Promise.resolve({action: 'CLOSE'}));
