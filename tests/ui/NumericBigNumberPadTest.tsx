@@ -423,6 +423,45 @@ describe('NumericInput number pad', () => {
         }
     });
 
+    it('stops the backspace repeat when the layout remounts mid long press', async () => {
+        // Given an input in portrait with value '1234' and a held backspace long press
+        const tree = (
+            <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>
+                <NumericInput
+                    onInputChange={onInputChange}
+                    decimals={2}
+                    testID={ROOT_TEST_ID}
+                    value="1234"
+                >
+                    <NumericInput.TextInput testID={INPUT_TEST_ID} />
+                </NumericInput>
+            </ComposeProviders>
+        );
+        const {rerender} = render(tree);
+        await waitForBatchedUpdatesWithAct();
+
+        jest.useFakeTimers({doNotFake: ['nextTick']});
+        try {
+            fireEvent(screen.getByTestId('button_<'), 'longPress');
+
+            // When rotating to landscape swaps the layout root, remounting the pad before the button is released
+            mockUseIsInLandscapeMode.mockReturnValue(true);
+            rerender(tree);
+
+            // And the user types a digit and the old repeat interval would have ticked several times
+            fireEvent.press(screen.getByTestId('button_9'));
+            act(() => {
+                jest.advanceTimersByTime(500);
+            });
+
+            // Then the unmounted pad no longer deletes, so the typed digit is not overwritten by stale backspaces
+            expect(screen.getByTestId(INPUT_TEST_ID)).toHaveDisplayValue('12349');
+        } finally {
+            jest.runOnlyPendingTimers();
+            jest.useRealTimers();
+        }
+    });
+
     it('focuses the input when a keypad number is pressed', async () => {
         // Given an input rendered with BigNumberPad and a ref tracking focus
         const inputRef = React.createRef<BaseTextInputRef>();
