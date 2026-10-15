@@ -255,11 +255,11 @@ describe('searchRouterQuerySpans', () => {
     });
 
     it('starts the span now when the input change time is unknown', () => {
-        // Given no input change time
+        // Given a query change where the input change time was not provided
         // When the debounced query starts its span
         startSearchRouterQuerySpan('abc');
 
-        // Then the span starts at the current time
+        // Then the span starts at the current time because no prior input timestamp is available
         expect(getLastRootStartTime()).toBeCloseTo(performance.now() / 1000, 3);
     });
 

@@ -213,7 +213,7 @@ describe('SearchRouter query telemetry from the keystroke', () => {
             advance(DEBOUNCE_TIME);
         }
 
-        // Then intermediate keystrokes used none of the cap: one span started per settled query up to the cap
+        // Then intermediate keystrokes used none of the cap, so one span started per settled query up to the cap
         const ordinals = getStartedQuerySpans().map((span) => span.attributes[CONST.TELEMETRY.ATTRIBUTE_QUERY_ORDINAL]);
         expect(ordinals).toEqual([1, 2, 3, 4, 5]);
 

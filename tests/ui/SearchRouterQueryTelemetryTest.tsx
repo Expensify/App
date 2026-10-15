@@ -170,6 +170,7 @@ describe('SearchAutocompleteList query telemetry', () => {
         await waitForBatchedUpdatesWithAct();
         const layoutNode = screen.UNSAFE_root.findAll((node) => typeof node.props.onLayout === 'function' && node.props.sections !== undefined).at(0);
         await act(async () => {
+            // ReactTestInstance props are typed as any
             // eslint-disable-next-line @typescript-eslint/no-unsafe-call
             layoutNode?.props.onLayout();
         });

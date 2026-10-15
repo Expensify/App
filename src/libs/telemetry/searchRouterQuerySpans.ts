@@ -1,7 +1,7 @@
 /**
  * Lifecycle for the `ManualSearchRouterQuery` telemetry span: starts a span when a debounced Search Router query is applied,
  * backdated to the input change that produced that query so the debounce delay is included, ends it on the autocomplete
- * list's commit, and cancels it on supersede/clear/close/unmount/timeout. Records only privacy-preserving attributes,
+ * list's commit, and cancels it on supersede, clear, close, unmount, or timeout. Records only privacy-preserving attributes,
  * never the raw query text.
  */
 import type {SearchAutocompleteQueryRange} from '@components/Search/types';
