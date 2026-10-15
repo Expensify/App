@@ -81,7 +81,7 @@ describe('useUpdateFeedBrokenConnection', () => {
         mockCardFeeds = {[MOCK_FEED]: {domainID: MOCK_DOMAIN_ID}};
         await Onyx.merge(`${ONYXKEYS.COLLECTION.DOMAIN}${MOCK_DOMAIN_ID}`, {
             accountID: MOCK_DOMAIN_ID,
-            [`${CONST.DOMAIN.EXPENSIFY_ADMIN_ACCESS_PREFIX}${MOCK_CURRENT_USER_ID}`]: MOCK_CURRENT_USER_ID,
+            [`${CONST.DOMAIN.EXPENSIFY_ADMIN_ACCESS_PREFIX}${MOCK_CURRENT_USER_ID}` as const]: MOCK_CURRENT_USER_ID,
         });
         await waitForBatchedUpdates();
 
