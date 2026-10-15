@@ -25,15 +25,17 @@ jest.mock('@hooks/useLocalize', () => () => ({translate: (key: string) => key}))
 jest.mock('@components/TextInput', () => {
     const ReactMock = jest.requireActual<typeof React>('react');
     function MockCodeInput(props: BaseTextInputProps) {
-        mockCaptureCodeInputProps(props);
+        const {ref: inputRef} = props;
         ReactMock.useLayoutEffect(() => {
-            const inputRef = props.ref;
+            mockCaptureCodeInputProps(props);
+        });
+        ReactMock.useLayoutEffect(() => {
             if (typeof inputRef === 'function') {
                 inputRef(mockInput);
                 return () => inputRef(null);
             }
             return undefined;
-        }, [props.ref]);
+        }, [inputRef]);
         return null;
     }
     return {__esModule: true, default: MockCodeInput};

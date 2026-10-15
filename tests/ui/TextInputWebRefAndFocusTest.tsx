@@ -44,15 +44,17 @@ jest.mock('@hooks/useThemeStyles', () => () => ({
 jest.mock('@components/TextInput/BaseTextInput', () => {
     const ReactMock = jest.requireActual<typeof React>('react');
     function MockBaseTextInput(props: BaseTextInputProps) {
-        mockCaptureInputProps(props);
+        const {ref: inputRef} = props;
         ReactMock.useLayoutEffect(() => {
-            const inputRef = props.ref;
+            mockCaptureInputProps(props);
+        });
+        ReactMock.useLayoutEffect(() => {
             if (typeof inputRef === 'function') {
                 inputRef(mockInputRef);
                 return () => inputRef(null);
             }
             return undefined;
-        }, [props.ref]);
+        }, [inputRef]);
         return null;
     }
     return {__esModule: true, default: MockBaseTextInput};
