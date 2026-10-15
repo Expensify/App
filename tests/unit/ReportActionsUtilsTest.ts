@@ -5195,17 +5195,19 @@ describe('ReportActionsUtils', () => {
         });
 
         it('should fall back to the server text when a value is unrecognized', () => {
+            const originalMessage = {
+                feedName: 'Visa Commercial',
+                forceReimbursable: CONST.COMPANY_CARDS.FEED_REIMBURSABLE.FORCE_YES,
+            };
+            // Simulate a server value outside the FeedReimbursable union without casting the fixture
+            Object.assign(originalMessage, {previousForceReimbursable: 'unexpected_value'});
             const action = {
                 actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CARD_FEED_REIMBURSABLE,
                 reportActionID: '1',
                 created: '',
                 message: [{type: 'COMMENT', html: 'server text', text: 'server text'}],
-                originalMessage: {
-                    feedName: 'Visa Commercial',
-                    forceReimbursable: CONST.COMPANY_CARDS.FEED_REIMBURSABLE.FORCE_YES,
-                    previousForceReimbursable: 'unexpected_value',
-                },
-            } as unknown as ReportAction;
+                originalMessage,
+            } as ReportAction;
             const result = getUpdatedCardFeedReimbursableMessage(translateLocal, action);
             expect(result).toBe('server text');
         });
