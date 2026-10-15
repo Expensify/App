@@ -22,6 +22,7 @@ import WorkspaceMemberDetailsRolePage from '@pages/workspace/members/WorkspaceMe
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 
 import {PortalProvider} from '@gorhom/portal';
@@ -165,6 +166,27 @@ describe('WorkspaceMemberDetailsRolePage', () => {
 
         // Then the update targets the member's real accountID, not the stale optimistic one, so the backend receives a valid member
         expect(updateWorkspaceMembersRoleMock).toHaveBeenCalledWith(expect.objectContaining({id: policy.id}), [invitedEmail], [invitedAccountID], CONST.POLICY.ROLE.ADMIN);
+
+        unmount();
+        await waitForBatchedUpdatesWithAct();
+    });
+
+    it('should go back to the details route that holds the stale optimistic accountID', async () => {
+        // Given a Role page opened from a details screen whose route still holds the member's optimistic accountID
+        const staleOptimisticAccountID = generateAccountID(invitedEmail);
+        const {unmount} = renderPage({policyID: policy.id, accountID: String(staleOptimisticAccountID)});
+        await waitForBatchedUpdatesWithAct();
+
+        // When the admin picks a new role for the member
+        await waitFor(() => {
+            expect(screen.getByText('Workspace admin')).toBeOnTheScreen();
+        });
+        fireEvent.press(screen.getByText('Workspace admin'));
+        await waitForBatchedUpdatesWithAct();
+
+        // Then going back targets the details route with the stale accountID, so it pops to the details screen below instead of
+        // replacing the Role page with a second details screen for the real accountID
+        expect(Navigation.goBack).toHaveBeenCalledWith(ROUTES.WORKSPACE_MEMBER_DETAILS.getRoute(policy.id, staleOptimisticAccountID));
 
         unmount();
         await waitForBatchedUpdatesWithAct();

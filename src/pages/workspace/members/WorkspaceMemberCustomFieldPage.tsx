@@ -7,7 +7,6 @@ import TextInput from '@components/TextInput';
 
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
-import usePersonalDetailByLogin from '@hooks/usePersonalDetailByLogin';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {updateMemberCustomField} from '@libs/actions/Policy/Policy';
@@ -44,15 +43,14 @@ function WorkspaceMemberCustomFieldPage({policy, route, personalDetails}: Worksp
     const {inputCallbackRef} = useAutoFocusInput();
     const params = route.params;
     const customFieldType = params.customFieldType;
-    const routeAccountID = Number(params.accountID);
-    const memberLogin = personalDetails?.[routeAccountID]?.login ?? getMemberLoginByOptimisticAccountID(policy, routeAccountID);
-    const memberPersonalDetails = usePersonalDetailByLogin(memberLogin);
-    const accountID = memberPersonalDetails?.accountID ?? routeAccountID;
+    const accountID = Number(params.accountID);
+    const memberLogin = personalDetails?.[accountID]?.login ?? getMemberLoginByOptimisticAccountID(policy, accountID);
     const member = policy?.employeeList?.[memberLogin];
     const customFieldKey = CONST.CUSTOM_FIELD_KEYS[customFieldType];
     const [customField, setCustomField] = useState(member?.[customFieldKey ?? ''] ?? '');
     const customFieldText = translate(`workspace.common.${customFieldType}`);
     const policyID = params.policyID;
+    // Go back with the route's accountID, even if it is a stale optimistic one, so it matches the details screen below that was opened with it.
     const goBack = useCallback(() => {
         Navigation.goBack(ROUTES.WORKSPACE_MEMBER_DETAILS.getRoute(policyID, accountID));
     }, [accountID, policyID]);

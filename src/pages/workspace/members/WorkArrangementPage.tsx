@@ -68,7 +68,8 @@ function WorkArrangementPage({policy, personalDetails, route}: WorkArrangementPa
     const currentIsOffice = getEffectiveWorkArrangement(member?.hasOfficeWorkArrangement, policy?.commuterExclusions?.isOfficeWorkArrangement);
 
     const navigateBackToDetails = () => {
-        Navigation.goBack(ROUTES.WORKSPACE_MEMBER_DETAILS.getRoute(policyID, accountID));
+        // Go back with the route's accountID so it matches the details screen below, which keeps the optimistic accountID it was opened with.
+        Navigation.goBack(ROUTES.WORKSPACE_MEMBER_DETAILS.getRoute(policyID, routeAccountID));
     };
 
     const changeWorkArrangement = ({value}: WorkArrangementOption) => {
