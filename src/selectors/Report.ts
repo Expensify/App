@@ -1,3 +1,4 @@
+import type {ReportHierarchyInfo} from '@libs/actions/ClearReportActionErrors';
 import {getOriginalMessage, isClosedAction} from '@libs/ReportActionsUtils';
 import {
     canShowReportRecipientLocalTime,
@@ -13,6 +14,7 @@ import {
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {OutstandingReportsByPolicyIDDerivedValue, PersonalDetailsList, Report, ReportActions, ReportNameValuePairs, Transaction} from '@src/types/onyx';
+import mapOnyxCollectionItems from '@src/utils/mapOnyxCollectionItems';
 
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {TupleToUnion, ValueOf} from 'type-fest';
@@ -45,6 +47,10 @@ function getReportOwnerAccountID(report: OnyxEntry<Report>) {
 
 function getReportParentReportID(report: OnyxEntry<Report>) {
     return report?.parentReportID;
+}
+
+function getReportHasParentAccess(report: OnyxEntry<Report>) {
+    return report?.hasParentAccess;
 }
 
 /** Which report-type avatar wrapper the `ReportAvatar` dispatcher should render for this report. */
@@ -122,6 +128,25 @@ function reportAvatarFieldsSelector(report: OnyxEntry<Report>): ReportAvatarFiel
         chatReportID: report.chatReportID,
         parentReportID: report.parentReportID,
         parentReportActionID: report.parentReportActionID,
+    };
+}
+
+/** The fields a room's avatar resolves from. The parent links are left out on purpose: a room's workspace icon comes from the room alone. */
+type RoomAvatarFields = Pick<Report, 'chatType' | 'policyID' | 'policyName' | 'oldPolicyName' | 'policyAvatar' | 'reportName' | 'avatarUrl' | 'invoiceReceiver'>;
+
+function roomAvatarFieldsSelector(report: OnyxEntry<Report>): RoomAvatarFields | undefined {
+    if (!report) {
+        return undefined;
+    }
+    return {
+        chatType: report.chatType,
+        policyID: report.policyID,
+        policyName: report.policyName,
+        oldPolicyName: report.oldPolicyName,
+        policyAvatar: report.policyAvatar,
+        reportName: report.reportName,
+        avatarUrl: report.avatarUrl,
+        invoiceReceiver: report.invoiceReceiver,
     };
 }
 
@@ -365,6 +390,18 @@ function isDraftReportSelector(draft: OnyxEntry<Report>): boolean {
     return !!draft;
 }
 
+function reportHierarchySelector(report: OnyxEntry<Report>): OnyxEntry<ReportHierarchyInfo> {
+    return (
+        report && {
+            parentReportID: report.parentReportID,
+            parentReportActionID: report.parentReportActionID,
+        }
+    );
+}
+
+function reportsParentHierarchySelector(reports: OnyxCollection<Report>): OnyxCollection<ReportHierarchyInfo> {
+    return mapOnyxCollectionItems(reports, reportHierarchySelector);
+}
 /**
  * Creates a selector returning only the reports for the given IDs, so a consumer that knows the exact
  * reports it needs doesn't re-render when any other report in the account changes.
@@ -386,6 +423,7 @@ export {
     groupChatAvatarReportSelector,
     getReportOwnerAccountID,
     getReportParentReportID,
+    getReportHasParentAccess,
     getReportPolicyID,
     policyIDsWithEmptyReportsSelector,
     canShowReportRecipientLocalTimeSelector,
@@ -393,12 +431,14 @@ export {
     reportAvatarFieldsSelector,
     reportAvatarKindSelector,
     reportPolicyFieldsSelector,
+    roomAvatarFieldsSelector,
     createMoveExpenseReportNVPSelector,
     createOutstandingReportsForPolicySelector,
     openExpenseReportIDsSelector,
     getStableReportSelector,
     isDraftReportSelector,
+    reportsParentHierarchySelector,
     reportsByIDsSelector,
 };
 
-export type {ReportAvatarFields, StableReport};
+export type {ReportAvatarFields, RoomAvatarFields, StableReport};

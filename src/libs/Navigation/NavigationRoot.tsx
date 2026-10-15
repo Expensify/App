@@ -144,7 +144,6 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady}: N
     const {updateCurrentReportID} = useCurrentReportIDActions();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
-    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const [isOnboardingCompleted = true] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {
         selector: hasCompletedGuidedSetupFlowSelector,
     });
@@ -164,10 +163,6 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady}: N
             });
 
             return getAdaptedStateFromPath(lastVisitedPath);
-        }
-
-        if (!account || account.isFromPublicDomain) {
-            return;
         }
 
         const isTransitioning = path?.includes(ROUTES.TRANSITION_BETWEEN_APPS);

@@ -8,12 +8,8 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
 
-import useGetReceiptPartnersIntegrationData from '@hooks/useGetReceiptPartnersIntegrationData';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
-import useNetwork from '@hooks/useNetwork';
-import usePolicy from '@hooks/usePolicy';
-import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
 import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useScreenBoundDynamicRoute from '@hooks/useScreenBoundDynamicRoute';
@@ -25,20 +21,20 @@ import type {PlatformStackScreenProps} from '@navigation/PlatformStackNavigation
 import type {WorkspaceSplitNavigatorParamList} from '@navigation/types';
 
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
+import withUnifiedConnectionsBeta from '@pages/workspace/connections/withUnifiedConnectionsBeta';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
-
-import {openPolicyReceiptPartnersPage, togglePolicyUberAutoInvite, togglePolicyUberAutoRemove} from '@userActions/Policy/Policy';
 
 import CONST from '@src/CONST';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
-import React, {useCallback, useEffect} from 'react';
+import React, {useEffect} from 'react';
 import {View} from 'react-native';
 
 import type {ReceiptPartnerName, ReceiptPartnerRowComponent} from './connectionRows/types';
 
 import UberConnectionRow from './connectionRows/UberConnectionRow';
+import useReceiptPartnersSettings from './useReceiptPartnersSettings';
 
 const CONNECTION_ROWS: Record<ReceiptPartnerName, ReceiptPartnerRowComponent> = {
     [CONST.POLICY.RECEIPT_PARTNERS.NAME.UBER]: UberConnectionRow,
@@ -55,28 +51,13 @@ function WorkspaceReceiptPartnersPage({route}: WorkspaceReceiptPartnersPageProps
     const buildDynamicRoute = useScreenBoundDynamicRoute();
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const policy = usePolicy(policyID);
+    const {policy, integrations, isAutoInvite, isAutoRemove, isUberConnected, canWriteMoreFeatures, withReadOnlyFallback, toggleUberAutoInvite, toggleUberAutoRemove} =
+        useReceiptPartnersSettings(policyID);
     useWorkspaceDocumentTitle(policy?.name, 'workspace.common.receiptPartners');
-    const {isUberConnected} = useGetReceiptPartnersIntegrationData(policyID);
     const isLoading = policy?.isLoading;
-    const integrations = policy?.receiptPartners;
-    const isAutoRemove = !!integrations?.uber?.autoRemove;
-    const isAutoInvite = !!integrations?.uber?.autoInvite;
     const centralBillingAccountEmail = !!integrations?.uber?.centralBillingAccountEmail;
     // Track focus and connection change to route to the invite flow once after successful connection
     const prevIsUberConnected = usePrevious(isUberConnected);
-    const {canWrite: canWriteMoreFeatures, withReadOnlyFallback} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.MORE_FEATURES);
-
-    const fetchReceiptPartners = useCallback(() => {
-        openPolicyReceiptPartnersPage(policyID);
-    }, [policyID]);
-
-    useNetwork({onReconnect: fetchReceiptPartners});
-
-    useEffect(() => {
-        fetchReceiptPartners();
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
 
     // When Uber connection status flips from false -> true, navigate to the invite flow once
     useEffect(() => {
@@ -85,14 +66,6 @@ function WorkspaceReceiptPartnersPage({route}: WorkspaceReceiptPartnersPageProps
         }
         Navigation.navigate(buildDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_RECEIPT_PARTNERS_INVITE.getRoute(CONST.POLICY.RECEIPT_PARTNERS.NAME.UBER)));
     }, [prevIsUberConnected, isUberConnected, policyID, canWriteMoreFeatures, buildDynamicRoute]);
-
-    const toggleWorkspaceUberAutoInvite = useCallback(() => {
-        togglePolicyUberAutoInvite(policyID, !isAutoInvite);
-    }, [isAutoInvite, policyID]);
-
-    const toggleWorkspaceUberAutoRemove = useCallback(() => {
-        togglePolicyUberAutoRemove(policyID, !isAutoRemove);
-    }, [isAutoRemove, policyID]);
 
     return (
         <AccessOrNotFoundWrapper
@@ -103,8 +76,8 @@ function WorkspaceReceiptPartnersPage({route}: WorkspaceReceiptPartnersPageProps
         >
             {isLoading ? (
                 <FullScreenLoadingIndicator
-                    shouldUseGoBackButton
                     style={styles.flex1}
+                    shouldUseGoBackButton={shouldUseNarrowLayout}
                 />
             ) : (
                 <ScreenWrapper
@@ -147,7 +120,7 @@ function WorkspaceReceiptPartnersPage({route}: WorkspaceReceiptPartnersPageProps
                                                     titleStyle={styles.pr3}
                                                     title={translate('workspace.receiptPartners.uber.autoInvite')}
                                                     switchAccessibilityLabel={translate('workspace.receiptPartners.uber.autoInvite')}
-                                                    onToggle={toggleWorkspaceUberAutoInvite}
+                                                    onToggle={toggleUberAutoInvite}
                                                     isActive={isAutoInvite}
                                                     disabled={!canWriteMoreFeatures}
                                                     disabledAction={withReadOnlyFallback()}
@@ -161,7 +134,7 @@ function WorkspaceReceiptPartnersPage({route}: WorkspaceReceiptPartnersPageProps
                                                     titleStyle={styles.pr3}
                                                     title={translate('workspace.receiptPartners.uber.autoRemove')}
                                                     switchAccessibilityLabel={translate('workspace.receiptPartners.uber.autoRemove')}
-                                                    onToggle={toggleWorkspaceUberAutoRemove}
+                                                    onToggle={toggleUberAutoRemove}
                                                     isActive={isAutoRemove}
                                                     disabled={!canWriteMoreFeatures}
                                                     disabledAction={withReadOnlyFallback()}
@@ -229,4 +202,4 @@ function WorkspaceReceiptPartnersPage({route}: WorkspaceReceiptPartnersPageProps
     );
 }
 
-export default WorkspaceReceiptPartnersPage;
+export default withUnifiedConnectionsBeta(WorkspaceReceiptPartnersPage);

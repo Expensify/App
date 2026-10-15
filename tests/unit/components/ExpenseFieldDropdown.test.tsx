@@ -4,6 +4,8 @@ import type {ExpenseFieldDropdownHandle, ExpenseFieldDropdownRenderProps} from '
 import ExpenseFieldDropdown from '@components/MoneyRequestConfirmationList/sections/ExpenseFieldDropdown';
 import Text from '@components/Text';
 
+import getSelectionListPopoverContentHeight from '@libs/getSelectionListPopoverContentHeight';
+
 import variables from '@styles/variables';
 
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -74,7 +76,7 @@ describe('ExpenseFieldDropdown', () => {
         jest.restoreAllMocks();
     });
 
-    const renderField = (shouldOpenInDropdown = true, onPress: () => void = jest.fn()) =>
+    const renderField = (shouldOpenInDropdown = true, onPress: () => void = jest.fn(), listHeaderHeight?: number) =>
         render(
             <ExpenseFieldDropdown
                 name={FIELD_NAME}
@@ -82,8 +84,40 @@ describe('ExpenseFieldDropdown', () => {
                 shouldOpenInDropdown={shouldOpenInDropdown}
                 onPress={onPress}
                 renderDropdown={renderDropdown}
+                listHeaderHeight={listHeaderHeight}
             />,
         );
+
+    describe('with a header above the list', () => {
+        const HEADER_HEIGHT = variables.componentSizeNormal;
+
+        it('grows the container by the header so it still fits as many options', () => {
+            // Given a row with plenty of room below, whose list shows a header above its options
+            mockRowAt(ROW_TOP);
+            renderField(true, jest.fn(), HEADER_HEIGHT);
+
+            // When the row is pressed
+            act(() => pressRow());
+
+            // Then the container is taller by the header, so the header doesn't take the place of an option
+            expect(renderedProps?.popoverHeight).toBe(getSelectionListPopoverContentHeight({optionCount: 4}) + HEADER_HEIGHT);
+        });
+
+        it('falls back to the full page when the room left fits one option but not the header too', () => {
+            // Given a row with room below for one option, but not for one option and the header
+            const onPress = jest.fn();
+            mockWindowHeight = ROW_TOP + ROW_HEIGHT + 6 + getSelectionListPopoverContentHeight({optionCount: 1}) + HEADER_HEIGHT / 2;
+            mockRowAt(ROW_TOP);
+            renderField(true, onPress, HEADER_HEIGHT);
+
+            // When the row is pressed
+            act(() => pressRow());
+
+            // Then it opens the page, rather than a container showing the header and no categories
+            expect(onPress).toHaveBeenCalledTimes(1);
+            expect(renderCount).toBe(0);
+        });
+    });
 
     describe('open()', () => {
         const renderFieldWithRef = (shouldOpenInDropdown: boolean, onPress: () => void) => {
