@@ -105,14 +105,6 @@ const buildEmptyField = (): OnyxTypes.PolicyReportField => ({
     value: '',
 });
 
-// A field that cannot be deleted must hold a value. Leaving it empty raises a "<name> is required" violation.
-const buildRequiredField = (): OnyxTypes.PolicyReportField => ({
-    ...buildTextField(1),
-    name: 'RequiredField',
-    fieldID: 'requiredField',
-    deletable: false,
-});
-
 const buildListField = (): OnyxTypes.PolicyReportField => ({
     ...buildTextField(1),
     name: 'ListField',
@@ -281,8 +273,26 @@ describe('MoneyRequestViewReportFields', () => {
         });
     });
 
-    it('saves the empty value when an optional field is cleared', async () => {
-        // Given a report with 2 optional fields that already hold values
+    it('saves once when Enter is pressed and the field then loses focus', async () => {
+        // Given a report with 2 fields
+        await renderReportFields(2);
+
+        // When a new value is typed and submitted with Enter, which on iOS and Android also blurs the input
+        const input = screen.getByLabelText('Field1');
+        fireEvent.changeText(input, 'Updated value');
+        fireEvent(input, 'submitEditing');
+        fireEvent(input, 'blur');
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the value is saved only once, because each save posts its own system message to the report
+        expect(updateReportField).toHaveBeenCalledTimes(1);
+        expect(jest.mocked(updateReportField).mock.calls.at(0)?.at(0)).toMatchObject({
+            reportField: {fieldID: 'field1', value: 'Updated value'},
+        });
+    });
+
+    it('does not save and restores the saved value when a field is cleared', async () => {
+        // Given a report with 2 fields that already hold values
         await renderReportFields(2);
 
         // When the first field is emptied and left
@@ -291,47 +301,12 @@ describe('MoneyRequestViewReportFields', () => {
         fireEvent(input, 'blur');
         await waitForBatchedUpdatesWithAct();
 
-        // Then the empty value is saved, because deliberately clearing an optional field is a real edit and must not
-        // be mistaken for the no-op case where the user tabbed through without changing anything
-        expect(updateReportField).toHaveBeenCalledTimes(1);
-        expect(jest.mocked(updateReportField).mock.calls.at(0)?.at(0)).toMatchObject({
-            reportField: {fieldID: 'field1', value: ''},
-            previousReportField: {fieldID: 'field1', value: 'Value1'},
-        });
-    });
+        // Then nothing is saved, the same as on the report field editor page, because a cleared field would post a
+        // `set Field1 to ""` system message
+        expect(updateReportField).not.toHaveBeenCalled();
 
-    it('saves the empty value when a required field is cleared and keeps its violation visible', async () => {
-        // Given a report holding a required field
-        const rendered = await renderReportFields(1, [buildRequiredField()]);
-
-        // When the field is emptied and left
-        const input = screen.getByLabelText('RequiredField');
-        fireEvent.changeText(input, '');
-        fireEvent(input, 'blur');
-        await waitForBatchedUpdatesWithAct();
-
-        // Then the empty value is saved, because like Classic a required field left empty is flagged by a violation
-        // rather than blocked from saving
-        expect(updateReportField).toHaveBeenCalledTimes(1);
-        expect(jest.mocked(updateReportField).mock.calls.at(0)?.at(0)).toMatchObject({
-            reportField: {fieldID: 'requiredField', value: ''},
-            previousReportField: {fieldID: 'requiredField', value: 'Value1'},
-        });
-        expect(screen.queryByText('common.error.fieldRequired')).toBeNull();
-
-        // When the report comes back holding the empty value the input just saved
-        rendered.rerender(
-            <ComposeProviders components={[OnyxListItemProvider]}>
-                <MoneyRequestViewReportFields
-                    report={buildReport([{...buildRequiredField(), value: ''}])}
-                    policy={buildPolicy(1, [buildRequiredField()])}
-                />
-            </ComposeProviders>,
-        );
-        await waitForBatchedUpdatesWithAct();
-
-        // Then the required violation shows, so the empty value the save created is flagged instead of blocked
-        expect(screen.getByText('RequiredField is required')).toBeOnTheScreen();
+        // Then the field shows its saved value again, so it does not look empty while the report still holds a value
+        expect(screen.getByLabelText('Field1')).toHaveProp('value', 'Value1');
     });
 
     it('does not save when the option a list field already holds is picked again', async () => {
