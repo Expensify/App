@@ -69,6 +69,7 @@ import type {Connections} from '@src/types/onyx/Policy';
 // we need "dirty" object key names in these tests
 import type {NavigationState} from '@react-navigation/native';
 import type {OnyxCollection} from 'react-native-onyx';
+import type {IsEqual} from 'type-fest';
 
 import createMock from 'tests/utils/createMock';
 
@@ -5539,6 +5540,43 @@ describe('SearchQueryUtils', () => {
 
         test('returns an empty array when the policy data is undefined', () => {
             expect(getAllPolicyValues({value: ['1'], isNegated: false}, ONYXKEYS.COLLECTION.POLICY, undefined)).toEqual([]);
+        });
+    });
+
+    describe('getAllPolicyValues category projections', () => {
+        test('keeps projected names separate from complete category and policy results', () => {
+            // Given complete category models and the intentional name-only projection
+            const fullCategories: OnyxCollection<OnyxTypes.PolicyCategories> = {
+                [`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}1`]: {Food: {name: 'Food', enabled: false}},
+            };
+            const names: OnyxCollection<Record<string, Pick<OnyxTypes.PolicyCategory, 'name'>>> = {
+                [`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}1`]: {foodKey: {name: 'Food'}},
+                [`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}2`]: {travelKey: {name: 'Travel'}},
+                [`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}3`]: undefined,
+            };
+            // When the existing exported interface selects each category of input
+            const full = getAllPolicyValues(undefined, ONYXKEYS.COLLECTION.POLICY_CATEGORIES, fullCategories);
+            const projected = getAllPolicyValues({value: ['1'], isNegated: false}, ONYXKEYS.COLLECTION.POLICY_CATEGORIES, names);
+            const negated = getAllPolicyValues({value: ['1'], isNegated: true}, ONYXKEYS.COLLECTION.POLICY_CATEGORIES, names);
+            const all = getAllPolicyValues(undefined, ONYXKEYS.COLLECTION.POLICY_CATEGORIES, names);
+            const policies = getAllPolicyValues(undefined, ONYXKEYS.COLLECTION.POLICY, {[`${ONYXKEYS.COLLECTION.POLICY}1`]: createRandomPolicy(1)});
+            // Then old callers retain their exact full-model result, while the projection promises only names
+            const retainsCategories: IsEqual<typeof full, OnyxTypes.PolicyCategories[]> = true;
+            const retainsPolicies: IsEqual<typeof policies, OnyxTypes.Policy[]> = true;
+            const retainsProjection: IsEqual<typeof projected, Array<Record<string, Pick<OnyxTypes.PolicyCategory, 'name'>>>> = true;
+            expect([retainsCategories, retainsPolicies, retainsProjection]).toEqual([true, true, true]);
+            expect(full.at(0)?.Food?.enabled).toBe(false);
+            expect(policies.at(0)?.id).toBe('1');
+            expect(projected).toEqual([{foodKey: {name: 'Food'}}]);
+            expect(projected.at(0)).toBe(names[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}1`]);
+            expect(negated).toEqual([{travelKey: {name: 'Travel'}}]);
+            expect(all).toEqual([...projected, ...negated]);
+            // @ts-expect-error -- name projections do not promise the omitted enabled metadata.
+            expect(projected.at(0)?.foodKey?.enabled).toBeUndefined();
+            // @ts-expect-error -- the policy key must reject name-only category dictionaries.
+            getAllPolicyValues(undefined, ONYXKEYS.COLLECTION.POLICY, names);
+            // @ts-expect-error -- the category key must reject full Policy items.
+            getAllPolicyValues(undefined, ONYXKEYS.COLLECTION.POLICY_CATEGORIES, {[`${ONYXKEYS.COLLECTION.POLICY}1`]: createRandomPolicy(1)});
         });
     });
 

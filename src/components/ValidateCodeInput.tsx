@@ -9,8 +9,8 @@ import {isNumeric} from '@libs/ValidationUtils';
 
 import CONST from '@src/CONST';
 
-import type {ComponentRef, ForwardedRef, KeyboardEvent} from 'react';
-import type {FocusEvent, TextInput as RNTextInput, TextInputKeyPressEvent} from 'react-native';
+import type {ForwardedRef} from 'react';
+import type {FocusEvent, TextInputKeyPressEvent} from 'react-native';
 import type {ValueOf} from 'type-fest';
 
 import React, {useEffect, useImperativeHandle, useRef, useState} from 'react';
@@ -23,6 +23,7 @@ import type {BaseTextInputRef} from './TextInput/BaseTextInput/types';
 import FormHelpMessage from './FormHelpMessage';
 import Text from './Text';
 import TextInput from './TextInput';
+import isTextInputFocused from './TextInput/BaseTextInput/isTextInputFocused';
 
 const TEXT_INPUT_EMPTY_STATE = '';
 
@@ -40,7 +41,7 @@ const useValidateCodePaste = (inputRef: React.RefObject<BaseTextInputRef | null>
                 return;
             }
 
-            const isFocused = (inputRef.current as ComponentRef<typeof RNTextInput>)?.isFocused?.() ?? false;
+            const isFocused = isTextInputFocused(inputRef);
             if (!isFocused) {
                 return;
             }
@@ -414,7 +415,7 @@ function ValidateCodeInput({
             setInput(TEXT_INPUT_EMPTY_STATE);
             onFulfill(value);
         } else if (keyValue === 'Tab' && focusedIndex !== undefined) {
-            const newFocusedIndex = (event as unknown as KeyboardEvent).shiftKey ? focusedIndex - 1 : focusedIndex + 1;
+            const newFocusedIndex = 'shiftKey' in event && event.shiftKey ? focusedIndex - 1 : focusedIndex + 1;
             if (newFocusedIndex >= 0 && newFocusedIndex < maxLength) {
                 setInputAndIndex(newFocusedIndex);
                 inputRef.current?.focus();
