@@ -1470,10 +1470,9 @@ function sortPoliciesByName(policies: Policy[], localeCompare: (a: string, b: st
     return [...policies].sort((a, b) => localeCompare(a.name || '', b.name || ''));
 }
 
-
 /**
  * A member who was just invited is listed under an optimistic accountID derived from their login, and that entry is removed from
- * personal details once the invite request finishes and the backend supplies the real accountID. A member details page opened
+ * personal details once the invite request finishes and the backend supplies the real accountID. A member page opened
  * while the invite was still in flight therefore holds a stale accountID in its route. Recover the login from the employee list
  * so the page keeps resolving the member across that swap.
  */
