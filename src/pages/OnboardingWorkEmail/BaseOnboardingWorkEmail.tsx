@@ -32,8 +32,8 @@ import {AddWorkEmail} from '@userActions/Session';
 import {
     addWorkEmailFormError,
     clearOnboardingMergeAccountBlocked,
-    clearOnboardingShouldValidate,
     clearWorkEmailFormErrors,
+    resetOnboardingWorkEmailValidation,
     setOnboardingErrorMessage,
     setOnboardingMergeAccountStepValue,
     setOnboardingMergingAccountBlocked,
@@ -242,12 +242,13 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles, route}: BaseOnboardingW
 
             // AddWorkEmail already made this the account's login, and resending it would merge the account into itself.
             if (sessionEmail && submittedWorkEmail.toLowerCase() === sessionEmail.toLowerCase()) {
+                setHasSubmittedWorkEmail(true);
                 setOnboardingShouldValidate(false);
                 return;
             }
 
             // The form's onSubmit must stay synchronous, so chain off the Onyx write instead of awaiting it.
-            clearOnboardingShouldValidate(onboardingValues).then(() => {
+            resetOnboardingWorkEmailValidation(onboardingValues).then(() => {
                 setHasSubmittedWorkEmail(true);
                 AddWorkEmail(submittedWorkEmail, addWorkEmailTaskReport);
             });

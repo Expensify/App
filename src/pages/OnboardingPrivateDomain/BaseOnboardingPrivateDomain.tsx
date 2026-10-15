@@ -108,13 +108,13 @@ function BaseOnboardingPrivateDomain({shouldUseNativeStyles, route}: BaseOnboard
     }, [email]);
 
     const handleBackButtonPress = useCallback(() => {
-        if (onboardingValues?.shouldValidate === false) {
+        const backTo = route.params?.backTo as Route | undefined;
+        if (onboardingValues?.shouldValidate === false && backTo !== ROUTES.ONBOARDING_PURPOSE.getRoute()) {
             updateOnboardingValuesAndNavigation(onboardingValues);
             return;
         }
 
-        const routeToNavigate = (route.params?.backTo as Route) ?? ROUTES.ONBOARDING_PERSONAL_DETAILS.getRoute();
-        Navigation.goBack(routeToNavigate);
+        Navigation.goBack(backTo ?? ROUTES.ONBOARDING_PERSONAL_DETAILS.getRoute());
     }, [route.params?.backTo, onboardingValues]);
 
     const navigateToNextOnboardingStep = useCallback(
