@@ -668,7 +668,9 @@ function SearchSelectionFooter({searchResults}: SearchSelectionFooterProps) {
             defaultCurrency: effectiveDefaultCurrency,
             queryCurrency: footerSelection.footerCurrency,
         });
-        applyFooterSelection({footerCurrency: currency});
+        // The search already shows the default currency when the query names none, so picking it, as Reset does, leaves
+        // the currency out and the query back to what it was.
+        applyFooterSelection({footerCurrency: currency === searchTargetCurrency ? undefined : currency});
     };
 
     const handleFooterTotalChange = (nextTotalType: SearchFooterTotal) => {
