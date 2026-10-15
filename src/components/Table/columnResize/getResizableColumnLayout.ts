@@ -120,4 +120,3 @@ function getResizableColumnLayout({columns, resolvedColumnWidths, resizedColumnK
 
 export default getResizableColumnLayout;
 export {getAvailableColumnsWidth};
-export type {RowChromeWidths};
