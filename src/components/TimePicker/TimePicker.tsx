@@ -764,6 +764,7 @@ function TimePicker({defaultValue = '', onSubmit, onInputChange = () => {}, shou
                 touchableInputWrapperStyle={!showFullFormat && styles.timePickerHeight100}
                 selection={selectionHour}
                 testID="hourInput"
+                shouldAllowFocusInLandscapeMode
             />
             <Text style={[styles.timePickerSemiDot, showFullFormat && [styles.textXXLarge, {height: undefined}]]}>{CONST.COLON}</Text>
             <AmountTextInput
@@ -788,6 +789,7 @@ function TimePicker({defaultValue = '', onSubmit, onInputChange = () => {}, shou
                 touchableInputWrapperStyle={!showFullFormat && styles.timePickerHeight100}
                 selection={selectionMinute}
                 testID="minuteInput"
+                shouldAllowFocusInLandscapeMode
             />
             {showFullFormat && (
                 <>
@@ -811,6 +813,7 @@ function TimePicker({defaultValue = '', onSubmit, onInputChange = () => {}, shou
                         touchableInputWrapperStyle={!showFullFormat && styles.timePickerHeight100}
                         selection={selectionSecond}
                         testID="secondInput"
+                        shouldAllowFocusInLandscapeMode
                     />
                     <Text style={[styles.timePickerSemiDot, showFullFormat && [styles.textXXLarge, {height: undefined}]]}>{CONST.COLON}</Text>
                     <AmountTextInput
@@ -835,6 +838,7 @@ function TimePicker({defaultValue = '', onSubmit, onInputChange = () => {}, shou
                         touchableInputWrapperStyle={!showFullFormat && styles.timePickerHeight100}
                         selection={selectionMillisecond}
                         testID="millisecondInput"
+                        shouldAllowFocusInLandscapeMode
                     />
                 </>
             )}
