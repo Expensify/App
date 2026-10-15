@@ -299,17 +299,6 @@ function approveMoneyRequest(params: ApproveMoneyRequestFunctionParams) {
         });
     }
 
-    // Approving is how a report re-enters an exportable state, so any snapshot left by an earlier export has to go.
-    // `canExport` offers the button only while the report is approved, reimbursed or closed, which means clearing here
-    // also covers a reset the client never saw, such as one driven by the server.
-    optimisticData.push({
-        onyxMethod: Onyx.METHOD.MERGE,
-        key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${expenseReport.reportID}`,
-        value: {
-            exportErrorCountAtRequest: null,
-        },
-    });
-
     const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.COLLECTION.REPORT_METADATA>> = [];
 
     if (!isDEWPolicy) {
@@ -592,20 +581,7 @@ function reopenReport(
         },
     };
 
-    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.COLLECTION.REPORT_METADATA>> = [
-        optimisticIOUReportData,
-        optimisticReportActionsData,
-    ];
-
-    // A reset of the approval state invalidates the previous export, so drop any in-flight export snapshot. Without
-    // this it survives a successful export and keeps both export buttons hidden once the report is exportable again.
-    optimisticData.push({
-        onyxMethod: Onyx.METHOD.MERGE,
-        key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${expenseReport.reportID}`,
-        value: {
-            exportErrorCountAtRequest: null,
-        },
-    });
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> = [optimisticIOUReportData, optimisticReportActionsData];
 
     const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.COLLECTION.REPORT>> = [
         {
@@ -768,20 +744,7 @@ function retractReport(
         },
     };
 
-    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.COLLECTION.REPORT_METADATA>> = [
-        optimisticIOUReportData,
-        optimisticReportActionsData,
-    ];
-
-    // A reset of the approval state invalidates the previous export, so drop any in-flight export snapshot. Without
-    // this it survives a successful export and keeps both export buttons hidden once the report is exportable again.
-    optimisticData.push({
-        onyxMethod: Onyx.METHOD.MERGE,
-        key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${expenseReport.reportID}`,
-        value: {
-            exportErrorCountAtRequest: null,
-        },
-    });
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> = [optimisticIOUReportData, optimisticReportActionsData];
 
     if (chatReport) {
         optimisticData.push({
@@ -944,20 +907,7 @@ function unapproveExpenseReport(
         },
     };
 
-    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_METADATA>> = [
-        optimisticIOUReportData,
-        optimisticReportActionData,
-    ];
-
-    // A reset of the approval state invalidates the previous export, so drop any in-flight export snapshot. Without
-    // this it survives a successful export and keeps both export buttons hidden once the report is exportable again.
-    optimisticData.push({
-        onyxMethod: Onyx.METHOD.MERGE,
-        key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${expenseReport.reportID}`,
-        value: {
-            exportErrorCountAtRequest: null,
-        },
-    });
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.COLLECTION.REPORT>> = [optimisticIOUReportData, optimisticReportActionData];
 
     const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.COLLECTION.REPORT>> = [
         {

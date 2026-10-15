@@ -294,7 +294,7 @@ function isExportAction(report: Report, currentUserLogin: string, policy?: Polic
         return false;
     }
 
-    if (isExportInProgress(report, reportMetadata)) {
+    if (isExportInProgress(reportActions)) {
         return false;
     }
 
