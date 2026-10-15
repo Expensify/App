@@ -971,7 +971,7 @@ const CONST = {
         FILE_LIMIT: 1,
     },
     DYNAMIC_FORM: {
-        /** A select with more options than this sits on its own page, since it opens a searchable list */
+        /** A select with more options than this opens a searchable list, so it sits on its own page */
         LARGE_SELECT_MIN_OPTIONS: 10,
 
         /** Most questions sharing a page when pages are built from a flat list of fields */
@@ -10384,6 +10384,9 @@ const CONST = {
         },
         UPLOAD_FILE: {
             REMOVE_BUTTON: 'UploadFile-RemoveButton',
+        },
+        LIST_FIELD: {
+            REMOVE_BUTTON: 'ListField-RemoveButton',
         },
         BANK_ACCOUNT: {
             DATA_SECURE_LINK: 'BankAccount-DataSecureLink',
