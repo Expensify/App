@@ -1,53 +1,45 @@
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 
-import Navigation from '@libs/Navigation/Navigation';
-import type {PlatformStackNavigationProp} from '@libs/Navigation/PlatformStackNavigation/types';
+import type {PlatformStackNavigationProp, PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {RootNavigatorParamList} from '@libs/Navigation/types';
+import {getReceiptSource} from '@libs/PaymentHistoryUtils';
 
 import type {AttachmentModalBaseContentProps} from '@pages/media/AttachmentModalScreen/AttachmentModalBaseContent/types';
 import AttachmentModalContainer from '@pages/media/AttachmentModalScreen/AttachmentModalContainer';
-import type {AttachmentModalScreenType} from '@pages/media/AttachmentModalScreen/types';
 
-import ROUTES from '@src/ROUTES';
+import ONYXKEYS from '@src/ONYXKEYS';
+import SCREENS from '@src/SCREENS';
 
-import React, {useCallback, useMemo} from 'react';
+import {useNavigation, useRoute} from '@react-navigation/native';
+import React from 'react';
 
 import useDownloadAttachment from './hooks/useDownloadAttachment';
 
-type BillingReceiptModalContentProps = {
-    purchaseID: string;
-    source: string;
-    navigation: PlatformStackNavigationProp<RootNavigatorParamList, AttachmentModalScreenType>;
-};
-
-function BillingReceiptModalContent({purchaseID, source, navigation}: BillingReceiptModalContentProps) {
+function BillingReceiptModalContent() {
     const {translate} = useLocalize();
+    const route = useRoute<PlatformStackRouteProp<RootNavigatorParamList, typeof SCREENS.BILLING_RECEIPT>>();
+    const navigation = useNavigation<PlatformStackNavigationProp<RootNavigatorParamList, typeof SCREENS.BILLING_RECEIPT>>();
+    const [purchases] = useOnyx(ONYXKEYS.PURCHASES);
 
-    const isAuthTokenRequired = typeof source === 'string' && source.includes('expensify.com');
-    const onDownloadAttachment = useDownloadAttachment({isAuthTokenRequired});
+    const {purchaseID} = route.params;
+    const source = getReceiptSource(purchases, Number(purchaseID)) ?? '';
+    const onDownloadAttachment = useDownloadAttachment({isAuthTokenRequired: true});
 
-    const handleClose = useCallback(() => {
-        Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION_PAYMENT_DETAILS.getRoute(purchaseID));
-    }, [purchaseID]);
-
-    const contentProps = useMemo<AttachmentModalBaseContentProps>(
-        () => ({
-            source,
-            headerTitle: translate('common.receipt'),
-            isAuthTokenRequired,
-            shouldShowNotFoundPage: !source,
-            onDownloadAttachment,
-            shouldAllowDownloadOutsideReportContext: true,
-            shouldCloseOnSwipeDown: true,
-        }),
-        [source, translate, isAuthTokenRequired, onDownloadAttachment],
-    );
+    const contentProps: AttachmentModalBaseContentProps = {
+        source,
+        headerTitle: translate('common.receipt'),
+        isAuthTokenRequired: true,
+        shouldShowNotFoundPage: !source,
+        onDownloadAttachment,
+        shouldAllowDownloadOutsideReportContext: true,
+        shouldCloseOnSwipeDown: true,
+    };
 
     return (
         <AttachmentModalContainer
             navigation={navigation}
             contentProps={contentProps}
-            onClose={handleClose}
         />
     );
 }

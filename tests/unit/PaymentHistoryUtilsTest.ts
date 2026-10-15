@@ -355,19 +355,33 @@ describe('getReceiptSource', () => {
     });
 
     it('returns null for an unknown purchaseID', () => {
-        const source = getReceiptSource(toPurchases([createPurchase(1, '2026-02-01')]), 999);
+        // Given a purchases map that does not contain the requested ID
+        const purchases = toPurchases([createPurchase(1, '2026-02-01')]);
+
+        // When resolving a receipt source for a non-existent purchase
+        const source = getReceiptSource(purchases, 999);
+
+        // Then null is returned
         expect(source).toBeNull();
     });
 });
 
 describe('isInvoiceBilling', () => {
     it('returns true for invoicing billing type', () => {
+        // Given a purchase with invoicing billing type
         const purchase = createPurchase(1, '2026-02-01', {billingType: CONST.BILLING.TYPE_INVOICING});
+
+        // When checking if the purchase is invoice billing
+        // Then it returns true
         expect(isInvoiceBilling(toPurchases([purchase]), 1)).toBe(true);
     });
 
     it('returns false for non-invoicing billing type', () => {
+        // Given a purchase with a non-invoicing billing type
         const purchase = createPurchase(1, '2026-02-01', {billingType: CONST.BILLING.TYPE_CLEAR});
+
+        // When checking if the purchase is invoice billing
+        // Then it returns false
         expect(isInvoiceBilling(toPurchases([purchase]), 1)).toBe(false);
     });
 });

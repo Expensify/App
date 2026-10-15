@@ -90,13 +90,7 @@ function AttachmentModalScreen<Screen extends AttachmentModalScreenType>({route,
     }
 
     if (route.name === SCREENS.BILLING_RECEIPT) {
-        return (
-            <BillingReceiptModalContent
-                purchaseID={String(route.params.purchaseID ?? '')}
-                source={String(route.params.source ?? '')}
-                navigation={navigation}
-            />
-        );
+        return <BillingReceiptModalContent />;
     }
 
     if (route.name === SCREENS.REPORT_AVATAR) {

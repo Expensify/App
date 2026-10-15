@@ -64,7 +64,7 @@ function PaymentDetailsPage({route}: PaymentDetailsPageProps) {
     }
 
     if (!purchase?.isLoaded) {
-        return <FullScreenLoadingIndicator />;
+        return <FullScreenLoadingIndicator shouldUseGoBackButton />;
     }
 
     const dateLabel = row ? formatDate(row.created, dateFnsLocale) : '';
@@ -128,7 +128,7 @@ function PaymentDetailsPage({route}: PaymentDetailsPageProps) {
                     {!!receiptSource && (
                         <MenuItem.Root
                             onPress={() => {
-                                Navigation.navigate(ROUTES.BILLING_RECEIPT.getRoute(purchaseID, receiptSource));
+                                Navigation.navigate(ROUTES.BILLING_RECEIPT.getRoute(purchaseID));
                             }}
                             sentryLabel={CONST.SENTRY_LABEL.SETTINGS_SUBSCRIPTION.PAYMENT_HISTORY_ROW}
                             accessibilityLabel={translate(isInvoice ? 'subscription.paymentHistory.viewInvoice' : 'subscription.paymentHistory.viewReceipt')}

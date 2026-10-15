@@ -3397,7 +3397,7 @@ const ROUTES = {
     },
     BILLING_RECEIPT: {
         route: 'settings/subscription/payment-history/:purchaseID/receipt',
-        getRoute: (purchaseID: number, source: string) => `settings/subscription/payment-history/${purchaseID}/receipt?source=${encodeURIComponent(source)}` as const,
+        getRoute: (purchaseID: number) => `settings/subscription/payment-history/${purchaseID}/receipt` as const,
     },
     WORKSPACE_JOIN_USER: {
         route: 'workspaces/:policyID/join',
