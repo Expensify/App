@@ -40,7 +40,7 @@ function createComment(reportActionID: string, actorAccountID: number, created: 
         message: [{type: 'COMMENT', html: 'hi', text: 'hi'}],
         originalMessage: {html: 'hi', whisperedTo: []},
         shouldShow: true,
-    } as ReportAction;
+    };
 }
 
 const conciergeComment = createComment('100', CONST.ACCOUNT_ID.CONCIERGE, '2026-09-01 00:00:00.000');
