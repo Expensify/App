@@ -65,7 +65,6 @@ function NumericInput({
         deleteBackward: controller.deleteBackward,
         clearSelection: controller.clearSelection,
         toggleSign: controller.toggleSign,
-        deleteSignBeforeCaret: controller.deleteSignBeforeCaret,
         handleSelectionChange: controller.handleSelectionChange,
         handleKeyPress: controller.handleKeyPress,
         focusInput,

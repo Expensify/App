@@ -15,7 +15,7 @@ const canUseTouchScreen = canUseTouchScreenUtil();
 /** Number pad rendered on touch screens, connected to the root value and selection. */
 function NumericInputPad({isTwoColumn, testID}: NumericInputLayoutPartProps) {
     const styles = useThemeStyles();
-    const {deleteBackward, deleteSignBeforeCaret, focusInput, insertAtSelection, setShouldUpdateSelection} = useNumericInputActions();
+    const {deleteBackward, focusInput, insertAtSelection, setShouldUpdateSelection} = useNumericInputActions();
     const isLongPressingRef = useRef(false);
 
     useEffect(() => {
@@ -37,10 +37,6 @@ function NumericInputPad({isTwoColumn, testID}: NumericInputLayoutPartProps) {
         }
 
         if (key === '<') {
-            if (deleteSignBeforeCaret()) {
-                return;
-            }
-
             deleteBackward();
             return;
         }

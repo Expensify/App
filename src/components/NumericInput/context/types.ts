@@ -37,7 +37,7 @@ type NumericInputActionsContextValue = {
     /** Replaces the selected range with text, or inserts it at the caret. */
     insertAtSelection: (text: string) => void;
 
-    /** Deletes the selected range, or the character before the caret when nothing is selected. */
+    /** Deletes the selected range, or the character before the caret when nothing is selected. Removes the negative sign first when nothing precedes the caret. */
     deleteBackward: () => void;
 
     /** Places the caret at the selection end, clearing any highlighted range. */
@@ -45,9 +45,6 @@ type NumericInputActionsContextValue = {
 
     /** Toggles the sign of the canonical value and notifies the parent. */
     toggleSign: () => void;
-
-    /** Removes the negative sign when backspace is triggered with nothing before the caret. */
-    deleteSignBeforeCaret: () => boolean;
 
     /** Applies a native selection change, dropping stale events from manual updates. */
     handleSelectionChange: (selectionStart: number, selectionEnd: number) => void;
