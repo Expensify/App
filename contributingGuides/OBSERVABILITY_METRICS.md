@@ -126,7 +126,7 @@ This document lists all implemented telemetry metrics in the Expensify App.
 **Start**: The input keystroke that produced the query, recorded in `onSearchQueryChange`. The span starts at that input timestamp once the query settles for evaluation ([`src/components/Search/SearchRouter/SearchRouter.tsx`](https://github.com/Expensify/App/blob/main/src/components/Search/SearchRouter/SearchRouter.tsx), [`src/libs/telemetry/searchRouterQuerySpans.ts`](https://github.com/Expensify/App/blob/main/src/libs/telemetry/searchRouterQuerySpans.ts))
 **End**:
 - User sees: Autocomplete list updated for the typed query
-- Technical: Layout effect after the commit for that query via `markSearchRouterQueryCommitted()` ([`src/components/Search/SearchAutocompleteList.tsx`](https://github.com/Expensify/App/blob/main/src/components/Search/SearchAutocompleteList.tsx), [`src/libs/telemetry/searchRouterQuerySpans.ts`](https://github.com/Expensify/App/blob/main/src/libs/telemetry/searchRouterQuerySpans.ts)). The list's initial mount commit cancels the span as `list_mount` so initial open latency is left to `ManualOpenSearchRouter`.
+- Technical: Layout effect after the commit for that query via `markSearchRouterQueryCommitted()` ([`src/components/Search/SearchAutocompleteList.tsx`](https://github.com/Expensify/App/blob/main/src/components/Search/SearchAutocompleteList.tsx), [`src/libs/telemetry/searchRouterQuerySpans.ts`](https://github.com/Expensify/App/blob/main/src/libs/telemetry/searchRouterQuerySpans.ts)). The list's first commit after the recent-searches loading skeleton cancels the span as `list_mount` so initial open latency is left to `ManualOpenSearchRouter`.
 **Attributes**:
 - `query_length_bucket`: bucketed free-text character length with syntax filters stripped (`0-empty`: 0 chars, `1-short`: 1–2 chars, `2-medium`: 3–5 chars, `3-long`: 6–12 chars, `4-very-long`: >12 chars). Prefixed with numbers so Sentry sorts them in order; query text is never recorded
 - `has_filter`: boolean indicating whether the query contains syntax filters or autocomplete tokens (even when multiple filters like `from:` and `in:` are combined in the same query)
@@ -134,7 +134,7 @@ This document lists all implemented telemetry metrics in the Expensify App.
 - `query_ordinal`: 1-indexed attempt number in the current session (up to `CONST.TELEMETRY.SEARCH_ROUTER_MAX_MEASURED_QUERIES_PER_OPEN`)
 - `result_count`: number of matching suggestions (`recentReports` + `personalDetails`)
 - `render_duration_ms`: duration in milliseconds spent strictly in JavaScript filtering and React layout commit, isolating execution time from any input settling / debounce delay
-- `cancel_reason`: cancellation reason when cancelled (`superseded`, `cleared`, `closed`, `unmounted`, `list_mount`, `timed_out`). A span running longer than `CONST.TELEMETRY.SEARCH_ROUTER_QUERY_MAX_DURATION_MS`, measured from its input start, is cancelled as `timed_out`.
+- `cancel_reason`: cancellation reason when cancelled (`superseded`, `cleared`, `closed`, `unmounted`, `list_mount`, `timed_out`, `options_not_ready`). A span running longer than `CONST.TELEMETRY.SEARCH_ROUTER_QUERY_MAX_DURATION_MS`, measured from its input start, is cancelled as `timed_out`.
 
 ### Open Create Expense
 

@@ -183,4 +183,21 @@ describe('SearchAutocompleteList query telemetry', () => {
         expect(attributes?.[CONST.TELEMETRY.ATTRIBUTE_CANCELED]).toBeUndefined();
         expect(attributes?.[CONST.TELEMETRY.ATTRIBUTE_RESULT_COUNT]).toBe(0);
     });
+
+    it('ends the span with the result count when the query commits after the list mounted but before onLayout fires', async () => {
+        // Given a mounted list whose first commit is done, but whose async onLayout has not fired yet
+        const {rerender} = render(renderList(''));
+        await waitForBatchedUpdatesWithAct();
+
+        // When the debounce fires for "abc" and the list commits with it
+        startSearchRouterQuerySpan('abc');
+        rerender(renderList('abc'));
+        await waitForBatchedUpdatesWithAct();
+
+        // Then it is a real query commit, not treated as the list mount commit, so the span ends with the option count
+        expect(getSpan(ROOT)).toBeUndefined();
+        const attributes = mockEnded.find((span) => span.op === ROOT)?.attributes;
+        expect(attributes?.[CONST.TELEMETRY.ATTRIBUTE_CANCEL_REASON]).toBeUndefined();
+        expect(attributes?.[CONST.TELEMETRY.ATTRIBUTE_RESULT_COUNT]).toBe(0);
+    });
 });

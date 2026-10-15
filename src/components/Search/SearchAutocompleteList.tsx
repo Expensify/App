@@ -418,11 +418,24 @@ function SearchAutocompleteList({
     const [isInitialRender, setIsInitialRender] = useState(true);
 
     const searchResultCount = searchOptions.recentReports.length + searchOptions.personalDetails.length;
-    // Commit the query span in a layout effect (before paint) so the span's end time reflects when the list is laid out
-    // for this query. The initial mount commit is cancelled (via isInitialRender) so open latency stays with ManualOpenSearchRouter.
+    const hasCommittedListRef = useRef(false);
+    // Commit the query span in a layout effect so the span's end time reflects when the list is laid out
+    // for this query before paint. The list's first commit after the loading skeleton is cancelled so open latency
+    // stays with ManualOpenSearchRouter. While the skeleton is shown, the list is not rendered, so the span keeps waiting for it.
+    // While options are still loading, searchOptions is the empty default list, so committing would record a bogus zero-result query.
+    // Cancel instead of waiting so Onyx cold-load time does not get folded into query latency.
     useLayoutEffect(() => {
-        markSearchRouterQueryCommitted(autocompleteQueryValue, {resultCount: searchResultCount}, isInitialRender);
-    }, [autocompleteQueryValue, searchResultCount, isInitialRender]);
+        if (!isRecentSearchesDataLoaded) {
+            return;
+        }
+        const isListMountCommit = !hasCommittedListRef.current;
+        hasCommittedListRef.current = true;
+        if (isLoadingOptions) {
+            cancelSearchRouterQuerySpan(CONST.TELEMETRY.SEARCH_ROUTER_QUERY_CANCEL_REASON.OPTIONS_NOT_READY);
+            return;
+        }
+        markSearchRouterQueryCommitted(autocompleteQueryValue, {resultCount: searchResultCount}, isListMountCommit);
+    }, [autocompleteQueryValue, searchResultCount, isRecentSearchesDataLoaded, isLoadingOptions]);
     const prevQueryRef = useRef(effectiveInputQueryValue);
     const innerListRef = useRef<SelectionListWithSectionsHandle | null>(null);
     const hasSetInitialFocusRef = useRef(false);

@@ -2470,6 +2470,7 @@ const CONST = {
             UNMOUNTED: 'unmounted',
             LIST_MOUNT: 'list_mount',
             TIMED_OUT: 'timed_out',
+            OPTIONS_NOT_READY: 'options_not_ready',
         },
         SEARCH_ROUTER_QUERY_LENGTH_BUCKET: {
             EMPTY: '0-empty',
