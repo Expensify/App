@@ -1,10 +1,11 @@
 import useCategoryRuleCreateBackPath from '@hooks/useCategoryRuleCreateBackPath';
-import usePolicy from '@hooks/usePolicy';
+import useOnyx from '@hooks/useOnyx';
 
-import {categoryHasTaxRule} from '@libs/CategoryTaxRulesUtils';
+import {getCategoryTaxDefaultRule} from '@libs/ExpenseDefaultRuleUtils';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 
+import ONYXKEYS from '@src/ONYXKEYS';
 import {DYNAMIC_ROUTES, getWorkspaceCategorySettingsRoute} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
@@ -16,18 +17,18 @@ type AddCategoryTaxRulePageProps = PlatformStackScreenProps<SettingsNavigatorPar
 
 function AddCategoryTaxRulePage({route}: AddCategoryTaxRulePageProps) {
     const {policyID, categoryName} = route.params;
-    const policy = usePolicy(policyID);
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
     const categorySettingsBackPath = useCategoryRuleCreateBackPath(DYNAMIC_ROUTES.WORKSPACE_CATEGORY_RULES_TAX_NEW.path) ?? getWorkspaceCategorySettingsRoute(policyID, categoryName);
 
     // A category holds one tax default, so creating one for a category that already has it is really an edit. Opening
     // it as one shows the rate already applied and lets the admin delete it.
-    const hasExistingRule = categoryHasTaxRule(policy?.rules?.expenseRules, categoryName);
+    const existingRuleID = getCategoryTaxDefaultRule(rules, policyID, categoryName)?.ruleID;
 
     return (
         <MerchantRulePageBase
             policyID={policyID}
-            editCategoryTaxRuleFor={hasExistingRule ? categoryName : undefined}
-            newCategoryTaxRuleFor={hasExistingRule ? undefined : categoryName}
+            ruleID={existingRuleID}
+            initialCategoryToMatch={existingRuleID ? undefined : categoryName}
             isCategoryLocked
             categorySettingsBackPath={categorySettingsBackPath}
             testID="AddCategoryTaxRulePage"

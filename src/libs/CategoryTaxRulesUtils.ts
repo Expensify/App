@@ -7,7 +7,6 @@ import type {ExpenseDefaultTableItem} from '@components/Tables/WorkspaceExpenseD
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
-import type {MerchantRuleForm} from '@src/types/form';
 import type {Policy, PolicyCategories, TaxRate} from '@src/types/onyx';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {ExpenseRule} from '@src/types/onyx/Policy';
@@ -17,45 +16,14 @@ import {getTaxByID} from './PolicyUtils';
 
 const CATEGORY_TAX_RULE_KEY_PREFIX = 'category-tax:';
 
-/**
- * Whether the rule being written is a category tax default rather than a merchant rule.
- *
- * The editor and every picker it opens have to agree on this. The editor picks its rows from it and the tax picker
- * which rates it may offer, so they read it here rather than each rebuilding the same disjunction. A saved rule
- * arrives by category name and an unsaved one carries the type the chooser put in its draft.
- *
- * A category in the draft is not enough on its own. An ordinary rule can match on a category too, and it is stored in
- * the `rules_` collection rather than as a category tax default.
- */
-function isCategoryRuleDraft(form: MerchantRuleForm | undefined, editingCategoryName?: string): boolean {
-    return !!editingCategoryName || form?.ruleType === CONST.POLICY.EXPENSE_DEFAULT_RULE_TYPE.CATEGORY;
-}
-
 /** Whether a rule has a tax rate to apply. Tracking being on isn't enough on its own, it needs a rate to choose from. */
 function hasUsableTaxRates(policy: Policy | undefined): boolean {
     return !!policy?.tax?.trackingEnabled && Object.keys(policy?.taxRates?.taxes ?? {}).length > 0;
 }
 
-/**
- * Whether a rule may pick this rate. A disabled rate, or one on its way out, is not an option for any rule, and the
- * workspace default is not one for a category rule, since writing that rate is what deletes the rule.
- *
- * The tax picker and the chooser that decides whether to offer a category rule at all both read this, so a locked
- * option and an empty picker can't disagree about what counts as a usable rate.
- */
-function isSelectableTaxRate(policy: Policy | undefined, taxID: string, taxRate: TaxRate, isCategoryRule: boolean): boolean {
-    return !taxRate.isDisabled && taxRate.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && !(isCategoryRule && taxID === policy?.taxRates?.defaultExternalID);
-}
-
-/**
- * Whether a new category tax default has any rate to choose. Holding rates is not enough: they can all be disabled, or
- * the workspace default can be the only one left, which a category rule can't use.
- */
-function hasSelectableCategoryTaxRate(policy: Policy | undefined): boolean {
-    if (!hasUsableTaxRates(policy)) {
-        return false;
-    }
-    return Object.entries(policy?.taxRates?.taxes ?? {}).some(([taxID, taxRate]) => isSelectableTaxRate(policy, taxID, taxRate, true));
+/** Whether a rule may pick this rate. A disabled rate, or one on its way out, is not an option for any rule. */
+function isSelectableTaxRate(taxRate: TaxRate): boolean {
+    return !taxRate.isDisabled && taxRate.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
 }
 
 function getCategoryTaxRuleKey(categoryName: string) {
@@ -202,9 +170,7 @@ export {
     getRuleCategoryName,
     getRuleDeletionPendingAction,
     getTaxRateDisplayName,
-    hasSelectableCategoryTaxRate,
     hasUsableTaxRates,
-    isCategoryRuleDraft,
     isCategoryTaxRuleKey,
     isSelectableTaxRate,
     matchesCategoryTaxRule,

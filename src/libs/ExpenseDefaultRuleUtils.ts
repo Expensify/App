@@ -546,6 +546,40 @@ function getExpenseDefaultConditionSummary(filters: RuleFilterNode | undefined):
     return summary;
 }
 
+/**
+ * The rule that holds a category's tax default: one that matches on that category alone and sets a tax.
+ *
+ * Category settings addresses this rule by category name rather than by ID, because a category holds one tax
+ * default, so the ID is resolved here instead of being carried on every route.
+ */
+function getCategoryTaxDefaultRule(rulesCollection: OnyxCollection<Rule> | undefined, policyID: string | undefined, categoryName: string | undefined): RuleWithID | undefined {
+    if (!categoryName) {
+        return undefined;
+    }
+
+    return getPolicyExpenseDefaultRules(rulesCollection, policyID).find(({rule}) => {
+        const {merchants, categories, tags} = getExpenseDefaultConditionSummary(rule.filters);
+        if (merchants.length > 0 || tags.length > 0 || categories.length !== 1 || categories.at(0) !== categoryName) {
+            return false;
+        }
+
+        return getRuleActions(rule).some((action) => action?.name === ACTION.SET && 'field' in action && action.field === FIELD.TAX);
+    });
+}
+
+/** The tax rate a category's tax default applies. See `getCategoryTaxDefaultRule`. */
+function getCategoryTaxDefaultID(rulesCollection: OnyxCollection<Rule> | undefined, policyID: string | undefined, categoryName: string | undefined): string | undefined {
+    const rule = getCategoryTaxDefaultRule(rulesCollection, policyID, categoryName)?.rule;
+
+    for (const action of getRuleActions(rule)) {
+        if (action?.name === ACTION.SET && 'field' in action && action.field === FIELD.TAX && isExpenseDefaultTaxValue(action.value)) {
+            return action.value.field_id_TAX.externalID;
+        }
+    }
+
+    return undefined;
+}
+
 /** A single field a rule sets, normalized for display. */
 type ExpenseDefaultRuleSummaryField = {
     /** The expense field being set */
@@ -644,6 +678,8 @@ export {
     buildCopiedExpenseDefaultRules,
     buildMerchantRule,
     canEditMerchantRule,
+    getCategoryTaxDefaultID,
+    getCategoryTaxDefaultRule,
     getExpenseDefaultConditionSummary,
     getExpenseDefaultRuleCount,
     getExpenseDefaultRuleSummaryFields,

@@ -1188,7 +1188,6 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.WORKSPACE.DYNAMIC_CATEGORY_EDIT]: DYNAMIC_ROUTES.WORKSPACE_CATEGORY_EDIT.path,
                         [SCREENS.WORKSPACE.DYNAMIC_CATEGORY_PAYROLL_CODE]: DYNAMIC_ROUTES.WORKSPACE_CATEGORY_PAYROLL_CODE.path,
                         [SCREENS.WORKSPACE.DYNAMIC_CATEGORY_GL_CODE]: DYNAMIC_ROUTES.WORKSPACE_CATEGORY_GL_CODE.path,
-                        [SCREENS.WORKSPACE.DYNAMIC_CATEGORY_DEFAULT_TAX_RATE]: DYNAMIC_ROUTES.WORKSPACE_CATEGORY_DEFAULT_TAX_RATE.path,
                         [SCREENS.WORKSPACE.DYNAMIC_CATEGORY_FLAG_AMOUNTS_OVER]: DYNAMIC_ROUTES.WORKSPACE_CATEGORY_FLAG_AMOUNTS_OVER.path,
                         [SCREENS.WORKSPACE.DYNAMIC_EXPENSE_LIMIT_TYPE_SELECTOR]: DYNAMIC_ROUTES.EXPENSE_LIMIT_TYPE_SELECTOR.path,
                         [SCREENS.WORKSPACE.DYNAMIC_IMPORTED_MEMBERS_ROLE]: DYNAMIC_ROUTES.IMPORTED_MEMBERS_ROLE.path,
@@ -1418,9 +1417,6 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         },
                         [SCREENS.WORKSPACE.RULES_NEW]: {
                             path: ROUTES.RULES_NEW.route,
-                        },
-                        [SCREENS.WORKSPACE.RULES_EXPENSE_DEFAULT_TYPE]: {
-                            path: ROUTES.RULES_EXPENSE_DEFAULT_TYPE.route,
                         },
                         [SCREENS.WORKSPACE.RULES_MERCHANT_NEW]: {
                             path: ROUTES.RULES_MERCHANT_NEW.route,

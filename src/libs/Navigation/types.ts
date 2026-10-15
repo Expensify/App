@@ -447,10 +447,6 @@ type SettingsNavigatorParamList = {
         // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
         backTo?: Routes;
     };
-    [SCREENS.WORKSPACE.DYNAMIC_CATEGORY_DEFAULT_TAX_RATE]: {
-        policyID: string;
-        categoryName: string;
-    };
     [SCREENS.WORKSPACE.DYNAMIC_CATEGORY_FLAG_AMOUNTS_OVER]: {
         policyID: string;
         categoryName: string;
@@ -1920,9 +1916,6 @@ type SettingsNavigatorParamList = {
     [SCREENS.WORKSPACE.RULES_NEW]: {
         policyID: string;
         categoryName?: string;
-    };
-    [SCREENS.WORKSPACE.RULES_EXPENSE_DEFAULT_TYPE]: {
-        policyID: string;
     };
     [SCREENS.WORKSPACE.RULES_MERCHANT_NEW]: {
         policyID: string;

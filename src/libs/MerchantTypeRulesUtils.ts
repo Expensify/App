@@ -6,14 +6,14 @@ import ROUTES from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/MerchantTypeRuleForm';
 import type {MerchantTypeRuleForm} from '@src/types/form/MerchantTypeRuleForm';
-import type {Policy, PolicyCategories, PolicyTagLists, Rule} from '@src/types/onyx';
+import type {Policy, PolicyTagLists, Rule} from '@src/types/onyx';
 
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
 import {DEFAULT_MCC_GROUP, isDefaultMccGroupID} from './actions/Policy/OptimisticPolicyCategoriesAndMccGroups';
 import {setWorkspaceDefaultSpendCategory} from './actions/Policy/Policy';
 import {clearMerchantRuleErrors} from './actions/Policy/Rules';
-import {getCategoryTaxRulesTableData, getTaxRateDisplayName} from './CategoryTaxRulesUtils';
+import {getTaxRateDisplayName} from './CategoryTaxRulesUtils';
 import {getDecodedCategoryName} from './CategoryUtils';
 import {convertAmountToDisplayString} from './CurrencyUtils';
 import {
@@ -256,7 +256,6 @@ function getExpenseDefaultsTableData({
     policy,
     policyID,
     rules,
-    policyCategories,
     policyTags,
     translate,
     isOffline,
@@ -265,19 +264,16 @@ function getExpenseDefaultsTableData({
     policy: Policy | undefined;
     policyID: string;
     rules: OnyxCollection<Rule> | undefined;
-    /** Read for the pending state of a category a rule depends on, so the rule shows as deleting alongside it. */
-    policyCategories: PolicyCategories | undefined;
     /** Read to hide a deleted tag from a merchant rule's summary. */
     policyTags: OnyxEntry<PolicyTagLists>;
     translate: LocaleContextProps['translate'];
     isOffline: boolean;
     onNavigate: (route: Route) => void;
 }): ExpenseDefaultTableItem[] {
-    const categoryTaxRules = getCategoryTaxRulesTableData({policy, policyCategories, translate, isOffline, onNavigate});
     const merchantRules = getMerchantRulesTableData({policy, policyID, rules, policyTags, translate, isOffline, onNavigate});
     const merchantTypeRules = getMerchantTypeRulesTableData({policy, translate, onNavigate});
 
-    return [...categoryTaxRules, ...merchantRules, ...merchantTypeRules];
+    return [...merchantRules, ...merchantTypeRules];
 }
 
 export {

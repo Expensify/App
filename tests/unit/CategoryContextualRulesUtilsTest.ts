@@ -1,9 +1,13 @@
 import getCategoryContextualRules from '@libs/CategoryContextualRulesUtils';
+import {toIndexMap} from '@libs/RuleUtils';
 
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
+import ONYXKEYS from '@src/ONYXKEYS';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
-import type {Policy, PolicyCategory} from '@src/types/onyx';
+import type {Policy, PolicyCategory, Rule} from '@src/types/onyx';
+
+import type {OnyxCollection} from 'react-native-onyx';
 
 import createRandomPolicy from '../utils/collections/policies';
 import {convertToDisplayString, translateLocal} from '../utils/TestHelper';
@@ -135,14 +139,16 @@ describe('getCategoryContextualRules', () => {
                     TAX_VAT: {name: 'VAT', value: '20%'},
                 },
             },
-            rules: {
-                expenseRules: [
-                    {
-                        // eslint-disable-next-line @typescript-eslint/naming-convention -- matches the backend's expense rule shape
-                        tax: {field_id_TAX: {externalID: 'TAX_VAT'}},
-                        applyWhen: [{condition: CONST.POLICY.RULE_CONDITIONS.MATCHES, field: CONST.POLICY.FIELDS.CATEGORY, value: 'Travel'}],
-                    },
-                ],
+        };
+        // A category's tax default is an ordinary rule matching that category alone and setting a tax.
+        const taxDefaultRules: OnyxCollection<Rule> = {
+            [`${ONYXKEYS.COLLECTION.RULE}rule1`]: {
+                scope: CONST.RULES.SCOPE.POLICY,
+                scopeID: policy.id,
+                triggers: toIndexMap([CONST.RULES.TRIGGERS.CREATE_TRANSACTION]),
+                filters: {left: CONST.RULES.EXPENSE_DEFAULT.FIELD.CATEGORY, operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, right: ['Travel']},
+                // eslint-disable-next-line @typescript-eslint/naming-convention -- matches the rules engine's tax value shape
+                actions: toIndexMap([{name: CONST.RULES.ACTIONS.SET, field: CONST.RULES.EXPENSE_DEFAULT.FIELD.TAX, value: {field_id_TAX: {externalID: 'TAX_VAT'}}}]),
             },
         };
         const category: PolicyCategory = {name: 'Travel', enabled: true};
@@ -153,6 +159,7 @@ describe('getCategoryContextualRules', () => {
             const rules = getCategoryContextualRules({
                 policy: policyWithTaxRule,
                 policyCategories: undefined,
+                policyRules: taxDefaultRules,
                 category,
                 categoryName: 'Travel',
                 translate: translateLocal,
@@ -172,6 +179,7 @@ describe('getCategoryContextualRules', () => {
             const rules = getCategoryContextualRules({
                 policy: policyWithTaxRule,
                 policyCategories: undefined,
+                policyRules: taxDefaultRules,
                 category: {name: 'Meals', enabled: true},
                 categoryName: 'Meals',
                 translate: translateLocal,
@@ -202,6 +210,7 @@ describe('getCategoryContextualRules', () => {
             const params = {
                 policy: policyWithDeletingRate,
                 policyCategories: undefined,
+                policyRules: taxDefaultRules,
                 category,
                 categoryName: 'Travel',
                 translate: translateLocal,

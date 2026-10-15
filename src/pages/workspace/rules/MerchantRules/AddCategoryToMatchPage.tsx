@@ -14,13 +14,11 @@ import useInitialSelection from '@hooks/useInitialSelection';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import usePolicy from '@hooks/usePolicy';
 import usePolicyCategoryPickerCategories from '@hooks/usePolicyCategoryPickerCategories';
 import useSearchResults from '@hooks/useSearchResults';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {updateDraftMerchantRule} from '@libs/actions/User';
-import {categoryHasTaxRule, isCategoryRuleDraft} from '@libs/CategoryTaxRulesUtils';
 import {getDecodedCategoryName} from '@libs/CategoryUtils';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import Navigation from '@libs/Navigation/Navigation';
@@ -52,7 +50,6 @@ function AddCategoryToMatchPage({route}: AddCategoryToMatchPageProps) {
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
     const illustrations = useMemoizedLazyIllustrations(['Telescope']);
-    const policy = usePolicy(policyID);
 
     const [form] = useOnyx(ONYXKEYS.FORMS.MERCHANT_RULE_FORM);
 
@@ -66,15 +63,8 @@ function AddCategoryToMatchPage({route}: AddCategoryToMatchPageProps) {
         isLoading: arePolicyCategoriesLoading,
     } = usePolicyCategoryPickerCategories({
         policyID,
-        // One category holds one tax default, so a category that already has one is not offered again. An ordinary
-        // rule only matches on the category, so it can pick any of them.
-        // Keep current selections so they stay removable. The rule being edited stays listed even once the selection
-        // moves off it, since its own category still has a tax rule and would otherwise drop out with no way back.
-        isEligible: (category) =>
-            !isCategoryRuleDraft(form, editingCategoryName) ||
-            selectedCategories.includes(category.name) ||
-            category.name === editingCategoryName ||
-            !categoryHasTaxRule(policy?.rules?.expenseRules, category.name),
+        // A rule only matches on the category, so every category is eligible.
+        isEligible: () => true,
     });
 
     const categoryItems: CategoryListItem[] = categories.map((category) => ({
