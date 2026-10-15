@@ -14,7 +14,7 @@ import {
     useDynamicYDomain,
     useLabelHitTesting,
 } from '@components/Charts/hooks';
-import {getBarLayout, getPrimaryValue, getXAxisLabel, getYAxisLabelWidth} from '@components/Charts/utils';
+import {getBarLayout, getHighestPointPositions, getPrimaryValue, getXAxisLabel, getYAxisLabelWidth} from '@components/Charts/utils';
 import VictoryTheme, {CHART_CONTENT_MIN_HEIGHT, GLYPH_PADDING} from '@components/Charts/VictoryTheme';
 
 import useTheme from '@hooks/useTheme';
@@ -25,7 +25,7 @@ import variables from '@styles/variables';
 import type {LayoutChangeEvent} from 'react-native';
 import type {CartesianChartRenderArg, ChartBounds, PointsArray, Scale} from 'victory-native';
 
-import React, {useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 import {GestureDetector} from 'react-native-gesture-handler';
 import Animated, {useAnimatedStyle, useSharedValue} from 'react-native-reanimated';
@@ -138,14 +138,22 @@ function VerticalBarChartContentBody({data, series, isLoading, yAxisUnit, yAxisU
             yZero,
         });
 
+    const scales = useRef<{xScale: Scale; yScale: Scale} | null>(null);
+
     const handleScaleChange = (xScale: Scale, yScale: Scale) => {
+        scales.current = {xScale, yScale};
         yZero.set(yScale(0));
         updateTickPositions(xScale, data.length);
-        setPointPositions(
-            chartData.map((point) => xScale(point.x)),
-            chartData.map((point) => yScale(point.y)),
-        );
+        setPointPositions(...getHighestPointPositions(data, series, xScale, yScale));
     };
+
+    // Victory reports the scales only when they change, and new values often keep the same rounded axes
+    useEffect(() => {
+        if (!scales.current) {
+            return;
+        }
+        setPointPositions(...getHighestPointPositions(data, series, scales.current.xScale, scales.current.yScale));
+    }, [data, series, setPointPositions]);
 
     const cursorStyle = useAnimatedStyle(() => ({
         cursor: isCursorOverClickable.get() ? 'pointer' : 'auto',

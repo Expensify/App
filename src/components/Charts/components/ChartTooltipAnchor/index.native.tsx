@@ -4,6 +4,7 @@ import CONST from '@src/CONST';
 
 import type {ComponentRef} from 'react';
 
+import {Portal} from '@gorhom/portal';
 import React, {useEffect, useRef} from 'react';
 import {DeviceEventEmitter, View} from 'react-native';
 
@@ -13,13 +14,15 @@ import type ChartTooltipAnchorProps from './types';
 function ChartTooltipAnchor({isShown, onOriginChange}: ChartTooltipAnchorProps) {
     const styles = useThemeStyles();
     const anchorRef = useRef<ComponentRef<typeof View>>(null);
+    const hostOriginRef = useRef<ComponentRef<typeof View>>(null);
 
     useEffect(() => {
         if (!isShown) {
             return;
         }
 
-        const measureOrigin = () => anchorRef.current?.measureInWindow((x, y) => onOriginChange(x, y));
+        // Measured against the portal host the tooltip is drawn in, since on Android the window coordinates can leave out the status bar
+        const measureOrigin = () => hostOriginRef.current?.measureInWindow((hostX, hostY) => anchorRef.current?.measureInWindow((x, y) => onOriginChange(x - hostX, y - hostY)));
         measureOrigin();
 
         // Native views can't be observed while they move, so the position is measured again once the scroll ends
@@ -33,11 +36,20 @@ function ChartTooltipAnchor({isShown, onOriginChange}: ChartTooltipAnchorProps) 
     }, [isShown, onOriginChange]);
 
     return (
-        <View
-            ref={anchorRef}
-            style={styles.chartTooltipOrigin}
-            pointerEvents="none"
-        />
+        <>
+            <View
+                ref={anchorRef}
+                style={styles.chartTooltipOrigin}
+                pointerEvents="none"
+            />
+            <Portal>
+                <View
+                    ref={hostOriginRef}
+                    style={styles.chartTooltipOrigin}
+                    pointerEvents="none"
+                />
+            </Portal>
+        </>
     );
 }
 

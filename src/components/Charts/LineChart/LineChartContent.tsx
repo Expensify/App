@@ -16,7 +16,7 @@ import {
     useDynamicYDomain,
     useLabelHitTesting,
 } from '@components/Charts/hooks';
-import {getAxisLabelStep, getDomainPaddingForEdgeSpace, getXAxisLabel, getYAxisLabelWidth, labelOverhang} from '@components/Charts/utils';
+import {getAxisLabelStep, getDomainPaddingForEdgeSpace, getHighestPointPositions, getXAxisLabel, getYAxisLabelWidth, labelOverhang} from '@components/Charts/utils';
 import VictoryTheme, {CHART_CONTENT_MIN_HEIGHT, DASH_INTERVALS, GLYPH_PADDING, LABEL_PADDING, LABEL_ROTATIONS, SIN_45, X_AXIS_LABEL_MIN_GAP} from '@components/Charts/VictoryTheme';
 
 import useTheme from '@hooks/useTheme';
@@ -29,7 +29,7 @@ import type {TupleToUnion} from 'type-fest';
 import type {CartesianChartRenderArg, ChartBounds, Scale} from 'victory-native';
 
 import {DashPathEffect} from '@shopify/react-native-skia';
-import React, {useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 import {GestureDetector} from 'react-native-gesture-handler';
 import Animated, {useAnimatedStyle, useDerivedValue, useSharedValue} from 'react-native-reanimated';
@@ -220,16 +220,23 @@ function LineChartContentBody({data, series, isLoading, yAxisUnit, yAxisUnitPosi
     const activePointX = useDerivedValue(() => activePointPosition.get().x);
     const isActivePointHollow = useDerivedValue(() => isLastPointInProgress && matchedIndex.get() === data.length - 1);
 
+    const scales = useRef<{xScale: Scale; yScale: Scale} | null>(null);
+
     const handleScaleChange = (xScale: Scale, yScale: Scale) => {
+        scales.current = {xScale, yScale};
         updateTickPositions(xScale, data.length);
         const [rangeStart, rangeEnd] = xScale.range();
         bandHalfWidth.set(data.length > 1 ? Math.abs(xScale(1) - xScale(0)) / 2 : Math.abs(rangeEnd - rangeStart));
-        setPointPositions(
-            chartData.map((point) => xScale(point.x)),
-            // The tooltip sits above the highest series, so it never covers another one.
-            data.map((point) => yScale(Math.max(...seriesKeys.flatMap((key) => point.values[key] ?? [])))),
-        );
+        setPointPositions(...getHighestPointPositions(data, series, xScale, yScale));
     };
+
+    // Victory reports the scales only when they change, and new values often keep the same rounded axes
+    useEffect(() => {
+        if (!scales.current) {
+            return;
+        }
+        setPointPositions(...getHighestPointPositions(data, series, scales.current.xScale, scales.current.yScale));
+    }, [data, series, setPointPositions]);
 
     const cursorStyle = useAnimatedStyle(() => ({
         cursor: isCursorOverClickable.get() ? 'pointer' : 'auto',
