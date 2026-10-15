@@ -128,14 +128,15 @@ function VerticalBarChartContentBody({data, series, isLoading, yAxisUnit, yAxisU
         return isWithinX && args.cursorY >= plotTop.get() && args.cursorY <= plotBottom.get();
     };
 
-    const {customGestures, setPointPositions, matchedIndex, isTooltipActive, isCursorOverClickable, initialTooltipPosition, onChartMoved} = useChartInteractions({
-        handlePress: onBarPress ? handleBarPress : undefined,
-        checkIsOver: checkIsOverBar,
-        isCursorOverLabel: shouldShowLabels ? isCursorOverLabel : undefined,
-        resolveLabelTouchX: shouldShowLabels ? findLabelCursorX : undefined,
-        chartBottom,
-        yZero,
-    });
+    const {customGestures, setPointPositions, matchedIndex, isTooltipActive, isCursorOverClickable, initialTooltipPosition, onChartMoved, onTooltipDismiss, onChartTouchStart} =
+        useChartInteractions({
+            handlePress: onBarPress ? handleBarPress : undefined,
+            checkIsOver: checkIsOverBar,
+            isCursorOverLabel: shouldShowLabels ? isCursorOverLabel : undefined,
+            resolveLabelTouchX: shouldShowLabels ? findLabelCursorX : undefined,
+            chartBottom,
+            yZero,
+        });
 
     const handleScaleChange = (xScale: Scale, yScale: Scale) => {
         yZero.set(yScale(0));
@@ -232,6 +233,7 @@ function VerticalBarChartContentBody({data, series, isLoading, yAxisUnit, yAxisU
             <Animated.View
                 style={[styles.chartContent, dynamicChartStyle, !!onBarPress && cursorStyle]}
                 onLayout={handleLayout}
+                onTouchStart={onChartTouchStart}
             >
                 {chartWidth > 0 && (
                     <CartesianChart
@@ -283,6 +285,7 @@ function VerticalBarChartContentBody({data, series, isLoading, yAxisUnit, yAxisU
                     chartWidth={chartWidth}
                     initialTooltipPosition={initialTooltipPosition}
                     onChartMoved={onChartMoved}
+                    onDismiss={onTooltipDismiss}
                 />
             </Animated.View>
         </GestureDetector>
