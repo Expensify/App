@@ -30,7 +30,12 @@ function getChoiceOptionsList(choices: Choice[]): Record<string, string> {
 }
 
 /** A lone choice field is the page itself: its options are listed inline, and the page title asks the question */
-function renderInlineChoice(label: string, choices: Choice[], inputProps: DynamicFieldInputProps, {canSelectMultiple, isSearchable}: InlineChoiceOptions): DynamicFieldInput {
+function renderInlineChoice(
+    label: string,
+    choices: Choice[],
+    inputProps: DynamicFieldInputProps<string | string[]>,
+    {canSelectMultiple, isSearchable}: InlineChoiceOptions,
+): DynamicFieldInput {
     const listProps = {items: choices, isSearchable, searchInputLabel: label};
     return {
         isMenuRow: true,
@@ -46,7 +51,7 @@ function renderInlineChoice(label: string, choices: Choice[], inputProps: Dynami
     };
 }
 
-function renderTabs(label: string, choices: Choice[], inputProps: DynamicFieldInputProps, isLoneField: boolean): DynamicFieldInput {
+function renderTabs(label: string, choices: Choice[], inputProps: DynamicFieldInputProps<string>, isLoneField: boolean): DynamicFieldInput {
     return {
         isMenuRow: false,
         labelAbove: isLoneField ? undefined : 'prompt',
