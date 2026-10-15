@@ -358,7 +358,7 @@ describe('useAssignCard', () => {
 
     describe('assignCard function - default transaction start date', () => {
         it.each([CONST.COMPANY_CARD.FEED_BANK_NAME.CSV, CONST.COMPANY_CARD.FEED_BANK_NAME.CSV_CLASSIC])('should default to "From the beginning" for %s CSV feeds', (feedBankName) => {
-            // Given a CSV-uploaded feed, where admins only include the transactions they want imported
+            // Given a CSV-uploaded feed, where we assume admins only include the transactions they want imported
             const csvFeed: CompanyCardFeedWithDomainID = `${feedBankName}#${workspaceAccountID}`;
             const csvFeedData: CombinedCardFeeds = {
                 [csvFeed]: {

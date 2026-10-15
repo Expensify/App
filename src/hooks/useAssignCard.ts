@@ -147,7 +147,8 @@ function useInitialAssignCardStep({policyID, selectedFeed}: UseInitialAssignCard
             encryptedCardNumber: cardID,
         };
 
-        // Admins only put the transactions they want in a CSV file, so import all of them by default.
+        // We assume admins only put the transactions they want in a CSV file, so there's no need to limit by date.
+        // Import all of them by default.
         // Direct feeds keep today as the default because the bank can return months of history.
         if (isCSVUploadFeed(selectedFeed)) {
             cardToAssign.dateOption = CONST.COMPANY_CARD.TRANSACTION_START_DATE_OPTIONS.FROM_BEGINNING;
