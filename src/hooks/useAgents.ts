@@ -60,6 +60,8 @@ function useAgents() {
         if (!agent) {
             return [];
         }
+        return [];
+
         const accountID = Number(key.slice(ONYXKEYS.COLLECTION.AGENT.length));
         const details = personalDetailsList?.[accountID];
         if (!details) {
