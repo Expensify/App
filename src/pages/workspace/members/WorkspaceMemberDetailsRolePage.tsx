@@ -4,11 +4,8 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import WorkspaceMemberRoleList from '@components/WorkspaceMemberRoleList';
 import type {ListItemType} from '@components/WorkspaceMemberRoleList';
 
-import useApproveOnlyRoleBlockedModal from '@hooks/useApproveOnlyRoleBlockedModal';
-import useConfirmModal from '@hooks/useConfirmModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
-import useNetwork from '@hooks/useNetwork';
 import useRedirectSubmitWorkspaceFeatureUpgrade from '@hooks/useRedirectSubmitWorkspaceFeatureUpgrade';
 import useRuleBotGuardModal from '@hooks/useRuleBotGuardModal';
 
@@ -32,7 +29,7 @@ import type {PersonalDetailsList} from '@src/types/onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 
-import React, {useCallback, useState} from 'react';
+import React, {useState} from 'react';
 
 type WorkspaceMemberDetailsRolePageProps = Omit<WithPolicyAndFullscreenLoadingProps, 'route'> &
     PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.MEMBER_DETAILS_ROLE> & {
@@ -58,22 +55,7 @@ function WorkspaceMemberDetailsRolePage({policy, personalDetails, route}: Worksp
         upgradeFeatureAlias: CONST.UPGRADE_FEATURE_INTRO_MAPPING.roles.alias,
     });
 
-    const {showApproveOnlyBlockedModal, showRoleUpdateErrorModal} = useApproveOnlyRoleBlockedModal();
-    const {isOffline} = useNetwork();
-    const {showConfirmModal} = useConfirmModal();
-
-    const showRequiresInternetModal = useCallback(() => {
-        showConfirmModal({
-            title: translate('common.youAppearToBeOffline'),
-            prompt: translate('common.thisFeatureRequiresInternet'),
-            confirmText: translate('common.buttonConfirm'),
-            shouldShowCancelButton: false,
-            shouldHandleNavigationBack: true,
-        });
-    }, [showConfirmModal, translate]);
-
     const saveRole = () => {
-        // The save button stays disabled until a different role is picked, so selectedRole is always set here.
         const value = selectedRole;
         if (!value || value === member?.role) {
             return;
@@ -87,31 +69,6 @@ function WorkspaceMemberDetailsRolePage({policy, personalDetails, route}: Worksp
         }
         if (value !== CONST.POLICY.ROLE.ADMIN && isRuleBotEnforcingRules(accountID, policy)) {
             showRuleBotGuardModal('changeRole', policyID);
-            return;
-        }
-        if (value === CONST.POLICY.ROLE.APPROVE_ONLY) {
-            // Blocked reasons are only returned in the server response, which we cannot receive while offline.
-            if (isOffline) {
-                showRequiresInternetModal();
-                return;
-            }
-            updateWorkspaceMembersRole(policy, [memberLogin], [accountID], value)
-                .then((response) => {
-                    const blockedReasons = response?.data?.blockedReasons ?? [];
-                    if (blockedReasons.length > 0) {
-                        showApproveOnlyBlockedModal(blockedReasons);
-                        return;
-                    }
-                    // The action already reverted the optimistic role changes on failure, so only surface the error modal here.
-                    if (response?.jsonCode !== CONST.JSON_CODE.SUCCESS) {
-                        showRoleUpdateErrorModal();
-                        return;
-                    }
-                    Navigation.goBack(ROUTES.WORKSPACE_MEMBER_DETAILS.getRoute(policyID, accountID));
-                })
-                .catch(() => {
-                    showRoleUpdateErrorModal();
-                });
             return;
         }
         updateWorkspaceMembersRole(policy, [memberLogin], [accountID], value);

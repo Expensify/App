@@ -1,3 +1,4 @@
+import useApproveOnlyRoleBlockedModal from '@hooks/useApproveOnlyRoleBlockedModal';
 import useScreenShareRequestPrompt from '@hooks/useScreenShareRequestPrompt';
 
 import React from 'react';
@@ -14,6 +15,7 @@ const LazyTrialPaymentReminderModalManager = React.lazy(() => import('./TrialPay
  */
 function DeferredGlobalModals() {
     useScreenShareRequestPrompt();
+    useApproveOnlyRoleBlockedModal();
 
     return (
         <>

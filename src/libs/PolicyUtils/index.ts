@@ -117,7 +117,6 @@ function getActivePoliciesWithExpenseChat(policies: OnyxCollection<Policy> | nul
             policy.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE &&
             !!policy.name &&
             !!policy.id &&
-            // Members without create-expenses permission cannot use the workspace as an expense destination.
             canCreateExpensesOnPolicy(policy, currentUserLogin) &&
             (isPaidGroupPolicy(policy) || isSubmitPolicy(policy)) &&
             !isArchivedPolicy(policy),
@@ -1575,7 +1574,6 @@ function getGroupPoliciesWhereReportCanBeCreated(policies: OnyxCollection<Policy
             !policy.isJoinRequestPending &&
             (isPaidGroupPolicy(policy) || isSubmitPolicy(policy)) &&
             shouldShowPolicy(policy, false, currentUserLogin) &&
-            // Members without create-expenses permission cannot create reports on that workspace either.
             canCreateExpensesOnPolicy(policy, currentUserLogin) &&
             !isTeachersUnitePolicyID(policy.id),
     );

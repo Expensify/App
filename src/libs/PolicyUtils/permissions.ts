@@ -101,7 +101,6 @@ const ROLE_PERMISSION_BUNDLES: Record<string, Partial<Record<PolicyFeature, Poli
         [CONST.POLICY.POLICY_FEATURE.ROOMS]: CONST.POLICY.POLICY_FEATURE_ACCESS.WRITE,
         [CONST.POLICY.POLICY_FEATURE.CREATE_EXPENSES]: CONST.POLICY.POLICY_FEATURE_ACCESS.WRITE,
     },
-    // Approve-only members act on reports routed to them. Their workspace feature access matches a Member, except they cannot create expenses.
     [CONST.POLICY.ROLE.APPROVE_ONLY]: {
         [CONST.POLICY.POLICY_FEATURE.OVERVIEW]: CONST.POLICY.POLICY_FEATURE_ACCESS.READ,
         [CONST.POLICY.POLICY_FEATURE.MEMBERS]: CONST.POLICY.POLICY_FEATURE_ACCESS.READ,
@@ -246,15 +245,10 @@ function canRolePay(role: string | undefined): boolean {
  */
 const PAYER_ROLES = Object.values(CONST.POLICY.ROLE).filter(canRolePay);
 
-/**
- * Whether a role allows creating expenses on a policy, derived from the CREATE_EXPENSES permission.
- * Every expense-creation entry point gates on this.
- */
 function canRoleCreateExpenses(role: string | undefined): boolean {
     return !!role && ROLE_PERMISSION_BUNDLES[role]?.[CONST.POLICY.POLICY_FEATURE.CREATE_EXPENSES] === CONST.POLICY.POLICY_FEATURE_ACCESS.WRITE;
 }
 
-/** Whether the role resolved for the policy allows creating expenses. With a login, the member role is resolved through employeeList. An unresolvable role blocks, since the permission cannot be confirmed. */
 function canCreateExpensesOnPolicy(policy: OnyxInputOrEntry<Policy>, currentUserLogin?: string): boolean {
     return canRoleCreateExpenses(getPolicyRole(policy, currentUserLogin));
 }

@@ -336,7 +336,6 @@ function AttachmentPickerWithMenuItems({
         rules,
     ]);
 
-    // Members without create-expenses permission cannot create reports on the workspace either.
     const createReportOption: PopoverMenuItem[] =
         !isPolicyExpenseChat(report) || !isGroupPolicyByType(policy?.type) || !isReportOwner(report) || !canCreateExpensesOnPolicy(policy)
             ? []

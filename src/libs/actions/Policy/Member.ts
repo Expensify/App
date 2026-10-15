@@ -35,7 +35,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ImportedSpreadsheetMemberData, InvitedEmailsToAccountIDs, Policy, PolicyEmployee, PolicyOwnershipChangeChecks, Report, ReportAction, ReportActions} from '@src/types/onyx';
 import type {ImportFinalModal} from '@src/types/onyx/ImportedSpreadsheet';
-import type {Errors, PendingAction} from '@src/types/onyx/OnyxCommon';
+import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {JoinWorkspaceResolution} from '@src/types/onyx/OriginalMessage';
 import type {ApprovalRule} from '@src/types/onyx/Policy';
 import type {NotificationPreference, Participant} from '@src/types/onyx/Report';
@@ -659,6 +659,7 @@ function buildUpdateWorkspaceMembersRoleOnyxData(policy: OnyxEntry<Policy>, sele
                         member[current.email] = {
                             ...(previousEmployeeList[current.email] ?? {}),
                             pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                            errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workspace.editor.genericFailureMessage'),
                         };
                         return member;
                     }, {}),
@@ -718,7 +719,7 @@ function buildUpdateWorkspaceMembersRoleOnyxData(policy: OnyxEntry<Policy>, sele
     return {optimisticData, successData, failureData, memberRoles};
 }
 
-async function updateWorkspaceMembersRole(policy: OnyxEntry<Policy>, selectedMemberEmails: string[], selectedMemberAccountIDs: number[], newRole: ValueOf<typeof CONST.POLICY.ROLE>) {
+function updateWorkspaceMembersRole(policy: OnyxEntry<Policy>, selectedMemberEmails: string[], selectedMemberAccountIDs: number[], newRole: ValueOf<typeof CONST.POLICY.ROLE>) {
     if (!policy?.id) {
         return;
     }
@@ -733,31 +734,6 @@ async function updateWorkspaceMembersRole(policy: OnyxEntry<Policy>, selectedMem
         employees: JSON.stringify(memberRoles.map((item) => ({email: item.email, role: item.role}))),
     };
 
-    // A write request reports failures through the member rows, while the side-effects request reports them through page-level modals.
-    const setMemberErrorsOnFailure = (errors: Errors | null): OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY> => ({
-        onyxMethod: Onyx.METHOD.MERGE,
-        key: `${ONYXKEYS.COLLECTION.POLICY}${policy.id}`,
-        value: {
-            employeeList: Object.fromEntries(memberRoles.map(({email}) => [email, {errors}])),
-        },
-    });
-
-    if (newRole === CONST.POLICY.ROLE.APPROVE_ONLY) {
-        const modalFailureData = [...failureData, setMemberErrorsOnFailure(null)];
-        // eslint-disable-next-line rulesdir/no-api-side-effects-method -- blocked reasons are only on the response, which API.write does not expose
-        return API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.UPDATE_WORKSPACE_MEMBERS_ROLE, params, {optimisticData, successData, failureData: modalFailureData}).catch(
-            (error: unknown) => {
-                // The queue's failure rollback only covers WRITE requests, so a network rejection on a side-effects
-                // request leaves the optimistic role changes in Onyx. Revert them here before the error surfaces.
-                return Onyx.update(modalFailureData).then(() => {
-                    throw error;
-                });
-            },
-        );
-    }
-
-    failureData.push(setMemberErrorsOnFailure(ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workspace.editor.genericFailureMessage')));
-    // eslint-disable-next-line rulesdir/no-multiple-api-calls -- the approve-only branch returns early
     API.write(WRITE_COMMANDS.UPDATE_WORKSPACE_MEMBERS_ROLE, params, {optimisticData, successData, failureData});
 }
 
@@ -1304,6 +1280,13 @@ function clearUpdateMemberRoleError(policyID: string, login: string) {
     });
 }
 
+function clearBlockedRoleChange(policyID?: string, login?: string) {
+    Onyx.set(ONYXKEYS.BLOCKED_ROLE_CHANGE, null);
+    if (policyID && login) {
+        clearUpdateMemberRoleError(policyID, login);
+    }
+}
+
 function openWorkspaceMembersPage(policyID: string, clientMemberEmails: string[]) {
     if (!policyID || !clientMemberEmails) {
         Log.warn('openWorkspaceMembersPage invalid params', {policyID, clientMemberEmails});
@@ -1567,6 +1550,7 @@ export {
     clearDeleteMemberError,
     clearAddMemberError,
     clearUpdateMemberRoleError,
+    clearBlockedRoleChange,
     openWorkspaceMembersPage,
     setWorkspaceInviteMembersDraft,
     inviteMemberToWorkspace,

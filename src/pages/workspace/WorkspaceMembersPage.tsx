@@ -12,7 +12,6 @@ import WorkspaceMembersTable from '@components/Tables/WorkspaceMembersTable';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 
-import useApproveOnlyRoleBlockedModal from '@hooks/useApproveOnlyRoleBlockedModal';
 import useConfirmModal from '@hooks/useConfirmModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLayoutSpacing from '@hooks/useLayoutSpacing';
@@ -142,7 +141,6 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
     const [isDownloadFailureModalVisible, setIsDownloadFailureModalVisible] = useState(false);
     const isOfflineAndNoMemberDataAvailable = isEmptyObject(policy?.employeeList) && isOffline;
     const {translate, formatPhoneNumber, localeCompare} = useLocalize();
-    const {showApproveOnlyBlockedModal, showRoleUpdateErrorModal} = useApproveOnlyRoleBlockedModal();
     const {isAccountLocked} = useLockedAccountState();
     const {showLockedAccountModal} = useLockedAccountActions();
     const [selectedEmployees, setSelectedEmployees] = useState<string[]>([]);
@@ -591,16 +589,6 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
 
     const hasSelectedRuleBot = selectedEmployees.some((email) => isRuleBotEnforcingRules(policyMemberEmailsToAccountIDs[email], policy));
 
-    const showRequiresInternetModal = useCallback(() => {
-        showConfirmModal({
-            title: translate('common.youAppearToBeOffline'),
-            prompt: translate('common.thisFeatureRequiresInternet'),
-            confirmText: translate('common.buttonConfirm'),
-            shouldShowCancelButton: false,
-            shouldHandleNavigationBack: true,
-        });
-    }, [showConfirmModal, translate]);
-
     const changeUserRole = (role: ValueOf<typeof CONST.POLICY.ROLE>) => {
         if (role !== CONST.POLICY.ROLE.ADMIN && hasSelectedRuleBot) {
             showRuleBotGuardModal('changeRole', policyID);
@@ -613,29 +601,6 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
         const accountIDsToUpdate = loginsToUpdate.map((login) => policyMemberEmailsToAccountIDs[login]).filter((id) => id !== undefined);
 
         setSelectedEmployees([]);
-        if (role === CONST.POLICY.ROLE.APPROVE_ONLY) {
-            // Blocked reasons are only returned in the server response, which we cannot receive while offline.
-            if (isOffline) {
-                showRequiresInternetModal();
-                return;
-            }
-            updateWorkspaceMembersRole(policy, loginsToUpdate, accountIDsToUpdate, role)
-                .then((response) => {
-                    const blockedReasons = response?.data?.blockedReasons ?? [];
-                    if (blockedReasons.length > 0) {
-                        showApproveOnlyBlockedModal(blockedReasons);
-                        return;
-                    }
-                    // The action already reverted the optimistic role changes on failure, so only surface the error modal here.
-                    if (response?.jsonCode !== CONST.JSON_CODE.SUCCESS) {
-                        showRoleUpdateErrorModal();
-                    }
-                })
-                .catch(() => {
-                    showRoleUpdateErrorModal();
-                });
-            return;
-        }
         updateWorkspaceMembersRole(policy, loginsToUpdate, accountIDsToUpdate, role);
     };
 
@@ -782,6 +747,16 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
 
         return options;
     };
+
+    const showRequiresInternetModal = useCallback(() => {
+        showConfirmModal({
+            title: translate('common.youAppearToBeOffline'),
+            prompt: translate('common.thisFeatureRequiresInternet'),
+            confirmText: translate('common.buttonConfirm'),
+            shouldShowCancelButton: false,
+            shouldHandleNavigationBack: true,
+        });
+    }, [showConfirmModal, translate]);
 
     const secondaryActions = useMemo(() => {
         if (!canWriteMembers) {

@@ -1972,7 +1972,6 @@ function isValidReport(
         return false;
     }
 
-    // A workspace chat is not a valid submit destination when the member lacks create-expenses permission.
     if (isPolicyExpenseChat && excludeWorkspacesWithoutCreateExpensePermission && !canCreateExpensesOnPolicy(policy)) {
         return false;
     }

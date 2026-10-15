@@ -78,7 +78,6 @@ function SetDefaultWorkspacePage({route}: SetDefaultWorkspacePageProps) {
         shouldSortSelectedToTop: false,
         searchTerm: debouncedSearchTerm,
         localeCompare,
-        // A workspace cannot be the default expense destination when the member lacks permission to create expenses.
         additionalFilter: (newPolicy) => isGroupPolicy(newPolicy) && canCreateExpensesOnPolicy(newPolicy),
     });
 

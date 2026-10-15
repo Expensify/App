@@ -36,7 +36,6 @@ function AddExpenseActionButton() {
         isDistanceRequest: true,
     });
 
-    // Members without create-expenses permission get no add-expense entry point on the report preview.
     if (!canCreateExpensesOnPolicy(policy)) {
         return null;
     }

@@ -4672,7 +4672,6 @@ const CONST = {
             PAYMENTS_ADMIN: 'paymentsAdmin',
             APPROVE_ONLY: 'approveOnly',
         },
-        // Values returned by UpdateWorkspaceMembersRole in response.data.blockedReasons when it refuses the approve-only role.
         APPROVE_ONLY_BLOCKED_REASONS: {
             HAS_CARD_ON_POLICY: 'hasCardOnPolicy',
             IS_RESTRICTED_BY_DOMAIN_GROUP: 'isRestrictedByDomainGroup',
