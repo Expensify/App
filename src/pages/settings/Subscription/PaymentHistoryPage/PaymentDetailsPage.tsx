@@ -13,6 +13,7 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
+import {usePersonalDetail} from '@hooks/usePersonalDetails';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {convertAmountToDisplayString} from '@libs/CurrencyUtils';
@@ -42,7 +43,6 @@ function PaymentDetailsPage({route}: PaymentDetailsPageProps) {
     const {isOffline} = useNetwork();
     const {isBetaEnabled} = usePermissions();
     const [purchases] = useOnyx(ONYXKEYS.PURCHASES);
-    const [personalDetailsList] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
 
     const purchaseID = Number(route.params.purchaseID);
     const isBetaOn = isBetaEnabled(CONST.BETAS.PAYMENT_HISTORY);
@@ -55,6 +55,8 @@ function PaymentDetailsPage({route}: PaymentDetailsPageProps) {
     }, [isBetaOn, isOffline, purchaseID]);
 
     const purchase = purchases?.[String(purchaseID)];
+    const billedToAccountID = purchase?.billedToAccountID;
+    const [billedToDetails] = usePersonalDetail(billedToAccountID);
     const row = getPaymentHistoryRow(purchases, purchaseID);
 
     if (!isBetaOn || (purchases !== undefined && !row)) {
@@ -72,8 +74,6 @@ function PaymentDetailsPage({route}: PaymentDetailsPageProps) {
     const receiptSource = getReceiptSource(purchases, purchaseID);
     const isInvoice = isInvoiceBilling(purchases, purchaseID);
 
-    const billedToAccountID = purchase?.billedToAccountID;
-    const billedToDetails = billedToAccountID ? personalDetailsList?.[billedToAccountID] : undefined;
     const billedToName = billedToDetails?.displayName ?? billedToDetails?.login ?? '';
     return (
         <ScreenWrapper

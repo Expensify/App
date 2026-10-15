@@ -92,8 +92,9 @@ function AttachmentModalScreen<Screen extends AttachmentModalScreenType>({route,
     if (route.name === SCREENS.BILLING_RECEIPT) {
         return (
             <BillingReceiptModalContent
-                route={routeWithContext as RouteType<typeof SCREENS.BILLING_RECEIPT>}
-                navigation={navigation as NavigationType<typeof SCREENS.BILLING_RECEIPT>}
+                purchaseID={String(route.params.purchaseID ?? '')}
+                source={String(route.params.source ?? '')}
+                navigation={navigation}
             />
         );
     }
