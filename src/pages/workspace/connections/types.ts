@@ -1,7 +1,7 @@
 import type CONST from '@src/CONST';
 import type IconAsset from '@src/types/utils/IconAsset';
 
-import type {ComponentRef, ReactNode} from 'react';
+import type {ComponentRef} from 'react';
 import type {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
 
@@ -36,12 +36,6 @@ type ConnectionListing = {
     status?: ConnectionStatus;
 
     onConnect?: () => void;
-
-    /** A non-interactive listing can supply its own action, such as an offline-capable waitlist signup. */
-    rightComponent?: ReactNode;
-
-    /** Label beside the provider's name when the integration is not yet available. */
-    badgeText?: string;
 
     /** Shows an "Offer" badge for a partner promotion. The badge only opens the offer when `onPress` is set. */
     offer?: {onPress?: () => void};

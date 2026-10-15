@@ -419,7 +419,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                                             <MenuItem.Title>{CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY.exactOnline}</MenuItem.Title>
                                             <Badge
                                                 text={translate('workspace.accounting.exactOnline.comingSoon')}
-                                                badgeStyles={styles.alignSelfStart}
+                                                badgeStyles={[styles.alignSelfStart, styles.ml0]}
                                             />
                                         </View>
                                     </MenuItem.Content>

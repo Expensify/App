@@ -4,7 +4,7 @@ import ComposeProviders from '@components/ComposeProviders';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 
-import ConnectionCard from '@pages/workspace/connections/ConnectionCard';
+import ConnectionsGrid from '@pages/workspace/connections/ConnectionsGrid';
 import useAccountingConnectionListings from '@pages/workspace/connections/useAccountingConnectionListings';
 
 import {joinExactOnlineWaitlist} from '@userActions/User';
@@ -66,6 +66,7 @@ describe('Exact Online in unified Connections', () => {
         mockEnabledBetas = enabledBetas;
         await Onyx.set(ONYXKEYS.NETWORK, {shouldForceOffline: true});
         const policy = createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE, 'Test workspace');
+        await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
         const {result} = renderHook(() => useAccountingConnectionListings(policy), {wrapper: TestWrapper});
         await waitForBatchedUpdatesWithAct();
         const listing = result.current.find((item) => item.key === CONST.POLICY.CONNECTIONS.NAME.EXACT_ONLINE);
@@ -75,16 +76,10 @@ describe('Exact Online in unified Connections', () => {
 
         // When the connection cards render and the user chooses the waitlist
         render(
-            <>
-                <ConnectionCard
-                    listing={listing}
-                    shouldUseFullWidth
-                />
-                <ConnectionCard
-                    listing={{key: 'existing', category: CONST.TAB.CONNECTIONS.ACCOUNTING, title: 'Existing connector', onConnect: mockConnect}}
-                    shouldUseFullWidth
-                />
-            </>,
+            <ConnectionsGrid
+                policyID={policy.id}
+                listings={[listing, {key: 'existing', category: CONST.TAB.CONNECTIONS.ACCOUNTING, title: 'Existing connector', onConnect: mockConnect}]}
+            />,
             {wrapper: TestWrapper},
         );
         await waitForBatchedUpdatesWithAct();

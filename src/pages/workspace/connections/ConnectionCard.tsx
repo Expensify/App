@@ -15,8 +15,6 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import getPlatform from '@libs/getPlatform';
-
 import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
@@ -40,7 +38,7 @@ function ConnectionCard({listing, shouldUseFullWidth}: ConnectionCardProps) {
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
     const icons = useMemoizedLazyExpensifyIcons(['Building', 'Plus']);
-    const {title, icon, status, offer, onConnect, onConfigure, registerConnectButton, isLoading, rightComponent, badgeText} = listing;
+    const {title, icon, status, offer, onConnect, onConfigure, registerConnectButton, isLoading} = listing;
 
     const connectIcon = (
         <View style={[styles.justifyContentCenter, styles.ml3, styles.mr2]}>
@@ -76,28 +74,6 @@ function ConnectionCard({listing, shouldUseFullWidth}: ConnectionCardProps) {
         );
     }
 
-    let titleAddon;
-    if (offer) {
-        titleAddon = (
-            <Badge
-                text={translate('workspace.connections.offer')}
-                isCondensed
-                badgeStyles={[styles.ml2, styles.badgeOffer]}
-                textStyles={styles.badgeOfferText}
-                onPress={offer.onPress}
-                pressable={!!offer.onPress}
-            />
-        );
-    } else if (badgeText) {
-        titleAddon = (
-            <Badge
-                text={badgeText}
-                isCondensed
-                badgeStyles={styles.ml2}
-            />
-        );
-    }
-
     return (
         <View
             style={[
@@ -128,18 +104,25 @@ function ConnectionCard({listing, shouldUseFullWidth}: ConnectionCardProps) {
                     ) : undefined
                 }
                 description={status?.message}
-                titleAddon={titleAddon}
+                titleAddon={
+                    offer ? (
+                        <Badge
+                            text={translate('workspace.connections.offer')}
+                            isCondensed
+                            badgeStyles={[styles.ml2, styles.badgeOffer]}
+                            textStyles={styles.badgeOfferText}
+                            onPress={offer.onPress}
+                            pressable={!!offer.onPress}
+                        />
+                    ) : undefined
+                }
                 numberOfLinesDescription={1}
                 wrapperStyle={[styles.pv4, styles.ph4]}
                 onPress={status ? onConfigure : onConnect}
                 sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.CONNECTIONS.CARD}
-                interactive={!rightComponent}
-                // On iOS, disable row grouping when a custom action needs its own VoiceOver focus.
-                shouldBeAccessible={rightComponent ? getPlatform() !== CONST.PLATFORM.IOS : undefined}
-                accessibilityLabel={badgeText ? `${title}, ${badgeText}` : undefined}
-                disabled={!rightComponent && !status && (isOffline || !!isLoading)}
+                disabled={!status && (isOffline || !!isLoading)}
                 shouldShowRightComponent
-                rightComponent={rightComponent ?? (status ? statusComponent : connectIcon)}
+                rightComponent={status ? statusComponent : connectIcon}
             />
         </View>
     );
