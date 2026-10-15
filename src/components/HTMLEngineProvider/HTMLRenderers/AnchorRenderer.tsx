@@ -47,6 +47,9 @@ function AnchorRenderer({tnode, style, key}: AnchorRendererProps) {
     const internalExpensifyPath = getInternalExpensifyPath(attrHref);
     const isVideo = attrHref && Str.isVideo(attrHref);
     const linkHasImage = tnode.tagName === 'a' && tnode.children.some((child) => child.tagName === 'img');
+    // A file card is drawn from the anchor's own label, so an anchor wrapping a picture or a clip has no name to show
+    // and renders the media itself. An edit keeps the attachment ID on the anchor even when its label becomes an image.
+    const holdsMedia = tnode.children.some((child) => child.tagName === 'img' || child.tagName === 'video');
 
     const isDeleted = HTMLEngineUtils.isDeletedNode(tnode);
     const isChildOfTaskTitle = HTMLEngineUtils.isChildOfTaskTitle(tnode);
@@ -131,7 +134,7 @@ function AnchorRenderer({tnode, style, key}: AnchorRendererProps) {
         );
     }
 
-    if (isAttachment && !isVideo) {
+    if (isAttachment && !isVideo && !holdsMedia) {
         return (
             <AnchorForAttachmentsOnly
                 source={tryResolveUrlFromApiRoot(attrHref)}

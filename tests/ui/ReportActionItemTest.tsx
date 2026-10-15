@@ -249,6 +249,20 @@ describe('ReportActionItem', () => {
             // Then the image is on screen rather than an empty card
             expect(screen.getByLabelText('photo')).toBeOnTheScreen();
         });
+
+        it('shows a linked image whose anchor kept the attachment ID of the file it used to name', async () => {
+            // Given a comment edited into an image linked to another message's file, which the server returns with the
+            // attachment ID of the original file still on the anchor
+            const otherFileURL = 'https://www.expensify.com/chat-attachments/99999/w_other.csv';
+            const imageURL = 'https://www.expensify.com/chat-attachments/12345/w_photo.jpg';
+
+            // When the comment is rendered
+            renderComment(`Test <a href="${otherFileURL}" data-attachment-id="1" target="_blank" rel="noreferrer noopener"><img src="${imageURL}" alt="preview" /></a>`, 'Test [Attachment]');
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the image is on screen rather than an empty card
+            expect(screen.getByLabelText('preview')).toBeOnTheScreen();
+        });
     });
 
     describe('Automatic actions', () => {
