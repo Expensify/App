@@ -7,6 +7,7 @@ import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import Clipboard from '@libs/Clipboard';
 import {
     clearSegmentsUpTo,
+    completeZeroSegments,
     DATE_SEGMENT_NAMES,
     EMPTY_SEGMENTS,
     getAdjacentSegmentName,
@@ -427,12 +428,17 @@ function useDateSegmentInput({value, isEnabled, minDate, maxDate, onCommit, onLe
         setShouldOverwrite(false);
         setIsAllSelected(false);
 
-        const hasUnusableEntry = hasAnySegment(segments) && !getISODateFromSegments(segments);
-        setHasInvalidEntry(hasUnusableEntry);
+        // A segment showing a zero is one the user moved on from before its second digit, so leaving the field is
+        // where it settles on a number a date can hold
+        const completedSegments = completeZeroSegments(segments);
 
-        if (!hasUnusableEntry) {
-            setSegments(EMPTY_SEGMENTS);
+        if (completedSegments !== segments) {
+            commitSegments(completedSegments);
         }
+
+        const hasUnusableEntry = hasAnySegment(completedSegments) && !getISODateFromSegments(completedSegments);
+        setHasInvalidEntry(hasUnusableEntry);
+        setSegments(hasUnusableEntry ? completedSegments : EMPTY_SEGMENTS);
     };
 
     // The clear button unmounts as it is pressed, so focus is placed here rather than left to whatever is underneath
