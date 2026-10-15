@@ -24,8 +24,6 @@ const useLandscapeOnBlurProxy: UseLandscapeOnBlurProxy = (inputRef, onBlur) => {
     const lastWindowWidthChangeTimeRef = useRef(0);
     const pendingRefocusTimeoutIDRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
-    useEffect(() => () => clearTimeout(pendingRefocusTimeoutIDRef.current), []);
-
     useEffect(() => {
         let lastWindowWidth = Dimensions.get('window').width;
 
@@ -47,8 +45,7 @@ const useLandscapeOnBlurProxy: UseLandscapeOnBlurProxy = (inputRef, onBlur) => {
             lastWindowWidthChangeTimeRef.current = 0;
         });
 
-        // Android tears the keyboard down without an animation on rotation, so an animated hide is the user dismissing
-        // it (e.g. a back press). Any blur after that is theirs, even if a rotation happened just before.
+        // Covers a rotation landing mid-hide-animation, so the Composer's blur on keyboardDidHide isn't taken as a rotation.
         const keyboardHideSubscription = KeyboardEvents.addListener('keyboardDidHide', (event) => {
             if (event.height !== 0 || event.duration === 0) {
                 return;
@@ -60,6 +57,7 @@ const useLandscapeOnBlurProxy: UseLandscapeOnBlurProxy = (inputRef, onBlur) => {
             subscription.remove();
             keyboardWillHideSubscription.remove();
             keyboardHideSubscription.remove();
+            clearTimeout(pendingRefocusTimeoutIDRef.current);
         };
     }, []);
 

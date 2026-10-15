@@ -168,11 +168,30 @@ describe('useLandscapeOnBlurProxy', () => {
         advance(200);
 
         // When the user dismisses the keyboard with a back press, which hides it with an animation and blurs the input
+        startKeyboardHide(250);
+        advance(250);
         hideKeyboard(250);
         blur();
         advance(REFOCUS_DELAY_MS);
 
         // Then the input stays blurred, because the dismissal, not the rotation, explains this blur
+        expect(focus).not.toHaveBeenCalled();
+    });
+
+    it('does not re-focus after the user dismisses the keyboard and a rotation lands during the hide animation', () => {
+        // Given the user dismissed the keyboard with a back press, and its animated hide has started
+        const {focus, blur} = renderProxy();
+        startKeyboardHide(250);
+
+        // When a rotation changes the window width before the hide animation ends, and the input is blurred once it does
+        advance(100);
+        setWindow(LANDSCAPE_WINDOW);
+        advance(150);
+        hideKeyboard(250);
+        blur();
+        advance(REFOCUS_DELAY_MS);
+
+        // Then the input stays blurred, because the end of the animated hide still marks it as a user dismissal
         expect(focus).not.toHaveBeenCalled();
     });
 
