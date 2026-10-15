@@ -63,7 +63,7 @@ function CollectDepositAccount() {
 
     const goBack = () => {
         clearDraftValues(ONYXKEYS.FORMS.COLLECT_DEPOSIT_ACCOUNT_FORM);
-        Navigation.goBack(backTo ?? ROUTES.SETTINGS_WALLET);
+        Navigation.goBack();
     };
 
     const {CurrentPage, isEditing, nextPage, prevPage, pageIndex, moveTo, isRedirecting} = useSubPage<CustomSubPageProps>({
