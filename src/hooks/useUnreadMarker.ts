@@ -108,12 +108,8 @@ function useUnreadMarker({
     const [prevUnreadMarkerReportActionID, setPrevUnreadMarkerReportActionID] = useState<string | null>(null);
 
     let earliestReceivedOfflineMessageIndex: number | undefined;
-    // The money-report list is oldest-first and excludes hidden rows. Its offline boundary must use that same visible index domain.
-    const offlineBoundaryActions = isReversed ? sortedVisibleReportActions : sortedReportActions;
-    const offlineScanStartIndex = isReversed ? 0 : offlineBoundaryActions.length - 1;
-    const offlineScanStep = isReversed ? 1 : -1;
-    for (let i = offlineScanStartIndex; i >= 0 && i < offlineBoundaryActions.length; i += offlineScanStep) {
-        const message = offlineBoundaryActions.at(i);
+    for (let i = sortedReportActions.length - 1; i >= 0; i--) {
+        const message = sortedReportActions.at(i);
         if (message && wasMessageReceivedWhileOffline(message, isOffline, lastOfflineAt.current, lastOnlineAt.current, getLocalDateFromDatetime, currentUserAccountID)) {
             earliestReceivedOfflineMessageIndex = i;
             break;

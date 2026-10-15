@@ -33,6 +33,7 @@ import HeaderWithBackButton from './HeaderWithBackButton';
 import ImageSVG from './ImageSVG';
 import RenderHTML from './RenderHTML';
 import ScreenWrapper from './ScreenWrapper';
+import ScrollView from './ScrollView';
 import Text from './Text';
 
 type ImportSpreadsheetProps = {
@@ -297,33 +298,35 @@ function ImportSpreadsheet({
                             }}
                         />
 
-                        <View style={[styles.flex1, styles.uploadFileView, styles.uploadFileViewBorderWidth(isSmallScreenWidth)]}>
-                            {!(isDraggingOver ?? isDraggingOver) && desktopView}
+                        <ScrollView contentContainerStyle={[styles.flexGrow1, styles.flexShrink0]}>
+                            <View style={[styles.flex1, styles.uploadFileView, styles.uploadFileViewBorderWidth(isSmallScreenWidth)]}>
+                                {!(isDraggingOver ?? isDraggingOver) && desktopView}
 
-                            <DragAndDropConsumer
-                                onDrop={(e) => {
-                                    const file = e?.dataTransfer?.files[0];
-                                    if (!file || isReadingFile) {
-                                        return;
-                                    }
-                                    readFile(file);
-                                }}
-                            >
-                                <View style={[styles.fileDropOverlay, styles.w100, styles.h100, styles.justifyContentCenter, styles.alignItemsCenter]}>
-                                    <View style={[styles.pAbsolute, styles.fileUploadImageWrapper(fileTopPosition)]}>
-                                        <ImageSVG
-                                            src={icons.SpreadsheetComputer}
-                                            contentFit="contain"
-                                            style={styles.mb4}
-                                            width={CONST.IMPORT_SPREADSHEET.ICON_WIDTH}
-                                            height={CONST.IMPORT_SPREADSHEET.ICON_HEIGHT}
-                                        />
-                                        <Text style={[styles.textFileUpload]}>{translate('common.dropTitle')}</Text>
-                                        <Text style={[styles.subTextFileUpload, styles.themeTextColor]}>{translate('common.dropMessage')}</Text>
+                                <DragAndDropConsumer
+                                    onDrop={(e) => {
+                                        const file = e?.dataTransfer?.files[0];
+                                        if (!file || isReadingFile) {
+                                            return;
+                                        }
+                                        readFile(file);
+                                    }}
+                                >
+                                    <View style={[styles.fileDropOverlay, styles.w100, styles.h100, styles.justifyContentCenter, styles.alignItemsCenter]}>
+                                        <View style={[styles.pAbsolute, styles.fileUploadImageWrapper(fileTopPosition)]}>
+                                            <ImageSVG
+                                                src={icons.SpreadsheetComputer}
+                                                contentFit="contain"
+                                                style={styles.mb4}
+                                                width={CONST.IMPORT_SPREADSHEET.ICON_WIDTH}
+                                                height={CONST.IMPORT_SPREADSHEET.ICON_HEIGHT}
+                                            />
+                                            <Text style={[styles.textFileUpload]}>{translate('common.dropTitle')}</Text>
+                                            <Text style={[styles.subTextFileUpload, styles.themeTextColor]}>{translate('common.dropMessage')}</Text>
+                                        </View>
                                     </View>
-                                </View>
-                            </DragAndDropConsumer>
-                        </View>
+                                </DragAndDropConsumer>
+                            </View>
+                        </ScrollView>
                     </View>
                 </DragAndDropProvider>
             )}

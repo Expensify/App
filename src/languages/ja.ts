@@ -583,6 +583,10 @@ const translations: TranslationDeepObject<typeof en> = {
         errorWhileSelectingCorruptedAttachment: '破損した添付ファイルを選択した際にエラーが発生しました。別のファイルをお試しください。',
         errorWhileConvertingHeic: 'この画像を処理できませんでした。もう一度お試しいただくか、別の形式で写真をアップロードしてください。',
         takePhoto: '写真を撮る',
+        retake: '再撮影',
+        usePhoto: '写真を使用',
+        capturedPhotoPreview: '写真のプレビュー',
+        photoTakenAnnouncement: '写真を撮影しました。「再撮影」または「写真を使用」を選択してください。',
         chooseFromGallery: 'ギャラリーから選択',
         chooseDocument: 'ファイルを選択',
         attachmentTooLarge: '添付ファイルが大きすぎます',
@@ -1634,6 +1638,7 @@ const translations: TranslationDeepObject<typeof en> = {
             saveReceipt: '領収書を保存',
             genericDeleteFailureMessage: 'この経費の削除中に予期しないエラーが発生しました。しばらくしてからもう一度お試しください。',
             genericEditFailureMessage: 'この経費の編集中に予期しないエラーが発生しました。後でもう一度お試しください。',
+            genericSplitFailureMessage: 'この経費の分割中に予期しないエラーが発生しました。後でもう一度お試しください。',
             genericSmartscanFailureMessage: '取引に未入力の項目があります',
             duplicateWaypointsErrorMessage: '重複した経由地を削除してください',
             atLeastTwoDifferentWaypoints: '少なくとも2つの異なる住所を入力してください',
@@ -3386,12 +3391,13 @@ ${date} の ${merchant} への ${amount}`,
         errorSelection: '次に進むオプションを選択してください',
         purpose: {
             title: '今日は何をしたいですか？',
-            errorContinue: '続行を押してセットアップを完了してください',
-            errorBackButton: 'アプリを使い始めるには、セットアップの質問にすべて回答してください',
-            [CONST.ONBOARDING_CHOICES.EMPLOYER]: '雇用主に経費を提出する',
-            [CONST.ONBOARDING_CHOICES.MANAGE_TEAM]: 'チームの経費を管理',
-            [CONST.ONBOARDING_CHOICES.TRACK_BUSINESS]: 'ビジネスの経費を記録',
-            [CONST.ONBOARDING_CHOICES.TRACK_PERSONAL]: '個人の支出を管理',
+            errorContinue: 'セットアップを続行するには［続行］を押してください',
+            errorBackButton: 'アプリを使い始めるには、セットアップの質問に最後までお答えください',
+            [CONST.ONBOARDING_CHOICES.JOIN_WORKSPACE]: '自分の会社のワークスペースに参加する',
+            [CONST.ONBOARDING_CHOICES.EMPLOYER]: '経費を雇用主に提出する',
+            [CONST.ONBOARDING_CHOICES.MANAGE_TEAM]: 'チームの経費を管理する',
+            [CONST.ONBOARDING_CHOICES.TRACK_BUSINESS]: '自分のビジネスの経費を管理する',
+            [CONST.ONBOARDING_CHOICES.TRACK_PERSONAL]: '個人の支出を整理する',
             [CONST.ONBOARDING_CHOICES.LOOKING_AROUND]: 'その他',
         },
         personalTrackGoal: {
@@ -3449,6 +3455,8 @@ ${date} の ${merchant} への ${amount}`,
             title: '勤務用メールアドレスを追加できませんでした',
             subtitle: (workEmail: string | undefined) =>
                 `${workEmail} を追加できませんでした。後で「設定」からもう一度お試しいただくか、ガイダンスについて Concierge にチャットでお問い合わせください。`,
+            validatedPublicDomainSubtitle: (workEmail: string | undefined) =>
+                `${workEmail} を追加できませんでした。これらのアカウントを統合するには、${workEmail} としてログインし、「アカウント」＞「セキュリティ」＞「アカウントの統合」に進んで処理を完了してください。`,
             workAccountClosedSubtitle:
                 'このメールアドレスに関連付けられている業務用アカウントは停止されています。再有効化するには会社の管理者にご連絡いただくか、別のメールアドレスでサインアップしてください。',
             domainControlledSubtitle: (workEmail: string | undefined) => `${workEmail} は既存のExpensifyアカウントのドメイン管理ログインです。`,
@@ -3687,6 +3695,34 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
                     これで完了です！
                 `),
             },
+            addWorkEmailTask: {
+                title: '勤務先のメールアドレスを追加してください',
+                description: ({workEmailLink = ''}) =>
+                    Str.dedent(`
+                        1. [勤務先メールを追加](${workEmailLink}) を開きます。  
+                        2. 会社のメールアドレスを入力します。  
+                        3. お送りしたコードを入力します。  
+                        4. 参加するワークスペースを選ぶか、ワークスペースのオーナーにリクエストを送るには *参加をリクエスト* をクリックします。
+                    `),
+            },
+            validateEmailTask: {
+                title: 'メールを確認してください',
+                description: ({validateEmailLink = '', workEmail = ''}) =>
+                    Str.dedent(`
+                        1. [アカウントを認証](${validateEmailLink})を開きます。  
+                        2. ${workEmail} に送信されたコードを入力します。  
+                        3. 参加するワークスペースを選択するか、ワークスペースのオーナーにリクエストを送信するには「参加リクエストを送信」をクリックします。
+                    `),
+            },
+            joinWorkspaceTask: {
+                title: '会社のワークスペースに参加する',
+                description: ({joinWorkspaceLink = ''}) =>
+                    Str.dedent(`
+                        1. [ワークスペースに参加](${joinWorkspaceLink}) を開きます。  
+                        2. 一覧から自分のチームを探します。各チームには、そのオーナー名と参加人数が表示され、多い順に並んでいます。見つからない場合は *Show more* をクリックします。  
+                        3. *Join now* をクリックします。管理者の承認が必要な場合は、*Ask to join* をクリックします。
+                    `),
+            },
         } satisfies Record<string, Pick<OnboardingTask, 'title' | 'description'>>,
         testDrive: {
             name: ({testDriveURL}: {testDriveURL?: string}) => (testDriveURL ? `[テストドライブ](${testDriveURL})を試す` : '試してみる'),
@@ -3709,6 +3745,13 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
             onboardingChatSplitMessage: '友だちとの割り勘は、メッセージを送るくらい簡単です。やり方はこちら。',
             onboardingAdminMessage: '管理者としてチームのワークスペースを管理し、自分の経費を提出する方法を学びましょう。',
             onboardingTestDriveReceiverMessage: '*3か月無料でご利用いただけます！下から始めましょう。*',
+            onboardingJoinWorkspaceAddWorkEmailMessage:
+                '会社のワークスペースに参加しようとしているため、新しいワークスペースは作成していません。勤務先のメールアドレスを追加してください。参加できる会社のワークスペースを確認します。',
+            onboardingJoinWorkspaceValidateEmailMessage: ({companyDomain = ''}: {companyDomain?: string}) =>
+                `会社のワークスペースに参加しようとしているようですので、新しいワークスペースは作成していません。メールアドレスを確認していただければ、${companyDomain} のどのワークスペースに参加できるかをお調べします。`,
+            onboardingJoinWorkspaceMessage: ({companyDomain = '', joinWorkspaceLink = ''}: {companyDomain?: string; joinWorkspaceLink?: string}) =>
+                `会社のワークスペースに参加しようとしているようですので、新しくワークスペースは作成していません。${companyDomain} のチームはすでに Expensify を利用中です。[参加できるワークスペースを確認しましょう](${joinWorkspaceLink})`,
+            onboardingJoinWorkspaceEmptyMessage: 'ご利用の会社には参加可能なワークスペースがないようです。管理者に連絡して、ワークスペースに招待してもらってください。',
         },
         workspace: {
             title: 'ワークスペースで整理整頓しよう',
@@ -3860,6 +3903,11 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
                 `<strong>${delegate}</strong>は以下のワークスペースのメンバーではありません。あなたが管理していないワークスペースの管理者に追加を依頼します。あなたが管理者になっているワークスペースには今すぐ招待しますか？`,
             youAreAMemberOf: 'あなたはこれらのワークスペースのメンバーです：',
             youAreAnAdminOf: 'あなたはこれらのワークスペースの管理者です：',
+            chooseDelegate: '代理人を選択',
+            clearAfterRecommended: 'クリア日（推奨）',
+            willClearOn: (date: string) => `休暇代理人は${date}に解除されます`,
+            until: (date: string) => `${date}まで`,
+            removeDelegate: '休暇代理人を削除',
         },
     },
     stepCounter: (step: number, total?: number, text?: string) => {
@@ -4444,7 +4492,7 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
         enterSignerInfo: '署名者情報を入力',
         thisStep: 'このステップは完了しました',
         isConnecting: (bankAccountLastFour: string | undefined, currency: string | undefined) =>
-            `は、従業員への支払いを${currency}で行うため、末尾が${bankAccountLastFour}の${currency}建てビジネス銀行口座をExpensifyに接続しようとしています。次のステップでは、取締役の署名者情報が必要です。`,
+            `は、末尾が${bankAccountLastFour}の${currency}建て銀行口座を追加しました。この銀行口座を従業員への支払いに使用できるように、取締役として署名者情報を入力してください。`,
         error: {
             emailsMustBeDifferent: 'メールアドレスは異なる必要があります',
         },
@@ -4990,7 +5038,10 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
             },
             requestEmptyList: {
                 title: '日当レートがまだありません',
-                subtitle: 'このワークスペースには日当レートがありません。管理者に追加してもらってください。',
+                subtitle: (workspaceName?: string) =>
+                    workspaceName
+                        ? `${workspaceName} には日当レートがありません。管理者に追加してもらってください。`
+                        : 'このワークスペースには日当レートがありません。管理者に追加してもらってください。',
                 adminSubtitle: '日当額を追加して、支出を整理しましょう。',
             },
             importPerDiemRates: '日当レートをインポート',
@@ -5918,10 +5969,10 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
             enterCredentials: 'Rillet の API キーを入力してください',
             howToFindAPIKey:
                 '<strong>API キーの見つけ方</strong><ol><li>Rillet にログインします</li><li>[organization name] -> Organization settings -> API access に移動します</li><li>API キーを作成します</li><li>作成した API キーを下に貼り付けます</li></ol>',
-            subsidiary: '子会社',
-            subsidiarySelectDescription: 'データをインポートしたい Rillet 内の子会社を選択してください。',
-            noSubsidiariesFound: '子会社が見つかりません',
-            noSubsidiariesFoundDescription: 'Rillet に子会社を追加して、もう一度接続を同期してください',
+            entity: 'エンティティ',
+            entitySelectDescription: 'Rillet でデータをインポートしたいエンティティを選択してください。',
+            noEntitiesFound: 'エンティティが見つかりません',
+            noEntitiesFoundDescription: 'Rillet にエンティティを追加して、もう一度接続を同期してください',
             accountTypesDescription: 'Rillet の口座はカテゴリとしてインポートされます。',
             enableNewAccountsTitle: '新しくインポートされた口座を有効にする',
             enableNewAccountsDescription: '新しい Rillet アカウントは、カテゴリとして利用できるようになります。',
@@ -6015,8 +6066,8 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
             enterCredentials: 'DualEntry API キーを入力してください',
             howToFindAPIKey:
                 '<strong>API キーの確認方法</strong><ol><li>DualEntry にログインします</li><li>[organization name] -> Settings -> Developer access -> API keys の順に移動します</li><li>API キーを作成します</li><li>作成した API キーを以下に貼り付けます</li></ol>',
-            subsidiary: '子会社',
-            subsidiarySelectDescription: 'DualEntry でデータを取り込みたい子会社を選択してください。',
+            company: '会社',
+            companySelectDescription: 'DualEntry でデータを取り込みたい会社を選択してください。',
             noCompaniesFound: '会社が見つかりません',
             noCompaniesFoundDescription: 'DualEntry に会社を追加して、もう一度同期してください',
             noVendorsFound: 'ベンダーが見つかりません',
@@ -6485,6 +6536,8 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
             distanceRates: {
                 title: '距離単価',
                 subtitle: 'レートを追加、更新し、適用します。',
+                commuterExclusionsOnTitle: '通勤除外が有効になっています',
+                disableLockedByCommuterExclusionsPrompt: '距離レートをオフにするには、まず「通勤を除外しない」に通勤の除外設定を変更してください。',
             },
             perDiem: {
                 title: '日当',
@@ -7707,6 +7760,21 @@ Control プランは、アクティブメンバー1人あたり月額 $9 から�
             addressContext: 'Expensify Travel を有効にするには、ワークスペースの住所が必要です。お客様のビジネスに関連付けられた住所を入力してください。',
             policy: '経費ポリシー',
         },
+        officeLocations: {
+            title: 'オフィス所在地',
+            subtitle: '距離の追跡などのためにメンバーに割り当てられるオフィス所在地を追加します。',
+            addOfficeLocation: 'オフィス所在地を追加',
+            editOfficeLocation: 'オフィス所在地を編集',
+            locationName: '場所名',
+            locationNameHint: '複数のオフィス所在地を追加する場合は、所在地のニックネームを選択してください',
+            defaultName: ({officeNumber}: {officeNumber: number}) => `オフィス所在地 ${officeNumber}`,
+            setAsPrimary: '優先に設定',
+            primary: 'メイン',
+            deleteOfficeLocation: 'オフィス所在地を削除しますか？',
+            deleteOfficeLocationConfirmation: 'このオフィス所在地を本当に削除しますか？メンバーはプライマリのオフィスに再割り当てされます。',
+            existingOfficeLocationError: 'この名前のオフィス所在地はすでに存在します',
+            setCompanyAddressAsPrimaryConfirmation: '会社住所を主なオフィス所在地として設定しますか？',
+        },
         bankAccount: {
             continueWithSetup: 'セットアップを続行',
             youAreAlmostDone: '銀行口座の設定はほぼ完了です。これにより、コーポレートカードの発行、経費精算、請求書の回収、請求書の支払いが行えるようになります。',
@@ -8871,10 +8939,10 @@ ${reportName}`,
             enterCredentials: 'Campfire の API キーを入力してください',
             howToFindAPIKey:
                 '<strong>APIキーの見つけ方</strong><ol><li>Campfire にログインします</li><li>［Settings］→［API Keys］に移動します</li><li>APIキーを作成します</li><li>作成したAPIキーを下に貼り付けます</li></ol>',
-            subsidiary: '子会社',
-            subsidiarySelectDescription: 'データを取り込みたい Campfire 内の子会社を選択してください。',
-            noSubsidiariesFound: '子会社が見つかりません',
-            noSubsidiariesFoundDescription: 'Campfire でエンティティを追加して、接続をもう一度同期してください',
+            entity: 'エンティティ',
+            entitySelectDescription: 'データをインポートしたい Campfire 内のエンティティを選択してください。',
+            noEntitiesFound: 'エンティティが見つかりません',
+            noEntitiesFoundDescription: 'Campfire でエンティティを追加して、接続をもう一度同期してください',
             noVendorsFound: '取引先が見つかりません',
             noVendorsFoundDescription: 'Campfire にベンダーを追加して、もう一度接続を同期してください',
             importDescription: 'Campfire からインポートするコーディング設定を選択してください。',
@@ -9486,6 +9554,15 @@ ${reportName}`,
         },
         addedProhibitedExpense: ({prohibitedExpense}: {prohibitedExpense: string}) => `禁止経費に「${prohibitedExpense}」を追加しました`,
         removedProhibitedExpense: ({prohibitedExpense}: {prohibitedExpense: string}) => `禁止経費から「${prohibitedExpense}」を削除しました`,
+        officeLocation: {
+            added: ({name, address}: {name: string; address: string}) => `オフィス所在地「${name}」（${address}）を追加しました`,
+            renamed: ({oldName, newName}: {oldName: string; newName: string}) => `オフィス所在地名を「${oldName}」から「${newName}」に変更しました`,
+            changedAddress: ({name, newAddress, oldAddress}: {name: string; newAddress: string; oldAddress: string}) =>
+                `オフィス所在地「${name}」の住所を「${newAddress}」（以前は「${oldAddress}」）に変更しました`,
+            setAsPrimary: ({name}: {name: string}) => `オフィス所在地「${name}」を主勤務地に設定します`,
+            setCompanyAddressAsPrimary: '会社の住所を主要に設定',
+            removed: ({name}: {name: string}) => `オフィス所在地「${name}」を削除しました`,
+        },
         workArrangement: {
             set: ({arrangement}: {arrangement: string}) => `デフォルトの勤務形態を${arrangement}に設定します`,
             changed: ({arrangement, previousArrangement}: {arrangement: string; previousArrangement: string}) =>
@@ -9762,6 +9839,8 @@ ${reportName}`,
         fallbackTitle: 'サポートチケット',
         resolved: 'このサポートチケットは解決済みです。',
         surveyPrompt: 'サポートの対応はいかがでしたか？',
+        great: '素晴らしい',
+        poor: '悪い',
         reopenTicket: 'チケットを再開',
     },
     statementPage: {
@@ -9983,6 +10062,11 @@ ${reportName}`,
                 [CONST.SEARCH.ACTION_FILTERS.EXPORT]: 'エクスポート',
             },
             filterType: {label: 'フィルタータイプ', has: {positive: '持っています', negative: '持っていません'}, is: {positive: 'は', negative: 'ではありません'}},
+            merchant: {
+                matchType: 'マッチタイプ',
+                contains: (merchant?: string) => (merchant ? `"${merchant}"を含む` : '含む'),
+                equalTo: (merchant?: string) => (merchant ? `"${merchant}"に等しい` : '等しい'),
+            },
             created: '作成しました',
             createdDate: '作成日',
             transactionStatus: {
@@ -10146,10 +10230,6 @@ ${reportName}`,
         genericUpdateReportFieldFailureMessage: 'フィールドの更新中に予期しないエラーが発生しました。しばらくしてからもう一度お試しください。',
         genericUpdateReportNameEditFailureMessage: 'レポート名の変更中に予期しないエラーが発生しました。しばらくしてからもう一度お試しください。',
         noActivityYet: 'まだアクティビティがありません',
-        collapsedSystemMessages: () => ({
-            one: '1件の更新を表示',
-            other: (count: number) => `${count}件の更新を表示`,
-        }),
         connectionSettings: '接続設定',
         actions: {
             type: {
