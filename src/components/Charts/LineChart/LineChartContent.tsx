@@ -16,8 +16,8 @@ import {
     useDynamicYDomain,
     useLabelHitTesting,
 } from '@components/Charts/hooks';
-import {getDomainPaddingForEdgeSpace, getXAxisLabel, getYAxisLabelWidth, labelOverhang} from '@components/Charts/utils';
-import VictoryTheme, {CHART_CONTENT_MIN_HEIGHT, DASH_INTERVALS, GLYPH_PADDING, LABEL_PADDING, LABEL_ROTATIONS, SIN_45} from '@components/Charts/VictoryTheme';
+import {getAxisLabelStep, getDomainPaddingForEdgeSpace, getHighestPointPositions, getXAxisLabel, getYAxisLabelWidth, labelOverhang} from '@components/Charts/utils';
+import VictoryTheme, {CHART_CONTENT_MIN_HEIGHT, DASH_INTERVALS, GLYPH_PADDING, LABEL_PADDING, LABEL_ROTATIONS, SIN_45, X_AXIS_LABEL_MIN_GAP} from '@components/Charts/VictoryTheme';
 
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -29,7 +29,7 @@ import type {TupleToUnion} from 'type-fest';
 import type {CartesianChartRenderArg, ChartBounds, Scale} from 'victory-native';
 
 import {DashPathEffect} from '@shopify/react-native-skia';
-import React, {useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 import {GestureDetector} from 'react-native-gesture-handler';
 import Animated, {useAnimatedStyle, useDerivedValue, useSharedValue} from 'react-native-reanimated';
@@ -39,9 +39,12 @@ import type {CartesianChartProps, ChartDataPoint} from '..';
 
 type LineChartProps = CartesianChartProps & {
     onPointPress?: (dataPoint: ChartDataPoint, index: number) => void;
+
+    /** Steps the x-axis may label points at, ascending. When set, labels stay horizontal and only every Nth point is labeled. */
+    labelSteps?: readonly number[];
 };
 
-function LineChartContentBody({data, series, isLoading, yAxisUnit, yAxisUnitPosition = 'left', onPointPress}: LineChartProps) {
+function LineChartContentBody({data, series, isLoading, yAxisUnit, yAxisUnitPosition = 'left', onPointPress, labelSteps}: LineChartProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const fontManager = useChartFontManager();
@@ -94,13 +97,13 @@ function LineChartContentBody({data, series, isLoading, yAxisUnit, yAxisUnitPosi
     const yAxisLabelWidth = getYAxisLabelWidth(data, formatCompactValue, fontManager, variables.iconSizeExtraSmall, VictoryTheme.line.domainPadding);
 
     const tickSpacing = plotAreaWidth > 0 && data.length > 0 ? plotAreaWidth / data.length : 0;
-    const chartPaddingRight = yAxisLabelWidth + GLYPH_PADDING;
+    const chartPaddingRight = yAxisLabelWidth + GLYPH_PADDING + VictoryTheme.axis.labelGap;
 
     const domainPadding = (() => {
         if (!firstLabelWidth || !lastLabelWidth) {
             return VictoryTheme.line.domainPadding;
         }
-        const labelsExceedTickSpacing = tickSpacing > 0 && maxLabelWidth + LABEL_PADDING > tickSpacing;
+        const labelsExceedTickSpacing = !labelSteps && tickSpacing > 0 && maxLabelWidth + LABEL_PADDING > tickSpacing;
         let leftOverhang = firstLabelWidth / 2;
         let rightOverhang = lastLabelWidth / 2;
 
@@ -112,7 +115,7 @@ function LineChartContentBody({data, series, isLoading, yAxisUnit, yAxisUnitPosi
 
         const edgeSpace = {
             left: Math.max(0, leftOverhang - VictoryTheme.axis.padding.left),
-            right: Math.max(0, rightOverhang - chartPaddingRight - VictoryTheme.axis.labelGap),
+            right: Math.max(0, rightOverhang - chartPaddingRight),
         };
         return {...VictoryTheme.line.domainPadding, ...getDomainPaddingForEdgeSpace(edgeSpace, plotAreaWidth)};
     })();
@@ -120,16 +123,40 @@ function LineChartContentBody({data, series, isLoading, yAxisUnit, yAxisUnitPosi
     const totalDomainPadding = domainPadding.left + domainPadding.right;
     const paddingScale = plotAreaWidth > 0 ? plotAreaWidth / (plotAreaWidth + totalDomainPadding) : 0;
 
-    const {labelRotation, labelSkipInterval, truncatedLabelWidths, xAxisLabelHeight, regularLabelMaxWidth, firstLabelMaxWidth, lastLabelMaxWidth, ellipsisWidth} = useChartLabelLayout({
+    const rotatingLabelLayout = useChartLabelLayout({
         data,
         fontManager,
         fontSize: variables.iconSizeExtraSmall,
         tickSpacing,
-        labelAreaWidth: plotAreaWidth,
+        // Stepped labels never rotate, so a zero width makes this hook return early instead of computing a rotation
+        labelAreaWidth: labelSteps ? 0 : plotAreaWidth,
         firstTickLeftSpace: boundsLeft + domainPadding.left * paddingScale,
         lastTickRightSpace: chartWidth > 0 ? chartWidth - boundsRight + domainPadding.right * paddingScale : 0,
         measurements,
     });
+
+    const steppedLabelLayout = (() => {
+        if (!labelSteps || chartWidth <= 0 || plotAreaWidth <= 0) {
+            return undefined;
+        }
+        const firstPointX = boundsLeft + domainPadding.left * paddingScale;
+        const lastPointX = boundsRight - domainPadding.right * paddingScale;
+        const pointXs = data.map((_, index) => (data.length > 1 ? firstPointX + (index * (lastPointX - firstPointX)) / (data.length - 1) : (firstPointX + lastPointX) / 2));
+        const step = getAxisLabelStep({labelWidths, pointXs, steps: labelSteps, minGap: X_AXIS_LABEL_MIN_GAP});
+        return {
+            labelRotation: LABEL_ROTATIONS.HORIZONTAL,
+            labelSkipInterval: step,
+            truncatedLabelWidths: labelWidths,
+            xAxisLabelHeight: lineHeight,
+            regularLabelMaxWidth: Infinity,
+            firstLabelMaxWidth: Infinity,
+            lastLabelMaxWidth: Infinity,
+            ellipsisWidth: measurements.ellipsisWidth,
+        };
+    })();
+
+    const {labelRotation, labelSkipInterval, truncatedLabelWidths, xAxisLabelHeight, regularLabelMaxWidth, firstLabelMaxWidth, lastLabelMaxWidth, ellipsisWidth} =
+        steppedLabelLayout ?? rotatingLabelLayout;
 
     const originalLabels = data.map(getXAxisLabel);
 
@@ -171,7 +198,18 @@ function LineChartContentBody({data, series, isLoading, yAxisUnit, yAxisUnitPosi
         return isInPlotArea(args) && isCursorOverLabel(args, activeIndex);
     };
 
-    const {customGestures, setPointPositions, matchedIndex, isTooltipActive, isCursorOverClickable, initialTooltipPosition, activePointPosition, onChartMoved} = useChartInteractions({
+    const {
+        customGestures,
+        setPointPositions,
+        matchedIndex,
+        isTooltipActive,
+        isCursorOverClickable,
+        initialTooltipPosition,
+        activePointPosition,
+        onChartMoved,
+        onTooltipDismiss,
+        onChartTouchStart,
+    } = useChartInteractions({
         handlePress: onPointPress ? handlePointPress : undefined,
         checkIsOver: checkIsOverBand,
         isCursorOverLabel: checkIsOverLabelInPlotArea,
@@ -182,16 +220,23 @@ function LineChartContentBody({data, series, isLoading, yAxisUnit, yAxisUnitPosi
     const activePointX = useDerivedValue(() => activePointPosition.get().x);
     const isActivePointHollow = useDerivedValue(() => isLastPointInProgress && matchedIndex.get() === data.length - 1);
 
+    const scales = useRef<{xScale: Scale; yScale: Scale} | null>(null);
+
     const handleScaleChange = (xScale: Scale, yScale: Scale) => {
+        scales.current = {xScale, yScale};
         updateTickPositions(xScale, data.length);
         const [rangeStart, rangeEnd] = xScale.range();
         bandHalfWidth.set(data.length > 1 ? Math.abs(xScale(1) - xScale(0)) / 2 : Math.abs(rangeEnd - rangeStart));
-        setPointPositions(
-            chartData.map((point) => xScale(point.x)),
-            // The tooltip sits above the highest series, so it never covers another one.
-            data.map((point) => yScale(Math.max(...seriesKeys.flatMap((key) => point.values[key] ?? [])))),
-        );
+        setPointPositions(...getHighestPointPositions(data, series, xScale, yScale));
     };
+
+    // Victory reports the scales only when they change, and new values often keep the same rounded axes
+    useEffect(() => {
+        if (!scales.current) {
+            return;
+        }
+        setPointPositions(...getHighestPointPositions(data, series, scales.current.xScale, scales.current.yScale));
+    }, [data, series, setPointPositions]);
 
     const cursorStyle = useAnimatedStyle(() => ({
         cursor: isCursorOverClickable.get() ? 'pointer' : 'auto',
@@ -272,7 +317,7 @@ function LineChartContentBody({data, series, isLoading, yAxisUnit, yAxisUnitPosi
                     activeIndex={matchedIndex}
                     dots={series.map((seriesItem) => ({
                         color: seriesItem.color ?? VictoryTheme.colors.default,
-                        ys: (args.points[seriesItem.key] ?? []).map((point) => point.y),
+                        yPositions: (args.points[seriesItem.key] ?? []).map((point) => point.y),
                     }))}
                     isActive={isTooltipActive}
                     top={args.chartBounds.top}
@@ -314,6 +359,7 @@ function LineChartContentBody({data, series, isLoading, yAxisUnit, yAxisUnitPosi
             <Animated.View
                 style={[styles.chartContent, dynamicChartStyle, !!onPointPress && cursorStyle]}
                 onLayout={handleLayout}
+                onTouchStart={onChartTouchStart}
             >
                 {chartWidth > 0 && (
                     <CartesianChart
@@ -336,7 +382,6 @@ function LineChartContentBody({data, series, isLoading, yAxisUnit, yAxisUnitPosi
                                 tickCount: VictoryTheme.axis.tickCount,
                                 axisSide: 'right',
                                 lineWidth: 0,
-                                labelOffset: VictoryTheme.axis.labelGap,
                                 domain: yAxisDomain,
                             },
                         ]}
@@ -362,6 +407,7 @@ function LineChartContentBody({data, series, isLoading, yAxisUnit, yAxisUnitPosi
                     chartWidth={chartWidth}
                     initialTooltipPosition={initialTooltipPosition}
                     onChartMoved={onChartMoved}
+                    onDismiss={onTooltipDismiss}
                 />
             </Animated.View>
         </GestureDetector>

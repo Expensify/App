@@ -3,6 +3,7 @@ import type {ChartDataPoint} from '@components/Charts';
 
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 
 import {sanitizeCurrencyCode} from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -78,10 +79,11 @@ function SearchChartView({
     chartContainerStyle,
 }: SearchChartViewProps) {
     const {preferredLocale, translate, dateFnsLocale} = useLocalize();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {getCurrencySymbol, getCurrencyDecimals} = useCurrencyListActions();
     const {currentSearchKey} = useSearchQueryContext();
 
-    const {getLabel, getShortLabel, getFilterQuery} = CHART_GROUP_BY_CONFIG[groupBy];
+    const {getLabel, getShortLabel, getLineChartLabel, getFilterQuery, axisLabelSteps} = CHART_GROUP_BY_CONFIG[groupBy];
 
     const today = format(new Date(), CONST.DATE.FNS_FORMAT_STRING);
     const dateFilterRange = queryJSON ? getDateFilterRange(queryJSON) : {};
@@ -92,13 +94,16 @@ function SearchChartView({
         groupBy,
         view,
         getLabel,
-        getShortLabel,
+        getShortLabel: view === CONST.SEARCH.VIEW.LINE ? (getLineChartLabel ?? getShortLabel) : getShortLabel,
         getCurrencyDecimals,
         translate,
         dateFnsLocale,
         getInProgressLabel: (item) => getInProgressBucketLabel({groupBy, item, today, dateFnsLocale, dateFilterRange, translate}),
     });
     const points = rows.map((row) => row.point);
+
+    // On narrow layout, a single step spanning the whole axis labels only the first and last points
+    const labelSteps = shouldUseNarrowLayout && axisLabelSteps ? [Math.max(1, points.length - 1)] : axisLabelSteps;
 
     const handleItemPress = (dataPoint: ChartDataPoint, index: number) => {
         const item = rows.at(index)?.item;
@@ -152,6 +157,7 @@ function SearchChartView({
                 series={series}
                 isLoading={isLoading}
                 onPointPress={onItemPress}
+                labelSteps={labelSteps}
                 yAxisUnit={unit}
                 yAxisUnitPosition={unitPosition}
             />

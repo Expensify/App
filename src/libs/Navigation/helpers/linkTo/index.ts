@@ -1,8 +1,9 @@
-import {getMatchingFullScreenRoute, isFullScreenName} from '@libs/Navigation/helpers/getAdaptedStateFromPath';
+import getMatchingFullScreenRoute from '@libs/Navigation/helpers/getMatchingFullScreenRoute';
 import getStateFromPath from '@libs/Navigation/helpers/getStateFromPath';
+import {isFullScreenName} from '@libs/Navigation/helpers/isNavigatorName';
 import normalizePath from '@libs/Navigation/helpers/normalizePath';
 import {getTabState} from '@libs/Navigation/helpers/tabNavigatorUtils';
-import {linkingConfig} from '@libs/Navigation/linkingConfig';
+import {config as linkingConfig} from '@libs/Navigation/linkingConfig/config';
 import type {PlatformStackNavigationState} from '@libs/Navigation/PlatformStackNavigation/types';
 import {shallowCompare} from '@libs/ObjectUtils';
 
@@ -204,7 +205,7 @@ export default function linkTo(navigation: NavigationContainerRef<RootNavigatorP
         return;
     }
 
-    const action: StackNavigationAction = getActionFromState(stateFromPath, linkingConfig.config);
+    const action: StackNavigationAction = getActionFromState(stateFromPath, linkingConfig);
 
     // If there is no action, just reset the whole state.
     if (!action) {
