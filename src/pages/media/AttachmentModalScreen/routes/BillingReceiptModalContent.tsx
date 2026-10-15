@@ -49,7 +49,7 @@ function BillingReceiptModalContent() {
     const originalFileName = (() => {
         try {
             const pathname = new URL(source).pathname;
-            return pathname.split('/').pop() || `receipt-${purchaseID}`;
+            return pathname.split('/').pop() ?? `receipt-${purchaseID}`;
         } catch {
             return `receipt-${purchaseID}`;
         }
