@@ -5,7 +5,7 @@ keywords: [New Expensify, join workspace, set up profile, add expense, enable tw
 ---
 
 
-Welcome to Expensify! If you've received an invite to join your company's workspace, this guide walks you through setting up your account and getting started.
+Welcome to Expensify! Whether you've received an invite to join your company's workspace or need to instruct your admin to send you one, this guide walks you through setting up your account and getting started.
 
 ---
 
@@ -18,6 +18,8 @@ Ask one of your company's Expensify workspace admins to send you an invite using
 3. Click **Members** > **Invite member**
 
 Now, check your email inbox for the invite to join your company's workspace. If you don't see it, check your **Spam** and **Archive** folders.
+
+If you're signing up without an invite, select **Join my company workspace** when asked **What do you want to do today?** After you add and verify your work email, Expensify shows the workspaces at your company that you can join. Click **Join now**, or **Ask to join** if the workspace needs admin approval.
 
 ---
 
