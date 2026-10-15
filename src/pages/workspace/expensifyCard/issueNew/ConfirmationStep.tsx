@@ -123,6 +123,7 @@ function ConfirmationStep({policyID, stepNames, startStepIndex}: ConfirmationSte
 
     const isShippingAddressStepShown = shouldShowShippingAddressStep(data);
     const isPhoneNumberStepShown = shouldShowPhoneNumberStep(issueNewCard);
+    const isPhoneNumberMissing = isPhoneNumberStepShown && !data?.shippingAddress?.phoneNumber;
 
     const handleBackButtonPress = () => {
         if (isPhoneNumberStepShown) {
@@ -259,7 +260,7 @@ function ConfirmationStep({policyID, stepNames, startStepIndex}: ConfirmationSte
                         buttonRef={submitButton}
                         message={errorMessage}
                         isAlertVisible={!!errorMessage}
-                        isDisabled={isOffline || shouldDisableSubmitButton}
+                        isDisabled={isOffline || shouldDisableSubmitButton || isPhoneNumberMissing}
                         isMessageHtml={shouldDisableSubmitButton}
                         isLoading={issueNewCard?.isLoading}
                         onSubmit={handleIssueCard}
