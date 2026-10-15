@@ -1609,9 +1609,9 @@ function getReasonAndReportActionForGBRInLHNRow(
     report: OnyxEntry<Report>,
     currentUserLogin: string,
     currentUserAccountID: number,
+    reportMetadata: OnyxEntry<ReportMetadata>,
     isReportArchived = false,
     transactionViolations?: OnyxCollection<TransactionViolation[]>,
-    reportMetadata?: OnyxEntry<ReportMetadata>,
 ): GBRReasonAndReportAction | null {
     if (!report) {
         return null;
