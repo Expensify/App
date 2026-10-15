@@ -1660,18 +1660,32 @@ function clearValidateDomainTwoFactorCodeError() {
     Onyx.set(ONYXKEYS.VALIDATE_DOMAIN_TWO_FACTOR_CODE, null);
 }
 
-function setDomainVacationDelegate(domainAccountID: number, domainMemberAccountID: number, creator: string, vacationer: string, delegate: string, vacationDelegate?: BaseVacationDelegate) {
+/**
+ * @param clearAfter - UTC datetime (yyyy-MM-dd HH:mm:ss) when the backend should clear the delegate. No value means it never clears.
+ */
+function setDomainVacationDelegate(
+    domainAccountID: number,
+    domainMemberAccountID: number,
+    creator: string,
+    vacationer: string,
+    delegate: string,
+    vacationDelegate?: BaseVacationDelegate,
+    clearAfter?: string,
+) {
+    const optimisticVacationDelegate: NullishDeep<BaseVacationDelegate> = {
+        delegate,
+        creator,
+        clearAfter: clearAfter ?? null,
+        previousDelegate: vacationDelegate?.delegate,
+        previousClearAfter: vacationDelegate?.clearAfter ?? null,
+    };
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.DOMAIN | typeof ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS | typeof ONYXKEYS.COLLECTION.DOMAIN_ERRORS>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`,
             value: {
-                [`${CONST.DOMAIN.PRIVATE_VACATION_DELEGATE_PREFIX}${domainMemberAccountID}`]: {
-                    delegate,
-                    creator,
-                    previousDelegate: vacationDelegate?.delegate,
-                },
-            } as PrefixedRecord<typeof CONST.DOMAIN.PRIVATE_VACATION_DELEGATE_PREFIX, BaseVacationDelegate>,
+                [`${CONST.DOMAIN.PRIVATE_VACATION_DELEGATE_PREFIX}${domainMemberAccountID}`]: optimisticVacationDelegate,
+            } as PrefixedRecord<typeof CONST.DOMAIN.PRIVATE_VACATION_DELEGATE_PREFIX, NullishDeep<BaseVacationDelegate>>,
         },
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -1704,6 +1718,7 @@ function setDomainVacationDelegate(domainAccountID: number, domainMemberAccountI
             value: {
                 [`${CONST.DOMAIN.PRIVATE_VACATION_DELEGATE_PREFIX}${domainMemberAccountID}`]: {
                     previousDelegate: null,
+                    previousClearAfter: null,
                 },
             } as PrefixedRecord<typeof CONST.DOMAIN.PRIVATE_VACATION_DELEGATE_PREFIX, NullishDeep<BaseVacationDelegate>>,
         },
@@ -1760,6 +1775,7 @@ function setDomainVacationDelegate(domainAccountID: number, domainMemberAccountI
         creator,
         vacationerEmail: vacationer,
         vacationDelegateEmail: delegate,
+        clearAfter,
         overridePolicyDiffWarning: true,
         domainAccountID,
     };
@@ -1776,7 +1792,9 @@ function deleteDomainVacationDelegate(domainAccountID: number, domainMemberAccou
                 [`${CONST.DOMAIN.PRIVATE_VACATION_DELEGATE_PREFIX}${domainMemberAccountID}`]: {
                     creator: null,
                     delegate: null,
+                    clearAfter: null,
                     previousDelegate: vacationDelegate?.delegate,
+                    previousClearAfter: vacationDelegate?.clearAfter ?? null,
                 },
             } as PrefixedRecord<typeof CONST.DOMAIN.PRIVATE_VACATION_DELEGATE_PREFIX, NullishDeep<BaseVacationDelegate>>,
         },
@@ -1864,10 +1882,11 @@ function deleteDomainVacationDelegate(domainAccountID: number, domainMemberAccou
     API.write(WRITE_COMMANDS.DELETE_VACATION_DELEGATE, {vacationerEmail: vacationer, domainAccountID}, {optimisticData, successData, failureData});
 }
 
-function clearVacationDelegateError(domainAccountID: number, domainMemberAccountID: number, domainMemberEmail: string, previousDelegate?: string) {
+function clearVacationDelegateError(domainAccountID: number, domainMemberAccountID: number, domainMemberEmail: string, previousDelegate?: string, previousClearAfter?: string) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {
         [`${CONST.DOMAIN.PRIVATE_VACATION_DELEGATE_PREFIX}${domainMemberAccountID}`]: {
             delegate: previousDelegate ?? null,
+            clearAfter: previousClearAfter ?? null,
         },
     } as PrefixedRecord<typeof CONST.DOMAIN.PRIVATE_VACATION_DELEGATE_PREFIX, NullishDeep<BaseVacationDelegate>>);
 

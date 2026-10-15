@@ -1972,21 +1972,26 @@ describe('IOURequestStepConfirmationPageTest', () => {
             await waitForBatchedUpdatesWithAct();
             expect(screen.getByLabelText(translateLocal('iou.amount'))).toHaveDisplayValue('43');
 
-            // And confirming raises the required errors, which hold the fields open from here on
+            // And confirming raises the required errors, which hold the first receipt's fields open
             fireEvent.press(screen.getByText(translateLocal('iou.createExpenses', 2)));
             await waitForBatchedUpdatesWithAct();
             expect(screen.getAllByText(translateLocal('common.error.fieldRequired')).length).toBeGreaterThan(0);
 
-            // And the user traverses to the second receipt and back, with the fields never collapsing in between
+            // And the user traverses to the second receipt
             const [, nextButton] = screen.getAllByRole(CONST.ROLE.BUTTON, {name: CONST.ROLE.BUTTON});
             fireEvent.press(nextButton);
             expect(await screen.findByText(`2 ${of} 2`)).toBeOnTheScreen();
-            expect(screen.getByLabelText(translateLocal('iou.amount'))).toHaveDisplayValue('');
+            await waitForBatchedUpdatesWithAct();
 
-            // Then coming back shows the amount that was entered, reseeded from the transaction rather than left blank
+            // Then the second receipt stays collapsed, because the required errors belong to the first receipt (#101146)
+            expect(screen.getByText(translateLocal('common.showMore'))).toBeOnTheScreen();
+            expect(screen.queryByLabelText(translateLocal('iou.amount'))).not.toBeOnTheScreen();
+
+            // And coming back re-opens the first receipt's fields and shows the amount that was entered, reseeded from the transaction rather than left blank
             const [prevButton] = screen.getAllByRole(CONST.ROLE.BUTTON, {name: CONST.ROLE.BUTTON});
             fireEvent.press(prevButton);
             expect(await screen.findByText(`1 ${of} 2`)).toBeOnTheScreen();
+            await waitForBatchedUpdatesWithAct();
             expect(screen.getByLabelText(translateLocal('iou.amount'))).toHaveDisplayValue('43.00');
         });
 
