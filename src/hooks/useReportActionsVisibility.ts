@@ -7,6 +7,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReportAction} from '@src/types/onyx';
 
 import {reportVisibleActionsSelector} from '@selectors/ReportAction';
+import {useOnyxState} from 'react-native-onyx';
 
 import useConciergeSidePanelReportActions from './useConciergeSidePanelReportActions';
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
@@ -15,7 +16,6 @@ import useLocalize from './useLocalize';
 import useNetwork from './useNetwork';
 import useOnyx from './useOnyx';
 import useSidePanelState from './useSidePanelState';
-import useTransactionsAndViolationsForReport from './useTransactionsAndViolationsForReport';
 
 type UseReportActionsVisibilityParams = {
     reportID: string | undefined;
@@ -84,7 +84,17 @@ function useReportActionsVisibility({
               )
             : false;
 
-    const {transactions: reportTransactions, isLoaded: areTransactionsLoaded} = useTransactionsAndViolationsForReport(reportID);
+    // Reads only this report's transactions, so writes to other reports' transactions don't re-render the list
+    const {reportTransactions, areTransactionsLoaded} = useOnyxState(
+        (state) => {
+            const allReportsTransactionsAndViolations = state[ONYXKEYS.DERIVED.REPORT_TRANSACTIONS_AND_VIOLATIONS];
+            return {
+                reportTransactions: reportID ? allReportsTransactionsAndViolations?.[reportID]?.transactions : undefined,
+                areTransactionsLoaded: allReportsTransactionsAndViolations !== undefined,
+            };
+        },
+        {dependencies: [ONYXKEYS.DERIVED.REPORT_TRANSACTIONS_AND_VIOLATIONS]},
+    );
     // When transactions haven't loaded yet, pass undefined to skip IOU filtering entirely
     // (undefined = "don't filter" in isIOUActionMatchingTransactionList).
     // Once loaded, filter normally — even if transactions is empty (genuinely no transactions).

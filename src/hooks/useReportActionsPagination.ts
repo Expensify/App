@@ -6,6 +6,7 @@ import {isConciergeChatReport, isInvoiceReport, isMoneyRequestReport, isReportTr
 import getReportActionsToDisplay from '@pages/inbox/report/getReportActionsToDisplay';
 
 import ONYXKEYS from '@src/ONYXKEYS';
+import {reportWithoutLastActivitySelector} from '@src/selectors/Report';
 import type {Report, ReportAction} from '@src/types/onyx';
 
 import type {OnyxEntry} from 'react-native-onyx';
@@ -37,7 +38,8 @@ type UseReportActionsPaginationResult = {
 };
 
 function useReportActionsPagination(reportID: string | undefined, reportActionIDFromRoute: string | undefined): UseReportActionsPaginationResult {
-    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
+    // Last-activity fields don't change which actions are shown, so writes to them shouldn't rebuild the list data
+    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {selector: reportWithoutLastActivitySelector});
     const {isOffline} = useNetwork();
     const {getCurrencyDecimals} = useCurrencyListActions();
     const delegateAccountID = useDelegateAccountID();

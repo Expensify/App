@@ -3,7 +3,6 @@ import type {PersonalDetailsByLogin} from '@components/PersonalDetailsByLoginPro
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useOnyx from '@hooks/useOnyx';
 import {usePersonalDetailsByLogins} from '@hooks/usePersonalDetailByLogin';
-import useTransactionsAndViolationsForReport from '@hooks/useTransactionsAndViolationsForReport';
 
 import {convertAttendeesToArray} from '@libs/AttendeeUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
@@ -19,6 +18,7 @@ import type {OriginalMessageIOU, Policy, Report, ReportAction, ReportActions, Tr
 import type {OnyxEntry} from 'react-native-onyx';
 
 import {useMemo} from 'react';
+import {useOnyxState} from 'react-native-onyx';
 
 function getSplitAuthor(transaction: Transaction, splits?: Array<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>>) {
     const {originalTransactionID, source} = transaction.comment ?? {};
@@ -295,7 +295,14 @@ function useReportPreviewSenderID({iouReport, action, chatReport}: {action: Onyx
     });
     const hasFinishedInitialReportActionsLoad = hasOnceLoadedReportActions === true || isLoadingInitialReportActions === false;
 
-    const {transactions: reportTransactions} = useTransactionsAndViolationsForReport(shouldFetchData ? action?.childReportID : undefined);
+    // Reads only this report's entry, so writes to other reports' transactions don't re-render every avatar in the list
+    const transactionsReportID = shouldFetchData ? action?.childReportID : undefined;
+    const reportTransactions = useOnyxState(
+        (state) => (transactionsReportID ? state[ONYXKEYS.DERIVED.REPORT_TRANSACTIONS_AND_VIOLATIONS]?.[transactionsReportID]?.transactions : undefined),
+        {
+            dependencies: transactionsReportID ? [ONYXKEYS.DERIVED.REPORT_TRANSACTIONS_AND_VIOLATIONS] : [],
+        },
+    );
     const transactions = useMemo(() => {
         if (!shouldFetchData) {
             return undefined;

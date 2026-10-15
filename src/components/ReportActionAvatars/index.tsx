@@ -84,6 +84,26 @@ type ReportActionAvatarsProps = {
     shouldUseRealActor?: boolean;
 };
 
+type ReportActionAvatarsViewProps = Pick<
+    ReportActionAvatarsProps,
+    | 'horizontalStacking'
+    | 'sort'
+    | 'size'
+    | 'singleAvatarContainerStyle'
+    | 'backdropColor'
+    | 'subscriptAvatarContainerStyle'
+    | 'subscriptCardFeed'
+    | 'subscriptCardFeedIconSize'
+    | 'isInReportAction'
+    | 'fallbackDisplayName'
+> & {
+    avatarType: ValueOf<typeof CONST.REPORT_ACTION_AVATARS.TYPE>;
+    avatars: IconType[];
+    delegateAccountID: number | undefined;
+    shouldUseConciergeAvatar: boolean;
+    action: OnyxEntry<ReportAction>;
+};
+
 /**
  * The component that renders proper user avatars based on either:
  *
@@ -100,24 +120,15 @@ function ReportActionAvatars({
     accountIDs: passedAccountIDs = [],
     policyID,
     policy: policyProp,
-    size = CONST.AVATAR_SIZE.DEFAULT,
     horizontalStacking,
-    sort: sortAvatars,
-    singleAvatarContainerStyle,
-    backdropColor,
-    subscriptAvatarContainerStyle,
     subscriptCardFeed,
-    subscriptCardFeedIconSize,
-    isInReportAction = false,
     fallbackDisplayName,
     invitedEmailsToAccountIDs,
     chatReportID,
     shouldUseRealActor = false,
+    ...viewProps
 }: ReportActionAvatarsProps) {
     const accountIDs = passedAccountIDs.filter((accountID) => accountID !== CONST.DEFAULT_NUMBER_ID);
-    const allPersonalDetails = usePersonalDetails();
-    const {localeCompare} = useLocalize();
-    const StyleUtils = useStyleUtils();
 
     const reportID =
         potentialReportID ??
@@ -130,19 +141,10 @@ function ReportActionAvatars({
     // Therefore, we will fall back to reportProp while the data is being fetched.
     const report = reportFromOnyx ?? reportProp;
 
-    const shouldStackHorizontally = !!horizontalStacking;
-    const isHorizontalStackingAnObject = shouldStackHorizontally && typeof horizontalStacking !== 'boolean';
-    const {isHovered = false, ...horizontalStackingRest} = isHorizontalStackingAnObject ? horizontalStacking : ({} as HorizontalStackingOptions);
-
-    const {
-        avatarType: notPreciseAvatarType,
-        avatars: unsortedIcons,
-        details: {delegateAccountID, shouldUseConciergeAvatar},
-        source,
-    } = useReportActionAvatars({
+    const {avatarType, avatars, details, source} = useReportActionAvatars({
         report,
         action,
-        shouldStackHorizontally,
+        shouldStackHorizontally: !!horizontalStacking,
         shouldUseCardFeed: !!subscriptCardFeed,
         accountIDs,
         policyID,
@@ -152,6 +154,47 @@ function ReportActionAvatars({
         chatReportID,
         shouldUseRealActor,
     });
+
+    return (
+        <ReportActionAvatarsView
+            {...viewProps}
+            horizontalStacking={horizontalStacking}
+            subscriptCardFeed={subscriptCardFeed}
+            fallbackDisplayName={fallbackDisplayName}
+            avatarType={avatarType}
+            avatars={avatars}
+            delegateAccountID={details.delegateAccountID}
+            shouldUseConciergeAvatar={details.shouldUseConciergeAvatar}
+            action={source.action}
+        />
+    );
+}
+
+/** Renders avatars that `useReportActionAvatars` already computed, for callers that run the hook themselves. */
+function ReportActionAvatarsView({
+    avatarType: notPreciseAvatarType,
+    avatars: unsortedIcons,
+    delegateAccountID,
+    shouldUseConciergeAvatar,
+    action,
+    size = CONST.AVATAR_SIZE.DEFAULT,
+    horizontalStacking,
+    sort: sortAvatars,
+    singleAvatarContainerStyle,
+    backdropColor,
+    subscriptAvatarContainerStyle,
+    subscriptCardFeed,
+    subscriptCardFeedIconSize,
+    isInReportAction = false,
+    fallbackDisplayName,
+}: ReportActionAvatarsViewProps) {
+    const allPersonalDetails = usePersonalDetails();
+    const {localeCompare} = useLocalize();
+    const StyleUtils = useStyleUtils();
+
+    const shouldStackHorizontally = !!horizontalStacking;
+    const isHorizontalStackingAnObject = shouldStackHorizontally && typeof horizontalStacking !== 'boolean';
+    const {isHovered = false, ...horizontalStackingRest} = isHorizontalStackingAnObject ? horizontalStacking : ({} as HorizontalStackingOptions);
 
     if (!unsortedIcons.length) {
         return null;
@@ -191,7 +234,7 @@ function ReportActionAvatars({
     // Read the copilot through `getDelegateAccountIDFromReportAction` rather than off the action: the server stamps
     // `delegateAccountID` on every action a copilot's request creates, including Concierge-authored ones, and the
     // accessor suppresses it there so Concierge never renders as "<copilot> (as copilot for Concierge)".
-    const delegateAccountIDFromAction = shouldUseConciergeAvatar ? undefined : getDelegateAccountIDFromReportAction(source.action);
+    const delegateAccountIDFromAction = shouldUseConciergeAvatar ? undefined : getDelegateAccountIDFromReportAction(action);
     const singleAvatar: AvatarIcon =
         delegateAccountID && delegateAccountIDFromAction
             ? {
@@ -267,3 +310,4 @@ function ReportActionAvatars({
 }
 
 export default ReportActionAvatars;
+export {ReportActionAvatarsView};

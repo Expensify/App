@@ -1,6 +1,6 @@
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
-import ReportActionAvatars from '@components/ReportActionAvatars';
+import {ReportActionAvatarsView} from '@components/ReportActionAvatars';
 import useReportActionAvatars from '@components/ReportActionAvatars/useReportActionAvatars';
 import {useIsOnSearch} from '@components/Search/SearchScopeProvider';
 import Text from '@components/Text';
@@ -159,15 +159,16 @@ function ReportActionItemSingle({
                 sentryLabel={CONST.SENTRY_LABEL.REPORT.REPORT_ACTION_ITEM_SINGLE_AVATAR_BUTTON}
             >
                 <OfflineWithFeedback pendingAction={details.pendingFields?.avatar ?? undefined}>
-                    <ReportActionAvatars
+                    <ReportActionAvatarsView
                         singleAvatarContainerStyle={styles.actionAvatar}
                         subscriptAvatarContainerStyle={styles.mr0}
                         backdropColor={getBackgroundColor()}
                         isInReportAction
-                        reportID={iouReportID}
-                        chatReportID={source.iouReport?.chatReportID ?? reportID}
-                        action={action}
-                        shouldUseRealActor={isOnSearch}
+                        avatarType={avatarType}
+                        avatars={avatars}
+                        delegateAccountID={details.delegateAccountID}
+                        shouldUseConciergeAvatar={details.shouldUseConciergeAvatar}
+                        action={source.action}
                     />
                 </OfflineWithFeedback>
             </PressableWithoutFeedback>
