@@ -248,7 +248,7 @@ describe('MenuItemField', () => {
     });
 
     describe('empty shape', () => {
-        it('keeps the placeholder label nonselectable when web value selection is enabled', () => {
+        it('keeps the placeholder label not selectable when web value selection is enabled', () => {
             // Given a field without a value to select
             // When its row opts into browser value selection
             render(
