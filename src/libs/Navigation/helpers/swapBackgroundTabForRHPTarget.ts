@@ -10,7 +10,7 @@ import type {NavigationState} from '@react-navigation/native';
 
 import {findFocusedRoute} from '@react-navigation/native';
 
-import {getMatchingFullScreenRoute} from './getAdaptedStateFromPath';
+import getMatchingFullScreenRoute from './getMatchingFullScreenRoute';
 import getStateFromPath from './getStateFromPath';
 import {getMatchingFullScreenRouteParams, shouldChangeToMatchingFullScreen} from './linkTo';
 import {getTabState} from './tabNavigatorUtils';
