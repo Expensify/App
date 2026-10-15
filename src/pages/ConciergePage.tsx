@@ -22,7 +22,7 @@ import type {OnyxValue} from 'react-native-onyx';
 import {useFocusEffect} from '@react-navigation/native';
 import {isActingAsDelegateSelector} from '@selectors/Account';
 import {isSingleNewDotEntrySelector} from '@selectors/HybridApp';
-import {hasCompletedGuidedSetupFlowSelector, hasSeenTourSelector, tryNewDotOnyxSelector, wasInvitedToNewDotSelector} from '@selectors/Onboarding';
+import {guidedSetupAndTourStatusSelector, tryNewDotOnyxSelector, wasInvitedToNewDotSelector} from '@selectors/Onboarding';
 import {isSupportalSessionSelector} from '@selectors/Session';
 import React, {useCallback, useEffect, useRef} from 'react';
 import {View} from 'react-native';
@@ -47,8 +47,9 @@ function ConciergePage() {
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [conciergePersonalDetails] = usePersonalDetailsByIDs([CONST.ACCOUNT_ID.CONCIERGE]);
-    const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
-    const [hasCompletedGuidedSetupFlow] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasCompletedGuidedSetupFlowSelector});
+    const [guidedSetupAndTourStatus] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: guidedSetupAndTourStatusSelector});
+    const isSelfTourViewed = guidedSetupAndTourStatus?.isSelfTourViewed;
+    const hasCompletedGuidedSetupFlow = guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow;
     const [hasNonPersonalPolicy] = useOnyx(ONYXKEYS.HAS_NON_PERSONAL_POLICY);
     const [isMigratedUser] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT, {selector: isMigratedUserSelector});
     const [isActingAsDelegate] = useOnyx(ONYXKEYS.ACCOUNT, {selector: isActingAsDelegateSelector});
@@ -83,6 +84,7 @@ function ConciergePage() {
                         introSelected,
                         currentUserAccountID: session.accountID ?? CONST.DEFAULT_NUMBER_ID,
                         isSelfTourViewed,
+                        hasCompletedGuidedSetupFlow,
                         conciergePersonalDetails,
                         shouldDismissModal: true,
                         checkIfCurrentPageActive: () => !isUnmounted.current,
@@ -91,7 +93,17 @@ function ConciergePage() {
             } else {
                 Navigation.navigate(ROUTES.INBOX);
             }
-        }, [session, isLoadingReportData, conciergeReportID, introSelected, isSelfTourViewed, conciergePersonalDetails, isWaitingForOnboarding, isOnboardingSkipped]),
+        }, [
+            session,
+            isLoadingReportData,
+            conciergeReportID,
+            introSelected,
+            isSelfTourViewed,
+            hasCompletedGuidedSetupFlow,
+            conciergePersonalDetails,
+            isWaitingForOnboarding,
+            isOnboardingSkipped,
+        ]),
     );
 
     useEffect(() => {

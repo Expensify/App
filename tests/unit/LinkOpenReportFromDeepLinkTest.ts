@@ -69,7 +69,7 @@ function focusOn(screenName: string) {
 
 async function handleLinkCapturedBeforeOnboarding(route: string) {
     // The link arrives while signed out, then the new account signs up and still has onboarding ahead of it
-    openReportFromDeepLink(`${APP_URL}/${route}`, {}, false, undefined, undefined, undefined, 0, {}, undefined);
+    openReportFromDeepLink(`${APP_URL}/${route}`, {}, false, undefined, undefined, undefined, undefined, 0, {}, undefined);
     await Onyx.set(ONYXKEYS.NVP_ONBOARDING, {hasCompletedGuidedSetupFlow: false});
     await waitForBatchedUpdates();
 
@@ -196,8 +196,8 @@ describe('openReportFromDeepLink before onboarding', () => {
         // When the captured link is the test tools modal, which is app state in the URL rather than a destination
         await handleLinkCapturedBeforeOnboarding(ROUTES.TEST_TOOLS_MODAL.route);
 
-        // Then it is dropped and onboarding keeps its usual back-button message
+        // Then it is dropped, without the back-button error, since onboarding is already complete when the link is handled
         expect(mockedSetDeepLinkToOpenAfterOnboarding).not.toHaveBeenCalled();
-        expect(mockedSetOnboardingErrorMessage).toHaveBeenCalledWith('onboarding.purpose.errorBackButton');
+        expect(mockedSetOnboardingErrorMessage).not.toHaveBeenCalled();
     });
 });
