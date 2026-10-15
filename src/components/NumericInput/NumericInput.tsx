@@ -61,6 +61,8 @@ function NumericInput({
 
     const actionsContextValue: NumericInputActionsContextValue = {
         setNumber: controller.setNumber,
+        insertAtSelection: controller.insertAtSelection,
+        deleteBackward: controller.deleteBackward,
         clearSelection: controller.clearSelection,
         toggleSign: controller.toggleSign,
         deleteSignBeforeCaret: controller.deleteSignBeforeCaret,

@@ -1,5 +1,5 @@
 import BigNumberPad from '@components/BigNumberPad';
-import {useNumericInputActions, useNumericInputState} from '@components/NumericInput/context';
+import {useNumericInputActions} from '@components/NumericInput/context';
 
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -15,8 +15,7 @@ const canUseTouchScreen = canUseTouchScreenUtil();
 /** Number pad rendered on touch screens, connected to the root value and selection. */
 function NumericInputPad({isTwoColumn, testID}: NumericInputLayoutPartProps) {
     const styles = useThemeStyles();
-    const {formattedNumber, selection} = useNumericInputState();
-    const {deleteSignBeforeCaret, focusInput, setNumber, setShouldUpdateSelection} = useNumericInputActions();
+    const {deleteBackward, deleteSignBeforeCaret, focusInput, insertAtSelection, setShouldUpdateSelection} = useNumericInputActions();
     const isLongPressingRef = useRef(false);
 
     useEffect(() => {
@@ -37,21 +36,16 @@ function NumericInputPad({isTwoColumn, testID}: NumericInputLayoutPartProps) {
             focusInput();
         }
 
-        const isCollapsed = selection.start === selection.end;
-
         if (key === '<') {
-            if (deleteSignBeforeCaret() || (isCollapsed && selection.start === 0)) {
+            if (deleteSignBeforeCaret()) {
                 return;
             }
 
-            const deleteStart = isCollapsed ? selection.start - 1 : selection.start;
-            const newMagnitude = `${formattedNumber.slice(0, deleteStart)}${formattedNumber.slice(selection.end)}`;
-            setNumber(newMagnitude);
+            deleteBackward();
             return;
         }
 
-        const newMagnitude = `${formattedNumber.slice(0, selection.start)}${key}${formattedNumber.slice(selection.end)}`;
-        setNumber(newMagnitude);
+        insertAtSelection(key);
     };
 
     const handleLongPressHandlerStateChanged = (isUserLongPressingBackspace: boolean) => {

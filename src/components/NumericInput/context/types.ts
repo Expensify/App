@@ -34,6 +34,12 @@ type NumericInputActionsContextValue = {
     /** Normalizes, validates, and commits displayed text. */
     setNumber: (text: string) => void;
 
+    /** Replaces the selected range with text, or inserts it at the caret. */
+    insertAtSelection: (text: string) => void;
+
+    /** Deletes the selected range, or the character before the caret when nothing is selected. */
+    deleteBackward: () => void;
+
     /** Places the caret at the selection end, clearing any highlighted range. */
     clearSelection: () => void;
 

@@ -119,6 +119,23 @@ function useNumericEditingController({
         applyValue(nextValue, {notify});
     };
 
+    // Replaces the selected range with text, or inserts it at the caret.
+    const insertAtSelection = (text: string) => {
+        setNumber(`${formattedNumber.slice(0, selection.start)}${text}${formattedNumber.slice(selection.end)}`);
+    };
+
+    // Deletes the selected range, or the character before the caret when nothing is selected.
+    const deleteBackward = () => {
+        const isCollapsed = selection.start === selection.end;
+
+        if (isCollapsed && selection.start === 0) {
+            return;
+        }
+
+        const deleteStart = isCollapsed ? selection.start - 1 : selection.start;
+        setNumber(`${formattedNumber.slice(0, deleteStart)}${formattedNumber.slice(selection.end)}`);
+    };
+
     const getNumber = () => committedValueRef.current;
 
     useLayoutEffect(() => {
@@ -144,6 +161,8 @@ function useNumericEditingController({
         formattedNumber,
         selection,
         setNumber,
+        insertAtSelection,
+        deleteBackward,
         setCanonicalValue,
         updateNumber,
         getNumber,
