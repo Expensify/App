@@ -201,6 +201,7 @@ jobs:
   androidBuild:
     name: Build Android HybridApp
     needs: [prep]
+    # Preserve the default token scopes while adding OIDC access for the called workflow
     permissions: write-all
     if: ${{ fromJSON(needs.prep.outputs.SHOULD_BUILD_NATIVE) }}
     uses: ./.github/workflows/buildAndroid.yml
@@ -430,6 +431,7 @@ jobs:
   iosBuild:
     name: Build iOS HybridApp
     needs: [prep]
+    # Preserve the default token scopes while adding OIDC access for the called workflow
     permissions: write-all
     if: ${{ fromJSON(needs.prep.outputs.SHOULD_BUILD_NATIVE) }}
     uses: ./.github/workflows/buildIOS.yml
@@ -705,6 +707,7 @@ jobs:
     name: Deploy Web to S3
     needs: [prep, webBuild, buildStorybook]
     if: ${{ always() && needs.webBuild.result == 'success' }}
+    # Preserve the default token scopes while adding OIDC access
     permissions: write-all
     runs-on: blacksmith-4vcpu-ubuntu-2404
     steps:

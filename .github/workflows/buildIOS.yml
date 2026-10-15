@@ -239,6 +239,7 @@ jobs:
         with:
           role-to-assume: arn:aws:iam::949552126497:role/app-rock-cache-gh-actions
           role-session-name: gh-${{ github.run_id }}-${{ github.run_attempt }}
+          # Match the 6h job timeout because Rock does not refresh credentials before uploading
           role-duration-seconds: 21600
           aws-region: us-east-1
 

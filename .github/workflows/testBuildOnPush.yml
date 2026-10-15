@@ -70,6 +70,7 @@ jobs:
 
   buildApps:
     needs: [prep]
+    # Preserve the default token scopes while adding OIDC access for the called workflow
     permissions: write-all
     uses: ./.github/workflows/buildAdHoc.yml
     with:
