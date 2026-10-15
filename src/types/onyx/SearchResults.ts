@@ -226,6 +226,9 @@ type SearchWithdrawalIDGroup = SearchGroupBase & {
 
     /** The feed a cash back credit was paid through; matches the fundID of that feed's settlements */
     domainAccountID?: number;
+
+    /** Whether the settlement bills transactions the current user may not see, so its total only counts the ones they can */
+    isPartialSettlement?: boolean;
 };
 
 /** Model of category grouped search result */

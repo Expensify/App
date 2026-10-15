@@ -1,4 +1,4 @@
-import {act, render, screen} from '@testing-library/react-native';
+import {act, fireEvent, render, screen} from '@testing-library/react-native';
 
 import ComposeProviders from '@components/ComposeProviders';
 import {CurrencyListContextProvider} from '@components/CurrencyListContextProvider';
@@ -197,6 +197,42 @@ describe('WithdrawalIDListItemHeader', () => {
         });
     });
 
+    describe('Partial settlement', () => {
+        it('should label the total and explain it on press', async () => {
+            // Given a settlement whose total only counts the transactions the user may see
+            // When the header renders
+            renderHeader(
+                createWithdrawalItem({
+                    count: 1,
+                    total: 4000,
+                    isPartialSettlement: true,
+                }),
+            );
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the subtotal is shown with the partial settlement label
+            expect(screen.getByText('$40.00')).toBeOnTheScreen();
+            expect(screen.getByText('Partial settlement')).toBeOnTheScreen();
+
+            // When the user opens the info button
+            fireEvent.press(screen.getByLabelText('Partial settlement'));
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the explanation says the total is limited to what they may view, without the hidden amount
+            expect(screen.getByText('This total only includes the transactions you have permission to view.')).toBeOnTheScreen();
+        });
+
+        it('should not label a fully visible settlement', async () => {
+            // Given a settlement the user can see entirely
+            // When the header renders
+            renderHeader(createWithdrawalItem({count: 4, total: 40000}));
+            await waitForBatchedUpdatesWithAct();
+
+            // Then no partial settlement label is shown
+            expect(screen.queryByText('Partial settlement')).not.toBeOnTheScreen();
+        });
+    });
+
     // The arrow only lives in this component on narrow layouts; on wide screens the parent owns the toggle.
     describe('Narrow layout expand arrow', () => {
         beforeEach(() => {
@@ -223,6 +259,24 @@ describe('WithdrawalIDListItemHeader', () => {
 
             // Then the expand arrow is shown
             expect(screen.getByLabelText('Expand')).toBeOnTheScreen();
+        });
+
+        it('should label a partial settlement next to its total', async () => {
+            // Given a partial settlement on a narrow layout, where the total sits beside the expand arrow
+            // When the header renders
+            renderHeader(
+                createWithdrawalItem({
+                    count: 1,
+                    total: 4000,
+                    isPartialSettlement: true,
+                }),
+                jest.fn(),
+            );
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the label still shows with the subtotal
+            expect(screen.getByText('$40.00')).toBeOnTheScreen();
+            expect(screen.getByText('Partial settlement')).toBeOnTheScreen();
         });
 
         it('should not render the arrow for a cash back row', async () => {

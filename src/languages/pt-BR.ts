@@ -10310,6 +10310,8 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
         status: {pending: 'Pendente', cleared: 'Compensado', failed: 'Falhou', never: 'Nunca', cashBack: 'Cashback'},
         failedError: ({link}: {link: string}) => `Tentaremos processar este acerto novamente quando você <a href="${link}">desbloquear sua conta</a>.`,
         withdrawalInfo: ({date, withdrawalID}: {date: string; withdrawalID: number}) => `${date} • ID de saque: ${withdrawalID}`,
+        partialSettlement: 'Acerto parcial',
+        partialSettlementDescription: 'Este total inclui apenas as transações que você tem permissão para ver.',
     },
     paidStatus: {markedAsPaid: 'Marcado como pago', withdrawing: 'Sacando', confirmed: 'Confirmado'},
     reportLayout: {

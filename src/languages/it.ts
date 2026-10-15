@@ -10346,6 +10346,8 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
         status: {pending: 'In sospeso', cleared: 'Compensato', failed: 'Non riuscito', never: 'Mai', cashBack: 'Cashback'},
         failedError: ({link}: {link: string}) => `Riproveremo a effettuare questa liquidazione quando <a href="${link}">sblocchi il tuo conto</a>.`,
         withdrawalInfo: ({date, withdrawalID}: {date: string; withdrawalID: number}) => `${date} • ID prelievo: ${withdrawalID}`,
+        partialSettlement: 'Liquidazione parziale',
+        partialSettlementDescription: 'Questo totale include solo le transazioni che hai il permesso di visualizzare.',
     },
     paidStatus: {markedAsPaid: 'Contrassegnato come pagato', withdrawing: 'Prelievo', confirmed: 'Confermato'},
     reportLayout: {

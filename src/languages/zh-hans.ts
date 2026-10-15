@@ -9918,6 +9918,8 @@ ${reportName}`,
         status: {pending: '待处理', cleared: '已入账', failed: '失败', never: '从不', cashBack: '返现'},
         failedError: ({link}: {link: string}) => `当你<a href="${link}">解锁你的账户</a>后，我们会重试此结算。`,
         withdrawalInfo: ({date, withdrawalID}: {date: string; withdrawalID: number}) => `${date} • 提现 ID：${withdrawalID}`,
+        partialSettlement: '部分结算',
+        partialSettlementDescription: '此总额仅包含你有权限查看的交易。',
     },
     paidStatus: {markedAsPaid: '标记为已付款', withdrawing: '提现中', confirmed: '已确认'},
     reportLayout: {

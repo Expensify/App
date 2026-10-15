@@ -10329,6 +10329,8 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
         status: {pending: 'Oczekujące', cleared: 'Wyczyszczono', failed: 'Niepowodzenie', never: 'Nigdy', cashBack: 'Zwrot gotówki'},
         failedError: ({link}: {link: string}) => `Spróbujemy ponownie rozliczyć tę płatność, gdy <a href="${link}">odblokujesz swoje konto</a>.`,
         withdrawalInfo: ({date, withdrawalID}: {date: string; withdrawalID: number}) => `${date} • ID wypłaty: ${withdrawalID}`,
+        partialSettlement: 'Częściowe rozliczenie',
+        partialSettlementDescription: 'Ta suma obejmuje tylko transakcje, do których wyświetlania masz uprawnienia.',
     },
     paidStatus: {markedAsPaid: 'Oznaczone jako opłacone', withdrawing: 'Wypłata', confirmed: 'Potwierdzone'},
     reportLayout: {

@@ -10312,6 +10312,8 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
         status: {pending: 'In behandeling', cleared: 'Verrekend', failed: 'Mislukt', never: 'Nooit', cashBack: 'Cashback'},
         failedError: ({link}: {link: string}) => `We proberen deze afrekening opnieuw zodra je <a href="${link}">je account ontgrendelt</a>.`,
         withdrawalInfo: ({date, withdrawalID}: {date: string; withdrawalID: number}) => `${date} • Opname-ID: ${withdrawalID}`,
+        partialSettlement: 'Gedeeltelijke afrekening',
+        partialSettlementDescription: 'Dit totaal bevat alleen de transacties die je mag bekijken.',
     },
     paidStatus: {markedAsPaid: 'Gemarkeerd als betaald', withdrawing: 'Opnemen', confirmed: 'Bevestigd'},
     reportLayout: {

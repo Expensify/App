@@ -10420,6 +10420,8 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
         status: {pending: 'En attente', cleared: 'Compensé', failed: 'Échec', never: 'Jamais', cashBack: 'Cashback'},
         failedError: ({link}: {link: string}) => `Nous réessaierons ce règlement lorsque vous <a href="${link}">déverrouillerez votre compte</a>.`,
         withdrawalInfo: ({date, withdrawalID}: {date: string; withdrawalID: number}) => `${date} • ID de retrait : ${withdrawalID}`,
+        partialSettlement: 'Règlement partiel',
+        partialSettlementDescription: 'Ce total inclut uniquement les transactions que vous êtes autorisé à consulter.',
     },
     paidStatus: {markedAsPaid: 'Marqué comme payé', withdrawing: 'Retrait en cours', confirmed: 'Confirmé'},
     reportLayout: {

@@ -10589,6 +10589,8 @@ ${reportName}`,
         status: {pending: 'Σε εκκρεμότητα', cleared: 'Εκκαθαρισμένο', failed: 'Απέτυχε', never: 'Ποτέ', cashBack: 'Επιστροφή μετρητών'},
         failedError: ({link}: {link: string}) => `Θα προσπαθήσουμε ξανά για αυτόν τον διακανονισμό όταν <a href="${link}">ξεκλειδώσετε τον λογαριασμό σας</a>.`,
         withdrawalInfo: ({date, withdrawalID}: {date: string; withdrawalID: number}) => `${date} • Αναγνωριστικό ανάληψης: ${withdrawalID}`,
+        partialSettlement: 'Μερικός διακανονισμός',
+        partialSettlementDescription: 'Αυτό το σύνολο περιλαμβάνει μόνο τις συναλλαγές που έχετε δικαίωμα να βλέπετε.',
     },
     paidStatus: {
         markedAsPaid: 'Επισημάνθηκε ως πληρωμένο',

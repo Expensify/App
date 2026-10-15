@@ -9758,6 +9758,7 @@ const CONST = {
             SAVE_FILTERS_BUTTON: 'Search-SaveFiltersButton',
             ACTION_CELL_VIEW: 'Search-ActionCellView',
             ACTION_CELL_PAY: 'Search-ActionCellPay',
+            PARTIAL_SETTLEMENT_INFO_BUTTON: 'Search-PartialSettlementInfoButton',
             ACTION_CELL_ACTION: 'Search-ActionCellAction',
             EXPENSE_REPORT_CHECKBOX: 'Search-ExpenseReportCheckbox',
             GROUP_EXPAND_TOGGLE: 'Search-GroupExpandToggle',

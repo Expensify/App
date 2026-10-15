@@ -10623,6 +10623,8 @@ const translations = {
         },
         failedError: ({link}: {link: string}) => `We'll retry this settlement when you <a href="${link}">unlock your account</a>.`,
         withdrawalInfo: ({date, withdrawalID}: {date: string; withdrawalID: number}) => `${date} • Withdrawal ID: ${withdrawalID}`,
+        partialSettlement: 'Partial settlement',
+        partialSettlementDescription: 'This total only includes the transactions you have permission to view.',
     },
     paidStatus: {
         markedAsPaid: 'Marked as paid',

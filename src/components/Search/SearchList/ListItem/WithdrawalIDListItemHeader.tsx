@@ -29,6 +29,7 @@ import {View} from 'react-native';
 import type {TransactionWithdrawalIDGroupListItemType} from './types';
 
 import ExpandCollapseArrowButton from './ExpandCollapseArrowButton';
+import PartialSettlementLabel from './PartialSettlementLabel';
 import TextCell from './TextCell';
 import TotalCell from './TotalCell';
 
@@ -93,6 +94,7 @@ function WithdrawalIDListItemHeaderImpl({
     const {debitedAmount, debitedCurrency, creditedAmount, creditedCurrency} = withdrawalIDItem;
 
     const isCashBack = !!withdrawalIDItem.isCashBack;
+    const isPartialSettlement = !!withdrawalIDItem.isPartialSettlement;
     const badgeProps = getSettlementStatusBadgeProps(withdrawalIDItem.state, translate, theme, isCashBack);
     const settlementStatus = isCashBack ? undefined : getSettlementStatus(withdrawalIDItem.state);
     const statusBadge = !!badgeProps && (
@@ -213,6 +215,7 @@ function WithdrawalIDListItemHeaderImpl({
                     total={withdrawalIDItem.total}
                     currency={withdrawalIDItem.currency}
                 />
+                {isPartialSettlement && <PartialSettlementLabel />}
             </View>
         ),
     };
@@ -258,10 +261,13 @@ function WithdrawalIDListItemHeaderImpl({
                 </View>
                 {!isLargeScreenWidth && (
                     <View style={[styles.flexShrink0, styles.flexRow, styles.alignItemsCenter]}>
-                        <TotalCell
-                            total={withdrawalIDItem.total}
-                            currency={withdrawalIDItem.currency}
-                        />
+                        <View>
+                            <TotalCell
+                                total={withdrawalIDItem.total}
+                                currency={withdrawalIDItem.currency}
+                            />
+                            {isPartialSettlement && <PartialSettlementLabel />}
+                        </View>
                         {!!onDownArrowClick && (
                             <ExpandCollapseArrowButton
                                 isExpanded={isExpanded ?? false}

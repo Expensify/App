@@ -11089,6 +11089,41 @@ describe('SearchUIUtils', () => {
             expect(response.visibility[CONST.SEARCH.SEARCH_KEYS.VIOLATIONS_BY_SUBMITTER]).toBe(true);
         });
 
+        test('Should show Cash accruals and Bank reconciliation, but no Card searches, for a Payments Admin', () => {
+            // Given a Payments Admin on a workspace with approvals, payments, a reimburser and the Expensify Card enabled
+            const paymentsAdminEmail = 'paymentsadmin@policy.com';
+            const policies: OnyxCollection<OnyxTypes.Policy> = {
+                [`policy_${policyID}`]: createMock<OnyxTypes.Policy>({
+                    id: policyID,
+                    type: CONST.POLICY.TYPE.CORPORATE,
+                    role: CONST.POLICY.ROLE.PAYMENTS_ADMIN,
+                    approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
+                    reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES,
+                    areExpensifyCardsEnabled: true,
+                    achAccount: {
+                        bankAccountID: 1,
+                        reimburser: adminEmail,
+                        state: CONST.BANK_ACCOUNT.STATE.OPEN,
+                        accountNumber: '1234567890',
+                        routingNumber: '1234567890',
+                        addressName: 'Test Address',
+                        bankName: 'Test Bank',
+                    },
+                }),
+            };
+
+            // When computing which suggested searches to show
+            const response = SearchUIUtils.getSuggestedSearchesVisibility(paymentsAdminEmail, {}, policies, undefined);
+
+            // Then the cash and bank searches appear, because the role reads every report and can pay
+            expect(response.visibility[CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_CASH]).toBe(true);
+            expect(response.visibility[CONST.SEARCH.SEARCH_KEYS.RECONCILIATION]).toBe(true);
+
+            // And Card accruals stay hidden, and Bank reconciliation defaults to reimbursements, because the role has no Card access
+            expect(response.visibility[CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_CARD]).toBe(false);
+            expect(response.shouldShowExpensifyCard).toBe(false);
+        });
+
         test('Should hide Violations by submitter for User role even on a Control policy with rules', () => {
             const policies: OnyxCollection<OnyxTypes.Policy> = {
                 [`policy_${policyID}`]: createMock<OnyxTypes.Policy>({
