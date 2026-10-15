@@ -58,9 +58,9 @@ class MainApplication : MultiDexApplication(), ReactApplication {
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
                     activity.setRecentsScreenshotEnabled(false)
                     // Third-party activities (e.g. Plaid) don't set our TaskDescription, so their recents fallback card would be black.
+                    // They don't get the cover dialog: their focus loss can't be told apart from their own popups or translucent activities.
                     if (!activity.javaClass.name.startsWith("com.expensify.")) {
                         PrivacyCover.applyTaskDescription(activity)
-                        PrivacyCover.observeWindowFocus(activity)
                     }
                 }
                 if (activity.javaClass.name == "com.plaid.internal.link.LinkActivity") {

@@ -47,21 +47,6 @@ public final class PrivacyCover {
     }
   }
 
-  // Activities we don't own (e.g. Plaid) can't override the focus callbacks, so we observe the window instead
-  public static void observeWindowFocus(Activity activity) {
-    if (!isSupported()) {
-      return;
-    }
-    activity.getWindow().getDecorView().getViewTreeObserver()
-      .addOnWindowFocusChangeListener(hasFocus -> {
-        if (hasFocus) {
-          hide(activity);
-        } else {
-          show(activity);
-        }
-      });
-  }
-
   // Recents shows this card instead of a snapshot, since snapshots are disabled for privacy.
   public static void applyTaskDescription(Activity activity) {
     if (!isSupported()) {
