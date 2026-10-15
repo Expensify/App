@@ -4118,6 +4118,11 @@ const translations = {
                 `<strong>${delegate}</strong> isn't a member of the workspaces below. Admins of the workspaces you don't manage will be asked to add them. Do you want to invite them to the ones you are an admin of now?`,
             youAreAMemberOf: 'You are a member of these workspaces:',
             youAreAnAdminOf: 'You are an admin of these workspaces:',
+            chooseDelegate: 'Choose delegate',
+            clearAfterRecommended: 'Clear after (recommended)',
+            willClearOn: (date: string) => `Vacation delegate will clear on ${date}`,
+            until: (date: string) => `Until ${date}`,
+            removeDelegate: 'Remove vacation delegate',
         },
     },
     stepCounter: (step: number, total?: number, text?: string) => {
@@ -6987,6 +6992,8 @@ const translations = {
             distanceRates: {
                 title: 'Distance rates',
                 subtitle: 'Add, update, and enforce rates.',
+                commuterExclusionsOnTitle: 'Commute exclusions are on',
+                disableLockedByCommuterExclusionsPrompt: 'To turn off Distance rates, first set Exclude commutes to “Do not exclude commutes.”',
             },
             perDiem: {
                 title: 'Per diem',
@@ -10218,6 +10225,8 @@ const translations = {
         fallbackTitle: 'Support ticket',
         resolved: 'This support ticket is resolved.',
         surveyPrompt: 'How was your support experience?',
+        great: 'Great',
+        poor: 'Poor',
         reopenTicket: 'Reopen ticket',
     },
     statementPage: {

@@ -3961,6 +3961,11 @@ ${amount} pour ${merchant} - ${date}`,
                 `<strong>${delegate}</strong> n'est pas membre des espaces de travail ci-dessous. Les administrateurs des espaces de travail que vous ne gérez pas seront invités à l'ajouter. Voulez-vous l'inviter dès maintenant à ceux dont vous êtes administrateur ?`,
             youAreAMemberOf: 'Vous êtes membre de ces espaces de travail :',
             youAreAnAdminOf: 'Vous êtes administrateur de ces espaces de travail :',
+            chooseDelegate: 'Choisir un délégué',
+            clearAfterRecommended: 'Effacer après (recommandé)',
+            willClearOn: (date: string) => `Le délégué de vacances sera supprimé le ${date}`,
+            until: (date: string) => `Jusqu’au ${date}`,
+            removeDelegate: 'Supprimer le délégué de vacances',
         },
     },
     stepCounter: (step: number, total?: number, text?: string) => {
@@ -6662,6 +6667,9 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
             distanceRates: {
                 title: 'Taux de distance',
                 subtitle: 'Ajoutez, mettez à jour et appliquez les taux.',
+                commuterExclusionsOnTitle: 'Les exclusions de trajet domicile-travail sont activées',
+                disableLockedByCommuterExclusionsPrompt:
+                    'Pour désactiver les taux de distance, commencez par définir Exclure les trajets domicile-travail sur « Ne pas exclure les trajets domicile-travail ».',
             },
             perDiem: {
                 title: 'Indemnité journalière',
@@ -10047,6 +10055,8 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
         fallbackTitle: 'Ticket d’assistance',
         resolved: 'Ce ticket d’assistance est résolu.',
         surveyPrompt: 'Comment s’est passée votre expérience avec l’assistance ?',
+        great: 'Excellente',
+        poor: 'Mauvaise',
         reopenTicket: 'Rouvrir le ticket',
     },
     statementPage: {
