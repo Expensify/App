@@ -21122,7 +21122,10 @@ describe('ReportUtils', () => {
                 comment: {comment: ''},
             });
 
-            const buildIOUAction = (transactionID: string, type: typeof CONST.IOU.REPORT_ACTION_TYPE.SPLIT | typeof CONST.IOU.REPORT_ACTION_TYPE.TRACK): ReportAction => ({
+            const buildIOUAction = (
+                transactionID: string,
+                type: typeof CONST.IOU.REPORT_ACTION_TYPE.SPLIT | typeof CONST.IOU.REPORT_ACTION_TYPE.TRACK | typeof CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+            ): ReportAction => ({
                 ...createRandomReportAction(Number(transactionID)),
                 actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
                 originalMessage: {
@@ -21195,6 +21198,37 @@ describe('ReportUtils', () => {
 
                 // Then the preview shows the tracked amount and merchant from that transaction
                 expect(result).toBe(englishTranslate('iou.trackedAmount', convertToDisplayString(1000, CONST.CURRENCY.USD), 'Taxi'));
+            });
+
+            it("reads the transaction of an IOU report's action from the report's own transactions", async () => {
+                // Given an IOU report whose expense is still being scanned. Its transaction belongs to the report,
+                // so the general path finds it in the report's transactions without a passed `linkedTransaction`.
+                const iouReport: Report = {
+                    ...LHNTestUtils.getFakeReport(),
+                    reportID: 'linked-transaction-iou-report',
+                    type: CONST.REPORT.TYPE.IOU,
+                    stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                    statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                };
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`, iouReport);
+                const iouAction = buildIOUAction('710004', CONST.IOU.REPORT_ACTION_TYPE.CREATE);
+                await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}710004`, {
+                    ...buildTransaction('710004', iouReport.reportID, CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT),
+                    amount: 0,
+                    receipt: {state: CONST.IOU.RECEIPT_STATE.SCAN_READY, source: 'receipt.jpg'},
+                });
+                await waitForBatchedUpdates();
+
+                // When the preview is built for that action
+                const result = getReportPreviewMessage(englishTranslate, convertToDisplayString, {
+                    reportOrID: iouReport,
+                    iouReportAction: iouAction,
+                    shouldConsiderScanningReceiptOrPendingRoute: true,
+                    policy: undefined,
+                });
+
+                // Then the preview shows the receipt scanning state from that transaction
+                expect(result).toBe(englishTranslate('iou.receiptScanning', {count: 1}));
             });
         });
 

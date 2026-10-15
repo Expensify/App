@@ -10,7 +10,14 @@ import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
-import {getLastVisibleActionIncludingTransactionThread, getOriginalMessage, isActionableTrackExpense, isInviteOrRemovedAction, isMoneyRequestAction} from '@libs/ReportActionsUtils';
+import {
+    getLastVisibleActionIncludingTransactionThread,
+    getOriginalMessage,
+    isActionableTrackExpense,
+    isInviteOrRemovedAction,
+    isSplitBillAction,
+    isTrackExpenseAction,
+} from '@libs/ReportActionsUtils';
 import {canUserPerformWriteAction as canUserPerformWriteActionUtil, shouldShowMarkAsDone} from '@libs/ReportUtils';
 import SidebarUtils from '@libs/SidebarUtils';
 
@@ -108,7 +115,7 @@ function OptionRowLHNData({
     const whisperTransactionID = isActionableTrackExpense(lastAction) ? getOriginalMessage(lastAction)?.transactionID : undefined;
     const [whisperTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(whisperTransactionID)}`);
 
-    const linkedTransactionID = isMoneyRequestAction(lastAction) ? getOriginalMessage(lastAction)?.IOUTransactionID : undefined;
+    const linkedTransactionID = isSplitBillAction(lastAction) || isTrackExpenseAction(lastAction) ? getOriginalMessage(lastAction)?.IOUTransactionID : undefined;
     const [linkedTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(linkedTransactionID)}`);
 
     const lastMessageTextFromReport = useMemo(() => {
