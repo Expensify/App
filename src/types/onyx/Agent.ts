@@ -1,9 +1,22 @@
+import type CONST from '@src/CONST';
+
+import type {ValueOf} from 'type-fest';
+
 import type {Errors, OnyxValueWithOfflineFeedback} from './OnyxCommon';
 
-/** Model of an agent's prompt data stored as a shared NVP */
-type AgentPrompt = OnyxValueWithOfflineFeedback<{
+/** The agent owner account type */
+type AgentOwnerType = ValueOf<typeof CONST.AGENTS.OWNER_TYPE>;
+
+/** Agent model */
+type Agent = OnyxValueWithOfflineFeedback<{
     /** The system prompt defining the agent's behavior */
     prompt: string;
+
+    /** The agent owner account ID */
+    ownerAccountID: number;
+
+    /** The agent owner account type (person, workspace or domain) */
+    ownerType: AgentOwnerType;
 
     /** Errors from the last failed action */
     errors?: Errors | null;
@@ -18,4 +31,5 @@ type AgentPrompt = OnyxValueWithOfflineFeedback<{
     avatarErrors?: Errors | null;
 }>;
 
-export default AgentPrompt;
+export type {AgentOwnerType};
+export default Agent;

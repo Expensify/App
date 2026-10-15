@@ -115,6 +115,8 @@ jest.mock('@libs/PolicyUtils', () => ({
     ...jest.requireActual<Record<string, unknown>>('@libs/PolicyUtils/policyType'),
     ...jest.requireActual<Record<string, unknown>>('@libs/PolicyUtils/permissions'),
     ...jest.requireActual<Record<string, unknown>>('@libs/PolicyUtils/workflows'),
+    ...jest.requireActual<Record<string, unknown>>('@libs/PolicyUtils/approvals'),
+    ...jest.requireActual<Record<string, unknown>>('@libs/PolicyUtils/payments'),
     isPreferredExporter: jest.fn().mockReturnValue(true),
     hasAccountingConnections: jest.fn().mockReturnValue(true),
     isPolicyAdmin: jest.fn().mockReturnValue(true),
