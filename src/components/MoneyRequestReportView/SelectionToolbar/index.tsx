@@ -1,4 +1,3 @@
-import DecisionModal from '@components/DecisionModal';
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import useShouldShowReportBulkActionBar from '@components/MoneyRequestReportView/useShouldShowReportBulkActionBar';
@@ -9,6 +8,7 @@ import BulkDuplicateHandler from '@components/Search/BulkDuplicateHandler';
 import {useSearchSelectionActions, useSearchSelectionContext} from '@components/Search/SearchContext';
 
 import useConfirmModal from '@hooks/useConfirmModal';
+import useDecisionModal from '@hooks/useDecisionModal';
 import useFilterSelectedTransactions from '@hooks/useFilterSelectedTransactions';
 import useHoldRejectEducationalModal from '@hooks/useHoldRejectEducationalModal';
 import useLocalize from '@hooks/useLocalize';
@@ -39,7 +39,7 @@ import SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
 
 import {useFocusEffect, useRoute} from '@react-navigation/native';
-import React, {useState} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 
 import SelectAllCheckbox from './SelectAllCheckbox';
@@ -89,9 +89,23 @@ function SelectionToolbar({reportID, transactions, reportActions}: SelectionTool
 
     const isMobileSelectionModeEnabled = useMobileSelectionMode();
     const {showConfirmModal} = useConfirmModal();
+    const {showDecisionModal} = useDecisionModal();
 
-    const [offlineModalVisible, setOfflineModalVisible] = useState(false);
-    const [isDownloadErrorModalVisible, setIsDownloadErrorModalVisible] = useState(false);
+    const showOfflineModal = () => {
+        showDecisionModal({
+            title: translate('common.youAppearToBeOffline'),
+            prompt: translate('common.offlinePrompt'),
+            secondOptionText: translate('common.buttonConfirm'),
+        });
+    };
+
+    const showDownloadErrorModal = () => {
+        showDecisionModal({
+            title: translate('common.downloadFailedTitle'),
+            prompt: translate('common.downloadFailedDescription'),
+            secondOptionText: translate('common.buttonConfirm'),
+        });
+    };
 
     const transactionsWithoutPendingDelete = transactions.filter((t) => !isTransactionPendingDelete(t));
     // Select All skips rejected expenses as well as ones being deleted, since their checkboxes are disabled. The list header and group headers use the same filter.
@@ -99,7 +113,7 @@ function SelectionToolbar({reportID, transactions, reportActions}: SelectionTool
 
     const beginExportWithTemplate = (templateName: string, templateType: string, transactionIDList: string[], exportName: string) => {
         if (isOffline) {
-            setOfflineModalVisible(true);
+            showOfflineModal();
             return;
         }
 
@@ -161,8 +175,8 @@ function SelectionToolbar({reportID, transactions, reportActions}: SelectionTool
         reportActions,
         allTransactionsLength: transactions.length,
         session,
-        onExportFailed: () => setIsDownloadErrorModalVisible(true),
-        onExportOffline: () => setOfflineModalVisible(true),
+        onExportFailed: showDownloadErrorModal,
+        onExportOffline: showOfflineModal,
         policy,
         beginExportWithTemplate: (templateName, templateType, transactionIDList, exportName) => beginExportWithTemplate(templateName, templateType, transactionIDList, exportName),
         onDeleteSelected,
@@ -302,24 +316,6 @@ function SelectionToolbar({reportID, transactions, reportActions}: SelectionTool
                     onClearSelection={() => clearSelectedTransactions(true)}
                 />
             )}
-            <DecisionModal
-                title={translate('common.downloadFailedTitle')}
-                prompt={translate('common.downloadFailedDescription')}
-                isSmallScreenWidth={shouldUseNarrowLayout}
-                onSecondOptionSubmit={() => setIsDownloadErrorModalVisible(false)}
-                secondOptionText={translate('common.buttonConfirm')}
-                isVisible={isDownloadErrorModalVisible}
-                onClose={() => setIsDownloadErrorModalVisible(false)}
-            />
-            <DecisionModal
-                title={translate('common.youAppearToBeOffline')}
-                prompt={translate('common.offlinePrompt')}
-                isSmallScreenWidth={shouldUseNarrowLayout}
-                onSecondOptionSubmit={() => setOfflineModalVisible(false)}
-                secondOptionText={translate('common.buttonConfirm')}
-                isVisible={offlineModalVisible}
-                onClose={() => setOfflineModalVisible(false)}
-            />
             {isHoldMenuVisible && requestType !== undefined && (
                 <ProcessMoneyReportHoldMenu
                     nonHeldAmount={!hasOnlyHeldExpenses && hasValidNonHeldAmount ? nonHeldAmount : undefined}
