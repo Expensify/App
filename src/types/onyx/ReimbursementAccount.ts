@@ -295,7 +295,9 @@ type WiseBusinessOnboarding = {
     requirements?: {
         /** Asked before Submit when a chosen industry is high risk */
         BUSINESS_SOURCE_OF_WEALTH?: {
-            sourceOfWealthList: string[];
+            sourceOfWealthList: Array<ValueOf<typeof CONST.WISE.SOURCE_OF_WEALTH>>;
+
+            /** Required when sourceOfWealthList includes OTHER */
             otherSourceOfWealthDescription?: string;
         };
     } & Record<string, Record<string, unknown>>;
