@@ -33,4 +33,3 @@ function HoldSubmitterEducationalModalWrapper({closeModal, isDM}: HoldSubmitterE
 }
 
 export default HoldSubmitterEducationalModalWrapper;
-export type {HoldSubmitterEducationalModalWrapperProps};

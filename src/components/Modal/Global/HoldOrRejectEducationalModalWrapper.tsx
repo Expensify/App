@@ -29,4 +29,3 @@ function HoldOrRejectEducationalModalWrapper({closeModal}: HoldOrRejectEducation
 }
 
 export default HoldOrRejectEducationalModalWrapper;
-export type {HoldOrRejectEducationalModalWrapperProps};
