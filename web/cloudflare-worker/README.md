@@ -117,6 +117,13 @@ The script diffs status, caching and security headers for a fixed set of paths. 
 npx wrangler deploy --env test-staging
 ```
 
+Each Worker version only contains the files uploaded with it, so before deploying, CI also adds:
+
+- **Files from the last 10 staging builds** that the current build no longer has (`scripts/carryForwardStagingBuilds.sh`). These are almost all old content-hashed chunks, which tabs still running an older build request after a deploy. Files from the current build are never replaced.
+- **Storybook**, into `dist/docs`, so it is served at `/docs/index.html`.
+
+To carry forward previous builds by hand (needs `gh`), run `./scripts/carryForwardStagingBuilds.sh 10` after putting the current build in `dist/`.
+
 Staging and production deploys will run `wrangler deploy --env staging|production` from CI, with `CLOUDFLARE_ACCOUNT_ID` and a scoped `CLOUDFLARE_API_TOKEN` supplied as environment secrets.
 
 Workers Logs are sampled in `staging` and `production` (`head_sampling_rate`), because the Worker runs for every asset request. `test-staging` logs every request.
