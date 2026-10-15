@@ -12,7 +12,6 @@ import {getCardFeedIcon} from '@libs/CardUtils';
 
 import variables from '@styles/variables';
 
-import type {CardFeed} from '@src/types/onyx/CardFeeds';
 import type {Icon as IconType} from '@src/types/onyx/OnyxCommon';
 
 import type {StyleProp, ViewStyle} from 'react-native';
@@ -27,8 +26,8 @@ import SubscriptAvatarFrame from './SubscriptAvatarFrame';
 type SubscriptCardFeedAvatarProps = BaseAvatarProps & {
     primaryAvatar: IconType;
 
-    /** Card feed to display as the subscript */
-    cardFeed: CardFeed;
+    /** Raw bank text is resolved by getCardFeedIcon, including legacy feeds and unknown values. */
+    cardFeed: string;
 
     cardFeedIconSize?: {width: number; height: number};
 

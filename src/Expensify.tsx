@@ -79,7 +79,7 @@ function Expensify() {
 
     const bootsplashSpan = useRef<Sentry.Span>(null);
 
-    const [initialUrl, setInitialUrl] = useState<Route | null | undefined>(undefined);
+    const [initialUrl, setInitialUrl] = useState<string | null | undefined>(undefined);
     const {setIsAuthenticatedAtStartup} = useInitialURLActions();
 
     useEffect(() => {
