@@ -527,7 +527,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
                                 <>
                                     <View style={[styles.ph5, styles.pt3, styles.pb1]}>
                                         <Text style={StyleUtils.combineStyles([styles.sidebarLinkText, styles.optionAlternateText, styles.textLabelSupporting])}>
-                                            {translate('common.bankAccounts')}
+                                            {translate('common.bankAccount')}
                                         </Text>
                                     </View>
                                     <MenuItem.Root>
