@@ -81,7 +81,7 @@ function WorkspaceOfficeLocationEditPage({route}: WorkspaceOfficeLocationEditPag
             if (result.action !== ModalActions.CONFIRM) {
                 return;
             }
-            deleteOfficeLocation(policyID, officeID);
+            deleteOfficeLocation(policyID, officeID, officeLocation);
             Navigation.goBack();
         });
     };

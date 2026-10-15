@@ -312,7 +312,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
     };
 
     const navigateToProfile = () => {
-        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.PROFILE.getRoute(accountID)));
+        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.PROFILE.getRoute(accountID, undefined, policyID)));
     };
 
     const navigateToDetails = (card: MemberCard) => {
@@ -428,20 +428,15 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
                                 }}
                             />
                             {shouldShowOfficeLocation && (
-                                <MenuItemWithTopDescription
-                                    disabled={!canChangeOfficeLocation}
-                                    title={
+                                <MenuItemField
+                                    name={translate('workspace.people.officeLocation')}
+                                    onPress={canChangeOfficeLocation ? () => Navigation.navigate(ROUTES.WORKSPACE_MEMBER_OFFICE_LOCATION.getRoute(policyID, accountID)) : undefined}
+                                    testID="member-office-location-menu-item"
+                                    value={
                                         memberOfficeLocation
                                             ? translate('workspace.people.officeLocationWithAddress', {name: memberOfficeLocation.name, address: memberOfficeLocation.address})
                                             : ''
                                     }
-                                    interactive={canChangeOfficeLocation}
-                                    description={translate('workspace.people.officeLocation')}
-                                    shouldShowRightIcon={canChangeOfficeLocation}
-                                    shouldGreyOutWhenDisabled={false}
-                                    shouldUseDefaultCursorWhenDisabled
-                                    pressableTestID="member-office-location-menu-item"
-                                    onPress={() => Navigation.navigate(ROUTES.WORKSPACE_MEMBER_OFFICE_LOCATION.getRoute(policyID, accountID))}
                                 />
                             )}
                             {policy?.commuterExclusions?.method === CONST.POLICY.COMMUTER_EXCLUSION_METHOD.HOME_AND_OFFICE && isWorkArrangementBetaEnabled && (

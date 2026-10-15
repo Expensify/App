@@ -255,7 +255,7 @@ describe('actions/PolicyOfficeLocation', () => {
         it('shows the office as pending deletion and removes it on success', async () => {
             // When the office is deleted while the request is in flight
             mockFetch?.pause?.();
-            deleteOfficeLocation(policyID, 'OFFICE1');
+            deleteOfficeLocation(policyID, 'OFFICE1', HEADQUARTERS);
             await waitForBatchedUpdates();
 
             // Then it shows as pending deletion
@@ -272,7 +272,7 @@ describe('actions/PolicyOfficeLocation', () => {
         it('restores the office with an error when the deletion fails', async () => {
             // When deleting the office fails
             mockFetch?.fail?.();
-            deleteOfficeLocation(policyID, 'OFFICE1');
+            deleteOfficeLocation(policyID, 'OFFICE1', HEADQUARTERS);
             await waitForBatchedUpdates();
 
             // Then the office is back, with an error explaining it wasn't deleted
@@ -280,6 +280,44 @@ describe('actions/PolicyOfficeLocation', () => {
             expect(officeLocation?.name).toBe('Headquarters');
             expect(officeLocation?.pendingAction).toBeFalsy();
             expect(Object.keys(officeLocation?.errors ?? {}).length).toBeGreaterThan(0);
+        });
+
+        it('removes an office whose addition failed without asking the server to delete it', async () => {
+            // Given an office whose addition failed, so the server never stored it
+            const failedOffice: OfficeLocation = {...HEADQUARTERS, isDefault: false, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD, errors: {addFailed: 'Something went wrong'}};
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {officeLocations: {OFFICE2: failedOffice}});
+
+            // When it is deleted
+            deleteOfficeLocation(policyID, 'OFFICE2', failedOffice);
+            await waitForBatchedUpdates();
+
+            // Then it is removed right away, without a request for an office the server doesn't have
+            expect((await getPolicy(policyID))?.officeLocations?.OFFICE2).toBeUndefined();
+            expect(TestHelper.getFetchMockCalls(WRITE_COMMANDS.DELETE_OFFICE_LOCATION)).toHaveLength(0);
+        });
+
+        it('keeps an unsaved office pending addition when deleting it fails, so dismissing the error still removes it', async () => {
+            // Given an office still waiting to be added
+            const unsavedOffice: OfficeLocation = {...HEADQUARTERS, isDefault: false, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD};
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {officeLocations: {OFFICE2: unsavedOffice}});
+
+            // When deleting it fails
+            mockFetch?.fail?.();
+            deleteOfficeLocation(policyID, 'OFFICE2', unsavedOffice);
+            await waitForBatchedUpdates();
+
+            // Then it is still pending addition, with an error
+            let officeLocation = (await getPolicy(policyID))?.officeLocations?.OFFICE2;
+            expect(officeLocation?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
+            expect(Object.keys(officeLocation?.errors ?? {}).length).toBeGreaterThan(0);
+
+            // When the error is dismissed
+            clearOfficeLocationErrors(policyID, 'OFFICE2', officeLocation?.pendingAction);
+            await waitForBatchedUpdates();
+
+            // Then the office is removed instead of counting as a saved one
+            officeLocation = (await getPolicy(policyID))?.officeLocations?.OFFICE2;
+            expect(officeLocation).toBeUndefined();
         });
     });
 });

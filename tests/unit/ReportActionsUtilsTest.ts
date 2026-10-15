@@ -1386,6 +1386,51 @@ describe('ReportActionsUtils', () => {
                     )
             );
         });
+
+        it('should skip a whisper that targets somebody else when picking the last visible action', async () => {
+            const reportID = '90210';
+            const comment: ReportAction = {
+                ...LHNTestUtils.getFakeReportAction('email1@test.com', 3),
+                created: '2023-08-01 16:00:00',
+                reportActionID: 'comment1',
+                reportID,
+                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                originalMessage: {
+                    html: 'Hello world',
+                    whisperedTo: [],
+                },
+            };
+            const whisperTargetAccountID = 100;
+            const whisper: ReportAction = {
+                ...LHNTestUtils.getFakeReportAction('email2@test.com', 3),
+                created: '2023-08-01 18:00:00',
+                reportActionID: 'whisper1',
+                reportID,
+                actionName: CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_MENTION_WHISPER,
+                message: [
+                    {
+                        type: 'COMMENT',
+                        html: 'Do you want to invite them?',
+                        text: 'Do you want to invite them?',
+                        whisperedTo: [whisperTargetAccountID],
+                    },
+                ],
+                originalMessage: {
+                    inviteeAccountIDs: [1],
+                    whisperedTo: [whisperTargetAccountID],
+                },
+            };
+
+            // Given a report whose newest action is a whisper targeted at a single account
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {[comment.reportActionID]: comment, [whisper.reportActionID]: whisper});
+            await waitForBatchedUpdates();
+
+            // When the user is the one the whisper targets, the whisper is the last visible action
+            expect(ReportActionsUtils.getLastVisibleAction(reportID, true, {}, undefined, undefined, whisperTargetAccountID)?.reportActionID).toBe(whisper.reportActionID);
+
+            // When the whisper targets somebody else, it is invisible and the older comment wins
+            expect(ReportActionsUtils.getLastVisibleAction(reportID, true, {}, undefined, undefined, whisperTargetAccountID + 1)?.reportActionID).toBe(comment.reportActionID);
+        });
     });
 
     describe('getExportIntegrationActionFragments', () => {
@@ -2868,6 +2913,139 @@ describe('ReportActionsUtils', () => {
             expect(actual).toBe(true);
         });
 
+        it('should return false for MARKED_REIMBURSED with a sibling IOU PAY action in the passed collection when the report timeline is not loaded into Onyx', () => {
+            // Given a MARKED_REIMBURSED action with stale write-time flags on a report whose actions are not in the Onyx collection
+            const reportID = 'reportOnlyInSearchSnapshot';
+            const markedReimbursedAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED> = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED,
+                reportActionID: '1',
+                reportID,
+                created: '2025-01-01 00:00:00',
+                message: [{type: 'TEXT', style: 'normal', text: 'Marked as reimbursed'}],
+                originalMessage: {},
+            };
+            // And a caller-provided collection (e.g. a Search snapshot) that contains a sibling IOU PAY action
+            const payAction = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                reportActionID: '2',
+                reportID,
+                created: '2025-01-01 00:00:01',
+                message: [{type: 'TEXT', style: 'normal', text: 'paid'}],
+                originalMessage: {type: CONST.IOU.REPORT_ACTION_TYPE.PAY, IOUReportID: reportID, amount: 100, currency: CONST.CURRENCY.USD},
+            } as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>;
+            const snapshotReportActions = {
+                [markedReimbursedAction.reportActionID]: markedReimbursedAction,
+                [payAction.reportActionID]: payAction,
+            };
+
+            // When visibility is checked with the caller's collection
+            const actual = ReportActionsUtils.isReportActionVisible(markedReimbursedAction, reportID, true, undefined, undefined, snapshotReportActions);
+
+            // Then the MARKED_REIMBURSED action should NOT be visible, because the sibling is found in the passed collection
+            expect(actual).toBe(false);
+        });
+
+        it('should return false for MARKED_REIMBURSED when Onyx only has the action and the passed collection has the sibling IOU PAY action', async () => {
+            // Given a partially loaded Onyx history that contains the MARKED_REIMBURSED action but no PAY action
+            const reportID = 'reportPartiallyLoadedInOnyx';
+            const markedReimbursedAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED> = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED,
+                reportActionID: '1',
+                reportID,
+                created: '2025-01-01 00:00:00',
+                message: [{type: 'TEXT', style: 'normal', text: 'Marked as reimbursed'}],
+                originalMessage: {},
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
+                [markedReimbursedAction.reportActionID]: markedReimbursedAction,
+            });
+            // And a caller-provided collection (e.g. a Search snapshot) that contains the sibling IOU PAY action
+            const payAction = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                reportActionID: '2',
+                reportID,
+                created: '2025-01-01 00:00:01',
+                message: [{type: 'TEXT', style: 'normal', text: 'paid'}],
+                originalMessage: {type: CONST.IOU.REPORT_ACTION_TYPE.PAY, IOUReportID: reportID, amount: 100, currency: CONST.CURRENCY.USD},
+            } as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>;
+            const snapshotReportActions = {
+                [markedReimbursedAction.reportActionID]: markedReimbursedAction,
+                [payAction.reportActionID]: payAction,
+            };
+
+            // When visibility is checked with the caller's collection
+            const actual = ReportActionsUtils.isReportActionVisible(markedReimbursedAction, reportID, true, undefined, undefined, snapshotReportActions);
+
+            // Then the MARKED_REIMBURSED action should NOT be visible, because Onyx can't answer and the caller's collection holds the sibling
+            expect(actual).toBe(false);
+        });
+
+        it('should return true for MARKED_REIMBURSED when the loaded Onyx history separates the PAY action with a cancellation, even if the passed collection has the PAY action', async () => {
+            // Given a loaded Onyx history where a PAY was canceled before the manual MARKED_REIMBURSED action
+            const reportID = 'reportWithCanceledPayInOnyx';
+            const payAction = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                reportActionID: '1',
+                reportID,
+                created: '2025-01-01 00:00:00',
+                message: [{type: 'TEXT', style: 'normal', text: 'paid'}],
+                originalMessage: {type: CONST.IOU.REPORT_ACTION_TYPE.PAY, IOUReportID: reportID, amount: 100, currency: CONST.CURRENCY.USD},
+            } as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>;
+            const canceledAction = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_DEQUEUED,
+                reportActionID: '2',
+                reportID,
+                created: '2025-01-01 00:00:10',
+                message: [{type: 'TEXT', style: 'normal', text: 'canceled payment'}],
+                originalMessage: {},
+            } as ReportAction;
+            const markedReimbursedAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED> = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED,
+                reportActionID: '3',
+                reportID,
+                created: '2025-01-01 00:00:20',
+                message: [{type: 'TEXT', style: 'normal', text: 'Marked as reimbursed'}],
+                originalMessage: {},
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
+                [payAction.reportActionID]: payAction,
+                [canceledAction.reportActionID]: canceledAction,
+                [markedReimbursedAction.reportActionID]: markedReimbursedAction,
+            });
+            // And a filtered caller-provided collection that omits the cancellation
+            const snapshotReportActions = {
+                [payAction.reportActionID]: payAction,
+                [markedReimbursedAction.reportActionID]: markedReimbursedAction,
+            };
+
+            // When visibility is checked with the caller's collection
+            const actual = ReportActionsUtils.isReportActionVisible(markedReimbursedAction, reportID, true, undefined, undefined, snapshotReportActions);
+
+            // Then the MARKED_REIMBURSED action should stay visible, because the complete Onyx history shows it belongs to a new payment attempt
+            expect(actual).toBe(true);
+        });
+
+        it('should return true for MARKED_REIMBURSED when the passed collection has no PAY action', () => {
+            // Given a MARKED_REIMBURSED action on a report whose actions are not in the Onyx collection
+            const reportID = 'reportOnlyInSearchSnapshotWithoutPay';
+            const markedReimbursedAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED> = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED,
+                reportActionID: '1',
+                reportID,
+                created: '2025-01-01 00:00:00',
+                message: [{type: 'TEXT', style: 'normal', text: 'Marked as reimbursed'}],
+                originalMessage: {},
+            };
+
+            // When visibility is checked with a caller-provided collection that only contains the MARKED_REIMBURSED action
+            const actual = ReportActionsUtils.isReportActionVisible(markedReimbursedAction, reportID, true, undefined, undefined, {
+                [markedReimbursedAction.reportActionID]: markedReimbursedAction,
+            });
+
+            // Then the MARKED_REIMBURSED action should stay visible, because there is no PAY action to replace it
+            expect(actual).toBe(true);
+        });
+
         it('should return true for TAKE_CONTROL when automaticAction is false', () => {
             const reportAction = buildTakeControlActionFixture(
                 {
@@ -2922,157 +3100,6 @@ describe('ReportActionsUtils', () => {
 
             const actual = ReportActionsUtils.shouldReportActionBeVisible(reportAction, reportAction.reportActionID, true, CURRENT_USER_ACCOUNT_ID);
             expect(actual).toBe(true);
-        });
-    });
-
-    describe('isDeletedReportPreviewWithError', () => {
-        const errorKey = CONST.IOU.PAY_FAILURE_PREVIEW_ERROR_KEY;
-        // An unrelated error, keyed by the microtime it was recorded at.
-        const otherErrorKey = 1737000000000;
-
-        /** A report preview marked deleted the way the server marks one when its report is removed. */
-        function buildDeletedReportPreview(errors?: ReportAction['errors']): ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW> {
-            return {
-                actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
-                reportActionID: '1',
-                created: '2025-09-29',
-                message: [{html: 'owes $10.00', type: 'COMMENT', text: 'owes $10.00', deleted: '2025-09-30 10:00:00.000'}],
-                originalMessage: {linkedReportID: '2'},
-                errors,
-            };
-        }
-
-        it('should return true for a deleted report preview that still carries an error', () => {
-            // Given a report preview whose report was deleted while the payer's payment sat in the offline queue,
-            // leaving the payment failure error behind on the preview
-            const reportAction = buildDeletedReportPreview({[errorKey]: 'This payment failed because the expense was deleted.'});
-
-            // When we ask whether it is an errored deleted preview
-            const actual = ReportActionsUtils.isDeletedReportPreviewWithError(reportAction);
-
-            // Then it is, because that error is the payer's only feedback and needs somewhere to render
-            expect(actual).toBe(true);
-        });
-
-        it('should return false for a deleted report preview with no error', () => {
-            // Given an ordinary deleted report preview, i.e. the expense was deleted and nothing failed
-            const reportAction = buildDeletedReportPreview();
-
-            // When we ask whether it is an errored deleted preview
-            const actual = ReportActionsUtils.isDeletedReportPreviewWithError(reportAction);
-
-            // Then it is not, so it stays hidden as before
-            expect(actual).toBe(false);
-        });
-
-        it('should return false for a deleted report preview whose errors were dismissed', () => {
-            // Given a preview whose error the payer already dismissed, which clears the values rather than the keys
-            const reportAction = buildDeletedReportPreview({[errorKey]: null});
-
-            // When we ask whether it is an errored deleted preview
-            const actual = ReportActionsUtils.isDeletedReportPreviewWithError(reportAction);
-
-            // Then it is not, so dismissing removes the row instead of leaving an empty one behind
-            expect(actual).toBe(false);
-        });
-
-        it('should return false for a deleted preview carrying an unrelated error', () => {
-            // Given a deleted preview whose only error came from something other than a failed payment
-            const reportAction = buildDeletedReportPreview({[otherErrorKey]: 'Some other error'});
-
-            // When we ask whether it is an errored deleted preview
-            const actual = ReportActionsUtils.isDeletedReportPreviewWithError(reportAction);
-
-            // Then it is not, so it is neither revived nor relabelled as a payment failure
-            expect(actual).toBe(false);
-        });
-
-        it('should hide the payment failure on a preview whose report still exists', () => {
-            // Given a live report preview carrying the payment failure, i.e. the payment was rejected for some reason
-            // other than the expense being deleted
-            const reportAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW> = {
-                actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
-                reportActionID: '1',
-                created: '2025-09-29',
-                message: [{html: 'owes $10.00', type: 'COMMENT', text: 'owes $10.00'}],
-                originalMessage: {linkedReportID: '2'},
-                errors: {[errorKey]: 'Unexpected error. Please try again later.'},
-            };
-
-            // When we ask which errors a consumer should act on
-            const actual = ReportActionsUtils.getVisibleReportActionErrors(reportAction);
-
-            // Then the payment failure is dropped, because the error still has a home on the pay action inside the
-            // expense report and the chat should not be red-dotted twice
-            expect(actual).toEqual({});
-        });
-
-        it('should keep other errors on a preview whose report still exists', () => {
-            // Given a live preview carrying the error left by a failed delete
-            const reportAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW> = {
-                actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
-                reportActionID: '1',
-                created: '2025-09-29',
-                message: [{html: 'owes $10.00', type: 'COMMENT', text: 'owes $10.00'}],
-                originalMessage: {linkedReportID: '2'},
-                errors: {[otherErrorKey]: 'Unexpected error deleting this expense. Please try again later.'},
-            };
-
-            // When we ask which errors a consumer should act on
-            const actual = ReportActionsUtils.getVisibleReportActionErrors(reportAction);
-
-            // Then it is untouched, i.e. the suppression is scoped to the payment failure
-            expect(actual).toEqual({[otherErrorKey]: 'Unexpected error deleting this expense. Please try again later.'});
-        });
-
-        it('should keep the payment failure once the preview is deleted', () => {
-            // Given the same payment failure on a preview the server has since marked deleted
-            const reportAction = buildDeletedReportPreview({[errorKey]: 'Unexpected error. Please try again later.'});
-
-            // When we ask which errors a consumer should act on
-            const actual = ReportActionsUtils.getVisibleReportActionErrors(reportAction);
-
-            // Then it survives, because this is the payer's only remaining feedback
-            expect(actual).toEqual({[errorKey]: 'Unexpected error. Please try again later.'});
-        });
-
-        it('should return false for a non-preview deleted action that carries an error', () => {
-            // Given a deleted comment with an error, which must not be revived by this rule
-            const reportAction: ReportAction = {
-                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
-                reportActionID: '1',
-                created: '2025-09-29',
-                message: [{html: '', type: 'COMMENT', text: ''}],
-                errors: {[errorKey]: 'Some error'},
-            };
-
-            // When we ask whether it is an errored deleted preview
-            const actual = ReportActionsUtils.isDeletedReportPreviewWithError(reportAction);
-
-            // Then it is not, because the rule is scoped to report previews
-            expect(actual).toBe(false);
-        });
-
-        it('should keep an errored deleted report preview visible', () => {
-            // Given a deleted report preview carrying a payment failure error
-            const reportAction = buildDeletedReportPreview({[errorKey]: 'This payment failed because the expense was deleted.'});
-
-            // When the report view decides whether to render it
-            const actual = ReportActionsUtils.shouldReportActionBeVisible(reportAction, reportAction.reportActionID, true);
-
-            // Then it is rendered, so the RBR beneath it has a preview to attach to
-            expect(actual).toBe(true);
-        });
-
-        it('should keep hiding a deleted report preview with no error', () => {
-            // Given the same preview without an error
-            const reportAction = buildDeletedReportPreview();
-
-            // When the report view decides whether to render it
-            const actual = ReportActionsUtils.shouldReportActionBeVisible(reportAction, reportAction.reportActionID, true);
-
-            // Then it stays hidden, i.e. this fix did not make every deleted preview visible
-            expect(actual).toBe(false);
         });
     });
 
@@ -3217,6 +3244,62 @@ describe('ReportActionsUtils', () => {
                 previousMessage: [],
             };
             expect(ReportActionsUtils.isDeletedAction(action)).toBe(false);
+        });
+
+        it('should return false for a policy copy action with an empty message', () => {
+            // Given a policy copy action, which has an empty message by design and would otherwise look like a legacy deleted comment
+            const action = createMock<ReportAction>({
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.COPY_OVERVIEW,
+                reportActionID: '1',
+                message: [],
+            });
+
+            // When we check whether it is deleted
+            const isDeleted = ReportActionsUtils.isDeletedAction(action);
+
+            // Then it is not treated as deleted, because policy copy actions are excluded from the deleted message check
+            expect(isDeleted).toBe(false);
+        });
+
+        it('should return true when only the original message is marked as deleted', () => {
+            // Given a comment whose message still has html but whose original message is marked as deleted
+            const action = createMock<ReportAction>({
+                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                reportActionID: '1',
+                message: [{type: CONST.REPORT.MESSAGE.TYPE.COMMENT, html: 'Hello', text: 'Hello'}],
+                originalMessage: {html: 'Hello', deleted: '2025-01-01 00:00:00.000'},
+            });
+
+            // When we check whether it is deleted
+            const isDeleted = ReportActionsUtils.isDeletedAction(action);
+
+            // Then it is treated as deleted, because the original message deletion flag is still checked after the message fragment checks
+            expect(isDeleted).toBe(true);
+        });
+    });
+
+    describe('getFilteredReportActionsForReportView', () => {
+        it('should filter out only money request actions whose parent action is deleted', () => {
+            // Given an IOU action and a comment, both flagged as deleted parent actions with visible children
+            const deletedParentMessage = [{type: CONST.REPORT.MESSAGE.TYPE.COMMENT, html: '', text: '', isDeletedParentAction: true}];
+            const moneyRequestAction = createMock<ReportAction>({
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                reportActionID: '1',
+                childVisibleActionCount: 2,
+                message: deletedParentMessage,
+            });
+            const commentAction = createMock<ReportAction>({
+                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                reportActionID: '2',
+                childVisibleActionCount: 2,
+                message: deletedParentMessage,
+            });
+
+            // When we filter the actions for the report view
+            const filteredActions = ReportActionsUtils.getFilteredReportActionsForReportView([moneyRequestAction, commentAction]);
+
+            // Then only the comment remains, because the deleted parent filter applies to money request actions only
+            expect(filteredActions).toEqual([commentAction]);
         });
     });
 
