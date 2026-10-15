@@ -1979,6 +1979,15 @@ type SettingsNavigatorParamList = {
         policyID: string;
         ruleID?: undefined;
     };
+    [SCREENS.WORKSPACE.DYNAMIC_RULES_CATEGORY_TO_MATCH]: {
+        policyID: string;
+        ruleID?: undefined;
+        categoryName?: undefined;
+    };
+    [SCREENS.WORKSPACE.DYNAMIC_RULES_TAG_TO_MATCH]: {
+        policyID: string;
+        ruleID?: undefined;
+    };
     [SCREENS.WORKSPACE.DYNAMIC_RULES_MERCHANT_PREVIEW_MATCHES]: {
         policyID: string;
         ruleID?: undefined;

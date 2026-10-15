@@ -1068,6 +1068,8 @@ const SCREENS = {
         DYNAMIC_RULES_MERCHANT_REIMBURSABLE: 'Dynamic_Rules_Merchant_Reimbursable',
         DYNAMIC_RULES_MERCHANT_BILLABLE: 'Dynamic_Rules_Merchant_Billable',
         DYNAMIC_RULES_MERCHANT_AMOUNT: 'Dynamic_Rules_Merchant_Amount',
+        DYNAMIC_RULES_CATEGORY_TO_MATCH: 'Dynamic_Rules_Category_To_Match',
+        DYNAMIC_RULES_TAG_TO_MATCH: 'Dynamic_Rules_Tag_To_Match',
         DYNAMIC_RULES_MERCHANT_PREVIEW_MATCHES: 'Dynamic_Rules_Merchant_Preview_Matches',
         RULES_SPEND_MERCHANTS: 'Rules_Spend_Merchants',
         RULES_SPEND_MERCHANT_EDIT: 'Rules_Spend_Merchant_Edit',

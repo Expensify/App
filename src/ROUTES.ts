@@ -1205,6 +1205,14 @@ const DYNAMIC_ROUTES = {
         path: 'rule-amount',
         entryScreens: [SCREENS.WORKSPACE.DYNAMIC_RULES_MERCHANT_NEW],
     },
+    RULES_CATEGORY_TO_MATCH_FROM_EXPENSE: {
+        path: 'rule-category-to-match',
+        entryScreens: [SCREENS.WORKSPACE.DYNAMIC_RULES_MERCHANT_NEW],
+    },
+    RULES_TAG_TO_MATCH_FROM_EXPENSE: {
+        path: 'rule-tag-to-match',
+        entryScreens: [SCREENS.WORKSPACE.DYNAMIC_RULES_MERCHANT_NEW],
+    },
     RULES_MERCHANT_PREVIEW_MATCHES_FROM_EXPENSE: {
         path: 'rule-matches',
         entryScreens: [SCREENS.WORKSPACE.DYNAMIC_RULES_MERCHANT_NEW],

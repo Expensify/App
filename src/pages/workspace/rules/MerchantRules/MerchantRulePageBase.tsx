@@ -481,7 +481,7 @@ function MerchantRulePageBase({
         const hasDuplicate = checkForDuplicateRule(form);
         if (hasDuplicate) {
             // A duplicate does not have to match on a merchant, so the prompt names the first condition the two share.
-            const duplicateCondition = [form.merchantToMatch, categoriesToMatchDisplayName, form.tagsToMatch?.join(', ')].find(Boolean) ?? '';
+            const duplicateCondition = [form.merchantToMatch, categoriesToMatchDisplayName, tagsToMatchDisplayName].find(Boolean) ?? '';
             showConfirmModal({
                 title: translate('workspace.rules.merchantRules.duplicateRuleTitle'),
                 prompt: translate('workspace.rules.merchantRules.duplicateRulePrompt', duplicateCondition),
@@ -546,7 +546,10 @@ function MerchantRulePageBase({
                           description: translate('common.category'),
                           required: isScopedToCategory,
                           title: categoriesToMatchDisplayName,
-                          onPress: () => Navigation.navigate(ROUTES.RULES_CATEGORY_TO_MATCH.getRoute(policyID, ruleID, editCategoryTaxRuleFor)),
+                          onPress: () =>
+                              Navigation.navigate(
+                                  getRuleRoute(DYNAMIC_ROUTES.RULES_CATEGORY_TO_MATCH_FROM_EXPENSE.path, ROUTES.RULES_CATEGORY_TO_MATCH.getRoute(policyID, ruleID, editCategoryTaxRuleFor)),
+                              ),
                           isLocked: isCategoryLocked,
                           icon: icons.Folder,
                       }
@@ -557,7 +560,7 @@ function MerchantRulePageBase({
                           key: 'tagsToMatch',
                           description: translate('common.tag'),
                           title: tagsToMatchDisplayName,
-                          onPress: () => Navigation.navigate(ROUTES.RULES_TAG_TO_MATCH.getRoute(policyID, ruleID)),
+                          onPress: () => Navigation.navigate(getRuleRoute(DYNAMIC_ROUTES.RULES_TAG_TO_MATCH_FROM_EXPENSE.path, ROUTES.RULES_TAG_TO_MATCH.getRoute(policyID, ruleID))),
                           icon: icons.Tag,
                       },
             ],

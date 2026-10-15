@@ -1,3 +1,4 @@
+import ActivityIndicator from '@components/ActivityIndicator';
 import BlockingView from '@components/BlockingViews/BlockingView';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
@@ -9,6 +10,7 @@ import type {ListItem} from '@components/SelectionList/types';
 
 import useInitialSelection from '@hooks/useInitialSelection';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
+import useLoadPolicyTags from '@hooks/useLoadPolicyTags';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useSearchResults from '@hooks/useSearchResults';
@@ -27,7 +29,7 @@ import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {PolicyTagLists} from '@src/types/onyx';
 import getEmptyArray from '@src/types/utils/getEmptyArray';
@@ -35,8 +37,11 @@ import getEmptyArray from '@src/types/utils/getEmptyArray';
 import type {ValueOf} from 'type-fest';
 
 import React, {useState} from 'react';
+import {View} from 'react-native';
 
-type AddTagToMatchPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.RULES_TAG_TO_MATCH>;
+import useMerchantRuleRoute from './useMerchantRuleRoute';
+
+type AddTagToMatchPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.RULES_TAG_TO_MATCH | typeof SCREENS.WORKSPACE.DYNAMIC_RULES_TAG_TO_MATCH>;
 
 type TagListItem = ListItem & {
     value: string;
@@ -44,10 +49,14 @@ type TagListItem = ListItem & {
 
 function AddTagToMatchPage({route}: AddTagToMatchPageProps) {
     const {policyID, ruleID} = route.params;
+    const {backToRoute} = useMerchantRuleRoute(DYNAMIC_ROUTES.RULES_TAG_TO_MATCH_FROM_EXPENSE.path, policyID, ruleID);
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
     const illustrations = useMemoizedLazyIllustrations(['Telescope']);
 
+    // Tags are lazy loaded, so a picker that only reads Onyx shows an empty list on an account that has never
+    // opened the tags page.
+    const {isLoadingPolicyTags} = useLoadPolicyTags(policyID);
     const [form] = useOnyx(ONYXKEYS.FORMS.MERCHANT_RULE_FORM);
     const [policyTagLists = getEmptyArray<ValueOf<PolicyTagLists>>()] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`, {selector: getTagLists});
 
@@ -105,8 +114,6 @@ function AddTagToMatchPage({route}: AddTagToMatchPageProps) {
         setSelectedTags((previous) => Array.from(new Set([...previous, ...visibleValues])));
     };
 
-    // Passed explicitly like every sibling picker, so a deep link has somewhere to pop to.
-    const backToRoute = !ruleID || ruleID === ROUTES.NEW ? ROUTES.RULES_MERCHANT_NEW.getRoute(policyID) : ROUTES.RULES_MERCHANT_EDIT.getRoute(policyID, ruleID);
     const goBackToRule = () => Navigation.goBack(backToRoute);
 
     const handleSave = () => {
@@ -125,45 +132,51 @@ function AddTagToMatchPage({route}: AddTagToMatchPageProps) {
                 title={translate('common.tag')}
                 onBackButtonPress={goBackToRule}
             />
-            <SelectionList
-                canSelectMultiple
-                shouldUpdateFocusedIndex
-                ListItem={MultiSelectListItem}
-                data={filteredTagItems}
-                selectedItems={selectedTags}
-                shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
-                onSelectRow={toggleTag}
-                onSelectionButtonPress={toggleTag}
-                onSelectAll={filteredTagItems.length > 0 ? toggleSelectAll : undefined}
-                textInputOptions={{
-                    value: inputValue,
-                    label: translate('common.search'),
-                    onChangeText: setInputValue,
-                }}
-                style={{
-                    listHeaderWrapperStyle: [styles.pt5, styles.pb2],
-                    listHeaderSelectAllTextStyle: [styles.textLabelSupporting],
-                }}
-                listEmptyContent={
-                    <ScrollView contentContainerStyle={[styles.flexGrow1]}>
-                        <BlockingView
-                            icon={illustrations.Telescope}
-                            iconWidth={variables.emptyListIconWidth}
-                            iconHeight={variables.emptyListIconHeight}
-                            title={translate('common.noResultsFound')}
+            {isLoadingPolicyTags ? (
+                <View style={[styles.flex1, styles.justifyContentCenter, styles.alignItemsCenter]}>
+                    <ActivityIndicator size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE} />
+                </View>
+            ) : (
+                <SelectionList
+                    canSelectMultiple
+                    shouldUpdateFocusedIndex
+                    ListItem={MultiSelectListItem}
+                    data={filteredTagItems}
+                    selectedItems={selectedTags}
+                    shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
+                    onSelectRow={toggleTag}
+                    onSelectionButtonPress={toggleTag}
+                    onSelectAll={filteredTagItems.length > 0 ? toggleSelectAll : undefined}
+                    textInputOptions={{
+                        value: inputValue,
+                        label: translate('common.search'),
+                        onChangeText: setInputValue,
+                    }}
+                    style={{
+                        listHeaderWrapperStyle: [styles.pt5, styles.pb2],
+                        listHeaderSelectAllTextStyle: [styles.textLabelSupporting],
+                    }}
+                    listEmptyContent={
+                        <ScrollView contentContainerStyle={[styles.flexGrow1]}>
+                            <BlockingView
+                                icon={illustrations.Telescope}
+                                iconWidth={variables.emptyListIconWidth}
+                                iconHeight={variables.emptyListIconHeight}
+                                title={translate('common.noResultsFound')}
+                            />
+                        </ScrollView>
+                    }
+                    footerContent={
+                        <FormAlertWithSubmitButton
+                            buttonText={translate('common.save')}
+                            isAlertVisible={false}
+                            onSubmit={handleSave}
+                            enabledWhenOffline
+                            containerStyles={[styles.flexReset, styles.flexGrow0, styles.flexShrink0, styles.flexBasisAuto]}
                         />
-                    </ScrollView>
-                }
-                footerContent={
-                    <FormAlertWithSubmitButton
-                        buttonText={translate('common.save')}
-                        isAlertVisible={false}
-                        onSubmit={handleSave}
-                        enabledWhenOffline
-                        containerStyles={[styles.flexReset, styles.flexGrow0, styles.flexShrink0, styles.flexBasisAuto]}
-                    />
-                }
-            />
+                    }
+                />
+            )}
         </ScreenWrapper>
     );
 }

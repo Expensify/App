@@ -20,7 +20,7 @@ import useSearchResults from '@hooks/useSearchResults';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {updateDraftMerchantRule} from '@libs/actions/User';
-import {categoryHasTaxRule} from '@libs/CategoryTaxRulesUtils';
+import {categoryHasTaxRule, isCategoryRuleDraft} from '@libs/CategoryTaxRulesUtils';
 import {getDecodedCategoryName} from '@libs/CategoryUtils';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import Navigation from '@libs/Navigation/Navigation';
@@ -66,10 +66,15 @@ function AddCategoryToMatchPage({route}: AddCategoryToMatchPageProps) {
         isLoading: arePolicyCategoriesLoading,
     } = usePolicyCategoryPickerCategories({
         policyID,
-        // Keep current selections so they stay removable; don't offer a category that already has a tax default.
-        // The rule being edited stays listed even once the selection moves off it, since its own category still has a
-        // tax rule and would otherwise drop out of the list with no way to switch back.
-        isEligible: (category) => selectedCategories.includes(category.name) || category.name === editingCategoryName || !categoryHasTaxRule(policy?.rules?.expenseRules, category.name),
+        // One category holds one tax default, so a category that already has one is not offered again. An ordinary
+        // rule only matches on the category, so it can pick any of them.
+        // Keep current selections so they stay removable. The rule being edited stays listed even once the selection
+        // moves off it, since its own category still has a tax rule and would otherwise drop out with no way back.
+        isEligible: (category) =>
+            !isCategoryRuleDraft(form, editingCategoryName) ||
+            selectedCategories.includes(category.name) ||
+            category.name === editingCategoryName ||
+            !categoryHasTaxRule(policy?.rules?.expenseRules, category.name),
     });
 
     const categoryItems: CategoryListItem[] = categories.map((category) => ({
