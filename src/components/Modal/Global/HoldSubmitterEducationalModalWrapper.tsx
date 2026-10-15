@@ -1,4 +1,5 @@
 import HoldSubmitterEducationalModal from '@components/HoldSubmitterEducationalModal';
+import withNavigationFallback from '@components/withNavigationFallback';
 
 import React, {useRef} from 'react';
 
@@ -32,4 +33,5 @@ function HoldSubmitterEducationalModalWrapper({closeModal, isDM}: HoldSubmitterE
     );
 }
 
-export default HoldSubmitterEducationalModalWrapper;
+// The global modal stack renders above NavigationRoot, but the modal's confirm button reads navigation focus
+export default withNavigationFallback(HoldSubmitterEducationalModalWrapper);

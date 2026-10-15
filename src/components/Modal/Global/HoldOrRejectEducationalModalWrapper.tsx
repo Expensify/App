@@ -1,4 +1,5 @@
 import HoldOrRejectEducationalModal from '@components/HoldOrRejectEducationalModal';
+import withNavigationFallback from '@components/withNavigationFallback';
 
 import React, {useRef} from 'react';
 
@@ -28,4 +29,5 @@ function HoldOrRejectEducationalModalWrapper({closeModal}: HoldOrRejectEducation
     );
 }
 
-export default HoldOrRejectEducationalModalWrapper;
+// The global modal stack renders above NavigationRoot, but the modal's confirm button reads navigation focus
+export default withNavigationFallback(HoldOrRejectEducationalModalWrapper);
