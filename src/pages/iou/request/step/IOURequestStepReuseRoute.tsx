@@ -6,6 +6,7 @@ import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentU
 
 import useDefaultExpensePolicy from '@hooks/useDefaultExpensePolicy';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import {useAllPersonalDetails} from '@hooks/usePersonalDetails';
@@ -22,7 +23,7 @@ import {selectReusableRoute} from '@libs/actions/ReusableDistanceRoutes';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {isPolicyExpenseChat as isPolicyExpenseChatUtil} from '@libs/ReportUtils';
-import {filterRoutes, getRouteEndpoints, getRouteKey, getRouteThumbnailSource, setCachedRouteThumbnailIfEmpty} from '@libs/ReusableDistanceRoutesUtils';
+import {filterRoutes, getAvailableReusableDistanceRoutes, getRouteEndpoints, getRouteKey} from '@libs/ReusableDistanceRoutesUtils';
 import {getRateID} from '@libs/TransactionUtils';
 
 import CONST from '@src/CONST';
@@ -58,6 +59,7 @@ function IOURequestStepReuseRoute({
 }: IOURequestStepReuseRouteProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const {isOffline} = useNetwork();
     const {isBetaEnabled} = usePermissions();
     const {policy} = usePolicyForTransaction({transaction, reportPolicyID: report?.policyID, action, iouType});
     const personalPolicy = usePersonalPolicy();
@@ -71,6 +73,7 @@ function IOURequestStepReuseRoute({
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [skipConfirmation] = useOnyx(`${ONYXKEYS.COLLECTION.SKIP_CONFIRMATION}${transactionID}`);
     const [reusableDistanceRoutes] = useOnyx(ONYXKEYS.REUSABLE_DISTANCE_ROUTES);
+    const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
     const [isLoadingReusableDistanceRoutes] = useOnyx(ONYXKEYS.IS_LOADING_REUSABLE_DISTANCE_ROUTES);
     const [searchValue, setSearchValue] = useState('');
     const [selectedRoute, setSelectedRoute] = useState<ReusableDistanceRoute | null>(null);
@@ -87,22 +90,6 @@ function IOURequestStepReuseRoute({
             };
         }, []),
     );
-
-    useEffect(() => {
-        if (!reusableDistanceRoutes?.length) {
-            return;
-        }
-        for (const route of reusableDistanceRoutes) {
-            const key = getRouteKey(route);
-            if (!key || !route.receiptSource) {
-                continue;
-            }
-            const thumbnail = getRouteThumbnailSource(route.receiptSource);
-            if (thumbnail) {
-                setCachedRouteThumbnailIfEmpty(key, thumbnail);
-            }
-        }
-    }, [reusableDistanceRoutes]);
 
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const customUnitRateID = getRateID(transaction);
@@ -179,7 +166,7 @@ function IOURequestStepReuseRoute({
             });
     };
 
-    const routes = reusableDistanceRoutes ?? [];
+    const routes = useMemo(() => getAvailableReusableDistanceRoutes(reusableDistanceRoutes, allTransactions, isOffline), [allTransactions, isOffline, reusableDistanceRoutes]);
     const filteredRoutes = filterRoutes(routes, searchValue);
     const data: ReuseRouteListItemData[] = filteredRoutes.map((route) => ({
         route,

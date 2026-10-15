@@ -1,6 +1,9 @@
 import CONST from '@src/CONST';
-import type {ReusableDistanceRoute} from '@src/types/onyx';
+import ONYXKEYS from '@src/ONYXKEYS';
+import type {ReusableDistanceRoute, Transaction} from '@src/types/onyx';
 import type {Waypoint, WaypointCollection} from '@src/types/onyx/Transaction';
+
+import type {OnyxCollection} from 'react-native-onyx';
 
 import DateUtils from './DateUtils';
 import tokenizedSearch from './tokenizedSearch';
@@ -66,7 +69,7 @@ function getRouteKey(route: ReusableDistanceRoute): string {
         .map((waypoint) => {
             const lat = typeof waypoint.lat === 'number' ? waypoint.lat : Number(waypoint.lat);
             const lng = typeof waypoint.lng === 'number' ? waypoint.lng : Number(waypoint.lng);
-            if (Number.isFinite(lat) && Number.isFinite(lng)) {
+            if (waypoint.lat != null && waypoint.lng != null && Number.isFinite(lat) && Number.isFinite(lng)) {
                 return `${Math.round(lat * 1e5)},${Math.round(lng * 1e5)}`;
             }
             return waypoint.address ?? '';
@@ -74,28 +77,30 @@ function getRouteKey(route: ReusableDistanceRoute): string {
         .join(';');
 }
 
-const routeThumbnailCache = new Map<string, string>();
-
-function getCachedRouteThumbnail(routeKey: string): string | undefined {
-    return routeThumbnailCache.get(routeKey);
-}
-
-function setCachedRouteThumbnail(routeKey: string, thumbnailSource: string) {
-    if (!routeKey || !thumbnailSource) {
-        return;
+/**
+ * Resolves the available reusable routes. When online, excludes routes whose source transaction is
+ * still pending creation without a generated map receipt image.
+ */
+function getAvailableReusableDistanceRoutes(routes: ReusableDistanceRoute[] | undefined, transactions: OnyxCollection<Transaction> | undefined, isOffline: boolean): ReusableDistanceRoute[] {
+    if (!routes?.length) {
+        return [];
     }
-    routeThumbnailCache.set(routeKey, thumbnailSource);
-}
 
-function setCachedRouteThumbnailIfEmpty(routeKey: string, thumbnailSource: string) {
-    if (!routeKey || !thumbnailSource || routeThumbnailCache.has(routeKey)) {
-        return;
+    const availableRoutes: ReusableDistanceRoute[] = [];
+    for (const route of routes) {
+        const sourceTransaction = transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${route.transactionID}`];
+        const transactionReceiptSource = typeof sourceTransaction?.receipt?.source === 'string' ? sourceTransaction.receipt.source : undefined;
+        const receiptSource = route.receiptSource ?? transactionReceiptSource;
+        const isPendingCreation = sourceTransaction?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD;
+
+        if (!isOffline && isPendingCreation && !receiptSource) {
+            continue;
+        }
+
+        availableRoutes.push(receiptSource && !route.receiptSource ? {...route, receiptSource} : route);
     }
-    routeThumbnailCache.set(routeKey, thumbnailSource);
-}
 
-function clearRouteThumbnailCache() {
-    routeThumbnailCache.clear();
+    return availableRoutes;
 }
 
 /**
@@ -112,16 +117,4 @@ function getRouteThumbnailSource(receiptSource: string | undefined): string | un
     return `${resolvedSource}.1024.jpg`;
 }
 
-export {
-    clearRouteThumbnailCache,
-    filterRoutes,
-    formatLastUsed,
-    getCachedRouteThumbnail,
-    getOrderedWaypoints,
-    getRouteEndpoints,
-    getRouteKey,
-    getRouteThumbnailSource,
-    normalizeRouteWaypoints,
-    setCachedRouteThumbnail,
-    setCachedRouteThumbnailIfEmpty,
-};
+export {filterRoutes, formatLastUsed, getAvailableReusableDistanceRoutes, getOrderedWaypoints, getRouteEndpoints, getRouteKey, getRouteThumbnailSource, normalizeRouteWaypoints};

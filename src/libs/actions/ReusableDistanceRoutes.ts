@@ -2,7 +2,7 @@ import {read} from '@libs/API';
 import {READ_COMMANDS} from '@libs/API/types';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import {roundToTwoDecimalPlaces} from '@libs/NumberUtils';
-import {normalizeRouteWaypoints} from '@libs/ReusableDistanceRoutesUtils';
+import {getRouteKey, normalizeRouteWaypoints} from '@libs/ReusableDistanceRoutesUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -27,7 +27,10 @@ function getLocallyCreatedRouteOnyxData(
     optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.REUSABLE_DISTANCE_ROUTES>>;
     failureData: Array<OnyxUpdate<typeof ONYXKEYS.REUSABLE_DISTANCE_ROUTES>>;
 } {
-    const updatedRoutes = [route, ...currentRoutes.filter((item) => item.transactionID !== route.transactionID)];
+    const routeKey = getRouteKey(route);
+    const existingRoute = currentRoutes.find((item) => item.transactionID === route.transactionID || (!!routeKey && getRouteKey(item) === routeKey));
+    const nextRoute: ReusableDistanceRoute = existingRoute?.receiptSource && !route.receiptSource ? {...route, receiptSource: existingRoute.receiptSource} : route;
+    const updatedRoutes = [nextRoute, ...currentRoutes.filter((item) => item.transactionID !== route.transactionID && (!routeKey || getRouteKey(item) !== routeKey))];
     return {
         optimisticData: [{onyxMethod: Onyx.METHOD.SET, key: ONYXKEYS.REUSABLE_DISTANCE_ROUTES, value: updatedRoutes}],
         failureData: [{onyxMethod: Onyx.METHOD.SET, key: ONYXKEYS.REUSABLE_DISTANCE_ROUTES, value: currentRoutes}],

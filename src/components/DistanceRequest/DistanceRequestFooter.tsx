@@ -7,6 +7,7 @@ import Text from '@components/Text';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import type {MapMarkerType} from '@hooks/useMapMarkers/types';
+import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import useTheme from '@hooks/useTheme';
@@ -14,6 +15,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import {setSelectedRoute} from '@libs/actions/Transaction';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
+import {getAvailableReusableDistanceRoutes} from '@libs/ReusableDistanceRoutesUtils';
 import {getSelectedRouteKey, getWaypointIndex, isCustomUnitRateIDForP2P} from '@libs/TransactionUtils';
 
 import CONST from '@src/CONST';
@@ -55,8 +57,10 @@ function DistanceRequestFooter({waypoints, transaction, navigateToWaypointEditPa
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
+    const {isOffline} = useNetwork();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Plus', 'History']);
     const [reusableDistanceRoutes] = useOnyx(ONYXKEYS.REUSABLE_DISTANCE_ROUTES);
+    const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const [personalPolicyID] = useOnyx(ONYXKEYS.PERSONAL_POLICY_ID);
     const activePolicy = usePolicy(activePolicyID);
@@ -107,7 +111,8 @@ function DistanceRequestFooter({waypoints, transaction, navigateToWaypointEditPa
         });
     }
 
-    const shouldShowReuseRoute = !!navigateToReuseRoutePage && !!reusableDistanceRoutes?.length;
+    const availableReusableRoutes = getAvailableReusableDistanceRoutes(reusableDistanceRoutes, allTransactions, isOffline);
+    const shouldShowReuseRoute = !!navigateToReuseRoutePage && availableReusableRoutes.length > 0;
     const isAddStopDisabled = numberOfWaypoints === MAX_WAYPOINTS;
 
     return (

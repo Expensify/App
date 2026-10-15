@@ -1,17 +1,10 @@
-import type {ReusableDistanceRoute} from '../../src/types/onyx';
+import type {ReusableDistanceRoute, Transaction} from '../../src/types/onyx';
 import type {WaypointCollection} from '../../src/types/onyx/Transaction';
 
-import {
-    clearRouteThumbnailCache,
-    filterRoutes,
-    getCachedRouteThumbnail,
-    getOrderedWaypoints,
-    getRouteEndpoints,
-    getRouteKey,
-    getRouteThumbnailSource,
-    setCachedRouteThumbnail,
-    setCachedRouteThumbnailIfEmpty,
-} from '../../src/libs/ReusableDistanceRoutesUtils';
+import CONST from '../../src/CONST';
+import {getLocallyCreatedRouteOnyxData} from '../../src/libs/actions/ReusableDistanceRoutes';
+import {filterRoutes, getAvailableReusableDistanceRoutes, getOrderedWaypoints, getRouteEndpoints, getRouteKey, getRouteThumbnailSource} from '../../src/libs/ReusableDistanceRoutesUtils';
+import ONYXKEYS from '../../src/ONYXKEYS';
 
 const createRoute = (transactionID: string, addresses: string[]): ReusableDistanceRoute => ({
     transactionID,
@@ -146,47 +139,88 @@ describe('ReusableDistanceRoutesUtils', () => {
         });
     });
 
-    describe('routeThumbnailCache', () => {
-        beforeEach(() => {
-            clearRouteThumbnailCache();
+    describe('getAvailableReusableDistanceRoutes', () => {
+        const baseTransaction: Transaction = {
+            transactionID: 'tx-1',
+            amount: 100,
+            created: '2026-09-01',
+            currency: CONST.CURRENCY.USD,
+            merchant: 'Test Merchant',
+            reportID: '1',
+        };
+
+        it('excludes routes whose source transaction is pending creation without a receipt when online', () => {
+            // Given a newly created route whose transaction is still pending creation without a server receipt
+            const route = createRoute('tx-1', ['A', 'B']);
+            const transactions: Record<string, Transaction> = {
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}tx-1`]: {
+                    ...baseTransaction,
+                    pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                },
+            };
+
+            // When resolving available routes while online
+            const available = getAvailableReusableDistanceRoutes([route], transactions, false);
+
+            // Then the pending route is excluded until creation completes
+            expect(available).toEqual([]);
         });
 
-        it('stores and retrieves cached thumbnail sources by route key', () => {
-            // Given a route key and a thumbnail URL
-            const routeKey = '3770000,-12240000;3780000,-12250000';
-            const thumbnailSource = 'https://expensify.com/receipts/w_test.png.1024.jpg';
+        it('includes routes whose source transaction is pending creation when offline', () => {
+            // Given a newly created route while offline
+            const route = createRoute('tx-1', ['A', 'B']);
+            const transactions: Record<string, Transaction> = {
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}tx-1`]: {
+                    ...baseTransaction,
+                    pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                },
+            };
 
-            // When caching the thumbnail
-            setCachedRouteThumbnail(routeKey, thumbnailSource);
+            // When resolving available routes while offline
+            const available = getAvailableReusableDistanceRoutes([route], transactions, true);
 
-            // Then the cached source is retrievable
-            expect(getCachedRouteThumbnail(routeKey)).toBe(thumbnailSource);
+            // Then the route is included for offline reuse
+            expect(available).toEqual([route]);
         });
 
-        it('does not overwrite existing cache when using setCachedRouteThumbnailIfEmpty', () => {
-            // Given an existing cached thumbnail
-            const routeKey = 'route-key';
-            const initialSource = 'https://expensify.com/receipts/w_first.png.1024.jpg';
-            const newSource = 'https://expensify.com/receipts/w_second.png.1024.jpg';
-            setCachedRouteThumbnail(routeKey, initialSource);
+        it('populates receiptSource from the created transaction when missing on the route', () => {
+            // Given a locally created route whose transaction has completed creation and received its receipt URL
+            const route = createRoute('tx-1', ['A', 'B']);
+            const receiptUrl = 'https://expensify.com/receipts/w_created.pdf';
+            const transactions: Record<string, Transaction> = {
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}tx-1`]: {
+                    ...baseTransaction,
+                    receipt: {source: receiptUrl},
+                },
+            };
 
-            // When attempting to set if empty
-            setCachedRouteThumbnailIfEmpty(routeKey, newSource);
+            // When resolving available routes
+            const available = getAvailableReusableDistanceRoutes([route], transactions, false);
 
-            // Then the initial source is preserved
-            expect(getCachedRouteThumbnail(routeKey)).toBe(initialSource);
+            // Then the route receives the transaction receiptSource
+            expect(available).toEqual([{...route, receiptSource: receiptUrl}]);
         });
+    });
 
-        it('clears the thumbnail cache', () => {
-            // Given a populated thumbnail cache
-            const routeKey = 'route-key';
-            setCachedRouteThumbnail(routeKey, 'https://expensify.com/receipts/w_test.png.1024.jpg');
+    describe('getLocallyCreatedRouteOnyxData', () => {
+        it('deduplicates routes by route key and preserves existing receiptSource', () => {
+            // Given an existing route with a receiptSource and a newly reused route with the same waypoints
+            const existingRoute: ReusableDistanceRoute = {
+                ...createRoute('tx-old', ['A', 'B']),
+                receiptSource: 'https://expensify.com/receipts/w_old.pdf',
+            };
+            const newRoute = createRoute('tx-new', ['A', 'B']);
 
-            // When clearing the cache
-            clearRouteThumbnailCache();
+            // When building optimistic Onyx data for the locally created route
+            const {optimisticData} = getLocallyCreatedRouteOnyxData(newRoute, [existingRoute]);
 
-            // Then no thumbnail is found
-            expect(getCachedRouteThumbnail(routeKey)).toBeUndefined();
+            // Then the list is deduplicated and preserves the existing receiptSource
+            expect(optimisticData.at(0)?.value).toEqual([
+                {
+                    ...newRoute,
+                    receiptSource: 'https://expensify.com/receipts/w_old.pdf',
+                },
+            ]);
         });
     });
 });
