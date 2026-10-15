@@ -1,4 +1,4 @@
-import {fireEvent, render, renderHook, screen} from '@testing-library/react-native';
+import {act, fireEvent, render, renderHook, screen} from '@testing-library/react-native';
 
 import ComposeProviders from '@components/ComposeProviders';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
@@ -91,5 +91,12 @@ describe('Exact Online in unified Connections', () => {
         expect(joinExactOnlineWaitlist).toHaveBeenCalledTimes(1);
         expect(mockStartIntegrationFlow).not.toHaveBeenCalled();
         expect(mockConnect).not.toHaveBeenCalled();
+        expect(screen.getByLabelText('Exact Online, Coming soon')).toBeOnTheScreen();
+
+        await act(() => Onyx.set(ONYXKEYS.NVP_EXACT_ONLINE_WAITLIST, '2026-10-15 10:00:00'));
+        expect(screen.getByLabelText('Exact Online, Coming soon, You’re on the waitlist')).toBeOnTheScreen();
+
+        await act(() => Onyx.set(ONYXKEYS.NVP_EXACT_ONLINE_WAITLIST, null));
+        expect(screen.getByLabelText('Exact Online, Coming soon')).toBeOnTheScreen();
     });
 });

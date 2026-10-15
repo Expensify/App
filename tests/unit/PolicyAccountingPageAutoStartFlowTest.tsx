@@ -1,4 +1,4 @@
-import {fireEvent, render, screen, within} from '@testing-library/react-native';
+import {act, fireEvent, render, screen, within} from '@testing-library/react-native';
 
 import ComposeProviders from '@components/ComposeProviders';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
@@ -11,6 +11,7 @@ import PolicyAccountingPage from '@pages/workspace/accounting/PolicyAccountingPa
 
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type {ConnectionName} from '@src/types/onyx/Policy';
 import type Policy from '@src/types/onyx/Policy';
 
@@ -18,6 +19,7 @@ import type * as ReactNavigation from '@react-navigation/native';
 import type {View} from 'react-native';
 
 import React from 'react';
+import Onyx from 'react-native-onyx';
 
 import createRandomPolicy from '../utils/collections/policies';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
@@ -273,5 +275,12 @@ describe('PolicyAccountingPage auto-started connect flow', () => {
         expect(screen.getByText('Exact Online')).toBeOnTheScreen();
         expect(screen.getByRole('button', {name: 'Join waitlist'})).toBeOnTheScreen();
         expect(mockStartIntegrationFlow).not.toHaveBeenCalled();
+        expect(screen.getByLabelText('Exact Online, Coming soon')).toBeOnTheScreen();
+
+        await act(() => Onyx.set(ONYXKEYS.NVP_EXACT_ONLINE_WAITLIST, '2026-10-15 10:00:00'));
+        expect(screen.getByLabelText('Exact Online, Coming soon, You’re on the waitlist')).toBeOnTheScreen();
+
+        await act(() => Onyx.set(ONYXKEYS.NVP_EXACT_ONLINE_WAITLIST, null));
+        expect(screen.getByLabelText('Exact Online, Coming soon')).toBeOnTheScreen();
     });
 });
