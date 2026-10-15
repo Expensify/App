@@ -26,7 +26,6 @@ import type {
     Transaction,
     VisibleReportActionsDerivedValue,
 } from '@src/types/onyx';
-import type {FeedReimbursable} from '@src/types/onyx/CardFeeds';
 import type {
     DecisionName,
     JoinWorkspaceResolution,
@@ -4497,7 +4496,8 @@ function formatFeedReimbursable(translate: LocalizedTranslate, value?: string): 
     if (!value) {
         return undefined;
     }
-    return translate(`workspace.companyCards.reimbursable.${getEffectiveFeedReimbursable(value as FeedReimbursable)}`);
+    const effectiveValue = getEffectiveFeedReimbursable(value);
+    return effectiveValue ? translate(`workspace.companyCards.reimbursable.${effectiveValue}`) : undefined;
 }
 
 function getUpdatedCardFeedReimbursableMessage(translate: LocalizedTranslate, reportAction: OnyxEntry<ReportAction>): string {

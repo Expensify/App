@@ -24,14 +24,12 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {FeedReimbursable} from '@src/types/onyx/CardFeeds';
+import type {SelectableFeedReimbursable} from '@src/types/onyx/CardFeeds';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import React, {useState} from 'react';
 
 type WorkspaceCompanyCardReimbursablePageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.COMPANY_CARDS_SETTINGS_REIMBURSABLE>;
-
-type SelectableFeedReimbursable = Exclude<FeedReimbursable, typeof CONST.COMPANY_CARDS.FEED_REIMBURSABLE_LEGACY_NONE>;
 
 function WorkspaceCompanyCardReimbursablePage({
     route: {
@@ -68,7 +66,7 @@ function WorkspaceCompanyCardReimbursablePage({
 
     const saveAndGoBack = () => {
         // Don't rewrite the stored value (including legacy `none`) unless the admin picked a different option
-        if (feed && selectedValue !== currentValue) {
+        if (feed && selectedValue && selectedValue !== currentValue) {
             setFeedReimbursable(policyID, feed, domainOrWorkspaceAccountID, selectedValue, storedValue);
         }
         goBack();

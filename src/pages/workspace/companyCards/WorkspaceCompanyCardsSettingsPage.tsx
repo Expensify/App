@@ -93,7 +93,8 @@ function WorkspaceCompanyCardsSettingsPage({
         return translate(`workspace.companyCards.statementCloseDate.${selectedFeedData.statementPeriodEndDay}`);
     }, [translate, selectedFeedData?.statementPeriodEndDay]);
 
-    const reimbursable = translate(`workspace.companyCards.reimbursable.${getEffectiveFeedReimbursable(selectedFeedData?.forceReimbursable)}`);
+    const effectiveReimbursable = getEffectiveFeedReimbursable(selectedFeedData?.forceReimbursable);
+    const reimbursable = effectiveReimbursable ? translate(`workspace.companyCards.reimbursable.${effectiveReimbursable}`) : '';
 
     const navigateToChangeFeedName = () => {
         Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_SETTINGS_FEED_NAME.getRoute(policyID));

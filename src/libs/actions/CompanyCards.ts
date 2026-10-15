@@ -42,6 +42,7 @@ import type {
     CompanyCardFeedWithDomainID,
     CompanyCardFeedWithNumber,
     FeedReimbursable,
+    SelectableFeedReimbursable,
     StatementPeriodEnd,
     StatementPeriodEndDay,
 } from '@src/types/onyx/CardFeeds';
@@ -1262,7 +1263,7 @@ function setFeedReimbursable(
     policyID: string,
     bankName: CompanyCardFeedWithNumber,
     domainAccountID: number,
-    newForceReimbursable: Exclude<FeedReimbursable, 'none'>,
+    newForceReimbursable: SelectableFeedReimbursable,
     oldForceReimbursable: FeedReimbursable | undefined,
 ) {
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER>> = [

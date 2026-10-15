@@ -51,8 +51,11 @@ type StatementPeriodEnd = Exclude<ValueOf<typeof CONST.COMPANY_CARDS.STATEMENT_C
 /** Statement period end day */
 type StatementPeriodEndDay = number;
 
+/** Reimbursable setting an admin can select for a card feed */
+type SelectableFeedReimbursable = ValueOf<typeof CONST.COMPANY_CARDS.FEED_REIMBURSABLE>;
+
 /** Reimbursable setting of a card feed. `none` is a legacy value that behaves like `default_no` */
-type FeedReimbursable = ValueOf<typeof CONST.COMPANY_CARDS.FEED_REIMBURSABLE> | typeof CONST.COMPANY_CARDS.FEED_REIMBURSABLE_LEGACY_NONE;
+type FeedReimbursable = SelectableFeedReimbursable | typeof CONST.COMPANY_CARDS.FEED_REIMBURSABLE_LEGACY_NONE;
 
 /** Card feed provider */
 type CardFeedProvider =
@@ -362,6 +365,7 @@ export type {
     StatementPeriodEnd,
     StatementPeriodEndDay,
     FeedReimbursable,
+    SelectableFeedReimbursable,
     DomainSettings,
     CombinedCardFeed,
     CombinedCardFeeds,

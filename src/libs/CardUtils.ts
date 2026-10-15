@@ -38,8 +38,8 @@ import type {
     CompanyCardFeedWithDomainID,
     CompanyCardFeedWithNumber,
     CompanyFeeds,
-    FeedReimbursable,
     NonConnectableBankName,
+    SelectableFeedReimbursable,
 } from '@src/types/onyx/CardFeeds';
 import type {CardFeedErrors} from '@src/types/onyx/DerivedValues';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
@@ -2563,20 +2563,23 @@ function resolveTransactionCardFields<T extends Transaction>(transactions: T[], 
     });
 }
 
-type SelectableFeedReimbursable = Exclude<FeedReimbursable, typeof CONST.COMPANY_CARDS.FEED_REIMBURSABLE_LEGACY_NONE>;
+function isSelectableFeedReimbursable(value: unknown): value is SelectableFeedReimbursable {
+    return Object.values(CONST.COMPANY_CARDS.FEED_REIMBURSABLE).some((option) => option === value);
+}
 
 /**
  * Returns the reimbursable rule a company card feed effectively applies.
  * A missing value behaves as force_no and the legacy `none` value behaves as default_no.
+ * Returns undefined for values we don't recognize, since server data isn't validated by types.
  */
-function getEffectiveFeedReimbursable(value: FeedReimbursable | undefined): SelectableFeedReimbursable {
+function getEffectiveFeedReimbursable(value: string | undefined): SelectableFeedReimbursable | undefined {
     if (!value) {
         return CONST.COMPANY_CARDS.FEED_REIMBURSABLE.FORCE_NO;
     }
     if (value === CONST.COMPANY_CARDS.FEED_REIMBURSABLE_LEGACY_NONE) {
         return CONST.COMPANY_CARDS.FEED_REIMBURSABLE.DEFAULT_NO;
     }
-    return value;
+    return isSelectableFeedReimbursable(value) ? value : undefined;
 }
 
 export {
