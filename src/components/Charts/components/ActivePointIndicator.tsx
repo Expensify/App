@@ -36,7 +36,7 @@ type SeriesDotPositions = {
     color: string;
 
     /** Canvas y of the series at every data point, missing where the series has no value */
-    ys: MaybeNumber[];
+    yPositions: MaybeNumber[];
 };
 
 type SeriesDotProps = SeriesDotPositions & Pick<ActivePointIndicatorProps, 'x' | 'activeIndex' | 'dotRadius' | 'hollowColor'> & Partial<Pick<ActivePointIndicatorProps, 'isHollow'>>;
@@ -45,9 +45,9 @@ const GUIDELINE_WIDTH = 2;
 
 const HOLLOW_RING_WIDTH = 2;
 
-function SeriesDot({x, activeIndex, ys, color, dotRadius, isHollow, hollowColor}: SeriesDotProps) {
-    const cy = useDerivedValue(() => ys.at(activeIndex.get()) ?? 0);
-    const opacity = useDerivedValue(() => (typeof ys.at(activeIndex.get()) === 'number' ? 1 : 0));
+function SeriesDot({x, activeIndex, yPositions, color, dotRadius, isHollow, hollowColor}: SeriesDotProps) {
+    const cy = useDerivedValue(() => yPositions.at(activeIndex.get()) ?? 0);
+    const opacity = useDerivedValue(() => (typeof yPositions.at(activeIndex.get()) === 'number' ? 1 : 0));
     const hollowCenterOpacity = useDerivedValue(() => (isHollow?.get() ? 1 : 0));
 
     return (
@@ -84,13 +84,13 @@ function ActivePointIndicator({x, activeIndex, dots, isActive, top, bottom, dotR
                 strokeWidth={GUIDELINE_WIDTH}
                 strokeCap="round"
             />
-            {dots.map(({color, ys}, index) => (
+            {dots.map(({color, yPositions}, index) => (
                 <SeriesDot
                     // eslint-disable-next-line react/no-array-index-key -- a dot's index is the series it belongs to
                     key={index}
                     x={x}
                     activeIndex={activeIndex}
-                    ys={ys}
+                    yPositions={yPositions}
                     color={color}
                     dotRadius={dotRadius}
                     isHollow={index === 0 ? isHollow : undefined}

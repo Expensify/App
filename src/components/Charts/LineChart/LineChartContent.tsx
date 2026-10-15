@@ -310,7 +310,7 @@ function LineChartContentBody({data, series, isLoading, yAxisUnit, yAxisUnitPosi
                     activeIndex={matchedIndex}
                     dots={series.map((seriesItem) => ({
                         color: seriesItem.color ?? VictoryTheme.colors.default,
-                        ys: (args.points[seriesItem.key] ?? []).map((point) => point.y),
+                        yPositions: (args.points[seriesItem.key] ?? []).map((point) => point.y),
                     }))}
                     isActive={isTooltipActive}
                     top={args.chartBounds.top}
