@@ -3604,8 +3604,14 @@ describe('ReportActionItem', () => {
 
         async function reactWithThumbsUp(action: ReportAction, timestamp: string) {
             await act(async () => {
-                await Onyx.merge(ONYXKEYS.SESSION, {accountID: ACTOR_ACCOUNT_ID});
-                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${action.reportActionID}`, buildThumbsUpReaction(timestamp));
+                await Onyx.set(ONYXKEYS.SESSION, {accountID: ACTOR_ACCOUNT_ID});
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${action.reportActionID}`, buildThumbsUpReaction(timestamp));
+            });
+        }
+
+        async function clearReactions(action: ReportAction) {
+            await act(async () => {
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${action.reportActionID}`, {});
             });
         }
 
@@ -3624,6 +3630,35 @@ describe('ReportActionItem', () => {
 
             expect(screen.getByText(translateLocal('concierge.feedback.thanks'))).toBeOnTheScreen();
             expect(screen.queryByText(prompt())).not.toBeOnTheScreen();
+        });
+
+        it('does not show the acknowledgement again when thumbs-up is added shortly after being removed', async () => {
+            jest.useFakeTimers();
+
+            try {
+                // Given an unrated Concierge reply, the customer can leave feedback.
+                const action = createConciergeComment();
+                renderItemWithAction(action, true);
+                await waitForBatchedUpdatesWithAct();
+
+                // When the customer rates it, acknowledge their feedback for four seconds.
+                await reactWithThumbsUp(action, '2025-07-12 09:03:18.000');
+                expect(screen.getByText(translateLocal('concierge.feedback.thanks'))).toBeOnTheScreen();
+
+                await act(async () => {
+                    jest.advanceTimersByTime(4000);
+                });
+                expect(screen.queryByText(translateLocal('concierge.feedback.thanks'))).not.toBeOnTheScreen();
+
+                await clearReactions(action);
+                expect(screen.getByText(prompt())).toBeOnTheScreen();
+
+                // Then restoring the rating immediately does not repeat the acknowledgement.
+                await reactWithThumbsUp(action, '2025-07-12 09:03:19.000');
+                expect(screen.queryByText(translateLocal('concierge.feedback.thanks'))).not.toBeOnTheScreen();
+            } finally {
+                jest.useRealTimers();
+            }
         });
 
         it('does not acknowledge a rating that was already there when the chat was opened', async () => {

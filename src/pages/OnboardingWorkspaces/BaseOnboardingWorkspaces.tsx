@@ -159,7 +159,7 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
         setOnboardingAdminsChatReportID();
         setOnboardingPolicyID(policy.policyID);
 
-        if (isJoiningCompanyWorkspace && (!onboardingPersonalDetails?.firstName.trim() || !onboardingPersonalDetails.lastName.trim())) {
+        if (isJoiningCompanyWorkspace && !onboardingPersonalDetails?.firstName.trim()) {
             Navigation.navigate(ROUTES.ONBOARDING_PERSONAL_DETAILS.getRoute(), {forceReplace: true});
             return;
         }

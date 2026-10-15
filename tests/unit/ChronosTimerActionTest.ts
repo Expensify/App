@@ -2,11 +2,16 @@ import {startOrStopChronosTimer} from '@libs/actions/Chronos';
 import {write} from '@libs/API';
 import {WRITE_COMMANDS} from '@libs/API/types';
 
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Report} from '@src/types/onyx';
+import type {Report, ReportAction} from '@src/types/onyx';
 import type {OnyxData} from '@src/types/onyx/Request';
 
 import type {OnyxKey, OnyxUpdate} from 'react-native-onyx';
+
+import Onyx from 'react-native-onyx';
+
+import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 jest.mock('@libs/API');
 
@@ -22,6 +27,19 @@ function getWriteOptions(): OnyxData<OnyxKey> {
         throw new Error('write was not called with optimistic options');
     }
     return options;
+}
+
+/** Reads back the last-visible-action fields the report update restores, narrowing instead of asserting the Onyx value's type. */
+function getRestoredLastAction(updates: Array<OnyxUpdate<OnyxKey>> | undefined, reportID: string) {
+    const update = updates?.find((u) => u.key === `${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
+    if (!update || !('value' in update) || typeof update.value !== 'object' || update.value === null) {
+        return undefined;
+    }
+    const {value} = update;
+    return {
+        lastVisibleActionCreated: 'lastVisibleActionCreated' in value && typeof value.lastVisibleActionCreated === 'string' ? value.lastVisibleActionCreated : undefined,
+        lastActorAccountID: 'lastActorAccountID' in value && typeof value.lastActorAccountID === 'number' ? value.lastActorAccountID : undefined,
+    };
 }
 
 function getChronosNVPStartTime(updates: Array<OnyxUpdate<OnyxKey>> | undefined): string | undefined {
@@ -58,6 +76,56 @@ describe('startOrStopChronosTimer', () => {
         expect(getChronosNVPStartTime(optimisticData)).toBeTruthy();
         // And reverts to empty (no timer) if the send fails
         expect(getChronosNVPStartTime(failureData)).toBe('');
+    });
+
+    it('restores the last visible action that the acting user could see when the send fails', async () => {
+        const WHISPER_TARGET_ACCOUNT_ID = 777;
+        const COMMENT_ACTOR_ACCOUNT_ID = 888;
+
+        const comment: ReportAction = {
+            reportActionID: 'chronosComment',
+            reportID: TEST_REPORT.reportID,
+            actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+            actorAccountID: COMMENT_ACTOR_ACCOUNT_ID,
+            created: '2026-07-13 09:00:00.000',
+            message: [{type: 'COMMENT', html: 'Older comment', text: 'Older comment'}],
+            originalMessage: {html: 'Older comment'},
+        };
+
+        /** Newer than `comment`, and only the whispered-to account can see it. */
+        const whisper: ReportAction = {
+            reportActionID: 'chronosWhisper',
+            reportID: TEST_REPORT.reportID,
+            actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
+            actorAccountID: WHISPER_TARGET_ACCOUNT_ID,
+            created: '2026-07-13 09:30:00.000',
+            message: [{type: 'COMMENT', html: 'changed the amount', text: 'changed the amount', whisperedTo: [WHISPER_TARGET_ACCOUNT_ID]}],
+            originalMessage: {whisperedTo: [WHISPER_TARGET_ACCOUNT_ID]},
+        };
+
+        // Given a Chronos report whose newest action is a whisper aimed at one account
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${TEST_REPORT.reportID}`, {[comment.reportActionID]: comment, [whisper.reportActionID]: whisper});
+        await waitForBatchedUpdates();
+
+        // When the whispered-to account starts the timer
+        startOrStopChronosTimer(TEST_REPORT, WHISPER_TARGET_ACCOUNT_ID, null);
+
+        // Then the failure data restores the whisper, which is the newest action that account can see
+        expect(getRestoredLastAction(getWriteOptions().failureData, TEST_REPORT.reportID)).toEqual({
+            lastVisibleActionCreated: whisper.created,
+            lastActorAccountID: WHISPER_TARGET_ACCOUNT_ID,
+        });
+
+        jest.clearAllMocks();
+
+        // When somebody the whisper does not target starts the timer
+        startOrStopChronosTimer(TEST_REPORT, COMMENT_ACTOR_ACCOUNT_ID, null);
+
+        // Then the whisper is invisible to them, so the older comment is restored instead
+        expect(getRestoredLastAction(getWriteOptions().failureData, TEST_REPORT.reportID)).toEqual({
+            lastVisibleActionCreated: comment.created,
+            lastActorAccountID: COMMENT_ACTOR_ACCOUNT_ID,
+        });
     });
 
     it('optimistically stops the timer when one is running', () => {
