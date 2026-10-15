@@ -32,15 +32,15 @@ function getBounds(waypoints: Coordinate[], directionCoordinates: undefined | Co
 }
 
 /**
- * Calculates the distance between two points on the Earth's surface given their latitude and longitude coordinates.
+ * Calculates the distance between two points on the Earth's surface given their [longitude, latitude] coordinates.
  */
 function haversineDistance(coordinate1: Coordinate, coordinate2: Coordinate) {
     // Radius of the Earth in meters
     const R = 6371e3;
-    const lat1 = ((coordinate1.at(0) ?? 0) * Math.PI) / 180;
-    const lat2 = ((coordinate2.at(0) ?? 0) * Math.PI) / 180;
-    const deltaLat = (((coordinate2.at(0) ?? 0) - (coordinate1.at(0) ?? 0)) * Math.PI) / 180;
-    const deltaLon = (((coordinate2.at(1) ?? 0) - (coordinate1.at(1) ?? 0)) * Math.PI) / 180;
+    const lat1 = ((coordinate1.at(1) ?? 0) * Math.PI) / 180;
+    const lat2 = ((coordinate2.at(1) ?? 0) * Math.PI) / 180;
+    const deltaLat = (((coordinate2.at(1) ?? 0) - (coordinate1.at(1) ?? 0)) * Math.PI) / 180;
+    const deltaLon = (((coordinate2.at(0) ?? 0) - (coordinate1.at(0) ?? 0)) * Math.PI) / 180;
 
     // The square of half the chord length between the points
     const halfChordLengthSq = Math.sin(deltaLat / 2) * Math.sin(deltaLat / 2) + Math.cos(lat1) * Math.cos(lat2) * Math.sin(deltaLon / 2) * Math.sin(deltaLon / 2);
@@ -142,14 +142,14 @@ function simpleInterpolateCoordinate(start: Coordinate, end: Coordinate, progres
 
 function getBoundsCenter(bounds: {southWest: Coordinate; northEast: Coordinate}) {
     const {
-        southWest: [south, west],
-        northEast: [north, east],
+        southWest: [west, south],
+        northEast: [east, north],
     } = bounds;
 
     const latitudeCenter = (north + south) / 2;
     const longitudeCenter = (east + west) / 2;
 
-    return {lng: latitudeCenter, lat: longitudeCenter};
+    return {lng: longitudeCenter, lat: latitudeCenter};
 }
 
 /** Coordinate that lies `fraction` of the way along a route, measured by length rather than by index, as the density of the coordinates varies along a route. */
@@ -164,8 +164,7 @@ function findCoordinateAtRouteFraction(lineCoordinates: Coordinate[], fraction: 
             break;
         }
 
-        // map Coordinates are [long, lat], but haversineDistance treats [0] as latitude and [1] as longitude
-        totalLength += haversineDistance([startPoint[1], startPoint[0]], [endPoint[1], endPoint[0]]);
+        totalLength += haversineDistance(startPoint, endPoint);
     }
 
     const targetLength = totalLength * fraction;
@@ -179,7 +178,7 @@ function findCoordinateAtRouteFraction(lineCoordinates: Coordinate[], fraction: 
             break;
         }
 
-        const segmentLength = haversineDistance([startPoint[1], startPoint[0]], [endPoint[1], endPoint[0]]);
+        const segmentLength = haversineDistance(startPoint, endPoint);
 
         if (walkedLength + segmentLength >= targetLength) {
             return simpleInterpolateCoordinate(startPoint, endPoint, segmentLength > 0 ? (targetLength - walkedLength) / segmentLength : 0);
