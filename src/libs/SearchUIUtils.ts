@@ -5691,6 +5691,10 @@ const FILTER_VIEW_MAP = {
         labelKey: 'search.has',
         icon: 'Paperclip',
     },
+    [CONST.SEARCH.SYNTAX_FILTER_KEYS.HELD]: {
+        labelKey: 'search.filters.held',
+        icon: 'Stopwatch',
+    },
     [CONST.SEARCH.SYNTAX_FILTER_KEYS.IN]: {
         labelKey: 'common.in',
         icon: 'Inbox',
@@ -5973,7 +5977,7 @@ function getDisplayValue(
         return form[key]?.sort(localeCompare).join(', ');
     }
 
-    if (key === FILTER_KEYS.BILLABLE || key === FILTER_KEYS.REIMBURSABLE) {
+    if (key === FILTER_KEYS.BILLABLE || key === FILTER_KEYS.REIMBURSABLE || key === FILTER_KEYS.HELD) {
         const formValue = form[key];
         return formValue ? translate(`common.${formValue}`) : undefined;
     }
@@ -6277,7 +6281,7 @@ function mapFiltersFormToLabelValueList(
 }
 
 function getSingleSelectFilterOptions(filterKey: SearchAdvancedFiltersKey, translate: LocalizedTranslate) {
-    if (filterKey === FILTER_KEYS.BILLABLE || filterKey === FILTER_KEYS.REIMBURSABLE) {
+    if (filterKey === FILTER_KEYS.BILLABLE || filterKey === FILTER_KEYS.REIMBURSABLE || filterKey === FILTER_KEYS.HELD) {
         return Object.values(CONST.SEARCH.BOOLEAN).map((value) => ({value, text: translate(`common.${value}`)}));
     }
 

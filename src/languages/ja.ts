@@ -10027,6 +10027,7 @@ ${reportName}`,
             posted: '投稿日',
             withdrawn: '取下済み',
             billable: '請求可能',
+            held: '保留中',
             reimbursable: '払い戻し対象',
             purchaseCurrency: '購入通貨',
             sortOrder: {

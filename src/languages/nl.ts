@@ -10136,6 +10136,7 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
             posted: 'Gepost',
             withdrawn: 'Ingetrokken',
             billable: 'Factureerbaar',
+            held: 'In de wacht',
             reimbursable: 'Vergoedbaar',
             purchaseCurrency: 'Aankoopvaluta',
             sortOrder: {

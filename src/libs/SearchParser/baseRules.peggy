@@ -68,6 +68,7 @@ withdrawalID
   = "withdrawalID"i
   / "withdrawal-id"i { return "withdrawalID"; }
 billable = "billable"i { return "billable"; }
+held = "held"i { return "held"; }
 reimbursable = "reimbursable"i { return "reimbursable"; }
 type = "type"i { return "type"; }
 status = "status"i { return "status"; }

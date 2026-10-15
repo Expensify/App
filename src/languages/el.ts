@@ -10421,6 +10421,7 @@ ${reportName}`,
             posted: 'Καταχωρισμένο',
             withdrawn: 'Ανακλήθηκε',
             billable: 'Χρεώσιμη',
+            held: 'Σε αναμονή',
             reimbursable: 'Επανεντάξιμο',
             purchaseCurrency: 'Νόμισμα αγοράς',
             sortOrder: {
