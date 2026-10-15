@@ -11,10 +11,13 @@ Work that runs during a navigation, modal or keyboard transition competes with t
 
 - `usePreMountDestination` to mount the screen an RHP flow ends on while the RHP is still open
 - `<NavigationDeferredMount>` to mount a subtree after tracked transitions settle
-- `API.writeWhenReady` to apply an optimistic write after tracked transitions settle
-- the `afterTransition` callback option on `Navigation` methods and `KeyboardUtils.dismiss`, `Navigation.runAfterTransition` / `Navigation.runAfterUpcomingTransition`, or `TransitionTracker.runAfterTransitions`, for one-off imperative work
+- `API.writeWhenReady` to apply an optimistic write once a barrier settles (by default, tracked transitions)
+- for one-off imperative work:
+    - the `afterTransition` callback option on `Navigation` methods and `KeyboardUtils.dismiss`
+    - `Navigation.runAfterTransition` and `Navigation.runAfterUpcomingTransition`
+    - `TransitionTracker.runAfterTransitions`
 
-`TransitionTracker.runAfterTransitions({callback})` runs the callback synchronously when no transition is active. When it is called before the transition starts (for example, right after a navigation call), pass `waitForUpcomingTransition` so it waits for that transition, with a timeout if none starts. These primitives normally wait for tracked transitions to settle, with a fallback timeout if none starts. Two of them can also release earlier:
+`TransitionTracker.runAfterTransitions({callback})` runs the callback synchronously when no transition is active. When it is called before the transition starts (for example, right after a navigation call), pass `waitForUpcomingTransition`. These primitives wait for tracked transitions to settle, with a fallback timeout if none starts. Two of them can also release earlier:
 
 - `KeyboardUtils.dismiss` calls `afterTransition` right away when the keyboard is not visible
 - `API.writeWhenReady` runs the write right away when the app goes to the background
@@ -28,6 +31,7 @@ The names below (`SOME_COMMAND`, `pendingWrite.ts`, `setPendingWrite`, `hasPendi
 ```tsx
 // Pattern 1: timer or frame callback right after a navigation call
 Navigation.dismissModal();
+
 // Wait for the modal close animation before writing
 setTimeout(() => {
     API.write(WRITE_COMMANDS.SOME_COMMAND, params, onyxData);
@@ -112,7 +116,7 @@ Navigation.dismissModalWithReport({reportID}, undefined, {
 
 ### Review Metadata
 
-**Only flag what the diff shows.** Every condition of a pattern must be visible in the added or changed lines or in the surrounding code shown in the diff. Do not infer behavior from a function's name alone. If a condition can't be confirmed from the diff, do not flag. Missing a case this way is intended: a false positive costs more than a miss.
+**Only flag what the diff shows.** Every condition of a pattern must be visible in the added or changed lines or in the surrounding code shown in the diff. Do not infer behavior from a function's name alone. If a condition can't be confirmed from the diff, do not flag. Missing a case this way is intended because a false positive costs more than a miss.
 
 **Evidence of intent (patterns 1, 2 and 3).** The diff must show that the delay exists to wait for a transition: a comment that names the navigation, modal or keyboard transition being waited for (for example "wait for the modal to close" or "after the navigation animation"), or a delay constant for the screen transition duration (`CONST.ANIMATED_TRANSITION`). A constant for another animation (a tooltip, a toast, a side panel) does not count. An identifier that only contains a word like "modal" or "navigation" (`showNavigationError`, `modalReminderTimeout`) does not count. The navigation call before the timer does not count either. Without this evidence, do not flag.
 
@@ -163,7 +167,7 @@ Flag these patterns in added or changed lines:
 **DO NOT flag if:**
 
 - The delayed work being reviewed is itself scheduled with the `afterTransition` option, `API.writeWhenReady`, `Navigation.runAfterTransition`, `Navigation.runAfterUpcomingTransition`, or `TransitionTracker.runAfterTransitions`. A separate timer in the same function is still checked on its own. This covers patterns 1 and 2 only: pattern 3 still applies to a ready flag set inside `runAfterTransitions`. The body of an `afterTransition` callback is still checked, so a new navigation call followed by a timer inside it is pattern 1.
-- The code is inside one of these files, which implement the primitives: `src/libs/Navigation/TransitionTracker.ts`, `src/libs/Navigation/Navigation.ts`, `src/libs/API/writeWhenReady.ts`, `src/components/NavigationDeferredMount.tsx`, `src/hooks/usePreMountDestination/`
+- The code is inside one of these files, which implement the primitives: `src/libs/Navigation/TransitionTracker.ts`, `src/libs/Navigation/Navigation.ts`, `src/libs/API/writeWhenReady.ts`, `src/components/NavigationDeferredMount.tsx`, `src/hooks/usePreMountDestination/`, `src/libs/Navigation/helpers/preMountBuffer.ts`
 - The file is under `tests/` or its name ends in `.test.ts`, `.test.tsx`, `Test.ts` or `Test.tsx`
 
 **Search patterns** (starting points only, not the full definition of a match; generic arguments like `useState<boolean>(false)` and whitespace do not change a match):

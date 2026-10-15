@@ -2,7 +2,7 @@
 
 When an interaction navigates (submit an expense, open a report, switch a tab), the user waits for one thing: the destination on screen. Everything the destination does not need for that first frame should run after the navigation or modal transition ends, not during it. Work that lands mid-transition competes with the animation for the JS thread and shows up as dropped frames, a gap before the destination appears, or a flash of the previous page.
 
-The App has a small set of primitives for this, all built on the same "transition finished" signal from `TransitionTracker`. Pick one from the table below instead of building a new mechanism. If none fits, extend the closest one rather than adding a parallel one.
+The App has a small set of primitives for this, all waiting on the "transition finished" signal from `TransitionTracker` by default (`API.writeWhenReady` can take any barrier). Pick one from the table below instead of building a new mechanism. If none fits, extend the closest one rather than adding a parallel one.
 
 ## Pick a primitive
 
