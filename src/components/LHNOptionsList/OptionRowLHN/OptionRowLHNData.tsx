@@ -29,6 +29,7 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 import React, {useCallback, useMemo} from 'react';
 import {StyleSheet, View} from 'react-native';
+import {useOnyxState} from 'react-native-onyx';
 
 import OptionRowLHN from './OptionRowLHN';
 
@@ -52,15 +53,23 @@ function OptionRowLHNData({isOptionFocused = false, fullReport, reportNames, vie
     const personalDetails = usePersonalDetails();
 
     const reportAttributes = useReportAttributesByID(reportID);
-    const [oneTransactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(reportAttributes?.oneTransactionThreadReportID)}`);
-    const oneTransactionThreadReportID = oneTransactionThreadReport?.reportID;
-
-    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(fullReport?.policyID)}`);
     const [parentReportInvoiceReceiverPolicyID] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(fullReport?.parentReportID)}`, {
         selector: invoiceReceiverPolicyIDSelector,
     });
     const invoiceReceiverPolicyID = parentReportInvoiceReceiverPolicyID ?? invoiceReceiverPolicyIDSelector(fullReport);
-    const [invoiceReceiverPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(invoiceReceiverPolicyID)}`);
+
+    const oneTransactionThreadReportKey = `${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(reportAttributes?.oneTransactionThreadReportID)}` as const;
+    const policyKey = `${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(fullReport?.policyID)}` as const;
+    const invoiceReceiverPolicyKey = `${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(invoiceReceiverPolicyID)}` as const;
+    const {oneTransactionThreadReport, policy, invoiceReceiverPolicy} = useOnyxState(
+        (state) => ({
+            oneTransactionThreadReport: state[oneTransactionThreadReportKey],
+            policy: state[policyKey],
+            invoiceReceiverPolicy: state[invoiceReceiverPolicyKey],
+        }),
+        {dependencies: [oneTransactionThreadReportKey, policyKey, invoiceReceiverPolicyKey]},
+    );
+    const oneTransactionThreadReportID = oneTransactionThreadReport?.reportID;
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
 
     // Per-item report actions subscriptions (scoped by specific report ID)
