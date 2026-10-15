@@ -123,10 +123,12 @@ describe('AmountField', () => {
         }
         mockTransactionSlice.isAmountSet = true;
         act(() => mockNumberWithSymbolFormProps?.onInputChange?.('-'));
+        act(() => mockNumberWithSymbolFormProps?.onInputChange?.(''));
 
         expect(mockOnSignDirtyChange).toHaveBeenNthCalledWith(1, true);
         expect(mockOnSignDirtyChange).toHaveBeenNthCalledWith(2, true);
         expect(mockOnSignDirtyChange).toHaveBeenNthCalledWith(3, false);
+        expect(mockOnSignDirtyChange).toHaveBeenNthCalledWith(4, false);
     });
 
     it('compares the current sign with a negative amount baseline', () => {
