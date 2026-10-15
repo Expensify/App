@@ -165,6 +165,8 @@ function IOURequestEditReportCommon({
             return [];
         }
 
+        const reportOwnerLogin = personalDetails?.[resolvedReportOwnerAccountID]?.login;
+
         return outstandingReports
             .sort((report1, report2) => sortOutstandingReportsBySelected(report1, report2, selectedReportID, localeCompare))
             .filter((report) => !debouncedSearchValue || report?.reportName?.toLowerCase().includes(debouncedSearchValue.toLowerCase()))
@@ -172,7 +174,7 @@ function IOURequestEditReportCommon({
             .filter((report) => {
                 const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`];
 
-                if (!canCreateExpensesOnPolicy(policy, personalDetails?.[resolvedReportOwnerAccountID]?.login)) {
+                if (!canCreateExpensesOnPolicy(policy, reportOwnerLogin)) {
                     return false;
                 }
 

@@ -154,10 +154,6 @@ function WorkspaceRoomsTable({rooms, policyID, highlightedReportID, onSearchStri
             ListFooterComponent={listFooterComponent}
         >
             <Table.ListHeader>{tableHeaderComponent}</Table.ListHeader>
-            <Table.EmptyState
-                title={translate('workspace.common.emptyRoomsTitle')}
-                subtitleText={translate('workspace.common.emptyRoomsSubtitle')}
-            />
             <Table.NoResultsState />
             <Table.Header />
             <Table.Body contentContainerStyle={tableBodyContentContainerStyle} />

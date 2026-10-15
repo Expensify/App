@@ -249,8 +249,8 @@ function canRoleCreateExpenses(role: string | undefined): boolean {
     return !!role && ROLE_PERMISSION_BUNDLES[role]?.[CONST.POLICY.POLICY_FEATURE.CREATE_EXPENSES] === CONST.POLICY.POLICY_FEATURE_ACCESS.WRITE;
 }
 
-function canCreateExpensesOnPolicy(policy: OnyxInputOrEntry<Policy>, currentUserLogin?: string): boolean {
-    return canRoleCreateExpenses(getPolicyRole(policy, currentUserLogin));
+function canCreateExpensesOnPolicy(policy: OnyxInputOrEntry<Policy>, login?: string): boolean {
+    return canRoleCreateExpenses(getPolicyRole(policy, login, false) ?? policy?.role);
 }
 
 /** Check if the passed employee is an approver in the policy's employeeList */

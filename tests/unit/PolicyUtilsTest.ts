@@ -548,6 +548,17 @@ describe('PolicyUtils', () => {
                 expect(canCreateExpensesOnPolicy(legacyPolicy, memberLogin)).toBe(true);
             });
 
+            it('resolves the target member role from employeeList even when policy.role belongs to another user', () => {
+                const policyWithDifferentViewerRole = createMock<Policy>({
+                    role: CONST.POLICY.ROLE.ADMIN,
+                    employeeList: {
+                        [memberLogin]: {role: CONST.POLICY.ROLE.APPROVE_ONLY},
+                    },
+                });
+
+                expect(canCreateExpensesOnPolicy(policyWithDifferentViewerRole, memberLogin)).toBe(false);
+            });
+
             it('blocks Guest assignment even on Control workspaces', () => {
                 const controlPolicy = buildPolicy(CONST.POLICY.ROLE.ADMIN);
 

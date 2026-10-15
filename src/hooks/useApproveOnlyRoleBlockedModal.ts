@@ -1,3 +1,7 @@
+/**
+ * Subscribes to BLOCKED_ROLE_CHANGE in Onyx and shows the blocked-reasons modal on the global modal stack
+ * when the backend refuses an approve-only role change.
+ */
 import {clearBlockedRoleChange, clearUpdateMemberRoleError} from '@userActions/Policy/Member';
 
 import CONST from '@src/CONST';
@@ -10,8 +14,13 @@ import useConfirmModal from './useConfirmModal';
 import useLocalize from './useLocalize';
 import useOnyx from './useOnyx';
 
-const BLOCKED_ROLE_CHANGE_MAX_AGE_MS = 60_000;
 const APPROVE_ONLY_ROLE_BLOCKED_MODAL_ID = 'approveOnlyRoleBlocked';
+
+const REASON_TRANSLATION_KEYS: Record<string, TranslationPaths> = {
+    [CONST.POLICY.APPROVE_ONLY_BLOCKED_REASONS.HAS_CARD_ON_POLICY]: 'workspace.people.approveOnlyRoleBlockedReasons.hasCardOnPolicy',
+    [CONST.POLICY.APPROVE_ONLY_BLOCKED_REASONS.IS_RESTRICTED_BY_DOMAIN_GROUP]: 'workspace.people.approveOnlyRoleBlockedReasons.isRestrictedByDomainGroup',
+    [CONST.POLICY.APPROVE_ONLY_BLOCKED_REASONS.IS_DEFAULT_POLICY]: 'workspace.people.approveOnlyRoleBlockedReasons.isDefaultPolicy',
+};
 
 function useApproveOnlyRoleBlockedModal() {
     const {translate} = useLocalize();
@@ -26,11 +35,6 @@ function useApproveOnlyRoleBlockedModal() {
                 isModalOpenRef.current = false;
                 closeModalByID(APPROVE_ONLY_ROLE_BLOCKED_MODAL_ID);
             }
-            return;
-        }
-
-        if (Date.now() - blockedRoleChange.created > BLOCKED_ROLE_CHANGE_MAX_AGE_MS) {
-            clearBlockedRoleChange();
             return;
         }
 
@@ -51,12 +55,7 @@ function useApproveOnlyRoleBlockedModal() {
             });
         }
 
-        const reasonTranslationKeys: Record<string, TranslationPaths> = {
-            [CONST.POLICY.APPROVE_ONLY_BLOCKED_REASONS.HAS_CARD_ON_POLICY]: 'workspace.people.approveOnlyRoleBlockedReasons.hasCardOnPolicy',
-            [CONST.POLICY.APPROVE_ONLY_BLOCKED_REASONS.IS_RESTRICTED_BY_DOMAIN_GROUP]: 'workspace.people.approveOnlyRoleBlockedReasons.isRestrictedByDomainGroup',
-            [CONST.POLICY.APPROVE_ONLY_BLOCKED_REASONS.IS_DEFAULT_POLICY]: 'workspace.people.approveOnlyRoleBlockedReasons.isDefaultPolicy',
-        };
-        const reasonLines = blockedReasons.filter((reason) => reason in reasonTranslationKeys).map((reason) => `• ${translate(reasonTranslationKeys[reason])}`);
+        const reasonLines = blockedReasons.filter((reason) => reason in REASON_TRANSLATION_KEYS).map((reason) => `• ${translate(REASON_TRANSLATION_KEYS[reason])}`);
         const hasReasonLines = reasonLines.length > 0;
 
         showConfirmModal({

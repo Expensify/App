@@ -1908,7 +1908,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.RECENTLY_USED_REPORT_FIELDS]: OnyxTypes.RecentlyUsedReportFields;
     [ONYXKEYS.RAM_ONLY_UPDATE_REQUIRED]: boolean;
     [ONYXKEYS.SUPPORTAL_PERMISSION_DENIED]: OnyxTypes.SupportalPermissionDenied | null;
-    [ONYXKEYS.BLOCKED_ROLE_CHANGE]: OnyxTypes.BlockedRoleChange;
+    [ONYXKEYS.BLOCKED_ROLE_CHANGE]: OnyxTypes.BlockedRoleChange | null;
     [ONYXKEYS.RESET_REQUIRED]: boolean;
     [ONYXKEYS.PLAID_CURRENT_EVENT]: string;
     [ONYXKEYS.NVP_PRIVATE_TAX_EXEMPT]: boolean;

@@ -142,7 +142,6 @@ import {
     arePaymentsEnabled,
     canMemberWrite as canMemberWritePolicyUtils,
     canCreateExpensesOnPolicy,
-    canRoleCreateExpenses,
     canSendInvoiceFromWorkspace,
     getActivePolicies,
     getConnectedIntegration,
@@ -14222,7 +14221,7 @@ function isWorkspaceEligibleForReportChange(submitterEmail: string | undefined, 
         return false;
     }
     // Moving a report creates expenses there, so the submitter must hold create-expenses permission.
-    if (!canRoleCreateExpenses(getPolicyRole(newPolicy, submitterEmail, false) ?? newPolicy.role)) {
+    if (!canCreateExpensesOnPolicy(newPolicy, submitterEmail)) {
         return false;
     }
     return !!newPolicy.role && !isPendingDeletePolicy(newPolicy);

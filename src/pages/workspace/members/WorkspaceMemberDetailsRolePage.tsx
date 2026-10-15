@@ -1,5 +1,3 @@
-import Button from '@components/Button';
-import FixedFooter from '@components/FixedFooter';
 import ScreenWrapper from '@components/ScreenWrapper';
 import WorkspaceMemberRoleList from '@components/WorkspaceMemberRoleList';
 import type {ListItemType} from '@components/WorkspaceMemberRoleList';
@@ -91,17 +89,13 @@ function WorkspaceMemberDetailsRolePage({policy, personalDetails, route}: Worksp
                     onSelectRole={(item: ListItemType) => setSelectedRole(item.value)}
                     allowedRoles={allowedRoles}
                     navigateBackTo={ROUTES.WORKSPACE_MEMBER_DETAILS.getRoute(policyID, accountID)}
+                    confirmButtonOptions={{
+                        showButton: true,
+                        text: translate('common.save'),
+                        onConfirm: saveRole,
+                        isDisabled: !selectedRole || selectedRole === member?.role,
+                    }}
                 />
-                <FixedFooter addBottomSafeAreaPadding>
-                    <Button
-                        variant={CONST.BUTTON_VARIANT.SUCCESS}
-                        size={CONST.BUTTON_SIZE.LARGE}
-                        onPress={saveRole}
-                        isDisabled={!selectedRole || selectedRole === member?.role}
-                    >
-                        <Button.Text>{translate('common.save')}</Button.Text>
-                    </Button>
-                </FixedFooter>
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>
     );
