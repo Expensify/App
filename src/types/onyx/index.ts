@@ -94,7 +94,10 @@ import type {
     DynamicFormHeading,
     DynamicFormMultiChoiceField,
     DynamicFormNumberField,
+    DynamicFormPage,
+    DynamicFormSchema,
     DynamicFormSchemaField,
+    DynamicFormSensitiveAnswers,
     DynamicFormTextField,
 } from './DynamicFormField';
 import type EarlyRenewalOfferEligibility from './EarlyRenewalOfferEligibility';
@@ -479,7 +482,10 @@ export type {
     DynamicFormHeading,
     DynamicFormMultiChoiceField,
     DynamicFormNumberField,
+    DynamicFormPage,
+    DynamicFormSchema,
     DynamicFormSchemaField,
+    DynamicFormSensitiveAnswers,
     DynamicFormTextField,
     JoinablePolicies,
     DismissedProductTraining,

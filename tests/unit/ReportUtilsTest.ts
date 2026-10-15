@@ -6160,6 +6160,86 @@ describe('ReportUtils', () => {
                 canUnholdRequest: false,
             });
         });
+
+        it('should let the submitter hold an expense with no IOU action on their open expense report', () => {
+            // Given an expense with no IOU action on an open expense report the current user submitted
+            const expenseReport = {
+                ...createExpenseReport(1004),
+                policyID: 'policy-4',
+                ownerAccountID: currentUserAccountID,
+                managerID: 99999,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+            };
+            const expenseTransaction = buildOptimisticTransaction({
+                transactionParams: {
+                    amount: 100,
+                    currency: 'USD',
+                    reportID: expenseReport.reportID,
+                },
+            });
+
+            // When checking whether it can be held, Then Hold is available, because HoldRequest creates the missing IOU action and thread
+            expect(canHoldUnholdReportAction(expenseReport, undefined, undefined, expenseTransaction, undefined, currentUserAccountID, undefined)).toEqual({
+                canHoldRequest: true,
+                canUnholdRequest: false,
+            });
+        });
+
+        it('should not let another member hold an expense with no IOU action on an open expense report', () => {
+            // Given an expense with no IOU action on an open expense report another member submitted
+            const expenseReport = {
+                ...createExpenseReport(1005),
+                policyID: 'policy-5',
+                ownerAccountID: 99998,
+                managerID: 99999,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+            };
+            const expenseTransaction = buildOptimisticTransaction({
+                transactionParams: {
+                    amount: 100,
+                    currency: 'USD',
+                    reportID: expenseReport.reportID,
+                },
+            });
+
+            // When checking whether it can be held, Then Hold is unavailable, because only the requester can hold on an open report
+            expect(canHoldUnholdReportAction(expenseReport, undefined, undefined, expenseTransaction, undefined, currentUserAccountID, undefined)).toEqual({
+                canHoldRequest: false,
+                canUnholdRequest: false,
+            });
+        });
+
+        it('should not offer Unhold for a held expense that has no IOU action yet', () => {
+            // Given an admin and an expense held optimistically on an open expense report, before the server returned its new IOU action
+            const expenseReport = {
+                ...createExpenseReport(1006),
+                policyID: 'policy-6',
+                ownerAccountID: currentUserAccountID,
+                managerID: 99999,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+            };
+            const expenseTransaction = buildOptimisticTransaction({
+                transactionParams: {
+                    amount: 100,
+                    currency: 'USD',
+                    reportID: expenseReport.reportID,
+                },
+            });
+            const heldTransaction = {...expenseTransaction, comment: {...expenseTransaction.comment, hold: 'holdActionID'}};
+            const adminPolicy = createMock<Policy>({
+                id: expenseReport.policyID,
+                role: CONST.POLICY.ROLE.ADMIN,
+            });
+
+            // When checking whether it can be unheld, Then Unhold is unavailable, because removing the hold needs the IOU action's transaction thread
+            expect(canHoldUnholdReportAction(expenseReport, undefined, undefined, heldTransaction, adminPolicy, currentUserAccountID, undefined)).toEqual({
+                canHoldRequest: false,
+                canUnholdRequest: false,
+            });
+        });
     });
 
     describe('isAdminOwnerApproverOrReportOwner uses explicit currentUserAccountID', () => {
@@ -18243,6 +18323,29 @@ describe('ReportUtils', () => {
             expect(expenseReport.reportName).toBe(`${fakePolicy.name} owes ${convertToDisplayString(-total, currency)}`);
         });
 
+        it('should keep the English workspace fallback in the report name when another locale is loaded', async () => {
+            // Given a chat report that cannot be resolved, so the report name falls back to the "unavailable workspace" copy
+            const chatReportID = '9999';
+            const total = 100;
+
+            // When the report is built while Spanish is the loaded locale
+            await IntlStore.load(CONST.LOCALES.ES).then(waitForBatchedUpdates);
+            const expenseReport = buildOptimisticExpenseReport({
+                rules: undefined,
+                chatReportID,
+                policyID: undefined,
+                payeeAccountID: 1,
+                total,
+                currency: CONST.CURRENCY.USD,
+                isASAPSubmitBetaEnabled: true,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+            });
+
+            // Then the name stays English, because it is persisted on the report and read back by every viewer regardless of their locale
+            expect(expenseReport.reportName).toContain(`${translate(CONST.LOCALES.EN, 'workspace.common.unavailable')} owes `);
+            expect(expenseReport.reportName).not.toContain(translate(CONST.LOCALES.ES, 'workspace.common.unavailable'));
+        });
+
         it('should set reportName to "New Report" when policy field list is empty', async () => {
             // Given a policy with an empty field list
             const policyID = '200';
@@ -21004,11 +21107,7 @@ describe('ReportUtils', () => {
                 // The localized preview differs between English and Spanish...
                 expect(getReportPreviewMessage(spanishTranslate, convertToDisplayString, params)).not.toBe(getReportPreviewMessage(englishTranslate, convertToDisplayString, params));
                 // ...but the report-action-message variant is always the English text, regardless of the loaded locale
-
-                // TODO: Re-enable this assertion once getReportPreviewReportActionMessage is refactored
-                // This will be done in the next PR https://github.com/Expensify/App/issues/66430.
-
-                // expect(getReportPreviewReportActionMessage(params, getCurrencyDecimalsLocal)).toBe(getReportPreviewMessage(englishTranslate, convertToDisplayString, params));
+                expect(getReportPreviewReportActionMessage(params, getCurrencyDecimalsLocal)).toBe(getReportPreviewMessage(englishTranslate, convertToDisplayString, params));
             });
 
             it('routes the participant display name through the injected translate function', async () => {
@@ -21057,6 +21156,30 @@ describe('ReportUtils', () => {
                 // The hardcoded English string must match the en.ts translation produced by the localized function
                 expect(result).toBe(getReportPreviewMessage(englishTranslate, convertToDisplayString, {reportOrID: report, policy: undefined}));
                 expect(result).toContain('owes');
+            });
+
+            it('names a participant with no display name using the English "Hidden" copy when another locale is loaded', async () => {
+                // Given an IOU report whose payer has no name, so the payer resolves to the "hidden" copy
+                const hiddenManagerAccountID = 5544332;
+                const report: Report = {
+                    ...LHNTestUtils.getFakeReport(),
+                    reportID: 'preview-en-hidden-report',
+                    type: CONST.REPORT.TYPE.IOU,
+                    currency: CONST.CURRENCY.USD,
+                    managerID: hiddenManagerAccountID,
+                    stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                    statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                };
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
+                await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[hiddenManagerAccountID]: {accountID: hiddenManagerAccountID, login: '', displayName: ''}});
+
+                // When the message is built while Spanish is the loaded locale, which the cached module-level translation used to follow
+                await IntlStore.load(CONST.LOCALES.ES).then(waitForBatchedUpdates);
+                const result = getReportPreviewReportActionMessage({reportOrID: report}, getCurrencyDecimalsLocal);
+
+                // Then the message stored on the report action names the participant in English, like the rest of its copy
+                expect(result).toContain(translate(CONST.LOCALES.EN, 'common.hidden'));
+                expect(result).not.toContain(translate(CONST.LOCALES.ES, 'common.hidden'));
             });
 
             it('returns the English "spent" message when the report contains a non-reimbursable transaction, and matches en.ts', async () => {
@@ -23388,6 +23511,10 @@ describe('ReportUtils', () => {
     });
 
     describe('getPolicyName', () => {
+        // `unavailableTranslation` is required. The cases below all resolve a real policy name, so this is only the copy that
+        // must not surface in their assertions.
+        const unavailableTranslation = 'Unavailable workspace';
+
         const testPolicy: Policy = {
             ...createRandomPolicy(1),
             id: 'policy123',
@@ -23420,6 +23547,7 @@ describe('ReportUtils', () => {
             const result = getPolicyName({
                 report: testReport,
                 policy: testPolicy,
+                unavailableTranslation,
             });
             expect(result).toBe('Test Policy Name');
         });
@@ -23434,6 +23562,7 @@ describe('ReportUtils', () => {
                 report: testReport,
                 policy: testPolicy,
                 policies: [otherPolicy],
+                unavailableTranslation,
             });
             expect(result).toBe('Test Policy Name');
         });
@@ -23450,6 +23579,7 @@ describe('ReportUtils', () => {
             const result = getPolicyName({
                 report: reportWithoutPolicyName,
                 policy: testPolicy,
+                unavailableTranslation,
             });
             expect(result).toBe('Test Policy Name');
         });
@@ -23463,6 +23593,7 @@ describe('ReportUtils', () => {
             const result = getPolicyName({
                 report: testReport,
                 policies,
+                unavailableTranslation,
             });
             expect(result).toBe('Found In Array');
         });
@@ -23475,6 +23606,7 @@ describe('ReportUtils', () => {
             const result = getPolicyName({
                 report: testReport,
                 policies,
+                unavailableTranslation,
             });
             expect(result).toBe('Report Policy Name');
         });
@@ -23485,7 +23617,7 @@ describe('ReportUtils', () => {
                 policyID: 'nonexistent',
                 policyName: 'Fallback Policy Name',
             };
-            const result = getPolicyName({report});
+            const result = getPolicyName({report, unavailableTranslation});
             expect(result).toBe('Fallback Policy Name');
         });
 
@@ -23496,7 +23628,7 @@ describe('ReportUtils', () => {
                 policyName: undefined,
                 oldPolicyName: 'Old Fallback Name',
             };
-            const result = getPolicyName({report});
+            const result = getPolicyName({report, unavailableTranslation});
             expect(result).toBe('Old Fallback Name');
         });
 
@@ -23516,6 +23648,7 @@ describe('ReportUtils', () => {
             const result = getPolicyName({
                 report: childReport,
                 reports: [parentReport, childReport],
+                unavailableTranslation,
             });
             expect(result).toBe('Parent Policy Name');
         });
@@ -23524,6 +23657,7 @@ describe('ReportUtils', () => {
             const result = getPolicyName({
                 report: testReport,
                 policies: [],
+                unavailableTranslation,
             });
             expect(result).toBe('Report Policy Name');
         });
@@ -23532,6 +23666,7 @@ describe('ReportUtils', () => {
             const result = getPolicyName({
                 report: testReport,
                 policy: testPolicy,
+                unavailableTranslation,
             });
             expect(result).toBe('Test Policy Name');
         });
@@ -23551,7 +23686,7 @@ describe('ReportUtils', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${onyxPolicy.id}`, onyxPolicy);
             await waitForBatchedUpdates();
 
-            const result = getPolicyName({report});
+            const result = getPolicyName({report, unavailableTranslation});
             expect(result).toBe('Policy From Onyx');
 
             // Cleanup
@@ -23568,6 +23703,7 @@ describe('ReportUtils', () => {
             const result = getPolicyName({
                 report,
                 policies: [],
+                unavailableTranslation,
             });
             expect(result).toBe('Report Fallback Name');
         });
@@ -23604,7 +23740,7 @@ describe('ReportUtils', () => {
             };
 
             // No policy or policies passed, but allPolicies has the policy via Onyx
-            const result = getPolicyName({report});
+            const result = getPolicyName({report, unavailableTranslation});
             expect(result).toBe('Guard Test Policy');
 
             // Cleanup
@@ -23622,9 +23758,25 @@ describe('ReportUtils', () => {
             expect(result).toBe('Custom Unavailable');
         });
 
-        it('should prefer unavailableTranslation param over cached module-level translation', () => {
+        it('should use unavailableTranslation param when the report is missing entirely', () => {
             const result = getPolicyName({report: null, unavailableTranslation: 'Passed In'});
             expect(result).toBe('Passed In');
+        });
+
+        it('should return the passed copy rather than the loaded locale, now that the module-level cache is gone', async () => {
+            // Given a report whose policy cannot be resolved, so the fallback copy is what gets returned
+            const report: Report = {
+                ...createRandomReport(1, undefined),
+                policyID: 'nonexistent',
+                policyName: undefined,
+                oldPolicyName: undefined,
+            };
+
+            // When Spanish is the loaded locale, which used to drive the cached module-level translation
+            await IntlStore.load(CONST.LOCALES.ES).then(waitForBatchedUpdates);
+
+            // Then the caller's string is returned untouched: the fallback no longer reads translations behind the caller's back
+            expect(getPolicyName({report, unavailableTranslation: translate(CONST.LOCALES.EN, 'workspace.common.unavailable')})).toBe('Unavailable workspace');
         });
 
         it('should not use unavailableTranslation when returnEmptyIfNotFound is true', () => {

@@ -581,6 +581,10 @@ const translations: TranslationDeepObject<typeof en> = {
         errorWhileSelectingCorruptedAttachment: 'Une erreur s’est produite lors de la sélection d’une pièce jointe corrompue. Veuillez essayer un autre fichier.',
         errorWhileConvertingHeic: 'Nous n’avons pas pu traiter cette image. Veuillez réessayer ou téléverser la photo dans un format différent.',
         takePhoto: 'Prendre une photo',
+        retake: 'Reprendre',
+        usePhoto: 'Utiliser la photo',
+        capturedPhotoPreview: 'Aperçu de la photo',
+        photoTakenAnnouncement: 'Photo prise. Choisissez Reprendre ou Utiliser la photo.',
         chooseFromGallery: 'Choisir depuis la galerie',
         chooseDocument: 'Choisir un fichier',
         attachmentTooLarge: 'La pièce jointe est trop volumineuse',
@@ -1658,6 +1662,7 @@ const translations: TranslationDeepObject<typeof en> = {
             saveReceipt: 'Enregistrer le reçu',
             genericDeleteFailureMessage: 'Erreur inattendue lors de la suppression de cette dépense. Veuillez réessayer plus tard.',
             genericEditFailureMessage: 'Erreur inattendue lors de la modification de cette dépense. Veuillez réessayer plus tard.',
+            genericSplitFailureMessage: 'Erreur inattendue lors du fractionnement de cette dépense. Veuillez réessayer plus tard.',
             genericSmartscanFailureMessage: 'Des champs manquent à la transaction',
             duplicateWaypointsErrorMessage: 'Veuillez supprimer les points de passage en double',
             atLeastTwoDifferentWaypoints: 'Veuillez saisir au moins deux adresses différentes',
@@ -3956,6 +3961,11 @@ ${amount} pour ${merchant} - ${date}`,
                 `<strong>${delegate}</strong> n'est pas membre des espaces de travail ci-dessous. Les administrateurs des espaces de travail que vous ne gérez pas seront invités à l'ajouter. Voulez-vous l'inviter dès maintenant à ceux dont vous êtes administrateur ?`,
             youAreAMemberOf: 'Vous êtes membre de ces espaces de travail :',
             youAreAnAdminOf: 'Vous êtes administrateur de ces espaces de travail :',
+            chooseDelegate: 'Choisir un délégué',
+            clearAfterRecommended: 'Effacer après (recommandé)',
+            willClearOn: (date: string) => `Le délégué de vacances sera supprimé le ${date}`,
+            until: (date: string) => `Jusqu’au ${date}`,
+            removeDelegate: 'Supprimer le délégué de vacances',
         },
     },
     stepCounter: (step: number, total?: number, text?: string) => {
@@ -4548,7 +4558,7 @@ ${amount} pour ${merchant} - ${date}`,
         enterSignerInfo: 'Saisir les informations du signataire',
         thisStep: 'Cette étape a été terminée',
         isConnecting: (bankAccountLastFour: string | undefined, currency: string | undefined) =>
-            `est en train de connecter un compte bancaire professionnel en ${currency} se terminant par ${bankAccountLastFour} à Expensify pour payer des employés en ${currency}. L’étape suivante nécessite les informations de signature d’un directeur.`,
+            `a ajouté un compte bancaire en ${currency} se terminant par ${bankAccountLastFour}. Saisissez vos informations de signataire en tant que directeur afin que ce compte bancaire puisse être utilisé pour payer les employés.`,
         error: {
             emailsMustBeDifferent: 'Les e-mails doivent être différents',
         },
@@ -5108,7 +5118,10 @@ ${amount} pour ${merchant} - ${date}`,
             },
             requestEmptyList: {
                 title: 'Aucun taux de per diem pour le moment',
-                subtitle: 'Cet espace de travail n’a aucun taux de per diem, demandez à votre Administrateur d’en ajouter.',
+                subtitle: (workspaceName?: string) =>
+                    workspaceName
+                        ? `${workspaceName} n’a aucun taux de per diem. Demandez à un administrateur d’en ajouter.`
+                        : 'Cet espace de travail n’a aucun taux de per diem. Demandez à un administrateur d’en ajouter.',
                 adminSubtitle: 'Ajoutez des taux de per diem pour organiser vos dépenses.',
             },
             importPerDiemRates: 'Importer des taux de per diem',
@@ -6065,10 +6078,10 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
             enterCredentials: 'Saisissez votre clé API Rillet',
             howToFindAPIKey:
                 '<strong>Recherche de votre clé API.</strong><ol><li>Connectez-vous à Rillet</li><li>Accédez à [organization name] -> Paramètres de l’organisation -> Accès API</li><li>Créez une clé API</li><li>Collez la clé API ci-dessous</li></ol>',
-            subsidiary: 'Filiale',
-            subsidiarySelectDescription: 'Choisissez la filiale dans Rillet depuis laquelle vous souhaitez importer des données.',
-            noSubsidiariesFound: 'Aucune filiale trouvée',
-            noSubsidiariesFoundDescription: 'Veuillez ajouter une filiale dans Rillet et synchroniser à nouveau la connexion',
+            entity: 'Entité',
+            entitySelectDescription: 'Choisissez l’entité dans Rillet à partir de laquelle vous souhaitez importer des données.',
+            noEntitiesFound: 'Aucune entité trouvée',
+            noEntitiesFoundDescription: 'Veuillez ajouter une entité dans Rillet et synchroniser à nouveau la connexion',
             accountTypesDescription: 'Vos comptes Rillet seront importés en tant que catégories.',
             enableNewAccountsTitle: 'Activer les nouveaux comptes importés',
             enableNewAccountsDescription: 'Les nouveaux comptes Rillet seront disponibles en tant que catégories.',
@@ -6172,8 +6185,8 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
             enterCredentials: 'Saisissez votre clé API DualEntry',
             howToFindAPIKey:
                 '<strong>Recherche de votre clé API.</strong><ol><li>Connectez-vous à DualEntry</li><li>Accédez à [organization name] -> Paramètres -> Accès développeur -> Clés API</li><li>Créez une clé API</li><li>Collez la clé API ci-dessous</li></ol>',
-            subsidiary: 'Filiale',
-            subsidiarySelectDescription: 'Choisissez la filiale dans DualEntry à partir de laquelle vous souhaitez importer des données.',
+            company: 'Entreprise',
+            companySelectDescription: 'Choisissez l’entreprise dans DualEntry depuis laquelle vous souhaitez importer des données.',
             noCompaniesFound: 'Aucune entreprise trouvée',
             noCompaniesFoundDescription: 'Veuillez ajouter une entreprise dans DualEntry et synchroniser à nouveau la connexion',
             noVendorsFound: 'Aucun fournisseur trouvé',
@@ -6659,6 +6672,9 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
             distanceRates: {
                 title: 'Taux de distance',
                 subtitle: 'Ajoutez, mettez à jour et appliquez les taux.',
+                commuterExclusionsOnTitle: 'Les exclusions de trajet domicile-travail sont activées',
+                disableLockedByCommuterExclusionsPrompt:
+                    'Pour désactiver les taux de distance, commencez par définir Exclure les trajets domicile-travail sur « Ne pas exclure les trajets domicile-travail ».',
             },
             perDiem: {
                 title: 'Indemnité journalière',
@@ -7925,6 +7941,21 @@ Le forfait Control commence à 9 $ par Membre actif et par mois.`,
             addressContext: 'Une adresse d’espace de travail est requise pour activer Expensify Travel. Veuillez saisir une adresse associée à votre entreprise.',
             policy: 'Politique de dépenses',
         },
+        officeLocations: {
+            title: 'Sites de bureau',
+            subtitle: 'Ajoutez des bureaux pour les assigner aux membres, par exemple pour le suivi des distances.',
+            addOfficeLocation: 'Ajouter un lieu de travail',
+            editOfficeLocation: 'Modifier le lieu de travail',
+            locationName: 'Nom du lieu',
+            locationNameHint: 'Choisissez un surnom de lieu si vous ajoutez plusieurs sites de bureau',
+            defaultName: ({officeNumber}: {officeNumber: number}) => `Bureau ${officeNumber}`,
+            setAsPrimary: 'Définir comme principal',
+            primary: 'Principal',
+            deleteOfficeLocation: 'Supprimer le site ?',
+            deleteOfficeLocationConfirmation: 'Voulez-vous vraiment supprimer ce bureau ? Les membres seront réassignés au bureau principal.',
+            existingOfficeLocationError: 'Un bureau portant ce nom existe déjà',
+            setCompanyAddressAsPrimaryConfirmation: 'Définir l’adresse de l’entreprise comme bureau principal ?',
+        },
         bankAccount: {
             continueWithSetup: 'Continuer la configuration',
             youAreAlmostDone:
@@ -9122,10 +9153,10 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             enterCredentials: 'Saisissez votre clé API Campfire',
             howToFindAPIKey:
                 '<strong>Recherche de votre clé API.</strong><ol><li>Connectez-vous à Campfire</li><li>Accédez à Paramètres -> Clés API</li><li>Créez une clé API</li><li>Collez la clé API ci-dessous</li></ol>',
-            subsidiary: 'Filiale',
-            subsidiarySelectDescription: 'Choisissez la filiale dans Campfire à partir de laquelle vous souhaitez importer des données.',
-            noSubsidiariesFound: 'Aucune filiale trouvée',
-            noSubsidiariesFoundDescription: 'Veuillez ajouter une entité dans Campfire et synchroniser à nouveau la connexion',
+            entity: 'Entité',
+            entitySelectDescription: 'Choisissez l’entité dans Campfire depuis laquelle vous souhaitez importer des données.',
+            noEntitiesFound: 'Aucune entité trouvée',
+            noEntitiesFoundDescription: 'Veuillez ajouter une entité dans Campfire et synchroniser à nouveau la connexion',
             noVendorsFound: 'Aucun fournisseur trouvé',
             noVendorsFoundDescription: 'Veuillez ajouter des fournisseurs dans Campfire et synchroniser de nouveau la connexion',
             importDescription: 'Choisissez les configurations de codage à importer depuis Campfire.',
@@ -9753,6 +9784,15 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
         },
         addedProhibitedExpense: ({prohibitedExpense}: {prohibitedExpense: string}) => `a ajouté « ${prohibitedExpense} » aux dépenses interdites`,
         removedProhibitedExpense: ({prohibitedExpense}: {prohibitedExpense: string}) => `a supprimé « ${prohibitedExpense} » des dépenses interdites`,
+        officeLocation: {
+            added: ({name, address}: {name: string; address: string}) => `a ajouté le lieu de bureau « ${name} » (${address})`,
+            renamed: ({oldName, newName}: {oldName: string; newName: string}) => `a renommé le lieu de bureau « ${oldName} » en « ${newName} »`,
+            changedAddress: ({name, newAddress, oldAddress}: {name: string; newAddress: string; oldAddress: string}) =>
+                `a modifié l’adresse du bureau « ${name} » en « ${newAddress} » (auparavant « ${oldAddress} »)`,
+            setAsPrimary: ({name}: {name: string}) => `définir le lieu de travail « ${name} » comme principal`,
+            setCompanyAddressAsPrimary: 'définir l’adresse de l’entreprise comme principale',
+            removed: ({name}: {name: string}) => `a supprimé le lieu de bureau « ${name} »`,
+        },
         workArrangement: {
             set: ({arrangement}: {arrangement: string}) => `définir l’organisation de travail par défaut sur ${arrangement}`,
             changed: ({arrangement, previousArrangement}: {arrangement: string; previousArrangement: string}) =>
@@ -10034,6 +10074,8 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
         fallbackTitle: 'Ticket d’assistance',
         resolved: 'Ce ticket d’assistance est résolu.',
         surveyPrompt: 'Comment s’est passée votre expérience avec l’assistance ?',
+        great: 'Excellente',
+        poor: 'Mauvaise',
         reopenTicket: 'Rouvrir le ticket',
     },
     statementPage: {
@@ -10255,6 +10297,11 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                 [CONST.SEARCH.ACTION_FILTERS.EXPORT]: 'Exporter',
             },
             filterType: {label: 'Type de filtre', has: {positive: 'a', negative: 'n’a pas'}, is: {positive: 'est', negative: 'n’est pas'}},
+            merchant: {
+                matchType: 'Type de correspondance',
+                contains: (merchant?: string) => (merchant ? `Contient "${merchant}"` : 'Contient'),
+                equalTo: (merchant?: string) => (merchant ? `Égal à "${merchant}"` : 'Égal à'),
+            },
             created: 'Créé',
             createdDate: 'Date de création',
             transactionStatus: {
