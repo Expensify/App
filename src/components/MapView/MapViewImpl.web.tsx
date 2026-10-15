@@ -194,7 +194,7 @@ function MapViewImpl({
         resetBoundariesRef.current = resetBoundaries;
     }, [resetBoundaries]);
 
-    // eslint-disable-next-line react-hooks/set-state-in-effect
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- we need to reset Center button target when camera moves on waypoints change
     useEffect(resetBoundaries, [resetBoundaries]);
 
     useEffect(() => {
