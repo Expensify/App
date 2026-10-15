@@ -12,6 +12,8 @@ import useConfirmModal from '@hooks/useConfirmModal';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
+import useLoadPolicyCategories from '@hooks/useLoadPolicyCategories';
+import useLoadPolicyTags from '@hooks/useLoadPolicyTags';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
@@ -80,6 +82,7 @@ function SearchEditMultiplePage() {
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const [allReportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS);
     const [allPolicyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS);
+    const [allPolicyTagsLoadingStates] = useOnyx(ONYXKEYS.COLLECTION.RAM_ONLY_POLICY_TAGS_LOADING_STATE);
     const [allPolicyCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES);
     const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const [personalDetailsList] = usePersonalDetailsByIDs(
@@ -171,6 +174,9 @@ function SearchEditMultiplePage() {
     const areTagsEnabled = areSelectedTransactionsExpenses && !!policy?.areTagsEnabled && hasEnabledTags(policyTagLists);
     const areAttendeesEnabled = areSelectedTransactionsExpenses && isAttendeeTrackingEnabledForSelection;
 
+    useLoadPolicyCategories(policy?.areCategoriesEnabled ? policyID : undefined);
+    useLoadPolicyTags(policy?.areTagsEnabled ? policyID : undefined);
+
     useEffect(() => {
         return () => {
             clearBulkEditDraftTransaction();
@@ -196,6 +202,7 @@ function SearchEditMultiplePage() {
                 reportActions: mergedReportActions,
                 policyCategories: allPolicyCategories,
                 policyTags: allPolicyTags,
+                policyTagsLoadingStates: allPolicyTagsLoadingStates,
                 violations: allTransactionViolations,
                 reportNameValuePairs,
                 hash: currentSearchHash,

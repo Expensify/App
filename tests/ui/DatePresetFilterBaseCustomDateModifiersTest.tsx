@@ -97,17 +97,17 @@ describe('DatePresetFilterBase allowedCustomDateModifiers', () => {
         }
     });
 
-    it('offers a single-day calendar labelled Custom day when only On is allowed', () => {
+    it('offers a single-day calendar labelled Custom date when only On is allowed', () => {
         // Given the picker as Insights renders it, which only reports on closed periods
         const onSelectDateModifier = jest.fn();
         renderDatePresetFilterBase({
             allowedCustomDateModifiers: [CONST.SEARCH.DATE_MODIFIERS.ON],
             onSelectDateModifier,
         });
-        expect(screen.queryByText(CUSTOM_DATE)).not.toBeOnTheScreen();
+        expect(screen.queryByText(CUSTOM_DAY)).not.toBeOnTheScreen();
 
-        // When the Custom day option is opened
-        fireEvent.press(screen.getByText(CUSTOM_DAY), PRESS_EVENT);
+        // When the Custom date option is opened
+        fireEvent.press(screen.getByText(CUSTOM_DATE), PRESS_EVENT);
 
         // Then the calendar opens on its own, since there is no modifier left to choose between
         expect(onSelectDateModifier).toHaveBeenCalledWith(CONST.SEARCH.DATE_MODIFIERS.ON);
@@ -128,8 +128,8 @@ describe('DatePresetFilterBase allowedCustomDateModifiers', () => {
             onSelectDateModifier,
         });
 
-        // When the Custom day option is opened
-        fireEvent.press(screen.getByText(CUSTOM_DAY), PRESS_EVENT);
+        // When the Custom date option is opened
+        fireEvent.press(screen.getByText(CUSTOM_DATE), PRESS_EVENT);
 
         // Then the picker switches to On rather than reviving the Before modifier the caller ruled out
         expect(onSelectDateModifier).toHaveBeenCalledWith(CONST.SEARCH.DATE_MODIFIERS.ON);
@@ -139,7 +139,10 @@ describe('DatePresetFilterBase allowedCustomDateModifiers', () => {
         // Given a picker restricted to the After modifier
         const onSelectDateModifier = jest.fn();
         renderDatePresetFilterBase({
-            defaultDateValues: {...emptyDateValues, [CONST.SEARCH.DATE_MODIFIERS.AFTER]: '2026-03-04'},
+            defaultDateValues: {
+                ...emptyDateValues,
+                [CONST.SEARCH.DATE_MODIFIERS.AFTER]: '2026-03-04',
+            },
             allowedCustomDateModifiers: [CONST.SEARCH.DATE_MODIFIERS.AFTER],
             onSelectDateModifier,
         });

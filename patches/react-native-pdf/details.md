@@ -62,3 +62,18 @@
 - Upstream library: https://github.com/johngray1965/PdfiumAndroidKt
 - E/App issue: https://github.com/Expensify/App/issues/93839
 - PR introducing patch: https://github.com/Expensify/App/pull/94894
+
+
+### [react-native-pdf+7.0.2+005+report-full-page-count-single-page-android.patch](react-native-pdf+7.0.2+005+report-full-page-count-single-page-android.patch)
+
+- Reason:
+
+    ```
+    This patch makes onLoadComplete report the document's real page count on Android when singlePage is set.
+
+    With singlePage, Android restricts the viewer to one page (configurator.pages(page - 1)), so loadComplete receives numberOfPages = 1 even for a multi-page PDF. iOS already reports the full count in the same mode. The patch reads the real count with Android's PdfRenderer (the same API the library uses for enableRTL) and sends it instead. It only changes the reported count; the viewer still renders just the first page. If PdfRenderer can't open the file (for example, a password-protected PDF), it falls back to the loaded page count.
+    ```
+
+- Upstream PR/issue: https://github.com/wonday/react-native-pdf/issues/674
+- E/App issue: https://github.com/Expensify/App/issues/101895
+- PR introducing patch: https://github.com/Expensify/App/pull/102389

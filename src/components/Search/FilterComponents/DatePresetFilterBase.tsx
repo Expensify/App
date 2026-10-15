@@ -9,6 +9,7 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import DateUtils from '@libs/DateUtils';
 import type {SearchDateValues} from '@libs/SearchQueryUtils';
 import {getDateRangeDisplayValueFromFormValue, getEmptyDateValues, getRangeBoundariesFromFormValue, getRangeQueryValue, isSearchDatePreset} from '@libs/SearchQueryUtils';
 import type {SearchDateModifier, SearchDateModifierLower} from '@libs/SearchUIUtils';
@@ -17,6 +18,7 @@ import CONST from '@src/CONST';
 
 import type {Ref} from 'react';
 
+import {format} from 'date-fns';
 import React, {useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 
@@ -137,8 +139,7 @@ function DatePresetFilterBase({
     const {translate, dateFnsLocale} = useLocalize();
 
     const shouldShowHorizontalRule = !!presets?.length;
-    const isCustomDayOnly = allowedCustomDateModifiers.length === 1 && allowedCustomDateModifiers.at(0) === CONST.SEARCH.DATE_MODIFIERS.ON;
-    const customDateTitle = translate(isCustomDayOnly ? 'search.filters.date.customDay' : 'search.filters.date.customDate');
+    const customDateTitle = translate('search.filters.date.customDate');
     const customRangeTitle = translate('search.filters.date.customRange');
     const normalizedDefaultDateValues = useMemo(() => normalizeDateValues(defaultDateValues), [defaultDateValues]);
 
@@ -406,9 +407,9 @@ function DatePresetFilterBase({
 
         return `${translate(`common.${CUSTOM_DATE_MODIFIER_TRANSLATION_KEYS[customDateModifier]}`)} ${customDateValue}`;
     }, [customDateModifier, dateDisplayValues, translate]);
-    const handleSingleDateSelected = useCallback((date: string) => {
-        setEphemeralDateValue(date);
-    }, []);
+    const handleSingleDateSelected = (date: Date) => {
+        setEphemeralDateValue(format(date, CONST.DATE.FNS_FORMAT_STRING));
+    };
     const selectCustomDateMode = useCallback(() => selectDateModifier(customDateModifier), [customDateModifier, selectDateModifier]);
 
     if (!selectedDateModifier) {
@@ -480,10 +481,9 @@ function DatePresetFilterBase({
     return (
         <>
             <CalendarPicker
-                value={ephemeralDateValue}
+                value={DateUtils.parseCalendarDate(ephemeralDateValue)}
                 onSelected={handleSingleDateSelected}
-                minDate={CONST.CALENDAR_PICKER.MIN_DATE}
-                maxDate={CONST.CALENDAR_PICKER.MAX_DATE}
+                isDateSelectable={DateUtils.isWithinCalendarPickerRange}
             />
             {allowedCustomDateModifiers.length > 1 && (
                 <>

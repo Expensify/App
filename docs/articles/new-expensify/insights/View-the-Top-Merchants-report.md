@@ -127,7 +127,7 @@ All reports help identify trends from different perspectives to support better f
 
 ## How is the Top Merchants report calculated?
 
-The report uses all expenses from the previous calendar month and groups them by merchant. It shows the **top 10 merchants** based on total spend.
+The report uses all expenses from the previous calendar month and groups them by merchant. It shows the **top 5 merchants** based on total spend.
 
 ## Why do some merchant names look different?
 

@@ -20,6 +20,7 @@ const SPEND_SPEC = INSIGHTS_DASHBOARD_SPECS[CONST.INSIGHTS.DASHBOARD.SPEND];
 
 type InsightsPayload = {
     hash: number;
+    groupBy: string;
     inputQuery: string;
 };
 
@@ -144,10 +145,24 @@ describe('insightsQueries', () => {
             // When its request is built
             const request = buildInsightsJsonQuery(CONST.INSIGHTS.DASHBOARD.SPEND, filters, true);
 
-            // Then the query names that day, the same way it names a preset
+            // Then the query names that day the same way it names a preset, and its one point is grouped by day, the only grouping a single date offers
             expect(parsePayload(request)?.inputQuery).toBe('groupBy:month groupCurrency:USD date:2026-03-04');
+            expect(parsePayload(request)?.groupBy).toBe(CONST.SEARCH.GROUP_BY.DAY);
             expect(parsePayload(request)).toEqual(expect.objectContaining({insightsHashes: buildExpectedHashes(filters)}));
         });
+
+        it('saves the selected grouping while querying the one fitted to the date range', () => {
+            // Given a quarterly dashboard narrowed to a month, which only offers Day and Week
+            const filters: InsightsFilters = {...FILTERS, date: {from: '2026-03-01', to: '2026-03-31'}, groupBy: CONST.SEARCH.GROUP_BY.QUARTER};
+
+            // When its request is built
+            const payload = parsePayload(buildInsightsJsonQuery(CONST.INSIGHTS.DASHBOARD.SPEND, filters, true));
+
+            // Then the backend saves quarter, so a longer range brings it back, while the charts are grouped by week
+            expect(payload?.inputQuery).toBe('groupBy:quarter groupCurrency:USD date>=2026-03-01 date<=2026-03-31');
+            expect(payload?.groupBy).toBe(CONST.SEARCH.GROUP_BY.WEEK);
+        });
+
         it('leaves the workspaces out of the query until some are selected', () => {
             // Given a dashboard requested with no workspace selected
             const allWorkspaces = buildInsightsJsonQuery(CONST.INSIGHTS.DASHBOARD.SPEND, FILTERS, true);
@@ -219,8 +234,8 @@ describe('insightsQueries', () => {
         });
 
         it('groups the headline chart by day while supporting charts keep their own group-by', () => {
-            // Given the page filters grouped by day
-            const filters: InsightsFilters = {...FILTERS, groupBy: CONST.SEARCH.GROUP_BY.DAY};
+            // Given the page filters over a month, grouped by day
+            const filters: InsightsFilters = {...FILTERS, date: {from: '2026-03-01', to: '2026-03-31'}, groupBy: CONST.SEARCH.GROUP_BY.DAY};
 
             // When the filters are applied to the headline chart and to every supporting chart
             const headlineQuery = applyInsightsFilters(SPEND_SPEC.headlineChart, filters);
@@ -229,6 +244,17 @@ describe('insightsQueries', () => {
             // Then only the headline chart, which declares no group-by, is grouped by day
             expect(buildSearchQueryJSON(headlineQuery)?.groupBy).toBe(CONST.SEARCH.GROUP_BY.DAY);
             expect(supportingGroupBys).toEqual(SPEND_SPEC.supportingCharts.map((chart) => chart.groupBy));
+        });
+
+        it('groups the headline chart by day on a single date, whatever grouping is saved', () => {
+            // Given the page filters saved as quarterly and narrowed to a single date
+            const filters: InsightsFilters = {...FILTERS, date: {on: '2026-03-04'}, groupBy: CONST.SEARCH.GROUP_BY.QUARTER};
+
+            // When the filters are applied to the headline chart
+            const headlineQuery = applyInsightsFilters(SPEND_SPEC.headlineChart, filters);
+
+            // Then its one point is grouped by day, so it's labeled with the date rather than the quarter
+            expect(buildSearchQueryJSON(headlineQuery)?.groupBy).toBe(CONST.SEARCH.GROUP_BY.DAY);
         });
     });
 });
