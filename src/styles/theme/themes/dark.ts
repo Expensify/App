@@ -97,6 +97,8 @@ const darkTheme = {
     badgeDangerText: colors.tangerine200,
     badgeAdHoc: colors.pink600,
     badgeAdHocHover: colors.pink700,
+    badgeOfferBG: colors.pink700,
+    badgeOfferText: colors.pink200,
     bordersBold: colors.productDark400,
     buttonIcon: colors.productDark700,
     mentionText: colors.blue100,

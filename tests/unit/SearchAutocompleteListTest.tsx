@@ -254,6 +254,7 @@ describe('SearchAutocompleteList', () => {
     });
 
     beforeEach(() => {
+        jest.useFakeTimers();
         global.fetch = TestHelper.getGlobalFetchMock();
         wrapOnyxWithWaitForBatchedUpdates(Onyx);
         mockUseFilteredOptions.mockReturnValue({
@@ -272,6 +273,7 @@ describe('SearchAutocompleteList', () => {
             await Onyx.clear();
         });
         jest.clearAllMocks();
+        jest.useRealTimers();
         mockUseNavigationSuggestions.mockReturnValue([]);
         mockRootNavigationState.mockReturnValue({contextualReportID: undefined, isSearchRouterScreen: false});
     });

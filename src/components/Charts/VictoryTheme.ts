@@ -64,8 +64,6 @@ const VictoryTheme = {
         xLineWidth: 0,
         /** Line width for Y-axis grid lines */
         yLineWidth: 1,
-        /** Dash and gap lengths (px) of the grid lines */
-        gridDashIntervals: [4, 8],
         /** Desired visual gap (px) between axis labels and the chart edge */
         labelGap: 12,
         /** Gap (px) between the plot and the X-axis labels */
@@ -81,13 +79,7 @@ const VictoryTheme = {
         /** Opacity of the vertical guideline drawn at the hovered data point */
         guidelineOpacity: 0.2,
         /** Base domain padding applied to all sides */
-        domainPadding: {top: 16, bottom: 16, left: 0, right: 0},
-    },
-    tooltip: {
-        /** The height of the chart tooltip pointer */
-        pointerHeight: 4,
-        /** The width of the chart tooltip pointer */
-        pointerWidth: 12,
+        domainPadding: {top: 16, bottom: 0, left: 0, right: 0},
     },
     pie: {
         /** Starting angle for pie chart (0 = 3 o'clock, -90 = 12 o'clock) */
@@ -117,6 +109,9 @@ const SIN_45 = Math.sin(Math.PI / 4);
 /** Minimum gap between adjacent labels (px) */
 const LABEL_PADDING = 4;
 
+/** Minimum clear space between adjacent horizontal x-axis labels on stepped axes (px) */
+const X_AXIS_LABEL_MIN_GAP = 24;
+
 const ELLIPSIS = '...';
 
 /** Minimum visible characters (excluding ellipsis) for truncation to be worthwhile */
@@ -131,12 +126,16 @@ const MAX_Y_AXIS_LABEL_WIDTH = 200;
 // Maximum width for X-axis labels in pixels
 const MAX_X_AXIS_LABEL_WIDTH = 500;
 
+/** Dash and gap lengths (px) of dashed chart lines, measured like an SVG `stroke-dasharray`, before round caps lengthen each dash. */
+const DASH_INTERVALS = [4, 8];
+
 // Small extra padding so complex glyphs (e.g. Arabic) are not clipped.
 // getLongestLine() can slightly under-report the visual extent of the last glyph.
 const GLYPH_PADDING = 4;
 
 export {
     CHART_CONTENT_MIN_HEIGHT,
+    X_AXIS_LABEL_MIN_GAP,
     CHART_Y_SCALE_HEIGHT,
     LABEL_ROTATIONS,
     SIN_45,
@@ -147,5 +146,6 @@ export {
     MAX_X_AXIS_LABEL_WIDTH,
     MAX_Y_AXIS_LABEL_WIDTH,
     GLYPH_PADDING,
+    DASH_INTERVALS,
 };
 export default VictoryTheme;

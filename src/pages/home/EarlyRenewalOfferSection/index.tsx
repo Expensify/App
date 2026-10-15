@@ -6,6 +6,7 @@ import WidgetContainer from '@components/WidgetContainer';
 
 import useEarlyRenewalConfirmation from '@hooks/useEarlyRenewalConfirmation';
 import useEarlyRenewalPeriod from '@hooks/useEarlyRenewalPeriod';
+import useLayoutSpacing from '@hooks/useLayoutSpacing';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -38,6 +39,7 @@ function EarlyRenewalOfferSection() {
     const {isOffline} = useNetwork();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const styles = useThemeStyles();
+    const {cardPaddingHorizontal} = useLayoutSpacing();
     const illustrations = useMemoizedLazyIllustrations(['SubscriptionAnnual']);
 
     const adminsRoomReportID = policy?.chatReportIDAdmins?.toString();
@@ -77,9 +79,9 @@ function EarlyRenewalOfferSection() {
             <OfflineWithFeedback
                 errors={eligibility.errors}
                 onClose={clearEarlyRenewalOfferErrors}
-                errorRowStyles={[styles.pb4, shouldUseNarrowLayout ? styles.ph5 : styles.ph8]}
+                errorRowStyles={[styles.pb4, cardPaddingHorizontal]}
             >
-                <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap3, styles.pt3, styles.pb8, shouldUseNarrowLayout ? styles.ph5 : styles.ph8]}>
+                <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap3, styles.pt3, styles.pb8, cardPaddingHorizontal]}>
                     <Icon
                         src={illustrations.SubscriptionAnnual}
                         width={ICON_SIZE}
