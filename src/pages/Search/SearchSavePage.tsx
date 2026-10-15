@@ -26,7 +26,7 @@ import {saveSearch} from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
 import {rand64} from '@libs/NumberUtils';
 import {savedSearchIDToSearchKey} from '@libs/SearchKeyUtils';
-import {getCustomColumnDefault, getSearchColumnTranslationKey, getValidGroupBy, mapFiltersFormToLabelValueList} from '@libs/SearchUIUtils';
+import {getCustomColumnDefault, getFooterTotalItems, getSearchColumnTranslationKey, getValidGroupBy, mapFiltersFormToLabelValueList} from '@libs/SearchUIUtils';
 import type {SearchFilter} from '@libs/SearchUIUtils';
 import {getFieldRequiredErrors} from '@libs/ValidationUtils';
 
@@ -134,6 +134,22 @@ function getAppliedDisplays(searchAdvancedFiltersForm: Partial<SearchAdvancedFil
 
     if (searchAdvancedFiltersForm.view) {
         appliedDisplays.push({label: translate('search.view.label'), value: translate(`search.view.${searchAdvancedFiltersForm.view}`)});
+    }
+
+    // The Spend footer's choices summarize the results rather than narrow them, so they sit with the display settings.
+    // The query leaves defaults out, so only a choice the user made shows here.
+    if (searchAdvancedFiltersForm.footerCount) {
+        const countLabel = searchAdvancedFiltersForm.footerCount === CONST.SEARCH.FOOTER_COUNT.REPORTS ? 'common.reports' : 'common.expenses';
+        appliedDisplays.push({label: translate('common.count'), value: translate(countLabel)});
+    }
+
+    if (searchAdvancedFiltersForm.footerTotal) {
+        const footerTotal = searchAdvancedFiltersForm.footerTotal;
+        appliedDisplays.push({label: translate('common.total'), value: getFooterTotalItems(translate).find((item) => item.value === footerTotal)?.text ?? footerTotal});
+    }
+
+    if (searchAdvancedFiltersForm.footerCurrency) {
+        appliedDisplays.push({label: translate('common.currency'), value: searchAdvancedFiltersForm.footerCurrency});
     }
 
     if (queryJSON?.sortBy) {
