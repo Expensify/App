@@ -1667,6 +1667,7 @@ describe('ReportAlternateTextUtils', () => {
                 isReportArchived: false,
 
                 currentUserLogin: CURRENT_USER_LOGIN,
+                formatPhoneNumber,
             });
 
             // Then the preview reads the same translated text as the in-chat change log rather than the stored text
