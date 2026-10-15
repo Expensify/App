@@ -40,7 +40,8 @@ type MerchantFilterPopupProps = {
 
 // The controls are rendered directly in BasePopup, like TextFilterPopup, because the popover sizes to its content.
 // The advanced filters page content uses a flex ScrollView, which collapses to zero height in a content-sized popover on native.
-// A content-sized ScrollView under a max height keeps the controls reachable when they don't fit, for example in landscape.
+// A content-sized ScrollView (flexShrink1, not flex1) under a max height only shrinks and scrolls when the controls don't fit,
+// for example in landscape or with the keyboard open, so the Apply button stays visible.
 function MerchantFilterPopup({baseFilterKey, values, label, updateFilterForm, closeOverlay}: MerchantFilterPopupProps) {
     const styles = useThemeStyles();
     const {windowHeight} = useWindowDimensions();
@@ -69,7 +70,10 @@ function MerchantFilterPopup({baseFilterKey, values, label, updateFilterForm, cl
             style={[styles.getPopoverMaxHeight(windowHeight, isInLandscapeMode)]}
             shouldSubmitOnEnter
         >
-            <ScrollView keyboardShouldPersistTaps="handled">
+            <ScrollView
+                style={styles.flexShrink1}
+                keyboardShouldPersistTaps="handled"
+            >
                 <NegatableFilter
                     baseFilterKey={baseFilterKey}
                     isNegated={isNegated}
