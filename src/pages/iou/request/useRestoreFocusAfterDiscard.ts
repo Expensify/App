@@ -43,7 +43,7 @@ function useRestoreFocusAfterDiscard() {
         focusToRestoreAfterDiscardRef.current = null;
     };
 
-    const handleInputBlur = () => {
+    const clearFocusedInput = () => {
         if (isDiscardModalOpenRef.current || isDiscardNavigationPendingRef.current) {
             return;
         }
@@ -64,7 +64,7 @@ function useRestoreFocusAfterDiscard() {
         });
     };
 
-    const handleInputFocus = (restoreFocus: RestoreFocus) => {
+    const captureFocusedInput = (restoreFocus: RestoreFocus) => {
         cancelBlurCleanup();
         lastFocusedInputRef.current = restoreFocus;
         lastFocusedInputCandidateRef.current = restoreFocus;
@@ -140,8 +140,8 @@ function useRestoreFocusAfterDiscard() {
 
     return {
         clearDiscardFocus,
-        handleInputBlur,
-        handleInputFocus,
+        clearFocusedInput,
+        captureFocusedInput,
         prepareForDiscardNavigation,
         reset,
         restoreLastFocusedInput,

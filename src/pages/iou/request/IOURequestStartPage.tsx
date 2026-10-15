@@ -264,8 +264,8 @@ function IOURequestStartPage({
     const isSubmittedRef = useRef(false);
     const {
         clearDiscardFocus,
-        handleInputBlur,
-        handleInputFocus,
+        clearFocusedInput,
+        captureFocusedInput,
         prepareForDiscardNavigation,
         reset: resetFocusAfterDiscard,
         restoreLastFocusedInput,
@@ -388,8 +388,8 @@ function IOURequestStartPage({
                 navigation={navigation}
                 shouldHideHeader
                 onSignDirtyChange={setIsSignDirty}
-                onInputFocus={handleInputFocus}
-                onInputBlur={handleInputBlur}
+                onInputFocus={captureFocusedInput}
+                onInputBlur={clearFocusedInput}
                 suppressDiscardPrompt={suppressEmbeddedDiscardPrompt}
             />
         );
