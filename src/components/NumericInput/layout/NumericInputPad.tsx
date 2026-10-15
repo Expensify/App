@@ -3,16 +3,12 @@ import {useNumericInputActions} from '@components/NumericInput/context';
 
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {canUseTouchScreen as canUseTouchScreenUtil} from '@libs/DeviceCapabilities';
-
 import {useEffect, useRef} from 'react';
 import {View} from 'react-native';
 
 import type {NumericInputLayoutPartProps} from './types';
 
-const canUseTouchScreen = canUseTouchScreenUtil();
-
-/** Number pad rendered on touch screens, connected to the root value and selection. */
+/** Number pad connected to the root value and selection. The layout renders it only on touch screens. */
 function NumericInputPad({isTwoColumn, testID}: NumericInputLayoutPartProps) {
     const styles = useThemeStyles();
     const {deleteBackward, focusInput, insertAtSelection, setShouldUpdateSelection} = useNumericInputActions();
@@ -26,10 +22,6 @@ function NumericInputPad({isTwoColumn, testID}: NumericInputLayoutPartProps) {
             setShouldUpdateSelection(true);
         };
     }, [setShouldUpdateSelection]);
-
-    if (!canUseTouchScreen) {
-        return null;
-    }
 
     const handleNumberPressed = (key: string) => {
         if (!isLongPressingRef.current) {

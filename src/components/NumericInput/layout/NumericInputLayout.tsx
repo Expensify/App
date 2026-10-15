@@ -41,7 +41,7 @@ const getPartTestID = (testID: string | undefined, part: string) => (testID ? `$
 
 /**
  * Full-screen layout of NumericInput. Phones in landscape get two columns (amount on the left, number pad on the right) with
- * the footer pinned below them. Everything else (portrait, tablets, desktop) gets a single scrollable column.
+ * the footer pinned below them. The number pad is rendered only on touch screens. Everything else (portrait, tablets, desktop) gets a single scrollable column.
  * On web, pressing any non-interactive area keeps the numeric input focused instead of letting the browser blur it.
  */
 function NumericInputLayout({children, actions, footer, testID, onEmptyAreaPress}: NumericInputLayoutProps) {
@@ -70,12 +70,12 @@ function NumericInputLayout({children, actions, footer, testID, onEmptyAreaPress
             {children}
         </NumericInputMain>
     );
-    const pad = (
+    const pad = canUseTouchScreen ? (
         <NumericInputPad
             isTwoColumn={isTwoColumn}
             testID={getPartTestID(testID, 'pad')}
         />
-    );
+    ) : null;
     const footerNode = footer ? (
         <NumericInputFooter
             isTwoColumn={isTwoColumn}
