@@ -38,9 +38,9 @@ const PARTS_TO_POLICY_FIELDS = {
     overview: ['address', 'description'],
     currency: ['outputCurrency'],
     members: ['employeeList'],
-    reports: ['fieldList', 'areReportFieldsEnabled'],
+    reports: ['fieldList', 'areReportFieldsEnabled', 'exportLayouts'],
     accounting: ['connections', 'areConnectionsEnabled'],
-    categories: ['areCategoriesEnabled', 'requiresCategory'],
+    categories: ['areCategoriesEnabled', 'requiresCategory', 'mccGroup'],
     tags: ['areTagsEnabled'],
     taxes: ['tax', 'taxRates'],
     // achAccount is intentionally excluded — the backend remaps bankAccountID per-caller
@@ -64,11 +64,13 @@ const PARTS_TO_POLICY_FIELDS = {
         'shouldShowAutoApprovalOptions',
         'shouldShowAutoReimbursementLimitOption',
         'customRules',
+        'isReceiptVisibilityPublic',
     ],
     // Merchant rules are copied into the `rules_` collection rather than onto the policy, so this part patches
     // no policy field. It stays listed because the map has to cover every part.
     codingRules: [],
-    distanceRates: ['areDistanceRatesEnabled', 'customUnits'],
+    // The government rate auto-update flag is left to the server push, since the backend only keeps it for an eligible target.
+    distanceRates: ['areDistanceRatesEnabled', 'customUnits', 'requireMapOrGPS'],
     perDiem: ['arePerDiemRatesEnabled', 'customUnits'],
     invoices: ['areInvoicesEnabled', 'areInvoiceFieldsEnabled', 'invoice', 'fieldList'],
     // travelSettings is handled separately (buildTravelSettingsPatch): the Spotnana identity
@@ -312,11 +314,21 @@ function buildPolicyFieldPatch(sourcePolicy: Policy, targetPolicy: Policy, parts
             if (field === 'customUnits') {
                 continue;
             }
-            if (field === 'fieldList') {
+            if (field === 'fieldList' || field === 'invoice') {
                 continue;
             }
             // The PARTS_TO_POLICY_FIELDS values are typed as keyof Policy, so this assignment is safe.
             (patch as Record<string, unknown>)[field] = sourcePolicy[field as keyof Policy];
+        }
+    }
+
+    if (shouldCopyInvoiceFields) {
+        // Only markUp is copied. The target keeps its own company details and Stripe and bank accounts.
+        const invoice = {...targetPolicy.invoice};
+        delete invoice.markUp;
+        const sourceMarkUp = sourcePolicy.invoice?.markUp;
+        if (sourceMarkUp !== undefined || targetPolicy.invoice) {
+            patch.invoice = sourceMarkUp === undefined ? invoice : {...invoice, markUp: sourceMarkUp};
         }
     }
 
