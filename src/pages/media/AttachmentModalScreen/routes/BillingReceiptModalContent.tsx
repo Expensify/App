@@ -1,4 +1,7 @@
+import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
+
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 
 import type {PlatformStackNavigationProp, PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -8,26 +11,53 @@ import {getReceiptSource} from '@libs/PaymentHistoryUtils';
 import type {AttachmentModalBaseContentProps} from '@pages/media/AttachmentModalScreen/AttachmentModalBaseContent/types';
 import AttachmentModalContainer from '@pages/media/AttachmentModalScreen/AttachmentModalContainer';
 
+import {openPaymentDetailsPage} from '@userActions/Subscription';
+
 import ONYXKEYS from '@src/ONYXKEYS';
-import SCREENS from '@src/SCREENS';
+import type SCREENS from '@src/SCREENS';
 
 import {useNavigation, useRoute} from '@react-navigation/native';
-import React from 'react';
+import React, {useEffect} from 'react';
 
 import useDownloadAttachment from './hooks/useDownloadAttachment';
 
 function BillingReceiptModalContent() {
     const {translate} = useLocalize();
+    const {isOffline} = useNetwork();
     const route = useRoute<PlatformStackRouteProp<RootNavigatorParamList, typeof SCREENS.BILLING_RECEIPT>>();
     const navigation = useNavigation<PlatformStackNavigationProp<RootNavigatorParamList, typeof SCREENS.BILLING_RECEIPT>>();
     const [purchases] = useOnyx(ONYXKEYS.PURCHASES);
 
     const {purchaseID} = route.params;
-    const source = getReceiptSource(purchases, Number(purchaseID)) ?? '';
+    const numericPurchaseID = Number(purchaseID);
+    const purchase = purchases?.[purchaseID];
+
+    useEffect(() => {
+        if (purchase?.isLoaded || isOffline) {
+            return;
+        }
+        openPaymentDetailsPage(numericPurchaseID);
+    }, [purchase?.isLoaded, isOffline, numericPurchaseID]);
+
+    const source = getReceiptSource(purchases, numericPurchaseID) ?? '';
     const onDownloadAttachment = useDownloadAttachment({isAuthTokenRequired: true});
+
+    if (!purchase?.isLoaded) {
+        return <FullScreenLoadingIndicator shouldUseGoBackButton />;
+    }
+
+    const originalFileName = (() => {
+        try {
+            const pathname = new URL(source).pathname;
+            return pathname.split('/').pop() || `receipt-${purchaseID}`;
+        } catch {
+            return `receipt-${purchaseID}`;
+        }
+    })();
 
     const contentProps: AttachmentModalBaseContentProps = {
         source,
+        originalFileName,
         headerTitle: translate('common.receipt'),
         isAuthTokenRequired: true,
         shouldShowNotFoundPage: !source,
