@@ -6794,6 +6794,9 @@ const CONST = {
     // that should be removed from the copied contents in the getHTMLOfSelection() method
     SELECTION_SCRAPER_HIDDEN_ELEMENT: 'selection-scrapper-hidden-element',
     INNER_BOX_SHADOW_ELEMENT: 'inner-box-shadow-element',
+    COPYABLE_TEXT_ELEMENT: 'copyable-text',
+    COPYABLE_ROW_ELEMENT: 'copyable-row',
+    COPYABLE_ROW_CONTINUATION_ELEMENT: 'copyable-row-continuation',
     MODERATION: {
         MODERATOR_DECISION_PENDING: 'pending',
         MODERATOR_DECISION_PENDING_HIDE: 'pendingHide',
@@ -9563,11 +9566,14 @@ const CONST = {
             /** Narrowest drag width. Low enough to hide most content, but wide enough to keep the column's edge reachable. */
             MIN_WIDTH: 48,
 
-            /** Width of the invisible drag strip centred on a column's edge. */
-            HANDLE_HIT_WIDTH: 12,
-
-            /** Width of the line shown while a column's edge is dragged. */
+            /** Width of the line shown while a column's edge is dragged, and of the grip shown while its heading is hovered. */
             INDICATOR_WIDTH: 2,
+
+            /** Share of the heading's height the grip spans, centred vertically. */
+            GRIP_HEIGHT_RATIO: 0.8,
+
+            /** How long, in ms, the grip takes to stretch into the line once its edge is pressed. */
+            INDICATOR_MORPH_DURATION: 150,
         },
     },
 
@@ -10423,6 +10429,7 @@ const CONST = {
             DISPLAY_NAME: 'SettingsProfile-DisplayName',
             CONTACT_METHODS: 'SettingsProfile-ContactMethods',
             STATUS: 'SettingsProfile-Status',
+            VACATION_DELEGATE: 'SettingsProfile-VacationDelegate',
             PRONOUNS: 'SettingsProfile-Pronouns',
             TIMEZONE: 'SettingsProfile-Timezone',
             SHARE_CODE: 'SettingsProfile-ShareCode',
