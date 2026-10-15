@@ -1450,6 +1450,7 @@ describe('split expense', () => {
             getCurrencySymbol: getCurrencySymbolLocal,
             allTransactionsList: allTransactions,
             allReportsList: allReports,
+            reportDrafts: {},
             allReportActionsList: undefined,
             allReportNameValuePairsList: allReportNameValuePairs,
             transactionData: {
@@ -2138,6 +2139,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             getCurrencySymbol: getCurrencySymbolLocal,
             allTransactionsList: allTransactions,
             allReportsList: allReports,
+            reportDrafts: {},
             allReportActionsList: undefined,
             allReportNameValuePairsList: allReportNameValuePairs,
             transactionData: {
@@ -2262,6 +2264,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             getCurrencySymbol: getCurrencySymbolLocal,
             allTransactionsList: allTransactions,
             allReportsList: allReports,
+            reportDrafts: {},
             allReportActionsList: undefined,
             allReportNameValuePairsList: allReportNameValuePairs,
             transactionData: {
@@ -2398,6 +2401,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             getCurrencySymbol: getCurrencySymbolLocal,
             allTransactionsList: allTransactions,
             allReportsList: allReports,
+            reportDrafts: {},
             allReportActionsList: undefined,
             allReportNameValuePairsList: allReportNameValuePairs,
             transactionData: {
@@ -2572,6 +2576,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             getCurrencySymbol: getCurrencySymbolLocal,
             allTransactionsList: allTransactions,
             allReportsList: allReports,
+            reportDrafts: {},
             allReportActionsList: undefined,
             allReportNameValuePairsList: allReportNameValuePairs,
             transactionData: {
@@ -2639,6 +2644,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             getCurrencySymbol: getCurrencySymbolLocal,
             allTransactionsList: allTransactions,
             allReportsList: allReports,
+            reportDrafts: {},
             allReportActionsList: undefined,
             allReportNameValuePairsList: allReportNameValuePairs,
             transactionData: {
@@ -2839,6 +2845,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             getCurrencySymbol: getCurrencySymbolLocal,
             allTransactionsList: allTransactions,
             allReportsList: allReports,
+            reportDrafts: {},
             allReportActionsList: allReportActions,
             allReportNameValuePairsList: allReportNameValuePairs,
             transactionData: {
@@ -2906,6 +2913,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             getCurrencySymbol: getCurrencySymbolLocal,
             allTransactionsList: allTransactions,
             allReportsList: allReports,
+            reportDrafts: {},
             allReportActionsList: allReportActions,
             allReportNameValuePairsList: allReportNameValuePairs,
             allSnapshots,
@@ -2973,6 +2981,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             // `SplitExpensePage` would pass it via `useAllTransactions()` when opened from Spend > Expenses.
             allTransactionsList: mergedTransactionsFromSearchPage,
             allReportsList: allReports,
+            reportDrafts: {},
             allReportActionsList: allReportActions,
             allReportNameValuePairsList: allReportNameValuePairs,
             transactionData: {
@@ -3053,6 +3062,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             getCurrencySymbol: getCurrencySymbolLocal,
             allTransactionsList: allTransactions,
             allReportsList: allReports,
+            reportDrafts: {},
             allReportActionsList: allReportActions,
             allReportNameValuePairsList: allReportNameValuePairs,
             transactionData: {
@@ -3207,6 +3217,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             getCurrencySymbol: getCurrencySymbolLocal,
             allTransactionsList: allTransactions,
             allReportsList: allReports,
+            reportDrafts: {},
             allReportActionsList: allReportActions,
             allReportNameValuePairsList: allReportNameValuePairs,
             allSnapshots,
@@ -3316,6 +3327,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             getCurrencySymbol: getCurrencySymbolLocal,
             allTransactionsList: allTransactions,
             allReportsList: allReports,
+            reportDrafts: {},
             allReportActionsList: allReportActions,
             allReportNameValuePairsList: allReportNameValuePairs,
             allSnapshots,
@@ -3413,6 +3425,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             getCurrencySymbol: getCurrencySymbolLocal,
             allTransactionsList: allTransactions,
             allReportsList: allReports,
+            reportDrafts: {},
             allReportActionsList: allReportActions,
             allReportNameValuePairsList: allReportNameValuePairs,
             allSnapshots: undefined,
@@ -3522,6 +3535,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             getCurrencySymbol: getCurrencySymbolLocal,
             allTransactionsList: allTransactions,
             allReportsList: allReports,
+            reportDrafts: {},
             allReportActionsList: allReportActions,
             allReportNameValuePairsList: allReportNameValuePairs,
             allSnapshots,
@@ -3669,6 +3683,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             getCurrencySymbol: getCurrencySymbolLocal,
             allTransactionsList: allTransactions,
             allReportsList: allReports,
+            reportDrafts: {},
             allReportActionsList: allReportActions,
             allReportNameValuePairsList: allReportNameValuePairs,
             allSnapshots,
@@ -3781,6 +3796,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             getCurrencySymbol: getCurrencySymbolLocal,
             allTransactionsList: allTransactions,
             allReportsList: allReports,
+            reportDrafts: {},
             allReportActionsList: undefined,
             allReportNameValuePairsList: allReportNameValuePairs,
             allSnapshots,
@@ -3922,6 +3938,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             getCurrencySymbol: getCurrencySymbolLocal,
             allTransactionsList: allTransactions,
             allReportsList: allReports,
+            reportDrafts: {},
             allReportActionsList: allReportActions,
             allReportNameValuePairsList: allReportNameValuePairs,
             allSnapshots,
@@ -4056,6 +4073,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             getCurrencySymbol: getCurrencySymbolLocal,
             allTransactionsList: allTransactions,
             allReportsList: allReports,
+            reportDrafts: {},
             allReportActionsList: allReportActions,
             allReportNameValuePairsList: allReportNameValuePairs,
             allSnapshots,
@@ -4184,6 +4202,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             getCurrencySymbol: getCurrencySymbolLocal,
             allTransactionsList: allTransactions,
             allReportsList: allReports,
+            reportDrafts: {},
             allReportActionsList: allReportActions,
             allReportNameValuePairsList: allReportNameValuePairs,
             allSnapshots,
@@ -4425,6 +4444,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             getCurrencySymbol: getCurrencySymbolLocal,
             allTransactionsList: allTransactions,
             allReportsList: allReports,
+            reportDrafts: {},
             allReportActionsList: allReportActions,
             allReportNameValuePairsList: allReportNameValuePairs,
             transactionData: {
@@ -4543,6 +4563,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             getCurrencySymbol: getCurrencySymbolLocal,
             allTransactionsList: allTransactions,
             allReportsList: allReports,
+            reportDrafts: {},
             allReportActionsList: allReportActions,
             allReportNameValuePairsList: allReportNameValuePairs,
             transactionData: {
@@ -4721,6 +4742,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             getCurrencySymbol: getCurrencySymbolLocal,
             allTransactionsList: allTransactions,
             allReportsList: allReports,
+            reportDrafts: {},
             allReportActionsList: undefined,
             allReportNameValuePairsList: allReportNameValuePairs,
             transactionData: {
@@ -4859,6 +4881,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             getCurrencySymbol: getCurrencySymbolLocal,
             allTransactionsList: allTransactions,
             allReportsList: allReports,
+            reportDrafts: {},
             allReportActionsList: undefined,
             allReportNameValuePairsList: allReportNameValuePairs,
             transactionData: {
@@ -5052,6 +5075,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             getCurrencySymbol: getCurrencySymbolLocal,
             allTransactionsList: allTransactions,
             allReportsList: allReports,
+            reportDrafts: {},
             allReportActionsList: undefined,
             allReportNameValuePairsList: allReportNameValuePairs,
             transactionData: {
@@ -5238,6 +5262,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             getCurrencySymbol: getCurrencySymbolLocal,
             allTransactionsList: allTransactions,
             allReportsList: allReports,
+            reportDrafts: {},
             allReportActionsList: undefined,
             allReportNameValuePairsList: allReportNameValuePairs,
             transactionData: {
@@ -5438,6 +5463,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             getCurrencySymbol: getCurrencySymbolLocal,
             allTransactionsList: allTransactions,
             allReportsList: allReports,
+            reportDrafts: {},
             allReportActionsList: undefined,
             allReportNameValuePairsList: allReportNameValuePairs,
             transactionData: {
@@ -5685,6 +5711,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             getCurrencySymbol: getCurrencySymbolLocal,
             allTransactionsList: allTransactions,
             allReportsList: allReports,
+            reportDrafts: {},
             allReportActionsList: allReportActions,
             allReportNameValuePairsList: allReportNameValuePairs,
             transactionData: {
@@ -5878,6 +5905,7 @@ describe('updateSplitTransactions', () => {
             getCurrencySymbol: getCurrencySymbolLocal,
             allTransactionsList: allTransactions,
             allReportsList: allReports,
+            reportDrafts: {},
             allReportActionsList: undefined,
             allReportNameValuePairsList: allReportNameValuePairs,
             transactionData: {
@@ -6022,6 +6050,7 @@ describe('updateSplitTransactions', () => {
             getCurrencySymbol: getCurrencySymbolLocal,
             allTransactionsList: allTransactions,
             allReportsList: allReports,
+            reportDrafts: {},
             allReportActionsList: undefined,
             allReportNameValuePairsList: allReportNameValuePairs,
             transactionData: {
@@ -6164,6 +6193,7 @@ describe('updateSplitTransactions', () => {
             getCurrencySymbol: getCurrencySymbolLocal,
             allTransactionsList: allTransactions,
             allReportsList: allReports,
+            reportDrafts: {},
             allReportActionsList: undefined,
             allReportNameValuePairsList: allReportNameValuePairs,
             transactionData: {
@@ -6351,6 +6381,7 @@ describe('updateSplitTransactions', () => {
             getCurrencySymbol: getCurrencySymbolLocal,
             allTransactionsList: allTransactions,
             allReportsList: allReports,
+            reportDrafts: {},
             allReportActionsList: allReportActions,
             allReportNameValuePairsList: allReportNameValuePairs,
             transactionData: {
@@ -6421,6 +6452,7 @@ describe('updateSplitTransactions', () => {
             getCurrencySymbol: getCurrencySymbolLocal,
             allTransactionsList: allTransactions,
             allReportsList: allReports,
+            reportDrafts: {},
             allReportActionsList: undefined,
             allReportNameValuePairsList: allReportNameValuePairs,
             transactionData: {
@@ -6521,6 +6553,135 @@ describe('updateSplitTransactions', () => {
             throw new Error('Expected split transaction failure errors to include a localized error object.');
         }
         expect(Object.values(latestSplitTransactionFailureErrors).at(0)).toBe(localizedFallback);
+    });
+
+    it('should remove the new split transactions and restore the original expense with an error when the first split fails', async () => {
+        // Given an existing expense on an expense report
+        const {expenseReport, originalTransactionID} = await createBaseExpense();
+        if (!originalTransactionID || !expenseReport?.reportID) {
+            throw new Error('Missing original transaction data');
+        }
+        const reportBeforeSplit = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`);
+        const iouAction = getIOUActionForReportID(expenseReport.reportID, originalTransactionID);
+
+        // When the expense is split into two while the request is held, and the server then rejects it
+        mockFetch?.pause?.();
+        const {splitTransactionID1, splitTransactionID2} = await splitToTwo(expenseReport, originalTransactionID, iouAction);
+        const split1ThreadReportID = getIOUActionForReportID(expenseReport.reportID, splitTransactionID1)?.childReportID;
+        const split2ThreadReportID = getIOUActionForReportID(expenseReport.reportID, splitTransactionID2)?.childReportID;
+        expect(await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${splitTransactionID1}`)).toBeDefined();
+        expect(split1ThreadReportID).toBeDefined();
+        expect(split2ThreadReportID).toBeDefined();
+
+        mockFetch?.fail?.();
+        await mockFetch?.resume?.();
+        await waitForBatchedUpdates();
+
+        // Then the optimistic splits and their threads are removed, so the money isn't counted twice
+        expect(await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${splitTransactionID1}`)).toBeUndefined();
+        expect(await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${splitTransactionID2}`)).toBeUndefined();
+        expect(getIOUActionForReportID(expenseReport.reportID, splitTransactionID1)).toBeUndefined();
+        expect(getIOUActionForReportID(expenseReport.reportID, splitTransactionID2)).toBeUndefined();
+        expect(await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${split1ThreadReportID}`)).toBeUndefined();
+        expect(await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${split2ThreadReportID}`)).toBeUndefined();
+
+        // And the original expense is back on its report with the failure surfaced on it
+        const originalTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransactionID}`);
+        expect(originalTransaction?.reportID).toBe(expenseReport.reportID);
+        expect(Object.values(originalTransaction?.errors ?? {})).toContain(translateLocal('iou.error.genericSplitFailureMessage'));
+
+        // And the error is on the original expense's report action too, since expense previews and threads only render action errors
+        const originalIOUActionAfterFailure = getIOUActionForReportID(expenseReport.reportID, originalTransactionID);
+        expect(Object.values(originalIOUActionAfterFailure?.errors ?? {})).toContain(translateLocal('iou.error.genericSplitFailureMessage'));
+
+        // And the report totals match what they were before the split
+        const reportAfterFailure = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`);
+        expect(reportAfterFailure?.total).toBe(reportBeforeSplit?.total);
+        expect(reportAfterFailure?.transactionCount).toBe(reportBeforeSplit?.transactionCount);
+    });
+
+    it('should restore the selfDM chat preview when a new split moved to the selfDM fails', async () => {
+        // Given an existing expense on an expense report, and a selfDM whose chat preview shows an earlier message
+        const {expenseReport, originalTransactionID} = await createBaseExpense();
+        if (!originalTransactionID || !expenseReport?.reportID) {
+            throw new Error('Missing original transaction data');
+        }
+        const selfDMPreviewBeforeSplit = {
+            lastMessageText: 'Earlier selfDM message',
+            lastMessageHtml: 'Earlier selfDM message',
+            lastReadTime: '2024-01-01 00:00:00.000',
+            lastVisibleActionCreated: '2024-01-01 00:00:00.000',
+        };
+        const selfDMReport: Report = {...createSelfDM(41, RORY_ACCOUNT_ID), ...selfDMPreviewBeforeSplit};
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${selfDMReport.reportID}`, selfDMReport);
+        await waitForBatchedUpdates();
+
+        const iouAction = getIOUActionForReportID(expenseReport.reportID, originalTransactionID);
+        const {allTransactions, allReports, allReportNameValuePairs, allReportActions} = await getCollections();
+        const allPolicyTags = await getAllPolicyTags();
+        const reports = getTransactionAndExpenseReports(expenseReport.reportID);
+        const workspaceSplitTransactionID = rand64();
+        const selfDMSplitTransactionID = rand64();
+
+        // When the expense is split with one split moved to the selfDM while the request is held, which points the
+        // selfDM's preview at the new split
+        mockFetch?.pause?.();
+        updateSplitTransactions({
+            isVendorMatchingBetaEnabled: false,
+            rules: undefined,
+            getCurrencyDecimals: getCurrencyDecimalsLocal,
+            getCurrencySymbol: getCurrencySymbolLocal,
+            allTransactionsList: allTransactions,
+            allReportsList: allReports,
+            reportDrafts: {},
+            allReportActionsList: allReportActions,
+            allReportNameValuePairsList: allReportNameValuePairs,
+            transactionData: {
+                reportID: expenseReport.reportID,
+                originalTransactionID,
+                splitExpenses: [
+                    {transactionID: workspaceSplitTransactionID, amount: amount / 2, created: DateUtils.getDBTime(), reportID: expenseReport.reportID},
+                    {transactionID: selfDMSplitTransactionID, amount: amount / 2, created: DateUtils.getDBTime(), reportID: CONST.REPORT.UNREPORTED_REPORT_ID},
+                ],
+                splitExpensesTotal: undefined,
+            },
+            searchContext: {currentSearchHash: -2},
+            policyCategories: undefined,
+            policy: undefined,
+            policyRecentlyUsedCategories: [],
+            iouReport: expenseReport,
+            firstIOU: iouAction,
+            isASAPSubmitBetaEnabled: false,
+            currentUserPersonalDetails,
+            transactionViolations: {},
+            policyRecentlyUsedCurrencies: [],
+            quickAction: undefined,
+            allPolicyTags,
+            personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
+            transactionReport: reports.transactionReport,
+            expenseReport: reports.expenseReport,
+            isOffline: false,
+            delegateAccountID: undefined,
+            isTrackIntentUser: false,
+            formatPhoneNumber,
+        });
+        await waitForBatchedUpdates();
+        expect(getIOUActionForReportID(selfDMReport.reportID, selfDMSplitTransactionID)).toBeDefined();
+        const selfDMDuringRequest = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${selfDMReport.reportID}`);
+        expect(selfDMDuringRequest?.lastMessageText).not.toBe(selfDMPreviewBeforeSplit.lastMessageText);
+        expect(selfDMDuringRequest?.lastVisibleActionCreated).not.toBe(selfDMPreviewBeforeSplit.lastVisibleActionCreated);
+
+        // And the server then rejects it
+        mockFetch?.fail?.();
+        await mockFetch?.resume?.();
+        await waitForBatchedUpdates();
+
+        // Then the selfDM split's TRACK action is removed
+        expect(getIOUActionForReportID(selfDMReport.reportID, selfDMSplitTransactionID)).toBeUndefined();
+
+        // And the selfDM preview is back to its pre-split message instead of describing the removed split
+        const selfDMAfterFailure = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${selfDMReport.reportID}`);
+        expect(selfDMAfterFailure).toMatchObject(selfDMPreviewBeforeSplit);
     });
 
     it('should keep all split transactions on hold when splitting a held transaction', async () => {
@@ -6774,6 +6935,7 @@ describe('updateSplitTransactions', () => {
             getCurrencySymbol: getCurrencySymbolLocal,
             allTransactionsList: allTransactions,
             allReportsList: allReports,
+            reportDrafts: {},
             allReportActionsList: allReportActions,
             allReportNameValuePairsList: allReportNameValuePairs,
             transactionData: {
@@ -6898,6 +7060,7 @@ describe('updateSplitTransactions', () => {
             getCurrencySymbol: getCurrencySymbolLocal,
             allTransactionsList: allTransactions,
             allReportsList: allReports2,
+            reportDrafts: {},
             allReportActionsList: allReportActions2,
             allReportNameValuePairsList: allReportNameValuePairs,
             transactionData: {
@@ -6976,6 +7139,7 @@ describe('updateSplitTransactions', () => {
             getCurrencySymbol: getCurrencySymbolLocal,
             allTransactionsList: allTransactions,
             allReportsList: allReports,
+            reportDrafts: {},
             allReportActionsList: allReportActions2,
             allReportNameValuePairsList: allReportNameValuePairs,
             transactionData: {
@@ -7050,6 +7214,7 @@ describe('updateSplitTransactions', () => {
             getCurrencySymbol: getCurrencySymbolLocal,
             allTransactionsList: allTransactions,
             allReportsList: allReports,
+            reportDrafts: {},
             allReportActionsList: allReportActions,
             allReportNameValuePairsList: allReportNameValuePairs,
             transactionData: {
@@ -7129,6 +7294,7 @@ describe('updateSplitTransactions', () => {
             getCurrencySymbol: getCurrencySymbolLocal,
             allTransactionsList: allTransactions,
             allReportsList: allReports,
+            reportDrafts: {},
             allReportActionsList: emptyChatReportActions,
             allReportNameValuePairsList: allReportNameValuePairs,
             transactionData: {
@@ -7202,6 +7368,7 @@ describe('updateSplitTransactions', () => {
             getCurrencySymbol: getCurrencySymbolLocal,
             allTransactionsList: allTransactions,
             allReportsList: allReports,
+            reportDrafts: {},
             allReportActionsList: undefined,
             allReportNameValuePairsList: allReportNameValuePairs,
             transactionData: {
@@ -7319,6 +7486,7 @@ describe('updateSplitTransactions', () => {
             getCurrencySymbol: getCurrencySymbolLocal,
             allTransactionsList: allTransactions,
             allReportsList: allReports,
+            reportDrafts: {},
             allReportActionsList: undefined,
             allReportNameValuePairsList: allReportNameValuePairs,
             transactionData: {
@@ -11602,6 +11770,7 @@ const buildSplitFlowParams = async ({withExistingSplitChildren = false, asSelfDM
     const params: UpdateSplitTransactionsParams = {
         allTransactionsList: allTransactions,
         allReportsList: allReports,
+        reportDrafts: {},
         allReportActionsList: undefined,
         allReportNameValuePairsList: undefined,
         transactionData: {

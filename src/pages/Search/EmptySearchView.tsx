@@ -87,7 +87,7 @@ function EmptySearchView({similarSearchHash, type, hasResults, queryJSON, violat
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const [activePolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`);
 
-    const groupPoliciesWithChatEnabled = getGroupPoliciesWhereReportCanBeCreated(allPolicies);
+    const groupPoliciesWithChatEnabled = getGroupPoliciesWhereReportCanBeCreated(allPolicies, currentUserPersonalDetails?.login);
 
     const [hasSeenTour = false] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {
         selector: hasSeenTourSelector,
