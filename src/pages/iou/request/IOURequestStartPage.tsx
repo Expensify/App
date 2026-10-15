@@ -26,6 +26,7 @@ import {shouldShowPerDiemTabOption} from '@libs/IOUUtils';
 import isNavigationStatePayload from '@libs/Navigation/helpers/isNavigationStatePayload';
 import Navigation from '@libs/Navigation/Navigation';
 import OnyxTabNavigator, {TabScreenWithFocusTrapWrapper, TopTab} from '@libs/Navigation/OnyxTabNavigator';
+import {isRecord} from '@libs/ObjectUtils';
 import {isPerDiemEligiblePolicy, isTimeTrackingEnabled} from '@libs/PolicyUtils';
 import {getPayeeName} from '@libs/ReportUtils';
 import {endSpan} from '@libs/telemetry/activeSpans';
@@ -68,7 +69,7 @@ type IOURequestStartPageProps = WithWritableReportOrNotFoundProps<typeof SCREENS
 const PER_DIEM_TAB_INDEX = 2;
 
 function getTransactionIDFromRouteParams(params: unknown): string | undefined {
-    if (!params || typeof params !== 'object') {
+    if (!isRecord(params)) {
         return undefined;
     }
 
