@@ -362,6 +362,7 @@ describe('handleActionButtonPress', () => {
             isTrackIntentUser: false,
             allViolations: undefined,
             rules: undefined,
+            confirmSubmitReportViolations: jest.fn(),
             personalDetailsByLogins: {},
         });
         expect(goToItem).not.toHaveBeenCalled();
@@ -392,6 +393,7 @@ describe('handleActionButtonPress', () => {
             isTrackIntentUser: false,
             allViolations: undefined,
             rules: undefined,
+            confirmSubmitReportViolations: jest.fn(),
             personalDetailsByLogins: {},
         });
 
@@ -422,6 +424,7 @@ describe('handleActionButtonPress', () => {
             isTrackIntentUser: false,
             allViolations: undefined,
             rules: undefined,
+            confirmSubmitReportViolations: jest.fn(),
             personalDetailsByLogins: {},
         });
         expect(goToItem).toHaveBeenCalledTimes(0);
@@ -461,6 +464,7 @@ describe('handleActionButtonPress', () => {
             personalDetailsByLogins: {},
             conciergeChat: undefined,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
+            confirmSubmitReportViolations: jest.fn(),
         });
 
         // Then: hasViolations is evaluated against the passed collection, proving the deprecated global getter is no longer used,

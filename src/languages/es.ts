@@ -17,6 +17,7 @@ import type {ValueOf} from 'type-fest';
 import {CONST as COMMON_CONST, Str} from 'expensify-common';
 
 import type en from './en';
+import type {CompanyCardBalanceParams} from './params';
 import type {AllConnectionName, PolicyConnectionSyncStage} from './TranslationTypes';
 import type {TranslationDeepObject} from './types';
 const translations: TranslationDeepObject<typeof en> = {
@@ -85,7 +86,9 @@ const translations: TranslationDeepObject<typeof en> = {
         save: 'Guardar',
         saveChanges: 'Guardar cambios',
         submit: 'Enviar',
+        submitAnyway: 'Enviar de todos modos',
         markAsDone: 'Marcar como listo',
+        markAsDoneAnyway: 'Marcar como listo de todos modos',
         submitted: 'Enviado',
         markedAsDoneStatus: 'Marcado como listo',
         rotate: 'Rotar',
@@ -439,6 +442,7 @@ const translations: TranslationDeepObject<typeof en> = {
         leaveWorkspaceReimburser:
             'No puedes salir de este espacio de trabajo como reembolsador. Por favor, establece un nuevo reembolsador en Espacios de trabajo > Realizar o rastrear pagos y luego inténtalo de nuevo.',
         reimbursable: 'Reembolsable',
+        nonReimbursable: 'No reembolsable',
         editYourProfile: 'Edita tu perfil',
         comments: 'Comentarios',
         sharedIn: 'Compartido en',
@@ -572,6 +576,10 @@ const translations: TranslationDeepObject<typeof en> = {
         errorWhileSelectingCorruptedAttachment: 'Se ha producido un error al seleccionar un archivo adjunto corrupto. Por favor, inténtalo con otro archivo.',
         errorWhileConvertingHeic: 'No hemos podido procesar esta imagen. Inténtalo de nuevo o sube la foto en un formato diferente.',
         takePhoto: 'Hacer una foto',
+        retake: 'Repetir',
+        usePhoto: 'Usar foto',
+        capturedPhotoPreview: 'Vista previa de la foto',
+        photoTakenAnnouncement: 'Foto tomada. Elige Repetir o Usar foto.',
         chooseFromGallery: 'Elegir de la galería',
         chooseDocument: 'Elegir un archivo',
         attachmentTooLarge: 'Archivo adjunto demasiado grande',
@@ -1310,7 +1318,7 @@ const translations: TranslationDeepObject<typeof en> = {
         addAdditionalReceipt: 'Añadir recibo adicional',
         scanFailed: 'El recibo no pudo ser escaneado, ya que falta el comerciante, la fecha o el importe.',
         crop: 'Recortar',
-        pageCount: ({pageCount}: {pageCount: number}) => `Página 1 de ${pageCount}`,
+        pageCount: ({page, pageCount}: {page: number; pageCount: number}) => `Página ${page} de ${pageCount}`,
         addAReceipt: {
             phrase1: 'Añade un recibo',
             phrase2: 'o arrastra y suelta uno aquí',
@@ -1400,8 +1408,15 @@ const translations: TranslationDeepObject<typeof en> = {
         pendingMatchWithCreditCard: 'Recibo pendiente de adjuntar con la transacción de la tarjeta',
         pendingMatchWithCreditCardDescription: 'Recibo pendiente de adjuntar con la transacción de la tarjeta. Márcalo como efectivo para cancelar.',
         markAsCash: 'Marcar como efectivo',
-        pendingMatchSubmitTitle: 'Enviar informe',
-        pendingMatchSubmitDescription: 'Algunos gastos están pendientes de coincidencia con una transacción de tarjeta de crédito. ¿Deseas marcarlos como efectivo?',
+        confirmSubmitReportViolations: {
+            title: '¿Enviar informe?',
+            description: 'Este informe tiene infracciones de política. ¿Seguro que quieres enviarlo sin hacer cambios?',
+            titleMarkAsDone: '¿Marcar como listo?',
+            descriptionMarkAsDone: 'Este informe tiene infracciones de política. ¿Seguro que quieres marcarlo como listo sin hacer cambios?',
+            rejectedExpense: 'Gasto rechazado no marcado como resuelto',
+            reportRejected: 'Informe rechazado anteriormente',
+            pendingCardMatch: 'Gasto pendiente de una posible coincidencia con una transacción de tarjeta',
+        },
         routePending: 'Ruta pendiente...',
         findExpense: 'Buscar gasto',
         deletedTransaction: (amount, merchant) => `eliminó un gasto (${amount} para ${merchant})`,
@@ -1591,6 +1606,7 @@ const translations: TranslationDeepObject<typeof en> = {
         pendingConversionMessage: 'El total se actualizará cuando estés online',
         changedTheExpense: 'cambió el gasto',
         addedReceipt: 'añadió un recibo',
+        removedReceipt: 'eliminó un recibo',
         setTheRequest: (valueName, newValueToDisplay) =>
             `${valueName === 'comerciante' || valueName === 'importe' || valueName === 'gasto' ? 'el' : 'la'} ${valueName} a ${newValueToDisplay}`,
         setTheDistanceMerchant: (translatedChangedField, newMerchant, newAmountToDisplay) =>
@@ -1649,6 +1665,7 @@ const translations: TranslationDeepObject<typeof en> = {
             saveReceipt: 'Guardar recibo',
             genericDeleteFailureMessage: 'Error inesperado al eliminar este gasto. Por favor, inténtalo más tarde.',
             genericEditFailureMessage: 'Error inesperado al editar este gasto. Por favor, inténtalo más tarde.',
+            genericSplitFailureMessage: 'Error inesperado al dividir este gasto. Por favor, inténtalo más tarde.',
             genericSmartscanFailureMessage: 'La transacción tiene campos vacíos',
             duplicateWaypointsErrorMessage: 'Por favor, elimina los puntos de ruta duplicados',
             atLeastTwoDifferentWaypoints: 'Por favor, introduce al menos dos direcciones diferentes',
@@ -3314,12 +3331,13 @@ ${amount} para ${merchant} - ${date}`,
         errorSelection: 'Selecciona una opción para continuar',
         purpose: {
             title: '¿Qué quieres hacer hoy?',
-            errorContinue: 'Por favor, haz click en continuar para configurar tu cuenta',
-            errorBackButton: 'Por favor, finaliza las preguntas de configuración para empezar a utilizar la aplicación',
-            [CONST.ONBOARDING_CHOICES.EMPLOYER]: 'Enviar gastos a mi empleador',
+            errorContinue: 'Pulsa continuar para configurarte',
+            errorBackButton: 'Por favor, completa las preguntas de configuración para empezar a usar la aplicación',
+            [CONST.ONBOARDING_CHOICES.JOIN_WORKSPACE]: 'Únete al espacio de trabajo de mi empresa',
+            [CONST.ONBOARDING_CHOICES.EMPLOYER]: 'Enviar gastos a mi empresa',
             [CONST.ONBOARDING_CHOICES.MANAGE_TEAM]: 'Gestionar los gastos de mi equipo',
-            [CONST.ONBOARDING_CHOICES.TRACK_BUSINESS]: 'Controlar gastos de mi negocio',
-            [CONST.ONBOARDING_CHOICES.TRACK_PERSONAL]: 'Organizar mis gastos personales',
+            [CONST.ONBOARDING_CHOICES.TRACK_BUSINESS]: 'Controla los gastos de mi empresa',
+            [CONST.ONBOARDING_CHOICES.TRACK_PERSONAL]: 'Organiza mis gastos personales',
             [CONST.ONBOARDING_CHOICES.LOOKING_AROUND]: 'Algo más',
         },
         personalTrackGoal: {
@@ -3376,6 +3394,8 @@ ${amount} para ${merchant} - ${date}`,
         mergeBlockScreen: {
             title: 'No se pudo añadir el correo electrónico de trabajo',
             subtitle: (workEmail) => `No pudimos añadir ${workEmail}. Por favor, inténtalo de nuevo más tarde en Configuración o chatea con Concierge para obtener ayuda.`,
+            validatedPublicDomainSubtitle: (workEmail: string | undefined) =>
+                `No pudimos añadir ${workEmail}. Para fusionar estas cuentas, inicia sesión como ${workEmail} y ve a Cuenta > Seguridad > Fusionar cuentas para completar el proceso.`,
             workAccountClosedSubtitle:
                 'La cuenta de trabajo asociada a este correo electrónico está cerrada. Ponte en contacto con el administrador de tu empresa para reactivarla o regístrate con un correo electrónico diferente.',
             domainControlledSubtitle: (workEmail) => `${workEmail} es un inicio de sesión controlado por dominio de una cuenta de Expensify existente.`,
@@ -3622,6 +3642,34 @@ ${amount} para ${merchant} - ${date}`,
                     ¡Y listo!
                 `),
             },
+            addWorkEmailTask: {
+                title: 'Añade tu correo electrónico del trabajo',
+                description: ({workEmailLink = ''}) =>
+                    Str.dedent(`
+                        1. Abre [Añadir correo electrónico del trabajo](${workEmailLink}).
+                        2. Introduce la dirección de correo electrónico de tu empresa.
+                        3. Introduce el código que te enviamos por correo electrónico.
+                        4. Elige un espacio de trabajo al que unirte o haz clic en *Pedir unirse* para enviar una solicitud a la persona propietaria del espacio de trabajo.
+                    `),
+            },
+            validateEmailTask: {
+                title: 'Valida tu correo electrónico',
+                description: ({validateEmailLink = '', workEmail = ''}) =>
+                    Str.dedent(`
+                        1. Abre [Valida tu cuenta](${validateEmailLink}).
+                        2. Introduce el código que enviamos a ${workEmail}.
+                        3. Elige un espacio de trabajo al que unirte o haz clic en *Pedir unirse* para enviar una solicitud a la persona propietaria del espacio de trabajo.
+                    `),
+            },
+            joinWorkspaceTask: {
+                title: 'Únete al espacio de trabajo de tu empresa',
+                description: ({joinWorkspaceLink = ''}) =>
+                    Str.dedent(`
+                        1. Abre [Unirte a un espacio de trabajo](${joinWorkspaceLink}).
+                        2. Busca a tu equipo en la lista. Cada uno muestra a su propietario y cuántas personas hay en él, empezando por el más grande. Haz clic en *Mostrar más* si no ves el tuyo.
+                        3. Haz clic en *Unirte ahora* o en *Pedir unirse* si necesita aprobación de un administrador.
+                    `),
+            },
         },
         testDrive: {
             name: ({testDriveURL}) => (testDriveURL ? `Haz una [prueba](${testDriveURL})` : 'Haz una prueba'),
@@ -3644,6 +3692,14 @@ ${amount} para ${merchant} - ${date}`,
             onboardingChatSplitMessage: 'Dividir cuentas con amigos es tan fácil como enviar un mensaje. Así se hace.',
             onboardingAdminMessage: 'Aprende a gestionar el espacio de tu equipo como administrador y enviar tus propios gastos.',
             onboardingTestDriveReceiverMessage: '*¡Tienes 3 meses gratis! Empieza abajo.*',
+            onboardingJoinWorkspaceAddWorkEmailMessage:
+                'Como estás intentando unirte al espacio de trabajo de tu empresa, no he creado uno para ti. Añade tu correo electrónico del trabajo y comprobaré a qué espacios de trabajo de tu empresa puedes unirte.',
+            onboardingJoinWorkspaceValidateEmailMessage: ({companyDomain = ''}: {companyDomain?: string}) =>
+                `Como quieres unirte al espacio de trabajo de tu empresa, no he creado uno para ti. Verifica tu correo electrónico y revisaré a qué espacios de trabajo en ${companyDomain} puedes unirte.`,
+            onboardingJoinWorkspaceMessage: ({companyDomain = '', joinWorkspaceLink = ''}: {companyDomain?: string; joinWorkspaceLink?: string}) =>
+                `Como quieres unirte al espacio de trabajo de tu empresa, no he creado uno para ti. Tu equipo en ${companyDomain} ya está en Expensify. [Echa un vistazo a los espacios de trabajo a los que puedes unirte.](${joinWorkspaceLink})`,
+            onboardingJoinWorkspaceEmptyMessage:
+                'Parece que tu empresa no tiene ningún espacio de trabajo al que puedas unirte. Por favor, ponte en contacto con tu administrador y pídele que te invite a su espacio de trabajo.',
         },
         workspace: {
             title: 'Mantente organizado con un espacio de trabajo',
@@ -3811,6 +3867,11 @@ ${amount} para ${merchant} - ${date}`,
                 `<strong>${delegate}</strong> no es miembro de los siguientes espacios de trabajo. Se pedirá a los administradores de los espacios de trabajo que no gestiona que lo agreguen. ¿Desea invitarlo ahora a los espacios de trabajo en los que es administrador?`,
             youAreAMemberOf: 'Usted es miembro de estos espacios de trabajo:',
             youAreAnAdminOf: 'Usted es administrador de estos espacios de trabajo:',
+            chooseDelegate: 'Elegir delegado',
+            clearAfterRecommended: 'Borrar después de (recomendado)',
+            willClearOn: (date: string) => `El delegado de vacaciones se eliminará el ${date}`,
+            until: (date: string) => `Hasta el ${date}`,
+            removeDelegate: 'Eliminar delegado de vacaciones',
         },
     },
     stepCounter: (step, total, text) => {
@@ -4401,7 +4462,7 @@ ${amount} para ${merchant} - ${date}`,
         enterSignerInfo: 'Ingrese la información del firmante',
         thisStep: 'Este paso ha sido completado',
         isConnecting: (bankAccountLastFour, currency) =>
-            `está conectando una cuenta bancaria comercial en ${currency} que termina en ${bankAccountLastFour} a Expensify para pagar a los empleados en ${currency}. El siguiente paso requiere la información del firmante de un director.`,
+            `añadió una cuenta bancaria en ${currency} que termina en ${bankAccountLastFour}. Introduce tu información de firmante como director para que esta cuenta bancaria se pueda usar para pagar a los empleados.`,
         error: {
             emailsMustBeDifferent: 'Los correos electrónicos deben ser diferentes',
         },
@@ -4868,6 +4929,7 @@ ${amount} para ${merchant} - ${date}`,
             peopleAdminAlternateText: 'Gestiona miembros y flujos de aprobación.',
             paymentsAdminAlternateText: 'Gestiona los pagos del flujo de trabajo.',
             noAccessActionPrompt: 'Tu rol en el espacio de trabajo no tiene acceso a estos ajustes. Pide a un administrador que te lo habilite si lo necesitas.',
+            connections: 'Conexiones',
         },
         createdForClient: {
             title: '¡Has creado un espacio de trabajo para tu cliente!',
@@ -4891,6 +4953,31 @@ ${amount} para ${merchant} - ${date}`,
                 title: 'ChatGPT',
                 subtitle: 'de OpenAI',
             },
+        },
+        connections: {
+            tabs: {
+                [CONST.TAB.CONNECTIONS.ALL]: 'Todo',
+                [CONST.TAB.CONNECTIONS.ACCOUNTING]: 'Contabilidad',
+                [CONST.TAB.CONNECTIONS.PEOPLE]: 'RR. HH. y Personas',
+                [CONST.TAB.CONNECTIONS.RECRUITING]: 'Reclutamiento',
+                [CONST.TAB.CONNECTIONS.RECEIPTS]: 'Recibos',
+                [CONST.TAB.CONNECTIONS.AI]: 'IA y MCP',
+            },
+            findConnections: 'Buscar conexiones',
+            configure: 'Configurar',
+            fix: 'Corregir',
+            active: 'Activo',
+            broken: 'Roto',
+            brokenConnection: 'No se puede sincronizar debido a una conexión interrumpida',
+            replaceConnectionTitle: '¿Reemplazar la conexión?',
+            offer: 'Oferta',
+            replaceConnectionPrompt: (connectionName: string) => `Esto eliminará tu conexión actual de ${connectionName}.`,
+            hrisListing: (providerName: string) => `${providerName} (HRIS)`,
+            atsListing: (providerName: string) => `${providerName} (ATS)`,
+            suggestIntegration: '¿No ves la tuya? Sugiere una integración y lo estudiaremos.',
+            noResultsPrompt: '<muted-text><centered-text>Ajusta tu búsqueda o <a href="#">sugiere una integración</a>.</centered-text></muted-text>',
+            allConnectedTitle: 'Ya está todo conectado',
+            allConnectedPrompt: '<muted-text><centered-text>Todo aquí ya está conectado. También puedes <a href="#">sugerir una integración</a>.</centered-text></muted-text>',
         },
         receiptPartners: {
             uber: {
@@ -4943,7 +5030,10 @@ ${amount} para ${merchant} - ${date}`,
             },
             requestEmptyList: {
                 title: 'Aún no hay tasas de Per diem',
-                subtitle: 'Este espacio de trabajo no tiene ninguna tasa de per diem, pide a tu administrador que añada algunas.',
+                subtitle: (workspaceName?: string) =>
+                    workspaceName
+                        ? `${workspaceName} no tiene ninguna tasa de per diem. Pídele a un administrador que añada alguna.`
+                        : 'Este espacio de trabajo no tiene ninguna tasa de per diem. Pídele a un administrador que añada alguna.',
                 adminSubtitle: 'Añade tasas de per diem para organizar tus gastos.',
             },
             importPerDiemRates: 'Importar tasas de per diem',
@@ -5856,10 +5946,10 @@ ${amount} para ${merchant} - ${date}`,
             enterCredentials: 'Introduce tu clave de API de Rillet',
             howToFindAPIKey:
                 '<strong>Encontrar tu clave API.</strong><ol><li>Inicia sesión en Rillet</li><li>Ve a [organization name] -> Configuración de la organización -> Acceso a la API</li><li>Crea una clave API</li><li>Pega la clave API abajo</li></ol>',
-            subsidiary: 'Filial',
-            subsidiarySelectDescription: 'Elige la filial en Rillet desde la que te gustaría importar datos.',
-            noSubsidiariesFound: 'No se encontraron filiales',
-            noSubsidiariesFoundDescription: 'Por favor, añade una filial en Rillet y sincroniza de nuevo la conexión',
+            entity: 'Entidad',
+            entitySelectDescription: 'Elige la entidad en Rillet desde la que te gustaría importar datos.',
+            noEntitiesFound: 'No se han encontrado entidades',
+            noEntitiesFoundDescription: 'Añade una entidad en Rillet y sincroniza la conexión de nuevo',
             accountTypesDescription: 'Tus cuentas de Rillet se importarán como categorías.',
             enableNewAccountsTitle: 'Habilitar cuentas recién importadas',
             enableNewAccountsDescription: 'Las nuevas cuentas de Rillet estarán disponibles como categorías.',
@@ -5963,8 +6053,8 @@ ${amount} para ${merchant} - ${date}`,
             enterCredentials: 'Introduce tu clave de API de DualEntry',
             howToFindAPIKey:
                 '<strong>Encontrar tu clave de API.</strong><ol><li>Inicia sesión en DualEntry</li><li>Ve a [organization name] -> Settings -> Developer access -> API keys</li><li>Crea una clave de API</li><li>Pega la clave de API abajo</li></ol>',
-            subsidiary: 'Filial',
-            subsidiarySelectDescription: 'Elige la filial en DualEntry de la que te gustaría importar datos.',
+            company: 'Empresa',
+            companySelectDescription: 'Elige la empresa en DualEntry desde la que te gustaría importar datos.',
             noCompaniesFound: 'No se han encontrado empresas',
             noCompaniesFoundDescription: 'Por favor, añade una empresa en DualEntry y sincroniza la conexión de nuevo',
             noVendorsFound: 'No se han encontrado proveedores',
@@ -6082,6 +6172,15 @@ ${amount} para ${merchant} - ${date}`,
             submit: 'Enviar',
         },
         companyCards: {
+            balance: {
+                currentBalance: 'Saldo actual',
+                remainingLimit: 'Límite restante',
+                notAvailable: 'No disponible',
+                currentBalanceDescription: ({lastUpdated}: CompanyCardBalanceParams) => `El saldo actual es informado por tu banco y se actualizó por última vez el ${lastUpdated}.`,
+                remainingLimitDescription: ({lastUpdated}: CompanyCardBalanceParams) => `El límite restante lo informa tu banco y se actualizó por última vez el ${lastUpdated}.`,
+                currentBalanceDescriptionNoTimestamp: 'Tu banco informa del saldo actual.',
+                remainingLimitDescriptionNoTimestamp: 'El límite restante lo indica tu banco.',
+            },
             addCards: 'Añadir tarjetas',
             selectCards: 'Seleccionar tarjetas',
             fromOtherWorkspaces: 'De otros espacios de trabajo',
@@ -6417,6 +6516,8 @@ ${amount} para ${merchant} - ${date}`,
             distanceRates: {
                 title: 'Tasas de distancia',
                 subtitle: 'Añade, actualiza y haz cumplir las tasas.',
+                commuterExclusionsOnTitle: 'Las exclusiones de desplazamiento están activadas',
+                disableLockedByCommuterExclusionsPrompt: 'Para desactivar las tarifas de distancia, primero establece Excluir desplazamientos a “No excluir desplazamientos”.',
             },
             perDiem: {
                 title: 'Per diem',
@@ -7822,6 +7923,21 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
             addressContext: 'Se requiere una dirección para habilitar Expensify Travel. Por favor, introduce una dirección asociada con tu negocio.',
             policy: 'Política de gastos',
         },
+        officeLocations: {
+            title: 'Ubicaciones de oficinas',
+            subtitle: 'Añade ubicaciones de oficina para asignarlas a miembros para cosas como el seguimiento de distancias.',
+            addOfficeLocation: 'Añadir ubicación de la oficina',
+            editOfficeLocation: 'Editar ubicación de la oficina',
+            locationName: 'Nombre de la ubicación',
+            locationNameHint: 'Elige un nombre abreviado para la ubicación si estás añadiendo varias oficinas',
+            defaultName: ({officeNumber}: {officeNumber: number}) => `Ubicación de la oficina ${officeNumber}`,
+            setAsPrimary: 'Establecer como principal',
+            primary: 'Principal',
+            deleteOfficeLocation: '¿Eliminar la ubicación de la oficina?',
+            deleteOfficeLocationConfirmation: '¿Seguro que quieres eliminar esta ubicación de oficina? Los miembros serán reasignados a la oficina principal.',
+            existingOfficeLocationError: 'Ya existe una ubicación de oficina con este nombre',
+            setCompanyAddressAsPrimaryConfirmation: '¿Establecer la dirección de la empresa como oficina principal?',
+        },
         bankAccount: {
             continueWithSetup: 'Continuar con la configuración',
             youAreAlmostDone: 'Casi has acabado de configurar tu cuenta bancaria, que te permitirá emitir tarjetas corporativas, reembolsar gastos y cobrar pagar facturas.',
@@ -8820,10 +8936,10 @@ ${reportName}`,
             enterCredentials: 'Introduce tu clave de API de Campfire',
             howToFindAPIKey:
                 '<strong>Encontrar tu clave de API.</strong><ol><li>Inicia sesión en Campfire</li><li>Ve a Configuración -> Claves de API</li><li>Crea una clave de API</li><li>Pega la clave de API abajo</li></ol>',
-            subsidiary: 'Filial',
-            subsidiarySelectDescription: 'Elige la filial en Campfire de la que te gustaría importar datos.',
-            noSubsidiariesFound: 'No se han encontrado filiales',
-            noSubsidiariesFoundDescription: 'Por favor, añade una entidad en Campfire y sincroniza la conexión de nuevo',
+            entity: 'Entidad',
+            entitySelectDescription: 'Elige la entidad en Campfire de la que te gustaría importar datos.',
+            noEntitiesFound: 'No se han encontrado entidades',
+            noEntitiesFoundDescription: 'Por favor, añade una entidad en Campfire y sincroniza la conexión de nuevo',
             noVendorsFound: 'No se encontraron proveedores',
             noVendorsFoundDescription: 'Por favor, añade proveedores en Campfire y sincroniza la conexión de nuevo',
             importDescription: 'Elige qué configuraciones de codificación quieres importar desde Campfire.',
@@ -9396,6 +9512,15 @@ ${reportName}`,
         updatedTimeRate: (newRate, oldRate) => `cambió la tarifa por hora a "${newRate}" (anteriormente "${oldRate}")`,
         addedProhibitedExpense: ({prohibitedExpense}) => `añadió "${prohibitedExpense}" a los gastos prohibidos`,
         removedProhibitedExpense: ({prohibitedExpense}) => `eliminó "${prohibitedExpense}" de los gastos prohibidos`,
+        officeLocation: {
+            added: ({name, address}: {name: string; address: string}) => `añadió la ubicación de la oficina «${name}» (${address})`,
+            renamed: ({oldName, newName}: {oldName: string; newName: string}) => `cambió el nombre de la ubicación de la oficina de "${oldName}" a "${newName}"`,
+            changedAddress: ({name, newAddress, oldAddress}: {name: string; newAddress: string; oldAddress: string}) =>
+                `cambió la dirección de la oficina "${name}" a "${newAddress}" (previamente "${oldAddress}")`,
+            setAsPrimary: ({name}: {name: string}) => `establecer la ubicación de la oficina «${name}» como principal`,
+            setCompanyAddressAsPrimary: 'establecer la dirección de la empresa como principal',
+            removed: ({name}: {name: string}) => `eliminó la ubicación de la oficina «${name}»`,
+        },
         workArrangement: {
             set: ({arrangement}: {arrangement: string}) => `establecer la modalidad de trabajo predeterminada en ${arrangement}`,
             changed: ({arrangement, previousArrangement}: {arrangement: string; previousArrangement: string}) =>
@@ -9723,6 +9848,8 @@ ${reportName}`,
         fallbackTitle: 'Ticket de soporte',
         resolved: 'Este ticket de soporte está resuelto.',
         surveyPrompt: '¿Cómo fue tu experiencia con el soporte?',
+        great: 'Excelente',
+        poor: 'Mala',
         reopenTicket: 'Reabrir ticket',
     },
     statementPage: {
@@ -9972,6 +10099,11 @@ ${reportName}`,
             },
             reportField: (name, value) => `${name} es ${value}`,
             filterType: {label: 'Tipo de filtro', has: {positive: 'tiene', negative: 'no tiene'}, is: {positive: 'es', negative: 'no es'}},
+            merchant: {
+                matchType: 'Tipo de coincidencia',
+                contains: (merchant) => (merchant ? `Contiene "${merchant}"` : 'Contiene'),
+                equalTo: (merchant) => (merchant ? `Igual a "${merchant}"` : 'Igual a'),
+            },
             created: 'Creado',
             createdDate: 'Fecha de creación',
             transactionStatus: {
@@ -10111,10 +10243,6 @@ ${reportName}`,
         genericUpdateReportFieldFailureMessage: 'Error inesperado al actualizar el campo. Por favor, inténtalo más tarde.',
         genericUpdateReportNameEditFailureMessage: 'Error inesperado al cambiar el nombre del informe. Por favor, intentarlo más tarde.',
         noActivityYet: 'Sin actividad todavía',
-        collapsedSystemMessages: () => ({
-            one: 'mostrar 1 actualización',
-            other: (count: number) => `mostrar ${count} actualizaciones`,
-        }),
         connectionSettings: 'Configuración de conexión',
         actions: {
             type: {
@@ -11777,6 +11905,7 @@ ${reportName}`,
         markAllAsRead: '<tooltip>Haz clic derecho para <strong>marcar todo como leído</strong>.</tooltip>',
         markAllAsReadTouchScreen: '<tooltip>Mantén pulsado para <strong>marcar todo como leído</strong>.</tooltip>',
         accountMovedToTopBar: '<tooltip>Accede a tu cuenta y a tu configuración personal.</tooltip>',
+        connectionsMoved: 'Todas tus conexiones en un solo lugar',
     },
     discardChangesConfirmation: {
         title: '¿Descartar cambios?',

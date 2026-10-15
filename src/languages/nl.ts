@@ -26,6 +26,7 @@ import {CONST as COMMON_CONST, Str} from 'expensify-common';
 import startCase from 'lodash/startCase';
 
 import type en from './en';
+import type {CompanyCardBalanceParams} from './params';
 import type {TranslationDeepObject} from './types';
 type StateValue = {
     stateISO: string;
@@ -92,7 +93,9 @@ const translations: TranslationDeepObject<typeof en> = {
         selectMultiple: 'Meerdere selecteren',
         saveChanges: 'Wijzigingen opslaan',
         submit: 'Verzenden',
+        submitAnyway: 'Toch verzenden',
         markAsDone: 'Markeren als voltooid',
+        markAsDoneAnyway: 'Toch markeren als voltooid',
         submitted: 'Ingediend',
         markedAsDoneStatus: 'Als voltooid gemarkeerd',
         rotate: 'Draaien',
@@ -449,6 +452,7 @@ const translations: TranslationDeepObject<typeof en> = {
         leaveWorkspaceReimburser:
             'Je kunt deze workspace niet verlaten als terugbetaler. Stel een nieuwe terugbetaler in via Workspaces > Betalingen doen of volgen en probeer het dan opnieuw.',
         reimbursable: 'Vergoedbaar',
+        nonReimbursable: 'Niet-vergoedbaar',
         editYourProfile: 'Bewerk je profiel',
         comments: 'Opmerkingen',
         sharedIn: 'Gedeeld in',
@@ -577,6 +581,10 @@ const translations: TranslationDeepObject<typeof en> = {
         errorWhileSelectingCorruptedAttachment: 'Er is een fout opgetreden bij het selecteren van een beschadigde bijlage. Probeer een ander bestand.',
         errorWhileConvertingHeic: 'We konden deze afbeelding niet verwerken. Probeer het opnieuw of upload de foto in een ander formaat.',
         takePhoto: 'Maak foto',
+        retake: 'Opnieuw',
+        usePhoto: 'Foto gebruiken',
+        capturedPhotoPreview: 'Fotovoorbeeld',
+        photoTakenAnnouncement: 'Foto gemaakt. Kies Opnieuw of Foto gebruiken.',
         chooseFromGallery: 'Kies uit galerij',
         chooseDocument: 'Bestand kiezen',
         attachmentTooLarge: 'Bijlage is te groot',
@@ -1318,7 +1326,7 @@ const translations: TranslationDeepObject<typeof en> = {
             phrase1: 'Voeg een bon toe',
             phrase2: 'of sleep ze hier naartoe',
         },
-        pageCount: ({pageCount}: {pageCount: number}) => `Pagina 1 van ${pageCount}`,
+        pageCount: ({page, pageCount}: {page: number; pageCount: number}) => `Pagina ${page} van ${pageCount}`,
     },
     quickAction: {
         scanReceipt: 'Bon scannen',
@@ -1423,8 +1431,15 @@ const translations: TranslationDeepObject<typeof en> = {
         pendingMatch: 'Overeenkomst in behandeling',
         pendingMatchWithCreditCardDescription: 'Bon wordt nog gekoppeld aan kaarttransactie. Markeer als contant om te annuleren.',
         markAsCash: 'Markeren als contant',
-        pendingMatchSubmitTitle: 'Rapport indienen',
-        pendingMatchSubmitDescription: 'Sommige uitgaven wachten op koppeling met een creditcardtransactie. Wilt u ze als contant markeren?',
+        confirmSubmitReportViolations: {
+            title: 'Rapport verzenden?',
+            description: 'Dit rapport heeft beleidsschendingen. Weet u zeker dat u het wilt verzenden zonder wijzigingen aan te brengen?',
+            titleMarkAsDone: 'Markeren als voltooid?',
+            descriptionMarkAsDone: 'Dit rapport heeft beleidsschendingen. Weet u zeker dat u het wilt markeren als voltooid zonder wijzigingen aan te brengen?',
+            rejectedExpense: 'Afgewezen uitgave niet als opgelost gemarkeerd',
+            reportRejected: 'Rapport eerder afgewezen',
+            pendingCardMatch: 'Uitgave wacht op mogelijke koppeling met een kaarttransactie',
+        },
         routePending: 'Routeren in behandeling...',
         automaticallyEnterExpenseDetails: 'Concierge vult de gegevens voor je in.',
         receiptScanning: () => ({
@@ -1594,6 +1609,7 @@ const translations: TranslationDeepObject<typeof en> = {
         pendingConversionMessage: 'Totaal wordt bijgewerkt zodra je weer online bent',
         changedTheExpense: 'heeft de uitgave gewijzigd',
         addedReceipt: 'heeft een bon toegevoegd',
+        removedReceipt: 'heeft een bon verwijderd',
         setTheRequest: (valueName: string, newValueToDisplay: string) => `de ${valueName} naar ${newValueToDisplay}`,
         setTheDistanceMerchant: (translatedChangedField: string, newMerchant: string, newAmountToDisplay: string) =>
             `stel ${translatedChangedField} in op ${newMerchant}, waarmee het bedrag is ingesteld op ${newAmountToDisplay}`,
@@ -1637,6 +1653,7 @@ const translations: TranslationDeepObject<typeof en> = {
             saveReceipt: 'Bon opslaan',
             genericDeleteFailureMessage: 'Onverwachte fout bij het verwijderen van deze uitgave. Probeer het later opnieuw.',
             genericEditFailureMessage: 'Onverwachte fout bij het bewerken van deze uitgave. Probeer het later opnieuw.',
+            genericSplitFailureMessage: 'Onverwachte fout bij het splitsen van deze uitgave. Probeer het later opnieuw.',
             genericSmartscanFailureMessage: 'Transactie mist velden',
             duplicateWaypointsErrorMessage: 'Verwijder dubbele waypoints',
             atLeastTwoDifferentWaypoints: 'Voer minimaal twee verschillende adressen in',
@@ -3407,11 +3424,12 @@ ${amount} voor ${merchant} - ${date}`,
         errorSelection: 'Selecteer een optie om verder te gaan',
         purpose: {
             title: 'Wat wil je vandaag doen?',
-            errorContinue: 'Druk op ‘Doorgaan’ om de installatie te voltooien',
-            errorBackButton: 'Beantwoord eerst de instelvragen om de app te kunnen gebruiken',
-            [CONST.ONBOARDING_CHOICES.EMPLOYER]: 'Onkosten indienen bij mijn werkgever',
-            [CONST.ONBOARDING_CHOICES.MANAGE_TEAM]: 'De onkosten van mijn team beheren',
-            [CONST.ONBOARDING_CHOICES.TRACK_BUSINESS]: 'Zakelijke uitgaven bijhouden',
+            errorContinue: 'Druk op doorgaan om alles in te stellen',
+            errorBackButton: 'Beantwoord eerst de installatievragen om de app te gebruiken',
+            [CONST.ONBOARDING_CHOICES.JOIN_WORKSPACE]: 'Word lid van de werkruimte van mijn bedrijf',
+            [CONST.ONBOARDING_CHOICES.EMPLOYER]: 'Declaraties indienen bij mijn werkgever',
+            [CONST.ONBOARDING_CHOICES.MANAGE_TEAM]: 'Beheer de uitgaven van mijn team',
+            [CONST.ONBOARDING_CHOICES.TRACK_BUSINESS]: 'Uitgaven voor mijn bedrijf bijhouden',
             [CONST.ONBOARDING_CHOICES.TRACK_PERSONAL]: 'Mijn persoonlijke uitgaven organiseren',
             [CONST.ONBOARDING_CHOICES.LOOKING_AROUND]: 'Iets anders',
         },
@@ -3469,6 +3487,8 @@ ${amount} voor ${merchant} - ${date}`,
         mergeBlockScreen: {
             title: 'Werkmail kon niet worden toegevoegd',
             subtitle: (workEmail: string | undefined) => `We konden ${workEmail} niet toevoegen. Probeer het later opnieuw in Instellingen of chat met Concierge voor hulp.`,
+            validatedPublicDomainSubtitle: (workEmail: string | undefined) =>
+                `We konden ${workEmail} niet toevoegen. Om deze accounts samen te voegen, log je in als ${workEmail} en ga je naar Account > Beveiliging > Accounts samenvoegen om het proces te voltooien.`,
             workAccountClosedSubtitle:
                 'De zakelijke account die aan dit e-mailadres is gekoppeld, is gesloten. Neem contact op met de beheerder van je bedrijf om het opnieuw te activeren, of meld je aan met een ander e-mailadres.',
             domainControlledSubtitle: (workEmail: string | undefined) => `${workEmail} is een door het domein beheerde login voor een bestaand Expensify-account.`,
@@ -3707,6 +3727,34 @@ ${amount} voor ${merchant} - ${date}`,
                     En je bent klaar!
                 `),
             },
+            addWorkEmailTask: {
+                title: 'Voeg je werk-e-mailadres toe',
+                description: ({workEmailLink = ''}) =>
+                    Str.dedent(`
+                        1. Open [Werkmail toevoegen](${workEmailLink}).
+                        2. Voer je zakelijke e-mailadres in.
+                        3. Voer de code in die we je mailen.
+                        4. Kies een workspace om je bij aan te sluiten, of klik op *Verzoek om lid te worden* om een verzoek naar de eigenaar van de workspace te sturen.
+                    `),
+            },
+            validateEmailTask: {
+                title: 'Bevestig je e-mailadres',
+                description: ({validateEmailLink = '', workEmail = ''}) =>
+                    Str.dedent(`
+                        1. Open [Valideer je account](${validateEmailLink}).
+                        2. Voer de code in die we naar ${workEmail} hebben gestuurd.
+                        3. Kies een workspace om je bij aan te sluiten, of klik op *Verzoek om lid te worden* om een verzoek naar de eigenaar van de workspace te sturen.
+                    `),
+            },
+            joinWorkspaceTask: {
+                title: 'Word lid van de workspace van je bedrijf',
+                description: ({joinWorkspaceLink = ''}) =>
+                    Str.dedent(`
+                        1. Open [Lid worden van een werkruimte](${joinWorkspaceLink}).
+                        2. Zoek je team in de lijst. Bij elk team zie je de eigenaar en hoeveel mensen erin zitten, de grootste eerst. Klik op *Meer weergeven* als je die van jou niet ziet.
+                        3. Klik op *Nu deelnemen*, of op *Verzoek om deelname* als er goedkeuring van een beheerder nodig is.
+                    `),
+            },
         } satisfies Record<string, Pick<OnboardingTask, 'title' | 'description'>>,
         testDrive: {
             name: ({testDriveURL}: {testDriveURL?: string}) => (testDriveURL ? `Maak een [proefrit](${testDriveURL})` : 'Maak een proefrit'),
@@ -3729,6 +3777,14 @@ ${amount} voor ${merchant} - ${date}`,
             onboardingChatSplitMessage: 'Rekeningen splitsen met vrienden is net zo makkelijk als het sturen van een bericht. Zo werkt het.',
             onboardingAdminMessage: 'Leer hoe je als beheerder de werkruimte van je team beheert en je eigen onkosten indient.',
             onboardingTestDriveReceiverMessage: '*Je krijgt 3 maanden gratis! Ga hieronder aan de slag.*',
+            onboardingJoinWorkspaceAddWorkEmailMessage:
+                'Omdat je je wilt aansluiten bij de workspace van je bedrijf, heb ik er geen voor je aangemaakt. Voeg je zakelijke e‑mail toe en dan kijk ik welke workspaces bij jouw bedrijf je kunt joinen.',
+            onboardingJoinWorkspaceValidateEmailMessage: ({companyDomain = ''}: {companyDomain?: string}) =>
+                `Omdat je je bij de workspace van je bedrijf wilt aansluiten, heb ik er geen voor je aangemaakt. Bevestig je e-mailadres, dan kijk ik welke workspaces bij ${companyDomain} je kunt joinen.`,
+            onboardingJoinWorkspaceMessage: ({companyDomain = '', joinWorkspaceLink = ''}: {companyDomain?: string; joinWorkspaceLink?: string}) =>
+                `Omdat je je wilt aansluiten bij de workspace van je bedrijf, heb ik er geen voor je aangemaakt. Je team bij ${companyDomain} zit al op Expensify. [Bekijk de workspaces waarbij je je kunt aansluiten.](${joinWorkspaceLink})`,
+            onboardingJoinWorkspaceEmptyMessage:
+                'Het lijkt er niet op dat je bedrijf joinbare werkruimtes heeft. Neem contact op met je beheerder en vraag of die je wil uitnodigen voor de werkruimte.',
         },
         workspace: {
             title: 'Blijf georganiseerd met een werkruimte',
@@ -3881,6 +3937,11 @@ ${amount} voor ${merchant} - ${date}`,
                 `<strong>${delegate}</strong> is geen lid van de onderstaande werkruimtes. Beheerders van de werkruimtes die je niet beheert, wordt gevraagd diegene toe te voegen. Wil je diegene nu uitnodigen voor de werkruimtes waar je beheerder van bent?`,
             youAreAMemberOf: 'Je bent lid van deze werkruimtes:',
             youAreAnAdminOf: 'Je bent beheerder van deze werkruimtes:',
+            chooseDelegate: 'Vertegenwoordiger kiezen',
+            clearAfterRecommended: 'Wissen na (aanbevolen)',
+            willClearOn: (date: string) => `De vertegenwoordiger tijdens vakantie wordt gewist op ${date}`,
+            until: (date: string) => `Tot ${date}`,
+            removeDelegate: 'Vertegenwoordiger tijdens vakantie verwijderen',
         },
     },
     stepCounter: (step: number, total?: number, text?: string) => {
@@ -4468,7 +4529,7 @@ ${amount} voor ${merchant} - ${date}`,
         enterSignerInfo: 'Voer ondertekenaargegevens in',
         thisStep: 'Deze stap is voltooid',
         isConnecting: (bankAccountLastFour: string | undefined, currency: string | undefined) =>
-            `verbindt een zakelijke ${currency}-bankrekening die eindigt op ${bankAccountLastFour} met Expensify om werknemers in ${currency} te betalen. De volgende stap vereist ondertekenaarsgegevens van een directeur.`,
+            `heeft een ${currency}-bankrekening die eindigt op ${bankAccountLastFour} toegevoegd. Voer je ondertekenaarsgegevens in als directeur zodat deze bankrekening kan worden gebruikt om werknemers te betalen.`,
         error: {
             emailsMustBeDifferent: 'E-mails moeten verschillend zijn',
         },
@@ -4914,6 +4975,7 @@ ${amount} voor ${merchant} - ${date}`,
             readOnlyActionTitle: 'Niet zo snel...',
             readOnlyActionPrompt: 'Je rol in de workspace kan deze instellingen bekijken, maar niet bewerken.',
             noAccessActionPrompt: 'Je rol in deze workspace heeft geen toegang tot deze instellingen. Vraag een admin als je die nodig hebt.',
+            connections: 'Verbindingen',
         },
         createdForClient: {
             title: 'Je hebt een werkruimte voor je klant aangemaakt!',
@@ -4937,6 +4999,31 @@ ${amount} voor ${merchant} - ${date}`,
                 title: 'ChatGPT',
                 subtitle: 'van OpenAI',
             },
+        },
+        connections: {
+            tabs: {
+                [CONST.TAB.CONNECTIONS.ALL]: 'Alles',
+                [CONST.TAB.CONNECTIONS.ACCOUNTING]: 'Boekhouding',
+                [CONST.TAB.CONNECTIONS.PEOPLE]: 'HR & People',
+                [CONST.TAB.CONNECTIONS.RECRUITING]: 'Werving',
+                [CONST.TAB.CONNECTIONS.RECEIPTS]: 'Bonnetjes',
+                [CONST.TAB.CONNECTIONS.AI]: 'AI & MCP',
+            },
+            findConnections: 'Verbindingen zoeken',
+            configure: 'Configureren',
+            fix: 'Oplossen',
+            active: 'Actief',
+            broken: 'Defect',
+            brokenConnection: 'Kan niet synchroniseren vanwege een verbroken verbinding',
+            replaceConnectionTitle: 'Verbinding vervangen?',
+            offer: 'Aanbieding',
+            replaceConnectionPrompt: (connectionName: string) => `Hiermee verwijder je je huidige ${connectionName}-verbinding.`,
+            hrisListing: (providerName: string) => `${providerName} (HRIS)`,
+            atsListing: (providerName: string) => `${providerName} (ATS)`,
+            suggestIntegration: 'Zie je de jouwe niet? Stel een integratie voor, dan kijken we ernaar.',
+            noResultsPrompt: '<muted-text><centered-text>Pas je zoekopdracht aan of <a href="#">stel een integratie voor</a>.</centered-text></muted-text>',
+            allConnectedTitle: 'Je bent helemaal verbonden',
+            allConnectedPrompt: '<muted-text><centered-text>Alles hier is al verbonden. Je kunt ook <a href="#">een integratie voorstellen</a>.</centered-text></muted-text>',
         },
         receiptPartners: {
             uber: {
@@ -4989,7 +5076,10 @@ ${amount} voor ${merchant} - ${date}`,
             },
             requestEmptyList: {
                 title: 'Nog geen dagvergoedingen',
-                subtitle: 'Deze workspace heeft geen dagvergoedingen, vraag je admin om er een paar toe te voegen.',
+                subtitle: (workspaceName?: string) =>
+                    workspaceName
+                        ? `${workspaceName} heeft geen dagvergoedingen. Vraag een beheerder om er een paar toe te voegen.`
+                        : 'Deze workspace heeft geen dagvergoedingen. Vraag een beheerder om er een paar toe te voegen.',
                 adminSubtitle: 'Voeg dagvergoedingen toe om je uitgaven te organiseren.',
             },
             importPerDiemRates: 'Daggeldtarieven importeren',
@@ -5938,10 +6028,10 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
             enterCredentials: 'Voer je Rillet API-sleutel in',
             howToFindAPIKey:
                 '<strong>Je API-sleutel vinden.</strong><ol><li>Log in bij Rillet</li><li>Ga naar [organisatienaam] -> Organisatie-instellingen -> API-toegang</li><li>Maak een API-sleutel aan</li><li>Plak de API-sleutel hieronder</li></ol>',
-            subsidiary: 'Dochteronderneming',
-            subsidiarySelectDescription: 'Kies het dochterbedrijf in Rillet waarvan je gegevens wilt importeren.',
-            noSubsidiariesFound: 'Geen dochterondernemingen gevonden',
-            noSubsidiariesFoundDescription: 'Voeg alsjeblieft een dochteronderneming toe in Rillet en synchroniseer de verbinding opnieuw',
+            entity: 'Entiteit',
+            entitySelectDescription: 'Kies de entiteit in Rillet waarvan je gegevens wilt importeren.',
+            noEntitiesFound: 'Geen entiteiten gevonden',
+            noEntitiesFoundDescription: 'Voeg een entiteit toe in Rillet en synchroniseer de verbinding opnieuw',
             accountTypesDescription: 'Je Rillet-accounts worden geïmporteerd als categorieën.',
             enableNewAccountsTitle: 'Nieuw geïmporteerde accounts inschakelen',
             enableNewAccountsDescription: 'Nieuwe Rillet-rekeningen zijn beschikbaar als categorieën.',
@@ -6039,8 +6129,8 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
             enterCredentials: 'Voer je DualEntry API-sleutel in',
             howToFindAPIKey:
                 '<strong>Je API-sleutel vinden.</strong><ol><li>Log in bij DualEntry</li><li>Ga naar [organisatienaam] -> Instellingen -> Ontwikkelaarstoegang -> API-sleutels</li><li>Maak een API-sleutel</li><li>Plak de API-sleutel hieronder</li></ol>',
-            subsidiary: 'Dochteronderneming',
-            subsidiarySelectDescription: 'Kies de dochteronderneming in DualEntry waarvan je gegevens wilt importeren.',
+            company: 'Bedrijf',
+            companySelectDescription: 'Kies het bedrijf in DualEntry waarvan je gegevens wilt importeren.',
             noCompaniesFound: 'Geen bedrijven gevonden',
             noCompaniesFoundDescription: 'Voeg een bedrijf toe in DualEntry en synchroniseer de verbinding opnieuw',
             noVendorsFound: 'Geen leveranciers gevonden',
@@ -6158,6 +6248,15 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
             submit: 'Indienen',
         },
         companyCards: {
+            balance: {
+                currentBalance: 'Huidige saldo',
+                remainingLimit: 'Resterende limiet',
+                notAvailable: 'Niet beschikbaar',
+                currentBalanceDescription: ({lastUpdated}: CompanyCardBalanceParams) => `Het huidige saldo wordt door je bank doorgegeven en is het laatst bijgewerkt op ${lastUpdated}.`,
+                remainingLimitDescription: ({lastUpdated}: CompanyCardBalanceParams) => `Het resterende limiet wordt door je bank doorgegeven en is het laatst bijgewerkt op ${lastUpdated}.`,
+                currentBalanceDescriptionNoTimestamp: 'De huidige saldo wordt door je bank doorgegeven.',
+                remainingLimitDescriptionNoTimestamp: 'Het resterende limiet wordt door je bank doorgegeven.',
+            },
             addCards: 'Kaarten toevoegen',
             selectCards: 'Kaarten selecteren',
             fromOtherWorkspaces: 'Uit andere workspaces',
@@ -6506,6 +6605,8 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
             distanceRates: {
                 title: 'Kilometertarieven',
                 subtitle: 'Tarieven toevoegen, bijwerken en afdwingen.',
+                commuterExclusionsOnTitle: 'Woon-werkuitzonderingen zijn ingeschakeld',
+                disableLockedByCommuterExclusionsPrompt: 'Om afstandstarieven uit te schakelen, stel je eerst Woon-werkverkeer uitsluiten in op ‘Woon-werkverkeer niet uitsluiten’.',
             },
             perDiem: {
                 title: 'Dagvergoeding',
@@ -7735,6 +7836,21 @@ Het Control-abonnement begint bij $9 per actieve deelnemer per maand.`,
             addressContext: 'Een werkruimte-adres is vereist om Expensify Travel in te schakelen. Voer een adres in dat bij uw bedrijf hoort.',
             policy: 'Declaratiebeleid',
         },
+        officeLocations: {
+            title: 'Kantoorlokaties',
+            subtitle: 'Voeg kantoorlocaties toe om aan leden toe te wijzen voor zaken als afstandsregistratie.',
+            addOfficeLocation: 'Kantoorlokatie toevoegen',
+            editOfficeLocation: 'Kantoorlocatie bewerken',
+            locationName: 'Locatienaam',
+            locationNameHint: 'Kies een bijnaam voor de locatie als je meerdere kantoorlocaties toevoegt',
+            defaultName: ({officeNumber}: {officeNumber: number}) => `Kantoorlocatie ${officeNumber}`,
+            setAsPrimary: 'Als primair instellen',
+            primary: 'Primair',
+            deleteOfficeLocation: 'Kantoorlocatie verwijderen?',
+            deleteOfficeLocationConfirmation: 'Wil je deze kantoorlocatie echt verwijderen? Leden worden opnieuw toegewezen aan het hoofdkantoor.',
+            existingOfficeLocationError: 'Er bestaat al een kantoorlocatie met deze naam',
+            setCompanyAddressAsPrimaryConfirmation: 'Het bedrijfsadres instellen als hoofdvestiging?',
+        },
         bankAccount: {
             continueWithSetup: 'Setup voortzetten',
             youAreAlmostDone:
@@ -8916,10 +9032,10 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
             enterCredentials: 'Voer je Campfire API-sleutel in',
             howToFindAPIKey:
                 '<strong>Je API-sleutel vinden.</strong><ol><li>Log in bij Campfire</li><li>Ga naar Instellingen -> API-sleutels</li><li>Maak een API-sleutel aan</li><li>Plak de API-sleutel hieronder</li></ol>',
-            subsidiary: 'Dochteronderneming',
-            subsidiarySelectDescription: 'Kies de dochteronderneming in Campfire waarvan je gegevens wilt importeren.',
-            noSubsidiariesFound: 'Geen dochterondernemingen gevonden',
-            noSubsidiariesFoundDescription: 'Voeg alsjeblieft een entiteit toe in Campfire en synchroniseer de verbinding opnieuw',
+            entity: 'Entiteit',
+            entitySelectDescription: 'Kies de entiteit in Campfire waarvan je gegevens wilt importeren.',
+            noEntitiesFound: 'Geen entiteiten gevonden',
+            noEntitiesFoundDescription: 'Voeg alsjeblieft een entiteit toe in Campfire en synchroniseer de verbinding opnieuw',
             noVendorsFound: 'Geen leveranciers gevonden',
             noVendorsFoundDescription: 'Voeg leveranciers toe in Campfire en synchroniseer de verbinding opnieuw',
             importDescription: 'Kies welke boekhoudconfiguraties je wilt importeren uit Campfire.',
@@ -9545,6 +9661,15 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
         },
         addedProhibitedExpense: ({prohibitedExpense}: {prohibitedExpense: string}) => `heeft ‘${prohibitedExpense}’ toegevoegd aan verboden uitgaven`,
         removedProhibitedExpense: ({prohibitedExpense}: {prohibitedExpense: string}) => `heeft „${prohibitedExpense}” verwijderd uit verboden uitgaven`,
+        officeLocation: {
+            added: ({name, address}: {name: string; address: string}) => `heeft de kantoorlocatie "${name}" (${address}) toegevoegd`,
+            renamed: ({oldName, newName}: {oldName: string; newName: string}) => `heeft de kantoorlokatie “${oldName}” gewijzigd in “${newName}”`,
+            changedAddress: ({name, newAddress, oldAddress}: {name: string; newAddress: string; oldAddress: string}) =>
+                `heeft het adres van kantoorlocatie "${name}" gewijzigd naar "${newAddress}" (voorheen "${oldAddress}")`,
+            setAsPrimary: ({name}: {name: string}) => `stel de kantoorlocatie "${name}" in als primair`,
+            setCompanyAddressAsPrimary: 'stel het bedrijfsadres in als primair',
+            removed: ({name}: {name: string}) => `heeft de kantoorlocatie "${name}" verwijderd`,
+        },
         workArrangement: {
             set: ({arrangement}: {arrangement: string}) => `stel de standaard werkregeling in op ${arrangement}`,
             changed: ({arrangement, previousArrangement}: {arrangement: string; previousArrangement: string}) =>
@@ -9823,6 +9948,8 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
         fallbackTitle: 'Supportticket',
         resolved: 'Dit supportticket is opgelost.',
         surveyPrompt: 'Hoe was je ervaring met de ondersteuning?',
+        great: 'Geweldig',
+        poor: 'Slecht',
         reopenTicket: 'Ticket opnieuw openen',
     },
     statementPage: {
@@ -10044,6 +10171,11 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
                 [CONST.SEARCH.ACTION_FILTERS.EXPORT]: 'Exporteren',
             },
             filterType: {label: 'Filtertype', has: {positive: 'heeft', negative: 'heeft niet'}, is: {positive: 'is', negative: 'is niet'}},
+            merchant: {
+                matchType: 'Overeenkomsttype',
+                contains: (merchant?: string) => (merchant ? `Bevat "${merchant}"` : 'Bevat'),
+                equalTo: (merchant?: string) => (merchant ? `Gelijk aan "${merchant}"` : 'Gelijk aan'),
+            },
             created: 'Aangemaakt',
             createdDate: 'Aanmaakdatum',
             transactionStatus: {
@@ -10218,10 +10350,6 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
         genericUpdateReportFieldFailureMessage: 'Onverwachte fout bij het bijwerken van het veld. Probeer het later opnieuw.',
         genericUpdateReportNameEditFailureMessage: 'Onverwachte fout bij het hernoemen van het rapport. Probeer het later opnieuw.',
         noActivityYet: 'Nog geen activiteit',
-        collapsedSystemMessages: () => ({
-            one: '1 update tonen',
-            other: (count: number) => `${count} updates tonen`,
-        }),
         connectionSettings: 'Verbindingsinstellingen',
         actions: {
             type: {
@@ -11503,6 +11631,7 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
         markAllAsRead: '<tooltip>Klik met de rechtermuisknop om <strong>alles als gelezen te markeren</strong>.</tooltip>',
         markAllAsReadTouchScreen: '<tooltip>Houd ingedrukt om <strong>alles als gelezen te markeren</strong>.</tooltip>',
         accountMovedToTopBar: '<tooltip>Ga naar je account en persoonlijke instellingen.</tooltip>',
+        connectionsMoved: 'Al je connecties op één plek',
     },
     discardChangesConfirmation: {
         title: 'Wijzigingen negeren?',
