@@ -942,6 +942,7 @@ function createCorpayBankAccount(fields: ReimbursementAccountForm, policyID: str
                 value: {
                     isLoading: true,
                     isCreateCorpayBankAccount: true,
+                    errors: null,
                 },
             },
         ],
@@ -1241,7 +1242,7 @@ function sendReminderForCorpaySignerInformation(parameters: SendReminderForCorpa
 }
 
 function enableGlobalReimbursementsForUSDBankAccount(parameters: EnableGlobalReimbursementsForUSDBankAccountParams) {
-    const onyxData: OnyxData<typeof ONYXKEYS.FORMS.ENABLE_GLOBAL_REIMBURSEMENTS> = {
+    const onyxData: OnyxData<typeof ONYXKEYS.FORMS.ENABLE_GLOBAL_REIMBURSEMENTS | typeof ONYXKEYS.FORMS.ENABLE_GLOBAL_REIMBURSEMENTS_DRAFT> = {
         optimisticData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
@@ -1260,6 +1261,11 @@ function enableGlobalReimbursementsForUSDBankAccount(parameters: EnableGlobalRei
                     isEnablingGlobalReimbursements: false,
                     isSuccess: true,
                 },
+            },
+            {
+                onyxMethod: Onyx.METHOD.SET,
+                key: ONYXKEYS.FORMS.ENABLE_GLOBAL_REIMBURSEMENTS_DRAFT,
+                value: null,
             },
         ],
         failureData: [
