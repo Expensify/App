@@ -27639,6 +27639,7 @@ describe.each([false, true])('buildOptimisticModifiedExpenseReportAction clock s
     afterEach(async () => {
         jest.useRealTimers();
         await Onyx.merge(ONYXKEYS.NETWORK, {timeSkew: 0});
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}clock-stale-report-test`, null);
         await waitForBatchedUpdates();
     });
 
@@ -27673,6 +27674,49 @@ describe.each([false, true])('buildOptimisticModifiedExpenseReportAction clock s
         const sorted = getSortedReportActions([...confirmed, acknowledged], isNewestFirst);
         expect(getSystemMessageDisplayState(sorted, new Set()).displayReportActions).toHaveLength(1);
         expect(getSystemMessageDisplayState(sorted, new Set(['first'])).displayReportActions).toHaveLength(3);
+    });
+
+    it.each([0, 1250])('uses the loaded expense edits when the report timestamp is stale and measured skew is %sms', async (timeSkew) => {
+        // Given a stale report timestamp and two newer confirmed edits while the device clock falls between those edits
+        const thread = {
+            reportID: 'clock-stale-report-test',
+            lastVisibleActionCreated: '2026-10-14 12:23:42.090',
+        };
+        await Onyx.merge(ONYXKEYS.SESSION, {
+            email: currentUserEmail,
+            accountID: currentUserAccountID,
+        });
+        await Onyx.merge(ONYXKEYS.NETWORK, {timeSkew});
+        await waitForBatchedUpdates();
+        const action = buildOptimisticModifiedExpenseReportAction(thread, undefined, {}, false, undefined, undefined);
+        const confirmed = [
+            {
+                ...action,
+                reportActionID: 'first',
+                created: '2026-10-14 12:24:01.635',
+                pendingAction: null,
+            },
+            {
+                ...action,
+                reportActionID: 'second',
+                created: '2026-10-14 12:24:07.130',
+                pendingAction: null,
+            },
+        ];
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${thread.reportID}`, Object.fromEntries(confirmed.map((reportAction) => [reportAction.reportActionID, reportAction])));
+        await waitForBatchedUpdates();
+        jest.useFakeTimers({now: new Date('2026-10-14T12:24:03.421Z')});
+
+        // When a real optimistic edit is built from the same stale report metadata
+        const pending = buildOptimisticModifiedExpenseReportAction(thread, undefined, {}, false, undefined, undefined);
+        const pendingDisplay = getSystemMessageDisplayState(getSortedReportActions([...confirmed, pending], isNewestFirst), new Set());
+
+        // Then the edit sorts after the confirmed pair, which stays collapsed until the server confirms the new row
+        expect(pending.created).toBe('2026-10-14 12:24:07.131');
+        expect(pendingDisplay.displayReportActions).toHaveLength(2);
+        expect(pendingDisplay.displayReportActions).toContain(pending);
+        expect([...pendingDisplay.runsByAnchorReportActionID.values()].map((run) => run.reportActionIDs)).toEqual([['first', 'second']]);
+        expect(getSystemMessageDisplayState(getSortedReportActions([...confirmed, {...pending, pendingAction: null}], isNewestFirst), new Set()).displayReportActions).toHaveLength(1);
     });
 });
 
