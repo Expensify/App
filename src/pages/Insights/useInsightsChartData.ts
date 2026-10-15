@@ -39,10 +39,7 @@ type InsightsChartData = {
 
 const BLOCKING_STATES = new Set<InsightsChartState>([INSIGHTS_CHART_STATE.LOADING, INSIGHTS_CHART_STATE.ERROR, INSIGHTS_CHART_STATE.OFFLINE]);
 
-/**
- * Resolves a chart's rows, and the rows it is compared against when the page compares. Only line charts draw a second series.
- * The compared rows are read with the chart's own query, since they are grouped and sorted the same way.
- */
+/** Resolves a chart's rows, and the rows it is compared against when the page compares. */
 function useInsightsChartData(chart: InsightsChartSpec, filters: InsightsFilters, queryJSON: Readonly<SearchQueryJSON> | undefined, snapshot: OnyxEntry<SearchResults>): InsightsChartData {
     const theme = useTheme();
     const {translate} = useLocalize();
