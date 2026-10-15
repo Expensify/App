@@ -157,9 +157,21 @@ function buildOptionsData({
     shouldStoreReportErrors,
     shouldShowBrickRoadIndicator,
 }: BuildOptionsDataParams) {
-    const personalDetails = includeLoginsOnly ? filterPersonalDetailsByLogins(allPersonalDetails, includeLoginsOnly) : allPersonalDetails;
+    let personalDetails = allPersonalDetails;
+    if (includeLoginsOnly) {
+        personalDetails = filterPersonalDetailsByLogins(personalDetails, includeLoginsOnly);
+    }
+    if (includeAgentsOnly) {
+        personalDetails = Object.fromEntries(
+            Object.entries(personalDetails ?? {}).filter(([, details]) => {
+                if (!details?.isCustomAgent) {
+                    return true;
+                }
+                return includeAgentsOnly.has(details.accountID);
+            }),
+        );
+    }
     const accountIDToReportIDMap = generateAccountIDToReportIDMap(reports, accountID);
-
     return memoizedCreateOptionList(accountID, personalDetails, accountIDToReportIDMap, reports, reportAttributes, reportNameValuePairs ?? {}, formatPhoneNumber, translate, {
         shouldStoreReportErrors,
         shouldShowBrickRoadIndicator,
