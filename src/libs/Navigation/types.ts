@@ -1,3 +1,5 @@
+/* eslint-disable max-lines -- Keep navigation route parameter types together. */
+
 import type {MultifactorAuthenticationPromptType} from '@components/MultifactorAuthentication/config/types';
 import type {SearchQueryString} from '@components/Search/types';
 
