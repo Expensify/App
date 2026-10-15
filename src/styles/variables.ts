@@ -38,6 +38,8 @@ export default {
     // Space between a label's truncation edge and its tab's edge, so a neighbor's selected pill never reaches the label.
     floatingTabBarLabelInset: 8,
     floatingTabBarBottomInset: 8,
+    // Home, Inbox, Spend and Workspaces, with Insights or Account as the fifth.
+    floatingTabBarTabCount: 5,
     // styles.p3 (12) on each side of the DebugTabView row plus the View button (componentSizeNormal).
     debugTabViewHeight: 64,
     contentHeaderHeight: getValueUsingPixelRatio(72, 100),
@@ -110,6 +112,8 @@ export default {
     iconFloatingTabBar: 20,
     /** Account avatar size in the floating tab bar. */
     avatarFloatingTabBar: avatarSizes.avatarSizeXSmall,
+    // The tab glyphs are drawn about this far above the bottom of their box.
+    floatingTabBarGlyphBottomInset: 1,
     /** Glyph size in the iOS native tab bar. */
     iconNativeTabBarIOS: 22,
     /** Account avatar size in the iOS native tab bar. */

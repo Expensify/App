@@ -233,7 +233,7 @@ function InboxTabButton({selectedTab, isWideLayout}: InboxTabButtonProps) {
             role={CONST.ROLE.TAB}
             accessibilityLabel={accessibilityLabel}
             accessibilityState={{selected: selectedTab === NAVIGATION_TABS.INBOX}}
-            wrapperStyle={styles.flex1}
+            wrapperStyle={styles.navigationTabBarSlot}
             style={styles.navigationTabBarItem}
             sentryLabel={CONST.SENTRY_LABEL.NAVIGATION_TAB_BAR.INBOX}
         >

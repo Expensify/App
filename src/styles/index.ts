@@ -767,7 +767,13 @@ const staticStyles = (theme: ThemeColors) =>
 
         // Only the mobile web bar uses this; iOS and Android draw native tab bars.
         navigationTabBarContainer: {
-            flexDirection: 'row',
+            // Grows every tab by the same amount until its label fits, then shares what is left between them, so a long
+            // label gets the room it needs and, once the labels no longer all fit, the long ones truncate to the same
+            // width while the short ones keep theirs.
+            display: 'grid',
+            gridTemplateColumns: `repeat(${variables.floatingTabBarTabCount}, minmax(0, auto))`,
+            // react-native-web defaults alignContent to flex-start, which would leave the row at its content's height.
+            alignContent: 'stretch',
             height: variables.floatingTabBarHeight,
             marginHorizontal: variables.floatingTabBarHorizontalInset,
             borderRadius: variables.componentBorderRadiusCircle,
@@ -780,6 +786,11 @@ const staticStyles = (theme: ThemeColors) =>
             paddingHorizontal: spacing.p1.padding + variables.floatingTabBarSelectedOverhang,
             // Clips each item's hover and press background to the capsule's rounded ends.
             overflow: 'hidden',
+        },
+
+        // A grid item is otherwise never narrower than its label, so the label could not truncate.
+        navigationTabBarSlot: {
+            minWidth: 0,
         },
 
         // Stretches every tab to its slot, so a long label truncates inside the slot instead of spilling into its neighbors.
@@ -813,10 +824,11 @@ const staticStyles = (theme: ThemeColors) =>
             alignItems: 'center',
         },
 
-        // Lets the floating bar's avatar overflow the glyph box evenly above and below, so its label lines up
-        // with the labels of the icons next to it and its centre with theirs.
+        // Sits the avatar's bottom edge where the glyphs next to it end, inside their box, and lets its extra height
+        // reach above the box, so its label lines up with theirs and is the same distance from the avatar.
         navigationTabBarAvatar: {
-            marginVertical: (variables.iconFloatingTabBar - variables.avatarFloatingTabBar) / 2,
+            marginTop: variables.iconFloatingTabBar - variables.avatarFloatingTabBar - variables.floatingTabBarGlyphBottomInset,
+            marginBottom: variables.floatingTabBarGlyphBottomInset,
         },
 
         navigationTabBarFABItem: {

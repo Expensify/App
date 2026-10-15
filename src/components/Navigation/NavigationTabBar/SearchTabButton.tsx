@@ -77,7 +77,7 @@ function SearchTabButton({selectedTab, isWideLayout}: SearchTabButtonProps) {
             role={CONST.ROLE.TAB}
             accessibilityLabel={translate('common.spend')}
             accessibilityState={searchAccessibilityState}
-            wrapperStyle={styles.flex1}
+            wrapperStyle={styles.navigationTabBarSlot}
             style={styles.navigationTabBarItem}
             sentryLabel={CONST.SENTRY_LABEL.NAVIGATION_TAB_BAR.REPORTS}
         >
