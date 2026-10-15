@@ -265,7 +265,21 @@ describe('WorkspaceCompanyCardFeedSelectorPage', () => {
             expect(getSaveButton()).toBeDisabled();
         });
 
-        it('keeps the staged feed checked after linking moves it into the available feeds list', () => {
+        const rerenderFeedSelectorPage = (rerender: ReturnType<typeof renderFeedSelectorPage>['rerender']) =>
+            rerender(
+                <WorkspaceCompanyCardFeedSelectorPage
+                    route={route}
+                    navigation={navigation}
+                />,
+            );
+
+        // Mirrors what Onyx holds once the link response lands: the feed leaves "From other workspaces" and shows up in the available feeds list.
+        const moveFeedIntoAvailableList = () => {
+            mockOtherFeeds = [];
+            mockCompanyCardFeeds = {[OTHER_WORKSPACE_FEED_KEY]: {feed: CONST.COMPANY_CARD.FEED_BANK_NAME.VISA, domainID: 123}};
+        };
+
+        it('keeps the staged feed checked in place while the link response lands before the page closes', () => {
             // Given a user with a validated work email stages the other-workspace feed and presses Save
             mockPrimaryContactMethod = '';
             jest.mocked(linkCardFeedToPolicy).mockReturnValue(new Promise(() => {}));
@@ -274,18 +288,39 @@ describe('WorkspaceCompanyCardFeedSelectorPage', () => {
             fireEvent.press(getSaveButton());
             expect(linkCardFeedToPolicy).toHaveBeenCalledTimes(1);
 
-            // When the link response reaches Onyx before the page closes, so the feed leaves "From other workspaces" and shows up in the available feeds list
-            mockOtherFeeds = [];
-            mockCompanyCardFeeds = {[OTHER_WORKSPACE_FEED_KEY]: {feed: CONST.COMPANY_CARD.FEED_BANK_NAME.VISA, domainID: 123}};
-            rerender(
-                <WorkspaceCompanyCardFeedSelectorPage
-                    route={route}
-                    navigation={navigation}
-                />,
-            );
+            // When the link response reaches Onyx before the page closes
+            moveFeedIntoAvailableList();
+            rerenderFeedSelectorPage(rerender);
 
-            // Then the same feed is still checked in its new row, so the checkmark does not disappear while the RHP closes
-            expect(screen.getByTestId(`${CONST.BASE_LIST_ITEM_TEST_ID}${OTHER_WORKSPACE_FEED_KEY}`).props.accessibilityState).toMatchObject({selected: true});
+            // Then the feed stays checked under "From other workspaces" and no available feed row appears, so nothing moves while the RHP closes
+            expect(screen.getByText('workspace.companyCards.fromOtherWorkspaces')).toBeOnTheScreen();
+            expect(screen.getByTestId(`${CONST.BASE_LIST_ITEM_TEST_ID}${OTHER_WORKSPACE_FEED.keyForList}`).props.accessibilityState).toMatchObject({selected: true});
+            expect(screen.queryByTestId(`${CONST.BASE_LIST_ITEM_TEST_ID}${OTHER_WORKSPACE_FEED_KEY}`)).not.toBeOnTheScreen();
+        });
+
+        it('shows the latest feeds again when linking fails', async () => {
+            // Given a user with a validated work email stages the other-workspace feed, presses Save, and the feeds change while the link request is pending
+            mockPrimaryContactMethod = '';
+            let rejectLink: (error: string) => void = () => {};
+            jest.mocked(linkCardFeedToPolicy).mockReturnValue(
+                new Promise((resolve, reject) => {
+                    rejectLink = reject;
+                }),
+            );
+            const {rerender} = renderFeedSelectorPage();
+            fireEvent.press(screen.getByText(OTHER_WORKSPACE_FEED.text ?? ''));
+            fireEvent.press(getSaveButton());
+            moveFeedIntoAvailableList();
+            rerenderFeedSelectorPage(rerender);
+
+            // When the link request fails
+            await act(async () => {
+                rejectLink('common.genericErrorMessage');
+            });
+
+            // Then the page stops freezing the lists, because the page stays open and has to reflect the current feeds
+            expect(screen.queryByText('workspace.companyCards.fromOtherWorkspaces')).not.toBeOnTheScreen();
+            expect(screen.getByTestId(`${CONST.BASE_LIST_ITEM_TEST_ID}${OTHER_WORKSPACE_FEED_KEY}`)).toBeOnTheScreen();
         });
     });
 

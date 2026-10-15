@@ -77,9 +77,14 @@ function WorkspaceCompanyCardFeedSelectorPage({route}: WorkspaceCompanyCardFeedS
     const icons = useMemoizedLazyExpensifyIcons(['Plus']);
     const [feedWithError, setFeedWithError] = useState<{feed?: string; error?: Errors} | undefined>(undefined);
 
-    const {companyCardFeeds, feedName: selectedFeedName} = useCompanyCards({policyID});
+    const {companyCardFeeds: liveCompanyCardFeeds, feedName: selectedFeedName} = useCompanyCards({policyID});
     const {shouldShowRbrForFeedNameWithDomainID} = useCardFeedErrors();
-    const otherFeeds = useOtherFeedsForFeedSelector(policyID);
+    const liveOtherFeeds = useOtherFeedsForFeedSelector(policyID);
+
+    // The link response reaches Onyx before the RHP starts closing, so the lists are frozen while linking to keep the feed from jumping between sections.
+    const [frozenFeeds, setFrozenFeeds] = useState<{companyCardFeeds: typeof liveCompanyCardFeeds; otherFeeds: CardFeedListItem[]}>();
+    const companyCardFeeds = frozenFeeds ? frozenFeeds.companyCardFeeds : liveCompanyCardFeeds;
+    const otherFeeds = frozenFeeds?.otherFeeds ?? liveOtherFeeds;
     const primaryContactMethod = usePrimaryContactMethod();
 
     const [draftFeed, setDraftFeed] = useState<CompanyCardFeedWithDomainID>();
@@ -163,12 +168,14 @@ function WorkspaceCompanyCardFeedSelectorPage({route}: WorkspaceCompanyCardFeedS
             return;
         }
         const feedValue = getCardFeedWithDomainID(feed.feed, feed.fundID);
+        setFrozenFeeds({companyCardFeeds: liveCompanyCardFeeds, otherFeeds: liveOtherFeeds});
         linkCardFeedToPolicy(feed.fundID, policyID, CONST.COMPANY_CARD.LINK_FEED_TYPE.COMPANY_CARD, feed?.country, feed.feed)
             .then(() => {
                 updateSelectedFeed(feedValue, policyID);
                 goBack();
             })
             .catch((error: TranslationPaths) => {
+                setFrozenFeeds(undefined);
                 setFeedWithError({
                     feed: feed.value,
                     error: getMicroSecondOnyxErrorWithTranslationKey(error),
