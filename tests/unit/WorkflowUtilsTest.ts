@@ -859,6 +859,37 @@ describe('WorkflowUtils', () => {
             expect(memberEmails).toEqual(['alice@example.com', 'bob@example.com']);
         });
 
+        it('Should not build a workflow from a member that is pending deletion', () => {
+            // Offline removal of an approver leaves that member with a stale submitsTo pointing at whoever
+            // replaced them. They must not create an extra approval workflow with no members.
+            const employees: PolicyEmployeeList = {
+                '1@example.com': {
+                    email: '1@example.com',
+                    forwardsTo: undefined,
+                    submitsTo: '4@example.com',
+                    pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                },
+                '2@example.com': {
+                    email: '2@example.com',
+                    forwardsTo: undefined,
+                    submitsTo: '2@example.com',
+                },
+                '4@example.com': {
+                    email: '4@example.com',
+                    forwardsTo: undefined,
+                    submitsTo: '2@example.com',
+                },
+            };
+            const defaultApprover = '2@example.com';
+            const policy = createMockPolicy(employees, defaultApprover);
+
+            const {approvalWorkflows, availableMembers, usedApproverEmails} = convertPolicyEmployeesToApprovalWorkflows({policy, personalDetails, localeCompare});
+
+            expect(approvalWorkflows).toEqual([buildWorkflow([2, 4], [2], {isDefault: true})]);
+            expect(availableMembers.map((member) => member.email)).toEqual(['2@example.com', '4@example.com']);
+            expect(usedApproverEmails).not.toContain('4@example.com');
+        });
+
         it('Should filter out Expensify team members for non-Expensify customers', () => {
             const employees: PolicyEmployeeList = {
                 'alice@example.com': {
@@ -1238,18 +1269,14 @@ describe('WorkflowUtils', () => {
             expect(includesEveryWorkspaceMember(['1@example.com'], {})).toBe(false);
         });
 
-        it('skips a null member entry', () => {
-            // Given a workspace whose employeeList holds a null entry, which Onyx can leave behind when several policy
-            // updates are applied in one batch
-            const employeeListWithNullEntry: PolicyEmployeeList = {
-                ...employeeList,
-                // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- This entry deliberately exercises the runtime guard for a null employee.
-                '9@example.com': null as unknown as PolicyEmployee,
-            };
+        it('skips a null employeeList entry instead of crashing', () => {
+            // Given a workspace whose employeeList holds a null entry, which the type rules out but happens at runtime
+            const employeeListWithNull: PolicyEmployeeList = {...employeeList};
+            Reflect.set(employeeListWithNull, 'stale@example.com', null);
 
-            // When checking a workflow with every other member
-            // Then it still has everyone instead of crashing on the null entry
-            expect(includesEveryWorkspaceMember(['1@example.com', '2@example.com'], employeeListWithNullEntry)).toBe(true);
+            // When checking a workflow with every member, as creating or saving a workflow does
+            // Then the null entry is skipped rather than crashing, and the workflow still has everyone
+            expect(includesEveryWorkspaceMember(['1@example.com', '2@example.com'], employeeListWithNull)).toBe(true);
         });
     });
 
@@ -3025,6 +3052,21 @@ describe('WorkflowUtils', () => {
                 ).toEqual(['2@example.com', '3@example.com', '4@example.com']);
             });
 
+            it('Should not build a workflow from a member that is pending deletion', () => {
+                const rules = keyRules(buildApprovalWorkflowRules(buildWorkflow([5], [1])));
+                const employees: PolicyEmployeeList = {
+                    '4@example.com': {email: '4@example.com', submitsTo: '1@example.com', pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE},
+                    '5@example.com': {email: '5@example.com', submitsTo: '1@example.com'},
+                };
+                const policy = createPolicy(employees, '1@example.com');
+
+                const {approvalWorkflows, availableMembers} = convertApprovalWorkflowRulesToWorkflows({policy, personalDetails, localeCompare, rules});
+
+                expect(approvalWorkflows).toHaveLength(1);
+                expect(approvalWorkflows.at(0)?.members.map((member) => member.email)).toEqual(['5@example.com']);
+                expect(availableMembers.map((member) => member.email)).toEqual(['5@example.com']);
+            });
+
             it('Should keep members that employeeList routes down another chain out of the rule-based default workflow', () => {
                 // Given a default workflow whose rules route 5 to approver 1, while employeeList still names approver 2, who
                 // forwards to 3, as the default approver. No rule covers 2 or 6, so employeeList routes them to 2, then 3.
@@ -3431,24 +3473,19 @@ describe('WorkflowUtils', () => {
             expect(hasApprovalWorkflowWithNonMemberApprover({policy: lockedPolicy, currentUserLogin: ownerEmail, isMultipleApproversBetaEnabled: false})).toBe(false);
         });
 
-        it('skips a null member entry when building the workflows', () => {
-            // Given member 1 submits to someone no longer on the workspace, so the workflows get built, and
-            // employeeList holds a null entry, which Onyx can leave behind when several policy updates are applied in
-            // one batch
-            const policy = buildPolicy({
-                employeeList: {
-                    [ownerEmail]: {email: ownerEmail, role: CONST.POLICY.ROLE.ADMIN, submitsTo: ownerEmail},
-                    '1@example.com': {email: '1@example.com', role: CONST.POLICY.ROLE.USER, submitsTo: removedEmail},
-                    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- This entry deliberately exercises the runtime guard for a null employee.
-                    '2@example.com': null as unknown as PolicyEmployee,
-                },
-            });
-            const rules = keyRules(buildApprovalWorkflowRules({members: [buildMember(1)], approvers: [buildApprover(9)], isDefault: false}));
+        it.each([false, true])('skips a null employeeList entry instead of crashing when the multiple approvers beta is %s', (isMultipleApproversBetaEnabled) => {
+            // Given a workspace whose employeeList holds a null entry, which the type rules out but happens at runtime,
+            // next to member 1 who still submits to someone no longer on the workspace
+            // The type rules out a null entry, so set it without a cast. It goes in first so every pass over employeeList reaches it before member 1
+            const employeeList: PolicyEmployeeList = {};
+            Reflect.set(employeeList, 'stale@example.com', null);
+            employeeList[ownerEmail] = {email: ownerEmail, role: CONST.POLICY.ROLE.ADMIN, submitsTo: ownerEmail};
+            employeeList['1@example.com'] = {email: '1@example.com', role: CONST.POLICY.ROLE.USER, submitsTo: removedEmail};
+            const policy = buildPolicy({employeeList});
 
-            // When the owner checks whether a workflow needs fixing, with and without the multiple approvers beta
-            // Then both builders skip the null entry instead of crashing, and still flag the broken workflow
-            expect(hasApprovalWorkflowWithNonMemberApprover({policy, currentUserLogin: ownerEmail, isMultipleApproversBetaEnabled: false})).toBe(true);
-            expect(hasApprovalWorkflowWithNonMemberApprover({policy, currentUserLogin: ownerEmail, rules, isMultipleApproversBetaEnabled: true})).toBe(true);
+            // When the owner checks whether a workflow needs fixing, as the Workspaces tab does on every page
+            // Then the null entry is skipped rather than crashing the tab bar, and member 1's workflow is still flagged
+            expect(hasApprovalWorkflowWithNonMemberApprover({policy, currentUserLogin: ownerEmail, rules: {}, isMultipleApproversBetaEnabled})).toBe(true);
         });
     });
 
