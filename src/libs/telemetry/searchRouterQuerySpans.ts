@@ -4,7 +4,10 @@
  * list's commit, and cancels it on supersede/clear/close/unmount/timeout. Records only privacy-preserving attributes,
  * never the raw query text.
  */
+import type {SearchAutocompleteQueryRange} from '@components/Search/types';
+
 import {parseForAutocomplete} from '@libs/SearchAutocompleteUtils';
+import {getRawFilterListFromQuery} from '@libs/SearchQueryUtils';
 
 import CONST from '@src/CONST';
 
@@ -46,23 +49,21 @@ function getSearchRouterQueryLengthBucket(length: number): SearchRouterQueryLeng
 }
 
 /**
- * Returns `query` without its filter tokens, so only the free text is left. The parser's ranges cover filter values
- * only, so each one is widened back to the start of its token to also drop the key and operator in front of it
- * (`-amount>=10`, `from:a,b`). Text that only looks like a filter, such as `10:30`, stays free text.
+ * Returns `query` without a trailing filter that has no value yet (`taxi from:`). The router already treats it as a
+ * filter, while the search parser reads a key without a value as free text.
  */
-function getSearchRouterQueryFreeText(query: string, filterRanges: Array<{start: number; length: number}>): string {
-    const isFilterCharacter = new Array<boolean>(query.length).fill(false);
-    for (const range of filterRanges) {
-        let tokenStart = range.start;
-        while (tokenStart > 0 && !WHITESPACE_REGEX.test(query.charAt(tokenStart - 1))) {
-            tokenStart -= 1;
-        }
-        isFilterCharacter.fill(true, tokenStart, range.start + range.length);
+function getQueryWithoutEmptyAutocompleteFilter(query: string, autocomplete: SearchAutocompleteQueryRange | null | undefined): string {
+    if (!autocomplete || autocomplete.value) {
+        return query;
     }
-    return query
-        .split('')
-        .filter((_, index) => !isFilterCharacter.at(index))
-        .join('');
+    let tokenStart = autocomplete.start;
+    while (tokenStart > 0 && WHITESPACE_REGEX.test(query.charAt(tokenStart - 1))) {
+        tokenStart -= 1;
+    }
+    while (tokenStart > 0 && !WHITESPACE_REGEX.test(query.charAt(tokenStart - 1))) {
+        tokenStart -= 1;
+    }
+    return query.slice(0, tokenStart);
 }
 
 function clearActiveQuery() {
@@ -111,11 +112,18 @@ function startSearchRouterQuerySpan(debouncedQuery: string, changedAt?: number) 
         return;
     }
 
-    const parsedQuery = parseForAutocomplete(debouncedQuery);
-    // `ranges` covers the filter values only. It includes the value being autocompleted once that value is non-empty,
-    // so a bare `from:` is only reported through `autocomplete`.
-    const filterRanges = parsedQuery?.ranges ?? [];
-    const freeText = getSearchRouterQueryFreeText(debouncedQuery, parsedQuery?.autocomplete ? [...filterRanges, parsedQuery.autocomplete] : filterRanges);
+    const autocomplete = parseForAutocomplete(debouncedQuery)?.autocomplete;
+    const parsableQuery = getQueryWithoutEmptyAutocompleteFilter(debouncedQuery, autocomplete);
+    // Unlike the autocomplete parser, the search parser knows every supported key, including the ones the router
+    // doesn't autocomplete (`keyword`, `sortBy`, `sortOrder`, `compare`). It returns free text as `keyword` filters,
+    // which also covers `keyword:taxi`, the same search as `taxi`. A query it rejects counts as free text in full.
+    const rawFilters = getRawFilterListFromQuery(parsableQuery);
+    const freeText = rawFilters
+        ? rawFilters
+              .filter((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD)
+              .flatMap((filter) => filter.value)
+              .join(' ')
+        : parsableQuery;
 
     cancelSearchRouterQuerySpan(CONST.TELEMETRY.SEARCH_ROUTER_QUERY_CANCEL_REASON.SUPERSEDED);
     measuredCount += 1;
@@ -127,8 +135,8 @@ function startSearchRouterQuerySpan(debouncedQuery: string, changedAt?: number) 
         startTime: timestampInSeconds() - elapsedMs / 1000,
         attributes: {
             [CONST.TELEMETRY.ATTRIBUTE_QUERY_LENGTH_BUCKET]: getSearchRouterQueryLengthBucket([...freeText.trim()].length),
-            [CONST.TELEMETRY.ATTRIBUTE_HAS_FILTER]: filterRanges.length > 0 || !!parsedQuery?.autocomplete,
-            [CONST.TELEMETRY.ATTRIBUTE_AUTOCOMPLETE_KEY]: getAutocompleteKey(parsedQuery?.autocomplete?.key),
+            [CONST.TELEMETRY.ATTRIBUTE_HAS_FILTER]: !!autocomplete || !!rawFilters?.some((filter) => filter.key !== CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD),
+            [CONST.TELEMETRY.ATTRIBUTE_AUTOCOMPLETE_KEY]: getAutocompleteKey(autocomplete?.key),
             [CONST.TELEMETRY.ATTRIBUTE_QUERY_ORDINAL]: measuredCount,
         },
     });

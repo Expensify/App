@@ -312,6 +312,41 @@ describe('searchRouterQuerySpans', () => {
         expect(getRootAttributes()?.[CONST.TELEMETRY.ATTRIBUTE_QUERY_LENGTH_BUCKET]).toBe(expectedBucket);
     });
 
+    it.each([
+        ['an explicit keyword filter', 'keyword:taxi', false, CONST.TELEMETRY.SEARCH_ROUTER_QUERY_LENGTH_BUCKET.MEDIUM],
+        ['a sortBy key', 'sortBy:date taxi', true, CONST.TELEMETRY.SEARCH_ROUTER_QUERY_LENGTH_BUCKET.MEDIUM],
+        ['a sortOrder key', 'sortOrder:asc', true, CONST.TELEMETRY.SEARCH_ROUTER_QUERY_LENGTH_BUCKET.EMPTY],
+        ['a compare key', 'compare:average', true, CONST.TELEMETRY.SEARCH_ROUTER_QUERY_LENGTH_BUCKET.EMPTY],
+    ])('classifies a query with %s, which the router does not autocomplete', (_, query, expectedHasFilter, expectedBucket) => {
+        // Given a query using search syntax that the autocomplete parser doesn't model, but the search parser accepts
+        startSearchRouterQuerySpan(query);
+
+        // When it commits
+        markSearchRouterQueryCommitted(query);
+
+        // Then the syntax token is not counted as free text, and only keys that narrow or reshape the search count as a filter,
+        // since `keyword:taxi` is the same search as `taxi`
+        const attributes = getRootAttributes();
+        expect(attributes?.[CONST.TELEMETRY.ATTRIBUTE_HAS_FILTER]).toBe(expectedHasFilter);
+        expect(attributes?.[CONST.TELEMETRY.ATTRIBUTE_QUERY_LENGTH_BUCKET]).toBe(expectedBucket);
+        expect(attributes?.[CONST.TELEMETRY.ATTRIBUTE_AUTOCOMPLETE_KEY]).toBe('none');
+    });
+
+    it('treats a trailing filter key without a value as a filter, not free text', () => {
+        // Given free text followed by a filter key the user hasn't typed a value for yet, which the search parser alone reads as free text
+        const query = 'taxi from: ';
+        startSearchRouterQuerySpan(query);
+
+        // When it commits
+        markSearchRouterQueryCommitted(query);
+
+        // Then only the text before the key counts as free text and the pending filter is reported
+        const attributes = getRootAttributes();
+        expect(attributes?.[CONST.TELEMETRY.ATTRIBUTE_HAS_FILTER]).toBe(true);
+        expect(attributes?.[CONST.TELEMETRY.ATTRIBUTE_AUTOCOMPLETE_KEY]).toBe(CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM);
+        expect(attributes?.[CONST.TELEMETRY.ATTRIBUTE_QUERY_LENGTH_BUCKET]).toBe(CONST.TELEMETRY.SEARCH_ROUTER_QUERY_LENGTH_BUCKET.MEDIUM);
+    });
+
     it('never puts the query text in any serialized attribute', () => {
         // Given distinctive free text next to a filter value
         const secretFreeText = 'pineapple';
