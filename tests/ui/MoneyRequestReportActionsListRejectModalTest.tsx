@@ -13,6 +13,7 @@ import useNetwork from '@hooks/useNetwork';
 
 import {ActionListContextProvider} from '@pages/inbox/ActionListContext';
 import type * as ReportActionIndexContexts from '@pages/inbox/report/ReportActionIndexContext';
+import type ReportActionsListItemRenderer from '@pages/inbox/report/ReportActionsListItemRenderer';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -454,7 +455,7 @@ describe('MoneyRequestReportActionsList - Reject Educational Modal', () => {
 
     describe('feedback prompt under custom agent replies', () => {
         const AGENT_ACCOUNT_ID = 99001;
-        const mockReportActionsListItemRenderer = jest.requireMock<jest.Mock<null, [{reportAction: ReportAction; isLatestConciergeFeedbackAction?: boolean}]>>(
+        const mockReportActionsListItemRenderer = jest.requireMock<jest.Mock<null, [React.ComponentProps<typeof ReportActionsListItemRenderer>]>>(
             '@pages/inbox/report/ReportActionsListItemRenderer',
         );
         const agentReply: ReportAction = {

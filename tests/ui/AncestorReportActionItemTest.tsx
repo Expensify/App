@@ -6,6 +6,7 @@ import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 
 import AncestorReportActionItem from '@pages/inbox/report/AncestorReportActionItem';
+import type ReportActionItem from '@pages/inbox/report/ReportActionItem';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -19,7 +20,7 @@ import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct'
 jest.mock('@pages/inbox/report/ReportActionItem', () => jest.fn(() => null));
 jest.mock('@pages/inbox/report/ThreadDivider', () => jest.fn(() => null));
 
-const mockReportActionItem = jest.requireMock<jest.Mock<null, [{action: ReportAction; isLatestConciergeFeedbackAction?: boolean}]>>('@pages/inbox/report/ReportActionItem');
+const mockReportActionItem = jest.requireMock<jest.Mock<null, [React.ComponentProps<typeof ReportActionItem>]>>('@pages/inbox/report/ReportActionItem');
 
 const PARENT_REPORT_ID = '200001';
 const AGENT_ACCOUNT_ID = 99001;
