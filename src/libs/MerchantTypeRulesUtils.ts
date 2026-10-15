@@ -15,7 +15,13 @@ import {setWorkspaceDefaultSpendCategory} from './actions/Policy/Policy';
 import {clearMerchantRuleErrors} from './actions/Policy/Rules';
 import {getCategoryTaxRulesTableData, getTaxRateDisplayName} from './CategoryTaxRulesUtils';
 import {getDecodedCategoryName} from './CategoryUtils';
-import {getExpenseDefaultRuleSummaryFields, getPolicyExpenseDefaultRules, getRuleMerchantMatchSummary, isEditableMerchantRule, isExpenseDefaultTaxValue} from './ExpenseDefaultRuleUtils';
+import {
+    getExpenseDefaultConditionSummary,
+    getExpenseDefaultRuleSummaryFields,
+    getPolicyExpenseDefaultRules,
+    isEditableMerchantRule,
+    isExpenseDefaultTaxValue,
+} from './ExpenseDefaultRuleUtils';
 import {getMccGroupDisplayName} from './PolicyRulesUtils';
 import {getCommaSeparatedTagNameWithSanitizedColons, getVendorRuleDisplayValue, isTagInPolicy, isXeroActiveMatchingSource} from './PolicyUtils';
 
@@ -150,7 +156,21 @@ function getMerchantRulesTableData({
                 const summaryFields = getExpenseDefaultRuleSummaryFields(rule).filter(
                     ({field, value}) => field !== FIELD.TAG || !policyTags || typeof value !== 'string' || isTagInPolicy(value, policyTags),
                 );
-                const {merchants: merchantName} = getRuleMerchantMatchSummary(rule.filters);
+                const {merchants, categories, tags} = getExpenseDefaultConditionSummary(rule.filters);
+                const merchantNames = merchants.join(', ');
+                const categoryNames = categories.map(getDecodedCategoryName).join(', ');
+                const tagNames = tags.map(getCommaSeparatedTagNameWithSanitizedColons).join(', ');
+
+                const conditions: string[] = [];
+                if (merchantNames) {
+                    conditions.push(translate('workspace.rules.expenseDefaultsTable.merchantIs', merchantNames));
+                }
+                if (categoryNames) {
+                    conditions.push(translate('workspace.rules.expenseDefaultsTable.categoryIs', categoryNames));
+                }
+                if (tagNames) {
+                    conditions.push(translate('workspace.rules.expenseDefaultsTable.tagIs', tagNames));
+                }
 
                 const hasOnlyMerchantRename = summaryFields.length === 1 && summaryFields.at(0)?.field === FIELD.MERCHANT;
                 const typeLabel = hasOnlyMerchantRename ? translate('workspace.rules.expenseDefaultsTable.rename') : translate('workspace.rules.expenseDefaultsTable.update');
@@ -207,9 +227,10 @@ function getMerchantRulesTableData({
                     section: CONST.POLICY.EXPENSE_DEFAULTS_SECTION.MERCHANTS,
                     isRename: hasOnlyMerchantRename,
                     typeLabel,
-                    conditionText: translate('workspace.rules.expenseDefaultsTable.merchantIs', merchantName),
+                    // A rule matches on every condition it carries, so the row reads them as one sentence.
+                    conditionText: conditions.join(` ${translate('common.and')} `),
                     ruleDescription,
-                    searchTokens: [merchantName, ruleDescription],
+                    searchTokens: [merchantNames, categoryNames, tagNames, ruleDescription].filter(Boolean),
                     pendingAction,
                     errors: rule.errors,
                     onCloseError: () => clearMerchantRuleErrors(ruleID, rule),

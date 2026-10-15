@@ -482,6 +482,42 @@ function getRuleMerchantMatchSummary(filters: RuleFilterNode | undefined): {merc
     };
 }
 
+/** The values a rule matches on, grouped by field. */
+type ExpenseDefaultConditionSummary = {
+    /** The merchants the rule matches on */
+    merchants: string[];
+
+    /** The categories the rule matches on, as they are stored on the policy */
+    categories: string[];
+
+    /** The tags the rule matches on, as they are stored on the policy */
+    tags: string[];
+};
+
+/**
+ * Groups a rule's conditions by field, for the rules table's condition text and its search tokens.
+ *
+ * Derived from the filter tree rather than from `getMerchantRuleFormValues`, so a rule the editor can't
+ * represent still shows what it matches and can still be found by it while staying read-only.
+ */
+function getExpenseDefaultConditionSummary(filters: RuleFilterNode | undefined): ExpenseDefaultConditionSummary {
+    const summary: ExpenseDefaultConditionSummary = {merchants: [], categories: [], tags: []};
+
+    for (const leaf of getRuleFilterLeaves(filters)) {
+        const values = [leaf.right].flat().filter((value): value is string => typeof value === 'string');
+
+        if (leaf.left === CONDITION.MERCHANT) {
+            summary.merchants.push(...values);
+        } else if (leaf.left === CONDITION.CATEGORY) {
+            summary.categories.push(...values);
+        } else if (leaf.left === CONDITION.TAG) {
+            summary.tags.push(...values);
+        }
+    }
+
+    return summary;
+}
+
 /** A single field a rule sets, normalized for display. */
 type ExpenseDefaultRuleSummaryField = {
     /** The expense field being set */
@@ -575,11 +611,12 @@ function canEditMerchantRule(rule: Rule | undefined, policyID: string | undefine
     return isPolicyScopedRule(rule, policyID) && isEditableMerchantRule(rule);
 }
 
-export type {MerchantRuleFormValues};
+export type {ExpenseDefaultConditionSummary, MerchantRuleFormValues};
 export {
     buildCopiedExpenseDefaultRules,
     buildMerchantRule,
     canEditMerchantRule,
+    getExpenseDefaultConditionSummary,
     getExpenseDefaultRuleCount,
     getExpenseDefaultRuleSummaryFields,
     getMerchantRuleFormValues,

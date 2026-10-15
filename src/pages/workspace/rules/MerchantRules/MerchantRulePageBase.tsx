@@ -135,12 +135,13 @@ const getCategoryRuleErrorMessage = (translate: LocalizedTranslate, taxID: strin
     return '';
 };
 
-/** Only ever a merchant rule: a category rule is scoped before this page opens and validates through `getCategoryRuleErrorMessage`. */
+/** A rule needs something to match on and something to set. A category tax default validates through `getCategoryRuleErrorMessage` instead. */
 const getErrorMessage = (translate: LocalizedTranslate, form?: MerchantRuleForm) => {
     const matchingCriteriaFields = new Set<string>([
         MERCHANT_RULE_INPUT_IDS.MERCHANT_TO_MATCH,
         MERCHANT_RULE_INPUT_IDS.MATCH_TYPE,
         MERCHANT_RULE_INPUT_IDS.CATEGORIES_TO_MATCH,
+        MERCHANT_RULE_INPUT_IDS.TAGS_TO_MATCH,
         // Scoping, not a default the admin set.
         MERCHANT_RULE_INPUT_IDS.RULE_TYPE,
     ]);
@@ -153,13 +154,14 @@ const getErrorMessage = (translate: LocalizedTranslate, form?: MerchantRuleForm)
         }
         return value !== undefined && value !== '';
     });
-    if (form?.merchantToMatch && hasAtLeastOneUpdate) {
+    const hasCondition = hasExpenseDefaultConditions(form ?? {});
+    if (hasCondition && hasAtLeastOneUpdate) {
         return '';
     }
     if (hasAtLeastOneUpdate) {
         return translate('workspace.rules.merchantRules.confirmErrorCondition');
     }
-    if (form?.merchantToMatch) {
+    if (hasCondition) {
         return translate('workspace.rules.merchantRules.confirmErrorUpdate');
     }
     return translate('workspace.rules.merchantRules.confirmErrorConditionAndDefault');
@@ -474,9 +476,11 @@ function MerchantRulePageBase({
         // Check for duplicate rules
         const hasDuplicate = checkForDuplicateRule(form);
         if (hasDuplicate) {
+            // A duplicate does not have to match on a merchant, so the prompt names the first condition the two share.
+            const duplicateCondition = [form.merchantToMatch, categoriesToMatchDisplayName, form.tagsToMatch?.join(', ')].find(Boolean) ?? '';
             showConfirmModal({
                 title: translate('workspace.rules.merchantRules.duplicateRuleTitle'),
-                prompt: translate('workspace.rules.merchantRules.duplicateRulePrompt', form.merchantToMatch ?? ''),
+                prompt: translate('workspace.rules.merchantRules.duplicateRulePrompt', duplicateCondition),
                 confirmText: translate('workspace.rules.merchantRules.saveAnyway'),
                 cancelText: translate('common.cancel'),
             }).then((result) => {

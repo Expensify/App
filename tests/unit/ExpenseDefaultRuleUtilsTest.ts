@@ -1,6 +1,7 @@
 import {
     buildMerchantRule,
     canEditMerchantRule,
+    getExpenseDefaultConditionSummary,
     getExpenseDefaultRuleCount,
     getExpenseDefaultRuleSummaryFields,
     getMerchantRuleFormValues,
@@ -225,6 +226,46 @@ describe('ExpenseDefaultRuleUtils', () => {
             // When the built rule is read back
             // Then the form gets the same conditions it wrote
             expect(getMerchantRuleFormValues(buildMerchantRule(formValues, policy))).toEqual(formValues);
+        });
+    });
+
+    describe('getExpenseDefaultConditionSummary', () => {
+        it('groups every condition by the field it matches on', () => {
+            // Given a rule matching on a merchant, two categories and a tag
+            const rule = buildMerchantRule({merchantToMatch: 'Starbucks', categoriesToMatch: ['Coffee', 'Travel'], tagsToMatch: ['Team A'], category: 'Coffee'}, policy);
+
+            // When its conditions are summarized
+            // Then each field keeps its own values, so the table can name them separately
+            expect(getExpenseDefaultConditionSummary(rule?.filters)).toEqual({merchants: ['Starbucks'], categories: ['Coffee', 'Travel'], tags: ['Team A']});
+        });
+
+        it('summarizes a rule the editor cannot open', () => {
+            // Given two merchants ORed together, which the form has one input for
+            const filters: RuleFilterNode = {
+                left: merchantFilter,
+                operator: OR,
+                right: {left: FIELD.MERCHANT, operator: CONTAINS, right: 'Costa'},
+            };
+
+            // When it is summarized
+            // Then both merchants are listed, so a read-only rule still shows what it matches
+            expect(getExpenseDefaultConditionSummary(filters)).toEqual({merchants: ['Starbucks', 'Costa'], categories: [], tags: []});
+        });
+
+        it('ignores a field the table has no wording for', () => {
+            // Given a rule matching on a merchant category code
+            const filters: RuleFilterNode = {left: CONST.SEARCH.SYNTAX_FILTER_KEYS.MCC, operator: EQUAL_TO, right: '5812'};
+
+            // When it is summarized
+            // Then nothing is reported, rather than the code being labelled as a merchant
+            expect(getExpenseDefaultConditionSummary(filters)).toEqual({merchants: [], categories: [], tags: []});
+        });
+
+        it('reports nothing for a rule with no filters', () => {
+            // Given a rule whose filters never loaded
+            // When it is summarized
+            // Then every field is empty
+            expect(getExpenseDefaultConditionSummary(undefined)).toEqual({merchants: [], categories: [], tags: []});
         });
     });
 

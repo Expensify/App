@@ -9109,6 +9109,7 @@ const translations = {
                 update: 'Update',
                 categoryIs: (category: string) => `Category is "${category}"`,
                 merchantIs: (merchant: string) => `Merchant is "${merchant}"`,
+                tagIs: (tag: string) => `Tag is "${tag}"`,
                 merchantTypeIs: (merchantType: string) => `Merchant type is "${merchantType}"`,
             },
             merchantTypeRule: {

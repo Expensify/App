@@ -8854,6 +8854,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                 rename: 'Renommer',
                 update: 'Mettre à jour',
                 merchantIs: (merchant: string) => `Le commerçant est « ${merchant} »`,
+                tagIs: (tag: string) => `Le tag est « ${tag} »`,
                 merchantTypeIs: (merchantType: string) => `Le type de commerçant est « ${merchantType} »`,
                 categoryIs: (category: string) => `La catégorie est « ${category} »`,
             },
