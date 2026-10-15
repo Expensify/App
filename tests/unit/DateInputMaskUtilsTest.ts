@@ -226,6 +226,12 @@ describe('DateInputMaskUtils', () => {
             expect(getSegmentDisplay(segments('2026', '09', '2'), 'day')).toBe('02');
         });
 
+        it('shows a month or day of zeroes as the first one, since no date has a zero', () => {
+            expect(getSegmentDisplay(segments('2026', '0', ''), 'month')).toBe('01');
+            expect(getSegmentDisplay(segments('2026', '09', '0'), 'day')).toBe('01');
+            expect(getSegmentDisplay(segments('2026', '00', ''), 'month')).toBe('01');
+        });
+
         it('shows a finished month or day as typed', () => {
             expect(getSegmentDisplay(segments('2026', '09', '18'), 'month')).toBe('09');
             expect(getSegmentDisplay(segments('2026', '09', '18'), 'day')).toBe('18');
@@ -422,9 +428,9 @@ describe('DateInputMaskUtils', () => {
             expect(getISODateFromSegments(EMPTY)).toBeUndefined();
         });
 
-        it('refuses a segment that cannot be a month or a day, which only a zero can be', () => {
-            expect(getISODateFromSegments(segments('2026', '0', '18'))).toBeUndefined();
-            expect(getISODateFromSegments(segments('2026', '09', '0'))).toBeUndefined();
+        it('reads a segment of zeroes as the first month or the first day, which is what it shows', () => {
+            expect(getISODateFromSegments(segments('2026', '0', '18'))).toBe('2026-01-18');
+            expect(getISODateFromSegments(segments('2026', '09', '0'))).toBe('2026-09-01');
         });
 
         it('refuses a day the typed month does not have', () => {

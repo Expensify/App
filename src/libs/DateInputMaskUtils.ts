@@ -17,7 +17,7 @@ const SEGMENT_LENGTH = 2;
 const FIRST_MONTH = 1;
 const FIRST_DAY = 1;
 
-/** What a segment left reading as zero is filled out with, being the first month and the first day alike */
+/** What a segment reading as zero shows instead, being the first month and the first day alike */
 const FIRST_SEGMENT_VALUE = '01';
 
 /** The Date constructor takes a year below this as a shorthand for the twentieth century, so 99 would arrive as 1999 */
@@ -109,6 +109,9 @@ function isZeroPaddedSegment(name: DateSegmentName): name is keyof typeof SEGMEN
 /**
  * The text one segment shows. A zero padded segment fills from the right, so a day part way through reads as 02 and
  * becomes 23 on the next digit. An empty segment renders nothing and lets its own placeholder show through.
+ *
+ * No month or day is a zero, so one that would read as zero shows the first of them instead. The next digit revises
+ * it the way it revises any other single digit.
  */
 function getSegmentDisplay(segments: DateSegments, name: DateSegmentName): string {
     const digits = segments[name].slice(0, getSegmentLength(name));
@@ -117,7 +120,11 @@ function getSegmentDisplay(segments: DateSegments, name: DateSegmentName): strin
         return '';
     }
 
-    return isZeroPaddedSegment(name) ? digits.padStart(getSegmentLength(name), '0') : digits;
+    if (!isZeroPaddedSegment(name)) {
+        return digits;
+    }
+
+    return Number(digits) === 0 ? FIRST_SEGMENT_VALUE : digits.padStart(getSegmentLength(name), '0');
 }
 
 /** The segment that follows this one, or undefined for the last one, which has nowhere to hand a finished value on to */
@@ -426,23 +433,6 @@ function getClipboardTextFromSegments(segments: DateSegments): string {
     return hasGap ? displays.join('') : displays.filter(Boolean).join('-');
 }
 
-/**
- * Fills out a segment reading as zero, which is the start of a number between one and nine that the user moved on
- * without finishing. It settles on the first month or the first day, since no date has a zero and leaving one there
- * would report a date that cannot exist over an entry the user had very nearly made.
- *
- * Returns `segments` itself when every segment already reads as a number, so a caller can tell nothing was filled out.
- */
-function completeZeroSegments(segments: DateSegments): DateSegments {
-    const names = DATE_SEGMENT_NAMES.filter((name) => isZeroPaddedSegment(name) && !!segments[name] && Number(segments[name]) === 0);
-
-    if (!names.length) {
-        return segments;
-    }
-
-    return {...segments, ...Object.fromEntries(names.map((name) => [name, FIRST_SEGMENT_VALUE]))};
-}
-
 function hasAnySegment(segments: DateSegments): boolean {
     return DATE_SEGMENT_NAMES.some((name) => !!segments[name]);
 }
@@ -450,7 +440,6 @@ function hasAnySegment(segments: DateSegments): boolean {
 export {
     DATE_SEGMENT_NAMES,
     clearSegmentsUpTo,
-    completeZeroSegments,
     EMPTY_SEGMENTS,
     getAdjacentSegmentName,
     getClipboardTextFromSegments,
