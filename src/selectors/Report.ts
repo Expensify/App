@@ -49,6 +49,10 @@ function getReportParentReportID(report: OnyxEntry<Report>) {
     return report?.parentReportID;
 }
 
+function getReportHasParentAccess(report: OnyxEntry<Report>) {
+    return report?.hasParentAccess;
+}
+
 /** Which report-type avatar wrapper the `ReportAvatar` dispatcher should render for this report. */
 function reportAvatarKindSelector(report: OnyxEntry<Report>): ValueOf<typeof CONST.REPORT_AVATAR_KIND> | undefined {
     if (!report) {
@@ -124,6 +128,25 @@ function reportAvatarFieldsSelector(report: OnyxEntry<Report>): ReportAvatarFiel
         chatReportID: report.chatReportID,
         parentReportID: report.parentReportID,
         parentReportActionID: report.parentReportActionID,
+    };
+}
+
+/** The fields a room's avatar resolves from. The parent links are left out on purpose: a room's workspace icon comes from the room alone. */
+type RoomAvatarFields = Pick<Report, 'chatType' | 'policyID' | 'policyName' | 'oldPolicyName' | 'policyAvatar' | 'reportName' | 'avatarUrl' | 'invoiceReceiver'>;
+
+function roomAvatarFieldsSelector(report: OnyxEntry<Report>): RoomAvatarFields | undefined {
+    if (!report) {
+        return undefined;
+    }
+    return {
+        chatType: report.chatType,
+        policyID: report.policyID,
+        policyName: report.policyName,
+        oldPolicyName: report.oldPolicyName,
+        policyAvatar: report.policyAvatar,
+        reportName: report.reportName,
+        avatarUrl: report.avatarUrl,
+        invoiceReceiver: report.invoiceReceiver,
     };
 }
 
@@ -400,6 +423,7 @@ export {
     groupChatAvatarReportSelector,
     getReportOwnerAccountID,
     getReportParentReportID,
+    getReportHasParentAccess,
     getReportPolicyID,
     policyIDsWithEmptyReportsSelector,
     canShowReportRecipientLocalTimeSelector,
@@ -407,6 +431,7 @@ export {
     reportAvatarFieldsSelector,
     reportAvatarKindSelector,
     reportPolicyFieldsSelector,
+    roomAvatarFieldsSelector,
     createMoveExpenseReportNVPSelector,
     createOutstandingReportsForPolicySelector,
     openExpenseReportIDsSelector,
@@ -416,4 +441,4 @@ export {
     reportsByIDsSelector,
 };
 
-export type {ReportAvatarFields, StableReport};
+export type {ReportAvatarFields, RoomAvatarFields, StableReport};

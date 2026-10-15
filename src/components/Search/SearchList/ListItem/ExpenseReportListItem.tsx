@@ -13,6 +13,7 @@ import type {ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
 
 import useConfirmModal from '@hooks/useConfirmModal';
+import useConfirmSubmitReportViolations from '@hooks/useConfirmSubmitReportViolations';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useHoldMenuModal from '@hooks/useHoldMenuModal';
@@ -222,6 +223,14 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
     const {shouldDisableSearchSubmitPress, consumeIgnoreNextSearchSubmitPress} = useSearchSubmitPopoverGuard();
     const {transactions: reportTransactions, violations: reportViolations} = useTransactionsAndViolationsForReport(reportItem.reportID);
     const liveReportTransactions = useMemo(() => Object.values(reportTransactions), [reportTransactions]);
+    const confirmSubmitReportViolations = useConfirmSubmitReportViolations({
+        reportID: reportItem.reportID,
+        report: reportForViolations,
+        policy: policyForViolations,
+        shouldShowMarkAsDoneCopy,
+        transactions: liveReportTransactions,
+        violationsCollection: reportViolations,
+    });
 
     // Recompute the violations badge from live data at the row, replacing the screen-level
     // violations merge that getSections previously did. Policy comes from the live `policyForViolations`
@@ -276,6 +285,7 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
             isDelegateAccessRestricted,
             onDelegateAccessRestricted: showDelegateNoAccessModal,
             personalPolicyID,
+            confirmSubmitReportViolations,
             onHoldMenuOpen: (holdItem, requestType, paymentType) => {
                 // Search rows render from a snapshot; the report may not exist in the main
                 // collection yet. Fall back to the snapshot so the modal can submit.
@@ -373,6 +383,7 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
         getPersonalDetailsByLogin,
         conciergeChat,
         shouldShowMarkAsDoneCopy,
+        confirmSubmitReportViolations,
     ]);
 
     const handleSelectionButtonPress = (shiftKey?: boolean) => {
@@ -423,7 +434,10 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
     const getDescription = useMemo(() => {
         if (reportItem?.isRejectedReport) {
             return (
-                <View style={[styles.flexRow, styles.alignItemsCenter, styles.mt2]}>
+                <View
+                    style={[styles.flexRow, styles.alignItemsCenter, styles.mt2, styles.userSelectNone]}
+                    dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
+                >
                     <Icon
                         src={expensifyIcons.DotIndicator}
                         fill={theme.danger}
@@ -439,7 +453,10 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
             return;
         }
         return (
-            <View style={[styles.flexRow, styles.alignItemsCenter, styles.mt2]}>
+            <View
+                style={[styles.flexRow, styles.alignItemsCenter, styles.mt2, styles.userSelectNone]}
+                dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
+            >
                 <Icon
                     src={expensifyIcons.DotIndicator}
                     fill={theme.danger}
@@ -462,6 +479,7 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
         styles.mr1,
         styles.textMicro,
         styles.mutedNormalTextLabel,
+        styles.userSelectNone,
         isLargeScreenWidth,
         expensifyIcons.DotIndicator,
         theme.danger,
@@ -481,6 +499,7 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
             accessibilityRole={canSelectMultiple ? CONST.ROLE.GROUP : undefined}
             accessibilityLabel={rowAccessibilityLabel}
             shouldUseOptionRole={false}
+            shouldAllowTextSelection
             pressableStyle={listItemPressableStyle}
             isFocused={isFocused}
             shouldShowTooltip={showTooltip}
@@ -511,6 +530,7 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
                         stateNum={reportItem.stateNum}
                         statusNum={reportItem.statusNum}
                         isSelected={isSelected}
+                        shouldAllowStatusTextSelection
                     />
                 )}
                 <AvatarTooltipsProvider isEnabled={showTooltip}>
