@@ -4507,9 +4507,12 @@ function getUpdatedCardFeedReimbursableMessage(translate: LocalizedTranslate, re
     const originalMessage = getOriginalMessage(reportAction);
     const feedName = originalMessage?.feedName;
     const newValue = formatFeedReimbursable(translate, originalMessage?.forceReimbursable);
-    const previousValue = formatFeedReimbursable(translate, originalMessage?.previousForceReimbursable) ?? '';
+    const rawPreviousValue = originalMessage?.previousForceReimbursable;
+    const previousValue = formatFeedReimbursable(translate, rawPreviousValue);
 
-    if (feedName && newValue && previousValue) {
+    // Auth always sends the previous rule (an unset rule is sent as force_no), so a missing previous value only omits the "previously" part,
+    // while an unrecognized one falls back to the server text instead of showing a wrong label
+    if (feedName && newValue && (!rawPreviousValue || previousValue)) {
         return translate('workspaceActions.updatedCardFeedReimbursable', feedName, newValue, previousValue);
     }
     return getReportActionText(reportAction);

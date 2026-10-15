@@ -5179,6 +5179,36 @@ describe('ReportActionsUtils', () => {
             const result = getUpdatedCardFeedReimbursableMessage(translateLocal, action);
             expect(result).toBe('changed card feed "Mastercard" reimbursable setting to "Always non-reimbursable" (previously "Non-reimbursable")');
         });
+
+        it('should show a localized message without the previous value when it is missing', () => {
+            const action = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CARD_FEED_REIMBURSABLE,
+                reportActionID: '1',
+                created: '',
+                originalMessage: {
+                    feedName: 'Visa Commercial',
+                    forceReimbursable: CONST.COMPANY_CARDS.FEED_REIMBURSABLE.DEFAULT_YES,
+                },
+            } as ReportAction;
+            const result = getUpdatedCardFeedReimbursableMessage(translateLocal, action);
+            expect(result).toBe('changed card feed "Visa Commercial" reimbursable setting to "Reimbursable"');
+        });
+
+        it('should fall back to the server text when a value is unrecognized', () => {
+            const action = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CARD_FEED_REIMBURSABLE,
+                reportActionID: '1',
+                created: '',
+                message: [{type: 'COMMENT', html: 'server text', text: 'server text'}],
+                originalMessage: {
+                    feedName: 'Visa Commercial',
+                    forceReimbursable: CONST.COMPANY_CARDS.FEED_REIMBURSABLE.FORCE_YES,
+                    previousForceReimbursable: 'unexpected_value',
+                },
+            } as unknown as ReportAction;
+            const result = getUpdatedCardFeedReimbursableMessage(translateLocal, action);
+            expect(result).toBe('server text');
+        });
     });
 
     describe('getCompanyAddressUpdateMessage', () => {
