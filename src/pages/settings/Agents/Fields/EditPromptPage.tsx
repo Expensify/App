@@ -123,6 +123,7 @@ function EditPromptPage({route}: EditPromptPageProps) {
                         }}
                     >
                         <InputWrapper
+                            key={shouldAutoGrowPromptInput ? 'autoGrow' : 'fixedHeight'}
                             InputComponent={TextInput}
                             inputID={INPUT_IDS.PROMPT}
                             label={translate('editAgentPage.instructions')}

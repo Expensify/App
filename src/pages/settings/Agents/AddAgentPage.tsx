@@ -255,6 +255,7 @@ function AddAgentPageContent({route, template}: AddAgentPageContentProps) {
                         }}
                     >
                         <InputWrapper
+                            key={shouldAutoGrowPromptInput ? 'autoGrow' : 'fixedHeight'}
                             InputComponent={TextInput}
                             inputID={INPUT_IDS.PROMPT}
                             label={translate('addAgentPage.instructions')}
