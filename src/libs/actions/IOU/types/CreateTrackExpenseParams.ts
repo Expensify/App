@@ -58,6 +58,9 @@ type CreateTrackExpenseParams = {
     writeBarrier?: WriteReadyBarrier;
     rules: OnyxCollection<OnyxTypes.Rule>;
     personalDetailsByLogins?: PersonalDetailsByLogin;
+
+    /** Current "Reuse route" list value, so the just used route can be saved locally */
+    reusableDistanceRoutes?: OnyxTypes.ReusableDistanceRoute[];
 };
 
 export type {CreateTrackExpenseParams, TrackExpenseAccountantParams};

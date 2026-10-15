@@ -3954,6 +3954,11 @@ ${amount} für ${merchant} – ${date}`,
                 `<strong>${delegate}</strong> ist kein Mitglied der unten aufgeführten Arbeitsbereiche. Admins der Arbeitsbereiche, die Sie nicht verwalten, werden gebeten, die Person hinzuzufügen. Möchten Sie die Person jetzt zu den Arbeitsbereichen einladen, in denen Sie Admin sind?`,
             youAreAMemberOf: 'Sie sind Mitglied dieser Arbeitsbereiche:',
             youAreAnAdminOf: 'Sie sind Admin dieser Arbeitsbereiche:',
+            chooseDelegate: 'Vertretung auswählen',
+            clearAfterRecommended: 'Löschen nach (empfohlen)',
+            willClearOn: (date: string) => `Die Urlaubsvertretung wird am ${date} entfernt`,
+            until: (date: string) => `Bis ${date}`,
+            removeDelegate: 'Urlaubsvertretung entfernen',
         },
     },
     stepCounter: (step: number, total?: number, text?: string) => {
@@ -4046,6 +4051,10 @@ ${amount} für ${merchant} – ${date}`,
         unlockAlreadyRequestedTitle: 'Anfrage bereits eingereicht',
         unlockAlreadyRequestedDescription: 'Ihre Anfrage zur Entsperrung dieses Bankkontos wurde bereits gesendet. Concierge meldet sich bei Ihnen, falls noch etwas benötigt wird.',
     },
+    listField: {
+        editItem: ({name}: {name: string}) => `${name} bearbeiten`,
+        removeItem: ({name}: {name: string}) => `${name} entfernen`,
+    },
     dynamicForm: {
         exampleHint: ({example}: {example: string}) => `Beispiel: ${example}`,
         fileCount: ({count}: {count: number}) => ({
@@ -4057,7 +4066,13 @@ ${amount} für ${merchant} – ${date}`,
             invalidFormat: ({example}: {example?: string}) => (example ? `Ungültiges Format. Beispiel: ${example}` : 'Ungültiges Format'),
             invalidOption: 'Wähle eine der verfügbaren Optionen',
             outOfRange: ({min, max}: {min: number; max: number}) => `Gib einen Wert zwischen ${min} und ${max} ein`,
+            tooFewItems: ({min}: {min: number}) => `Füge mindestens ${min} hinzu`,
+            tooManyItems: ({max}: {max: number}) => `Füge höchstens ${max} hinzu`,
+            itemError: ({item, error}: {item: string; error: string}) => `${item}: ${error}`,
         },
+        addItem: ({item}: {item: string}) => `${item} hinzufügen`,
+        removeItemTitle: ({item}: {item: string}) => `${item} entfernen?`,
+        removeItemPrompt: ({name}: {name: string}) => `Möchtest du ${name} wirklich entfernen?`,
     },
     addPersonalBankAccount: {
         swiftBicFormatError: 'Der SWIFT/BIC muss 8 oder 11 Zeichen lang sein, mit 6 Buchstaben gefolgt von 2 oder 5 Buchstaben oder Ziffern.',
@@ -4545,7 +4560,7 @@ ${amount} für ${merchant} – ${date}`,
         enterSignerInfo: 'Unterzeichnerinformationen eingeben',
         thisStep: 'Dieser Schritt wurde abgeschlossen',
         isConnecting: (bankAccountLastFour: string | undefined, currency: string | undefined) =>
-            `verknüpft ein ${currency}-Geschäftskonto mit der Endung ${bankAccountLastFour} mit Expensify, um Mitarbeitende in ${currency} zu bezahlen. Der nächste Schritt erfordert Unterzeichnungsinformationen von einer Führungsperson.`,
+            `hat ein ${currency}-Bankkonto mit der Endung ${bankAccountLastFour} hinzugefügt. Gib deine Unterzeichnungsinformationen als Führungsperson ein, damit dieses Bankkonto zur Bezahlung von Mitarbeitenden verwendet werden kann.`,
         error: {
             emailsMustBeDifferent: 'E-Mail-Adressen müssen unterschiedlich sein',
         },
@@ -5102,7 +5117,10 @@ ${amount} für ${merchant} – ${date}`,
             },
             requestEmptyList: {
                 title: 'Noch keine Pauschalbeträge',
-                subtitle: 'In diesem Workspace sind keine Pauschalen hinterlegt, bitten Sie Ihre Admin, welche hinzuzufügen.',
+                subtitle: (workspaceName?: string) =>
+                    workspaceName
+                        ? `${workspaceName} hat keine Pauschalspesensätze. Bitten Sie eine Adminperson, einige hinzuzufügen.`
+                        : 'Dieser Workspace hat keine Pauschalspesensätze. Bitten Sie eine Adminperson, einige hinzuzufügen.',
                 adminSubtitle: 'Fügen Sie Pauschalen hinzu, um Ihre Ausgaben zu organisieren.',
             },
             importPerDiemRates: 'Tagespauschalen importieren',
@@ -6652,6 +6670,8 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
             distanceRates: {
                 title: 'Kilometersätze',
                 subtitle: 'Sätze Tarife fest, aktualisiere sie und setze sie durch.',
+                commuterExclusionsOnTitle: 'Pendlerfahrten-Ausschlüsse sind aktiviert',
+                disableLockedByCommuterExclusionsPrompt: 'Um Entfernungsraten zu deaktivieren, stellen Sie zuerst „Arbeitswege ausschließen“ auf „Arbeitswege nicht ausschließen“.',
             },
             perDiem: {
                 title: 'Tagegeld',
@@ -7890,6 +7910,21 @@ Der Control-Tarif beginnt bei 9 $ pro aktivem Mitglied und Monat.`,
             addressContext: 'Für die Aktivierung von Expensify Travel ist eine Workspace-Adresse erforderlich. Bitte gib eine Adresse ein, die deinem Unternehmen zugeordnet ist.',
             policy: 'Spesenrichtlinie',
         },
+        officeLocations: {
+            title: 'Bürostandorte',
+            subtitle: 'Fügen Sie Bürostandorte hinzu, die Sie Mitgliedern für Dinge wie die Entfernungserfassung zuweisen können.',
+            addOfficeLocation: 'Bürostandort hinzufügen',
+            editOfficeLocation: 'Standort des Büros bearbeiten',
+            locationName: 'Standortname',
+            locationNameHint: 'Wählen Sie einen Standort-Spitznamen, wenn Sie mehrere Bürostandorte hinzufügen',
+            defaultName: ({officeNumber}: {officeNumber: number}) => `Bürostandort ${officeNumber}`,
+            setAsPrimary: 'Als primär festlegen',
+            primary: 'Primär',
+            deleteOfficeLocation: 'Bürostandort löschen?',
+            deleteOfficeLocationConfirmation: 'Möchten Sie diesen Bürostandort wirklich löschen? Mitglieder werden dem Hauptbüro neu zugewiesen.',
+            existingOfficeLocationError: 'Ein Bürostandort mit diesem Namen existiert bereits',
+            setCompanyAddressAsPrimaryConfirmation: 'Unternehmensadresse als Hauptbüro festlegen?',
+        },
         bankAccount: {
             continueWithSetup: 'Einrichtung fortsetzen',
             youAreAlmostDone:
@@ -9018,7 +9053,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                     toggleTitle: 'Büros',
                     allSelected: 'Alle Büros',
                 },
-                enableJobStagesOrTags: 'Aktivieren Sie Jobphasen oder Tags, um fortzufahren',
+                enableJobStagesOrTags: 'Wählen Sie mindestens eine Jobphase oder ein Tag aus, um fortzufahren',
             },
             subtitle: 'Verknüpfen Sie Recruiting-Tools und halten Sie Kandidatengenehmigungen synchron.',
             syncResults: {
@@ -9717,6 +9752,15 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
         },
         addedProhibitedExpense: ({prohibitedExpense}: {prohibitedExpense: string}) => `„${prohibitedExpense}“ zu verbotenen Ausgaben hinzugefügt`,
         removedProhibitedExpense: ({prohibitedExpense}: {prohibitedExpense: string}) => `„${prohibitedExpense}“ aus verbotenen Ausgaben entfernt`,
+        officeLocation: {
+            added: ({name, address}: {name: string; address: string}) => `hat den Bürostandort „${name}“ (${address}) hinzugefügt`,
+            renamed: ({oldName, newName}: {oldName: string; newName: string}) => `hat den Bürostandort „${oldName}“ in „${newName}“ umbenannt`,
+            changedAddress: ({name, newAddress, oldAddress}: {name: string; newAddress: string; oldAddress: string}) =>
+                `hat die Adresse des Bürostandorts „${name}“ in „${newAddress}“ geändert (zuvor „${oldAddress}“)`,
+            setAsPrimary: ({name}: {name: string}) => `Legen Sie den Bürositz „${name}“ als primär fest`,
+            setCompanyAddressAsPrimary: 'Firmenadresse als primär festlegen',
+            removed: ({name}: {name: string}) => `hat den Bürostandort „${name}“ entfernt`,
+        },
         workArrangement: {
             set: ({arrangement}: {arrangement: string}) => `Standard-Arbeitsmodell auf ${arrangement} festlegen`,
             changed: ({arrangement, previousArrangement}: {arrangement: string; previousArrangement: string}) =>
@@ -9994,6 +10038,8 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
         fallbackTitle: 'Support-Ticket',
         resolved: 'Dieses Support-Ticket ist gelöst.',
         surveyPrompt: 'Wie war Ihre Erfahrung mit dem Support?',
+        great: 'Großartig',
+        poor: 'Schlecht',
         reopenTicket: 'Ticket erneut öffnen',
     },
     statementPage: {
@@ -10216,6 +10262,11 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                 [CONST.SEARCH.ACTION_FILTERS.EXPORT]: 'Export',
             },
             filterType: {label: 'Filtertyp', has: {positive: 'hat', negative: 'hat nicht'}, is: {positive: 'ist', negative: 'ist nicht'}},
+            merchant: {
+                matchType: 'Übereinstimmungstyp',
+                contains: (merchant?: string) => (merchant ? `Enthält "${merchant}"` : 'Enthält'),
+                equalTo: (merchant?: string) => (merchant ? `Gleich "${merchant}"` : 'Gleich'),
+            },
             created: 'Erstellt',
             createdDate: 'Erstellungsdatum',
             transactionStatus: {
