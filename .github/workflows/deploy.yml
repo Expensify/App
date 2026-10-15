@@ -806,6 +806,27 @@ jobs:
       - name: Extract web build
         run: tar -xzf "${{ needs.webBuild.outputs.TAR_FILENAME }}"
 
+      # The Workers serve these to tabs still running this build after later deploys. Both Workers read the same bucket,
+      # so only one matrix leg uploads.
+      - name: Upload web build to the previous builds bucket
+        if: ${{ matrix.environment == 'staging' }}
+        continue-on-error: true
+        run: |
+          if [[ -z "$AWS_ACCESS_KEY_ID" ]]; then
+            echo "::warning::CLOUDFLARE_R2_WEB_ASSETS_ACCESS_KEY_ID is not set, so this build is not available to future deploys."
+            exit 0
+          fi
+          aws configure set default.s3.preferred_transfer_client classic
+          aws s3 sync dist s3://new-expensify-web-assets-staging/ \
+            --endpoint-url "https://$CLOUDFLARE_ACCOUNT_ID.r2.cloudflarestorage.com" \
+            --size-only --no-progress \
+            --exclude '*.br' --exclude '*.map'
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.CLOUDFLARE_R2_WEB_ASSETS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.CLOUDFLARE_R2_WEB_ASSETS_SECRET_ACCESS_KEY }}
+          AWS_DEFAULT_REGION: auto
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+
       - name: Download storybook docs artifact
         continue-on-error: true
         # v7
@@ -813,11 +834,6 @@ jobs:
         with:
           name: storybook-docs-artifact
           path: ./dist/docs
-
-      - name: Carry forward files from previous staging builds
-        run: ./web/cloudflare-worker/scripts/carryForwardStagingBuilds.sh 10
-        env:
-          GH_TOKEN: ${{ github.token }}
 
       - name: Install Cloudflare Worker dependencies
         working-directory: web/cloudflare-worker
