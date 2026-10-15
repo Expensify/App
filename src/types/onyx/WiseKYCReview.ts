@@ -20,7 +20,7 @@ type WiseKYCRequirement = {
     fields: DynamicFormField[];
 };
 
-/** A fresh link to Wise's embedded KYC page. Its fragment carries a token, so it is never stored or logged. */
+/** A fresh link to Wise's embedded KYC page. Its fragment carries a token, so the key is RAM only and never logged. */
 type WiseKYCReviewEmbeddedLink = {
     url?: string;
 
