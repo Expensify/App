@@ -1,3 +1,5 @@
+/* eslint-disable max-lines */
+
 import type {MultifactorAuthenticationPromptType} from '@components/MultifactorAuthentication/config/types';
 import type {SearchQueryString} from '@components/Search/types';
 
@@ -285,23 +287,23 @@ type SettingsNavigatorParamList = {
         subPage?: string;
     };
     [SCREENS.SETTINGS.BANK_ACCOUNT_PURPOSE]: undefined;
-    [SCREENS.SETTINGS.AGENTS.NEW]: {
+    [SCREENS.SETTINGS.AGENTS.DYNAMIC_NEW]: {
         policyID?: string;
     };
-    [SCREENS.SETTINGS.AGENTS.ADD]: {
+    [SCREENS.SETTINGS.AGENTS.DYNAMIC_ADD]: {
         policyID?: string;
     };
-    [SCREENS.SETTINGS.AGENTS.ADD_AVATAR]: undefined;
-    [SCREENS.SETTINGS.AGENTS.EDIT]: {
+    [SCREENS.SETTINGS.AGENTS.DYNAMIC_ADD_AVATAR]: undefined;
+    [SCREENS.SETTINGS.AGENTS.DYNAMIC_EDIT]: {
         accountID: number;
     };
-    [SCREENS.SETTINGS.AGENTS.EDIT_NAME]: {
+    [SCREENS.SETTINGS.AGENTS.DYNAMIC_EDIT_NAME]: {
         accountID: number;
     };
-    [SCREENS.SETTINGS.AGENTS.EDIT_PROMPT]: {
+    [SCREENS.SETTINGS.AGENTS.DYNAMIC_EDIT_PROMPT]: {
         accountID: number;
     };
-    [SCREENS.SETTINGS.AGENTS.EDIT_AVATAR]: {
+    [SCREENS.SETTINGS.AGENTS.DYNAMIC_EDIT_AVATAR]: {
         accountID: number;
     };
     [SCREENS.SETTINGS.RULES.ADD]: undefined;
@@ -353,6 +355,7 @@ type SettingsNavigatorParamList = {
     [SCREENS.SETTINGS.PROFILE.STATUS_CLEAR_AFTER_DATE]: undefined;
     [SCREENS.SETTINGS.PROFILE.STATUS_CLEAR_AFTER_TIME]: undefined;
     [SCREENS.SETTINGS.PROFILE.VACATION_DELEGATE]: undefined;
+    [SCREENS.SETTINGS.PROFILE.VACATION_DELEGATE_SELECT]: undefined;
     [SCREENS.SETTINGS.PROFILE.VACATION_DELEGATE_MISSING_WORKSPACES]: undefined;
     [SCREENS.WORKSPACE.CURRENCY]: {
         isForcedToChangeCurrency?: boolean;
@@ -369,6 +372,15 @@ type SettingsNavigatorParamList = {
         country?: Country | '';
     };
     [SCREENS.WORKSPACE.NAME]: undefined;
+    [SCREENS.WORKSPACE.OFFICE_LOCATION_ADD]: {
+        policyID: string;
+        country?: Country | '';
+    };
+    [SCREENS.WORKSPACE.OFFICE_LOCATION_EDIT]: {
+        policyID: string;
+        officeID: string;
+        country?: Country | '';
+    };
     [SCREENS.WORKSPACE.DESCRIPTION]: undefined;
     [SCREENS.WORKSPACE.CLIENT_ID]: undefined;
     [SCREENS.WORKSPACE.SHARE]: undefined;
@@ -2214,6 +2226,10 @@ type SettingsNavigatorParamList = {
         domainAccountID: number;
         accountID: number;
     };
+    [SCREENS.DOMAIN.VACATION_DELEGATE_SELECT]: {
+        domainAccountID: number;
+        accountID: number;
+    };
     [SCREENS.DOMAIN.MEMBER_FORCE_TWO_FACTOR_AUTH]: {
         domainAccountID: number;
         accountID: number;
@@ -3335,6 +3351,9 @@ type WorkspaceSplitNavigatorParamList = {
         policyID: string;
     };
     [SCREENS.WORKSPACE.MEMBERS]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.AGENTS]: {
         policyID: string;
     };
     [SCREENS.WORKSPACE.ROOMS]: {

@@ -466,6 +466,7 @@ function useSelectedTransactionsActions({
                               clearSelectedTransactions(true);
                           }
                         : () => beginExportWithTemplate(template.templateName, template.type, selectedTransactionIDs, template.name, template.policyID),
+                    shouldCallAfterModalHide: true,
                     addSeparatorBefore,
                 };
             };
@@ -530,8 +531,6 @@ function useSelectedTransactionsActions({
                             false,
                             isOnSearch,
                             selectedTransactionsList.length > 1 ? [policy, policy] : undefined,
-                            currentUserAccountID,
-                            personalDetails,
                         ),
                 });
             }
