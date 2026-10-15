@@ -187,6 +187,8 @@ function filterOutRangesWithCorrectValue(
     const datePresetList = Object.values(CONST.SEARCH.DATE_PRESETS) as string[];
     const hasList = Object.values(CONST.SEARCH.HAS_VALUES) as string[];
     const isList = Object.values(CONST.SEARCH.IS_VALUES) as string[];
+    const footerCountList = Object.values(CONST.SEARCH.FOOTER_COUNT) as string[];
+    const footerTotalList = Object.values(CONST.SEARCH.FOOTER_TOTAL) as string[];
 
     if (range.key.startsWith(CONST.SEARCH.REPORT_FIELD.GLOBAL_PREFIX)) {
         return range.value.length > 0;
@@ -212,7 +214,12 @@ function filterOutRangesWithCorrectValue(
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.CURRENCY:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.GROUP_CURRENCY:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.PURCHASE_CURRENCY:
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.FOOTER_CURRENCY:
             return currencyList.get().includes(range.value);
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.FOOTER_COUNT:
+            return footerCountList.includes(range.value);
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.FOOTER_TOTAL:
+            return footerTotalList.includes(range.value);
         case CONST.SEARCH.SYNTAX_ROOT_KEYS.TYPE:
             return typeList.includes(range.value);
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPENSE_TYPE:

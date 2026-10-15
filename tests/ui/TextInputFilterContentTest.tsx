@@ -215,7 +215,7 @@ describe('TextInputFilterContent', () => {
         expect(closeOverlay).not.toHaveBeenCalled();
     });
 
-    it.each([CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT, CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_ID])('keeps the %s chip input compact', (baseFilterKey) => {
+    it.each([CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD, CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_ID])('keeps the %s chip input compact', (baseFilterKey) => {
         // Given a non-prose filter opened through its chip.
         // When the editor renders its existing applied value.
         render(
