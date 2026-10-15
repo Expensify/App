@@ -123,7 +123,11 @@ function ActivatePhysicalCardPageBase({cardID = '', navigateBackTo, isFromDomain
             <ActivatePhysicalCardPersonalDetails
                 card={inactiveCard}
                 lastFourDigits={lastFourDigits}
-                onBackButtonPress={() => setShouldShowPersonalDetails(false)}
+                onBackButtonPress={() => {
+                    // The code input submits on its own when it mounts with all four digits
+                    setLastFourDigits('');
+                    setShouldShowPersonalDetails(false);
+                }}
             />
         );
     }
