@@ -20,7 +20,16 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useVerifyAccountAndResume from '@hooks/useVerifyAccountAndResume';
 
 import {deleteWorkspaceCompanyCardFeed, setAddNewCompanyCardStepAndData, setWorkspaceCompanyCardTransactionLiability} from '@libs/actions/CompanyCards';
-import {getCompanyCardFeed, getCompanyFeeds, getCustomOrFormattedFeedName, getDomainOrWorkspaceAccountID, getSelectedFeed, isCSVUploadFeed, isDirectFeed} from '@libs/CardUtils';
+import {
+    getCompanyCardFeed,
+    getCompanyFeeds,
+    getCustomOrFormattedFeedName,
+    getDomainOrWorkspaceAccountID,
+    getEffectiveFeedReimbursable,
+    getSelectedFeed,
+    isCSVUploadFeed,
+    isDirectFeed,
+} from '@libs/CardUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
@@ -84,13 +93,7 @@ function WorkspaceCompanyCardsSettingsPage({
         return translate(`workspace.companyCards.statementCloseDate.${selectedFeedData.statementPeriodEndDay}`);
     }, [translate, selectedFeedData?.statementPeriodEndDay]);
 
-    const storedReimbursable = selectedFeedData?.forceReimbursable;
-    let reimbursable = translate(`workspace.companyCards.reimbursable.${CONST.COMPANY_CARDS.FEED_REIMBURSABLE.FORCE_NO}`);
-    if (storedReimbursable === CONST.COMPANY_CARDS.FEED_REIMBURSABLE_LEGACY_NONE) {
-        reimbursable = translate(`workspace.companyCards.reimbursable.${CONST.COMPANY_CARDS.FEED_REIMBURSABLE.DEFAULT_NO}`);
-    } else if (storedReimbursable) {
-        reimbursable = translate(`workspace.companyCards.reimbursable.${storedReimbursable}`);
-    }
+    const reimbursable = translate(`workspace.companyCards.reimbursable.${getEffectiveFeedReimbursable(selectedFeedData?.forceReimbursable)}`);
 
     const navigateToChangeFeedName = () => {
         Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_SETTINGS_FEED_NAME.getRoute(policyID));

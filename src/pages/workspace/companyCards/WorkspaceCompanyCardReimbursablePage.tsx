@@ -13,7 +13,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useWorkspaceAccountID from '@hooks/useWorkspaceAccountID';
 
 import {clearErrorField, setFeedReimbursable} from '@libs/actions/CompanyCards';
-import {getCompanyCardFeed, getCompanyFeeds, getDomainOrWorkspaceAccountID, getSelectedFeed} from '@libs/CardUtils';
+import {getCompanyCardFeed, getCompanyFeeds, getDomainOrWorkspaceAccountID, getEffectiveFeedReimbursable, getSelectedFeed} from '@libs/CardUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
@@ -32,17 +32,6 @@ import React, {useState} from 'react';
 type WorkspaceCompanyCardReimbursablePageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.COMPANY_CARDS_SETTINGS_REIMBURSABLE>;
 
 type SelectableFeedReimbursable = Exclude<FeedReimbursable, typeof CONST.COMPANY_CARDS.FEED_REIMBURSABLE_LEGACY_NONE>;
-
-/** A missing value behaves as force_no and the legacy `none` value behaves as default_no */
-function getEffectiveFeedReimbursable(value: FeedReimbursable | undefined): SelectableFeedReimbursable {
-    if (!value) {
-        return CONST.COMPANY_CARDS.FEED_REIMBURSABLE.FORCE_NO;
-    }
-    if (value === CONST.COMPANY_CARDS.FEED_REIMBURSABLE_LEGACY_NONE) {
-        return CONST.COMPANY_CARDS.FEED_REIMBURSABLE.DEFAULT_NO;
-    }
-    return value;
-}
 
 function WorkspaceCompanyCardReimbursablePage({
     route: {

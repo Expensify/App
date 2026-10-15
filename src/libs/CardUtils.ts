@@ -38,6 +38,7 @@ import type {
     CompanyCardFeedWithDomainID,
     CompanyCardFeedWithNumber,
     CompanyFeeds,
+    FeedReimbursable,
     NonConnectableBankName,
 } from '@src/types/onyx/CardFeeds';
 import type {CardFeedErrors} from '@src/types/onyx/DerivedValues';
@@ -2562,7 +2563,24 @@ function resolveTransactionCardFields<T extends Transaction>(transactions: T[], 
     });
 }
 
+type SelectableFeedReimbursable = Exclude<FeedReimbursable, typeof CONST.COMPANY_CARDS.FEED_REIMBURSABLE_LEGACY_NONE>;
+
+/**
+ * Returns the reimbursable rule a company card feed effectively applies.
+ * A missing value behaves as force_no and the legacy `none` value behaves as default_no.
+ */
+function getEffectiveFeedReimbursable(value: FeedReimbursable | undefined): SelectableFeedReimbursable {
+    if (!value) {
+        return CONST.COMPANY_CARDS.FEED_REIMBURSABLE.FORCE_NO;
+    }
+    if (value === CONST.COMPANY_CARDS.FEED_REIMBURSABLE_LEGACY_NONE) {
+        return CONST.COMPANY_CARDS.FEED_REIMBURSABLE.DEFAULT_NO;
+    }
+    return value;
+}
+
 export {
+    getEffectiveFeedReimbursable,
     canResolveTransactionCard,
     getAssignedCardSortKey,
     getCardFeedBackgroundColor,

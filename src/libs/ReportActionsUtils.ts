@@ -26,6 +26,7 @@ import type {
     Transaction,
     VisibleReportActionsDerivedValue,
 } from '@src/types/onyx';
+import type {FeedReimbursable} from '@src/types/onyx/CardFeeds';
 import type {
     DecisionName,
     JoinWorkspaceResolution,
@@ -56,7 +57,7 @@ import Onyx from 'react-native-onyx';
 import type {MessageElementBase, MessageTextElement} from './MessageElement';
 import type {OptimisticIOUReportAction, PartialReportAction} from './ReportUtils';
 
-import {getBankName, isCardPendingActivate} from './CardUtils';
+import {getBankName, getEffectiveFeedReimbursable, isCardPendingActivate} from './CardUtils';
 import {getDecodedCategoryName} from './CategoryUtils';
 import {convertAmountToDisplayString, convertToBackendAmount, convertToShortDisplayString} from './CurrencyUtils';
 import DateUtils from './DateUtils';
@@ -4496,10 +4497,7 @@ function formatFeedReimbursable(translate: LocalizedTranslate, value?: string): 
     if (!value) {
         return undefined;
     }
-    if (value === CONST.COMPANY_CARDS.FEED_REIMBURSABLE_LEGACY_NONE) {
-        return translate(`workspace.companyCards.reimbursable.${CONST.COMPANY_CARDS.FEED_REIMBURSABLE.DEFAULT_NO}`);
-    }
-    return translate(`workspace.companyCards.reimbursable.${value}`);
+    return translate(`workspace.companyCards.reimbursable.${getEffectiveFeedReimbursable(value as FeedReimbursable)}`);
 }
 
 function getUpdatedCardFeedReimbursableMessage(translate: LocalizedTranslate, reportAction: OnyxEntry<ReportAction>): string {
