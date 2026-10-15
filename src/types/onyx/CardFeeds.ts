@@ -51,6 +51,9 @@ type StatementPeriodEnd = Exclude<ValueOf<typeof CONST.COMPANY_CARDS.STATEMENT_C
 /** Statement period end day */
 type StatementPeriodEndDay = number;
 
+/** Reimbursable setting of a card feed. `none` is a legacy value that behaves like `default_no` */
+type FeedReimbursable = ValueOf<typeof CONST.COMPANY_CARDS.FEED_REIMBURSABLE> | typeof CONST.COMPANY_CARDS.FEED_REIMBURSABLE_LEGACY_NONE;
+
 /** Card feed provider */
 type CardFeedProvider =
     | typeof CONST.COMPANY_CARD.FEED_BANK_NAME.MASTER_CARD
@@ -82,7 +85,7 @@ type CustomCardFeedData = OnyxCommon.OnyxValueWithOfflineFeedback<{
     asrEnabled?: boolean;
 
     /** Specifies if the expenses on this card should be force reimbursable */
-    forceReimbursable?: string;
+    forceReimbursable?: FeedReimbursable;
 
     /** Defines the type of liability for the card */
     liabilityType?: string;
@@ -133,7 +136,7 @@ type CustomCardFeedData = OnyxCommon.OnyxValueWithOfflineFeedback<{
     };
 
     /** Field-specific error messages */
-    errorFields?: OnyxCommon.ErrorFields<'statementPeriodEndDay'>;
+    errorFields?: OnyxCommon.ErrorFields<'statementPeriodEndDay' | 'forceReimbursable'>;
 
     errors?: OnyxCommon.Errors;
 }>;
@@ -146,6 +149,9 @@ type DirectCardFeedData = OnyxCommon.OnyxValueWithOfflineFeedback<{
 
     /** Defines the type of liability for the card */
     liabilityType?: string;
+
+    /** Specifies if the expenses on this card should be force reimbursable */
+    forceReimbursable?: FeedReimbursable;
 
     /** The id of the domain the feed relates to */
     domainID?: number;
@@ -161,7 +167,7 @@ type DirectCardFeedData = OnyxCommon.OnyxValueWithOfflineFeedback<{
     plaidAccessToken?: string;
 
     /** Field-specific error messages */
-    errorFields?: OnyxCommon.ErrorFields<'statementPeriodEndDay'>;
+    errorFields?: OnyxCommon.ErrorFields<'statementPeriodEndDay' | 'forceReimbursable'>;
 
     errors?: OnyxCommon.Errors;
 }>;
@@ -355,6 +361,7 @@ export type {
     FundID,
     StatementPeriodEnd,
     StatementPeriodEndDay,
+    FeedReimbursable,
     DomainSettings,
     CombinedCardFeed,
     CombinedCardFeeds,
