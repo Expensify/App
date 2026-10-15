@@ -22,6 +22,7 @@ type SearchRouterQueryLengthBucket = ValueOf<typeof CONST.TELEMETRY.SEARCH_ROUTE
 
 type SearchRouterQueryCommitAttributes = {
     localResultCount?: number;
+    areOptionsRebuilt?: boolean;
 };
 
 const SHORT_QUERY_MAX_LENGTH = 2;
@@ -102,6 +103,18 @@ function getAutocompleteKey(key: string | undefined): string {
     return key;
 }
 
+/**
+ * Returns when the query changed. The input event's timestamp is captured before the event waits for the JS thread, so it
+ * includes that wait, unlike `now`. It shares `performance.now()`'s clock, but RN falls back to `Date.now()` when the
+ * event has no timestamp, so a value in the future or older than the max age is not a usable `performance.now()` reading.
+ */
+function getSearchRouterQueryChangedAt(eventTimeStamp: number | undefined, now: number): number {
+    if (eventTimeStamp === undefined || !Number.isFinite(eventTimeStamp) || eventTimeStamp > now || now - eventTimeStamp > CONST.TELEMETRY.SEARCH_ROUTER_INPUT_EVENT_MAX_AGE_MS) {
+        return now;
+    }
+    return eventTimeStamp;
+}
+
 function startSearchRouterQuerySpan(debouncedQuery: string, changedAt?: number) {
     if (!debouncedQuery.trim()) {
         cancelSearchRouterQuerySpan(CONST.TELEMETRY.SEARCH_ROUTER_QUERY_CANCEL_REASON.CLEARED);
@@ -164,6 +177,9 @@ function markSearchRouterQueryCommitted(query: string, attributes?: SearchRouter
     if (attributes?.localResultCount !== undefined) {
         rootSpan?.setAttribute(CONST.TELEMETRY.ATTRIBUTE_LOCAL_RESULT_COUNT, attributes.localResultCount);
     }
+    if (attributes?.areOptionsRebuilt !== undefined) {
+        rootSpan?.setAttribute(CONST.TELEMETRY.ATTRIBUTE_OPTIONS_REBUILT, attributes.areOptionsRebuilt);
+    }
     if (activeQueryDebouncedAt !== undefined) {
         const renderDurationMs = Math.round(performance.now() - activeQueryDebouncedAt);
         rootSpan?.setAttribute(CONST.TELEMETRY.ATTRIBUTE_RENDER_DURATION_MS, renderDurationMs);
@@ -179,4 +195,5 @@ export {
     markSearchRouterQueryCommitted,
     cancelSearchRouterQuerySpan,
     getSearchRouterQueryLengthBucket,
+    getSearchRouterQueryChangedAt,
 };

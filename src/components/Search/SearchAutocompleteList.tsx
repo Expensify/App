@@ -419,6 +419,7 @@ function SearchAutocompleteList({
 
     const localResultCount = searchOptions.recentReports.length + searchOptions.personalDetails.length;
     const hasCommittedListRef = useRef(false);
+    const committedListOptionsRef = useRef(listOptions);
     // Commit the query span in a layout effect so the span's end time reflects when the list is laid out
     // for this query before paint. The list's first commit after the loading skeleton is cancelled so open latency
     // stays with ManualOpenSearchRouter. While the skeleton is shown, the list is not rendered, so the span keeps waiting for it.
@@ -430,12 +431,16 @@ function SearchAutocompleteList({
         }
         const isListMountCommit = !hasCommittedListRef.current;
         hasCommittedListRef.current = true;
+        // useFilteredOptions rebuilds listOptions on the first query after open or clear, and when an Onyx dependency changes.
+        // Later queries reuse it, so samples are only comparable when split by this.
+        const areOptionsRebuilt = committedListOptionsRef.current !== listOptions;
+        committedListOptionsRef.current = listOptions;
         if (isLoadingOptions) {
             cancelSearchRouterQuerySpan(CONST.TELEMETRY.SEARCH_ROUTER_QUERY_CANCEL_REASON.OPTIONS_NOT_READY);
             return;
         }
-        markSearchRouterQueryCommitted(autocompleteQueryValue, {localResultCount}, isListMountCommit);
-    }, [autocompleteQueryValue, localResultCount, isRecentSearchesDataLoaded, isLoadingOptions]);
+        markSearchRouterQueryCommitted(autocompleteQueryValue, {localResultCount, areOptionsRebuilt}, isListMountCommit);
+    }, [autocompleteQueryValue, localResultCount, listOptions, isRecentSearchesDataLoaded, isLoadingOptions]);
     const prevQueryRef = useRef(effectiveInputQueryValue);
     const innerListRef = useRef<SelectionListWithSectionsHandle | null>(null);
     const hasSetInitialFocusRef = useRef(false);

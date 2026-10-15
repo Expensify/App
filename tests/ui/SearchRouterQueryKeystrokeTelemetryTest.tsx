@@ -241,4 +241,21 @@ describe('SearchRouter query telemetry from the keystroke', () => {
         expect(startedSpans).toHaveLength(1);
         expect(startedSpans.at(0)?.startTime).toBeCloseTo(changedAt / 1000, 3);
     });
+
+    it('backdates the span start to the input event timestamp when the event waited for the JS thread', async () => {
+        // Given an open Search Router
+        await renderSearchRouter();
+
+        // When the input event happened 200ms before its handler ran, as when JS was busy rendering the previous query
+        const eventTimeStamp = performance.now() - 200;
+        const input = screen.getByTestId('search-autocomplete-text-input');
+        fireEvent(input, 'change', {timeStamp: eventTimeStamp});
+        fireEvent.changeText(input, 'ab');
+        advance(DEBOUNCE_TIME);
+
+        // Then the span starts at the event time, so the wait in the JS queue is part of the measurement
+        const startedSpans = getStartedQuerySpans();
+        expect(startedSpans).toHaveLength(1);
+        expect(startedSpans.at(0)?.startTime).toBeCloseTo(eventTimeStamp / 1000, 3);
+    });
 });

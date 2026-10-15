@@ -42,7 +42,7 @@ import type {OptionData} from '@libs/ReportUtils';
 import {getAutocompleteQueryWithComma, getTrimmedUserSearchQueryPreservingComma} from '@libs/SearchAutocompleteUtils';
 import {buildSearchQueryJSON, buildUserReadableQueryString, getQueryWithUpdatedValues, sanitizeSearchValue} from '@libs/SearchQueryUtils';
 import StringUtils from '@libs/StringUtils';
-import {beginSearchRouterQuerySession, endSearchRouterQuerySession, startSearchRouterQuerySpan} from '@libs/telemetry/searchRouterQuerySpans';
+import {beginSearchRouterQuerySession, endSearchRouterQuerySession, getSearchRouterQueryChangedAt, startSearchRouterQuerySpan} from '@libs/telemetry/searchRouterQuerySpans';
 
 import Navigation from '@navigation/Navigation';
 
@@ -388,7 +388,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
     }, [textInputValue]);
 
     const onSearchQueryChange = useCallback(
-        (userQuery: string, autoScrollToRight = false) => {
+        (userQuery: string, autoScrollToRight = false, inputEventTimeStamp?: number) => {
             if (autoScrollToRight) {
                 shouldScrollRef.current = true;
             }
@@ -398,7 +398,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
             // A same-value update does not restart the debounce timer, so it must not move the span start either.
             if (updatedUserQuery !== lastAutocompleteQueryRef.current) {
                 lastAutocompleteQueryRef.current = updatedUserQuery;
-                queryChangedAtRef.current = performance.now();
+                queryChangedAtRef.current = getSearchRouterQueryChangedAt(inputEventTimeStamp, performance.now());
             }
             setAutocompleteQueryValue(updatedUserQuery);
 

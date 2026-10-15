@@ -3,6 +3,7 @@ import {
     beginSearchRouterQuerySession,
     cancelSearchRouterQuerySpan,
     endSearchRouterQuerySession,
+    getSearchRouterQueryChangedAt,
     getSearchRouterQueryLengthBucket,
     markSearchRouterQueryCommitted,
     startSearchRouterQuerySpan,
@@ -80,6 +81,38 @@ describe('searchRouterQuerySpans', () => {
         jest.useRealTimers();
     });
 
+    it('uses a valid input event timestamp as the query change time', () => {
+        // Given an event timestamp recently before now, on the same clock as `performance.now()`
+        // When the change time is resolved
+        // Then the event timestamp wins, so the time the event waited for the JS thread is included
+        expect(getSearchRouterQueryChangedAt(900, 1000)).toBe(900);
+    });
+
+    it('falls back to now when the input event timestamp is missing', () => {
+        // Given an input change that carries no timestamp
+        // When the change time is resolved
+        // Then it falls back to the current time because no event timestamp was provided
+        expect(getSearchRouterQueryChangedAt(undefined, 1000)).toBe(1000);
+        expect(getSearchRouterQueryChangedAt(Number.NaN, 1000)).toBe(1000);
+    });
+
+    it('falls back to now when the input event timestamp is an epoch value', () => {
+        // Given RN's `Date.now()` fallback for events without a timestamp, which is far ahead of `performance.now()`
+        // When the change time is resolved
+        // Then it falls back to the current time because epoch timestamps cannot be compared with performance.now()
+        expect(getSearchRouterQueryChangedAt(Date.now(), 1000)).toBe(1000);
+    });
+
+    it('falls back to now when the input event timestamp is too old', () => {
+        // Given a timestamp older than the max age, which is not this edit's event
+        const now = 10_000;
+        const tooOld = now - CONST.TELEMETRY.SEARCH_ROUTER_INPUT_EVENT_MAX_AGE_MS - 1;
+        // When the change time is resolved
+        // Then it falls back to the current time because stale event timestamps do not reflect this edit, while a timestamp at the max age boundary is accepted
+        expect(getSearchRouterQueryChangedAt(tooOld, now)).toBe(now);
+        expect(getSearchRouterQueryChangedAt(tooOld + 1, now)).toBe(tooOld + 1);
+    });
+
     it('buckets the free-text length in size order', () => {
         // Given lengths on both sides of every bucket border
         // When they are bucketed
@@ -124,6 +157,17 @@ describe('searchRouterQuerySpans', () => {
         const attributes = getRootAttributes();
         expect(attributes?.[CONST.TELEMETRY.ATTRIBUTE_LOCAL_RESULT_COUNT]).toBe(7);
         expect(attributes?.[CONST.TELEMETRY.ATTRIBUTE_QUERY_ORDINAL]).toBe(1);
+    });
+
+    it('records whether the options were rebuilt as the options_rebuilt attribute', () => {
+        // Given an active span for "abc"
+        startSearchRouterQuerySpan('abc');
+
+        // When that query commits after the option list was rebuilt
+        markSearchRouterQueryCommitted('abc', {areOptionsRebuilt: true});
+
+        // Then the span ends with options_rebuilt set so samples can be split by it
+        expect(getRootAttributes()?.[CONST.TELEMETRY.ATTRIBUTE_OPTIONS_REBUILT]).toBe(true);
     });
 
     it('ignores a commit for a different query', () => {

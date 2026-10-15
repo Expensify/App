@@ -65,10 +65,13 @@ jest.mock('@hooks/useResponsiveLayout', () => ({
     default: jest.fn(() => ({shouldUseNarrowLayout: true, isSmallScreenWidth: true})),
 }));
 
+// Mirrors the real hook, which keeps the same option list until a dependency such as isSearching changes.
+const mockOptionLists = {idle: {reports: [], personalDetails: []}, searching: {reports: [], personalDetails: []}};
+
 jest.mock('@hooks/useFilteredOptions', () => ({
     __esModule: true,
-    default: jest.fn(() => ({
-        options: {reports: [], personalDetails: []},
+    default: jest.fn((config: {isSearching?: boolean}) => ({
+        options: config.isSearching ? mockOptionLists.searching : mockOptionLists.idle,
         isLoading: false,
         loadMore: jest.fn(),
         loadAll: jest.fn(),
@@ -182,6 +185,24 @@ describe('SearchAutocompleteList query telemetry', () => {
         const attributes = mockEnded.find((span) => span.op === ROOT)?.attributes;
         expect(attributes?.[CONST.TELEMETRY.ATTRIBUTE_CANCELED]).toBeUndefined();
         expect(attributes?.[CONST.TELEMETRY.ATTRIBUTE_LOCAL_RESULT_COUNT]).toBe(0);
+    });
+
+    it('records options_rebuilt true for the first query after open and false for a following one', async () => {
+        // Given a mounted list that has finished its first layout
+        const {rerender} = render(renderList(''));
+        await waitForBatchedUpdatesWithAct();
+
+        // When the first query commits, then a second query commits
+        startSearchRouterQuerySpan('abc');
+        rerender(renderList('abc'));
+        await waitForBatchedUpdatesWithAct();
+        startSearchRouterQuerySpan('abcd');
+        rerender(renderList('abcd'));
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the first query rebuilt the option list because the cache is skipped once searching, and the second reused it
+        const spans = mockEnded.filter((span) => span.op === ROOT);
+        expect(spans.map((span) => span.attributes[CONST.TELEMETRY.ATTRIBUTE_OPTIONS_REBUILT])).toEqual([true, false]);
     });
 
     it('ends the span with the result count when the query commits after the list mounted but before onLayout fires', async () => {
