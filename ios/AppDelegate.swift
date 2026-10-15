@@ -106,17 +106,8 @@ class AppDelegate: ExpoAppDelegate, UNUserNotificationCenterDelegate {
   }
 
   // Cover the UI before the OS captures the app-switcher snapshot, so sensitive data never ends up on disk.
-  override func applicationWillResignActive(_ application: UIApplication) {
-    super.applicationWillResignActive(application)
-    showPrivacyOverlay()
-  }
-
-  override func applicationDidBecomeActive(_ application: UIApplication) {
-    hidePrivacyOverlay()
-    super.applicationDidBecomeActive(application)
-  }
-
-  private func showPrivacyOverlay() {
+  // Called by `SceneDelegate`, UIKit doesn't send the app-level active/resign callbacks under the scene lifecycle.
+  func showPrivacyOverlay() {
     guard privacyOverlay == nil, let window else {
       return
     }
@@ -139,7 +130,7 @@ class AppDelegate: ExpoAppDelegate, UNUserNotificationCenterDelegate {
     privacyOverlay = overlay
   }
 
-  private func hidePrivacyOverlay() {
+  func hidePrivacyOverlay() {
     privacyOverlay?.removeFromSuperview()
     privacyOverlay = nil
     restoreResponderBeforePrivacyOverlay()
