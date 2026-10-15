@@ -1,6 +1,6 @@
-import Navigation from '@libs/Navigation/Navigation';
+import useEnvironment from '@hooks/useEnvironment';
 
-import ROUTES from '@src/ROUTES';
+import connectToZohoBooksOAuth from '@pages/workspace/accounting/zohoBooks/connectToZohoBooksOAuth';
 
 import {useEffect} from 'react';
 
@@ -9,9 +9,11 @@ type ConnectToZohoBooksFlowProps = {
 };
 
 function ConnectToZohoBooksFlow({policyID}: ConnectToZohoBooksFlowProps) {
+    const {environmentURL} = useEnvironment();
+
     useEffect(() => {
-        Navigation.navigate(ROUTES.POLICY_ACCOUNTING_ZOHO_BOOKS_SETUP.getRoute(policyID));
-        // This needs to run once as we will navigate away
+        connectToZohoBooksOAuth(policyID, environmentURL);
+        // This needs to run once as it starts the OAuth flow
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 

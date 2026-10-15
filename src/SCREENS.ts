@@ -603,7 +603,6 @@ const SCREENS = {
             QUICKBOOKS_DESKTOP_CUSTOMERS_DISPLAYED_AS: 'Policy_Accounting_Quickbooks_Desktop_Import_Customers_Displayed_As',
             QUICKBOOKS_DESKTOP_ITEMS: 'Policy_Accounting_Quickbooks_Desktop_Import_Items',
             XERO_SETUP: 'Policy_Accounting_Xero_Setup',
-            ZOHO_BOOKS_SETUP: 'Policy_Accounting_Zoho_Books_Setup',
             ZOHO_BOOKS_OAUTH: 'Policy_Accounting_Zoho_Books_OAuth',
             XERO_IMPORT: 'Policy_Accounting_Xero_Import',
             CLAIM_OFFER: 'Policy_Accounting_Claim_Offer',

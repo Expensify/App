@@ -9151,12 +9151,6 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
                 },
             },
         },
-        zohoBooks: {
-            zohoBooksSetup: 'Configurazione di Zoho Books',
-            connectTitle: 'Connetti Zoho Books',
-            connectDescription: 'Accedi a Zoho Books per connettere questo spazio di lavoro.',
-            connect: 'Connetti',
-        },
         businessCentral: {
             businessCentralSetup: 'Configurazione Dynamics 365 Business Central',
             prerequisitesTitle: 'Prima di connetterti...',

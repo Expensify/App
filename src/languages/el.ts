@@ -9370,12 +9370,6 @@ ${reportName}`,
                 },
             },
         },
-        zohoBooks: {
-            zohoBooksSetup: 'Ρύθμιση Zoho Books',
-            connectTitle: 'Σύνδεση Zoho Books',
-            connectDescription: 'Συνδεθείτε στο Zoho Books για να συνδέσετε αυτόν τον χώρο εργασίας.',
-            connect: 'Σύνδεση',
-        },
         businessCentral: {
             businessCentralSetup: 'Ρύθμιση Dynamics 365 Business Central',
             prerequisitesTitle: 'Πριν συνδεθείτε...',

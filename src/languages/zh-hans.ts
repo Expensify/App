@@ -8785,12 +8785,6 @@ ${reportName}`,
                 },
             },
         },
-        zohoBooks: {
-            zohoBooksSetup: 'Zoho Books 设置',
-            connectTitle: '连接 Zoho Books',
-            connectDescription: '登录 Zoho Books 以连接此工作区。',
-            connect: '连接',
-        },
         businessCentral: {
             businessCentralSetup: 'Dynamics 365 Business Central 设置',
             prerequisitesTitle: '在你连接之前…',

@@ -9125,12 +9125,6 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
                 },
             },
         },
-        zohoBooks: {
-            zohoBooksSetup: 'Zoho Books-configuratie',
-            connectTitle: 'Zoho Books verbinden',
-            connectDescription: 'Meld je aan bij Zoho Books om deze werkruimte te verbinden.',
-            connect: 'Verbinden',
-        },
         businessCentral: {
             businessCentralSetup: 'Dynamics 365 Business Central-configuratie',
             prerequisitesTitle: 'Voordat je verbinding maakt...',

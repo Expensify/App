@@ -9208,12 +9208,6 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                 },
             },
         },
-        zohoBooks: {
-            zohoBooksSetup: 'Zoho Books-Einrichtung',
-            connectTitle: 'Zoho Books verbinden',
-            connectDescription: 'Melden Sie sich bei Zoho Books an, um diesen Workspace zu verbinden.',
-            connect: 'Verbinden',
-        },
         businessCentral: {
             businessCentralSetup: 'Dynamics 365 Business Central-Einrichtung',
             prerequisitesTitle: 'Bevor Sie eine Verbindung herstellen …',

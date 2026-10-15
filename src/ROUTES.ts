@@ -4625,10 +4625,6 @@ const ROUTES = {
         route: 'workspaces/:policyID/accounting/xero/setup',
         getRoute: (policyID: string) => `workspaces/${policyID}/accounting/xero/setup` as const,
     },
-    POLICY_ACCOUNTING_ZOHO_BOOKS_SETUP: {
-        route: 'workspaces/:policyID/accounting/zoho-books/setup',
-        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/zoho-books/setup` as const,
-    },
     POLICY_ACCOUNTING_ZOHO_BOOKS_OAUTH: {
         route: 'workspaces/:policyID/accounting/zoho-books/oauth',
         getRoute: (policyID: string) => `workspaces/${policyID}/accounting/zoho-books/oauth` as const,

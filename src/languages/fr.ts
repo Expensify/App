@@ -9231,12 +9231,6 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                 },
             },
         },
-        zohoBooks: {
-            zohoBooksSetup: 'Configuration de Zoho Books',
-            connectTitle: 'Connecter Zoho Books',
-            connectDescription: 'Connectez-vous à Zoho Books pour connecter cet espace de travail.',
-            connect: 'Connecter',
-        },
         businessCentral: {
             businessCentralSetup: 'Configuration de Dynamics 365 Business Central',
             prerequisitesTitle: 'Avant de vous connecter...',

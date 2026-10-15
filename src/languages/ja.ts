@@ -9026,12 +9026,6 @@ ${reportName}`,
                 },
             },
         },
-        zohoBooks: {
-            zohoBooksSetup: 'Zoho Books のセットアップ',
-            connectTitle: 'Zoho Books に接続',
-            connectDescription: 'Zoho Books にサインインして、このワークスペースを接続します。',
-            connect: '接続',
-        },
         businessCentral: {
             businessCentralSetup: 'Dynamics 365 Business Central のセットアップ',
             prerequisitesTitle: '接続する前に…',

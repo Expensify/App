@@ -9026,12 +9026,6 @@ ${reportName}`,
                 },
             },
         },
-        zohoBooks: {
-            zohoBooksSetup: 'Configuración de Zoho Books',
-            connectTitle: 'Conectar Zoho Books',
-            connectDescription: 'Inicia sesión en Zoho Books para conectar este espacio de trabajo.',
-            connect: 'Conectar',
-        },
         businessCentral: {
             businessCentralSetup: 'Configuración de Dynamics 365 Business Central',
             prerequisitesTitle: 'Antes de conectar...',
