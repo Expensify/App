@@ -59,6 +59,15 @@ describe('DateInputMaskUtils', () => {
             expect(typeDigitIntoSegments(segments('2026', '0', ''), 'month', '0')).toEqual({segments: segments('2026', '0', ''), nextSegmentName: undefined});
         });
 
+        it('settles a zero that starts a filled segment over on the first month or day', () => {
+            expect(typeDigitIntoSegments(segments('2026', '09', '05'), 'day', '0')).toEqual({segments: segments('2026', '09', '01'), nextSegmentName: undefined});
+            expect(typeDigitIntoSegments(segments('2026', '12', ''), 'month', '0')).toEqual({segments: segments('2026', '01', ''), nextSegmentName: undefined});
+        });
+
+        it('lets the next digit replace a zero that settled that way, so 0 then 5 still reads as the fifth', () => {
+            expect(typeDigitIntoSegments(segments('2026', '09', '01'), 'day', '5')).toEqual({segments: segments('2026', '09', '05'), nextSegmentName: undefined});
+        });
+
         it('keeps a day the month that was typed does not have, rather than reading it as another day', () => {
             // Given February, which has no 31st, so the entry is left to be reported instead of answered with the 3rd
             expect(typeDigitIntoSegments(segments('2026', '02', '3'), 'day', '1')).toEqual({segments: segments('2026', '02', '31'), nextSegmentName: undefined});
@@ -224,12 +233,6 @@ describe('DateInputMaskUtils', () => {
         it('zero pads a half typed month or day, which fill from the right', () => {
             expect(getSegmentDisplay(segments('2026', '1', ''), 'month')).toBe('01');
             expect(getSegmentDisplay(segments('2026', '09', '2'), 'day')).toBe('02');
-        });
-
-        it('shows a month or day of zeroes as the first one, since no date has a zero', () => {
-            expect(getSegmentDisplay(segments('2026', '0', ''), 'month')).toBe('01');
-            expect(getSegmentDisplay(segments('2026', '09', '0'), 'day')).toBe('01');
-            expect(getSegmentDisplay(segments('2026', '00', ''), 'month')).toBe('01');
         });
 
         it('shows a finished month or day as typed', () => {
@@ -428,9 +431,9 @@ describe('DateInputMaskUtils', () => {
             expect(getISODateFromSegments(EMPTY)).toBeUndefined();
         });
 
-        it('reads a segment of zeroes as the first month or the first day, which is what it shows', () => {
-            expect(getISODateFromSegments(segments('2026', '0', '18'))).toBe('2026-01-18');
-            expect(getISODateFromSegments(segments('2026', '09', '0'))).toBe('2026-09-01');
+        it('refuses a segment that cannot be a month or a day, which only a zero can be', () => {
+            expect(getISODateFromSegments(segments('2026', '0', '18'))).toBeUndefined();
+            expect(getISODateFromSegments(segments('2026', '09', '0'))).toBeUndefined();
         });
 
         it('refuses a day the typed month does not have', () => {
