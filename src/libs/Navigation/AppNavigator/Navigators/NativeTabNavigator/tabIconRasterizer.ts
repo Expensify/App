@@ -17,6 +17,8 @@ type TabIconLayout = {
     glyphSize: number;
     /** Side of the account avatar's box. */
     avatarSize: number;
+    /** Whether the label is drawn under the glyph or beside it, as UIKit lays out a tab in landscape. */
+    direction: 'stacked' | 'inline';
 };
 
 type TabIconLabel = {
@@ -133,18 +135,59 @@ function drawStatusDot(canvas: SkCanvas, right: number, top: number, scale: numb
     paint.dispose();
 }
 
+type TabIconFrame = {
+    canvasWidth: number;
+    canvasHeight: number;
+    contentLeft: number;
+    contentTop: number;
+    labelLeft: number;
+    labelTop: number;
+};
+
+/**
+ * With a label, every tab gives its glyph or avatar a box as big as the avatar, so glyphs and the avatar share a centre
+ * and every label starts at the same place: under that box, or beside it in landscape.
+ */
+function getTabIconFrame(layout: TabIconLayout, contentSize: number, labelGap: number, labelWidth: number, labelHeight: number, hasLabel: boolean, scale: number): TabIconFrame {
+    const boxSize = hasLabel ? Math.max(layout.glyphSize, layout.avatarSize) * scale : contentSize;
+
+    if (layout.direction === 'inline') {
+        const canvasHeight = Math.ceil(Math.max(boxSize, labelHeight));
+        return {
+            canvasWidth: Math.ceil(boxSize + (hasLabel ? labelGap + labelWidth : 0)),
+            canvasHeight,
+            contentLeft: (boxSize - contentSize) / 2,
+            contentTop: (canvasHeight - contentSize) / 2,
+            labelLeft: boxSize + labelGap,
+            labelTop: (canvasHeight - labelHeight) / 2,
+        };
+    }
+
+    const canvasWidth = Math.ceil(Math.max(contentSize, labelWidth));
+    const labelTop = (boxSize + layout.glyphSize * scale) / 2 + labelGap;
+    return {
+        canvasWidth,
+        canvasHeight: Math.ceil(hasLabel ? labelTop + labelHeight : boxSize),
+        contentLeft: (canvasWidth - contentSize) / 2,
+        contentTop: (boxSize - contentSize) / 2,
+        labelLeft: (canvasWidth - labelWidth) / 2,
+        labelTop,
+    };
+}
+
 function drawTabIcon(layout: TabIconLayout, {name, color, avatar, dotColor, label}: TabIconParams): NativeBottomTabIcon | undefined {
     const scale = PixelRatio.get();
     const contentSize = (avatar ? layout.avatarSize : layout.glyphSize) * scale;
-    // With a label, every tab shares one row as tall as the avatar, so glyphs and the avatar share a centre and
-    // every label lands at the same height.
-    const rowSize = label ? Math.max(layout.glyphSize, layout.avatarSize) * scale : contentSize;
-    const labelTop = (rowSize + layout.glyphSize * scale) / 2 + (label?.gap ?? 0) * scale;
     const paragraph = label ? makeLabelParagraph(label, scale) : undefined;
-    const labelWidth = paragraph?.getLongestLine() ?? 0;
-    const labelHeight = paragraph?.getHeight() ?? 0;
-    const canvasWidth = Math.ceil(Math.max(contentSize, labelWidth));
-    const canvasHeight = Math.ceil(label ? labelTop + labelHeight : rowSize);
+    const {canvasWidth, canvasHeight, contentLeft, contentTop, labelLeft, labelTop} = getTabIconFrame(
+        layout,
+        contentSize,
+        (label?.gap ?? 0) * scale,
+        paragraph?.getLongestLine() ?? 0,
+        paragraph?.getHeight() ?? 0,
+        !!label,
+        scale,
+    );
 
     const surface = Skia.Surface.Make(canvasWidth, canvasHeight);
     if (!surface) {
@@ -153,8 +196,6 @@ function drawTabIcon(layout: TabIconLayout, {name, color, avatar, dotColor, labe
     }
 
     const canvas = surface.getCanvas();
-    const contentLeft = (canvasWidth - contentSize) / 2;
-    const contentTop = (rowSize - contentSize) / 2;
     if (avatar) {
         drawCircularImage(canvas, avatar.image, contentLeft, contentTop, contentSize);
     } else {
@@ -164,7 +205,7 @@ function drawTabIcon(layout: TabIconLayout, {name, color, avatar, dotColor, labe
         drawStatusDot(canvas, contentLeft + contentSize, contentTop, scale, dotColor);
     }
     if (paragraph) {
-        paragraph.paint(canvas, (canvasWidth - labelWidth) / 2, labelTop);
+        paragraph.paint(canvas, labelLeft, labelTop);
         paragraph.dispose();
     }
 
@@ -187,8 +228,8 @@ function drawTabIcon(layout: TabIconLayout, {name, color, avatar, dotColor, labe
  */
 function getTabIcon(layout: TabIconLayout, params: TabIconParams): NativeBottomTabIcon | undefined {
     const {name, color, avatar, dotColor, label} = params;
-    // The layout and the label's font are fixed per platform, so they are left out of the key.
-    const key = [name, avatar?.uri ?? color, dotColor, label?.text, label?.color, label?.isBold, label?.maxWidth].join('|');
+    // The label's font is fixed per platform, so it is left out of the key.
+    const key = [layout.direction, name, avatar?.uri ?? color, dotColor, label?.text, label?.color, label?.isBold, label?.maxWidth].join('|');
     if (iconCache.has(key)) {
         return iconCache.get(key);
     }

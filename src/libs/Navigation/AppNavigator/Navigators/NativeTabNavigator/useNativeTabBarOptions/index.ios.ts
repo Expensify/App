@@ -1,3 +1,4 @@
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 
@@ -22,6 +23,14 @@ const TAB_ICON_LAYOUT: TabIconLayout = {
     glyphSize: variables.iconNativeTabBarIOS,
     // A circle reads smaller than a glyph of the same box, so the avatar is drawn a little larger than the glyphs.
     avatarSize: variables.avatarNativeTabBarIOS,
+    direction: 'stacked',
+};
+
+/** A phone in landscape gives the bar too little height for a stacked tab, so UIKit lays its own tabs out this way. */
+const LANDSCAPE_TAB_ICON_LAYOUT: TabIconLayout = {
+    glyphSize: variables.iconNativeTabBarIOSLandscape,
+    avatarSize: variables.avatarNativeTabBarIOSLandscape,
+    direction: 'inline',
 };
 
 /**
@@ -33,9 +42,13 @@ function useNativeTabBarOptions({shouldShowNativeTabBar, isAccountAvatarShown, d
     const theme = useTheme();
     const avatar = useTabAvatarImage(isAccountAvatarShown);
     const {windowWidth} = useWindowDimensions();
+    const {isInLandscapeMode} = useResponsiveLayout();
+    const tabIconLayout = isInLandscapeMode ? LANDSCAPE_TAB_ICON_LAYOUT : TAB_ICON_LAYOUT;
     // One of the tabs never has a bar item, so the bar splits its width between the others.
     const barItemCount = Object.keys(tabLabels).length - 1;
-    const labelMaxWidth = (windowWidth - 2 * variables.iosNativeTabBarHorizontalInset) / barItemCount - variables.iosNativeTabBarLabelInset;
+    const itemWidth = (windowWidth - 2 * variables.iosNativeTabBarHorizontalInset) / barItemCount - variables.iosNativeTabBarLabelInset;
+    // In landscape the label shares the item's width with the glyph's box beside it.
+    const labelMaxWidth = isInLandscapeMode ? itemWidth - tabIconLayout.avatarSize - variables.nativeTabIconLabelGap : itemWidth;
 
     const screenOptions: NativeBottomTabNavigationOptions = {
         // The labels are drawn into the icons.
@@ -51,7 +64,7 @@ function useNativeTabBarOptions({shouldShowNativeTabBar, isAccountAvatarShown, d
     };
 
     const getTabOptions = (name: NativeTabName): NativeBottomTabNavigationOptions => ({
-        tabBarIcon: getTabBarIcon(TAB_ICON_LAYOUT, (isSelected) => ({
+        tabBarIcon: getTabBarIcon(tabIconLayout, (isSelected) => ({
             name,
             color: isSelected ? theme.iconMenu : theme.icon,
             avatar: name === NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR ? avatar : undefined,

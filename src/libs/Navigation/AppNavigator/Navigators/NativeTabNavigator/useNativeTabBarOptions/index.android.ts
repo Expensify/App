@@ -24,6 +24,7 @@ const getFloatingButtonsBottom = (bottomInset: number) => variables.androidNativ
 const TAB_ICON_LAYOUT: TabIconLayout = {
     glyphSize: variables.iconBottomBar,
     avatarSize: variables.iconBottomBar,
+    direction: 'stacked',
 };
 
 function useNativeTabBarOptions({shouldShowNativeTabBar, isAccountAvatarShown, dotColors, tabLabels}: NativeTabBarOptionsParams) {

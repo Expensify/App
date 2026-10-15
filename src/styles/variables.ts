@@ -118,11 +118,15 @@ export default {
     iconNativeTabBarIOS: 22,
     /** Account avatar size in the iOS native tab bar. */
     avatarNativeTabBarIOS: 26,
+    /** Glyph size in the iOS native tab bar in landscape, where UIKit lays the label beside a smaller icon. */
+    iconNativeTabBarIOSLandscape: 18,
+    /** Account avatar size in the iOS native tab bar in landscape. */
+    avatarNativeTabBarIOSLandscape: 21,
     /** Radius of the status dot drawn into a native tab bar icon. */
     nativeTabIconDotRadius: 4,
     /** Width of the ring cut out of a native tab bar icon around its status dot, as the JS tab bar's dot border does. */
     nativeTabIconDotCutout: 2,
-    /** Gap between the glyph and the label drawn under it in an iOS native tab bar icon. */
+    /** Gap between the glyph and the label drawn under it, or beside it in landscape, in an iOS native tab bar icon. */
     nativeTabIconLabelGap: 6,
     /** Space between the screen edge and the first tab of the iOS 26 floating tab bar. */
     iosNativeTabBarHorizontalInset: 25,
