@@ -2285,7 +2285,8 @@ const staticStyles = (theme: ThemeColors) =>
         // right border reads as a divider and the two look like one segmented field.
         reportFieldDeleteButton: {
             width: variables.componentSizeLarge,
-            height: variables.componentSizeLarge,
+            // Matches the input beside it, whose height follows the device font scale
+            height: variables.inputHeight,
             alignItems: 'center',
             justifyContent: 'center',
             backgroundColor: theme.appBG,
