@@ -254,9 +254,18 @@ function MerchantRulePageBase({policyID, ruleID, initialCategoryName, initialCat
         return policyTags.length > 0;
     };
 
+    // `hasCategories` falls back to the category the rule sets, which says nothing about what it matches on, so the
+    // condition row asks separately. A category the rule already matches on keeps the row even once the workspace has
+    // none left to pick, otherwise the condition would be invisible and still saved.
+    const hasCategoriesToMatch = () => {
+        if (!policy?.areCategoriesEnabled) {
+            return false;
+        }
+        return !!form?.categoriesToMatch?.length || hasEnabledOptions(policyCategories ?? {});
+    };
+
     // Turning tags on creates a tag list whether or not it holds anything, so the condition row needs a tag to
-    // actually match on. A tag the rule already matches on keeps the row, the way `hasCategories` keeps it for a
-    // category the rule already sets.
+    // actually match on. A tag the rule already matches on keeps the row, the same way.
     const hasTagsToMatch = () => {
         if (!policy?.areTagsEnabled) {
             return false;
@@ -427,7 +436,7 @@ function MerchantRulePageBase({policyID, ruleID, initialCategoryName, initialCat
                         ),
                     icon: icons.Basket,
                 },
-                hasCategories()
+                hasCategoriesToMatch()
                     ? {
                           key: 'categoriesToMatch',
                           description: translate('common.category'),
