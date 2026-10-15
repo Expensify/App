@@ -484,6 +484,8 @@ export default {
     searchListContentMarginTop: 120,
     searchListContentWithFiltersMarginTop: 164,
     searchTopBarZIndex: 9,
+    // Above the search page header (zIndex 10), whose top bar floats over the list and reaches the footer when the screen is short.
+    searchFooterZIndex: 11,
 
     searchAutocompleteInputSkeletonHeight: 8,
     searchAutocompleteInputSkeletonWidth: 145,

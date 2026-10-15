@@ -7077,6 +7077,7 @@ const dynamicStyles = (theme: ThemeColors) =>
                 right: 0,
                 bottom: footerHeight,
                 left: 0,
+                zIndex: variables.searchFooterZIndex,
                 backgroundColor: theme.appBG,
             }) satisfies ViewStyle,
 
@@ -7722,6 +7723,10 @@ const plainStyles = (theme: ThemeColors) =>
         },
         searchTopBarZIndexStyle: {
             zIndex: variables.searchTopBarZIndex,
+        },
+
+        searchFooterZIndexStyle: {
+            zIndex: variables.searchFooterZIndex,
         },
 
         getWidgetContainerTitleStyle: (color: string) =>

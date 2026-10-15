@@ -410,7 +410,10 @@ function SearchPageNarrow({
                                 </>
                             )}
                         </View>
-                        <View onLayout={(event) => setFooterHeight(event.nativeEvent.layout.height)}>
+                        <View
+                            style={styles.searchFooterZIndexStyle}
+                            onLayout={(event) => setFooterHeight(event.nativeEvent.layout.height)}
+                        >
                             <SearchSelectionFooter
                                 searchResults={searchResults}
                                 style={styles.tabRootFooter(tabBarCoveredHeight)}
