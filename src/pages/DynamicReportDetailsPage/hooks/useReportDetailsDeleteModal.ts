@@ -79,8 +79,8 @@ function useReportDetailsDeleteModal(reportID: string, caseID: CaseID, parentRep
                 return;
             }
 
-            // If the deleted expense is opened from the super wide rhp, go back there.
-            if (!isParentReportDeleted && previousRoute?.name === SCREENS.RIGHT_MODAL.SEARCH_REPORT && previousRouteReportID === reportID) {
+            // If the deleted expense is opened from the super wide rhp, go back there, unless going back would show the deleted report.
+            if (!shouldCloseRHPAfterReportDeletion && previousRoute?.name === SCREENS.RIGHT_MODAL.SEARCH_REPORT && previousRouteReportID === reportID) {
                 if (isSuperWideRHPDisplayed) {
                     const distanceToPop = rhpRoutes.length - 1 - superWideRHPIndex;
                     navigationRef.dispatch({...StackActions.pop(distanceToPop), target: rhp?.state?.key});

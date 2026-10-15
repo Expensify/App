@@ -217,6 +217,21 @@ describe('useReportDetailsDeleteModal', () => {
         expect(Navigation.dismissModal).not.toHaveBeenCalled();
     });
 
+    it('should close the RHP without navigating away when deleting the only expense from a Search report outside the super wide RHP', async () => {
+        // Given the default expense view, where the expense was opened from Search without a super wide RHP below it
+        setRHPRoutes([{name: SCREENS.RIGHT_MODAL.SEARCH_REPORT, params: {reportID: REPORT_ID}}, {name: SCREENS.RIGHT_MODAL.REPORT_DETAILS}]);
+        jest.mocked(getNavigationUrlOnMoneyRequestDelete).mockReturnValue(BACK_URL);
+        const requestData = buildRequestData({iouReport: createMock<Report>({reportID: '10'}), iouReportTransactions: [createMock<Transaction>({transactionID: TRANSACTION_ID})]});
+
+        // When the delete is confirmed
+        await confirmDelete(requestData, jest.fn());
+
+        // Then the RHP closes back to Search, because closing it doesn't reveal the deleted report, so the user isn't sent to the chat
+        expect(Navigation.dismissModal).toHaveBeenCalledTimes(1);
+        expect(navigateBackOnDeleteTransaction).not.toHaveBeenCalled();
+        expect(setDeleteTransactionNavigateBackUrl).not.toHaveBeenCalled();
+    });
+
     it('should navigate to the track expense URL when the deleted expense is a tracked expense', async () => {
         // Given a tracked expense whose delete leads back to a known report
         jest.mocked(getNavigationUrlAfterTrackExpenseDelete).mockReturnValue(BACK_URL);
