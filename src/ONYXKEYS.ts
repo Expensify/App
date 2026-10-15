@@ -1419,6 +1419,8 @@ const ONYXKEYS = {
         NEW_RULE_PROMPT_FORM_DRAFT: 'newRulePromptFormDraft',
         EDIT_AGENT_RULE_FORM: 'editAgentRuleForm',
         EDIT_AGENT_RULE_FORM_DRAFT: 'editAgentRuleFormDraft',
+        WORKSPACE_OFFICE_LOCATION_FORM: 'workspaceOfficeLocationForm',
+        WORKSPACE_OFFICE_LOCATION_FORM_DRAFT: 'workspaceOfficeLocationFormDraft',
         RILLET_CREDENTIALS_FORM: 'rilletCredentialsForm',
         RILLET_CREDENTIALS_FORM_DRAFT: 'rilletCredentialsFormDraft',
         DUALENTRY_CREDENTIALS_FORM: 'dualEntryCredentialsForm',
@@ -1584,6 +1586,7 @@ type OnyxFormValuesMapping = {
     [ONYXKEYS.FORMS.ADD_AGENT_RULE_FORM]: FormTypes.AddAgentRuleForm;
     [ONYXKEYS.FORMS.NEW_RULE_PROMPT_FORM]: FormTypes.NewRulePromptForm;
     [ONYXKEYS.FORMS.EDIT_AGENT_RULE_FORM]: FormTypes.EditAgentRuleForm;
+    [ONYXKEYS.FORMS.WORKSPACE_OFFICE_LOCATION_FORM]: FormTypes.WorkspaceOfficeLocationForm;
     [ONYXKEYS.FORMS.RILLET_CREDENTIALS_FORM]: FormTypes.RilletCredentialsForm;
     [ONYXKEYS.FORMS.DUALENTRY_CREDENTIALS_FORM]: FormTypes.DualEntryCredentialsForm;
     [ONYXKEYS.FORMS.CAMPFIRE_CREDENTIALS_FORM]: FormTypes.CampfireCredentialsForm;

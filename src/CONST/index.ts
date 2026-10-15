@@ -1931,6 +1931,9 @@ const CONST = {
                     ADD_AGENT_RULE: 'POLICYCHANGELOG_ADD_AGENT_RULE',
                     UPDATE_AGENT_RULE: 'POLICYCHANGELOG_UPDATE_AGENT_RULE',
                     DELETE_AGENT_RULE: 'POLICYCHANGELOG_DELETE_AGENT_RULE',
+                    ADD_OFFICE_LOCATION: 'POLICYCHANGELOG_ADD_OFFICE_LOCATION',
+                    UPDATE_OFFICE_LOCATION: 'POLICYCHANGELOG_UPDATE_OFFICE_LOCATION',
+                    DELETE_OFFICE_LOCATION: 'POLICYCHANGELOG_DELETE_OFFICE_LOCATION',
                     ADD_RULE: 'POLICYCHANGELOG_ADD_RULE',
                     UPDATE_RULE: 'POLICYCHANGELOG_UPDATE_RULE',
                     REMOVE_RULE: 'POLICYCHANGELOG_REMOVE_RULE',
@@ -4959,6 +4962,11 @@ const CONST = {
             FIXED_DISTANCE: 'fixedDistance',
             DISABLED: 'disabled',
         },
+        OFFICE_LOCATION_FIELD: {
+            NAME: 'name',
+            ADDRESS: 'address',
+            IS_DEFAULT: 'isDefault',
+        },
         WORK_ARRANGEMENT: {
             OFFICE_BASED: 'officeBased',
             NO_REGULAR_WORKPLACE: 'noRegularWorkplace',
@@ -6786,6 +6794,9 @@ const CONST = {
     // that should be removed from the copied contents in the getHTMLOfSelection() method
     SELECTION_SCRAPER_HIDDEN_ELEMENT: 'selection-scrapper-hidden-element',
     INNER_BOX_SHADOW_ELEMENT: 'inner-box-shadow-element',
+    COPYABLE_TEXT_ELEMENT: 'copyable-text',
+    COPYABLE_ROW_ELEMENT: 'copyable-row',
+    COPYABLE_ROW_CONTINUATION_ELEMENT: 'copyable-row-continuation',
     MODERATION: {
         MODERATOR_DECISION_PENDING: 'pending',
         MODERATOR_DECISION_PENDING_HIDE: 'pendingHide',
@@ -9555,11 +9566,14 @@ const CONST = {
             /** Narrowest drag width. Low enough to hide most content, but wide enough to keep the column's edge reachable. */
             MIN_WIDTH: 48,
 
-            /** Width of the invisible drag strip centred on a column's edge. */
-            HANDLE_HIT_WIDTH: 12,
-
-            /** Width of the line shown while a column's edge is dragged. */
+            /** Width of the line shown while a column's edge is dragged, and of the grip shown while its heading is hovered. */
             INDICATOR_WIDTH: 2,
+
+            /** Share of the heading's height the grip spans, centred vertically. */
+            GRIP_HEIGHT_RATIO: 0.8,
+
+            /** How long, in ms, the grip takes to stretch into the line once its edge is pressed. */
+            INDICATOR_MORPH_DURATION: 150,
         },
     },
 
@@ -9900,6 +9914,7 @@ const CONST = {
             HOURS_FIELD: 'RequestConfirmationList-HoursField',
             TIME_RATE_FIELD: 'RequestConfirmationList-TimeRateField',
             CATEGORY_FIELD: 'RequestConfirmationList-CategoryField',
+            ADD_CATEGORY_BUTTON: 'RequestConfirmationList-AddCategoryButton',
             DATE_FIELD: 'RequestConfirmationList-DateField',
             TAG_FIELD: 'RequestConfirmationList-TagField',
             TAX_RATE_FIELD: 'RequestConfirmationList-TaxRateField',
@@ -9977,6 +9992,9 @@ const CONST = {
             WIDGET_ITEM: 'HomePage-WidgetItem',
             GETTING_STARTED_ROW: 'HomePage-GettingStartedRow',
             GETTING_STARTED_FOOTER_HELP: 'HomePage-GettingStartedFooterHelp',
+        },
+        CATEGORY_PICKER_MODAL: {
+            BACK_BUTTON: 'CategoryPickerModal-BackButton',
         },
         CALENDAR_PICKER: {
             YEAR_PICKER: 'CalendarPicker-YearPicker',
@@ -10148,6 +10166,10 @@ const CONST = {
                 DESCRIPTION: 'WorkspaceOverview-Description',
                 CURRENCY: 'WorkspaceOverview-Currency',
                 ADDRESS: 'WorkspaceOverview-Address',
+                OFFICE_LOCATION: 'WorkspaceOverview-OfficeLocation',
+                COMPANY_ADDRESS_OFFICE_LOCATION: 'WorkspaceOverview-CompanyAddressOfficeLocation',
+                ADD_OFFICE_LOCATION: 'WorkspaceOverview-AddOfficeLocation',
+                DELETE_OFFICE_LOCATION: 'WorkspaceOverview-DeleteOfficeLocation',
                 PLAN_TYPE: 'WorkspaceOverview-PlanType',
                 SHARE: 'WorkspaceOverview-Share',
                 CUSTOM_RULES: 'WorkspaceOverview-CustomRules',

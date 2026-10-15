@@ -5062,7 +5062,10 @@ ${amount} para ${merchant} - ${date}`,
             },
             requestEmptyList: {
                 title: 'Ainda não há diárias',
-                subtitle: 'Este espaço de trabalho não tem nenhuma diária definida, peça para o seu administrador adicionar algumas.',
+                subtitle: (workspaceName?: string) =>
+                    workspaceName
+                        ? `${workspaceName} não tem nenhuma taxa de diária. Peça para um administrador adicionar algumas.`
+                        : 'Este espaço de trabalho não tem nenhuma taxa de diária. Peça para um administrador adicionar algumas.',
                 adminSubtitle: 'Adicione diárias para organizar seus gastos.',
             },
             importPerDiemRates: 'Importar tarifas de diária',
@@ -6594,6 +6597,8 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
             distanceRates: {
                 title: 'Taxas de distância',
                 subtitle: 'Adicione, atualize e aplique tarifas.',
+                commuterExclusionsOnTitle: 'Exclusões de deslocamento estão ativadas',
+                disableLockedByCommuterExclusionsPrompt: 'Para desativar as tarifas de distância, primeiro defina Excluir deslocamentos como “Não excluir deslocamentos”.',
             },
             perDiem: {
                 title: 'Diária',
@@ -7829,6 +7834,21 @@ O plano Control começa em US$ 9 por membro ativo por mês.`,
             avatarUploadFailureMessage: 'Ocorreu um erro ao enviar o avatar. Tente novamente.',
             addressContext: 'É necessário um Endereço do Espaço de Trabalho para ativar o Expensify Travel. Insira um endereço associado à sua empresa.',
             policy: 'Política de despesas',
+        },
+        officeLocations: {
+            title: 'Locais do escritório',
+            subtitle: 'Adicione locais de escritório para atribuir aos membros, por exemplo, para rastreamento de distância.',
+            addOfficeLocation: 'Adicionar local do escritório',
+            editOfficeLocation: 'Editar localização do escritório',
+            locationName: 'Nome do local',
+            locationNameHint: 'Escolha um apelido para o local se você estiver adicionando vários escritórios',
+            defaultName: ({officeNumber}: {officeNumber: number}) => `Local do escritório ${officeNumber}`,
+            setAsPrimary: 'Definir como principal',
+            primary: 'Principal',
+            deleteOfficeLocation: 'Excluir local do escritório?',
+            deleteOfficeLocationConfirmation: 'Você realmente quer excluir este escritório? Os membros serão realocados para o escritório principal.',
+            existingOfficeLocationError: 'Já existe um local de escritório com esse nome',
+            setCompanyAddressAsPrimaryConfirmation: 'Definir o endereço da empresa como escritório principal?',
         },
         bankAccount: {
             continueWithSetup: 'Continuar configuração',
@@ -9633,6 +9653,15 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
         },
         addedProhibitedExpense: ({prohibitedExpense}: {prohibitedExpense: string}) => `adicionou "${prohibitedExpense}" às despesas proibidas`,
         removedProhibitedExpense: ({prohibitedExpense}: {prohibitedExpense: string}) => `removeu "${prohibitedExpense}" das despesas proibidas`,
+        officeLocation: {
+            added: ({name, address}: {name: string; address: string}) => `adicionou a localização do escritório "${name}" (${address})`,
+            renamed: ({oldName, newName}: {oldName: string; newName: string}) => `renomeou o local do escritório de "${oldName}" para "${newName}"`,
+            changedAddress: ({name, newAddress, oldAddress}: {name: string; newAddress: string; oldAddress: string}) =>
+                `alterou o endereço da localização do escritório "${name}" para "${newAddress}" (anteriormente "${oldAddress}")`,
+            setAsPrimary: ({name}: {name: string}) => `definir o local de escritório "${name}" como principal`,
+            setCompanyAddressAsPrimary: 'definir o endereço da empresa como principal',
+            removed: ({name}: {name: string}) => `removeu o local do escritório "${name}"`,
+        },
         workArrangement: {
             set: ({arrangement}: {arrangement: string}) => `definir o arranjo de trabalho padrão como ${arrangement}`,
             changed: ({arrangement, previousArrangement}: {arrangement: string; previousArrangement: string}) =>
@@ -9911,6 +9940,8 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
         fallbackTitle: 'Chamado de suporte',
         resolved: 'Este chamado de suporte foi resolvido.',
         surveyPrompt: 'Como foi sua experiência com o suporte?',
+        great: 'Ótima',
+        poor: 'Ruim',
         reopenTicket: 'Reabrir chamado',
     },
     statementPage: {
@@ -10132,6 +10163,11 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
                 [CONST.SEARCH.ACTION_FILTERS.EXPORT]: 'Exportar',
             },
             filterType: {label: 'Tipo de filtro', has: {positive: 'tem', negative: 'não tem'}, is: {positive: 'é', negative: 'não é'}},
+            merchant: {
+                matchType: 'Tipo de correspondência',
+                contains: (merchant?: string) => (merchant ? `Contém "${merchant}"` : 'Contém'),
+                equalTo: (merchant?: string) => (merchant ? `Igual a "${merchant}"` : 'Igual a'),
+            },
             created: 'Criado',
             createdDate: 'Data de criação',
             transactionStatus: {
