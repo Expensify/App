@@ -35,6 +35,7 @@ jest.mock('@react-navigation/native', () => {
     };
 });
 
+jest.mock('@hooks/useBeforeRemove', () => jest.fn());
 jest.mock('@hooks/useCardFeedErrors', () => () => ({shouldShowRbrForWorkspaceAccountID: {}}));
 jest.mock('@hooks/useCurrencyList', () => ({useCurrencyListActions: () => ({convertToDisplayString: jest.fn()})}));
 jest.mock('@hooks/useGetReceiptPartnersIntegrationData', () => () => ({shouldShowEnterCredentialsError: false}));

@@ -185,7 +185,6 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
                 onScroll={onScroll}
                 scrollEventThrottle={CONST.TIMING.MIN_SMOOTH_SCROLL_EVENT_THROTTLE}
                 contentContainerStyle={[styles.w100, floatingTabBarPaddingStyle]}
-                showsVerticalScrollIndicator={false}
             >
                 {shouldScrollMainHeader && topBar}
                 {headerContent}

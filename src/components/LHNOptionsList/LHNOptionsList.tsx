@@ -192,7 +192,6 @@ function LHNOptionsList({
                     keyExtractor={keyExtractor}
                     renderItem={renderItem}
                     extraData={extraData}
-                    showsVerticalScrollIndicator={false}
                     onLayout={onLayout}
                     onScroll={onScroll}
                     initialScrollIndex={initialScrollIndex}

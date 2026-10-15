@@ -10,7 +10,7 @@ import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWorkspaceAccountID from '@hooks/useWorkspaceAccountID';
 
-import {updateNetSuiteAllowForeignCurrency, updateNetSuiteExportToNextOpenPeriod} from '@libs/actions/connections/NetSuiteCommands';
+import {updateNetSuiteAllowForeignCurrency, updateNetSuiteExportToNextOpenPeriod, updateNetSuiteSplitExportsByPostingPeriod} from '@libs/actions/connections/NetSuiteCommands';
 import {getCardSettings} from '@libs/CardUtils';
 import {getLatestErrorField} from '@libs/ErrorUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
@@ -208,6 +208,24 @@ function NetSuiteExportConfigurationPage({policy}: WithPolicyConnectionsProps) {
             onToggle: () => (!policyID ? null : updateNetSuiteExportToNextOpenPeriod(policyID, !config?.exportToNextOpenPeriod, config?.exportToNextOpenPeriod ?? false)),
             pendingAction: settingsPendingAction([CONST.NETSUITE_CONFIG.EXPORT_TO_NEXT_OPEN_PERIOD], config?.pendingFields),
             errors: getLatestErrorField(config, CONST.NETSUITE_CONFIG.EXPORT_TO_NEXT_OPEN_PERIOD),
+            // Split exports need the next-open-period fallback for closed periods, so this stays locked while split is on
+            disabled: !!config?.splitExportsByPostingPeriod,
+            showLockIcon: !!config?.splitExportsByPostingPeriod,
+            subtitle: config?.splitExportsByPostingPeriod ? translate('workspace.netsuite.exportToNextOpenPeriodLockedSubtitle') : undefined,
+        },
+        {
+            type: 'toggle',
+            title: translate('workspace.netsuite.splitExportsByPostingPeriod'),
+            isActive: !!config?.splitExportsByPostingPeriod,
+            switchAccessibilityLabel: translate('workspace.netsuite.splitExportsByPostingPeriod'),
+            subtitle: !config?.exportToNextOpenPeriod && !config?.splitExportsByPostingPeriod ? translate('workspace.netsuite.splitExportsByPostingPeriodSubtitle') : undefined,
+            onCloseError: !policyID ? undefined : () => clearNetSuiteErrorField(policyID, CONST.NETSUITE_CONFIG.SPLIT_EXPORTS_BY_POSTING_PERIOD),
+            onToggle: () => (!policyID ? null : updateNetSuiteSplitExportsByPostingPeriod(policyID, !config?.splitExportsByPostingPeriod, config?.splitExportsByPostingPeriod ?? false)),
+            pendingAction: settingsPendingAction([CONST.NETSUITE_CONFIG.SPLIT_EXPORTS_BY_POSTING_PERIOD], config?.pendingFields),
+            errors: getLatestErrorField(config, CONST.NETSUITE_CONFIG.SPLIT_EXPORTS_BY_POSTING_PERIOD),
+            // Splitting moves expenses to earlier dates which can land in closed periods, so it needs the next-open-period fallback. An active split stays editable so a bad config state can always be undone.
+            disabled: !config?.exportToNextOpenPeriod && !config?.splitExportsByPostingPeriod,
+            showLockIcon: !config?.exportToNextOpenPeriod && !config?.splitExportsByPostingPeriod,
         },
     ];
 

@@ -11,10 +11,12 @@ import useDocumentTitle from '@hooks/useDocumentTitle';
 import useFloatingNavigationTabBarPaddingStyle from '@hooks/useFloatingNavigationTabBarPaddingStyle';
 import {useAppLoadSkeletonVisibility} from '@hooks/useInFlightRequests';
 import useIsMobileWebLandscape from '@hooks/useIsMobileWebLandscape';
+import useLayoutSpacing from '@hooks/useLayoutSpacing';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useScrollEventEmitter from '@hooks/useScrollEventEmitter';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import openHomePage from '@libs/actions/HomePage';
@@ -30,6 +32,7 @@ import {useFocusEffect} from '@react-navigation/native';
 import {useRef, useState} from 'react';
 import {View} from 'react-native';
 
+import EarlyRenewalOfferSection from './EarlyRenewalOfferSection';
 import ForYouSection from './ForYouSection';
 import FreeTrialSection from './FreeTrialSection';
 import GettingStartedSection from './GettingStartedSection';
@@ -49,7 +52,9 @@ function HomePage() {
     const shouldScrollMainHeader = useIsMobileWebLandscape();
     const styles = useThemeStyles();
     const tabBarBottomContentStyle = useTabBarBottomContentStyle();
+    const {pageGutter} = useLayoutSpacing();
     const {translate} = useLocalize();
+    const triggerScrollEvent = useScrollEventEmitter();
     useDocumentTitle(translate('common.home'));
     const {isOffline} = useNetwork({onReconnect: openHomePage});
     const [isLoadingApp = true] = useOnyx(ONYXKEYS.IS_LOADING_APP);
@@ -82,7 +87,8 @@ function HomePage() {
     // than replacing the whole layout, which would unmount the Concierge card and interrupt anyone typing in it.
     const homeLayout = shouldUseNarrowLayout ? (
         <>
-            {/* Occupies a slot whether or not it renders, so the card below keeps its index across the swap. */}
+            {/* These occupy slots whether or not they render, so the card below keeps its index across the swap. */}
+            {shouldShowHomeSkeleton ? null : <EarlyRenewalOfferSection />}
             {shouldShowHomeSkeleton ? null : <FreeTrialSection />}
             {forYouSection}
             {shouldShowHomeSkeleton ? (
@@ -124,6 +130,7 @@ function HomePage() {
                     <HomePageSkeletonRowCards />
                 ) : (
                     <>
+                        <EarlyRenewalOfferSection />
                         <FreeTrialSection />
                         <YourSpendSection />
                         <RecentlyAddedSection />
@@ -162,7 +169,10 @@ function HomePage() {
                     {!shouldScrollMainHeader && topBar}
                     <ScrollView
                         style={styles.homePageScrollView}
-                        contentContainerStyle={[shouldScrollMainHeader ? styles.homePageScrollAwayHeaderContentContainer : styles.homePageContentContainer, floatingTabBarPaddingStyle]}
+                        onScroll={triggerScrollEvent}
+                        // When the TopBar scrolls away as part of the content, the gutter moves onto the widget block
+                        // instead, because the TopBar carries its own margins and would otherwise be inset twice.
+                        contentContainerStyle={[styles.homePageContentContainer, !shouldScrollMainHeader && pageGutter, floatingTabBarPaddingStyle]}
                         addBottomSafeAreaPadding
                         keyboardShouldPersistTaps="handled"
                     >
@@ -172,7 +182,7 @@ function HomePage() {
                                 <QuickCreationActionsBar />
                             </View>
                         )}
-                        <View style={[styles.homePageMainLayout(shouldUseNarrowLayout), shouldScrollMainHeader && styles.ph5]}>{homeLayout}</View>
+                        <View style={[styles.homePageMainLayout(shouldUseNarrowLayout), shouldScrollMainHeader && pageGutter]}>{homeLayout}</View>
                     </ScrollView>
                     <PortalHost name="suggestions" />
                 </ScreenWrapper>

@@ -1,0 +1,114 @@
+---
+title: Export Reports to Campfire
+description: Learn how to export one or more reports to Campfire, mark reports as exported, and fix Campfire export errors.
+keywords: [New Expensify, export to Campfire, Campfire export, bulk export to Campfire, mark as exported, Campfire export failed, Campfire vendor not found, export again, workspace admin, preferred exporter]
+internalScope: Audience is workspace admins on a workspace connected to Campfire. Covers exporting a single report or multiple reports to Campfire, marking reports as exported, re-exporting, and fixing export errors. Does not cover connecting Campfire, configuring export settings, or exporting reports to CSV.
+order: 3
+---
+
+# Export Reports to Campfire
+
+Export approved reports from Expensify to Campfire, one at a time or in bulk. If you entered a report in Campfire yourself, you can mark it as exported instead.
+
+If **Auto-sync** is on, Expensify exports reports automatically based on your **Export method**. Use the steps below to export a report manually, retry a failed export, or export several reports at once.
+
+---
+
+## Who can export reports to Campfire
+
+To export reports to Campfire, you must:
+
+- Be a workspace admin.
+- Have an approved, paid, or closed expense report.
+- Use a workspace connected to Campfire.
+
+Learn how to [connect to Campfire](/articles/new-expensify/connections/campfire/Connect-to-Campfire).
+
+---
+
+## How to export a report to Campfire
+
+1. In the navigation tabs (on the left on web, on the bottom on mobile), go to **Spend > Reports**.
+2. Open the report you want to export to Campfire.
+3. Select **More**.
+4. Select **Export**.
+5. Select **Export to Campfire**.
+
+If **Auto-sync** is off, or the last export failed, you can also select **Export to Campfire** at the top of the report.
+
+The report history shows when the export starts and when it finishes.
+
+---
+
+## How to export multiple reports to Campfire
+
+1. In the navigation tabs (on the left on web, on the bottom on mobile), go to **Spend > Reports**.
+2. Select the checkbox next to each report you want to export, or use the top checkbox to select all.
+3. In the selection bar, select **Export**.
+4. Select **Campfire**.
+
+**Note:** You can only export reports together when their workspaces connect to the same Campfire subsidiary.
+
+---
+
+## How to mark a report as exported to Campfire
+
+Mark a report as exported when you already entered it in Campfire and don't want Expensify to export it.
+
+For a single report:
+
+1. In the navigation tabs (on the left on web, on the bottom on mobile), go to **Spend > Reports**.
+2. Open the report.
+3. Select **More**.
+4. Select **Export**.
+5. Select **Mark as exported**.
+
+For multiple reports:
+
+1. In the navigation tabs (on the left on web, on the bottom on mobile), go to **Spend > Reports**.
+2. Select the checkbox next to each report.
+3. In the selection bar, select **Export**.
+4. Select **Mark as exported**.
+
+The report history shows that the report was marked as manually exported to Campfire.
+
+---
+
+## What happens when you export a report to Campfire again
+
+If a report was already exported, Expensify shows a **Careful!** message before exporting it again. Select **Yes, export again** to export a second copy, or **Cancel** to stop.
+
+---
+
+## How to fix a failed export to Campfire
+
+When an export fails, the report history shows **failed to export this report to Campfire**, followed by the reason. Common errors include:
+
+- **No Campfire vendor found for** – Reimbursable expenses export as vendor bills to the Campfire vendor whose email matches the report submitter’s email. Add the submitter as a vendor in Campfire using that email, then export the report again.
+- **Please select a Campfire company card account** – Company card expenses need a Campfire account. Choose a **Company card account** in your Campfire export settings, then export the report again.
+
+Learn how to [configure Campfire export settings](/articles/new-expensify/connections/campfire/Configure-Campfire).
+
+---
+
+# FAQ
+
+## Why don't I see Export to Campfire on a report?
+
+The report may not be approved, paid, or closed yet. You also need to be a workspace admin or the preferred exporter. If the report was already exported, you can still select **Export to Campfire** from **More > Export**, and Expensify asks you to confirm before exporting it again.
+
+## Why don't I see Export to Campfire at the top of a report?
+
+When **Auto-sync** is on, Expensify exports reports automatically, so the button only appears at the top of the report if the last export failed. You can still export from **More > Export**.
+
+## Can I export individual expenses to Campfire?
+
+No. You export whole reports to Campfire. Reimbursable expenses become vendor bills and company card expenses become journal entries.
+
+## Why does my report say “No Campfire vendor found for” when exporting to Campfire?
+
+Campfire couldn’t find a vendor with the same email address as the person who submitted the report. Add that person as a vendor in Campfire, make sure the email addresses match, and try the export again.
+
+## Why does my report say “Please select a Campfire company card account” when exporting to Campfire?
+
+A **Company card account** hasn’t been selected for Campfire exports. Choose one in your Campfire export settings, then try the export again.

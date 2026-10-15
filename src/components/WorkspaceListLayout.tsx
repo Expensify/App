@@ -1,4 +1,5 @@
 import useIsMobileWebLandscape from '@hooks/useIsMobileWebLandscape';
+import useLayoutSpacing from '@hooks/useLayoutSpacing';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -45,6 +46,7 @@ type WorkspaceListLayoutProps = {
 
 function WorkspaceListHeaderContent({activeTabKey, headerButton, shouldShowHeaderButton = true, scrollHeaderWithTable = false}: WorkspaceListHeaderContentProps) {
     const styles = useThemeStyles();
+    const {pageGutterRight, pageGutter} = useLayoutSpacing();
     const {translate} = useLocalize();
     // The header scrolls away with the content on mobile web in landscape, where vertical space is scarce.
     const shouldScrollMainHeader = useIsMobileWebLandscape();
@@ -91,8 +93,9 @@ function WorkspaceListHeaderContent({activeTabKey, headerButton, shouldShowHeade
                     breadcrumbLabel={activeTabKey === 'workspaces' ? translate('common.workspaces') : translate('common.domains')}
                 />
             )}
-            <View style={[styles.flexRow, styles.justifyContentBetween, styles.pr5, styles.pt1, styles.pb2]}>
+            <View style={[styles.flexRow, styles.justifyContentBetween, pageGutterRight, styles.pt1, styles.pb2]}>
                 <TabSelectorBase
+                    contentContainerStyles={pageGutter}
                     tabs={navigationOptions}
                     activeTabKey={activeTabKey}
                     onTabPress={onTabPress}

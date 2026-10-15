@@ -16,6 +16,7 @@ const emitsUntestedFiles = !shardMatch || shardMatch[1] === '1';
 
 module.exports = {
     preset: 'jest-expo',
+    resolver: '<rootDir>/jest/resolver.ts',
     collectCoverageFrom: emitsUntestedFiles ? ['<rootDir>/src/**/*.{ts,tsx,js,jsx}', '!<rootDir>/src/**/__mocks__/**', '!<rootDir>/src/**/tests/**', '!**/*.d.ts'] : undefined,
     // Keeps the instrumented set identical to `collectCoverageFrom` above on the shards that skip it.
     coveragePathIgnorePatterns: ['/node_modules/', '<rootDir>/(?!src/)', '/__mocks__/', '<rootDir>/src/.*/tests/', '\\.d\\.ts$'],
@@ -49,6 +50,8 @@ module.exports = {
     globals: {
         __DEV__: true,
         WebSocket: {},
+        // Build-time define from config/rsbuild/rsbuild.common.ts. SkiaWebChart reads it when mounting CanvasKit.
+        __CANVASKIT_WASM_URL__: '/canvaskit-test.wasm',
     },
     fakeTimers: {
         enableGlobally: true,

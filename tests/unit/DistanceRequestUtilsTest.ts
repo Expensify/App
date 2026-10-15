@@ -558,6 +558,26 @@ describe('DistanceRequestUtils', () => {
             expect(result?.customUnit.reimbursableDistance).toBe(3);
         });
 
+        it('rounds the trip and the commute the way the backend stores them', () => {
+            // Real values from a 146.95 mile trip with a 7.76 mile commute. Both convert to more than two decimal
+            // places, and the backend rounds each before subtracting, so the app has to as well or the amount it
+            // sends lands a cent away from the one the backend calculates and is taken for a manual override.
+            const transaction: Transaction = {
+                ...distanceTransaction,
+                comment: {customUnit: {...distanceTransaction.comment?.customUnit, quantity: undefined, routeDistanceMeters: 236501.094}},
+                commuterExclusionPreview: {policyID: FAKE_POLICY.id, hasExclusion: true, isWholeTripExcluded: false, commuteDistanceMeters: 12487.866},
+            };
+
+            const result = DistanceRequestUtils.getTransactionCommuterExclusionData({
+                transaction,
+                policy: policyWithHomeAndOfficeExclusion,
+            });
+
+            expect(result?.customUnit.quantity).toBe(146.95);
+            expect(result?.customUnit.commuterExclusion).toBe(7.76);
+            expect(result?.customUnit.reimbursableDistance).toBe(139.19);
+        });
+
         it('excludes the whole trip when the backend says the trip runs between home and the office', () => {
             const transaction: Transaction = {
                 ...distanceTransaction,

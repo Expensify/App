@@ -26,12 +26,14 @@ type LogInWithShortLivedAuthTokenPageProps = PlatformStackScreenProps<PublicScre
 function LogInWithShortLivedAuthTokenPage({route}: LogInWithShortLivedAuthTokenPageProps) {
     const {shortLivedAuthToken = '', shortLivedToken = '', authTokenType, exitTo, error, isSAML = false} = route?.params ?? {};
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
+    const [credentials, credentialsMetadata] = useOnyx(ONYXKEYS.CREDENTIALS);
     const [lastVisitedPath, lastVisitedPathMetadata] = useOnyx(ONYXKEYS.LAST_VISITED_PATH);
-    const isLoadingLastVisitedPath = isLoadingOnyxValue(lastVisitedPathMetadata);
+    const isLoadingSignInData = isLoadingOnyxValue(lastVisitedPathMetadata, ...(isSAML ? [credentialsMetadata] : []));
 
     useEffect(() => {
-        // Only a forced SAML re-auth keeps a last visited path, so it has to be read before the sign-in starts.
-        if (isLoadingLastVisitedPath) {
+        // Only a forced SAML re-auth keeps a last visited path, so it has to be read (along with the credentials
+        // the sign-in compares against) before the sign-in starts.
+        if (isLoadingSignInData) {
             return;
         }
 
@@ -44,12 +46,9 @@ function LogInWithShortLivedAuthTokenPage({route}: LogInWithShortLivedAuthTokenP
         }
 
         if (!account?.isLoading && authTokenType === CONST.AUTH_TOKEN_TYPES.SUPPORT) {
+            // Do not navigate after a support sign-in. A navigation here replaces the /transition URL, and the
+            // signed-in screens read exitTo from that URL after the sign-in completes.
             signInWithSupportAuthToken(shortLivedAuthToken);
-            Navigation.isNavigationReady().then(() => {
-                // We must call goBack() to remove the /transition route from history
-                Navigation.goBack();
-                Navigation.navigate(ROUTES.HOME);
-            });
             return;
         }
 
@@ -57,7 +56,7 @@ function LogInWithShortLivedAuthTokenPage({route}: LogInWithShortLivedAuthTokenP
         // A forced SAML re-auth leaves account.isLoading true until this sign-in, so it must not block a SAML token.
         if (token && (isSAML || !account?.isLoading)) {
             Log.info('LogInWithShortLivedAuthTokenPage - Successfully received shortLivedAuthToken. Signing in...');
-            signInWithShortLivedAuthToken(token, isSAML, isSAML ? lastVisitedPath : undefined);
+            signInWithShortLivedAuthToken(token, isSAML, isSAML ? lastVisitedPath : undefined, credentials?.login);
             // For SAML sign-ins, navigate to HOME explicitly since the SAML flow
             // doesn't use exitTo deep link routing. For non-SAML flows, let the
             // navigation system handle exitTo routing naturally via setUpPoliciesAndNavigate.
@@ -82,12 +81,13 @@ function LogInWithShortLivedAuthTokenPage({route}: LogInWithShortLivedAuthTokenP
                 Navigation.navigate(exitTo as Route);
             });
         }
-        // Runs once the route and the last visited path are known, later Onyx changes must not restart the sign-in.
+        // Runs once the route, the credentials and the last visited path are known, later Onyx changes must not restart the sign-in.
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [route, isLoadingLastVisitedPath]);
+    }, [route, isLoadingSignInData]);
 
-    if (account?.isLoading || isLoadingLastVisitedPath) {
-        return <FullScreenLoadingIndicator />;
+    if (account?.isLoading || isLoadingSignInData) {
+        // No "Go Back" button: this is a deep-link entry point, so there is usually no history to pop back to.
+        return <FullScreenLoadingIndicator shouldUseGoBackButton={false} />;
     }
 
     return <SessionExpiredPage />;

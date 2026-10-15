@@ -26,10 +26,9 @@ import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getTotalAmountForIOUReportPreviewButton} from '@libs/MoneyRequestReportUtils';
 import {isTrackOnboardingChoice} from '@libs/OnboardingUtils';
 import {hasDynamicExternalWorkflow} from '@libs/PolicyUtils';
-import {hasHeldExpensesFromTransactions as hasHeldExpensesReportUtils, hasUpdatedTotal, isInvoiceReport as isInvoiceReportUtil} from '@libs/ReportUtils';
+import {canIOUBePaid as canIOUBePaidAction, hasHeldExpensesFromTransactions as hasHeldExpensesReportUtils, hasUpdatedTotal, isInvoiceReport as isInvoiceReportUtil} from '@libs/ReportUtils';
 
 import {payInvoice, payMoneyRequest} from '@userActions/IOU/PayMoneyRequest';
-import {canIOUBePaid as canIOUBePaidAction} from '@userActions/IOU/ReportWorkflow';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -44,9 +43,11 @@ import useTransactionThreadData from './useTransactionThreadData';
 type PayPrimaryActionProps = {
     reportID: string | undefined;
     chatReportID: string | undefined;
+    /** Disables the Pay button, e.g. while expenses are selected */
+    isDisabled?: boolean;
 };
 
-function PayPrimaryAction({reportID, chatReportID}: PayPrimaryActionProps) {
+function PayPrimaryAction({reportID, chatReportID, isDisabled}: PayPrimaryActionProps) {
     const {isBetaEnabled} = usePermissions();
     const {isPaidAnimationRunning, isApprovedAnimationRunning, stopAnimation, startAnimation} = usePaymentAnimationsContext();
     const {isOffline} = useNetwork();
@@ -217,7 +218,7 @@ function PayPrimaryAction({reportID, chatReportID}: PayPrimaryActionProps) {
             onPress={confirmPayment}
             enablePaymentsRoute={ROUTES.ENABLE_PAYMENTS}
             shouldHidePaymentOptions={!shouldShowPayButton}
-            isDisabled={isOffline && !canAllowSettlement}
+            isDisabled={(isOffline && !canAllowSettlement) || isDisabled}
             isLoading={!isOffline && !canAllowSettlement}
         />
     );
