@@ -72,6 +72,7 @@ function WorkspaceCompanyCardsPage({route}: WorkspaceCompanyCardsPageProps) {
 
         lastHandledBulkTransactionStartDateUpdateSuccessID.current = bulkTransactionStartDateUpdateSuccessID;
         clearBulkUpdateTransactionStartDateSuccess(domainOrWorkspaceAccountID);
+        companyCardsTableRef.current?.clearSelection();
         Growl.success(translate('workspace.companyCards.bulkStartDateUpdated'), {position: CONST.GROWL.POSITION.BOTTOM_RIGHT});
     }, [bulkTransactionStartDateUpdateSuccessID, domainOrWorkspaceAccountID, translate]);
 
