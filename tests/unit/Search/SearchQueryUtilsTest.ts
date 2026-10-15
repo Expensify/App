@@ -5805,6 +5805,36 @@ describe('SearchQueryUtils', () => {
             const lastQuery = 'type:invoice status:all';
             expect(getValidLastQuery(lastQuery, defaultSearchQuery)).toBe(defaultSearchQuery);
         });
+
+        describe('with the Spend footer selections', () => {
+            it('keeps a last query switched back to the default total, which leaves the total out', () => {
+                // Given a saved search on the reimbursable total, then switched back to the plain total
+                const savedQuery = 'type:expense status:all footerTotal:reimbursable';
+                const lastQuery = 'type:expense status:all';
+
+                // Then the last choice comes back, the same as when switching to any other total
+                expect(getValidLastQuery(lastQuery, savedQuery)).toBe(lastQuery);
+                expect(getValidLastQuery('type:expense status:all footerTotal:non-reimbursable', savedQuery)).toBe('type:expense status:all footerTotal:non-reimbursable');
+            });
+
+            it('keeps a last query switched back to the default count, which leaves the count out', () => {
+                // Given a saved search on the report count, then switched back to the expense count
+                const savedQuery = 'type:expense status:all footerCount:reports';
+                const lastQuery = 'type:expense status:all';
+
+                // Then the last choice comes back
+                expect(getValidLastQuery(lastQuery, savedQuery)).toBe(lastQuery);
+            });
+
+            it('still drops a last query that lost a real filter', () => {
+                // Given a saved search with a footer total, whose last query dropped the status filter
+                const savedQuery = 'type:expense status:all footerTotal:reimbursable';
+                const lastQuery = 'type:expense footerTotal:reimbursable';
+
+                // Then the saved query comes back, since a row filter still decides
+                expect(getValidLastQuery(lastQuery, savedQuery)).toBe(savedQuery);
+            });
+        });
     });
 
     describe('doesQueryMatchDefaultFilterKeysAndType', () => {
