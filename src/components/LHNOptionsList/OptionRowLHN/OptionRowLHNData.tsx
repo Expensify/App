@@ -18,7 +18,7 @@ import CONST from '@src/CONST';
 import {getMovedReportID} from '@src/libs/ModifiedExpenseMessage';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report, ReportAction, ReportActions as ReportActionsType, Rule} from '@src/types/onyx';
-import type {ReportNamesDerivedValue, VisibleReportActionsDerivedValue} from '@src/types/onyx/DerivedValues';
+import type {ReportAttributes, VisibleReportActionsDerivedValue} from '@src/types/onyx/DerivedValues';
 import type {Icon} from '@src/types/onyx/OnyxCommon';
 
 import type {ViewStyle} from 'react-native';
@@ -176,7 +176,7 @@ function OptionRowLHNData({isOptionFocused = false, viewMode = 'default', report
                 }
             }
 
-            const reportNamesView = new Proxy<ReportNamesDerivedValue>(
+            const reportNamesView = new Proxy<Record<string, Pick<ReportAttributes, 'reportName'>>>(
                 {},
                 {
                     get: (_target, id) => {

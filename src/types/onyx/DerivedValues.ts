@@ -48,9 +48,6 @@ type ReportAttributes = {
     needsParentChatErrorPropagation?: boolean;
 };
 
-/** Report names keyed by reportID, the only part of the report attributes that option rows read for reports other than their own */
-type ReportNamesDerivedValue = Record<string, Pick<ReportAttributes, 'reportName'>>;
-
 /**
  * The derived value for report attributes.
  */
@@ -250,7 +247,6 @@ type OneOnOneChatReportIDsDerivedValue = {
 export type {
     ReportAttributes,
     ReportAttributesDerivedValue,
-    ReportNamesDerivedValue,
     ReportTransactionsAndViolationsDerivedValue,
     ReportTransactionsAndViolations,
     OutstandingReportsByPolicyIDDerivedValue,

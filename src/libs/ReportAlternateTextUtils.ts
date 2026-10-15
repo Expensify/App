@@ -20,7 +20,7 @@ import type {
     VisibleReportActionsDerivedValue,
     WorkspaceCardsList,
 } from '@src/types/onyx';
-import type {ReportNamesDerivedValue} from '@src/types/onyx/DerivedValues';
+import type {ReportAttributes} from '@src/types/onyx/DerivedValues';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import type {Locale as DateFnsLocale} from 'date-fns';
@@ -521,7 +521,7 @@ function getLastMessageTextForReport({
     reportMetadata?: OnyxEntry<ReportMetadata>;
     visibleReportActionsDataParam?: VisibleReportActionsDerivedValue;
     lastAction?: OnyxEntry<ReportAction>;
-    reportAttributesDerived?: ReportNamesDerivedValue;
+    reportAttributesDerived?: Record<string, Pick<ReportAttributes, 'reportName'>>;
     policyTags?: OnyxEntry<PolicyTagLists>;
     currentUserLogin?: string;
     conciergeReportID: string | undefined;
@@ -1192,7 +1192,7 @@ type GetReportAlternateTextParams = {
     isReportArchived: boolean | undefined;
     privateIsArchived: boolean;
     conciergeReportID: string | undefined;
-    reportAttributesDerived?: ReportNamesDerivedValue;
+    reportAttributesDerived?: Record<string, Pick<ReportAttributes, 'reportName'>>;
     visibleReportActionsData?: VisibleReportActionsDerivedValue;
     sortedActions?: Record<string, ReportAction[]>;
     oneTransactionThreadReportID?: string;

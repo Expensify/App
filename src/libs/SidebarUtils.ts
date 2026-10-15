@@ -18,7 +18,7 @@ import type {
     TransactionViolation,
     VisibleReportActionsDerivedValue,
 } from '@src/types/onyx';
-import type {ReportAttributes, ReportNamesDerivedValue} from '@src/types/onyx/DerivedValues';
+import type {ReportAttributes} from '@src/types/onyx/DerivedValues';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 import type Policy from '@src/types/onyx/Policy';
 import type PriorityMode from '@src/types/onyx/PriorityMode';
@@ -944,7 +944,7 @@ function getOptionData({
     movedToReport?: OnyxEntry<Report>;
     currentUserAccountID: number;
     visibleReportActionsData?: VisibleReportActionsDerivedValue;
-    reportAttributesDerived?: ReportNamesDerivedValue;
+    reportAttributesDerived?: Record<string, Pick<ReportAttributes, 'reportName'>>;
     policyTags?: OnyxEntry<PolicyTagLists>;
     currentUserLogin: string;
     isTrackIntentUser?: boolean;
