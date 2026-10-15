@@ -65,7 +65,12 @@ function PhoneNumberStep({policyID, stepNames, startStepIndex}: PhoneNumberStepP
     };
 
     const handleBackButtonPress = () => {
-        setIssueNewCardStepAndData({step: isEditing ? CONST.EXPENSIFY_CARD.STEP.CONFIRMATION : CONST.EXPENSIFY_CARD.STEP.SHIPPING_ADDRESS, isEditing: false, policyID});
+        // Without a number yet, the admin came here from editing the address
+        if (isEditing && !!shippingAddress?.phoneNumber) {
+            setIssueNewCardStepAndData({step: CONST.EXPENSIFY_CARD.STEP.CONFIRMATION, isEditing: false, policyID});
+            return;
+        }
+        setIssueNewCardStepAndData({step: CONST.EXPENSIFY_CARD.STEP.SHIPPING_ADDRESS, isEditing: !!isEditing, policyID});
     };
 
     return (
