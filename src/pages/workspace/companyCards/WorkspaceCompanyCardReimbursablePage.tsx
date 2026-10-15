@@ -106,9 +106,7 @@ function WorkspaceCompanyCardReimbursablePage({
                     title={translate('workspace.companyCards.reimbursable.title')}
                     onBackButtonPress={goBack}
                 />
-                <Text style={[styles.flexRow, styles.alignItemsCenter, styles.mt3, styles.mh5, styles.mb5]}>
-                    <Text style={[styles.textNormal, styles.colorMuted]}>{translate('workspace.companyCards.reimbursable.description')}</Text>
-                </Text>
+                <Text style={[styles.textNormal, styles.colorMuted, styles.mt3, styles.mh5, styles.mb5]}>{translate('workspace.companyCards.reimbursable.description')}</Text>
                 <OfflineWithFeedback
                     pendingAction={selectedFeedData?.pendingFields?.forceReimbursable}
                     errors={selectedFeedData?.errorFields?.forceReimbursable}
