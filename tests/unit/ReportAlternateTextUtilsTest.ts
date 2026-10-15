@@ -530,6 +530,8 @@ describe('ReportAlternateTextUtils', () => {
                 };
                 const transaction: Transaction = {
                     ...createRandomTransaction(0),
+                    // The preview reads the IOU action's transaction from the IOU report's own transactions
+                    reportID: iouReport.reportID,
                     amount: 100,
                     currency: CONST.CURRENCY.USD,
                     merchant: '',

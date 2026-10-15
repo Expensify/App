@@ -6354,22 +6354,6 @@ function areAllRequestsBeingSmartScanned(
 }
 
 /**
- * Get the transactions related to a report preview with receipts
- * Get the details linked to the IOU reportAction
- *
- * NOTE: This method is only meant to be used inside this action file. Do not export and use it elsewhere. Use useOnyx instead.
- */
-function getLinkedTransaction(reportAction: OnyxEntry<ReportAction | OptimisticIOUReportAction>, transactions?: Transaction[]): OnyxEntry<Transaction> {
-    let transactionID: string | undefined;
-
-    if (isMoneyRequestAction(reportAction)) {
-        transactionID = getOriginalMessage(reportAction)?.IOUTransactionID;
-    }
-
-    return transactions ? transactions.find((transaction) => transaction.transactionID === transactionID) : deprecatedAllTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
-}
-
-/**
  * Get report action which is missing smartscan fields
  */
 function getReportActionWithMissingSmartscanFields(
@@ -6550,7 +6534,7 @@ function getReportPreviewMessage(
     if (!isEmptyObject(iouReportAction) && !isIOUReport(report) && iouReportAction && isSplitBillReportAction(iouReportAction)) {
         // This covers group chats where the last action is a split expense action
         // The split transaction belongs to SPLIT_REPORT_ID, not to `report`, so it isn't in `allReportTransactions` and the caller has to pass it.
-        const linkedTransaction = getLinkedTransaction(iouReportAction, linkedTransactionParam ? [linkedTransactionParam] : []);
+        const linkedTransaction = getLinkedIOUTransaction(iouReportAction, linkedTransactionParam ? [linkedTransactionParam] : []);
         if (isEmptyObject(linkedTransaction)) {
             return reportActionMessage;
         }
@@ -6573,7 +6557,7 @@ function getReportPreviewMessage(
     if (!isEmptyObject(iouReportAction) && !isIOUReport(report) && !isExpenseReport(report) && iouReportAction && isTrackExpenseAction(iouReportAction)) {
         // This covers group chats where the last action is a track expense action
         // The tracked transaction is unreported, not part of `report`, so it isn't in `allReportTransactions` and the caller has to pass it.
-        const linkedTransaction = getLinkedTransaction(iouReportAction, linkedTransactionParam ? [linkedTransactionParam] : []);
+        const linkedTransaction = getLinkedIOUTransaction(iouReportAction, linkedTransactionParam ? [linkedTransactionParam] : []);
         if (isEmptyObject(linkedTransaction)) {
             const originalMessage = getOriginalMessage(iouReportAction);
             const amount = originalMessage?.amount;
@@ -6628,7 +6612,7 @@ function getReportPreviewMessage(
 
     let linkedTransaction;
     if (!isEmptyObject(iouReportAction) && shouldConsiderScanningReceiptOrPendingRoute && iouReportAction && isMoneyRequestAction(iouReportAction)) {
-        linkedTransaction = getLinkedTransaction(iouReportAction, allReportTransactions);
+        linkedTransaction = getLinkedIOUTransaction(iouReportAction, allReportTransactions);
     }
 
     if (!isEmptyObject(linkedTransaction) && isScanning(linkedTransaction)) {
@@ -6722,7 +6706,7 @@ function getReportPreviewMessage(
     }
 
     if (isEmptyObject(linkedTransaction) && !isEmptyObject(iouReportAction)) {
-        linkedTransaction = getLinkedTransaction(iouReportAction, allReportTransactions);
+        linkedTransaction = getLinkedIOUTransaction(iouReportAction, allReportTransactions);
     }
 
     let comment = !isEmptyObject(linkedTransaction) ? getMerchantOrDescription(linkedTransaction) : undefined;
