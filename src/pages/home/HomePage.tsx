@@ -162,7 +162,6 @@ function HomePage() {
                         style={styles.homePageScrollView}
                         {...tabRootScrollProps}
                         onScroll={triggerScrollEvent}
-                        contentContainerStyle={[styles.homePageContentContainer, pageGutter]}
                         addBottomSafeAreaPadding
                         keyboardShouldPersistTaps="handled"
                     >

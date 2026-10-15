@@ -130,7 +130,6 @@ function InsightsDashboardContent({state, headlineChart, supportingCharts, filte
         <ScrollView
             style={styles.insightsDashboardScrollView}
             onScroll={triggerScrollEvent}
-            contentContainerStyle={[styles.flexGrow1, pageGutter, styles.pb5]}
             {...scrollProps}
             addBottomSafeAreaPadding
         >
