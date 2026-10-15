@@ -14832,6 +14832,17 @@ describe('SearchUIUtils', () => {
             // Then the match type is part of the translated label, so a missing operator reads as contains
             expect(result).toBe(translateLocal(translationKey, 'I'));
         });
+
+        test.each([FILTER_KEYS.BILLABLE_NOT, FILTER_KEYS.REIMBURSABLE_NOT, FILTER_KEYS.DECLINED_NOT] as const)('translates the yes/no value of a negated %s filter', (key) => {
+            // Given a negated yes/no filter, as stored when the query is "-billable:yes", "-reimbursable:yes" or "-declined:yes"
+            const form = {[key]: CONST.SEARCH.BOOLEAN.YES};
+
+            // When the filter label is built
+            const result = SearchUIUtils.getDisplayValue(key, form, CONST.SEARCH.DATA_TYPES.EXPENSE, translateLocal, localeCompare);
+
+            // Then the label uses the localized value instead of the raw query token, matching the non-negated filter
+            expect(result).toBe(translateLocal('common.yes'));
+        });
     });
 
     describe('filterValidHasValues', () => {

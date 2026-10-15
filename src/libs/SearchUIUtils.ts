@@ -5977,7 +5977,14 @@ function getDisplayValue(
         return form[key]?.sort(localeCompare).join(', ');
     }
 
-    if (key === FILTER_KEYS.BILLABLE || key === FILTER_KEYS.REIMBURSABLE || key === FILTER_KEYS.DECLINED) {
+    if (
+        key === FILTER_KEYS.BILLABLE ||
+        key === FILTER_KEYS.BILLABLE_NOT ||
+        key === FILTER_KEYS.REIMBURSABLE ||
+        key === FILTER_KEYS.REIMBURSABLE_NOT ||
+        key === FILTER_KEYS.DECLINED ||
+        key === FILTER_KEYS.DECLINED_NOT
+    ) {
         const formValue = form[key];
         return formValue ? translate(`common.${formValue}`) : undefined;
     }
