@@ -8527,8 +8527,19 @@ Rendez obligatoires des informations de dépense comme les reçus et les descrip
                 vendorUnavailable: 'Fournisseur indisponible',
                 supplierUnavailable: 'Fournisseur indisponible',
                 confirmErrorCategory: 'Veuillez sélectionner une catégorie',
+                confirmErrorCategoryTax: 'Veuillez sélectionner un taux de taxe',
                 confirmErrorCondition: 'Veuillez saisir un commerçant',
                 confirmErrorConditionAndDefault: 'Saisissez un commerçant et appliquez au moins un paramètre par défaut',
+                turnOnTaxesFirstTitle: 'Activer d’abord les taxes',
+                turnOnTaxesFirstPrompt: 'Les règles de catégorie définissent un taux de taxe par défaut. Activez les taxes dans les paramètres de votre espace de travail pour les utiliser.',
+                categoryRulesApplyGoingForwardTitle: 'Les règles de catégorie s’appliquent à partir de maintenant',
+                categoryRulesApplyGoingForwardPrompt:
+                    'Un taux de taxe par défaut s’applique aux nouvelles dépenses de cette catégorie. Les dépenses déjà existantes ne seront pas modifiées.',
+                confirmErrorCategoryTaxMoveIsWorkspaceDefault:
+                    'Le taux de taxe sélectionné est désormais le taux par défaut de votre espace de travail, cette règle n’est donc plus valide. Choisissez un autre taux de taxe.',
+                addTaxRateFirstTitle: 'Ajoutez d’abord un taux de taxe',
+                addTaxRateFirstPrompt:
+                    'Les règles de catégorie définissent un taux de taxe par défaut. Ajoutez un taux de taxe autre que le taux par défaut de votre espace de travail pour les utiliser.',
                 createRuleFromExpenseAction: 'Créer une règle',
                 createRuleFromExpensePrompt: 'pour appliquer vos modifications à toutes les dépenses qui correspondent à vos critères.',
             },
@@ -8843,7 +8854,6 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                 rename: 'Renommer',
                 update: 'Mettre à jour',
                 merchantIs: (merchant: string) => `Le commerçant est « ${merchant} »`,
-                tagIs: (tag: string) => `Le tag est « ${tag} »`,
                 merchantTypeIs: (merchantType: string) => `Le type de commerçant est « ${merchantType} »`,
                 categoryIs: (category: string) => `La catégorie est « ${category} »`,
             },
@@ -8915,6 +8925,14 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                 cta: 'Ajouter une règle IA',
             },
             categoriesDisabledEmptyState: {title: 'Les catégories ne sont pas activées', subtitle: 'Activez les catégories pour mieux contrôler vos dépenses.'},
+            expenseDefaultType: {
+                title: 'Appliquer les valeurs de dépense par défaut',
+                subtitle: 'Sur quoi cette règle doit-elle faire correspondre ?',
+                merchant: 'Commerçant',
+                merchantDescription: 'Mettre à jour les champs des dépenses d’un commerçant spécifique',
+                category: 'Catégorie',
+                categoryDescription: 'Définir un taux de taxe par défaut pour une catégorie spécifique',
+            },
             taxesDisabledEmptyState: {title: 'Les taxes ne sont pas activées', subtitle: 'Activez les taxes pour documenter et récupérer les taxes admissibles.', cta: 'Activer les taxes'},
         },
         planTypePage: {
