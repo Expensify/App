@@ -6,7 +6,17 @@ import CONST from '@src/CONST';
 
 import {useEffect, useRef} from 'react';
 
-function useRestoreFocusAfterDiscard() {
+type RestoreFocusAfterDiscard = {
+    captureFocusedInput: (restoreFocus: RestoreFocus) => void;
+    clearDiscardFocus: () => void;
+    clearFocusedInput: () => void;
+    prepareForDiscardNavigation: () => void;
+    reset: () => void;
+    restoreLastFocusedInput: () => void;
+    setDiscardModalVisibility: (isVisible: boolean) => void;
+};
+
+function useRestoreFocusAfterDiscard(): RestoreFocusAfterDiscard {
     const lastFocusedInputRef = useRef<RestoreFocus | null>(null);
     const lastFocusedInputCandidateRef = useRef<RestoreFocus | null>(null);
     const focusToRestoreAfterDiscardRef = useRef<RestoreFocus | null>(null);
