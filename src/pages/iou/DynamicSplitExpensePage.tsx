@@ -17,6 +17,7 @@ import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
+import useFrozenSplitTransactionIDs from '@hooks/useFrozenSplitTransactionIDs';
 import useGetIOUReportFromReportAction from '@hooks/useGetIOUReportFromReportAction';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -119,6 +120,7 @@ function DynamicSplitExpensePage({route}: DynamicSplitExpensePageProps) {
     const [draftTransaction, draftTransactionMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`);
     const isLoadingDraftTransaction = isLoadingOnyxValue(draftTransactionMetadata);
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
+    const [reportDrafts] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT);
     const [allReportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS);
     const draftTransactionReport = useReportOrReportDraft(draftTransaction?.reportID);
     const parentTransactionReport = useReportOrReportDraft(draftTransactionReport?.parentReportID);
@@ -159,27 +161,6 @@ function DynamicSplitExpensePage({route}: DynamicSplitExpensePageProps) {
     const isSearchBackPath = backPath.replace(/^\//, '').startsWith(ROUTES.SEARCH_ROOT.route);
     const activeGroupSearchHashes = isSearchBackPath ? getActiveGroupSearchHashes(currentSearchResults?.data, currentSearchQueryJSON) : [];
 
-    const isSplitExpenseEditable = (splitExpense: SplitExpense) => {
-        const currentTransaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${splitExpense?.transactionID}`];
-        const currentItemReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${currentTransaction?.reportID}`] ?? report;
-        const currentItemPolicy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${currentItemReport?.policyID}`];
-
-        return (
-            !currentTransaction ||
-            isSplitAction(
-                currentItemReport,
-                [currentTransaction],
-                originalTransaction,
-                currentUserPersonalDetails.login ?? '',
-                currentUserPersonalDetails.accountID,
-                rules,
-                getLoginByAccountID(currentItemReport?.ownerAccountID, personalDetails),
-                currentItemPolicy,
-                parentReport,
-            )
-        );
-    };
-
     const isSplitAvailable =
         report &&
         transaction &&
@@ -213,6 +194,22 @@ function DynamicSplitExpensePage({route}: DynamicSplitExpensePageProps) {
     const splitExpenses = draftTransaction?.comment?.splitExpenses ?? EMPTY_SPLIT_EXPENSES;
     const sumOfSplitExpenses = splitExpenses.reduce((acc, item) => acc + (item.amount ?? 0), 0);
     const currencySymbol = getCurrencySymbol(transactionDetails.currency ?? '') ?? transactionDetails.currency ?? CONST.CURRENCY.USD;
+
+    const frozenSplitTransactionIDs = useFrozenSplitTransactionIDs({
+        splitExpenses,
+        allTransactions,
+        allReports,
+        fallbackReport: report,
+        searchResultsData: currentSearchResults?.data,
+        originalTransaction,
+        currentUserLogin: currentUserPersonalDetails.login ?? '',
+        currentUserAccountID: currentUserPersonalDetails.accountID,
+        rules,
+        personalDetails,
+        allPolicies,
+        parentReport,
+    });
+    const frozenSplitsContext = {frozenSplitTransactionIDs, searchResultsData: currentSearchResults?.data};
 
     useEffect(() => {
         setErrorMessage('');
@@ -263,7 +260,7 @@ function DynamicSplitExpensePage({route}: DynamicSplitExpensePageProps) {
     let isUnitRateIDOutOfPolicy = false;
     for (const splitExpense of splitExpenses) {
         const splitTransaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(splitExpense.transactionID)}`] ?? transaction;
-        const isEditable = isSplitExpenseEditable(splitExpense);
+        const isEditable = !frozenSplitTransactionIDs.has(splitExpense.transactionID);
         if (!splitTransaction || !isEditable) {
             continue;
         }
@@ -315,6 +312,7 @@ function DynamicSplitExpensePage({route}: DynamicSplitExpensePageProps) {
             getCurrencySymbol,
             getCurrencyDecimals,
             allPolicies,
+            frozenSplitsContext,
         );
     };
 
@@ -405,6 +403,7 @@ function DynamicSplitExpensePage({route}: DynamicSplitExpensePageProps) {
             getCurrencySymbol,
             allTransactionsList: allTransactions,
             allReportsList: allReports,
+            reportDrafts,
             allReportActionsList: allReportActions,
             allReportNameValuePairsList: allReportNameValuePairs,
             allSnapshots,
@@ -451,6 +450,7 @@ function DynamicSplitExpensePage({route}: DynamicSplitExpensePageProps) {
                 getCurrencySymbol,
                 getCurrencyDecimals,
                 allPolicies,
+                frozenSplitsContext,
             );
         } else {
             const amountInCents = calculateSplitAmountFromPercentage(transactionDetailsAmount, value);
@@ -464,6 +464,7 @@ function DynamicSplitExpensePage({route}: DynamicSplitExpensePageProps) {
                 getCurrencySymbol,
                 getCurrencyDecimals,
                 allPolicies,
+                frozenSplitsContext,
             );
         }
     };
@@ -516,7 +517,7 @@ function DynamicSplitExpensePage({route}: DynamicSplitExpensePageProps) {
             onSplitExpenseValueChange,
             isSelected: splitExpenseTransactionID === item.transactionID,
             keyForList: item?.transactionID,
-            isEditable: isSplitExpenseEditable(item),
+            isEditable: !frozenSplitTransactionIDs.has(item.transactionID),
         };
     });
 
@@ -624,7 +625,12 @@ function DynamicSplitExpensePage({route}: DynamicSplitExpensePageProps) {
     };
 
     if (isLoadingDraftTransaction) {
-        return <FullScreenLoadingIndicator style={[styles.opacity1]} />;
+        return (
+            <FullScreenLoadingIndicator
+                style={[styles.opacity1]}
+                onGoBack={() => Navigation.goBack(backPath)}
+            />
+        );
     }
 
     const collapsibleHeaderOffset = isInitialSplit ? TAB_NAVIGATOR_HEIGHT_LANDSCAPE : 0;

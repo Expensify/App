@@ -105,7 +105,7 @@ function DynamicTaskShareDestinationSelectorModal() {
         () => ({
             onChangeText: setSearchTerm,
             value: searchTerm,
-            headerMessage: getHeaderMessage(filteredOptions.recentReports && filteredOptions.recentReports.length !== 0, false, searchTerm, countryCode, false),
+            headerMessage: getHeaderMessage(translate, filteredOptions.recentReports && filteredOptions.recentReports.length !== 0, false, searchTerm, countryCode, false),
             label: translate('selectionList.nameEmailOrPhoneNumber'),
             hint: isOffline ? `${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}` : '',
         }),

@@ -14,6 +14,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import {extractFirstAndLastNameFromAvailableDetails} from '@libs/PersonalDetailsUtils';
 import {
     getFieldRequiredErrors,
@@ -36,6 +37,7 @@ import {setAdditionalDetailsQuestions} from '@userActions/Wallet';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/AdditionalDetailStepForm';
 
 import {subYears} from 'date-fns';
@@ -82,7 +84,8 @@ function AdditionalDetailsStep({currentUserPersonalDetails}: AdditionalDetailsSt
     const maxDate = subYears(currentDate, CONST.DATE_BIRTH.MIN_AGE_FOR_PAYMENT);
     const shouldAskForFullSSN = walletAdditionalDetails?.errorCode === CONST.WALLET.ERROR.SSN;
 
-    const {submitPersonalDetails} = useWalletPhoneValidateCode();
+    // Open the validateCode screen on top of this flow, so accepting the code returns here instead of to the Settings wallet flow
+    const {submitPersonalDetails} = useWalletPhoneValidateCode(() => createDynamicRoute(DYNAMIC_ROUTES.ENABLE_PAYMENTS_CONFIRM_VALIDATE_CODE.path));
 
     const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WALLET_ADDITIONAL_DETAILS>): FormInputErrors<typeof ONYXKEYS.FORMS.WALLET_ADDITIONAL_DETAILS> => {
         const errors = getFieldRequiredErrors(values, STEP_FIELDS, translate);
@@ -232,6 +235,7 @@ function AdditionalDetailsStep({currentUserPersonalDetails}: AdditionalDetailsSt
                         role={CONST.ROLE.PRESENTATION}
                         maxLength={shouldAskForFullSSN ? CONST.BANK_ACCOUNT.MAX_LENGTH.FULL_SSN : CONST.BANK_ACCOUNT.MAX_LENGTH.SSN}
                         inputMode={CONST.INPUT_MODE.NUMERIC}
+                        shouldSaveDraft
                         forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}
                     />
                 </FormProvider>
