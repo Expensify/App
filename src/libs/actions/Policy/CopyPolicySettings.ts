@@ -72,6 +72,7 @@ const PARTS_TO_POLICY_FIELDS = {
     // The government rate auto-update flag is left to the server push, since the backend only keeps it for an eligible target.
     distanceRates: ['areDistanceRatesEnabled', 'customUnits', 'requireMapOrGPS'],
     perDiem: ['arePerDiemRatesEnabled', 'customUnits'],
+    // Only invoice.markUp is copied (see buildPolicyFieldPatch). 'invoice' stays listed so its pending state and rollback are tracked.
     invoices: ['areInvoicesEnabled', 'areInvoiceFieldsEnabled', 'invoice', 'fieldList'],
     // travelSettings is handled separately (buildTravelSettingsPatch): the Spotnana identity
     // fields (spotnanaCompanyID/associatedTravelDomainAccountID) and hasAcceptedTerms are per-policy
