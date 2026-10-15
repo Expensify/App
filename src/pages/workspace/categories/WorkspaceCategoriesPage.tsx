@@ -2,7 +2,6 @@ import ActivityIndicator from '@components/ActivityIndicator';
 import Button from '@components/Button';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
-import DecisionModal from '@components/DecisionModal';
 import type {EmptyStateButton} from '@components/EmptyStateComponent/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ImportedFromAccountingSoftware from '@components/ImportedFromAccountingSoftware';
@@ -13,6 +12,7 @@ import type {WorkspaceCategoryTableRowData} from '@components/Tables/WorkspaceCa
 import WorkspaceCategoriesTable from '@components/Tables/WorkspaceCategoriesTable';
 import Text from '@components/Text';
 
+import useAlertModals from '@hooks/useAlertModals';
 import useCleanupSelectedOptions from '@hooks/useCleanupSelectedOptions';
 import useConfirmModal from '@hooks/useConfirmModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -66,7 +66,7 @@ type WorkspaceCategoriesPageProps =
     | PlatformStackScreenProps<WorkspaceSplitNavigatorParamList, typeof SCREENS.SETTINGS_CATEGORIES.SETTINGS_CATEGORIES_ROOT>;
 
 function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
-    // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to apply the correct modal type for the decision modal
+    // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to use the selection mode only on small screens
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
     const {pageGutter} = useLayoutSpacing();
@@ -74,8 +74,8 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
     const {translate, formatPhoneNumber} = useLocalize();
     const {isBetaEnabledOrUnknown} = usePermissions();
     const isVendorMatchingBetaEnabled = isBetaEnabledOrUnknown(CONST.BETAS.VENDOR_MATCHING);
-    const [isDownloadFailureModalVisible, setIsDownloadFailureModalVisible] = useState(false);
     const {showConfirmModal} = useConfirmModal();
+    const {showDownloadErrorModal} = useAlertModals();
     const {environmentURL} = useEnvironment();
     const {backTo, policyID: policyId} = route.params;
     const isMobileSelectionModeEnabled = useMobileSelectionMode();
@@ -406,13 +406,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                         return;
                     }
                     close(() => {
-                        downloadCategoriesCSV(
-                            policyId,
-                            () => {
-                                setIsDownloadFailureModalVisible(true);
-                            },
-                            translate,
-                        );
+                        downloadCategoriesCSV(policyId, showDownloadErrorModal, translate);
                     });
                 },
                 value: CONST.POLICY.SECONDARY_ACTIONS.DOWNLOAD_CSV,
@@ -422,6 +416,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
         return menuItems;
     }, [
         showOfflineModal,
+        showDownloadErrorModal,
         icons.Download,
         icons.Gear,
         icons.Table,
@@ -719,15 +714,6 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                         headerComponent={hasVisibleCategories ? headerContent : undefined}
                     />
                 )}
-                <DecisionModal
-                    title={translate('common.downloadFailedTitle')}
-                    prompt={translate('common.downloadFailedDescription')}
-                    isSmallScreenWidth={isSmallScreenWidth}
-                    onSecondOptionSubmit={() => setIsDownloadFailureModalVisible(false)}
-                    secondOptionText={translate('common.buttonConfirm')}
-                    isVisible={isDownloadFailureModalVisible}
-                    onClose={() => setIsDownloadFailureModalVisible(false)}
-                />
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>
     );

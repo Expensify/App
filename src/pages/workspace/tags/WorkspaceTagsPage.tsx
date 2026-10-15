@@ -2,7 +2,6 @@ import ActivityIndicator from '@components/ActivityIndicator';
 import Button from '@components/Button';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
-import DecisionModal from '@components/DecisionModal';
 import EmployeesSeeTagsAsText from '@components/EmployeesSeeTagsAsText';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ImportedFromAccountingSoftware from '@components/ImportedFromAccountingSoftware';
@@ -13,6 +12,7 @@ import type {WorkspaceTagTableRowData} from '@components/Tables/WorkspaceTagsTab
 import WorkspaceTagsTable from '@components/Tables/WorkspaceTagsTable';
 import Text from '@components/Text';
 
+import useAlertModals from '@hooks/useAlertModals';
 import useCleanupSelectedOptions from '@hooks/useCleanupSelectedOptions';
 import useConfirmModal from '@hooks/useConfirmModal';
 import useEnvironment from '@hooks/useEnvironment';
@@ -100,16 +100,14 @@ function getPendingAction(policyTagList: PolicyTagList): PendingAction | undefin
 }
 
 function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
-    // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to use the correct modal type for the decision modal
-    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
-    const {shouldUseNarrowLayout, isSmallScreenWidth, isInLandscapeMode} = useResponsiveLayout();
+    const {shouldUseNarrowLayout, isInLandscapeMode} = useResponsiveLayout();
     const {pageGutter} = useLayoutSpacing();
     const styles = useThemeStyles();
     const {translate, formatPhoneNumber} = useLocalize();
     const {isBetaEnabledOrUnknown} = usePermissions();
     const isVendorMatchingBetaEnabled = isBetaEnabledOrUnknown(CONST.BETAS.VENDOR_MATCHING);
     const {showConfirmModal} = useConfirmModal();
-    const [isDownloadFailureModalVisible, setIsDownloadFailureModalVisible] = useState(false);
+    const {showDownloadErrorModal} = useAlertModals();
     const {backTo, policyID} = route.params;
     const policyData = usePolicyData(policyID);
     const {policy, tags: policyTags} = policyData;
@@ -510,22 +508,9 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                     }
                     close(() => {
                         if (isMultiLevelTags) {
-                            downloadMultiLevelTagsCSV(
-                                policyID,
-                                () => {
-                                    setIsDownloadFailureModalVisible(true);
-                                },
-                                hasDependentTags,
-                                translate,
-                            );
+                            downloadMultiLevelTagsCSV(policyID, showDownloadErrorModal, hasDependentTags, translate);
                         } else {
-                            downloadTagsCSV(
-                                policyID,
-                                () => {
-                                    setIsDownloadFailureModalVisible(true);
-                                },
-                                translate,
-                            );
+                            downloadTagsCSV(policyID, showDownloadErrorModal, translate);
                         }
                     });
                 },
@@ -547,6 +532,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
         hasDependentTags,
         expensifyIcons,
         showConfirmModal,
+        showDownloadErrorModal,
         canWriteTags,
     ]);
 
@@ -771,77 +757,66 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
     };
 
     return (
-        <>
-            <AccessOrNotFoundWrapper
-                policyID={policyID}
-                accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
-                featureName={CONST.POLICY.MORE_FEATURES.ARE_TAGS_ENABLED}
-                policyFeature={CONST.POLICY.POLICY_FEATURE.TAGS}
+        <AccessOrNotFoundWrapper
+            policyID={policyID}
+            accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
+            featureName={CONST.POLICY.MORE_FEATURES.ARE_TAGS_ENABLED}
+            policyFeature={CONST.POLICY.POLICY_FEATURE.TAGS}
+        >
+            <ScreenWrapper
+                enableEdgeToEdgeBottomSafeAreaPadding
+                shouldEnableMaxHeight
+                style={[styles.defaultModalContainer]}
+                testID="WorkspaceTagsPage"
+                shouldShowOfflineIndicatorInWideScreen
+                offlineIndicatorStyle={styles.mtAuto}
             >
-                <ScreenWrapper
-                    enableEdgeToEdgeBottomSafeAreaPadding
-                    shouldEnableMaxHeight
-                    style={[styles.defaultModalContainer]}
-                    testID="WorkspaceTagsPage"
-                    shouldShowOfflineIndicatorInWideScreen
-                    offlineIndicatorStyle={styles.mtAuto}
+                <HeaderWithBackButton
+                    shouldUseHeadlineHeader={!selectionModeHeader}
+                    title={translate(selectionModeHeader ? 'common.selectMultiple' : 'workspace.common.tags')}
+                    shouldShowBackButton={shouldUseNarrowLayout}
+                    shouldDisplayHelpButton
+                    onBackButtonPress={() => {
+                        if (isMobileSelectionModeEnabled) {
+                            clearTableSelection();
+                            turnOffMobileSelectionMode();
+                            return;
+                        }
+
+                        if (backTo) {
+                            Navigation.goBack(backTo);
+                            return;
+                        }
+
+                        Navigation.goBack();
+                    }}
                 >
-                    <HeaderWithBackButton
-                        shouldUseHeadlineHeader={!selectionModeHeader}
-                        title={translate(selectionModeHeader ? 'common.selectMultiple' : 'workspace.common.tags')}
-                        shouldShowBackButton={shouldUseNarrowLayout}
-                        shouldDisplayHelpButton
-                        onBackButtonPress={() => {
-                            if (isMobileSelectionModeEnabled) {
-                                clearTableSelection();
-                                turnOffMobileSelectionMode();
-                                return;
-                            }
-
-                            if (backTo) {
-                                Navigation.goBack(backTo);
-                                return;
-                            }
-
-                            Navigation.goBack();
-                        }}
-                    >
-                        {!shouldDisplayButtonsInSeparateLine && getHeaderButtons()}
-                    </HeaderWithBackButton>
-                    {shouldDisplayButtonsInSeparateLine && !!getHeaderButtons() && <View style={pageGutter}>{getHeaderButtons()}</View>}
-                    {(!hasVisibleTags || isLoading) && headerContent}
-                    {isLoading && (
-                        <ActivityIndicator
-                            size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
-                            style={[styles.flex1]}
-                        />
-                    )}
-                    {!isLoading && (
-                        <WorkspaceTagsTable
-                            tags={tagRows}
-                            selectionEnabled={isSelectionEnabled}
-                            selectedKeys={selectedTagKeys}
-                            isMultiLevelTags={isMultiLevelTags}
-                            hasDependentTags={hasDependentTags}
-                            shouldShowApproverColumn={shouldShowApproverColumn}
-                            shouldShowGLCodeColumn={shouldShowGLCodeColumn}
-                            emptyState={tagsTableEmptyState}
-                            onRowSelectionChange={setSelectedTagKeys}
-                            headerComponent={hasVisibleTags ? headerContent : undefined}
-                        />
-                    )}
-                </ScreenWrapper>
-            </AccessOrNotFoundWrapper>
-            <DecisionModal
-                title={translate('common.downloadFailedTitle')}
-                prompt={translate('common.downloadFailedDescription')}
-                isSmallScreenWidth={isSmallScreenWidth}
-                onSecondOptionSubmit={() => setIsDownloadFailureModalVisible(false)}
-                secondOptionText={translate('common.buttonConfirm')}
-                isVisible={isDownloadFailureModalVisible}
-                onClose={() => setIsDownloadFailureModalVisible(false)}
-            />
-        </>
+                    {!shouldDisplayButtonsInSeparateLine && getHeaderButtons()}
+                </HeaderWithBackButton>
+                {shouldDisplayButtonsInSeparateLine && !!getHeaderButtons() && <View style={pageGutter}>{getHeaderButtons()}</View>}
+                {(!hasVisibleTags || isLoading) && headerContent}
+                {isLoading && (
+                    <ActivityIndicator
+                        size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
+                        style={[styles.flex1]}
+                    />
+                )}
+                {!isLoading && (
+                    <WorkspaceTagsTable
+                        tags={tagRows}
+                        selectionEnabled={isSelectionEnabled}
+                        selectedKeys={selectedTagKeys}
+                        isMultiLevelTags={isMultiLevelTags}
+                        hasDependentTags={hasDependentTags}
+                        shouldShowApproverColumn={shouldShowApproverColumn}
+                        shouldShowGLCodeColumn={shouldShowGLCodeColumn}
+                        emptyState={tagsTableEmptyState}
+                        onRowSelectionChange={setSelectedTagKeys}
+                        headerComponent={hasVisibleTags ? headerContent : undefined}
+                    />
+                )}
+            </ScreenWrapper>
+        </AccessOrNotFoundWrapper>
     );
 }
 
