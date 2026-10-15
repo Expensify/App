@@ -1,6 +1,6 @@
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {createMoveExpenseReportNVPSelector, getStableReportSelector, policyChatRoomsSelector, policyExpenseChatSelector} from '@src/selectors/Report';
+import {createMoveExpenseReportNVPSelector, getReportHasParentAccess, getStableReportSelector, policyChatRoomsSelector, policyExpenseChatSelector} from '@src/selectors/Report';
 import type {Report} from '@src/types/onyx';
 
 describe('policyChatRoomsSelector', () => {
@@ -157,6 +157,7 @@ describe('getStableReportSelector', () => {
         expect(getStableReportSelector({reportID: '1'} as Report)?.permissions).toBeUndefined();
     });
 });
+
 describe('policyExpenseChatSelector', () => {
     const REPORT_KEY_PREFIX = ONYXKEYS.COLLECTION.REPORT;
     const ownerAccountID = 1;
@@ -225,5 +226,28 @@ describe('policyExpenseChatSelector', () => {
 
     it('returns undefined when reports is undefined', () => {
         expect(policyExpenseChatSelector(ownerAccountID, policyID)(undefined)).toBeUndefined();
+    });
+});
+
+describe('getReportHasParentAccess', () => {
+    it('returns the hasParentAccess value of the report', () => {
+        // Given reports with and without parent access
+        const reportWithAccess = {reportID: '1', hasParentAccess: true} as Report;
+        const reportWithoutAccess = {reportID: '2', hasParentAccess: false} as Report;
+
+        // When the selector reads them
+        // Then it returns the raw flag, so callers can tell an explicit `false` apart from a missing value
+        expect(getReportHasParentAccess(reportWithAccess)).toBe(true);
+        expect(getReportHasParentAccess(reportWithoutAccess)).toBe(false);
+    });
+
+    it('returns undefined when the report or the flag is missing', () => {
+        // Given a missing report and a report without the hasParentAccess field
+        const reportWithoutFlag = {reportID: '1'} as Report;
+
+        // When the selector reads them
+        // Then it returns undefined, which ParentNavigationSubtitle treats as having access
+        expect(getReportHasParentAccess(undefined)).toBeUndefined();
+        expect(getReportHasParentAccess(reportWithoutFlag)).toBeUndefined();
     });
 });
