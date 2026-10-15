@@ -7,7 +7,7 @@ import type {Country} from '@src/CONST';
 import CONST from '@src/CONST';
 import INPUT_IDS from '@src/types/form/HomeAddressForm';
 
-import React from 'react';
+import React, {useState} from 'react';
 import {View} from 'react-native';
 
 import AddressSearch from './AddressSearch';
@@ -42,6 +42,18 @@ type AddressFieldsProps = {
 function AddressFields({street1, street2, city, state, zip, defaultCountry, country}: AddressFieldsProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const [stateValue, setStateValue] = useState(state ?? '');
+
+    // A state from another country isn't valid for the new one
+    const updateState = (value: unknown, key: unknown) => {
+        if (key === INPUT_IDS.COUNTRY && value !== country) {
+            setStateValue('');
+            return;
+        }
+        if (key === INPUT_IDS.STATE) {
+            setStateValue(value as string);
+        }
+    };
 
     return (
         <>
@@ -50,6 +62,7 @@ function AddressFields({street1, street2, city, state, zip, defaultCountry, coun
                 inputID={INPUT_IDS.ADDRESS_LINE_1}
                 label={translate('common.addressLine', 1)}
                 defaultValue={street1}
+                onValueChange={updateState}
                 renamedInputKeys={{
                     street: INPUT_IDS.ADDRESS_LINE_1,
                     street2: INPUT_IDS.ADDRESS_LINE_2,
@@ -77,6 +90,7 @@ function AddressFields({street1, street2, city, state, zip, defaultCountry, coun
                     InputComponent={CountryPicker}
                     inputID={INPUT_IDS.COUNTRY}
                     defaultValue={defaultCountry}
+                    onValueChange={updateState}
                 />
             </View>
             <View style={styles.formSpaceVertical} />
@@ -85,7 +99,8 @@ function AddressFields({street1, street2, city, state, zip, defaultCountry, coun
                     <InputWrapper
                         InputComponent={StatePicker}
                         inputID={INPUT_IDS.STATE}
-                        defaultValue={state}
+                        value={stateValue}
+                        onValueChange={updateState}
                     />
                 </View>
             ) : (
@@ -95,7 +110,8 @@ function AddressFields({street1, street2, city, state, zip, defaultCountry, coun
                     label={translate('common.stateOrProvince')}
                     aria-label={translate('common.stateOrProvince')}
                     role={CONST.ROLE.PRESENTATION}
-                    defaultValue={state}
+                    value={stateValue}
+                    onValueChange={updateState}
                     spellCheck={false}
                 />
             )}
