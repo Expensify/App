@@ -75,6 +75,7 @@ import {
     getUpdatedCommuterExclusionsMessage,
     getUpdatedMemberWorkArrangementMessage,
     getUpdatedCardFeedLiabilityMessage,
+    getUpdatedCardFeedReimbursableMessage,
     getUpdatedCardFeedStatementPeriodMessage,
     getUpdatedOfficeLocationMessage,
     hasNextActionMadeBySameActor,
@@ -5145,6 +5146,38 @@ describe('ReportActionsUtils', () => {
             } as ReportAction;
             const result = getUpdatedCardFeedStatementPeriodMessage(translateLocal, action);
             expect(result).toBe('changed card feed "Mastercard" statement period end day to "Last business day of the month" (previously "Last day of the month")');
+        });
+    });
+
+    describe('getUpdatedCardFeedReimbursableMessage', () => {
+        it('should translate force and default values', () => {
+            const action = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CARD_FEED_REIMBURSABLE,
+                reportActionID: '1',
+                created: '',
+                originalMessage: {
+                    feedName: 'Visa Commercial',
+                    forceReimbursable: CONST.COMPANY_CARDS.FEED_REIMBURSABLE.FORCE_YES,
+                    previousForceReimbursable: CONST.COMPANY_CARDS.FEED_REIMBURSABLE.DEFAULT_NO,
+                },
+            } as ReportAction;
+            const result = getUpdatedCardFeedReimbursableMessage(translateLocal, action);
+            expect(result).toBe('changed card feed "Visa Commercial" reimbursable setting to "Always reimbursable" (previously "Non-reimbursable")');
+        });
+
+        it('should show legacy none as Non-reimbursable', () => {
+            const action = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CARD_FEED_REIMBURSABLE,
+                reportActionID: '1',
+                created: '',
+                originalMessage: {
+                    feedName: 'Mastercard',
+                    forceReimbursable: CONST.COMPANY_CARDS.FEED_REIMBURSABLE.FORCE_NO,
+                    previousForceReimbursable: 'none',
+                },
+            } as ReportAction;
+            const result = getUpdatedCardFeedReimbursableMessage(translateLocal, action);
+            expect(result).toBe('changed card feed "Mastercard" reimbursable setting to "Always non-reimbursable" (previously "Non-reimbursable")');
         });
     });
 

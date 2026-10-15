@@ -4492,6 +4492,31 @@ function getUpdatedCardFeedStatementPeriodMessage(translate: LocalizedTranslate,
     return getReportActionText(reportAction);
 }
 
+function formatFeedReimbursable(translate: LocalizedTranslate, value?: string): string | undefined {
+    if (!value) {
+        return undefined;
+    }
+    if (value === CONST.COMPANY_CARDS.FEED_REIMBURSABLE_LEGACY_NONE) {
+        return translate(`workspace.companyCards.reimbursable.${CONST.COMPANY_CARDS.FEED_REIMBURSABLE.DEFAULT_NO}`);
+    }
+    return translate(`workspace.companyCards.reimbursable.${value}`);
+}
+
+function getUpdatedCardFeedReimbursableMessage(translate: LocalizedTranslate, reportAction: OnyxEntry<ReportAction>): string {
+    if (!isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CARD_FEED_REIMBURSABLE)) {
+        return '';
+    }
+    const originalMessage = getOriginalMessage(reportAction);
+    const feedName = originalMessage?.feedName;
+    const newValue = formatFeedReimbursable(translate, originalMessage?.forceReimbursable);
+    const previousValue = formatFeedReimbursable(translate, originalMessage?.previousForceReimbursable) ?? '';
+
+    if (feedName && newValue && previousValue) {
+        return translate('workspaceActions.updatedCardFeedReimbursable', feedName, newValue, previousValue);
+    }
+    return getReportActionText(reportAction);
+}
+
 function getRenamedAction(translate: LocalizedTranslate, reportAction: OnyxEntry<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.RENAMED>>, isExpenseReport: boolean, actorName?: string) {
     const originalMessage = getOriginalMessage(reportAction);
     return translate('newRoomPage.renamedRoomAction', originalMessage?.oldName ?? '', originalMessage?.newName ?? '', isExpenseReport, actorName);
@@ -5696,6 +5721,7 @@ export {
     getUnassignedCompanyCardMessage,
     getUpdatedCardFeedLiabilityMessage,
     getUpdatedCardFeedStatementPeriodMessage,
+    getUpdatedCardFeedReimbursableMessage,
     getWorkspaceCustomUnitRateUpdatedMessage,
     getTagListNameUpdatedMessage,
     getTagListUpdatedMessage,

@@ -749,6 +749,12 @@ type OriginalMessagePolicyChangeLog = {
     /** Previous statement period end day for a company card feed */
     previousStatementPeriodEndDay?: string;
 
+    /** Reimbursable setting of a company card feed */
+    forceReimbursable?: string;
+
+    /** Previous reimbursable setting of a company card feed */
+    previousForceReimbursable?: string;
+
     /** Whether the user joined the workspace via joining link */
     didJoinPolicy?: boolean;
 
