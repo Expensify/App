@@ -2,6 +2,7 @@ import UserAvatar from '@components/Avatar/UserAvatar';
 import Button from '@components/Button';
 import ButtonDisabledWhenOffline from '@components/Button/composed/ButtonDisabledWhenOffline';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import Icon from '@components/Icon';
 import getBankIcon from '@components/Icon/BankIcons';
 import {useLockedAccountActions, useLockedAccountState} from '@components/LockedAccountModalProvider';
 import MenuItem from '@components/MenuItem';
@@ -529,16 +530,22 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
                                             {translate('common.bankAccounts')}
                                         </Text>
                                     </View>
-                                    <MenuItem
-                                        title={memberBankName}
-                                        description={memberBankAccount.bankAccountLastFour}
-                                        icon={memberBankIcon.icon}
-                                        iconHeight={memberBankIcon.iconSize}
-                                        iconWidth={memberBankIcon.iconSize}
-                                        iconStyles={memberBankIcon.iconStyles}
-                                        displayInDefaultIconColor
-                                        interactive={false}
-                                    />
+                                    <MenuItem.Root>
+                                        <MenuItem.Row>
+                                            <MenuItem.Leading>
+                                                <Icon
+                                                    src={memberBankIcon.icon}
+                                                    width={memberBankIcon.iconSize}
+                                                    height={memberBankIcon.iconSize}
+                                                    additionalStyles={memberBankIcon.iconStyles}
+                                                />
+                                            </MenuItem.Leading>
+                                            <MenuItem.Content>
+                                                <MenuItem.Title>{memberBankName}</MenuItem.Title>
+                                                <MenuItem.Description>{memberBankAccount.bankAccountLastFour}</MenuItem.Description>
+                                            </MenuItem.Content>
+                                        </MenuItem.Row>
+                                    </MenuItem.Root>
                                 </>
                             )}
                         </View>
