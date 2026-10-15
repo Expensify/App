@@ -21,6 +21,7 @@ import useOnyx from '@hooks/useOnyx';
 import useOriginalReportID from '@hooks/useOriginalReportID';
 import {usePersonalDetail} from '@hooks/usePersonalDetails';
 import useReportsParentHierarchy from '@hooks/useReportsParentHierarchy';
+import useReportTransactions from '@hooks/useReportTransactions';
 import useReportTransactionsCollection from '@hooks/useReportTransactionsCollection';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -202,6 +203,8 @@ function ReportActionItem({
     const transactionsOnIOUReport = useReportTransactionsCollection(iouReport?.reportID);
     const transactionsOnReportCollection = useReportTransactionsCollection(report?.reportID);
     const transactionsOnReport = Object.values(transactionsOnReportCollection);
+    const iouReportID = isMoneyRequestAction(action) ? action?.reportID : undefined;
+    const transactionsOnActionReport = useReportTransactions(iouReportID);
     const IOUOriginalMessage = isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.IOU) ? getOriginalMessage(action) : undefined;
     const transactionID = isMoneyRequestAction(action) && IOUOriginalMessage?.IOUTransactionID;
     const isACHPaymentAction = IOUOriginalMessage?.type === CONST.IOU.REPORT_ACTION_TYPE.PAY && IOUOriginalMessage.paymentType === CONST.IOU.PAYMENT_TYPE.VBBA;
@@ -530,8 +533,7 @@ function ReportActionItem({
 
     const whisperedTo = getWhisperedTo(action);
 
-    const iouReportID = isMoneyRequestAction(action) ? action?.reportID : undefined;
-    const isWhisper = whisperedTo.length > 0 && getTransactionsWithReceipts(iouReportID).length === 0;
+    const isWhisper = whisperedTo.length > 0 && getTransactionsWithReceipts(transactionsOnActionReport).length === 0;
 
     const isClosedExpenseReportWithNoExpenses = isClosedExpenseReportWithNoExpensesUtils(iouReport, transactionsOnIOUReport);
     const isEmpty = !shouldRenderViewBasedOnAction && !isClosedExpenseReportWithNoExpenses;
