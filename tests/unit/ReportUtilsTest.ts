@@ -21182,7 +21182,8 @@ describe('ReportUtils', () => {
                 };
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${selfDM.reportID}`, selfDM);
                 const trackAction = buildIOUAction('710003', CONST.IOU.REPORT_ACTION_TYPE.TRACK);
-                const trackTransaction = buildTransaction('710003', CONST.REPORT.UNREPORTED_REPORT_ID, 'Taxi');
+                // Unreported transactions store the amount with the opposite sign, like expense reports
+                const trackTransaction = {...buildTransaction('710003', CONST.REPORT.UNREPORTED_REPORT_ID, 'Taxi'), amount: -1000};
 
                 // When the preview is built with the transaction passed in
                 const result = getReportPreviewMessage(englishTranslate, convertToDisplayString, {
