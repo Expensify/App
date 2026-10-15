@@ -290,6 +290,21 @@ type WiseBusinessOnboarding = {
         /** The representative has no SSN or ITIN, so Wise's hosted page collects their ID and liveness */
         noSSN?: boolean;
     };
+
+    /** Answers to Wise's KYC requirements, keyed by requirement and in Wise's field names so Submit forwards them as they are */
+    requirements?: {
+        /** Asked before Submit when a chosen industry is high risk */
+        BUSINESS_SOURCE_OF_WEALTH?: {
+            sourceOfWealthList: string[];
+            otherSourceOfWealthDescription?: string;
+        };
+    } & Record<string, unknown>;
+
+    /** S3 keys of the files we collected ourselves, keyed by the requirement each answers */
+    documents?: {
+        ID_DOCUMENT?: string[];
+        BUSINESS_SOURCE_OF_WEALTH_PROOF?: string[];
+    } & Record<string, string[] | undefined>;
 };
 
 /** The step in an reimbursement account's ach data */

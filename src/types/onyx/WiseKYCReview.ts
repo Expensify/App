@@ -3,6 +3,7 @@ import type CONST from '@src/CONST';
 import type {ValueOf} from 'type-fest';
 
 import type {DynamicFormField} from './DynamicFormField';
+import type {Errors} from './OnyxCommon';
 
 /** One thing Wise still needs on the business's KYC review, as the server builds it from the live review. Never stored. */
 type WiseKYCRequirement = {
@@ -21,10 +22,15 @@ type WiseKYCRequirement = {
 
 /** A fresh link to Wise's embedded KYC page. Its fragment carries a token, so it is never stored or logged. */
 type WiseKYCReviewEmbeddedLink = {
-    url: string;
+    url?: string;
 
     /** When the link stops working, ISO 8601 */
-    expiresAt: string;
+    expiresAt?: string;
+
+    /** Set while the link is being requested */
+    isLoading?: boolean;
+
+    errors?: Errors;
 };
 
 export type {WiseKYCRequirement, WiseKYCReviewEmbeddedLink};
