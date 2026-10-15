@@ -48,7 +48,7 @@
 - Reason: Browser Back on an open modal should close only the modal. A modal adds a string entry to the root history. When Back pops that entry, `useLinking` dispatched `goBack()`, which the focused right panel stack handled by popping its page. The patch resets to the saved state for that entry instead, so only the modal closes.
 - Upstream PR/issue: N/A
 - E/App issue: [#103878](https://github.com/Expensify/App/issues/103878)
-- PR Introducing Patch: [#104055](https://github.com/Expensify/App/pull/104055)
+- PR Introducing Patch: TBD
 - PR Updating Patch: N/A
 
 ### [@react-navigation+stack+7.11.2+001+edge-drag-gesture.patch](@react-navigation+stack+7.11.2+001+edge-drag-gesture.patch)
