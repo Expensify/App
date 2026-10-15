@@ -1103,9 +1103,7 @@ function setWorkspaceTimezone(policyID: string, timeZone: string, currentTimeZon
 
     const params: SetWorkspaceTimezoneParams = {policyID, timeZone};
 
-    // TODO: Replace with API.write once the command from https://github.com/Expensify/Web-Expensify/pull/56864 is deployed. Until then the change only applies locally.
-    Log.info('[setWorkspaceTimezone] Command not available yet', false, {params, failureData});
-    Onyx.update([...optimisticData, ...successData]);
+    API.write(WRITE_COMMANDS.SET_WORKSPACE_TIMEZONE, params, {optimisticData, successData, failureData});
 }
 
 function setWorkspaceApprovalMode(
