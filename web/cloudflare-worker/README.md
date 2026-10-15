@@ -14,7 +14,7 @@ Every request runs the Worker first (`run_worker_first: true`), which reads the 
 | HTML (`/`, `/index.html`, any SPA deep link) | Each `<script nonce="nonce-random-value">` gets a per-request nonce that matches the CSP. `Cache-Control: no-cache`, with no `ETag` or `Last-Modified`, since a 304 would pair a cached body with a new nonce |
 | Content-hashed files (`main-<16 hex>.bundle.js`, `name.<10 hex>.css`) | `Cache-Control: public, max-age=31536000, immutable` |
 | Files with fixed names (`version.json`, `service-worker.js`, `manifest.json`, ...) | Default `public, max-age=0, must-revalidate`, with an `ETag` |
-| A file path that does not exist (`/main-<old hash>.bundle.js`) | `404`, so a stale tab gets a `ChunkLoadError` and recovers instead of parsing HTML as JavaScript |
+| A file the current build doesn't have (`/main-<old hash>.bundle.js`) | The file from a previous build, if the environment has a `PREVIOUS_BUILDS` bucket that holds it (see [Files from previous builds](#files-from-previous-builds)). Otherwise `404`, so a stale tab gets a `ChunkLoadError` and recovers instead of parsing HTML as JavaScript |
 | Any other path that does not exist (`/r/123`) | The app shell (`index.html`) with `200` |
 | `/.well-known/apple-app-site-association` and `/apple-app-site-association` | The same file with `Content-Type: application/json` |
 
@@ -121,12 +121,13 @@ To deploy one by hand, put a staging build in `dist/` and run:
 npx wrangler deploy --env test-staging
 ```
 
-Each Worker version only contains the files uploaded with it, so before deploying, CI also adds:
+CI also adds Storybook to `dist/docs` before deploying, so it is served at `/docs/index.html`.
 
-- **Files from the last 10 staging builds** that the current build no longer has (`scripts/carryForwardStagingBuilds.sh`). These are almost all old content-hashed chunks, which tabs still running an older build request after a deploy. Files from the current build are never replaced.
-- **Storybook**, into `dist/docs`, so it is served at `/docs/index.html`.
+### Files from previous builds
 
-To carry forward previous builds by hand (needs `gh`), run `./scripts/carryForwardStagingBuilds.sh 10` after putting the current build in `dist/`.
+Each Worker version only contains the files uploaded with it, but a tab still running an older build keeps requesting that build's chunks after a deploy. So every staging deploy also uploads its build (without `*.br`, `*.map` and Storybook) to the R2 bucket `new-expensify-web-assets-staging`, skipping files already there. When the current build doesn't have a file that a script or image requests, the `test-staging` and `staging` Workers look it up in that bucket (the `PREVIOUS_BUILDS` binding) and return `404` only if it isn't there either. The current build always takes priority, and navigations never read from the bucket.
+
+The bucket and its 60-day lifecycle rule are managed in Terraform. The upload uses `CLOUDFLARE_R2_WEB_ASSETS_ACCESS_KEY_ID` and `CLOUDFLARE_R2_WEB_ASSETS_SECRET_ACCESS_KEY`, an R2 token that can only read and write that bucket. `wrangler dev` uses an empty local bucket.
 
 Staging and production deploys will run `wrangler deploy --env staging|production` from CI, with `CLOUDFLARE_ACCOUNT_ID` and a scoped `CLOUDFLARE_API_TOKEN` supplied as environment secrets.
 
