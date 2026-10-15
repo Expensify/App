@@ -1252,6 +1252,7 @@ describe('IOURequestStepConfirmationPageTest', () => {
             const optimisticP2PReportID = 'optimistic-p2p-report-1';
             const transactionID = 'tx-new-p2p';
             let sendMoney: ((paymentMethod: PaymentMethodType | undefined) => void) | undefined;
+            const suppressDiscardPrompt = jest.fn();
             const originalBuildConfirmAction = ConfirmAction.default;
             const buildConfirmActionSpy = jest.spyOn(ConfirmAction, 'default').mockImplementation((params) => {
                 sendMoney = params.onSendMoney;
@@ -1297,6 +1298,7 @@ describe('IOURequestStepConfirmationPageTest', () => {
                                             },
                                         }}
                                         navigation={mockNavigation}
+                                        suppressDiscardPrompt={suppressDiscardPrompt}
                                     />
                                 </LocaleContextProvider>
                             </CurrentUserPersonalDetailsProvider>
@@ -1325,6 +1327,8 @@ describe('IOURequestStepConfirmationPageTest', () => {
                 // subscribed to the report that actually gets created
                 expect(submitWithDismissFirstSpy).toHaveBeenCalledWith(expect.objectContaining({destinationReportID: optimisticP2PReportID}));
                 expect(mockSendMoneyElsewhere).toHaveBeenCalledWith(expect.objectContaining({optimisticChatReportID: optimisticP2PReportID}));
+                expect(suppressDiscardPrompt).toHaveBeenCalledTimes(1);
+                expect(suppressDiscardPrompt.mock.invocationCallOrder[0]).toBeLessThan(mockSendMoneyElsewhere.mock.invocationCallOrder[0]);
             } finally {
                 buildConfirmActionSpy.mockRestore();
                 submitWithDismissFirstSpy.mockRestore();
@@ -2413,7 +2417,7 @@ describe('IOURequestStepConfirmationPageTest', () => {
          * Renders the body the way the manual tab composes it (inside the start page's ScreenWrapper), or the
          * standalone RHP route, which brings its own.
          */
-        async function renderConfirmation({isEmbedded, iouType = 'submit'}: {isEmbedded: boolean; iouType?: 'submit' | 'split'}) {
+        async function renderConfirmation({isEmbedded, iouType = 'submit', suppressDiscardPrompt}: {isEmbedded: boolean; iouType?: 'submit' | 'split'; suppressDiscardPrompt?: () => void}) {
             await act(async () => {
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${TRANSACTION_ID}`, {
                     ...DEFAULT_SPLIT_TRANSACTION,
@@ -2437,6 +2441,7 @@ describe('IOURequestStepConfirmationPageTest', () => {
                     }}
                     navigation={mockNavigation}
                     shouldHideHeader={isEmbedded}
+                    suppressDiscardPrompt={suppressDiscardPrompt}
                 />
             );
 
@@ -2452,6 +2457,25 @@ describe('IOURequestStepConfirmationPageTest', () => {
 
             await waitForBatchedUpdatesWithAct();
         }
+
+        it('suppresses the discard prompt before confirming an embedded expense', async () => {
+            let confirmExpense: (() => void) | undefined;
+            const suppressDiscardPrompt = jest.fn();
+            const buildConfirmActionSpy = jest.spyOn(ConfirmAction, 'default').mockImplementation((params) => {
+                confirmExpense = params.onConfirm;
+                return () => undefined;
+            });
+
+            try {
+                await renderConfirmation({isEmbedded: true, iouType: 'split', suppressDiscardPrompt});
+
+                act(() => confirmExpense?.());
+
+                expect(suppressDiscardPrompt).toHaveBeenCalledTimes(1);
+            } finally {
+                buildConfirmActionSpy.mockRestore();
+            }
+        });
 
         it('mounts no ScreenWrapper of its own when embedded, so the start page keeps sole ownership of the focus trap', async () => {
             // Given the body composed the way the manual tab composes it, inside the start page's ScreenWrapper
