@@ -7292,6 +7292,22 @@ describe('actions/Policy', () => {
             const updatedPolicy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
             expect(updatedPolicy?.employeeList?.[employeeLogin]?.[CONST.CUSTOM_FIELD_KEYS[customFieldType]]).toBe(initialValue);
         });
+
+        it('should not call the API when the member login is empty', async () => {
+            // Given a member page that could not find the member login, so it passes an empty login
+            const policyID = '1';
+            const apiWriteSpy = jest.spyOn(APIModule, 'write').mockImplementation(() => Promise.resolve());
+
+            // When updateMemberCustomField is called with that empty login
+            Policy.updateMemberCustomField(policyID, '', 'customField1', 'San Francisco', undefined);
+            await waitForBatchedUpdates();
+
+            // Then no request is sent, because the backend rejects an empty email, and no employee is written under an empty key
+            expect(apiWriteSpy).not.toHaveBeenCalled();
+            const updatedPolicy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
+            expect(updatedPolicy?.employeeList?.['']).toBeUndefined();
+            apiWriteSpy.mockRestore();
+        });
     });
 
     describe('setWorkspaceDefaultSpendCategory', () => {
