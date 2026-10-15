@@ -1,8 +1,10 @@
 import Button from '@components/Button';
+import CollapsibleHeaderOnKeyboard from '@components/CollapsibleHeaderOnKeyboard';
 import FormHelpMessage from '@components/FormHelpMessage';
 import MenuItem from '@components/MenuItem';
 import OnboardingHeader from '@components/OnboardingHeader';
 import ScreenWrapper from '@components/ScreenWrapper';
+import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 
@@ -23,9 +25,10 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 
-import React, {useState} from 'react';
+import type {ComponentRef} from 'react';
+
+import React, {useRef, useState} from 'react';
 import {View} from 'react-native';
-import {ScrollView} from 'react-native-gesture-handler';
 
 import type {BaseOnboardingPersonalTrackGoalProps} from './types';
 
@@ -34,10 +37,12 @@ const personalTrackGoalOptions = Object.values(CONST.ONBOARDING_PERSONAL_TRACK_G
 function BaseOnboardingPersonalTrackGoal({shouldUseNativeStyles, route}: BaseOnboardingPersonalTrackGoalProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {onboardingIsMediumOrLargerScreenWidth} = useResponsiveLayout();
+    const {onboardingIsMediumOrLargerScreenWidth, isInLandscapeMode} = useResponsiveLayout();
     const [selectedGoalOverride, setSelectedGoalOverride] = useState<string | null>(null);
     const [somethingElseTextOverride, setSomethingElseTextOverride] = useState<string | null>(null);
     const [inputError, setInputError] = useState('');
+    const [shouldScrollToSomethingElseInput, setShouldScrollToSomethingElseInput] = useState(false);
+    const scrollViewRef = useRef<ComponentRef<typeof ScrollView>>(null);
     const illustrations = useMemoizedLazyIllustrations(['RealEstate', 'HouseMoney', 'TargetWithArrow', 'Binoculars']);
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Checkmark']);
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
@@ -73,6 +78,15 @@ function BaseOnboardingPersonalTrackGoal({shouldUseNativeStyles, route}: BaseOnb
         completeTrackGoalSelection(somethingElseText.trim());
     };
 
+    const handleContentSizeChange = () => {
+        if (!shouldScrollToSomethingElseInput) {
+            return;
+        }
+
+        scrollViewRef.current?.scrollToEnd({animated: false});
+        setShouldScrollToSomethingElseInput(false);
+    };
+
     const menuIcons = {
         [CONST.ONBOARDING_PERSONAL_TRACK_GOALS.INVESTMENT_TRACKING]: illustrations.RealEstate,
         [CONST.ONBOARDING_PERSONAL_TRACK_GOALS.HOUSEHOLD_TRACKING]: illustrations.HouseMoney,
@@ -82,93 +96,100 @@ function BaseOnboardingPersonalTrackGoal({shouldUseNativeStyles, route}: BaseOnb
 
     const paddingHorizontal = onboardingIsMediumOrLargerScreenWidth ? styles.ph8 : styles.ph5;
 
+    const continueButton = (
+        <View style={[styles.w100, styles.mb5, styles.mh0, !isInLandscapeMode ? paddingHorizontal : undefined]}>
+            <Button
+                variant={CONST.BUTTON_VARIANT.SUCCESS}
+                size={CONST.BUTTON_SIZE.LARGE}
+                onPress={submitSomethingElseGoal}
+            >
+                <Button.KeyboardShortcut />
+                <Button.Text>{translate('common.continue')}</Button.Text>
+            </Button>
+        </View>
+    );
+
     return (
         <ScreenWrapper
             testID="BaseOnboardingPersonalTrackGoal"
             style={[styles.defaultModalContainer, shouldUseNativeStyles && styles.pt8]}
         >
-            <OnboardingHeader
-                shouldShowBackButton
-                onBackButtonPress={() => {
-                    Navigation.goBack(ROUTES.ONBOARDING_PURPOSE.getRoute(route.params?.backTo));
-                }}
-            />
+            <CollapsibleHeaderOnKeyboard>
+                <OnboardingHeader
+                    shouldShowBackButton
+                    onBackButtonPress={() => {
+                        Navigation.goBack(ROUTES.ONBOARDING_PURPOSE.getRoute(route.params?.backTo));
+                    }}
+                />
+            </CollapsibleHeaderOnKeyboard>
             <ScrollView
+                ref={scrollViewRef}
                 style={[styles.flex1, styles.flexGrow1, onboardingIsMediumOrLargerScreenWidth && styles.mt5, paddingHorizontal]}
+                onContentSizeChange={handleContentSizeChange}
                 keyboardShouldPersistTaps="handled"
             >
-                <View style={styles.flex1}>
-                    <View style={[onboardingIsMediumOrLargerScreenWidth ? styles.flexRow : styles.flexColumn, styles.mb5]}>
-                        <Text
-                            style={styles.textHeadlineH1}
-                            accessibilityRole={CONST.ROLE.HEADER}
-                        >
-                            {translate('onboarding.personalTrackGoal.title')}
-                        </Text>
-                    </View>
-                    {personalTrackGoalOptions.map((goal) => {
-                        const translationKey = `onboarding.personalTrackGoal.${goal}` as const;
-                        const isSelected = goal === selectedGoal;
-                        return (
-                            <MenuItem
-                                key={translationKey}
-                                title={translate(translationKey)}
-                                icon={menuIcons[goal]}
-                                displayInDefaultIconColor
-                                iconWidth={variables.menuIconSize}
-                                iconHeight={variables.menuIconSize}
-                                iconStyles={[styles.mh3]}
-                                wrapperStyle={[styles.purposeMenuItem, isSelected && styles.activeComponentBG]}
-                                numberOfLinesTitle={0}
-                                shouldShowRightIcon={isSelected}
-                                iconRight={expensifyIcons.Checkmark}
-                                success={isSelected}
-                                shouldRemoveHoverBackground={isSelected}
-                                onPress={() => {
-                                    setSelectedGoalOverride(goal);
-                                    setInputError('');
-                                    if (goal !== CONST.ONBOARDING_PERSONAL_TRACK_GOALS.SOMETHING_ELSE) {
-                                        completeTrackGoalSelection(goal);
-                                    }
-                                }}
-                            />
-                        );
-                    })}
-                    {isSomethingElseSelected && (
-                        <View style={styles.mt4}>
-                            <TextInput
-                                autoFocus
-                                accessibilityLabel={translate('onboarding.personalTrackGoal.somethingElsePlaceholder')}
-                                label={translate('onboarding.personalTrackGoal.somethingElsePlaceholder')}
-                                value={somethingElseText}
-                                onChangeText={(text) => {
-                                    setSomethingElseTextOverride(text);
-                                    setInputError('');
-                                }}
-                            />
-                            {!!inputError && (
-                                <FormHelpMessage
-                                    style={[styles.ph1, styles.mt2]}
-                                    isError
-                                    message={inputError}
-                                />
-                            )}
-                        </View>
-                    )}
-                </View>
-            </ScrollView>
-            {isSomethingElseSelected && (
-                <View style={[styles.w100, styles.mb5, styles.mh0, paddingHorizontal]}>
-                    <Button
-                        variant={CONST.BUTTON_VARIANT.SUCCESS}
-                        size={CONST.BUTTON_SIZE.LARGE}
-                        onPress={submitSomethingElseGoal}
+                <View style={[onboardingIsMediumOrLargerScreenWidth ? styles.flexRow : styles.flexColumn, styles.mb5]}>
+                    <Text
+                        style={styles.textHeadlineH1}
+                        accessibilityRole={CONST.ROLE.HEADER}
                     >
-                        <Button.KeyboardShortcut />
-                        <Button.Text>{translate('common.continue')}</Button.Text>
-                    </Button>
+                        {translate('onboarding.personalTrackGoal.title')}
+                    </Text>
                 </View>
-            )}
+                {personalTrackGoalOptions.map((goal) => {
+                    const translationKey = `onboarding.personalTrackGoal.${goal}` as const;
+                    const isSelected = goal === selectedGoal;
+                    return (
+                        <MenuItem
+                            key={translationKey}
+                            title={translate(translationKey)}
+                            icon={menuIcons[goal]}
+                            displayInDefaultIconColor
+                            iconWidth={variables.menuIconSize}
+                            iconHeight={variables.menuIconSize}
+                            iconStyles={[styles.mh3]}
+                            wrapperStyle={[styles.purposeMenuItem, isSelected && styles.activeComponentBG]}
+                            numberOfLinesTitle={0}
+                            shouldShowRightIcon={isSelected}
+                            iconRight={expensifyIcons.Checkmark}
+                            success={isSelected}
+                            shouldRemoveHoverBackground={isSelected}
+                            onPress={() => {
+                                setSelectedGoalOverride(goal);
+                                setInputError('');
+                                setShouldScrollToSomethingElseInput(goal === CONST.ONBOARDING_PERSONAL_TRACK_GOALS.SOMETHING_ELSE);
+                                if (goal !== CONST.ONBOARDING_PERSONAL_TRACK_GOALS.SOMETHING_ELSE) {
+                                    completeTrackGoalSelection(goal);
+                                }
+                            }}
+                        />
+                    );
+                })}
+                {isSomethingElseSelected && (
+                    <View style={[styles.mt4, styles.mb5]}>
+                        <TextInput
+                            autoFocus
+                            accessibilityLabel={translate('onboarding.personalTrackGoal.somethingElsePlaceholder')}
+                            label={translate('onboarding.personalTrackGoal.somethingElsePlaceholder')}
+                            value={somethingElseText}
+                            onChangeText={(text) => {
+                                setSomethingElseTextOverride(text);
+                                setInputError('');
+                            }}
+                        />
+                        {!!inputError && (
+                            <FormHelpMessage
+                                style={[styles.ph1, styles.mt2]}
+                                isError
+                                message={inputError}
+                            />
+                        )}
+                    </View>
+                )}
+
+                {isSomethingElseSelected && isInLandscapeMode && continueButton}
+            </ScrollView>
+            {isSomethingElseSelected && !isInLandscapeMode && continueButton}
         </ScreenWrapper>
     );
 }
