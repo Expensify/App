@@ -182,11 +182,7 @@ const buildReport = (reportOnlyFields: OnyxTypes.PolicyReportField[] = []): Onyx
     total: 0,
 });
 
-const renderReportFields = async (
-    fieldCount: number,
-    extraFields: OnyxTypes.PolicyReportField[] = [],
-    reportOnlyFields: OnyxTypes.PolicyReportField[] = [],
-) => {
+const renderReportFields = async (fieldCount: number, extraFields: OnyxTypes.PolicyReportField[] = [], reportOnlyFields: OnyxTypes.PolicyReportField[] = []) => {
     const policy = buildPolicy(fieldCount, extraFields);
     const report = buildReport(reportOnlyFields);
 
@@ -560,9 +556,11 @@ describe('MoneyRequestViewReportFields', () => {
     it('shows a delete button on a deleted date field even when its copy on the report is not deletable', async () => {
         // Given a report holding a date field the admin has since deleted from the workspace, whose copy on the report
         // is flagged as not deletable
-        await renderReportFields(1, [], [
-            {...buildDeletedField(), name: 'DeletedDateField', fieldID: 'deletedDateField', type: CONST.REPORT_FIELD_TYPES.DATE, value: '2026-10-01', deletable: false},
-        ]);
+        await renderReportFields(
+            1,
+            [],
+            [{...buildDeletedField(), name: 'DeletedDateField', fieldID: 'deletedDateField', type: CONST.REPORT_FIELD_TYPES.DATE, value: '2026-10-01', deletable: false}],
+        );
 
         // When the fields are rendered
         // Then it still carries a delete button, because the field is gone from the workspace and there is no other
