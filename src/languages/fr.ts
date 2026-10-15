@@ -3961,6 +3961,11 @@ ${amount} pour ${merchant} - ${date}`,
                 `<strong>${delegate}</strong> n'est pas membre des espaces de travail ci-dessous. Les administrateurs des espaces de travail que vous ne gérez pas seront invités à l'ajouter. Voulez-vous l'inviter dès maintenant à ceux dont vous êtes administrateur ?`,
             youAreAMemberOf: 'Vous êtes membre de ces espaces de travail :',
             youAreAnAdminOf: 'Vous êtes administrateur de ces espaces de travail :',
+            chooseDelegate: 'Choisir un délégué',
+            clearAfterRecommended: 'Effacer après (recommandé)',
+            willClearOn: (date: string) => `Le délégué de vacances sera supprimé le ${date}`,
+            until: (date: string) => `Jusqu’au ${date}`,
+            removeDelegate: 'Supprimer le délégué de vacances',
         },
     },
     stepCounter: (step: number, total?: number, text?: string) => {
@@ -4053,6 +4058,10 @@ ${amount} pour ${merchant} - ${date}`,
         unlockAlreadyRequestedTitle: 'Demande déjà soumise',
         unlockAlreadyRequestedDescription: 'Votre demande de déverrouillage de ce compte bancaire a déjà été envoyée. Concierge vous contactera si autre chose est nécessaire.',
     },
+    listField: {
+        editItem: ({name}: {name: string}) => `Modifier ${name}`,
+        removeItem: ({name}: {name: string}) => `Supprimer ${name}`,
+    },
     dynamicForm: {
         exampleHint: ({example}: {example: string}) => `Exemple : ${example}`,
         fileCount: ({count}: {count: number}) => ({
@@ -4064,7 +4073,13 @@ ${amount} pour ${merchant} - ${date}`,
             invalidFormat: ({example}: {example?: string}) => (example ? `Format invalide. Exemple : ${example}` : 'Format invalide'),
             invalidOption: "Choisissez l'une des options disponibles",
             outOfRange: ({min, max}: {min: number; max: number}) => `Saisissez une valeur entre ${min} et ${max}`,
+            tooFewItems: ({min}: {min: number}) => `Ajoutez au moins ${min}`,
+            tooManyItems: ({max}: {max: number}) => `Ajoutez au plus ${max}`,
+            itemError: ({item, error}: {item: string; error: string}) => `${item} : ${error}`,
         },
+        addItem: ({item}: {item: string}) => `Ajouter ${item}`,
+        removeItemTitle: ({item}: {item: string}) => `Supprimer ${item} ?`,
+        removeItemPrompt: ({name}: {name: string}) => `Voulez-vous vraiment supprimer ${name} ?`,
     },
     addPersonalBankAccount: {
         swiftBicFormatError: 'Le code SWIFT/BIC doit comporter 8 ou 11 caractères, avec 6 lettres suivies de 2 ou 5 lettres ou chiffres.',
@@ -6662,6 +6677,9 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
             distanceRates: {
                 title: 'Taux de distance',
                 subtitle: 'Ajoutez, mettez à jour et appliquez les taux.',
+                commuterExclusionsOnTitle: 'Les exclusions de trajet domicile-travail sont activées',
+                disableLockedByCommuterExclusionsPrompt:
+                    'Pour désactiver les taux de distance, commencez par définir Exclure les trajets domicile-travail sur « Ne pas exclure les trajets domicile-travail ».',
             },
             perDiem: {
                 title: 'Indemnité journalière',
@@ -9055,7 +9073,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                     toggleTitle: 'Bureaux',
                     allSelected: 'Tous les bureaux',
                 },
-                enableJobStagesOrTags: 'Activez les étapes de mission ou les Tags pour continuer',
+                enableJobStagesOrTags: 'Sélectionnez au moins une étape de poste ou un tag pour continuer',
             },
             subtitle: 'Connectez les outils de recrutement et synchronisez les validations de candidats.',
             syncResults: {
@@ -10047,6 +10065,8 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
         fallbackTitle: 'Ticket d’assistance',
         resolved: 'Ce ticket d’assistance est résolu.',
         surveyPrompt: 'Comment s’est passée votre expérience avec l’assistance ?',
+        great: 'Excellente',
+        poor: 'Mauvaise',
         reopenTicket: 'Rouvrir le ticket',
     },
     statementPage: {
