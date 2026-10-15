@@ -79,7 +79,6 @@ import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/crea
 import getReportRouteForCurrentContext from '@libs/Navigation/helpers/getReportRouteForCurrentContext';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import type {LinkToOptions} from '@libs/Navigation/helpers/linkTo/types';
-import {resetOnboardingStackToRoot} from '@libs/Navigation/helpers/OnboardingNavigationUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import REPORT_LINK_ROUTE_PARAMS from '@libs/Navigation/reportLinkRouteParams';
 import enhanceParameters from '@libs/Network/enhanceParameters';
@@ -264,6 +263,7 @@ import type {CurrentUserPersonalDetails, Timezone} from '@src/types/onyx/Persona
 import type {ConnectionName} from '@src/types/onyx/Policy';
 import type {NotificationPreference, Participants, Participant as ReportParticipant, RoomVisibility, WriteCapability} from '@src/types/onyx/Report';
 import type {Message, ReportActions} from '@src/types/onyx/ReportAction';
+import type {OnyxData} from '@src/types/onyx/Request';
 import type {SearchResultDataType} from '@src/types/onyx/SearchResults';
 import type {FileObject} from '@src/types/utils/Attachment';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -1003,7 +1003,7 @@ function addActions({
 
     // Check if the last visible action is from Concierge with unresolved followups
     // If so, optimistically resolve them by adding the updated action to optimisticReportActions
-    const lastVisibleAction = ReportActionsUtils.getLastVisibleAction(reportID);
+    const lastVisibleAction = ReportActionsUtils.getLastVisibleAction(reportID, undefined, {}, undefined, undefined, currentUserAccountID);
     const lastActorAccountID = lastVisibleAction?.actorAccountID;
     const lastActionReportActionID = lastVisibleAction?.reportActionID;
     const resolvedAction = buildOptimisticResolvedFollowups(lastVisibleAction);
@@ -3701,6 +3701,7 @@ function editReportComment(
     isOriginalReportArchived: boolean | undefined,
     currentUserLogin: string,
     personalDetails: OnyxEntry<PersonalDetailsList>,
+    currentUserAccountID: number,
     videoAttributeCache?: Record<string, string>,
     reportIDToName?: Record<string, string>,
 ) {
@@ -3773,7 +3774,14 @@ function editReportComment(
         },
     ];
 
-    const lastVisibleAction = ReportActionsUtils.getLastVisibleAction(originalReportID, canUserPerformWriteAction, optimisticReportActions as ReportActions);
+    const lastVisibleAction = ReportActionsUtils.getLastVisibleAction(
+        originalReportID,
+        canUserPerformWriteAction,
+        optimisticReportActions as ReportActions,
+        undefined,
+        undefined,
+        currentUserAccountID,
+    );
     if (reportActionID === lastVisibleAction?.reportActionID) {
         const lastMessageText = formatReportLastMessageText(reportComment);
         const optimisticReport = {
@@ -4484,6 +4492,14 @@ type NavigateToConciergeChatParams = {
     /** Whether the user has already viewed the self tour. */
     isSelfTourViewed: boolean | undefined;
 
+    /**
+     * Whether the user has completed the guided setup (onboarding) flow. Only read on the branch where
+     * `conciergeReportID` is undefined — the one that has to find or create the Concierge chat — where it decides
+     * whether a still-pending onboarding OpenReport is enqueued. When the report ID is already known this function
+     * only navigates, so the value is unused there.
+     */
+    hasCompletedGuidedSetupFlow: boolean | undefined;
+
     /** Whether to dismiss the current modal instead of navigating on top of it. */
     shouldDismissModal?: boolean;
 
@@ -4518,6 +4534,7 @@ function navigateToConciergeChat({
     introSelected,
     currentUserAccountID,
     isSelfTourViewed,
+    hasCompletedGuidedSetupFlow,
     shouldDismissModal = false,
     checkIfCurrentPageActive = () => true,
     linkToOptions,
@@ -4549,8 +4566,7 @@ function navigateToConciergeChat({
                 // The Concierge chat does not exist yet on this path (it is being created here), so there is no report to thread.
                 conciergeChat: undefined,
                 isSelfTourViewed,
-                // TODO: Pass the correct hasCompletedGuidedSetupFlow from Onyx data in the next PR. Refactor issue: https://github.com/Expensify/App/issues/66424
-                hasCompletedGuidedSetupFlow: undefined,
+                hasCompletedGuidedSetupFlow,
                 // Not gated: this is the Concierge fallback, not the Start chat flow. Concierge is a core report reached while
                 // simply navigating around, so blocking it for support agents would pop the denied modal during plain navigation.
                 isSupportalSession: false,
@@ -4903,18 +4919,64 @@ function isNoSupportRepAvailableResponse(response: {jsonCode?: number | string; 
 function openSupportTicket(resolvedSupportTicketReportID?: string) {
     const newSupportTicketReportID = resolvedSupportTicketReportID ? undefined : generateReportID();
     const parameters: CreateSupportTicketParams = resolvedSupportTicketReportID ? {resolvedSupportTicketReportID, idempotencyKey: Str.guid()} : {newSupportTicketReportID};
+    const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE> = newSupportTicketReportID
+        ? {
+              optimisticData: [
+                  // The request does not survive reloads, so its fetch guard must stay in RAM.
+                  // Set it before publishing the report ID; merges can wait on storage reads.
+                  {
+                      onyxMethod: Onyx.METHOD.SET,
+                      key: `${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${newSupportTicketReportID}`,
+                      value: {isCreatingSupportTicket: true},
+                  },
+                  {
+                      onyxMethod: Onyx.METHOD.MERGE,
+                      key: `${ONYXKEYS.COLLECTION.REPORT}${newSupportTicketReportID}`,
+                      value: {reportID: newSupportTicketReportID, type: CONST.REPORT.TYPE.SUPPORT_TICKET},
+                  },
+              ],
+              successData: [
+                  {
+                      onyxMethod: Onyx.METHOD.MERGE,
+                      key: `${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${newSupportTicketReportID}`,
+                      value: {isCreatingSupportTicket: false},
+                  },
+              ],
+              failureData: [
+                  {
+                      onyxMethod: Onyx.METHOD.SET,
+                      key: `${ONYXKEYS.COLLECTION.REPORT}${newSupportTicketReportID}`,
+                      value: null,
+                  },
+                  {
+                      onyxMethod: Onyx.METHOD.SET,
+                      key: `${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${newSupportTicketReportID}`,
+                      value: null,
+                  },
+              ],
+          }
+        : {};
 
-    if (!resolvedSupportTicketReportID) {
+    // Start the request before navigating so the optimistic support-ticket metadata is available for the pending LHN title.
+    // eslint-disable-next-line rulesdir/no-api-side-effects-method -- Reopening must wait for the server-selected report ID before navigating.
+    const request = API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.CREATE_SUPPORT_TICKET, parameters, onyxData);
+    if (newSupportTicketReportID) {
         Navigation.navigate(getReportRouteForCurrentContext({reportID: newSupportTicketReportID, isPendingCreation: true}));
     }
 
-    // eslint-disable-next-line rulesdir/no-api-side-effects-method -- reopening must wait for the server-selected report ID before navigating.
-    return API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.CREATE_SUPPORT_TICKET, parameters).then((response) => {
-        if (resolvedSupportTicketReportID && response?.reportID) {
-            Navigation.navigate(getReportRouteForCurrentContext({reportID: response.reportID}));
-        }
-        return response;
-    });
+    return request
+        .then((response) => {
+            if (resolvedSupportTicketReportID && response?.reportID) {
+                Navigation.navigate(getReportRouteForCurrentContext({reportID: response.reportID}));
+            }
+            return response;
+        })
+        .catch(async (error: unknown) => {
+            if (onyxData.failureData) {
+                await Onyx.update(onyxData.failureData);
+            }
+            throw error;
+        });
 }
 
 function dismissFailedSupportTicket(supportTicketReportID: string, parentReportID: string, parentReportActionID: string) {
@@ -5068,6 +5130,8 @@ function navigateToConciergeChatAndDeleteReport(
         introSelected,
         currentUserAccountID,
         isSelfTourViewed,
+        // TODO: Thread hasCompletedGuidedSetupFlow through this wrapper in the next PR. Refactor issue: https://github.com/Expensify/App/issues/66424
+        hasCompletedGuidedSetupFlow: undefined,
         shouldDismissModal: false,
         linkToOptions: {afterTransition: () => deleteReport(reportID, shouldDeleteChildReports)},
         conciergePersonalDetails: personalDetails,
@@ -5382,11 +5446,13 @@ function navigateToMostRecentReport(
             Navigation.goBack();
         }
 
+        // TODO: Thread hasCompletedGuidedSetupFlow through this wrapper in the next PR. Refactor issue: https://github.com/Expensify/App/issues/66424
         navigateToConciergeChat({
             conciergeReportID,
             introSelected,
             currentUserAccountID,
             isSelfTourViewed,
+            hasCompletedGuidedSetupFlow: undefined,
             conciergePersonalDetails: personalDetails,
             shouldDismissModal: false,
             linkToOptions: {forceReplace: true},
@@ -6182,6 +6248,10 @@ type CompleteOnboardingProps = {
     selfDMReport?: OnyxEntry<Report>;
     /** Whether onboarding is handled outside the Concierge DM, so no message, tasks, or sign-off should be posted there. */
     shouldSkipConciergeOnboarding?: boolean;
+    /** The domain of the user's company, used by the join-workspace onboarding tasks. */
+    companyDomain?: string;
+    /** The user's work email, used by the join-workspace onboarding tasks. */
+    workEmail?: string;
     /** The account ID of the current user, used to build the onboarding Onyx data. */
     currentUserAccountID: number;
     /** AccountID of the delegate acting on behalf of the current user */
@@ -6211,6 +6281,8 @@ async function completeOnboarding({
     adminsChatReport,
     selfDMReport,
     shouldSkipConciergeOnboarding,
+    companyDomain,
+    workEmail,
     currentUserAccountID,
     delegateAccountID,
 }: CompleteOnboardingProps) {
@@ -6230,6 +6302,8 @@ async function completeOnboarding({
         adminsChatReport,
         selfDMReport,
         shouldSkipConciergeOnboarding,
+        companyDomain,
+        workEmail,
         currentUserAccountID,
         delegateAccountID,
     });
@@ -6264,20 +6338,11 @@ async function completeOnboarding({
         await waitForWrites(SIDE_EFFECT_REQUEST_COMMANDS.COMPLETE_GUIDED_SETUP);
 
         if (!isOfflineNetwork()) {
-            // Pop onboarding nested stack after waiting so the modal doesn't rewind to step 1
-            // during the wait. Must run before the API call so useLinking processes each step
-            // pop before the optimistic data unmounts the modal.
-            resetOnboardingStackToRoot();
-
             // We need to access the nvp_onboardingRHPVariant directly from the response to redirect the user to the correct page
             // eslint-disable-next-line rulesdir/no-api-side-effects-method
             return API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.COMPLETE_GUIDED_SETUP, parameters, {optimisticData, successData, failureData});
         }
     }
-
-    // Pop onboarding nested stack just before the API write so useLinking removes browser
-    // history entries for each step before the optimistic data unmounts the modal.
-    resetOnboardingStackToRoot();
 
     // API calls are not chained in this case
     // eslint-disable-next-line rulesdir/no-multiple-api-calls
