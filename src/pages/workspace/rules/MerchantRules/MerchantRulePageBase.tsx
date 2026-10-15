@@ -300,6 +300,16 @@ function MerchantRulePageBase({
         }
         return policyTags.length > 0;
     };
+
+    // Turning tags on creates a tag list whether or not it holds anything, so the condition row needs a tag to
+    // actually match on. A tag the rule already matches on keeps the row, the way `hasCategories` keeps it for a
+    // category the rule already sets.
+    const hasTagsToMatch = () => {
+        if (!policy?.areTagsEnabled) {
+            return false;
+        }
+        return !!form?.tagsToMatch?.length || policyTags.some((tagList) => hasEnabledOptions(tagList.tags));
+    };
     const formTags = getTagArrayFromName(form?.tag ?? '');
 
     const isBillableEnabled = policy?.disabledFields?.defaultBillable !== true;
@@ -554,7 +564,7 @@ function MerchantRulePageBase({
                           icon: icons.Folder,
                       }
                     : undefined,
-                isScopedToCategory || !hasTags()
+                isScopedToCategory || !hasTagsToMatch()
                     ? undefined
                     : {
                           key: 'tagsToMatch',
