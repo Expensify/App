@@ -56,43 +56,70 @@ function renderPopoverAt(vertical: number, verticalAlignment: ValueOf<typeof CON
 describe('PopoverWithMeasuredContentBase vertical positioning', () => {
     describe('BOTTOM alignment (popover opens above the anchor)', () => {
         it('pins the popover bottom edge to the anchor when the popover fits above it', () => {
-            // The anchor sits 450px down a 600px window, so the 400px popover fits in the space above it.
-            const position = renderPopoverAt(450, CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM);
+            // Given an anchor 450px down a 600px window, which leaves room for the 400px popover above it
+            const anchorY = 450;
 
-            expect(position?.bottom).toBe(WINDOW_HEIGHT - 450);
+            // When the popover opens above the anchor
+            const position = renderPopoverAt(anchorY, CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM);
+
+            // Then its bottom edge sits on the anchor, so it ends right above the cell instead of covering it
+            expect(position?.bottom).toBe(WINDOW_HEIGHT - anchorY);
         });
 
         it('caps the popover so its top edge stays inside the window when it does not fit above the anchor', () => {
-            // Only 300px of space above the anchor, so pinning the bottom edge would push the top 100px off-screen.
-            const position = renderPopoverAt(300, CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM);
+            // Given an anchor with only 300px of space above it, where pinning the bottom edge would push the top 100px off-screen
+            const anchorY = 300;
 
+            // When the popover opens above the anchor
+            const position = renderPopoverAt(anchorY, CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM);
+
+            // Then it moves down just enough to keep its top edge on-screen, because a clipped top would hide content
             expect(position?.bottom).toBe(WINDOW_HEIGHT - POPOVER_HEIGHT);
         });
 
         it('keeps `windowMargin` of breathing room from the window edge when clamped', () => {
-            const position = renderPopoverAt(300, CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM, WINDOW_MARGIN);
+            // Given an anchor with too little space above it, so the popover has to be clamped inside the window
+            const anchorY = 300;
 
+            // When the popover opens above the anchor with a window margin
+            const position = renderPopoverAt(anchorY, CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM, WINDOW_MARGIN);
+
+            // Then it keeps that margin from the top edge, matching the gap the shrinking pickers leave
             expect(position?.bottom).toBe(WINDOW_HEIGHT - POPOVER_HEIGHT - WINDOW_MARGIN);
         });
 
         it('does not add breathing room when the popover already fits above the anchor', () => {
-            const position = renderPopoverAt(450, CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM, WINDOW_MARGIN);
+            // Given an anchor with enough space above it for the whole popover
+            const anchorY = 450;
 
-            expect(position?.bottom).toBe(WINDOW_HEIGHT - 450);
+            // When the popover opens above the anchor with a window margin
+            const position = renderPopoverAt(anchorY, CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM, WINDOW_MARGIN);
+
+            // Then it stays pinned to the anchor, because the margin only applies when the popover is clamped
+            expect(position?.bottom).toBe(WINDOW_HEIGHT - anchorY);
         });
     });
 
     describe('TOP alignment (popover opens below the anchor)', () => {
         it('places the popover top edge at the anchor when it fits below', () => {
-            const position = renderPopoverAt(100, CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP);
+            // Given an anchor 100px down, which leaves room for the whole popover below it
+            const anchorY = 100;
 
-            expect(position?.top).toBe(100);
+            // When the popover opens below the anchor
+            const position = renderPopoverAt(anchorY, CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP);
+
+            // Then its top edge sits on the anchor, so it starts right below the cell
+            expect(position?.top).toBe(anchorY);
         });
 
         it('keeps `windowMargin` of breathing room from the bottom edge when clamped', () => {
-            // The anchor is 500px down, so the 400px popover has to be pulled back up to fit inside the window.
-            const position = renderPopoverAt(500, CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP, WINDOW_MARGIN);
+            // Given an anchor 500px down, so the 400px popover has to be pulled back up to fit inside the window
+            const anchorY = 500;
 
+            // When the popover opens below the anchor with a window margin
+            const position = renderPopoverAt(anchorY, CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP, WINDOW_MARGIN);
+
+            // Then it keeps that margin from the bottom edge instead of sitting flush against it
             expect(position?.top).toBe(WINDOW_HEIGHT - POPOVER_HEIGHT - WINDOW_MARGIN);
         });
     });

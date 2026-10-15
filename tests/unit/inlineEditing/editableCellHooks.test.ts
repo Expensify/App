@@ -499,10 +499,14 @@ describe('usePopoverEditState', () => {
 
     describe('positioning', () => {
         it('opens below the cell at full height when there is enough room below', () => {
+            // Given a cell near the top of a tall window, which leaves room for the full-height popover below it
             mockWindowHeight = 900;
             const anchor = {...CELL, y: 100};
+
+            // When the user starts editing the cell
             const result = openPopoverForAnchor(anchor);
 
+            // Then the popover opens below the cell at its preferred height, because below is the default side
             expect(result.current.shouldOpenAbove).toBe(false);
             expect(result.current.anchorAlignment.vertical).toBe(CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP);
             expect(result.current.popoverPosition).toEqual({horizontal: anchor.x, vertical: anchor.y + anchor.height + PADDING});
@@ -511,10 +515,14 @@ describe('usePopoverEditState', () => {
         });
 
         it('flips fully above the cell, bottom-edge aligned, when it does not fit below but fits above', () => {
+            // Given a cell low in the window, with too little room below for the popover but enough above it
             mockWindowHeight = 900;
             const anchor = {...CELL, y: 600};
+
+            // When the user starts editing the cell
             const result = openPopoverForAnchor(anchor);
 
+            // Then the popover opens above the cell at full height, so it doesn't cover the cell being edited
             expect(result.current.shouldOpenAbove).toBe(true);
             expect(result.current.anchorAlignment.vertical).toBe(CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM);
             // The bottom edge of the popover sits `PADDING` above the top of the cell, so the cell stays visible
@@ -523,10 +531,14 @@ describe('usePopoverEditState', () => {
         });
 
         it('shrinks to the space above when neither side fits and above has more room', () => {
+            // Given a short window where the popover fits on neither side of the cell, and above has more room
             mockWindowHeight = 500;
             const anchor = {...CELL, y: 300};
+
+            // When the user starts editing the cell
             const result = openPopoverForAnchor(anchor);
 
+            // Then the popover opens above and shrinks to that space, because the roomier side shows the most options
             const spaceAbove = anchor.y - PADDING - PADDING;
             expect(result.current.shouldOpenAbove).toBe(true);
             expect(result.current.anchorAlignment.vertical).toBe(CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM);
@@ -538,10 +550,14 @@ describe('usePopoverEditState', () => {
         });
 
         it('shrinks to fit below rather than flipping when below has more room than above', () => {
+            // Given a short window where the popover fits on neither side of the cell, and below has more room
             mockWindowHeight = 500;
             const anchor = {...CELL, y: 100};
+
+            // When the user starts editing the cell
             const result = openPopoverForAnchor(anchor);
 
+            // Then the popover stays below and shrinks to that space, because flipping would leave even less room
             const spaceBelow = mockWindowHeight - (anchor.y + anchor.height + PADDING) - PADDING;
             expect(result.current.shouldOpenAbove).toBe(false);
             expect(result.current.anchorAlignment.vertical).toBe(CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP);
@@ -550,21 +566,28 @@ describe('usePopoverEditState', () => {
         });
 
         it('stops shrinking at the minimum usable height on an extremely short window', () => {
+            // Given a window so short that the space on either side of the cell is below the minimum usable height
             mockWindowHeight = 300;
             const anchor = {...CELL, y: 150};
+
+            // When the user starts editing the cell
             const result = openPopoverForAnchor(anchor);
 
+            // Then the popover keeps the minimum usable height, because a smaller list would be too cramped to use
             const spaceAbove = anchor.y - PADDING - PADDING;
             expect(spaceAbove).toBeLessThan(MIN_HEIGHT);
             expect(result.current.popoverHeight).toBe(MIN_HEIGHT);
         });
 
         it('uses the caller-provided preferred height to pick the side to open on', () => {
+            // Given a cell with 380px free below it, which is too little for the 416px dropdown but enough for the 366px calendar
             mockWindowHeight = 928;
             const anchor = {...CELL, y: 500};
+
+            // When the calendar opens and passes its own height
             const result = openPopoverForAnchor(anchor, {popoverHeight: CONST.POPOVER_DATE_MAX_HEIGHT});
 
-            // 380px are free below the cell: too little for the 416px dropdown, but enough for the 366px calendar
+            // Then it opens below at its own height, because the side is picked from the real popover height
             expect(result.current.shouldOpenAbove).toBe(false);
             expect(result.current.anchorAlignment.vertical).toBe(CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP);
             expect(result.current.popoverHeight).toBe(CONST.POPOVER_DATE_MAX_HEIGHT);
@@ -584,10 +607,14 @@ describe('usePopoverEditState', () => {
         });
 
         it('anchors to the right edge of the cell when anchorEdge is RIGHT', () => {
+            // Given a cell in a right-aligned column, where the popover should line up with the cell's right edge
             mockWindowHeight = 900;
             const anchor = {...CELL, y: 100};
+
+            // When the user starts editing the cell with a RIGHT anchor edge
             const result = openPopoverForAnchor(anchor, {anchorEdge: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT});
 
+            // Then the popover is anchored to the right edge of the cell instead of the left
             expect(result.current.anchorAlignment.horizontal).toBe(CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT);
             expect(result.current.popoverPosition.horizontal).toBe(anchor.x + anchor.width);
         });
