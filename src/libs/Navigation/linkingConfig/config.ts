@@ -541,6 +541,10 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                             path: ROUTES.SETTINGS_VACATION_DELEGATE,
                             exact: true,
                         },
+                        [SCREENS.SETTINGS.PROFILE.VACATION_DELEGATE_SELECT]: {
+                            path: ROUTES.SETTINGS_VACATION_DELEGATE_SELECT,
+                            exact: true,
+                        },
                         [SCREENS.SETTINGS.PROFILE.VACATION_DELEGATE_MISSING_WORKSPACES]: {
                             path: ROUTES.SETTINGS_VACATION_DELEGATE_MISSING_WORKSPACES,
                             exact: true,
@@ -1325,6 +1329,8 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.SETTINGS.DYNAMIC_KEYBOARD_SHORTCUTS]: DYNAMIC_ROUTES.KEYBOARD_SHORTCUTS.path,
                         [SCREENS.SETTINGS.DYNAMIC_BETA_OVERRIDES]: DYNAMIC_ROUTES.BETA_OVERRIDES.path,
                         [SCREENS.WORKSPACE.NAME]: ROUTES.WORKSPACE_OVERVIEW_NAME.route,
+                        [SCREENS.WORKSPACE.OFFICE_LOCATION_ADD]: ROUTES.WORKSPACE_OVERVIEW_OFFICE_LOCATION_ADD.route,
+                        [SCREENS.WORKSPACE.OFFICE_LOCATION_EDIT]: ROUTES.WORKSPACE_OVERVIEW_OFFICE_LOCATION_EDIT.route,
                         [SCREENS.SETTINGS.SHARE_CODE]: {
                             path: ROUTES.SETTINGS_SHARE_CODE,
                         },
@@ -1620,6 +1626,9 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         },
                         [SCREENS.DOMAIN.VACATION_DELEGATE]: {
                             path: ROUTES.DOMAIN_VACATION_DELEGATE.route,
+                        },
+                        [SCREENS.DOMAIN.VACATION_DELEGATE_SELECT]: {
+                            path: ROUTES.DOMAIN_VACATION_DELEGATE_SELECT.route,
                         },
                         [SCREENS.DOMAIN.ADD_MEMBER]: {
                             path: ROUTES.DOMAIN_ADD_MEMBER.route,

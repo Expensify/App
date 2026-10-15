@@ -1,5 +1,6 @@
 import LHNEmptyState from '@components/LHNOptionsList/LHNEmptyState';
 import LHNOptionsList from '@components/LHNOptionsList/LHNOptionsList';
+import useTabRootScrollProps from '@components/Navigation/TabBarBottomContent/useTabRootScrollProps';
 import OptionsListSkeletonView from '@components/OptionsListSkeletonView';
 
 import useOnyx from '@hooks/useOnyx';
@@ -82,6 +83,7 @@ function SidebarLinks({insets, optionListItems, hasReportData, priorityMode = CO
     const contentContainerStyles = StyleSheet.flatten([styles.pt2, {paddingBottom: StyleUtils.getSafeAreaMargins(insets).marginBottom}]);
 
     const shouldShowEmptyLHN = optionListItems.length === 0;
+    const {contentContainerStyle: emptyLHNStyle} = useTabRootScrollProps([styles.flex1, isInLandscapeMode ? styles.pv4 : styles.emptyLHNWrapper], {fillsVisibleArea: true});
 
     // Show the loading skeleton only while report data is loading AND the entire LHN report set is empty
     // (e.g. switching accounts/delegate sessions or re-authenticating after an Onyx clear, where openApp() repopulates reports).
@@ -93,7 +95,7 @@ function SidebarLinks({insets, optionListItems, hasReportData, priorityMode = CO
         <View style={[styles.flex1, styles.h100]}>
             <View style={[styles.pRelative, styles.flex1]}>
                 {shouldShowEmptyLHN ? (
-                    <View style={[styles.flex1, isInLandscapeMode ? styles.pv4 : styles.emptyLHNWrapper]}>
+                    <View style={emptyLHNStyle}>
                         <LHNEmptyState />
                     </View>
                 ) : (

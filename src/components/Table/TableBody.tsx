@@ -165,6 +165,7 @@ function TableBodyList({contentContainerStyle, emptyMessage, onLayout, style, ..
         tableListMetadata,
         isEmptyResult,
         isBulkActionBarVisible,
+        isDefaultViewEmpty,
         scrollWidth,
         tableWidth,
     } = useTableContext<TableData>();
@@ -338,8 +339,10 @@ function TableBodyList({contentContainerStyle, emptyMessage, onLayout, style, ..
         </View>
     );
 
-    const emptyStateContent =
-        tableListMetadata.hasPageHeader && isEmptyResult ? (noResultsStateElement ?? EmptyResultComponent) : (emptyStateElement ?? renderListComponent(ListEmptyComponent));
+    // When the default view hides every row (e.g. all workspaces are archived), no search or filter is active,
+    // so show the empty state rather than "No results".
+    const shouldShowNoResultsState = tableListMetadata.hasPageHeader && isEmptyResult && !isDefaultViewEmpty;
+    const emptyStateContent = shouldShowNoResultsState ? (noResultsStateElement ?? EmptyResultComponent) : (emptyStateElement ?? renderListComponent(ListEmptyComponent));
     const footerElement = renderListComponent(ListFooterComponent);
     // Consumer footer flex growth is useful below normal rows, but inside the combined empty-state
     // footer it can expand over the page header. Preserve the remaining style while disabling growth.
