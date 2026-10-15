@@ -83,6 +83,7 @@ function WorkspaceMemberRolePickerModal({
     onSelected,
     anchorAlignment = DEFAULT_ANCHOR_ALIGNMENT,
     shouldMeasureAnchorPositionFromTop = false,
+    shouldSwitchPositionIfOverflow = true,
     popoverHeight,
 }: WorkspaceMemberRolePickerModalProps) {
     const styles = useThemeStyles();
@@ -110,7 +111,7 @@ function WorkspaceMemberRolePickerModal({
             anchorAlignment={anchorAlignment}
             innerContainerStyle={StyleUtils.getWidthStyle(CONST.POPOVER_DROPDOWN_WIDTH)}
             restoreFocusType={CONST.MODAL.RESTORE_FOCUS_TYPE.DELETE}
-            shouldSwitchPositionIfOverflow
+            shouldSwitchPositionIfOverflow={shouldSwitchPositionIfOverflow}
             shouldEnableNewFocusManagement
             shouldMeasureAnchorPositionFromTop={shouldMeasureAnchorPositionFromTop}
             shouldSkipRemeasurement

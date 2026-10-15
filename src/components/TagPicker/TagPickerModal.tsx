@@ -61,6 +61,7 @@ function TagPickerModal({
     onSelected,
     anchorAlignment = DEFAULT_ANCHOR_ALIGNMENT,
     shouldMeasureAnchorPositionFromTop = false,
+    shouldSwitchPositionIfOverflow = true,
     popoverHeight = CONST.POPOVER_DROPDOWN_MAX_HEIGHT,
 }: TagPickerModalProps) {
     const styles = useThemeStyles();
@@ -98,7 +99,7 @@ function TagPickerModal({
             anchorAlignment={anchorAlignment}
             innerContainerStyle={StyleUtils.getWidthStyle(popoverDimensions.width)}
             restoreFocusType={CONST.MODAL.RESTORE_FOCUS_TYPE.DELETE}
-            shouldSwitchPositionIfOverflow
+            shouldSwitchPositionIfOverflow={shouldSwitchPositionIfOverflow}
             shouldEnableNewFocusManagement
             shouldMeasureAnchorPositionFromTop={shouldMeasureAnchorPositionFromTop}
             shouldSkipRemeasurement

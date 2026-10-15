@@ -58,6 +58,7 @@ function DatePickerModal({
     shouldEnableMonthYearBackdropInNarrowPane = false,
     shouldMeasureContentHeight = false,
     windowMargin,
+    shouldSwitchPositionIfOverflow = true,
 }: DatePickerProps) {
     const [selectedDate, setSelectedDate] = useState(value);
     const anchorRef = useRef<ComponentRef<typeof View>>(null);
@@ -102,7 +103,7 @@ function DatePickerModal({
             innerContainerStyle={isSmallScreenWidth ? styles.w100 : {width: CONST.POPOVER_DATE_WIDTH}}
             anchorAlignment={anchorAlignment}
             restoreFocusType={CONST.MODAL.RESTORE_FOCUS_TYPE.DELETE}
-            shouldSwitchPositionIfOverflow
+            shouldSwitchPositionIfOverflow={shouldSwitchPositionIfOverflow}
             shouldReturnFocus={false}
             shouldMeasureAnchorPositionFromTop={shouldPositionFromTop}
             shouldSkipRemeasurement

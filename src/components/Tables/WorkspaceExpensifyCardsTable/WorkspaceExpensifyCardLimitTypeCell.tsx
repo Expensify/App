@@ -51,6 +51,8 @@ function WorkspaceExpensifyCardLimitTypeCell({limitType, card, policy, canEdit, 
                     anchorAlignment={anchorAlignment}
                     popoverHeight={popoverHeight}
                     shouldMeasureAnchorPositionFromTop={!shouldOpenAbove}
+                    // The side is already picked on open, so stay on it. Flipping would move the popover onto the cell.
+                    shouldSwitchPositionIfOverflow={false}
                     onSelected={(selectedLimitType) => {
                         handleSave(selectedLimitType);
                     }}

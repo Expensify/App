@@ -85,6 +85,8 @@ function DateCell({date, showTooltip, isLargeScreenWidth, suffixText, shouldUseL
                     // window edge that the shrinking category/tag pickers leave, instead of sitting flush against it.
                     windowMargin={CONST.MODAL.POPOVER_MENU_PADDING}
                     shouldPositionFromTop={!shouldOpenAbove}
+                    // The side is already picked on open, so stay on it. Flipping would move the popover onto the cell.
+                    shouldSwitchPositionIfOverflow={false}
                     isDateSelectable={DateUtils.isWithinCalendarPickerRange}
                     inputID="EditableDateCell"
                     shouldEnableMonthYearBackdropInNarrowPane={isEditing && isInNarrowPaneModal}

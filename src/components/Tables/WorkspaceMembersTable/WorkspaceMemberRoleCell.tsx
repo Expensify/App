@@ -53,6 +53,8 @@ function WorkspaceMemberRoleCell({role, policy, memberLogin, canEdit, onSave}: W
                     anchorAlignment={anchorAlignment}
                     popoverHeight={popoverHeight}
                     shouldMeasureAnchorPositionFromTop={!shouldOpenAbove}
+                    // The side is already picked on open, so stay on it. Flipping would move the popover onto the cell.
+                    shouldSwitchPositionIfOverflow={false}
                     onSelected={handleSave}
                 />
             }
