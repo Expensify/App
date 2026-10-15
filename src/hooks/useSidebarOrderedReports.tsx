@@ -8,7 +8,6 @@ import {getChatTabBrickRoad} from '@libs/WorkspacesSettingsUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
-import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import type {ValueOf} from 'type-fest';
 
@@ -232,26 +231,6 @@ function SidebarOrderedReportsContextProvider({
         // Rather than falling through to a full scan of all reports, recheck only the already-displayed reports.
         let effectiveUpdatedReports = updatedReports.length === 0 && hasCachedReports ? Object.keys(currentReportsToDisplay) : updatedReports;
 
-        // A report can be filtered out before its derived attributes are ready (e.g. a new DM that arrives before its
-        // expense preview). It is then not displayed, so the fallback above never rechecks it. Also recheck reports whose
-        // visibility-related attributes changed. Compare fields, not references: derived writes recreate every entry,
-        // so a reference diff would bring back a full scan. Skip the first hydration for the same reason.
-        if (hasCachedReports && reportAttributes !== prevReportAttributes && !isEmptyObject(prevReportAttributes)) {
-            const reportsToUpdate = new Set(effectiveUpdatedReports);
-            for (const [reportID, attributes] of Object.entries(reportAttributes ?? {})) {
-                const prevAttributes = prevReportAttributes[reportID];
-                if (
-                    !prevAttributes ||
-                    attributes.requiresAttention !== prevAttributes.requiresAttention ||
-                    attributes.isEmpty !== prevAttributes.isEmpty ||
-                    attributes.brickRoadStatus !== prevAttributes.brickRoadStatus
-                ) {
-                    reportsToUpdate.add(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
-                }
-            }
-            effectiveUpdatedReports = Array.from(reportsToUpdate);
-        }
-
         // When guide personal details hydrate after the reports collection, guideAccountIDs changes but
         // getUpdatedReports() returns no report keys. Re-evaluate all reports so domain rooms previously
         // filtered out can appear in the LHN.
@@ -311,7 +290,6 @@ function SidebarOrderedReportsContextProvider({
         transactionViolations,
         reportNameValuePairs,
         reportAttributes,
-        prevReportAttributes,
         reportsDrafts,
         isOffline,
         clearCacheDummyCounter,

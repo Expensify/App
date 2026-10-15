@@ -598,37 +598,9 @@ describe('useSidebarOrderedReports', () => {
             });
             await waitForBatchedUpdatesWithAct();
 
-            // Then the DM is rechecked, so it can be added to the LHN without a full rebuild, and the displayed report is still
-            // rechecked with the new attributes by the existing fallback
-            expect(getUpdatedReportsKeys()).toEqual(expect.arrayContaining([`${ONYXKEYS.COLLECTION.REPORT}${newDMReportID}`, `${ONYXKEYS.COLLECTION.REPORT}${displayedReportID}`]));
-        });
-
-        it('should not recheck a report when its attributes are recreated with the same visibility fields', async () => {
-            // Given the DM already has attributes that keep it out of the LHN
-            await renderWithExcludedReport();
-            await act(async () => {
-                await Onyx.set(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {
-                    reports: {[displayedReportID]: createReportAttributes(), [newDMReportID]: createReportAttributes({isEmpty: true})},
-                    locale: 'en',
-                });
-            });
-            await waitForBatchedUpdatesWithAct();
-            mockSidebarUtils.updateReportsToDisplayInLHN.mockClear();
-
-            // When the derived value is written again with new objects but the same visibility fields
-            await act(async () => {
-                await Onyx.set(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {
-                    reports: {
-                        [displayedReportID]: createReportAttributes({reportName: 'Renamed'}),
-                        [newDMReportID]: createReportAttributes({isEmpty: true, reportName: 'Renamed'}),
-                    },
-                    locale: 'en',
-                });
-            });
-            await waitForBatchedUpdatesWithAct();
-
-            // Then the hidden DM is not rechecked, which keeps reportAttributes writes from triggering a full scan
-            expect(getUpdatedReportsKeys()).not.toContain(`${ONYXKEYS.COLLECTION.REPORT}${newDMReportID}`);
+            // Then only the DM is rechecked, so it can be added to the LHN without a full rebuild. The displayed report's
+            // attributes did not change, so it is not rechecked
+            expect(getUpdatedReportsKeys()).toEqual([`${ONYXKEYS.COLLECTION.REPORT}${newDMReportID}`]);
         });
     });
 });
