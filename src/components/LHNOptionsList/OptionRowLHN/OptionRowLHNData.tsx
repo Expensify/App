@@ -115,8 +115,8 @@ function OptionRowLHNData({
     const whisperTransactionID = isActionableTrackExpense(lastAction) ? getOriginalMessage(lastAction)?.transactionID : undefined;
     const [whisperTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(whisperTransactionID)}`);
 
-    const linkedTransactionID = isSplitBillAction(lastAction) || isTrackExpenseAction(lastAction) ? getOriginalMessage(lastAction)?.IOUTransactionID : undefined;
-    const [linkedTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(linkedTransactionID)}`);
+    const splitOrTrackTransactionID = isSplitBillAction(lastAction) || isTrackExpenseAction(lastAction) ? getOriginalMessage(lastAction)?.IOUTransactionID : undefined;
+    const [splitOrTrackTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(splitOrTrackTransactionID)}`);
 
     const lastMessageTextFromReport = useMemo(() => {
         if (whisperTransactionID && !whisperTransaction) {
@@ -187,7 +187,7 @@ function OptionRowLHNData({
         isTrackIntentUser,
         formatPhoneNumber,
         rules,
-        linkedTransaction,
+        linkedTransaction: splitOrTrackTransaction,
     });
 
     // For single-sender IOUs, trim to the sender's avatar to match the header.
