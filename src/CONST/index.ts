@@ -2282,6 +2282,7 @@ const CONST = {
         },
     } as const,
     UNREPORTED_EXPENSES_PAGE_SIZE: 50,
+    OUTSTANDING_REPORTS_PAGE_SIZE: 50,
     COMPOSER: {
         NATIVE_ID: 'composer',
         MAX_LINES: 16,
