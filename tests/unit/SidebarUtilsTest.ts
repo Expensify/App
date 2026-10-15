@@ -16,7 +16,7 @@ import {
     generateReportID,
     getAllReportErrors,
     getReasonAndReportActionThatRequiresAttention,
-    getReportPreviewReportActionMessage,
+    getReportPreviewMessage,
 } from '@libs/ReportUtils';
 import SidebarUtils, {_buildSortKey, _categorizeReportsForLHN, _combineReportCategories, _sortCategorizedReports} from '@libs/SidebarUtils';
 
@@ -3830,18 +3830,15 @@ describe('SidebarUtils', () => {
                     rules: undefined,
                 });
 
-                const reportPreviewMessage = getReportPreviewReportActionMessage(
-                    {
-                        reportOrID: iouReport,
-                        iouReportAction: iouAction,
-                        shouldConsiderScanningReceiptOrPendingRoute: true,
-                        isPreviewMessageForParentChatReport: true,
-                        policy: null,
-                        isForListPreview: true,
-                        originalReportAction: lastReportPreviewAction,
-                    },
-                    getCurrencyDecimalsLocal,
-                );
+                const reportPreviewMessage = getReportPreviewMessage(translateLocal, convertToDisplayString, {
+                    reportOrID: iouReport,
+                    iouReportAction: iouAction,
+                    shouldConsiderScanningReceiptOrPendingRoute: true,
+                    isPreviewMessageForParentChatReport: true,
+                    policy: null,
+                    isForListPreview: true,
+                    originalReportAction: lastReportPreviewAction,
+                });
                 expect(result?.alternateText).toBe(`${getLastActorDisplayName({accountID: managerID}, managerID, translateLocal)}: ${reportPreviewMessage}`);
             });
 
@@ -3948,18 +3945,15 @@ describe('SidebarUtils', () => {
                     rules: undefined,
                 });
 
-                const reportPreviewMessage = getReportPreviewReportActionMessage(
-                    {
-                        reportOrID: iouReport,
-                        iouReportAction: iouAction,
-                        shouldConsiderScanningReceiptOrPendingRoute: true,
-                        isPreviewMessageForParentChatReport: true,
-                        policy: null,
-                        isForListPreview: true,
-                        originalReportAction: lastReportPreviewAction,
-                    },
-                    getCurrencyDecimalsLocal,
-                );
+                const reportPreviewMessage = getReportPreviewMessage(translateLocal, convertToDisplayString, {
+                    reportOrID: iouReport,
+                    iouReportAction: iouAction,
+                    shouldConsiderScanningReceiptOrPendingRoute: true,
+                    isPreviewMessageForParentChatReport: true,
+                    policy: null,
+                    isForListPreview: true,
+                    originalReportAction: lastReportPreviewAction,
+                });
                 expect(result?.alternateText).toBe(reportPreviewMessage);
             });
         });

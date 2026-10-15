@@ -20822,12 +20822,11 @@ describe('ReportUtils', () => {
             const report = undefined;
 
             // Given a report action with childReportName and childMoneyRequestCount === 0
-            const reportAction: ReportAction = {
-                ...LHNTestUtils.getFakeReportAction(),
+            const reportAction = createMock<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW>>({
                 actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
                 childReportName: 'Expense Report 2025-01-15',
                 childMoneyRequestCount: 0,
-            };
+            });
 
             // When we call getReportPreviewReportActionMessage
             const result = getReportPreviewReportActionMessage({reportOrID: report, iouReportAction: reportAction, originalReportAction: reportAction}, getCurrencyDecimalsLocal);
@@ -20841,13 +20840,12 @@ describe('ReportUtils', () => {
             const report = undefined;
 
             // Given a report action with childReportName but childMoneyRequestCount > 0
-            const reportAction: ReportAction = {
-                ...LHNTestUtils.getFakeReportAction(),
+            const reportAction = createMock<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW>>({
                 actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
                 childReportName: 'Expense Report 2025-01-15',
                 childMoneyRequestCount: 3,
                 message: [{html: 'payer owes $100', type: 'COMMENT', text: 'payer owes $100'}],
-            };
+            });
 
             // When we call getReportPreviewReportActionMessage
             const result = getReportPreviewReportActionMessage({reportOrID: report, iouReportAction: reportAction, originalReportAction: reportAction}, getCurrencyDecimalsLocal);
@@ -20965,35 +20963,76 @@ describe('ReportUtils', () => {
 
             it('shows the bank account from the action accountNumber instead of the policy default', () => {
                 // Given a pay action that carries the masked accountNumber of the bank account actually used
+                const englishTranslate: LocalizedTranslate = (path, ...parameters) => translate(CONST.LOCALES.EN, path, ...parameters);
                 const actionWithAccountNumber: ReportAction = {
                     ...payReportAction,
                     originalMessage: {...payOriginalMessage, accountNumber: 'XXXXXX4321'},
                 };
 
-                const result = getReportPreviewReportActionMessage(
-                    {reportOrID: settledReport, iouReportAction: actionWithAccountNumber, originalReportAction: actionWithAccountNumber},
-                    getCurrencyDecimalsLocal,
-                );
+                // When the localized preview is built, since it is the only variant that receives IOU actions
+                const result = getReportPreviewMessage(englishTranslate, convertToDisplayString, {
+                    reportOrID: settledReport,
+                    iouReportAction: actionWithAccountNumber,
+                    originalReportAction: actionWithAccountNumber,
+                    policy: settledPolicy,
+                });
 
                 // Then the preview shows the last 4 digits of that account, not the policy default
                 expect(result).toBe(translate(CONST.LOCALES.EN, 'iou.businessBankAccount', '', '4321'));
             });
 
             it('falls back to the policy default bank account when the action has no accountNumber', () => {
-                const result = getReportPreviewReportActionMessage(
-                    {reportOrID: settledReport, iouReportAction: payReportAction, originalReportAction: payReportAction},
-                    getCurrencyDecimalsLocal,
-                );
+                // Given a pay action without an accountNumber
+                const englishTranslate: LocalizedTranslate = (path, ...parameters) => translate(CONST.LOCALES.EN, path, ...parameters);
 
+                // When the localized preview is built
+                const result = getReportPreviewMessage(englishTranslate, convertToDisplayString, {
+                    reportOrID: settledReport,
+                    iouReportAction: payReportAction,
+                    originalReportAction: payReportAction,
+                    policy: settledPolicy,
+                });
+
+                // Then the policy default account is used
                 expect(result).toBe(translate(CONST.LOCALES.EN, 'iou.businessBankAccount', '', '0000'));
             });
 
-            it('matches the localized getReportPreviewMessage output when translated to English', () => {
+            it('matches the localized getReportPreviewMessage output when translated to English for a report preview action', () => {
+                // Given a settled report whose preview action message says it was paid with Expensify
                 const englishTranslate: LocalizedTranslate = (path, ...parameters) => translate(CONST.LOCALES.EN, path, ...parameters);
-                const params = {reportOrID: settledReport, iouReportAction: payReportAction, originalReportAction: payReportAction, policy: settledPolicy};
+                const reportPreviewAction = createMock<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW>>({
+                    ...LHNTestUtils.getFakeReportAction(),
+                    actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
+                    originalMessage: {linkedReportID: settledReport.reportID},
+                    message: [{html: 'paid with Expensify', text: 'paid with Expensify', type: CONST.REPORT.MESSAGE.TYPE.COMMENT}],
+                });
+                const params = {reportOrID: settledReport, iouReportAction: reportPreviewAction, originalReportAction: reportPreviewAction, policy: settledPolicy};
 
-                // The hardcoded English copy must not drift from the localized function
-                expect(getReportPreviewReportActionMessage(params, getCurrencyDecimalsLocal)).toBe(getReportPreviewMessage(englishTranslate, convertToDisplayString, params));
+                // When both variants build the message
+                const storedMessage = getReportPreviewReportActionMessage(params, getCurrencyDecimalsLocal);
+
+                // Then the hardcoded English copy must not drift from the localized function
+                expect(storedMessage).toContain('paid with wallet');
+                expect(storedMessage).toBe(getReportPreviewMessage(englishTranslate, convertToDisplayString, params));
+            });
+
+            it('falls back to the marked as paid wording for a report preview action without a payment hint', () => {
+                // Given a settled report whose preview action carries no payment information
+                const englishTranslate: LocalizedTranslate = (path, ...parameters) => translate(CONST.LOCALES.EN, path, ...parameters);
+                const reportPreviewAction = createMock<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW>>({
+                    ...LHNTestUtils.getFakeReportAction(),
+                    actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
+                    originalMessage: {linkedReportID: settledReport.reportID},
+                    message: [{html: '', text: '', type: CONST.REPORT.MESSAGE.TYPE.COMMENT}],
+                });
+                const params = {reportOrID: settledReport, iouReportAction: reportPreviewAction, originalReportAction: reportPreviewAction, policy: settledPolicy};
+
+                // When both variants build the message
+                const storedMessage = getReportPreviewReportActionMessage(params, getCurrencyDecimalsLocal);
+
+                // Then the stored message is the plain "marked as paid" wording and matches the localized variant
+                expect(storedMessage).toContain('marked as paid');
+                expect(storedMessage).toBe(getReportPreviewMessage(englishTranslate, convertToDisplayString, params));
             });
 
             describe('cross-border payment', () => {
@@ -21015,13 +21054,6 @@ describe('ReportUtils', () => {
                             debitBankAccount: '0000',
                             creditBankAccount: '3335',
                         }),
-                    );
-                });
-
-                it('stores the same wording on the report action as the localized preview shows', () => {
-                    // The hardcoded English copy must not drift from the localized function
-                    expect(getReportPreviewReportActionMessage(crossBorderParams, getCurrencyDecimalsLocal)).toBe(
-                        getReportPreviewMessage(englishTranslate, convertToDisplayString, crossBorderParams),
                     );
                 });
 
