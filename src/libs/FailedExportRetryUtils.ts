@@ -183,4 +183,4 @@ function getExportFailureMessages(allReportActions: OnyxCollection<ReportActions
 }
 
 export {getExportFailedTime, getRetryWindow, getFailedExportReportsByPolicyID, getFailedExportsToRetry, hasFailedExportToRetryForPolicy, isFailedExportToRetry, getExportFailureMessages};
-export type {RetryWindow, FailedExportReport};
+export type {RetryWindow};
