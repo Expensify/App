@@ -1875,7 +1875,7 @@ describe('SearchQueryUtils', () => {
             });
 
             test('merges date preset with inclusive range into a single range', () => {
-                const queryString = 'type:expense date:year-to-date date>=2026-04-01 date<=2026-04-30';
+                const queryString = 'type:expense date:last-30-days date>=2026-04-01 date<=2026-04-30';
                 const queryJSON = buildSearchQueryJSON(queryString);
 
                 if (!queryJSON) {
@@ -1905,7 +1905,7 @@ describe('SearchQueryUtils', () => {
             });
 
             test('merges all date-based filters, not only "date"', () => {
-                const queryString = 'type:expense approved:year-to-date approved>=2026-04-01 approved<=2026-04-30';
+                const queryString = 'type:expense approved:last-30-days approved>=2026-04-01 approved<=2026-04-30';
                 const queryJSON = buildSearchQueryJSON(queryString);
 
                 if (!queryJSON) {
@@ -1920,7 +1920,7 @@ describe('SearchQueryUtils', () => {
             });
 
             test('merges date preset and strict inequalities into a single range', () => {
-                const queryString = 'type:expense date:year-to-date date>2026-04-01 date<2026-04-30';
+                const queryString = 'type:expense date:last-30-days date>2026-04-01 date<2026-04-30';
                 const queryJSON = buildSearchQueryJSON(queryString);
 
                 if (!queryJSON) {
