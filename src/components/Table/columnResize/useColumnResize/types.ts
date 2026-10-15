@@ -1,4 +1,4 @@
-import type {ColumnLayout} from '@src/types/onyx/TableColumnWidths';
+import type {StoredTableColumnWidths} from '@src/types/onyx/TableColumnWidths';
 
 import type React from 'react';
 
@@ -9,7 +9,7 @@ type UseColumnResizeParams = {
     /** Keys of the columns whose right edge the user can drag. */
     resizableColumnKeys: string[];
 
-    /** The dragged column's width and the widths of the unset columns to its right that absorb it, which a drag paints. */
+    /** The dragged column's width and its absorbers' widths, painted mid-drag. */
     getResizedColumnWidths: (columnKey: string, width: number) => Record<string, number>;
 
     /** Each column's resolved width, which a drag starts from. A new object means React rendered new widths. */
@@ -18,8 +18,8 @@ type UseColumnResizeParams = {
     /** The narrowest width a drag may take a column to, for columns tighter than the default drag bound. */
     dragMinWidths?: Record<string, number>;
 
-    /** The layout to store with a drag's width, from every column's width when it ended. */
-    getColumnLayout: (columnWidths: Record<string, number>) => ColumnLayout;
+    /** Layout to save when dragging `columnKey` ends, from the painted widths. `undefined` when no column is resizable. */
+    getStoredTableColumnWidths?: (columnWidths: Record<string, number>, columnKey: string) => StoredTableColumnWidths;
 
     /** Gap between columns, so handles can be centred in it. */
     columnGap: number;

@@ -145,7 +145,7 @@ function createTableHandle<DataType extends TableData, ColumnKey extends string 
 }
 
 type TableContentProps<DataType extends TableData, ColumnKey extends string, FilterKey extends string> = TableProps<DataType, ColumnKey, FilterKey> & {
-    /** Stored dragged widths and painted layout for this table's `columnResizingID`. */
+    /** Layout the last drag saved for this `columnResizingID`. */
     storedTableColumnWidths?: StoredTableColumnWidths;
 };
 
@@ -278,7 +278,7 @@ function TableContent<DataType extends TableData, ColumnKey extends string = str
     // static tracks and never measure the table.
     const isDynamicSizingEnabled = shouldUseDynamicColumns && !shouldUseNarrowTableLayout && canMeasureText();
 
-    // Dragged widths are applied by the dynamic sizing resolver, so resizing requires it.
+    // The saved layout is applied by the dynamic sizing resolver, so resizing requires it.
     const {isBetaEnabled} = usePermissions();
     const isColumnResizingEnabled = isDynamicSizingEnabled && !!columnResizingID && isBetaEnabled(CONST.BETAS.RESIZABLE_TABLE_COLUMNS);
 
@@ -292,7 +292,7 @@ function TableContent<DataType extends TableData, ColumnKey extends string = str
         getResizedColumnWidths,
         resolvedColumnWidths,
         dragMinWidths,
-        getColumnLayout,
+        getStoredTableColumnWidths,
     } = useDynamicColumnWidths<DataType, ColumnKey>({
         columns,
         data,
@@ -310,7 +310,7 @@ function TableContent<DataType extends TableData, ColumnKey extends string = str
         getResizedColumnWidths,
         resolvedColumnWidths,
         dragMinWidths,
-        getColumnLayout,
+        getStoredTableColumnWidths,
         columnGap: styles.gap3.gap,
     });
 

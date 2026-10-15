@@ -1,12 +1,12 @@
 /**
- * Web column resizing: dragging a column's right edge sets its width, absorbed by the unset columns to its right. Widths
- * live in CSS custom properties so React doesn't render mid-drag. Only the dragged column's final width is stored in Onyx.
+ * Web column resizing by dragging a column's right edge. Widths live in CSS custom properties so React doesn't render
+ * mid-drag, and the layout is saved to Onyx when the drag ends.
  */
 import getDraggedColumnWidth from '@components/Table/columnResize/getDraggedColumnWidth';
 
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {setTableColumnWidth} from '@libs/actions/TableColumnWidths';
+import {setTableColumnWidths} from '@libs/actions/TableColumnWidths';
 
 import CONST from '@src/CONST';
 
@@ -48,7 +48,7 @@ function useColumnResize({
     getResizedColumnWidths,
     resolvedColumnWidths,
     dragMinWidths,
-    getColumnLayout,
+    getStoredTableColumnWidths,
     columnGap,
 }: UseColumnResizeParams): ColumnResizeController | undefined {
     const styles = useThemeStyles();
@@ -69,15 +69,13 @@ function useColumnResize({
         const width = readColumnWidth(drag.columnKey) ?? drag.startWidth;
 
         // Nothing gets stored, so no render follows to clear the live widths.
-        if (!columnResizingID || width === drag.startWidth) {
+        if (!columnResizingID || !getStoredTableColumnWidths || width === drag.startWidth) {
             clearLiveWidths();
             return;
         }
 
-        // Only the dragged column is user-sized, since marking the absorbers would stop them absorbing. The rest is stored
-        // as the painted layout instead, because a fresh layout would share the room between the unset columns differently.
-        const columnLayout = getColumnLayout(Object.fromEntries(Object.keys(resolvedColumnWidths).map((columnKey) => [columnKey, readColumnWidth(columnKey) ?? 0])));
-        setTableColumnWidth(columnResizingID, drag.columnKey, width, columnLayout);
+        const paintedColumnWidths = Object.fromEntries(Object.keys(resolvedColumnWidths).map((columnKey) => [columnKey, readColumnWidth(columnKey) ?? 0]));
+        setTableColumnWidths(columnResizingID, getStoredTableColumnWidths(paintedColumnWidths, drag.columnKey));
     };
 
     const handlePointerDown = (columnKey: string, event: React.PointerEvent<HTMLDivElement>) => {

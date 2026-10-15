@@ -1,6 +1,4 @@
-/** Works out what a drag paints: the dragged column at its new width, with the change taken out of the unset columns to its right. */
-import type {ColumnWidthOverrides} from '@src/types/onyx/TableColumnWidths';
-
+/** Works out what a drag paints: the dragged column at its new width, with the change taken out of the unresized columns to its right. */
 import type {ColumnAbsorber} from './getAbsorbedColumnWidths';
 
 import getAbsorbedColumnWidths from './getAbsorbedColumnWidths';
@@ -14,14 +12,17 @@ type ResizableColumn = {
     /** Headless columns hold fixed-size content like an icon, checkbox or arrow, so they never resize. */
     label: string;
 
-    /** Columns with a declared width don't share the row. */
-    hasDeclaredWidth: boolean;
+    /** Width the column declares, which it always keeps, so it doesn't share the row. `undefined` when content-sized. */
+    declaredWidth: number | undefined;
 
-    /** Width its content and header need, which absorbing another column's resize never squeezes it below. `undefined` when unknown. */
-    fitWidth: number | undefined;
+    /** Width its content and header need. `0` when not measured. */
+    contentWidth: number;
 
-    /** Width absorbing another column's resize never grows it past. `undefined` when uncapped. */
-    maxWidth: number | undefined;
+    /** The layout's minimum, which absorbing never goes below. */
+    minWidth: number;
+
+    /** Width absorbing another column's resize never grows it past. `Infinity` when uncapped. */
+    maxWidth: number;
 };
 
 type ResolveDraggedColumnWidthsParams = {
@@ -31,8 +32,8 @@ type ResolveDraggedColumnWidthsParams = {
     /** Painted widths when the drag started. */
     startWidths: Record<string, number>;
 
-    /** Widths the user set. Those columns keep their width while another column is dragged. */
-    columnWidthOverrides: ColumnWidthOverrides | undefined;
+    /** Columns the user dragged, which keep their width. */
+    resizedColumnKeys: string[];
 
     /** Width the row has for its columns, which absorbers keep it at. */
     availableColumnsWidth: number;
@@ -45,7 +46,14 @@ type ResolveDraggedColumnWidthsParams = {
 
 /** Only headed, content-sized columns share the row. Columns with a declared width, like a switch, status or count, hold fixed-size content. */
 function isColumnResizable(column: ResizableColumn): boolean {
-    return !!column.label && !column.hasDeclaredWidth;
+    return !!column.label && column.declaredWidth === undefined;
+}
+
+/** The columns that give or take room when another width changes: resizable and never dragged by the user. */
+function getColumnAbsorbers(columns: ResizableColumn[], resizedColumnKeys: string[]): ColumnAbsorber[] {
+    return columns
+        .filter((column) => isColumnResizable(column) && !resizedColumnKeys.includes(column.key))
+        .map((column) => ({columnKey: column.key, minWidth: column.minWidth, maxWidth: column.maxWidth}));
 }
 
 /**
@@ -60,22 +68,18 @@ function getAbsorbedDelta(delta: number, overflowWidth: number): number {
 }
 
 /**
- * Columns to the left of the dragged one stay as painted, so its edge stays under the pointer. The change is split
- * equally between the unset columns to its right, down to their fit width and up to their maximum. Columns the user
- * set keep their width. Returns the dragged column and every absorber that moved.
+ * Columns left of the dragged one stay put, so its edge stays under the pointer. The change is split equally between
+ * the unresized columns to its right, within their minimum and maximum. Returns the dragged column and every absorber that moved.
  */
-function resolveDraggedColumnWidths({columns, startWidths, columnWidthOverrides, availableColumnsWidth, columnKey, width}: ResolveDraggedColumnWidthsParams): Record<string, number> {
+function resolveDraggedColumnWidths({columns, startWidths, resizedColumnKeys, availableColumnsWidth, columnKey, width}: ResolveDraggedColumnWidthsParams): Record<string, number> {
     const draggedIndex = columns.findIndex((column) => column.key === columnKey);
     const delta = width - (startWidths[columnKey] ?? 0);
     const overflowWidth = getColumnsWidthSum(columns, startWidths) - availableColumnsWidth;
-    const absorbers = columns
-        .slice(draggedIndex + 1)
-        .filter((column) => isColumnResizable(column) && columnWidthOverrides?.[column.key] === undefined)
-        .map((column): ColumnAbsorber => ({columnKey: column.key, minWidth: column.fitWidth ?? 0, maxWidth: column.maxWidth ?? Number.POSITIVE_INFINITY}));
+    const absorbers = getColumnAbsorbers(columns.slice(draggedIndex + 1), resizedColumnKeys);
 
     return {...getAbsorbedColumnWidths(absorbers, startWidths, getAbsorbedDelta(delta, overflowWidth)), [columnKey]: width};
 }
 
 export default resolveDraggedColumnWidths;
-export {isColumnResizable};
+export {getAbsorbedDelta, getColumnAbsorbers, isColumnResizable};
 export type {ResizableColumn};

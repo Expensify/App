@@ -7,7 +7,7 @@ const {MIN_WIDTH} = CONST.TABLES.COLUMN_RESIZE;
 type ColumnAbsorber = {
     columnKey: string;
 
-    /** Narrowest it may be squeezed to, usually its content width so absorbing never truncates what it shows. */
+    /** The layout's minimum, so a drag and a reload land on the same widths. */
     minWidth: number;
 
     /** Widest it may grow to, so a column meant to truncate long values never takes another column's freed width past its cap. */
