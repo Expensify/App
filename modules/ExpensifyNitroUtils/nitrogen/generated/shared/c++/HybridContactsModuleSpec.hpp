@@ -55,6 +55,7 @@ namespace margelo::nitro::utils {
     public:
       // Methods
       virtual std::shared_ptr<Promise<std::vector<Contact>>> getAll(const std::vector<ContactFields>& keys) = 0;
+      virtual std::shared_ptr<Promise<std::vector<Contact>>> pick(const std::vector<ContactFields>& keys) = 0;
 
     protected:
       // Hybrid Setup
