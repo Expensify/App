@@ -67,7 +67,7 @@ You can use the following operators to filter expenses:
 
 | **Syntax** | **Description** | **Example** |
 |---|---|---|
-| `merchant:` | Filter by expense merchant name | `merchant:"Delta Air Lines"` |
+| `merchant:` / `merchant=` | Filter by expense merchant name. `merchant:` matches merchant names that contain the value, and `merchant=` matches the exact merchant name only | `merchant="Delta Air Lines"` |
 | `category:` | Filter by expense category label | `category:"Travel"` |
 | `tag:` | Filter by one or multiple tags | `tag:"Client A"` |
 | `amount:` / `purchase-amount:` | Filter by amount using `=`, `>`, `<`, `>=`, or `<=` | `amount:>100` |
