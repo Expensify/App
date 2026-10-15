@@ -158,6 +158,16 @@ jest.mock('@components/Icon', () => {
     };
 });
 
+jest.mock('@components/Button/primitives/ButtonKeyboardShortcut', () => {
+    const ReactActual = require('react');
+    const {View} = require('react-native');
+
+    return {
+        __esModule: true,
+        default: () => ReactActual.createElement(View, {testID: 'enable-2fa-enter-shortcut'}),
+    };
+});
+
 let mockFocusedRouteName = 'TestToolsModal_Root';
 
 jest.mock('@gorhom/portal', () => {
@@ -254,6 +264,7 @@ describe('RequireTwoFactorAuthenticationOverlay stacking', () => {
         expect(screen.getByText('You appear to be offline.')).toBeOnTheScreen();
         expect(within(overlay).queryByText('You appear to be offline.')).toBeNull();
         expect(screen.getByTestId('focus-trap-active')).toBeOnTheScreen();
+        expect(screen.getByTestId('enable-2fa-enter-shortcut')).toBeOnTheScreen();
     });
 
     it('hides the banner when the overlay is not showing', () => {
@@ -293,10 +304,11 @@ describe('RequireTwoFactorAuthenticationOverlay stacking', () => {
         // When the overlay renders.
         render(<RequireTwoFactorAuthenticationOverlay />);
 
-        // Then the web focus trap turns off, so keyboard focus can reach the tools.
+        // Then the web focus trap turns off, so keyboard focus can reach the tools, and Enter no longer starts 2FA setup.
         expect(screen.getByTestId('RequireTwoFactorAuthenticationOverlay')).toBeOnTheScreen();
         expect(screen.getByTestId('focus-trap-inactive')).toBeOnTheScreen();
         expect(screen.queryByTestId('focus-trap-active')).toBeNull();
+        expect(screen.queryByTestId('enable-2fa-enter-shortcut')).toBeNull();
     });
 });
 
@@ -366,9 +378,26 @@ describe('TestToolsModalNavigator portal', () => {
         expect(screen.queryByTestId('test-tools-page')).toBeNull();
     });
 
-    it('keeps test tools inside the native modal while required 2FA is showing', () => {
-        // Given native, where this navigator is already a transparent modal above the overlay.
-        // Moving the screen out of that modal into the portal host leaves an empty opaque screen that covers the tools after the transition.
+    it('portals the focused screen above the overlay on Android', () => {
+        // Given Android, where a transparent modal stays inside the stack and the overlay would cover an in-place screen.
+        Platform.OS = 'android';
+        mockVisibility = {
+            isRequire2FAOverlayVisible: true,
+            isTestToolsRouteFocused: true,
+        };
+
+        // When test tools render above that overlay.
+        render(<TestToolsModalNavigator />);
+
+        // Then that screen is portaled with its route, the same as on web.
+        const portal = screen.getByTestId(`portal-${REQUIRE_2FA_ABOVE_PORTAL_HOST}`);
+
+        expect(within(portal).getByText('TestToolsModal_Root')).toBeOnTheScreen();
+    });
+
+    it('keeps test tools inside the iOS modal while required 2FA is showing', () => {
+        // Given iOS, where this navigator is already a window above the overlay.
+        // Moving the screen out of that window into the portal host leaves an empty opaque screen that covers the tools after the transition.
         Platform.OS = 'ios';
         mockVisibility = {
             isRequire2FAOverlayVisible: true,

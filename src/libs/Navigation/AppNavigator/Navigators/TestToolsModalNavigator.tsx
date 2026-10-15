@@ -80,13 +80,18 @@ function TestToolsModalFrame({children}: TestToolsModalFrameProps) {
     );
 }
 
+// iOS already draws this navigator above the overlay. Android's transparent modal stays inside the stack, under it, and web paints the overlay after the stack.
+function shouldLiftTestToolsAboveRequire2FA(isRequire2FAOverlayVisible: boolean): boolean {
+    return isRequire2FAOverlayVisible && Platform.OS !== 'ios';
+}
+
 /**
- * On web, the required-2FA overlay is painted after the root stack, so this screen has to move
- * into the portal host above it. The nested stack stays in the root navigator so the URL, backTo,
- * and goBack keep working. The host is outside that stack, so the frame gets the screen contexts it reads.
+ * On web and Android, move the focused screen into the portal host above the required-2FA overlay.
+ * The nested stack stays in the root navigator so the URL, backTo, and goBack keep working.
+ * The host is outside that stack, so the frame gets the screen contexts it reads.
  *
- * Native already presents this navigator as a transparent modal above that overlay. Moving the
- * screen into the portal host leaves an empty opaque screen, which covers the tools once the transition ends.
+ * iOS stays in place. Moving that screen into the portal host leaves an empty opaque window,
+ * which covers the tools once the modal transition ends.
  */
 function withRequire2FAPortal<RouteName extends TestToolsRouteName>(Screen: ComponentType<PlatformStackScreenProps<TestToolsModalModalNavigatorParamList, RouteName>>) {
     function Require2FAPortaledTestToolsScreen(props: PlatformStackScreenProps<TestToolsModalModalNavigatorParamList, RouteName>) {
@@ -96,7 +101,7 @@ function withRequire2FAPortal<RouteName extends TestToolsRouteName>(Screen: Comp
         const cardAnimation = useContext(CardAnimationContext);
         const isFocused = useIsFocused();
 
-        if (!isRequire2FAOverlayVisible || Platform.OS !== 'web') {
+        if (!shouldLiftTestToolsAboveRequire2FA(isRequire2FAOverlayVisible)) {
             return <Screen {...props} />;
         }
 
@@ -151,8 +156,8 @@ function TestToolsModalNavigator() {
         </Stack.Navigator>
     );
 
-    // See withRequire2FAPortal. Only web has to lift the screen out of this stack.
-    if (isRequire2FAOverlayVisible && Platform.OS === 'web') {
+    // See shouldLiftTestToolsAboveRequire2FA. iOS keeps the screen in this stack.
+    if (shouldLiftTestToolsAboveRequire2FA(isRequire2FAOverlayVisible)) {
         return stack;
     }
 

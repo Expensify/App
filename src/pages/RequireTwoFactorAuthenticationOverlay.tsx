@@ -155,7 +155,9 @@ function RequireTwoFactorAuthenticationOverlay() {
                                         variant={CONST.BUTTON_VARIANT.SUCCESS}
                                         onPress={enableTwoFactorAuth}
                                     >
-                                        <Button.KeyboardShortcut />
+                                        {/* The overlay sits outside a screen, so this shortcut always looks focused.
+                                            Leave it off while test tools are open, or Enter there starts 2FA setup. */}
+                                        {!isTestToolsRouteFocused && <Button.KeyboardShortcut />}
                                         <Button.Text>{translate('twoFactorAuth.enable2FA')}</Button.Text>
                                     </Button>
                                 </View>
