@@ -16,6 +16,7 @@ import type {DiscardChangesConfirmation} from './types';
 import type UseDiscardChangesConfirmationOptions from './types';
 
 import getDiscardChangesModalConfig from './getDiscardChangesModalConfig';
+import createConfirmNavigation, {continueNavigationAfterDiscard} from './navigationConfirmation';
 import runDiscardConfirmation from './runDiscardConfirmation';
 
 function useDiscardChangesConfirmation({
@@ -63,35 +64,35 @@ function useDiscardChangesConfirmation({
                 onCancel?.();
                 return;
             }
-            const continueNavigation = () => {
-                const navigationCallback = navigationCallbackRef.current;
-                navigationCallbackRef.current = undefined;
-                if (navigationCallback) {
-                    isSavingRef.current = true;
-                    navigationCallback();
-                    return;
-                }
-
-                if (!isFocused && onConfirmWhenUnfocused) {
-                    isSavingRef.current = true;
+            runDiscardConfirmation(
+                onConfirm,
+                () =>
+                    continueNavigationAfterDiscard({
+                        clearBlockedNavigation: () => {
+                            blockedNavigationAction.current = undefined;
+                        },
+                        continueNavigation: () => {
+                            isReplayingBlockedNavigation.current = true;
+                            if (blockedNavigationAction.current) {
+                                navigationRef.current?.dispatch(blockedNavigationAction.current);
+                                blockedNavigationAction.current = undefined;
+                            } else {
+                                navigationRef.current?.goBack();
+                            }
+                            isReplayingBlockedNavigation.current = false;
+                        },
+                        isFocused,
+                        navigationCallbackRef,
+                        onConfirmWhenUnfocused,
+                        suppressDiscardPrompt: () => {
+                            isSavingRef.current = true;
+                        },
+                    }),
+                () => {
                     blockedNavigationAction.current = undefined;
-                    onConfirmWhenUnfocused();
-                    return;
-                }
-
-                isReplayingBlockedNavigation.current = true;
-                if (blockedNavigationAction.current) {
-                    navigationRef.current?.dispatch(blockedNavigationAction.current);
-                    blockedNavigationAction.current = undefined;
-                } else {
-                    navigationRef.current?.goBack();
-                }
-                isReplayingBlockedNavigation.current = false;
-            };
-            runDiscardConfirmation(onConfirm, continueNavigation, () => {
-                blockedNavigationAction.current = undefined;
-                navigationCallbackRef.current = undefined;
-            });
+                    navigationCallbackRef.current = undefined;
+                },
+            );
         });
     };
 
@@ -107,19 +108,7 @@ function useDiscardChangesConfirmation({
         showDiscardModal(data.action);
     });
 
-    const confirmNavigation = (navigationCallback: () => void) => {
-        if (!hasUnsavedChanges()) {
-            navigationCallback();
-            return;
-        }
-
-        if (isDiscardModalOpen.current) {
-            return;
-        }
-
-        navigationCallbackRef.current = navigationCallback;
-        showDiscardModal();
-    };
+    const confirmNavigation = createConfirmNavigation({hasUnsavedChanges, isDiscardModalOpen, navigationCallbackRef, showDiscardModal});
 
     // A tab-switch hardware back is an index-only TabRouter change that never fires `beforeRemove`, so intercept it here,
     // ahead of react-navigation's container handler (BackHandler runs listeners newest-first).

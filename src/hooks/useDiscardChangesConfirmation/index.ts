@@ -17,6 +17,7 @@ import type {DiscardChangesConfirmation} from './types';
 import type UseDiscardChangesConfirmationOptions from './types';
 
 import getDiscardChangesModalConfig from './getDiscardChangesModalConfig';
+import createConfirmNavigation, {continueNavigationAfterDiscard} from './navigationConfirmation';
 import runDiscardConfirmation from './runDiscardConfirmation';
 
 /**
@@ -90,25 +91,20 @@ function useDiscardChangesConfirmation({
             }
             runDiscardConfirmation(
                 onConfirm,
-                () => {
-                    const navigationCallback = navigationCallbackRef.current;
-                    navigationCallbackRef.current = undefined;
-                    if (navigationCallback) {
-                        isSavingRef.current = true;
-                        navigationCallback();
-                        return;
-                    }
-
-                    if (!isFocused && onConfirmWhenUnfocused) {
-                        isSavingRef.current = true;
-                        blockedNavigationAction.current = undefined;
-                        shouldNavigateBack.current = false;
-                        onConfirmWhenUnfocused();
-                        return;
-                    }
-
-                    setNavigationActionToMicrotaskQueue(navigateBack);
-                },
+                () =>
+                    continueNavigationAfterDiscard({
+                        clearBlockedNavigation: () => {
+                            blockedNavigationAction.current = undefined;
+                            shouldNavigateBack.current = false;
+                        },
+                        continueNavigation: () => setNavigationActionToMicrotaskQueue(navigateBack),
+                        isFocused,
+                        navigationCallbackRef,
+                        onConfirmWhenUnfocused,
+                        suppressDiscardPrompt: () => {
+                            isSavingRef.current = true;
+                        },
+                    }),
                 () => {
                     blockedNavigationAction.current = undefined;
                     navigationCallbackRef.current = undefined;
@@ -158,19 +154,7 @@ function useDiscardChangesConfirmation({
         showDiscardModal();
     });
 
-    const confirmNavigation = (navigationCallback: () => void) => {
-        if (!hasUnsavedChanges()) {
-            navigationCallback();
-            return;
-        }
-
-        if (isDiscardModalOpen.current) {
-            return;
-        }
-
-        navigationCallbackRef.current = navigationCallback;
-        showDiscardModal();
-    };
+    const confirmNavigation = createConfirmNavigation({hasUnsavedChanges, isDiscardModalOpen, navigationCallbackRef, showDiscardModal});
 
     // `closeModal` changes every render, so the once-registered popstate listener reads it through a ref
     const closeModalRef = useRef(closeModal);
