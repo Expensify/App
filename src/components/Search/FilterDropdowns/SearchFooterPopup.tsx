@@ -104,9 +104,7 @@ function SearchFooterPopup({
                 )}
                 {shouldShowTotalSelector && !!totalType && (
                     <MenuItemWithTopDescription
-                        shouldShowRightIcon
-                        // Both rows re-run the search, so they are inert until the one in flight lands. The count row
-                        // stays interactive, since switching it needs no request.
+                        shouldShowRightIcon={!isTotalLoading}
                         interactive={!isTotalLoading}
                         description={translate('common.total')}
                         title={totalItems.find((item) => item.value === totalType)?.text}
@@ -115,7 +113,7 @@ function SearchFooterPopup({
                     />
                 )}
                 <MenuItemWithTopDescription
-                    shouldShowRightIcon
+                    shouldShowRightIcon={!isTotalLoading && !isOffline}
                     interactive={!isTotalLoading && !isOffline}
                     description={translate('common.currency')}
                     title={currency ?? defaultCurrency}
