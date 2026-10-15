@@ -1,5 +1,5 @@
 import getAdaptedStateFromPath from '@libs/Navigation/helpers/getAdaptedStateFromPath';
-import {linkingConfig} from '@libs/Navigation/linkingConfig';
+import {config as linkingConfig} from '@libs/Navigation/linkingConfig/config';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 
 import {openApp} from '@userActions/App';
@@ -80,7 +80,7 @@ function getOnboardingInitialPath(getOnboardingInitialPathParams: GetOnboardingI
         isAccountValidated,
     } = getOnboardingInitialPathParams;
     const initialPath = onboardingInitialPath ?? '';
-    const state = getStateFromPath(initialPath, linkingConfig.config);
+    const state = getStateFromPath(initialPath, linkingConfig);
     const currentOnboardingValues = onboardingValuesParam ?? onboardingValues;
     const isVsb = currentOnboardingValues?.signupQualifier === CONST.ONBOARDING_SIGNUP_QUALIFIERS.VSB;
     const isSmb = currentOnboardingValues?.signupQualifier === CONST.ONBOARDING_SIGNUP_QUALIFIERS.SMB;
