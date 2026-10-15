@@ -123,7 +123,7 @@ describe('chart width handoff', () => {
 
         // Then the chart waits for the width instead of measuring itself, because the reveal starts the fade in the render
         // the card is measured in, and a chart that measures itself draws later than that. Nothing covers the card meanwhile,
-        // since the width lands within a frame or two and a spinner would only flash.
+        // since the width comes from the card's first layout and a spinner would only flash.
         expect(PolarChart).not.toHaveBeenCalled();
         expect(screen.UNSAFE_queryByType(ActivityIndicator)).toBeNull();
     });

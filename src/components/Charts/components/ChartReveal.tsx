@@ -10,10 +10,12 @@ import type {ReactNode} from 'react';
 import React, {createContext, useContext, useEffect, useLayoutEffect, useState} from 'react';
 import {View} from 'react-native';
 import Animated, {useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
+import {scheduleOnRN, scheduleOnUI} from 'react-native-worklets';
 
 /**
  * Skia draws a chart a few frames after it mounts: 2 to 4 on web.
  * Counted in frames because a stalled main thread delays the draw by frames, which a timer would not wait for.
+ * Counted on the UI thread, where native Skia draws, because frames counted on a busy JS thread run seconds past the draw.
  */
 const HOLD_FRAMES = 5;
 
@@ -57,9 +59,15 @@ function ChartReveal({loadingHeight, isCardMeasured, children}: ChartRevealProps
     const opacity = useSharedValue(0);
     const fadeStyle = useAnimatedStyle(() => ({opacity: opacity.get()}));
 
+    // Hidden on the UI thread as the fade starts, because unmounting it waits for a JS thread that can be busy for seconds
+    const spinnerStyle = useAnimatedStyle(() => ({opacity: opacity.get() > 0 ? 0 : 1}));
+
+    // Written on the UI thread, which counts the hold, so that the cleanup there can cancel the hold's next frame
+    const holdFrameID = useSharedValue(0);
+
     const isReady = !!loadState && !loadState.isLoading && isCardMeasured;
 
-    // A chart that mounts with everything in memory waits only for its card's width, which lands within a frame or two,
+    // A chart that mounts with everything in memory waits only for its card's first layout to report the width,
     // so it shows no spinner and fades in at once. Only a chart that has shown the spinner holds it until Skia has drawn.
     const isSpinnerShown = !loadState || hasReportedLoading;
     const shouldHold = hasReportedLoading && !!loadState?.isDrawnBySkia;
@@ -81,36 +89,46 @@ function ChartReveal({loadingHeight, isCardMeasured, children}: ChartRevealProps
             return;
         }
 
-        const fadeIn = () => opacity.set(withTiming(1, {duration: CONST.ANIMATED_TRANSITION}));
+        // Read here so that the worklet below captures a number rather than all of CONST
+        const duration = CONST.ANIMATED_TRANSITION;
         if (!shouldHold) {
-            fadeIn();
+            opacity.set(withTiming(1, {duration}));
             return;
         }
 
-        let framesLeft = HOLD_FRAMES;
-        let frameID = 0;
-        const countFrame = () => {
-            framesLeft -= 1;
-            if (framesLeft > 0) {
-                frameID = requestAnimationFrame(countFrame);
-                return;
-            }
-            setIsRevealed(true);
-            fadeIn();
-        };
-        frameID = requestAnimationFrame(countFrame);
+        scheduleOnUI(() => {
+            'worklet';
 
-        return () => cancelAnimationFrame(frameID);
-    }, [isReady, shouldHold, opacity]);
+            let framesLeft = HOLD_FRAMES;
+            const countFrame = () => {
+                framesLeft -= 1;
+                if (framesLeft > 0) {
+                    holdFrameID.set(requestAnimationFrame(countFrame));
+                    return;
+                }
+                opacity.set(withTiming(1, {duration}));
+                scheduleOnRN(setIsRevealed, true);
+            };
+            holdFrameID.set(requestAnimationFrame(countFrame));
+        });
+
+        return () => {
+            scheduleOnUI(() => {
+                'worklet';
+
+                cancelAnimationFrame(holdFrameID.get());
+            });
+        };
+    }, [isReady, shouldHold, opacity, holdFrameID]);
 
     return (
         <ChartLoadingContext.Provider value={setLoadState}>
             <View>
                 <Animated.View style={fadeStyle}>{children}</Animated.View>
                 {!isRevealed && (
-                    <View style={[styles.chartActivityIndicator, StyleUtils.getHeight(loadingHeight), isReady && [styles.pAbsolute, styles.t0, styles.l0, styles.r0]]}>
+                    <Animated.View style={[styles.chartActivityIndicator, StyleUtils.getHeight(loadingHeight), isReady && [styles.pAbsolute, styles.t0, styles.l0, styles.r0, spinnerStyle]]}>
                         {isSpinnerShown && <ActivityIndicator size="large" />}
-                    </View>
+                    </Animated.View>
                 )}
             </View>
         </ChartLoadingContext.Provider>

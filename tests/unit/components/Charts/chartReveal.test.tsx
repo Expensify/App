@@ -12,7 +12,15 @@ const LOADING_HEIGHT = getCartesianChartHeight();
 let pendingFrames = new Map<number, FrameRequestCallback>();
 let lastFrameID = 0;
 
+/** The worklets mock runs UI-thread work on a timer and calls back into React in a microtask, which the fake timers below hold */
+function flushWorklets() {
+    act(() => {
+        jest.runOnlyPendingTimers();
+    });
+}
+
 function runFrames(count: number) {
+    flushWorklets();
     for (let frame = 0; frame < count; frame++) {
         const callbacks = [...pendingFrames.values()];
         pendingFrames.clear();
@@ -22,6 +30,7 @@ function runFrames(count: number) {
             }
         });
     }
+    flushWorklets();
 }
 
 type ChartBodyProps = {
@@ -54,6 +63,7 @@ function renderChart(isLoading: boolean, label = 'chart', isCardMeasured = true)
 
 describe('ChartReveal', () => {
     beforeEach(() => {
+        jest.useFakeTimers();
         pendingFrames = new Map();
         jest.spyOn(global, 'requestAnimationFrame').mockImplementation((callback) => {
             lastFrameID += 1;
@@ -70,13 +80,14 @@ describe('ChartReveal', () => {
 
     afterEach(() => {
         jest.restoreAllMocks();
+        jest.useRealTimers();
     });
 
     it('should fade the chart in without a spinner when it is only waiting for its card to be measured', () => {
         // Given a chart whose data and fonts are already in memory, mounted before its card has been measured
         const {rerender} = render(renderChart(false, 'chart', false));
 
-        // Then nothing covers the card, because the width lands within a frame or two and a spinner would only flash
+        // Then nothing covers the card, because the width comes from the card's first layout and a spinner would only flash
         expect(screen.UNSAFE_queryByType(ActivityIndicator)).toBeNull();
 
         // When the card is measured
@@ -189,6 +200,7 @@ describe('ChartReveal', () => {
 
         // When it unmounts, as it does when the user leaves the page
         unmount();
+        flushWorklets();
 
         // Then no frame is left waiting to reveal it, since that would update a component that is gone
         expect(pendingFrames.size).toBe(0);
