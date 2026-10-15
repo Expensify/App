@@ -4387,10 +4387,6 @@ const ROUTES = {
         route: 'workspaces/:policyID/rules/new',
         getRoute: (policyID: string, categoryName?: string) => `workspaces/${policyID}/rules/new${getOptionalCategoryNameQuery(categoryName)}` as const,
     },
-    RULES_DESCRIBE: {
-        route: 'workspaces/:policyID/rules/describe',
-        getRoute: (policyID: string) => `workspaces/${policyID}/rules/describe` as const,
-    },
     RULES_EXPENSE_DEFAULT_TYPE: {
         route: 'workspaces/:policyID/rules/expense-defaults/new',
         getRoute: (policyID: string) => `workspaces/${policyID}/rules/expense-defaults/new` as const,
