@@ -1,5 +1,6 @@
 import ScrollView from '@components/ScrollView';
 
+import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
 import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -11,7 +12,6 @@ import type {MouseEvent, ReactNode} from 'react';
 import React from 'react';
 import {View} from 'react-native';
 
-import NumericInputFooter from './NumericInputFooter';
 import NumericInputMain from './NumericInputMain';
 import NumericInputPad from './NumericInputPad';
 
@@ -47,6 +47,12 @@ const getPartTestID = (testID: string | undefined, part: string) => (testID ? `$
 function NumericInputLayout({children, actions, footer, testID, onEmptyAreaPress}: NumericInputLayoutProps) {
     const styles = useThemeStyles();
     const isTwoColumn = useIsInLandscapeMode();
+    const ownsBottomSpacing = isTwoColumn || !canUseTouchScreen;
+    const footerStyle = useBottomSafeSafeAreaPaddingStyle({
+        // In landscape the footer sits outside the scroll view, so it handles the bottom safe area itself
+        addBottomSafeAreaPadding: isTwoColumn,
+        style: [styles.w100, styles.alignItemsCenter, styles.ph5, canUseTouchScreen && !isTwoColumn && styles.mt5, ownsBottomSpacing && styles.pb5],
+    });
 
     const handleMouseDown = (event: MouseEvent<Element>) => {
         const target = event.nativeEvent?.target;
@@ -77,12 +83,12 @@ function NumericInputLayout({children, actions, footer, testID, onEmptyAreaPress
         />
     ) : null;
     const footerNode = footer ? (
-        <NumericInputFooter
-            isTwoColumn={isTwoColumn}
+        <View
             testID={getPartTestID(testID, 'footer')}
+            style={footerStyle}
         >
             {footer}
-        </NumericInputFooter>
+        </View>
     ) : null;
 
     if (isTwoColumn) {
