@@ -116,22 +116,10 @@ function AttachmentModalBaseContent({
 
     const fallbackFile = useMemo(() => (originalFileName ? {name: originalFileName} : undefined), [originalFileName]);
     const [files, setFilesInternal] = useState<FileObject | FileObject[] | undefined>(() => filesProp ?? fallbackFile);
-    const [isMultipleFiles, setIsMultipleFiles] = useState<boolean>(() => Array.isArray(files));
-    const fileToDisplay = useMemo(() => {
-        if (isMultipleFiles) {
-            return (files as FileObject[])?.at(fileToDisplayIndex);
-        }
-        return files as FileObject;
-    }, [files, fileToDisplayIndex, isMultipleFiles]);
+    const fileToDisplay = Array.isArray(files) ? files.at(fileToDisplayIndex) : files;
 
     const setFile = useCallback((newFile: FileObject | FileObject[] | undefined) => {
-        if (Array.isArray(newFile)) {
-            setFilesInternal(newFile);
-            setIsMultipleFiles(true);
-        } else {
-            setFilesInternal(newFile);
-            setIsMultipleFiles(false);
-        }
+        setFilesInternal(newFile);
     }, []);
 
     useEffect(() => {
@@ -179,7 +167,7 @@ function AttachmentModalBaseContent({
             return;
         }
 
-        const confirm = () => onConfirm?.(Object.assign(files ?? {}, {source} as FileObject));
+        const confirm = () => onConfirm?.(Object.assign(files ?? {}, {source}));
 
         // Sequence close and confirm so the screen underneath never flashes between them. On native the modal must close
         // first, otherwise the back navigation latches onto the confirm navigation and loops.

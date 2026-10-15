@@ -7,13 +7,13 @@ import type {Dimensions} from '@src/types/utils/Layout';
 
 import type {ComponentRef, RefObject} from 'react';
 // eslint-disable-next-line no-restricted-imports
-import type {Text, View} from 'react-native';
+import type {Text, TextInput, View} from 'react-native';
 
 type PopoverProps = BaseModalProps &
     ChildrenProps & {
         anchorPosition?: PopoverAnchorPosition;
         anchorAlignment?: AnchorAlignment;
-        anchorRef: RefObject<ComponentRef<typeof View> | HTMLDivElement | ComponentRef<typeof Text> | null>;
+        anchorRef: RefObject<ComponentRef<typeof View> | HTMLDivElement | ComponentRef<typeof Text> | ComponentRef<typeof TextInput> | null>;
         disableAnimation?: boolean;
 
         /** Whether we don't want to show overlay */

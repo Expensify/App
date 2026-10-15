@@ -1,6 +1,6 @@
 import type {ComponentRef, RefObject} from 'react';
 // eslint-disable-next-line no-restricted-imports
-import type {Text, View} from 'react-native';
+import type {Text, TextInput, View} from 'react-native';
 
 import React, {createContext, useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
 
@@ -14,7 +14,7 @@ type PopoverStateContextType = {
 
 type PopoverActionsContextType = {
     onOpen: (popoverParams: AnchorRef) => void;
-    close: (anchorRef?: RefObject<ComponentRef<typeof View> | HTMLElement | ComponentRef<typeof Text> | null>) => void;
+    close: (anchorRef?: RefObject<ComponentRef<typeof View> | HTMLElement | ComponentRef<typeof Text> | ComponentRef<typeof TextInput> | null>) => void;
     setActivePopoverExtraAnchorRef: (ref?: RefObject<ComponentRef<typeof View> | HTMLDivElement | ComponentRef<typeof Text> | null>) => void;
 };
 
@@ -32,7 +32,10 @@ const PopoverStateContext = createContext<PopoverStateContextType>({
 
 const PopoverActionsContext = createContext<PopoverActionsContextType>(defaultPopoverActionsContext);
 
-function elementContains(ref: RefObject<ComponentRef<typeof View> | HTMLElement | ComponentRef<typeof Text> | null> | undefined, target: EventTarget | null) {
+function elementContains(
+    ref: RefObject<ComponentRef<typeof View> | HTMLElement | ComponentRef<typeof Text> | ComponentRef<typeof TextInput> | null> | undefined,
+    target: EventTarget | null,
+) {
     if (ref?.current && 'contains' in ref.current && ref?.current?.contains(target as never)) {
         return true;
     }
@@ -46,7 +49,7 @@ function PopoverContextProvider(props: PopoverContextProps) {
     const [activePopoverAnchor, setActivePopoverAnchor] = useState<AnchorRef['anchorRef']['current'] | null>(null);
     const [activePopoverExtraAnchorRefs, setActivePopoverExtraAnchorRefs] = useState<AnchorRef['extraAnchorRefs']>([]);
 
-    const closePopover = useCallback((anchorRef?: RefObject<ComponentRef<typeof View> | HTMLElement | ComponentRef<typeof Text> | null>): boolean => {
+    const closePopover = useCallback((anchorRef?: RefObject<ComponentRef<typeof View> | HTMLElement | ComponentRef<typeof Text> | ComponentRef<typeof TextInput> | null>): boolean => {
         if (!activePopoverRef.current || (anchorRef && anchorRef !== activePopoverRef.current.anchorRef)) {
             return false;
         }
