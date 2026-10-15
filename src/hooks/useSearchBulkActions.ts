@@ -55,6 +55,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import Parser from '@libs/Parser';
 import {getLoginByAccountID} from '@libs/PersonalDetailsUtils';
+import {canAccessPolicyBankAccount} from '@libs/PolicyPaymentUtils';
 import {getConnectedIntegration, isAdminOfCardEnabledPolicy, isSubmitPolicy} from '@libs/PolicyUtils';
 import {getReportAccountingExportActions, isMergeActionForSelectedTransactions} from '@libs/ReportSecondaryActionUtils';
 import {
@@ -1152,7 +1153,10 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
     const policyIDsWithVBBA = useMemo(() => {
         const result = [];
         for (const policy of Object.values(policies ?? {})) {
-            if (!policy?.achAccount?.bankAccountID) {
+            // Bulk pay funds from the workspace bank account when no account was picked in the menu, so a workspace only
+            // counts here if the workspace account is actually shared with the current user. Anyone else has to open the
+            // report and pick an account of their own. That includes a payer the account was never shared with.
+            if (!policy || !canAccessPolicyBankAccount(policy, bankAccountList)) {
                 continue;
             }
 
@@ -1160,7 +1164,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         }
 
         return result;
-    }, [policies]);
+    }, [policies, bankAccountList]);
 
     const exportSearchData = searchResults?.data;
     const exportSearchType = searchResults?.search.type ?? queryJSON?.type;
@@ -1815,6 +1819,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                     const payChatReportID = shouldUseB2BInvoiceReport ? existingB2BInvoiceReport.reportID : chatReport.reportID;
 
                     payInvoice({
+                        bankAccountList,
                         isASAPSubmitBetaEnabled: isBetaEnabled(CONST.BETAS.ASAP_SUBMIT),
                         getCurrencyDecimals,
                         paymentMethodType: paymentItem.paymentType as PaymentMethodType,
@@ -1844,6 +1849,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 }
 
                 payMoneyRequest({
+                    bankAccountList,
                     isASAPSubmitBetaEnabled: isBetaEnabled(CONST.BETAS.ASAP_SUBMIT),
                     getCurrencyDecimals,
                     paymentType: paymentItem.paymentType as PaymentMethodType,
@@ -1908,6 +1914,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             allTransactions,
             policyIDsWithVBBA,
             clearSelectedTransactions,
+            bankAccountList,
             accountID,
             email,
             currentUserLogin,

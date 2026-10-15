@@ -30,7 +30,7 @@ import useParticipantsInvoiceReport from '@hooks/useParticipantsInvoiceReport';
 import usePayChatReportActions from '@hooks/usePayChatReportActions';
 import usePaymentOptions from '@hooks/usePaymentOptions';
 import usePermissions from '@hooks/usePermissions';
-import {usePersonalDetail} from '@hooks/usePersonalDetails';
+import {useAllPersonalDetails, usePersonalDetail} from '@hooks/usePersonalDetails';
 import usePolicy from '@hooks/usePolicy';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -109,6 +109,7 @@ function MoneyReportHeaderSecondaryActionsInner({reportID, primaryAction, isRepo
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(moneyRequestReport?.policyID)}`);
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(moneyRequestReport?.chatReportID)}`);
     const [submitterLogin] = usePersonalDetail(moneyRequestReport?.ownerAccountID, loginSelector);
+    const [paymentPersonalDetails] = useAllPersonalDetails();
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const [reportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${moneyRequestReport?.reportID}`);
     const [outstandingReportsByPolicyID] = useOnyx(ONYXKEYS.DERIVED.OUTSTANDING_REPORTS_BY_POLICY_ID);
@@ -204,6 +205,7 @@ function MoneyReportHeaderSecondaryActionsInner({reportID, primaryAction, isRepo
         } else if (isInvoiceReport) {
             startAnimation();
             payInvoice({
+                bankAccountList,
                 isASAPSubmitBetaEnabled,
                 getCurrencyDecimals,
                 paymentMethodType: type,
@@ -229,6 +231,7 @@ function MoneyReportHeaderSecondaryActionsInner({reportID, primaryAction, isRepo
         } else {
             startAnimation();
             payMoneyRequest({
+                bankAccountList,
                 getCurrencyDecimals,
                 isASAPSubmitBetaEnabled,
                 paymentType: type,
@@ -391,6 +394,7 @@ function MoneyReportHeaderSecondaryActionsInner({reportID, primaryAction, isRepo
     // Compute list of applicable secondary action keys
     const secondaryActions = moneyRequestReport
         ? getSecondaryReportActions({
+              personalDetails: paymentPersonalDetails,
               currentUserLogin: currentUserLogin ?? '',
               currentUserAccountID: accountID,
               submitterLogin,

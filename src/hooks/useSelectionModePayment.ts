@@ -92,6 +92,7 @@ function useSelectionModePayment({
     const {currentSearchResults} = useSearchResultsContext();
     const shouldCalculateTotals = useSearchShouldCalculateTotals(currentSearchKey, true);
 
+    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const [moneyRequestReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(reportID)}`);
     const [ownerLogin] = usePersonalDetail(moneyRequestReport?.ownerAccountID, loginSelector);
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(moneyRequestReport?.chatReportID)}`);
@@ -188,6 +189,7 @@ function useSelectionModePayment({
 
         if (isInvoiceReport) {
             payInvoice({
+                bankAccountList,
                 isASAPSubmitBetaEnabled,
                 getCurrencyDecimals,
                 paymentMethodType: type,
@@ -212,6 +214,7 @@ function useSelectionModePayment({
             });
         } else {
             payMoneyRequest({
+                bankAccountList,
                 getCurrencyDecimals,
                 isASAPSubmitBetaEnabled,
                 paymentType: type,
