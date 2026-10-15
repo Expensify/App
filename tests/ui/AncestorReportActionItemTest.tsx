@@ -67,6 +67,7 @@ async function renderParentAction(reportAction: ReportAction, currentUserAccount
                 shouldAllowConciergeFeedback
                 shouldUseThreadDividerLine={false}
                 transactionThreadReport={undefined}
+                reportsParentHierarchy={undefined}
             />
         </ComposeProviders>,
     );
