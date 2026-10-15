@@ -2079,8 +2079,6 @@ type SettingsNavigatorParamList = {
     };
     [SCREENS.WORKSPACE.RULES_AGENT_NEW]: {
         policyID: string;
-
-        /** The generation that produced this draft, when Concierge could not build the description as a standard rule */
         generationID?: string;
     };
     [SCREENS.WORKSPACE.RULES_AGENT_EDIT]: {
