@@ -32,8 +32,11 @@ type BuildChartSeriesParams = {
     /** Returns how many decimals a currency is displayed with */
     getCurrencyDecimals: (currency: string) => number;
 
-    /** Returns the label of a group whose period hasn't ended yet, or undefined for a finished one */
+    /** Returns the label of the group whose period includes today, or undefined for any other group */
     getInProgressLabel?: (item: GroupedItem) => string | undefined;
+
+    /** Returns whether a group's period starts after today, as it does for future-dated expenses */
+    isLaterPeriod?: (item: GroupedItem) => boolean;
 };
 
 type SearchChartModel = {
@@ -61,7 +64,7 @@ function getSliceColorsByDataIndex(data: ChartDataPoint[]): Array<string | undef
 }
 
 /** This is the single place group totals are turned into plotted values. */
-function buildChartSeries({data, view, getLabel, getShortLabel, getCurrencyDecimals, getInProgressLabel}: BuildChartSeriesParams): SearchChartModel {
+function buildChartSeries({data, view, getLabel, getShortLabel, getCurrencyDecimals, getInProgressLabel, isLaterPeriod}: BuildChartSeriesParams): SearchChartModel {
     const rows = data.map((item) => {
         const decimals = getCurrencyDecimals(item.currency ?? CONST.CURRENCY.USD);
         const label = StringUtils.normalize(getLabel(item));
@@ -77,6 +80,8 @@ function buildChartSeries({data, view, getLabel, getShortLabel, getCurrencyDecim
         if (inProgressLabel !== undefined) {
             point.label = inProgressLabel;
             point.shortLabel = shortLabel ?? label;
+            point.isInProgress = true;
+        } else if (isLaterPeriod?.(item)) {
             point.isInProgress = true;
         }
 
