@@ -8820,7 +8820,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                 createAgentRule: 'Agentenregel beschreiben',
                 createAgentRuleDescription: 'Erstellen Sie flexible Regeln, die ausgeführt werden, wenn Sie sie benötigen.',
                 describeItBelow: 'Oder beschreiben Sie sie einfach unten',
-                describeRulePlaceholder: 'Alle Ausgaben über 100 $ blockieren',
+                describeRulePlaceholder: 'Alle Ausgaben über 2.000 $ blockieren',
                 describe: 'Beschreiben',
                 describeRule: 'Beschreibe deine Regel in einfachen Worten und Concierge erstellt sie für dich',
                 describeRuleInputLabel: 'Beschreibe die Regel',
