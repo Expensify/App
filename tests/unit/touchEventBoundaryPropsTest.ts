@@ -50,6 +50,7 @@ function touch(...viewsFromTouchedUp: View[]) {
 describe('touchEventBoundaryProps', () => {
     it('names a tap after the nearest sentryLabel, skipping the user data in the views inside it', () => {
         // Given a list row whose label sits above views that carry a name, an email and a report ID
+        // When the user taps the email inside it
         const {label, path} = touch(
             {children: 'john.smith@example.com'},
             {accessibilityLabel: 'Navigates to a chat with John Smith', testID: 'report-screen-123'},
@@ -63,6 +64,7 @@ describe('touchEventBoundaryProps', () => {
 
     it('skips named components between the tapped view and its label', () => {
         // Given a named component with user data in its accessibility label, inside a labelled pressable
+        // When the user taps the avatar
         const {label, path} = touch({displayName: 'Avatar', accessibilityLabel: 'John Smith'}, {displayName: 'Text'}, {sentryLabel: CONST.SENTRY_LABEL.LHN.OPTION_ROW});
 
         // Then neither the component names nor the accessibility label end up in the span or the breadcrumb
@@ -72,6 +74,7 @@ describe('touchEventBoundaryProps', () => {
 
     it('does not report a tap on an element without a sentryLabel', () => {
         // Given a view that only has an accessibility label, a test ID and text with user data
+        // When the user taps it
         const {wasLogged, label} = touch({children: 'B. Smith, London (Licensing Trip), $879.17'}, {accessibilityLabel: 'B. Smith', testID: 'transaction-item-row'});
 
         // Then no span is named after it and no breadcrumb is logged
@@ -81,6 +84,7 @@ describe('touchEventBoundaryProps', () => {
 
     it('does not report a sentryLabel that is not one of the labels in CONST', () => {
         // Given a sentryLabel built at runtime instead of taken from CONST.SENTRY_LABEL
+        // When the user taps the element with that label
         const {wasLogged} = touch({sentryLabel: 'Search-Advanced-Filter-john.smith@example.com'});
 
         // Then it is treated like a missing label, so a label can never carry data that wasn't written in the code
