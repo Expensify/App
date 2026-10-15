@@ -277,6 +277,7 @@ export type {default as ArchivePolicyParams} from './ArchivePolicyParams';
 export type {default as UnarchivePolicyParams} from './UnarchivePolicyParams';
 export type {default as ShareBankAccountAndSetPayerParams} from './ShareBankAccountAndSetPayerParams';
 export type {default as CreateWorkspaceParams} from './CreateWorkspaceParams';
+export type {default as CreateJoinWorkspaceOnboardingContentParams} from './CreateJoinWorkspaceOnboardingContentParams';
 export type {default as UpdateWorkspaceGeneralSettingsParams} from './UpdateWorkspaceGeneralSettingsParams';
 export type {default as DeleteWorkspaceAvatarParams} from './DeleteWorkspaceAvatarParams';
 export type {default as UpdateWorkspaceAvatarParams} from './UpdateWorkspaceAvatarParams';
@@ -298,6 +299,7 @@ export type {default as VerifyAddSecondaryLoginCodeParams} from './VerifyAddSeco
 export type {default as OpenDraftWorkspaceRequestParams} from './OpenDraftWorkspaceRequestParams';
 export type {default as OpenDraftPerDiemExpenseParams} from './OpenDraftPerDiemExpenseParams';
 export type {default as CreateWorkspaceFromIOUPaymentParams} from './CreateWorkspaceFromIOUPaymentParams';
+export type {default as UpdatePolicyMemberDisplayNameParams} from './UpdatePolicyMemberDisplayNameParams';
 export type {default as UpdatePolicyMembersCustomFieldsParams} from './UpdatePolicyMembersCustomFieldsParams';
 export type {default as CreateTaskParams} from './CreateTaskParams';
 export type {default as CancelTaskParams} from './CancelTaskParams';
@@ -498,6 +500,7 @@ export type {default as SetPolicyExpenseMaxAmountNoItemizedReceipt} from './SetP
 export type {default as SetPolicyExpenseMaxAmount} from './SetPolicyExpenseMaxAmount';
 export type {default as SetPolicyExpenseMaxAge} from './SetPolicyExpenseMaxAge';
 export type {default as AddPolicyAgentRuleParams} from './AddPolicyAgentRuleParams';
+export type {default as GenerateRuleParams} from './GenerateRuleParams';
 export type {default as UpdatePolicyAgentRuleParams} from './UpdatePolicyAgentRuleParams';
 export type {default as DeletePolicyAgentRuleParams} from './DeletePolicyAgentRuleParams';
 export type {default as UpdateCustomRules} from './UpdateCustomRules';
@@ -623,6 +626,9 @@ export type {default as SetPolicyCommuterExclusionsParams} from './SetPolicyComm
 export type {default as SetPolicyWorkArrangementParams} from './SetPolicyWorkArrangementParams';
 export type {default as SetEmployeeWorkArrangementParams} from './SetEmployeeWorkArrangementParams';
 export type {default as DisablePolicyCommuterExclusionsParams} from './DisablePolicyCommuterExclusionsParams';
+export type {default as AddOfficeLocationParams} from './AddOfficeLocationParams';
+export type {default as UpdateOfficeLocationParams} from './UpdateOfficeLocationParams';
+export type {default as DeleteOfficeLocationParams} from './DeleteOfficeLocationParams';
 export type {default as SetPolicyRequireMapOrGPSParams} from './SetPolicyRequireMapOrGPSParams';
 export type {default as CreateDigitalWalletParams} from './CreateDigitalWalletParams';
 export type {default as GetGuideCallAvailabilityScheduleParams} from './GetGuideCallAvailabilitySchedule';

@@ -128,6 +128,25 @@ function reportAvatarFieldsSelector(report: OnyxEntry<Report>): ReportAvatarFiel
     };
 }
 
+/** The fields a room's avatar resolves from. The parent links are left out on purpose: a room's workspace icon comes from the room alone. */
+type RoomAvatarFields = Pick<Report, 'chatType' | 'policyID' | 'policyName' | 'oldPolicyName' | 'policyAvatar' | 'reportName' | 'avatarUrl' | 'invoiceReceiver'>;
+
+function roomAvatarFieldsSelector(report: OnyxEntry<Report>): RoomAvatarFields | undefined {
+    if (!report) {
+        return undefined;
+    }
+    return {
+        chatType: report.chatType,
+        policyID: report.policyID,
+        policyName: report.policyName,
+        oldPolicyName: report.oldPolicyName,
+        policyAvatar: report.policyAvatar,
+        reportName: report.reportName,
+        avatarUrl: report.avatarUrl,
+        invoiceReceiver: report.invoiceReceiver,
+    };
+}
+
 /** Policy fallbacks a child report's workspace icon reads off its parent chat. */
 function reportPolicyFieldsSelector(report: OnyxEntry<Report>): Pick<Report, 'policyID' | 'policyName' | 'oldPolicyName' | 'policyAvatar'> | undefined {
     if (!report) {
@@ -411,6 +430,7 @@ export {
     reportAvatarFieldsSelector,
     reportAvatarKindSelector,
     reportPolicyFieldsSelector,
+    roomAvatarFieldsSelector,
     createMoveExpenseReportNVPSelector,
     createOutstandingReportsForPolicySelector,
     openExpenseReportIDsSelector,
@@ -421,4 +441,4 @@ export {
     reportsByIDsSelector,
 };
 
-export type {ReportAvatarFields, StableReport};
+export type {ReportAvatarFields, RoomAvatarFields, StableReport};
