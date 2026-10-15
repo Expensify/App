@@ -45,13 +45,21 @@ function AgentsPage() {
 
     const newAgentButton = hasAgents ? (
         <Button
-            variant="success"
+            variant={CONST.BUTTON_VARIANT.SUCCESS}
             onPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.AGENT_NEW.getRoute()))}
         >
             <Button.Icon src={icons.Plus} />
             <Button.Text>{translate('agentsPage.newAgent')}</Button.Text>
         </Button>
     ) : null;
+    const emptyStateButtons = [
+        {
+            icon: icons.Plus,
+            buttonText: translate('agentsPage.newAgent'),
+            buttonVariant: CONST.BUTTON_VARIANT.SUCCESS,
+            buttonAction: () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.AGENT_NEW.getRoute())),
+        },
+    ];
 
     const bulkActionsButtonOptions: Array<DropdownOption<DeepValueOf<typeof CONST.AGENTS.BULK_ACTION_TYPES>>> = [
         {
@@ -128,6 +136,7 @@ function AgentsPage() {
                 canSelectAgents
                 selectedKeys={selectedAgentKeys}
                 onRowSelectionChange={setSelectedAgents}
+                emptyStateButtons={emptyStateButtons}
             />
         </ScreenWrapper>
     );

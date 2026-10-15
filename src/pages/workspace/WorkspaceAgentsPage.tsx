@@ -57,6 +57,7 @@ function WorkspaceAgentsPage({route}: WorkspaceAgentsPageProps) {
 
     // The new agent functionality will be added after CreateCompanyAgent is exposed
     const newAgentButton = canWriteAgents && hasAgents ? null : null;
+    const emptyStateButtons = canWriteAgents ? [] : undefined;
 
     const bulkActionsButtonOptions: Array<DropdownOption<DeepValueOf<typeof CONST.AGENTS.BULK_ACTION_TYPES>>> = [
         {
@@ -129,6 +130,7 @@ function WorkspaceAgentsPage({route}: WorkspaceAgentsPageProps) {
                     selectedKeys={selectedAgentKeys}
                     onRowSelectionChange={setSelectedAgents}
                     shouldShowRoleColumn
+                    emptyStateButtons={emptyStateButtons}
                 />
             </WorkspacePageWithSections>
         </AccessOrNotFoundWrapper>
