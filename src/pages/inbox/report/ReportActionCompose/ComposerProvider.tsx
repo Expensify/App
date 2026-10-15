@@ -1,12 +1,12 @@
 import useOnyx from '@hooks/useOnyx';
 import useOriginalReportID from '@hooks/useOriginalReportID';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
 
 import canFocusInputOnScreenFocus from '@libs/canFocusInputOnScreenFocus';
 import Log from '@libs/Log';
 import {chatIncludesConcierge} from '@libs/ReportUtils';
 
 import {useReportActionActiveEdit} from '@pages/inbox/report/ReportActionEditMessageContext';
+import useShouldEditInComposer from '@pages/inbox/report/useShouldEditInComposer';
 
 import {isBlockedFromConcierge as isBlockedFromConciergeUserAction} from '@userActions/User';
 
@@ -44,7 +44,7 @@ type ComposerProviderProps = {
 };
 
 function ComposerProvider({children, reportID}: ComposerProviderProps) {
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const shouldEditInComposer = useShouldEditInComposer();
 
     const [blockedFromConcierge] = useOnyx(ONYXKEYS.NVP_BLOCKED_FROM_CONCIERGE);
     const [initialModalState] = useOnyx(ONYXKEYS.MODAL);
@@ -82,7 +82,7 @@ function ComposerProvider({children, reportID}: ComposerProviderProps) {
 
     const [didResetComposerHeightWhileEditing, setDidResetComposerHeightWhileEditing] = useState(false);
 
-    const isEditingInComposer = shouldUseNarrowLayout && editingState !== 'off' && !didResetComposerHeightWhileEditing;
+    const isEditingInComposer = shouldEditInComposer && editingState !== 'off' && !didResetComposerHeightWhileEditing;
     const effectiveDraft = isEditingInComposer ? editingMessage : draftComment;
 
     const {debouncedCommentMaxLengthValidation, exceededMaxLength, isExceedingMaxLength, isTaskTitle} = useDebouncedCommentMaxLengthValidation({

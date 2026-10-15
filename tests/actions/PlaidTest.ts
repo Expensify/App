@@ -1,8 +1,12 @@
-import {importPlaidAccounts, openPlaidCompanyCardLogin} from '@libs/actions/Plaid';
+import {importPlaidAccounts, openPlaidBankLogin, openPlaidCompanyCardLogin} from '@libs/actions/Plaid';
 import * as API from '@libs/API';
 import type {ApiRequestCommandParameters} from '@libs/API/types';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import getPlaidLinkTokenParameters from '@libs/getPlaidLinkTokenParameters';
+
+import ONYXKEYS from '@src/ONYXKEYS';
+
+import Onyx from 'react-native-onyx';
 
 jest.mock('@libs/API', () => ({
     read: jest.fn(),
@@ -99,5 +103,25 @@ describe('actions/Plaid', () => {
 
         expect(command).toBe(WRITE_COMMANDS.IMPORT_PLAID_ACCOUNTS);
         expect(parameters).toEqual(expectedParameters);
+    });
+
+    it.each([
+        {name: 'openPlaidCompanyCardLogin', request: () => openPlaidCompanyCardLogin('US')},
+        {name: 'openPlaidBankLogin', request: () => openPlaidBankLogin(false, 0)},
+    ])('$name resets the persisted Plaid throttle flag until the server answers', ({request}) => {
+        // Given a throttle flag saved by an earlier attempt, when a new link token is requested
+        request();
+
+        // Then the flag is cleared optimistically, because the response re-derives it from the server-side throttle state
+        expect(readSpy).toHaveBeenCalledTimes(1);
+        const call = readSpy.mock.calls.at(0);
+        if (!call) {
+            throw new Error('API.read was not called');
+        }
+        const [, , onyxData] = call;
+        expect(onyxData?.optimisticData).toContainEqual({onyxMethod: Onyx.METHOD.SET, key: ONYXKEYS.IS_PLAID_DISABLED, value: false});
+
+        // And a failed request leaves the flag to the server's own onyxData, which carries the real throttle state
+        expect(onyxData?.failureData).not.toContainEqual(expect.objectContaining({key: ONYXKEYS.IS_PLAID_DISABLED}));
     });
 });
