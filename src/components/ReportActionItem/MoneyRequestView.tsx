@@ -64,6 +64,7 @@ import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/crea
 import {hasEnabledOptions} from '@libs/OptionsListUtils';
 import Parser from '@libs/Parser';
 import {
+    canShowReimbursableToggleForPolicy,
     canSubmitPerDiemExpenseFromWorkspace,
     findVendorByID,
     getDistanceRateCustomUnitRate,
@@ -547,11 +548,9 @@ function MoneyRequestView({
     const shouldShowCategoryDisabledAlert = !policy?.areCategoriesEnabled && !!category;
     const shouldShowTagDisabledAlert = (!policy?.areTagsEnabled || !policyHasEnabledTags) && !!transactionTag;
     const shouldShowBillable = (isPolicyExpenseChat || isExpenseUnreported) && (!!transactionBillable || isBillableEnabledOnPolicy(policy) || !!updatedTransaction?.billable);
-    const isCurrentTransactionReimbursableDifferentFromPolicyDefault =
-        policy?.defaultReimbursable !== undefined && !!(updatedTransaction?.reimbursable ?? transactionReimbursable) !== policy.defaultReimbursable;
     const shouldShowReimbursable =
         (isPolicyExpenseChat || (isExpenseUnreported && !!policy)) &&
-        (policy?.disabledFields?.reimbursable !== true || isCurrentTransactionReimbursableDifferentFromPolicyDefault) &&
+        canShowReimbursableToggleForPolicy(policy, updatedTransaction?.reimbursable ?? transactionReimbursable) &&
         !isManagedCardTransactionTransactionUtils(transaction) &&
         !isInvoice;
     const canEditReimbursable =

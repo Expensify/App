@@ -701,6 +701,21 @@ function goBackFromInvalidPolicy() {
     Navigation.goBack(ROUTES.WORKSPACES_LIST.route);
 }
 
+/**
+ * Whether the policy lets an expense with the given `reimbursable` value show the reimbursable toggle.
+ *
+ * A locked field (`disabledFields.reimbursable`) normally hides the toggle, but an expense that already
+ * disagrees with the policy default has to stay correctable - otherwise it is silently stuck on the wrong value.
+ * An absent `defaultReimbursable` or `isReimbursable` means "reimbursable", matching the expense creation path
+ * and `getReimbursable`.
+ */
+function canShowReimbursableToggleForPolicy(policy: OnyxEntry<Policy>, isReimbursable: boolean | undefined): boolean {
+    if (!policy?.disabledFields?.reimbursable) {
+        return true;
+    }
+    return (isReimbursable ?? true) !== (policy.defaultReimbursable ?? true);
+}
+
 function getApprovalWorkflow(policy: OnyxEntry<Policy>): ValueOf<typeof CONST.POLICY.APPROVAL_MODE> {
     if (policy?.type === CONST.POLICY.TYPE.PERSONAL) {
         return CONST.POLICY.APPROVAL_MODE.OPTIONAL;
@@ -1490,6 +1505,7 @@ export {
     createInvoiceConfigurationTextSelector,
     isDeletedPolicyEmployee,
     hasEligibleBankAccountShareRecipient,
+    canShowReimbursableToggleForPolicy,
     isPolicyFieldListEmpty,
     canUnarchivePolicy,
     isPolicyMember,
