@@ -19,7 +19,7 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 
 import {getDecodedCategoryName} from '@libs/CategoryUtils';
 
-import {clearGeneratedRule, clearNewRulePrompt, generateRule, setNewRulePromptError} from '@userActions/Policy/Rules';
+import {clearGeneratedRule, clearNewRulePrompt, generateRule, setNewRulePromptError, setNewRulePromptErrorMessage} from '@userActions/Policy/Rules';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -49,17 +49,15 @@ type DescribeRuleModalProps = {
     /** Called with the generated form values once Concierge has built the rule */
     onRuleGenerated: (values: GeneratedRuleValues) => void;
 
-    /** Whether a new rule can use the category, so a generated category that already has this kind of rule is dropped */
+    /** Whether a new rule can use the category, so a generated category that already has this kind of rule shows an error */
     isCategoryEligible?: (category: PolicyCategory) => boolean;
 };
 
-/** Replaces the generated categories with the workspace's own spelling of them, and drops any the workspace has no enabled, eligible category for */
-function withPolicyCategories(values: GeneratedRuleValues, policyCategories: OnyxEntry<PolicyCategories>, isCategoryEligible?: (category: PolicyCategory) => boolean): GeneratedRuleValues {
+/** Replaces the generated categories with the workspace's own spelling of them, and drops any the workspace has no enabled category for */
+function withPolicyCategories(values: GeneratedRuleValues, policyCategories: OnyxEntry<PolicyCategories>): GeneratedRuleValues {
     const {category, categoriesToMatch, ...rest} = values;
     const findPolicyCategoryName = (categoryName: string) =>
-        Object.values(policyCategories ?? {}).find(
-            (candidate) => candidate.enabled && (isCategoryEligible?.(candidate) ?? true) && getDecodedCategoryName(candidate.name) === getDecodedCategoryName(categoryName),
-        )?.name;
+        Object.values(policyCategories ?? {}).find((candidate) => candidate.enabled && getDecodedCategoryName(candidate.name) === getDecodedCategoryName(categoryName))?.name;
     const policyCategoryName = category ? findPolicyCategoryName(category) : undefined;
     return {
         ...rest,
@@ -109,7 +107,17 @@ function DescribeRuleModal({isVisible, onClose, policyID, ruleType, onRuleGenera
             clearGeneratedRule();
             return;
         }
-        onRuleGenerated(withPolicyCategories(generatedRuleValues ?? {}, policyCategories, isCategoryEligible));
+        const values = withPolicyCategories(generatedRuleValues ?? {}, policyCategories);
+        const hasCategoryWithRule = [values.category, ...(values.categoriesToMatch ?? [])].some((categoryName) => {
+            const policyCategory = categoryName ? policyCategories?.[categoryName] : undefined;
+            return !!policyCategory && !!isCategoryEligible && !isCategoryEligible(policyCategory);
+        });
+        if (hasCategoryWithRule) {
+            setNewRulePromptErrorMessage('workspace.rules.newRule.promptErrors.categoryHasRule');
+            clearGeneratedRule();
+            return;
+        }
+        onRuleGenerated(values);
         close();
     }, [close, generatedRuleID, generatedRuleState, generatedRuleType, generatedRuleValues, isCategoryEligible, onRuleGenerated, policyCategories, ruleType]);
 

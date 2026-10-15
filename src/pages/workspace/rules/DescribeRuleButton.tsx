@@ -30,7 +30,7 @@ type DescribeRuleButtonProps = {
           /** Called with the generated form values once Concierge has built the rule */
           onRuleGenerated: (values: GeneratedRuleValues) => void;
 
-          /** Whether a new rule can use the category, so a generated category that already has this kind of rule is dropped */
+          /** Whether a new rule can use the category, so a generated category that already has this kind of rule shows an error */
           isCategoryEligible?: (category: PolicyCategory) => boolean;
 
           onPress?: never;
