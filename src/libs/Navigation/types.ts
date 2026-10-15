@@ -1,3 +1,5 @@
+/* eslint-disable max-lines */
+
 import type {MultifactorAuthenticationPromptType} from '@components/MultifactorAuthentication/config/types';
 import type {SearchQueryString} from '@components/Search/types';
 
@@ -353,6 +355,7 @@ type SettingsNavigatorParamList = {
     [SCREENS.SETTINGS.PROFILE.STATUS_CLEAR_AFTER_DATE]: undefined;
     [SCREENS.SETTINGS.PROFILE.STATUS_CLEAR_AFTER_TIME]: undefined;
     [SCREENS.SETTINGS.PROFILE.VACATION_DELEGATE]: undefined;
+    [SCREENS.SETTINGS.PROFILE.VACATION_DELEGATE_SELECT]: undefined;
     [SCREENS.SETTINGS.PROFILE.VACATION_DELEGATE_MISSING_WORKSPACES]: undefined;
     [SCREENS.WORKSPACE.CURRENCY]: {
         isForcedToChangeCurrency?: boolean;
@@ -369,6 +372,15 @@ type SettingsNavigatorParamList = {
         country?: Country | '';
     };
     [SCREENS.WORKSPACE.NAME]: undefined;
+    [SCREENS.WORKSPACE.OFFICE_LOCATION_ADD]: {
+        policyID: string;
+        country?: Country | '';
+    };
+    [SCREENS.WORKSPACE.OFFICE_LOCATION_EDIT]: {
+        policyID: string;
+        officeID: string;
+        country?: Country | '';
+    };
     [SCREENS.WORKSPACE.DESCRIPTION]: undefined;
     [SCREENS.WORKSPACE.CLIENT_ID]: undefined;
     [SCREENS.WORKSPACE.SHARE]: undefined;
@@ -2211,6 +2223,10 @@ type SettingsNavigatorParamList = {
         domainAccountID: number;
     };
     [SCREENS.DOMAIN.VACATION_DELEGATE]: {
+        domainAccountID: number;
+        accountID: number;
+    };
+    [SCREENS.DOMAIN.VACATION_DELEGATE_SELECT]: {
         domainAccountID: number;
         accountID: number;
     };

@@ -5,14 +5,14 @@ import {useEffect, useRef} from 'react';
 import CONST from './CONST';
 import useIsLoadingAppRecovery from './hooks/useIsLoadingAppRecovery';
 import useOnyx from './hooks/useOnyx';
-import {disconnect} from './libs/actions/Delegate';
+import {disconnect, resumeSelfRemovalAsDelegate} from './libs/actions/Delegate';
 import Log from './libs/Log';
 import ONYXKEYS from './ONYXKEYS';
-import {accountIDSelector, emailSelector} from './selectors/Session';
+import {accountIDSelector, emailSelector, isDelegateSessionSelector} from './selectors/Session';
 
 /**
  * Component that does not render anything but isolates delegate-access–related Onyx subscriptions
- * (account, stashedCredentials, stashedSession, hasLoadedApp, isLoadingApp)
+ * (account, stashedCredentials, stashedSession, pendingSelfCopilotRemoval, hasLoadedApp, isLoadingApp)
  * from the root Expensify component so that changes to these keys do not
  * re-render the entire navigation tree.
  */
@@ -26,6 +26,8 @@ function DelegateAccessHandler() {
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
     const [sessionAccountID] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector});
     const [sessionEmail] = useOnyx(ONYXKEYS.SESSION, {selector: emailSelector});
+    const [isDelegateSession] = useOnyx(ONYXKEYS.SESSION, {selector: isDelegateSessionSelector});
+    const [pendingSelfCopilotRemoval] = useOnyx(ONYXKEYS.PENDING_SELF_COPILOT_REMOVAL);
 
     useIsLoadingAppRecovery();
 
@@ -43,6 +45,14 @@ function DelegateAccessHandler() {
         }
         disconnect({stashedCredentials, stashedSession});
     }, [isDelegateInDelegatesList, wasDelegateInDelegatesList, stashedCredentials, stashedSession]);
+
+    // Finish a self-removal from a delegator's copilots that a kill interrupted
+    useEffect(() => {
+        if (!pendingSelfCopilotRemoval || !sessionAccountID) {
+            return;
+        }
+        resumeSelfRemovalAsDelegate({delegatorEmail: pendingSelfCopilotRemoval, isDelegateSession: !!isDelegateSession});
+    }, [pendingSelfCopilotRemoval, isDelegateSession, sessionAccountID]);
 
     // Log delegate mismatch after the app has loaded
     useEffect(() => {

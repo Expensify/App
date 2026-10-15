@@ -3,6 +3,7 @@ import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import RenderHTML from '@components/RenderHTML';
 import AgentsTable from '@components/Tables/AgentsTable';
 
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLayoutSpacing from '@hooks/useLayoutSpacing';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -18,6 +19,7 @@ import useWorkspaceDocumentTitle from '@hooks/useWorkspaceDocumentTitle';
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import {canMemberWrite} from '@libs/PolicyUtils';
 
 import type {WorkspaceSplitNavigatorParamList} from '@navigation/types';
 
@@ -36,6 +38,7 @@ function WorkspaceAgentsPage({route}: WorkspaceAgentsPageProps) {
     const policy = usePolicy(route.params.policyID);
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const {login: currentUserLogin} = useCurrentUserPersonalDetails();
     const {pageGutter} = useLayoutSpacing();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {isBetaEnabled} = usePermissions();
@@ -48,11 +51,13 @@ function WorkspaceAgentsPage({route}: WorkspaceAgentsPageProps) {
     const hasAgents = agents.length > 0;
     const canSelectMultiple = shouldUseNarrowLayout ? isMobileSelectionModeEnabled : true;
     const shouldShowBulkActionsButton = shouldUseNarrowLayout ? canSelectMultiple : selectedAgentKeys.length > 0;
+    const canWriteAgents = canMemberWrite(policy, currentUserLogin ?? '', CONST.POLICY.POLICY_FEATURE.AGENTS);
 
     useWorkspaceDocumentTitle(policy?.name, 'agentsPage.title');
 
     // The new agent functionality will be added after CreateCompanyAgent is exposed
-    const newAgentButton = null;
+    const newAgentButton = canWriteAgents && hasAgents ? null : null;
+    const emptyStateButtons = canWriteAgents ? [] : undefined;
 
     const bulkActionsButtonOptions: Array<DropdownOption<DeepValueOf<typeof CONST.AGENTS.BULK_ACTION_TYPES>>> = [
         {
@@ -125,6 +130,7 @@ function WorkspaceAgentsPage({route}: WorkspaceAgentsPageProps) {
                     selectedKeys={selectedAgentKeys}
                     onRowSelectionChange={setSelectedAgents}
                     shouldShowRoleColumn
+                    emptyStateButtons={emptyStateButtons}
                 />
             </WorkspacePageWithSections>
         </AccessOrNotFoundWrapper>

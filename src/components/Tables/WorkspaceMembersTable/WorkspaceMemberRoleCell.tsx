@@ -5,6 +5,7 @@ import WorkspaceMemberRolePickerModal, {useWorkspaceMemberRolePickerPopover} fro
 import useLocalize from '@hooks/useLocalize';
 
 import {getAllowedRolesForMember} from '@libs/PolicyMemberRoleUtils';
+import {COPYABLE_TEXT_DATA_SET} from '@libs/SelectionScraper';
 
 import type CONST from '@src/CONST';
 import type {Policy} from '@src/types/onyx';
@@ -54,7 +55,13 @@ function WorkspaceMemberRoleCell({role, policy, memberLogin, canEdit, onSave}: W
                 />
             }
         >
-            <Text numberOfLines={1}>{roleLabel}</Text>
+            <Text
+                numberOfLines={1}
+                selectable
+                dataSet={COPYABLE_TEXT_DATA_SET}
+            >
+                {roleLabel}
+            </Text>
         </EditableCell>
     );
 }
