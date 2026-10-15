@@ -15,9 +15,9 @@ import {measureRenders} from 'reassure';
 import createCollection from '../utils/collections/createCollection';
 import createRandomPolicy from '../utils/collections/policies';
 import createMock from '../utils/createMock';
-import {buildSearchQueryJSONOrThrow, CATEGORY_COUNT, POLICY_COUNT, REPORT_COUNT} from '../utils/FilterFormValuesPerfTestUtils';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import wrapOnyxWithWaitForBatchedUpdates from '../utils/wrapOnyxWithWaitForBatchedUpdates';
+import {buildSearchQueryJSONOrThrow, CATEGORY_COUNT, POLICY_COUNT, REPORT_COUNT} from './FilterFormValuesPerfTestUtils';
 
 beforeAll(() => Onyx.init({keys: ONYXKEYS}));
 

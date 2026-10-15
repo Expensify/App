@@ -12,10 +12,10 @@ import type {Policy, PolicyCategories, Report} from '@src/types/onyx';
 
 import {measureFunction} from 'reassure';
 
+import {buildSearchQueryJSONOrThrow, CATEGORY_COUNT, POLICY_COUNT, REPORT_COUNT} from '../perf-test/FilterFormValuesPerfTestUtils';
 import createCollection from '../utils/collections/createCollection';
 import createRandomPolicy from '../utils/collections/policies';
 import createMock from '../utils/createMock';
-import {buildSearchQueryJSONOrThrow, CATEGORY_COUNT, POLICY_COUNT, REPORT_COUNT} from '../utils/FilterFormValuesPerfTestUtils';
 
 describe('useFilterFormValues', () => {
     describe('selector execution', () => {
