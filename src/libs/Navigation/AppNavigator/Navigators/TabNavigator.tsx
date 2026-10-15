@@ -8,6 +8,8 @@ import {bottomTabScreenLayoutWrapper} from '@libs/Navigation/PlatformStackNaviga
 import type {TabNavigatorParamList} from '@libs/Navigation/types';
 import {getSpan} from '@libs/telemetry/activeSpans';
 
+import FreezeWrapper from '@navigation/AppNavigator/FreezeWrapper';
+
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';
@@ -66,7 +68,16 @@ function withSuspense<P extends Record<string, unknown>>(LazyComponent: React.La
     return SuspenseWrapper;
 }
 
-const HomePageScreen = withSuspense(LazyHomePage);
+const HomePageWithSuspense = withSuspense(LazyHomePage);
+
+// Outside the Suspense so the lazy chunk load still shows LazyFallback instead of suspending into Freeze.
+function HomePageScreen() {
+    return (
+        <FreezeWrapper>
+            <HomePageWithSuspense />
+        </FreezeWrapper>
+    );
+}
 const ReportsSplitNavigatorScreen = withSuspense(LazyReportsSplitNavigator, CONST.TELEMETRY.SPAN_NAVIGATE_TO_INBOX_TAB);
 const SettingsSplitNavigatorScreen = withSuspense(LazySettingsSplitNavigator);
 const WorkspaceNavigatorScreen = withSuspense(LazyWorkspaceNavigator);
