@@ -1,16 +1,16 @@
 /**
- * Page where an admin describes a new rule in plain English. Concierge builds a standard rule when it can, and the page
- * drafts an agent rule when it can't.
+ * The section of New rule where an admin describes a rule in plain English. Concierge builds a standard rule when it
+ * can, and the section drafts an agent rule when it can't.
  */
-import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
-import ScreenWrapper from '@components/ScreenWrapper';
+import Icon from '@components/Icon';
 import Text from '@components/Text';
 
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
-import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
+import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {setDraftValues} from '@libs/actions/FormActions';
@@ -19,27 +19,32 @@ import {setDraftFlagForReviewRule, setDraftMerchantRule, setDraftRequireFieldsRu
 import {getMerchantRuleDraftFromGeneratedValues} from '@libs/ExpenseDefaultRuleUtils';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
-import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {getSpendRuleDraftFromGeneratedValues} from '@libs/SpendRulesUtils';
 
-import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
+import variables from '@styles/variables';
 
 import {clearNewRulePrompt} from '@userActions/Policy/Rules';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type SCREENS from '@src/SCREENS';
 import AGENT_RULE_INPUT_IDS from '@src/types/form/AddAgentRuleForm';
 import type {GeneratedRuleState, GeneratedRuleType, GeneratedRuleValues} from '@src/types/onyx/GeneratedRule';
 
+import type {ReactNode} from 'react';
+
 import {useFocusEffect, useIsFocused} from '@react-navigation/native';
 import React from 'react';
+import {View} from 'react-native';
 
 import DescribeRuleForm from './DescribeRuleForm';
 
-type DescribeRulePageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.RULES_DESCRIBE>;
+type DescribeNewRuleFormProps = {
+    policyID: string;
+
+    /** Content above the describe section */
+    children: ReactNode;
+};
 
 /** Seeds the draft of the editor for the generated rule type and opens that editor */
 function seedDraftAndNavigate(values: GeneratedRuleValues, ruleType: GeneratedRuleType, policyID: string) {
@@ -65,16 +70,16 @@ function seedDraftAndNavigate(values: GeneratedRuleValues, ruleType: GeneratedRu
     }
 }
 
-function DescribeRulePage({route}: DescribeRulePageProps) {
-    const {policyID} = route.params;
+function DescribeNewRuleForm({policyID, children}: DescribeNewRuleFormProps) {
     const {translate} = useLocalize();
+    const theme = useTheme();
     const styles = useThemeStyles();
     const isFocused = useIsFocused();
-    const {isBetaEnabled} = usePermissions();
     const policy = usePolicy(policyID);
+    const icons = useMemoizedLazyExpensifyIcons(['Sparkles']);
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
 
-    // A generated category stays in the draft only when the policy categories contain it. Therefore this page loads
+    // A generated category stays in the draft only when the policy categories contain it. Therefore this form loads
     // the categories before the answer arrives.
     const fetchPolicyCategories = () => {
         if (!policy?.areCategoriesEnabled || policyCategories) {
@@ -87,8 +92,8 @@ function DescribeRulePage({route}: DescribeRulePageProps) {
 
     useFocusEffect(() => {
         fetchPolicyCategories();
-        // The Describe modal of the rule editors uses the same form. Clear it when this page loses focus, so the modal
-        // does not open with the description or the error of this page.
+        // The Describe modal of the rule editors uses the same form. Clear it when New rule loses focus, so the modal
+        // does not open with the description or the error of New rule.
         return () => clearNewRulePrompt();
     });
 
@@ -99,40 +104,33 @@ function DescribeRulePage({route}: DescribeRulePageProps) {
     };
 
     return (
-        <AccessOrNotFoundWrapper
+        <DescribeRuleForm
             policyID={policyID}
-            featureName={CONST.POLICY.MORE_FEATURES.ARE_RULES_ENABLED}
-            accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID, CONST.POLICY.ACCESS_VARIANTS.CONTROL]}
-            policyFeature={CONST.POLICY.POLICY_FEATURE.RULES}
-            policyFeatureAccess={CONST.POLICY.POLICY_FEATURE_ACCESS.WRITE}
-            shouldBeBlocked={!isBetaEnabled(CONST.BETAS.DESCRIBE_RULE)}
+            isActive={isFocused}
+            submitButtonText={translate('common.next')}
+            inputContainerStyle={styles.describeNewRulePromptInput}
+            placeholder={translate('workspace.rules.newRule.describeRulePlaceholder')}
+            style={[styles.flexGrow1, styles.mh5]}
+            addBottomSafeAreaPadding
+            shouldUseScrollView
+            submitFlexEnabled
+            onRuleGenerated={(values, generatedRuleType) => seedDraftAndNavigate(values, generatedRuleType, policyID)}
+            onAgentRuleFallback={offerAgentRule}
         >
-            <ScreenWrapper
-                testID="DescribeRulePage"
-                enableEdgeToEdgeBottomSafeAreaPadding
-                shouldEnableMaxHeight
-            >
-                <HeaderWithBackButtonAndTitle title={translate('workspace.rules.newRule.describeYourRule')} />
-                <DescribeRuleForm
-                    policyID={policyID}
-                    isActive={isFocused}
-                    shouldFocusInput
-                    submitButtonText={translate('workspace.rules.newRule.buildRule')}
-                    inputContainerStyle={styles.describeRulePromptInput}
-                    style={[styles.flexGrow1, styles.mh5]}
-                    addBottomSafeAreaPadding
-                    shouldUseScrollView
-                    submitFlexEnabled
-                    onRuleGenerated={(values, generatedRuleType) => seedDraftAndNavigate(values, generatedRuleType, policyID)}
-                    onAgentRuleFallback={offerAgentRule}
-                >
-                    <Text style={[styles.textNormal, styles.textSupporting, styles.mb5]}>{translate('workspace.rules.newRule.describeRule')}</Text>
-                </DescribeRuleForm>
-            </ScreenWrapper>
-        </AccessOrNotFoundWrapper>
+            {children}
+            <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap2, styles.mt5, styles.mb3]}>
+                <Text style={styles.textHeadlineLineHeightXXL}>{translate('workspace.rules.newRule.describeItBelow')}</Text>
+                <Icon
+                    src={icons.Sparkles}
+                    fill={theme.icon}
+                    width={variables.iconSizeSmall}
+                    height={variables.iconSizeSmall}
+                />
+            </View>
+        </DescribeRuleForm>
     );
 }
 
-DescribeRulePage.displayName = 'DescribeRulePage';
+DescribeNewRuleForm.displayName = 'DescribeNewRuleForm';
 
-export default DescribeRulePage;
+export default DescribeNewRuleForm;

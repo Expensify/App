@@ -60,6 +60,9 @@ type DescribeRuleFormProps = {
 
     submitFlexEnabled?: boolean;
 
+    /** An example description. The input shows it in place of its label, because the input hides a placeholder behind a label until it gets focus. */
+    placeholder?: string;
+
     /** Content above the input */
     children?: ReactNode;
 
@@ -115,6 +118,7 @@ function DescribeRuleForm({
     addBottomSafeAreaPadding = false,
     shouldUseScrollView = false,
     submitFlexEnabled = false,
+    placeholder,
     children,
     onRuleGenerated,
     onAgentRuleFallback,
@@ -263,7 +267,8 @@ function DescribeRuleForm({
                     InputComponent={TextInput}
                     ref={inputRef}
                     inputID={INPUT_IDS.PROMPT}
-                    label={inputLabel}
+                    label={placeholder ? undefined : inputLabel}
+                    placeholder={placeholder}
                     accessibilityLabel={inputLabel}
                     role={CONST.ROLE.PRESENTATION}
                     onKeyPress={submitFormOnModEnter}

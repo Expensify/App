@@ -29,6 +29,8 @@ import type IconAsset from '@src/types/utils/IconAsset';
 import React from 'react';
 import {View} from 'react-native';
 
+import DescribeNewRuleForm from './DescribeNewRuleForm';
+
 type RulesNewPageProps =
     | PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.RULES_NEW>
     | PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.DYNAMIC_CATEGORY_RULES_NEW>;
@@ -74,19 +76,6 @@ function RulesNewPage({route}: RulesNewPageProps) {
     };
 
     const newRuleOptions: NewRuleOption[] = [
-        ...(isDescribeRuleBetaEnabled
-            ? [
-                  {
-                      key: 'describeRule',
-                      icon: illustrations.AiBot,
-                      title: translate('workspace.rules.newRule.describeYourRule'),
-                      description: translate('workspace.rules.newRule.describeYourRuleDescription'),
-                      onPress: () => Navigation.navigate(ROUTES.RULES_DESCRIBE.getRoute(policyID)),
-                      sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.RULES.NEW_RULE_MENU_ITEM_DESCRIBE_RULE,
-                      isWorkspaceOnly: true,
-                  },
-              ]
-            : []),
         {
             key: 'restrictCardSpend',
             icon: illustrations.CardReaderAlt,
@@ -112,7 +101,7 @@ function RulesNewPage({route}: RulesNewPageProps) {
         {
             key: 'requireFields',
             icon: illustrations.CheckboxText,
-            title: translate('workspace.rules.newRule.requireFields'),
+            title: translate(isDescribeRuleBetaEnabled ? 'workspace.rules.newRule.requireFieldsShort' : 'workspace.rules.newRule.requireFields'),
             description: translate('workspace.rules.newRule.requireFieldsDescription'),
             onPress: () =>
                 Navigation.navigate(
@@ -132,7 +121,7 @@ function RulesNewPage({route}: RulesNewPageProps) {
             // Only category settings can scope the editor to its category, so a category passed any other way drops it.
             isWorkspaceOnly: !isCategorySettingsFlow,
         },
-        // Describe your rule drafts an agent rule when it cannot build a standard rule. Therefore it replaces this option.
+        // The describe section drafts an agent rule when it cannot build a standard rule. Therefore it replaces this option.
         ...(isDescribeRuleBetaEnabled
             ? []
             : [
@@ -149,6 +138,24 @@ function RulesNewPage({route}: RulesNewPageProps) {
     ];
 
     const visibleNewRuleOptions = isCategoryScopedCreate ? newRuleOptions.filter((option) => !option.isWorkspaceOnly) : newRuleOptions;
+    // The describe section cannot scope a rule to a category. Therefore it shows only when New rule opens from the workspace Rules page.
+    const shouldShowDescribeSection = isDescribeRuleBetaEnabled && !isCategoryScopedCreate;
+
+    const newRuleMenuItems = visibleNewRuleOptions.map((option) => (
+        <MenuItem
+            key={option.key}
+            icon={option.icon}
+            title={option.title}
+            description={option.description}
+            shouldShowRightIcon
+            onPress={option.onPress}
+            displayInDefaultIconColor
+            iconWidth={variables.iconSizeExtraLarge}
+            iconHeight={variables.iconSizeExtraLarge}
+            wrapperStyle={styles.rulesNewMenuItem}
+            sentryLabel={option.sentryLabel}
+        />
+    ));
 
     return (
         <AccessOrNotFoundWrapper
@@ -161,31 +168,23 @@ function RulesNewPage({route}: RulesNewPageProps) {
             <ScreenWrapper
                 testID="RulesNewPage"
                 enableEdgeToEdgeBottomSafeAreaPadding
+                shouldEnableMaxHeight={shouldShowDescribeSection}
             >
                 <HeaderWithBackButtonAndTitle title={translate('workspace.rules.newRule.title')} />
-                <ScrollView
-                    style={[styles.flexGrow1]}
-                    addBottomSafeAreaPadding
-                >
-                    <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mv3]}>{translate('workspace.rules.newRule.subtitle')}</Text>
-                    <View style={styles.mh5}>
-                        {visibleNewRuleOptions.map((option) => (
-                            <MenuItem
-                                key={option.key}
-                                icon={option.icon}
-                                title={option.title}
-                                description={option.description}
-                                shouldShowRightIcon
-                                onPress={option.onPress}
-                                displayInDefaultIconColor
-                                iconWidth={variables.iconSizeExtraLarge}
-                                iconHeight={variables.iconSizeExtraLarge}
-                                wrapperStyle={styles.rulesNewMenuItem}
-                                sentryLabel={option.sentryLabel}
-                            />
-                        ))}
-                    </View>
-                </ScrollView>
+                {shouldShowDescribeSection ? (
+                    <DescribeNewRuleForm policyID={policyID}>
+                        <Text style={[styles.textHeadlineLineHeightXXL, styles.mv3]}>{translate('workspace.rules.newRule.startWithTemplate')}</Text>
+                        {newRuleMenuItems}
+                    </DescribeNewRuleForm>
+                ) : (
+                    <ScrollView
+                        style={[styles.flexGrow1]}
+                        addBottomSafeAreaPadding
+                    >
+                        <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mv3]}>{translate('workspace.rules.newRule.subtitle')}</Text>
+                        <View style={styles.mh5}>{newRuleMenuItems}</View>
+                    </ScrollView>
+                )}
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>
     );
