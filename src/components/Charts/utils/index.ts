@@ -1,3 +1,4 @@
+import BAR_INNER_PADDING, {BAR_GAP, BAR_MAX_WIDTH} from '@components/Charts/barChartConstants';
 import type {ChartDataPoint, LabelRotation, PieSlice} from '@components/Charts/types';
 import VictoryTheme, {CHART_Y_SCALE_HEIGHT, DIAGONAL_ANGLE_RADIAN_THRESHOLD, ELLIPSIS, LABEL_PADDING, LABEL_ROTATIONS, MAX_X_AXIS_LABEL_WIDTH, SIN_45} from '@components/Charts/VictoryTheme';
 
@@ -9,6 +10,8 @@ import type {SkParagraph, SkParagraphBuilder, SkTypefaceFontProvider} from '@sho
 
 import {FontStyle, FontWeight, Skia} from '@shopify/react-native-skia';
 import {scaleLinear} from 'd3-scale';
+
+import getPrimaryValue from './getPrimaryValue';
 
 /** One reusable ParagraphBuilder per fontManager instance. Auto-GC'd when fontManager is released. */
 const builderCache = new WeakMap<SkTypefaceFontProvider, SkParagraphBuilder>();
@@ -150,22 +153,6 @@ function rotatedLabelYOffset(ascent: number, descent: number, angleRad: number):
 }
 
 /**
- * Calculate minimum horizontal domainPadding so that edge data points
- * (and their centered labels) aren't clipped by the chart boundary.
- *
- * @param chartWidth - Total chart width in pixels
- * @param pointCount - Number of data points
- * @param innerPadding - Padding ratio between points (0 for line charts, ~0.3 for bar charts)
- */
-function calculateMinDomainPadding(chartWidth: number, pointCount: number, innerPadding = 0): number {
-    if (pointCount <= 1) {
-        return 0;
-    }
-    const minPaddingRatio = (1 - innerPadding) / (2 * (pointCount - 1 + innerPadding));
-    return Math.ceil(chartWidth * minPaddingRatio);
-}
-
-/**
  * Normalize angle to 0-360 range
  */
 function normalizeAngle(angle: number): number {
@@ -218,6 +205,7 @@ function findSliceAtPosition(cursorX: number, cursorY: number, centerX: number, 
 
 /**
  * Process raw data into pie chart slices sorted by absolute value descending.
+ * Slices are sized by the primary series only.
  *
  * Points whose share of total spend is too small to draw are left out: the inline table prints their share as
  * `~0%`, and a slice that thin is a sliver nobody can hover or tap. The group is still listed in the table, so
@@ -225,11 +213,18 @@ function findSliceAtPosition(cursorX: number, cursorY: number, centerX: number, 
  */
 function processDataIntoSlices(
     data: ChartDataPoint[],
+    primarySeriesKey: string,
     pieGeometry: {centerX: number; centerY: number; radius: number; innerRadius: number},
     startAngle: number = VictoryTheme.pie.startAngle,
 ): PieSlice[] {
     const visibleSlices = data
-        .map((point, index) => ({label: point.label, absTotal: Math.abs(point.total), originalIndex: index, percentOfTotal: point.percentOfTotal}))
+        .map((point, index) => ({
+            label: point.label,
+            color: point.color,
+            absTotal: Math.abs(getPrimaryValue(point, primarySeriesKey)),
+            originalIndex: index,
+            percentOfTotal: point.percentOfTotal,
+        }))
         .filter((slice) => isShareWorthDrawing(slice.percentOfTotal))
         .sort((a, b) => b.absTotal - a.absTotal);
 
@@ -252,7 +247,7 @@ function processDataIntoSlices(
             acc.slices.push({
                 label: slice.label,
                 value: slice.absTotal,
-                color: VictoryTheme.colors.getColor(index),
+                color: slice.color ?? VictoryTheme.colors.default,
                 percentage: fraction * 100,
                 startAngle: acc.angle,
                 endAngle: acc.angle + sweepAngle,
@@ -441,76 +436,73 @@ function getNiceYAxisTicks(rawDataMax: number, rawDataMin: number, tickCount: nu
 }
 
 /**
- * Nice-rounded value domain for the horizontal bar chart's x-axis. victory-native only applies .nice() to the
- * y-axis, so we pre-round here (anchored at zero unless negatives) to keep the last tick past the longest bar. Returns undefined
- * for a degenerate domain, letting victory-native pick its own bounds.
+ * Bars fill the plot with BAR_GAP between them, up to BAR_MAX_WIDTH, and the gap shrinks when there are too many bars for it.
+ * `edgeSpace` is the distance (px) from each plot edge to the nearest bar's center, and the x-domain lays the bars out with it.
  */
-function getNiceValueDomain(data: ChartDataPoint[], tickCount: number): [number, number] | undefined {
-    if (data.length === 0) {
-        return undefined;
+function getBarLayout(plotWidth: number, barCount: number): {barWidth: number; gap: number; edgeSpace: number; xDomain: [number, number]} {
+    if (plotWidth <= 0 || barCount <= 0) {
+        return {barWidth: 0, gap: 0, edgeSpace: 0, xDomain: [-0.5, Math.max(0, barCount - 1) + 0.5]};
     }
-    const values = data.map((point) => point.total);
-    const min = Math.min(0, ...values);
-    const max = Math.max(0, ...values);
-    if (min === max) {
-        return undefined;
-    }
-    const [niceMin = min, niceMax = max] = scaleLinear().domain([min, max]).nice(tickCount).domain();
-    return [niceMin, niceMax];
-}
+    const gap = barCount > 1 ? Math.min(BAR_GAP, (plotWidth / barCount) * BAR_INNER_PADDING) : 0;
+    const barWidth = Math.min(BAR_MAX_WIDTH, (plotWidth - gap * (barCount - 1)) / barCount);
 
-/** Tick values victory-native will render for a nice-rounded value domain, used to size the axis label gutter. */
-function getNiceValueTicks(domain: [number, number], tickCount: number): number[] {
-    return scaleLinear().domain(domain).ticks(tickCount);
+    // Width the capped bars leave unused is split evenly between both sides, which centers them.
+    const sideSpace = (plotWidth - barWidth * barCount - gap * (barCount - 1)) / 2;
+    const edgeSpace = sideSpace + barWidth / 2;
+
+    // Bars sit at x = 0..barCount-1 and one x unit spans a bar and a gap, which converts edgeSpace from px into x units.
+    const edgeSpaceInXUnits = edgeSpace / (barWidth + gap);
+    return {barWidth, gap, edgeSpace, xDomain: [-edgeSpaceInXUnits, barCount - 1 + edgeSpaceInXUnits]};
 }
 
 /**
- * Horizontal plot bounds of a vertical bar chart for a container width, mirroring victory-native's layout.
- * Deriving it from the width (not post-mount) lets the wrapper re-decide orientation on every resize.
+ * Domain padding that leaves `edgeSpace` px between the plot edges and the first and last points.
+ * victory-native fits the padded domain back into the plot width, so the space on screen is smaller than the padding.
  */
-function getVerticalBarPlotBounds(chartWidth: number, paddingLeft: number): {left: number; right: number; width: number} {
-    const left = paddingLeft + VictoryTheme.axis.labelGap;
-    const right = Math.max(left, chartWidth - VictoryTheme.axis.padding.right);
-    return {left, right, width: right - left};
+function getDomainPaddingForEdgeSpace(edgeSpace: {left: number; right: number}, plotWidth: number): {left: number; right: number} {
+    const pointsSpan = plotWidth - edgeSpace.left - edgeSpace.right;
+    if (pointsSpan <= 0) {
+        return edgeSpace;
+    }
+    return {left: (edgeSpace.left * plotWidth) / pointsSpan, right: (edgeSpace.right * plotWidth) / pointsSpan};
 }
 
+type AxisLabelStepParams = {
+    /** Pixel width of each point's label */
+    labelWidths: number[];
+
+    /** Canvas x position of each point */
+    pointXs: number[];
+
+    /** Allowed steps between labeled points, ascending */
+    steps: readonly number[];
+
+    /** Minimum clear space between adjacent labels (px) */
+    minGap: number;
+};
+
 /**
- * Layout inputs shared by the vertical bar chart body and the orientation dispatcher, derived from the plot bounds.
- * The body passes its measured bounds and the dispatcher passes bounds predicted from the container width, so both
- * feed `useChartLabelLayout` the exact same geometry and cannot drift apart.
+ * Picks the smallest step whose labels (points 0, step, 2 * step, ...), centered under their points, don't overlap.
+ * When no step fits, multiples of the last step are tried, down to labeling only the first point.
  */
-function getVerticalBarLabelLayoutInputs({
-    containerWidth,
-    plotLeft,
-    plotRight,
-    plotWidth,
-    dataLength,
-    innerPadding,
-}: {
-    containerWidth: number;
-    plotLeft: number;
-    plotRight: number;
-    plotWidth: number;
-    dataLength: number;
-    innerPadding: number;
-}): {tickSpacing: number; labelAreaWidth: number; firstTickLeftSpace: number; lastTickRightSpace: number} {
-    const domainPadding = containerWidth > 0 && dataLength > 0 ? calculateMinDomainPadding(containerWidth, dataLength, innerPadding) : 0;
-    const paddingScale = plotWidth > 0 ? plotWidth / (plotWidth + 2 * domainPadding) : 0;
-    return {
-        tickSpacing: plotWidth > 0 && dataLength > 0 ? plotWidth / dataLength : 0,
-        labelAreaWidth: plotWidth,
-        firstTickLeftSpace: plotLeft + domainPadding * paddingScale,
-        lastTickRightSpace: containerWidth > 0 ? containerWidth - plotRight + domainPadding * paddingScale : 0,
+function getAxisLabelStep({labelWidths, pointXs, steps, minGap}: AxisLabelStepParams): number {
+    const getLeft = (i: number) => (pointXs.at(i) ?? 0) - (labelWidths.at(i) ?? 0) / 2;
+    const fits = (step: number) => {
+        for (let i = step; i < pointXs.length; i += step) {
+            const previousRight = getLeft(i - step) + (labelWidths.at(i - step) ?? 0);
+            if (getLeft(i) - previousRight < minGap) {
+                return false;
+            }
+        }
+        return true;
     };
-}
 
-/**
- * Height of a horizontal bar chart. Grows with the row count so every category row gets at least
- * `minRowHeight` of vertical space, keeping all category labels visible instead of thinning them out.
- * Never smaller than `minHeight`, so small datasets keep the shared minimum.
- */
-function getHorizontalChartHeight(rowCount: number, minRowHeight: number, verticalPadding: number, minHeight: number): number {
-    return Math.max(minHeight, rowCount * minRowHeight + verticalPadding);
+    const candidates = [...steps];
+    const lastStep = steps.at(-1) ?? 1;
+    for (let step = lastStep * 2; step < pointXs.length; step += lastStep) {
+        candidates.push(step);
+    }
+    return candidates.find(fits) ?? Math.max(1, pointXs.length);
 }
 
 /** Returns the pixel width needed for Y-axis labels given the chart data. */
@@ -524,9 +516,9 @@ function getYAxisLabelWidth(
     if (!fontManager) {
         return 0;
     }
-    const totals = data.map((p) => p.total);
-    const rawDataMax = totals.length ? Math.max(...totals) : 0;
-    const rawDataMin = totals.length ? Math.min(...totals) : 0;
+    const values = data.flatMap((point) => Object.values(point.values));
+    const rawDataMax = values.length ? Math.max(...values) : 0;
+    const rawDataMin = values.length ? Math.min(...values) : 0;
     return Math.max(
         0,
         ...getNiceYAxisTicks(rawDataMax, rawDataMin, VictoryTheme.axis.tickCount, domainPadding.top, domainPadding.bottom).map((tick) =>
@@ -543,10 +535,10 @@ export {
     getFontLineMetrics,
     rotatedLabelCenterCorrection,
     rotatedLabelYOffset,
-    calculateMinDomainPadding,
     normalizeAngle,
     isAngleInSlice,
     findSliceAtPosition,
+    getPrimaryValue,
     processDataIntoSlices,
     getXAxisLabel,
     truncateLabel,
@@ -559,12 +551,10 @@ export {
     isCursorInSkewedLabel,
     isCursorOverChartLabel,
     getNiceYAxisTicks,
-    getNiceValueDomain,
-    getNiceValueTicks,
     getYAxisLabelWidth,
-    getHorizontalChartHeight,
-    getVerticalBarPlotBounds,
-    getVerticalBarLabelLayoutInputs,
+    getBarLayout,
+    getDomainPaddingForEdgeSpace,
+    getAxisLabelStep,
 };
 
 export type {ChartLabelHitTestParams};

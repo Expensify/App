@@ -888,6 +888,8 @@ describe('actions/IOU/PayMoneyRequest', () => {
                         transaction: transaction1,
                         comment: 'comment',
                         initialReportID: iouReport.reportID,
+                        initialReport: iouReport,
+                        transactionReport: iouReport,
                         isOffline: false,
                         currentUserLogin: RORY_EMAIL,
                         currentUserAccountID: RORY_ACCOUNT_ID,

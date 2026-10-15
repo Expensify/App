@@ -8,16 +8,20 @@ import MoneyReportHeaderPrimaryAction from '@components/MoneyReportHeaderPrimary
 import CONST from '@src/CONST';
 
 import React from 'react';
+import {View} from 'react-native';
 
 let mockSelectedTransactionIDs: string[] = [];
 let mockTransactionThreadReportID: string | undefined;
 let mockUseNarrowLayoutOnWideRHP = false;
+let mockShouldUseNarrowLayout = false;
+const mockPageGutter = {paddingHorizontal: 12};
 const mockClearSelectedTransactions = jest.fn();
 
 jest.mock('@hooks/useThemeStyles', () => () => ({}));
 jest.mock('@hooks/useOnyx', () => () => [undefined]);
 jest.mock('@hooks/useExportAgainModal', () => () => ({triggerExportOrConfirm: jest.fn()}));
-jest.mock('@hooks/useResponsiveLayout', () => () => ({shouldUseNarrowLayout: false, isMediumScreenWidth: false, isInLandscapeMode: false}));
+jest.mock('@hooks/useLayoutSpacing', () => () => ({pageGutter: mockPageGutter}));
+jest.mock('@hooks/useResponsiveLayout', () => () => ({shouldUseNarrowLayout: mockShouldUseNarrowLayout, isMediumScreenWidth: false, isInLandscapeMode: false}));
 jest.mock('@hooks/useResponsiveLayoutOnWideRHP', () => () => ({shouldUseNarrowLayout: mockUseNarrowLayoutOnWideRHP}));
 jest.mock('@components/MoneyReportTransactionThreadContext', () => ({useMoneyReportTransactionThread: () => ({transactionThreadReportID: mockTransactionThreadReportID})}));
 jest.mock('@components/Search/SearchContext', () => ({
@@ -33,6 +37,7 @@ describe('MoneyReportHeaderActions', () => {
         mockSelectedTransactionIDs = [];
         mockTransactionThreadReportID = undefined;
         mockUseNarrowLayoutOnWideRHP = false;
+        mockShouldUseNarrowLayout = false;
         jest.clearAllMocks();
     });
 
@@ -71,8 +76,9 @@ describe('MoneyReportHeaderActions', () => {
         // Given a selection in the narrow RHP branch.
         mockSelectedTransactionIDs = ['transaction'];
         mockUseNarrowLayoutOnWideRHP = true;
+        mockShouldUseNarrowLayout = true;
         // When the real header renders.
-        render(
+        const rendered = render(
             <MoneyReportHeaderActions
                 reportID="123"
                 primaryAction={CONST.REPORT.PRIMARY_ACTIONS.PAY}
@@ -81,6 +87,21 @@ describe('MoneyReportHeaderActions', () => {
         // Then only the selection dropdown handles report actions.
         expect(jest.mocked(MoneyReportHeaderSelectionDropdown)).toHaveBeenCalledTimes(1);
         expect(jest.mocked(MoneyReportHeaderSecondaryActions)).not.toHaveBeenCalled();
+        expect(rendered.UNSAFE_getAllByType(View).at(0)?.props.style).toContain(mockPageGutter);
+    });
+
+    it('places the responsive page gutter on the normal narrow header', () => {
+        // Given a narrow layout without a selected expense.
+        mockShouldUseNarrowLayout = true;
+        // When the real header renders its normal action branch.
+        const rendered = render(
+            <MoneyReportHeaderActions
+                reportID="123"
+                primaryAction={CONST.REPORT.PRIMARY_ACTIONS.PAY}
+            />,
+        );
+        // Then the outer header View uses the responsive page gutter.
+        expect(rendered.UNSAFE_getAllByType(View).at(0)?.props.style).toContain(mockPageGutter);
     });
 
     it('keeps report actions available inside a transaction thread and clears selection', () => {

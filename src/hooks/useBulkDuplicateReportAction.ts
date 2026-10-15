@@ -7,7 +7,7 @@ import {getPolicyExpenseChat} from '@libs/ReportUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Report} from '@src/types/onyx';
+import type {Report, Transaction} from '@src/types/onyx';
 
 import type {OnyxCollection} from 'react-native-onyx';
 
@@ -25,10 +25,11 @@ import {useAllPersonalDetails} from './usePersonalDetails';
 type UseBulkDuplicateReportActionParams = {
     selectedReports: SelectedReports[];
     allReports: OnyxCollection<Report> | undefined;
+    allTransactions: OnyxCollection<Transaction>;
     searchData: Record<string, unknown> | undefined;
 };
 
-function useBulkDuplicateReportAction({selectedReports, allReports, searchData}: UseBulkDuplicateReportActionParams) {
+function useBulkDuplicateReportAction({selectedReports, allReports, allTransactions, searchData}: UseBulkDuplicateReportActionParams) {
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const delegateAccountID = useDelegateAccountID();
     const {clearSelectedTransactions} = useSearchSelectionActions();
@@ -63,6 +64,7 @@ function useBulkDuplicateReportAction({selectedReports, allReports, searchData}:
             allReports: allReports ?? {},
             searchData,
             allPolicies,
+            allTransactions,
             allPolicyCategories,
             allPolicyTags,
             defaultExpensePolicy,
