@@ -28,6 +28,9 @@ type DraggableListProps<T> = {
 
     isItemDragDisabled?: (item: T) => boolean;
 
+    /** Keep drag-disabled rows after the drag area, so a native drag cannot finish between them. */
+    shouldRestrictDragToEnabledItems?: boolean;
+
     /** Whether the given item should be skipped during keyboard navigation */
     isItemDisabled?: (item: T) => boolean;
 
@@ -50,4 +53,4 @@ type SortableItemProps = {
 };
 
 export default DraggableListProps;
-export type {SortableItemProps};
+export type {SortableItemProps, DraggableListRenderItemParams};

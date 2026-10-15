@@ -19,6 +19,7 @@ function MultiSelectListItem<TItem extends ListItem>({
     showTooltip,
     isDisabled,
     onSelectRow,
+    onLongPressRow,
     onDismissError,
     shouldPreventEnterKeySubmit,
     onFocus,
@@ -39,6 +40,7 @@ function MultiSelectListItem<TItem extends ListItem>({
             canSelectMultiple
             accessibilityRole={CONST.ROLE.CHECKBOX}
             onSelectRow={onSelectRow}
+            onLongPressRow={onLongPressRow}
             onDismissError={onDismissError}
             shouldPreventEnterKeySubmit={shouldPreventEnterKeySubmit}
             onFocus={onFocus}

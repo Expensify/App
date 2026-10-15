@@ -19,6 +19,7 @@ function SelectableListItem<TItem extends ListItem>({
     selectionButtonPosition = CONST.SELECTION_BUTTON_POSITION.RIGHT,
     onSelectionButtonPress,
     onSelectRow,
+    onLongPressRow,
     isDisabled = false,
     children,
     isFocused,
@@ -45,6 +46,7 @@ function SelectableListItem<TItem extends ListItem>({
             item={item}
             shouldShowTooltip={showTooltip}
             onSelectRow={onSelectRow}
+            onLongPressRow={onLongPressRow}
             isDisabled={isDisabled}
             canSelectMultiple={canSelectMultiple}
             isFocused={isFocused}

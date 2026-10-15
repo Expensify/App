@@ -5,6 +5,8 @@ import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import type {OfflineWithFeedbackProps} from '@components/OfflineWithFeedback';
 
+import hasRenderableChildren from '@libs/hasRenderableChildren';
+
 import CONST from '@src/CONST';
 
 import type {PropsWithChildren, ReactNode} from 'react';
@@ -17,7 +19,8 @@ type EditableFieldProps = PropsWithChildren<
             name: string;
             value?: string;
             isValueSelectable?: boolean;
-            /** Validation or policy violation message to display below the field. */
+            /** Defaults to 2; use 0 to display the full value. */
+            numberOfLinesValue?: number;
             error?: ReactNode;
             valueComponent?: ReactNode;
             hintText?: ReactNode;
@@ -25,7 +28,20 @@ type EditableFieldProps = PropsWithChildren<
         }
 >;
 
-function EditableField({pendingAction, name, value, onPress, error, children, isValueSelectable, valueComponent, accessibilityLabel, hintText, footer}: EditableFieldProps) {
+function EditableField({
+    pendingAction,
+    name,
+    value,
+    onPress,
+    error,
+    children,
+    isValueSelectable,
+    numberOfLinesValue = 2,
+    valueComponent,
+    accessibilityLabel,
+    hintText,
+    footer,
+}: EditableFieldProps) {
     return (
         <OfflineWithFeedback pendingAction={pendingAction}>
             <MenuItem.Root
@@ -33,27 +49,26 @@ function EditableField({pendingAction, name, value, onPress, error, children, is
                 accessibilityLabel={accessibilityLabel}
                 shouldAllowTextSelection={isValueSelectable}
             >
-                {valueComponent ? (
-                    <MenuItem.Row>
-                        <MenuItemField.Content name={name}>{valueComponent}</MenuItemField.Content>
+                <MenuItem.Row>
+                    <MenuItemField.Content name={name}>
+                        {valueComponent ??
+                            (value ? (
+                                <MenuItem.FieldValue
+                                    numberOfLines={numberOfLinesValue}
+                                    isSelectable={isValueSelectable}
+                                >
+                                    {value}
+                                </MenuItem.FieldValue>
+                            ) : undefined)}
+                    </MenuItemField.Content>
+                    {(!!error || !!onPress || hasRenderableChildren(children)) && (
                         <MenuItem.Trailing>
                             {!!error && <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />}
                             {!!onPress && <MenuItem.Chevron />}
                             {children}
                         </MenuItem.Trailing>
-                    </MenuItem.Row>
-                ) : (
-                    <MenuItemField.Row
-                        name={name}
-                        value={value}
-                        numberOfLinesValue={2}
-                        isValueSelectable={isValueSelectable}
-                    >
-                        {!!error && <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />}
-                        {!!onPress && <MenuItem.Chevron />}
-                        {children}
-                    </MenuItemField.Row>
-                )}
+                    )}
+                </MenuItem.Row>
                 {!!hintText && <MenuItem.HelpText message={hintText} />}
                 {footer}
                 {!!error && (

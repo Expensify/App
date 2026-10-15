@@ -20,9 +20,7 @@ type AttendeesFieldProps = Pick<OfflineWithFeedbackProps, 'pendingAction'> &
         attendees: AttendeeWithAccountID[] | undefined;
         /** Plain text summary used by assistive technology. */
         title: string;
-        /** Formatted expense amount per attendee. */
         formattedPerAttendeeAmount: string;
-        /** Whether the attendees can be edited. */
         canEdit: boolean;
     };
 

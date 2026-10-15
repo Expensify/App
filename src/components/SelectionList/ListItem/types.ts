@@ -133,6 +133,9 @@ type ListItemProps<TItem extends ListItem> = {
 
     onSelectRow: (item: TItem, transactionPreviewData?: TransactionPreviewData, event?: ModifiedMouseEvent) => void;
     onSelectionButtonPress?: (item: TItem, itemTransactions?: TransactionListItemType[], shiftKey?: boolean) => void;
+
+    /** Optional long-press action, such as starting a native drag without changing selection. */
+    onLongPressRow?: ListItemPressableProps<TItem>['onLongPressRow'];
     onDismissError?: (item: TItem) => void;
     onFocus?: ListItemFocusEventHandler;
 
@@ -225,6 +228,9 @@ type SelectableListItemProps<TItem extends ListItem> = PropsWithChildren<{
 
     /** Callback to fire when the selection button is pressed */
     onSelectionButtonPress?: (item: TItem, itemTransactions?: TransactionListItemType[], shiftKey?: boolean) => void;
+
+    /** Optional long-press action, such as starting a native drag without changing selection. */
+    onLongPressRow?: ListItemPressableProps<TItem>['onLongPressRow'];
     onDismissError?: (item: TItem) => void;
     onFocus?: ListItemFocusEventHandler;
     isDisabled?: boolean | null;

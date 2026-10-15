@@ -82,7 +82,7 @@ function ReportDetailsColumnsPage() {
     const effectiveColumns = useMemo(() => {
         const savedColumns = (reportDetailsColumns ?? []).filter(isReportDetailsCustomColumn);
         if (savedColumns.length > 0) {
-            return savedColumns;
+            return isExpenseView ? getMoneyRequestViewFields(savedColumns, true).filter(isReportDetailsCustomColumn) : savedColumns;
         }
 
         if (!reportTransactions?.length) {

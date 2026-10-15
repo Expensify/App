@@ -65,6 +65,7 @@ function MerchantField({pendingAction, title, errorText, copyValue, onPress, can
             pendingAction={pendingAction}
             name={translate('common.merchant')}
             value={title}
+            numberOfLinesValue={0}
             onPress={canEdit ? onPress : undefined}
             isValueSelectable={!!copyValue}
             error={errorText}

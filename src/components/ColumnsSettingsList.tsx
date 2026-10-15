@@ -15,38 +15,20 @@ import type {ComponentRef} from 'react';
 import React, {useRef, useState} from 'react';
 import {View} from 'react-native';
 
+import type {ColumnItem} from './ColumnsSettingsListItem';
+import type {DraggableListRenderItemParams} from './DraggableList/types';
 import type {SearchCustomColumnIds} from './Search/types';
 import type {ListItem} from './SelectionList/types';
 
 import Button from './Button';
+import ColumnsSettingsListItem from './ColumnsSettingsListItem';
 import DraggableList from './DraggableList';
 import HeaderWithBackButton from './HeaderWithBackButton';
 import Icon from './Icon';
 import ScreenWrapper from './ScreenWrapper';
 import ScrollView from './ScrollView';
-import MultiSelectListItem from './SelectionList/ListItem/MultiSelectListItem';
 import Text from './Text';
 import TextLink from './TextLink';
-
-type ColumnItem = {
-    /** Display label for the column */
-    text: string;
-
-    value: SearchCustomColumnIds;
-    keyForList: SearchCustomColumnIds;
-
-    /** Whether the column is currently enabled/visible */
-    isSelected: boolean;
-
-    /** Whether the column toggle is disabled (e.g. for required columns) */
-    isDisabled: boolean;
-
-    /** Whether the column cannot be reordered via drag */
-    isDragDisabled: boolean;
-
-    /** Element rendered on the left side of the list item (e.g. drag handle) */
-    leftElement: React.JSX.Element;
-};
 
 type ColumnsSettingsListProps = {
     /** Heading for the surface sharing the column preferences */
@@ -236,17 +218,15 @@ function ColumnsSettingsList({
         onSave(selectedColumnIds);
     };
 
-    const renderItem = ({item, isFocused}: {item: ListItem; isFocused?: boolean}) => {
-        return (
-            <MultiSelectListItem
-                item={item}
-                isFocused={isFocused}
-                showTooltip={false}
-                onSelectRow={onSelectItem}
-                isDisabled={item.isDisabled}
-            />
-        );
-    };
+    const renderItem = ({item, isFocused, drag, isActive}: DraggableListRenderItemParams<ColumnItem>) => (
+        <ColumnsSettingsListItem
+            item={item}
+            isFocused={isFocused}
+            drag={drag}
+            isActive={isActive}
+            onSelectRow={onSelectItem}
+        />
+    );
 
     return (
         <ScreenWrapper
@@ -257,11 +237,11 @@ function ColumnsSettingsList({
         >
             <HeaderWithBackButton title={translate(titleKey)}>{!isDefaultState && <TextLink onPress={resetColumns}>{translate('search.resetColumns')}</TextLink>}</HeaderWithBackButton>
             <View style={styles.flex1}>
-                <ScrollView
-                    style={styles.flex1}
-                    contentContainerStyle={styles.flex1}
-                >
-                    {isGrouped ? (
+                {isGrouped ? (
+                    <ScrollView
+                        style={styles.flex1}
+                        contentContainerStyle={styles.flex1}
+                    >
                         <View ref={containerRef}>
                             <View style={[styles.ph5, styles.pb3]}>
                                 <Text style={styles.textLabelSupporting}>{translate('search.groupColumns')}</Text>
@@ -297,19 +277,19 @@ function ColumnsSettingsList({
                                 focusedIndex={typeFocusedIndex}
                             />
                         </View>
-                    ) : (
-                        <DraggableList
-                            disableScroll
-                            data={typeColumnsList}
-                            keyExtractor={(item) => item.value}
-                            onDragEnd={onTypeDragEnd}
-                            onSelectRow={onSelectItem}
-                            isItemDragDisabled={(item) => item.isDragDisabled}
-                            isItemDisabled={(item) => item.isDisabled}
-                            renderItem={renderItem}
-                        />
-                    )}
-                </ScrollView>
+                    </ScrollView>
+                ) : (
+                    <DraggableList
+                        data={typeColumnsList}
+                        keyExtractor={(item) => item.value}
+                        onDragEnd={onTypeDragEnd}
+                        onSelectRow={onSelectItem}
+                        shouldRestrictDragToEnabledItems
+                        isItemDragDisabled={(item) => item.isDragDisabled}
+                        isItemDisabled={(item) => item.isDisabled}
+                        renderItem={renderItem}
+                    />
+                )}
             </View>
             <View style={[styles.ph5, styles.pb5]}>
                 <Button

@@ -21,10 +21,18 @@ import React from 'react';
 jest.mock('@components/ColumnsSettingsList', () => jest.fn(() => null));
 jest.mock('@hooks/useCurrentUserPersonalDetails', () => jest.fn(() => ({accountID: 1})));
 jest.mock('@hooks/useOnyx', () => jest.fn());
-jest.mock('@expensify/react-native-hybrid-app', () => ({__esModule: true, default: {isHybridApp: jest.fn(() => false)}}));
-jest.mock('@libs/actions/ReportLayout', () => ({setReportDetailsColumns: jest.fn()}));
+jest.mock('@expensify/react-native-hybrid-app', () => ({
+    __esModule: true,
+    default: {isHybridApp: jest.fn(() => false)},
+}));
+jest.mock('@libs/actions/ReportLayout', () => ({
+    setReportDetailsColumns: jest.fn(),
+}));
 jest.mock('@libs/Navigation/Navigation', () => ({goBack: jest.fn()}));
-jest.mock('@react-navigation/native', () => ({...jest.requireActual<typeof ReactNavigation>('@react-navigation/native'), useRoute: jest.fn()}));
+jest.mock('@react-navigation/native', () => ({
+    ...jest.requireActual<typeof ReactNavigation>('@react-navigation/native'),
+    useRoute: jest.fn(),
+}));
 let mockSavedColumns: string[] | undefined;
 function renderColumns(savedColumns: string[] | undefined) {
     mockSavedColumns = savedColumns;
@@ -35,7 +43,11 @@ function renderColumns(savedColumns: string[] | undefined) {
     }
     return props;
 }
-jest.mocked(useRoute).mockReturnValue({key: 'columns', name: 'columns', params: {reportID: 'report-1'}});
+jest.mocked(useRoute).mockReturnValue({
+    key: 'columns',
+    name: 'columns',
+    params: {reportID: 'report-1'},
+});
 jest.mocked(useOnyx).mockImplementation((key) => {
     switch (key) {
         case ONYXKEYS.NVP_REPORT_DETAILS_COLUMNS:
@@ -62,7 +74,11 @@ it('filters unsupported saved columns, defaults invalid-only storage, and preser
 
 it('uses the expense heading while saving the same report column preference', () => {
     // Given the picker opened through an expense's Customize fields action.
-    jest.mocked(useRoute).mockReturnValue({key: 'columns', name: SCREENS.REPORT_SETTINGS.FIELDS, params: {reportID: 'report-1'}});
+    jest.mocked(useRoute).mockReturnValue({
+        key: 'columns',
+        name: SCREENS.REPORT_SETTINGS.FIELDS,
+        params: {reportID: 'report-1'},
+    });
     const savedColumns = [CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT, CONST.SEARCH.TABLE_COLUMNS.MERCHANT];
 
     // When the user adds an accounting field and saves.
@@ -86,7 +102,11 @@ it.each([
     ],
 ])('preserves the table receipt preference when saving fields (%j)', (savedColumns, expectedColumns) => {
     // Given a table with its receipt column either enabled in a custom position or disabled.
-    jest.mocked(useRoute).mockReturnValue({key: 'fields', name: SCREENS.REPORT_SETTINGS.FIELDS, params: {reportID: 'report-1'}});
+    jest.mocked(useRoute).mockReturnValue({
+        key: 'fields',
+        name: SCREENS.REPORT_SETTINGS.FIELDS,
+        params: {reportID: 'report-1'},
+    });
     const props = renderColumns(savedColumns);
 
     // When only the expense fields are customized.
@@ -100,7 +120,11 @@ it.each([
 
 it('preserves untouched expense defaults and keeps the default receipt column on the first save', () => {
     // Given an account that has never customized report columns.
-    jest.mocked(useRoute).mockReturnValue({key: 'fields', name: SCREENS.REPORT_SETTINGS.FIELDS, params: {reportID: 'report-1'}});
+    jest.mocked(useRoute).mockReturnValue({
+        key: 'fields',
+        name: SCREENS.REPORT_SETTINGS.FIELDS,
+        params: {reportID: 'report-1'},
+    });
     const props = renderColumns(undefined);
     const previousCallCount = jest.mocked(setReportDetailsColumns).mock.calls.length;
 
@@ -120,4 +144,22 @@ it('preserves untouched expense defaults and keeps the default receipt column on
         [CONST.SEARCH.TABLE_COLUMNS.RECEIPT, CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT, CONST.SEARCH.TABLE_COLUMNS.CATEGORY_GL_CODE],
         undefined,
     );
+});
+
+it('includes the required amount when an old expense preference omits it', () => {
+    // Given saved fields from before amount was mandatory.
+    jest.mocked(useRoute).mockReturnValue({
+        key: 'fields',
+        name: SCREENS.REPORT_SETTINGS.FIELDS,
+        params: {reportID: 'report-1'},
+    });
+    const props = renderColumns([CONST.SEARCH.TABLE_COLUMNS.MERCHANT]);
+    const previousCallCount = jest.mocked(setReportDetailsColumns).mock.calls.length;
+
+    // When the picker is opened and saved without editing its selection.
+    props.onSave(props.currentColumns);
+
+    // Then amount is already selected in the picker, matching the editor, without rewriting the preference.
+    expect(props.currentColumns).toEqual([CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT, CONST.SEARCH.TABLE_COLUMNS.MERCHANT]);
+    expect(setReportDetailsColumns).toHaveBeenCalledTimes(previousCallCount);
 });

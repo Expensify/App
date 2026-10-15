@@ -1,5 +1,5 @@
-import Icon from '@components/Icon';
 // Displays the expense amount with its payment status and editing feedback.
+import Icon from '@components/Icon';
 import type {MenuItemProps} from '@components/MenuItem';
 import MenuItem from '@components/MenuItem';
 import type {OfflineWithFeedbackProps} from '@components/OfflineWithFeedback';
