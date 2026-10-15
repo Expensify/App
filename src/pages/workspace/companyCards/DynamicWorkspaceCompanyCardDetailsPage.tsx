@@ -17,6 +17,7 @@ import {useCompanyCardFeedIcons} from '@hooks/useCompanyCardIcons';
 import useConfirmModal from '@hooks/useConfirmModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
+import useIsDomainAdmin from '@hooks/useIsDomainAdmin';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -68,7 +69,6 @@ import type {CompanyCardFeedWithDomainID} from '@src/types/onyx';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import {companyCardCustomNamesSelector} from '@selectors/Card';
-import {isAdminSelector} from '@selectors/Domain';
 import {format, parseISO} from 'date-fns';
 import React, {useState} from 'react';
 import {View} from 'react-native';
@@ -141,8 +141,7 @@ function DynamicWorkspaceCompanyCardDetailsPage({route}: DynamicWorkspaceCompany
     const [sharedCardCustomNames] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${domainOrWorkspaceAccountID}`, {selector: companyCardCustomNamesSelector});
     const currentUserAccountID = useCurrentUserPersonalDetails().accountID;
     const domainID = companyFeeds[feedName]?.domainID;
-    const [domain] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainID}`);
-    const isDomainAdmin = isAdminSelector(currentUserAccountID)(domain);
+    const isDomainAdmin = useIsDomainAdmin(domainID);
     const canSyncCard = canSyncCompanyCard(card, companyFeeds[feedName], currentUserAccountID, isDomainAdmin);
     const plaidUrl = getPlaidInstitutionIconUrl(feedName);
 

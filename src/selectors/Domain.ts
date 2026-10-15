@@ -218,6 +218,11 @@ function isAdminSelector(accountID: number | undefined) {
     };
 }
 
+/** Creates a collection selector that reports whether the given account is an admin of the domain with the given ID. Returns false when no domain ID is given. */
+function createIsAdminOfDomainSelector(domainID: number | undefined, accountID: number | undefined) {
+    return (domains: OnyxCollection<Domain>): boolean => !!domainID && isAdminSelector(accountID)(domains?.[`${ONYXKEYS.COLLECTION.DOMAIN}${domainID}`]);
+}
+
 /** Creates a selector that reports whether the given account has a pending adminship request on the domain. */
 function hasPendingAdminshipRequestSelector(accountID: number | undefined) {
     return (domain: OnyxEntry<Domain>): boolean => !!accountID && !!domain?.domain_adminRequesters?.[accountID];
@@ -323,6 +328,7 @@ function isSecurityGroupPendingDeleteSelector(groupID?: string) {
 }
 
 export {
+    createIsAdminOfDomainSelector,
     domainMemberSettingsSelector,
     selectRestrictedPrimaryPolicyID,
     domainSettingsPrimaryContactSelector,
