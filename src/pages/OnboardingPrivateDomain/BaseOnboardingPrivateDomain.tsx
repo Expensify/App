@@ -109,6 +109,8 @@ function BaseOnboardingPrivateDomain({shouldUseNativeStyles, route}: BaseOnboard
 
     const handleBackButtonPress = useCallback(() => {
         const backTo = route.params?.backTo as Route | undefined;
+        // When this screen was opened directly from the intent list (backTo is the purpose route), go straight
+        // back there instead of running the work-email restore path, which would insert a work-email screen.
         if (onboardingValues?.shouldValidate === false && backTo !== ROUTES.ONBOARDING_PURPOSE.getRoute()) {
             updateOnboardingValuesAndNavigation(onboardingValues);
             return;
