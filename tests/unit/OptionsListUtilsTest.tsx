@@ -6176,6 +6176,41 @@ describe('OptionsListUtils', () => {
             expect(result).toBe('test');
         });
 
+        it('should build the split preview from the passed split transaction', async () => {
+            // Given a group chat whose last action is a split, and the split transaction isn't in Onyx,
+            // so only the transaction passed in `splitAndTrackTransactions` can produce the preview
+            const reportID = '9261';
+            const transactionID = '9262';
+            await setReport(buildDMReport({reportID, chatType: CONST.REPORT.CHAT_TYPE.GROUP, lastActionType: CONST.REPORT.ACTIONS.TYPE.IOU}));
+            await seedActions(
+                reportID,
+                buildAction(CONST.REPORT.ACTIONS.TYPE.IOU, 3, {
+                    IOUTransactionID: transactionID,
+                    type: CONST.IOU.REPORT_ACTION_TYPE.SPLIT,
+                    amount: 1000,
+                    currency: CONST.CURRENCY.USD,
+                }),
+            );
+            const splitTransaction: Transaction = {
+                transactionID,
+                reportID: CONST.REPORT.SPLIT_REPORT_ID,
+                amount: 1000,
+                currency: CONST.CURRENCY.USD,
+                merchant: 'Lunch',
+                created: '2026-10-15',
+            };
+            const option: OptionData = {
+                reportID,
+                keyForList: '',
+            };
+
+            // When the preview line is built with the split transaction passed in
+            const result = getAlternateText(option, {showChatPreviewLine: true}, buildConfig({splitAndTrackTransactions: [splitTransaction]}));
+
+            // Then the preview shows the split amount and merchant from that transaction
+            expect(result).toContain(translateLocal('iou.didSplitAmount', convertToDisplayString(1000, CONST.CURRENCY.USD), 'Lunch'));
+        });
+
         it('should prefix the room preview with the last actor display name', async () => {
             const reportID = '9351';
             await setReport(buildRoomReport({reportID}));

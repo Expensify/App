@@ -9,11 +9,13 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import useSortedReportActionsData from '@hooks/useSortedReportActionsData';
+import useTransactionsByID from '@hooks/useTransactionsByID';
 
 import type {GetOptionsConfig, Option, OptionList, Options, SearchOption} from '@libs/OptionsListUtils';
 import {getEmptyOptions, getSearchOptions, getSearchValueForPhoneOrEmail, getValidOptions} from '@libs/OptionsListUtils';
 import {getPersonalDetailSearchTerms} from '@libs/OptionsListUtils/searchMatchUtils';
 import {addSMSDomainIfPhoneNumber} from '@libs/PhoneNumber';
+import {getOriginalMessage, isSplitBillAction, isTrackExpenseAction} from '@libs/ReportActionsUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import {expensifyLoginsSelector} from '@libs/UserUtils';
 
@@ -206,6 +208,16 @@ function useSearchSelectorBase({
     const sortedActions = sortedReportActionsData?.sortedActions;
     const transactionThreadIDs = sortedReportActionsData?.transactionThreadIDs;
     const lastActions = sortedReportActionsData?.lastActions;
+
+    // Only the share destination list shows the chat preview line. A split or track action's transaction isn't part of its chat, so read it here for that preview.
+    const splitAndTrackTransactionIDs =
+        searchContext === CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_SHARE_DESTINATION
+            ? Object.values(lastActions ?? {}).flatMap((action) => {
+                  const transactionID = isSplitBillAction(action) || isTrackExpenseAction(action) ? getOriginalMessage(action)?.IOUTransactionID : undefined;
+                  return transactionID ? [transactionID] : [];
+              })
+            : undefined;
+    const [splitAndTrackTransactions] = useTransactionsByID(splitAndTrackTransactionIDs);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const currentUserAccountID = currentUserPersonalDetails.accountID;
     const currentUserEmail = currentUserPersonalDetails.email ?? '';
@@ -383,6 +395,7 @@ function useSearchSelectorBase({
                         selectedOptions,
                         includeMultipleParticipantReports: true,
                         showChatPreviewLine: true,
+                        splitAndTrackTransactions,
                         forcePolicyNamePreview: true,
                         includeThreads: true,
                         includeMoneyRequests: true,

@@ -23,7 +23,7 @@ import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTop
 import Navigation from '@libs/Navigation/Navigation';
 import Parser from '@libs/Parser';
 import * as PolicyUtils from '@libs/PolicyUtils';
-import {getOriginalMessage, getReportAction, isActionOfType, isWhisperAction} from '@libs/ReportActionsUtils';
+import {getOriginalMessage, getReportAction, getReportActionHtml, isActionOfType, isWhisperAction} from '@libs/ReportActionsUtils';
 // Testing only so it's okay to import computeReportName
 // eslint-disable-next-line no-restricted-imports
 import {buildReportNameFromParticipantNames, computeReportName as computeReportNameOriginal, getGroupChatName, getPolicyExpenseChatName, getReportName} from '@libs/ReportNameUtils';
@@ -21157,8 +21157,8 @@ describe('ReportUtils', () => {
                 expect(result).toBe(englishTranslate('iou.didSplitAmount', convertToDisplayString(1000, CONST.CURRENCY.USD), 'Lunch'));
             });
 
-            it('reads the transaction from Onyx when none is passed', async () => {
-                // Given a split action whose transaction is in Onyx, and a caller (e.g. Search) that does not pass `linkedTransaction` yet
+            it('does not read the transaction from Onyx when none is passed', async () => {
+                // Given a split action whose transaction is in Onyx, so the old Onyx lookup would have found it
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${groupChat.reportID}`, groupChat);
                 const splitAction = buildIOUAction('710002', CONST.IOU.REPORT_ACTION_TYPE.SPLIT);
                 await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}710002`, buildTransaction('710002', CONST.REPORT.SPLIT_REPORT_ID, 'Dinner'));
@@ -21171,8 +21171,8 @@ describe('ReportUtils', () => {
                     policy: undefined,
                 });
 
-                // Then the preview still shows the split amount and merchant, so Search keeps working until it passes the transaction
-                expect(result).toBe(englishTranslate('iou.didSplitAmount', convertToDisplayString(1000, CONST.CURRENCY.USD), 'Dinner'));
+                // Then the preview falls back to the action's own message, because every caller now passes the transaction and the Onyx lookup is gone
+                expect(result).toBe(getReportActionHtml(splitAction));
             });
 
             it('uses the passed transaction for a track action in a self DM', async () => {
