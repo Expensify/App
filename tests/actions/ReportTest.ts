@@ -10937,6 +10937,53 @@ describe('actions/Report', () => {
         });
     });
 
+    describe('openReport', () => {
+        const TEST_USER_ACCOUNT_ID = 1;
+        const TEST_USER_LOGIN = 'test@test.com';
+
+        beforeEach(async () => {
+            global.fetch = TestHelper.createGlobalFetchMock();
+            await TestHelper.signInWithTestUser(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN);
+            await waitForBatchedUpdates();
+        });
+
+        it('should keep a user-initiated new chat with a createChat error when OpenReport fails', async () => {
+            // Given a chat the user themselves asked to create, so the error is actionable and must be kept
+            const mockFetch = TestHelper.createGlobalFetchMock();
+            global.fetch = mockFetch;
+
+            const REPORT_ID = '710';
+            const newReportObject: OnyxTypes.Report = {
+                ...createRandomReport(710, undefined),
+                reportID: REPORT_ID,
+                parentReportID: undefined,
+                parentReportActionID: undefined,
+            };
+
+            // When OpenReport fails for that create
+            mockFetch.fail();
+            Report.openReport({
+                reportID: REPORT_ID,
+                introSelected: TEST_INTRO_SELECTED,
+                conciergeChat: undefined,
+                participants: [{login: 'other@test.com', accountID: 2}],
+                newReportObject,
+                currentUserLogin: TEST_USER_LOGIN,
+                currentUserAccountID: TEST_USER_ACCOUNT_ID,
+                hasReportActions: false,
+            });
+            await waitForNetworkPromises();
+            await waitForBatchedUpdates();
+
+            // Then the report is still there and shows the retryable error, unchanged from before this fix
+            const report = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}` as const);
+            expect(report).toBeTruthy();
+            expect(report?.errorFields?.createChat).toBeTruthy();
+
+            mockFetch.succeed();
+        });
+    });
+
     describe('resolveActionableMentionWhisper', () => {
         it('should optimistically add invited users to report.participants when resolution is INVITE', async () => {
             global.fetch = TestHelper.createGlobalFetchMock();

@@ -1312,6 +1312,27 @@ function isResolvedConciergeDescriptionOptions(reportAction: OnyxEntry<ReportAct
 }
 
 /**
+ * A deleted report preview stays visible while it carries a payment failure, which is the payer's feedback once the
+ * report they paid is gone.
+ */
+function isDeletedReportPreviewWithError(reportAction: OnyxEntry<ReportAction>): boolean {
+    return isReportPreviewAction(reportAction) && isDeletedAction(reportAction) && !!reportAction?.errors?.[CONST.IOU.PAY_FAILURE_PREVIEW_ERROR_KEY];
+}
+
+/**
+ * The errors a consumer should act on. The pay failure mirrored onto the chat's preview is dropped while the report
+ * it belongs to still exists, because the error is reachable in there.
+ */
+function getVisibleReportActionErrors(reportAction: OnyxEntry<ReportAction>): ReportAction['errors'] {
+    const errors = reportAction?.errors ?? {};
+    if (!isReportPreviewAction(reportAction) || isDeletedAction(reportAction) || !(CONST.IOU.PAY_FAILURE_PREVIEW_ERROR_KEY in errors)) {
+        return errors;
+    }
+    const {[CONST.IOU.PAY_FAILURE_PREVIEW_ERROR_KEY]: payFailure, ...rest} = errors;
+    return rest;
+}
+
+/**
  * Checks if a reportAction is fit for display, meaning that it's not deprecated, is of a valid
  * and supported type, it's not deleted and also not closed.
  */
@@ -1413,6 +1434,10 @@ function shouldReportActionBeVisible(
         return false;
     }
 
+    if (isDeletedReportPreviewWithError(reportAction)) {
+        return true;
+    }
+
     // All other actions are displayed except thread parents, deleted, or non-pending actions
     return !!reportAction.pendingAction || !isDeletedAction(reportAction) || isDeletedParentAction(reportAction) || isReversedTransaction(reportAction);
 }
@@ -1490,7 +1515,7 @@ function isReportActionVisibleAsLastAction(
         return false;
     }
 
-    if (Object.keys(reportAction.errors ?? {}).length > 0) {
+    if (Object.keys(getVisibleReportActionErrors(reportAction) ?? {}).length > 0) {
         return false;
     }
 
@@ -5545,6 +5570,8 @@ export {
     isCurrentActionUnread,
     isDeletedAction,
     isDeletedParentAction,
+    isDeletedReportPreviewWithError,
+    getVisibleReportActionErrors,
     isMemberChangeAction,
     isLeavePolicyAction,
     isExportIntegrationAction,

@@ -26,7 +26,7 @@ import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, Report, ReportAction, ReportActions, Transaction, TransactionViolation} from '@src/types/onyx';
-import type {ReportAttributes} from '@src/types/onyx/DerivedValues';
+import type {ReportAttributes, ReportAttributesDerivedValue} from '@src/types/onyx/DerivedValues';
 import type {ReportCollectionDataSet} from '@src/types/onyx/Report';
 import type {TransactionViolationsCollectionDataSet} from '@src/types/onyx/TransactionViolation';
 
@@ -1221,6 +1221,392 @@ describe('SidebarUtils', () => {
                 conciergeReportID: undefined,
             });
 
+            expect(result).toStrictEqual({shouldDisplay: true, hasErrorsOtherThanFailedReceipt: true});
+        });
+
+        it('returns shouldDisplay as false for an orphaned transaction thread that failed to be created', async () => {
+            // Given an expense report whose only expense was deleted, so its IOU action is deleted too
+            const MOCK_EXPENSE_REPORT: Report = {
+                reportID: '10',
+                ownerAccountID: 12345,
+                policyID: '6',
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                type: CONST.REPORT.TYPE.EXPENSE,
+            };
+
+            // And the transaction thread the app built for it, which never reached the server, so it carries a
+            // createChat error the user cannot act on. This is the dead "Fix" row from #100676.
+            const MOCK_ORPHANED_THREAD: Report = {
+                reportID: '11',
+                ownerAccountID: 12345,
+                policyID: '6',
+                parentReportID: MOCK_EXPENSE_REPORT.reportID,
+                parentReportActionID: '20',
+                type: CONST.REPORT.TYPE.CHAT,
+                errorFields: {createChat: {'1772030710775000': 'report.genericCreateReportFailureMessage'}},
+            };
+
+            const MOCK_REPORTS = {
+                [`${ONYXKEYS.COLLECTION.REPORT}${MOCK_EXPENSE_REPORT.reportID}` as const]: MOCK_EXPENSE_REPORT,
+                [`${ONYXKEYS.COLLECTION.REPORT}${MOCK_ORPHANED_THREAD.reportID}` as const]: MOCK_ORPHANED_THREAD,
+            } satisfies ReportCollectionDataSet;
+            const onyxOrphanReports: ReportCollectionDataSet = MOCK_REPORTS;
+
+            const MOCK_REPORT_ACTIONS: ReportActions = {
+                '20': {
+                    reportActionID: '20',
+                    actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                    originalMessage: {
+                        IOUTransactionID: '30',
+                        type: 'create',
+                    },
+                    // An empty html fragment is how a deleted expense action is stored.
+                    message: [{type: 'COMMENT', html: '', text: ''}],
+                    actorAccountID: 12345,
+                    created: '2024-08-08 18:20:44.171',
+                    childReportID: MOCK_ORPHANED_THREAD.reportID,
+                },
+            };
+
+            // The derived attributes surface the createChat error, which is what force-displays the row.
+            const MOCK_REPORT_ATTRIBUTES: ReportAttributesDerivedValue['reports'] = {
+                [MOCK_ORPHANED_THREAD.reportID]: {
+                    reportName: '',
+                    isEmpty: true,
+                    brickRoadStatus: CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR,
+                    requiresAttention: false,
+                    reportErrors: {'1772030710775000': 'Unexpected error creating this report. Please try again later.'},
+                },
+            };
+
+            await act(async () => {
+                await Onyx.multiSet({
+                    ...onyxOrphanReports,
+                    [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${MOCK_EXPENSE_REPORT.reportID}` as const]: MOCK_REPORT_ACTIONS,
+                });
+            });
+
+            // When the LHN decides whether to show the thread
+            const result = SidebarUtils.shouldDisplayReportInLHN({
+                report: MOCK_ORPHANED_THREAD,
+                reports: MOCK_REPORTS,
+                currentReportId: undefined,
+                isInFocusMode: false,
+                isDefaultRoomsBetaEnabled: false,
+                transactionViolations: {},
+                draftComment: undefined,
+                transactions: {},
+                isOffline: false,
+                // The derived attributes surface the createChat error, which is what force-displays the row.
+                reportAttributes: MOCK_REPORT_ATTRIBUTES,
+                currentUserLogin: CURRENT_USER_LOGIN,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                hasGuidesEmails: false,
+                conciergeReportID: undefined,
+            });
+
+            // Then it stays hidden. Nothing links to a thread whose expense is gone, so a "Fix" row on it is dead.
+            expect(result).toStrictEqual({shouldDisplay: false});
+        });
+
+        it('returns shouldDisplay as true for an orphaned thread holding an unsent draft', async () => {
+            // Given an expense report whose only expense was deleted, so its IOU action is deleted too
+            const MOCK_EXPENSE_REPORT: Report = {
+                reportID: '10',
+                ownerAccountID: 12345,
+                policyID: '6',
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                type: CONST.REPORT.TYPE.EXPENSE,
+            };
+
+            // And the transaction thread the app built for it, which never reached the server, so it carries a
+            // createChat error the user cannot act on. This is the dead "Fix" row from #100676.
+            const MOCK_ORPHANED_THREAD: Report = {
+                reportID: '11',
+                ownerAccountID: 12345,
+                policyID: '6',
+                parentReportID: MOCK_EXPENSE_REPORT.reportID,
+                parentReportActionID: '20',
+                type: CONST.REPORT.TYPE.CHAT,
+                errorFields: {createChat: {'1772030710775000': 'report.genericCreateReportFailureMessage'}},
+            };
+
+            const MOCK_REPORTS = {
+                [`${ONYXKEYS.COLLECTION.REPORT}${MOCK_EXPENSE_REPORT.reportID}` as const]: MOCK_EXPENSE_REPORT,
+                [`${ONYXKEYS.COLLECTION.REPORT}${MOCK_ORPHANED_THREAD.reportID}` as const]: MOCK_ORPHANED_THREAD,
+            } satisfies ReportCollectionDataSet;
+            const onyxOrphanReports: ReportCollectionDataSet = MOCK_REPORTS;
+
+            const MOCK_REPORT_ACTIONS: ReportActions = {
+                '20': {
+                    reportActionID: '20',
+                    actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                    originalMessage: {
+                        IOUTransactionID: '30',
+                        type: 'create',
+                    },
+                    // An empty html fragment is how a deleted expense action is stored.
+                    message: [{type: 'COMMENT', html: '', text: ''}],
+                    actorAccountID: 12345,
+                    created: '2024-08-08 18:20:44.171',
+                    childReportID: MOCK_ORPHANED_THREAD.reportID,
+                },
+            };
+
+            // The derived attributes surface the createChat error, which is what force-displays the row.
+            const MOCK_REPORT_ATTRIBUTES: ReportAttributesDerivedValue['reports'] = {
+                [MOCK_ORPHANED_THREAD.reportID]: {
+                    reportName: '',
+                    isEmpty: true,
+                    brickRoadStatus: CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR,
+                    requiresAttention: false,
+                    reportErrors: {'1772030710775000': 'Unexpected error creating this report. Please try again later.'},
+                },
+            };
+
+            await act(async () => {
+                await Onyx.multiSet({
+                    ...onyxOrphanReports,
+                    [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${MOCK_EXPENSE_REPORT.reportID}` as const]: MOCK_REPORT_ACTIONS,
+                });
+            });
+
+            // When the LHN decides whether to show the thread
+            const result = SidebarUtils.shouldDisplayReportInLHN({
+                report: MOCK_ORPHANED_THREAD,
+                reports: MOCK_REPORTS,
+                currentReportId: undefined,
+                isInFocusMode: false,
+                isDefaultRoomsBetaEnabled: false,
+                transactionViolations: {},
+                draftComment: 'a draft the user has not sent',
+                transactions: {},
+                isOffline: false,
+                // The derived attributes surface the createChat error, which is what force-displays the row.
+                reportAttributes: MOCK_REPORT_ATTRIBUTES,
+                currentUserLogin: CURRENT_USER_LOGIN,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                hasGuidesEmails: false,
+                conciergeReportID: undefined,
+            });
+
+            // Then it stays, because the row is the only route back to the draft
+            expect(result).toStrictEqual({shouldDisplay: true, hasErrorsOtherThanFailedReceipt: true});
+        });
+
+        it('returns shouldDisplay as false for an orphaned thread whose expense report was deleted too', async () => {
+            // Given a deleted single expense, which takes its expense report down with it, so neither the
+            // report nor its IOU action is left on this client
+            const MOCK_EXPENSE_REPORT: Report = {
+                reportID: '10',
+                ownerAccountID: 12345,
+                policyID: '6',
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                type: CONST.REPORT.TYPE.EXPENSE,
+            };
+
+            // And the transaction thread the app built for it, which never reached the server, so it carries a
+            // createChat error the user cannot act on. This is the dead "Fix" row from #100676.
+            const MOCK_ORPHANED_THREAD: Report = {
+                reportID: '11',
+                ownerAccountID: 12345,
+                policyID: '6',
+                parentReportID: MOCK_EXPENSE_REPORT.reportID,
+                parentReportActionID: '20',
+                type: CONST.REPORT.TYPE.CHAT,
+                errorFields: {createChat: {'1772030710775000': 'report.genericCreateReportFailureMessage'}},
+            };
+
+            const MOCK_REPORTS = {
+                [`${ONYXKEYS.COLLECTION.REPORT}${MOCK_ORPHANED_THREAD.reportID}` as const]: MOCK_ORPHANED_THREAD,
+            } satisfies ReportCollectionDataSet;
+            const onyxOrphanReports: ReportCollectionDataSet = MOCK_REPORTS;
+
+            // The derived attributes surface the createChat error, which is what force-displays the row.
+            const MOCK_REPORT_ATTRIBUTES: ReportAttributesDerivedValue['reports'] = {
+                [MOCK_ORPHANED_THREAD.reportID]: {
+                    reportName: '',
+                    isEmpty: true,
+                    brickRoadStatus: CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR,
+                    requiresAttention: false,
+                    reportErrors: {'1772030710775000': 'Unexpected error creating this report. Please try again later.'},
+                },
+            };
+
+            await act(async () => {
+                await Onyx.multiSet({
+                    ...onyxOrphanReports,
+                    [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${MOCK_EXPENSE_REPORT.reportID}` as const]: {},
+                });
+            });
+
+            // When the LHN decides whether to show the thread
+            const result = SidebarUtils.shouldDisplayReportInLHN({
+                report: MOCK_ORPHANED_THREAD,
+                reports: MOCK_REPORTS,
+                currentReportId: undefined,
+                isInFocusMode: false,
+                isDefaultRoomsBetaEnabled: false,
+                transactionViolations: {},
+                draftComment: undefined,
+                transactions: {},
+                isOffline: false,
+                // The derived attributes surface the createChat error, which is what force-displays the row.
+                reportAttributes: MOCK_REPORT_ATTRIBUTES,
+                currentUserLogin: CURRENT_USER_LOGIN,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                hasGuidesEmails: false,
+                conciergeReportID: undefined,
+            });
+
+            // Then it stays hidden. Nothing links to a thread whose expense is gone, so a "Fix" row on it is dead.
+            expect(result).toStrictEqual({shouldDisplay: false});
+        });
+
+        it('returns shouldDisplay as true for an orphaned thread holding a comment that failed to send', async () => {
+            // Given the same orphaned thread, except the user wrote a comment in it offline and that comment failed
+            const MOCK_EXPENSE_REPORT: Report = {
+                reportID: '12',
+                ownerAccountID: 12345,
+                policyID: '6',
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                type: CONST.REPORT.TYPE.EXPENSE,
+            };
+            const MOCK_ORPHANED_THREAD: Report = {
+                reportID: '13',
+                ownerAccountID: 12345,
+                policyID: '6',
+                parentReportID: MOCK_EXPENSE_REPORT.reportID,
+                parentReportActionID: '22',
+                type: CONST.REPORT.TYPE.CHAT,
+                errorFields: {createChat: {'1772030710775000': 'report.genericCreateReportFailureMessage'}},
+            };
+
+            const MOCK_REPORTS = {
+                [`${ONYXKEYS.COLLECTION.REPORT}${MOCK_ORPHANED_THREAD.reportID}` as const]: MOCK_ORPHANED_THREAD,
+            } satisfies ReportCollectionDataSet;
+            const onyxCommentReports: ReportCollectionDataSet = MOCK_REPORTS;
+
+            const MOCK_THREAD_ACTIONS: ReportActions = {
+                '100': {
+                    reportActionID: '100',
+                    actionName: CONST.REPORT.ACTIONS.TYPE.CREATED,
+                    message: [{type: 'COMMENT', html: '', text: ''}],
+                    created: '2024-08-08 18:20:44.171',
+                },
+                '101': {
+                    reportActionID: '101',
+                    actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                    message: [{type: 'COMMENT', html: 'my comment', text: 'my comment'}],
+                    created: '2024-08-08 18:21:44.171',
+                    // A comment that failed to send keeps an error, which is why it must stay reachable.
+                    errors: {'1772030710775001': 'Unexpected error. Please try again later.'},
+                },
+            };
+
+            await act(async () => {
+                await Onyx.multiSet({
+                    ...onyxCommentReports,
+                    [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${MOCK_ORPHANED_THREAD.reportID}` as const]: MOCK_THREAD_ACTIONS,
+                });
+            });
+
+            const MOCK_COMMENT_ATTRIBUTES: ReportAttributesDerivedValue['reports'] = {
+                [MOCK_ORPHANED_THREAD.reportID]: {
+                    reportName: '',
+                    isEmpty: false,
+                    brickRoadStatus: CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR,
+                    requiresAttention: false,
+                    reportErrors: {'1772030710775000': 'Unexpected error creating this report. Please try again later.'},
+                },
+            };
+
+            // When the LHN decides whether to show it
+            const result = SidebarUtils.shouldDisplayReportInLHN({
+                report: MOCK_ORPHANED_THREAD,
+                reports: MOCK_REPORTS,
+                currentReportId: undefined,
+                isInFocusMode: false,
+                isDefaultRoomsBetaEnabled: false,
+                transactionViolations: {},
+                draftComment: undefined,
+                transactions: {},
+                isOffline: false,
+                reportAttributes: MOCK_COMMENT_ATTRIBUTES,
+                currentUserLogin: CURRENT_USER_LOGIN,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                hasGuidesEmails: false,
+                conciergeReportID: undefined,
+            });
+
+            // Then it stays, so the user can still open it and retry or dismiss their comment
+            expect(result).toStrictEqual({shouldDisplay: true, hasErrorsOtherThanFailedReceipt: true});
+        });
+
+        it('returns shouldDisplay as true for a failed thread whose parent actions are simply not loaded', async () => {
+            // Given a failed thread whose parent report is alive, but its actions are evicted or not loaded yet
+            const MOCK_EXPENSE_REPORT: Report = {
+                reportID: '14',
+                ownerAccountID: 12345,
+                policyID: '6',
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                type: CONST.REPORT.TYPE.EXPENSE,
+            };
+            const MOCK_FAILED_THREAD: Report = {
+                reportID: '15',
+                ownerAccountID: 12345,
+                policyID: '6',
+                parentReportID: MOCK_EXPENSE_REPORT.reportID,
+                parentReportActionID: '24',
+                type: CONST.REPORT.TYPE.CHAT,
+                errorFields: {createChat: {'1772030710775000': 'report.genericCreateReportFailureMessage'}},
+            };
+
+            const MOCK_REPORTS = {
+                [`${ONYXKEYS.COLLECTION.REPORT}${MOCK_EXPENSE_REPORT.reportID}` as const]: MOCK_EXPENSE_REPORT,
+                [`${ONYXKEYS.COLLECTION.REPORT}${MOCK_FAILED_THREAD.reportID}` as const]: MOCK_FAILED_THREAD,
+            } satisfies ReportCollectionDataSet;
+            const onyxUnloadedReports: ReportCollectionDataSet = MOCK_REPORTS;
+
+            await act(async () => {
+                // No actions for the parent, which is what eviction looks like. REPORT_ACTIONS is evictable.
+                await Onyx.multiSet({...onyxUnloadedReports});
+            });
+
+            const MOCK_UNLOADED_ATTRIBUTES: ReportAttributesDerivedValue['reports'] = {
+                [MOCK_FAILED_THREAD.reportID]: {
+                    reportName: '',
+                    isEmpty: true,
+                    brickRoadStatus: CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR,
+                    requiresAttention: false,
+                    reportErrors: {'1772030710775000': 'Unexpected error creating this report. Please try again later.'},
+                },
+            };
+
+            // When the LHN decides whether to show it
+            const result = SidebarUtils.shouldDisplayReportInLHN({
+                report: MOCK_FAILED_THREAD,
+                reports: MOCK_REPORTS,
+                currentReportId: undefined,
+                isInFocusMode: false,
+                isDefaultRoomsBetaEnabled: false,
+                transactionViolations: {},
+                draftComment: undefined,
+                transactions: {},
+                isOffline: false,
+                reportAttributes: MOCK_UNLOADED_ATTRIBUTES,
+                currentUserLogin: CURRENT_USER_LOGIN,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                hasGuidesEmails: false,
+                conciergeReportID: undefined,
+            });
+
+            // Then it behaves as before, because a missing action is not proof the expense is gone
             expect(result).toStrictEqual({shouldDisplay: true, hasErrorsOtherThanFailedReceipt: true});
         });
 

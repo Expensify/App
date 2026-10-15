@@ -93,7 +93,8 @@ function ReportActionItemSingle({
 
     const hasVacationDelegate = !!getVacationer(action) || !!getManagerOnVacation(action);
 
-    const headingText = avatarType === CONST.REPORT_ACTION_AVATARS.TYPE.MULTIPLE ? `${primaryAvatar.name} & ${secondaryAvatar.name}` : primaryAvatar.name;
+    // A deleted report leaves no second actor to name, so skip the join rather than trail an "&".
+    const headingText = avatarType === CONST.REPORT_ACTION_AVATARS.TYPE.MULTIPLE && secondaryAvatar?.name ? `${primaryAvatar.name} & ${secondaryAvatar.name}` : primaryAvatar.name;
 
     // Since the display name for a report action message is delivered with the report history as an array of fragments
     // we'll need to take the displayName from personal details and have it be in the same format for now. Eventually,

@@ -182,4 +182,54 @@ describe('ReportActionItemSingle', () => {
             });
         });
     });
+    describe('when a report preview points at a deleted expense report', () => {
+        const DELETED_IOU_REPORT_ID = '987654321';
+        const ACTOR_ACCOUNT_ID = 1;
+        const ACTOR_DISPLAY_NAME = 'Email One';
+
+        async function setupDeletedReportPreview() {
+            // A DM, so the avatars fall back to showing every actor rather than a workspace subscript.
+            const fakeReport = {...LHNTestUtils.getFakeReportWithPolicy([1, 2]), chatType: undefined, type: CONST.REPORT.TYPE.CHAT};
+            const reportPreviewAction = {
+                ...LHNTestUtils.getFakeAdvancedReportAction(CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW),
+                actorAccountID: ACTOR_ACCOUNT_ID,
+                // The expense report this points at is absent from Onyx, which is what a deleted report looks like.
+                childReportID: DELETED_IOU_REPORT_ID,
+            } as ReportAction;
+
+            await act(async () => {
+                await Onyx.multiSet({
+                    [ONYXKEYS.IS_LOADING_REPORT_DATA]: false,
+                    [ONYXKEYS.PERSONAL_DETAILS_LIST]: {
+                        [ACTOR_ACCOUNT_ID]: {accountID: ACTOR_ACCOUNT_ID, login: 'email1@test.com', displayName: ACTOR_DISPLAY_NAME},
+                    },
+                    [ONYXKEYS.COLLECTION.REPORT]: {
+                        [`${ONYXKEYS.COLLECTION.REPORT}${fakeReport.reportID}`]: fakeReport,
+                    },
+                    [ONYXKEYS.COLLECTION.REPORT_ACTIONS]: {
+                        [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${fakeReport.reportID}`]: {
+                            [reportPreviewAction.reportActionID]: reportPreviewAction,
+                        },
+                    },
+                });
+                await waitForBatchedUpdatesWithAct();
+            });
+
+            LHNTestUtils.getDefaultRenderedReportActionItemSingle(fakeReport, reportPreviewAction);
+            await waitForBatchedUpdatesWithAct();
+        }
+
+        it('names only the sender instead of trailing an ampersand for the missing second actor', async () => {
+            // Given a report preview whose expense report has been deleted, so there is no second actor to name
+            await setupDeletedReportPreview();
+
+            // Then the header names the sender on its own
+            await waitFor(() => {
+                expect(screen.getByText(ACTOR_DISPLAY_NAME)).toBeOnTheScreen();
+            });
+
+            // And it does not render a dangling separator for the actor it could not resolve
+            expect(screen.queryByText(/&/)).toBeNull();
+        });
+    });
 });

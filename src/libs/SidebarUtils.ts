@@ -39,7 +39,7 @@ import DateUtils from './DateUtils';
 import Log from './Log';
 import {shouldUseFullTitleForOption} from './OptionsListUtils';
 import {getPersonalDetailsForAccountIDs} from './PersonalDetailsUtils';
-import {getIOUReportIDFromReportActionPreview, getReportAction} from './ReportActionsUtils';
+import {getAllReportActions, getIOUReportIDFromReportActionPreview, getReportAction, isCreatedAction, isDeletedAction} from './ReportActionsUtils';
 import {getReportAlternateText, getWelcomeMessage} from './ReportAlternateTextUtils';
 import {getReportName} from './ReportNameUtils';
 import {
@@ -155,6 +155,13 @@ type ShouldDisplayReportInLHNParams = {
     conciergeReportID: string | undefined;
 };
 
+/**
+ * Whether the user put something in this report themselves. A failed comment counts, since it has to stay reachable.
+ */
+function hasContentOfItsOwn(reportID: string): boolean {
+    return Object.values(getAllReportActions(reportID)).some((action) => !isCreatedAction(action) && !isDeletedAction(action));
+}
+
 function shouldDisplayReportInLHN({
     report,
     reports,
@@ -198,6 +205,18 @@ function shouldDisplayReportInLHN({
     );
     const isReportInAccessible = report?.errorFields?.notFound;
     if (isOneTransactionThread(report, parentReport, parentReportAction, isOffline)) {
+        return {shouldDisplay: false};
+    }
+
+    // An error on a thread nothing links to any more is not actionable, so it must not force an empty LHN row.
+    // An unsent draft counts as content, since the row is the only route back to it.
+    const isOrphanedFailedThread =
+        !draftComment &&
+        (!!report.errorFields?.createChat || !!report.errorFields?.createChatThread) &&
+        !!report.parentReportActionID &&
+        (parentReportAction ? isDeletedAction(parentReportAction) : !parentReport) &&
+        !hasContentOfItsOwn(report.reportID);
+    if (isOrphanedFailedThread) {
         return {shouldDisplay: false};
     }
 
