@@ -6235,6 +6235,18 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
             },
             deletedCard: '已删除的卡片',
             assignNewCards: {title: '分配新卡', description: '从您的银行获取可分配的最新银行卡'},
+            reimbursable: {
+                title: '可报销',
+                description: '选择卡交易的创建方式。新交易将遵循这些规则。',
+                [CONST.COMPANY_CARDS.FEED_REIMBURSABLE.FORCE_YES]: '始终可报销',
+                [`${CONST.COMPANY_CARDS.FEED_REIMBURSABLE.FORCE_YES}Description`]: '始终报销给员工',
+                [CONST.COMPANY_CARDS.FEED_REIMBURSABLE.FORCE_NO]: '始终不予报销',
+                [`${CONST.COMPANY_CARDS.FEED_REIMBURSABLE.FORCE_NO}Description`]: '从不报销给员工',
+                [CONST.COMPANY_CARDS.FEED_REIMBURSABLE.DEFAULT_YES]: '可报销',
+                [`${CONST.COMPANY_CARDS.FEED_REIMBURSABLE.DEFAULT_YES}Description`]: '通常报销给员工',
+                [CONST.COMPANY_CARDS.FEED_REIMBURSABLE.DEFAULT_NO]: '不可报销',
+                [`${CONST.COMPANY_CARDS.FEED_REIMBURSABLE.DEFAULT_NO}Description`]: '偶尔报销给员工',
+            },
         },
         expensifyCard: {
             issueAndManageCards: '发放并管理您的 Expensify 卡',
@@ -9535,6 +9547,8 @@ ${reportName}`,
             `已将 ${displayName} 的工作安排更改为 ${newArrangement}（之前为 ${oldArrangement}）`,
         updatedDefaultWorkArrangement: ({newArrangement, oldArrangement}: {newArrangement: string; oldArrangement: string}) =>
             `已将默认工作安排更改为 ${newArrangement}（之前为 ${oldArrangement}）`,
+        updatedCardFeedReimbursable: (feedName: string, newValue?: string, previousValue?: string) =>
+            `已更改卡片流水“${feedName}”的报销设置${newValue ? ` 为“${newValue}”` : ''}${previousValue ? ` （先前为“${previousValue}”）` : ''}`,
     },
     roomMembersPage: {
         memberNotFound: '未找到成员。',

@@ -6506,6 +6506,18 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
             },
             deletedCard: 'Carte supprimée',
             assignNewCards: {title: 'Assigner de nouvelles cartes', description: 'Obtenez les dernières cartes à assigner depuis votre banque'},
+            reimbursable: {
+                title: 'Remboursable',
+                description: 'Choisissez comment les transactions par carte doivent être créées. Les nouvelles transactions suivront ces règles.',
+                [CONST.COMPANY_CARDS.FEED_REIMBURSABLE.FORCE_YES]: 'Toujours remboursable',
+                [`${CONST.COMPANY_CARDS.FEED_REIMBURSABLE.FORCE_YES}Description`]: 'Toujours remboursé aux employés',
+                [CONST.COMPANY_CARDS.FEED_REIMBURSABLE.FORCE_NO]: 'Toujours non remboursable',
+                [`${CONST.COMPANY_CARDS.FEED_REIMBURSABLE.FORCE_NO}Description`]: 'Jamais remboursé aux employés',
+                [CONST.COMPANY_CARDS.FEED_REIMBURSABLE.DEFAULT_YES]: 'Remboursable',
+                [`${CONST.COMPANY_CARDS.FEED_REIMBURSABLE.DEFAULT_YES}Description`]: 'Le plus souvent remboursé aux employés',
+                [CONST.COMPANY_CARDS.FEED_REIMBURSABLE.DEFAULT_NO]: 'Non remboursable',
+                [`${CONST.COMPANY_CARDS.FEED_REIMBURSABLE.DEFAULT_NO}Description`]: 'Occasionnellement remboursé aux employés',
+            },
         },
         expensifyCard: {
             issueAndManageCards: 'Émettre et gérer vos Cartes Expensify',
@@ -10011,6 +10023,8 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             `a modifié l’organisation du travail de ${displayName} en ${newArrangement} (auparavant ${oldArrangement})`,
         updatedDefaultWorkArrangement: ({newArrangement, oldArrangement}: {newArrangement: string; oldArrangement: string}) =>
             `a modifié le mode de travail par défaut en ${newArrangement} (auparavant ${oldArrangement})`,
+        updatedCardFeedReimbursable: (feedName: string, newValue?: string, previousValue?: string) =>
+            `a modifié le paramètre de remboursement du flux de carte « ${feedName} »${newValue ? ` à « ${newValue} »` : ''}${previousValue ? ` (précédemment « ${previousValue} »)` : ''}`,
     },
     roomMembersPage: {
         memberNotFound: 'Membre introuvable.',

@@ -6380,6 +6380,18 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
             },
             deletedCard: '削除されたカード',
             assignNewCards: {title: '新しいカードを割り当てる', description: '銀行から割り当て可能な最新のカードを取得します'},
+            reimbursable: {
+                title: '払い戻し対象',
+                description: 'カード取引の作成方法を選択してください。新しい取引にはこれらのルールが適用されます。',
+                [CONST.COMPANY_CARDS.FEED_REIMBURSABLE.FORCE_YES]: '常に払い戻し対象',
+                [`${CONST.COMPANY_CARDS.FEED_REIMBURSABLE.FORCE_YES}Description`]: '常に従業員に払い戻されます',
+                [CONST.COMPANY_CARDS.FEED_REIMBURSABLE.FORCE_NO]: '常に払い戻し対象外',
+                [`${CONST.COMPANY_CARDS.FEED_REIMBURSABLE.FORCE_NO}Description`]: '従業員に払い戻されることはありません',
+                [CONST.COMPANY_CARDS.FEED_REIMBURSABLE.DEFAULT_YES]: '払い戻し対象',
+                [`${CONST.COMPANY_CARDS.FEED_REIMBURSABLE.DEFAULT_YES}Description`]: '多くの場合、従業員に払い戻されます',
+                [CONST.COMPANY_CARDS.FEED_REIMBURSABLE.DEFAULT_NO]: '払い戻し対象外',
+                [`${CONST.COMPANY_CARDS.FEED_REIMBURSABLE.DEFAULT_NO}Description`]: 'ときどき従業員に払い戻されます',
+            },
         },
         expensifyCard: {
             issueAndManageCards: 'Expensify カードを発行して管理する',
@@ -9794,6 +9806,8 @@ ${reportName}`,
             `${displayName}さんの勤務形態を${newArrangement}（以前は${oldArrangement}）に変更しました`,
         updatedDefaultWorkArrangement: ({newArrangement, oldArrangement}: {newArrangement: string; oldArrangement: string}) =>
             `デフォルトの勤務形態を${newArrangement}（以前は${oldArrangement}）に変更しました`,
+        updatedCardFeedReimbursable: (feedName: string, newValue?: string, previousValue?: string) =>
+            `カードフィード「${feedName}」の払い戻し設定を変更しました${newValue ? ` を「${newValue}」に` : ''}${previousValue ? ` （以前の値：「${previousValue}」）` : ''}`,
     },
     roomMembersPage: {
         memberNotFound: 'メンバーが見つかりません。',
