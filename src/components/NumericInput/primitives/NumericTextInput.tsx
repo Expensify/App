@@ -33,7 +33,6 @@ function NumericTextInput({
     autoGrowExtraSpace = variables.w80,
     autoGrowMarginSide,
     containerStyle,
-    disabled,
     disableKeyboard = true,
     hideFocusedState = true,
     keyboardType,
@@ -86,7 +85,6 @@ function NumericTextInput({
             autoGrow={autoGrow}
             autoGrowExtraSpace={autoGrowExtraSpace}
             autoGrowMarginSide={autoGrowMarginSide}
-            disabled={disabled}
             disableKeyboard={disableKeyboard}
             disableKeyboardShortcuts
             hideFocusedState={hideFocusedState}

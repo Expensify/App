@@ -74,7 +74,6 @@ type NumericTextInputProps = {
     | 'autoGrow'
     | 'autoGrowExtraSpace'
     | 'autoGrowMarginSide'
-    | 'disabled'
     | 'disableKeyboard'
     | 'hideFocusedState'
     | 'keyboardType'
