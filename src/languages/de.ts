@@ -8505,18 +8505,8 @@ Fordern Sie Spesendetails wie Belege und Beschreibungen an, legen Sie Limits und
                 vendorUnavailable: 'Anbieter nicht verfügbar',
                 supplierUnavailable: 'Lieferant nicht verfügbar',
                 confirmErrorCategory: 'Bitte wählen Sie eine Kategorie aus',
-                confirmErrorCategoryTax: 'Bitte wählen Sie einen Steuersatz aus',
                 confirmErrorCondition: 'Bitte geben Sie einen Händler ein',
                 confirmErrorConditionAndDefault: 'Geben Sie einen Händler ein und wenden Sie mindestens eine Standardeinstellung an',
-                turnOnTaxesFirstTitle: 'Schalten Sie zuerst Steuern ein',
-                turnOnTaxesFirstPrompt: 'Kategorienregeln legen einen Standardsteuersatz fest. Aktivieren Sie Steuern in Ihren Workspace-Einstellungen, um sie zu verwenden.',
-                categoryRulesApplyGoingForwardTitle: 'Kategorienregeln gelten ab jetzt',
-                categoryRulesApplyGoingForwardPrompt: 'Ein Standardsatz für Steuern gilt für neue Ausgaben in dieser Kategorie. Bereits vorhandene Ausgaben werden nicht geändert.',
-                confirmErrorCategoryTaxMoveIsWorkspaceDefault:
-                    'Der ausgewählte Steuersatz ist jetzt die Voreinstellung für Ihren Workspace, daher ist diese Regel nicht mehr gültig. Wählen Sie einen anderen Steuersatz.',
-                addTaxRateFirstTitle: 'Fügen Sie zuerst einen Steuersatz hinzu',
-                addTaxRateFirstPrompt:
-                    'Kategorienregeln legen einen standardmäßigen Steuersatz fest. Fügen Sie einen anderen Steuersatz als den Standard Ihres Arbeitsbereichs hinzu, um sie zu verwenden.',
                 createRuleFromExpenseAction: 'Regel erstellen',
                 createRuleFromExpensePrompt: 'um Ihre Änderungen auf alle Ausgaben anzuwenden, die Ihren Kriterien entsprechen.',
             },
@@ -8903,14 +8893,6 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                 cta: 'KI-Regel hinzufügen',
             },
             categoriesDisabledEmptyState: {title: 'Kategorien sind nicht aktiviert', subtitle: 'Aktivieren Sie Kategorien, um Ihre Ausgaben besser zu kontrollieren.'},
-            expenseDefaultType: {
-                title: 'Standardspesen übernehmen',
-                subtitle: 'Worauf soll diese Regel angewendet werden?',
-                merchant: 'Händler',
-                merchantDescription: 'Felder bei Ausgaben eines bestimmten Händlers aktualisieren',
-                category: 'Kategorie',
-                categoryDescription: 'Legen Sie einen Standardsteuersatz für eine bestimmte Kategorie fest',
-            },
             taxesDisabledEmptyState: {
                 title: 'Steuern sind nicht aktiviert',
                 subtitle: 'Aktivieren Sie Steuern, um anfallende Steuern zu dokumentieren und zurückzufordern.',
