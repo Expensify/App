@@ -2502,6 +2502,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             getCurrencySymbol: getCurrencySymbolLocal,
             allTransactionsList: allTransactions,
             allReportsList: allReports,
+            reportDrafts: {},
             allReportActionsList: undefined,
             allReportNameValuePairsList: allReportNameValuePairs,
             allSnapshots,
