@@ -10,6 +10,7 @@ import type {
     TransactionGroupListItemProps,
     TransactionListItemType,
     TransactionReportGroupListItemType,
+    TransactionWithdrawalIDGroupListItemType,
 } from '@components/Search/SearchList/ListItem/types';
 
 import registerMiddlewares from '@libs/Middleware/register';
@@ -28,6 +29,7 @@ import Onyx from 'react-native-onyx';
 
 import type * as MockUsePaymentContextUtil from '../utils/mockUsePaymentContext';
 
+import {makeSettlementGroup} from '../utils/ExpensifyCardStatementTestUtils';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
 registerMiddlewares();
@@ -51,6 +53,9 @@ jest.mock('@libs/SearchUIUtils', () => ({
     getSuggestedSearchesVisibility: jest.fn(() => ({shouldShowExpensifyCard: false})),
     isTodoSearch: jest.fn(() => false),
     isCreatedDateType: jest.fn(() => false),
+    isCashBackWithdrawalGroup: jest.fn((item: Record<string, unknown>) => item.groupedBy === 'withdrawal-id' && !!item.isCashBack),
+    getSettlementStatus: jest.fn(() => undefined),
+    getSettlementStatusBadgeProps: jest.fn(() => null),
     getSubmittedViolationsForTransaction: jest.fn(() => ''),
     getGroupColumnWidthFlags: jest.fn(() => ({isAmountColumnWide: false, isTaxAmountColumnWide: false, shouldShowYear: false, isActionColumnWide: false})),
     getGroupTableScrollLayout: jest.fn(() => ({dataColumns: [], minTableWidth: 0, shouldScrollHorizontally: false})),
@@ -763,5 +768,107 @@ describe('Lazily loaded group selection', () => {
         // Then the group should expand, and not be selected
         expect(screen.getByLabelText('Collapse')).toBeTruthy();
         expect(mockOnSelectRow).not.toHaveBeenCalled();
+    });
+});
+
+describe('Withdrawal group rows', () => {
+    const mockOnSelectRow = jest.fn();
+    const mockOnCheckboxPress = jest.fn();
+
+    beforeAll(() => {
+        Onyx.init({
+            keys: ONYXKEYS,
+            evictableKeys: [ONYXKEYS.COLLECTION.REPORT_ACTIONS],
+        });
+        jest.spyOn(NativeNavigation, 'useRoute').mockReturnValue({key: '', name: ''});
+    });
+
+    beforeEach(() => {
+        jest.clearAllMocks();
+        return act(async () => {
+            await Onyx.clear();
+            await waitForBatchedUpdatesWithAct();
+        });
+    });
+
+    const buildWithdrawalGroup = (isCashBack: boolean): TransactionWithdrawalIDGroupListItemType => ({
+        ...makeSettlementGroup(isCashBack ? {entryID: 2, count: 0, total: -2500, isCashBack: true} : {entryID: 1, count: 3, total: 30000}),
+        groupedBy: CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID,
+        transactions: [],
+        transactionsQueryJSON: buildSearchQueryJSON(`type:expense withdrawal-id:${isCashBack ? 2 : 1}`),
+        formattedWithdrawalID: isCashBack ? '2' : '1',
+        text: isCashBack ? 'Cash back row' : 'Settlement row',
+        keyForList: isCashBack ? 'group_2' : 'group_1',
+    });
+
+    function TestWrapper({children}: {children: React.ReactNode}) {
+        return (
+            <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>
+                <ScreenWrapper testID="test">
+                    <SearchContextProvider>{children}</SearchContextProvider>
+                </ScreenWrapper>
+            </ComposeProviders>
+        );
+    }
+
+    const renderWithdrawalGroup = (isCashBack: boolean) =>
+        render(
+            <TransactionGroupListItem
+                item={buildWithdrawalGroup(isCashBack)}
+                showTooltip={false}
+                onSelectRow={mockOnSelectRow}
+                onSelectionButtonPress={mockOnCheckboxPress}
+                searchType={CONST.SEARCH.DATA_TYPES.EXPENSE}
+                groupBy={CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID}
+                canSelectMultiple
+            />,
+            {wrapper: TestWrapper},
+        );
+
+    it('expands a settlement row when it is pressed', async () => {
+        // Given a settlement row, which holds expenses to drill into and so shows an expand arrow
+        renderWithdrawalGroup(false);
+        await waitForBatchedUpdatesWithAct();
+        expect(screen.getByLabelText('Expand')).toBeTruthy();
+
+        // When the row is pressed
+        fireEvent.press(screen.getByLabelText('Settlement row'));
+        await waitForBatchedUpdatesWithAct();
+
+        // Then it expands into its expenses
+        expect(screen.getByLabelText('Collapse')).toBeTruthy();
+    });
+
+    it('does not expand a cash back row, but still lets its checkbox select it', async () => {
+        // Given a cash back row, which holds no expenses
+        renderWithdrawalGroup(true);
+        await waitForBatchedUpdatesWithAct();
+
+        // When the row is pressed
+        fireEvent.press(screen.getByLabelText('Cash back row'));
+        await waitForBatchedUpdatesWithAct();
+
+        // Then nothing opens and there is no arrow to expand it with, since there is nothing inside
+        expect(screen.queryByLabelText('Collapse')).toBeNull();
+        expect(screen.queryByLabelText('Expand')).toBeNull();
+        expect(mockOnSelectRow).not.toHaveBeenCalled();
+
+        // When its checkbox is pressed
+        fireEvent.press(screen.getByRole(CONST.ROLE.CHECKBOX));
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the row is selected like any other withdrawal
+        expect(mockOnCheckboxPress).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not announce or tab to a cash back row', async () => {
+        // Given a cash back row, which does nothing when pressed
+        // When it renders
+        renderWithdrawalGroup(true);
+        await waitForBatchedUpdatesWithAct();
+
+        // Then neither screen readers nor the Tab key treat it as a control
+        expect(screen.queryByRole(CONST.ROLE.BUTTON, {name: 'Cash back row'})).toBeNull();
+        expect(screen.getByLabelText('Cash back row')).toHaveProp('focusable', false);
     });
 });

@@ -5,15 +5,16 @@ import useChangeTransactionsReportReports from '@hooks/useChangeTransactionsRepo
 import useOnyx from '@hooks/useOnyx';
 
 import {putOnHold} from '@libs/actions/IOU/Hold';
-import {updateSplitTransactionsFromSplitExpensesFlow} from '@libs/actions/IOU/SplitTransactionUpdate';
 import {requestMoney, trackExpense} from '@libs/actions/IOU/TrackExpense';
 import initOnyxDerivedValues from '@libs/actions/OnyxDerived';
-import '@libs/actions/IOU/MoneyRequest';
 import {createWorkspace, generatePolicyID, setWorkspaceApprovalMode} from '@libs/actions/Policy/Policy';
+import '@libs/actions/IOU/MoneyRequest';
 import {createNewReport} from '@libs/actions/Report';
 import type * as PolicyUtils from '@libs/PolicyUtils';
 import {getOriginalMessage, isDeletedAction, isMoneyRequestAction, shouldReportActionBeVisible} from '@libs/ReportActionsUtils';
 import {buildOptimisticIOUReportAction, getReportOrDraftReport} from '@libs/ReportUtils';
+
+import updateSplitTransactionsFromSplitExpensesFlow from '@pages/iou/updateSplitTransactionsFromSplitExpensesFlow';
 
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
@@ -126,6 +127,10 @@ jest.mock('@src/libs/SearchQueryUtils', () => {
 
 jest.mock('@libs/PolicyUtils', () => ({
     ...jest.requireActual<typeof PolicyUtils>('@libs/PolicyUtils'),
+    // This factory runs while PolicyUtils is still loading inside an import cycle, so the barrel's `export *` helpers
+    // aren't on it yet. Spread them from their own modules, which load fully.
+    ...jest.requireActual<Record<string, unknown>>('@libs/PolicyUtils/customUnits'),
+    ...jest.requireActual<Record<string, unknown>>('@libs/PolicyUtils/tax'),
     isPaidGroupPolicy: jest.fn().mockReturnValue(true),
     isPolicyOwner: jest.fn().mockImplementation((policy?: OnyxEntry<Policy>, currentUserAccountID?: number) => !!currentUserAccountID && policy?.ownerAccountID === currentUserAccountID),
 }));
@@ -1093,6 +1098,7 @@ describe('actions/Transaction', () => {
                     rules: undefined,
                     allTransactionsList: allTransactions,
                     allReportsList: allReports,
+                    reportDrafts: {},
                     allReportActionsList: undefined,
                     allReportNameValuePairsList: allReportNameValuePairs,
                     transactionData: {
@@ -1279,6 +1285,7 @@ describe('actions/Transaction', () => {
                     rules: undefined,
                     allTransactionsList: allTransactions,
                     allReportsList: allReports,
+                    reportDrafts: {},
                     allReportActionsList: undefined,
                     allReportNameValuePairsList: allReportNameValuePairs,
                     transactionData: {
@@ -1479,6 +1486,7 @@ describe('actions/Transaction', () => {
                     rules: undefined,
                     allTransactionsList: allTransactions,
                     allReportsList: allReports,
+                    reportDrafts: {},
                     allReportActionsList: undefined,
                     allReportNameValuePairsList: allReportNameValuePairs,
                     transactionData: {
@@ -1619,11 +1627,15 @@ describe('actions/Transaction', () => {
                 // Put the expense on hold
                 if (originalTransactionID && transactionThreadReportID) {
                     const originalTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransactionID}`);
+                    const transactionThreadReport = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`);
+                    const transactionReport = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${originalTransaction?.reportID}`);
                     putOnHold({
                         transactionID: originalTransactionID,
                         transaction: originalTransaction,
                         comment: 'Test hold reason',
                         initialReportID: transactionThreadReportID,
+                        initialReport: transactionThreadReport,
+                        transactionReport,
                         isOffline: false,
                         currentUserLogin: RORY_EMAIL,
                         currentUserAccountID: RORY_ACCOUNT_ID,
@@ -1721,6 +1733,7 @@ describe('actions/Transaction', () => {
                     rules: undefined,
                     allTransactionsList: allTransactions,
                     allReportsList: allReports,
+                    reportDrafts: {},
                     allReportActionsList: allReportActions,
                     allReportNameValuePairsList: allReportNameValuePairs,
                     transactionData: {

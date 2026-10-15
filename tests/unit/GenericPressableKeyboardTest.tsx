@@ -178,22 +178,22 @@ describe('GenericPressable keyboard contract', () => {
             const propsToAriaRole = jest.requireActual<(props: Pick<RNPressableProps, 'accessibilityRole' | 'role'>) => string | undefined>(
                 'react-native-web/dist/cjs/modules/AccessibilityUtil/propsToAriaRole',
             );
-            const Pressable = React.forwardRef<HTMLButtonElement, RNPressableProps>((props, forwardedRef) => {
+            const Pressable = React.forwardRef<HTMLElement, RNPressableProps>((props, forwardedRef) => {
+                const hostRole = propsToAriaRole(props);
                 const hostProps = {
                     ref: forwardedRef,
                     // eslint-disable-next-line @typescript-eslint/naming-convention
                     'data-testid': props.testID,
-                    role: propsToAriaRole(props),
+                    role: hostRole,
                     tabIndex: props.tabIndex,
                     disabled: props.disabled,
                     onClick: props.onPress,
                     onKeyDown: props.onKeyDown,
                     // eslint-disable-next-line @typescript-eslint/naming-convention
                     'aria-disabled': false,
-                    type: 'button',
+                    ...(hostRole === 'button' && {type: 'button'}),
                 };
-                // eslint-disable-next-line react/button-has-type -- The mock's hostProps includes type="button".
-                return React.createElement('button', hostProps);
+                return React.createElement(hostRole === 'button' ? 'button' : 'div', hostProps);
             });
             return Object.defineProperty(actual, 'Pressable', {
                 value: Pressable,
@@ -223,7 +223,7 @@ describe('GenericPressable keyboard contract', () => {
                     />,
                 );
             });
-            const element = container.querySelector<HTMLElement>('[data-testid="dom-web"]');
+            let element = container.querySelector<HTMLElement>('[data-testid="dom-web"]');
             expect(element).toBeInstanceOf(HTMLElement);
             expect(ref.current === element).toBe(true);
             expect(element?.getAttribute('role')).toBe('heading');
@@ -282,6 +282,7 @@ describe('GenericPressable keyboard contract', () => {
                     />,
                 );
             });
+            element = container.querySelector<HTMLElement>('[data-testid="dom-web"]');
             expect(element?.getAttribute('role')).toBe('button');
             act(() => element?.dispatchEvent(new KeyboardEvent('keydown', {key: 'Enter', bubbles: true, cancelable: true})));
             expect(onLinkPress).toHaveBeenCalledTimes(1);
@@ -295,6 +296,7 @@ describe('GenericPressable keyboard contract', () => {
                     />,
                 );
             });
+            element = container.querySelector<HTMLElement>('[data-testid="dom-web"]');
             expect(element?.getAttribute('aria-disabled')).toBeNull();
             expect(element?.getAttribute('tabindex')).toBe('-1');
 
@@ -336,6 +338,61 @@ describe('GenericPressable keyboard contract', () => {
             expect(element?.getAttribute('aria-disabled')).toBeNull();
             act(() => element?.click());
             expect(onPress).toHaveBeenCalledTimes(1);
+
+            // React Native Web uses a native button unless selectable text requires a div.
+            const buttonProps = {accessibilityLabel: 'Selectable button', accessibilityRole: 'button' as const, testID: 'dom-web'};
+            act(() => root.render(<DomWebGenericPressable {...buttonProps} />));
+            element = container.querySelector<HTMLElement>('[data-testid="dom-web"]');
+            expect(element?.tagName).toBe('BUTTON');
+            expect(element?.getAttribute('role')).toBe('button');
+
+            act(() =>
+                root.render(
+                    <DomWebGenericPressable
+                        {...buttonProps}
+                        shouldAllowTextSelection
+                    />,
+                ),
+            );
+            element = container.querySelector<HTMLElement>('[data-testid="dom-web"]');
+            expect(element?.tagName).toBe('DIV');
+            expect(element?.getAttribute('role')).toBe('button');
+
+            // The direct web role follows the same native/selectable mapping.
+            const directRoleProps = {accessibilityLabel: 'Direct button', role: 'button' as const, testID: 'dom-web'};
+            act(() => root.render(<DomWebGenericPressable {...directRoleProps} />));
+            element = container.querySelector<HTMLElement>('[data-testid="dom-web"]');
+            expect(element?.tagName).toBe('BUTTON');
+            expect(element?.getAttribute('role')).toBe('button');
+
+            act(() =>
+                root.render(
+                    <DomWebGenericPressable
+                        {...directRoleProps}
+                        shouldAllowTextSelection
+                    />,
+                ),
+            );
+            element = container.querySelector<HTMLElement>('[data-testid="dom-web"]');
+            expect(element?.tagName).toBe('DIV');
+            expect(element?.getAttribute('role')).toBe('button');
+
+            act(() => root.render(<DomWebGenericPressable {...buttonProps} />));
+            element = container.querySelector<HTMLElement>('[data-testid="dom-web"]');
+            expect(element?.tagName).toBe('BUTTON');
+            expect(element?.getAttribute('role')).toBe('button');
+
+            act(() =>
+                root.render(
+                    <DomWebGenericPressable
+                        {...buttonProps}
+                        shouldAllowTextSelection
+                    />,
+                ),
+            );
+            element = container.querySelector<HTMLElement>('[data-testid="dom-web"]');
+            expect(element?.tagName).toBe('DIV');
+            expect(element?.getAttribute('role')).toBe('button');
         } finally {
             act(() => root.unmount());
             container.remove();
