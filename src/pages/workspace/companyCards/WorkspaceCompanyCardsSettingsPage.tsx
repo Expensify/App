@@ -84,12 +84,27 @@ function WorkspaceCompanyCardsSettingsPage({
         return translate(`workspace.companyCards.statementCloseDate.${selectedFeedData.statementPeriodEndDay}`);
     }, [translate, selectedFeedData?.statementPeriodEndDay]);
 
+    const reimbursable = useMemo(() => {
+        const storedValue = selectedFeedData?.forceReimbursable;
+        if (!storedValue) {
+            return translate(`workspace.companyCards.reimbursable.${CONST.COMPANY_CARDS.FEED_REIMBURSABLE.FORCE_NO}`);
+        }
+        if (storedValue === CONST.COMPANY_CARDS.FEED_REIMBURSABLE_LEGACY_NONE) {
+            return translate(`workspace.companyCards.reimbursable.${CONST.COMPANY_CARDS.FEED_REIMBURSABLE.DEFAULT_NO}`);
+        }
+        return translate(`workspace.companyCards.reimbursable.${storedValue}`);
+    }, [translate, selectedFeedData?.forceReimbursable]);
+
     const navigateToChangeFeedName = () => {
         Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_SETTINGS_FEED_NAME.getRoute(policyID));
     };
 
     const navigateToChangeStatementCloseDate = () => {
         Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_SETTINGS_STATEMENT_CLOSE_DATE.getRoute(policyID));
+    };
+
+    const navigateToChangeReimbursable = () => {
+        Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_SETTINGS_REIMBURSABLE.getRoute(policyID));
     };
 
     const deleteCompanyCardFeed = () => {
@@ -159,6 +174,15 @@ function WorkspaceCompanyCardsSettingsPage({
                                 onPress={navigateToChangeStatementCloseDate}
                             >
                                 {!!selectedFeedData?.errorFields?.statementPeriodEndDay && <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />}
+                            </MenuItemField>
+                        </OfflineWithFeedback>
+                        <OfflineWithFeedback pendingAction={selectedFeedData?.pendingFields?.forceReimbursable}>
+                            <MenuItemField
+                                value={reimbursable}
+                                name={translate('workspace.companyCards.reimbursable.title')}
+                                onPress={navigateToChangeReimbursable}
+                            >
+                                {!!selectedFeedData?.errorFields?.forceReimbursable && <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />}
                             </MenuItemField>
                         </OfflineWithFeedback>
                         <View style={[styles.mv3, styles.mh5]}>
