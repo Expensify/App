@@ -6445,18 +6445,6 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
             },
             deletedCard: 'Cartão excluído',
             assignNewCards: {title: 'Atribuir novos cartões', description: 'Obtenha do seu banco os cartões mais recentes para atribuir'},
-            reimbursable: {
-                title: 'Reembolsável',
-                description: 'Escolha como as transações de cartão devem ser criadas. As novas transações seguirão estas regras.',
-                [CONST.COMPANY_CARDS.FEED_REIMBURSABLE.FORCE_YES]: 'Sempre reembolsável',
-                [`${CONST.COMPANY_CARDS.FEED_REIMBURSABLE.FORCE_YES}Description`]: 'Sempre reembolsado aos funcionários',
-                [CONST.COMPANY_CARDS.FEED_REIMBURSABLE.FORCE_NO]: 'Sempre não reembolsável',
-                [`${CONST.COMPANY_CARDS.FEED_REIMBURSABLE.FORCE_NO}Description`]: 'Nunca reembolsado aos funcionários',
-                [CONST.COMPANY_CARDS.FEED_REIMBURSABLE.DEFAULT_YES]: 'Reembolsável',
-                [`${CONST.COMPANY_CARDS.FEED_REIMBURSABLE.DEFAULT_YES}Description`]: 'Geralmente reembolsado aos funcionários',
-                [CONST.COMPANY_CARDS.FEED_REIMBURSABLE.DEFAULT_NO]: 'Não reembolsável',
-                [`${CONST.COMPANY_CARDS.FEED_REIMBURSABLE.DEFAULT_NO}Description`]: 'Ocasionalmente reembolsado aos funcionários',
-            },
         },
         expensifyCard: {
             issueAndManageCards: 'Emita e gerencie seus Cartões Expensify',
@@ -9913,8 +9901,6 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
             `alterou o regime de trabalho de ${displayName} para ${newArrangement} (antes ${oldArrangement})`,
         updatedDefaultWorkArrangement: ({newArrangement, oldArrangement}: {newArrangement: string; oldArrangement: string}) =>
             `alterou o regime de trabalho padrão para ${newArrangement} (antes ${oldArrangement})`,
-        updatedCardFeedReimbursable: (feedName: string, newValue?: string, previousValue?: string) =>
-            `alterou a configuração de reembolso do feed de cartão "${feedName}"${newValue ? ` para "${newValue}"` : ''}${previousValue ? ` (antes "${previousValue}")` : ''}`,
     },
     roomMembersPage: {
         memberNotFound: 'Membro não encontrado.',

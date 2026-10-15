@@ -6451,18 +6451,6 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
             },
             deletedCard: 'Carta eliminata',
             assignNewCards: {title: 'Assegna nuove carte', description: 'Ottieni le ultime carte da assegnare dalla tua banca'},
-            reimbursable: {
-                title: 'Rimborsabile',
-                description: 'Scegli come devono essere create le transazioni con carta. Le nuove transazioni seguiranno queste regole.',
-                [CONST.COMPANY_CARDS.FEED_REIMBURSABLE.FORCE_YES]: 'Sempre rimborsabile',
-                [`${CONST.COMPANY_CARDS.FEED_REIMBURSABLE.FORCE_YES}Description`]: 'Sempre rimborsato ai dipendenti',
-                [CONST.COMPANY_CARDS.FEED_REIMBURSABLE.FORCE_NO]: 'Sempre non rimborsabile',
-                [`${CONST.COMPANY_CARDS.FEED_REIMBURSABLE.FORCE_NO}Description`]: 'Mai rimborsato ai dipendenti',
-                [CONST.COMPANY_CARDS.FEED_REIMBURSABLE.DEFAULT_YES]: 'Rimborsabile',
-                [`${CONST.COMPANY_CARDS.FEED_REIMBURSABLE.DEFAULT_YES}Description`]: 'Più spesso rimborsato ai dipendenti',
-                [CONST.COMPANY_CARDS.FEED_REIMBURSABLE.DEFAULT_NO]: 'Non rimborsabile',
-                [`${CONST.COMPANY_CARDS.FEED_REIMBURSABLE.DEFAULT_NO}Description`]: 'Occasionalmente rimborsato ai dipendenti',
-            },
         },
         expensifyCard: {
             issueAndManageCards: 'Emetti e gestisci le tue Carte Expensify',
@@ -9949,8 +9937,6 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
             `ha modificato l'accordo di lavoro di ${displayName} in ${newArrangement} (in precedenza ${oldArrangement})`,
         updatedDefaultWorkArrangement: ({newArrangement, oldArrangement}: {newArrangement: string; oldArrangement: string}) =>
             `ha modificato la modalità di lavoro predefinita in ${newArrangement} (precedentemente ${oldArrangement})`,
-        updatedCardFeedReimbursable: (feedName: string, newValue?: string, previousValue?: string) =>
-            `ha modificato l’impostazione di rimborsabilità del flusso carta "${feedName}"${newValue ? ` in "${newValue}"` : ''}${previousValue ? ` (in precedenza "${previousValue}")` : ''}`,
     },
     roomMembersPage: {
         memberNotFound: 'Membro non trovato.',

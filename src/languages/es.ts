@@ -6357,18 +6357,6 @@ ${amount} para ${merchant} - ${date}`,
                 title: 'Asignar nuevas tarjetas',
                 description: 'Obtén las últimas tarjetas para asignar desde tu banco',
             },
-            reimbursable: {
-                title: 'Reembolsable',
-                description: 'Elige cómo se deben crear las transacciones de tarjeta. Las nuevas transacciones seguirán estas reglas.',
-                [CONST.COMPANY_CARDS.FEED_REIMBURSABLE.FORCE_YES]: 'Siempre reembolsable',
-                [`${CONST.COMPANY_CARDS.FEED_REIMBURSABLE.FORCE_YES}Description`]: 'Siempre se reembolsa a los empleados',
-                [CONST.COMPANY_CARDS.FEED_REIMBURSABLE.FORCE_NO]: 'Siempre no reembolsable',
-                [`${CONST.COMPANY_CARDS.FEED_REIMBURSABLE.FORCE_NO}Description`]: 'Nunca se reembolsa a los empleados',
-                [CONST.COMPANY_CARDS.FEED_REIMBURSABLE.DEFAULT_YES]: 'Reembolsable',
-                [`${CONST.COMPANY_CARDS.FEED_REIMBURSABLE.DEFAULT_YES}Description`]: 'Suele reembolsarse a los empleados',
-                [CONST.COMPANY_CARDS.FEED_REIMBURSABLE.DEFAULT_NO]: 'No reembolsable',
-                [`${CONST.COMPANY_CARDS.FEED_REIMBURSABLE.DEFAULT_NO}Description`]: 'Ocasionalmente se reembolsa a los empleados',
-            },
         },
         expensifyCard: {
             issueAndManageCards: 'Emitir y gestionar Tarjetas Expensify',
@@ -9815,8 +9803,6 @@ ${reportName}`,
             `cambió el acuerdo de trabajo de ${displayName} a ${newArrangement} (previamente ${oldArrangement})`,
         updatedDefaultWorkArrangement: ({newArrangement, oldArrangement}: {newArrangement: string; oldArrangement: string}) =>
             `cambió la modalidad de trabajo predeterminada a ${newArrangement} (previamente ${oldArrangement})`,
-        updatedCardFeedReimbursable: (feedName: string, newValue?: string, previousValue?: string) =>
-            `cambió la configuración de reembolsable de la fuente de tarjetas "${feedName}"${newValue ? ` a "${newValue}"` : ''}${previousValue ? ` (previamente "${previousValue}")` : ''}`,
     },
     roomMembersPage: {
         memberNotFound: 'Miembro no encontrado.',

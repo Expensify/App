@@ -6446,18 +6446,6 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
             },
             deletedCard: 'Verwijderde kaart',
             assignNewCards: {title: 'Nieuwe kaarten toewijzen', description: 'Haal de nieuwste kaarten op om toe te wijzen vanuit je bank'},
-            reimbursable: {
-                title: 'Vergoedbaar',
-                description: 'Kies hoe kaarttransacties moeten worden aangemaakt. Nieuwe transacties volgen deze regels.',
-                [CONST.COMPANY_CARDS.FEED_REIMBURSABLE.FORCE_YES]: 'Altijd vergoedbaar',
-                [`${CONST.COMPANY_CARDS.FEED_REIMBURSABLE.FORCE_YES}Description`]: 'Wordt altijd terugbetaald aan werknemers',
-                [CONST.COMPANY_CARDS.FEED_REIMBURSABLE.FORCE_NO]: 'Altijd niet-vergoedbaar',
-                [`${CONST.COMPANY_CARDS.FEED_REIMBURSABLE.FORCE_NO}Description`]: 'Wordt nooit terugbetaald aan werknemers',
-                [CONST.COMPANY_CARDS.FEED_REIMBURSABLE.DEFAULT_YES]: 'Vergoedbaar',
-                [`${CONST.COMPANY_CARDS.FEED_REIMBURSABLE.DEFAULT_YES}Description`]: 'Wordt meestal terugbetaald aan werknemers',
-                [CONST.COMPANY_CARDS.FEED_REIMBURSABLE.DEFAULT_NO]: 'Niet-vergoedbaar',
-                [`${CONST.COMPANY_CARDS.FEED_REIMBURSABLE.DEFAULT_NO}Description`]: 'Wordt af en toe terugbetaald aan werknemers',
-            },
         },
         expensifyCard: {
             issueAndManageCards: 'Geef Expensify Kaarten uit en beheer ze',
@@ -9915,8 +9903,6 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
             `heeft de werkregeling van ${displayName} gewijzigd naar ${newArrangement} (voorheen ${oldArrangement})`,
         updatedDefaultWorkArrangement: ({newArrangement, oldArrangement}: {newArrangement: string; oldArrangement: string}) =>
             `heeft de standaardwerkregeling gewijzigd naar ${newArrangement} (voorheen ${oldArrangement})`,
-        updatedCardFeedReimbursable: (feedName: string, newValue?: string, previousValue?: string) =>
-            `heeft de vergoedingsinstelling van kaartfeed "${feedName}" gewijzigd${newValue ? ` naar "${newValue}"` : ''}${previousValue ? ` (voorheen "${previousValue}")` : ''}`,
     },
     roomMembersPage: {
         memberNotFound: 'Lid niet gevonden.',

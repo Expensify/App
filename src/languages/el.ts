@@ -6606,18 +6606,6 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
                 currentBalanceDescriptionNoTimestamp: 'Το τρέχον υπόλοιπο αναφέρεται από την τράπεζά σας.',
                 remainingLimitDescriptionNoTimestamp: 'Το υπόλοιπο ορίου αναφέρεται από την τράπεζά σας.',
             },
-            reimbursable: {
-                title: 'Αποζημιώσιμο',
-                description: 'Επιλέξτε πώς θα δημιουργούνται οι συναλλαγές κάρτας. Οι νέες συναλλαγές θα ακολουθούν αυτούς τους κανόνες.',
-                [CONST.COMPANY_CARDS.FEED_REIMBURSABLE.FORCE_YES]: 'Πάντα αποζημιώσιμο',
-                [`${CONST.COMPANY_CARDS.FEED_REIMBURSABLE.FORCE_YES}Description`]: 'Αποζημιώνεται πάντα στους υπαλλήλους',
-                [CONST.COMPANY_CARDS.FEED_REIMBURSABLE.FORCE_NO]: 'Πάντα μη αποζημιώσιμο',
-                [`${CONST.COMPANY_CARDS.FEED_REIMBURSABLE.FORCE_NO}Description`]: 'Δεν αποζημιώνεται ποτέ στους υπαλλήλους',
-                [CONST.COMPANY_CARDS.FEED_REIMBURSABLE.DEFAULT_YES]: 'Αποζημιώσιμο',
-                [`${CONST.COMPANY_CARDS.FEED_REIMBURSABLE.DEFAULT_YES}Description`]: 'Αποζημιώνεται συνήθως στους υπαλλήλους',
-                [CONST.COMPANY_CARDS.FEED_REIMBURSABLE.DEFAULT_NO]: 'Μη αποζημιώσιμο',
-                [`${CONST.COMPANY_CARDS.FEED_REIMBURSABLE.DEFAULT_NO}Description`]: 'Αποζημιώνεται περιστασιακά στους υπαλλήλους',
-            },
         },
         expensifyCard: {
             issueAndManageCards: 'Έκδοση και διαχείριση των Καρτών Expensify',
@@ -10178,8 +10166,6 @@ ${reportName}`,
             `άλλαξε τη ρύθμιση εργασίας του/της ${displayName} σε ${newArrangement} (προηγουμένως: ${oldArrangement})`,
         updatedDefaultWorkArrangement: ({newArrangement, oldArrangement}: {newArrangement: string; oldArrangement: string}) =>
             `άλλαξε τη προεπιλεγμένη εργασιακή ρύθμιση σε ${newArrangement} (προηγουμένως ${oldArrangement})`,
-        updatedCardFeedReimbursable: (feedName: string, newValue?: string, previousValue?: string) =>
-            `άλλαξε τη ρύθμιση αποζημίωσης της ροής κάρτας «${feedName}»${newValue ? ` σε «${newValue}»` : ''}${previousValue ? ` (προηγουμένως «${previousValue}»)` : ''}`,
     },
     roomMembersPage: {
         memberNotFound: 'Το μέλος δεν βρέθηκε.',
