@@ -1305,6 +1305,7 @@ const translations = {
             label: 'Compare',
             previousPeriod: 'Previous period',
             average: 'Average',
+            typical: 'Typical',
         },
         emptyState: {
             title: 'Nothing to show',

@@ -60,7 +60,8 @@ function InsightsChartWidget({chart, queryJSON, snapshot, filters, onRetry, onGr
     const {data, state, comparison} = useInsightsChartData(chart, filters, queryJSON, snapshot);
     const groupBy = chart.groupBy ?? getQueryGroupBy(filters);
     const isLoading = state === INSIGHTS_CHART_STATE.LOADING;
-    const shouldShowTable = chart.view === CONST.SEARCH.VIEW.BAR || chart.view === CONST.SEARCH.VIEW.PIE;
+    const view = comparison && chart.view === CONST.SEARCH.VIEW.PIE ? CONST.SEARCH.VIEW.BAR : chart.view;
+    const shouldShowTable = view === CONST.SEARCH.VIEW.BAR || view === CONST.SEARCH.VIEW.PIE;
 
     const groupByOptions = getInsightsGroupByOptions(filters.date);
 
@@ -109,7 +110,7 @@ function InsightsChartWidget({chart, queryJSON, snapshot, filters, onRetry, onGr
                 <View style={cardPaddingBottom}>
                     <SearchChartView
                         queryJSON={queryJSON}
-                        view={chart.view}
+                        view={view}
                         groupBy={groupBy}
                         data={data}
                         isLoading={isLoading}
