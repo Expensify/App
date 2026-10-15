@@ -74,6 +74,16 @@ function AddCategoryToMatchPage({route}: AddCategoryToMatchPageProps) {
         isSelected: selectedCategories.includes(category.name),
     }));
 
+    // A rule keeps matching on a category the workspace has since deleted. Listing it is the only way to see what the
+    // rule matches on and the only way to take it off, so it is added back rather than left out of the picker.
+    const listedCategoryNames = new Set(categories.map((category) => category.name));
+    for (const categoryName of selectedCategories) {
+        if (listedCategoryNames.has(categoryName)) {
+            continue;
+        }
+        categoryItems.push({keyForList: categoryName, text: getDecodedCategoryName(categoryName), value: categoryName, isSelected: true});
+    }
+
     // Tokenized like the main category picker, so the words can be typed in any order and a nested name is still found
     // by any part of it.
     const filterCategory = (item: CategoryListItem, searchInput: string) => tokenizedSearch([item], searchInput, (category) => [category.text ?? '']).length > 0;

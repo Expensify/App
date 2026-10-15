@@ -70,11 +70,13 @@ function AddTagToMatchPage({route}: AddTagToMatchPageProps) {
     const seenTagNames = new Set<string>();
     for (const tagList of policyTagLists) {
         for (const tag of Object.values(tagList.tags)) {
-            if (tag.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || seenTagNames.has(tag.name)) {
+            if (seenTagNames.has(tag.name)) {
                 continue;
             }
-            // A rule keeps a tag it already matches on even once the tag is disabled, so it stays removable.
-            if (!tag.enabled && !selectedTags.includes(tag.name)) {
+            // A rule keeps a tag it already matches on even once the tag is disabled or on its way out, so it stays
+            // removable.
+            const isTagMatched = selectedTags.includes(tag.name);
+            if ((!tag.enabled || tag.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) && !isTagMatched) {
                 continue;
             }
             seenTagNames.add(tag.name);
@@ -82,9 +84,19 @@ function AddTagToMatchPage({route}: AddTagToMatchPageProps) {
                 keyForList: tag.name,
                 text: getCleanedTagName(tag.name),
                 value: tag.name,
-                isSelected: selectedTags.includes(tag.name),
+                isSelected: isTagMatched,
             });
         }
+    }
+
+    // A rule keeps matching on a tag the workspace has since deleted. Listing it is the only way to see what the rule
+    // matches on and the only way to take it off, so it is added back rather than left out of the picker.
+    for (const tagName of selectedTags) {
+        if (seenTagNames.has(tagName)) {
+            continue;
+        }
+        seenTagNames.add(tagName);
+        tagItems.push({keyForList: tagName, text: getCleanedTagName(tagName), value: tagName, isSelected: true});
     }
 
     const filterTag = (item: TagListItem, searchInput: string) => tokenizedSearch([item], searchInput, (tag) => [tag.text ?? '']).length > 0;
