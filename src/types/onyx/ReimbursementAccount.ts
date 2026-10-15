@@ -291,14 +291,26 @@ type WiseBusinessOnboarding = {
         noSSN?: boolean;
     };
 
-    /** Answers to Wise's KYC requirements, by requirement and in Wise's field names so Submit forwards them as they are. Name a requirement here once a native page collects it */
+    /** Answers to Wise's KYC requirements, by requirement and in Wise's field names so Submit forwards them as they are. The pages come from the server as wiseKYCRequirements, before the review for the ones below and from the live review after. Name a requirement here once a page collects it */
     requirements?: {
-        /** Asked before Submit when a chosen industry is high risk */
-        BUSINESS_SOURCE_OF_WEALTH?: {
-            sourceOfWealthList: Array<ValueOf<typeof CONST.WISE.SOURCE_OF_WEALTH>>;
+        /** Asked before Submit when a chosen industry is high risk. One choice on the page is stored as a one-item list with isSourceOfFund true */
+        BUSINESS_SOURCE_OF_WEALTH_INFO?: {
+            sourceOfWealthList: Array<{
+                businessSourceOfWealthInfo: string;
+                isSourceOfFund: boolean;
+            }>;
+        };
 
-            /** Required when sourceOfWealthList includes OTHER */
-            otherSourceOfWealthDescription?: string;
+        /** The proof file is under documents; the answers say which source and which kind of document it is */
+        BUSINESS_SOURCE_OF_WEALTH_PROOF?: {
+            sourceOfWealthType: string;
+            documentType: string;
+        };
+
+        /** Collected at intake, submitted once the review opens. The files are under documents */
+        ID_DOCUMENT?: {
+            issuingCountry: string;
+            documentType: string;
         };
     } & Record<string, Record<string, unknown>>;
 

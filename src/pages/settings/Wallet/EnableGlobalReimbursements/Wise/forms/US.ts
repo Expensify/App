@@ -5,7 +5,8 @@ import getIndustryCategoryOptions from './getIndustryCategoryOptions';
 
 /**
  * The US business onboarding form. Each page's key is the `step` UpdateWiseOnboardingAdditionalData saves under, and a read-only row's key
- * is the key the screen prefills it from. Pages are added one at a time with their Auth step.
+ * is the key the screen prefills it from. Only the profile pages live here; pages that collect a Wise KYC requirement come from the server
+ * as wiseKYCRequirements, keyed by the requirement. Pages are added one at a time with their Auth step.
  */
 const US: DynamicFormSchema = {
     pages: [

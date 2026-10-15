@@ -1008,15 +1008,6 @@ const CONST = {
             DIRECTOR: 'DIRECTOR',
             OTHER: 'OTHER',
         },
-        // Wise's sourceOfWealthList values on the BUSINESS_SOURCE_OF_WEALTH requirement. OTHER needs otherSourceOfWealthDescription
-        SOURCE_OF_WEALTH: {
-            BUSINESS_ACTIVITIES: 'BUSINESS_ACTIVITIES',
-            INVESTMENTS: 'INVESTMENTS',
-            LOAN_OR_OTHER_FINANCING: 'LOAN_OR_OTHER_FINANCING',
-            DONATION: 'DONATION',
-            GRANTS: 'GRANTS',
-            OTHER: 'OTHER',
-        },
         // Wise's industryCategories values. Submit the key only, never a group name. docs.wise.com/guides/product/account-setup/customer-onboarding/business-categories
         INDUSTRY_CATEGORIES: [
             'GROWING_OF_CROPS_AGRICULTURE',
