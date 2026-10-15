@@ -1,6 +1,6 @@
 import CONST from '@src/CONST';
 
-import {addDays, format, isValid, parse} from 'date-fns';
+import {addDays, format, getYear, isValid, parse} from 'date-fns';
 
 // Common date formats to try when parsing CSV dates
 // Order matters - more specific/common formats first
@@ -18,7 +18,41 @@ const CSV_DATE_FORMATS = [
     'd MMM yyyy', // European with month name: 2 Nov 2025
     'dd MMM yyyy', // European with month name: 02 Nov 2025
     'yyyyMMdd', // Compact: 20251102
+    // Two-digit years are mapped to the century closest to today. The `yyyy` formats above also match them as years 1-99,
+    // so these are only reached because those results are rejected by the minimum year check.
+    'MM/dd/yy', // US short year: 11/02/25 or 1/2/25
+    'dd/MM/yy', // European short year: 02/11/25 or 2/1/25
+    'MM-dd-yy', // US short year with dashes: 11-02-25
+    'dd-MM-yy', // European short year with dashes: 02-11-25
+    'MMM d, yy', // Month name short year: Nov 2, 25
+    'd MMM yy', // European with month name short year: 2 Nov 25
 ];
+
+// Earlier years are never real transaction dates. They come from short years like `26` being read as AD 26, which the backend drops as malformed.
+const MIN_CSV_DATE_YEAR = 1900;
+
+/**
+ * Formats a parsed date as yyyy-MM-dd, or returns null when it is invalid or has an implausible year
+ */
+function formatParsedDate(date: Date): string | null {
+    if (!isValid(date) || getYear(date) < MIN_CSV_DATE_YEAR) {
+        return null;
+    }
+    return format(date, CONST.DATE.FNS_FORMAT_STRING);
+}
+
+/**
+ * Tries each of the known CSV date formats in order and returns the first plausible match
+ */
+function parseWithKnownFormats(input: string): string | null {
+    for (const dateFormat of CSV_DATE_FORMATS) {
+        const formattedDate = formatParsedDate(parse(input, dateFormat, new Date()));
+        if (formattedDate) {
+            return formattedDate;
+        }
+    }
+    return null;
+}
 
 /**
  * Parses a date string from various formats and returns it in yyyy-MM-dd format
@@ -32,11 +66,9 @@ function parseCSVDate(input: string): string | null {
 
     // Try parsing with common date formats using date-fns first. These are parsed in the local time zone, while `new Date()`
     // reads a bare yyyy-MM-dd string as UTC midnight, which formats back to the previous day for anyone west of UTC.
-    for (const dateFormat of CSV_DATE_FORMATS) {
-        const parsedDate = parse(trimmedInput, dateFormat, new Date());
-        if (isValid(parsedDate)) {
-            return format(parsedDate, CONST.DATE.FNS_FORMAT_STRING);
-        }
+    const formattedDate = parseWithKnownFormats(trimmedInput);
+    if (formattedDate) {
+        return formattedDate;
     }
 
     // Convert 5-digit Excel serials before new Date() treats them as years. We subtract 2 because Excel counts from 1900-01-01 and treats 1900 as a leap year.
@@ -44,17 +76,17 @@ function parseCSVDate(input: string): string | null {
         const inputInt = parseInt(trimmedInput, 10);
         if (inputInt > 0) {
             const excelEpoch = new Date(1900, 0, 1); // January 1, 1900
-            const parsedDate = addDays(excelEpoch, inputInt - 2);
-            if (isValid(parsedDate)) {
-                return format(parsedDate, CONST.DATE.FNS_FORMAT_STRING);
+            const formattedSerialDate = formatParsedDate(addDays(excelEpoch, inputInt - 2));
+            if (formattedSerialDate) {
+                return formattedSerialDate;
             }
         }
     }
 
     // Fall back to native Date parsing (handles ISO date-times and other formats not listed above)
-    let date = new Date(trimmedInput);
-    if (isValid(date) && !Number.isNaN(date.getTime())) {
-        return format(date, CONST.DATE.FNS_FORMAT_STRING);
+    const formattedNativeDate = formatParsedDate(new Date(trimmedInput));
+    if (formattedNativeDate) {
+        return formattedNativeDate;
     }
 
     // If the date didn't parse, try taking just the first 10 characters
@@ -62,17 +94,7 @@ function parseCSVDate(input: string): string | null {
         const shortInput = trimmedInput.substring(0, 10);
 
         // Formats run before native parsing here for the same time zone reason as above
-        for (const dateFormat of CSV_DATE_FORMATS) {
-            const parsedDate = parse(shortInput, dateFormat, new Date());
-            if (isValid(parsedDate)) {
-                return format(parsedDate, CONST.DATE.FNS_FORMAT_STRING);
-            }
-        }
-
-        date = new Date(shortInput);
-        if (isValid(date) && !Number.isNaN(date.getTime())) {
-            return format(date, CONST.DATE.FNS_FORMAT_STRING);
-        }
+        return parseWithKnownFormats(shortInput) ?? formatParsedDate(new Date(shortInput));
     }
 
     return null;

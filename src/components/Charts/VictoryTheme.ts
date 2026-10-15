@@ -81,12 +81,6 @@ const VictoryTheme = {
         /** Base domain padding applied to all sides */
         domainPadding: {top: 16, bottom: 0, left: 0, right: 0},
     },
-    tooltip: {
-        /** The height of the chart tooltip pointer */
-        pointerHeight: 4,
-        /** The width of the chart tooltip pointer */
-        pointerWidth: 12,
-    },
     pie: {
         /** Starting angle for pie chart (0 = 3 o'clock, -90 = 12 o'clock) */
         startAngle: -90,
@@ -115,6 +109,9 @@ const SIN_45 = Math.sin(Math.PI / 4);
 /** Minimum gap between adjacent labels (px) */
 const LABEL_PADDING = 4;
 
+/** Minimum clear space between adjacent horizontal x-axis labels on stepped axes (px) */
+const X_AXIS_LABEL_MIN_GAP = 24;
+
 const ELLIPSIS = '...';
 
 /** Minimum visible characters (excluding ellipsis) for truncation to be worthwhile */
@@ -138,6 +135,7 @@ const GLYPH_PADDING = 4;
 
 export {
     CHART_CONTENT_MIN_HEIGHT,
+    X_AXIS_LABEL_MIN_GAP,
     CHART_Y_SCALE_HEIGHT,
     LABEL_ROTATIONS,
     SIN_45,

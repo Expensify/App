@@ -45,5 +45,20 @@ describe('the lists that survive a sign-out', () => {
             await expect(getOnyxValue(ONYXKEYS.ACTIVE_SERVER)).resolves.toBe(CONST.SERVER.STAGING);
             await expect(getOnyxValue(ONYXKEYS.IS_LOADING_REPORT_DATA)).resolves.toBeUndefined();
         });
+
+        // The QA server pointer outlives the clear, but its Cloudflare credential must not, so the next QA
+        // request re-authorizes
+        it('drops the Cloudflare credential across a clear', async () => {
+            // Given a stored Cloudflare session
+            await Onyx.set(ONYXKEYS.CLOUDFLARE_SESSION, {accessToken: 'oauth:token', refreshToken: 'oauth:refresh', expiresAt: 1_700_000_000_000});
+            await waitForBatchedUpdates();
+
+            // When the store is cleared with this list preserved
+            await Onyx.clear(list);
+            await waitForBatchedUpdates();
+
+            // Then the session is gone, because no preserve list may carry it
+            await expect(getOnyxValue(ONYXKEYS.CLOUDFLARE_SESSION)).resolves.toBeUndefined();
+        });
     });
 });
