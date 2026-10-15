@@ -16,8 +16,8 @@ import {
     useDynamicYDomain,
     useLabelHitTesting,
 } from '@components/Charts/hooks';
-import {getDomainPaddingForEdgeSpace, getXAxisLabel, getYAxisLabelWidth, labelOverhang} from '@components/Charts/utils';
-import VictoryTheme, {CHART_CONTENT_MIN_HEIGHT, DASH_INTERVALS, GLYPH_PADDING, LABEL_PADDING, LABEL_ROTATIONS, SIN_45} from '@components/Charts/VictoryTheme';
+import {getAxisLabelStep, getDomainPaddingForEdgeSpace, getXAxisLabel, getYAxisLabelWidth, labelOverhang} from '@components/Charts/utils';
+import VictoryTheme, {CHART_CONTENT_MIN_HEIGHT, DASH_INTERVALS, GLYPH_PADDING, LABEL_PADDING, LABEL_ROTATIONS, SIN_45, X_AXIS_LABEL_MIN_GAP} from '@components/Charts/VictoryTheme';
 
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -39,9 +39,12 @@ import type {CartesianChartProps, ChartDataPoint} from '..';
 
 type LineChartProps = CartesianChartProps & {
     onPointPress?: (dataPoint: ChartDataPoint, index: number) => void;
+
+    /** Steps the x-axis may label points at, ascending. When set, labels stay horizontal and only every Nth point is labeled. */
+    labelSteps?: readonly number[];
 };
 
-function LineChartContentBody({data, series, isLoading, yAxisUnit, yAxisUnitPosition = 'left', onPointPress}: LineChartProps) {
+function LineChartContentBody({data, series, isLoading, yAxisUnit, yAxisUnitPosition = 'left', onPointPress, labelSteps}: LineChartProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const fontManager = useChartFontManager();
@@ -100,7 +103,7 @@ function LineChartContentBody({data, series, isLoading, yAxisUnit, yAxisUnitPosi
         if (!firstLabelWidth || !lastLabelWidth) {
             return VictoryTheme.line.domainPadding;
         }
-        const labelsExceedTickSpacing = tickSpacing > 0 && maxLabelWidth + LABEL_PADDING > tickSpacing;
+        const labelsExceedTickSpacing = !labelSteps && tickSpacing > 0 && maxLabelWidth + LABEL_PADDING > tickSpacing;
         let leftOverhang = firstLabelWidth / 2;
         let rightOverhang = lastLabelWidth / 2;
 
@@ -120,16 +123,40 @@ function LineChartContentBody({data, series, isLoading, yAxisUnit, yAxisUnitPosi
     const totalDomainPadding = domainPadding.left + domainPadding.right;
     const paddingScale = plotAreaWidth > 0 ? plotAreaWidth / (plotAreaWidth + totalDomainPadding) : 0;
 
-    const {labelRotation, labelSkipInterval, truncatedLabelWidths, xAxisLabelHeight, regularLabelMaxWidth, firstLabelMaxWidth, lastLabelMaxWidth, ellipsisWidth} = useChartLabelLayout({
+    const rotatingLabelLayout = useChartLabelLayout({
         data,
         fontManager,
         fontSize: variables.iconSizeExtraSmall,
         tickSpacing,
-        labelAreaWidth: plotAreaWidth,
+        // Stepped labels never rotate, so a zero width makes this hook return early instead of computing a rotation
+        labelAreaWidth: labelSteps ? 0 : plotAreaWidth,
         firstTickLeftSpace: boundsLeft + domainPadding.left * paddingScale,
         lastTickRightSpace: chartWidth > 0 ? chartWidth - boundsRight + domainPadding.right * paddingScale : 0,
         measurements,
     });
+
+    const steppedLabelLayout = (() => {
+        if (!labelSteps || chartWidth <= 0 || plotAreaWidth <= 0) {
+            return undefined;
+        }
+        const firstPointX = boundsLeft + domainPadding.left * paddingScale;
+        const lastPointX = boundsRight - domainPadding.right * paddingScale;
+        const pointXs = data.map((_, index) => (data.length > 1 ? firstPointX + (index * (lastPointX - firstPointX)) / (data.length - 1) : (firstPointX + lastPointX) / 2));
+        const step = getAxisLabelStep({labelWidths, pointXs, steps: labelSteps, minGap: X_AXIS_LABEL_MIN_GAP});
+        return {
+            labelRotation: LABEL_ROTATIONS.HORIZONTAL,
+            labelSkipInterval: step,
+            truncatedLabelWidths: labelWidths,
+            xAxisLabelHeight: lineHeight,
+            regularLabelMaxWidth: Infinity,
+            firstLabelMaxWidth: Infinity,
+            lastLabelMaxWidth: Infinity,
+            ellipsisWidth: measurements.ellipsisWidth,
+        };
+    })();
+
+    const {labelRotation, labelSkipInterval, truncatedLabelWidths, xAxisLabelHeight, regularLabelMaxWidth, firstLabelMaxWidth, lastLabelMaxWidth, ellipsisWidth} =
+        steppedLabelLayout ?? rotatingLabelLayout;
 
     const originalLabels = data.map(getXAxisLabel);
 
@@ -171,7 +198,18 @@ function LineChartContentBody({data, series, isLoading, yAxisUnit, yAxisUnitPosi
         return isInPlotArea(args) && isCursorOverLabel(args, activeIndex);
     };
 
-    const {customGestures, setPointPositions, matchedIndex, isTooltipActive, isCursorOverClickable, initialTooltipPosition, activePointPosition, onChartMoved} = useChartInteractions({
+    const {
+        customGestures,
+        setPointPositions,
+        matchedIndex,
+        isTooltipActive,
+        isCursorOverClickable,
+        initialTooltipPosition,
+        activePointPosition,
+        onChartMoved,
+        onTooltipDismiss,
+        onChartTouchStart,
+    } = useChartInteractions({
         handlePress: onPointPress ? handlePointPress : undefined,
         checkIsOver: checkIsOverBand,
         isCursorOverLabel: checkIsOverLabelInPlotArea,
@@ -314,6 +352,7 @@ function LineChartContentBody({data, series, isLoading, yAxisUnit, yAxisUnitPosi
             <Animated.View
                 style={[styles.chartContent, dynamicChartStyle, !!onPointPress && cursorStyle]}
                 onLayout={handleLayout}
+                onTouchStart={onChartTouchStart}
             >
                 {chartWidth > 0 && (
                     <CartesianChart
@@ -361,6 +400,7 @@ function LineChartContentBody({data, series, isLoading, yAxisUnit, yAxisUnitPosi
                     chartWidth={chartWidth}
                     initialTooltipPosition={initialTooltipPosition}
                     onChartMoved={onChartMoved}
+                    onDismiss={onTooltipDismiss}
                 />
             </Animated.View>
         </GestureDetector>

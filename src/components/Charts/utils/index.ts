@@ -467,6 +467,44 @@ function getDomainPaddingForEdgeSpace(edgeSpace: {left: number; right: number}, 
     return {left: (edgeSpace.left * plotWidth) / pointsSpan, right: (edgeSpace.right * plotWidth) / pointsSpan};
 }
 
+type AxisLabelStepParams = {
+    /** Pixel width of each point's label */
+    labelWidths: number[];
+
+    /** Canvas x position of each point */
+    pointXs: number[];
+
+    /** Allowed steps between labeled points, ascending */
+    steps: readonly number[];
+
+    /** Minimum clear space between adjacent labels (px) */
+    minGap: number;
+};
+
+/**
+ * Picks the smallest step whose labels (points 0, step, 2 * step, ...), centered under their points, don't overlap.
+ * When no step fits, multiples of the last step are tried, down to labeling only the first point.
+ */
+function getAxisLabelStep({labelWidths, pointXs, steps, minGap}: AxisLabelStepParams): number {
+    const getLeft = (i: number) => (pointXs.at(i) ?? 0) - (labelWidths.at(i) ?? 0) / 2;
+    const fits = (step: number) => {
+        for (let i = step; i < pointXs.length; i += step) {
+            const previousRight = getLeft(i - step) + (labelWidths.at(i - step) ?? 0);
+            if (getLeft(i) - previousRight < minGap) {
+                return false;
+            }
+        }
+        return true;
+    };
+
+    const candidates = [...steps];
+    const lastStep = steps.at(-1) ?? 1;
+    for (let step = lastStep * 2; step < pointXs.length; step += lastStep) {
+        candidates.push(step);
+    }
+    return candidates.find(fits) ?? Math.max(1, pointXs.length);
+}
+
 /** Returns the pixel width needed for Y-axis labels given the chart data. */
 function getYAxisLabelWidth(
     data: ChartDataPoint[],
@@ -516,6 +554,7 @@ export {
     getYAxisLabelWidth,
     getBarLayout,
     getDomainPaddingForEdgeSpace,
+    getAxisLabelStep,
 };
 
 export type {ChartLabelHitTestParams};

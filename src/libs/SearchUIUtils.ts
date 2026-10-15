@@ -3522,6 +3522,7 @@ function getDaySections(
 ): [TransactionDayGroupListItemType[], number, boolean] {
     const daySections: Record<string, TransactionDayGroupListItemType> = {};
     const shouldShowShortLabelYear = doGroupsSpanMultipleYears(data);
+    const currentYear = new Date().getFullYear();
     for (const key in data) {
         if (!isGroupEntry(key)) {
             continue;
@@ -3540,6 +3541,7 @@ function getDaySections(
             ...dayGroup,
             formattedDay: DateUtils.formatToReadableString(dayGroup.day, dateFnsLocale),
             shortFormattedDay: DateUtils.getShortFormattedDayForSearch(dayGroup.day, dateFnsLocale, shouldShowShortLabelYear),
+            lineChartFormattedDay: DateUtils.getShortFormattedDayForSearch(dayGroup.day, dateFnsLocale, getYearOfDate(dayGroup.day) !== currentYear),
             keyForList: key,
         };
     }
@@ -3618,6 +3620,7 @@ function getWeekSections(
 
     // Years come from the week as trimmed to the date filter, so a filter starting Jan 1 doesn't count the days before it
     const shouldShowShortLabelYear = new Set(Object.values(weeks).flatMap(({weekStart, weekEnd}) => [getYearOfDate(weekStart), getYearOfDate(weekEnd)])).size > 1;
+    const currentYear = new Date().getFullYear();
     for (const [key, {weekGroup, weekStart, weekEnd, transactionsQueryJSON}] of Object.entries(weeks)) {
         const formattedWeek = DateUtils.getFormattedDateRangeForSearch(weekStart, weekEnd, dateFnsLocale);
         const shortFormattedWeek = DateUtils.getShortFormattedDateRangeForSearch(weekStart, weekEnd, dateFnsLocale, shouldShowShortLabelYear);
@@ -3629,6 +3632,7 @@ function getWeekSections(
             ...weekGroup,
             formattedWeek,
             shortFormattedWeek,
+            lineChartFormattedWeek: DateUtils.getShortFormattedDayForSearch(weekStart, dateFnsLocale, getYearOfDate(weekStart) !== currentYear),
             keyForList: key,
         };
     }

@@ -161,6 +161,8 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
     const paymentBankAccountID = settings?.paymentBankAccountID;
     const isTravelBillingEnabled = getIsTravelBillingEnabled(getCardSettings(travelCardSettings, CONST.TRAVEL.PROGRAM_TRAVEL_US));
     const {canWrite: canWriteMoreFeatures, withReadOnlyFallback} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.MORE_FEATURES);
+    const hasHomeAndOfficeCommuterExclusions = policy?.commuterExclusions?.method === CONST.POLICY.COMMUTER_EXCLUSION_METHOD.HOME_AND_OFFICE;
+    const isDistanceRatesLockedByCommuterExclusions = !!policy?.areDistanceRatesEnabled && hasHomeAndOfficeCommuterExclusions;
 
     // The Vendors toggle reads policy.connections (via hasVendorFeature), which is empty on a
     // non-active workspace until a connections-aware read runs. OpenPolicyMoreFeaturesPage doesn't
@@ -325,6 +327,15 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
             return;
         }
         navigateToConciergeChat({conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, hasCompletedGuidedSetupFlow, conciergePersonalDetails, shouldDismissModal: false});
+    };
+
+    const promptDisableDistanceRatesForCommuterExclusions = async () => {
+        await showConfirmModal({
+            title: translate('workspace.moreFeatures.distanceRates.commuterExclusionsOnTitle'),
+            prompt: translate('workspace.moreFeatures.distanceRates.disableLockedByCommuterExclusionsPrompt'),
+            confirmText: translate('common.buttonConfirm'),
+            shouldShowCancelButton: false,
+        });
     };
 
     const promptDisableSmartLimitForWorkflows = async () => {
@@ -672,10 +683,14 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                             subtitle={translate('workspace.moreFeatures.distanceRates.subtitle')}
                             isActive={policy?.areDistanceRatesEnabled ?? false}
                             pendingAction={policy?.pendingFields?.areDistanceRatesEnabled}
-                            disabled={!canWriteMoreFeatures}
-                            disabledAction={withReadOnlyFallback()}
+                            disabled={!canWriteMoreFeatures || isDistanceRatesLockedByCommuterExclusions}
+                            disabledAction={withReadOnlyFallback(promptDisableDistanceRatesForCommuterExclusions)}
                             onToggle={(isEnabled) => {
                                 if (!policyID) {
+                                    return;
+                                }
+                                if (!isEnabled && hasHomeAndOfficeCommuterExclusions) {
+                                    promptDisableDistanceRatesForCommuterExclusions();
                                     return;
                                 }
                                 enablePolicyDistanceRates(policyID, isEnabled, distanceRateCustomUnit);
