@@ -1,10 +1,9 @@
 import {normalizedConfigs} from '@libs/Navigation/linkingConfig/config';
 
 import {SHARED_ROUTE_PARAMS} from '@src/ROUTES';
-import type {Screen} from '@src/SCREENS';
 
 function getParamsFromRoute(screenName: string, includeSharedParams?: boolean): string[] {
-    const routeConfig = normalizedConfigs[screenName as Screen];
+    const routeConfig = Object.entries(normalizedConfigs).find(([name]) => name === screenName)?.[1];
 
     if (!routeConfig?.pattern) {
         return [];
@@ -18,7 +17,7 @@ function getParamsFromRoute(screenName: string, includeSharedParams?: boolean): 
     }
 
     // Get shared parameters from the configuration
-    const sharedParams = SHARED_ROUTE_PARAMS[screenName as Screen] ?? [];
+    const sharedParams = Object.entries(SHARED_ROUTE_PARAMS).find(([name]) => name === screenName)?.[1] ?? [];
 
     // Combine both path parameters and shared parameters, removing duplicates
     return [...new Set([...pathParams, ...sharedParams])];

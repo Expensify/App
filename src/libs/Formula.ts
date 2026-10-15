@@ -5,32 +5,20 @@ import type {PersonalDetails, Policy, PolicyReportField, Report, Transaction} fr
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import type {OnyxEntry} from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
 
 import {endOfDay, endOfMonth, endOfWeek, getDay, lastDayOfMonth, set, startOfMonth, startOfWeek, subDays} from 'date-fns';
+
+import type {FormulaPart} from './FormulaParser';
 
 import {convertToDisplayStringEnLocale, convertToDisplayStringWithoutCurrencyEnLocale, isValidCurrencyCode} from './CurrencyUtils';
 import {getCurrentUserEmail} from './CurrentUserStore';
 import formatDate from './FormulaDatetime';
+import {extract, FORMULA_PART_TYPES, parse, parsePart} from './FormulaParser';
 import getBase62ReportID from './getBase62ReportID';
 import Log from './Log';
 import {getAllReportActions} from './ReportActionsUtils';
 import {getHumanReadableStatus, getMoneyRequestSpendBreakdown, getReportTransactions} from './ReportUtils';
 import {getCreated, isPartialTransaction, isTransactionPendingDelete} from './TransactionUtils';
-
-type FormulaPart = {
-    /** The original definition from the formula */
-    definition: string;
-
-    /** The type of formula part (report, field, user, etc.) */
-    type: ValueOf<typeof FORMULA_PART_TYPES>;
-
-    /** The field path for accessing data (e.g., ['type'], ['startdate'], ['total']) */
-    fieldPath: string[];
-
-    /** Functions to apply to the computed value (e.g., ['frontPart']) */
-    functions: string[];
-};
 
 // Minimal shape callers build for optimistic-title formula computation.
 type MinimalTransaction = Pick<Transaction, 'transactionID' | 'reportID' | 'created' | 'amount' | 'currency' | 'merchant'>;
@@ -49,167 +37,6 @@ type FormulaContext = {
 };
 
 type FieldList = Record<string, {name: string; defaultValue: string}>;
-
-const FORMULA_PART_TYPES = {
-    REPORT: 'report',
-    FIELD: 'field',
-    USER: 'user',
-    FREETEXT: 'freetext',
-} as const;
-
-/**
- * Extract formula parts from a formula string, handling nested braces and escapes
- * Based on OldDot Formula.extract method
- */
-function extract(formula?: string, opener = '{', closer = '}'): string[] {
-    if (!formula || typeof formula !== 'string') {
-        return [];
-    }
-
-    const letters = formula.split('');
-    const sections: string[] = [];
-    let nesting = 0;
-    let start = 0;
-
-    for (let i = 0; i < letters.length; i++) {
-        // Found an escape character, skip the next character
-        if (letters.at(i) === '\\') {
-            i++;
-            continue;
-        }
-
-        // Found an opener, save the spot
-        if (letters.at(i) === opener) {
-            if (nesting === 0) {
-                start = i;
-            }
-            nesting++;
-        }
-
-        // Found a closer, decrement the nesting and possibly extract it
-        if (letters.at(i) === closer && nesting > 0) {
-            nesting--;
-            if (nesting === 0) {
-                sections.push(formula.substring(start, i + 1));
-            }
-        }
-    }
-
-    return sections;
-}
-
-/**
- * Parse a formula string into an array of formula parts
- * Based on OldDot Formula.parse method
- */
-function parse(formula?: string): FormulaPart[] {
-    if (!formula || typeof formula !== 'string') {
-        return [];
-    }
-
-    const parts: FormulaPart[] = [];
-    const formulaParts = extract(formula);
-
-    // If no formula parts found, treat the entire string as free text
-    if (formulaParts.length === 0) {
-        if (formula.trim()) {
-            parts.push({
-                definition: formula,
-                type: FORMULA_PART_TYPES.FREETEXT,
-                fieldPath: [],
-                functions: [],
-            });
-        }
-        return parts;
-    }
-
-    // Process the formula by splitting on formula parts to preserve free text
-    let lastIndex = 0;
-
-    for (const part of formulaParts) {
-        const partIndex = formula.indexOf(part, lastIndex);
-
-        // Add any free text before this formula part
-        if (partIndex > lastIndex) {
-            const freeText = formula.substring(lastIndex, partIndex);
-            if (freeText) {
-                parts.push({
-                    definition: freeText,
-                    type: FORMULA_PART_TYPES.FREETEXT,
-                    fieldPath: [],
-                    functions: [],
-                });
-            }
-        }
-
-        // Add the formula part
-        parts.push(parsePart(part));
-        lastIndex = partIndex + part.length;
-    }
-
-    // Add any remaining free text after the last formula part
-    if (lastIndex < formula.length) {
-        const freeText = formula.substring(lastIndex);
-        if (freeText) {
-            parts.push({
-                definition: freeText,
-                type: FORMULA_PART_TYPES.FREETEXT,
-                fieldPath: [],
-                functions: [],
-            });
-        }
-    }
-
-    return parts;
-}
-
-/**
- * Parse a single formula part definition into a FormulaPart object
- * Based on OldDot Formula.parsePart method
- */
-function parsePart(definition: string): FormulaPart {
-    const part: FormulaPart = {
-        definition,
-        type: FORMULA_PART_TYPES.FREETEXT,
-        fieldPath: [],
-        functions: [],
-    };
-
-    // If it doesn't start and end with braces, it's free text
-    if (!definition.startsWith('{') || !definition.endsWith('}')) {
-        return part;
-    }
-
-    // Remove the braces and trim
-    const cleanDefinition = definition.slice(1, -1).trim();
-    if (!cleanDefinition) {
-        return part;
-    }
-
-    // Split on | to separate functions
-    const segments = cleanDefinition.split('|');
-    const fieldSegment = segments.at(0);
-    const functions = segments.slice(1);
-
-    // Split the field segment on : to get the field path
-    const fieldPath = fieldSegment?.split(':');
-    const type = fieldPath?.at(0)?.toLowerCase();
-
-    // Determine the formula part type
-    if (type === 'report') {
-        part.type = FORMULA_PART_TYPES.REPORT;
-    } else if (type === 'field') {
-        part.type = FORMULA_PART_TYPES.FIELD;
-    } else if (type === 'user') {
-        part.type = FORMULA_PART_TYPES.USER;
-    }
-
-    // Set field path (excluding the type)
-    part.fieldPath = fieldPath?.slice(1) ?? [];
-    part.functions = functions;
-
-    return part;
-}
 
 /**
  * Check if the report field formula value is containing circular references, e.g example:  A -> A,  A->B->A,  A->B->C->A, etc

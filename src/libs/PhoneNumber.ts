@@ -20,19 +20,21 @@ function parsePhoneNumber(phoneNumber: string, options?: PhoneNumberParseOptions
     const phoneNumberWithoutSpecialChars = phoneNumber.replaceAll(CONST.REGEX.SPECIAL_CHARS_WITHOUT_NEWLINE, '');
 
     if (!CONST.REGEX.PHONE_NUMBER.test(phoneNumberWithoutSpecialChars)) {
-        return {
+        const invalidPhoneNumber: ParsedPhoneNumberInvalid = {
             ...parsedPhoneNumber,
             valid: false,
             possible: false,
             number: {
                 ...parsedPhoneNumber.number,
+                input: parsedPhoneNumber.number?.input ?? phoneNumber,
                 e164: phoneNumberWithoutSpecialChars,
                 international: phoneNumberWithoutSpecialChars,
                 national: phoneNumberWithoutSpecialChars,
                 rfc3966: `tel:${phoneNumberWithoutSpecialChars}`,
                 significant: phoneNumberWithoutSpecialChars,
             },
-        } as ParsedPhoneNumberInvalid;
+        };
+        return invalidPhoneNumber;
     }
 
     if (!/^\+11[0-9]{10}$/.test(phoneNumberWithoutSpecialChars)) {
@@ -42,12 +44,13 @@ function parsePhoneNumber(phoneNumber: string, options?: PhoneNumberParseOptions
     const countryCode = phoneNumberWithoutSpecialChars.substring(0, 2);
     const phoneNumberWithoutCountryCode = phoneNumberWithoutSpecialChars.substring(2);
 
-    return {
+    const invalidPhoneNumber: ParsedPhoneNumberInvalid = {
         ...parsedPhoneNumber,
         valid: false,
         possible: false,
         number: {
             ...parsedPhoneNumber.number,
+            input: parsedPhoneNumber.number?.input ?? phoneNumber,
 
             // mimic the behavior of awesome-phonenumber
             e164: phoneNumberWithoutSpecialChars,
@@ -56,7 +59,8 @@ function parsePhoneNumber(phoneNumber: string, options?: PhoneNumberParseOptions
             rfc3966: `tel:${countryCode}-${phoneNumberWithoutCountryCode}`,
             significant: phoneNumberWithoutCountryCode,
         },
-    } as ParsedPhoneNumberInvalid;
+    };
+    return invalidPhoneNumber;
 }
 
 /**

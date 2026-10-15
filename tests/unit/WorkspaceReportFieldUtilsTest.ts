@@ -1,3 +1,4 @@
+import type * as FormulaModule from '@libs/Formula';
 import {
     getExistingReportFieldByName,
     getUnsupportedReportFieldFormulaParts,
@@ -5,12 +6,29 @@ import {
     isReportFieldImportedFromIntegration,
     isReportFieldNameExisting,
 } from '@libs/WorkspaceReportFieldUtils';
+import type * as WorkspaceReportFieldUtilsModule from '@libs/WorkspaceReportFieldUtils';
 
 import CONST from '@src/CONST';
 import type {Policy} from '@src/types/onyx';
 import type {ConnectionName, PolicyReportField} from '@src/types/onyx/Policy';
 
 import createMock from '../utils/createMock';
+
+describe('WorkspaceReportFieldUtils parser startup order', () => {
+    it('parses both report-field checks before loading Formula in an isolated module registry', () => {
+        // Given a fresh module registry with the report-field utility loaded first
+        // When both parser-backed checks run before Formula is imported
+        // Then they use the real parser and Formula still exposes the same parser afterward
+        jest.isolateModules(() => {
+            const reportFieldUtils = jest.requireActual<typeof WorkspaceReportFieldUtilsModule>('@libs/WorkspaceReportFieldUtils');
+            expect(reportFieldUtils.hasFormulaPartsInInitialValue('before {report:id} after')).toBe(true);
+            expect(reportFieldUtils.getUnsupportedReportFieldFormulaParts('{report:i}')).toEqual(['{report:i}']);
+
+            const formula = jest.requireActual<typeof FormulaModule>('@libs/Formula');
+            expect(formula.parse('{report:id}')).toEqual([{definition: '{report:id}', type: formula.FORMULA_PART_TYPES.REPORT, fieldPath: ['id'], functions: []}]);
+        });
+    });
+});
 
 describe('WorkspaceReportFieldUtils.hasFormulaPartsInInitialValue', () => {
     it('returns true for recognized formula tokens', () => {
