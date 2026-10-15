@@ -8,9 +8,12 @@ import useTextFilterValidation from '@components/Search/hooks/useTextFilterValid
 import TextInput from '@components/TextInput';
 
 import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
+import useKeyboardState from '@hooks/useKeyboardState';
+import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 
+import {BOTTOM_SHEET_TOP_PADDING} from '@libs/getBottomSheetHeight';
 import {getMerchantFilterFormValues} from '@libs/SearchQueryUtils';
 import {getFilterNegatableValue} from '@libs/SearchUIUtils';
 
@@ -46,6 +49,12 @@ function MerchantFilterPopup({baseFilterKey, values, label, updateFilterForm, cl
     const styles = useThemeStyles();
     const {windowHeight} = useWindowDimensions();
     const isInLandscapeMode = useIsInLandscapeMode();
+    const {isKeyboardActive, keyboardActiveHeight} = useKeyboardState();
+    const {paddingTop: safeAreaTop} = useSafeAreaPaddings(true);
+
+    // The popover avoids the keyboard by padding its bottom, so while the keyboard is open only the room above it is available.
+    const {maxHeight: popoverMaxHeight} = styles.getPopoverMaxHeight(windowHeight, isInLandscapeMode);
+    const maxHeight = isKeyboardActive ? Math.min(popoverMaxHeight, windowHeight - keyboardActiveHeight - safeAreaTop - BOTTOM_SHEET_TOP_PADDING) : popoverMaxHeight;
 
     const {isNegated: initialIsNegated, value: initialValue} = getFilterNegatableValue(baseFilterKey, values);
     const [isNegated, setIsNegated] = useState(initialIsNegated);
@@ -67,7 +76,7 @@ function MerchantFilterPopup({baseFilterKey, values, label, updateFilterForm, cl
             label={label}
             onApply={applyChanges}
             applySentryLabel={`Search-FilterPopupApply-${baseFilterKey}`}
-            style={[styles.getPopoverMaxHeight(windowHeight, isInLandscapeMode)]}
+            style={[{maxHeight}]}
             shouldSubmitOnEnter
         >
             <ScrollView
