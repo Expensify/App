@@ -1,5 +1,6 @@
 import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useViewportOffsetTop from '@hooks/useViewportOffsetTop';
 
 import {useIsFocused} from '@react-navigation/native';
 import React, {createContext, useContext, useEffect, useLayoutEffect, useRef, useState} from 'react';
@@ -7,6 +8,7 @@ import {View} from 'react-native';
 
 import CaretBackHeader from './CaretBackHeader';
 import CollapsibleHeaderOnKeyboard from './CollapsibleHeaderOnKeyboard';
+import ScreenWrapperStatusContext from './ScreenWrapper/ScreenWrapperStatusContext';
 
 type OnboardingHeaderProps = {
     onBackButtonPress?: () => void;
@@ -18,12 +20,14 @@ type OnboardingHeaderProps = {
     shouldShowCloseButton?: boolean;
 
     shouldCollapseOnKeyboard?: boolean;
+
+    shouldEnableMaxHeight?: boolean;
 };
 
-type OnboardingHeaderState = Required<Pick<OnboardingHeaderProps, 'shouldShowBackButton' | 'shouldShowCloseButton' | 'shouldCollapseOnKeyboard'>> &
+type OnboardingHeaderState = Required<Pick<OnboardingHeaderProps, 'shouldShowBackButton' | 'shouldShowCloseButton' | 'shouldCollapseOnKeyboard' | 'shouldEnableMaxHeight'>> &
     Pick<OnboardingHeaderProps, 'onBackButtonPress' | 'onCloseButtonPress'>;
 
-type RegisteredOnboardingHeaderProps = OnboardingHeaderState & {
+type RegisteredOnboardingHeaderProps = OnboardingHeaderProps & {
     setHeaderState: React.Dispatch<React.SetStateAction<OnboardingHeaderState>>;
 };
 
@@ -31,6 +35,7 @@ const DEFAULT_ONBOARDING_HEADER_STATE: OnboardingHeaderState = {
     shouldShowBackButton: false,
     shouldShowCloseButton: false,
     shouldCollapseOnKeyboard: false,
+    shouldEnableMaxHeight: false,
 };
 
 const OnboardingHeaderStateContext = createContext<OnboardingHeaderState>(DEFAULT_ONBOARDING_HEADER_STATE);
@@ -39,13 +44,16 @@ const OnboardingHeaderRegistrationContext = createContext<React.Dispatch<React.S
 function RegisteredOnboardingHeader({
     onBackButtonPress,
     onCloseButtonPress,
-    shouldShowBackButton,
-    shouldShowCloseButton,
-    shouldCollapseOnKeyboard,
+    shouldShowBackButton = true,
+    shouldShowCloseButton = false,
+    shouldCollapseOnKeyboard = false,
+    shouldEnableMaxHeight: shouldEnableMaxHeightProp,
     setHeaderState,
 }: RegisteredOnboardingHeaderProps) {
     const styles = useThemeStyles();
     const isFocused = useIsFocused();
+    const screenWrapperStatus = useContext(ScreenWrapperStatusContext);
+    const shouldEnableMaxHeight = shouldEnableMaxHeightProp ?? screenWrapperStatus?.shouldEnableMaxHeight ?? false;
     const onBackButtonPressRef = useRef(onBackButtonPress);
     const onCloseButtonPressRef = useRef(onCloseButtonPress);
     const hasOnBackButtonPress = !!onBackButtonPress;
@@ -70,18 +78,26 @@ function RegisteredOnboardingHeader({
             shouldShowBackButton,
             shouldShowCloseButton,
             shouldCollapseOnKeyboard,
+            shouldEnableMaxHeight,
         };
         setHeaderState(headerState);
 
         return () => {
             setHeaderState((currentHeaderState) => (currentHeaderState === headerState ? DEFAULT_ONBOARDING_HEADER_STATE : currentHeaderState));
         };
-    }, [hasOnBackButtonPress, hasOnCloseButtonPress, isFocused, setHeaderState, shouldCollapseOnKeyboard, shouldShowBackButton, shouldShowCloseButton]);
+    }, [hasOnBackButtonPress, hasOnCloseButtonPress, isFocused, setHeaderState, shouldCollapseOnKeyboard, shouldEnableMaxHeight, shouldShowBackButton, shouldShowCloseButton]);
 
     return <View style={styles.onboardingHeaderContainer} />;
 }
 
-function OnboardingHeader({onBackButtonPress, onCloseButtonPress, shouldShowBackButton = true, shouldShowCloseButton = false, shouldCollapseOnKeyboard = false}: OnboardingHeaderProps) {
+function OnboardingHeader({
+    onBackButtonPress,
+    onCloseButtonPress,
+    shouldShowBackButton = true,
+    shouldShowCloseButton = false,
+    shouldCollapseOnKeyboard = false,
+    shouldEnableMaxHeight,
+}: OnboardingHeaderProps) {
     const setHeaderState = useContext(OnboardingHeaderRegistrationContext);
 
     if (!setHeaderState) {
@@ -102,6 +118,7 @@ function OnboardingHeader({onBackButtonPress, onCloseButtonPress, shouldShowBack
             shouldShowBackButton={shouldShowBackButton}
             shouldShowCloseButton={shouldShowCloseButton}
             shouldCollapseOnKeyboard={shouldCollapseOnKeyboard}
+            shouldEnableMaxHeight={shouldEnableMaxHeight}
             setHeaderState={setHeaderState}
         />
     );
@@ -120,7 +137,8 @@ function OnboardingHeaderProvider({children}: {children: React.ReactNode}) {
 function OnboardingStickyHeader() {
     const styles = useThemeStyles();
     const {paddingTop} = useSafeAreaPaddings();
-    const {onBackButtonPress, onCloseButtonPress, shouldShowBackButton, shouldShowCloseButton, shouldCollapseOnKeyboard} = useContext(OnboardingHeaderStateContext);
+    const viewportOffsetTop = useViewportOffsetTop();
+    const {onBackButtonPress, onCloseButtonPress, shouldShowBackButton, shouldShowCloseButton, shouldCollapseOnKeyboard, shouldEnableMaxHeight} = useContext(OnboardingHeaderStateContext);
 
     if (!shouldShowBackButton && !shouldShowCloseButton) {
         return null;
@@ -138,7 +156,7 @@ function OnboardingStickyHeader() {
     return (
         <View
             pointerEvents="box-none"
-            style={[styles.onboardingStickyHeaderContainer, {paddingTop}]}
+            style={[styles.onboardingStickyHeaderContainer, {paddingTop}, shouldEnableMaxHeight && {marginTop: viewportOffsetTop}]}
         >
             {shouldCollapseOnKeyboard ? <CollapsibleHeaderOnKeyboard alwaysCollapseHeaderOnKeyboard>{header}</CollapsibleHeaderOnKeyboard> : header}
         </View>
