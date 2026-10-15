@@ -87,7 +87,7 @@ function getFoldedModifiers(purchaseList: Purchase[], purchaseIDs: Set<number>):
  * Refunds, disputes, balance transfers, and cleared payments are separate purchases that point at the bill they change, so they are folded onto that bill instead of listed on their own.
  */
 function getPaymentHistoryRows(purchases: Purchases | null | undefined): PaymentHistoryRow[] {
-    const purchaseList = Object.values(purchases ?? {});
+    const purchaseList = Object.values(purchases ?? {}).filter((purchase) => !!purchase.purchaseID);
     if (!purchaseList.length) {
         return [];
     }
@@ -359,6 +359,7 @@ function isInvoiceBilling(purchases: Purchases | null | undefined, purchaseID: n
 function getReceiptFileName(source: string, purchaseID: number | string): string {
     try {
         const pathname = new URL(source).pathname;
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         return pathname.split('/').pop() || `receipt-${purchaseID}`;
     } catch {
         return `receipt-${purchaseID}`;
