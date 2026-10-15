@@ -6055,7 +6055,6 @@ const CONST = {
         TIME_FORMAT: /^\d{2}:\d{2} [AP]M$/,
         DATE_TIME_FORMAT: /^\d{2}-\d{2} \d{2}:\d{2} [AP]M$/,
         ILLEGAL_FILENAME_CHARACTERS: /\/|<|>|\*|"|:|#|\?|\\|\|/g,
-        ENCODE_PERCENT_CHARACTER: /%(25)+/g,
         INVISIBLE_CHARACTERS_GROUPS: /[\p{C}\p{Z}]/gu,
         OTHER_INVISIBLE_CHARACTERS: /[\u3164\u115f\u1160\uffa0\u2800]/g,
         SHORT_MENTION_HTML: /<mention-short>(.*?)<\/mention-short>/g,
