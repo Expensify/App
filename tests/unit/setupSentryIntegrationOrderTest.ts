@@ -22,6 +22,7 @@ jest.mock('@libs/telemetry/integrations', () => ({
 jest.mock('@sentry/react-native', () => ({
     init: jest.fn(),
     setTag: jest.fn(),
+    turboModuleContextIntegration: () => ({name: 'TurboModuleContext'}),
 }));
 
 const sentryMock = jest.requireMock<{init: jest.Mock<void, [{integrations: (defaultIntegrations: Integration[]) => Integration[]}]>; setTag: jest.Mock}>('@sentry/react-native');

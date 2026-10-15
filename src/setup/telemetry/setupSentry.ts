@@ -35,7 +35,8 @@ const EXTENSION_DENY_URLS = [/^chrome-extension:\/\//i, /^moz-extension:\/\//i, 
  */
 const THIRD_PARTY_NOISE_INTEGRATIONS = [thirdPartyErrorFilterIntegration, classCallCheckNoiseFilterIntegration, googleTranslateRecursionNoiseFilterIntegration];
 
-const TURBO_MODULE_CONTEXT_INTEGRATION = 'TurboModuleContext';
+// Read from the SDK, so the filter keeps working if Sentry renames the integration.
+const TURBO_MODULE_CONTEXT_INTEGRATION = Sentry.turboModuleContextIntegration().name;
 
 function setupSentry(): void {
     const {semanticVersion, buildNumber} = getAppVersion(pkg.version);
