@@ -795,7 +795,6 @@ function getOptionData({
     isTrackIntentUser?: boolean;
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
     rules: OnyxCollection<Rule>;
-    /** The transaction of `lastAction` when it is a money request action */
     linkedTransaction?: OnyxEntry<Transaction>;
 }): OptionData | undefined {
     // When a user signs out, Onyx is cleared. Due to the lazy rendering with a virtual list, it's possible for

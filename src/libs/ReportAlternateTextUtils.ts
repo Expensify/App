@@ -531,7 +531,6 @@ function getLastMessageTextForReport({
     oneTransactionThreadReportID?: string;
     lastOriginalAction?: OnyxEntry<ReportAction>;
     rules: OnyxCollection<Rule>;
-    /** The transaction of `lastAction` when it is a money request action */
     linkedTransaction?: OnyxEntry<Transaction>;
 }): string {
     const reportID = report?.reportID;

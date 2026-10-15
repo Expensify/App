@@ -6518,7 +6518,6 @@ function getReportPreviewMessage(
     translate: LocalizedTranslate,
     convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'],
     params: GetReportPreviewMessageBaseParams & {
-        /** The transaction of `iouReportAction`. Split and track actions in chats store their transaction outside `report`, so the caller has to pass it. */
         linkedTransaction?: OnyxEntry<Transaction>;
     },
 ): string {
