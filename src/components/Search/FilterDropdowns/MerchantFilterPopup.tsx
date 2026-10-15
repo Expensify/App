@@ -1,18 +1,22 @@
 /**
  * Edits the Merchant filter value and match type from its search filter chip.
  */
-import MerchantFilterContent from '@components/Search/FilterComponents/AdvancedFilters/MerchantFilterContent';
+import MerchantMatchTypeSelector from '@components/Search/FilterComponents/MerchantMatchTypeSelector';
+import NegatableFilter from '@components/Search/FilterComponents/NegatableFilter';
+import useTextFilterValidation from '@components/Search/hooks/useTextFilterValidation';
+import TextInput from '@components/TextInput';
 
-import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import {getMerchantFilterFormValues} from '@libs/SearchQueryUtils';
 import {getFilterNegatableValue} from '@libs/SearchUIUtils';
 
-import type CONST from '@src/CONST';
+import CONST from '@src/CONST';
 import FILTER_KEYS from '@src/types/form/SearchAdvancedFiltersForm';
-import type {SearchAdvancedFiltersForm} from '@src/types/form/SearchAdvancedFiltersForm';
+import type {MerchantMatchType, SearchAdvancedFiltersForm} from '@src/types/form/SearchAdvancedFiltersForm';
 
-import React from 'react';
+import React, {useState} from 'react';
+import {View} from 'react-native';
 
 import type {PopoverComponentProps} from './FilterPopupButton';
 
@@ -31,36 +35,58 @@ type MerchantFilterPopupProps = {
     updateFilterForm: (value: Partial<SearchAdvancedFiltersForm>) => void;
 };
 
+// The controls are rendered directly in BasePopup, like TextFilterPopup, because the popover sizes to its content.
+// The advanced filters page content uses a flex ScrollView, which collapses to zero height in a content-sized popover on native.
 function MerchantFilterPopup({baseFilterKey, values, label, updateFilterForm, closeOverlay}: MerchantFilterPopupProps) {
-    const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const {isNegated, value} = getFilterNegatableValue(baseFilterKey, values);
-    const applySentryLabel = `Search-FilterPopupApply-${baseFilterKey}`;
 
-    const applyChanges = (newValues: Partial<SearchAdvancedFiltersForm>) => {
-        updateFilterForm(newValues);
+    const {isNegated: initialIsNegated, value: initialValue} = getFilterNegatableValue(baseFilterKey, values);
+    const [isNegated, setIsNegated] = useState(initialIsNegated);
+    const [value, setValue] = useState(initialValue);
+    const [merchantOperator, setMerchantOperator] = useState<MerchantMatchType>(values?.[FILTER_KEYS.MERCHANT_OPERATOR] ?? CONST.SEARCH.SYNTAX_OPERATORS.CONTAINS);
+
+    const error = useTextFilterValidation(baseFilterKey, value);
+
+    const applyChanges = () => {
+        if (error) {
+            return;
+        }
+        updateFilterForm(getMerchantFilterFormValues(value, isNegated, merchantOperator));
         closeOverlay();
     };
 
-    // The content renders its own padded Apply button, so the popup only provides the label and the spacing ActionButtons would add.
     return (
         <BasePopup
             label={label}
-            shouldShowActionButtons={false}
-            style={styles.pb0}
-            onApply={closeOverlay}
-            applySentryLabel={applySentryLabel}
+            onApply={applyChanges}
+            applySentryLabel={`Search-FilterPopupApply-${baseFilterKey}`}
+            shouldSubmitOnEnter
         >
-            <MerchantFilterContent
+            <NegatableFilter
                 baseFilterKey={baseFilterKey}
-                value={value}
                 isNegated={isNegated}
-                merchantOperator={values?.[FILTER_KEYS.MERCHANT_OPERATOR]}
-                buttonText={translate('common.apply')}
-                sentryLabel={applySentryLabel}
-                buttonStyles={styles.mt2}
-                onChange={applyChanges}
-            />
+                onNegationChange={setIsNegated}
+            >
+                <TextInput
+                    placeholder={label}
+                    value={value}
+                    errorText={error}
+                    hasError={!!error}
+                    onChangeText={setValue}
+                    accessibilityLabel={label}
+                    role={CONST.ROLE.PRESENTATION}
+                    containerStyles={[styles.ph5]}
+                />
+            </NegatableFilter>
+            {/* A negated Merchant filter always uses the not-equal operator, so the match type is hidden. */}
+            {!isNegated && (
+                <View style={styles.mt5}>
+                    <MerchantMatchTypeSelector
+                        value={merchantOperator}
+                        onChange={setMerchantOperator}
+                    />
+                </View>
+            )}
         </BasePopup>
     );
 }
