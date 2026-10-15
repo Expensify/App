@@ -19,7 +19,7 @@ type GetFrozenColumnWidthsParams = {
 
 /**
  * Room gained or lost since the save, from the table width or from added and hidden columns, first offsets the saved
- * overflow or short row, like a drag does. The rest is split equally among the unresized columns. Widths are recomputed
+ * overflow or short row, like a drag does. The rest is split equally among the auto-sized columns. Widths are recomputed
  * from the save every time, so resizing the window back restores them exactly.
  */
 function getFrozenColumnWidths({

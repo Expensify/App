@@ -1,4 +1,4 @@
-import {setTableColumnWidth} from '@libs/actions/TableColumnWidths';
+import {setTableColumnWidths} from '@libs/actions/TableColumnWidths';
 
 import ONYXKEYS from '@src/ONYXKEYS';
 import type TableColumnWidths from '@src/types/onyx/TableColumnWidths';
@@ -21,7 +21,7 @@ function getTableColumnWidths(): Promise<TableColumnWidths | undefined> {
     });
 }
 
-describe('setTableColumnWidth', () => {
+describe('setTableColumnWidths', () => {
     beforeAll(() => {
         Onyx.init({keys: ONYXKEYS});
     });
@@ -31,32 +31,30 @@ describe('setTableColumnWidth', () => {
         await waitForBatchedUpdates();
     });
 
-    it('keeps every dragged width but replaces the stored layout', async () => {
-        // Given a drag stored while the table had a Tax code column
-        setTableColumnWidth(TABLE_ID, 'taxCode', 460, {
-            tableWidth: 1268,
-            fitColumnWidths: {name: 80, taxRate: 67, taxCode: 182},
+    it('replaces the stored layout rather than merging into it', async () => {
+        // Given a layout stored while the table had a Tax code column
+        setTableColumnWidths(TABLE_ID, {
+            availableColumnsWidth: 1176,
             columnWidths: {name: 356, taxRate: 360, taxCode: 460},
+            resizedColumnKeys: ['taxCode'],
         });
         await waitForBatchedUpdates();
 
         // When a later drag is stored after the Tax code column was hidden
-        setTableColumnWidth(TABLE_ID, 'name', 400, {
-            tableWidth: 1268,
-            fitColumnWidths: {name: 80, taxRate: 67},
-            columnWidths: {name: 400, taxRate: 790},
+        setTableColumnWidths(TABLE_ID, {
+            availableColumnsWidth: 1176,
+            columnWidths: {name: 400, taxRate: 776},
+            resizedColumnKeys: ['taxCode', 'name'],
         });
         await waitForBatchedUpdates();
 
-        // Then both dragged widths are kept, while the layout holds only the latest drag's columns, so a stale column
-        // from the earlier one can't make it look laid out for columns the table no longer has
+        // Then only the latest drag's columns remain, or the old Tax code width would shrink the visible columns on reload
         const tableColumnWidths = await getTableColumnWidths();
 
-        expect(tableColumnWidths?.[TABLE_ID]?.columnWidthOverrides).toEqual({taxCode: 460, name: 400});
-        expect(tableColumnWidths?.[TABLE_ID]?.columnLayout).toEqual({
-            tableWidth: 1268,
-            fitColumnWidths: {name: 80, taxRate: 67},
-            columnWidths: {name: 400, taxRate: 790},
+        expect(tableColumnWidths?.[TABLE_ID]).toEqual({
+            availableColumnsWidth: 1176,
+            columnWidths: {name: 400, taxRate: 776},
+            resizedColumnKeys: ['taxCode', 'name'],
         });
     });
 });

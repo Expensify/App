@@ -73,7 +73,7 @@ function getResizableColumnLayout({columns, resolvedColumnWidths, resizedColumnK
     const availableColumnsWidth = getAvailableColumnsWidth(tableWidth, rowChromeWidths);
     const columnWidths = {...resolvedColumnWidths};
 
-    // Absorbs wider columns to its left from the room it paints, leftover included.
+    // Absorbs wider columns to its left from the room it paints, leftover included, so the first pixels of a drag on it aren't dead.
     // Floored so the row never overflows the table by a fraction of a pixel.
     if (growableColumnKey) {
         const leftoverWidth = Math.floor(availableColumnsWidth - getColumnsWidthSum(columns, resolvedColumnWidths));
@@ -88,14 +88,11 @@ function getResizableColumnLayout({columns, resolvedColumnWidths, resizedColumnK
 
     const rowWidthValues = selectionColumnWidth > 0 ? [`${selectionColumnWidth}px`, ...columnWidthValues] : columnWidthValues;
 
-    const overflowWidth = getColumnsWidthSum(columns, columnWidths) - availableColumnsWidth;
-    const dragStartWidths = {...columnWidths};
     const dragMinWidths: Record<string, number> = {};
 
     if (growableColumnKey && resizableColumnKeys.includes(growableColumnKey)) {
-        // Drags start from the painted track, which includes the leftover it grew into, so the first pixels of travel aren't dead.
-        const paintedWidth = (columnWidths[growableColumnKey] ?? 0) + Math.max(-overflowWidth, 0);
-        dragStartWidths[growableColumnKey] = paintedWidth;
+        const paintedWidth = columnWidths[growableColumnKey] ?? 0;
+        const overflowWidth = getColumnsWidthSum(columns, columnWidths) - availableColumnsWidth;
 
         // Shrinking may only take back the overflow. Anything more would stretch the trailing headless columns or leave
         // empty room at the row's end. Rounded up so the row never ends a fraction of a pixel short of the table.
@@ -106,7 +103,7 @@ function getResizableColumnLayout({columns, resolvedColumnWidths, resizedColumnK
     }
 
     const getResizedColumnWidths = (columnKey: string, width: number) =>
-        resolveDraggedColumnWidths({columns, startWidths: dragStartWidths, resizedColumnKeys, availableColumnsWidth, columnKey, width});
+        resolveDraggedColumnWidths({columns, startWidths: columnWidths, resizedColumnKeys, availableColumnsWidth, columnKey, width});
 
     // Scroll at the live column sum, so a drag that exhausts the absorbers starts scrolling mid-drag.
     return {
@@ -116,7 +113,7 @@ function getResizableColumnLayout({columns, resolvedColumnWidths, resizedColumnK
         rowWidth: getColumnsWidthExpression(rowWidthValues, totalGapWidth + rowPaddingWidth, `${tableWidth - rowMarginWidth}px`),
         resizableColumnKeys,
         getResizedColumnWidths,
-        resolvedColumnWidths: dragStartWidths,
+        resolvedColumnWidths: columnWidths,
         dragMinWidths,
     };
 }

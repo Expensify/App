@@ -1,4 +1,4 @@
-/** Works out what a drag paints: the dragged column at its new width, with the change taken out of the unresized columns to its right. */
+/** Works out what a drag paints: the dragged column at its new width, with the change taken out of the auto-sized columns to its right. */
 import type {ColumnAbsorber} from './getAbsorbedColumnWidths';
 
 import getAbsorbedColumnWidths from './getAbsorbedColumnWidths';
@@ -69,7 +69,7 @@ function getAbsorbedDelta(delta: number, overflowWidth: number): number {
 
 /**
  * Columns left of the dragged one stay put, so its edge stays under the pointer. The change is split equally between
- * the unresized columns to its right, within their minimum and maximum. Returns the dragged column and every absorber that moved.
+ * the auto-sized columns to its right, within their minimum and maximum. Returns the dragged column and every absorber that moved.
  */
 function resolveDraggedColumnWidths({columns, startWidths, resizedColumnKeys, availableColumnsWidth, columnKey, width}: ResolveDraggedColumnWidthsParams): Record<string, number> {
     const draggedIndex = columns.findIndex((column) => column.key === columnKey);
