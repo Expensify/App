@@ -368,6 +368,74 @@ describe('DateUtils', () => {
         });
     });
 
+    describe('parseCalendarDate', () => {
+        it('reads a stored date as local midnight', () => {
+            // Given a date as forms and Search store it
+            const storedDate = '2008-10-06';
+
+            // When it is parsed for the calendar
+            const date = DateUtils.parseCalendarDate(storedDate);
+
+            // Then it is midnight of that day in local time, not UTC midnight, which would be the previous day west of UTC
+            expect(date).toEqual(new Date(2008, 9, 6));
+        });
+
+        it('keeps the day and time of a stored date with a time', () => {
+            // Given a transaction date that includes a time after a space
+            const storedDate = '2025-02-05 10:30:00';
+
+            // When it is parsed for the calendar
+            const date = DateUtils.parseCalendarDate(storedDate);
+
+            // Then the calendar day and time are kept in local time
+            expect(date).toEqual(new Date(2025, 1, 5, 10, 30));
+        });
+
+        it('reads a date without leading zeros, as Search accepts it', () => {
+            // Given a date typed in a Search query without leading zeros, which Search's date validation accepts
+            const typedDate = '2025-2-5';
+
+            // When it is parsed for the calendar
+            const date = DateUtils.parseCalendarDate(typedDate);
+
+            // Then it is February 5, 2025 at local midnight, so the calendar can show it and limit other days by it
+            expect(date).toEqual(new Date(2025, 1, 5));
+        });
+
+        it('returns undefined when there is no date to parse', () => {
+            // Given a missing value, a cleared form value and text that isn't a date
+            // When each is parsed for the calendar
+            // Then none of them becomes an invalid Date, so the calendar treats them all as "nothing selected"
+            expect(DateUtils.parseCalendarDate(undefined)).toBeUndefined();
+            expect(DateUtils.parseCalendarDate('')).toBeUndefined();
+            expect(DateUtils.parseCalendarDate('not-a-date')).toBeUndefined();
+        });
+    });
+
+    describe('isWithinCalendarPickerRange', () => {
+        it('includes the first and last days of the range', () => {
+            // Given the first and last days of CONST.CALENDAR_PICKER.MIN_DATE..MAX_DATE, at local midnight like the calendar's days
+            const firstDay = startOfDay(CONST.CALENDAR_PICKER.MIN_DATE);
+            const lastDay = startOfDay(CONST.CALENDAR_PICKER.MAX_DATE);
+
+            // When each is checked
+            // Then both can be selected, because the range includes its end days
+            expect(DateUtils.isWithinCalendarPickerRange(firstDay)).toBe(true);
+            expect(DateUtils.isWithinCalendarPickerRange(lastDay)).toBe(true);
+        });
+
+        it('excludes the days just outside the range', () => {
+            // Given the day before MIN_DATE and the day after MAX_DATE
+            const dayBefore = subDays(startOfDay(CONST.CALENDAR_PICKER.MIN_DATE), 1);
+            const dayAfter = addDays(startOfDay(CONST.CALENDAR_PICKER.MAX_DATE), 1);
+
+            // When each is checked
+            // Then neither can be selected
+            expect(DateUtils.isWithinCalendarPickerRange(dayBefore)).toBe(false);
+            expect(DateUtils.isWithinCalendarPickerRange(dayAfter)).toBe(false);
+        });
+    });
+
     describe('getMonthNames', () => {
         it('returns twelve months in the given language', () => {
             const englishMonths = DateUtils.getMonthNames(undefined);
