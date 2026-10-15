@@ -5,9 +5,10 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import Accessibility from '@libs/Accessibility';
 
+import type {ComponentRef} from 'react';
 import type {LayoutChangeEvent, StyleProp, TextStyle} from 'react-native';
 
-import React, {useEffect, useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 import Animated, {Easing, useAnimatedStyle, useSharedValue, withDelay, withSequence, withTiming} from 'react-native-reanimated';
 
@@ -41,6 +42,7 @@ function FlatNavMarqueeLabel({text, style, isHovered}: FlatNavMarqueeLabelProps)
     // container narrows on hover, and its own layout reports that, while the text's full width does not change.
     const [textWidth, setTextWidth] = useState(0);
     const [containerWidth, setContainerWidth] = useState(0);
+    const textRef = useRef<ComponentRef<typeof Text> | null>(null);
     const offset = useSharedValue(0);
 
     const overflow = Math.max(textWidth - containerWidth, 0);
@@ -58,6 +60,17 @@ function FlatNavMarqueeLabel({text, style, isHovered}: FlatNavMarqueeLabelProps)
         // Out, hold on the end of the name, then back. Leaving the row interrupts this with the reset above.
         offset.set(withSequence(withTiming(-distance, {duration, easing: Easing.linear}), withDelay(MARQUEE_HOLD_MS, withTiming(0, {duration, easing: Easing.linear}))));
     }, [shouldScroll, overflow, offset]);
+
+    // The label fills its row, so renaming a search changes the text's full width without changing the element's
+    // box. onLayout is backed by a resize observer and stays silent through that, hence the measurement here.
+    useEffect(() => {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
+        const node = textRef.current as unknown as WebLayoutEvent['target'];
+        if (!node) {
+            return;
+        }
+        setTextWidth(node.scrollWidth);
+    }, [text]);
 
     const marqueeStyle = useAnimatedStyle(() => ({transform: [{translateX: offset.get()}]}));
 
@@ -93,6 +106,7 @@ function FlatNavMarqueeLabel({text, style, isHovered}: FlatNavMarqueeLabelProps)
                     </Animated.View>
                 ) : (
                     <Text
+                        ref={textRef}
                         numberOfLines={1}
                         style={style}
                         onLayout={onTextLayout}
