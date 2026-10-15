@@ -1,11 +1,15 @@
 import type {ReportHierarchyInfo} from '@userActions/ClearReportActionErrors';
 
 import ONYXKEYS from '@src/ONYXKEYS';
-import {reportsParentHierarchySelector} from '@src/selectors/Report';
+import {getReportAncestorKeys, reportAncestorsHierarchySelector, reportsParentHierarchySelector} from '@src/selectors/Report';
 
 import type {OnyxCollection} from 'react-native-onyx';
 
+import {useState} from 'react';
+import {useOnyxState} from 'react-native-onyx';
+
 import useOnyx from './useOnyx';
+import useOnyxStateSnapshotKey, {getSnapshotAwareValue} from './useOnyxStateSnapshotKey';
 
 /**
  * Subscribes to the parent hierarchy links (`parentReportID`/`parentReportActionID`) of every report so callers
@@ -18,4 +22,23 @@ function useReportsParentHierarchy(): OnyxCollection<ReportHierarchyInfo> {
     return reportsParentHierarchy;
 }
 
+/**
+ * Subscribes to the parent hierarchy links of the given report and its ancestors only. Use this instead of
+ * `useReportsParentHierarchy` when the caller only walks up from one known report, e.g. in list rows.
+ */
+function useReportAncestorsHierarchy(reportID: string | undefined): OnyxCollection<ReportHierarchyInfo> {
+    const snapshotKey = useOnyxStateSnapshotKey();
+    const [ancestorKeys, setAncestorKeys] = useState(() => getReportAncestorKeys(undefined, reportID));
+    const reportAncestorsHierarchy = useOnyxState((state) => reportAncestorsHierarchySelector((key) => getSnapshotAwareValue(state, snapshotKey, key), reportID), {
+        dependencies: snapshotKey ? [snapshotKey] : ancestorKeys,
+    });
+
+    const nextAncestorKeys = getReportAncestorKeys(reportAncestorsHierarchy, reportID);
+    if (nextAncestorKeys.join(' ') !== ancestorKeys.join(' ')) {
+        setAncestorKeys(nextAncestorKeys);
+    }
+    return reportAncestorsHierarchy;
+}
+
 export default useReportsParentHierarchy;
+export {useReportAncestorsHierarchy};

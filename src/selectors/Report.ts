@@ -402,6 +402,51 @@ function reportHierarchySelector(report: OnyxEntry<Report>): OnyxEntry<ReportHie
 function reportsParentHierarchySelector(reports: OnyxCollection<Report>): OnyxCollection<ReportHierarchyInfo> {
     return mapOnyxCollectionItems(reports, reportHierarchySelector);
 }
+
+/**
+ * Returns the parent hierarchy links of the given report and its ancestors only, which is all that walking up an
+ * ancestor chain reads, so the output stays the same when unrelated reports are added or removed.
+ */
+function reportAncestorsHierarchySelector(
+    getReport: (key: `${typeof ONYXKEYS.COLLECTION.REPORT}${string}`) => OnyxEntry<Report>,
+    reportID: string | undefined,
+): OnyxCollection<ReportHierarchyInfo> {
+    const result: OnyxCollection<ReportHierarchyInfo> = {};
+    let currentReportID = reportID;
+    while (currentReportID) {
+        const key = `${ONYXKEYS.COLLECTION.REPORT}${currentReportID}` as const;
+        const report = getReport(key);
+        if (!report || key in result) {
+            break;
+        }
+        result[key] = reportHierarchySelector(report);
+        currentReportID = report.parentReportID;
+    }
+    return result;
+}
+
+/**
+ * Returns the report keys an ancestor walk from `reportID` reads: every report found plus the first missing one,
+ * so a subscriber hears about that report when it arrives.
+ */
+function getReportAncestorKeys(hierarchy: OnyxCollection<ReportHierarchyInfo>, reportID: string | undefined): Array<`${typeof ONYXKEYS.COLLECTION.REPORT}${string}`> {
+    const keys: Array<`${typeof ONYXKEYS.COLLECTION.REPORT}${string}`> = [];
+    let currentReportID = reportID;
+    while (currentReportID) {
+        const key = `${ONYXKEYS.COLLECTION.REPORT}${currentReportID}` as const;
+        if (keys.includes(key)) {
+            break;
+        }
+        keys.push(key);
+        const entry = hierarchy?.[key];
+        if (!entry) {
+            break;
+        }
+        currentReportID = entry.parentReportID;
+    }
+    return keys;
+}
+
 /**
  * Creates a selector returning only the reports for the given IDs, so a consumer that knows the exact
  * reports it needs doesn't re-render when any other report in the account changes.
@@ -418,6 +463,8 @@ const reportsByIDsSelector =
     };
 
 export {
+    getReportAncestorKeys,
+    reportAncestorsHierarchySelector,
     getArchiveReason,
     getReportChatType,
     groupChatAvatarReportSelector,
