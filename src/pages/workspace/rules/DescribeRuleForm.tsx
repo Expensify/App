@@ -269,6 +269,8 @@ function DescribeRuleForm({
                     inputID={INPUT_IDS.PROMPT}
                     label={placeholder ? undefined : inputLabel}
                     placeholder={placeholder}
+                    // Without a label, the input has no top padding. Match the padding at its sides.
+                    textInputContainerStyles={placeholder ? styles.pt2 : undefined}
                     accessibilityLabel={inputLabel}
                     role={CONST.ROLE.PRESENTATION}
                     onKeyPress={submitFormOnModEnter}
