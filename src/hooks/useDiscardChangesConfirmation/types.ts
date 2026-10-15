@@ -7,7 +7,7 @@ type UseDiscardChangesConfirmationOptions = {
     onVisibilityChange?: (visible: boolean) => void;
     shouldEnableNewFocusManagement?: boolean;
     shouldPromptWhenUnfocused?: boolean;
-    /** Allows callers to exempt an internal navigation action from the discard guard. */
+    /** Web-only. Allows callers to exempt an internal browser navigation action from the discard guard. */
     shouldPromptForNavigationAction?: (action: NavigationAction) => boolean;
     /** Handles a confirmed discard while the guarded screen is underneath a child screen. */
     onConfirmWhenUnfocused?: () => void;
