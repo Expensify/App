@@ -21,6 +21,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {formatDate, getBadgeAppearance, getBadgeText, getPaymentDetailsBadge, getPaymentHistoryRow, getReceiptSource, isInvoiceBilling} from '@libs/PaymentHistoryUtils';
+import {temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 
@@ -38,7 +39,7 @@ type PaymentDetailsPageProps = PlatformStackScreenProps<SettingsNavigatorParamLi
 
 function PaymentDetailsPage({route}: PaymentDetailsPageProps) {
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Receipt', 'InvoiceGeneric']);
-    const {translate, dateFnsLocale} = useLocalize();
+    const {translate, dateFnsLocale, formatPhoneNumber} = useLocalize();
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
     const {isBetaEnabled} = usePermissions();
@@ -74,7 +75,7 @@ function PaymentDetailsPage({route}: PaymentDetailsPageProps) {
     const receiptSource = getReceiptSource(purchases, purchaseID);
     const isInvoice = isInvoiceBilling(purchases, purchaseID);
 
-    const billedToName = billedToDetails?.displayName ?? billedToDetails?.login ?? '';
+    const billedToName = temporaryGetDisplayNameOrDefault({passedPersonalDetails: billedToDetails, translate, formatPhoneNumber});
     return (
         <ScreenWrapper
             testID={PaymentDetailsPage.displayName}
@@ -130,7 +131,7 @@ function PaymentDetailsPage({route}: PaymentDetailsPageProps) {
                             onPress={() => {
                                 Navigation.navigate(ROUTES.BILLING_RECEIPT.getRoute(purchaseID));
                             }}
-                            sentryLabel={CONST.SENTRY_LABEL.SETTINGS_SUBSCRIPTION.PAYMENT_HISTORY_ROW}
+                            sentryLabel={CONST.SENTRY_LABEL.SETTINGS_SUBSCRIPTION.VIEW_BILLING_RECEIPT}
                             accessibilityLabel={translate(isInvoice ? 'subscription.paymentHistory.viewInvoice' : 'subscription.paymentHistory.viewReceipt')}
                             style={[styles.ph5, styles.pv4]}
                         >

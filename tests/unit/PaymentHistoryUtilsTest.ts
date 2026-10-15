@@ -1,7 +1,16 @@
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 
 import {convertAmountToDisplayString} from '@libs/CurrencyUtils';
-import {formatDate, getBadgeText, getPaymentDetailsBadge, getPaymentHistoryRow, getPaymentHistoryRows, getReceiptSource, isInvoiceBilling} from '@libs/PaymentHistoryUtils';
+import {
+    formatDate,
+    getBadgeText,
+    getPaymentDetailsBadge,
+    getPaymentHistoryRow,
+    getPaymentHistoryRows,
+    getReceiptFileName,
+    getReceiptSource,
+    isInvoiceBilling,
+} from '@libs/PaymentHistoryUtils';
 
 import CONST from '@src/CONST';
 import type {Purchase} from '@src/types/onyx/PurchaseList';
@@ -383,5 +392,28 @@ describe('isInvoiceBilling', () => {
         // When checking if the purchase is invoice billing
         // Then it returns false
         expect(isInvoiceBilling(toPurchases([purchase]), 1)).toBe(false);
+    });
+});
+
+describe('getReceiptFileName', () => {
+    it('extracts filename from valid URL', () => {
+        // Given a receipt URL with a filename
+        // When extracting the filename
+        // Then it returns the last path segment
+        expect(getReceiptFileName('https://expensify.com/receipts/w_abc123.pdf', 42)).toBe('w_abc123.pdf');
+    });
+
+    it('falls back to receipt-purchaseID for invalid URL', () => {
+        // Given an invalid URL string
+        // When extracting the filename
+        // Then it falls back to receipt-{purchaseID}
+        expect(getReceiptFileName('not-a-url', 42)).toBe('receipt-42');
+    });
+
+    it('falls back to receipt-purchaseID for empty path', () => {
+        // Given a URL with no path segments
+        // When extracting the filename
+        // Then it falls back to receipt-{purchaseID}
+        expect(getReceiptFileName('https://expensify.com/', 7)).toBe('receipt-7');
     });
 });

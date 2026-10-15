@@ -356,5 +356,25 @@ function isInvoiceBilling(purchases: Purchases | null | undefined, purchaseID: n
     return purchase?.message.billingType === CONST.BILLING.TYPE_INVOICING;
 }
 
-export {formatDate, getBadgeAppearance, getBadgeText, getPaymentDetailsBadge, getPaymentHistoryRow, getPaymentHistoryRows, getReceiptSource, getStateTranslationKey, isInvoiceBilling};
+function getReceiptFileName(source: string, purchaseID: number | string): string {
+    try {
+        const pathname = new URL(source).pathname;
+        return pathname.split('/').pop() ?? `receipt-${purchaseID}`;
+    } catch {
+        return `receipt-${purchaseID}`;
+    }
+}
+
+export {
+    formatDate,
+    getBadgeAppearance,
+    getBadgeText,
+    getPaymentDetailsBadge,
+    getPaymentHistoryRow,
+    getPaymentHistoryRows,
+    getReceiptFileName,
+    getReceiptSource,
+    getStateTranslationKey,
+    isInvoiceBilling,
+};
 export type {PaymentHistoryRow};
