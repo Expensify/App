@@ -1745,7 +1745,7 @@
 "../../src/pages/workspace/members/WorkspaceInviteMessageComponent.tsx"	"no-restricted-imports"	1
 "../../src/pages/workspace/members/WorkspaceInviteMessageComponent.tsx"	"react-hooks/set-state-in-effect"	1
 "../../src/pages/workspace/members/WorkspaceMemberCustomFieldPage.tsx"	"no-restricted-imports"	1
-"../../src/pages/workspace/members/WorkspaceMemberDetailsPage.tsx"	"@typescript-eslint/no-deprecated/MenuItem"	2
+"../../src/pages/workspace/members/WorkspaceMemberDetailsPage.tsx"	"@typescript-eslint/no-deprecated/MenuItem"	1
 "../../src/pages/workspace/members/WorkspaceMemberDetailsPage.tsx"	"@typescript-eslint/no-deprecated/MenuItemWithTopDescription"	2
 "../../src/pages/workspace/members/WorkspaceMemberDetailsPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	3
 "../../src/pages/workspace/members/WorkspaceMemberDetailsPage.tsx"	"no-restricted-imports"	1
