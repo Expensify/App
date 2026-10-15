@@ -183,6 +183,8 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
     const queryChangedAtRef = useRef<number | undefined>(undefined);
     const lastAutocompleteQueryRef = useRef(initialQuery);
     // Debounced value gates expensive filtering in the autocomplete list
+    // startSearchRouterQuerySpan also marks the start of render_duration_ms, right before the query update that triggers filtering.
+    // If this debounce is removed, call it right before setAutocompleteQueryValue in onSearchQueryChange so before and after values stay comparable.
     const [, debouncedAutocompleteQueryValue, setAutocompleteQueryValue] = useDebouncedState(initialQuery, CONST.TIMING.SEARCH_OPTION_LIST_DEBOUNCE_TIME, {
         onDebouncedValueChange: (value) => startSearchRouterQuerySpan(value, queryChangedAtRef.current),
     });
