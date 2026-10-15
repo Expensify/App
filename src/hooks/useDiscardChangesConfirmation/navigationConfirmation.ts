@@ -37,4 +37,4 @@ function continueNavigationAfterDiscard({
     continueNavigation();
 }
 
-export {continueNavigationAfterDiscard};
+export default continueNavigationAfterDiscard;

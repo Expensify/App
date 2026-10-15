@@ -17,7 +17,7 @@ import type {DiscardChangesConfirmation} from './types';
 import type UseDiscardChangesConfirmationOptions from './types';
 
 import getDiscardChangesModalConfig from './getDiscardChangesModalConfig';
-import {continueNavigationAfterDiscard} from './navigationConfirmation';
+import continueNavigationAfterDiscard from './navigationConfirmation';
 import runDiscardConfirmation from './runDiscardConfirmation';
 
 /**
