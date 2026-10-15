@@ -11,13 +11,13 @@ import {useRegisterTabSwitchGuard} from '@libs/Navigation/TabSwitchGuardContext'
 import type {NavigationAction} from '@react-navigation/native';
 
 import {useFocusEffect, useIsFocused, useRoute} from '@react-navigation/native';
-import {useEffect, useRef} from 'react';
+import {useCallback, useEffect, useRef} from 'react';
 
 import type {DiscardChangesConfirmation} from './types';
 import type UseDiscardChangesConfirmationOptions from './types';
 
 import getDiscardChangesModalConfig from './getDiscardChangesModalConfig';
-import createConfirmNavigation, {continueNavigationAfterDiscard} from './navigationConfirmation';
+import {continueNavigationAfterDiscard} from './navigationConfirmation';
 import runDiscardConfirmation from './runDiscardConfirmation';
 
 /**
@@ -98,8 +98,11 @@ function useDiscardChangesConfirmation({
                             shouldNavigateBack.current = false;
                         },
                         continueNavigation: () => setNavigationActionToMicrotaskQueue(navigateBack),
+                        getNavigationCallback: () => navigationCallbackRef.current,
                         isFocused,
-                        navigationCallbackRef,
+                        clearNavigationCallback: () => {
+                            navigationCallbackRef.current = undefined;
+                        },
                         onConfirmWhenUnfocused,
                         suppressDiscardPrompt: () => {
                             isSavingRef.current = true;
@@ -154,7 +157,22 @@ function useDiscardChangesConfirmation({
         showDiscardModal();
     });
 
-    const confirmNavigation = createConfirmNavigation({hasUnsavedChanges, isDiscardModalOpen, navigationCallbackRef, showDiscardModal});
+    const confirmNavigation = useCallback(
+        (navigationCallback: () => void) => {
+            if (!hasUnsavedChanges()) {
+                navigationCallback();
+                return;
+            }
+
+            if (isDiscardModalOpen.current) {
+                return;
+            }
+
+            navigationCallbackRef.current = navigationCallback;
+            showDiscardModal();
+        },
+        [hasUnsavedChanges, showDiscardModal],
+    );
 
     // `closeModal` changes every render, so the once-registered popstate listener reads it through a ref
     const closeModalRef = useRef(closeModal);

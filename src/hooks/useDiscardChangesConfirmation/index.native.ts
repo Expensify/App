@@ -9,14 +9,14 @@ import {useRegisterTabSwitchGuard} from '@libs/Navigation/TabSwitchGuardContext'
 import type {NavigationAction} from '@react-navigation/native';
 
 import {useFocusEffect, useIsFocused, usePreventRemove, useRoute} from '@react-navigation/native';
-import {useRef} from 'react';
+import {useCallback, useRef} from 'react';
 import {BackHandler} from 'react-native';
 
 import type {DiscardChangesConfirmation} from './types';
 import type UseDiscardChangesConfirmationOptions from './types';
 
 import getDiscardChangesModalConfig from './getDiscardChangesModalConfig';
-import createConfirmNavigation, {continueNavigationAfterDiscard} from './navigationConfirmation';
+import {continueNavigationAfterDiscard} from './navigationConfirmation';
 import runDiscardConfirmation from './runDiscardConfirmation';
 
 function useDiscardChangesConfirmation({
@@ -81,8 +81,11 @@ function useDiscardChangesConfirmation({
                             }
                             isReplayingBlockedNavigation.current = false;
                         },
+                        getNavigationCallback: () => navigationCallbackRef.current,
                         isFocused,
-                        navigationCallbackRef,
+                        clearNavigationCallback: () => {
+                            navigationCallbackRef.current = undefined;
+                        },
                         onConfirmWhenUnfocused,
                         suppressDiscardPrompt: () => {
                             isSavingRef.current = true;
@@ -108,7 +111,22 @@ function useDiscardChangesConfirmation({
         showDiscardModal(data.action);
     });
 
-    const confirmNavigation = createConfirmNavigation({hasUnsavedChanges, isDiscardModalOpen, navigationCallbackRef, showDiscardModal});
+    const confirmNavigation = useCallback(
+        (navigationCallback: () => void) => {
+            if (!hasUnsavedChanges()) {
+                navigationCallback();
+                return;
+            }
+
+            if (isDiscardModalOpen.current) {
+                return;
+            }
+
+            navigationCallbackRef.current = navigationCallback;
+            showDiscardModal();
+        },
+        [hasUnsavedChanges, showDiscardModal],
+    );
 
     // A tab-switch hardware back is an index-only TabRouter change that never fires `beforeRemove`, so intercept it here,
     // ahead of react-navigation's container handler (BackHandler runs listeners newest-first).

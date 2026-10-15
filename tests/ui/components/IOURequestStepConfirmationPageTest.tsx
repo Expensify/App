@@ -1328,7 +1328,12 @@ describe('IOURequestStepConfirmationPageTest', () => {
                 expect(submitWithDismissFirstSpy).toHaveBeenCalledWith(expect.objectContaining({destinationReportID: optimisticP2PReportID}));
                 expect(mockSendMoneyElsewhere).toHaveBeenCalledWith(expect.objectContaining({optimisticChatReportID: optimisticP2PReportID}));
                 expect(suppressDiscardPrompt).toHaveBeenCalledTimes(1);
-                expect(suppressDiscardPrompt.mock.invocationCallOrder[0]).toBeLessThan(mockSendMoneyElsewhere.mock.invocationCallOrder[0]);
+                const suppressDiscardPromptCallOrder = suppressDiscardPrompt.mock.invocationCallOrder.at(0);
+                const sendMoneyCallOrder = mockSendMoneyElsewhere.mock.invocationCallOrder.at(0);
+                if (suppressDiscardPromptCallOrder === undefined || sendMoneyCallOrder === undefined) {
+                    throw new Error('Expected discard suppression and send money to be called');
+                }
+                expect(suppressDiscardPromptCallOrder).toBeLessThan(sendMoneyCallOrder);
             } finally {
                 buildConfirmActionSpy.mockRestore();
                 submitWithDismissFirstSpy.mockRestore();

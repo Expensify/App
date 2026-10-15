@@ -6,6 +6,7 @@ import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import Navigation from '@libs/Navigation/Navigation';
 
 import IOURequestStartPage from '@pages/iou/request/IOURequestStartPage';
+import type useRestoreFocusAfterDiscard from '@pages/iou/request/useRestoreFocusAfterDiscard';
 
 import type {IOURequestType, IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
@@ -49,7 +50,7 @@ jest.mock('@hooks/useAndroidBackButtonHandler', () => ({
 }));
 
 jest.mock('@pages/iou/request/useRestoreFocusAfterDiscard', () => {
-    const actual = jest.requireActual<typeof import('@pages/iou/request/useRestoreFocusAfterDiscard')>('@pages/iou/request/useRestoreFocusAfterDiscard');
+    const actual = jest.requireActual<{default: typeof useRestoreFocusAfterDiscard}>('@pages/iou/request/useRestoreFocusAfterDiscard');
     return {
         __esModule: true,
         default: () => {
