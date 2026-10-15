@@ -6549,6 +6549,7 @@ function getReportPreviewMessage(
 
     if (!isEmptyObject(iouReportAction) && !isIOUReport(report) && iouReportAction && isSplitBillReportAction(iouReportAction)) {
         // This covers group chats where the last action is a split expense action
+        // The split transaction belongs to SPLIT_REPORT_ID, not to `report`, so it isn't in `allReportTransactions` and the caller has to pass it.
         // TODO: Remove the deprecated Onyx lookup in getLinkedTransaction once all callers pass `linkedTransaction`. Refactor issue: https://github.com/Expensify/App/issues/66418
         const linkedTransaction = getLinkedTransaction(iouReportAction, linkedTransactionParam ? [linkedTransactionParam] : undefined);
         if (isEmptyObject(linkedTransaction)) {
@@ -6572,6 +6573,7 @@ function getReportPreviewMessage(
 
     if (!isEmptyObject(iouReportAction) && !isIOUReport(report) && !isExpenseReport(report) && iouReportAction && isTrackExpenseAction(iouReportAction)) {
         // This covers group chats where the last action is a track expense action
+        // The tracked transaction is unreported, not part of `report`, so it isn't in `allReportTransactions` and the caller has to pass it.
         // TODO: Remove the deprecated Onyx lookup in getLinkedTransaction once all callers pass `linkedTransaction`. Refactor issue: https://github.com/Expensify/App/issues/66418
         const linkedTransaction = getLinkedTransaction(iouReportAction, linkedTransactionParam ? [linkedTransactionParam] : undefined);
         if (isEmptyObject(linkedTransaction)) {
@@ -6628,7 +6630,7 @@ function getReportPreviewMessage(
 
     let linkedTransaction;
     if (!isEmptyObject(iouReportAction) && shouldConsiderScanningReceiptOrPendingRoute && iouReportAction && isMoneyRequestAction(iouReportAction)) {
-        linkedTransaction = getLinkedIOUTransaction(iouReportAction, allReportTransactions);
+        linkedTransaction = getLinkedTransaction(iouReportAction, allReportTransactions);
     }
 
     if (!isEmptyObject(linkedTransaction) && isScanning(linkedTransaction)) {
@@ -6722,7 +6724,7 @@ function getReportPreviewMessage(
     }
 
     if (isEmptyObject(linkedTransaction) && !isEmptyObject(iouReportAction)) {
-        linkedTransaction = getLinkedIOUTransaction(iouReportAction, allReportTransactions);
+        linkedTransaction = getLinkedTransaction(iouReportAction, allReportTransactions);
     }
 
     let comment = !isEmptyObject(linkedTransaction) ? getMerchantOrDescription(linkedTransaction) : undefined;

@@ -1198,7 +1198,6 @@ type GetReportAlternateTextParams = {
     convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'];
     convertToDisplayStringWithoutCurrency: CurrencyListActionsContextType['convertToDisplayStringWithoutCurrency'];
     rules: OnyxCollection<Rule>;
-    /** The transaction of `lastAction` when it is a money request action */
     linkedTransaction?: OnyxEntry<Transaction>;
 };
 
