@@ -817,9 +817,10 @@ jobs:
             exit 0
           fi
           aws configure set default.s3.preferred_transfer_client classic
-          aws s3 sync dist s3://new-expensify-web-assets-staging/ \
+          # Re-uploads every file, so files that stay the same across builds don't hit the bucket's 60-day expiry while still in use.
+          aws s3 cp dist s3://new-expensify-web-assets-staging/ --recursive \
             --endpoint-url "https://$CLOUDFLARE_ACCOUNT_ID.r2.cloudflarestorage.com" \
-            --size-only --no-progress \
+            --no-progress \
             --exclude '*.br' --exclude '*.map'
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.CLOUDFLARE_R2_WEB_ASSETS_ACCESS_KEY_ID }}
