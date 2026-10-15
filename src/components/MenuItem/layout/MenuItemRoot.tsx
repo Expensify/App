@@ -55,7 +55,10 @@ type MenuItemRootProps = PropsWithChildren &
         /** Accessibility state for the row, e.g. `{expanded}`. Lands on the pressable, which is what a screen reader focuses. */
         accessibilityState?: AccessibilityState;
 
-        /** Whether to group the row for accessibility. Disable it when a nested control must receive focus. */
+        /**
+         * Whether the row is one element for screen readers. Turn it off for a row without `onPress` whose
+         * buttons must stay reachable, since an accessible parent hides its children on iOS.
+         */
         shouldBeAccessible?: boolean;
     };
 
