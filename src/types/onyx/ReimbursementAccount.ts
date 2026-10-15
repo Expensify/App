@@ -291,20 +291,11 @@ type WiseBusinessOnboarding = {
         noSSN?: boolean;
     };
 
-    /** Answers to Wise's KYC requirements, keyed by requirement and in Wise's field names so Submit forwards them as they are */
-    requirements?: {
-        /** Asked before Submit when a chosen industry is high risk */
-        BUSINESS_SOURCE_OF_WEALTH?: {
-            sourceOfWealthList: string[];
-            otherSourceOfWealthDescription?: string;
-        };
-    } & Record<string, unknown>;
+    /** Answers to Wise's KYC requirements, by requirement and in Wise's field names so Submit forwards them as they are. The source of wealth is asked before Submit; the rest come from the live review */
+    requirements?: Record<string, Record<string, unknown>>;
 
-    /** S3 keys of the files we collected ourselves, keyed by the requirement each answers */
-    documents?: {
-        ID_DOCUMENT?: string[];
-        BUSINESS_SOURCE_OF_WEALTH_PROOF?: string[];
-    } & Record<string, string[] | undefined>;
+    /** S3 keys of the files we collected ourselves, by requirement and then by the file field each answers */
+    documents?: Record<string, Record<string, string[]>>;
 };
 
 /** The step in an reimbursement account's ach data */
