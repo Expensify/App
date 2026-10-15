@@ -6372,6 +6372,64 @@ describe('isTransactionSubmittable', () => {
     });
 });
 
+describe('isCardTransactionReimbursableEditable', () => {
+    const {FORCE_YES, FORCE_NO, DEFAULT_YES, DEFAULT_NO, NONE} = CONST.COMPANY_CARD.FORCE_REIMBURSABLE;
+
+    it('returns true for a cash expense', () => {
+        // Given a cash expense, which follows the workspace cash expense rules instead of a card feed
+        const transaction = generateTransaction();
+
+        // Then the reimbursable value can be changed
+        expect(TransactionUtils.isCardTransactionReimbursableEditable(transaction)).toBe(true);
+    });
+
+    it('returns false for an Expensify Card expense', () => {
+        // Given an Expensify Card expense, which can never be reimbursable, even with a "Do Not Force" value
+        const transaction = generateTransaction({managedCard: true, bank: CONST.EXPENSIFY_CARD.BANK, comment: {forceReimbursable: DEFAULT_YES}});
+
+        // Then the reimbursable value can't be changed
+        expect(TransactionUtils.isCardTransactionReimbursableEditable(transaction)).toBe(false);
+    });
+
+    it.each([
+        [DEFAULT_YES, true],
+        [DEFAULT_NO, true],
+        [NONE, true],
+        [FORCE_YES, false],
+        [FORCE_NO, false],
+    ])('uses the stamped %s value of a company card expense', (forceReimbursable, expected) => {
+        // Given a company card expense stamped with the feed setting at import, on a feed whose setting has since changed
+        const transaction = generateTransaction({managedCard: true, comment: {forceReimbursable}});
+        const feedSettings = {forceReimbursable: forceReimbursable === DEFAULT_YES ? FORCE_NO : DEFAULT_YES};
+
+        // Then only the "Do Not Force" stamped values allow changing the reimbursable value, because feed changes only affect new expenses
+        expect(TransactionUtils.isCardTransactionReimbursableEditable(transaction, feedSettings)).toBe(expected);
+    });
+
+    it.each([
+        [DEFAULT_YES, true],
+        [DEFAULT_NO, true],
+        [NONE, true],
+        [FORCE_YES, false],
+        [FORCE_NO, false],
+        [undefined, false],
+    ])('falls back to the %s feed setting when the company card expense has no stamped value', (forceReimbursable, expected) => {
+        // Given a company card expense with no stamped value, on a feed with the given setting (a missing setting behaves as "Force No")
+        const transaction = generateTransaction({managedCard: true});
+
+        // Then the feed setting decides whether the reimbursable value can be changed
+        expect(TransactionUtils.isCardTransactionReimbursableEditable(transaction, {forceReimbursable})).toBe(expected);
+    });
+
+    it('returns false for a company card expense with no stamped value and no feed settings', () => {
+        // Given a company card expense with no stamped value, viewed by someone who doesn't have its feed settings
+        const transaction = generateTransaction({managedCard: true});
+
+        // Then the reimbursable value can't be changed, matching the "Force No" default
+        expect(TransactionUtils.isCardTransactionReimbursableEditable(transaction)).toBe(false);
+    });
+});
+
 describe('showHeldExpensesBlockModal', () => {
     it('shows a confirm modal explaining that a report with only held expenses cannot be submitted', () => {
         const showConfirmModal = jest.fn();

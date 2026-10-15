@@ -700,6 +700,7 @@ export {
     getCardFeedsForDisplay,
     getExpensifyCardFeedsForDisplay,
     getCardFeedsForDisplayPerPolicy,
+    getFeedSettingsForCard,
     getPolicyIDsNamedByCardFeeds,
     getAssignedCardFeedAccess,
     getVisibleCompanyCardFeedsForSelector,
