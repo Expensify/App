@@ -21,7 +21,7 @@ type PopoverWithMeasuredContentProps = Omit<PopoverProps, 'anchorPosition'> & {
 
     /**
      * Breathing room (in px) to keep between the popover and the window edges when it must be clamped inside the
-     * window. Content that can't shrink (e.g. the calendar) would otherwise sit flush against the edge; a positive
+     * window. Content that can't shrink (e.g. the calendar) would otherwise sit flush against the edge. A positive
      * value keeps the same gap the shrinking pickers leave. Defaults to 0 (flush), preserving existing behavior.
      */
     windowMargin?: number;

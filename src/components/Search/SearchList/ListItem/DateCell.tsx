@@ -35,8 +35,8 @@ function DateCell({date, showTooltip, isLargeScreenWidth, suffixText, shouldUseL
     const {isEditing, anchorRef, isPopoverVisible, popoverPosition, anchorAlignment, shouldOpenAbove, startEditing, cancelEditing, handleSave} = usePopoverEditState({
         canEdit,
         value: date,
-        // The calendar has a fixed height, so pass its real height to pick the side to open on. It isn't shrunk —
-        // the bottom-edge anchoring is what keeps it off the cell.
+        // The calendar has a fixed height, so pass its real height to pick the side to open on. It isn't shrunk.
+        // The bottom-edge anchoring is what keeps it off the cell.
         popoverHeight: CONST.POPOVER_DATE_MAX_HEIGHT,
         onSave,
     });
