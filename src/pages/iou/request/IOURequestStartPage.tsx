@@ -43,7 +43,7 @@ import type {SelectedTabRequest} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
-import type {NavigationAction, NavigationState} from '@react-navigation/native';
+import type {NavigationAction, NavigationState, PartialState} from '@react-navigation/native';
 
 import {useFocusEffect} from '@react-navigation/native';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
@@ -81,7 +81,7 @@ function getTransactionIDFromRouteParams(params: unknown): string | undefined {
     return 'params' in params ? getTransactionIDFromRouteParams(params.params) : undefined;
 }
 
-function navigationStateContainsCreateDraft(state: NavigationState, activeTransactionID: string | undefined): boolean {
+function navigationStateContainsCreateDraft(state: PartialState<NavigationState>, activeTransactionID: string | undefined): boolean {
     return state.routes.some((route) => {
         if (route.name === SCREENS.MONEY_REQUEST.CREATE && getTransactionIDFromRouteParams(route.params) === activeTransactionID) {
             return true;
