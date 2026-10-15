@@ -14198,7 +14198,7 @@ function isExportInProgress(reportActions: OnyxEntry<ReportActions> | ReportActi
     let lastExportResolvedCreated = '';
 
     for (const action of reportActionList) {
-        // `EXPORTINTEGRATION` covers both halves of an export, and only `pendingAction` separates them: pending renders
+        // One action type covers both halves of an export, and only `pendingAction` separates them: a pending one renders
         // "started exporting this report to ...", anything else renders a finished export. See getExportIntegrationActionFragments.
         if (isExportIntegrationAction(action)) {
             if (action.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD && action.created > lastExportStartedCreated) {

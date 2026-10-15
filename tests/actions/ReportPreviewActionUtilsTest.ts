@@ -10,7 +10,7 @@ import {hasOnlyNonReimbursableTransactions} from '@libs/ReportUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy, Report, Transaction} from '@src/types/onyx';
+import type {Policy, Report, ReportAction, Transaction} from '@src/types/onyx';
 import type {NetSuiteConnection} from '@src/types/onyx/Policy';
 
 import Onyx from 'react-native-onyx';
@@ -1403,6 +1403,21 @@ describe('getReportPreviewAction', () => {
         ).toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.EXPORT_TO_ACCOUNTING);
     });
 
+    // A pending EXPORTED_TO_INTEGRATION action is how the client records "started exporting this report".
+    const buildExportStartedAction = (created: string) =>
+        createMock<ReportAction>({
+            actionName: CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION,
+            pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+            created,
+        });
+
+    // The server's answer to an export attempt, success or failure.
+    const buildExportOutcomeAction = (created: string) =>
+        createMock<ReportAction>({
+            actionName: CONST.REPORT.ACTIONS.TYPE.INTEGRATIONS_MESSAGE,
+            created,
+        });
+
     it('canExport should return false while an export started from this client is still running', async () => {
         const report = {
             ...createRandomReport(REPORT_ID, undefined),
@@ -1424,7 +1439,7 @@ describe('getReportPreviewAction', () => {
         const {result: isReportArchived} = renderHook(() => useReportIsArchived(report?.parentReportID));
         await waitForBatchedUpdatesWithAct();
 
-        // The report carried no export errors when the export was started, so no new one has arrived yet.
+        // Only the pending "started exporting" action is on the report, so nothing has answered it yet.
         expect(
             getReportPreviewAction({
                 isReportArchived: isReportArchived.current,
@@ -1434,8 +1449,10 @@ describe('getReportPreviewAction', () => {
                 policy,
                 transactions: [transaction],
                 bankAccountList: {},
-                reportMetadata: {exportErrorCountAtRequest: 0},
+                reportMetadata: undefined,
+                reportActions: [buildExportStartedAction('2026-10-14 10:00:00.000')],
                 ownerLogin: CURRENT_USER_EMAIL,
+                rules: undefined,
             }),
         ).not.toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.EXPORT_TO_ACCOUNTING);
     });
@@ -1462,7 +1479,7 @@ describe('getReportPreviewAction', () => {
         const {result: isReportArchived} = renderHook(() => useReportIsArchived(report?.parentReportID));
         await waitForBatchedUpdatesWithAct();
 
-        // One export error has arrived since the request, so this attempt is resolved and the button comes back.
+        // The failure message landed after the export started, so this attempt is resolved and the button comes back.
         expect(
             getReportPreviewAction({
                 isReportArchived: isReportArchived.current,
@@ -1472,13 +1489,15 @@ describe('getReportPreviewAction', () => {
                 policy,
                 transactions: [transaction],
                 bankAccountList: {},
-                reportMetadata: {exportErrorCountAtRequest: 0},
+                reportMetadata: undefined,
+                reportActions: [buildExportStartedAction('2026-10-14 10:00:00.000'), buildExportOutcomeAction('2026-10-14 10:00:05.000')],
                 ownerLogin: CURRENT_USER_EMAIL,
+                rules: undefined,
             }),
         ).toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.EXPORT_TO_ACCOUNTING);
     });
 
-    it('canExport should stay hidden when the report already carried the same export errors', async () => {
+    it('canExport should stay hidden when only an earlier attempt has an outcome', async () => {
         const report = {
             ...createRandomReport(REPORT_ID, undefined),
             type: CONST.REPORT.TYPE.EXPENSE,
@@ -1500,7 +1519,7 @@ describe('getReportPreviewAction', () => {
         const {result: isReportArchived} = renderHook(() => useReportIsArchived(report?.parentReportID));
         await waitForBatchedUpdatesWithAct();
 
-        // Retrying an export on a report that already failed once: the pre-existing error must not resolve the attempt.
+        // Retrying an export on a report that already failed once: the older failure must not resolve the new attempt.
         expect(
             getReportPreviewAction({
                 isReportArchived: isReportArchived.current,
@@ -1510,8 +1529,10 @@ describe('getReportPreviewAction', () => {
                 policy,
                 transactions: [transaction],
                 bankAccountList: {},
-                reportMetadata: {exportErrorCountAtRequest: 1},
+                reportMetadata: undefined,
+                reportActions: [buildExportOutcomeAction('2026-10-14 09:00:00.000'), buildExportStartedAction('2026-10-14 10:00:00.000')],
                 ownerLogin: CURRENT_USER_EMAIL,
+                rules: undefined,
             }),
         ).not.toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.EXPORT_TO_ACCOUNTING);
     });
