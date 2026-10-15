@@ -383,6 +383,7 @@ function AmountField({
                             }}
                             leadingRightHandSideComponent={shouldShowAutomaticHint ? <AutomaticFieldHint /> : undefined}
                             shouldUseBorderlessButtons
+                            shouldAllowFocusInLandscapeMode={!!onInputFocus}
                             disabled={isAmountFieldDisabled}
                         />
                     </View>

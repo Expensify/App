@@ -14,6 +14,7 @@ type ReportUtilsModule = {
 
 type NumberWithSymbolFormProps = {
     onInputChange?: (value: string) => void;
+    shouldAllowFocusInLandscapeMode?: boolean;
 };
 
 type CurrencyModalProps = {
@@ -24,6 +25,7 @@ let mockNumberWithSymbolFormProps: NumberWithSymbolFormProps | undefined;
 let mockCurrencyModalProps: CurrencyModalProps | undefined;
 let mockTransactionSlice: {isAmountSet?: boolean; iouRequestType?: string} | undefined;
 const mockOnSignDirtyChange = jest.fn();
+let mockOnInputFocus: ((restoreFocus: () => void) => void) | undefined;
 
 jest.mock('@components/MoneyRequestConfirmationFields/context', () => ({
     useConfirmationFields: () => ({
@@ -37,6 +39,7 @@ jest.mock('@components/MoneyRequestConfirmationFields/context', () => ({
         reportID: 'reportID',
         reportActionID: undefined,
         onSignDirtyChange: mockOnSignDirtyChange,
+        onInputFocus: mockOnInputFocus,
     }),
 }));
 
@@ -111,6 +114,18 @@ describe('AmountField', () => {
         mockNumberWithSymbolFormProps = undefined;
         mockCurrencyModalProps = undefined;
         mockTransactionSlice = {isAmountSet: false, iouRequestType: CONST.IOU.REQUEST_TYPE.MANUAL};
+        mockOnInputFocus = undefined;
+    });
+
+    it('allows landscape focus only when the embedded confirmation registers focus restoration', () => {
+        renderAmountField();
+
+        expect(mockNumberWithSymbolFormProps?.shouldAllowFocusInLandscapeMode).toBe(false);
+
+        mockOnInputFocus = jest.fn();
+        renderAmountField();
+
+        expect(mockNumberWithSymbolFormProps?.shouldAllowFocusInLandscapeMode).toBe(true);
     });
 
     it('tracks sign-only changes and clears the sign state after deleting a negative amount back to a lone minus', () => {
