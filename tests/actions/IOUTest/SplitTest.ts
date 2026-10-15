@@ -41,7 +41,7 @@ import {
     updateSplitExpenseField,
 } from '@userActions/IOU/SplitExpenseItems';
 import type {UpdateSplitTransactionsParams} from '@userActions/IOU/SplitTransactionUpdate';
-import {updateSplitTransactions, willSplitUpdateEmptyExpenseReport} from '@userActions/IOU/SplitTransactionUpdate';
+import {getExpenseReportIDsEmptiedBySplitUpdate, updateSplitTransactions, willSplitUpdateEmptyExpenseReport} from '@userActions/IOU/SplitTransactionUpdate';
 
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
@@ -12174,6 +12174,7 @@ describe('updateSplitTransactions - emptied expense report', () => {
             getCurrencySymbol: getCurrencySymbolLocal,
             allTransactionsList: await getOnyxValue(ONYXKEYS.COLLECTION.TRANSACTION),
             allReportsList: await getOnyxValue(ONYXKEYS.COLLECTION.REPORT),
+            reportDrafts: {},
             allReportActionsList: await getOnyxValue(ONYXKEYS.COLLECTION.REPORT_ACTIONS),
             allReportNameValuePairsList: {},
             transactionData: {
@@ -12212,5 +12213,321 @@ describe('updateSplitTransactions - emptied expense report', () => {
         // And the approved report the remaining split lives on stays untouched
         const approvedReportAfter = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${approvedReportID}`);
         expect(approvedReportAfter?.reportID).toBe(approvedReportID);
+    });
+});
+
+describe('getExpenseReportIDsEmptiedBySplitUpdate', () => {
+    const openedReportID = 'emptied-ids-opened-report';
+    const otherReportID = 'emptied-ids-other-report';
+    const selfDMReportID = 'emptied-ids-self-dm';
+    const originalTransactionID = 'emptied-ids-original';
+
+    const buildTransaction = (transactionID: string, reportID: string, overrides: Partial<Transaction> = {}): Transaction => ({
+        transactionID,
+        reportID,
+        amount: -5000,
+        currency: 'USD',
+        created: '2026-10-12',
+        merchant: 'Merchant',
+        comment: {originalTransactionID, source: CONST.IOU.TYPE.SPLIT},
+        ...overrides,
+    });
+
+    const toCollection = (transactions: Transaction[]): OnyxCollection<Transaction> =>
+        Object.fromEntries(transactions.map((transaction) => [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction]));
+
+    const reports: OnyxCollection<Report> = {
+        [`${ONYXKEYS.COLLECTION.REPORT}${openedReportID}`]: {reportID: openedReportID, type: CONST.REPORT.TYPE.EXPENSE},
+        [`${ONYXKEYS.COLLECTION.REPORT}${otherReportID}`]: {reportID: otherReportID, type: CONST.REPORT.TYPE.EXPENSE},
+        [`${ONYXKEYS.COLLECTION.REPORT}${selfDMReportID}`]: {reportID: selfDMReportID, type: CONST.REPORT.TYPE.CHAT, chatType: CONST.REPORT.CHAT_TYPE.SELF_DM},
+    };
+
+    it('returns a report other than the opened one when its only split is removed', () => {
+        // Given the flow is opened from a report whose split is kept, and another expense report holds only a split that is removed
+        const allTransactions = toCollection([buildTransaction('kept-split', openedReportID), buildTransaction('removed-split', otherReportID)]);
+
+        // When only the split on the opened report is saved
+        const result = getExpenseReportIDsEmptiedBySplitUpdate(
+            openedReportID,
+            originalTransactionID,
+            [{transactionID: 'kept-split', amount: 5000, created: '2026-10-12', reportID: openedReportID}],
+            allTransactions,
+            reports,
+        );
+
+        // Then the other report is emptied too, so it has to be removed instead of being left with a pending-delete split
+        expect(result).toEqual([otherReportID]);
+    });
+
+    it('returns a report a split is moved out of when nothing else is left in it', () => {
+        // Given two splits on the opened report and one on another expense report
+        const allTransactions = toCollection([
+            buildTransaction('first-split', openedReportID),
+            buildTransaction('second-split', openedReportID),
+            buildTransaction('moved-split', otherReportID),
+        ]);
+
+        // When the split on the other report is moved into the opened report
+        const result = getExpenseReportIDsEmptiedBySplitUpdate(
+            openedReportID,
+            originalTransactionID,
+            [
+                {transactionID: 'first-split', amount: 5000, created: '2026-10-12', reportID: openedReportID},
+                {transactionID: 'second-split', amount: 5000, created: '2026-10-12', reportID: openedReportID},
+                {transactionID: 'moved-split', amount: 5000, created: '2026-10-12', reportID: openedReportID},
+            ],
+            allTransactions,
+            reports,
+        );
+
+        // Then the report it was moved out of is emptied
+        expect(result).toEqual([otherReportID]);
+    });
+
+    it('never returns a report that is not an expense report', () => {
+        // Given the flow is opened from a report whose split is kept, and a split in the selfDM that is removed
+        const allTransactions = toCollection([buildTransaction('kept-split', openedReportID), buildTransaction('self-dm-split', selfDMReportID)]);
+
+        // When only the split on the opened report is saved
+        const result = getExpenseReportIDsEmptiedBySplitUpdate(
+            openedReportID,
+            originalTransactionID,
+            [{transactionID: 'kept-split', amount: 5000, created: '2026-10-12', reportID: openedReportID}],
+            allTransactions,
+            reports,
+        );
+
+        // Then the selfDM is left alone, because removing it would drop the user's whole selfDM chat
+        expect(result).toEqual([]);
+    });
+});
+
+describe('updateSplitTransactions - emptied expense reports', () => {
+    const chatReportID = 'emptied-reports-chat';
+    const policyID = 'emptied-reports-policy';
+    const originalTransactionID = 'emptied-reports-original';
+
+    const buildExpenseReport = (reportID: string, overrides: Partial<Report> = {}): Report => ({
+        reportID,
+        type: CONST.REPORT.TYPE.EXPENSE,
+        policyID,
+        chatReportID,
+        parentReportID: chatReportID,
+        parentReportActionID: `${reportID}-preview`,
+        ownerAccountID: RORY_ACCOUNT_ID,
+        stateNum: CONST.REPORT.STATE_NUM.OPEN,
+        statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+        total: -5000,
+        currency: 'USD',
+        ...overrides,
+    });
+
+    const buildIOUAction = (reportActionID: string, transactionID: string, reportID: string) =>
+        ({
+            reportActionID,
+            actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+            reportID,
+            actorAccountID: RORY_ACCOUNT_ID,
+            created: DateUtils.getDBTime(),
+            childReportID: `${reportActionID}-thread`,
+            message: [{type: 'COMMENT', html: '', text: ''}],
+            originalMessage: {IOUTransactionID: transactionID, IOUReportID: reportID, amount: 5000, currency: 'USD', type: CONST.IOU.REPORT_ACTION_TYPE.CREATE},
+        }) as ReportAction;
+
+    // Stores a workspace chat, the given expense reports with their previews, the original expense, and one split per
+    // [transactionID, reportID] pair, plus any extra transactions.
+    const setUpSplitAcrossReports = async (expenseReports: Report[], splits: Array<[string, string]>, extraTransactions: Transaction[] = []) => {
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {...createRandomPolicy(1), id: policyID, type: CONST.POLICY.TYPE.TEAM});
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`, {
+            reportID: chatReportID,
+            type: CONST.REPORT.TYPE.CHAT,
+            chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+            policyID,
+        });
+        const previewActions: Record<string, ReportAction> = {};
+        for (const expenseReport of expenseReports) {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`, expenseReport);
+            previewActions[`${expenseReport.reportID}-preview`] = {
+                reportActionID: `${expenseReport.reportID}-preview`,
+                actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
+                childReportID: expenseReport.reportID,
+                created: DateUtils.getDBTime(),
+                message: [{type: 'COMMENT', html: '', text: ''}],
+                originalMessage: {linkedReportID: expenseReport.reportID},
+            } as ReportAction;
+        }
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReportID}`, previewActions);
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransactionID}`, {
+            transactionID: originalTransactionID,
+            amount: -15000,
+            currency: 'USD',
+            merchant: 'Merchant',
+            created: '2026-10-12',
+            reportID: CONST.REPORT.SPLIT_REPORT_ID,
+            comment: {},
+        });
+        for (const [transactionID, reportID] of splits) {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {[`${transactionID}-iou`]: buildIOUAction(`${transactionID}-iou`, transactionID, reportID)});
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {
+                transactionID,
+                amount: -5000,
+                currency: 'USD',
+                merchant: 'Merchant',
+                created: '2026-10-12',
+                reportID,
+                comment: {originalTransactionID, source: CONST.IOU.TYPE.SPLIT},
+            });
+        }
+        for (const transaction of extraTransactions) {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
+        }
+        // Hold the request so only the optimistic data is applied, as it is while offline
+        mockFetch?.pause?.();
+        await waitForBatchedUpdates();
+    };
+
+    const saveSplits = async (openedFromReport: Report, splitExpenses: SplitExpense[]) => {
+        updateSplitTransactions({
+            isVendorMatchingBetaEnabled: false,
+            rules: undefined,
+            getCurrencyDecimals: getCurrencyDecimalsLocal,
+            getCurrencySymbol: getCurrencySymbolLocal,
+            allTransactionsList: await getOnyxValue(ONYXKEYS.COLLECTION.TRANSACTION),
+            allReportsList: await getOnyxValue(ONYXKEYS.COLLECTION.REPORT),
+            reportDrafts: {},
+            allReportActionsList: await getOnyxValue(ONYXKEYS.COLLECTION.REPORT_ACTIONS),
+            allReportNameValuePairsList: {},
+            transactionData: {
+                reportID: openedFromReport.reportID,
+                originalTransactionID,
+                splitExpenses,
+                splitExpensesTotal: splitExpenses.reduce((total, splitExpense) => total + splitExpense.amount, 0),
+            },
+            policyCategories: undefined,
+            policy: undefined,
+            policyRecentlyUsedCategories: [],
+            iouReport: openedFromReport,
+            firstIOU: undefined,
+            isASAPSubmitBetaEnabled: false,
+            currentUserPersonalDetails,
+            transactionViolations: {},
+            policyRecentlyUsedCurrencies: [],
+            quickAction: undefined,
+            allPolicyTags: {},
+            personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
+            transactionReport: openedFromReport,
+            expenseReport: openedFromReport,
+            isOffline: true,
+            delegateAccountID: undefined,
+            isTrackIntentUser: false,
+            formatPhoneNumber,
+        });
+        await waitForBatchedUpdates();
+    };
+
+    it('removes the opened report on a reverse split when the only other expense left in it is pending deletion', async () => {
+        // Given report A holds one split and an unrelated expense that was deleted offline, and report B holds the other split
+        const reportA = buildExpenseReport('emptied-reports-reverse-a');
+        const reportB = buildExpenseReport('emptied-reports-reverse-b');
+        await setUpSplitAcrossReports(
+            [reportA, reportB],
+            [
+                ['reverse-split-a', reportA.reportID],
+                ['reverse-split-b', reportB.reportID],
+            ],
+            [
+                {
+                    transactionID: 'reverse-deleted-expense',
+                    reportID: reportA.reportID,
+                    amount: -1000,
+                    currency: 'USD',
+                    created: '2026-10-12',
+                    merchant: 'Merchant',
+                    comment: {},
+                    pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                },
+            ],
+        );
+
+        // When the flow is opened from report A and only the split on report B is saved, which reverses the split
+        await saveSplits(reportA, [{transactionID: 'reverse-split-b', amount: 5000, created: '2026-10-12', reportID: reportB.reportID, isManuallyEdited: true}]);
+
+        // Then report A is removed with its preview, matching the navigation that already sent the user to the workspace chat
+        const reportAAfter = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${reportA.reportID}`);
+        expect(reportAAfter?.reportID).toBeFalsy();
+        const chatReportActions = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReportID}`);
+        expect(chatReportActions?.[`${reportA.reportID}-preview`]?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
+
+        // And report B, where the expense is restored, stays
+        const reportBAfter = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${reportB.reportID}`);
+        expect(reportBAfter?.reportID).toBe(reportB.reportID);
+    });
+
+    it('removes another report the split is removed from, not only the report the flow was opened from', async () => {
+        // Given an expense split across reports A, B and an approved report C, one split each
+        const reportA = buildExpenseReport('emptied-reports-multi-a');
+        const reportB = buildExpenseReport('emptied-reports-multi-b');
+        const reportC = buildExpenseReport('emptied-reports-multi-c', {stateNum: CONST.REPORT.STATE_NUM.APPROVED, statusNum: CONST.REPORT.STATUS_NUM.APPROVED});
+        await setUpSplitAcrossReports(
+            [reportA, reportB, reportC],
+            [
+                ['multi-split-a', reportA.reportID],
+                ['multi-split-b', reportB.reportID],
+                ['multi-split-c', reportC.reportID],
+            ],
+        );
+
+        // When the flow is opened from report B and the split on report A is removed
+        await saveSplits(reportB, [
+            {transactionID: 'multi-split-b', amount: 5000, created: '2026-10-12', reportID: reportB.reportID, isManuallyEdited: true},
+            {transactionID: 'multi-split-c', amount: 5000, created: '2026-10-12', reportID: reportC.reportID, isManuallyEdited: true},
+        ]);
+
+        // Then report A is removed with its preview, so it can't be opened into a Not Found page
+        const reportAAfter = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${reportA.reportID}`);
+        expect(reportAAfter?.reportID).toBeFalsy();
+        const chatReportActions = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReportID}`);
+        expect(chatReportActions?.[`${reportA.reportID}-preview`]?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
+
+        // And reports B and C, which still hold a split, stay
+        const reportBAfter = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${reportB.reportID}`);
+        expect(reportBAfter?.reportID).toBe(reportB.reportID);
+        const reportCAfter = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${reportC.reportID}`);
+        expect(reportCAfter?.reportID).toBe(reportC.reportID);
+    });
+
+    it('keeps a split whose amount changes on its own report instead of the latest report of the workspace chat', async () => {
+        // Given an expense split across reports A, B and C, where C is the latest open report of the workspace chat
+        const reportA = buildExpenseReport('emptied-reports-amount-a');
+        const reportB = buildExpenseReport('emptied-reports-amount-b');
+        const reportC = buildExpenseReport('emptied-reports-amount-c');
+        await setUpSplitAcrossReports(
+            [reportA, reportB, reportC],
+            [
+                ['amount-split-a', reportA.reportID],
+                ['amount-split-b', reportB.reportID],
+                ['amount-split-c', reportC.reportID],
+            ],
+        );
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`, {ownerAccountID: RORY_ACCOUNT_ID, iouReportID: reportC.reportID});
+        await waitForBatchedUpdates();
+
+        // When the flow is opened from report B and the split on report A is removed, so its amount goes to the other splits
+        await saveSplits(reportB, [
+            {transactionID: 'amount-split-b', amount: 7500, created: '2026-10-12', isManuallyEdited: true},
+            {transactionID: 'amount-split-c', amount: 7500, created: '2026-10-12', isManuallyEdited: true},
+        ]);
+
+        // Then the split on report B stays there, rather than moving to report C, which the workspace chat points to
+        const splitB = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}amount-split-b`);
+        expect(splitB?.reportID).toBe(reportB.reportID);
+        const splitC = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}amount-split-c`);
+        expect(splitC?.reportID).toBe(reportC.reportID);
+
+        // And each report total reflects only its own split's new amount
+        const reportBAfter = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${reportB.reportID}`);
+        expect(reportBAfter?.total).toBe(-7500);
+        const reportCAfter = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${reportC.reportID}`);
+        expect(reportCAfter?.total).toBe(-7500);
     });
 });
