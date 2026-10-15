@@ -1215,10 +1215,11 @@ function getDomainOrWorkspaceAccountID(workspaceAccountID: number, cardFeedData:
 
 /**
  * Whether the current user can sync (scrape) a company card. Workspace feeds are authorized by workspace write access, which callers check separately.
- * Domain feeds are only allowed for the card owner or a domain admin.
+ * Feed data carries a `domainID` for every feed, so a feed is a real domain feed only when it differs from the workspace account ID.
+ * Real domain feeds are only allowed for the card owner or a domain admin.
  */
-function canSyncCompanyCard(card: OnyxEntry<Card>, cardFeedData: CardFeedData | undefined, currentUserAccountID: number, isDomainAdmin: boolean): boolean {
-    const isDomainFeed = !!cardFeedData?.domainID;
+function canSyncCompanyCard(card: OnyxEntry<Card>, cardFeedData: CardFeedData | undefined, workspaceAccountID: number, currentUserAccountID: number, isDomainAdmin: boolean): boolean {
+    const isDomainFeed = !!cardFeedData?.domainID && cardFeedData.domainID !== workspaceAccountID;
     if (!isDomainFeed) {
         return true;
     }

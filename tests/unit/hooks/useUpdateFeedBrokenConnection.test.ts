@@ -64,20 +64,24 @@ describe('useUpdateFeedBrokenConnection', () => {
     });
 
     it('only syncs cards owned by the user on a domain feed when the user is not a domain admin', async () => {
+        // Given a domain feed the user is not an admin of, with a broken owned card and a broken card of someone else
         mockCardFeeds = {[MOCK_FEED]: {domainID: MOCK_DOMAIN_ID}};
         await Onyx.merge(`${ONYXKEYS.COLLECTION.DOMAIN}${MOCK_DOMAIN_ID}`, {
             accountID: MOCK_DOMAIN_ID,
         });
         await waitForBatchedUpdates();
 
+        // When updating the broken connection
         const {result} = renderHook(() => useUpdateFeedBrokenConnection({policyID: 'P1', feed: MOCK_FEED}));
         result.current.updateBrokenConnection();
 
+        // Then only the owned card is synced
         expect(updateWorkspaceCompanyCard).toHaveBeenCalledTimes(1);
         expect(updateWorkspaceCompanyCard).toHaveBeenCalledWith(MOCK_DOMAIN_ID, 'owned', expect.anything(), undefined);
     });
 
     it('syncs all cards on a domain feed when the user is a domain admin', async () => {
+        // Given a domain feed the user is an admin of
         mockCardFeeds = {[MOCK_FEED]: {domainID: MOCK_DOMAIN_ID}};
         await Onyx.merge(`${ONYXKEYS.COLLECTION.DOMAIN}${MOCK_DOMAIN_ID}`, {
             accountID: MOCK_DOMAIN_ID,
@@ -85,19 +89,37 @@ describe('useUpdateFeedBrokenConnection', () => {
         });
         await waitForBatchedUpdates();
 
+        // When updating the broken connection
         const {result} = renderHook(() => useUpdateFeedBrokenConnection({policyID: 'P1', feed: MOCK_FEED}));
         result.current.updateBrokenConnection();
 
+        // Then every broken card is synced
         expect(updateWorkspaceCompanyCard).toHaveBeenCalledTimes(2);
     });
 
     it('syncs all cards on a workspace feed', () => {
+        // Given a workspace feed without a domainID
         mockCardFeeds = {[MOCK_FEED]: {}};
 
+        // When updating the broken connection
         const {result} = renderHook(() => useUpdateFeedBrokenConnection({policyID: 'P1', feed: MOCK_FEED}));
         result.current.updateBrokenConnection();
 
+        // Then every broken card is synced against the workspace account
         expect(updateWorkspaceCompanyCard).toHaveBeenCalledTimes(2);
         expect(updateWorkspaceCompanyCard).toHaveBeenCalledWith(MOCK_WORKSPACE_ACCOUNT_ID, 'owned', expect.anything(), undefined);
+    });
+
+    it('syncs all cards on a workspace feed whose domainID equals the workspace account ID for a non-domain-admin', () => {
+        // Given a workspace feed that carries the workspace account ID as domainID, and a user who is not a domain admin
+        mockCardFeeds = {[MOCK_FEED]: {domainID: MOCK_WORKSPACE_ACCOUNT_ID}};
+
+        // When updating the broken connection
+        const {result} = renderHook(() => useUpdateFeedBrokenConnection({policyID: 'P1', feed: MOCK_FEED}));
+        result.current.updateBrokenConnection();
+
+        // Then every broken card is synced
+        expect(updateWorkspaceCompanyCard).toHaveBeenCalledTimes(2);
+        expect(updateWorkspaceCompanyCard).toHaveBeenCalledWith(MOCK_WORKSPACE_ACCOUNT_ID, 'other', expect.anything(), undefined);
     });
 });

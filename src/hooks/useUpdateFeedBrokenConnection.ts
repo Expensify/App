@@ -35,12 +35,12 @@ export default function useUpdateFeedBrokenConnection({policyID, feed}: {policyI
             if (!card.fundID || getCardFeedWithDomainID(card.bank, card.fundID) !== feed) {
                 continue;
             }
-            if (!canSyncCompanyCard(card, companyFeeds[feed], currentUserAccountID, isDomainAdmin)) {
+            if (!canSyncCompanyCard(card, companyFeeds[feed], workspaceAccountID, currentUserAccountID, isDomainAdmin)) {
                 continue;
             }
             updateWorkspaceCompanyCard(domainOrWorkspaceAccountID, brokenCardId, bankName, card.lastScrapeResult);
         }
-    }, [cardsWithBrokenFeedConnection, companyFeeds, currentUserAccountID, domainOrWorkspaceAccountID, feed, isDomainAdmin]);
+    }, [cardsWithBrokenFeedConnection, companyFeeds, workspaceAccountID, currentUserAccountID, domainOrWorkspaceAccountID, feed, isDomainAdmin]);
 
     return {updateBrokenConnection, isFeedConnectionBroken};
 }

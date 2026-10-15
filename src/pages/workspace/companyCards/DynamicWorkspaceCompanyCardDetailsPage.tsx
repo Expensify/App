@@ -142,7 +142,7 @@ function DynamicWorkspaceCompanyCardDetailsPage({route}: DynamicWorkspaceCompany
     const currentUserAccountID = useCurrentUserPersonalDetails().accountID;
     const domainID = companyFeeds[feedName]?.domainID;
     const isDomainAdmin = useIsDomainAdmin(domainID);
-    const canSyncCard = canSyncCompanyCard(card, companyFeeds[feedName], currentUserAccountID, isDomainAdmin);
+    const canSyncCard = canSyncCompanyCard(card, companyFeeds[feedName], workspaceAccountID, currentUserAccountID, isDomainAdmin);
     const plaidUrl = getPlaidInstitutionIconUrl(feedName);
 
     // Show "Break connection" only when Mock Bank requests target non-production APIs.
