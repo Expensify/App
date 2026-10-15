@@ -4,7 +4,7 @@ import type {GroupedItem, SearchChartDataRow} from '@components/Search/types';
 import Text from '@components/Text';
 
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useLayoutSpacing from '@hooks/useLayoutSpacing';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -34,7 +34,7 @@ function InsightsDataTable({rows, isLoading}: InsightsDataTableProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {convertToDisplayString} = useCurrencyListActions();
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {cardPaddingHorizontal} = useLayoutSpacing();
 
     if (isLoading) {
         return <InsightsDataTableSkeleton fixedNumItems={SKELETON_ROW_COUNT} />;
@@ -45,15 +45,15 @@ function InsightsDataTable({rows, isLoading}: InsightsDataTableProps) {
     }
 
     return (
-        <View style={[styles.chartInlineTable, shouldUseNarrowLayout ? styles.ph5 : styles.ph8]}>
-            {rows.map(({item, point, color}) => (
+        <View style={[styles.chartInlineTable, cardPaddingHorizontal]}>
+            {rows.map(({item, point}) => (
                 <View
                     key={item.keyForList}
                     style={[styles.flexRow, styles.alignItemsStart, styles.gap5]}
                 >
                     <View style={[styles.flex1, styles.mnw0, styles.flexRow, styles.alignItemsStart, styles.gap5]}>
                         {isMemberGroup(item) ? (
-                            <View style={[styles.chartInlineTableAvatarBorder, !!color && StyleUtils.getBorderColorStyle(color)]}>
+                            <View style={[styles.chartInlineTableAvatarBorder, !!point.color && StyleUtils.getBorderColorStyle(point.color)]}>
                                 <UserAvatar
                                     size={CONST.AVATAR_SIZE.XXX_SMALL}
                                     source={item.avatar}
@@ -61,7 +61,7 @@ function InsightsDataTable({rows, isLoading}: InsightsDataTableProps) {
                                 />
                             </View>
                         ) : (
-                            <View style={[styles.chartInlineTableDot, !!color && StyleUtils.getBackgroundColorStyle(color)]} />
+                            <View style={[styles.chartInlineTableDot, !!point.color && StyleUtils.getBackgroundColorStyle(point.color)]} />
                         )}
                         <Text style={[styles.flex1, styles.mnw0, styles.breakWord]}>{point.label}</Text>
                     </View>

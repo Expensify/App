@@ -17,6 +17,7 @@ import {
     isPendingDeletePolicy,
     isPerDiemEligiblePolicy,
     isPolicyAdmin,
+    isArchivedOrPendingDeletePolicy,
     isArchivedPolicy,
     isTimeTrackingEnabled,
     shouldShowPolicy,
@@ -69,6 +70,21 @@ const createOwnedPaidPoliciesCountsSelector =
             active: ownedPaidPolicies.filter((policy) => !isPendingDeletePolicy(policy)).length,
         };
     };
+
+/** Whether any workspace collects deposit account details, which is what makes the collect flow relevant. */
+const isCollectingDepositAccountsSelector = (policies: OnyxCollection<Policy>): boolean =>
+    Object.values(policies ?? {}).some((policy) => !!policy?.isCollectDepositAccountsEnabled && !isArchivedOrPendingDeletePolicy(policy));
+
+/**
+ * Whether any collecting workspace would have to pay this country from abroad, which means wire details.
+ * One account has to serve every collecting workspace, so a single one banking elsewhere settles it.
+ */
+const createIsInternationalCountrySelector =
+    (countryISO: string) =>
+    (policies: OnyxCollection<Policy>): boolean =>
+        Object.values(policies ?? {}).some(
+            (policy) => !!policy?.isCollectDepositAccountsEnabled && !isArchivedOrPendingDeletePolicy(policy) && !(countryISO in (policy.reimbursement?.countries ?? {})),
+        );
 
 /**
  * Creates a selector returning only the IDs of policies eligible as copy-settings targets, so
@@ -431,7 +447,8 @@ const hasOnlyPersonalPoliciesSelector = (policies: OnyxCollection<Policy>): bool
  */
 const homeAndOfficeCommuterExclusionPolicyNameSelector = (policies: OnyxCollection<Policy>): string | undefined =>
     Object.values(policies ?? {}).find(
-        (policy) => policy?.commuterExclusions?.method === CONST.POLICY.COMMUTER_EXCLUSION_METHOD.HOME_AND_OFFICE && policy?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+        (policy): policy is Policy =>
+            !!policy && policy.commuterExclusions?.method === CONST.POLICY.COMMUTER_EXCLUSION_METHOD.HOME_AND_OFFICE && policy.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
     )?.name;
 
 function isAdminPolicyConnectedTo(policy: OnyxEntry<Policy>, connectionName: ReusablePolicyConnectionName): policy is Policy {
@@ -592,5 +609,7 @@ export {
     policyACHAccountNumberSelector,
     createAdminPoliciesSelector,
     isAdminForPolicyByIDSelector,
+    isCollectingDepositAccountsSelector,
+    createIsInternationalCountrySelector,
 };
 export type {ReusablePolicyConnectionName};

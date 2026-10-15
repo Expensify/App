@@ -6,7 +6,7 @@ import {convertToBackendAmount} from '@libs/CurrencyUtils';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import * as NumberUtils from '@libs/NumberUtils';
 import {getLoginByAccountID} from '@libs/PersonalDetailsUtils';
-import {getDistanceRateCustomUnitRate, getPolicyForDistanceRateID, hasDependentTags} from '@libs/PolicyUtils';
+import {getDistanceRateCustomUnitRate, getPolicyForDistanceRateID, getTagLists, hasDependentTags} from '@libs/PolicyUtils';
 import {getIOUActionForTransactionID} from '@libs/ReportActionsUtils';
 import type {TransactionDetails} from '@libs/ReportUtils';
 import {
@@ -157,6 +157,8 @@ type UpdateMultipleMoneyRequestsParams = {
     reportActions: OnyxCollection<OnyxTypes.ReportActions>;
     policyCategories: OnyxCollection<OnyxTypes.PolicyCategories>;
     policyTags: OnyxCollection<OnyxTypes.PolicyTagLists>;
+    /** Per-policy tags read state. A policy's tag list count is only trusted once its tags have fully loaded. */
+    policyTagsLoadingStates?: OnyxCollection<OnyxTypes.PolicyDataLoadingState>;
     violations: OnyxCollection<OnyxTypes.TransactionViolations>;
     reportNameValuePairs?: OnyxCollection<OnyxTypes.ReportNameValuePairs>;
     hash?: number;
@@ -204,6 +206,7 @@ function updateMultipleMoneyRequests({
     reportActions,
     policyCategories,
     policyTags,
+    policyTagsLoadingStates,
     violations,
     reportNameValuePairs,
     hash,
@@ -343,6 +346,10 @@ function updateMultipleMoneyRequests({
             const transactionPolicyTagList = policyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${transactionPolicy?.id}`];
             const transactionHasDependentTags = hasDependentTags(transactionPolicy, transactionPolicyTagList);
             const transactionHasMultipleTagLists = transactionPolicy?.hasMultipleTagLists ?? false;
+            // A partially loaded tag collection can hold fewer tag lists than the policy, so only drop values for removed
+            // tag lists once this policy's tags have fully loaded
+            const hasLoadedTransactionPolicyTags = !!policyTagsLoadingStates?.[`${ONYXKEYS.COLLECTION.RAM_ONLY_POLICY_TAGS_LOADING_STATE}${transactionPolicy?.id}`]?.hasOnceLoaded;
+            const transactionTagListCount = hasLoadedTransactionPolicyTags ? getTagLists(transactionPolicyTagList).length : undefined;
             let reconstructedTag = transaction.tag ?? '';
             for (const editedIndex of editedTagIndexes.map(Number).sort((first, second) => first - second)) {
                 reconstructedTag = getUpdatedTransactionTag({
@@ -353,6 +360,7 @@ function updateMultipleMoneyRequests({
                     policyTags: transactionPolicyTagList,
                     hasDependentTags: transactionHasDependentTags,
                     hasMultipleTagLists: transactionHasMultipleTagLists,
+                    tagListCount: transactionTagListCount,
                 });
             }
             transactionChanges.tag = reconstructedTag;

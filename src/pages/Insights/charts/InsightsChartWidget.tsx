@@ -8,10 +8,10 @@ import type {SearchQueryJSON} from '@components/Search/types';
 import WidgetContainer from '@components/WidgetContainer';
 import WidgetHeaderMenu from '@components/WidgetHeaderMenu';
 
+import useLayoutSpacing from '@hooks/useLayoutSpacing';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import Navigation from '@libs/Navigation/Navigation';
@@ -20,6 +20,7 @@ import {INSIGHTS_CHART_STATE, resolveInsightsChartData} from '@libs/resolveInsig
 import InsightsGroupByDropdown from '@pages/Insights/controls/InsightsGroupByDropdown';
 import type {InsightsChartSpec} from '@pages/Insights/dashboardSpecs';
 import type {InsightsFilters} from '@pages/Insights/insightsFilters';
+import {getInsightsGroupByOptions, getQueryGroupBy} from '@pages/Insights/insightsGroupByUtils';
 
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
@@ -54,22 +55,26 @@ type InsightsChartWidgetProps = {
 function InsightsChartWidget({chart, queryJSON, snapshot, filters, onRetry, onGroupByChange}: InsightsChartWidgetProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {cardPaddingHorizontal, cardPaddingBottom} = useLayoutSpacing();
     const icons = useMemoizedLazyExpensifyIcons(['Expand']);
 
     const {isOffline} = useNetwork();
     const sortedData = useGroupedItems(snapshot, queryJSON);
     const {data, state} = resolveInsightsChartData({snapshot, queryJSON, sortedData, isOffline});
-    const groupBy = chart.groupBy ?? filters.groupBy;
+    const groupBy = chart.groupBy ?? getQueryGroupBy(filters);
     const isLoading = state === INSIGHTS_CHART_STATE.LOADING;
     const shouldShowTable = chart.view === CONST.SEARCH.VIEW.BAR || chart.view === CONST.SEARCH.VIEW.PIE;
 
-    const groupByControl = onGroupByChange ? (
-        <InsightsGroupByDropdown
-            groupBy={filters.groupBy}
-            onChange={onGroupByChange}
-        />
-    ) : null;
+    const groupByOptions = getInsightsGroupByOptions(filters.date);
+
+    const groupByControl =
+        onGroupByChange && groupByOptions.length > 1 ? (
+            <InsightsGroupByDropdown
+                groupBy={getQueryGroupBy(filters)}
+                options={groupByOptions}
+                onChange={onGroupByChange}
+            />
+        ) : null;
 
     const headerMenu =
         !!queryJSON && (state === INSIGHTS_CHART_STATE.READY || isLoading) ? (
@@ -104,18 +109,19 @@ function InsightsChartWidget({chart, queryJSON, snapshot, filters, onRetry, onGr
             {state === INSIGHTS_CHART_STATE.ERROR && <ChartErrorState onRetry={onRetry} />}
             {state === INSIGHTS_CHART_STATE.EMPTY && <ChartEmptyState testID={`insightsChartEmptyState-${chart.graphKey}`} />}
             {(state === INSIGHTS_CHART_STATE.LOADING || state === INSIGHTS_CHART_STATE.READY) && (
-                <View style={shouldUseNarrowLayout ? styles.pb5 : styles.pb8}>
+                <View style={cardPaddingBottom}>
                     <SearchChartView
                         queryJSON={queryJSON}
                         view={chart.view}
                         groupBy={groupBy}
                         data={data}
                         isLoading={isLoading}
-                        chartContainerStyle={shouldUseNarrowLayout ? styles.ph5 : styles.ph8}
+                        chartContainerStyle={cardPaddingHorizontal}
+                        shouldShowSinglePointAsBar
                         shouldShowGroupLabels={false}
                         renderDetails={
                             shouldShowTable
-                                ? (rows) => (
+                                ? ({rows}) => (
                                       <InsightsDataTable
                                           rows={rows}
                                           isLoading={isLoading}

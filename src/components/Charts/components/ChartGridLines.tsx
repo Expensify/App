@@ -24,7 +24,8 @@ const STROKE_WIDTH = VictoryTheme.axis.yLineWidth;
 
 function ChartGridLines({yTicks, yScale, chartBounds, color}: ChartGridLinesProps) {
     return yTicks.map((tick) => {
-        const y = yScale(tick);
+        // The plot is clipped at its bottom edge, so a line sitting on it would lose its lower half.
+        const y = Math.min(yScale(tick), chartBounds.bottom - STROKE_WIDTH / 2);
         return (
             <Line
                 key={`grid-line-${tick}`}
