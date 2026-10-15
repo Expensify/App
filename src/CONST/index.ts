@@ -971,7 +971,7 @@ const CONST = {
         FILE_LIMIT: 1,
     },
     DYNAMIC_FORM: {
-        /** A select with more options than this sits on its own page, since it opens a searchable list */
+        /** A select with more options than this opens a searchable list, so it sits on its own page */
         LARGE_SELECT_MIN_OPTIONS: 10,
 
         /** Most questions sharing a page when pages are built from a flat list of fields */
@@ -6063,7 +6063,6 @@ const CONST = {
         TIME_FORMAT: /^\d{2}:\d{2} [AP]M$/,
         DATE_TIME_FORMAT: /^\d{2}-\d{2} \d{2}:\d{2} [AP]M$/,
         ILLEGAL_FILENAME_CHARACTERS: /\/|<|>|\*|"|:|#|\?|\\|\|/g,
-        ENCODE_PERCENT_CHARACTER: /%(25)+/g,
         INVISIBLE_CHARACTERS_GROUPS: /[\p{C}\p{Z}]/gu,
         OTHER_INVISIBLE_CHARACTERS: /[\u3164\u115f\u1160\uffa0\u2800]/g,
         SHORT_MENTION_HTML: /<mention-short>(.*?)<\/mention-short>/g,
@@ -10392,6 +10391,9 @@ const CONST = {
         },
         UPLOAD_FILE: {
             REMOVE_BUTTON: 'UploadFile-RemoveButton',
+        },
+        LIST_FIELD: {
+            REMOVE_BUTTON: 'ListField-RemoveButton',
         },
         BANK_ACCOUNT: {
             DATA_SECURE_LINK: 'BankAccount-DataSecureLink',
