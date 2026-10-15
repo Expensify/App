@@ -50,8 +50,8 @@ function AddressFields({street1, street2, city, state, zip, defaultCountry, coun
             setStateValue('');
             return;
         }
-        if (key === INPUT_IDS.STATE) {
-            setStateValue(value as string);
+        if (key === INPUT_IDS.STATE && typeof value === 'string') {
+            setStateValue(value);
         }
     };
 
