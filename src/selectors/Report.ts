@@ -2,6 +2,7 @@ import type {ReportHierarchyInfo} from '@libs/actions/ClearReportActionErrors';
 import {getOriginalMessage, isClosedAction} from '@libs/ReportActionsUtils';
 import {
     canShowReportRecipientLocalTime,
+    getPolicyExpenseChat,
     getPolicyIDsWithEmptyReportsForAccount,
     isArchivedReport,
     isChatRoom,
@@ -390,6 +391,9 @@ function isDraftReportSelector(draft: OnyxEntry<Report>): boolean {
     return !!draft;
 }
 
+const policyExpenseChatSelector = (ownerAccountID: number | undefined, policyID: string | undefined) => (reports: OnyxCollection<Report>) =>
+    getPolicyExpenseChat(ownerAccountID, policyID, reports ?? {});
+
 function reportHierarchySelector(report: OnyxEntry<Report>): OnyxEntry<ReportHierarchyInfo> {
     return (
         report && {
@@ -437,6 +441,7 @@ export {
     openExpenseReportIDsSelector,
     getStableReportSelector,
     isDraftReportSelector,
+    policyExpenseChatSelector,
     reportsParentHierarchySelector,
     reportsByIDsSelector,
 };
