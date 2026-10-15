@@ -26,9 +26,9 @@ import type Transaction from '@src/types/onyx/Transaction';
 import type TransactionState from '@src/types/utils/TransactionStateType';
 
 import type {StyleProp, ViewStyle} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
-import React from 'react';
+import React, {useCallback} from 'react';
 import {View} from 'react-native';
 
 const MAX_WAYPOINTS = 25;
@@ -60,7 +60,13 @@ function DistanceRequestFooter({waypoints, transaction, navigateToWaypointEditPa
     const {isOffline} = useNetwork();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Plus', 'History']);
     const [reusableDistanceRoutes] = useOnyx(ONYXKEYS.REUSABLE_DISTANCE_ROUTES);
-    const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
+    const hasAvailableReusableRouteSelector = useCallback(
+        (transactions: OnyxCollection<Transaction>) => getAvailableReusableDistanceRoutes(reusableDistanceRoutes, transactions, isOffline).length > 0,
+        [reusableDistanceRoutes, isOffline],
+    );
+    const [hasAvailableReusableRoute = false] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {
+        selector: hasAvailableReusableRouteSelector,
+    });
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const [personalPolicyID] = useOnyx(ONYXKEYS.PERSONAL_POLICY_ID);
     const activePolicy = usePolicy(activePolicyID);
@@ -111,8 +117,7 @@ function DistanceRequestFooter({waypoints, transaction, navigateToWaypointEditPa
         });
     }
 
-    const availableReusableRoutes = getAvailableReusableDistanceRoutes(reusableDistanceRoutes, allTransactions, isOffline);
-    const shouldShowReuseRoute = !!navigateToReuseRoutePage && availableReusableRoutes.length > 0;
+    const shouldShowReuseRoute = !!navigateToReuseRoutePage && hasAvailableReusableRoute;
     const isAddStopDisabled = numberOfWaypoints === MAX_WAYPOINTS;
 
     return (

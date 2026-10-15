@@ -222,5 +222,33 @@ describe('ReusableDistanceRoutesUtils', () => {
                 },
             ]);
         });
+
+        it('falls back to the existing transaction receipt source when missing on the existing route entry', () => {
+            // Given an existing locally created route whose receiptSource is stored on its transaction in Onyx
+            const existingRoute = createRoute('tx-old', ['A', 'B']);
+            const newRoute = createRoute('tx-new', ['A', 'B']);
+            const transactions: Record<string, Transaction> = {
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}tx-old`]: {
+                    transactionID: 'tx-old',
+                    amount: 100,
+                    created: '2026-09-01',
+                    currency: CONST.CURRENCY.USD,
+                    merchant: 'Test Merchant',
+                    reportID: '1',
+                    receipt: {source: 'https://expensify.com/receipts/w_from_tx.pdf'},
+                },
+            };
+
+            // When building optimistic Onyx data for the newly reused route
+            const {optimisticData} = getLocallyCreatedRouteOnyxData(newRoute, [existingRoute], transactions);
+
+            // Then the new route preserves the receiptSource from the previous transaction
+            expect(optimisticData.at(0)?.value).toEqual([
+                {
+                    ...newRoute,
+                    receiptSource: 'https://expensify.com/receipts/w_from_tx.pdf',
+                },
+            ]);
+        });
     });
 });

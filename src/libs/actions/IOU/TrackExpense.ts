@@ -2973,9 +2973,10 @@ function trackExpense(params: CreateTrackExpenseParams) {
                         waypoints: validWaypoints,
                         distance: effectiveDistance,
                         routeDistanceMeters: selectedRouteDistance,
-                        inserted: created ?? DateUtils.getDBTime(),
+                        inserted: DateUtils.getDBTime(),
                     },
                     reusableDistanceRoutes ?? [],
+                    getAllTransactions(),
                 );
                 onyxData?.optimisticData?.push(...reusableRouteOnyxData.optimisticData);
                 onyxData?.failureData?.push(...reusableRouteOnyxData.failureData);

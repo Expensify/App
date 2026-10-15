@@ -29,7 +29,9 @@ import {getRateID} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
-import type {ReusableDistanceRoute} from '@src/types/onyx';
+import type {ReusableDistanceRoute, Transaction} from '@src/types/onyx';
+
+import type {OnyxCollection} from 'react-native-onyx';
 
 import {useFocusEffect} from '@react-navigation/native';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
@@ -73,7 +75,13 @@ function IOURequestStepReuseRoute({
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [skipConfirmation] = useOnyx(`${ONYXKEYS.COLLECTION.SKIP_CONFIRMATION}${transactionID}`);
     const [reusableDistanceRoutes] = useOnyx(ONYXKEYS.REUSABLE_DISTANCE_ROUTES);
-    const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
+    const availableRoutesSelector = useCallback(
+        (transactions: OnyxCollection<Transaction>) => getAvailableReusableDistanceRoutes(reusableDistanceRoutes, transactions, isOffline),
+        [reusableDistanceRoutes, isOffline],
+    );
+    const [availableRoutes] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {
+        selector: availableRoutesSelector,
+    });
     const [isLoadingReusableDistanceRoutes] = useOnyx(ONYXKEYS.IS_LOADING_REUSABLE_DISTANCE_ROUTES);
     const [searchValue, setSearchValue] = useState('');
     const [selectedRoute, setSelectedRoute] = useState<ReusableDistanceRoute | null>(null);
@@ -166,7 +174,7 @@ function IOURequestStepReuseRoute({
             });
     };
 
-    const routes = useMemo(() => getAvailableReusableDistanceRoutes(reusableDistanceRoutes, allTransactions, isOffline), [allTransactions, isOffline, reusableDistanceRoutes]);
+    const routes = availableRoutes ?? [];
     const filteredRoutes = filterRoutes(routes, searchValue);
     const data: ReuseRouteListItemData[] = filteredRoutes.map((route) => ({
         route,
