@@ -215,6 +215,7 @@ function runCrossReportMergeToSourceReportRequest(fixtures: CrossReportMergeToSo
         mergeTransactionID,
         mergeTransaction,
         targetTransaction,
+        transactionsOfDeletableReportCollection: {[targetTransaction.transactionID]: targetTransaction},
         sourceTransaction,
         policy: undefined,
         policyTags: undefined,
@@ -341,6 +342,7 @@ describe('mergeTransactionRequest', () => {
             mergeTransactionID,
             mergeTransaction,
             targetTransaction,
+            transactionsOfDeletableReportCollection: {[sourceTransaction.transactionID]: sourceTransaction},
             sourceTransaction,
             sourceIOUActionThreadReport: undefined,
             targetTransactionThreadReport: {reportID: 'target-report-456'},
@@ -468,6 +470,7 @@ describe('mergeTransactionRequest', () => {
             mergeTransactionID,
             mergeTransaction,
             targetTransaction,
+            transactionsOfDeletableReportCollection: {[sourceTransaction.transactionID]: sourceTransaction},
             sourceTransaction,
             sourceIOUActionThreadReport: undefined,
             targetTransactionThreadReport: {reportID: targetReportID},
@@ -578,6 +581,7 @@ describe('mergeTransactionRequest', () => {
             mergeTransactionID,
             mergeTransaction,
             targetTransaction,
+            transactionsOfDeletableReportCollection: {[sourceTransaction.transactionID]: sourceTransaction},
             sourceTransaction,
             sourceIOUActionThreadReport: undefined,
             targetTransactionThreadReport: {reportID: targetExpenseReport.reportID},
@@ -738,6 +742,7 @@ describe('mergeTransactionRequest', () => {
             mergeTransactionID,
             mergeTransaction,
             targetTransaction,
+            transactionsOfDeletableReportCollection: {[targetTransaction.transactionID]: targetTransaction},
             sourceTransaction,
             sourceIOUActionThreadReport: undefined,
             targetTransactionThreadReport: {reportID: 'target-report-456'},
@@ -853,6 +858,7 @@ describe('mergeTransactionRequest', () => {
             mergeTransactionID,
             mergeTransaction,
             targetTransaction,
+            transactionsOfDeletableReportCollection: {[sourceTransaction.transactionID]: sourceTransaction},
             sourceTransaction,
             sourceIOUActionThreadReport: undefined,
             targetTransactionThreadReport: {reportID: 'target123'},
@@ -1046,6 +1052,7 @@ describe('mergeTransactionRequest', () => {
             mergeTransactionID,
             mergeTransaction: unreportedMergeTransaction,
             targetTransaction,
+            transactionsOfDeletableReportCollection: {[unreportedSourceTransaction.transactionID]: unreportedSourceTransaction},
             sourceTransaction: unreportedSourceTransaction,
             policy: undefined,
             policyTags: undefined,
@@ -1255,6 +1262,7 @@ describe('mergeTransactionRequest', () => {
                 mergeTransactionID,
                 mergeTransaction,
                 targetTransaction,
+                transactionsOfDeletableReportCollection: {[sourceTransaction.transactionID]: sourceTransaction, [otherTransaction.transactionID]: otherTransaction},
                 sourceTransaction,
                 sourceIOUActionThreadReport: undefined,
                 targetTransactionThreadReport: {reportID: 'target-report-456'},
@@ -1467,6 +1475,7 @@ describe('mergeTransactionRequest', () => {
                 mergeTransactionID,
                 mergeTransaction,
                 targetTransaction,
+                transactionsOfDeletableReportCollection: {[sourceTransaction.transactionID]: sourceTransaction, [otherTransaction.transactionID]: otherTransaction},
                 sourceTransaction,
                 sourceIOUActionThreadReport: thread,
                 targetTransactionThreadReport: {reportID: 'target-report-456'},
@@ -1628,6 +1637,7 @@ describe('mergeTransactionRequest', () => {
                 mergeTransactionID,
                 mergeTransaction,
                 targetTransaction,
+                transactionsOfDeletableReportCollection: {[sourceTransaction.transactionID]: sourceTransaction},
                 sourceTransaction,
                 sourceIOUActionThreadReport: thread,
                 targetTransactionThreadReport: {reportID: 'target-report-456'},
@@ -1765,6 +1775,7 @@ describe('mergeTransactionRequest', () => {
                 mergeTransactionID,
                 mergeTransaction,
                 targetTransaction,
+                transactionsOfDeletableReportCollection: {[sourceTransaction.transactionID]: sourceTransaction},
                 sourceTransaction,
                 sourceIOUActionThreadReport,
                 targetTransactionThreadReport: {reportID: targetReportID},
@@ -1912,6 +1923,7 @@ describe('mergeTransactionRequest', () => {
                 mergeTransactionID,
                 mergeTransaction,
                 targetTransaction,
+                transactionsOfDeletableReportCollection: {[sourceTransaction.transactionID]: sourceTransaction},
                 sourceTransaction,
                 sourceIOUActionThreadReport,
                 targetTransactionThreadReport: {reportID: targetReportID},
@@ -1995,9 +2007,10 @@ describe('getTransactionsForMerging', () => {
         });
         await waitForBatchedUpdates();
 
-        // Then no merge transaction entry is written for the empty key
+        // Then no merge transaction entry is written for the empty key. The empty transactionID resolves
+        // to the collection root key, and reading an empty collection returns an empty object.
         const mergeTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.MERGE_TRANSACTION}${targetTransaction.transactionID}`);
-        expect(mergeTransaction).toBeUndefined();
+        expect(mergeTransaction).toEqual({});
     });
 
     it('builds the eligible list from reportTransactions when a workspace approver merges from a report they did not submit', async () => {

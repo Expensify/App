@@ -92,11 +92,6 @@ jest.mock('@hooks/useConfirmModal', () => ({
     default: jest.fn(() => ({showConfirmModal: jest.fn()})),
 }));
 
-jest.mock('@hooks/useConfirmPendingRTERAndProceed', () => ({
-    __esModule: true,
-    default: jest.fn(() => (onProceed: () => void) => onProceed()),
-}));
-
 jest.mock('@hooks/useReportIsArchived', () => ({
     __esModule: true,
     default: jest.fn(() => false),
@@ -239,6 +234,8 @@ jest.mock('@libs/ReportUtils', () => {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     return {
         ...actual,
+        canApproveIOU: jest.fn(() => false),
+        canIOUBePaid: jest.fn(() => false),
         hasHeldExpensesFromTransactions: jest.fn(() => false),
         hasOnlyHeldExpenses: jest.fn(() => false),
         hasUpdatedTotal: jest.fn(() => true),
@@ -256,8 +253,6 @@ jest.mock('@libs/actions/IOU/ReportWorkflow', () => ({
     __esModule: true,
     submitReport: jest.fn(),
     approveMoneyRequest: jest.fn(),
-    canApproveIOU: jest.fn(() => false),
-    canIOUBePaid: jest.fn(() => false),
 }));
 
 jest.mock('@libs/actions/IOU/PayMoneyRequest', () => ({
@@ -305,18 +300,12 @@ jest.mock('@libs/PaymentUtils', () => ({
 
 jest.mock('@libs/TransactionUtils', () => ({
     __esModule: true,
-    hasAnyPendingRTERViolation: jest.fn(() => false),
     hasOnlyPendingCardTransactions: jest.fn(() => false),
     showPendingCardTransactionsBlockModal: jest.fn(),
     isExpensifyCardTransaction: jest.fn(() => false),
     isPending: jest.fn(() => false),
     getReimbursable: jest.fn(() => true),
     isTransactionPendingDelete: jest.fn(() => false),
-}));
-
-jest.mock('@userActions/Transaction', () => ({
-    __esModule: true,
-    markPendingRTERTransactionsAsCash: jest.fn(),
 }));
 
 const mockOpenReportSubmitToPopover = jest.fn<void, [ReportSubmitToPopoverOpenOptions | undefined]>();
