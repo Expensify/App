@@ -47,7 +47,7 @@ type ExpenseDefaultTaxValue = {
 /**
  * The value a `Set` action writes. Which of these is valid depends on the action's `field`.
  */
-type ExpenseDefaultActionValue = string | boolean | ExpenseDefaultTaxValue;
+type ExpenseDefaultActionValue = string | number | boolean | ExpenseDefaultTaxValue;
 
 /**
  * A single change applied to expenses that match the rule's filters.

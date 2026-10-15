@@ -1975,6 +1975,10 @@ type SettingsNavigatorParamList = {
         policyID: string;
         ruleID?: undefined;
     };
+    [SCREENS.WORKSPACE.DYNAMIC_RULES_MERCHANT_AMOUNT]: {
+        policyID: string;
+        ruleID?: undefined;
+    };
     [SCREENS.WORKSPACE.DYNAMIC_RULES_MERCHANT_PREVIEW_MATCHES]: {
         policyID: string;
         ruleID?: undefined;
@@ -2127,6 +2131,10 @@ type SettingsNavigatorParamList = {
         policyID: string;
         ruleID: string;
     };
+    [SCREENS.WORKSPACE.RULES_MERCHANT_AMOUNT]: {
+        policyID: string;
+        ruleID: string;
+    };
     [SCREENS.WORKSPACE.RULES_MERCHANT_EDIT]: {
         policyID: string;
         ruleID: string;
@@ -2139,6 +2147,10 @@ type SettingsNavigatorParamList = {
         policyID: string;
         ruleID: string;
         categoryName?: string;
+    };
+    [SCREENS.WORKSPACE.RULES_TAG_TO_MATCH]: {
+        policyID: string;
+        ruleID: string;
     };
     [SCREENS.WORKSPACE.RULES_CATEGORY_TAX_EDIT]: {
         policyID: string;

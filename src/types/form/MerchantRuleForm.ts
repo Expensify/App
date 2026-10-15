@@ -5,6 +5,7 @@ import type {ValueOf} from 'type-fest';
 import type Form from './Form';
 
 const INPUT_IDS = {
+    AMOUNT: 'amount',
     BILLABLE: 'billable',
     CATEGORY: 'category',
     CATEGORIES_TO_MATCH: 'categoriesToMatch',
@@ -28,6 +29,7 @@ type ExpenseDefaultRuleType = ValueOf<typeof CONST.POLICY.EXPENSE_DEFAULT_RULE_T
 type MerchantRuleForm = Form<
     InputID,
     {
+        [INPUT_IDS.AMOUNT]: string;
         [INPUT_IDS.BILLABLE]: boolean;
         [INPUT_IDS.CATEGORY]: string;
         [INPUT_IDS.CATEGORIES_TO_MATCH]: string[];

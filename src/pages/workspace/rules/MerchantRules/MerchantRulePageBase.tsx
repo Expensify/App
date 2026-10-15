@@ -33,6 +33,7 @@ import Tab from '@libs/actions/Tab';
 import {clearDraftMerchantRule, setDraftMerchantRule} from '@libs/actions/User';
 import {getCategoryTaxRuleTaxID, getTaxRateDisplayName, hasUsableTaxRates, isCategoryRuleDraft} from '@libs/CategoryTaxRulesUtils';
 import {getDecodedCategoryName} from '@libs/CategoryUtils';
+import {convertAmountToDisplayString} from '@libs/CurrencyUtils';
 import {
     buildMerchantRule,
     canEditMerchantRule,
@@ -192,7 +193,7 @@ function MerchantRulePageBase({
     const isEditingSavedRule = isEditing || isEditingCategoryTaxRule;
     const isInLandscapeMode = useIsInLandscapeMode();
     const {isBetaEnabled} = usePermissions();
-    const icons = useMemoizedLazyExpensifyIcons(['Basket', 'Folder', 'Pencil', 'InvoiceGeneric', 'Tag', 'Paycheck']);
+    const icons = useMemoizedLazyExpensifyIcons(['Basket', 'Cash', 'Folder', 'Pencil', 'InvoiceGeneric', 'Tag', 'Paycheck']);
 
     const [form] = useOnyx(ONYXKEYS.FORMS.MERCHANT_RULE_FORM);
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
@@ -310,8 +311,8 @@ function MerchantRulePageBase({
     const unavailableLabel = translate(isOnXero ? 'workspace.rules.merchantRules.supplierUnavailable' : 'workspace.rules.merchantRules.vendorUnavailable');
     const vendorDisplayName = form?.vendorID ? getVendorRuleDisplayValue(policy, form.vendorID, unavailableLabel) : undefined;
 
-    // `Expense defaults` has not been migrated to the new rules system, so a rule can only carry one condition. The
-    // type is chosen before this page opens, so the condition and the defaults the type can't carry are simply absent.
+    // A rule matches on every condition it carries, so all three rows are offered together. A category tax default is
+    // the exception: it is still stored the old way and carries its one category.
     const categoriesToMatch = form?.categoriesToMatch ?? [];
     const hasCategoryCondition = categoriesToMatch.length > 0;
     const hasMerchantCondition = !!form?.merchantToMatch;
@@ -359,6 +360,9 @@ function MerchantRulePageBase({
 
     // One rule per category is saved, so the condition row lists every category the admin picked.
     const categoriesToMatchDisplayName = hasCategoryCondition ? categoriesToMatch.map(getDecodedCategoryName).join(', ') : undefined;
+    const tagsToMatch = form?.tagsToMatch ?? [];
+    const tagsToMatchDisplayName = tagsToMatch.length > 0 ? tagsToMatch.map(getCleanedTagName).join(', ') : undefined;
+    const amountDisplayName = form?.amount ? convertAmountToDisplayString(Number(form.amount), policy?.outputCurrency) : undefined;
     const categoryDisplayName = form?.category ? getDecodedCategoryName(form.category) : undefined;
     // Blank rather than the raw ID once the rate is gone from the workspace.
     const taxRateID = isCategoryRule ? categoryTaxID : form?.tax;
@@ -529,8 +533,6 @@ function MerchantRulePageBase({
                     : {
                           key: 'merchantToMatch',
                           description: translate('common.merchant'),
-                          // The rule's only condition, since the type is chosen before this page opens.
-                          required: true,
                           title: form?.merchantToMatch,
                           onPress: () =>
                               Navigation.navigate(
@@ -538,17 +540,26 @@ function MerchantRulePageBase({
                               ),
                           icon: icons.Basket,
                       },
-                isScopedToCategory
+                hasCategories()
                     ? {
                           key: 'categoriesToMatch',
                           description: translate('common.category'),
-                          required: true,
+                          required: isScopedToCategory,
                           title: categoriesToMatchDisplayName,
                           onPress: () => Navigation.navigate(ROUTES.RULES_CATEGORY_TO_MATCH.getRoute(policyID, ruleID, editCategoryTaxRuleFor)),
                           isLocked: isCategoryLocked,
                           icon: icons.Folder,
                       }
                     : undefined,
+                isScopedToCategory || !hasTags()
+                    ? undefined
+                    : {
+                          key: 'tagsToMatch',
+                          description: translate('common.tag'),
+                          title: tagsToMatchDisplayName,
+                          onPress: () => Navigation.navigate(ROUTES.RULES_TAG_TO_MATCH.getRoute(policyID, ruleID)),
+                          icon: icons.Tag,
+                      },
             ],
         },
         {
@@ -607,6 +618,13 @@ function MerchantRulePageBase({
                           icon: icons.InvoiceGeneric,
                       }
                     : undefined,
+                {
+                    key: 'amount',
+                    description: translate('iou.amount'),
+                    title: amountDisplayName,
+                    onPress: () => Navigation.navigate(getRuleRoute(DYNAMIC_ROUTES.RULES_MERCHANT_AMOUNT_FROM_EXPENSE.path, ROUTES.RULES_MERCHANT_AMOUNT.getRoute(policyID, ruleID))),
+                    icon: icons.Cash,
+                },
                 isVendorFeatureEnabled
                     ? {
                           key: 'vendorID',

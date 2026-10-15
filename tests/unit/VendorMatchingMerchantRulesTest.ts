@@ -26,6 +26,7 @@ const buildForm = (overrides: Partial<MerchantRuleForm> = {}): MerchantRuleForm 
     category: '',
     categoriesToMatch: [],
     ruleType: CONST.POLICY.EXPENSE_DEFAULT_RULE_TYPE.MERCHANT,
+    amount: '',
     tag: '',
     tagsToMatch: [],
     tax: '',

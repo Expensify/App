@@ -1436,6 +1436,7 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.WORKSPACE.DYNAMIC_RULES_MERCHANT_DESCRIPTION]: DYNAMIC_ROUTES.RULES_MERCHANT_DESCRIPTION_FROM_EXPENSE.path,
                         [SCREENS.WORKSPACE.DYNAMIC_RULES_MERCHANT_REIMBURSABLE]: DYNAMIC_ROUTES.RULES_MERCHANT_REIMBURSABLE_FROM_EXPENSE.path,
                         [SCREENS.WORKSPACE.DYNAMIC_RULES_MERCHANT_BILLABLE]: DYNAMIC_ROUTES.RULES_MERCHANT_BILLABLE_FROM_EXPENSE.path,
+                        [SCREENS.WORKSPACE.DYNAMIC_RULES_MERCHANT_AMOUNT]: DYNAMIC_ROUTES.RULES_MERCHANT_AMOUNT_FROM_EXPENSE.path,
                         [SCREENS.WORKSPACE.DYNAMIC_RULES_MERCHANT_PREVIEW_MATCHES]: DYNAMIC_ROUTES.RULES_MERCHANT_PREVIEW_MATCHES_FROM_EXPENSE.path,
                         [SCREENS.WORKSPACE.RULES_MERCHANT_IMPORT]: {
                             path: ROUTES.RULES_MERCHANT_IMPORT.route,
@@ -1542,8 +1543,14 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.WORKSPACE.RULES_MERCHANT_BILLABLE]: {
                             path: ROUTES.RULES_MERCHANT_BILLABLE.route,
                         },
+                        [SCREENS.WORKSPACE.RULES_MERCHANT_AMOUNT]: {
+                            path: ROUTES.RULES_MERCHANT_AMOUNT.route,
+                        },
                         [SCREENS.WORKSPACE.RULES_CATEGORY_TO_MATCH]: {
                             path: ROUTES.RULES_CATEGORY_TO_MATCH.route,
+                        },
+                        [SCREENS.WORKSPACE.RULES_TAG_TO_MATCH]: {
+                            path: ROUTES.RULES_TAG_TO_MATCH.route,
                         },
                         [SCREENS.WORKSPACE.RULES_CATEGORY_TAX_EDIT]: {
                             path: ROUTES.RULES_CATEGORY_TAX_EDIT.route,

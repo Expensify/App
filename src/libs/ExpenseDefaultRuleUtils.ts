@@ -50,6 +50,9 @@ type MerchantRuleFormValues = {
     /** The external ID of the tax rate set on the expense */
     tax?: string;
 
+    /** The amount set on the expense, as positive whole cents. A form input can only hold a string, and the rule stores the value negated */
+    amount?: string;
+
     /** The external ID of the vendor set on the expense */
     vendorID?: string;
 
@@ -89,7 +92,7 @@ const CONDITION = {
 } as const;
 
 /** The order actions are written in, which fixes the numeric keys a built rule uses. */
-const ACTION_FIELD_ORDER = [FIELD.MERCHANT, FIELD.CATEGORY, FIELD.TAG, FIELD.TAX, FIELD.VENDOR_ID, FIELD.COMMENT, FIELD.REIMBURSABLE, FIELD.BILLABLE] as const;
+const ACTION_FIELD_ORDER = [FIELD.MERCHANT, FIELD.CATEGORY, FIELD.TAG, FIELD.TAX, FIELD.AMOUNT, FIELD.VENDOR_ID, FIELD.COMMENT, FIELD.REIMBURSABLE, FIELD.BILLABLE] as const;
 
 /** Merchant match types the editor can represent. Any other operator on the merchant node makes a rule read-only. */
 const SUPPORTED_MERCHANT_MATCH_TYPES = new Set<ValueOf<typeof CONST.SEARCH.SYNTAX_OPERATORS>>([EQUAL_TO, CONTAINS]);
@@ -189,6 +192,21 @@ function buildTaxActionValue(taxKey: string | undefined, policy: Policy | undefi
     };
 }
 
+/**
+ * Builds the `amount` action value.
+ *
+ * The rules engine stores an expense amount negated, so $30.00 is saved as -3000. The form holds what the admin
+ * typed, and the sign is applied here so only one place knows the convention.
+ */
+function buildAmountActionValue(amount: string | undefined): number | undefined {
+    const amountInCents = Number(amount);
+    if (!amount || !Number.isFinite(amountInCents) || amountInCents === 0) {
+        return undefined;
+    }
+
+    return -Math.abs(amountInCents);
+}
+
 /** A merchant rule as this editor builds it, which is the stored shape minus the fields the server fills in. */
 type BuiltMerchantRule = Omit<ExpenseDefaultRule, 'filters'> & {
     /** The conditions the expense has to meet, ANDed together. */
@@ -270,6 +288,7 @@ function buildMerchantRuleActions(formValues: Partial<MerchantRuleFormValues>, p
         [FIELD.CATEGORY]: emptyToUndefined(formValues.category),
         [FIELD.TAG]: emptyToUndefined(formValues.tag),
         [FIELD.TAX]: buildTaxActionValue(formValues.tax, policy),
+        [FIELD.AMOUNT]: buildAmountActionValue(formValues.amount),
         [FIELD.VENDOR_ID]: emptyToUndefined(formValues.vendorID),
         [FIELD.COMMENT]: comment ? Parser.replace(comment) : undefined,
         [FIELD.REIMBURSABLE]: formValues.reimbursable,
@@ -450,6 +469,15 @@ function getMerchantRuleFormValues(rule: Rule | ExpenseDefaultRule | undefined):
                 return undefined;
             }
             formValues[BOOLEAN_ACTION_FIELD_TO_FORM_KEY[field]] = value;
+            continue;
+        }
+
+        if (field === FIELD.AMOUNT) {
+            // A rule setting a credit rather than an expense has no input in the form, so it stays read-only.
+            if (typeof value !== 'number' || value >= 0) {
+                return undefined;
+            }
+            formValues.amount = String(Math.abs(value));
             continue;
         }
 

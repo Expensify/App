@@ -20,13 +20,15 @@ const CATEGORY_TAX_RULE_KEY_PREFIX = 'category-tax:';
 /**
  * Whether the rule being written is a category tax default rather than a merchant rule.
  *
- * The editor and every picker it opens have to agree on this — the editor picks its rows from it, the tax picker which
- * rates it may offer — so they read it here rather than each rebuilding the same disjunction. A saved rule arrives by
- * category name, an unsaved one carries the type the chooser put in its draft, and a draft that already holds a
- * category counts either way.
+ * The editor and every picker it opens have to agree on this. The editor picks its rows from it and the tax picker
+ * which rates it may offer, so they read it here rather than each rebuilding the same disjunction. A saved rule
+ * arrives by category name and an unsaved one carries the type the chooser put in its draft.
+ *
+ * A category in the draft is not enough on its own. An ordinary rule can match on a category too, and it is stored in
+ * the `rules_` collection rather than as a category tax default.
  */
 function isCategoryRuleDraft(form: MerchantRuleForm | undefined, editingCategoryName?: string): boolean {
-    return !!editingCategoryName || form?.ruleType === CONST.POLICY.EXPENSE_DEFAULT_RULE_TYPE.CATEGORY || !!form?.categoriesToMatch?.length;
+    return !!editingCategoryName || form?.ruleType === CONST.POLICY.EXPENSE_DEFAULT_RULE_TYPE.CATEGORY;
 }
 
 /** Whether a rule has a tax rate to apply. Tracking being on isn't enough on its own, it needs a rate to choose from. */

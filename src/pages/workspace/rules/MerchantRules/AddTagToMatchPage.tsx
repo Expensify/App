@@ -1,0 +1,171 @@
+import BlockingView from '@components/BlockingViews/BlockingView';
+import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
+import ScreenWrapper from '@components/ScreenWrapper';
+import ScrollView from '@components/ScrollView';
+import SelectionList from '@components/SelectionList';
+import MultiSelectListItem from '@components/SelectionList/ListItem/MultiSelectListItem';
+import type {ListItem} from '@components/SelectionList/types';
+
+import useInitialSelection from '@hooks/useInitialSelection';
+import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
+import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
+import useSearchResults from '@hooks/useSearchResults';
+import useThemeStyles from '@hooks/useThemeStyles';
+
+import {updateDraftMerchantRule} from '@libs/actions/User';
+import {canUseTouchScreen} from '@libs/DeviceCapabilities';
+import Navigation from '@libs/Navigation/Navigation';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
+import {getCleanedTagName, getTagLists} from '@libs/PolicyUtils';
+import moveInitialSelectionToTop from '@libs/SelectionListOrderUtils';
+import tokenizedSearch from '@libs/tokenizedSearch';
+
+import variables from '@styles/variables';
+
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
+import type SCREENS from '@src/SCREENS';
+import type {PolicyTagLists} from '@src/types/onyx';
+import getEmptyArray from '@src/types/utils/getEmptyArray';
+
+import type {ValueOf} from 'type-fest';
+
+import React, {useState} from 'react';
+
+type AddTagToMatchPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.RULES_TAG_TO_MATCH>;
+
+type TagListItem = ListItem & {
+    value: string;
+};
+
+function AddTagToMatchPage({route}: AddTagToMatchPageProps) {
+    const {policyID, ruleID} = route.params;
+    const styles = useThemeStyles();
+    const {translate, localeCompare} = useLocalize();
+    const illustrations = useMemoizedLazyIllustrations(['Telescope']);
+
+    const [form] = useOnyx(ONYXKEYS.FORMS.MERCHANT_RULE_FORM);
+    const [policyTagLists = getEmptyArray<ValueOf<PolicyTagLists>>()] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`, {selector: getTagLists});
+
+    const draftTags = form?.tagsToMatch ?? [];
+    const [selectedTags, setSelectedTags] = useState<string[]>(draftTags);
+    const initialSelectedTags = useInitialSelection(draftTags, {resetOnFocus: true});
+
+    // The rule matches any one of the tags it carries, so the levels are offered as one flat list rather than a row
+    // per level. A name shared by two levels is one option, since the rule stores the name and not the level.
+    const tagItems: TagListItem[] = [];
+    const seenTagNames = new Set<string>();
+    for (const tagList of policyTagLists) {
+        for (const tag of Object.values(tagList.tags)) {
+            if (tag.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || seenTagNames.has(tag.name)) {
+                continue;
+            }
+            // A rule keeps a tag it already matches on even once the tag is disabled, so it stays removable.
+            if (!tag.enabled && !selectedTags.includes(tag.name)) {
+                continue;
+            }
+            seenTagNames.add(tag.name);
+            tagItems.push({
+                keyForList: tag.name,
+                text: getCleanedTagName(tag.name),
+                value: tag.name,
+                isSelected: selectedTags.includes(tag.name),
+            });
+        }
+    }
+
+    const filterTag = (item: TagListItem, searchInput: string) => tokenizedSearch([item], searchInput, (tag) => [tag.text ?? '']).length > 0;
+
+    // Pin the initially selected tags to the top of the full sorted list, so they stay at the top while searching.
+    const sortedTagItems = moveInitialSelectionToTop(
+        [...tagItems].sort((first, second) => localeCompare(first.text ?? '', second.text ?? '')),
+        initialSelectedTags,
+    );
+
+    const [inputValue, setInputValue, filteredTagItems] = useSearchResults(sortedTagItems, filterTag);
+
+    const toggleTag = (item: TagListItem) => {
+        setSelectedTags((previous) => (previous.includes(item.value) ? previous.filter((tagName) => tagName !== item.value) : [...previous, item.value]));
+    };
+
+    const toggleSelectAll = () => {
+        const visibleValues = filteredTagItems.map((item) => item.value);
+        const allVisibleSelected = visibleValues.length > 0 && visibleValues.every((value) => selectedTags.includes(value));
+
+        if (allVisibleSelected) {
+            const visibleSet = new Set(visibleValues);
+            setSelectedTags((previous) => previous.filter((value) => !visibleSet.has(value)));
+            return;
+        }
+
+        setSelectedTags((previous) => Array.from(new Set([...previous, ...visibleValues])));
+    };
+
+    // Passed explicitly like every sibling picker, so a deep link has somewhere to pop to.
+    const backToRoute = !ruleID || ruleID === ROUTES.NEW ? ROUTES.RULES_MERCHANT_NEW.getRoute(policyID) : ROUTES.RULES_MERCHANT_EDIT.getRoute(policyID, ruleID);
+    const goBackToRule = () => Navigation.goBack(backToRoute);
+
+    const handleSave = () => {
+        updateDraftMerchantRule({tagsToMatch: selectedTags});
+        Navigation.goBack(backToRoute, {shouldSkipFocusRestore: true});
+    };
+
+    return (
+        <ScreenWrapper
+            testID="AddTagToMatchPage"
+            shouldEnableMaxHeight
+            offlineIndicatorStyle={styles.mtAuto}
+            includeSafeAreaPaddingBottom
+        >
+            <HeaderWithBackButtonAndTitle
+                title={translate('common.tag')}
+                onBackButtonPress={goBackToRule}
+            />
+            <SelectionList
+                canSelectMultiple
+                shouldUpdateFocusedIndex
+                ListItem={MultiSelectListItem}
+                data={filteredTagItems}
+                selectedItems={selectedTags}
+                shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
+                onSelectRow={toggleTag}
+                onSelectionButtonPress={toggleTag}
+                onSelectAll={filteredTagItems.length > 0 ? toggleSelectAll : undefined}
+                textInputOptions={{
+                    value: inputValue,
+                    label: translate('common.search'),
+                    onChangeText: setInputValue,
+                }}
+                style={{
+                    listHeaderWrapperStyle: [styles.pt5, styles.pb2],
+                    listHeaderSelectAllTextStyle: [styles.textLabelSupporting],
+                }}
+                listEmptyContent={
+                    <ScrollView contentContainerStyle={[styles.flexGrow1]}>
+                        <BlockingView
+                            icon={illustrations.Telescope}
+                            iconWidth={variables.emptyListIconWidth}
+                            iconHeight={variables.emptyListIconHeight}
+                            title={translate('common.noResultsFound')}
+                        />
+                    </ScrollView>
+                }
+                footerContent={
+                    <FormAlertWithSubmitButton
+                        buttonText={translate('common.save')}
+                        isAlertVisible={false}
+                        onSubmit={handleSave}
+                        enabledWhenOffline
+                        containerStyles={[styles.flexReset, styles.flexGrow0, styles.flexShrink0, styles.flexBasisAuto]}
+                    />
+                }
+            />
+        </ScreenWrapper>
+    );
+}
+
+export default AddTagToMatchPage;

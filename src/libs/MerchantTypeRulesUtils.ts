@@ -15,6 +15,7 @@ import {setWorkspaceDefaultSpendCategory} from './actions/Policy/Policy';
 import {clearMerchantRuleErrors} from './actions/Policy/Rules';
 import {getCategoryTaxRulesTableData, getTaxRateDisplayName} from './CategoryTaxRulesUtils';
 import {getDecodedCategoryName} from './CategoryUtils';
+import {convertAmountToDisplayString} from './CurrencyUtils';
 import {
     getExpenseDefaultConditionSummary,
     getExpenseDefaultRuleSummaryFields,
@@ -133,6 +134,7 @@ function getMerchantRulesTableData({
         tag: translate('common.tag').toLowerCase(),
         description: translate('common.description').toLowerCase(),
         tax: translate('common.tax').toLowerCase(),
+        amount: translate('iou.amount').toLowerCase(),
         vendor: translate(isOnXero ? 'common.supplier' : 'common.vendor').toLowerCase(),
     };
     const {FIELD} = CONST.RULES.EXPENSE_DEFAULT;
@@ -194,6 +196,15 @@ function getMerchantRulesTableData({
                                 'workspace.rules.merchantRules.ruleSummarySubtitleUpdateField',
                                 fieldLabels.tax,
                                 getTaxRateDisplayName(policy, value.field_id_TAX.externalID, value.field_id_TAX),
+                            ),
+                        );
+                    } else if (field === FIELD.AMOUNT && typeof value === 'number') {
+                        // The rule stores the amount negated, the way an expense carries it.
+                        actions.push(
+                            translate(
+                                'workspace.rules.merchantRules.ruleSummarySubtitleUpdateField',
+                                fieldLabels.amount,
+                                convertAmountToDisplayString(Math.abs(value), policy?.outputCurrency),
                             ),
                         );
                     } else if (field === FIELD.VENDOR_ID && typeof value === 'string') {

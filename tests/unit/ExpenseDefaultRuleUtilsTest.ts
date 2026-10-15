@@ -229,6 +229,42 @@ describe('ExpenseDefaultRuleUtils', () => {
         });
     });
 
+    describe('buildMerchantRule amount default', () => {
+        it('stores the amount negated, the way an expense carries it', () => {
+            // Given a rule setting the amount to $30.00
+            const rule = buildMerchantRule({merchantToMatch: 'Starbucks', amount: '3000'}, policy);
+
+            // When the action is read
+            // Then the stored value is negative cents
+            expect(Object.values(rule?.actions ?? {})).toEqual([{name: ACTION.SET, field: FIELD.AMOUNT, value: -3000}]);
+        });
+
+        it('round trips the amount as the admin typed it', () => {
+            // Given a rule setting an amount
+            const formValues: MerchantRuleFormValues = {merchantToMatch: 'Starbucks', matchType: CONTAINS, amount: '3000'};
+
+            // When it is read back
+            // Then the form gets the positive amount, not the negated one
+            expect(getMerchantRuleFormValues(buildMerchantRule(formValues, policy))).toEqual(formValues);
+        });
+
+        it('leaves out an amount of zero, which is not a default', () => {
+            // Given a rule whose amount was cleared
+            // When it is built
+            // Then nothing is set, so the rule has no default and is not built
+            expect(buildMerchantRule({merchantToMatch: 'Starbucks', amount: '0'}, policy)).toBeUndefined();
+        });
+
+        it('is read-only for a rule that sets a credit', () => {
+            // Given a rule storing a positive amount, which sets a credit rather than an expense
+            const rule = buildRuleWithOverrides({actions: toIndexMap([{name: ACTION.SET, field: FIELD.AMOUNT, value: 3000}])});
+
+            // When the form tries to read it
+            // Then it is refused, because saving the form back would flip the sign
+            expect(getMerchantRuleFormValues(rule)).toBeUndefined();
+        });
+    });
+
     describe('getExpenseDefaultConditionSummary', () => {
         it('groups every condition by the field it matches on', () => {
             // Given a rule matching on a merchant, two categories and a tag
