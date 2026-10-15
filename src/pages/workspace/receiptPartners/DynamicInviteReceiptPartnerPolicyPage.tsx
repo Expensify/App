@@ -154,7 +154,7 @@ function DynamicInviteReceiptPartnerPolicyPage({route}: DynamicInviteReceiptPart
     };
 
     const searchValue = debouncedSearchTerm.trim().toLowerCase();
-    const headerMessage = getHeaderMessage(allMembersWithState.length !== 0, false, searchValue, countryCode, false);
+    const headerMessage = getHeaderMessage(translate, allMembersWithState.length !== 0, false, searchValue, countryCode, false);
 
     const handleConfirm = () => {
         if (selectedOptions.length === 0) {
@@ -212,7 +212,10 @@ function DynamicInviteReceiptPartnerPolicyPage({route}: DynamicInviteReceiptPart
             policyID={policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_RECEIPT_PARTNERS_ENABLED}
         >
-            <ScreenWrapper testID="DynamicInviteReceiptPartnerPolicyPage">
+            <ScreenWrapper
+                testID="DynamicInviteReceiptPartnerPolicyPage"
+                enableEdgeToEdgeBottomSafeAreaPadding
+            >
                 <HeaderWithBackButton
                     title={translate('workspace.receiptPartners.uber.sendInvites')}
                     onBackButtonPress={() => Navigation.goBack(backPath)}

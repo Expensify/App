@@ -8,9 +8,11 @@ import useReportIsArchived from '@hooks/useReportIsArchived';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
+import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {shouldExcludeAncestorReportAction} from '@libs/ReportUtils';
 
+import type {ReportHierarchyInfo} from '@userActions/ClearReportActionErrors';
 import {navigateToConciergeChatAndDeleteReport} from '@userActions/Report';
 
 import CONST from '@src/CONST';
@@ -20,6 +22,7 @@ import type {Report, ReportAction, ReportNameValuePairs, Transaction} from '@src
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
 import {hasSeenTourSelector} from '@selectors/Onboarding';
+import {getConciergeFeedbackForReportActionID} from '@selectors/ReportNameValuePairs';
 import React from 'react';
 import {View} from 'react-native';
 
@@ -40,6 +43,9 @@ type ReportActionItemParentActionProps = {
     shouldDisplayReplyDivider: boolean;
     isFirstVisibleReportAction: boolean;
     shouldUseThreadDividerLine?: boolean;
+
+    /** Parent links of the thread and its ancestors, shared by every ancestor shown above it */
+    reportsParentHierarchy: OnyxCollection<ReportHierarchyInfo>;
 };
 
 function ReportActionItemParentAction({
@@ -51,6 +57,7 @@ function ReportActionItemParentAction({
     shouldDisplayReplyDivider,
     isFirstVisibleReportAction = false,
     shouldUseThreadDividerLine = false,
+    reportsParentHierarchy,
 }: ReportActionItemParentActionProps) {
     const styles = useThemeStyles();
     const ancestors = useAncestors(report, shouldExcludeAncestorReportAction);
@@ -80,6 +87,11 @@ function ReportActionItemParentAction({
             }
             return ancestorReportNameValuePairs;
         },
+    });
+
+    // The backend marks the thread it opens after a thumbs down, and the answer it collects feedback on is not up for rating again
+    const [conciergeFeedbackForReportActionID] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${getNonEmptyStringOnyxID(report?.reportID)}`, {
+        selector: getConciergeFeedbackForReportActionID,
     });
 
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
@@ -128,8 +140,10 @@ function ReportActionItemParentAction({
                         parentReportAction={parentReportAction}
                         transactionThreadReport={transactionThreadReport}
                         isFirstVisibleReportAction={isFirstVisibleReportAction}
+                        shouldAllowConciergeFeedback={!conciergeFeedbackForReportActionID}
                         shouldUseThreadDividerLine={shouldUseThreadDividerLine}
                         linkedTransactionRouteError={linkedTransactionRouteError}
+                        reportsParentHierarchy={reportsParentHierarchy}
                     />
                 ))}
             </OfflineWithFeedback>

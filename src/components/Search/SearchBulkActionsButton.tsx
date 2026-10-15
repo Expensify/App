@@ -1,6 +1,5 @@
 import BulkActionBar from '@components/BulkActionBar';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
-import DecisionModal from '@components/DecisionModal';
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import ExpensifyCardStatementPDFDownloadModal from '@components/ExpensifyCardStatementPDFDownloadModal';
 import HoldOrRejectEducationalModal from '@components/HoldOrRejectEducationalModal';
@@ -10,9 +9,9 @@ import {KYCWallContext} from '@components/KYCWall/KYCWallContext';
 import type {ContinueActionParams} from '@components/KYCWall/types';
 import {useLockedAccountActions, useLockedAccountState} from '@components/LockedAccountModalProvider';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
-import ReportPDFDownloadModal from '@components/ReportPDFDownloadModal';
 
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useLayoutSpacing from '@hooks/useLayoutSpacing';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -48,11 +47,10 @@ type SearchBulkActionsButtonProps = {
 
 function SearchBulkActionsButton({queryJSON}: SearchBulkActionsButtonProps) {
     const styles = useThemeStyles();
+    const {pageGutter} = useLayoutSpacing();
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
-    // We need isSmallScreenWidth (not just shouldUseNarrowLayout) because DecisionModal requires it for correct modal type
-    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
-    const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {selectedTransactions, excludedTransactions = getEmptyObject<SelectedTransactions>(), selectedReports, areAllMatchingItemsSelected} = useSearchSelectionContext();
     const {clearSelectedTransactions} = useSearchSelectionActions();
     const {currentSearchResults} = useSearchResultsContext();
@@ -79,24 +77,13 @@ function SearchBulkActionsButton({queryJSON}: SearchBulkActionsButtonProps) {
         selectedReportIDs,
         businessBankAccountOptions,
         confirmPayment,
-        isOfflineModalVisible,
-        isDownloadErrorModalVisible,
         isHoldEducationalModalVisible,
         areAllTransactionsFromDMReports,
         rejectModalAction,
-        emptyReportsCount,
-        handleOfflineModalClose,
-        handleDownloadErrorModalClose,
-        isPdfModalVisible,
-        setIsPdfModalVisible,
-        pdfReportID,
-        handlePdfModalHide,
         isExpensifyCardStatementPDFModalVisible,
         setIsExpensifyCardStatementPDFModalVisible,
         expensifyCardStatementPDFParams,
         handleExpensifyCardStatementPDFModalHide,
-        isExpensifyCardStatementMultiFeedAlertVisible,
-        handleExpensifyCardStatementMultiFeedAlertClose,
         dismissModalAndUpdateUseHold,
         dismissRejectModalBasedOnAction,
         isDuplicateOptionVisible,
@@ -125,7 +112,7 @@ function SearchBulkActionsButton({queryJSON}: SearchBulkActionsButtonProps) {
 
     const popoverUseScrollView = shouldPopoverUseScrollView(dropdownButtonsOptions);
     const {selectedItemsCount, excludedItemsCount} = useMemo(() => {
-        const getItemsCount = (transactionsToCount: typeof selectedTransactions) => {
+        const getItemsCount = (transactionsToCount: typeof selectedTransactions, cashBackCount: number) => {
             if (isExpenseReportType) {
                 const reportIDs = new Set(
                     Object.values(transactionsToCount)
@@ -137,16 +124,17 @@ function SearchBulkActionsButton({queryJSON}: SearchBulkActionsButtonProps) {
 
             return Object.keys(transactionsToCount).reduce((count, key) => {
                 if (key.startsWith(CONST.SEARCH.GROUP_PREFIX)) {
-                    const group = searchData?.[key as keyof typeof searchData] as {count?: number} | undefined;
-                    return count + (group?.count ?? 0);
+                    const group = searchData?.[key as keyof typeof searchData] as {count?: number; isCashBack?: boolean} | undefined;
+                    return count + (group?.isCashBack ? cashBackCount : (group?.count ?? 0));
                 }
                 return count + 1;
             }, 0);
         };
 
         return {
-            selectedItemsCount: getItemsCount(selectedTransactions),
-            excludedItemsCount: getItemsCount(excludedTransactions),
+            selectedItemsCount: getItemsCount(selectedTransactions, 1),
+            // Excluded items come off the server count, which only sums expenses, so a cash back row takes nothing off.
+            excludedItemsCount: getItemsCount(excludedTransactions, 0),
         };
     }, [excludedTransactions, selectedTransactions, isExpenseReportType, searchData]);
 
@@ -216,6 +204,7 @@ function SearchBulkActionsButton({queryJSON}: SearchBulkActionsButtonProps) {
                 <BulkDuplicateReportHandler
                     selectedReports={selectedReports}
                     allReports={allReports}
+                    allTransactions={allTransactions}
                     searchData={searchData}
                     onHandlerReady={setDuplicateReportHandler}
                 />
@@ -251,7 +240,7 @@ function SearchBulkActionsButton({queryJSON}: SearchBulkActionsButtonProps) {
                                 onSubItemSelected={(subItem) => payBulkSelectedItem(subItem, triggerKYCFlow)}
                                 variant={CONST.BUTTON_VARIANT.SUCCESS}
                                 isSplitButton={false}
-                                style={[styles.w100, styles.ph5]}
+                                style={[styles.w100, pageGutter]}
                                 anchorAlignment={{
                                     horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
                                     vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
@@ -274,32 +263,6 @@ function SearchBulkActionsButton({queryJSON}: SearchBulkActionsButtonProps) {
                     )
                 }
             </KYCWall>
-            <DecisionModal
-                title={translate('common.youAppearToBeOffline')}
-                prompt={translate('common.offlinePrompt')}
-                isSmallScreenWidth={isSmallScreenWidth}
-                onSecondOptionSubmit={handleOfflineModalClose}
-                secondOptionText={translate('common.buttonConfirm')}
-                isVisible={isOfflineModalVisible}
-                onClose={handleOfflineModalClose}
-            />
-            <DecisionModal
-                title={translate('common.downloadFailedTitle')}
-                prompt={emptyReportsCount ? translate('common.downloadFailedEmptyReportDescription', {count: emptyReportsCount}) : translate('common.downloadFailedDescription')}
-                isSmallScreenWidth={isSmallScreenWidth}
-                onSecondOptionSubmit={handleDownloadErrorModalClose}
-                secondOptionText={translate('common.buttonConfirm')}
-                isVisible={isDownloadErrorModalVisible}
-                onClose={handleDownloadErrorModalClose}
-            />
-            {!!pdfReportID && (
-                <ReportPDFDownloadModal
-                    reportID={pdfReportID}
-                    isVisible={isPdfModalVisible}
-                    onClose={() => setIsPdfModalVisible(false)}
-                    onModalHide={handlePdfModalHide}
-                />
-            )}
             {!!expensifyCardStatementPDFParams && (
                 <ExpensifyCardStatementPDFDownloadModal
                     statementParams={expensifyCardStatementPDFParams}
@@ -308,15 +271,6 @@ function SearchBulkActionsButton({queryJSON}: SearchBulkActionsButtonProps) {
                     onModalHide={handleExpensifyCardStatementPDFModalHide}
                 />
             )}
-            <DecisionModal
-                title={translate('search.expensifyCardStatementPDF.title')}
-                prompt={translate('search.expensifyCardStatementPDF.oneFeedAtATime')}
-                isSmallScreenWidth={isSmallScreenWidth}
-                onSecondOptionSubmit={handleExpensifyCardStatementMultiFeedAlertClose}
-                secondOptionText={translate('common.buttonConfirm')}
-                isVisible={isExpensifyCardStatementMultiFeedAlertVisible}
-                onClose={handleExpensifyCardStatementMultiFeedAlertClose}
-            />
             {!!rejectModalAction && (
                 <HoldOrRejectEducationalModal
                     onClose={dismissRejectModalBasedOnAction}

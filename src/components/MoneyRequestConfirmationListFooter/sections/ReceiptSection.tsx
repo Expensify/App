@@ -14,7 +14,7 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import {shouldShowReceiptEmptyState} from '@libs/IOUUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
-import {isScanRequest} from '@libs/TransactionUtils';
+import {isMapBasedDistanceRequest, isScanRequest} from '@libs/TransactionUtils';
 
 import CONST from '@src/CONST';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
@@ -117,6 +117,7 @@ function ReceiptSection({
                 receiptPageCount={transaction?.receipt?.pageCount ?? 0}
                 isOdometerDistanceRequest={isOdometerDistanceRequest}
                 isDistanceRequest={isDistanceRequest}
+                isMapDistanceRequest={isMapBasedDistanceRequest(transaction)}
                 compactReceiptContainerStyle={compact.compactReceiptContainerStyle}
                 onPDFLoadError={onPDFLoadError}
                 onPDFPassword={onPDFPassword}
