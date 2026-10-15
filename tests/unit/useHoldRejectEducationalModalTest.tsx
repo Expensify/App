@@ -143,6 +143,7 @@ describe('useHoldRejectEducationalModal', () => {
             const {showHoldOrRejectEducationalModal} = useHoldRejectEducationalModal({onHoldOrRejectModalDismiss});
             React.useEffect(() => {
                 showHoldOrRejectEducationalModal(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.REJECT);
+                // Open the modal once on mount to simulate a user action; re-running on a new show function identity would stack a second modal
                 // eslint-disable-next-line react-hooks/exhaustive-deps
             }, []);
             return null;

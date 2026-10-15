@@ -31,10 +31,10 @@ type MoneyReportHeaderModalsProps = {
 };
 
 function MoneyReportHeaderModals({reportID, children}: MoneyReportHeaderModalsProps) {
-    const [moneyRequestReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
+    const [moneyRequestReportID] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {selector: (report) => report?.reportID});
 
     return (
-        <MoneyReportTransactionThreadProvider reportID={moneyRequestReport?.reportID}>
+        <MoneyReportTransactionThreadProvider reportID={moneyRequestReportID}>
             <MoneyReportHeaderModalsContent reportID={reportID}>{children}</MoneyReportHeaderModalsContent>
         </MoneyReportTransactionThreadProvider>
     );
