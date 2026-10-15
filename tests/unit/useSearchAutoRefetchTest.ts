@@ -618,7 +618,8 @@ describe('useSearchAutoRefetch', () => {
     });
 
     describe('member custom field changes', () => {
-        const transaction = createMock<Transaction>({transactionID: '1'});
+        const transactions = {transactions_1: createMock<Transaction>({transactionID: '1'})};
+        const reportActions = {};
         const policyWithMember = (employee: Partial<PolicyEmployee>) => createMock<Policy>({id: '1', employeeList: {'a@b.com': employee}});
 
         const buildProps = (policy: Policy, previousPolicy: Policy, policyKey = 'policy_1') =>
@@ -631,8 +632,10 @@ describe('useSearchAutoRefetch', () => {
                         policy_1: {id: '1'},
                     },
                 },
-                transactions: {transactions_1: transaction},
-                previousTransactions: {transactions_1: transaction},
+                transactions,
+                previousTransactions: transactions,
+                reportActions,
+                previousReportActions: reportActions,
                 policies: {[policyKey]: policy},
                 previousPolicies: {[policyKey]: previousPolicy},
             });

@@ -34,8 +34,10 @@ type UseSearchAutoRefetch = {
     /** Previous report actions collection, compared against `reportActions` to detect new entries */
     previousReportActions: OnyxCollection<ReportActions>;
 
+    /** Current policies collection */
     policies: OnyxCollection<Policy>;
 
+    /** Previous policies collection, compared against `policies` to detect member custom field edits */
     previousPolicies: OnyxCollection<Policy>;
 
     /** Parsed search query the refetch is issued for */
@@ -90,7 +92,7 @@ function useSearchAutoRefetch({
     // Trigger search when a new report action is added while on chat or when a new transaction is added for the other search types.
     useEffect(() => {
         // Snapshot and focus updates re-run this effect with unchanged collections, which would diff a collection against itself.
-        if (transactions === previousTransactions && reportActions === previousReportActions && !hasPendingSearchRef.current) {
+        if (transactions === previousTransactions && reportActions === previousReportActions && policies === previousPolicies && !hasPendingSearchRef.current) {
             return;
         }
 
@@ -305,6 +307,7 @@ function hasChangedTransactionInSearchResults(
     return changedTransactionIDs.some((transactionID) => searchResultIDs.has(transactionID));
 }
 
+// Compares custom field values rather than employee identity, so clearing `pendingFields` after the save does not refetch a second time.
 function hasChangedMemberCustomFieldInSearchResults(
     policies: OnyxCollection<Policy>,
     previousPolicies: OnyxCollection<Policy>,
