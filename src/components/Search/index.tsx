@@ -323,9 +323,11 @@ function Search({
 
     // Deleted expenses have no report owner, so their From column falls back to the cardholder. Search opens with only
     // some cards, so load the rest whenever a deleted expense can be on screen. Grouped searches never set
-    // hasDeletedTransaction, so check the status filter too.
+    // hasDeletedTransaction, so check the status filter too. A negated filter such as status!:drafts still admits
+    // deleted expenses unless it excludes them.
     const statusFilter = getFilterFromQuery(queryJSON, CONST.SEARCH.SYNTAX_FILTER_KEYS.STATUS);
-    const isDeletedStatusQuery = !statusFilter.isNegated && !!statusFilter.value?.includes(CONST.SEARCH.STATUS.EXPENSE.DELETED);
+    const hasDeletedStatus = !!statusFilter.value?.includes(CONST.SEARCH.STATUS.EXPENSE.DELETED);
+    const isDeletedStatusQuery = statusFilter.isNegated ? !hasDeletedStatus : hasDeletedStatus;
     useLoadSearchCardData(hasDeletedTransaction || isDeletedStatusQuery);
 
     // There's a race condition in Onyx which makes it return data from the previous Search, so in addition to checking that the data is loaded
