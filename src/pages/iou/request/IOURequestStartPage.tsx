@@ -23,6 +23,7 @@ import {isMobileSafari} from '@libs/Browser';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {shouldShowPerDiemTabOption} from '@libs/IOUUtils';
+import isNavigationStatePayload from '@libs/Navigation/helpers/isNavigationStatePayload';
 import Navigation from '@libs/Navigation/Navigation';
 import OnyxTabNavigator, {TabScreenWithFocusTrapWrapper, TopTab} from '@libs/Navigation/OnyxTabNavigator';
 import {isPerDiemEligiblePolicy, isTimeTrackingEnabled} from '@libs/PolicyUtils';
@@ -65,10 +66,6 @@ type IOURequestStartPageProps = WithWritableReportOrNotFoundProps<typeof SCREENS
 
 // Tab indices for IOURequestStartPage
 const PER_DIEM_TAB_INDEX = 2;
-
-function isNavigationStatePayload(payload: unknown): payload is NavigationState {
-    return !!payload && typeof payload === 'object' && 'routes' in payload && Array.isArray(payload.routes);
-}
 
 function getTransactionIDFromRouteParams(params: unknown): string | undefined {
     if (!params || typeof params !== 'object') {
