@@ -248,6 +248,32 @@ function resolveSplitItemRate({
     return {rate: selectedRate.rate, unit};
 }
 
+/**
+ * Whether a distance split is calculated with a $0 rate, which makes its amount always $0 whatever is typed in.
+ */
+function isZeroRateDistanceSplit({
+    splitExpense,
+    transaction,
+    policy,
+    isSelfDMSplit,
+    personalPolicyOutputCurrency,
+    policies,
+}: {
+    splitExpense: SplitExpense;
+    transaction: OnyxEntry<OnyxTypes.Transaction>;
+    policy: OnyxEntry<OnyxTypes.Policy>;
+    isSelfDMSplit?: boolean;
+    personalPolicyOutputCurrency: string | undefined;
+    policies?: OnyxCollection<OnyxTypes.Policy>;
+}): boolean {
+    if (!transaction || !isDistanceRequestTransactionUtils(transaction) || !splitExpense.customUnit) {
+        return false;
+    }
+    const mileageRate = resolveSplitMileageRate({transaction, policy, isSelfDMSplit, personalPolicyOutputCurrency});
+    const {rate} = resolveSplitItemRate({customUnit: splitExpense.customUnit, fallbackMileageRate: mileageRate, policy, policies});
+    return rate === 0;
+}
+
 function resolveSplitItemReportID({
     childTransaction,
     allReports,
@@ -1104,6 +1130,7 @@ function updateSplitExpenseDraftField(fields: Partial<OnyxTypes.Transaction>) {
 export {
     getEvenSplitQuantity,
     isUsableSplitRate,
+    isZeroRateDistanceSplit,
     updateSplitExpenseDistanceFromAmount,
     initSplitExpenseItemData,
     getSplitReimbursable,

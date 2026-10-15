@@ -1,7 +1,15 @@
-import {getEvenSplitQuantity, getSplitReimbursable, initSplitExpenseItemData, isUsableSplitRate, updateSplitExpenseDistanceFromAmount} from '@libs/actions/IOU/SplitExpenseItems';
+import {
+    getEvenSplitQuantity,
+    getSplitReimbursable,
+    initSplitExpenseItemData,
+    isUsableSplitRate,
+    isZeroRateDistanceSplit,
+    updateSplitExpenseDistanceFromAmount,
+} from '@libs/actions/IOU/SplitExpenseItems';
 
 import CONST from '@src/CONST';
 import type {Policy, Report, Transaction} from '@src/types/onyx';
+import type {SplitExpense} from '@src/types/onyx/IOU';
 
 import createMock from '../../utils/createMock';
 
@@ -526,5 +534,56 @@ describe('getEvenSplitQuantity', () => {
 
         expect(quantities).toEqual([3.34, 3.33, 3.33]);
         expect(Number(quantities.reduce((sum, quantity) => sum + quantity, 0).toFixed(2))).toBe(10);
+    });
+});
+
+describe('isZeroRateDistanceSplit', () => {
+    const POSITIVE_RATE_ID = 'positive-rate';
+    const ZERO_RATE_ID = 'zero-rate';
+    const policy = createMock<Policy>({
+        id: 'policy-1',
+        outputCurrency: CONST.CURRENCY.USD,
+        customUnits: {
+            distance: {
+                customUnitID: 'distance',
+                name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                attributes: {unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES},
+                rates: {
+                    [POSITIVE_RATE_ID]: {customUnitRateID: POSITIVE_RATE_ID, name: 'Default', rate: 100, enabled: true, currency: CONST.CURRENCY.USD},
+                    [ZERO_RATE_ID]: {customUnitRateID: ZERO_RATE_ID, name: 'Free', rate: 0, enabled: true, currency: CONST.CURRENCY.USD},
+                },
+            },
+        },
+    });
+    const distanceTransaction = createMock<Transaction>({
+        transactionID: 'transaction-1',
+        amount: 1000,
+        currency: CONST.CURRENCY.USD,
+        iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_ODOMETER,
+        comment: {
+            type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT,
+            customUnit: {
+                name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                customUnitID: 'distance',
+                customUnitRateID: POSITIVE_RATE_ID,
+                distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                quantity: 10,
+            },
+        },
+    });
+    const buildSplit = (customUnitRateID: string) =>
+        ({
+            transactionID: 'split-1',
+            amount: 500,
+            created: '2026-01-01',
+            customUnit: {name: CONST.CUSTOM_UNITS.NAME_DISTANCE, customUnitRateID, distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES, quantity: 5},
+        }) as SplitExpense;
+
+    it('is true for a split moved to a $0 rate, whose amount is always $0', () => {
+        expect(isZeroRateDistanceSplit({splitExpense: buildSplit(ZERO_RATE_ID), transaction: distanceTransaction, policy, personalPolicyOutputCurrency: undefined})).toBe(true);
+    });
+
+    it('is false for a split on a positive rate', () => {
+        expect(isZeroRateDistanceSplit({splitExpense: buildSplit(POSITIVE_RATE_ID), transaction: distanceTransaction, policy, personalPolicyOutputCurrency: undefined})).toBe(false);
     });
 });

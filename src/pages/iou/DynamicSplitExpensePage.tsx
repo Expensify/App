@@ -40,6 +40,7 @@ import {
     evenlyDistributeSplitExpenseAmounts,
     initDraftSplitExpenseDataForEdit,
     initSplitExpenseItemData,
+    isZeroRateDistanceSplit,
     resolveSplitItemReportID,
     updateSplitExpenseAmountField,
 } from '@libs/actions/IOU/SplitExpenseItems';
@@ -518,7 +519,17 @@ function DynamicSplitExpensePage({route}: DynamicSplitExpensePageProps) {
             isSelected: splitExpenseTransactionID === item.transactionID,
             keyForList: item?.transactionID,
             isEditable: !frozenSplitTransactionIDs.has(item.transactionID),
-            isAmountEditable: !isZeroTotalDistanceSplit,
+            // A split on a $0 rate is always $0, so typing an amount or percentage into it would be discarded
+            isAmountEditable:
+                !isZeroTotalDistanceSplit &&
+                !isZeroRateDistanceSplit({
+                    splitExpense: item,
+                    transaction,
+                    policy: effectivePolicy,
+                    isSelfDMSplit: isDraftSelfDMContext,
+                    personalPolicyOutputCurrency: personalPolicy?.outputCurrency,
+                    policies: allPolicies,
+                }),
         };
     });
 
