@@ -3,6 +3,8 @@ import {act, render, screen} from '@testing-library/react-native';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 
+import Navigation from '@libs/Navigation/Navigation';
+
 import IOURequestStartPage from '@pages/iou/request/IOURequestStartPage';
 
 import type {IOURequestType, IOUType} from '@src/CONST';
@@ -36,6 +38,32 @@ let mockOnInputBlur: (() => void) | undefined;
 let mockOnCancel: (() => void) | undefined;
 let mockOnVisibilityChange: ((isVisible: boolean) => void) | undefined;
 let mockShouldPromptForNavigationAction: ((action: NavigationAction) => boolean) | undefined;
+let mockAndroidBackButtonHandler: (() => boolean) | undefined;
+const mockPrepareForDiscardNavigation = jest.fn();
+
+jest.mock('@hooks/useAndroidBackButtonHandler', () => ({
+    __esModule: true,
+    default: (callback: () => boolean) => {
+        mockAndroidBackButtonHandler = callback;
+    },
+}));
+
+jest.mock('@pages/iou/request/useRestoreFocusAfterDiscard', () => {
+    const actual = jest.requireActual<typeof import('@pages/iou/request/useRestoreFocusAfterDiscard')>('@pages/iou/request/useRestoreFocusAfterDiscard');
+    return {
+        __esModule: true,
+        default: () => {
+            const focusRestoration = actual.default();
+            return {
+                ...focusRestoration,
+                prepareForDiscardNavigation: () => {
+                    mockPrepareForDiscardNavigation();
+                    focusRestoration.prepareForDiscardNavigation();
+                },
+            };
+        },
+    };
+});
 
 jest.mock('@userActions/Tab');
 jest.mock(
@@ -145,6 +173,8 @@ describe('IOURequestStartPage manual tab content', () => {
         mockOnCancel = undefined;
         mockOnVisibilityChange = undefined;
         mockShouldPromptForNavigationAction = undefined;
+        mockAndroidBackButtonHandler = undefined;
+        mockPrepareForDiscardNavigation.mockClear();
         await act(async () => {
             await Onyx.clear();
         });
@@ -273,6 +303,57 @@ describe('IOURequestStartPage manual tab content', () => {
         });
         await waitForBatchedUpdatesWithAct();
         expect(mockGetHasUnsavedChanges?.()).toBe(false);
+    });
+
+    it('preserves pending discard focus before closing a dirty embedded expense with Android Back', async () => {
+        const closeRHPFlowSpy = jest.spyOn(Navigation, 'closeRHPFlow').mockImplementation();
+        const removePreInsertedFullscreenSpy = jest.spyOn(Navigation, 'removePreInsertedFullscreenIfNeeded').mockImplementation();
+
+        try {
+            await renderStartPage({iouRequestType: CONST.IOU.REQUEST_TYPE.MANUAL});
+
+            act(() => {
+                mockOnSignDirtyChange?.(true);
+            });
+            mockPrepareForDiscardNavigation.mockClear();
+            closeRHPFlowSpy.mockClear();
+            removePreInsertedFullscreenSpy.mockClear();
+
+            act(() => {
+                expect(mockAndroidBackButtonHandler?.()).toBe(true);
+            });
+
+            expect(mockPrepareForDiscardNavigation).toHaveBeenCalledTimes(1);
+            expect(removePreInsertedFullscreenSpy).not.toHaveBeenCalled();
+            expect(closeRHPFlowSpy).toHaveBeenCalledTimes(1);
+        } finally {
+            closeRHPFlowSpy.mockRestore();
+            removePreInsertedFullscreenSpy.mockRestore();
+        }
+    });
+
+    it('cleans up the pre-inserted destination before closing a clean embedded expense with Android Back', async () => {
+        const closeRHPFlowSpy = jest.spyOn(Navigation, 'closeRHPFlow').mockImplementation();
+        const removePreInsertedFullscreenSpy = jest.spyOn(Navigation, 'removePreInsertedFullscreenIfNeeded').mockImplementation();
+
+        try {
+            await renderStartPage({iouRequestType: CONST.IOU.REQUEST_TYPE.MANUAL});
+
+            mockPrepareForDiscardNavigation.mockClear();
+            closeRHPFlowSpy.mockClear();
+            removePreInsertedFullscreenSpy.mockClear();
+
+            act(() => {
+                expect(mockAndroidBackButtonHandler?.()).toBe(true);
+            });
+
+            expect(mockPrepareForDiscardNavigation).not.toHaveBeenCalled();
+            expect(removePreInsertedFullscreenSpy).toHaveBeenCalledTimes(1);
+            expect(closeRHPFlowSpy).toHaveBeenCalledTimes(1);
+        } finally {
+            closeRHPFlowSpy.mockRestore();
+            removePreInsertedFullscreenSpy.mockRestore();
+        }
     });
 
     it('clears the embedded discard guard on tab switch and keeps it suppressed during submission', async () => {
