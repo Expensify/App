@@ -1,4 +1,4 @@
-import {fireEvent, render, screen} from '@testing-library/react-native';
+import {act, fireEvent, render, screen} from '@testing-library/react-native';
 
 import type {StartWithLoading} from '@hooks/usePressLoading';
 
@@ -225,8 +225,14 @@ describe('Button', () => {
             expect(screen.getByTestId('ctx-isLoading')).toHaveTextContent('true');
             expect(onPress).not.toHaveBeenCalled();
 
-            // When the deferred macrotask fires and the handler settles
+            // When the deferred macrotask fires, the handler settles and the frame the hook waits for before clearing passes
             await waitForBatchedUpdatesWithAct();
+            await act(
+                () =>
+                    new Promise<void>((resolve) => {
+                        requestAnimationFrame(() => resolve());
+                    }),
+            );
 
             // Then onPress ran once, and with no external isLoading to hand over to the spinner is gone again
             expect(onPress).toHaveBeenCalledTimes(1);

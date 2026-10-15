@@ -21,13 +21,7 @@ type UsePressLoadingReturn = {
     startWithLoading: StartWithLoading;
 };
 
-/**
- * Shows a spinner the moment a button is pressed, so the interaction feels responsive and the INP metric improves.
- *
- * Submit handlers often run an Onyx update that re-renders the whole page before anything appears, leaving the button
- * dead in the meantime. This paints the spinner first, then runs the real work. Pass any loading state that already
- * exists as isLoading, so the spinner is guaranteed to render before the heavy work starts.
- */
+/** Shows a spinner the moment a button is pressed, before the real work runs. */
 function usePressLoading({isLoading, resetOnFocus = true}: UsePressLoadingOptions = {}): UsePressLoadingReturn {
     const [isPressed, setIsPressed] = useState(false);
     // The press in flight, set synchronously so a second press before React commits isPressed is ignored
@@ -66,7 +60,11 @@ function usePressLoading({isLoading, resetOnFocus = true}: UsePressLoadingOption
             release(press, true);
             throw error;
         }
-        release(press, isLoading === undefined && (navigationContext?.isFocused() ?? true));
+        if (isLoading !== undefined) {
+            release(press, false);
+            return;
+        }
+        requestAnimationFrame(() => release(press, navigationContext?.isFocused() ?? true));
     };
 
     useEffect(() => {

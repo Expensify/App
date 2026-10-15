@@ -16,6 +16,13 @@ const flush = async () => {
     });
 };
 
+/** Lets the frame the hook waits for before deciding whether to clear on settle pass. */
+const flushFrame = async () => {
+    await act(async () => {
+        jest.advanceTimersByTime(16);
+    });
+};
+
 /** Stands in for a screen's navigation object, so a test can fire the 'focus' event the hook subscribes to. */
 const createNavigationStub = () => {
     const focusListeners = new Set<() => void>();
@@ -102,6 +109,7 @@ describe('usePressLoading', () => {
             result.current.startWithLoading(work);
         });
         await flush();
+        await flushFrame();
 
         // When the button is pressed again
         act(() => {
@@ -123,6 +131,7 @@ describe('usePressLoading', () => {
             result.current.startWithLoading(() => {});
         });
         await flush();
+        await flushFrame();
 
         // Then the consumer becomes usable again instead of staying disabled forever
         expect(result.current.isLoading).toBe(false);
@@ -161,6 +170,7 @@ describe('usePressLoading', () => {
             result.current.startWithLoading(() => {});
         });
         await flush();
+        await flushFrame();
 
         // Then undefined counted as "nobody will take this over", so the pressed state cleared instead of waiting
         expect(result.current.isLoading).toBe(false);
@@ -254,6 +264,30 @@ describe('usePressLoading', () => {
         expect(result.current.isLoading).toBe(false);
     });
 
+    it('holds the loading state after a handler that navigates away in a deferred frame, until the screen regains focus', async () => {
+        // Given a handler that navigates through setNavigationActionToMicrotaskQueue (microtask + rAF), as most form submits do
+        const {wrapper, blur, emitFocus} = createNavigationStub();
+        const {result} = renderHook(() => usePressLoading(), {wrapper});
+
+        // When it is pressed, returns while the screen is still focused, and the deferred navigation runs in the next frame
+        act(() => {
+            result.current.startWithLoading(() => {
+                Promise.resolve().then(() => requestAnimationFrame(blur));
+            });
+        });
+        await flush();
+        await flushFrame();
+
+        // Then the spinner stays up, so the button label does not flash back while the screen transitions away
+        expect(result.current.isLoading).toBe(true);
+
+        // And the focus reset clears it once the user comes back
+        act(() => {
+            emitFocus();
+        });
+        expect(result.current.isLoading).toBe(false);
+    });
+
     it('clears the loading state after a synchronous handler that stayed on a focused screen', async () => {
         // Given a synchronous handler that bails out without navigating, as a validation failure does
         const {wrapper} = createNavigationStub();
@@ -264,6 +298,7 @@ describe('usePressLoading', () => {
             result.current.startWithLoading(() => {});
         });
         await flush();
+        await flushFrame();
 
         // Then the button is usable again instead of spinning until some later focus event
         expect(result.current.isLoading).toBe(false);
@@ -302,6 +337,7 @@ describe('usePressLoading', () => {
         expect(renderHookResult?.result.current.isLoading).toBe(true);
 
         await flush();
+        await flushFrame();
         expect(renderHookResult?.result.current.isLoading).toBe(false);
     });
 });
