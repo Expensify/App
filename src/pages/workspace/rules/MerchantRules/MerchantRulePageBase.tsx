@@ -678,15 +678,14 @@ function MerchantRulePageBase({
     }
 
     const shouldShowDescribeRule = !isEditingSavedRule && !isCategoryLocked;
-    const applyGeneratedRule = (values: GeneratedRuleValues) => {
+    const applyGeneratedRule = ({tax, ...values}: GeneratedRuleValues) => {
         if (!isScopedToCategory) {
             setDraftMerchantRule({...values, ruleType: CONST.POLICY.EXPENSE_DEFAULT_RULE_TYPE.MERCHANT});
             return;
         }
-        const {tax, ...categoryValues} = values;
-        const generatedTaxRate = tax ? policy?.taxRates?.taxes?.[tax] : undefined;
-        const isGeneratedTaxSelectable = !!tax && !!generatedTaxRate && isSelectableTaxRate(policy, tax, generatedTaxRate, true);
-        setDraftMerchantRule({...categoryValues, ...(isGeneratedTaxSelectable ? {tax} : {}), ruleType: CONST.POLICY.EXPENSE_DEFAULT_RULE_TYPE.CATEGORY});
+        const taxRate = tax ? policy?.taxRates?.taxes?.[tax] : undefined;
+        const selectableTax = tax && taxRate && isSelectableTaxRate(policy, tax, taxRate, true) ? tax : undefined;
+        setDraftMerchantRule({...values, tax: selectableTax, ruleType: CONST.POLICY.EXPENSE_DEFAULT_RULE_TYPE.CATEGORY});
     };
 
     const footer = canWriteRules ? (
