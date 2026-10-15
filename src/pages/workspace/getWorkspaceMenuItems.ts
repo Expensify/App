@@ -124,6 +124,8 @@ type GetWorkspaceMenuItemsParams = {
     isRecruitingBetaEnabled?: boolean;
     /** Whether the unified Connections beta replaces the Accounting, HR, Recruiting, Receipt partners, and MCP items. */
     isUnifiedConnectionsBetaEnabled?: boolean;
+    /** Whether the workspace has failed exports that the admin can export again, which shows a green dot on the Accounting row. */
+    hasFailedExportsToRetry?: boolean;
     /** Formats the invoice account balance for its menu badge. */
     convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'];
 };
@@ -143,6 +145,7 @@ function getWorkspaceMenuItems({
     isVendorMatchingBetaEnabled = false,
     isRecruitingBetaEnabled = false,
     isUnifiedConnectionsBetaEnabled = false,
+    hasFailedExportsToRetry = false,
     convertToDisplayString,
 }: GetWorkspaceMenuItemsParams): WorkspaceMenuItem[] {
     const canReadPolicyFeature = (policyFeature: PolicyFeature) => canMemberRead(policy, currentUserLogin ?? '', policyFeature);
@@ -277,7 +280,7 @@ function getWorkspaceMenuItems({
             let accountingBrickRoadIndicator;
             if (hasSyncError || shouldShowQBOReimbursableExportDestinationAccountError(policy)) {
                 accountingBrickRoadIndicator = CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
-            } else if (isQBORefreshTokenExpiringSoonSelector(policy)) {
+            } else if (isQBORefreshTokenExpiringSoonSelector(policy) || hasFailedExportsToRetry) {
                 accountingBrickRoadIndicator = CONST.BRICK_ROAD_INDICATOR_STATUS.INFO;
             }
             items.push({

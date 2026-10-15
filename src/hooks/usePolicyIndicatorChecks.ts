@@ -1,6 +1,7 @@
 import {isConnectionInProgress} from '@libs/actions/connections';
 import {shouldShowQBOReimbursableExportDestinationAccountError} from '@libs/actions/connections/QuickbooksOnline';
 import {getDomainsWithErrors, hasPendingDomainAdminRequestsToReview} from '@libs/DomainUtils';
+import {getFailedExportReportsByPolicyID, getFailedExportsToRetry, getRetryWindow} from '@libs/FailedExportRetryUtils';
 import {isMergeHRCompleteSetupNeeded, shouldShowHRConnectionError} from '@libs/merge/HRUtils';
 import {
     getUberConnectionErrorDirectlyFromPolicy,
@@ -47,6 +48,7 @@ function usePolicyIndicatorChecks(): PolicyIndicatorChecksResult {
     const {isBetaEnabled} = usePermissions();
     const isMultipleApproversBetaEnabled = isBetaEnabled(CONST.BETAS.MULTIPLE_APPROVERS);
     const [allRules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
+    const [failedExportReportsByPolicyID] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: getFailedExportReportsByPolicyID});
 
     const hasPendingDomainAdminRequests = Object.entries(allDomains ?? {}).some(([key, domain]) =>
         hasPendingDomainAdminRequestsToReview(domain, currentUserAccountID, allDomainPendingActions?.[key.replace(ONYXKEYS.COLLECTION.DOMAIN, ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS)]),
@@ -96,6 +98,16 @@ function usePolicyIndicatorChecks(): PolicyIndicatorChecksResult {
     ];
     const policyInfoChecks: Array<[IndicatorStatus, Policy | undefined]> = [
         [CONST.INDICATOR_STATUS.HAS_MERGE_HR_SETUP_NEEDED, cleanPolicies.find((policy) => isPolicyAdmin(policy) && isMergeHRCompleteSetupNeeded(policy))],
+        [
+            CONST.INDICATOR_STATUS.HAS_FAILED_EXPORTS_TO_RETRY,
+            cleanPolicies.find(
+                (policy) =>
+                    !!policy &&
+                    isPolicyAdmin(policy) &&
+                    getFailedExportsToRetry(failedExportReportsByPolicyID?.[policy.id], getRetryWindow(policy, CONST.POLICY.CONNECTIONS.FAILED_EXPORT_RETRY_DEFAULT_LOOKBACK_DAYS)).length >
+                        0,
+            ),
+        ],
     ];
     const domainChecks: Array<[IndicatorStatus, boolean]> = [[CONST.INDICATOR_STATUS.HAS_DOMAIN_ERRORS, getDomainsWithErrors(allDomainErrors, allDomains).length > 0]];
     const domainInfoChecks: Array<[IndicatorStatus, boolean]> = [[CONST.INDICATOR_STATUS.HAS_PENDING_DOMAIN_ADMIN_REQUESTS, hasPendingDomainAdminRequests]];
