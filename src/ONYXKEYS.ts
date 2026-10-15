@@ -1254,6 +1254,8 @@ const ONYXKEYS = {
         SETTINGS_STATUS_SET_FORM_DRAFT: 'settingsStatusSetFormDraft',
         SETTINGS_STATUS_CLEAR_DATE_FORM: 'settingsStatusClearDateForm',
         SETTINGS_STATUS_CLEAR_DATE_FORM_DRAFT: 'settingsStatusClearDateFormDraft',
+        VACATION_DELEGATE_FORM: 'vacationDelegateForm',
+        VACATION_DELEGATE_FORM_DRAFT: 'vacationDelegateFormDraft',
         CHANGE_BILLING_CURRENCY_FORM: 'billingCurrencyForm',
         CHANGE_BILLING_CURRENCY_FORM_DRAFT: 'billingCurrencyFormDraft',
         PRIVATE_NOTES_FORM: 'privateNotesForm',
@@ -1422,6 +1424,8 @@ const ONYXKEYS = {
         NEW_RULE_PROMPT_FORM_DRAFT: 'newRulePromptFormDraft',
         EDIT_AGENT_RULE_FORM: 'editAgentRuleForm',
         EDIT_AGENT_RULE_FORM_DRAFT: 'editAgentRuleFormDraft',
+        WORKSPACE_OFFICE_LOCATION_FORM: 'workspaceOfficeLocationForm',
+        WORKSPACE_OFFICE_LOCATION_FORM_DRAFT: 'workspaceOfficeLocationFormDraft',
         RILLET_CREDENTIALS_FORM: 'rilletCredentialsForm',
         RILLET_CREDENTIALS_FORM_DRAFT: 'rilletCredentialsFormDraft',
         DUALENTRY_CREDENTIALS_FORM: 'dualEntryCredentialsForm',
@@ -1496,6 +1500,7 @@ type OnyxFormValuesMapping = {
     [ONYXKEYS.FORMS.WAYPOINT_FORM]: FormTypes.WaypointForm;
     [ONYXKEYS.FORMS.SETTINGS_STATUS_SET_FORM]: FormTypes.SettingsStatusSetForm;
     [ONYXKEYS.FORMS.SETTINGS_STATUS_CLEAR_DATE_FORM]: FormTypes.SettingsStatusClearDateForm;
+    [ONYXKEYS.FORMS.VACATION_DELEGATE_FORM]: FormTypes.VacationDelegateForm;
     [ONYXKEYS.FORMS.CHANGE_BILLING_CURRENCY_FORM]: FormTypes.ChangeBillingCurrencyForm;
     [ONYXKEYS.FORMS.PRIVATE_NOTES_FORM]: FormTypes.PrivateNotesForm;
     [ONYXKEYS.FORMS.I_KNOW_A_TEACHER_FORM]: FormTypes.IKnowTeacherForm;
@@ -1587,6 +1592,7 @@ type OnyxFormValuesMapping = {
     [ONYXKEYS.FORMS.ADD_AGENT_RULE_FORM]: FormTypes.AddAgentRuleForm;
     [ONYXKEYS.FORMS.NEW_RULE_PROMPT_FORM]: FormTypes.NewRulePromptForm;
     [ONYXKEYS.FORMS.EDIT_AGENT_RULE_FORM]: FormTypes.EditAgentRuleForm;
+    [ONYXKEYS.FORMS.WORKSPACE_OFFICE_LOCATION_FORM]: FormTypes.WorkspaceOfficeLocationForm;
     [ONYXKEYS.FORMS.RILLET_CREDENTIALS_FORM]: FormTypes.RilletCredentialsForm;
     [ONYXKEYS.FORMS.DUALENTRY_CREDENTIALS_FORM]: FormTypes.DualEntryCredentialsForm;
     [ONYXKEYS.FORMS.CAMPFIRE_CREDENTIALS_FORM]: FormTypes.CampfireCredentialsForm;
