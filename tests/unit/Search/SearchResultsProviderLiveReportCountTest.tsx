@@ -130,7 +130,7 @@ describe('SearchResultsProvider live to-do report count', () => {
             await waitForBatchedUpdates();
         });
 
-        // Then the count the "Select all" label and the footer read drops by one, the same as the Drafts badge
+        // Then the count the "Select all" label reads drops by one, the same as the Drafts badge
         expect(result.current.currentSearchResults?.search.reportCount).toBe(2);
         expect(result.current.currentSearchResults?.search.count).toBe(2);
     });
