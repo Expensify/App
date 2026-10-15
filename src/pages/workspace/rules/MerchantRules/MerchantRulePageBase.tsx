@@ -33,7 +33,15 @@ import Tab from '@libs/actions/Tab';
 import {clearDraftMerchantRule, setDraftMerchantRule} from '@libs/actions/User';
 import {getCategoryTaxRuleTaxID, getTaxRateDisplayName, hasUsableTaxRates, isCategoryRuleDraft} from '@libs/CategoryTaxRulesUtils';
 import {getDecodedCategoryName} from '@libs/CategoryUtils';
-import {buildMerchantRule, canEditMerchantRule, getMerchantRuleFormValues, getPolicyExpenseDefaultRules} from '@libs/ExpenseDefaultRuleUtils';
+import {
+    buildMerchantRule,
+    canEditMerchantRule,
+    getMerchantRuleFormValues,
+    getPolicyExpenseDefaultRules,
+    hasExpenseDefaultConditions,
+    haveSameConditions,
+} from '@libs/ExpenseDefaultRuleUtils';
+import type {MerchantRuleFormValues} from '@libs/ExpenseDefaultRuleUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {hasEnabledOptions} from '@libs/OptionsListUtils';
 import Parser from '@libs/Parser';
@@ -355,17 +363,13 @@ function MerchantRulePageBase({
     const taxDisplayName = (taxRateID && getTaxByID(policy, taxRateID) ? getTaxRateDisplayName(policy, taxRateID) : '') || undefined;
 
     /**
-     * Checks if there's a duplicate rule with the same merchant name and match type.
-     * A duplicate is a rule that has the same merchant to match AND the same match type (contains/exact).
+     * Checks if another rule already matches on the same conditions.
      * When editing, we exclude the current rule from the comparison.
      */
-    const checkForDuplicateRule = (merchantToMatch: string | undefined, matchType: string | undefined): boolean => {
-        if (!merchantToMatch) {
+    const checkForDuplicateRule = (formValues: Partial<MerchantRuleFormValues>): boolean => {
+        if (!hasExpenseDefaultConditions(formValues)) {
             return false;
         }
-
-        const normalizedMerchant = merchantToMatch.toLowerCase();
-        const currentMatchType = matchType ?? CONST.SEARCH.SYNTAX_OPERATORS.CONTAINS;
 
         return getPolicyExpenseDefaultRules(rules, policyID).some(({ruleID: existingRuleID, rule}) => {
             // Skip the rule being edited
@@ -379,7 +383,7 @@ function MerchantRulePageBase({
                 return false;
             }
 
-            if (existingFormValues.merchantToMatch.toLowerCase() !== normalizedMerchant || existingFormValues.matchType !== currentMatchType) {
+            if (!haveSameConditions(existingFormValues, formValues)) {
                 return false;
             }
 
@@ -468,7 +472,7 @@ function MerchantRulePageBase({
         }
 
         // Check for duplicate rules
-        const hasDuplicate = checkForDuplicateRule(form.merchantToMatch, form.matchType);
+        const hasDuplicate = checkForDuplicateRule(form);
         if (hasDuplicate) {
             showConfirmModal({
                 title: translate('workspace.rules.merchantRules.duplicateRuleTitle'),

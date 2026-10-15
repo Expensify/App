@@ -27,10 +27,16 @@ import {fromIndexMap, getRuleFilterLeaves, isExpenseDefaultRule, isRuleFilterCom
 /** The form shape the merchant rule editor round-trips a rule through. */
 type MerchantRuleFormValues = {
     /** The merchant string an expense has to match */
-    merchantToMatch: string;
+    merchantToMatch?: string;
 
     /** Whether the merchant has to match exactly (`eq`) or partially (`contains`) */
-    matchType: ValueOf<typeof CONST.SEARCH.SYNTAX_OPERATORS>;
+    matchType?: ValueOf<typeof CONST.SEARCH.SYNTAX_OPERATORS>;
+
+    /** The categories an expense has to be in. The list is matched as an OR, so any one of them matches */
+    categoriesToMatch?: string[];
+
+    /** The tags an expense has to carry. The list is matched as an OR, so any one of them matches */
+    tagsToMatch?: string[];
 
     /** The merchant the expense is renamed to */
     merchant?: string;
@@ -68,7 +74,19 @@ type RuleWithID = {
 
 const {FIELD} = CONST.RULES.EXPENSE_DEFAULT;
 const {TRIGGERS: TRIGGER, ACTIONS: ACTION} = CONST.RULES;
-const {EQUAL_TO, CONTAINS} = CONST.SEARCH.SYNTAX_OPERATORS;
+const {AND, EQUAL_TO, CONTAINS} = CONST.SEARCH.SYNTAX_OPERATORS;
+
+/**
+ * The expense fields a rule can match on.
+ *
+ * These are search syntax filter keys, which is what the rules engine's filter tree speaks. They are not the
+ * action field names, even where the two happen to spell a field the same way.
+ */
+const CONDITION = {
+    MERCHANT: CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT,
+    CATEGORY: CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY,
+    TAG: CONST.SEARCH.SYNTAX_FILTER_KEYS.TAG,
+} as const;
 
 /** The order actions are written in, which fixes the numeric keys a built rule uses. */
 const ACTION_FIELD_ORDER = [FIELD.MERCHANT, FIELD.CATEGORY, FIELD.TAG, FIELD.TAX, FIELD.VENDOR_ID, FIELD.COMMENT, FIELD.REIMBURSABLE, FIELD.BILLABLE] as const;
@@ -171,27 +189,77 @@ function buildTaxActionValue(taxKey: string | undefined, policy: Policy | undefi
     };
 }
 
-/**
- * A merchant rule as this editor builds it. Stored rules may carry a whole filter tree, but the editor only ever
- * produces one merchant comparison, so callers converting a freshly built rule can read the filter directly.
- */
+/** A merchant rule as this editor builds it, which is the stored shape minus the fields the server fills in. */
 type BuiltMerchantRule = Omit<ExpenseDefaultRule, 'filters'> & {
-    /** The single `merchant eq|contains <value>` comparison this editor matches on. */
-    filters: RuleFilterComparison;
+    /** The conditions the expense has to meet, ANDed together. */
+    filters: RuleFilterNode;
 };
 
-/** Builds the filter tree for a merchant rule: a single `merchant eq|contains <value>` comparison. */
-function buildMerchantRuleFilters(formValues: Partial<MerchantRuleFormValues>): RuleFilterComparison | undefined {
+/** Drops the blanks a multi-select leaves behind, so an emptied picker reads as no condition at all. */
+function nonEmptyValues(values: string[] | undefined): string[] {
+    return (values ?? []).map((value) => value.trim()).filter(Boolean);
+}
+
+/**
+ * Builds the filter tree for a merchant rule, ANDing every condition the form set.
+ *
+ * The tree is left nested, so three conditions become `and(and(a, b), c)`. Each node only takes two children,
+ * and nesting to the left keeps the order the form reads them back in.
+ */
+function buildMerchantRuleFilters(formValues: Partial<MerchantRuleFormValues>): RuleFilterNode | undefined {
+    const comparisons: RuleFilterComparison[] = [];
+
     const merchantToMatch = formValues.merchantToMatch?.trim();
-    if (!merchantToMatch) {
+    if (merchantToMatch) {
+        comparisons.push({left: CONDITION.MERCHANT, operator: formValues.matchType ?? CONTAINS, right: merchantToMatch});
+    }
+
+    const categoriesToMatch = nonEmptyValues(formValues.categoriesToMatch);
+    if (categoriesToMatch.length > 0) {
+        comparisons.push({left: CONDITION.CATEGORY, operator: EQUAL_TO, right: categoriesToMatch});
+    }
+
+    const tagsToMatch = nonEmptyValues(formValues.tagsToMatch);
+    if (tagsToMatch.length > 0) {
+        comparisons.push({left: CONDITION.TAG, operator: EQUAL_TO, right: tagsToMatch});
+    }
+
+    const [firstComparison, ...rest] = comparisons;
+    if (!firstComparison) {
         return undefined;
     }
 
-    return {
-        left: FIELD.MERCHANT,
-        operator: formValues.matchType ?? CONTAINS,
-        right: merchantToMatch,
-    };
+    return rest.reduce<RuleFilterNode>((left, right) => ({operator: AND, left, right}), firstComparison);
+}
+
+/** Whether the form matches on anything. A rule with no conditions would apply to every expense, and the API rejects it. */
+function hasExpenseDefaultConditions(formValues: Partial<MerchantRuleFormValues>): boolean {
+    return !!buildMerchantRuleFilters(formValues);
+}
+
+/** Compares two multi-select conditions, which are ORed lists rather than ordered ones. */
+function haveSameConditionValues(first: string[] | undefined, second: string[] | undefined): boolean {
+    const sortedFirst = nonEmptyValues(first).sort();
+    const sortedSecond = nonEmptyValues(second).sort();
+
+    return sortedFirst.length === sortedSecond.length && sortedFirst.every((value, index) => value === sortedSecond.at(index));
+}
+
+/** Whether two rules match on the same expenses, which is what makes one a duplicate of the other. */
+function haveSameConditions(first: Partial<MerchantRuleFormValues>, second: Partial<MerchantRuleFormValues>): boolean {
+    const firstMerchant = first.merchantToMatch?.trim().toLowerCase() ?? '';
+    const secondMerchant = second.merchantToMatch?.trim().toLowerCase() ?? '';
+
+    if (firstMerchant !== secondMerchant) {
+        return false;
+    }
+
+    // The match type only tells two rules apart when they both match on a merchant.
+    if (firstMerchant && (first.matchType ?? CONTAINS) !== (second.matchType ?? CONTAINS)) {
+        return false;
+    }
+
+    return haveSameConditionValues(first.categoriesToMatch, second.categoriesToMatch) && haveSameConditionValues(first.tagsToMatch, second.tagsToMatch);
 }
 
 /** Builds the `Set` actions for a merchant rule, keyed by a stringified index in a fixed field order. */
@@ -255,24 +323,80 @@ function areTriggersEditable(triggers: Record<string, string> | undefined): bool
     return triggerValues.length > 0 && triggerValues.every((trigger) => trigger === TRIGGER.CREATE_TRANSACTION);
 }
 
-/** The editor matches on exactly one merchant condition, so anything else (a tree, another field, a list) can't be shown in the form. */
-function getEditableMerchantMatch(filters: RuleFilterNode | undefined): Pick<MerchantRuleFormValues, 'matchType' | 'merchantToMatch'> | undefined {
-    if (!filters || !isRuleFilterNode(filters) || !isRuleFilterComparison(filters)) {
+/** The conditions the editor renders, read back off a rule's filter tree. */
+type EditableConditions = Pick<MerchantRuleFormValues, 'matchType' | 'merchantToMatch' | 'categoriesToMatch' | 'tagsToMatch'>;
+
+/**
+ * Reads one leaf comparison into the conditions it sets.
+ *
+ * Returns undefined when the form can't represent the leaf, which makes the whole rule read-only.
+ */
+function getConditionFromLeaf(leaf: RuleFilterComparison): EditableConditions | undefined {
+    // The backend ORs a list of values together, and stores a single value unwrapped.
+    const values: string[] = [];
+    for (const value of [leaf.right].flat()) {
+        if (typeof value !== 'string' || !value) {
+            return undefined;
+        }
+        values.push(value);
+    }
+
+    if (values.length === 0) {
         return undefined;
     }
 
-    if (filters.left !== FIELD.MERCHANT || !SUPPORTED_MERCHANT_MATCH_TYPES.has(filters.operator)) {
+    if (leaf.left === CONDITION.MERCHANT) {
+        const merchantToMatch = values.at(0);
+        // The form has a single merchant input, so only one value round-trips.
+        if (values.length !== 1 || !merchantToMatch || !SUPPORTED_MERCHANT_MATCH_TYPES.has(leaf.operator)) {
+            return undefined;
+        }
+        return {merchantToMatch, matchType: leaf.operator};
+    }
+
+    if (leaf.operator !== EQUAL_TO) {
         return undefined;
     }
 
-    // The backend ORs a list of values together. The form only has one merchant input, so only a single value round-trips.
-    const rightValues = [filters.right].flat();
-    const merchantToMatch = rightValues.at(0);
-    if (rightValues.length !== 1 || typeof merchantToMatch !== 'string' || !merchantToMatch) {
+    if (leaf.left === CONDITION.CATEGORY) {
+        return {categoriesToMatch: values};
+    }
+
+    if (leaf.left === CONDITION.TAG) {
+        return {tagsToMatch: values};
+    }
+
+    return undefined;
+}
+
+/** The conditions the editor can show for a rule, or undefined when its filter tree can't be represented. */
+function getEditableConditions(filters: RuleFilterNode | undefined): EditableConditions | undefined {
+    // Rules arrive from the server, so a node can be malformed even though the type says otherwise.
+    if (!filters || !isRuleFilterNode(filters)) {
         return undefined;
     }
 
-    return {merchantToMatch, matchType: filters.operator};
+    if (isRuleFilterComparison(filters)) {
+        return getConditionFromLeaf(filters);
+    }
+
+    // The form lists conditions that all have to match, so only an `and` tree round-trips.
+    if (filters.operator !== AND) {
+        return undefined;
+    }
+
+    const left = getEditableConditions(filters.left);
+    const right = getEditableConditions(filters.right);
+    if (!left || !right) {
+        return undefined;
+    }
+
+    // The form has one input per field, so a field matched on twice would lose a condition on save.
+    if (Object.keys(left).some((field) => field in right)) {
+        return undefined;
+    }
+
+    return {...left, ...right};
 }
 
 /**
@@ -288,12 +412,12 @@ function getMerchantRuleFormValues(rule: Rule | ExpenseDefaultRule | undefined):
         return undefined;
     }
 
-    const merchantMatch = getEditableMerchantMatch(rule.filters);
-    if (!merchantMatch) {
+    const conditions = getEditableConditions(rule.filters);
+    if (!conditions) {
         return undefined;
     }
 
-    const formValues: MerchantRuleFormValues = {...merchantMatch};
+    const formValues: MerchantRuleFormValues = {...conditions};
 
     const actions = getRuleActions(rule);
     if (actions.length === 0) {
@@ -461,7 +585,9 @@ export {
     getMerchantRuleFormValues,
     getPolicyExpenseDefaultRules,
     getRuleMerchantMatchSummary,
+    hasExpenseDefaultConditions,
     hasExpenseDefaultRuleErrors,
+    haveSameConditions,
     isEditableMerchantRule,
     isExpenseDefaultTaxValue,
 };

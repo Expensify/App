@@ -15,6 +15,7 @@ const INPUT_IDS = {
     REIMBURSABLE: 'reimbursable',
     RULE_TYPE: 'ruleType',
     TAG: 'tag',
+    TAGS_TO_MATCH: 'tagsToMatch',
     TAX: 'tax',
     VENDOR_ID: 'vendorID',
 } as const;
@@ -39,6 +40,7 @@ type MerchantRuleForm = Form<
          * trip to any picker, rather than having to ride on every picker's route. */
         [INPUT_IDS.RULE_TYPE]: ExpenseDefaultRuleType;
         [INPUT_IDS.TAG]: string;
+        [INPUT_IDS.TAGS_TO_MATCH]: string[];
         [INPUT_IDS.TAX]: string;
         [INPUT_IDS.VENDOR_ID]: string;
     }

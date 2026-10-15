@@ -7,6 +7,7 @@ import {
     getPolicyExpenseDefaultRules,
     getRuleMerchantMatchSummary,
     hasExpenseDefaultRuleErrors,
+    haveSameConditions,
 } from '@libs/ExpenseDefaultRuleUtils';
 import type {MerchantRuleFormValues} from '@libs/ExpenseDefaultRuleUtils';
 import Parser from '@libs/Parser';
@@ -169,19 +170,118 @@ describe('ExpenseDefaultRuleUtils', () => {
         });
     });
 
+    describe('buildMerchantRule conditions', () => {
+        it('builds one condition per field, ANDed together and nested to the left', () => {
+            // Given a form matching on a merchant, two categories and a tag
+            const formValues: Partial<MerchantRuleFormValues> = {
+                merchantToMatch: 'Starbucks',
+                matchType: EQUAL_TO,
+                categoriesToMatch: ['Coffee', 'Travel'],
+                tagsToMatch: ['Team A'],
+                category: 'Coffee',
+            };
+
+            // When the rule is built
+            const rule = buildMerchantRule(formValues, policy);
+
+            // Then the conditions are ANDed in form order, with each list left as an OR of its values
+            expect(rule?.filters).toEqual({
+                operator: AND,
+                left: {
+                    operator: AND,
+                    left: {left: FIELD.MERCHANT, operator: EQUAL_TO, right: 'Starbucks'},
+                    right: {left: FIELD.CATEGORY, operator: EQUAL_TO, right: ['Coffee', 'Travel']},
+                },
+                right: {left: FIELD.TAG, operator: EQUAL_TO, right: ['Team A']},
+            });
+        });
+
+        it('builds a rule that matches on a category alone', () => {
+            // Given a form with no merchant, which is a rule the editor could not express before
+            const rule = buildMerchantRule({categoriesToMatch: ['Coffee'], tax: TAX_KEY}, policy);
+
+            // When its filters are read
+            // Then the single category condition is the whole tree
+            expect(rule?.filters).toEqual({left: FIELD.CATEGORY, operator: EQUAL_TO, right: ['Coffee']});
+        });
+
+        it('returns undefined when every condition is blank', () => {
+            // Given a form whose pickers were emptied, leaving blanks behind
+            // When the rule is built
+            // Then there is nothing to match on, so no rule is built
+            expect(buildMerchantRule({merchantToMatch: '  ', categoriesToMatch: ['  '], tagsToMatch: [], category: 'Coffee'}, policy)).toBeUndefined();
+        });
+
+        it('round trips every condition', () => {
+            // Given a form matching on all three fields
+            const formValues: MerchantRuleFormValues = {
+                merchantToMatch: 'Starbucks',
+                matchType: CONTAINS,
+                categoriesToMatch: ['Coffee'],
+                tagsToMatch: ['Team A', 'Team B'],
+                category: 'Coffee',
+            };
+
+            // When the built rule is read back
+            // Then the form gets the same conditions it wrote
+            expect(getMerchantRuleFormValues(buildMerchantRule(formValues, policy))).toEqual(formValues);
+        });
+    });
+
+    describe('haveSameConditions', () => {
+        it('ignores the order of a multi-select', () => {
+            // Given two rules picking the same categories in a different order
+            // When they are compared
+            // Then they are duplicates, because the list is matched as an OR
+            expect(haveSameConditions({categoriesToMatch: ['Coffee', 'Travel']}, {categoriesToMatch: ['Travel', 'Coffee']})).toBe(true);
+        });
+
+        it('treats a different match type on the same merchant as a different rule', () => {
+            // Given the same merchant matched exactly by one rule and partially by the other
+            // When they are compared
+            // Then they are not duplicates, because they match different expenses
+            expect(haveSameConditions({merchantToMatch: 'Starbucks', matchType: EQUAL_TO}, {merchantToMatch: 'Starbucks', matchType: CONTAINS})).toBe(false);
+        });
+
+        it('ignores the match type when neither rule matches on a merchant', () => {
+            // Given two category rules whose match type is left at its default
+            // When they are compared
+            // Then they are duplicates, because the match type only applies to the merchant input
+            expect(haveSameConditions({categoriesToMatch: ['Coffee'], matchType: EQUAL_TO}, {categoriesToMatch: ['Coffee'], matchType: CONTAINS})).toBe(true);
+        });
+
+        it('is false when one rule matches on a condition the other does not', () => {
+            // Given two rules on the same merchant, one of which is also narrowed to a tag
+            // When they are compared
+            // Then they are not duplicates
+            expect(haveSameConditions({merchantToMatch: 'Starbucks'}, {merchantToMatch: 'Starbucks', tagsToMatch: ['Team A']})).toBe(false);
+        });
+    });
+
     describe('getMerchantRuleFormValues rejects rules the form cannot represent', () => {
         it.each([
             [
-                'a nested filter tree',
+                'conditions combined with or rather than and',
                 {
                     filters: {
                         left: merchantFilter,
-                        operator: AND,
+                        operator: OR,
                         right: {left: FIELD.CATEGORY, operator: EQUAL_TO, right: 'Coffee'},
                     },
                 },
             ],
-            ['a filter on a field the form has no input for', {filters: {left: FIELD.CATEGORY, operator: EQUAL_TO, right: 'Coffee'}}],
+            [
+                'two conditions on the same field, which the form has one input for',
+                {
+                    filters: {
+                        left: {left: FIELD.CATEGORY, operator: EQUAL_TO, right: 'Coffee'},
+                        operator: AND,
+                        right: {left: FIELD.CATEGORY, operator: EQUAL_TO, right: 'Travel'},
+                    },
+                },
+            ],
+            ['a condition on an operator the form has no control for', {filters: {left: FIELD.CATEGORY, operator: CONTAINS, right: 'Coffee'}}],
+            ['a filter on a field the form has no input for', {filters: {left: CONST.SEARCH.SYNTAX_FILTER_KEYS.MCC, operator: EQUAL_TO, right: '5812'}}],
             ['an operator the form has no control for', {filters: {left: FIELD.MERCHANT, operator: GREATER_THAN, right: 'Starbucks'}}],
             ['a list of merchants, which the form has one input for', {filters: {left: FIELD.MERCHANT, operator: OR, right: ['Starbucks', 'Costa']}}],
             ['a trigger the form does not set', {triggers: toIndexMap([TRIGGER.CREATE_TRANSACTION, CONST.RULES.TRIGGERS.REPORT_SUBMIT])}],
@@ -223,12 +323,21 @@ describe('ExpenseDefaultRuleUtils', () => {
             expect(isExpenseDefaultRule(rule)).toBe(false);
         });
 
-        it('is false for a rule that matches on something other than a merchant', () => {
-            // Given a category rule, which the merchant rule editor has no way to open
-            const rule = asStoredRule(buildRuleWithOverrides({filters: {left: FIELD.CATEGORY, operator: CONTAINS, right: 'Coffee'}}));
+        it('is true for a rule that matches on a category rather than a merchant', () => {
+            // Given a category rule, which the editor can now open
+            const rule = asStoredRule(buildRuleWithOverrides({filters: {left: FIELD.CATEGORY, operator: EQUAL_TO, right: 'Coffee'}}));
 
             // When it is tested
-            // Then it is not an expense default, so a client that cannot edit it does not list it either
+            // Then it is an expense default, because merchant is only one of the conditions it can match on
+            expect(isExpenseDefaultRule(rule)).toBe(true);
+        });
+
+        it('is false for a rule with no conditions', () => {
+            // Given a rule that sets a field but matches on nothing, which would apply to every expense
+            const rule = asStoredRule(buildRuleWithOverrides({filters: undefined}));
+
+            // When it is tested
+            // Then it is not an expense default
             expect(isExpenseDefaultRule(rule)).toBe(false);
         });
 
