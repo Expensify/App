@@ -58,6 +58,7 @@ function getInitialValueByType(valueType?: ValueTypeKey): InitialDefaultValue {
             return new Date();
         case 'stringList':
         case 'files':
+        case 'listItems':
             return [];
         default:
             return '';
