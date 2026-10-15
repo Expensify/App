@@ -4701,6 +4701,7 @@ const CONST = {
             MEMBERS: 'members',
             ROOMS: 'rooms',
             ASSIGN_ELEVATED_ROLES: 'assignElevatedRoles',
+            ALL_REPORTS: 'allReports',
             WORKFLOWS: 'workflows',
             WORKFLOWS_APPROVALS: 'workflowsApprovals',
             WORKFLOWS_PAYMENTS: 'workflowsPayments',

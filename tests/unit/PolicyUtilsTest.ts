@@ -21,6 +21,7 @@ import {
     findVendorByID,
     getVendorDisplayName,
     hasCompanyAddress,
+    hasReadOnlyAllReportsAccess,
     hasVendorFeatureOnAnyPolicy,
     getActivePolicies,
     getActivePoliciesWithExpenseChat,
@@ -467,6 +468,40 @@ describe('PolicyUtils', () => {
                 expect(canMemberWrite(policy, memberLogin, CONST.POLICY.POLICY_FEATURE.ASSIGN_ELEVATED_ROLES)).toBe(false);
             });
 
+            it.each([
+                [CONST.POLICY.ROLE.ADMIN, true, true],
+                [CONST.POLICY.ROLE.AUDITOR, true, false],
+                [CONST.POLICY.ROLE.PAYMENTS_ADMIN, true, false],
+                [CONST.POLICY.ROLE.EDITOR, false, false],
+                [CONST.POLICY.ROLE.CARD_ADMIN, false, false],
+                [CONST.POLICY.ROLE.PEOPLE_ADMIN, false, false],
+                [CONST.POLICY.ROLE.USER, false, false],
+                [CONST.POLICY.ROLE.GUEST, false, false],
+            ])('gives %s read=%s and write=%s on the all reports feature', (role, canRead, canWrite) => {
+                // Given a member with the role
+                const policy = buildPolicy(role);
+
+                // When we check their all reports access
+                // Then it matches the role bundle in Auth, so the client and server can't diverge
+                expect(canMemberRead(policy, memberLogin, CONST.POLICY.POLICY_FEATURE.ALL_REPORTS)).toBe(canRead);
+                expect(canMemberWrite(policy, memberLogin, CONST.POLICY.POLICY_FEATURE.ALL_REPORTS)).toBe(canWrite);
+            });
+
+            it.each([
+                [CONST.POLICY.ROLE.AUDITOR, true],
+                [CONST.POLICY.ROLE.PAYMENTS_ADMIN, true],
+                [CONST.POLICY.ROLE.ADMIN, false],
+                [CONST.POLICY.ROLE.EDITOR, false],
+                [CONST.POLICY.ROLE.USER, false],
+            ])('hasReadOnlyAllReportsAccess for %s is %s', (role, expected) => {
+                // Given a member with the role
+                const policy = buildPolicy(role);
+
+                // When we check whether they can only read all reports
+                // Then only roles that can see every report without administering them match
+                expect(hasReadOnlyAllReportsAccess(policy, memberLogin)).toBe(expected);
+            });
+
             it('allows auditors to read every policy feature but write only rooms', () => {
                 const policy = buildPolicy(CONST.POLICY.ROLE.AUDITOR);
 
@@ -727,6 +762,17 @@ describe('PolicyUtils', () => {
                 // them back after removal. The viewer's global `role` must not hide the auditor's own role
                 expect(isRoomMemberProtectedByPolicyRole(policyWithAuditor, auditorLogin, undefined)).toBe(true);
                 expect(isRoomMemberProtectedByPolicyRole(policyWithAuditor, 'Auditor@Test.com', undefined)).toBe(true);
+            });
+
+            it('protects a member who is a payments admin of the policy', () => {
+                // Given a policy viewed by an admin, holding a payments admin in its employee list
+                const paymentsAdminLogin = 'paymentsadmin@test.com';
+                const policy = buildPolicy();
+                const policyWithPaymentsAdmin = {...policy, employeeList: {...policy.employeeList, [paymentsAdminLogin]: {role: CONST.POLICY.ROLE.PAYMENTS_ADMIN}}};
+
+                // When that member's protection is resolved
+                // Then they are protected, because Auth rejects removing any member who can read every workspace report
+                expect(isRoomMemberProtectedByPolicyRole(policyWithPaymentsAdmin, paymentsAdminLogin, undefined)).toBe(true);
             });
 
             it('protects the policy owner by accountID even when the employee list does not list them', () => {

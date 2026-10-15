@@ -13832,6 +13832,44 @@ describe('ReportUtils', () => {
             // Then it cannot be edited
             expect(result).toBeFalsy();
         });
+
+        it.each([CONST.POLICY.ROLE.AUDITOR, CONST.POLICY.ROLE.PAYMENTS_ADMIN])('should return false for a %s on a policy room they belong to', async (role) => {
+            // Given a policy room the current user belongs to, in a workspace where they only have read access to all reports
+            const report: Report = {
+                ...createRandomReport(40003, CONST.REPORT.CHAT_TYPE.POLICY_ROOM),
+                participants: buildParticipantsFromAccountIDs([currentUserAccountID, 1]),
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
+
+            // When it's checked if the description can be edited
+            const {result: isReportArchived} = renderHook(() => useReportIsArchived(report?.reportID));
+            const result = canEditReportDescription(report, {...policy, role}, isReportArchived.current);
+
+            // Then it cannot be edited, because effective chat write access doesn't include room administration
+            expect(result).toBeFalsy();
+        });
+    });
+
+    describe('canEditReportPolicy for roles with read-only access to all reports', () => {
+        it.each([
+            [CONST.POLICY.ROLE.AUDITOR, false],
+            [CONST.POLICY.ROLE.PAYMENTS_ADMIN, false],
+            [CONST.POLICY.ROLE.ADMIN, true],
+        ])('should handle an open invoice report for a %s', (role, expected) => {
+            // Given an open invoice report in a workspace where the current user has the role
+            const invoiceReport: Report = {
+                ...createRandomReport(40004, undefined),
+                type: CONST.REPORT.TYPE.INVOICE,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+            };
+
+            // When it's checked if the report's workspace can be changed
+            const result = canEditReportPolicy(invoiceReport, {...policy, role});
+
+            // Then only a role that can administer reports may change it
+            expect(result).toBe(expected);
+        });
     });
 
     describe('isDeprecatedGroupDM', () => {
