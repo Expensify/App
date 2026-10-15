@@ -6,6 +6,7 @@ import navigationRef from '@libs/Navigation/navigationRef';
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import NAVIGATORS from '@src/NAVIGATORS';
+import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 
 import type * as NativeNavigation from '@react-navigation/native';
@@ -21,6 +22,8 @@ describe('OnboardingFlow', () => {
     beforeAll(() => IntlStore.load(CONST.LOCALES.EN));
 
     describe('getOnboardingInitialPath', () => {
+        const savedPrivateDomainPath = `/${ROUTES.ONBOARDING_PRIVATE_DOMAIN.getRoute(ROUTES.ONBOARDING_WORK_EMAIL.getRoute())}`;
+
         it('should return the onboarding fallback path when the last visited path is null', () => {
             const params: GetOnboardingInitialPathParamsType = {
                 isUserFromPublicDomain: false,
@@ -190,8 +193,7 @@ describe('OnboardingFlow', () => {
         });
 
         it('should not redirect away from a private-domain URL for a public-domain unvalidated user', () => {
-            // Mirrors the BaseOnboardingPrivateDomain screen-level guard: an unvalidated public-domain user who just
-            // submitted a work email may land here while isFromPublicDomain is stale. They must keep the private-domain step.
+            // Given an unvalidated user submitted a work email while isFromPublicDomain is still stale
             const params: GetOnboardingInitialPathParamsType = {
                 isUserFromPublicDomain: true,
                 hasAccessiblePolicies: true,
@@ -209,9 +211,48 @@ describe('OnboardingFlow', () => {
                 onboardingValues: undefined,
                 isAccountValidated: false,
             };
+
+            // When onboarding resumes after a refresh
             const path = getOnboardingInitialPath(params);
-            expect(path).not.toBe('/onboarding/purpose');
+
+            // Then it preserves the private-domain validation step
+            expect(path).toBe('/onboarding/private-domain');
         });
+
+        it.each([
+            {shouldValidate: false, isAccountValidated: false, expectedPath: savedPrivateDomainPath},
+            {shouldValidate: undefined, isAccountValidated: false, expectedPath: '/onboarding/work-email'},
+            {shouldValidate: true, isAccountValidated: false, expectedPath: '/onboarding/work-email'},
+            {shouldValidate: false, isAccountValidated: true, expectedPath: '/onboarding/purpose'},
+        ])(
+            'resumes at $expectedPath after resetting merge flags with shouldValidate=$shouldValidate and validated=$isAccountValidated',
+            ({shouldValidate, isAccountValidated, expectedPath}) => {
+                // Given a previously skipped work email was resubmitted, clearing its merge flags, while the domain flag is stale
+                const onboardingValues = {
+                    hasCompletedGuidedSetupFlow: false,
+                    signupQualifier: CONST.ONBOARDING_SIGNUP_QUALIFIERS.INDIVIDUAL,
+                    isMergeAccountStepCompleted: undefined,
+                    isMergeAccountStepSkipped: undefined,
+                    shouldValidate,
+                };
+                const params: GetOnboardingInitialPathParamsType = {
+                    isUserFromPublicDomain: true,
+                    isAccountValidated,
+                    hasAccessiblePolicies: false,
+                    onboardingValuesParam: onboardingValues,
+                    onboardingValues,
+                    currentOnboardingPurposeSelected: CONST.ONBOARDING_CHOICES.JOIN_WORKSPACE,
+                    currentOnboardingCompanySize: undefined,
+                    onboardingInitialPath: savedPrivateDomainPath,
+                };
+
+                // When refreshing restores the saved onboarding route
+                const path = getOnboardingInitialPath(params);
+
+                // Then only a successful direct add for an unvalidated account resumes the exact validation route
+                expect(path).toBe(expectedPath);
+            },
+        );
 
         it('should not redirect away from a work-email-validation URL for a public-domain user', () => {
             const params: GetOnboardingInitialPathParamsType = {
