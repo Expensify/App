@@ -42,6 +42,29 @@ describe('useIsPastDate', () => {
         expect(result.current).toBe(true);
     });
 
+    it('resets to false when a passed date is replaced by a future one', () => {
+        // Given a date that has already been reached while the hook is mounted
+        const {result, rerender} = renderHook(({date}: {date: string}) => useIsPastDate(date), {initialProps: {date: getDateFromNow(ONE_MINUTE_MS)}});
+        act(() => {
+            jest.advanceTimersByTime(ONE_MINUTE_MS);
+        });
+        expect(result.current).toBe(true);
+
+        // When the date is replaced by a new future one, like a call rescheduled after the previous one passed
+        rerender({date: getDateFromNow(ONE_MINUTE_MS)});
+
+        // Then it reports the new date as upcoming, because the passed state belongs to the old date only
+        expect(result.current).toBe(false);
+
+        // When the new date passes
+        act(() => {
+            jest.advanceTimersByTime(ONE_MINUTE_MS);
+        });
+
+        // Then it flips to true again
+        expect(result.current).toBe(true);
+    });
+
     it('returns true immediately for a date that already passed', () => {
         // Given a date one minute in the past
         const date = getDateFromNow(-ONE_MINUTE_MS);
