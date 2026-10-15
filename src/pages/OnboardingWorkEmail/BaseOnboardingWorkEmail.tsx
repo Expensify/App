@@ -11,6 +11,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 
+import useAndroidBackButtonHandler from '@hooks/useAndroidBackButtonHandler';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -303,6 +304,31 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles, route}: BaseOnboardingW
         handleMergingAccountBlockedConfirm = handleRegularJoinWorkspaceErrorConfirm;
     }
 
+    // This screen normally opens onboarding, so there is nothing to go back to unless the intent list sent us here.
+    // The intent stays saved across a cold start, so check it instead of the route index.
+    const canGoBackToPurpose = isJoiningCompanyWorkspace && !isConciergeTaskFlow;
+
+    const goBackToPurpose = () => {
+        // Clear any work email error so the purpose screen doesn't render it without its translation params.
+        clearOnboardingMergeAccountBlocked();
+        // Pops to the intent list when it's in the stack, or replaces this screen with it, so the user stays in onboarding.
+        Navigation.goBack(ROUTES.ONBOARDING_PURPOSE.getRoute());
+    };
+
+    const handleAndroidBackPress = () => {
+        if (canGoBackToPurpose) {
+            goBackToPurpose();
+            return true;
+        }
+
+        // Otherwise there is no earlier step, so keep the press from closing onboarding and tell the user to finish setup.
+        setOnboardingErrorMessage('onboarding.purpose.errorBackButton');
+        return true;
+    };
+
+    // Android's system back runs the same logic as the header back button.
+    useAndroidBackButtonHandler(handleAndroidBackPress);
+
     const shouldRenderOfflineFeedback = useCallback((errorTranslation: string) => {
         if (
             errorTranslation !== 'onboarding.workEmail2FAError' &&
@@ -371,14 +397,9 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles, route}: BaseOnboardingW
             testID="BaseOnboardingWorkEmail"
             style={[styles.defaultModalContainer, shouldUseNativeStyles && styles.pt8]}
         >
-            {/* This screen normally opens onboarding, so there is nothing to go back to unless the intent list sent us here. */}
             <OnboardingHeader
-                shouldShowBackButton={isJoiningCompanyWorkspace && !isConciergeTaskFlow}
-                onBackButtonPress={() => {
-                    // Clear any work email error so the purpose screen doesn't render it without its translation params.
-                    clearOnboardingMergeAccountBlocked();
-                    Navigation.goBack(ROUTES.ONBOARDING_PURPOSE.getRoute());
-                }}
+                shouldShowBackButton={canGoBackToPurpose}
+                onBackButtonPress={goBackToPurpose}
                 shouldShowCloseButton={isConciergeTaskFlow}
                 onCloseButtonPress={onboardingValues?.isMergingAccountBlocked ? handleConciergeTaskErrorConfirm : returnToOriginReport}
             />
