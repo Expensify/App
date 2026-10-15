@@ -74,5 +74,9 @@ function getConciergeFeedbackForReportActionID(reportNameValuePairs: OnyxEntry<R
     return reportNameValuePairs?.conciergeFeedbackForReportActionID;
 }
 
-export {getAgentZeroProcessingLabel, agentZeroProcessingAgentIDsSelector, getConciergeFeedbackForReportActionID, reportNameValuePairsArchivedSelector};
+function latestCalendlyCallSelector(reportNameValuePairs: OnyxEntry<ReportNameValuePairs>) {
+    return reportNameValuePairs?.calendlyCalls?.at(-1);
+}
+
+export {getAgentZeroProcessingLabel, agentZeroProcessingAgentIDsSelector, getConciergeFeedbackForReportActionID, latestCalendlyCallSelector, reportNameValuePairsArchivedSelector};
 export type {ReportNameValuePairsArchivedState};

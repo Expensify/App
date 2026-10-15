@@ -1,4 +1,4 @@
-import {act, render, waitFor} from '@testing-library/react-native';
+import {act, fireEvent, render, screen, waitFor} from '@testing-library/react-native';
 
 import ComposeProviders from '@components/ComposeProviders';
 import HTMLEngineProvider from '@components/HTMLEngineProvider';
@@ -9,6 +9,8 @@ import {CurrentReportIDContextProvider} from '@hooks/useCurrentReportID';
 import * as useResponsiveLayoutModule from '@hooks/useResponsiveLayout';
 import type ResponsiveLayoutResult from '@hooks/useResponsiveLayout/types';
 
+import {SIDE_EFFECT_REQUEST_COMMANDS} from '@libs/API/types';
+import HttpUtils from '@libs/HttpUtils';
 import navigationRef from '@libs/Navigation/navigationRef';
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
 import type {OnboardingModalNavigatorParamList} from '@libs/Navigation/types';
@@ -34,6 +36,7 @@ import {BackHandler, View} from 'react-native';
 import Onyx from 'react-native-onyx';
 
 import createMock from '../utils/createMock';
+import getOnyxValue from '../utils/getOnyxValue';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
@@ -321,5 +324,48 @@ describe('Onboarding work email validation (Android system back)', () => {
         await waitFor(() => {
             expect(getOnboardingRouteNames()).toEqual([SCREENS.ONBOARDING.PERSONAL_DETAILS]);
         });
+    });
+
+    it('should show the back button message once and still send the work email after a system back press on the work email screen', async () => {
+        // Given an unvalidated public-domain user on the work email screen with a work email typed
+        await TestHelper.signInWithTestUser();
+
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {hasCompletedGuidedSetupFlow: false});
+            await Onyx.merge(ONYXKEYS.ACCOUNT, {validated: false, isFromPublicDomain: true});
+        });
+
+        renderOnboardingStack([SCREENS.ONBOARDING.WORK_EMAIL]);
+
+        await waitForBatchedUpdatesWithAct();
+
+        fireEvent.changeText(screen.getByLabelText(TestHelper.translateLocal('common.workEmail')), workEmail);
+
+        await waitForBatchedUpdatesWithAct();
+
+        const xhrSpy = jest.spyOn(HttpUtils, 'xhr').mockImplementation(() => Promise.resolve({jsonCode: 200}));
+        try {
+            // When Android's system back button is pressed
+            const consumed = pressHardwareBack();
+
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the screen keeps the press, and the message it sets shows once without becoming an error on the form
+            expect(consumed).toBe(true);
+            expect(screen.getAllByText(TestHelper.translateLocal('onboarding.purpose.errorBackButton'))).toHaveLength(1);
+            expect((await getOnyxValue(ONYXKEYS.FORMS.ONBOARDING_WORK_EMAIL_FORM))?.errors).toBeFalsy();
+
+            // When the user presses "Add work email" without editing the email
+            fireEvent.press(screen.getByRole('button', {name: TestHelper.translateLocal('onboarding.workEmail.addWorkEmail')}));
+
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the work email is sent, because the back button message doesn't block the submit
+            await waitFor(() => {
+                expect(xhrSpy.mock.calls.filter(([command]) => command === SIDE_EFFECT_REQUEST_COMMANDS.ADD_WORK_EMAIL)).toHaveLength(1);
+            });
+        } finally {
+            xhrSpy.mockRestore();
+        }
     });
 });
