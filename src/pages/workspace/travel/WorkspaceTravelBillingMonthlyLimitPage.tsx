@@ -43,6 +43,7 @@ function WorkspaceTravelBillingMonthlyLimitPage({route}: WorkspaceTravelBillingM
     const travelSettings = getCardSettings(cardSettings, CONST.TRAVEL.PROGRAM_TRAVEL_US);
     const currentLimit = travelSettings?.monthlySpendLimitPerUser ?? 0;
     const travelLimit = getTravelLimit(travelSettings);
+    const isTravelLimitAvailable = travelSettings?.limit !== undefined || travelSettings?.remainingLimit !== undefined;
     const defaultValue = convertToFrontendAmountAsString(currentLimit, CONST.DEFAULT_CURRENCY_DECIMALS);
     const {inputCallbackRef} = useAutoFocusInput();
     const {showConfirmModal} = useConfirmModal();
@@ -59,7 +60,7 @@ function WorkspaceTravelBillingMonthlyLimitPage({route}: WorkspaceTravelBillingM
         const parsed = parseFloat(limit);
         if (Number.isNaN(parsed) || parsed < 0) {
             errors[INPUT_IDS.LIMIT] = translate('iou.error.invalidAmount');
-        } else if (travelLimit > 0 && convertToBackendAmount(parsed) > travelLimit) {
+        } else if (isTravelLimitAvailable && convertToBackendAmount(parsed) > travelLimit) {
             errors[INPUT_IDS.LIMIT] = translate('workspace.moreFeatures.travel.travelInvoicing.travelInvoicingSection.subsections.limitExceedsTravelLimit', {
                 travelLimit: convertToDisplayString(travelLimit, CONST.CURRENCY.USD),
             });
