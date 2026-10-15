@@ -34,7 +34,7 @@ This issue must be resolved in Sage Intacct and then retried in Expensify.
 ### Reactivate the Web Services User in Sage Intacct
 
 1. Log in to Sage Intacct as an administrator.
-2. Go to **Company > Web Services Users**.
+2. Go to **Company > Admin > Web Services users**.
 3. Locate the **xmlgateway_expensify** web services user.
 4. Click **Edit**.
 5. Change the **Status** to **Active**.
