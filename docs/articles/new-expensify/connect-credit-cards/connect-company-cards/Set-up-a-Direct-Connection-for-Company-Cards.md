@@ -1,7 +1,7 @@
 ---
 title: Set up a Direct Connection for Company Cards
 description: Learn how to connect a company card account using a direct connection so its cards can be assigned to workspace members and their transactions imported into Expensify.
-keywords: [New Expensify, set up direct company card connection, connect company cards Expensify, direct connection Expensify, direct feed Expensify, Plaid company cards]
+keywords: [New Expensify, set up direct company card connection, connect company cards Expensify, direct connection Expensify, direct feed Expensify, Plaid company cards, company card current balance, company card remaining limit]
 internalScope: Audience is workspace admins and card admins. Covers connecting a company card account using a direct connection or Plaid. Does not cover assigning cards, managing cards, or troubleshooting connections.
 retrievalIntent: How to set up a direct connection to a bank or card provider for company cards.
 contentType: task
@@ -48,6 +48,7 @@ To set up a direct connection, you must:
 
 - Cards with recent expenses appear as a list and can be assigned to workspace members.
 - After a card is assigned, posted transactions import into the assigned member's account automatically as expenses.
+- For connections made through Plaid, the **Company cards** page shows the account's **Current balance** and **Remaining limit** when your bank reports them.
 
 [Learn how to assign company cards](/articles/new-expensify/connect-credit-cards/configure-and-manage-company-cards/Assign-Company-Cards).
 
