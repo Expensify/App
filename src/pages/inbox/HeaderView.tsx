@@ -23,6 +23,7 @@ import useHasTeam2025Pricing from '@hooks/useHasTeam2025Pricing';
 import useInitialFocusRef from '@hooks/useInitialFocusRef';
 import useIsInSidePanel from '@hooks/useIsInSidePanel';
 import useIsPaidPolicyAdmin from '@hooks/useIsPaidPolicyAdmin';
+import useIsPastDate from '@hooks/useIsPastDate';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -99,7 +100,6 @@ import {accountIDSelector, isPersonalDetailOptimistic} from '@selectors/Personal
 import {getStableReportSelector} from '@selectors/Report';
 import {pendingChatMembersSelector} from '@selectors/ReportMetaData';
 import {latestCalendlyCallSelector} from '@selectors/ReportNameValuePairs';
-import {isPast} from 'date-fns';
 import React, {useMemo} from 'react';
 import {Keyboard, View} from 'react-native';
 
@@ -141,6 +141,7 @@ function HeaderView({onNavigationMenuButtonClicked, reportID}: HeaderViewProps) 
         }),
     });
     const [latestScheduledCall] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`, {selector: latestCalendlyCallSelector});
+    const isScheduledCallPast = useIsPastDate(latestScheduledCall?.eventTime);
     const [reportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${report?.reportID}`, {selector: pendingChatMembersSelector});
     const isReportArchived = useReportIsArchived(report?.reportID);
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
@@ -352,7 +353,7 @@ function HeaderView({onNavigationMenuButtonClicked, reportID}: HeaderViewProps) 
         !shouldMirrorSidePanelHeader;
     const shouldShowOnBoardingHelpDropdownButton = (shouldShowRegisterForWebinar || shouldShowGuideBooking) && !isReportArchived && !shouldMirrorSidePanelHeader;
     const shouldShowEarlyDiscountBanner = shouldShowDiscount && isChatUsedForOnboarding && !shouldMirrorSidePanelHeader;
-    const hasActiveScheduledCall = latestScheduledCall && !isPast(latestScheduledCall.eventTime) && latestScheduledCall.status !== CONST.SCHEDULE_CALL_STATUS.CANCELLED;
+    const hasActiveScheduledCall = !!latestScheduledCall && !isScheduledCallPast && latestScheduledCall.status !== CONST.SCHEDULE_CALL_STATUS.CANCELLED;
     // Not gated on !shouldUseNarrowLayout like the side-panel case: isInNarrowPaneModal makes
     // shouldUseNarrowLayout true for any RHP regardless of actual screen width.
     const shouldShowCloseButton = (!!isInSidePanel && !shouldUseNarrowLayout) || isAgentReportInRHP;
