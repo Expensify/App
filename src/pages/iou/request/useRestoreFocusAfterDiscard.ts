@@ -17,8 +17,11 @@ type RestoreFocusAfterDiscard = {
 };
 
 function useRestoreFocusAfterDiscard(): RestoreFocusAfterDiscard {
+    // Live focus target, updated as fields gain or lose focus.
     const lastFocusedInputRef = useRef<RestoreFocus | null>(null);
+    // Keeps a recent target alive during delayed blur cleanup so a blur-to-modal transition can still restore it.
     const lastFocusedInputCandidateRef = useRef<RestoreFocus | null>(null);
+    // Snapshot taken when the discard modal opens and restored if the user cancels.
     const focusToRestoreAfterDiscardRef = useRef<RestoreFocus | null>(null);
     const isDiscardModalOpenRef = useRef(false);
     const isDiscardNavigationPendingRef = useRef(false);
