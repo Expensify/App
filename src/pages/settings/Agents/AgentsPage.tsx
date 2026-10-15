@@ -2,7 +2,7 @@ import Button from '@components/Button';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import CollapsibleHeaderOnKeyboard from '@components/CollapsibleHeaderOnKeyboard';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderCentralPane from '@components/Header/composed/HeaderCentralPane';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import RenderHTML from '@components/RenderHTML';
@@ -253,7 +253,7 @@ function AgentsPage() {
             offlineIndicatorStyle={styles.mtAuto}
         >
             <CollapsibleHeaderOnKeyboard>
-                <HeaderWithBackButton
+                <HeaderCentralPane
                     onBackButtonPress={() => {
                         if (isMobileSelectionModeEnabled) {
                             clearSelectedAgents();
@@ -262,14 +262,12 @@ function AgentsPage() {
                         }
                         Navigation.goBack();
                     }}
-                    shouldShowBackButton={shouldUseNarrowLayout}
-                    shouldUseHeadlineHeader={!selectionModeHeader}
-                    shouldDisplaySearchRouter
-                    shouldDisplayHelpButton
+                    isHeadline={!selectionModeHeader}
                     title={selectionModeHeader ? translate('common.selectMultiple') : translate('agentsPage.title')}
+                    shouldDisplaySearchRouter
                 >
                     {!shouldDisplayButtonsInSeparateLine && headerButtons}
-                </HeaderWithBackButton>
+                </HeaderCentralPane>
             </CollapsibleHeaderOnKeyboard>
             <AgentsTable
                 ref={tableRef}

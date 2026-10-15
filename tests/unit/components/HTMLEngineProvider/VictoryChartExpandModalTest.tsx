@@ -17,7 +17,6 @@ import React from 'react';
 jest.mock('@hooks/useKeyboardShortcut');
 // Render the modal's children directly — the Escape subscription under test lives in the chart modal, not in Modal.
 jest.mock('@components/Modal', () => jest.fn(({children}: {children: React.ReactNode}) => children));
-jest.mock('@components/HeaderWithBackButton', () => () => null);
 // The chart body renders a Skia canvas, which is out of scope here.
 jest.mock('@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/components/VictoryChartExpandedContent', () => () => null);
 jest.mock('@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/components/VictoryChartContent', () => () => null);

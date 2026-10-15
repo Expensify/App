@@ -5,7 +5,7 @@ import CardFeedIcon from '@components/CardFeedIcon';
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import type {InlineEditSaveResult} from '@components/EditableCell';
 import FeedSelector from '@components/FeedSelector';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderCentralPane from '@components/Header/composed/HeaderCentralPane';
 import {useLockedAccountActions, useLockedAccountState} from '@components/LockedAccountModalProvider';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -448,15 +448,13 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
             shouldEnableMaxHeight
             testID="WorkspaceExpensifyCardListPage"
         >
-            <HeaderWithBackButton
-                shouldUseHeadlineHeader={!selectionModeHeader}
+            <HeaderCentralPane
                 title={selectionModeHeader ? translate('common.selectMultiple') : translate('workspace.common.expensifyCard')}
-                shouldShowBackButton={shouldUseNarrowLayout}
-                shouldDisplayHelpButton
+                isHeadline={!selectionModeHeader}
                 onBackButtonPress={handleBackButtonPress}
             >
                 {!shouldShowSelector && !shouldDisplayButtonsInSeparateLine && isBankAccountVerified && shouldShowHeaderButtons && getHeaderButtons()}
-            </HeaderWithBackButton>
+            </HeaderCentralPane>
             {isCardListEmpty ? (
                 <>
                     {pageHeaderContent}

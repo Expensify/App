@@ -10,14 +10,14 @@ type HeaderActionsProps = {
 };
 
 /**
- * Wraps custom header actions (children + download button). Always applies `pr2` on its own
+ * Wraps custom header actions (children + download button). Always applies `pl2 and pr2` on its own
  * trailing edge, regardless of what follows it (three-dots menu, close button, search, help, or
- * nothing at all), so the gap to whatever comes next doesn't need to know what that is.
+ * nothing at all).
  */
-function HeaderActions({children}: HeaderActionsProps) {
+function HeaderCustomActions({children}: HeaderActionsProps) {
     const styles = useThemeStyles();
 
     return <View style={[styles.pr2, styles.flexRow, styles.alignItemsCenter]}>{children}</View>;
 }
 
-export default HeaderActions;
+export default HeaderCustomActions;

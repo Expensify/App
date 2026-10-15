@@ -1,5 +1,5 @@
 import BookCallButton from '@components/BookCallButton';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderCentralPane from '@components/Header/composed/HeaderCentralPane';
 import MenuItemList from '@components/MenuItemList';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
@@ -240,13 +240,9 @@ function HelpPage() {
             shouldShowOfflineIndicatorInWideScreen
             testID="HelpPage"
         >
-            <HeaderWithBackButton
+            <HeaderCentralPane
                 title={translate('common.help')}
-                shouldUseHeadlineHeader
-                shouldShowBackButton={shouldUseNarrowLayout}
                 shouldDisplaySearchRouter
-                shouldDisplayHelpButton
-                onBackButtonPress={Navigation.goBack}
             />
             <ScrollView contentContainerStyle={styles.pt3}>
                 <View style={[styles.flex1, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
