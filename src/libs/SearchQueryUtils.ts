@@ -1822,15 +1822,17 @@ function getDateRangeForPreset(preset: SearchDatePreset): {start: string; end: s
             start = startOfQuarter(lastQuarter);
             end = endOfQuarter(lastQuarter);
             break;
-        // Year to date is deprecated and kept as an alias of this year, so saved searches and links still resolve.
         case CONST.SEARCH.DATE_PRESETS.THIS_YEAR:
-        case CONST.SEARCH.DATE_PRESETS.YEAR_TO_DATE:
             start = startOfYear(now);
             end = endOfYear(now);
             break;
         case CONST.SEARCH.DATE_PRESETS.LAST_YEAR:
             start = startOfYear(lastYear);
             end = endOfYear(lastYear);
+            break;
+        case CONST.SEARCH.DATE_PRESETS.YEAR_TO_DATE:
+            start = startOfYear(now);
+            end = now;
             break;
         case CONST.SEARCH.DATE_PRESETS.LAST_30_DAYS:
             start = subDays(now, 29);

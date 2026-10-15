@@ -72,9 +72,9 @@ describe('useInsightsFilters', () => {
         const {result} = renderHook(() => useInsightsFilters(CONST.INSIGHTS.DASHBOARD.SPEND));
         await waitFor(() => expect(result.current.isResolved).toBe(true));
 
-        // Then it reports on this year, across every workspace, in that currency
+        // Then it reports on the year to date, across every workspace, in that currency
         expect(result.current.filters).toEqual({
-            date: {preset: CONST.SEARCH.DATE_PRESETS.THIS_YEAR},
+            date: {preset: CONST.SEARCH.DATE_PRESETS.YEAR_TO_DATE},
             policyIDs: [],
             groupBy: CONST.SEARCH.GROUP_BY.MONTH,
             groupCurrency: 'PLN',
@@ -117,7 +117,7 @@ describe('useInsightsFilters', () => {
 
         // Then the defaults ignore the stored selections, keeping the default workspace currency for Group currency's Reset
         expect(result.current.defaultFilters).toEqual({
-            date: {preset: CONST.SEARCH.DATE_PRESETS.THIS_YEAR},
+            date: {preset: CONST.SEARCH.DATE_PRESETS.YEAR_TO_DATE},
             policyIDs: [],
             groupBy: CONST.SEARCH.GROUP_BY.MONTH,
             groupCurrency: 'PLN',
