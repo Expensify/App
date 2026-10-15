@@ -359,7 +359,7 @@ function isInvoiceBilling(purchases: Purchases | null | undefined, purchaseID: n
 function getReceiptFileName(source: string, purchaseID: number | string): string {
     try {
         const pathname = new URL(source).pathname;
-        return pathname.split('/').pop() ?? `receipt-${purchaseID}`;
+        return pathname.split('/').pop() || `receipt-${purchaseID}`;
     } catch {
         return `receipt-${purchaseID}`;
     }
