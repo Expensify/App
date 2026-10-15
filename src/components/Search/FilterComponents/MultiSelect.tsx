@@ -108,6 +108,9 @@ function MultiSelect<T extends string>({
         notifySearchChange(debouncedSearchTerm);
     }, [debouncedSearchTerm]);
 
+    // Rows are capped at two lines, so a subtitle keeps every title on one
+    const hasSubtitles = items.some((item) => !!item.alternateText);
+
     // Snapshot the values selected when the filter first opened so they can be floated to the top of a long list on
     // first render without repinning rows that are toggled afterwards.
     // moveInitialSelectionToTop gates on the *unfiltered* items length so the decision doesn't flip as the user types,
@@ -128,6 +131,8 @@ function MultiSelect<T extends string>({
         isSelected: !!selectedItems.find((i) => i.value === item.value),
         icons: item.icons,
         leftElement: item.leftElement,
+        // Without vertical padding a two line title still fits the estimated row height
+        itemStyle: hasSubtitles ? undefined : styles.pv0,
     }));
 
     const shouldShowSearchSpinner = isSearching && listData.length === 0;
@@ -201,6 +206,7 @@ function MultiSelect<T extends string>({
                     shouldShowLoadingPlaceholder={shouldShowLoadingPlaceholder}
                     data={listData}
                     ListItem={MultiSelectListItem}
+                    titleNumberOfLines={hasSubtitles ? 1 : 2}
                     onSelectRow={updateSelectedItems}
                     textInputOptions={textInputOptions}
                     style={{contentContainerStyle: [styles.pb0], ...selectionListStyle}}
