@@ -357,6 +357,17 @@ describe('MoneyRequestViewReportFields', () => {
         expect(updateReportField).not.toHaveBeenCalled();
     });
 
+    it('edits the raw value of a text field whose default refers to another field', async () => {
+        // Given a text field with no value of its own whose default refers to Field1, so the report would display it
+        // computed as "Value1 code"
+        await renderReportFields(1, [{...buildTextField(2), name: 'LinkedField', fieldID: 'linkedField', defaultValue: '{field:Field1} code', value: null}]);
+
+        // When the field is inspected
+        // Then the input holds the raw default, the same as the editor page, so editing it never saves the computed
+        // text over the reference and the field keeps following Field1
+        expect(screen.getByLabelText('LinkedField')).toHaveProp('value', '{field:Field1} code');
+    });
+
     it('resets the displayed text when an edit is skipped because it only changed the whitespace', async () => {
         // Given a report with 2 fields that already hold values
         await renderReportFields(2);

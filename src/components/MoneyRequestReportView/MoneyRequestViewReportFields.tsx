@@ -143,12 +143,19 @@ function MoneyRequestViewReportFields({report, policy, pendingAction, style}: Mo
             .filter((reportField) => !shouldHideSingleReportField(reportField))
             .sort(({orderWeight: firstOrderWeight}, {orderWeight: secondOrderWeight}) => firstOrderWeight - secondOrderWeight)
             .map((field): EnrichedPolicyReportField => {
-                const fieldValue = resolveReportFieldValue(field, report, policy, fieldValues, fieldsByName, getCurrencyDecimals);
                 const isFieldDisabled = isReportFieldDisabledForUser(report, field, policy, currentUserAccountID, rules);
                 const isDeletedFormulaField = field.type === CONST.REPORT_FIELD_TYPES.FORMULA && field.deletable;
                 const fieldKey = getReportFieldKey(field.fieldID);
                 const isFieldOnPolicy = !!(policy?.fieldList?.[fieldKey] ?? policy?.fieldList?.[field.fieldID]);
                 const isEditable = !isFieldDisabled || isDeletedFormulaField;
+
+                // An input the user can type into is seeded with the raw value, the same as the report field editor page.
+                // Seeding it with the computed value would save the resolved text over a `{field:X}` default the first
+                // time it was edited, so the field would stop following the field it refers to.
+                const canTypeIntoField = isEditable && field.type !== CONST.REPORT_FIELD_TYPES.FORMULA;
+                const fieldValue = canTypeIntoField
+                    ? (field.value ?? field.defaultValue ?? '')
+                    : resolveReportFieldValue(field, report, policy, fieldValues, fieldsByName, getCurrencyDecimals);
 
                 const violation = isFieldDisabled ? undefined : getFieldViolation(field);
                 const violationTranslation = getFieldViolationTranslation(field, violation);
