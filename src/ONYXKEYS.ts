@@ -813,7 +813,7 @@ const ONYXKEYS = {
     /** Corpay fields to be used in the bank account creation setup */
     CORPAY_FIELDS: 'corpayFields',
 
-    /** The KYC requirements the business's application needs right now, one item per requirement, ours before Submit and Wise's after */
+    /** The KYC requirements the business's application needs */
     WISE_KYC_REQUIREMENTS: 'wiseKYCRequirements',
 
     /** A fresh link to Wise's embedded KYC page */

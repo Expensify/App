@@ -988,31 +988,31 @@ const CONST = {
         CORPAY: 'CORPAY',
     },
     WISE: {
-        // Our state of the business's Wise onboarding, derived on the server from Wise's review and payment instrument events
+        // Server-derived state of the Wise onboarding
         ONBOARDING_STATUS: {
             IN_REVIEW: 'IN_REVIEW',
             ACTION_REQUIRED: 'ACTION_REQUIRED',
             APPROVED: 'APPROVED',
             NOT_APPROVED: 'NOT_APPROVED',
         },
-        // State of one KYC requirement on the review, Wise's values passed through unchanged
+        // Wise's state for one KYC requirement
         KYC_REQUIREMENT_STATE: {
             NOT_PROVIDED: 'NOT_PROVIDED',
             IN_REVIEW: 'IN_REVIEW',
             VERIFIED: 'VERIFIED',
             REJECTED: 'REJECTED',
         },
-        // Who put a KYC requirement on the list: our pre-collection before Submit, or Wise's live review after
+        // Who asked for the requirement: us before Submit, Wise after
         KYC_REQUIREMENT_REQUESTED_BY: {
             EXPENSIFY: 'EXPENSIFY',
             WISE: 'WISE',
         },
-        // Wise's KYC requirement types with a typed answer shape on WiseBusinessOnboarding.requirements. docs.wise.com/guides/product/account-setup/customer-onboarding/kyc-requirement-types
+        // Wise's KYC requirement types we collect. docs.wise.com/guides/product/account-setup/customer-onboarding/kyc-requirement-types
         KYC_REQUIREMENT: {
             BUSINESS_SOURCE_OF_WEALTH_INFO: 'BUSINESS_SOURCE_OF_WEALTH_INFO',
             BUSINESS_SOURCE_OF_WEALTH_PROOF: 'BUSINESS_SOURCE_OF_WEALTH_PROOF',
         },
-        // Wise's source-of-wealth values, shared by BUSINESS_SOURCE_OF_WEALTH_INFO and BUSINESS_SOURCE_OF_WEALTH_PROOF
+        // Wise's source-of-wealth values
         SOURCE_OF_WEALTH: {
             REVENUE: 'REVENUE',
             PERSONAL_FUNDING: 'PERSONAL_FUNDING',
@@ -1023,7 +1023,7 @@ const CONST = {
             GRANTS: 'GRANTS',
             LEGAL: 'LEGAL',
         },
-        // Wise's documentType values on BUSINESS_SOURCE_OF_WEALTH_PROOF
+        // Wise's proof-of-wealth document types
         SOURCE_OF_WEALTH_DOCUMENT_TYPE: {
             PAYSLIP: 'PAYSLIP',
             INVOICES: 'INVOICES',
@@ -1045,13 +1045,13 @@ const CONST = {
             WRITTEN_CONFIRMATION: 'WRITTEN_CONFIRMATION',
             BANK_STATEMENT: 'BANK_STATEMENT',
         },
-        // Wise's companyRole values on the business profile
+        // Wise's companyRole values
         COMPANY_ROLE: {
             OWNER: 'OWNER',
             DIRECTOR: 'DIRECTOR',
             OTHER: 'OTHER',
         },
-        // Wise's industryCategories values. Submit the key only, never a group name. docs.wise.com/guides/product/account-setup/customer-onboarding/business-categories
+        // Wise's industryCategories values, keys only. docs.wise.com/guides/product/account-setup/customer-onboarding/business-categories
         INDUSTRY_CATEGORIES: [
             'GROWING_OF_CROPS_AGRICULTURE',
             'GROWING_OF_TOBACCO_SPICES_MEDICINAL_PLANTS',

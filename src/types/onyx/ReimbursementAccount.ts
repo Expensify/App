@@ -216,10 +216,10 @@ type ACHData = Partial<BeneficialOwnersStepProps & CompanyStepProps & RequestorS
 
     corpay: Corpay;
 
-    /** The provider the account's global reimbursements go through, derived by the server and never stored */
+    /** Global reimbursement provider, derived by the server */
     globalReimbursementProvider?: ValueOf<typeof CONST.GLOBAL_REIMBURSEMENT_PROVIDER>;
 
-    /** The business's Wise onboarding, only on the admin's own copy */
+    /** Wise onboarding data */
     wise?: WiseBusinessOnboarding;
 
     /** Date the corpay bank account was created */
@@ -261,54 +261,54 @@ type ACHData = Partial<BeneficialOwnersStepProps & CompanyStepProps & RequestorS
     };
 };
 
-/** The business's Wise onboarding, as the server stores it under additionalData.wise. Each page's answers sit under the step that saved them. */
+/** Wise onboarding data, stored under additionalData.wise */
 type WiseBusinessOnboarding = {
-    /** Wise's review state, passed through unchanged */
+    /** Onboarding status */
     status?: ValueOf<typeof CONST.WISE.ONBOARDING_STATUS>;
 
     /** The bank account's currency */
     currency?: string;
 
-    /** The last page saved, so a resume on another device lands after it */
+    /** Last saved step */
     step?: string;
 
-    /** The business page's answers */
+    /** Business page answers */
     business?: {
         companyRole: ValueOf<typeof CONST.WISE.COMPANY_ROLE>;
         industryCategories: string[];
         description: string;
     };
 
-    /** The representative page's answers the client may hold. The full SSN is stored encrypted on the server and never sent */
+    /** Representative page answers. The full SSN stays on the server */
     representative?: {
         /** Last four digits of the SSN */
         ssnLast4?: string;
 
-        /** The representative has no SSN or ITIN, so Wise's hosted page collects their ID and liveness */
+        /** The representative has no SSN or ITIN */
         noSSN?: boolean;
     };
 
-    /** Answers to Wise's KYC requirements, by requirement and then by Wise's field name. The ones named below are collected before Submit so Wise does not ask for them after; Submit shapes each into Wise's payload */
+    /** KYC requirement answers, by requirement then by Wise's field name */
     requirements?: {
-        /** Asked before Submit when a chosen industry is high risk. Submit wraps the one choice into Wise's list with isSourceOfFund true */
+        /** Asked when a chosen industry is high risk */
         BUSINESS_SOURCE_OF_WEALTH_INFO?: {
             businessSourceOfWealthInfo: string;
         };
 
-        /** Asks the source again so the proof stands on its own after Submit. The file is under documents */
+        /** The proof's source and document type; the file is under documents */
         BUSINESS_SOURCE_OF_WEALTH_PROOF?: {
             sourceOfWealthType: string;
             documentType: string;
         };
 
-        /** Collected at intake, submitted once the review opens. The files are under documents */
+        /** The ID's country and type; the files are under documents */
         ID_DOCUMENT?: {
             issuingCountry: string;
             documentType: string;
         };
     } & Record<string, Record<string, unknown>>;
 
-    /** S3 keys of the files we collected ourselves, by requirement and then by the file field each answers */
+    /** Uploaded file keys, by requirement then by field */
     documents?: Record<string, Record<string, string[]>>;
 };
 

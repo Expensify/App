@@ -4,32 +4,32 @@ import type {ValueOf} from 'type-fest';
 
 import type {Errors} from './OnyxCommon';
 
-/** One KYC requirement the business's application needs right now, derived by the server on every read. Never stored. */
+/** One KYC requirement the Wise onboarding still needs */
 type WiseKYCRequirement = {
-    /** Wise's requirement type; also the step its answers are saved under */
+    /** Wise's requirement type */
     key: string;
 
-    /** Wise's state for it, NOT_PROVIDED until submitted */
+    /** Wise's state for the requirement */
     state: ValueOf<typeof CONST.WISE.KYC_REQUIREMENT_STATE>;
 
     /** True when only Wise's embedded page can collect it */
     hostedOnly: boolean;
 
-    /** EXPENSIFY while we pre-collect it before Submit so Wise does not have to ask, WISE once it comes from Wise's live review */
+    /** Whether we asked for it before Submit or Wise asked after */
     requestedBy: ValueOf<typeof CONST.WISE.KYC_REQUIREMENT_REQUESTED_BY>;
 
-    /** Wise's attributes for the requirement, passed through unchanged */
+    /** Wise's attributes for the requirement */
     attributes?: Record<string, unknown>;
 };
 
-/** A fresh link to Wise's embedded KYC page. Its fragment carries a token, so the key is RAM only and never logged. */
+/** A link to Wise's embedded KYC page. It carries a token, so the key is RAM only */
 type WiseKYCReviewEmbeddedLink = {
     url?: string;
 
-    /** When the link stops working, ISO 8601 */
+    /** When the link expires */
     expiresAt?: string;
 
-    /** Set while the link is being requested */
+    /** Whether the link is being fetched */
     isLoading?: boolean;
 
     errors?: Errors;
