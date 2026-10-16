@@ -4,6 +4,7 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useOnyx from '@hooks/useOnyx';
+import {useAllPersonalDetails} from '@hooks/usePersonalDetails';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {clearReportFieldKeyErrors} from '@libs/actions/Report';
@@ -27,6 +28,7 @@ import type {ThemeStyles} from '@styles/index';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
+import {personalDetailsLoginSelector} from '@src/selectors/PersonalDetails';
 import type {Policy, PolicyReportField, Report, ReportViolationName} from '@src/types/onyx';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 
@@ -91,6 +93,7 @@ function MoneyRequestViewReportFields({report, policy, pendingAction}: MoneyRequ
     const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${getNonEmptyStringOnyxID(report?.reportID)}`);
     const {getCurrencyDecimals} = useCurrencyListActions();
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
+    const [reportOwnerLogin] = useAllPersonalDetails(personalDetailsLoginSelector(report?.ownerAccountID));
 
     const sortedPolicyReportFields = useMemo<EnrichedPolicyReportField[]>((): EnrichedPolicyReportField[] => {
         const {fieldValues, fieldsByName} = getReportFieldMaps(report, policy?.fieldList ?? {}, reportNameValuePairs);
@@ -102,7 +105,7 @@ function MoneyRequestViewReportFields({report, policy, pendingAction}: MoneyRequ
             .sort(({orderWeight: firstOrderWeight}, {orderWeight: secondOrderWeight}) => firstOrderWeight - secondOrderWeight)
             .map((field): EnrichedPolicyReportField => {
                 const fieldValue = resolveReportFieldValue(field, report, policy, fieldValues, fieldsByName, getCurrencyDecimals);
-                const isFieldDisabled = isReportFieldDisabledForUser(report, field, policy, currentUserAccountID, rules);
+                const isFieldDisabled = isReportFieldDisabledForUser(report, field, policy, currentUserAccountID, rules, reportOwnerLogin);
                 const isDeletedFormulaField = field.type === CONST.REPORT_FIELD_TYPES.FORMULA && field.deletable;
                 const fieldKey = getReportFieldKey(field.fieldID);
 
@@ -118,7 +121,7 @@ function MoneyRequestViewReportFields({report, policy, pendingAction}: MoneyRequ
                     violationTranslation,
                 };
             });
-    }, [policy, report, currentUserAccountID, reportNameValuePairs, getCurrencyDecimals, rules]);
+    }, [policy, report, currentUserAccountID, reportNameValuePairs, getCurrencyDecimals, rules, reportOwnerLogin]);
 
     // `sortedPolicyReportFields` already excludes fields hidden by `shouldHideSingleReportField`, including the title field.
     // If no displayable custom fields remain, the early return below hides the section.

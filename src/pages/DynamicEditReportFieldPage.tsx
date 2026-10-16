@@ -13,6 +13,7 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
+import {useAllPersonalDetails} from '@hooks/usePersonalDetails';
 import {useDerivedReportNameByReportID} from '@hooks/useReportAttributes';
 
 import {deleteReportField, updateReportField, updateReportName} from '@libs/actions/Report';
@@ -38,6 +39,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+import {personalDetailsLoginSelector} from '@src/selectors/PersonalDetails';
 import type {Policy} from '@src/types/onyx';
 
 import {isTrackIntentUserSelector} from '@selectors/Onboarding';
@@ -75,7 +77,8 @@ function DynamicEditReportFieldPage({route}: DynamicEditReportFieldPageProps) {
 
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
-    const isDisabled = isReportFieldDisabledForUser(report, reportField, policy, currentUserAccountID, rules) && reportField?.type !== CONST.REPORT_FIELD_TYPES.FORMULA;
+    const [reportOwnerLogin] = useAllPersonalDetails(personalDetailsLoginSelector(report?.ownerAccountID));
+    const isDisabled = isReportFieldDisabledForUser(report, reportField, policy, currentUserAccountID, rules, reportOwnerLogin) && reportField?.type !== CONST.REPORT_FIELD_TYPES.FORMULA;
     const {isBetaEnabled} = usePermissions();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const session = useSession();
@@ -89,7 +92,8 @@ function DynamicEditReportFieldPage({route}: DynamicEditReportFieldPageProps) {
     const isReportFieldsFeatureEnabled = report?.type === CONST.REPORT.TYPE.INVOICE ? policy?.areInvoiceFieldsEnabled : policy?.areReportFieldsEnabled;
     const reportFieldsEnabled = ((isGroupPolicyExpenseReport(report, policy?.type) || isInvoiceReport(report)) && !!isReportFieldsFeatureEnabled) || isReportFieldTitle;
     const hasOtherViolations =
-        report?.fieldList && Object.entries(report.fieldList).some(([key, field]) => key !== fieldKey && field.value === '' && !isReportFieldDisabled(report, reportField, policy, rules));
+        report?.fieldList &&
+        Object.entries(report.fieldList).some(([key, field]) => key !== fieldKey && field.value === '' && !isReportFieldDisabled(report, reportField, policy, rules, reportOwnerLogin));
 
     if (!reportFieldsEnabled || !reportField || !policyField || !report || !isReportFieldTargetMatchingReport(report, reportField) || isDisabled) {
         return (
