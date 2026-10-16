@@ -1175,7 +1175,16 @@ const translations: TranslationDeepObject<typeof en> = {
         viewOnSpend: 'Ver em Gastos',
         emptyState: {title: 'Nada para mostrar', subtitle: 'Tente ajustar seus critérios acima'},
         noExpensesState: {title: 'Veja para onde vai o seu dinheiro', subtitle: 'Quando você tiver despesas, vai encontrar tendências de gastos, principais estabelecimentos e muito mais.'},
-        compare: {label: 'Comparar', previousPeriod: 'Período anterior', average: 'Média'},
+        compare: {
+            label: 'Comparar',
+            previousPeriod: 'Período anterior',
+            average: 'Média',
+            dayLabel: (day?: number) => (day === undefined ? 'Dia' : `Dia ${day}`),
+            weekLabel: (week?: number) => (week === undefined ? 'Semana' : `Semana ${week}`),
+            monthLabel: (month?: number) => (month === undefined ? 'Mês' : `Mês ${month}`),
+            quarterLabel: (quarter?: number) => (quarter === undefined ? 'Trimestre' : `Trimestre ${quarter}`),
+            yearLabel: (year?: number) => (year === undefined ? 'Ano' : `Ano ${year}`),
+        },
     },
     allSettingsScreen: {
         subscription: 'Assinatura',
