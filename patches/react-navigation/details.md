@@ -82,8 +82,8 @@
 
 - Reason: Identifies each native tab by its route name instead of its route key. The App gives the focused tab route a new key on purpose when it pre-inserts a screen under the RHP (`markFocusedTabRouteForRemount` in `GetStateForActionHandlers.ts`, #90985), so the split navigator remounts without a push-transition flash. Keyed by route key, that new key replaced the whole `Tabs.Screen`. Android never removes the old one: `TabsHostViewManager` does not override `getChildAt`/`getChildCount`, so Fabric's `removeViewAt` finds no child at that index ("view already removed from parent!") and skips `TabsHost.unmountReactSubviewAt`, while the insert goes through. The bar then shows the tab twice, and the stale copy opens a blank page. With this patch the native tab (`key`, `screenKey`, `navStateRequest.selectedScreenKey` and the selection events) uses the route name, which stays the same, and only the tab's content is keyed by the route key, so a re-keyed route still remounts its content inside the same native tab. **Remove this patch** once react-native-screens removes Android tabs correctly and React Navigation's native tab view no longer recreates a tab when its route key changes.
 - Upstream PR/issue: not reported yet. The Android removal bug belongs to react-native-screens (`TabsHostViewManager`).
-- E/App issue: [#104230](https://github.com/Expensify/App/issues/104230)
-- PR Introducing Patch: N/A
+- E/App issue: [#104230](https://github.com/Expensify/App/issues/104230), [#104233](https://github.com/Expensify/App/issues/104233)
+- PR Introducing Patch: [#104238](https://github.com/Expensify/App/pull/104238)
 - PR Updating Patch: N/A
 
 ### Removed patches
