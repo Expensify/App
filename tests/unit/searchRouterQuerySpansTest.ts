@@ -317,6 +317,8 @@ describe('searchRouterQuerySpans', () => {
     it('derives filter attributes from the parsed query', () => {
         // Given a query with a filter being autocompleted
         startSearchRouterQuerySpan('to:jo');
+
+        // When that query commits
         markSearchRouterQueryCommitted('to:jo');
 
         // Then the shape is recorded and the free-text part is empty
@@ -331,6 +333,8 @@ describe('searchRouterQuerySpans', () => {
         const sensitiveFieldName = 'secret-client-deal';
         const query = `report-field-${sensitiveFieldName}:acme`;
         startSearchRouterQuerySpan(query);
+
+        // When that query commits
         markSearchRouterQueryCommitted(query);
 
         // Then the key is normalized to prevent user data leaks and tag cardinality explosion
