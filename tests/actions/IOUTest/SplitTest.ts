@@ -2707,7 +2707,6 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             currentUserEmailParam: CARLOS_EMAIL,
             currency: undefined,
             isSelfTourViewed: false,
-            betas: undefined,
             hasActiveAdminPolicies: false,
             hasOwnedPaidPolicy: false,
             activePolicy: undefined,
@@ -2728,7 +2727,6 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             getCurrencyDecimals: getCurrencyDecimalsLocal,
             conciergeChat: undefined,
             report: chatReport,
-            betas: [CONST.BETAS.ALL],
             participantParams: {
                 payeeEmail: RORY_EMAIL,
                 payeeAccountID: RORY_ACCOUNT_ID,
@@ -2805,7 +2803,6 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 getCurrencySymbol: getCurrencySymbolLocal,
                 allTransactionsList: allTransactions,
-                betas: [CONST.BETAS.ALL],
                 allReportsList: allReports,
                 allReportActionsList: allReportActions,
                 allReportNameValuePairsList: allReportNameValuePairs,
@@ -2868,6 +2865,9 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
         await saveSplitExpenses(draftTransaction?.comment?.splitExpenses ?? [], draftTransaction?.comment?.splitExpensesTotal ?? 0);
 
         expect(await getTotals()).toEqual(totalsBeforeSplit);
+
+        // Resume the paused requests so they don't block the request queue for later tests
+        await mockFetch?.resume?.();
     });
 
     it('should not leave a duplicate IOU action behind when a transaction is split, reverted, split again, and reverted again', async () => {
