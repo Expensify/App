@@ -1892,14 +1892,14 @@ describe('useSearchBulkActions - export options', () => {
         await waitFor(() => {
             expect(exportSearchItemsToCSV).toHaveBeenCalled();
         });
-        expect(getLastCSVExportParameters()).toEqual(expect.objectContaining({groupsOnly: true, isBasicExport: false, exportName: 'export.currentViewGroupsOnly'}));
+        expect(getLastCSVExportParameters()).toEqual(expect.objectContaining({isGroupsOnly: true, isBasicExport: false, exportName: 'export.currentViewGroupsOnly'}));
         expect(getExportOptionTexts(result.current.headerButtonsOptions)).not.toContain('export.basicExport');
 
         // When the existing current-view option is selected.
         getExportOptionByText(result.current.headerButtonsOptions, 'export.currentView')?.onSelected?.();
 
         // Then the full export remains the default.
-        expect(getLastCSVExportParameters().groupsOnly).toBe(false);
+        expect(getLastCSVExportParameters().isGroupsOnly).toBe(false);
     });
 
     it('does not offer a groups-only export on an ungrouped search', async () => {
@@ -1930,7 +1930,7 @@ describe('useSearchBulkActions - export options', () => {
 
         // Then the queued export retains the summary-only flag and grouping.
         await waitFor(() => {
-            expect(queueExportSearchItemsToCSV).toHaveBeenCalledWith(expect.objectContaining({groupsOnly: true, isBasicExport: false}));
+            expect(queueExportSearchItemsToCSV).toHaveBeenCalledWith(expect.objectContaining({isGroupsOnly: true, isBasicExport: false}));
         });
         const parameters = jest.mocked(queueExportSearchItemsToCSV).mock.calls.at(-1)?.at(0);
         expect(JSON.parse(parameters?.jsonQuery ?? '{}')).toHaveProperty('groupBy', CONST.SEARCH.GROUP_BY.CATEGORY);

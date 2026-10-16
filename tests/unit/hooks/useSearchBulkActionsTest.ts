@@ -388,7 +388,7 @@ describe('useSearchBulkActions - CSV export flow', () => {
 
         // Then both the summary-only flag and exclusions reach the queued export.
         expect(mockQueueExportSearchItemsToCSV).toHaveBeenLastCalledWith(
-            expect.objectContaining({groupsOnly: true, excludedTransactionIDList: ['tx2'], jsonQuery: exportPayload?.jsonQuery}),
+            expect.objectContaining({isGroupsOnly: true, excludedTransactionIDList: ['tx2'], jsonQuery: exportPayload?.jsonQuery}),
         );
     });
 

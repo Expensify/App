@@ -9,7 +9,7 @@ type ExportSearchItemsToCSVParams = {
     exportColumnLabels: string;
     exportName: string;
     isGroupExport?: boolean;
-    groupsOnly?: boolean;
+    isGroupsOnly?: boolean;
 };
 
 export default ExportSearchItemsToCSVParams;

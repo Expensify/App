@@ -203,14 +203,14 @@ describe('SearchActions', () => {
                 isBasicExport: false,
                 exportColumnLabels: '{}',
                 exportName: 'Current view (groups only)',
-                groupsOnly: true,
+                isGroupsOnly: true,
             };
 
             // When the export is queued.
             queueExportSearchItemsToCSV(parameters);
 
             // Then the worker receives the summary-only flag.
-            expect(mockWrite).toHaveBeenCalledWith(WRITE_COMMANDS.QUEUE_EXPORT_SEARCH_ITEMS_TO_CSV, expect.objectContaining({groupsOnly: true}), expect.any(Object));
+            expect(mockWrite).toHaveBeenCalledWith(WRITE_COMMANDS.QUEUE_EXPORT_SEARCH_ITEMS_TO_CSV, expect.objectContaining({isGroupsOnly: true}), expect.any(Object));
         });
 
         it('sets optimistic Onyx data with state preparing and returns exportID', () => {
@@ -287,7 +287,7 @@ describe('SearchActions', () => {
                     isBasicExport: false,
                     exportColumnLabels: '{}',
                     exportName: 'Current view (groups only)',
-                    groupsOnly: true,
+                    isGroupsOnly: true,
                 },
                 jest.fn(),
                 translateForTest,
@@ -295,7 +295,7 @@ describe('SearchActions', () => {
             );
 
             // Then the API receives the summary-only flag.
-            expect(appendSpy).toHaveBeenCalledWith('groupsOnly', 'true');
+            expect(appendSpy).toHaveBeenCalledWith('isGroupsOnly', 'true');
             appendSpy.mockRestore();
         });
 
