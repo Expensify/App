@@ -9,6 +9,7 @@ type TravelSettings = {
     /** Whether the user is setup for staging travelDot */
     testAccount?: boolean;
 
+    /** When the user last requested travel access that is waiting on a guide review, or null once the request no longer needs one */
     lastTravelSignupRequestTime?: string | null;
 };
 
