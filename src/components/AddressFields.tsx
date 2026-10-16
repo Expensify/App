@@ -7,6 +7,7 @@ import type {Country} from '@src/CONST';
 import CONST from '@src/CONST';
 import INPUT_IDS from '@src/types/form/HomeAddressForm';
 
+import {CONST as COMMON_CONST} from 'expensify-common';
 import React, {useState} from 'react';
 import {View} from 'react-native';
 
@@ -43,6 +44,9 @@ function AddressFields({street1, street2, city, state, zip, defaultCountry, coun
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [stateValue, setStateValue] = useState(state ?? '');
+
+    // The state list only has US states, so a state kept from another country shows as empty
+    const usStateValue = stateValue in COMMON_CONST.STATES ? stateValue : '';
 
     // A state from another country isn't valid for the new one
     const updateState = (value: unknown, key: unknown) => {
@@ -99,7 +103,7 @@ function AddressFields({street1, street2, city, state, zip, defaultCountry, coun
                     <InputWrapper
                         InputComponent={StatePicker}
                         inputID={INPUT_IDS.STATE}
-                        value={stateValue}
+                        value={usStateValue}
                         onValueChange={updateState}
                     />
                 </View>
