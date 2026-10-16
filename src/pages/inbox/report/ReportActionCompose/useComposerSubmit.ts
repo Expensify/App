@@ -84,8 +84,7 @@ function useComposerSubmit(reportID: string) {
 
         if (attachmentFileRef.current) {
             const attachments = attachmentFileRef.current;
-            const willOpenThread = shouldRespondInThread && (!Array.isArray(attachments) || attachments.length === 1);
-            const conciergeThreadReportID = willOpenThread ? generateReportID() : undefined;
+            const conciergeThreadReportID = shouldRespondInThread ? generateReportID() : undefined;
             addAttachmentWithComment({
                 report: targetReport,
                 notifyReportID: reportID,
