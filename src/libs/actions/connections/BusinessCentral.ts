@@ -48,6 +48,12 @@ type BusinessCentralCodingUpdate = {
     customerMappings?: Partial<Record<keyof BusinessCentralCustomerMappings, BusinessCentralMappingValue | null>>;
 };
 
+/** Config sections whose settings each update on their own */
+type BusinessCentralConfigSections = {
+    export: BusinessCentralExport;
+    sync: BusinessCentralSync;
+};
+
 function connectToBusinessCentral(policyID: string, credentials: Omit<ConnectPolicyToBusinessCentralParams, 'policyID'>) {
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS>> = [
         {
@@ -334,13 +340,14 @@ function updateBusinessCentralCustomerMapping(
 }
 
 /**
- * Builds the Onyx updates for a change to one export setting. The pending and error state lives under the setting's own key.
+ * Builds the Onyx updates for a change to one export or payment sync setting. The pending and error state lives under the setting's own key.
  */
-function prepareBusinessCentralExportOnyxData<TSettingName extends keyof BusinessCentralExport>(
+function prepareBusinessCentralConfigSectionOnyxData<TSection extends keyof BusinessCentralConfigSections, TSettingName extends keyof BusinessCentralConfigSections[TSection]>(
     policyID: string,
+    section: TSection,
     settingName: TSettingName,
-    settingValue: BusinessCentralExport[TSettingName],
-    oldSettingValue: BusinessCentralExport[TSettingName] | null,
+    settingValue: BusinessCentralConfigSections[TSection][TSettingName],
+    oldSettingValue: BusinessCentralConfigSections[TSection][TSettingName] | null,
 ) {
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
         {
@@ -350,7 +357,7 @@ function prepareBusinessCentralExportOnyxData<TSettingName extends keyof Busines
                 connections: {
                     [CONST.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL]: {
                         config: {
-                            export: {
+                            [section]: {
                                 [settingName]: settingValue,
                             },
                             pendingFields: {
@@ -392,7 +399,7 @@ function prepareBusinessCentralExportOnyxData<TSettingName extends keyof Busines
                 connections: {
                     [CONST.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL]: {
                         config: {
-                            export: {
+                            [section]: {
                                 [settingName]: oldSettingValue,
                             },
                             pendingFields: {
@@ -412,19 +419,19 @@ function prepareBusinessCentralExportOnyxData<TSettingName extends keyof Busines
 }
 
 function updateBusinessCentralExporter(policyID: string, email: BusinessCentralExport['exporter'], oldEmail?: BusinessCentralExport['exporter']) {
-    const onyxData = prepareBusinessCentralExportOnyxData(policyID, CONST.BUSINESS_CENTRAL_CONFIG.EXPORTER, email, oldEmail ?? null);
+    const onyxData = prepareBusinessCentralConfigSectionOnyxData(policyID, 'export', CONST.BUSINESS_CENTRAL_CONFIG.EXPORTER, email, oldEmail ?? null);
     const parameters: UpdateBusinessCentralExporterParams = {policyID, email};
     write(WRITE_COMMANDS.UPDATE_BUSINESS_CENTRAL_EXPORTER, parameters, onyxData);
 }
 
 function updateBusinessCentralExportDate(policyID: string, value: BusinessCentralExport['exportDate'], oldValue?: BusinessCentralExport['exportDate']) {
-    const onyxData = prepareBusinessCentralExportOnyxData(policyID, CONST.BUSINESS_CENTRAL_CONFIG.EXPORT_DATE, value, oldValue ?? null);
+    const onyxData = prepareBusinessCentralConfigSectionOnyxData(policyID, 'export', CONST.BUSINESS_CENTRAL_CONFIG.EXPORT_DATE, value, oldValue ?? null);
     const parameters: UpdateBusinessCentralExportDateParams = {policyID, value};
     write(WRITE_COMMANDS.UPDATE_BUSINESS_CENTRAL_EXPORT_DATE, parameters, onyxData);
 }
 
 function updateBusinessCentralReimbursableExpensesExportDestination(policyID: string, value: BusinessCentralExport['reimbursable'], oldValue?: BusinessCentralExport['reimbursable']) {
-    const onyxData = prepareBusinessCentralExportOnyxData(policyID, CONST.BUSINESS_CENTRAL_CONFIG.REIMBURSABLE, value, oldValue ?? null);
+    const onyxData = prepareBusinessCentralConfigSectionOnyxData(policyID, 'export', CONST.BUSINESS_CENTRAL_CONFIG.REIMBURSABLE, value, oldValue ?? null);
     const parameters: UpdateBusinessCentralReimbursableExpensesExportDestinationParams = {policyID, value};
     write(WRITE_COMMANDS.UPDATE_BUSINESS_CENTRAL_REIMBURSABLE_EXPENSES_EXPORT_DESTINATION, parameters, onyxData);
 }
@@ -434,7 +441,7 @@ function updateBusinessCentralNonReimbursableExpensesExportDestination(
     value: BusinessCentralExport['nonReimbursable'],
     oldValue?: BusinessCentralExport['nonReimbursable'],
 ) {
-    const onyxData = prepareBusinessCentralExportOnyxData(policyID, CONST.BUSINESS_CENTRAL_CONFIG.NON_REIMBURSABLE, value, oldValue ?? null);
+    const onyxData = prepareBusinessCentralConfigSectionOnyxData(policyID, 'export', CONST.BUSINESS_CENTRAL_CONFIG.NON_REIMBURSABLE, value, oldValue ?? null);
     const parameters: UpdateBusinessCentralNonreimbursableExpensesExportDestinationParams = {policyID, value};
     write(WRITE_COMMANDS.UPDATE_BUSINESS_CENTRAL_NONREIMBURSABLE_EXPENSES_EXPORT_DESTINATION, parameters, onyxData);
 }
@@ -444,7 +451,7 @@ function updateBusinessCentralReimbursableAccount(
     bankAccountID: BusinessCentralExport['reimbursableAccount'],
     oldBankAccountID?: BusinessCentralExport['reimbursableAccount'],
 ) {
-    const onyxData = prepareBusinessCentralExportOnyxData(policyID, CONST.BUSINESS_CENTRAL_CONFIG.REIMBURSABLE_ACCOUNT, bankAccountID, oldBankAccountID ?? null);
+    const onyxData = prepareBusinessCentralConfigSectionOnyxData(policyID, 'export', CONST.BUSINESS_CENTRAL_CONFIG.REIMBURSABLE_ACCOUNT, bankAccountID, oldBankAccountID ?? null);
     const parameters: UpdateBusinessCentralReimbursableAccountParams = {policyID, value: bankAccountID};
     write(WRITE_COMMANDS.UPDATE_BUSINESS_CENTRAL_REIMBURSABLE_ACCOUNT, parameters, onyxData);
 }
@@ -454,13 +461,13 @@ function updateBusinessCentralNonReimbursableAccount(
     bankAccountID: BusinessCentralExport['nonReimbursableAccount'],
     oldBankAccountID?: BusinessCentralExport['nonReimbursableAccount'],
 ) {
-    const onyxData = prepareBusinessCentralExportOnyxData(policyID, CONST.BUSINESS_CENTRAL_CONFIG.NON_REIMBURSABLE_ACCOUNT, bankAccountID, oldBankAccountID ?? null);
+    const onyxData = prepareBusinessCentralConfigSectionOnyxData(policyID, 'export', CONST.BUSINESS_CENTRAL_CONFIG.NON_REIMBURSABLE_ACCOUNT, bankAccountID, oldBankAccountID ?? null);
     const parameters: UpdateBusinessCentralNonreimbursableAccountParams = {policyID, value: bankAccountID};
     write(WRITE_COMMANDS.UPDATE_BUSINESS_CENTRAL_NONREIMBURSABLE_ACCOUNT, parameters, onyxData);
 }
 
 function updateBusinessCentralDefaultVendor(policyID: string, vendorID: BusinessCentralExport['defaultVendorID'], oldVendorID?: BusinessCentralExport['defaultVendorID']) {
-    const onyxData = prepareBusinessCentralExportOnyxData(policyID, CONST.BUSINESS_CENTRAL_CONFIG.DEFAULT_VENDOR_ID, vendorID, oldVendorID ?? null);
+    const onyxData = prepareBusinessCentralConfigSectionOnyxData(policyID, 'export', CONST.BUSINESS_CENTRAL_CONFIG.DEFAULT_VENDOR_ID, vendorID, oldVendorID ?? null);
     const parameters: UpdateBusinessCentralDefaultVendorParams = {policyID, vendorID};
     write(WRITE_COMMANDS.UPDATE_BUSINESS_CENTRAL_DEFAULT_VENDOR, parameters, onyxData);
 }
@@ -471,7 +478,7 @@ function updateBusinessCentralPaymentMethod(
     paymentMethodCode: BusinessCentralExport['paymentMethodCode'],
     oldPaymentMethodCode?: BusinessCentralExport['paymentMethodCode'],
 ) {
-    const onyxData = prepareBusinessCentralExportOnyxData(policyID, CONST.BUSINESS_CENTRAL_CONFIG.PAYMENT_METHOD_CODE, paymentMethodCode, oldPaymentMethodCode ?? null);
+    const onyxData = prepareBusinessCentralConfigSectionOnyxData(policyID, 'export', CONST.BUSINESS_CENTRAL_CONFIG.PAYMENT_METHOD_CODE, paymentMethodCode, oldPaymentMethodCode ?? null);
     const parameters: UpdateBusinessCentralPaymentMethodParams = {policyID, value: paymentMethodCode};
     write(WRITE_COMMANDS.UPDATE_BUSINESS_CENTRAL_PAYMENT_METHOD, parameters, onyxData);
 }
@@ -481,7 +488,7 @@ function updateBusinessCentralExportToNextOpenPeriod(
     enabled: BusinessCentralExport['exportToNextOpenPeriod'],
     oldEnabled?: BusinessCentralExport['exportToNextOpenPeriod'],
 ) {
-    const onyxData = prepareBusinessCentralExportOnyxData(policyID, CONST.BUSINESS_CENTRAL_CONFIG.EXPORT_TO_NEXT_OPEN_PERIOD, enabled, oldEnabled ?? null);
+    const onyxData = prepareBusinessCentralConfigSectionOnyxData(policyID, 'export', CONST.BUSINESS_CENTRAL_CONFIG.EXPORT_TO_NEXT_OPEN_PERIOD, enabled, oldEnabled ?? null);
     const parameters: UpdateBusinessCentralExportToNextOpenPeriodParams = {policyID, enabled};
     write(WRITE_COMMANDS.UPDATE_BUSINESS_CENTRAL_EXPORT_TO_NEXT_OPEN_PERIOD, parameters, onyxData);
 }
@@ -491,19 +498,19 @@ function updateBusinessCentralAccountingMethod(
     accountingMethod: BusinessCentralExport['accountingMethod'],
     oldAccountingMethod?: BusinessCentralExport['accountingMethod'],
 ) {
-    const onyxData = prepareBusinessCentralExportOnyxData(policyID, CONST.BUSINESS_CENTRAL_CONFIG.ACCOUNTING_METHOD, accountingMethod, oldAccountingMethod ?? null);
+    const onyxData = prepareBusinessCentralConfigSectionOnyxData(policyID, 'export', CONST.BUSINESS_CENTRAL_CONFIG.ACCOUNTING_METHOD, accountingMethod, oldAccountingMethod ?? null);
     const parameters: UpdateBusinessCentralAccountingMethodParams = {policyID, accountingMethod};
     write(WRITE_COMMANDS.UPDATE_BUSINESS_CENTRAL_ACCOUNTING_METHOD, parameters, onyxData);
 }
 
 function updateBusinessCentralPostingMode(policyID: string, postingMode: BusinessCentralExport['postingMode'], oldPostingMode?: BusinessCentralExport['postingMode']) {
-    const onyxData = prepareBusinessCentralExportOnyxData(policyID, CONST.BUSINESS_CENTRAL_CONFIG.POSTING_MODE, postingMode, oldPostingMode ?? null);
+    const onyxData = prepareBusinessCentralConfigSectionOnyxData(policyID, 'export', CONST.BUSINESS_CENTRAL_CONFIG.POSTING_MODE, postingMode, oldPostingMode ?? null);
     const parameters: UpdateBusinessCentralPostingModeParams = {policyID, postingMode};
     write(WRITE_COMMANDS.UPDATE_BUSINESS_CENTRAL_POSTING_MODE, parameters, onyxData);
 }
 
 function updateBusinessCentralAutoCreateEntities(policyID: string, enabled: BusinessCentralExport['autoCreateEntities'], oldEnabled?: BusinessCentralExport['autoCreateEntities']) {
-    const onyxData = prepareBusinessCentralExportOnyxData(policyID, CONST.BUSINESS_CENTRAL_CONFIG.AUTO_CREATE_ENTITIES, enabled, oldEnabled ?? null);
+    const onyxData = prepareBusinessCentralConfigSectionOnyxData(policyID, 'export', CONST.BUSINESS_CENTRAL_CONFIG.AUTO_CREATE_ENTITIES, enabled, oldEnabled ?? null);
     const parameters: UpdateBusinessCentralAutoCreateEntitiesParams = {policyID, enabled};
     write(WRITE_COMMANDS.UPDATE_BUSINESS_CENTRAL_AUTO_CREATE_ENTITIES, parameters, onyxData);
 }
@@ -576,86 +583,8 @@ function updateBusinessCentralAutoSync(policyID: string, enabled: boolean, oldEn
     write(WRITE_COMMANDS.UPDATE_BUSINESS_CENTRAL_AUTO_SYNC, parameters, {optimisticData, successData, failureData});
 }
 
-/**
- * Builds the Onyx updates for a change to one payment sync setting. The pending and error state lives under the setting's own key.
- */
-function prepareBusinessCentralSyncOnyxData<TSettingName extends keyof BusinessCentralSync>(
-    policyID: string,
-    settingName: TSettingName,
-    settingValue: BusinessCentralSync[TSettingName],
-    oldSettingValue: BusinessCentralSync[TSettingName] | null,
-) {
-    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-            value: {
-                connections: {
-                    [CONST.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL]: {
-                        config: {
-                            sync: {
-                                [settingName]: settingValue,
-                            },
-                            pendingFields: {
-                                [settingName]: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
-                            },
-                            errorFields: {
-                                [settingName]: null,
-                            },
-                        },
-                    },
-                },
-            },
-        },
-    ];
-
-    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-            value: {
-                connections: {
-                    [CONST.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL]: {
-                        config: {
-                            pendingFields: {
-                                [settingName]: null,
-                            },
-                        },
-                    },
-                },
-            },
-        },
-    ];
-
-    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-            value: {
-                connections: {
-                    [CONST.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL]: {
-                        config: {
-                            sync: {
-                                [settingName]: oldSettingValue,
-                            },
-                            pendingFields: {
-                                [settingName]: null,
-                            },
-                            errorFields: {
-                                [settingName]: getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
-                            },
-                        },
-                    },
-                },
-            },
-        },
-    ];
-
-    return {optimisticData, successData, failureData};
-}
-
 function updateBusinessCentralSyncReimbursedReports(policyID: string, enabled: BusinessCentralSync['syncReimbursedReports'], oldEnabled?: BusinessCentralSync['syncReimbursedReports']) {
-    const onyxData = prepareBusinessCentralSyncOnyxData(policyID, CONST.BUSINESS_CENTRAL_CONFIG.SYNC_REIMBURSED_REPORTS, enabled, oldEnabled ?? null);
+    const onyxData = prepareBusinessCentralConfigSectionOnyxData(policyID, 'sync', CONST.BUSINESS_CENTRAL_CONFIG.SYNC_REIMBURSED_REPORTS, enabled, oldEnabled ?? null);
     const parameters: UpdateBusinessCentralSyncReimbursedReportsParams = {policyID, enabled};
     write(WRITE_COMMANDS.UPDATE_BUSINESS_CENTRAL_SYNC_REIMBURSED_REPORTS, parameters, onyxData);
 }
@@ -665,7 +594,7 @@ function updateBusinessCentralReimbursementBankAccount(
     bankAccountID: BusinessCentralSync['reimbursementBankAccountID'],
     oldBankAccountID?: BusinessCentralSync['reimbursementBankAccountID'],
 ) {
-    const onyxData = prepareBusinessCentralSyncOnyxData(policyID, CONST.BUSINESS_CENTRAL_CONFIG.REIMBURSEMENT_BANK_ACCOUNT_ID, bankAccountID, oldBankAccountID ?? null);
+    const onyxData = prepareBusinessCentralConfigSectionOnyxData(policyID, 'sync', CONST.BUSINESS_CENTRAL_CONFIG.REIMBURSEMENT_BANK_ACCOUNT_ID, bankAccountID, oldBankAccountID ?? null);
     const parameters: UpdateBusinessCentralReimbursementBankAccountParams = {policyID, reimbursementBankAccountID: bankAccountID};
     write(WRITE_COMMANDS.UPDATE_BUSINESS_CENTRAL_REIMBURSEMENT_BANK_ACCOUNT, parameters, onyxData);
 }
@@ -675,7 +604,7 @@ function updateBusinessCentralSyncExpensifyCardSettlements(
     enabled: BusinessCentralSync['syncExpensifyCardSettlements'],
     oldEnabled?: BusinessCentralSync['syncExpensifyCardSettlements'],
 ) {
-    const onyxData = prepareBusinessCentralSyncOnyxData(policyID, CONST.BUSINESS_CENTRAL_CONFIG.SYNC_EXPENSIFY_CARD_SETTLEMENTS, enabled, oldEnabled ?? null);
+    const onyxData = prepareBusinessCentralConfigSectionOnyxData(policyID, 'sync', CONST.BUSINESS_CENTRAL_CONFIG.SYNC_EXPENSIFY_CARD_SETTLEMENTS, enabled, oldEnabled ?? null);
     const parameters: UpdateBusinessCentralSyncExpensifyCardSettlementsParams = {policyID, enabled};
     write(WRITE_COMMANDS.UPDATE_BUSINESS_CENTRAL_SYNC_EXPENSIFY_CARD_SETTLEMENTS, parameters, onyxData);
 }
@@ -685,7 +614,7 @@ function updateBusinessCentralSettlementsBankAccount(
     bankAccountID: BusinessCentralSync['settlementsBankAccountID'],
     oldBankAccountID?: BusinessCentralSync['settlementsBankAccountID'],
 ) {
-    const onyxData = prepareBusinessCentralSyncOnyxData(policyID, CONST.BUSINESS_CENTRAL_CONFIG.SETTLEMENTS_BANK_ACCOUNT_ID, bankAccountID, oldBankAccountID ?? null);
+    const onyxData = prepareBusinessCentralConfigSectionOnyxData(policyID, 'sync', CONST.BUSINESS_CENTRAL_CONFIG.SETTLEMENTS_BANK_ACCOUNT_ID, bankAccountID, oldBankAccountID ?? null);
     const parameters: UpdateBusinessCentralSettlementsBankAccountParams = {policyID, settlementsBankAccountID: bankAccountID};
     write(WRITE_COMMANDS.UPDATE_BUSINESS_CENTRAL_SETTLEMENTS_BANK_ACCOUNT, parameters, onyxData);
 }
