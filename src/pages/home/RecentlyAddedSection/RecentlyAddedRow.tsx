@@ -40,7 +40,7 @@ type RecentlyAddedRowProps = {
 function RecentlyAddedRow({expense, onPress, shouldShowSeparator, shouldShowReceiptPreview, rowStyle}: RecentlyAddedRowProps) {
     const styles = useThemeStyles();
     const {convertToDisplayString} = useCurrencyListActions();
-    const {dateFnsLocale} = useLocalize();
+    const {dateFnsLocale, translate} = useLocalize();
 
     const formattedDate = DateUtils.formatWithUTCTimeZone(
         expense.created,
@@ -78,6 +78,12 @@ function RecentlyAddedRow({expense, onPress, shouldShowSeparator, shouldShowRece
                         style={styles.mutedNormalTextLabel}
                     >
                         {formattedDate}
+                        {hasFailedScanAmountPlaceholder && (
+                            <>
+                                {` ${CONST.DOT_SEPARATOR} `}
+                                <Text style={styles.textLabelError}>{translate('violations.shortName.smartscanFailed')}</Text>
+                            </>
+                        )}
                     </Text>
                     <TypeCell
                         transactionItem={expense.transaction}

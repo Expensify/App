@@ -314,7 +314,7 @@ describe('RecentlyAddedSection', () => {
             expect(screen.queryByTestId('recentlyAddedEmptyState')).not.toBeOnTheScreen();
         });
 
-        it('hides a failed-scan placeholder amount', async () => {
+        it('hides a failed-scan placeholder amount and shows its failure status', async () => {
             // Given a failed Scan whose zero amount is only a placeholder
             const failedScanRow = {
                 ...ROW_1,
@@ -332,8 +332,9 @@ describe('RecentlyAddedSection', () => {
             renderRecentlyAddedSection();
             await waitForBatchedUpdatesWithAct();
 
-            // Then the placeholder is not formatted as a real zero amount
+            // Then the placeholder is not formatted as a real zero amount and its failed state is clear
             expect(screen.queryByText('USD 0')).not.toBeOnTheScreen();
+            expect(screen.getByText(/violations\.shortName\.smartscanFailed/)).toBeOnTheScreen();
         });
 
         it('shows a zero amount that the user explicitly confirmed', async () => {
@@ -357,6 +358,7 @@ describe('RecentlyAddedSection', () => {
 
             // Then the confirmed zero remains visible
             expect(screen.getByText('USD 0')).toBeOnTheScreen();
+            expect(screen.queryByText(/violations\.shortName\.smartscanFailed/)).not.toBeOnTheScreen();
         });
 
         it('shows a zero amount on a settled report', async () => {
@@ -380,6 +382,7 @@ describe('RecentlyAddedSection', () => {
 
             // Then the settled zero remains visible
             expect(screen.getByText('USD 0')).toBeOnTheScreen();
+            expect(screen.queryByText(/violations\.shortName\.smartscanFailed/)).not.toBeOnTheScreen();
         });
     });
 
