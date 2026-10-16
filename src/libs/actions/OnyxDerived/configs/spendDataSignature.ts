@@ -46,12 +46,15 @@ function getCardFingerprint(transaction: Transaction | undefined): string {
  * The pending flag moves it again once the server accepts a write, since a refetch sent before that can miss it.
  * A new expense sets `pendingAction`, an edit only sets `pendingFields`.
  */
+function hasPendingWrite(transaction: Transaction): boolean {
+    return !!transaction.pendingAction || Object.values(transaction.pendingFields ?? {}).some((pendingField) => !!pendingField);
+}
+
 function getFingerprint(transaction: Transaction | undefined, cardFingerprint: string): string {
     if (!transaction) {
         return '';
     }
-    const hasPendingWrite = !!transaction.pendingAction || Object.values(transaction.pendingFields ?? {}).some((pendingField) => !!pendingField);
-    return [cardFingerprint, transaction.reimbursable, transaction.merchant, transaction.modifiedMerchant, transaction.category, hasPendingWrite].join('|');
+    return [cardFingerprint, transaction.reimbursable, transaction.merchant, transaction.modifiedMerchant, transaction.category, hasPendingWrite(transaction)].join('|');
 }
 
 function getSeenTransaction(transaction: Transaction | undefined): SeenTransaction {
@@ -95,6 +98,13 @@ export default createOnyxDerivedValueConfig({
             }
 
             const seen = getSeenTransaction(transaction);
+
+            // A key seen for the first time is usually a load, like opening an expense the cards only know from their
+            // snapshot, so only a local create counts. Recording it lets a later edit to it count.
+            if (!lastSeen && transaction && !hasPendingWrite(transaction)) {
+                lastSeenTransactions[key] = seen;
+                continue;
+            }
             if (seen.fingerprint === lastSeen?.fingerprint) {
                 continue;
             }
