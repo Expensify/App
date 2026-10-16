@@ -225,7 +225,7 @@ function DynamicIOURequestStepDistanceRate({
             if (isEditingSplit && transaction) {
                 setDraftSplitTransaction(
                     transaction.transactionID,
-                    splitDraftTransaction,
+                    splitDraftTransaction ?? transaction,
                     {customUnitRateID},
                     getCurrencyDecimals,
                     getCurrencySymbol,

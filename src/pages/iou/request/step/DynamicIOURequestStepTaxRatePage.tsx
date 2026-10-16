@@ -141,7 +141,13 @@ function DynamicIOURequestStepTaxRatePage({
         // stale tax is retained on save (especially offline). Handle it before the generic editing clear below.
         if (shouldClearTax && isEditingSplitBill) {
             if (currentTransaction) {
-                setDraftSplitTransaction(currentTransaction.transactionID, splitDraftTransaction, {taxAmount: 0, taxCode: '', taxValue: ''}, getCurrencyDecimals, getCurrencySymbol);
+                setDraftSplitTransaction(
+                    currentTransaction.transactionID,
+                    splitDraftTransaction ?? transaction,
+                    {taxAmount: 0, taxCode: '', taxValue: ''},
+                    getCurrencyDecimals,
+                    getCurrencySymbol,
+                );
             }
             saveAndNavigateBack();
             return;
@@ -162,7 +168,7 @@ function DynamicIOURequestStepTaxRatePage({
         if (isEditingSplitBill) {
             setDraftSplitTransaction(
                 currentTransaction.transactionID,
-                splitDraftTransaction,
+                splitDraftTransaction ?? transaction,
                 {
                     taxAmount: convertToBackendAmount(taxAmount ?? 0),
                     taxCode: taxes.code,

@@ -57,6 +57,7 @@ function DescriptionField({isDescriptionRequired, policy, descriptionHint = ''}:
     const [splitDraftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`);
 
     const descriptionState = useTransactionSelector(transactionID, descriptionStateSelector);
+    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
 
     // `getDescription` returns raw `transaction.comment.comment`, which can be HTML for saved transactions.
     // We normalize to markdown so both the read-only and editable inputs receive a consistent format.
@@ -94,7 +95,7 @@ function DescriptionField({isDescriptionRequired, policy, descriptionHint = ''}:
         // Trimming is deferred to submission time, not during keystrokes, to avoid
         // silently stripping trailing spaces as the user types.
         if (isEditingSplitBill) {
-            setDraftSplitTransaction(transactionID, splitDraftTransaction, {comment: newDescription}, getCurrencyDecimals, getCurrencySymbol);
+            setDraftSplitTransaction(transactionID, splitDraftTransaction ?? transaction, {comment: newDescription}, getCurrencyDecimals, getCurrencySymbol);
             return;
         }
 
