@@ -1180,7 +1180,7 @@ const translations: TranslationDeepObject<typeof en> = {
             title: 'Voyez où va votre argent',
             subtitle: 'Une fois que vous aurez des dépenses, vous verrez des tendances de dépenses, les principaux marchands et plus encore.',
         },
-        compare: {label: 'Comparer', previousPeriod: 'Période précédente', average: 'Moyenne'},
+        compare: {label: 'Comparer', previousPeriod: 'Période précédente', average: 'Moyenne', typical: 'Typique'},
     },
     allSettingsScreen: {
         subscription: 'Abonnement',
