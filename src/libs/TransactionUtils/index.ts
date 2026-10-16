@@ -250,12 +250,12 @@ function getDisplayTransactionWithoutInvalidCommuterExclusion({
     const canRestoreSavedReducedValues =
         modifiedAmount !== undefined &&
         !!transaction.modifiedMerchant &&
-        storedUnit &&
+        !!storedUnit &&
         typeof reducedDistance === 'number' &&
         reducedDistance > 0 &&
         reducedDistance < fullDistance &&
         Number.isFinite(storedReducedAmount) &&
-        storedReducedMerchant?.startsWith(`${reducedDistance.toFixed(CONST.DISTANCE_DECIMAL_PLACES)} ${storedUnit} ${CONST.DISTANCE_MERCHANT_SEPARATOR} `);
+        !!storedReducedMerchant?.startsWith(`${reducedDistance.toFixed(CONST.DISTANCE_DECIMAL_PLACES)} ${storedUnit} ${CONST.DISTANCE_MERCHANT_SEPARATOR} `);
     const restoreSavedReducedValues = () => {
         if (!canRestoreSavedReducedValues || !storedReducedMerchant || typeof reducedDistance !== 'number') {
             return transaction;
