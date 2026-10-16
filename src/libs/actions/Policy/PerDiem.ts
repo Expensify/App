@@ -187,6 +187,24 @@ function clearPolicyPerDiemRatesErrorFields(policyID: string, customUnitID: stri
     });
 }
 
+function clearPerDiemRateError(policyID: string, customUnitID: string, rateID: string) {
+    if (!policyID || !customUnitID || !rateID) {
+        return;
+    }
+
+    Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
+        customUnits: {
+            [customUnitID]: {
+                rates: {
+                    [rateID]: {
+                        errors: null,
+                    },
+                },
+            },
+        },
+    });
+}
+
 type DeletePerDiemCustomUnitOnyxType = Omit<CustomUnit, 'rates'> & {
     rates: Record<string, NullishDeep<Rate> | null>;
 };
@@ -415,6 +433,7 @@ export {
     importPerDiemRates,
     downloadPerDiemCSV,
     clearPolicyPerDiemRatesErrorFields,
+    clearPerDiemRateError,
     deleteWorkspacePerDiemRates,
     editPerDiemRateDestination,
     editPerDiemRateSubrate,
