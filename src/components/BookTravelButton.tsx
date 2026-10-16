@@ -25,6 +25,7 @@ import colors from '@styles/theme/colors';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
+import {isTravelOptedOutSelector} from '@src/selectors/Account';
 import type WithSentryLabel from '@src/types/utils/SentryLabel';
 
 import type {ReactElement} from 'react';
@@ -73,6 +74,7 @@ function BookTravelButton({
     const [travelSettings] = useOnyx(ONYXKEYS.NVP_TRAVEL_SETTINGS);
     const primaryContactMethod = usePrimaryContactMethod();
     const {isBetaEnabled} = usePermissions();
+    const [isTravelOptedOut] = useOnyx(ONYXKEYS.ACCOUNT, {selector: isTravelOptedOutSelector});
     const {showConfirmModal} = useConfirmModal();
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const {login: currentUserLogin} = useCurrentUserPersonalDetails();
@@ -116,7 +118,7 @@ function BookTravelButton({
     const bookATrip = () => {
         setErrorMessage('');
 
-        if (isBetaEnabled(CONST.BETAS.PREVENT_SPOTNANA_TRAVEL)) {
+        if (isTravelOptedOut) {
             showConfirmModal({
                 title: translate('travel.blockedFeatureModal.title'),
                 titleStyles: styles.textHeadlineH1,
