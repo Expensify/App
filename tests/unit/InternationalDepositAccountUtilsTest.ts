@@ -1,5 +1,5 @@
 // cspell:words SBININBB SBININ asdfgh
-import {getValidationErrors} from '@pages/settings/Wallet/InternationalDepositAccount/utils';
+import {getValidationErrors, testValidation} from '@pages/settings/Wallet/InternationalDepositAccount/utils';
 
 import CONST from '@src/CONST';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
@@ -10,10 +10,10 @@ import {translateLocal} from '../utils/TestHelper';
 
 const providerError = 'Beneficiary Bank BIC is invalid. Must be 8 or 11 characters long';
 
-function getFieldsMap(fieldName: string = INPUT_IDS.ADDITIONAL_DATA.CORPAY.SWIFT_BIC_CODE, regEx: string = CONST.CORPAY_FIELDS.STRICT_SWIFT_BIC_REGEX): CorpayFieldsMap {
+function getFieldsMap(fieldName: string = INPUT_IDS.ADDITIONAL_DATA.CORPAY.SWIFT_BIC_CODE, regEx: string = CONST.CORPAY_FIELDS.STRICT_SWIFT_BIC_REGEX, isRequired = true): CorpayFieldsMap {
     return createMock<CorpayFieldsMap>({
         [fieldName]: {
-            isRequired: true,
+            isRequired,
             validationRules: [{regEx, errorMessage: providerError}],
         },
     });
@@ -99,5 +99,29 @@ describe('International deposit account validation', () => {
         expect(errors).toEqual({
             swiftBicCode: `${translateLocal('addPersonalBankAccount.swiftBicFormatError')}\nAngle brackets are not allowed`,
         });
+    });
+
+    it.each(['', '   '])('skips the validation rules when an optional field is left blank (%p)', (routingCode) => {
+        // Given an optional field whose rule doesn't match an empty value, like Poland's secondary routing code.
+        const fieldsMap = getFieldsMap('routingCode', '^[0-9]{8}$', false);
+
+        // When the user leaves it blank.
+        const errors = getValidationErrors({routingCode}, fieldsMap, translateLocal);
+
+        // Then it doesn't block the user, since there is nothing to validate.
+        expect(errors).toEqual({});
+        expect(testValidation({routingCode}, fieldsMap)).toBe(true);
+    });
+
+    it('still validates an optional field when a value is provided', () => {
+        // Given an optional field with a format rule.
+        const fieldsMap = getFieldsMap('routingCode', '^[0-9]{8}$', false);
+
+        // When the user enters a value that doesn't match it.
+        const errors = getValidationErrors({routingCode: 'ABC'}, fieldsMap, translateLocal);
+
+        // Then the provider message is shown, so bad values don't reach Corpay.
+        expect(errors).toEqual({routingCode: providerError});
+        expect(testValidation({routingCode: 'ABC'}, fieldsMap)).toBe(false);
     });
 });
